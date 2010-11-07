@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd">
+
+	<!-- Database setup -->
+	<import resource="infrastructure.xml" />
+
+	<!-- Configure a DAO for User class -->
+	<bean id="userDao" class="org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean">
+		<property name="repositoryInterface" value="org.springframework.data.jpa.repository.sample.UserRepository" />
+		<property name="customImplementation">
+			<bean class="org.springframework.data.jpa.repository.sample.UserRepositoryImpl" />
+		</property>
+	</bean>
+	
+	<bean id="roleDao" class="org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean">
+		<property name="repositoryInterface" value="org.springframework.data.jpa.repository.sample.RoleRepository" />
+	</bean>
+
+	<!-- Necessary to get the entity manager injected into the factory bean -->
+	<bean class="org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor" />
+
+	<!-- Adds transaparent exception translation to the DAOs -->
+	<bean class="org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor" />
+
+	<!-- Adds dependency checks for setters annotated with @Required -->
+	<bean class="org.springframework.beans.factory.annotation.RequiredAnnotationBeanPostProcessor" />
+
+</beans>

@@ -1,0 +1,1 @@
+http\://www.springframework.org/schema/data/jpa=org.springframework.data.jpa.repository.config.JpaRepositoryNameSpaceHandler

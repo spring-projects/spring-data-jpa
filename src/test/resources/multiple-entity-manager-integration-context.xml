@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+	xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+	xsi:schemaLocation="http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/data/jpa http://www.springframework.org/schema/data/jpa/spring-jpa.xsd">
+
+	<import resource="infrastructure.xml" />
+
+	<bean id="abstractEntityManagerFactory"
+		class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean"
+		abstract="true">
+		<property name="dataSource" ref="dataSource" />
+		<property name="jpaVendorAdapter" ref="vendorAdaptor" />
+		<property name="jpaProperties" ref="jpaProperties" />
+		<property name="persistenceXmlLocation" value="classpath:META-INF/persistence2.xml" />
+	</bean>
+
+	<bean id="entityManagerFactory" parent="abstractEntityManagerFactory">
+		<property name="persistenceUnitName" value="first" />
+	</bean>
+
+	<bean id="entityManagerFactory-2" parent="abstractEntityManagerFactory">
+		<property name="persistenceUnitName" value="second" />
+		<property name="dataSource">
+			<jdbc:embedded-database type="HSQL" />
+		</property>
+	</bean>
+
+	<bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
+		<property name="entityManagerFactory" ref="entityManagerFactory" />
+	</bean>
+
+	<bean id="transactionManager-2" class="org.springframework.orm.jpa.JpaTransactionManager">
+		<property name="entityManagerFactory" ref="entityManagerFactory-2" />
+	</bean>
+
+	<jpa:repositories base-package="org.springframework.data.jpa.repository.sample"
+		entity-manager-factory-ref="entityManagerFactory">
+		<jpa:repository id="userRepository" />
+		<jpa:repository id="roleRepository" />
+	</jpa:repositories>
+
+	<jpa:repositories base-package="org.springframework.data.jpa.repository.sample"
+		entity-manager-factory-ref="entityManagerFactory-2"
+		transaction-manager-ref="transactionManager-2">
+		<jpa:repository id="auditableUserRepository" />
+	</jpa:repositories>
+
+</beans>

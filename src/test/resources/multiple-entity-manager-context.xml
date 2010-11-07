@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+	xmlns:repository="http://www.springframework.org/schema/data/repository"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/data/jpa http://www.springframework.org/schema/data/jpa/spring-jpa.xsd">
+
+    <bean id="entityManagerFactory" class="org.mockito.Mockito" factory-method="mock">
+        <constructor-arg value="org.hibernate.ejb.HibernateEntityManagerFactory" />
+        <constructor-arg ref="implementEntityManagerFactoryInfo" />
+    </bean>
+    
+    <bean id="secondEntityManagerFactory" class="org.mockito.Mockito" factory-method="mock">
+        <constructor-arg value="org.hibernate.ejb.HibernateEntityManagerFactory" />
+        <constructor-arg ref="implementEntityManagerFactoryInfo" />
+    </bean>
+    
+    <bean id="settings" class="org.mockito.Mockito" factory-method="withSettings" />
+    <bean id="implementEntityManagerFactoryInfo" factory-bean="settings" factory-method="extraInterfaces">
+      <constructor-arg value="org.springframework.orm.jpa.EntityManagerFactoryInfo" />
+    </bean>
+    
+    <bean class="org.springframework.data.jpa.repository.support.EntityManagerFactoryRefUnitTests$MockPreparingBeanPostProcessor" />
+    <bean class="org.springframework.data.jpa.repository.support.EntityManagerFactoryRefUnitTests$NoOpPersistenceExceptionTranslator" />
+    
+    <jpa:repositories base-package="org.springframework.data.jpa.repository.sample" entity-manager-factory-ref="secondEntityManagerFactory">
+        <jpa:repository id="userRepository" />
+        <jpa:repository id="roleRepository" />
+        <jpa:repository id="auditableUserRepository"/>
+    </jpa:repositories>
+
+</beans>
