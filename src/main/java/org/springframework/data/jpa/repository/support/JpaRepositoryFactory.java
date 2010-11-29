@@ -10,7 +10,6 @@ import org.springframework.data.jpa.repository.query.JpaQueryMethod;
 import org.springframework.data.jpa.repository.query.QueryExtractor;
 import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.data.repository.query.QueryLookupStrategy.Key;
-import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.support.RepositoryFactorySupport;
 import org.springframework.data.repository.support.RepositorySupport;
 import org.springframework.util.Assert;
@@ -21,7 +20,8 @@ import org.springframework.util.Assert;
  * 
  * @author Oliver Gierke
  */
-public class JpaRepositoryFactory extends RepositoryFactorySupport {
+public class JpaRepositoryFactory extends
+        RepositoryFactorySupport<JpaQueryMethod> {
 
     private final EntityManager entityManager;
 
@@ -79,7 +79,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
      * getQueryMethod(java.lang.reflect.Method)
      */
     @Override
-    protected QueryMethod getQueryMethod(Method method) {
+    protected JpaQueryMethod getQueryMethod(Method method) {
 
         QueryExtractor extractor =
                 PersistenceProvider.fromEntityManager(entityManager);
@@ -111,7 +111,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
      * (org.springframework.data.repository.query.QueryLookupStrategy.Key)
      */
     @Override
-    protected QueryLookupStrategy getQueryLookupStrategy(Key key) {
+    protected QueryLookupStrategy<JpaQueryMethod> getQueryLookupStrategy(Key key) {
 
         return JpaQueryLookupStrategy.create(entityManager, key);
     }

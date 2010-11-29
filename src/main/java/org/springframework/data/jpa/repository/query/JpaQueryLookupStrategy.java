@@ -21,7 +21,6 @@ import javax.persistence.EntityManager;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.data.repository.query.QueryLookupStrategy.Key;
-import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.RepositoryQuery;
 
 
@@ -39,7 +38,7 @@ public class JpaQueryLookupStrategy {
      * @author Oliver Gierke
      */
     private static abstract class AbstractQueryLookupStrategy implements
-            QueryLookupStrategy {
+            QueryLookupStrategy<JpaQueryMethod> {
 
         private EntityManager em;
 
@@ -57,9 +56,9 @@ public class JpaQueryLookupStrategy {
          * org.springframework.data.jpa.repository.query.QueryLookupStrategy
          * #resolveQuery(org.springframework.data.repository.query.QueryMethod)
          */
-        public final RepositoryQuery resolveQuery(QueryMethod method) {
+        public final RepositoryQuery resolveQuery(JpaQueryMethod method) {
 
-            return resolveQuery((JpaQueryMethod) method, em);
+            return resolveQuery(method, em);
         }
 
 
@@ -173,7 +172,8 @@ public class JpaQueryLookupStrategy {
      * @param key
      * @return
      */
-    public static QueryLookupStrategy create(EntityManager em, Key key) {
+    public static QueryLookupStrategy<JpaQueryMethod> create(EntityManager em,
+            Key key) {
 
         if (key == null) {
             return new CreateIfNotFoundQueryLookupStrategy(em);
