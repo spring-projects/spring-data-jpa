@@ -57,6 +57,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> extends
         JpaRepositorySupport<T, ID> {
 
     private final EntityManager em;
+    private final PersistenceProvider provider;
 
 
     public SimpleJpaRepository(Class<T> domainClass, EntityManager entityManager) {
@@ -65,6 +66,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> extends
 
         Assert.notNull(entityManager);
         this.em = entityManager;
+        this.provider = PersistenceProvider.fromEntityManager(entityManager);
     }
 
 
@@ -76,8 +78,6 @@ public class SimpleJpaRepository<T, ID extends Serializable> extends
 
     private String getCountQueryString() {
 
-        PersistenceProvider provider =
-                PersistenceProvider.fromEntityManager(em);
         String countQuery =
                 String.format(COUNT_QUERY_STRING,
                         provider.getCountQueryPlaceholder(), "%s");

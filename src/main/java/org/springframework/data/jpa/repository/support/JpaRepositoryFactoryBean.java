@@ -71,7 +71,7 @@ public class JpaRepositoryFactoryBean<T extends JpaRepository<?, ?>> extends
      * #createRepositoryFactory()
      */
     @Override
-    protected RepositoryFactorySupport<?> createRepositoryFactory() {
+    protected RepositoryFactorySupport createRepositoryFactory() {
 
         return createRepositoryFactory(entityManager);
     }
@@ -83,7 +83,7 @@ public class JpaRepositoryFactoryBean<T extends JpaRepository<?, ?>> extends
      * @param entityManager
      * @return
      */
-    protected RepositoryFactorySupport<?> createRepositoryFactory(
+    protected RepositoryFactorySupport createRepositoryFactory(
             EntityManager entityManager) {
 
         return new JpaRepositoryFactory(entityManager);

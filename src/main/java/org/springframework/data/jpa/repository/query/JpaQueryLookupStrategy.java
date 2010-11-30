@@ -16,6 +16,8 @@
 
 package org.springframework.data.jpa.repository.query;
 
+import java.lang.reflect.Method;
+
 import javax.persistence.EntityManager;
 
 import org.springframework.data.jpa.repository.Query;
@@ -38,14 +40,17 @@ public class JpaQueryLookupStrategy {
      * @author Oliver Gierke
      */
     private static abstract class AbstractQueryLookupStrategy implements
-            QueryLookupStrategy<JpaQueryMethod> {
+            QueryLookupStrategy {
 
-        private EntityManager em;
+        private final EntityManager em;
+        private final QueryExtractor provider;
 
 
-        public AbstractQueryLookupStrategy(EntityManager em) {
+        public AbstractQueryLookupStrategy(EntityManager em,
+                QueryExtractor extractor) {
 
             this.em = em;
+            this.provider = extractor;
         }
 
 
@@ -56,9 +61,9 @@ public class JpaQueryLookupStrategy {
          * org.springframework.data.jpa.repository.query.QueryLookupStrategy
          * #resolveQuery(org.springframework.data.repository.query.QueryMethod)
          */
-        public final RepositoryQuery resolveQuery(JpaQueryMethod method) {
+        public final RepositoryQuery resolveQuery(Method method) {
 
-            return resolveQuery(method, em);
+            return resolveQuery(new JpaQueryMethod(method, provider, em), em);
         }
 
 
@@ -74,9 +79,10 @@ public class JpaQueryLookupStrategy {
     private static class CreateQueryLookupStrategy extends
             AbstractQueryLookupStrategy {
 
-        public CreateQueryLookupStrategy(EntityManager em) {
+        public CreateQueryLookupStrategy(EntityManager em,
+                QueryExtractor extractor) {
 
-            super(em);
+            super(em, extractor);
         }
 
 
@@ -98,9 +104,10 @@ public class JpaQueryLookupStrategy {
     private static class DeclaredQueryLookupStrategy extends
             AbstractQueryLookupStrategy {
 
-        public DeclaredQueryLookupStrategy(EntityManager em) {
+        public DeclaredQueryLookupStrategy(EntityManager em,
+                QueryExtractor extractor) {
 
-            super(em);
+            super(em, extractor);
         }
 
 
@@ -143,11 +150,12 @@ public class JpaQueryLookupStrategy {
         private final CreateQueryLookupStrategy createStrategy;
 
 
-        public CreateIfNotFoundQueryLookupStrategy(EntityManager em) {
+        public CreateIfNotFoundQueryLookupStrategy(EntityManager em,
+                QueryExtractor extractor) {
 
-            super(em);
-            this.strategy = new DeclaredQueryLookupStrategy(em);
-            this.createStrategy = new CreateQueryLookupStrategy(em);
+            super(em, extractor);
+            this.strategy = new DeclaredQueryLookupStrategy(em, extractor);
+            this.createStrategy = new CreateQueryLookupStrategy(em, extractor);
         }
 
 
@@ -158,7 +166,7 @@ public class JpaQueryLookupStrategy {
             try {
                 return strategy.resolveQuery(method, em);
             } catch (IllegalStateException e) {
-                return createStrategy.resolveQuery(method);
+                return createStrategy.resolveQuery(method, em);
             }
         }
     }
@@ -172,20 +180,20 @@ public class JpaQueryLookupStrategy {
      * @param key
      * @return
      */
-    public static QueryLookupStrategy<JpaQueryMethod> create(EntityManager em,
-            Key key) {
+    public static QueryLookupStrategy create(EntityManager em, Key key,
+            QueryExtractor extractor) {
 
         if (key == null) {
-            return new CreateIfNotFoundQueryLookupStrategy(em);
+            return new CreateIfNotFoundQueryLookupStrategy(em, extractor);
         }
 
         switch (key) {
         case CREATE:
-            return new CreateQueryLookupStrategy(em);
+            return new CreateQueryLookupStrategy(em, extractor);
         case USE_DECLARED_QUERY:
-            return new DeclaredQueryLookupStrategy(em);
+            return new DeclaredQueryLookupStrategy(em, extractor);
         case CREATE_IF_NOT_FOUND:
-            return new CreateIfNotFoundQueryLookupStrategy(em);
+            return new CreateIfNotFoundQueryLookupStrategy(em, extractor);
         default:
             throw new IllegalArgumentException(String.format(
                     "Unsupported query lookup strategy %!", key));

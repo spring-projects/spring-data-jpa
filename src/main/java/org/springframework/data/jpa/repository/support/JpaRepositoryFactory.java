@@ -1,12 +1,10 @@
 package org.springframework.data.jpa.repository.support;
 
 import java.io.Serializable;
-import java.lang.reflect.Method;
 
 import javax.persistence.EntityManager;
 
 import org.springframework.data.jpa.repository.query.JpaQueryLookupStrategy;
-import org.springframework.data.jpa.repository.query.JpaQueryMethod;
 import org.springframework.data.jpa.repository.query.QueryExtractor;
 import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.data.repository.query.QueryLookupStrategy.Key;
@@ -20,10 +18,10 @@ import org.springframework.util.Assert;
  * 
  * @author Oliver Gierke
  */
-public class JpaRepositoryFactory extends
-        RepositoryFactorySupport<JpaQueryMethod> {
+public class JpaRepositoryFactory extends RepositoryFactorySupport {
 
     private final EntityManager entityManager;
+    private final QueryExtractor extractor;
 
 
     /**
@@ -35,6 +33,7 @@ public class JpaRepositoryFactory extends
 
         Assert.notNull(entityManager);
         this.entityManager = entityManager;
+        this.extractor = PersistenceProvider.fromEntityManager(entityManager);
     }
 
 
@@ -76,22 +75,6 @@ public class JpaRepositoryFactory extends
      * 
      * @see
      * org.springframework.data.repository.support.RepositoryFactorySupport#
-     * getQueryMethod(java.lang.reflect.Method)
-     */
-    @Override
-    protected JpaQueryMethod getQueryMethod(Method method) {
-
-        QueryExtractor extractor =
-                PersistenceProvider.fromEntityManager(entityManager);
-        return new JpaQueryMethod(method, extractor, entityManager);
-    }
-
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.springframework.data.repository.support.RepositoryFactorySupport#
      * getRepositoryClass()
      */
     @Override
@@ -111,8 +94,8 @@ public class JpaRepositoryFactory extends
      * (org.springframework.data.repository.query.QueryLookupStrategy.Key)
      */
     @Override
-    protected QueryLookupStrategy<JpaQueryMethod> getQueryLookupStrategy(Key key) {
+    protected QueryLookupStrategy getQueryLookupStrategy(Key key) {
 
-        return JpaQueryLookupStrategy.create(entityManager, key);
+        return JpaQueryLookupStrategy.create(entityManager, key, extractor);
     }
 }
