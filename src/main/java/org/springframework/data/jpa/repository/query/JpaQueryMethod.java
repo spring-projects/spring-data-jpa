@@ -81,7 +81,7 @@ public class JpaQueryMethod extends QueryMethod {
         }
 
         if (isPageQuery()) {
-            return new PagedExecution();
+            return new PagedExecution(getParameters());
         }
 
         if (isModifyingQuery()) {

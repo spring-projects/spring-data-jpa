@@ -90,7 +90,7 @@ public class JpaQueryLookupStrategy {
         protected RepositoryQuery resolveQuery(JpaQueryMethod method,
                 EntityManager em) {
 
-            return SimpleJpaQuery.construct(method, em);
+            return new PartTreeJpaQuery(method, em);
         }
     }
 

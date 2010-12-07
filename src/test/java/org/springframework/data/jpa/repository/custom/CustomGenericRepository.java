@@ -24,10 +24,10 @@ import org.springframework.data.repository.NoRepositoryBean;
 
 
 /**
- * Extension of {@link Repository} to be added on a custom repository
- * base class. This tests the facility to implement custom base class
- * functionality for all repository instances derived from this interface and
- * implementation base class.
+ * Extension of {@link Repository} to be added on a custom repository base
+ * class. This tests the facility to implement custom base class functionality
+ * for all repository instances derived from this interface and implementation
+ * base class.
  * 
  * @author Oliver Gierke
  */

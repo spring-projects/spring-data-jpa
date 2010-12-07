@@ -32,7 +32,7 @@ import org.springframework.data.repository.query.RepositoryQuery;
  * 
  * @author Oliver Gierke
  */
-final class NamedQuery extends AbstractJpaQuery {
+final class NamedQuery extends AbstractStringBasedJpaQuery {
 
     private static final Logger LOG = LoggerFactory.getLogger(NamedQuery.class);
 
@@ -121,9 +121,9 @@ final class NamedQuery extends AbstractJpaQuery {
      * .EntityManager, org.synyx.hades.dao.query.ParameterBinder)
      */
     @Override
-    protected Query createQuery(EntityManager em, ParameterBinder binder) {
+    protected Query createQuery(ParameterBinder binder) {
 
-        return em.createNamedQuery(queryName);
+        return getEntityManager().createNamedQuery(queryName);
     }
 
 
@@ -134,11 +134,12 @@ final class NamedQuery extends AbstractJpaQuery {
      * persistence.EntityManager)
      */
     @Override
-    protected Query createCountQuery(EntityManager em) {
+    protected Query createCountQuery(ParameterBinder binder) {
 
-        Query query = createQuery(em, null);
+        Query query = createQuery(binder);
         String queryString = extractor.extractQueryString(query);
 
-        return em.createQuery(QueryUtils.createCountQueryFor(queryString));
+        return getEntityManager().createQuery(
+                QueryUtils.createCountQueryFor(queryString));
     }
 }

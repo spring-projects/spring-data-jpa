@@ -25,7 +25,6 @@ import org.springframework.test.context.ContextConfiguration;
  * @author Oliver Gierke
  */
 @ContextConfiguration(value = "classpath:openjpa.xml", inheritLocations = true)
-public class OpenJpaNamespaceUserDaoTests extends
-        NamespaceUserRepositoryTests {
+public class OpenJpaNamespaceUserDaoTests extends NamespaceUserRepositoryTests {
 
 }

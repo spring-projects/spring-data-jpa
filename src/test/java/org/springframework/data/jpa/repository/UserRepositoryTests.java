@@ -255,8 +255,9 @@ public class UserRepositoryTests {
         flushTestUsers();
         repository.renameAllUsersTo("newLastname");
 
-        assertEquals(repository.count().intValue(),
-                repository.findByLastname("newLastname").size());
+        Integer expected = repository.count().intValue();
+        assertThat(repository.findByLastname("newLastname").size(),
+                is(expected));
     }
 
 
@@ -546,8 +547,10 @@ public class UserRepositoryTests {
         firstUser = repository.save(firstUser);
         secondUser = repository.save(secondUser);
 
-        assertTrue(repository.findByFirstnameOrLastname("Oliver", "Arrasz")
-                .containsAll(Arrays.asList(firstUser, secondUser)));
+        List<User> result =
+                repository.findByFirstnameOrLastname("Oliver", "Arrasz");
+        assertThat(result.size(), is(2));
+        assertThat(result, hasItems(firstUser, secondUser));
     }
 
 

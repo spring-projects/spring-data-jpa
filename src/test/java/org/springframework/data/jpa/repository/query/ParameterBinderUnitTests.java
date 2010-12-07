@@ -22,6 +22,7 @@ import static org.mockito.Mockito.*;
 
 import java.lang.reflect.Method;
 
+import javax.persistence.Embeddable;
 import javax.persistence.Query;
 
 import org.junit.Before;
@@ -31,7 +32,6 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.repository.query.QueryCreatorUnitTests.SampleEmbeddable;
 import org.springframework.data.repository.query.Param;
 import org.springframework.data.repository.query.Parameters;
 
@@ -183,8 +183,8 @@ public class ParameterBinderUnitTests {
     public void bindsEmbeddableCorrectly() throws Exception {
 
         Method method =
-                QueryCreatorUnitTests.class.getMethod("findByEmbeddable",
-                        SampleEmbeddable.class);
+                getClass()
+                        .getMethod("findByEmbeddable", SampleEmbeddable.class);
         Parameters parameters = new Parameters(method);
         SampleEmbeddable embeddable = new SampleEmbeddable();
 
@@ -203,5 +203,25 @@ public class ParameterBinderUnitTests {
                 new ParameterBinder(new Parameters(indexedParametersWithSort),
                         new Object[] { "name", sort });
         assertThat(binder.getSort(), is(sort));
+    }
+
+
+    public SampleEntity findByEmbeddable(SampleEmbeddable embeddable) {
+
+        return null;
+    }
+
+    @SuppressWarnings("unused")
+    static class SampleEntity {
+
+        private SampleEmbeddable embeddable;
+    }
+
+    @Embeddable
+    @SuppressWarnings("unused")
+    static class SampleEmbeddable {
+
+        private String foo;
+        private String bar;
     }
 }

@@ -25,13 +25,12 @@ import org.springframework.data.repository.support.RepositorySupport;
 
 
 /**
- * Sample implementation of a custom {@link JpaRepositoryFactory} to use
- * a custom repository base class.
+ * Sample implementation of a custom {@link JpaRepositoryFactory} to use a
+ * custom repository base class.
  * 
  * @author Oliver Gierke
  */
-public class CustomGenericJpaRepositoryFactory extends
-        JpaRepositoryFactory {
+public class CustomGenericJpaRepositoryFactory extends JpaRepositoryFactory {
 
     /**
      * @param entityManager

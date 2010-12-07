@@ -131,8 +131,7 @@ public class JpaRepositoryFactoryUnitTests {
         dao.customMethod(1);
     }
 
-    private interface SimpleSampleDao extends
-            JpaRepository<User, Integer> {
+    private interface SimpleSampleDao extends JpaRepository<User, Integer> {
 
         @Transactional
         User readByPrimaryKey(Integer primaryKey);

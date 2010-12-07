@@ -19,7 +19,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.Query;
 
 import org.springframework.data.repository.query.Parameters;
-import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.util.Assert;
 
@@ -57,65 +56,37 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 
 
     /**
-     * Creates a JPA {@link Query} with the given {@link ParameterBinder}.
-     * 
-     * @param binder
-     * @return
+     * @return the parameters
      */
-    public Query createQuery(ParameterBinder binder) {
+    public Parameters getParameters() {
 
-        return createQuery(em, binder);
+        return parameters;
     }
 
 
     /**
-     * Creates a JPA {@link Query} to count the instances of the
-     * {@link HadesQuery} to be returned.
-     * 
-     * @param binder
-     * @return
+     * @return the em
      */
-    public Query createCountQuery() {
+    public EntityManager getEntityManager() {
 
-        return createCountQuery(em);
+        return em;
     }
 
 
-    /**
-     * Executes the {@link javax.persistence.Query} backing the
-     * {@link QueryMethod} with the given parameters.
+    /*
+     * (non-Javadoc)
      * 
-     * @param em
-     * @param parameters
-     * @return
+     * @see
+     * org.springframework.data.repository.query.RepositoryQuery#execute(java
+     * .lang.Object[])
      */
     public Object execute(Object[] parameters) {
 
-        ParameterBinder binder =
-                new ParameterBinder(this.parameters, parameters);
-
-        return execution.execute(this, binder);
+        return doExecute(execution, parameters);
     }
 
 
-    /**
-     * Returns the actual {@link Query} to be executed. Has to return a fresh
-     * instance on each call.
-     * 
-     * @param em
-     * @param binder
-     * @return
-     */
-    protected abstract Query createQuery(EntityManager em,
-            ParameterBinder binder);
+    protected abstract Object doExecute(JpaQueryExecution execution,
+            Object[] parameters);
 
-
-    /**
-     * Returns the projecting count {@link Query} to be executed. Has to return
-     * a fresh instance on each call.
-     * 
-     * @param em
-     * @return
-     */
-    protected abstract Query createCountQuery(EntityManager em);
 }

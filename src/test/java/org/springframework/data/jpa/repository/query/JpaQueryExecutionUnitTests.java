@@ -45,7 +45,7 @@ public class JpaQueryExecutionUnitTests {
     @Mock
     EntityManager em;
     @Mock
-    AbstractJpaQuery jpaQuery;
+    AbstractStringBasedJpaQuery jpaQuery;
     @Mock
     ParameterBinder binder;
     @Mock
@@ -81,10 +81,27 @@ public class JpaQueryExecutionUnitTests {
         assertThat(new JpaQueryExecution() {
 
             @Override
-            protected Object doExecute(AbstractJpaQuery query,
+            protected Object doExecute(AbstractStringBasedJpaQuery query,
                     ParameterBinder binder) {
 
                 throw new NoResultException();
+            }
+
+
+            /*
+             * (non-Javadoc)
+             * 
+             * @see
+             * org.springframework.data.jpa.repository.query.JpaQueryExecution
+             * #doExecute
+             * (org.springframework.data.jpa.repository.query.PartTreeJpaQuery,
+             * java.lang.Object[])
+             */
+            @Override
+            protected Object doExecute(PartTreeJpaQuery query,
+                    Object[] parameters) {
+
+                return null;
             }
         }.execute(jpaQuery, binder), is(nullValue()));
     }
@@ -123,8 +140,15 @@ public class JpaQueryExecutionUnitTests {
     static class StubQueryExecution extends JpaQueryExecution {
 
         @Override
-        protected Object doExecute(AbstractJpaQuery query,
+        protected Object doExecute(AbstractStringBasedJpaQuery query,
                 ParameterBinder binder) {
+
+            return null;
+        }
+
+
+        @Override
+        protected Object doExecute(PartTreeJpaQuery query, Object[] parameters) {
 
             return null;
         }

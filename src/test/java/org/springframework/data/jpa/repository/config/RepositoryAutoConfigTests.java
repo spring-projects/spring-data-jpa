@@ -25,6 +25,5 @@ import org.springframework.test.context.ContextConfiguration;
  * @author Oliver Gierke
  */
 @ContextConfiguration(locations = "classpath:config/namespace-autoconfig-context.xml")
-public class RepositoryAutoConfigTests extends
-        AbstractRepositoryConfigTests {
+public class RepositoryAutoConfigTests extends AbstractRepositoryConfigTests {
 }

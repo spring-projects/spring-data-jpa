@@ -26,8 +26,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.Order;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
@@ -463,29 +461,5 @@ public class SimpleJpaRepository<T, ID extends Serializable> extends
         }
 
         return root;
-    }
-
-
-    private List<Order> toOrders(Sort sort, Root<T> root, CriteriaBuilder cb) {
-
-        List<Order> orders = new ArrayList<Order>();
-
-        if (sort == null) {
-            return orders;
-        }
-
-        for (org.springframework.data.domain.Sort.Order order : sort) {
-            orders.add(toJpaOrder(order, root, cb));
-        }
-
-        return orders;
-    }
-
-
-    private Order toJpaOrder(org.springframework.data.domain.Sort.Order order,
-            Root<T> root, CriteriaBuilder cb) {
-
-        Expression<?> expression = root.get(order.getProperty());
-        return order.isAscending() ? cb.asc(expression) : cb.desc(expression);
     }
 }

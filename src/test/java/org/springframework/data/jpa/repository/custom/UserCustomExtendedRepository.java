@@ -19,13 +19,13 @@ package org.springframework.data.jpa.repository.custom;
 import org.springframework.data.jpa.domain.sample.User;
 
 
-
 /**
  * Custom Extended DAO interface for a {@code User}. This relies on the custom
  * intermediate DAO interface {@link CustomGenericRepository}.
  * 
  * @author Oliver Gierke
  */
-public interface UserCustomExtendedRepository extends CustomGenericRepository<User, Integer> {
+public interface UserCustomExtendedRepository extends
+        CustomGenericRepository<User, Integer> {
 
 }

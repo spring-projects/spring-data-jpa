@@ -18,7 +18,9 @@ package org.springframework.data.jpa.repository.query;
 import static java.util.regex.Pattern.*;
 import static org.springframework.data.jpa.repository.utils.JpaClassUtils.*;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -26,6 +28,9 @@ import java.util.regex.Pattern;
 import javax.persistence.EntityManager;
 import javax.persistence.Parameter;
 import javax.persistence.Query;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Root;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
@@ -107,7 +112,7 @@ public abstract class QueryUtils {
      * @param clazzName
      * @return
      */
-    public static String getQueryString(String template, String clazzName) {
+    private static String getQueryString(String template, String clazzName) {
 
         Assert.hasText(clazzName, "Classname must not be null or empty!");
 
@@ -264,5 +269,49 @@ public abstract class QueryUtils {
         }
 
         return false;
+    }
+
+
+    /**
+     * Turns the given {@link Sort} into
+     * {@link javax.persistence.criteria.Order}s.
+     * 
+     * @param sort
+     * @param root
+     * @param cb
+     * @return
+     */
+    public static List<javax.persistence.criteria.Order> toOrders(Sort sort,
+            Root<?> root, CriteriaBuilder cb) {
+
+        List<javax.persistence.criteria.Order> orders =
+                new ArrayList<javax.persistence.criteria.Order>();
+
+        if (sort == null) {
+            return orders;
+        }
+
+        for (org.springframework.data.domain.Sort.Order order : sort) {
+            orders.add(toJpaOrder(order, root, cb));
+        }
+
+        return orders;
+    }
+
+
+    /**
+     * Creates a criteria API {@link javax.persistence.criteria.Order} from the
+     * given {@link Order}.
+     * 
+     * @param order
+     * @param root
+     * @param cb
+     * @return
+     */
+    private static javax.persistence.criteria.Order toJpaOrder(Order order,
+            Root<?> root, CriteriaBuilder cb) {
+
+        Expression<?> expression = root.get(order.getProperty());
+        return order.isAscending() ? cb.asc(expression) : cb.desc(expression);
     }
 }

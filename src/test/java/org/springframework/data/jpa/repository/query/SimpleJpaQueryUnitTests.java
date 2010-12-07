@@ -69,7 +69,7 @@ public class SimpleJpaQueryUnitTests {
     public void appliesHintsCorrectly() throws Exception {
 
         SimpleJpaQuery hadesQuery = new SimpleJpaQuery(method, em, "foobar");
-        hadesQuery.createQuery(em, new ParameterBinder(method.getParameters(),
+        hadesQuery.createQuery(new ParameterBinder(method.getParameters(),
                 new Object[] { "gierke" }));
 
         verify(query).setHint("foo", "bar");
@@ -86,6 +86,6 @@ public class SimpleJpaQueryUnitTests {
         SimpleJpaQuery hadesQuery =
                 new SimpleJpaQuery(method, em, "select u from User u");
 
-        assertThat(hadesQuery.createCountQuery(em), is(query));
+        assertThat(hadesQuery.createCountQuery(null), is(query));
     }
 }

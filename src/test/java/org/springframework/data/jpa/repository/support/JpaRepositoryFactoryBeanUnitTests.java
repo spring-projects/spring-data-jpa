@@ -72,8 +72,8 @@ public class JpaRepositoryFactoryBeanUnitTests {
 
         // Setup standard factory configuration
         factory =
-                JpaRepositoryFactoryBean.create(
-                        SimpleSampleRepository.class, entityManager);
+                JpaRepositoryFactoryBean.create(SimpleSampleRepository.class,
+                        entityManager);
         factory.setEntityManager(entityManager);
     }
 
@@ -139,8 +139,7 @@ public class JpaRepositoryFactoryBeanUnitTests {
 
         JpaRepositoryFactoryBean<SampleRepository> factory =
 
-                JpaRepositoryFactoryBean.create(SampleRepository.class,
-                        entityManager);
+        JpaRepositoryFactoryBean.create(SampleRepository.class, entityManager);
 
         try {
             factory.afterPropertiesSet();
@@ -166,8 +165,8 @@ public class JpaRepositoryFactoryBeanUnitTests {
         void someSampleMethod();
     }
 
-    private interface SampleRepository extends
-            JpaRepository<User, Integer>, SampleCustomDao {
+    private interface SampleRepository extends JpaRepository<User, Integer>,
+            SampleCustomDao {
 
     }
 }

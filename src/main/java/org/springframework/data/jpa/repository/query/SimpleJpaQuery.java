@@ -23,7 +23,6 @@ import javax.persistence.QueryHint;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.repository.query.QueryCreationException;
 import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.RepositoryQuery;
 
@@ -35,7 +34,7 @@ import org.springframework.data.repository.query.RepositoryQuery;
  * 
  * @author Oliver Gierke
  */
-final class SimpleJpaQuery extends AbstractJpaQuery {
+final class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
 
     private static final Logger LOG = LoggerFactory
             .getLogger(SimpleJpaQuery.class);
@@ -63,19 +62,6 @@ final class SimpleJpaQuery extends AbstractJpaQuery {
     }
 
 
-    /**
-     * Creates a new {@link SimpleJpaQuery} that constructs the query from the
-     * given {@link QueryMethod}.
-     * 
-     * @param method
-     * @param em
-     */
-    SimpleJpaQuery(JpaQueryMethod method, EntityManager em) {
-
-        this(method, em, new QueryCreator(method).constructQuery());
-    }
-
-
     /*
      * (non-Javadoc)
      * 
@@ -84,25 +70,27 @@ final class SimpleJpaQuery extends AbstractJpaQuery {
      * .EntityManager, org.synyx.hades.dao.query.ParameterBinder)
      */
     @Override
-    protected Query createQuery(EntityManager em, ParameterBinder binder) {
+    public Query createQuery(ParameterBinder binder) {
 
         String query =
                 QueryUtils.applySorting(queryString, binder.getSort(), alias);
 
-        return applyHints(em.createQuery(query));
+        return applyHints(getEntityManager().createQuery(query));
     }
 
 
     /*
      * (non-Javadoc)
      * 
-     * @see org.synyx.hades.dao.query.AbstractHadesQuery#createCountQuery(javax.
-     * persistence.EntityManager)
+     * @see
+     * org.springframework.data.jpa.repository.query.AbstractStringBasedJpaQuery
+     * #createCountQuery(org.springframework.data.jpa.repository.query.
+     * ParameterBinder)
      */
     @Override
-    protected Query createCountQuery(EntityManager em) {
+    protected Query createCountQuery(ParameterBinder binder) {
 
-        return applyHints(em.createQuery(countQuery));
+        return applyHints(getEntityManager().createQuery(countQuery));
     }
 
 
@@ -138,30 +126,7 @@ final class SimpleJpaQuery extends AbstractJpaQuery {
 
         String query = queryMethod.getAnnotatedQuery();
 
-        return query == null ? null : new SimpleJpaQuery(queryMethod, em,
-                query);
-    }
-
-
-    /**
-     * Constructs a {@link HadesQuery} from the given {@link QueryMethod}.
-     * 
-     * @param queryMethod
-     * @param em
-     * @return
-     */
-    public static RepositoryQuery construct(JpaQueryMethod queryMethod,
-            EntityManager em) {
-
-        if (queryMethod.isModifyingQuery()) {
-            throw QueryCreationException
-                    .create(queryMethod,
-                            "Cannot create query from method name "
-                                    + "for modifying query. Use @Query or @NamedQuery to "
-                                    + "declare the query to execute. Do not use CREATE as "
-                                    + "strategy to lookup queries!");
-        }
-
-        return new SimpleJpaQuery(queryMethod, em);
+        return query == null ? null
+                : new SimpleJpaQuery(queryMethod, em, query);
     }
 }

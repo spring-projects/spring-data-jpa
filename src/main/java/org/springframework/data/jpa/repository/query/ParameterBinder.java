@@ -118,7 +118,7 @@ public class ParameterBinder {
                 if (hasNamedParameter(query) && parameter.isNamedParameter()) {
                     query.setParameter(parameter.getName(), value);
                 } else {
-                    query.setParameter(parameter.getParameterPosition(), value);
+                    query.setParameter(parameter.getIndex() + 1, value);
                 }
             }
 

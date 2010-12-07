@@ -24,6 +24,7 @@ import javax.persistence.Query;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.QueryMethod;
+import org.springframework.data.repository.query.SimpleParameterAccessor;
 import org.springframework.util.Assert;
 
 
@@ -44,13 +45,27 @@ public abstract class JpaQueryExecution {
      * @return
      */
 
-    public Object execute(AbstractJpaQuery query, ParameterBinder binder) {
+    public Object execute(AbstractStringBasedJpaQuery query,
+            ParameterBinder binder) {
 
         Assert.notNull(query);
         Assert.notNull(binder);
 
         try {
             return doExecute(query, binder);
+        } catch (NoResultException e) {
+            return null;
+        }
+    }
+
+
+    public Object execute(PartTreeJpaQuery query, Object[] parameters) {
+
+        Assert.notNull(query);
+        Assert.notNull(parameters);
+
+        try {
+            return doExecute(query, parameters);
         } catch (NoResultException e) {
             return null;
         }
@@ -65,8 +80,12 @@ public abstract class JpaQueryExecution {
      * @param binder
      * @return
      */
-    protected abstract Object doExecute(AbstractJpaQuery query,
-            ParameterBinder binder);
+    protected abstract Object doExecute(AbstractStringBasedJpaQuery query,
+            ParameterBinder parameters);
+
+
+    protected abstract Object doExecute(PartTreeJpaQuery query,
+            Object[] parameters);
 
     /**
      * Executes the {@link HadesQuery} to return a simple collection of
@@ -75,11 +94,25 @@ public abstract class JpaQueryExecution {
     static class CollectionExecution extends JpaQueryExecution {
 
         @Override
-        protected Object doExecute(AbstractJpaQuery query,
+        protected Object doExecute(AbstractStringBasedJpaQuery query,
                 ParameterBinder binder) {
 
             return binder.bindAndPrepare(query.createQuery(binder))
                     .getResultList();
+        }
+
+
+        /*
+         * (non-Javadoc)
+         * 
+         * @see
+         * org.springframework.data.jpa.repository.query.JpaQueryExecution#doExecute
+         * (org.springframework.data.jpa.repository.query.DerivedJpaQuery)
+         */
+        @Override
+        protected Object doExecute(PartTreeJpaQuery query, Object[] parameters) {
+
+            return query.createQuery(parameters).getResultList();
         }
     }
 
@@ -89,13 +122,23 @@ public abstract class JpaQueryExecution {
      */
     static class PagedExecution extends JpaQueryExecution {
 
+        private final Parameters parameters;
+
+
+        public PagedExecution(Parameters parameters) {
+
+            this.parameters = parameters;
+        }
+
+
         @Override
         @SuppressWarnings("unchecked")
-        protected Object doExecute(AbstractJpaQuery repositoryQuery,
+        protected Object doExecute(AbstractStringBasedJpaQuery repositoryQuery,
                 ParameterBinder binder) {
 
             // Execute query to compute total
-            Query projection = binder.bind(repositoryQuery.createCountQuery());
+            Query projection =
+                    binder.bind(repositoryQuery.createCountQuery(binder));
             Long total = (Long) projection.getSingleResult();
 
             Query query =
@@ -103,6 +146,30 @@ public abstract class JpaQueryExecution {
 
             return new PageImpl<Object>(query.getResultList(),
                     binder.getPageable(), total);
+        }
+
+
+        /*
+         * (non-Javadoc)
+         * 
+         * @see
+         * org.springframework.data.jpa.repository.query.JpaQueryExecution#doExecute
+         * (org.springframework.data.jpa.repository.query.DerivedJpaQuery,
+         * java.lang.Object[])
+         */
+        @Override
+        @SuppressWarnings("unchecked")
+        protected Object doExecute(PartTreeJpaQuery query, Object[] parameters) {
+
+            SimpleParameterAccessor accessor =
+                    new SimpleParameterAccessor(this.parameters, parameters);
+
+            Query countQuery = query.createCountQuery(parameters);
+            Long total = (Long) countQuery.getSingleResult();
+
+            Query jpaQuery = query.createQuery(parameters);
+            return new PageImpl<Object>(jpaQuery.getResultList(),
+                    accessor.getPageable(), total);
         }
     }
 
@@ -112,10 +179,25 @@ public abstract class JpaQueryExecution {
     static class SingleEntityExecution extends JpaQueryExecution {
 
         @Override
-        protected Object doExecute(AbstractJpaQuery query,
+        protected Object doExecute(AbstractStringBasedJpaQuery query,
                 ParameterBinder binder) {
 
             return binder.bind(query.createQuery(binder)).getSingleResult();
+        }
+
+
+        /*
+         * (non-Javadoc)
+         * 
+         * @see
+         * org.springframework.data.jpa.repository.query.JpaQueryExecution#doExecute
+         * (org.springframework.data.jpa.repository.query.DerivedJpaQuery,
+         * java.lang.Object[])
+         */
+        @Override
+        protected Object doExecute(PartTreeJpaQuery query, Object[] parameters) {
+
+            return query.createQuery(parameters).getSingleResult();
         }
     }
 
@@ -158,7 +240,7 @@ public abstract class JpaQueryExecution {
          * org.springframework.data.repository.query.ParameterBinder)
          */
         @Override
-        protected Object doExecute(AbstractJpaQuery query,
+        protected Object doExecute(AbstractStringBasedJpaQuery query,
                 ParameterBinder binder) {
 
             int result = binder.bind(query.createQuery(binder)).executeUpdate();
@@ -168,6 +250,13 @@ public abstract class JpaQueryExecution {
             }
 
             return result;
+        }
+
+
+        @Override
+        protected Object doExecute(PartTreeJpaQuery query, Object[] parameters) {
+
+            throw new UnsupportedOperationException();
         }
     }
 }

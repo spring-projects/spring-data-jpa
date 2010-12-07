@@ -57,7 +57,7 @@ public class JpaQueryMethodUnitTests {
     EntityManager em;
 
     Method daoMethod, invalidReturnType, pageableAndSort, pageableTwice,
-            sortableTwice, modifyingMethod;
+    sortableTwice, modifyingMethod;
 
 
     /**
@@ -67,24 +67,24 @@ public class JpaQueryMethodUnitTests {
     public void setUp() throws Exception {
 
         daoMethod =
-                UserRepository.class.getMethod("findByLastname", String.class);
+            UserRepository.class.getMethod("findByLastname", String.class);
 
         invalidReturnType =
-                InvalidDao.class.getMethod(METHOD_NAME, String.class,
-                        Pageable.class);
+            InvalidDao.class.getMethod(METHOD_NAME, String.class,
+                    Pageable.class);
         pageableAndSort =
-                InvalidDao.class.getMethod(METHOD_NAME, String.class,
-                        Pageable.class, Sort.class);
+            InvalidDao.class.getMethod(METHOD_NAME, String.class,
+                    Pageable.class, Sort.class);
         pageableTwice =
-                InvalidDao.class.getMethod(METHOD_NAME, String.class,
-                        Pageable.class, Pageable.class);
+            InvalidDao.class.getMethod(METHOD_NAME, String.class,
+                    Pageable.class, Pageable.class);
 
         sortableTwice =
-                InvalidDao.class.getMethod(METHOD_NAME, String.class,
-                        Sort.class, Sort.class);
+            InvalidDao.class.getMethod(METHOD_NAME, String.class,
+                    Sort.class, Sort.class);
         modifyingMethod =
-                UserRepository.class
-                        .getMethod("renameAllUsersTo", String.class);
+            UserRepository.class
+            .getMethod("renameAllUsersTo", String.class);
     }
 
 
@@ -95,8 +95,6 @@ public class JpaQueryMethodUnitTests {
 
         assertEquals("User.findByLastname", method.getNamedQueryName());
         assertThat(method.getExecution(), is(CollectionExecution.class));
-        assertEquals("select x from User x where x.lastname = ?1",
-                new QueryCreator(method).constructQuery());
     }
 
 
@@ -137,11 +135,11 @@ public class JpaQueryMethodUnitTests {
         assertNull(method.getAnnotatedQuery());
 
         Method daoMethod =
-                UserRepository.class
-                        .getMethod("findByHadesQuery", String.class);
+            UserRepository.class
+            .getMethod("findByHadesQuery", String.class);
 
         assertNotNull(new JpaQueryMethod(daoMethod, extractor, em)
-                .getAnnotatedQuery());
+        .getAnnotatedQuery());
     }
 
 
@@ -192,11 +190,11 @@ public class JpaQueryMethodUnitTests {
 
     @Test(expected = IllegalArgumentException.class)
     public void rejectsPageablesOnPersistenceProvidersNotExtractingQueries()
-            throws Exception {
+    throws Exception {
 
         Method method =
-                UserRepository.class.getMethod("findByFirstname",
-                        Pageable.class, String.class);
+            UserRepository.class.getMethod("findByFirstname",
+                    Pageable.class, String.class);
 
         when(extractor.canExtractQuery()).thenReturn(false);
 
@@ -208,7 +206,7 @@ public class JpaQueryMethodUnitTests {
     public void recognizesModifyingMethod() {
 
         JpaQueryMethod method =
-                new JpaQueryMethod(modifyingMethod, extractor, em);
+            new JpaQueryMethod(modifyingMethod, extractor, em);
         assertTrue(method.isModifyingQuery());
     }
 
@@ -217,8 +215,8 @@ public class JpaQueryMethodUnitTests {
     public void rejectsModifyingMethodWithPageable() throws Exception {
 
         Method method =
-                InvalidDao.class.getMethod("updateMethod", String.class,
-                        Pageable.class);
+            InvalidDao.class.getMethod("updateMethod", String.class,
+                    Pageable.class);
 
         new JpaQueryMethod(method, extractor, em);
     }
@@ -228,8 +226,8 @@ public class JpaQueryMethodUnitTests {
     public void rejectsModifyingMethodWithSort() throws Exception {
 
         Method method =
-                InvalidDao.class.getMethod("updateMethod", String.class,
-                        Sort.class);
+            InvalidDao.class.getMethod("updateMethod", String.class,
+                    Sort.class);
 
         new JpaQueryMethod(method, extractor, em);
     }
