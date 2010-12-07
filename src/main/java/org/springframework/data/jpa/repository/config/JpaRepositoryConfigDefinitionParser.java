@@ -124,10 +124,10 @@ class JpaRepositoryConfigDefinitionParser
      * @param source
      */
     @Override
-    protected void registerPostProcessors(BeanDefinitionRegistry registry,
+    protected void registerBeansForRoot(BeanDefinitionRegistry registry,
             Object source) {
 
-        super.registerPostProcessors(registry, source);
+        super.registerBeansForRoot(registry, source);
 
         if (!hasBean(PAB_POST_PROCESSOR, registry)) {
 
