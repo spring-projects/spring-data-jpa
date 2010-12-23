@@ -168,6 +168,65 @@
 					<target>1.5</target>
 				</configuration>
 			</plugin>
+			<plugin>
+				<groupId>com.agilejava.docbkx</groupId>
+				<artifactId>docbkx-maven-plugin</artifactId>
+				<version>2.0.7</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>generate-html</goal>
+							<goal>generate-pdf</goal>
+						</goals>
+						<phase>pre-site</phase>
+					</execution>
+				</executions>
+				<dependencies>
+					<dependency>
+						<groupId>org.docbook</groupId>
+						<artifactId>docbook-xml</artifactId>
+						<version>4.4</version>
+						<scope>runtime</scope>
+					</dependency>
+				</dependencies>
+				<configuration>
+				        <includes>index.xml</includes>
+					<xincludeSupported>true</xincludeSupported>
+					<foCustomization>${project.basedir}/src/docbkx/resources/xsl/fopdf.xsl</foCustomization>
+					<htmlStylesheet>css/html.css</htmlStylesheet>
+					<chunkedOutput>false</chunkedOutput>
+					<htmlCustomization>${project.basedir}/src/docbkx/resources/xsl/html.xsl</htmlCustomization>
+					<useExtensions>1</useExtensions>
+					<highlightSource>1</highlightSource>
+					<highlightDefaultLanguage></highlightDefaultLanguage>
+          <!-- callouts -->
+					<entities>
+						<entity>
+							<name>version</name>
+							<value>${pom.version}</value>
+						</entity>
+					</entities>
+					<postProcess>
+						<copy todir="${project.basedir}/target/site/reference">
+							<fileset dir="${project.basedir}/target/docbkx">
+								<include name="**/*.html" />
+								<include name="**/*.pdf" />
+							</fileset>
+						</copy>
+						<copy todir="${project.basedir}/target/site/reference/html">
+							<fileset dir="${project.basedir}/src/docbkx/resources">
+								<include name="**/*.css" />
+								<include name="**/*.png" />
+								<include name="**/*.gif" />
+								<include name="**/*.jpg" />
+							</fileset>
+						</copy>
+						<move file="${project.basedir}/target/site/reference/pdf/index.pdf"
+							tofile="${project.basedir}/target/site/reference/pdf/${project.artifactId}-reference.pdf"
+							failonerror="false" />
+					</postProcess>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 	

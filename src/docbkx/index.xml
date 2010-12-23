@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+"http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<book xmlns:xi="http://www.w3.org/2001/XInclude">
+  <bookinfo>
+    <title>Spring Data JPA - Reference Documentation</title>
+
+    <releaseinfo>1.0.0.BUILD-SNAPSHOT</releaseinfo>
+
+    <authorgroup>
+      <author>
+        <firstname>Oliver</firstname>
+
+        <surname>Gierke</surname>
+
+        <affiliation>
+          <jobtitle>Senior Consultant</jobtitle>
+
+          <orgname>SpringSource - a division of VMware</orgname>
+        </affiliation>
+
+        <email>ogierke@vmware.com</email>
+      </author>
+    </authorgroup>
+
+    <legalnotice>
+      <para>Copies of this document may be made for your own use and for
+      distribution to others, provided that you do not charge any fee for such
+      copies and further provided that each copy contains this Copyright
+      Notice, whether distributed in print or electronically.</para>
+    </legalnotice>
+
+    <pubdate />
+
+    <copyright>
+      <year>2008-2011</year>
+
+      <holder>The original authors</holder>
+    </copyright>
+
+    <revhistory>
+      <revision>
+        <date>09.02.2011</date>
+
+        <author>
+          <firstname>Oliver</firstname>
+
+          <surname>Gierke</surname>
+        </author>
+
+        <revremark>Initial port from Hades documentation</revremark>
+      </revision>
+    </revhistory>
+  </bookinfo>
+
+  <toc />
+
+  <xi:include href="preface.xml" />
+
+  <part id="reference">
+    <title>Reference Documentation</title>
+
+    <xi:include href="https://github.com/SpringSource/spring-data-commons/raw/master/src/docbkx/repositories.xml" />
+
+    <xi:include href="reference/jpa.xml" />
+  </part>
+
+  <part id="appendix">
+    <title>Appendix</title>
+
+    <xi:include href="https://github.com/SpringSource/spring-data-commons/raw/master/src/docbkx/repository-namespace-reference.xml" />
+
+    <xi:include href="appendix/faq.xml" />
+
+    <xi:include href="appendix/glossary.xml" />
+  </part>
+</book>

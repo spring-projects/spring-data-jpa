@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+"http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">  
+  <glossary id="glossary">
+    <glossdiv>
+      <title>A</title>
+
+      <glossentry>
+        <glossterm>AOP</glossterm>
+
+        <glossdef>
+          <para>Aspect oriented programming</para>
+        </glossdef>
+      </glossentry>
+    </glossdiv>
+
+    <glossdiv>
+      <title>C</title>
+
+      <glossentry>
+        <glossterm>Commons DBCP</glossterm>
+
+        <glossdef>
+          <para>Commons DataBase Connection Pools - Library of the Apache
+          foundation offering pooling implementations of the
+          <interfacename>DataSource</interfacename> interface.</para>
+        </glossdef>
+      </glossentry>
+
+      <glossentry>
+        <glossterm>CRUD</glossterm>
+
+        <glossdef>
+          <para>Create, Read, Update, Delete - Basic persistence
+          operations</para>
+        </glossdef>
+      </glossentry>
+    </glossdiv>
+
+    <glossdiv>
+      <title>D</title>
+
+      <glossentry>
+        <glossterm>DAO</glossterm>
+
+        <glossdef>
+          <para>Data Access Object - Pattern to separate persisting logic from
+          the object to be persisted</para>
+        </glossdef>
+      </glossentry>
+
+      <glossentry>
+        <glossterm>Dependency Injection</glossterm>
+
+        <glossdef>
+          <para>Pattern to hand a component's dependency to the component from
+          outside, freeing the component to lookup the dependant itself. For
+          more information see <ulink
+          url="http://en.wikipedia.org/wiki/Dependency_Injection">http://en.wikipedia.org/wiki/Dependency_Injection</ulink>.</para>
+        </glossdef>
+      </glossentry>
+    </glossdiv>
+
+    <glossdiv>
+      <title>E</title>
+
+      <glossentry>
+        <glossterm>EclipseLink</glossterm>
+
+        <glossdef>
+          <para>Object relational mapper implementing JPA - <ulink
+          url="http://www.eclipselink.org">http://www.eclipselink.org</ulink></para>
+        </glossdef>
+      </glossentry>
+    </glossdiv>
+
+    <glossdiv>
+      <title>H</title>
+
+      <glossentry>
+        <glossterm>Hibernate</glossterm>
+
+        <glossdef>
+          <para>Object relational mapper implementing JPA - <ulink
+          url="http://www.hibernate.org">http://www.hibernate.org</ulink></para>
+        </glossdef>
+      </glossentry>
+    </glossdiv>
+
+    <glossdiv>
+      <title>J</title>
+
+      <glossentry>
+        <glossterm>JPA</glossterm>
+
+        <glossdef>
+          <para>Java Persistence Api</para>
+        </glossdef>
+      </glossentry>
+    </glossdiv>
+
+    <glossdiv>
+      <title>S</title>
+
+      <glossentry>
+        <glossterm>Spring</glossterm>
+
+        <glossdef>
+          <para>Java application framework - <ulink
+          url="http://www.springframework.org">http://www.springframework.org</ulink></para>
+        </glossdef>
+      </glossentry>
+    </glossdiv>
+  </glossary>

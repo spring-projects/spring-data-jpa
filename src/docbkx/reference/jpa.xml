@@ -1,0 +1,680 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+"http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<chapter id="jpa.repositories">
+  <title>JPA Repositories</title>
+
+  <abstract>
+    <para>This chapter includes details of the JPA repository
+    implementation.</para>
+  </abstract>
+
+  <section id="jpa.query-methods">
+    <title>Query methods</title>
+
+    <section id="jpa.sample-app.finders.strategies">
+      <title>Query lookup strategies</title>
+
+      <para>The JPA module supports defining a query manually as String or
+      have it being derived from the method name.</para>
+
+      <simplesect>
+        <title>Declared queries</title>
+
+        <para>Although getting a query derived from the method name is quite
+        convenient one might face the situation in which either the method
+        name parser does not support the keyword one wants to use or the
+        method name would get unnecessarily ugly. So you can either use JPA
+        named queries through a naming convention (see <xref
+        linkend="jpa.query-methods.named-queries" /> for more information) or
+        rather annotate your query method with
+        <interfacename>@Query</interfacename> (see as for details).</para>
+      </simplesect>
+
+      <simplesect>
+        <title>Strategies</title>
+
+        <para>This strategy tries to find a declared query that can either be
+        defined using JPA <code>@NamedQuery</code> means or Hades
+        <code>@Query</code> annotation (see <xref
+        linkend="jpa.query-methods.named-queries" /> and <xref
+        linkend="jpa.query-methods.at-query" /> for details). If no declared
+        query is found execution of the query will fail.</para>
+      </simplesect>
+
+      <simplesect>
+        <title>CREATE_IF_NOT_FOUND (default)</title>
+
+        <para>This strategy is actually a combination of the both mentioned
+        above. It will try to lookup a declared query first but create a
+        custom method name based query if no named query was found. This is
+        default lookup strategy and thus will be used if you don't configure
+        anything explicitly. It allows quick query definition by method names
+        but also custom tuning of these queries by introducing declared
+        queries for those who need explicit tuning.</para>
+      </simplesect>
+    </section>
+
+    <section id="jpa.query-methods.query-creation">
+      <title>Query creation</title>
+
+      <para>Generally the query creation mechanism for JPA works as described
+      in <xref linkend="repositories.query-methods" />. Here's a short example
+      of what a JPA query method translates into:<example>
+          <title>Query creation from method names</title>
+
+          <para><programlisting language="java">public interface UserRepository extends Repository&lt;User, Long&gt; {
+
+  List&lt;User&gt; findByEmailAddressAndLastname(String emailAddress, String lastname);
+}</programlisting>We will create a query using the JPA criteria API from this
+          but essentially this translates into the following query:</para>
+
+          <programlisting>select u from User u where u.emailAddress = ?1 and u.lastname = ?2</programlisting>
+
+          <para>Spring Data JPA will do a property check and traverse nested
+          properties like described in <xref
+          linkend="repositories.query-methods.property-expressions" />. Here's
+          an overview of the keywords supported for JPA and what a method
+          containing that keyword essentially translates to.</para>
+        </example></para>
+
+      <para><table>
+          <title>Supported keywords inside method names</title>
+
+          <tgroup cols="3">
+            <colspec colwidth="1*" />
+
+            <colspec colwidth="2*" />
+
+            <colspec colwidth="3*" />
+
+            <thead>
+              <row>
+                <entry>Keyword</entry>
+
+                <entry>Sample</entry>
+
+                <entry>JPQL snippet</entry>
+              </row>
+            </thead>
+
+            <tbody>
+              <row>
+                <entry><code>And</code></entry>
+
+                <entry><code>findByLastnameAndFirstname</code></entry>
+
+                <entry><code>… where x.lastname = ?1 and x.firstname =
+                ?2</code></entry>
+              </row>
+
+              <row>
+                <entry><code>Or</code></entry>
+
+                <entry><code>findByLastnameOrFirstname</code></entry>
+
+                <entry><code>… where x.lastname = ?1 or x.firstname =
+                ?2</code></entry>
+              </row>
+
+              <row>
+                <entry><code>Between</code></entry>
+
+                <entry><code>findByStartDateBetween</code></entry>
+
+                <entry><code>… where x.startDate between 1? and
+                ?2</code></entry>
+              </row>
+
+              <row>
+                <entry><code>LessThan</code></entry>
+
+                <entry><code>findByAgeLessThan</code></entry>
+
+                <entry><code>… where x.age &lt; ?1</code></entry>
+              </row>
+
+              <row>
+                <entry><code>GreaterThan</code></entry>
+
+                <entry><code>findByAgeGreaterThan</code></entry>
+
+                <entry><code>… where x.age &gt; ?1</code></entry>
+              </row>
+
+              <row>
+                <entry><code>IsNull</code></entry>
+
+                <entry><code>findByAgeIsNull</code></entry>
+
+                <entry><code>… where x.age is null</code></entry>
+              </row>
+
+              <row>
+                <entry><code>IsNotNull,NotNull</code></entry>
+
+                <entry><code>findByAge(Is)NotNull</code></entry>
+
+                <entry><code>… where x.age not null</code></entry>
+              </row>
+
+              <row>
+                <entry><code>Like</code></entry>
+
+                <entry><code>findByFirstnameLike</code></entry>
+
+                <entry><code>… where x.firstname like ?1</code></entry>
+              </row>
+
+              <row>
+                <entry><code>NotLike</code></entry>
+
+                <entry><code>findByFirstnameNotLike</code></entry>
+
+                <entry><code>… where x.firstname not like ?1</code></entry>
+              </row>
+
+              <row>
+                <entry><code>OrderBy</code></entry>
+
+                <entry><code>findByAgeOrderByLastnameDesc</code></entry>
+
+                <entry><code>… where x.age &gt; ?1 order by x.lastname
+                desc</code></entry>
+              </row>
+
+              <row>
+                <entry><code>Not</code></entry>
+
+                <entry><code>findByLastnameNot</code></entry>
+
+                <entry><code>… where x.lastname &lt;&gt; ?1</code></entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </table></para>
+    </section>
+
+    <section id="jpa.query-methods.named-queries">
+      <title>Using JPA NamedQueries</title>
+
+      <note>
+        <para>The examples use simple <code>&lt;named-query /&gt;</code>
+        element and <code>@NamedQuery</code> annotation. The queries for these
+        configuration elements have to be defined in JPA query language. Of
+        course you can use <code>&lt;named-native-query /&gt;</code> or
+        <code>@NamedNativeQuery</code>, too. These elements allow you to
+        define the query in native SQL by losing the database platform
+        independence.</para>
+      </note>
+
+      <simplesect>
+        <title>XML named query definition</title>
+
+        <para>To use XML configuration simply add the necessary
+        <code>&lt;named-query /&gt;</code> element to the
+        <filename>orm.xml</filename> JPA configuration file located in
+        <filename>META-INF</filename> folder of your classpath. Automatic
+        invocation of named queries is enabled by using some defined naming
+        convention. For more details see below.</para>
+
+        <example>
+          <title>XML named query configuration</title>
+
+          <programlisting language="xml">&lt;named-query name="User.findByLastname"&gt;
+  &lt;query&gt;select u from User u where u.lastname = ?1&lt;/query&gt;
+&lt;/named-query&gt;</programlisting>
+        </example>
+
+        <para>As you can see the query has a special name which will be used
+        to resolve it at runtime.</para>
+      </simplesect>
+
+      <simplesect>
+        <title>Annotation configuration</title>
+
+        <para>Annotation configuration has the advantage not to need another
+        config file to be edited, probably lowering maintenance cost. You pay
+        for that benefit by the need to recompile your domain class for every
+        new query declaration.</para>
+
+        <example>
+          <title>Annotation based named query configuration</title>
+
+          <programlisting language="java">@Entity
+@NamedQuery(name = "User.findByEmailAddress", 
+  query = "select u from User u where u.emailAddress = ?1")
+public class User {
+
+}</programlisting>
+        </example>
+      </simplesect>
+
+      <simplesect>
+        <title>Declaring interfaces</title>
+
+        <para>To allow execution of this named query all you need to do is to
+        specify the <interfacename>UserRepository</interfacename> as
+        follows:</para>
+
+        <example>
+          <title>Query method declaration in UserRepository</title>
+
+          <programlisting language="java">public interface UserRepository extends JpaRepository&lt;User, Long&gt; {
+
+  List&lt;User&gt; findByLastname(String lastname);
+
+  User findByEmailAddress(String emailAddress);
+}</programlisting>
+        </example>
+
+        <para>Declaring this method we will try to resolve a call to this
+        method to a named query starting with the simple name of the
+        configured domain class followed by the method name separated by a
+        dot. So the example here would use the named queries defined above
+        instead of trying to create a query from the method name.</para>
+      </simplesect>
+    </section>
+
+    <section id="jpa.query-methods.at-query">
+      <title>Using @Query</title>
+
+      <para>Using named queries to declare queries for entities is a valid
+      approach and works fine for a small number amount of queries. As the
+      queries themselves are tied to a Java method to execute them you
+      actually can bind them to the query executing methods using Spring Data
+      JPA <code>@Query</code> annotation rather than annotating them to the
+      domain class. This will free the domain class from persistence specific
+      information and colocate the query to the repository interface.</para>
+
+      <para>Querys annotated to the query method will trump queries defined
+      using <code>@NamedQuery</code> or named queries declared in in
+      <filename>orm.xml</filename>.</para>
+
+      <example>
+        <title>Declare query at the query method using @Query</title>
+
+        <programlisting language="java">public interface UserRepository extends JpaRepository&lt;User, Long&gt; {
+
+  @Query("select u from User u where u.emailAddress = ?1")
+  User findByEmailAddress(String emailAddress);
+}</programlisting>
+      </example>
+    </section>
+
+    <section id="jpa.named-parameters">
+      <title>Using named parameters</title>
+
+      <para>By default Sprign Data JPA will use position based parameter
+      binding as described in all the samples above. This makes query methods
+      a little error prone to refactorings regarding the parameter position.
+      To solve this issue you can use <code>@Param</code> annotation to give a
+      method parameter a concrete name and bind the name in the query:</para>
+
+      <example>
+        <title>Using named parameters</title>
+
+        <programlisting language="java">public interface UserRepository extends JpaRepository&lt;User, Long&gt; {
+
+  @Query("select u from User u where u.firstname = :firstname or u.lastname = :lastname")
+  User findByLastnameOrFirstname(@Param("lastname") String lastname,
+                                 @Param("firstname") String firstname);
+}</programlisting>
+
+        <para>Note that the method parameters are switched according to the
+        occurrence in the query defined.</para>
+      </example>
+    </section>
+
+    <section id="jpa.modifying-queries">
+      <title>Modifying queries</title>
+
+      <para>All the sections before described how to declare queries to access
+      a given entity or collection of entitites. Of course you can add custom
+      modifying behaviour by using facilities described in <xref
+      linkend="custom-implementations" />. As this approach is feasible for
+      comprehensive custom functionality, you can achieve the execution of
+      modifying queries that actually only need parameter binding by
+      annotating the query method with <code>@Modifying</code>:</para>
+
+      <example>
+        <title>Declaring manipulating queries</title>
+
+        <programlisting language="java">@Modifying
+@Query("update User u set u.firstname = ?1 where u.lastname = ?2")
+int setFixedFirstnameFor(String firstname, String lastname);</programlisting>
+      </example>
+
+      <para>This will trigger the query annotated to the method as updating
+      query instead of a selecting one. As the
+      <interfacename>EntityManager</interfacename> might contain outdated
+      entities after the execution of the modifying query, we automatically
+      clear it (see JavaDoc of
+      <interfacename>EntityManager</interfacename>.<methodname>clear()</methodname>
+      for details). This will effectively drop all non-flushed changes still
+      pending in the <interfacename>EntityManager</interfacename>. If you
+      don't wish the <interfacename>EntityManager</interfacename> to be
+      cleared automatically you can set
+      <interfacename>@Modifying</interfacename> annotation's
+      <code>clearAutomatically</code> attribute to
+      <literal>false</literal>;</para>
+    </section>
+  </section>
+
+  <section id="specifications">
+    <title>Specifications</title>
+
+    <para>JPA 2 introduces a criteria API that can be used to build queries
+    programatically. Writing a criteria you actually define the where-clause
+    of a query for a query of the handled domain class. Taking another step
+    back these criterias can be regarded as predicate over the entity that is
+    verbalized by the JPA criteria API constraints.</para>
+
+    <para>Spring Data JPA now takes the concept of a specification from Eric
+    Evans' book Domain Driven Design, that carries the same semantics and
+    provides an API to define such
+    <interfacename>Specification</interfacename>s using the JPA criteria API.
+    Thus you find methods like this in
+    <interfacename>JpaRepository</interfacename>:</para>
+
+    <programlisting language="java">List&lt;T&gt; readAll(Specification&lt;T&gt; spec);</programlisting>
+
+    <para>The <interfacename>Specification</interfacename> interface now looks
+    as follows:</para>
+
+    <programlisting language="java">public interface Specification&lt;T&gt; {
+  Predicate toPredicate(Root&lt;T&gt; root, CriteriaQuery&lt;?&gt; query,
+            CriteriaBuilder builder);
+}</programlisting>
+
+    <para>Okay, so what is the typical use case?
+    <interfacename>Specification</interfacename>s can easily be used to build
+    an extensible set of predicates on top of an entity that then can be
+    combined and used with <interfacename>JpaRepository</interfacename>
+    without the need of declaring a query (method) for every needed
+    combination of those. Here's an example:</para>
+
+    <example>
+      <title>Specifications for a Customer</title>
+
+      <programlisting language="java">public class CustomerSpecs {
+
+  public static Specification&lt;Customer&gt; isLongTermCustomer() {
+    return new Specification&lt;Customer&gt;() {
+      Predicate toPredicate(Root&lt;T&gt; root, CriteriaQuery&lt;?&gt; query,
+            CriteriaBuilder builder) {
+
+         LocalDate date = new LocalDate().minusYears(2);
+         return builder.lessThan(root.get(Customer_.createdAt), date);
+      }
+    };
+  }
+
+
+  public static Specification&lt;Customer&gt; hasSalesOfMoreThan(MontaryAmount value) {
+    return new Specification&lt;Customer&gt;() {
+      Predicate toPredicate(Root&lt;T&gt; root, CriteriaQuery&lt;?&gt; query,
+            CriteriaBuilder builder) {
+
+         // build query here
+      }
+    };
+  }
+}</programlisting>
+    </example>
+
+    <para>Admittedly the amount of boilerplate leaves room for improvement
+    (that will hopefully be reduced by Java 8 closures) but the client side
+    becomes much nicer as you will see below. Besides that we have expressed
+    some criteria on a business requirement abstraction level and created
+    executable <interfacename>Specification</interfacename>s. So a client
+    might use a <interfacename>Specification</interfacename> as
+    follows:</para>
+
+    <example>
+      <title>Using a simple Specification</title>
+
+      <programlisting language="java">List&lt;Customer&gt; customers = customerRepository.findAll(isLongTermCustomer());</programlisting>
+    </example>
+
+    <para>Okay, why not simply creating a query for this kind of data access?
+    You're right. Using a single <interfacename>Specification</interfacename>
+    does not gain a lot of benefit over a plain query declaration. The power
+    of <interfacename>Specification</interfacename>s really shines when you
+    combine them to create new <interfacename>Specification</interfacename>
+    objects. You can achieve this through the
+    <classname>Specifications</classname> helper class we provide to build
+    expressions like this:</para>
+
+    <example>
+      <title>Combined Specifications</title>
+
+      <para><programlisting language="java">MonetaryAmount amount = new MonetaryAmount(200.0, Currencies.DOLLAR);
+List&lt;Customer&gt; customers = customerRepository.readAll(
+  where(isLongTermCustomer()).or(hasSalesOfMoreThan(amount)));</programlisting>As
+      you can see, <classname>Specifications</classname> offers some gluecode
+      methods to chain and combine
+      <interfacename>Specification</interfacename>s. Thus extending your data
+      access layer is just a matter of creating new
+      <interfacename>Specification</interfacename> implementations and
+      combining them with ones already existing.</para>
+    </example>
+  </section>
+
+  <section id="transactions">
+    <title>Transactionality</title>
+
+    <para>CRUD methods on repository instances are transactional by default.
+    For reading operations the transaction configuration <code>readOnly</code>
+    flag is set to true, all others are configured with a plain
+    <classname>@Transactional</classname> so that default transaction
+    configuration applies. For details see JavaDoc of
+    <classname>Repository</classname>. If you need to tweak transaction
+    configuration for one of the methods declared in
+    <interfacename>Repository</interfacename> simply redeclare the method in
+    your repository interface as follows:</para>
+
+    <example>
+      <title>Custom transaction configuration for CRUD</title>
+
+      <programlisting language="java">public interface UserRepository extends JpaRepository&lt;User, Long&gt; {
+
+  @Override
+  @Transactional(timeout = 10)
+  public List&lt;User&gt; findAll();
+
+  // Further query method declarations
+}</programlisting>
+
+      <para>This will cause the <methodname>findAll()</methodname> method to
+      be executed with a timeout of 10 seconds and without the
+      <code>readOnly</code> flag.</para>
+    </example>
+
+    <para>Another possibility to alter transactional behaviour is using a
+    facade or service implementation that typically covers more than one
+    repository. Its purpose is to define transactional boundaries for non-CRUD
+    operations:</para>
+
+    <example>
+      <title>Using a facade to define transactions for multiple repository
+      calls</title>
+
+      <programlisting language="java">@Service
+class UserManagementImpl implements UserManagement {
+
+  private final UserRepository userRepository;
+  private final RoleRepository roleRepository;
+
+  @Autowired
+  public UserManagementImpl(UserRepository userRepository, 
+    RoleRepository roleRepository) {
+    this.userRepository = userRepository;
+    this.roleRepository = roleRepository;
+  }
+
+  @Transactional
+  public void addRoleToAllUsers(String roleName) {
+
+    Role role = roleRepository.findByName(roleName);
+
+    for (User user : userRepository.readAll()) {
+      user.addRole(role);
+      userRepository.save(user);
+    }
+}</programlisting>
+
+      <para>This will cause call to
+      <methodname>addRoleToAllUsers(…)</methodname> to run inside a
+      transaction (participating in an existing one or create a new one if
+      none already running). The transaction configuration at the repositories
+      will be neglected then as the outer transaction configuration determines
+      the actual one used. Note that you will have to activate
+      <code>&lt;tx:annotation-driven /&gt;</code> explicitly to get annotation
+      based configuration at facades working. The example above assumes you're
+      using component scanning.</para>
+    </example>
+
+    <section id="transactional-query-methods">
+      <title>Transactional query methods</title>
+
+      <para>To let your query methods be transactional simply use
+      <interfacename>@Transactional</interfacename> at the repository
+      interface you define.</para>
+
+      <example>
+        <title>Using @Transactional at query methods</title>
+
+        <programlisting language="java">@Transactional(readOnly = true)
+public interface UserRepository extends JpaRepository&lt;User, Long&gt; {
+
+  List&lt;User&gt; findByLastname(String lastname);
+
+  @Modifying
+  @Transactional
+  @Query("delete from User u where u.active = false")
+  void deleteInactiveUsers();
+}</programlisting>
+
+        <para>Typically you will use the <code>readOnly</code> flag set to
+        true as most of the query methods will be reading ones. In contrast to
+        that <methodname>deleteInactiveUsers()</methodname> makes use of the
+        <interfacename>@Modifying</interfacename> annotation and overrides the
+        transaction configuration. Thus the method will be executed with
+        <code>readOnly</code> flag set to false.</para>
+      </example>
+
+      <note>
+        <para>It's definitely reasonable to use transactions for read only
+        queries as we can mark them as such by setting the
+        <code>readOnly</code> flag. This will not act as check that you do not
+        trigger a manipulating query nevertheless (although some databases
+        reject e.g. <literal>INSERT</literal> or <literal>UPDATE</literal>
+        statements inside a transaction set to be read only) but gets
+        propagated as hint to the underlying JDBC driver to do performance
+        optimizations. Furthermore Spring will do some optimizations to the
+        underlying JPA provider. E.g. when used with Hibernate the flush mode
+        is set to <code>NEVER</code> when you configure a transaction as read
+        only which causes Hibernate to skip dirty checks that gets quite
+        noticeable on large object trees.</para>
+      </note>
+    </section>
+  </section>
+
+  <section id="jpa.auditing">
+    <title>Auditing</title>
+
+    <para>Most applications will require some auditability for entities
+    allowing to track creation date and user and modification date and user.
+    Spring Data JPA provides facilities to add this audition information to
+    entity transparently by AOP means. To take part in this functionality your
+    domain classes have to implement a more advanced interface:</para>
+
+    <example>
+      <title><interfacename>Auditable</interfacename> interface</title>
+
+      <programlisting language="java">public interface Auditable&lt;U, ID extends Serializable&gt;
+        extends Persistable&lt;ID&gt; {
+
+    U getCreatedBy();
+
+    void setCreatedBy(U createdBy);
+
+    DateTime getCreatedDate();
+
+    void setCreated(Date creationDate);
+
+    U getLastModifiedBy();
+
+    void setLastModifiedBy(U lastModifiedBy);
+
+    DateTime getLastModifiedDate();
+
+    void setLastModified(Date lastModifiedDate);
+}</programlisting>
+    </example>
+
+    <para>As you can see the modifying entity itself only has to be an entity.
+    Mostly this will be some sort of User entity, so we chose U as parameter
+    type.</para>
+
+    <note>
+      <para>To minimize boilerplate code Spring Data JPA offers
+      <classname>AbstractPersistable</classname> and
+      <classname>AbstractAuditable</classname> base classes that implement and
+      preconfigure entities. Thus you can decide to only implement the
+      interface or enjoy more sophisticated support by extending the base
+      class.</para>
+    </note>
+
+    <simplesect>
+      <title>General auditing configuration</title>
+
+      <para>Spring Data JPA ships with an entity listener that can be used to
+      trigger capturing auditing information. So first you have to register
+      the <classname>AuditingEntityListener</classname> inside your
+      <filename>orm.xml</filename> to be used for all entities in your
+      persistence contexts:</para>
+
+      <example>
+        <title>Auditing configuration orm.xml</title>
+
+        <programlisting language="xml">&lt;persistence-unit-metadata&gt;
+  &lt;persistence-unit-defaults&gt;
+    &lt;entity-listeners&gt;
+      &lt;entity-listener class="….data.jpa.domain.support.AuditingEntityListener" /&gt;
+    &lt;/entity-listeners&gt;
+  &lt;/persistence-unit-defaults&gt;
+&lt;/persistence-unit-metadata&gt;</programlisting>
+      </example>
+
+      <para>Now activating auditing functionlity is just a matter of adding
+      the Spring Data JPA <literal>auditing</literal> namespace element to
+      your configuration:</para>
+
+      <example>
+        <title>Activating auditing in the Spring configuration</title>
+
+        <programlisting language="xml">&lt;jpa:auditing auditor-aware-ref="yourAuditorAwareBean" /&gt;</programlisting>
+      </example>
+
+      <para>As you can see you have to provide a bean that implements the
+      <interfacename>AuditorAware</interfacename> interface which looks as
+      follows:</para>
+
+      <example>
+        <title><interfacename>AuditorAware</interfacename> interface</title>
+
+        <programlisting language="java">public interface AuditorAware&lt;T, ID extends Serializable&gt; {
+
+    T getCurrentAuditor();
+}</programlisting>
+      </example>
+
+      <para>Usually you will have some kind of authentication component in
+      your application that tracks the user currently working with the system.
+      This component should be <interfacename>AuditorAware</interfacename> and
+      thus allow seemless tracking of the auditor.</para>
+    </simplesect>
+  </section>
+</chapter>
