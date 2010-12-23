@@ -22,7 +22,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.data.jpa.domain.sample.AuditableUser;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 
 /**
@@ -33,7 +32,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @SuppressWarnings("unchecked")
 public class AuditingEntityListenerUnitTests {
 
-    AuditingEntityListener<AuditableUser> auditionAdvice;
+    AuditingEntityListener<AuditableUser> listener;
     AuditorAware<AuditableUser> auditorAware;
 
     AuditableUser user;
@@ -42,7 +41,10 @@ public class AuditingEntityListenerUnitTests {
     @Before
     public void setUp() {
 
-        auditionAdvice = new AuditingEntityListener<AuditableUser>();
+        listener = new AuditingEntityListener<AuditableUser>();
+        // Explicitly null the AuditorAware as it might have been DI'ed if test
+        // is run in a test suite with integration tests
+        listener.setAuditorAware(null);
 
         user = new AuditableUser();
 
@@ -58,11 +60,12 @@ public class AuditingEntityListenerUnitTests {
     @Test
     public void doesNotSetAuditorIfNotConfigured() {
 
-        auditionAdvice.touch(user);
+        listener.touch(user);
 
         assertNotNull(user.getCreatedDate());
         assertNotNull(user.getLastModifiedDate());
 
+        System.out.println(user.getCreatedBy());
         assertNull(user.getCreatedBy());
         assertNull(user.getLastModifiedBy());
     }
@@ -75,9 +78,9 @@ public class AuditingEntityListenerUnitTests {
     @Test
     public void setsAuditorIfConfigured() {
 
-        auditionAdvice.setAuditorAware(auditorAware);
+        listener.setAuditorAware(auditorAware);
 
-        auditionAdvice.touch(user);
+        listener.touch(user);
 
         assertNotNull(user.getCreatedDate());
         assertNotNull(user.getLastModifiedDate());
@@ -96,9 +99,9 @@ public class AuditingEntityListenerUnitTests {
     @Test
     public void honoursModifiedOnCreationFlag() {
 
-        auditionAdvice.setAuditorAware(auditorAware);
-        auditionAdvice.setModifyOnCreation(false);
-        auditionAdvice.touch(user);
+        listener.setAuditorAware(auditorAware);
+        listener.setModifyOnCreation(false);
+        listener.touch(user);
 
         assertNotNull(user.getCreatedDate());
         assertNotNull(user.getCreatedBy());
@@ -119,8 +122,8 @@ public class AuditingEntityListenerUnitTests {
 
         user = new AuditableUser(1L);
 
-        auditionAdvice.setAuditorAware(auditorAware);
-        auditionAdvice.touch(user);
+        listener.setAuditorAware(auditorAware);
+        listener.touch(user);
 
         assertNull(user.getCreatedBy());
         assertNull(user.getCreatedDate());
@@ -135,9 +138,9 @@ public class AuditingEntityListenerUnitTests {
     @Test
     public void doesNotSetTimeIfConfigured() throws Exception {
 
-        auditionAdvice.setDateTimeForNow(false);
-        auditionAdvice.setAuditorAware(auditorAware);
-        auditionAdvice.touch(user);
+        listener.setDateTimeForNow(false);
+        listener.setAuditorAware(auditorAware);
+        listener.touch(user);
 
         assertNotNull(user.getCreatedBy());
         assertNull(user.getCreatedDate());

@@ -24,16 +24,24 @@ import org.springframework.data.domain.AuditorAware;
  * 
  * @author Oliver Gierke
  */
-public class AuditorAwareStub implements AuditorAware<User> {
+public class AuditorAwareStub implements AuditorAware<AuditableUser> {
+
+    private AuditableUser auditor;
+
+
+    public void setAuditor(AuditableUser auditor) {
+
+        this.auditor = auditor;
+    }
+
 
     /*
      * (non-Javadoc)
      * 
      * @see org.springframework.data.domain.AuditorAware#getCurrentAuditor()
      */
-    public User getCurrentAuditor() {
+    public AuditableUser getCurrentAuditor() {
 
-        return null;
+        return auditor;
     }
-
 }

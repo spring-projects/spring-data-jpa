@@ -129,7 +129,6 @@
 					</dependency>
 				</dependencies>
 			</plugin>
-			<!-- 
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>aspectj-maven-plugin</artifactId>
@@ -162,12 +161,12 @@
 						</aspectLibrary>
 					</aspectLibraries>
 					<includes>
-						<include>**/auditing/support/*.java</include>
+						<include>**/domain/support/AuditingEntityListener.java</include>
 					</includes>
 					<source>1.5</source>
 					<target>1.5</target>
 				</configuration>
-			</plugin>-->
+			</plugin>
 		</plugins>
 	</build>
 	

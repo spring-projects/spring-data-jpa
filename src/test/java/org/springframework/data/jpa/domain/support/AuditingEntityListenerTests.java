@@ -18,35 +18,54 @@ package org.springframework.data.jpa.domain.support;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Auditable;
 import org.springframework.data.jpa.domain.sample.AuditableRole;
 import org.springframework.data.jpa.domain.sample.AuditableUser;
+import org.springframework.data.jpa.domain.sample.AuditorAwareStub;
 import org.springframework.data.jpa.repository.sample.AuditableUserRepository;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.transaction.annotation.Transactional;
 
 
 /**
+ * Integration test for {@link AuditingEntityListener}.
+ * 
  * @author Oliver Gierke
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("classpath:auditing/auditing-entity-listener.xml")
+@Transactional
 public class AuditingEntityListenerTests {
 
     @Autowired
     AuditableUserRepository dao;
 
+    @Autowired
+    AuditorAwareStub auditorAware;
+
+    AuditableUser user;
+
+
+    @Before
+    public void setUp() {
+
+        user = new AuditableUser();
+        auditorAware.setAuditor(user);
+
+        dao.save(user);
+    }
+
 
     @Test
     public void auditsRootEntityCorrectly() throws Exception {
 
-        AuditableUser user = new AuditableUser();
-        dao.save(user);
-
         assertDatesSet(user);
+        assertUserIsAuditor(user, user);
     }
 
 
@@ -56,18 +75,28 @@ public class AuditingEntityListenerTests {
         AuditableRole role = new AuditableRole();
         role.setName("ADMIN");
 
-        AuditableUser user = new AuditableUser();
         user.addRole(role);
         dao.save(user);
+        role = user.getRoles().iterator().next();
 
         assertDatesSet(user);
         assertDatesSet(role);
+        assertUserIsAuditor(user, user);
+        assertUserIsAuditor(user, role);
     }
 
 
-    private void assertDatesSet(Auditable<?, ?> auditable) {
+    private static void assertDatesSet(Auditable<?, ?> auditable) {
 
         assertThat(auditable.getCreatedDate(), is(notNullValue()));
         assertThat(auditable.getLastModifiedDate(), is(notNullValue()));
+    }
+
+
+    private static void assertUserIsAuditor(AuditableUser user,
+            Auditable<AuditableUser, ?> auditable) {
+
+        assertThat(auditable.getCreatedBy(), is(user));
+        assertThat(auditable.getLastModifiedBy(), is(user));
     }
 }
