@@ -38,8 +38,9 @@
 		</dependency>
 		<dependency>
 			<groupId>org.aspectj</groupId>
-			<artifactId>aspectjtools</artifactId>
+			<artifactId>aspectjweaver</artifactId>
 			<version>${aspectj.version}</version>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
