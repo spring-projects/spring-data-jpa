@@ -21,6 +21,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.Query;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.QueryMethod;
@@ -29,16 +30,17 @@ import org.springframework.util.Assert;
 
 
 /**
- * Enum to contain query execution strategies. Depending (mostly) on the return
- * type of a {@link QueryMethod} a {@link HadesQuery} can be executed in various
- * flavours.
+ * Set of classes to contain query execution strategies. Depending (mostly) on
+ * the return type of a {@link QueryMethod} a
+ * {@link AbstractStringBasedJpaQuery} can be executed in various flavours.
  * 
  * @author Oliver Gierke
  */
 public abstract class JpaQueryExecution {
 
     /**
-     * Executes the given {@link HadesQuery} with the given {@link Parameters}.
+     * Executes the given {@link AbstractStringBasedJpaQuery} with the given
+     * {@link ParameterBinder}.
      * 
      * @param query
      * @param binder
@@ -73,8 +75,8 @@ public abstract class JpaQueryExecution {
 
 
     /**
-     * Method to implement {@link AbstractHadesQuery} executions by single enum
-     * values.
+     * Method to implement {@link AbstractStringBasedJpaQuery} executions by
+     * single enum values.
      * 
      * @param query
      * @param binder
@@ -88,8 +90,8 @@ public abstract class JpaQueryExecution {
             Object[] parameters);
 
     /**
-     * Executes the {@link HadesQuery} to return a simple collection of
-     * entities.
+     * Executes the {@link AbstractStringBasedJpaQuery} to return a simple
+     * collection of entities.
      */
     static class CollectionExecution extends JpaQueryExecution {
 
@@ -117,8 +119,8 @@ public abstract class JpaQueryExecution {
     }
 
     /**
-     * Executes the {@link HadesQuery} to return a
-     * {@link org.synyx.hades.domain.Page} of entities.
+     * Executes the {@link AbstractStringBasedJpaQuery} to return a {@link Page}
+     * of entities.
      */
     static class PagedExecution extends JpaQueryExecution {
 
@@ -174,7 +176,7 @@ public abstract class JpaQueryExecution {
     }
 
     /**
-     * Executes a {@link HadesQuery} to return a single entity.
+     * Executes a {@link AbstractStringBasedJpaQuery} to return a single entity.
      */
     static class SingleEntityExecution extends JpaQueryExecution {
 

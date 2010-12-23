@@ -116,7 +116,7 @@ public class JpaQueryLookupStrategy {
                 EntityManager em) {
 
             RepositoryQuery query =
-                    SimpleJpaQuery.fromHadesAnnotation(method, em);
+                    SimpleJpaQuery.fromQueryAnnotation(method, em);
 
             if (null != query) {
                 return query;
@@ -130,7 +130,7 @@ public class JpaQueryLookupStrategy {
 
             throw new IllegalStateException(
                     String.format(
-                            "Did neither find a NamedQuery nor a Hades Query for method %s!",
+                            "Did neither find a NamedQuery nor an annotated query for method %s!",
                             method));
         }
 

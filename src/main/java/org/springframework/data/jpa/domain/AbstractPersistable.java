@@ -48,7 +48,7 @@ public abstract class AbstractPersistable<PK extends Serializable> implements
     /*
      * (non-Javadoc)
      * 
-     * @see org.synyx.hades.hades.jpa.support.Entity#getId()
+     * @see org.springframework.data.domain.Persistable#getId()
      */
     public PK getId() {
 
@@ -70,7 +70,7 @@ public abstract class AbstractPersistable<PK extends Serializable> implements
     /*
      * (non-Javadoc)
      * 
-     * @see org.synyx.hades.hades.jpa.support.Entity#isNew()
+     * @see org.springframework.data.domain.Persistable#isNew()
      */
     public boolean isNew() {
 

@@ -138,7 +138,9 @@ enum PersistenceProvider implements QueryExtractor {
     /*
      * (non-Javadoc)
      * 
-     * @see org.synyx.hades.dao.query.QueryExtractor#canExtractQuery()
+     * @see
+     * org.springframework.data.jpa.repository.query.QueryExtractor#canExtractQuery
+     * ()
      */
     public boolean canExtractQuery() {
 

@@ -25,14 +25,14 @@ import org.springframework.util.Assert;
 
 
 /**
- * Annotation to exclude DAO interfaces from being picked up by Hades and thus
- * in consequence getting an instance being created.
+ * Annotation to exclude DAO interfaces from being picked up and thus in
+ * consequence getting an instance being created.
  * <p>
  * This will typically be used when providing an extended base interface for all
  * DAOs in combination with a custom DAO base class to implement methods
  * declared in that intermediate interface. In this case you typically derive
- * your concrete DAO interfaces from the intermediate one but don't want Hades
- * to create a Spring bean for the intermediate interface.
+ * your concrete DAO interfaces from the intermediate one but don't want to
+ * create a Spring bean for the intermediate interface.
  * 
  * @author Oliver Gierke
  */

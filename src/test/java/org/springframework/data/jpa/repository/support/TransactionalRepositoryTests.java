@@ -67,7 +67,7 @@ public class TransactionalRepositoryTests extends
     @Test
     public void invokeTransactionalFinder() throws Exception {
 
-        repository.findByHadesQuery("foo@bar.de");
+        repository.findByAnnotatedQuery("foo@bar.de");
         assertThat(transactionManager.getTransactionRequests(), is(1));
     }
 

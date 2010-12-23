@@ -15,12 +15,12 @@
  */
 package org.springframework.data.jpa.repository;
 
+import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.test.context.ContextConfiguration;
 
 
 /**
- * Testcase to run {@link org.synyx.hades.dao.UserDao} integration tests on top
- * of OpenJPA.
+ * Testcase to run {@link UserRepository} integration tests on top of OpenJPA.
  * 
  * @author Oliver Gierke
  */

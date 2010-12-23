@@ -32,7 +32,7 @@ public class QueryUtilsUnitTests {
 
     static final String QUERY = "select u from User u";
     static final String FQ_QUERY =
-            "select u from org.synyx.hades.domain.User$Foo_Bar u";
+            "select u from org.acme.domain.User$Foo_Bar u";
     static final String SIMPLE_QUERY = "from User u";
     static final String COUNT_QUERY = "select count(u) from User u";
 
@@ -147,7 +147,7 @@ public class QueryUtilsUnitTests {
 
         assertThat(detectAlias(FQ_QUERY), IS_U);
         assertCountQuery(FQ_QUERY,
-                "select count(u) from org.synyx.hades.domain.User$Foo_Bar u");
+                "select count(u) from org.acme.domain.User$Foo_Bar u");
     }
 
 

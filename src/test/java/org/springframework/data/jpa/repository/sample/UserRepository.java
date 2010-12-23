@@ -109,7 +109,7 @@ public interface UserRepository extends JpaRepository<User, Integer>,
      */
     @Query("select u from User u where u.emailAddress = ?1")
     @Transactional(readOnly = true)
-    User findByHadesQuery(String emailAddress);
+    User findByAnnotatedQuery(String emailAddress);
 
 
     /**

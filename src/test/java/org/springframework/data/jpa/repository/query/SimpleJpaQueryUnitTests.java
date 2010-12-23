@@ -36,7 +36,7 @@ import org.springframework.data.jpa.repository.sample.UserRepository;
 
 
 /**
- * Unit test for {@link SimpleHadesQuery}.
+ * Unit test for {@link SimpleJpaQuery}.
  * 
  * @author Oliver Gierke
  */
@@ -68,8 +68,8 @@ public class SimpleJpaQueryUnitTests {
     @Test
     public void appliesHintsCorrectly() throws Exception {
 
-        SimpleJpaQuery hadesQuery = new SimpleJpaQuery(method, em, "foobar");
-        hadesQuery.createQuery(new ParameterBinder(method.getParameters(),
+        SimpleJpaQuery jpaQuery = new SimpleJpaQuery(method, em, "foobar");
+        jpaQuery.createQuery(new ParameterBinder(method.getParameters(),
                 new Object[] { "gierke" }));
 
         verify(query).setHint("foo", "bar");
@@ -83,9 +83,9 @@ public class SimpleJpaQueryUnitTests {
         when(method.getCountQuery()).thenReturn("foo");
         when(em.createQuery("foo")).thenReturn(query);
 
-        SimpleJpaQuery hadesQuery =
+        SimpleJpaQuery jpaQuery =
                 new SimpleJpaQuery(method, em, "select u from User u");
 
-        assertThat(hadesQuery.createCountQuery(null), is(query));
+        assertThat(jpaQuery.createCountQuery(null), is(query));
     }
 }

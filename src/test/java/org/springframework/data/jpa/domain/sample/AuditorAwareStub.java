@@ -29,7 +29,7 @@ public class AuditorAwareStub implements AuditorAware<User> {
     /*
      * (non-Javadoc)
      * 
-     * @see org.synyx.hades.domain.auditing.AuditorAware#getCurrentAuditor()
+     * @see org.springframework.data.domain.AuditorAware#getCurrentAuditor()
      */
     public User getCurrentAuditor() {
 

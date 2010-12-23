@@ -45,7 +45,7 @@ import org.springframework.data.domain.AuditorAware;
  * After that it's just a matter of activating auditing in your Spring config:
  * 
  * <pre>
- * &lt;hades:auditing auditor-aware-ref="yourAuditorAwarebean" /&gt;
+ * &lt;jpa:auditing auditor-aware-ref="yourAuditorAwarebean" /&gt;
  * </pre>
  * 
  * @author Oliver Gierke

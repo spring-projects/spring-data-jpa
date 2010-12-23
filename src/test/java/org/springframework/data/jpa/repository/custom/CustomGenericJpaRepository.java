@@ -47,8 +47,8 @@ public class CustomGenericJpaRepository<T, ID extends Serializable> extends
      * (non-Javadoc)
      * 
      * @see
-     * org.synyx.hades.customimpl.CustomExtendedGenericDao#customMethod(java
-     * .io.Serializable)
+     * org.springframework.data.jpa.repository.custom.CustomGenericRepository
+     * #customMethod(java.io.Serializable)
      */
     public T customMethod(ID id) {
 

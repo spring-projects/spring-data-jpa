@@ -62,10 +62,10 @@ public class Role {
     }
 
 
-    /*
-     * (non-Javadoc)
+    /**
+     * Returns the id.
      * 
-     * @see org.synyx.hades.jpa.support.Entity#getId()
+     * @return
      */
     public Integer getId() {
 
@@ -85,10 +85,10 @@ public class Role {
     }
 
 
-    /*
-     * (non-Javadoc)
+    /**
+     * Returns whether the role is to be considered new.
      * 
-     * @see org.synyx.hades.jpa.support.Entity#isNew()
+     * @return
      */
     public boolean isNew() {
 

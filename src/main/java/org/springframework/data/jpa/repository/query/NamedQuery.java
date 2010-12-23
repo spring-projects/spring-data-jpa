@@ -117,8 +117,10 @@ final class NamedQuery extends AbstractStringBasedJpaQuery {
      * (non-Javadoc)
      * 
      * @see
-     * org.synyx.hades.dao.query.AbstractHadesQuery#createQuery(javax.persistence
-     * .EntityManager, org.synyx.hades.dao.query.ParameterBinder)
+     * org.springframework.data.jpa.repository.query.AbstractStringBasedJpaQuery
+     * #
+     * createQuery(org.springframework.data.jpa.repository.query.ParameterBinder
+     * )
      */
     @Override
     protected Query createQuery(ParameterBinder binder) {
@@ -130,8 +132,10 @@ final class NamedQuery extends AbstractStringBasedJpaQuery {
     /*
      * (non-Javadoc)
      * 
-     * @see org.synyx.hades.dao.query.AbstractHadesQuery#createCountQuery(javax.
-     * persistence.EntityManager)
+     * @see
+     * org.springframework.data.jpa.repository.query.AbstractStringBasedJpaQuery
+     * #createCountQuery(org.springframework.data.jpa.repository.query.
+     * ParameterBinder)
      */
     @Override
     protected Query createCountQuery(ParameterBinder binder) {

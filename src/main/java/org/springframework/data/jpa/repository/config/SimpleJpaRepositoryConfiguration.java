@@ -74,10 +74,10 @@ public class SimpleJpaRepositoryConfiguration
     }
 
 
-    /*
-     * (non-Javadoc)
+    /**
+     * Returns the name of the entity manager factory bean.
      * 
-     * @see org.synyx.hades.dao.config.DaoConfigContext#getEntityManagerRef()
+     * @return
      */
     public String getEntityManagerFactoryRef() {
 
@@ -89,10 +89,6 @@ public class SimpleJpaRepositoryConfiguration
             AutomaticRepositoryConfigInformation<SimpleJpaRepositoryConfiguration>
             implements JpaRepositoryConfiguration {
 
-        /**
-         * @param interfaceName
-         * @param parent
-         */
         public AutomaticJpaRepositoryConfigInformation(String interfaceName,
                 SimpleJpaRepositoryConfiguration parent) {
 
@@ -116,10 +112,6 @@ public class SimpleJpaRepositoryConfiguration
             ManualRepositoryConfigInformation<SimpleJpaRepositoryConfiguration>
             implements JpaRepositoryConfiguration {
 
-        /**
-         * @param element
-         * @param parent
-         */
         public ManualJpaRepositoryConfigInformation(Element element,
                 SimpleJpaRepositoryConfiguration parent) {
 
@@ -130,8 +122,9 @@ public class SimpleJpaRepositoryConfiguration
         /*
          * (non-Javadoc)
          * 
-         * @see
-         * org.synyx.hades.dao.config.DaoConfigContext#getEntityManagerRef()
+         * @see org.springframework.data.jpa.repository.config.
+         * SimpleJpaRepositoryConfiguration
+         * .JpaRepositoryConfiguration#getEntityManagerFactoryRef()
          */
         public String getEntityManagerFactoryRef() {
 

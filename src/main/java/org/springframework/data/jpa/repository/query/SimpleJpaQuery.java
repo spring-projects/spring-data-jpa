@@ -28,9 +28,9 @@ import org.springframework.data.repository.query.RepositoryQuery;
 
 
 /**
- * {@link HadesQuery} implementation that inspects a {@link QueryMethod} for the
- * existanve of an {@link org.synyx.hades.dao.Query} annotation and creates a
- * JPA {@link Query} from it.
+ * {@link RepositoryQuery} implementation that inspects a {@link QueryMethod}
+ * for the existanve of an {@link org.springframework.data.jpa.repository.Query}
+ * annotation and creates a JPA {@link Query} from it.
  * 
  * @author Oliver Gierke
  */
@@ -66,8 +66,10 @@ final class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
      * (non-Javadoc)
      * 
      * @see
-     * org.synyx.hades.dao.query.AbstractHadesQuery#createQuery(javax.persistence
-     * .EntityManager, org.synyx.hades.dao.query.ParameterBinder)
+     * org.springframework.data.jpa.repository.query.AbstractStringBasedJpaQuery
+     * #
+     * createQuery(org.springframework.data.jpa.repository.query.ParameterBinder
+     * )
      */
     @Override
     public Query createQuery(ParameterBinder binder) {
@@ -111,18 +113,19 @@ final class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
 
 
     /**
-     * Creates a {@link HadesQuery} from the given {@link QueryMethod} that is
-     * potentially annotated with {@link org.synyx.hades.dao.Query}.
+     * Creates a {@link RepositoryQuery} from the given {@link QueryMethod} that
+     * is potentially annotated with
+     * {@link org.springframework.data.jpa.repository.Query}.
      * 
      * @param queryMethod
      * @param em
-     * @return the {@link HadesQuery} derived from the annotation or
+     * @return the {@link RepositoryQuery} derived from the annotation or
      *         {@code null} if no annotation found.
      */
-    public static RepositoryQuery fromHadesAnnotation(
+    public static RepositoryQuery fromQueryAnnotation(
             JpaQueryMethod queryMethod, EntityManager em) {
 
-        LOG.debug("Looking up Hades query for method %s", queryMethod.getName());
+        LOG.debug("Looking up query for method %s", queryMethod.getName());
 
         String query = queryMethod.getAnnotatedQuery();
 

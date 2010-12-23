@@ -436,9 +436,9 @@ public class UserRepositoryTests {
 
 
     @Test
-    public void testUsesHadesQueryAnnotation() {
+    public void testUsesQueryAnnotation() {
 
-        assertEquals(null, repository.findByHadesQuery("gierke@synyx.de"));
+        assertEquals(null, repository.findByAnnotatedQuery("gierke@synyx.de"));
     }
 
 

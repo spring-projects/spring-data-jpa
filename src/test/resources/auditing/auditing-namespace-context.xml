@@ -9,6 +9,6 @@
     
     <jpa:auditing auditor-aware-ref="auditorAware" />
     
-    <bean id="auditorAware" class="org.synyx.hades.domain.AuditorAwareStub" /> 
+    <bean id="auditorAware" class="org.springframework.data.jpa.domain.sample.AuditorAwareStub" /> 
 
 </beans>

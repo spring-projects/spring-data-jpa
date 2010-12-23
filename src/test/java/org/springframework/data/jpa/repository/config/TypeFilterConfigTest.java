@@ -33,8 +33,9 @@ public class TypeFilterConfigTest extends AbstractRepositoryConfigTests {
     /*
      * (non-Javadoc)
      * 
-     * @seeorg.synyx.hades.dao.config.AbstractDaoConfigIntegrationTest#
-     * testContextCreation()
+     * @see
+     * org.springframework.data.jpa.repository.config.AbstractRepositoryConfigTests
+     * #testContextCreation()
      */
     @Override
     public void testContextCreation() {

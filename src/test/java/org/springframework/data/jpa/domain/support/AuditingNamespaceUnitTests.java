@@ -20,11 +20,10 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 
 /**
- * Unit test for the Hades {@code auditing} namespace element.
+ * Unit test for the JPA {@code auditing} namespace element.
  * 
  * @author Oliver Gierke
  */
@@ -34,9 +33,8 @@ public class AuditingNamespaceUnitTests extends
     /*
      * (non-Javadoc)
      * 
-     * @see
-     * org.synyx.hades.domain.auditing.AuditingBeanFactoryPostProcessorUnitTest
-     * #getConfigFile()
+     * @see org.springframework.data.jpa.domain.support.
+     * AuditingBeanFactoryPostProcessorUnitTests#getConfigFile()
      */
     @Override
     protected String getConfigFile() {

@@ -21,7 +21,6 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 
-
 /**
  * Helper class to easily combine {@link Specification} instances.
  * 
@@ -122,9 +121,8 @@ public class Specifications<T> implements Specification<T> {
     /*
      * (non-Javadoc)
      * 
-     * @see
-     * org.synyx.hades.domain.Specification#toPredicate(javax.persistence.criteria
-     * .Root, javax.persistence.criteria.CriteriaQuery,
+     * @see org.springframework.data.jpa.domain.Specification#toPredicate(javax.
+     * persistence.criteria.Root, javax.persistence.criteria.CriteriaQuery,
      * javax.persistence.criteria.CriteriaBuilder)
      */
     public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query,

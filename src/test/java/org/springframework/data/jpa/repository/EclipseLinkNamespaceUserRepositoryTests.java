@@ -16,11 +16,12 @@
 package org.springframework.data.jpa.repository;
 
 import org.junit.Ignore;
+import org.springframework.data.jpa.repository.sample.UserRepository;
 
 
 /**
- * Testcase to run {@link org.synyx.hades.dao.UserDao} integration tests on top
- * of EclipseLink. So far not running as of an EclipseLink bug.
+ * Testcase to run {@link UserRepository} integration tests on top of
+ * EclipseLink. So far not running as of an EclipseLink bug.
  * 
  * @see https://bugs.eclipse.org/bugs/show_bug.cgi?id=312132
  * @author Oliver Gierke
