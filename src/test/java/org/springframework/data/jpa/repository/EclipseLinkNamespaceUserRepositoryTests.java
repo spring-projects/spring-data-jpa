@@ -15,20 +15,19 @@
  */
 package org.springframework.data.jpa.repository;
 
-import org.junit.Ignore;
 import org.springframework.data.jpa.repository.sample.UserRepository;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
 
 
 /**
  * Testcase to run {@link UserRepository} integration tests on top of
- * EclipseLink. So far not running as of an EclipseLink bug.
+ * EclipseLink.
  * 
- * @see https://bugs.eclipse.org/bugs/show_bug.cgi?id=312132
  * @author Oliver Gierke
  */
-// @ContextConfiguration(value = "classpath:eclipselink.xml", inheritLocations =
-// true)
-@Ignore
+@DirtiesContext
+@ContextConfiguration(value = "classpath:eclipselink.xml", inheritLocations = true)
 public class EclipseLinkNamespaceUserRepositoryTests extends
         NamespaceUserRepositoryTests {
 
