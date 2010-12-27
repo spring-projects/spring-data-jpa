@@ -125,7 +125,7 @@ final class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
     public static RepositoryQuery fromQueryAnnotation(
             JpaQueryMethod queryMethod, EntityManager em) {
 
-        LOG.debug("Looking up query for method %s", queryMethod.getName());
+        LOG.debug("Looking up query for method {}", queryMethod.getName());
 
         String query = queryMethod.getAnnotatedQuery();
 

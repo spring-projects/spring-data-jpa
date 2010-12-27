@@ -125,7 +125,7 @@ public class AuditingEntityListener<T> implements InitializingBean {
         Object defaultedNow = now == null ? "not set" : now;
         Object defaultedAuditor = auditor == null ? "unknown" : auditor;
 
-        LOG.debug("Touched %s - Last modification at %s by %s", new Object[] {
+        LOG.debug("Touched {} - Last modification at {} by {}", new Object[] {
                 auditable, defaultedNow, defaultedAuditor });
     }
 
