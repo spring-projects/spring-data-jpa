@@ -16,6 +16,7 @@
 package org.springframework.data.jpa.repository.support;
 
 import static junit.framework.Assert.*;
+import static org.mockito.Mockito.*;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -27,10 +28,13 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.springframework.data.domain.Persistable;
+import org.springframework.aop.framework.Advised;
+import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.QueryDslPredicateExecutor;
 import org.springframework.data.jpa.repository.custom.CustomGenericJpaRepositoryFactory;
 import org.springframework.data.jpa.repository.custom.UserCustomExtendedRepository;
+import org.springframework.transaction.annotation.Transactional;
 
 
 /**
@@ -46,7 +50,7 @@ public class JpaRepositoryFactoryUnitTests {
     @Mock
     EntityManager entityManager;
     @Mock
-    JpaEntityInformation<Object, Serializable> metadata;
+    JpaEntityInformation metadata;
 
 
     @Before
@@ -60,7 +64,7 @@ public class JpaRepositoryFactoryUnitTests {
             public <T, ID extends Serializable> JpaEntityInformation<T, ID> getEntityInformation(
                     Class<T> domainClass) {
 
-                return (JpaEntityInformation<T, ID>) metadata;
+                return metadata;
             };
         };
     }
@@ -134,7 +138,7 @@ public class JpaRepositoryFactoryUnitTests {
 
 
     @Test(expected = UnsupportedOperationException.class)
-    public void createsProxyWithCustomBaseClass() throws Exception {
+    public void createsProxyWithCustomBaseClass() {
 
         JpaRepositoryFactory factory =
                 new CustomGenericJpaRepositoryFactory(entityManager);
@@ -144,9 +148,25 @@ public class JpaRepositoryFactoryUnitTests {
         repository.customMethod(1);
     }
 
+
+    @Test
+    public void usesQueryDslRepositoryIfInterfaceImplementsExecutor() {
+
+        when(metadata.getJavaType()).thenReturn(User.class);
+        assertEquals(QueryDslJpaRepository.class,
+                factory.getRepositoryBaseClass(QueryDslSampleRepository.class));
+
+        QueryDslSampleRepository repository =
+                factory.getRepository(QueryDslSampleRepository.class);
+        assertEquals(QueryDslJpaRepository.class,
+                ((Advised) repository).getTargetClass());
+    }
+
     private interface SimpleSampleRepository extends
             JpaRepository<User, Integer> {
 
+        @Transactional
+        User findOne(Integer id);
     }
 
     /**
@@ -186,13 +206,8 @@ public class JpaRepositoryFactoryUnitTests {
 
     }
 
-    /**
-     * Helper class to make the factory use {@link PersistableMetadata} .
-     * 
-     * @author Oliver Gierke
-     */
-    @SuppressWarnings("serial")
-    private static abstract class User implements Persistable<Long> {
+    private interface QueryDslSampleRepository extends SimpleSampleRepository,
+            QueryDslPredicateExecutor<User> {
 
     }
 }

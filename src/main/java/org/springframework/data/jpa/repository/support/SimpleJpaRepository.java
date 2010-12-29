@@ -35,6 +35,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.repository.Repository;
 import org.springframework.util.Assert;
 
@@ -50,7 +51,7 @@ import org.springframework.util.Assert;
  */
 @org.springframework.stereotype.Repository
 public class SimpleJpaRepository<T, ID extends Serializable> implements
-        JpaRepository<T, ID> {
+        JpaRepository<T, ID>, JpaSpecificationExecutor<T> {
 
     private final JpaEntityInformation<T, ID> entityInformation;
     private final EntityManager em;
@@ -279,6 +280,19 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements
 
         return em.createQuery(getCountQueryString(), Long.class)
                 .getSingleResult();
+    }
+
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.springframework.data.jpa.repository.JpaSpecificationExecutor#count
+     * (org.springframework.data.jpa.domain.Specification)
+     */
+    public Long count(Specification<T> spec) {
+
+        return getCountQuery(spec).getSingleResult();
     }
 
 

@@ -19,6 +19,7 @@ import java.io.Serializable;
 
 import javax.persistence.EntityManager;
 
+import org.springframework.data.jpa.repository.QueryDslPredicateExecutor;
 import org.springframework.data.jpa.repository.query.JpaQueryLookupStrategy;
 import org.springframework.data.jpa.repository.query.QueryExtractor;
 import org.springframework.data.jpa.repository.utils.JpaClassUtils;
@@ -27,6 +28,7 @@ import org.springframework.data.repository.query.QueryLookupStrategy.Key;
 import org.springframework.data.repository.support.RepositoryFactorySupport;
 import org.springframework.data.repository.support.RepositoryMetadata;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 
 
 /**
@@ -35,6 +37,10 @@ import org.springframework.util.Assert;
  * @author Oliver Gierke
  */
 public class JpaRepositoryFactory extends RepositoryFactorySupport {
+
+    private static final boolean QUERY_DSL_PRESENT = ClassUtils.isPresent(
+            "com.mysema.query.types.Predicate",
+            JpaRepositoryFactory.class.getClassLoader());
 
     private final EntityManager entityManager;
     private final QueryExtractor extractor;
@@ -81,9 +87,15 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
     protected <T, ID extends Serializable> Object getTargetRepository(
             RepositoryMetadata metadata, EntityManager entityManager) {
 
-        JpaEntityInformation<T, ID> entityMetadata =
-                getEntityInformation((Class<T>) metadata.getDomainClass());
-        return new SimpleJpaRepository(entityMetadata, entityManager);
+        Class<?> repositoryInterface = metadata.getRepositoryInterface();
+        JpaEntityInformation<?, Serializable> entityInformation =
+                getEntityInformation(metadata.getDomainClass());
+
+        if (isQueryDslExecutor(repositoryInterface)) {
+            return new QueryDslJpaRepository(entityInformation, entityManager);
+        } else {
+            return new SimpleJpaRepository(entityInformation, entityManager);
+        }
     }
 
 
@@ -97,7 +109,26 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
     @Override
     protected Class<?> getRepositoryBaseClass(Class<?> repositoryInterface) {
 
-        return SimpleJpaRepository.class;
+        if (isQueryDslExecutor(repositoryInterface)) {
+            return QueryDslJpaRepository.class;
+        } else {
+            return SimpleJpaRepository.class;
+        }
+    }
+
+
+    /**
+     * Returns whether the given repository interface requires a QueryDsl
+     * specific implementation to be chosen.
+     * 
+     * @param repositoryInterface
+     * @return
+     */
+    private boolean isQueryDslExecutor(Class<?> repositoryInterface) {
+
+        return QUERY_DSL_PRESENT
+                && QueryDslPredicateExecutor.class
+                        .isAssignableFrom(repositoryInterface);
     }
 
 

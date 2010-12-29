@@ -11,6 +11,7 @@ Changes in version 1.0.0.M2
 * @Query annotated queries get validated on Query meta-model creation (DATAJPA-14)
 * Fixed dependency scopes and missing repository declarations (DATAJPA-33, DATAJPA-26)
 * Adapted meta-model API from Commons module (DATAJPA-32)
+* Added support for QueryDsl (DATAJPA-8)
 
 Changes in version 1.0.0.M1 (2011-02-10) - https://jira.springsource.org/browse/DATAJPA/fixforversion/11786
 ----------------------------------------
