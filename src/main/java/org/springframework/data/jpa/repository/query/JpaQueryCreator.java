@@ -114,14 +114,14 @@ public class JpaQueryCreator extends
     /**
      * Finalizes the given {@link Predicate} and applies the given sort.
      * Delegates to
-     * {@link #finalize(Predicate, Sort, CriteriaQuery, CriteriaBuilder)} and
+     * {@link #complete(Predicate, Sort, CriteriaQuery, CriteriaBuilder)} and
      * hands it the current {@link CriteriaQuery} and {@link CriteriaBuilder}.
      */
     @Override
-    protected final CriteriaQuery<Object> finalize(Predicate predicate,
+    protected final CriteriaQuery<Object> complete(Predicate predicate,
             Sort sort) {
 
-        return finalize(predicate, sort, query, builder);
+        return complete(predicate, sort, query, builder);
     }
 
 
@@ -135,7 +135,7 @@ public class JpaQueryCreator extends
      * @param builder
      * @return
      */
-    protected CriteriaQuery<Object> finalize(Predicate predicate, Sort sort,
+    protected CriteriaQuery<Object> complete(Predicate predicate, Sort sort,
             CriteriaQuery<Object> query, CriteriaBuilder builder) {
 
         return this.query.select(root).where(predicate)

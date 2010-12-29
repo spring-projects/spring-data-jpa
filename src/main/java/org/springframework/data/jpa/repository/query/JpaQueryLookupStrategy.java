@@ -30,7 +30,14 @@ import org.springframework.data.repository.query.RepositoryQuery;
  * 
  * @author Oliver Gierke
  */
-public class JpaQueryLookupStrategy {
+public final class JpaQueryLookupStrategy {
+
+    /**
+     * Private constructor to prevent instantiation.
+     */
+    private JpaQueryLookupStrategy() {
+
+    }
 
     /**
      * Base class for {@link QueryLookupStrategy} implementations that need
@@ -38,7 +45,7 @@ public class JpaQueryLookupStrategy {
      * 
      * @author Oliver Gierke
      */
-    private static abstract class AbstractQueryLookupStrategy implements
+    private abstract static class AbstractQueryLookupStrategy implements
             QueryLookupStrategy {
 
         private final EntityManager em;
@@ -195,7 +202,7 @@ public class JpaQueryLookupStrategy {
             return new CreateIfNotFoundQueryLookupStrategy(em, extractor);
         default:
             throw new IllegalArgumentException(String.format(
-                    "Unsupported query lookup strategy %!", key));
+                    "Unsupported query lookup strategy %s!", key));
         }
     }
 }

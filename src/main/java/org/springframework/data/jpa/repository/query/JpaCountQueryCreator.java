@@ -63,7 +63,7 @@ public class JpaCountQueryCreator extends JpaQueryCreator {
      * javax.persistence.criteria.CriteriaBuilder)
      */
     @Override
-    protected CriteriaQuery<Object> finalize(Predicate predicate, Sort sort,
+    protected CriteriaQuery<Object> complete(Predicate predicate, Sort sort,
             CriteriaQuery<Object> query, CriteriaBuilder builder) {
 
         return query.select(builder.count(query.from(domainClass)));

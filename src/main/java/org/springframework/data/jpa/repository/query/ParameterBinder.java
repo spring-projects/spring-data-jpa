@@ -51,7 +51,7 @@ public class ParameterBinder {
                 "Invalid number of parameters given!");
 
         this.parameters = parameters;
-        this.values = values;
+        this.values = values.clone();
     }
 
 

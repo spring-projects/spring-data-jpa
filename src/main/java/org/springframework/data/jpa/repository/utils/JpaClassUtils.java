@@ -29,6 +29,14 @@ import org.springframework.util.StringUtils;
 public abstract class JpaClassUtils {
 
     /**
+     * Private constructor to prevent instantiation.
+     */
+    private JpaClassUtils() {
+
+    }
+
+
+    /**
      * Returns whether the given {@link EntityManager} is of the given type.
      * 
      * @param em

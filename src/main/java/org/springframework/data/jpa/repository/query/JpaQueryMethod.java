@@ -113,7 +113,7 @@ public class JpaQueryMethod extends QueryMethod {
      * 
      * @return
      */
-    boolean isModifyingQuery() {
+    final boolean isModifyingQuery() {
 
         return null != AnnotationUtils.findAnnotation(method, Modifying.class);
     }
