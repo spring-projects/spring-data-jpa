@@ -33,6 +33,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.query.QueryUtils;
 import org.springframework.data.repository.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,7 +52,7 @@ import org.springframework.util.Assert;
 @org.springframework.stereotype.Repository
 @Transactional
 public class SimpleJpaRepository<T, ID extends Serializable> extends
-        JpaRepositorySupport<T, ID> {
+        JpaRepositorySupport<T, ID> implements JpaSpecificationExecutor<T> {
 
     private final EntityManager em;
     private final PersistenceProvider provider;
@@ -266,6 +267,19 @@ public class SimpleJpaRepository<T, ID extends Serializable> extends
 
         return em.createQuery(getCountQueryString(), Long.class)
                 .getSingleResult();
+    }
+
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.springframework.data.jpa.repository.JpaSpecificationExecutor#count
+     * (org.springframework.data.jpa.domain.Specification)
+     */
+    public Long count(Specification<T> spec) {
+
+        return getCountQuery(spec).getSingleResult();
     }
 
 

@@ -15,6 +15,7 @@
 		<hibernate.version>3.6.0.Final</hibernate.version>
 		<openjpa.version>2.0.0</openjpa.version>
 		<aspectj.version>1.6.8</aspectj.version>
+		<querydsl.version>2.0.6</querydsl.version>
 	</properties>
 	
 	<dependencies>
@@ -104,6 +105,20 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
+		
+		<!-- QueryDsl -->
+		<dependency>
+			<groupId>com.mysema.querydsl</groupId>
+			<artifactId>querydsl-apt</artifactId>
+			<version>${querydsl.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.mysema.querydsl</groupId>
+			<artifactId>querydsl-jpa</artifactId>
+			<version>${querydsl.version}</version>
+		</dependency>
 	</dependencies>
 	
 	<build>
@@ -167,6 +182,24 @@
 					<target>1.5</target>
 				</configuration>
 			</plugin>
+			
+			<plugin>
+				<groupId>com.mysema.maven</groupId>
+				<artifactId>maven-apt-plugin</artifactId>
+				<version>1.0</version>
+				<executions>
+					<execution>
+						<phase>process-test-sources</phase>
+						<goals>
+							<goal>test-process</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>target/generated-test-sources/java</outputDirectory>
+							<processor>com.mysema.query.apt.jpa.JPAAnnotationProcessor</processor>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 	
@@ -181,5 +214,18 @@
 			<name>EclipseLink Repo</name>
 			<url>http://www.eclipse.org/downloads/download.php?r=1&amp;nf=1&amp;file=/rt/eclipselink/maven.repo</url>
 		</repository>
+		<repository>
+			<id>querydsl</id>
+			<name>QueryDsl</name>
+			<url>http://source.mysema.com/maven2/releases</url>
+		</repository>
 	</repositories>
+	
+	<pluginRepositories>
+		<pluginRepository>
+			<id>querydsl</id>
+			<name>QueryDsl</name>
+			<url>http://source.mysema.com/maven2/releases</url>
+		</pluginRepository>
+	</pluginRepositories>
 </project>

@@ -26,8 +26,10 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.aop.framework.Advised;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.QueryDslPredicateExecutor;
 import org.springframework.data.jpa.repository.custom.CustomGenericJpaRepositoryFactory;
 import org.springframework.data.jpa.repository.custom.UserCustomExtendedRepository;
 import org.springframework.transaction.annotation.Transactional;
@@ -123,7 +125,7 @@ public class JpaRepositoryFactoryUnitTests {
 
 
     @Test(expected = UnsupportedOperationException.class)
-    public void createsProxyWithCustomBaseClass() throws Exception {
+    public void createsProxyWithCustomBaseClass() {
 
         JpaRepositoryFactory factory =
                 new CustomGenericJpaRepositoryFactory(entityManager);
@@ -133,11 +135,24 @@ public class JpaRepositoryFactoryUnitTests {
         repository.customMethod(1);
     }
 
+
+    @Test
+    public void usesQueryDslRepositoryIfInterfaceImplementsExecutor() {
+
+        assertEquals(QueryDslJpaRepository.class,
+                factory.getRepositoryClass(QueryDslSampleRepository.class));
+
+        QueryDslSampleRepository repository =
+                factory.getRepository(QueryDslSampleRepository.class);
+        assertEquals(QueryDslJpaRepository.class,
+                ((Advised) repository).getTargetClass());
+    }
+
     private interface SimpleSampleRepository extends
             JpaRepository<User, Integer> {
 
         @Transactional
-        User readByPrimaryKey(Integer primaryKey);
+        User findById(Integer id);
     }
 
     /**
@@ -174,6 +189,11 @@ public class JpaRepositoryFactoryUnitTests {
 
     private interface SampleRepository extends JpaRepository<User, Integer>,
             SampleCustomRepository {
+
+    }
+
+    private interface QueryDslSampleRepository extends SimpleSampleRepository,
+            QueryDslPredicateExecutor<User> {
 
     }
 }

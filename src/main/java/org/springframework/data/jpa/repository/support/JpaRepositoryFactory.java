@@ -16,9 +16,11 @@
 package org.springframework.data.jpa.repository.support;
 
 import java.io.Serializable;
+import java.util.Arrays;
 
 import javax.persistence.EntityManager;
 
+import org.springframework.data.jpa.repository.QueryDslPredicateExecutor;
 import org.springframework.data.jpa.repository.query.JpaQueryLookupStrategy;
 import org.springframework.data.jpa.repository.query.QueryExtractor;
 import org.springframework.data.repository.query.QueryLookupStrategy;
@@ -83,7 +85,11 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
             Class<T> domainClass, Class<?> repositoryInterface,
             EntityManager entityManager) {
 
-        return new SimpleJpaRepository<T, ID>(domainClass, entityManager);
+        if (isQueryDslExecutor(repositoryInterface)) {
+            return new QueryDslJpaRepository<T, ID>(domainClass, entityManager);
+        } else {
+            return new SimpleJpaRepository<T, ID>(domainClass, entityManager);
+        }
     }
 
 
@@ -99,7 +105,25 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
     protected Class<? extends RepositorySupport> getRepositoryClass(
             Class<?> repositoryInterface) {
 
-        return SimpleJpaRepository.class;
+        if (isQueryDslExecutor(repositoryInterface)) {
+            return QueryDslJpaRepository.class;
+        } else {
+            return SimpleJpaRepository.class;
+        }
+    }
+
+
+    /**
+     * Returns whether the given repository interface requires a QueryDsl
+     * specific implementation to be chosen.
+     * 
+     * @param repositoryInterface
+     * @return
+     */
+    private boolean isQueryDslExecutor(Class<?> repositoryInterface) {
+
+        return Arrays.asList(repositoryInterface.getInterfaces()).contains(
+                QueryDslPredicateExecutor.class);
     }
 
 
