@@ -50,7 +50,7 @@ public class CustomGenericJpaRepositoryFactory extends JpaRepositoryFactory {
      */
     @Override
     protected <T, ID extends Serializable> RepositorySupport<T, ID> getTargetRepository(
-            Class<T> domainClass, EntityManager em) {
+            Class<T> domainClass, Class<?> repositoryInterface, EntityManager em) {
 
         return new CustomGenericJpaRepository<T, ID>(domainClass, em);
     }
@@ -65,7 +65,8 @@ public class CustomGenericJpaRepositoryFactory extends JpaRepositoryFactory {
      */
     @Override
     @SuppressWarnings("rawtypes")
-    protected Class<? extends RepositorySupport> getRepositoryClass() {
+    protected Class<? extends RepositorySupport> getRepositoryClass(
+            Class<?> repositoryInterface) {
 
         return CustomGenericJpaRepository.class;
     }

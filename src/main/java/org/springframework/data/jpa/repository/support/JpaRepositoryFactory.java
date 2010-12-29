@@ -46,9 +46,10 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
      */
     @Override
     protected <T, ID extends Serializable> RepositorySupport<T, ID> getTargetRepository(
-            Class<T> domainClass) {
+            Class<T> domainClass, Class<?> repositoryInterface) {
 
-        return getTargetRepository(domainClass, entityManager);
+        return getTargetRepository(domainClass, repositoryInterface,
+                entityManager);
     }
 
 
@@ -64,7 +65,8 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
      * @return
      */
     protected <T, ID extends Serializable> RepositorySupport<T, ID> getTargetRepository(
-            Class<T> domainClass, EntityManager entityManager) {
+            Class<T> domainClass, Class<?> repositoryInterface,
+            EntityManager entityManager) {
 
         return new SimpleJpaRepository<T, ID>(domainClass, entityManager);
     }
@@ -75,11 +77,12 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
      * 
      * @see
      * org.springframework.data.repository.support.RepositoryFactorySupport#
-     * getRepositoryClass()
+     * getRepositoryClass(java.lang.Class)
      */
     @Override
     @SuppressWarnings("rawtypes")
-    protected Class<? extends RepositorySupport> getRepositoryClass() {
+    protected Class<? extends RepositorySupport> getRepositoryClass(
+            Class<?> repositoryInterface) {
 
         return SimpleJpaRepository.class;
     }
