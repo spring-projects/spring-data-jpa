@@ -150,7 +150,7 @@ public class ParameterBinder {
             return result;
         }
 
-        result.setFirstResult(getPageable().getFirstItem());
+        result.setFirstResult(getPageable().getOffset());
         result.setMaxResults(getPageable().getPageSize());
 
         return result;

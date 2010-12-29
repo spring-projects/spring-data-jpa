@@ -360,7 +360,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> extends
     private Page<T> readPage(final TypedQuery<T> query,
             final Pageable pageable, final Specification<T> spec) {
 
-        query.setFirstResult(pageable.getFirstItem());
+        query.setFirstResult(pageable.getOffset());
         query.setMaxResults(pageable.getPageSize());
 
         Long total = getCountQuery(spec).getSingleResult();
