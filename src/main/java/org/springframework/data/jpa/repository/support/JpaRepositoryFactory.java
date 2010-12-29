@@ -76,7 +76,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
      * @param <ID>
      * @param domainClass
      * @param entityManager
-     * @see #getTargetRepository(Class)
+     * @see #getTargetRepository(Class, Class)
      * @return
      */
     protected <T, ID extends Serializable> RepositorySupport<T, ID> getTargetRepository(

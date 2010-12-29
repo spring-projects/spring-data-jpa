@@ -173,7 +173,7 @@ public class JpaQueryLookupStrategy {
 
     /**
      * Creates a {@link QueryLookupStrategy} for the given {@link EntityManager}
-     * and {@link QueryLookupStrategy.Key}.
+     * and {@link Key}.
      * 
      * @param em
      * @param key

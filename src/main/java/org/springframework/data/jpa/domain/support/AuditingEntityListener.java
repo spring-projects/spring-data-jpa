@@ -75,8 +75,8 @@ public class AuditingEntityListener<T> implements InitializingBean {
 
 
     /**
-     * Setter do determine if {@link Auditable#setCreated(DateTime)} and
-     * {@link Auditable#setLastModified(DateTime)} shall be filled with the
+     * Setter do determine if {@link Auditable#setCreatedDate(DateTime)} and
+     * {@link Auditable#setLastModifiedDate(DateTime)} shall be filled with the
      * current Java time. Defaults to {@code true}. One might set this to
      * {@code false} to use database features to set entity time.
      * 

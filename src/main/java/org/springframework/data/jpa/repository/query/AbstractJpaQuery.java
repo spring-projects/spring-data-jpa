@@ -16,7 +16,6 @@
 package org.springframework.data.jpa.repository.query;
 
 import javax.persistence.EntityManager;
-import javax.persistence.Query;
 
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.RepositoryQuery;
@@ -24,9 +23,7 @@ import org.springframework.util.Assert;
 
 
 /**
- * Abstract base class to implement {@link RepositoryQuery}s. Simply looks up a
- * JPA {@link Query} through {@link #createQuery(EntityManager, Parameters)} and
- * executes it.
+ * Abstract base class to implement {@link RepositoryQuery}s.
  * 
  * @author Oliver Gierke
  */
