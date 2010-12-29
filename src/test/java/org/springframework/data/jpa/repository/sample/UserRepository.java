@@ -33,8 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 
 /**
- * DAO interface for {@code User}s. The declared methods will trigger named
- * queries as they start with {@code findBy}.
+ * Repository interface for {@code User}s.
  * 
  * @author Oliver Gierke
  */

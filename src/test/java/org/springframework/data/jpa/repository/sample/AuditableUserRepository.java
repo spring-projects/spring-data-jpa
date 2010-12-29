@@ -23,7 +23,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 
 /**
- * DAO interface for {@code AuditableUser}.
+ * Repository interface for {@code AuditableUser}.
  * 
  * @author Oliver Gierke
  */

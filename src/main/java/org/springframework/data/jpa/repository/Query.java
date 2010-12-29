@@ -23,7 +23,7 @@ import java.lang.annotation.Target;
 
 
 /**
- * Annotation to declare finder queries directly on DAO methods.
+ * Annotation to declare finder queries directly on repository methods.
  * 
  * @author Oliver Gierke
  */

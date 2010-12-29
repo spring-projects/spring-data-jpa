@@ -36,8 +36,8 @@ import org.springframework.test.context.ContextConfiguration;
 
 
 /**
- * Assures the injected DAO instances are wired to the customly configured
- * {@link EntityManagerFactory}.
+ * Assures the injected repository instances are wired to the customly
+ * configured {@link EntityManagerFactory}.
  * 
  * @author Oliver Gierke
  */
@@ -55,7 +55,8 @@ public class EntityManagerFactoryRefUnitTests extends
 
 
     @Test
-    public void daosGetTheSecondEntityManagerFactoryInjected() throws Exception {
+    public void repositoriesGetTheSecondEntityManagerFactoryInjected()
+            throws Exception {
 
         verify(first, never()).createEntityManager();
         verify(second, atLeastOnce()).createEntityManager();

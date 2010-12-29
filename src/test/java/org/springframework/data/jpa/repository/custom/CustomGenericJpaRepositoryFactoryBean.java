@@ -24,7 +24,7 @@ import org.springframework.data.repository.support.RepositoryFactorySupport;
 
 
 /**
- * {@link GenericDaoFactoryBean} to return a custom DAO base class.
+ * {@link JpaRepositoryFactoryBean} to return a custom repository base class.
  * 
  * @author Gil Markham
  * @author Oliver Gierke

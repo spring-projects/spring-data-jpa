@@ -19,7 +19,7 @@ import org.springframework.test.context.ContextConfiguration;
 
 
 /**
- * Integration test for DAO namespace configuration.
+ * Integration test for repository namespace configuration.
  * 
  * @author Oliver Gierke
  */

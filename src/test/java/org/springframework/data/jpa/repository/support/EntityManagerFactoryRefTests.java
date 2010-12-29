@@ -30,8 +30,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 
 /**
- * Assures the injected DAO instances are wired to the customly configured
- * {@link EntityManagerFactory}.
+ * Assures the injected repository instances are wired to the customly
+ * configured {@link EntityManagerFactory}.
  * 
  * @author Oliver Gierke
  */
@@ -43,7 +43,7 @@ public class EntityManagerFactoryRefTests {
     UserRepository userRepository;
 
     @Autowired
-    AuditableUserRepository auditableUserDao;
+    AuditableUserRepository auditableUserRepository;
 
 
     @Test
@@ -57,8 +57,8 @@ public class EntityManagerFactoryRefTests {
 
     @Test
     @Transactional("transactionManager-2")
-    public void useAuditableUserDao() throws Exception {
+    public void useAuditableUserRepository() throws Exception {
 
-        auditableUserDao.saveAndFlush(new AuditableUser());
+        auditableUserRepository.saveAndFlush(new AuditableUser());
     }
 }

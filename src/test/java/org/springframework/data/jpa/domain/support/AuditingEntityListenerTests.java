@@ -43,7 +43,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class AuditingEntityListenerTests {
 
     @Autowired
-    AuditableUserRepository dao;
+    AuditableUserRepository repository;
 
     @Autowired
     AuditorAwareStub auditorAware;
@@ -57,7 +57,7 @@ public class AuditingEntityListenerTests {
         user = new AuditableUser();
         auditorAware.setAuditor(user);
 
-        dao.save(user);
+        repository.save(user);
     }
 
 
@@ -76,7 +76,7 @@ public class AuditingEntityListenerTests {
         role.setName("ADMIN");
 
         user.addRole(role);
-        dao.save(user);
+        repository.save(user);
         role = user.getRoles().iterator().next();
 
         assertDatesSet(user);

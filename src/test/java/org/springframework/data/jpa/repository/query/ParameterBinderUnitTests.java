@@ -55,12 +55,13 @@ public class ParameterBinderUnitTests {
     @Before
     public void setUp() throws SecurityException, NoSuchMethodException {
 
-        valid = SampleDao.class.getMethod("valid", String.class);
+        valid = SampleRepository.class.getMethod("valid", String.class);
 
         useIndexedParameters =
-                SampleDao.class.getMethod("useIndexedParameters", String.class);
+                SampleRepository.class.getMethod("useIndexedParameters",
+                        String.class);
         indexedParametersWithSort =
-                SampleDao.class.getMethod("indexedParameterWithSort",
+                SampleRepository.class.getMethod("indexedParameterWithSort",
                         String.class, Sort.class);
     }
 
@@ -68,7 +69,7 @@ public class ParameterBinderUnitTests {
 
     }
 
-    static interface SampleDao {
+    static interface SampleRepository {
 
         User useIndexedParameters(String lastname);
 
@@ -116,8 +117,8 @@ public class ParameterBinderUnitTests {
             NoSuchMethodException {
 
         Method method =
-                SampleDao.class.getMethod("validWithPageable", String.class,
-                        Pageable.class);
+                SampleRepository.class.getMethod("validWithPageable",
+                        String.class, Pageable.class);
 
         Parameters parameters = new Parameters(method);
         ParameterBinder binder =
@@ -131,7 +132,7 @@ public class ParameterBinderUnitTests {
     public void bindWorksWithNullForSort() throws Exception {
 
         Method validWithSort =
-                SampleDao.class.getMethod("validWithSort", String.class,
+                SampleRepository.class.getMethod("validWithSort", String.class,
                         Sort.class);
 
         new ParameterBinder(new Parameters(validWithSort), new Object[] {
@@ -144,8 +145,8 @@ public class ParameterBinderUnitTests {
     public void bindWorksWithNullForPageable() throws Exception {
 
         Method validWithPageable =
-                SampleDao.class.getMethod("validWithPageable", String.class,
-                        Pageable.class);
+                SampleRepository.class.getMethod("validWithPageable",
+                        String.class, Pageable.class);
 
         new ParameterBinder(new Parameters(validWithPageable), new Object[] {
                 "foo", null }).bind(query);

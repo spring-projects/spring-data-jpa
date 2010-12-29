@@ -38,7 +38,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 
 /**
- * Unit test for {@code GenericDaoFactoryBean}.
+ * Unit test for {@code JpaRepositoryFactoryBean}.
  * <p>
  * TODO: Check if test methods double the ones in
  * {@link JpaRepositoryFactoryUnitTests}.
@@ -80,7 +80,7 @@ public class JpaRepositoryFactoryBeanUnitTests {
 
     /**
      * Assert that the instance created for the standard configuration is a
-     * valid {@code UserDao}.
+     * valid {@code UserRepository}.
      * 
      * @throws Exception
      */
@@ -103,22 +103,23 @@ public class JpaRepositoryFactoryBeanUnitTests {
 
     /**
      * Assert that the factory rejects calls to
-     * {@code GenericDaoFactoryBean#setDaoInterface(Class)} with {@code null} or
-     * any other parameter instance not implementing {@code GenericDao}.
+     * {@code JpaRepositoryFactoryBean#setRepositoryInterface(Class)} with
+     * {@literal null} or any other parameter instance not implementing
+     * {@code Repository}.
      */
     @Test(expected = IllegalArgumentException.class)
-    public void preventsNullDaoInterface() {
+    public void preventsNullRepositoryInterface() {
 
         factory.setRepositoryInterface(null);
     }
 
 
     /**
-     * Assert that the factory detects unset DAO class and interface in
-     * {@code GenericDaoFactoryBean#afterPropertiesSet()}.
+     * Assert that the factory detects unset repository class and interface in
+     * {@code JpaRepositoryFactoryBean#afterPropertiesSet()}.
      */
     @Test(expected = IllegalArgumentException.class)
-    public void preventsUnsetDaoInterface() throws Exception {
+    public void preventsUnsetRepositoryInterface() throws Exception {
 
         factory = new JpaRepositoryFactoryBean<SimpleSampleRepository>();
         factory.afterPropertiesSet();
@@ -126,10 +127,11 @@ public class JpaRepositoryFactoryBeanUnitTests {
 
 
     /**
-     * Asserts that the factory recognized configured DAO classes that contain
-     * custom method but no custom implementation could be found. Furthremore
-     * the exception has to contain the name of the DAO interface as for a large
-     * DAO configuration it's hard to find out where this error occured.
+     * Asserts that the factory recognized configured repository classes that
+     * contain custom method but no custom implementation could be found.
+     * Furthremore the exception has to contain the name of the repository
+     * interface as for a large repository configuration it's hard to find out
+     * where this error occured.
      * 
      * @throws Exception
      */
@@ -160,13 +162,13 @@ public class JpaRepositoryFactoryBeanUnitTests {
      * 
      * @author Oliver Gierke
      */
-    private interface SampleCustomDao {
+    private interface SampleCustomRepository {
 
         void someSampleMethod();
     }
 
     private interface SampleRepository extends JpaRepository<User, Integer>,
-            SampleCustomDao {
+            SampleCustomRepository {
 
     }
 }

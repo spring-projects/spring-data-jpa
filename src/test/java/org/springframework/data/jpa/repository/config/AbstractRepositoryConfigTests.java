@@ -45,7 +45,7 @@ public abstract class AbstractRepositoryConfigTests {
 
 
     /**
-     * Asserts that context creation detects 3 DAO beans.
+     * Asserts that context creation detects 3 repository beans.
      */
     @Test
     public void testContextCreation() {

@@ -35,7 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 
 /**
- * Unit test for {@code GenericDaoFactoryBean}.
+ * Unit test for {@code JpaRepositoryFactory}.
  * 
  * @author Oliver Gierke
  */
@@ -58,33 +58,35 @@ public class JpaRepositoryFactoryUnitTests {
 
     /**
      * Assert that the instance created for the standard configuration is a
-     * valid {@code UserDao}.
+     * valid {@code UserRepository}.
      * 
      * @throws Exception
      */
     @Test
     public void setsUpBasicInstanceCorrectly() throws Exception {
 
-        assertNotNull(factory.getRepository(SimpleSampleDao.class));
+        assertNotNull(factory.getRepository(SimpleSampleRepository.class));
     }
 
 
     @Test
     public void allowsCallingOfObjectMethods() {
 
-        SimpleSampleDao userDao = factory.getRepository(SimpleSampleDao.class);
+        SimpleSampleRepository repository =
+                factory.getRepository(SimpleSampleRepository.class);
 
-        userDao.hashCode();
-        userDao.toString();
-        userDao.equals(userDao);
+        repository.hashCode();
+        repository.toString();
+        repository.equals(repository);
     }
 
 
     /**
-     * Asserts that the factory recognized configured DAO classes that contain
-     * custom method but no custom implementation could be found. Furthremore
-     * the exception has to contain the name of the DAO interface as for a large
-     * DAO configuration it's hard to find out where this error occured.
+     * Asserts that the factory recognized configured repository classes that
+     * contain custom method but no custom implementation could be found.
+     * Furthremore the exception has to contain the name of the repository
+     * interface as for a large repository configuration it's hard to find out
+     * where this error occured.
      * 
      * @throws Exception
      */
@@ -93,9 +95,10 @@ public class JpaRepositoryFactoryUnitTests {
             throws Exception {
 
         try {
-            factory.getRepository(SampleDao.class);
+            factory.getRepository(SampleRepository.class);
         } catch (IllegalArgumentException e) {
-            assertTrue(e.getMessage().contains(SampleDao.class.getName()));
+            assertTrue(e.getMessage()
+                    .contains(SampleRepository.class.getName()));
         }
     }
 
@@ -103,20 +106,20 @@ public class JpaRepositoryFactoryUnitTests {
     @Test(expected = IllegalArgumentException.class)
     public void handlesRuntimeExceptionsCorrectly() {
 
-        SampleDao dao =
-                factory.getRepository(SampleDao.class,
-                        new SampleCustomDaoImpl());
-        dao.throwingRuntimeException();
+        SampleRepository repository =
+                factory.getRepository(SampleRepository.class,
+                        new SampleCustomRepositoryImpl());
+        repository.throwingRuntimeException();
     }
 
 
     @Test(expected = IOException.class)
     public void handlesCheckedExceptionsCorrectly() throws Exception {
 
-        SampleDao dao =
-                factory.getRepository(SampleDao.class,
-                        new SampleCustomDaoImpl());
-        dao.throwingCheckedException();
+        SampleRepository repository =
+                factory.getRepository(SampleRepository.class,
+                        new SampleCustomRepositoryImpl());
+        repository.throwingCheckedException();
     }
 
 
@@ -125,13 +128,14 @@ public class JpaRepositoryFactoryUnitTests {
 
         JpaRepositoryFactory factory =
                 new CustomGenericJpaRepositoryFactory(entityManager);
-        UserCustomExtendedRepository dao =
+        UserCustomExtendedRepository repository =
                 factory.getRepository(UserCustomExtendedRepository.class);
 
-        dao.customMethod(1);
+        repository.customMethod(1);
     }
 
-    private interface SimpleSampleDao extends JpaRepository<User, Integer> {
+    private interface SimpleSampleRepository extends
+            JpaRepository<User, Integer> {
 
         @Transactional
         User readByPrimaryKey(Integer primaryKey);
@@ -142,7 +146,7 @@ public class JpaRepositoryFactoryUnitTests {
      * 
      * @author Oliver Gierke
      */
-    public interface SampleCustomDao {
+    public interface SampleCustomRepository {
 
         void throwingRuntimeException();
 
@@ -151,11 +155,11 @@ public class JpaRepositoryFactoryUnitTests {
     }
 
     /**
-     * Implementation of the custom DAO interface.
+     * Implementation of the custom repository interface.
      * 
      * @author Oliver Gierke
      */
-    private class SampleCustomDaoImpl implements SampleCustomDao {
+    private class SampleCustomRepositoryImpl implements SampleCustomRepository {
 
         public void throwingRuntimeException() {
 
@@ -169,8 +173,8 @@ public class JpaRepositoryFactoryUnitTests {
         }
     }
 
-    private interface SampleDao extends JpaRepository<User, Integer>,
-            SampleCustomDao {
+    private interface SampleRepository extends JpaRepository<User, Integer>,
+            SampleCustomRepository {
 
     }
 }

@@ -85,8 +85,8 @@ public class UserRepositoryFinderTests {
 
 
     /**
-     * Tests that the DAO returns {@code null} for not found objects for finder
-     * methods that return a single domain object.
+     * Tests that the repository returns {@code null} for not found objects for
+     * finder methods that return a single domain object.
      */
     @Test
     public void returnsNullIfNothingFound() {

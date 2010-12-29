@@ -28,7 +28,7 @@ import org.w3c.dom.Element;
 
 
 /**
- * Parser to create bean definitions for dao-config namespace. Registers bean
+ * Parser to create bean definitions for repositories namespace. Registers bean
  * definitions for repositories as well as
  * {@code PersistenceAnnotationBeanPostProcessor} and
  * {@code PersistenceExceptionTranslationPostProcessor} to transparently inject
@@ -53,8 +53,9 @@ class JpaRepositoryConfigDefinitionParser
     /*
      * (non-Javadoc)
      * 
-     * @see org.springframework.data.jpa.repository.config.
-     * AbstractRepositoryConfigDefinitionParser#getDaoConfigContext()
+     * @see org.springframework.data.repository.config.
+     * AbstractRepositoryConfigDefinitionParser
+     * #getGlobalRepositoryConfigInformation(org.w3c.dom.Element)
      */
     @Override
     protected SimpleJpaRepositoryConfiguration getGlobalRepositoryConfigInformation(

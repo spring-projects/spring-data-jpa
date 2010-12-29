@@ -20,7 +20,7 @@ import org.springframework.data.jpa.domain.sample.User;
 
 
 /**
- * Simple interface for custom methods on the DAO for {@code User}s.
+ * Simple interface for custom methods on the repository for {@code User}s.
  * 
  * @author Oliver Gierke
  */

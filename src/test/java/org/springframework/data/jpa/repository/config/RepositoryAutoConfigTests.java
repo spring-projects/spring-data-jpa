@@ -20,7 +20,7 @@ import org.springframework.test.context.ContextConfiguration;
 
 
 /**
- * Integration test to test DAO auto configuration.
+ * Integration test to test repository auto configuration.
  * 
  * @author Oliver Gierke
  */

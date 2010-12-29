@@ -98,7 +98,7 @@ public class SimpleJpaRepositoryConfiguration
 
         /**
          * Returns the {@link javax.persistence.EntityManagerFactory} reference
-         * to be used for all the DAO instances configured.
+         * to be used for all the repository instances configured.
          * 
          * @return
          */

@@ -35,7 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 
 /**
- * Integration test for {@link GenericJpaDao}.
+ * Integration test for {@link JpaRepository}.
  * 
  * @author Oliver Gierke
  */

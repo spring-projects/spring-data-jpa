@@ -24,8 +24,8 @@ import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
 
 
 /**
- * Sample custom DAO base class implementing common custom functionality for all
- * derived DAO instances.
+ * Sample custom repository base class implementing common custom functionality
+ * for all derived repository instances.
  * 
  * @author Oliver Gierke
  */

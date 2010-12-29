@@ -326,7 +326,7 @@ public class UserRepositoryTests {
 
     /**
      * Tests that all users get deleted by triggering
-     * {@link UserDao#deleteAll()}.
+     * {@link UserRepository#deleteAll()}.
      * 
      * @throws Exception
      */
@@ -398,7 +398,7 @@ public class UserRepositoryTests {
 
 
     /**
-     * Tests, that the generic dao implements count correctly.
+     * Tests, that the generic repository implements count correctly.
      */
     @Test
     public void testCountsCorrectly() {
@@ -414,7 +414,8 @@ public class UserRepositoryTests {
 
 
     /**
-     * Tests invoking a method of a custom implementation of the DAO interface.
+     * Tests invoking a method of a custom implementation of the repository
+     * interface.
      */
     @Test
     public void testInvocationOfCustomImplementation() {
@@ -424,7 +425,7 @@ public class UserRepositoryTests {
 
 
     /**
-     * Tests that overriding a finder method is recognized by the DAO
+     * Tests that overriding a finder method is recognized by the repository
      * implementation. If an overriding method is found it will will be invoked
      * instead of the automatically generated finder.
      */

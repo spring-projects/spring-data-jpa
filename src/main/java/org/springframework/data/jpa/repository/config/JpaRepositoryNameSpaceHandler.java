@@ -20,7 +20,7 @@ import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 
 
 /**
- * Simple namespace handler for {@literal dao-config} namespace.
+ * Simple namespace handler for {@literal repositories} namespace.
  * 
  * @author Oliver Gierke
  */

@@ -56,7 +56,7 @@ public class JpaQueryMethodUnitTests {
     @Mock
     EntityManager em;
 
-    Method daoMethod, invalidReturnType, pageableAndSort, pageableTwice,
+    Method repositoryMethod, invalidReturnType, pageableAndSort, pageableTwice,
             sortableTwice, modifyingMethod;
 
 
@@ -66,21 +66,21 @@ public class JpaQueryMethodUnitTests {
     @Before
     public void setUp() throws Exception {
 
-        daoMethod =
+        repositoryMethod =
                 UserRepository.class.getMethod("findByLastname", String.class);
 
         invalidReturnType =
-                InvalidDao.class.getMethod(METHOD_NAME, String.class,
+                InvalidRepository.class.getMethod(METHOD_NAME, String.class,
                         Pageable.class);
         pageableAndSort =
-                InvalidDao.class.getMethod(METHOD_NAME, String.class,
+                InvalidRepository.class.getMethod(METHOD_NAME, String.class,
                         Pageable.class, Sort.class);
         pageableTwice =
-                InvalidDao.class.getMethod(METHOD_NAME, String.class,
+                InvalidRepository.class.getMethod(METHOD_NAME, String.class,
                         Pageable.class, Pageable.class);
 
         sortableTwice =
-                InvalidDao.class.getMethod(METHOD_NAME, String.class,
+                InvalidRepository.class.getMethod(METHOD_NAME, String.class,
                         Sort.class, Sort.class);
         modifyingMethod =
                 UserRepository.class
@@ -91,7 +91,8 @@ public class JpaQueryMethodUnitTests {
     @Test
     public void testname() {
 
-        JpaQueryMethod method = new JpaQueryMethod(daoMethod, extractor, em);
+        JpaQueryMethod method =
+                new JpaQueryMethod(repositoryMethod, extractor, em);
 
         assertEquals("User.findByLastname", method.getNamedQueryName());
         assertThat(method.getExecution(), is(CollectionExecution.class));
@@ -99,7 +100,7 @@ public class JpaQueryMethodUnitTests {
 
 
     @Test(expected = IllegalArgumentException.class)
-    public void preventsNullDaoMethod() {
+    public void preventsNullRepositoryMethod() {
 
         new JpaQueryMethod(null, extractor, em);
     }
@@ -108,37 +109,39 @@ public class JpaQueryMethodUnitTests {
     @Test(expected = IllegalArgumentException.class)
     public void preventsNullEntityManager() {
 
-        new JpaQueryMethod(daoMethod, extractor, null);
+        new JpaQueryMethod(repositoryMethod, extractor, null);
     }
 
 
     @Test(expected = IllegalArgumentException.class)
     public void preventsNullQueryExtractor() {
 
-        new JpaQueryMethod(daoMethod, null, em);
+        new JpaQueryMethod(repositoryMethod, null, em);
     }
 
 
     @Test
     public void returnsCorrectName() {
 
-        JpaQueryMethod method = new JpaQueryMethod(daoMethod, extractor, em);
-        assertEquals(daoMethod.getName(), method.getName());
+        JpaQueryMethod method =
+                new JpaQueryMethod(repositoryMethod, extractor, em);
+        assertEquals(repositoryMethod.getName(), method.getName());
     }
 
 
     @Test
     public void returnsQueryIfAvailable() throws Exception {
 
-        JpaQueryMethod method = new JpaQueryMethod(daoMethod, extractor, em);
+        JpaQueryMethod method =
+                new JpaQueryMethod(repositoryMethod, extractor, em);
 
         assertNull(method.getAnnotatedQuery());
 
-        Method daoMethod =
+        Method repositoryMethod =
                 UserRepository.class.getMethod("findByAnnotatedQuery",
                         String.class);
 
-        assertNotNull(new JpaQueryMethod(daoMethod, extractor, em)
+        assertNotNull(new JpaQueryMethod(repositoryMethod, extractor, em)
                 .getAnnotatedQuery());
     }
 
@@ -146,7 +149,8 @@ public class JpaQueryMethodUnitTests {
     @Test
     public void returnsCorrectDomainClassName() {
 
-        JpaQueryMethod method = new JpaQueryMethod(daoMethod, extractor, em);
+        JpaQueryMethod method =
+                new JpaQueryMethod(repositoryMethod, extractor, em);
         assertEquals(DOMAIN_CLASS, method.getDomainClass());
     }
 
@@ -154,8 +158,9 @@ public class JpaQueryMethodUnitTests {
     @Test
     public void returnsCorrectNumberOfParameters() {
 
-        JpaQueryMethod method = new JpaQueryMethod(daoMethod, extractor, em);
-        assertTrue(method.isCorrectNumberOfParameters(daoMethod
+        JpaQueryMethod method =
+                new JpaQueryMethod(repositoryMethod, extractor, em);
+        assertTrue(method.isCorrectNumberOfParameters(repositoryMethod
                 .getParameterTypes().length));
     }
 
@@ -215,7 +220,7 @@ public class JpaQueryMethodUnitTests {
     public void rejectsModifyingMethodWithPageable() throws Exception {
 
         Method method =
-                InvalidDao.class.getMethod("updateMethod", String.class,
+                InvalidRepository.class.getMethod("updateMethod", String.class,
                         Pageable.class);
 
         new JpaQueryMethod(method, extractor, em);
@@ -226,7 +231,7 @@ public class JpaQueryMethodUnitTests {
     public void rejectsModifyingMethodWithSort() throws Exception {
 
         Method method =
-                InvalidDao.class.getMethod("updateMethod", String.class,
+                InvalidRepository.class.getMethod("updateMethod", String.class,
                         Sort.class);
 
         new JpaQueryMethod(method, extractor, em);
@@ -236,7 +241,8 @@ public class JpaQueryMethodUnitTests {
     @Test
     public void discoversHintsCorrectly() {
 
-        JpaQueryMethod method = new JpaQueryMethod(daoMethod, extractor, em);
+        JpaQueryMethod method =
+                new JpaQueryMethod(repositoryMethod, extractor, em);
         List<QueryHint> hints = method.getHints();
 
         assertNotNull(hints);
@@ -245,11 +251,11 @@ public class JpaQueryMethodUnitTests {
     }
 
     /**
-     * Interface to define invalid DAO methods for testing.
+     * Interface to define invalid repository methods for testing.
      * 
      * @author Oliver Gierke
      */
-    static interface InvalidDao {
+    static interface InvalidRepository {
 
         // Invalid return type
         User findByFirstname(String firstname, Pageable pageable);

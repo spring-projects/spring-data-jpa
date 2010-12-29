@@ -18,7 +18,7 @@ import org.springframework.transaction.TransactionStatus;
 
 
 /**
- * Integration test for transactional behaviour of DAO operations.
+ * Integration test for transactional behaviour of repository operations.
  * 
  * @author Oliver Gierke
  */
