@@ -35,6 +35,7 @@ import org.springframework.util.ClassUtils;
 import com.mysema.query.jpa.JPQLQuery;
 import com.mysema.query.jpa.impl.JPAQuery;
 import com.mysema.query.types.EntityPath;
+import com.mysema.query.types.Expression;
 import com.mysema.query.types.OrderSpecifier;
 import com.mysema.query.types.Predicate;
 import com.mysema.query.types.path.PathBuilder;
@@ -51,10 +52,13 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends
 
     private final EntityManager em;
     private final EntityPath<T> path;
+    private final PathBuilder<T> builder;
 
 
     /**
-     * Creates a new {@link QueryDslJpaRepository}.
+     * Creates a new {@link QueryDslJpaRepository} from the given domain class
+     * and {@link EntityManager}. This will reflectively lookup an
+     * {@link EntityPath} based on the given domain class.
      * 
      * @param domainClass
      * @param entityManager
@@ -62,9 +66,24 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends
     public QueryDslJpaRepository(Class<T> domainClass,
             EntityManager entityManager) {
 
-        super(domainClass, entityManager);
+        this(createPath(domainClass), entityManager);
+    }
+
+
+    /**
+     * Creates a new {@link QueryDslJpaRepository} from the given
+     * {@link EntityPath} and {@link EntityManager}.
+     * 
+     * @param path
+     * @param entityManager
+     */
+    @SuppressWarnings("unchecked")
+    public QueryDslJpaRepository(EntityPath<T> path, EntityManager entityManager) {
+
+        super((Class<T>) path.getType(), entityManager);
         this.em = entityManager;
-        this.path = createPath(domainClass);
+        this.path = path;
+        this.builder = new PathBuilder<T>(path.getType(), path.getMetadata());
     }
 
 
@@ -143,14 +162,13 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends
      * @return
      */
     @SuppressWarnings("unchecked")
-    private EntityPath<T> createPath(Class<T> domainClass) {
+    private static <T> EntityPath<T> createPath(Class<T> domainClass) {
 
         String pathClassName =
                 String.format("%s.Q%s", domainClass.getPackage().getName(),
                         domainClass.getSimpleName());
 
         try {
-
             Class<?> pathClass =
                     ClassUtils.forName(pathClassName,
                             QueryDslJpaRepository.class.getClassLoader());
@@ -188,7 +206,7 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends
             return query;
         }
 
-        query.offset(pageable.getFirstItem());
+        query.offset(pageable.getOffset());
         query.limit(pageable.getPageSize());
 
         return applySorting(query, pageable.getSort());
@@ -226,12 +244,10 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends
     @SuppressWarnings({ "rawtypes", "unchecked" })
     private OrderSpecifier<?> toOrder(Order order) {
 
-        PathBuilder<T> path =
-                new PathBuilder<T>(this.path.getType(), this.path.getMetadata());
-        PathBuilder<Object> builder = path.get(order.getProperty());
+        Expression<Object> property = builder.get(order.getProperty());
 
         return new OrderSpecifier(
                 order.isAscending() ? com.mysema.query.types.Order.ASC
-                        : com.mysema.query.types.Order.DESC, builder);
+                        : com.mysema.query.types.Order.DESC, property);
     }
 }

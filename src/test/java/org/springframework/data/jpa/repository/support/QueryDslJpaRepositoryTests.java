@@ -28,7 +28,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.data.jpa.domain.sample.QUser;
 import org.springframework.data.jpa.domain.sample.User;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,7 +36,7 @@ import com.mysema.query.types.expr.BooleanExpression;
 
 
 /**
- * Integration test for {@link JpaRepository}.
+ * Integration test for {@link QueryDslJpaRepository}.
  * 
  * @author Oliver Gierke
  */
@@ -51,14 +50,13 @@ public class QueryDslJpaRepositoryTests {
 
     QueryDslJpaRepository<User, Integer> repository;
     QUser user = new QUser("user");
-
     User dave, carter;
 
 
     @Before
     public void setUp() {
 
-        repository = new QueryDslJpaRepository<User, Integer>(User.class, em);
+        repository = new QueryDslJpaRepository<User, Integer>(user, em);
         dave =
                 repository.save(new User("Dave", "Matthews",
                         "dave@matthews.com"));
@@ -69,7 +67,7 @@ public class QueryDslJpaRepositoryTests {
 
 
     @Test
-    public void testCrudOperationsForCompoundKeyEntity() throws Exception {
+    public void executesPredicatesCorrectly() throws Exception {
 
         BooleanExpression isCalledDave = user.firstname.eq("Dave");
         BooleanExpression isBeauford = user.lastname.eq("Beauford");
@@ -78,5 +76,12 @@ public class QueryDslJpaRepositoryTests {
 
         assertThat(result.size(), is(2));
         assertThat(result, hasItems(carter, dave));
+    }
+
+
+    @Test
+    public void createsRepositoryFromDomainClassCorrectly() throws Exception {
+
+        new QueryDslJpaRepository<User, Integer>(User.class, em);
     }
 }
