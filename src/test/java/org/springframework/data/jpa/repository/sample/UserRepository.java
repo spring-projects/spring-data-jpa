@@ -184,4 +184,10 @@ public interface UserRepository extends JpaRepository<User, Integer>,
 
 
     List<User> findByLastnameNot(String lastname);
+
+
+    List<User> findByManagerLastname(String name);
+
+
+    List<User> findByColleaguesLastname(String lastname);
 }

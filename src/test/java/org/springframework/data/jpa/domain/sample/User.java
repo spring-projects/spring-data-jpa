@@ -25,6 +25,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
 import javax.persistence.NamedQuery;
 
 
@@ -55,6 +56,9 @@ public class User {
 
     @ManyToMany
     private Set<Role> roles;
+
+    @ManyToOne
+    private User manager;
 
 
     /**
@@ -238,6 +242,24 @@ public class User {
 
         colleagues.remove(colleague);
         colleague.getColleagues().remove(this);
+    }
+
+
+    /**
+     * @return the manager
+     */
+    public User getManager() {
+
+        return manager;
+    }
+
+
+    /**
+     * @param manager the manager to set
+     */
+    public void setManager(User manager) {
+
+        this.manager = manager;
     }
 
 

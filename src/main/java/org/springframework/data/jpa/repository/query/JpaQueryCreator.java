@@ -19,6 +19,9 @@ import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.From;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
@@ -28,6 +31,7 @@ import org.springframework.data.repository.query.SimpleParameterAccessor.Bindabl
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 import org.springframework.data.repository.query.parser.Part;
 import org.springframework.data.repository.query.parser.PartTree;
+import org.springframework.data.repository.query.parser.Property;
 import org.springframework.util.Assert;
 
 
@@ -155,12 +159,14 @@ public class JpaQueryCreator extends
     private Predicate toPredicate(Part part, Root<?> root,
             BindableParameterIterator iterator) {
 
-        Expression<Object> path = root.get(part.getProperty());
+        Expression<Object> path =
+                toExpressionRecursively(root, part.getProperty());
 
         switch (part.getType()) {
 
         case BETWEEN:
-            return builder.between(root.<Comparable> get(part.getProperty()),
+            return builder.between(
+                    root.<Comparable> get(part.getProperty().toDotPath()),
                     nextAsComparable(iterator), nextAsComparable(iterator));
         case GREATER_THAN:
             return builder.greaterThan(getComparablePath(root, part),
@@ -173,11 +179,11 @@ public class JpaQueryCreator extends
         case IS_NOT_NULL:
             return root.isNotNull();
         case LIKE:
-            return builder.like(root.<String> get(part.getProperty()), iterator
-                    .next().toString());
+            return builder.like(root.<String> get(part.getProperty()
+                    .toDotPath()), iterator.next().toString());
         case NOT_LIKE:
             return builder.not(builder.like(root.<String> get(part
-                    .getProperty()), iterator.next().toString()));
+                    .getProperty().toDotPath()), iterator.next().toString()));
         case SIMPLE_PROPERTY:
             return builder.equal(path, iterator.next());
         case NEGATING_SIMPLE_PROPERTY:
@@ -189,6 +195,31 @@ public class JpaQueryCreator extends
     }
 
 
+    private Expression<Object> toExpressionRecursively(Path<Object> path,
+            Property property) {
+
+        Path<Object> result = path.get(property.getName());
+        return property.hasNext() ? toExpressionRecursively(result,
+                property.next()) : result;
+    }
+
+
+    @SuppressWarnings("unchecked")
+    private <T> Expression<T> toExpressionRecursively(From<?, ?> from,
+            Property property) {
+
+        if (property.isCollection()) {
+            Join<Object, Object> join = from.join(property.getName());
+            return (Expression<T>) (property.hasNext() ? toExpressionRecursively(
+                    (From<?, ?>) join, property.next()) : join);
+        } else {
+            Path<Object> path = from.get(property.getName());
+            return (Expression<T>) (property.hasNext() ? toExpressionRecursively(
+                    path, property.next()) : path);
+        }
+    }
+
+
     /**
      * Returns a path to a {@link Comparable}.
      * 
@@ -196,11 +227,11 @@ public class JpaQueryCreator extends
      * @param part
      * @return
      */
-    @SuppressWarnings("rawtypes")
+    @SuppressWarnings({ "rawtypes" })
     private Expression<? extends Comparable> getComparablePath(Root<?> root,
             Part part) {
 
-        return root.get(part.getProperty());
+        return toExpressionRecursively(root, part.getProperty());
     }
 
 

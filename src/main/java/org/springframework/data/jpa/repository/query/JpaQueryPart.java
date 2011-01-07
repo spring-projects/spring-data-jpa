@@ -46,7 +46,7 @@ class JpaQueryPart extends Part {
      */
     public String getQueryPart(Parameter parameter) {
 
-        return createQueryPart(getType(), getProperty(), parameter);
+        return createQueryPart(getType(), getProperty().toDotPath(), parameter);
     }
 
 

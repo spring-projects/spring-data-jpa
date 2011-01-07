@@ -352,7 +352,7 @@ public class UserRepositoryTests {
         // Persist
         flushTestUsers();
 
-        // Fetches first user from .. bdatabase
+        // Fetches first user from database
         User firstReferenceUser = repository.findById(firstUser.getId());
         assertEquals(firstUser, firstReferenceUser);
 
@@ -683,6 +683,48 @@ public class UserRepositoryTests {
         assertThat(result.getContent(), hasItem(thirdUser));
         assertThat(result.getContent(), not(hasItem(secondUser)));
         assertThat(result.getContent(), not(hasItem(firstUser)));
+    }
+
+
+    @Test
+    public void executesQueryMethodWithDeepTraversalCorrectly()
+            throws Exception {
+
+        flushTestUsers();
+
+        firstUser.setManager(secondUser);
+        thirdUser.setManager(firstUser);
+        repository.save(Arrays.asList(firstUser, thirdUser));
+
+        List<User> result = repository.findByManagerLastname("Arrasz");
+
+        assertThat(result.size(), is(1));
+        assertThat(result, hasItem(firstUser));
+
+        result = repository.findByManagerLastname("Gierke");
+        assertThat(result.size(), is(1));
+        assertThat(result, hasItem(thirdUser));
+    }
+
+
+    @Test
+    public void executesFindByColleaguesLastnameCorrectly() throws Exception {
+
+        flushTestUsers();
+
+        firstUser.addColleague(secondUser);
+        thirdUser.addColleague(firstUser);
+        repository.save(Arrays.asList(firstUser, thirdUser));
+
+        List<User> result =
+                repository.findByColleaguesLastname(secondUser.getLastname());
+
+        assertThat(result.size(), is(1));
+        assertThat(result, hasItem(firstUser));
+
+        result = repository.findByColleaguesLastname("Gierke");
+        assertThat(result.size(), is(2));
+        assertThat(result, hasItems(thirdUser, secondUser));
     }
 
 
