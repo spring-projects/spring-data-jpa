@@ -16,6 +16,8 @@
 package org.springframework.data.jpa.domain.sample;
 
 import org.springframework.data.domain.AuditorAware;
+import org.springframework.data.jpa.repository.sample.AuditableUserRepository;
+import org.springframework.util.Assert;
 
 
 /**
@@ -26,7 +28,16 @@ import org.springframework.data.domain.AuditorAware;
  */
 public class AuditorAwareStub implements AuditorAware<AuditableUser> {
 
+    @SuppressWarnings("unused")
+    private final AuditableUserRepository repository;
     private AuditableUser auditor;
+
+
+    public AuditorAwareStub(AuditableUserRepository repository) {
+
+        Assert.notNull(repository);
+        this.repository = repository;
+    }
 
 
     public void setAuditor(AuditableUser auditor) {

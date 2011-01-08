@@ -19,10 +19,12 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.data.domain.AuditorAware;
 import org.springframework.util.StringUtils;
 
 
@@ -76,6 +78,13 @@ public class AuditingBeanFactoryPostProcessor implements
                         definition.getDependsOn(),
                         BEAN_CONFIGURER_ASPECT_BEAN_NAME));
             }
+        }
+
+        for (String beanName : BeanFactoryUtils
+                .beanNamesForTypeIncludingAncestors(beanFactory,
+                        AuditorAware.class, true, false)) {
+            BeanDefinition definition = beanFactory.getBeanDefinition(beanName);
+            definition.setLazyInit(true);
         }
     }
 

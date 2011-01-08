@@ -27,6 +27,7 @@ import org.springframework.data.jpa.domain.sample.AuditableRole;
 import org.springframework.data.jpa.domain.sample.AuditableUser;
 import org.springframework.data.jpa.domain.sample.AuditorAwareStub;
 import org.springframework.data.jpa.repository.sample.AuditableUserRepository;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,6 +41,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("classpath:auditing/auditing-entity-listener.xml")
 @Transactional
+@DirtiesContext
 public class AuditingEntityListenerTests {
 
     @Autowired

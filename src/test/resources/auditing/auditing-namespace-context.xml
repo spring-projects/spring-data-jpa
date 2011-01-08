@@ -9,6 +9,12 @@
     
     <jpa:auditing auditor-aware-ref="auditorAware" />
     
-    <bean id="auditorAware" class="org.springframework.data.jpa.domain.sample.AuditorAwareStub" /> 
+    <bean id="auditorAware" class="org.springframework.data.jpa.domain.sample.AuditorAwareStub">
+    	<constructor-arg>
+    		<bean class="org.mockito.Mockito" factory-method="mock">
+    			<constructor-arg value="org.springframework.data.jpa.repository.sample.AuditableUserRepository" />
+    		</bean>
+    	</constructor-arg>
+    </bean> 
 
 </beans>

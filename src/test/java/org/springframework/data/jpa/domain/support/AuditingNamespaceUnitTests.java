@@ -15,11 +15,12 @@
  */
 package org.springframework.data.jpa.domain.support;
 
+import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
 import org.junit.Test;
+import org.springframework.beans.PropertyValue;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.RuntimeBeanReference;
 
 
 /**
@@ -49,8 +50,8 @@ public class AuditingNamespaceUnitTests extends
         BeanDefinition definition =
                 beanFactory.getBeanDefinition(AuditingEntityListener.class
                         .getName());
-        assertEquals(
-                definition.getPropertyValues().getPropertyValue("auditorAware")
-                        .getValue(), new RuntimeBeanReference("auditorAware"));
+        PropertyValue propertyValue =
+                definition.getPropertyValues().getPropertyValue("auditorAware");
+        assertThat(propertyValue, is(notNullValue()));
     }
 }

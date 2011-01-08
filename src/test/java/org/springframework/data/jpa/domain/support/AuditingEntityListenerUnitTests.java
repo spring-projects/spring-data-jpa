@@ -44,7 +44,7 @@ public class AuditingEntityListenerUnitTests {
         listener = new AuditingEntityListener<AuditableUser>();
         // Explicitly null the AuditorAware as it might have been DI'ed if test
         // is run in a test suite with integration tests
-        listener.setAuditorAware(null);
+        // listener.setAuditorAware(null);
 
         user = new AuditableUser();
 
@@ -65,7 +65,6 @@ public class AuditingEntityListenerUnitTests {
         assertNotNull(user.getCreatedDate());
         assertNotNull(user.getLastModifiedDate());
 
-        System.out.println(user.getCreatedBy());
         assertNull(user.getCreatedBy());
         assertNull(user.getLastModifiedBy());
     }

@@ -25,6 +25,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.data.domain.Auditable;
 import org.springframework.data.domain.AuditorAware;
+import org.springframework.util.Assert;
 
 
 /**
@@ -70,6 +71,7 @@ public class AuditingEntityListener<T> implements InitializingBean {
      */
     public void setAuditorAware(final AuditorAware<T> auditorAware) {
 
+        Assert.notNull(auditorAware);
         this.auditorAware = auditorAware;
     }
 

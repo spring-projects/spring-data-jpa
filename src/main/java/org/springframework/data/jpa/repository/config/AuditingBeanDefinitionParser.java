@@ -17,6 +17,8 @@ package org.springframework.data.jpa.repository.config;
 
 import static org.springframework.beans.factory.support.BeanDefinitionBuilder.*;
 
+import org.springframework.aop.framework.ProxyFactoryBean;
+import org.springframework.aop.target.LazyInitTargetSource;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
@@ -55,11 +57,13 @@ public class AuditingBeanDefinitionParser implements BeanDefinitionParser {
 
         BeanDefinitionBuilder builder =
                 rootBeanDefinition(AUDITING_ENTITY_LISTENER_CLASS_NAME);
+        builder.setScope("prototype");
 
         String auditorAwareRef = element.getAttribute("auditor-aware-ref");
 
         if (StringUtils.hasText(auditorAwareRef)) {
-            builder.addPropertyReference("auditorAware", auditorAwareRef);
+            builder.addPropertyValue("auditorAware",
+                    createLazyInitTargetSourceBeanDefinition(auditorAwareRef));
         }
 
         registerInfrastructureBeanWithId(builder.getRawBeanDefinition(),
@@ -71,6 +75,22 @@ public class AuditingBeanDefinitionParser implements BeanDefinitionParser {
                 element);
 
         return null;
+    }
+
+
+    private BeanDefinition createLazyInitTargetSourceBeanDefinition(
+            String auditorAwareRef) {
+
+        BeanDefinitionBuilder targetSourceBuilder =
+                rootBeanDefinition(LazyInitTargetSource.class);
+        targetSourceBuilder.addPropertyValue("targetBeanName", auditorAwareRef);
+
+        BeanDefinitionBuilder builder =
+                rootBeanDefinition(ProxyFactoryBean.class);
+        builder.addPropertyValue("targetSource",
+                targetSourceBuilder.getBeanDefinition());
+
+        return builder.getBeanDefinition();
     }
 
 
