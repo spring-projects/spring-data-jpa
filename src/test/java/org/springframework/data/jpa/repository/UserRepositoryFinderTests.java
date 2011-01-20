@@ -67,6 +67,7 @@ public class UserRepositoryFinderTests {
         secondUser = new User();
         secondUser.setEmailAddress("bar");
         secondUser.setLastname("foo");
+        secondUser.setFirstname("foobar");
 
         userRepository.save(secondUser);
     }
@@ -117,8 +118,7 @@ public class UserRepositoryFinderTests {
     public void executesPagingMethodToPageCorrectly() throws Exception {
 
         Page<User> page =
-                userRepository
-                        .findByFirstname(new PageRequest(0, 20), "foobar");
+                userRepository.findByFirstname(new PageRequest(0, 1), "foobar");
         assertEquals(1, page.getNumberOfElements());
     }
 
@@ -127,8 +127,7 @@ public class UserRepositoryFinderTests {
     public void executesPagingMethodToListCorrectly() throws Exception {
 
         List<User> list =
-                userRepository
-                        .findByFirstname("foobar", new PageRequest(0, 20));
+                userRepository.findByFirstname("foobar", new PageRequest(0, 1));
         assertThat(list.size(), is(1));
     }
 }
