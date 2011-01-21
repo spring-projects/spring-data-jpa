@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -222,7 +223,11 @@ public class SimpleJpaRepository<T, ID extends Serializable> extends
      */
     public T findOne(Specification<T> spec) {
 
-        return getQuery(spec, (Sort) null).getSingleResult();
+        try {
+            return getQuery(spec, (Sort) null).getSingleResult();
+        } catch (NoResultException e) {
+            return null;
+        }
     }
 
 

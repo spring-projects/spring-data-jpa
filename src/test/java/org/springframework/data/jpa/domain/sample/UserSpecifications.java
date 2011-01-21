@@ -54,6 +54,27 @@ public class UserSpecifications {
     }
 
 
+    /**
+     * A {@link Specification} to do a like-match on a {@link User}'s firstname.
+     * 
+     * @param firstname
+     * @return
+     */
+    public static Specification<User> userHasFirstnameLike(
+            final String expression) {
+
+        return new Specification<User>() {
+
+            public Predicate toPredicate(Root<User> root,
+                    CriteriaQuery<?> query, CriteriaBuilder cb) {
+
+                return cb.like(root.get("firstname").as(String.class),
+                        String.format("%%%s%%", expression));
+            }
+        };
+    }
+
+
     private static <T> Specification<T> simplePropertySpec(
             final String property, final Object value) {
 

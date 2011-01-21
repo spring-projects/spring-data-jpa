@@ -37,6 +37,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -466,6 +467,24 @@ public class UserRepositoryTests {
         flushTestUsers();
         assertThat(repository.findOne(userHasFirstname("Oliver")),
                 is(firstUser));
+    }
+
+
+    @Test
+    public void returnsNullIfNoEntityFoundForSingleEntitySpecification()
+            throws Exception {
+
+        flushTestUsers();
+        assertThat(repository.findOne(userHasLastname("Beauford")),
+                is(nullValue()));
+    }
+
+
+    @Test(expected = IncorrectResultSizeDataAccessException.class)
+    public void throwsExceptionForUnderSpecifiedSingleEntitySpecification() {
+
+        flushTestUsers();
+        repository.findOne(userHasFirstnameLike("e"));
     }
 
 
