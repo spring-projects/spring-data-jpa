@@ -35,11 +35,6 @@
 			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
-	
-	
-	
-	
-	
 
 	<xsd:element name="auditing">
 		<xsd:complexType>
@@ -53,6 +48,7 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attribute name="set-dates" default="true" type="xsd:boolean" />
 		</xsd:complexType>
 	</xsd:element>
 

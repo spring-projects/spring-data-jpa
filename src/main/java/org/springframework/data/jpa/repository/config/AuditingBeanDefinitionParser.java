@@ -38,7 +38,7 @@ import org.w3c.dom.Element;
  */
 public class AuditingBeanDefinitionParser implements BeanDefinitionParser {
 
-    private static final String AUDITING_ENTITY_LISTENER_CLASS_NAME =
+    static final String AUDITING_ENTITY_LISTENER_CLASS_NAME =
             "org.springframework.data.jpa.domain.support.AuditingEntityListener";
     private static final String AUDITING_BFPP_CLASS_NAME =
             "org.springframework.data.jpa.domain.support.AuditingBeanFactoryPostProcessor";
@@ -65,6 +65,9 @@ public class AuditingBeanDefinitionParser implements BeanDefinitionParser {
             builder.addPropertyValue("auditorAware",
                     createLazyInitTargetSourceBeanDefinition(auditorAwareRef));
         }
+
+        builder.addPropertyValue("dateTimeForNow",
+                element.getAttribute("set-dates"));
 
         registerInfrastructureBeanWithId(builder.getRawBeanDefinition(),
                 AUDITING_ENTITY_LISTENER_CLASS_NAME, parser, element);
