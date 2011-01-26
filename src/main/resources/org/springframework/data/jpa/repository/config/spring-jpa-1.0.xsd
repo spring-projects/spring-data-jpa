@@ -17,6 +17,7 @@
 	<xsd:complexType name="jpa-repository">
 		<xsd:complexContent>
 			<xsd:extension base="repository:repository">
+				<xsd:attributeGroup ref="repository:transactional-repository-attributes" />
 				<xsd:attribute name="entity-manager-factory-ref" type="entityManagerFactoryRef" />
 			</xsd:extension>
 		</xsd:complexContent>
@@ -29,8 +30,8 @@
 					<xsd:sequence>
 						<xsd:element name="repository" minOccurs="0" maxOccurs="unbounded" type="jpa-repository" />
 					</xsd:sequence>
-					<xsd:attribute name="entity-manager-factory-ref"
-						type="entityManagerFactoryRef" />
+					<xsd:attributeGroup ref="repository:transactional-repository-attributes" />
+					<xsd:attribute name="entity-manager-factory-ref" type="entityManagerFactoryRef" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -51,7 +52,6 @@
 			<xsd:attribute name="set-dates" default="true" type="xsd:boolean" />
 		</xsd:complexType>
 	</xsd:element>
-
 
 	<xsd:simpleType name="entityManagerFactoryRef">
 		<xsd:annotation>

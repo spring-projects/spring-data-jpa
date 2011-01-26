@@ -20,8 +20,8 @@ import javax.persistence.PersistenceContext;
 
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.repository.support.RepositoryFactoryBeanSupport;
 import org.springframework.data.repository.support.RepositoryFactorySupport;
+import org.springframework.data.repository.support.TransactionalRepositoryFactoryBeanSupport;
 import org.springframework.util.Assert;
 
 
@@ -34,7 +34,7 @@ import org.springframework.util.Assert;
  * @param <T> the type of the repository
  */
 public class JpaRepositoryFactoryBean<T extends JpaRepository<?, ?>> extends
-        RepositoryFactoryBeanSupport<T> {
+        TransactionalRepositoryFactoryBeanSupport<T> {
 
     private EntityManager entityManager;
 
