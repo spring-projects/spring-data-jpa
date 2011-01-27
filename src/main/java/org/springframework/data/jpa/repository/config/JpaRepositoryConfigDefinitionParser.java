@@ -19,6 +19,7 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
 import org.springframework.data.jpa.repository.config.SimpleJpaRepositoryConfiguration.JpaRepositoryConfiguration;
 import org.springframework.data.repository.config.AbstractRepositoryConfigDefinitionParser;
 import org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor;
@@ -47,6 +48,8 @@ class JpaRepositoryConfigDefinitionParser
 
     private static final Class<?> PAB_POST_PROCESSOR =
             PersistenceAnnotationBeanPostProcessor.class;
+    private static final Class<?> PET_POST_PROCESSOR =
+            PersistenceExceptionTranslationPostProcessor.class;
 
 
     /*
@@ -128,6 +131,16 @@ class JpaRepositoryConfigDefinitionParser
             Object source) {
 
         super.registerBeansForRoot(registry, source);
+
+        if (!hasBean(PET_POST_PROCESSOR, registry)) {
+
+            AbstractBeanDefinition definition =
+                    BeanDefinitionBuilder
+                            .rootBeanDefinition(PET_POST_PROCESSOR)
+                            .getBeanDefinition();
+
+            registerWithSourceAndGeneratedBeanName(registry, definition, source);
+        }
 
         if (!hasBean(PAB_POST_PROCESSOR, registry)) {
 
