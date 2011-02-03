@@ -34,7 +34,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.jpa.repository.query.QueryUtils;
 import org.springframework.data.repository.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -58,6 +57,13 @@ public class SimpleJpaRepository<T, ID extends Serializable> extends
     private final PersistenceProvider provider;
 
 
+    /**
+     * Creates a new {@link SimpleJpaRepository} to manage objects of the given
+     * domain type.
+     * 
+     * @param domainClass
+     * @param entityManager
+     */
     public SimpleJpaRepository(Class<T> domainClass, EntityManager entityManager) {
 
         super(domainClass);
@@ -87,16 +93,16 @@ public class SimpleJpaRepository<T, ID extends Serializable> extends
     /**
      * Factory method to create {@link SimpleJpaRepository} instances.
      * 
-     * @param <T> the type of the entity to handle
-     * @param <PK> the type of the entity's identifier
-     * @param entityManager the {@link EntityManager} backing the repository
      * @param domainClass the domain class to handle
+     * @param entityManager the {@link EntityManager} backing the repository
+     * @param <T> the type of the entity to handle
+     * @param <ID> the type of the entity's identifier
      * @return
      */
-    public static <T, PK extends Serializable> Repository<T, PK> create(
-            final EntityManager entityManager, final Class<T> domainClass) {
+    public static <T, ID extends Serializable> Repository<T, ID> create(
+            Class<T> domainClass, EntityManager entityManager) {
 
-        return new SimpleJpaRepository<T, PK>(domainClass, entityManager);
+        return new SimpleJpaRepository<T, ID>(domainClass, entityManager);
     }
 
 
@@ -106,7 +112,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> extends
      * @see
      * org.springframework.data.repository.Repository#delete(java.lang.Object)
      */
-    public void delete(final T entity) {
+    public void delete(T entity) {
 
         em.remove(em.contains(entity) ? entity : em.merge(entity));
     }
@@ -118,7 +124,26 @@ public class SimpleJpaRepository<T, ID extends Serializable> extends
      * @see
      * org.springframework.data.repository.Repository#delete(java.lang.Iterable)
      */
-    public void delete(final Iterable<? extends T> entities) {
+    public void delete(Iterable<? extends T> entities) {
+
+        if (entities == null) {
+            return;
+        }
+
+        for (T entity : entities) {
+            delete(entity);
+        }
+    }
+
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.springframework.data.jpa.repository.JpaRepository#deleteInBatch(java
+     * .lang.Iterable)
+     */
+    public void deleteInBatch(Iterable<T> entities) {
 
         if (null == entities || !entities.iterator().hasNext()) {
             return;
@@ -126,6 +151,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> extends
 
         applyAndBind(getQueryString(DELETE_ALL_QUERY_STRING, getDomainClass()),
                 entities, em).executeUpdate();
+        em.clear();
     }
 
 
@@ -137,6 +163,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> extends
     public void deleteAll() {
 
         em.createQuery(getDeleteAllQueryString()).executeUpdate();
+        em.clear();
     }
 
 
@@ -148,11 +175,10 @@ public class SimpleJpaRepository<T, ID extends Serializable> extends
      * )
      */
     @Transactional(readOnly = true)
-    public T findById(final ID primaryKey) {
+    public T findById(ID id) {
 
-        Assert.notNull(primaryKey, "The given primaryKey must not be null!");
-
-        return em.find(getDomainClass(), primaryKey);
+        Assert.notNull(id, "The given id must not be null!");
+        return em.find(getDomainClass(), id);
     }
 
 
@@ -164,11 +190,10 @@ public class SimpleJpaRepository<T, ID extends Serializable> extends
      * )
      */
     @Transactional(readOnly = true)
-    public boolean exists(final ID primaryKey) {
+    public boolean exists(ID id) {
 
-        Assert.notNull(primaryKey, "The given primary key must not be null!");
-
-        return null != findById(primaryKey);
+        Assert.notNull(id, "The given id must not be null!");
+        return null != findById(id);
     }
 
 
@@ -192,7 +217,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> extends
      * .data.domain.Sort)
      */
     @Transactional(readOnly = true)
-    public List<T> findAll(final Sort sort) {
+    public List<T> findAll(Sort sort) {
 
         return getQuery(null, sort).getResultList();
     }
@@ -205,7 +230,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> extends
      * springframework.data.domain.Pageable)
      */
     @Transactional(readOnly = true)
-    public Page<T> findAll(final Pageable pageable) {
+    public Page<T> findAll(Pageable pageable) {
 
         if (null == pageable) {
             return new PageImpl<T>(findAll());
@@ -280,7 +305,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> extends
      * @see
      * org.springframework.data.repository.Repository#save(java.lang.Object)
      */
-    public T save(final T entity) {
+    public T save(T entity) {
 
         if (getIsNewStrategy().isNew(entity)) {
             em.persist(entity);
@@ -298,7 +323,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> extends
      * org.springframework.data.jpa.repository.JpaRepository#saveAndFlush(java
      * .lang.Object)
      */
-    public T saveAndFlush(final T entity) {
+    public T saveAndFlush(T entity) {
 
         T result = save(entity);
         flush();
@@ -341,29 +366,13 @@ public class SimpleJpaRepository<T, ID extends Serializable> extends
 
 
     /**
-     * Reads a page of entities for the given JPQL query.
-     * 
-     * @param pageable
-     * @param query
-     * @return a page of entities for the given JPQL query
-     */
-    protected Page<T> readPage(final Pageable pageable, final String query) {
-
-        String queryString = QueryUtils.applySorting(query, pageable.getSort());
-        TypedQuery<T> jpaQuery = em.createQuery(queryString, getDomainClass());
-
-        return readPage(jpaQuery, pageable, null);
-    }
-
-
-    /**
      * @param query
      * @param spec
      * @param pageable
      * @return
      */
-    private Page<T> readPage(final TypedQuery<T> query,
-            final Pageable pageable, final Specification<T> spec) {
+    private Page<T> readPage(TypedQuery<T> query, Pageable pageable,
+            Specification<T> spec) {
 
         query.setFirstResult(pageable.getOffset());
         query.setMaxResults(pageable.getPageSize());

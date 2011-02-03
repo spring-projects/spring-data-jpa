@@ -226,6 +226,18 @@ public class UserRepositoryTests {
 
 
     @Test
+    public void batchDeleteColletionOfEntities() {
+
+        flushTestUsers();
+
+        long before = repository.count();
+
+        repository.deleteInBatch(Arrays.asList(firstUser, secondUser));
+        assertThat(repository.count(), is(before - 2));
+    }
+
+
+    @Test
     public void deleteEmptyCollectionDoesNotDeleteAnything() {
 
         assertDeleteCallDoesNotDeleteAnything(new ArrayList<User>());

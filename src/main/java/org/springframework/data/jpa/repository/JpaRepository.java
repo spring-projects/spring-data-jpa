@@ -18,6 +18,8 @@ package org.springframework.data.jpa.repository;
 import java.io.Serializable;
 import java.util.List;
 
+import javax.persistence.EntityManager;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -75,4 +77,14 @@ public interface JpaRepository<T, ID extends Serializable> extends
      * @return the saved entity
      */
     T saveAndFlush(T entity);
+
+
+    /**
+     * Deletes the given entities in a batch which means it will create a single
+     * {@link Query}. Assume that we will clear the {@link EntityManager} after
+     * the call.
+     * 
+     * @param entities
+     */
+    void deleteInBatch(Iterable<T> entities);
 }
