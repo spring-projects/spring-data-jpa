@@ -15,10 +15,15 @@
  */
 package org.springframework.data.jpa.repository.config;
 
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
+
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.custom.UserCustomExtendedRepository;
+import org.springframework.data.jpa.repository.support.TransactionalRepositoryTests.DelegatingTransactionManager;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.Assert;
@@ -43,11 +48,41 @@ public class CustomRepositoryFactoryConfigTests {
     @Autowired(required = false)
     UserCustomExtendedRepository userRepository;
 
+    @Autowired
+    DelegatingTransactionManager transactionManager;
+
+
+    @Before
+    public void setup() {
+
+        transactionManager.resetCount();
+    }
+
 
     @Test(expected = UnsupportedOperationException.class)
     public void testCustomFactoryUsed() {
 
         Assert.notNull(userRepository);
         userRepository.customMethod(1);
+    }
+
+
+    @Test
+    public void reconfiguresTransactionalMethodWithoutGenericParameter() {
+
+        userRepository.findAll();
+
+        assertFalse(transactionManager.getDefinition().isReadOnly());
+        assertThat(transactionManager.getDefinition().getTimeout(), is(10));
+    }
+
+
+    @Test
+    public void reconfiguresTransactionalMethodWithGenericParameter() {
+
+        userRepository.findById(1);
+
+        assertFalse(transactionManager.getDefinition().isReadOnly());
+        assertThat(transactionManager.getDefinition().getTimeout(), is(10));
     }
 }

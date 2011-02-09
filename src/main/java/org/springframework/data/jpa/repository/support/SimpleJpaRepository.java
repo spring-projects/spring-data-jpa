@@ -35,7 +35,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.Repository;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
 
@@ -49,7 +48,6 @@ import org.springframework.util.Assert;
  * @param <ID> the type of the entity's identifier
  */
 @org.springframework.stereotype.Repository
-@Transactional
 public class SimpleJpaRepository<T, ID extends Serializable> extends
         JpaRepositorySupport<T, ID> {
 
@@ -174,7 +172,6 @@ public class SimpleJpaRepository<T, ID extends Serializable> extends
      * org.springframework.data.repository.Repository#readById(java.io.Serializable
      * )
      */
-    @Transactional(readOnly = true)
     public T findById(ID id) {
 
         Assert.notNull(id, "The given id must not be null!");
@@ -189,7 +186,6 @@ public class SimpleJpaRepository<T, ID extends Serializable> extends
      * org.springframework.data.repository.Repository#exists(java.io.Serializable
      * )
      */
-    @Transactional(readOnly = true)
     public boolean exists(ID id) {
 
         Assert.notNull(id, "The given id must not be null!");
@@ -202,7 +198,6 @@ public class SimpleJpaRepository<T, ID extends Serializable> extends
      * 
      * @see org.springframework.data.repository.Repository#readAll()
      */
-    @Transactional(readOnly = true)
     public List<T> findAll() {
 
         return getQuery(null, (Sort) null).getResultList();
@@ -216,7 +211,6 @@ public class SimpleJpaRepository<T, ID extends Serializable> extends
      * org.springframework.data.repository.Repository#readAll(org.springframework
      * .data.domain.Sort)
      */
-    @Transactional(readOnly = true)
     public List<T> findAll(Sort sort) {
 
         return getQuery(null, sort).getResultList();
@@ -229,7 +223,6 @@ public class SimpleJpaRepository<T, ID extends Serializable> extends
      * @see org.springframework.data.repository.Repository#readAll(org.
      * springframework.data.domain.Pageable)
      */
-    @Transactional(readOnly = true)
     public Page<T> findAll(Pageable pageable) {
 
         if (null == pageable) {
@@ -262,7 +255,6 @@ public class SimpleJpaRepository<T, ID extends Serializable> extends
      * @see org.springframework.data.jpa.repository.JpaRepository#readAll(org.
      * springframework.data.jpa.domain.Specification)
      */
-    @Transactional(readOnly = true)
     public List<T> findAll(Specification<T> spec) {
 
         return getQuery(spec, (Sort) null).getResultList();
@@ -276,7 +268,6 @@ public class SimpleJpaRepository<T, ID extends Serializable> extends
      * springframework.data.jpa.domain.Specification,
      * org.springframework.data.domain.Pageable)
      */
-    @Transactional(readOnly = true)
     public Page<T> findAll(Specification<T> spec, Pageable pageable) {
 
         TypedQuery<T> query = getQuery(spec, pageable);
@@ -291,7 +282,6 @@ public class SimpleJpaRepository<T, ID extends Serializable> extends
      * 
      * @see org.springframework.data.repository.Repository#count()
      */
-    @Transactional(readOnly = true)
     public Long count() {
 
         return em.createQuery(getCountQueryString(), Long.class)

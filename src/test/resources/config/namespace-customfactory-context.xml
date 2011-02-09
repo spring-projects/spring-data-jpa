@@ -7,6 +7,7 @@
 		http://www.springframework.org/schema/data/jpa http://www.springframework.org/schema/data/jpa/spring-jpa.xsd">
 
 	<import resource="../infrastructure.xml" />
+	<import resource="../tx-manager.xml" />
 
 	<jpa:repositories base-package="org.springframework.**.repository.custom" 
         factory-class="org.springframework.data.jpa.repository.custom.CustomGenericJpaRepositoryFactoryBean" />

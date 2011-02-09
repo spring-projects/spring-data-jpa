@@ -15,7 +15,10 @@
  */
 package org.springframework.data.jpa.repository.custom;
 
+import java.util.List;
+
 import org.springframework.data.jpa.domain.sample.User;
+import org.springframework.transaction.annotation.Transactional;
 
 
 /**
@@ -26,5 +29,19 @@ import org.springframework.data.jpa.domain.sample.User;
  */
 public interface UserCustomExtendedRepository extends
         CustomGenericRepository<User, Integer> {
+
+    /**
+     * Sample method to test reconfiguring transactions on CRUD methods in
+     * combination with custom factory.
+     * 
+     * @see #421
+     */
+
+    @Transactional(readOnly = false, timeout = 10)
+    List<User> findAll();
+
+
+    @Transactional(readOnly = false, timeout = 10)
+    User findById(Integer id);
 
 }
