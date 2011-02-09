@@ -17,7 +17,7 @@ Features
 Getting Help
 ------------
 
-This README is the best places to start learning about Spring Data JPA.  There are also [two sample applications](https://github.com/SpringSource/spring-data-jpa-examples) available to look at.
+This README as well as the [reference documentation](http://static.springsource.org/spring-data/data-jpa/snapshot-site/reference/html) are the best places to start learning about Spring Data JPA.  There are also [two sample applications](https://github.com/SpringSource/spring-data-jpa-examples) available to look at.
 
 The main project [website](http://www.springsource.org/spring-data) contains links to basic project information such as source code, JavaDocs, Issue tracking, etc.
 
