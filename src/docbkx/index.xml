@@ -5,7 +5,7 @@
   <bookinfo>
     <title>Spring Data JPA - Reference Documentation</title>
 
-    <releaseinfo>1.0.0.BUILD-SNAPSHOT</releaseinfo>
+    <releaseinfo>&version;</releaseinfo>
 
     <authorgroup>
       <author>
