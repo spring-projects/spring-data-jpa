@@ -11,11 +11,83 @@
 		<relativePath>../spring-data-commons-parent/pom.xml</relativePath>
 	</parent>
 	
+	<developers>
+		<developer>
+			<id>ogierke</id>
+			<name>Oliver Gierke</name>
+			<email>ogierke at vmware.com</email>
+			<organization>SpringSource</organization>
+			<organizationUrl>http://www.springsource.com</organizationUrl>
+			<roles>
+				<role>Project lead</role>
+			</roles>
+			<timezone>+1</timezone>
+		</developer>
+	</developers>
+	
+	<licenses>
+		<license>
+			<name>Apache License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0</url>
+			<comments>
+			Copyright 2011 the original author or authors.
+			 
+			Licensed under the Apache License, Version 2.0 (the "License");
+			you may not use this file except in compliance with the License.
+			You may obtain a copy of the License at
+			
+			     http://www.apache.org/licenses/LICENSE-2.0
+			
+			Unless required by applicable law or agreed to in writing, software
+			distributed under the License is distributed on an "AS IS" BASIS,
+			WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+			implied.
+			See the License for the specific language governing permissions and
+			limitations under the License.
+			</comments>
+		</license>
+	</licenses>
+	
 	<properties>
 		<hibernate.version>3.6.0.Final</hibernate.version>
 		<openjpa.version>2.0.0</openjpa.version>
 		<aspectj.version>1.6.8</aspectj.version>
+		
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<dist.id>spring-data-jpa</dist.id>
+		<dist.name>Spring Data JPA</dist.name>
+		<dist.key>DATAJPA</dist.key>
+		<dist.version>${project.version}</dist.version>
+		<dist.releaseType>milestone</dist.releaseType>
+		<dist.finalName>${dist.id}-${dist.version}</dist.finalName>
+		<dist.fileName>${dist.finalName}.zip</dist.fileName>
+		<dist.filePath>target/${dist.fileName}</dist.filePath>
+		<dist.bucketName>dist.springframework.org</dist.bucketName>
+		<!-- these properties should be in ~/.m2/settings.xml
+		<dist.accessKey>s3 access key</dist.accessKey>
+		<dist.secretKey>s3 secret key</dist.secretKey>
+		-->
 	</properties>
+	
+	<profiles>
+		<profile>
+			<id>staging</id>
+			<distributionManagement>
+				<site>
+					<id>spring-site-staging</id>
+					<url>file:///${java.io.tmpdir}/spring-data/data-jpa/docs/${project.version}</url>
+				</site>
+				<repository>
+					<id>spring-milestone-staging</id>
+					<url>file:///${java.io.tmpdir}/spring-data/data-jpa/milestone</url>
+				</repository>
+				<snapshotRepository>
+					<id>spring-snapshot-staging</id>
+					<url>file:///${java.io.tmpdir}/spring-data/data-jpa/snapshot</url>
+				</snapshotRepository>
+			</distributionManagement>
+		</profile>
+	</profiles>
 	
 	<dependencies>
 	
@@ -225,8 +297,47 @@
 					</postProcess>
 				</configuration>
 			</plugin>
+			<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<version>2.2-beta-5</version>
+				<inherited>false</inherited>
+				<executions>
+					<execution>
+						<id>distribution</id>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<phase>package</phase>
+						<configuration>
+							<descriptors>
+								<descriptor>${project.basedir}/src/assembly/distribution.xml</descriptor>
+							</descriptors>
+							<appendAssemblyId>false</appendAssemblyId>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
+	
+	<distributionManagement>
+		<!-- see 'staging' profile for dry-run deployment settings -->
+		<downloadUrl>http://www.springsource.com/spring-data</downloadUrl>
+		<site>
+			<id>static.springframework.org</id>
+			<url>scp://static.springframework.org/var/www/domains/springframework.org/static/htdocs/spring-data/data-jpa/snapshot-site/</url>
+		</site>
+		<repository>
+			<id>spring-milestone</id>
+			<name>Spring Milestone Repository</name>
+			<url>s3://maven.springframework.org/milestone</url>
+		</repository>
+		<snapshotRepository>
+			<id>spring-snapshot</id>
+			<name>Spring Snapshot Repository</name>
+			<url>s3://maven.springframework.org/snapshot</url>
+		</snapshotRepository>
+	</distributionManagement>
 	
 	<repositories>
 		<repository>
