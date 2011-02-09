@@ -1,0 +1,21 @@
+Bundle-ManifestVersion: 2
+Bundle-SymbolicName: ${project.artifactId}
+Bundle-Name: ${project.name}
+Bundle-Vendor: SpringSource
+Bundle-Version: ${project.version}
+Bundle-RequiredExecutionEnvironment: J2SE-1.5
+Export-Template: 
+ org.springframework.data.jpa.*;version="${project.version}"
+Import-Template: 
+ javax.persistence.*;version="${jpa.version:[=.=.=,+1.0.0)}", 
+ org.aopalliance.*;version="[1.0.0,2.0.0)", 
+ org.slf4j.*;version="${slf4j.version:[=.=.=,+1.0.0)}",
+ org.aspectj.*;version="${aspectj.version:[=.=.=,+1.0.0)}";resolution:=optional,
+ org.eclipse.persistence.*;version="[2.0.0,3.0.0)";resolution:=optional,
+ org.hibernate.*;version="[3.5.3,4.0.0)";resolution:=optional, 
+ org.apache.openjpa.persistence.*;version="${openjpa.version:[=.=.=,+1.0.0)}";resolution:=optional, 
+ org.joda.time.*;version="[1.5.0,2.0.0)";resolution:=optional,
+ org.springframework.*;version="${spring.version:[=.=.=.=,+1.0.0)}",
+ org.springframework.beans.factory.aspectj;version="${spring.version:[=.=.=.=,+1.0.0)}";resolution:=optional,
+ org.w3c.*;version="0.0.0"
+ 

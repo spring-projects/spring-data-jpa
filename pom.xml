@@ -1,15 +1,19 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<artifactId>spring-data-jpa</artifactId>
-	<name>Spring JPA</name>
 	
-	<parent>
-		<groupId>org.springframework.data</groupId>
-		<artifactId>spring-data-commons-parent</artifactId>
-		<version>1.0.0.BUILD-SNAPSHOT</version>
-		<relativePath>../spring-data-commons-parent/pom.xml</relativePath>
-	</parent>
+	<groupId>org.springframework.data</groupId>
+	<artifactId>spring-data-jpa</artifactId>
+	<version>1.0.0.BUILD-SNAPSHOT</version>
+	
+	<name>Spring JPA</name>
+	<description>Spring Data module to provide sophisticated support for JPA repositories</description>
+	<url>http://www.springsource.org/spring-data</url>
+	<inceptionYear>2011</inceptionYear>
+	<organization>
+		<name>SpringSource</name>
+		<url>http://www.springsource.org</url>
+	</organization>
 	
 	<developers>
 		<developer>
@@ -49,16 +53,19 @@
 	</licenses>
 	
 	<properties>
+		<spring.version>3.0.5.RELEASE</spring.version>
 		<hibernate.version>3.6.0.Final</hibernate.version>
 		<openjpa.version>2.0.0</openjpa.version>
 		<aspectj.version>1.6.8</aspectj.version>
+		<junit.version>4.8.1</junit.version>
+		<jpa.version>2.0.0</jpa.version>
+		<slf4j.version>1.5.10</slf4j.version>
 		
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<dist.id>spring-data-jpa</dist.id>
 		<dist.name>Spring Data JPA</dist.name>
 		<dist.key>DATAJPA</dist.key>
 		<dist.version>${project.version}</dist.version>
-		<dist.releaseType>milestone</dist.releaseType>
 		<dist.finalName>${dist.id}-${dist.version}</dist.finalName>
 		<dist.fileName>${dist.finalName}.zip</dist.fileName>
 		<dist.filePath>target/${dist.fileName}</dist.filePath>
@@ -87,6 +94,154 @@
 				</snapshotRepository>
 			</distributionManagement>
 		</profile>
+		
+		<profile>
+			<!-- Profile used when doing milestone or release ddeployments-->
+			<id>distribute</id>			
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-javadoc-plugin</artifactId>
+						<version>2.5</version>
+						<executions>
+							<execution>
+								<goals>
+									<goal>javadoc</goal>
+								</goals>
+								<phase>package</phase>
+							</execution>
+						</executions>
+						<configuration>
+							<breakiterator>true</breakiterator>
+							<header>Spring Data Jpa</header>
+							<source>1.5</source>
+							<quiet>true</quiet>
+							<javadocDirectory>${project.basedir}/src/main/javadoc</javadocDirectory>
+							<overview>${project.basedir}/src/main/javadoc/overview.html</overview>
+							<stylesheetfile>${project.basedir}/src/main/javadoc/spring-javadoc.css</stylesheetfile>
+							<!-- copies doc-files subdirectory which contains image resources -->
+							<docfilessubdirs>true</docfilessubdirs>
+							<links>
+								<link>http://static.springframework.org/spring/docs/3.0.x/javadoc-api</link>
+								<link>http://download.oracle.com/javase/1.5.0/docs/api</link>
+							</links>
+						</configuration>
+					</plugin>
+					
+					<plugin>
+						<groupId>com.agilejava.docbkx</groupId>
+						<artifactId>docbkx-maven-plugin</artifactId>
+						<version>2.0.7</version>
+						<executions>
+							<execution>
+								<goals>
+									<goal>generate-html</goal>
+									<goal>generate-pdf</goal>
+								</goals>
+								<phase>package</phase>
+							</execution>
+						</executions>
+						<dependencies>
+							<dependency>
+								<groupId>org.docbook</groupId>
+								<artifactId>docbook-xml</artifactId>
+								<version>4.4</version>
+								<scope>runtime</scope>
+							</dependency>
+						</dependencies>
+						<configuration>
+						    <includes>index.xml</includes>
+							<xincludeSupported>true</xincludeSupported>
+							<foCustomization>${project.basedir}/src/docbkx/resources/xsl/fopdf.xsl</foCustomization>
+							<htmlStylesheet>css/html.css</htmlStylesheet>
+							<chunkedOutput>false</chunkedOutput>
+							<htmlCustomization>${project.basedir}/src/docbkx/resources/xsl/html.xsl</htmlCustomization>
+							<useExtensions>1</useExtensions>
+							<entities>
+								<entity>
+									<name>version</name>
+									<value>${project.version}</value>
+								</entity>
+							</entities>
+							<postProcess>
+								<copy todir="${project.basedir}/target/site/reference">
+									<fileset dir="${project.basedir}/target/docbkx">
+										<include name="**/*.html" />
+										<include name="**/*.pdf" />
+									</fileset>
+								</copy>
+								<copy todir="${project.basedir}/target/site/reference/html">
+									<fileset dir="${project.basedir}/src/docbkx/resources">
+										<include name="**/*.css" />
+										<include name="**/*.png" />
+										<include name="**/*.gif" />
+										<include name="**/*.jpg" />
+									</fileset>
+								</copy>
+								<move file="${project.basedir}/target/site/reference/pdf/index.pdf"
+									tofile="${project.basedir}/target/site/reference/pdf/${project.artifactId}-reference.pdf"
+									failonerror="false" />
+							</postProcess>
+						</configuration>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-assembly-plugin</artifactId>
+						<version>2.2-beta-5</version>
+						<inherited>false</inherited>
+						<executions>
+							<execution>
+								<id>distribution</id>
+								<goals>
+									<goal>single</goal>
+								</goals>
+								<phase>package</phase>
+								<configuration>
+									<descriptors>
+										<descriptor>${project.basedir}/src/assembly/distribution.xml</descriptor>
+									</descriptors>
+									<appendAssemblyId>false</appendAssemblyId>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<version>1.4</version>
+						<executions>
+							<execution>
+								<id>upload-dist</id>
+								<phase>deploy</phase>
+								<configuration>
+									<tasks>
+										<ant antfile="${basedir}/src/ant/upload-dist.xml">
+											<target name="upload-dist"/>
+										</ant>
+									</tasks>
+								</configuration>
+								<goals>
+									<goal>run</goal>
+								</goals>
+							</execution>
+						</executions>
+						<dependencies>
+							<dependency>
+								<groupId>org.springframework.build</groupId>
+								<artifactId>org.springframework.build.aws.ant</artifactId>
+								<version>3.0.5.RELEASE</version>
+							</dependency>
+							<dependency>
+								<groupId>net.java.dev.jets3t</groupId>
+								<artifactId>jets3t</artifactId>
+								<version>0.7.2</version>
+							</dependency>
+						</dependencies>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
 	</profiles>
 	
 	<dependencies>
@@ -94,13 +249,39 @@
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>spring-data-commons-core</artifactId>
-			<version>${project.version}</version>
+			<version>1.0.0.BUILD-SNAPSHOT</version>
 		</dependency>
 		
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-orm</artifactId>
-			<version>${org.springframework.version}</version>
+			<version>${spring.version}</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-core</artifactId>
+			<version>${spring.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>commons-logging</groupId>
+					<artifactId>commons-logging</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		
+		<!-- Logging (SLF4J + JCL bridge) -->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>${slf4j.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>jcl-over-slf4j</artifactId>
+			<version>${slf4j.version}</version>
+			<scope>runtime</scope>
 		</dependency>
 		
 		<dependency>
@@ -117,15 +298,21 @@
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-aspects</artifactId>
-			<version>${org.springframework.version}</version>
+			<version>${spring.version}</version>
 			<optional>true</optional>
 		</dependency>
 		
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-test</artifactId>
-			<version>${org.springframework.version}</version>
+			<version>${spring.version}</version>
 			<scope>test</scope>
+		</dependency>
+		
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>${junit.version}</version>
 		</dependency>
 		
 		<dependency>
@@ -135,6 +322,12 @@
 			<scope>test</scope>
 		</dependency>
 		
+		<dependency>
+			<groupId>org.hamcrest</groupId>
+			<artifactId>hamcrest-all</artifactId>
+			<version>1.1</version>
+			<scope>test</scope>
+		</dependency>
 		
 		<dependency>
 			<groupId>org.hsqldb</groupId>
@@ -148,6 +341,20 @@
 			<artifactId>joda-time</artifactId>
 			<version>1.6</version>
 			<optional>true</optional>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>${slf4j.version}</version>
+			<scope>test</scope>
+		</dependency>
+		
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+			<version>1.2.16</version>
+			<scope>test</scope>
 		</dependency>
 		
 	
@@ -179,19 +386,41 @@
 	</dependencies>
 	
 	<build>
+		
+		<extensions>
+			<extension>
+				<!-- available only in the springframework maven repository. see <repositories> section below -->
+				<groupId>org.springframework.build.aws</groupId>
+				<artifactId>org.springframework.build.aws.maven</artifactId>
+				<version>2.0.0.RELEASE</version>
+			</extension>
+		</extensions>
+		
 		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.3</version>
+				<configuration>
+					<source>1.5</source>
+					<target>1.5</target>
+				</configuration>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>2.5</version>
 				<configuration>
-					<argLine>-javaagent:${settings.localRepository}/org/springframework/org.springframework.instrument/${org.springframework.version}/org.springframework.instrument-${org.springframework.version}.jar -javaagent:${settings.localRepository}/org/apache/openjpa/openjpa/${openjpa.version}/openjpa-${openjpa.version}.jar</argLine>
+					<includes>
+						<include>**/*Tests.java</include>
+					</includes>
+					<argLine>-javaagent:${settings.localRepository}/org/springframework/spring-instrument/${spring.version}/spring-instrument-${spring.version}.jar -javaagent:${settings.localRepository}/org/apache/openjpa/openjpa/${openjpa.version}/openjpa-${openjpa.version}.jar</argLine>
 				</configuration>
 				<dependencies>
 					<dependency>
 						<groupId>org.springframework</groupId>
-						<artifactId>org.springframework.instrument</artifactId>
-						<version>${org.springframework.version}</version>
+						<artifactId>spring-instrument</artifactId>
+						<version>${spring.version}</version>
 						<scope>runtime</scope>
 					</dependency>
 					<dependency>
@@ -240,80 +469,34 @@
 					<target>1.5</target>
 				</configuration>
 			</plugin>
+
 			<plugin>
-				<groupId>com.agilejava.docbkx</groupId>
-				<artifactId>docbkx-maven-plugin</artifactId>
-				<version>2.0.7</version>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>2.1.1</version>
 				<executions>
 					<execution>
+						<id>attach-sources</id>
 						<goals>
-							<goal>generate-html</goal>
-							<goal>generate-pdf</goal>
+							<goal>jar</goal>
 						</goals>
-						<phase>pre-site</phase>
 					</execution>
 				</executions>
-				<dependencies>
-					<dependency>
-						<groupId>org.docbook</groupId>
-						<artifactId>docbook-xml</artifactId>
-						<version>4.4</version>
-						<scope>runtime</scope>
-					</dependency>
-				</dependencies>
-				<configuration>
-				        <includes>index.xml</includes>
-					<xincludeSupported>true</xincludeSupported>
-					<foCustomization>${project.basedir}/src/docbkx/resources/xsl/fopdf.xsl</foCustomization>
-					<htmlStylesheet>css/html.css</htmlStylesheet>
-					<chunkedOutput>false</chunkedOutput>
-					<htmlCustomization>${project.basedir}/src/docbkx/resources/xsl/html.xsl</htmlCustomization>
-					<useExtensions>1</useExtensions>
-          <!-- callouts -->
-					<entities>
-						<entity>
-							<name>version</name>
-							<value>${pom.version}</value>
-						</entity>
-					</entities>
-					<postProcess>
-						<copy todir="${project.basedir}/target/site/reference">
-							<fileset dir="${project.basedir}/target/docbkx">
-								<include name="**/*.html" />
-								<include name="**/*.pdf" />
-							</fileset>
-						</copy>
-						<copy todir="${project.basedir}/target/site/reference/html">
-							<fileset dir="${project.basedir}/src/docbkx/resources">
-								<include name="**/*.css" />
-								<include name="**/*.png" />
-								<include name="**/*.gif" />
-								<include name="**/*.jpg" />
-							</fileset>
-						</copy>
-						<move file="${project.basedir}/target/site/reference/pdf/index.pdf"
-							tofile="${project.basedir}/target/site/reference/pdf/${project.artifactId}-reference.pdf"
-							failonerror="false" />
-					</postProcess>
-				</configuration>
 			</plugin>
+			
 			<plugin>
-				<artifactId>maven-assembly-plugin</artifactId>
-				<version>2.2-beta-5</version>
-				<inherited>false</inherited>
+				<groupId>com.springsource.bundlor</groupId>
+				<artifactId>com.springsource.bundlor.maven</artifactId>
+				<version>1.0.0.RELEASE</version>
+				<configuration>
+					<failOnWarnings>true</failOnWarnings>
+				</configuration>
 				<executions>
 					<execution>
-						<id>distribution</id>
+						<id>bundlor</id>
 						<goals>
-							<goal>single</goal>
+							<goal>bundlor</goal>
 						</goals>
-						<phase>package</phase>
-						<configuration>
-							<descriptors>
-								<descriptor>${project.basedir}/src/assembly/distribution.xml</descriptor>
-							</descriptors>
-							<appendAssemblyId>false</appendAssemblyId>
-						</configuration>
 					</execution>
 				</executions>
 			</plugin>
@@ -322,7 +505,7 @@
 	
 	<distributionManagement>
 		<!-- see 'staging' profile for dry-run deployment settings -->
-		<downloadUrl>http://www.springsource.com/spring-data</downloadUrl>
+		<downloadUrl>http://www.springsource.org/spring-data</downloadUrl>
 		<site>
 			<id>static.springframework.org</id>
 			<url>scp://static.springframework.org/var/www/domains/springframework.org/static/htdocs/spring-data/data-jpa/snapshot-site/</url>
@@ -339,7 +522,28 @@
 		</snapshotRepository>
 	</distributionManagement>
 	
+	<ciManagement>
+        <system>Bamboo</system>
+        <url>http://build.springsource.org/browse/SPRINGDATA</url>
+    </ciManagement>
+
+    <issueManagement>
+        <system>JIRA</system>
+        <url>https://jira.springsource.org/browse/DATAJPA</url>
+    </issueManagement>
+
+    <scm>
+        <url>https://github.com/SpringSource/spring-data-jpa</url>
+        <connection>scm:git:git://github.com/SpringSource/spring-data-jpa.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com:SpringSource/spring-data-jpa.git</developerConnection>
+    </scm>
+	
 	<repositories>
+		<repository>
+			<id>repository.springframework.maven.milestone</id>
+			<name>Spring Framework Maven Milestone Repository</name>
+			<url>http://maven.springframework.org/milestone</url>
+		</repository>
 		<repository>
 			<id>jboss</id>
 			<name>JBoss repository</name>

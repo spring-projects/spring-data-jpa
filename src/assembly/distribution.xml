@@ -38,4 +38,16 @@
 			<outputDirectory>docs/javadoc</outputDirectory>
 		</fileSet>
 	</fileSets>
+	<files>
+		<file> 
+			<source>target/${dist.finalName}.jar</source>
+			<outputDirectory>dist</outputDirectory> 
+			<fileMode>0644</fileMode>
+		</file>
+		<file> 
+			<source>target/${dist.finalName}-sources.jar</source>
+			<outputDirectory>sources</outputDirectory> 
+			<fileMode>0644</fileMode>
+		</file>
+	</files>
 </assembly>
