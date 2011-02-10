@@ -4,7 +4,7 @@
 	
 	<groupId>org.springframework.data</groupId>
 	<artifactId>spring-data-jpa</artifactId>
-	<version>1.0.0.BUILD-SNAPSHOT</version>
+	<version>1.0.0.M1</version>
 	
 	<name>Spring JPA</name>
 	<description>Spring Data module to provide sophisticated support for JPA repositories</description>
@@ -249,7 +249,7 @@
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>spring-data-commons-core</artifactId>
-			<version>1.0.0.BUILD-SNAPSHOT</version>
+			<version>1.0.0.M3</version>
 		</dependency>
 		
 		<dependency>
@@ -392,7 +392,7 @@
 				<!-- available only in the springframework maven repository. see <repositories> section below -->
 				<groupId>org.springframework.build.aws</groupId>
 				<artifactId>org.springframework.build.aws.maven</artifactId>
-				<version>2.0.0.RELEASE</version>
+				<version>3.1.0.RELEASE</version>
 			</extension>
 		</extensions>
 		
@@ -539,6 +539,11 @@
     </scm>
 	
 	<repositories>
+		<repository>
+			<id>repository.springframework.maven.release</id>
+			<name>Spring Framework Maven Release Repository</name>
+			<url>http://maven.springframework.org/release</url>
+		</repository>
 		<repository>
 			<id>repository.springframework.maven.milestone</id>
 			<name>Spring Framework Maven Milestone Repository</name>

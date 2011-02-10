@@ -1,6 +1,6 @@
 Spring Data JPA Changelog
 =============================================
 
-Changes in version 1.0.0.M1 (2011-02-09) - https://jira.springsource.org/browse/DATAJPA/fixforversion/11786
+Changes in version 1.0.0.M1 (2011-02-10) - https://jira.springsource.org/browse/DATAJPA/fixforversion/11786
 ----------------------------------------
 * Moved JPA sepcific code from Hades into Spring Data JPA (functional equivalent of Hades 2.0.2) building on common functionality in Spring Data Commons
