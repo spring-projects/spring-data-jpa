@@ -125,7 +125,7 @@ public class JpaQueryCreator extends
     protected final CriteriaQuery<Object> complete(Predicate predicate,
             Sort sort) {
 
-        return complete(predicate, sort, query, builder);
+        return complete(predicate, sort, query, builder, root);
     }
 
 
@@ -140,7 +140,7 @@ public class JpaQueryCreator extends
      * @return
      */
     protected CriteriaQuery<Object> complete(Predicate predicate, Sort sort,
-            CriteriaQuery<Object> query, CriteriaBuilder builder) {
+            CriteriaQuery<Object> query, CriteriaBuilder builder, Root<?> root) {
 
         return this.query.select(root).where(predicate)
                 .orderBy(QueryUtils.toOrders(sort, root, builder));

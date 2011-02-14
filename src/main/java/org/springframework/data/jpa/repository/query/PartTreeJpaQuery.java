@@ -89,11 +89,11 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
      */
     public Query createCountQuery(Object[] parameters) {
 
-        CriteriaQuery<Object> createQuery =
+        CriteriaQuery<Object> query =
                 new JpaCountQueryCreator(tree, new SimpleParameterAccessor(
                         getParameters(), parameters), domainClass,
                         getEntityManager()).createQuery();
-        return getEntityManager().createQuery(createQuery);
+        return getEntityManager().createQuery(query);
     }
 
 
