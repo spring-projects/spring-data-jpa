@@ -175,9 +175,9 @@ public class JpaQueryCreator extends
             return builder.lessThan(getComparablePath(root, part),
                     nextAsComparable(iterator));
         case IS_NULL:
-            return root.isNull();
+            return path.isNull();
         case IS_NOT_NULL:
-            return root.isNotNull();
+            return path.isNotNull();
         case LIKE:
             return builder.like(root.<String> get(part.getProperty()
                     .toDotPath()), iterator.next().toString());

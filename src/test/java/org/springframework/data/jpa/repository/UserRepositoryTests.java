@@ -759,6 +759,31 @@ public class UserRepositoryTests {
     }
 
 
+    @Test
+    public void executesFindByNotNullLastnameCorrectly() throws Exception {
+
+        flushTestUsers();
+        List<User> result = repository.findByLastnameNotNull();
+
+        assertThat(result.size(), is(3));
+        assertThat(result, hasItems(firstUser, secondUser, thirdUser));
+    }
+
+
+    @Test
+    public void executesFindByNullLastnameCorrectly() throws Exception {
+
+        flushTestUsers();
+        User forthUser =
+                repository.save(new User("Foo", null, "email@address.com"));
+
+        List<User> result = repository.findByLastnameNull();
+
+        assertThat(result.size(), is(1));
+        assertThat(result, hasItems(forthUser));
+    }
+
+
     private Page<User> executeSpecWithSort(Sort sort) {
 
         flushTestUsers();

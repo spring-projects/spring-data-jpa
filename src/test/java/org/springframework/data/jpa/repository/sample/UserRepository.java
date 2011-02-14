@@ -190,4 +190,10 @@ public interface UserRepository extends JpaRepository<User, Integer>,
 
 
     List<User> findByColleaguesLastname(String lastname);
+
+
+    List<User> findByLastnameNotNull();
+
+
+    List<User> findByLastnameNull();
 }
