@@ -179,7 +179,7 @@
 
                 <entry><code>findByAgeOrderByLastnameDesc</code></entry>
 
-                <entry><code>… where x.age &gt; ?1 order by x.lastname
+                <entry><code>… where x.age = ?1 order by x.lastname
                 desc</code></entry>
               </row>
 
