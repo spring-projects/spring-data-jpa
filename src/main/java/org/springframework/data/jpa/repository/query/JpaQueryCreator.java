@@ -15,6 +15,8 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import java.util.Iterator;
+
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -26,8 +28,7 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 import org.springframework.data.domain.Sort;
-import org.springframework.data.repository.query.SimpleParameterAccessor;
-import org.springframework.data.repository.query.SimpleParameterAccessor.BindableParameterIterator;
+import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 import org.springframework.data.repository.query.parser.Part;
 import org.springframework.data.repository.query.parser.PartTree;
@@ -56,7 +57,7 @@ public class JpaQueryCreator extends
      * @param domainClass
      * @param em
      */
-    public JpaQueryCreator(PartTree tree, SimpleParameterAccessor parameters,
+    public JpaQueryCreator(PartTree tree, ParameterAccessor parameters,
             Class<?> domainClass, EntityManager em) {
 
         super(tree, parameters);
@@ -73,11 +74,10 @@ public class JpaQueryCreator extends
      * @see
      * org.springframework.data.repository.query.parser.AbstractQueryCreator
      * #create(org.springframework.data.repository.query.parser.Part,
-     * org.springframework
-     * .data.repository.query.SimpleParameterAccessor.BindableParameterIterator)
+     * java.util.Iterator)
      */
     @Override
-    protected Predicate create(Part part, BindableParameterIterator iterator) {
+    protected Predicate create(Part part, Iterator<Object> iterator) {
 
         return toPredicate(part, root, iterator);
     }
@@ -89,13 +89,10 @@ public class JpaQueryCreator extends
      * @see
      * org.springframework.data.repository.query.parser.AbstractQueryCreator
      * #and(org.springframework.data.repository.query.parser.Part,
-     * java.lang.Object,
-     * org.springframework.data.repository.query.SimpleParameterAccessor
-     * .BindableParameterIterator)
+     * java.lang.Object, java.util.Iterator)
      */
     @Override
-    protected Predicate and(Part part, Predicate base,
-            BindableParameterIterator iterator) {
+    protected Predicate and(Part part, Predicate base, Iterator<Object> iterator) {
 
         return builder.and(base, toPredicate(part, root, iterator));
     }
@@ -157,7 +154,7 @@ public class JpaQueryCreator extends
      */
     @SuppressWarnings({ "unchecked", "rawtypes" })
     private Predicate toPredicate(Part part, Root<?> root,
-            BindableParameterIterator iterator) {
+            Iterator<Object> iterator) {
 
         Expression<Object> path =
                 toExpressionRecursively(root, part.getProperty());
@@ -236,15 +233,14 @@ public class JpaQueryCreator extends
 
 
     /**
-     * Returns the next parameter from the given
-     * {@link BindableParameterIterator} and expects it to be a
-     * {@link Comparable}.
+     * Returns the next parameter from the given {@link Iterator} and expects it
+     * to be a {@link Comparable}.
      * 
      * @param iterator
      * @return
      */
     @SuppressWarnings("rawtypes")
-    private Comparable nextAsComparable(BindableParameterIterator iterator) {
+    private Comparable nextAsComparable(Iterator<Object> iterator) {
 
         Object next = iterator.next();
         Assert.isInstanceOf(Comparable.class, next,
