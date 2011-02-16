@@ -22,7 +22,7 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 import org.springframework.data.domain.Sort;
-import org.springframework.data.repository.query.SimpleParameterAccessor;
+import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.parser.PartTree;
 
 
@@ -41,9 +41,8 @@ public class JpaCountQueryCreator extends JpaQueryCreator {
      * @param domainClass
      * @param em
      */
-    public JpaCountQueryCreator(PartTree tree,
-            SimpleParameterAccessor parameters, Class<?> domainClass,
-            EntityManager em) {
+    public JpaCountQueryCreator(PartTree tree, ParameterAccessor parameters,
+            Class<?> domainClass, EntityManager em) {
 
         super(tree, parameters, domainClass, em);
     }

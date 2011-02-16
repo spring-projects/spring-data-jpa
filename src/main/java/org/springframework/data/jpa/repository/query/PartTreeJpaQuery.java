@@ -21,7 +21,8 @@ import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaQuery;
 
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.repository.query.SimpleParameterAccessor;
+import org.springframework.data.repository.query.ParameterAccessor;
+import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.parser.PartTree;
 
 
@@ -61,8 +62,8 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
      */
     public Query createQuery(Object[] parameters) {
 
-        SimpleParameterAccessor accessor =
-                new SimpleParameterAccessor(getParameters(), parameters);
+        ParameterAccessor accessor =
+                new ParametersParameterAccessor(getParameters(), parameters);
 
         JpaQueryCreator jpaQueryCreator =
                 new JpaQueryCreator(tree, accessor, domainClass,
@@ -90,7 +91,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
     public Query createCountQuery(Object[] parameters) {
 
         CriteriaQuery<Object> query =
-                new JpaCountQueryCreator(tree, new SimpleParameterAccessor(
+                new JpaCountQueryCreator(tree, new ParametersParameterAccessor(
                         getParameters(), parameters), domainClass,
                         getEntityManager()).createQuery();
         return getEntityManager().createQuery(query);
