@@ -23,9 +23,10 @@ import javax.persistence.Query;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.Parameters;
+import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.QueryMethod;
-import org.springframework.data.repository.query.SimpleParameterAccessor;
 import org.springframework.util.Assert;
 
 
@@ -163,8 +164,8 @@ public abstract class JpaQueryExecution {
         @SuppressWarnings("unchecked")
         protected Object doExecute(PartTreeJpaQuery query, Object[] parameters) {
 
-            SimpleParameterAccessor accessor =
-                    new SimpleParameterAccessor(this.parameters, parameters);
+            ParameterAccessor accessor =
+                    new ParametersParameterAccessor(this.parameters, parameters);
 
             Query countQuery = query.createCountQuery(parameters);
             Long total = (Long) countQuery.getSingleResult();

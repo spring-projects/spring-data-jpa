@@ -119,7 +119,9 @@ public class UserRepositoryFinderTests {
 
         Page<User> page =
                 userRepository.findByFirstname(new PageRequest(0, 1), "foobar");
-        assertEquals(1, page.getNumberOfElements());
+        assertThat(page.getNumberOfElements(), is(1));
+        assertThat(page.getTotalElements(), is(2L));
+        assertThat(page.getTotalPages(), is(2));
     }
 
 
