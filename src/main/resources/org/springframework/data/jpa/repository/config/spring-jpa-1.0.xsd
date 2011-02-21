@@ -9,9 +9,9 @@
 
 	<xsd:import namespace="http://www.springframework.org/schema/tool" />
 	<xsd:import namespace="http://www.springframework.org/schema/context"
-		schemaLocation="http://www.springframework.org/schema/context/spring-context.xsd" />
+		schemaLocation="http://www.springframework.org/schema/context/spring-context-3.0.xsd" />
 	<xsd:import namespace="http://www.springframework.org/schema/data/repository"
-		schemaLocation="http://www.springframework.org/schema/data/repository/spring-repository.xsd" />
+		schemaLocation="http://www.springframework.org/schema/data/repository/spring-repository-1.0.xsd" />
 		
 
 	<xsd:complexType name="jpa-repository">
