@@ -59,7 +59,7 @@
 		<aspectj.version>1.6.8</aspectj.version>
 		<junit.version>4.8.1</junit.version>
 		<jpa.version>2.0.0</jpa.version>
-		<slf4j.version>1.5.10</slf4j.version>
+		<slf4j.version>1.6.1</slf4j.version>
 		
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<dist.id>spring-data-jpa</dist.id>
