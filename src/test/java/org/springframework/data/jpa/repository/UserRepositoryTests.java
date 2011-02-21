@@ -592,6 +592,7 @@ public class UserRepositoryTests {
 
         List<User> result =
                 repository.findByLastnameLikeOrderByFirstnameDesc("%r%");
+        assertThat(result.size(), is(2));
         assertEquals(firstUser, result.get(0));
         assertEquals(secondUser, result.get(1));
     }

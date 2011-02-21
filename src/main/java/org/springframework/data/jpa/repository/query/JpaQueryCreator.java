@@ -63,7 +63,7 @@ public class JpaQueryCreator extends
         super(tree, parameters);
 
         this.builder = em.getCriteriaBuilder();
-        this.query = builder.createQuery();
+        this.query = builder.createQuery().distinct(tree.isDistinct());
         this.root = query.from(domainClass);
     }
 
