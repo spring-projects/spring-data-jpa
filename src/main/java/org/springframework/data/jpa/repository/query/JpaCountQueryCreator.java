@@ -63,6 +63,6 @@ public class JpaCountQueryCreator extends JpaQueryCreator {
     protected CriteriaQuery<Object> complete(Predicate predicate, Sort sort,
             CriteriaQuery<Object> query, CriteriaBuilder builder, Root<?> root) {
 
-        return query.select(builder.count(root));
+        return query.select(builder.count(root)).where(predicate);
     }
 }

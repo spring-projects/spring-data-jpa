@@ -108,6 +108,7 @@ public class ParameterBinder {
     public Query bind(Query query) {
 
         int methodParameterPosition = 0;
+        int queryParameterPosition = 1;
 
         for (Parameter parameter : parameters) {
 
@@ -118,7 +119,7 @@ public class ParameterBinder {
                 if (hasNamedParameter(query) && parameter.isNamedParameter()) {
                     query.setParameter(parameter.getName(), value);
                 } else {
-                    query.setParameter(parameter.getIndex() + 1, value);
+                    query.setParameter(queryParameterPosition++, value);
                 }
             }
 

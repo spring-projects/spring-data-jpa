@@ -198,7 +198,7 @@ public class JpaQueryMethodUnitTests {
             throws Exception {
 
         Method method =
-                UserRepository.class.getMethod("findByFirstname",
+                UserRepository.class.getMethod("findByLastname",
                         Pageable.class, String.class);
 
         when(extractor.canExtractQuery()).thenReturn(false);

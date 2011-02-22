@@ -49,27 +49,22 @@ public class UserRepositoryFinderTests {
     @Autowired
     UserRepository userRepository;
 
-    User firstUser, secondUser;
+    User dave, carter, oliver;
 
 
     @Before
     public void setUp() {
 
         // This one matches both criterias
-        firstUser = new User();
-        firstUser.setEmailAddress("foo");
-        firstUser.setLastname("bar");
-        firstUser.setFirstname("foobar");
-
-        userRepository.save(firstUser);
+        dave = new User("Dave", "Matthews", "dave@dmband.com");
+        userRepository.save(dave);
 
         // This one matches only the second one
-        secondUser = new User();
-        secondUser.setEmailAddress("bar");
-        secondUser.setLastname("foo");
-        secondUser.setFirstname("foobar");
+        carter = new User("Carter", "Beauford", "carter@dmband.com");
+        userRepository.save(carter);
 
-        userRepository.save(secondUser);
+        oliver = new User("Oliver August", "Matthews", "oliver@dmband.com");
+        userRepository.save(oliver);
     }
 
 
@@ -79,8 +74,10 @@ public class UserRepositoryFinderTests {
     @Test
     public void testSimpleCustomCreatedFinder() {
 
-        User user = userRepository.findByEmailAddressAndLastname("foo", "bar");
-        assertEquals(firstUser, user);
+        User user =
+                userRepository.findByEmailAddressAndLastname("dave@dmband.com",
+                        "Matthews");
+        assertEquals(dave, user);
     }
 
 
@@ -104,13 +101,13 @@ public class UserRepositoryFinderTests {
     public void testAndOrFinder() {
 
         List<User> users =
-                userRepository.findByEmailAddressAndLastnameOrFirstname("bar",
-                        "foo", "foobar");
+                userRepository.findByEmailAddressAndLastnameOrFirstname(
+                        "dave@dmband.com", "Matthews", "Carter");
 
         assertNotNull(users);
         assertEquals(2, users.size());
-        assertTrue(users.contains(firstUser));
-        assertTrue(users.contains(secondUser));
+        assertTrue(users.contains(dave));
+        assertTrue(users.contains(carter));
     }
 
 
@@ -118,7 +115,8 @@ public class UserRepositoryFinderTests {
     public void executesPagingMethodToPageCorrectly() throws Exception {
 
         Page<User> page =
-                userRepository.findByFirstname(new PageRequest(0, 1), "foobar");
+                userRepository
+                        .findByLastname(new PageRequest(0, 1), "Matthews");
         assertThat(page.getNumberOfElements(), is(1));
         assertThat(page.getTotalElements(), is(2L));
         assertThat(page.getTotalPages(), is(2));
@@ -129,7 +127,20 @@ public class UserRepositoryFinderTests {
     public void executesPagingMethodToListCorrectly() throws Exception {
 
         List<User> list =
-                userRepository.findByFirstname("foobar", new PageRequest(0, 1));
+                userRepository.findByFirstname("Carter", new PageRequest(0, 1));
         assertThat(list.size(), is(1));
+    }
+
+
+    @Test
+    public void testname() throws Exception {
+
+        Page<User> page =
+                userRepository.findByFirstnameIn(new PageRequest(0, 1), "Dave",
+                        "Oliver August");
+
+        assertThat(page.getNumberOfElements(), is(1));
+        assertThat(page.getTotalElements(), is(2L));
+        assertThat(page.getTotalPages(), is(2));
     }
 }

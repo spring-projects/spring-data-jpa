@@ -15,6 +15,8 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
 
 import javax.persistence.EntityManager;
@@ -34,6 +36,7 @@ import org.springframework.data.repository.query.parser.Part;
 import org.springframework.data.repository.query.parser.PartTree;
 import org.springframework.data.repository.query.parser.Property;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 
 
 /**
@@ -175,6 +178,8 @@ public class JpaQueryCreator extends
             return path.isNull();
         case IS_NOT_NULL:
             return path.isNotNull();
+        case IN:
+            return path.in(nextAsCollection(iterator));
         case LIKE:
             return builder.like(root.<String> get(part.getProperty()
                     .toDotPath()), iterator.next().toString());
@@ -247,5 +252,19 @@ public class JpaQueryCreator extends
                 "Parameter has to implement Comparable to be bound correctly!");
 
         return (Comparable<?>) next;
+    }
+
+
+    private Collection<?> nextAsCollection(Iterator<Object> iterator) {
+
+        Object next = iterator.next();
+
+        if (next instanceof Collection) {
+            return (Collection<?>) next;
+        } else if (next.getClass().isArray()) {
+            return CollectionUtils.arrayToList(next);
+        }
+
+        return Arrays.asList(next);
     }
 }

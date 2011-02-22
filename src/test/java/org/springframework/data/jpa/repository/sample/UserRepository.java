@@ -115,10 +115,10 @@ public interface UserRepository extends JpaRepository<User, Integer>,
      * parameter to be regarded on query execution.
      * 
      * @param pageable
-     * @param firstname
+     * @param lastname
      * @return
      */
-    Page<User> findByFirstname(Pageable pageable, String firstname);
+    Page<User> findByLastname(Pageable pageable, String lastname);
 
 
     /**
@@ -131,6 +131,9 @@ public interface UserRepository extends JpaRepository<User, Integer>,
      * @return
      */
     List<User> findByFirstname(String firstname, Pageable pageable);
+
+
+    Page<User> findByFirstnameIn(Pageable pageable, String... firstnames);
 
 
     /**
