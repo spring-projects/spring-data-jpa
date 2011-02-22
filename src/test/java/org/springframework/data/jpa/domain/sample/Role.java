@@ -15,30 +15,17 @@
  */
 package org.springframework.data.jpa.domain.sample;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-
-
 /**
- * Example implementation of the very basic {@code Persistable} interface. The
- * id type is matching the typisation of the interface.
- * {@code Persitsable#isNew()} is implemented regarding the id as flag.
+ * Sample domain class representing roles. Mapped with XML.
  * 
  * @author Oliver Gierke
  */
-@Entity
 public class Role {
 
     private static final long serialVersionUID = -8832631113344035104L;
-
     private static final String PREFIX = "ROLE_";
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer id;
-
     private String name;
 
 

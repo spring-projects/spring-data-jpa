@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -32,9 +33,14 @@ import javax.persistence.criteria.Root;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Persistable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.Repository;
+import org.springframework.data.repository.support.IsNewAware;
+import org.springframework.data.repository.support.PersistableEntityInformation;
+import org.springframework.data.repository.support.RepositorySupport;
 import org.springframework.util.Assert;
 
 
@@ -49,7 +55,7 @@ import org.springframework.util.Assert;
  */
 @org.springframework.stereotype.Repository
 public class SimpleJpaRepository<T, ID extends Serializable> extends
-        JpaRepositorySupport<T, ID> {
+        RepositorySupport<T, ID> implements JpaRepository<T, ID> {
 
     private final EntityManager em;
     private final PersistenceProvider provider;
@@ -355,7 +361,45 @@ public class SimpleJpaRepository<T, ID extends Serializable> extends
     }
 
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.springframework.data.jpa.repository.support.JpaRepositorySupport#
+     * createIsNewStrategy(java.lang.Class)
+     */
+    @Override
+    protected final IsNewAware createIsNewStrategy(Class<?> domainClass) {
+
+        return createIsNewStrategy(domainClass, em);
+    }
+
+
     /**
+     * Creates a new {@link IsNewAware} instance for the given domain class and
+     * {@link EntityManager}.
+     * 
+     * @param domainClass
+     * @param em
+     * @return
+     */
+    protected IsNewAware createIsNewStrategy(Class<?> domainClass,
+            EntityManager em) {
+
+        if (Persistable.class.isAssignableFrom(domainClass)) {
+            return new PersistableEntityInformation();
+        } else {
+            EntityManagerFactory emf = em.getEntityManagerFactory();
+            return new JpaMetamodelEntityInformation(domainClass,
+                    emf.getMetamodel());
+        }
+    }
+
+
+    /**
+     * Reads the given {@link TypedQuery} into a {@link Page} applying the given
+     * {@link Pageable} and {@link Specification}.
+     * 
      * @param query
      * @param spec
      * @param pageable
