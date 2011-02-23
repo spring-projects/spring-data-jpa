@@ -18,6 +18,7 @@ package org.springframework.data.jpa.repository;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Before;
@@ -112,7 +113,7 @@ public class UserRepositoryFinderTests {
 
 
     @Test
-    public void executesPagingMethodToPageCorrectly() throws Exception {
+    public void executesPagingMethodToPageCorrectly() {
 
         Page<User> page =
                 userRepository
@@ -124,7 +125,7 @@ public class UserRepositoryFinderTests {
 
 
     @Test
-    public void executesPagingMethodToListCorrectly() throws Exception {
+    public void executesPagingMethodToListCorrectly() {
 
         List<User> list =
                 userRepository.findByFirstname("Carter", new PageRequest(0, 1));
@@ -133,7 +134,7 @@ public class UserRepositoryFinderTests {
 
 
     @Test
-    public void testname() throws Exception {
+    public void executesInKeywordForPageCorrectly() {
 
         Page<User> page =
                 userRepository.findByFirstnameIn(new PageRequest(0, 1), "Dave",
@@ -142,5 +143,16 @@ public class UserRepositoryFinderTests {
         assertThat(page.getNumberOfElements(), is(1));
         assertThat(page.getTotalElements(), is(2L));
         assertThat(page.getTotalPages(), is(2));
+    }
+
+
+    @Test
+    public void executesNotInQueryCorrectly() throws Exception {
+
+        List<User> result =
+                userRepository.findByFirstnameNotIn(Arrays.asList("Dave",
+                        "Carter"));
+        assertThat(result.size(), is(1));
+        assertThat(result.get(0), is(oliver));
     }
 }

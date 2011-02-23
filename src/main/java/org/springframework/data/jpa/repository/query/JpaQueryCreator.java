@@ -178,6 +178,8 @@ public class JpaQueryCreator extends
             return path.isNull();
         case IS_NOT_NULL:
             return path.isNotNull();
+        case NOT_IN:
+            return builder.not(path.in(nextAsCollection(iterator)));
         case IN:
             return path.in(nextAsCollection(iterator));
         case LIKE:

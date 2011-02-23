@@ -15,6 +15,7 @@
  */
 package org.springframework.data.jpa.repository.sample;
 
+import java.util.Collection;
 import java.util.List;
 
 import javax.persistence.QueryHint;
@@ -134,6 +135,9 @@ public interface UserRepository extends JpaRepository<User, Integer>,
 
 
     Page<User> findByFirstnameIn(Pageable pageable, String... firstnames);
+
+
+    List<User> findByFirstnameNotIn(Collection<String> firstnames);
 
 
     /**
