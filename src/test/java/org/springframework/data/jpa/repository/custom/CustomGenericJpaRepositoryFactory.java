@@ -15,12 +15,15 @@
  */
 package org.springframework.data.jpa.repository.custom;
 
+import static org.mockito.Mockito.*;
+
 import java.io.Serializable;
 
 import javax.persistence.EntityManager;
 
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactory;
-import org.springframework.data.repository.support.RepositorySupport;
+import org.springframework.data.repository.support.EntityMetadata;
+import org.springframework.data.repository.support.RepositoryMetadata;
 
 
 /**
@@ -48,10 +51,15 @@ public class CustomGenericJpaRepositoryFactory extends JpaRepositoryFactory {
      * #getTargetRepository(java.lang.Class, javax.persistence.EntityManager)
      */
     @Override
-    protected <T, ID extends Serializable> RepositorySupport<T, ID> getTargetRepository(
-            Class<T> domainClass, Class<?> repositoryInterface, EntityManager em) {
+    @SuppressWarnings("unchecked")
+    protected Object getTargetRepository(RepositoryMetadata metadata,
+            EntityManager em) {
 
-        return new CustomGenericJpaRepository<T, ID>(domainClass, em);
+        EntityMetadata<Object> entityMetadata = mock(EntityMetadata.class);
+        when(entityMetadata.getJavaType()).thenReturn(
+                (Class<Object>) metadata.getDomainClass());
+        return new CustomGenericJpaRepository<Object, Serializable>(
+                entityMetadata, em);
     }
 
 
@@ -59,13 +67,11 @@ public class CustomGenericJpaRepositoryFactory extends JpaRepositoryFactory {
      * (non-Javadoc)
      * 
      * @see
-     * org.springframework.data.jpa.repository.support.GenericJpaRepositoryFactory
-     * #getRepositoryClass()
+     * org.springframework.data.repository.support.RepositoryFactorySupport#
+     * getRepositoryBaseClass()
      */
     @Override
-    @SuppressWarnings("rawtypes")
-    protected Class<? extends RepositorySupport> getRepositoryClass(
-            Class<?> repositoryInterface) {
+    protected Class<?> getRepositoryBaseClass(Class<?> repositoryInterface) {
 
         return CustomGenericJpaRepository.class;
     }

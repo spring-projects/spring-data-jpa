@@ -20,6 +20,7 @@ import java.io.Serializable;
 import javax.persistence.EntityManager;
 
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
+import org.springframework.data.repository.support.EntityMetadata;
 
 
 /**
@@ -35,10 +36,10 @@ public class CustomGenericJpaRepository<T, ID extends Serializable> extends
      * @param domainClass
      * @param entityManager
      */
-    public CustomGenericJpaRepository(Class<T> domainClass,
+    public CustomGenericJpaRepository(EntityMetadata<T> metadata,
             EntityManager entityManager) {
 
-        super(domainClass, entityManager);
+        super(metadata, entityManager);
     }
 
 

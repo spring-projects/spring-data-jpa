@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,38 +23,35 @@ import javax.persistence.metamodel.EntityType;
 import javax.persistence.metamodel.Metamodel;
 import javax.persistence.metamodel.SingularAttribute;
 
-import org.springframework.data.repository.support.IdAware;
-import org.springframework.data.repository.support.IsNewAware;
+import org.springframework.data.repository.support.AbstractEntityMetadata;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 
 
 /**
- * Implementation of {@link IsNewAware} and {@link IdAware} that uses JPA
- * {@link Metamodel} to find the domain class' id field.
+ * Implementation of {@link EntityInformation} that uses JPA {@link Metamodel}
+ * to find the domain class' id field.
  * 
  * @author Oliver Gierke
  */
-public class JpaMetamodelEntityInformation implements IsNewAware, IdAware {
+public class JpaMetamodelEntityMetadata<T> extends AbstractEntityMetadata<T> {
 
     private final Member member;
 
 
     /**
-     * Creates a new {@link JpaMetamodelEntityInformation} for the given domain
+     * Creates a new {@link JpaMetamodelEntityMetadata} for the given domain
      * class and {@link Metamodel}.
      * 
      * @param domainClass
      * @param metamodel
      */
-    public JpaMetamodelEntityInformation(Class<?> domainClass,
-            Metamodel metamodel) {
+    public JpaMetamodelEntityMetadata(Class<T> domainClass, Metamodel metamodel) {
 
-        Assert.notNull(domainClass);
+        super(domainClass);
+
         Assert.notNull(metamodel);
-
         EntityType<?> type = metamodel.entity(domainClass);
-
         SingularAttribute<?, ?> idAttribute =
                 type.getId(type.getIdType().getJavaType());
         this.member = idAttribute.getJavaMember();
@@ -71,19 +68,6 @@ public class JpaMetamodelEntityInformation implements IsNewAware, IdAware {
     public Object getId(Object entity) {
 
         return getMemberValue(member, entity);
-    }
-
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.springframework.data.repository.support.IsNewAware#isNew(java.lang
-     * .Object)
-     */
-    public boolean isNew(Object entity) {
-
-        return getId(entity) == null;
     }
 
 

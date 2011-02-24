@@ -15,24 +15,16 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import static org.mockito.Mockito.*;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.*;
 
-import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 
-import org.hibernate.ejb.HibernateEntityManager;
 import org.junit.Test;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.config.BeanPostProcessor;
-import org.springframework.dao.DataAccessException;
-import org.springframework.dao.support.PersistenceExceptionTranslator;
-import org.springframework.data.jpa.repository.config.AbstractRepositoryConfigTests;
-import org.springframework.orm.jpa.EntityManagerFactoryInfo;
-import org.springframework.test.context.ContextConfiguration;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.BeanReference;
+import org.springframework.beans.factory.xml.XmlBeanFactory;
+import org.springframework.core.io.ClassPathResource;
 
 
 /**
@@ -41,83 +33,40 @@ import org.springframework.test.context.ContextConfiguration;
  * 
  * @author Oliver Gierke
  */
-@ContextConfiguration(locations = "classpath:multiple-entity-manager-context.xml")
-public class EntityManagerFactoryRefUnitTests extends
-        AbstractRepositoryConfigTests {
-
-    @Autowired
-    @Qualifier("entityManagerFactory")
-    EntityManagerFactory first;
-
-    @Autowired
-    @Qualifier("secondEntityManagerFactory")
-    EntityManagerFactory second;
-
+public class EntityManagerFactoryRefUnitTests {
 
     @Test
-    public void repositoriesGetTheSecondEntityManagerFactoryInjected()
-            throws Exception {
+    public void repositoriesGetTheSecondEntityManagerFactoryInjected2() {
 
-        verify(first, never()).createEntityManager();
-        verify(second, atLeastOnce()).createEntityManager();
+        XmlBeanFactory factory =
+                new XmlBeanFactory(new ClassPathResource(
+                        "multiple-entity-manager-context.xml"));
+
+        BeanDefinition bean = factory.getBeanDefinition("userRepository");
+        Object value = getPropertyValue(bean, "entityManager");
+        assertTrue(value instanceof BeanDefinition);
+        BeanDefinition emCreator = (BeanDefinition) value;
+
+        BeanReference reference = getConstructorBeanReference(emCreator, 0);
+        assertThat(reference.getBeanName(), is("secondEntityManagerFactory"));
     }
 
-    /**
-     * A simple No-Op {@link PersistenceExceptionTranslator} to be configured in
-     * the test case's config file as it is required.
-     * 
-     * @author Oliver Gierke
-     */
-    static class NoOpPersistenceExceptionTranslator implements
-            PersistenceExceptionTranslator {
 
-        public DataAccessException translateExceptionIfPossible(
-                RuntimeException ex) {
+    private Object getPropertyValue(BeanDefinition definition,
+            String propertyName) {
 
-            return null;
-        }
+        return definition.getPropertyValues().getPropertyValue(propertyName)
+                .getValue();
     }
 
-    /**
-     * {@link BeanPostProcessor} to configure the mock
-     * {@link EntityManagerFactory} instances. {@code entityManagerFactory} is
-     * configured to be never invoked, {@code secondEntityManagerFactory} is
-     * configured to be invoked at least once.
-     * 
-     * @author Oliver Gierke
-     */
-    static class MockPreparingBeanPostProcessor implements BeanPostProcessor {
 
-        public Object postProcessAfterInitialization(Object bean,
-                String beanName) throws BeansException {
+    private BeanReference getConstructorBeanReference(
+            BeanDefinition definition, int index) {
 
-            if ("secondEntityManagerFactory".equals(beanName)) {
-
-                EntityManagerFactory entityManagerFactory =
-                        (EntityManagerFactory) bean;
-                EntityManager em = mock(HibernateEntityManager.class);
-                when(entityManagerFactory.createEntityManager()).thenReturn(em);
-
-                EntityManagerFactoryInfo info = (EntityManagerFactoryInfo) bean;
-                when(info.getEntityManagerInterface()).thenAnswer(
-                        new Answer<Class<?>>() {
-
-                            public Class<?> answer(InvocationOnMock invocation)
-                                    throws Throwable {
-
-                                return HibernateEntityManager.class;
-                            }
-                        });
-            }
-
-            return bean;
-        }
-
-
-        public Object postProcessBeforeInitialization(Object bean,
-                String beanName) throws BeansException {
-
-            return bean;
-        }
+        Object value =
+                definition.getConstructorArgumentValues()
+                        .getIndexedArgumentValues().get(index).getValue();
+        assertTrue(value instanceof BeanReference);
+        return (BeanReference) value;
     }
 }

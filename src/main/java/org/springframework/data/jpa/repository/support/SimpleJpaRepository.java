@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
 import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -33,14 +32,11 @@ import javax.persistence.criteria.Root;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Persistable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.Repository;
-import org.springframework.data.repository.support.IsNewAware;
-import org.springframework.data.repository.support.PersistableEntityInformation;
-import org.springframework.data.repository.support.RepositorySupport;
+import org.springframework.data.repository.support.EntityMetadata;
 import org.springframework.util.Assert;
 
 
@@ -54,9 +50,10 @@ import org.springframework.util.Assert;
  * @param <ID> the type of the entity's identifier
  */
 @org.springframework.stereotype.Repository
-public class SimpleJpaRepository<T, ID extends Serializable> extends
-        RepositorySupport<T, ID> implements JpaRepository<T, ID> {
+public class SimpleJpaRepository<T, ID extends Serializable> implements
+        JpaRepository<T, ID> {
 
+    private final EntityMetadata<T> entityInformation;
     private final EntityManager em;
     private final PersistenceProvider provider;
 
@@ -65,16 +62,23 @@ public class SimpleJpaRepository<T, ID extends Serializable> extends
      * Creates a new {@link SimpleJpaRepository} to manage objects of the given
      * domain type.
      * 
-     * @param domainClass
+     * @param entityInformation
      * @param entityManager
      */
-    public SimpleJpaRepository(Class<T> domainClass, EntityManager entityManager) {
+    public SimpleJpaRepository(EntityMetadata<T> entityInformation,
+            EntityManager entityManager) {
 
-        super(domainClass);
-
+        Assert.notNull(entityInformation);
         Assert.notNull(entityManager);
+        this.entityInformation = entityInformation;
         this.em = entityManager;
         this.provider = PersistenceProvider.fromEntityManager(entityManager);
+    }
+
+
+    private Class<T> getDomainClass() {
+
+        return entityInformation.getJavaType();
     }
 
 
@@ -91,22 +95,6 @@ public class SimpleJpaRepository<T, ID extends Serializable> extends
                         provider.getCountQueryPlaceholder(), "%s");
 
         return getQueryString(countQuery, getDomainClass());
-    }
-
-
-    /**
-     * Factory method to create {@link SimpleJpaRepository} instances.
-     * 
-     * @param domainClass the domain class to handle
-     * @param entityManager the {@link EntityManager} backing the repository
-     * @param <T> the type of the entity to handle
-     * @param <ID> the type of the entity's identifier
-     * @return
-     */
-    public static <T, ID extends Serializable> Repository<T, ID> create(
-            Class<T> domainClass, EntityManager entityManager) {
-
-        return new SimpleJpaRepository<T, ID>(domainClass, entityManager);
     }
 
 
@@ -303,7 +291,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> extends
      */
     public T save(T entity) {
 
-        if (getIsNewStrategy().isNew(entity)) {
+        if (entityInformation.isNew(entity)) {
             em.persist(entity);
             return entity;
         } else {
@@ -358,41 +346,6 @@ public class SimpleJpaRepository<T, ID extends Serializable> extends
     public void flush() {
 
         em.flush();
-    }
-
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.springframework.data.jpa.repository.support.JpaRepositorySupport#
-     * createIsNewStrategy(java.lang.Class)
-     */
-    @Override
-    protected final IsNewAware createIsNewStrategy(Class<?> domainClass) {
-
-        return createIsNewStrategy(domainClass, em);
-    }
-
-
-    /**
-     * Creates a new {@link IsNewAware} instance for the given domain class and
-     * {@link EntityManager}.
-     * 
-     * @param domainClass
-     * @param em
-     * @return
-     */
-    protected IsNewAware createIsNewStrategy(Class<?> domainClass,
-            EntityManager em) {
-
-        if (Persistable.class.isAssignableFrom(domainClass)) {
-            return new PersistableEntityInformation();
-        } else {
-            EntityManagerFactory emf = em.getEntityManagerFactory();
-            return new JpaMetamodelEntityInformation(domainClass,
-                    emf.getMetamodel());
-        }
     }
 
 

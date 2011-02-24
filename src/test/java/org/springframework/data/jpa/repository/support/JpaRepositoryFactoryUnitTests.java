@@ -26,7 +26,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.springframework.data.jpa.domain.sample.User;
+import org.springframework.data.domain.Persistable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.custom.CustomGenericJpaRepositoryFactory;
 import org.springframework.data.jpa.repository.custom.UserCustomExtendedRepository;
@@ -174,6 +174,16 @@ public class JpaRepositoryFactoryUnitTests {
 
     private interface SampleRepository extends JpaRepository<User, Integer>,
             SampleCustomRepository {
+
+    }
+
+    /**
+     * Helper class to make the factory use {@link PersistableMetadata} .
+     * 
+     * @author Oliver Gierke
+     */
+    @SuppressWarnings("serial")
+    private static abstract class User implements Persistable<Long> {
 
     }
 }

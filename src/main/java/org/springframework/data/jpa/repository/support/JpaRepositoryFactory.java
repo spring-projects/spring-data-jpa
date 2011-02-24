@@ -15,16 +15,17 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import java.io.Serializable;
-
 import javax.persistence.EntityManager;
 
+import org.springframework.data.domain.Persistable;
 import org.springframework.data.jpa.repository.query.JpaQueryLookupStrategy;
 import org.springframework.data.jpa.repository.query.QueryExtractor;
 import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.data.repository.query.QueryLookupStrategy.Key;
+import org.springframework.data.repository.support.EntityMetadata;
+import org.springframework.data.repository.support.PersistableEntityMetadata;
 import org.springframework.data.repository.support.RepositoryFactorySupport;
-import org.springframework.data.repository.support.RepositorySupport;
+import org.springframework.data.repository.support.RepositoryMetadata;
 import org.springframework.util.Assert;
 
 
@@ -60,11 +61,9 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
      * getTargetRepository(java.lang.Class)
      */
     @Override
-    protected <T, ID extends Serializable> RepositorySupport<T, ID> getTargetRepository(
-            Class<T> domainClass, Class<?> repositoryInterface) {
+    protected Object getTargetRepository(RepositoryMetadata metadata) {
 
-        return getTargetRepository(domainClass, repositoryInterface,
-                entityManager);
+        return getTargetRepository(metadata, entityManager);
     }
 
 
@@ -74,16 +73,40 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
      * 
      * @param <T>
      * @param <ID>
-     * @param domainClass
      * @param entityManager
-     * @see #getTargetRepository(Class, Class)
+     * @see #getTargetRepository(RepositoryMetadata)
      * @return
      */
-    protected <T, ID extends Serializable> RepositorySupport<T, ID> getTargetRepository(
-            Class<T> domainClass, Class<?> repositoryInterface,
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    protected Object getTargetRepository(RepositoryMetadata metadata,
             EntityManager entityManager) {
 
-        return new SimpleJpaRepository<T, ID>(domainClass, entityManager);
+        return new SimpleJpaRepository(createEntityInformation(
+                metadata.getDomainClass(), entityManager), entityManager);
+    }
+
+
+    /**
+     * Creates a new {@link EntityMetadata} instance for the given domain class
+     * and {@link EntityManager}. Default implementation will use a
+     * {@link PersistableMetadata} for domain classes implementing
+     * {@link Persistable} and fall back to the JPA meta model though
+     * {@link JpaMetamodelEntityInformation} otherwise.
+     * 
+     * @param domainClass
+     * @param em
+     * @return
+     */
+    @SuppressWarnings("unchecked")
+    protected EntityMetadata<?> createEntityInformation(Class<?> domainClass,
+            EntityManager em) {
+
+        if (Persistable.class.isAssignableFrom(domainClass)) {
+            return new PersistableEntityMetadata();
+        } else {
+            return new JpaMetamodelEntityMetadata(domainClass,
+                    em.getMetamodel());
+        }
     }
 
 
@@ -92,12 +115,10 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
      * 
      * @see
      * org.springframework.data.repository.support.RepositoryFactorySupport#
-     * getRepositoryClass(java.lang.Class)
+     * getRepositoryBaseClass()
      */
     @Override
-    @SuppressWarnings("rawtypes")
-    protected Class<? extends RepositorySupport> getRepositoryClass(
-            Class<?> repositoryInterface) {
+    protected Class<?> getRepositoryBaseClass(Class<?> repositoryInterface) {
 
         return SimpleJpaRepository.class;
     }

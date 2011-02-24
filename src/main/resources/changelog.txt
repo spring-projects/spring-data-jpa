@@ -5,6 +5,7 @@ Changes in version 1.0.0.M2
 ----------------------------------------
 * Added support for 'Distinct' (DATACMNS-15)
 * Added support for 'In' and 'NotIn' (DATAJPA-30)
+* Adapted new metadata API (DATAJPA-32, DATACMNS-17)
 
 Changes in version 1.0.0.M1 (2011-02-10) - https://jira.springsource.org/browse/DATAJPA/fixforversion/11786
 ----------------------------------------

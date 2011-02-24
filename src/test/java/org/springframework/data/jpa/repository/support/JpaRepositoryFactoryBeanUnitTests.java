@@ -32,7 +32,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.dao.support.PersistenceExceptionTranslator;
-import org.springframework.data.jpa.domain.sample.User;
+import org.springframework.data.domain.Persistable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 
@@ -124,50 +124,18 @@ public class JpaRepositoryFactoryBeanUnitTests {
         factory.afterPropertiesSet();
     }
 
-
-    /**
-     * Asserts that the factory recognized configured repository classes that
-     * contain custom method but no custom implementation could be found.
-     * Furthremore the exception has to contain the name of the repository
-     * interface as for a large repository configuration it's hard to find out
-     * where this error occured.
-     * 
-     * @throws Exception
-     */
-    @Test
-    public void capturesMissingCustomImplementationAndProvidesInterfacename()
-            throws Exception {
-
-        JpaRepositoryFactoryBean<SampleRepository> factory =
-
-        JpaRepositoryFactoryBean.create(SampleRepository.class, entityManager);
-
-        try {
-            factory.afterPropertiesSet();
-            fail("Expected IllegalArgumentException!");
-        } catch (IllegalArgumentException e) {
-            assertTrue(e.getMessage()
-                    .contains(SampleRepository.class.getName()));
-        }
-    }
-
     private interface SimpleSampleRepository extends
             JpaRepository<User, Integer> {
 
     }
 
     /**
-     * Sample interface to contain a custom method.
+     * Helper class to make the factory use {@link PersistableMetadata} .
      * 
      * @author Oliver Gierke
      */
-    private interface SampleCustomRepository {
-
-        void someSampleMethod();
-    }
-
-    private interface SampleRepository extends JpaRepository<User, Integer>,
-            SampleCustomRepository {
+    @SuppressWarnings("serial")
+    private static abstract class User implements Persistable<Long> {
 
     }
 }
