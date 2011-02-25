@@ -21,8 +21,8 @@ import java.io.Serializable;
 
 import javax.persistence.EntityManager;
 
+import org.springframework.data.jpa.repository.support.JpaEntityInformation;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactory;
-import org.springframework.data.repository.support.EntityMetadata;
 import org.springframework.data.repository.support.RepositoryMetadata;
 
 
@@ -55,7 +55,8 @@ public class CustomGenericJpaRepositoryFactory extends JpaRepositoryFactory {
     protected Object getTargetRepository(RepositoryMetadata metadata,
             EntityManager em) {
 
-        EntityMetadata<Object> entityMetadata = mock(EntityMetadata.class);
+        JpaEntityInformation<Object> entityMetadata =
+                mock(JpaEntityInformation.class);
         when(entityMetadata.getJavaType()).thenReturn(
                 (Class<Object>) metadata.getDomainClass());
         return new CustomGenericJpaRepository<Object, Serializable>(

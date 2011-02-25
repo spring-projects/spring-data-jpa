@@ -39,17 +39,6 @@ public class JpaRepositoryFactoryBean<T extends JpaRepository<?, ?>> extends
     private EntityManager entityManager;
 
 
-    public static <S extends JpaRepository<?, ?>> JpaRepositoryFactoryBean<S> create(
-            Class<S> repositoryInterface, EntityManager em) {
-
-        JpaRepositoryFactoryBean<S> factory = new JpaRepositoryFactoryBean<S>();
-        factory.setRepositoryInterface(repositoryInterface);
-        factory.setEntityManager(em);
-
-        return factory;
-    }
-
-
     /**
      * The {@link EntityManager} to be used.
      * 
@@ -65,12 +54,11 @@ public class JpaRepositoryFactoryBean<T extends JpaRepository<?, ?>> extends
     /*
      * (non-Javadoc)
      * 
-     * @see
-     * org.springframework.data.repository.support.RepositoryFactoryBeanSupport
-     * #createRepositoryFactory()
+     * @see org.springframework.data.repository.support.
+     * TransactionalRepositoryFactoryBeanSupport#doCreateRepositoryFactory()
      */
     @Override
-    protected RepositoryFactorySupport createRepositoryFactory() {
+    protected RepositoryFactorySupport doCreateRepositoryFactory() {
 
         return createRepositoryFactory(entityManager);
     }

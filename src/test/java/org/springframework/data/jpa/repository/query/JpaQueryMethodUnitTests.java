@@ -22,7 +22,6 @@ import static org.mockito.Mockito.*;
 import java.lang.reflect.Method;
 import java.util.List;
 
-import javax.persistence.EntityManager;
 import javax.persistence.QueryHint;
 
 import org.junit.Before;
@@ -35,9 +34,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.query.JpaQueryExecution.CollectionExecution;
 import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.data.repository.query.QueryMethod;
+import org.springframework.data.repository.query.QueryMethod.Type;
 
 
 /**
@@ -53,8 +52,6 @@ public class JpaQueryMethodUnitTests {
 
     @Mock
     QueryExtractor extractor;
-    @Mock
-    EntityManager em;
 
     Method repositoryMethod, invalidReturnType, pageableAndSort, pageableTwice,
             sortableTwice, modifyingMethod;
@@ -91,40 +88,31 @@ public class JpaQueryMethodUnitTests {
     @Test
     public void testname() {
 
-        JpaQueryMethod method =
-                new JpaQueryMethod(repositoryMethod, extractor, em);
+        JpaQueryMethod method = new JpaQueryMethod(repositoryMethod, extractor);
 
         assertEquals("User.findByLastname", method.getNamedQueryName());
-        assertThat(method.getExecution(), is(CollectionExecution.class));
+        assertThat(method.getType(), is(Type.COLLECTION));
     }
 
 
     @Test(expected = IllegalArgumentException.class)
     public void preventsNullRepositoryMethod() {
 
-        new JpaQueryMethod(null, extractor, em);
-    }
-
-
-    @Test(expected = IllegalArgumentException.class)
-    public void preventsNullEntityManager() {
-
-        new JpaQueryMethod(repositoryMethod, extractor, null);
+        new JpaQueryMethod(null, extractor);
     }
 
 
     @Test(expected = IllegalArgumentException.class)
     public void preventsNullQueryExtractor() {
 
-        new JpaQueryMethod(repositoryMethod, null, em);
+        new JpaQueryMethod(repositoryMethod, null);
     }
 
 
     @Test
     public void returnsCorrectName() {
 
-        JpaQueryMethod method =
-                new JpaQueryMethod(repositoryMethod, extractor, em);
+        JpaQueryMethod method = new JpaQueryMethod(repositoryMethod, extractor);
         assertEquals(repositoryMethod.getName(), method.getName());
     }
 
@@ -132,8 +120,7 @@ public class JpaQueryMethodUnitTests {
     @Test
     public void returnsQueryIfAvailable() throws Exception {
 
-        JpaQueryMethod method =
-                new JpaQueryMethod(repositoryMethod, extractor, em);
+        JpaQueryMethod method = new JpaQueryMethod(repositoryMethod, extractor);
 
         assertNull(method.getAnnotatedQuery());
 
@@ -141,55 +128,36 @@ public class JpaQueryMethodUnitTests {
                 UserRepository.class.getMethod("findByAnnotatedQuery",
                         String.class);
 
-        assertNotNull(new JpaQueryMethod(repositoryMethod, extractor, em)
+        assertNotNull(new JpaQueryMethod(repositoryMethod, extractor)
                 .getAnnotatedQuery());
-    }
-
-
-    @Test
-    public void returnsCorrectDomainClassName() {
-
-        JpaQueryMethod method =
-                new JpaQueryMethod(repositoryMethod, extractor, em);
-        assertEquals(DOMAIN_CLASS, method.getDomainClass());
-    }
-
-
-    @Test
-    public void returnsCorrectNumberOfParameters() {
-
-        JpaQueryMethod method =
-                new JpaQueryMethod(repositoryMethod, extractor, em);
-        assertTrue(method.isCorrectNumberOfParameters(repositoryMethod
-                .getParameterTypes().length));
     }
 
 
     @Test(expected = IllegalStateException.class)
     public void rejectsInvalidReturntypeOnPagebleFinder() {
 
-        new JpaQueryMethod(invalidReturnType, extractor, em);
+        new JpaQueryMethod(invalidReturnType, extractor);
     }
 
 
     @Test(expected = IllegalStateException.class)
     public void rejectsPageableAndSortInFinderMethod() {
 
-        new JpaQueryMethod(pageableAndSort, extractor, em);
+        new JpaQueryMethod(pageableAndSort, extractor);
     }
 
 
     @Test(expected = IllegalStateException.class)
     public void rejectsTwoPageableParameters() {
 
-        new JpaQueryMethod(pageableTwice, extractor, em);
+        new JpaQueryMethod(pageableTwice, extractor);
     }
 
 
     @Test(expected = IllegalStateException.class)
     public void rejectsTwoSortableParameters() {
 
-        new JpaQueryMethod(sortableTwice, extractor, em);
+        new JpaQueryMethod(sortableTwice, extractor);
     }
 
 
@@ -203,15 +171,14 @@ public class JpaQueryMethodUnitTests {
 
         when(extractor.canExtractQuery()).thenReturn(false);
 
-        new JpaQueryMethod(method, extractor, em);
+        new JpaQueryMethod(method, extractor);
     }
 
 
     @Test
     public void recognizesModifyingMethod() {
 
-        JpaQueryMethod method =
-                new JpaQueryMethod(modifyingMethod, extractor, em);
+        JpaQueryMethod method = new JpaQueryMethod(modifyingMethod, extractor);
         assertTrue(method.isModifyingQuery());
     }
 
@@ -223,7 +190,7 @@ public class JpaQueryMethodUnitTests {
                 InvalidRepository.class.getMethod("updateMethod", String.class,
                         Pageable.class);
 
-        new JpaQueryMethod(method, extractor, em);
+        new JpaQueryMethod(method, extractor);
     }
 
 
@@ -234,15 +201,14 @@ public class JpaQueryMethodUnitTests {
                 InvalidRepository.class.getMethod("updateMethod", String.class,
                         Sort.class);
 
-        new JpaQueryMethod(method, extractor, em);
+        new JpaQueryMethod(method, extractor);
     }
 
 
     @Test
     public void discoversHintsCorrectly() {
 
-        JpaQueryMethod method =
-                new JpaQueryMethod(repositoryMethod, extractor, em);
+        JpaQueryMethod method = new JpaQueryMethod(repositoryMethod, extractor);
         List<QueryHint> hints = method.getHints();
 
         assertNotNull(hints);

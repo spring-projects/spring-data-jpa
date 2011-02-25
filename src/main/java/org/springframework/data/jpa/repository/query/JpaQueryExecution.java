@@ -15,8 +15,6 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import java.lang.reflect.Method;
-
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.Query;
@@ -27,6 +25,7 @@ import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.QueryMethod;
+import org.springframework.data.repository.support.EntityMetadata;
 import org.springframework.util.Assert;
 
 
@@ -219,9 +218,9 @@ public abstract class JpaQueryExecution {
          * 
          * @param em
          */
-        public ModifyingExecution(Method method, EntityManager em) {
+        public ModifyingExecution(EntityMetadata<?> metadata, EntityManager em) {
 
-            Class<?> type = method.getReturnType();
+            Class<?> type = metadata.getJavaType();
 
             boolean isVoid = void.class.equals(type) || Void.class.equals(type);
             boolean isInt =

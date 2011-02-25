@@ -23,7 +23,8 @@ import javax.persistence.metamodel.EntityType;
 import javax.persistence.metamodel.Metamodel;
 import javax.persistence.metamodel.SingularAttribute;
 
-import org.springframework.data.repository.support.AbstractEntityMetadata;
+import org.springframework.data.repository.support.AbstractEntityInformation;
+import org.springframework.data.repository.support.EntityInformation;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 
@@ -34,27 +35,32 @@ import org.springframework.util.ReflectionUtils;
  * 
  * @author Oliver Gierke
  */
-public class JpaMetamodelEntityMetadata<T> extends AbstractEntityMetadata<T> {
+public class JpaMetamodelEntityInformation<T> extends AbstractEntityInformation<T>
+        implements JpaEntityInformation<T> {
 
-    private final Member member;
+    private final SingularAttribute<? super T, ?> attribute;
 
 
     /**
-     * Creates a new {@link JpaMetamodelEntityMetadata} for the given domain
+     * Creates a new {@link JpaMetamodelEntityInformation} for the given domain
      * class and {@link Metamodel}.
      * 
      * @param domainClass
      * @param metamodel
      */
-    public JpaMetamodelEntityMetadata(Class<T> domainClass, Metamodel metamodel) {
+    public JpaMetamodelEntityInformation(Class<T> domainClass, Metamodel metamodel) {
 
         super(domainClass);
 
         Assert.notNull(metamodel);
-        EntityType<?> type = metamodel.entity(domainClass);
-        SingularAttribute<?, ?> idAttribute =
-                type.getId(type.getIdType().getJavaType());
-        this.member = idAttribute.getJavaMember();
+        EntityType<T> type = metamodel.entity(domainClass);
+
+        if (type == null) {
+            throw new IllegalArgumentException(
+                    "The given domain class can not be found in the given Metamodel!");
+        }
+
+        this.attribute = type.getId(type.getIdType().getJavaType());
     }
 
 
@@ -65,9 +71,9 @@ public class JpaMetamodelEntityMetadata<T> extends AbstractEntityMetadata<T> {
      * org.springframework.data.repository.support.IdAware#getId(java.lang.Object
      * )
      */
-    public Object getId(Object entity) {
+    public Object getId(T entity) {
 
-        return getMemberValue(member, entity);
+        return getMemberValue(attribute.getJavaMember(), entity);
     }
 
 
@@ -93,5 +99,17 @@ public class JpaMetamodelEntityMetadata<T> extends AbstractEntityMetadata<T> {
 
         throw new IllegalArgumentException(
                 "Given member is neither Field nor Method!");
+    }
+
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.springframework.data.jpa.repository.support.JpaEntityMetadata#
+     * getIdAttribute()
+     */
+    public SingularAttribute<? super T, ?> getIdAttribute() {
+
+        return attribute;
     }
 }

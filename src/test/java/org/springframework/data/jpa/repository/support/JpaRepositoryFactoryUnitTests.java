@@ -30,7 +30,6 @@ import org.springframework.data.domain.Persistable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.custom.CustomGenericJpaRepositoryFactory;
 import org.springframework.data.jpa.repository.custom.UserCustomExtendedRepository;
-import org.springframework.transaction.annotation.Transactional;
 
 
 /**
@@ -45,13 +44,23 @@ public class JpaRepositoryFactoryUnitTests {
 
     @Mock
     EntityManager entityManager;
+    @Mock
+    JpaEntityInformation<?> metadata;
 
 
     @Before
     public void setUp() {
 
         // Setup standard factory configuration
-        factory = new JpaRepositoryFactory(entityManager);
+        factory = new JpaRepositoryFactory(entityManager) {
+
+            @Override
+            protected JpaEntityInformation<?> getEntityMetadata(
+                    java.lang.Class<?> domainClass) {
+
+                return metadata;
+            }
+        };
     }
 
 
@@ -136,8 +145,6 @@ public class JpaRepositoryFactoryUnitTests {
     private interface SimpleSampleRepository extends
             JpaRepository<User, Integer> {
 
-        @Transactional
-        User readByPrimaryKey(Integer primaryKey);
     }
 
     /**

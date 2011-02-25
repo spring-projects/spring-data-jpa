@@ -17,13 +17,11 @@ package org.springframework.data.jpa.repository.support;
 
 import javax.persistence.EntityManager;
 
-import org.springframework.data.domain.Persistable;
 import org.springframework.data.jpa.repository.query.JpaQueryLookupStrategy;
 import org.springframework.data.jpa.repository.query.QueryExtractor;
+import org.springframework.data.jpa.repository.utils.JpaClassUtils;
 import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.data.repository.query.QueryLookupStrategy.Key;
-import org.springframework.data.repository.support.EntityMetadata;
-import org.springframework.data.repository.support.PersistableEntityMetadata;
 import org.springframework.data.repository.support.RepositoryFactorySupport;
 import org.springframework.data.repository.support.RepositoryMetadata;
 import org.springframework.util.Assert;
@@ -81,32 +79,15 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
     protected Object getTargetRepository(RepositoryMetadata metadata,
             EntityManager entityManager) {
 
-        return new SimpleJpaRepository(createEntityInformation(
-                metadata.getDomainClass(), entityManager), entityManager);
+        JpaEntityInformation<?> entityMetadata =
+                getEntityMetadata(metadata.getDomainClass());
+        return new SimpleJpaRepository(entityMetadata, entityManager);
     }
 
 
-    /**
-     * Creates a new {@link EntityMetadata} instance for the given domain class
-     * and {@link EntityManager}. Default implementation will use a
-     * {@link PersistableMetadata} for domain classes implementing
-     * {@link Persistable} and fall back to the JPA meta model though
-     * {@link JpaMetamodelEntityInformation} otherwise.
-     * 
-     * @param domainClass
-     * @param em
-     * @return
-     */
-    @SuppressWarnings({ "unchecked", "rawtypes" })
-    protected EntityMetadata<?> createEntityInformation(Class<?> domainClass,
-            EntityManager em) {
+    protected JpaEntityInformation<?> getEntityMetadata(Class<?> domainClass) {
 
-        if (Persistable.class.isAssignableFrom(domainClass)) {
-            return new PersistableEntityMetadata(domainClass);
-        } else {
-            return new JpaMetamodelEntityMetadata(domainClass,
-                    em.getMetamodel());
-        }
+        return JpaClassUtils.getMetadata(domainClass, entityManager);
     }
 
 

@@ -34,6 +34,8 @@ import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.dao.support.PersistenceExceptionTranslator;
 import org.springframework.data.domain.Persistable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.repository.Repository;
+import org.springframework.data.repository.support.RepositoryFactorySupport;
 
 
 /**
@@ -47,18 +49,22 @@ import org.springframework.data.jpa.repository.JpaRepository;
 @RunWith(MockitoJUnitRunner.class)
 public class JpaRepositoryFactoryBeanUnitTests {
 
-    JpaRepositoryFactoryBean<SimpleSampleRepository> factory;
+    JpaRepositoryFactoryBean<SimpleSampleRepository> factoryBean;
 
     @Mock
     EntityManager entityManager;
-
+    @Mock
+    RepositoryFactorySupport factory;
     @Mock
     ListableBeanFactory beanFactory;
     @Mock
     PersistenceExceptionTranslator translator;
+    @Mock
+    Repository<?, ?> repository;
 
 
     @Before
+    @SuppressWarnings("unchecked")
     public void setUp() {
 
         Map<String, PersistenceExceptionTranslator> beans =
@@ -68,12 +74,14 @@ public class JpaRepositoryFactoryBeanUnitTests {
                 beanFactory.getBeansOfType(
                         eq(PersistenceExceptionTranslator.class), anyBoolean(),
                         anyBoolean())).thenReturn(beans);
+        when(factory.getRepository(any(Class.class), any(Object.class)))
+                .thenReturn(repository);
 
         // Setup standard factory configuration
-        factory =
-                JpaRepositoryFactoryBean.create(SimpleSampleRepository.class,
-                        entityManager);
-        factory.setEntityManager(entityManager);
+        factoryBean =
+                new DummyJpaRepositoryFactoryBean<SimpleSampleRepository>();
+        factoryBean.setRepositoryInterface(SimpleSampleRepository.class);
+        factoryBean.setEntityManager(entityManager);
     }
 
 
@@ -86,17 +94,17 @@ public class JpaRepositoryFactoryBeanUnitTests {
     @Test
     public void setsUpBasicInstanceCorrectly() throws Exception {
 
-        factory.setBeanFactory(beanFactory);
-        factory.afterPropertiesSet();
+        factoryBean.setBeanFactory(beanFactory);
+        factoryBean.afterPropertiesSet();
 
-        assertNotNull(factory.getObject());
+        assertNotNull(factoryBean.getObject());
     }
 
 
     @Test(expected = IllegalArgumentException.class)
     public void requiresListableBeanFactory() throws Exception {
 
-        factory.setBeanFactory(mock(BeanFactory.class));
+        factoryBean.setBeanFactory(mock(BeanFactory.class));
     }
 
 
@@ -109,7 +117,7 @@ public class JpaRepositoryFactoryBeanUnitTests {
     @Test(expected = IllegalArgumentException.class)
     public void preventsNullRepositoryInterface() {
 
-        factory.setRepositoryInterface(null);
+        factoryBean.setRepositoryInterface(null);
     }
 
 
@@ -120,8 +128,25 @@ public class JpaRepositoryFactoryBeanUnitTests {
     @Test(expected = IllegalArgumentException.class)
     public void preventsUnsetRepositoryInterface() throws Exception {
 
-        factory = new JpaRepositoryFactoryBean<SimpleSampleRepository>();
-        factory.afterPropertiesSet();
+        factoryBean = new JpaRepositoryFactoryBean<SimpleSampleRepository>();
+        factoryBean.afterPropertiesSet();
+    }
+
+    private class DummyJpaRepositoryFactoryBean<T extends JpaRepository<?, ?>>
+            extends JpaRepositoryFactoryBean<T> {
+
+        /*
+         * (non-Javadoc)
+         * 
+         * @see
+         * org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean
+         * #createRepositoryFactory()
+         */
+        @Override
+        protected RepositoryFactorySupport doCreateRepositoryFactory() {
+
+            return factory;
+        }
     }
 
     private interface SimpleSampleRepository extends

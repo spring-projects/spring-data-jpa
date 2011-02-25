@@ -20,18 +20,17 @@ import static org.junit.Assert.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
-import java.lang.reflect.Method;
-
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.Query;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.stubbing.OngoingStubbing;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.ModifyingExecution;
+import org.springframework.data.repository.support.EntityMetadata;
 
 
 /**
@@ -50,15 +49,8 @@ public class JpaQueryExecutionUnitTests {
     ParameterBinder binder;
     @Mock
     Query query;
-
-    Method method;
-
-
-    @Before
-    public void setUp() throws Exception {
-
-        method = Dummy.class.getMethod("voidMethod");
-    }
+    @Mock
+    EntityMetadata<?> metadata;
 
 
     @Test(expected = IllegalArgumentException.class)
@@ -113,20 +105,32 @@ public class JpaQueryExecutionUnitTests {
         Query param = any();
         when(binder.bind(param)).thenReturn(query);
         when(query.executeUpdate()).thenReturn(0);
+        mock(metadata, void.class);
 
-        ModifyingExecution execution = new ModifyingExecution(method, em);
+        ModifyingExecution execution = new ModifyingExecution(metadata, em);
         execution.execute(jpaQuery, binder);
 
         verify(em, times(1)).clear();
     }
 
 
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    private void mock(EntityMetadata<?> method, Class<?> type,
+            Class<?>... others) {
+
+        OngoingStubbing stubbing = when(method.getJavaType());
+        stubbing.thenReturn(type);
+    }
+
+
     @Test
     public void allowsMethodReturnTypesForModifyingQuery() throws Exception {
 
-        new ModifyingExecution(Dummy.class.getMethod("voidMethod"), em);
-        new ModifyingExecution(Dummy.class.getMethod("intMethod"), em);
-        new ModifyingExecution(Dummy.class.getMethod("integerMethod"), em);
+        mock(metadata, void.class, int.class, Integer.class);
+
+        new ModifyingExecution(metadata, em);
+        new ModifyingExecution(metadata, em);
+        new ModifyingExecution(metadata, em);
     }
 
 
@@ -134,7 +138,8 @@ public class JpaQueryExecutionUnitTests {
     public void modifyingExecutionRejectsNonIntegerOrVoidReturnType()
             throws Exception {
 
-        new ModifyingExecution(Dummy.class.getMethod("longMethod"), em);
+        mock(metadata, Long.class);
+        new ModifyingExecution(metadata, em);
     }
 
     static class StubQueryExecution extends JpaQueryExecution {
@@ -152,19 +157,5 @@ public class JpaQueryExecutionUnitTests {
 
             return null;
         }
-    }
-
-    static interface Dummy {
-
-        void voidMethod();
-
-
-        int intMethod();
-
-
-        Integer integerMethod();
-
-
-        Long longMethod();
     }
 }

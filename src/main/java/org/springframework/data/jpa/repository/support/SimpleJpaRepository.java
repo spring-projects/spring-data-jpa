@@ -19,6 +19,7 @@ import static org.springframework.data.jpa.repository.query.QueryUtils.*;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -26,6 +27,7 @@ import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
@@ -36,7 +38,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.Repository;
-import org.springframework.data.repository.support.EntityMetadata;
 import org.springframework.util.Assert;
 
 
@@ -53,7 +54,7 @@ import org.springframework.util.Assert;
 public class SimpleJpaRepository<T, ID extends Serializable> implements
         JpaRepository<T, ID> {
 
-    private final EntityMetadata<T> entityInformation;
+    private final JpaEntityInformation<T> entityInformation;
     private final EntityManager em;
     private final PersistenceProvider provider;
 
@@ -62,15 +63,15 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements
      * Creates a new {@link SimpleJpaRepository} to manage objects of the given
      * domain type.
      * 
-     * @param entityInformation
+     * @param entityMetadata
      * @param entityManager
      */
-    public SimpleJpaRepository(EntityMetadata<T> entityInformation,
+    public SimpleJpaRepository(JpaEntityInformation<T> entityMetadata,
             EntityManager entityManager) {
 
-        Assert.notNull(entityInformation);
+        Assert.notNull(entityMetadata);
         Assert.notNull(entityManager);
-        this.entityInformation = entityInformation;
+        this.entityInformation = entityMetadata;
         this.em = entityManager;
         this.provider = PersistenceProvider.fromEntityManager(entityManager);
     }

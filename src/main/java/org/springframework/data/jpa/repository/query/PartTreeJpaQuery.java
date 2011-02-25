@@ -23,7 +23,9 @@ import javax.persistence.criteria.CriteriaQuery;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
+import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.parser.PartTree;
+import org.springframework.data.repository.support.EntityMetadata;
 
 
 /**
@@ -34,7 +36,7 @@ import org.springframework.data.repository.query.parser.PartTree;
 public class PartTreeJpaQuery extends AbstractJpaQuery {
 
     private final PartTree tree;
-    private final Class<?> domainClass;
+    private final QueryMethod method;
 
 
     /**
@@ -46,9 +48,10 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
     public PartTreeJpaQuery(JpaQueryMethod method, EntityManager em) {
 
         super(method, em);
-
-        this.tree = new PartTree(method.getName(), method.getDomainClass());
-        this.domainClass = method.getDomainClass();
+        this.tree =
+                new PartTree(method.getName(), method.getEntityMetadata()
+                        .getJavaType());
+        this.method = method;
     }
 
 
@@ -65,8 +68,9 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
         ParameterAccessor accessor =
                 new ParametersParameterAccessor(getParameters(), parameters);
 
+        EntityMetadata<?> metadata = method.getEntityMetadata();
         JpaQueryCreator jpaQueryCreator =
-                new JpaQueryCreator(tree, accessor, domainClass,
+                new JpaQueryCreator(tree, accessor, metadata.getJavaType(),
                         getEntityManager());
 
         TypedQuery<Object> query =
@@ -92,8 +96,9 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 
         CriteriaQuery<Object> query =
                 new JpaCountQueryCreator(tree, new ParametersParameterAccessor(
-                        getParameters(), parameters), domainClass,
-                        getEntityManager()).createQuery();
+                        getParameters(), parameters), method
+                        .getEntityMetadata().getJavaType(), getEntityManager())
+                        .createQuery();
         return getEntityManager().createQuery(query);
     }
 

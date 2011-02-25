@@ -17,7 +17,12 @@ package org.springframework.data.jpa.repository.utils;
 
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
+import javax.persistence.metamodel.Metamodel;
 
+import org.springframework.data.domain.Persistable;
+import org.springframework.data.jpa.repository.support.JpaEntityInformation;
+import org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformation;
+import org.springframework.data.jpa.repository.support.JpaPersistableEntityInformation;
 import org.springframework.util.StringUtils;
 
 
@@ -74,5 +79,31 @@ public abstract class JpaClassUtils {
         boolean hasName = null != entity && StringUtils.hasText(entity.name());
 
         return hasName ? entity.name() : domainClass.getSimpleName();
+    }
+
+
+    /**
+     * Creates a {@link JpaEntityInformation} for the given domain class and
+     * {@link EntityManager}.
+     * 
+     * @param domainClass
+     * @param em
+     * @return
+     */
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    public static JpaEntityInformation<?> getMetadata(Class<?> domainClass,
+            EntityManager em) {
+
+        Metamodel metamodel = em.getMetamodel();
+
+        if (Persistable.class.isAssignableFrom(domainClass)) {
+            return new JpaPersistableEntityInformation(domainClass, metamodel);
+        } else {
+            try {
+                return new JpaMetamodelEntityInformation(domainClass, metamodel);
+            } catch (IllegalArgumentException e) {
+                return null;
+            }
+        }
     }
 }

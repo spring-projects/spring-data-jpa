@@ -70,7 +70,7 @@ public final class JpaQueryLookupStrategy {
         public final RepositoryQuery resolveQuery(Method method,
                 Class<?> domainClass) {
 
-            return resolveQuery(new JpaQueryMethod(method, provider, em), em);
+            return resolveQuery(new JpaQueryMethod(method, provider), em);
         }
 
 

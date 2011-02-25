@@ -43,14 +43,14 @@ import org.springframework.data.jpa.repository.sample.UserRepository;
 @RunWith(MockitoJUnitRunner.class)
 public class SimpleJpaQueryUnitTests {
 
-    private JpaQueryMethod method;
+    JpaQueryMethod method;
 
     @Mock
-    private EntityManager em;
+    EntityManager em;
     @Mock
-    private QueryExtractor extractor;
+    QueryExtractor extractor;
     @Mock
-    private Query query;
+    Query query;
 
 
     @Before
@@ -61,7 +61,7 @@ public class SimpleJpaQueryUnitTests {
 
         Method setUp =
                 UserRepository.class.getMethod("findByLastname", String.class);
-        method = new JpaQueryMethod(setUp, extractor, em);
+        method = new JpaQueryMethod(setUp, extractor);
     }
 
 

@@ -17,8 +17,14 @@ package org.springframework.data.jpa.repository.query;
 
 import javax.persistence.EntityManager;
 
+import org.springframework.data.jpa.repository.query.JpaQueryExecution.CollectionExecution;
+import org.springframework.data.jpa.repository.query.JpaQueryExecution.ModifyingExecution;
+import org.springframework.data.jpa.repository.query.JpaQueryExecution.PagedExecution;
+import org.springframework.data.jpa.repository.query.JpaQueryExecution.SingleEntityExecution;
 import org.springframework.data.repository.query.Parameters;
+import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.RepositoryQuery;
+import org.springframework.data.repository.support.EntityMetadata;
 import org.springframework.util.Assert;
 
 
@@ -29,8 +35,7 @@ import org.springframework.util.Assert;
  */
 public abstract class AbstractJpaQuery implements RepositoryQuery {
 
-    private final Parameters parameters;
-    private final JpaQueryExecution execution;
+    private final JpaQueryMethod method;
     private final EntityManager em;
 
 
@@ -46,9 +51,21 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
         Assert.notNull(method);
         Assert.notNull(em);
 
-        this.parameters = method.getParameters();
-        this.execution = method.getExecution();
+        this.method = method;
         this.em = em;
+    }
+
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.springframework.data.repository.query.RepositoryQuery#getQueryMethod
+     * ()
+     */
+    public QueryMethod getQueryMethod() {
+
+        return method;
     }
 
 
@@ -57,7 +74,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
      */
     public Parameters getParameters() {
 
-        return parameters;
+        return method.getParameters();
     }
 
 
@@ -79,7 +96,25 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
      */
     public Object execute(Object[] parameters) {
 
-        return doExecute(execution, parameters);
+        return doExecute(getExecution(), parameters);
+    }
+
+
+    protected JpaQueryExecution getExecution() {
+
+        switch (method.getType()) {
+
+        case COLLECTION:
+            return new CollectionExecution();
+        case PAGING:
+            return new PagedExecution(getParameters());
+        case MODIFYING:
+            EntityMetadata<?> metadata = method.getEntityMetadata();
+            return method.getClearAutomatically() ? new ModifyingExecution(
+                    metadata, em) : new ModifyingExecution(metadata, null);
+        default:
+            return new SingleEntityExecution();
+        }
     }
 
 
