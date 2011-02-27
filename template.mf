@@ -11,7 +11,7 @@ Import-Template:
  org.aopalliance.*;version="[1.0.0,2.0.0)", 
  org.slf4j.*;version="${slf4j.version:[=.=.=,+1.0.0)}",
  org.aspectj.*;version="${aspectj.version:[=.=.=,+1.0.0)}";resolution:=optional,
- org.eclipse.persistence.*;version="[2.0.0,3.0.0)";resolution:=optional,
+ org.eclipse.persistence.*;version="${eclipselink.version:[=.=.=,+1.0.0)}";resolution:=optional,
  org.hibernate.*;version="[3.5.3,4.0.0)";resolution:=optional, 
  org.apache.openjpa.persistence.*;version="${openjpa.version:[=.=.=,+1.0.0)}";resolution:=optional, 
  org.joda.time.*;version="[1.5.0,2.0.0)";resolution:=optional,
