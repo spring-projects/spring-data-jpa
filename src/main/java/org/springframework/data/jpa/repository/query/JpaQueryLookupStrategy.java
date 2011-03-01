@@ -67,7 +67,8 @@ public final class JpaQueryLookupStrategy {
          * org.springframework.data.jpa.repository.query.QueryLookupStrategy
          * #resolveQuery(org.springframework.data.repository.query.QueryMethod)
          */
-        public final RepositoryQuery resolveQuery(Method method) {
+        public final RepositoryQuery resolveQuery(Method method,
+                Class<?> domainClass) {
 
             return resolveQuery(new JpaQueryMethod(method, provider, em), em);
         }
