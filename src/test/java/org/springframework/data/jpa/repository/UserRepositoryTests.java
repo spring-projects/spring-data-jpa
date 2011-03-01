@@ -785,6 +785,22 @@ public class UserRepositoryTests {
     }
 
 
+    @Test
+    public void findsSortedByLastname() throws Exception {
+
+        flushTestUsers();
+
+        List<User> result =
+                repository.findByEmailAddressLike("%@%", new Sort(
+                        Direction.ASC, "lastname"));
+
+        assertThat(result.size(), is(3));
+        assertThat(result.get(0), is(secondUser));
+        assertThat(result.get(1), is(firstUser));
+        assertThat(result.get(2), is(thirdUser));
+    }
+
+
     private Page<User> executeSpecWithSort(Sort sort) {
 
         flushTestUsers();
