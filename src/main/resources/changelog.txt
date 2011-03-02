@@ -3,6 +3,7 @@ Spring Data JPA Changelog
 
 Changes in version 1.0.0.M2 
 ----------------------------------------
+* Dynamic sorting functionality (through Sort query method parameter) works again
 * Added support for 'Distinct' (DATACMNS-15)
 * Added support for 'In' and 'NotIn' (DATAJPA-30)
 * Adapted new metadata API (DATAJPA-32, DATACMNS-17)
