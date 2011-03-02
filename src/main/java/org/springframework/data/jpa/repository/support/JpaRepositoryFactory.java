@@ -97,12 +97,12 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
      * @param em
      * @return
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     protected EntityMetadata<?> createEntityInformation(Class<?> domainClass,
             EntityManager em) {
 
         if (Persistable.class.isAssignableFrom(domainClass)) {
-            return new PersistableEntityMetadata();
+            return new PersistableEntityMetadata(domainClass);
         } else {
             return new JpaMetamodelEntityMetadata(domainClass,
                     em.getMetamodel());
