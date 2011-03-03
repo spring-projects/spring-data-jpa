@@ -59,6 +59,9 @@ final class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
                 method.getCountQuery() == null ? QueryUtils
                         .createCountQueryFor(queryString) : method
                         .getCountQuery();
+
+        // Try to create a
+        em.createQuery(queryString);
     }
 
 
