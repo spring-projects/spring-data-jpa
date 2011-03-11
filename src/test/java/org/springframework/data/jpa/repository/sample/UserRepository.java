@@ -54,11 +54,11 @@ public interface UserRepository extends JpaRepository<User, Integer>,
 
 
     /**
-     * Redeclaration of {@link Repository#findById(java.io.Serializable)} to
+     * Redeclaration of {@link Repository#findOne(java.io.Serializable)} to
      * change transaction configuration.
      */
     @Transactional
-    public User findById(Integer primaryKey);
+    public User findOne(Integer primaryKey);
 
 
     /**

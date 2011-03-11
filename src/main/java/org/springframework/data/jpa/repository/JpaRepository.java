@@ -70,7 +70,7 @@ public interface JpaRepository<T, ID extends Serializable> extends
      * org.springframework.data.repository.Repository#findById(java.io.Serializable
      * )
      */
-    T findById(ID id);
+    T findOne(ID id);
 
 
     /*

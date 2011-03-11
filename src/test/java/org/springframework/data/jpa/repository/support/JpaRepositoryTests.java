@@ -65,7 +65,7 @@ public class JpaRepositoryTests {
         SampleEntity entity = new SampleEntity("foo", "bar");
         repository.saveAndFlush(entity);
         assertThat(repository.count(), is(1L));
-        assertThat(repository.findById(new SampleEntityPK("foo", "bar")),
+        assertThat(repository.findOne(new SampleEntityPK("foo", "bar")),
                 is(entity));
 
         repository.delete(Arrays.asList(entity));

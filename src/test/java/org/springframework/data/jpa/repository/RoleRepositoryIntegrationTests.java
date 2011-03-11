@@ -63,6 +63,6 @@ public class RoleRepositoryIntegrationTests {
         ReflectionTestUtils.setField(reference, "name", "USER");
         repository.save(reference);
 
-        assertThat(repository.findById(result.getId()), is(reference));
+        assertThat(repository.findOne(result.getId()), is(reference));
     }
 }

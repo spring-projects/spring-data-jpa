@@ -90,7 +90,7 @@ public class TransactionalRepositoryTests extends
     @Test
     public void invokeRedeclaredMethod() throws Exception {
 
-        repository.findById(1);
+        repository.findOne(1);
         assertFalse(transactionManager.getDefinition().isReadOnly());
     }
 

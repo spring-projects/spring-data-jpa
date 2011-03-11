@@ -114,7 +114,7 @@ public class UserRepositoryTests {
 
         flushTestUsers();
 
-        User foundPerson = repository.findById(id);
+        User foundPerson = repository.findOne(id);
         assertEquals(firstUser.getFirstname(), foundPerson.getFirstname());
     }
 
@@ -128,7 +128,7 @@ public class UserRepositoryTests {
 
         flushTestUsers();
 
-        assertNull(repository.findById(id * 27));
+        assertNull(repository.findOne(id * 27));
     }
 
 
@@ -170,10 +170,10 @@ public class UserRepositoryTests {
 
         flushTestUsers();
 
-        User foundPerson = repository.findById(id);
+        User foundPerson = repository.findOne(id);
         foundPerson.setLastname("Schlicht");
 
-        User updatedPerson = repository.findById(id);
+        User updatedPerson = repository.findOne(id);
         assertEquals(foundPerson.getFirstname(), updatedPerson.getFirstname());
     }
 
@@ -196,7 +196,7 @@ public class UserRepositoryTests {
         flushTestUsers();
 
         repository.delete(firstUser);
-        assertNull(repository.findById(id));
+        assertNull(repository.findOne(id));
     }
 
 
@@ -366,7 +366,7 @@ public class UserRepositoryTests {
         flushTestUsers();
 
         // Fetches first user from database
-        User firstReferenceUser = repository.findById(firstUser.getId());
+        User firstReferenceUser = repository.findOne(firstUser.getId());
         assertEquals(firstUser, firstReferenceUser);
 
         // Fetch colleagues and assert link
@@ -401,7 +401,7 @@ public class UserRepositoryTests {
         firstUser.addColleague(new User("Florian", "Hopf", "hopf@synyx.de"));
         firstUser = repository.save(firstUser);
 
-        User reference = repository.findById(firstUser.getId());
+        User reference = repository.findOne(firstUser.getId());
         Set<User> colleagues = reference.getColleagues();
 
         assertNotNull(colleagues);

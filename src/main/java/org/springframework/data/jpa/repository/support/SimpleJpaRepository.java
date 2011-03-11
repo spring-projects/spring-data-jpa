@@ -165,7 +165,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements
      * org.springframework.data.repository.Repository#readById(java.io.Serializable
      * )
      */
-    public T findById(ID id) {
+    public T findOne(ID id) {
 
         Assert.notNull(id, "The given id must not be null!");
         return em.find(getDomainClass(), id);
@@ -182,7 +182,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements
     public boolean exists(ID id) {
 
         Assert.notNull(id, "The given id must not be null!");
-        return null != findById(id);
+        return null != findOne(id);
     }
 
 

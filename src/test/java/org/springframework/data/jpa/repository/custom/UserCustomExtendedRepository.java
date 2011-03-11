@@ -42,6 +42,6 @@ public interface UserCustomExtendedRepository extends
 
 
     @Transactional(readOnly = false, timeout = 10)
-    User findById(Integer id);
+    User findOne(Integer id);
 
 }
