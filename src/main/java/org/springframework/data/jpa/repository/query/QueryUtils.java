@@ -30,6 +30,7 @@ import javax.persistence.Parameter;
 import javax.persistence.Query;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Root;
 
 import org.springframework.data.domain.Sort;
@@ -311,7 +312,21 @@ public abstract class QueryUtils {
     private static javax.persistence.criteria.Order toJpaOrder(Order order,
             Root<?> root, CriteriaBuilder cb) {
 
-        Expression<?> expression = root.get(order.getProperty());
+        Expression<?> expression = null;
+        String pathString = order.getProperty();
+        String[] pathElements = pathString.split("\\.");
+        int pathSize = pathElements.length;
+
+        if (pathSize > 1) {
+            Join<Object, Object> path = root.join(pathElements[0]);
+            for (int i = 1; i < pathSize - 1; i++) {
+                path = path.join(pathElements[i]);
+            }
+            expression = path.get(pathElements[pathSize - 1]);
+        } else {
+            expression = root.get(pathString);
+        }
+
         return order.isAscending() ? cb.asc(expression) : cb.desc(expression);
     }
 }
