@@ -15,6 +15,8 @@
  */
 package org.springframework.data.jpa.repository.custom;
 
+import java.io.Serializable;
+
 import javax.persistence.EntityManager;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -28,8 +30,8 @@ import org.springframework.data.repository.support.RepositoryFactorySupport;
  * @author Gil Markham
  * @author Oliver Gierke
  */
-public class CustomGenericJpaRepositoryFactoryBean<T extends JpaRepository<?, ?>>
-        extends JpaRepositoryFactoryBean<T> {
+public class CustomGenericJpaRepositoryFactoryBean<T extends JpaRepository<Object, Serializable>>
+        extends JpaRepositoryFactoryBean<T, Object, Serializable> {
 
     /*
      * (non-Javadoc)

@@ -19,6 +19,7 @@ import static org.junit.Assert.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -49,7 +50,7 @@ import org.springframework.data.repository.support.RepositoryFactorySupport;
 @RunWith(MockitoJUnitRunner.class)
 public class JpaRepositoryFactoryBeanUnitTests {
 
-    JpaRepositoryFactoryBean<SimpleSampleRepository> factoryBean;
+    JpaRepositoryFactoryBean<SimpleSampleRepository, User, Integer> factoryBean;
 
     @Mock
     EntityManager entityManager;
@@ -79,7 +80,7 @@ public class JpaRepositoryFactoryBeanUnitTests {
 
         // Setup standard factory configuration
         factoryBean =
-                new DummyJpaRepositoryFactoryBean<SimpleSampleRepository>();
+                new DummyJpaRepositoryFactoryBean<SimpleSampleRepository, User, Integer>();
         factoryBean.setRepositoryInterface(SimpleSampleRepository.class);
         factoryBean.setEntityManager(entityManager);
     }
@@ -128,12 +129,13 @@ public class JpaRepositoryFactoryBeanUnitTests {
     @Test(expected = IllegalArgumentException.class)
     public void preventsUnsetRepositoryInterface() throws Exception {
 
-        factoryBean = new JpaRepositoryFactoryBean<SimpleSampleRepository>();
+        factoryBean =
+                new JpaRepositoryFactoryBean<SimpleSampleRepository, User, Integer>();
         factoryBean.afterPropertiesSet();
     }
 
-    private class DummyJpaRepositoryFactoryBean<T extends JpaRepository<?, ?>>
-            extends JpaRepositoryFactoryBean<T> {
+    private class DummyJpaRepositoryFactoryBean<T extends JpaRepository<S, ID>, S, ID extends Serializable>
+            extends JpaRepositoryFactoryBean<T, S, ID> {
 
         /*
          * (non-Javadoc)

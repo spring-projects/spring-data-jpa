@@ -15,6 +15,8 @@
  */
 package org.springframework.data.jpa.repository.support;
 
+import java.io.Serializable;
+
 import javax.persistence.metamodel.SingularAttribute;
 
 import org.springframework.data.repository.support.EntityInformation;
@@ -26,7 +28,8 @@ import org.springframework.data.repository.support.EntityInformation;
  * 
  * @author Oliver Gierke
  */
-public interface JpaEntityInformation<T> extends EntityInformation<T> {
+public interface JpaEntityInformation<T, ID extends Serializable> extends
+        EntityInformation<T, ID> {
 
     /**
      * Returns the id attribute of the entity.

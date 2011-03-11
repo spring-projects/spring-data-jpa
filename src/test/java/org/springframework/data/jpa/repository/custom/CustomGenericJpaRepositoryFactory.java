@@ -55,7 +55,7 @@ public class CustomGenericJpaRepositoryFactory extends JpaRepositoryFactory {
     protected Object getTargetRepository(RepositoryMetadata metadata,
             EntityManager em) {
 
-        JpaEntityInformation<Object> entityMetadata =
+        JpaEntityInformation<Object, Serializable> entityMetadata =
                 mock(JpaEntityInformation.class);
         when(entityMetadata.getJavaType()).thenReturn(
                 (Class<Object>) metadata.getDomainClass());

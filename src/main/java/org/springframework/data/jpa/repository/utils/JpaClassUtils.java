@@ -91,8 +91,8 @@ public abstract class JpaClassUtils {
      * @return
      */
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    public static JpaEntityInformation<?> getMetadata(Class<?> domainClass,
-            EntityManager em) {
+    public static <T> JpaEntityInformation<T, ?> getMetadata(
+            Class<T> domainClass, EntityManager em) {
 
         Metamodel metamodel = em.getMetamodel();
 

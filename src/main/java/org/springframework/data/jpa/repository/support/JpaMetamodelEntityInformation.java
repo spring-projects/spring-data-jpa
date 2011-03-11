@@ -15,6 +15,7 @@
  */
 package org.springframework.data.jpa.repository.support;
 
+import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
@@ -35,8 +36,8 @@ import org.springframework.util.ReflectionUtils;
  * 
  * @author Oliver Gierke
  */
-public class JpaMetamodelEntityInformation<T> extends AbstractEntityInformation<T>
-        implements JpaEntityInformation<T> {
+public class JpaMetamodelEntityInformation<T, ID extends Serializable> extends
+        AbstractEntityInformation<T, ID> implements JpaEntityInformation<T, ID> {
 
     private final SingularAttribute<? super T, ?> attribute;
 
@@ -48,7 +49,8 @@ public class JpaMetamodelEntityInformation<T> extends AbstractEntityInformation<
      * @param domainClass
      * @param metamodel
      */
-    public JpaMetamodelEntityInformation(Class<T> domainClass, Metamodel metamodel) {
+    public JpaMetamodelEntityInformation(Class<T> domainClass,
+            Metamodel metamodel) {
 
         super(domainClass);
 
@@ -71,9 +73,23 @@ public class JpaMetamodelEntityInformation<T> extends AbstractEntityInformation<
      * org.springframework.data.repository.support.IdAware#getId(java.lang.Object
      * )
      */
-    public Object getId(T entity) {
+    @SuppressWarnings("unchecked")
+    public ID getId(T entity) {
 
-        return getMemberValue(attribute.getJavaMember(), entity);
+        return (ID) getMemberValue(attribute.getJavaMember(), entity);
+    }
+
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.springframework.data.repository.support.EntityInformation#getIdType()
+     */
+    @SuppressWarnings("unchecked")
+    public Class<ID> getIdType() {
+
+        return (Class<ID>) attribute.getJavaType();
     }
 
 

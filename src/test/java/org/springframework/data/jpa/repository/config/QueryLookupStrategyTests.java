@@ -49,7 +49,7 @@ public class QueryLookupStrategyTests {
     @Test
     public void assertUseDeclaredQuery() {
 
-        JpaRepositoryFactoryBean<?> factory =
+        JpaRepositoryFactoryBean<?, ?, ?> factory =
                 context.getBean("&roleRepository",
                         JpaRepositoryFactoryBean.class);
 

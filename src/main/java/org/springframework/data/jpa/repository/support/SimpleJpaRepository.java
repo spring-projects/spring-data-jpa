@@ -19,7 +19,6 @@ import static org.springframework.data.jpa.repository.query.QueryUtils.*;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -27,7 +26,6 @@ import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
@@ -54,7 +52,7 @@ import org.springframework.util.Assert;
 public class SimpleJpaRepository<T, ID extends Serializable> implements
         JpaRepository<T, ID> {
 
-    private final JpaEntityInformation<T> entityInformation;
+    private final JpaEntityInformation<T, ID> entityInformation;
     private final EntityManager em;
     private final PersistenceProvider provider;
 
@@ -66,7 +64,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements
      * @param entityMetadata
      * @param entityManager
      */
-    public SimpleJpaRepository(JpaEntityInformation<T> entityMetadata,
+    public SimpleJpaRepository(JpaEntityInformation<T, ID> entityMetadata,
             EntityManager entityManager) {
 
         Assert.notNull(entityMetadata);

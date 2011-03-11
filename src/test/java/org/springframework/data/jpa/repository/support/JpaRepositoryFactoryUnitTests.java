@@ -18,6 +18,7 @@ package org.springframework.data.jpa.repository.support;
 import static junit.framework.Assert.*;
 
 import java.io.IOException;
+import java.io.Serializable;
 
 import javax.persistence.EntityManager;
 
@@ -45,7 +46,7 @@ public class JpaRepositoryFactoryUnitTests {
     @Mock
     EntityManager entityManager;
     @Mock
-    JpaEntityInformation<?> metadata;
+    JpaEntityInformation<Object, Serializable> metadata;
 
 
     @Before
@@ -55,11 +56,12 @@ public class JpaRepositoryFactoryUnitTests {
         factory = new JpaRepositoryFactory(entityManager) {
 
             @Override
-            protected JpaEntityInformation<?> getEntityMetadata(
-                    java.lang.Class<?> domainClass) {
+            @SuppressWarnings("unchecked")
+            public <T, ID extends Serializable> JpaEntityInformation<T, ID> getEntityInformation(
+                    Class<T> domainClass) {
 
-                return metadata;
-            }
+                return (JpaEntityInformation<T, ID>) metadata;
+            };
         };
     }
 

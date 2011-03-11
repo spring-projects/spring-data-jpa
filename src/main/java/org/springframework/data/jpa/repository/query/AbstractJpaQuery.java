@@ -109,7 +109,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
         case PAGING:
             return new PagedExecution(getParameters());
         case MODIFYING:
-            EntityMetadata<?> metadata = method.getEntityMetadata();
+            EntityMetadata<?> metadata = method.getEntityInformation();
             return method.getClearAutomatically() ? new ModifyingExecution(
                     metadata, em) : new ModifyingExecution(metadata, null);
         default:

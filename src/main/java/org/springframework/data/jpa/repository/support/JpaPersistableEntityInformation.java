@@ -28,8 +28,8 @@ import org.springframework.data.domain.Persistable;
  * 
  * @author Oliver Gierke
  */
-public class JpaPersistableEntityInformation<T extends Persistable> extends
-        JpaMetamodelEntityInformation<T> {
+public class JpaPersistableEntityInformation<T extends Persistable<ID>, ID extends Serializable>
+        extends JpaMetamodelEntityInformation<T, ID> {
 
     /**
      * Creates a new {@link JpaPersistableEntityInformation} for the given
@@ -53,7 +53,7 @@ public class JpaPersistableEntityInformation<T extends Persistable> extends
      * #getId(java.lang.Object)
      */
     @Override
-    public Serializable getId(T entity) {
+    public ID getId(T entity) {
 
         return entity.getId();
     }

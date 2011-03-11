@@ -36,7 +36,7 @@ public class CustomGenericJpaRepository<T, ID extends Serializable> extends
      * @param domainClass
      * @param entityManager
      */
-    public CustomGenericJpaRepository(JpaEntityInformation<T> metadata,
+    public CustomGenericJpaRepository(JpaEntityInformation<T, ID> metadata,
             EntityManager entityManager) {
 
         super(metadata, entityManager);

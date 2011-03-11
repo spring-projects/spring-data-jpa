@@ -49,7 +49,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 
         super(method, em);
         this.tree =
-                new PartTree(method.getName(), method.getEntityMetadata()
+                new PartTree(method.getName(), method.getEntityInformation()
                         .getJavaType());
         this.method = method;
     }
@@ -68,7 +68,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
         ParameterAccessor accessor =
                 new ParametersParameterAccessor(getParameters(), parameters);
 
-        EntityMetadata<?> metadata = method.getEntityMetadata();
+        EntityMetadata<?> metadata = method.getEntityInformation();
         JpaQueryCreator jpaQueryCreator =
                 new JpaQueryCreator(tree, accessor, metadata.getJavaType(),
                         getEntityManager());
@@ -97,8 +97,8 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
         CriteriaQuery<Object> query =
                 new JpaCountQueryCreator(tree, new ParametersParameterAccessor(
                         getParameters(), parameters), method
-                        .getEntityMetadata().getJavaType(), getEntityManager())
-                        .createQuery();
+                        .getEntityInformation().getJavaType(),
+                        getEntityManager()).createQuery();
         return getEntityManager().createQuery(query);
     }
 

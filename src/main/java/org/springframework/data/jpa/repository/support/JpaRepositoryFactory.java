@@ -15,6 +15,8 @@
  */
 package org.springframework.data.jpa.repository.support;
 
+import java.io.Serializable;
+
 import javax.persistence.EntityManager;
 
 import org.springframework.data.jpa.repository.query.JpaQueryLookupStrategy;
@@ -76,18 +78,12 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
      * @return
      */
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    protected Object getTargetRepository(RepositoryMetadata metadata,
-            EntityManager entityManager) {
+    protected <T, ID extends Serializable> Object getTargetRepository(
+            RepositoryMetadata metadata, EntityManager entityManager) {
 
-        JpaEntityInformation<?> entityMetadata =
-                getEntityMetadata(metadata.getDomainClass());
+        JpaEntityInformation<T, ID> entityMetadata =
+                getEntityInformation((Class<T>) metadata.getDomainClass());
         return new SimpleJpaRepository(entityMetadata, entityManager);
-    }
-
-
-    protected JpaEntityInformation<?> getEntityMetadata(Class<?> domainClass) {
-
-        return JpaClassUtils.getMetadata(domainClass, entityManager);
     }
 
 
@@ -117,5 +113,22 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
     protected QueryLookupStrategy getQueryLookupStrategy(Key key) {
 
         return JpaQueryLookupStrategy.create(entityManager, key, extractor);
+    }
+
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.springframework.data.repository.support.RepositoryFactorySupport#
+     * getEntityInformation(java.lang.Class)
+     */
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T, ID extends Serializable> JpaEntityInformation<T, ID> getEntityInformation(
+            Class<T> domainClass) {
+
+        return (JpaEntityInformation<T, ID>) JpaClassUtils.getMetadata(
+                domainClass, entityManager);
     }
 }
