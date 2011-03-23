@@ -75,11 +75,13 @@ class JpaRepositoryConfigDefinitionParser
      * #postProcessBeanDefinition(org.springframework
      * .data.repository.config.SingleRepositoryConfigInformation,
      * org.springframework.beans.factory.support.BeanDefinitionBuilder,
+     * org.springframework.beans.factory.support.BeanDefinitionRegistry,
      * java.lang.Object)
      */
     @Override
     protected void postProcessBeanDefinition(JpaRepositoryConfiguration ctx,
-            BeanDefinitionBuilder builder, Object beanSource) {
+            BeanDefinitionBuilder builder, BeanDefinitionRegistry registry,
+            Object beanSource) {
 
         String entityManagerRef = ctx.getEntityManagerFactoryRef();
 
