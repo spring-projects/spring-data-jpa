@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.springframework.data</groupId>
 	<artifactId>spring-data-jpa</artifactId>
-	<version>1.0.0.M2</version>
+	<version>1.0.0.BUILD-SNAPSHOT</version>
 	
 	<name>Spring JPA</name>
 	<description>Spring Data module to provide sophisticated support for JPA repositories</description>
@@ -64,8 +64,9 @@
 		
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<dist.id>spring-data-jpa</dist.id>
-		<dist.name>Spring Data JPA</dist.name>
+		<dist.name>Spring Data</dist.name>
 		<dist.key>DATAJPA</dist.key>
+		<dist.releaseType>snapshot</dist.releaseType>
 		<dist.version>${project.version}</dist.version>
 		<dist.finalName>${dist.id}-${dist.version}</dist.finalName>
 		<dist.fileName>${dist.finalName}.zip</dist.fileName>
@@ -250,7 +251,7 @@
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>spring-data-commons-core</artifactId>
-			<version>1.0.0.M5</version>
+			<version>1.0.0.BUILD-SNAPSHOT</version>
 		</dependency>
 		
 		<dependency>

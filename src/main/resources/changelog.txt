@@ -1,7 +1,7 @@
 Spring Data JPA Changelog
 =============================================
 
-Changes in version 1.0.0.M2 
+Changes in version 1.0.0.M2 (2011-03-24) - https://jira.springsource.org/browse/DATAJPA/fixforversion/11800
 ----------------------------------------
 * Dynamic sorting functionality (through Sort query method parameter) works again
 * Added support for 'Distinct' (DATACMNS-15)
