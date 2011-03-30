@@ -160,7 +160,7 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends
      * @param predicate
      * @return
      */
-    private JPQLQuery createQuery(Predicate... predicate) {
+    protected JPQLQuery createQuery(Predicate... predicate) {
 
         return new JPAQuery(em).from(path).where(predicate);
     }
@@ -173,7 +173,7 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends
      * @param pageable
      * @return
      */
-    private JPQLQuery applyPagination(JPQLQuery query, Pageable pageable) {
+    protected JPQLQuery applyPagination(JPQLQuery query, Pageable pageable) {
 
         if (pageable == null) {
             return query;
@@ -193,7 +193,7 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends
      * @param sort
      * @return
      */
-    private JPQLQuery applySorting(JPQLQuery query, Sort sort) {
+    protected JPQLQuery applySorting(JPQLQuery query, Sort sort) {
 
         if (sort == null) {
             return query;
@@ -215,7 +215,7 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends
      * @return
      */
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    private OrderSpecifier<?> toOrder(Order order) {
+    protected OrderSpecifier<?> toOrder(Order order) {
 
         Expression<Object> property = builder.get(order.getProperty());
 
