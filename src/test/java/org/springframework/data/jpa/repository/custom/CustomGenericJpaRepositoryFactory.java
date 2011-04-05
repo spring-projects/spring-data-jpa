@@ -72,7 +72,7 @@ public class CustomGenericJpaRepositoryFactory extends JpaRepositoryFactory {
      * getRepositoryBaseClass()
      */
     @Override
-    protected Class<?> getRepositoryBaseClass(Class<?> repositoryInterface) {
+    protected Class<?> getRepositoryBaseClass(RepositoryMetadata metadata) {
 
         return CustomGenericJpaRepository.class;
     }

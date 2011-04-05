@@ -34,6 +34,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.QueryDslPredicateExecutor;
 import org.springframework.data.jpa.repository.custom.CustomGenericJpaRepositoryFactory;
 import org.springframework.data.jpa.repository.custom.UserCustomExtendedRepository;
+import org.springframework.data.repository.support.DefaultRepositoryMetadata;
 import org.springframework.transaction.annotation.Transactional;
 
 
@@ -154,7 +155,8 @@ public class JpaRepositoryFactoryUnitTests {
 
         when(metadata.getJavaType()).thenReturn(User.class);
         assertEquals(QueryDslJpaRepository.class,
-                factory.getRepositoryBaseClass(QueryDslSampleRepository.class));
+                factory.getRepositoryBaseClass(new DefaultRepositoryMetadata(
+                        QueryDslSampleRepository.class)));
 
         QueryDslSampleRepository repository =
                 factory.getRepository(QueryDslSampleRepository.class);

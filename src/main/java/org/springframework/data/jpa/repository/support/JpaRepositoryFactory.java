@@ -107,9 +107,9 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
      * getRepositoryBaseClass()
      */
     @Override
-    protected Class<?> getRepositoryBaseClass(Class<?> repositoryInterface) {
+    protected Class<?> getRepositoryBaseClass(RepositoryMetadata metadata) {
 
-        if (isQueryDslExecutor(repositoryInterface)) {
+        if (isQueryDslExecutor(metadata.getRepositoryInterface())) {
             return QueryDslJpaRepository.class;
         } else {
             return SimpleJpaRepository.class;
