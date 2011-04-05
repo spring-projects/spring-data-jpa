@@ -10,18 +10,17 @@
     <itemizedlist spacing="compact">
       <listitem>
         <para>Version control - <ulink
-        url="http://git.synyx.org/hades.git">git://github.com/SpringSource/spring-data-jpa.git</ulink></para>
+        url="git://github.com/SpringSource/spring-data-jpa.git">git://github.com/SpringSource/spring-data-jpa.git</ulink></para>
       </listitem>
 
       <listitem>
         <para>Bugtracker - <ulink
-        url="http://hades.synyx.org">https://jira.springsource.org/browse/DATAJPA</ulink></para>
+        url="https://jira.springsource.org/browse/DATAJPA">https://jira.springsource.org/browse/DATAJPA</ulink></para>
       </listitem>
 
       <listitem>
         <para>Release repository - <ulink
-        url="http://repo2.maven.org/maven2/org/synyx/hades"><ulink
-        url="http://maven.springframework.org/release">http://maven.springframework.org/release</ulink></ulink></para>
+        url="http://maven.springframework.org/release">http://maven.springframework.org/release</ulink></para>
       </listitem>
 
       <listitem>
