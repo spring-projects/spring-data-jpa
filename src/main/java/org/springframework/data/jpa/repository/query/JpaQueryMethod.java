@@ -30,6 +30,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.QueryMethod;
+import org.springframework.data.repository.support.RepositoryMetadata;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -52,9 +53,10 @@ public class JpaQueryMethod extends QueryMethod {
      * @param extractor must not be {@literal null}
      * @param metadata must not be {@literal null}
      */
-    public JpaQueryMethod(Method method, QueryExtractor extractor) {
+    public JpaQueryMethod(Method method, RepositoryMetadata metadata,
+            QueryExtractor extractor) {
 
-        super(method);
+        super(method, metadata);
 
         Assert.notNull(method, "Method must not be null!");
         Assert.notNull(extractor, "Query extractor must not be null!");
@@ -126,6 +128,17 @@ public class JpaQueryMethod extends QueryMethod {
         Class<?> domainClass = getDomainClass();
         return String.format("%s.%s", domainClass.getSimpleName(),
                 method.getName());
+    }
+
+
+    /**
+     * Returns the actual return type of the method.
+     * 
+     * @return
+     */
+    Class<?> getReturnType() {
+
+        return method.getReturnType();
     }
 
 

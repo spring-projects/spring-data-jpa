@@ -28,9 +28,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.mockito.stubbing.OngoingStubbing;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.ModifyingExecution;
-import org.springframework.data.repository.support.EntityMetadata;
 
 
 /**
@@ -50,7 +48,7 @@ public class JpaQueryExecutionUnitTests {
     @Mock
     Query query;
     @Mock
-    EntityMetadata<?> metadata;
+    JpaQueryMethod method;
 
 
     @Test(expected = IllegalArgumentException.class)
@@ -100,46 +98,41 @@ public class JpaQueryExecutionUnitTests {
 
 
     @Test
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     public void modifyingExecutionClearsEntityManagerIfSet() {
 
         Query param = any();
         when(binder.bind(param)).thenReturn(query);
         when(query.executeUpdate()).thenReturn(0);
-        mock(metadata, void.class);
+        when(method.getReturnType()).thenReturn((Class) void.class);
 
-        ModifyingExecution execution = new ModifyingExecution(metadata, em);
+        ModifyingExecution execution = new ModifyingExecution(method, em);
         execution.execute(jpaQuery, binder);
 
         verify(em, times(1)).clear();
     }
 
 
-    @SuppressWarnings({ "rawtypes", "unchecked" })
-    private void mock(EntityMetadata<?> method, Class<?> type,
-            Class<?>... others) {
-
-        OngoingStubbing stubbing = when(method.getJavaType());
-        stubbing.thenReturn(type);
-    }
-
-
     @Test
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     public void allowsMethodReturnTypesForModifyingQuery() throws Exception {
 
-        mock(metadata, void.class, int.class, Integer.class);
+        when(method.getReturnType()).thenReturn((Class) void.class,
+                (Class) int.class, (Class) Integer.class);
 
-        new ModifyingExecution(metadata, em);
-        new ModifyingExecution(metadata, em);
-        new ModifyingExecution(metadata, em);
+        new ModifyingExecution(method, em);
+        new ModifyingExecution(method, em);
+        new ModifyingExecution(method, em);
     }
 
 
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     @Test(expected = IllegalArgumentException.class)
     public void modifyingExecutionRejectsNonIntegerOrVoidReturnType()
             throws Exception {
 
-        mock(metadata, Long.class);
-        new ModifyingExecution(metadata, em);
+        when(method.getReturnType()).thenReturn((Class) Long.class);
+        new ModifyingExecution(method, em);
     }
 
     static class StubQueryExecution extends JpaQueryExecution {

@@ -37,6 +37,8 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.QueryMethod.Type;
+import org.springframework.data.repository.support.DefaultRepositoryMetadata;
+import org.springframework.data.repository.support.RepositoryMetadata;
 
 
 /**
@@ -52,6 +54,8 @@ public class JpaQueryMethodUnitTests {
 
     @Mock
     QueryExtractor extractor;
+    @Mock
+    RepositoryMetadata metadata;
 
     Method repositoryMethod, invalidReturnType, pageableAndSort, pageableTwice,
             sortableTwice, modifyingMethod;
@@ -88,7 +92,8 @@ public class JpaQueryMethodUnitTests {
     @Test
     public void testname() {
 
-        JpaQueryMethod method = new JpaQueryMethod(repositoryMethod, extractor);
+        JpaQueryMethod method =
+                new JpaQueryMethod(repositoryMethod, metadata, extractor);
 
         assertEquals("User.findByLastname", method.getNamedQueryName());
         assertThat(method.getType(), is(Type.COLLECTION));
@@ -98,21 +103,22 @@ public class JpaQueryMethodUnitTests {
     @Test(expected = IllegalArgumentException.class)
     public void preventsNullRepositoryMethod() {
 
-        new JpaQueryMethod(null, extractor);
+        new JpaQueryMethod(null, metadata, extractor);
     }
 
 
     @Test(expected = IllegalArgumentException.class)
     public void preventsNullQueryExtractor() {
 
-        new JpaQueryMethod(repositoryMethod, null);
+        new JpaQueryMethod(repositoryMethod, metadata, null);
     }
 
 
     @Test
     public void returnsCorrectName() {
 
-        JpaQueryMethod method = new JpaQueryMethod(repositoryMethod, extractor);
+        JpaQueryMethod method =
+                new JpaQueryMethod(repositoryMethod, metadata, extractor);
         assertEquals(repositoryMethod.getName(), method.getName());
     }
 
@@ -120,7 +126,8 @@ public class JpaQueryMethodUnitTests {
     @Test
     public void returnsQueryIfAvailable() throws Exception {
 
-        JpaQueryMethod method = new JpaQueryMethod(repositoryMethod, extractor);
+        JpaQueryMethod method =
+                new JpaQueryMethod(repositoryMethod, metadata, extractor);
 
         assertNull(method.getAnnotatedQuery());
 
@@ -128,7 +135,7 @@ public class JpaQueryMethodUnitTests {
                 UserRepository.class.getMethod("findByAnnotatedQuery",
                         String.class);
 
-        assertNotNull(new JpaQueryMethod(repositoryMethod, extractor)
+        assertNotNull(new JpaQueryMethod(repositoryMethod, metadata, extractor)
                 .getAnnotatedQuery());
     }
 
@@ -136,28 +143,28 @@ public class JpaQueryMethodUnitTests {
     @Test(expected = IllegalStateException.class)
     public void rejectsInvalidReturntypeOnPagebleFinder() {
 
-        new JpaQueryMethod(invalidReturnType, extractor);
+        new JpaQueryMethod(invalidReturnType, metadata, extractor);
     }
 
 
     @Test(expected = IllegalStateException.class)
     public void rejectsPageableAndSortInFinderMethod() {
 
-        new JpaQueryMethod(pageableAndSort, extractor);
+        new JpaQueryMethod(pageableAndSort, metadata, extractor);
     }
 
 
     @Test(expected = IllegalStateException.class)
     public void rejectsTwoPageableParameters() {
 
-        new JpaQueryMethod(pageableTwice, extractor);
+        new JpaQueryMethod(pageableTwice, metadata, extractor);
     }
 
 
     @Test(expected = IllegalStateException.class)
     public void rejectsTwoSortableParameters() {
 
-        new JpaQueryMethod(sortableTwice, extractor);
+        new JpaQueryMethod(sortableTwice, metadata, extractor);
     }
 
 
@@ -171,14 +178,15 @@ public class JpaQueryMethodUnitTests {
 
         when(extractor.canExtractQuery()).thenReturn(false);
 
-        new JpaQueryMethod(method, extractor);
+        new JpaQueryMethod(method, metadata, extractor);
     }
 
 
     @Test
     public void recognizesModifyingMethod() {
 
-        JpaQueryMethod method = new JpaQueryMethod(modifyingMethod, extractor);
+        JpaQueryMethod method =
+                new JpaQueryMethod(modifyingMethod, metadata, extractor);
         assertTrue(method.isModifyingQuery());
     }
 
@@ -190,7 +198,7 @@ public class JpaQueryMethodUnitTests {
                 InvalidRepository.class.getMethod("updateMethod", String.class,
                         Pageable.class);
 
-        new JpaQueryMethod(method, extractor);
+        new JpaQueryMethod(method, metadata, extractor);
     }
 
 
@@ -201,19 +209,45 @@ public class JpaQueryMethodUnitTests {
                 InvalidRepository.class.getMethod("updateMethod", String.class,
                         Sort.class);
 
-        new JpaQueryMethod(method, extractor);
+        new JpaQueryMethod(method, metadata, extractor);
     }
 
 
     @Test
     public void discoversHintsCorrectly() {
 
-        JpaQueryMethod method = new JpaQueryMethod(repositoryMethod, extractor);
+        JpaQueryMethod method =
+                new JpaQueryMethod(repositoryMethod, metadata, extractor);
         List<QueryHint> hints = method.getHints();
 
         assertNotNull(hints);
         assertThat(hints.get(0).name(), is("foo"));
         assertThat(hints.get(0).value(), is("bar"));
+    }
+
+
+    @Test
+    public void calculatesNamedQueryNamesCorrectly() throws SecurityException,
+            NoSuchMethodException {
+
+        JpaQueryMethod queryMethod =
+                new JpaQueryMethod(repositoryMethod, metadata, extractor);
+        assertThat(queryMethod.getNamedQueryName(), is("User.findByLastname"));
+
+        RepositoryMetadata metadata =
+                new DefaultRepositoryMetadata(UserRepository.class);
+        Method method =
+                UserRepository.class
+                        .getMethod("renameAllUsersTo", String.class);
+        queryMethod = new JpaQueryMethod(method, metadata, extractor);
+        assertThat(queryMethod.getNamedQueryName(), is("User.renameAllUsersTo"));
+
+        method =
+                UserRepository.class.getMethod("findSpecialUsersByLastname",
+                        String.class);
+        queryMethod = new JpaQueryMethod(method, metadata, extractor);
+        assertThat(queryMethod.getNamedQueryName(),
+                is("SpecialUser.findSpecialUsersByLastname"));
     }
 
     /**

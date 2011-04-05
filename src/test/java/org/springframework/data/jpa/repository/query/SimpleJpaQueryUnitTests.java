@@ -33,6 +33,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.jpa.repository.sample.UserRepository;
+import org.springframework.data.repository.support.RepositoryMetadata;
 
 
 /**
@@ -51,6 +52,8 @@ public class SimpleJpaQueryUnitTests {
     QueryExtractor extractor;
     @Mock
     Query query;
+    @Mock
+    RepositoryMetadata metadata;
 
 
     @Before
@@ -61,7 +64,7 @@ public class SimpleJpaQueryUnitTests {
 
         Method setUp =
                 UserRepository.class.getMethod("findByLastname", String.class);
-        method = new JpaQueryMethod(setUp, extractor);
+        method = new JpaQueryMethod(setUp, metadata, extractor);
     }
 
 

@@ -23,6 +23,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.data.repository.query.QueryLookupStrategy.Key;
 import org.springframework.data.repository.query.RepositoryQuery;
+import org.springframework.data.repository.support.RepositoryMetadata;
 
 
 /**
@@ -68,9 +69,10 @@ public final class JpaQueryLookupStrategy {
          * #resolveQuery(org.springframework.data.repository.query.QueryMethod)
          */
         public final RepositoryQuery resolveQuery(Method method,
-                Class<?> domainClass) {
+                RepositoryMetadata metadata) {
 
-            return resolveQuery(new JpaQueryMethod(method, provider), em);
+            return resolveQuery(new JpaQueryMethod(method, metadata, provider),
+                    em);
         }
 
 

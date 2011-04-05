@@ -25,7 +25,6 @@ import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.QueryMethod;
-import org.springframework.data.repository.support.EntityMetadata;
 import org.springframework.util.Assert;
 
 
@@ -218,13 +217,16 @@ public abstract class JpaQueryExecution {
          * 
          * @param em
          */
-        public ModifyingExecution(EntityMetadata<?> metadata, EntityManager em) {
+        public ModifyingExecution(JpaQueryMethod method, EntityManager em) {
 
-            Class<?> type = metadata.getJavaType();
+            Class<?> returnType = method.getReturnType();
 
-            boolean isVoid = void.class.equals(type) || Void.class.equals(type);
+            boolean isVoid =
+                    void.class.equals(returnType)
+                            || Void.class.equals(returnType);
             boolean isInt =
-                    int.class.equals(type) || Integer.class.equals(type);
+                    int.class.equals(returnType)
+                            || Integer.class.equals(returnType);
 
             Assert.isTrue(isInt || isVoid,
                     "Modifying queries can only use void or int/Integer as return type!");

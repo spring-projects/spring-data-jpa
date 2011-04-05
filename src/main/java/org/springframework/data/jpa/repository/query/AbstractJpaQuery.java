@@ -24,7 +24,6 @@ import org.springframework.data.jpa.repository.query.JpaQueryExecution.SingleEnt
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.RepositoryQuery;
-import org.springframework.data.repository.support.EntityMetadata;
 import org.springframework.util.Assert;
 
 
@@ -109,9 +108,8 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
         case PAGING:
             return new PagedExecution(getParameters());
         case MODIFYING:
-            EntityMetadata<?> metadata = method.getEntityInformation();
             return method.getClearAutomatically() ? new ModifyingExecution(
-                    metadata, em) : new ModifyingExecution(metadata, null);
+                    method, em) : new ModifyingExecution(method, null);
         default:
             return new SingleEntityExecution();
         }

@@ -23,6 +23,7 @@ import javax.persistence.QueryHint;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.sample.SpecialUser;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -208,4 +209,7 @@ public interface UserRepository extends JpaRepository<User, Integer>,
 
 
     List<User> findByEmailAddressLike(String email, Sort sort);
+
+
+    List<SpecialUser> findSpecialUsersByLastname(String lastname);
 }
