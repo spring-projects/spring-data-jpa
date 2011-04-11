@@ -36,6 +36,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.utils.JpaClassUtils;
 import org.springframework.data.repository.Repository;
 import org.springframework.util.Assert;
 
@@ -53,26 +54,39 @@ import org.springframework.util.Assert;
 public class SimpleJpaRepository<T, ID extends Serializable> implements
         JpaRepository<T, ID>, JpaSpecificationExecutor<T> {
 
-    private final JpaEntityInformation<T, ID> entityInformation;
+    private final JpaEntityInformation<T, ?> entityInformation;
     private final EntityManager em;
     private final PersistenceProvider provider;
 
 
     /**
      * Creates a new {@link SimpleJpaRepository} to manage objects of the given
-     * domain type.
+     * {@link JpaEntityInformation}.
      * 
-     * @param entityMetadata
+     * @param entityInformation
      * @param entityManager
      */
-    public SimpleJpaRepository(JpaEntityInformation<T, ID> entityMetadata,
+    public SimpleJpaRepository(JpaEntityInformation<T, ?> entityInformation,
             EntityManager entityManager) {
 
-        Assert.notNull(entityMetadata);
+        Assert.notNull(entityInformation);
         Assert.notNull(entityManager);
-        this.entityInformation = entityMetadata;
+        this.entityInformation = entityInformation;
         this.em = entityManager;
         this.provider = PersistenceProvider.fromEntityManager(entityManager);
+    }
+
+
+    /**
+     * Creates a new {@link SimpleJpaRepository} to manage objects of the given
+     * domain type.
+     * 
+     * @param domainClass
+     * @param em
+     */
+    public SimpleJpaRepository(Class<T> domainClass, EntityManager em) {
+
+        this(JpaClassUtils.getMetadata(domainClass, em), em);
     }
 
 
