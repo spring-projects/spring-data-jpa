@@ -288,6 +288,20 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements
     /*
      * (non-Javadoc)
      * 
+     * @see
+     * org.springframework.data.jpa.repository.JpaSpecificationExecutor#findAll
+     * (org.springframework.data.jpa.domain.Specification,
+     * org.springframework.data.domain.Sort)
+     */
+    public List<T> findAll(Specification<T> spec, Sort sort) {
+
+        return getQuery(spec, sort).getResultList();
+    }
+
+
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.springframework.data.repository.Repository#count()
      */
     public Long count() {

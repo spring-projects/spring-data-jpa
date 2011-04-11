@@ -19,6 +19,7 @@ import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 
 
@@ -57,6 +58,17 @@ public interface JpaSpecificationExecutor<T> {
      * @return
      */
     Page<T> findAll(Specification<T> spec, Pageable pageable);
+
+
+    /**
+     * Returns all entities matching the given {@link Specification} and
+     * {@link Sort}.
+     * 
+     * @param spec
+     * @param sort
+     * @return
+     */
+    List<T> findAll(Specification<T> spec, Sort sort);
 
 
     /**
