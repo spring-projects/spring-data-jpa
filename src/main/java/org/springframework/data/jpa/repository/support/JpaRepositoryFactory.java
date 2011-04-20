@@ -15,6 +15,8 @@
  */
 package org.springframework.data.jpa.repository.support;
 
+import static org.springframework.data.querydsl.QueryDslUtils.*;
+
 import java.io.Serializable;
 
 import javax.persistence.EntityManager;
@@ -28,7 +30,6 @@ import org.springframework.data.repository.query.QueryLookupStrategy.Key;
 import org.springframework.data.repository.support.RepositoryFactorySupport;
 import org.springframework.data.repository.support.RepositoryMetadata;
 import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
 
 
 /**
@@ -37,10 +38,6 @@ import org.springframework.util.ClassUtils;
  * @author Oliver Gierke
  */
 public class JpaRepositoryFactory extends RepositoryFactorySupport {
-
-    private static final boolean QUERY_DSL_PRESENT = ClassUtils.isPresent(
-            "com.mysema.query.types.Predicate",
-            JpaRepositoryFactory.class.getClassLoader());
 
     private final EntityManager entityManager;
     private final QueryExtractor extractor;
