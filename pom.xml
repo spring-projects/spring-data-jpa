@@ -251,7 +251,7 @@
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>spring-data-commons-core</artifactId>
-			<version>1.0.0.BUILD-SNAPSHOT</version>
+			<version>1.1.0.BUILD-SNAPSHOT</version>
 		</dependency>
 		
 		<dependency>
