@@ -254,7 +254,7 @@ public class UserRepositoryTests {
     private void assertDeleteCallDoesNotDeleteAnything(List<User> collection) {
 
         flushTestUsers();
-        Long count = repository.count();
+        long count = repository.count();
 
         repository.delete(collection);
         assertEquals(count, repository.count());
@@ -267,9 +267,9 @@ public class UserRepositoryTests {
         flushTestUsers();
         repository.renameAllUsersTo("newLastname");
 
-        Integer expected = repository.count().intValue();
-        assertThat(repository.findByLastname("newLastname").size(),
-                is(expected));
+        long expected = repository.count();
+        assertThat(repository.findByLastname("newLastname").size(), is(Long
+                .valueOf(expected).intValue()));
     }
 
 
@@ -349,7 +349,7 @@ public class UserRepositoryTests {
 
         repository.deleteAll();
 
-        assertEquals((Long) 0L, repository.count());
+        assertEquals(0L, repository.count());
     }
 
 
@@ -415,13 +415,13 @@ public class UserRepositoryTests {
     @Test
     public void testCountsCorrectly() {
 
-        Long count = repository.count();
+        long count = repository.count();
 
         User user = new User();
         user.setEmailAddress("gierke@synyx.de");
         repository.save(user);
 
-        assertTrue(repository.count().equals(count + 1));
+        assertTrue(repository.count() == count + 1);
     }
 
 

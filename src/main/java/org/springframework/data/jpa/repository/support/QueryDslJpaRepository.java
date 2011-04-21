@@ -146,7 +146,7 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends
      * @see org.springframework.data.jpa.repository.querydsl.
      * QueryDslSpecificationExecutor#count(com.mysema.query.types.Predicate)
      */
-    public Long count(Predicate predicate) {
+    public long count(Predicate predicate) {
 
         return createQuery(predicate).count();
     }

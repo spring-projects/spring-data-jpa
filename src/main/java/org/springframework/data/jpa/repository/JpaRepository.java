@@ -23,7 +23,6 @@ import javax.persistence.EntityManager;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -96,7 +95,7 @@ public interface JpaRepository<T, ID extends Serializable> extends
      * 
      * @see org.springframework.data.repository.Repository#count()
      */
-    Long count();
+    long count();
 
 
     /*

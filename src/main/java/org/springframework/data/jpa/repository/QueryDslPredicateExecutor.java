@@ -77,5 +77,5 @@ public interface QueryDslPredicateExecutor<T> {
      * @param predicate the {@link Predicate} to count instances for
      * @return the number of instances
      */
-    Long count(Predicate predicate);
+    long count(Predicate predicate);
 }

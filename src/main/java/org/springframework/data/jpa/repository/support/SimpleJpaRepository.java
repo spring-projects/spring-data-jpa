@@ -304,7 +304,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements
      * 
      * @see org.springframework.data.repository.Repository#count()
      */
-    public Long count() {
+    public long count() {
 
         return em.createQuery(getCountQueryString(), Long.class)
                 .getSingleResult();
@@ -318,7 +318,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements
      * org.springframework.data.jpa.repository.JpaSpecificationExecutor#count
      * (org.springframework.data.jpa.domain.Specification)
      */
-    public Long count(Specification<T> spec) {
+    public long count(Specification<T> spec) {
 
         return getCountQuery(spec).getSingleResult();
     }

@@ -78,5 +78,5 @@ public interface JpaSpecificationExecutor<T> {
      * @param spec the {@link Specification} to count instances for
      * @return the number of instances
      */
-    Long count(Specification<T> spec);
+    long count(Specification<T> spec);
 }
