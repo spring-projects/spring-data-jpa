@@ -708,4 +708,28 @@ public interface UserRepository extends JpaRepository&lt;User, Long&gt; {
       thus allow seemless tracking of the auditor.</para>
     </simplesect>
   </section>
+
+  <section id="jpa.misc">
+    <title>Miscellaneous</title>
+
+    <section>
+      <title>Merging persistence units</title>
+
+      <para>Spring supports ahving multiple persistence units out of the box.
+      But sometimes you might wanna modularize your application but make sure
+      that all these module run inside a single persistence unit at runtime.
+      To do so Spring Data JPA offers a PersistenceUnitManager implementation
+      that automatically merges persistence units based on their name.</para>
+
+      <example>
+        <title>Using MergingPersistenceUnitmanager</title>
+
+        <para><programlisting language="xml">&lt;bean class="….LocalContainerEntityManagerFactoryBean"&gt;
+  &lt;property name="persistenceUnitManager"&gt;
+    &lt;bean class="….MergingPersistenceUnitManager" /&gt;
+  &lt;/property
+&lt;/bean&gt;</programlisting></para>
+      </example>
+    </section>
+  </section>
 </chapter>
