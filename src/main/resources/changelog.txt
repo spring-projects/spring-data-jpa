@@ -4,6 +4,7 @@ Spring Data JPA Changelog
 Changes in version 1.0.0.RC1 
 ----------------------------------------
 * Improved performance of query execution by uhsing method.getAnnotation(…) instead of AnnotationUtils.getAnnotation(…)
+* JpaPersistableEntityInformation now uses Persistable.isNew(…) (DATAJPA-58)
 
 Changes in version 1.0.0.M2 (2011-03-24) - https://jira.springsource.org/browse/DATAJPA/fixforversion/11800
 ----------------------------------------

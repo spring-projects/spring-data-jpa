@@ -49,6 +49,20 @@ public class JpaPersistableEntityInformation<T extends Persistable<ID>, ID exten
      * (non-Javadoc)
      * 
      * @see
+     * org.springframework.data.repository.support.AbstractEntityInformation
+     * #isNew(java.lang.Object)
+     */
+    @Override
+    public boolean isNew(T entity) {
+
+        return entity.isNew();
+    }
+
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
      * org.springframework.data.jpa.repository.support.JpaMetamodelEntityMetadata
      * #getId(java.lang.Object)
      */
