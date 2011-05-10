@@ -3,6 +3,10 @@ Spring Data JPA Changelog
 
 Changes in version 1.0.0.RC1 
 ----------------------------------------
+* Expose findAll(Specification<T> spec, Sort sort) in JpaSpecificationExecutor (DATAJPA-48)
+* Improved target domain class detection for queries returning void and numeric values (DATAJPA-44)
+* Improved extensibility of QueryDslJpaRepository (DATAJPA-39)
+* Configured Maven build to include Bundlor generated MANIFEST.MF (DATAJPA-42)
 * Improved performance of query execution by uhsing method.getAnnotation(…) instead of AnnotationUtils.getAnnotation(…)
 * JpaPersistableEntityInformation now uses Persistable.isNew(…) (DATAJPA-58)
 
