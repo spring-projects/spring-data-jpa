@@ -116,6 +116,19 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements
      * (non-Javadoc)
      * 
      * @see
+     * org.springframework.data.jpa.repository.JpaRepository#delete(java.io.
+     * Serializable)
+     */
+    public void delete(ID id) {
+
+        delete(findOne(id));
+    }
+
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
      * org.springframework.data.repository.Repository#delete(java.lang.Object)
      */
     public void delete(T entity) {

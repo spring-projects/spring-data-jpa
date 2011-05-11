@@ -187,6 +187,16 @@ public class UserRepositoryTests {
     }
 
 
+    @Test
+    public void deletesAUserById() {
+
+        flushTestUsers();
+
+        repository.delete(firstUser.getId());
+        assertNull(repository.findOne(firstUser.getId()));
+    }
+
+
     /**
      * Tests deleting a user.
      */

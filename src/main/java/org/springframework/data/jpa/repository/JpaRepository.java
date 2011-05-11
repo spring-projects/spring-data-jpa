@@ -102,6 +102,17 @@ public interface JpaRepository<T, ID extends Serializable> extends
      * (non-Javadoc)
      * 
      * @see
+     * org.springframework.data.repository.Repository#delete(java.io.Serializable
+     * )
+     */
+    @Transactional
+    public void delete(ID id);
+
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
      * org.springframework.data.repository.Repository#delete(java.lang.Object)
      */
     @Transactional
