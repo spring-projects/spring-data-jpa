@@ -34,6 +34,12 @@ import org.springframework.data.repository.query.RepositoryQuery;
  */
 final class NamedQuery extends AbstractStringBasedJpaQuery {
 
+    private static final String CANNOT_EXTRACT_QUERY =
+            "Your persistence provider does not support extracting the JPQL query from a "
+                    + "named query thus you can't use Pageable inside your query method. Make sure you "
+                    + "have a JpaDialect configured at your EntityManagerFactoryBean as this affects "
+                    + "discovering the concrete persistence provider.";
+
     private static final Logger LOG = LoggerFactory.getLogger(NamedQuery.class);
 
     private final String queryName;
@@ -49,6 +55,31 @@ final class NamedQuery extends AbstractStringBasedJpaQuery {
 
         this.queryName = method.getNamedQueryName();
         this.extractor = method.getQueryExtractor();
+
+        Parameters parameters = method.getParameters();
+
+        if (parameters.hasSortParameter()) {
+            throw new IllegalStateException(String.format(
+                    "Finder method %s is backed " + "by a NamedQuery and must "
+                            + "not contain a sort parameter as we "
+                            + "cannot modify the query! Use @Query instead!",
+                    method));
+        }
+
+        if (parameters.hasPageableParameter()) {
+            LOG.info("Finder method {} is backed by a NamedQuery"
+                    + " but contains a Pageble parameter! Sorting deliviered "
+                    + "via this Pageable will not be applied!", method);
+        }
+
+        boolean weNeedToCreateCountQuery =
+                method.getParameters().hasPageableParameter();
+        boolean cantExtractQuery = !this.extractor.canExtractQuery();
+
+        if (weNeedToCreateCountQuery && cantExtractQuery) {
+            throw QueryCreationException.create(method, CANNOT_EXTRACT_QUERY);
+        }
+
         Query query = em.createNamedQuery(queryName);
 
         // Workaround for https://bugs.eclipse.org/bugs/show_bug.cgi?id=322579
@@ -73,40 +104,7 @@ final class NamedQuery extends AbstractStringBasedJpaQuery {
         LOG.debug("Looking up named query {}", queryName);
 
         try {
-
-            RepositoryQuery query = new NamedQuery(method, em);
-            Parameters parameters = method.getParameters();
-
-            if (parameters.hasSortParameter()) {
-                throw new IllegalStateException(
-                        String.format(
-                                "Finder method %s is backed "
-                                        + "by a NamedQuery and must "
-                                        + "not contain a sort parameter as we "
-                                        + "cannot modify the query! Use @Query instead!",
-                                method));
-            }
-
-            boolean isPaging = parameters.hasPageableParameter();
-            boolean cannotExtractQuery =
-                    !method.getQueryExtractor().canExtractQuery();
-
-            if (isPaging && cannotExtractQuery) {
-                throw QueryCreationException
-                        .create(method,
-                                "Cannot use Pageable parameter in query methods with your persistence provider!");
-            }
-
-            if (parameters.hasPageableParameter()) {
-                LOG.info(
-                        "Finder method {} is backed by a NamedQuery"
-                                + " but contains a Pageble parameter! Sorting deliviered "
-                                + "via this Pageable will not be applied!",
-                        method);
-
-            }
-
-            return query;
+            return new NamedQuery(method, em);
         } catch (IllegalArgumentException e) {
             return null;
         }

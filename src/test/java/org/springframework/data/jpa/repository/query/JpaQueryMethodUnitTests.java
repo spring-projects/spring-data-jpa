@@ -17,7 +17,6 @@ package org.springframework.data.jpa.repository.query;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
 
 import java.lang.reflect.Method;
 import java.util.List;
@@ -165,20 +164,6 @@ public class JpaQueryMethodUnitTests {
     public void rejectsTwoSortableParameters() {
 
         new JpaQueryMethod(sortableTwice, metadata, extractor);
-    }
-
-
-    @Test(expected = IllegalArgumentException.class)
-    public void rejectsPageablesOnPersistenceProvidersNotExtractingQueries()
-            throws Exception {
-
-        Method method =
-                UserRepository.class.getMethod("findByLastname",
-                        Pageable.class, String.class);
-
-        when(extractor.canExtractQuery()).thenReturn(false);
-
-        new JpaQueryMethod(method, metadata, extractor);
     }
 
 

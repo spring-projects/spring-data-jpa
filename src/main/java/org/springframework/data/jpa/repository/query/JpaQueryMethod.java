@@ -67,11 +67,6 @@ public class JpaQueryMethod extends QueryMethod {
         Assert.isTrue(!(isModifyingQuery() && getParameters()
                 .hasSpecialParameter()), String.format(
                 "Modifying method must not contain %s!", Parameters.TYPES));
-
-        Assert.isTrue(!(getParameters().hasPageableParameter() && !extractor
-                .canExtractQuery()),
-                "You cannot use Pageable as method parameter if your "
-                        + "persistence provider cannot extract queries!");
     }
 
 
