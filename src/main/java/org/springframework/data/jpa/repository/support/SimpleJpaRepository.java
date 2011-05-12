@@ -37,13 +37,13 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.utils.JpaClassUtils;
-import org.springframework.data.repository.Repository;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.util.Assert;
 
 
 /**
- * Default implementation of the {@link Repository} interface. This will offer
+ * Default implementation of the {@link CrudRepository} interface. This will offer
  * you a more sophisticated interface than the plain {@link EntityManager} .
  * 
  * @author Oliver Gierke

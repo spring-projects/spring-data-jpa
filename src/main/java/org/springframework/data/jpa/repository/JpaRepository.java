@@ -22,7 +22,7 @@ import javax.persistence.EntityManager;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.PagingAndSortingRepository;
-import org.springframework.data.repository.Repository;
+import org.springframework.data.repository.CrudRepository;
 
 
 /**

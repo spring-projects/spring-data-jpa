@@ -19,11 +19,11 @@ import java.io.Serializable;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.NoRepositoryBean;
-import org.springframework.data.repository.Repository;
+import org.springframework.data.repository.CrudRepository;
 
 
 /**
- * Extension of {@link Repository} to be added on a custom repository base
+ * Extension of {@link CrudRepository} to be added on a custom repository base
  * class. This tests the facility to implement custom base class functionality
  * for all repository instances derived from this interface and implementation
  * base class.

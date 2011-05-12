@@ -16,7 +16,7 @@
 package org.springframework.data.jpa.repository.sample;
 
 import org.springframework.data.jpa.domain.sample.Role;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.repository.CrudRepository;
 
 
 /**
@@ -24,6 +24,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
  * 
  * @author Oliver Gierke
  */
-public interface RoleRepository extends JpaRepository<Role, Integer> {
+public interface RoleRepository extends CrudRepository<Role, Integer> {
 
 }
