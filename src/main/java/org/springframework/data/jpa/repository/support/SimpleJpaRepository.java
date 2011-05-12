@@ -38,6 +38,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.utils.JpaClassUtils;
 import org.springframework.data.repository.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
 
@@ -51,6 +52,7 @@ import org.springframework.util.Assert;
  * @param <ID> the type of the entity's identifier
  */
 @org.springframework.stereotype.Repository
+@Transactional(readOnly = true)
 public class SimpleJpaRepository<T, ID extends Serializable> implements
         JpaRepository<T, ID>, JpaSpecificationExecutor<T> {
 
@@ -119,6 +121,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements
      * org.springframework.data.jpa.repository.JpaRepository#delete(java.io.
      * Serializable)
      */
+    @Transactional
     public void delete(ID id) {
 
         delete(findOne(id));
@@ -131,6 +134,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements
      * @see
      * org.springframework.data.repository.Repository#delete(java.lang.Object)
      */
+    @Transactional
     public void delete(T entity) {
 
         em.remove(em.contains(entity) ? entity : em.merge(entity));
@@ -143,6 +147,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements
      * @see
      * org.springframework.data.repository.Repository#delete(java.lang.Iterable)
      */
+    @Transactional
     public void delete(Iterable<? extends T> entities) {
 
         if (entities == null) {
@@ -162,6 +167,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements
      * org.springframework.data.jpa.repository.JpaRepository#deleteInBatch(java
      * .lang.Iterable)
      */
+    @Transactional
     public void deleteInBatch(Iterable<T> entities) {
 
         if (null == entities || !entities.iterator().hasNext()) {
@@ -179,6 +185,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements
      * 
      * @see org.springframework.data.repository.Repository#deleteAll()
      */
+    @Transactional
     public void deleteAll() {
 
         em.createQuery(getDeleteAllQueryString()).executeUpdate();
@@ -343,6 +350,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements
      * @see
      * org.springframework.data.repository.Repository#save(java.lang.Object)
      */
+    @Transactional
     public T save(T entity) {
 
         if (entityInformation.isNew(entity)) {
@@ -361,6 +369,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements
      * org.springframework.data.jpa.repository.JpaRepository#saveAndFlush(java
      * .lang.Object)
      */
+    @Transactional
     public T saveAndFlush(T entity) {
 
         T result = save(entity);
@@ -376,6 +385,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements
      * @see
      * org.springframework.data.repository.Repository#save(java.lang.Iterable)
      */
+    @Transactional
     public List<T> save(Iterable<? extends T> entities) {
 
         List<T> result = new ArrayList<T>();
@@ -397,6 +407,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements
      * 
      * @see org.springframework.data.jpa.repository.JpaRepository#flush()
      */
+    @Transactional
     public void flush() {
 
         em.flush();

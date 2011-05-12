@@ -20,67 +20,18 @@ import java.util.List;
 
 import javax.persistence.EntityManager;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 
 /**
- * JPA specific extension of {@link Repository}. Redeclares methods from
- * {@link Repository} and {@link PagingAndSortingRepository} to apply
- * transaction configuration to those. We need to do this to allow specific
- * extensions of the interface to override transaction configuration. If we'd
- * annotated the implementation this configuration would always enjoy precedence
- * over the configuration applied on an interface.
+ * JPA specific extension of {@link Repository}.
  * 
  * @author Oliver Gierke
  */
-@Transactional(readOnly = true)
 public interface JpaRepository<T, ID extends Serializable> extends
         PagingAndSortingRepository<T, ID> {
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.springframework.data.repository.Repository#save(java.lang.Object)
-     */
-    @Transactional
-    T save(T entity);
-
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.springframework.data.repository.Repository#save(java.lang.Iterable)
-     */
-    @Transactional
-    List<T> save(Iterable<? extends T> entities);
-
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.springframework.data.repository.Repository#findById(java.io.Serializable
-     * )
-     */
-    T findOne(ID id);
-
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.springframework.data.repository.Repository#exists(java.io.Serializable
-     * )
-     */
-    boolean exists(ID id);
-
 
     /*
      * (non-Javadoc)
@@ -88,54 +39,6 @@ public interface JpaRepository<T, ID extends Serializable> extends
      * @see org.springframework.data.repository.Repository#findAll()
      */
     List<T> findAll();
-
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.springframework.data.repository.Repository#count()
-     */
-    long count();
-
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.springframework.data.repository.Repository#delete(java.io.Serializable
-     * )
-     */
-    @Transactional
-    public void delete(ID id);
-
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.springframework.data.repository.Repository#delete(java.lang.Object)
-     */
-    @Transactional
-    void delete(T entity);
-
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.springframework.data.repository.Repository#delete(java.lang.Iterable)
-     */
-    @Transactional
-    void delete(Iterable<? extends T> entities);
-
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.springframework.data.repository.Repository#deleteAll()
-     */
-    @Transactional
-    void deleteAll();
 
 
     /*
@@ -152,16 +55,14 @@ public interface JpaRepository<T, ID extends Serializable> extends
      * (non-Javadoc)
      * 
      * @see
-     * org.springframework.data.repository.PagingAndSortingRepository#findAll
-     * (org.springframework.data.domain.Pageable)
+     * org.springframework.data.repository.Repository#save(java.lang.Iterable)
      */
-    Page<T> findAll(Pageable pageable);
+    List<T> save(Iterable<? extends T> entities);
 
 
     /**
      * Flushes all pending changes to the database.
      */
-    @Transactional
     void flush();
 
 
@@ -171,7 +72,6 @@ public interface JpaRepository<T, ID extends Serializable> extends
      * @param entity
      * @return the saved entity
      */
-    @Transactional
     T saveAndFlush(T entity);
 
 
@@ -182,6 +82,5 @@ public interface JpaRepository<T, ID extends Serializable> extends
      * 
      * @param entities
      */
-    @Transactional
     void deleteInBatch(Iterable<T> entities);
 }

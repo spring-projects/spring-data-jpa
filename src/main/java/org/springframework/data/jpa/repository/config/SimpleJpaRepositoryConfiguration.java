@@ -15,7 +15,6 @@
  */
 package org.springframework.data.jpa.repository.config;
 
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.config.AutomaticRepositoryConfigInformation;
 import org.springframework.data.repository.config.ManualRepositoryConfigInformation;
 import org.springframework.data.repository.config.RepositoryConfig;
@@ -42,19 +41,6 @@ public class SimpleJpaRepositoryConfiguration
     public SimpleJpaRepositoryConfiguration(Element repositoriesElement) {
 
         super(repositoriesElement, FACTORY_CLASS);
-    }
-
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.springframework.data.repository.config.GlobalRepositoryConfigInformation
-     * #getRepositoryBaseInterface()
-     */
-    public Class<?> getRepositoryBaseInterface() {
-
-        return JpaRepository.class;
     }
 
 
