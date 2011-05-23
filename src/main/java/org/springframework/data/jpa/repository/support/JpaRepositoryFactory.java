@@ -21,10 +21,10 @@ import java.io.Serializable;
 
 import javax.persistence.EntityManager;
 
-import org.springframework.data.jpa.repository.QueryDslPredicateExecutor;
 import org.springframework.data.jpa.repository.query.JpaQueryLookupStrategy;
 import org.springframework.data.jpa.repository.query.QueryExtractor;
 import org.springframework.data.jpa.repository.utils.JpaClassUtils;
+import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.data.repository.query.QueryLookupStrategy.Key;
 import org.springframework.data.repository.support.RepositoryFactorySupport;

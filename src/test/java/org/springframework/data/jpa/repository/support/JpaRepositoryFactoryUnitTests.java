@@ -31,9 +31,9 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.aop.framework.Advised;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.QueryDslPredicateExecutor;
 import org.springframework.data.jpa.repository.custom.CustomGenericJpaRepositoryFactory;
 import org.springframework.data.jpa.repository.custom.UserCustomExtendedRepository;
+import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 import org.springframework.data.repository.support.DefaultRepositoryMetadata;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -51,6 +51,7 @@ public class JpaRepositoryFactoryUnitTests {
     @Mock
     EntityManager entityManager;
     @Mock
+    @SuppressWarnings("rawtypes")
     JpaEntityInformation metadata;
 
 

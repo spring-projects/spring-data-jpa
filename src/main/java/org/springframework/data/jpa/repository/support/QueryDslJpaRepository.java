@@ -25,8 +25,8 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
-import org.springframework.data.jpa.repository.QueryDslPredicateExecutor;
 import org.springframework.data.querydsl.EntityPathResolver;
+import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 import org.springframework.data.querydsl.SimpleEntityPathResolver;
 
 import com.mysema.query.jpa.JPQLQuery;
