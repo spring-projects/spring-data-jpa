@@ -190,9 +190,31 @@
 
                 <entry><code>… where x.lastname &lt;&gt; ?1</code></entry>
               </row>
+
+              <row>
+                <entry><code>In</code></entry>
+
+                <entry><code>findByAgeIn(Collection&lt;Age&gt;
+                ages)</code></entry>
+
+                <entry><code>… where x.age in ?1</code></entry>
+              </row>
+
+              <row>
+                <entry><code>NotIn</code></entry>
+
+                <entry><code>findByAgeNotIn(Collection&lt;Age&gt;
+                age)</code></entry>
+
+                <entry><code>… where x.age not in ?1</code></entry>
+              </row>
             </tbody>
           </tgroup>
-        </table></para>
+        </table><note>
+          <para><code>In</code> and <code>NotIn</code> also take any subclass
+          of <interfacename>Collection</interfacename> as parameter as well as
+          arrays or varargs.</para>
+        </note></para>
     </section>
 
     <section id="jpa.query-methods.named-queries">
