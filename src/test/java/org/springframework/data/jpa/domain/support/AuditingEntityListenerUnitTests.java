@@ -60,7 +60,7 @@ public class AuditingEntityListenerUnitTests {
     @Test
     public void doesNotSetAuditorIfNotConfigured() {
 
-        listener.touch(user);
+        listener.touchForCreate(user);
 
         assertNotNull(user.getCreatedDate());
         assertNotNull(user.getLastModifiedDate());
@@ -79,7 +79,7 @@ public class AuditingEntityListenerUnitTests {
 
         listener.setAuditorAware(auditorAware);
 
-        listener.touch(user);
+        listener.touchForCreate(user);
 
         assertNotNull(user.getCreatedDate());
         assertNotNull(user.getLastModifiedDate());
@@ -100,7 +100,7 @@ public class AuditingEntityListenerUnitTests {
 
         listener.setAuditorAware(auditorAware);
         listener.setModifyOnCreation(false);
-        listener.touch(user);
+        listener.touchForCreate(user);
 
         assertNotNull(user.getCreatedDate());
         assertNotNull(user.getCreatedBy());
@@ -122,7 +122,7 @@ public class AuditingEntityListenerUnitTests {
         user = new AuditableUser(1L);
 
         listener.setAuditorAware(auditorAware);
-        listener.touch(user);
+        listener.touchForUpdate(user);
 
         assertNull(user.getCreatedBy());
         assertNull(user.getCreatedDate());
@@ -139,7 +139,7 @@ public class AuditingEntityListenerUnitTests {
 
         listener.setDateTimeForNow(false);
         listener.setAuditorAware(auditorAware);
-        listener.touch(user);
+        listener.touchForCreate(user);
 
         assertNotNull(user.getCreatedBy());
         assertNull(user.getCreatedDate());

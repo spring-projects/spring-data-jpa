@@ -106,13 +106,31 @@ public class AuditingEntityListener<T> implements InitializingBean {
 
     /**
      * Sets modification and creation date and auditor on the target object in
-     * case it implements {@link Auditable}.
+     * case it implements {@link Auditable} on persist events.
      * 
      * @param target
      */
     @PrePersist
+    public void touchForCreate(Object target) {
+
+        touch(target, true);
+    }
+
+
+    /**
+     * Sets modification and creation date and auditor on the target object in
+     * case it implements {@link Auditable} on update events.
+     * 
+     * @param target
+     */
     @PreUpdate
-    public void touch(Object target) {
+    public void touchForUpdate(Object target) {
+
+        touch(target, false);
+    }
+
+
+    private void touch(Object target, boolean isNew) {
 
         if (!(target instanceof Auditable)) {
             return;
@@ -121,8 +139,8 @@ public class AuditingEntityListener<T> implements InitializingBean {
         @SuppressWarnings("unchecked")
         Auditable<T, ?> auditable = (Auditable<T, ?>) target;
 
-        T auditor = touchAuditor(auditable);
-        DateTime now = dateTimeForNow ? touchDate(auditable) : null;
+        T auditor = touchAuditor(auditable, isNew);
+        DateTime now = dateTimeForNow ? touchDate(auditable, isNew) : null;
 
         Object defaultedNow = now == null ? "not set" : now;
         Object defaultedAuditor = auditor == null ? "unknown" : auditor;
@@ -139,7 +157,7 @@ public class AuditingEntityListener<T> implements InitializingBean {
      * @param auditable
      * @return
      */
-    private T touchAuditor(final Auditable<T, ?> auditable) {
+    private T touchAuditor(final Auditable<T, ?> auditable, boolean isNew) {
 
         if (null == auditorAware) {
             return null;
@@ -147,7 +165,7 @@ public class AuditingEntityListener<T> implements InitializingBean {
 
         T auditor = auditorAware.getCurrentAuditor();
 
-        if (auditable.isNew()) {
+        if (isNew) {
 
             auditable.setCreatedBy(auditor);
 
@@ -169,11 +187,11 @@ public class AuditingEntityListener<T> implements InitializingBean {
      * @param auditable
      * @return
      */
-    private DateTime touchDate(final Auditable<T, ?> auditable) {
+    private DateTime touchDate(final Auditable<T, ?> auditable, boolean isNew) {
 
         DateTime now = new DateTime();
 
-        if (auditable.isNew()) {
+        if (isNew) {
             auditable.setCreatedDate(now);
 
             if (!modifyOnCreation) {
