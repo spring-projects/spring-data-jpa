@@ -23,7 +23,7 @@ import javax.persistence.EntityManager;
 
 import org.springframework.data.jpa.repository.support.JpaEntityInformation;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactory;
-import org.springframework.data.repository.support.RepositoryMetadata;
+import org.springframework.data.repository.core.RepositoryMetadata;
 
 
 /**

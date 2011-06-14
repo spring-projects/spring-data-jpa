@@ -19,7 +19,7 @@ import java.io.Serializable;
 
 import javax.persistence.metamodel.SingularAttribute;
 
-import org.springframework.data.repository.support.EntityInformation;
+import org.springframework.data.repository.core.EntityInformation;
 
 
 /**

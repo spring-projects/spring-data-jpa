@@ -24,8 +24,8 @@ import javax.persistence.metamodel.EntityType;
 import javax.persistence.metamodel.Metamodel;
 import javax.persistence.metamodel.SingularAttribute;
 
-import org.springframework.data.repository.support.AbstractEntityInformation;
-import org.springframework.data.repository.support.EntityInformation;
+import org.springframework.data.repository.core.EntityInformation;
+import org.springframework.data.repository.core.support.AbstractEntityInformation;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 

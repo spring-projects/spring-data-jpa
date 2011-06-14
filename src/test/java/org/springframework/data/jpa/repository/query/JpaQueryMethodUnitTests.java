@@ -34,10 +34,10 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.sample.UserRepository;
+import org.springframework.data.repository.core.RepositoryMetadata;
+import org.springframework.data.repository.core.support.DefaultRepositoryMetadata;
 import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.QueryMethod.Type;
-import org.springframework.data.repository.support.DefaultRepositoryMetadata;
-import org.springframework.data.repository.support.RepositoryMetadata;
 
 
 /**

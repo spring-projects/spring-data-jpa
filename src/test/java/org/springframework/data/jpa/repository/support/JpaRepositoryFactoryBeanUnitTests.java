@@ -36,7 +36,7 @@ import org.springframework.dao.support.PersistenceExceptionTranslator;
 import org.springframework.data.domain.Persistable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.Repository;
-import org.springframework.data.repository.support.RepositoryFactorySupport;
+import org.springframework.data.repository.core.support.RepositoryFactorySupport;
 
 
 /**

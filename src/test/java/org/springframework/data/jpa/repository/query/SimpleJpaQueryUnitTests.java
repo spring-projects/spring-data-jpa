@@ -33,7 +33,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.jpa.repository.sample.UserRepository;
-import org.springframework.data.repository.support.RepositoryMetadata;
+import org.springframework.data.repository.core.RepositoryMetadata;
 
 
 /**

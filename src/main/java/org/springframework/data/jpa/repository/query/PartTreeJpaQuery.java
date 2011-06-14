@@ -21,11 +21,11 @@ import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaQuery;
 
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.repository.core.EntityMetadata;
 import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.parser.PartTree;
-import org.springframework.data.repository.support.EntityMetadata;
 
 
 /**

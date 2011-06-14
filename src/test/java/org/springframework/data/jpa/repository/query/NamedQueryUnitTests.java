@@ -28,8 +28,8 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.QueryCreationException;
-import org.springframework.data.repository.support.RepositoryMetadata;
 
 
 /**

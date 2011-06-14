@@ -28,9 +28,9 @@ import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryHints;
+import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.QueryMethod;
-import org.springframework.data.repository.support.RepositoryMetadata;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 

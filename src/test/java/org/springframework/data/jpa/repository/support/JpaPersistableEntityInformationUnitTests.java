@@ -29,7 +29,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.data.domain.Persistable;
-import org.springframework.data.repository.support.EntityInformation;
+import org.springframework.data.repository.core.EntityInformation;
 
 
 /**
