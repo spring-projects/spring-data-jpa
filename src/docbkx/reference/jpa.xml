@@ -396,8 +396,17 @@ int setFixedFirstnameFor(String firstname, String lastname);</programlisting>
     Evans' book Domain Driven Design, that carries the same semantics and
     provides an API to define such
     <interfacename>Specification</interfacename>s using the JPA criteria API.
-    Thus you find methods like this in
-    <interfacename>JpaRepository</interfacename>:</para>
+    Thus, there is a <interfacename>JpaSpecificationExecutor</interfacename>
+    interface you can additionally extend with your repository
+    interface:</para>
+
+    <programlisting language="java">public interface CustomerRepository extends CrudRepository&lt;Customer, Long&gt;, JpaSpecificationExecutor {
+ …
+}</programlisting>
+
+    <para>The additional interface carries methods like this one, which allow
+    you to execute <interfacename>Specification</interfacename>s in a variety
+    of ways.</para>
 
     <programlisting language="java">List&lt;T&gt; readAll(Specification&lt;T&gt; spec);</programlisting>
 
