@@ -7,22 +7,24 @@
                 version="1.0">
 
     <xsl:import href="urn:docbkx:stylesheet"/>
+    <xsl:import href="highlight.xsl"/>
+    
+
     <!--###################################################
                      HTML Settings
     ################################################### -->
     <xsl:param name="chunk.section.depth">'5'</xsl:param>
     <xsl:param name="use.id.as.filename">'1'</xsl:param>
-    <!-- These extensions are required for table printing and other stuff -->
-    <xsl:param name="use.extensions">1</xsl:param>
-    <xsl:param name="tablecolumns.extension">0</xsl:param>
-    <xsl:param name="callout.extensions">1</xsl:param>
+	<xsl:param name="tablecolumns.extension">0</xsl:param>
     <xsl:param name="graphicsize.extension">0</xsl:param>
+    <xsl:param name="ignore.image.scaling">1</xsl:param>
     <!--###################################################
                       Table Of Contents
     ################################################### -->
     <!-- Generate the TOCs for named components only -->
     <xsl:param name="generate.toc">
         book toc
+        qandaset toc
     </xsl:param>
     <!-- Show only Sections up to level 3 in the TOCs -->
     <xsl:param name="toc.section.depth">3</xsl:param>
@@ -39,6 +41,14 @@
     <!-- Place callout marks at this column in annotated areas -->
     <xsl:param name="callout.graphics">1</xsl:param>
     <xsl:param name="callout.defaultcolumn">90</xsl:param>
+    
+    <!--###################################################
+                      Admonitions
+   ################################################### -->
+
+    <!-- Use nice graphics for admonitions -->
+    <xsl:param name="admon.graphics">1</xsl:param>
+	<xsl:param name="admon.graphics.path">images/admons/</xsl:param>    
     <!--###################################################
                           Misc
     ################################################### -->
@@ -55,9 +65,12 @@
             <xsl:text>, </xsl:text>
         </xsl:if>
         <span class="{name(.)}">
-            <xsl:call-template name="person.name"/>
+            <xsl:call-template name="person.name"/> 
+            (<xsl:value-of select="affiliation"/>)
             <xsl:apply-templates mode="titlepage.mode" select="./contrib"/>
+            <!--
             <xsl:apply-templates mode="titlepage.mode" select="./affiliation"/>
+            -->
         </span>
     </xsl:template>
     <xsl:template match="authorgroup" mode="titlepage.mode">
@@ -70,15 +83,15 @@
     <!--###################################################
                      Headers and Footers
     ################################################### -->
-    <!-- let's have a Spring and SpringSource banner across the top of each page -->
+    <!-- let's have a Spring and I21 banner across the top of each page -->
     <xsl:template name="user.header.navigation">
         <div style="background-color:white;border:none;height:73px;border:1px solid black;">
-            <a style="border:none;" href="http://static.springframework.org/spring-ws/site/"
-               title="The Spring Framework - Spring Web Services">
+            <a style="border:none;" href="http://www.springframework.org/osgi/"
+               title="The Spring Framework - Spring Data">
                 <img style="border:none;" src="images/xdev-spring_logo.jpg"/>
             </a>
-            <a style="border:none;" href="http://www.springsource.com/" title="SpringSource">
-                <img style="border:none;position:absolute;padding-top:5px;right:42px;" src="images/s2_box_logo.png"/>
+            <a style="border:none;" href="http://www.SpringSource.com/" title="SpringSource - Spring from the Source">
+                <img style="border:none;position:absolute;padding-top:5px;right:42px;" src="images/s2-banner-rhs.png"/>
             </a>
         </div>
     </xsl:template>
@@ -187,8 +200,8 @@
                                 </td>
                                 <td width="20%" align="center">
                                     <span style="color:white;font-size:90%;">
-                                        <a href="http://www.springsource.com/"
-                                           title="SpringSource">Sponsored by SpringSource
+                                        <a href="http://www.SpringSource.com/"
+                                           title="SpringSource - Spring from the Source">Sponsored by SpringSource
                                         </a>
                                     </span>
                                 </td>

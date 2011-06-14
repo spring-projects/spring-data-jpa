@@ -1,12 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- 
 
-    This is the XSL FO (PDF) stylesheet for the Spring reference
+    This is the XSL FO (PDF) stylesheet for the Spring Data reference
     documentation.
-    
-    Thanks are due to Christian Bauer of the Hibernate project
-    team for writing the original stylesheet upon which this one
-    is based.
 -->
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
                 xmlns:fo="http://www.w3.org/1999/XSL/Format"
@@ -14,6 +10,7 @@
 
 
     <xsl:import href="urn:docbkx:stylesheet"/>
+    <xsl:import href="highlight-fo.xsl"/>
 
     <!--###################################################
                   Custom Title Page
@@ -26,13 +23,16 @@
                 <fo:table-body>
                     <fo:table-row>
                         <fo:table-cell text-align="center">
+							<!-- Logo 
                             <fo:block>
-                                <fo:block font-family="Helvetica" font-size="24pt" padding-before="10mm">
-                                    <xsl:value-of select="bookinfo/title"/>
-                                </fo:block>
+                                <fo:external-graphic src="file:src/docbkx/resources/images/s2_box_logo.png"/>
                             </fo:block>
+                            -->
                             <fo:block font-family="Helvetica" font-size="22pt" padding-before="10mm">
-                                <xsl:value-of select="bookinfo/subtitle"/>
+                                <xsl:value-of select="bookinfo/subtitle"/> 
+                            </fo:block>
+                            <fo:block font-family="Helvetica" font-size="14pt" padding="10mm">
+                                <xsl:value-of select="bookinfo/title"/>
                             </fo:block>
                             <fo:block font-family="Helvetica" font-size="12pt" padding="10mm">
                                 <xsl:value-of select="bookinfo/releaseinfo"/>
@@ -49,7 +49,6 @@
                     <fo:table-row>
                         <fo:table-cell text-align="center">
                             <fo:block font-family="Helvetica" font-size="12pt" padding="10mm">
-                                <xsl:text>Copyright &#xA9; 2011</xsl:text>
                                 <xsl:for-each select="bookinfo/authorgroup/author">
                                     <xsl:if test="position() > 1">
                                         <xsl:text>, </xsl:text>
@@ -57,8 +56,15 @@
                                     <xsl:value-of select="firstname"/>
                                     <xsl:text> </xsl:text>
                                     <xsl:value-of select="surname"/>
+                                    <!-- <xsl:text> (</xsl:text>
+                                    <xsl:value-of select="affiliation"/>
+                                    <xsl:text>)</xsl:text> -->
                                 </xsl:for-each>
                             </fo:block>
+                            <fo:block font-family="Helvetica" font-size="12pt" padding="10mm">
+								<xsl:text>Copyright &#xA9; 2011</xsl:text>
+							</fo:block>
+
                             <fo:block font-family="Helvetica" font-size="10pt" padding="1mm">
                                 <xsl:value-of select="bookinfo/legalnotice"/>
                             </fo:block>
@@ -98,13 +104,11 @@
         <xsl:param name="sequence" select="''"/>
         <xsl:param name="position" select="''"/>
         <xsl:param name="gentext-key" select="''"/>
-        <xsl:variable name="Version">
-            <xsl:if test="//releaseinfo">
-                <xsl:text>Spring Data JPA (</xsl:text>
-                <xsl:value-of select="//releaseinfo"/>
-                <xsl:text>)</xsl:text>
-            </xsl:if>
-        </xsl:variable>
+		<xsl:variable name="Version">
+			<xsl:if test="//releaseinfo">
+				<xsl:text>Spring Data Document (</xsl:text><xsl:value-of select="//releaseinfo" /><xsl:text>)</xsl:text>
+			</xsl:if>
+		</xsl:variable>
         <xsl:choose>
             <xsl:when test="$sequence='blank'">
                 <xsl:if test="$position = 'center'">
@@ -144,11 +148,11 @@
    ################################################### -->
 
     <!-- These extensions are required for table printing and other stuff -->
-    <xsl:param name="use.extensions">1</xsl:param>
     <xsl:param name="tablecolumns.extension">0</xsl:param>
-    <xsl:param name="callout.extensions">1</xsl:param>
     <!-- FOP provide only PDF Bookmarks at the moment -->
     <xsl:param name="fop.extensions">1</xsl:param>
+    <xsl:param name="fop1.extensions">1</xsl:param>
+    <xsl:param name="ignore.image.scaling">0</xsl:param>
 
     <!--###################################################
                      Table Of Contents
@@ -368,7 +372,7 @@
 
     <!-- Use nice graphics for admonitions -->
     <xsl:param name="admon.graphics">'1'</xsl:param>
-    <!--  <xsl:param name="admon.graphics.path">&admon_gfx_path;</xsl:param> -->
+    <xsl:param name="admon.graphics.path">src/docbkx/resources/images/admons/</xsl:param>
 
     <!--###################################################
                          Misc
@@ -414,5 +418,32 @@
             </xsl:choose>
         </fo:basic-link>
     </xsl:template>
+
+    <xsl:template match="link">
+        <fo:basic-link internal-destination="{@linkend}"
+                xsl:use-attribute-sets="xref.properties"
+                text-decoration="underline"
+                color="blue">
+            <xsl:choose>
+                <xsl:when test="count(child::node())=0">
+                    <xsl:value-of select="@linkend"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:apply-templates/>
+                </xsl:otherwise>
+            </xsl:choose>
+        </fo:basic-link>
+    </xsl:template>
+    <!--
+    
+    <xsl:template match="xref">
+        <fo:basic-link internal-destination="{@linkend}"
+                xsl:use-attribute-sets="xref.properties"
+                text-decoration="underline"
+                color="blue">
+				<xsl:apply-templates/>
+        </fo:basic-link>
+    </xsl:template>    
+    -->
 
 </xsl:stylesheet>

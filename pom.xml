@@ -160,6 +160,7 @@
 							<chunkedOutput>false</chunkedOutput>
 							<htmlCustomization>${project.basedir}/src/docbkx/resources/xsl/html.xsl</htmlCustomization>
 							<useExtensions>1</useExtensions>
+							<highlightSource>1</highlightSource>
 							<entities>
 								<entity>
 									<name>version</name>
