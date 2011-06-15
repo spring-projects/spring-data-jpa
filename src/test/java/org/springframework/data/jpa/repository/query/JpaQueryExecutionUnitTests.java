@@ -17,16 +17,15 @@ package org.springframework.data.jpa.repository.query;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 import javax.persistence.EntityManager;
-import javax.persistence.NoResultException;
 import javax.persistence.Query;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.ModifyingExecution;
 
@@ -44,8 +43,6 @@ public class JpaQueryExecutionUnitTests {
     @Mock
     AbstractStringBasedJpaQuery jpaQuery;
     @Mock
-    ParameterBinder binder;
-    @Mock
     Query query;
     @Mock
     JpaQueryMethod method;
@@ -54,7 +51,7 @@ public class JpaQueryExecutionUnitTests {
     @Test(expected = IllegalArgumentException.class)
     public void rejectsNullQuery() {
 
-        new StubQueryExecution().execute(null, binder);
+        new StubQueryExecution().execute(null, new Object[] {});
     }
 
 
@@ -71,29 +68,11 @@ public class JpaQueryExecutionUnitTests {
         assertThat(new JpaQueryExecution() {
 
             @Override
-            protected Object doExecute(AbstractStringBasedJpaQuery query,
-                    ParameterBinder binder) {
-
-                throw new NoResultException();
-            }
-
-
-            /*
-             * (non-Javadoc)
-             * 
-             * @see
-             * org.springframework.data.jpa.repository.query.JpaQueryExecution
-             * #doExecute
-             * (org.springframework.data.jpa.repository.query.PartTreeJpaQuery,
-             * java.lang.Object[])
-             */
-            @Override
-            protected Object doExecute(PartTreeJpaQuery query,
-                    Object[] parameters) {
+            protected Object doExecute(AbstractJpaQuery query, Object[] values) {
 
                 return null;
             }
-        }.execute(jpaQuery, binder), is(nullValue()));
+        }.execute(jpaQuery, new Object[] {}), is(nullValue()));
     }
 
 
@@ -101,13 +80,13 @@ public class JpaQueryExecutionUnitTests {
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public void modifyingExecutionClearsEntityManagerIfSet() {
 
-        Query param = any();
-        when(binder.bind(param)).thenReturn(query);
         when(query.executeUpdate()).thenReturn(0);
         when(method.getReturnType()).thenReturn((Class) void.class);
+        when(jpaQuery.createQuery(Mockito.any(Object[].class))).thenReturn(
+                query);
 
         ModifyingExecution execution = new ModifyingExecution(method, em);
-        execution.execute(jpaQuery, binder);
+        execution.execute(jpaQuery, new Object[] {});
 
         verify(em, times(1)).clear();
     }
@@ -138,15 +117,7 @@ public class JpaQueryExecutionUnitTests {
     static class StubQueryExecution extends JpaQueryExecution {
 
         @Override
-        protected Object doExecute(AbstractStringBasedJpaQuery query,
-                ParameterBinder binder) {
-
-            return null;
-        }
-
-
-        @Override
-        protected Object doExecute(PartTreeJpaQuery query, Object[] parameters) {
+        protected Object doExecute(AbstractJpaQuery query, Object[] values) {
 
             return null;
         }

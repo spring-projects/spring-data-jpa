@@ -46,27 +46,13 @@ public abstract class JpaQueryExecution {
      * @return
      */
 
-    public Object execute(AbstractStringBasedJpaQuery query,
-            ParameterBinder binder) {
+    public Object execute(AbstractJpaQuery query, Object[] values) {
 
         Assert.notNull(query);
-        Assert.notNull(binder);
+        Assert.notNull(values);
 
         try {
-            return doExecute(query, binder);
-        } catch (NoResultException e) {
-            return null;
-        }
-    }
-
-
-    public Object execute(PartTreeJpaQuery query, Object[] parameters) {
-
-        Assert.notNull(query);
-        Assert.notNull(parameters);
-
-        try {
-            return doExecute(query, parameters);
+            return doExecute(query, values);
         } catch (NoResultException e) {
             return null;
         }
@@ -81,12 +67,7 @@ public abstract class JpaQueryExecution {
      * @param binder
      * @return
      */
-    protected abstract Object doExecute(AbstractStringBasedJpaQuery query,
-            ParameterBinder parameters);
-
-
-    protected abstract Object doExecute(PartTreeJpaQuery query,
-            Object[] parameters);
+    protected abstract Object doExecute(AbstractJpaQuery query, Object[] values);
 
     /**
      * Executes the {@link AbstractStringBasedJpaQuery} to return a simple
@@ -95,25 +76,9 @@ public abstract class JpaQueryExecution {
     static class CollectionExecution extends JpaQueryExecution {
 
         @Override
-        protected Object doExecute(AbstractStringBasedJpaQuery query,
-                ParameterBinder binder) {
+        protected Object doExecute(AbstractJpaQuery query, Object[] values) {
 
-            return binder.bindAndPrepare(query.createQuery(binder))
-                    .getResultList();
-        }
-
-
-        /*
-         * (non-Javadoc)
-         * 
-         * @see
-         * org.springframework.data.jpa.repository.query.JpaQueryExecution#doExecute
-         * (org.springframework.data.jpa.repository.query.DerivedJpaQuery)
-         */
-        @Override
-        protected Object doExecute(PartTreeJpaQuery query, Object[] parameters) {
-
-            return query.createQuery(parameters).getResultList();
+            return query.createQuery(values).getResultList();
         }
     }
 
@@ -134,42 +99,19 @@ public abstract class JpaQueryExecution {
 
         @Override
         @SuppressWarnings("unchecked")
-        protected Object doExecute(AbstractStringBasedJpaQuery repositoryQuery,
-                ParameterBinder binder) {
+        protected Object doExecute(AbstractJpaQuery repositoryQuery,
+                Object[] values) {
 
             // Execute query to compute total
-            Query projection =
-                    binder.bind(repositoryQuery.createCountQuery(binder));
+            Query projection = repositoryQuery.createCountQuery(values);
             Long total = (Long) projection.getSingleResult();
 
-            Query query =
-                    binder.bindAndPrepare(repositoryQuery.createQuery(binder));
-
-            return new PageImpl<Object>(query.getResultList(),
-                    binder.getPageable(), total);
-        }
-
-
-        /*
-         * (non-Javadoc)
-         * 
-         * @see
-         * org.springframework.data.jpa.repository.query.JpaQueryExecution#doExecute
-         * (org.springframework.data.jpa.repository.query.DerivedJpaQuery,
-         * java.lang.Object[])
-         */
-        @Override
-        @SuppressWarnings("unchecked")
-        protected Object doExecute(PartTreeJpaQuery query, Object[] parameters) {
+            Query query = repositoryQuery.createQuery(values);
 
             ParameterAccessor accessor =
-                    new ParametersParameterAccessor(this.parameters, parameters);
+                    new ParametersParameterAccessor(parameters, values);
 
-            Query countQuery = query.createCountQuery(parameters);
-            Long total = (Long) countQuery.getSingleResult();
-
-            Query jpaQuery = query.createQuery(parameters);
-            return new PageImpl<Object>(jpaQuery.getResultList(),
+            return new PageImpl<Object>(query.getResultList(),
                     accessor.getPageable(), total);
         }
     }
@@ -180,25 +122,9 @@ public abstract class JpaQueryExecution {
     static class SingleEntityExecution extends JpaQueryExecution {
 
         @Override
-        protected Object doExecute(AbstractStringBasedJpaQuery query,
-                ParameterBinder binder) {
+        protected Object doExecute(AbstractJpaQuery query, Object[] values) {
 
-            return binder.bind(query.createQuery(binder)).getSingleResult();
-        }
-
-
-        /*
-         * (non-Javadoc)
-         * 
-         * @see
-         * org.springframework.data.jpa.repository.query.JpaQueryExecution#doExecute
-         * (org.springframework.data.jpa.repository.query.DerivedJpaQuery,
-         * java.lang.Object[])
-         */
-        @Override
-        protected Object doExecute(PartTreeJpaQuery query, Object[] parameters) {
-
-            return query.createQuery(parameters).getSingleResult();
+            return query.createQuery(values).getSingleResult();
         }
     }
 
@@ -235,32 +161,16 @@ public abstract class JpaQueryExecution {
         }
 
 
-        /*
-         * (non-Javadoc)
-         * 
-         * @see
-         * org.springframework.data.repository.query.QueryExecution#doExecute
-         * (org.springframework.data.repository.query.AbstractRepositoryQuery,
-         * org.springframework.data.repository.query.ParameterBinder)
-         */
         @Override
-        protected Object doExecute(AbstractStringBasedJpaQuery query,
-                ParameterBinder binder) {
+        protected Object doExecute(AbstractJpaQuery query, Object[] values) {
 
-            int result = binder.bind(query.createQuery(binder)).executeUpdate();
+            int result = query.createQuery(values).executeUpdate();
 
             if (em != null) {
                 em.clear();
             }
 
             return result;
-        }
-
-
-        @Override
-        protected Object doExecute(PartTreeJpaQuery query, Object[] parameters) {
-
-            throw new UnsupportedOperationException();
         }
     }
 }

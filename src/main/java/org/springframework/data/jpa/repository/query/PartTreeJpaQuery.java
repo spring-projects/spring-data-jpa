@@ -15,16 +15,17 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import java.util.List;
+
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.ParameterExpression;
 
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.repository.core.EntityMetadata;
 import org.springframework.data.repository.query.ParameterAccessor;
+import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
-import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.parser.PartTree;
 
 
@@ -35,8 +36,9 @@ import org.springframework.data.repository.query.parser.PartTree;
  */
 public class PartTreeJpaQuery extends AbstractJpaQuery {
 
+    private final Class<?> domainClass;
     private final PartTree tree;
-    private final QueryMethod method;
+    private final Parameters parameters;
 
 
     /**
@@ -48,10 +50,10 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
     public PartTreeJpaQuery(JpaQueryMethod method, EntityManager em) {
 
         super(method, em);
-        this.tree =
-                new PartTree(method.getName(), method.getEntityInformation()
-                        .getJavaType());
-        this.method = method;
+
+        this.domainClass = method.getEntityInformation().getJavaType();
+        this.tree = new PartTree(method.getName(), domainClass);
+        this.parameters = method.getParameters();
     }
 
 
@@ -63,26 +65,21 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
      * (javax.persistence.EntityManager,
      * org.springframework.data.jpa.repository.query.ParameterBinder)
      */
-    public Query createQuery(Object[] parameters) {
+    @Override
+    public Query createQuery(Object[] values) {
 
         ParameterAccessor accessor =
-                new ParametersParameterAccessor(getParameters(), parameters);
-
-        EntityMetadata<?> metadata = method.getEntityInformation();
-        JpaQueryCreator jpaQueryCreator =
-                new JpaQueryCreator(tree, accessor, metadata.getJavaType(),
+                new ParametersParameterAccessor(parameters, values);
+        JpaQueryCreator creator =
+                new JpaQueryCreator(tree, domainClass, accessor, parameters,
                         getEntityManager());
+        CriteriaQuery<?> source = creator.createQuery();
 
-        TypedQuery<Object> query =
-                getEntityManager().createQuery(jpaQueryCreator.createQuery());
+        TypedQuery<?> jpaQuery = getEntityManager().createQuery(source);
+        getBinder(values, creator.getParameterExpressions()).bindAndPrepare(
+                jpaQuery);
 
-        if (getParameters().hasPageableParameter()) {
-            Pageable pageable = accessor.getPageable();
-            query.setFirstResult(pageable.getOffset());
-            query.setMaxResults(pageable.getPageSize());
-        }
-
-        return query;
+        return jpaQuery;
     }
 
 
@@ -92,28 +89,27 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
      * @see org.springframework.data.jpa.repository.query.AbstractJpaQuery#
      * createCountQuery(javax.persistence.EntityManager)
      */
-    public Query createCountQuery(Object[] parameters) {
+    @Override
+    public Query createCountQuery(Object[] values) {
 
-        CriteriaQuery<Object> query =
-                new JpaCountQueryCreator(tree, new ParametersParameterAccessor(
-                        getParameters(), parameters), method
-                        .getEntityInformation().getJavaType(),
-                        getEntityManager()).createQuery();
-        return getEntityManager().createQuery(query);
+        ParameterAccessor accessor =
+                new ParametersParameterAccessor(parameters, values);
+
+        JpaCountQueryCreator creator =
+                new JpaCountQueryCreator(tree, domainClass, accessor,
+                        parameters, getEntityManager());
+        CriteriaQuery<?> source = creator.createQuery();
+
+        TypedQuery<?> jpaQuery = getEntityManager().createQuery(source);
+        getBinder(values, creator.getParameterExpressions()).bind(jpaQuery);
+
+        return jpaQuery;
     }
 
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.springframework.data.jpa.repository.query.AbstractJpaQuery#doExecute
-     * (org.springframework.data.jpa.repository.query.JpaQueryExecution,
-     * java.lang.Object[])
-     */
-    @Override
-    protected Object doExecute(JpaQueryExecution execution, Object[] parameters) {
+    private ParameterBinder getBinder(Object[] values,
+            List<ParameterExpression<?>> expressions) {
 
-        return execution.execute(this, parameters);
+        return new CriteriaQueryParameterBinder(parameters, values, expressions);
     }
 }

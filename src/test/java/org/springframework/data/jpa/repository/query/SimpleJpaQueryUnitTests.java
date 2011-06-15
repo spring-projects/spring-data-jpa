@@ -34,6 +34,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.data.repository.core.RepositoryMetadata;
+import org.springframework.data.repository.query.Parameters;
 
 
 /**
@@ -72,8 +73,7 @@ public class SimpleJpaQueryUnitTests {
     public void appliesHintsCorrectly() throws Exception {
 
         SimpleJpaQuery jpaQuery = new SimpleJpaQuery(method, em, "foobar");
-        jpaQuery.createQuery(new ParameterBinder(method.getParameters(),
-                new Object[] { "gierke" }));
+        jpaQuery.createQuery(new Object[] { "gierke" });
 
         verify(query).setHint("foo", "bar");
     }
@@ -84,11 +84,16 @@ public class SimpleJpaQueryUnitTests {
 
         method = mock(JpaQueryMethod.class);
         when(method.getCountQuery()).thenReturn("foo");
+        when(method.getParameters())
+                .thenReturn(
+                        new Parameters(
+                                SimpleJpaQueryUnitTests.class
+                                        .getMethod("prefersDeclaredCountQueryOverCreatingOne")));
         when(em.createQuery("foo")).thenReturn(query);
 
         SimpleJpaQuery jpaQuery =
                 new SimpleJpaQuery(method, em, "select u from User u");
 
-        assertThat(jpaQuery.createCountQuery(null), is(query));
+        assertThat(jpaQuery.createCountQuery(new Object[] {}), is(query));
     }
 }

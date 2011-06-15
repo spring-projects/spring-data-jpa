@@ -16,12 +16,12 @@
 package org.springframework.data.jpa.repository.query;
 
 import javax.persistence.EntityManager;
+import javax.persistence.Query;
 
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.CollectionExecution;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.ModifyingExecution;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.PagedExecution;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.SingleEntityExecution;
-import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.util.Assert;
@@ -69,18 +69,9 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 
 
     /**
-     * @return the parameters
-     */
-    public Parameters getParameters() {
-
-        return method.getParameters();
-    }
-
-
-    /**
      * @return the em
      */
-    public EntityManager getEntityManager() {
+    protected EntityManager getEntityManager() {
 
         return em;
     }
@@ -99,6 +90,17 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
     }
 
 
+    /**
+     * @param execution
+     * @param values
+     * @return
+     */
+    private Object doExecute(JpaQueryExecution execution, Object[] values) {
+
+        return execution.execute(this, values);
+    }
+
+
     protected JpaQueryExecution getExecution() {
 
         switch (method.getType()) {
@@ -106,7 +108,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
         case COLLECTION:
             return new CollectionExecution();
         case PAGING:
-            return new PagedExecution(getParameters());
+            return new PagedExecution(method.getParameters());
         case MODIFYING:
             return method.getClearAutomatically() ? new ModifyingExecution(
                     method, em) : new ModifyingExecution(method, null);
@@ -116,7 +118,14 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
     }
 
 
-    protected abstract Object doExecute(JpaQueryExecution execution,
-            Object[] parameters);
+    protected ParameterBinder createBinder(Object[] values) {
 
+        return new ParameterBinder(getQueryMethod().getParameters(), values);
+    }
+
+
+    protected abstract Query createQuery(Object[] values);
+
+
+    protected abstract Query createCountQuery(Object[] values);
 }

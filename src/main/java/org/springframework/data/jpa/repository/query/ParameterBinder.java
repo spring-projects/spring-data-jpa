@@ -115,18 +115,24 @@ public class ParameterBinder {
             if (parameter.isBindable()) {
 
                 Object value = values[methodParameterPosition];
-
-                if (hasNamedParameter(query) && parameter.isNamedParameter()) {
-                    query.setParameter(parameter.getName(), value);
-                } else {
-                    query.setParameter(queryParameterPosition++, value);
-                }
+                bind(query, parameter, value, queryParameterPosition++);
             }
 
             methodParameterPosition++;
         }
 
         return query;
+    }
+
+
+    protected void bind(Query query, Parameter parameter, Object value,
+            int position) {
+
+        if (hasNamedParameter(query) && parameter.isNamedParameter()) {
+            query.setParameter(parameter.getName(), value);
+        } else {
+            query.setParameter(position, value);
+        }
     }
 
 

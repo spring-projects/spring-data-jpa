@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,27 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.jpa.repository.query;
+package org.springframework.data.jpa.repository;
 
-import javax.persistence.EntityManager;
+import org.junit.Ignore;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
 
 
 /**
- * Base class for {@link String} based JPA queries.
+ * Ignores some test cases using IN queries as long as we wait for fix for
+ * https://bugs.eclipse.org/bugs/show_bug.cgi?id=349477.
  * 
  * @author Oliver Gierke
  */
-public abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
-
-    /**
-     * Creates a new {@link AbstractStringBasedJpaQuery}.
-     * 
-     * @param method
-     * @param em
-     */
-    public AbstractStringBasedJpaQuery(JpaQueryMethod method, EntityManager em) {
-
-        super(method, em);
-    }
-
+@Ignore
+@DirtiesContext
+@ContextConfiguration(value = "classpath:eclipselink.xml", inheritLocations = true)
+public class EclipseLinkUserRepositoryFinderTests extends
+        UserRepositoryFinderTests {
 }

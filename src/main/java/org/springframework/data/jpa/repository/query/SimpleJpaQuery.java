@@ -23,6 +23,9 @@ import javax.persistence.QueryHint;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.repository.query.ParameterAccessor;
+import org.springframework.data.repository.query.Parameters;
+import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.RepositoryQuery;
 
@@ -34,7 +37,7 @@ import org.springframework.data.repository.query.RepositoryQuery;
  * 
  * @author Oliver Gierke
  */
-final class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
+final class SimpleJpaQuery extends AbstractJpaQuery {
 
     private static final Logger LOG = LoggerFactory
             .getLogger(SimpleJpaQuery.class);
@@ -43,6 +46,7 @@ final class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
     private final String countQuery;
     private final String alias;
     private final List<QueryHint> hints;
+    private final Parameters parameters;
 
 
     /**
@@ -55,6 +59,7 @@ final class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
         this.queryString = queryString;
         this.alias = QueryUtils.detectAlias(queryString);
         this.hints = method.getHints();
+        this.parameters = method.getParameters();
         this.countQuery =
                 method.getCountQuery() == null ? QueryUtils
                         .createCountQueryFor(queryString) : method
@@ -75,27 +80,29 @@ final class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
      * )
      */
     @Override
-    public Query createQuery(ParameterBinder binder) {
+    public Query createQuery(Object[] values) {
 
-        String query =
-                QueryUtils.applySorting(queryString, binder.getSort(), alias);
+        ParameterAccessor accessor =
+                new ParametersParameterAccessor(parameters, values);
+        String sortedQueryString =
+                QueryUtils.applySorting(queryString, accessor.getSort(), alias);
 
-        return applyHints(getEntityManager().createQuery(query));
+        Query query = getEntityManager().createQuery(sortedQueryString);
+        return createBinder(values).bindAndPrepare(applyHints(query));
     }
 
 
     /*
      * (non-Javadoc)
      * 
-     * @see
-     * org.springframework.data.jpa.repository.query.AbstractStringBasedJpaQuery
-     * #createCountQuery(org.springframework.data.jpa.repository.query.
-     * ParameterBinder)
+     * @see org.springframework.data.jpa.repository.query.AbstractJpaQuery#
+     * createCountQuery(java.lang.Object[])
      */
     @Override
-    protected Query createCountQuery(ParameterBinder binder) {
+    protected Query createCountQuery(Object[] values) {
 
-        return applyHints(getEntityManager().createQuery(countQuery));
+        return createBinder(values).bindAndPrepare(
+                applyHints(getEntityManager().createQuery(countQuery)));
     }
 
 

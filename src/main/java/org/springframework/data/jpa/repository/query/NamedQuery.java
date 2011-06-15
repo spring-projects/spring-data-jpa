@@ -32,7 +32,7 @@ import org.springframework.data.repository.query.RepositoryQuery;
  * 
  * @author Oliver Gierke
  */
-final class NamedQuery extends AbstractStringBasedJpaQuery {
+final class NamedQuery extends AbstractJpaQuery {
 
     private static final String CANNOT_EXTRACT_QUERY =
             "Your persistence provider does not support extracting the JPQL query from a "
@@ -121,9 +121,10 @@ final class NamedQuery extends AbstractStringBasedJpaQuery {
      * )
      */
     @Override
-    protected Query createQuery(ParameterBinder binder) {
+    protected Query createQuery(Object[] values) {
 
-        return getEntityManager().createNamedQuery(queryName);
+        Query query = getEntityManager().createNamedQuery(queryName);
+        return createBinder(values).bindAndPrepare(query);
     }
 
 
@@ -136,12 +137,13 @@ final class NamedQuery extends AbstractStringBasedJpaQuery {
      * ParameterBinder)
      */
     @Override
-    protected Query createCountQuery(ParameterBinder binder) {
+    protected Query createCountQuery(Object[] values) {
 
-        Query query = createQuery(binder);
+        Query query = createQuery(values);
         String queryString = extractor.extractQueryString(query);
 
-        return getEntityManager().createQuery(
-                QueryUtils.createCountQueryFor(queryString));
+        return createBinder(values).bind(
+                getEntityManager().createQuery(
+                        QueryUtils.createCountQueryFor(queryString)));
     }
 }

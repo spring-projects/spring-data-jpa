@@ -15,6 +15,8 @@
  */
 package org.springframework.data.jpa.domain.sample;
 
+
+
 /**
  * Sample domain class representing roles. Mapped with XML.
  * 
