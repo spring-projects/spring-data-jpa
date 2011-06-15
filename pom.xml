@@ -53,8 +53,8 @@
 	
 	<properties>
 		<spring.version>3.0.5.RELEASE</spring.version>
-		<hibernate.version>3.6.0.Final</hibernate.version>
-		<openjpa.version>2.0.0</openjpa.version>
+		<hibernate.version>3.6.5.Final</hibernate.version>
+		<openjpa.version>2.1.0</openjpa.version>
 		<eclipselink.version>2.2.0</eclipselink.version>
 		<aspectj.version>1.6.8</aspectj.version>
 		<querydsl.version>2.1.1</querydsl.version>
