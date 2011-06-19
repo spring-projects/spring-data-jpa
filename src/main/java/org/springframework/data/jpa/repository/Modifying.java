@@ -38,5 +38,5 @@ public @interface Modifying {
      * 
      * @return
      */
-    boolean clearAutomatically() default true;
+    boolean clearAutomatically() default false;
 }
