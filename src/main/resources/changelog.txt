@@ -1,13 +1,23 @@
 Spring Data JPA Changelog
 =============================================
 
-Changes in version 1.0.0.RC1 
+Changes in version 1.0.0.RC1 (2011-06-21) - https://jira.springsource.org/browse/DATAJPA/fixforversion/11869
 ----------------------------------------
 * Expose findAll(Specification<T> spec, Sort sort) in JpaSpecificationExecutor (DATAJPA-48)
 * Improved target domain class detection for queries returning void and numeric values (DATAJPA-44)
 * Improved extensibility of QueryDslJpaRepository (DATAJPA-39)
 * Configured Maven build to include Bundlor generated MANIFEST.MF (DATAJPA-42)
 * Improved performance of query execution by uhsing method.getAnnotation(…) instead of AnnotationUtils.getAnnotation(…)
+* Fixed exception thrown in QueryDslJpaRepository#findAll(Predicate predicate, Pageable pageable) if no result found (DATAJPA-61, DATACMNS-23)
+* Improved error message in JpaQueryMethod (DATAJPA-59, DATAJPA-60)
+* Querydsl dependency is now optional (DATAJPA-62)
+* Improved isNew detection in AuditingEntityListener (DATAJPA-68)
+* Documented In and NotIn keywords (DATAJPA-56)
+* Updated documentation regarding Specifications usage (DATAJPA-43)
+* Added MergingPersistenceUnitManager (DATAJPA-38)
+* Added support for searching by Specification and Sort (DATAJPA-48)
+* Automatic query creation now uses ParameterExpression binding over literal binding (DATAJPA-64)
+* Changed clearAutomatically attribute of @Modifying to default to false (DATAJPA-31)
 * JpaPersistableEntityInformation now uses Persistable.isNew(…) (DATAJPA-58)
 
 Changes in version 1.0.0.M2 (2011-03-24) - https://jira.springsource.org/browse/DATAJPA/fixforversion/11800
