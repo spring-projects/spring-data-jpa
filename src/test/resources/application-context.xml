@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd">
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd">
 
 	<!-- Database setup -->
 	<import resource="infrastructure.xml" />
@@ -11,6 +13,13 @@
 		<property name="repositoryInterface" value="org.springframework.data.jpa.repository.sample.UserRepository" />
 		<property name="customImplementation">
 			<bean class="org.springframework.data.jpa.repository.sample.UserRepositoryImpl" />
+		</property>
+		<property name="namedQueries">
+			<bean class="org.springframework.data.repository.core.support.PropertiesBasedNamedQueries">
+				<constructor-arg>
+					<util:properties location="META-INF/jpa-named-queries.properties" />
+				</constructor-arg>
+			</bean>
 		</property>
 	</bean>
 	

@@ -811,6 +811,17 @@ public class UserRepositoryTests {
     }
 
 
+    @Test
+    public void findsUsersBySpringDataNamedQuery() {
+
+        flushTestUsers();
+
+        List<User> result = repository.findBySpringDataNamedQuery("Gierke");
+        assertThat(result.size(), is(1));
+        assertThat(result, hasItem(firstUser));
+    }
+
+
     private Page<User> executeSpecWithSort(Sort sort) {
 
         flushTestUsers();

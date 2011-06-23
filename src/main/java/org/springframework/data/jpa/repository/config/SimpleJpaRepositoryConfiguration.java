@@ -75,6 +75,19 @@ public class SimpleJpaRepositoryConfiguration
     }
 
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.springframework.data.repository.config.CommonRepositoryConfigInformation
+     * #getNamedQueriesLocation()
+     */
+    public String getNamedQueriesLocation() {
+
+        return "classpath*:META-INF/jpa-named-queries.properties";
+    }
+
+
     /**
      * Returns the name of the entity manager factory bean.
      * 

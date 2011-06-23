@@ -212,4 +212,7 @@ public interface UserRepository extends JpaRepository<User, Integer>,
 
 
     List<SpecialUser> findSpecialUsersByLastname(String lastname);
+
+
+    List<User> findBySpringDataNamedQuery(String lastname);
 }

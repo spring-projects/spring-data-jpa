@@ -1,7 +1,9 @@
 /*
  * Copyright 2008-2011 the original author or authors.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "Li
+import org.springframework.data.repository.core.NamedQueries;
+cense");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -20,6 +22,7 @@ import java.lang.reflect.Method;
 import javax.persistence.EntityManager;
 
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.core.NamedQueries;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.data.repository.query.QueryLookupStrategy.Key;
@@ -64,20 +67,21 @@ public final class JpaQueryLookupStrategy {
         /*
          * (non-Javadoc)
          * 
-         * @see
-         * org.springframework.data.jpa.repository.query.QueryLookupStrategy
-         * #resolveQuery(org.springframework.data.repository.query.QueryMethod)
+         * @see org.springframework.data.repository.query.QueryLookupStrategy#
+         * resolveQuery(java.lang.reflect.Method,
+         * org.springframework.data.repository.core.RepositoryMetadata,
+         * org.springframework.data.repository.core.NamedQueries)
          */
         public final RepositoryQuery resolveQuery(Method method,
-                RepositoryMetadata metadata) {
+                RepositoryMetadata metadata, NamedQueries namedQueries) {
 
             return resolveQuery(new JpaQueryMethod(method, metadata, provider),
-                    em);
+                    em, namedQueries);
         }
 
 
         protected abstract RepositoryQuery resolveQuery(JpaQueryMethod method,
-                EntityManager em);
+                EntityManager em, NamedQueries namedQueries);
     }
 
     /**
@@ -97,7 +101,7 @@ public final class JpaQueryLookupStrategy {
 
         @Override
         protected RepositoryQuery resolveQuery(JpaQueryMethod method,
-                EntityManager em) {
+                EntityManager em, NamedQueries namedQueries) {
 
             return new PartTreeJpaQuery(method, em);
         }
@@ -122,13 +126,19 @@ public final class JpaQueryLookupStrategy {
 
         @Override
         protected RepositoryQuery resolveQuery(JpaQueryMethod method,
-                EntityManager em) {
+                EntityManager em, NamedQueries namedQueries) {
 
             RepositoryQuery query =
                     SimpleJpaQuery.fromQueryAnnotation(method, em);
 
             if (null != query) {
                 return query;
+            }
+
+            String name = method.getNamedQueryName();
+            if (namedQueries.hasQuery(name)) {
+                return new SimpleJpaQuery(method, em,
+                        namedQueries.getQuery(name));
             }
 
             query = NamedQuery.lookupFrom(method, em);
@@ -170,12 +180,12 @@ public final class JpaQueryLookupStrategy {
 
         @Override
         protected RepositoryQuery resolveQuery(JpaQueryMethod method,
-                EntityManager em) {
+                EntityManager em, NamedQueries namedQueries) {
 
             try {
-                return strategy.resolveQuery(method, em);
+                return strategy.resolveQuery(method, em, namedQueries);
             } catch (IllegalStateException e) {
-                return createStrategy.resolveQuery(method, em);
+                return createStrategy.resolveQuery(method, em, namedQueries);
             }
         }
     }

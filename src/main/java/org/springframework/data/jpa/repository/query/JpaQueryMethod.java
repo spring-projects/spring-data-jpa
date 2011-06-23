@@ -113,20 +113,6 @@ public class JpaQueryMethod extends QueryMethod {
 
 
     /**
-     * Returns the name of the {@link javax.persistence.NamedQuery} this method
-     * belongs to.
-     * 
-     * @return
-     */
-    String getNamedQueryName() {
-
-        Class<?> domainClass = getDomainClass();
-        return String.format("%s.%s", domainClass.getSimpleName(),
-                method.getName());
-    }
-
-
-    /**
      * Returns the actual return type of the method.
      * 
      * @return
