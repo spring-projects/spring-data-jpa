@@ -53,6 +53,7 @@
 	
 	<properties>
 		<spring.version>3.0.5.RELEASE</spring.version>
+		<spring.data.commons.version>1.1.0.BUILD-SNAPSHOT</spring.data.commons.version>
 		<hibernate.version>3.6.5.Final</hibernate.version>
 		<openjpa.version>2.1.0</openjpa.version>
 		<eclipselink.version>2.2.0</eclipselink.version>
@@ -252,7 +253,7 @@
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>spring-data-commons-core</artifactId>
-			<version>1.1.0.BUILD-SNAPSHOT</version>
+			<version>${spring.data.commons.version}</version>
 		</dependency>
 		
 		<dependency>
