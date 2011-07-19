@@ -15,8 +15,9 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import static junit.framework.Assert.*;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
+import static org.hamcrest.CoreMatchers.*;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -159,10 +160,16 @@ public class JpaRepositoryFactoryUnitTests {
                 factory.getRepositoryBaseClass(new DefaultRepositoryMetadata(
                         QueryDslSampleRepository.class)));
 
-        QueryDslSampleRepository repository =
-                factory.getRepository(QueryDslSampleRepository.class);
-        assertEquals(QueryDslJpaRepository.class,
-                ((Advised) repository).getTargetClass());
+        try {
+            QueryDslSampleRepository repository =
+                    factory.getRepository(QueryDslSampleRepository.class);
+            assertEquals(QueryDslJpaRepository.class,
+                    ((Advised) repository).getTargetClass());
+        } catch (IllegalArgumentException e) {
+            assertThat(
+                    e.getStackTrace()[0].getClassName(),
+                    is("org.springframework.data.querydsl.SimpleEntityPathResolver"));
+        }
     }
 
     private interface SimpleSampleRepository extends

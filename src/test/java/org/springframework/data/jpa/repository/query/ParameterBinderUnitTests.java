@@ -220,7 +220,7 @@ public class ParameterBinderUnitTests {
 
     @Embeddable
     @SuppressWarnings("unused")
-    static class SampleEmbeddable {
+    public static class SampleEmbeddable {
 
         private String foo;
         private String bar;

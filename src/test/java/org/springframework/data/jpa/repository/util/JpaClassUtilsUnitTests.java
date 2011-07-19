@@ -40,7 +40,7 @@ public class JpaClassUtilsUnitTests {
     }
 
     @Entity(name = "AnotherNamedUser")
-    public static class NamedUser {
+    public class NamedUser {
 
     }
 }

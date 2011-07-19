@@ -47,6 +47,9 @@ import com.mysema.query.types.path.PathBuilder;
 public class QueryDslJpaRepository<T, ID extends Serializable> extends
         SimpleJpaRepository<T, ID> implements QueryDslPredicateExecutor<T> {
 
+    private static final EntityPathResolver DEFAULT_ENTITY_PATH_RESOLVER =
+            SimpleEntityPathResolver.INSTANCE;
+
     private final EntityManager em;
     private final EntityPath<T> path;
     private final PathBuilder<T> builder;
@@ -64,7 +67,7 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends
     public QueryDslJpaRepository(JpaEntityInformation<T, ID> entityMetadata,
             EntityManager entityManager) {
 
-        this(entityMetadata, entityManager, SimpleEntityPathResolver.INSTANCE);
+        this(entityMetadata, entityManager, DEFAULT_ENTITY_PATH_RESOLVER);
     }
 
 

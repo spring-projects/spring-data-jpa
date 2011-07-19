@@ -58,7 +58,7 @@
 		<openjpa.version>2.1.0</openjpa.version>
 		<eclipselink.version>2.2.0</eclipselink.version>
 		<aspectj.version>1.6.8</aspectj.version>
-		<querydsl.version>2.1.1</querydsl.version>
+		<querydsl.version>2.2.0</querydsl.version>
 		<junit.version>4.8.1</junit.version>
 		<jpa.version>2.0.0</jpa.version>
 		<slf4j.version>1.6.1</slf4j.version>
@@ -508,6 +508,12 @@
 						<goals>
 							<goal>jar</goal>
 						</goals>
+						<configuration>
+							<includes>
+								<include>src/main/java</include>
+								<include>target/generated-sources/main</include>
+							</includes>
+						</configuration>
 					</execution>
 				</executions>
 			</plugin>
@@ -532,16 +538,34 @@
 			<plugin>
 				<groupId>com.mysema.maven</groupId>
 				<artifactId>maven-apt-plugin</artifactId>
-				<version>1.0</version>
+				<version>1.0.2</version>
+				<configuration>
+					<processor>com.mysema.query.apt.jpa.JPAAnnotationProcessor</processor>
+				</configuration>
 				<executions>
 					<execution>
+						<id>sources</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>process</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>target/generated-sources/main</outputDirectory>
+						</configuration>
+					</execution>
+					<execution>
+						<id>test-sources</id>
 						<phase>generate-test-sources</phase>
 						<goals>
 							<goal>test-process</goal>
 						</goals>
 						<configuration>
-							<outputDirectory>target/generated-sources/test-annotations</outputDirectory>
-							<processor>com.mysema.query.apt.jpa.JPAAnnotationProcessor</processor>
+							<outputDirectory>target/generated-sources/test</outputDirectory>
+							<options>
+								<querydsl.excludedClasses>
+									org.springframework.data.jpa.repository.util.JpaClassUtilsUnitTests.NamedUser,org.springframework.data.jpa.repository.query.ParameterBinderUnitTests.SampleEmbeddable
+								</querydsl.excludedClasses>
+							</options>
 						</configuration>
 					</execution>
 				</executions>
