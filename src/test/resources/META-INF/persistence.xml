@@ -3,6 +3,7 @@
 	<persistence-unit name="hades">
 		<class>org.springframework.data.jpa.domain.AbstractPersistable</class>
 		<class>org.springframework.data.jpa.domain.sample.User</class>
+		<class>org.springframework.data.jpa.domain.sample.SpecialUser</class>
 		<class>org.springframework.data.jpa.domain.sample.Role</class>
 		<class>org.springframework.data.jpa.domain.sample.Account</class>
 		<class>org.springframework.data.jpa.domain.AbstractAuditable</class>

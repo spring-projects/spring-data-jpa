@@ -23,10 +23,11 @@ import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.ParameterExpression;
 
-import org.springframework.data.repository.query.ParameterAccessor;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.parser.PartTree;
+import org.springframework.util.Assert;
 
 
 /**
@@ -39,6 +40,9 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
     private final Class<?> domainClass;
     private final PartTree tree;
     private final Parameters parameters;
+
+    private final QueryPreparer query;
+    private final QueryPreparer countQuery;
 
 
     /**
@@ -54,6 +58,9 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
         this.domainClass = method.getEntityInformation().getJavaType();
         this.tree = new PartTree(method.getName(), domainClass);
         this.parameters = method.getParameters();
+
+        this.query = new QueryPreparer(tree, domainClass, parameters);
+        this.countQuery = new CountQueryPreparer(tree, domainClass, parameters);
     }
 
 
@@ -68,18 +75,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
     @Override
     public Query createQuery(Object[] values) {
 
-        ParameterAccessor accessor =
-                new ParametersParameterAccessor(parameters, values);
-        JpaQueryCreator creator =
-                new JpaQueryCreator(tree, domainClass, accessor, parameters,
-                        getEntityManager());
-        CriteriaQuery<?> source = creator.createQuery();
-
-        TypedQuery<?> jpaQuery = getEntityManager().createQuery(source);
-        getBinder(values, creator.getParameterExpressions()).bindAndPrepare(
-                jpaQuery);
-
-        return jpaQuery;
+        return query.createQuery(values);
     }
 
 
@@ -92,24 +88,133 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
     @Override
     public Query createCountQuery(Object[] values) {
 
-        ParameterAccessor accessor =
-                new ParametersParameterAccessor(parameters, values);
-
-        JpaCountQueryCreator creator =
-                new JpaCountQueryCreator(tree, domainClass, accessor,
-                        parameters, getEntityManager());
-        CriteriaQuery<?> source = creator.createQuery();
-
-        TypedQuery<?> jpaQuery = getEntityManager().createQuery(source);
-        getBinder(values, creator.getParameterExpressions()).bind(jpaQuery);
-
-        return jpaQuery;
+        return countQuery.createQuery(values);
     }
 
+    /**
+     * Query preparer to create {@link CriteriaQuery} instances and potentially
+     * cache them.
+     * 
+     * @author Oliver Gierke
+     */
+    private class QueryPreparer {
 
-    private ParameterBinder getBinder(Object[] values,
-            List<ParameterExpression<?>> expressions) {
+        private CriteriaQuery<?> query;
+        private final JpaQueryCreator creator;
 
-        return new CriteriaQueryParameterBinder(parameters, values, expressions);
+
+        /**
+         * Creates a new {@link QueryPreparer} from the given {@link PartTree},
+         * domain class and {@link Parameters}.
+         * 
+         * @param tree
+         * @param domainClass
+         * @param parameters
+         */
+        public QueryPreparer(PartTree tree, Class<?> domainClass,
+                Parameters parameters) {
+
+            this(new JpaQueryCreator(tree, domainClass, parameters,
+                    getEntityManager()));
+        }
+
+
+        /**
+         * Creates a new {@link QueryPreparer} from the given
+         * {@link JpaQueryCreator}.
+         * 
+         * @param creator must not be {@literl null}.
+         */
+        protected QueryPreparer(JpaQueryCreator creator) {
+
+            Assert.notNull(creator);
+            this.creator = creator;
+            this.query = null;
+        }
+
+
+        /**
+         * Creates a new {@link Query} for the given parameter values.
+         * 
+         * @param values
+         * @return
+         */
+        public Query createQuery(Object[] values) {
+
+            if (parameters.potentiallySortsDynamically() || query == null) {
+                query = creator.createQuery(getDynamicSort(values));
+            }
+
+            TypedQuery<?> jpaQuery = getEntityManager().createQuery(query);
+            return invokeBinding(
+                    getBinder(values, creator.getParameterExpressions()),
+                    jpaQuery);
+        }
+
+
+        /**
+         * Invokes parameter binding on the given {@link TypedQuery}.
+         * 
+         * @param binder
+         * @param query
+         * @return
+         */
+        protected Query invokeBinding(ParameterBinder binder,
+                TypedQuery<?> query) {
+
+            return binder.bindAndPrepare(query);
+        }
+
+
+        private ParameterBinder getBinder(Object[] values,
+                List<ParameterExpression<?>> expressions) {
+
+            return new CriteriaQueryParameterBinder(parameters, values,
+                    expressions);
+        }
+
+
+        private Sort getDynamicSort(Object[] values) {
+
+            return parameters.hasSortParameter() ? new ParametersParameterAccessor(
+                    parameters, values).getSort() : null;
+        }
+    }
+
+    /**
+     * Special {@link QueryPreparer} to create count queries.
+     * 
+     * @author Oliver Gierke
+     */
+    private class CountQueryPreparer extends QueryPreparer {
+
+        /**
+         * Creates a new {@link CountQueryPreparer} from the given
+         * {@link PartTree}, domain class and {@link Parameters}. Will use a
+         * {@link JpaCountQueryCreator} to create the query.
+         * 
+         * @param tree
+         * @param domainClass
+         * @param parameters
+         */
+        public CountQueryPreparer(PartTree tree, Class<?> domainClass,
+                Parameters parameters) {
+
+            super(new JpaCountQueryCreator(tree, domainClass, parameters,
+                    getEntityManager()));
+        }
+
+
+        /**
+         * Customizes binding by skipping the pagination.
+         * 
+         * @see org.springframework.data.jpa.repository.query.PartTreeJpaQuery.QueryPreparer#invokeBinding(org.springframework.data.jpa.repository.query.ParameterBinder,
+         *      javax.persistence.TypedQuery)
+         */
+        protected Query invokeBinding(ParameterBinder binder,
+                javax.persistence.TypedQuery<?> query) {
+
+            return binder.bind(query);
+        }
     }
 }

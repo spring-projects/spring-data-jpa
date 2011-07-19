@@ -66,9 +66,9 @@ public class JpaQueryCreator extends
      * @param em
      */
     public JpaQueryCreator(PartTree tree, Class<?> domainClass,
-            ParameterAccessor accessor, Parameters parameters, EntityManager em) {
+            Parameters parameters, EntityManager em) {
 
-        super(tree, accessor);
+        super(tree);
 
         this.builder = em.getCriteriaBuilder();
         this.query = builder.createQuery().distinct(tree.isDistinct());
@@ -80,6 +80,8 @@ public class JpaQueryCreator extends
 
 
     /**
+     * Returns all {@link ParameterExpression} created when creating the query.
+     * 
      * @return the parameterExpressions
      */
     public List<ParameterExpression<?>> getParameterExpressions() {
