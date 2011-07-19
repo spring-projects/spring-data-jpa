@@ -30,7 +30,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.data.repository.core.RepositoryMetadata;
@@ -55,6 +58,8 @@ public class SimpleJpaQueryUnitTests {
     Query query;
     @Mock
     RepositoryMetadata metadata;
+    @Mock
+    ParameterBinder binder;
 
 
     @Before
@@ -95,5 +100,27 @@ public class SimpleJpaQueryUnitTests {
                 new SimpleJpaQuery(method, em, "select u from User u");
 
         assertThat(jpaQuery.createCountQuery(new Object[] {}), is(query));
+    }
+
+
+    /**
+     * @see DATAJPA-77
+     */
+    @Test
+    public void doesNotApplyPaginationToCountQuery() throws Exception {
+
+        when(em.createQuery(Mockito.anyString())).thenReturn(query);
+
+        Method method =
+                UserRepository.class.getMethod("findAllPaged", Pageable.class);
+        JpaQueryMethod queryMethod =
+                new JpaQueryMethod(method, metadata, extractor);
+
+        AbstractJpaQuery jpaQuery =
+                new SimpleJpaQuery(queryMethod, em, "select u from User u");
+        jpaQuery.createCountQuery(new Object[] { new PageRequest(1, 10) });
+
+        verify(query, times(0)).setFirstResult(anyInt());
+        verify(query, times(0)).setMaxResults(anyInt());
     }
 }

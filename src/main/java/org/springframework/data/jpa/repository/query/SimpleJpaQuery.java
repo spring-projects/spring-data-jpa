@@ -101,7 +101,7 @@ final class SimpleJpaQuery extends AbstractJpaQuery {
     @Override
     protected Query createCountQuery(Object[] values) {
 
-        return createBinder(values).bindAndPrepare(
+        return createBinder(values).bind(
                 applyHints(getEntityManager().createQuery(countQuery)));
     }
 
