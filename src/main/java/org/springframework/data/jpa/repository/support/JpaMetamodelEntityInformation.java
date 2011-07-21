@@ -25,7 +25,6 @@ import javax.persistence.metamodel.Metamodel;
 import javax.persistence.metamodel.SingularAttribute;
 
 import org.springframework.data.repository.core.EntityInformation;
-import org.springframework.data.repository.core.support.AbstractEntityInformation;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 
@@ -37,7 +36,8 @@ import org.springframework.util.ReflectionUtils;
  * @author Oliver Gierke
  */
 public class JpaMetamodelEntityInformation<T, ID extends Serializable> extends
-        AbstractEntityInformation<T, ID> implements JpaEntityInformation<T, ID> {
+        JpaEntityInformationSupport<T, ID> implements
+        JpaEntityInformation<T, ID> {
 
     private final SingularAttribute<? super T, ?> attribute;
 

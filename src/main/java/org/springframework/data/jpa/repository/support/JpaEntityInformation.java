@@ -37,4 +37,12 @@ public interface JpaEntityInformation<T, ID extends Serializable> extends
      * @return
      */
     SingularAttribute<? super T, ?> getIdAttribute();
+
+
+    /**
+     * Returns the JPA entity name.
+     * 
+     * @return
+     */
+    String getEntityName();
 }

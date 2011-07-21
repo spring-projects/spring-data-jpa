@@ -21,9 +21,9 @@ import java.io.Serializable;
 
 import javax.persistence.EntityManager;
 
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.query.JpaQueryLookupStrategy;
 import org.springframework.data.jpa.repository.query.QueryExtractor;
-import org.springframework.data.jpa.repository.utils.JpaClassUtils;
 import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.core.support.RepositoryFactorySupport;
@@ -71,7 +71,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 
 
     /**
-     * Callback to create a {@link RepositorySupport} instance with the given
+     * Callback to create a {@link JpaRepository} instance with the given
      * {@link EntityManager}
      * 
      * @param <T>
@@ -81,7 +81,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
      * @return
      */
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    protected <T, ID extends Serializable> Object getTargetRepository(
+    protected <T, ID extends Serializable> JpaRepository<?, ?> getTargetRepository(
             RepositoryMetadata metadata, EntityManager entityManager) {
 
         Class<?> repositoryInterface = metadata.getRepositoryInterface();
@@ -156,7 +156,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
     public <T, ID extends Serializable> JpaEntityInformation<T, ID> getEntityInformation(
             Class<T> domainClass) {
 
-        return (JpaEntityInformation<T, ID>) JpaClassUtils.getMetadata(
-                domainClass, entityManager);
+        return (JpaEntityInformation<T, ID>) JpaEntityInformationSupport
+                .getMetadata(domainClass, entityManager);
     }
 }

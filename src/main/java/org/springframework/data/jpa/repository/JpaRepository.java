@@ -22,11 +22,11 @@ import javax.persistence.EntityManager;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.PagingAndSortingRepository;
-import org.springframework.data.repository.CrudRepository;
 
 
 /**
- * JPA specific extension of {@link Repository}.
+ * JPA specific extension of
+ * {@link org.springframework.data.repository.Repository}.
  * 
  * @author Oliver Gierke
  */

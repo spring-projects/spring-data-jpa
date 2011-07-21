@@ -16,7 +16,6 @@
 package org.springframework.data.jpa.repository.query;
 
 import static java.util.regex.Pattern.*;
-import static org.springframework.data.jpa.repository.utils.JpaClassUtils.*;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -92,32 +91,17 @@ public abstract class QueryUtils {
 
 
     /**
-     * Returns the query string for the given class.
-     * 
-     * @return
-     */
-    public static String getQueryString(String template, Class<?> clazz) {
-
-        if (null == clazz) {
-            throw new IllegalArgumentException("Class must not be null!");
-        }
-
-        return getQueryString(template, getEntityName(clazz));
-    }
-
-
-    /**
      * Returns the query string for the given class name.
      * 
      * @param template
-     * @param clazzName
+     * @param entityName
      * @return
      */
-    private static String getQueryString(String template, String clazzName) {
+    public static String getQueryString(String template, String entityName) {
 
-        Assert.hasText(clazzName, "Classname must not be null or empty!");
+        Assert.hasText(entityName, "Entity name must not be null or empty!");
 
-        return String.format(template, clazzName);
+        return String.format(template, entityName);
     }
 
 

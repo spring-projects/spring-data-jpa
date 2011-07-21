@@ -36,15 +36,15 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.data.jpa.repository.utils.JpaClassUtils;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
 
 /**
- * Default implementation of the {@link CrudRepository} interface. This will offer
- * you a more sophisticated interface than the plain {@link EntityManager} .
+ * Default implementation of the {@link CrudRepository} interface. This will
+ * offer you a more sophisticated interface than the plain {@link EntityManager}
+ * .
  * 
  * @author Oliver Gierke
  * @author Eberhard Wolff
@@ -88,7 +88,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements
      */
     public SimpleJpaRepository(Class<T> domainClass, EntityManager em) {
 
-        this(JpaClassUtils.getMetadata(domainClass, em), em);
+        this(JpaEntityInformationSupport.getMetadata(domainClass, em), em);
     }
 
 
@@ -100,7 +100,8 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements
 
     private String getDeleteAllQueryString() {
 
-        return getQueryString(DELETE_ALL_QUERY_STRING, getDomainClass());
+        return getQueryString(DELETE_ALL_QUERY_STRING,
+                entityInformation.getEntityName());
     }
 
 
@@ -110,7 +111,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements
                 String.format(COUNT_QUERY_STRING,
                         provider.getCountQueryPlaceholder(), "%s");
 
-        return getQueryString(countQuery, getDomainClass());
+        return getQueryString(countQuery, entityInformation.getEntityName());
     }
 
 
@@ -174,8 +175,10 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements
             return;
         }
 
-        applyAndBind(getQueryString(DELETE_ALL_QUERY_STRING, getDomainClass()),
-                entities, em).executeUpdate();
+        applyAndBind(
+                getQueryString(DELETE_ALL_QUERY_STRING,
+                        entityInformation.getEntityName()), entities, em)
+                .executeUpdate();
         em.clear();
     }
 
