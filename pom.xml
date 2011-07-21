@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.springframework.data</groupId>
 	<artifactId>spring-data-jpa</artifactId>
-	<version>1.0.0.RELEASE</version>
+	<version>1.1.0.BUILD-SNAPSHOT</version>
 	
 	<name>Spring JPA</name>
 	<description>Spring Data module to provide sophisticated support for JPA repositories</description>
@@ -53,7 +53,7 @@
 	
 	<properties>
 		<spring.version>3.0.5.RELEASE</spring.version>
-		<spring.data.commons.version>1.1.0.RELEASE</spring.data.commons.version>
+		<spring.data.commons.version>1.2.0.BUILD-SNAPSHOT</spring.data.commons.version>
 		<hibernate.version>3.6.5.Final</hibernate.version>
 		<openjpa.version>2.1.0</openjpa.version>
 		<eclipselink.version>2.2.0</eclipselink.version>
@@ -576,9 +576,9 @@
 			<url>scp://static.springframework.org/var/www/domains/springframework.org/static/htdocs/spring-data/data-jpa/snapshot-site/</url>
 		</site>
 		<repository>
-			<id>spring-release</id>
+			<id>spring-milestone</id>
 			<name>Spring Milestone Repository</name>
-			<url>s3://maven.springframework.org/release</url>
+			<url>s3://maven.springframework.org/milestone</url>
 		</repository>
 		<snapshotRepository>
 			<id>spring-snapshot</id>
