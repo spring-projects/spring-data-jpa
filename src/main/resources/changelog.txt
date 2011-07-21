@@ -1,8 +1,17 @@
 Spring Data JPA Changelog
-=============================================
+=========================
+
+Changes in version 1.0.0.GA (2011-07-21)
+----------------------------------------
+* Updated to Spring Data Commons 1.1.0.RELEASE - (DATACMNS-53, DATACMNS-49)
+* Upgrade to Querydsl 2.2.0 (DATAJPA-78, DATACMNS-53)
+* Improved performance by caching CriteriaQuery creation if possible (DATAJPA-71)
+* Fixed version range for Spring Data Commons packages in template.mf (DATAJPA-72)
+* Fixed count query execution for pagination queries with manually defined query (DATAJPA-77)
+* Polished documentation
 
 Changes in version 1.0.0.RC1 (2011-06-21) - https://jira.springsource.org/browse/DATAJPA/fixforversion/11869
-----------------------------------------
+-----------------------------------------
 * Expose findAll(Specification<T> spec, Sort sort) in JpaSpecificationExecutor (DATAJPA-48)
 * Improved target domain class detection for queries returning void and numeric values (DATAJPA-44)
 * Improved extensibility of QueryDslJpaRepository (DATAJPA-39)
