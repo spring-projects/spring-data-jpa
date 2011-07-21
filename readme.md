@@ -24,93 +24,102 @@ For more detailed questions, use the [forum](http://forum.springsource.org/forum
 ## Quick Start ##
 
 Download the jar though Maven:
-
-    <dependency>
-      <groupId>org.springframework.data</groupId>
-      <artifactId>spring-data-jpa</artifactId>
-      <version>1.0.0.BUILD-SNAPSHOT</version>
-    </dependency> 
+```xml
+<dependency>
+  <groupId>org.springframework.data</groupId>
+  <artifactId>spring-data-jpa</artifactId>
+  <version>1.0.0.BUILD-SNAPSHOT</version>
+</dependency> 
        
-    <repository>
-      <id>spring-maven-snapshot</id>
-      <snapshots>
-        <enabled>true</enabled>
-      </snapshots>
-      <name>Springframework Maven SNAPSHOT Repository</name>
-      <url>http://maven.springframework.org/snapshot</url>
-    </repository> 
+<repository>
+  <id>spring-maven-snapshot</id>
+  <snapshots>
+    <enabled>true</enabled>
+  </snapshots>
+  <name>Springframework Maven SNAPSHOT Repository</name>
+  <url>http://maven.springframework.org/snapshot</url>
+</repository>
+```
 
 Also include your JPA persistence provider of choice (Hibernate, EclipseLink, OpenJpa). Setup basic Spring JPA configuration as well as Spring Data JPA repository support.
 
-    <?xml version="1.0" encoding="UTF-8"?>
-    <beans xmlns="http://www.springframework.org/schema/beans"
-	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	   xmlns:jdbc="http://www.springframework.org/schema/jdbc"
-	   xmlns:jpa="http://www.springframework.org/schema/data/jpa"
-	   xsi:schemaLocation="http://www.springframework.org/schema/jdbc 
-                          http://www.springframework.org/schema/jdbc/spring-jdbc.xsd
-                          http://www.springframework.org/schema/beans
-                          http://www.springframework.org/schema/beans/spring-beans.xsd
-                          http://www.springframework.org/schema/data/jpa
-                          http://www.springframework.org/schema/data/jpa/spring-jpa.xsd">
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	    xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+	    xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+	    xsi:schemaLocation="http://www.springframework.org/schema/jdbc 
+                           http://www.springframework.org/schema/jdbc/spring-jdbc.xsd
+                           http://www.springframework.org/schema/beans
+                           http://www.springframework.org/schema/beans/spring-beans.xsd
+                           http://www.springframework.org/schema/data/jpa
+                           http://www.springframework.org/schema/data/jpa/spring-jpa.xsd">
 	
-      <bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
-        <property name="dataSource" ref="dataSource" />
-        <property name="jpaVendorAdapter">
-          <bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter" />
-        </property>
-      </bean>
-	
-      <bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
-        <property name="entityManagerFactory" ref="entityManagerFactory" />
-      </bean>
-	
-      <jdbc:embedded-database id="dataSource" type="HSQL" />
-	
-      <jpa:repositories base-package="com.acme.repositories" />
-    </beans>
+  <bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+    <property name="dataSource" ref="dataSource" />
+    <property name="jpaVendorAdapter">
+      <bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter" />
+    </property>
+  </bean>
+
+  <bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
+    <property name="entityManagerFactory" ref="entityManagerFactory" />
+  </bean>
+
+  <jdbc:embedded-database id="dataSource" type="HSQL" />
+
+  <jpa:repositories base-package="com.acme.repositories" />
+</beans>
+```
 
 Create an entity:
 
-    @Entity
-    public class User {
+```java
+@Entity
+public class User {
+
+  @Id
+  @GeneratedValue(strategy = GenerationType.AUTO)
+  private Integer id;
+  private String firstname;
+  private String lastname;
        
-      @Id
-      @GeneratedValue(strategy = GenerationType.AUTO)
-      private Integer id;
-      private String firstname;
-      private String lastname;
-       
-      // Getters and setters
-    }
+  // Getters and setters
+}
+```
 
 Create a repository interface in `com.acme.repositories`:
 
-    public interface UserRepository extends CrudRepository<User, Long> {
-      List<User> findByLastname(String lastname);
-    }
+```java
+public interface UserRepository extends CrudRepository<User, Long> {
+  List<User> findByLastname(String lastname);
+}
+```
 
 Write a test client
 
-    @RunWith(SpringJUnit4TestRunner.class)
-    @ContextConfiguration("classpath:your-config-file.xml")
-    public class UserRepositoryIntegrationTest {
+```java
+@RunWith(SpringJUnit4TestRunner.class)
+@ContextConfiguration("classpath:your-config-file.xml")
+public class UserRepositoryIntegrationTest {
      
-      @Autowrired UserRepository repository;
+  @Autowrired UserRepository repository;
      
-      @Test
-      public void sampleTestCase() {
-        User dave = new User("Dave", "Matthews");
-        repository.save(user);
+  @Test
+  public void sampleTestCase() {
+    User dave = new User("Dave", "Matthews");
+    repository.save(user);
          
-        User carter = new User("Carter", "Beauford");
-        repository.save(carter);
+    User carter = new User("Carter", "Beauford");
+    repository.save(carter);
          
-        List<User> result = repository.findByLastname("Matthews");
-        assertThat(result.size(), is(1));
-        assertThat(result, hasItem(dave));
-      }
-    }
+    List<User> result = repository.findByLastname("Matthews");
+    assertThat(result.size(), is(1));
+    assertThat(result, hasItem(dave));
+  }
+}
+```
 
 ## Contributing to Spring Data ##
 
