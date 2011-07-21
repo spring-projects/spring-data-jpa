@@ -47,9 +47,9 @@ Also include your JPA persistence provider of choice (Hibernate, EclipseLink, Op
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	    xmlns:jdbc="http://www.springframework.org/schema/jdbc"
-	    xmlns:jpa="http://www.springframework.org/schema/data/jpa"
-	    xsi:schemaLocation="http://www.springframework.org/schema/jdbc 
+       xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+       xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+       xsi:schemaLocation="http://www.springframework.org/schema/jdbc 
                            http://www.springframework.org/schema/jdbc/spring-jdbc.xsd
                            http://www.springframework.org/schema/beans
                            http://www.springframework.org/schema/beans/spring-beans.xsd
