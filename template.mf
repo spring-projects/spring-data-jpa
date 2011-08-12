@@ -9,7 +9,7 @@ Export-Template:
 Import-Template:
  com.mysema.query.*;version="${querydsl.version:[=.=.=,+1.0.0)}";resolution:=optional,
  javax.persistence.*;version="${jpa.version:[=.=.=,+1.0.0)}",
- javax.annotation.*;version="[1.3.0,2.0.0)",  
+ javax.annotation.*;version="0.0.0",
  org.aopalliance.*;version="[1.0.0,2.0.0)", 
  org.apache.openjpa.persistence.*;version="${openjpa.version:[=.=.=,+1.0.0)}";resolution:=optional, 
  org.aspectj.*;version="${aspectj.version:[=.=.=,+1.0.0)}";resolution:=optional,
