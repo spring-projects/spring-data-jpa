@@ -65,7 +65,7 @@
 		
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<dist.id>spring-data-jpa</dist.id>
-		<dist.name>Spring Data</dist.name>
+		<dist.name>Spring Data JPA</dist.name>
 		<dist.key>DATAJPA</dist.key>
 		<dist.releaseType>snapshot</dist.releaseType>
 		<dist.version>${project.version}</dist.version>
