@@ -22,36 +22,14 @@
         <title>Declared queries</title>
 
         <para>Although getting a query derived from the method name is quite
-        convenient one might face the situation in which either the method
+        convenient, one might face the situation in which either the method
         name parser does not support the keyword one wants to use or the
         method name would get unnecessarily ugly. So you can either use JPA
         named queries through a naming convention (see <xref
         linkend="jpa.query-methods.named-queries" /> for more information) or
         rather annotate your query method with
-        <interfacename>@Query</interfacename> (see as for details).</para>
-      </simplesect>
-
-      <simplesect>
-        <title>Strategies</title>
-
-        <para>This strategy tries to find a declared query that can either be
-        defined using JPA <code>@NamedQuery</code> means or Hades
-        <code>@Query</code> annotation (see <xref
-        linkend="jpa.query-methods.named-queries" /> and <xref
-        linkend="jpa.query-methods.at-query" /> for details). If no declared
-        query is found execution of the query will fail.</para>
-      </simplesect>
-
-      <simplesect>
-        <title>CREATE_IF_NOT_FOUND (default)</title>
-
-        <para>This strategy is actually a combination of the both mentioned
-        above. It will try to lookup a declared query first but create a
-        custom method name based query if no named query was found. This is
-        default lookup strategy and thus will be used if you don't configure
-        anything explicitly. It allows quick query definition by method names
-        but also custom tuning of these queries by introducing declared
-        queries for those who need explicit tuning.</para>
+        <interfacename>@Query</interfacename> (see
+        <xref linkend="jpa.query-methods.at-query" /> for details).</para>
       </simplesect>
     </section>
 
@@ -72,7 +50,7 @@
           <programlisting>select u from User u where u.emailAddress = ?1 and u.lastname = ?2</programlisting>
 
           <para>Spring Data JPA will do a property check and traverse nested
-          properties like described in <xref
+          properties as described in <xref
           linkend="repositories.query-methods.property-expressions" />. Here's
           an overview of the keywords supported for JPA and what a method
           containing that keyword essentially translates to.</para>
@@ -225,7 +203,7 @@
         element and <code>@NamedQuery</code> annotation. The queries for these
         configuration elements have to be defined in JPA query language. Of
         course you can use <code>&lt;named-native-query /&gt;</code> or
-        <code>@NamedNativeQuery</code>, too. These elements allow you to
+        <code>@NamedNativeQuery</code> too. These elements allow you to
         define the query in native SQL by losing the database platform
         independence.</para>
       </note>
@@ -255,8 +233,8 @@
       <simplesect>
         <title>Annotation configuration</title>
 
-        <para>Annotation configuration has the advantage not to need another
-        config file to be edited, probably lowering maintenance cost. You pay
+        <para>Annotation configuration has the advantage of not needing another
+        config file to be edited, probably lowering maintenance costs. You pay
         for that benefit by the need to recompile your domain class for every
         new query declaration.</para>
 
@@ -264,7 +242,7 @@
           <title>Annotation based named query configuration</title>
 
           <programlisting language="java">@Entity
-@NamedQuery(name = "User.findByEmailAddress", 
+@NamedQuery(name = "User.findByEmailAddress",
   query = "select u from User u where u.emailAddress = ?1")
 public class User {
 
@@ -275,7 +253,7 @@ public class User {
       <simplesect>
         <title>Declaring interfaces</title>
 
-        <para>To allow execution of this named query all you need to do is to
+        <para>To allow execution of these named queries all you need to do is to
         specify the <interfacename>UserRepository</interfacename> as
         follows:</para>
 
@@ -290,9 +268,9 @@ public class User {
 }</programlisting>
         </example>
 
-        <para>Declaring this method we will try to resolve a call to this
-        method to a named query starting with the simple name of the
-        configured domain class followed by the method name separated by a
+        <para>Spring Data will try to resolve a call to these
+        methods to a named query, starting with the simple name of the
+        configured domain class, followed by the method name separated by a
         dot. So the example here would use the named queries defined above
         instead of trying to create a query from the method name.</para>
       </simplesect>
@@ -302,14 +280,14 @@ public class User {
       <title>Using @Query</title>
 
       <para>Using named queries to declare queries for entities is a valid
-      approach and works fine for a small number amount of queries. As the
-      queries themselves are tied to a Java method to execute them you
-      actually can bind them to the query executing methods using Spring Data
+      approach and works fine for a small number of queries. As the
+      queries themselves are tied to the Java method that executes them you
+      actually can bind them directly using the Spring Data
       JPA <code>@Query</code> annotation rather than annotating them to the
       domain class. This will free the domain class from persistence specific
-      information and colocate the query to the repository interface.</para>
+      information and co-locate the query to the repository interface.</para>
 
-      <para>Querys annotated to the query method will trump queries defined
+      <para>Queries annotated to the query method will take presidence over queries defined
       using <code>@NamedQuery</code> or named queries declared in in
       <filename>orm.xml</filename>.</para>
 
@@ -327,7 +305,7 @@ public class User {
     <section id="jpa.named-parameters">
       <title>Using named parameters</title>
 
-      <para>By default Sprign Data JPA will use position based parameter
+      <para>By default Spring Data JPA will use position based parameter
       binding as described in all the samples above. This makes query methods
       a little error prone to refactorings regarding the parameter position.
       To solve this issue you can use <code>@Param</code> annotation to give a
@@ -351,8 +329,8 @@ public class User {
     <section id="jpa.modifying-queries">
       <title>Modifying queries</title>
 
-      <para>All the sections before described how to declare queries to access
-      a given entity or collection of entitites. Of course you can add custom
+      <para>All the sections above described how to declare queries to access
+      a given entity or collection of entities. Of course you can add custom
       modifying behaviour by using facilities described in <xref
       linkend="custom-implementations" />. As this approach is feasible for
       comprehensive custom functionality, you can achieve the execution of
@@ -387,30 +365,30 @@ int setFixedFirstnameFor(String firstname, String lastname);</programlisting>
     <title>Specifications</title>
 
     <para>JPA 2 introduces a criteria API that can be used to build queries
-    programatically. Writing a criteria you actually define the where-clause
-    of a query for a query of the handled domain class. Taking another step
-    back these criterias can be regarded as predicate over the entity that is
-    verbalized by the JPA criteria API constraints.</para>
+    programmatically. Writing a criteria you actually define the where-clause
+    of a query for a domain class. Taking another step
+    back these criteria can be regarded as predicate over the entity that is
+    described by the JPA criteria API constraints.</para>
 
-    <para>Spring Data JPA now takes the concept of a specification from Eric
-    Evans' book Domain Driven Design, that carries the same semantics and
-    provides an API to define such
+    <para>Spring Data JPA takes the concept of a specification from Eric
+    Evans' book "Domain Driven Design", following the same semantics and
+    providing an API to define such
     <interfacename>Specification</interfacename>s using the JPA criteria API.
-    Thus, there is a <interfacename>JpaSpecificationExecutor</interfacename>
-    interface you can additionally extend with your repository
-    interface:</para>
+    To support specifications you can extend your reposistory interface with the 
+    <interfacename>JpaSpecificationExecutor</interfacename> interface:</para>
 
     <programlisting language="java">public interface CustomerRepository extends CrudRepository&lt;Customer, Long&gt;, JpaSpecificationExecutor {
  …
 }</programlisting>
 
-    <para>The additional interface carries methods like this one, which allow
+    <para>The additional interface carries methods that allow
     you to execute <interfacename>Specification</interfacename>s in a variety
-    of ways.</para>
+    of ways.</para>  For example, the <code>readAll</code> method will return 
+    all entities that match the specification:
 
     <programlisting language="java">List&lt;T&gt; readAll(Specification&lt;T&gt; spec);</programlisting>
 
-    <para>The <interfacename>Specification</interfacename> interface now looks
+    <para>The <interfacename>Specification</interfacename> interface is
     as follows:</para>
 
     <programlisting language="java">public interface Specification&lt;T&gt; {
@@ -468,7 +446,7 @@ int setFixedFirstnameFor(String firstname, String lastname);</programlisting>
       <programlisting language="java">List&lt;Customer&gt; customers = customerRepository.findAll(isLongTermCustomer());</programlisting>
     </example>
 
-    <para>Okay, why not simply creating a query for this kind of data access?
+    <para>Okay, why not simply create a query for this kind of data access?
     You're right. Using a single <interfacename>Specification</interfacename>
     does not gain a lot of benefit over a plain query declaration. The power
     of <interfacename>Specification</interfacename>s really shines when you
@@ -483,7 +461,7 @@ int setFixedFirstnameFor(String firstname, String lastname);</programlisting>
       <para><programlisting language="java">MonetaryAmount amount = new MonetaryAmount(200.0, Currencies.DOLLAR);
 List&lt;Customer&gt; customers = customerRepository.readAll(
   where(isLongTermCustomer()).or(hasSalesOfMoreThan(amount)));</programlisting>As
-      you can see, <classname>Specifications</classname> offers some gluecode
+      you can see, <classname>Specifications</classname> offers some glue-code
       methods to chain and combine
       <interfacename>Specification</interfacename>s. Thus extending your data
       access layer is just a matter of creating new
@@ -538,7 +516,7 @@ class UserManagementImpl implements UserManagement {
   private final RoleRepository roleRepository;
 
   @Autowired
-  public UserManagementImpl(UserRepository userRepository, 
+  public UserManagementImpl(UserRepository userRepository,
     RoleRepository roleRepository) {
     this.userRepository = userRepository;
     this.roleRepository = roleRepository;
@@ -562,14 +540,14 @@ class UserManagementImpl implements UserManagement {
       will be neglected then as the outer transaction configuration determines
       the actual one used. Note that you will have to activate
       <code>&lt;tx:annotation-driven /&gt;</code> explicitly to get annotation
-      based configuration at facades working. The example above assumes you're
+      based configuration at facades working. The example above assumes you are
       using component scanning.</para>
     </example>
 
     <section id="transactional-query-methods">
       <title>Transactional query methods</title>
 
-      <para>To let your query methods be transactional simply use
+      <para>To allow your query methods be transactional simply use
       <interfacename>@Transactional</interfacename> at the repository
       interface you define.</para>
 
@@ -587,8 +565,8 @@ public interface UserRepository extends JpaRepository&lt;User, Long&gt; {
   void deleteInactiveUsers();
 }</programlisting>
 
-        <para>Typically you will use the <code>readOnly</code> flag set to
-        true as most of the query methods will be reading ones. In contrast to
+        <para>Typically you will want the <code>readOnly</code> flag set to
+        true as most of the query methods will only read data. In contrast to
         that <methodname>deleteInactiveUsers()</methodname> makes use of the
         <interfacename>@Modifying</interfacename> annotation and overrides the
         transaction configuration. Thus the method will be executed with
@@ -597,16 +575,16 @@ public interface UserRepository extends JpaRepository&lt;User, Long&gt; {
 
       <note>
         <para>It's definitely reasonable to use transactions for read only
-        queries as we can mark them as such by setting the
-        <code>readOnly</code> flag. This will not act as check that you do not
+        queries and we can mark them as such by setting the
+        <code>readOnly</code> flag. This will not, however, act as check that you do not
         trigger a manipulating query nevertheless (although some databases
-        reject e.g. <literal>INSERT</literal> or <literal>UPDATE</literal>
-        statements inside a transaction set to be read only) but gets
-        propagated as hint to the underlying JDBC driver to do performance
-        optimizations. Furthermore Spring will do some optimizations to the
+        reject <literal>INSERT</literal> and <literal>UPDATE</literal>
+        statements inside a read only transaction) but gets
+        propagated as hint to the underlying JDBC driver for performance
+        optimizations. Furthermore, Spring will do some optimizations to the
         underlying JPA provider. E.g. when used with Hibernate the flush mode
         is set to <code>NEVER</code> when you configure a transaction as read
-        only which causes Hibernate to skip dirty checks that gets quite
+        only which causes Hibernate to skip dirty checks that get quite
         noticeable on large object trees.</para>
       </note>
     </section>
@@ -615,11 +593,11 @@ public interface UserRepository extends JpaRepository&lt;User, Long&gt; {
   <section id="jpa.auditing">
     <title>Auditing</title>
 
-    <para>Most applications will require some auditability for entities
-    allowing to track creation date and user and modification date and user.
-    Spring Data JPA provides facilities to add this audition information to
-    entity transparently by AOP means. To take part in this functionality your
-    domain classes have to implement a more advanced interface:</para>
+    <para>Most applications will require some form of auditability to track when 
+    an entity was created or modified and by who. 
+    Spring Data JPA provides facilities to add this audit information to
+    an entity transparently by AOP means. To take part in this functionality your
+    domain classes must implement a more advanced interface:</para>
 
     <example>
       <title><interfacename>Auditable</interfacename> interface</title>
@@ -653,7 +631,7 @@ public interface UserRepository extends JpaRepository&lt;User, Long&gt; {
       <para>To minimize boilerplate code Spring Data JPA offers
       <classname>AbstractPersistable</classname> and
       <classname>AbstractAuditable</classname> base classes that implement and
-      preconfigure entities. Thus you can decide to only implement the
+      pre-configure entities. Thus you can decide to only implement the
       interface or enjoy more sophisticated support by extending the base
       class.</para>
     </note>
@@ -679,7 +657,7 @@ public interface UserRepository extends JpaRepository&lt;User, Long&gt; {
 &lt;/persistence-unit-metadata&gt;</programlisting>
       </example>
 
-      <para>Now activating auditing functionlity is just a matter of adding
+      <para>Now activating auditing functionality is just a matter of adding
       the Spring Data JPA <literal>auditing</literal> namespace element to
       your configuration:</para>
 
@@ -705,7 +683,7 @@ public interface UserRepository extends JpaRepository&lt;User, Long&gt; {
       <para>Usually you will have some kind of authentication component in
       your application that tracks the user currently working with the system.
       This component should be <interfacename>AuditorAware</interfacename> and
-      thus allow seemless tracking of the auditor.</para>
+      thus allow seamless tracking of the auditor.</para>
     </simplesect>
   </section>
 
@@ -715,10 +693,10 @@ public interface UserRepository extends JpaRepository&lt;User, Long&gt; {
     <section>
       <title>Merging persistence units</title>
 
-      <para>Spring supports ahving multiple persistence units out of the box.
-      But sometimes you might wanna modularize your application but make sure
-      that all these module run inside a single persistence unit at runtime.
-      To do so Spring Data JPA offers a PersistenceUnitManager implementation
+      <para>Spring supports having multiple persistence units out of the box.
+      Sometimes, however, you might want to modularize your application but still make sure
+      that all these modules run inside a single persistence unit at runtime.
+      To do so Spring Data JPA offers a <code>PersistenceUnitManager</code> implementation
       that automatically merges persistence units based on their name.</para>
 
       <example>
