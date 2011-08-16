@@ -60,9 +60,7 @@
   <part id="reference">
     <title>Reference Documentation</title>
 
-    <xi:include href="https://raw.github.com/SpringSource/spring-data-commons/master/src/docbkx/repositories.xml">
-    	<xi:fallback href="../../../spring-data-commons/src/docbkx/repositories.xml" />
-    </xi:include>
+    <xi:include href="../../target/commons-docbkx/repositories.xml"/>
 
     <xi:include href="reference/jpa.xml" />
   </part>
@@ -70,9 +68,7 @@
   <part id="appendix">
     <title>Appendix</title>
 
-    <xi:include href="https://raw.github.com/SpringSource/spring-data-commons/master/src/docbkx/repository-namespace-reference.xml">
-    	<xi:fallback href="../../../spring-data-commons/src/docbkx/repository-namespace-reference.xml" />
-    </xi:include>
+    <xi:include href="../../target/commons-docbkx/repository-namespace-reference.xml"/>
 
     <xi:include href="appendix/faq.xml" />
 
