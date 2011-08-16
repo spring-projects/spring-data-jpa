@@ -329,7 +329,7 @@ public class User {
     <section id="jpa.modifying-queries">
       <title>Modifying queries</title>
 
-      <para>All the sections above described how to declare queries to access
+      <para>All the sections above describe how to declare queries to access
       a given entity or collection of entities. Of course you can add custom
       modifying behaviour by using facilities described in <xref
       linkend="custom-implementations" />. As this approach is feasible for
@@ -400,8 +400,8 @@ int setFixedFirstnameFor(String firstname, String lastname);</programlisting>
     <interfacename>Specification</interfacename>s can easily be used to build
     an extensible set of predicates on top of an entity that then can be
     combined and used with <interfacename>JpaRepository</interfacename>
-    without the need of declaring a query (method) for every needed
-    combination of those. Here's an example:</para>
+    without the need to declare a query (method) for every needed
+    combination. Here's an example:</para>
 
     <example>
       <title>Specifications for a Customer</title>
@@ -577,15 +577,14 @@ public interface UserRepository extends JpaRepository&lt;User, Long&gt; {
         <para>It's definitely reasonable to use transactions for read only
         queries and we can mark them as such by setting the
         <code>readOnly</code> flag. This will not, however, act as check that you do not
-        trigger a manipulating query nevertheless (although some databases
+        trigger a manipulating query (although some databases
         reject <literal>INSERT</literal> and <literal>UPDATE</literal>
-        statements inside a read only transaction) but gets
+        statements inside a read only transaction).  The <code>readOnly</code> flag instead is
         propagated as hint to the underlying JDBC driver for performance
-        optimizations. Furthermore, Spring will do some optimizations to the
+        optimizations. Furthermore, Spring will perform some optimizations on the
         underlying JPA provider. E.g. when used with Hibernate the flush mode
-        is set to <code>NEVER</code> when you configure a transaction as read
-        only which causes Hibernate to skip dirty checks that get quite
-        noticeable on large object trees.</para>
+        is set to <code>NEVER</code> when you configure a transaction as <code>readOnly</code> which
+        causes Hibernate to skip dirty checks (a noticeable improvement on large object trees).</para>
       </note>
     </section>
   </section>
