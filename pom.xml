@@ -4,7 +4,7 @@
 	<groupId>org.springframework.data</groupId>
 	<artifactId>spring-data-jpa</artifactId>
 	<version>1.1.0.BUILD-SNAPSHOT</version>
-	
+
 	<name>Spring JPA</name>
 	<description>Spring Data module to provide sophisticated support for JPA repositories</description>
 	<url>http://www.springsource.org/spring-data</url>
@@ -13,7 +13,7 @@
 		<name>SpringSource</name>
 		<url>http://www.springsource.org</url>
 	</organization>
-	
+
 	<developers>
 		<developer>
 			<id>ogierke</id>
@@ -27,20 +27,20 @@
 			<timezone>+1</timezone>
 		</developer>
 	</developers>
-	
+
 	<licenses>
 		<license>
 			<name>Apache License, Version 2.0</name>
 			<url>http://www.apache.org/licenses/LICENSE-2.0</url>
 			<comments>
 			Copyright 2011 the original author or authors.
-			 
+
 			Licensed under the Apache License, Version 2.0 (the "License");
 			you may not use this file except in compliance with the License.
 			You may obtain a copy of the License at
-			
+
 			     http://www.apache.org/licenses/LICENSE-2.0
-			
+
 			Unless required by applicable law or agreed to in writing, software
 			distributed under the License is distributed on an "AS IS" BASIS,
 			WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
@@ -50,7 +50,7 @@
 			</comments>
 		</license>
 	</licenses>
-	
+
 	<properties>
 		<spring.version>3.0.5.RELEASE</spring.version>
 		<spring.data.commons.version>1.2.0.BUILD-SNAPSHOT</spring.data.commons.version>
@@ -62,7 +62,7 @@
 		<junit.version>4.8.1</junit.version>
 		<jpa.version>2.0.0</jpa.version>
 		<slf4j.version>1.6.1</slf4j.version>
-		
+
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<dist.id>spring-data-jpa</dist.id>
 		<dist.name>Spring Data JPA</dist.name>
@@ -78,7 +78,7 @@
 		<dist.secretKey>s3 secret key</dist.secretKey>
 		-->
 	</properties>
-	
+
 	<profiles>
 		<profile>
 			<id>staging</id>
@@ -97,10 +97,10 @@
 				</snapshotRepository>
 			</distributionManagement>
 		</profile>
-		
+
 		<profile>
 			<!-- Profile used when doing milestone or release ddeployments-->
-			<id>distribute</id>			
+			<id>distribute</id>
 			<build>
 				<plugins>
 					<plugin>
@@ -132,7 +132,7 @@
 							</links>
 						</configuration>
 					</plugin>
-					
+
 					<plugin>
 						<groupId>com.agilejava.docbkx</groupId>
 						<artifactId>docbkx-maven-plugin</artifactId>
@@ -248,21 +248,29 @@
 			</build>
 		</profile>
 	</profiles>
-	
+
 	<dependencies>
-	
+
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>spring-data-commons-core</artifactId>
 			<version>${spring.data.commons.version}</version>
 		</dependency>
-		
+
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>spring-data-commons-dist</artifactId>
+			<version>${spring.data.commons.version}</version>
+			<type>docbkx</type>
+			<scope>provided</scope>
+		</dependency>
+
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-orm</artifactId>
 			<version>${spring.version}</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-core</artifactId>
@@ -274,7 +282,7 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-		
+
 		<!-- Logging (SLF4J + JCL bridge) -->
 		<dependency>
 			<groupId>org.slf4j</groupId>
@@ -288,7 +296,7 @@
 			<version>${slf4j.version}</version>
 			<scope>runtime</scope>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.aspectj</groupId>
 			<artifactId>aspectjrt</artifactId>
@@ -306,64 +314,64 @@
 			<version>${spring.version}</version>
 			<optional>true</optional>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-test</artifactId>
 			<version>${spring.version}</version>
 			<scope>test</scope>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<version>${junit.version}</version>
 			<scope>test</scope>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-all</artifactId>
 			<version>1.8.4</version>
 			<scope>test</scope>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.hamcrest</groupId>
 			<artifactId>hamcrest-all</artifactId>
 			<version>1.1</version>
 			<scope>test</scope>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.hsqldb</groupId>
 			<artifactId>hsqldb</artifactId>
 			<version>1.8.0.10</version>
 			<scope>test</scope>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>joda-time</groupId>
 			<artifactId>joda-time</artifactId>
 			<version>1.6</version>
 			<optional>true</optional>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-log4j12</artifactId>
 			<version>${slf4j.version}</version>
 			<scope>test</scope>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>log4j</groupId>
 			<artifactId>log4j</artifactId>
 			<version>1.2.16</version>
 			<scope>test</scope>
 		</dependency>
-		
-	
+
+
 		<!-- Persistence providers -->
 		<dependency>
 			<groupId>org.hibernate</groupId>
@@ -389,7 +397,7 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-		
+
 		<!-- QueryDsl -->
 		<dependency>
 			<groupId>com.mysema.querydsl</groupId>
@@ -397,7 +405,7 @@
 			<version>${querydsl.version}</version>
 			<scope>provided</scope>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>com.mysema.querydsl</groupId>
 			<artifactId>querydsl-jpa</artifactId>
@@ -405,9 +413,9 @@
 			<optional>true</optional>
 		</dependency>
 	</dependencies>
-	
+
 	<build>
-		
+
 		<extensions>
 			<extension>
 				<!-- available only in the springframework maven repository. see <repositories> section below -->
@@ -416,7 +424,7 @@
 				<version>3.1.0.RELEASE</version>
 			</extension>
 		</extensions>
-		
+
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -512,7 +520,7 @@
 					</execution>
 				</executions>
 			</plugin>
-			
+
 			<plugin>
 				<groupId>com.springsource.bundlor</groupId>
 				<artifactId>com.springsource.bundlor.maven</artifactId>
@@ -529,7 +537,7 @@
 					</execution>
 				</executions>
 			</plugin>
-			
+
 			<plugin>
 				<groupId>com.mysema.maven</groupId>
 				<artifactId>maven-apt-plugin</artifactId>
@@ -565,9 +573,30 @@
 					</execution>
 				</executions>
 			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>1.4</version>
+				<executions>
+					<execution>
+            			<id>zip-docbkx</id>
+            			<phase>generate-resources</phase>
+			            <configuration>
+			            	<tasks>
+			            		<mkdir dir="${project.build.directory}/commons-docbkx"/>
+			            		<unzip src="${org.springframework.data:spring-data-commons-dist:docbkx}" dest="${project.build.directory}/commons-docbkx"/>
+			            	</tasks>
+			            </configuration>
+						<goals>
+							<goal>run</goal>
+						</goals>
+          			</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
-	
+
 	<distributionManagement>
 		<!-- see 'staging' profile for dry-run deployment settings -->
 		<downloadUrl>http://www.springsource.org/spring-data</downloadUrl>
@@ -586,7 +615,7 @@
 			<url>s3://maven.springframework.org/snapshot</url>
 		</snapshotRepository>
 	</distributionManagement>
-	
+
 	<ciManagement>
         <system>Bamboo</system>
         <url>http://build.springsource.org/browse/SPRINGDATA</url>
@@ -602,7 +631,7 @@
         <connection>scm:git:git://github.com/SpringSource/spring-data-jpa.git</connection>
         <developerConnection>scm:git:ssh://git@github.com:SpringSource/spring-data-jpa.git</developerConnection>
     </scm>
-	
+
 	<repositories>
 		<repository>
 			<id>repository.springframework.maven.release</id>
@@ -635,7 +664,7 @@
 			<url>http://source.mysema.com/maven2/releases</url>
 		</repository>
 	</repositories>
-	
+
 	<pluginRepositories>
 		<pluginRepository>
 			<id>repository.springframework.maven.release</id>
