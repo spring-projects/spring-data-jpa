@@ -234,7 +234,7 @@
         <title>Annotation configuration</title>
 
         <para>Annotation configuration has the advantage of not needing another
-        config file to be edited, probably lowering maintenance costs. You pay
+        configuration file to be edited, probably lowering maintenance costs. You pay
         for that benefit by the need to recompile your domain class for every
         new query declaration.</para>
 
@@ -287,8 +287,8 @@ public class User {
       domain class. This will free the domain class from persistence specific
       information and co-locate the query to the repository interface.</para>
 
-      <para>Queries annotated to the query method will take presidence over queries defined
-      using <code>@NamedQuery</code> or named queries declared in in
+      <para>Queries annotated to the query method will take precedence over queries defined
+      using <code>@NamedQuery</code> or named queries declared in
       <filename>orm.xml</filename>.</para>
 
       <example>
@@ -307,7 +307,7 @@ public class User {
 
       <para>By default Spring Data JPA will use position based parameter
       binding as described in all the samples above. This makes query methods
-      a little error prone to refactorings regarding the parameter position.
+      a little error prone to refactoring regarding the parameter position.
       To solve this issue you can use <code>@Param</code> annotation to give a
       method parameter a concrete name and bind the name in the query:</para>
 
@@ -365,7 +365,7 @@ int setFixedFirstnameFor(String firstname, String lastname);</programlisting>
     <title>Specifications</title>
 
     <para>JPA 2 introduces a criteria API that can be used to build queries
-    programmatically. Writing a criteria you actually define the where-clause
+    programmatically. Writing a <code>criteria</code> you actually define the where-clause
     of a query for a domain class. Taking another step
     back these criteria can be regarded as predicate over the entity that is
     described by the JPA criteria API constraints.</para>
@@ -374,7 +374,7 @@ int setFixedFirstnameFor(String firstname, String lastname);</programlisting>
     Evans' book "Domain Driven Design", following the same semantics and
     providing an API to define such
     <interfacename>Specification</interfacename>s using the JPA criteria API.
-    To support specifications you can extend your reposistory interface with the 
+    To support specifications you can extend your repository interface with the
     <interfacename>JpaSpecificationExecutor</interfacename> interface:</para>
 
     <programlisting language="java">public interface CustomerRepository extends CrudRepository&lt;Customer, Long&gt;, JpaSpecificationExecutor {
@@ -383,7 +383,7 @@ int setFixedFirstnameFor(String firstname, String lastname);</programlisting>
 
     <para>The additional interface carries methods that allow
     you to execute <interfacename>Specification</interfacename>s in a variety
-    of ways.</para>  For example, the <code>readAll</code> method will return 
+    of ways.</para>  For example, the <code>readAll</code> method will return
     all entities that match the specification:
 
     <programlisting language="java">List&lt;T&gt; readAll(Specification&lt;T&gt; spec);</programlisting>
@@ -547,7 +547,7 @@ class UserManagementImpl implements UserManagement {
     <section id="transactional-query-methods">
       <title>Transactional query methods</title>
 
-      <para>To allow your query methods be transactional simply use
+      <para>To allow your query methods to be transactional simply use
       <interfacename>@Transactional</interfacename> at the repository
       interface you define.</para>
 
@@ -593,8 +593,8 @@ public interface UserRepository extends JpaRepository&lt;User, Long&gt; {
   <section id="jpa.auditing">
     <title>Auditing</title>
 
-    <para>Most applications will require some form of auditability to track when 
-    an entity was created or modified and by who. 
+    <para>Most applications will require some form of auditability to track when
+    an entity was created or modified and by whom.
     Spring Data JPA provides facilities to add this audit information to
     an entity transparently by AOP means. To take part in this functionality your
     domain classes must implement a more advanced interface:</para>
