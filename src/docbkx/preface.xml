@@ -24,12 +24,12 @@
       </listitem>
 
       <listitem>
-        <para>Milestone repsitory - <ulink
+        <para>Milestone repository - <ulink
         url="http://maven.springframework.org/milestone">http://maven.springframework.org/milestone</ulink></para>
       </listitem>
 
       <listitem>
-        <para>Snapshot repsitory - <ulink
+        <para>Snapshot repository - <ulink
         url="http://maven.springframework.org/snapshot">http://maven.springframework.org/snapshot</ulink></para>
       </listitem>
     </itemizedlist>
