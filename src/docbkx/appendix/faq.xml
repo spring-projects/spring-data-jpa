@@ -10,7 +10,7 @@
 
       <qandaentry>
         <question>
-          <para>I'd like to get more detailled logging information on what
+          <para>I'd like to get more detailed logging information on what
           methods are called inside
           <interfacename>JpaRepository</interfacename>, e.g. How can I gain
           them?</para>
@@ -28,7 +28,7 @@
 &lt;/bean&gt;
 
 &lt;aop:config&gt;
-  &lt;aop:advisor advice-ref="customizableTraceInterceptor" 
+  &lt;aop:advisor advice-ref="customizableTraceInterceptor"
     pointcut="execution(public * org.sfw.data.jpa.repository.JpaRepository+.*(..))"/&gt;
 &lt;/aop:config&gt;</programlisting>
         </answer>
@@ -44,7 +44,7 @@
           <classname>HibernateDaoSupport</classname>. I create a
           <classname>SessionFactory</classname> by using Spring's
           <classname>AnnotationSessionFactoryBean</classname>. How do I get
-          Hades DAOs working in this environment.</para>
+          Spring Data repositories working in this environment?</para>
         </question>
 
         <answer>
@@ -62,7 +62,7 @@
 
             <programlisting language="xml">&lt;bean class="com.acme.YourDaoBasedOnHibernateDaoSupport"&gt;
   &lt;property name="sessionFactory"&gt;
-    &lt;bean factory-bean="entityManagerFactory" 
+    &lt;bean factory-bean="entityManagerFactory"
       factory-method="getSessionFactory" /&gt;
   &lt;/property&gt;
 &lt;/bean&gt;</programlisting>
@@ -78,7 +78,7 @@
         <question>
           <para>I want to use Spring Data JPA auditing capabilities but have
           my database already set up to set modification and creation date on
-          entities. How to prevent Hades to set the date
+          entities. How to prevent Spring Data from setting the date
           programmatically.</para>
         </question>
 
