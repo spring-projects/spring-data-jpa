@@ -31,7 +31,7 @@ import org.springframework.data.jpa.repository.query.QueryExtractor;
  * 
  * @author Oliver Gierke
  */
-enum PersistenceProvider implements QueryExtractor {
+public enum PersistenceProvider implements QueryExtractor {
 
     /**
      * Hibernate persistence provider.
