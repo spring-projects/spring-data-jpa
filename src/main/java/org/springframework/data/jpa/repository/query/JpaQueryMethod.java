@@ -76,7 +76,7 @@ public class JpaQueryMethod extends QueryMethod {
      * @return
      */
     @Override
-    protected boolean isModifyingQuery() {
+    public boolean isModifyingQuery() {
 
         return null != method.getAnnotation(Modifying.class);
     }

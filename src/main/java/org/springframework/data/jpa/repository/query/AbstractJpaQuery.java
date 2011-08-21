@@ -103,16 +103,14 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 
     protected JpaQueryExecution getExecution() {
 
-        switch (method.getType()) {
-
-        case COLLECTION:
+        if (method.isCollectionQuery()) {
             return new CollectionExecution();
-        case PAGING:
+        } else if (method.isPageQuery()) {
             return new PagedExecution(method.getParameters());
-        case MODIFYING:
+        } else if (method.isModifyingQuery()) {
             return method.getClearAutomatically() ? new ModifyingExecution(
                     method, em) : new ModifyingExecution(method, null);
-        default:
+        } else {
             return new SingleEntityExecution();
         }
     }
