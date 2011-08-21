@@ -27,7 +27,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.parser.PartTree;
-import org.springframework.util.Assert;
 
 
 /**
@@ -59,8 +58,10 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
         this.tree = new PartTree(method.getName(), domainClass);
         this.parameters = method.getParameters();
 
-        this.query = new QueryPreparer(tree, domainClass, parameters);
-        this.countQuery = new CountQueryPreparer(tree, domainClass, parameters);
+        this.query =
+                new QueryPreparer(parameters.potentiallySortsDynamically());
+        this.countQuery =
+                new CountQueryPreparer(parameters.potentiallySortsDynamically());
     }
 
 
@@ -99,37 +100,16 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
      */
     private class QueryPreparer {
 
-        private CriteriaQuery<?> query;
-        private final JpaQueryCreator creator;
+        private final CriteriaQuery<?> query;
+        private final List<ParameterExpression<?>> expressions;
 
 
-        /**
-         * Creates a new {@link QueryPreparer} from the given {@link PartTree},
-         * domain class and {@link Parameters}.
-         * 
-         * @param tree
-         * @param domainClass
-         * @param parameters
-         */
-        public QueryPreparer(PartTree tree, Class<?> domainClass,
-                Parameters parameters) {
+        public QueryPreparer(boolean recreateQueries) {
 
-            this(new JpaQueryCreator(tree, domainClass, parameters,
-                    getEntityManager()));
-        }
-
-
-        /**
-         * Creates a new {@link QueryPreparer} from the given
-         * {@link JpaQueryCreator}.
-         * 
-         * @param creator must not be {@literl null}.
-         */
-        protected QueryPreparer(JpaQueryCreator creator) {
-
-            Assert.notNull(creator);
-            this.creator = creator;
-            this.query = null;
+            JpaQueryCreator creator = createCreator();
+            this.query = recreateQueries ? null : creator.createQuery();
+            this.expressions =
+                    recreateQueries ? null : creator.getParameterExpressions();
         }
 
 
@@ -141,14 +121,25 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
          */
         public Query createQuery(Object[] values) {
 
-            if (parameters.potentiallySortsDynamically() || query == null) {
-                query = creator.createQuery(getDynamicSort(values));
+            CriteriaQuery<?> criteriaQuery = query;
+            List<ParameterExpression<?>> expressions = this.expressions;
+
+            if (query == null) {
+                JpaQueryCreator creator = createCreator();
+                criteriaQuery = creator.createQuery(getDynamicSort(values));
+                expressions = creator.getParameterExpressions();
             }
 
-            TypedQuery<?> jpaQuery = getEntityManager().createQuery(query);
-            return invokeBinding(
-                    getBinder(values, creator.getParameterExpressions()),
-                    jpaQuery);
+            TypedQuery<?> jpaQuery =
+                    getEntityManager().createQuery(criteriaQuery);
+            return invokeBinding(getBinder(values, expressions), jpaQuery);
+        }
+
+
+        protected JpaQueryCreator createCreator() {
+
+            return new JpaQueryCreator(tree, domainClass, parameters,
+                    getEntityManager());
         }
 
 
@@ -188,20 +179,23 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
      */
     private class CountQueryPreparer extends QueryPreparer {
 
-        /**
-         * Creates a new {@link CountQueryPreparer} from the given
-         * {@link PartTree}, domain class and {@link Parameters}. Will use a
-         * {@link JpaCountQueryCreator} to create the query.
-         * 
-         * @param tree
-         * @param domainClass
-         * @param parameters
-         */
-        public CountQueryPreparer(PartTree tree, Class<?> domainClass,
-                Parameters parameters) {
+        public CountQueryPreparer(boolean recreateQueries) {
 
-            super(new JpaCountQueryCreator(tree, domainClass, parameters,
-                    getEntityManager()));
+            super(recreateQueries);
+        }
+
+
+        /*
+         * (non-Javadoc)
+         * 
+         * @see org.springframework.data.jpa.repository.query.PartTreeJpaQuery.
+         * QueryPreparer#createCreator()
+         */
+        @Override
+        protected JpaQueryCreator createCreator() {
+
+            return new JpaCountQueryCreator(tree, domainClass, parameters,
+                    getEntityManager());
         }
 
 
