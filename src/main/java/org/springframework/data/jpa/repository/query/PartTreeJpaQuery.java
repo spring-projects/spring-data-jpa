@@ -58,8 +58,10 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
         this.tree = new PartTree(method.getName(), domainClass);
         this.parameters = method.getParameters();
 
-        this.query = new QueryPreparer();
-        this.countQuery = new CountQueryPreparer();
+        this.query =
+                new QueryPreparer(parameters.potentiallySortsDynamically());
+        this.countQuery =
+                new CountQueryPreparer(parameters.potentiallySortsDynamically());
     }
 
 
@@ -98,8 +100,17 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
      */
     private class QueryPreparer {
 
-        private CriteriaQuery<?> query;
-        private JpaQueryCreator creator;
+        private final CriteriaQuery<?> query;
+        private final List<ParameterExpression<?>> expressions;
+
+
+        public QueryPreparer(boolean recreateQueries) {
+
+            JpaQueryCreator creator = createCreator();
+            this.query = recreateQueries ? null : creator.createQuery();
+            this.expressions =
+                    recreateQueries ? null : creator.getParameterExpressions();
+        }
 
 
         /**
@@ -110,16 +121,18 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
          */
         public Query createQuery(Object[] values) {
 
-            if (parameters.potentiallySortsDynamically() || query == null
-                    || creator == null) {
-                creator = createCreator();
-                query = creator.createQuery(getDynamicSort(values));
+            CriteriaQuery<?> criteriaQuery = query;
+            List<ParameterExpression<?>> expressions = this.expressions;
+
+            if (query == null) {
+                JpaQueryCreator creator = createCreator();
+                criteriaQuery = creator.createQuery(getDynamicSort(values));
+                expressions = creator.getParameterExpressions();
             }
 
-            TypedQuery<?> jpaQuery = getEntityManager().createQuery(query);
-            return invokeBinding(
-                    getBinder(values, creator.getParameterExpressions()),
-                    jpaQuery);
+            TypedQuery<?> jpaQuery =
+                    getEntityManager().createQuery(criteriaQuery);
+            return invokeBinding(getBinder(values, expressions), jpaQuery);
         }
 
 
@@ -165,6 +178,12 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
      * @author Oliver Gierke
      */
     private class CountQueryPreparer extends QueryPreparer {
+
+        public CountQueryPreparer(boolean recreateQueries) {
+
+            super(recreateQueries);
+        }
+
 
         /*
          * (non-Javadoc)
