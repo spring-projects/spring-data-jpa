@@ -37,6 +37,7 @@ import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 import org.springframework.data.repository.query.parser.Part;
+import org.springframework.data.repository.query.parser.Part.Type;
 import org.springframework.data.repository.query.parser.PartTree;
 import org.springframework.data.repository.query.parser.Property;
 import org.springframework.util.Assert;
@@ -173,50 +174,9 @@ public class JpaQueryCreator extends
      * @param iterator
      * @return
      */
-    @SuppressWarnings({ "unchecked", "rawtypes" })
     private Predicate toPredicate(Part part, Root<?> root) {
 
-        Property property = part.getProperty();
-        Expression<Object> path = toExpressionRecursively(root, property);
-
-        switch (part.getType()) {
-
-        case BETWEEN:
-            ParameterExpression<Comparable> first = provider.next();
-            ParameterExpression<Comparable> second = provider.next();
-            return builder.between(
-                    root.<Comparable> get(part.getProperty().toDotPath()),
-                    first, second);
-        case GREATER_THAN:
-            return builder.greaterThan(getComparablePath(root, part),
-                    provider.next(Comparable.class));
-        case LESS_THAN:
-            return builder.lessThan(getComparablePath(root, part),
-                    provider.next(Comparable.class));
-        case IS_NULL:
-            return path.isNull();
-        case IS_NOT_NULL:
-            return path.isNotNull();
-        case NOT_IN:
-            return path.in(provider.next(Collection.class)).not();
-        case IN:
-            return path.in(provider.next(Collection.class));
-        case LIKE:
-            return builder.like(
-                    root.<String> get(part.getProperty().toDotPath()),
-                    provider.next(String.class));
-        case NOT_LIKE:
-            return builder.like(
-                    root.<String> get(part.getProperty().toDotPath()),
-                    provider.next(String.class)).not();
-        case SIMPLE_PROPERTY:
-            return builder.equal(path, provider.next());
-        case NEGATING_SIMPLE_PROPERTY:
-            return builder.notEqual(path, provider.next());
-        default:
-            throw new IllegalArgumentException("Unsupported keyword + "
-                    + part.getType());
-        }
+        return new PredicateBuilder(part, root).build();
     }
 
 
@@ -350,6 +310,108 @@ public class JpaQueryCreator extends
                             type, name);
             expressions.add(expression);
             return (ParameterExpression<T>) expression;
+        }
+    }
+
+    /**
+     * Simple builder to contain logic to create JPA {@link Predicate}s from
+     * {@link Part}s.
+     * 
+     * @author Phil Webb
+     */
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    private class PredicateBuilder {
+
+        private final Part part;
+        private final Root<?> root;
+
+
+        /**
+         * Creates a new {@link PredicateBuilder} for the given {@link Part} and
+         * {@link Root}.
+         * 
+         * @param part must not be {@literal null}.
+         * @param root must not be {@literal null}.
+         */
+        public PredicateBuilder(Part part, Root<?> root) {
+
+            Assert.notNull(part);
+            Assert.notNull(root);
+            this.part = part;
+            this.root = root;
+        }
+
+
+        /**
+         * Builds a JPA {@link Predicate} from the underlying {@link Part}.
+         * 
+         * @return
+         */
+        public Predicate build() {
+
+            Property property = part.getProperty();
+            Expression<Object> path = toExpressionRecursively(root, property);
+
+            switch (part.getType()) {
+            case BETWEEN:
+                ParameterExpression<Comparable> first = provider.next();
+                ParameterExpression<Comparable> second = provider.next();
+                return builder.between(
+                        root.<Comparable> get(part.getProperty().toDotPath()),
+                        first, second);
+            case GREATER_THAN:
+                return builder.greaterThan(getComparablePath(root, part),
+                        provider.next(Comparable.class));
+            case LESS_THAN:
+                return builder.lessThan(getComparablePath(root, part),
+                        provider.next(Comparable.class));
+            case IS_NULL:
+                return path.isNull();
+            case IS_NOT_NULL:
+                return path.isNotNull();
+            case NOT_IN:
+                return path.in(provider.next(Collection.class)).not();
+            case IN:
+                return path.in(provider.next(Collection.class));
+            case LIKE:
+            case NOT_LIKE:
+                Expression<String> propertyExpression =
+                        upperIfIgnoreCase(root.<String> get(part.getProperty()
+                                .toDotPath()));
+                Expression<String> parameterExpression =
+                        upperIfIgnoreCase(provider.next(String.class));
+                Predicate like =
+                        builder.like(propertyExpression, parameterExpression);
+                return part.getType() == Type.LIKE ? like : like.not();
+            case SIMPLE_PROPERTY:
+                return builder.equal(upperIfIgnoreCase(path),
+                        upperIfIgnoreCase(provider.next()));
+            case NEGATING_SIMPLE_PROPERTY:
+                return builder.notEqual(upperIfIgnoreCase(path),
+                        upperIfIgnoreCase(provider.next()));
+            default:
+                throw new IllegalArgumentException("Unsupported keyword + "
+                        + part.getType());
+            }
+        }
+
+
+        /**
+         * Applies an {@code UPPERCASE} conversion to the given
+         * {@link Expression} in case the underlying {@link Part} requires
+         * ignoring case.
+         * 
+         * @param expression must not be {@literal null}.
+         * @return
+         */
+        private <T> Expression<T> upperIfIgnoreCase(Expression<T> expression) {
+
+            if (part.shouldIgnoreCase()
+                    && String.class.equals(expression.getJavaType())) {
+                return (Expression<T>) builder
+                        .upper((Expression<String>) expression);
+            }
+            return expression;
         }
     }
 }

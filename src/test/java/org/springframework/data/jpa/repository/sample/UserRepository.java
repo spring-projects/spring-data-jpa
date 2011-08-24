@@ -215,4 +215,15 @@ public interface UserRepository extends JpaRepository<User, Integer>,
 
 
     List<User> findBySpringDataNamedQuery(String lastname);
+
+
+    List<User> findByLastnameIgnoringCase(String lastname);
+
+
+    List<User> findByLastnameIgnoringCaseLike(String lastname);
+
+
+    List<User> findByLastnameAndFirstnameAllIgnoringCase(String lastname,
+            String firstname);
+
 }
