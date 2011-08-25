@@ -15,12 +15,16 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import static org.junit.Assert.*;
+
 import java.lang.reflect.Method;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -41,6 +45,9 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("classpath:infrastructure.xml")
 public class PartTreeJpaQueryIntegrationTests {
+
+	@Rule
+	public ExpectedException thrown = ExpectedException.none();
 
     @PersistenceContext
     EntityManager entityManager;
@@ -67,8 +74,40 @@ public class PartTreeJpaQueryIntegrationTests {
         jpaQuery.createQuery(new Object[] { "Matthews", new PageRequest(0, 1) });
     }
 
+    @Test
+	public void cannotIgnoreCaseIfNotString() throws Exception {
+    	
+    	thrown.expect(IllegalStateException.class);
+    	thrown.expectMessage("Unable to ignore case of java.lang.Integer types, the property 'id' must reference a String");
+    	testIgnoreCase("findByIdIgnoringCase", 3);
+	}
+
+    @Test
+	public void cannotIgnoreCaseIfNotStringUnlessIgnoringAll() throws Exception {
+    	
+    	testIgnoreCase("findByIdAllIgnoringCase", 3);
+	}
+
+    private void testIgnoreCase(String methodName, Object...values) throws Exception {
+
+    	Class<?>[] parameterTypes = new Class[values.length];
+    	for (int i = 0; i < values.length; i++) {
+			parameterTypes[i] = values[i].getClass();
+		}
+		Method method = UserRepository.class.getMethod(methodName, parameterTypes);
+		JpaQueryMethod queryMethod =
+            new JpaQueryMethod(method, new DefaultRepositoryMetadata(
+                    UserRepository.class),
+                    PersistenceProvider.fromEntityManager(entityManager));
+		PartTreeJpaQuery jpaQuery =
+            new PartTreeJpaQuery(queryMethod, entityManager);
+		jpaQuery.createQuery(values);
+    }
+
     interface UserRepository extends Repository<User, Long> {
 
         Page<User> findByFirstname(String firstname, Pageable pageable);
+        User findByIdIgnoringCase(Integer id);
+        User findByIdAllIgnoringCase(Integer id);
     }
 }
