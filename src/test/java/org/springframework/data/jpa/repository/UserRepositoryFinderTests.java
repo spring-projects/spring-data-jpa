@@ -180,9 +180,9 @@ public class UserRepositoryFinderTests {
 	}
 
     @Test
-	public void respectsPageableOrder() throws Exception {
-		Page<User> ascending = userRepository.findByLastname(new PageRequest(0, 10, new Sort(Direction.ASC, "lastname")),"Matthews");
-		Page<User> descending = userRepository.findByLastname(new PageRequest(0, 10, new Sort(Direction.DESC, "lastname")),"Matthews");
+	public void respectsPageableOrderOnQueryGenerateFromMethodName() throws Exception {
+		Page<User> ascending = userRepository.findByLastnameIgnoringCase(new PageRequest(0, 10, new Sort(Direction.ASC, "firstname")),"Matthews");
+		Page<User> descending = userRepository.findByLastnameIgnoringCase(new PageRequest(0, 10, new Sort(Direction.DESC, "firstname")),"Matthews");
 		assertThat(ascending.getTotalElements(), is(2L));
 		assertThat(descending.getTotalElements(), is(2L));
 		assertThat(ascending.getContent().get(0).getFirstname(), is(not(equalTo(descending.getContent().get(0).getFirstname()))));
