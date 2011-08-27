@@ -37,6 +37,7 @@ import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 import org.springframework.data.repository.query.parser.Part;
+import org.springframework.data.repository.query.parser.Part.IgnoreCaseType;
 import org.springframework.data.repository.query.parser.Part.Type;
 import org.springframework.data.repository.query.parser.PartTree;
 import org.springframework.data.repository.query.parser.Property;
@@ -406,19 +407,27 @@ public class JpaQueryCreator extends
          */
         private <T> Expression<T> upperIfIgnoreCase(Expression<T> expression) {
 
-            if (part.shouldIgnoreCase()) {
-            	verifyCanIgnoreCase(expression);
-                return (Expression<T>) builder
-                        .upper((Expression<String>) expression);
-            }
-            return expression;
-        }
+			switch (part.shouldIgnoreCase()) {
+			case ALWAYS:
+				Assert.state(canUpperCase(expression),
+						"Unable to ignore case of "
+								+ expression.getJavaType().getName()
+								+ " types, the property '"
+								+ part.getProperty().getName()
+								+ "' must reference a String");
+				return (Expression<T>) builder
+						.upper((Expression<String>) expression);
+			case WHEN_POSSIBLE:
+				if (canUpperCase(expression)) {
+					return (Expression<T>) builder
+							.upper((Expression<String>) expression);
+				}
+			}
+			return expression;
+		}
 
-        private void verifyCanIgnoreCase(Expression<?> expression) {
-
-        	Assert.state(String.class.equals(expression.getJavaType()),
-        			"Unable to ignore case of " + expression.getJavaType().getName() +
-        			" types, the property " + part.getProperty().getName() + " must reference a String");
+        private boolean canUpperCase(Expression<?> expression) {
+        	return String.class.equals(expression.getJavaType());
         }
     }
 }
