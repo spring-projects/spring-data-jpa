@@ -31,7 +31,7 @@ import org.springframework.data.repository.query.parser.PartTree;
 
 /**
  * A {@link AbstractJpaQuery} implementation based on a {@link PartTree}.
- * 
+ *
  * @author Oliver Gierke
  */
 public class PartTreeJpaQuery extends AbstractJpaQuery {
@@ -46,7 +46,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 
     /**
      * Creates a new {@link PartTreeJpaQuery}.
-     * 
+     *
      * @param method
      * @param em
      */
@@ -67,7 +67,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.springframework.data.jpa.repository.query.AbstractJpaQuery#createQuery
      * (javax.persistence.EntityManager,
@@ -82,7 +82,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.springframework.data.jpa.repository.query.AbstractJpaQuery#
      * createCountQuery(javax.persistence.EntityManager)
      */
@@ -95,7 +95,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
     /**
      * Query preparer to create {@link CriteriaQuery} instances and potentially
      * cache them.
-     * 
+     *
      * @author Oliver Gierke
      */
     private class QueryPreparer {
@@ -115,7 +115,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 
         /**
          * Creates a new {@link Query} for the given parameter values.
-         * 
+         *
          * @param values
          * @return
          */
@@ -145,7 +145,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 
         /**
          * Invokes parameter binding on the given {@link TypedQuery}.
-         * 
+         *
          * @param binder
          * @param query
          * @return
@@ -167,14 +167,16 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 
         private Sort getDynamicSort(Object[] values) {
 
-            return parameters.hasSortParameter() ? new ParametersParameterAccessor(
-                    parameters, values).getSort() : null;
+        	if(parameters.hasSortParameter() || parameters.hasPageableParameter()) {
+        		return new ParametersParameterAccessor(parameters, values).getSort();
+        	}
+            return null;
         }
     }
 
     /**
      * Special {@link QueryPreparer} to create count queries.
-     * 
+     *
      * @author Oliver Gierke
      */
     private class CountQueryPreparer extends QueryPreparer {
@@ -187,7 +189,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 
         /*
          * (non-Javadoc)
-         * 
+         *
          * @see org.springframework.data.jpa.repository.query.PartTreeJpaQuery.
          * QueryPreparer#createCreator()
          */
@@ -201,7 +203,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 
         /**
          * Customizes binding by skipping the pagination.
-         * 
+         *
          * @see org.springframework.data.jpa.repository.query.PartTreeJpaQuery.QueryPreparer#invokeBinding(org.springframework.data.jpa.repository.query.ParameterBinder,
          *      javax.persistence.TypedQuery)
          */

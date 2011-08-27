@@ -37,7 +37,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Repository interface for {@code User}s.
- * 
+ *
  * @author Oliver Gierke
  */
 public interface UserRepository extends JpaRepository<User, Integer>,
@@ -47,7 +47,7 @@ public interface UserRepository extends JpaRepository<User, Integer>,
      * Retrieve users by their lastname. The finder
      * {@literal User.findByLastname} is declared in {@literal META-INF/orm.xml}
      * .
-     * 
+     *
      * @param lastname
      * @return all users with the given lastname
      */
@@ -67,7 +67,7 @@ public interface UserRepository extends JpaRepository<User, Integer>,
      * Retrieve users by their email address. The finder
      * {@literal User.findByEmailAddress} is declared as annotation at
      * {@code User}.
-     * 
+     *
      * @param emailAddress
      * @return the user with the given email address
      */
@@ -81,7 +81,7 @@ public interface UserRepository extends JpaRepository<User, Integer>,
     /**
      * Retrieves users by the given email and lastname. Acts as a dummy method
      * declaration to test finder query creation.
-     * 
+     *
      * @param emailAddress
      * @param lastname
      * @return the user with the given email address and lastname
@@ -92,7 +92,7 @@ public interface UserRepository extends JpaRepository<User, Integer>,
     /**
      * Retrieves users by email address and lastname or firstname. Acts as a
      * dummy method declaration to test finder query creation.
-     * 
+     *
      * @param emailAddress
      * @param lastname
      * @param username
@@ -105,7 +105,7 @@ public interface UserRepository extends JpaRepository<User, Integer>,
 
     /**
      * Retrieves a user by its username using the query annotated to the method.
-     * 
+     *
      * @param username
      * @return
      */
@@ -117,7 +117,7 @@ public interface UserRepository extends JpaRepository<User, Integer>,
     /**
      * Method to directly create query from and adding a {@link Pageable}
      * parameter to be regarded on query execution.
-     * 
+     *
      * @param pageable
      * @param lastname
      * @return
@@ -129,7 +129,7 @@ public interface UserRepository extends JpaRepository<User, Integer>,
      * Method to directly create query from and adding a {@link Pageable}
      * parameter to be regarded on query execution. Just returns the queried
      * {@link Page}'s contents.
-     * 
+     *
      * @param firstname
      * @param pageable
      * @return
@@ -145,7 +145,7 @@ public interface UserRepository extends JpaRepository<User, Integer>,
 
     /**
      * Manipulating query to set all {@link User}'s names to the given one.
-     * 
+     *
      * @param lastname
      */
     @Modifying
@@ -160,7 +160,7 @@ public interface UserRepository extends JpaRepository<User, Integer>,
     /**
      * Method where parameters will be applied by name. Note that the order of
      * the parameters is then not crucial anymore.
-     * 
+     *
      * @param firstname
      * @param lastname
      * @return
@@ -178,7 +178,7 @@ public interface UserRepository extends JpaRepository<User, Integer>,
     /**
      * Method to check query creation and named parameter usage go well hand in
      * hand.
-     * 
+     *
      * @param lastname
      * @param firstname
      * @return
@@ -218,6 +218,9 @@ public interface UserRepository extends JpaRepository<User, Integer>,
 
 
     List<User> findByLastnameIgnoringCase(String lastname);
+
+
+    Page<User> findByLastnameIgnoringCase(Pageable pageable, String lastname);
 
 
     List<User> findByLastnameIgnoringCaseLike(String lastname);
