@@ -27,6 +27,8 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.data.repository.query.QueryLookupStrategy;
@@ -177,4 +179,15 @@ public class UserRepositoryFinderTests {
         assertThat(result.get(0), is(dave));
 	}
 
+    @Test
+	public void respectsPageableOrderOnQueryGenerateFromMethodName() throws Exception {
+		Page<User> ascending = userRepository.findByLastnameIgnoringCase(new PageRequest(0, 10, new Sort(Direction.ASC, "firstname")),"Matthews");
+		Page<User> descending = userRepository.findByLastnameIgnoringCase(new PageRequest(0, 10, new Sort(Direction.DESC, "firstname")),"Matthews");
+		assertThat(ascending.getTotalElements(), is(2L));
+		assertThat(descending.getTotalElements(), is(2L));
+		assertThat(ascending.getContent().get(0).getFirstname(), is(not(equalTo(descending.getContent().get(0).getFirstname()))));
+		assertThat(ascending.getContent().get(0).getFirstname(), is(equalTo(descending.getContent().get(1).getFirstname())));
+		assertThat(ascending.getContent().get(1).getFirstname(), is(equalTo(descending.getContent().get(0).getFirstname())));
+	}
+    
 }

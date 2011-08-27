@@ -220,6 +220,9 @@ public interface UserRepository extends JpaRepository<User, Integer>,
     List<User> findByLastnameIgnoringCase(String lastname);
 
 
+    Page<User> findByLastnameIgnoringCase(Pageable pageable, String lastname);
+
+
     List<User> findByLastnameIgnoringCaseLike(String lastname);
 
 
