@@ -40,7 +40,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Integration test for executing finders, thus testing various query lookup
  * strategies.
- * 
+ *
  * @see QueryLookupStrategy
  * @author Oliver Gierke
  */
@@ -157,21 +157,21 @@ public class UserRepositoryFinderTests {
         assertThat(result.size(), is(1));
         assertThat(result.get(0), is(oliver));
     }
-    
+
     @Test
 	public void findsByLastnameIgnoringCase() throws Exception {
     	List<User> result = userRepository.findByLastnameIgnoringCase("BeAUfoRd");
         assertThat(result.size(), is(1));
         assertThat(result.get(0), is(carter));
 	}
-    
+
     @Test
 	public void findsByLastnameIgnoringCaseLike() throws Exception {
     	List<User> result = userRepository.findByLastnameIgnoringCaseLike("BeAUfo%");
         assertThat(result.size(), is(1));
         assertThat(result.get(0), is(carter));
 	}
-    
+
     @Test
 	public void findByLastnameAndFirstnameAllIgnoringCase() throws Exception {
     	List<User> result = userRepository.findByLastnameAndFirstnameAllIgnoringCase("MaTTheWs","DaVe");

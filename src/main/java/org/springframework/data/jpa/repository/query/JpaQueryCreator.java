@@ -37,6 +37,7 @@ import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 import org.springframework.data.repository.query.parser.Part;
+import org.springframework.data.repository.query.parser.Part.IgnoreCaseType;
 import org.springframework.data.repository.query.parser.Part.Type;
 import org.springframework.data.repository.query.parser.PartTree;
 import org.springframework.data.repository.query.parser.Property;
@@ -45,7 +46,7 @@ import org.springframework.util.Assert;
 
 /**
  * Query creator to create a {@link CriteriaQuery} from a {@link PartTree}.
- * 
+ *
  * @author Oliver Gierke
  */
 public class JpaQueryCreator extends
@@ -59,7 +60,7 @@ public class JpaQueryCreator extends
 
     /**
      * Create a new {@link JpaQueryCreator}.
-     * 
+     *
      * @param tree
      * @param domainClass
      * @param accessor
@@ -81,7 +82,7 @@ public class JpaQueryCreator extends
 
     /**
      * Returns all {@link ParameterExpression} created when creating the query.
-     * 
+     *
      * @return the parameterExpressions
      */
     public List<ParameterExpression<?>> getParameterExpressions() {
@@ -92,7 +93,7 @@ public class JpaQueryCreator extends
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.springframework.data.repository.query.parser.AbstractQueryCreator
      * #create(org.springframework.data.repository.query.parser.Part,
@@ -107,7 +108,7 @@ public class JpaQueryCreator extends
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.springframework.data.repository.query.parser.AbstractQueryCreator
      * #and(org.springframework.data.repository.query.parser.Part,
@@ -122,7 +123,7 @@ public class JpaQueryCreator extends
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.springframework.data.repository.query.parser.AbstractQueryCreator
      * #or(java.lang.Object, java.lang.Object)
@@ -151,7 +152,7 @@ public class JpaQueryCreator extends
     /**
      * Template method to finalize the given {@link Predicate} using the given
      * {@link CriteriaQuery} and {@link CriteriaBuilder}.
-     * 
+     *
      * @param predicate
      * @param sort
      * @param query
@@ -168,7 +169,7 @@ public class JpaQueryCreator extends
 
     /**
      * Creates a {@link Predicate} from the given {@link Part}.
-     * 
+     *
      * @param part
      * @param root
      * @param iterator
@@ -207,7 +208,7 @@ public class JpaQueryCreator extends
 
     /**
      * Returns a path to a {@link Comparable}.
-     * 
+     *
      * @param root
      * @param part
      * @return
@@ -221,7 +222,7 @@ public class JpaQueryCreator extends
 
     /**
      * Helper class to allow easy creation of {@link ParameterExpression}s.
-     * 
+     *
      * @author Oliver Gierke
      */
     private static class ParameterExpressionProvider {
@@ -234,7 +235,7 @@ public class JpaQueryCreator extends
         /**
          * Creates a new {@link ParameterExpressionProvider} from the given
          * {@link CriteriaBuilder} and {@link Parameters}.
-         * 
+         *
          * @param builder
          * @param parameters
          */
@@ -252,7 +253,7 @@ public class JpaQueryCreator extends
 
         /**
          * Returns all {@link ParameterExpression}s built.
-         * 
+         *
          * @return the expressions
          */
         public List<ParameterExpression<?>> getExpressions() {
@@ -264,7 +265,7 @@ public class JpaQueryCreator extends
         /**
          * Builds a new {@link ParameterExpression} for the next
          * {@link Parameter}.
-         * 
+         *
          * @param <T>
          * @return
          */
@@ -280,7 +281,7 @@ public class JpaQueryCreator extends
         /**
          * Builds a new {@link ParameterExpression} of the given type. Forwards
          * the underlying {@link Parameters} as well.
-         * 
+         *
          * @param <T>
          * @param type must not be {@literal null}.
          * @return
@@ -294,7 +295,7 @@ public class JpaQueryCreator extends
 
         /**
          * Builds a new {@link ParameterExpression} for the given type and name.
-         * 
+         *
          * @param <T>
          * @param type must not be {@literal null}.
          * @param name
@@ -316,7 +317,7 @@ public class JpaQueryCreator extends
     /**
      * Simple builder to contain logic to create JPA {@link Predicate}s from
      * {@link Part}s.
-     * 
+     *
      * @author Phil Webb
      */
     @SuppressWarnings({ "unchecked", "rawtypes" })
@@ -329,7 +330,7 @@ public class JpaQueryCreator extends
         /**
          * Creates a new {@link PredicateBuilder} for the given {@link Part} and
          * {@link Root}.
-         * 
+         *
          * @param part must not be {@literal null}.
          * @param root must not be {@literal null}.
          */
@@ -344,7 +345,7 @@ public class JpaQueryCreator extends
 
         /**
          * Builds a JPA {@link Predicate} from the underlying {@link Part}.
-         * 
+         *
          * @return
          */
         public Predicate build() {
@@ -400,18 +401,33 @@ public class JpaQueryCreator extends
          * Applies an {@code UPPERCASE} conversion to the given
          * {@link Expression} in case the underlying {@link Part} requires
          * ignoring case.
-         * 
+         *
          * @param expression must not be {@literal null}.
          * @return
          */
         private <T> Expression<T> upperIfIgnoreCase(Expression<T> expression) {
 
-            if (part.shouldIgnoreCase()
-                    && String.class.equals(expression.getJavaType())) {
-                return (Expression<T>) builder
-                        .upper((Expression<String>) expression);
-            }
-            return expression;
+			switch (part.shouldIgnoreCase()) {
+			case ALWAYS:
+				Assert.state(canUpperCase(expression),
+						"Unable to ignore case of "
+								+ expression.getJavaType().getName()
+								+ " types, the property '"
+								+ part.getProperty().getName()
+								+ "' must reference a String");
+				return (Expression<T>) builder
+						.upper((Expression<String>) expression);
+			case WHEN_POSSIBLE:
+				if (canUpperCase(expression)) {
+					return (Expression<T>) builder
+							.upper((Expression<String>) expression);
+				}
+			}
+			return expression;
+		}
+
+        private boolean canUpperCase(Expression<?> expression) {
+        	return String.class.equals(expression.getJavaType());
         }
     }
 }
