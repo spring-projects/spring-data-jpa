@@ -5,7 +5,7 @@
 	<artifactId>spring-data-jpa</artifactId>
 	<version>1.0.1.BUILD-SNAPSHOT</version>
 	
-	<name>Spring JPA</name>
+	<name>Spring Data JPA</name>
 	<description>Spring Data module to provide sophisticated support for JPA repositories</description>
 	<url>http://www.springsource.org/spring-data</url>
 	<inceptionYear>2011</inceptionYear>
