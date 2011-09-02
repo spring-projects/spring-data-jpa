@@ -25,7 +25,6 @@ import org.springframework.data.jpa.repository.sample.RoleRepository;
 import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-
 /**
  * Abstract base class for integration test for namespace configuration.
  * 
@@ -34,24 +33,23 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 public abstract class AbstractRepositoryConfigTests {
 
-    @Autowired(required = false)
-    UserRepository userRepository;
+	@Autowired(required = false)
+	UserRepository userRepository;
 
-    @Autowired(required = false)
-    RoleRepository roleRepository;
+	@Autowired(required = false)
+	RoleRepository roleRepository;
 
-    @Autowired(required = false)
-    AuditableUserRepository auditableUserRepository;
+	@Autowired(required = false)
+	AuditableUserRepository auditableUserRepository;
 
+	/**
+	 * Asserts that context creation detects 3 repository beans.
+	 */
+	@Test
+	public void testContextCreation() {
 
-    /**
-     * Asserts that context creation detects 3 repository beans.
-     */
-    @Test
-    public void testContextCreation() {
-
-        assertNotNull(userRepository);
-        assertNotNull(roleRepository);
-        assertNotNull(auditableUserRepository);
-    }
+		assertNotNull(userRepository);
+		assertNotNull(roleRepository);
+		assertNotNull(auditableUserRepository);
+	}
 }

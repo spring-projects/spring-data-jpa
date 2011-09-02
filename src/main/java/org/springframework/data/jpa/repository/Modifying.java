@@ -21,7 +21,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-
 /**
  * Indicates a method should be regarded as modifying query.
  * 
@@ -32,11 +31,10 @@ import java.lang.annotation.Target;
 @Documented
 public @interface Modifying {
 
-    /**
-     * Defines whether we should clear the underlying persistence context after
-     * excuting the modifying query.
-     * 
-     * @return
-     */
-    boolean clearAutomatically() default false;
+	/**
+	 * Defines whether we should clear the underlying persistence context after excuting the modifying query.
+	 * 
+	 * @return
+	 */
+	boolean clearAutomatically() default false;
 }

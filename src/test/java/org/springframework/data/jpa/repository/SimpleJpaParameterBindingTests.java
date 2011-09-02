@@ -38,7 +38,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
-
 /**
  * @author Oliver Gierke
  */
@@ -50,56 +49,52 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class SimpleJpaParameterBindingTests {
 
-    @PersistenceContext
-    EntityManager em;
+	@PersistenceContext
+	EntityManager em;
 
+	@Test
+	@Ignore
+	public void bindArray() {
 
-    @Test
-    @Ignore
-    public void bindArray() {
+		User user = new User("Dave", "Matthews", "foo@bar.de");
+		em.persist(user);
+		em.flush();
 
-        User user = new User("Dave", "Matthews", "foo@bar.de");
-        em.persist(user);
-        em.flush();
+		CriteriaBuilder builder = em.getCriteriaBuilder();
 
-        CriteriaBuilder builder = em.getCriteriaBuilder();
+		CriteriaQuery<User> criteria = builder.createQuery(User.class);
+		Root<User> root = criteria.from(User.class);
+		ParameterExpression<String[]> parameter = builder.parameter(String[].class);
+		criteria.where(root.get("firstname").in(parameter));
 
-        CriteriaQuery<User> criteria = builder.createQuery(User.class);
-        Root<User> root = criteria.from(User.class);
-        ParameterExpression<String[]> parameter =
-                builder.parameter(String[].class);
-        criteria.where(root.get("firstname").in(parameter));
+		TypedQuery<User> query = em.createQuery(criteria);
+		query.setParameter(parameter, new String[] { "Dave", "Carter" });
 
-        TypedQuery<User> query = em.createQuery(criteria);
-        query.setParameter(parameter, new String[] { "Dave", "Carter" });
+		List<User> result = query.getResultList();
+		assertThat(result.isEmpty(), is(false));
+	}
 
-        List<User> result = query.getResultList();
-        assertThat(result.isEmpty(), is(false));
-    }
+	@Test
+	@SuppressWarnings("rawtypes")
+	public void bindCollection() {
 
+		User user = new User("Dave", "Matthews", "foo@bar.de");
+		em.persist(user);
+		em.flush();
 
-    @Test
-    @SuppressWarnings("rawtypes")
-    public void bindCollection() {
+		CriteriaBuilder builder = em.getCriteriaBuilder();
 
-        User user = new User("Dave", "Matthews", "foo@bar.de");
-        em.persist(user);
-        em.flush();
+		CriteriaQuery<User> criteria = builder.createQuery(User.class);
+		Root<User> root = criteria.from(User.class);
+		ParameterExpression<Collection> parameter = builder.parameter(Collection.class);
+		criteria.where(root.get("firstname").in(parameter));
 
-        CriteriaBuilder builder = em.getCriteriaBuilder();
+		TypedQuery<User> query = em.createQuery(criteria);
 
-        CriteriaQuery<User> criteria = builder.createQuery(User.class);
-        Root<User> root = criteria.from(User.class);
-        ParameterExpression<Collection> parameter =
-                builder.parameter(Collection.class);
-        criteria.where(root.get("firstname").in(parameter));
+		query.setParameter(parameter, Arrays.asList("Dave"));
 
-        TypedQuery<User> query = em.createQuery(criteria);
-
-        query.setParameter(parameter, Arrays.asList("Dave"));
-
-        List<User> result = query.getResultList();
-        assertThat(result.isEmpty(), is(false));
-        assertThat(result.get(0), is(user));
-    }
+		List<User> result = query.getResultList();
+		assertThat(result.isEmpty(), is(false));
+		assertThat(result.get(0), is(user));
+	}
 }

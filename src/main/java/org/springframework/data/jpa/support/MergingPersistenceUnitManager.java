@@ -24,58 +24,50 @@ import org.slf4j.LoggerFactory;
 import org.springframework.orm.jpa.persistenceunit.DefaultPersistenceUnitManager;
 import org.springframework.orm.jpa.persistenceunit.MutablePersistenceUnitInfo;
 
-
 /**
- * Extends {@link DefaultPersistenceUnitManager} to merge configurations of one
- * persistence unit residing in multiple {@code persistence.xml} files into one.
- * This is necessary to allow the declaration of entities in seperate modules.
+ * Extends {@link DefaultPersistenceUnitManager} to merge configurations of one persistence unit residing in multiple
+ * {@code persistence.xml} files into one. This is necessary to allow the declaration of entities in seperate modules.
  * 
  * @author Oliver Gierke
  * @see http://jira.springframework.org/browse/SPR-2598
  */
-public class MergingPersistenceUnitManager extends
-        DefaultPersistenceUnitManager {
+public class MergingPersistenceUnitManager extends DefaultPersistenceUnitManager {
 
-    private static final Logger log = LoggerFactory
-            .getLogger(MergingPersistenceUnitManager.class);
+	private static final Logger log = LoggerFactory.getLogger(MergingPersistenceUnitManager.class);
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.springframework.orm.jpa.persistenceunit.DefaultPersistenceUnitManager
+	 * #
+	 * postProcessPersistenceUnitInfo(org.springframework.orm.jpa.persistenceunit
+	 * .MutablePersistenceUnitInfo)
+	 */
+	@Override
+	protected void postProcessPersistenceUnitInfo(MutablePersistenceUnitInfo pui) {
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.springframework.orm.jpa.persistenceunit.DefaultPersistenceUnitManager
-     * #
-     * postProcessPersistenceUnitInfo(org.springframework.orm.jpa.persistenceunit
-     * .MutablePersistenceUnitInfo)
-     */
-    @Override
-    protected void postProcessPersistenceUnitInfo(MutablePersistenceUnitInfo pui) {
+		// Invoke normal post processing
+		super.postProcessPersistenceUnitInfo(pui);
 
-        // Invoke normal post processing
-        super.postProcessPersistenceUnitInfo(pui);
+		PersistenceUnitInfo oldPui = getPersistenceUnitInfo(pui.getPersistenceUnitName());
 
-        PersistenceUnitInfo oldPui =
-                getPersistenceUnitInfo(pui.getPersistenceUnitName());
+		if (oldPui != null) {
+			postProcessPersistenceUnitInfo(pui, oldPui);
+		}
+	}
 
-        if (oldPui != null) {
-            postProcessPersistenceUnitInfo(pui, oldPui);
-        }
-    }
+	void postProcessPersistenceUnitInfo(MutablePersistenceUnitInfo pui, PersistenceUnitInfo oldPui) {
 
+		for (URL url : oldPui.getJarFileUrls()) {
 
-    void postProcessPersistenceUnitInfo(MutablePersistenceUnitInfo pui,
-            PersistenceUnitInfo oldPui) {
+			// Add jar file url to PUI
+			if (!pui.getJarFileUrls().contains(url)) {
+				log.debug("Adding {} to persistence units", url);
+				pui.addJarFileUrl(url);
+			}
+		}
 
-        for (URL url : oldPui.getJarFileUrls()) {
-
-            // Add jar file url to PUI
-            if (!pui.getJarFileUrls().contains(url)) {
-                log.debug("Adding {} to persistence units", url);
-                pui.addJarFileUrl(url);
-            }
-        }
-
-        pui.addJarFileUrl(oldPui.getPersistenceUnitRootUrl());
-    }
+		pui.addJarFileUrl(oldPui.getPersistenceUnitRootUrl());
+	}
 }

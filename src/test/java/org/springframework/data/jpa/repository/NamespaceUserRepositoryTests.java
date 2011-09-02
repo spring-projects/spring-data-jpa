@@ -26,10 +26,8 @@ import org.springframework.dao.annotation.PersistenceExceptionTranslationPostPro
 import org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor;
 import org.springframework.test.context.ContextConfiguration;
 
-
 /**
- * Use namespace context to run tests. Checks for existence of required
- * PostProcessors, too.
+ * Use namespace context to run tests. Checks for existence of required PostProcessors, too.
  * 
  * @author Oliver Gierke
  * @author Eberhard Wolff
@@ -37,21 +35,19 @@ import org.springframework.test.context.ContextConfiguration;
 @ContextConfiguration(locations = "classpath:config/namespace-application-context.xml", inheritLocations = false)
 public class NamespaceUserRepositoryTests extends UserRepositoryTests {
 
-    @Autowired
-    ListableBeanFactory beanFactory;
+	@Autowired
+	ListableBeanFactory beanFactory;
 
+	@Test
+	public void registersPostProcessors() {
 
-    @Test
-    public void registersPostProcessors() {
+		hasAtLeastOneBeanOfType(PersistenceAnnotationBeanPostProcessor.class);
+		hasAtLeastOneBeanOfType(PersistenceExceptionTranslationPostProcessor.class);
+	}
 
-        hasAtLeastOneBeanOfType(PersistenceAnnotationBeanPostProcessor.class);
-        hasAtLeastOneBeanOfType(PersistenceExceptionTranslationPostProcessor.class);
-    }
+	private void hasAtLeastOneBeanOfType(Class<?> beanType) {
 
-
-    private void hasAtLeastOneBeanOfType(Class<?> beanType) {
-
-        Map<String, ?> beans = beanFactory.getBeansOfType(beanType);
-        assertFalse(beans.entrySet().isEmpty());
-    }
+		Map<String, ?> beans = beanFactory.getBeansOfType(beanType);
+		assertFalse(beans.entrySet().isEmpty());
+	}
 }

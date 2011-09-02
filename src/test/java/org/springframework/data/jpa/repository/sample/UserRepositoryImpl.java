@@ -19,7 +19,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.jpa.domain.sample.User;
 
-
 /**
  * Dummy implementation to allow check for invoking a custom implementation.
  * 
@@ -27,30 +26,27 @@ import org.springframework.data.jpa.domain.sample.User;
  */
 public class UserRepositoryImpl implements UserRepositoryCustom {
 
-    private static final Logger LOG = LoggerFactory
-            .getLogger(UserRepositoryImpl.class);
+	private static final Logger LOG = LoggerFactory.getLogger(UserRepositoryImpl.class);
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.springframework.data.jpa.repository.sample.UserRepositoryCustom#
+	 * someCustomMethod(org.springframework.data.jpa.domain.sample.User)
+	 */
+	public void someCustomMethod(User u) {
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.springframework.data.jpa.repository.sample.UserRepositoryCustom#
-     * someCustomMethod(org.springframework.data.jpa.domain.sample.User)
-     */
-    public void someCustomMethod(User u) {
+		LOG.debug("Some custom method was invoked!");
+	}
 
-        LOG.debug("Some custom method was invoked!");
-    }
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.springframework.data.jpa.repository.sample.UserRepositoryCustom#
+	 * findByOverrridingMethod()
+	 */
+	public void findByOverrridingMethod() {
 
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.springframework.data.jpa.repository.sample.UserRepositoryCustom#
-     * findByOverrridingMethod()
-     */
-    public void findByOverrridingMethod() {
-
-        LOG.debug("A method overriding a finder was invoked!");
-    }
+		LOG.debug("A method overriding a finder was invoked!");
+	}
 }

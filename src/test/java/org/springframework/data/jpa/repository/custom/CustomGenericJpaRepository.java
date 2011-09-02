@@ -22,37 +22,32 @@ import javax.persistence.EntityManager;
 import org.springframework.data.jpa.repository.support.JpaEntityInformation;
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
 
-
 /**
- * Sample custom repository base class implementing common custom functionality
- * for all derived repository instances.
+ * Sample custom repository base class implementing common custom functionality for all derived repository instances.
  * 
  * @author Oliver Gierke
  */
-public class CustomGenericJpaRepository<T, ID extends Serializable> extends
-        SimpleJpaRepository<T, ID> implements CustomGenericRepository<T, ID> {
+public class CustomGenericJpaRepository<T, ID extends Serializable> extends SimpleJpaRepository<T, ID> implements
+		CustomGenericRepository<T, ID> {
 
-    /**
-     * @param domainClass
-     * @param entityManager
-     */
-    public CustomGenericJpaRepository(JpaEntityInformation<T, ID> metadata,
-            EntityManager entityManager) {
+	/**
+	 * @param domainClass
+	 * @param entityManager
+	 */
+	public CustomGenericJpaRepository(JpaEntityInformation<T, ID> metadata, EntityManager entityManager) {
 
-        super(metadata, entityManager);
-    }
+		super(metadata, entityManager);
+	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.springframework.data.jpa.repository.custom.CustomGenericRepository
+	 * #customMethod(java.io.Serializable)
+	 */
+	public T customMethod(ID id) {
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.springframework.data.jpa.repository.custom.CustomGenericRepository
-     * #customMethod(java.io.Serializable)
-     */
-    public T customMethod(ID id) {
-
-        throw new UnsupportedOperationException(
-                "Forced exception for testing purposes.");
-    }
+		throw new UnsupportedOperationException("Forced exception for testing purposes.");
+	}
 }

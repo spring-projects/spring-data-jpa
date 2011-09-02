@@ -17,7 +17,6 @@ package org.springframework.data.jpa.repository.sample;
 
 import org.springframework.data.jpa.domain.sample.User;
 
-
 /**
  * Simple interface for custom methods on the repository for {@code User}s.
  * 
@@ -25,16 +24,15 @@ import org.springframework.data.jpa.domain.sample.User;
  */
 public interface UserRepositoryCustom {
 
-    /**
-     * Method actually triggering a finder but being overridden.
-     */
-    void findByOverrridingMethod();
+	/**
+	 * Method actually triggering a finder but being overridden.
+	 */
+	void findByOverrridingMethod();
 
-
-    /**
-     * Some custom method to implement.
-     * 
-     * @param user
-     */
-    void someCustomMethod(User user);
+	/**
+	 * Some custom method to implement.
+	 * 
+	 * @param user
+	 */
+	void someCustomMethod(User user);
 }

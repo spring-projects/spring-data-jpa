@@ -22,7 +22,6 @@ import static org.springframework.data.jpa.repository.query.QueryUtils.*;
 import org.hamcrest.Matcher;
 import org.junit.Test;
 
-
 /**
  * Unit test for {@link QueryUtils}.
  * 
@@ -30,129 +29,109 @@ import org.junit.Test;
  */
 public class QueryUtilsUnitTests {
 
-    static final String QUERY = "select u from User u";
-    static final String FQ_QUERY =
-            "select u from org.acme.domain.User$Foo_Bar u";
-    static final String SIMPLE_QUERY = "from User u";
-    static final String COUNT_QUERY = "select count(u) from User u";
+	static final String QUERY = "select u from User u";
+	static final String FQ_QUERY = "select u from org.acme.domain.User$Foo_Bar u";
+	static final String SIMPLE_QUERY = "from User u";
+	static final String COUNT_QUERY = "select count(u) from User u";
 
-    static final String QUERY_WITH_AS =
-            "select u from User as u where u.username = ?";
+	static final String QUERY_WITH_AS = "select u from User as u where u.username = ?";
 
-    static final Matcher<String> IS_U = is("u");
+	static final Matcher<String> IS_U = is("u");
 
+	@Test
+	public void createsCountQueryCorrectly() throws Exception {
 
-    @Test
-    public void createsCountQueryCorrectly() throws Exception {
+		assertCountQuery(QUERY, COUNT_QUERY);
 
-        assertCountQuery(QUERY, COUNT_QUERY);
+	}
 
-    }
+	/**
+	 * @see #303
+	 */
+	@Test
+	public void createsCountQueriesCorrectlyForCapitalLetterJPQL() {
 
+		assertCountQuery("FROM User u WHERE u.foo.bar = ?", "select count(u) FROM User u WHERE u.foo.bar = ?");
 
-    /**
-     * @see #303
-     */
-    @Test
-    public void createsCountQueriesCorrectlyForCapitalLetterJPQL() {
+		assertCountQuery("SELECT u FROM User u where u.foo.bar = ?", "select count(u) FROM User u where u.foo.bar = ?");
+	}
 
-        assertCountQuery("FROM User u WHERE u.foo.bar = ?",
-                "select count(u) FROM User u WHERE u.foo.bar = ?");
+	/**
+	 * @see #351
+	 */
+	@Test
+	public void createsCountQueryForDistinctQueries() throws Exception {
 
-        assertCountQuery("SELECT u FROM User u where u.foo.bar = ?",
-                "select count(u) FROM User u where u.foo.bar = ?");
-    }
+		assertCountQuery("select distinct u from User u where u.foo = ?",
+				"select count(distinct u) from User u where u.foo = ?");
+	}
 
+	/**
+	 * @see #351
+	 */
+	@Test
+	public void createsCountQueryForConstructorQueries() throws Exception {
 
-    /**
-     * @see #351
-     */
-    @Test
-    public void createsCountQueryForDistinctQueries() throws Exception {
+		assertCountQuery("select distinct new User(u.name) from User u where u.foo = ?",
+				"select count(distinct u) from User u where u.foo = ?");
+	}
 
-        assertCountQuery("select distinct u from User u where u.foo = ?",
-                "select count(distinct u) from User u where u.foo = ?");
-    }
+	/**
+	 * @see #352
+	 */
+	@Test
+	public void createsCountQueryForJoins() throws Exception {
 
+		assertCountQuery("select distinct new User(u.name) from User u left outer join u.roles r WHERE r = ?",
+				"select count(distinct u) from User u left outer join u.roles r WHERE r = ?");
+	}
 
-    /**
-     * @see #351
-     */
-    @Test
-    public void createsCountQueryForConstructorQueries() throws Exception {
+	/**
+	 * @see #352
+	 */
+	@Test
+	public void createsCountQueryForQueriesWithSubSelects() throws Exception {
 
-        assertCountQuery(
-                "select distinct new User(u.name) from User u where u.foo = ?",
-                "select count(distinct u) from User u where u.foo = ?");
-    }
+		assertCountQuery("select u from User u left outer join u.roles r where r in (select r from Role)",
+				"select count(u) from User u left outer join u.roles r where r in (select r from Role)");
+	}
 
+	/**
+	 * @see #355
+	 */
+	@Test
+	public void createsCountQueryForAliasesCorrectly() throws Exception {
 
-    /**
-     * @see #352
-     */
-    @Test
-    public void createsCountQueryForJoins() throws Exception {
+		assertCountQuery("select u from User as u", "select count(u) from User as u");
+	}
 
-        assertCountQuery(
-                "select distinct new User(u.name) from User u left outer join u.roles r WHERE r = ?",
-                "select count(distinct u) from User u left outer join u.roles r WHERE r = ?");
-    }
+	@Test
+	public void allowsShortJpaSyntax() throws Exception {
 
+		assertCountQuery(SIMPLE_QUERY, COUNT_QUERY);
+	}
 
-    /**
-     * @see #352
-     */
-    @Test
-    public void createsCountQueryForQueriesWithSubSelects() throws Exception {
+	@Test
+	public void detectsAliasCorrectly() throws Exception {
 
-        assertCountQuery(
-                "select u from User u left outer join u.roles r where r in (select r from Role)",
-                "select count(u) from User u left outer join u.roles r where r in (select r from Role)");
-    }
+		assertThat(detectAlias(QUERY), IS_U);
+		assertThat(detectAlias(SIMPLE_QUERY), IS_U);
+		assertThat(detectAlias(COUNT_QUERY), IS_U);
+		assertThat(detectAlias(QUERY_WITH_AS), IS_U);
+		assertThat(detectAlias("SELECT FROM USER U"), is("U"));
+		assertThat(detectAlias("select u from  User u"), IS_U);
+		assertThat(detectAlias("select u from  com.acme.User u"), IS_U);
+	}
 
+	@Test
+	public void allowsFullyQualifiedEntityNamesInQuery() {
 
-    /**
-     * @see #355
-     */
-    @Test
-    public void createsCountQueryForAliasesCorrectly() throws Exception {
+		assertThat(detectAlias(FQ_QUERY), IS_U);
+		assertCountQuery(FQ_QUERY, "select count(u) from org.acme.domain.User$Foo_Bar u");
+	}
 
-        assertCountQuery("select u from User as u",
-                "select count(u) from User as u");
-    }
+	private void assertCountQuery(String originalQuery, String countQuery) {
 
-
-    @Test
-    public void allowsShortJpaSyntax() throws Exception {
-
-        assertCountQuery(SIMPLE_QUERY, COUNT_QUERY);
-    }
-
-
-    @Test
-    public void detectsAliasCorrectly() throws Exception {
-
-        assertThat(detectAlias(QUERY), IS_U);
-        assertThat(detectAlias(SIMPLE_QUERY), IS_U);
-        assertThat(detectAlias(COUNT_QUERY), IS_U);
-        assertThat(detectAlias(QUERY_WITH_AS), IS_U);
-        assertThat(detectAlias("SELECT FROM USER U"), is("U"));
-        assertThat(detectAlias("select u from  User u"), IS_U);
-        assertThat(detectAlias("select u from  com.acme.User u"), IS_U);
-    }
-
-
-    @Test
-    public void allowsFullyQualifiedEntityNamesInQuery() {
-
-        assertThat(detectAlias(FQ_QUERY), IS_U);
-        assertCountQuery(FQ_QUERY,
-                "select count(u) from org.acme.domain.User$Foo_Bar u");
-    }
-
-
-    private void assertCountQuery(String originalQuery, String countQuery) {
-
-        assertThat(createCountQueryFor(originalQuery), is(countQuery));
-    }
+		assertThat(createCountQueryFor(originalQuery), is(countQuery));
+	}
 }

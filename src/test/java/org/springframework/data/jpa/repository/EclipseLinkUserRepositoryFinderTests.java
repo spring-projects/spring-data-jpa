@@ -19,7 +19,6 @@ import org.junit.Ignore;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 
-
 /**
  * Ignores some test cases using IN queries as long as we wait for fix for
  * https://bugs.eclipse.org/bugs/show_bug.cgi?id=349477.
@@ -29,6 +28,5 @@ import org.springframework.test.context.ContextConfiguration;
 @Ignore
 @DirtiesContext
 @ContextConfiguration(value = "classpath:eclipselink.xml", inheritLocations = true)
-public class EclipseLinkUserRepositoryFinderTests extends
-        UserRepositoryFinderTests {
+public class EclipseLinkUserRepositoryFinderTests extends UserRepositoryFinderTests {
 }

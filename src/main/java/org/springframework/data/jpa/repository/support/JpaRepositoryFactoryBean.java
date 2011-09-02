@@ -26,69 +26,63 @@ import org.springframework.data.repository.core.support.RepositoryFactorySupport
 import org.springframework.data.repository.core.support.TransactionalRepositoryFactoryBeanSupport;
 import org.springframework.util.Assert;
 
-
 /**
- * Special adapter for Springs {@link FactoryBean} interface to allow easy setup
- * of repository factories via Spring configuration.
+ * Special adapter for Springs {@link FactoryBean} interface to allow easy setup of repository factories via Spring
+ * configuration.
  * 
  * @author Oliver Gierke
  * @author Eberhard Wolff
  * @param <T> the type of the repository
  */
-public class JpaRepositoryFactoryBean<T extends JpaRepository<S, ID>, S, ID extends Serializable>
-        extends TransactionalRepositoryFactoryBeanSupport<T, S, ID> {
+public class JpaRepositoryFactoryBean<T extends JpaRepository<S, ID>, S, ID extends Serializable> extends
+		TransactionalRepositoryFactoryBeanSupport<T, S, ID> {
 
-    private EntityManager entityManager;
+	private EntityManager entityManager;
 
+	/**
+	 * The {@link EntityManager} to be used.
+	 * 
+	 * @param entityManager the entityManager to set
+	 */
+	@PersistenceContext
+	public void setEntityManager(EntityManager entityManager) {
 
-    /**
-     * The {@link EntityManager} to be used.
-     * 
-     * @param entityManager the entityManager to set
-     */
-    @PersistenceContext
-    public void setEntityManager(EntityManager entityManager) {
+		this.entityManager = entityManager;
+	}
 
-        this.entityManager = entityManager;
-    }
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.springframework.data.repository.support.
+	 * TransactionalRepositoryFactoryBeanSupport#doCreateRepositoryFactory()
+	 */
+	@Override
+	protected RepositoryFactorySupport doCreateRepositoryFactory() {
 
+		return createRepositoryFactory(entityManager);
+	}
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.springframework.data.repository.support.
-     * TransactionalRepositoryFactoryBeanSupport#doCreateRepositoryFactory()
-     */
-    @Override
-    protected RepositoryFactorySupport doCreateRepositoryFactory() {
+	/**
+	 * Returns a {@link RepositoryFactorySupport}.
+	 * 
+	 * @param entityManager
+	 * @return
+	 */
+	protected RepositoryFactorySupport createRepositoryFactory(EntityManager entityManager) {
 
-        return createRepositoryFactory(entityManager);
-    }
+		return new JpaRepositoryFactory(entityManager);
+	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
+	 */
+	@Override
+	public void afterPropertiesSet() {
 
-    /**
-     * Returns a {@link RepositoryFactorySupport}.
-     * 
-     * @param entityManager
-     * @return
-     */
-    protected RepositoryFactorySupport createRepositoryFactory(
-            EntityManager entityManager) {
-
-        return new JpaRepositoryFactory(entityManager);
-    }
-
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
-     */
-    @Override
-    public void afterPropertiesSet() {
-
-        Assert.notNull(entityManager, "EntityManager must not be null!");
-        super.afterPropertiesSet();
-    }
+		Assert.notNull(entityManager, "EntityManager must not be null!");
+		super.afterPropertiesSet();
+	}
 }

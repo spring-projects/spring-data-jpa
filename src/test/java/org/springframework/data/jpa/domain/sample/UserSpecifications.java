@@ -22,7 +22,6 @@ import javax.persistence.criteria.Root;
 
 import org.springframework.data.jpa.domain.Specification;
 
-
 /**
  * Collection of {@link Specification}s for a {@link User}.
  * 
@@ -30,61 +29,53 @@ import org.springframework.data.jpa.domain.Specification;
  */
 public class UserSpecifications {
 
-    /**
-     * A {@link Specification} to match on a {@link User}'s firstname.
-     * 
-     * @param firstname
-     * @return
-     */
-    public static Specification<User> userHasFirstname(final String firstname) {
+	/**
+	 * A {@link Specification} to match on a {@link User}'s firstname.
+	 * 
+	 * @param firstname
+	 * @return
+	 */
+	public static Specification<User> userHasFirstname(final String firstname) {
 
-        return simplePropertySpec("firstname", firstname);
-    }
+		return simplePropertySpec("firstname", firstname);
+	}
 
+	/**
+	 * A {@link Specification} to match on a {@link User}'s lastname.
+	 * 
+	 * @param firstname
+	 * @return
+	 */
+	public static Specification<User> userHasLastname(final String lastname) {
 
-    /**
-     * A {@link Specification} to match on a {@link User}'s lastname.
-     * 
-     * @param firstname
-     * @return
-     */
-    public static Specification<User> userHasLastname(final String lastname) {
+		return simplePropertySpec("lastname", lastname);
+	}
 
-        return simplePropertySpec("lastname", lastname);
-    }
+	/**
+	 * A {@link Specification} to do a like-match on a {@link User}'s firstname.
+	 * 
+	 * @param firstname
+	 * @return
+	 */
+	public static Specification<User> userHasFirstnameLike(final String expression) {
 
+		return new Specification<User>() {
 
-    /**
-     * A {@link Specification} to do a like-match on a {@link User}'s firstname.
-     * 
-     * @param firstname
-     * @return
-     */
-    public static Specification<User> userHasFirstnameLike(
-            final String expression) {
+			public Predicate toPredicate(Root<User> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
 
-        return new Specification<User>() {
+				return cb.like(root.get("firstname").as(String.class), String.format("%%%s%%", expression));
+			}
+		};
+	}
 
-            public Predicate toPredicate(Root<User> root,
-                    CriteriaQuery<?> query, CriteriaBuilder cb) {
+	private static <T> Specification<T> simplePropertySpec(final String property, final Object value) {
 
-                return cb.like(root.get("firstname").as(String.class),
-                        String.format("%%%s%%", expression));
-            }
-        };
-    }
+		return new Specification<T>() {
 
+			public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder builder) {
 
-    private static <T> Specification<T> simplePropertySpec(
-            final String property, final Object value) {
-
-        return new Specification<T>() {
-
-            public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query,
-                    CriteriaBuilder builder) {
-
-                return builder.equal(root.get(property), value);
-            }
-        };
-    }
+				return builder.equal(root.get(property), value);
+			}
+		};
+	}
 }

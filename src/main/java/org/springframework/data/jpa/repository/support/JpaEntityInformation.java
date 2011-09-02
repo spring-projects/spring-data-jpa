@@ -21,28 +21,24 @@ import javax.persistence.metamodel.SingularAttribute;
 
 import org.springframework.data.repository.core.EntityInformation;
 
-
 /**
- * Extension of {@link EntityInformation} to capture aditional JPA specific
- * information about entities.
+ * Extension of {@link EntityInformation} to capture aditional JPA specific information about entities.
  * 
  * @author Oliver Gierke
  */
-public interface JpaEntityInformation<T, ID extends Serializable> extends
-        EntityInformation<T, ID> {
+public interface JpaEntityInformation<T, ID extends Serializable> extends EntityInformation<T, ID> {
 
-    /**
-     * Returns the id attribute of the entity.
-     * 
-     * @return
-     */
-    SingularAttribute<? super T, ?> getIdAttribute();
+	/**
+	 * Returns the id attribute of the entity.
+	 * 
+	 * @return
+	 */
+	SingularAttribute<? super T, ?> getIdAttribute();
 
-
-    /**
-     * Returns the JPA entity name.
-     * 
-     * @return
-     */
-    String getEntityName();
+	/**
+	 * Returns the JPA entity name.
+	 * 
+	 * @return
+	 */
+	String getEntityName();
 }

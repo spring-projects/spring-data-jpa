@@ -15,9 +15,9 @@
  */
 package org.springframework.data.jpa.repository.support;
 
+import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
-import static org.hamcrest.CoreMatchers.*;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -38,7 +38,6 @@ import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 import org.springframework.data.repository.core.support.DefaultRepositoryMetadata;
 import org.springframework.transaction.annotation.Transactional;
 
-
 /**
  * Unit test for {@code JpaRepositoryFactory}.
  * 
@@ -47,177 +46,146 @@ import org.springframework.transaction.annotation.Transactional;
 @RunWith(MockitoJUnitRunner.class)
 public class JpaRepositoryFactoryUnitTests {
 
-    JpaRepositoryFactory factory;
+	JpaRepositoryFactory factory;
 
-    @Mock
-    EntityManager entityManager;
-    @Mock
-    @SuppressWarnings("rawtypes")
-    JpaEntityInformation metadata;
+	@Mock
+	EntityManager entityManager;
+	@Mock
+	@SuppressWarnings("rawtypes")
+	JpaEntityInformation metadata;
 
+	@Before
+	public void setUp() {
 
-    @Before
-    public void setUp() {
+		// Setup standard factory configuration
+		factory = new JpaRepositoryFactory(entityManager) {
 
-        // Setup standard factory configuration
-        factory = new JpaRepositoryFactory(entityManager) {
+			@Override
+			@SuppressWarnings("unchecked")
+			public <T, ID extends Serializable> JpaEntityInformation<T, ID> getEntityInformation(Class<T> domainClass) {
 
-            @Override
-            @SuppressWarnings("unchecked")
-            public <T, ID extends Serializable> JpaEntityInformation<T, ID> getEntityInformation(
-                    Class<T> domainClass) {
+				return metadata;
+			};
+		};
+	}
 
-                return metadata;
-            };
-        };
-    }
+	/**
+	 * Assert that the instance created for the standard configuration is a valid {@code UserRepository}.
+	 * 
+	 * @throws Exception
+	 */
+	@Test
+	public void setsUpBasicInstanceCorrectly() throws Exception {
 
+		assertNotNull(factory.getRepository(SimpleSampleRepository.class));
+	}
 
-    /**
-     * Assert that the instance created for the standard configuration is a
-     * valid {@code UserRepository}.
-     * 
-     * @throws Exception
-     */
-    @Test
-    public void setsUpBasicInstanceCorrectly() throws Exception {
+	@Test
+	public void allowsCallingOfObjectMethods() {
 
-        assertNotNull(factory.getRepository(SimpleSampleRepository.class));
-    }
+		SimpleSampleRepository repository = factory.getRepository(SimpleSampleRepository.class);
 
+		repository.hashCode();
+		repository.toString();
+		repository.equals(repository);
+	}
 
-    @Test
-    public void allowsCallingOfObjectMethods() {
+	/**
+	 * Asserts that the factory recognized configured repository classes that contain custom method but no custom
+	 * implementation could be found. Furthremore the exception has to contain the name of the repository interface as for
+	 * a large repository configuration it's hard to find out where this error occured.
+	 * 
+	 * @throws Exception
+	 */
+	@Test
+	public void capturesMissingCustomImplementationAndProvidesInterfacename() throws Exception {
 
-        SimpleSampleRepository repository =
-                factory.getRepository(SimpleSampleRepository.class);
+		try {
+			factory.getRepository(SampleRepository.class);
+		} catch (IllegalArgumentException e) {
+			assertTrue(e.getMessage().contains(SampleRepository.class.getName()));
+		}
+	}
 
-        repository.hashCode();
-        repository.toString();
-        repository.equals(repository);
-    }
+	@Test(expected = IllegalArgumentException.class)
+	public void handlesRuntimeExceptionsCorrectly() {
 
+		SampleRepository repository = factory.getRepository(SampleRepository.class, new SampleCustomRepositoryImpl());
+		repository.throwingRuntimeException();
+	}
 
-    /**
-     * Asserts that the factory recognized configured repository classes that
-     * contain custom method but no custom implementation could be found.
-     * Furthremore the exception has to contain the name of the repository
-     * interface as for a large repository configuration it's hard to find out
-     * where this error occured.
-     * 
-     * @throws Exception
-     */
-    @Test
-    public void capturesMissingCustomImplementationAndProvidesInterfacename()
-            throws Exception {
+	@Test(expected = IOException.class)
+	public void handlesCheckedExceptionsCorrectly() throws Exception {
 
-        try {
-            factory.getRepository(SampleRepository.class);
-        } catch (IllegalArgumentException e) {
-            assertTrue(e.getMessage()
-                    .contains(SampleRepository.class.getName()));
-        }
-    }
+		SampleRepository repository = factory.getRepository(SampleRepository.class, new SampleCustomRepositoryImpl());
+		repository.throwingCheckedException();
+	}
 
+	@Test(expected = UnsupportedOperationException.class)
+	public void createsProxyWithCustomBaseClass() {
 
-    @Test(expected = IllegalArgumentException.class)
-    public void handlesRuntimeExceptionsCorrectly() {
+		JpaRepositoryFactory factory = new CustomGenericJpaRepositoryFactory(entityManager);
+		UserCustomExtendedRepository repository = factory.getRepository(UserCustomExtendedRepository.class);
 
-        SampleRepository repository =
-                factory.getRepository(SampleRepository.class,
-                        new SampleCustomRepositoryImpl());
-        repository.throwingRuntimeException();
-    }
+		repository.customMethod(1);
+	}
 
+	@Test
+	public void usesQueryDslRepositoryIfInterfaceImplementsExecutor() {
 
-    @Test(expected = IOException.class)
-    public void handlesCheckedExceptionsCorrectly() throws Exception {
+		when(metadata.getJavaType()).thenReturn(User.class);
+		assertEquals(QueryDslJpaRepository.class,
+				factory.getRepositoryBaseClass(new DefaultRepositoryMetadata(QueryDslSampleRepository.class)));
 
-        SampleRepository repository =
-                factory.getRepository(SampleRepository.class,
-                        new SampleCustomRepositoryImpl());
-        repository.throwingCheckedException();
-    }
+		try {
+			QueryDslSampleRepository repository = factory.getRepository(QueryDslSampleRepository.class);
+			assertEquals(QueryDslJpaRepository.class, ((Advised) repository).getTargetClass());
+		} catch (IllegalArgumentException e) {
+			assertThat(e.getStackTrace()[0].getClassName(), is("org.springframework.data.querydsl.SimpleEntityPathResolver"));
+		}
+	}
 
+	private interface SimpleSampleRepository extends JpaRepository<User, Integer> {
 
-    @Test(expected = UnsupportedOperationException.class)
-    public void createsProxyWithCustomBaseClass() {
+		@Transactional
+		User findOne(Integer id);
+	}
 
-        JpaRepositoryFactory factory =
-                new CustomGenericJpaRepositoryFactory(entityManager);
-        UserCustomExtendedRepository repository =
-                factory.getRepository(UserCustomExtendedRepository.class);
+	/**
+	 * Sample interface to contain a custom method.
+	 * 
+	 * @author Oliver Gierke
+	 */
+	public interface SampleCustomRepository {
 
-        repository.customMethod(1);
-    }
+		void throwingRuntimeException();
 
+		void throwingCheckedException() throws IOException;
+	}
 
-    @Test
-    public void usesQueryDslRepositoryIfInterfaceImplementsExecutor() {
+	/**
+	 * Implementation of the custom repository interface.
+	 * 
+	 * @author Oliver Gierke
+	 */
+	private class SampleCustomRepositoryImpl implements SampleCustomRepository {
 
-        when(metadata.getJavaType()).thenReturn(User.class);
-        assertEquals(QueryDslJpaRepository.class,
-                factory.getRepositoryBaseClass(new DefaultRepositoryMetadata(
-                        QueryDslSampleRepository.class)));
+		public void throwingRuntimeException() {
 
-        try {
-            QueryDslSampleRepository repository =
-                    factory.getRepository(QueryDslSampleRepository.class);
-            assertEquals(QueryDslJpaRepository.class,
-                    ((Advised) repository).getTargetClass());
-        } catch (IllegalArgumentException e) {
-            assertThat(
-                    e.getStackTrace()[0].getClassName(),
-                    is("org.springframework.data.querydsl.SimpleEntityPathResolver"));
-        }
-    }
+			throw new IllegalArgumentException("You lose!");
+		}
 
-    private interface SimpleSampleRepository extends
-            JpaRepository<User, Integer> {
+		public void throwingCheckedException() throws IOException {
 
-        @Transactional
-        User findOne(Integer id);
-    }
+			throw new IOException("You lose!");
+		}
+	}
 
-    /**
-     * Sample interface to contain a custom method.
-     * 
-     * @author Oliver Gierke
-     */
-    public interface SampleCustomRepository {
+	private interface SampleRepository extends JpaRepository<User, Integer>, SampleCustomRepository {
 
-        void throwingRuntimeException();
+	}
 
+	private interface QueryDslSampleRepository extends SimpleSampleRepository, QueryDslPredicateExecutor<User> {
 
-        void throwingCheckedException() throws IOException;
-    }
-
-    /**
-     * Implementation of the custom repository interface.
-     * 
-     * @author Oliver Gierke
-     */
-    private class SampleCustomRepositoryImpl implements SampleCustomRepository {
-
-        public void throwingRuntimeException() {
-
-            throw new IllegalArgumentException("You lose!");
-        }
-
-
-        public void throwingCheckedException() throws IOException {
-
-            throw new IOException("You lose!");
-        }
-    }
-
-    private interface SampleRepository extends JpaRepository<User, Integer>,
-            SampleCustomRepository {
-
-    }
-
-    private interface QueryDslSampleRepository extends SimpleSampleRepository,
-            QueryDslPredicateExecutor<User> {
-
-    }
+	}
 }

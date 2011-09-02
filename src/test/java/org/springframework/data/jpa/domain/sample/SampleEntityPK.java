@@ -22,67 +22,62 @@ import javax.persistence.Embeddable;
 
 import org.springframework.util.Assert;
 
-
 @Embeddable
 public class SampleEntityPK implements Serializable {
 
-    private static final long serialVersionUID = 231060947L;
+	private static final long serialVersionUID = 231060947L;
 
-    @Column(nullable = false)
-    private String first;
-    @Column(nullable = false)
-    private String second;
+	@Column(nullable = false)
+	private String first;
+	@Column(nullable = false)
+	private String second;
 
+	public SampleEntityPK() {
 
-    public SampleEntityPK() {
+		this.first = null;
+		this.second = null;
+	}
 
-        this.first = null;
-        this.second = null;
-    }
+	public SampleEntityPK(String first, String second) {
 
+		Assert.notNull(first);
+		Assert.notNull(second);
+		this.first = first;
+		this.second = second;
+	}
 
-    public SampleEntityPK(String first, String second) {
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
 
-        Assert.notNull(first);
-        Assert.notNull(second);
-        this.first = first;
-        this.second = second;
-    }
+		if (this == obj) {
+			return true;
+		}
 
+		if (!this.getClass().equals(obj.getClass())) {
+			return false;
+		}
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.lang.Object#equals(java.lang.Object)
-     */
-    @Override
-    public boolean equals(Object obj) {
+		SampleEntityPK that = (SampleEntityPK) obj;
 
-        if (this == obj) {
-            return true;
-        }
+		return this.first.equals(that.first) && this.second.equals(that.second);
+	}
 
-        if (!this.getClass().equals(obj.getClass())) {
-            return false;
-        }
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
 
-        SampleEntityPK that = (SampleEntityPK) obj;
-
-        return this.first.equals(that.first) && this.second.equals(that.second);
-    }
-
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.lang.Object#hashCode()
-     */
-    @Override
-    public int hashCode() {
-
-        int result = 17;
-        result += 31 * first.hashCode();
-        result += 31 * second.hashCode();
-        return result;
-    }
+		int result = 17;
+		result += 31 * first.hashCode();
+		result += 31 * second.hashCode();
+		return result;
+	}
 }

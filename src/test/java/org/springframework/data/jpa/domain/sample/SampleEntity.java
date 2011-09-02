@@ -18,48 +18,43 @@ package org.springframework.data.jpa.domain.sample;
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
 
-
 /**
  * @author Oliver Gierke
  */
 @Entity
 public class SampleEntity {
 
-    @EmbeddedId
-    protected SampleEntityPK id;
+	@EmbeddedId
+	protected SampleEntityPK id;
 
+	protected SampleEntity() {
 
-    protected SampleEntity() {
+	}
 
-    }
+	public SampleEntity(String first, String second) {
 
+		this.id = new SampleEntityPK(first, second);
+	}
 
-    public SampleEntity(String first, String second) {
+	@Override
+	public boolean equals(Object obj) {
 
-        this.id = new SampleEntityPK(first, second);
-    }
+		if (obj == this) {
+			return true;
+		}
 
+		if (!getClass().equals(obj.getClass())) {
+			return false;
+		}
 
-    @Override
-    public boolean equals(Object obj) {
+		SampleEntity that = (SampleEntity) obj;
 
-        if (obj == this) {
-            return true;
-        }
+		return this.id.equals(that.id);
+	}
 
-        if (!getClass().equals(obj.getClass())) {
-            return false;
-        }
+	@Override
+	public int hashCode() {
 
-        SampleEntity that = (SampleEntity) obj;
-
-        return this.id.equals(that.id);
-    }
-
-
-    @Override
-    public int hashCode() {
-
-        return id.hashCode();
-    }
+		return id.hashCode();
+	}
 }

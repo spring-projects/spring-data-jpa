@@ -28,7 +28,6 @@ import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.data.repository.query.QueryLookupStrategy.Key;
 import org.springframework.data.repository.query.RepositoryQuery;
 
-
 /**
  * Query lookup strategy to execute finders.
  * 
@@ -36,186 +35,154 @@ import org.springframework.data.repository.query.RepositoryQuery;
  */
 public final class JpaQueryLookupStrategy {
 
-    /**
-     * Private constructor to prevent instantiation.
-     */
-    private JpaQueryLookupStrategy() {
+	/**
+	 * Private constructor to prevent instantiation.
+	 */
+	private JpaQueryLookupStrategy() {
 
-    }
+	}
 
-    /**
-     * Base class for {@link QueryLookupStrategy} implementations that need
-     * access to an {@link EntityManager}.
-     * 
-     * @author Oliver Gierke
-     */
-    private abstract static class AbstractQueryLookupStrategy implements
-            QueryLookupStrategy {
+	/**
+	 * Base class for {@link QueryLookupStrategy} implementations that need access to an {@link EntityManager}.
+	 * 
+	 * @author Oliver Gierke
+	 */
+	private abstract static class AbstractQueryLookupStrategy implements QueryLookupStrategy {
 
-        private final EntityManager em;
-        private final QueryExtractor provider;
+		private final EntityManager em;
+		private final QueryExtractor provider;
 
+		public AbstractQueryLookupStrategy(EntityManager em, QueryExtractor extractor) {
 
-        public AbstractQueryLookupStrategy(EntityManager em,
-                QueryExtractor extractor) {
+			this.em = em;
+			this.provider = extractor;
+		}
 
-            this.em = em;
-            this.provider = extractor;
-        }
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see org.springframework.data.repository.query.QueryLookupStrategy#
+		 * resolveQuery(java.lang.reflect.Method,
+		 * org.springframework.data.repository.core.RepositoryMetadata,
+		 * org.springframework.data.repository.core.NamedQueries)
+		 */
+		public final RepositoryQuery resolveQuery(Method method, RepositoryMetadata metadata, NamedQueries namedQueries) {
 
+			return resolveQuery(new JpaQueryMethod(method, metadata, provider), em, namedQueries);
+		}
 
-        /*
-         * (non-Javadoc)
-         * 
-         * @see org.springframework.data.repository.query.QueryLookupStrategy#
-         * resolveQuery(java.lang.reflect.Method,
-         * org.springframework.data.repository.core.RepositoryMetadata,
-         * org.springframework.data.repository.core.NamedQueries)
-         */
-        public final RepositoryQuery resolveQuery(Method method,
-                RepositoryMetadata metadata, NamedQueries namedQueries) {
+		protected abstract RepositoryQuery resolveQuery(JpaQueryMethod method, EntityManager em, NamedQueries namedQueries);
+	}
 
-            return resolveQuery(new JpaQueryMethod(method, metadata, provider),
-                    em, namedQueries);
-        }
+	/**
+	 * {@link QueryLookupStrategy} to create a query from the method name.
+	 * 
+	 * @author Oliver Gierke
+	 */
+	private static class CreateQueryLookupStrategy extends AbstractQueryLookupStrategy {
 
+		public CreateQueryLookupStrategy(EntityManager em, QueryExtractor extractor) {
 
-        protected abstract RepositoryQuery resolveQuery(JpaQueryMethod method,
-                EntityManager em, NamedQueries namedQueries);
-    }
+			super(em, extractor);
+		}
 
-    /**
-     * {@link QueryLookupStrategy} to create a query from the method name.
-     * 
-     * @author Oliver Gierke
-     */
-    private static class CreateQueryLookupStrategy extends
-            AbstractQueryLookupStrategy {
+		@Override
+		protected RepositoryQuery resolveQuery(JpaQueryMethod method, EntityManager em, NamedQueries namedQueries) {
 
-        public CreateQueryLookupStrategy(EntityManager em,
-                QueryExtractor extractor) {
+			return new PartTreeJpaQuery(method, em);
+		}
+	}
 
-            super(em, extractor);
-        }
+	/**
+	 * {@link QueryLookupStrategy} that tries to detect a declared query declared via {@link Query} annotation followed by
+	 * a JPA named query lookup.
+	 * 
+	 * @author Oliver Gierke
+	 */
+	private static class DeclaredQueryLookupStrategy extends AbstractQueryLookupStrategy {
 
+		public DeclaredQueryLookupStrategy(EntityManager em, QueryExtractor extractor) {
 
-        @Override
-        protected RepositoryQuery resolveQuery(JpaQueryMethod method,
-                EntityManager em, NamedQueries namedQueries) {
+			super(em, extractor);
+		}
 
-            return new PartTreeJpaQuery(method, em);
-        }
-    }
+		@Override
+		protected RepositoryQuery resolveQuery(JpaQueryMethod method, EntityManager em, NamedQueries namedQueries) {
 
-    /**
-     * {@link QueryLookupStrategy} that tries to detect a declared query
-     * declared via {@link Query} annotation followed by a JPA named query
-     * lookup.
-     * 
-     * @author Oliver Gierke
-     */
-    private static class DeclaredQueryLookupStrategy extends
-            AbstractQueryLookupStrategy {
+			RepositoryQuery query = SimpleJpaQuery.fromQueryAnnotation(method, em);
 
-        public DeclaredQueryLookupStrategy(EntityManager em,
-                QueryExtractor extractor) {
+			if (null != query) {
+				return query;
+			}
 
-            super(em, extractor);
-        }
+			String name = method.getNamedQueryName();
+			if (namedQueries.hasQuery(name)) {
+				return new SimpleJpaQuery(method, em, namedQueries.getQuery(name));
+			}
 
+			query = NamedQuery.lookupFrom(method, em);
 
-        @Override
-        protected RepositoryQuery resolveQuery(JpaQueryMethod method,
-                EntityManager em, NamedQueries namedQueries) {
+			if (null != query) {
+				return query;
+			}
 
-            RepositoryQuery query =
-                    SimpleJpaQuery.fromQueryAnnotation(method, em);
+			throw new IllegalStateException(String.format(
+					"Did neither find a NamedQuery nor an annotated query for method %s!", method));
+		}
 
-            if (null != query) {
-                return query;
-            }
+	}
 
-            String name = method.getNamedQueryName();
-            if (namedQueries.hasQuery(name)) {
-                return new SimpleJpaQuery(method, em,
-                        namedQueries.getQuery(name));
-            }
+	/**
+	 * {@link QueryLookupStrategy} to try to detect a declared query first ( {@link Query}, JPA named query). In case none
+	 * is found we fall back on query creation.
+	 * 
+	 * @author Oliver Gierke
+	 */
+	private static class CreateIfNotFoundQueryLookupStrategy extends AbstractQueryLookupStrategy {
 
-            query = NamedQuery.lookupFrom(method, em);
+		private final DeclaredQueryLookupStrategy strategy;
+		private final CreateQueryLookupStrategy createStrategy;
 
-            if (null != query) {
-                return query;
-            }
+		public CreateIfNotFoundQueryLookupStrategy(EntityManager em, QueryExtractor extractor) {
 
-            throw new IllegalStateException(
-                    String.format(
-                            "Did neither find a NamedQuery nor an annotated query for method %s!",
-                            method));
-        }
+			super(em, extractor);
+			this.strategy = new DeclaredQueryLookupStrategy(em, extractor);
+			this.createStrategy = new CreateQueryLookupStrategy(em, extractor);
+		}
 
-    }
+		@Override
+		protected RepositoryQuery resolveQuery(JpaQueryMethod method, EntityManager em, NamedQueries namedQueries) {
 
-    /**
-     * {@link QueryLookupStrategy} to try to detect a declared query first (
-     * {@link Query}, JPA named query). In case none is found we fall back on
-     * query creation.
-     * 
-     * @author Oliver Gierke
-     */
-    private static class CreateIfNotFoundQueryLookupStrategy extends
-            AbstractQueryLookupStrategy {
+			try {
+				return strategy.resolveQuery(method, em, namedQueries);
+			} catch (IllegalStateException e) {
+				return createStrategy.resolveQuery(method, em, namedQueries);
+			}
+		}
+	}
 
-        private final DeclaredQueryLookupStrategy strategy;
-        private final CreateQueryLookupStrategy createStrategy;
+	/**
+	 * Creates a {@link QueryLookupStrategy} for the given {@link EntityManager} and {@link Key}.
+	 * 
+	 * @param em
+	 * @param key
+	 * @return
+	 */
+	public static QueryLookupStrategy create(EntityManager em, Key key, QueryExtractor extractor) {
 
+		if (key == null) {
+			return new CreateIfNotFoundQueryLookupStrategy(em, extractor);
+		}
 
-        public CreateIfNotFoundQueryLookupStrategy(EntityManager em,
-                QueryExtractor extractor) {
-
-            super(em, extractor);
-            this.strategy = new DeclaredQueryLookupStrategy(em, extractor);
-            this.createStrategy = new CreateQueryLookupStrategy(em, extractor);
-        }
-
-
-        @Override
-        protected RepositoryQuery resolveQuery(JpaQueryMethod method,
-                EntityManager em, NamedQueries namedQueries) {
-
-            try {
-                return strategy.resolveQuery(method, em, namedQueries);
-            } catch (IllegalStateException e) {
-                return createStrategy.resolveQuery(method, em, namedQueries);
-            }
-        }
-    }
-
-
-    /**
-     * Creates a {@link QueryLookupStrategy} for the given {@link EntityManager}
-     * and {@link Key}.
-     * 
-     * @param em
-     * @param key
-     * @return
-     */
-    public static QueryLookupStrategy create(EntityManager em, Key key,
-            QueryExtractor extractor) {
-
-        if (key == null) {
-            return new CreateIfNotFoundQueryLookupStrategy(em, extractor);
-        }
-
-        switch (key) {
-        case CREATE:
-            return new CreateQueryLookupStrategy(em, extractor);
-        case USE_DECLARED_QUERY:
-            return new DeclaredQueryLookupStrategy(em, extractor);
-        case CREATE_IF_NOT_FOUND:
-            return new CreateIfNotFoundQueryLookupStrategy(em, extractor);
-        default:
-            throw new IllegalArgumentException(String.format(
-                    "Unsupported query lookup strategy %s!", key));
-        }
-    }
+		switch (key) {
+		case CREATE:
+			return new CreateQueryLookupStrategy(em, extractor);
+		case USE_DECLARED_QUERY:
+			return new DeclaredQueryLookupStrategy(em, extractor);
+		case CREATE_IF_NOT_FOUND:
+			return new CreateIfNotFoundQueryLookupStrategy(em, extractor);
+		default:
+			throw new IllegalArgumentException(String.format("Unsupported query lookup strategy %s!", key));
+		}
+	}
 }

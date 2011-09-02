@@ -28,10 +28,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
-
 /**
- * Assures the injected repository instances are wired to the customly
- * configured {@link EntityManagerFactory}.
+ * Assures the injected repository instances are wired to the customly configured {@link EntityManagerFactory}.
  * 
  * @author Oliver Gierke
  */
@@ -39,26 +37,23 @@ import org.springframework.transaction.annotation.Transactional;
 @ContextConfiguration(locations = "classpath:multiple-entity-manager-integration-context.xml")
 public class EntityManagerFactoryRefTests {
 
-    @Autowired
-    UserRepository userRepository;
+	@Autowired
+	UserRepository userRepository;
 
-    @Autowired
-    AuditableUserRepository auditableUserRepository;
+	@Autowired
+	AuditableUserRepository auditableUserRepository;
 
+	@Test
+	@Transactional
+	public void useUserRepository() throws Exception {
 
-    @Test
-    @Transactional
-    public void useUserRepository() throws Exception {
+		userRepository.saveAndFlush(new User("firstname", "lastname", "foo@bar.de"));
+	}
 
-        userRepository.saveAndFlush(new User("firstname", "lastname",
-                "foo@bar.de"));
-    }
+	@Test
+	@Transactional("transactionManager-2")
+	public void useAuditableUserRepository() throws Exception {
 
-
-    @Test
-    @Transactional("transactionManager-2")
-    public void useAuditableUserRepository() throws Exception {
-
-        auditableUserRepository.saveAndFlush(new AuditableUser());
-    }
+		auditableUserRepository.saveAndFlush(new AuditableUser());
+	}
 }

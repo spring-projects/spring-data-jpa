@@ -17,7 +17,6 @@ package org.springframework.data.jpa.repository.query;
 
 import javax.persistence.EntityManager;
 
-
 /**
  * Base class for {@link String} based JPA queries.
  * 
@@ -25,15 +24,15 @@ import javax.persistence.EntityManager;
  */
 public abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 
-    /**
-     * Creates a new {@link AbstractStringBasedJpaQuery}.
-     * 
-     * @param method
-     * @param em
-     */
-    public AbstractStringBasedJpaQuery(JpaQueryMethod method, EntityManager em) {
+	/**
+	 * Creates a new {@link AbstractStringBasedJpaQuery}.
+	 * 
+	 * @param method
+	 * @param em
+	 */
+	public AbstractStringBasedJpaQuery(JpaQueryMethod method, EntityManager em) {
 
-        super(method, em);
-    }
+		super(method, em);
+	}
 
 }

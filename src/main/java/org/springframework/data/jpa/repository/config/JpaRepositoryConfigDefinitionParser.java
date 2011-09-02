@@ -26,132 +26,106 @@ import org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcesso
 import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
 
-
 /**
- * Parser to create bean definitions for repositories namespace. Registers bean
- * definitions for repositories as well as
- * {@code PersistenceAnnotationBeanPostProcessor} and
- * {@code PersistenceExceptionTranslationPostProcessor} to transparently inject
- * entity manager factory instance and apply exception translation.
+ * Parser to create bean definitions for repositories namespace. Registers bean definitions for repositories as well as
+ * {@code PersistenceAnnotationBeanPostProcessor} and {@code PersistenceExceptionTranslationPostProcessor} to
+ * transparently inject entity manager factory instance and apply exception translation.
  * <p>
- * The definition parser allows two ways of configuration. Either it looks up
- * the manually defined repository instances or scans the defined domain package
- * for candidates for repositories.
+ * The definition parser allows two ways of configuration. Either it looks up the manually defined repository instances
+ * or scans the defined domain package for candidates for repositories.
  * 
  * @author Oliver Gierke
  * @author Eberhard Wolff
  * @author Gil Markham
  */
-class JpaRepositoryConfigDefinitionParser
-        extends
-        AbstractRepositoryConfigDefinitionParser<SimpleJpaRepositoryConfiguration, JpaRepositoryConfiguration> {
+class JpaRepositoryConfigDefinitionParser extends
+		AbstractRepositoryConfigDefinitionParser<SimpleJpaRepositoryConfiguration, JpaRepositoryConfiguration> {
 
-    private static final Class<?> PAB_POST_PROCESSOR =
-            PersistenceAnnotationBeanPostProcessor.class;
-    private static final Class<?> PET_POST_PROCESSOR =
-            PersistenceExceptionTranslationPostProcessor.class;
+	private static final Class<?> PAB_POST_PROCESSOR = PersistenceAnnotationBeanPostProcessor.class;
+	private static final Class<?> PET_POST_PROCESSOR = PersistenceExceptionTranslationPostProcessor.class;
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.springframework.data.repository.config.
+	 * AbstractRepositoryConfigDefinitionParser
+	 * #getGlobalRepositoryConfigInformation(org.w3c.dom.Element)
+	 */
+	@Override
+	protected SimpleJpaRepositoryConfiguration getGlobalRepositoryConfigInformation(Element element) {
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.springframework.data.repository.config.
-     * AbstractRepositoryConfigDefinitionParser
-     * #getGlobalRepositoryConfigInformation(org.w3c.dom.Element)
-     */
-    @Override
-    protected SimpleJpaRepositoryConfiguration getGlobalRepositoryConfigInformation(
-            Element element) {
+		return new SimpleJpaRepositoryConfiguration(element);
+	}
 
-        return new SimpleJpaRepositoryConfiguration(element);
-    }
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.springframework.data.repository.config.
+	 * AbstractRepositoryConfigDefinitionParser
+	 * #postProcessBeanDefinition(org.springframework
+	 * .data.repository.config.SingleRepositoryConfigInformation,
+	 * org.springframework.beans.factory.support.BeanDefinitionBuilder,
+	 * org.springframework.beans.factory.support.BeanDefinitionRegistry,
+	 * java.lang.Object)
+	 */
+	@Override
+	protected void postProcessBeanDefinition(JpaRepositoryConfiguration ctx, BeanDefinitionBuilder builder,
+			BeanDefinitionRegistry registry, Object beanSource) {
 
+		String entityManagerRef = ctx.getEntityManagerFactoryRef();
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.springframework.data.repository.config.
-     * AbstractRepositoryConfigDefinitionParser
-     * #postProcessBeanDefinition(org.springframework
-     * .data.repository.config.SingleRepositoryConfigInformation,
-     * org.springframework.beans.factory.support.BeanDefinitionBuilder,
-     * org.springframework.beans.factory.support.BeanDefinitionRegistry,
-     * java.lang.Object)
-     */
-    @Override
-    protected void postProcessBeanDefinition(JpaRepositoryConfiguration ctx,
-            BeanDefinitionBuilder builder, BeanDefinitionRegistry registry,
-            Object beanSource) {
+		if (StringUtils.hasText(entityManagerRef)) {
+			builder.addPropertyValue("entityManager", getEntityManagerBeanDefinitionFor(entityManagerRef, beanSource));
+		}
+	}
 
-        String entityManagerRef = ctx.getEntityManagerFactoryRef();
+	/**
+	 * Creates an anonymous factory to extract the actual {@link javax.persistence.EntityManager} from the
+	 * {@link javax.persistence.EntityManagerFactory} bean name reference.
+	 * 
+	 * @param entityManagerFactoryBeanName
+	 * @param source
+	 * @return
+	 */
+	private BeanDefinition getEntityManagerBeanDefinitionFor(String entityManagerFactoryBeanName, Object source) {
 
-        if (StringUtils.hasText(entityManagerRef)) {
-            builder.addPropertyValue(
-                    "entityManager",
-                    getEntityManagerBeanDefinitionFor(entityManagerRef,
-                            beanSource));
-        }
-    }
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder
+				.rootBeanDefinition("org.springframework.orm.jpa.SharedEntityManagerCreator");
+		builder.setFactoryMethod("createSharedEntityManager");
+		builder.addConstructorArgReference(entityManagerFactoryBeanName);
 
+		AbstractBeanDefinition bean = builder.getRawBeanDefinition();
+		bean.setSource(source);
 
-    /**
-     * Creates an anonymous factory to extract the actual
-     * {@link javax.persistence.EntityManager} from the
-     * {@link javax.persistence.EntityManagerFactory} bean name reference.
-     * 
-     * @param entityManagerFactoryBeanName
-     * @param source
-     * @return
-     */
-    private BeanDefinition getEntityManagerBeanDefinitionFor(
-            String entityManagerFactoryBeanName, Object source) {
+		return bean;
+	}
 
-        BeanDefinitionBuilder builder =
-                BeanDefinitionBuilder
-                        .rootBeanDefinition("org.springframework.orm.jpa.SharedEntityManagerCreator");
-        builder.setFactoryMethod("createSharedEntityManager");
-        builder.addConstructorArgReference(entityManagerFactoryBeanName);
+	/**
+	 * Registers an additional {@link org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor} to
+	 * trigger automatic injextion of {@link javax.persistence.EntityManager} .
+	 * 
+	 * @param registry
+	 * @param source
+	 */
+	@Override
+	protected void registerBeansForRoot(BeanDefinitionRegistry registry, Object source) {
 
-        AbstractBeanDefinition bean = builder.getRawBeanDefinition();
-        bean.setSource(source);
+		super.registerBeansForRoot(registry, source);
 
-        return bean;
-    }
+		if (!hasBean(PET_POST_PROCESSOR, registry)) {
 
+			AbstractBeanDefinition definition = BeanDefinitionBuilder.rootBeanDefinition(PET_POST_PROCESSOR)
+					.getBeanDefinition();
 
-    /**
-     * Registers an additional
-     * {@link org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor}
-     * to trigger automatic injextion of {@link javax.persistence.EntityManager}
-     * .
-     * 
-     * @param registry
-     * @param source
-     */
-    @Override
-    protected void registerBeansForRoot(BeanDefinitionRegistry registry,
-            Object source) {
+			registerWithSourceAndGeneratedBeanName(registry, definition, source);
+		}
 
-        super.registerBeansForRoot(registry, source);
+		if (!hasBean(PAB_POST_PROCESSOR, registry)) {
 
-        if (!hasBean(PET_POST_PROCESSOR, registry)) {
+			AbstractBeanDefinition definition = BeanDefinitionBuilder.rootBeanDefinition(PAB_POST_PROCESSOR)
+					.getBeanDefinition();
 
-            AbstractBeanDefinition definition =
-                    BeanDefinitionBuilder
-                            .rootBeanDefinition(PET_POST_PROCESSOR)
-                            .getBeanDefinition();
-
-            registerWithSourceAndGeneratedBeanName(registry, definition, source);
-        }
-
-        if (!hasBean(PAB_POST_PROCESSOR, registry)) {
-
-            AbstractBeanDefinition definition =
-                    BeanDefinitionBuilder
-                            .rootBeanDefinition(PAB_POST_PROCESSOR)
-                            .getBeanDefinition();
-
-            registerWithSourceAndGeneratedBeanName(registry, definition, source);
-        }
-    }
+			registerWithSourceAndGeneratedBeanName(registry, definition, source);
+		}
+	}
 }

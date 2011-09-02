@@ -32,7 +32,6 @@ import org.springframework.data.repository.core.support.DefaultRepositoryMetadat
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-
 /**
  * Integration tests for {@link PartTreeJpaQuery}.
  * 
@@ -42,33 +41,27 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration("classpath:infrastructure.xml")
 public class PartTreeJpaQueryIntegrationTests {
 
-    @PersistenceContext
-    EntityManager entityManager;
+	@PersistenceContext
+	EntityManager entityManager;
 
+	/**
+	 * @see DATADOC-90
+	 * @throws Exception
+	 */
+	@Test
+	public void test() throws Exception {
 
-    /**
-     * @see DATADOC-90
-     * @throws Exception
-     */
-    @Test
-    public void test() throws Exception {
+		Method method = UserRepository.class.getMethod("findByFirstname", String.class, Pageable.class);
+		JpaQueryMethod queryMethod = new JpaQueryMethod(method, new DefaultRepositoryMetadata(UserRepository.class),
+				PersistenceProvider.fromEntityManager(entityManager));
+		PartTreeJpaQuery jpaQuery = new PartTreeJpaQuery(queryMethod, entityManager);
 
-        Method method =
-                UserRepository.class.getMethod("findByFirstname", String.class,
-                        Pageable.class);
-        JpaQueryMethod queryMethod =
-                new JpaQueryMethod(method, new DefaultRepositoryMetadata(
-                        UserRepository.class),
-                        PersistenceProvider.fromEntityManager(entityManager));
-        PartTreeJpaQuery jpaQuery =
-                new PartTreeJpaQuery(queryMethod, entityManager);
+		jpaQuery.createQuery(new Object[] { "Matthews", new PageRequest(0, 1) });
+		jpaQuery.createQuery(new Object[] { "Matthews", new PageRequest(0, 1) });
+	}
 
-        jpaQuery.createQuery(new Object[] { "Matthews", new PageRequest(0, 1) });
-        jpaQuery.createQuery(new Object[] { "Matthews", new PageRequest(0, 1) });
-    }
+	interface UserRepository extends Repository<User, Long> {
 
-    interface UserRepository extends Repository<User, Long> {
-
-        Page<User> findByFirstname(String firstname, Pageable pageable);
-    }
+		Page<User> findByFirstname(String firstname, Pageable pageable);
+	}
 }

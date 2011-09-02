@@ -26,7 +26,6 @@ import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.util.Assert;
 
-
 /**
  * Abstract base class to implement {@link RepositoryQuery}s.
  * 
@@ -34,98 +33,87 @@ import org.springframework.util.Assert;
  */
 public abstract class AbstractJpaQuery implements RepositoryQuery {
 
-    private final JpaQueryMethod method;
-    private final EntityManager em;
+	private final JpaQueryMethod method;
+	private final EntityManager em;
 
+	/**
+	 * Creates a new {@link AbstractJpaQuery} from the given {@link JpaQueryMethod}.
+	 * 
+	 * @param method
+	 * @param em
+	 */
+	public AbstractJpaQuery(JpaQueryMethod method, EntityManager em) {
 
-    /**
-     * Creates a new {@link AbstractJpaQuery} from the given
-     * {@link JpaQueryMethod}.
-     * 
-     * @param method
-     * @param em
-     */
-    public AbstractJpaQuery(JpaQueryMethod method, EntityManager em) {
+		Assert.notNull(method);
+		Assert.notNull(em);
 
-        Assert.notNull(method);
-        Assert.notNull(em);
+		this.method = method;
+		this.em = em;
+	}
 
-        this.method = method;
-        this.em = em;
-    }
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.springframework.data.repository.query.RepositoryQuery#getQueryMethod
+	 * ()
+	 */
+	public QueryMethod getQueryMethod() {
 
+		return method;
+	}
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.springframework.data.repository.query.RepositoryQuery#getQueryMethod
-     * ()
-     */
-    public QueryMethod getQueryMethod() {
+	/**
+	 * @return the em
+	 */
+	protected EntityManager getEntityManager() {
 
-        return method;
-    }
+		return em;
+	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.springframework.data.repository.query.RepositoryQuery#execute(java
+	 * .lang.Object[])
+	 */
+	public Object execute(Object[] parameters) {
 
-    /**
-     * @return the em
-     */
-    protected EntityManager getEntityManager() {
+		return doExecute(getExecution(), parameters);
+	}
 
-        return em;
-    }
+	/**
+	 * @param execution
+	 * @param values
+	 * @return
+	 */
+	private Object doExecute(JpaQueryExecution execution, Object[] values) {
 
+		return execution.execute(this, values);
+	}
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.springframework.data.repository.query.RepositoryQuery#execute(java
-     * .lang.Object[])
-     */
-    public Object execute(Object[] parameters) {
+	protected JpaQueryExecution getExecution() {
 
-        return doExecute(getExecution(), parameters);
-    }
+		switch (method.getType()) {
 
+		case COLLECTION:
+			return new CollectionExecution();
+		case PAGING:
+			return new PagedExecution(method.getParameters());
+		case MODIFYING:
+			return method.getClearAutomatically() ? new ModifyingExecution(method, em) : new ModifyingExecution(method, null);
+		default:
+			return new SingleEntityExecution();
+		}
+	}
 
-    /**
-     * @param execution
-     * @param values
-     * @return
-     */
-    private Object doExecute(JpaQueryExecution execution, Object[] values) {
+	protected ParameterBinder createBinder(Object[] values) {
 
-        return execution.execute(this, values);
-    }
+		return new ParameterBinder(getQueryMethod().getParameters(), values);
+	}
 
+	protected abstract Query createQuery(Object[] values);
 
-    protected JpaQueryExecution getExecution() {
-
-        switch (method.getType()) {
-
-        case COLLECTION:
-            return new CollectionExecution();
-        case PAGING:
-            return new PagedExecution(method.getParameters());
-        case MODIFYING:
-            return method.getClearAutomatically() ? new ModifyingExecution(
-                    method, em) : new ModifyingExecution(method, null);
-        default:
-            return new SingleEntityExecution();
-        }
-    }
-
-
-    protected ParameterBinder createBinder(Object[] values) {
-
-        return new ParameterBinder(getQueryMethod().getParameters(), values);
-    }
-
-
-    protected abstract Query createQuery(Object[] values);
-
-
-    protected abstract Query createCountQuery(Object[] values);
+	protected abstract Query createCountQuery(Object[] values);
 }

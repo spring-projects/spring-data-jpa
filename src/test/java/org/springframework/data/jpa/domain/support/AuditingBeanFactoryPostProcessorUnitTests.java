@@ -26,7 +26,6 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.xml.XmlBeanFactory;
 import org.springframework.core.io.ClassPathResource;
 
-
 /**
  * Unit test for {@link AuditingBeanFactoryPostProcessor}.
  * 
@@ -34,38 +33,30 @@ import org.springframework.core.io.ClassPathResource;
  */
 public class AuditingBeanFactoryPostProcessorUnitTests {
 
-    ConfigurableListableBeanFactory beanFactory;
-    AuditingBeanFactoryPostProcessor processor;
+	ConfigurableListableBeanFactory beanFactory;
+	AuditingBeanFactoryPostProcessor processor;
 
+	@Before
+	public void setUp() {
 
-    @Before
-    public void setUp() {
+		beanFactory = new XmlBeanFactory(new ClassPathResource("auditing/" + getConfigFile()));
 
-        beanFactory =
-                new XmlBeanFactory(new ClassPathResource("auditing/"
-                        + getConfigFile()));
+		processor = new AuditingBeanFactoryPostProcessor();
+	}
 
-        processor = new AuditingBeanFactoryPostProcessor();
-    }
+	protected String getConfigFile() {
 
+		return "auditing-bfpp-context.xml";
+	}
 
-    protected String getConfigFile() {
+	@Test
+	public void testname() throws Exception {
 
-        return "auditing-bfpp-context.xml";
-    }
+		processor.postProcessBeanFactory(beanFactory);
 
+		BeanDefinition definition = beanFactory.getBeanDefinition("entityManagerFactory");
 
-    @Test
-    public void testname() throws Exception {
-
-        processor.postProcessBeanFactory(beanFactory);
-
-        BeanDefinition definition =
-                beanFactory.getBeanDefinition("entityManagerFactory");
-
-        assertTrue(Arrays
-                .asList(definition.getDependsOn())
-                .contains(
-                        AuditingBeanFactoryPostProcessor.BEAN_CONFIGURER_ASPECT_BEAN_NAME));
-    }
+		assertTrue(Arrays.asList(definition.getDependsOn()).contains(
+				AuditingBeanFactoryPostProcessor.BEAN_CONFIGURER_ASPECT_BEAN_NAME));
+	}
 }

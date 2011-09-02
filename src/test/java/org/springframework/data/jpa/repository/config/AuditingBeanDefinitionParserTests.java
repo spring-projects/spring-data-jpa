@@ -24,7 +24,6 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.xml.XmlBeanFactory;
 import org.springframework.core.io.ClassPathResource;
 
-
 /**
  * Integration tests for {@link AuditingBeanDefinitionParser}.
  * 
@@ -32,31 +31,25 @@ import org.springframework.core.io.ClassPathResource;
  */
 public class AuditingBeanDefinitionParserTests {
 
-    @Test
-    public void settingDatesIsConfigured() throws Exception {
+	@Test
+	public void settingDatesIsConfigured() throws Exception {
 
-        assertSetDatesIsSetTo("auditing/auditing-namespace-context.xml", "true");
-    }
+		assertSetDatesIsSetTo("auditing/auditing-namespace-context.xml", "true");
+	}
 
+	@Test
+	public void notSettingDatesIsConfigured() throws Exception {
 
-    @Test
-    public void notSettingDatesIsConfigured() throws Exception {
+		assertSetDatesIsSetTo("auditing/auditing-namespace-context2.xml", "false");
+	}
 
-        assertSetDatesIsSetTo("auditing/auditing-namespace-context2.xml",
-                "false");
-    }
+	private void assertSetDatesIsSetTo(String configFile, String value) {
 
-
-    private void assertSetDatesIsSetTo(String configFile, String value) {
-
-        XmlBeanFactory factory =
-                new XmlBeanFactory(new ClassPathResource(configFile));
-        BeanDefinition definition =
-                factory.getBeanDefinition(AuditingBeanDefinitionParser.AUDITING_ENTITY_LISTENER_CLASS_NAME);
-        PropertyValue propertyValue =
-                definition.getPropertyValues().getPropertyValue(
-                        "dateTimeForNow");
-        assertThat(propertyValue, is(notNullValue()));
-        assertThat((String) propertyValue.getValue(), is(value));
-    }
+		XmlBeanFactory factory = new XmlBeanFactory(new ClassPathResource(configFile));
+		BeanDefinition definition = factory
+				.getBeanDefinition(AuditingBeanDefinitionParser.AUDITING_ENTITY_LISTENER_CLASS_NAME);
+		PropertyValue propertyValue = definition.getPropertyValues().getPropertyValue("dateTimeForNow");
+		assertThat(propertyValue, is(notNullValue()));
+		assertThat((String) propertyValue.getValue(), is(value));
+	}
 }

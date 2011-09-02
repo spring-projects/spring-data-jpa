@@ -20,20 +20,18 @@ import java.util.List;
 import org.springframework.data.jpa.domain.sample.AuditableUser;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-
 /**
  * Repository interface for {@code AuditableUser}.
  * 
  * @author Oliver Gierke
  */
-public interface AuditableUserRepository extends
-        JpaRepository<AuditableUser, Long> {
+public interface AuditableUserRepository extends JpaRepository<AuditableUser, Long> {
 
-    /**
-     * Returns all users with the given firstname.
-     * 
-     * @param firstname
-     * @return all users with the given firstname.
-     */
-    public List<AuditableUser> findByFirstname(final String firstname);
+	/**
+	 * Returns all users with the given firstname.
+	 * 
+	 * @param firstname
+	 * @return all users with the given firstname.
+	 */
+	public List<AuditableUser> findByFirstname(final String firstname);
 }

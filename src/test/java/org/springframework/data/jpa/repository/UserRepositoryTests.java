@@ -52,14 +52,11 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
-
 /**
- * Base integration test class for {@code UserRepository}. Loads a basic
- * (non-namespace) Spring configuration file as well as Hibernate configuration
- * to execute tests.
+ * Base integration test class for {@code UserRepository}. Loads a basic (non-namespace) Spring configuration file as
+ * well as Hibernate configuration to execute tests.
  * <p>
- * To test further persistence providers subclass this class and provide a
- * custom provider configuration.
+ * To test further persistence providers subclass this class and provide a custom provider configuration.
  * 
  * @author Oliver Gierke
  */
@@ -68,771 +65,674 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class UserRepositoryTests {
 
-    @PersistenceContext
-    EntityManager em;
+	@PersistenceContext
+	EntityManager em;
 
-    // CUT
-    @Autowired
-    UserRepository repository;
+	// CUT
+	@Autowired
+	UserRepository repository;
+
+	// Test fixture
+	User firstUser, secondUser, thirdUser;
+	Integer id;
 
-    // Test fixture
-    User firstUser, secondUser, thirdUser;
-    Integer id;
+	@Before
+	public void setUp() {
 
+		firstUser = new User("Oliver", "Gierke", "gierke@synyx.de");
+		secondUser = new User("Joachim", "Arrasz", "arrasz@synyx.de");
+		thirdUser = new User("Dave", "Matthews", "no@email.com");
+	}
 
-    @Before
-    public void setUp() {
+	/**
+	 * Tests creation of users.
+	 */
+	@Test
+	public void testCreation() {
 
-        firstUser = new User("Oliver", "Gierke", "gierke@synyx.de");
-        secondUser = new User("Joachim", "Arrasz", "arrasz@synyx.de");
-        thirdUser = new User("Dave", "Matthews", "no@email.com");
-    }
+		Query countQuery = em.createQuery("select count(u) from User u");
+		Long before = (Long) countQuery.getSingleResult();
 
+		flushTestUsers();
 
-    /**
-     * Tests creation of users.
-     */
-    @Test
-    public void testCreation() {
+		assertEquals(before + 3, countQuery.getSingleResult());
+	}
 
-        Query countQuery = em.createQuery("select count(u) from User u");
-        Long before = (Long) countQuery.getSingleResult();
+	/**
+	 * Tests reading a single user.
+	 * 
+	 * @throws Exception
+	 */
+	@Test
+	public void testRead() throws Exception {
 
-        flushTestUsers();
+		flushTestUsers();
+
+		User foundPerson = repository.findOne(id);
+		assertEquals(firstUser.getFirstname(), foundPerson.getFirstname());
+	}
 
-        assertEquals(before + 3, countQuery.getSingleResult());
-    }
+	/**
+	 * Asserts, that a call to {@code UserRepository#readId(Integer)} returns {@code null} for invalid not {@code null}
+	 * ids.
+	 */
+	@Test
+	public void testReadByIdReturnsNullForNotFoundEntities() {
 
+		flushTestUsers();
 
-    /**
-     * Tests reading a single user.
-     * 
-     * @throws Exception
-     */
-    @Test
-    public void testRead() throws Exception {
+		assertNull(repository.findOne(id * 27));
+	}
 
-        flushTestUsers();
+	@Test
+	public void savesCollectionCorrectly() throws Exception {
 
-        User foundPerson = repository.findOne(id);
-        assertEquals(firstUser.getFirstname(), foundPerson.getFirstname());
-    }
+		List<User> result = repository.save(Arrays.asList(firstUser, secondUser, thirdUser));
+		assertNotNull(result);
+		assertThat(result.size(), is(3));
+		assertThat(result, hasItems(firstUser, secondUser, thirdUser));
+	}
 
+	@Test
+	public void savingNullCollectionIsNoOp() throws Exception {
 
-    /**
-     * Asserts, that a call to {@code UserRepository#readId(Integer)} returns
-     * {@code null} for invalid not {@code null} ids.
-     */
-    @Test
-    public void testReadByIdReturnsNullForNotFoundEntities() {
+		List<User> result = repository.save((Collection<User>) null);
+		assertNotNull(result);
+		assertTrue(result.isEmpty());
+	}
 
-        flushTestUsers();
+	@Test
+	public void savingEmptyCollectionIsNoOp() throws Exception {
 
-        assertNull(repository.findOne(id * 27));
-    }
+		List<User> result = repository.save(new ArrayList<User>());
+		assertNotNull(result);
+		assertTrue(result.isEmpty());
+	}
 
+	/**
+	 * Tests updating a user.
+	 */
+	@Test
+	public void testUpdate() {
 
-    @Test
-    public void savesCollectionCorrectly() throws Exception {
+		flushTestUsers();
 
-        List<User> result =
-                repository
-                        .save(Arrays.asList(firstUser, secondUser, thirdUser));
-        assertNotNull(result);
-        assertThat(result.size(), is(3));
-        assertThat(result, hasItems(firstUser, secondUser, thirdUser));
-    }
+		User foundPerson = repository.findOne(id);
+		foundPerson.setLastname("Schlicht");
 
+		User updatedPerson = repository.findOne(id);
+		assertEquals(foundPerson.getFirstname(), updatedPerson.getFirstname());
+	}
 
-    @Test
-    public void savingNullCollectionIsNoOp() throws Exception {
+	@Test
+	public void existReturnsWhetherAnEntityCanBeLoaded() throws Exception {
 
-        List<User> result = repository.save((Collection<User>) null);
-        assertNotNull(result);
-        assertTrue(result.isEmpty());
-    }
+		flushTestUsers();
+		assertTrue(repository.exists(id));
+		assertFalse(repository.exists(id * 27));
+	}
 
+	@Test
+	public void deletesAUserById() {
 
-    @Test
-    public void savingEmptyCollectionIsNoOp() throws Exception {
+		flushTestUsers();
 
-        List<User> result = repository.save(new ArrayList<User>());
-        assertNotNull(result);
-        assertTrue(result.isEmpty());
-    }
+		repository.delete(firstUser.getId());
+		assertNull(repository.findOne(firstUser.getId()));
+	}
 
+	/**
+	 * Tests deleting a user.
+	 */
+	@Test
+	public void testDelete() {
 
-    /**
-     * Tests updating a user.
-     */
-    @Test
-    public void testUpdate() {
+		flushTestUsers();
 
-        flushTestUsers();
+		repository.delete(firstUser);
+		assertNull(repository.findOne(id));
+	}
 
-        User foundPerson = repository.findOne(id);
-        foundPerson.setLastname("Schlicht");
+	@Test
+	public void returnsAllSortedCorrectly() throws Exception {
 
-        User updatedPerson = repository.findOne(id);
-        assertEquals(foundPerson.getFirstname(), updatedPerson.getFirstname());
-    }
+		flushTestUsers();
+		List<User> result = repository.findAll(new Sort(ASC, "lastname"));
+		assertNotNull(result);
+		assertThat(result.size(), is(3));
+		assertThat(result.get(0), is(secondUser));
+		assertThat(result.get(1), is(firstUser));
+		assertThat(result.get(2), is(thirdUser));
+	}
 
+	@Test
+	public void deleteColletionOfEntities() {
 
-    @Test
-    public void existReturnsWhetherAnEntityCanBeLoaded() throws Exception {
+		flushTestUsers();
 
-        flushTestUsers();
-        assertTrue(repository.exists(id));
-        assertFalse(repository.exists(id * 27));
-    }
+		long before = repository.count();
 
+		repository.delete(Arrays.asList(firstUser, secondUser));
+		assertThat(repository.count(), is(before - 2));
+	}
 
-    @Test
-    public void deletesAUserById() {
+	@Test
+	public void batchDeleteColletionOfEntities() {
 
-        flushTestUsers();
+		flushTestUsers();
 
-        repository.delete(firstUser.getId());
-        assertNull(repository.findOne(firstUser.getId()));
-    }
+		long before = repository.count();
 
+		repository.deleteInBatch(Arrays.asList(firstUser, secondUser));
+		assertThat(repository.count(), is(before - 2));
+	}
 
-    /**
-     * Tests deleting a user.
-     */
-    @Test
-    public void testDelete() {
+	@Test
+	public void deleteEmptyCollectionDoesNotDeleteAnything() {
 
-        flushTestUsers();
+		assertDeleteCallDoesNotDeleteAnything(new ArrayList<User>());
+	}
 
-        repository.delete(firstUser);
-        assertNull(repository.findOne(id));
-    }
+	@Test
+	public void deleteWithNullDoesNotDeleteAnything() throws Exception {
 
+		assertDeleteCallDoesNotDeleteAnything(null);
+	}
 
-    @Test
-    public void returnsAllSortedCorrectly() throws Exception {
+	private void assertDeleteCallDoesNotDeleteAnything(List<User> collection) {
 
-        flushTestUsers();
-        List<User> result = repository.findAll(new Sort(ASC, "lastname"));
-        assertNotNull(result);
-        assertThat(result.size(), is(3));
-        assertThat(result.get(0), is(secondUser));
-        assertThat(result.get(1), is(firstUser));
-        assertThat(result.get(2), is(thirdUser));
-    }
+		flushTestUsers();
+		long count = repository.count();
 
+		repository.delete(collection);
+		assertEquals(count, repository.count());
+	}
 
-    @Test
-    public void deleteColletionOfEntities() {
+	@Test
+	public void executesManipulatingQuery() throws Exception {
 
-        flushTestUsers();
+		flushTestUsers();
+		repository.renameAllUsersTo("newLastname");
 
-        long before = repository.count();
+		long expected = repository.count();
+		assertThat(repository.findByLastname("newLastname").size(), is(Long.valueOf(expected).intValue()));
+	}
 
-        repository.delete(Arrays.asList(firstUser, secondUser));
-        assertThat(repository.count(), is(before - 2));
-    }
+	/**
+	 * Make sure no {@link NullPointerException} is being thrown.
+	 * 
+	 * @see Ticket #110
+	 */
+	@Test
+	public void testFinderInvocationWithNullParameter() {
 
+		flushTestUsers();
 
-    @Test
-    public void batchDeleteColletionOfEntities() {
+		repository.findByLastname(null);
+	}
 
-        flushTestUsers();
+	/**
+	 * Tests, that searching by the lastname of the reference user returns exactly that instance.
+	 * 
+	 * @throws Exception
+	 */
+	@Test
+	public void testFindByLastname() throws Exception {
 
-        long before = repository.count();
+		flushTestUsers();
 
-        repository.deleteInBatch(Arrays.asList(firstUser, secondUser));
-        assertThat(repository.count(), is(before - 2));
-    }
+		List<User> byName = repository.findByLastname("Gierke");
 
+		assertTrue(byName.size() == 1);
+		assertEquals(firstUser, byName.get(0));
+	}
 
-    @Test
-    public void deleteEmptyCollectionDoesNotDeleteAnything() {
+	/**
+	 * Tests, that searching by the email address of the reference user returns exactly that instance.
+	 * 
+	 * @throws Exception
+	 */
+	@Test
+	public void testFindByEmailAddress() throws Exception {
 
-        assertDeleteCallDoesNotDeleteAnything(new ArrayList<User>());
-    }
+		flushTestUsers();
 
+		User byName = repository.findByEmailAddress("gierke@synyx.de");
 
-    @Test
-    public void deleteWithNullDoesNotDeleteAnything() throws Exception {
+		assertNotNull(byName);
+		assertEquals(firstUser, byName);
+	}
 
-        assertDeleteCallDoesNotDeleteAnything(null);
-    }
+	/**
+	 * Tests reading all users.
+	 */
+	@Test
+	public void testReadAll() {
 
+		flushTestUsers();
 
-    private void assertDeleteCallDoesNotDeleteAnything(List<User> collection) {
+		List<User> reference = Arrays.asList(firstUser, secondUser);
+		assertTrue(repository.findAll().containsAll(reference));
+	}
 
-        flushTestUsers();
-        long count = repository.count();
+	/**
+	 * Tests that all users get deleted by triggering {@link UserRepository#deleteAll()}.
+	 * 
+	 * @throws Exception
+	 */
+	@Test
+	public void deleteAll() throws Exception {
 
-        repository.delete(collection);
-        assertEquals(count, repository.count());
-    }
+		flushTestUsers();
 
+		repository.deleteAll();
 
-    @Test
-    public void executesManipulatingQuery() throws Exception {
+		assertEquals(0L, repository.count());
+	}
 
-        flushTestUsers();
-        repository.renameAllUsersTo("newLastname");
+	/**
+	 * Tests cascading persistence.
+	 */
+	@Test
+	public void testCascadesPersisting() {
 
-        long expected = repository.count();
-        assertThat(repository.findByLastname("newLastname").size(), is(Long
-                .valueOf(expected).intValue()));
-    }
+		// Create link prior to persisting
+		firstUser.addColleague(secondUser);
 
+		// Persist
+		flushTestUsers();
 
-    /**
-     * Make sure no {@link NullPointerException} is being thrown.
-     * 
-     * @see Ticket #110
-     */
-    @Test
-    public void testFinderInvocationWithNullParameter() {
+		// Fetches first user from database
+		User firstReferenceUser = repository.findOne(firstUser.getId());
+		assertEquals(firstUser, firstReferenceUser);
 
-        flushTestUsers();
+		// Fetch colleagues and assert link
+		Set<User> colleagues = firstReferenceUser.getColleagues();
+		assertEquals(1, colleagues.size());
+		assertTrue(colleagues.contains(secondUser));
+	}
 
-        repository.findByLastname(null);
-    }
+	/**
+	 * Tests, that persisting a relationsship without cascade attributes throws a {@code DataAccessException}.
+	 */
+	@Test(expected = DataAccessException.class)
+	public void testPreventsCascadingRolePersisting() {
 
+		firstUser.addRole(new Role("USER"));
 
-    /**
-     * Tests, that searching by the lastname of the reference user returns
-     * exactly that instance.
-     * 
-     * @throws Exception
-     */
-    @Test
-    public void testFindByLastname() throws Exception {
+		flushTestUsers();
+	}
 
-        flushTestUsers();
+	/**
+	 * Tests cascading on {@literal merge} operation.
+	 */
+	@Test
+	public void testMergingCascadesCollegueas() {
 
-        List<User> byName = repository.findByLastname("Gierke");
+		firstUser.addColleague(secondUser);
+		flushTestUsers();
 
-        assertTrue(byName.size() == 1);
-        assertEquals(firstUser, byName.get(0));
-    }
+		firstUser.addColleague(new User("Florian", "Hopf", "hopf@synyx.de"));
+		firstUser = repository.save(firstUser);
 
+		User reference = repository.findOne(firstUser.getId());
+		Set<User> colleagues = reference.getColleagues();
 
-    /**
-     * Tests, that searching by the email address of the reference user returns
-     * exactly that instance.
-     * 
-     * @throws Exception
-     */
-    @Test
-    public void testFindByEmailAddress() throws Exception {
+		assertNotNull(colleagues);
+		assertEquals(2, colleagues.size());
+	}
 
-        flushTestUsers();
+	/**
+	 * Tests, that the generic repository implements count correctly.
+	 */
+	@Test
+	public void testCountsCorrectly() {
 
-        User byName = repository.findByEmailAddress("gierke@synyx.de");
+		long count = repository.count();
 
-        assertNotNull(byName);
-        assertEquals(firstUser, byName);
-    }
+		User user = new User();
+		user.setEmailAddress("gierke@synyx.de");
+		repository.save(user);
 
+		assertTrue(repository.count() == count + 1);
+	}
 
-    /**
-     * Tests reading all users.
-     */
-    @Test
-    public void testReadAll() {
+	/**
+	 * Tests invoking a method of a custom implementation of the repository interface.
+	 */
+	@Test
+	public void testInvocationOfCustomImplementation() {
 
-        flushTestUsers();
+		repository.someCustomMethod(new User());
+	}
 
-        List<User> reference = Arrays.asList(firstUser, secondUser);
-        assertTrue(repository.findAll().containsAll(reference));
-    }
+	/**
+	 * Tests that overriding a finder method is recognized by the repository implementation. If an overriding method is
+	 * found it will will be invoked instead of the automatically generated finder.
+	 */
+	@Test
+	public void testOverwritingFinder() {
 
+		repository.findByOverrridingMethod();
+	}
 
-    /**
-     * Tests that all users get deleted by triggering
-     * {@link UserRepository#deleteAll()}.
-     * 
-     * @throws Exception
-     */
-    @Test
-    public void deleteAll() throws Exception {
+	@Test
+	public void testUsesQueryAnnotation() {
 
-        flushTestUsers();
+		assertEquals(null, repository.findByAnnotatedQuery("gierke@synyx.de"));
+	}
 
-        repository.deleteAll();
+	@Test
+	public void testExecutionOfProjectingMethod() {
 
-        assertEquals(0L, repository.count());
-    }
+		flushTestUsers();
+		assertEquals(1, repository.countWithFirstname("Oliver").longValue());
+	}
 
+	@Test
+	public void executesSpecificationCorrectly() {
 
-    /**
-     * Tests cascading persistence.
-     */
-    @Test
-    public void testCascadesPersisting() {
+		flushTestUsers();
+		assertThat(repository.findAll(where(userHasFirstname("Oliver"))).size(), is(1));
+	}
 
-        // Create link prior to persisting
-        firstUser.addColleague(secondUser);
+	@Test
+	public void executesSingleEntitySpecificationCorrectly() throws Exception {
 
-        // Persist
-        flushTestUsers();
+		flushTestUsers();
+		assertThat(repository.findOne(userHasFirstname("Oliver")), is(firstUser));
+	}
 
-        // Fetches first user from database
-        User firstReferenceUser = repository.findOne(firstUser.getId());
-        assertEquals(firstUser, firstReferenceUser);
+	@Test
+	public void returnsNullIfNoEntityFoundForSingleEntitySpecification() throws Exception {
 
-        // Fetch colleagues and assert link
-        Set<User> colleagues = firstReferenceUser.getColleagues();
-        assertEquals(1, colleagues.size());
-        assertTrue(colleagues.contains(secondUser));
-    }
+		flushTestUsers();
+		assertThat(repository.findOne(userHasLastname("Beauford")), is(nullValue()));
+	}
 
+	@Test(expected = IncorrectResultSizeDataAccessException.class)
+	public void throwsExceptionForUnderSpecifiedSingleEntitySpecification() {
 
-    /**
-     * Tests, that persisting a relationsship without cascade attributes throws
-     * a {@code DataAccessException}.
-     */
-    @Test(expected = DataAccessException.class)
-    public void testPreventsCascadingRolePersisting() {
+		flushTestUsers();
+		repository.findOne(userHasFirstnameLike("e"));
+	}
 
-        firstUser.addRole(new Role("USER"));
+	@Test
+	public void executesCombinedSpecificationsCorrectly() {
 
-        flushTestUsers();
-    }
+		flushTestUsers();
+		Specification<User> spec = where(userHasFirstname("Oliver")).or(userHasLastname("Arrasz"));
+		assertThat(repository.findAll(spec).size(), is(2));
+	}
 
+	@Test
+	public void executesCombinedSpecificationsWithPageableCorrectly() {
 
-    /**
-     * Tests cascading on {@literal merge} operation.
-     */
-    @Test
-    public void testMergingCascadesCollegueas() {
+		flushTestUsers();
+		Specification<User> spec = where(userHasFirstname("Oliver")).or(userHasLastname("Arrasz"));
 
-        firstUser.addColleague(secondUser);
-        flushTestUsers();
+		Page<User> users = repository.findAll(spec, new PageRequest(0, 1));
+		assertThat(users.getSize(), is(1));
+		assertThat(users.hasPreviousPage(), is(false));
+		assertThat(users.getTotalElements(), is(2L));
+	}
 
-        firstUser.addColleague(new User("Florian", "Hopf", "hopf@synyx.de"));
-        firstUser = repository.save(firstUser);
+	/**
+	 * Flushes test users to the database.
+	 */
+	private void flushTestUsers() {
 
-        User reference = repository.findOne(firstUser.getId());
-        Set<User> colleagues = reference.getColleagues();
+		firstUser = repository.save(firstUser);
+		secondUser = repository.save(secondUser);
+		thirdUser = repository.save(thirdUser);
 
-        assertNotNull(colleagues);
-        assertEquals(2, colleagues.size());
-    }
+		repository.flush();
 
+		id = firstUser.getId();
 
-    /**
-     * Tests, that the generic repository implements count correctly.
-     */
-    @Test
-    public void testCountsCorrectly() {
+		assertThat(id, is(notNullValue()));
+		assertThat(secondUser.getId(), is(notNullValue()));
+		assertThat(thirdUser.getId(), is(notNullValue()));
 
-        long count = repository.count();
+		assertThat(repository.exists(id), is(true));
+		assertThat(repository.exists(secondUser.getId()), is(true));
+		assertThat(repository.exists(thirdUser.getId()), is(true));
+	}
 
-        User user = new User();
-        user.setEmailAddress("gierke@synyx.de");
-        repository.save(user);
+	@Test
+	public void executesMethodWithAnnotatedNamedParametersCorrectly() throws Exception {
 
-        assertTrue(repository.count() == count + 1);
-    }
+		firstUser = repository.save(firstUser);
+		secondUser = repository.save(secondUser);
 
+		assertTrue(repository.findByLastnameOrFirstname("Oliver", "Arrasz").containsAll(
+				Arrays.asList(firstUser, secondUser)));
+	}
 
-    /**
-     * Tests invoking a method of a custom implementation of the repository
-     * interface.
-     */
-    @Test
-    public void testInvocationOfCustomImplementation() {
+	@Test
+	@Ignore
+	public void executesMethodWithNamedParametersCorrectly() throws Exception {
 
-        repository.someCustomMethod(new User());
-    }
+		firstUser = repository.save(firstUser);
+		secondUser = repository.save(secondUser);
 
+		assertThat(repository.findByLastnameOrFirstnameUnannotated("Oliver", "Arrasz"), hasItems(firstUser, secondUser));
+	}
 
-    /**
-     * Tests that overriding a finder method is recognized by the repository
-     * implementation. If an overriding method is found it will will be invoked
-     * instead of the automatically generated finder.
-     */
-    @Test
-    public void testOverwritingFinder() {
+	@Test
+	public void executesMethodWithNamedParametersCorrectlyOnMethodsWithQueryCreation() throws Exception {
 
-        repository.findByOverrridingMethod();
-    }
+		firstUser = repository.save(firstUser);
+		secondUser = repository.save(secondUser);
 
+		List<User> result = repository.findByFirstnameOrLastname("Oliver", "Arrasz");
+		assertThat(result.size(), is(2));
+		assertThat(result, hasItems(firstUser, secondUser));
+	}
 
-    @Test
-    public void testUsesQueryAnnotation() {
+	@Test
+	public void executesLikeAndOrderByCorrectly() throws Exception {
 
-        assertEquals(null, repository.findByAnnotatedQuery("gierke@synyx.de"));
-    }
+		flushTestUsers();
 
+		List<User> result = repository.findByLastnameLikeOrderByFirstnameDesc("%r%");
+		assertThat(result.size(), is(2));
+		assertEquals(firstUser, result.get(0));
+		assertEquals(secondUser, result.get(1));
+	}
 
-    @Test
-    public void testExecutionOfProjectingMethod() {
+	@Test
+	public void executesNotLikeCorrectly() throws Exception {
 
-        flushTestUsers();
-        assertEquals(1, repository.countWithFirstname("Oliver").longValue());
-    }
+		flushTestUsers();
 
+		List<User> result = repository.findByLastnameNotLike("%er%");
+		assertThat(result.size(), is(2));
+		assertThat(result, hasItems(secondUser, thirdUser));
+	}
 
-    @Test
-    public void executesSpecificationCorrectly() {
+	@Test
+	public void executesSimpleNotCorrectly() throws Exception {
 
-        flushTestUsers();
-        assertThat(
-                repository.findAll(where(userHasFirstname("Oliver"))).size(),
-                is(1));
-    }
+		flushTestUsers();
 
+		List<User> result = repository.findByLastnameNot("Gierke");
+		assertThat(result.size(), is(2));
+		assertThat(result, hasItems(secondUser, thirdUser));
+	}
 
-    @Test
-    public void executesSingleEntitySpecificationCorrectly() throws Exception {
+	@Test
+	public void returnsSameListIfNoSpecGiven() throws Exception {
 
-        flushTestUsers();
-        assertThat(repository.findOne(userHasFirstname("Oliver")),
-                is(firstUser));
-    }
+		flushTestUsers();
+		assertSameElements(repository.findAll(), repository.findAll((Specification<User>) null));
+	}
 
+	@Test
+	public void returnsSameListIfNoSortIsGiven() throws Exception {
 
-    @Test
-    public void returnsNullIfNoEntityFoundForSingleEntitySpecification()
-            throws Exception {
+		flushTestUsers();
+		assertSameElements(repository.findAll((Sort) null), repository.findAll());
+	}
 
-        flushTestUsers();
-        assertThat(repository.findOne(userHasLastname("Beauford")),
-                is(nullValue()));
-    }
+	@Test
+	public void returnsSamePageIfNoSpecGiven() throws Exception {
 
+		Pageable pageable = new PageRequest(0, 1);
 
-    @Test(expected = IncorrectResultSizeDataAccessException.class)
-    public void throwsExceptionForUnderSpecifiedSingleEntitySpecification() {
+		flushTestUsers();
+		assertEquals(repository.findAll(pageable), repository.findAll(null, pageable));
+	}
 
-        flushTestUsers();
-        repository.findOne(userHasFirstnameLike("e"));
-    }
+	@Test
+	public void returnsAllAsPageIfNoPageableIsGiven() throws Exception {
 
+		flushTestUsers();
+		assertEquals(new PageImpl<User>(repository.findAll()), repository.findAll((Pageable) null));
+	}
 
-    @Test
-    public void executesCombinedSpecificationsCorrectly() {
+	private static <T> void assertSameElements(Collection<T> first, Collection<T> second) {
 
-        flushTestUsers();
-        Specification<User> spec =
-                where(userHasFirstname("Oliver")).or(userHasLastname("Arrasz"));
-        assertThat(repository.findAll(spec).size(), is(2));
-    }
+		for (T element : first) {
+			assertThat(element, isIn(second));
+		}
 
+		for (T element : second) {
+			assertThat(element, isIn(first));
+		}
+	}
 
-    @Test
-    public void executesCombinedSpecificationsWithPageableCorrectly() {
+	@Test
+	public void removeDetachedObject() throws Exception {
 
-        flushTestUsers();
-        Specification<User> spec =
-                where(userHasFirstname("Oliver")).or(userHasLastname("Arrasz"));
+		flushTestUsers();
 
-        Page<User> users = repository.findAll(spec, new PageRequest(0, 1));
-        assertThat(users.getSize(), is(1));
-        assertThat(users.hasPreviousPage(), is(false));
-        assertThat(users.getTotalElements(), is(2L));
-    }
+		em.detach(firstUser);
+		repository.delete(firstUser);
 
+		assertThat(repository.count(), is(2L));
+	}
 
-    /**
-     * Flushes test users to the database.
-     */
-    private void flushTestUsers() {
+	@Test
+	@SuppressWarnings("unchecked")
+	public void executesPagedSpecificationsCorrectly() throws Exception {
 
-        firstUser = repository.save(firstUser);
-        secondUser = repository.save(secondUser);
-        thirdUser = repository.save(thirdUser);
+		Page<User> result = executeSpecWithSort(null);
+		assertThat(result.getContent(), anyOf(hasItem(firstUser), hasItem(thirdUser)));
+		assertThat(result.getContent(), not(hasItem(secondUser)));
+	}
 
-        repository.flush();
+	@Test
+	public void executesPagedSpecificationsWithSortCorrectly() throws Exception {
 
-        id = firstUser.getId();
+		Page<User> result = executeSpecWithSort(new Sort(Direction.ASC, "lastname"));
 
-        assertThat(id, is(notNullValue()));
-        assertThat(secondUser.getId(), is(notNullValue()));
-        assertThat(thirdUser.getId(), is(notNullValue()));
+		assertThat(result.getContent(), hasItem(firstUser));
+		assertThat(result.getContent(), not(hasItem(secondUser)));
+		assertThat(result.getContent(), not(hasItem(thirdUser)));
+	}
 
-        assertThat(repository.exists(id), is(true));
-        assertThat(repository.exists(secondUser.getId()), is(true));
-        assertThat(repository.exists(thirdUser.getId()), is(true));
-    }
+	@Test
+	public void executesPagedSpecificationWithSortCorrectly2() throws Exception {
 
+		Page<User> result = executeSpecWithSort(new Sort(Direction.DESC, "lastname"));
 
-    @Test
-    public void executesMethodWithAnnotatedNamedParametersCorrectly()
-            throws Exception {
+		assertThat(result.getContent(), hasItem(thirdUser));
+		assertThat(result.getContent(), not(hasItem(secondUser)));
+		assertThat(result.getContent(), not(hasItem(firstUser)));
+	}
 
-        firstUser = repository.save(firstUser);
-        secondUser = repository.save(secondUser);
+	@Test
+	public void executesQueryMethodWithDeepTraversalCorrectly() throws Exception {
 
-        assertTrue(repository.findByLastnameOrFirstname("Oliver", "Arrasz")
-                .containsAll(Arrays.asList(firstUser, secondUser)));
-    }
+		flushTestUsers();
 
+		firstUser.setManager(secondUser);
+		thirdUser.setManager(firstUser);
+		repository.save(Arrays.asList(firstUser, thirdUser));
 
-    @Test
-    @Ignore
-    public void executesMethodWithNamedParametersCorrectly() throws Exception {
+		List<User> result = repository.findByManagerLastname("Arrasz");
 
-        firstUser = repository.save(firstUser);
-        secondUser = repository.save(secondUser);
+		assertThat(result.size(), is(1));
+		assertThat(result, hasItem(firstUser));
 
-        assertThat(repository.findByLastnameOrFirstnameUnannotated("Oliver",
-                "Arrasz"), hasItems(firstUser, secondUser));
-    }
+		result = repository.findByManagerLastname("Gierke");
+		assertThat(result.size(), is(1));
+		assertThat(result, hasItem(thirdUser));
+	}
 
+	@Test
+	public void executesFindByColleaguesLastnameCorrectly() throws Exception {
 
-    @Test
-    public void executesMethodWithNamedParametersCorrectlyOnMethodsWithQueryCreation()
-            throws Exception {
+		flushTestUsers();
 
-        firstUser = repository.save(firstUser);
-        secondUser = repository.save(secondUser);
+		firstUser.addColleague(secondUser);
+		thirdUser.addColleague(firstUser);
+		repository.save(Arrays.asList(firstUser, thirdUser));
 
-        List<User> result =
-                repository.findByFirstnameOrLastname("Oliver", "Arrasz");
-        assertThat(result.size(), is(2));
-        assertThat(result, hasItems(firstUser, secondUser));
-    }
+		List<User> result = repository.findByColleaguesLastname(secondUser.getLastname());
 
+		assertThat(result.size(), is(1));
+		assertThat(result, hasItem(firstUser));
 
-    @Test
-    public void executesLikeAndOrderByCorrectly() throws Exception {
+		result = repository.findByColleaguesLastname("Gierke");
+		assertThat(result.size(), is(2));
+		assertThat(result, hasItems(thirdUser, secondUser));
+	}
 
-        flushTestUsers();
+	@Test
+	public void executesFindByNotNullLastnameCorrectly() throws Exception {
 
-        List<User> result =
-                repository.findByLastnameLikeOrderByFirstnameDesc("%r%");
-        assertThat(result.size(), is(2));
-        assertEquals(firstUser, result.get(0));
-        assertEquals(secondUser, result.get(1));
-    }
+		flushTestUsers();
+		List<User> result = repository.findByLastnameNotNull();
 
+		assertThat(result.size(), is(3));
+		assertThat(result, hasItems(firstUser, secondUser, thirdUser));
+	}
 
-    @Test
-    public void executesNotLikeCorrectly() throws Exception {
+	@Test
+	public void executesFindByNullLastnameCorrectly() throws Exception {
 
-        flushTestUsers();
+		flushTestUsers();
+		User forthUser = repository.save(new User("Foo", null, "email@address.com"));
 
-        List<User> result = repository.findByLastnameNotLike("%er%");
-        assertThat(result.size(), is(2));
-        assertThat(result, hasItems(secondUser, thirdUser));
-    }
+		List<User> result = repository.findByLastnameNull();
 
+		assertThat(result.size(), is(1));
+		assertThat(result, hasItems(forthUser));
+	}
 
-    @Test
-    public void executesSimpleNotCorrectly() throws Exception {
+	@Test
+	public void findsSortedByLastname() throws Exception {
 
-        flushTestUsers();
+		flushTestUsers();
 
-        List<User> result = repository.findByLastnameNot("Gierke");
-        assertThat(result.size(), is(2));
-        assertThat(result, hasItems(secondUser, thirdUser));
-    }
+		List<User> result = repository.findByEmailAddressLike("%@%", new Sort(Direction.ASC, "lastname"));
 
+		assertThat(result.size(), is(3));
+		assertThat(result.get(0), is(secondUser));
+		assertThat(result.get(1), is(firstUser));
+		assertThat(result.get(2), is(thirdUser));
+	}
 
-    @Test
-    public void returnsSameListIfNoSpecGiven() throws Exception {
+	@Test
+	public void findsUsersBySpringDataNamedQuery() {
 
-        flushTestUsers();
-        assertSameElements(repository.findAll(),
-                repository.findAll((Specification<User>) null));
-    }
+		flushTestUsers();
 
+		List<User> result = repository.findBySpringDataNamedQuery("Gierke");
+		assertThat(result.size(), is(1));
+		assertThat(result, hasItem(firstUser));
+	}
 
-    @Test
-    public void returnsSameListIfNoSortIsGiven() throws Exception {
+	private Page<User> executeSpecWithSort(Sort sort) {
 
-        flushTestUsers();
-        assertSameElements(repository.findAll((Sort) null),
-                repository.findAll());
-    }
+		flushTestUsers();
 
+		Specification<User> spec = where(userHasFirstname("Oliver")).or(userHasLastname("Matthews"));
 
-    @Test
-    public void returnsSamePageIfNoSpecGiven() throws Exception {
-
-        Pageable pageable = new PageRequest(0, 1);
-
-        flushTestUsers();
-        assertEquals(repository.findAll(pageable),
-                repository.findAll(null, pageable));
-    }
-
-
-    @Test
-    public void returnsAllAsPageIfNoPageableIsGiven() throws Exception {
-
-        flushTestUsers();
-        assertEquals(new PageImpl<User>(repository.findAll()),
-                repository.findAll((Pageable) null));
-    }
-
-
-    private static <T> void assertSameElements(Collection<T> first,
-            Collection<T> second) {
-
-        for (T element : first) {
-            assertThat(element, isIn(second));
-        }
-
-        for (T element : second) {
-            assertThat(element, isIn(first));
-        }
-    }
-
-
-    @Test
-    public void removeDetachedObject() throws Exception {
-
-        flushTestUsers();
-
-        em.detach(firstUser);
-        repository.delete(firstUser);
-
-        assertThat(repository.count(), is(2L));
-    }
-
-
-    @Test
-    @SuppressWarnings("unchecked")
-    public void executesPagedSpecificationsCorrectly() throws Exception {
-
-        Page<User> result = executeSpecWithSort(null);
-        assertThat(result.getContent(),
-                anyOf(hasItem(firstUser), hasItem(thirdUser)));
-        assertThat(result.getContent(), not(hasItem(secondUser)));
-    }
-
-
-    @Test
-    public void executesPagedSpecificationsWithSortCorrectly() throws Exception {
-
-        Page<User> result =
-                executeSpecWithSort(new Sort(Direction.ASC, "lastname"));
-
-        assertThat(result.getContent(), hasItem(firstUser));
-        assertThat(result.getContent(), not(hasItem(secondUser)));
-        assertThat(result.getContent(), not(hasItem(thirdUser)));
-    }
-
-
-    @Test
-    public void executesPagedSpecificationWithSortCorrectly2() throws Exception {
-
-        Page<User> result =
-                executeSpecWithSort(new Sort(Direction.DESC, "lastname"));
-
-        assertThat(result.getContent(), hasItem(thirdUser));
-        assertThat(result.getContent(), not(hasItem(secondUser)));
-        assertThat(result.getContent(), not(hasItem(firstUser)));
-    }
-
-
-    @Test
-    public void executesQueryMethodWithDeepTraversalCorrectly()
-            throws Exception {
-
-        flushTestUsers();
-
-        firstUser.setManager(secondUser);
-        thirdUser.setManager(firstUser);
-        repository.save(Arrays.asList(firstUser, thirdUser));
-
-        List<User> result = repository.findByManagerLastname("Arrasz");
-
-        assertThat(result.size(), is(1));
-        assertThat(result, hasItem(firstUser));
-
-        result = repository.findByManagerLastname("Gierke");
-        assertThat(result.size(), is(1));
-        assertThat(result, hasItem(thirdUser));
-    }
-
-
-    @Test
-    public void executesFindByColleaguesLastnameCorrectly() throws Exception {
-
-        flushTestUsers();
-
-        firstUser.addColleague(secondUser);
-        thirdUser.addColleague(firstUser);
-        repository.save(Arrays.asList(firstUser, thirdUser));
-
-        List<User> result =
-                repository.findByColleaguesLastname(secondUser.getLastname());
-
-        assertThat(result.size(), is(1));
-        assertThat(result, hasItem(firstUser));
-
-        result = repository.findByColleaguesLastname("Gierke");
-        assertThat(result.size(), is(2));
-        assertThat(result, hasItems(thirdUser, secondUser));
-    }
-
-
-    @Test
-    public void executesFindByNotNullLastnameCorrectly() throws Exception {
-
-        flushTestUsers();
-        List<User> result = repository.findByLastnameNotNull();
-
-        assertThat(result.size(), is(3));
-        assertThat(result, hasItems(firstUser, secondUser, thirdUser));
-    }
-
-
-    @Test
-    public void executesFindByNullLastnameCorrectly() throws Exception {
-
-        flushTestUsers();
-        User forthUser =
-                repository.save(new User("Foo", null, "email@address.com"));
-
-        List<User> result = repository.findByLastnameNull();
-
-        assertThat(result.size(), is(1));
-        assertThat(result, hasItems(forthUser));
-    }
-
-
-    @Test
-    public void findsSortedByLastname() throws Exception {
-
-        flushTestUsers();
-
-        List<User> result =
-                repository.findByEmailAddressLike("%@%", new Sort(
-                        Direction.ASC, "lastname"));
-
-        assertThat(result.size(), is(3));
-        assertThat(result.get(0), is(secondUser));
-        assertThat(result.get(1), is(firstUser));
-        assertThat(result.get(2), is(thirdUser));
-    }
-
-
-    @Test
-    public void findsUsersBySpringDataNamedQuery() {
-
-        flushTestUsers();
-
-        List<User> result = repository.findBySpringDataNamedQuery("Gierke");
-        assertThat(result.size(), is(1));
-        assertThat(result, hasItem(firstUser));
-    }
-
-
-    private Page<User> executeSpecWithSort(Sort sort) {
-
-        flushTestUsers();
-
-        Specification<User> spec =
-                where(userHasFirstname("Oliver")).or(
-                        userHasLastname("Matthews"));
-
-        Page<User> result =
-                repository.findAll(spec, new PageRequest(0, 1, sort));
-        assertThat(result.getTotalElements(), is(2L));
-        return result;
-    }
+		Page<User> result = repository.findAll(spec, new PageRequest(0, 1, sort));
+		assertThat(result.getTotalElements(), is(2L));
+		return result;
+	}
 }

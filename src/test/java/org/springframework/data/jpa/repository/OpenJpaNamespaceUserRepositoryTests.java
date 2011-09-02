@@ -18,14 +18,12 @@ package org.springframework.data.jpa.repository;
 import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.test.context.ContextConfiguration;
 
-
 /**
  * Testcase to run {@link UserRepository} integration tests on top of OpenJPA.
  * 
  * @author Oliver Gierke
  */
 @ContextConfiguration(value = "classpath:openjpa.xml", inheritLocations = true)
-public class OpenJpaNamespaceUserRepositoryTests extends
-        NamespaceUserRepositoryTests {
+public class OpenJpaNamespaceUserRepositoryTests extends NamespaceUserRepositoryTests {
 
 }

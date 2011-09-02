@@ -29,80 +29,68 @@ import org.springframework.data.repository.query.Parameters;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
-
 /**
- * Special {@link ParameterBinder} that uses {@link ParameterExpression}s to
- * bind query parameters.
+ * Special {@link ParameterBinder} that uses {@link ParameterExpression}s to bind query parameters.
  * 
  * @author Oliver Gierke
  */
 class CriteriaQueryParameterBinder extends ParameterBinder {
 
-    private final Iterator<ParameterExpression<?>> expressions;
+	private final Iterator<ParameterExpression<?>> expressions;
 
+	/**
+	 * Creates a new {@link CriteriaQueryParameterBinder} for the given {@link Parameters}, values and some
+	 * {@link ParameterExpression}.
+	 * 
+	 * @param parameters
+	 */
+	CriteriaQueryParameterBinder(Parameters parameters, Object[] values, Iterable<ParameterExpression<?>> expressions) {
 
-    /**
-     * Creates a new {@link CriteriaQueryParameterBinder} for the given
-     * {@link Parameters}, values and some {@link ParameterExpression}.
-     * 
-     * @param parameters
-     */
-    CriteriaQueryParameterBinder(Parameters parameters, Object[] values,
-            Iterable<ParameterExpression<?>> expressions) {
+		super(parameters, values);
+		Assert.notNull(expressions);
+		this.expressions = expressions.iterator();
+	}
 
-        super(parameters, values);
-        Assert.notNull(expressions);
-        this.expressions = expressions.iterator();
-    }
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.springframework.data.jpa.repository.query.ParameterBinder#bind(javax
+	 * .persistence.Query, org.springframework.data.repository.query.Parameter,
+	 * java.lang.Object, int)
+	 */
+	@Override
+	@SuppressWarnings("unchecked")
+	protected void bind(Query query, Parameter parameter, Object value, int position) {
 
+		ParameterExpression<Object> expression = (ParameterExpression<Object>) expressions.next();
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.springframework.data.jpa.repository.query.ParameterBinder#bind(javax
-     * .persistence.Query, org.springframework.data.repository.query.Parameter,
-     * java.lang.Object, int)
-     */
-    @Override
-    @SuppressWarnings("unchecked")
-    protected void bind(Query query, Parameter parameter, Object value,
-            int position) {
+		Object valueToBind = Collection.class.equals(expression.getJavaType()) ? toCollection(value) : value;
 
-        ParameterExpression<Object> expression =
-                (ParameterExpression<Object>) expressions.next();
+		query.setParameter(expression, valueToBind);
+	}
 
-        Object valueToBind =
-                Collection.class.equals(expression.getJavaType()) ? toCollection(value)
-                        : value;
+	/**
+	 * Return sthe given argument as {@link Collection} which means it will return it as is if it's a {@link Collections},
+	 * turn an array into an {@link ArrayList} or simply wrap any other value into a single element {@link Collections}.
+	 * 
+	 * @param value
+	 * @return
+	 */
+	private static Collection<?> toCollection(Object value) {
 
-        query.setParameter(expression, valueToBind);
-    }
+		if (value == null) {
+			return null;
+		}
 
+		if (value instanceof Collection) {
+			return (Collection<?>) value;
+		}
 
-    /**
-     * Return sthe given argument as {@link Collection} which means it will
-     * return it as is if it's a {@link Collections}, turn an array into an
-     * {@link ArrayList} or simply wrap any other value into a single element
-     * {@link Collections}.
-     * 
-     * @param value
-     * @return
-     */
-    private static Collection<?> toCollection(Object value) {
+		if (ObjectUtils.isArray(value)) {
+			return Arrays.asList(ObjectUtils.toObjectArray(value));
+		}
 
-        if (value == null) {
-            return null;
-        }
-
-        if (value instanceof Collection) {
-            return (Collection<?>) value;
-        }
-
-        if (ObjectUtils.isArray(value)) {
-            return Arrays.asList(ObjectUtils.toObjectArray(value));
-        }
-
-        return Collections.singleton(value);
-    }
+		return Collections.singleton(value);
+	}
 }

@@ -36,7 +36,6 @@ import com.mysema.query.types.expr.BooleanExpression;
 import com.mysema.query.types.path.PathBuilder;
 import com.mysema.query.types.path.PathBuilderFactory;
 
-
 /**
  * Integration test for {@link QueryDslJpaRepository}.
  * 
@@ -47,57 +46,47 @@ import com.mysema.query.types.path.PathBuilderFactory;
 @Transactional
 public class QueryDslJpaRepositoryTests {
 
-    @PersistenceContext
-    EntityManager em;
+	@PersistenceContext
+	EntityManager em;
 
-    QueryDslJpaRepository<User, Integer> repository;
-    QUser user = new QUser("user");
-    User dave, carter;
+	QueryDslJpaRepository<User, Integer> repository;
+	QUser user = new QUser("user");
+	User dave, carter;
 
+	@Before
+	public void setUp() {
 
-    @Before
-    public void setUp() {
+		JpaEntityInformation<User, Integer> information = new JpaMetamodelEntityInformation<User, Integer>(User.class,
+				em.getMetamodel());
 
-        JpaEntityInformation<User, Integer> information =
-                new JpaMetamodelEntityInformation<User, Integer>(User.class,
-                        em.getMetamodel());
+		repository = new QueryDslJpaRepository<User, Integer>(information, em);
+		dave = repository.save(new User("Dave", "Matthews", "dave@matthews.com"));
+		carter = repository.save(new User("Carter", "Beauford", "carter@beauford.com"));
+	}
 
-        repository = new QueryDslJpaRepository<User, Integer>(information, em);
-        dave =
-                repository.save(new User("Dave", "Matthews",
-                        "dave@matthews.com"));
-        carter =
-                repository.save(new User("Carter", "Beauford",
-                        "carter@beauford.com"));
-    }
+	@Test
+	public void executesPredicatesCorrectly() throws Exception {
 
+		BooleanExpression isCalledDave = user.firstname.eq("Dave");
+		BooleanExpression isBeauford = user.lastname.eq("Beauford");
 
-    @Test
-    public void executesPredicatesCorrectly() throws Exception {
+		List<User> result = repository.findAll(isCalledDave.or(isBeauford));
 
-        BooleanExpression isCalledDave = user.firstname.eq("Dave");
-        BooleanExpression isBeauford = user.lastname.eq("Beauford");
+		assertThat(result.size(), is(2));
+		assertThat(result, hasItems(carter, dave));
+	}
 
-        List<User> result = repository.findAll(isCalledDave.or(isBeauford));
+	@Test
+	public void executesStringBasedPredicatesCorrectly() throws Exception {
 
-        assertThat(result.size(), is(2));
-        assertThat(result, hasItems(carter, dave));
-    }
+		PathBuilder<User> builder = new PathBuilderFactory().create(User.class);
 
+		BooleanExpression isCalledDave = builder.getString("firstname").eq("Dave");
+		BooleanExpression isBeauford = builder.getString("lastname").eq("Beauford");
 
-    @Test
-    public void executesStringBasedPredicatesCorrectly() throws Exception {
+		List<User> result = repository.findAll(isCalledDave.or(isBeauford));
 
-        PathBuilder<User> builder = new PathBuilderFactory().create(User.class);
-
-        BooleanExpression isCalledDave =
-                builder.getString("firstname").eq("Dave");
-        BooleanExpression isBeauford =
-                builder.getString("lastname").eq("Beauford");
-
-        List<User> result = repository.findAll(isCalledDave.or(isBeauford));
-
-        assertThat(result.size(), is(2));
-        assertThat(result, hasItems(carter, dave));
-    }
+		assertThat(result.size(), is(2));
+		assertThat(result, hasItems(carter, dave));
+	}
 }

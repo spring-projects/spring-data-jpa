@@ -31,7 +31,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.QueryCreationException;
 
-
 /**
  * Unit tests for {@link NamedQuery}.
  * 
@@ -40,37 +39,34 @@ import org.springframework.data.repository.query.QueryCreationException;
 @RunWith(MockitoJUnitRunner.class)
 public class NamedQueryUnitTests {
 
-    @Mock
-    RepositoryMetadata metadata;
-    @Mock
-    QueryExtractor extractor;
-    @Mock
-    EntityManager em;
+	@Mock
+	RepositoryMetadata metadata;
+	@Mock
+	QueryExtractor extractor;
+	@Mock
+	EntityManager em;
 
-    Method method;
+	Method method;
 
+	@Before
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public void setUp() throws SecurityException, NoSuchMethodException {
 
-    @Before
-    @SuppressWarnings({ "unchecked", "rawtypes" })
-    public void setUp() throws SecurityException, NoSuchMethodException {
+		method = SampleRepository.class.getMethod("foo", Pageable.class);
+		when(metadata.getDomainClass()).thenReturn((Class) String.class);
+	}
 
-        method = SampleRepository.class.getMethod("foo", Pageable.class);
-        when(metadata.getDomainClass()).thenReturn((Class) String.class);
-    }
+	@Test(expected = QueryCreationException.class)
+	public void rejectsPersistenceProviderIfIncapableOfExtractingQueriesAndPagebleBeingUsed() {
 
+		when(extractor.canExtractQuery()).thenReturn(false);
 
-    @Test(expected = QueryCreationException.class)
-    public void rejectsPersistenceProviderIfIncapableOfExtractingQueriesAndPagebleBeingUsed() {
+		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, extractor);
+		NamedQuery.lookupFrom(queryMethod, em);
+	}
 
-        when(extractor.canExtractQuery()).thenReturn(false);
+	interface SampleRepository {
 
-        JpaQueryMethod queryMethod =
-                new JpaQueryMethod(method, metadata, extractor);
-        NamedQuery.lookupFrom(queryMethod, em);
-    }
-
-    interface SampleRepository {
-
-        Page<String> foo(Pageable pageable);
-    }
+		Page<String> foo(Pageable pageable);
+	}
 }

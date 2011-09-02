@@ -28,7 +28,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
 
-
 /**
  * Integration tests for {@link RoleRepository}.
  * 
@@ -39,30 +38,28 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class RoleRepositoryIntegrationTests {
 
-    @Autowired
-    RoleRepository repository;
+	@Autowired
+	RoleRepository repository;
 
+	@Test
+	public void createsRole() throws Exception {
 
-    @Test
-    public void createsRole() throws Exception {
+		Role reference = new Role("ADMIN");
+		Role result = repository.save(reference);
+		assertThat(result, is(reference));
+	}
 
-        Role reference = new Role("ADMIN");
-        Role result = repository.save(reference);
-        assertThat(result, is(reference));
-    }
+	@Test
+	public void updatesRole() throws Exception {
 
+		Role reference = new Role("ADMIN");
+		Role result = repository.save(reference);
+		assertThat(result, is(reference));
 
-    @Test
-    public void updatesRole() throws Exception {
+		// Change role name
+		ReflectionTestUtils.setField(reference, "name", "USER");
+		repository.save(reference);
 
-        Role reference = new Role("ADMIN");
-        Role result = repository.save(reference);
-        assertThat(result, is(reference));
-
-        // Change role name
-        ReflectionTestUtils.setField(reference, "name", "USER");
-        repository.save(reference);
-
-        assertThat(repository.findOne(result.getId()), is(reference));
-    }
+		assertThat(repository.findOne(result.getId()), is(reference));
+	}
 }

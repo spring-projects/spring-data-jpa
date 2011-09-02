@@ -22,36 +22,30 @@ import org.junit.Test;
 import org.springframework.beans.PropertyValue;
 import org.springframework.beans.factory.config.BeanDefinition;
 
-
 /**
  * Unit test for the JPA {@code auditing} namespace element.
  * 
  * @author Oliver Gierke
  */
-public class AuditingNamespaceUnitTests extends
-        AuditingBeanFactoryPostProcessorUnitTests {
+public class AuditingNamespaceUnitTests extends AuditingBeanFactoryPostProcessorUnitTests {
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.springframework.data.jpa.domain.support.
-     * AuditingBeanFactoryPostProcessorUnitTests#getConfigFile()
-     */
-    @Override
-    protected String getConfigFile() {
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.springframework.data.jpa.domain.support.
+	 * AuditingBeanFactoryPostProcessorUnitTests#getConfigFile()
+	 */
+	@Override
+	protected String getConfigFile() {
 
-        return "auditing-namespace-context.xml";
-    }
+		return "auditing-namespace-context.xml";
+	}
 
+	@Test
+	public void registersBeanDefinitions() throws Exception {
 
-    @Test
-    public void registersBeanDefinitions() throws Exception {
-
-        BeanDefinition definition =
-                beanFactory.getBeanDefinition(AuditingEntityListener.class
-                        .getName());
-        PropertyValue propertyValue =
-                definition.getPropertyValues().getPropertyValue("auditorAware");
-        assertThat(propertyValue, is(notNullValue()));
-    }
+		BeanDefinition definition = beanFactory.getBeanDefinition(AuditingEntityListener.class.getName());
+		PropertyValue propertyValue = definition.getPropertyValues().getPropertyValue("auditorAware");
+		assertThat(propertyValue, is(notNullValue()));
+	}
 }

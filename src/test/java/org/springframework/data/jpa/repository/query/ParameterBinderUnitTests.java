@@ -35,7 +35,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.query.Param;
 import org.springframework.data.repository.query.Parameters;
 
-
 /**
  * Unit test for {@link ParameterBinder}.
  * 
@@ -44,185 +43,146 @@ import org.springframework.data.repository.query.Parameters;
 @RunWith(MockitoJUnitRunner.class)
 public class ParameterBinderUnitTests {
 
-    private Method valid;
+	private Method valid;
 
-    @Mock
-    private Query query;
-    private Method useIndexedParameters;
-    private Method indexedParametersWithSort;
+	@Mock
+	private Query query;
+	private Method useIndexedParameters;
+	private Method indexedParametersWithSort;
 
+	@Before
+	public void setUp() throws SecurityException, NoSuchMethodException {
 
-    @Before
-    public void setUp() throws SecurityException, NoSuchMethodException {
+		valid = SampleRepository.class.getMethod("valid", String.class);
 
-        valid = SampleRepository.class.getMethod("valid", String.class);
+		useIndexedParameters = SampleRepository.class.getMethod("useIndexedParameters", String.class);
+		indexedParametersWithSort = SampleRepository.class.getMethod("indexedParameterWithSort", String.class, Sort.class);
+	}
 
-        useIndexedParameters =
-                SampleRepository.class.getMethod("useIndexedParameters",
-                        String.class);
-        indexedParametersWithSort =
-                SampleRepository.class.getMethod("indexedParameterWithSort",
-                        String.class, Sort.class);
-    }
+	static class User {
 
-    static class User {
+	}
 
-    }
+	static interface SampleRepository {
 
-    static interface SampleRepository {
+		User useIndexedParameters(String lastname);
 
-        User useIndexedParameters(String lastname);
+		User indexedParameterWithSort(String lastname, Sort sort);
 
+		User valid(@Param("username") String username);
 
-        User indexedParameterWithSort(String lastname, Sort sort);
+		User validWithPageable(@Param("username") String username, Pageable pageable);
 
+		User validWithSort(@Param("username") String username, Sort sort);
+	}
 
-        User valid(@Param("username") String username);
+	@Test(expected = IllegalArgumentException.class)
+	public void rejectsToManyParameters() throws Exception {
 
+		new ParameterBinder(new Parameters(valid), new Object[] { "foo", "bar" });
+	}
 
-        User validWithPageable(@Param("username") String username,
-                Pageable pageable);
+	@Test(expected = IllegalArgumentException.class)
+	public void rejectsNullParameters() throws Exception {
 
+		new ParameterBinder(new Parameters(valid), (Object[]) null);
+	}
 
-        User validWithSort(@Param("username") String username, Sort sort);
-    }
+	@Test(expected = IllegalArgumentException.class)
+	public void rejectsToLittleParameters() throws SecurityException, NoSuchMethodException {
 
+		Parameters parameters = new Parameters(valid);
+		new ParameterBinder(parameters);
+	}
 
-    @Test(expected = IllegalArgumentException.class)
-    public void rejectsToManyParameters() throws Exception {
+	@Test
+	public void returnsNullIfNoPageableWasProvided() throws SecurityException, NoSuchMethodException {
 
-        new ParameterBinder(new Parameters(valid),
-                new Object[] { "foo", "bar" });
-    }
+		Method method = SampleRepository.class.getMethod("validWithPageable", String.class, Pageable.class);
 
+		Parameters parameters = new Parameters(method);
+		ParameterBinder binder = new ParameterBinder(parameters, new Object[] { "foo", null });
 
-    @Test(expected = IllegalArgumentException.class)
-    public void rejectsNullParameters() throws Exception {
+		assertThat(binder.getPageable(), is(nullValue()));
+	}
 
-        new ParameterBinder(new Parameters(valid), (Object[]) null);
-    }
+	@Test
+	public void bindWorksWithNullForSort() throws Exception {
 
+		Method validWithSort = SampleRepository.class.getMethod("validWithSort", String.class, Sort.class);
 
-    @Test(expected = IllegalArgumentException.class)
-    public void rejectsToLittleParameters() throws SecurityException,
-            NoSuchMethodException {
+		new ParameterBinder(new Parameters(validWithSort), new Object[] { "foo", null }).bind(query);
+		verify(query).setParameter(eq(1), eq("foo"));
+	}
 
-        Parameters parameters = new Parameters(valid);
-        new ParameterBinder(parameters);
-    }
+	@Test
+	public void bindWorksWithNullForPageable() throws Exception {
 
+		Method validWithPageable = SampleRepository.class.getMethod("validWithPageable", String.class, Pageable.class);
 
-    @Test
-    public void returnsNullIfNoPageableWasProvided() throws SecurityException,
-            NoSuchMethodException {
+		new ParameterBinder(new Parameters(validWithPageable), new Object[] { "foo", null }).bind(query);
+		verify(query).setParameter(eq(1), eq("foo"));
+	}
 
-        Method method =
-                SampleRepository.class.getMethod("validWithPageable",
-                        String.class, Pageable.class);
+	@Test
+	public void usesIndexedParametersIfNoParamAnnotationPresent() throws Exception {
 
-        Parameters parameters = new Parameters(method);
-        ParameterBinder binder =
-                new ParameterBinder(parameters, new Object[] { "foo", null });
+		new ParameterBinder(new Parameters(useIndexedParameters), new Object[] { "foo" }).bind(query);
+		verify(query).setParameter(eq(1), anyObject());
+	}
 
-        assertThat(binder.getPageable(), is(nullValue()));
-    }
+	@Test
+	public void usesParameterNameIfAnnotated() throws Exception {
 
+		when(query.setParameter(eq("username"), anyObject())).thenReturn(query);
+		new ParameterBinder(new Parameters(valid), new Object[] { "foo" }) {
 
-    @Test
-    public void bindWorksWithNullForSort() throws Exception {
+			@Override
+			boolean hasNamedParameter(Query query) {
 
-        Method validWithSort =
-                SampleRepository.class.getMethod("validWithSort", String.class,
-                        Sort.class);
+				return true;
+			}
+		}.bind(query);
+		verify(query).setParameter(eq("username"), anyObject());
+	}
 
-        new ParameterBinder(new Parameters(validWithSort), new Object[] {
-                "foo", null }).bind(query);
-        verify(query).setParameter(eq(1), eq("foo"));
-    }
+	@Test
+	public void bindsEmbeddableCorrectly() throws Exception {
 
+		Method method = getClass().getMethod("findByEmbeddable", SampleEmbeddable.class);
+		Parameters parameters = new Parameters(method);
+		SampleEmbeddable embeddable = new SampleEmbeddable();
 
-    @Test
-    public void bindWorksWithNullForPageable() throws Exception {
+		new ParameterBinder(parameters, new Object[] { embeddable }).bind(query);
 
-        Method validWithPageable =
-                SampleRepository.class.getMethod("validWithPageable",
-                        String.class, Pageable.class);
+		verify(query).setParameter(1, embeddable);
+	}
 
-        new ParameterBinder(new Parameters(validWithPageable), new Object[] {
-                "foo", null }).bind(query);
-        verify(query).setParameter(eq(1), eq("foo"));
-    }
+	@Test
+	public void bindsSortForIndexedParameters() throws Exception {
 
+		Sort sort = new Sort("name");
+		ParameterBinder binder = new ParameterBinder(new Parameters(indexedParametersWithSort),
+				new Object[] { "name", sort });
+		assertThat(binder.getSort(), is(sort));
+	}
 
-    @Test
-    public void usesIndexedParametersIfNoParamAnnotationPresent()
-            throws Exception {
+	public SampleEntity findByEmbeddable(SampleEmbeddable embeddable) {
 
-        new ParameterBinder(new Parameters(useIndexedParameters),
-                new Object[] { "foo" }).bind(query);
-        verify(query).setParameter(eq(1), anyObject());
-    }
+		return null;
+	}
 
+	@SuppressWarnings("unused")
+	static class SampleEntity {
 
-    @Test
-    public void usesParameterNameIfAnnotated() throws Exception {
+		private SampleEmbeddable embeddable;
+	}
 
-        when(query.setParameter(eq("username"), anyObject())).thenReturn(query);
-        new ParameterBinder(new Parameters(valid), new Object[] { "foo" }) {
+	@Embeddable
+	@SuppressWarnings("unused")
+	public static class SampleEmbeddable {
 
-            @Override
-            boolean hasNamedParameter(Query query) {
-
-                return true;
-            }
-        }.bind(query);
-        verify(query).setParameter(eq("username"), anyObject());
-    }
-
-
-    @Test
-    public void bindsEmbeddableCorrectly() throws Exception {
-
-        Method method =
-                getClass()
-                        .getMethod("findByEmbeddable", SampleEmbeddable.class);
-        Parameters parameters = new Parameters(method);
-        SampleEmbeddable embeddable = new SampleEmbeddable();
-
-        new ParameterBinder(parameters, new Object[] { embeddable })
-                .bind(query);
-
-        verify(query).setParameter(1, embeddable);
-    }
-
-
-    @Test
-    public void bindsSortForIndexedParameters() throws Exception {
-
-        Sort sort = new Sort("name");
-        ParameterBinder binder =
-                new ParameterBinder(new Parameters(indexedParametersWithSort),
-                        new Object[] { "name", sort });
-        assertThat(binder.getSort(), is(sort));
-    }
-
-
-    public SampleEntity findByEmbeddable(SampleEmbeddable embeddable) {
-
-        return null;
-    }
-
-    @SuppressWarnings("unused")
-    static class SampleEntity {
-
-        private SampleEmbeddable embeddable;
-    }
-
-    @Embeddable
-    @SuppressWarnings("unused")
-    public static class SampleEmbeddable {
-
-        private String foo;
-        private String bar;
-    }
+		private String foo;
+		private String bar;
+	}
 }

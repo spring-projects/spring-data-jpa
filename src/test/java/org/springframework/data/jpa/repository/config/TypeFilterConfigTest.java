@@ -19,29 +19,26 @@ import static org.junit.Assert.*;
 
 import org.springframework.test.context.ContextConfiguration;
 
-
 /**
- * Integration test to test
- * {@link org.springframework.core.type.filter.TypeFilter} integration into
- * namespace.
+ * Integration test to test {@link org.springframework.core.type.filter.TypeFilter} integration into namespace.
  * 
  * @author Oliver Gierke
  */
 @ContextConfiguration(locations = "classpath:config/namespace-autoconfig-typefilter-context.xml")
 public class TypeFilterConfigTest extends AbstractRepositoryConfigTests {
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.springframework.data.jpa.repository.config.AbstractRepositoryConfigTests
-     * #testContextCreation()
-     */
-    @Override
-    public void testContextCreation() {
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.springframework.data.jpa.repository.config.AbstractRepositoryConfigTests
+	 * #testContextCreation()
+	 */
+	@Override
+	public void testContextCreation() {
 
-        assertNotNull(userRepository);
-        assertNotNull(roleRepository);
-        assertNull(auditableUserRepository);
-    }
+		assertNotNull(userRepository);
+		assertNotNull(roleRepository);
+		assertNull(auditableUserRepository);
+	}
 }

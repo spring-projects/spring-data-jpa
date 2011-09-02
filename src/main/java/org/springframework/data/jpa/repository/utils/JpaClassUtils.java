@@ -17,7 +17,6 @@ package org.springframework.data.jpa.repository.utils;
 
 import javax.persistence.EntityManager;
 
-
 /**
  * Utility class to work with classes.
  * 
@@ -25,35 +24,33 @@ import javax.persistence.EntityManager;
  */
 public abstract class JpaClassUtils {
 
-    /**
-     * Private constructor to prevent instantiation.
-     */
-    private JpaClassUtils() {
+	/**
+	 * Private constructor to prevent instantiation.
+	 */
+	private JpaClassUtils() {
 
-    }
+	}
 
+	/**
+	 * Returns whether the given {@link EntityManager} is of the given type.
+	 * 
+	 * @param em
+	 * @param type the fully qualified expected {@link EntityManager} type.
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	public static boolean isEntityManagerOfType(EntityManager em, String type) {
 
-    /**
-     * Returns whether the given {@link EntityManager} is of the given type.
-     * 
-     * @param em
-     * @param type the fully qualified expected {@link EntityManager} type.
-     * @return
-     */
-    @SuppressWarnings("unchecked")
-    public static boolean isEntityManagerOfType(EntityManager em, String type) {
+		try {
 
-        try {
+			Class<? extends EntityManager> emType = (Class<? extends EntityManager>) Class.forName(type);
 
-            Class<? extends EntityManager> emType =
-                    (Class<? extends EntityManager>) Class.forName(type);
+			emType.cast(em);
 
-            emType.cast(em);
+			return true;
 
-            return true;
-
-        } catch (Exception e) {
-            return false;
-        }
-    }
+		} catch (Exception e) {
+			return false;
+		}
+	}
 }

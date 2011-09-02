@@ -26,55 +26,47 @@ import org.springframework.data.jpa.repository.support.JpaEntityInformation;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactory;
 import org.springframework.data.repository.core.RepositoryMetadata;
 
-
 /**
- * Sample implementation of a custom {@link JpaRepositoryFactory} to use a
- * custom repository base class.
+ * Sample implementation of a custom {@link JpaRepositoryFactory} to use a custom repository base class.
  * 
  * @author Oliver Gierke
  */
 public class CustomGenericJpaRepositoryFactory extends JpaRepositoryFactory {
 
-    /**
-     * @param entityManager
-     */
-    public CustomGenericJpaRepositoryFactory(EntityManager entityManager) {
+	/**
+	 * @param entityManager
+	 */
+	public CustomGenericJpaRepositoryFactory(EntityManager entityManager) {
 
-        super(entityManager);
-    }
+		super(entityManager);
+	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.springframework.data.jpa.repository.support.GenericJpaRepositoryFactory
+	 * #getTargetRepository(java.lang.Class, javax.persistence.EntityManager)
+	 */
+	@Override
+	@SuppressWarnings("unchecked")
+	protected JpaRepository<?, ?> getTargetRepository(RepositoryMetadata metadata, EntityManager em) {
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.springframework.data.jpa.repository.support.GenericJpaRepositoryFactory
-     * #getTargetRepository(java.lang.Class, javax.persistence.EntityManager)
-     */
-    @Override
-    @SuppressWarnings("unchecked")
-    protected JpaRepository<?, ?> getTargetRepository(
-            RepositoryMetadata metadata, EntityManager em) {
+		JpaEntityInformation<Object, Serializable> entityMetadata = mock(JpaEntityInformation.class);
+		when(entityMetadata.getJavaType()).thenReturn((Class<Object>) metadata.getDomainClass());
+		return new CustomGenericJpaRepository<Object, Serializable>(entityMetadata, em);
+	}
 
-        JpaEntityInformation<Object, Serializable> entityMetadata =
-                mock(JpaEntityInformation.class);
-        when(entityMetadata.getJavaType()).thenReturn(
-                (Class<Object>) metadata.getDomainClass());
-        return new CustomGenericJpaRepository<Object, Serializable>(
-                entityMetadata, em);
-    }
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.springframework.data.repository.support.RepositoryFactorySupport#
+	 * getRepositoryBaseClass()
+	 */
+	@Override
+	protected Class<?> getRepositoryBaseClass(RepositoryMetadata metadata) {
 
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.springframework.data.repository.support.RepositoryFactorySupport#
-     * getRepositoryBaseClass()
-     */
-    @Override
-    protected Class<?> getRepositoryBaseClass(RepositoryMetadata metadata) {
-
-        return CustomGenericJpaRepository.class;
-    }
+		return CustomGenericJpaRepository.class;
+	}
 }

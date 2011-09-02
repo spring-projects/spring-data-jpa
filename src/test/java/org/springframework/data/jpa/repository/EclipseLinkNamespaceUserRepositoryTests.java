@@ -19,16 +19,13 @@ import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 
-
 /**
- * Testcase to run {@link UserRepository} integration tests on top of
- * EclipseLink.
+ * Testcase to run {@link UserRepository} integration tests on top of EclipseLink.
  * 
  * @author Oliver Gierke
  */
 @DirtiesContext
 @ContextConfiguration(value = "classpath:eclipselink.xml", inheritLocations = true)
-public class EclipseLinkNamespaceUserRepositoryTests extends
-        NamespaceUserRepositoryTests {
+public class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserRepositoryTests {
 
 }

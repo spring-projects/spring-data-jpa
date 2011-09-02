@@ -25,7 +25,6 @@ import org.eclipse.persistence.jpa.JpaQuery;
 import org.hibernate.ejb.HibernateQuery;
 import org.springframework.data.jpa.repository.query.QueryExtractor;
 
-
 /**
  * Enumeration representing peristence providers to be used.
  * 
@@ -33,129 +32,119 @@ import org.springframework.data.jpa.repository.query.QueryExtractor;
  */
 public enum PersistenceProvider implements QueryExtractor {
 
-    /**
-     * Hibernate persistence provider.
-     */
-    HIBERNATE("org.hibernate.ejb.HibernateEntityManager") {
+	/**
+	 * Hibernate persistence provider.
+	 */
+	HIBERNATE("org.hibernate.ejb.HibernateEntityManager") {
 
-        public String extractQueryString(Query query) {
+		public String extractQueryString(Query query) {
 
-            return ((HibernateQuery) query).getHibernateQuery()
-                    .getQueryString();
-        }
+			return ((HibernateQuery) query).getHibernateQuery().getQueryString();
+		}
 
+		/**
+		 * Return custom placeholder ({@code *}) as Hibernate does create invalid queries for count queries for objects with
+		 * compound keys.
+		 * 
+		 * @see HHH-4044
+		 * @see HHH-3096
+		 */
+		@Override
+		protected String getCountQueryPlaceholder() {
 
-        /**
-         * Return custom placeholder ({@code *}) as Hibernate does create
-         * invalid queries for count queries for objects with compound keys.
-         * 
-         * @see HHH-4044
-         * @see HHH-3096
-         */
-        @Override
-        protected String getCountQueryPlaceholder() {
+			return "*";
+		}
+	},
 
-            return "*";
-        }
-    },
+	/**
+	 * EclipseLink persistence provider.
+	 */
+	ECLIPSELINK("org.eclipse.persistence.jpa.JpaEntityManager") {
 
-    /**
-     * EclipseLink persistence provider.
-     */
-    ECLIPSELINK("org.eclipse.persistence.jpa.JpaEntityManager") {
+		public String extractQueryString(Query query) {
 
-        public String extractQueryString(Query query) {
+			return ((JpaQuery<?>) query).getDatabaseQuery().getJPQLString();
+		}
 
-            return ((JpaQuery<?>) query).getDatabaseQuery().getJPQLString();
-        }
+	},
 
-    },
+	/**
+	 * OpenJpa persistence provider.
+	 */
+	OPEN_JPA("org.apache.openjpa.persistence.OpenJPAEntityManager") {
 
-    /**
-     * OpenJpa persistence provider.
-     */
-    OPEN_JPA("org.apache.openjpa.persistence.OpenJPAEntityManager") {
+		public String extractQueryString(Query query) {
 
-        public String extractQueryString(Query query) {
+			return ((OpenJPAQuery<?>) query).getQueryString();
+		}
+	},
 
-            return ((OpenJPAQuery<?>) query).getQueryString();
-        }
-    },
+	/**
+	 * Unknown special provider. Use standard JPA.
+	 */
+	GENERIC_JPA("javax.persistence.EntityManager") {
 
-    /**
-     * Unknown special provider. Use standard JPA.
-     */
-    GENERIC_JPA("javax.persistence.EntityManager") {
+		public String extractQueryString(Query query) {
 
-        public String extractQueryString(Query query) {
+			return null;
+		}
 
-            return null;
-        }
+		@Override
+		public boolean canExtractQuery() {
 
+			return false;
+		}
+	};
 
-        @Override
-        public boolean canExtractQuery() {
+	private String entityManagerClassName;
 
-            return false;
-        }
-    };
+	/**
+	 * Creates a new {@link PersistenceProvider}.
+	 * 
+	 * @param entityManagerClassName the name of the provider specific {@link EntityManager} implementation
+	 */
+	private PersistenceProvider(String entityManagerClassName) {
 
-    private String entityManagerClassName;
+		this.entityManagerClassName = entityManagerClassName;
+	}
 
+	/**
+	 * Determines the {@link PersistenceProvider} from the given {@link EntityManager}. If no special one can be
+	 * determined {@value #GENERIC_JPA} will be returned.
+	 * 
+	 * @param em
+	 * @return
+	 */
+	public static PersistenceProvider fromEntityManager(EntityManager em) {
 
-    /**
-     * Creates a new {@link PersistenceProvider}.
-     * 
-     * @param entityManagerClassName the name of the provider specific
-     *            {@link EntityManager} implementation
-     */
-    private PersistenceProvider(String entityManagerClassName) {
+		for (PersistenceProvider provider : values()) {
+			if (isEntityManagerOfType(em, provider.entityManagerClassName)) {
+				return provider;
+			}
+		}
 
-        this.entityManagerClassName = entityManagerClassName;
-    }
+		return GENERIC_JPA;
+	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.springframework.data.jpa.repository.query.QueryExtractor#canExtractQuery
+	 * ()
+	 */
+	public boolean canExtractQuery() {
 
-    /**
-     * Determines the {@link PersistenceProvider} from the given
-     * {@link EntityManager}. If no special one can be determined
-     * {@value #GENERIC_JPA} will be returned.
-     * 
-     * @param em
-     * @return
-     */
-    public static PersistenceProvider fromEntityManager(EntityManager em) {
+		return true;
+	}
 
-        for (PersistenceProvider provider : values()) {
-            if (isEntityManagerOfType(em, provider.entityManagerClassName)) {
-                return provider;
-            }
-        }
+	/**
+	 * Returns the placeholder to be used for simple count queries. Default implementation returns {@code *}.
+	 * 
+	 * @return
+	 */
+	protected String getCountQueryPlaceholder() {
 
-        return GENERIC_JPA;
-    }
-
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.springframework.data.jpa.repository.query.QueryExtractor#canExtractQuery
-     * ()
-     */
-    public boolean canExtractQuery() {
-
-        return true;
-    }
-
-
-    /**
-     * Returns the placeholder to be used for simple count queries. Default
-     * implementation returns {@code *}.
-     * 
-     * @return
-     */
-    protected String getCountQueryPlaceholder() {
-
-        return "x";
-    }
+		return "x";
+	}
 }

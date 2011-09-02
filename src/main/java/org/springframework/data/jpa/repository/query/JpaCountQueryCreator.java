@@ -25,7 +25,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.parser.PartTree;
 
-
 /**
  * Special {@link JpaQueryCreator} that creates a count projecting query.
  * 
@@ -33,36 +32,34 @@ import org.springframework.data.repository.query.parser.PartTree;
  */
 public class JpaCountQueryCreator extends JpaQueryCreator {
 
-    /**
-     * Creates a new {@link JpaCountQueryCreator}.
-     * 
-     * @param tree
-     * @param domainClass
-     * @param parameters
-     * @param em
-     */
-    public JpaCountQueryCreator(PartTree tree, Class<?> domainClass,
-            Parameters parameters, EntityManager em) {
+	/**
+	 * Creates a new {@link JpaCountQueryCreator}.
+	 * 
+	 * @param tree
+	 * @param domainClass
+	 * @param parameters
+	 * @param em
+	 */
+	public JpaCountQueryCreator(PartTree tree, Class<?> domainClass, Parameters parameters, EntityManager em) {
 
-        super(tree, domainClass, parameters, em);
-    }
+		super(tree, domainClass, parameters, em);
+	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.springframework.data.jpa.repository.query.JpaQueryCreator#complete
+	 * (javax.persistence.criteria.Predicate,
+	 * org.springframework.data.domain.Sort,
+	 * javax.persistence.criteria.CriteriaQuery,
+	 * javax.persistence.criteria.CriteriaBuilder,
+	 * javax.persistence.criteria.Root)
+	 */
+	@Override
+	protected CriteriaQuery<Object> complete(Predicate predicate, Sort sort, CriteriaQuery<Object> query,
+			CriteriaBuilder builder, Root<?> root) {
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.springframework.data.jpa.repository.query.JpaQueryCreator#complete
-     * (javax.persistence.criteria.Predicate,
-     * org.springframework.data.domain.Sort,
-     * javax.persistence.criteria.CriteriaQuery,
-     * javax.persistence.criteria.CriteriaBuilder,
-     * javax.persistence.criteria.Root)
-     */
-    @Override
-    protected CriteriaQuery<Object> complete(Predicate predicate, Sort sort,
-            CriteriaQuery<Object> query, CriteriaBuilder builder, Root<?> root) {
-
-        return query.select(builder.count(root)).where(predicate);
-    }
+		return query.select(builder.count(root)).where(predicate);
+	}
 }

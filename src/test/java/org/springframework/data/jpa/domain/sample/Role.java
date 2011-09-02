@@ -15,8 +15,6 @@
  */
 package org.springframework.data.jpa.domain.sample;
 
-
-
 /**
  * Sample domain class representing roles. Mapped with XML.
  * 
@@ -24,62 +22,57 @@ package org.springframework.data.jpa.domain.sample;
  */
 public class Role {
 
-    private static final long serialVersionUID = -8832631113344035104L;
-    private static final String PREFIX = "ROLE_";
+	private static final long serialVersionUID = -8832631113344035104L;
+	private static final String PREFIX = "ROLE_";
 
-    private Integer id;
-    private String name;
+	private Integer id;
+	private String name;
 
+	/**
+	 * Creates a new instance of {@code Role}.
+	 */
+	public Role() {
 
-    /**
-     * Creates a new instance of {@code Role}.
-     */
-    public Role() {
+	}
 
-    }
+	/**
+	 * Creates a new preconfigured {@code Role}.
+	 * 
+	 * @param name
+	 */
+	public Role(final String name) {
 
+		this.name = name;
+	}
 
-    /**
-     * Creates a new preconfigured {@code Role}.
-     * 
-     * @param name
-     */
-    public Role(final String name) {
+	/**
+	 * Returns the id.
+	 * 
+	 * @return
+	 */
+	public Integer getId() {
 
-        this.name = name;
-    }
+		return id;
+	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
 
-    /**
-     * Returns the id.
-     * 
-     * @return
-     */
-    public Integer getId() {
+		return PREFIX + name;
+	}
 
-        return id;
-    }
+	/**
+	 * Returns whether the role is to be considered new.
+	 * 
+	 * @return
+	 */
+	public boolean isNew() {
 
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.lang.Object#toString()
-     */
-    @Override
-    public String toString() {
-
-        return PREFIX + name;
-    }
-
-
-    /**
-     * Returns whether the role is to be considered new.
-     * 
-     * @return
-     */
-    public boolean isNew() {
-
-        return id == null;
-    }
+		return id == null;
+	}
 }

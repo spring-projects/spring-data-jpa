@@ -19,7 +19,6 @@ import javax.persistence.Entity;
 
 import org.springframework.data.jpa.domain.AbstractAuditable;
 
-
 /**
  * Sample auditable role entity.
  * 
@@ -28,19 +27,17 @@ import org.springframework.data.jpa.domain.AbstractAuditable;
 @Entity
 public class AuditableRole extends AbstractAuditable<AuditableUser, Long> {
 
-    private static final long serialVersionUID = 5997359055260303863L;
+	private static final long serialVersionUID = 5997359055260303863L;
 
-    private String name;
+	private String name;
 
+	public void setName(String name) {
 
-    public void setName(String name) {
+		this.name = name;
+	}
 
-        this.name = name;
-    }
+	public String getName() {
 
-
-    public String getName() {
-
-        return name;
-    }
+		return name;
+	}
 }

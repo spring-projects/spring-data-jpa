@@ -31,7 +31,6 @@ import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.data.repository.query.QueryLookupStrategy.Key;
 import org.springframework.util.Assert;
 
-
 /**
  * JPA specific generic repository factory.
  * 
@@ -39,124 +38,110 @@ import org.springframework.util.Assert;
  */
 public class JpaRepositoryFactory extends RepositoryFactorySupport {
 
-    private final EntityManager entityManager;
-    private final QueryExtractor extractor;
+	private final EntityManager entityManager;
+	private final QueryExtractor extractor;
 
+	/**
+	 * Creates a new {@link JpaRepositoryFactory}.
+	 * 
+	 * @param entityManager must not be {@literal null}
+	 */
+	public JpaRepositoryFactory(EntityManager entityManager) {
 
-    /**
-     * Creates a new {@link JpaRepositoryFactory}.
-     * 
-     * @param entityManager must not be {@literal null}
-     */
-    public JpaRepositoryFactory(EntityManager entityManager) {
+		Assert.notNull(entityManager);
+		this.entityManager = entityManager;
+		this.extractor = PersistenceProvider.fromEntityManager(entityManager);
+	}
 
-        Assert.notNull(entityManager);
-        this.entityManager = entityManager;
-        this.extractor = PersistenceProvider.fromEntityManager(entityManager);
-    }
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.springframework.data.repository.support.RepositoryFactorySupport#
+	 * getTargetRepository(java.lang.Class)
+	 */
+	@Override
+	protected Object getTargetRepository(RepositoryMetadata metadata) {
 
+		return getTargetRepository(metadata, entityManager);
+	}
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.springframework.data.repository.support.RepositoryFactorySupport#
-     * getTargetRepository(java.lang.Class)
-     */
-    @Override
-    protected Object getTargetRepository(RepositoryMetadata metadata) {
+	/**
+	 * Callback to create a {@link JpaRepository} instance with the given {@link EntityManager}
+	 * 
+	 * @param <T>
+	 * @param <ID>
+	 * @param entityManager
+	 * @see #getTargetRepository(RepositoryMetadata)
+	 * @return
+	 */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	protected <T, ID extends Serializable> JpaRepository<?, ?> getTargetRepository(RepositoryMetadata metadata,
+			EntityManager entityManager) {
 
-        return getTargetRepository(metadata, entityManager);
-    }
+		Class<?> repositoryInterface = metadata.getRepositoryInterface();
+		JpaEntityInformation<?, Serializable> entityInformation = getEntityInformation(metadata.getDomainClass());
 
+		if (isQueryDslExecutor(repositoryInterface)) {
+			return new QueryDslJpaRepository(entityInformation, entityManager);
+		} else {
+			return new SimpleJpaRepository(entityInformation, entityManager);
+		}
+	}
 
-    /**
-     * Callback to create a {@link JpaRepository} instance with the given
-     * {@link EntityManager}
-     * 
-     * @param <T>
-     * @param <ID>
-     * @param entityManager
-     * @see #getTargetRepository(RepositoryMetadata)
-     * @return
-     */
-    @SuppressWarnings({ "unchecked", "rawtypes" })
-    protected <T, ID extends Serializable> JpaRepository<?, ?> getTargetRepository(
-            RepositoryMetadata metadata, EntityManager entityManager) {
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.springframework.data.repository.support.RepositoryFactorySupport#
+	 * getRepositoryBaseClass()
+	 */
+	@Override
+	protected Class<?> getRepositoryBaseClass(RepositoryMetadata metadata) {
 
-        Class<?> repositoryInterface = metadata.getRepositoryInterface();
-        JpaEntityInformation<?, Serializable> entityInformation =
-                getEntityInformation(metadata.getDomainClass());
+		if (isQueryDslExecutor(metadata.getRepositoryInterface())) {
+			return QueryDslJpaRepository.class;
+		} else {
+			return SimpleJpaRepository.class;
+		}
+	}
 
-        if (isQueryDslExecutor(repositoryInterface)) {
-            return new QueryDslJpaRepository(entityInformation, entityManager);
-        } else {
-            return new SimpleJpaRepository(entityInformation, entityManager);
-        }
-    }
+	/**
+	 * Returns whether the given repository interface requires a QueryDsl specific implementation to be chosen.
+	 * 
+	 * @param repositoryInterface
+	 * @return
+	 */
+	private boolean isQueryDslExecutor(Class<?> repositoryInterface) {
 
+		return QUERY_DSL_PRESENT && QueryDslPredicateExecutor.class.isAssignableFrom(repositoryInterface);
+	}
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.springframework.data.repository.support.RepositoryFactorySupport#
-     * getRepositoryBaseClass()
-     */
-    @Override
-    protected Class<?> getRepositoryBaseClass(RepositoryMetadata metadata) {
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.springframework.data.repository.support.RepositoryFactorySupport#
+	 * getQueryLookupStrategy
+	 * (org.springframework.data.repository.query.QueryLookupStrategy.Key)
+	 */
+	@Override
+	protected QueryLookupStrategy getQueryLookupStrategy(Key key) {
 
-        if (isQueryDslExecutor(metadata.getRepositoryInterface())) {
-            return QueryDslJpaRepository.class;
-        } else {
-            return SimpleJpaRepository.class;
-        }
-    }
+		return JpaQueryLookupStrategy.create(entityManager, key, extractor);
+	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.springframework.data.repository.support.RepositoryFactorySupport#
+	 * getEntityInformation(java.lang.Class)
+	 */
+	@Override
+	@SuppressWarnings("unchecked")
+	public <T, ID extends Serializable> JpaEntityInformation<T, ID> getEntityInformation(Class<T> domainClass) {
 
-    /**
-     * Returns whether the given repository interface requires a QueryDsl
-     * specific implementation to be chosen.
-     * 
-     * @param repositoryInterface
-     * @return
-     */
-    private boolean isQueryDslExecutor(Class<?> repositoryInterface) {
-
-        return QUERY_DSL_PRESENT
-                && QueryDslPredicateExecutor.class
-                        .isAssignableFrom(repositoryInterface);
-    }
-
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.springframework.data.repository.support.RepositoryFactorySupport#
-     * getQueryLookupStrategy
-     * (org.springframework.data.repository.query.QueryLookupStrategy.Key)
-     */
-    @Override
-    protected QueryLookupStrategy getQueryLookupStrategy(Key key) {
-
-        return JpaQueryLookupStrategy.create(entityManager, key, extractor);
-    }
-
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.springframework.data.repository.support.RepositoryFactorySupport#
-     * getEntityInformation(java.lang.Class)
-     */
-    @Override
-    @SuppressWarnings("unchecked")
-    public <T, ID extends Serializable> JpaEntityInformation<T, ID> getEntityInformation(
-            Class<T> domainClass) {
-
-        return (JpaEntityInformation<T, ID>) JpaEntityInformationSupport
-                .getMetadata(domainClass, entityManager);
-    }
+		return (JpaEntityInformation<T, ID>) JpaEntityInformationSupport.getMetadata(domainClass, entityManager);
+	}
 }
