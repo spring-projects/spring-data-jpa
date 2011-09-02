@@ -37,397 +37,336 @@ import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 import org.springframework.data.repository.query.parser.Part;
-import org.springframework.data.repository.query.parser.Part.IgnoreCaseType;
 import org.springframework.data.repository.query.parser.Part.Type;
 import org.springframework.data.repository.query.parser.PartTree;
 import org.springframework.data.repository.query.parser.Property;
 import org.springframework.util.Assert;
-
 
 /**
  * Query creator to create a {@link CriteriaQuery} from a {@link PartTree}.
  * 
  * @author Oliver Gierke
  */
-public class JpaQueryCreator extends
-        AbstractQueryCreator<CriteriaQuery<Object>, Predicate> {
-
-    private final CriteriaBuilder builder;
-    private final Root<?> root;
-    private final CriteriaQuery<Object> query;
-    private final ParameterExpressionProvider provider;
-
-
-    /**
-     * Create a new {@link JpaQueryCreator}.
-     * 
-     * @param tree
-     * @param domainClass
-     * @param accessor
-     * @param em
-     */
-    public JpaQueryCreator(PartTree tree, Class<?> domainClass,
-            Parameters parameters, EntityManager em) {
-
-        super(tree);
-
-        this.builder = em.getCriteriaBuilder();
-        this.query = builder.createQuery().distinct(tree.isDistinct());
-        this.root = query.from(domainClass);
-        this.provider =
-                new ParameterExpressionProvider(builder,
-                        parameters.getBindableParameters());
-    }
-
-
-    /**
-     * Returns all {@link ParameterExpression} created when creating the query.
-     * 
-     * @return the parameterExpressions
-     */
-    public List<ParameterExpression<?>> getParameterExpressions() {
-
-        return provider.getExpressions();
-    }
-
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.springframework.data.repository.query.parser.AbstractQueryCreator
-     * #create(org.springframework.data.repository.query.parser.Part,
-     * java.util.Iterator)
-     */
-    @Override
-    protected Predicate create(Part part, Iterator<Object> iterator) {
-
-        return toPredicate(part, root);
-    }
-
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.springframework.data.repository.query.parser.AbstractQueryCreator
-     * #and(org.springframework.data.repository.query.parser.Part,
-     * java.lang.Object, java.util.Iterator)
-     */
-    @Override
-    protected Predicate and(Part part, Predicate base, Iterator<Object> iterator) {
-
-        return builder.and(base, toPredicate(part, root));
-    }
-
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.springframework.data.repository.query.parser.AbstractQueryCreator
-     * #or(java.lang.Object, java.lang.Object)
-     */
-    @Override
-    protected Predicate or(Predicate base, Predicate predicate) {
-
-        return builder.or(base, predicate);
-    }
-
-
-    /**
-     * Finalizes the given {@link Predicate} and applies the given sort.
-     * Delegates to
-     * {@link #complete(Predicate, Sort, CriteriaQuery, CriteriaBuilder)} and
-     * hands it the current {@link CriteriaQuery} and {@link CriteriaBuilder}.
-     */
-    @Override
-    protected final CriteriaQuery<Object> complete(Predicate predicate,
-            Sort sort) {
-
-        return complete(predicate, sort, query, builder, root);
-    }
-
-
-    /**
-     * Template method to finalize the given {@link Predicate} using the given
-     * {@link CriteriaQuery} and {@link CriteriaBuilder}.
-     * 
-     * @param predicate
-     * @param sort
-     * @param query
-     * @param builder
-     * @return
-     */
-    protected CriteriaQuery<Object> complete(Predicate predicate, Sort sort,
-            CriteriaQuery<Object> query, CriteriaBuilder builder, Root<?> root) {
-
-        return this.query.select(root).where(predicate)
-                .orderBy(QueryUtils.toOrders(sort, root, builder));
-    }
-
-
-    /**
-     * Creates a {@link Predicate} from the given {@link Part}.
-     * 
-     * @param part
-     * @param root
-     * @param iterator
-     * @return
-     */
-    private Predicate toPredicate(Part part, Root<?> root) {
-
-        return new PredicateBuilder(part, root).build();
-    }
-
-
-    private Expression<Object> toExpressionRecursively(Path<Object> path,
-            Property property) {
-
-        Path<Object> result = path.get(property.getName());
-        return property.hasNext() ? toExpressionRecursively(result,
-                property.next()) : result;
-    }
-
-
-    @SuppressWarnings("unchecked")
-    private <T> Expression<T> toExpressionRecursively(From<?, ?> from,
-            Property property) {
-
-        if (property.isCollection()) {
-            Join<Object, Object> join = from.join(property.getName());
-            return (Expression<T>) (property.hasNext() ? toExpressionRecursively(
-                    (From<?, ?>) join, property.next()) : join);
-        } else {
-            Path<Object> path = from.get(property.getName());
-            return (Expression<T>) (property.hasNext() ? toExpressionRecursively(
-                    path, property.next()) : path);
-        }
-    }
-
-
-    /**
-     * Returns a path to a {@link Comparable}.
-     * 
-     * @param root
-     * @param part
-     * @return
-     */
-    @SuppressWarnings({ "rawtypes" })
-    private Expression<? extends Comparable> getComparablePath(Root<?> root,
-            Part part) {
-
-        return toExpressionRecursively(root, part.getProperty());
-    }
-
-    /**
-     * Helper class to allow easy creation of {@link ParameterExpression}s.
-     * 
-     * @author Oliver Gierke
-     */
-    private static class ParameterExpressionProvider {
-
-        private final CriteriaBuilder builder;
-        private final Iterator<Parameter> parameters;
-        private final List<ParameterExpression<?>> expressions;
-
-
-        /**
-         * Creates a new {@link ParameterExpressionProvider} from the given
-         * {@link CriteriaBuilder} and {@link Parameters}.
-         * 
-         * @param builder
-         * @param parameters
-         */
-        public ParameterExpressionProvider(CriteriaBuilder builder,
-                Parameters parameters) {
-
-            Assert.notNull(builder);
-            Assert.notNull(parameters);
-
-            this.builder = builder;
-            this.parameters = parameters.iterator();
-            this.expressions = new ArrayList<ParameterExpression<?>>();
-        }
-
-
-        /**
-         * Returns all {@link ParameterExpression}s built.
-         * 
-         * @return the expressions
-         */
-        public List<ParameterExpression<?>> getExpressions() {
-
-            return Collections.unmodifiableList(expressions);
-        }
-
-
-        /**
-         * Builds a new {@link ParameterExpression} for the next
-         * {@link Parameter}.
-         * 
-         * @param <T>
-         * @return
-         */
-        @SuppressWarnings("unchecked")
-        public <T> ParameterExpression<T> next() {
-
-            Parameter parameter = parameters.next();
-            return (ParameterExpression<T>) next(parameter.getType(),
-                    parameter.getName());
-        }
-
-
-        /**
-         * Builds a new {@link ParameterExpression} of the given type. Forwards
-         * the underlying {@link Parameters} as well.
-         * 
-         * @param <T>
-         * @param type must not be {@literal null}.
-         * @return
-         */
-        public <T> ParameterExpression<T> next(Class<T> type) {
-
-            parameters.next();
-            return next(type, null);
-        }
-
-
-        /**
-         * Builds a new {@link ParameterExpression} for the given type and name.
-         * 
-         * @param <T>
-         * @param type must not be {@literal null}.
-         * @param name
-         * @return
-         */
-        @SuppressWarnings("unchecked")
-        private <T> ParameterExpression<T> next(Class<T> type, String name) {
-
-            Assert.notNull(type);
-
-            ParameterExpression<?> expression =
-                    name == null ? builder.parameter(type) : builder.parameter(
-                            type, name);
-            expressions.add(expression);
-            return (ParameterExpression<T>) expression;
-        }
-    }
-
-    /**
-     * Simple builder to contain logic to create JPA {@link Predicate}s from
-     * {@link Part}s.
-     * 
-     * @author Phil Webb
-     */
-    @SuppressWarnings({ "unchecked", "rawtypes" })
-    private class PredicateBuilder {
-
-        private final Part part;
-        private final Root<?> root;
-
-
-        /**
-         * Creates a new {@link PredicateBuilder} for the given {@link Part} and
-         * {@link Root}.
-         * 
-         * @param part must not be {@literal null}.
-         * @param root must not be {@literal null}.
-         */
-        public PredicateBuilder(Part part, Root<?> root) {
-
-            Assert.notNull(part);
-            Assert.notNull(root);
-            this.part = part;
-            this.root = root;
-        }
-
-
-        /**
-         * Builds a JPA {@link Predicate} from the underlying {@link Part}.
-         * 
-         * @return
-         */
-        public Predicate build() {
-
-            Property property = part.getProperty();
-            Expression<Object> path = toExpressionRecursively(root, property);
-
-            switch (part.getType()) {
-            case BETWEEN:
-                ParameterExpression<Comparable> first = provider.next();
-                ParameterExpression<Comparable> second = provider.next();
-                return builder.between(
-                        root.<Comparable> get(part.getProperty().toDotPath()),
-                        first, second);
-            case GREATER_THAN:
-                return builder.greaterThan(getComparablePath(root, part),
-                        provider.next(Comparable.class));
-            case LESS_THAN:
-                return builder.lessThan(getComparablePath(root, part),
-                        provider.next(Comparable.class));
-            case IS_NULL:
-                return path.isNull();
-            case IS_NOT_NULL:
-                return path.isNotNull();
-            case NOT_IN:
-                return path.in(provider.next(Collection.class)).not();
-            case IN:
-                return path.in(provider.next(Collection.class));
-            case LIKE:
-            case NOT_LIKE:
-                Expression<String> propertyExpression =
-                        upperIfIgnoreCase(root.<String> get(part.getProperty()
-                                .toDotPath()));
-                Expression<String> parameterExpression =
-                        upperIfIgnoreCase(provider.next(String.class));
-                Predicate like =
-                        builder.like(propertyExpression, parameterExpression);
-                return part.getType() == Type.LIKE ? like : like.not();
-            case SIMPLE_PROPERTY:
-                return builder.equal(upperIfIgnoreCase(path),
-                        upperIfIgnoreCase(provider.next()));
-            case NEGATING_SIMPLE_PROPERTY:
-                return builder.notEqual(upperIfIgnoreCase(path),
-                        upperIfIgnoreCase(provider.next()));
-            default:
-                throw new IllegalArgumentException("Unsupported keyword + "
-                        + part.getType());
-            }
-        }
-
-
-        /**
-         * Applies an {@code UPPERCASE} conversion to the given
-         * {@link Expression} in case the underlying {@link Part} requires
-         * ignoring case.
-         * 
-         * @param expression must not be {@literal null}.
-         * @return
-         */
-        private <T> Expression<T> upperIfIgnoreCase(Expression<T> expression) {
+public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<Object>, Predicate> {
+
+	private final CriteriaBuilder builder;
+	private final Root<?> root;
+	private final CriteriaQuery<Object> query;
+	private final ParameterExpressionProvider provider;
+
+	/**
+	 * Create a new {@link JpaQueryCreator}.
+	 * 
+	 * @param tree
+	 * @param domainClass
+	 * @param accessor
+	 * @param em
+	 */
+	public JpaQueryCreator(PartTree tree, Class<?> domainClass, Parameters parameters, EntityManager em) {
+
+		super(tree);
+
+		this.builder = em.getCriteriaBuilder();
+		this.query = builder.createQuery().distinct(tree.isDistinct());
+		this.root = query.from(domainClass);
+		this.provider = new ParameterExpressionProvider(builder, parameters.getBindableParameters());
+	}
+
+	/**
+	 * Returns all {@link ParameterExpression} created when creating the query.
+	 * 
+	 * @return the parameterExpressions
+	 */
+	public List<ParameterExpression<?>> getParameterExpressions() {
+
+		return provider.getExpressions();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.springframework.data.repository.query.parser.AbstractQueryCreator
+	 * #create(org.springframework.data.repository.query.parser.Part,
+	 * java.util.Iterator)
+	 */
+	@Override
+	protected Predicate create(Part part, Iterator<Object> iterator) {
+
+		return toPredicate(part, root);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.springframework.data.repository.query.parser.AbstractQueryCreator
+	 * #and(org.springframework.data.repository.query.parser.Part,
+	 * java.lang.Object, java.util.Iterator)
+	 */
+	@Override
+	protected Predicate and(Part part, Predicate base, Iterator<Object> iterator) {
+
+		return builder.and(base, toPredicate(part, root));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.springframework.data.repository.query.parser.AbstractQueryCreator
+	 * #or(java.lang.Object, java.lang.Object)
+	 */
+	@Override
+	protected Predicate or(Predicate base, Predicate predicate) {
+
+		return builder.or(base, predicate);
+	}
+
+	/**
+	 * Finalizes the given {@link Predicate} and applies the given sort. Delegates to
+	 * {@link #complete(Predicate, Sort, CriteriaQuery, CriteriaBuilder)} and hands it the current {@link CriteriaQuery}
+	 * and {@link CriteriaBuilder}.
+	 */
+	@Override
+	protected final CriteriaQuery<Object> complete(Predicate predicate, Sort sort) {
+
+		return complete(predicate, sort, query, builder, root);
+	}
+
+	/**
+	 * Template method to finalize the given {@link Predicate} using the given {@link CriteriaQuery} and
+	 * {@link CriteriaBuilder}.
+	 * 
+	 * @param predicate
+	 * @param sort
+	 * @param query
+	 * @param builder
+	 * @return
+	 */
+	protected CriteriaQuery<Object> complete(Predicate predicate, Sort sort, CriteriaQuery<Object> query,
+			CriteriaBuilder builder, Root<?> root) {
+
+		return this.query.select(root).where(predicate).orderBy(QueryUtils.toOrders(sort, root, builder));
+	}
+
+	/**
+	 * Creates a {@link Predicate} from the given {@link Part}.
+	 * 
+	 * @param part
+	 * @param root
+	 * @param iterator
+	 * @return
+	 */
+	private Predicate toPredicate(Part part, Root<?> root) {
+
+		return new PredicateBuilder(part, root).build();
+	}
+
+	private Expression<Object> toExpressionRecursively(Path<Object> path, Property property) {
+
+		Path<Object> result = path.get(property.getName());
+		return property.hasNext() ? toExpressionRecursively(result, property.next()) : result;
+	}
+
+	@SuppressWarnings("unchecked")
+	private <T> Expression<T> toExpressionRecursively(From<?, ?> from, Property property) {
+
+		if (property.isCollection()) {
+			Join<Object, Object> join = from.join(property.getName());
+			return (Expression<T>) (property.hasNext() ? toExpressionRecursively((From<?, ?>) join, property.next()) : join);
+		} else {
+			Path<Object> path = from.get(property.getName());
+			return (Expression<T>) (property.hasNext() ? toExpressionRecursively(path, property.next()) : path);
+		}
+	}
+
+	/**
+	 * Returns a path to a {@link Comparable}.
+	 * 
+	 * @param root
+	 * @param part
+	 * @return
+	 */
+	@SuppressWarnings({ "rawtypes" })
+	private Expression<? extends Comparable> getComparablePath(Root<?> root, Part part) {
+
+		return toExpressionRecursively(root, part.getProperty());
+	}
+
+	/**
+	 * Helper class to allow easy creation of {@link ParameterExpression}s.
+	 * 
+	 * @author Oliver Gierke
+	 */
+	private static class ParameterExpressionProvider {
+
+		private final CriteriaBuilder builder;
+		private final Iterator<Parameter> parameters;
+		private final List<ParameterExpression<?>> expressions;
+
+		/**
+		 * Creates a new {@link ParameterExpressionProvider} from the given {@link CriteriaBuilder} and {@link Parameters}.
+		 * 
+		 * @param builder
+		 * @param parameters
+		 */
+		public ParameterExpressionProvider(CriteriaBuilder builder, Parameters parameters) {
+
+			Assert.notNull(builder);
+			Assert.notNull(parameters);
+
+			this.builder = builder;
+			this.parameters = parameters.iterator();
+			this.expressions = new ArrayList<ParameterExpression<?>>();
+		}
+
+		/**
+		 * Returns all {@link ParameterExpression}s built.
+		 * 
+		 * @return the expressions
+		 */
+		public List<ParameterExpression<?>> getExpressions() {
+
+			return Collections.unmodifiableList(expressions);
+		}
+
+		/**
+		 * Builds a new {@link ParameterExpression} for the next {@link Parameter}.
+		 * 
+		 * @param <T>
+		 * @return
+		 */
+		@SuppressWarnings("unchecked")
+		public <T> ParameterExpression<T> next() {
+
+			Parameter parameter = parameters.next();
+			return (ParameterExpression<T>) next(parameter.getType(), parameter.getName());
+		}
+
+		/**
+		 * Builds a new {@link ParameterExpression} of the given type. Forwards the underlying {@link Parameters} as well.
+		 * 
+		 * @param <T>
+		 * @param type must not be {@literal null}.
+		 * @return
+		 */
+		public <T> ParameterExpression<T> next(Class<T> type) {
+
+			parameters.next();
+			return next(type, null);
+		}
+
+		/**
+		 * Builds a new {@link ParameterExpression} for the given type and name.
+		 * 
+		 * @param <T>
+		 * @param type must not be {@literal null}.
+		 * @param name
+		 * @return
+		 */
+		@SuppressWarnings("unchecked")
+		private <T> ParameterExpression<T> next(Class<T> type, String name) {
+
+			Assert.notNull(type);
+
+			ParameterExpression<?> expression = name == null ? builder.parameter(type) : builder.parameter(type, name);
+			expressions.add(expression);
+			return (ParameterExpression<T>) expression;
+		}
+	}
+
+	/**
+	 * Simple builder to contain logic to create JPA {@link Predicate}s from {@link Part}s.
+	 * 
+	 * @author Phil Webb
+	 */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	private class PredicateBuilder {
+
+		private final Part part;
+		private final Root<?> root;
+
+		/**
+		 * Creates a new {@link PredicateBuilder} for the given {@link Part} and {@link Root}.
+		 * 
+		 * @param part must not be {@literal null}.
+		 * @param root must not be {@literal null}.
+		 */
+		public PredicateBuilder(Part part, Root<?> root) {
+
+			Assert.notNull(part);
+			Assert.notNull(root);
+			this.part = part;
+			this.root = root;
+		}
+
+		/**
+		 * Builds a JPA {@link Predicate} from the underlying {@link Part}.
+		 * 
+		 * @return
+		 */
+		public Predicate build() {
+
+			Property property = part.getProperty();
+			Expression<Object> path = toExpressionRecursively(root, property);
+
+			switch (part.getType()) {
+			case BETWEEN:
+				ParameterExpression<Comparable> first = provider.next();
+				ParameterExpression<Comparable> second = provider.next();
+				return builder.between(root.<Comparable> get(part.getProperty().toDotPath()), first, second);
+			case GREATER_THAN:
+				return builder.greaterThan(getComparablePath(root, part), provider.next(Comparable.class));
+			case LESS_THAN:
+				return builder.lessThan(getComparablePath(root, part), provider.next(Comparable.class));
+			case IS_NULL:
+				return path.isNull();
+			case IS_NOT_NULL:
+				return path.isNotNull();
+			case NOT_IN:
+				return path.in(provider.next(Collection.class)).not();
+			case IN:
+				return path.in(provider.next(Collection.class));
+			case LIKE:
+			case NOT_LIKE:
+				Expression<String> propertyExpression = upperIfIgnoreCase(root.<String> get(part.getProperty().toDotPath()));
+				Expression<String> parameterExpression = upperIfIgnoreCase(provider.next(String.class));
+				Predicate like = builder.like(propertyExpression, parameterExpression);
+				return part.getType() == Type.LIKE ? like : like.not();
+			case SIMPLE_PROPERTY:
+				return builder.equal(upperIfIgnoreCase(path), upperIfIgnoreCase(provider.next()));
+			case NEGATING_SIMPLE_PROPERTY:
+				return builder.notEqual(upperIfIgnoreCase(path), upperIfIgnoreCase(provider.next()));
+			default:
+				throw new IllegalArgumentException("Unsupported keyword + " + part.getType());
+			}
+		}
+
+		/**
+		 * Applies an {@code UPPERCASE} conversion to the given {@link Expression} in case the underlying {@link Part}
+		 * requires ignoring case.
+		 * 
+		 * @param expression must not be {@literal null}.
+		 * @return
+		 */
+		private <T> Expression<T> upperIfIgnoreCase(Expression<T> expression) {
 
 			switch (part.shouldIgnoreCase()) {
 			case ALWAYS:
-				Assert.state(canUpperCase(expression),
-						"Unable to ignore case of "
-								+ expression.getJavaType().getName()
-								+ " types, the property '"
-								+ part.getProperty().getName()
-								+ "' must reference a String");
-				return (Expression<T>) builder
-						.upper((Expression<String>) expression);
+				Assert.state(canUpperCase(expression), "Unable to ignore case of " + expression.getJavaType().getName()
+						+ " types, the property '" + part.getProperty().getName() + "' must reference a String");
+				return (Expression<T>) builder.upper((Expression<String>) expression);
 			case WHEN_POSSIBLE:
 				if (canUpperCase(expression)) {
-					return (Expression<T>) builder
-							.upper((Expression<String>) expression);
+					return (Expression<T>) builder.upper((Expression<String>) expression);
 				}
 			}
 			return expression;
 		}
 
-        private boolean canUpperCase(Expression<?> expression) {
-        	return String.class.equals(expression.getJavaType());
-        }
-    }
+		private boolean canUpperCase(Expression<?> expression) {
+			return String.class.equals(expression.getJavaType());
+		}
+	}
 }

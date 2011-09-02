@@ -26,47 +26,36 @@ import org.springframework.beans.factory.config.BeanReference;
 import org.springframework.beans.factory.xml.XmlBeanFactory;
 import org.springframework.core.io.ClassPathResource;
 
-
 /**
- * Assures the injected repository instances are wired to the customly
- * configured {@link EntityManagerFactory}.
+ * Assures the injected repository instances are wired to the customly configured {@link EntityManagerFactory}.
  * 
  * @author Oliver Gierke
  */
 public class EntityManagerFactoryRefUnitTests {
 
-    @Test
-    public void repositoriesGetTheSecondEntityManagerFactoryInjected2() {
+	@Test
+	public void repositoriesGetTheSecondEntityManagerFactoryInjected2() {
 
-        XmlBeanFactory factory =
-                new XmlBeanFactory(new ClassPathResource(
-                        "multiple-entity-manager-context.xml"));
+		XmlBeanFactory factory = new XmlBeanFactory(new ClassPathResource("multiple-entity-manager-context.xml"));
 
-        BeanDefinition bean = factory.getBeanDefinition("userRepository");
-        Object value = getPropertyValue(bean, "entityManager");
-        assertTrue(value instanceof BeanDefinition);
-        BeanDefinition emCreator = (BeanDefinition) value;
+		BeanDefinition bean = factory.getBeanDefinition("userRepository");
+		Object value = getPropertyValue(bean, "entityManager");
+		assertTrue(value instanceof BeanDefinition);
+		BeanDefinition emCreator = (BeanDefinition) value;
 
-        BeanReference reference = getConstructorBeanReference(emCreator, 0);
-        assertThat(reference.getBeanName(), is("secondEntityManagerFactory"));
-    }
+		BeanReference reference = getConstructorBeanReference(emCreator, 0);
+		assertThat(reference.getBeanName(), is("secondEntityManagerFactory"));
+	}
 
+	private Object getPropertyValue(BeanDefinition definition, String propertyName) {
 
-    private Object getPropertyValue(BeanDefinition definition,
-            String propertyName) {
+		return definition.getPropertyValues().getPropertyValue(propertyName).getValue();
+	}
 
-        return definition.getPropertyValues().getPropertyValue(propertyName)
-                .getValue();
-    }
+	private BeanReference getConstructorBeanReference(BeanDefinition definition, int index) {
 
-
-    private BeanReference getConstructorBeanReference(
-            BeanDefinition definition, int index) {
-
-        Object value =
-                definition.getConstructorArgumentValues()
-                        .getIndexedArgumentValues().get(index).getValue();
-        assertTrue(value instanceof BeanReference);
-        return (BeanReference) value;
-    }
+		Object value = definition.getConstructorArgumentValues().getIndexedArgumentValues().get(index).getValue();
+		assertTrue(value instanceof BeanReference);
+		return (BeanReference) value;
+	}
 }

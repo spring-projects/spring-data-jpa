@@ -31,7 +31,6 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.data.domain.Persistable;
 import org.springframework.data.repository.core.EntityInformation;
 
-
 /**
  * Unit tests for {@link JpaPersistableEntityInformation}.
  * 
@@ -40,57 +39,52 @@ import org.springframework.data.repository.core.EntityInformation;
 @RunWith(MockitoJUnitRunner.class)
 public class JpaPersistableEntityInformationUnitTests {
 
-    @Mock
-    Metamodel metamodel;
+	@Mock
+	Metamodel metamodel;
 
-    @Mock
-    EntityType<Foo> type;
+	@Mock
+	EntityType<Foo> type;
 
-    @Mock
-    @SuppressWarnings("rawtypes")
-    Type idType;
+	@Mock
+	@SuppressWarnings("rawtypes")
+	Type idType;
 
+	@Before
+	@SuppressWarnings("unchecked")
+	public void setUp() {
 
-    @Before
-    @SuppressWarnings("unchecked")
-    public void setUp() {
+		when(metamodel.entity(Foo.class)).thenReturn(type);
+		when(type.getIdType()).thenReturn(idType);
+	}
 
-        when(metamodel.entity(Foo.class)).thenReturn(type);
-        when(type.getIdType()).thenReturn(idType);
-    }
+	@Test
+	public void usesPersistableMethodsForIsNewAndGetId() {
 
+		EntityInformation<Foo, Long> entityInformation = new JpaPersistableEntityInformation<Foo, Long>(Foo.class,
+				metamodel);
 
-    @Test
-    public void usesPersistableMethodsForIsNewAndGetId() {
+		Foo foo = new Foo();
+		assertThat(entityInformation.isNew(foo), is(false));
+		assertThat(entityInformation.getId(foo), is(nullValue()));
 
-        EntityInformation<Foo, Long> entityInformation =
-                new JpaPersistableEntityInformation<Foo, Long>(Foo.class,
-                        metamodel);
+		foo.id = 1L;
+		assertThat(entityInformation.isNew(foo), is(true));
+		assertThat(entityInformation.getId(foo), is(1L));
+	}
 
-        Foo foo = new Foo();
-        assertThat(entityInformation.isNew(foo), is(false));
-        assertThat(entityInformation.getId(foo), is(nullValue()));
+	@SuppressWarnings("serial")
+	class Foo implements Persistable<Long> {
 
-        foo.id = 1L;
-        assertThat(entityInformation.isNew(foo), is(true));
-        assertThat(entityInformation.getId(foo), is(1L));
-    }
+		Long id;
 
-    @SuppressWarnings("serial")
-    class Foo implements Persistable<Long> {
+		public Long getId() {
 
-        Long id;
+			return id;
+		}
 
+		public boolean isNew() {
 
-        public Long getId() {
-
-            return id;
-        }
-
-
-        public boolean isNew() {
-
-            return id != null;
-        }
-    }
+			return id != null;
+		}
+	}
 }

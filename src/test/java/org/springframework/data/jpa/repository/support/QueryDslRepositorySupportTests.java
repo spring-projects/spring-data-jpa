@@ -17,7 +17,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
-
 /**
  * Integration test for {@link QueryDslRepositorySupport}.
  * 
@@ -28,115 +27,104 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class QueryDslRepositorySupportTests {
 
-    @PersistenceContext
-    EntityManager em;
+	@PersistenceContext
+	EntityManager em;
 
-    UserRepository repository;
-    User dave, carter;
+	UserRepository repository;
+	User dave, carter;
 
+	@Before
+	public void setup() {
 
-    @Before
-    public void setup() {
+		dave = new User("Dave", "Matthews", "dave@matthews.com");
+		em.persist(dave);
 
-        dave = new User("Dave", "Matthews", "dave@matthews.com");
-        em.persist(dave);
+		carter = new User("Carter", "Beauford", "carter@beauford.com");
+		em.persist(carter);
 
-        carter = new User("Carter", "Beauford", "carter@beauford.com");
-        em.persist(carter);
+		UserRepositoryImpl repository = new UserRepositoryImpl();
+		repository.setEntityManager(em);
+		repository.validate();
 
-        UserRepositoryImpl repository = new UserRepositoryImpl();
-        repository.setEntityManager(em);
-        repository.validate();
+		this.repository = repository;
+	}
 
-        this.repository = repository;
-    }
+	@Test
+	public void readsUsersCorrectly() throws Exception {
 
+		List<User> result = repository.findUsersByLastname("Matthews");
+		assertThat(result.size(), is(1));
+		assertThat(result.get(0), is(dave));
 
-    @Test
-    public void readsUsersCorrectly() throws Exception {
+		result = repository.findUsersByLastname("Beauford");
+		assertThat(result.size(), is(1));
+		assertThat(result.get(0), is(carter));
+	}
 
-        List<User> result = repository.findUsersByLastname("Matthews");
-        assertThat(result.size(), is(1));
-        assertThat(result.get(0), is(dave));
+	@Test
+	public void updatesUsersCorrectly() throws Exception {
 
-        result = repository.findUsersByLastname("Beauford");
-        assertThat(result.size(), is(1));
-        assertThat(result.get(0), is(carter));
-    }
+		long updates = repository.updateLastnamesTo("Foo");
+		assertThat(updates, is(2L));
 
+		List<User> result = repository.findUsersByLastname("Matthews");
+		assertThat(result.size(), is(0));
 
-    @Test
-    public void updatesUsersCorrectly() throws Exception {
+		result = repository.findUsersByLastname("Beauford");
+		assertThat(result.size(), is(0));
 
-        long updates = repository.updateLastnamesTo("Foo");
-        assertThat(updates, is(2L));
+		result = repository.findUsersByLastname("Foo");
+		assertThat(result.size(), is(2));
+		assertThat(result, hasItems(dave, carter));
+	}
 
-        List<User> result = repository.findUsersByLastname("Matthews");
-        assertThat(result.size(), is(0));
+	@Test
+	public void deletesAllWithLastnameCorrectly() throws Exception {
 
-        result = repository.findUsersByLastname("Beauford");
-        assertThat(result.size(), is(0));
+		long updates = repository.deleteAllWithLastname("Matthews");
+		assertThat(updates, is(1L));
 
-        result = repository.findUsersByLastname("Foo");
-        assertThat(result.size(), is(2));
-        assertThat(result, hasItems(dave, carter));
-    }
+		List<User> result = repository.findUsersByLastname("Matthews");
+		assertThat(result.size(), is(0));
 
+		result = repository.findUsersByLastname("Beauford");
+		assertThat(result.size(), is(1));
+		assertThat(result.get(0), is(carter));
+	}
 
-    @Test
-    public void deletesAllWithLastnameCorrectly() throws Exception {
+	@Test(expected = IllegalArgumentException.class)
+	public void rejectsUnsetEntityManager() throws Exception {
 
-        long updates = repository.deleteAllWithLastname("Matthews");
-        assertThat(updates, is(1L));
+		UserRepositoryImpl repositoryImpl = new UserRepositoryImpl();
+		repositoryImpl.validate();
+	}
 
-        List<User> result = repository.findUsersByLastname("Matthews");
-        assertThat(result.size(), is(0));
+	private static interface UserRepository {
 
-        result = repository.findUsersByLastname("Beauford");
-        assertThat(result.size(), is(1));
-        assertThat(result.get(0), is(carter));
-    }
+		List<User> findUsersByLastname(String firstname);
 
+		long updateLastnamesTo(String lastname);
 
-    @Test(expected = IllegalArgumentException.class)
-    public void rejectsUnsetEntityManager() throws Exception {
+		long deleteAllWithLastname(String lastname);
+	}
 
-        UserRepositoryImpl repositoryImpl = new UserRepositoryImpl();
-        repositoryImpl.validate();
-    }
+	private static class UserRepositoryImpl extends QueryDslRepositorySupport implements UserRepository {
 
-    private static interface UserRepository {
+		private static final QUser user = QUser.user;
 
-        List<User> findUsersByLastname(String firstname);
+		public List<User> findUsersByLastname(String lastname) {
 
+			return from(user).where(user.lastname.eq(lastname)).list(user);
+		}
 
-        long updateLastnamesTo(String lastname);
+		public long updateLastnamesTo(String lastname) {
 
+			return update(user).set(user.lastname, lastname).execute();
+		}
 
-        long deleteAllWithLastname(String lastname);
-    }
+		public long deleteAllWithLastname(String lastname) {
 
-    private static class UserRepositoryImpl extends QueryDslRepositorySupport
-            implements UserRepository {
-
-        private static final QUser user = QUser.user;
-
-
-        public List<User> findUsersByLastname(String lastname) {
-
-            return from(user).where(user.lastname.eq(lastname)).list(user);
-        }
-
-
-        public long updateLastnamesTo(String lastname) {
-
-            return update(user).set(user.lastname, lastname).execute();
-        }
-
-
-        public long deleteAllWithLastname(String lastname) {
-
-            return delete(user).where(user.lastname.eq(lastname)).execute();
-        }
-    }
+			return delete(user).where(user.lastname.eq(lastname)).execute();
+		}
+	}
 }

@@ -40,11 +40,9 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
-
 /**
- * Default implementation of the {@link CrudRepository} interface. This will
- * offer you a more sophisticated interface than the plain {@link EntityManager}
- * .
+ * Default implementation of the {@link CrudRepository} interface. This will offer you a more sophisticated interface
+ * than the plain {@link EntityManager} .
  * 
  * @author Oliver Gierke
  * @author Eberhard Wolff
@@ -53,481 +51,437 @@ import org.springframework.util.Assert;
  */
 @org.springframework.stereotype.Repository
 @Transactional(readOnly = true)
-public class SimpleJpaRepository<T, ID extends Serializable> implements
-        JpaRepository<T, ID>, JpaSpecificationExecutor<T> {
-
-    private final JpaEntityInformation<T, ?> entityInformation;
-    private final EntityManager em;
-    private final PersistenceProvider provider;
-
-
-    /**
-     * Creates a new {@link SimpleJpaRepository} to manage objects of the given
-     * {@link JpaEntityInformation}.
-     * 
-     * @param entityInformation
-     * @param entityManager
-     */
-    public SimpleJpaRepository(JpaEntityInformation<T, ?> entityInformation,
-            EntityManager entityManager) {
-
-        Assert.notNull(entityInformation);
-        Assert.notNull(entityManager);
-        this.entityInformation = entityInformation;
-        this.em = entityManager;
-        this.provider = PersistenceProvider.fromEntityManager(entityManager);
-    }
-
-
-    /**
-     * Creates a new {@link SimpleJpaRepository} to manage objects of the given
-     * domain type.
-     * 
-     * @param domainClass
-     * @param em
-     */
-    public SimpleJpaRepository(Class<T> domainClass, EntityManager em) {
-
-        this(JpaEntityInformationSupport.getMetadata(domainClass, em), em);
-    }
-
-
-    private Class<T> getDomainClass() {
-
-        return entityInformation.getJavaType();
-    }
-
-
-    private String getDeleteAllQueryString() {
-
-        return getQueryString(DELETE_ALL_QUERY_STRING,
-                entityInformation.getEntityName());
-    }
-
-
-    private String getCountQueryString() {
-
-        String countQuery =
-                String.format(COUNT_QUERY_STRING,
-                        provider.getCountQueryPlaceholder(), "%s");
-
-        return getQueryString(countQuery, entityInformation.getEntityName());
-    }
-
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.springframework.data.jpa.repository.JpaRepository#delete(java.io.
-     * Serializable)
-     */
-    @Transactional
-    public void delete(ID id) {
-
-        delete(findOne(id));
-    }
-
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.springframework.data.repository.Repository#delete(java.lang.Object)
-     */
-    @Transactional
-    public void delete(T entity) {
-
-        em.remove(em.contains(entity) ? entity : em.merge(entity));
-    }
-
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.springframework.data.repository.Repository#delete(java.lang.Iterable)
-     */
-    @Transactional
-    public void delete(Iterable<? extends T> entities) {
-
-        if (entities == null) {
-            return;
-        }
-
-        for (T entity : entities) {
-            delete(entity);
-        }
-    }
-
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.springframework.data.jpa.repository.JpaRepository#deleteInBatch(java
-     * .lang.Iterable)
-     */
-    @Transactional
-    public void deleteInBatch(Iterable<T> entities) {
-
-        if (null == entities || !entities.iterator().hasNext()) {
-            return;
-        }
-
-        applyAndBind(
-                getQueryString(DELETE_ALL_QUERY_STRING,
-                        entityInformation.getEntityName()), entities, em)
-                .executeUpdate();
-        em.clear();
-    }
-
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.springframework.data.repository.Repository#deleteAll()
-     */
-    @Transactional
-    public void deleteAll() {
-
-        em.createQuery(getDeleteAllQueryString()).executeUpdate();
-        em.clear();
-    }
-
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.springframework.data.repository.Repository#readById(java.io.Serializable
-     * )
-     */
-    public T findOne(ID id) {
-
-        Assert.notNull(id, "The given id must not be null!");
-        return em.find(getDomainClass(), id);
-    }
-
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.springframework.data.repository.Repository#exists(java.io.Serializable
-     * )
-     */
-    public boolean exists(ID id) {
-
-        Assert.notNull(id, "The given id must not be null!");
-        return null != findOne(id);
-    }
-
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.springframework.data.repository.Repository#readAll()
-     */
-    public List<T> findAll() {
-
-        return getQuery(null, (Sort) null).getResultList();
-    }
-
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.springframework.data.repository.Repository#readAll(org.springframework
-     * .data.domain.Sort)
-     */
-    public List<T> findAll(Sort sort) {
-
-        return getQuery(null, sort).getResultList();
-    }
-
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.springframework.data.repository.Repository#readAll(org.
-     * springframework.data.domain.Pageable)
-     */
-    public Page<T> findAll(Pageable pageable) {
-
-        if (null == pageable) {
-            return new PageImpl<T>(findAll());
-        }
-
-        return findAll(null, pageable);
-    }
-
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.springframework.data.jpa.repository.JpaRepository#findOneBy(org.
-     * springframework.data.jpa.domain.Specification)
-     */
-    public T findOne(Specification<T> spec) {
-
-        try {
-            return getQuery(spec, (Sort) null).getSingleResult();
-        } catch (NoResultException e) {
-            return null;
-        }
-    }
-
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.springframework.data.jpa.repository.JpaRepository#readAll(org.
-     * springframework.data.jpa.domain.Specification)
-     */
-    public List<T> findAll(Specification<T> spec) {
-
-        return getQuery(spec, (Sort) null).getResultList();
-    }
-
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.springframework.data.jpa.repository.JpaRepository#readAll(org.
-     * springframework.data.jpa.domain.Specification,
-     * org.springframework.data.domain.Pageable)
-     */
-    public Page<T> findAll(Specification<T> spec, Pageable pageable) {
-
-        TypedQuery<T> query = getQuery(spec, pageable);
-
-        return pageable == null ? new PageImpl<T>(query.getResultList())
-                : readPage(query, pageable, spec);
-    }
-
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.springframework.data.jpa.repository.JpaSpecificationExecutor#findAll
-     * (org.springframework.data.jpa.domain.Specification,
-     * org.springframework.data.domain.Sort)
-     */
-    public List<T> findAll(Specification<T> spec, Sort sort) {
-
-        return getQuery(spec, sort).getResultList();
-    }
-
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.springframework.data.repository.Repository#count()
-     */
-    public long count() {
-
-        return em.createQuery(getCountQueryString(), Long.class)
-                .getSingleResult();
-    }
-
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.springframework.data.jpa.repository.JpaSpecificationExecutor#count
-     * (org.springframework.data.jpa.domain.Specification)
-     */
-    public long count(Specification<T> spec) {
-
-        return getCountQuery(spec).getSingleResult();
-    }
-
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.springframework.data.repository.Repository#save(java.lang.Object)
-     */
-    @Transactional
-    public T save(T entity) {
-
-        if (entityInformation.isNew(entity)) {
-            em.persist(entity);
-            return entity;
-        } else {
-            return em.merge(entity);
-        }
-    }
-
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.springframework.data.jpa.repository.JpaRepository#saveAndFlush(java
-     * .lang.Object)
-     */
-    @Transactional
-    public T saveAndFlush(T entity) {
-
-        T result = save(entity);
-        flush();
-
-        return result;
-    }
-
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.springframework.data.repository.Repository#save(java.lang.Iterable)
-     */
-    @Transactional
-    public List<T> save(Iterable<? extends T> entities) {
-
-        List<T> result = new ArrayList<T>();
-
-        if (entities == null) {
-            return result;
-        }
-
-        for (T entity : entities) {
-            result.add(save(entity));
-        }
-
-        return result;
-    }
-
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.springframework.data.jpa.repository.JpaRepository#flush()
-     */
-    @Transactional
-    public void flush() {
-
-        em.flush();
-    }
-
-
-    /**
-     * Reads the given {@link TypedQuery} into a {@link Page} applying the given
-     * {@link Pageable} and {@link Specification}.
-     * 
-     * @param query
-     * @param spec
-     * @param pageable
-     * @return
-     */
-    private Page<T> readPage(TypedQuery<T> query, Pageable pageable,
-            Specification<T> spec) {
-
-        query.setFirstResult(pageable.getOffset());
-        query.setMaxResults(pageable.getPageSize());
-
-        Long total = getCountQuery(spec).getSingleResult();
-
-        return new PageImpl<T>(query.getResultList(), pageable, total);
-    }
-
-
-    /**
-     * Creates a new {@link TypedQuery} from the given {@link Specification}.
-     * 
-     * @param spec can be {@literal null}
-     * @param pageable can be {@literal null}
-     * @return
-     */
-    private TypedQuery<T> getQuery(Specification<T> spec, Pageable pageable) {
-
-        CriteriaBuilder builder = em.getCriteriaBuilder();
-        CriteriaQuery<T> query = builder.createQuery(getDomainClass());
-
-        Root<T> root = applySpecificationToCriteria(spec, query);
-        query.select(root);
-
-        if (pageable != null) {
-            query.orderBy(toOrders(pageable.getSort(), root, builder));
-        }
-
-        return em.createQuery(query);
-    }
-
-
-    /**
-     * Creates a {@link TypedQuery} for the given {@link Specification} and
-     * {@link Sort}.
-     * 
-     * @param spec
-     * @param sort
-     * @return
-     */
-    private TypedQuery<T> getQuery(Specification<T> spec, Sort sort) {
-
-        CriteriaBuilder builder = em.getCriteriaBuilder();
-        CriteriaQuery<T> query = builder.createQuery(getDomainClass());
-
-        Root<T> root = applySpecificationToCriteria(spec, query);
-        query.select(root);
-
-        if (sort != null) {
-            query.orderBy(toOrders(sort, root, builder));
-        }
-
-        return em.createQuery(query);
-    }
-
-
-    /**
-     * Creates a new count query for the given {@link Specification}.
-     * 
-     * @param spec can be {@literal null}.
-     * @return
-     */
-    private TypedQuery<Long> getCountQuery(Specification<T> spec) {
-
-        CriteriaBuilder builder = em.getCriteriaBuilder();
-        CriteriaQuery<Long> query = builder.createQuery(Long.class);
-
-        Root<T> root = applySpecificationToCriteria(spec, query);
-        query.select(builder.count(root)).distinct(true);
-
-        return em.createQuery(query);
-    }
-
-
-    /**
-     * Applies the given {@link Specification} to the given
-     * {@link CriteriaQuery}.
-     * 
-     * @param spec can be {@literal null}
-     * @param query
-     * @return
-     */
-    private <S> Root<T> applySpecificationToCriteria(Specification<T> spec,
-            CriteriaQuery<S> query) {
-
-        Assert.notNull(query);
-        Root<T> root = query.from(getDomainClass());
-
-        if (spec == null) {
-            return root;
-        }
-
-        CriteriaBuilder builder = em.getCriteriaBuilder();
-        Predicate predicate = spec.toPredicate(root, query, builder);
-
-        if (predicate != null) {
-            query.where(predicate);
-        }
-
-        return root;
-    }
+public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepository<T, ID>,
+		JpaSpecificationExecutor<T> {
+
+	private final JpaEntityInformation<T, ?> entityInformation;
+	private final EntityManager em;
+	private final PersistenceProvider provider;
+
+	/**
+	 * Creates a new {@link SimpleJpaRepository} to manage objects of the given {@link JpaEntityInformation}.
+	 * 
+	 * @param entityInformation
+	 * @param entityManager
+	 */
+	public SimpleJpaRepository(JpaEntityInformation<T, ?> entityInformation, EntityManager entityManager) {
+
+		Assert.notNull(entityInformation);
+		Assert.notNull(entityManager);
+		this.entityInformation = entityInformation;
+		this.em = entityManager;
+		this.provider = PersistenceProvider.fromEntityManager(entityManager);
+	}
+
+	/**
+	 * Creates a new {@link SimpleJpaRepository} to manage objects of the given domain type.
+	 * 
+	 * @param domainClass
+	 * @param em
+	 */
+	public SimpleJpaRepository(Class<T> domainClass, EntityManager em) {
+
+		this(JpaEntityInformationSupport.getMetadata(domainClass, em), em);
+	}
+
+	private Class<T> getDomainClass() {
+
+		return entityInformation.getJavaType();
+	}
+
+	private String getDeleteAllQueryString() {
+
+		return getQueryString(DELETE_ALL_QUERY_STRING, entityInformation.getEntityName());
+	}
+
+	private String getCountQueryString() {
+
+		String countQuery = String.format(COUNT_QUERY_STRING, provider.getCountQueryPlaceholder(), "%s");
+
+		return getQueryString(countQuery, entityInformation.getEntityName());
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.springframework.data.jpa.repository.JpaRepository#delete(java.io.
+	 * Serializable)
+	 */
+	@Transactional
+	public void delete(ID id) {
+
+		delete(findOne(id));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.springframework.data.repository.Repository#delete(java.lang.Object)
+	 */
+	@Transactional
+	public void delete(T entity) {
+
+		em.remove(em.contains(entity) ? entity : em.merge(entity));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.springframework.data.repository.Repository#delete(java.lang.Iterable)
+	 */
+	@Transactional
+	public void delete(Iterable<? extends T> entities) {
+
+		if (entities == null) {
+			return;
+		}
+
+		for (T entity : entities) {
+			delete(entity);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.springframework.data.jpa.repository.JpaRepository#deleteInBatch(java
+	 * .lang.Iterable)
+	 */
+	@Transactional
+	public void deleteInBatch(Iterable<T> entities) {
+
+		if (null == entities || !entities.iterator().hasNext()) {
+			return;
+		}
+
+		applyAndBind(getQueryString(DELETE_ALL_QUERY_STRING, entityInformation.getEntityName()), entities, em)
+				.executeUpdate();
+		em.clear();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.springframework.data.repository.Repository#deleteAll()
+	 */
+	@Transactional
+	public void deleteAll() {
+
+		em.createQuery(getDeleteAllQueryString()).executeUpdate();
+		em.clear();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.springframework.data.repository.Repository#readById(java.io.Serializable
+	 * )
+	 */
+	public T findOne(ID id) {
+
+		Assert.notNull(id, "The given id must not be null!");
+		return em.find(getDomainClass(), id);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.springframework.data.repository.Repository#exists(java.io.Serializable
+	 * )
+	 */
+	public boolean exists(ID id) {
+
+		Assert.notNull(id, "The given id must not be null!");
+		return null != findOne(id);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.springframework.data.repository.Repository#readAll()
+	 */
+	public List<T> findAll() {
+
+		return getQuery(null, (Sort) null).getResultList();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.springframework.data.repository.Repository#readAll(org.springframework
+	 * .data.domain.Sort)
+	 */
+	public List<T> findAll(Sort sort) {
+
+		return getQuery(null, sort).getResultList();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.springframework.data.repository.Repository#readAll(org.
+	 * springframework.data.domain.Pageable)
+	 */
+	public Page<T> findAll(Pageable pageable) {
+
+		if (null == pageable) {
+			return new PageImpl<T>(findAll());
+		}
+
+		return findAll(null, pageable);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.springframework.data.jpa.repository.JpaRepository#findOneBy(org.
+	 * springframework.data.jpa.domain.Specification)
+	 */
+	public T findOne(Specification<T> spec) {
+
+		try {
+			return getQuery(spec, (Sort) null).getSingleResult();
+		} catch (NoResultException e) {
+			return null;
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.springframework.data.jpa.repository.JpaRepository#readAll(org.
+	 * springframework.data.jpa.domain.Specification)
+	 */
+	public List<T> findAll(Specification<T> spec) {
+
+		return getQuery(spec, (Sort) null).getResultList();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.springframework.data.jpa.repository.JpaRepository#readAll(org.
+	 * springframework.data.jpa.domain.Specification,
+	 * org.springframework.data.domain.Pageable)
+	 */
+	public Page<T> findAll(Specification<T> spec, Pageable pageable) {
+
+		TypedQuery<T> query = getQuery(spec, pageable);
+
+		return pageable == null ? new PageImpl<T>(query.getResultList()) : readPage(query, pageable, spec);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.springframework.data.jpa.repository.JpaSpecificationExecutor#findAll
+	 * (org.springframework.data.jpa.domain.Specification,
+	 * org.springframework.data.domain.Sort)
+	 */
+	public List<T> findAll(Specification<T> spec, Sort sort) {
+
+		return getQuery(spec, sort).getResultList();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.springframework.data.repository.Repository#count()
+	 */
+	public long count() {
+
+		return em.createQuery(getCountQueryString(), Long.class).getSingleResult();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.springframework.data.jpa.repository.JpaSpecificationExecutor#count
+	 * (org.springframework.data.jpa.domain.Specification)
+	 */
+	public long count(Specification<T> spec) {
+
+		return getCountQuery(spec).getSingleResult();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.springframework.data.repository.Repository#save(java.lang.Object)
+	 */
+	@Transactional
+	public T save(T entity) {
+
+		if (entityInformation.isNew(entity)) {
+			em.persist(entity);
+			return entity;
+		} else {
+			return em.merge(entity);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.springframework.data.jpa.repository.JpaRepository#saveAndFlush(java
+	 * .lang.Object)
+	 */
+	@Transactional
+	public T saveAndFlush(T entity) {
+
+		T result = save(entity);
+		flush();
+
+		return result;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.springframework.data.repository.Repository#save(java.lang.Iterable)
+	 */
+	@Transactional
+	public List<T> save(Iterable<? extends T> entities) {
+
+		List<T> result = new ArrayList<T>();
+
+		if (entities == null) {
+			return result;
+		}
+
+		for (T entity : entities) {
+			result.add(save(entity));
+		}
+
+		return result;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.springframework.data.jpa.repository.JpaRepository#flush()
+	 */
+	@Transactional
+	public void flush() {
+
+		em.flush();
+	}
+
+	/**
+	 * Reads the given {@link TypedQuery} into a {@link Page} applying the given {@link Pageable} and
+	 * {@link Specification}.
+	 * 
+	 * @param query
+	 * @param spec
+	 * @param pageable
+	 * @return
+	 */
+	private Page<T> readPage(TypedQuery<T> query, Pageable pageable, Specification<T> spec) {
+
+		query.setFirstResult(pageable.getOffset());
+		query.setMaxResults(pageable.getPageSize());
+
+		Long total = getCountQuery(spec).getSingleResult();
+
+		return new PageImpl<T>(query.getResultList(), pageable, total);
+	}
+
+	/**
+	 * Creates a new {@link TypedQuery} from the given {@link Specification}.
+	 * 
+	 * @param spec can be {@literal null}
+	 * @param pageable can be {@literal null}
+	 * @return
+	 */
+	private TypedQuery<T> getQuery(Specification<T> spec, Pageable pageable) {
+
+		CriteriaBuilder builder = em.getCriteriaBuilder();
+		CriteriaQuery<T> query = builder.createQuery(getDomainClass());
+
+		Root<T> root = applySpecificationToCriteria(spec, query);
+		query.select(root);
+
+		if (pageable != null) {
+			query.orderBy(toOrders(pageable.getSort(), root, builder));
+		}
+
+		return em.createQuery(query);
+	}
+
+	/**
+	 * Creates a {@link TypedQuery} for the given {@link Specification} and {@link Sort}.
+	 * 
+	 * @param spec
+	 * @param sort
+	 * @return
+	 */
+	private TypedQuery<T> getQuery(Specification<T> spec, Sort sort) {
+
+		CriteriaBuilder builder = em.getCriteriaBuilder();
+		CriteriaQuery<T> query = builder.createQuery(getDomainClass());
+
+		Root<T> root = applySpecificationToCriteria(spec, query);
+		query.select(root);
+
+		if (sort != null) {
+			query.orderBy(toOrders(sort, root, builder));
+		}
+
+		return em.createQuery(query);
+	}
+
+	/**
+	 * Creates a new count query for the given {@link Specification}.
+	 * 
+	 * @param spec can be {@literal null}.
+	 * @return
+	 */
+	private TypedQuery<Long> getCountQuery(Specification<T> spec) {
+
+		CriteriaBuilder builder = em.getCriteriaBuilder();
+		CriteriaQuery<Long> query = builder.createQuery(Long.class);
+
+		Root<T> root = applySpecificationToCriteria(spec, query);
+		query.select(builder.count(root)).distinct(true);
+
+		return em.createQuery(query);
+	}
+
+	/**
+	 * Applies the given {@link Specification} to the given {@link CriteriaQuery}.
+	 * 
+	 * @param spec can be {@literal null}
+	 * @param query
+	 * @return
+	 */
+	private <S> Root<T> applySpecificationToCriteria(Specification<T> spec, CriteriaQuery<S> query) {
+
+		Assert.notNull(query);
+		Root<T> root = query.from(getDomainClass());
+
+		if (spec == null) {
+			return root;
+		}
+
+		CriteriaBuilder builder = em.getCriteriaBuilder();
+		Predicate predicate = spec.toPredicate(root, query, builder);
+
+		if (predicate != null) {
+			query.where(predicate);
+		}
+
+		return root;
+	}
 }

@@ -21,134 +21,116 @@ import org.springframework.data.repository.config.RepositoryConfig;
 import org.springframework.data.repository.config.SingleRepositoryConfigInformation;
 import org.w3c.dom.Element;
 
-
 /**
  * @author Oliver Gierke
  */
-public class SimpleJpaRepositoryConfiguration
-        extends
-        RepositoryConfig<SimpleJpaRepositoryConfiguration.JpaRepositoryConfiguration, SimpleJpaRepositoryConfiguration> {
+public class SimpleJpaRepositoryConfiguration extends
+		RepositoryConfig<SimpleJpaRepositoryConfiguration.JpaRepositoryConfiguration, SimpleJpaRepositoryConfiguration> {
 
-    private static final String FACTORY_CLASS =
-            "org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean";
-    private static final String ENTITY_MANAGER_FACTORY_REF =
-            "entity-manager-factory-ref";
+	private static final String FACTORY_CLASS = "org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean";
+	private static final String ENTITY_MANAGER_FACTORY_REF = "entity-manager-factory-ref";
 
+	/**
+	 * @param repositoriesElement
+	 */
+	public SimpleJpaRepositoryConfiguration(Element repositoriesElement) {
 
-    /**
-     * @param repositoriesElement
-     */
-    public SimpleJpaRepositoryConfiguration(Element repositoriesElement) {
+		super(repositoriesElement, FACTORY_CLASS);
+	}
 
-        super(repositoriesElement, FACTORY_CLASS);
-    }
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.springframework.data.repository.config.GlobalRepositoryConfigInformation
+	 * #getAutoconfigRepositoryInformation(java.lang.String)
+	 */
+	public JpaRepositoryConfiguration getAutoconfigRepositoryInformation(String interfaceName) {
 
+		return new AutomaticJpaRepositoryConfigInformation(interfaceName, this);
+	}
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.springframework.data.repository.config.GlobalRepositoryConfigInformation
-     * #getAutoconfigRepositoryInformation(java.lang.String)
-     */
-    public JpaRepositoryConfiguration getAutoconfigRepositoryInformation(
-            String interfaceName) {
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.springframework.data.jpa.repository.config.RepositoryConfigContext
+	 * #getManualRepositoryInformation(org.w3c.dom.Element,
+	 * org.springframework.data
+	 * .jpa.repository.config.CommonRepositoryInformation)
+	 */
+	@Override
+	public JpaRepositoryConfiguration createSingleRepositoryConfigInformationFor(Element element) {
 
-        return new AutomaticJpaRepositoryConfigInformation(interfaceName, this);
-    }
+		return new ManualJpaRepositoryConfigInformation(element, this);
+	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.springframework.data.repository.config.CommonRepositoryConfigInformation
+	 * #getNamedQueriesLocation()
+	 */
+	public String getNamedQueriesLocation() {
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.springframework.data.jpa.repository.config.RepositoryConfigContext
-     * #getManualRepositoryInformation(org.w3c.dom.Element,
-     * org.springframework.data
-     * .jpa.repository.config.CommonRepositoryInformation)
-     */
-    @Override
-    public JpaRepositoryConfiguration createSingleRepositoryConfigInformationFor(
-            Element element) {
+		return "classpath*:META-INF/jpa-named-queries.properties";
+	}
 
-        return new ManualJpaRepositoryConfigInformation(element, this);
-    }
+	/**
+	 * Returns the name of the entity manager factory bean.
+	 * 
+	 * @return
+	 */
+	public String getEntityManagerFactoryRef() {
 
+		return getSource().getAttribute(ENTITY_MANAGER_FACTORY_REF);
+	}
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.springframework.data.repository.config.CommonRepositoryConfigInformation
-     * #getNamedQueriesLocation()
-     */
-    public String getNamedQueriesLocation() {
+	private static class AutomaticJpaRepositoryConfigInformation extends
+			AutomaticRepositoryConfigInformation<SimpleJpaRepositoryConfiguration> implements JpaRepositoryConfiguration {
 
-        return "classpath*:META-INF/jpa-named-queries.properties";
-    }
+		public AutomaticJpaRepositoryConfigInformation(String interfaceName, SimpleJpaRepositoryConfiguration parent) {
 
+			super(interfaceName, parent);
+		}
 
-    /**
-     * Returns the name of the entity manager factory bean.
-     * 
-     * @return
-     */
-    public String getEntityManagerFactoryRef() {
+		/**
+		 * Returns the {@link javax.persistence.EntityManagerFactory} reference to be used for all the repository instances
+		 * configured.
+		 * 
+		 * @return
+		 */
+		public String getEntityManagerFactoryRef() {
 
-        return getSource().getAttribute(ENTITY_MANAGER_FACTORY_REF);
-    }
+			return getParent().getEntityManagerFactoryRef();
+		}
+	}
 
-    private static class AutomaticJpaRepositoryConfigInformation
-            extends
-            AutomaticRepositoryConfigInformation<SimpleJpaRepositoryConfiguration>
-            implements JpaRepositoryConfiguration {
+	private static class ManualJpaRepositoryConfigInformation extends
+			ManualRepositoryConfigInformation<SimpleJpaRepositoryConfiguration> implements JpaRepositoryConfiguration {
 
-        public AutomaticJpaRepositoryConfigInformation(String interfaceName,
-                SimpleJpaRepositoryConfiguration parent) {
+		public ManualJpaRepositoryConfigInformation(Element element, SimpleJpaRepositoryConfiguration parent) {
 
-            super(interfaceName, parent);
-        }
+			super(element, parent);
+		}
 
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see org.springframework.data.jpa.repository.config.
+		 * SimpleJpaRepositoryConfiguration
+		 * .JpaRepositoryConfiguration#getEntityManagerFactoryRef()
+		 */
+		public String getEntityManagerFactoryRef() {
 
-        /**
-         * Returns the {@link javax.persistence.EntityManagerFactory} reference
-         * to be used for all the repository instances configured.
-         * 
-         * @return
-         */
-        public String getEntityManagerFactoryRef() {
+			return getAttribute(ENTITY_MANAGER_FACTORY_REF);
+		}
+	}
 
-            return getParent().getEntityManagerFactoryRef();
-        }
-    }
+	static interface JpaRepositoryConfiguration extends
+			SingleRepositoryConfigInformation<SimpleJpaRepositoryConfiguration> {
 
-    private static class ManualJpaRepositoryConfigInformation extends
-            ManualRepositoryConfigInformation<SimpleJpaRepositoryConfiguration>
-            implements JpaRepositoryConfiguration {
-
-        public ManualJpaRepositoryConfigInformation(Element element,
-                SimpleJpaRepositoryConfiguration parent) {
-
-            super(element, parent);
-        }
-
-
-        /*
-         * (non-Javadoc)
-         * 
-         * @see org.springframework.data.jpa.repository.config.
-         * SimpleJpaRepositoryConfiguration
-         * .JpaRepositoryConfiguration#getEntityManagerFactoryRef()
-         */
-        public String getEntityManagerFactoryRef() {
-
-            return getAttribute(ENTITY_MANAGER_FACTORY_REF);
-        }
-    }
-
-    static interface JpaRepositoryConfiguration extends
-            SingleRepositoryConfigInformation<SimpleJpaRepositoryConfiguration> {
-
-        String getEntityManagerFactoryRef();
-    }
+		String getEntityManagerFactoryRef();
+	}
 }

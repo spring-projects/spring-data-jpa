@@ -25,68 +25,60 @@ import org.springframework.data.domain.Persistable;
 import org.springframework.data.repository.core.support.AbstractEntityInformation;
 import org.springframework.util.StringUtils;
 
-
 /**
- * Base class for {@link JpaEntityInformation} implementations to share common
- * method implementations.
+ * Base class for {@link JpaEntityInformation} implementations to share common method implementations.
  * 
  * @author Oliver Gierke
  */
-public abstract class JpaEntityInformationSupport<T, ID extends Serializable>
-        extends AbstractEntityInformation<T, ID> implements
-        JpaEntityInformation<T, ID> {
+public abstract class JpaEntityInformationSupport<T, ID extends Serializable> extends AbstractEntityInformation<T, ID>
+		implements JpaEntityInformation<T, ID> {
 
-    /**
-     * Creates a new {@link JpaEntityInformationSupport} with the given domain
-     * class.
-     * 
-     * @param domainClass
-     */
-    public JpaEntityInformationSupport(Class<T> domainClass) {
+	/**
+	 * Creates a new {@link JpaEntityInformationSupport} with the given domain class.
+	 * 
+	 * @param domainClass
+	 */
+	public JpaEntityInformationSupport(Class<T> domainClass) {
 
-        super(domainClass);
-    }
+		super(domainClass);
+	}
 
+	/**
+	 * Creates a {@link JpaEntityInformation} for the given domain class and {@link EntityManager}.
+	 * 
+	 * @param domainClass
+	 * @param em
+	 * @return
+	 */
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public static <T> JpaEntityInformation<T, ?> getMetadata(Class<T> domainClass, EntityManager em) {
 
-    /**
-     * Creates a {@link JpaEntityInformation} for the given domain class and
-     * {@link EntityManager}.
-     * 
-     * @param domainClass
-     * @param em
-     * @return
-     */
-    @SuppressWarnings({ "rawtypes", "unchecked" })
-    public static <T> JpaEntityInformation<T, ?> getMetadata(
-            Class<T> domainClass, EntityManager em) {
+		Metamodel metamodel = em.getMetamodel();
 
-        Metamodel metamodel = em.getMetamodel();
+		if (Persistable.class.isAssignableFrom(domainClass)) {
+			return new JpaPersistableEntityInformation(domainClass, metamodel);
+		} else {
+			try {
+				return new JpaMetamodelEntityInformation(domainClass, metamodel);
+			} catch (IllegalArgumentException e) {
+				return null;
+			}
+		}
+	}
 
-        if (Persistable.class.isAssignableFrom(domainClass)) {
-            return new JpaPersistableEntityInformation(domainClass, metamodel);
-        } else {
-            try {
-                return new JpaMetamodelEntityInformation(domainClass, metamodel);
-            } catch (IllegalArgumentException e) {
-                return null;
-            }
-        }
-    }
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.springframework.data.jpa.repository.support.JpaEntityInformation#
+	 * getEntityName()
+	 */
+	public String getEntityName() {
 
+		Class<?> domainClass = getJavaType();
+		Entity entity = domainClass.getAnnotation(Entity.class);
+		boolean hasName = null != entity && StringUtils.hasText(entity.name());
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.springframework.data.jpa.repository.support.JpaEntityInformation#
-     * getEntityName()
-     */
-    public String getEntityName() {
-
-        Class<?> domainClass = getJavaType();
-        Entity entity = domainClass.getAnnotation(Entity.class);
-        boolean hasName = null != entity && StringUtils.hasText(entity.name());
-
-        return hasName ? entity.name() : domainClass.getSimpleName();
-    }
+		return hasName ? entity.name() : domainClass.getSimpleName();
+	}
 }

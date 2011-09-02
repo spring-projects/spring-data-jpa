@@ -23,149 +23,133 @@ import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.util.Assert;
 
-
 /**
- * {@link ParameterBinder} is used to bind method parameters to a {@link Query}.
- * This is usually done whenever an {@link AbstractJpaQuery} is executed.
+ * {@link ParameterBinder} is used to bind method parameters to a {@link Query}. This is usually done whenever an
+ * {@link AbstractJpaQuery} is executed.
  * 
  * @author Oliver Gierke
  */
 public class ParameterBinder {
 
-    private final Parameters parameters;
-    private final Object[] values;
+	private final Parameters parameters;
+	private final Object[] values;
 
+	/**
+	 * Creates a new {@link ParameterBinder}.
+	 * 
+	 * @param parameters
+	 * @param values
+	 */
+	public ParameterBinder(Parameters parameters, Object[] values) {
 
-    /**
-     * Creates a new {@link ParameterBinder}.
-     * 
-     * @param parameters
-     * @param values
-     */
-    public ParameterBinder(Parameters parameters, Object[] values) {
+		Assert.notNull(parameters);
+		Assert.notNull(values);
 
-        Assert.notNull(parameters);
-        Assert.notNull(values);
+		Assert.isTrue(parameters.getNumberOfParameters() == values.length, "Invalid number of parameters given!");
 
-        Assert.isTrue(parameters.getNumberOfParameters() == values.length,
-                "Invalid number of parameters given!");
+		this.parameters = parameters;
+		this.values = values.clone();
+	}
 
-        this.parameters = parameters;
-        this.values = values.clone();
-    }
+	ParameterBinder(Parameters parameters) {
 
+		this(parameters, new Object[0]);
+	}
 
-    ParameterBinder(Parameters parameters) {
+	/**
+	 * Returns the {@link Pageable} of the parameters, if available. Returns {@code null} otherwise.
+	 * 
+	 * @return
+	 */
+	public Pageable getPageable() {
 
-        this(parameters, new Object[0]);
-    }
+		if (!parameters.hasPageableParameter()) {
+			return null;
+		}
 
+		return (Pageable) values[parameters.getPageableIndex()];
+	}
 
-    /**
-     * Returns the {@link Pageable} of the parameters, if available. Returns
-     * {@code null} otherwise.
-     * 
-     * @return
-     */
-    public Pageable getPageable() {
+	/**
+	 * Returns the sort instance to be used for query creation. Will use a {@link Sort} parameter if available or the
+	 * {@link Sort} contained in a {@link Pageable} if available. Returns {@code null} if no {@link Sort} can be found.
+	 * 
+	 * @return
+	 */
+	public Sort getSort() {
 
-        if (!parameters.hasPageableParameter()) {
-            return null;
-        }
+		if (parameters.hasSortParameter()) {
+			return (Sort) values[parameters.getSortIndex()];
+		}
 
-        return (Pageable) values[parameters.getPageableIndex()];
-    }
+		if (parameters.hasPageableParameter() && getPageable() != null) {
+			return getPageable().getSort();
+		}
 
+		return null;
+	}
 
-    /**
-     * Returns the sort instance to be used for query creation. Will use a
-     * {@link Sort} parameter if available or the {@link Sort} contained in a
-     * {@link Pageable} if available. Returns {@code null} if no {@link Sort}
-     * can be found.
-     * 
-     * @return
-     */
-    public Sort getSort() {
+	/**
+	 * Binds the parameters to the given {@link Query}.
+	 * 
+	 * @param query
+	 * @return
+	 */
+	public Query bind(Query query) {
 
-        if (parameters.hasSortParameter()) {
-            return (Sort) values[parameters.getSortIndex()];
-        }
+		int methodParameterPosition = 0;
+		int queryParameterPosition = 1;
 
-        if (parameters.hasPageableParameter() && getPageable() != null) {
-            return getPageable().getSort();
-        }
+		for (Parameter parameter : parameters) {
 
-        return null;
-    }
+			if (parameter.isBindable()) {
 
+				Object value = values[methodParameterPosition];
+				bind(query, parameter, value, queryParameterPosition++);
+			}
 
-    /**
-     * Binds the parameters to the given {@link Query}.
-     * 
-     * @param query
-     * @return
-     */
-    public Query bind(Query query) {
+			methodParameterPosition++;
+		}
 
-        int methodParameterPosition = 0;
-        int queryParameterPosition = 1;
+		return query;
+	}
 
-        for (Parameter parameter : parameters) {
+	protected void bind(Query query, Parameter parameter, Object value, int position) {
 
-            if (parameter.isBindable()) {
+		if (hasNamedParameter(query) && parameter.isNamedParameter()) {
+			query.setParameter(parameter.getName(), value);
+		} else {
+			query.setParameter(position, value);
+		}
+	}
 
-                Object value = values[methodParameterPosition];
-                bind(query, parameter, value, queryParameterPosition++);
-            }
+	/**
+	 * Binds the parameters to the given query and applies special parameter types (e.g. pagination).
+	 * 
+	 * @param query
+	 * @return
+	 */
+	public Query bindAndPrepare(Query query) {
 
-            methodParameterPosition++;
-        }
+		return bindAndPrepare(query, parameters);
+	}
 
-        return query;
-    }
+	private Query bindAndPrepare(Query query, Parameters parameters) {
 
+		Query result = bind(query);
 
-    protected void bind(Query query, Parameter parameter, Object value,
-            int position) {
+		if (!parameters.hasPageableParameter() || getPageable() == null) {
+			return result;
+		}
 
-        if (hasNamedParameter(query) && parameter.isNamedParameter()) {
-            query.setParameter(parameter.getName(), value);
-        } else {
-            query.setParameter(position, value);
-        }
-    }
+		result.setFirstResult(getPageable().getOffset());
+		result.setMaxResults(getPageable().getPageSize());
 
+		return result;
+	}
 
-    /**
-     * Binds the parameters to the given query and applies special parameter
-     * types (e.g. pagination).
-     * 
-     * @param query
-     * @return
-     */
-    public Query bindAndPrepare(Query query) {
+	boolean hasNamedParameter(Query query) {
 
-        return bindAndPrepare(query, parameters);
-    }
-
-
-    private Query bindAndPrepare(Query query, Parameters parameters) {
-
-        Query result = bind(query);
-
-        if (!parameters.hasPageableParameter() || getPageable() == null) {
-            return result;
-        }
-
-        result.setFirstResult(getPageable().getOffset());
-        result.setMaxResults(getPageable().getPageSize());
-
-        return result;
-    }
-
-
-    boolean hasNamedParameter(Query query) {
-
-        return QueryUtils.hasNamedParameter(query);
-    }
+		return QueryUtils.hasNamedParameter(query);
+	}
 }

@@ -28,104 +28,91 @@ import org.springframework.data.repository.core.EntityInformation;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 
-
 /**
- * Implementation of {@link EntityInformation} that uses JPA {@link Metamodel}
- * to find the domain class' id field.
+ * Implementation of {@link EntityInformation} that uses JPA {@link Metamodel} to find the domain class' id field.
  * 
  * @author Oliver Gierke
  */
-public class JpaMetamodelEntityInformation<T, ID extends Serializable> extends
-        JpaEntityInformationSupport<T, ID> implements
-        JpaEntityInformation<T, ID> {
+public class JpaMetamodelEntityInformation<T, ID extends Serializable> extends JpaEntityInformationSupport<T, ID>
+		implements JpaEntityInformation<T, ID> {
 
-    private final SingularAttribute<? super T, ?> attribute;
+	private final SingularAttribute<? super T, ?> attribute;
 
+	/**
+	 * Creates a new {@link JpaMetamodelEntityInformation} for the given domain class and {@link Metamodel}.
+	 * 
+	 * @param domainClass
+	 * @param metamodel
+	 */
+	public JpaMetamodelEntityInformation(Class<T> domainClass, Metamodel metamodel) {
 
-    /**
-     * Creates a new {@link JpaMetamodelEntityInformation} for the given domain
-     * class and {@link Metamodel}.
-     * 
-     * @param domainClass
-     * @param metamodel
-     */
-    public JpaMetamodelEntityInformation(Class<T> domainClass,
-            Metamodel metamodel) {
+		super(domainClass);
 
-        super(domainClass);
+		Assert.notNull(metamodel);
+		EntityType<T> type = metamodel.entity(domainClass);
 
-        Assert.notNull(metamodel);
-        EntityType<T> type = metamodel.entity(domainClass);
+		if (type == null) {
+			throw new IllegalArgumentException("The given domain class can not be found in the given Metamodel!");
+		}
 
-        if (type == null) {
-            throw new IllegalArgumentException(
-                    "The given domain class can not be found in the given Metamodel!");
-        }
+		this.attribute = type.getId(type.getIdType().getJavaType());
+	}
 
-        this.attribute = type.getId(type.getIdType().getJavaType());
-    }
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.springframework.data.repository.support.IdAware#getId(java.lang.Object
+	 * )
+	 */
+	@SuppressWarnings("unchecked")
+	public ID getId(T entity) {
 
+		return (ID) getMemberValue(attribute.getJavaMember(), entity);
+	}
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.springframework.data.repository.support.IdAware#getId(java.lang.Object
-     * )
-     */
-    @SuppressWarnings("unchecked")
-    public ID getId(T entity) {
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.springframework.data.repository.support.EntityInformation#getIdType()
+	 */
+	@SuppressWarnings("unchecked")
+	public Class<ID> getIdType() {
 
-        return (ID) getMemberValue(attribute.getJavaMember(), entity);
-    }
+		return (Class<ID>) attribute.getJavaType();
+	}
 
+	/**
+	 * Returns the value of the given {@link Member} of the given {@link Object} .
+	 * 
+	 * @param member
+	 * @param source
+	 * @return
+	 */
+	private static Object getMemberValue(Member member, Object source) {
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.springframework.data.repository.support.EntityInformation#getIdType()
-     */
-    @SuppressWarnings("unchecked")
-    public Class<ID> getIdType() {
+		if (member instanceof Field) {
+			Field field = (Field) member;
+			ReflectionUtils.makeAccessible(field);
+			return ReflectionUtils.getField(field, source);
+		} else if (member instanceof Method) {
+			Method method = (Method) member;
+			ReflectionUtils.makeAccessible(method);
+			return ReflectionUtils.invokeMethod(method, source);
+		}
 
-        return (Class<ID>) attribute.getJavaType();
-    }
+		throw new IllegalArgumentException("Given member is neither Field nor Method!");
+	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.springframework.data.jpa.repository.support.JpaEntityMetadata#
+	 * getIdAttribute()
+	 */
+	public SingularAttribute<? super T, ?> getIdAttribute() {
 
-    /**
-     * Returns the value of the given {@link Member} of the given {@link Object}
-     * .
-     * 
-     * @param member
-     * @param source
-     * @return
-     */
-    private static Object getMemberValue(Member member, Object source) {
-
-        if (member instanceof Field) {
-            Field field = (Field) member;
-            ReflectionUtils.makeAccessible(field);
-            return ReflectionUtils.getField(field, source);
-        } else if (member instanceof Method) {
-            Method method = (Method) member;
-            ReflectionUtils.makeAccessible(method);
-            return ReflectionUtils.invokeMethod(method, source);
-        }
-
-        throw new IllegalArgumentException(
-                "Given member is neither Field nor Method!");
-    }
-
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.springframework.data.jpa.repository.support.JpaEntityMetadata#
-     * getIdAttribute()
-     */
-    public SingularAttribute<? super T, ?> getIdAttribute() {
-
-        return attribute;
-    }
+		return attribute;
+	}
 }

@@ -29,7 +29,6 @@ import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.ModifyingExecution;
 
-
 /**
  * Unit test for {@link QueryExecution}.
  * 
@@ -38,88 +37,79 @@ import org.springframework.data.jpa.repository.query.JpaQueryExecution.Modifying
 @RunWith(MockitoJUnitRunner.class)
 public class JpaQueryExecutionUnitTests {
 
-    @Mock
-    EntityManager em;
-    @Mock
-    AbstractStringBasedJpaQuery jpaQuery;
-    @Mock
-    Query query;
-    @Mock
-    JpaQueryMethod method;
+	@Mock
+	EntityManager em;
+	@Mock
+	AbstractStringBasedJpaQuery jpaQuery;
+	@Mock
+	Query query;
+	@Mock
+	JpaQueryMethod method;
 
+	@Test(expected = IllegalArgumentException.class)
+	public void rejectsNullQuery() {
 
-    @Test(expected = IllegalArgumentException.class)
-    public void rejectsNullQuery() {
+		new StubQueryExecution().execute(null, new Object[] {});
+	}
 
-        new StubQueryExecution().execute(null, new Object[] {});
-    }
+	@Test(expected = IllegalArgumentException.class)
+	public void rejectsNullBinder() throws Exception {
 
+		new StubQueryExecution().execute(jpaQuery, null);
+	}
 
-    @Test(expected = IllegalArgumentException.class)
-    public void rejectsNullBinder() throws Exception {
+	@Test
+	public void transformsNoResultExceptionToNull() {
 
-        new StubQueryExecution().execute(jpaQuery, null);
-    }
+		assertThat(new JpaQueryExecution() {
 
+			@Override
+			protected Object doExecute(AbstractJpaQuery query, Object[] values) {
 
-    @Test
-    public void transformsNoResultExceptionToNull() {
+				return null;
+			}
+		}.execute(jpaQuery, new Object[] {}), is(nullValue()));
+	}
 
-        assertThat(new JpaQueryExecution() {
+	@Test
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public void modifyingExecutionClearsEntityManagerIfSet() {
 
-            @Override
-            protected Object doExecute(AbstractJpaQuery query, Object[] values) {
+		when(query.executeUpdate()).thenReturn(0);
+		when(method.getReturnType()).thenReturn((Class) void.class);
+		when(jpaQuery.createQuery(Mockito.any(Object[].class))).thenReturn(query);
 
-                return null;
-            }
-        }.execute(jpaQuery, new Object[] {}), is(nullValue()));
-    }
+		ModifyingExecution execution = new ModifyingExecution(method, em);
+		execution.execute(jpaQuery, new Object[] {});
 
+		verify(em, times(1)).clear();
+	}
 
-    @Test
-    @SuppressWarnings({ "unchecked", "rawtypes" })
-    public void modifyingExecutionClearsEntityManagerIfSet() {
+	@Test
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public void allowsMethodReturnTypesForModifyingQuery() throws Exception {
 
-        when(query.executeUpdate()).thenReturn(0);
-        when(method.getReturnType()).thenReturn((Class) void.class);
-        when(jpaQuery.createQuery(Mockito.any(Object[].class))).thenReturn(
-                query);
+		when(method.getReturnType()).thenReturn((Class) void.class, (Class) int.class, (Class) Integer.class);
 
-        ModifyingExecution execution = new ModifyingExecution(method, em);
-        execution.execute(jpaQuery, new Object[] {});
+		new ModifyingExecution(method, em);
+		new ModifyingExecution(method, em);
+		new ModifyingExecution(method, em);
+	}
 
-        verify(em, times(1)).clear();
-    }
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@Test(expected = IllegalArgumentException.class)
+	public void modifyingExecutionRejectsNonIntegerOrVoidReturnType() throws Exception {
 
+		when(method.getReturnType()).thenReturn((Class) Long.class);
+		new ModifyingExecution(method, em);
+	}
 
-    @Test
-    @SuppressWarnings({ "unchecked", "rawtypes" })
-    public void allowsMethodReturnTypesForModifyingQuery() throws Exception {
+	static class StubQueryExecution extends JpaQueryExecution {
 
-        when(method.getReturnType()).thenReturn((Class) void.class,
-                (Class) int.class, (Class) Integer.class);
+		@Override
+		protected Object doExecute(AbstractJpaQuery query, Object[] values) {
 
-        new ModifyingExecution(method, em);
-        new ModifyingExecution(method, em);
-        new ModifyingExecution(method, em);
-    }
-
-
-    @SuppressWarnings({ "unchecked", "rawtypes" })
-    @Test(expected = IllegalArgumentException.class)
-    public void modifyingExecutionRejectsNonIntegerOrVoidReturnType()
-            throws Exception {
-
-        when(method.getReturnType()).thenReturn((Class) Long.class);
-        new ModifyingExecution(method, em);
-    }
-
-    static class StubQueryExecution extends JpaQueryExecution {
-
-        @Override
-        protected Object doExecute(AbstractJpaQuery query, Object[] values) {
-
-            return null;
-        }
-    }
+			return null;
+		}
+	}
 }

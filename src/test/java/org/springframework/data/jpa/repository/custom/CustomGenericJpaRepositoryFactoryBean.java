@@ -23,25 +23,24 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean;
 import org.springframework.data.repository.core.support.RepositoryFactorySupport;
 
-
 /**
  * {@link JpaRepositoryFactoryBean} to return a custom repository base class.
  * 
  * @author Gil Markham
  * @author Oliver Gierke
  */
-public class CustomGenericJpaRepositoryFactoryBean<T extends JpaRepository<Object, Serializable>>
-        extends JpaRepositoryFactoryBean<T, Object, Serializable> {
+public class CustomGenericJpaRepositoryFactoryBean<T extends JpaRepository<Object, Serializable>> extends
+		JpaRepositoryFactoryBean<T, Object, Serializable> {
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.springframework.data.jpa.repository.support.
-     * GenericJpaRepositoryFactoryBean#getFactory()
-     */
-    @Override
-    protected RepositoryFactorySupport createRepositoryFactory(EntityManager em) {
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.springframework.data.jpa.repository.support.
+	 * GenericJpaRepositoryFactoryBean#getFactory()
+	 */
+	@Override
+	protected RepositoryFactorySupport createRepositoryFactory(EntityManager em) {
 
-        return new CustomGenericJpaRepositoryFactory(em);
-    }
+		return new CustomGenericJpaRepositoryFactory(em);
+	}
 }

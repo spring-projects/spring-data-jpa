@@ -29,117 +29,99 @@ import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.RepositoryQuery;
 
-
 /**
- * {@link RepositoryQuery} implementation that inspects a {@link QueryMethod}
- * for the existanve of an {@link org.springframework.data.jpa.repository.Query}
- * annotation and creates a JPA {@link Query} from it.
+ * {@link RepositoryQuery} implementation that inspects a {@link QueryMethod} for the existanve of an
+ * {@link org.springframework.data.jpa.repository.Query} annotation and creates a JPA {@link Query} from it.
  * 
  * @author Oliver Gierke
  */
 final class SimpleJpaQuery extends AbstractJpaQuery {
 
-    private static final Logger LOG = LoggerFactory
-            .getLogger(SimpleJpaQuery.class);
+	private static final Logger LOG = LoggerFactory.getLogger(SimpleJpaQuery.class);
 
-    private final String queryString;
-    private final String countQuery;
-    private final String alias;
-    private final List<QueryHint> hints;
-    private final Parameters parameters;
+	private final String queryString;
+	private final String countQuery;
+	private final String alias;
+	private final List<QueryHint> hints;
+	private final Parameters parameters;
 
+	/**
+	 * Creates a new {@link SimpleJpaQuery} that encapsulates a simple query string.
+	 */
+	SimpleJpaQuery(JpaQueryMethod method, EntityManager em, String queryString) {
 
-    /**
-     * Creates a new {@link SimpleJpaQuery} that encapsulates a simple query
-     * string.
-     */
-    SimpleJpaQuery(JpaQueryMethod method, EntityManager em, String queryString) {
+		super(method, em);
+		this.queryString = queryString;
+		this.alias = QueryUtils.detectAlias(queryString);
+		this.hints = method.getHints();
+		this.parameters = method.getParameters();
+		this.countQuery = method.getCountQuery() == null ? QueryUtils.createCountQueryFor(queryString) : method
+				.getCountQuery();
 
-        super(method, em);
-        this.queryString = queryString;
-        this.alias = QueryUtils.detectAlias(queryString);
-        this.hints = method.getHints();
-        this.parameters = method.getParameters();
-        this.countQuery =
-                method.getCountQuery() == null ? QueryUtils
-                        .createCountQueryFor(queryString) : method
-                        .getCountQuery();
+		// Try to create a
+		em.createQuery(queryString);
+	}
 
-        // Try to create a
-        em.createQuery(queryString);
-    }
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.springframework.data.jpa.repository.query.AbstractStringBasedJpaQuery
+	 * #
+	 * createQuery(org.springframework.data.jpa.repository.query.ParameterBinder
+	 * )
+	 */
+	@Override
+	public Query createQuery(Object[] values) {
 
+		ParameterAccessor accessor = new ParametersParameterAccessor(parameters, values);
+		String sortedQueryString = QueryUtils.applySorting(queryString, accessor.getSort(), alias);
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.springframework.data.jpa.repository.query.AbstractStringBasedJpaQuery
-     * #
-     * createQuery(org.springframework.data.jpa.repository.query.ParameterBinder
-     * )
-     */
-    @Override
-    public Query createQuery(Object[] values) {
+		Query query = getEntityManager().createQuery(sortedQueryString);
+		return createBinder(values).bindAndPrepare(applyHints(query));
+	}
 
-        ParameterAccessor accessor =
-                new ParametersParameterAccessor(parameters, values);
-        String sortedQueryString =
-                QueryUtils.applySorting(queryString, accessor.getSort(), alias);
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.springframework.data.jpa.repository.query.AbstractJpaQuery#
+	 * createCountQuery(java.lang.Object[])
+	 */
+	@Override
+	protected Query createCountQuery(Object[] values) {
 
-        Query query = getEntityManager().createQuery(sortedQueryString);
-        return createBinder(values).bindAndPrepare(applyHints(query));
-    }
+		return createBinder(values).bind(applyHints(getEntityManager().createQuery(countQuery)));
+	}
 
+	/**
+	 * Applies the declared query hints to the given query.
+	 * 
+	 * @param query
+	 * @return
+	 */
+	private Query applyHints(Query query) {
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.springframework.data.jpa.repository.query.AbstractJpaQuery#
-     * createCountQuery(java.lang.Object[])
-     */
-    @Override
-    protected Query createCountQuery(Object[] values) {
+		for (QueryHint hint : hints) {
+			query.setHint(hint.name(), hint.value());
+		}
 
-        return createBinder(values).bind(
-                applyHints(getEntityManager().createQuery(countQuery)));
-    }
+		return query;
+	}
 
+	/**
+	 * Creates a {@link RepositoryQuery} from the given {@link QueryMethod} that is potentially annotated with
+	 * {@link org.springframework.data.jpa.repository.Query}.
+	 * 
+	 * @param queryMethod
+	 * @param em
+	 * @return the {@link RepositoryQuery} derived from the annotation or {@code null} if no annotation found.
+	 */
+	public static RepositoryQuery fromQueryAnnotation(JpaQueryMethod queryMethod, EntityManager em) {
 
-    /**
-     * Applies the declared query hints to the given query.
-     * 
-     * @param query
-     * @return
-     */
-    private Query applyHints(Query query) {
+		LOG.debug("Looking up query for method {}", queryMethod.getName());
 
-        for (QueryHint hint : hints) {
-            query.setHint(hint.name(), hint.value());
-        }
+		String query = queryMethod.getAnnotatedQuery();
 
-        return query;
-    }
-
-
-    /**
-     * Creates a {@link RepositoryQuery} from the given {@link QueryMethod} that
-     * is potentially annotated with
-     * {@link org.springframework.data.jpa.repository.Query}.
-     * 
-     * @param queryMethod
-     * @param em
-     * @return the {@link RepositoryQuery} derived from the annotation or
-     *         {@code null} if no annotation found.
-     */
-    public static RepositoryQuery fromQueryAnnotation(
-            JpaQueryMethod queryMethod, EntityManager em) {
-
-        LOG.debug("Looking up query for method {}", queryMethod.getName());
-
-        String query = queryMethod.getAnnotatedQuery();
-
-        return query == null ? null
-                : new SimpleJpaQuery(queryMethod, em, query);
-    }
+		return query == null ? null : new SimpleJpaQuery(queryMethod, em, query);
+	}
 }

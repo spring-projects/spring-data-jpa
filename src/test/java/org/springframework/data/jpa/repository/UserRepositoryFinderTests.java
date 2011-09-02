@@ -36,10 +36,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
-
 /**
- * Integration test for executing finders, thus testing various query lookup
- * strategies.
+ * Integration test for executing finders, thus testing various query lookup strategies.
  * 
  * @see QueryLookupStrategy
  * @author Oliver Gierke
@@ -49,145 +47,128 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class UserRepositoryFinderTests {
 
-    @Autowired
-    UserRepository userRepository;
+	@Autowired
+	UserRepository userRepository;
 
-    User dave, carter, oliver;
+	User dave, carter, oliver;
 
+	@Before
+	public void setUp() {
 
-    @Before
-    public void setUp() {
+		// This one matches both criterias
+		dave = new User("Dave", "Matthews", "dave@dmband.com");
+		userRepository.save(dave);
 
-        // This one matches both criterias
-        dave = new User("Dave", "Matthews", "dave@dmband.com");
-        userRepository.save(dave);
+		// This one matches only the second one
+		carter = new User("Carter", "Beauford", "carter@dmband.com");
+		userRepository.save(carter);
 
-        // This one matches only the second one
-        carter = new User("Carter", "Beauford", "carter@dmband.com");
-        userRepository.save(carter);
+		oliver = new User("Oliver August", "Matthews", "oliver@dmband.com");
+		userRepository.save(oliver);
+	}
 
-        oliver = new User("Oliver August", "Matthews", "oliver@dmband.com");
-        userRepository.save(oliver);
-    }
+	/**
+	 * Tests creation of a simple query.
+	 */
+	@Test
+	public void testSimpleCustomCreatedFinder() {
 
+		User user = userRepository.findByEmailAddressAndLastname("dave@dmband.com", "Matthews");
+		assertEquals(dave, user);
+	}
 
-    /**
-     * Tests creation of a simple query.
-     */
-    @Test
-    public void testSimpleCustomCreatedFinder() {
+	/**
+	 * Tests that the repository returns {@code null} for not found objects for finder methods that return a single domain
+	 * object.
+	 */
+	@Test
+	public void returnsNullIfNothingFound() {
 
-        User user =
-                userRepository.findByEmailAddressAndLastname("dave@dmband.com",
-                        "Matthews");
-        assertEquals(dave, user);
-    }
+		User user = userRepository.findByEmailAddress("foobar");
+		assertEquals(null, user);
+	}
 
+	/**
+	 * Tests creation of a simple query consisting of {@code AND} and {@code OR} parts.
+	 */
+	@Test
+	public void testAndOrFinder() {
 
-    /**
-     * Tests that the repository returns {@code null} for not found objects for
-     * finder methods that return a single domain object.
-     */
-    @Test
-    public void returnsNullIfNothingFound() {
+		List<User> users = userRepository.findByEmailAddressAndLastnameOrFirstname("dave@dmband.com", "Matthews", "Carter");
 
-        User user = userRepository.findByEmailAddress("foobar");
-        assertEquals(null, user);
-    }
+		assertNotNull(users);
+		assertEquals(2, users.size());
+		assertTrue(users.contains(dave));
+		assertTrue(users.contains(carter));
+	}
 
+	@Test
+	public void executesPagingMethodToPageCorrectly() {
 
-    /**
-     * Tests creation of a simple query consisting of {@code AND} and {@code OR}
-     * parts.
-     */
-    @Test
-    public void testAndOrFinder() {
+		Page<User> page = userRepository.findByLastname(new PageRequest(0, 1), "Matthews");
+		assertThat(page.getNumberOfElements(), is(1));
+		assertThat(page.getTotalElements(), is(2L));
+		assertThat(page.getTotalPages(), is(2));
+	}
 
-        List<User> users =
-                userRepository.findByEmailAddressAndLastnameOrFirstname(
-                        "dave@dmband.com", "Matthews", "Carter");
+	@Test
+	public void executesPagingMethodToListCorrectly() {
 
-        assertNotNull(users);
-        assertEquals(2, users.size());
-        assertTrue(users.contains(dave));
-        assertTrue(users.contains(carter));
-    }
+		List<User> list = userRepository.findByFirstname("Carter", new PageRequest(0, 1));
+		assertThat(list.size(), is(1));
+	}
 
+	@Test
+	public void executesInKeywordForPageCorrectly() {
 
-    @Test
-    public void executesPagingMethodToPageCorrectly() {
+		Page<User> page = userRepository.findByFirstnameIn(new PageRequest(0, 1), "Dave", "Oliver August");
 
-        Page<User> page =
-                userRepository
-                        .findByLastname(new PageRequest(0, 1), "Matthews");
-        assertThat(page.getNumberOfElements(), is(1));
-        assertThat(page.getTotalElements(), is(2L));
-        assertThat(page.getTotalPages(), is(2));
-    }
+		assertThat(page.getNumberOfElements(), is(1));
+		assertThat(page.getTotalElements(), is(2L));
+		assertThat(page.getTotalPages(), is(2));
+	}
 
+	@Test
+	public void executesNotInQueryCorrectly() throws Exception {
 
-    @Test
-    public void executesPagingMethodToListCorrectly() {
+		List<User> result = userRepository.findByFirstnameNotIn(Arrays.asList("Dave", "Carter"));
+		assertThat(result.size(), is(1));
+		assertThat(result.get(0), is(oliver));
+	}
 
-        List<User> list =
-                userRepository.findByFirstname("Carter", new PageRequest(0, 1));
-        assertThat(list.size(), is(1));
-    }
-
-
-    @Test
-    public void executesInKeywordForPageCorrectly() {
-
-        Page<User> page =
-                userRepository.findByFirstnameIn(new PageRequest(0, 1), "Dave",
-                        "Oliver August");
-
-        assertThat(page.getNumberOfElements(), is(1));
-        assertThat(page.getTotalElements(), is(2L));
-        assertThat(page.getTotalPages(), is(2));
-    }
-
-
-    @Test
-    public void executesNotInQueryCorrectly() throws Exception {
-
-        List<User> result =
-                userRepository.findByFirstnameNotIn(Arrays.asList("Dave",
-                        "Carter"));
-        assertThat(result.size(), is(1));
-        assertThat(result.get(0), is(oliver));
-    }
-    
-    @Test
+	@Test
 	public void findsByLastnameIgnoringCase() throws Exception {
-    	List<User> result = userRepository.findByLastnameIgnoringCase("BeAUfoRd");
-        assertThat(result.size(), is(1));
-        assertThat(result.get(0), is(carter));
-	}
-    
-    @Test
-	public void findsByLastnameIgnoringCaseLike() throws Exception {
-    	List<User> result = userRepository.findByLastnameIgnoringCaseLike("BeAUfo%");
-        assertThat(result.size(), is(1));
-        assertThat(result.get(0), is(carter));
-	}
-    
-    @Test
-	public void findByLastnameAndFirstnameAllIgnoringCase() throws Exception {
-    	List<User> result = userRepository.findByLastnameAndFirstnameAllIgnoringCase("MaTTheWs","DaVe");
-        assertThat(result.size(), is(1));
-        assertThat(result.get(0), is(dave));
+		List<User> result = userRepository.findByLastnameIgnoringCase("BeAUfoRd");
+		assertThat(result.size(), is(1));
+		assertThat(result.get(0), is(carter));
 	}
 
-    @Test
+	@Test
+	public void findsByLastnameIgnoringCaseLike() throws Exception {
+		List<User> result = userRepository.findByLastnameIgnoringCaseLike("BeAUfo%");
+		assertThat(result.size(), is(1));
+		assertThat(result.get(0), is(carter));
+	}
+
+	@Test
+	public void findByLastnameAndFirstnameAllIgnoringCase() throws Exception {
+		List<User> result = userRepository.findByLastnameAndFirstnameAllIgnoringCase("MaTTheWs", "DaVe");
+		assertThat(result.size(), is(1));
+		assertThat(result.get(0), is(dave));
+	}
+
+	@Test
 	public void respectsPageableOrderOnQueryGenerateFromMethodName() throws Exception {
-		Page<User> ascending = userRepository.findByLastnameIgnoringCase(new PageRequest(0, 10, new Sort(Direction.ASC, "firstname")),"Matthews");
-		Page<User> descending = userRepository.findByLastnameIgnoringCase(new PageRequest(0, 10, new Sort(Direction.DESC, "firstname")),"Matthews");
+		Page<User> ascending = userRepository.findByLastnameIgnoringCase(new PageRequest(0, 10, new Sort(Direction.ASC,
+				"firstname")), "Matthews");
+		Page<User> descending = userRepository.findByLastnameIgnoringCase(new PageRequest(0, 10, new Sort(Direction.DESC,
+				"firstname")), "Matthews");
 		assertThat(ascending.getTotalElements(), is(2L));
 		assertThat(descending.getTotalElements(), is(2L));
-		assertThat(ascending.getContent().get(0).getFirstname(), is(not(equalTo(descending.getContent().get(0).getFirstname()))));
+		assertThat(ascending.getContent().get(0).getFirstname(), is(not(equalTo(descending.getContent().get(0)
+				.getFirstname()))));
 		assertThat(ascending.getContent().get(0).getFirstname(), is(equalTo(descending.getContent().get(1).getFirstname())));
 		assertThat(ascending.getContent().get(1).getFirstname(), is(equalTo(descending.getContent().get(0).getFirstname())));
 	}
-    
+
 }

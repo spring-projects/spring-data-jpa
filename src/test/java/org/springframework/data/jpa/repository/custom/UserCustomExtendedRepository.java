@@ -20,28 +20,24 @@ import java.util.List;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.transaction.annotation.Transactional;
 
-
 /**
- * Custom Extended repository interface for a {@code User}. This relies on the
- * custom intermediate repository interface {@link CustomGenericRepository}.
+ * Custom Extended repository interface for a {@code User}. This relies on the custom intermediate repository interface
+ * {@link CustomGenericRepository}.
  * 
  * @author Oliver Gierke
  */
-public interface UserCustomExtendedRepository extends
-        CustomGenericRepository<User, Integer> {
+public interface UserCustomExtendedRepository extends CustomGenericRepository<User, Integer> {
 
-    /**
-     * Sample method to test reconfiguring transactions on CRUD methods in
-     * combination with custom factory.
-     * 
-     * @see #421
-     */
+	/**
+	 * Sample method to test reconfiguring transactions on CRUD methods in combination with custom factory.
+	 * 
+	 * @see #421
+	 */
 
-    @Transactional(readOnly = false, timeout = 10)
-    List<User> findAll();
+	@Transactional(readOnly = false, timeout = 10)
+	List<User> findAll();
 
-
-    @Transactional(readOnly = false, timeout = 10)
-    User findOne(Integer id);
+	@Transactional(readOnly = false, timeout = 10)
+	User findOne(Integer id);
 
 }

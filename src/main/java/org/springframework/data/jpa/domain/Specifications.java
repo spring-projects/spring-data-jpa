@@ -20,7 +20,6 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
-
 /**
  * Helper class to easily combine {@link Specification} instances.
  * 
@@ -28,106 +27,92 @@ import javax.persistence.criteria.Root;
  */
 public class Specifications<T> implements Specification<T> {
 
-    private final Specification<T> spec;
+	private final Specification<T> spec;
 
+	/**
+	 * Creates a new {@link Specifications} wrapper for the given {@link Specification}.
+	 * 
+	 * @param spec
+	 */
+	private Specifications(Specification<T> spec) {
 
-    /**
-     * Creates a new {@link Specifications} wrapper for the given
-     * {@link Specification}.
-     * 
-     * @param spec
-     */
-    private Specifications(Specification<T> spec) {
+		this.spec = spec;
+	}
 
-        this.spec = spec;
-    }
+	/**
+	 * Simple static factory method to add some syntactic sugar around a {@link Specification}.
+	 * 
+	 * @param <T>
+	 * @param spec
+	 * @return
+	 */
+	public static <T> Specifications<T> where(Specification<T> spec) {
 
+		return new Specifications<T>(spec);
+	}
 
-    /**
-     * Simple static factory method to add some syntactic sugar around a
-     * {@link Specification}.
-     * 
-     * @param <T>
-     * @param spec
-     * @return
-     */
-    public static <T> Specifications<T> where(Specification<T> spec) {
+	/**
+	 * ANDs the given {@link Specification} to the current one.
+	 * 
+	 * @param other
+	 * @return
+	 */
+	public Specifications<T> and(final Specification<T> other) {
 
-        return new Specifications<T>(spec);
-    }
+		return new Specifications<T>(new Specification<T>() {
 
+			public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder builder) {
 
-    /**
-     * ANDs the given {@link Specification} to the current one.
-     * 
-     * @param other
-     * @return
-     */
-    public Specifications<T> and(final Specification<T> other) {
+				return builder.and(spec.toPredicate(root, query, builder), other.toPredicate(root, query, builder));
+			}
+		});
+	}
 
-        return new Specifications<T>(new Specification<T>() {
+	/**
+	 * ORs the given specification to the current one.
+	 * 
+	 * @param other
+	 * @return
+	 */
+	public Specifications<T> or(final Specification<T> other) {
 
-            public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query,
-                    CriteriaBuilder builder) {
+		return new Specifications<T>(new Specification<T>() {
 
-                return builder.and(spec.toPredicate(root, query, builder),
-                        other.toPredicate(root, query, builder));
-            }
-        });
-    }
+			public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder builder) {
 
+				return builder.or(spec.toPredicate(root, query, builder), other.toPredicate(root, query, builder));
+			}
+		});
+	}
 
-    /**
-     * ORs the given specification to the current one.
-     * 
-     * @param other
-     * @return
-     */
-    public Specifications<T> or(final Specification<T> other) {
+	/**
+	 * Negates the given {@link Specification}.
+	 * 
+	 * @param <T>
+	 * @param spec
+	 * @return
+	 */
+	public static <T> Specifications<T> not(final Specification<T> spec) {
 
-        return new Specifications<T>(new Specification<T>() {
+		return new Specifications<T>(spec) {
 
-            public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query,
-                    CriteriaBuilder builder) {
+			@Override
+			public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder builder) {
 
-                return builder.or(spec.toPredicate(root, query, builder),
-                        other.toPredicate(root, query, builder));
-            }
-        });
-    }
+				return builder.not(spec.toPredicate(root, query, builder));
+			}
+		};
+	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.springframework.data.jpa.domain.Specification#toPredicate(javax.
+	 * persistence.criteria.Root, javax.persistence.criteria.CriteriaQuery,
+	 * javax.persistence.criteria.CriteriaBuilder)
+	 */
+	public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder builder) {
 
-    /**
-     * Negates the given {@link Specification}.
-     * 
-     * @param <T>
-     * @param spec
-     * @return
-     */
-    public static <T> Specifications<T> not(final Specification<T> spec) {
-
-        return new Specifications<T>(spec) {
-
-            @Override
-            public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query,
-                    CriteriaBuilder builder) {
-
-                return builder.not(spec.toPredicate(root, query, builder));
-            }
-        };
-    }
-
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.springframework.data.jpa.domain.Specification#toPredicate(javax.
-     * persistence.criteria.Root, javax.persistence.criteria.CriteriaQuery,
-     * javax.persistence.criteria.CriteriaBuilder)
-     */
-    public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query,
-            CriteriaBuilder builder) {
-
-        return spec.toPredicate(root, query, builder);
-    }
+		return spec.toPredicate(root, query, builder);
+	}
 }

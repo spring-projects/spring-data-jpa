@@ -33,7 +33,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
-
 /**
  * Integration test for {@link JpaRepository}.
  * 
@@ -44,37 +43,31 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class JpaRepositoryTests {
 
-    @PersistenceContext
-    EntityManager em;
+	@PersistenceContext
+	EntityManager em;
 
-    JpaRepository<SampleEntity, SampleEntityPK> repository;
+	JpaRepository<SampleEntity, SampleEntityPK> repository;
 
+	@Before
+	public void setUp() {
 
-    @Before
-    public void setUp() {
+		repository = new JpaRepositoryFactory(em).getRepository(SampleEntityRepository.class);
+	}
 
-        repository =
-                new JpaRepositoryFactory(em)
-                        .getRepository(SampleEntityRepository.class);
-    }
+	@Test
+	public void testCrudOperationsForCompoundKeyEntity() throws Exception {
 
+		SampleEntity entity = new SampleEntity("foo", "bar");
+		repository.saveAndFlush(entity);
+		assertThat(repository.count(), is(1L));
+		assertThat(repository.findOne(new SampleEntityPK("foo", "bar")), is(entity));
 
-    @Test
-    public void testCrudOperationsForCompoundKeyEntity() throws Exception {
+		repository.delete(Arrays.asList(entity));
+		repository.flush();
+		assertThat(repository.count(), is(0L));
+	}
 
-        SampleEntity entity = new SampleEntity("foo", "bar");
-        repository.saveAndFlush(entity);
-        assertThat(repository.count(), is(1L));
-        assertThat(repository.findOne(new SampleEntityPK("foo", "bar")),
-                is(entity));
+	private static interface SampleEntityRepository extends JpaRepository<SampleEntity, SampleEntityPK> {
 
-        repository.delete(Arrays.asList(entity));
-        repository.flush();
-        assertThat(repository.count(), is(0L));
-    }
-
-    private static interface SampleEntityRepository extends
-            JpaRepository<SampleEntity, SampleEntityPK> {
-
-    }
+	}
 }

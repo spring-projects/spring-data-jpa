@@ -21,24 +21,21 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.CrudRepository;
 
-
 /**
- * Extension of {@link CrudRepository} to be added on a custom repository base
- * class. This tests the facility to implement custom base class functionality
- * for all repository instances derived from this interface and implementation
+ * Extension of {@link CrudRepository} to be added on a custom repository base class. This tests the facility to
+ * implement custom base class functionality for all repository instances derived from this interface and implementation
  * base class.
  * 
  * @author Oliver Gierke
  */
 @NoRepositoryBean
-public interface CustomGenericRepository<T, ID extends Serializable> extends
-        JpaRepository<T, ID> {
+public interface CustomGenericRepository<T, ID extends Serializable> extends JpaRepository<T, ID> {
 
-    /**
-     * Custom sample method.
-     * 
-     * @param id
-     * @return
-     */
-    T customMethod(ID id);
+	/**
+	 * Custom sample method.
+	 * 
+	 * @param id
+	 * @return
+	 */
+	T customMethod(ID id);
 }

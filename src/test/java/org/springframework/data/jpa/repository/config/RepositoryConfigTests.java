@@ -17,7 +17,6 @@ package org.springframework.data.jpa.repository.config;
 
 import org.springframework.test.context.ContextConfiguration;
 
-
 /**
  * Integration test for repository namespace configuration.
  * 

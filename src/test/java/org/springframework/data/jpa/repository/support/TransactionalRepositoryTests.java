@@ -31,123 +31,103 @@ import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionException;
 import org.springframework.transaction.TransactionStatus;
 
-
 /**
  * Integration test for transactional behaviour of repository operations.
  * 
  * @author Oliver Gierke
  */
-@ContextConfiguration({ "classpath:config/namespace-autoconfig-context.xml",
-        "classpath:tx-manager.xml" })
-public class TransactionalRepositoryTests extends
-        AbstractJUnit4SpringContextTests {
+@ContextConfiguration({ "classpath:config/namespace-autoconfig-context.xml", "classpath:tx-manager.xml" })
+public class TransactionalRepositoryTests extends AbstractJUnit4SpringContextTests {
 
-    @Autowired
-    UserRepository repository;
+	@Autowired
+	UserRepository repository;
 
-    @Autowired
-    DelegatingTransactionManager transactionManager;
+	@Autowired
+	DelegatingTransactionManager transactionManager;
 
+	@Before
+	public void setUp() {
 
-    @Before
-    public void setUp() {
+		transactionManager.resetCount();
+	}
 
-        transactionManager.resetCount();
-    }
+	@After
+	public void tearDown() {
 
+		repository.deleteAll();
+	}
 
-    @After
-    public void tearDown() {
+	@Test
+	public void simpleManipulatingOperation() throws Exception {
 
-        repository.deleteAll();
-    }
+		repository.saveAndFlush(new User("foo", "bar", "foo@bar.de"));
+		assertThat(transactionManager.getTransactionRequests(), is(1));
+	}
 
+	@Test
+	public void unannotatedFinder() throws Exception {
 
-    @Test
-    public void simpleManipulatingOperation() throws Exception {
+		repository.findByEmailAddress("foo@bar.de");
+		assertThat(transactionManager.getTransactionRequests(), is(0));
+	}
 
-        repository.saveAndFlush(new User("foo", "bar", "foo@bar.de"));
-        assertThat(transactionManager.getTransactionRequests(), is(1));
-    }
+	@Test
+	public void invokeTransactionalFinder() throws Exception {
 
+		repository.findByAnnotatedQuery("foo@bar.de");
+		assertThat(transactionManager.getTransactionRequests(), is(1));
+	}
 
-    @Test
-    public void unannotatedFinder() throws Exception {
+	@Test
+	public void invokeRedeclaredMethod() throws Exception {
 
-        repository.findByEmailAddress("foo@bar.de");
-        assertThat(transactionManager.getTransactionRequests(), is(0));
-    }
+		repository.findOne(1);
+		assertFalse(transactionManager.getDefinition().isReadOnly());
+	}
 
+	public static class DelegatingTransactionManager implements PlatformTransactionManager {
 
-    @Test
-    public void invokeTransactionalFinder() throws Exception {
+		private PlatformTransactionManager txManager;
+		private int transactionRequests;
+		private TransactionDefinition definition;
 
-        repository.findByAnnotatedQuery("foo@bar.de");
-        assertThat(transactionManager.getTransactionRequests(), is(1));
-    }
+		public DelegatingTransactionManager(PlatformTransactionManager txManager) {
 
+			this.txManager = txManager;
+		}
 
-    @Test
-    public void invokeRedeclaredMethod() throws Exception {
+		public void commit(TransactionStatus status) throws TransactionException {
 
-        repository.findOne(1);
-        assertFalse(transactionManager.getDefinition().isReadOnly());
-    }
+			txManager.commit(status);
+		}
 
-    public static class DelegatingTransactionManager implements
-            PlatformTransactionManager {
+		public TransactionStatus getTransaction(TransactionDefinition definition) throws TransactionException {
 
-        private PlatformTransactionManager txManager;
-        private int transactionRequests;
-        private TransactionDefinition definition;
+			this.transactionRequests++;
+			this.definition = definition;
 
+			return txManager.getTransaction(definition);
+		}
 
-        public DelegatingTransactionManager(PlatformTransactionManager txManager) {
+		public int getTransactionRequests() {
 
-            this.txManager = txManager;
-        }
+			return transactionRequests;
+		}
 
+		public TransactionDefinition getDefinition() {
 
-        public void commit(TransactionStatus status)
-                throws TransactionException {
+			return definition;
+		}
 
-            txManager.commit(status);
-        }
+		public void resetCount() {
 
+			this.transactionRequests = 0;
+			this.definition = null;
+		}
 
-        public TransactionStatus getTransaction(TransactionDefinition definition)
-                throws TransactionException {
+		public void rollback(TransactionStatus status) throws TransactionException {
 
-            this.transactionRequests++;
-            this.definition = definition;
-
-            return txManager.getTransaction(definition);
-        }
-
-
-        public int getTransactionRequests() {
-
-            return transactionRequests;
-        }
-
-
-        public TransactionDefinition getDefinition() {
-
-            return definition;
-        }
-
-
-        public void resetCount() {
-
-            this.transactionRequests = 0;
-            this.definition = null;
-        }
-
-
-        public void rollback(TransactionStatus status)
-                throws TransactionException {
-
-            txManager.rollback(status);
-        }
-    }
+			txManager.rollback(status);
+		}
+	}
 }

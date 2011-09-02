@@ -38,7 +38,6 @@ import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.core.support.DefaultRepositoryMetadata;
 import org.springframework.data.repository.query.QueryMethod;
 
-
 /**
  * Unit test for {@link QueryMethod}.
  * 
@@ -47,230 +46,175 @@ import org.springframework.data.repository.query.QueryMethod;
 @RunWith(MockitoJUnitRunner.class)
 public class JpaQueryMethodUnitTests {
 
-    static final Class<?> DOMAIN_CLASS = User.class;
-    static final String METHOD_NAME = "findByFirstname";
+	static final Class<?> DOMAIN_CLASS = User.class;
+	static final String METHOD_NAME = "findByFirstname";
 
-    @Mock
-    QueryExtractor extractor;
-    @Mock
-    RepositoryMetadata metadata;
+	@Mock
+	QueryExtractor extractor;
+	@Mock
+	RepositoryMetadata metadata;
 
-    Method repositoryMethod, invalidReturnType, pageableAndSort, pageableTwice,
-            sortableTwice, modifyingMethod;
+	Method repositoryMethod, invalidReturnType, pageableAndSort, pageableTwice, sortableTwice, modifyingMethod;
 
+	/**
+	 * @throws Exception
+	 */
+	@Before
+	public void setUp() throws Exception {
 
-    /**
-     * @throws Exception
-     */
-    @Before
-    public void setUp() throws Exception {
+		repositoryMethod = UserRepository.class.getMethod("findByLastname", String.class);
 
-        repositoryMethod =
-                UserRepository.class.getMethod("findByLastname", String.class);
+		invalidReturnType = InvalidRepository.class.getMethod(METHOD_NAME, String.class, Pageable.class);
+		pageableAndSort = InvalidRepository.class.getMethod(METHOD_NAME, String.class, Pageable.class, Sort.class);
+		pageableTwice = InvalidRepository.class.getMethod(METHOD_NAME, String.class, Pageable.class, Pageable.class);
 
-        invalidReturnType =
-                InvalidRepository.class.getMethod(METHOD_NAME, String.class,
-                        Pageable.class);
-        pageableAndSort =
-                InvalidRepository.class.getMethod(METHOD_NAME, String.class,
-                        Pageable.class, Sort.class);
-        pageableTwice =
-                InvalidRepository.class.getMethod(METHOD_NAME, String.class,
-                        Pageable.class, Pageable.class);
+		sortableTwice = InvalidRepository.class.getMethod(METHOD_NAME, String.class, Sort.class, Sort.class);
+		modifyingMethod = UserRepository.class.getMethod("renameAllUsersTo", String.class);
+	}
 
-        sortableTwice =
-                InvalidRepository.class.getMethod(METHOD_NAME, String.class,
-                        Sort.class, Sort.class);
-        modifyingMethod =
-                UserRepository.class
-                        .getMethod("renameAllUsersTo", String.class);
-    }
+	@Test
+	public void testname() {
 
+		JpaQueryMethod method = new JpaQueryMethod(repositoryMethod, metadata, extractor);
 
-    @Test
-    public void testname() {
+		assertEquals("User.findByLastname", method.getNamedQueryName());
+		assertThat(method.isCollectionQuery(), is(true));
+	}
 
-        JpaQueryMethod method =
-                new JpaQueryMethod(repositoryMethod, metadata, extractor);
+	@Test(expected = IllegalArgumentException.class)
+	public void preventsNullRepositoryMethod() {
 
-        assertEquals("User.findByLastname", method.getNamedQueryName());
-        assertThat(method.isCollectionQuery(), is(true));
-    }
+		new JpaQueryMethod(null, metadata, extractor);
+	}
 
+	@Test(expected = IllegalArgumentException.class)
+	public void preventsNullQueryExtractor() {
 
-    @Test(expected = IllegalArgumentException.class)
-    public void preventsNullRepositoryMethod() {
+		new JpaQueryMethod(repositoryMethod, metadata, null);
+	}
 
-        new JpaQueryMethod(null, metadata, extractor);
-    }
+	@Test
+	public void returnsCorrectName() {
 
+		JpaQueryMethod method = new JpaQueryMethod(repositoryMethod, metadata, extractor);
+		assertEquals(repositoryMethod.getName(), method.getName());
+	}
 
-    @Test(expected = IllegalArgumentException.class)
-    public void preventsNullQueryExtractor() {
+	@Test
+	public void returnsQueryIfAvailable() throws Exception {
 
-        new JpaQueryMethod(repositoryMethod, metadata, null);
-    }
+		JpaQueryMethod method = new JpaQueryMethod(repositoryMethod, metadata, extractor);
 
+		assertNull(method.getAnnotatedQuery());
 
-    @Test
-    public void returnsCorrectName() {
+		Method repositoryMethod = UserRepository.class.getMethod("findByAnnotatedQuery", String.class);
 
-        JpaQueryMethod method =
-                new JpaQueryMethod(repositoryMethod, metadata, extractor);
-        assertEquals(repositoryMethod.getName(), method.getName());
-    }
+		assertNotNull(new JpaQueryMethod(repositoryMethod, metadata, extractor).getAnnotatedQuery());
+	}
 
+	@Test(expected = IllegalStateException.class)
+	public void rejectsInvalidReturntypeOnPagebleFinder() {
 
-    @Test
-    public void returnsQueryIfAvailable() throws Exception {
+		new JpaQueryMethod(invalidReturnType, metadata, extractor);
+	}
 
-        JpaQueryMethod method =
-                new JpaQueryMethod(repositoryMethod, metadata, extractor);
+	@Test(expected = IllegalStateException.class)
+	public void rejectsPageableAndSortInFinderMethod() {
 
-        assertNull(method.getAnnotatedQuery());
+		new JpaQueryMethod(pageableAndSort, metadata, extractor);
+	}
 
-        Method repositoryMethod =
-                UserRepository.class.getMethod("findByAnnotatedQuery",
-                        String.class);
+	@Test(expected = IllegalStateException.class)
+	public void rejectsTwoPageableParameters() {
 
-        assertNotNull(new JpaQueryMethod(repositoryMethod, metadata, extractor)
-                .getAnnotatedQuery());
-    }
+		new JpaQueryMethod(pageableTwice, metadata, extractor);
+	}
 
+	@Test(expected = IllegalStateException.class)
+	public void rejectsTwoSortableParameters() {
 
-    @Test(expected = IllegalStateException.class)
-    public void rejectsInvalidReturntypeOnPagebleFinder() {
+		new JpaQueryMethod(sortableTwice, metadata, extractor);
+	}
 
-        new JpaQueryMethod(invalidReturnType, metadata, extractor);
-    }
+	@Test
+	public void recognizesModifyingMethod() {
 
+		JpaQueryMethod method = new JpaQueryMethod(modifyingMethod, metadata, extractor);
+		assertTrue(method.isModifyingQuery());
+	}
 
-    @Test(expected = IllegalStateException.class)
-    public void rejectsPageableAndSortInFinderMethod() {
+	@Test(expected = IllegalArgumentException.class)
+	public void rejectsModifyingMethodWithPageable() throws Exception {
 
-        new JpaQueryMethod(pageableAndSort, metadata, extractor);
-    }
+		Method method = InvalidRepository.class.getMethod("updateMethod", String.class, Pageable.class);
 
+		new JpaQueryMethod(method, metadata, extractor);
+	}
 
-    @Test(expected = IllegalStateException.class)
-    public void rejectsTwoPageableParameters() {
+	@Test(expected = IllegalArgumentException.class)
+	public void rejectsModifyingMethodWithSort() throws Exception {
 
-        new JpaQueryMethod(pageableTwice, metadata, extractor);
-    }
+		Method method = InvalidRepository.class.getMethod("updateMethod", String.class, Sort.class);
 
+		new JpaQueryMethod(method, metadata, extractor);
+	}
 
-    @Test(expected = IllegalStateException.class)
-    public void rejectsTwoSortableParameters() {
+	@Test
+	public void discoversHintsCorrectly() {
 
-        new JpaQueryMethod(sortableTwice, metadata, extractor);
-    }
+		JpaQueryMethod method = new JpaQueryMethod(repositoryMethod, metadata, extractor);
+		List<QueryHint> hints = method.getHints();
 
+		assertNotNull(hints);
+		assertThat(hints.get(0).name(), is("foo"));
+		assertThat(hints.get(0).value(), is("bar"));
+	}
 
-    @Test
-    public void recognizesModifyingMethod() {
+	@Test
+	public void calculatesNamedQueryNamesCorrectly() throws SecurityException, NoSuchMethodException {
 
-        JpaQueryMethod method =
-                new JpaQueryMethod(modifyingMethod, metadata, extractor);
-        assertTrue(method.isModifyingQuery());
-    }
+		JpaQueryMethod queryMethod = new JpaQueryMethod(repositoryMethod, metadata, extractor);
+		assertThat(queryMethod.getNamedQueryName(), is("User.findByLastname"));
 
+		RepositoryMetadata metadata = new DefaultRepositoryMetadata(UserRepository.class);
+		Method method = UserRepository.class.getMethod("renameAllUsersTo", String.class);
+		queryMethod = new JpaQueryMethod(method, metadata, extractor);
+		assertThat(queryMethod.getNamedQueryName(), is("User.renameAllUsersTo"));
 
-    @Test(expected = IllegalArgumentException.class)
-    public void rejectsModifyingMethodWithPageable() throws Exception {
+		method = UserRepository.class.getMethod("findSpecialUsersByLastname", String.class);
+		queryMethod = new JpaQueryMethod(method, metadata, extractor);
+		assertThat(queryMethod.getNamedQueryName(), is("SpecialUser.findSpecialUsersByLastname"));
+	}
 
-        Method method =
-                InvalidRepository.class.getMethod("updateMethod", String.class,
-                        Pageable.class);
+	/**
+	 * Interface to define invalid repository methods for testing.
+	 * 
+	 * @author Oliver Gierke
+	 */
+	static interface InvalidRepository {
 
-        new JpaQueryMethod(method, metadata, extractor);
-    }
+		// Invalid return type
+		User findByFirstname(String firstname, Pageable pageable);
 
+		// Should not use Pageable *and* Sort
+		Page<User> findByFirstname(String firstname, Pageable pageable, Sort sort);
 
-    @Test(expected = IllegalArgumentException.class)
-    public void rejectsModifyingMethodWithSort() throws Exception {
+		// Must not use two Pageables
+		Page<User> findByFirstname(String firstname, Pageable first, Pageable second);
 
-        Method method =
-                InvalidRepository.class.getMethod("updateMethod", String.class,
-                        Sort.class);
+		// Must not use two Pageables
+		Page<User> findByFirstname(String firstname, Sort first, Sort second);
 
-        new JpaQueryMethod(method, metadata, extractor);
-    }
+		// Not backed by a named query or @Query annotation
+		@Modifying
+		void updateMethod(String firstname);
 
+		// Modifying and Pageable is not allowed
+		@Modifying
+		Page<String> updateMethod(String firstname, Pageable pageable);
 
-    @Test
-    public void discoversHintsCorrectly() {
-
-        JpaQueryMethod method =
-                new JpaQueryMethod(repositoryMethod, metadata, extractor);
-        List<QueryHint> hints = method.getHints();
-
-        assertNotNull(hints);
-        assertThat(hints.get(0).name(), is("foo"));
-        assertThat(hints.get(0).value(), is("bar"));
-    }
-
-
-    @Test
-    public void calculatesNamedQueryNamesCorrectly() throws SecurityException,
-            NoSuchMethodException {
-
-        JpaQueryMethod queryMethod =
-                new JpaQueryMethod(repositoryMethod, metadata, extractor);
-        assertThat(queryMethod.getNamedQueryName(), is("User.findByLastname"));
-
-        RepositoryMetadata metadata =
-                new DefaultRepositoryMetadata(UserRepository.class);
-        Method method =
-                UserRepository.class
-                        .getMethod("renameAllUsersTo", String.class);
-        queryMethod = new JpaQueryMethod(method, metadata, extractor);
-        assertThat(queryMethod.getNamedQueryName(), is("User.renameAllUsersTo"));
-
-        method =
-                UserRepository.class.getMethod("findSpecialUsersByLastname",
-                        String.class);
-        queryMethod = new JpaQueryMethod(method, metadata, extractor);
-        assertThat(queryMethod.getNamedQueryName(),
-                is("SpecialUser.findSpecialUsersByLastname"));
-    }
-
-    /**
-     * Interface to define invalid repository methods for testing.
-     * 
-     * @author Oliver Gierke
-     */
-    static interface InvalidRepository {
-
-        // Invalid return type
-        User findByFirstname(String firstname, Pageable pageable);
-
-
-        // Should not use Pageable *and* Sort
-        Page<User> findByFirstname(String firstname, Pageable pageable,
-                Sort sort);
-
-
-        // Must not use two Pageables
-        Page<User> findByFirstname(String firstname, Pageable first,
-                Pageable second);
-
-
-        // Must not use two Pageables
-        Page<User> findByFirstname(String firstname, Sort first, Sort second);
-
-
-        // Not backed by a named query or @Query annotation
-        @Modifying
-        void updateMethod(String firstname);
-
-
-        // Modifying and Pageable is not allowed
-        @Modifying
-        Page<String> updateMethod(String firstname, Pageable pageable);
-
-
-        // Modifying and Sort is not allowed
-        @Modifying
-        void updateMethod(String firstname, Sort sort);
-    }
+		// Modifying and Sort is not allowed
+		@Modifying
+		void updateMethod(String firstname, Sort sort);
+	}
 }

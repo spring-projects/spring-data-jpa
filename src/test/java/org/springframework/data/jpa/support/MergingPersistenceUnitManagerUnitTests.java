@@ -29,7 +29,6 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.orm.jpa.persistenceunit.MutablePersistenceUnitInfo;
 
-
 /**
  * Unit test for {@link MergingPersistenceUnitManager}.
  * 
@@ -38,22 +37,20 @@ import org.springframework.orm.jpa.persistenceunit.MutablePersistenceUnitInfo;
 @RunWith(MockitoJUnitRunner.class)
 public class MergingPersistenceUnitManagerUnitTests {
 
-    @Mock
-    PersistenceUnitInfo oldInfo;
+	@Mock
+	PersistenceUnitInfo oldInfo;
 
-    @Mock
-    MutablePersistenceUnitInfo newInfo;
+	@Mock
+	MutablePersistenceUnitInfo newInfo;
 
+	@Test
+	public void addsUrlFromOldPUItoNewOne() throws MalformedURLException {
 
-    @Test
-    public void addsUrlFromOldPUItoNewOne() throws MalformedURLException {
+		MergingPersistenceUnitManager manager = new MergingPersistenceUnitManager();
+		URL jarFileUrl = new URL("file:foo/bar");
 
-        MergingPersistenceUnitManager manager =
-                new MergingPersistenceUnitManager();
-        URL jarFileUrl = new URL("file:foo/bar");
-
-        when(oldInfo.getJarFileUrls()).thenReturn(Arrays.asList(jarFileUrl));
-        manager.postProcessPersistenceUnitInfo(newInfo, oldInfo);
-        verify(newInfo).addJarFileUrl(jarFileUrl);
-    }
+		when(oldInfo.getJarFileUrls()).thenReturn(Arrays.asList(jarFileUrl));
+		manager.postProcessPersistenceUnitInfo(newInfo, oldInfo);
+		verify(newInfo).addJarFileUrl(jarFileUrl);
+	}
 }

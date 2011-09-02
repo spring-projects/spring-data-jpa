@@ -25,11 +25,9 @@ import javax.persistence.NamedQuery;
 
 import org.springframework.data.jpa.domain.AbstractAuditable;
 
-
 /**
- * Sample auditable user to demonstrate working with
- * {@code AbstractAuditableEntity}. No declaration of an ID is necessary.
- * Furthermore no auditing information has to be declared explicitly.
+ * Sample auditable user to demonstrate working with {@code AbstractAuditableEntity}. No declaration of an ID is
+ * necessary. Furthermore no auditing information has to be declared explicitly.
  * 
  * @author Oliver Gierke
  */
@@ -37,56 +35,50 @@ import org.springframework.data.jpa.domain.AbstractAuditable;
 @NamedQuery(name = "AuditableUser.findByFirstname", query = "SELECT u FROM AuditableUser u WHERE u.firstname = ?1")
 public class AuditableUser extends AbstractAuditable<AuditableUser, Long> {
 
-    private static final long serialVersionUID = 7409344446795693011L;
+	private static final long serialVersionUID = 7409344446795693011L;
 
-    private String firstname;
+	private String firstname;
 
-    @ManyToMany(cascade = { CascadeType.PERSIST, CascadeType.MERGE })
-    private Set<AuditableRole> roles = new HashSet<AuditableRole>();
+	@ManyToMany(cascade = { CascadeType.PERSIST, CascadeType.MERGE })
+	private Set<AuditableRole> roles = new HashSet<AuditableRole>();
 
+	public AuditableUser() {
 
-    public AuditableUser() {
+		this(null);
+	}
 
-        this(null);
-    }
+	public AuditableUser(Long id) {
 
+		this.setId(id);
+	}
 
-    public AuditableUser(Long id) {
+	/**
+	 * Returns the firstname.
+	 * 
+	 * @return the firstname
+	 */
+	public String getFirstname() {
 
-        this.setId(id);
-    }
+		return firstname;
+	}
 
+	/**
+	 * Sets the firstname.
+	 * 
+	 * @param firstname the firstname to set
+	 */
+	public void setFirstname(final String firstname) {
 
-    /**
-     * Returns the firstname.
-     * 
-     * @return the firstname
-     */
-    public String getFirstname() {
+		this.firstname = firstname;
+	}
 
-        return firstname;
-    }
+	public void addRole(AuditableRole role) {
 
+		this.roles.add(role);
+	}
 
-    /**
-     * Sets the firstname.
-     * 
-     * @param firstname the firstname to set
-     */
-    public void setFirstname(final String firstname) {
+	public Set<AuditableRole> getRoles() {
 
-        this.firstname = firstname;
-    }
-
-
-    public void addRole(AuditableRole role) {
-
-        this.roles.add(role);
-    }
-
-
-    public Set<AuditableRole> getRoles() {
-
-        return roles;
-    }
+		return roles;
+	}
 }

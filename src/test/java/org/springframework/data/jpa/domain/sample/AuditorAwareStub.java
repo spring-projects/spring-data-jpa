@@ -19,40 +19,35 @@ import org.springframework.data.domain.AuditorAware;
 import org.springframework.data.jpa.repository.sample.AuditableUserRepository;
 import org.springframework.util.Assert;
 
-
 /**
- * Stub implementation for {@link AuditorAware}. Returns {@literal null} for the
- * current auditor.
+ * Stub implementation for {@link AuditorAware}. Returns {@literal null} for the current auditor.
  * 
  * @author Oliver Gierke
  */
 public class AuditorAwareStub implements AuditorAware<AuditableUser> {
 
-    @SuppressWarnings("unused")
-    private final AuditableUserRepository repository;
-    private AuditableUser auditor;
+	@SuppressWarnings("unused")
+	private final AuditableUserRepository repository;
+	private AuditableUser auditor;
 
+	public AuditorAwareStub(AuditableUserRepository repository) {
 
-    public AuditorAwareStub(AuditableUserRepository repository) {
+		Assert.notNull(repository);
+		this.repository = repository;
+	}
 
-        Assert.notNull(repository);
-        this.repository = repository;
-    }
+	public void setAuditor(AuditableUser auditor) {
 
+		this.auditor = auditor;
+	}
 
-    public void setAuditor(AuditableUser auditor) {
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.springframework.data.domain.AuditorAware#getCurrentAuditor()
+	 */
+	public AuditableUser getCurrentAuditor() {
 
-        this.auditor = auditor;
-    }
-
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.springframework.data.domain.AuditorAware#getCurrentAuditor()
-     */
-    public AuditableUser getCurrentAuditor() {
-
-        return auditor;
-    }
+		return auditor;
+	}
 }

@@ -28,7 +28,6 @@ import org.springframework.data.repository.query.QueryLookupStrategy.Key;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-
 /**
  * Integration test for XML configuration of {@link QueryLookupStrategy.Key}s.
  * 
@@ -38,22 +37,17 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration(locations = "classpath:config/lookup-strategies-context.xml")
 public class QueryLookupStrategyTests {
 
-    @Autowired
-    ApplicationContext context;
+	@Autowired
+	ApplicationContext context;
 
+	/**
+	 * Assert that {@link QueryLookupStrategy#USE_DECLARED_QUERY} is being set on the factory if configured.
+	 */
+	@Test
+	public void assertUseDeclaredQuery() {
 
-    /**
-     * Assert that {@link QueryLookupStrategy#USE_DECLARED_QUERY} is being set
-     * on the factory if configured.
-     */
-    @Test
-    public void assertUseDeclaredQuery() {
+		JpaRepositoryFactoryBean<?, ?, ?> factory = context.getBean("&roleRepository", JpaRepositoryFactoryBean.class);
 
-        JpaRepositoryFactoryBean<?, ?, ?> factory =
-                context.getBean("&roleRepository",
-                        JpaRepositoryFactoryBean.class);
-
-        assertEquals(Key.USE_DECLARED_QUERY,
-                getField(factory, "queryLookupStrategyKey"));
-    }
+		assertEquals(Key.USE_DECLARED_QUERY, getField(factory, "queryLookupStrategyKey"));
+	}
 }

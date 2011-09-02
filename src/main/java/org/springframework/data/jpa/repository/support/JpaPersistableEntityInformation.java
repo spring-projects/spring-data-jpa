@@ -21,54 +21,48 @@ import javax.persistence.metamodel.Metamodel;
 
 import org.springframework.data.domain.Persistable;
 
-
 /**
- * Extension of {@link JpaMetamodelEntityInformation} that consideres methods of
- * {@link Persistable} to lookup the id.
+ * Extension of {@link JpaMetamodelEntityInformation} that consideres methods of {@link Persistable} to lookup the id.
  * 
  * @author Oliver Gierke
  */
-public class JpaPersistableEntityInformation<T extends Persistable<ID>, ID extends Serializable>
-        extends JpaMetamodelEntityInformation<T, ID> {
+public class JpaPersistableEntityInformation<T extends Persistable<ID>, ID extends Serializable> extends
+		JpaMetamodelEntityInformation<T, ID> {
 
-    /**
-     * Creates a new {@link JpaPersistableEntityInformation} for the given
-     * domain class and {@link Metamodel}.
-     * 
-     * @param domainClass
-     * @param metamodel
-     */
-    public JpaPersistableEntityInformation(Class<T> domainClass,
-            Metamodel metamodel) {
+	/**
+	 * Creates a new {@link JpaPersistableEntityInformation} for the given domain class and {@link Metamodel}.
+	 * 
+	 * @param domainClass
+	 * @param metamodel
+	 */
+	public JpaPersistableEntityInformation(Class<T> domainClass, Metamodel metamodel) {
 
-        super(domainClass, metamodel);
-    }
+		super(domainClass, metamodel);
+	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.springframework.data.repository.support.AbstractEntityInformation
+	 * #isNew(java.lang.Object)
+	 */
+	@Override
+	public boolean isNew(T entity) {
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.springframework.data.repository.support.AbstractEntityInformation
-     * #isNew(java.lang.Object)
-     */
-    @Override
-    public boolean isNew(T entity) {
+		return entity.isNew();
+	}
 
-        return entity.isNew();
-    }
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.springframework.data.jpa.repository.support.JpaMetamodelEntityMetadata
+	 * #getId(java.lang.Object)
+	 */
+	@Override
+	public ID getId(T entity) {
 
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.springframework.data.jpa.repository.support.JpaMetamodelEntityMetadata
-     * #getId(java.lang.Object)
-     */
-    @Override
-    public ID getId(T entity) {
-
-        return entity.getId();
-    }
+		return entity.getId();
+	}
 }

@@ -28,16 +28,14 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.Assert;
 
-
 /**
- * Annotation to exclude repository interfaces from being picked up and thus in
- * consequence getting an instance being created.
+ * Annotation to exclude repository interfaces from being picked up and thus in consequence getting an instance being
+ * created.
  * <p>
- * This will typically be used when providing an extended base interface for all
- * repositories in combination with a custom repository base class to implement
- * methods declared in that intermediate interface. In this case you typically
- * derive your concrete repository interfaces from the intermediate one but
- * don't want to create a Spring bean for the intermediate interface.
+ * This will typically be used when providing an extended base interface for all repositories in combination with a
+ * custom repository base class to implement methods declared in that intermediate interface. In this case you typically
+ * derive your concrete repository interfaces from the intermediate one but don't want to create a Spring bean for the
+ * intermediate interface.
  * 
  * @author Oliver Gierke
  */
@@ -45,44 +43,40 @@ import org.springframework.util.Assert;
 @ContextConfiguration(locations = "classpath:config/namespace-customfactory-context.xml")
 public class CustomRepositoryFactoryConfigTests {
 
-    @Autowired(required = false)
-    UserCustomExtendedRepository userRepository;
+	@Autowired(required = false)
+	UserCustomExtendedRepository userRepository;
 
-    @Autowired
-    DelegatingTransactionManager transactionManager;
+	@Autowired
+	DelegatingTransactionManager transactionManager;
 
+	@Before
+	public void setup() {
 
-    @Before
-    public void setup() {
+		transactionManager.resetCount();
+	}
 
-        transactionManager.resetCount();
-    }
+	@Test(expected = UnsupportedOperationException.class)
+	public void testCustomFactoryUsed() {
 
+		Assert.notNull(userRepository);
+		userRepository.customMethod(1);
+	}
 
-    @Test(expected = UnsupportedOperationException.class)
-    public void testCustomFactoryUsed() {
+	@Test
+	public void reconfiguresTransactionalMethodWithoutGenericParameter() {
 
-        Assert.notNull(userRepository);
-        userRepository.customMethod(1);
-    }
+		userRepository.findAll();
 
+		assertFalse(transactionManager.getDefinition().isReadOnly());
+		assertThat(transactionManager.getDefinition().getTimeout(), is(10));
+	}
 
-    @Test
-    public void reconfiguresTransactionalMethodWithoutGenericParameter() {
+	@Test
+	public void reconfiguresTransactionalMethodWithGenericParameter() {
 
-        userRepository.findAll();
+		userRepository.findOne(1);
 
-        assertFalse(transactionManager.getDefinition().isReadOnly());
-        assertThat(transactionManager.getDefinition().getTimeout(), is(10));
-    }
-
-
-    @Test
-    public void reconfiguresTransactionalMethodWithGenericParameter() {
-
-        userRepository.findOne(1);
-
-        assertFalse(transactionManager.getDefinition().isReadOnly());
-        assertThat(transactionManager.getDefinition().getTimeout(), is(10));
-    }
+		assertFalse(transactionManager.getDefinition().isReadOnly());
+		assertThat(transactionManager.getDefinition().getTimeout(), is(10));
+	}
 }

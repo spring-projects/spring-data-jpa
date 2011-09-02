@@ -38,131 +38,114 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.core.support.RepositoryFactorySupport;
 
-
 /**
  * Unit test for {@code JpaRepositoryFactoryBean}.
  * <p>
- * TODO: Check if test methods double the ones in
- * {@link JpaRepositoryFactoryUnitTests}.
+ * TODO: Check if test methods double the ones in {@link JpaRepositoryFactoryUnitTests}.
  * 
  * @author Oliver Gierke
  */
 @RunWith(MockitoJUnitRunner.class)
 public class JpaRepositoryFactoryBeanUnitTests {
 
-    JpaRepositoryFactoryBean<SimpleSampleRepository, User, Integer> factoryBean;
+	JpaRepositoryFactoryBean<SimpleSampleRepository, User, Integer> factoryBean;
 
-    @Mock
-    EntityManager entityManager;
-    @Mock
-    RepositoryFactorySupport factory;
-    @Mock
-    ListableBeanFactory beanFactory;
-    @Mock
-    PersistenceExceptionTranslator translator;
-    @Mock
-    Repository<?, ?> repository;
+	@Mock
+	EntityManager entityManager;
+	@Mock
+	RepositoryFactorySupport factory;
+	@Mock
+	ListableBeanFactory beanFactory;
+	@Mock
+	PersistenceExceptionTranslator translator;
+	@Mock
+	Repository<?, ?> repository;
 
+	@Before
+	@SuppressWarnings("unchecked")
+	public void setUp() {
 
-    @Before
-    @SuppressWarnings("unchecked")
-    public void setUp() {
+		Map<String, PersistenceExceptionTranslator> beans = new HashMap<String, PersistenceExceptionTranslator>();
+		beans.put("foo", translator);
+		when(beanFactory.getBeansOfType(eq(PersistenceExceptionTranslator.class), anyBoolean(), anyBoolean())).thenReturn(
+				beans);
+		when(factory.getRepository(any(Class.class), any(Object.class))).thenReturn(repository);
 
-        Map<String, PersistenceExceptionTranslator> beans =
-                new HashMap<String, PersistenceExceptionTranslator>();
-        beans.put("foo", translator);
-        when(
-                beanFactory.getBeansOfType(
-                        eq(PersistenceExceptionTranslator.class), anyBoolean(),
-                        anyBoolean())).thenReturn(beans);
-        when(factory.getRepository(any(Class.class), any(Object.class)))
-                .thenReturn(repository);
+		// Setup standard factory configuration
+		factoryBean = new DummyJpaRepositoryFactoryBean<SimpleSampleRepository, User, Integer>();
+		factoryBean.setRepositoryInterface(SimpleSampleRepository.class);
+		factoryBean.setEntityManager(entityManager);
+	}
 
-        // Setup standard factory configuration
-        factoryBean =
-                new DummyJpaRepositoryFactoryBean<SimpleSampleRepository, User, Integer>();
-        factoryBean.setRepositoryInterface(SimpleSampleRepository.class);
-        factoryBean.setEntityManager(entityManager);
-    }
+	/**
+	 * Assert that the instance created for the standard configuration is a valid {@code UserRepository}.
+	 * 
+	 * @throws Exception
+	 */
+	@Test
+	public void setsUpBasicInstanceCorrectly() throws Exception {
 
+		factoryBean.setBeanFactory(beanFactory);
+		factoryBean.afterPropertiesSet();
 
-    /**
-     * Assert that the instance created for the standard configuration is a
-     * valid {@code UserRepository}.
-     * 
-     * @throws Exception
-     */
-    @Test
-    public void setsUpBasicInstanceCorrectly() throws Exception {
+		assertNotNull(factoryBean.getObject());
+	}
 
-        factoryBean.setBeanFactory(beanFactory);
-        factoryBean.afterPropertiesSet();
+	@Test(expected = IllegalArgumentException.class)
+	public void requiresListableBeanFactory() throws Exception {
 
-        assertNotNull(factoryBean.getObject());
-    }
+		factoryBean.setBeanFactory(mock(BeanFactory.class));
+	}
 
+	/**
+	 * Assert that the factory rejects calls to {@code JpaRepositoryFactoryBean#setRepositoryInterface(Class)} with
+	 * {@literal null} or any other parameter instance not implementing {@code Repository}.
+	 */
+	@Test(expected = IllegalArgumentException.class)
+	public void preventsNullRepositoryInterface() {
 
-    @Test(expected = IllegalArgumentException.class)
-    public void requiresListableBeanFactory() throws Exception {
+		factoryBean.setRepositoryInterface(null);
+	}
 
-        factoryBean.setBeanFactory(mock(BeanFactory.class));
-    }
+	/**
+	 * Assert that the factory detects unset repository class and interface in
+	 * {@code JpaRepositoryFactoryBean#afterPropertiesSet()}.
+	 */
+	@Test(expected = IllegalArgumentException.class)
+	public void preventsUnsetRepositoryInterface() throws Exception {
 
+		factoryBean = new JpaRepositoryFactoryBean<SimpleSampleRepository, User, Integer>();
+		factoryBean.afterPropertiesSet();
+	}
 
-    /**
-     * Assert that the factory rejects calls to
-     * {@code JpaRepositoryFactoryBean#setRepositoryInterface(Class)} with
-     * {@literal null} or any other parameter instance not implementing
-     * {@code Repository}.
-     */
-    @Test(expected = IllegalArgumentException.class)
-    public void preventsNullRepositoryInterface() {
+	private class DummyJpaRepositoryFactoryBean<T extends JpaRepository<S, ID>, S, ID extends Serializable> extends
+			JpaRepositoryFactoryBean<T, S, ID> {
 
-        factoryBean.setRepositoryInterface(null);
-    }
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see
+		 * org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean
+		 * #createRepositoryFactory()
+		 */
+		@Override
+		protected RepositoryFactorySupport doCreateRepositoryFactory() {
 
+			return factory;
+		}
+	}
 
-    /**
-     * Assert that the factory detects unset repository class and interface in
-     * {@code JpaRepositoryFactoryBean#afterPropertiesSet()}.
-     */
-    @Test(expected = IllegalArgumentException.class)
-    public void preventsUnsetRepositoryInterface() throws Exception {
+	private interface SimpleSampleRepository extends JpaRepository<User, Integer> {
 
-        factoryBean =
-                new JpaRepositoryFactoryBean<SimpleSampleRepository, User, Integer>();
-        factoryBean.afterPropertiesSet();
-    }
+	}
 
-    private class DummyJpaRepositoryFactoryBean<T extends JpaRepository<S, ID>, S, ID extends Serializable>
-            extends JpaRepositoryFactoryBean<T, S, ID> {
+	/**
+	 * Helper class to make the factory use {@link PersistableMetadata} .
+	 * 
+	 * @author Oliver Gierke
+	 */
+	@SuppressWarnings("serial")
+	private static abstract class User implements Persistable<Long> {
 
-        /*
-         * (non-Javadoc)
-         * 
-         * @see
-         * org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean
-         * #createRepositoryFactory()
-         */
-        @Override
-        protected RepositoryFactorySupport doCreateRepositoryFactory() {
-
-            return factory;
-        }
-    }
-
-    private interface SimpleSampleRepository extends
-            JpaRepository<User, Integer> {
-
-    }
-
-    /**
-     * Helper class to make the factory use {@link PersistableMetadata} .
-     * 
-     * @author Oliver Gierke
-     */
-    @SuppressWarnings("serial")
-    private static abstract class User implements Persistable<Long> {
-
-    }
+	}
 }

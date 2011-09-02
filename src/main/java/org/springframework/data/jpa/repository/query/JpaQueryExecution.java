@@ -27,150 +27,130 @@ import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.util.Assert;
 
-
 /**
- * Set of classes to contain query execution strategies. Depending (mostly) on
- * the return type of a {@link QueryMethod} a
- * {@link AbstractStringBasedJpaQuery} can be executed in various flavours.
+ * Set of classes to contain query execution strategies. Depending (mostly) on the return type of a {@link QueryMethod}
+ * a {@link AbstractStringBasedJpaQuery} can be executed in various flavours.
  * 
  * @author Oliver Gierke
  */
 public abstract class JpaQueryExecution {
 
-    /**
-     * Executes the given {@link AbstractStringBasedJpaQuery} with the given
-     * {@link ParameterBinder}.
-     * 
-     * @param query
-     * @param binder
-     * @return
-     */
+	/**
+	 * Executes the given {@link AbstractStringBasedJpaQuery} with the given {@link ParameterBinder}.
+	 * 
+	 * @param query
+	 * @param binder
+	 * @return
+	 */
 
-    public Object execute(AbstractJpaQuery query, Object[] values) {
+	public Object execute(AbstractJpaQuery query, Object[] values) {
 
-        Assert.notNull(query);
-        Assert.notNull(values);
+		Assert.notNull(query);
+		Assert.notNull(values);
 
-        try {
-            return doExecute(query, values);
-        } catch (NoResultException e) {
-            return null;
-        }
-    }
+		try {
+			return doExecute(query, values);
+		} catch (NoResultException e) {
+			return null;
+		}
+	}
 
+	/**
+	 * Method to implement {@link AbstractStringBasedJpaQuery} executions by single enum values.
+	 * 
+	 * @param query
+	 * @param binder
+	 * @return
+	 */
+	protected abstract Object doExecute(AbstractJpaQuery query, Object[] values);
 
-    /**
-     * Method to implement {@link AbstractStringBasedJpaQuery} executions by
-     * single enum values.
-     * 
-     * @param query
-     * @param binder
-     * @return
-     */
-    protected abstract Object doExecute(AbstractJpaQuery query, Object[] values);
+	/**
+	 * Executes the {@link AbstractStringBasedJpaQuery} to return a simple collection of entities.
+	 */
+	static class CollectionExecution extends JpaQueryExecution {
 
-    /**
-     * Executes the {@link AbstractStringBasedJpaQuery} to return a simple
-     * collection of entities.
-     */
-    static class CollectionExecution extends JpaQueryExecution {
+		@Override
+		protected Object doExecute(AbstractJpaQuery query, Object[] values) {
 
-        @Override
-        protected Object doExecute(AbstractJpaQuery query, Object[] values) {
+			return query.createQuery(values).getResultList();
+		}
+	}
 
-            return query.createQuery(values).getResultList();
-        }
-    }
+	/**
+	 * Executes the {@link AbstractStringBasedJpaQuery} to return a {@link Page} of entities.
+	 */
+	static class PagedExecution extends JpaQueryExecution {
 
-    /**
-     * Executes the {@link AbstractStringBasedJpaQuery} to return a {@link Page}
-     * of entities.
-     */
-    static class PagedExecution extends JpaQueryExecution {
+		private final Parameters parameters;
 
-        private final Parameters parameters;
+		public PagedExecution(Parameters parameters) {
 
+			this.parameters = parameters;
+		}
 
-        public PagedExecution(Parameters parameters) {
+		@Override
+		@SuppressWarnings("unchecked")
+		protected Object doExecute(AbstractJpaQuery repositoryQuery, Object[] values) {
 
-            this.parameters = parameters;
-        }
+			// Execute query to compute total
+			Query projection = repositoryQuery.createCountQuery(values);
+			Long total = (Long) projection.getSingleResult();
 
+			Query query = repositoryQuery.createQuery(values);
 
-        @Override
-        @SuppressWarnings("unchecked")
-        protected Object doExecute(AbstractJpaQuery repositoryQuery,
-                Object[] values) {
+			ParameterAccessor accessor = new ParametersParameterAccessor(parameters, values);
 
-            // Execute query to compute total
-            Query projection = repositoryQuery.createCountQuery(values);
-            Long total = (Long) projection.getSingleResult();
+			return new PageImpl<Object>(query.getResultList(), accessor.getPageable(), total);
+		}
+	}
 
-            Query query = repositoryQuery.createQuery(values);
+	/**
+	 * Executes a {@link AbstractStringBasedJpaQuery} to return a single entity.
+	 */
+	static class SingleEntityExecution extends JpaQueryExecution {
 
-            ParameterAccessor accessor =
-                    new ParametersParameterAccessor(parameters, values);
+		@Override
+		protected Object doExecute(AbstractJpaQuery query, Object[] values) {
 
-            return new PageImpl<Object>(query.getResultList(),
-                    accessor.getPageable(), total);
-        }
-    }
+			return query.createQuery(values).getSingleResult();
+		}
+	}
 
-    /**
-     * Executes a {@link AbstractStringBasedJpaQuery} to return a single entity.
-     */
-    static class SingleEntityExecution extends JpaQueryExecution {
+	/**
+	 * Executes a modifying query such as an update, insert or delete.
+	 */
+	static class ModifyingExecution extends JpaQueryExecution {
 
-        @Override
-        protected Object doExecute(AbstractJpaQuery query, Object[] values) {
+		private final EntityManager em;
 
-            return query.createQuery(values).getSingleResult();
-        }
-    }
+		/**
+		 * Creates an execution that automatically clears the given {@link EntityManager} after execution if the given
+		 * {@link EntityManager} is not {@literal null}.
+		 * 
+		 * @param em
+		 */
+		public ModifyingExecution(JpaQueryMethod method, EntityManager em) {
 
-    /**
-     * Executes a modifying query such as an update, insert or delete.
-     */
-    static class ModifyingExecution extends JpaQueryExecution {
+			Class<?> returnType = method.getReturnType();
 
-        private final EntityManager em;
+			boolean isVoid = void.class.equals(returnType) || Void.class.equals(returnType);
+			boolean isInt = int.class.equals(returnType) || Integer.class.equals(returnType);
 
+			Assert.isTrue(isInt || isVoid, "Modifying queries can only use void or int/Integer as return type!");
 
-        /**
-         * Creates an execution that automatically clears the given
-         * {@link EntityManager} after execution if the given
-         * {@link EntityManager} is not {@literal null}.
-         * 
-         * @param em
-         */
-        public ModifyingExecution(JpaQueryMethod method, EntityManager em) {
+			this.em = em;
+		}
 
-            Class<?> returnType = method.getReturnType();
+		@Override
+		protected Object doExecute(AbstractJpaQuery query, Object[] values) {
 
-            boolean isVoid =
-                    void.class.equals(returnType)
-                            || Void.class.equals(returnType);
-            boolean isInt =
-                    int.class.equals(returnType)
-                            || Integer.class.equals(returnType);
+			int result = query.createQuery(values).executeUpdate();
 
-            Assert.isTrue(isInt || isVoid,
-                    "Modifying queries can only use void or int/Integer as return type!");
+			if (em != null) {
+				em.clear();
+			}
 
-            this.em = em;
-        }
-
-
-        @Override
-        protected Object doExecute(AbstractJpaQuery query, Object[] values) {
-
-            int result = query.createQuery(values).executeUpdate();
-
-            if (em != null) {
-                em.clear();
-            }
-
-            return result;
-        }
-    }
+			return result;
+		}
+	}
 }

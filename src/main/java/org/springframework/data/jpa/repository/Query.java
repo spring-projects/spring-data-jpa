@@ -21,7 +21,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-
 /**
  * Annotation to declare finder queries directly on repository methods.
  * 
@@ -32,8 +31,7 @@ import java.lang.annotation.Target;
 @Documented
 public @interface Query {
 
-    String value() default "";
+	String value() default "";
 
-
-    String countQuery() default "";
+	String countQuery() default "";
 }

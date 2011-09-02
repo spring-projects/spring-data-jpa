@@ -26,7 +26,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 
-
 /**
  * Unit tests for {@link AbstractJpaEntityInformation}.
  * 
@@ -35,52 +34,45 @@ import org.mockito.runners.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class JpaEntityInformationSupportUnitTests {
 
-    @Test
-    public void usesSimpleClassNameIfNoEntityNameGiven() throws Exception {
+	@Test
+	public void usesSimpleClassNameIfNoEntityNameGiven() throws Exception {
 
-        JpaEntityInformation<User, Long> information =
-                new DummyJpaEntityInformation<User, Long>(User.class);
-        assertEquals("User", information.getEntityName());
+		JpaEntityInformation<User, Long> information = new DummyJpaEntityInformation<User, Long>(User.class);
+		assertEquals("User", information.getEntityName());
 
-        JpaEntityInformation<NamedUser, ?> second =
-                new DummyJpaEntityInformation<NamedUser, Serializable>(
-                        NamedUser.class);
-        assertEquals("AnotherNamedUser", second.getEntityName());
-    }
+		JpaEntityInformation<NamedUser, ?> second = new DummyJpaEntityInformation<NamedUser, Serializable>(NamedUser.class);
+		assertEquals("AnotherNamedUser", second.getEntityName());
+	}
 
-    static class User {
+	static class User {
 
-    }
+	}
 
-    @Entity(name = "AnotherNamedUser")
-    public class NamedUser {
+	@Entity(name = "AnotherNamedUser")
+	public class NamedUser {
 
-    }
+	}
 
-    static class DummyJpaEntityInformation<T, ID extends Serializable> extends
-            JpaEntityInformationSupport<T, ID> {
+	static class DummyJpaEntityInformation<T, ID extends Serializable> extends JpaEntityInformationSupport<T, ID> {
 
-        public DummyJpaEntityInformation(Class<T> domainClass) {
+		public DummyJpaEntityInformation(Class<T> domainClass) {
 
-            super(domainClass);
-        }
+			super(domainClass);
+		}
 
+		public SingularAttribute<? super T, ?> getIdAttribute() {
 
-        public SingularAttribute<? super T, ?> getIdAttribute() {
+			return null;
+		}
 
-            return null;
-        }
+		public ID getId(T entity) {
 
+			return null;
+		}
 
-        public ID getId(T entity) {
+		public Class<ID> getIdType() {
 
-            return null;
-        }
-
-
-        public Class<ID> getIdType() {
-
-            return null;
-        }
-    }
+			return null;
+		}
+	}
 }

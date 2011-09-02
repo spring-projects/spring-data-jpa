@@ -18,7 +18,6 @@ package org.springframework.data.jpa.repository.sample;
 import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.repository.CrudRepository;
 
-
 /**
  * Typing interface for {@code Role}.
  * 

@@ -24,110 +24,100 @@ import javax.persistence.MappedSuperclass;
 
 import org.springframework.data.domain.Persistable;
 
-
 /**
- * Abstract base class for entities. Allows parameterization of id type, chooses
- * auto-generation and implements {@link #equals(Object)} and
- * {@link #hashCode()} based on that id.
+ * Abstract base class for entities. Allows parameterization of id type, chooses auto-generation and implements
+ * {@link #equals(Object)} and {@link #hashCode()} based on that id.
  * 
  * @author Oliver Gierke
  * @param <PK> the the of the entity
  */
 @MappedSuperclass
-public abstract class AbstractPersistable<PK extends Serializable> implements
-        Persistable<PK> {
+public abstract class AbstractPersistable<PK extends Serializable> implements Persistable<PK> {
 
-    private static final long serialVersionUID = -5554308939380869754L;
+	private static final long serialVersionUID = -5554308939380869754L;
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private PK id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.AUTO)
+	private PK id;
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.springframework.data.domain.Persistable#getId()
+	 */
+	public PK getId() {
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.springframework.data.domain.Persistable#getId()
-     */
-    public PK getId() {
+		return id;
+	}
 
-        return id;
-    }
+	/**
+	 * Sets the id of the entity.
+	 * 
+	 * @param id the id to set
+	 */
+	protected void setId(final PK id) {
 
+		this.id = id;
+	}
 
-    /**
-     * Sets the id of the entity.
-     * 
-     * @param id the id to set
-     */
-    protected void setId(final PK id) {
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.springframework.data.domain.Persistable#isNew()
+	 */
+	public boolean isNew() {
 
-        this.id = id;
-    }
+		return null == getId();
+	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.springframework.data.domain.Persistable#isNew()
-     */
-    public boolean isNew() {
+		return String.format("Entity of type %s with id: %s", this.getClass().getName(), getId());
+	}
 
-        return null == getId();
-    }
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
 
+		if (null == obj) {
+			return false;
+		}
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.lang.Object#toString()
-     */
-    @Override
-    public String toString() {
+		if (this == obj) {
+			return true;
+		}
 
-        return String.format("Entity of type %s with id: %s", this.getClass()
-                .getName(), getId());
-    }
+		if (!getClass().equals(obj.getClass())) {
+			return false;
+		}
 
+		AbstractPersistable<?> that = (AbstractPersistable<?>) obj;
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.lang.Object#equals(java.lang.Object)
-     */
-    @Override
-    public boolean equals(Object obj) {
+		return null == this.getId() ? false : this.getId().equals(that.getId());
+	}
 
-        if (null == obj) {
-            return false;
-        }
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
 
-        if (this == obj) {
-            return true;
-        }
+		int hashCode = 17;
 
-        if (!getClass().equals(obj.getClass())) {
-            return false;
-        }
+		hashCode += null == getId() ? 0 : getId().hashCode() * 31;
 
-        AbstractPersistable<?> that = (AbstractPersistable<?>) obj;
-
-        return null == this.getId() ? false : this.getId().equals(that.getId());
-    }
-
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.lang.Object#hashCode()
-     */
-    @Override
-    public int hashCode() {
-
-        int hashCode = 17;
-
-        hashCode += null == getId() ? 0 : getId().hashCode() * 31;
-
-        return hashCode;
-    }
+		return hashCode;
+	}
 }

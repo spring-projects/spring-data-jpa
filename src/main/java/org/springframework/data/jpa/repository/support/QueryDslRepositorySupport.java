@@ -18,7 +18,6 @@ import com.mysema.query.types.EntityPath;
 import com.mysema.query.types.path.PathBuilder;
 import com.mysema.query.types.path.PathBuilderFactory;
 
-
 /**
  * Base class for implementing repositories using QueryDsl library.
  * 
@@ -27,78 +26,72 @@ import com.mysema.query.types.path.PathBuilderFactory;
 @Repository
 public abstract class QueryDslRepositorySupport {
 
-    @PersistenceContext
-    private EntityManager entityManager;
-    private PathBuilderFactory builderFactory = new PathBuilderFactory();
+	@PersistenceContext
+	private EntityManager entityManager;
+	private PathBuilderFactory builderFactory = new PathBuilderFactory();
 
+	/**
+	 * Setter to inject {@link EntityManager}.
+	 * 
+	 * @param entityManager must not be {@literal null}
+	 */
+	@Required
+	public void setEntityManager(EntityManager entityManager) {
 
-    /**
-     * Setter to inject {@link EntityManager}.
-     * 
-     * @param entityManager must not be {@literal null}
-     */
-    @Required
-    public void setEntityManager(EntityManager entityManager) {
+		Assert.notNull(entityManager);
+		this.entityManager = entityManager;
+	}
 
-        Assert.notNull(entityManager);
-        this.entityManager = entityManager;
-    }
+	/**
+	 * Callback to verify configuration. Used by containers.
+	 */
+	@PostConstruct
+	public void validate() {
 
+		Assert.notNull(entityManager, "EntityManager must not be null!");
+	}
 
-    /**
-     * Callback to verify configuration. Used by containers.
-     */
-    @PostConstruct
-    public void validate() {
+	/**
+	 * Returns a fresh {@link JPQLQuery}.
+	 * 
+	 * @return
+	 */
+	protected JPQLQuery from(EntityPath<?>... paths) {
 
-        Assert.notNull(entityManager, "EntityManager must not be null!");
-    }
+		return new JPAQuery(entityManager).from(paths);
+	}
 
+	/**
+	 * Returns a fresh {@link DeleteClause}.
+	 * 
+	 * @param path
+	 * @return
+	 */
+	protected DeleteClause<JPADeleteClause> delete(EntityPath<?> path) {
 
-    /**
-     * Returns a fresh {@link JPQLQuery}.
-     * 
-     * @return
-     */
-    protected JPQLQuery from(EntityPath<?>... paths) {
+		return new JPADeleteClause(entityManager, path);
+	}
 
-        return new JPAQuery(entityManager).from(paths);
-    }
+	/**
+	 * Returns a fresh {@link UpdateClause}.
+	 * 
+	 * @param path
+	 * @return
+	 */
+	protected UpdateClause<JPAUpdateClause> update(EntityPath<?> path) {
 
+		return new JPAUpdateClause(entityManager, path);
+	}
 
-    /**
-     * Returns a fresh {@link DeleteClause}.
-     * 
-     * @param path
-     * @return
-     */
-    protected DeleteClause<JPADeleteClause> delete(EntityPath<?> path) {
+	/**
+	 * Returns a {@link PathBuilder} for the given type.
+	 * 
+	 * @param <T>
+	 * @param type
+	 * @return
+	 */
+	protected <T> PathBuilder<T> getBuilder(Class<T> type) {
 
-        return new JPADeleteClause(entityManager, path);
-    }
-
-
-    /**
-     * Returns a fresh {@link UpdateClause}.
-     * 
-     * @param path
-     * @return
-     */
-    protected UpdateClause<JPAUpdateClause> update(EntityPath<?> path) {
-
-        return new JPAUpdateClause(entityManager, path);
-    }
-
-
-    /**
-     * Returns a {@link PathBuilder} for the given type.
-     * 
-     * @param <T>
-     * @param type
-     * @return
-     */
-    protected <T> PathBuilder<T> getBuilder(Class<T> type) {
-
-        return builderFactory.create(type);
-    }
+		return builderFactory.create(type);
+	}
 }

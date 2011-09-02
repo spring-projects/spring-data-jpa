@@ -39,7 +39,6 @@ import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.Parameters;
 
-
 /**
  * Unit test for {@link SimpleJpaQuery}.
  * 
@@ -48,79 +47,67 @@ import org.springframework.data.repository.query.Parameters;
 @RunWith(MockitoJUnitRunner.class)
 public class SimpleJpaQueryUnitTests {
 
-    JpaQueryMethod method;
+	JpaQueryMethod method;
 
-    @Mock
-    EntityManager em;
-    @Mock
-    QueryExtractor extractor;
-    @Mock
-    Query query;
-    @Mock
-    RepositoryMetadata metadata;
-    @Mock
-    ParameterBinder binder;
+	@Mock
+	EntityManager em;
+	@Mock
+	QueryExtractor extractor;
+	@Mock
+	Query query;
+	@Mock
+	RepositoryMetadata metadata;
+	@Mock
+	ParameterBinder binder;
 
+	@Before
+	@QueryHints(@QueryHint(name = "foo", value = "bar"))
+	public void setUp() throws SecurityException, NoSuchMethodException {
 
-    @Before
-    @QueryHints(@QueryHint(name = "foo", value = "bar"))
-    public void setUp() throws SecurityException, NoSuchMethodException {
+		when(em.createQuery(anyString())).thenReturn(query);
 
-        when(em.createQuery(anyString())).thenReturn(query);
+		Method setUp = UserRepository.class.getMethod("findByLastname", String.class);
+		method = new JpaQueryMethod(setUp, metadata, extractor);
+	}
 
-        Method setUp =
-                UserRepository.class.getMethod("findByLastname", String.class);
-        method = new JpaQueryMethod(setUp, metadata, extractor);
-    }
+	@Test
+	public void appliesHintsCorrectly() throws Exception {
 
+		SimpleJpaQuery jpaQuery = new SimpleJpaQuery(method, em, "foobar");
+		jpaQuery.createQuery(new Object[] { "gierke" });
 
-    @Test
-    public void appliesHintsCorrectly() throws Exception {
+		verify(query).setHint("foo", "bar");
+	}
 
-        SimpleJpaQuery jpaQuery = new SimpleJpaQuery(method, em, "foobar");
-        jpaQuery.createQuery(new Object[] { "gierke" });
+	@Test
+	public void prefersDeclaredCountQueryOverCreatingOne() throws Exception {
 
-        verify(query).setHint("foo", "bar");
-    }
+		method = mock(JpaQueryMethod.class);
+		when(method.getCountQuery()).thenReturn("foo");
+		when(method.getParameters()).thenReturn(
+				new Parameters(SimpleJpaQueryUnitTests.class.getMethod("prefersDeclaredCountQueryOverCreatingOne")));
+		when(em.createQuery("foo")).thenReturn(query);
 
+		SimpleJpaQuery jpaQuery = new SimpleJpaQuery(method, em, "select u from User u");
 
-    @Test
-    public void prefersDeclaredCountQueryOverCreatingOne() throws Exception {
+		assertThat(jpaQuery.createCountQuery(new Object[] {}), is(query));
+	}
 
-        method = mock(JpaQueryMethod.class);
-        when(method.getCountQuery()).thenReturn("foo");
-        when(method.getParameters())
-                .thenReturn(
-                        new Parameters(
-                                SimpleJpaQueryUnitTests.class
-                                        .getMethod("prefersDeclaredCountQueryOverCreatingOne")));
-        when(em.createQuery("foo")).thenReturn(query);
+	/**
+	 * @see DATAJPA-77
+	 */
+	@Test
+	public void doesNotApplyPaginationToCountQuery() throws Exception {
 
-        SimpleJpaQuery jpaQuery =
-                new SimpleJpaQuery(method, em, "select u from User u");
+		when(em.createQuery(Mockito.anyString())).thenReturn(query);
 
-        assertThat(jpaQuery.createCountQuery(new Object[] {}), is(query));
-    }
+		Method method = UserRepository.class.getMethod("findAllPaged", Pageable.class);
+		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, extractor);
 
+		AbstractJpaQuery jpaQuery = new SimpleJpaQuery(queryMethod, em, "select u from User u");
+		jpaQuery.createCountQuery(new Object[] { new PageRequest(1, 10) });
 
-    /**
-     * @see DATAJPA-77
-     */
-    @Test
-    public void doesNotApplyPaginationToCountQuery() throws Exception {
-
-        when(em.createQuery(Mockito.anyString())).thenReturn(query);
-
-        Method method =
-                UserRepository.class.getMethod("findAllPaged", Pageable.class);
-        JpaQueryMethod queryMethod =
-                new JpaQueryMethod(method, metadata, extractor);
-
-        AbstractJpaQuery jpaQuery =
-                new SimpleJpaQuery(queryMethod, em, "select u from User u");
-        jpaQuery.createCountQuery(new Object[] { new PageRequest(1, 10) });
-
-        verify(query, times(0)).setFirstResult(anyInt());
-        verify(query, times(0)).setMaxResults(anyInt());
-    }
+		verify(query, times(0)).setFirstResult(anyInt());
+		verify(query, times(0)).setMaxResults(anyInt());
+	}
 }

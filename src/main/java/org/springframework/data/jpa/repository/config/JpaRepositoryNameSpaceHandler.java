@@ -17,7 +17,6 @@ package org.springframework.data.jpa.repository.config;
 
 import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 
-
 /**
  * Simple namespace handler for {@literal repositories} namespace.
  * 
@@ -25,16 +24,14 @@ import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
  */
 public class JpaRepositoryNameSpaceHandler extends NamespaceHandlerSupport {
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.springframework.beans.factory.xml.NamespaceHandler#init()
-     */
-    public void init() {
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.springframework.beans.factory.xml.NamespaceHandler#init()
+	 */
+	public void init() {
 
-        registerBeanDefinitionParser("repositories",
-                new JpaRepositoryConfigDefinitionParser());
-        registerBeanDefinitionParser("auditing",
-                new AuditingBeanDefinitionParser());
-    }
+		registerBeanDefinitionParser("repositories", new JpaRepositoryConfigDefinitionParser());
+		registerBeanDefinitionParser("auditing", new AuditingBeanDefinitionParser());
+	}
 }

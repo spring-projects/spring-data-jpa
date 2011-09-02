@@ -24,10 +24,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-
 /**
- * Simple test case launching an {@code ApplicationContext} to test
- * infrastructure configuration.
+ * Simple test case launching an {@code ApplicationContext} to test infrastructure configuration.
  * 
  * @author Oliver Gierke
  */
@@ -35,18 +33,17 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration(locations = "classpath:infrastructure.xml")
 public class ORMInfrastructureTests {
 
-    @Autowired
-    ApplicationContext context;
+	@Autowired
+	ApplicationContext context;
 
+	/**
+	 * Tests, that the context got initialized and injected correctly.
+	 * 
+	 * @throws Exception
+	 */
+	@Test
+	public void contextInitialized() throws Exception {
 
-    /**
-     * Tests, that the context got initialized and injected correctly.
-     * 
-     * @throws Exception
-     */
-    @Test
-    public void contextInitialized() throws Exception {
-
-        assertNotNull(context);
-    }
+		assertNotNull(context);
+	}
 }

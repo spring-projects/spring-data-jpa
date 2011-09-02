@@ -22,5 +22,5 @@ package org.springframework.data.jpa.repository.support;
  */
 class QSimpleEntityPathResolverUnitTests_Sample {
 
-    public QSimpleEntityPathResolverUnitTests_Sample field;
+	public QSimpleEntityPathResolverUnitTests_Sample field;
 }
