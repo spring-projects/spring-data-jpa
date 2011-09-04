@@ -168,7 +168,7 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<Object>,
 		case BETWEEN:
 			ParameterExpression<Comparable> first = provider.next();
 			ParameterExpression<Comparable> second = provider.next();
-			return builder.between(root.<Comparable> get(part.getProperty().toDotPath()), first, second);
+			return builder.between(getComparablePath(root, part), first, second);
 		case GREATER_THAN:
 			return builder.greaterThan(getComparablePath(root, part), provider.next(Comparable.class));
 		case LESS_THAN:
@@ -182,9 +182,9 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<Object>,
 		case IN:
 			return path.in(provider.next(Collection.class));
 		case LIKE:
-			return builder.like(root.<String> get(part.getProperty().toDotPath()), provider.next(String.class));
+			return builder.like(getTypedPath(root, part, String.class), provider.next(String.class));
 		case NOT_LIKE:
-			return builder.like(root.<String> get(part.getProperty().toDotPath()), provider.next(String.class)).not();
+			return builder.like(getTypedPath(root, part, String.class), provider.next(String.class)).not();
 		case SIMPLE_PROPERTY:
 			return builder.equal(path, provider.next());
 		case NEGATING_SIMPLE_PROPERTY:
@@ -221,7 +221,10 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<Object>,
 	 */
 	@SuppressWarnings({ "rawtypes" })
 	private Expression<? extends Comparable> getComparablePath(Root<?> root, Part part) {
+		return getTypedPath(root, part, Comparable.class);
+	}
 
+	private <T> Expression<T> getTypedPath(Root<?> root, Part part, Class<T> type) {
 		return toExpressionRecursively(root, part.getProperty());
 	}
 
