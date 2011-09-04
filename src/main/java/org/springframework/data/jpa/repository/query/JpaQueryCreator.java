@@ -191,6 +191,11 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<Object>,
 	@SuppressWarnings({ "rawtypes" })
 	private Expression<? extends Comparable> getComparablePath(Root<?> root, Part part) {
 
+		return getTypedPath(root, part, Comparable.class);
+	}
+
+	private <T> Expression<? extends T> getTypedPath(Root<?> root, Part part, Class<T> type) {
+
 		return toExpressionRecursively(root, part.getProperty());
 	}
 
@@ -315,7 +320,7 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<Object>,
 			case BETWEEN:
 				ParameterExpression<Comparable> first = provider.next();
 				ParameterExpression<Comparable> second = provider.next();
-				return builder.between(root.<Comparable> get(part.getProperty().toDotPath()), first, second);
+				return builder.between(getComparablePath(root, part), first, second);
 			case GREATER_THAN:
 				return builder.greaterThan(getComparablePath(root, part), provider.next(Comparable.class));
 			case LESS_THAN:
@@ -330,7 +335,7 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<Object>,
 				return path.in(provider.next(Collection.class));
 			case LIKE:
 			case NOT_LIKE:
-				Expression<String> propertyExpression = upperIfIgnoreCase(root.<String> get(part.getProperty().toDotPath()));
+				Expression<String> propertyExpression = upperIfIgnoreCase(getTypedPath(root, part, String.class));
 				Expression<String> parameterExpression = upperIfIgnoreCase(provider.next(String.class));
 				Predicate like = builder.like(propertyExpression, parameterExpression);
 				return part.getType() == Type.LIKE ? like : like.not();
@@ -350,7 +355,7 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<Object>,
 		 * @param expression must not be {@literal null}.
 		 * @return
 		 */
-		private <T> Expression<T> upperIfIgnoreCase(Expression<T> expression) {
+		private <T> Expression<T> upperIfIgnoreCase(Expression<? extends T> expression) {
 
 			switch (part.shouldIgnoreCase()) {
 			case ALWAYS:
@@ -362,7 +367,7 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<Object>,
 					return (Expression<T>) builder.upper((Expression<String>) expression);
 				}
 			}
-			return expression;
+			return (Expression<T>) expression;
 		}
 
 		private boolean canUpperCase(Expression<?> expression) {
