@@ -15,9 +15,12 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import java.util.List;
+
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.Query;
+import javax.persistence.TypedQuery;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -42,7 +45,6 @@ public abstract class JpaQueryExecution {
 	 * @param binder
 	 * @return
 	 */
-
 	public Object execute(AbstractJpaQuery query, Object[] values) {
 
 		Assert.notNull(query);
@@ -71,7 +73,6 @@ public abstract class JpaQueryExecution {
 
 		@Override
 		protected Object doExecute(AbstractJpaQuery query, Object[] values) {
-
 			return query.createQuery(values).getResultList();
 		}
 	}
@@ -93,11 +94,11 @@ public abstract class JpaQueryExecution {
 		protected Object doExecute(AbstractJpaQuery repositoryQuery, Object[] values) {
 
 			// Execute query to compute total
-			Query projection = repositoryQuery.createCountQuery(values);
-			Long total = (Long) projection.getSingleResult();
+			TypedQuery<Long> projection = repositoryQuery.createCountQuery(values);
+			List<Long> totals = projection.getResultList();
+			Long total = totals.size() == 1 ? totals.get(0) : totals.size();
 
 			Query query = repositoryQuery.createQuery(values);
-
 			ParameterAccessor accessor = new ParametersParameterAccessor(parameters, values);
 
 			return new PageImpl<Object>(query.getResultList(), accessor.getPageable(), total);

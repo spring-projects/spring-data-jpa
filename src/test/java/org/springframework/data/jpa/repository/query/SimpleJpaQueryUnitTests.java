@@ -23,8 +23,7 @@ import static org.mockito.Mockito.*;
 import java.lang.reflect.Method;
 
 import javax.persistence.EntityManager;
-import javax.persistence.Query;
-import javax.persistence.QueryHint;
+import javax.persistence.TypedQuery;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -34,7 +33,6 @@ import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.Parameters;
@@ -54,29 +52,20 @@ public class SimpleJpaQueryUnitTests {
 	@Mock
 	QueryExtractor extractor;
 	@Mock
-	Query query;
+	TypedQuery<Long> query;
 	@Mock
 	RepositoryMetadata metadata;
 	@Mock
 	ParameterBinder binder;
 
 	@Before
-	@QueryHints(@QueryHint(name = "foo", value = "bar"))
 	public void setUp() throws SecurityException, NoSuchMethodException {
 
 		when(em.createQuery(anyString())).thenReturn(query);
+		when(em.createQuery(anyString(), eq(Long.class))).thenReturn(query);
 
 		Method setUp = UserRepository.class.getMethod("findByLastname", String.class);
 		method = new JpaQueryMethod(setUp, metadata, extractor);
-	}
-
-	@Test
-	public void appliesHintsCorrectly() throws Exception {
-
-		SimpleJpaQuery jpaQuery = new SimpleJpaQuery(method, em, "foobar");
-		jpaQuery.createQuery(new Object[] { "gierke" });
-
-		verify(query).setHint("foo", "bar");
 	}
 
 	@Test
@@ -86,7 +75,7 @@ public class SimpleJpaQueryUnitTests {
 		when(method.getCountQuery()).thenReturn("foo");
 		when(method.getParameters()).thenReturn(
 				new Parameters(SimpleJpaQueryUnitTests.class.getMethod("prefersDeclaredCountQueryOverCreatingOne")));
-		when(em.createQuery("foo")).thenReturn(query);
+		when(em.createQuery("foo", Long.class)).thenReturn(query);
 
 		SimpleJpaQuery jpaQuery = new SimpleJpaQuery(method, em, "select u from User u");
 

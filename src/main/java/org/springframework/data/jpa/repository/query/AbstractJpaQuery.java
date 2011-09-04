@@ -17,12 +17,13 @@ package org.springframework.data.jpa.repository.query;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
+import javax.persistence.QueryHint;
+import javax.persistence.TypedQuery;
 
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.CollectionExecution;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.ModifyingExecution;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.PagedExecution;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.SingleEntityExecution;
-import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.util.Assert;
 
@@ -58,7 +59,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 	 * org.springframework.data.repository.query.RepositoryQuery#getQueryMethod
 	 * ()
 	 */
-	public QueryMethod getQueryMethod() {
+	public JpaQueryMethod getQueryMethod() {
 
 		return method;
 	}
@@ -106,12 +107,46 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 		}
 	}
 
-	protected ParameterBinder createBinder(Object[] values) {
+	/**
+	 * Applies the declared query hints to the given query.
+	 * 
+	 * @param query
+	 * @return
+	 */
+	private <T extends Query> T applyHints(T query, JpaQueryMethod method) {
 
+		for (QueryHint hint : method.getHints()) {
+			query.setHint(hint.name(), hint.value());
+		}
+
+		return query;
+	}
+
+	protected ParameterBinder createBinder(Object[] values) {
 		return new ParameterBinder(getQueryMethod().getParameters(), values);
 	}
 
-	protected abstract Query createQuery(Object[] values);
+	protected Query createQuery(Object[] values) {
+		return applyHints(doCreateQuery(values), method);
+	}
 
-	protected abstract Query createCountQuery(Object[] values);
+	protected TypedQuery<Long> createCountQuery(Object[] values) {
+		return applyHints(doCreateCountQuery(values), method);
+	}
+
+	/**
+	 * Creates a {@link Query} instance for the given values.
+	 * 
+	 * @param values must not be {@literal null}.
+	 * @return
+	 */
+	protected abstract Query doCreateQuery(Object[] values);
+
+	/**
+	 * Creates a {@link TypedQuery} for counting using the given values.
+	 * 
+	 * @param values must not be {@literal null}.
+	 * @return
+	 */
+	protected abstract TypedQuery<Long> doCreateCountQuery(Object[] values);
 }

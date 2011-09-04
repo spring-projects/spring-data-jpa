@@ -30,7 +30,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.ModifyingExecution;
 
 /**
- * Unit test for {@link QueryExecution}.
+ * Unit test for {@link JpaQueryExecution}.
  * 
  * @author Oliver Gierke
  */

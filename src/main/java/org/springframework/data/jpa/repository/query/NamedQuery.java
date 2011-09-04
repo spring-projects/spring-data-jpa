@@ -17,6 +17,7 @@ package org.springframework.data.jpa.repository.query;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
+import javax.persistence.TypedQuery;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -101,15 +102,10 @@ final class NamedQuery extends AbstractJpaQuery {
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.springframework.data.jpa.repository.query.AbstractStringBasedJpaQuery
-	 * #
-	 * createQuery(org.springframework.data.jpa.repository.query.ParameterBinder
-	 * )
+	 * @see org.springframework.data.jpa.repository.query.AbstractJpaQuery#doCreateQuery(java.lang.Object[])
 	 */
 	@Override
-	protected Query createQuery(Object[] values) {
+	protected Query doCreateQuery(Object[] values) {
 
 		Query query = getEntityManager().createNamedQuery(queryName);
 		return createBinder(values).bindAndPrepare(query);
@@ -117,18 +113,15 @@ final class NamedQuery extends AbstractJpaQuery {
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.springframework.data.jpa.repository.query.AbstractStringBasedJpaQuery
-	 * #createCountQuery(org.springframework.data.jpa.repository.query.
-	 * ParameterBinder)
+	 * @see org.springframework.data.jpa.repository.query.AbstractJpaQuery#doCreateCountQuery(java.lang.Object[])
 	 */
 	@Override
-	protected Query createCountQuery(Object[] values) {
+	protected TypedQuery<Long> doCreateCountQuery(Object[] values) {
 
 		Query query = createQuery(values);
 		String queryString = extractor.extractQueryString(query);
 
-		return createBinder(values).bind(getEntityManager().createQuery(QueryUtils.createCountQueryFor(queryString)));
+		return createBinder(values).bind(
+				getEntityManager().createQuery(QueryUtils.createCountQueryFor(queryString), Long.class));
 	}
 }

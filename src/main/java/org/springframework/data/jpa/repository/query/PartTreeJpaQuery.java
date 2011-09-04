@@ -62,28 +62,23 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.springframework.data.jpa.repository.query.AbstractJpaQuery#createQuery
-	 * (javax.persistence.EntityManager,
-	 * org.springframework.data.jpa.repository.query.ParameterBinder)
+	 * @see org.springframework.data.jpa.repository.query.AbstractJpaQuery#doCreateQuery(java.lang.Object[])
 	 */
 	@Override
-	public Query createQuery(Object[] values) {
+	public Query doCreateQuery(Object[] values) {
 
 		return query.createQuery(values);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see org.springframework.data.jpa.repository.query.AbstractJpaQuery#
-	 * createCountQuery(javax.persistence.EntityManager)
+	 * @see org.springframework.data.jpa.repository.query.AbstractJpaQuery#doCreateCountQuery(java.lang.Object[])
 	 */
 	@Override
-	public Query createCountQuery(Object[] values) {
+	@SuppressWarnings("unchecked")
+	public TypedQuery<Long> doCreateCountQuery(Object[] values) {
 
-		return countQuery.createQuery(values);
+		return (TypedQuery<Long>) countQuery.createQuery(values);
 	}
 
 	/**

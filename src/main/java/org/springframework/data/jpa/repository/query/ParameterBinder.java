@@ -95,7 +95,7 @@ public class ParameterBinder {
 	 * @param query
 	 * @return
 	 */
-	public Query bind(Query query) {
+	public <T extends Query> T bind(T query) {
 
 		int methodParameterPosition = 0;
 		int queryParameterPosition = 1;

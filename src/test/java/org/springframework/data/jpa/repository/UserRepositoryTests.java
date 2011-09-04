@@ -725,6 +725,18 @@ public class UserRepositoryTests {
 		assertThat(result, hasItem(firstUser));
 	}
 
+	/**
+	 * @see DATADOC-86
+	 */
+	@Test
+	public void readsPageWithGroupByClauseCorrectly() {
+
+		flushTestUsers();
+
+		Page<String> result = repository.findByLastnameGrouped(new PageRequest(0, 10));
+		assertThat(result.getTotalPages(), is(1));
+	}
+
 	private Page<User> executeSpecWithSort(Sort sort) {
 
 		flushTestUsers();

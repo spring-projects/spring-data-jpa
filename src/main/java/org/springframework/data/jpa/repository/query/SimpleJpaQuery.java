@@ -15,11 +15,9 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import java.util.List;
-
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
-import javax.persistence.QueryHint;
+import javax.persistence.TypedQuery;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +40,6 @@ final class SimpleJpaQuery extends AbstractJpaQuery {
 	private final String queryString;
 	private final String countQuery;
 	private final String alias;
-	private final List<QueryHint> hints;
 	private final Parameters parameters;
 
 	/**
@@ -53,7 +50,6 @@ final class SimpleJpaQuery extends AbstractJpaQuery {
 		super(method, em);
 		this.queryString = queryString;
 		this.alias = QueryUtils.detectAlias(queryString);
-		this.hints = method.getHints();
 		this.parameters = method.getParameters();
 		this.countQuery = method.getCountQuery() == null ? QueryUtils.createCountQueryFor(queryString) : method
 				.getCountQuery();
@@ -64,48 +60,26 @@ final class SimpleJpaQuery extends AbstractJpaQuery {
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.springframework.data.jpa.repository.query.AbstractStringBasedJpaQuery
-	 * #
-	 * createQuery(org.springframework.data.jpa.repository.query.ParameterBinder
-	 * )
+	 * @see org.springframework.data.jpa.repository.query.AbstractJpaQuery#createQuery(java.lang.Object[])
 	 */
 	@Override
-	public Query createQuery(Object[] values) {
+	public Query doCreateQuery(Object[] values) {
 
 		ParameterAccessor accessor = new ParametersParameterAccessor(parameters, values);
 		String sortedQueryString = QueryUtils.applySorting(queryString, accessor.getSort(), alias);
 
 		Query query = getEntityManager().createQuery(sortedQueryString);
-		return createBinder(values).bindAndPrepare(applyHints(query));
+		return createBinder(values).bindAndPrepare(query);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see org.springframework.data.jpa.repository.query.AbstractJpaQuery#
-	 * createCountQuery(java.lang.Object[])
+	 * @see org.springframework.data.jpa.repository.query.AbstractJpaQuery#doCreateCountQuery(java.lang.Object[])
 	 */
 	@Override
-	protected Query createCountQuery(Object[] values) {
+	protected TypedQuery<Long> doCreateCountQuery(Object[] values) {
 
-		return createBinder(values).bind(applyHints(getEntityManager().createQuery(countQuery)));
-	}
-
-	/**
-	 * Applies the declared query hints to the given query.
-	 * 
-	 * @param query
-	 * @return
-	 */
-	private Query applyHints(Query query) {
-
-		for (QueryHint hint : hints) {
-			query.setHint(hint.name(), hint.value());
-		}
-
-		return query;
+		return createBinder(values).bind(getEntityManager().createQuery(countQuery, Long.class));
 	}
 
 	/**

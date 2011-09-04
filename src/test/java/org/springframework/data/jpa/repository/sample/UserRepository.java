@@ -185,4 +185,9 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 
 	List<User> findByLastnameAndFirstnameAllIgnoringCase(String lastname, String firstname);
 
+	/**
+	 * @see DATADOC-86 - Count execution for group by
+	 */
+	@Query("select u.lastname from User u group by u.lastname")
+	Page<String> findByLastnameGrouped(Pageable pageable);
 }
