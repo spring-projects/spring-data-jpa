@@ -58,11 +58,7 @@ public abstract class JpaEntityInformationSupport<T, ID extends Serializable> ex
 		if (Persistable.class.isAssignableFrom(domainClass)) {
 			return new JpaPersistableEntityInformation(domainClass, metamodel);
 		} else {
-			try {
-				return new JpaMetamodelEntityInformation(domainClass, metamodel);
-			} catch (IllegalArgumentException e) {
-				return null;
-			}
+			return new JpaMetamodelEntityInformation(domainClass, metamodel);
 		}
 	}
 

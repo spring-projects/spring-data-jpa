@@ -16,14 +16,18 @@
 package org.springframework.data.jpa.repository.support;
 
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 import java.io.Serializable;
 
 import javax.persistence.Entity;
+import javax.persistence.EntityManager;
+import javax.persistence.metamodel.Metamodel;
 import javax.persistence.metamodel.SingularAttribute;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 /**
@@ -34,6 +38,11 @@ import org.mockito.runners.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class JpaEntityInformationSupportUnitTests {
 
+	@Mock
+	EntityManager em;
+	@Mock
+	Metamodel metaModel;
+
 	@Test
 	public void usesSimpleClassNameIfNoEntityNameGiven() throws Exception {
 
@@ -42,6 +51,16 @@ public class JpaEntityInformationSupportUnitTests {
 
 		JpaEntityInformation<NamedUser, ?> second = new DummyJpaEntityInformation<NamedUser, Serializable>(NamedUser.class);
 		assertEquals("AnotherNamedUser", second.getEntityName());
+	}
+
+	/**
+	 * @see DATAJPA-93
+	 */
+	@Test(expected = IllegalArgumentException.class)
+	public void rejectsClassNotBeingFoundInMetamodel() {
+
+		when(em.getMetamodel()).thenReturn(metaModel);
+		JpaEntityInformationSupport.getMetadata(User.class, em);
 	}
 
 	static class User {
