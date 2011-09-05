@@ -97,7 +97,6 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	private String getCountQueryString() {
 
 		String countQuery = String.format(COUNT_QUERY_STRING, provider.getCountQueryPlaceholder(), "%s");
-
 		return getQueryString(countQuery, entityInformation.getEntityName());
 	}
 
@@ -190,21 +189,25 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.springframework.data.repository.Repository#exists(java.io.Serializable
-	 * )
+	 * @see org.springframework.data.repository.CrudRepository#exists(java.io.Serializable)
 	 */
 	public boolean exists(ID id) {
 
-		Assert.notNull(id, "The given id must not be null!");
-		return null != findOne(id);
+		String placeholder = provider.getCountQueryPlaceholder();
+		String entityName = entityInformation.getEntityName();
+		String idAttributeName = entityInformation.getIdAttribute().getName();
+
+		String existsQuery = String.format(EXISTS_QUERY_STRING, placeholder, entityName, idAttributeName);
+
+		TypedQuery<Long> query = em.createQuery(existsQuery, Long.class);
+		query.setParameter("id", id);
+
+		return query.getSingleResult() == 1;
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see org.springframework.data.repository.Repository#readAll()
+	 * @see org.springframework.data.jpa.repository.JpaRepository#findAll()
 	 */
 	public List<T> findAll() {
 
@@ -297,7 +300,6 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	 * @see org.springframework.data.repository.Repository#count()
 	 */
 	public long count() {
-
 		return em.createQuery(getCountQueryString(), Long.class).getSingleResult();
 	}
 
@@ -454,7 +456,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 		CriteriaQuery<Long> query = builder.createQuery(Long.class);
 
 		Root<T> root = applySpecificationToCriteria(spec, query);
-		query.select(builder.count(root)).distinct(true);
+		query.select(builder.count(root));
 
 		return em.createQuery(query);
 	}

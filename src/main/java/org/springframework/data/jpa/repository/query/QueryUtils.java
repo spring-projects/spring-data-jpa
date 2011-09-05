@@ -44,6 +44,7 @@ import org.springframework.util.Assert;
 public abstract class QueryUtils {
 
 	public static final String COUNT_QUERY_STRING = "select count(%s) from %s x";
+	public static final String EXISTS_QUERY_STRING = "select count(%s) from %s x where x.%s = :id";
 
 	public static final String DELETE_ALL_QUERY_STRING = "delete from %s x";
 	public static final String READ_ALL_QUERY = "select x from %s x";
