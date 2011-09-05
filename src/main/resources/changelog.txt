@@ -1,6 +1,23 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 1.1.0.M1 (2011-09-05)
+----------------------------------------
+* Added ability to ignore case in derived method names (DATAJPA-92)
+* Upgraded dependency to Spring Data Commons 1.2.0.M1
+
+Changes in version 1.0.1 (2011-09-05)
+-------------------------------------
+* Fixed pagination for queries using group-by clause (DATAJPA-86)
+* Fixed NoSuchElementException for queries using dynamic sorting (DATAJPA-90)
+* JpaEntityInformationSupport.getMetadata(...) throws IllegalArgumentException if entity not found in JPA metamodel (DATAJPA-93)
+* Sort handed via Pageable instance is now again regarded by query execution (DATAJPA-94)
+* Fixed creating CriteriaQuery instances for some keywords when deriving queries from method names (DATAJPA-96)
+* Fixed manifest version reference of javax.annotation (DATAJPA-79)
+* Improved performanve of SimpleJpaRepository.exists(…) by not loading the entity (DATAJPA-81)
+* Updated reference documentation covering persistence exception translation, custom namespace attributes (DATAJPA-91, DATAJPA-88, DATAJPA-80)
+* Reformatted sources with Spring Data Eclipse formatter and added settings to project (DATAJPA-98)
+
 Changes in version 1.0.0.GA (2011-07-21)
 ----------------------------------------
 * Updated to Spring Data Commons 1.1.0.RELEASE - (DATACMNS-53, DATACMNS-49)
