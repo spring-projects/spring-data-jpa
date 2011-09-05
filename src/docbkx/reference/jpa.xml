@@ -9,6 +9,91 @@
     implementation.</para>
   </abstract>
 
+  <section id="jpa.introduction">
+    <title>Introduction</title>
+
+    <section id="jpa.namespace">
+      <title>Spring namespace</title>
+
+      <para>The JPA module of Spring Data contains a custom namespace that
+      allows defining repository beans. It also contains certain features and
+      element attributes that are special to JPA. Generally the JPA
+      repositories can be set up using the <code>repositories</code> element:
+      </para>
+
+      <example>
+        <title>Setting up JPA repositories using the namespace</title>
+
+        <programlisting language="xml">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;beans xmlns="http://www.springframework.org/schema/beans"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:jpa="http://www.springframework.org/schema/data/jpa
+  xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans.xsd
+    http://www.springframework.org/schema/data/jpa
+    http://www.springframework.org/schema/data/jpa/spring-jpa.xsd"&gt;
+
+  &lt;jpa:repositories base-package="com.acme.repositories" /&gt;
+
+&lt;/beans&gt;</programlisting>
+      </example>
+
+      <para>Using this element looks up Spring Data repositories as described
+      in <xref linkend="repositories.create-instances" />. Beyond that it
+      activates persistence exception translation for all beans annotated with
+      <interfacename>@Repository</interfacename> to let exceptions being
+      thrown by the JPA presistence providers be converted into Spring's
+      <classname>DataAccessException</classname> hierarchy.</para>
+
+      <simplesect id="jpa.namespace-attributes">
+        <title>Custom namespace attributes</title>
+
+        <para>Beyond the default attributes of the <code>repositories</code>
+        element the JPA namespace offers additional attributes to gain more
+        detailled control over the setup of the repositories:</para>
+
+        <table>
+          <title>Custom JPA-specific attributes of the repositories
+          element</title>
+
+          <tgroup cols="2">
+            <tbody>
+              <row>
+                <entry><code>entity-manager-factory-ref</code></entry>
+
+                <entry>Explicitly wire the
+                <interfacename>EntityManagerFactory</interfacename> to be used
+                with the repositories being detected by the
+                <code>repositories</code> element. Usually used if multiple
+                <interfacename>EntityManagerFactory</interfacename> beans are
+                used within the application. If not configured we will
+                automatically lookup the single
+                <interfacename>EntityManagerFactory</interfacename> configured
+                in the
+                <interfacename>ApplicationContext</interfacename>.</entry>
+              </row>
+
+              <row>
+                <entry><code>transaction-manager-ref</code></entry>
+
+                <entry>Explicitly wire tha
+                <interfacename>PlatformTransactionManager</interfacename> to
+                be used with the repositories being detected by the
+                <code>repositories</code> element. Usually only necessary if
+                multiple transaction managers and/or
+                <interfacename>EntityManagerFactory</interfacename> beans have
+                been configured. Default to a single defined
+                <interfacename>PlatformTransactionManager</interfacename>
+                inside the current
+                <interfacename>ApplicationContext</interfacename>.</entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </table>
+      </simplesect>
+    </section>
+  </section>
+
   <section id="jpa.query-methods">
     <title>Query methods</title>
 
