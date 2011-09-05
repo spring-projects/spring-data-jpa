@@ -15,6 +15,8 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import java.util.List;
+
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.Query;
@@ -94,7 +96,8 @@ public abstract class JpaQueryExecution {
 
 			// Execute query to compute total
 			Query projection = repositoryQuery.createCountQuery(values);
-			Long total = (Long) projection.getSingleResult();
+			List<Long> counts = projection.getResultList();
+			Long total = counts.size() == 1 ? counts.get(0) : counts.size();
 
 			Query query = repositoryQuery.createQuery(values);
 

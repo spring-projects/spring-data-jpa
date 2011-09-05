@@ -178,4 +178,7 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	List<User> findBySpringDataNamedQuery(String lastname);
 
 	Page<User> findByLastnameLike(Pageable pageable, String lastname);
+
+	@Query("select u.lastname from User u group by u.lastname")
+	Page<String> findWithGroupBy(Pageable pageable);
 }

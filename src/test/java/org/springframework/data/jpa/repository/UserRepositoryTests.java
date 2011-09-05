@@ -725,6 +725,15 @@ public class UserRepositoryTests {
 		assertThat(result, hasItem(firstUser));
 	}
 
+	@Test
+	public void executesPaginationForGroupByQueryCorrectly() {
+
+		flushTestUsers();
+
+		Page<String> results = repository.findWithGroupBy(new PageRequest(0, 10));
+		assertThat(results.getTotalPages(), is(1));
+	}
+
 	private Page<User> executeSpecWithSort(Sort sort) {
 
 		flushTestUsers();
