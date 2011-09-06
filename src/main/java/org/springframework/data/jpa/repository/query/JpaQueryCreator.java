@@ -15,6 +15,8 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import static org.springframework.data.jpa.repository.query.QueryUtils.*;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -25,10 +27,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.From;
-import javax.persistence.criteria.Join;
 import javax.persistence.criteria.ParameterExpression;
-import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
@@ -192,24 +191,6 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<Object>,
 			return builder.notEqual(path, provider.next());
 		default:
 			throw new IllegalArgumentException("Unsupported keyword + " + part.getType());
-		}
-	}
-
-	private Expression<Object> toExpressionRecursively(Path<Object> path, Property property) {
-
-		Path<Object> result = path.get(property.getName());
-		return property.hasNext() ? toExpressionRecursively(result, property.next()) : result;
-	}
-
-	@SuppressWarnings("unchecked")
-	private <T> Expression<T> toExpressionRecursively(From<?, ?> from, Property property) {
-
-		if (property.isCollection()) {
-			Join<Object, Object> join = from.join(property.getName());
-			return (Expression<T>) (property.hasNext() ? toExpressionRecursively((From<?, ?>) join, property.next()) : join);
-		} else {
-			Path<Object> path = from.get(property.getName());
-			return (Expression<T>) (property.hasNext() ? toExpressionRecursively(path, property.next()) : path);
 		}
 	}
 

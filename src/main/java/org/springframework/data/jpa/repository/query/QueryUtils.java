@@ -29,11 +29,14 @@ import javax.persistence.Parameter;
 import javax.persistence.Query;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.From;
 import javax.persistence.criteria.Join;
+import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Root;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
+import org.springframework.data.repository.query.parser.Property;
 import org.springframework.util.Assert;
 
 /**
@@ -244,9 +247,9 @@ public abstract class QueryUtils {
 	/**
 	 * Turns the given {@link Sort} into {@link javax.persistence.criteria.Order}s.
 	 * 
-	 * @param sort
-	 * @param root
-	 * @param cb
+	 * @param sort the {@link Sort} instance to be transformed into JPA {@link javax.persistence.criteria.Order}s.
+	 * @param root must not be {@literal null}.
+	 * @param cb must not be {@literal null}.
 	 * @return
 	 */
 	public static List<javax.persistence.criteria.Order> toOrders(Sort sort, Root<?> root, CriteriaBuilder cb) {
@@ -256,6 +259,9 @@ public abstract class QueryUtils {
 		if (sort == null) {
 			return orders;
 		}
+
+		Assert.notNull(root);
+		Assert.notNull(cb);
 
 		for (org.springframework.data.domain.Sort.Order order : sort) {
 			orders.add(toJpaOrder(order, root, cb));
@@ -267,28 +273,32 @@ public abstract class QueryUtils {
 	/**
 	 * Creates a criteria API {@link javax.persistence.criteria.Order} from the given {@link Order}.
 	 * 
-	 * @param order
-	 * @param root
-	 * @param cb
+	 * @param order the order to transform into a JPA {@link javax.persistence.criteria.Order}
+	 * @param root the {@link Root} the {@link Order} expression is based on
+	 * @param cb the {@link CriteriaBuilder} to build the {@link javax.persistence.criteria.Order} with
 	 * @return
 	 */
 	private static javax.persistence.criteria.Order toJpaOrder(Order order, Root<?> root, CriteriaBuilder cb) {
 
-		Expression<?> expression = null;
-		String pathString = order.getProperty();
-		String[] pathElements = pathString.split("\\.");
-		int pathSize = pathElements.length;
-
-		if (pathSize > 1) {
-			Join<Object, Object> path = root.join(pathElements[0]);
-			for (int i = 1; i < pathSize - 1; i++) {
-				path = path.join(pathElements[i]);
-			}
-			expression = path.get(pathElements[pathSize - 1]);
-		} else {
-			expression = root.get(pathString);
-		}
-
+		Expression<?> expression = toExpressionRecursively(root, Property.from(order.getProperty(), root.getJavaType()));
 		return order.isAscending() ? cb.asc(expression) : cb.desc(expression);
+	}
+
+	@SuppressWarnings("unchecked")
+	static <T> Expression<T> toExpressionRecursively(From<?, ?> from, Property property) {
+
+		if (property.isCollection()) {
+			Join<Object, Object> join = from.join(property.getName());
+			return (Expression<T>) (property.hasNext() ? toExpressionRecursively((From<?, ?>) join, property.next()) : join);
+		} else {
+			Path<Object> path = from.get(property.getName());
+			return (Expression<T>) (property.hasNext() ? toExpressionRecursively(path, property.next()) : path);
+		}
+	}
+
+	static Expression<Object> toExpressionRecursively(Path<Object> path, Property property) {
+
+		Path<Object> result = path.get(property.getName());
+		return property.hasNext() ? toExpressionRecursively(result, property.next()) : result;
 	}
 }
