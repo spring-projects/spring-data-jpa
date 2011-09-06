@@ -40,6 +40,7 @@ import org.springframework.data.repository.query.parser.Part;
 import org.springframework.data.repository.query.parser.PartTree;
 import org.springframework.data.repository.query.parser.Property;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 
 /**
  * Query creator to create a {@link CriteriaQuery} from a {@link PartTree}.
@@ -233,7 +234,7 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<Object>,
 	 * 
 	 * @author Oliver Gierke
 	 */
-	private static class ParameterExpressionProvider {
+	static class ParameterExpressionProvider {
 
 		private final CriteriaBuilder builder;
 		private final Iterator<Parameter> parameters;
@@ -285,10 +286,12 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<Object>,
 		 * @param type must not be {@literal null}.
 		 * @return
 		 */
+		@SuppressWarnings("unchecked")
 		public <T> ParameterExpression<T> next(Class<T> type) {
 
-			parameters.next();
-			return next(type, null);
+			Parameter parameter = parameters.next();
+			Class<?> typeToUse = ClassUtils.isAssignable(type, parameter.getType()) ? parameter.getType() : type;
+			return (ParameterExpression<T>) next(typeToUse, null);
 		}
 
 		/**
@@ -299,14 +302,13 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<Object>,
 		 * @param name
 		 * @return
 		 */
-		@SuppressWarnings("unchecked")
 		private <T> ParameterExpression<T> next(Class<T> type, String name) {
 
 			Assert.notNull(type);
 
-			ParameterExpression<?> expression = name == null ? builder.parameter(type) : builder.parameter(type, name);
+			ParameterExpression<T> expression = name == null ? builder.parameter(type) : builder.parameter(type, name);
 			expressions.add(expression);
-			return (ParameterExpression<T>) expression;
+			return expression;
 		}
 	}
 }
