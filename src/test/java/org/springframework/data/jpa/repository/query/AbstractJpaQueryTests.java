@@ -1,3 +1,18 @@
+/*
+ * Copyright 2008-2011 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.springframework.data.jpa.repository.query;
 
 import static org.mockito.Mockito.*;
@@ -65,10 +80,34 @@ public class AbstractJpaQueryTests {
 		verify(result).setHint("foo", "bar");
 	}
 
+	/**
+	 * @see DATAJPA-54
+	 * @throws Exception
+	 */
+	@Test
+	public void skipsHintsForCountQueryIfConfigured() throws Exception {
+
+		Method method = SampleRepository.class.getMethod("findByFirstname", String.class);
+		QueryExtractor provider = PersistenceProvider.fromEntityManager(em);
+		JpaQueryMethod queryMethod = new JpaQueryMethod(method, new DefaultRepositoryMetadata(SampleRepository.class),
+				provider);
+
+		AbstractJpaQuery jpaQuery = new DummyJpaQuery(queryMethod, em);
+
+		Query result = jpaQuery.createQuery(new Object[] { "Dave" });
+		verify(result).setHint("bar", "foo");
+
+		result = jpaQuery.createCountQuery(new Object[] { "Dave" });
+		verify(result, never()).setHint("bar", "foo");
+	}
+
 	interface SampleRepository extends Repository<User, Integer> {
 
 		@QueryHints({ @QueryHint(name = "foo", value = "bar") })
 		List<User> findByLastname(String lastname);
+
+		@QueryHints(value = { @QueryHint(name = "bar", value = "foo") }, forCounting = false)
+		List<User> findByFirstname(String firstname);
 	}
 
 	class DummyJpaQuery extends AbstractJpaQuery {

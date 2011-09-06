@@ -34,5 +34,18 @@ import javax.persistence.QueryHint;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface QueryHints {
 
+	/**
+	 * The {@link QueryHint}s to apply when the query will be executed.
+	 * 
+	 * @return
+	 */
 	QueryHint[] value() default {};
+
+	/**
+	 * Defines whether the configured {@link QueryHint}s shall be applied for count queries during pagination as well.
+	 * Defaults to {@literal true}.
+	 * 
+	 * @return
+	 */
+	boolean forCounting() default true;
 }

@@ -94,6 +94,18 @@ public class JpaQueryMethod extends QueryMethod {
 	}
 
 	/**
+	 * Returns whether the potentially configured {@link QueryHint}s shall be applied when triggering the count query for
+	 * pagination.
+	 * 
+	 * @return
+	 */
+	boolean applyHintsToCountQuery() {
+
+		QueryHints hints = getAnnotation(method, QueryHints.class);
+		return hints != null ? hints.forCounting() : false;
+	}
+
+	/**
 	 * Returns the {@link QueryExtractor}.
 	 * 
 	 * @return

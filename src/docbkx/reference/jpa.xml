@@ -18,8 +18,8 @@
       <para>The JPA module of Spring Data contains a custom namespace that
       allows defining repository beans. It also contains certain features and
       element attributes that are special to JPA. Generally the JPA
-      repositories can be set up using the <code>repositories</code> element:
-      </para>
+      repositories can be set up using the <code>repositories</code>
+      element:</para>
 
       <example>
         <title>Setting up JPA repositories using the namespace</title>
@@ -443,6 +443,33 @@ int setFixedFirstnameFor(String firstname, String lastname);</programlisting>
       <interfacename>@Modifying</interfacename> annotation's
       <code>clearAutomatically</code> attribute to
       <literal>false</literal>;</para>
+    </section>
+
+    <section id="jpa.query-hints">
+      <title>Applying query hints</title>
+
+      <para>To apply JPA <interfacename>QueryHint</interfacename>s to the
+      queries declared in your repository interface you can use the
+      <interfacename>QueryHints</interfacename> annotation. It takes an array
+      of JPA <interfacename>QueryHint</interfacename> annotations plus a
+      boolean flag to potentially disable the hints applied to the addtional
+      count query triggered when applying pagination.</para>
+
+      <example>
+        <title>Using QueryHints with a repository method</title>
+
+        <programlisting language="java">public interface UserRepository extends Repository&lt;User, Long&gt; {
+
+  @QueryHints(value = { @QueryHint(name = "name", value = "value")}, 
+              forCounting = false)
+  Page&lt;User&gt; findByLastname(String lastname, Pageable pageable);
+}</programlisting>
+
+        <para>The just shown declaration would apply the configured
+        <interfacename>QueryHint</interfacename> for that actually query but
+        omit applying it to the count query triggered to calculate the total
+        number of pages.</para>
+      </example>
     </section>
   </section>
 

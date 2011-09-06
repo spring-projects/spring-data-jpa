@@ -131,7 +131,8 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 	}
 
 	protected TypedQuery<Long> createCountQuery(Object[] values) {
-		return applyHints(doCreateCountQuery(values), method);
+		TypedQuery<Long> countQuery = doCreateCountQuery(values);
+		return method.applyHintsToCountQuery() ? applyHints(countQuery, method) : countQuery;
 	}
 
 	/**
