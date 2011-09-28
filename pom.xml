@@ -52,7 +52,7 @@
 	</licenses>
 	
 	<properties>
-		<spring.version>3.0.5.RELEASE</spring.version>
+		<spring.version>3.0.6.RELEASE</spring.version>
 		<spring.data.commons.version>1.2.0.M1</spring.data.commons.version>
 		<hibernate.version>3.6.5.Final</hibernate.version>
 		<openjpa.version>2.1.0</openjpa.version>
