@@ -43,13 +43,11 @@ class JpaRepositoryConfigDefinitionParser extends
 
 	private static final Class<?> PAB_POST_PROCESSOR = PersistenceAnnotationBeanPostProcessor.class;
 	private static final Class<?> PET_POST_PROCESSOR = PersistenceExceptionTranslationPostProcessor.class;
+	private static final String DEFAULT_TRANSACTION_MANAGER_BEAN_NAME = "transactionManager";
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see org.springframework.data.repository.config.
-	 * AbstractRepositoryConfigDefinitionParser
-	 * #getGlobalRepositoryConfigInformation(org.w3c.dom.Element)
+	 * @see org.springframework.data.repository.config.AbstractRepositoryConfigDefinitionParser#getGlobalRepositoryConfigInformation(org.w3c.dom.Element)
 	 */
 	@Override
 	protected SimpleJpaRepositoryConfiguration getGlobalRepositoryConfigInformation(Element element) {
@@ -59,18 +57,15 @@ class JpaRepositoryConfigDefinitionParser extends
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see org.springframework.data.repository.config.
-	 * AbstractRepositoryConfigDefinitionParser
-	 * #postProcessBeanDefinition(org.springframework
-	 * .data.repository.config.SingleRepositoryConfigInformation,
-	 * org.springframework.beans.factory.support.BeanDefinitionBuilder,
-	 * org.springframework.beans.factory.support.BeanDefinitionRegistry,
-	 * java.lang.Object)
+	 * @see org.springframework.data.repository.config.AbstractRepositoryConfigDefinitionParser#postProcessBeanDefinition(org.springframework.data.repository.config.SingleRepositoryConfigInformation, org.springframework.beans.factory.support.BeanDefinitionBuilder, org.springframework.beans.factory.support.BeanDefinitionRegistry, java.lang.Object)
 	 */
 	@Override
 	protected void postProcessBeanDefinition(JpaRepositoryConfiguration ctx, BeanDefinitionBuilder builder,
 			BeanDefinitionRegistry registry, Object beanSource) {
+
+		String transactionManagerRef = StringUtils.hasText(ctx.getTransactionManagerRef()) ? ctx.getTransactionManagerRef()
+				: DEFAULT_TRANSACTION_MANAGER_BEAN_NAME;
+		builder.addPropertyValue("transactionManager", transactionManagerRef);
 
 		String entityManagerRef = ctx.getEntityManagerFactoryRef();
 
