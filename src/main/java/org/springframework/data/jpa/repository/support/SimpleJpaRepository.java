@@ -171,7 +171,6 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	public void deleteAll() {
 
 		em.createQuery(getDeleteAllQueryString()).executeUpdate();
-		em.clear();
 	}
 
 	/*
