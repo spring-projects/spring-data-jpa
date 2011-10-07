@@ -36,7 +36,7 @@ import javax.persistence.criteria.Root;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
-import org.springframework.data.repository.query.parser.Property;
+import org.springframework.data.mapping.PropertyPath;
 import org.springframework.util.Assert;
 
 /**
@@ -280,25 +280,25 @@ public abstract class QueryUtils {
 	 */
 	private static javax.persistence.criteria.Order toJpaOrder(Order order, Root<?> root, CriteriaBuilder cb) {
 
-		Expression<?> expression = toExpressionRecursively(root, Property.from(order.getProperty(), root.getJavaType()));
+		Expression<?> expression = toExpressionRecursively(root, PropertyPath.from(order.getProperty(), root.getJavaType()));
 		return order.isAscending() ? cb.asc(expression) : cb.desc(expression);
 	}
 
 	@SuppressWarnings("unchecked")
-	static <T> Expression<T> toExpressionRecursively(From<?, ?> from, Property property) {
+	static <T> Expression<T> toExpressionRecursively(From<?, ?> from, PropertyPath property) {
 
 		if (property.isCollection()) {
-			Join<Object, Object> join = from.join(property.getName());
+			Join<Object, Object> join = from.join(property.getSegment());
 			return (Expression<T>) (property.hasNext() ? toExpressionRecursively((From<?, ?>) join, property.next()) : join);
 		} else {
-			Path<Object> path = from.get(property.getName());
+			Path<Object> path = from.get(property.getSegment());
 			return (Expression<T>) (property.hasNext() ? toExpressionRecursively(path, property.next()) : path);
 		}
 	}
 
-	static Expression<Object> toExpressionRecursively(Path<Object> path, Property property) {
+	static Expression<Object> toExpressionRecursively(Path<Object> path, PropertyPath property) {
 
-		Path<Object> result = path.get(property.getName());
+		Path<Object> result = path.get(property.getSegment());
 		return property.hasNext() ? toExpressionRecursively(result, property.next()) : result;
 	}
 }
