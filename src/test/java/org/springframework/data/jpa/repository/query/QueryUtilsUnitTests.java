@@ -121,6 +121,7 @@ public class QueryUtilsUnitTests {
 		assertThat(detectAlias("SELECT FROM USER U"), is("U"));
 		assertThat(detectAlias("select u from  User u"), IS_U);
 		assertThat(detectAlias("select u from  com.acme.User u"), IS_U);
+		assertThat(detectAlias("select u from T05User u"), IS_U);
 	}
 
 	@Test
