@@ -57,7 +57,7 @@ public abstract class QueryUtils {
 	private static final Pattern ALIAS_MATCH;
 	private static final Pattern COUNT_MATCH;
 
-	private static final String IDENTIFIER = "[\\p{L}._$]+";
+	private static final String IDENTIFIER = "[\\p{Alnum}._$]+";
 	private static final String IDENTIFIER_GROUP = String.format("(%s)", IDENTIFIER);
 
 	static {
