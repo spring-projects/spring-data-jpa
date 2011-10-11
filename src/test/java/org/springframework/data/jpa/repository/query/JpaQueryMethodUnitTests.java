@@ -21,6 +21,7 @@ import static org.junit.Assert.*;
 import java.lang.reflect.Method;
 import java.util.List;
 
+import javax.persistence.LockModeType;
 import javax.persistence.QueryHint;
 
 import org.junit.Before;
@@ -54,7 +55,7 @@ public class JpaQueryMethodUnitTests {
 	@Mock
 	RepositoryMetadata metadata;
 
-	Method repositoryMethod, invalidReturnType, pageableAndSort, pageableTwice, sortableTwice, modifyingMethod;
+	Method repositoryMethod, invalidReturnType, pageableAndSort, pageableTwice, sortableTwice, modifyingMethod, findWithLockMethod;
 
 	/**
 	 * @throws Exception
@@ -63,13 +64,15 @@ public class JpaQueryMethodUnitTests {
 	public void setUp() throws Exception {
 
 		repositoryMethod = UserRepository.class.getMethod("findByLastname", String.class);
-
+		
 		invalidReturnType = InvalidRepository.class.getMethod(METHOD_NAME, String.class, Pageable.class);
 		pageableAndSort = InvalidRepository.class.getMethod(METHOD_NAME, String.class, Pageable.class, Sort.class);
 		pageableTwice = InvalidRepository.class.getMethod(METHOD_NAME, String.class, Pageable.class, Pageable.class);
 
 		sortableTwice = InvalidRepository.class.getMethod(METHOD_NAME, String.class, Sort.class, Sort.class);
 		modifyingMethod = UserRepository.class.getMethod("renameAllUsersTo", String.class);
+	
+		findWithLockMethod = UserRepository.class.getMethod("findOneLocked", Integer.class);
 	}
 
 	@Test
@@ -168,6 +171,14 @@ public class JpaQueryMethodUnitTests {
 		assertNotNull(hints);
 		assertThat(hints.get(0).name(), is("foo"));
 		assertThat(hints.get(0).value(), is("bar"));
+	}
+	
+	@Test
+	public void discoversLockModeCorrectly() throws Exception {
+		JpaQueryMethod method = new JpaQueryMethod(findWithLockMethod, metadata, extractor);
+		LockModeType lockMode = method.getLockMode();
+
+		assertEquals(LockModeType.PESSIMISTIC_WRITE, lockMode);
 	}
 
 	@Test
