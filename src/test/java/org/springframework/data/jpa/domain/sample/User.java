@@ -45,6 +45,7 @@ public class User {
 	private Integer id;
 	private String firstname;
 	private String lastname;
+	private int age;
 
 	@Column(nullable = false, unique = true)
 	private String emailAddress;
@@ -136,6 +137,20 @@ public class User {
 	public void setLastname(String lastname) {
 
 		this.lastname = lastname;
+	}
+
+	/**
+	 * @return the age
+	 */
+	public int getAge() {
+		return age;
+	}
+
+	/**
+	 * @param age the age to set
+	 */
+	public void setAge(int age) {
+		this.age = age;
 	}
 
 	/**

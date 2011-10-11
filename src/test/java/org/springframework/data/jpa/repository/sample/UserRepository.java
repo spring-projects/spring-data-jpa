@@ -185,6 +185,10 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 
 	List<User> findByLastnameAndFirstnameAllIgnoringCase(String lastname, String firstname);
 
+	List<User> findByAgeGreaterThanEqual(int age);
+
+	List<User> findByAgeLessThanEqual(int age);
+
 	/**
 	 * @see DATADOC-86 - Count execution for group by
 	 */

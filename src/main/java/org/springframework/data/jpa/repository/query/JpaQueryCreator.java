@@ -306,8 +306,12 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<Object>,
 				return builder.between(getComparablePath(root, part), first, second);
 			case GREATER_THAN:
 				return builder.greaterThan(getComparablePath(root, part), provider.next(Comparable.class));
+			case GREATER_THAN_EQUAL:
+				return builder.greaterThanOrEqualTo(getComparablePath(root, part), provider.next(Comparable.class));
 			case LESS_THAN:
 				return builder.lessThan(getComparablePath(root, part), provider.next(Comparable.class));
+			case LESS_THAN_EQUAL:
+				return builder.lessThanOrEqualTo(getComparablePath(root, part), provider.next(Comparable.class));
 			case IS_NULL:
 				return path.isNull();
 			case IS_NOT_NULL:

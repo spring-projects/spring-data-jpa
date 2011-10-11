@@ -80,8 +80,11 @@ public class UserRepositoryTests {
 	public void setUp() {
 
 		firstUser = new User("Oliver", "Gierke", "gierke@synyx.de");
+		firstUser.setAge(28);
 		secondUser = new User("Joachim", "Arrasz", "arrasz@synyx.de");
+		secondUser.setAge(35);
 		thirdUser = new User("Dave", "Matthews", "no@email.com");
+		thirdUser.setAge(43);
 	}
 
 	/**
@@ -735,6 +738,26 @@ public class UserRepositoryTests {
 
 		Page<String> result = repository.findByLastnameGrouped(new PageRequest(0, 10));
 		assertThat(result.getTotalPages(), is(1));
+	}
+
+	@Test
+	public void executesLessThatOrEqualQueriesCorrectly() {
+
+		flushTestUsers();
+
+		List<User> result = repository.findByAgeLessThanEqual(35);
+		assertThat(result.size(), is(2));
+		assertThat(result, hasItems(firstUser, secondUser));
+	}
+
+	@Test
+	public void executesGreaterThatOrEqualQueriesCorrectly() {
+
+		flushTestUsers();
+
+		List<User> result = repository.findByAgeGreaterThanEqual(35);
+		assertThat(result.size(), is(2));
+		assertThat(result, hasItems(secondUser, thirdUser));
 	}
 
 	private Page<User> executeSpecWithSort(Sort sort) {
