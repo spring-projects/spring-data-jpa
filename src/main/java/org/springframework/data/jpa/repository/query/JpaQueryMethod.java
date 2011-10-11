@@ -95,7 +95,6 @@ public class JpaQueryMethod extends QueryMethod {
 		return result;
 	}
 	
-	
 	/**
 	 * Returns the lockMode specified for this query by the optional {@link Lock} annotation.
 	 * 

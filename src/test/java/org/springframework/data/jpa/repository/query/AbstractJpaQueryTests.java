@@ -64,6 +64,7 @@ public class AbstractJpaQueryTests {
 	
 	@Test
 	public void addsLockingModeToQueryObject() throws Exception {
+		
 		Method method = UserRepository.class.getMethod("findOneLocked", Integer.class);
 		QueryExtractor provider = PersistenceProvider.fromEntityManager(em);
 		JpaQueryMethod queryMethod = new JpaQueryMethod(method, new DefaultRepositoryMetadata(UserRepository.class), provider);

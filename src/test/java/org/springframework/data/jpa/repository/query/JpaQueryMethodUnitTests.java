@@ -175,6 +175,7 @@ public class JpaQueryMethodUnitTests {
 	
 	@Test
 	public void discoversLockModeCorrectly() throws Exception {
+		
 		JpaQueryMethod method = new JpaQueryMethod(findWithLockMethod, metadata, extractor);
 		LockModeType lockMode = method.getLockMode();
 

@@ -9,9 +9,8 @@ import java.lang.annotation.Target;
 import javax.persistence.LockModeType;
 
 /**
- * Annotation used to specify the {@link LockModeType} to be used when executing
- * the query. It will be evaluated when using {@link Query} on a query method or
- * if you derive the query from the method name.
+ * Annotation used to specify the {@link LockModeType} to be used when executing the query. It will be evaluated when
+ * using {@link Query} on a query method or if you derive the query from the method name.
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
