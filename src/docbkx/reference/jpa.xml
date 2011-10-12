@@ -487,7 +487,7 @@ int setFixedFirstnameFor(String firstname, String lastname);</programlisting>
         <programlisting language="java">public interface UserRepository extends Repository&lt;User, Long&gt; {
 
   @Lock(LockModeType.PESSIMISTIC_WRITE)
-  User findById(Long id);
+  User findByEmail(String email);
 }</programlisting>
       </example>
     </section>
