@@ -159,7 +159,6 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 
 		applyAndBind(getQueryString(DELETE_ALL_QUERY_STRING, entityInformation.getEntityName()), entities, em)
 				.executeUpdate();
-		em.clear();
 	}
 
 	/*
@@ -171,7 +170,6 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	public void deleteAll() {
 
 		em.createQuery(getDeleteAllQueryString()).executeUpdate();
-		em.clear();
 	}
 
 	/*
