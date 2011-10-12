@@ -181,16 +181,14 @@ public class UserRepositoryTests {
 		assertNull(repository.findOne(firstUser.getId()));
 	}
 
-	/**
-	 * Tests deleting a user.
-	 */
 	@Test
 	public void testDelete() {
 
 		flushTestUsers();
 
 		repository.delete(firstUser);
-		assertNull(repository.findOne(id));
+		assertThat(repository.exists(id), is(false));
+		assertThat(repository.findOne(id), is(nullValue()));
 	}
 
 	@Test
@@ -327,7 +325,7 @@ public class UserRepositoryTests {
 
 		repository.deleteAll();
 
-		assertEquals(0L, repository.count());
+		assertThat(repository.count(), is(0L));
 	}
 
 	/**
