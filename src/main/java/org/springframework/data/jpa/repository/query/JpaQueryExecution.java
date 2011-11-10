@@ -15,6 +15,7 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import java.util.Collections;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -24,6 +25,7 @@ import javax.persistence.TypedQuery;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
@@ -100,8 +102,11 @@ public abstract class JpaQueryExecution {
 
 			Query query = repositoryQuery.createQuery(values);
 			ParameterAccessor accessor = new ParametersParameterAccessor(parameters, values);
+			Pageable pageable = accessor.getPageable();
 
-			return new PageImpl<Object>(query.getResultList(), accessor.getPageable(), total);
+			List<Object> content = total > pageable.getOffset() ? query.getResultList() : Collections.emptyList();
+
+			return new PageImpl<Object>(content, pageable, total);
 		}
 	}
 

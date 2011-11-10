@@ -19,6 +19,7 @@ import static org.springframework.data.jpa.repository.query.QueryUtils.*;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -352,8 +353,9 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 		query.setMaxResults(pageable.getPageSize());
 
 		Long total = getCountQuery(spec).getSingleResult();
+		List<T> content = total > pageable.getOffset() ? query.getResultList() : Collections.<T> emptyList();
 
-		return new PageImpl<T>(query.getResultList(), pageable, total);
+		return new PageImpl<T>(content, pageable, total);
 	}
 
 	/**

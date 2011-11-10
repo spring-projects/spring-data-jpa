@@ -19,15 +19,22 @@ import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
+import java.util.Arrays;
+
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
+import javax.persistence.TypedQuery;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.ModifyingExecution;
+import org.springframework.data.jpa.repository.query.JpaQueryExecution.PagedExecution;
+import org.springframework.data.repository.query.Parameters;
 
 /**
  * Unit test for {@link JpaQueryExecution}.
@@ -45,6 +52,9 @@ public class JpaQueryExecutionUnitTests {
 	Query query;
 	@Mock
 	JpaQueryMethod method;
+
+	@Mock
+	TypedQuery<Long> countQuery;
 
 	@Test(expected = IllegalArgumentException.class)
 	public void rejectsNullQuery() {
@@ -102,6 +112,27 @@ public class JpaQueryExecutionUnitTests {
 
 		when(method.getReturnType()).thenReturn((Class) Long.class);
 		new ModifyingExecution(method, em);
+	}
+
+	/**
+	 * @see DATAJPA-124
+	 */
+	@Test
+	public void pagedExecutionDoesNotRetrieveObjectsForPageableOutOfRange() throws Exception {
+
+		Parameters parameters = new Parameters(getClass().getMethod("sampleMethod", Pageable.class));
+		when(jpaQuery.createCountQuery(Mockito.any(Object[].class))).thenReturn(countQuery);
+		when(jpaQuery.createQuery(Mockito.any(Object[].class))).thenReturn(query);
+		when(countQuery.getResultList()).thenReturn(Arrays.asList(20L));
+
+		PagedExecution execution = new PagedExecution(parameters);
+		execution.doExecute(jpaQuery, new Object[] { new PageRequest(2, 10) });
+
+		verify(query, times(0)).getResultList();
+	}
+
+	public static void sampleMethod(Pageable pageable) {
+
 	}
 
 	static class StubQueryExecution extends JpaQueryExecution {
