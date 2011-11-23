@@ -54,6 +54,7 @@ public class NamedQueryUnitTests {
 
 		method = SampleRepository.class.getMethod("foo", Pageable.class);
 		when(metadata.getDomainClass()).thenReturn((Class) String.class);
+		when(metadata.getReturnedDomainClass(method)).thenReturn((Class) String.class);
 	}
 
 	@Test(expected = QueryCreationException.class)

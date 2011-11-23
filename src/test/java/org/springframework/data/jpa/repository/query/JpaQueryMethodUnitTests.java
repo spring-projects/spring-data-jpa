@@ -17,6 +17,7 @@ package org.springframework.data.jpa.repository.query;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 import java.lang.reflect.Method;
 import java.util.List;
@@ -75,7 +76,8 @@ public class JpaQueryMethodUnitTests {
 	@Test
 	public void testname() {
 
-		JpaQueryMethod method = new JpaQueryMethod(repositoryMethod, metadata, extractor);
+		JpaQueryMethod method = new JpaQueryMethod(repositoryMethod, new DefaultRepositoryMetadata(UserRepository.class),
+				extractor);
 
 		assertEquals("User.findByLastname", method.getNamedQueryName());
 		assertThat(method.isCollectionQuery(), is(true));
@@ -173,10 +175,11 @@ public class JpaQueryMethodUnitTests {
 	@Test
 	public void calculatesNamedQueryNamesCorrectly() throws SecurityException, NoSuchMethodException {
 
+		RepositoryMetadata metadata = new DefaultRepositoryMetadata(UserRepository.class);
+
 		JpaQueryMethod queryMethod = new JpaQueryMethod(repositoryMethod, metadata, extractor);
 		assertThat(queryMethod.getNamedQueryName(), is("User.findByLastname"));
 
-		RepositoryMetadata metadata = new DefaultRepositoryMetadata(UserRepository.class);
 		Method method = UserRepository.class.getMethod("renameAllUsersTo", String.class);
 		queryMethod = new JpaQueryMethod(method, metadata, extractor);
 		assertThat(queryMethod.getNamedQueryName(), is("User.renameAllUsersTo"));
