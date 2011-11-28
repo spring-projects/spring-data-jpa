@@ -22,8 +22,8 @@ import java.util.Arrays;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.beans.factory.xml.XmlBeanFactory;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.core.io.ClassPathResource;
 
 /**
@@ -33,13 +33,15 @@ import org.springframework.core.io.ClassPathResource;
  */
 public class AuditingBeanFactoryPostProcessorUnitTests {
 
-	ConfigurableListableBeanFactory beanFactory;
+	DefaultListableBeanFactory beanFactory;
 	AuditingBeanFactoryPostProcessor processor;
 
 	@Before
 	public void setUp() {
 
-		beanFactory = new XmlBeanFactory(new ClassPathResource("auditing/" + getConfigFile()));
+		beanFactory = new DefaultListableBeanFactory();
+		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(beanFactory);
+		reader.loadBeanDefinitions(new ClassPathResource("auditing/" + getConfigFile()));
 
 		processor = new AuditingBeanFactoryPostProcessor();
 	}
@@ -53,7 +55,6 @@ public class AuditingBeanFactoryPostProcessorUnitTests {
 	public void testname() throws Exception {
 
 		processor.postProcessBeanFactory(beanFactory);
-
 		BeanDefinition definition = beanFactory.getBeanDefinition("entityManagerFactory");
 
 		assertTrue(Arrays.asList(definition.getDependsOn()).contains(

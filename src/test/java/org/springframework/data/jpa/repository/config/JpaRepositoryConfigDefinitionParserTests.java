@@ -21,7 +21,8 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 import org.springframework.beans.PropertyValue;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.xml.XmlBeanFactory;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.core.io.ClassPathResource;
 
 /**
@@ -34,8 +35,9 @@ public class JpaRepositoryConfigDefinitionParserTests {
 	@Test
 	public void getsTransactionManagerSet() throws Exception {
 
-		XmlBeanFactory factory = new XmlBeanFactory(
-				new ClassPathResource("multiple-entity-manager-integration-context.xml"));
+		DefaultListableBeanFactory factory = new DefaultListableBeanFactory();
+		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(factory);
+		reader.loadBeanDefinitions(new ClassPathResource("multiple-entity-manager-integration-context.xml"));
 
 		BeanDefinition definition = factory.getBeanDefinition("auditableUserRepository");
 		assertThat(definition, is(notNullValue()));

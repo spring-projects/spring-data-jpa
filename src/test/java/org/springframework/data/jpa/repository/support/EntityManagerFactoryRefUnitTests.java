@@ -23,7 +23,8 @@ import javax.persistence.EntityManagerFactory;
 import org.junit.Test;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanReference;
-import org.springframework.beans.factory.xml.XmlBeanFactory;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.core.io.ClassPathResource;
 
 /**
@@ -36,7 +37,9 @@ public class EntityManagerFactoryRefUnitTests {
 	@Test
 	public void repositoriesGetTheSecondEntityManagerFactoryInjected2() {
 
-		XmlBeanFactory factory = new XmlBeanFactory(new ClassPathResource("multiple-entity-manager-context.xml"));
+		DefaultListableBeanFactory factory = new DefaultListableBeanFactory();
+		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(factory);
+		reader.loadBeanDefinitions(new ClassPathResource("multiple-entity-manager-context.xml"));
 
 		BeanDefinition bean = factory.getBeanDefinition("userRepository");
 		Object value = getPropertyValue(bean, "entityManager");

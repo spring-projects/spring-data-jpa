@@ -21,7 +21,8 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 import org.springframework.beans.PropertyValue;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.xml.XmlBeanFactory;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.core.io.ClassPathResource;
 
 /**
@@ -45,7 +46,10 @@ public class AuditingBeanDefinitionParserTests {
 
 	private void assertSetDatesIsSetTo(String configFile, String value) {
 
-		XmlBeanFactory factory = new XmlBeanFactory(new ClassPathResource(configFile));
+		DefaultListableBeanFactory factory = new DefaultListableBeanFactory();
+		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(factory);
+		reader.loadBeanDefinitions(new ClassPathResource(configFile));
+
 		BeanDefinition definition = factory
 				.getBeanDefinition(AuditingBeanDefinitionParser.AUDITING_ENTITY_LISTENER_CLASS_NAME);
 		PropertyValue propertyValue = definition.getPropertyValues().getPropertyValue("dateTimeForNow");

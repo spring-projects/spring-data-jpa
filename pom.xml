@@ -52,7 +52,9 @@
 	</licenses>
 	
 	<properties>
-		<spring.version>3.0.6.RELEASE</spring.version>
+		<spring.version.30>3.0.6.RELEASE</spring.version.30>
+		<spring.version.31>3.1.0.RC2</spring.version.31>
+		<spring.version>[${spring.version.30}, ${spring.version.31}]</spring.version>
 		<spring.data.commons.version>1.2.0.BUILD-SNAPSHOT</spring.data.commons.version>
 		<hibernate.version>3.6.5.Final</hibernate.version>
 		<openjpa.version>2.1.0</openjpa.version>
@@ -265,6 +267,18 @@
 		
 		<dependency>
 			<groupId>org.springframework</groupId>
+			<artifactId>spring-tx</artifactId>
+			<version>${spring.version}</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-beans</artifactId>
+			<version>${spring.version}</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.springframework</groupId>
 			<artifactId>spring-core</artifactId>
 			<version>${spring.version}</version>
 			<exclusions>
@@ -443,7 +457,7 @@
 					<includes>
 						<include>**/*Tests.java</include>
 					</includes>
-					<argLine>-javaagent:${settings.localRepository}/org/springframework/spring-instrument/${spring.version}/spring-instrument-${spring.version}.jar -javaagent:${settings.localRepository}/org/apache/openjpa/openjpa/${openjpa.version}/openjpa-${openjpa.version}.jar</argLine>
+					<argLine>-javaagent:${settings.localRepository}/org/springframework/spring-instrument/${spring.version.31}/spring-instrument-${spring.version.31}.jar -javaagent:${settings.localRepository}/org/apache/openjpa/openjpa/${openjpa.version}/openjpa-${openjpa.version}.jar</argLine>
 				</configuration>
 				<dependencies>
 					<dependency>
@@ -641,6 +655,11 @@
 			<id>repository.springframework.maven.release</id>
 			<name>Spring Framework Maven Release Repository</name>
 			<url>http://maven.springframework.org/release</url>
+		</pluginRepository>
+		<pluginRepository>
+			<id>repository.springframework.maven.milestone</id>
+			<name>Spring Framework Maven Milestone Repository</name>
+			<url>http://maven.springframework.org/milestone</url>
 		</pluginRepository>
 		<pluginRepository>
 			<id>repository.springsource.maven.bundles.release</id>
