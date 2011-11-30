@@ -54,7 +54,7 @@
 	<properties>
 		<spring.version.30>3.0.6.RELEASE</spring.version.30>
 		<spring.version.31>3.1.0.RC2</spring.version.31>
-		<spring.version>[${spring.version.30}, ${spring.version.31}]</spring.version>
+		<spring.version.range>[${spring.version.30}, ${spring.version.31}]</spring.version.range>
 		<spring.data.commons.version>1.2.0.BUILD-SNAPSHOT</spring.data.commons.version>
 		<hibernate.version>3.6.5.Final</hibernate.version>
 		<openjpa.version>2.1.0</openjpa.version>
@@ -262,25 +262,25 @@
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-orm</artifactId>
-			<version>${spring.version}</version>
+			<version>${spring.version.range}</version>
 		</dependency>
 		
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-tx</artifactId>
-			<version>${spring.version}</version>
+			<version>${spring.version.range}</version>
 		</dependency>
 		
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-beans</artifactId>
-			<version>${spring.version}</version>
+			<version>${spring.version.range}</version>
 		</dependency>
 		
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-core</artifactId>
-			<version>${spring.version}</version>
+			<version>${spring.version.range}</version>
 			<exclusions>
 				<exclusion>
 					<groupId>commons-logging</groupId>
@@ -317,14 +317,14 @@
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-aspects</artifactId>
-			<version>${spring.version}</version>
+			<version>${spring.version.range}</version>
 			<optional>true</optional>
 		</dependency>
 		
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-test</artifactId>
-			<version>${spring.version}</version>
+			<version>${spring.version.range}</version>
 			<scope>test</scope>
 		</dependency>
 		
@@ -463,7 +463,7 @@
 					<dependency>
 						<groupId>org.springframework</groupId>
 						<artifactId>spring-instrument</artifactId>
-						<version>${spring.version}</version>
+						<version>${spring.version.range}</version>
 						<scope>runtime</scope>
 					</dependency>
 					<dependency>
