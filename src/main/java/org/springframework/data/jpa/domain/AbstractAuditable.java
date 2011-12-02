@@ -18,8 +18,8 @@ package org.springframework.data.jpa.domain;
 import java.io.Serializable;
 import java.util.Date;
 
+import javax.persistence.ManyToOne;
 import javax.persistence.MappedSuperclass;
-import javax.persistence.OneToOne;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
@@ -39,13 +39,13 @@ public abstract class AbstractAuditable<U, PK extends Serializable> extends Abst
 
 	private static final long serialVersionUID = 141481953116476081L;
 
-	@OneToOne
+	@ManyToOne
 	private U createdBy;
 
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date createdDate;
 
-	@OneToOne
+	@ManyToOne
 	private U lastModifiedBy;
 
 	@Temporal(TemporalType.TIMESTAMP)
