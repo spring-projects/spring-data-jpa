@@ -92,6 +92,66 @@
         </table>
       </simplesect>
     </section>
+
+    <section>
+      <title>Annotation based configuration</title>
+
+      <para>The Spring Data JPA repositories support cannot only be activated
+      through an XML namespace but also using an annotation through
+      JavaConfig. </para>
+
+      <example id="id2371211_05-jpa">
+        <title>Spring Data JPA repositories using JavaConfig</title>
+
+        <programlisting id="id2359286_05-jpa" language="java">@Configuration
+@EnableJpaRepositories
+@EnableTransactionManagement
+class ApplicationConfig {
+
+  @Bean
+  public DataSource dataSource() {
+
+    EmbeddedDatabaseBuilder builder = new EmbeddedDatabaseBuilder();
+    return builder.setType(EmbeddedDatabaseType.HSQL).build();
+  }
+
+  @Bean
+  public EntityManagerFactory entityManagerFactory() {
+
+    HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
+    vendorAdapter.setGenerateDdl(true);
+
+    LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();
+    factory.setJpaVendorAdapter(vendorAdapter);
+    factory.setPackagesToScan("com.acme.domain");
+    factory.setDataSource(dataSource());
+    factory.afterPropertiesSet();
+
+    return factory.getObject();
+  }
+
+  @Bean
+  public PlatformTransactionManager transactionManager() {
+
+    JpaTransactionManager txManager = new JpaTransactionManager();
+    txManager.setEntityManagerFactory(entityManagerFactory());
+    return txManager;
+  }
+}</programlisting>
+      </example>
+
+      <para>The just shown configuration class sets up an embedded HSQL
+      database using the <classname>EmbeddedDatabaseBuilder</classname> API of
+      spring-jdbc. We then set up a
+      <interfacename>EntityManagerFactory</interfacename> and use Hibernate as
+      sample persistence provider. The last infrastructure component declared
+      here is the <classname>JpaTransactionManager</classname>. We eventually
+      activate Spring Data JPA repositories using the
+      <interfacename>@EnableJpaRepositories</interfacename> annotation which
+      essentially carries the same attributes as the XML namespace does. If no
+      base package is configured it will use the one the configuration class
+      resides in.</para>
+    </section>
   </section>
 
   <section id="jpa.query-methods">
@@ -570,7 +630,7 @@ int setFixedFirstnameFor(String firstname, String lastname);</programlisting>
     <interfacename>Specification</interfacename>s in a variety of ways.</para>
 
     <para>For example, the <code>readAll</code> method will return all
-    entities that match the specification: </para>
+    entities that match the specification:</para>
 
     <programlisting language="java">List&lt;T&gt; readAll(Specification&lt;T&gt; spec);</programlisting>
 

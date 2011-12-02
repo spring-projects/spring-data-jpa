@@ -2,8 +2,10 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+	xmlns:repository="http://www.springframework.org/schema/data/repository"
 	xmlns:jdbc="http://www.springframework.org/schema/jdbc"
 	xsi:schemaLocation="http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc.xsd
+		http://www.springframework.org/schema/data/repository http://www.springframework.org/schema/data/repository/spring-repository.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/data/jpa http://www.springframework.org/schema/data/jpa/spring-jpa.xsd">
 
@@ -39,14 +41,13 @@
 
 	<jpa:repositories base-package="org.springframework.data.jpa.repository.sample"
 		entity-manager-factory-ref="entityManagerFactory">
-		<jpa:repository id="userRepository" />
-		<jpa:repository id="roleRepository" />
+		<repository:exclude-filter type="assignable" expression="org.springframework.data.jpa.repository.sample.AuditableUserRepository" />
 	</jpa:repositories>
 
 	<jpa:repositories base-package="org.springframework.data.jpa.repository.sample"
 		entity-manager-factory-ref="entityManagerFactory-2"
 		transaction-manager-ref="transactionManager-2">
-		<jpa:repository id="auditableUserRepository" />
+		<repository:include-filter type="assignable" expression="org.springframework.data.jpa.repository.sample.AuditableUserRepository" />
 	</jpa:repositories>
 
 </beans>

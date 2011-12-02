@@ -61,7 +61,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Oliver Gierke
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = { "classpath:application-context.xml" })
+@ContextConfiguration("classpath:application-context.xml")
 @Transactional
 public class UserRepositoryTests {
 
@@ -887,6 +887,18 @@ public class UserRepositoryTests {
 
 		repository.delete(collection);
 		assertThat(repository.count(), is(count));
+	}
+
+	@Test
+	public void ordersByReferencedEntityCorrectly() {
+
+		flushTestUsers();
+		firstUser.setManager(thirdUser);
+		repository.save(firstUser);
+
+		Page<User> all = repository.findAll(new PageRequest(0, 10, new Sort("manager.id")));
+
+		assertThat(all.getContent().isEmpty(), is(false));
 	}
 
 	private Page<User> executeSpecWithSort(Sort sort) {

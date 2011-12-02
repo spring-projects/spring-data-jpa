@@ -7,8 +7,6 @@
 	
 	<import resource="../infrastructure.xml" />
 	
-	<jpa:repositories base-package="org.springframework.data.jpa.repository.sample">
-		<jpa:repository id="roleRepository" query-lookup-strategy="use-declared-query" />
-	</jpa:repositories>
+	<jpa:repositories base-package="org.springframework.data.jpa.repository.sample" query-lookup-strategy="use-declared-query" />
 
 </beans>
