@@ -16,6 +16,7 @@
 package org.springframework.data.jpa.repository.query;
 
 import javax.persistence.EntityManager;
+import javax.persistence.LockModeType;
 import javax.persistence.Query;
 import javax.persistence.QueryHint;
 import javax.persistence.TypedQuery;
@@ -122,12 +123,27 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 		return query;
 	}
 
+	/**
+	 * Applies the declared lock mode to the given query.
+	 * 
+	 * @param query
+	 * @return
+	 */
+	private <T extends Query> T applyLockMode(T query, JpaQueryMethod method) {
+	
+		LockModeType lockMode = method.getLockMode();
+		if (lockMode != null) {
+			query.setLockMode(lockMode);
+		}
+		return query;
+	}
+
 	protected ParameterBinder createBinder(Object[] values) {
 		return new ParameterBinder(getQueryMethod().getParameters(), values);
 	}
 
 	protected Query createQuery(Object[] values) {
-		return applyHints(doCreateQuery(values), method);
+		return applyLockMode(applyHints(doCreateQuery(values), method), method);
 	}
 
 	protected TypedQuery<Long> createCountQuery(Object[] values) {

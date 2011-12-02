@@ -18,6 +18,7 @@ package org.springframework.data.jpa.repository.sample;
 import java.util.Collection;
 import java.util.List;
 
+import javax.persistence.LockModeType;
 import javax.persistence.QueryHint;
 
 import org.springframework.data.domain.Page;
@@ -27,6 +28,7 @@ import org.springframework.data.jpa.domain.sample.SpecialUser;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryHints;
@@ -70,6 +72,17 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	@Query("select u from User u ")
 	Page<User> findAllPaged(Pageable pageable);
 
+	
+	/**
+	 * Retrieve one user by its primary key, locked with pessimistic write locking.
+	 * 
+	 * @param primaryKey
+	 * @return the user with the given primary key.
+	 */
+	@Lock(LockModeType.PESSIMISTIC_WRITE)
+	@Query("select u from User u where u.id = ?1")
+	List<User> findOneLocked(Integer primaryKey);
+	
 	/**
 	 * Retrieves users by the given email and lastname. Acts as a dummy method declaration to test finder query creation.
 	 * 

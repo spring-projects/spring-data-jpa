@@ -471,6 +471,26 @@ int setFixedFirstnameFor(String firstname, String lastname);</programlisting>
         number of pages.</para>
       </example>
     </section>
+    
+  	<section id="jpa.locking">
+      <title>Specifying LockMode</title>
+
+      <para>To apply a JPA <interfacename>LockModeType</interfacename> to the
+      queries executed by the <interfacename>EntityManager</interfacename>, use  
+      the <interfacename>Lock</interfacename> annotation. It takes a <interfacename>
+      LockModeType</interfacename> as a parameter to specify the specific lock mode
+      to use.</para>
+      
+      <example>
+        <title>Specifiying LockMode on a repository method</title>
+
+        <programlisting language="java">public interface UserRepository extends Repository&lt;User, Long&gt; {
+
+  @Lock(LockModeType.PESSIMISTIC_WRITE)
+  User findByEmailAddress(String emailAddress);
+}</programlisting>
+      </example>
+    </section>
   </section>
 
   <section id="specifications">

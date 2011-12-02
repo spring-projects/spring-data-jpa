@@ -15,12 +15,14 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 import java.lang.reflect.Method;
 import java.util.List;
 
 import javax.persistence.EntityManager;
+import javax.persistence.LockModeType;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.QueryHint;
@@ -31,6 +33,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.QueryHints;
+import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.data.jpa.repository.support.PersistenceProvider;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.core.support.DefaultRepositoryMetadata;
@@ -58,7 +61,19 @@ public class AbstractJpaQueryTests {
 		query = mock(Query.class);
 		countQuery = mock(TypedQuery.class);
 	}
-
+	
+	@Test
+	public void addsLockingModeToQueryObject() throws Exception {
+		
+		Method method = UserRepository.class.getMethod("findOneLocked", Integer.class);
+		QueryExtractor provider = PersistenceProvider.fromEntityManager(em);
+		JpaQueryMethod queryMethod = new JpaQueryMethod(method, new DefaultRepositoryMetadata(UserRepository.class), provider);
+		
+		AbstractJpaQuery jpaQuery = new DummyJpaQuery(queryMethod, em);
+		Query result = jpaQuery.createQuery(new Object[] {Integer.valueOf(1)});
+		verify(result).setLockMode(LockModeType.PESSIMISTIC_WRITE);
+	}
+	
 	/**
 	 * @see DATADOC-97
 	 * @throws Exception
