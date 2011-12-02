@@ -23,6 +23,7 @@ import javax.persistence.metamodel.Metamodel;
 
 import org.springframework.data.domain.Persistable;
 import org.springframework.data.repository.core.support.AbstractEntityInformation;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
@@ -36,7 +37,7 @@ public abstract class JpaEntityInformationSupport<T, ID extends Serializable> ex
 	/**
 	 * Creates a new {@link JpaEntityInformationSupport} with the given domain class.
 	 * 
-	 * @param domainClass
+	 * @param domainClass must not be {@literal null}.
 	 */
 	public JpaEntityInformationSupport(Class<T> domainClass) {
 
@@ -46,12 +47,15 @@ public abstract class JpaEntityInformationSupport<T, ID extends Serializable> ex
 	/**
 	 * Creates a {@link JpaEntityInformation} for the given domain class and {@link EntityManager}.
 	 * 
-	 * @param domainClass
-	 * @param em
+	 * @param domainClass must not be {@literal null}.
+	 * @param em must not be {@literal null}.
 	 * @return
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public static <T> JpaEntityInformation<T, ?> getMetadata(Class<T> domainClass, EntityManager em) {
+
+		Assert.notNull(domainClass);
+		Assert.notNull(em);
 
 		Metamodel metamodel = em.getMetamodel();
 

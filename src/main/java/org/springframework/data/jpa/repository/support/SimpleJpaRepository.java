@@ -61,13 +61,14 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	/**
 	 * Creates a new {@link SimpleJpaRepository} to manage objects of the given {@link JpaEntityInformation}.
 	 * 
-	 * @param entityInformation
-	 * @param entityManager
+	 * @param entityInformation must not be {@literal null}.
+	 * @param entityManager must not be {@literal null}.
 	 */
 	public SimpleJpaRepository(JpaEntityInformation<T, ?> entityInformation, EntityManager entityManager) {
 
 		Assert.notNull(entityInformation);
 		Assert.notNull(entityManager);
+
 		this.entityInformation = entityInformation;
 		this.em = entityManager;
 		this.provider = PersistenceProvider.fromEntityManager(entityManager);
@@ -76,21 +77,18 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	/**
 	 * Creates a new {@link SimpleJpaRepository} to manage objects of the given domain type.
 	 * 
-	 * @param domainClass
-	 * @param em
+	 * @param domainClass must not be {@literal null}.
+	 * @param em must not be {@literal null}.
 	 */
 	public SimpleJpaRepository(Class<T> domainClass, EntityManager em) {
-
 		this(JpaEntityInformationSupport.getMetadata(domainClass, em), em);
 	}
 
 	private Class<T> getDomainClass() {
-
 		return entityInformation.getJavaType();
 	}
 
 	private String getDeleteAllQueryString() {
-
 		return getQueryString(DELETE_ALL_QUERY_STRING, entityInformation.getEntityName());
 	}
 
@@ -102,41 +100,34 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.springframework.data.jpa.repository.JpaRepository#delete(java.io.
-	 * Serializable)
+	 * @see org.springframework.data.repository.CrudRepository#delete(java.io.Serializable)
 	 */
 	@Transactional
 	public void delete(ID id) {
 
+		Assert.notNull(id, "The given id must not be null!");
 		delete(findOne(id));
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.springframework.data.repository.Repository#delete(java.lang.Object)
+	 * @see org.springframework.data.repository.CrudRepository#delete(java.lang.Object)
 	 */
 	@Transactional
 	public void delete(T entity) {
 
+		Assert.notNull(entity, "The entity must not be null!");
 		em.remove(em.contains(entity) ? entity : em.merge(entity));
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.springframework.data.repository.Repository#delete(java.lang.Iterable)
+	 * @see org.springframework.data.repository.CrudRepository#delete(java.lang.Iterable)
 	 */
 	@Transactional
 	public void delete(Iterable<? extends T> entities) {
 
-		if (entities == null) {
-			return;
-		}
+		Assert.notNull(entities, "The given Iterable of entities not be null!");
 
 		for (T entity : entities) {
 			delete(entity);
@@ -145,15 +136,14 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.springframework.data.jpa.repository.JpaRepository#deleteInBatch(java
-	 * .lang.Iterable)
+	 * @see org.springframework.data.jpa.repository.JpaRepository#deleteInBatch(java.lang.Iterable)
 	 */
 	@Transactional
 	public void deleteInBatch(Iterable<T> entities) {
 
-		if (null == entities || !entities.iterator().hasNext()) {
+		Assert.notNull(entities, "The given Iterable of entities not be null!");
+
+		if (!entities.iterator().hasNext()) {
 			return;
 		}
 
@@ -163,12 +153,10 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see org.springframework.data.repository.Repository#deleteAll()
 	 */
 	@Transactional
 	public void deleteAll() {
-
 		em.createQuery(getDeleteAllQueryString()).executeUpdate();
 	}
 
@@ -191,6 +179,8 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	 */
 	public boolean exists(ID id) {
 
+		Assert.notNull(id, "The given id must not be null!");
+
 		String placeholder = provider.getCountQueryPlaceholder();
 		String entityName = entityInformation.getEntityName();
 		String idAttributeName = entityInformation.getIdAttribute().getName();
@@ -208,27 +198,20 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	 * @see org.springframework.data.jpa.repository.JpaRepository#findAll()
 	 */
 	public List<T> findAll() {
-
 		return getQuery(null, (Sort) null).getResultList();
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.springframework.data.repository.Repository#readAll(org.springframework
-	 * .data.domain.Sort)
+	 * @see org.springframework.data.jpa.repository.JpaRepository#findAll(org.springframework.data.domain.Sort)
 	 */
 	public List<T> findAll(Sort sort) {
-
 		return getQuery(null, sort).getResultList();
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see org.springframework.data.repository.Repository#readAll(org.
-	 * springframework.data.domain.Pageable)
+	 * @see org.springframework.data.repository.PagingAndSortingRepository#findAll(org.springframework.data.domain.Pageable)
 	 */
 	public Page<T> findAll(Pageable pageable) {
 
@@ -241,9 +224,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see org.springframework.data.jpa.repository.JpaRepository#findOneBy(org.
-	 * springframework.data.jpa.domain.Specification)
+	 * @see org.springframework.data.jpa.repository.JpaSpecificationExecutor#findOne(org.springframework.data.jpa.domain.Specification)
 	 */
 	public T findOne(Specification<T> spec) {
 
@@ -256,36 +237,25 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see org.springframework.data.jpa.repository.JpaRepository#readAll(org.
-	 * springframework.data.jpa.domain.Specification)
+	 * @see org.springframework.data.jpa.repository.JpaSpecificationExecutor#findAll(org.springframework.data.jpa.domain.Specification)
 	 */
 	public List<T> findAll(Specification<T> spec) {
-
 		return getQuery(spec, (Sort) null).getResultList();
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see org.springframework.data.jpa.repository.JpaRepository#readAll(org.
-	 * springframework.data.jpa.domain.Specification,
-	 * org.springframework.data.domain.Pageable)
+	 * @see org.springframework.data.jpa.repository.JpaSpecificationExecutor#findAll(org.springframework.data.jpa.domain.Specification, org.springframework.data.domain.Pageable)
 	 */
 	public Page<T> findAll(Specification<T> spec, Pageable pageable) {
 
 		TypedQuery<T> query = getQuery(spec, pageable);
-
 		return pageable == null ? new PageImpl<T>(query.getResultList()) : readPage(query, pageable, spec);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.springframework.data.jpa.repository.JpaSpecificationExecutor#findAll
-	 * (org.springframework.data.jpa.domain.Specification,
-	 * org.springframework.data.domain.Sort)
+	 * @see org.springframework.data.jpa.repository.JpaSpecificationExecutor#findAll(org.springframework.data.jpa.domain.Specification, org.springframework.data.domain.Sort)
 	 */
 	public List<T> findAll(Specification<T> spec, Sort sort) {
 
@@ -294,8 +264,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see org.springframework.data.repository.Repository#count()
+	 * @see org.springframework.data.repository.CrudRepository#count()
 	 */
 	public long count() {
 		return em.createQuery(getCountQueryString(), Long.class).getSingleResult();
@@ -303,10 +272,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.springframework.data.jpa.repository.JpaSpecificationExecutor#count
-	 * (org.springframework.data.jpa.domain.Specification)
+	 * @see org.springframework.data.jpa.repository.JpaSpecificationExecutor#count(org.springframework.data.jpa.domain.Specification)
 	 */
 	public long count(Specification<T> spec) {
 
@@ -315,9 +281,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.springframework.data.repository.Repository#save(java.lang.Object)
+	 * @see org.springframework.data.repository.CrudRepository#save(java.lang.Object)
 	 */
 	@Transactional
 	public T save(T entity) {
@@ -332,10 +296,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.springframework.data.jpa.repository.JpaRepository#saveAndFlush(java
-	 * .lang.Object)
+	 * @see org.springframework.data.jpa.repository.JpaRepository#saveAndFlush(java.lang.Object)
 	 */
 	@Transactional
 	public T saveAndFlush(T entity) {
@@ -348,9 +309,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.springframework.data.repository.Repository#save(java.lang.Iterable)
+	 * @see org.springframework.data.jpa.repository.JpaRepository#save(java.lang.Iterable)
 	 */
 	@Transactional
 	public List<T> save(Iterable<? extends T> entities) {
@@ -370,7 +329,6 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see org.springframework.data.jpa.repository.JpaRepository#flush()
 	 */
 	@Transactional
@@ -383,9 +341,9 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	 * Reads the given {@link TypedQuery} into a {@link Page} applying the given {@link Pageable} and
 	 * {@link Specification}.
 	 * 
-	 * @param query
-	 * @param spec
-	 * @param pageable
+	 * @param query must not be {@literal null}.
+	 * @param spec can be {@literal null}.
+	 * @param pageable can be {@literal null}.
 	 * @return
 	 */
 	private Page<T> readPage(TypedQuery<T> query, Pageable pageable, Specification<T> spec) {
@@ -401,8 +359,8 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	/**
 	 * Creates a new {@link TypedQuery} from the given {@link Specification}.
 	 * 
-	 * @param spec can be {@literal null}
-	 * @param pageable can be {@literal null}
+	 * @param spec can be {@literal null}.
+	 * @param pageable can be {@literal null}.
 	 * @return
 	 */
 	private TypedQuery<T> getQuery(Specification<T> spec, Pageable pageable) {
@@ -423,8 +381,8 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	/**
 	 * Creates a {@link TypedQuery} for the given {@link Specification} and {@link Sort}.
 	 * 
-	 * @param spec
-	 * @param sort
+	 * @param spec can be {@literal null}.
+	 * @param sort can be {@literal null}.
 	 * @return
 	 */
 	private TypedQuery<T> getQuery(Specification<T> spec, Sort sort) {
@@ -462,8 +420,8 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	/**
 	 * Applies the given {@link Specification} to the given {@link CriteriaQuery}.
 	 * 
-	 * @param spec can be {@literal null}
-	 * @param query
+	 * @param spec can be {@literal null}.
+	 * @param query must not be {@literal null}.
 	 * @return
 	 */
 	private <S> Root<T> applySpecificationToCriteria(Specification<T> spec, CriteriaQuery<S> query) {

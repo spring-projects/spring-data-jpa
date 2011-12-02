@@ -225,12 +225,6 @@ public class UserRepositoryTests {
 	}
 
 	@Test
-	public void deleteWithNullDoesNotDeleteAnything() throws Exception {
-
-		assertDeleteCallDoesNotDeleteAnything(null);
-	}
-
-	@Test
 	public void executesManipulatingQuery() throws Exception {
 
 		flushTestUsers();
