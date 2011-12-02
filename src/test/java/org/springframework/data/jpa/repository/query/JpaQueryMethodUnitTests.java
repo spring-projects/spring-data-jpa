@@ -33,6 +33,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.core.support.DefaultRepositoryMetadata;
@@ -54,7 +55,8 @@ public class JpaQueryMethodUnitTests {
 	@Mock
 	RepositoryMetadata metadata;
 
-	Method repositoryMethod, invalidReturnType, pageableAndSort, pageableTwice, sortableTwice, modifyingMethod;
+	Method repositoryMethod, invalidReturnType, pageableAndSort, pageableTwice, sortableTwice, modifyingMethod,
+			nativeQuery;
 
 	/**
 	 * @throws Exception
@@ -70,6 +72,8 @@ public class JpaQueryMethodUnitTests {
 
 		sortableTwice = InvalidRepository.class.getMethod(METHOD_NAME, String.class, Sort.class, Sort.class);
 		modifyingMethod = UserRepository.class.getMethod("renameAllUsersTo", String.class);
+
+		nativeQuery = InvalidRepository.class.getMethod("findByLastname", String.class);
 	}
 
 	@Test
@@ -80,6 +84,8 @@ public class JpaQueryMethodUnitTests {
 
 		assertEquals("User.findByLastname", method.getNamedQueryName());
 		assertThat(method.isCollectionQuery(), is(true));
+		assertThat(method.getAnnotatedQuery(), is(nullValue()));
+		assertThat(method.isNativeQuery(), is(false));
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -189,6 +195,16 @@ public class JpaQueryMethodUnitTests {
 	}
 
 	/**
+	 * @see DATAJPA-117
+	 */
+	@Test
+	public void discoversNativeQuery() {
+
+		JpaQueryMethod method = new JpaQueryMethod(nativeQuery, metadata, extractor);
+		assertThat(method.isNativeQuery(), is(true));
+	}
+
+	/**
 	 * Interface to define invalid repository methods for testing.
 	 * 
 	 * @author Oliver Gierke
@@ -218,5 +234,8 @@ public class JpaQueryMethodUnitTests {
 		// Modifying and Sort is not allowed
 		@Modifying
 		void updateMethod(String firstname, Sort sort);
+
+		@Query(value = "query", nativeQuery = true)
+		List<User> findByLastname(String lastname);
 	}
 }

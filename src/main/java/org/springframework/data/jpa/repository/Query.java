@@ -31,7 +31,19 @@ import java.lang.annotation.Target;
 @Documented
 public @interface Query {
 
+	/**
+	 * Defines the JPA query to be executed when the annotated method is called.
+	 */
 	String value() default "";
 
+	/**
+	 * Defines a special count query that shall be used for pagination queries to lookup the total number of elements for
+	 * a page. If non is configured we will derive the count query from the method name.
+	 */
 	String countQuery() default "";
+
+	/**
+	 * Configures whether the given query is a native one. Defaults to {@literal false}.
+	 */
+	boolean nativeQuery() default false;
 }

@@ -680,6 +680,20 @@ public class UserRepositoryTests {
 		assertThat(result, hasItems(secondUser, thirdUser));
 	}
 
+	/**
+	 * @see DATAJPA-117
+	 */
+	@Test
+	public void executesNativeQueryCorrectly() {
+
+		flushTestUsers();
+
+		List<User> result = repository.findNativeByLastname("Matthews");
+
+		assertThat(result, hasItem(thirdUser));
+		assertThat(result.size(), is(1));
+	}
+
 	private void flushTestUsers() {
 
 		firstUser = repository.save(firstUser);

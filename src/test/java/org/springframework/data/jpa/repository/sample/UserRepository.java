@@ -189,9 +189,12 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 
 	List<User> findByAgeLessThanEqual(int age);
 
-	/**
-	 * @see DATADOC-86 - Count execution for group by
-	 */
 	@Query("select u.lastname from User u group by u.lastname")
 	Page<String> findByLastnameGrouped(Pageable pageable);
+
+	/**
+	 * @see DATAJPA-117
+	 */
+	@Query(value = "SELECT * FROM User WHERE lastname = ?1", nativeQuery = true)
+	List<User> findNativeByLastname(String lastname);
 }

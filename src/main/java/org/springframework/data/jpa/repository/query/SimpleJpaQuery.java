@@ -40,7 +40,8 @@ final class SimpleJpaQuery extends AbstractJpaQuery {
 	private final String queryString;
 	private final String countQuery;
 	private final String alias;
-	private final Parameters parameters;
+
+	private final JpaQueryMethod method;
 
 	/**
 	 * Creates a new {@link SimpleJpaQuery} that encapsulates a simple query string.
@@ -48,14 +49,31 @@ final class SimpleJpaQuery extends AbstractJpaQuery {
 	SimpleJpaQuery(JpaQueryMethod method, EntityManager em, String queryString) {
 
 		super(method, em);
+
 		this.queryString = queryString;
 		this.alias = QueryUtils.detectAlias(queryString);
-		this.parameters = method.getParameters();
 		this.countQuery = method.getCountQuery() == null ? QueryUtils.createCountQueryFor(queryString) : method
 				.getCountQuery();
+		this.method = method;
 
-		// Try to create a
-		em.createQuery(queryString);
+		Parameters parameters = method.getParameters();
+		boolean hasPagingOrSortingParameter = parameters.hasPageableParameter() || parameters.hasSortParameter();
+
+		if (method.isNativeQuery() && hasPagingOrSortingParameter) {
+			throw new IllegalStateException("Cannot use native queries with dynamic sorting and/or pagination!");
+		}
+
+		// Try to create a Query object already to fail fast
+		if (!method.isNativeQuery()) {
+			em.createQuery(queryString);
+		}
+	}
+
+	/**
+	 * Creates a new {@link SimpleJpaQuery} encapsulating the query annotated on the given {@link JpaQueryMethod}.
+	 */
+	SimpleJpaQuery(JpaQueryMethod method, EntityManager em) {
+		this(method, em, method.getAnnotatedQuery());
 	}
 
 	/*
@@ -65,10 +83,19 @@ final class SimpleJpaQuery extends AbstractJpaQuery {
 	@Override
 	public Query doCreateQuery(Object[] values) {
 
-		ParameterAccessor accessor = new ParametersParameterAccessor(parameters, values);
+		ParameterAccessor accessor = new ParametersParameterAccessor(method.getParameters(), values);
 		String sortedQueryString = QueryUtils.applySorting(queryString, accessor.getSort(), alias);
 
-		Query query = getEntityManager().createQuery(sortedQueryString);
+		Query query = null;
+
+		if (method.isNativeQuery()) {
+			query = method.isModifyingQuery() ? getEntityManager().createNativeQuery(sortedQueryString) : getEntityManager()
+					.createNativeQuery(sortedQueryString, method.getReturnedObjectType());
+		} else {
+			query = method.isModifyingQuery() ? getEntityManager().createQuery(sortedQueryString) : getEntityManager()
+					.createQuery(sortedQueryString, method.getReturnedObjectType());
+		}
+
 		return createBinder(values).bindAndPrepare(query);
 	}
 

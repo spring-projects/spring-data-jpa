@@ -133,7 +133,7 @@ public class JpaQueryMethod extends QueryMethod {
 	 */
 	String getAnnotatedQuery() {
 
-		String query = (String) AnnotationUtils.getValue(getQueryAnnotation());
+		String query = getAnnotationValue("value", String.class);
 		return StringUtils.hasText(query) ? query : null;
 	}
 
@@ -145,8 +145,17 @@ public class JpaQueryMethod extends QueryMethod {
 	 */
 	String getCountQuery() {
 
-		String countQuery = (String) AnnotationUtils.getValue(getQueryAnnotation(), "countQuery");
+		String countQuery = getAnnotationValue("countQuery", String.class);
 		return StringUtils.hasText(countQuery) ? countQuery : null;
+	}
+
+	/**
+	 * Returns whether the backing query is a native one.
+	 * 
+	 * @return
+	 */
+	boolean isNativeQuery() {
+		return getAnnotationValue("nativeQuery", Boolean.class).booleanValue();
 	}
 
 	/**
@@ -160,12 +169,20 @@ public class JpaQueryMethod extends QueryMethod {
 	}
 
 	/**
-	 * Returns the {@link Query} annotation that is applied to the method or {@code null} if none available.
+	 * Returns the {@link Query} annotation's attribute casted to the given type or default value if no annotation
+	 * available.
 	 * 
+	 * @param attribute
+	 * @param type
+	 * @param defaultValue
 	 * @return
 	 */
-	private Query getQueryAnnotation() {
+	private <T> T getAnnotationValue(String attribute, Class<T> type) {
 
-		return method.getAnnotation(Query.class);
+		Query annotation = method.getAnnotation(Query.class);
+		Object value = annotation == null ? AnnotationUtils.getDefaultValue(Query.class, attribute) : AnnotationUtils
+				.getValue(annotation, attribute);
+
+		return type.cast(value);
 	}
 }

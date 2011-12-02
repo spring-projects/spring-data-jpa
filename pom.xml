@@ -58,7 +58,7 @@
 		<spring.data.commons.version>1.2.0.BUILD-SNAPSHOT</spring.data.commons.version>
 		<hibernate.version>3.6.5.Final</hibernate.version>
 		<openjpa.version>2.1.0</openjpa.version>
-		<eclipselink.version>2.2.0</eclipselink.version>
+		<eclipselink.version>2.3.1</eclipselink.version>
 		<aspectj.version>1.6.8</aspectj.version>
 		<querydsl.version>2.2.5</querydsl.version>
 		<junit.version>4.8.1</junit.version>

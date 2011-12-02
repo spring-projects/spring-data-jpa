@@ -21,6 +21,7 @@ import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 import java.lang.reflect.Method;
+import java.util.List;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
@@ -33,6 +34,9 @@ import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.sample.User;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.Parameters;
@@ -98,5 +102,54 @@ public class SimpleJpaQueryUnitTests {
 
 		verify(query, times(0)).setFirstResult(anyInt());
 		verify(query, times(0)).setMaxResults(anyInt());
+	}
+
+	@Test
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public void discoversNativeQuery() throws Exception {
+
+		Method method = SampleRepository.class.getMethod("findNativeByLastname", String.class);
+		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, extractor);
+		SimpleJpaQuery jpaQuery = new SimpleJpaQuery(queryMethod, em);
+
+		Class<?> type = Mockito.any();
+		when(em.createNativeQuery(Mockito.anyString(), type)).thenReturn(query);
+		when(metadata.getReturnedDomainClass(method)).thenReturn((Class) User.class);
+
+		jpaQuery.createQuery(new Object[] { "Matthews" });
+
+		verify(em).createNativeQuery("SELECT u FROM User u WHERE u.lastname = ?1", User.class);
+	}
+
+	@Test(expected = IllegalStateException.class)
+	public void rejectsNativeQueryWithDynamicSort() throws Exception {
+
+		Method method = SampleRepository.class.getMethod("findNativeByLastname", String.class, Sort.class);
+		rejectsNativeQuery(method);
+	}
+
+	@Test(expected = IllegalStateException.class)
+	public void rejectsNativeQueryWithPageable() throws Exception {
+
+		Method method = SampleRepository.class.getMethod("findNativeByLastname", String.class, Pageable.class);
+		rejectsNativeQuery(method);
+	}
+
+	private void rejectsNativeQuery(Method method) {
+
+		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, extractor);
+		new SimpleJpaQuery(queryMethod, em);
+	}
+
+	interface SampleRepository {
+
+		@Query(value = "SELECT u FROM User u WHERE u.lastname = ?1", nativeQuery = true)
+		List<User> findNativeByLastname(String lastname);
+
+		@Query(value = "SELECT u FROM User u WHERE u.lastname = ?1", nativeQuery = true)
+		List<User> findNativeByLastname(String lastname, Sort sort);
+
+		@Query(value = "SELECT u FROM User u WHERE u.lastname = ?1", nativeQuery = true)
+		List<User> findNativeByLastname(String lastname, Pageable pageable);
 	}
 }
