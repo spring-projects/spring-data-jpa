@@ -158,6 +158,17 @@ public class JpaQueryMethod extends QueryMethod {
 		return getAnnotationValue("nativeQuery", Boolean.class).booleanValue();
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.query.QueryMethod#getNamedQueryName()
+	 */
+	@Override
+	public String getNamedQueryName() {
+
+		String annotatedName = getAnnotationValue("name", String.class);
+		return StringUtils.hasText(annotatedName) ? annotatedName : super.getNamedQueryName();
+	}
+
 	/**
 	 * Returns whether we should clear automatically for modifying queries.
 	 * 

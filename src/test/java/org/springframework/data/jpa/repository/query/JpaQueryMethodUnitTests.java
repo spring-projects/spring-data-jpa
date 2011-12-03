@@ -56,7 +56,7 @@ public class JpaQueryMethodUnitTests {
 	RepositoryMetadata metadata;
 
 	Method repositoryMethod, invalidReturnType, pageableAndSort, pageableTwice, sortableTwice, modifyingMethod,
-			nativeQuery;
+			nativeQuery, namedQuery;
 
 	/**
 	 * @throws Exception
@@ -74,6 +74,7 @@ public class JpaQueryMethodUnitTests {
 		modifyingMethod = UserRepository.class.getMethod("renameAllUsersTo", String.class);
 
 		nativeQuery = InvalidRepository.class.getMethod("findByLastname", String.class);
+		namedQuery = InvalidRepository.class.getMethod("findByNamedQuery");
 	}
 
 	@Test
@@ -205,6 +206,15 @@ public class JpaQueryMethodUnitTests {
 	}
 
 	/**
+	 * @see DATAJPA-129
+	 */
+	@Test
+	public void considersAnnotatedNamedQueryName() {
+		JpaQueryMethod queryMethod = new JpaQueryMethod(namedQuery, metadata, extractor);
+		assertThat(queryMethod.getNamedQueryName(), is("Foo.bar"));
+	}
+
+	/**
 	 * Interface to define invalid repository methods for testing.
 	 * 
 	 * @author Oliver Gierke
@@ -237,5 +247,8 @@ public class JpaQueryMethodUnitTests {
 
 		@Query(value = "query", nativeQuery = true)
 		List<User> findByLastname(String lastname);
+
+		@Query(name = "Foo.bar")
+		List<User> findByNamedQuery();
 	}
 }

@@ -46,4 +46,10 @@ public @interface Query {
 	 * Configures whether the given query is a native one. Defaults to {@literal false}.
 	 */
 	boolean nativeQuery() default false;
+
+	/**
+	 * The named query to be used. If not defined, a NamedQuery with name of {@code $ domainClass}.${finderMethodName}}
+	 * will be used.
+	 */
+	String name() default "";
 }
