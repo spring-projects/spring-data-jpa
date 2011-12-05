@@ -197,4 +197,14 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	 */
 	@Query(value = "SELECT * FROM User WHERE lastname = ?1", nativeQuery = true)
 	List<User> findNativeByLastname(String lastname);
+
+	/**
+	 * @see DATAJPA-132
+	 */
+	List<User> findByActiveTrue();
+
+	/**
+	 * @see DATAJPA-132
+	 */
+	List<User> findByActiveFalse();
 }

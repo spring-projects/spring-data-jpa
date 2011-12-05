@@ -176,8 +176,7 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<Object>,
 		return getTypedPath(root, part, Comparable.class);
 	}
 
-	private <T> Expression<? extends T> getTypedPath(Root<?> root, Part part, Class<T> type) {
-
+	private <T> Expression<T> getTypedPath(Root<?> root, Part part, Class<T> type) {
 		return toExpressionRecursively(root, part.getProperty());
 	}
 
@@ -326,6 +325,10 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<Object>,
 				Expression<String> parameterExpression = upperIfIgnoreCase(provider.next(String.class));
 				Predicate like = builder.like(propertyExpression, parameterExpression);
 				return part.getType() == Type.LIKE ? like : like.not();
+			case TRUE:
+				return builder.isTrue(getTypedPath(root, part, Boolean.class));
+			case FALSE:
+				return builder.isFalse(getTypedPath(root, part, Boolean.class));
 			case SIMPLE_PROPERTY:
 				return builder.equal(upperIfIgnoreCase(path), upperIfIgnoreCase(provider.next()));
 			case NEGATING_SIMPLE_PROPERTY:

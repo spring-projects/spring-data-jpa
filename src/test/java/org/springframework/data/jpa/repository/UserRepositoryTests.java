@@ -694,6 +694,36 @@ public class UserRepositoryTests {
 		assertThat(result.size(), is(1));
 	}
 
+	/**
+	 * @see DATAJPA-132
+	 */
+	@Test
+	public void executesFinderWithTrueKeywordCorrectly() {
+
+		flushTestUsers();
+		firstUser.setActive(false);
+		repository.save(firstUser);
+
+		List<User> result = repository.findByActiveTrue();
+		assertThat(result.size(), is(2));
+		assertThat(result, hasItems(secondUser, thirdUser));
+	}
+
+	/**
+	 * @see DATAJPA-132
+	 */
+	@Test
+	public void executesFinderWithFalseKeywordCorrectly() {
+
+		flushTestUsers();
+		firstUser.setActive(false);
+		repository.save(firstUser);
+
+		List<User> result = repository.findByActiveFalse();
+		assertThat(result.size(), is(1));
+		assertThat(result, hasItem(firstUser));
+	}
+
 	private void flushTestUsers() {
 
 		firstUser = repository.save(firstUser);

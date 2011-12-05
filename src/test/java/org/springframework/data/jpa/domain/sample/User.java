@@ -46,6 +46,7 @@ public class User {
 	private String firstname;
 	private String lastname;
 	private int age;
+	private boolean active;
 
 	@Column(nullable = false, unique = true)
 	private String emailAddress;
@@ -81,6 +82,7 @@ public class User {
 		this.firstname = firstname;
 		this.lastname = lastname;
 		this.emailAddress = emailAddress;
+		this.active = true;
 	}
 
 	/**
@@ -171,6 +173,20 @@ public class User {
 	public void setEmailAddress(String emailAddress) {
 
 		this.emailAddress = emailAddress;
+	}
+
+	/**
+	 * @param active the active to set
+	 */
+	public void setActive(boolean active) {
+		this.active = active;
+	}
+
+	/**
+	 * @return the active
+	 */
+	public boolean isActive() {
+		return active;
 	}
 
 	/**
