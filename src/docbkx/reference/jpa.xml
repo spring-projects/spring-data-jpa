@@ -883,5 +883,45 @@ public interface UserRepository extends JpaRepository&lt;User, Long&gt; {
 &lt;/bean&gt;</programlisting></para>
       </example>
     </section>
+
+    <section>
+      <title>Classpath scanning for @Entity classes and JPA mapping
+      files</title>
+
+      <para>A plain JPA setup requires all annotation mapped entity classes
+      listed in <filename>orm.xml</filename>. Same applies to XML mapping
+      files. Spring Data JPA provides a
+      <classname>ClasspathScanningPersistenceUnitPostProcessor</classname>
+      that gets a base package configured and optionally takes a mapping
+      filename pattern. It will then scan the given package for classes
+      annotated with <interfacename>@Entity</interfacename> or
+      <interfacename>@MappedSuperclass</interfacename> and also loads the
+      configuration files matching the filename pattern and hands them to the
+      JPA configuration. The PostProcessor has to be configured like
+      this</para>
+
+      <example>
+        <title>Using ClasspathScanningPersistenceUnitPostProcessor</title>
+
+        <para><programlisting language="xml">&lt;bean class="….LocalContainerEntityManagerFactoryBean"&gt;
+  &lt;property name="persistenceUnitPostProcessors"&gt;
+    &lt;list&gt;
+      &lt;bean class="org.springframework.data.jpa.support.ClasspathScanningPersistenceUnitPostProcessor"&gt;
+        &lt;constructor-arg value="com.acme.domain" /&gt;
+        &lt;property name="mappingFileNamePattern" value="**/*Mapping.xml" /&gt;
+      &lt;/bean&gt;
+    &lt;/list&gt;
+  &lt;/property&gt;
+&lt;/bean&gt;</programlisting></para>
+      </example>
+
+      <note>
+        <para>As of Spring 3.1 a package to scan can be configured on the
+        <classname>LocalContainerEntityManagerFactoryBean</classname> directly
+        to enable classpath scanning for entity classes. See the <ulink
+        url="http://static.springsource.org/spring/docs/3.1.x/javadoc-api/org/springframework/orm/jpa/LocalContainerEntityManagerFactoryBean.html#setPackagesToScan(java.lang.String...)">JavaDoc</ulink>
+        for details.</para>
+      </note>
+    </section>
   </section>
 </chapter>
