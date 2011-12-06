@@ -763,6 +763,42 @@ public interface UserRepository extends JpaRepository&lt;User, Long&gt; {
     </section>
   </section>
 
+  <section>
+    <title>Locking</title>
+
+    <para>To specify the lock mode to be used the
+    <interfacename>@Lock</interfacename> annotation can be used on query
+    methods:</para>
+
+    <example>
+      <title>Defining lock metadata on query methods</title>
+
+      <programlisting language="java">interface UserRepository extends Repository&lt;User, Long&gt; {
+
+  // Plain query method
+  @Lock(LockModeType.READ)
+  List&lt;User&gt; findByLastname(String lastname);
+}</programlisting>
+    </example>
+
+    <para>This method declaration will cause the query being triggered to be
+    equipped with the <interfacename>LockModeType</interfacename>
+    <code>READ</code>. You can also define locking for CRUD methods by
+    redeclaring them in your repository interface and adding the
+    <interfacename>@Lock</interfacename> annotation:</para>
+
+    <example>
+      <title>Defining lock metadata on CRUD methods</title>
+
+      <programlisting language="java">interface UserRepository extends Repository&lt;User, Long&gt; {
+
+  // Redeclaration of a CRUD method
+  @Lock(LockModeType.READ);
+  List&lt;User&gt; findAll();
+}</programlisting>
+    </example>
+  </section>
+
   <section id="jpa.auditing">
     <title>Auditing</title>
 

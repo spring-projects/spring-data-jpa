@@ -21,7 +21,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
 import org.springframework.beans.factory.FactoryBean;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.core.support.RepositoryFactorySupport;
 import org.springframework.data.repository.core.support.TransactionalRepositoryFactoryBeanSupport;
 import org.springframework.util.Assert;
@@ -34,7 +34,7 @@ import org.springframework.util.Assert;
  * @author Eberhard Wolff
  * @param <T> the type of the repository
  */
-public class JpaRepositoryFactoryBean<T extends JpaRepository<S, ID>, S, ID extends Serializable> extends
+public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID extends Serializable> extends
 		TransactionalRepositoryFactoryBeanSupport<T, S, ID> {
 
 	private EntityManager entityManager;
@@ -58,7 +58,6 @@ public class JpaRepositoryFactoryBean<T extends JpaRepository<S, ID>, S, ID exte
 	 */
 	@Override
 	protected RepositoryFactorySupport doCreateRepositoryFactory() {
-
 		return createRepositoryFactory(entityManager);
 	}
 
@@ -69,7 +68,6 @@ public class JpaRepositoryFactoryBean<T extends JpaRepository<S, ID>, S, ID exte
 	 * @return
 	 */
 	protected RepositoryFactorySupport createRepositoryFactory(EntityManager entityManager) {
-
 		return new JpaRepositoryFactory(entityManager);
 	}
 

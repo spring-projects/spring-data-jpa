@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,25 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.jpa.repository.sample;
+package org.springframework.data.jpa.repository.support;
 
 import javax.persistence.LockModeType;
 
-import org.springframework.data.jpa.domain.sample.Role;
-import org.springframework.data.jpa.repository.Lock;
-import org.springframework.data.repository.CrudRepository;
-
 /**
- * Typing interface for {@code Role}.
+ * Interface to abstract {@link LockMetadataProvider} that provide the {@link LockModeType} to be used for query
+ * execution.
  * 
  * @author Oliver Gierke
  */
-public interface RoleRepository extends CrudRepository<Role, Integer> {
+public interface LockMetadataProvider {
 
-	/* 
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.CrudRepository#findAll()
+	/**
+	 * Returns the {@link LockModeType} to be used.
+	 * 
+	 * @return
 	 */
-	@Lock(LockModeType.READ)
-	public Iterable<Role> findAll();
+	LockModeType getLockModeType();
 }

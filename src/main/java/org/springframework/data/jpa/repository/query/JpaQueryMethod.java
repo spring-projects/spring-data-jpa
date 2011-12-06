@@ -22,9 +22,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.persistence.LockModeType;
 import javax.persistence.QueryHint;
 
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryHints;
@@ -91,6 +93,17 @@ public class JpaQueryMethod extends QueryMethod {
 		}
 
 		return result;
+	}
+
+	/**
+	 * Returns the {@link LockModeType} to be used for the query.
+	 * 
+	 * @return
+	 */
+	LockModeType getLockModeType() {
+
+		Lock annotation = method.getAnnotation(Lock.class);
+		return (LockModeType) AnnotationUtils.getValue(annotation);
 	}
 
 	/**

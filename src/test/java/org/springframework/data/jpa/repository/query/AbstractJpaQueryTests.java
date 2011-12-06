@@ -15,12 +15,14 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 import java.lang.reflect.Method;
 import java.util.List;
 
 import javax.persistence.EntityManager;
+import javax.persistence.LockModeType;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.QueryHint;
@@ -30,6 +32,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.data.jpa.domain.sample.User;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.jpa.repository.support.PersistenceProvider;
 import org.springframework.data.repository.Repository;
@@ -101,6 +104,24 @@ public class AbstractJpaQueryTests {
 		verify(result, never()).setHint("bar", "foo");
 	}
 
+	/**
+	 * @see DATAJPA-73
+	 */
+	@Test
+	public void addsLockingModeToQueryObject() throws Exception {
+
+		when(query.setLockMode(any(LockModeType.class))).thenReturn(query);
+
+		Method method = SampleRepository.class.getMethod("findOneLocked", Integer.class);
+		QueryExtractor provider = PersistenceProvider.fromEntityManager(em);
+		JpaQueryMethod queryMethod = new JpaQueryMethod(method, new DefaultRepositoryMetadata(SampleRepository.class),
+				provider);
+
+		AbstractJpaQuery jpaQuery = new DummyJpaQuery(queryMethod, em);
+		Query result = jpaQuery.createQuery(new Object[] { Integer.valueOf(1) });
+		verify(result).setLockMode(LockModeType.PESSIMISTIC_WRITE);
+	}
+
 	interface SampleRepository extends Repository<User, Integer> {
 
 		@QueryHints({ @QueryHint(name = "foo", value = "bar") })
@@ -108,6 +129,10 @@ public class AbstractJpaQueryTests {
 
 		@QueryHints(value = { @QueryHint(name = "bar", value = "foo") }, forCounting = false)
 		List<User> findByFirstname(String firstname);
+
+		@Lock(LockModeType.PESSIMISTIC_WRITE)
+		@org.springframework.data.jpa.repository.Query("select u from User u where u.id = ?1")
+		List<User> findOneLocked(Integer primaryKey);
 	}
 
 	class DummyJpaQuery extends AbstractJpaQuery {

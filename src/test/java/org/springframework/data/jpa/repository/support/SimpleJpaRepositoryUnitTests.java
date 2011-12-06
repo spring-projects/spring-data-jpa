@@ -70,6 +70,9 @@ public class SimpleJpaRepositoryUnitTests {
 		repo = new SimpleJpaRepository<User, Long>(information, em);
 	}
 
+	/**
+	 * @see DATAJPA-124
+	 */
 	@Test
 	public void doesNotActuallyRetrieveObjectsForPageableOutOfRange() {
 

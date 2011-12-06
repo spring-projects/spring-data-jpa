@@ -21,6 +21,7 @@ import static org.junit.Assert.*;
 import java.lang.reflect.Method;
 import java.util.List;
 
+import javax.persistence.LockModeType;
 import javax.persistence.QueryHint;
 
 import org.junit.Before;
@@ -32,6 +33,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.sample.User;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.sample.UserRepository;
@@ -56,7 +58,7 @@ public class JpaQueryMethodUnitTests {
 	RepositoryMetadata metadata;
 
 	Method repositoryMethod, invalidReturnType, pageableAndSort, pageableTwice, sortableTwice, modifyingMethod,
-			nativeQuery, namedQuery;
+			nativeQuery, namedQuery, findWithLockMethod;
 
 	/**
 	 * @throws Exception
@@ -73,8 +75,10 @@ public class JpaQueryMethodUnitTests {
 		sortableTwice = InvalidRepository.class.getMethod(METHOD_NAME, String.class, Sort.class, Sort.class);
 		modifyingMethod = UserRepository.class.getMethod("renameAllUsersTo", String.class);
 
-		nativeQuery = InvalidRepository.class.getMethod("findByLastname", String.class);
-		namedQuery = InvalidRepository.class.getMethod("findByNamedQuery");
+		nativeQuery = ValidRepository.class.getMethod("findByLastname", String.class);
+		namedQuery = ValidRepository.class.getMethod("findByNamedQuery");
+
+		findWithLockMethod = ValidRepository.class.getMethod("findOneLocked", Integer.class);
 	}
 
 	@Test
@@ -215,6 +219,18 @@ public class JpaQueryMethodUnitTests {
 	}
 
 	/**
+	 * @see DATAJPA-73
+	 */
+	@Test
+	public void discoversLockModeCorrectly() throws Exception {
+
+		JpaQueryMethod method = new JpaQueryMethod(findWithLockMethod, metadata, extractor);
+		LockModeType lockMode = method.getLockModeType();
+
+		assertEquals(LockModeType.PESSIMISTIC_WRITE, lockMode);
+	}
+
+	/**
 	 * Interface to define invalid repository methods for testing.
 	 * 
 	 * @author Oliver Gierke
@@ -244,11 +260,18 @@ public class JpaQueryMethodUnitTests {
 		// Modifying and Sort is not allowed
 		@Modifying
 		void updateMethod(String firstname, Sort sort);
+	}
+
+	static interface ValidRepository {
 
 		@Query(value = "query", nativeQuery = true)
 		List<User> findByLastname(String lastname);
 
 		@Query(name = "Foo.bar")
 		List<User> findByNamedQuery();
+
+		@Lock(LockModeType.PESSIMISTIC_WRITE)
+		@Query("select u from User u where u.id = ?1")
+		List<User> findOneLocked(Integer primaryKey);
 	}
 }

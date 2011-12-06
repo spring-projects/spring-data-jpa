@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.List;
 
 import javax.persistence.EntityManager;
+import javax.persistence.LockModeType;
 import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -59,6 +60,8 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	private final EntityManager em;
 	private final PersistenceProvider provider;
 
+	private LockMetadataProvider lockMetadataProvider;
+
 	/**
 	 * Creates a new {@link SimpleJpaRepository} to manage objects of the given {@link JpaEntityInformation}.
 	 * 
@@ -83,6 +86,16 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	 */
 	public SimpleJpaRepository(Class<T> domainClass, EntityManager em) {
 		this(JpaEntityInformationSupport.getMetadata(domainClass, em), em);
+	}
+
+	/**
+	 * Configures a custom {@link LockMetadataProvider} to be used to detect {@link LockModeType}s to be applied to
+	 * queries.
+	 * 
+	 * @param lockMetadataProvider
+	 */
+	public void setLockMetadataProvider(LockMetadataProvider lockMetadataProvider) {
+		this.lockMetadataProvider = lockMetadataProvider;
 	}
 
 	private Class<T> getDomainClass() {
@@ -367,17 +380,8 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	 */
 	private TypedQuery<T> getQuery(Specification<T> spec, Pageable pageable) {
 
-		CriteriaBuilder builder = em.getCriteriaBuilder();
-		CriteriaQuery<T> query = builder.createQuery(getDomainClass());
-
-		Root<T> root = applySpecificationToCriteria(spec, query);
-		query.select(root);
-
-		if (pageable != null) {
-			query.orderBy(toOrders(pageable.getSort(), root, builder));
-		}
-
-		return em.createQuery(query);
+		Sort sort = pageable == null ? null : pageable.getSort();
+		return getQuery(spec, sort);
 	}
 
 	/**
@@ -399,7 +403,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 			query.orderBy(toOrders(sort, root, builder));
 		}
 
-		return em.createQuery(query);
+		return applyLockMode(em.createQuery(query));
 	}
 
 	/**
@@ -443,5 +447,11 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 		}
 
 		return root;
+	}
+
+	private TypedQuery<T> applyLockMode(TypedQuery<T> query) {
+
+		LockModeType type = lockMetadataProvider == null ? null : lockMetadataProvider.getLockModeType();
+		return type == null ? query : query.setLockMode(type);
 	}
 }
