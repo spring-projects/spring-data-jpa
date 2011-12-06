@@ -764,7 +764,7 @@ public interface UserRepository extends JpaRepository&lt;User, Long&gt; {
   </section>
 
   <section>
-    <title>Locking</title>
+    <title id="locking">Locking</title>
 
     <para>To specify the lock mode to be used the
     <interfacename>@Lock</interfacename> annotation can be used on query
