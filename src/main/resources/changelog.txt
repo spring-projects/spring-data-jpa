@@ -1,13 +1,23 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 1.0.2.GA (2011-12-06)
+----------------------------------------
+* Fixed query creation for Comparable values (DATAJPA-99)
+* Fixed alias detection when entity name contained number (DATAJPA-110)
+* SimpleJpaRepository's deleteAll() does not call em.clear() anymore (DATAJPA-111)
+* Upgraded to Querydsl 2.2.5 (DATAJPA-102, DATAJPA-115)
+* Fixed auditor mappings in AbstractAuditable (DATAJPA-120)
+* Consolidate Expression creation for property references and sort orders (DATAJPA-103)
+* Fixed dependency injection in QueryDslRepositorySupport (DATAJPA-113)
+
 Changes in version 1.1.0.M1 (2011-09-05)
 ----------------------------------------
 * Added ability to ignore case in derived method names (DATAJPA-92)
 * Upgraded dependency to Spring Data Commons 1.2.0.M1
 
-Changes in version 1.0.1 (2011-09-05)
--------------------------------------
+Changes in version 1.0.1.GA (2011-09-05)
+----------------------------------------
 * Fixed pagination for queries using group-by clause (DATAJPA-86)
 * Fixed NoSuchElementException for queries using dynamic sorting (DATAJPA-90)
 * JpaEntityInformationSupport.getMetadata(...) throws IllegalArgumentException if entity not found in JPA metamodel (DATAJPA-93)
