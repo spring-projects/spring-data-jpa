@@ -18,6 +18,9 @@ package org.springframework.data.jpa.repository.support;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,8 +40,39 @@ public class QueryDslRepositorySupportIntegrationTests {
 	@Autowired
 	UserRepository repository;
 
+	@Autowired
+	ReconfiguringUserRepositoryImpl reconfiguredRepo;
+
+	@PersistenceContext(unitName = "querydsl")
+	EntityManager em;
+
 	@Test
 	public void createsRepoCorrectly() {
 		assertThat(repository, is(notNullValue()));
+	}
+
+	/**
+	 * @see DATAJPA-135
+	 */
+	@Test
+	public void createsReconfiguredRepoAccordingly() {
+
+		assertThat(reconfiguredRepo, is(notNullValue()));
+		assertThat(reconfiguredRepo.getEntityManager().getEntityManagerFactory(), is(em.getEntityManagerFactory()));
+	}
+
+	static class ReconfiguringUserRepositoryImpl extends QueryDslRepositorySupport {
+
+		@Override
+		@PersistenceContext(unitName = "querydsl")
+		public void setEntityManager(EntityManager entityManager) {
+			super.setEntityManager(entityManager);
+		}
+	}
+
+	static class EntityManagerContainer {
+
+		@PersistenceContext(unitName = "querydsl")
+		EntityManager em;
 	}
 }

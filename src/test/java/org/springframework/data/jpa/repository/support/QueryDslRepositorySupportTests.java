@@ -127,6 +127,12 @@ public class QueryDslRepositorySupportTests {
 
 		private static final QUser user = QUser.user;
 
+		@Override
+		@PersistenceContext(unitName = "default")
+		public void setEntityManager(EntityManager entityManager) {
+			super.setEntityManager(entityManager);
+		}
+
 		public List<User> findUsersByLastname(String lastname) {
 
 			return from(user).where(user.lastname.eq(lastname)).list(user);

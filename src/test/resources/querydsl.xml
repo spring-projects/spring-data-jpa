@@ -6,5 +6,13 @@
 	<import resource="infrastructure.xml" />
 	
 	<bean class="org.springframework.data.jpa.repository.support.QueryDslRepositorySupportTests.UserRepositoryImpl" />
+	
+	<bean class="org.springframework.data.jpa.repository.support.QueryDslRepositorySupportIntegrationTests.ReconfiguringUserRepositoryImpl" />
 
+	<bean class="org.springframework.data.jpa.repository.support.QueryDslRepositorySupportIntegrationTests.EntityManagerContainer" />
+
+	<bean id="alternate" parent="entityManagerFactory">
+		<property name="persistenceUnitName" value="querydsl" />
+	</bean>
+	
 </beans>

@@ -40,7 +40,6 @@ import com.mysema.query.types.path.PathBuilderFactory;
 @Repository
 public abstract class QueryDslRepositorySupport {
 
-	@PersistenceContext
 	private EntityManager entityManager;
 	private PathBuilderFactory builderFactory = new PathBuilderFactory();
 
@@ -49,6 +48,7 @@ public abstract class QueryDslRepositorySupport {
 	 * 
 	 * @param entityManager must not be {@literal null}
 	 */
+	@PersistenceContext
 	public void setEntityManager(EntityManager entityManager) {
 
 		Assert.notNull(entityManager);
@@ -60,8 +60,16 @@ public abstract class QueryDslRepositorySupport {
 	 */
 	@PostConstruct
 	public void validate() {
-
 		Assert.notNull(entityManager, "EntityManager must not be null!");
+	}
+
+	/**
+	 * Returns the {@link EntityManager}.
+	 * 
+	 * @return the entityManager
+	 */
+	protected EntityManager getEntityManager() {
+		return entityManager;
 	}
 
 	/**
