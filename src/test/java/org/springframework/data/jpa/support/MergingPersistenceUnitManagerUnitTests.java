@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2011-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 package org.springframework.data.jpa.support;
 
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 import java.net.MalformedURLException;
@@ -27,6 +29,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.data.jpa.domain.sample.Role;
+import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.orm.jpa.persistenceunit.MutablePersistenceUnitInfo;
 
 /**
@@ -52,5 +56,18 @@ public class MergingPersistenceUnitManagerUnitTests {
 		when(oldInfo.getJarFileUrls()).thenReturn(Arrays.asList(jarFileUrl));
 		manager.postProcessPersistenceUnitInfo(newInfo, oldInfo);
 		verify(newInfo).addJarFileUrl(jarFileUrl);
+	}
+
+	@Test
+	public void mergesManagedClassesCorrectly() {
+
+		MergingPersistenceUnitManager manager = new MergingPersistenceUnitManager();
+		manager.setPersistenceXmlLocations(new String[] { "classpath:org/springframework/data/jpa/support/persistence.xml",
+				"classpath:org/springframework/data/jpa/support/persistence2.xml" });
+		manager.preparePersistenceUnitInfos();
+
+		PersistenceUnitInfo info = manager.obtainPersistenceUnitInfo("pu");
+		assertThat(info.getManagedClassNames().size(), is(2));
+		assertThat(info.getManagedClassNames(), hasItems(User.class.getName(), Role.class.getName()));
 	}
 }
