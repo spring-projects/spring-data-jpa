@@ -53,7 +53,7 @@ public class JpaPersistableEntityInformationUnitTests {
 	@SuppressWarnings("unchecked")
 	public void setUp() {
 
-		when(metamodel.entity(Foo.class)).thenReturn(type);
+		when(metamodel.managedType(Foo.class)).thenReturn(type);
 		when(type.getIdType()).thenReturn(idType);
 	}
 

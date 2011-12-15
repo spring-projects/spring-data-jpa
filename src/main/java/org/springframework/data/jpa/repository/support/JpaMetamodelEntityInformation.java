@@ -20,7 +20,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 
-import javax.persistence.metamodel.EntityType;
+import javax.persistence.metamodel.IdentifiableType;
+import javax.persistence.metamodel.ManagedType;
 import javax.persistence.metamodel.Metamodel;
 import javax.persistence.metamodel.SingularAttribute;
 
@@ -49,13 +50,18 @@ public class JpaMetamodelEntityInformation<T, ID extends Serializable> extends J
 		super(domainClass);
 
 		Assert.notNull(metamodel);
-		EntityType<T> type = metamodel.entity(domainClass);
+		ManagedType<T> type = metamodel.managedType(domainClass);
 
 		if (type == null) {
 			throw new IllegalArgumentException("The given domain class can not be found in the given Metamodel!");
 		}
 
-		this.attribute = type.getId(type.getIdType().getJavaType());
+		if (!(type instanceof IdentifiableType)) {
+			throw new IllegalArgumentException("The given domain class does not contain an id attribute!");
+		}
+
+		IdentifiableType<T> identifiableType = (IdentifiableType<T>) type;
+		this.attribute = identifiableType.getId(identifiableType.getIdType().getJavaType());
 	}
 
 	/*
