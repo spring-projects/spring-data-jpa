@@ -24,11 +24,12 @@ For more detailed questions, use the [forum](http://forum.springsource.org/forum
 ## Quick Start ##
 
 Download the jar though Maven:
+
 ```xml
 <dependency>
   <groupId>org.springframework.data</groupId>
   <artifactId>spring-data-jpa</artifactId>
-  <version>1.0.0.BUILD-SNAPSHOT</version>
+  <version>1.1.0.BUILD-SNAPSHOT</version>
 </dependency> 
        
 <repository>
@@ -104,7 +105,7 @@ Write a test client
 @ContextConfiguration("classpath:your-config-file.xml")
 public class UserRepositoryIntegrationTest {
      
-  @Autowrired UserRepository repository;
+  @Autowired UserRepository repository;
      
   @Test
   public void sampleTestCase() {
