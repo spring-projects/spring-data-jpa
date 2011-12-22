@@ -291,7 +291,7 @@ public abstract class QueryUtils {
 			Join<Object, Object> join = from.join(property.getName());
 			return (Expression<T>) (property.hasNext() ? toExpressionRecursively((From<?, ?>) join, property.next()) : join);
 		} else {
-			Path<Object> path = from.get(property.getName());
+			Path<Object> path = from.join(property.getName(), JoinType.LEFT);			
 			return (Expression<T>) (property.hasNext() ? toExpressionRecursively(path, property.next()) : path);
 		}
 	}
