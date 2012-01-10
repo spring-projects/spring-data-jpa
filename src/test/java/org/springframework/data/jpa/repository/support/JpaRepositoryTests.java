@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 the original author or authors.
+ * Copyright 2008-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,10 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.data.jpa.domain.sample.SampleEntity;
 import org.springframework.data.jpa.domain.sample.SampleEntityPK;
+import org.springframework.data.jpa.domain.sample.SampleWithIdClass;
+import org.springframework.data.jpa.domain.sample.SampleWithIdClassPK;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,11 +50,13 @@ public class JpaRepositoryTests {
 	EntityManager em;
 
 	JpaRepository<SampleEntity, SampleEntityPK> repository;
+	CrudRepository<SampleWithIdClass, SampleWithIdClassPK> idClassRepository;
 
 	@Before
 	public void setUp() {
 
 		repository = new JpaRepositoryFactory(em).getRepository(SampleEntityRepository.class);
+		idClassRepository = new JpaRepositoryFactory(em).getRepository(SampleWithIdClassRepository.class);
 	}
 
 	@Test
@@ -68,7 +73,28 @@ public class JpaRepositoryTests {
 		assertThat(repository.count(), is(0L));
 	}
 
+	/**
+	 * DATAJPA-50
+	 */
+	@Test
+	public void executesCrudOperationsForEntityWithIdClass() {
+
+		SampleWithIdClass entity = new SampleWithIdClass(1L, 1L);
+		idClassRepository.save(entity);
+
+		assertThat(entity.getFirst(), is(notNullValue()));
+		assertThat(entity.getSecond(), is(notNullValue()));
+
+		SampleWithIdClassPK id = new SampleWithIdClassPK(entity.getFirst(), entity.getSecond());
+
+		assertThat(idClassRepository.findOne(id), is(entity));
+	}
+
 	private static interface SampleEntityRepository extends JpaRepository<SampleEntity, SampleEntityPK> {
+
+	}
+
+	private static interface SampleWithIdClassRepository extends CrudRepository<SampleWithIdClass, SampleWithIdClassPK> {
 
 	}
 }

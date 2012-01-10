@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 the original author or authors.
+ * Copyright 2008-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -195,16 +195,20 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 
 		Assert.notNull(id, "The given id must not be null!");
 
-		String placeholder = provider.getCountQueryPlaceholder();
-		String entityName = entityInformation.getEntityName();
-		String idAttributeName = entityInformation.getIdAttribute().getName();
+		if (entityInformation.getIdAttribute() != null) {
 
-		String existsQuery = String.format(EXISTS_QUERY_STRING, placeholder, entityName, idAttributeName);
+			String placeholder = provider.getCountQueryPlaceholder();
+			String entityName = entityInformation.getEntityName();
+			String idAttributeName = entityInformation.getIdAttribute().getName();
+			String existsQuery = String.format(EXISTS_QUERY_STRING, placeholder, entityName, idAttributeName);
 
-		TypedQuery<Long> query = em.createQuery(existsQuery, Long.class);
-		query.setParameter("id", id);
+			TypedQuery<Long> query = em.createQuery(existsQuery, Long.class);
+			query.setParameter("id", id);
 
-		return query.getSingleResult() == 1;
+			return query.getSingleResult() == 1;
+		} else {
+			return findOne(id) != null;
+		}
 	}
 
 	/*

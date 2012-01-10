@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2011-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,10 @@ import javax.persistence.metamodel.Metamodel;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.data.jpa.domain.AbstractPersistable;
+import org.springframework.data.jpa.domain.sample.SampleWithIdClass;
+import org.springframework.data.jpa.domain.sample.SampleWithIdClassPK;
 import org.springframework.data.jpa.domain.sample.User;
+import org.springframework.data.repository.core.EntityInformation;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -61,5 +64,32 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 
 		JpaEntityInformation<?, ?> information = JpaEntityInformationSupport.getMetadata(AbstractPersistable.class, em);
 		assertEquals(Serializable.class, information.getIdType());
+	}
+
+	/**
+	 * @see DATAJPA-50
+	 */
+	@Test
+	public void detectsIdClass() {
+
+		EntityInformation<SampleWithIdClass, ?> information = JpaEntityInformationSupport.getMetadata(
+				SampleWithIdClass.class, em);
+		assertThat(information.getIdType(), is(typeCompatibleWith(SampleWithIdClassPK.class)));
+	}
+
+	/**
+	 * @see DATAJPA-50
+	 */
+	@Test
+	public void returnsIdInstanceCorrectly() {
+
+		SampleWithIdClass entity = new SampleWithIdClass(2L, 4L);
+
+		JpaEntityInformation<SampleWithIdClass, ?> information = JpaEntityInformationSupport.getMetadata(
+				SampleWithIdClass.class, em);
+		Object id = information.getId(entity);
+
+		assertThat(id, is(SampleWithIdClassPK.class));
+		assertThat(id, is((Object) new SampleWithIdClassPK(2L, 4L)));
 	}
 }
