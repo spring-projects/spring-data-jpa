@@ -59,7 +59,7 @@
 		<hibernate.version>3.6.5.Final</hibernate.version>
 		<openjpa.version>2.1.0</openjpa.version>
 		<eclipselink.version>2.3.1</eclipselink.version>
-		<aspectj.version>1.6.8</aspectj.version>
+		<aspectj.version>1.6.12</aspectj.version>
 		<querydsl.version>2.3.0</querydsl.version>
 		<junit.version>4.8.1</junit.version>
 		<jpa.version>2.0.0</jpa.version>
