@@ -17,6 +17,7 @@ package org.springframework.data.jpa.repository.query;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 import java.lang.reflect.Method;
 import java.util.List;
@@ -228,6 +229,29 @@ public class JpaQueryMethodUnitTests {
 		LockModeType lockMode = method.getLockModeType();
 
 		assertEquals(LockModeType.PESSIMISTIC_WRITE, lockMode);
+	}
+
+	/**
+	 * @see DATAJPA-142
+	 */
+	@Test
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public void returnsDefaultCountQueryName() {
+
+		when(metadata.getReturnedDomainClass(repositoryMethod)).thenReturn((Class) User.class);
+
+		JpaQueryMethod method = new JpaQueryMethod(repositoryMethod, metadata, extractor);
+		assertThat(method.getNamedCountQueryName(), is("User.findByLastname.count"));
+	}
+
+	/**
+	 * @see DATAJPA-142
+	 */
+	@Test
+	public void returnsDefaultCountQueryNameBasedOnConfiguredNamedQueryName() {
+
+		JpaQueryMethod method = new JpaQueryMethod(namedQuery, metadata, extractor);
+		assertThat(method.getNamedCountQueryName(), is("Foo.bar.count"));
 	}
 
 	/**

@@ -15,6 +15,7 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 import java.lang.reflect.Method;
@@ -61,9 +62,27 @@ public class NamedQueryUnitTests {
 	public void rejectsPersistenceProviderIfIncapableOfExtractingQueriesAndPagebleBeingUsed() {
 
 		when(extractor.canExtractQuery()).thenReturn(false);
-
 		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, extractor);
+
+		when(em.createNamedQuery(queryMethod.getNamedCountQueryName())).thenThrow(new IllegalArgumentException());
 		NamedQuery.lookupFrom(queryMethod, em);
+	}
+
+	/**
+	 * @see DATAJPA-142
+	 */
+	@Test
+	public void doesNotRejectPersistenceProviderIfNamedCountQueryIsAvailable() {
+
+		when(extractor.canExtractQuery()).thenReturn(false);
+		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, extractor);
+
+		when(em.createNamedQuery(queryMethod.getNamedCountQueryName())).thenReturn(null);
+		NamedQuery query = (NamedQuery) NamedQuery.lookupFrom(queryMethod, em);
+
+		query.doCreateCountQuery(new Object[1]);
+		verify(em, times(1)).createNamedQuery(queryMethod.getNamedCountQueryName(), Long.class);
+		verify(em, never()).createQuery(any(String.class), eq(Long.class));
 	}
 
 	interface SampleRepository {

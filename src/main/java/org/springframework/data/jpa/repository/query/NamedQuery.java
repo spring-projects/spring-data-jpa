@@ -41,6 +41,7 @@ final class NamedQuery extends AbstractJpaQuery {
 	private static final Logger LOG = LoggerFactory.getLogger(NamedQuery.class);
 
 	private final String queryName;
+	private final String countQueryName;
 	private final QueryExtractor extractor;
 
 	/**
@@ -51,6 +52,7 @@ final class NamedQuery extends AbstractJpaQuery {
 		super(method, em);
 
 		this.queryName = method.getNamedQueryName();
+		this.countQueryName = method.getNamedCountQueryName();
 		this.extractor = method.getQueryExtractor();
 
 		Parameters parameters = method.getParameters();
@@ -65,19 +67,32 @@ final class NamedQuery extends AbstractJpaQuery {
 					+ "via this Pageable will not be applied!", method);
 		}
 
-		boolean weNeedToCreateCountQuery = method.getParameters().hasPageableParameter();
+		boolean weNeedToCreateCountQuery = !hasNamedQuery(em, countQueryName)
+				&& method.getParameters().hasPageableParameter();
 		boolean cantExtractQuery = !this.extractor.canExtractQuery();
 
 		if (weNeedToCreateCountQuery && cantExtractQuery) {
 			throw QueryCreationException.create(method, CANNOT_EXTRACT_QUERY);
 		}
 
-		Query query = em.createNamedQuery(queryName);
+		// Let's see if the referenced named query exists
+		em.createNamedQuery(queryName);
+	}
 
-		// Workaround for https://bugs.eclipse.org/bugs/show_bug.cgi?id=322579
-		// until it gets fixed
-		if (null != query) {
-			query.getHints();
+	/**
+	 * Returns whether the named query with the given name exists.
+	 * 
+	 * @param em
+	 * @return
+	 */
+	private static final boolean hasNamedQuery(EntityManager em, String queryName) {
+
+		try {
+			em.createNamedQuery(queryName);
+			return true;
+		} catch (IllegalArgumentException e) {
+			LOG.debug("Did not find named query {}", queryName);
+			return false;
 		}
 	}
 
@@ -118,10 +133,17 @@ final class NamedQuery extends AbstractJpaQuery {
 	@Override
 	protected TypedQuery<Long> doCreateCountQuery(Object[] values) {
 
-		Query query = createQuery(values);
-		String queryString = extractor.extractQueryString(query);
+		EntityManager em = getEntityManager();
+		TypedQuery<Long> countQuery = null;
 
-		return createBinder(values).bind(
-				getEntityManager().createQuery(QueryUtils.createCountQueryFor(queryString), Long.class));
+		if (hasNamedQuery(em, countQueryName)) {
+			countQuery = em.createNamedQuery(countQueryName, Long.class);
+		} else {
+			Query query = createQuery(values);
+			String queryString = extractor.extractQueryString(query);
+			countQuery = em.createQuery(QueryUtils.createCountQueryFor(queryString), Long.class);
+		}
+
+		return createBinder(values).bind(countQuery);
 	}
 }

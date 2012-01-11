@@ -183,6 +183,17 @@ public class JpaQueryMethod extends QueryMethod {
 	}
 
 	/**
+	 * Returns the name of the {@link NamedQuery} that shall be used for count queries.
+	 * 
+	 * @return
+	 */
+	String getNamedCountQueryName() {
+
+		String annotatedName = getAnnotationValue("countName", String.class);
+		return StringUtils.hasText(annotatedName) ? annotatedName : getNamedQueryName() + ".count";
+	}
+
+	/**
 	 * Returns whether we should clear automatically for modifying queries.
 	 * 
 	 * @return
