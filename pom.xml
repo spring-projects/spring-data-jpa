@@ -605,52 +605,22 @@
 	
 	<repositories>
 		<repository>
-			<id>repository.springframework.maven.release</id>
+			<id>spring-libs-snapshot</id>
 			<name>Spring Framework Maven Release Repository</name>
-			<url>http://maven.springframework.org/release</url>
-		</repository>
-		<repository>
-			<id>repository.springframework.maven.milestone</id>
-			<name>Spring Framework Maven Milestone Repository</name>
-			<url>http://maven.springframework.org/milestone</url>
-		</repository>
-		<repository>
-			<id>repository.springframework.maven.snapshot</id>
-			<name>Spring Framework Maven Snapshot Repository</name>
-			<url>http://maven.springframework.org/snapshot</url>
-		</repository>
-		<repository>
-			<id>jboss</id>
-			<name>JBoss repository</name>
-			<url>https://repository.jboss.org/nexus/content/repositories/releases</url>
-		</repository>
-		<repository>
-			<id>eclipselink</id>
-			<name>EclipseLink Repo</name>
-			<url>http://www.eclipse.org/downloads/download.php?r=1&amp;nf=1&amp;file=/rt/eclipselink/maven.repo</url>
-		</repository>
-		<repository>
-			<id>querydsl</id>
-			<name>QueryDsl</name>
-			<url>http://source.mysema.com/maven2/releases</url>
+			<url>http://repo.springsource.org/libs-snapshot</url>
 		</repository>
 	</repositories>
 	
 	<pluginRepositories>
 		<pluginRepository>
-			<id>repository.springframework.maven.release</id>
+			<id>spring-libs-release</id>
 			<name>Spring Framework Maven Release Repository</name>
-			<url>http://maven.springframework.org/release</url>
+			<url>http://repo.springsource.org/lib-release</url>
 		</pluginRepository>
 		<pluginRepository>
 			<id>repository.springsource.maven.bundles.release</id>
 			<name>SpringSource Maven Bundles Release Repository</name>
 			<url>http://repository.springsource.com/maven/bundles/release</url>
-		</pluginRepository>
-		<pluginRepository>
-			<id>querydsl</id>
-			<name>QueryDsl</name>
-			<url>http://source.mysema.com/maven2/releases</url>
 		</pluginRepository>
 	</pluginRepositories>
 </project>
