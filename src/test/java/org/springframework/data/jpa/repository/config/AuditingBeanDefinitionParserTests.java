@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 the original author or authors.
+ * Copyright 2008-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,9 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 import org.springframework.beans.PropertyValue;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.core.io.ClassPathResource;
@@ -33,27 +35,54 @@ import org.springframework.core.io.ClassPathResource;
 public class AuditingBeanDefinitionParserTests {
 
 	@Test
-	public void settingDatesIsConfigured() throws Exception {
+	public void settingDatesIsConfigured() {
 
 		assertSetDatesIsSetTo("auditing/auditing-namespace-context.xml", "true");
 	}
 
 	@Test
-	public void notSettingDatesIsConfigured() throws Exception {
+	public void notSettingDatesIsConfigured() {
 
 		assertSetDatesIsSetTo("auditing/auditing-namespace-context2.xml", "false");
 	}
 
+	/**
+	 * @see DATAJPA-9
+	 */
+	@Test
+	public void wiresDateTimeProviderIfConfigured() {
+
+		String location = "auditing/auditing-namespace-context3.xml";
+		BeanDefinition definition = getBeanDefinition(location);
+		PropertyValue value = definition.getPropertyValues().getPropertyValue("dateTimeProvider");
+
+		assertThat(value, is(notNullValue()));
+		assertThat(value.getValue(), is(RuntimeBeanReference.class));
+		assertThat(((RuntimeBeanReference) value.getValue()).getBeanName(), is("dateTimeProvider"));
+
+		BeanFactory factory = loadFactoryFrom(location);
+		Object bean = factory.getBean(AuditingBeanDefinitionParser.AUDITING_ENTITY_LISTENER_CLASS_NAME);
+		assertThat(bean, is(notNullValue()));
+	}
+
 	private void assertSetDatesIsSetTo(String configFile, String value) {
 
-		DefaultListableBeanFactory factory = new DefaultListableBeanFactory();
-		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(factory);
-		reader.loadBeanDefinitions(new ClassPathResource(configFile));
-
-		BeanDefinition definition = factory
-				.getBeanDefinition(AuditingBeanDefinitionParser.AUDITING_ENTITY_LISTENER_CLASS_NAME);
+		BeanDefinition definition = getBeanDefinition(configFile);
 		PropertyValue propertyValue = definition.getPropertyValues().getPropertyValue("dateTimeForNow");
 		assertThat(propertyValue, is(notNullValue()));
 		assertThat((String) propertyValue.getValue(), is(value));
+	}
+
+	private BeanDefinition getBeanDefinition(String configFile) {
+
+		DefaultListableBeanFactory factory = loadFactoryFrom(configFile);
+		return factory.getBeanDefinition(AuditingBeanDefinitionParser.AUDITING_ENTITY_LISTENER_CLASS_NAME);
+	}
+
+	private DefaultListableBeanFactory loadFactoryFrom(String configFile) {
+		DefaultListableBeanFactory factory = new DefaultListableBeanFactory();
+		XmlBeanDefinitionReader xmlBeanDefinitionReader = new XmlBeanDefinitionReader(factory);
+		xmlBeanDefinitionReader.loadBeanDefinitions(new ClassPathResource(configFile));
+		return factory;
 	}
 }

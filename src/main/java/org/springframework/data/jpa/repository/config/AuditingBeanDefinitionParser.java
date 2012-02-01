@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 the original author or authors.
+ * Copyright 2008-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,6 +60,11 @@ public class AuditingBeanDefinitionParser implements BeanDefinitionParser {
 		}
 
 		builder.addPropertyValue("dateTimeForNow", element.getAttribute("set-dates"));
+
+		String dateTimeProviderRef = element.getAttribute("date-time-provider-ref");
+		if (StringUtils.hasText(dateTimeProviderRef)) {
+			builder.addPropertyReference("dateTimeProvider", dateTimeProviderRef);
+		}
 
 		registerInfrastructureBeanWithId(builder.getRawBeanDefinition(), AUDITING_ENTITY_LISTENER_CLASS_NAME, parser,
 				element);

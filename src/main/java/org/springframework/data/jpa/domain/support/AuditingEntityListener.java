@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 the original author or authors.
+ * Copyright 2008-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,6 +55,7 @@ public class AuditingEntityListener<T> implements InitializingBean {
 	private static final Logger LOG = LoggerFactory.getLogger(AuditingEntityListener.class);
 
 	private AuditorAware<T> auditorAware;
+	private DateTimeProvider dateTimeProvider = CurrentDateTimeProvider.INSTANCE;
 
 	private boolean dateTimeForNow = true;
 	private boolean modifyOnCreation = true;
@@ -78,7 +79,6 @@ public class AuditingEntityListener<T> implements InitializingBean {
 	 * @param dateTimeForNow the dateTimeForNow to set
 	 */
 	public void setDateTimeForNow(boolean dateTimeForNow) {
-
 		this.dateTimeForNow = dateTimeForNow;
 	}
 
@@ -89,8 +89,16 @@ public class AuditingEntityListener<T> implements InitializingBean {
 	 * @param modifyOnCreation if modification information shall be set on creation, too
 	 */
 	public void setModifyOnCreation(final boolean modifyOnCreation) {
-
 		this.modifyOnCreation = modifyOnCreation;
+	}
+
+	/**
+	 * Sets the {@link DateTimeProvider} to be used to determine the dates to be set.
+	 * 
+	 * @param dateTimeProvider
+	 */
+	public void setDateTimeProvider(DateTimeProvider dateTimeProvider) {
+		this.dateTimeProvider = dateTimeProvider == null ? CurrentDateTimeProvider.INSTANCE : dateTimeProvider;
 	}
 
 	/**
@@ -171,7 +179,7 @@ public class AuditingEntityListener<T> implements InitializingBean {
 	 */
 	private DateTime touchDate(final Auditable<T, ?> auditable, boolean isNew) {
 
-		DateTime now = new DateTime();
+		DateTime now = dateTimeProvider.getDateTime();
 
 		if (isNew) {
 			auditable.setCreatedDate(now);
