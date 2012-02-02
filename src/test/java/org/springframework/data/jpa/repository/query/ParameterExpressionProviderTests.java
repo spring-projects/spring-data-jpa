@@ -12,13 +12,14 @@ import javax.persistence.criteria.ParameterExpression;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.data.jpa.domain.sample.User;
-import org.springframework.data.jpa.repository.query.JpaQueryCreator.ParameterExpressionProvider;
 import org.springframework.data.repository.query.Parameters;
+import org.springframework.data.repository.query.ParametersParameterAccessor;
+import org.springframework.data.repository.query.parser.Part;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
- * Integration tests for {@link ParameterExpressionProvider}.
+ * Integration tests for {@link ParameterMetadataProvider}.
  * 
  * @author Oliver Gierke
  */
@@ -38,9 +39,11 @@ public class ParameterExpressionProviderTests {
 
 		Method method = SampleRepository.class.getMethod("findByIdGreaterThan", int.class);
 		Parameters parameters = new Parameters(method);
+		ParametersParameterAccessor accessor = new ParametersParameterAccessor(parameters, new Object[] { 1 });
+		Part part = new Part("IdGreaterThan", User.class);
 
-		ParameterExpressionProvider provider = new ParameterExpressionProvider(em.getCriteriaBuilder(), parameters);
-		ParameterExpression<? extends Comparable> expression = provider.next(Comparable.class);
+		ParameterMetadataProvider provider = new ParameterMetadataProvider(em.getCriteriaBuilder(), accessor);
+		ParameterExpression<? extends Comparable> expression = provider.next(part, Comparable.class).getExpression();
 		assertThat(expression.getParameterType(), is(typeCompatibleWith(int.class)));
 	}
 

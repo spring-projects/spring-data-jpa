@@ -17,13 +17,10 @@ package org.springframework.data.jpa.repository.query;
 
 import static org.springframework.data.jpa.repository.query.QueryUtils.*;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Expression;
@@ -32,15 +29,13 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.repository.query.ParameterMetadataProvider.ParameterMetadata;
 import org.springframework.data.mapping.PropertyPath;
-import org.springframework.data.repository.query.Parameter;
-import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 import org.springframework.data.repository.query.parser.Part;
 import org.springframework.data.repository.query.parser.Part.Type;
 import org.springframework.data.repository.query.parser.PartTree;
 import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
 
 /**
  * Query creator to create a {@link CriteriaQuery} from a {@link PartTree}.
@@ -52,7 +47,7 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<Object>,
 	private final CriteriaBuilder builder;
 	private final Root<?> root;
 	private final CriteriaQuery<Object> query;
-	private final ParameterExpressionProvider provider;
+	private final ParameterMetadataProvider provider;
 
 	/**
 	 * Create a new {@link JpaQueryCreator}.
@@ -62,14 +57,15 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<Object>,
 	 * @param accessor
 	 * @param em
 	 */
-	public JpaQueryCreator(PartTree tree, Class<?> domainClass, Parameters parameters, EntityManager em) {
+	public JpaQueryCreator(PartTree tree, Class<?> domainClass, CriteriaBuilder builder,
+			ParameterMetadataProvider provider) {
 
 		super(tree);
 
-		this.builder = em.getCriteriaBuilder();
+		this.builder = builder;
 		this.query = builder.createQuery().distinct(tree.isDistinct());
 		this.root = query.from(domainClass);
-		this.provider = new ParameterExpressionProvider(builder, parameters.getBindableParameters());
+		this.provider = provider;
 	}
 
 	/**
@@ -77,18 +73,13 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<Object>,
 	 * 
 	 * @return the parameterExpressions
 	 */
-	public List<ParameterExpression<?>> getParameterExpressions() {
-
+	public List<ParameterMetadata<?>> getParameterExpressions() {
 		return provider.getExpressions();
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.springframework.data.repository.query.parser.AbstractQueryCreator
-	 * #create(org.springframework.data.repository.query.parser.Part,
-	 * java.util.Iterator)
+	 * @see org.springframework.data.repository.query.parser.AbstractQueryCreator#create(org.springframework.data.repository.query.parser.Part, java.util.Iterator)
 	 */
 	@Override
 	protected Predicate create(Part part, Iterator<Object> iterator) {
@@ -98,11 +89,7 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<Object>,
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.springframework.data.repository.query.parser.AbstractQueryCreator
-	 * #and(org.springframework.data.repository.query.parser.Part,
-	 * java.lang.Object, java.util.Iterator)
+	 * @see org.springframework.data.repository.query.parser.AbstractQueryCreator#and(org.springframework.data.repository.query.parser.Part, java.lang.Object, java.util.Iterator)
 	 */
 	@Override
 	protected Predicate and(Part part, Predicate base, Iterator<Object> iterator) {
@@ -112,10 +99,7 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<Object>,
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.springframework.data.repository.query.parser.AbstractQueryCreator
-	 * #or(java.lang.Object, java.lang.Object)
+	 * @see org.springframework.data.repository.query.parser.AbstractQueryCreator#or(java.lang.Object, java.lang.Object)
 	 */
 	@Override
 	protected Predicate or(Predicate base, Predicate predicate) {
@@ -146,7 +130,6 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<Object>,
 	 */
 	protected CriteriaQuery<Object> complete(Predicate predicate, Sort sort, CriteriaQuery<Object> query,
 			CriteriaBuilder builder, Root<?> root) {
-
 		return this.query.select(root).where(predicate).orderBy(QueryUtils.toOrders(sort, root, builder));
 	}
 
@@ -159,7 +142,6 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<Object>,
 	 * @return
 	 */
 	private Predicate toPredicate(Part part, Root<?> root) {
-
 		return new PredicateBuilder(part, root).build();
 	}
 
@@ -178,89 +160,6 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<Object>,
 
 	private <T> Expression<T> getTypedPath(Root<?> root, Part part, Class<T> type) {
 		return toExpressionRecursively(root, part.getProperty());
-	}
-
-	/**
-	 * Helper class to allow easy creation of {@link ParameterExpression}s.
-	 * 
-	 * @author Oliver Gierke
-	 */
-	static class ParameterExpressionProvider {
-
-		private final CriteriaBuilder builder;
-		private final Iterator<Parameter> parameters;
-		private final List<ParameterExpression<?>> expressions;
-
-		/**
-		 * Creates a new {@link ParameterExpressionProvider} from the given {@link CriteriaBuilder} and {@link Parameters}.
-		 * 
-		 * @param builder
-		 * @param parameters
-		 */
-		public ParameterExpressionProvider(CriteriaBuilder builder, Parameters parameters) {
-
-			Assert.notNull(builder);
-			Assert.notNull(parameters);
-
-			this.builder = builder;
-			this.parameters = parameters.iterator();
-			this.expressions = new ArrayList<ParameterExpression<?>>();
-		}
-
-		/**
-		 * Returns all {@link ParameterExpression}s built.
-		 * 
-		 * @return the expressions
-		 */
-		public List<ParameterExpression<?>> getExpressions() {
-
-			return Collections.unmodifiableList(expressions);
-		}
-
-		/**
-		 * Builds a new {@link ParameterExpression} for the next {@link Parameter}.
-		 * 
-		 * @param <T>
-		 * @return
-		 */
-		@SuppressWarnings("unchecked")
-		public <T> ParameterExpression<T> next() {
-
-			Parameter parameter = parameters.next();
-			return (ParameterExpression<T>) next(parameter.getType(), parameter.getName());
-		}
-
-		/**
-		 * Builds a new {@link ParameterExpression} of the given type. Forwards the underlying {@link Parameters} as well.
-		 * 
-		 * @param <T>
-		 * @param type must not be {@literal null}.
-		 * @return
-		 */
-		@SuppressWarnings("unchecked")
-		public <T> ParameterExpression<? extends T> next(Class<T> type) {
-
-			Parameter parameter = parameters.next();
-			Class<?> typeToUse = ClassUtils.isAssignable(type, parameter.getType()) ? parameter.getType() : type;
-			return (ParameterExpression<? extends T>) next(typeToUse, null);
-		}
-
-		/**
-		 * Builds a new {@link ParameterExpression} for the given type and name.
-		 * 
-		 * @param <T>
-		 * @param type must not be {@literal null}.
-		 * @param name
-		 * @return
-		 */
-		private <T> ParameterExpression<T> next(Class<T> type, String name) {
-
-			Assert.notNull(type);
-
-			ParameterExpression<T> expression = name == null ? builder.parameter(type) : builder.parameter(type, name);
-			expressions.add(expression);
-			return expression;
-		}
 	}
 
 	/**
@@ -300,29 +199,32 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<Object>,
 
 			switch (part.getType()) {
 			case BETWEEN:
-				ParameterExpression<Comparable> first = provider.next();
-				ParameterExpression<Comparable> second = provider.next();
-				return builder.between(getComparablePath(root, part), first, second);
+				ParameterMetadata<Comparable> first = provider.next(part);
+				ParameterMetadata<Comparable> second = provider.next(part);
+				return builder.between(getComparablePath(root, part), first.getExpression(), second.getExpression());
 			case GREATER_THAN:
-				return builder.greaterThan(getComparablePath(root, part), provider.next(Comparable.class));
+				return builder
+						.greaterThan(getComparablePath(root, part), provider.next(part, Comparable.class).getExpression());
 			case GREATER_THAN_EQUAL:
-				return builder.greaterThanOrEqualTo(getComparablePath(root, part), provider.next(Comparable.class));
+				return builder.greaterThanOrEqualTo(getComparablePath(root, part), provider.next(part, Comparable.class)
+						.getExpression());
 			case LESS_THAN:
-				return builder.lessThan(getComparablePath(root, part), provider.next(Comparable.class));
+				return builder.lessThan(getComparablePath(root, part), provider.next(part, Comparable.class).getExpression());
 			case LESS_THAN_EQUAL:
-				return builder.lessThanOrEqualTo(getComparablePath(root, part), provider.next(Comparable.class));
+				return builder.lessThanOrEqualTo(getComparablePath(root, part), provider.next(part, Comparable.class)
+						.getExpression());
 			case IS_NULL:
 				return path.isNull();
 			case IS_NOT_NULL:
 				return path.isNotNull();
 			case NOT_IN:
-				return path.in(provider.next(Collection.class)).not();
+				return path.in(provider.next(part, Collection.class).getExpression()).not();
 			case IN:
-				return path.in(provider.next(Collection.class));
+				return path.in(provider.next(part, Collection.class).getExpression());
 			case LIKE:
 			case NOT_LIKE:
 				Expression<String> propertyExpression = upperIfIgnoreCase(getTypedPath(root, part, String.class));
-				Expression<String> parameterExpression = upperIfIgnoreCase(provider.next(String.class));
+				Expression<String> parameterExpression = upperIfIgnoreCase(provider.next(part, String.class).getExpression());
 				Predicate like = builder.like(propertyExpression, parameterExpression);
 				return part.getType() == Type.LIKE ? like : like.not();
 			case TRUE:
@@ -330,9 +232,11 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<Object>,
 			case FALSE:
 				return builder.isFalse(getTypedPath(root, part, Boolean.class));
 			case SIMPLE_PROPERTY:
-				return builder.equal(upperIfIgnoreCase(path), upperIfIgnoreCase(provider.next()));
+				ParameterMetadata<Object> expression = provider.next(part);
+				return expression.isIsNullParameter() ? path.isNull() : builder.equal(upperIfIgnoreCase(path),
+						upperIfIgnoreCase(expression.getExpression()));
 			case NEGATING_SIMPLE_PROPERTY:
-				return builder.notEqual(upperIfIgnoreCase(path), upperIfIgnoreCase(provider.next()));
+				return builder.notEqual(upperIfIgnoreCase(path), upperIfIgnoreCase(provider.next(part).getExpression()));
 			default:
 				throw new IllegalArgumentException("Unsupported keyword + " + part.getType());
 			}

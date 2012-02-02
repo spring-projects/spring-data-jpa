@@ -15,14 +15,12 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 import org.springframework.data.domain.Sort;
-import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.parser.PartTree;
 
 /**
@@ -40,9 +38,10 @@ public class JpaCountQueryCreator extends JpaQueryCreator {
 	 * @param parameters
 	 * @param em
 	 */
-	public JpaCountQueryCreator(PartTree tree, Class<?> domainClass, Parameters parameters, EntityManager em) {
+	public JpaCountQueryCreator(PartTree tree, Class<?> domainClass, CriteriaBuilder builder,
+			ParameterMetadataProvider provider) {
 
-		super(tree, domainClass, parameters, em);
+		super(tree, domainClass, builder, provider);
 	}
 
 	/*

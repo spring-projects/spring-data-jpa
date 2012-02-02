@@ -1,7 +1,9 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2011-2012 the original author or authors.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License
+import org.springframework.aop.framework.Advised;
+");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -15,11 +17,19 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
+import static org.springframework.test.util.ReflectionTestUtils.*;
+
 import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.Iterator;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 
+import org.hibernate.ejb.HibernateQuery;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -79,6 +89,28 @@ public class PartTreeJpaQueryIntegrationTests {
 		testIgnoreCase("findByIdAllIgnoringCase", 3);
 	}
 
+	/**
+	 * @see DATAJPA-121
+	 */
+	@Test
+	public void recreatesQueryIfNullValueIsGiven() throws Exception {
+
+		Method method = UserRepository.class.getMethod("findByFirstname", String.class, Pageable.class);
+		JpaQueryMethod queryMethod = new JpaQueryMethod(method, new DefaultRepositoryMetadata(UserRepository.class),
+				PersistenceProvider.fromEntityManager(entityManager));
+		PartTreeJpaQuery jpaQuery = new PartTreeJpaQuery(queryMethod, entityManager);
+
+		Query query = jpaQuery.createQuery(new Object[] { "Matthews", new PageRequest(0, 1) });
+
+		HibernateQuery hibernateQuery = getValue(query, "h.target.val$jpaqlQuery");
+		assertThat(hibernateQuery.getHibernateQuery().getQueryString(), endsWith("firstname=:param0"));
+
+		query = jpaQuery.createQuery(new Object[] { null, new PageRequest(0, 1) });
+
+		hibernateQuery = getValue(query, "h.target.val$jpaqlQuery");
+		assertThat(hibernateQuery.getHibernateQuery().getQueryString(), endsWith("firstname is null"));
+	}
+
 	private void testIgnoreCase(String methodName, Object... values) throws Exception {
 
 		Class<?>[] parameterTypes = new Class[values.length];
@@ -90,6 +122,19 @@ public class PartTreeJpaQueryIntegrationTests {
 				PersistenceProvider.fromEntityManager(entityManager));
 		PartTreeJpaQuery jpaQuery = new PartTreeJpaQuery(queryMethod, entityManager);
 		jpaQuery.createQuery(values);
+	}
+
+	@SuppressWarnings("unchecked")
+	private static <T> T getValue(Object source, String path) {
+
+		Iterator<String> split = Arrays.asList(path.split("\\.")).iterator();
+		Object result = source;
+
+		while (split.hasNext()) {
+			result = getField(result, split.next());
+		}
+
+		return (T) result;
 	}
 
 	interface UserRepository extends Repository<User, Long> {

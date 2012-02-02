@@ -24,6 +24,7 @@ import java.util.Iterator;
 import javax.persistence.Query;
 import javax.persistence.criteria.ParameterExpression;
 
+import org.springframework.data.jpa.repository.query.ParameterMetadataProvider.ParameterMetadata;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.util.Assert;
@@ -36,7 +37,7 @@ import org.springframework.util.ObjectUtils;
  */
 class CriteriaQueryParameterBinder extends ParameterBinder {
 
-	private final Iterator<ParameterExpression<?>> expressions;
+	private final Iterator<ParameterMetadata<?>> expressions;
 
 	/**
 	 * Creates a new {@link CriteriaQueryParameterBinder} for the given {@link Parameters}, values and some
@@ -44,7 +45,7 @@ class CriteriaQueryParameterBinder extends ParameterBinder {
 	 * 
 	 * @param parameters
 	 */
-	CriteriaQueryParameterBinder(Parameters parameters, Object[] values, Iterable<ParameterExpression<?>> expressions) {
+	CriteriaQueryParameterBinder(Parameters parameters, Object[] values, Iterable<ParameterMetadata<?>> expressions) {
 
 		super(parameters, values);
 		Assert.notNull(expressions);
@@ -63,10 +64,15 @@ class CriteriaQueryParameterBinder extends ParameterBinder {
 	@SuppressWarnings("unchecked")
 	protected void bind(Query query, Parameter parameter, Object value, int position) {
 
-		ParameterExpression<Object> expression = (ParameterExpression<Object>) expressions.next();
+		ParameterMetadata<Object> parameterMetadata = (ParameterMetadata<Object>) expressions.next();
+
+		if (parameterMetadata.isIsNullParameter()) {
+			return;
+		}
+
+		ParameterExpression<Object> expression = parameterMetadata.getExpression();
 
 		Object valueToBind = Collection.class.equals(expression.getJavaType()) ? toCollection(value) : value;
-
 		query.setParameter(expression, valueToBind);
 	}
 

@@ -20,10 +20,11 @@ import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.ParameterExpression;
 
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.repository.query.ParameterMetadataProvider.ParameterMetadata;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.parser.PartTree;
@@ -89,11 +90,11 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 	private class QueryPreparer {
 
 		private final CriteriaQuery<?> query;
-		private final List<ParameterExpression<?>> expressions;
+		private final List<ParameterMetadata<?>> expressions;
 
 		public QueryPreparer(boolean recreateQueries) {
 
-			JpaQueryCreator creator = createCreator();
+			JpaQueryCreator creator = createCreator(null);
 			this.query = recreateQueries ? null : creator.createQuery();
 			this.expressions = recreateQueries ? null : creator.getParameterExpressions();
 		}
@@ -107,10 +108,11 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 		public Query createQuery(Object[] values) {
 
 			CriteriaQuery<?> criteriaQuery = query;
-			List<ParameterExpression<?>> expressions = this.expressions;
+			List<ParameterMetadata<?>> expressions = this.expressions;
+			ParametersParameterAccessor accessor = new ParametersParameterAccessor(parameters, values);
 
-			if (query == null) {
-				JpaQueryCreator creator = createCreator();
+			if (query == null || accessor.hasBindableNullValue()) {
+				JpaQueryCreator creator = createCreator(accessor);
 				criteriaQuery = creator.createQuery(getDynamicSort(values));
 				expressions = creator.getParameterExpressions();
 			}
@@ -119,9 +121,15 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 			return invokeBinding(getBinder(values, expressions), jpaQuery);
 		}
 
-		protected JpaQueryCreator createCreator() {
+		protected JpaQueryCreator createCreator(ParametersParameterAccessor accessor) {
 
-			return new JpaQueryCreator(tree, domainClass, parameters, getEntityManager());
+			EntityManager entityManager = getEntityManager();
+			CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+
+			ParameterMetadataProvider provider = accessor == null ? new ParameterMetadataProvider(builder, parameters)
+					: new ParameterMetadataProvider(builder, accessor);
+
+			return new JpaQueryCreator(tree, domainClass, builder, provider);
 		}
 
 		/**
@@ -136,8 +144,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 			return binder.bindAndPrepare(query);
 		}
 
-		private ParameterBinder getBinder(Object[] values, List<ParameterExpression<?>> expressions) {
-
+		private ParameterBinder getBinder(Object[] values, List<ParameterMetadata<?>> expressions) {
 			return new CriteriaQueryParameterBinder(parameters, values, expressions);
 		}
 
@@ -167,9 +174,15 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 		 * QueryPreparer#createCreator()
 		 */
 		@Override
-		protected JpaQueryCreator createCreator() {
+		protected JpaQueryCreator createCreator(ParametersParameterAccessor accessor) {
 
-			return new JpaCountQueryCreator(tree, domainClass, parameters, getEntityManager());
+			EntityManager entityManager = getEntityManager();
+			CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+
+			ParameterMetadataProvider provider = accessor == null ? new ParameterMetadataProvider(builder, parameters)
+					: new ParameterMetadataProvider(builder, accessor);
+
+			return new JpaCountQueryCreator(tree, domainClass, builder, provider);
 		}
 
 		/**
