@@ -171,6 +171,18 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	 */
 	@Transactional
 	public void deleteAll() {
+
+		for (T element : findAll()) {
+			delete(element);
+		}
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.jpa.repository.JpaRepository#deleteAllInBatch()
+	 */
+	@Transactional
+	public void deleteAllInBatch() {
 		em.createQuery(getDeleteAllQueryString()).executeUpdate();
 	}
 

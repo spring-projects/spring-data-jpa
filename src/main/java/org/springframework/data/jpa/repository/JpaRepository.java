@@ -74,4 +74,9 @@ public interface JpaRepository<T, ID extends Serializable> extends PagingAndSort
 	 * @param entities
 	 */
 	void deleteInBatch(Iterable<T> entities);
+
+	/**
+	 * Deletes all entites in a batch call.
+	 */
+	void deleteAllInBatch();
 }

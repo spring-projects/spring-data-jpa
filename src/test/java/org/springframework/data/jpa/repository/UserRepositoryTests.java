@@ -32,7 +32,6 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -297,6 +296,19 @@ public class UserRepositoryTests {
 	}
 
 	/**
+	 * @see DATAJPA-137
+	 */
+	@Test
+	public void deleteAllInBatch() {
+
+		flushTestUsers();
+
+		repository.deleteAllInBatch();
+
+		assertThat(repository.count(), is(0L));
+	}
+
+	/**
 	 * Tests cascading persistence.
 	 */
 	@Test
@@ -441,16 +453,6 @@ public class UserRepositoryTests {
 
 		assertTrue(repository.findByLastnameOrFirstname("Oliver", "Arrasz").containsAll(
 				Arrays.asList(firstUser, secondUser)));
-	}
-
-	@Test
-	@Ignore
-	public void executesMethodWithNamedParametersCorrectly() throws Exception {
-
-		firstUser = repository.save(firstUser);
-		secondUser = repository.save(secondUser);
-
-		assertThat(repository.findByLastnameOrFirstnameUnannotated("Oliver", "Arrasz"), hasItems(firstUser, secondUser));
 	}
 
 	@Test
