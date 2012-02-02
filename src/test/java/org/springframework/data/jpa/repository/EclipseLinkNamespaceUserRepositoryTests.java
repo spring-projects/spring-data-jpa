@@ -28,4 +28,11 @@ import org.springframework.test.context.ContextConfiguration;
 @ContextConfiguration(value = "classpath:eclipselink.xml", inheritLocations = true)
 public class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserRepositoryTests {
 
+	/**
+	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=349477 is resolved.
+	 */
+	@Override
+	public void findsAllByGivenIds() {
+
+	}
 }

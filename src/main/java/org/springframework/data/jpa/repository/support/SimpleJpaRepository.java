@@ -28,6 +28,7 @@ import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
@@ -229,6 +230,20 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	 */
 	public List<T> findAll() {
 		return getQuery(null, (Sort) null).getResultList();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.CrudRepository#findAll(ID[])
+	 */
+	public List<T> findAll(Iterable<ID> ids) {
+
+		return getQuery(new Specification<T>() {
+			public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+				Path<?> path = root.get(entityInformation.getIdAttribute());
+				return path.in(cb.parameter(List.class, "ids"));
+			}
+		}, (Sort) null).setParameter("ids", ids).getResultList();
 	}
 
 	/*

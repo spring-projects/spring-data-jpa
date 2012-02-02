@@ -107,6 +107,15 @@ public class UserRepositoryTests {
 	}
 
 	@Test
+	public void findsAllByGivenIds() {
+
+		flushTestUsers();
+
+		Iterable<User> result = repository.findAll(Arrays.asList(firstUser.getId(), secondUser.getId()));
+		assertThat(result, hasItems(firstUser, secondUser));
+	}
+
+	@Test
 	public void testReadByIdReturnsNullForNotFoundEntities() {
 
 		flushTestUsers();
@@ -726,7 +735,7 @@ public class UserRepositoryTests {
 		assertThat(result, hasItem(firstUser));
 	}
 
-	private void flushTestUsers() {
+	protected void flushTestUsers() {
 
 		firstUser = repository.save(firstUser);
 		secondUser = repository.save(secondUser);
