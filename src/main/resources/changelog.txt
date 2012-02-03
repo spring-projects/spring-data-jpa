@@ -1,6 +1,12 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 1.0.3.GA (2012-02-03)
+----------------------------------------
+* MergingPersistenceUnitManager doesnt work with Spring 3.1.0 DefaultPersistenceUnitManager (DATAJPA-138)
+* Spring Data- JPA Schema validation error in STS (DATAJPA-160)
+* Improve exception message when crating a query from a method name fails (DATAJPA-159)
+
 Changes in version 1.0.2.GA (2011-12-06)
 ----------------------------------------
 * Fixed query creation for Comparable values (DATAJPA-99)
