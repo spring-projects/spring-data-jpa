@@ -1,9 +1,9 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.springframework.data</groupId>
 	<artifactId>spring-data-jpa</artifactId>
-	<version>1.0.3.BUILD-SNAPSHOT</version>
+	<version>1.0.3.RELEASE</version>
 	
 	<name>Spring Data JPA</name>
 	<description>Spring Data module to provide sophisticated support for JPA repositories</description>
@@ -184,9 +184,7 @@
 										<include name="**/*.jpg" />
 									</fileset>
 								</copy>
-								<move file="${project.basedir}/target/site/reference/pdf/index.pdf"
-									tofile="${project.basedir}/target/site/reference/pdf/${project.artifactId}-reference.pdf"
-									failonerror="false" />
+								<move file="${project.basedir}/target/site/reference/pdf/index.pdf" tofile="${project.basedir}/target/site/reference/pdf/${project.artifactId}-reference.pdf" failonerror="false" />
 							</postProcess>
 						</configuration>
 					</plugin>
@@ -222,7 +220,7 @@
 								<configuration>
 									<tasks>
 										<ant antfile="${basedir}/src/ant/upload-dist.xml">
-											<target name="upload-dist"/>
+											<target name="upload-dist" />
 										</ant>
 									</tasks>
 								</configuration>
