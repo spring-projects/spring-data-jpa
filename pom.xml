@@ -605,9 +605,9 @@
 	
 	<repositories>
 		<repository>
-			<id>spring-libs-snapshot</id>
+			<id>spring-libs-release</id>
 			<name>Spring Framework Maven Release Repository</name>
-			<url>http://repo.springsource.org/libs-snapshot</url>
+			<url>http://repo.springsource.org/libs-release</url>
 		</repository>
 	</repositories>
 	
