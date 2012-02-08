@@ -1,6 +1,35 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 1.1.0.RC1 (2012-02-03)
+-----------------------------------------    
+* Support for locking (DATAJPA-73)
+* Added CDI integration for repositories (DATAJPA-136)
+* Support for @IdClass in entities (DATAJPA-50)
+* Support for LessThanEqual and GreaterThanEquals keywords in query methods (DATAJPA-108)
+* Support for True/False as query keywords (DATAJPA-132)
+* Queries derivated from methods now correctly bind null values using IS NULL (DATAJPA-121)
+* Added PersistenceUnitPostProcessor to scan a package for JPA entities with Spring 3.0 (DATAJPA-123, DATAJPA-124)
+* Improve performance for pagination queries if inexistant page is requested (DATAJPA-124)
+* Don't apply query hints to count queries for pagination (DATAJPA-54)
+* Fixed count query creation for manually declared queries with "order by" clause (DATAJPA-142)
+* @OneToOne mappings in AbstractAuditable should rather be @ManyToOne ones (DATAJPA-120)
+* Alias detection now works correctly with entity names containing numbers (DATAJPA-110)
+* Added @NativeQuery annotation for repositories to trigger native queries (DATAJPA-117)
+* Allow customization of NamedQuery to be used in @Query annotation (DATAJPA-129)
+* Let deleteAll() use cascading deletes and introduced deleteAllInBatch() (DATAJPA-137)
+* Fixed query creation for Comparable values (DATAJPA-99)
+* The SimpleJpaRepository's deleteAll() does not call em.clear() anymore (DATAJPA-111)
+* JpaMetamodelEntityInformation now deals with mapped superclasses as well (DATAJPA-141)
+* MergingPersistenceUnitManager now works with Spring 3.1.0 DefaultPersistenceUnitManager (DATAJPA-138)
+* Provide strategy interface to customize the date being set while auditing (DATAJPA-9)
+* Improve exception message when crating a query from a method name fails (DATAJPA-159)
+* Imporve injection of the EntityManager in QueryDslRepositorySupport (DATAJPA-135, DATAJPA-113)
+* Consolidate Expression creation for property references and sort orders (DATAJPA-103)
+* Fixed schema errors appearing in STS (DATAJPA-160)
+* Change build system to build against Spring 3.0.x / 3.1 / 3.2 (DATAJPA-127)
+* Upgraded dependency versions (Spring 3.0.7, Querydsl 2.3.0, Hibernate 3.6.9, EclipseLink 2.3.2, OpenJPA 2.1.1, AspectJ 1.6.12) (DATAJPA-102, DATAJPA-150, DATAJPA-145, DATAJPA-115)
+
 Changes in version 1.0.3.GA (2012-02-03)
 ----------------------------------------
 * MergingPersistenceUnitManager doesnt work with Spring 3.1.0 DefaultPersistenceUnitManager (DATAJPA-138)

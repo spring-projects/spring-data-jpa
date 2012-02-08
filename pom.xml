@@ -52,7 +52,7 @@
 	</licenses>
 	
 	<properties>
-		<spring.version.30>3.0.6.RELEASE</spring.version.30>
+		<spring.version.30>3.0.7.RELEASE</spring.version.30>
 		<spring.version.40>4.0.0.RELEASE</spring.version.40>
 		<spring.version.range>[${spring.version.30}, ${spring.version.40})</spring.version.range>
 		<spring.data.commons.version>1.3.0.BUILD-SNAPSHOT</spring.data.commons.version>
@@ -281,6 +281,13 @@
 		
 		<dependency>
 			<groupId>org.springframework</groupId>
+			<artifactId>spring-instrument</artifactId>
+			<version>${spring.version.range}</version>
+			<scope>provided</scope>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.springframework</groupId>
 			<artifactId>spring-core</artifactId>
 			<version>${spring.version.range}</version>
 			<exclusions>
@@ -490,7 +497,7 @@
 					<includes>
 						<include>**/*Tests.java</include>
 					</includes>
-					<argLine>-javaagent:${settings.localRepository}/org/springframework/spring-instrument/${spring.version.30}/spring-instrument-${spring.version.30}.jar -javaagent:${settings.localRepository}/org/apache/openjpa/openjpa/${openjpa.version}/openjpa-${openjpa.version}.jar</argLine>
+					<argLine>-javaagent:${settings.localRepository}/org/springframework/spring-instrument/3.1.0.RELEASE/spring-instrument-3.1.0.RELEASE.jar -javaagent:${settings.localRepository}/org/apache/openjpa/openjpa/${openjpa.version}/openjpa-${openjpa.version}.jar</argLine>
 				</configuration>
 				<dependencies>
 					<dependency>
@@ -652,22 +659,15 @@
 	
 	<repositories>
 		<repository>
-			<id>spring-libs-snapshot</id>
-			<name>Spring Framework Maven Release Repository</name>
-			<url>http://repo.springsource.org/libs-snapshot</url>
+			<id>spring-libs-milestone</id>
+			<url>http://repo.springsource.org/libs-milestone</url>
 		</repository>
 	</repositories>
 	
 	<pluginRepositories>
 		<pluginRepository>
-			<id>spring-libs-release</id>
-			<name>Spring Framework Maven Release Repository</name>
-			<url>http://repo.springsource.org/lib-release</url>
-		</pluginRepository>
-		<pluginRepository>
-			<id>repository.springsource.maven.bundles.release</id>
-			<name>SpringSource Maven Bundles Release Repository</name>
-			<url>http://repository.springsource.com/maven/bundles/release</url>
+			<id>spring-plugins-release</id>
+			<url>http://repo.springsource.org/plugins-release</url>
 		</pluginRepository>
 	</pluginRepositories>
 </project>

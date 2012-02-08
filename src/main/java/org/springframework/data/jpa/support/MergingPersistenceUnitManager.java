@@ -61,7 +61,6 @@ public class MergingPersistenceUnitManager extends DefaultPersistenceUnitManager
 	 * (non-Javadoc)
 	 * @see org.springframework.orm.jpa.persistenceunit.DefaultPersistenceUnitManager#isPersistenceUnitOverrideAllowed()
 	 */
-	@Override
 	protected boolean isPersistenceUnitOverrideAllowed() {
 		return true;
 	}
