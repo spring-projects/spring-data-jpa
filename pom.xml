@@ -52,7 +52,10 @@
 	</licenses>
 	
 	<properties>
-		<spring.version>3.0.5.RELEASE</spring.version>
+		<spring.version.30>3.0.7.RELEASE</spring.version.30>
+		<spring.version.40>4.0.0.RELEASE</spring.version.40>
+		<spring.version.range>[${spring.version.30}, ${spring.version.40})</spring.version.range>
+		<spring.version.resolved>3.1.1.RELEASE</spring.version.resolved>
 		<spring.data.commons.version>1.1.0.RELEASE</spring.data.commons.version>
 		<hibernate.version>3.6.5.Final</hibernate.version>
 		<openjpa.version>2.1.0</openjpa.version>
@@ -248,29 +251,35 @@
 	</profiles>
 	
 	<dependencies>
-	
-		<dependency>
-			<groupId>${project.groupId}</groupId>
-			<artifactId>spring-data-commons-core</artifactId>
-			<version>${spring.data.commons.version}</version>
-		</dependency>
 		
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-orm</artifactId>
-			<version>${spring.version}</version>
+			<version>${spring.version.range}</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-tx</artifactId>
+			<version>${spring.version.range}</version>
 		</dependency>
 		
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-core</artifactId>
-			<version>${spring.version}</version>
+			<version>${spring.version.range}</version>
 			<exclusions>
 				<exclusion>
 					<groupId>commons-logging</groupId>
 					<artifactId>commons-logging</artifactId>
 				</exclusion>
 			</exclusions>
+		</dependency>
+		
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>spring-data-commons-core</artifactId>
+			<version>${spring.data.commons.version}</version>
 		</dependency>
 		
 		<!-- Logging (SLF4J + JCL bridge) -->
@@ -301,14 +310,14 @@
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-aspects</artifactId>
-			<version>${spring.version}</version>
+			<version>${spring.version.range}</version>
 			<optional>true</optional>
 		</dependency>
 		
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-test</artifactId>
-			<version>${spring.version}</version>
+			<version>${spring.version.range}</version>
 			<scope>test</scope>
 		</dependency>
 		
@@ -441,13 +450,13 @@
 					<includes>
 						<include>**/*Tests.java</include>
 					</includes>
-					<argLine>-javaagent:${settings.localRepository}/org/springframework/spring-instrument/${spring.version}/spring-instrument-${spring.version}.jar -javaagent:${settings.localRepository}/org/apache/openjpa/openjpa/${openjpa.version}/openjpa-${openjpa.version}.jar</argLine>
+					<argLine>-javaagent:${settings.localRepository}/org/springframework/spring-instrument/${spring.version.resolved}/spring-instrument-${spring.version.resolved}.jar -javaagent:${settings.localRepository}/org/apache/openjpa/openjpa/${openjpa.version}/openjpa-${openjpa.version}.jar</argLine>
 				</configuration>
 				<dependencies>
 					<dependency>
 						<groupId>org.springframework</groupId>
 						<artifactId>spring-instrument</artifactId>
-						<version>${spring.version}</version>
+						<version>${spring.version.range}</version>
 						<scope>runtime</scope>
 					</dependency>
 					<dependency>
