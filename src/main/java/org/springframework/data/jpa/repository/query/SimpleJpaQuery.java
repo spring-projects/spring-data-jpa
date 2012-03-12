@@ -93,7 +93,7 @@ final class SimpleJpaQuery extends AbstractJpaQuery {
 					.createNativeQuery(sortedQueryString, method.getReturnedObjectType());
 		} else {
 			query = method.isModifyingQuery() ? getEntityManager().createQuery(sortedQueryString) : getEntityManager()
-					.createQuery(sortedQueryString, method.getReturnedObjectType());
+					.createQuery(sortedQueryString);
 		}
 
 		return createBinder(values).bindAndPrepare(query);

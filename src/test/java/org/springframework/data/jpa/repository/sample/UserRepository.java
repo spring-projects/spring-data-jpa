@@ -207,4 +207,10 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	 * @see DATAJPA-132
 	 */
 	List<User> findByActiveFalse();
+
+	/**
+	 * Commented out until OpenJPA supports this.
+	 */
+	// @Query("select u.colleagues from User u where u = ?1")
+	// List<User> findColleaguesFor(User user);
 }

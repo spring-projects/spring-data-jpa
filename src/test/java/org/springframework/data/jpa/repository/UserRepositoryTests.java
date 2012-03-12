@@ -32,6 +32,7 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -733,6 +734,22 @@ public class UserRepositoryTests {
 		List<User> result = repository.findByActiveFalse();
 		assertThat(result.size(), is(1));
 		assertThat(result, hasItem(firstUser));
+	}
+
+	/**
+	 * Ignored until the query declaration is supported by OpenJPA.
+	 */
+	@Test
+	@Ignore
+	public void executesAnnotatedCollectionMethodCorrectly() {
+
+		flushTestUsers();
+		firstUser.addColleague(thirdUser);
+		repository.save(firstUser);
+
+		List<User> result = null; // repository.findColleaguesFor(firstUser);
+		assertThat(result.size(), is(1));
+		assertThat(result, hasItem(thirdUser));
 	}
 
 	protected void flushTestUsers() {
