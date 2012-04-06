@@ -60,7 +60,7 @@ final class NamedQuery extends AbstractJpaQuery {
 		}
 
 		if (parameters.hasPageableParameter()) {
-			LOG.info("Finder method {} is backed by a NamedQuery" + " but contains a Pageble parameter! Sorting deliviered "
+			LOG.warn("Finder method {} is backed by a NamedQuery" + " but contains a Pageable parameter! Sorting delivered "
 					+ "via this Pageable will not be applied!", method);
 		}
 
