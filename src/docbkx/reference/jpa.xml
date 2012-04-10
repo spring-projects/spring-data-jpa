@@ -206,6 +206,22 @@
               </row>
 
               <row>
+                <entry><code>After</code></entry>
+
+                <entry><code>findByStartDateAfter</code></entry>
+
+                <entry><code>… where x.startDate &gt; ?1</code></entry>
+              </row>
+
+              <row>
+                <entry><code>Before</code></entry>
+
+                <entry><code>findByStartDateBefore</code></entry>
+
+                <entry><code>… where x.startDate &lt; ?1</code></entry>
+              </row>
+
+              <row>
                 <entry><code>IsNull</code></entry>
 
                 <entry><code>findByAgeIsNull</code></entry>
@@ -292,7 +308,9 @@
         </table><note>
           <para><code>In</code> and <code>NotIn</code> also take any subclass
           of <interfacename>Collection</interfacename> as parameter as well as
-          arrays or varargs.</para>
+          arrays or varargs. For other syntactical versions of the very same
+          logical operator check <xref
+          linkend="repository-query-keywords" />.</para>
         </note></para>
     </section>
 
