@@ -14,6 +14,7 @@
 		<prop key="javax.persistence.jdbc.user">sa</prop>
 		<prop key="javax.persistence.jdbc.password"></prop>
 		<prop key="javax.persistence.ddl-generation">create-tables</prop>
+		<prop key="eclipselink.weaving.internal">false</prop>
 	</util:properties>
 
 </beans>

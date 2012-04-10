@@ -15,6 +15,7 @@
  */
 package org.springframework.data.jpa.domain.sample;
 
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -27,6 +28,8 @@ import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQuery;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 
 /**
  * Domain class representing a person emphasizing the use of {@code AbstractEntity}. No declaration of an id is
@@ -38,8 +41,6 @@ import javax.persistence.NamedQuery;
 @NamedQuery(name = "User.findByEmailAddress", query = "SELECT u FROM User u WHERE u.emailAddress = ?1")
 public class User {
 
-	private static final long serialVersionUID = 8653688953355455933L;
-
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private Integer id;
@@ -47,6 +48,8 @@ public class User {
 	private String lastname;
 	private int age;
 	private boolean active;
+	@Temporal(TemporalType.TIMESTAMP)
+	private Date createdAt;
 
 	@Column(nullable = false, unique = true)
 	private String emailAddress;
@@ -67,6 +70,7 @@ public class User {
 
 		this.roles = new HashSet<Role>();
 		this.colleagues = new HashSet<User>();
+		this.createdAt = new Date();
 	}
 
 	/**
@@ -268,6 +272,13 @@ public class User {
 	public void setManager(User manager) {
 
 		this.manager = manager;
+	}
+
+	/**
+	 * @return the createdAt
+	 */
+	public Date getCreatedAt() {
+		return createdAt;
 	}
 
 	/*

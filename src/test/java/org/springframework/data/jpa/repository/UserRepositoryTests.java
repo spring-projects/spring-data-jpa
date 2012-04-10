@@ -77,12 +77,13 @@ public class UserRepositoryTests {
 	Integer id;
 
 	@Before
-	public void setUp() {
+	public void setUp() throws Exception {
 
 		firstUser = new User("Oliver", "Gierke", "gierke@synyx.de");
 		firstUser.setAge(28);
 		secondUser = new User("Joachim", "Arrasz", "arrasz@synyx.de");
 		secondUser.setAge(35);
+		Thread.sleep(10);
 		thirdUser = new User("Dave", "Matthews", "no@email.com");
 		thirdUser.setAge(43);
 	}
@@ -750,6 +751,32 @@ public class UserRepositoryTests {
 		List<User> result = null; // repository.findColleaguesFor(firstUser);
 		assertThat(result.size(), is(1));
 		assertThat(result, hasItem(thirdUser));
+	}
+
+	/**
+	 * @see DATAJPA-188
+	 */
+	@Test
+	public void executesFinderWithAfterKeywordCorrectly() {
+
+		flushTestUsers();
+
+		List<User> result = repository.findByCreatedAtAfter(secondUser.getCreatedAt());
+		assertThat(result.size(), is(1));
+		assertThat(result, hasItems(thirdUser));
+	}
+
+	/**
+	 * @see DATAJPA-188
+	 */
+	@Test
+	public void executesFinderWithBeforeKeywordCorrectly() {
+
+		flushTestUsers();
+
+		List<User> result = repository.findByCreatedAtBefore(thirdUser.getCreatedAt());
+		assertThat(result.size(), is(2));
+		assertThat(result, hasItems(firstUser, secondUser));
 	}
 
 	protected void flushTestUsers() {

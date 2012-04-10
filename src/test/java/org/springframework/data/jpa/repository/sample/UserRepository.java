@@ -16,6 +16,7 @@
 package org.springframework.data.jpa.repository.sample;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 
 import javax.persistence.QueryHint;
@@ -213,4 +214,14 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	 */
 	// @Query("select u.colleagues from User u where u = ?1")
 	// List<User> findColleaguesFor(User user);
+
+	/**
+	 * @see DATAJPA-188
+	 */
+	List<User> findByCreatedAtBefore(Date date);
+
+	/**
+	 * @see DATAJPA-188
+	 */
+	List<User> findByCreatedAtAfter(Date date);
 }
