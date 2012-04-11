@@ -1,10 +1,13 @@
 package org.springframework.data.jpa.repository.query;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.persistence.Query;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.ParameterExpression;
 
@@ -15,6 +18,7 @@ import org.springframework.data.repository.query.parser.Part;
 import org.springframework.data.repository.query.parser.Part.Type;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.ObjectUtils;
 
 /**
  * Helper class to allow easy creation of {@link ParameterMetadata}s.
@@ -140,6 +144,51 @@ class ParameterMetadataProvider {
 		 */
 		public boolean isIsNullParameter() {
 			return Type.IS_NULL.equals(type);
+		}
+
+		/**
+		 * Prepares the object before it's actually bound to the {@link Query}.
+		 * 
+		 * @param parameter
+		 * @return
+		 */
+		public Object prepare(Object parameter) {
+
+			switch (type) {
+			case STARTING_WITH:
+				return String.format("%s%%", parameter.toString());
+			case ENDING_WITH:
+				return String.format("%%%s", parameter.toString());
+			case CONTAINING:
+				return String.format("%%%s%%", parameter.toString());
+			default:
+				return Collection.class.equals(expression.getJavaType()) ? toCollection(parameter) : parameter;
+			}
+		}
+
+		/**
+		 * Return sthe given argument as {@link Collection} which means it will return it as is if it's a
+		 * {@link Collections}, turn an array into an {@link ArrayList} or simply wrap any other value into a single element
+		 * {@link Collections}.
+		 * 
+		 * @param value
+		 * @return
+		 */
+		private static Collection<?> toCollection(Object value) {
+
+			if (value == null) {
+				return null;
+			}
+
+			if (value instanceof Collection) {
+				return (Collection<?>) value;
+			}
+
+			if (ObjectUtils.isArray(value)) {
+				return Arrays.asList(ObjectUtils.toObjectArray(value));
+			}
+
+			return Collections.singleton(value);
 		}
 	}
 }

@@ -224,4 +224,20 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	 * @see DATAJPA-188
 	 */
 	List<User> findByCreatedAtAfter(Date date);
+
+	/**
+	 * @see DATAJPA-180
+	 */
+	List<User> findByFirstnameStartingWith(String firstname);
+
+	/**
+	 * @see DATAJPA-180
+	 */
+	List<User> findByFirstnameEndingWith(String firstname);
+
+	/**
+	 * @see DATAJPA-180
+	 */
+	List<User> findByFirstnameContaining(String firstname);
+
 }

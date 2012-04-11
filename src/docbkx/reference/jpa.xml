@@ -254,6 +254,33 @@
               </row>
 
               <row>
+                <entry><code>StartingWith</code></entry>
+
+                <entry><code>findByFirstnameStartingWith</code></entry>
+
+                <entry><code>… where x.firstname like ?1</code> (parameter
+                bound with prepended <code>%</code>)</entry>
+              </row>
+
+              <row>
+                <entry><code>ngWith</code></entry>
+
+                <entry><code>findByFirstnameEndingWith</code></entry>
+
+                <entry><code>… where x.firstname like ?1</code> (parameter
+                bound with appended <code>%</code>)</entry>
+              </row>
+
+              <row>
+                <entry><code>Containing</code></entry>
+
+                <entry><code>findByFirstnameContaining</code></entry>
+
+                <entry><code>… where x.firstname like ?1</code> (parameter
+                bound wrapped in <code>%</code>)</entry>
+              </row>
+
+              <row>
                 <entry><code>OrderBy</code></entry>
 
                 <entry><code>findByAgeOrderByLastnameDesc</code></entry>

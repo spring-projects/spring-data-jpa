@@ -223,12 +223,15 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<Object>,
 				return path.in(provider.next(part, Collection.class).getExpression()).not();
 			case IN:
 				return path.in(provider.next(part, Collection.class).getExpression());
+			case STARTING_WITH:
+			case ENDING_WITH:
+			case CONTAINING:
 			case LIKE:
 			case NOT_LIKE:
 				Expression<String> propertyExpression = upperIfIgnoreCase(getTypedPath(root, part, String.class));
 				Expression<String> parameterExpression = upperIfIgnoreCase(provider.next(part, String.class).getExpression());
 				Predicate like = builder.like(propertyExpression, parameterExpression);
-				return part.getType() == Type.LIKE ? like : like.not();
+				return part.getType() == Type.NOT_LIKE ? like.not() : like;
 			case TRUE:
 				return builder.isTrue(getTypedPath(root, part, Boolean.class));
 			case FALSE:
@@ -240,7 +243,7 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<Object>,
 			case NEGATING_SIMPLE_PROPERTY:
 				return builder.notEqual(upperIfIgnoreCase(path), upperIfIgnoreCase(provider.next(part).getExpression()));
 			default:
-				throw new IllegalArgumentException("Unsupported keyword + " + part.getType());
+				throw new IllegalArgumentException("Unsupported keyword " + part.getType());
 			}
 		}
 

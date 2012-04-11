@@ -779,6 +779,42 @@ public class UserRepositoryTests {
 		assertThat(result, hasItems(firstUser, secondUser));
 	}
 
+	/**
+	 * @see DATAJPA-180
+	 */
+	@Test
+	public void executesFinderWithStartingWithCorrectly() {
+
+		flushTestUsers();
+		List<User> result = repository.findByFirstnameStartingWith("Oli");
+		assertThat(result.size(), is(1));
+		assertThat(result, hasItem(firstUser));
+	}
+
+	/**
+	 * @see DATAJPA-180
+	 */
+	@Test
+	public void executesFinderWithEndingWithCorrectly() {
+
+		flushTestUsers();
+		List<User> result = repository.findByFirstnameEndingWith("er");
+		assertThat(result.size(), is(1));
+		assertThat(result, hasItem(firstUser));
+	}
+
+	/**
+	 * @see DATAJPA-180
+	 */
+	@Test
+	public void executesFinderWithContainingCorrectly() {
+
+		flushTestUsers();
+		List<User> result = repository.findByFirstnameContaining("a");
+		assertThat(result.size(), is(2));
+		assertThat(result, hasItems(secondUser, thirdUser));
+	}
+
 	protected void flushTestUsers() {
 
 		firstUser = repository.save(firstUser);
