@@ -26,7 +26,6 @@ import com.mysema.query.dml.DeleteClause;
 import com.mysema.query.dml.UpdateClause;
 import com.mysema.query.jpa.JPQLQuery;
 import com.mysema.query.jpa.impl.JPADeleteClause;
-import com.mysema.query.jpa.impl.JPAQuery;
 import com.mysema.query.jpa.impl.JPAUpdateClause;
 import com.mysema.query.types.EntityPath;
 import com.mysema.query.types.path.PathBuilder;
@@ -40,8 +39,9 @@ import com.mysema.query.types.path.PathBuilderFactory;
 @Repository
 public abstract class QueryDslRepositorySupport {
 
-	private EntityManager entityManager;
 	private PathBuilderFactory builderFactory = new PathBuilderFactory();
+	private EntityManager entityManager;
+	private PersistenceProvider provider;
 
 	/**
 	 * Setter to inject {@link EntityManager}.
@@ -53,6 +53,7 @@ public abstract class QueryDslRepositorySupport {
 
 		Assert.notNull(entityManager);
 		this.entityManager = entityManager;
+		this.provider = PersistenceProvider.fromEntityManager(entityManager);
 	}
 
 	/**
@@ -78,8 +79,7 @@ public abstract class QueryDslRepositorySupport {
 	 * @return
 	 */
 	protected JPQLQuery from(EntityPath<?>... paths) {
-
-		return new JPAQuery(entityManager).from(paths);
+		return QuerydslUtils.createQueryInstance(entityManager, provider).from(paths);
 	}
 
 	/**

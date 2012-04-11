@@ -30,7 +30,6 @@ import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 import org.springframework.data.querydsl.SimpleEntityPathResolver;
 
 import com.mysema.query.jpa.JPQLQuery;
-import com.mysema.query.jpa.impl.JPAQuery;
 import com.mysema.query.types.EntityPath;
 import com.mysema.query.types.Expression;
 import com.mysema.query.types.OrderSpecifier;
@@ -51,6 +50,7 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 	private final EntityManager em;
 	private final EntityPath<T> path;
 	private final PathBuilder<T> builder;
+	private final PersistenceProvider provider;
 
 	/**
 	 * Creates a new {@link QueryDslJpaRepository} from the given domain class and {@link EntityManager}. This will use
@@ -79,6 +79,7 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 		this.em = entityManager;
 		this.path = resolver.createPath(entityMetadata.getJavaType());
 		this.builder = new PathBuilder<T>(path.getType(), path.getMetadata());
+		this.provider = PersistenceProvider.fromEntityManager(entityManager);
 	}
 
 	/*
@@ -148,8 +149,7 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 	 * @return
 	 */
 	protected JPQLQuery createQuery(Predicate... predicate) {
-
-		return new JPAQuery(em).from(path).where(predicate);
+		return QuerydslUtils.createQueryInstance(em, provider).from(path).where(predicate);
 	}
 
 	/**
