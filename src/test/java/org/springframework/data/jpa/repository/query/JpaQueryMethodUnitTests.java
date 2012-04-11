@@ -40,6 +40,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.core.support.DefaultRepositoryMetadata;
+import org.springframework.data.repository.query.Param;
 import org.springframework.data.repository.query.QueryMethod;
 
 /**
@@ -59,7 +60,7 @@ public class JpaQueryMethodUnitTests {
 	RepositoryMetadata metadata;
 
 	Method repositoryMethod, invalidReturnType, pageableAndSort, pageableTwice, sortableTwice, modifyingMethod,
-			nativeQuery, namedQuery, findWithLockMethod;
+			nativeQuery, namedQuery, findWithLockMethod, invalidNamedParameter;
 
 	/**
 	 * @throws Exception
@@ -80,6 +81,7 @@ public class JpaQueryMethodUnitTests {
 		namedQuery = ValidRepository.class.getMethod("findByNamedQuery");
 
 		findWithLockMethod = ValidRepository.class.getMethod("findOneLocked", Integer.class);
+		invalidNamedParameter = InvalidRepository.class.getMethod("findByAnnotatedQuery", String.class);
 	}
 
 	@Test
@@ -255,6 +257,25 @@ public class JpaQueryMethodUnitTests {
 	}
 
 	/**
+	 * @see DATAJPA-185
+	 */
+	@Test
+	public void rejectsInvalidNamedParameter() {
+
+		try {
+			new JpaQueryMethod(invalidNamedParameter, metadata, extractor);
+			fail();
+		} catch (IllegalStateException e) {
+			// Parameter from query
+			assertThat(e.getMessage(), containsString("foo"));
+			// Parameter name from annotation
+			assertThat(e.getMessage(), containsString("param"));
+			// Method name
+			assertThat(e.getMessage(), containsString("findByAnnotatedQuery"));
+		}
+	}
+
+	/**
 	 * Interface to define invalid repository methods for testing.
 	 * 
 	 * @author Oliver Gierke
@@ -284,6 +305,10 @@ public class JpaQueryMethodUnitTests {
 		// Modifying and Sort is not allowed
 		@Modifying
 		void updateMethod(String firstname, Sort sort);
+
+		// Typo in named parameter
+		@Query("select u from User u where u.firstname = :foo")
+		List<User> findByAnnotatedQuery(@Param("param") String param);
 	}
 
 	static interface ValidRepository {

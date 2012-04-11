@@ -31,6 +31,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.core.RepositoryMetadata;
+import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.util.Assert;
@@ -65,6 +66,29 @@ public class JpaQueryMethod extends QueryMethod {
 
 		Assert.isTrue(!(isModifyingQuery() && getParameters().hasSpecialParameter()),
 				String.format("Modifying method must not contain %s!", Parameters.TYPES));
+		assertParameterNamesInAnnotatedQuery();
+	}
+
+	private final void assertParameterNamesInAnnotatedQuery() {
+
+		String annotatedQuery = getAnnotatedQuery();
+
+		if (!StringUtils.hasText(annotatedQuery)) {
+			return;
+		}
+
+		for (Parameter parameter : getParameters()) {
+
+			if (!parameter.isNamedParameter()) {
+				continue;
+			}
+
+			if (!annotatedQuery.contains(String.format(":%s", parameter.getName()))) {
+				throw new IllegalStateException(String.format(
+						"Using named parameters for method %s but parameter '%s' not found in annotated query '%s'!", method,
+						parameter.getName(), annotatedQuery));
+			}
+		}
 	}
 
 	/**
