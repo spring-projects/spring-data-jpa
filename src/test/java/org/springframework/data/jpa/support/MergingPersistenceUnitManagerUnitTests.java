@@ -25,7 +25,6 @@ import java.util.Arrays;
 
 import javax.persistence.spi.PersistenceUnitInfo;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -59,11 +58,7 @@ public class MergingPersistenceUnitManagerUnitTests {
 		verify(newInfo).addJarFileUrl(jarFileUrl);
 	}
 
-	/**
-	 * @FIXME - Reactivate as soon as Spring 3.1.1 gets released
-	 */
 	@Test
-	@Ignore
 	public void mergesManagedClassesCorrectly() {
 
 		MergingPersistenceUnitManager manager = new MergingPersistenceUnitManager();
@@ -74,5 +69,54 @@ public class MergingPersistenceUnitManagerUnitTests {
 		PersistenceUnitInfo info = manager.obtainPersistenceUnitInfo("pu");
 		assertThat(info.getManagedClassNames().size(), is(2));
 		assertThat(info.getManagedClassNames(), hasItems(User.class.getName(), Role.class.getName()));
+
+		assertThat(info.getMappingFileNames().size(), is(2));
+		assertThat(info.getMappingFileNames(), hasItems("foo.xml", "bar.xml"));
+
+		System.out.println(info.getPersistenceUnitRootUrl());
+	}
+
+	@Test
+	public void addsOldPersistenceUnitRootUrlIfDifferentFromNewOne() throws MalformedURLException {
+
+		MutablePersistenceUnitInfo newInfo = new MutablePersistenceUnitInfo();
+		newInfo.setPersistenceUnitRootUrl(new URL("file:bar"));
+
+		when(oldInfo.getPersistenceUnitRootUrl()).thenReturn(new URL("file:/foo"));
+
+		MergingPersistenceUnitManager manager = new MergingPersistenceUnitManager();
+		manager.postProcessPersistenceUnitInfo(newInfo, oldInfo);
+
+		assertThat(newInfo.getJarFileUrls().size(), is(1));
+		assertThat(newInfo.getJarFileUrls(), hasItems(oldInfo.getPersistenceUnitRootUrl()));
+	}
+
+	@Test
+	public void doesNotAddNewPuRootUrlIfNull() throws MalformedURLException {
+
+		MutablePersistenceUnitInfo newInfo = new MutablePersistenceUnitInfo();
+
+		when(oldInfo.getPersistenceUnitRootUrl()).thenReturn(new URL("file:/foo"));
+
+		MergingPersistenceUnitManager manager = new MergingPersistenceUnitManager();
+		manager.postProcessPersistenceUnitInfo(newInfo, oldInfo);
+
+		assertThat(newInfo.getJarFileUrls().isEmpty(), is(true));
+	}
+
+	@Test
+	public void doesNotAddNewPuRootUrlIfAlreadyOnTheListOfJarFileUrls() throws MalformedURLException {
+
+		when(oldInfo.getPersistenceUnitRootUrl()).thenReturn(new URL("file:foo"));
+
+		MutablePersistenceUnitInfo newInfo = new MutablePersistenceUnitInfo();
+		newInfo.setPersistenceUnitRootUrl(new URL("file:bar"));
+		newInfo.addJarFileUrl(oldInfo.getPersistenceUnitRootUrl());
+
+		MergingPersistenceUnitManager manager = new MergingPersistenceUnitManager();
+		manager.postProcessPersistenceUnitInfo(newInfo, oldInfo);
+
+		assertThat(newInfo.getJarFileUrls().size(), is(1));
+		assertThat(newInfo.getJarFileUrls(), hasItems(oldInfo.getPersistenceUnitRootUrl()));
 	}
 }

@@ -61,29 +61,45 @@ public class MergingPersistenceUnitManager extends DefaultPersistenceUnitManager
 	 * (non-Javadoc)
 	 * @see org.springframework.orm.jpa.persistenceunit.DefaultPersistenceUnitManager#isPersistenceUnitOverrideAllowed()
 	 */
+	@Override
 	protected boolean isPersistenceUnitOverrideAllowed() {
 		return true;
 	}
 
 	void postProcessPersistenceUnitInfo(MutablePersistenceUnitInfo pui, PersistenceUnitInfo oldPui) {
 
-		for (URL url : oldPui.getJarFileUrls()) {
+		String persistenceUnitName = pui.getPersistenceUnitName();
 
-			// Add jar file url to PUI
+		for (URL url : oldPui.getJarFileUrls()) {
 			if (!pui.getJarFileUrls().contains(url)) {
-				log.debug("Adding {} to persistence units", url);
+				log.debug("Adding JAR file URL {} to persistence unit {}.", url, persistenceUnitName);
 				pui.addJarFileUrl(url);
 			}
 		}
 
 		for (String className : oldPui.getManagedClassNames()) {
-
 			if (!pui.getManagedClassNames().contains(className)) {
-				log.debug("Adding class {} to PersistenceUnit {}", className, pui.getPersistenceUnitName());
+				log.debug("Adding class {} to PersistenceUnit {}", className, persistenceUnitName);
 				pui.addManagedClassName(className);
 			}
 		}
 
-		pui.addJarFileUrl(oldPui.getPersistenceUnitRootUrl());
+		for (String mappingFileName : oldPui.getMappingFileNames()) {
+			if (!pui.getMappingFileNames().contains(mappingFileName)) {
+				log.debug("Adding mapping file to persistence unit {}.", mappingFileName, persistenceUnitName);
+				pui.addMappingFileName(mappingFileName);
+			}
+		}
+
+		URL newUrl = pui.getPersistenceUnitRootUrl();
+		URL oldUrl = oldPui.getPersistenceUnitRootUrl();
+
+		boolean hasNewRootUrl = newUrl != null;
+		boolean rootUrlsDiffer = hasNewRootUrl && !newUrl.equals(oldUrl);
+		boolean urlNotInJarUrls = hasNewRootUrl && !pui.getJarFileUrls().contains(oldUrl);
+
+		if (hasNewRootUrl && rootUrlsDiffer && urlNotInJarUrls) {
+			pui.addJarFileUrl(oldUrl);
+		}
 	}
 }
