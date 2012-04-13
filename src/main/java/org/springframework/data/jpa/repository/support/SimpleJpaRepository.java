@@ -329,7 +329,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	 * @see org.springframework.data.repository.CrudRepository#save(java.lang.Object)
 	 */
 	@Transactional
-	public T save(T entity) {
+	public <S extends T> S save(S entity) {
 
 		if (entityInformation.isNew(entity)) {
 			em.persist(entity);
@@ -357,15 +357,15 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	 * @see org.springframework.data.jpa.repository.JpaRepository#save(java.lang.Iterable)
 	 */
 	@Transactional
-	public List<T> save(Iterable<? extends T> entities) {
+	public <S extends T> List<S> save(Iterable<S> entities) {
 
-		List<T> result = new ArrayList<T>();
+		List<S> result = new ArrayList<S>();
 
 		if (entities == null) {
 			return result;
 		}
 
-		for (T entity : entities) {
+		for (S entity : entities) {
 			result.add(save(entity));
 		}
 

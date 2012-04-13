@@ -52,7 +52,7 @@ public interface JpaRepository<T, ID extends Serializable> extends PagingAndSort
 	 * @see
 	 * org.springframework.data.repository.Repository#save(java.lang.Iterable)
 	 */
-	List<T> save(Iterable<? extends T> entities);
+	<S extends T> List<S> save(Iterable<S> entities);
 
 	/**
 	 * Flushes all pending changes to the database.
