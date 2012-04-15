@@ -27,6 +27,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.sample.User;
 
@@ -80,5 +81,14 @@ public class SimpleJpaRepositoryUnitTests {
 		repo.findAll(new PageRequest(2, 10));
 
 		verify(query, times(0)).getResultList();
+	}
+
+	/**
+	 * @see DATAJPA-177
+	 */
+	@Test(expected = EmptyResultDataAccessException.class)
+	public void throwsExceptionIfEntityToDeleteDoesNotExist() {
+
+		repo.delete(4711L);
 	}
 }

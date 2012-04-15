@@ -32,6 +32,7 @@ import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -121,6 +122,12 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	public void delete(ID id) {
 
 		Assert.notNull(id, "The given id must not be null!");
+
+		if (!exists(id)) {
+			throw new EmptyResultDataAccessException(String.format("No %s entity with id %s exists!",
+					entityInformation.getJavaType(), id), 1);
+		}
+
 		delete(findOne(id));
 	}
 
