@@ -76,7 +76,7 @@
               <row>
                 <entry><code>transaction-manager-ref</code></entry>
 
-                <entry>Explicitly wire tha
+                <entry>Explicitly wire the
                 <interfacename>PlatformTransactionManager</interfacename> to
                 be used with the repositories being detected by the
                 <code>repositories</code> element. Usually only necessary if
@@ -489,7 +489,7 @@ public class User {
       <para>All the sections above describe how to declare queries to access a
       given entity or collection of entities. Of course you can add custom
       modifying behaviour by using facilities described in <xref
-      linkend="custom-implementations" />. As this approach is feasible for
+      linkend="repositories.custom-implementations" />. As this approach is feasible for
       comprehensive custom functionality, you can achieve the execution of
       modifying queries that actually only need parameter binding by
       annotating the query method with <code>@Modifying</code>:</para>
@@ -546,19 +546,13 @@ int setFixedFirstnameFor(String firstname, String lastname);</programlisting>
   </section>
 
   <section id="specifications">
-     
-
     <title>Specifications</title>
-
-     
 
     <para>JPA 2 introduces a criteria API that can be used to build queries
     programmatically. Writing a <code>criteria</code> you actually define the
     where-clause of a query for a domain class. Taking another step back these
     criteria can be regarded as predicate over the entity that is described by
     the JPA criteria API constraints.</para>
-
-     
 
     <para>Spring Data JPA takes the concept of a specification from Eric
     Evans' book "Domain Driven Design", following the same semantics and
@@ -568,13 +562,9 @@ int setFixedFirstnameFor(String firstname, String lastname);</programlisting>
     the <interfacename>JpaSpecificationExecutor</interfacename>
     interface:</para>
 
-     
-
     <programlisting language="java">public interface CustomerRepository extends CrudRepository&lt;Customer, Long&gt;, JpaSpecificationExecutor {
  …
 }</programlisting>
-
-     
 
     <para>The additional interface carries methods that allow you to execute
     <interfacename>Specification</interfacename>s in a variety of ways.</para>
@@ -587,19 +577,13 @@ int setFixedFirstnameFor(String firstname, String lastname);</programlisting>
 
     <programlisting language="java">List&lt;T&gt; readAll(Specification&lt;T&gt; spec);</programlisting>
 
-     
-
     <para>The <interfacename>Specification</interfacename> interface is as
     follows:</para>
-
-     
 
     <programlisting language="java">public interface Specification&lt;T&gt; {
   Predicate toPredicate(Root&lt;T&gt; root, CriteriaQuery&lt;?&gt; query,
             CriteriaBuilder builder);
 }</programlisting>
-
-     
 
     <para>Okay, so what is the typical use case?
     <interfacename>Specification</interfacename>s can easily be used to build
@@ -607,8 +591,6 @@ int setFixedFirstnameFor(String firstname, String lastname);</programlisting>
     combined and used with <interfacename>JpaRepository</interfacename>
     without the need to declare a query (method) for every needed combination.
     Here's an example:</para>
-
-     
 
     <example>
       <title>Specifications for a Customer</title>
@@ -626,7 +608,6 @@ int setFixedFirstnameFor(String firstname, String lastname);</programlisting>
     };
   }
 
-
   public static Specification&lt;Customer&gt; hasSalesOfMoreThan(MontaryAmount value) {
     return new Specification&lt;Customer&gt;() {
       Predicate toPredicate(Root&lt;T&gt; root, CriteriaQuery&lt;?&gt; query,
@@ -639,8 +620,6 @@ int setFixedFirstnameFor(String firstname, String lastname);</programlisting>
 }</programlisting>
     </example>
 
-     
-
     <para>Admittedly the amount of boilerplate leaves room for improvement
     (that will hopefully be reduced by Java 8 closures) but the client side
     becomes much nicer as you will see below. Besides that we have expressed
@@ -649,15 +628,11 @@ int setFixedFirstnameFor(String firstname, String lastname);</programlisting>
     might use a <interfacename>Specification</interfacename> as
     follows:</para>
 
-     
-
     <example>
       <title>Using a simple Specification</title>
 
       <programlisting language="java">List&lt;Customer&gt; customers = customerRepository.findAll(isLongTermCustomer());</programlisting>
     </example>
-
-     
 
     <para>Okay, why not simply create a query for this kind of data access?
     You're right. Using a single <interfacename>Specification</interfacename>
@@ -667,8 +642,6 @@ int setFixedFirstnameFor(String firstname, String lastname);</programlisting>
     objects. You can achieve this through the
     <classname>Specifications</classname> helper class we provide to build
     expressions like this:</para>
-
-     
 
     <example>
       <title>Combined Specifications</title>
@@ -683,8 +656,6 @@ List&lt;Customer&gt; customers = customerRepository.readAll(
       <interfacename>Specification</interfacename> implementations and
       combining them with ones already existing.</para>
     </example>
-
-     
   </section>
 
   <section id="transactions">
