@@ -815,6 +815,22 @@ public class UserRepositoryTests {
 		assertThat(result, hasItems(secondUser, thirdUser));
 	}
 
+	/**
+	 * @see DATAJPA-201
+	 */
+	public void allowsExecutingPageableMethodWithNullPageable() {
+
+		flushTestUsers();
+
+		List<User> users = repository.findByFirstname("Oliver", null);
+		assertThat(users.size(), is(1));
+		assertThat(users, hasItem(firstUser));
+
+		Page<User> page = repository.findByFirstnameIn(null, "Oliver");
+		assertThat(page.getNumberOfElements(), is(1));
+		assertThat(page.getContent(), hasItem(firstUser));
+	}
+
 	protected void flushTestUsers() {
 
 		firstUser = repository.save(firstUser);
