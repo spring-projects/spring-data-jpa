@@ -60,7 +60,7 @@
 		<openjpa.version>2.1.1</openjpa.version>
 		<eclipselink.version>2.3.2</eclipselink.version>
 		<aspectj.version>1.6.12</aspectj.version>
-		<querydsl.version>2.3.3</querydsl.version>
+		<querydsl.version>2.5.0</querydsl.version>
 		<junit.version>4.8.1</junit.version>
 		<jpa.version>2.0.0</jpa.version>
 		<slf4j.version>1.6.1</slf4j.version>
