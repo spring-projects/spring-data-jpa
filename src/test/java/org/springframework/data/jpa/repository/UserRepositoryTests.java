@@ -818,6 +818,7 @@ public class UserRepositoryTests {
 	/**
 	 * @see DATAJPA-201
 	 */
+	@Test
 	public void allowsExecutingPageableMethodWithNullPageable() {
 
 		flushTestUsers();
@@ -829,6 +830,10 @@ public class UserRepositoryTests {
 		Page<User> page = repository.findByFirstnameIn(null, "Oliver");
 		assertThat(page.getNumberOfElements(), is(1));
 		assertThat(page.getContent(), hasItem(firstUser));
+
+		page = repository.findAll((Pageable) null);
+		assertThat(page.getNumberOfElements(), is(3));
+		assertThat(page.getContent(), hasItems(firstUser, secondUser, thirdUser));
 	}
 
 	protected void flushTestUsers() {

@@ -104,7 +104,8 @@ public abstract class JpaQueryExecution {
 			ParameterAccessor accessor = new ParametersParameterAccessor(parameters, values);
 			Pageable pageable = accessor.getPageable();
 
-			List<Object> content = total > pageable.getOffset() ? query.getResultList() : Collections.emptyList();
+			List<Object> content = pageable == null || total > pageable.getOffset() ? query.getResultList() : Collections
+					.emptyList();
 
 			return new PageImpl<Object>(content, pageable, total);
 		}

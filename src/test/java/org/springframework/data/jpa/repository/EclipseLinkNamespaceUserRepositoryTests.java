@@ -35,4 +35,12 @@ public class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserReposi
 	public void findsAllByGivenIds() {
 
 	}
+
+	/**
+	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=349477 is resolved.
+	 */
+	@Override
+	public void allowsExecutingPageableMethodWithNullPageable() {
+
+	}
 }
