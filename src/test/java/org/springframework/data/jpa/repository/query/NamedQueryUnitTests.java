@@ -54,7 +54,7 @@ public class NamedQueryUnitTests {
 	public void setUp() throws SecurityException, NoSuchMethodException {
 
 		method = SampleRepository.class.getMethod("foo", Pageable.class);
-		when(metadata.getDomainClass()).thenReturn((Class) String.class);
+		when(metadata.getDomainType()).thenReturn((Class) String.class);
 		when(metadata.getReturnedDomainClass(method)).thenReturn((Class) String.class);
 	}
 

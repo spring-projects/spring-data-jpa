@@ -84,7 +84,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 			EntityManager entityManager) {
 
 		Class<?> repositoryInterface = metadata.getRepositoryInterface();
-		JpaEntityInformation<?, Serializable> entityInformation = getEntityInformation(metadata.getDomainClass());
+		JpaEntityInformation<?, Serializable> entityInformation = getEntityInformation(metadata.getDomainType());
 
 		SimpleJpaRepository<?, ?> repo = isQueryDslExecutor(repositoryInterface) ? new QueryDslJpaRepository(
 				entityInformation, entityManager) : new SimpleJpaRepository(entityInformation, entityManager);
