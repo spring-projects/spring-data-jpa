@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 the original author or authors.
+ * Copyright 2008-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,15 +20,14 @@ import java.io.Serializable;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
-import org.springframework.beans.factory.FactoryBean;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.core.support.RepositoryFactorySupport;
 import org.springframework.data.repository.core.support.TransactionalRepositoryFactoryBeanSupport;
 import org.springframework.util.Assert;
 
 /**
- * Special adapter for Springs {@link FactoryBean} interface to allow easy setup of repository factories via Spring
- * configuration.
+ * Special adapter for Springs {@link org.springframework.beans.factory.FactoryBean} interface to allow easy setup of
+ * repository factories via Spring configuration.
  * 
  * @author Oliver Gierke
  * @author Eberhard Wolff

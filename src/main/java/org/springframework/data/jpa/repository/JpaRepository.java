@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 the original author or authors.
+ * Copyright 2008-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,6 @@ package org.springframework.data.jpa.repository;
 import java.io.Serializable;
 import java.util.List;
 
-import javax.persistence.EntityManager;
-
 import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.PagingAndSortingRepository;
 
@@ -32,25 +30,19 @@ public interface JpaRepository<T, ID extends Serializable> extends PagingAndSort
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see org.springframework.data.repository.Repository#findAll()
+	 * @see org.springframework.data.repository.CrudRepository#findAll()
 	 */
 	List<T> findAll();
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.springframework.data.repository.PagingAndSortingRepository#findAll
-	 * (org.springframework.data.domain.Sort)
+	 * @see org.springframework.data.repository.PagingAndSortingRepository#findAll(org.springframework.data.domain.Sort)
 	 */
 	List<T> findAll(Sort sort);
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.springframework.data.repository.Repository#save(java.lang.Iterable)
+	 * @see org.springframework.data.repository.CrudRepository#save(java.lang.Iterable)
 	 */
 	<S extends T> List<S> save(Iterable<S> entities);
 
@@ -69,7 +61,7 @@ public interface JpaRepository<T, ID extends Serializable> extends PagingAndSort
 
 	/**
 	 * Deletes the given entities in a batch which means it will create a single {@link Query}. Assume that we will clear
-	 * the {@link EntityManager} after the call.
+	 * the {@link javax.persistence.EntityManager} after the call.
 	 * 
 	 * @param entities
 	 */

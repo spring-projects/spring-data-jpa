@@ -23,7 +23,6 @@ import java.util.Set;
 
 import javax.persistence.Entity;
 import javax.persistence.MappedSuperclass;
-import javax.persistence.PersistenceUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,8 +41,8 @@ import org.springframework.util.StringUtils;
 
 /**
  * {@link PersistenceUnitPostProcessor} that will scan for classes annotated with {@link Entity} or
- * {@link MappedSuperclass} and add them to the {@link PersistenceUnit} post prcessed. Beyond that JPA XML mapping files
- * can be scanned as well by configuring a file name pattern.
+ * {@link MappedSuperclass} and add them to the {@link javax.persistence.PersistenceUnit} post prcessed. Beyond that JPA
+ * XML mapping files can be scanned as well by configuring a file name pattern.
  * 
  * @author Oliver Gierke
  */
@@ -135,7 +134,7 @@ public class ClasspathScanningPersistenceUnitPostProcessor implements Persistenc
 			try {
 				mappingFileUris.add(resource.getURI().toString());
 			} catch (IOException e) {
-				throw new IllegalStateException(String.format("Couldn't get URI for %s!", resource.toString(), e));
+				throw new IllegalStateException(String.format("Couldn't get URI for %s!", resource.toString()), e);
 			}
 		}
 

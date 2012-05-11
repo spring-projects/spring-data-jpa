@@ -1,9 +1,7 @@
 /*
- * Copyright 2008-2011 the original author or authors.
+ * Copyright 2008-2012 the original author or authors.
  *
- * Licensed under the Apache License, Version 2.0 (the "Li
-import org.springframework.data.repository.core.NamedQueries;
-cense");
+ * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -21,7 +19,6 @@ import java.lang.reflect.Method;
 
 import javax.persistence.EntityManager;
 
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.core.NamedQueries;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.QueryLookupStrategy;
@@ -138,8 +135,9 @@ public final class JpaQueryLookupStrategy {
 	}
 
 	/**
-	 * {@link QueryLookupStrategy} to try to detect a declared query first ( {@link Query}, JPA named query). In case none
-	 * is found we fall back on query creation.
+	 * {@link QueryLookupStrategy} to try to detect a declared query first (
+	 * {@link org.springframework.data.jpa.repository.Query}, JPA named query). In case none is found we fall back on
+	 * query creation.
 	 * 
 	 * @author Oliver Gierke
 	 */

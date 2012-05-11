@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 the original author or authors.
+ * Copyright 2008-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ import java.util.List;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.ParameterExpression;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
@@ -69,7 +68,7 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<Object>,
 	}
 
 	/**
-	 * Returns all {@link ParameterExpression} created when creating the query.
+	 * Returns all {@link javax.persistence.criteria.ParameterExpression} created when creating the query.
 	 * 
 	 * @return the parameterExpressions
 	 */
@@ -155,10 +154,10 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<Object>,
 	@SuppressWarnings({ "rawtypes" })
 	private Expression<? extends Comparable> getComparablePath(Root<?> root, Part part) {
 
-		return getTypedPath(root, part, Comparable.class);
+		return getTypedPath(root, part);
 	}
 
-	private <T> Expression<T> getTypedPath(Root<?> root, Part part, Class<T> type) {
+	private <T> Expression<T> getTypedPath(Root<?> root, Part part) {
 		return toExpressionRecursively(root, part.getProperty());
 	}
 
@@ -228,14 +227,17 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<Object>,
 			case CONTAINING:
 			case LIKE:
 			case NOT_LIKE:
-				Expression<String> propertyExpression = upperIfIgnoreCase(getTypedPath(root, part, String.class));
+				Expression<String> stringPath = getTypedPath(root, part);
+				Expression<String> propertyExpression = upperIfIgnoreCase(stringPath);
 				Expression<String> parameterExpression = upperIfIgnoreCase(provider.next(part, String.class).getExpression());
 				Predicate like = builder.like(propertyExpression, parameterExpression);
 				return part.getType() == Type.NOT_LIKE ? like.not() : like;
 			case TRUE:
-				return builder.isTrue(getTypedPath(root, part, Boolean.class));
+				Expression<Boolean> truePath = getTypedPath(root, part);
+				return builder.isTrue(truePath);
 			case FALSE:
-				return builder.isFalse(getTypedPath(root, part, Boolean.class));
+				Expression<Boolean> falsePath = getTypedPath(root, part);
+				return builder.isFalse(falsePath);
 			case SIMPLE_PROPERTY:
 				ParameterMetadata<Object> expression = provider.next(part);
 				return expression.isIsNullParameter() ? path.isNull() : builder.equal(upperIfIgnoreCase(path),

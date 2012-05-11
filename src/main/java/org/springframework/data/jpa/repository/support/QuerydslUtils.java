@@ -30,6 +30,10 @@ import com.mysema.query.jpa.impl.JPAQuery;
  */
 class QuerydslUtils {
 
+	private QuerydslUtils() {
+
+	}
+
 	/**
 	 * Creates the {@link JPQLQuery} instance based on the given {@link EntityManager} and {@link PersistenceProvider}.
 	 * 

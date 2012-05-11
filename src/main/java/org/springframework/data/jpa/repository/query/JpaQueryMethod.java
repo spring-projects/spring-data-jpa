@@ -69,7 +69,7 @@ public class JpaQueryMethod extends QueryMethod {
 		assertParameterNamesInAnnotatedQuery();
 	}
 
-	private final void assertParameterNamesInAnnotatedQuery() {
+	private void assertParameterNamesInAnnotatedQuery() {
 
 		String annotatedQuery = getAnnotatedQuery();
 

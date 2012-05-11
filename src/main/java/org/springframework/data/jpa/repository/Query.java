@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 the original author or authors.
+ * Copyright 2008-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,6 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-
-import javax.persistence.NamedQuery;
 
 /**
  * Annotation to declare finder queries directly on repository methods.
@@ -50,14 +48,14 @@ public @interface Query {
 	boolean nativeQuery() default false;
 
 	/**
-	 * The named query to be used. If not defined, a NamedQuery with name of {@code $ domainClass}.${queryMethodName}}
-	 * will be used.
+	 * The named query to be used. If not defined, a {@link javax.persistence.NamedQuery} with name of
+	 * {@code $ domainClass}.${queryMethodName}} will be used.
 	 */
 	String name() default "";
 
 	/**
-	 * Returns the name of the {@link NamedQuery} to be used to execute count queries when pagination is used. Will
-	 * default to the named query name configured suffixed by {@code .count}.
+	 * Returns the name of the {@link javax.persistence.NamedQuery} to be used to execute count queries when pagination is
+	 * used. Will default to the named query name configured suffixed by {@code .count}.
 	 * 
 	 * @see #name()
 	 * @return

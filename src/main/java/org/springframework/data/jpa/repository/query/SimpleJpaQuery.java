@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 the original author or authors.
+ * Copyright 2008-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,12 +24,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
-import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.RepositoryQuery;
 
 /**
- * {@link RepositoryQuery} implementation that inspects a {@link QueryMethod} for the existanve of an
- * {@link org.springframework.data.jpa.repository.Query} annotation and creates a JPA {@link Query} from it.
+ * {@link RepositoryQuery} implementation that inspects a {@link org.springframework.data.repository.query.QueryMethod}
+ * for the existanve of an {@link org.springframework.data.jpa.repository.Query} annotation and creates a JPA
+ * {@link Query} from it.
  * 
  * @author Oliver Gierke
  */
@@ -110,8 +110,8 @@ final class SimpleJpaQuery extends AbstractJpaQuery {
 	}
 
 	/**
-	 * Creates a {@link RepositoryQuery} from the given {@link QueryMethod} that is potentially annotated with
-	 * {@link org.springframework.data.jpa.repository.Query}.
+	 * Creates a {@link RepositoryQuery} from the given {@link org.springframework.data.repository.query.QueryMethod} that
+	 * is potentially annotated with {@link org.springframework.data.jpa.repository.Query}.
 	 * 
 	 * @param queryMethod
 	 * @param em

@@ -29,10 +29,8 @@ import javax.persistence.metamodel.SingularAttribute;
 
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.NotReadablePropertyException;
 import org.springframework.beans.NotWritablePropertyException;
-import org.springframework.data.repository.core.EntityInformation;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 
@@ -41,8 +39,7 @@ import org.springframework.util.ReflectionUtils;
  * 
  * @author Oliver Gierke
  */
-public class JpaMetamodelEntityInformation<T, ID extends Serializable> extends JpaEntityInformationSupport<T, ID>
-		implements JpaEntityInformation<T, ID> {
+public class JpaMetamodelEntityInformation<T, ID extends Serializable> extends JpaEntityInformationSupport<T, ID> {
 
 	private final IdMetadata<T> idMetadata;
 
@@ -187,7 +184,7 @@ public class JpaMetamodelEntityInformation<T, ID extends Serializable> extends J
 		 * @see org.springframework.beans.BeanWrapperImpl#getPropertyValue(java.lang.String)
 		 */
 		@Override
-		public Object getPropertyValue(String propertyName) throws BeansException {
+		public Object getPropertyValue(String propertyName) {
 			try {
 				return super.getPropertyValue(propertyName);
 			} catch (NotReadablePropertyException e) {
@@ -202,7 +199,7 @@ public class JpaMetamodelEntityInformation<T, ID extends Serializable> extends J
 		 * @see org.springframework.beans.BeanWrapperImpl#setPropertyValue(java.lang.String, java.lang.Object)
 		 */
 		@Override
-		public void setPropertyValue(String propertyName, Object value) throws BeansException {
+		public void setPropertyValue(String propertyName, Object value) {
 			try {
 				super.setPropertyValue(propertyName, value);
 			} catch (NotWritablePropertyException e) {

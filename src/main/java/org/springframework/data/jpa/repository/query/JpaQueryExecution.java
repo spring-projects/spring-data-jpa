@@ -23,18 +23,17 @@ import javax.persistence.NoResultException;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
-import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.util.Assert;
 
 /**
- * Set of classes to contain query execution strategies. Depending (mostly) on the return type of a {@link QueryMethod}
- * a {@link AbstractStringBasedJpaQuery} can be executed in various flavours.
+ * Set of classes to contain query execution strategies. Depending (mostly) on the return type of a
+ * {@link org.springframework.data.repository.query.QueryMethod} a {@link AbstractStringBasedJpaQuery} can be executed
+ * in various flavours.
  * 
  * @author Oliver Gierke
  */
@@ -80,7 +79,8 @@ public abstract class JpaQueryExecution {
 	}
 
 	/**
-	 * Executes the {@link AbstractStringBasedJpaQuery} to return a {@link Page} of entities.
+	 * Executes the {@link AbstractStringBasedJpaQuery} to return a {@link org.springframework.data.domain.Page} of
+	 * entities.
 	 */
 	static class PagedExecution extends JpaQueryExecution {
 

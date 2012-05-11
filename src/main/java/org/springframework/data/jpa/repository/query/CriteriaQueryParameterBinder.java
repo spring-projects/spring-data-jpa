@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2011-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package org.springframework.data.jpa.repository.query;
 import java.util.Iterator;
 
 import javax.persistence.Query;
-import javax.persistence.criteria.ParameterExpression;
 
 import org.springframework.data.jpa.repository.query.ParameterMetadataProvider.ParameterMetadata;
 import org.springframework.data.repository.query.Parameter;
@@ -26,7 +25,8 @@ import org.springframework.data.repository.query.Parameters;
 import org.springframework.util.Assert;
 
 /**
- * Special {@link ParameterBinder} that uses {@link ParameterExpression}s to bind query parameters.
+ * Special {@link ParameterBinder} that uses {@link javax.persistence.criteria.ParameterExpression}s to bind query
+ * parameters.
  * 
  * @author Oliver Gierke
  */
@@ -36,7 +36,7 @@ class CriteriaQueryParameterBinder extends ParameterBinder {
 
 	/**
 	 * Creates a new {@link CriteriaQueryParameterBinder} for the given {@link Parameters}, values and some
-	 * {@link ParameterExpression}.
+	 * {@link javax.persistence.criteria.ParameterExpression}.
 	 * 
 	 * @param parameters
 	 */

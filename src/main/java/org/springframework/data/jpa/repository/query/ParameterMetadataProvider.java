@@ -7,7 +7,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.persistence.Query;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.ParameterExpression;
 
@@ -147,12 +146,14 @@ class ParameterMetadataProvider {
 		}
 
 		/**
-		 * Prepares the object before it's actually bound to the {@link Query}.
+		 * Prepares the object before it's actually bound to the {@link javax.persistence.Query;}.
 		 * 
-		 * @param parameter
+		 * @param parameter must not be {@literal null}.
 		 * @return
 		 */
 		public Object prepare(Object parameter) {
+
+			Assert.notNull(parameter);
 
 			switch (type) {
 			case STARTING_WITH:

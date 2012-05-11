@@ -15,6 +15,7 @@
  */
 package org.springframework.data.jpa.support;
 
+import java.net.URISyntaxException;
 import java.net.URL;
 
 import javax.persistence.spi.PersistenceUnitInfo;
@@ -33,7 +34,7 @@ import org.springframework.orm.jpa.persistenceunit.MutablePersistenceUnitInfo;
  */
 public class MergingPersistenceUnitManager extends DefaultPersistenceUnitManager {
 
-	private static final Logger log = LoggerFactory.getLogger(MergingPersistenceUnitManager.class);
+	private static final Logger LOG = LoggerFactory.getLogger(MergingPersistenceUnitManager.class);
 
 	/*
 	 * (non-Javadoc)
@@ -72,21 +73,21 @@ public class MergingPersistenceUnitManager extends DefaultPersistenceUnitManager
 
 		for (URL url : oldPui.getJarFileUrls()) {
 			if (!pui.getJarFileUrls().contains(url)) {
-				log.debug("Adding JAR file URL {} to persistence unit {}.", url, persistenceUnitName);
+				LOG.debug("Adding JAR file URL {} to persistence unit {}.", url, persistenceUnitName);
 				pui.addJarFileUrl(url);
 			}
 		}
 
 		for (String className : oldPui.getManagedClassNames()) {
 			if (!pui.getManagedClassNames().contains(className)) {
-				log.debug("Adding class {} to PersistenceUnit {}", className, persistenceUnitName);
+				LOG.debug("Adding class {} to PersistenceUnit {}", className, persistenceUnitName);
 				pui.addManagedClassName(className);
 			}
 		}
 
 		for (String mappingFileName : oldPui.getMappingFileNames()) {
 			if (!pui.getMappingFileNames().contains(mappingFileName)) {
-				log.debug("Adding mapping file to persistence unit {}.", mappingFileName, persistenceUnitName);
+				LOG.debug("Adding mapping file to persistence unit {}.", mappingFileName, persistenceUnitName);
 				pui.addMappingFileName(mappingFileName);
 			}
 		}
@@ -94,12 +95,19 @@ public class MergingPersistenceUnitManager extends DefaultPersistenceUnitManager
 		URL newUrl = pui.getPersistenceUnitRootUrl();
 		URL oldUrl = oldPui.getPersistenceUnitRootUrl();
 
-		boolean hasNewRootUrl = newUrl != null;
-		boolean rootUrlsDiffer = hasNewRootUrl && !newUrl.equals(oldUrl);
-		boolean urlNotInJarUrls = hasNewRootUrl && !pui.getJarFileUrls().contains(oldUrl);
+		if (oldUrl == null || newUrl == null) {
+			return;
+		}
 
-		if (hasNewRootUrl && rootUrlsDiffer && urlNotInJarUrls) {
-			pui.addJarFileUrl(oldUrl);
+		try {
+			boolean rootUrlsDiffer = !newUrl.toURI().equals(oldUrl.toURI());
+			boolean urlNotInJarUrls = !pui.getJarFileUrls().contains(oldUrl);
+
+			if (rootUrlsDiffer && urlNotInJarUrls) {
+				pui.addJarFileUrl(oldUrl);
+			}
+		} catch (URISyntaxException ex) {
+			throw new RuntimeException(ex);
 		}
 	}
 }

@@ -128,8 +128,7 @@ public class SimpleJpaRepositoryConfiguration extends
 		}
 	}
 
-	static interface JpaRepositoryConfiguration extends
-			SingleRepositoryConfigInformation<SimpleJpaRepositoryConfiguration> {
+	interface JpaRepositoryConfiguration extends SingleRepositoryConfigInformation<SimpleJpaRepositoryConfiguration> {
 
 		String getEntityManagerFactoryRef();
 	}

@@ -40,13 +40,12 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
 /**
- * Default implementation of the {@link CrudRepository} interface. This will offer you a more sophisticated interface
- * than the plain {@link EntityManager} .
+ * Default implementation of the {@link org.springframework.data.repository.CrudRepository} interface. This will offer
+ * you a more sophisticated interface than the plain {@link EntityManager} .
  * 
  * @author Oliver Gierke
  * @author Eberhard Wolff
