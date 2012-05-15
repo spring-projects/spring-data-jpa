@@ -25,7 +25,7 @@ import org.springframework.test.context.ContextConfiguration;
  * @author Oliver Gierke
  */
 @ContextConfiguration(locations = "classpath:config/namespace-autoconfig-typefilter-context.xml")
-public class TypeFilterConfigTest extends AbstractRepositoryConfigTests {
+public class TypeFilterConfigTests extends AbstractRepositoryConfigTests {
 
 	/*
 	 * (non-Javadoc)

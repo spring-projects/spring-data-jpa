@@ -33,7 +33,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("classpath:config/namespace-application-context.xml")
-public class SPR8954 {
+public class SPR8954Tests {
 
 	@Autowired
 	ApplicationContext context;
@@ -47,7 +47,7 @@ public class SPR8954 {
 
 		assertThat(repoFactories.size(), is(greaterThan(0)));
 		assertThat(repoFactories.keySet(), hasItem("&userRepository"));
-		assertThat(repoFactories.get("&userRepository"), is(JpaRepositoryFactoryBean.class));
+		assertThat(repoFactories.get("&userRepository"), is(instanceOf(JpaRepositoryFactoryBean.class)));
 		assertThat(Arrays.asList(context.getBeanNamesForType(UserRepository.class)), hasItem("userRepository"));
 	}
 }

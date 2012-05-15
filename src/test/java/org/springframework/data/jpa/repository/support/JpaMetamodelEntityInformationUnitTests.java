@@ -43,7 +43,7 @@ import org.springframework.data.jpa.domain.sample.SampleWithIdClassPK;
  * @author Oliver Gierke
  */
 @RunWith(MockitoJUnitRunner.class)
-public class JpaMetamodelEntityInformationUnitTest {
+public class JpaMetamodelEntityInformationUnitTests {
 
 	@Mock
 	Metamodel metamodel;

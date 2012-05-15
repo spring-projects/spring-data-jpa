@@ -41,7 +41,7 @@ import org.springframework.data.jpa.repository.support.JpaRepositoryFactory;
  * @author Oliver Gierke
  */
 @RunWith(MockitoJUnitRunner.class)
-public class LockIntegrationTest {
+public class LockIntegrationTests {
 
 	@Mock
 	EntityManager em;
