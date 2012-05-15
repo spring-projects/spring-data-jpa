@@ -57,7 +57,7 @@ public class AuditingBeanDefinitionParserTests {
 		PropertyValue value = definition.getPropertyValues().getPropertyValue("dateTimeProvider");
 
 		assertThat(value, is(notNullValue()));
-		assertThat(value.getValue(), is(RuntimeBeanReference.class));
+		assertThat(value.getValue(), is(instanceOf(RuntimeBeanReference.class)));
 		assertThat(((RuntimeBeanReference) value.getValue()).getBeanName(), is("dateTimeProvider"));
 
 		BeanFactory factory = loadFactoryFrom(location);

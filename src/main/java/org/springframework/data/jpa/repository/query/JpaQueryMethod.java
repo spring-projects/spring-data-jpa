@@ -228,6 +228,15 @@ public class JpaQueryMethod extends QueryMethod {
 	}
 
 	/**
+	 * Returns whether the query method will actually return entities.
+	 * 
+	 * @return
+	 */
+	boolean isQueryMethodForEntity() {
+		return getDomainClass().isAssignableFrom(getReturnedObjectType());
+	}
+
+	/**
 	 * Returns the {@link Query} annotation's attribute casted to the given type or default value if no annotation
 	 * available.
 	 * 

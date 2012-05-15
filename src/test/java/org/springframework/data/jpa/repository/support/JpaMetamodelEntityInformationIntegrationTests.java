@@ -89,7 +89,7 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 				SampleWithIdClass.class, em);
 		Object id = information.getId(entity);
 
-		assertThat(id, is(SampleWithIdClassPK.class));
+		assertThat(id, is(instanceOf(SampleWithIdClassPK.class)));
 		assertThat(id, is((Object) new SampleWithIdClassPK(2L, 4L)));
 	}
 }

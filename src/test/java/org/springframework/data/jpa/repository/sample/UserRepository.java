@@ -240,4 +240,6 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	 */
 	List<User> findByFirstnameContaining(String firstname);
 
+	@Query(value = "SELECT 1 FROM User", nativeQuery = true)
+	List<Integer> findOnesByNativeQuery();
 }

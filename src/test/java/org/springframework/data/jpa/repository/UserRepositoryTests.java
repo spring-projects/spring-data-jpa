@@ -836,6 +836,20 @@ public class UserRepositoryTests {
 		assertThat(page.getContent(), hasItems(firstUser, secondUser, thirdUser));
 	}
 
+	/**
+	 * @see DATAJPA-207
+	 */
+	@Test
+	public void executesNativeQueryForNonEntitiesCorrectly() {
+
+		flushTestUsers();
+
+		List<Integer> result = repository.findOnesByNativeQuery();
+
+		assertThat(result.size(), is(3));
+		assertThat(result, hasItem(1));
+	}
+
 	protected void flushTestUsers() {
 
 		firstUser = repository.save(firstUser);

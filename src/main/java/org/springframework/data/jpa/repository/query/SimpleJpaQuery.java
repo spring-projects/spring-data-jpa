@@ -85,15 +85,15 @@ final class SimpleJpaQuery extends AbstractJpaQuery {
 
 		ParameterAccessor accessor = new ParametersParameterAccessor(method.getParameters(), values);
 		String sortedQueryString = QueryUtils.applySorting(queryString, accessor.getSort(), alias);
+		EntityManager em = getEntityManager();
 
 		Query query = null;
 
 		if (method.isNativeQuery()) {
-			query = method.isModifyingQuery() ? getEntityManager().createNativeQuery(sortedQueryString) : getEntityManager()
-					.createNativeQuery(sortedQueryString, method.getReturnedObjectType());
+			query = method.isQueryMethodForEntity() ? em.createNativeQuery(sortedQueryString, method.getReturnedObjectType())
+					: em.createNativeQuery(sortedQueryString);
 		} else {
-			query = method.isModifyingQuery() ? getEntityManager().createQuery(sortedQueryString) : getEntityManager()
-					.createQuery(sortedQueryString);
+			query = em.createQuery(sortedQueryString);
 		}
 
 		return createBinder(values).bindAndPrepare(query);

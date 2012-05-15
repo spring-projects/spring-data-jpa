@@ -60,7 +60,7 @@ public class JpaQueryMethodUnitTests {
 	RepositoryMetadata metadata;
 
 	Method repositoryMethod, invalidReturnType, pageableAndSort, pageableTwice, sortableTwice, modifyingMethod,
-			nativeQuery, namedQuery, findWithLockMethod, invalidNamedParameter;
+			nativeQuery, namedQuery, findWithLockMethod, invalidNamedParameter, findsProjections, findsProjection;
 
 	/**
 	 * @throws Exception
@@ -82,6 +82,9 @@ public class JpaQueryMethodUnitTests {
 
 		findWithLockMethod = ValidRepository.class.getMethod("findOneLocked", Integer.class);
 		invalidNamedParameter = InvalidRepository.class.getMethod("findByAnnotatedQuery", String.class);
+
+		findsProjections = ValidRepository.class.getMethod("findsProjections");
+		findsProjection = ValidRepository.class.getMethod("findsProjection");
 	}
 
 	@Test
@@ -276,6 +279,21 @@ public class JpaQueryMethodUnitTests {
 	}
 
 	/**
+	 * @see DATAJPA-207
+	 */
+	@Test
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public void returnsTrueIfReturnTypeIsEntity() {
+
+		when(metadata.getDomainType()).thenReturn((Class) User.class);
+		when(metadata.getReturnedDomainClass(findsProjections)).thenReturn((Class) Integer.class);
+		when(metadata.getReturnedDomainClass(findsProjection)).thenReturn((Class) Integer.class);
+
+		assertThat(new JpaQueryMethod(findsProjections, metadata, extractor).isQueryMethodForEntity(), is(false));
+		assertThat(new JpaQueryMethod(findsProjection, metadata, extractor).isQueryMethodForEntity(), is(false));
+	}
+
+	/**
 	 * Interface to define invalid repository methods for testing.
 	 * 
 	 * @author Oliver Gierke
@@ -322,5 +340,9 @@ public class JpaQueryMethodUnitTests {
 		@Lock(LockModeType.PESSIMISTIC_WRITE)
 		@Query("select u from User u where u.id = ?1")
 		List<User> findOneLocked(Integer primaryKey);
+
+		List<Integer> findsProjections();
+
+		Integer findsProjection();
 	}
 }
