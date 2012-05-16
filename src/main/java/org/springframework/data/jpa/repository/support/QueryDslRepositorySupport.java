@@ -76,7 +76,7 @@ public abstract class QueryDslRepositorySupport {
 	/**
 	 * Returns a fresh {@link JPQLQuery}.
 	 * 
-	 * @return
+	 * @return the Querydsl {@link JPQLQuery}.
 	 */
 	protected JPQLQuery from(EntityPath<?>... paths) {
 		return QuerydslUtils.createQueryInstance(entityManager, provider).from(paths);
@@ -86,7 +86,7 @@ public abstract class QueryDslRepositorySupport {
 	 * Returns a fresh {@link DeleteClause}.
 	 * 
 	 * @param path
-	 * @return
+	 * @return the Querydsl {@link DeleteClause}.
 	 */
 	protected DeleteClause<JPADeleteClause> delete(EntityPath<?> path) {
 
@@ -97,7 +97,7 @@ public abstract class QueryDslRepositorySupport {
 	 * Returns a fresh {@link UpdateClause}.
 	 * 
 	 * @param path
-	 * @return
+	 * @return the Querydsl {@link UpdateClause}.
 	 */
 	protected UpdateClause<JPAUpdateClause> update(EntityPath<?> path) {
 
@@ -109,7 +109,7 @@ public abstract class QueryDslRepositorySupport {
 	 * 
 	 * @param <T>
 	 * @param type
-	 * @return
+	 * @return the Querdsl {@link PathBuilder}.
 	 */
 	protected <T> PathBuilder<T> getBuilder(Class<T> type) {
 

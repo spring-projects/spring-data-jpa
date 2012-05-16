@@ -56,72 +56,59 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 	 * Creates a new {@link QueryDslJpaRepository} from the given domain class and {@link EntityManager}. This will use
 	 * the {@link SimpleEntityPathResolver} to translate the given domain class into an {@link EntityPath}.
 	 * 
-	 * @param domainClass
-	 * @param entityManager
+	 * @param entityInformation must not be {@literal null}.
+	 * @param entityManager must not be {@literal null}.
 	 */
-	public QueryDslJpaRepository(JpaEntityInformation<T, ID> entityMetadata, EntityManager entityManager) {
+	public QueryDslJpaRepository(JpaEntityInformation<T, ID> entityInformation, EntityManager entityManager) {
 
-		this(entityMetadata, entityManager, DEFAULT_ENTITY_PATH_RESOLVER);
+		this(entityInformation, entityManager, DEFAULT_ENTITY_PATH_RESOLVER);
 	}
 
 	/**
 	 * Creates a new {@link QueryDslJpaRepository} from the given domain class and {@link EntityManager} and uses the
 	 * given {@link EntityPathResolver} to translate the domain class into an {@link EntityPath}.
 	 * 
-	 * @param domainClass
-	 * @param entityManager
-	 * @param resolver
+	 * @param entityInformation must not be {@literal null}.
+	 * @param entityManager must not be {@literal null}.
+	 * @param resolver must not be {@literal null}.
 	 */
-	public QueryDslJpaRepository(JpaEntityInformation<T, ID> entityMetadata, EntityManager entityManager,
+	public QueryDslJpaRepository(JpaEntityInformation<T, ID> entityInformation, EntityManager entityManager,
 			EntityPathResolver resolver) {
 
-		super(entityMetadata, entityManager);
+		super(entityInformation, entityManager);
 		this.em = entityManager;
-		this.path = resolver.createPath(entityMetadata.getJavaType());
+		this.path = resolver.createPath(entityInformation.getJavaType());
 		this.builder = new PathBuilder<T>(path.getType(), path.getMetadata());
 		this.provider = PersistenceProvider.fromEntityManager(entityManager);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see org.springframework.data.jpa.repository.querydsl.
-	 * QueryDslSpecificationExecutor#findOne(com.mysema.query.types.Predicate)
+	 * @see org.springframework.data.querydsl.QueryDslPredicateExecutor#findOne(com.mysema.query.types.Predicate)
 	 */
 	public T findOne(Predicate predicate) {
-
 		return createQuery(predicate).uniqueResult(path);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see org.springframework.data.jpa.repository.querydsl.
-	 * QueryDslSpecificationExecutor#findAll(com.mysema.query.types.Predicate)
+	 * @see org.springframework.data.querydsl.QueryDslPredicateExecutor#findAll(com.mysema.query.types.Predicate)
 	 */
 	public List<T> findAll(Predicate predicate) {
-
 		return createQuery(predicate).list(path);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see org.springframework.data.jpa.repository.querydsl.
-	 * QueryDslSpecificationExecutor#findAll(com.mysema.query.types.Predicate,
-	 * com.mysema.query.types.OrderSpecifier<?>[])
+	 * @see org.springframework.data.querydsl.QueryDslPredicateExecutor#findAll(com.mysema.query.types.Predicate, com.mysema.query.types.OrderSpecifier<?>[])
 	 */
 	public List<T> findAll(Predicate predicate, OrderSpecifier<?>... orders) {
-
 		return createQuery(predicate).orderBy(orders).list(path);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see org.springframework.data.jpa.repository.querydsl.
-	 * QueryDslSpecificationExecutor#findAll(com.mysema.query.types.Predicate,
-	 * org.springframework.data.domain.Pageable)
+	 * @see org.springframework.data.querydsl.QueryDslPredicateExecutor#findAll(com.mysema.query.types.Predicate, org.springframework.data.domain.Pageable)
 	 */
 	public Page<T> findAll(Predicate predicate, Pageable pageable) {
 
@@ -133,12 +120,9 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see org.springframework.data.jpa.repository.querydsl.
-	 * QueryDslSpecificationExecutor#count(com.mysema.query.types.Predicate)
+	 * @see org.springframework.data.querydsl.QueryDslPredicateExecutor#count(com.mysema.query.types.Predicate)
 	 */
 	public long count(Predicate predicate) {
-
 		return createQuery(predicate).count();
 	}
 
@@ -146,7 +130,7 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 	 * Creates a new {@link JPQLQuery} for the given {@link Predicate}.
 	 * 
 	 * @param predicate
-	 * @return
+	 * @return the Querydsl {@link JPQLQuery}.
 	 */
 	protected JPQLQuery createQuery(Predicate... predicate) {
 		return QuerydslUtils.createQueryInstance(em, provider).from(path).where(predicate);
@@ -155,9 +139,9 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 	/**
 	 * Applies the given {@link Pageable} to the given {@link JPQLQuery}.
 	 * 
-	 * @param query
+	 * @param query must not be {@literal null}.
 	 * @param pageable
-	 * @return
+	 * @return the Querydsl {@link JPQLQuery}.
 	 */
 	protected JPQLQuery applyPagination(JPQLQuery query, Pageable pageable) {
 
@@ -174,9 +158,9 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 	/**
 	 * Applies sorting to the given {@link JPQLQuery}.
 	 * 
-	 * @param query
+	 * @param query must not be {@literal null}.
 	 * @param sort
-	 * @return
+	 * @return the Querydsl {@link JPQLQuery}
 	 */
 	protected JPQLQuery applySorting(JPQLQuery query, Sort sort) {
 

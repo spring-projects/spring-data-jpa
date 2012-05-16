@@ -68,7 +68,7 @@ public class ClasspathScanningPersistenceUnitPostProcessor implements Persistenc
 	 * Configures the file name pattern JPA entity mapping files shall scanned from the classpath. Lookup will use the
 	 * configured base package as root.
 	 * 
-	 * @param mappingFileNamePattern must not be {@literal null} or empty.
+	 * @param mappingFilePattern must not be {@literal null} or empty.
 	 */
 	public void setMappingFileNamePattern(String mappingFilePattern) {
 		Assert.hasText(mappingFilePattern);

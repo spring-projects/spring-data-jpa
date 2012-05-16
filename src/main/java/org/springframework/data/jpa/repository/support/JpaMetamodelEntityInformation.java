@@ -35,7 +35,8 @@ import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 
 /**
- * Implementation of {@link EntityInformation} that uses JPA {@link Metamodel} to find the domain class' id field.
+ * Implementation of {@link org.springframework.data.repository.core.EntityInformation} that uses JPA {@link Metamodel}
+ * to find the domain class' id field.
  * 
  * @author Oliver Gierke
  */
