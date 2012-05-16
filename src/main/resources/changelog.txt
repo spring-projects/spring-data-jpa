@@ -1,6 +1,32 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 1.1.0.RELEASE (2012-05-16)
+---------------------------------------------
+* JPA Repository can get typing of @Query annotated findXXX methods wrong (DATAJPA-169)
+* SimpleJpaRepository.delete(ID id) should validate entity/record existance prior to issue delete command (DATAJPA-177)
+* StackOverflowError during query parsing if repository method does nots match with a property (DATAJPA-179)
+* Typos in log message when named query is used with a Pageable (DATAJPA-186)
+* MergingPersistenceUnitManager potentially adds classes multiple times (DATAJPA-189)
+* JpaQueryExecution started to throw NullPointerException if pageable is null (DATAJPA-201)
+* Typo in reference (DATAJPA-153)
+* Readme file references old Spring Data JPA version (DATAJPA-155)
+* Ability to specify template when create QueryDSL JPAQuery (DATAJPA-181)
+* Provide more safety in custom @Queries with named @Params (DATAJPA-185)
+* Log level used for message generated with named query with a Pageable parameter lower than the actual severity of the issue (DATAJPA-187)
+* MergingPersistenceUnitManager should merge mapping file locations as well (DATAJPA-190)
+* Adapt changes in CrudRepository interface (DATAJPA-191)
+* @Query(nativeQuery=true) can't return List<Integer> (DATAJPA-207)
+* Add support for newly introduced StartingWith, EndingWith and Containing keywords (DATAJPA-180)
+* Support Before and After keywords for query creation (DATAJPA-188)
+* Minor typos in readme.md (DATAJPA-192)
+* Upgrade to Spring Data Commons 1.3.0.RC1 (DATAJPA-193)
+* Upgrade to Spring Data Commons 1.3.0.GA (DATAJPA-194)
+* Upgrade to Querydsl 2.5.0 (DATAJPA-203)
+* Sonar build is failing (DATAJPA-210)
+* Document CDI integration (DATAJPA-211)
+* Release 1.1 GA (DATAJPA-212)
+
 Changes in version 1.1.0.RC1 (2012-02-03)
 -----------------------------------------    
 * Support for locking (DATAJPA-73)
