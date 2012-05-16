@@ -90,8 +90,8 @@ final class SimpleJpaQuery extends AbstractJpaQuery {
 		Query query = null;
 
 		if (method.isNativeQuery()) {
-			query = method.isQueryMethodForEntity() ? em.createNativeQuery(sortedQueryString, method.getReturnedObjectType())
-					: em.createNativeQuery(sortedQueryString);
+			query = method.isQueryForEntity() ? em.createNativeQuery(sortedQueryString, method.getReturnedObjectType()) : em
+					.createNativeQuery(sortedQueryString);
 		} else {
 			query = em.createQuery(sortedQueryString);
 		}

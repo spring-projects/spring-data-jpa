@@ -289,8 +289,8 @@ public class JpaQueryMethodUnitTests {
 		when(metadata.getReturnedDomainClass(findsProjections)).thenReturn((Class) Integer.class);
 		when(metadata.getReturnedDomainClass(findsProjection)).thenReturn((Class) Integer.class);
 
-		assertThat(new JpaQueryMethod(findsProjections, metadata, extractor).isQueryMethodForEntity(), is(false));
-		assertThat(new JpaQueryMethod(findsProjection, metadata, extractor).isQueryMethodForEntity(), is(false));
+		assertThat(new JpaQueryMethod(findsProjections, metadata, extractor).isQueryForEntity(), is(false));
+		assertThat(new JpaQueryMethod(findsProjection, metadata, extractor).isQueryForEntity(), is(false));
 	}
 
 	/**
