@@ -39,7 +39,7 @@
       </example>
 
       <para>Using this element looks up Spring Data repositories as described
-      in <xref linkend="repositories.create-instances" />. Beyond that it
+      in <xref linkend="repositories.create-instances"/>. Beyond that it
       activates persistence exception translation for all beans annotated with
       <interfacename>@Repository</interfacename> to let exceptions being
       thrown by the JPA presistence providers be converted into Spring's
@@ -111,10 +111,10 @@
         name parser does not support the keyword one wants to use or the
         method name would get unnecessarily ugly. So you can either use JPA
         named queries through a naming convention (see <xref
-        linkend="jpa.query-methods.named-queries" /> for more information) or
+        linkend="jpa.query-methods.named-queries"/> for more information) or
         rather annotate your query method with
         <interfacename>@Query</interfacename> (see <xref
-        linkend="jpa.query-methods.at-query" /> for details).</para>
+        linkend="jpa.query-methods.at-query"/> for details).</para>
       </simplesect>
     </section>
 
@@ -122,7 +122,7 @@
       <title>Query creation</title>
 
       <para>Generally the query creation mechanism for JPA works as described
-      in <xref linkend="repositories.query-methods" />. Here's a short example
+      in <xref linkend="repositories.query-methods"/>. Here's a short example
       of what a JPA query method translates into:<example>
           <title>Query creation from method names</title>
 
@@ -136,7 +136,7 @@
 
           <para>Spring Data JPA will do a property check and traverse nested
           properties as described in <xref
-          linkend="repositories.query-methods.property-expressions" />. Here's
+          linkend="repositories.query-methods.property-expressions"/>. Here's
           an overview of the keywords supported for JPA and what a method
           containing that keyword essentially translates to.</para>
         </example></para>
@@ -145,11 +145,11 @@
           <title>Supported keywords inside method names</title>
 
           <tgroup cols="3">
-            <colspec colwidth="1*" />
+            <colspec colwidth="1*"/>
 
-            <colspec colwidth="2*" />
+            <colspec colwidth="2*"/>
 
-            <colspec colwidth="3*" />
+            <colspec colwidth="3*"/>
 
             <thead>
               <row>
@@ -337,7 +337,7 @@
           of <interfacename>Collection</interfacename> as parameter as well as
           arrays or varargs. For other syntactical versions of the very same
           logical operator check <xref
-          linkend="repository-query-keywords" />.</para>
+          linkend="repository-query-keywords"/>.</para>
         </note></para>
     </section>
 
@@ -489,10 +489,10 @@ public class User {
       <para>All the sections above describe how to declare queries to access a
       given entity or collection of entities. Of course you can add custom
       modifying behaviour by using facilities described in <xref
-      linkend="repositories.custom-implementations" />. As this approach is feasible for
-      comprehensive custom functionality, you can achieve the execution of
-      modifying queries that actually only need parameter binding by
-      annotating the query method with <code>@Modifying</code>:</para>
+      linkend="repositories.custom-implementations"/>. As this approach is
+      feasible for comprehensive custom functionality, you can achieve the
+      execution of modifying queries that actually only need parameter binding
+      by annotating the query method with <code>@Modifying</code>:</para>
 
       <example>
         <title>Declaring manipulating queries</title>
@@ -569,11 +569,8 @@ int setFixedFirstnameFor(String firstname, String lastname);</programlisting>
     <para>The additional interface carries methods that allow you to execute
     <interfacename>Specification</interfacename>s in a variety of ways.</para>
 
-     For example, the 
-
-    <code>readAll</code>
-
-     method will return all entities that match the specification: 
+    <para>For example, the <code>readAll</code> method will return all
+    entities that match the specification: </para>
 
     <programlisting language="java">List&lt;T&gt; readAll(Specification&lt;T&gt; spec);</programlisting>
 
@@ -779,8 +776,8 @@ public interface UserRepository extends JpaRepository&lt;User, Long&gt; {
     </section>
   </section>
 
-  <section>
-    <title id="locking">Locking</title>
+  <section id="locking">
+    <title>Locking</title>
 
     <para>To specify the lock mode to be used the
     <interfacename>@Lock</interfacename> annotation can be used on query
@@ -915,7 +912,7 @@ public interface UserRepository extends JpaRepository&lt;User, Long&gt; {
   <section id="jpa.misc">
     <title>Miscellaneous</title>
 
-    <section>
+    <section id="jpa.misc.merging-persistence-units">
       <title>Merging persistence units</title>
 
       <para>Spring supports having multiple persistence units out of the box.
@@ -936,7 +933,7 @@ public interface UserRepository extends JpaRepository&lt;User, Long&gt; {
       </example>
     </section>
 
-    <section>
+    <section id="jpa.misc.entity-scanning">
       <title>Classpath scanning for @Entity classes and JPA mapping
       files</title>
 
@@ -974,6 +971,55 @@ public interface UserRepository extends JpaRepository&lt;User, Long&gt; {
         url="http://static.springsource.org/spring/docs/3.1.x/javadoc-api/org/springframework/orm/jpa/LocalContainerEntityManagerFactoryBean.html#setPackagesToScan(java.lang.String...)">JavaDoc</ulink>
         for details.</para>
       </note>
+    </section>
+
+    <section id="jpd.misc.cdi-integration">
+      <title>CDI integration</title>
+
+      <para>Instances of the repository interfaces are usually created by a
+      container, which Spring is the most natural choice when working with
+      Spring Data. There's sophisticated support to easily set up Spring to
+      create bean instances documented in <xref
+      linkend="repositories.create-instances"/>. As of version 1.1.0 Spring
+      Data JPA ships with a custom CDI extension that allows using the
+      repository abstraction in CDI environments. The extension is part of the
+      JAR so all you need to do to activate it is dropping the Spring Data JPA
+      JAR into your classpath.</para>
+
+      <para>You can now set up the infrastructure by implementing a CDI
+      <interfacename>Producer</interfacename> for the
+      <classname>EntityManagerFactory</classname>:</para>
+
+      <programlisting language="java">class EntityManagerFactoryProducer {
+
+  @Produces
+  @ApplicationScoped
+  public EntityManagerFactory createEntityManagerFactory() {
+    return Persistence.createEntityManagerFactory("my-presistence-unit");
+  }
+
+  public void close(@Disposes EntityManagerFactory entityManagerFactory) {
+    entityManagerFactory.close();
+  }
+}</programlisting>
+
+      <para>The Spring Data JPA CDI extension will pick up all
+      <interfacename>EntityManager</interfacename>s availables as CDI beans
+      and create a proxy for a Spring Data repository whenever an bean of a
+      repository type is requested by the container. Thus obtaining an
+      instance of a Spring Data repository is a matter of declaring an
+      <interfacename>@Inject</interfacename>ed property:</para>
+
+      <programlisting language="java">class RepositoryClient {
+
+  @Inject
+  PersonRepository repository;
+
+  public void businessMethod() {
+
+    List&lt;Person&gt; people = repository.findAll();
+  }
+}</programlisting>
     </section>
   </section>
 </chapter>
