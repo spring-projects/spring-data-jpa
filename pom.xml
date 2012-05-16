@@ -8,7 +8,7 @@
 	<name>Spring Data JPA</name>
 	<description>Spring Data module to provide sophisticated support for JPA repositories</description>
 	<url>http://www.springsource.org/spring-data</url>
-	<inceptionYear>2011</inceptionYear>
+	<inceptionYear>2011-2012</inceptionYear>
 	<organization>
 		<name>SpringSource</name>
 		<url>http://www.springsource.org</url>
@@ -87,23 +87,6 @@
 	</properties>
 	
 	<profiles>
-		<profile>
-			<id>staging</id>
-			<distributionManagement>
-				<site>
-					<id>spring-site-staging</id>
-					<url>file:///${java.io.tmpdir}/spring-data/data-jpa/docs/${project.version}</url>
-				</site>
-				<repository>
-					<id>spring-milestone-staging</id>
-					<url>file:///${java.io.tmpdir}/spring-data/data-jpa/milestone</url>
-				</repository>
-				<snapshotRepository>
-					<id>spring-snapshot-staging</id>
-					<url>file:///${java.io.tmpdir}/spring-data/data-jpa/snapshot</url>
-				</snapshotRepository>
-			</distributionManagement>
-		</profile>
 		
 		<profile>
 			<!-- Profile used when doing milestone or release ddeployments-->
@@ -631,18 +614,8 @@
 		<downloadUrl>http://www.springsource.org/spring-data</downloadUrl>
 		<site>
 			<id>static.springframework.org</id>
-			<url>scp://static.springframework.org/var/www/domains/springframework.org/static/htdocs/spring-data/data-jpa/snapshot-site/</url>
+			<url>scp://static.springframework.org/var/www/domains/springframework.org/static/htdocs/spring-data/data-jpa/docs/${project.version}</url>
 		</site>
-		<repository>
-			<id>spring-milestone</id>
-			<name>Spring Milestone Repository</name>
-			<url>s3://maven.springframework.org/milestone</url>
-		</repository>
-		<snapshotRepository>
-			<id>spring-snapshot</id>
-			<name>Spring Snapshot Repository</name>
-			<url>s3://maven.springframework.org/snapshot</url>
-		</snapshotRepository>
 	</distributionManagement>
 	
 	<ciManagement>
@@ -663,8 +636,8 @@
 	
 	<repositories>
 		<repository>
-			<id>spring-libs-milestone</id>
-			<url>http://repo.springsource.org/libs-milestone</url>
+			<id>spring-libs-release</id>
+			<url>http://repo.springsource.org/libs-release</url>
 		</repository>
 	</repositories>
 	
