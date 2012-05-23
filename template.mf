@@ -1,5 +1,5 @@
 Bundle-ManifestVersion: 2
-Bundle-SymbolicName: ${project.artifactId}
+Bundle-SymbolicName: org.springframework.data.jpa
 Bundle-Name: ${project.name}
 Bundle-Vendor: SpringSource
 Bundle-Version: ${project.version}
