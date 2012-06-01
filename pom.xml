@@ -442,6 +442,13 @@
 			<scope>test</scope>
 		</dependency>
 		
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-jpamodelgen</artifactId>
+			<version>1.2.0.Final</version>
+			<scope>provided</scope>
+		</dependency>
+		
 	</dependencies>
 	
 	<build>
