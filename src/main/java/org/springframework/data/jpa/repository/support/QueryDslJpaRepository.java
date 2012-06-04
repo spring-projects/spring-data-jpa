@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 the original author or authors.
+ * Copyright 2008-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,15 +23,12 @@ import javax.persistence.EntityManager;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.querydsl.EntityPathResolver;
 import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 import org.springframework.data.querydsl.SimpleEntityPathResolver;
 
 import com.mysema.query.jpa.JPQLQuery;
 import com.mysema.query.types.EntityPath;
-import com.mysema.query.types.Expression;
 import com.mysema.query.types.OrderSpecifier;
 import com.mysema.query.types.Predicate;
 import com.mysema.query.types.path.PathBuilder;
@@ -47,10 +44,9 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 
 	private static final EntityPathResolver DEFAULT_ENTITY_PATH_RESOLVER = SimpleEntityPathResolver.INSTANCE;
 
-	private final EntityManager em;
 	private final EntityPath<T> path;
 	private final PathBuilder<T> builder;
-	private final PersistenceProvider provider;
+	private final Querydsl querydsl;
 
 	/**
 	 * Creates a new {@link QueryDslJpaRepository} from the given domain class and {@link EntityManager}. This will use
@@ -60,7 +56,6 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 	 * @param entityManager must not be {@literal null}.
 	 */
 	public QueryDslJpaRepository(JpaEntityInformation<T, ID> entityInformation, EntityManager entityManager) {
-
 		this(entityInformation, entityManager, DEFAULT_ENTITY_PATH_RESOLVER);
 	}
 
@@ -76,10 +71,10 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 			EntityPathResolver resolver) {
 
 		super(entityInformation, entityManager);
-		this.em = entityManager;
+
 		this.path = resolver.createPath(entityInformation.getJavaType());
 		this.builder = new PathBuilder<T>(path.getType(), path.getMetadata());
-		this.provider = PersistenceProvider.fromEntityManager(entityManager);
+		this.querydsl = new Querydsl(entityManager, builder);
 	}
 
 	/*
@@ -113,7 +108,7 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 	public Page<T> findAll(Predicate predicate, Pageable pageable) {
 
 		JPQLQuery countQuery = createQuery(predicate);
-		JPQLQuery query = applyPagination(createQuery(predicate), pageable);
+		JPQLQuery query = querydsl.applyPagination(pageable, createQuery(predicate));
 
 		return new PageImpl<T>(query.list(path), pageable, countQuery.count());
 	}
@@ -133,60 +128,6 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 	 * @return the Querydsl {@link JPQLQuery}.
 	 */
 	protected JPQLQuery createQuery(Predicate... predicate) {
-		return QuerydslUtils.createQueryInstance(em, provider).from(path).where(predicate);
-	}
-
-	/**
-	 * Applies the given {@link Pageable} to the given {@link JPQLQuery}.
-	 * 
-	 * @param query must not be {@literal null}.
-	 * @param pageable
-	 * @return the Querydsl {@link JPQLQuery}.
-	 */
-	protected JPQLQuery applyPagination(JPQLQuery query, Pageable pageable) {
-
-		if (pageable == null) {
-			return query;
-		}
-
-		query.offset(pageable.getOffset());
-		query.limit(pageable.getPageSize());
-
-		return applySorting(query, pageable.getSort());
-	}
-
-	/**
-	 * Applies sorting to the given {@link JPQLQuery}.
-	 * 
-	 * @param query must not be {@literal null}.
-	 * @param sort
-	 * @return the Querydsl {@link JPQLQuery}
-	 */
-	protected JPQLQuery applySorting(JPQLQuery query, Sort sort) {
-
-		if (sort == null) {
-			return query;
-		}
-
-		for (Order order : sort) {
-			query.orderBy(toOrder(order));
-		}
-
-		return query;
-	}
-
-	/**
-	 * Transforms a plain {@link Order} into a QueryDsl specific {@link OrderSpecifier}.
-	 * 
-	 * @param order
-	 * @return
-	 */
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	protected OrderSpecifier<?> toOrder(Order order) {
-
-		Expression<Object> property = builder.get(order.getProperty());
-
-		return new OrderSpecifier(order.isAscending() ? com.mysema.query.types.Order.ASC
-				: com.mysema.query.types.Order.DESC, property);
+		return querydsl.createQuery(path).where(predicate);
 	}
 }

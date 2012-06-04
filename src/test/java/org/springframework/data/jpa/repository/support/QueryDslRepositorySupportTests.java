@@ -127,6 +127,10 @@ public class QueryDslRepositorySupportTests {
 
 		private static final QUser user = QUser.user;
 
+		public UserRepositoryImpl() {
+			super(User.class);
+		}
+
 		@Override
 		@PersistenceContext(unitName = "default")
 		public void setEntityManager(EntityManager entityManager) {

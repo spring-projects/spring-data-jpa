@@ -39,9 +39,20 @@ import com.mysema.query.types.path.PathBuilderFactory;
 @Repository
 public abstract class QueryDslRepositorySupport {
 
-	private PathBuilderFactory builderFactory = new PathBuilderFactory();
+	private final PathBuilder<?> builder;
+
 	private EntityManager entityManager;
-	private PersistenceProvider provider;
+	private Querydsl querydsl;
+
+	/**
+	 * Creates a new {@link QueryDslRepositorySupport} instance for the given domain type.
+	 * 
+	 * @param domainClass must not be {@literal null}.
+	 */
+	public QueryDslRepositorySupport(Class<?> domainClass) {
+		Assert.notNull(domainClass);
+		this.builder = new PathBuilderFactory().create(domainClass);
+	}
 
 	/**
 	 * Setter to inject {@link EntityManager}.
@@ -52,8 +63,8 @@ public abstract class QueryDslRepositorySupport {
 	public void setEntityManager(EntityManager entityManager) {
 
 		Assert.notNull(entityManager);
+		this.querydsl = new Querydsl(entityManager, builder);
 		this.entityManager = entityManager;
-		this.provider = PersistenceProvider.fromEntityManager(entityManager);
 	}
 
 	/**
@@ -62,6 +73,7 @@ public abstract class QueryDslRepositorySupport {
 	@PostConstruct
 	public void validate() {
 		Assert.notNull(entityManager, "EntityManager must not be null!");
+		Assert.notNull(querydsl, "Querydsl must not be null!");
 	}
 
 	/**
@@ -79,7 +91,7 @@ public abstract class QueryDslRepositorySupport {
 	 * @return the Querydsl {@link JPQLQuery}.
 	 */
 	protected JPQLQuery from(EntityPath<?>... paths) {
-		return QuerydslUtils.createQueryInstance(entityManager, provider).from(paths);
+		return querydsl.createQuery(paths);
 	}
 
 	/**
@@ -89,7 +101,6 @@ public abstract class QueryDslRepositorySupport {
 	 * @return the Querydsl {@link DeleteClause}.
 	 */
 	protected DeleteClause<JPADeleteClause> delete(EntityPath<?> path) {
-
 		return new JPADeleteClause(entityManager, path);
 	}
 
@@ -100,19 +111,26 @@ public abstract class QueryDslRepositorySupport {
 	 * @return the Querydsl {@link UpdateClause}.
 	 */
 	protected UpdateClause<JPAUpdateClause> update(EntityPath<?> path) {
-
 		return new JPAUpdateClause(entityManager, path);
 	}
 
 	/**
-	 * Returns a {@link PathBuilder} for the given type.
+	 * Returns a {@link PathBuilder} for the configured domain type.
 	 * 
 	 * @param <T>
-	 * @param type
 	 * @return the Querdsl {@link PathBuilder}.
 	 */
-	protected <T> PathBuilder<T> getBuilder(Class<T> type) {
+	@SuppressWarnings("unchecked")
+	protected <T> PathBuilder<T> getBuilder() {
+		return (PathBuilder<T>) builder;
+	}
 
-		return builderFactory.create(type);
+	/**
+	 * Returns the underlying Querydsl helper instance.
+	 * 
+	 * @return
+	 */
+	protected Querydsl getQuerydsl() {
+		return this.querydsl;
 	}
 }

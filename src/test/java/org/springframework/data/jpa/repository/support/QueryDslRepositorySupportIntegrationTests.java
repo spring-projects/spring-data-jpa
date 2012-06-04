@@ -24,6 +24,7 @@ import javax.persistence.PersistenceContext;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.support.QueryDslRepositorySupportTests.UserRepository;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -62,6 +63,10 @@ public class QueryDslRepositorySupportIntegrationTests {
 	}
 
 	static class ReconfiguringUserRepositoryImpl extends QueryDslRepositorySupport {
+
+		public ReconfiguringUserRepositoryImpl() {
+			super(User.class);
+		}
 
 		@Override
 		@PersistenceContext(unitName = "querydsl")
