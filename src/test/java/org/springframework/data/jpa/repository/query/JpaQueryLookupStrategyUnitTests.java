@@ -62,13 +62,14 @@ public class JpaQueryLookupStrategyUnitTests {
 		Method method = UserRepository.class.getMethod("findByFoo", String.class);
 		RepositoryMetadata metadata = new DefaultRepositoryMetadata(UserRepository.class);
 
-		Exception reference = new IllegalArgumentException();
+		Throwable reference = new RuntimeException();
 		when(em.createQuery(anyString())).thenThrow(reference);
 
 		try {
 			strategy.resolveQuery(method, metadata, namedQueries);
 		} catch (Exception e) {
-			assertThat(e, is(reference));
+			assertThat(e, is(instanceOf(IllegalArgumentException.class)));
+			assertThat(e.getCause(), is(reference));
 		}
 	}
 
