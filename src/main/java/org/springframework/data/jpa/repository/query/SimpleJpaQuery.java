@@ -65,7 +65,13 @@ final class SimpleJpaQuery extends AbstractJpaQuery {
 
 		// Try to create a Query object already to fail fast
 		if (!method.isNativeQuery()) {
-			em.createQuery(queryString);
+			try {
+				em.createQuery(queryString);
+			} catch (RuntimeException e) {
+				// Needed as there's ambiguities in how an invalid query string shall be expressed by the persistence provider
+				// http://java.net/projects/jpa-spec/lists/jsr338-experts/archive/2012-07/message/17
+				throw e instanceof IllegalArgumentException ? e : new IllegalArgumentException(e);
+			}
 		}
 	}
 
