@@ -56,6 +56,24 @@ public class OpenJpaNamespaceUserRepositoryTests extends NamespaceUserRepository
 
 	}
 
+	@Test
+	public void checkQueryValidationWithOpenJpa() {
+
+		try {
+			em.createQuery("something absurd");
+			fail("Creating query did not validate it");
+		} catch (Exception e) {
+			// expected
+		}
+
+		try {
+			em.createNamedQuery("not available");
+			fail("Creating invalid named query did not validate it");
+		} catch (Exception e) {
+			// expected
+		}
+	}
+
 	/**
 	 * Test case for https://issues.apache.org/jira/browse/OPENJPA-2018
 	 */
