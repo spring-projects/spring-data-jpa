@@ -247,7 +247,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 		return getQuery(new Specification<T>() {
 			public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
 				Path<?> path = root.get(entityInformation.getIdAttribute());
-				return path.in(cb.parameter(List.class, "ids"));
+				return path.in(cb.parameter(Iterable.class, "ids"));
 			}
 		}, (Sort) null).setParameter("ids", ids).getResultList();
 	}

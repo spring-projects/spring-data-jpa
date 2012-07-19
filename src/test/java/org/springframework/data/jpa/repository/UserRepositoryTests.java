@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 the original author or authors.
+ * Copyright 2008-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import static org.springframework.data.jpa.domain.sample.UserSpecifications.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -31,6 +32,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 
+import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -848,6 +850,24 @@ public class UserRepositoryTests {
 
 		assertThat(result.size(), is(3));
 		assertThat(result, hasItem(1));
+	}
+
+	/**
+	 * @see DATAJPA-232
+	 */
+	@Test
+	public void handlesIterableOfIdsCorrectly() {
+
+		flushTestUsers();
+
+		Set<Integer> set = new HashSet<Integer>();
+		set.add(firstUser.getId());
+		set.add(secondUser.getId());
+
+		Iterable<User> result = repository.findAll(set);
+
+		assertThat(result, is(Matchers.<User> iterableWithSize(2)));
+		assertThat(result, hasItems(firstUser, secondUser));
 	}
 
 	protected void flushTestUsers() {
