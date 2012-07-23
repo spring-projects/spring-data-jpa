@@ -438,7 +438,8 @@ public class User {
       in <filename>orm.xml</filename>.</para>
 
       <example>
-        <title>Declare query at the query method using @Query</title>
+        <title>Declare query at the query method using
+        <interfacename>@Query</interfacename></title>
 
         <programlisting language="java">public interface UserRepository extends JpaRepository&lt;User, Long&gt; {
 
@@ -456,6 +457,17 @@ public class User {
         dynamic sorting for native queries as we'd have to manipulate the
         actual query declared and we cannot do this reliably for native
         SQL.</para>
+
+        <example>
+          <title>Declare a native query at the query method using
+          <interfacename>@Query</interfacename></title>
+
+          <programlisting language="java">public interface UserRepository extends JpaRepository&lt;User, Long&gt; {
+
+  @Query(value = "SELECT FROM USERS WHERE EMAIL_ADDRESS = ?0", nativeQuery = true)
+  User findByEmailAddress(String emailAddress);
+}</programlisting>
+        </example>
       </simplesect>
     </section>
 
@@ -570,7 +582,7 @@ int setFixedFirstnameFor(String firstname, String lastname);</programlisting>
     <interfacename>Specification</interfacename>s in a variety of ways.</para>
 
     <para>For example, the <code>readAll</code> method will return all
-    entities that match the specification: </para>
+    entities that match the specification:</para>
 
     <programlisting language="java">List&lt;T&gt; readAll(Specification&lt;T&gt; spec);</programlisting>
 
