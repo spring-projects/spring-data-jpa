@@ -56,14 +56,12 @@ final class NamedQuery extends AbstractJpaQuery {
 
 		Parameters parameters = method.getParameters();
 
+		// Let's see if the referenced named query exists
+		em.createNamedQuery(queryName);
+
 		if (parameters.hasSortParameter()) {
 			throw new IllegalStateException(String.format("Finder method %s is backed " + "by a NamedQuery and must "
-					+ "not contain a sort parameter as we " + "cannot modify the query! Use @Query instead!", method));
-		}
-
-		if (parameters.hasPageableParameter()) {
-			LOG.warn("Finder method {} is backed by a NamedQuery" + " but contains a Pageable parameter! Sorting delivered "
-					+ "via this Pageable will not be applied!", method);
+					+ "not contain a sort parameter as we cannot modify the query! Use @Query instead!", method));
 		}
 
 		boolean weNeedToCreateCountQuery = !hasNamedQuery(em, countQueryName)
@@ -74,8 +72,10 @@ final class NamedQuery extends AbstractJpaQuery {
 			throw QueryCreationException.create(method, CANNOT_EXTRACT_QUERY);
 		}
 
-		// Let's see if the referenced named query exists
-		em.createNamedQuery(queryName);
+		if (parameters.hasPageableParameter()) {
+			LOG.warn("Finder method {} is backed by a NamedQuery" + " but contains a Pageable parameter! Sorting delivered "
+					+ "via this Pageable will not be applied!", method);
+		}
 	}
 
 	/**
@@ -108,7 +108,9 @@ final class NamedQuery extends AbstractJpaQuery {
 		LOG.debug("Looking up named query {}", queryName);
 
 		try {
-			return new NamedQuery(method, em);
+			RepositoryQuery query = new NamedQuery(method, em);
+			LOG.debug("Found named query {}!", queryName);
+			return query;
 		} catch (IllegalArgumentException e) {
 			return null;
 		}
