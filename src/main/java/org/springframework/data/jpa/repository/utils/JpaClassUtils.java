@@ -17,6 +17,9 @@ package org.springframework.data.jpa.repository.utils;
 
 import javax.persistence.EntityManager;
 
+import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
+
 /**
  * Utility class to work with classes.
  * 
@@ -34,19 +37,21 @@ public abstract class JpaClassUtils {
 	/**
 	 * Returns whether the given {@link EntityManager} is of the given type.
 	 * 
-	 * @param em
-	 * @param type the fully qualified expected {@link EntityManager} type.
+	 * @param em must not be {@literal null}.
+	 * @param type the fully qualified expected {@link EntityManager} type, must not be {@literal null} or empty.
 	 * @return
 	 */
-	@SuppressWarnings("unchecked")
 	public static boolean isEntityManagerOfType(EntityManager em, String type) {
+
+		Assert.notNull(em, "EntityManager must not be null!");
+		Assert.hasText(type, "EntityManager type must not be null!");
 
 		try {
 
-			Class<? extends EntityManager> emType = (Class<? extends EntityManager>) Class.forName(type);
+			ClassLoader loader = em.getDelegate().getClass().getClassLoader();
+			Class<?> emType = ClassUtils.forName(type, loader);
 
 			emType.cast(em);
-
 			return true;
 
 		} catch (Exception e) {
