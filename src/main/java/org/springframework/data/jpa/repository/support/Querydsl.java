@@ -104,7 +104,7 @@ public class Querydsl {
 		query.offset(pageable.getOffset());
 		query.limit(pageable.getPageSize());
 
-		return query;
+		return applySorting(pageable.getSort(), query);
 	}
 
 	/**

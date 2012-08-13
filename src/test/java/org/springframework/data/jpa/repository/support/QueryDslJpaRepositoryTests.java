@@ -26,12 +26,16 @@ import javax.persistence.PersistenceContext;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.jpa.domain.sample.QUser;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.mysema.query.types.Predicate;
 import com.mysema.query.types.expr.BooleanExpression;
 import com.mysema.query.types.path.PathBuilder;
 import com.mysema.query.types.path.PathBuilderFactory;
@@ -88,5 +92,24 @@ public class QueryDslJpaRepositoryTests {
 
 		assertThat(result.size(), is(2));
 		assertThat(result, hasItems(carter, dave));
+	}
+
+	/**
+	 * @see DATAJPA-243
+	 */
+	@Test
+	public void considersSortingProvidedThroughPageable() {
+
+		Predicate lastnameContainsE = user.lastname.contains("e");
+
+		Page<User> result = repository.findAll(lastnameContainsE, new PageRequest(0, 1, Direction.ASC, "lastname"));
+
+		assertThat(result.getContent(), hasSize(1));
+		assertThat(result.getContent().get(0), is(carter));
+
+		result = repository.findAll(lastnameContainsE, new PageRequest(0, 1, Direction.DESC, "lastname"));
+
+		assertThat(result.getContent(), hasSize(1));
+		assertThat(result.getContent().get(0), is(dave));
 	}
 }
