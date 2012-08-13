@@ -24,6 +24,7 @@ import org.apache.openjpa.persistence.OpenJPAQuery;
 import org.eclipse.persistence.jpa.JpaQuery;
 import org.hibernate.ejb.HibernateQuery;
 import org.springframework.data.jpa.repository.query.QueryExtractor;
+import org.springframework.util.Assert;
 
 /**
  * Enumeration representing peristence providers to be used.
@@ -112,10 +113,12 @@ public enum PersistenceProvider implements QueryExtractor {
 	 * Determines the {@link PersistenceProvider} from the given {@link EntityManager}. If no special one can be
 	 * determined {@value #GENERIC_JPA} will be returned.
 	 * 
-	 * @param em
-	 * @return
+	 * @param em must not be {@literal null}.
+	 * @return will never be {@literal null}.
 	 */
 	public static PersistenceProvider fromEntityManager(EntityManager em) {
+
+		Assert.notNull(em);
 
 		for (PersistenceProvider provider : values()) {
 			if (isEntityManagerOfType(em, provider.entityManagerClassName)) {
