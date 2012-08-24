@@ -1,6 +1,13 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 1.1.2.RELEASE (2012-08-24)
+---------------------------------------------
+* Namespace XSDs of current release version should refer to repositories XSD in version 1.0 (DATAJPA-239)
+* NamedQuery should defer warning logs until the named query is actually detected (DATAJPA-241)
+* JpaClassUtils#isEntityManagerOfType is not safe within an OSGI Environment (DATAJPA-244)
+* List compile time dependencies explicitly (DATAJPA-245)
+
 Changes in version 1.1.1.RELEASE (2012-07-23)
 ---------------------------------------------
 * Throw more appropriate exception if manually defined query in @Query is invalid (DATAJPA-226)
