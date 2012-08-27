@@ -641,10 +641,10 @@ int setFixedFirstnameFor(String firstname, String lastname);</programlisting>
     <para>The additional interface carries methods that allow you to execute
     <interfacename>Specification</interfacename>s in a variety of ways.</para>
 
-    <para>For example, the <code>readAll</code> method will return all
+    <para>For example, the <code>findAll</code> method will return all
     entities that match the specification:</para>
 
-    <programlisting language="java">List&lt;T&gt; readAll(Specification&lt;T&gt; spec);</programlisting>
+    <programlisting language="java">List&lt;T&gt; findAll(Specification&lt;T&gt; spec);</programlisting>
 
     <para>The <interfacename>Specification</interfacename> interface is as
     follows:</para>
@@ -716,7 +716,7 @@ int setFixedFirstnameFor(String firstname, String lastname);</programlisting>
       <title>Combined Specifications</title>
 
       <para><programlisting language="java">MonetaryAmount amount = new MonetaryAmount(200.0, Currencies.DOLLAR);
-List&lt;Customer&gt; customers = customerRepository.readAll(
+List&lt;Customer&gt; customers = customerRepository.findAll(
   where(isLongTermCustomer()).or(hasSalesOfMoreThan(amount)));</programlisting>As
       you can see, <classname>Specifications</classname> offers some glue-code
       methods to chain and combine
@@ -784,7 +784,7 @@ class UserManagementImpl implements UserManagement {
 
     Role role = roleRepository.findByName(roleName);
 
-    for (User user : userRepository.readAll()) {
+    for (User user : userRepository.findAll()) {
       user.addRole(role);
       userRepository.save(user);
     }
