@@ -29,7 +29,7 @@
 
 &lt;aop:config&gt;
   &lt;aop:advisor advice-ref="customizableTraceInterceptor"
-    pointcut="execution(public * org.sfw.data.jpa.repository.JpaRepository+.*(..))"/&gt;
+    pointcut="execution(public * org.springframework.data.jpa.repository.JpaRepository+.*(..))"/&gt;
 &lt;/aop:config&gt;</programlisting>
         </answer>
       </qandaentry>
