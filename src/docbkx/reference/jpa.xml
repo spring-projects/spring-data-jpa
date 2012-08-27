@@ -319,7 +319,7 @@ class ApplicationConfig {
                 <entry><code>findByFirstnameStartingWith</code></entry>
 
                 <entry><code>… where x.firstname like ?1</code> (parameter
-                bound with prepended <code>%</code>)</entry>
+                bound with appended <code>%</code>)</entry>
               </row>
 
               <row>
@@ -328,7 +328,7 @@ class ApplicationConfig {
                 <entry><code>findByFirstnameEndingWith</code></entry>
 
                 <entry><code>… where x.firstname like ?1</code> (parameter
-                bound with appended <code>%</code>)</entry>
+                bound with prepended <code>%</code>)</entry>
               </row>
 
               <row>
