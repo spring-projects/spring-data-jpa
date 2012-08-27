@@ -323,7 +323,7 @@ class ApplicationConfig {
               </row>
 
               <row>
-                <entry><code>ngWith</code></entry>
+                <entry><code>EndingWith</code></entry>
 
                 <entry><code>findByFirstnameEndingWith</code></entry>
 
