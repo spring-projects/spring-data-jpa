@@ -921,6 +921,19 @@ public class UserRepositoryTests {
 		assertThat(all.getContent().isEmpty(), is(false));
 	}
 
+	/**
+	 * @see DATAJPA-252
+	 */
+	@Test
+	public void bindsSortingToOuterJoinCorrectly() {
+
+		flushTestUsers();
+
+		// Managers not set, make sure adding the sort does not rule out those Users
+		Page<User> result = repository.findAllPaged(new PageRequest(0, 10, new Sort("manager.lastname")));
+		assertThat(result.getContent(), hasSize((int) repository.count()));
+	}
+
 	private Page<User> executeSpecWithSort(Sort sort) {
 
 		flushTestUsers();

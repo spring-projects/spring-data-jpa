@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 the original author or authors.
+ * Copyright 2008-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,11 @@ package org.springframework.data.jpa.repository.query;
 import static java.util.regex.Pattern.*;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -38,6 +40,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * Simple utility class to create JPA queries.
@@ -59,6 +62,9 @@ public abstract class QueryUtils {
 
 	private static final String IDENTIFIER = "[\\p{Alnum}._$]+";
 	private static final String IDENTIFIER_GROUP = String.format("(%s)", IDENTIFIER);
+
+	private static final String LEFT_JOIN = "left (outer )?join " + IDENTIFIER + " (as )?" + IDENTIFIER_GROUP;
+	private static final Pattern LEFT_JOIN_PATTERN = Pattern.compile(LEFT_JOIN, Pattern.CASE_INSENSITIVE);
 
 	static {
 
@@ -128,24 +134,76 @@ public abstract class QueryUtils {
 
 		Assert.hasText(query);
 
-		if (null == sort) {
+		if (null == sort || !sort.iterator().hasNext()) {
 			return query;
 		}
 
 		StringBuilder builder = new StringBuilder(query);
-		builder.append(" order by");
 
-		for (Order order : sort) {
-			builder.append(String.format(" %s.%s %s,", alias, order.getProperty(), toJpaDirection(order)));
+		if (!query.contains("order by")) {
+			builder.append(" order by ");
+		} else {
+			builder.append(", ");
 		}
 
-		builder.deleteCharAt(builder.length() - 1);
+		Set<String> aliases = getOuterJoinAliases(query);
+
+		for (Order order : sort) {
+			builder.append(getOrderClause(aliases, alias, order));
+		}
+
+		builder.delete(builder.length() - 2, builder.length());
 
 		return builder.toString();
 	}
 
-	public static String toJpaDirection(Order order) {
+	/**
+	 * Returns the order clause for the given {@link Order}. Will prefix the clause with the given alias if the referenced
+	 * property refers to a join alias.
+	 * 
+	 * @param joinAliases the join aliases of the original query.
+	 * @param alias the alias for the root entity.
+	 * @param order the order object to build the clause for.
+	 * @return
+	 */
+	private static String getOrderClause(Set<String> joinAliases, String alias, Order order) {
 
+		String property = order.getProperty();
+		boolean qualifyReference = true;
+
+		for (String joinAlias : joinAliases) {
+			if (property.startsWith(joinAlias)) {
+				qualifyReference = false;
+				break;
+			}
+		}
+
+		return String.format("%s%s %s, ", qualifyReference ? alias + "." : "", property, toJpaDirection(order));
+	}
+
+	/**
+	 * Returns the aliases used for {@code left (outer) join}s.
+	 * 
+	 * @param query
+	 * @return
+	 */
+	static Set<String> getOuterJoinAliases(String query) {
+
+		Set<String> result = new HashSet<String>();
+		Matcher matcher = LEFT_JOIN_PATTERN.matcher(query);
+
+		while (matcher.find()) {
+
+			String alias = matcher.group(3);
+			if (StringUtils.hasText(alias)) {
+				result.add(alias);
+			}
+		}
+
+		return result;
+	}
+
+	private static String toJpaDirection(Order order) {
 		return order.getDirection().name().toLowerCase(Locale.US);
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 the original author or authors.
+ * Copyright 2008-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,7 +68,7 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	 */
 	User findByEmailAddress(String emailAddress);
 
-	@Query("select u from User u ")
+	@Query("select u from User u left outer join u.manager as manager")
 	Page<User> findAllPaged(Pageable pageable);
 
 	/**

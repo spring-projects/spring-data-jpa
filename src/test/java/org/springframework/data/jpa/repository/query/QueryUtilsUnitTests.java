@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 the original author or authors.
+ * Copyright 2008-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,15 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 import static org.springframework.data.jpa.repository.query.QueryUtils.*;
 
+import java.util.Set;
+
 import org.hamcrest.Matcher;
 import org.junit.Test;
+import org.springframework.data.domain.Sort;
 
 /**
  * Unit test for {@link QueryUtils}.
@@ -131,8 +134,52 @@ public class QueryUtilsUnitTests {
 		assertCountQuery(FQ_QUERY, "select count(u) from org.acme.domain.User$Foo_Bar u");
 	}
 
-	private void assertCountQuery(String originalQuery, String countQuery) {
+	/**
+	 * @see DATAJPA-252
+	 */
+	@Test
+	public void detectsJoinAliasesCorrectly() {
 
+		Set<String> aliases = getOuterJoinAliases("select p from Person p left outer join x.foo b2_$ar where …");
+		assertThat(aliases, hasSize(1));
+		assertThat(aliases, hasItems("b2_$ar"));
+
+		aliases = getOuterJoinAliases("select p from Person p left join x.foo b2_$ar where …");
+		assertThat(aliases, hasSize(1));
+		assertThat(aliases, hasItems("b2_$ar"));
+
+		aliases = getOuterJoinAliases("select p from Person p left outer join x.foo as b2_$ar, left join x.bar as foo where …");
+		assertThat(aliases, hasSize(2));
+		assertThat(aliases, hasItems("b2_$ar", "foo"));
+
+		aliases = getOuterJoinAliases("select p from Person p left join x.foo as b2_$ar, left outer join x.bar foo where …");
+		assertThat(aliases, hasSize(2));
+		assertThat(aliases, hasItems("b2_$ar", "foo"));
+	}
+
+	/**
+	 * @see DATAJPA-252
+	 */
+	@Test
+	public void doesNotPrefixOrderReferenceIfOuterJoinAliasDetected() {
+
+		String query = "select p from Person p left join p.address address";
+		assertThat(applySorting(query, new Sort("address.city")), endsWith("order by address.city asc"));
+		assertThat(applySorting(query, new Sort("address.city", "lastname"), "p"),
+				endsWith("order by address.city asc, p.lastname asc"));
+	}
+
+	/**
+	 * @see DATAJPA-252
+	 */
+	@Test
+	public void extendsExistingOrderByClausesCorrectly() {
+
+		String query = "select p from Person p order by p.lastname asc";
+		assertThat(applySorting(query, new Sort("firstname"), "p"), endsWith("order by p.lastname asc, p.firstname asc"));
+	}
+
+	private void assertCountQuery(String originalQuery, String countQuery) {
 		assertThat(createCountQueryFor(originalQuery), is(countQuery));
 	}
 }
