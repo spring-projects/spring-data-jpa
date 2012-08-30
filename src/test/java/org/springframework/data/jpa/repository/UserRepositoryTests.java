@@ -443,7 +443,21 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 		Specification<User> spec = where(userHasFirstname("Oliver")).or(userHasLastname("Arrasz"));
-		assertThat(repository.findAll(spec).size(), is(2));
+		assertThat(repository.findAll(spec), hasSize(2));
+	}
+
+	/**
+	 * @see DATAJPA-253
+	 */
+	@Test
+	public void executesNegatingSpecificationCorrectly() {
+
+		flushTestUsers();
+		Specification<User> spec = not(userHasFirstname("Oliver")).and(userHasLastname("Arrasz"));
+		List<User> result = repository.findAll(spec);
+
+		assertThat(result, hasSize(1));
+		assertThat(result, hasItem(secondUser));
 	}
 
 	@Test
