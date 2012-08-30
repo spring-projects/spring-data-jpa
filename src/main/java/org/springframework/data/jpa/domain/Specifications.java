@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 the original author or authors.
+ * Copyright 2008-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,8 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
+import org.springframework.util.Assert;
+
 /**
  * Helper class to easily combine {@link Specification} instances.
  * 
@@ -27,15 +29,16 @@ import javax.persistence.criteria.Root;
  */
 public class Specifications<T> implements Specification<T> {
 
+	private static final String NOT_NULL = "Specification given to %s(…) must not be null!";
+
 	private final Specification<T> spec;
 
 	/**
 	 * Creates a new {@link Specifications} wrapper for the given {@link Specification}.
 	 * 
-	 * @param spec
+	 * @param spec must not be {@literal null}.
 	 */
 	private Specifications(Specification<T> spec) {
-
 		this.spec = spec;
 	}
 
@@ -43,26 +46,28 @@ public class Specifications<T> implements Specification<T> {
 	 * Simple static factory method to add some syntactic sugar around a {@link Specification}.
 	 * 
 	 * @param <T>
-	 * @param spec
+	 * @param spec must not be {@literal null}.
 	 * @return
 	 */
 	public static <T> Specifications<T> where(Specification<T> spec) {
 
+		Assert.notNull(spec, String.format(NOT_NULL, "where"));
 		return new Specifications<T>(spec);
 	}
 
 	/**
 	 * ANDs the given {@link Specification} to the current one.
 	 * 
-	 * @param other
+	 * @param <T>
+	 * @param other must not be {@literal null}.
 	 * @return
 	 */
 	public Specifications<T> and(final Specification<T> other) {
 
+		Assert.notNull(spec, String.format(NOT_NULL, "and"));
+
 		return new Specifications<T>(new Specification<T>() {
-
 			public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder builder) {
-
 				return builder.and(spec.toPredicate(root, query, builder), other.toPredicate(root, query, builder));
 			}
 		});
@@ -71,15 +76,16 @@ public class Specifications<T> implements Specification<T> {
 	/**
 	 * ORs the given specification to the current one.
 	 * 
-	 * @param other
+	 * @param <T>
+	 * @param other must not be {@literal null}.
 	 * @return
 	 */
 	public Specifications<T> or(final Specification<T> other) {
 
+		Assert.notNull(spec, String.format(NOT_NULL, "or"));
+
 		return new Specifications<T>(new Specification<T>() {
-
 			public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder builder) {
-
 				return builder.or(spec.toPredicate(root, query, builder), other.toPredicate(root, query, builder));
 			}
 		});
@@ -89,30 +95,25 @@ public class Specifications<T> implements Specification<T> {
 	 * Negates the given {@link Specification}.
 	 * 
 	 * @param <T>
-	 * @param spec
+	 * @param spec must not be {@literal null}.
 	 * @return
 	 */
 	public static <T> Specifications<T> not(final Specification<T> spec) {
 
-		return new Specifications<T>(spec) {
+		Assert.notNull(spec, String.format(NOT_NULL, "not"));
 
-			@Override
+		return new Specifications<T>(new Specification<T>() {
 			public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder builder) {
-
 				return builder.not(spec.toPredicate(root, query, builder));
 			}
-		};
+		});
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see org.springframework.data.jpa.domain.Specification#toPredicate(javax.
-	 * persistence.criteria.Root, javax.persistence.criteria.CriteriaQuery,
-	 * javax.persistence.criteria.CriteriaBuilder)
+	 * @see org.springframework.data.jpa.domain.Specification#toPredicate(javax.persistence.criteria.Root, javax.persistence.criteria.CriteriaQuery, javax.persistence.criteria.CriteriaBuilder)
 	 */
 	public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder builder) {
-
 		return spec.toPredicate(root, query, builder);
 	}
 }
