@@ -27,6 +27,7 @@ import java.util.regex.Pattern;
 import javax.persistence.EntityManager;
 import javax.persistence.Parameter;
 import javax.persistence.Query;
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.From;
@@ -268,6 +269,26 @@ public abstract class QueryUtils {
 		}
 
 		return orders;
+	}
+
+	/**
+	 * Executes a count query and transparently sums up all values returned.
+	 * 
+	 * @param query must not be {@literal null}.
+	 * @return
+	 */
+	public static Long executeCountQuery(TypedQuery<Long> query) {
+
+		Assert.notNull(query);
+
+		List<Long> totals = query.getResultList();
+		Long total = 0L;
+
+		for (Long element : totals) {
+			total += element == null ? 0 : element;
+		}
+
+		return total;
 	}
 
 	/**

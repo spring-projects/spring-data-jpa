@@ -40,6 +40,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.query.QueryUtils;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
@@ -402,7 +403,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 		query.setFirstResult(pageable.getOffset());
 		query.setMaxResults(pageable.getPageSize());
 
-		Long total = getCountQuery(spec).getSingleResult();
+		Long total = QueryUtils.executeCountQuery(getCountQuery(spec));
 		List<T> content = total > pageable.getOffset() ? query.getResultList() : Collections.<T> emptyList();
 
 		return new PageImpl<T>(content, pageable, total);
