@@ -97,6 +97,7 @@ public abstract class JpaQueryExecution {
 
 			// Execute query to compute total
 			TypedQuery<Long> projection = repositoryQuery.createCountQuery(values);
+
 			List<Long> totals = projection.getResultList();
 			Long total = totals.size() == 1 ? totals.get(0) : totals.size();
 
