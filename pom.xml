@@ -590,7 +590,7 @@
 			<plugin>
 				<groupId>com.mysema.maven</groupId>
 				<artifactId>maven-apt-plugin</artifactId>
-				<version>1.0.2</version>
+				<version>1.0.4</version>
 				<configuration>
 					<processor>com.mysema.query.apt.jpa.JPAAnnotationProcessor</processor>
 				</configuration>
