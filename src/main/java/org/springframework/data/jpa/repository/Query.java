@@ -38,7 +38,8 @@ public @interface Query {
 
 	/**
 	 * Defines a special count query that shall be used for pagination queries to lookup the total number of elements for
-	 * a page. If non is configured we will derive the count query from the method name.
+	 * a page. If non is configured we will derive the count query from the query defined in {@link #value()} or the
+	 * method name if {@link #value()} is not configured.
 	 */
 	String countQuery() default "";
 
