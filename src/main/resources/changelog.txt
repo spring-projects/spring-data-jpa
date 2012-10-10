@@ -1,6 +1,15 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 1.2.0.GA (2012-10-10)
+----------------------------------------
+* Resolve conflicts between Spring Data Commons Core, JPA and Mongo (DATAJPA-146)
+* Improved reference documentation/JavaDoc (DATAJPA-251, DATAJPA-261, DATAJPA-174, DATAJPA-238)
+* Upgrade to latest Querydsl 2.8.0, APT 1.0.4 (DATAJPA-259, DATAJPA-260)
+* Improved detection of joins to make sure sorting gets applied correctly (DATAJPA-252)
+* Fixed application of Specifications.not(…) (DATAJPA-253)
+* Fixed detection of total elements when paging over partitioned entities with EclipseLink (DATAJPA-257)
+
 Changes in version 1.2.0.RC1 (2012-07-24)
 -----------------------------------------
 * Sorting of paginated results is not working when Querydsl is used (DATAJPA-243)
