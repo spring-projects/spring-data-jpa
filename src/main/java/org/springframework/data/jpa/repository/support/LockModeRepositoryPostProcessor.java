@@ -67,7 +67,7 @@ public enum LockModeRepositoryPostProcessor implements RepositoryProxyPostProces
 	 * @see ThreadBoundLockMetadata
 	 * @author Oliver Gierke
 	 */
-	private static enum LockModePopulatingMethodIntercceptor implements MethodInterceptor {
+	static enum LockModePopulatingMethodIntercceptor implements MethodInterceptor {
 
 		INSTANCE;
 
@@ -88,7 +88,11 @@ public enum LockModeRepositoryPostProcessor implements RepositoryProxyPostProces
 			LockModeType lockMode = (LockModeType) AnnotationUtils.getValue(annotation);
 			TransactionSynchronizationManager.bindResource(method, lockMode == null ? NULL : lockMode);
 
-			return invocation.proceed();
+			try {
+				return invocation.proceed();
+			} finally {
+				TransactionSynchronizationManager.unbindResource(method);
+			}
 		}
 	}
 
