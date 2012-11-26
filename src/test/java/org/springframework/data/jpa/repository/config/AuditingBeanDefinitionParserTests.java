@@ -76,7 +76,9 @@ public class AuditingBeanDefinitionParserTests {
 	private BeanDefinition getBeanDefinition(String configFile) {
 
 		DefaultListableBeanFactory factory = loadFactoryFrom(configFile);
-		return factory.getBeanDefinition(AuditingBeanDefinitionParser.AUDITING_ENTITY_LISTENER_CLASS_NAME);
+		BeanDefinition definition = factory
+				.getBeanDefinition(AuditingBeanDefinitionParser.AUDITING_ENTITY_LISTENER_CLASS_NAME);
+		return (BeanDefinition) definition.getPropertyValues().getPropertyValue("auditingHandler").getValue();
 	}
 
 	private DefaultListableBeanFactory loadFactoryFrom(String configFile) {

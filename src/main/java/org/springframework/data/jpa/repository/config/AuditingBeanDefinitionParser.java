@@ -17,8 +17,6 @@ package org.springframework.data.jpa.repository.config;
 
 import static org.springframework.beans.factory.support.BeanDefinitionBuilder.*;
 
-import org.springframework.aop.framework.ProxyFactoryBean;
-import org.springframework.aop.target.LazyInitTargetSource;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
@@ -26,7 +24,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.util.StringUtils;
+import org.springframework.data.config.AuditingHandlerBeanDefinitionParser;
 import org.w3c.dom.Element;
 
 /**
@@ -39,52 +37,29 @@ public class AuditingBeanDefinitionParser implements BeanDefinitionParser {
 	static final String AUDITING_ENTITY_LISTENER_CLASS_NAME = "org.springframework.data.jpa.domain.support.AuditingEntityListener";
 	private static final String AUDITING_BFPP_CLASS_NAME = "org.springframework.data.jpa.domain.support.AuditingBeanFactoryPostProcessor";
 
+	private final BeanDefinitionParser auditingHandlerParser = new AuditingHandlerBeanDefinitionParser();
+
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.springframework.beans.factory.xml.BeanDefinitionParser#parse(org.
-	 * w3c.dom.Element, org.springframework.beans.factory.xml.ParserContext)
+	 * @see org.springframework.beans.factory.xml.BeanDefinitionParser#parse(org.w3c.dom.Element, org.springframework.beans.factory.xml.ParserContext)
 	 */
 	public BeanDefinition parse(Element element, ParserContext parser) {
 
 		new SpringConfiguredBeanDefinitionParser().parse(element, parser);
 
+		BeanDefinition auditingHandlerDefinition = auditingHandlerParser.parse(element, parser);
+
 		BeanDefinitionBuilder builder = rootBeanDefinition(AUDITING_ENTITY_LISTENER_CLASS_NAME);
+		builder.addPropertyValue("auditingHandler", auditingHandlerDefinition);
 		builder.setScope("prototype");
-
-		String auditorAwareRef = element.getAttribute("auditor-aware-ref");
-
-		if (StringUtils.hasText(auditorAwareRef)) {
-			builder.addPropertyValue("auditorAware", createLazyInitTargetSourceBeanDefinition(auditorAwareRef));
-		}
-
-		builder.addPropertyValue("dateTimeForNow", element.getAttribute("set-dates"));
-
-		String dateTimeProviderRef = element.getAttribute("date-time-provider-ref");
-		if (StringUtils.hasText(dateTimeProviderRef)) {
-			builder.addPropertyReference("dateTimeProvider", dateTimeProviderRef);
-		}
 
 		registerInfrastructureBeanWithId(builder.getRawBeanDefinition(), AUDITING_ENTITY_LISTENER_CLASS_NAME, parser,
 				element);
 
-		RootBeanDefinition def = new RootBeanDefinition();
-		def.setBeanClassName(AUDITING_BFPP_CLASS_NAME);
+		RootBeanDefinition def = new RootBeanDefinition(AUDITING_BFPP_CLASS_NAME);
 		registerInfrastructureBeanWithId(def, AUDITING_BFPP_CLASS_NAME, parser, element);
 
 		return null;
-	}
-
-	private BeanDefinition createLazyInitTargetSourceBeanDefinition(String auditorAwareRef) {
-
-		BeanDefinitionBuilder targetSourceBuilder = rootBeanDefinition(LazyInitTargetSource.class);
-		targetSourceBuilder.addPropertyValue("targetBeanName", auditorAwareRef);
-
-		BeanDefinitionBuilder builder = rootBeanDefinition(ProxyFactoryBean.class);
-		builder.addPropertyValue("targetSource", targetSourceBuilder.getBeanDefinition());
-
-		return builder.getBeanDefinition();
 	}
 
 	private void registerInfrastructureBeanWithId(AbstractBeanDefinition def, String id, ParserContext context,

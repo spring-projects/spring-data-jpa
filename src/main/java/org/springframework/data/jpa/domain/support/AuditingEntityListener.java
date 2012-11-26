@@ -18,14 +18,9 @@ package org.springframework.data.jpa.domain.support;
 import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 
-import org.joda.time.DateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Configurable;
+import org.springframework.data.auditing.AuditingHandler;
 import org.springframework.data.domain.Auditable;
-import org.springframework.data.domain.AuditorAware;
-import org.springframework.util.Assert;
 
 /**
  * JPA entity listener to capture auditing information on persiting and updating entities. To get this one flying be
@@ -50,55 +45,15 @@ import org.springframework.util.Assert;
  * @author Oliver Gierke
  */
 @Configurable
-public class AuditingEntityListener<T> implements InitializingBean {
+public class AuditingEntityListener<T> {
 
-	private static final Logger LOG = LoggerFactory.getLogger(AuditingEntityListener.class);
-
-	private AuditorAware<T> auditorAware;
-	private DateTimeProvider dateTimeProvider = CurrentDateTimeProvider.INSTANCE;
-
-	private boolean dateTimeForNow = true;
-	private boolean modifyOnCreation = true;
+	private AuditingHandler<T> handler;
 
 	/**
-	 * Setter to inject a {@code AuditorAware} component to retrieve the current auditor.
-	 * 
-	 * @param auditorAware the auditorAware to set
+	 * @param auditingHandler the handler to set
 	 */
-	public void setAuditorAware(final AuditorAware<T> auditorAware) {
-
-		Assert.notNull(auditorAware);
-		this.auditorAware = auditorAware;
-	}
-
-	/**
-	 * Setter do determine if {@link Auditable#setCreatedDate(DateTime)} and
-	 * {@link Auditable#setLastModifiedDate(DateTime)} shall be filled with the current Java time. Defaults to
-	 * {@code true}. One might set this to {@code false} to use database features to set entity time.
-	 * 
-	 * @param dateTimeForNow the dateTimeForNow to set
-	 */
-	public void setDateTimeForNow(boolean dateTimeForNow) {
-		this.dateTimeForNow = dateTimeForNow;
-	}
-
-	/**
-	 * Set this to false if you want to treat entity creation as modification and thus set the current date as
-	 * modification date, too. Defaults to {@code true}.
-	 * 
-	 * @param modifyOnCreation if modification information shall be set on creation, too
-	 */
-	public void setModifyOnCreation(final boolean modifyOnCreation) {
-		this.modifyOnCreation = modifyOnCreation;
-	}
-
-	/**
-	 * Sets the {@link DateTimeProvider} to be used to determine the dates to be set.
-	 * 
-	 * @param dateTimeProvider
-	 */
-	public void setDateTimeProvider(DateTimeProvider dateTimeProvider) {
-		this.dateTimeProvider = dateTimeProvider == null ? CurrentDateTimeProvider.INSTANCE : dateTimeProvider;
+	public void setAuditingHandler(AuditingHandler<T> auditingHandler) {
+		this.handler = auditingHandler;
 	}
 
 	/**
@@ -109,8 +64,7 @@ public class AuditingEntityListener<T> implements InitializingBean {
 	 */
 	@PrePersist
 	public void touchForCreate(Object target) {
-
-		touch(target, true);
+		handler.markCreated(target);
 	}
 
 	/**
@@ -121,89 +75,6 @@ public class AuditingEntityListener<T> implements InitializingBean {
 	 */
 	@PreUpdate
 	public void touchForUpdate(Object target) {
-
-		touch(target, false);
-	}
-
-	private void touch(Object target, boolean isNew) {
-
-		if (!(target instanceof Auditable)) {
-			return;
-		}
-
-		@SuppressWarnings("unchecked")
-		Auditable<T, ?> auditable = (Auditable<T, ?>) target;
-
-		T auditor = touchAuditor(auditable, isNew);
-		DateTime now = dateTimeForNow ? touchDate(auditable, isNew) : null;
-
-		Object defaultedNow = now == null ? "not set" : now;
-		Object defaultedAuditor = auditor == null ? "unknown" : auditor;
-
-		LOG.debug("Touched {} - Last modification at {} by {}", new Object[] { auditable, defaultedNow, defaultedAuditor });
-	}
-
-	/**
-	 * Sets modifying and creating auditioner. Creating auditioner is only set on new auditables.
-	 * 
-	 * @param auditable
-	 * @return
-	 */
-	private T touchAuditor(final Auditable<T, ?> auditable, boolean isNew) {
-
-		if (null == auditorAware) {
-			return null;
-		}
-
-		T auditor = auditorAware.getCurrentAuditor();
-
-		if (isNew) {
-
-			auditable.setCreatedBy(auditor);
-
-			if (!modifyOnCreation) {
-				return auditor;
-			}
-		}
-
-		auditable.setLastModifiedBy(auditor);
-
-		return auditor;
-	}
-
-	/**
-	 * Touches the auditable regarding modification and creation date. Creation date is only set on new auditables.
-	 * 
-	 * @param auditable
-	 * @return
-	 */
-	private DateTime touchDate(final Auditable<T, ?> auditable, boolean isNew) {
-
-		DateTime now = dateTimeProvider.getDateTime();
-
-		if (isNew) {
-			auditable.setCreatedDate(now);
-
-			if (!modifyOnCreation) {
-				return now;
-			}
-		}
-
-		auditable.setLastModifiedDate(now);
-
-		return now;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
-	 */
-	public void afterPropertiesSet() {
-
-		if (auditorAware == null) {
-			LOG.debug("No AuditorAware set! Auditing will not be applied!");
-		}
+		handler.markModified(target);
 	}
 }
