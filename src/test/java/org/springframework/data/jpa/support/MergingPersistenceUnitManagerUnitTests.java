@@ -72,8 +72,6 @@ public class MergingPersistenceUnitManagerUnitTests {
 
 		assertThat(info.getMappingFileNames().size(), is(2));
 		assertThat(info.getMappingFileNames(), hasItems("foo.xml", "bar.xml"));
-
-		System.out.println(info.getPersistenceUnitRootUrl());
 	}
 
 	@Test
