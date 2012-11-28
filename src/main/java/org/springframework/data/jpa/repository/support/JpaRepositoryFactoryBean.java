@@ -20,6 +20,7 @@ import java.io.Serializable;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
+import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.core.support.RepositoryFactorySupport;
 import org.springframework.data.repository.core.support.TransactionalRepositoryFactoryBeanSupport;
@@ -45,8 +46,8 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID extends
 	 */
 	@PersistenceContext
 	public void setEntityManager(EntityManager entityManager) {
-
 		this.entityManager = entityManager;
+		setMappingContext(new JpaMetamodelMappingContext(entityManager.getMetamodel()));
 	}
 
 	/*

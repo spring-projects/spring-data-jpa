@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 the original author or authors.
+ * Copyright 2008-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,6 +50,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	public JpaRepositoryFactory(EntityManager entityManager) {
 
 		Assert.notNull(entityManager);
+
 		this.entityManager = entityManager;
 		this.extractor = PersistenceProvider.fromEntityManager(entityManager);
 		this.lockModePostProcessor = LockModeRepositoryPostProcessor.INSTANCE;
@@ -59,14 +60,10 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.springframework.data.repository.support.RepositoryFactorySupport#
-	 * getTargetRepository(java.lang.Class)
+	 * @see org.springframework.data.repository.core.support.RepositoryFactorySupport#getTargetRepository(org.springframework.data.repository.core.RepositoryMetadata)
 	 */
 	@Override
 	protected Object getTargetRepository(RepositoryMetadata metadata) {
-
 		return getTargetRepository(metadata, entityManager);
 	}
 

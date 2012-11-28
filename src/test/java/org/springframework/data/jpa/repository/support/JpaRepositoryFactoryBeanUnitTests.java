@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.persistence.EntityManager;
+import javax.persistence.metamodel.Metamodel;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -60,6 +61,8 @@ public class JpaRepositoryFactoryBeanUnitTests {
 	PersistenceExceptionTranslator translator;
 	@Mock
 	Repository<?, ?> repository;
+	@Mock
+	Metamodel metamodel;
 
 	@Before
 	@SuppressWarnings("unchecked")
@@ -70,6 +73,7 @@ public class JpaRepositoryFactoryBeanUnitTests {
 		when(beanFactory.getBeansOfType(eq(PersistenceExceptionTranslator.class), anyBoolean(), anyBoolean())).thenReturn(
 				beans);
 		when(factory.getRepository(any(Class.class), any(Object.class))).thenReturn(repository);
+		when(entityManager.getMetamodel()).thenReturn(metamodel);
 
 		// Setup standard factory configuration
 		factoryBean = new DummyJpaRepositoryFactoryBean<SimpleSampleRepository, User, Integer>();
