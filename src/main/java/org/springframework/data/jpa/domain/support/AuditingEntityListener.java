@@ -64,7 +64,9 @@ public class AuditingEntityListener<T> {
 	 */
 	@PrePersist
 	public void touchForCreate(Object target) {
-		handler.markCreated(target);
+		if (handler != null) {
+			handler.markCreated(target);
+		}
 	}
 
 	/**
@@ -75,6 +77,8 @@ public class AuditingEntityListener<T> {
 	 */
 	@PreUpdate
 	public void touchForUpdate(Object target) {
-		handler.markModified(target);
+		if (handler != null) {
+			handler.markModified(target);
+		}
 	}
 }
