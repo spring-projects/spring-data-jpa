@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 the original author or authors.
+ * Copyright 2008-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -111,7 +111,7 @@ public enum PersistenceProvider implements QueryExtractor {
 
 	/**
 	 * Determines the {@link PersistenceProvider} from the given {@link EntityManager}. If no special one can be
-	 * determined {@value #GENERIC_JPA} will be returned.
+	 * determined {@link #GENERIC_JPA} will be returned.
 	 * 
 	 * @param em must not be {@literal null}.
 	 * @return will never be {@literal null}.

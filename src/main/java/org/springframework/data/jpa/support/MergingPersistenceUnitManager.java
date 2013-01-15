@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2012 the original author or authors.
+ * Copyright 2011-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import org.springframework.orm.jpa.persistenceunit.MutablePersistenceUnitInfo;
  * {@code persistence.xml} files into one. This is necessary to allow the declaration of entities in seperate modules.
  * 
  * @author Oliver Gierke
- * @see http://jira.springframework.org/browse/SPR-2598
+ * @link http://jira.springframework.org/browse/SPR-2598
  */
 public class MergingPersistenceUnitManager extends DefaultPersistenceUnitManager {
 
@@ -38,12 +38,7 @@ public class MergingPersistenceUnitManager extends DefaultPersistenceUnitManager
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.springframework.orm.jpa.persistenceunit.DefaultPersistenceUnitManager
-	 * #
-	 * postProcessPersistenceUnitInfo(org.springframework.orm.jpa.persistenceunit
-	 * .MutablePersistenceUnitInfo)
+	 * @see org.springframework.orm.jpa.persistenceunit.DefaultPersistenceUnitManager#postProcessPersistenceUnitInfo(org.springframework.orm.jpa.persistenceunit.MutablePersistenceUnitInfo)
 	 */
 	@Override
 	protected void postProcessPersistenceUnitInfo(MutablePersistenceUnitInfo pui) {
@@ -58,7 +53,7 @@ public class MergingPersistenceUnitManager extends DefaultPersistenceUnitManager
 		}
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.orm.jpa.persistenceunit.DefaultPersistenceUnitManager#isPersistenceUnitOverrideAllowed()
 	 */

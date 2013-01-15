@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2012 the original author or authors.
+ * Copyright 2011-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ public class JpaMetamodelEntityInformation<T, ID extends Serializable> extends J
 	 * Creates a new {@link JpaMetamodelEntityInformation} for the given domain class and {@link Metamodel}.
 	 * 
 	 * @param domainClass must not be {@literal null}.
-	 * @param metamodel must not be {@@iteral null}.
+	 * @param metamodel must not be {@literal null}.
 	 */
 	public JpaMetamodelEntityInformation(Class<T> domainClass, Metamodel metamodel) {
 
