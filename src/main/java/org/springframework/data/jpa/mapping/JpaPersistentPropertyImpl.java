@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2012-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -91,7 +91,7 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 	public boolean isIdProperty() {
 
 		for (Class<? extends Annotation> annotation : ID_ANNOTATIONS) {
-			if (field.getAnnotation(annotation) != null) {
+			if (isAnnotationPresent(annotation)) {
 				return true;
 			}
 		}
@@ -122,7 +122,7 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 	public boolean isAssociation() {
 
 		for (Class<? extends Annotation> annotationType : ASSOCIATION_ANNOTATIONS) {
-			if (field.getAnnotation(annotationType) != null) {
+			if (findAnnotation(annotationType) != null) {
 				return true;
 			}
 		}

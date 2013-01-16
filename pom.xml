@@ -241,7 +241,7 @@
 	
 		<dependency>
 			<groupId>${project.groupId}</groupId>
-			<artifactId>spring-data-commons-core</artifactId>
+			<artifactId>spring-data-commons</artifactId>
 			<version>${spring.data.commons.version}</version>
 		</dependency>
 		
