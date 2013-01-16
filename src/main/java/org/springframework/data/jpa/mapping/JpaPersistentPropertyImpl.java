@@ -28,6 +28,7 @@ import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.metamodel.EmbeddableType;
 import javax.persistence.metamodel.ManagedType;
 import javax.persistence.metamodel.Metamodel;
@@ -53,6 +54,7 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 
 		Set<Class<? extends Annotation>> annotations = new HashSet<Class<? extends Annotation>>();
 		annotations.add(OneToMany.class);
+		annotations.add(OneToOne.class);
 		annotations.add(ManyToMany.class);
 		annotations.add(ManyToOne.class);
 
