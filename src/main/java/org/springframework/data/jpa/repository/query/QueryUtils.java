@@ -16,8 +16,10 @@
 package org.springframework.data.jpa.repository.query;
 
 import static java.util.regex.Pattern.*;
+import static javax.persistence.metamodel.Attribute.PersistentAttributeType.*;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -34,8 +36,13 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.From;
 import javax.persistence.criteria.Join;
+import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Root;
+import javax.persistence.metamodel.Attribute;
+import javax.persistence.metamodel.Attribute.PersistentAttributeType;
+import javax.persistence.metamodel.Bindable;
+import javax.persistence.metamodel.Bindable.BindableType;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
@@ -67,6 +74,8 @@ public abstract class QueryUtils {
 	private static final String LEFT_JOIN = "left (outer )?join " + IDENTIFIER + " (as )?" + IDENTIFIER_GROUP;
 	private static final Pattern LEFT_JOIN_PATTERN = Pattern.compile(LEFT_JOIN, Pattern.CASE_INSENSITIVE);
 
+	private static final Set<PersistentAttributeType> ASSOCIATION_TYPES;
+
 	static {
 
 		StringBuilder builder = new StringBuilder();
@@ -87,6 +96,14 @@ public abstract class QueryUtils {
 		builder.append("(.*)");
 
 		COUNT_MATCH = compile(builder.toString(), CASE_INSENSITIVE);
+
+		Set<PersistentAttributeType> persistentAttributeTypes = new HashSet<PersistentAttributeType>();
+		persistentAttributeTypes.add(ONE_TO_ONE);
+		persistentAttributeTypes.add(ONE_TO_MANY);
+		persistentAttributeTypes.add(MANY_TO_ONE);
+		persistentAttributeTypes.add(MANY_TO_MANY);
+
+		ASSOCIATION_TYPES = Collections.unmodifiableSet(persistentAttributeTypes);
 	}
 
 	/**
@@ -365,13 +382,42 @@ public abstract class QueryUtils {
 	@SuppressWarnings("unchecked")
 	static <T> Expression<T> toExpressionRecursively(From<?, ?> from, PropertyPath property) {
 
-		if (property.isCollection()) {
-			Join<Object, Object> join = from.join(property.getSegment());
+		Path<Object> path = from.get(property.getSegment());
+
+		if (property.isCollection() || isEntityPath(path)) {
+			Join<Object, Object> join = from.join(property.getSegment(), JoinType.LEFT);
 			return (Expression<T>) (property.hasNext() ? toExpressionRecursively((From<?, ?>) join, property.next()) : join);
 		} else {
-			Path<Object> path = from.get(property.getSegment());
 			return (Expression<T>) (property.hasNext() ? toExpressionRecursively(path, property.next()) : path);
 		}
+	}
+
+	/**
+	 * Returns whether the given path can be considered referring an entity.
+	 * 
+	 * @param path must not be {@literal null}.
+	 * @return
+	 */
+	private static boolean isEntityPath(Path<?> path) {
+
+		Bindable<?> model = path.getModel();
+
+		if (BindableType.ENTITY_TYPE.equals(model.getBindableType())) {
+			return true;
+		}
+
+		if (model instanceof Attribute) {
+
+			Attribute<?, ?> attribute = (Attribute<?, ?>) model;
+
+			if (attribute.isAssociation()) {
+				return true;
+			}
+
+			return ASSOCIATION_TYPES.contains(attribute.getPersistentAttributeType());
+		}
+
+		return false;
 	}
 
 	static Expression<Object> toExpressionRecursively(Path<Object> path, PropertyPath property) {

@@ -51,4 +51,8 @@ public class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserReposi
 	public void allowsExecutingPageableMethodWithNullPageable() {
 
 	}
+
+	@Override
+	public void doesNotDropNullValuesOnPagedSpecificationExecution() {
+	}
 }
