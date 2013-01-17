@@ -7,19 +7,19 @@ Bundle-RequiredExecutionEnvironment: J2SE-1.5
 Export-Template: 
  org.springframework.data.jpa.*;version="${project.version}"
 Import-Template:
- com.mysema.query.*;version="${querydsl.version:[=.=.=,+1.0.0)}";resolution:=optional,
- javax.persistence.*;version="${jpa.version:[=.=.=,+1.0.0)}",
+ com.mysema.query.*;version="${querydsl:[=.=.=,+1.0.0)}";resolution:=optional,
+ javax.persistence.*;version="${jpa:[=.=.=,+1.0.0)}",
  javax.annotation.*;version="0.0.0",
- javax.enterprise.*;version="${cdi.version:[=.=.=,+1.0.0)}";resolution:=optional,
+ javax.enterprise.*;version="${cdi:[=.=.=,+1.0.0)}";resolution:=optional,
  org.aopalliance.*;version="[1.0.0,2.0.0)", 
- org.apache.openjpa.persistence.*;version="${openjpa.version:[=.=.=,+1.0.0)}";resolution:=optional, 
- org.aspectj.*;version="${aspectj.version:[=.=.=,+1.0.0)}";resolution:=optional,
- org.eclipse.persistence.*;version="${eclipselink.version:[=.=.=,+1.0.0)}";resolution:=optional,
+ org.apache.openjpa.persistence.*;version="${openjpa:[=.=.=,+1.0.0)}";resolution:=optional, 
+ org.aspectj.*;version="${aspectj:[=.=.=,+1.0.0)}";resolution:=optional,
+ org.eclipse.persistence.*;version="${eclipselink:[=.=.=,+1.0.0)}";resolution:=optional,
  org.hibernate.*;version="[3.5.3,4.0.0)";resolution:=optional, 
  org.joda.time.*;version="[1.5.0,2.0.0)";resolution:=optional,
- org.slf4j.*;version="${slf4j.version:[=.=.=,+1.0.0)}",
- org.springframework.*;version="${spring.version30:[=.=.=.=,+1.0.0)}",
- org.springframework.beans.factory.aspectj;version="${spring.version30:[=.=.=.=,+1.0.0)}";resolution:=optional,
- org.springframework.data.*;version="${spring.data.commons.version:[=.=.=.=,+1.0.0)}",
+ org.slf4j.*;version="${slf4j:[=.=.=,+1.0.0)}",
+ org.springframework.*;version="${spring30:[=.=.=.=,+1.0.0)}",
+ org.springframework.beans.factory.aspectj;version="${spring30:[=.=.=.=,+1.0.0)}";resolution:=optional,
+ org.springframework.data.*;version="${springdata.commons:[=.=.=.=,+1.0.0)}",
  org.w3c.*;version="0.0.0"
  
