@@ -31,6 +31,10 @@ import java.util.Set;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 
 import org.hamcrest.Matchers;
 import org.junit.Before;
@@ -946,6 +950,24 @@ public class UserRepositoryTests {
 		// Managers not set, make sure adding the sort does not rule out those Users
 		Page<User> result = repository.findAllPaged(new PageRequest(0, 10, new Sort("manager.lastname")));
 		assertThat(result.getContent(), hasSize((int) repository.count()));
+	}
+
+	/**
+	 * @see DATAJPA-277
+	 */
+	@Test
+	public void doesNotDropNullValuesOnPagedSpecificationExecution() {
+
+		flushTestUsers();
+
+		Page<User> page = repository.findAll(new Specification<User>() {
+			public Predicate toPredicate(Root<User> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+				return cb.equal(root.get("lastname"), "Gierke");
+			}
+		}, new PageRequest(0, 20, new Sort("manager.lastname")));
+
+		assertThat(page.getNumberOfElements(), is(1));
+		assertThat(page, hasItem(firstUser));
 	}
 
 	private Page<User> executeSpecWithSort(Sort sort) {
