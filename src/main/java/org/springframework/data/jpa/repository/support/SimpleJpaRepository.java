@@ -456,7 +456,12 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 		CriteriaQuery<Long> query = builder.createQuery(Long.class);
 
 		Root<T> root = applySpecificationToCriteria(spec, query);
-		query.select(builder.count(root));
+
+		if (query.isDistinct()) {
+			query.select(builder.countDistinct(root));
+		} else {
+			query.select(builder.count(root));
+		}
 
 		return em.createQuery(query);
 	}
