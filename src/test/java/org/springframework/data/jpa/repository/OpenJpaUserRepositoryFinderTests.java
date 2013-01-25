@@ -24,16 +24,16 @@ import org.springframework.test.context.ContextConfiguration;
  * 
  * @author Oliver Gierke
  */
-@ContextConfiguration("classpath:eclipselink.xml")
-public class EclipseLinkUserRepositoryFinderTests extends UserRepositoryFinderTests {
+@ContextConfiguration("classpath:openjpa.xml")
+public class OpenJpaUserRepositoryFinderTests extends UserRepositoryFinderTests {
 
 	@Ignore
 	@Override
-	public void executesNotInQueryCorrectly() throws Exception {
+	public void findsByLastnameIgnoringCase() throws Exception {
 	}
 
 	@Ignore
 	@Override
-	public void executesInKeywordForPageCorrectly() {
+	public void findsByLastnameIgnoringCaseLike() throws Exception {
 	}
 }

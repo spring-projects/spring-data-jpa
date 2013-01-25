@@ -211,15 +211,6 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>2.12</version>
-				<configuration>
-					<includes>
-						<include>**/*Tests.java</include>
-					</includes>
-					<excludes>
-						<exclude>**/infrastructure/*.java</exclude>
-					</excludes>
-					<argLine>-javaagent:${settings.localRepository}/org/springframework/spring-instrument/${spring}/spring-instrument-${spring}.jar -javaagent:${settings.localRepository}/org/apache/openjpa/openjpa/${openjpa}/openjpa-${openjpa}.jar</argLine>
-				</configuration>
 				<dependencies>
 					<dependency>
 						<groupId>org.springframework</groupId>
@@ -234,6 +225,79 @@
 						<scope>runtime</scope>
 					</dependency>
 				</dependencies>
+				<configuration>
+					<excludes>
+						<exclude>**/infrastructure/*</exclude>
+					</excludes>
+				</configuration>
+				<executions>
+					<execution>
+						<id>default-test</id>
+						<configuration>
+							<excludes>
+								<exclude>**/*</exclude>
+							</excludes>
+						</configuration>
+					</execution>
+					<execution>
+						<id>unit-tests</id>
+						<goals>
+							<goal>test</goal>
+						</goals>
+						<phase>test</phase>
+						<configuration>
+							<includes>
+								<include>**/*UnitTests.java</include>
+							</includes>
+						</configuration>
+					</execution>
+					<execution>
+						<id>integration-tests</id>
+						<goals>
+							<goal>test</goal>
+						</goals>
+						<phase>test</phase>
+						<configuration>
+							<includes>
+								<include>**/*IntegrationTests.java</include>
+								<include>**/*Tests.java</include>
+							</includes>
+							<excludes>
+								<exclude>**/*UnitTests.java</exclude>
+								<exclude>**/OpenJpa*</exclude>
+								<exclude>**/EclipseLink*</exclude>
+								<exclude>**/infrastructure/*</exclude>
+							</excludes>
+							<argLine>-javaagent:${settings.localRepository}/org/springframework/spring-instrument/${spring}/spring-instrument-${spring}.jar</argLine>
+						</configuration>
+					</execution>
+					<execution>
+						<id>eclipselink-tests</id>
+						<goals>
+							<goal>test</goal>
+						</goals>
+						<phase>test</phase>
+						<configuration>
+							<includes>
+								<include>**/EclipseLink*Tests.java</include>
+							</includes>
+							<argLine>-javaagent:${settings.localRepository}/org/springframework/spring-instrument/${spring}/spring-instrument-${spring}.jar</argLine>
+						</configuration>
+					</execution>
+					<execution>
+						<id>openjpa-tests</id>
+						<goals>
+							<goal>test</goal>
+						</goals>
+						<phase>test</phase>
+						<configuration>
+							<includes>
+								<include>**/OpenJpa*Tests.java</include>
+							</includes>
+							<argLine>-javaagent:${settings.localRepository}/org/apache/openjpa/openjpa/${openjpa}/openjpa-${openjpa}.jar</argLine>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 			
 			<plugin>

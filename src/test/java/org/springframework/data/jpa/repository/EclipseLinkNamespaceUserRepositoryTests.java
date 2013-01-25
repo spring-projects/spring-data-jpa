@@ -16,7 +16,6 @@
 package org.springframework.data.jpa.repository;
 
 import org.springframework.data.jpa.repository.sample.UserRepository;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 
 /**
@@ -24,8 +23,7 @@ import org.springframework.test.context.ContextConfiguration;
  * 
  * @author Oliver Gierke
  */
-@DirtiesContext
-@ContextConfiguration(value = "classpath:eclipselink.xml", inheritLocations = true)
+@ContextConfiguration(value = "classpath:eclipselink.xml")
 public class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserRepositoryTests {
 
 	/**
