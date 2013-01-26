@@ -50,6 +50,7 @@ import org.springframework.util.Assert;
  * 
  * @author Oliver Gierke
  * @author Eberhard Wolff
+ * @author Thomas Darimont
  * @param <T> the type of the entity to handle
  * @param <ID> the type of the entity's identifier
  */
@@ -219,13 +220,20 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 
 			String placeholder = provider.getCountQueryPlaceholder();
 			String entityName = entityInformation.getEntityName();
-			String idAttributeName = entityInformation.getIdAttribute().getName();
-			String existsQuery = String.format(EXISTS_QUERY_STRING, placeholder, entityName, idAttributeName);
+			Iterable<String> idAttributeNames = entityInformation.getIdAttributeNames();
+			String existsQuery = QueryUtils.getExistsQueryString(entityName, placeholder, idAttributeNames);
 
 			TypedQuery<Long> query = em.createQuery(existsQuery, Long.class);
-			query.setParameter("id", id);
 
-			return query.getSingleResult() == 1;
+			if (entityInformation.hasCompositeId()) {
+				for (String idAttributeName : idAttributeNames) {
+					query.setParameter(idAttributeName, entityInformation.getCompositeIdAttributeValue(id, idAttributeName));
+				}
+			} else {
+				query.setParameter(idAttributeNames.iterator().next(), id);
+			}
+
+			return query.getSingleResult() == 1L;
 		} else {
 			return findOne(id) != null;
 		}

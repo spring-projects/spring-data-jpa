@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2012 the original author or authors.
+ * Copyright 2008-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,7 +74,7 @@ public class JpaRepositoryTests {
 	}
 
 	/**
-	 * DATAJPA-50
+	 * @see DATAJPA-50
 	 */
 	@Test
 	public void executesCrudOperationsForEntityWithIdClass() {
@@ -88,6 +88,20 @@ public class JpaRepositoryTests {
 		SampleWithIdClassPK id = new SampleWithIdClassPK(entity.getFirst(), entity.getSecond());
 
 		assertThat(idClassRepository.findOne(id), is(entity));
+	}
+
+	/**
+	 * @see DATAJPA-266
+	 */
+	@Test
+	public void testExistsForDomainObjectsWithCompositeKeys() throws Exception {
+
+		SampleWithIdClass s1 = idClassRepository.save(new SampleWithIdClass(1L, 1L));
+		SampleWithIdClass s2 = idClassRepository.save(new SampleWithIdClass(2L, 2L));
+
+		assertThat(idClassRepository.exists(s1.getId()), is(true));
+		assertThat(idClassRepository.exists(s2.getId()), is(true));
+		assertThat(idClassRepository.exists(new SampleWithIdClassPK(1L, 2L)), is(false));
 	}
 
 	private static interface SampleEntityRepository extends JpaRepository<SampleEntity, SampleEntityPK> {

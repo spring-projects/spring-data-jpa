@@ -58,10 +58,8 @@ import org.springframework.util.StringUtils;
 public abstract class QueryUtils {
 
 	public static final String COUNT_QUERY_STRING = "select count(%s) from %s x";
-	public static final String EXISTS_QUERY_STRING = "select count(%s) from %s x where x.%s = :id";
-
 	public static final String DELETE_ALL_QUERY_STRING = "delete from %s x";
-	public static final String READ_ALL_QUERY = "select x from %s x";
+
 	private static final String DEFAULT_ALIAS = "x";
 	private static final String COUNT_REPLACEMENT = "select count($3$5) $4$5$6";
 
@@ -73,6 +71,8 @@ public abstract class QueryUtils {
 
 	private static final String LEFT_JOIN = "left (outer )?join " + IDENTIFIER + " (as )?" + IDENTIFIER_GROUP;
 	private static final Pattern LEFT_JOIN_PATTERN = Pattern.compile(LEFT_JOIN, Pattern.CASE_INSENSITIVE);
+
+	private static final String EQUALS_CONDITION_STRING = "%s.%s = :%s";
 
 	private static final Set<PersistentAttributeType> ASSOCIATION_TYPES;
 
@@ -111,6 +111,29 @@ public abstract class QueryUtils {
 	 */
 	private QueryUtils() {
 
+	}
+
+	/**
+	 * Returns the query string to execute an exists query for the given id attributes.
+	 * 
+	 * @param entityName the name of the entity to create the query for, must not be {@literal null}.
+	 * @param countQueryPlaceHolder the placeholder for the count clause, must not be {@literal null}.
+	 * @param idAttributes the id attributes for the entity, must not be {@literal null}.
+	 * @return
+	 */
+	public static String getExistsQueryString(String entityName, String countQueryPlaceHolder,
+			Iterable<String> idAttributes) {
+
+		StringBuilder sb = new StringBuilder(String.format(COUNT_QUERY_STRING, countQueryPlaceHolder, entityName));
+		sb.append(" WHERE ");
+
+		for (String idAttribute : idAttributes) {
+			sb.append(String.format(EQUALS_CONDITION_STRING, "x", idAttribute, idAttribute));
+			sb.append(" AND ");
+		}
+
+		sb.append("1 = 1");
+		return sb.toString();
 	}
 
 	/**
