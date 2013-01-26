@@ -17,8 +17,10 @@ package org.springframework.data.jpa.repository.support;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import javax.persistence.IdClass;
@@ -39,6 +41,7 @@ import org.springframework.util.ReflectionUtils;
  * to find the domain class' id field.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 public class JpaMetamodelEntityInformation<T, ID extends Serializable> extends JpaEntityInformationSupport<T, ID> {
 
@@ -116,6 +119,38 @@ public class JpaMetamodelEntityInformation<T, ID extends Serializable> extends J
 	 */
 	public SingularAttribute<? super T, ?> getIdAttribute() {
 		return idMetadata.getSimpleIdAttribute();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.jpa.repository.support.JpaEntityInformation#hasCompositeId()
+	 */
+	public boolean hasCompositeId() {
+		return !idMetadata.hasSimpleId();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.jpa.repository.support.JpaEntityInformation#getIdAttributeNames()
+	 */
+	public Iterable<String> getIdAttributeNames() {
+
+		List<String> attributeNames = new ArrayList<String>(idMetadata.attributes.size());
+
+		for (SingularAttribute<? super T, ?> attribute : idMetadata.attributes) {
+			attributeNames.add(attribute.getName());
+		}
+
+		return attributeNames;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.jpa.repository.support.JpaEntityInformation#getCompositeIdAttributeValue(java.io.Serializable, java.lang.String)
+	 */
+	public Object getCompositeIdAttributeValue(Serializable id, String idAttribute) {
+		Assert.isTrue(hasCompositeId());
+		return new DirectFieldAccessFallbackBeanWrapper(id).getPropertyValue(idAttribute);
 	}
 
 	/**

@@ -19,6 +19,7 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 import java.io.Serializable;
+import java.util.Collections;
 
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
@@ -91,6 +92,18 @@ public class JpaEntityInformationSupportUnitTests {
 
 		public Class<ID> getIdType() {
 
+			return null;
+		}
+
+		public Iterable<String> getIdAttributeNames() {
+			return Collections.emptySet();
+		}
+
+		public boolean hasCompositeId() {
+			return false;
+		}
+
+		public Object getCompositeIdAttributeValue(Serializable id, String idAttribute) {
 			return null;
 		}
 	}

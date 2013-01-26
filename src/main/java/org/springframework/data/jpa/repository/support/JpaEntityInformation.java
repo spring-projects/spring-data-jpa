@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2011-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import org.springframework.data.repository.core.EntityInformation;
  * Extension of {@link EntityInformation} to capture aditional JPA specific information about entities.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 public interface JpaEntityInformation<T, ID extends Serializable> extends EntityInformation<T, ID> {
 
@@ -34,6 +35,30 @@ public interface JpaEntityInformation<T, ID extends Serializable> extends Entity
 	 * @return
 	 */
 	SingularAttribute<? super T, ?> getIdAttribute();
+
+	/**
+	 * Returns {@literal true} if the entity has a composite id
+	 * 
+	 * @return
+	 */
+	boolean hasCompositeId();
+
+	/**
+	 * Returns the attribute names of the id attributes. If the entity has a composite id, then all id attribute names are
+	 * returned. If the entity has a single id attribute then this single attribute name is returned.
+	 * 
+	 * @return
+	 */
+	Iterable<String> getIdAttributeNames();
+
+	/**
+	 * Extracts the value for the given id attribute from a composite id
+	 * 
+	 * @param id
+	 * @param idAttribute
+	 * @return
+	 */
+	Object getCompositeIdAttributeValue(Serializable id, String idAttribute);
 
 	/**
 	 * Returns the JPA entity name.
