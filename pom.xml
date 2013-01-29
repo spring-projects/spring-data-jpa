@@ -19,6 +19,7 @@
     </parent>
     
     <properties>
+
     	<dist.key>DATAJPA</dist.key>
     	
     	<eclipselink>2.4.0</eclipselink>
@@ -377,6 +378,10 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-assembly-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>wagon-maven-plugin</artifactId>
 			</plugin>
     	</plugins>
     </build>
