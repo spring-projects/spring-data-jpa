@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
 "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
-<chapter id="jpa.repositories">
+<chapter id="jpa.repositories" xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>JPA Repositories</title>
 
   <abstract>
@@ -885,52 +885,14 @@ public interface UserRepository extends JpaRepository&lt;User, Long&gt; {
   </section>
 
   <section id="jpa.auditing">
+  
     <title>Auditing</title>
+  	
+    <xi:include href="https://raw.github.com/SpringSource/spring-data-commons/master/src/docbkx/auditing.xml">
+    	<xi:fallback href="../../../spring-data-commons/src/docbkx/auditing.xml" />
+    </xi:include>
 
-    <para>Most applications will require some form of auditability to track
-    when an entity was created or modified and by whom. Spring Data JPA
-    provides facilities to add this audit information to an entity
-    transparently by AOP means. To take part in this functionality your domain
-    classes must implement a more advanced interface:</para>
-
-    <example>
-      <title><interfacename>Auditable</interfacename> interface</title>
-
-      <programlisting language="java">public interface Auditable&lt;U, ID extends Serializable&gt;
-        extends Persistable&lt;ID&gt; {
-
-    U getCreatedBy();
-
-    void setCreatedBy(U createdBy);
-
-    DateTime getCreatedDate();
-
-    void setCreated(Date creationDate);
-
-    U getLastModifiedBy();
-
-    void setLastModifiedBy(U lastModifiedBy);
-
-    DateTime getLastModifiedDate();
-
-    void setLastModified(Date lastModifiedDate);
-}</programlisting>
-    </example>
-
-    <para>As you can see the modifying entity itself only has to be an entity.
-    Mostly this will be some sort of User entity, so we chose U as parameter
-    type.</para>
-
-    <note>
-      <para>To minimize boilerplate code Spring Data JPA offers
-      <classname>AbstractPersistable</classname> and
-      <classname>AbstractAuditable</classname> base classes that implement and
-      pre-configure entities. Thus you can decide to only implement the
-      interface or enjoy more sophisticated support by extending the base
-      class.</para>
-    </note>
-
-    <simplesect>
+    <section>
       <title>General auditing configuration</title>
 
       <para>Spring Data JPA ships with an entity listener that can be used to
@@ -978,7 +940,7 @@ public interface UserRepository extends JpaRepository&lt;User, Long&gt; {
       your application that tracks the user currently working with the system.
       This component should be <interfacename>AuditorAware</interfacename> and
       thus allow seamless tracking of the auditor.</para>
-    </simplesect>
+    </section>
   </section>
 
   <section id="jpa.misc">
