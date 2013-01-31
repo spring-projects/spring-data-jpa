@@ -33,7 +33,7 @@
     <pubdate />
 
     <copyright>
-      <year>2008-2012</year>
+      <year>2008-2013</year>
 
       <holder>The original authors</holder>
     </copyright>
@@ -51,7 +51,7 @@
     	<xi:fallback href="../../../spring-data-commons/src/docbkx/repositories.xml" />
     </xi:include>
 
-    <xi:include href="reference/jpa.xml" />
+    <xi:include href="jpa.xml" />
   </part>
 
   <part id="appendix">
@@ -64,8 +64,8 @@
     	<xi:fallback href="../../../spring-data-commons/src/docbkx/repository-query-keywords-reference.xml" />
     </xi:include>
 
-    <xi:include href="appendix/faq.xml" />
+    <xi:include href="faq.xml" />
 
-    <xi:include href="appendix/glossary.xml" />
+    <xi:include href="glossary.xml" />
   </part>
 </book>
