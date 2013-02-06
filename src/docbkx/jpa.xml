@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
 "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
-<chapter id="jpa.repositories" xmlns:xi="http://www.w3.org/2001/XInclude">
+<chapter id="jpa.repositories">
   <title>JPA Repositories</title>
 
   <abstract>
@@ -668,7 +668,7 @@ int setFixedFirstnameFor(String firstname, String lastname);</programlisting>
 
   public static Specification&lt;Customer&gt; isLongTermCustomer() {
     return new Specification&lt;Customer&gt;() {
-      Predicate toPredicate(Root&lt;T&gt; root, CriteriaQuery&lt;?&gt; query,
+      public Predicate toPredicate(Root&lt;Customer&gt; root, CriteriaQuery&lt;?&gt; query,
             CriteriaBuilder builder) {
 
          LocalDate date = new LocalDate().minusYears(2);
@@ -679,7 +679,7 @@ int setFixedFirstnameFor(String firstname, String lastname);</programlisting>
 
   public static Specification&lt;Customer&gt; hasSalesOfMoreThan(MontaryAmount value) {
     return new Specification&lt;Customer&gt;() {
-      Predicate toPredicate(Root&lt;T&gt; root, CriteriaQuery&lt;?&gt; query,
+      public Predicate toPredicate(Root&lt;T&gt; root, CriteriaQuery&lt;?&gt; query,
             CriteriaBuilder builder) {
 
          // build query here
@@ -691,8 +691,15 @@ int setFixedFirstnameFor(String firstname, String lastname);</programlisting>
 
     <para>Admittedly the amount of boilerplate leaves room for improvement
     (that will hopefully be reduced by Java 8 closures) but the client side
-    becomes much nicer as you will see below. Besides that we have expressed
-    some criteria on a business requirement abstraction level and created
+    becomes much nicer as you will see below. The
+    <classname>Customer_</classname> type is a metamodel type generated using
+    the JPA Metamodel generator (see the <ulink
+    url="http://docs.jboss.org/hibernate/jpamodelgen/1.0/reference/en-US/html_single/#whatisit">Hibernate
+    implementation's documentation for example</ulink>). So the expression
+    <code>Customer_.createdAt</code> is asuming the
+    <classname>Customer</classname> having a <code>createdAt</code> attribute
+    of type <classname>Date</classname>. Besides that we have expressed some
+    criteria on a business requirement abstraction level and created
     executable <interfacename>Specification</interfacename>s. So a client
     might use a <interfacename>Specification</interfacename> as
     follows:</para>
@@ -885,11 +892,11 @@ public interface UserRepository extends JpaRepository&lt;User, Long&gt; {
   </section>
 
   <section id="jpa.auditing">
-  
     <title>Auditing</title>
-  	
-    <xi:include href="https://raw.github.com/SpringSource/spring-data-commons/master/src/docbkx/auditing.xml">
-    	<xi:fallback href="../../../spring-data-commons/src/docbkx/auditing.xml" />
+
+    <xi:include href="https://raw.github.com/SpringSource/spring-data-commons/master/src/docbkx/auditing.xml"
+                xmlns:xi="http://www.w3.org/2001/XInclude">
+      <xi:fallback href="../../../spring-data-commons/src/docbkx/auditing.xml"/>
     </xi:include>
 
     <section>
