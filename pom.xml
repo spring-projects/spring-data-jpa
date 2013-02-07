@@ -54,7 +54,7 @@
 	<properties>
 		<spring.version30>3.0.7.RELEASE</spring.version30>
 		<spring.version>3.1.2.RELEASE</spring.version>
-		<spring.data.commons.version>1.4.1.BUILD-SNAPSHOT</spring.data.commons.version>
+		<spring.data.commons.version>1.4.1.RELEASE</spring.data.commons.version>
 		<hibernate.version>3.6.10.Final</hibernate.version>
 		<openjpa.version>2.2.0</openjpa.version>
 		<eclipselink.version>2.4.0</eclipselink.version>
