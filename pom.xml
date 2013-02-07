@@ -14,7 +14,7 @@
     <parent>
         <groupId>org.springframework.data.build</groupId>
         <artifactId>spring-data-parent</artifactId>
-        <version>1.0.0.BUILD-SNAPSHOT</version>
+        <version>1.0.0.RELEASE</version>
         <relativePath>../spring-data-build/parent/pom.xml</relativePath>
     </parent>
     
@@ -26,7 +26,7 @@
     	<hibernate>3.6.10.Final</hibernate>
     	<jpa>2.0.0</jpa>
     	<openjpa>2.2.0</openjpa>
-    	<springdata.commons>1.5.0.BUILD-SNAPSHOT</springdata.commons>
+    	<springdata.commons>1.5.0.RELEASE</springdata.commons>
     	
     </properties>
 
@@ -35,7 +35,7 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>spring-data-commons</artifactId>
-            <version>1.5.0.BUILD-SNAPSHOT</version>
+            <version>${springdata.commons}</version>
         </dependency>
 		
 		<dependency>
@@ -335,8 +335,8 @@
 					<includes>
 						<include>**/domain/support/AuditingEntityListener.java</include>
 					</includes>
-					<source>1.5</source>
-					<target>1.5</target>
+					<source>${source.level}</source>
+					<target>${source.level}</target>
 				</configuration>
 			</plugin>
 			
@@ -385,12 +385,5 @@
 			</plugin>
     	</plugins>
     </build>
-    
-    <repositories>
-		<repository>
-			<id>spring-libs-snapshot</id>
-			<url>http://repo.springsource.org/libs-snapshot-local</url>
-		</repository>
-	</repositories>
 
 </project>
