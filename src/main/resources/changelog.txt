@@ -1,7 +1,28 @@
 Spring Data JPA Changelog
 =========================
 
-Changes in version 1.2.0.GA (2012-10-10)
+Changes in version 1.3.0.RELEASE (2012-02-07)
+---------------------------------------------
+* Added support for annotation based auditing (DATAJPA-116)
+* SimpleJpaRepository.exists(ID) works now, if ID is an composite key (DATAJPA-266)
+* LockModePopulatingMethodInterceptor does not cause memory leak (DATAJPA-268)
+* Pageable sorting by join property excludes null matches with Specifications (DATAJPA-277)
+* Switch to Logback for test logging (DATAJPA-271)
+* Fixed NullPointerException in unit tests (DATAJPA-280)
+* Expose Spring Data Commons mapping metamodel (DATAJPA-274, DATAJPA-284, DATAJPA-283)
+* Separated integration tests for different persistence providers (DATAJPA-286, DATAJPA-288)
+* Polished documentation (DATAJPA-282, DATAJPA-291)
+* Improved build (DATAJPA-285, DATAJPA-271)
+* Upgraded to JodaTime 2.1 (DATAJPA-293)
+
+Changes in version 1.2.1.RELEASE (2012-02-07)
+---------------------------------------------
+* SimpleJpaRepository.exists(ID) fails, if ID is an composite key (DATAJPA-266)
+* LockModePopulatingMethodInterceptor leak causes memory leak (DATAJPA-268)
+* Pageable sorting by join property excludes null matches with Specifications (DATAJPA-277)
+* Switch to Logback for test logging (DATAJPA-271)
+
+Changes in version 1.2.0.RELEASE (2012-10-10)
 ----------------------------------------
 * Resolve conflicts between Spring Data Commons Core, JPA and Mongo (DATAJPA-146)
 * Improved reference documentation/JavaDoc (DATAJPA-251, DATAJPA-261, DATAJPA-174, DATAJPA-238)
