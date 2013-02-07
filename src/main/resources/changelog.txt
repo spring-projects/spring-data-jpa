@@ -1,7 +1,14 @@
 Spring Data JPA Changelog
 =========================
 
-Changes in version 1.2.0.GA (2012-10-10)
+Changes in version 1.2.1.RELEASE (2012-02-07)
+----------------------------------------
+* SimpleJpaRepository.exists(ID) fails, if ID is an composite key (DATAJPA-266)
+* LockModePopulatingMethodInterceptor leak causes memory leak (DATAJPA-268)
+* Pageable sorting by join property excludes null matches with Specifications (DATAJPA-277)
+* Switch to Logback for test logging (DATAJPA-271)
+
+Changes in version 1.2.0.RELEASE (2012-10-10)
 ----------------------------------------
 * Resolve conflicts between Spring Data Commons Core, JPA and Mongo (DATAJPA-146)
 * Improved reference documentation/JavaDoc (DATAJPA-251, DATAJPA-261, DATAJPA-174, DATAJPA-238)
