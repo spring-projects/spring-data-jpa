@@ -26,7 +26,7 @@
     	<hibernate>3.6.10.Final</hibernate>
     	<jpa>2.0.0</jpa>
     	<openjpa>2.2.0</openjpa>
-    	<springdata.commons>1.5.0.RELEASE</springdata.commons>
+    	<springdata.commons>1.6.0.BUILD-SNAPSHOT</springdata.commons>
     	
     </properties>
 
@@ -385,5 +385,12 @@
 			</plugin>
     	</plugins>
     </build>
+    
+    <repositories>
+    	<repository>
+    		<id>spring-libs-snapshot</id>
+    		<url>http://repo.springsource.org/libs-snapshot</url>
+    	</repository>
+    </repositories>
 
 </project>

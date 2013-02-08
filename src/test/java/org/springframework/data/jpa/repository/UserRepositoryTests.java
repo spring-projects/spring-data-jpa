@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2012 the original author or authors.
+ * Copyright 2008-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,6 +50,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.domain.sample.User;
@@ -65,6 +66,7 @@ import org.springframework.transaction.annotation.Transactional;
  * To test further persistence providers subclass this class and provide a custom provider configuration.
  * 
  * @author Oliver Gierke
+ * @author Kevin Raymond
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("classpath:application-context.xml")
@@ -79,7 +81,7 @@ public class UserRepositoryTests {
 	UserRepository repository;
 
 	// Test fixture
-	User firstUser, secondUser, thirdUser;
+	User firstUser, secondUser, thirdUser, fourthUser;
 	Integer id;
 
 	@Before
@@ -92,6 +94,8 @@ public class UserRepositoryTests {
 		Thread.sleep(10);
 		thirdUser = new User("Dave", "Matthews", "no@email.com");
 		thirdUser.setAge(43);
+		fourthUser = new User("kevin", "raymond", "no@gmail.com");
+		fourthUser.setAge(31);
 	}
 
 	@Test
@@ -102,7 +106,7 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		assertThat((Long) countQuery.getSingleResult(), is(before + 3));
+		assertThat((Long) countQuery.getSingleResult(), is(before + 4));
 	}
 
 	@Test
@@ -202,10 +206,31 @@ public class UserRepositoryTests {
 		flushTestUsers();
 		List<User> result = repository.findAll(new Sort(ASC, "lastname"));
 		assertThat(result, is(notNullValue()));
-		assertThat(result.size(), is(3));
+		assertThat(result.size(), is(4));
 		assertThat(result.get(0), is(secondUser));
 		assertThat(result.get(1), is(firstUser));
 		assertThat(result.get(2), is(thirdUser));
+		assertThat(result.get(3), is(fourthUser));
+	}
+
+	/**
+	 * @see DATAJPA-296
+	 * @author Kevin Raymond
+	 */
+	@Test
+	public void returnsAllIgnoreCaseSortedCorrectly() throws Exception {
+
+		flushTestUsers();
+
+		Order order = new Order(ASC, "firstname").ignoreCase();
+		List<User> result = repository.findAll(new Sort(order));
+
+		assertThat(result, is(notNullValue()));
+		assertThat(result.size(), is(4));
+		assertThat(result.get(0), is(thirdUser));
+		assertThat(result.get(1), is(secondUser));
+		assertThat(result.get(2), is(fourthUser));
+		assertThat(result.get(3), is(firstUser));
 	}
 
 	@Test
@@ -293,8 +318,8 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		assertThat(repository.count(), is(3L));
-		assertThat(repository.findAll(), hasItems(firstUser, secondUser, thirdUser));
+		assertThat(repository.count(), is(4L));
+		assertThat(repository.findAll(), hasItems(firstUser, secondUser, thirdUser, fourthUser));
 	}
 
 	/**
@@ -503,9 +528,10 @@ public class UserRepositoryTests {
 		flushTestUsers();
 
 		List<User> result = repository.findByLastnameLikeOrderByFirstnameDesc("%r%");
-		assertThat(result.size(), is(2));
-		assertEquals(firstUser, result.get(0));
-		assertEquals(secondUser, result.get(1));
+		assertThat(result.size(), is(3));
+		assertEquals(fourthUser, result.get(0));
+		assertEquals(firstUser, result.get(1));
+		assertEquals(secondUser, result.get(2));
 	}
 
 	@Test
@@ -514,8 +540,8 @@ public class UserRepositoryTests {
 		flushTestUsers();
 
 		List<User> result = repository.findByLastnameNotLike("%er%");
-		assertThat(result.size(), is(2));
-		assertThat(result, hasItems(secondUser, thirdUser));
+		assertThat(result.size(), is(3));
+		assertThat(result, hasItems(secondUser, thirdUser, fourthUser));
 	}
 
 	@Test
@@ -524,8 +550,8 @@ public class UserRepositoryTests {
 		flushTestUsers();
 
 		List<User> result = repository.findByLastnameNot("Gierke");
-		assertThat(result.size(), is(2));
-		assertThat(result, hasItems(secondUser, thirdUser));
+		assertThat(result.size(), is(3));
+		assertThat(result, hasItems(secondUser, thirdUser, fourthUser));
 	}
 
 	@Test
@@ -566,11 +592,10 @@ public class UserRepositoryTests {
 		em.detach(firstUser);
 		repository.delete(firstUser);
 
-		assertThat(repository.count(), is(2L));
+		assertThat(repository.count(), is(3L));
 	}
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void executesPagedSpecificationsCorrectly() throws Exception {
 
 		Page<User> result = executeSpecWithSort(null);
@@ -642,8 +667,8 @@ public class UserRepositoryTests {
 		flushTestUsers();
 		List<User> result = repository.findByLastnameNotNull();
 
-		assertThat(result.size(), is(3));
-		assertThat(result, hasItems(firstUser, secondUser, thirdUser));
+		assertThat(result.size(), is(4));
+		assertThat(result, hasItems(firstUser, secondUser, thirdUser, fourthUser));
 	}
 
 	@Test
@@ -665,10 +690,11 @@ public class UserRepositoryTests {
 
 		List<User> result = repository.findByEmailAddressLike("%@%", new Sort(Direction.ASC, "lastname"));
 
-		assertThat(result.size(), is(3));
+		assertThat(result.size(), is(4));
 		assertThat(result.get(0), is(secondUser));
 		assertThat(result.get(1), is(firstUser));
 		assertThat(result.get(2), is(thirdUser));
+		assertThat(result.get(3), is(fourthUser));
 	}
 
 	@Test
@@ -699,8 +725,8 @@ public class UserRepositoryTests {
 		flushTestUsers();
 
 		List<User> result = repository.findByAgeLessThanEqual(35);
-		assertThat(result.size(), is(2));
-		assertThat(result, hasItems(firstUser, secondUser));
+		assertThat(result.size(), is(3));
+		assertThat(result, hasItems(firstUser, secondUser, fourthUser));
 	}
 
 	@Test
@@ -738,8 +764,8 @@ public class UserRepositoryTests {
 		repository.save(firstUser);
 
 		List<User> result = repository.findByActiveTrue();
-		assertThat(result.size(), is(2));
-		assertThat(result, hasItems(secondUser, thirdUser));
+		assertThat(result.size(), is(3));
+		assertThat(result, hasItems(secondUser, thirdUser, fourthUser));
 	}
 
 	/**
@@ -782,8 +808,8 @@ public class UserRepositoryTests {
 		flushTestUsers();
 
 		List<User> result = repository.findByCreatedAtAfter(secondUser.getCreatedAt());
-		assertThat(result.size(), is(1));
-		assertThat(result, hasItems(thirdUser));
+		assertThat(result.size(), is(2));
+		assertThat(result, hasItems(thirdUser, fourthUser));
 	}
 
 	/**
@@ -852,8 +878,8 @@ public class UserRepositoryTests {
 		assertThat(page.getContent(), hasItem(firstUser));
 
 		page = repository.findAll((Pageable) null);
-		assertThat(page.getNumberOfElements(), is(3));
-		assertThat(page.getContent(), hasItems(firstUser, secondUser, thirdUser));
+		assertThat(page.getNumberOfElements(), is(4));
+		assertThat(page.getContent(), hasItems(firstUser, secondUser, thirdUser, fourthUser));
 	}
 
 	/**
@@ -866,7 +892,7 @@ public class UserRepositoryTests {
 
 		List<Integer> result = repository.findOnesByNativeQuery();
 
-		assertThat(result.size(), is(3));
+		assertThat(result.size(), is(4));
 		assertThat(result, hasItem(1));
 	}
 
@@ -893,6 +919,7 @@ public class UserRepositoryTests {
 		firstUser = repository.save(firstUser);
 		secondUser = repository.save(secondUser);
 		thirdUser = repository.save(thirdUser);
+		fourthUser = repository.save(fourthUser);
 
 		repository.flush();
 
@@ -901,10 +928,12 @@ public class UserRepositoryTests {
 		assertThat(id, is(notNullValue()));
 		assertThat(secondUser.getId(), is(notNullValue()));
 		assertThat(thirdUser.getId(), is(notNullValue()));
+		assertThat(fourthUser.getId(), is(notNullValue()));
 
 		assertThat(repository.exists(id), is(true));
 		assertThat(repository.exists(secondUser.getId()), is(true));
 		assertThat(repository.exists(thirdUser.getId()), is(true));
+		assertThat(repository.exists(fourthUser.getId()), is(true));
 	}
 
 	private static <T> void assertSameElements(Collection<T> first, Collection<T> second) {

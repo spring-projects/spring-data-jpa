@@ -54,6 +54,7 @@ import org.springframework.util.StringUtils;
  * Simple utility class to create JPA queries.
  * 
  * @author Oliver Gierke
+ * @author Kevin Raymond
  */
 public abstract class QueryUtils {
 
@@ -396,10 +397,18 @@ public abstract class QueryUtils {
 	 * @param cb the {@link CriteriaBuilder} to build the {@link javax.persistence.criteria.Order} with
 	 * @return
 	 */
+	@SuppressWarnings("unchecked")
 	private static javax.persistence.criteria.Order toJpaOrder(Order order, Root<?> root, CriteriaBuilder cb) {
 
-		Expression<?> expression = toExpressionRecursively(root, PropertyPath.from(order.getProperty(), root.getJavaType()));
-		return order.isAscending() ? cb.asc(expression) : cb.desc(expression);
+		PropertyPath property = PropertyPath.from(order.getProperty(), root.getJavaType());
+		Expression<?> expression = toExpressionRecursively(root, property);
+
+		if (order.isIgnoreCase() && String.class.equals(expression.getJavaType())) {
+			Expression<String> lower = cb.lower((Expression<String>) expression);
+			return order.isAscending() ? cb.asc(lower) : cb.desc(lower);
+		} else {
+			return order.isAscending() ? cb.asc(expression) : cb.desc(expression);
+		}
 	}
 
 	@SuppressWarnings("unchecked")
