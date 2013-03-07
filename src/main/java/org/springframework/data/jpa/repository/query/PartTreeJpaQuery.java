@@ -25,6 +25,9 @@ import javax.persistence.criteria.CriteriaQuery;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.query.ParameterMetadataProvider.ParameterMetadata;
+import org.springframework.data.jpa.repository.support.JpaCriteriaQueryContext;
+import org.springframework.data.repository.augment.QueryAugmentationEngine;
+import org.springframework.data.repository.augment.QueryContext.QueryMode;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.parser.PartTree;
 
@@ -113,7 +116,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 
 			if (cachedCriteriaQuery == null || accessor.hasBindableNullValue()) {
 				JpaQueryCreator creator = createCreator(accessor);
-				criteriaQuery = creator.createQuery(getDynamicSort(values));
+				criteriaQuery = potentiallyAugment(creator.createQuery(getDynamicSort(values)));
 				expressions = creator.getParameterExpressions();
 			}
 
@@ -139,6 +142,23 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 			}
 
 			return getEntityManager().createQuery(criteriaQuery);
+		}
+
+		protected <T> CriteriaQuery<T> potentiallyAugment(CriteriaQuery<T> query) {
+			return potentiallyAugment(query, QueryMode.FIND);
+		}
+
+		private <T> CriteriaQuery<T> potentiallyAugment(CriteriaQuery<T> query, QueryMode mode) {
+
+			QueryAugmentationEngine engine = getAugmentationEngine();
+
+			if (engine != null
+					&& engine.augmentationNeeded(JpaCriteriaQueryContext.class, mode, getQueryMethod().getEntityInformation())) {
+				JpaCriteriaQueryContext<T, T> context = new JpaCriteriaQueryContext<T, T>(mode, getEntityManager(), query, null);
+				return engine.invokeAugmentors(context).getQuery();
+			} else {
+				return query;
+			}
 		}
 
 		protected JpaQueryCreator createCreator(ParametersParameterAccessor accessor) {
@@ -200,6 +220,15 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 					: new ParameterMetadataProvider(builder, accessor);
 
 			return new JpaCountQueryCreator(tree, domainClass, builder, provider);
+		}
+
+		/* 
+		 * (non-Javadoc)
+		 * @see org.springframework.data.jpa.repository.query.PartTreeJpaQuery.QueryPreparer#potentiallyAugment(javax.persistence.criteria.CriteriaQuery)
+		 */
+		@Override
+		protected <T> CriteriaQuery<T> potentiallyAugment(CriteriaQuery<T> query) {
+			return super.potentiallyAugment(query, QueryMode.COUNT_FOR_PAGING);
 		}
 
 		/**

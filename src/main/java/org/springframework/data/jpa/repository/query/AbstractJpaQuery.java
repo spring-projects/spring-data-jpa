@@ -25,6 +25,8 @@ import org.springframework.data.jpa.repository.query.JpaQueryExecution.Collectio
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.ModifyingExecution;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.PagedExecution;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.SingleEntityExecution;
+import org.springframework.data.repository.augment.QueryAugmentationEngine;
+import org.springframework.data.repository.augment.QueryAugmentationEngineAware;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.util.Assert;
 
@@ -34,10 +36,12 @@ import org.springframework.util.Assert;
  * @author Oliver Gierke
  * @author Thomas Darimont
  */
-public abstract class AbstractJpaQuery implements RepositoryQuery {
+public abstract class AbstractJpaQuery implements RepositoryQuery, QueryAugmentationEngineAware {
 
 	private final JpaQueryMethod method;
 	private final EntityManager em;
+
+	private QueryAugmentationEngine augmentationEngine;
 
 	/**
 	 * Creates a new {@link AbstractJpaQuery} from the given {@link JpaQueryMethod}.
@@ -56,6 +60,14 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.augment.QueryAugmentationEngineAware#setQueryAugmentationEngine(org.springframework.data.repository.augment.QueryAugmentationEngine)
+	 */
+	public void setQueryAugmentationEngine(QueryAugmentationEngine engine) {
+		this.augmentationEngine = engine;
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * 
 	 * @see
 	 * org.springframework.data.repository.query.RepositoryQuery#getQueryMethod
@@ -70,8 +82,14 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 	 * @return the em
 	 */
 	protected EntityManager getEntityManager() {
-
 		return em;
+	}
+
+	/**
+	 * @return the augmentationEngine
+	 */
+	public QueryAugmentationEngine getAugmentationEngine() {
+		return augmentationEngine;
 	}
 
 	/*

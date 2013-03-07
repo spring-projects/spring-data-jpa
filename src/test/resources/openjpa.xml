@@ -2,16 +2,20 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:util="http://www.springframework.org/schema/util"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+	xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+	xsi:schemaLocation="http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
 
 	<!-- EclipseLink vendor adaptor with workaround platform class for HSQL usage -->
 	<bean id="vendorAdaptor" class="org.springframework.orm.jpa.vendor.OpenJpaVendorAdapter" parent="abstractVendorAdaptor">
-		<property name="database" value="HSQL" />
+		<property name="database" value="H2" />
 	</bean>
 	
 	<util:properties id="jpaProperties">
 		<prop key="openjpa.Log">none</prop>
 	</util:properties>
+
+	<jdbc:embedded-database id="dataSource" type="H2" />
 
 </beans>

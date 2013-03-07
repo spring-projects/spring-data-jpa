@@ -22,7 +22,7 @@ import org.springframework.data.repository.query.RepositoryQuery;
 
 /**
  * {@link RepositoryQuery} implementation that inspects a {@link org.springframework.data.repository.query.QueryMethod}
- * for the existence of an {@link org.springframework.data.jpa.repository.Query} annotation and creates a JPA
+ * for the existance of an {@link org.springframework.data.jpa.repository.Query} annotation and creates a JPA
  * {@link Query} from it.
  * 
  * @author Oliver Gierke
