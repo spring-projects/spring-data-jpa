@@ -34,4 +34,10 @@
 			<property name="hibernate.hbm2ddl.auto" value="update" />
 		</properties>
 	</persistence-unit>
+	<persistence-unit name="audit">
+		<class>org.springframework.data.jpa.auditing.Domain</class>
+		<class>org.springframework.data.jpa.auditing.Principal</class>
+		<class>org.springframework.data.jpa.domain.sample.User</class>
+		<exclude-unlisted-classes>true</exclude-unlisted-classes>
+	</persistence-unit>
 </persistence>
