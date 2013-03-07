@@ -1,42 +1,42 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
-    <modelVersion>4.0.0</modelVersion>
-    
-    <groupId>org.springframework.data</groupId>
-    <artifactId>spring-data-jpa</artifactId>
-    <version>1.4.0.BUILD-SNAPSHOT</version>
+	<modelVersion>4.0.0</modelVersion>
+	
+	<groupId>org.springframework.data</groupId>
+	<artifactId>spring-data-jpa</artifactId>
+	<version>1.4.0.BUILD-SNAPSHOT</version>
 
-    <name>Spring Data JPA</name>
-    <description>Spring Data module for JPA repositories.</description>
-    <url>http://www.springframework.org/spring-data/jpa</url>
+	<name>Spring Data JPA</name>
+	<description>Spring Data module for JPA repositories.</description>
+	<url>http://www.springframework.org/spring-data/jpa</url>
 
-    <parent>
-        <groupId>org.springframework.data.build</groupId>
-        <artifactId>spring-data-parent</artifactId>
-        <version>1.0.0.RELEASE</version>
-        <relativePath>../spring-data-build/parent/pom.xml</relativePath>
-    </parent>
-    
-    <properties>
+	<parent>
+		<groupId>org.springframework.data.build</groupId>
+		<artifactId>spring-data-parent</artifactId>
+		<version>1.0.0.RELEASE</version>
+		<relativePath>../spring-data-build/parent/pom.xml</relativePath>
+	</parent>
+	
+	<properties>
 
-    	<dist.key>DATAJPA</dist.key>
-    	
-    	<eclipselink>2.4.0</eclipselink>
-    	<hibernate>3.6.10.Final</hibernate>
-    	<jpa>2.0.0</jpa>
-    	<openjpa>2.2.0</openjpa>
-    	<springdata.commons>1.6.0.BUILD-SNAPSHOT</springdata.commons>
-    	
-    </properties>
+		<dist.key>DATAJPA</dist.key>
+		
+		<eclipselink>2.4.0</eclipselink>
+		<hibernate>3.6.10.Final</hibernate>
+		<jpa>2.0.0</jpa>
+		<openjpa>2.2.0</openjpa>
+		<springdata.commons>1.6.0.BUILD-SNAPSHOT</springdata.commons>
+		
+	</properties>
 
-    <dependencies>
-    
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>spring-data-commons</artifactId>
-            <version>${springdata.commons}</version>
-        </dependency>
+	<dependencies>
+	
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>spring-data-commons</artifactId>
+			<version>${springdata.commons}</version>
+		</dependency>
 		
 		<dependency>
 			<groupId>org.springframework</groupId>
@@ -204,11 +204,11 @@
 			<scope>test</scope>
 		</dependency>
 		
-    </dependencies>
-    
-    <build>
-    	<plugins>
-    		<plugin>
+	</dependencies>
+	
+	<build>
+		<plugins>
+			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>2.12</version>
@@ -383,14 +383,14 @@
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>wagon-maven-plugin</artifactId>
 			</plugin>
-    	</plugins>
-    </build>
-    
-    <repositories>
-    	<repository>
-    		<id>spring-libs-snapshot</id>
-    		<url>http://repo.springsource.org/libs-snapshot</url>
-    	</repository>
-    </repositories>
+		</plugins>
+	</build>
+	
+	<repositories>
+		<repository>
+			<id>spring-libs-snapshot</id>
+			<url>http://repo.springsource.org/libs-snapshot</url>
+		</repository>
+	</repositories>
 
 </project>
