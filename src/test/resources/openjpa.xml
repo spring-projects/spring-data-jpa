@@ -10,7 +10,7 @@
 		usage -->
 	<bean id="vendorAdaptor" class="org.springframework.orm.jpa.vendor.OpenJpaVendorAdapter"
 		parent="abstractVendorAdaptor">
-		<property name="database" value="HSQL" />
+		<property name="database" value="H2" />
 	</bean>
 
 	<util:properties id="jpaProperties">
@@ -21,5 +21,6 @@
 		make OpenJPA tests work. Open JPA doesn't work with hsqldb 2.x and runs with 
 		1.x instead which doesn't support stored procedures which leads to errors 
 		at runtime when the scripts/schema-stored-procedure.sql is executed, therefore we omit the script here. -->
-	<jdbc:embedded-database id="dataSource" type="HSQL" />
+	<jdbc:embedded-database id="dataSource" type="H2" />
+
 </beans>

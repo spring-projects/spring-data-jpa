@@ -45,6 +45,10 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.query.QueryUtils;
+import org.springframework.data.repository.augment.QueryAugmentationEngine;
+import org.springframework.data.repository.augment.QueryAugmentationEngineAware;
+import org.springframework.data.repository.augment.QueryContext.QueryMode;
+import org.springframework.data.repository.augment.UpdateContext.UpdateMode;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -62,13 +66,14 @@ import org.springframework.util.Assert;
 @Repository
 @Transactional(readOnly = true)
 public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepository<T, ID>,
-		JpaSpecificationExecutor<T> {
+		JpaSpecificationExecutor<T>, QueryAugmentationEngineAware {
 
 	private final JpaEntityInformation<T, ?> entityInformation;
 	private final EntityManager em;
 	private final PersistenceProvider provider;
 
 	private CrudMethodMetadata crudMethodMetadata;
+	private QueryAugmentationEngine engine = QueryAugmentationEngine.NONE;
 
 	/**
 	 * Creates a new {@link SimpleJpaRepository} to manage objects of the given {@link JpaEntityInformation}.
@@ -110,18 +115,20 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 		return crudMethodMetadata;
 	}
 
-	protected Class<T> getDomainClass() {
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.core.support.QueryAugmentationEngineAware#setQueryAugmentationEngine(org.springframework.data.repository.core.support.QueryAugmentationEngine)
+	 */
+	public void setQueryAugmentationEngine(QueryAugmentationEngine engine) {
+		this.engine = engine;
+	}
+
+	private Class<T> getDomainClass() {
 		return entityInformation.getJavaType();
 	}
 
 	private String getDeleteAllQueryString() {
 		return getQueryString(DELETE_ALL_QUERY_STRING, entityInformation.getEntityName());
-	}
-
-	private String getCountQueryString() {
-
-		String countQuery = String.format(COUNT_QUERY_STRING, provider.getCountQueryPlaceholder(), "%s");
-		return getQueryString(countQuery, entityInformation.getEntityName());
 	}
 
 	/*
@@ -151,7 +158,20 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	public void delete(T entity) {
 
 		Assert.notNull(entity, "The entity must not be null!");
-		em.remove(em.contains(entity) ? entity : em.merge(entity));
+
+		entity = em.contains(entity) ? entity : em.merge(entity);
+
+		if (engine.augmentationNeeded(JpaUpdateContext.class, null, entityInformation)) {
+
+			JpaUpdateContext<T> context = new JpaUpdateContext<T>(entity, UpdateMode.DELETE, em);
+			context = engine.invokeAugmentors(context);
+
+			if (context == null) {
+				return;
+			}
+		}
+
+		em.remove(entity);
 	}
 
 	/*
@@ -215,6 +235,21 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 		Assert.notNull(id, "The given id must not be null!");
 
 		Class<T> domainType = getDomainClass();
+
+		if (engine.augmentationNeeded(JpaCriteriaQueryContext.class, QueryMode.FIND, entityInformation)) {
+
+			CriteriaBuilder builder = em.getCriteriaBuilder();
+			CriteriaQuery<T> query = builder.createQuery(domainType);
+			Root<T> root = query.from(domainType);
+
+			JpaCriteriaQueryContext<T, T> context = potentiallyAugment(query, root, QueryMode.FIND);
+
+			try {
+				return em.createQuery(context.getQuery()).getSingleResult();
+			} catch (NoResultException e) {
+				return null;
+			}
+		}
 
 		if (crudMethodMetadata == null) {
 			return em.find(domainType, id);
@@ -370,7 +405,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	 * @see org.springframework.data.repository.CrudRepository#count()
 	 */
 	public long count() {
-		return em.createQuery(getCountQueryString(), Long.class).getSingleResult();
+		return count(null);
 	}
 
 	/*
@@ -378,7 +413,6 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	 * @see org.springframework.data.jpa.repository.JpaSpecificationExecutor#count(org.springframework.data.jpa.domain.Specification)
 	 */
 	public long count(Specification<T> spec) {
-
 		return getCountQuery(spec).getSingleResult();
 	}
 
@@ -486,6 +520,11 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 		CriteriaQuery<T> query = builder.createQuery(getDomainClass());
 
 		Root<T> root = applySpecificationToCriteria(spec, query);
+
+		JpaCriteriaQueryContext<T, T> context = potentiallyAugment(query, root, QueryMode.FIND);
+		query = context.getQuery();
+		root = context.getRoot();
+
 		query.select(root);
 
 		if (sort != null) {
@@ -507,6 +546,10 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 		CriteriaQuery<Long> query = builder.createQuery(Long.class);
 
 		Root<T> root = applySpecificationToCriteria(spec, query);
+
+		JpaCriteriaQueryContext<Long, T> context = potentiallyAugment(query, root, QueryMode.COUNT);
+		query = context.getQuery();
+		root = context.getRoot();
 
 		if (query.isDistinct()) {
 			query.select(builder.countDistinct(root));
@@ -582,5 +625,16 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 			parameter = cb.parameter(Iterable.class);
 			return path.in(parameter);
 		}
+	}
+
+	private <S> JpaCriteriaQueryContext<S, T> potentiallyAugment(CriteriaQuery<S> query, Root<T> root, QueryMode mode) {
+
+		JpaCriteriaQueryContext<S, T> context = new JpaCriteriaQueryContext<S, T>(mode, em, query, root);
+
+		if (engine.augmentationNeeded(JpaCriteriaQueryContext.class, mode, entityInformation)) {
+			context = engine.invokeAugmentors(context);
+		}
+
+		return context;
 	}
 }
