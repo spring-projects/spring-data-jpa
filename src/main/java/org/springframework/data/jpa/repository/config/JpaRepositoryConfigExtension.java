@@ -22,6 +22,7 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.context.annotation.AnnotationConfigUtils;
 import org.springframework.core.annotation.AnnotationAttributes;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
@@ -145,7 +146,8 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 			registerWithSourceAndGeneratedBeanName(registry, definition, configurationSource.getSource());
 		}
 
-		if (!hasBean(PAB_POST_PROCESSOR, registry)) {
+		if (!hasBean(PAB_POST_PROCESSOR, registry)
+				&& !registry.containsBeanDefinition(AnnotationConfigUtils.PERSISTENCE_ANNOTATION_PROCESSOR_BEAN_NAME)) {
 
 			AbstractBeanDefinition definition = BeanDefinitionBuilder.rootBeanDefinition(PAB_POST_PROCESSOR)
 					.getBeanDefinition();
