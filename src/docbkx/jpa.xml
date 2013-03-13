@@ -509,6 +509,31 @@ public class User {
       </example>
 
       <simplesect>
+        <title>Using advanced <code>LIKE</code> expressions</title>
+
+        <para>The query execution mechanism for manually defined queries using
+        <interfacename>@Query</interfacename> allow the definition of advanced
+        <code>LIKE</code> expressions inside the query definition.</para>
+
+        <example>
+          <title>Advanced <code>LIKE</code> expressions in
+          <interfacename>@Query</interfacename></title>
+
+          <programlisting language="java">public interface UserRepository extends JpaRepository&lt;User, Long&gt; {
+
+  @Query("select u from User u where u.firstname like %?1")
+  List&lt;User&gt; findByFirstnameEndsWith(String firstname);
+}</programlisting>
+        </example>
+
+        <para>In the just shown sample <code>LIKE</code> delimiter character
+        <code>%</code> is recognized and the query transformed into a valid
+        JPQL query (removing the <code>%</code>). Upon query execution the
+        parameter handed into the method call gets augmented with the
+        previously recognized <code>LIKE</code> pattern.</para>
+      </simplesect>
+
+      <simplesect>
         <title>Native queries</title>
 
         <para>The <interfacename>@Query</interfacename> annotation allows to

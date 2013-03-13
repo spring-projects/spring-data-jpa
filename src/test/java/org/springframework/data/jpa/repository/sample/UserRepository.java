@@ -125,6 +125,18 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	List<User> findByFirstnameNotIn(Collection<String> firstnames);
 
 	/**
+	 * @see DATAJPA-292
+	 */
+	@Query("select u from User u where u.firstname like ?1%")
+	List<User> findByFirstnameLike(String firstname);
+
+	/**
+	 * @see DATAJPA-292
+	 */
+	@Query("select u from User u where u.firstname like :firstname%")
+	List<User> findByFirstnameLikeNamed(@Param("firstname") String firstname);
+
+	/**
 	 * Manipulating query to set all {@link User}'s names to the given one.
 	 * 
 	 * @param lastname
