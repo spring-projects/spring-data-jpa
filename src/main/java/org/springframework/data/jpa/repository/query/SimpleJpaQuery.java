@@ -37,9 +37,8 @@ final class SimpleJpaQuery extends AbstractJpaQuery {
 
 	private static final Logger LOG = LoggerFactory.getLogger(SimpleJpaQuery.class);
 
-	private final String queryString;
-	private final String countQuery;
-	private final String alias;
+	private final StringQuery query;
+	private final StringQuery countQuery;
 
 	private final JpaQueryMethod method;
 
@@ -50,11 +49,10 @@ final class SimpleJpaQuery extends AbstractJpaQuery {
 
 		super(method, em);
 
-		this.queryString = queryString;
-		this.alias = QueryUtils.detectAlias(queryString);
-		this.countQuery = method.getCountQuery() == null ? QueryUtils.createCountQueryFor(queryString) : method
-				.getCountQuery();
 		this.method = method;
+		this.query = new StringQuery(queryString);
+		this.countQuery = new StringQuery(method.getCountQuery() == null ? QueryUtils.createCountQueryFor(queryString)
+				: method.getCountQuery());
 
 		Parameters parameters = method.getParameters();
 		boolean hasPagingOrSortingParameter = parameters.hasPageableParameter() || parameters.hasSortParameter();
@@ -66,7 +64,7 @@ final class SimpleJpaQuery extends AbstractJpaQuery {
 		// Try to create a Query object already to fail fast
 		if (!method.isNativeQuery()) {
 			try {
-				em.createQuery(queryString);
+				em.createQuery(query.getQuery());
 			} catch (RuntimeException e) {
 				// Needed as there's ambiguities in how an invalid query string shall be expressed by the persistence provider
 				// http://java.net/projects/jpa-spec/lists/jsr338-experts/archive/2012-07/message/17
@@ -84,13 +82,22 @@ final class SimpleJpaQuery extends AbstractJpaQuery {
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.jpa.repository.query.AbstractJpaQuery#createBinder(java.lang.Object[])
+	 */
+	@Override
+	protected ParameterBinder createBinder(Object[] values) {
+		return new StringQueryParameterBinder(getQueryMethod().getParameters(), values, query);
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.query.AbstractJpaQuery#createQuery(java.lang.Object[])
 	 */
 	@Override
 	public Query doCreateQuery(Object[] values) {
 
 		ParameterAccessor accessor = new ParametersParameterAccessor(method.getParameters(), values);
-		String sortedQueryString = QueryUtils.applySorting(queryString, accessor.getSort(), alias);
+		String sortedQueryString = QueryUtils.applySorting(query.getQuery(), accessor.getSort(), query.getAlias());
 		EntityManager em = getEntityManager();
 
 		Query query = null;
@@ -111,8 +118,7 @@ final class SimpleJpaQuery extends AbstractJpaQuery {
 	 */
 	@Override
 	protected TypedQuery<Long> doCreateCountQuery(Object[] values) {
-
-		return createBinder(values).bind(getEntityManager().createQuery(countQuery, Long.class));
+		return createBinder(values).bind(getEntityManager().createQuery(countQuery.getQuery(), Long.class));
 	}
 
 	/**

@@ -970,6 +970,34 @@ public class UserRepositoryTests {
 		assertThat(page, hasItem(firstUser));
 	}
 
+	/**
+	 * @see DATAJPA-292
+	 */
+	@Test
+	public void executesManualQueryWithPositionLikeExpressionCorrectly() {
+
+		flushTestUsers();
+
+		List<User> result = repository.findByFirstnameLike("Da");
+
+		assertThat(result, hasSize(1));
+		assertThat(result, hasItem(thirdUser));
+	}
+
+	/**
+	 * @see DATAJPA-292
+	 */
+	@Test
+	public void executesManualQueryWithNamedLikeExpressionCorrectly() {
+
+		flushTestUsers();
+
+		List<User> result = repository.findByFirstnameLikeNamed("Da");
+
+		assertThat(result, hasSize(1));
+		assertThat(result, hasItem(thirdUser));
+	}
+
 	private Page<User> executeSpecWithSort(Sort sort) {
 
 		flushTestUsers();
