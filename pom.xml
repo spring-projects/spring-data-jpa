@@ -14,7 +14,7 @@
 	<parent>
 		<groupId>org.springframework.data.build</groupId>
 		<artifactId>spring-data-parent</artifactId>
-		<version>1.0.0.RELEASE</version>
+		<version>1.0.2.RELEASE</version>
 		<relativePath>../spring-data-build/parent/pom.xml</relativePath>
 	</parent>
 	
@@ -24,11 +24,27 @@
 		
 		<eclipselink>2.4.0</eclipselink>
 		<hibernate>3.6.10.Final</hibernate>
+		<hsqldb1>1.8.0.10</hsqldb1>
 		<jpa>2.0.0</jpa>
-		<openjpa>2.2.0</openjpa>
+		<openjpa>2.2.1</openjpa>
 		<springdata.commons>1.6.0.BUILD-SNAPSHOT</springdata.commons>
 		
 	</properties>
+	
+	<profiles>
+		<profile>
+			<id>hibernate-41</id>
+			<properties>
+				<hibernate>4.1.11.Final</hibernate>
+			</properties>
+		</profile>
+		<profile>
+			<id>hibernate-42</id>
+			<properties>
+				<hibernate>4.2.0.Final</hibernate>
+			</properties>
+		</profile>
+	</profiles>
 
 	<dependencies>
 	
@@ -108,7 +124,7 @@
 		<dependency>
 			<groupId>org.hsqldb</groupId>
 			<artifactId>hsqldb</artifactId>
-			<version>1.8.0.10</version>
+			<version>2.2.8</version>
 			<scope>test</scope>
 		</dependency>
 		
@@ -225,6 +241,12 @@
 						<version>${openjpa}</version>
 						<scope>runtime</scope>
 					</dependency>
+					<dependency>
+						<groupId>org.hsqldb</groupId>
+						<artifactId>hsqldb</artifactId>
+						<version>${hsqldb1}</version>
+						<scope>runtime</scope>
+					</dependency>
 				</dependencies>
 				<configuration>
 					<excludes>
@@ -296,6 +318,12 @@
 								<include>**/OpenJpa*Tests.java</include>
 							</includes>
 							<argLine>-javaagent:${settings.localRepository}/org/apache/openjpa/openjpa/${openjpa}/openjpa-${openjpa}.jar</argLine>
+							<classpathDependencyExcludes>
+								<classpathDepencyExclude>org.hsqldb:hsqldb</classpathDepencyExclude>
+							</classpathDependencyExcludes>
+							<additionalClasspathElements>
+								<additionalClasspathElement>${settings.localRepository}/org/hsqldb/hsqldb/${hsqldb1}/hsqldb-${hsqldb1}.jar</additionalClasspathElement>
+							</additionalClasspathElements>
 						</configuration>
 					</execution>
 				</executions>
