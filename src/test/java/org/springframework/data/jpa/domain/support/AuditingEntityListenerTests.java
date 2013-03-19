@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 the original author or authors.
+ * Copyright 2008-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,18 +57,32 @@ public class AuditingEntityListenerTests {
 		user = new AuditableUser();
 		auditorAware.setAuditor(user);
 
-		repository.save(user);
+		repository.saveAndFlush(user);
 	}
 
 	@Test
-	public void auditsRootEntityCorrectly() throws Exception {
+	public void auditsRootEntityCorrectly() {
 
 		assertDatesSet(user);
 		assertUserIsAuditor(user, user);
 	}
 
+	/**
+	 * @see DATAJPA-303
+	 */
 	@Test
-	public void auditsTransitiveEntitiesCorrectly() throws Exception {
+	public void updatesLastModifiedDates() throws Exception {
+
+		Thread.sleep(200);
+		user.setFirstname("Oliver");
+
+		user = repository.saveAndFlush(user);
+
+		assertThat(user.getCreatedDate().isBefore(user.getLastModifiedDate()), is(true));
+	}
+
+	@Test
+	public void auditsTransitiveEntitiesCorrectly() {
 
 		AuditableRole role = new AuditableRole();
 		role.setName("ADMIN");
