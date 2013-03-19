@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2012-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,14 +20,19 @@ import java.io.IOException;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
+import org.junit.Test;
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.jpa.domain.sample.User;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.data.jpa.repository.sample.UserRepositoryImpl;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean;
@@ -75,5 +80,22 @@ public class JavaConfigUserRepositoryTests extends UserRepositoryTests {
 
 			return new PropertiesBasedNamedQueries(factory.getObject());
 		}
+	}
+
+	/**
+	 * @see DATAJPA-317
+	 */
+	@Test(expected = NoSuchBeanDefinitionException.class)
+	public void doesNotPickUpJpaRepository() {
+
+		ApplicationContext context = new AnnotationConfigApplicationContext(JpaRepositoryConfig.class);
+		context.getBean("jpaRepository");
+	}
+
+	@Configuration
+	@EnableJpaRepositories
+	@ImportResource("classpath:infrastructure.xml")
+	static class JpaRepositoryConfig {
+
 	}
 }
