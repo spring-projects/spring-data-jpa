@@ -18,6 +18,6 @@ package org.springframework.data.jpa.repository.cdi;
 import org.springframework.data.repository.Repository;
 
 @PersonDB
-interface QualifiedPersonRepository extends PersonRepository, Repository<Person, Long> {
+public interface QualifiedPersonRepository extends PersonRepository, Repository<Person, Long> {
 
 }

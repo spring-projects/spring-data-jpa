@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2011-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,14 @@
  * limitations under the License.
  */
 package org.springframework.data.jpa.repository.cdi;
+
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
+
+import java.util.Set;
+
+import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.spi.Bean;
 
 import org.apache.webbeans.cditest.CdiTestContainer;
 import org.apache.webbeans.cditest.CdiTestContainerLoader;
@@ -34,6 +42,19 @@ public class CdiExtensionintegrationTests {
 	public static void setUp() throws Exception {
 		container = CdiTestContainerLoader.getCdiContainer();
 		container.bootContainer();
+	}
+
+	/**
+	 * @see DATAJPA-319
+	 */
+	@Test
+	@SuppressWarnings("rawtypes")
+	public void foo() {
+
+		Set<Bean<?>> beans = container.getBeanManager().getBeans(PersonRepository.class);
+
+		assertThat(beans, hasSize(1));
+		assertThat(beans.iterator().next().getScope(), is(equalTo((Class) ApplicationScoped.class)));
 	}
 
 	@Test

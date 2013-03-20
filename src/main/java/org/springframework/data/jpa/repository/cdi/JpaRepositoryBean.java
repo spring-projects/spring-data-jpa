@@ -32,7 +32,6 @@ import org.springframework.util.Assert;
  * 
  * @author Dirk Mahler
  * @author Oliver Gierke
- * 
  * @param <T> The type of the repository.
  */
 class JpaRepositoryBean<T> extends CdiRepositoryBean<T> {
@@ -68,15 +67,5 @@ class JpaRepositoryBean<T> extends CdiRepositoryBean<T> {
 		// Create the JPA repository instance and return it.
 		JpaRepositoryFactory factory = new JpaRepositoryFactory(entityManager);
 		return factory.getRepository(repositoryType);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see javax.enterprise.inject.spi.Bean#getScope()
-	 */
-	public Class<? extends Annotation> getScope() {
-
-		// The repository uses the same scope as the associated EntityManager.
-		return entityManagerBean.getScope();
 	}
 }
