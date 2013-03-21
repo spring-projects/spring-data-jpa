@@ -14,6 +14,7 @@
 		<class>org.springframework.data.jpa.domain.sample.SampleEntity</class>
 		<class>org.springframework.data.jpa.domain.sample.SampleEntityPK</class>
 		<class>org.springframework.data.jpa.domain.sample.SampleWithIdClass</class>
+		<class>org.springframework.data.jpa.domain.sample.VersionedUser</class>
 		<exclude-unlisted-classes>true</exclude-unlisted-classes>
 	</persistence-unit>
 	<persistence-unit name="querydsl">

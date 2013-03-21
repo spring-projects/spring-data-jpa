@@ -46,6 +46,7 @@ import org.springframework.util.ReflectionUtils;
 public class JpaMetamodelEntityInformation<T, ID extends Serializable> extends JpaEntityInformationSupport<T, ID> {
 
 	private final IdMetadata<T> idMetadata;
+	private final SingularAttribute<? super T, ?> versionAttribute;
 
 	/**
 	 * Creates a new {@link JpaMetamodelEntityInformation} for the given domain class and {@link Metamodel}.
@@ -69,6 +70,26 @@ public class JpaMetamodelEntityInformation<T, ID extends Serializable> extends J
 		}
 
 		this.idMetadata = new IdMetadata<T>((IdentifiableType<T>) type);
+		this.versionAttribute = findVersionAttribute(type);
+	}
+
+	/**
+	 * Returns the version attribute of the given {@link ManagedType} or {@literal null} if none available.
+	 * 
+	 * @param type must not be {@literal null}.
+	 * @return
+	 */
+	private static <T> SingularAttribute<? super T, ?> findVersionAttribute(ManagedType<T> type) {
+
+		Set<SingularAttribute<? super T, ?>> attributes = type.getSingularAttributes();
+
+		for (SingularAttribute<? super T, ?> attribute : attributes) {
+			if (attribute.isVersion()) {
+				return attribute;
+			}
+		}
+
+		return null;
 	}
 
 	/*
@@ -151,6 +172,20 @@ public class JpaMetamodelEntityInformation<T, ID extends Serializable> extends J
 	public Object getCompositeIdAttributeValue(Serializable id, String idAttribute) {
 		Assert.isTrue(hasCompositeId());
 		return new DirectFieldAccessFallbackBeanWrapper(id).getPropertyValue(idAttribute);
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.core.support.AbstractEntityInformation#isNew(java.lang.Object)
+	 */
+	@Override
+	public boolean isNew(T entity) {
+
+		if (versionAttribute == null) {
+			return super.isNew(entity);
+		}
+
+		return new DirectFieldAccessFallbackBeanWrapper(entity).getPropertyValue(versionAttribute.getName()) == null;
 	}
 
 	/**

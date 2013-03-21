@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2012 the original author or authors.
+ * Copyright 2011-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import org.springframework.data.jpa.domain.AbstractPersistable;
 import org.springframework.data.jpa.domain.sample.SampleWithIdClass;
 import org.springframework.data.jpa.domain.sample.SampleWithIdClassPK;
 import org.springframework.data.jpa.domain.sample.User;
+import org.springframework.data.jpa.domain.sample.VersionedUser;
 import org.springframework.data.repository.core.EntityInformation;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -91,5 +92,24 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 
 		assertThat(id, is(instanceOf(SampleWithIdClassPK.class)));
 		assertThat(id, is((Object) new SampleWithIdClassPK(2L, 4L)));
+	}
+
+	/**
+	 * @see DATAJPA-119
+	 */
+	@Test
+	public void favoursVersionAnnotationIfPresent() {
+
+		EntityInformation<VersionedUser, Long> information = new JpaMetamodelEntityInformation<VersionedUser, Long>(
+				VersionedUser.class, em.getMetamodel());
+
+		VersionedUser entity = new VersionedUser();
+		assertThat(information.isNew(entity), is(true));
+		entity.setId(1L);
+		assertThat(information.isNew(entity), is(true));
+		entity.setVersion(1L);
+		assertThat(information.isNew(entity), is(false));
+		entity.setId(null);
+		assertThat(information.isNew(entity), is(false));
 	}
 }
