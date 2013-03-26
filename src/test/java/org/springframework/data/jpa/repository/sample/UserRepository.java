@@ -254,4 +254,14 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 
 	@Query(value = "SELECT 1 FROM User", nativeQuery = true)
 	List<Integer> findOnesByNativeQuery();
+
+	/**
+	 * @see DATAJPA-231
+	 */
+	long countByLastname(String lastname);
+
+	/**
+	 * @see DATAJPA-231
+	 */
+	int countUsersByFirstname(String firstname);
 }

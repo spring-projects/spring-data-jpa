@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 the original author or authors.
+ * Copyright 2008-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,8 @@ import javax.persistence.NoResultException;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 
+import org.springframework.core.convert.ConversionService;
+import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.query.ParameterAccessor;
@@ -39,11 +41,13 @@ import org.springframework.util.Assert;
  */
 public abstract class JpaQueryExecution {
 
+	private static final ConversionService conversionService = new DefaultConversionService();
+
 	/**
 	 * Executes the given {@link AbstractStringBasedJpaQuery} with the given {@link ParameterBinder}.
 	 * 
-	 * @param query
-	 * @param binder
+	 * @param query must not be {@literal null}.
+	 * @param binder must not be {@literal null}.
 	 * @return
 	 */
 	public Object execute(AbstractJpaQuery query, Object[] values) {
@@ -51,11 +55,26 @@ public abstract class JpaQueryExecution {
 		Assert.notNull(query);
 		Assert.notNull(values);
 
+		Object result;
+
 		try {
-			return doExecute(query, values);
+			result = doExecute(query, values);
 		} catch (NoResultException e) {
 			return null;
 		}
+
+		if (result == null) {
+			return result;
+		}
+
+		JpaQueryMethod queryMethod = query.getQueryMethod();
+		Class<?> requiredType = queryMethod.getReturnType();
+
+		if (void.class.equals(requiredType) || requiredType.isAssignableFrom(result.getClass())) {
+			return result;
+		}
+
+		return conversionService.convert(result, requiredType);
 	}
 
 	/**

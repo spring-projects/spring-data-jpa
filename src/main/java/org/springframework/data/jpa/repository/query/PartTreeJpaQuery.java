@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 the original author or authors.
+ * Copyright 2008-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,8 +46,8 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 	/**
 	 * Creates a new {@link PartTreeJpaQuery}.
 	 * 
-	 * @param method
-	 * @param em
+	 * @param method must not be {@literal null}.
+	 * @param em must not be {@literal null}.
 	 */
 	public PartTreeJpaQuery(JpaQueryMethod method, EntityManager em) {
 
@@ -57,8 +57,8 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 		this.tree = new PartTree(method.getName(), domainClass);
 		this.parameters = method.getParameters();
 
-		this.query = new QueryPreparer(parameters.potentiallySortsDynamically());
 		this.countQuery = new CountQueryPreparer(parameters.potentiallySortsDynamically());
+		this.query = tree.isCountProjection() ? countQuery : new QueryPreparer(parameters.potentiallySortsDynamically());
 	}
 
 	/*
@@ -163,15 +163,12 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 	private class CountQueryPreparer extends QueryPreparer {
 
 		public CountQueryPreparer(boolean recreateQueries) {
-
 			super(recreateQueries);
 		}
 
 		/*
 		 * (non-Javadoc)
-		 * 
-		 * @see org.springframework.data.jpa.repository.query.PartTreeJpaQuery.
-		 * QueryPreparer#createCreator()
+		 * @see org.springframework.data.jpa.repository.query.PartTreeJpaQuery.QueryPreparer#createCreator(org.springframework.data.repository.query.ParametersParameterAccessor)
 		 */
 		@Override
 		protected JpaQueryCreator createCreator(ParametersParameterAccessor accessor) {
@@ -191,8 +188,8 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 		 * @see org.springframework.data.jpa.repository.query.PartTreeJpaQuery.QueryPreparer#invokeBinding(org.springframework.data.jpa.repository.query.ParameterBinder,
 		 *      javax.persistence.TypedQuery)
 		 */
+		@Override
 		protected Query invokeBinding(ParameterBinder binder, javax.persistence.TypedQuery<?> query) {
-
 			return binder.bind(query);
 		}
 	}

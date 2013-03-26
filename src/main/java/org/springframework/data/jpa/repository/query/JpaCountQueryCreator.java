@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 the original author or authors.
+ * Copyright 2008-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,25 +40,16 @@ public class JpaCountQueryCreator extends JpaQueryCreator {
 	 */
 	public JpaCountQueryCreator(PartTree tree, Class<?> domainClass, CriteriaBuilder builder,
 			ParameterMetadataProvider provider) {
-
 		super(tree, domainClass, builder, provider);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.springframework.data.jpa.repository.query.JpaQueryCreator#complete
-	 * (javax.persistence.criteria.Predicate,
-	 * org.springframework.data.domain.Sort,
-	 * javax.persistence.criteria.CriteriaQuery,
-	 * javax.persistence.criteria.CriteriaBuilder,
-	 * javax.persistence.criteria.Root)
+	 * @see org.springframework.data.jpa.repository.query.JpaQueryCreator#complete(javax.persistence.criteria.Predicate, org.springframework.data.domain.Sort, javax.persistence.criteria.CriteriaQuery, javax.persistence.criteria.CriteriaBuilder, javax.persistence.criteria.Root)
 	 */
 	@Override
 	protected CriteriaQuery<Object> complete(Predicate predicate, Sort sort, CriteriaQuery<Object> query,
 			CriteriaBuilder builder, Root<?> root) {
-
 		return query.select(builder.count(root)).where(predicate);
 	}
 }

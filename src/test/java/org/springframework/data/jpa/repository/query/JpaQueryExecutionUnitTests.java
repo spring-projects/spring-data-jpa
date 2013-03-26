@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 the original author or authors.
+ * Copyright 2008-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -88,6 +88,7 @@ public class JpaQueryExecutionUnitTests {
 		when(query.executeUpdate()).thenReturn(0);
 		when(method.getReturnType()).thenReturn((Class) void.class);
 		when(jpaQuery.createQuery(Mockito.any(Object[].class))).thenReturn(query);
+		when(jpaQuery.getQueryMethod()).thenReturn(method);
 
 		ModifyingExecution execution = new ModifyingExecution(method, em);
 		execution.execute(jpaQuery, new Object[] {});

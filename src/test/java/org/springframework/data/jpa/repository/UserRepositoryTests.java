@@ -1027,6 +1027,28 @@ public class UserRepositoryTests {
 		assertThat(result, hasItem(thirdUser));
 	}
 
+	/**
+	 * @see DATAJPA-231
+	 */
+	@Test
+	public void executesDerivedCountQueryToLong() {
+
+		flushTestUsers();
+
+		assertThat(repository.countByLastname("Matthews"), is(1L));
+	}
+
+	/**
+	 * @see DATAJPA-231
+	 */
+	@Test
+	public void executesDerivedCountQueryToInt() {
+
+		flushTestUsers();
+
+		assertThat(repository.countUsersByFirstname("Dave"), is(1));
+	}
+
 	private Page<User> executeSpecWithSort(Sort sort) {
 
 		flushTestUsers();
