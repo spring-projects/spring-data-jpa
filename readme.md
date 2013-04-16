@@ -29,17 +29,8 @@ Download the jar though Maven:
 <dependency>
   <groupId>org.springframework.data</groupId>
   <artifactId>spring-data-jpa</artifactId>
-  <version>1.1.0.BUILD-SNAPSHOT</version>
-</dependency> 
-       
-<repository>
-  <id>spring-maven-snapshot</id>
-  <snapshots>
-    <enabled>true</enabled>
-  </snapshots>
-  <name>Springframework Maven SNAPSHOT Repository</name>
-  <url>http://maven.springframework.org/snapshot</url>
-</repository>
+  <version>1.3.1.RELEASE</version>
+</dependency>
 ```
 
 Also include your JPA persistence provider of choice (Hibernate, EclipseLink, OpenJpa). Setup basic Spring JPA configuration as well as Spring Data JPA repository support.

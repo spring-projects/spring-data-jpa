@@ -14,7 +14,7 @@
 	<parent>
 		<groupId>org.springframework.data.build</groupId>
 		<artifactId>spring-data-parent</artifactId>
-		<version>1.0.2.RELEASE</version>
+		<version>1.0.3.RELEASE</version>
 		<relativePath>../spring-data-build/parent/pom.xml</relativePath>
 	</parent>
 	
@@ -27,7 +27,7 @@
 		<hsqldb1>1.8.0.10</hsqldb1>
 		<jpa>2.0.0</jpa>
 		<openjpa>2.2.1</openjpa>
-		<springdata.commons>1.5.0.RELEASE</springdata.commons>
+		<springdata.commons>1.5.1.RELEASE</springdata.commons>
 		
 	</properties>
 
@@ -370,8 +370,8 @@
 			
 			<plugin>
 				<groupId>com.mysema.maven</groupId>
-				<artifactId>maven-apt-plugin</artifactId>
-				<version>1.0.4</version>
+				<artifactId>apt-maven-plugin</artifactId>
+				<version>1.0.9</version>
 				<configuration>
 					<processor>com.mysema.query.apt.jpa.JPAAnnotationProcessor</processor>
 				</configuration>
