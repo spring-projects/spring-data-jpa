@@ -179,6 +179,30 @@ public class QueryUtilsUnitTests {
 		assertThat(applySorting(query, new Sort("firstname"), "p"), endsWith("order by p.lastname asc, p.firstname asc"));
 	}
 
+	/**
+	 * @see DATAJPA-296
+	 */
+	@Test
+	public void appliesIgnoreCaseOrderingCorrectly() {
+
+		Sort sort = new Sort(new Sort.Order("firstname").ignoreCase());
+
+		String query = "select p from Person p";
+		assertThat(applySorting(query, sort, "p"), endsWith("order by lower(p.firstname) asc"));
+	}
+
+	/**
+	 * @see DATAJPA-296
+	 */
+	@Test
+	public void appendsIgnoreCaseOrderingCorrectly() {
+
+		Sort sort = new Sort(new Sort.Order("firstname").ignoreCase());
+
+		String query = "select p from Person p order by p.lastname asc";
+		assertThat(applySorting(query, sort, "p"), endsWith("order by p.lastname asc, lower(p.firstname) asc"));
+	}
+
 	private void assertCountQuery(String originalQuery, String countQuery) {
 		assertThat(createCountQueryFor(originalQuery), is(countQuery));
 	}

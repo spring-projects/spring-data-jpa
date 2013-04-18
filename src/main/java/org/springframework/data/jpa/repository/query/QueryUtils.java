@@ -190,7 +190,7 @@ public abstract class QueryUtils {
 		Set<String> aliases = getOuterJoinAliases(query);
 
 		for (Order order : sort) {
-			builder.append(getOrderClause(aliases, alias, order));
+			builder.append(getOrderClause(aliases, alias, order)).append(", ");
 		}
 
 		builder.delete(builder.length() - 2, builder.length());
@@ -219,7 +219,10 @@ public abstract class QueryUtils {
 			}
 		}
 
-		return String.format("%s%s %s, ", qualifyReference ? alias + "." : "", property, toJpaDirection(order));
+		String reference = qualifyReference ? String.format("%s.%s", alias, property) : property;
+		String wrapped = order.isIgnoreCase() ? String.format("lower(%s)", reference) : reference;
+
+		return String.format("%s %s", wrapped, toJpaDirection(order));
 	}
 
 	/**
