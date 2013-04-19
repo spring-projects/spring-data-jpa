@@ -413,5 +413,12 @@
 			</plugin>
 		</plugins>
 	</build>
+	
+	<repositories>
+		<repository>
+			<id>spring-libs-snapshot</id>
+			<url>http://repo.springsource.org/lib-snapshot-local</url>
+		</repository>
+	</repositories>
 
 </project>
