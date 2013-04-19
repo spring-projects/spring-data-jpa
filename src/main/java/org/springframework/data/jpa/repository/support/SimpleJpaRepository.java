@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2012 the original author or authors.
+ * Copyright 2008-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -252,6 +252,10 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	 * @see org.springframework.data.repository.CrudRepository#findAll(ID[])
 	 */
 	public List<T> findAll(Iterable<ID> ids) {
+
+		if (ids == null || !ids.iterator().hasNext()) {
+			return Collections.emptyList();
+		}
 
 		return getQuery(new Specification<T>() {
 			public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
