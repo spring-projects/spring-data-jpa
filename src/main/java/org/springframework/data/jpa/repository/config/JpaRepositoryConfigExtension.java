@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2012-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,7 +50,6 @@ import org.w3c.dom.Element;
 public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensionSupport {
 
 	private static final Class<?> PAB_POST_PROCESSOR = PersistenceAnnotationBeanPostProcessor.class;
-	private static final Class<?> PET_POST_PROCESSOR = PersistenceExceptionTranslationPostProcessor.class;
 	private static final String DEFAULT_TRANSACTION_MANAGER_BEAN_NAME = "transactionManager";
 
 	/* 
@@ -137,14 +136,6 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 	public void registerBeansForRoot(BeanDefinitionRegistry registry, RepositoryConfigurationSource configurationSource) {
 
 		super.registerBeansForRoot(registry, configurationSource);
-
-		if (!hasBean(PET_POST_PROCESSOR, registry)) {
-
-			AbstractBeanDefinition definition = BeanDefinitionBuilder.rootBeanDefinition(PET_POST_PROCESSOR)
-					.getBeanDefinition();
-
-			registerWithSourceAndGeneratedBeanName(registry, definition, configurationSource.getSource());
-		}
 
 		if (!hasBean(PAB_POST_PROCESSOR, registry)
 				&& !registry.containsBeanDefinition(AnnotationConfigUtils.PERSISTENCE_ANNOTATION_PROCESSOR_BEAN_NAME)) {

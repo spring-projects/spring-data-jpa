@@ -45,7 +45,6 @@ import org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcesso
 public class JpaRepositoryConfigExtensionUnitTests {
 
 	private static final String RIABPP_CLASS_NAME = "org.springframework.data.repository.core.support.RepositoryInterfaceAwareBeanPostProcessor";
-	private static final String PETPP_CLASS_NAME = "org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor";
 	private static final String PABPP_CLASS_NAME = "org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor";
 
 	@Mock
@@ -65,7 +64,6 @@ public class JpaRepositoryConfigExtensionUnitTests {
 		Iterable<String> names = Arrays.asList(factory.getBeanDefinitionNames());
 
 		assertThat(names, Matchers.<String> hasItem(startsWith(PABPP_CLASS_NAME)));
-		assertThat(names, Matchers.<String> hasItem(startsWith(PETPP_CLASS_NAME)));
 		assertThat(names, Matchers.<String> hasItem(startsWith(RIABPP_CLASS_NAME)));
 	}
 

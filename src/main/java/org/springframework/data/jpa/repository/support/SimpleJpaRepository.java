@@ -41,6 +41,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.query.QueryUtils;
+import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
@@ -54,7 +55,7 @@ import org.springframework.util.Assert;
  * @param <T> the type of the entity to handle
  * @param <ID> the type of the entity's identifier
  */
-@org.springframework.stereotype.Repository
+@Repository
 @Transactional(readOnly = true)
 public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepository<T, ID>,
 		JpaSpecificationExecutor<T> {

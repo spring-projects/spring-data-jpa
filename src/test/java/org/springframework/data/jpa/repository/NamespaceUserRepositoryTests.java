@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 the original author or authors.
+ * Copyright 2008-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import java.util.Map;
 import org.junit.Test;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
 import org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor;
 import org.springframework.test.context.ContextConfiguration;
 
@@ -40,9 +39,7 @@ public class NamespaceUserRepositoryTests extends UserRepositoryTests {
 
 	@Test
 	public void registersPostProcessors() {
-
 		hasAtLeastOneBeanOfType(PersistenceAnnotationBeanPostProcessor.class);
-		hasAtLeastOneBeanOfType(PersistenceExceptionTranslationPostProcessor.class);
 	}
 
 	private void hasAtLeastOneBeanOfType(Class<?> beanType) {
