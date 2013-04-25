@@ -28,7 +28,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.jpa.domain.sample.QUser;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.test.context.ContextConfiguration;
@@ -55,7 +57,7 @@ public class QueryDslJpaRepositoryTests {
 
 	QueryDslJpaRepository<User, Integer> repository;
 	QUser user = new QUser("user");
-	User dave, carter;
+	User dave, carter, oliver;
 
 	@Before
 	public void setUp() {
@@ -66,6 +68,7 @@ public class QueryDslJpaRepositoryTests {
 		repository = new QueryDslJpaRepository<User, Integer>(information, em);
 		dave = repository.save(new User("Dave", "Matthews", "dave@matthews.com"));
 		carter = repository.save(new User("Carter", "Beauford", "carter@beauford.com"));
+		oliver = repository.save(new User("Oliver", "matthews", "oliver@matthews.com"));
 	}
 
 	@Test
@@ -107,9 +110,25 @@ public class QueryDslJpaRepositoryTests {
 		assertThat(result.getContent(), hasSize(1));
 		assertThat(result.getContent().get(0), is(carter));
 
-		result = repository.findAll(lastnameContainsE, new PageRequest(0, 1, Direction.DESC, "lastname"));
+		result = repository.findAll(lastnameContainsE, new PageRequest(0, 2, Direction.DESC, "lastname"));
 
-		assertThat(result.getContent(), hasSize(1));
+		assertThat(result.getContent(), hasSize(2));
+		assertThat(result.getContent().get(0), is(oliver));
+		assertThat(result.getContent().get(1), is(dave));
+	}
+
+	/**
+	 * @see DATAJPA-296
+	 */
+	@Test
+	public void appliesIgnoreCaseOrdering() {
+
+		Sort sort = new Sort(new Order(Direction.DESC, "lastname").ignoreCase(), new Order(Direction.ASC, "firstname"));
+
+		Page<User> result = repository.findAll(user.lastname.contains("e"), new PageRequest(0, 2, sort));
+
+		assertThat(result.getContent(), hasSize(2));
 		assertThat(result.getContent().get(0), is(dave));
+		assertThat(result.getContent().get(1), is(oliver));
 	}
 }
