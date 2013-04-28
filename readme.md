@@ -101,7 +101,7 @@ public interface UserRepository extends CrudRepository<User, Long> {
 Write a test client
 
 ```java
-@RunWith(SpringJUnit4TestRunner.class)
+@RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("classpath:your-config-file.xml")
 public class UserRepositoryIntegrationTest {
      
