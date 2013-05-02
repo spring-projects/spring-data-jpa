@@ -416,8 +416,8 @@
 	
 	<repositories>
 		<repository>
-			<id>spring-libs-snapshot</id>
-			<url>http://repo.springsource.org/lib-snapshot-local</url>
+			<id>spring-libs-release</id>
+			<url>http://repo.springsource.org/libs-release</url>
 		</repository>
 	</repositories>
 

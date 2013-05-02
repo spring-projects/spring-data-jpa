@@ -1,6 +1,12 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 1.3.2.RELEASE (2013-05-02)
+---------------------------------------------
+* Release 1.3.1 breaks auditing (DATAJPA-336)
+* findAll(ids) throws SQL grammar exception when given an empty collection (DATAJPA-332)
+* Invalid class name referenced in readme.md (DATAJPA-334)
+
 Changes in version 1.3.1.RELEASE (2013-04-16)
 ---------------------------------------------
 * Support query internal LIKE expressions (DATAJPA-292)
