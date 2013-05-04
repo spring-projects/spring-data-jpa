@@ -202,7 +202,7 @@ class StringQuery {
 			return Type.STARTING_WITH;
 		}
 
-		throw new IllegalArgumentException(String.format("Illegal like pattern %s!", expression));
+		return Type.LIKE;
 	}
 
 	/**
@@ -214,7 +214,7 @@ class StringQuery {
 	static class LikeBinding {
 
 		private static final List<Type> SUPPORTED_TYPES = Arrays.asList(Type.CONTAINING, Type.STARTING_WITH,
-				Type.ENDING_WITH);
+				Type.ENDING_WITH, Type.LIKE);
 
 		private final String name;
 		private final Integer position;
@@ -303,6 +303,7 @@ class StringQuery {
 					return String.format("%%%s", value.toString());
 				case CONTAINING:
 					return String.format("%%%s%%", value.toString());
+				case LIKE:
 				default:
 					return value;
 			}

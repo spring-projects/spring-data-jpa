@@ -25,9 +25,31 @@ import org.springframework.data.jpa.repository.query.StringQuery.LikeBinding;
 import org.springframework.data.repository.query.parser.Part.Type;
 
 /**
+ * Unit tests for {@link StringQuery}.
+ * 
  * @author Oliver Gierke
  */
 public class StringQueryUnitTests {
+
+	/**
+	 * @see DATAJPA-341
+	 */
+	@Test
+	public void doesNotConsiderPlainLikeABinding() {
+
+		String source = "select from User u where u.firstname like :firstname";
+		StringQuery query = new StringQuery(source);
+
+		assertThat(query.hasLikeBindings(), is(true));
+		assertThat(query.getQuery(), is(source));
+
+		List<LikeBinding> bindings = query.getLikeBindings();
+		assertThat(bindings, hasSize(1));
+
+		LikeBinding binding = bindings.get(0);
+		assertThat(binding.getType(), is(Type.LIKE));
+		assertThat(binding.hasName("firstname"), is(true));
+	}
 
 	@Test
 	public void detectsPositionalLikeBindings() {
@@ -35,8 +57,7 @@ public class StringQueryUnitTests {
 		StringQuery query = new StringQuery("select u from User u where u.firstname like %?1% or u.lastname like %?2");
 
 		assertThat(query.hasLikeBindings(), is(true));
-		assertThat(query.getQuery(),
-				is("select u from User u where u.firstname like ?1 or u.lastname like ?2"));
+		assertThat(query.getQuery(), is("select u from User u where u.firstname like ?1 or u.lastname like ?2"));
 
 		List<LikeBinding> bindings = query.getLikeBindings();
 		assertThat(bindings, hasSize(2));
