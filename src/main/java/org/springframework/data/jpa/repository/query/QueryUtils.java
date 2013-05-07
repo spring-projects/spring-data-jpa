@@ -61,7 +61,9 @@ public abstract class QueryUtils {
 	public static final String DELETE_ALL_QUERY_STRING = "delete from %s x";
 
 	private static final String DEFAULT_ALIAS = "x";
-	private static final String COUNT_REPLACEMENT = "select count($3$5) $4$5$6";
+	private static final String COUNT_REPLACEMENT_TEMPLATE = "select count(%s) $5$6$7";
+	private static final String SIMPLE_COUNT_VALUE = "$2";
+	private static final String COMPLEX_COUNT_VALUE = "$3$6";
 
 	private static final Pattern ALIAS_MATCH;
 	private static final Pattern COUNT_MATCH;
@@ -89,7 +91,7 @@ public abstract class QueryUtils {
 		ALIAS_MATCH = compile(builder.toString(), CASE_INSENSITIVE);
 
 		builder = new StringBuilder();
-		builder.append("(select\\s+((distinct )?.+?)\\s+)?(from\\s+");
+		builder.append("(select\\s+((distinct )?(.+)?)\\s+)?(from\\s+");
 		builder.append(IDENTIFIER);
 		builder.append("(?:\\s+as)?\\s+)");
 		builder.append(IDENTIFIER_GROUP);
@@ -322,7 +324,12 @@ public abstract class QueryUtils {
 		Assert.hasText(originalQuery);
 
 		Matcher matcher = COUNT_MATCH.matcher(originalQuery);
-		return matcher.replaceFirst(COUNT_REPLACEMENT);
+		String variable = matcher.matches() ? matcher.group(4) : null;
+		boolean useVariable = StringUtils.hasText(variable) && !variable.startsWith("new")
+				&& !variable.startsWith("count(");
+
+		return matcher.replaceFirst(String.format(COUNT_REPLACEMENT_TEMPLATE, useVariable ? SIMPLE_COUNT_VALUE
+				: COMPLEX_COUNT_VALUE));
 	}
 
 	/**

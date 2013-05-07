@@ -179,6 +179,16 @@ public class QueryUtilsUnitTests {
 		assertThat(applySorting(query, new Sort("firstname"), "p"), endsWith("order by p.lastname asc, p.firstname asc"));
 	}
 
+	/**
+	 * @see DATAJPA-342
+	 */
+	@Test
+	public void usesReturnedVariableInCOuntProjectionIfSet() {
+
+		assertCountQuery("select distinct m.genre from Media m where m.user = ?1 order by m.genre asc",
+				"select count(distinct m.genre) from Media m where m.user = ?1 order by m.genre asc");
+	}
+
 	private void assertCountQuery(String originalQuery, String countQuery) {
 		assertThat(createCountQueryFor(originalQuery), is(countQuery));
 	}

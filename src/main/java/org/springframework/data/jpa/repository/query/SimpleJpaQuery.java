@@ -51,8 +51,6 @@ final class SimpleJpaQuery extends AbstractJpaQuery {
 
 		this.method = method;
 		this.query = new StringQuery(queryString);
-		this.countQuery = new StringQuery(method.getCountQuery() == null ? QueryUtils.createCountQueryFor(queryString)
-				: method.getCountQuery());
 
 		Parameters parameters = method.getParameters();
 		boolean hasPagingOrSortingParameter = parameters.hasPageableParameter() || parameters.hasSortParameter();
@@ -61,15 +59,28 @@ final class SimpleJpaQuery extends AbstractJpaQuery {
 			throw new IllegalStateException("Cannot use native queries with dynamic sorting and/or pagination!");
 		}
 
-		// Try to create a Query object already to fail fast
+		String preparedQueryString = this.query.getQuery();
+
 		if (!method.isNativeQuery()) {
-			try {
-				em.createQuery(query.getQuery());
-			} catch (RuntimeException e) {
-				// Needed as there's ambiguities in how an invalid query string shall be expressed by the persistence provider
-				// http://java.net/projects/jpa-spec/lists/jsr338-experts/archive/2012-07/message/17
-				throw e instanceof IllegalArgumentException ? e : new IllegalArgumentException(e);
-			}
+			validateQuery(preparedQueryString, em);
+		}
+
+		this.countQuery = new StringQuery(method.getCountQuery() != null ? method.getCountQuery()
+				: QueryUtils.createCountQueryFor(preparedQueryString));
+
+		if (!method.isNativeQuery()) {
+			validateQuery(this.countQuery.getQuery(), em);
+		}
+	}
+
+	private final void validateQuery(String query, EntityManager em) {
+
+		try {
+			em.createQuery(query);
+		} catch (RuntimeException e) {
+			// Needed as there's ambiguities in how an invalid query string shall be expressed by the persistence provider
+			// http://java.net/projects/jpa-spec/lists/jsr338-experts/archive/2012-07/message/17
+			throw e instanceof IllegalArgumentException ? e : new IllegalArgumentException(e);
 		}
 	}
 
