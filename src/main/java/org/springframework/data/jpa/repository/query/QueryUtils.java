@@ -92,7 +92,7 @@ public abstract class QueryUtils {
 		ALIAS_MATCH = compile(builder.toString(), CASE_INSENSITIVE);
 
 		builder = new StringBuilder();
-		builder.append("(select\\s+((distinct )?(.+)?)\\s+)?(from\\s+");
+		builder.append("(select\\s+((distinct )?(.+?)?)\\s+)?(from\\s+");
 		builder.append(IDENTIFIER);
 		builder.append("(?:\\s+as)?\\s+)");
 		builder.append(IDENTIFIER_GROUP);

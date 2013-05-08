@@ -213,6 +213,16 @@ public class QueryUtilsUnitTests {
 				"select count(distinct m.genre) from Media m where m.user = ?1 order by m.genre asc");
 	}
 
+	/**
+	 * @see DATAJPA-343
+	 */
+	@Test
+	public void projectsCOuntQueriesForQueriesWithSubselects() {
+
+		assertCountQuery("select o from Foo o where cb.id in (select b from Bar b)",
+				"select count(o) from Foo o where cb.id in (select b from Bar b)");
+	}
+
 	private void assertCountQuery(String originalQuery, String countQuery) {
 		assertThat(createCountQueryFor(originalQuery), is(countQuery));
 	}
