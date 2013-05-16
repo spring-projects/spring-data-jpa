@@ -19,6 +19,8 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Method;
 import java.util.List;
 
@@ -37,6 +39,7 @@ import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.core.support.DefaultRepositoryMetadata;
@@ -60,7 +63,8 @@ public class JpaQueryMethodUnitTests {
 	RepositoryMetadata metadata;
 
 	Method repositoryMethod, invalidReturnType, pageableAndSort, pageableTwice, sortableTwice, modifyingMethod,
-			nativeQuery, namedQuery, findWithLockMethod, invalidNamedParameter, findsProjections, findsProjection;
+			nativeQuery, namedQuery, findWithLockMethod, invalidNamedParameter, findsProjections, findsProjection,
+			withMetaAnnotation;
 
 	/**
 	 * @throws Exception
@@ -85,6 +89,8 @@ public class JpaQueryMethodUnitTests {
 
 		findsProjections = ValidRepository.class.getMethod("findsProjections");
 		findsProjection = ValidRepository.class.getMethod("findsProjection");
+
+		withMetaAnnotation = ValidRepository.class.getMethod("withMetaAnnotation");
 	}
 
 	@Test
@@ -221,7 +227,7 @@ public class JpaQueryMethodUnitTests {
 	@Test
 	public void considersAnnotatedNamedQueryName() {
 		JpaQueryMethod queryMethod = new JpaQueryMethod(namedQuery, metadata, extractor);
-		assertThat(queryMethod.getNamedQueryName(), is("Foo.bar"));
+		assertThat(queryMethod.getNamedQueryName(), is("HateoasAwareSpringDataWebConfiguration.bar"));
 	}
 
 	/**
@@ -256,7 +262,7 @@ public class JpaQueryMethodUnitTests {
 	public void returnsDefaultCountQueryNameBasedOnConfiguredNamedQueryName() {
 
 		JpaQueryMethod method = new JpaQueryMethod(namedQuery, metadata, extractor);
-		assertThat(method.getNamedCountQueryName(), is("Foo.bar.count"));
+		assertThat(method.getNamedCountQueryName(), is("HateoasAwareSpringDataWebConfiguration.bar.count"));
 	}
 
 	/**
@@ -291,6 +297,20 @@ public class JpaQueryMethodUnitTests {
 
 		assertThat(new JpaQueryMethod(findsProjections, metadata, extractor).isQueryForEntity(), is(false));
 		assertThat(new JpaQueryMethod(findsProjection, metadata, extractor).isQueryForEntity(), is(false));
+	}
+
+	/**
+	 * @see DATAJPA-345
+	 */
+	@Test
+	public void detectsLockAndQueryHintsOnIfUsedAsMetaAnnotation() {
+
+		JpaQueryMethod method = new JpaQueryMethod(withMetaAnnotation, metadata, extractor);
+
+		assertThat(method.getLockModeType(), is(LockModeType.OPTIMISTIC_FORCE_INCREMENT));
+		assertThat(method.getHints(), hasSize(1));
+		assertThat(method.getHints().get(0).name(), is("foo"));
+		assertThat(method.getHints().get(0).value(), is("bar"));
 	}
 
 	/**
@@ -334,7 +354,7 @@ public class JpaQueryMethodUnitTests {
 		@Query(value = "query", nativeQuery = true)
 		List<User> findByLastname(String lastname);
 
-		@Query(name = "Foo.bar")
+		@Query(name = "HateoasAwareSpringDataWebConfiguration.bar")
 		List<User> findByNamedQuery();
 
 		@Lock(LockModeType.PESSIMISTIC_WRITE)
@@ -344,5 +364,15 @@ public class JpaQueryMethodUnitTests {
 		List<Integer> findsProjections();
 
 		Integer findsProjection();
+
+		@CustomAnnotation
+		void withMetaAnnotation();
+	}
+
+	@Lock(LockModeType.OPTIMISTIC_FORCE_INCREMENT)
+	@QueryHints(@QueryHint(name = "foo", value = "bar"))
+	@Retention(RetentionPolicy.RUNTIME)
+	static @interface CustomAnnotation {
+
 	}
 }
