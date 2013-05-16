@@ -126,7 +126,7 @@ public class JpaQueryMethod extends QueryMethod {
 	 */
 	LockModeType getLockModeType() {
 
-		Lock annotation = method.getAnnotation(Lock.class);
+		Lock annotation = findAnnotation(method, Lock.class);
 		return (LockModeType) AnnotationUtils.getValue(annotation);
 	}
 

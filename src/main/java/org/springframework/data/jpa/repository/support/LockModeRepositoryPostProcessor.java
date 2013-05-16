@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2011-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -84,7 +84,7 @@ public enum LockModeRepositoryPostProcessor implements RepositoryProxyPostProces
 				return invocation.proceed();
 			}
 
-			Lock annotation = method.getAnnotation(Lock.class);
+			Lock annotation = AnnotationUtils.findAnnotation(method, Lock.class);
 			LockModeType lockMode = (LockModeType) AnnotationUtils.getValue(annotation);
 			TransactionSynchronizationManager.bindResource(method, lockMode == null ? NULL : lockMode);
 
