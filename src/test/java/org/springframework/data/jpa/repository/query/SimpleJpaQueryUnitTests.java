@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 the original author or authors.
+ * Copyright 2008-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import java.lang.reflect.Method;
 import java.util.List;
 
 import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import javax.persistence.TypedQuery;
 
 import org.junit.Before;
@@ -51,22 +52,20 @@ public class SimpleJpaQueryUnitTests {
 
 	JpaQueryMethod method;
 
-	@Mock
-	EntityManager em;
-	@Mock
-	QueryExtractor extractor;
-	@Mock
-	TypedQuery<Long> query;
-	@Mock
-	RepositoryMetadata metadata;
-	@Mock
-	ParameterBinder binder;
+	@Mock EntityManager em;
+	@Mock EntityManagerFactory emf;
+	@Mock QueryExtractor extractor;
+	@Mock TypedQuery<Long> query;
+	@Mock RepositoryMetadata metadata;
+	@Mock ParameterBinder binder;
 
 	@Before
 	public void setUp() throws SecurityException, NoSuchMethodException {
 
 		when(em.createQuery(anyString())).thenReturn(query);
 		when(em.createQuery(anyString(), eq(Long.class))).thenReturn(query);
+		when(em.getEntityManagerFactory()).thenReturn(emf);
+		when(emf.createEntityManager()).thenReturn(em);
 
 		Method setUp = UserRepository.class.getMethod("findByLastname", String.class);
 		method = new JpaQueryMethod(setUp, metadata, extractor);

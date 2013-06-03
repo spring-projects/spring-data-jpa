@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2012-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,9 @@ import static org.mockito.Mockito.*;
 import java.lang.reflect.Method;
 
 import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -45,12 +47,16 @@ import org.springframework.data.repository.query.QueryLookupStrategy.Key;
 @RunWith(MockitoJUnitRunner.class)
 public class JpaQueryLookupStrategyUnitTests {
 
-	@Mock
-	EntityManager em;
-	@Mock
-	QueryExtractor extractor;
-	@Mock
-	NamedQueries namedQueries;
+	@Mock EntityManager em;
+	@Mock EntityManagerFactory emf;
+	@Mock QueryExtractor extractor;
+	@Mock NamedQueries namedQueries;
+
+	@Before
+	public void setUp() {
+		when(em.getEntityManagerFactory()).thenReturn(emf);
+		when(emf.createEntityManager()).thenReturn(em);
+	}
 
 	/**
 	 * @see DATAJPA-226

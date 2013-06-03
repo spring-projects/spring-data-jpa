@@ -73,14 +73,32 @@ final class SimpleJpaQuery extends AbstractJpaQuery {
 		}
 	}
 
+	/**
+	 * Validates the given query for syntactical correctness.
+	 * 
+	 * @param query
+	 * @param em
+	 */
 	private final void validateQuery(String query, EntityManager em) {
 
+		EntityManager validatingEm = null;
+
 		try {
-			em.createQuery(query);
+
+			validatingEm = em.getEntityManagerFactory().createEntityManager();
+			validatingEm.createQuery(query);
+
 		} catch (RuntimeException e) {
+
 			// Needed as there's ambiguities in how an invalid query string shall be expressed by the persistence provider
 			// http://java.net/projects/jpa-spec/lists/jsr338-experts/archive/2012-07/message/17
 			throw e instanceof IllegalArgumentException ? e : new IllegalArgumentException(e);
+
+		} finally {
+
+			if (validatingEm != null) {
+				validatingEm.close();
+			}
 		}
 	}
 
