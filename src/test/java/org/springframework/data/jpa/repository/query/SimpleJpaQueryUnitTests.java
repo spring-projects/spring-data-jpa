@@ -28,11 +28,14 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.TypedQuery;
 
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -50,6 +53,8 @@ import org.springframework.data.repository.query.Parameters;
 @RunWith(MockitoJUnitRunner.class)
 public class SimpleJpaQueryUnitTests {
 
+	static final String USER_QUERY = "select u from User u";
+
 	JpaQueryMethod method;
 
 	@Mock EntityManager em;
@@ -58,6 +63,8 @@ public class SimpleJpaQueryUnitTests {
 	@Mock TypedQuery<Long> query;
 	@Mock RepositoryMetadata metadata;
 	@Mock ParameterBinder binder;
+
+	public @Rule ExpectedException exception = ExpectedException.none();
 
 	@Before
 	public void setUp() throws SecurityException, NoSuchMethodException {
@@ -124,17 +131,48 @@ public class SimpleJpaQueryUnitTests {
 	public void rejectsNativeQueryWithDynamicSort() throws Exception {
 
 		Method method = SampleRepository.class.getMethod("findNativeByLastname", String.class, Sort.class);
-		rejectsNativeQuery(method);
+		createSimpleJpaQuery(method);
 	}
 
 	@Test(expected = IllegalStateException.class)
 	public void rejectsNativeQueryWithPageable() throws Exception {
 
 		Method method = SampleRepository.class.getMethod("findNativeByLastname", String.class, Pageable.class);
-		rejectsNativeQuery(method);
+		createSimpleJpaQuery(method);
 	}
 
-	private void rejectsNativeQuery(Method method) {
+	/**
+	 * @see DATAJPA-352
+	 * @throws Exception
+	 */
+	@Test
+	@SuppressWarnings("unchecked")
+	public void doesNotValidateCountQueryIfNotPagingMethod() throws Exception {
+
+		Method method = SampleRepository.class.getMethod("findByAnnotatedQuery");
+		when(em.createQuery(contains("count"))).thenThrow(IllegalArgumentException.class);
+
+		createSimpleJpaQuery(method);
+	}
+
+	/**
+	 * @see DATAJPA-352
+	 */
+	@Test
+	@SuppressWarnings("unchecked")
+	public void validatesAndRejectsCountQueryIfPagingMethod() throws Exception {
+
+		Method method = SampleRepository.class.getMethod("pageByAnnotatedQuery", Pageable.class);
+
+		when(em.createQuery(contains("count"))).thenThrow(IllegalArgumentException.class);
+		exception.expect(IllegalArgumentException.class);
+		exception.expectMessage("Count");
+		exception.expectMessage(method.getName());
+
+		createSimpleJpaQuery(method);
+	}
+
+	private void createSimpleJpaQuery(Method method) {
 
 		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, extractor);
 		new SimpleJpaQuery(queryMethod, em);
@@ -150,5 +188,11 @@ public class SimpleJpaQueryUnitTests {
 
 		@Query(value = "SELECT u FROM User u WHERE u.lastname = ?1", nativeQuery = true)
 		List<User> findNativeByLastname(String lastname, Pageable pageable);
+
+		@Query(USER_QUERY)
+		List<User> findByAnnotatedQuery();
+
+		@Query(USER_QUERY)
+		Page<User> pageByAnnotatedQuery(Pageable pageable);
 	}
 }

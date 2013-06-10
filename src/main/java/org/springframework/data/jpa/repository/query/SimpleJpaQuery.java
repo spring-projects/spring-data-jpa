@@ -62,14 +62,15 @@ final class SimpleJpaQuery extends AbstractJpaQuery {
 		String preparedQueryString = this.query.getQuery();
 
 		if (!method.isNativeQuery()) {
-			validateQuery(preparedQueryString, em);
+			validateQuery(preparedQueryString, em, String.format("Validation failed for query for method %s!", method));
 		}
 
 		this.countQuery = new StringQuery(method.getCountQuery() != null ? method.getCountQuery()
 				: QueryUtils.createCountQueryFor(preparedQueryString));
 
-		if (!method.isNativeQuery()) {
-			validateQuery(this.countQuery.getQuery(), em);
+		if (!method.isNativeQuery() && method.isPageQuery()) {
+			validateQuery(this.countQuery.getQuery(), em,
+					String.format("Count query validation failed for method %s!", method));
 		}
 	}
 
@@ -79,7 +80,7 @@ final class SimpleJpaQuery extends AbstractJpaQuery {
 	 * @param query
 	 * @param em
 	 */
-	private final void validateQuery(String query, EntityManager em) {
+	private final void validateQuery(String query, EntityManager em, String errorMessage) {
 
 		EntityManager validatingEm = null;
 
@@ -92,7 +93,7 @@ final class SimpleJpaQuery extends AbstractJpaQuery {
 
 			// Needed as there's ambiguities in how an invalid query string shall be expressed by the persistence provider
 			// http://java.net/projects/jpa-spec/lists/jsr338-experts/archive/2012-07/message/17
-			throw e instanceof IllegalArgumentException ? e : new IllegalArgumentException(e);
+			throw new IllegalArgumentException(errorMessage, e);
 
 		} finally {
 
