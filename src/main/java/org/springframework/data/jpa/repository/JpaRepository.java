@@ -44,6 +44,12 @@ public interface JpaRepository<T, ID extends Serializable> extends PagingAndSort
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.CrudRepository#findAll(java.lang.Iterable)
+	 */
+	List<T> findAll(Iterable<ID> ids);
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.CrudRepository#save(java.lang.Iterable)
 	 */
 	<S extends T> List<S> save(Iterable<S> entities);
