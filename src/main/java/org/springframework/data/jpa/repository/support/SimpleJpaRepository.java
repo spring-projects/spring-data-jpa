@@ -197,15 +197,16 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.springframework.data.repository.Repository#readById(java.io.Serializable
-	 * )
+	 * @see org.springframework.data.repository.CrudRepository#findOne(java.io.Serializable)
 	 */
 	public T findOne(ID id) {
 
 		Assert.notNull(id, "The given id must not be null!");
-		return em.find(getDomainClass(), id);
+
+		LockModeType type = lockMetadataProvider == null ? null : lockMetadataProvider.getLockModeType();
+		Class<T> domainType = getDomainClass();
+
+		return type == null ? em.find(domainType, id) : em.find(domainType, id, type);
 	}
 
 	/*

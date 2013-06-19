@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2011-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -43,28 +44,18 @@ import org.springframework.data.jpa.repository.support.JpaRepositoryFactory;
 @RunWith(MockitoJUnitRunner.class)
 public class LockIntegrationTests {
 
-	@Mock
-	EntityManager em;
-	@Mock
-	CriteriaBuilder builder;
-	@Mock
-	CriteriaQuery<Role> criteriaQuery;
-	@Mock
-	JpaEntityInformation<Role, Integer> information;
-	@Mock
-	TypedQuery<Role> query;
+	@Mock EntityManager em;
+	@Mock CriteriaBuilder builder;
+	@Mock CriteriaQuery<Role> criteriaQuery;
+	@Mock JpaEntityInformation<Role, Integer> information;
+	@Mock TypedQuery<Role> query;
 
-	/**
-	 * @see DATAJPA-73
-	 */
-	@Test
-	public void usesLockInformationAnnotatedAtRedeclaredMethod() {
+	RoleRepository repository;
+
+	@Before
+	public void setUp() {
 
 		when(information.getJavaType()).thenReturn(Role.class);
-		when(em.getCriteriaBuilder()).thenReturn(builder);
-		when(builder.createQuery(Role.class)).thenReturn(criteriaQuery);
-		when(em.createQuery(criteriaQuery)).thenReturn(query);
-		when(query.setLockMode(any(LockModeType.class))).thenReturn(query);
 
 		JpaRepositoryFactory factory = new JpaRepositoryFactory(em) {
 			@Override
@@ -74,10 +65,33 @@ public class LockIntegrationTests {
 			}
 		};
 
-		RoleRepository repository = factory.getRepository(RoleRepository.class);
+		repository = factory.getRepository(RoleRepository.class);
+	}
+
+	/**
+	 * @see DATAJPA-73
+	 */
+	@Test
+	public void usesLockInformationAnnotatedAtRedeclaredMethod() {
+
+		when(em.getCriteriaBuilder()).thenReturn(builder);
+		when(builder.createQuery(Role.class)).thenReturn(criteriaQuery);
+		when(em.createQuery(criteriaQuery)).thenReturn(query);
+		when(query.setLockMode(any(LockModeType.class))).thenReturn(query);
 
 		repository.findAll();
 
 		verify(query).setLockMode(LockModeType.READ);
+	}
+
+	/**
+	 * @see DATAJPA-359
+	 */
+	@Test
+	public void usesLockInformationAnnotatedAtRedeclaredFindOne() {
+
+		repository.findOne(1);
+
+		verify(em).find(Role.class, 1, LockModeType.READ);
 	}
 }
