@@ -33,5 +33,12 @@ public interface RoleRepository extends CrudRepository<Role, Integer> {
 	 * @see org.springframework.data.repository.CrudRepository#findAll()
 	 */
 	@Lock(LockModeType.READ)
-	public Iterable<Role> findAll();
+	Iterable<Role> findAll();
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.CrudRepository#findOne(java.io.Serializable)
+	 */
+	@Lock(LockModeType.READ)
+	Role findOne(Integer id);
 }
