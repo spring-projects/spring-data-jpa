@@ -33,6 +33,7 @@ import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.beans.NotReadablePropertyException;
 import org.springframework.beans.NotWritablePropertyException;
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 
@@ -197,6 +198,7 @@ public class JpaMetamodelEntityInformation<T, ID extends Serializable> extends J
 
 		private final IdentifiableType<T> type;
 		private final Set<SingularAttribute<? super T, ?>> attributes;
+		private Class<?> idType;
 
 		@SuppressWarnings("unchecked")
 		public IdMetadata(IdentifiableType<T> source) {
@@ -212,13 +214,22 @@ public class JpaMetamodelEntityInformation<T, ID extends Serializable> extends J
 
 		public Class<?> getType() {
 
+			if (idType != null) {
+				return idType;
+			}
+
+			Class<?> idType;
+
 			try {
-				return type.getIdType().getJavaType();
+				idType = type.getIdType().getJavaType();
 			} catch (IllegalStateException e) {
 				// see https://hibernate.onjira.com/browse/HHH-6951
-				IdClass annotation = type.getJavaType().getAnnotation(IdClass.class);
-				return annotation == null ? null : annotation.value();
+				IdClass annotation = AnnotationUtils.findAnnotation(type.getJavaType(), IdClass.class);
+				idType = annotation == null ? null : annotation.value();
 			}
+
+			this.idType = idType;
+			return idType;
 		}
 
 		public SingularAttribute<? super T, ?> getSimpleIdAttribute() {

@@ -20,11 +20,19 @@ import static org.junit.Assert.*;
 
 import java.io.Serializable;
 
+import javax.persistence.Access;
+import javax.persistence.AccessType;
+import javax.persistence.Entity;
 import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Id;
+import javax.persistence.IdClass;
 import javax.persistence.MappedSuperclass;
+import javax.persistence.Persistence;
 import javax.persistence.PersistenceContext;
 import javax.persistence.metamodel.Metamodel;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.data.jpa.domain.AbstractPersistable;
@@ -37,18 +45,15 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
- * Integration tests for {@link JpaMetamodelEntityInformation}. Has to run with OpenJPA as Hibernate does not implement
- * {@link Metamodel#managedType(Class)} correctly (does not consider {@link MappedSuperclass}es correctly).
+ * Integration tests for {@link JpaMetamodelEntityInformation}.
  * 
- * @see https://hibernate.onjira.com/browse/HHH-6896
  * @author Oliver Gierke
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration({ "classpath:infrastructure.xml", "classpath:openjpa.xml" })
+@ContextConfiguration({ "classpath:infrastructure.xml" })
 public class JpaMetamodelEntityInformationIntegrationTests {
 
-	@PersistenceContext
-	EntityManager em;
+	@PersistenceContext EntityManager em;
 
 	@Test
 	public void detectsIdTypeForEntity() {
@@ -58,9 +63,14 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 	}
 
 	/**
+	 * Ignored for Hibernate as it does not implement {@link Metamodel#managedType(Class)} correctly (does not consider
+	 * {@link MappedSuperclass}es correctly).
+	 * 
+	 * @see https://hibernate.onjira.com/browse/HHH-6896
 	 * @see DATAJPA-141
 	 */
 	@Test
+	@Ignore
 	public void detectsIdTypeForMappedSuperclass() {
 
 		JpaEntityInformation<?, ?> information = JpaEntityInformationSupport.getMetadata(AbstractPersistable.class, em);
@@ -111,5 +121,46 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 		assertThat(information.isNew(entity), is(false));
 		entity.setId(null);
 		assertThat(information.isNew(entity), is(false));
+	}
+
+	/**
+	 * @see DATAJPA-348
+	 */
+	@Test
+	public void findsIdClassOnMappedSuperclass() {
+
+		EntityManagerFactory emf = Persistence.createEntityManagerFactory(getMetadadataPersitenceUnitName());
+		EntityManager em = emf.createEntityManager();
+
+		EntityInformation<Sample, BaseIdClass> information = new JpaMetamodelEntityInformation<Sample, BaseIdClass>(
+				Sample.class, em.getMetamodel());
+
+		assertThat(information.getIdType(), is((Object) BaseIdClass.class));
+	}
+
+	protected String getMetadadataPersitenceUnitName() {
+		return "metadata";
+	}
+
+	@SuppressWarnings("serial")
+	public static class BaseIdClass implements Serializable {
+
+		Long id;
+		Long feedRunId;
+	}
+
+	@MappedSuperclass
+	@IdClass(BaseIdClass.class)
+	@Access(AccessType.FIELD)
+	public static abstract class Identifiable {
+
+		@Id Long id;
+		@Id Long feedRunId;
+	}
+
+	@Entity
+	@Access(AccessType.FIELD)
+	public static class Sample extends Identifiable {
+
 	}
 }
