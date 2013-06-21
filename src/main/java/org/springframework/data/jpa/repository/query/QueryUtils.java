@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2013 the original author or authors.
+ * Copyright 2008-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -440,9 +440,9 @@ public abstract class QueryUtils {
 
 		Bindable<?> propertyPathModel = null;
 		if (from.getModel() instanceof ManagedType) {
+
 			/*
-			 *  Avoid calling from.get(...) because this triggers the generation of an inner-join instead 
-			 *  of and outer-join in eclipse-link.
+			 *  Required to keep support for EclipseLink 2.4.x. TODO: Remove once we drop that (probably Dijkstra M1)
 			 *  See: https://bugs.eclipse.org/bugs/show_bug.cgi?id=413892
 			 */
 			propertyPathModel = (Bindable<?>) ((ManagedType<?>) from.getModel()).getAttribute(property.getSegment());
