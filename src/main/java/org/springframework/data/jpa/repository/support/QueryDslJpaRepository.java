@@ -16,6 +16,7 @@
 package org.springframework.data.jpa.repository.support;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -110,7 +111,10 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 		JPQLQuery countQuery = createQuery(predicate);
 		JPQLQuery query = querydsl.applyPagination(pageable, createQuery(predicate));
 
-		return new PageImpl<T>(query.list(path), pageable, countQuery.count());
+		Long total = countQuery.count();
+		List<T> content = total > pageable.getOffset() ? query.list(path) : Collections.<T> emptyList();
+
+		return new PageImpl<T>(content, pageable, total);
 	}
 
 	/*
