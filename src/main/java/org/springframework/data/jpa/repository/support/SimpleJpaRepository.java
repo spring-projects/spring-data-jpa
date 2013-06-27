@@ -124,12 +124,14 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 
 		Assert.notNull(id, "The given id must not be null!");
 
-		if (!exists(id)) {
+		T entity = findOne(id);
+
+		if (entity == null) {
 			throw new EmptyResultDataAccessException(String.format("No %s entity with id %s exists!",
 					entityInformation.getJavaType(), id), 1);
 		}
 
-		delete(findOne(id));
+		delete(entity);
 	}
 
 	/*
