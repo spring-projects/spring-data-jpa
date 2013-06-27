@@ -211,7 +211,7 @@ public abstract class QueryUtils {
 	private static String getOrderClause(Set<String> joinAliases, String alias, Order order) {
 
 		String property = order.getProperty();
-		boolean qualifyReference = true;
+		boolean qualifyReference = !property.contains("("); // ( indicates a function
 
 		for (String joinAlias : joinAliases) {
 			if (property.startsWith(joinAlias)) {
