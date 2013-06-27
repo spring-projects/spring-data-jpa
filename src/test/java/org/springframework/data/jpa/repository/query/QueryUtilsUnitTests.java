@@ -223,6 +223,16 @@ public class QueryUtilsUnitTests {
 				"select count(o) from Foo o where cb.id in (select b from Bar b)");
 	}
 
+	/**
+	 * @see DATAJPA-148
+	 */
+	@Test
+	public void doesNotPrefixSortsIfFunction() {
+
+		Sort sort = new Sort("sum(foo)");
+		assertThat(applySorting("select p from Person p", sort, "p"), endsWith("order by sum(foo) asc"));
+	}
+
 	private void assertCountQuery(String originalQuery, String countQuery) {
 		assertThat(createCountQueryFor(originalQuery), is(countQuery));
 	}
