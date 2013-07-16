@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2011-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,6 +45,7 @@ import org.springframework.util.StringUtils;
  * XML mapping files can be scanned as well by configuring a file name pattern.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 public class ClasspathScanningPersistenceUnitPostProcessor implements PersistenceUnitPostProcessor, ResourceLoaderAware {
 
@@ -108,9 +109,11 @@ public class ClasspathScanningPersistenceUnitPostProcessor implements Persistenc
 	}
 
 	/**
-	 * Scanes the configured base package for files matching the configured mapping file name pattern. Will simply return
-	 * an empty {@link Set} in case no {@link ResourceLoader} or mapping file name pattern was configured.
+	 * Scans the configured base package for files matching the configured mapping file name pattern. Will simply return
+	 * an empty {@link Set} in case no {@link ResourceLoader} or mapping file name pattern was configured. Resulting paths
+	 * are resource-loadable from the application classpath according to the JPA spec.
 	 * 
+	 * @see javax.persistence.spi.PersistenceUnitInfo.PersistenceUnitInfo#getMappingFileNames()
 	 * @return
 	 */
 	private Set<String> scanForMappingFileLocations() {
@@ -119,8 +122,9 @@ public class ClasspathScanningPersistenceUnitPostProcessor implements Persistenc
 			return Collections.emptySet();
 		}
 
-		String path = ResourcePatternResolver.CLASSPATH_ALL_URL_PREFIX + basePackage.replace('.', File.separatorChar)
-				+ File.separator + mappingFileNamePattern;
+		String basePackagePathComponent = basePackage.replace('.', File.separatorChar);
+		String path = ResourcePatternResolver.CLASSPATH_ALL_URL_PREFIX + basePackagePathComponent + File.separator
+				+ mappingFileNamePattern;
 		Set<String> mappingFileUris = new HashSet<String>();
 		Resource[] scannedResources = new Resource[0];
 
@@ -132,7 +136,9 @@ public class ClasspathScanningPersistenceUnitPostProcessor implements Persistenc
 
 		for (Resource resource : scannedResources) {
 			try {
-				mappingFileUris.add(resource.getURI().toString());
+				String resourcePath = resource.getURI().getPath();
+				String resourcePathInClasspath = resourcePath.substring(resourcePath.indexOf(basePackagePathComponent));
+				mappingFileUris.add(resourcePathInClasspath);
 			} catch (IOException e) {
 				throw new IllegalStateException(String.format("Couldn't get URI for %s!", resource.toString()), e);
 			}

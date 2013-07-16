@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2011-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,12 +31,12 @@ import org.springframework.orm.jpa.persistenceunit.PersistenceUnitPostProcessor;
  * Unit tests for {@link ClasspathScanningPersistenceUnitPostProcessor}.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 @RunWith(MockitoJUnitRunner.class)
 public class ClasspathScanningPersistenceUnitPostProcessorUnitTests {
 
-	@Mock
-	MutablePersistenceUnitInfo pui;
+	@Mock MutablePersistenceUnitInfo pui;
 	String basePackage = getClass().getPackage().getName();
 
 	@Test(expected = IllegalArgumentException.class)
@@ -75,17 +75,33 @@ public class ClasspathScanningPersistenceUnitPostProcessorUnitTests {
 	@Test
 	public void findsMappingFile() {
 
-		DefaultResourceLoader loader = new DefaultResourceLoader();
-		String expected = getClass().getResource("mapping.xml").toString();
-
 		ClasspathScanningPersistenceUnitPostProcessor processor = new ClasspathScanningPersistenceUnitPostProcessor(
 				basePackage);
 		processor.setMappingFileNamePattern("*.xml");
-		processor.setResourceLoader(loader);
+		processor.setResourceLoader(new DefaultResourceLoader());
 		processor.postProcessPersistenceUnitInfo(pui);
+
+		String expected = getClass().getPackage().getName().replace('.', '/') + "/mapping.xml";
 
 		verify(pui).addManagedClassName(SampleEntity.class.getName());
 		verify(pui).addMappingFileName(expected);
+	}
+
+	/**
+	 * @see DATAJPA-353
+	 */
+	@Test
+	public void shouldFindJpaMappingFilesFromMultipleLocationsOnClasspath() {
+
+		ClasspathScanningPersistenceUnitPostProcessor processor = new ClasspathScanningPersistenceUnitPostProcessor(
+				basePackage);
+
+		processor.setResourceLoader(new DefaultResourceLoader());
+		processor.setMappingFileNamePattern("**/*orm.xml");
+		processor.postProcessPersistenceUnitInfo(pui);
+
+		verify(pui).addMappingFileName("org/springframework/data/jpa/support/module1/module1-orm.xml");
+		verify(pui).addMappingFileName("org/springframework/data/jpa/support/module2/module2-orm.xml");
 	}
 
 	@Entity
