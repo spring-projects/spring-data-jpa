@@ -27,7 +27,8 @@ import org.springframework.data.repository.core.EntityInformation;
  * @author Oliver Gierke
  * @author Thomas Darimont
  */
-public interface JpaEntityInformation<T, ID extends Serializable> extends EntityInformation<T, ID> {
+public interface JpaEntityInformation<T, ID extends Serializable> extends EntityInformation<T, ID>,
+		JpaEntityMetadata<T> {
 
 	/**
 	 * Returns the id attribute of the entity.
@@ -59,11 +60,4 @@ public interface JpaEntityInformation<T, ID extends Serializable> extends Entity
 	 * @return
 	 */
 	Object getCompositeIdAttributeValue(Serializable id, String idAttribute);
-
-	/**
-	 * Returns the JPA entity name.
-	 * 
-	 * @return
-	 */
-	String getEntityName();
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2011-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,37 +32,28 @@ public class JpaPersistableEntityInformation<T extends Persistable<ID>, ID exten
 	/**
 	 * Creates a new {@link JpaPersistableEntityInformation} for the given domain class and {@link Metamodel}.
 	 * 
-	 * @param domainClass
-	 * @param metamodel
+	 * @param domainClass must not be {@literal null}.
+	 * @param metamodel must not be {@literal null}.
 	 */
 	public JpaPersistableEntityInformation(Class<T> domainClass, Metamodel metamodel) {
-
 		super(domainClass, metamodel);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.springframework.data.repository.support.AbstractEntityInformation
-	 * #isNew(java.lang.Object)
+	 * @see org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformation#isNew(java.lang.Object)
 	 */
 	@Override
 	public boolean isNew(T entity) {
-
 		return entity.isNew();
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.springframework.data.jpa.repository.support.JpaMetamodelEntityMetadata
-	 * #getId(java.lang.Object)
+	 * @see org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformation#getId(java.lang.Object)
 	 */
 	@Override
 	public ID getId(T entity) {
-
 		return entity.getId();
 	}
 }

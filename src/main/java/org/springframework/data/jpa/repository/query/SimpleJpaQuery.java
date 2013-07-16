@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2012 the original author or authors.
+ * Copyright 2008-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import org.springframework.data.repository.query.RepositoryQuery;
  * {@link Query} from it.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 final class SimpleJpaQuery extends AbstractJpaQuery {
 
@@ -50,7 +51,7 @@ final class SimpleJpaQuery extends AbstractJpaQuery {
 		super(method, em);
 
 		this.method = method;
-		this.query = new StringQuery(queryString);
+		this.query = new ExpressionBasedStringQuery(queryString, method.getEntityInformation());
 
 		Parameters parameters = method.getParameters();
 		boolean hasPagingOrSortingParameter = parameters.hasPageableParameter() || parameters.hasSortParameter();

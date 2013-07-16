@@ -42,6 +42,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.sample.UserRepository;
+import org.springframework.data.jpa.repository.support.DefaultJpaEntityMetadata;
+import org.springframework.data.jpa.repository.support.JpaEntityMetadata;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.Parameters;
 
@@ -67,24 +69,29 @@ public class SimpleJpaQueryUnitTests {
 	public @Rule ExpectedException exception = ExpectedException.none();
 
 	@Before
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void setUp() throws SecurityException, NoSuchMethodException {
 
 		when(em.createQuery(anyString())).thenReturn(query);
 		when(em.createQuery(anyString(), eq(Long.class))).thenReturn(query);
 		when(em.getEntityManagerFactory()).thenReturn(emf);
 		when(emf.createEntityManager()).thenReturn(em);
+		when(metadata.getDomainType()).thenReturn((Class) User.class);
+		when(metadata.getReturnedDomainClass(Mockito.any(Method.class))).thenReturn((Class) User.class);
 
 		Method setUp = UserRepository.class.getMethod("findByLastname", String.class);
 		method = new JpaQueryMethod(setUp, metadata, extractor);
 	}
 
 	@Test
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void prefersDeclaredCountQueryOverCreatingOne() throws Exception {
 
 		method = mock(JpaQueryMethod.class);
 		when(method.getCountQuery()).thenReturn("foo");
 		when(method.getParameters()).thenReturn(
 				new Parameters(SimpleJpaQueryUnitTests.class.getMethod("prefersDeclaredCountQueryOverCreatingOne")));
+		when(method.getEntityInformation()).thenReturn((JpaEntityMetadata) new DefaultJpaEntityMetadata<User>(User.class));
 		when(em.createQuery("foo", Long.class)).thenReturn(query);
 
 		SimpleJpaQuery jpaQuery = new SimpleJpaQuery(method, em, "select u from User u");

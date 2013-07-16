@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 the original author or authors.
+ * Copyright 2008-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,8 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryHints;
+import org.springframework.data.jpa.repository.support.DefaultJpaEntityMetadata;
+import org.springframework.data.jpa.repository.support.JpaEntityMetadata;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
@@ -89,6 +91,16 @@ public class JpaQueryMethod extends QueryMethod {
 						parameter.getName(), annotatedQuery));
 			}
 		}
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.query.QueryMethod#getEntityInformation()
+	 */
+	@Override
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public JpaEntityMetadata<?> getEntityInformation() {
+		return new DefaultJpaEntityMetadata(getDomainClass());
 	}
 
 	/**

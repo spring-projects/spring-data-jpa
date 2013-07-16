@@ -17,14 +17,12 @@ package org.springframework.data.jpa.repository.support;
 
 import java.io.Serializable;
 
-import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 import javax.persistence.metamodel.Metamodel;
 
 import org.springframework.data.domain.Persistable;
 import org.springframework.data.repository.core.support.AbstractEntityInformation;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 /**
  * Base class for {@link JpaEntityInformation} implementations to share common method implementations.
@@ -34,14 +32,16 @@ import org.springframework.util.StringUtils;
 public abstract class JpaEntityInformationSupport<T, ID extends Serializable> extends AbstractEntityInformation<T, ID>
 		implements JpaEntityInformation<T, ID> {
 
+	private JpaEntityMetadata<T> metadata;
+
 	/**
 	 * Creates a new {@link JpaEntityInformationSupport} with the given domain class.
 	 * 
 	 * @param domainClass must not be {@literal null}.
 	 */
 	public JpaEntityInformationSupport(Class<T> domainClass) {
-
 		super(domainClass);
+		this.metadata = new DefaultJpaEntityMetadata<T>(domainClass);
 	}
 
 	/**
@@ -68,17 +68,9 @@ public abstract class JpaEntityInformationSupport<T, ID extends Serializable> ex
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.springframework.data.jpa.repository.support.JpaEntityInformation#
-	 * getEntityName()
+	 * @see org.springframework.data.jpa.repository.support.JpaEntityMetadata#getEntityName()
 	 */
 	public String getEntityName() {
-
-		Class<?> domainClass = getJavaType();
-		Entity entity = domainClass.getAnnotation(Entity.class);
-		boolean hasName = null != entity && StringUtils.hasText(entity.name());
-
-		return hasName ? entity.name() : domainClass.getSimpleName();
+		return metadata.getEntityName();
 	}
 }
