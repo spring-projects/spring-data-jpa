@@ -32,6 +32,7 @@ import org.springframework.data.repository.query.RepositoryQuery;
  * {@link Query} from it.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 final class SimpleJpaQuery extends AbstractJpaQuery {
 
@@ -50,7 +51,8 @@ final class SimpleJpaQuery extends AbstractJpaQuery {
 		super(method, em);
 
 		this.method = method;
-		this.query = new StringQuery(queryString);
+		this.query = method.getEntityInformation() == null ? new StringQuery(queryString) : new ExpressionBasedStringQuery(
+				queryString, method.getEntityInformation().getJavaType());
 
 		Parameters parameters = method.getParameters();
 		boolean hasPagingOrSortingParameter = parameters.hasPageableParameter() || parameters.hasSortParameter();
