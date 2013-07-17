@@ -549,7 +549,7 @@ public class User {
 
           <programlisting language="java">public interface UserRepository extends JpaRepository&lt;User, Long&gt; {
 
-  @Query(value = "SELECT FROM USERS WHERE EMAIL_ADDRESS = ?0", nativeQuery = true)
+  @Query(value = "SELECT * FROM USERS WHERE EMAIL_ADDRESS = ?0", nativeQuery = true)
   User findByEmailAddress(String emailAddress);
 }</programlisting>
         </example>
@@ -578,6 +578,128 @@ public class User {
         <para>Note that the method parameters are switched according to the
         occurrence in the query defined.</para>
       </example>
+    </section>
+
+    <section>
+      <title id="jpa.query.spel">Using SpEL expressions</title>
+
+      <para>As of Spring Data JPA Release 1.4 we support the usage of
+      restricted SpEL template expressions in manually defined queries via
+      <code>@Query</code>. Upon query execution these expressions are
+      evaluated against a predefined set of variables. We support the
+      following list of variables to be used in a manual query.</para>
+
+      <para><table>
+          <title>Supported variables inside SpEL based query templates</title>
+
+          <tgroup cols="3">
+            <colspec colwidth="1*"/>
+
+            <colspec colwidth="2*"/>
+
+            <colspec colwidth="3*"/>
+
+            <thead>
+              <row>
+                <entry>Variable</entry>
+
+                <entry>Usage</entry>
+
+                <entry>Description</entry>
+              </row>
+            </thead>
+
+            <tbody>
+              <row>
+                <entry><code>entityName</code></entry>
+
+                <entry><code>select x from #{#entityName} x</code></entry>
+
+                <entry>Inserts the entityName of the domain type associated
+                with the given Repository. The <code>entityName</code> is
+                resolved as follows: If the domain type has set the name
+                property on the <code>@Entity</code> annotation then it will
+                be used. Otherwise the simple class-name of the domain type
+                will be used.</entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </table></para>
+
+      <para>The following example demonstrates one use case for the
+      <code>#{#entityName}</code> expression in a query string where you want
+      to define a repository interface with a query method with a manually
+      defined query. In order not to have to state the actual entity name in
+      the query string of a <code>@Query</code> annotation one can use the
+      <code>#{#entityName}</code> Variable.</para>
+
+      <example>
+        <title>Using SpEL expressions in Repository query methods -
+        entityName</title>
+
+        <programlisting language="java">@Entity
+public class User {
+
+  @Id @GeneratedValue Long id; 
+  String lastname;
+}
+
+public interface UserRepository extends JpaRepository&lt;User,Long&gt; {
+
+  @Query("select u from #{#entityName} u where u.lastname = ?1")
+  List&lt;User&gt; findByLastname(String lastname);
+}</programlisting>
+      </example>
+
+      <para>Of course you could have just used <classname>User</classname> in
+      the query declaration directly but that would require you to change the
+      query as well. The reference to <code>#entityName</code> will pick up
+      potential future remappings of the <classname>User</classname> class to
+      a different entity name (e.g. by using <code>@Entity(name =
+      "MyUser")</code>.</para>
+
+      <para>Another use case for the <code>#{#entityName}</code> expression in
+      a query string is if you want to define a generic repository interface
+      with specialized repository interfaces for a concrete domain type. In
+      order not to have to repeat the definition of custom query methods on
+      the concrete interfaces you can use the entity name expression in the
+      query string of the <code>@Query</code> annotation in the generic
+      repository interface.</para>
+
+      <example>
+        <title>Using SpEL expressions in Repository query methods - entityName
+        with inheritance</title>
+
+        <programlisting language="java">@MappedSuperclass
+public abstract class AbstractMappedType {
+  …
+  String attribute
+}
+
+@Entity
+public class ConcreteType extends AbstractMappedType { … }
+
+@NoRepositoryBean
+public interface MappedTypeRepository&lt;T extends AbstractMappedType&gt;
+  extends Repository&lt;T, Long&gt; {
+
+  @Query("select t from #{#entityName} t where t.attribute = ?1")
+  List&lt;T&gt; findAllByAttribute(String attribute);
+}
+
+public interface ConcreteRepository
+  extends MappedTypeRepository&lt;ConcreteType&gt; { … }</programlisting>
+      </example>
+
+      <para>In the example the interface <code>MappedTypeRepository</code> is
+      the common parent interface for a few domain types extending
+      <classname>AbstractMappedType</classname>. It also defines the generic
+      method <methodname>findAllByAttribute(…)</methodname> which can be used
+      on instances of the specialized repository interfaces. If you now invoke
+      <methodname>findByAllAttribute(…)</methodname> on
+      <interfacename>ConcreteRepository</interfacename> the query being
+      executed will be <code>select t from ConcreteType t where t.attribute =
+      ?1</code>.</para>
     </section>
 
     <section id="jpa.modifying-queries">

@@ -14,12 +14,26 @@
         <surname>Gierke</surname>
 
         <affiliation>
-          <jobtitle>Senior Consultant</jobtitle>
+          <jobtitle>Software Engineer</jobtitle>
 
-          <orgname>SpringSource - a division of VMware</orgname>
+          <orgname>GoPivotal Deutschland GmbH</orgname>
         </affiliation>
 
-        <email>ogierke@vmware.com</email>
+        <email>ogierke@gopivotal.com</email>
+      </author>
+      
+      <author>
+        <firstname>Thomas</firstname>
+
+        <surname>Darimont</surname>
+
+        <affiliation>
+          <jobtitle>Software Engineer</jobtitle>
+
+          <orgname>GoPivotal Deutschland GmbH</orgname>
+        </affiliation>
+
+        <email>tdarimont@gopivotal.com</email>
       </author>
     </authorgroup>
 
