@@ -90,6 +90,14 @@ public class StringQueryUnitTests {
 		assertThat(binding.getType(), is(Type.ENDING_WITH));
 	}
 
+	/**
+	 * @see DATAJPA-373
+	 */
+	@Test
+	public void handlesMultipleNamedLikeBindingsCorrectly() {
+		new StringQuery("select u from User u where u.firstname like %:firstname or foo like :bar");
+	}
+
 	@Test(expected = IllegalArgumentException.class)
 	public void rejectsDifferentBindingsForRepeatedParameter() {
 		new StringQuery("select u from User u where u.firstname like %?1 and u.lastname like ?1%");
