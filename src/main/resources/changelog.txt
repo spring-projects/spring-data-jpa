@@ -3,8 +3,8 @@ Spring Data JPA Changelog
 
 Changes in version 1.3.4.RELEASE (2013-07-24)
 ---------------------------------------------
-* Fixed NullPointerException for manually defined queries with multiple named like expressions
-* Added missing package-info.java files (DATAJPA-373)
+* Fixed NullPointerException for manually defined queries with multiple named like expressions (DATAJPA-373)
+* Added missing package-info.java files (DATAJPA-370)
 
 Changes in version 1.3.3.RELEASE (2013-07-19)
 ---------------------------------------------
