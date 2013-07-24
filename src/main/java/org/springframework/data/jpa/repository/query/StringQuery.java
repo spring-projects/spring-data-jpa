@@ -272,8 +272,8 @@ class StringQuery {
 		 * @param position
 		 * @return
 		 */
-		public boolean hasPosition(int position) {
-			return this.name == null && this.position == position;
+		public boolean hasPosition(Integer position) {
+			return position != null && this.name == null && this.position == position;
 		}
 
 		/**
