@@ -1,4 +1,4 @@
-SPRING DATA JPA 1.3.3.RELEASE (Jul 19, 2013)
+SPRING DATA JPA 1.3.4.RELEASE (Jul 24, 2013)
 --------------------------------------------
 
 Spring Data Jpa is released under the terms of the Apache Software License Version 2.0 (see license.txt).

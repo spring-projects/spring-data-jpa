@@ -1,6 +1,11 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 1.3.4.RELEASE (2013-07-24)
+---------------------------------------------
+* Fixed NullPointerException for manually defined queries with multiple named like expressions
+* Added missing package-info.java files (DATAJPA-373)
+
 Changes in version 1.3.3.RELEASE (2013-07-19)
 ---------------------------------------------
 * Sort with aggregate properties results in an invalid alias being generated and added to the query (DATAJPA-148)
