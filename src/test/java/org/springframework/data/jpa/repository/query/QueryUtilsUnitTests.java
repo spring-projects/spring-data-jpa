@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2012 the original author or authors.
+ * Copyright 2008-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import org.springframework.data.domain.Sort;
  * Unit test for {@link QueryUtils}.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 public class QueryUtilsUnitTests {
 
@@ -210,7 +211,7 @@ public class QueryUtilsUnitTests {
 	public void usesReturnedVariableInCOuntProjectionIfSet() {
 
 		assertCountQuery("select distinct m.genre from Media m where m.user = ?1 order by m.genre asc",
-				"select count(distinct m.genre) from Media m where m.user = ?1 order by m.genre asc");
+				"select count(distinct m.genre) from Media m where m.user = ?1");
 	}
 
 	/**
@@ -231,6 +232,16 @@ public class QueryUtilsUnitTests {
 
 		Sort sort = new Sort("sum(foo)");
 		assertThat(applySorting("select p from Person p", sort, "p"), endsWith("order by sum(foo) asc"));
+	}
+
+	/**
+	 * @see DATAJPA-377
+	 */
+	@Test
+	public void removesOrderByInGeneratedCountQueryFromOriginalQueryIfPresent() {
+
+		assertCountQuery("select distinct m.genre from Media m where m.user = ?1 OrDer  By   m.genre ASC",
+				"select count(distinct m.genre) from Media m where m.user = ?1");
 	}
 
 	private void assertCountQuery(String originalQuery, String countQuery) {
