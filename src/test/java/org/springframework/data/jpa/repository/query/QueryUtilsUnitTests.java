@@ -210,7 +210,7 @@ public class QueryUtilsUnitTests {
 	public void usesReturnedVariableInCOuntProjectionIfSet() {
 
 		assertCountQuery("select distinct m.genre from Media m where m.user = ?1 order by m.genre asc",
-				"select count(distinct m.genre) from Media m where m.user = ?1 order by m.genre asc");
+				"select count(distinct m.genre) from Media m where m.user = ?1");
 	}
 
 	/**
@@ -231,6 +231,13 @@ public class QueryUtilsUnitTests {
 
 		Sort sort = new Sort("sum(foo)");
 		assertThat(applySorting("select p from Person p", sort, "p"), endsWith("order by sum(foo) asc"));
+	}
+
+	@Test
+	public void removesOrderByInGeneratedCountQueryFromOriginalQueryIfPresent() {
+
+		assertCountQuery("select distinct m.genre from Media m where m.user = ?1 OrDer  By   m.genre ASC",
+				"select count(distinct m.genre) from Media m where m.user = ?1");
 	}
 
 	private void assertCountQuery(String originalQuery, String countQuery) {

@@ -65,6 +65,7 @@ public abstract class QueryUtils {
 	private static final String COUNT_REPLACEMENT_TEMPLATE = "select count(%s) $5$6$7";
 	private static final String SIMPLE_COUNT_VALUE = "$2";
 	private static final String COMPLEX_COUNT_VALUE = "$3$6";
+	private static final String ORDER_BY_PART = "(?iu)\\s+order\\s+by\\s+.*$";
 
 	private static final Pattern ALIAS_MATCH;
 	private static final Pattern COUNT_MATCH;
@@ -332,8 +333,20 @@ public abstract class QueryUtils {
 		boolean useVariable = StringUtils.hasText(variable) && !variable.startsWith("new")
 				&& !variable.startsWith("count(");
 
-		return matcher.replaceFirst(String.format(COUNT_REPLACEMENT_TEMPLATE, useVariable ? SIMPLE_COUNT_VALUE
+		String countQuery = matcher.replaceFirst(String.format(COUNT_REPLACEMENT_TEMPLATE, useVariable ? SIMPLE_COUNT_VALUE
 				: COMPLEX_COUNT_VALUE));
+
+		/*
+		 *  leave out the order by part in the generated query. 
+		 *  This avoids problems with databases that require columns 
+		 *  specified in the order by clause to be in the select / group by 
+		 *  list for count queries (e.g. H2).
+		 *  
+		 *  @see https://jira.springsource.org/browse/DATAJPA-377
+		 */
+		countQuery = countQuery.replaceFirst(ORDER_BY_PART, "");
+
+		return countQuery;
 	}
 
 	/**
