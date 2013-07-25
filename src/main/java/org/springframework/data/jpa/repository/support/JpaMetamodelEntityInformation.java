@@ -28,6 +28,7 @@ import javax.persistence.metamodel.IdentifiableType;
 import javax.persistence.metamodel.ManagedType;
 import javax.persistence.metamodel.Metamodel;
 import javax.persistence.metamodel.SingularAttribute;
+import javax.persistence.metamodel.Type.PersistenceType;
 
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
@@ -48,6 +49,7 @@ public class JpaMetamodelEntityInformation<T, ID extends Serializable> extends J
 
 	private final IdMetadata<T> idMetadata;
 	private final SingularAttribute<? super T, ?> versionAttribute;
+	private final Metamodel metamodel;
 
 	/**
 	 * Creates a new {@link JpaMetamodelEntityInformation} for the given domain class and {@link Metamodel}.
@@ -60,6 +62,8 @@ public class JpaMetamodelEntityInformation<T, ID extends Serializable> extends J
 		super(domainClass);
 
 		Assert.notNull(metamodel);
+		this.metamodel = metamodel;
+
 		ManagedType<T> type = metamodel.managedType(domainClass);
 
 		if (type == null) {
@@ -106,7 +110,7 @@ public class JpaMetamodelEntityInformation<T, ID extends Serializable> extends J
 			return (ID) entityWrapper.getPropertyValue(idMetadata.getSimpleIdAttribute().getName());
 		}
 
-		BeanWrapper idWrapper = new DirectFieldAccessFallbackBeanWrapper(idMetadata.getType());
+		BeanWrapper idWrapper = new IdentifierDerivingDirectFieldAccessFallbackBeanWrapper(idMetadata.getType(), metamodel);
 		boolean partialIdValueFound = false;
 
 		for (SingularAttribute<? super T, ?> attribute : idMetadata) {
@@ -288,6 +292,69 @@ public class JpaMetamodelEntityInformation<T, ID extends Serializable> extends J
 				Field field = ReflectionUtils.findField(getWrappedClass(), propertyName);
 				ReflectionUtils.makeAccessible(field);
 				ReflectionUtils.setField(field, getWrappedInstance(), value);
+			}
+		}
+	}
+
+	/**
+	 * Custom extension of {@link DirectFieldAccessFallbackBeanWrapper} that allows to derived the identifier if composite
+	 * keys with complex key attribute types (e.g. types that are annotated with {@code @Entity} themselves) are used.
+	 * 
+	 * @author Thomas Darimont
+	 */
+	private static class IdentifierDerivingDirectFieldAccessFallbackBeanWrapper extends
+			DirectFieldAccessFallbackBeanWrapper {
+
+		private final Metamodel metamodel;
+
+		public IdentifierDerivingDirectFieldAccessFallbackBeanWrapper(Class<?> type, Metamodel metamodel) {
+			super(type);
+			this.metamodel = metamodel;
+		}
+
+		/**
+		 * In addition to the functionality described in {@link BeanWrapperImpl} it is checked whether we have a nested
+		 * entity that is part of the id key. If this is the case, we need to derive the identifier of the nested entity.
+		 * 
+		 * @see org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformation.DirectFieldAccessFallbackBeanWrapper#setPropertyValue(java.lang.String,
+		 *      java.lang.Object)
+		 */
+		@Override
+		public void setPropertyValue(String propertyName, Object value) {
+
+			if (isIdentifierDerivationNecessary(value)) {
+
+				// Derive the identifer from the nested entity that is part of the composite key.
+				@SuppressWarnings({ "rawtypes", "unchecked" })
+				JpaMetamodelEntityInformation nestedEntityInformation = new JpaMetamodelEntityInformation(value.getClass(),
+						this.metamodel);
+				Object nestedIdPropertyValue = new DirectFieldAccessFallbackBeanWrapper(value)
+						.getPropertyValue(nestedEntityInformation.getIdAttribute().getName());
+				super.setPropertyValue(propertyName, nestedIdPropertyValue);
+
+				return;
+			}
+
+			super.setPropertyValue(propertyName, value);
+		}
+
+		/**
+		 * @param value
+		 * @return {@literal true} if the given value is not {@literal null} and a mapped persistable entity otherwise
+		 *         {@literal false}
+		 */
+		private boolean isIdentifierDerivationNecessary(Object value) {
+
+			if (value == null) {
+				return false;
+			}
+
+			try {
+				ManagedType<? extends Object> managedType = this.metamodel.managedType(value.getClass());
+				return managedType != null && managedType.getPersistenceType() == PersistenceType.ENTITY;
+			} catch (IllegalArgumentException iae) {
+				// no mapped type
+				return false;
 			}
 		}
 	}
