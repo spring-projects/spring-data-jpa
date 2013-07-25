@@ -23,6 +23,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import javax.persistence.Entity;
 import javax.persistence.IdClass;
 import javax.persistence.metamodel.IdentifiableType;
 import javax.persistence.metamodel.ManagedType;
@@ -48,6 +49,7 @@ public class JpaMetamodelEntityInformation<T, ID extends Serializable> extends J
 
 	private final IdMetadata<T> idMetadata;
 	private final SingularAttribute<? super T, ?> versionAttribute;
+	private Metamodel metamodel;
 
 	/**
 	 * Creates a new {@link JpaMetamodelEntityInformation} for the given domain class and {@link Metamodel}.
@@ -58,6 +60,7 @@ public class JpaMetamodelEntityInformation<T, ID extends Serializable> extends J
 	public JpaMetamodelEntityInformation(Class<T> domainClass, Metamodel metamodel) {
 
 		super(domainClass);
+		this.metamodel = metamodel;
 
 		Assert.notNull(metamodel);
 		ManagedType<T> type = metamodel.managedType(domainClass);
@@ -106,7 +109,7 @@ public class JpaMetamodelEntityInformation<T, ID extends Serializable> extends J
 			return (ID) entityWrapper.getPropertyValue(idMetadata.getSimpleIdAttribute().getName());
 		}
 
-		BeanWrapper idWrapper = new DirectFieldAccessFallbackBeanWrapper(idMetadata.getType());
+		BeanWrapper idWrapper = new IdentifierDerivingDirectFieldAccessFallbackBeanWrapper(idMetadata.getType(), metamodel);
 		boolean partialIdValueFound = false;
 
 		for (SingularAttribute<? super T, ?> attribute : idMetadata) {
@@ -289,6 +292,51 @@ public class JpaMetamodelEntityInformation<T, ID extends Serializable> extends J
 				ReflectionUtils.makeAccessible(field);
 				ReflectionUtils.setField(field, getWrappedInstance(), value);
 			}
+		}
+	}
+
+	private static class IdentifierDerivingDirectFieldAccessFallbackBeanWrapper extends
+			DirectFieldAccessFallbackBeanWrapper {
+
+		private Metamodel metamodel;
+
+		public IdentifierDerivingDirectFieldAccessFallbackBeanWrapper(Class<?> type, Metamodel metamodel) {
+			super(type);
+			this.metamodel = metamodel;
+		}
+
+		/**
+		 * In addition to the functionality described in {@link BeanWrapperImpl} it is checked whether we have a nested
+		 * entity that is part of the id key. If this is the case, we need to derive the identifier of the nested entity.
+		 * 
+		 * @see org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformation.DirectFieldAccessFallbackBeanWrapper#setPropertyValue(java.lang.String,
+		 *      java.lang.Object)
+		 */
+		@Override
+		public void setPropertyValue(String propertyName, Object value) {
+
+			if (isIdentifierDerivationNecessary(value)) {
+
+				// Derive the identifer from the nested entity that is part of the composite key.
+				@SuppressWarnings({ "rawtypes", "unchecked" })
+				JpaMetamodelEntityInformation nestedEntityInformation = new JpaMetamodelEntityInformation(value.getClass(),
+						this.metamodel);
+				Object nestedIdPropertyValue = new DirectFieldAccessFallbackBeanWrapper(value)
+						.getPropertyValue(nestedEntityInformation.getIdAttribute().getName());
+				super.setPropertyValue(propertyName, nestedIdPropertyValue);
+
+				return;
+			}
+
+			super.setPropertyValue(propertyName, value);
+		}
+
+		/**
+		 * @param value
+		 * @return
+		 */
+		private boolean isIdentifierDerivationNecessary(Object value) {
+			return value != null && value.getClass().isAnnotationPresent(Entity.class);
 		}
 	}
 }
