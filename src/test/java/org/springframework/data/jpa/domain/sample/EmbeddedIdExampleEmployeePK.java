@@ -15,29 +15,32 @@
  */
 package org.springframework.data.jpa.domain.sample;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
+import java.io.Serializable;
 
-@Entity
-public class IdClassExampleDepartment {
+import javax.persistence.Column;
+import javax.persistence.Embeddable;
 
-	private String name;
+@Embeddable
+public class EmbeddedIdExampleEmployeePK implements Serializable {
+	private static final long serialVersionUID = 1L;
 
-	@Id private long departmentId;
+	@Column(nullable = false) private Long employeeId;
 
-	public String getName() {
-		return name;
+	@Column(nullable = false) private Long departmentId;
+
+	public Long getEmployeeId() {
+		return this.employeeId;
 	}
 
-	public void setName(String name) {
-		this.name = name;
+	public void setEmployeeId(Long employeeId) {
+		this.employeeId = employeeId;
 	}
 
-	public long getDepartmentId() {
-		return departmentId;
+	public Long getDepartmentId() {
+		return this.departmentId;
 	}
 
-	public void setDepartmentId(long departmentId) {
+	public void setDepartmentId(Long departmentId) {
 		this.departmentId = departmentId;
 	}
 
@@ -49,7 +52,7 @@ public class IdClassExampleDepartment {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + (int) (departmentId ^ (departmentId >>> 32));
-		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		result = prime * result + (int) (employeeId ^ (employeeId >>> 32));
 		return result;
 	}
 
@@ -64,13 +67,10 @@ public class IdClassExampleDepartment {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		IdClassExampleDepartment other = (IdClassExampleDepartment) obj;
+		EmbeddedIdExampleEmployeePK other = (EmbeddedIdExampleEmployeePK) obj;
 		if (departmentId != other.departmentId)
 			return false;
-		if (name == null) {
-			if (other.name != null)
-				return false;
-		} else if (!name.equals(other.name))
+		if (employeeId != other.employeeId)
 			return false;
 		return true;
 	}

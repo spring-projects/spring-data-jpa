@@ -19,11 +19,10 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 
 @Entity
-public class IdClassExampleDepartment {
-
+public class EmbeddedIdExampleDepartment {
 	private String name;
 
-	@Id private long departmentId;
+	@Id private Long departmentId;
 
 	public String getName() {
 		return name;
@@ -33,11 +32,11 @@ public class IdClassExampleDepartment {
 		this.name = name;
 	}
 
-	public long getDepartmentId() {
+	public Long getDepartmentId() {
 		return departmentId;
 	}
 
-	public void setDepartmentId(long departmentId) {
+	public void setDepartmentId(Long departmentId) {
 		this.departmentId = departmentId;
 	}
 
@@ -64,7 +63,7 @@ public class IdClassExampleDepartment {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		IdClassExampleDepartment other = (IdClassExampleDepartment) obj;
+		EmbeddedIdExampleDepartment other = (EmbeddedIdExampleDepartment) obj;
 		if (departmentId != other.departmentId)
 			return false;
 		if (name == null) {

@@ -9,4 +9,4 @@ import org.springframework.data.jpa.repository.JpaRepository;
  * 
  * @author Thomas Darimont
  */
-public interface EmployeeRepository extends JpaRepository<IdClassExampleEmployee, IdClassExampleEmployeePK> {}
+public interface EmployeeRepositoryWithIdClass extends JpaRepository<IdClassExampleEmployee, IdClassExampleEmployeePK> {}

@@ -15,17 +15,23 @@
  */
 package org.springframework.data.jpa.repository;
 
-import org.junit.Assert;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
+import org.springframework.data.jpa.domain.sample.EmbeddedIdExampleDepartment;
+import org.springframework.data.jpa.domain.sample.EmbeddedIdExampleEmployee;
+import org.springframework.data.jpa.domain.sample.EmbeddedIdExampleEmployeePK;
 import org.springframework.data.jpa.domain.sample.IdClassExampleDepartment;
 import org.springframework.data.jpa.domain.sample.IdClassExampleEmployee;
 import org.springframework.data.jpa.domain.sample.IdClassExampleEmployeePK;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.data.jpa.repository.sample.EmployeeRepository;
+import org.springframework.data.jpa.repository.sample.EmployeeRepositoryWithEmbeddedId;
+import org.springframework.data.jpa.repository.sample.EmployeeRepositoryWithIdClass;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,35 +47,65 @@ public class RepositoryWithCompositeKeyTests {
 	@Configuration
 	@ImportResource("classpath:infrastructure.xml")
 	@EnableJpaRepositories
-	static interface Config {
+	static interface Config {}
 
-	}
-
-	@Autowired EmployeeRepository employeeRepository;
+	@Autowired EmployeeRepositoryWithIdClass employeeRepositoryWithIdClass;
+	@Autowired EmployeeRepositoryWithEmbeddedId employeeRepositoryWithEmbeddedId;
 
 	/**
 	 * @see DATAJPA-269
 	 * @see Final JPA 2.0 Specification 2.4.1.3 Derived Identities Example 2
-	 *      <p>
-	 *      The other cases should work as well.
-	 *      <p>
 	 */
 	@Test
-	public void shouldSupportSavingEntitiesWithCompositeIdClassesWithDerivedIdentities() {
+	public void shouldSupportSavingEntitiesWithCompositeKeyClassesWithIdClassAndDerivedIdentities() {
 
 		IdClassExampleDepartment dep = new IdClassExampleDepartment();
 		dep.setName("TestDepartment");
+		dep.setDepartmentId(-1);
 
 		IdClassExampleEmployee emp = new IdClassExampleEmployee();
 		emp.setDepartment(dep);
 
-		employeeRepository.save(emp);
+		employeeRepositoryWithIdClass.save(emp);
 
 		IdClassExampleEmployeePK key = new IdClassExampleEmployeePK();
 		key.setDepartment(dep.getDepartmentId());
 		key.setEmpId(emp.getEmpId());
-		IdClassExampleEmployee persistedEmp = employeeRepository.findOne(key);
+		IdClassExampleEmployee persistedEmp = employeeRepositoryWithIdClass.findOne(key);
 
-		Assert.assertNotNull(persistedEmp);
+		assertThat(persistedEmp, is(notNullValue()));
+		assertThat(persistedEmp.getDepartment(), is(notNullValue()));
+		assertThat(persistedEmp.getDepartment().getName(), is(dep.getName()));
+	}
+
+	/**
+	 * @see DATAJPA-269
+	 * @see Final JPA 2.0 Specification 2.4.1.3 Derived Identities Example 3
+	 *      <p>
+	 *      Doesn't work with OpenJPA
+	 *      <p>
+	 */
+	@Test
+	public void shouldSupportSavingEntitiesWithCompositeKeyClassesWithEmbeddedIdsAndDerivedIdentities() {
+
+		EmbeddedIdExampleDepartment dep = new EmbeddedIdExampleDepartment();
+		dep.setName("TestDepartment");
+		dep.setDepartmentId(-1L);
+
+		EmbeddedIdExampleEmployee emp = new EmbeddedIdExampleEmployee();
+		emp.setDepartment(dep);
+		emp.setEmployeePk(new EmbeddedIdExampleEmployeePK());
+
+		emp = employeeRepositoryWithEmbeddedId.save(emp);
+
+		EmbeddedIdExampleEmployeePK key = new EmbeddedIdExampleEmployeePK();
+		key.setDepartmentId(emp.getDepartment().getDepartmentId());
+		key.setEmployeeId(emp.getEmployeePk().getEmployeeId());
+		EmbeddedIdExampleEmployee persistedEmp = employeeRepositoryWithEmbeddedId.findOne(key);
+
+		assertThat(persistedEmp, is(notNullValue()));
+		assertThat(persistedEmp.getDepartment(), is(notNullValue()));
+		assertThat(persistedEmp.getDepartment().getName(), is(dep.getName()));
+
 	}
 }
