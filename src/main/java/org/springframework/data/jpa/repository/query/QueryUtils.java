@@ -54,6 +54,7 @@ import org.springframework.util.StringUtils;
  * Simple utility class to create JPA queries.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 public abstract class QueryUtils {
 
@@ -64,6 +65,7 @@ public abstract class QueryUtils {
 	private static final String COUNT_REPLACEMENT_TEMPLATE = "select count(%s) $5$6$7";
 	private static final String SIMPLE_COUNT_VALUE = "$2";
 	private static final String COMPLEX_COUNT_VALUE = "$3$6";
+	private static final String ORDER_BY_PART = "(?iu)\\s+order\\s+by\\s+.*$";
 
 	private static final Pattern ALIAS_MATCH;
 	private static final Pattern COUNT_MATCH;
@@ -328,8 +330,10 @@ public abstract class QueryUtils {
 		boolean useVariable = StringUtils.hasText(variable) && !variable.startsWith("new")
 				&& !variable.startsWith("count(");
 
-		return matcher.replaceFirst(String.format(COUNT_REPLACEMENT_TEMPLATE, useVariable ? SIMPLE_COUNT_VALUE
+		String countQuery = matcher.replaceFirst(String.format(COUNT_REPLACEMENT_TEMPLATE, useVariable ? SIMPLE_COUNT_VALUE
 				: COMPLEX_COUNT_VALUE));
+
+		return countQuery.replaceFirst(ORDER_BY_PART, "");
 	}
 
 	/**
