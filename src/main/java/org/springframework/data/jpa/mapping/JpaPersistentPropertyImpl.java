@@ -29,6 +29,7 @@ import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
+import javax.persistence.Transient;
 import javax.persistence.metamodel.EmbeddableType;
 import javax.persistence.metamodel.ManagedType;
 import javax.persistence.metamodel.Metamodel;
@@ -130,6 +131,15 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 		}
 
 		return false;
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.mapping.model.AnnotationBasedPersistentProperty#isTransient()
+	 */
+	@Override
+	public boolean isTransient() {
+		return isAnnotationPresent(Transient.class) || super.isTransient();
 	}
 
 	/* 

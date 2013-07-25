@@ -19,6 +19,7 @@ import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
 import javax.persistence.OneToOne;
+import javax.persistence.Transient;
 import javax.persistence.metamodel.Metamodel;
 
 import org.junit.Before;
@@ -35,8 +36,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class JpaPersistentPropertyImplUnitTests {
 
-	@Mock
-	Metamodel model;
+	@Mock Metamodel model;
 
 	JpaMetamodelMappingContext context;
 	JpaPersistentEntity<?> entity;
@@ -58,9 +58,17 @@ public class JpaPersistentPropertyImplUnitTests {
 		assertThat(property.isAssociation(), is(true));
 	}
 
+	/**
+	 * @see DATAJPA-376
+	 */
+	@Test
+	public void considersJpaTransientFieldsAsTransient() {
+		assertThat(entity.getPersistentProperty("transientProp"), is(nullValue()));
+	}
+
 	static class Sample {
 
-		@OneToOne
-		Sample other;
+		@OneToOne Sample other;
+		@Transient String transientProp;
 	}
 }
