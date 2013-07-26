@@ -351,7 +351,7 @@ public class JpaMetamodelEntityInformation<T, ID extends Serializable> extends J
 
 			try {
 				ManagedType<? extends Object> managedType = this.metamodel.managedType(value.getClass());
-				return managedType.getPersistenceType() == PersistenceType.ENTITY;
+				return managedType != null && managedType.getPersistenceType() == PersistenceType.ENTITY;
 			} catch (IllegalArgumentException iae) {
 				// no mapped type
 				return false;
