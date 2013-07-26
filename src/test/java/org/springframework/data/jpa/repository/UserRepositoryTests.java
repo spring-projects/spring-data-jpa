@@ -74,12 +74,10 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class UserRepositoryTests {
 
-	@PersistenceContext
-	EntityManager em;
+	@PersistenceContext EntityManager em;
 
 	// CUT
-	@Autowired
-	UserRepository repository;
+	@Autowired UserRepository repository;
 
 	// Test fixture
 	User firstUser, secondUser, thirdUser, fourthUser;
@@ -998,6 +996,28 @@ public class UserRepositoryTests {
 
 		assertThat(page.getNumberOfElements(), is(1));
 		assertThat(page, hasItem(firstUser));
+	}
+
+	/**
+	 * @see DATAJPA-346
+	 */
+	@Test
+	public void shouldGenerateLeftOuterJoinInfindAllWithPaginationAndSortOnNestedPropertyPath() {
+
+		firstUser.setManager(null);
+		secondUser.setManager(null);
+		thirdUser.setManager(firstUser); // manager Oliver
+		fourthUser.setManager(secondUser); // manager Joachim
+
+		flushTestUsers();
+
+		Page<User> pages = repository.findAll(new PageRequest(0, 4, new Sort(Sort.Direction.ASC, "manager.firstname")));
+		assertThat(pages.getSize(), is(4));
+		assertThat(pages.getContent().get(0).getManager(), is(nullValue()));
+		assertThat(pages.getContent().get(1).getManager(), is(nullValue()));
+		assertThat(pages.getContent().get(2).getManager().getFirstname(), is("Joachim"));
+		assertThat(pages.getContent().get(3).getManager().getFirstname(), is("Oliver"));
+		assertThat(pages.getTotalElements(), is(4L));
 	}
 
 	/**

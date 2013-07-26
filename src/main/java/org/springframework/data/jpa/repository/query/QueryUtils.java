@@ -43,6 +43,7 @@ import javax.persistence.metamodel.Attribute;
 import javax.persistence.metamodel.Attribute.PersistentAttributeType;
 import javax.persistence.metamodel.Bindable;
 import javax.persistence.metamodel.Bindable.BindableType;
+import javax.persistence.metamodel.ManagedType;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
@@ -428,33 +429,42 @@ public abstract class QueryUtils {
 	@SuppressWarnings("unchecked")
 	static <T> Expression<T> toExpressionRecursively(From<?, ?> from, PropertyPath property) {
 
-		Path<Object> path = from.get(property.getSegment());
+		Bindable<?> propertyPathModel = null;
+		if (from.getModel() instanceof ManagedType) {
+			/*
+			 *  Avoid calling from.get(...) because this triggers the generation of an inner-join instead 
+			 *  of and outer-join in eclipse-link.
+			 *  See: https://bugs.eclipse.org/bugs/show_bug.cgi?id=413892
+			 */
+			propertyPathModel = (Bindable<?>) ((ManagedType<?>) from.getModel()).getAttribute(property.getSegment());
+		} else {
+			propertyPathModel = (Bindable<?>) from.get(property.getSegment()).getModel();
+		}
 
-		if (property.isCollection() || isEntityPath(path)) {
+		if (property.isCollection() || isEntityPath(propertyPathModel)) {
 			Join<Object, Object> join = from.join(property.getSegment(), JoinType.LEFT);
 			return (Expression<T>) (property.hasNext() ? toExpressionRecursively((From<?, ?>) join, property.next()) : join);
 		} else {
+			Path<Object> path = from.get(property.getSegment());
 			return (Expression<T>) (property.hasNext() ? toExpressionRecursively(path, property.next()) : path);
 		}
 	}
 
 	/**
-	 * Returns whether the given path can be considered referring an entity.
+	 * Returns whether the given {@code propertyPathModel} can be considered referring an entity.
 	 * 
-	 * @param path must not be {@literal null}.
+	 * @param propertyPathModel must not be {@literal null}.
 	 * @return
 	 */
-	private static boolean isEntityPath(Path<?> path) {
+	private static boolean isEntityPath(Bindable<?> propertyPathModel) {
 
-		Bindable<?> model = path.getModel();
-
-		if (BindableType.ENTITY_TYPE.equals(model.getBindableType())) {
+		if (BindableType.ENTITY_TYPE.equals(propertyPathModel.getBindableType())) {
 			return true;
 		}
 
-		if (model instanceof Attribute) {
+		if (propertyPathModel instanceof Attribute) {
 
-			Attribute<?, ?> attribute = (Attribute<?, ?>) model;
+			Attribute<?, ?> attribute = (Attribute<?, ?>) propertyPathModel;
 
 			if (attribute.isAssociation()) {
 				return true;
