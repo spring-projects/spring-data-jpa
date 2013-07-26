@@ -50,7 +50,15 @@ public class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserReposi
 
 	}
 
+	/**
+	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=349477 is resolved.
+	 */
 	@Override
-	public void doesNotDropNullValuesOnPagedSpecificationExecution() {
-	}
+	public void doesNotDropNullValuesOnPagedSpecificationExecution() {}
+
+	/**
+	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=349477 is resolved.
+	 */
+	@Override
+	public void shouldGenerateLeftOuterJoinInfindAllWithPaginationAndSortOnNestedPropertyPath() {}
 }

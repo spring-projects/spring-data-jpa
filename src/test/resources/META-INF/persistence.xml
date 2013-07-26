@@ -18,7 +18,6 @@
 		<class>org.springframework.data.jpa.domain.sample.AbstractMappedType</class>
 		<class>org.springframework.data.jpa.domain.sample.ConcreteType1</class>
 		<class>org.springframework.data.jpa.domain.sample.ConcreteType2</class>
-		<class>org.springframework.data.jpa.domain.sample.Ticket</class>
 		<exclude-unlisted-classes>true</exclude-unlisted-classes>
 	</persistence-unit>
 	<persistence-unit name="querydsl">
