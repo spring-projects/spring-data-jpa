@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2012 the original author or authors.
+ * Copyright 2011-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,14 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import java.util.Date;
 import java.util.Iterator;
 
+import javax.persistence.Parameter;
 import javax.persistence.Query;
 
+import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
 import org.springframework.data.jpa.repository.query.ParameterMetadataProvider.ParameterMetadata;
-import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.util.Assert;
 
@@ -29,6 +31,7 @@ import org.springframework.util.Assert;
  * parameters.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 class CriteriaQueryParameterBinder extends ParameterBinder {
 
@@ -40,7 +43,7 @@ class CriteriaQueryParameterBinder extends ParameterBinder {
 	 * 
 	 * @param parameters
 	 */
-	CriteriaQueryParameterBinder(Parameters parameters, Object[] values, Iterable<ParameterMetadata<?>> expressions) {
+	CriteriaQueryParameterBinder(JpaParameters parameters, Object[] values, Iterable<ParameterMetadata<?>> expressions) {
 
 		super(parameters, values);
 		Assert.notNull(expressions);
@@ -49,15 +52,11 @@ class CriteriaQueryParameterBinder extends ParameterBinder {
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.springframework.data.jpa.repository.query.ParameterBinder#bind(javax
-	 * .persistence.Query, org.springframework.data.repository.query.Parameter,
-	 * java.lang.Object, int)
+	 * @see org.springframework.data.jpa.repository.query.ParameterBinder#bind(javax.persistence.Query, org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter, java.lang.Object, int)
 	 */
 	@Override
 	@SuppressWarnings("unchecked")
-	protected void bind(Query query, Parameter parameter, Object value, int position) {
+	protected void bind(Query query, JpaParameter parameter, Object value, int position) {
 
 		ParameterMetadata<Object> metadata = (ParameterMetadata<Object>) expressions.next();
 
@@ -65,6 +64,11 @@ class CriteriaQueryParameterBinder extends ParameterBinder {
 			return;
 		}
 
-		query.setParameter(metadata.getExpression(), metadata.prepare(value));
+		if (parameter.isTemporalParameter()) {
+			query.setParameter((Parameter<Date>) (Object) metadata.getExpression(), (Date) metadata.prepare(value),
+					parameter.getTemporalType());
+		} else {
+			query.setParameter(metadata.getExpression(), metadata.prepare(value));
+		}
 	}
 }

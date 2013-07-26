@@ -103,9 +103,9 @@ public abstract class JpaQueryExecution {
 	 */
 	static class PagedExecution extends JpaQueryExecution {
 
-		private final Parameters parameters;
+		private final Parameters<?, ?> parameters;
 
-		public PagedExecution(Parameters parameters) {
+		public PagedExecution(Parameters<?, ?> parameters) {
 
 			this.parameters = parameters;
 		}

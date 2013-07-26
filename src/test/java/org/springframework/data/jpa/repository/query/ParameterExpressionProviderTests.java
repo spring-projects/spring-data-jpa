@@ -12,6 +12,7 @@ import javax.persistence.criteria.ParameterExpression;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.data.jpa.domain.sample.User;
+import org.springframework.data.repository.query.DefaultParameters;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.parser.Part;
@@ -27,8 +28,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration("classpath:infrastructure.xml")
 public class ParameterExpressionProviderTests {
 
-	@PersistenceContext
-	EntityManager em;
+	@PersistenceContext EntityManager em;
 
 	/**
 	 * @see DATADOC-99
@@ -38,7 +38,7 @@ public class ParameterExpressionProviderTests {
 	public void createsParameterExpressionWithMostConcreteType() throws Exception {
 
 		Method method = SampleRepository.class.getMethod("findByIdGreaterThan", int.class);
-		Parameters parameters = new Parameters(method);
+		Parameters<?, ?> parameters = new DefaultParameters(method);
 		ParametersParameterAccessor accessor = new ParametersParameterAccessor(parameters, new Object[] { 1 });
 		Part part = new Part("IdGreaterThan", User.class);
 

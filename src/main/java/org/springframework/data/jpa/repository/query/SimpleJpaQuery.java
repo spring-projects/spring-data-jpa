@@ -53,7 +53,7 @@ final class SimpleJpaQuery extends AbstractJpaQuery {
 		this.method = method;
 		this.query = new ExpressionBasedStringQuery(queryString, method.getEntityInformation());
 
-		Parameters parameters = method.getParameters();
+		Parameters<?, ?> parameters = method.getParameters();
 		boolean hasPagingOrSortingParameter = parameters.hasPageableParameter() || parameters.hasSortParameter();
 
 		if (method.isNativeQuery() && hasPagingOrSortingParameter) {

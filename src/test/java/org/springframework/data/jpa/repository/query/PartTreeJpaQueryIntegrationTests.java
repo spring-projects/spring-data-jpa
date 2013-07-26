@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2012 the original author or authors.
+ * Copyright 2011-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License
 import org.springframework.aop.framework.Advised;
@@ -23,13 +23,21 @@ import static org.springframework.test.util.ReflectionTestUtils.*;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 import javax.persistence.EntityManager;
+import javax.persistence.Parameter;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+import javax.persistence.TemporalType;
 
 import org.hibernate.ejb.HibernateQuery;
+import org.hibernate.engine.TypedValue;
+import org.hibernate.type.TimestampType;
+import org.hibernate.type.Type;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -38,9 +46,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.sample.User;
+import org.springframework.data.jpa.repository.Temporal;
 import org.springframework.data.jpa.repository.support.PersistenceProvider;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.core.support.DefaultRepositoryMetadata;
+import org.springframework.data.repository.query.Param;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -53,11 +63,9 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration("classpath:infrastructure.xml")
 public class PartTreeJpaQueryIntegrationTests {
 
-	@Rule
-	public ExpectedException thrown = ExpectedException.none();
+	@Rule public ExpectedException thrown = ExpectedException.none();
 
-	@PersistenceContext
-	EntityManager entityManager;
+	@PersistenceContext EntityManager entityManager;
 
 	/**
 	 * @see DATADOC-90
@@ -111,6 +119,32 @@ public class PartTreeJpaQueryIntegrationTests {
 		assertThat(hibernateQuery.getHibernateQuery().getQueryString(), endsWith("firstname is null"));
 	}
 
+	/**
+	 * @throws Exception
+	 * @see https://jira.springsource.org/browse/DATAJPA-107
+	 */
+	@Test
+	public void shouldSetTemporalQueryParameterToTimestamp() throws Exception {
+
+		Method method = UserRepository.class.getMethod("findByCreatedAtAfter", Date.class);
+		JpaQueryMethod queryMethod = new JpaQueryMethod(method, new DefaultRepositoryMetadata(UserRepository.class),
+				PersistenceProvider.fromEntityManager(entityManager));
+		PartTreeJpaQuery jpaQuery = new PartTreeJpaQuery(queryMethod, entityManager);
+		Date date = new Date();
+		Query query = jpaQuery.createQuery(new Object[] { date });
+
+		HibernateQuery hibernateQuery = getValue(query, "h.target.val$jpaqlQuery");
+		Parameter<?> parameter = hibernateQuery.getParameter("param0");
+		Object parameterValue = hibernateQuery.getParameterValue(parameter);
+		Map<?, ?> namedParameterType = getValue(hibernateQuery.getHibernateQuery(), "namedParameters");
+		TypedValue refDateParam = (TypedValue) namedParameterType.get("param0");
+
+		assertThat(parameter, is(notNullValue()));
+		assertThat(hibernateQuery.getHibernateQuery().getQueryString(), endsWith("createdAt>:param0"));
+		assertThat(parameterValue, is((Object) date));
+		assertThat(refDateParam.getType(), is((Type) TimestampType.INSTANCE));
+	}
+
 	private void testIgnoreCase(String methodName, Object... values) throws Exception {
 
 		Class<?>[] parameterTypes = new Class[values.length];
@@ -144,5 +178,7 @@ public class PartTreeJpaQueryIntegrationTests {
 		User findByIdIgnoringCase(Integer id);
 
 		User findByIdAllIgnoringCase(Integer id);
+
+		List<User> findByCreatedAtAfter(@Temporal(TemporalType.TIMESTAMP) @Param("refDate") Date refDate);
 	}
 }

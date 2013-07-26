@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 the original author or authors.
+ * Copyright 2008-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,13 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import java.util.Date;
+
 import javax.persistence.Query;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.repository.query.Parameter;
+import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.util.Assert;
 
@@ -28,10 +30,11 @@ import org.springframework.util.Assert;
  * {@link AbstractJpaQuery} is executed.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 public class ParameterBinder {
 
-	private final Parameters parameters;
+	private final JpaParameters parameters;
 	private final Object[] values;
 
 	/**
@@ -40,7 +43,7 @@ public class ParameterBinder {
 	 * @param parameters
 	 * @param values
 	 */
-	public ParameterBinder(Parameters parameters, Object[] values) {
+	public ParameterBinder(JpaParameters parameters, Object[] values) {
 
 		Assert.notNull(parameters);
 		Assert.notNull(values);
@@ -51,7 +54,7 @@ public class ParameterBinder {
 		this.values = values.clone();
 	}
 
-	ParameterBinder(Parameters parameters) {
+	ParameterBinder(JpaParameters parameters) {
 
 		this(parameters, new Object[0]);
 	}
@@ -100,7 +103,7 @@ public class ParameterBinder {
 		int methodParameterPosition = 0;
 		int queryParameterPosition = 1;
 
-		for (Parameter parameter : parameters) {
+		for (JpaParameter parameter : parameters) {
 
 			if (parameter.isBindable()) {
 
@@ -114,7 +117,16 @@ public class ParameterBinder {
 		return query;
 	}
 
-	protected void bind(Query query, Parameter parameter, Object value, int position) {
+	protected void bind(Query query, JpaParameter parameter, Object value, int position) {
+
+		if (parameter.isTemporalParameter()) {
+			if (hasNamedParameter(query) && parameter.isNamedParameter()) {
+				query.setParameter(parameter.getName(), (Date) value, parameter.getTemporalType());
+			} else {
+				query.setParameter(position, (Date) value, parameter.getTemporalType());
+			}
+			return;
+		}
 
 		if (hasNamedParameter(query) && parameter.isNamedParameter()) {
 			query.setParameter(parameter.getName(), value);
@@ -134,7 +146,7 @@ public class ParameterBinder {
 		return bindAndPrepare(query, parameters);
 	}
 
-	private Query bindAndPrepare(Query query, Parameters parameters) {
+	private Query bindAndPrepare(Query query, Parameters<?, ?> parameters) {
 
 		Query result = bind(query);
 

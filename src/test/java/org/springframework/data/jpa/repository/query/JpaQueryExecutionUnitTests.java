@@ -34,6 +34,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.ModifyingExecution;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.PagedExecution;
+import org.springframework.data.repository.query.DefaultParameters;
 import org.springframework.data.repository.query.Parameters;
 
 /**
@@ -44,17 +45,12 @@ import org.springframework.data.repository.query.Parameters;
 @RunWith(MockitoJUnitRunner.class)
 public class JpaQueryExecutionUnitTests {
 
-	@Mock
-	EntityManager em;
-	@Mock
-	AbstractStringBasedJpaQuery jpaQuery;
-	@Mock
-	Query query;
-	@Mock
-	JpaQueryMethod method;
+	@Mock EntityManager em;
+	@Mock AbstractStringBasedJpaQuery jpaQuery;
+	@Mock Query query;
+	@Mock JpaQueryMethod method;
 
-	@Mock
-	TypedQuery<Long> countQuery;
+	@Mock TypedQuery<Long> countQuery;
 
 	@Test(expected = IllegalArgumentException.class)
 	public void rejectsNullQuery() {
@@ -121,7 +117,7 @@ public class JpaQueryExecutionUnitTests {
 	@Test
 	public void pagedExecutionDoesNotRetrieveObjectsForPageableOutOfRange() throws Exception {
 
-		Parameters parameters = new Parameters(getClass().getMethod("sampleMethod", Pageable.class));
+		Parameters<?, ?> parameters = new DefaultParameters(getClass().getMethod("sampleMethod", Pageable.class));
 		when(jpaQuery.createCountQuery(Mockito.any(Object[].class))).thenReturn(countQuery);
 		when(jpaQuery.createQuery(Mockito.any(Object[].class))).thenReturn(query);
 		when(countQuery.getResultList()).thenReturn(Arrays.asList(20L));
