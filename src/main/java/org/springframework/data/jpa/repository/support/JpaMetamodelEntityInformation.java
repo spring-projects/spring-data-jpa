@@ -23,12 +23,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import javax.persistence.Entity;
 import javax.persistence.IdClass;
 import javax.persistence.metamodel.IdentifiableType;
 import javax.persistence.metamodel.ManagedType;
 import javax.persistence.metamodel.Metamodel;
 import javax.persistence.metamodel.SingularAttribute;
+import javax.persistence.metamodel.Type.PersistenceType;
 
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
@@ -49,7 +49,7 @@ public class JpaMetamodelEntityInformation<T, ID extends Serializable> extends J
 
 	private final IdMetadata<T> idMetadata;
 	private final SingularAttribute<? super T, ?> versionAttribute;
-	private Metamodel metamodel;
+	private final Metamodel metamodel;
 
 	/**
 	 * Creates a new {@link JpaMetamodelEntityInformation} for the given domain class and {@link Metamodel}.
@@ -60,9 +60,10 @@ public class JpaMetamodelEntityInformation<T, ID extends Serializable> extends J
 	public JpaMetamodelEntityInformation(Class<T> domainClass, Metamodel metamodel) {
 
 		super(domainClass);
-		this.metamodel = metamodel;
 
 		Assert.notNull(metamodel);
+		this.metamodel = metamodel;
+
 		ManagedType<T> type = metamodel.managedType(domainClass);
 
 		if (type == null) {
@@ -295,10 +296,16 @@ public class JpaMetamodelEntityInformation<T, ID extends Serializable> extends J
 		}
 	}
 
+	/**
+	 * Custom extension of {@link DirectFieldAccessFallbackBeanWrapper} that allows to derived the identifier if composite
+	 * keys with complex key attribute types (e.g. types that are annotated with {@code @Entity} themselves) are used.
+	 * 
+	 * @author Thomas Darimont
+	 */
 	private static class IdentifierDerivingDirectFieldAccessFallbackBeanWrapper extends
 			DirectFieldAccessFallbackBeanWrapper {
 
-		private Metamodel metamodel;
+		private final Metamodel metamodel;
 
 		public IdentifierDerivingDirectFieldAccessFallbackBeanWrapper(Class<?> type, Metamodel metamodel) {
 			super(type);
@@ -333,10 +340,22 @@ public class JpaMetamodelEntityInformation<T, ID extends Serializable> extends J
 
 		/**
 		 * @param value
-		 * @return
+		 * @return {@literal true} if the given value is not {@literal null} and a mapped persistable entity otherwise
+		 *         {@literal false}
 		 */
 		private boolean isIdentifierDerivationNecessary(Object value) {
-			return value != null && value.getClass().isAnnotationPresent(Entity.class);
+
+			if (value == null) {
+				return false;
+			}
+
+			try {
+				ManagedType<? extends Object> managedType = this.metamodel.managedType(value.getClass());
+				return managedType.getPersistenceType() == PersistenceType.ENTITY;
+			} catch (IllegalArgumentException iae) {
+				// no mapped type
+				return false;
+			}
 		}
 	}
 }

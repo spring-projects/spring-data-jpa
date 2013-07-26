@@ -37,12 +37,15 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
+ * Tests some usage variants of composite keys with spring data jpa.
+ * 
+ * @see DATAJPA-269
  * @author Thomas Darimont
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
 @Transactional
-public class RepositoryWithCompositeKeyTests {
+public class DataJpa269RepositoryWithCompositeKeyTests {
 
 	@Configuration
 	@ImportResource("classpath:infrastructure.xml")
@@ -81,9 +84,6 @@ public class RepositoryWithCompositeKeyTests {
 	/**
 	 * @see DATAJPA-269
 	 * @see Final JPA 2.0 Specification 2.4.1.3 Derived Identities Example 3
-	 *      <p>
-	 *      Doesn't work with OpenJPA
-	 *      <p>
 	 */
 	@Test
 	public void shouldSupportSavingEntitiesWithCompositeKeyClassesWithEmbeddedIdsAndDerivedIdentities() {

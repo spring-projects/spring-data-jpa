@@ -25,7 +25,8 @@ import javax.persistence.MapsId;
 public class EmbeddedIdExampleEmployee {
 
 	@EmbeddedId EmbeddedIdExampleEmployeePK employeePk;
-	@MapsId("departmentId") @ManyToOne(cascade = CascadeType.ALL) EmbeddedIdExampleDepartment department;
+	@MapsId("departmentId") @ManyToOne(cascade = CascadeType.ALL)//
+	EmbeddedIdExampleDepartment department;
 
 	public EmbeddedIdExampleEmployeePK getEmployeePk() {
 		return employeePk;
