@@ -51,6 +51,15 @@ public class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserReposi
 	}
 
 	@Override
-	public void doesNotDropNullValuesOnPagedSpecificationExecution() {
+	public void doesNotDropNullValuesOnPagedSpecificationExecution() {}
+
+	/**
+	 * Works with a workaround in QueryUtils.toExpressionRecursively
+	 * 
+	 * @see https://bugs.eclipse.org/bugs/show_bug.cgi?id=413892
+	 */
+	@Override
+	public void shouldGenerateLeftOuterJoinInfindAllWithPaginationAndSortOnNestedPropertyPath() {
+		super.shouldGenerateLeftOuterJoinInfindAllWithPaginationAndSortOnNestedPropertyPath();
 	}
 }
