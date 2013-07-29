@@ -25,7 +25,6 @@ import javax.persistence.criteria.CriteriaQuery;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.query.ParameterMetadataProvider.ParameterMetadata;
-import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.parser.PartTree;
 
@@ -33,12 +32,13 @@ import org.springframework.data.repository.query.parser.PartTree;
  * A {@link AbstractJpaQuery} implementation based on a {@link PartTree}.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 public class PartTreeJpaQuery extends AbstractJpaQuery {
 
 	private final Class<?> domainClass;
 	private final PartTree tree;
-	private final Parameters parameters;
+	private final JpaParameters parameters;
 
 	private final QueryPreparer query;
 	private final QueryPreparer countQuery;

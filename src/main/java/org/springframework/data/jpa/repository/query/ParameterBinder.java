@@ -15,10 +15,13 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import java.util.Date;
+
 import javax.persistence.Query;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.util.Assert;
@@ -28,10 +31,11 @@ import org.springframework.util.Assert;
  * {@link AbstractJpaQuery} is executed.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 public class ParameterBinder {
 
-	private final Parameters parameters;
+	private final JpaParameters parameters;
 	private final Object[] values;
 
 	/**
@@ -40,7 +44,7 @@ public class ParameterBinder {
 	 * @param parameters
 	 * @param values
 	 */
-	public ParameterBinder(Parameters parameters, Object[] values) {
+	public ParameterBinder(JpaParameters parameters, Object[] values) {
 
 		Assert.notNull(parameters);
 		Assert.notNull(values);
@@ -51,7 +55,7 @@ public class ParameterBinder {
 		this.values = values.clone();
 	}
 
-	ParameterBinder(Parameters parameters) {
+	ParameterBinder(JpaParameters parameters) {
 
 		this(parameters, new Object[0]);
 	}
@@ -105,7 +109,7 @@ public class ParameterBinder {
 			if (parameter.isBindable()) {
 
 				Object value = values[methodParameterPosition];
-				bind(query, parameter, value, queryParameterPosition++);
+				bind(query, (JpaParameter) parameter, value, queryParameterPosition++);
 			}
 
 			methodParameterPosition++;
@@ -114,7 +118,16 @@ public class ParameterBinder {
 		return query;
 	}
 
-	protected void bind(Query query, Parameter parameter, Object value, int position) {
+	protected void bind(Query query, JpaParameter parameter, Object value, int position) {
+
+		if (parameter.isTemporalParameter()) {
+			if (hasNamedParameter(query) && parameter.isNamedParameter()) {
+				query.setParameter(parameter.getName(), (Date) value, parameter.getTemporalType());
+			} else {
+				query.setParameter(position, (Date) value, parameter.getTemporalType());
+			}
+			return;
+		}
 
 		if (hasNamedParameter(query) && parameter.isNamedParameter()) {
 			query.setParameter(parameter.getName(), value);

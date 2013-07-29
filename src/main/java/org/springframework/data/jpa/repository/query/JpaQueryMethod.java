@@ -43,6 +43,7 @@ import org.springframework.util.StringUtils;
  * JPA specific extension of {@link QueryMethod}.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 public class JpaQueryMethod extends QueryMethod {
 
@@ -255,5 +256,21 @@ public class JpaQueryMethod extends QueryMethod {
 				.getValue(annotation, attribute);
 
 		return type.cast(value);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.data.repository.query.QueryMethod#createParameters(java.lang.reflect.Method)
+	 */
+	@Override
+	protected JpaParameters createParameters(Method method) {
+		return new JpaParameters(method);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.data.repository.query.QueryMethod#getParameters()
+	 */
+	@Override
+	public JpaParameters getParameters() {
+		return (JpaParameters) super.getParameters();
 	}
 }
