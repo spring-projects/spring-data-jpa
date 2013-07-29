@@ -45,7 +45,6 @@ import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.data.jpa.repository.support.DefaultJpaEntityMetadata;
 import org.springframework.data.jpa.repository.support.JpaEntityMetadata;
 import org.springframework.data.repository.core.RepositoryMetadata;
-import org.springframework.data.repository.query.Parameters;
 
 /**
  * Unit test for {@link SimpleJpaQuery}.
@@ -90,7 +89,7 @@ public class SimpleJpaQueryUnitTests {
 		method = mock(JpaQueryMethod.class);
 		when(method.getCountQuery()).thenReturn("foo");
 		when(method.getParameters()).thenReturn(
-				new Parameters(SimpleJpaQueryUnitTests.class.getMethod("prefersDeclaredCountQueryOverCreatingOne")));
+				new JpaParameters(SimpleJpaQueryUnitTests.class.getMethod("prefersDeclaredCountQueryOverCreatingOne")));
 		when(method.getEntityInformation()).thenReturn((JpaEntityMetadata) new DefaultJpaEntityMetadata<User>(User.class));
 		when(em.createQuery("foo", Long.class)).thenReturn(query);
 

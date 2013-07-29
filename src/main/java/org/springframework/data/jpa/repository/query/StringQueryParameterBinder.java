@@ -17,6 +17,7 @@ package org.springframework.data.jpa.repository.query;
 
 import javax.persistence.Query;
 
+import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
 import org.springframework.data.jpa.repository.query.StringQuery.LikeBinding;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
@@ -26,6 +27,7 @@ import org.springframework.util.Assert;
  * {@link ParameterBinder} that takes {@link LikeBinding}s encapsulated in a {@link StringQuery} into account.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 public class StringQueryParameterBinder extends ParameterBinder {
 
@@ -39,7 +41,7 @@ public class StringQueryParameterBinder extends ParameterBinder {
 	 * @param values must not be {@literal null}.
 	 * @param query must not be {@literal null}.
 	 */
-	public StringQueryParameterBinder(Parameters parameters, Object[] values, StringQuery query) {
+	public StringQueryParameterBinder(JpaParameters parameters, Object[] values, StringQuery query) {
 
 		super(parameters, values);
 
@@ -52,7 +54,7 @@ public class StringQueryParameterBinder extends ParameterBinder {
 	 * @see org.springframework.data.jpa.repository.query.ParameterBinder#bind(javax.persistence.Query, org.springframework.data.repository.query.Parameter, java.lang.Object, int)
 	 */
 	@Override
-	protected void bind(Query jpaQuery, Parameter methodParameter, Object value, int position) {
+	protected void bind(Query jpaQuery, JpaParameter methodParameter, Object value, int position) {
 
 		Object valueToBind = value;
 

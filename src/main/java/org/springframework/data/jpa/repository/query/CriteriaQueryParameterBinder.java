@@ -15,12 +15,14 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import java.util.Date;
 import java.util.Iterator;
 
+import javax.persistence.Parameter;
 import javax.persistence.Query;
 
+import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
 import org.springframework.data.jpa.repository.query.ParameterMetadataProvider.ParameterMetadata;
-import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.util.Assert;
 
@@ -29,6 +31,7 @@ import org.springframework.util.Assert;
  * parameters.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 class CriteriaQueryParameterBinder extends ParameterBinder {
 
@@ -40,7 +43,7 @@ class CriteriaQueryParameterBinder extends ParameterBinder {
 	 * 
 	 * @param parameters
 	 */
-	CriteriaQueryParameterBinder(Parameters parameters, Object[] values, Iterable<ParameterMetadata<?>> expressions) {
+	CriteriaQueryParameterBinder(JpaParameters parameters, Object[] values, Iterable<ParameterMetadata<?>> expressions) {
 
 		super(parameters, values);
 		Assert.notNull(expressions);
@@ -57,11 +60,17 @@ class CriteriaQueryParameterBinder extends ParameterBinder {
 	 */
 	@Override
 	@SuppressWarnings("unchecked")
-	protected void bind(Query query, Parameter parameter, Object value, int position) {
+	protected void bind(Query query, JpaParameter parameter, Object value, int position) {
 
 		ParameterMetadata<Object> metadata = (ParameterMetadata<Object>) expressions.next();
 
 		if (metadata.isIsNullParameter()) {
+			return;
+		}
+
+		if (parameter.isTemporalParameter()) {
+			query.setParameter((Parameter<Date>) (Object) metadata.getExpression(), (Date) metadata.prepare(value),
+					parameter.getTemporalType());
 			return;
 		}
 
