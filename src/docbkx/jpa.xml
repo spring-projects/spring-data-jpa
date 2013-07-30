@@ -154,6 +154,83 @@ class ApplicationConfig {
     </section>
   </section>
 
+  <section id="jpa.entity-persistence">
+    <title>Persisting entities</title>
+
+    <section id="jpa.entity-persistence.saving-entites">
+      <title>Saving entities</title>
+
+      <para>Saving an entity can be performed via the
+      <code>CrudRepository.save(…)</code>-Method. It will persist or merge the
+      given entity using the underlying JPA
+      <interfacename>EntityManager</interfacename>. If the entity has not been
+      persisted yet Spring Data JPA will save the entity via a call to the
+      <code>entityManager.persist(…)</code>-Method, otherwise the
+      <code>entityManager.merge(…)</code>-Method will be called.</para>
+
+      <simplesect id="jpa.entity-persistence.saving-entites.new-detection">
+        <title>Entity state detection strategies</title>
+
+        <para>Spring Data JPA offers the following strategies to detect
+        whether an entity is new or not:</para>
+
+        <table>
+          <title>Options for detection whether an entity is new in Spring Data
+          JPA</title>
+
+          <tgroup cols="2">
+            <colspec colwidth="1*"/>
+
+            <colspec colwidth="2*"/>
+
+            <tbody>
+              <row>
+                <entry>Id-Property inspection (<emphasis
+                role="bold">default</emphasis>)</entry>
+
+                <entry>By default Spring Data JPA inspects the Id-Property of
+                the given Entity. If the Id-Property is <code>null</code>,
+                then the entity will be assumed as new, otherwise as not
+                new.</entry>
+              </row>
+
+              <row>
+                <entry>Implementing
+                <interfacename>Persistable</interfacename></entry>
+
+                <entry>If an entity implements the
+                <interfacename>Persistable</interfacename> interface, Spring
+                Data JPA will delegate the new-detection to the
+                <methodname>isNew</methodname> - Method of the Entity. See the
+                <ulink
+                url="http://static.springsource.org/spring-data/data-commons/docs/current/api/index.html?org/springframework/data/domain/Persistable.html">JavaDoc</ulink>
+                for details.</entry>
+              </row>
+
+              <row>
+                <entry>Implementing
+                <interfacename>EntityInformation</interfacename></entry>
+
+                <entry>One can customize the
+                <interfacename>EntityInformation</interfacename> abstraction
+                used in the <classname>SimpleJpaRepository</classname>
+                implementation by creating a subclass of<classname>
+                JpaRepositoryFactory</classname> and overriding the
+                <methodname>getEntityInformation</methodname>-Method
+                accordingly. One then has to register the custom
+                implementation of <classname>JpaRepositoryFactory</classname>
+                as a Spring bean. Note that this should be rarely necessary.
+                See the <ulink
+                url="http://static.springsource.org/spring-data/data-jpa/docs/current/api/index.html?org/springframework/data/jpa/repository/support/JpaRepositoryFactory.html">JavaDoc</ulink>
+                for details.</entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </table>
+      </simplesect>
+    </section>
+  </section>
+
   <section id="jpa.query-methods">
     <title>Query methods</title>
 
