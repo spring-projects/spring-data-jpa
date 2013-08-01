@@ -1,6 +1,50 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 1.4.0.RC1 (2012-08-01)
+-----------------------------------------
+* Sort with aggregate properties results in an invalid alias being generated and added to the query (DATAJPA-148)
+* Composite Primary Key Class With Foreign Key using IdClass results in TypeMismatchException (DATAJPA-269)
+* Sort by property of an associated object doesn't work. Join type should be LEFT OUTER JOIN for sorting on associated objects. (DATAJPA-346)
+* @IdClass of @MappedSuperclass is not supported (DATAJPA-348)
+* SimpleJpaQuery validates count queries to aggressively (DATAJPA-352)
+* ClasspathScanningPersistenceUnitPostProcessor does not resolve mapping files properly (DATAJPA-353)
+* @Lock annotation doesn't work on (at least) findOne method (DATAJPA-359)
+* Improve SimpleJpaRepository.delete(ID id) by removing superfluous call to exists(…). (DATAJPA-363)
+* NullPointerException for manually defined queries with multiple named like expressions (DATAJPA-373)
+* Count queries should be issued without ORDER BY clause (DATAJPA-377)
+* JpaRepository.findAll(Iterable<ID> ids) should return List<T>, not Iterable<T> (DATAJPA-357)
+* Improve QueryDslJpaRepository.findAll(Predicate, Pageable) (DATAJPA-361)
+* Explain usage of SpEL Expression in @Query(...) on Repository methods (DATAJPA-368)
+* Problems with entities weaved by EclipseLink (DATAJPA-376)
+* Add support for TemporalType parameter in named queries (DATAJPA-107)
+* Passing parameters from child classes to the parents' annotations (DATAJPA-170)
+* Ref doc - explain about save strategy repositories (DATAJPA-344)
+* Add missing package-info.java files (DATAJPA-370)
+* Release 1.4 RC1 (DATAJPA-379)
+
+Changes in version 1.3.4.RELEASE (2013-07-24)
+---------------------------------------------
+* Fixed NullPointerException for manually defined queries with multiple named like expressions (DATAJPA-373)
+* Added missing package-info.java files (DATAJPA-370)
+
+Changes in version 1.3.3.RELEASE (2013-07-19)
+---------------------------------------------
+* Sort with aggregate properties results in an invalid alias being generated and added to the query (DATAJPA-148)
+* Repository injection fails if BeanPostProcessor depends on repository (DATAJPA-335)
+* New LIKE expression handling breaks backward compatibility (DATAJPA-341)
+* Wrong calculation of total number of elements when using DISTINCT clause (DATAJPA-342)
+* Subselect bug introduced in the snapshot on 20130507 (DATAJPA-343)
+* @IdClass of @MappedSuperclass is not supported (DATAJPA-348)
+* Improve query validation by creating explicit EntityManager instance (DATAJPA-350)
+* @Lock annotation doesn't work on (at least) findOne method (DATAJPA-359)
+* Improve SimpleJpaRepository.delete(ID id) by removing superfluous call to exists(…). (DATAJPA-363)
+* Open up OSGi manifest for Spring 4 (DATAJPA-339)
+* Impove OSGi manifest to allow usage with Spring 4 and Slf4j 1.6.x (DATAJPA-340)
+* @QueryHints can not be used in a meta annotation (DATAJPA-345)
+* Improve QueryDslJpaRepository.findAll(Predicate, Pageable) (DATAJPA-361)
+* Release 1.3.3 (DATAJPA-369)
+
 Changes in version 1.4.0.M1 (2012-06-04)
 ----------------------------------------
 * Upgrade to Querydsl 3.0.0 (DATAJPA-321, DATAJPA-320)
