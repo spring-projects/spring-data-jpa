@@ -26,18 +26,13 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 import javax.persistence.EntityManager;
-import javax.persistence.Parameter;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.TemporalType;
 
 import org.hibernate.ejb.HibernateQuery;
-import org.hibernate.engine.TypedValue;
-import org.hibernate.type.TimestampType;
-import org.hibernate.type.Type;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -117,32 +112,6 @@ public class PartTreeJpaQueryIntegrationTests {
 
 		hibernateQuery = getValue(query, "h.target.val$jpaqlQuery");
 		assertThat(hibernateQuery.getHibernateQuery().getQueryString(), endsWith("firstname is null"));
-	}
-
-	/**
-	 * @throws Exception
-	 * @see https://jira.springsource.org/browse/DATAJPA-107
-	 */
-	@Test
-	public void shouldSetTemporalQueryParameterToTimestamp() throws Exception {
-
-		Method method = UserRepository.class.getMethod("findByCreatedAtAfter", Date.class);
-		JpaQueryMethod queryMethod = new JpaQueryMethod(method, new DefaultRepositoryMetadata(UserRepository.class),
-				PersistenceProvider.fromEntityManager(entityManager));
-		PartTreeJpaQuery jpaQuery = new PartTreeJpaQuery(queryMethod, entityManager);
-		Date date = new Date();
-		Query query = jpaQuery.createQuery(new Object[] { date });
-
-		HibernateQuery hibernateQuery = getValue(query, "h.target.val$jpaqlQuery");
-		Parameter<?> parameter = hibernateQuery.getParameter("param0");
-		Object parameterValue = hibernateQuery.getParameterValue(parameter);
-		Map<?, ?> namedParameterType = getValue(hibernateQuery.getHibernateQuery(), "namedParameters");
-		TypedValue refDateParam = (TypedValue) namedParameterType.get("param0");
-
-		assertThat(parameter, is(notNullValue()));
-		assertThat(hibernateQuery.getHibernateQuery().getQueryString(), endsWith("createdAt>:param0"));
-		assertThat(parameterValue, is((Object) date));
-		assertThat(refDateParam.getType(), is((Type) TimestampType.INSTANCE));
 	}
 
 	private void testIgnoreCase(String methodName, Object... values) throws Exception {
