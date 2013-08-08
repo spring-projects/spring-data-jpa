@@ -1010,6 +1010,8 @@ public interface UserRepository extends JpaRepository&lt;User, Long&gt; {
       <filename>orm.xml</filename> to be used for all entities in your
       persistence contexts:</para>
 
+      <para>Note that the auditing feature requires <code>spring-aspects.jar</code> to be on the classpath.</para>
+
       <example>
         <title>Auditing configuration orm.xml</title>
 

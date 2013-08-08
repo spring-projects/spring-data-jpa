@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2012 the original author or authors.
+ * Copyright 2008-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,14 +23,17 @@ import org.springframework.beans.PropertyValue;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
+import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.instrument.classloading.ShadowingClassLoader;
 
 /**
  * Integration tests for {@link AuditingBeanDefinitionParser}.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 public class AuditingBeanDefinitionParserTests {
 
@@ -65,6 +68,17 @@ public class AuditingBeanDefinitionParserTests {
 		assertThat(bean, is(notNullValue()));
 	}
 
+	/**
+	 * @see DATAJPA-367
+	 */
+	@Test(expected = BeanDefinitionParsingException.class)
+	public void shouldThrowBeanDefinitionParsingExceptionIfClassFromSpringAspectsJarCannotBeFound() {
+
+		ShadowingClassLoader scl = new ShadowingClassLoader(getClass().getClassLoader());
+		scl.excludeClass(AuditingBeanDefinitionParser.AUDITING_ENTITY_LISTENER_CLASS_NAME);
+		DefaultListableBeanFactory factory = loadFactoryFrom("auditing/auditing-namespace-context.xml", scl);
+	}
+
 	private void assertSetDatesIsSetTo(String configFile, String value) {
 
 		BeanDefinition definition = getBeanDefinition(configFile);
@@ -82,6 +96,12 @@ public class AuditingBeanDefinitionParserTests {
 	}
 
 	private DefaultListableBeanFactory loadFactoryFrom(String configFile) {
+		return loadFactoryFrom(configFile, getClass().getClassLoader());
+	}
+
+	private DefaultListableBeanFactory loadFactoryFrom(String configFile, ClassLoader classLoader) {
+
+		Thread.currentThread().setContextClassLoader(classLoader);
 		DefaultListableBeanFactory factory = new DefaultListableBeanFactory();
 		XmlBeanDefinitionReader xmlBeanDefinitionReader = new XmlBeanDefinitionReader(factory);
 		xmlBeanDefinitionReader.loadBeanDefinitions(new ClassPathResource(configFile));
