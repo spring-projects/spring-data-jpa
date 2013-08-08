@@ -25,6 +25,7 @@ import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.data.config.AuditingHandlerBeanDefinitionParser;
+import org.springframework.util.ClassUtils;
 import org.w3c.dom.Element;
 
 /**
@@ -88,6 +89,14 @@ public class AuditingBeanDefinitionParser implements BeanDefinitionParser {
 		public BeanDefinition parse(Element element, ParserContext parserContext) {
 
 			if (!parserContext.getRegistry().containsBeanDefinition(BEAN_CONFIGURER_ASPECT_BEAN_NAME)) {
+
+				if (!ClassUtils.isPresent(BEAN_CONFIGURER_ASPECT_CLASS_NAME, getClass().getClassLoader())) {
+					parserContext.getReaderContext().error(
+							"Could not configure Spring Data JPA auditing-feature because"
+									+ " spring-aspects.jar is not on the classpath!\n"
+									+ "If you want to use auditing please add spring-aspects.jar to the classpath.", element);
+				}
+
 				RootBeanDefinition def = new RootBeanDefinition();
 				def.setBeanClassName(BEAN_CONFIGURER_ASPECT_CLASS_NAME);
 				def.setFactoryMethodName("aspectOf");
