@@ -1080,6 +1080,19 @@ public class UserRepositoryTests {
 		assertThat(repository.findAll((Iterable<Integer>) null), is(emptyIterable()));
 	}
 
+	/**
+	 * @see DATAJPA-391
+	 */
+	@Test
+	public void executesManuallyDefinedQueryWithFieldProjection() {
+
+		flushTestUsers();
+		List<String> lastname = repository.findFirstnamesByLastname("Matthews");
+
+		assertThat(lastname, hasSize(1));
+		assertThat(lastname, hasItem("Dave"));
+	}
+
 	private Page<User> executeSpecWithSort(Sort sort) {
 
 		flushTestUsers();

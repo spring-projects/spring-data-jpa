@@ -264,4 +264,10 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	 * @see DATAJPA-231
 	 */
 	int countUsersByFirstname(String firstname);
+
+	/**
+	 * @see DATAJPA-391
+	 */
+	@Query("select u.firstname from User u where u.lastname = ?1")
+	List<String> findFirstnamesByLastname(String lastname);
 }
