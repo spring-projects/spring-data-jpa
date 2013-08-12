@@ -34,7 +34,7 @@ import org.junit.Test;
  * @author Dirk Mahler
  * @author Oliver Gierke
  */
-public class CdiExtensionintegrationTests {
+public class CdiExtensionIntegrationTests {
 
 	static CdiTestContainer container;
 
