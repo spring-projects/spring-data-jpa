@@ -22,6 +22,12 @@
 			</bean>
 		</property>
 	</bean>
+
+	<!-- Configure a CRUD-only DAO for User class -->
+	<bean id="crudOnlyUserDao" class="org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean">
+		<property name="repositoryInterface"
+				  value="org.springframework.data.jpa.repository.sample.CrudOnlyUserRepository" />
+	</bean>
 	
 	<bean id="roleDao" class="org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean">
 		<property name="repositoryInterface" value="org.springframework.data.jpa.repository.sample.RoleRepository" />
