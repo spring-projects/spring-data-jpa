@@ -220,6 +220,17 @@ public class QueryUtilsUnitTests {
 				"select count(distinct m.genre) from Media m where m.user = ?1");
 	}
 
+	/**
+	 * @see DATAJPA-375
+	 */
+	@Test
+	public void findsExistingOrderByIndependentOfCase() {
+
+		Sort sort = new Sort("lastname");
+		String query = applySorting("select p from Person p ORDER BY p.firstname", sort, "p");
+		assertThat(query, endsWith("ORDER BY p.firstname, p.lastname asc"));
+	}
+
 	private void assertCountQuery(String originalQuery, String countQuery) {
 		assertThat(createCountQueryFor(originalQuery), is(countQuery));
 	}

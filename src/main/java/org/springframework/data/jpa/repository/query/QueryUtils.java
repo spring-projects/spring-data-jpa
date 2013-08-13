@@ -77,6 +77,7 @@ public abstract class QueryUtils {
 	private static final Pattern LEFT_JOIN_PATTERN = Pattern.compile(LEFT_JOIN, Pattern.CASE_INSENSITIVE);
 
 	private static final String EQUALS_CONDITION_STRING = "%s.%s = :%s";
+	private static final Pattern ORDER_BY = Pattern.compile(".*order\\s+by\\s+.*", CASE_INSENSITIVE);
 
 	private static final Set<PersistentAttributeType> ASSOCIATION_TYPES;
 
@@ -184,7 +185,7 @@ public abstract class QueryUtils {
 
 		StringBuilder builder = new StringBuilder(query);
 
-		if (!query.contains("order by")) {
+		if (!ORDER_BY.matcher(query).matches()) {
 			builder.append(" order by ");
 		} else {
 			builder.append(", ");
