@@ -38,6 +38,7 @@ import org.junit.runner.RunWith;
 import org.springframework.data.jpa.domain.AbstractPersistable;
 import org.springframework.data.jpa.domain.sample.SampleWithIdClass;
 import org.springframework.data.jpa.domain.sample.SampleWithIdClassPK;
+import org.springframework.data.jpa.domain.sample.SampleWithPrimitiveId;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.domain.sample.VersionedUser;
 import org.springframework.data.repository.core.EntityInformation;
@@ -136,6 +137,22 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 				Sample.class, em.getMetamodel());
 
 		assertThat(information.getIdType(), is((Object) BaseIdClass.class));
+	}
+
+	/**
+	 * @see DATACMNS-357
+	 */
+	@Test
+	public void detectsNewStateForEntityWithPrimitiveId() {
+
+		EntityInformation<SampleWithPrimitiveId, Long> information = new JpaMetamodelEntityInformation<SampleWithPrimitiveId, Long>(
+				SampleWithPrimitiveId.class, em.getMetamodel());
+
+		SampleWithPrimitiveId sample = new SampleWithPrimitiveId();
+		assertThat(information.isNew(sample), is(true));
+
+		sample.setId(5L);
+		assertThat(information.isNew(sample), is(false));
 	}
 
 	protected String getMetadadataPersitenceUnitName() {
