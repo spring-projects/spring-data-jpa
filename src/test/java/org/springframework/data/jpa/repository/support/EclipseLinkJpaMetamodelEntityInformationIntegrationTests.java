@@ -49,13 +49,6 @@ public class EclipseLinkJpaMetamodelEntityInformationIntegrationTests extends
 	@Ignore
 	public void findsIdClassOnMappedSuperclass() {}
 
-	/**
-	 * Ignored due to https://bugs.eclipse.org/bugs/show_bug.cgi?id=415027
-	 */
-	@Override
-	@Ignore
-	public void detectsNewStateForEntityWithPrimitiveId() {}
-
 	@Override
 	protected String getMetadadataPersitenceUnitName() {
 		return "metadata_el";
