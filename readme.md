@@ -113,7 +113,7 @@ public class UserRepositoryIntegrationTest {
 }
 ```
 
-## Contributing to Spring Data ##
+## Contributing to Spring Data JPA##
 
 Here are some ways for you to get involved in the community:
 
