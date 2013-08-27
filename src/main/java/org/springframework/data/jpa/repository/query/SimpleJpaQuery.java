@@ -17,60 +17,44 @@ package org.springframework.data.jpa.repository.query;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
-import javax.persistence.TypedQuery;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.data.repository.query.ParameterAccessor;
-import org.springframework.data.repository.query.Parameters;
-import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.RepositoryQuery;
 
 /**
  * {@link RepositoryQuery} implementation that inspects a {@link org.springframework.data.repository.query.QueryMethod}
- * for the existanve of an {@link org.springframework.data.jpa.repository.Query} annotation and creates a JPA
+ * for the existence of an {@link org.springframework.data.jpa.repository.Query} annotation and creates a JPA
  * {@link Query} from it.
  * 
  * @author Oliver Gierke
  * @author Thomas Darimont
  */
-final class SimpleJpaQuery extends AbstractJpaQuery {
+final class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
 
-	private static final Logger LOG = LoggerFactory.getLogger(SimpleJpaQuery.class);
-
-	private final StringQuery query;
-	private final StringQuery countQuery;
-
-	private final JpaQueryMethod method;
+	/**
+	 * Creates a new {@link SimpleJpaQuery} encapsulating the query annotated on the given {@link JpaQueryMethod}.
+	 * 
+	 * @param method
+	 * @param em
+	 */
+	SimpleJpaQuery(JpaQueryMethod method, EntityManager em) {
+		this(method, em, method.getAnnotatedQuery());
+	}
 
 	/**
 	 * Creates a new {@link SimpleJpaQuery} that encapsulates a simple query string.
+	 * 
+	 * @param method
+	 * @param em
+	 * @param queryString
 	 */
 	SimpleJpaQuery(JpaQueryMethod method, EntityManager em, String queryString) {
 
-		super(method, em);
+		super(method, em, queryString);
 
-		this.method = method;
-		this.query = new ExpressionBasedStringQuery(queryString, method.getEntityInformation());
+		validateQuery(getQuery().getQueryString(), String.format("Validation failed for query for method %s!", method));
 
-		Parameters<?, ?> parameters = method.getParameters();
-		boolean hasPagingOrSortingParameter = parameters.hasPageableParameter() || parameters.hasSortParameter();
-
-		if (method.isNativeQuery() && hasPagingOrSortingParameter) {
-			throw new IllegalStateException("Cannot use native queries with dynamic sorting and/or pagination!");
-		}
-
-		String preparedQueryString = this.query.getQuery();
-
-		if (!method.isNativeQuery()) {
-			validateQuery(preparedQueryString, em, String.format("Validation failed for query for method %s!", method));
-		}
-
-		this.countQuery = new StringQuery(method.getCountQuery() != null ? method.getCountQuery()
-				: QueryUtils.createCountQueryFor(preparedQueryString));
-
-		if (!method.isNativeQuery() && method.isPageQuery()) {
-			validateQuery(this.countQuery.getQuery(), em,
+		if (method.isPageQuery()) {
+			validateQuery(getCountQuery().getQueryString(),
 					String.format("Count query validation failed for method %s!", method));
 		}
 	}
@@ -81,13 +65,12 @@ final class SimpleJpaQuery extends AbstractJpaQuery {
 	 * @param query
 	 * @param em
 	 */
-	private final void validateQuery(String query, EntityManager em, String errorMessage) {
+	private final void validateQuery(String query, String errorMessage) {
 
 		EntityManager validatingEm = null;
 
 		try {
-
-			validatingEm = em.getEntityManagerFactory().createEntityManager();
+			validatingEm = getEntityManager().getEntityManagerFactory().createEntityManager();
 			validatingEm.createQuery(query);
 
 		} catch (RuntimeException e) {
@@ -102,70 +85,5 @@ final class SimpleJpaQuery extends AbstractJpaQuery {
 				validatingEm.close();
 			}
 		}
-	}
-
-	/**
-	 * Creates a new {@link SimpleJpaQuery} encapsulating the query annotated on the given {@link JpaQueryMethod}.
-	 */
-	SimpleJpaQuery(JpaQueryMethod method, EntityManager em) {
-		this(method, em, method.getAnnotatedQuery());
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.query.AbstractJpaQuery#createBinder(java.lang.Object[])
-	 */
-	@Override
-	protected ParameterBinder createBinder(Object[] values) {
-		return new StringQueryParameterBinder(getQueryMethod().getParameters(), values, query);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.query.AbstractJpaQuery#createQuery(java.lang.Object[])
-	 */
-	@Override
-	public Query doCreateQuery(Object[] values) {
-
-		ParameterAccessor accessor = new ParametersParameterAccessor(method.getParameters(), values);
-		String sortedQueryString = QueryUtils.applySorting(query.getQuery(), accessor.getSort(), query.getAlias());
-		EntityManager em = getEntityManager();
-
-		Query query = null;
-
-		if (method.isNativeQuery()) {
-			query = method.isQueryForEntity() ? em.createNativeQuery(sortedQueryString, method.getReturnedObjectType()) : em
-					.createNativeQuery(sortedQueryString);
-		} else {
-			query = em.createQuery(sortedQueryString);
-		}
-
-		return createBinder(values).bindAndPrepare(query);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.query.AbstractJpaQuery#doCreateCountQuery(java.lang.Object[])
-	 */
-	@Override
-	protected TypedQuery<Long> doCreateCountQuery(Object[] values) {
-		return createBinder(values).bind(getEntityManager().createQuery(countQuery.getQuery(), Long.class));
-	}
-
-	/**
-	 * Creates a {@link RepositoryQuery} from the given {@link org.springframework.data.repository.query.QueryMethod} that
-	 * is potentially annotated with {@link org.springframework.data.jpa.repository.Query}.
-	 * 
-	 * @param queryMethod
-	 * @param em
-	 * @return the {@link RepositoryQuery} derived from the annotation or {@code null} if no annotation found.
-	 */
-	public static RepositoryQuery fromQueryAnnotation(JpaQueryMethod queryMethod, EntityManager em) {
-
-		LOG.debug("Looking up query for method {}", queryMethod.getName());
-
-		String query = queryMethod.getAnnotatedQuery();
-
-		return query == null ? null : new SimpleJpaQuery(queryMethod, em, query);
 	}
 }

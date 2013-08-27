@@ -59,10 +59,10 @@ class ExpressionBasedStringQuery extends StringQuery {
 	 * @see org.springframework.data.jpa.repository.query.StringQuery#getQuery()
 	 */
 	@Override
-	public String getQuery() {
+	public String getQueryString() {
 
 		if (parsedQuery == null) {
-			String rawQuery = super.getQuery();
+			String rawQuery = super.getQueryString();
 			this.parsedQuery = renderQueryIfExpressionOrReturnQuery(rawQuery);
 		}
 

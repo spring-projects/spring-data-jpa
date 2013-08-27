@@ -45,14 +45,16 @@ import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.data.jpa.repository.support.DefaultJpaEntityMetadata;
 import org.springframework.data.jpa.repository.support.JpaEntityMetadata;
 import org.springframework.data.repository.core.RepositoryMetadata;
+import org.springframework.data.repository.query.RepositoryQuery;
 
 /**
  * Unit test for {@link SimpleJpaQuery}.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 @RunWith(MockitoJUnitRunner.class)
-public class SimpleJpaQueryUnitTests {
+public class JpaQueryUnitTests {
 
 	static final String USER_QUERY = "select u from User u";
 
@@ -89,7 +91,7 @@ public class SimpleJpaQueryUnitTests {
 		method = mock(JpaQueryMethod.class);
 		when(method.getCountQuery()).thenReturn("foo");
 		when(method.getParameters()).thenReturn(
-				new JpaParameters(SimpleJpaQueryUnitTests.class.getMethod("prefersDeclaredCountQueryOverCreatingOne")));
+				new JpaParameters(JpaQueryUnitTests.class.getMethod("prefersDeclaredCountQueryOverCreatingOne")));
 		when(method.getEntityInformation()).thenReturn((JpaEntityMetadata) new DefaultJpaEntityMetadata<User>(User.class));
 		when(em.createQuery("foo", Long.class)).thenReturn(query);
 
@@ -122,13 +124,16 @@ public class SimpleJpaQueryUnitTests {
 
 		Method method = SampleRepository.class.getMethod("findNativeByLastname", String.class);
 		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, extractor);
-		SimpleJpaQuery jpaQuery = new SimpleJpaQuery(queryMethod, em);
+		// SimpleJpaQuery jpaQuery = new SimpleJpaQuery(queryMethod, em);
+		RepositoryQuery jpaQuery = JpaQueryFactory.INSTANCE.fromQueryAnnotation(queryMethod, em);
+
+		assertThat(jpaQuery instanceof NativeJpaQuery, is(true));
 
 		Class<?> type = Mockito.any();
 		when(em.createNativeQuery(Mockito.anyString(), type)).thenReturn(query);
 		when(metadata.getReturnedDomainClass(method)).thenReturn((Class) User.class);
 
-		jpaQuery.createQuery(new Object[] { "Matthews" });
+		jpaQuery.execute(new Object[] { "Matthews" });
 
 		verify(em).createNativeQuery("SELECT u FROM User u WHERE u.lastname = ?1", User.class);
 	}
@@ -137,14 +142,14 @@ public class SimpleJpaQueryUnitTests {
 	public void rejectsNativeQueryWithDynamicSort() throws Exception {
 
 		Method method = SampleRepository.class.getMethod("findNativeByLastname", String.class, Sort.class);
-		createSimpleJpaQuery(method);
+		createJpaQuery(method);
 	}
 
 	@Test(expected = IllegalStateException.class)
 	public void rejectsNativeQueryWithPageable() throws Exception {
 
 		Method method = SampleRepository.class.getMethod("findNativeByLastname", String.class, Pageable.class);
-		createSimpleJpaQuery(method);
+		createJpaQuery(method);
 	}
 
 	/**
@@ -158,7 +163,7 @@ public class SimpleJpaQueryUnitTests {
 		Method method = SampleRepository.class.getMethod("findByAnnotatedQuery");
 		when(em.createQuery(contains("count"))).thenThrow(IllegalArgumentException.class);
 
-		createSimpleJpaQuery(method);
+		createJpaQuery(method);
 	}
 
 	/**
@@ -175,13 +180,33 @@ public class SimpleJpaQueryUnitTests {
 		exception.expectMessage("Count");
 		exception.expectMessage(method.getName());
 
-		createSimpleJpaQuery(method);
+		createJpaQuery(method);
 	}
 
-	private void createSimpleJpaQuery(Method method) {
+	/**
+	 * @throws Exception
+	 */
+	@Test
+	public void createsASimpleJpaQueryFromAnnotation() throws Exception {
+
+		RepositoryQuery query = createJpaQuery(SampleRepository.class.getMethod("findByAnnotatedQuery"));
+		assertThat(query instanceof SimpleJpaQuery, is(true));
+	}
+
+	/**
+	 * @throws Exception
+	 */
+	@Test
+	public void createsANativeJpaQueryFromAnnotation() throws Exception {
+
+		RepositoryQuery query = createJpaQuery(SampleRepository.class.getMethod("findNativeByLastname", String.class));
+		assertThat(query instanceof NativeJpaQuery, is(true));
+	}
+
+	private RepositoryQuery createJpaQuery(Method method) {
 
 		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, extractor);
-		new SimpleJpaQuery(queryMethod, em);
+		return JpaQueryFactory.INSTANCE.fromQueryAnnotation(queryMethod, em);
 	}
 
 	interface SampleRepository {

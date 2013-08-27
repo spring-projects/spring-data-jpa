@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 the original author or authors.
+ * Copyright 2008-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,23 +16,84 @@
 package org.springframework.data.jpa.repository.query;
 
 import javax.persistence.EntityManager;
+import javax.persistence.Query;
+import javax.persistence.TypedQuery;
+
+import org.springframework.data.repository.query.ParameterAccessor;
+import org.springframework.data.repository.query.ParametersParameterAccessor;
 
 /**
  * Base class for {@link String} based JPA queries.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 public abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 
-	/**
-	 * Creates a new {@link AbstractStringBasedJpaQuery}.
-	 * 
-	 * @param method
-	 * @param em
-	 */
-	public AbstractStringBasedJpaQuery(JpaQueryMethod method, EntityManager em) {
+	private final StringQuery query;
+	private final StringQuery countQuery;
 
+	AbstractStringBasedJpaQuery(JpaQueryMethod method, EntityManager em, String queryString) {
 		super(method, em);
+		this.query = new ExpressionBasedStringQuery(queryString, method.getEntityInformation());
+		this.countQuery = new StringQuery(method.getCountQuery() != null ? method.getCountQuery()
+				: QueryUtils.createCountQueryFor(this.query.getQueryString()));
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.jpa.repository.query.AbstractJpaQuery#doCreateQuery(java.lang.Object[])
+	 */
+	@Override
+	public Query doCreateQuery(Object[] values) {
+
+		ParameterAccessor accessor = new ParametersParameterAccessor(getQueryMethod().getParameters(), values);
+		String sortedQueryString = QueryUtils.applySorting(query.getQueryString(), accessor.getSort(), query.getAlias());
+
+		Query query = createJpaQuery(sortedQueryString);
+
+		return createBinder(values).bindAndPrepare(query);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.jpa.repository.query.AbstractJpaQuery#createBinder(java.lang.Object[])
+	 */
+	@Override
+	protected ParameterBinder createBinder(Object[] values) {
+		return new StringQueryParameterBinder(getQueryMethod().getParameters(), values, query);
+	}
+
+	/**
+	 * Creates an appropriate JPA query from an {@link EntityManager} according to the current {@link AbstractJpaQuery}
+	 * type.
+	 * 
+	 * @param queryString
+	 * @return
+	 */
+	Query createJpaQuery(String queryString) {
+		return getEntityManager().createQuery(queryString);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.jpa.repository.query.AbstractJpaQuery#doCreateCountQuery(java.lang.Object[])
+	 */
+	@Override
+	protected TypedQuery<Long> doCreateCountQuery(Object[] values) {
+		return createBinder(values).bind(getEntityManager().createQuery(countQuery.getQueryString(), Long.class));
+	}
+
+	/**
+	 * @return the query
+	 */
+	StringQuery getQuery() {
+		return query;
+	}
+
+	/**
+	 * @return the countQuery
+	 */
+	StringQuery getCountQuery() {
+		return countQuery;
+	}
 }
