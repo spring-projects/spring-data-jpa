@@ -32,6 +32,7 @@ import org.springframework.util.StringUtils;
  * Encapsulation of a String JPA query.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 class StringQuery {
 
@@ -88,11 +89,11 @@ class StringQuery {
 	}
 
 	/**
-	 * Returns the JPQL query.
+	 * Returns the query string.
 	 * 
 	 * @return
 	 */
-	public String getQuery() {
+	public String getQueryString() {
 		return query;
 	}
 

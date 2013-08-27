@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2012 the original author or authors.
+ * Copyright 2008-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import org.springframework.data.repository.query.RepositoryQuery;
  * Query lookup strategy to execute finders.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 public final class JpaQueryLookupStrategy {
 
@@ -111,7 +112,7 @@ public final class JpaQueryLookupStrategy {
 		@Override
 		protected RepositoryQuery resolveQuery(JpaQueryMethod method, EntityManager em, NamedQueries namedQueries) {
 
-			RepositoryQuery query = SimpleJpaQuery.fromQueryAnnotation(method, em);
+			RepositoryQuery query = JpaQueryFactory.INSTANCE.fromQueryAnnotation(method, em);
 
 			if (null != query) {
 				return query;
@@ -119,7 +120,7 @@ public final class JpaQueryLookupStrategy {
 
 			String name = method.getNamedQueryName();
 			if (namedQueries.hasQuery(name)) {
-				return new SimpleJpaQuery(method, em, namedQueries.getQuery(name));
+				return JpaQueryFactory.INSTANCE.fromMethodWithQueryString(method, em, namedQueries.getQuery(name));
 			}
 
 			query = NamedQuery.lookupFrom(method, em);
@@ -131,7 +132,6 @@ public final class JpaQueryLookupStrategy {
 			throw new IllegalStateException(String.format(
 					"Did neither find a NamedQuery nor an annotated query for method %s!", method));
 		}
-
 	}
 
 	/**
@@ -178,14 +178,14 @@ public final class JpaQueryLookupStrategy {
 		}
 
 		switch (key) {
-		case CREATE:
-			return new CreateQueryLookupStrategy(em, extractor);
-		case USE_DECLARED_QUERY:
-			return new DeclaredQueryLookupStrategy(em, extractor);
-		case CREATE_IF_NOT_FOUND:
-			return new CreateIfNotFoundQueryLookupStrategy(em, extractor);
-		default:
-			throw new IllegalArgumentException(String.format("Unsupported query lookup strategy %s!", key));
+			case CREATE:
+				return new CreateQueryLookupStrategy(em, extractor);
+			case USE_DECLARED_QUERY:
+				return new DeclaredQueryLookupStrategy(em, extractor);
+			case CREATE_IF_NOT_FOUND:
+				return new CreateIfNotFoundQueryLookupStrategy(em, extractor);
+			default:
+				throw new IllegalArgumentException(String.format("Unsupported query lookup strategy %s!", key));
 		}
 	}
 }
