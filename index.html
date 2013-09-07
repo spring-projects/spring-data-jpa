@@ -1,0 +1,90 @@
+---
+title: Spring Data JPA
+
+badges:
+  twitter: SpringData
+
+  custom:
+    - name: Source (GitHub)
+      url:  https://github.com/spring-projects/spring-data-jpa
+      icon: github
+
+    - name: Issues (JIRA)
+      url:  http://jira.springsource.org/browse/DATAJPA
+      icon: tracking
+
+    - name: CI (Bamboo)
+      url:  https://build.springsource.org/browse/SPRINGDATAJPA
+      icon: ci
+
+    - name: Forum
+      url:  http://forum.spring.io/forum/spring-projects/data
+      icon: forum
+
+    - name: StackOverflow
+      url:  http://stackoverflow.com/questions/tagged/spring-data-jpa
+      icon: stackoverflow
+
+    - name: Metrics (SonarQube)
+      url:  https://sonar.springsource.org/dashboard/index/org.springframework.data:spring-data-jpa
+      icon: metrics
+---
+<!DOCTYPE HTML>
+<html lang="en-US">
+
+{% capture parent_link %}
+[Spring Data]({{ site.projects_site_url }}/spring-data)
+{% endcapture %}
+
+{% capture billboard_description %}
+
+Spring Data JPA, part of the larger <a href="/spring-data">Spring
+Data</a> family, makes it easy to easily implement JPA based
+repositories. This module deals with enhanced support for JPA based
+data access layers. It makes it easier to build Spring-powered
+applications that use data access technologies.
+
+{% endcapture %}
+
+{% capture main_content %}
+
+Implementing a data access layer of an application has been cumbersome for quite a while. Too much boilerplate code has to be written to execute simple queries as well as perform pagination, and auditing. Spring Data JPA aims to significantly improve the implementation of data access layers by reducing the effort to the amount that's actually needed. As a developer you write your repository interfaces, including custom finder methods, and Spring will provide the implementation automatically.
+
+## Features
+
+- Sophisticated support to build repositories based on Spring and JPA
+- Support for [Querydsl](http://www.querydsl.com) predicates and thus type-safe JPA queries
+- Transparent auditing of domain class
+- Pagination support, dynamic query execution, ability to integrate custom data access code
+- Validation of `@Query` annotated queries at bootstrap time
+- Support for XML based entity mapping
+- JavaConfig based repository configuration by introducing `@EnableJpaRepositories`.
+
+<span id="quick-start"></span>
+## Quick Start
+
+{% include download_widget.md %}
+
+{% endcapture %}
+
+{% capture related_resources %}
+
+## Related Resources
+
+### Sample Projects
+
+* [Spring Data JPA Examples](https://github.com/SpringSource/spring-data-jpa-examples)
+* [Spring Data Book Examples](https://github.com/SpringSource/spring-data-book/tree/master/jpa)
+
+### Getting Started Guides
+
+* [Accessing Data With JPA]({{site.main_site_url}}/guides/gs/accessing-data-jpa)
+
+### Tutorials
+
+* [Persisting Data With Spring]({{site.main_site_url}}/guides/tutorials/data/)
+
+{% endcapture %}
+
+{% include project_page.html %}
+</html>
