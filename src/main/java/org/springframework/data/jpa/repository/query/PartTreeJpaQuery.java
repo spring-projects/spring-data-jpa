@@ -89,13 +89,13 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 	 */
 	private class QueryPreparer {
 
-		private final CriteriaQuery<?> query;
+		private final CriteriaQuery<?> cachedCriteriaQuery;
 		private final List<ParameterMetadata<?>> expressions;
 
 		public QueryPreparer(boolean recreateQueries) {
 
 			JpaQueryCreator creator = createCreator(null);
-			this.query = recreateQueries ? null : creator.createQuery();
+			this.cachedCriteriaQuery = recreateQueries ? null : creator.createQuery();
 			this.expressions = recreateQueries ? null : creator.getParameterExpressions();
 		}
 
@@ -107,18 +107,38 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 		 */
 		public Query createQuery(Object[] values) {
 
-			CriteriaQuery<?> criteriaQuery = query;
+			CriteriaQuery<?> criteriaQuery = cachedCriteriaQuery;
 			List<ParameterMetadata<?>> expressions = this.expressions;
 			ParametersParameterAccessor accessor = new ParametersParameterAccessor(parameters, values);
 
-			if (query == null || accessor.hasBindableNullValue()) {
+			if (cachedCriteriaQuery == null || accessor.hasBindableNullValue()) {
 				JpaQueryCreator creator = createCreator(accessor);
 				criteriaQuery = creator.createQuery(getDynamicSort(values));
 				expressions = creator.getParameterExpressions();
 			}
 
-			TypedQuery<?> jpaQuery = getEntityManager().createQuery(criteriaQuery);
+			TypedQuery<?> jpaQuery = createQuery(criteriaQuery);
 			return invokeBinding(getBinder(values, expressions), jpaQuery);
+		}
+
+		/**
+		 * Checks whether we are working with a cached {@link CriteriaQuery} and snychronizes the creation of a
+		 * {@link TypedQuery} instance from it. This is due to non-thread-safety in the {@link CriteriaQuery} implementation
+		 * of some persistence providers (i.e. Hibernate in this case).
+		 * 
+		 * @see DATAJPA-396
+		 * @param criteriaQuery must not be {@literal null}.
+		 * @return
+		 */
+		private TypedQuery<?> createQuery(CriteriaQuery<?> criteriaQuery) {
+
+			if (this.cachedCriteriaQuery != null) {
+				synchronized (this.cachedCriteriaQuery) {
+					return getEntityManager().createQuery(criteriaQuery);
+				}
+			}
+
+			return getEntityManager().createQuery(criteriaQuery);
 		}
 
 		protected JpaQueryCreator createCreator(ParametersParameterAccessor accessor) {
