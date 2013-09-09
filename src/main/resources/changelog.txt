@@ -1,6 +1,16 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 1.4.0.RELEASE (2013-09-09)
+---------------------------------------------
+* The H2 database needs a quoted name parameter in a @Query annotation (DATAJPA-354)
+* Not specifying the ASC clause results in a double ORDER BY clause (DATAJPA-375)
+* Undeclared dependency on spring aspectj (DATAJPA-367)
+* @Transactional (AspectJ) and @Configurable not weaved for @Entity if this @Entity is managed by a JpaRepository (DATAJPA-298)
+* Spring Data ignores alternative EntityManager Producer in CDI environment (DATAJPA-388)
+* Typo in package-info.java of utility package (DATAJPA-392)
+* Remove Hibernate specific test for DATAJPA-107 in PartTreeJpaQueryIntegrationTests (DATAJPA-381)
+
 Changes in version 1.4.0.RC1 (2012-08-01)
 -----------------------------------------
 * Sort with aggregate properties results in an invalid alias being generated and added to the query (DATAJPA-148)
