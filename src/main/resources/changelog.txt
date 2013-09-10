@@ -1,6 +1,10 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 1.4.1.RELEASE (2013-09-09)
+---------------------------------------------
+* Update to Spring Data Commons 1.6.1 (DATAJPA-400)
+
 Changes in version 1.4.0.RELEASE (2013-09-09)
 ---------------------------------------------
 * The H2 database needs a quoted name parameter in a @Query annotation (DATAJPA-354)
