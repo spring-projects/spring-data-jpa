@@ -87,7 +87,7 @@ public @interface EnableJpaRepositories {
 
 	/**
 	 * Configures the location of where to find the Spring Data named queries properties file. Will default to
-	 * {@code META-INFO/jpa-named-queries.properties}.
+	 * {@code META-INF/jpa-named-queries.properties}.
 	 * 
 	 * @return
 	 */
