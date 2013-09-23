@@ -18,7 +18,8 @@ This README as well as the [reference documentation](http://static.springsource.
 
 The main project [website](http://www.springsource.org/spring-data) contains links to basic project information such as source code, JavaDocs, Issue tracking, etc.
 
-For more detailed questions, use the [forum](http://forum.springsource.org/forumdisplay.php?f=27). If you are new to Spring as well as to Spring Data, look for information about [Spring projects](http://www.springsource.org/projects). 
+For more detailed questions, use the [forum](http://forum.springsource.org/forumdisplay.php?f=27). If you are new to Spring as well as to Spring Data, look for information about [Spring projects](http://www.springsource.org/projects). You should also have a look at our new Spring Guide
+[Accessing Data with JPA](https://spring.io/guides/gs/accessing-data-jpa/) that leverages the simplified configuration provided by [Spring Boot](http://projects.spring.io/spring-boot/).
 
 
 ## Quick Start ##
@@ -29,40 +30,45 @@ Download the jar though Maven:
 <dependency>
   <groupId>org.springframework.data</groupId>
   <artifactId>spring-data-jpa</artifactId>
-  <version>1.4.0.RELEASE</version>
+  <version>1.4.1.RELEASE</version>
 </dependency>
 ```
 
 Also include your JPA persistence provider of choice (Hibernate, EclipseLink, OpenJpa). Setup basic Spring JPA configuration as well as Spring Data JPA repository support.
 
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns="http://www.springframework.org/schema/beans"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xmlns:jdbc="http://www.springframework.org/schema/jdbc"
-       xmlns:jpa="http://www.springframework.org/schema/data/jpa"
-       xsi:schemaLocation="http://www.springframework.org/schema/jdbc 
-                           http://www.springframework.org/schema/jdbc/spring-jdbc.xsd
-                           http://www.springframework.org/schema/beans
-                           http://www.springframework.org/schema/beans/spring-beans.xsd
-                           http://www.springframework.org/schema/data/jpa
-                           http://www.springframework.org/schema/data/jpa/spring-jpa.xsd">
-	
-  <bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
-    <property name="dataSource" ref="dataSource" />
-    <property name="jpaVendorAdapter">
-      <bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter" />
-    </property>
-  </bean>
+The simple Spring Data JPA configuration with Java-Config looks like this: 
+```java
+@Configuration
+@EnableJpaRepositories("com.acme.repositories")
+class AppConfig {
 
-  <bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
-    <property name="entityManagerFactory" ref="entityManagerFactory" />
-  </bean>
+  @Bean
+  public DataSource dataSource() {
+    return new EmbeddedDatabaseBuilder().setType(EmbeddedDatabaseType.HSQL).build();
+  }
 
-  <jdbc:embedded-database id="dataSource" type="HSQL" />
+  @Bean
+  public JpaTransactionManager transactionManager(EntityManagerFactory emf) {
+    return new JpaTransactionManager(emf);
+  }
 
-  <jpa:repositories base-package="com.acme.repositories" />
-</beans>
+  @Bean
+  public JpaVendorAdapter jpaVendorAdapter() {
+    HibernateJpaVendorAdapter jpaVendorAdapter = new HibernateJpaVendorAdapter();
+    jpaVendorAdapter.setDatabase(Database.H2);
+    jpaVendorAdapter.setGenerateDdl(true);
+    return jpaVendorAdapter;
+  }
+
+  @Bean
+  public LocalContainerEntityManagerFactoryBean entityManagerFactory() {
+    LocalContainerEntityManagerFactoryBean lemfb = new LocalContainerEntityManagerFactoryBean();
+    lemfb.setDataSource(dataSource());
+    lemfb.setJpaVendorAdapter(jpaVendorAdapter());
+    lemfb.setPackagesToScan("com.acme");
+    return lemfb;
+  }
+}
 ```
 
 Create an entity:
@@ -72,12 +78,14 @@ Create an entity:
 public class User {
 
   @Id
-  @GeneratedValue(strategy = GenerationType.AUTO)
+  @GeneratedValue
   private Integer id;
   private String firstname;
   private String lastname;
        
   // Getters and setters
+  // (Firstname, Lastname)-constructor and noargs-constructor
+  // equals / hashcode
 }
 ```
 
@@ -93,7 +101,7 @@ Write a test client
 
 ```java
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration("classpath:your-config-file.xml")
+@ContextConfiguration(classes = AppConfig.class)
 public class UserRepositoryIntegrationTest {
      
   @Autowired UserRepository repository;
@@ -101,10 +109,10 @@ public class UserRepositoryIntegrationTest {
   @Test
   public void sampleTestCase() {
     User dave = new User("Dave", "Matthews");
-    repository.save(user);
+    dave = repository.save(user);
          
     User carter = new User("Carter", "Beauford");
-    repository.save(carter);
+    carter = repository.save(carter);
          
     List<User> result = repository.findByLastname("Matthews");
     assertThat(result.size(), is(1));
