@@ -443,8 +443,11 @@ public abstract class QueryUtils {
 		}
 
 		if (property.isCollection() || isEntityPath(propertyPathModel)) {
-			Join<Object, Object> join = from.join(property.getSegment(), JoinType.LEFT);
-			return (Expression<T>) (property.hasNext() ? toExpressionRecursively((From<?, ?>) join, property.next()) : join);
+			Join<?, ?> join = getExistingJoin(from, property.getSegment());
+			if (join == null) {
+				join = from.join(property.getSegment(), JoinType.LEFT);
+			}
+			return (Expression<T>) (property.hasNext() ? toExpressionRecursively(join, property.next()) : join);
 		} else {
 			Path<Object> path = from.get(property.getSegment());
 			return (Expression<T>) (property.hasNext() ? toExpressionRecursively(path, property.next()) : path);
@@ -481,5 +484,22 @@ public abstract class QueryUtils {
 
 		Path<Object> result = path.get(property.getSegment());
 		return property.hasNext() ? toExpressionRecursively(result, property.next()) : result;
+	}
+
+	/**
+	 * Returns an existing join based on the provided attribute or null if no joins exists.
+	 *
+	 * @param from the {@link From} to get the current joins from
+	 * @param attribute the {@link Attribute} to look for in the current joins
+	 * @return existing join or null
+	 */
+	private static Join<?, ?> getExistingJoin(final From<?, ?> from, final String attribute) {
+		Set<? extends Join<?, ?>> joins = from.getJoins();
+		for (Join<?, ?> join : joins) {
+			if (join.getAttribute().getName().equals(attribute)) {
+				return join;
+			}
+		}
+		return null;
 	}
 }
