@@ -21,6 +21,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import org.springframework.data.annotation.QueryAnnotation;
+
 /**
  * Annotation to declare finder queries directly on repository methods.
  * 
@@ -28,6 +30,7 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
+@QueryAnnotation
 @Documented
 public @interface Query {
 
