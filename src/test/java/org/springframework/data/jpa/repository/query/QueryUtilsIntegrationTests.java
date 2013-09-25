@@ -26,6 +26,7 @@ import javax.persistence.criteria.Root;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.data.jpa.domain.sample.Order;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.test.context.ContextConfiguration;
@@ -59,5 +60,37 @@ public class QueryUtilsIntegrationTests {
 		QueryUtils.toExpressionRecursively(from, managerFirstname);
 
 		assertThat(from.getJoins(), hasSize(1));
+	}
+
+	/**
+	 * @see DATAJPA-401
+	 */
+	@Test
+	public void createsJoinForOptionalAssociation() {
+
+		CriteriaBuilder builder = em.getCriteriaBuilder();
+		CriteriaQuery<User> query = builder.createQuery(User.class);
+		Root<User> root = query.from(User.class);
+
+		QueryUtils.toExpressionRecursively(root, PropertyPath.from("manager", User.class));
+
+		assertThat(root.getJoins(), hasSize(1));
+	}
+
+	/**
+	 * @see DATAJPA-401
+	 */
+	@Test
+	public void doesNotCreateAJoinForNonOptionalAssociation() {
+
+		CriteriaBuilder builder = em.getCriteriaBuilder();
+		CriteriaQuery<Order> query = builder.createQuery(Order.class);
+		Root<Order> root = query.from(Order.class);
+
+		QueryUtils.toExpressionRecursively(root, PropertyPath.from("customer", Order.class));
+	}
+
+	protected void assertNoJoinRequestedForOptionalAssociation(Root<Order> root) {
+		assertThat(root.getJoins(), is(empty()));
 	}
 }

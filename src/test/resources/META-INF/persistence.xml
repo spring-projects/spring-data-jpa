@@ -24,6 +24,8 @@
 		<class>org.springframework.data.jpa.domain.sample.EmbeddedIdExampleEmployeePK</class>
 		<class>org.springframework.data.jpa.domain.sample.EmbeddedIdExampleEmployee</class>
 		<class>org.springframework.data.jpa.domain.sample.EmbeddedIdExampleDepartment</class>
+		<class>org.springframework.data.jpa.domain.sample.Customer</class>
+		<class>org.springframework.data.jpa.domain.sample.Order</class>
 		<exclude-unlisted-classes>true</exclude-unlisted-classes>
 	</persistence-unit>
 	<persistence-unit name="querydsl">
