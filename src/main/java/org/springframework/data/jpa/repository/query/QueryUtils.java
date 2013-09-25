@@ -18,17 +18,24 @@ package org.springframework.data.jpa.repository.query;
 import static java.util.regex.Pattern.*;
 import static javax.persistence.metamodel.Attribute.PersistentAttributeType.*;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.Member;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.persistence.EntityManager;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 import javax.persistence.Parameter;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
@@ -42,9 +49,9 @@ import javax.persistence.criteria.Root;
 import javax.persistence.metamodel.Attribute;
 import javax.persistence.metamodel.Attribute.PersistentAttributeType;
 import javax.persistence.metamodel.Bindable;
-import javax.persistence.metamodel.Bindable.BindableType;
 import javax.persistence.metamodel.ManagedType;
 
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.mapping.PropertyPath;
@@ -81,7 +88,7 @@ public abstract class QueryUtils {
 	private static final String EQUALS_CONDITION_STRING = "%s.%s = :%s";
 	private static final Pattern ORDER_BY = Pattern.compile(".*order\\s+by\\s+.*", CASE_INSENSITIVE);
 
-	private static final Set<PersistentAttributeType> ASSOCIATION_TYPES;
+	private static final Map<PersistentAttributeType, Class<? extends Annotation>> ASSOCIATION_TYPES;
 
 	static {
 
@@ -104,13 +111,13 @@ public abstract class QueryUtils {
 
 		COUNT_MATCH = compile(builder.toString(), CASE_INSENSITIVE);
 
-		Set<PersistentAttributeType> persistentAttributeTypes = new HashSet<PersistentAttributeType>();
-		persistentAttributeTypes.add(ONE_TO_ONE);
-		persistentAttributeTypes.add(ONE_TO_MANY);
-		persistentAttributeTypes.add(MANY_TO_ONE);
-		persistentAttributeTypes.add(MANY_TO_MANY);
+		Map<PersistentAttributeType, Class<? extends Annotation>> persistentAttributeTypes = new HashMap<PersistentAttributeType, Class<? extends Annotation>>();
+		persistentAttributeTypes.put(ONE_TO_ONE, OneToOne.class);
+		persistentAttributeTypes.put(ONE_TO_MANY, null);
+		persistentAttributeTypes.put(MANY_TO_ONE, ManyToOne.class);
+		persistentAttributeTypes.put(MANY_TO_MANY, null);
 
-		ASSOCIATION_TYPES = Collections.unmodifiableSet(persistentAttributeTypes);
+		ASSOCIATION_TYPES = Collections.unmodifiableMap(persistentAttributeTypes);
 	}
 
 	/**
@@ -442,7 +449,7 @@ public abstract class QueryUtils {
 			propertyPathModel = from.get(property.getSegment()).getModel();
 		}
 
-		if (property.isCollection() || isEntityPath(propertyPathModel)) {
+		if (property.isCollection() || requiresJoin(propertyPathModel)) {
 			Join<?, ?> join = getOrCreateJoin(from, property.getSegment());
 			return (Expression<T>) (property.hasNext() ? toExpressionRecursively(join, property.next()) : join);
 		} else {
@@ -452,29 +459,38 @@ public abstract class QueryUtils {
 	}
 
 	/**
-	 * Returns whether the given {@code propertyPathModel} can be considered referring an entity.
+	 * Returns whether the given {@code propertyPathModel} requires the creation of a join. This is the case if we find a
+	 * non-optional association.
 	 * 
 	 * @param propertyPathModel must not be {@literal null}.
 	 * @return
 	 */
-	private static boolean isEntityPath(Bindable<?> propertyPathModel) {
+	private static boolean requiresJoin(Bindable<?> propertyPathModel) {
 
-		if (BindableType.ENTITY_TYPE.equals(propertyPathModel.getBindableType())) {
+		if (!(propertyPathModel instanceof Attribute)) {
+			return false;
+		}
+
+		Attribute<?, ?> attribute = (Attribute<?, ?>) propertyPathModel;
+
+		if (!ASSOCIATION_TYPES.containsKey(attribute.getPersistentAttributeType())) {
+			return false;
+		}
+
+		Class<? extends Annotation> associationAnnotation = ASSOCIATION_TYPES.get(attribute.getPersistentAttributeType());
+
+		if (associationAnnotation == null) {
+			return false;
+		}
+
+		Member member = attribute.getJavaMember();
+
+		if (!(member instanceof AnnotatedElement)) {
 			return true;
 		}
 
-		if (propertyPathModel instanceof Attribute) {
-
-			Attribute<?, ?> attribute = (Attribute<?, ?>) propertyPathModel;
-
-			if (attribute.isAssociation()) {
-				return true;
-			}
-
-			return ASSOCIATION_TYPES.contains(attribute.getPersistentAttributeType());
-		}
-
-		return false;
+		Annotation annotation = AnnotationUtils.getAnnotation((AnnotatedElement) member, associationAnnotation);
+		return annotation == null ? true : (Boolean) AnnotationUtils.getValue(annotation, "optional");
 	}
 
 	static Expression<Object> toExpressionRecursively(Path<Object> path, PropertyPath property) {
