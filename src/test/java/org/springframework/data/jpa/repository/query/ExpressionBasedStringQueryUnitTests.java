@@ -46,6 +46,6 @@ public class ExpressionBasedStringQueryUnitTests {
 
 		String source = "select from #{#entityName} u where u.firstname like :firstname";
 		StringQuery query = new ExpressionBasedStringQuery(source, metadata);
-		assertThat(query.getQuery(), is("select from User u where u.firstname like :firstname"));
+		assertThat(query.getQueryString(), is("select from User u where u.firstname like :firstname"));
 	}
 }

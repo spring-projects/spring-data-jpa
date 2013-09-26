@@ -41,7 +41,7 @@ public class StringQueryUnitTests {
 		StringQuery query = new StringQuery(source);
 
 		assertThat(query.hasLikeBindings(), is(true));
-		assertThat(query.getQuery(), is(source));
+		assertThat(query.getQueryString(), is(source));
 
 		List<LikeBinding> bindings = query.getLikeBindings();
 		assertThat(bindings, hasSize(1));
@@ -57,7 +57,7 @@ public class StringQueryUnitTests {
 		StringQuery query = new StringQuery("select u from User u where u.firstname like %?1% or u.lastname like %?2");
 
 		assertThat(query.hasLikeBindings(), is(true));
-		assertThat(query.getQuery(), is("select u from User u where u.firstname like ?1 or u.lastname like ?2"));
+		assertThat(query.getQueryString(), is("select u from User u where u.firstname like ?1 or u.lastname like ?2"));
 
 		List<LikeBinding> bindings = query.getLikeBindings();
 		assertThat(bindings, hasSize(2));
@@ -79,7 +79,7 @@ public class StringQueryUnitTests {
 		StringQuery query = new StringQuery("select u from User u where u.firstname like %:firstname");
 
 		assertThat(query.hasLikeBindings(), is(true));
-		assertThat(query.getQuery(), is("select u from User u where u.firstname like :firstname"));
+		assertThat(query.getQueryString(), is("select u from User u where u.firstname like :firstname"));
 
 		List<LikeBinding> bindings = query.getLikeBindings();
 		assertThat(bindings, hasSize(1));
