@@ -26,57 +26,15 @@ import org.springframework.data.repository.PagingAndSortingRepository;
  * JPA specific extension of {@link org.springframework.data.repository.Repository}.
  * 
  * @author Oliver Gierke
+ * @author Nick Williams
  */
 @NoRepositoryBean
-public interface JpaRepository<T, ID extends Serializable> extends PagingAndSortingRepository<T, ID> {
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.CrudRepository#findAll()
-	 */
-	List<T> findAll();
+public interface JpaRepository<T, ID extends Serializable>
+        extends CrudJpaRepository<T, ID>, PagingAndSortingRepository<T, ID> {
 
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.PagingAndSortingRepository#findAll(org.springframework.data.domain.Sort)
 	 */
 	List<T> findAll(Sort sort);
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.CrudRepository#findAll(java.lang.Iterable)
-	 */
-	List<T> findAll(Iterable<ID> ids);
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.CrudRepository#save(java.lang.Iterable)
-	 */
-	<S extends T> List<S> save(Iterable<S> entities);
-
-	/**
-	 * Flushes all pending changes to the database.
-	 */
-	void flush();
-
-	/**
-	 * Saves an entity and flushes changes instantly.
-	 * 
-	 * @param entity
-	 * @return the saved entity
-	 */
-	T saveAndFlush(T entity);
-
-	/**
-	 * Deletes the given entities in a batch which means it will create a single {@link Query}. Assume that we will clear
-	 * the {@link javax.persistence.EntityManager} after the call.
-	 * 
-	 * @param entities
-	 */
-	void deleteInBatch(Iterable<T> entities);
-
-	/**
-	 * Deletes all entites in a batch call.
-	 */
-	void deleteAllInBatch();
 }

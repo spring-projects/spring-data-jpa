@@ -55,6 +55,7 @@ import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.domain.sample.User;
+import org.springframework.data.jpa.repository.sample.CrudOnlyUserRepository;
 import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -68,6 +69,7 @@ import org.springframework.transaction.annotation.Transactional;
  * 
  * @author Oliver Gierke
  * @author Kevin Raymond
+ * @author Nick Williams
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("classpath:application-context.xml")
@@ -78,6 +80,7 @@ public class UserRepositoryTests {
 
 	// CUT
 	@Autowired UserRepository repository;
+    @Autowired CrudOnlyUserRepository crudOnlyRepository;
 
 	// Test fixture
 	User firstUser, secondUser, thirdUser, fourthUser;
@@ -115,6 +118,9 @@ public class UserRepositoryTests {
 
 		User foundPerson = repository.findOne(id);
 		assertThat(firstUser.getFirstname(), is(foundPerson.getFirstname()));
+
+        User foundPerson2 = crudOnlyRepository.findOne(id);
+        assertThat(firstUser.getFirstname(), is(foundPerson2.getFirstname()));
 	}
 
 	@Test
