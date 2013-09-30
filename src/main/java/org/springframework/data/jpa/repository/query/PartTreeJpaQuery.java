@@ -130,7 +130,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 			 *  
 			 *  @see https://jira.springsource.org/browse/DATAJPA-396
 			 */
-			if (this.cachedQuery == criteriaQuery) {
+			if (this.cachedQuery != null) {
 				synchronized (this.cachedQuery) {
 					return getEntityManager().createQuery(criteriaQuery);
 				}
