@@ -89,13 +89,13 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 	 */
 	private class QueryPreparer {
 
-		private final CriteriaQuery<?> query;
+		private final CriteriaQuery<?> cachedQuery;
 		private final List<ParameterMetadata<?>> expressions;
 
 		public QueryPreparer(boolean recreateQueries) {
 
 			JpaQueryCreator creator = createCreator(null);
-			this.query = recreateQueries ? null : creator.createQuery();
+			this.cachedQuery = recreateQueries ? null : creator.createQuery();
 			this.expressions = recreateQueries ? null : creator.getParameterExpressions();
 		}
 
@@ -107,18 +107,36 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 		 */
 		public Query createQuery(Object[] values) {
 
-			CriteriaQuery<?> criteriaQuery = query;
+			CriteriaQuery<?> criteriaQuery = cachedQuery;
 			List<ParameterMetadata<?>> expressions = this.expressions;
 			ParametersParameterAccessor accessor = new ParametersParameterAccessor(parameters, values);
 
-			if (query == null || accessor.hasBindableNullValue()) {
+			if (cachedQuery == null || accessor.hasBindableNullValue()) {
 				JpaQueryCreator creator = createCreator(accessor);
 				criteriaQuery = creator.createQuery(getDynamicSort(values));
 				expressions = creator.getParameterExpressions();
 			}
 
-			TypedQuery<?> jpaQuery = getEntityManager().createQuery(criteriaQuery);
+			TypedQuery<?> jpaQuery = createQuery(criteriaQuery);
 			return invokeBinding(getBinder(values, expressions), jpaQuery);
+		}
+
+		private TypedQuery<?> createQuery(CriteriaQuery<?> criteriaQuery) {
+
+			/*
+			 *  If the given query is cached we have to synchronize here since some JPA providers
+			 *  share internal structures needed for query creation that are not thread-safe which 
+			 *  can lead to incorrectly rendered queries.
+			 *  
+			 *  @see https://jira.springsource.org/browse/DATAJPA-396
+			 */
+			if (this.cachedQuery != null) {
+				synchronized (this.cachedQuery) {
+					return getEntityManager().createQuery(criteriaQuery);
+				}
+			}
+
+			return getEntityManager().createQuery(criteriaQuery);
 		}
 
 		protected JpaQueryCreator createCreator(ParametersParameterAccessor accessor) {
