@@ -801,16 +801,15 @@ int setFixedFirstnameFor(String firstname, String lastname);</programlisting>
       <para>This will trigger the query annotated to the method as updating
       query instead of a selecting one. As the
       <interfacename>EntityManager</interfacename> might contain outdated
-      entities after the execution of the modifying query, we automatically
-      clear it (see JavaDoc of
+      entities after the execution of the modifying query, we do not
+      automatically clear it (see JavaDoc of
       <interfacename>EntityManager</interfacename>.<methodname>clear()</methodname>
-      for details). This will effectively drop all non-flushed changes still
-      pending in the <interfacename>EntityManager</interfacename>. If you
-      don't wish the <interfacename>EntityManager</interfacename> to be
-      cleared automatically you can set
-      <interfacename>@Modifying</interfacename> annotation's
-      <code>clearAutomatically</code> attribute to
-      <literal>false</literal>;</para>
+      for details) since this will effectively drop all non-flushed changes
+      still pending in the <interfacename>EntityManager</interfacename>. If
+      you wish the <interfacename>EntityManager</interfacename> to be cleared
+      automatically you can set <interfacename>@Modifying</interfacename>
+      annotation's <code>clearAutomatically</code> attribute to
+      <literal>true</literal>;</para>
     </section>
 
     <section id="jpa.query-hints">
@@ -1132,7 +1131,8 @@ public interface UserRepository extends JpaRepository&lt;User, Long&gt; {
       <filename>orm.xml</filename> to be used for all entities in your
       persistence contexts:</para>
 
-      <para>Note that the auditing feature requires <code>spring-aspects.jar</code> to be on the classpath.</para>
+      <para>Note that the auditing feature requires
+      <code>spring-aspects.jar</code> to be on the classpath.</para>
 
       <example>
         <title>Auditing configuration orm.xml</title>
