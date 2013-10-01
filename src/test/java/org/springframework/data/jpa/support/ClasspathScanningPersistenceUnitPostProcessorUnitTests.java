@@ -72,6 +72,9 @@ public class ClasspathScanningPersistenceUnitPostProcessorUnitTests {
 		verify(pui).addManagedClassName(SampleEntity.class.getName());
 	}
 
+	/**
+	 * @see DATAJPA-407
+	 */
 	@Test
 	public void findsMappingFile() {
 
@@ -89,6 +92,7 @@ public class ClasspathScanningPersistenceUnitPostProcessorUnitTests {
 
 	/**
 	 * @see DATAJPA-353
+	 * @see DATAJPA-407
 	 */
 	@Test
 	public void shouldFindJpaMappingFilesFromMultipleLocationsOnClasspath() {

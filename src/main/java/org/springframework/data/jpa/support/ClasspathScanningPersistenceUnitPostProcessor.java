@@ -15,7 +15,6 @@
  */
 package org.springframework.data.jpa.support;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashSet;
@@ -122,8 +121,15 @@ public class ClasspathScanningPersistenceUnitPostProcessor implements Persistenc
 			return Collections.emptySet();
 		}
 
-		String basePackagePathComponent = basePackage.replace('.', File.separatorChar);
-		String path = ResourcePatternResolver.CLASSPATH_ALL_URL_PREFIX + basePackagePathComponent + File.separator
+		/*
+		 * Note that we cannot use File.pathSeparator here since resourcePath uses a forward slash path ('/') separator 
+		 * being an URI, while basePackagePathComponent has system dependent separator (on windows it's the backslash separator). 
+		 * 
+		 * @see DATAJPA-407  
+		 */
+		char slash = '/';
+		String basePackagePathComponent = basePackage.replace('.', slash);
+		String path = ResourcePatternResolver.CLASSPATH_ALL_URL_PREFIX + basePackagePathComponent + slash
 				+ mappingFileNamePattern;
 		Set<String> mappingFileUris = new HashSet<String>();
 		Resource[] scannedResources = new Resource[0];
