@@ -255,6 +255,14 @@ public class QueryUtilsUnitTests {
 		assertThat(query, endsWith("ORDER BY p.firstname, p.lastname asc"));
 	}
 
+	/**
+	 * @see DATAJPA-409
+	 */
+	@Test
+	public void createsCountQueryForNestedReferenceCorrectly() {
+		assertCountQuery("select a.b from A a", "select count(a.b) from A a");
+	}
+
 	private void assertCountQuery(String originalQuery, String countQuery) {
 		assertThat(createCountQueryFor(originalQuery), is(countQuery));
 	}
