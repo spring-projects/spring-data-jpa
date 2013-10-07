@@ -1093,6 +1093,18 @@ public class UserRepositoryTests {
 		assertThat(lastname, hasItem("Dave"));
 	}
 
+	/**
+	 * @see DATAJPA-83
+	 */
+	@Test
+	public void looksUpEntityReference() {
+
+		flushTestUsers();
+
+		User result = repository.getOne(firstUser.getId());
+		assertThat(result, is(firstUser));
+	}
+
 	private Page<User> executeSpecWithSort(Sort sort) {
 
 		flushTestUsers();

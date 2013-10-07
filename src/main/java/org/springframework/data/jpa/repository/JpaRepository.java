@@ -18,6 +18,8 @@ package org.springframework.data.jpa.repository;
 import java.io.Serializable;
 import java.util.List;
 
+import javax.persistence.EntityManager;
+
 import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.PagingAndSortingRepository;
@@ -79,4 +81,13 @@ public interface JpaRepository<T, ID extends Serializable> extends PagingAndSort
 	 * Deletes all entites in a batch call.
 	 */
 	void deleteAllInBatch();
+
+	/**
+	 * Returns a reference to the entity with the given identifier.
+	 * 
+	 * @param id must not be {@literal null}.
+	 * @return a reference to the entity with the given identifier.
+	 * @see EntityManager#getReference(Class, Object)
+	 */
+	T getOne(ID id);
 }

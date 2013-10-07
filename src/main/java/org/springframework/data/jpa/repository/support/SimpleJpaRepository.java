@@ -212,6 +212,17 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 		return type == null ? em.find(domainType, id) : em.find(domainType, id, type);
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.jpa.repository.JpaRepository#getOne(java.io.Serializable)
+	 */
+	@Override
+	public T getOne(ID id) {
+
+		Assert.notNull(id, "The given id must not be null!");
+		return em.getReference(getDomainClass(), id);
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.CrudRepository#exists(java.io.Serializable)
