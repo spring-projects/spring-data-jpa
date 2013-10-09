@@ -16,7 +16,6 @@
 package org.springframework.data.jpa.repository.support;
 
 import java.io.Serializable;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -32,11 +31,9 @@ import javax.persistence.metamodel.Type.PersistenceType;
 
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
-import org.springframework.beans.NotReadablePropertyException;
-import org.springframework.beans.NotWritablePropertyException;
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.data.support.DirectFieldAccessFallbackBeanWrapper;
 import org.springframework.util.Assert;
-import org.springframework.util.ReflectionUtils;
 
 /**
  * Implementation of {@link org.springframework.data.repository.core.EntityInformation} that uses JPA {@link Metamodel}
@@ -246,53 +243,6 @@ public class JpaMetamodelEntityInformation<T, ID extends Serializable> extends J
 		 */
 		public Iterator<SingularAttribute<? super T, ?>> iterator() {
 			return attributes.iterator();
-		}
-	}
-
-	/**
-	 * Custom extension of {@link BeanWrapperImpl} that falls back to direct field access in case the object or type being
-	 * wrapped does not use accessor methods.
-	 * 
-	 * @author Oliver Gierke
-	 */
-	private static class DirectFieldAccessFallbackBeanWrapper extends BeanWrapperImpl {
-
-		public DirectFieldAccessFallbackBeanWrapper(Object entity) {
-			super(entity);
-		}
-
-		public DirectFieldAccessFallbackBeanWrapper(Class<?> type) {
-			super(type);
-		}
-
-		/* 
-		 * (non-Javadoc)
-		 * @see org.springframework.beans.BeanWrapperImpl#getPropertyValue(java.lang.String)
-		 */
-		@Override
-		public Object getPropertyValue(String propertyName) {
-			try {
-				return super.getPropertyValue(propertyName);
-			} catch (NotReadablePropertyException e) {
-				Field field = ReflectionUtils.findField(getWrappedClass(), propertyName);
-				ReflectionUtils.makeAccessible(field);
-				return ReflectionUtils.getField(field, getWrappedInstance());
-			}
-		}
-
-		/* 
-		 * (non-Javadoc)
-		 * @see org.springframework.beans.BeanWrapperImpl#setPropertyValue(java.lang.String, java.lang.Object)
-		 */
-		@Override
-		public void setPropertyValue(String propertyName, Object value) {
-			try {
-				super.setPropertyValue(propertyName, value);
-			} catch (NotWritablePropertyException e) {
-				Field field = ReflectionUtils.findField(getWrappedClass(), propertyName);
-				ReflectionUtils.makeAccessible(field);
-				ReflectionUtils.setField(field, getWrappedInstance(), value);
-			}
 		}
 	}
 
