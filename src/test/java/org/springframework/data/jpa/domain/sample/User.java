@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 the original author or authors.
+ * Copyright 2008-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,32 +36,26 @@ import javax.persistence.TemporalType;
  * required. The id is typed by the parameterizable superclass.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 @Entity
 @NamedQuery(name = "User.findByEmailAddress", query = "SELECT u FROM User u WHERE u.emailAddress = ?1")
 public class User {
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
-	private Integer id;
+	@Id @GeneratedValue(strategy = GenerationType.AUTO) private Integer id;
 	private String firstname;
 	private String lastname;
 	private int age;
 	private boolean active;
-	@Temporal(TemporalType.TIMESTAMP)
-	private Date createdAt;
+	@Temporal(TemporalType.TIMESTAMP) private Date createdAt;
 
-	@Column(nullable = false, unique = true)
-	private String emailAddress;
+	@Column(nullable = false, unique = true) private String emailAddress;
 
-	@ManyToMany(cascade = { CascadeType.PERSIST, CascadeType.MERGE })
-	private Set<User> colleagues;
+	@ManyToMany(cascade = { CascadeType.PERSIST, CascadeType.MERGE }) private Set<User> colleagues;
 
-	@ManyToMany
-	private Set<Role> roles;
+	@ManyToMany private Set<Role> roles;
 
-	@ManyToOne
-	private User manager;
+	@ManyToOne private User manager;
 
 	/**
 	 * Creates a new empty instance of {@code User}.
