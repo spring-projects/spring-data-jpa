@@ -27,6 +27,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 
 /**
  * {@link ParameterBinder} is used to bind method parameters to a {@link Query}. This is usually done whenever an
@@ -141,23 +142,21 @@ public class ParameterBinder {
 	}
 
 	/**
-	 * In order to avoid errors like: IllegalArgumentException: Encountered array-valued parameter binding, but was
-	 * expecting [java.lang.Integer].
+	 * Returns the given value as collection if it is an array or as is if not.
 	 * 
-	 * @see DATAJPA-415
-	 * @throws Exception
+	 * @return
 	 */
 	private Object convertArrayToCollectionIfNecessary(Object value) {
 
-		Object result = value;
+		if (!ObjectUtils.isArray(value)) {
+			return value;
+		}
 
-		if (result != null && result.getClass().isArray()) {
-			int len = Array.getLength(value);
-			Collection<Object> list = new ArrayList<Object>(len);
-			for (int i = 0; i < len; i++) {
-				list.add(Array.get(value, i));
-			}
-			result = list;
+		int length = Array.getLength(value);
+		Collection<Object> result = new ArrayList<Object>(length);
+
+		for (int i = 0; i < length; i++) {
+			result.add(Array.get(value, i));
 		}
 
 		return result;

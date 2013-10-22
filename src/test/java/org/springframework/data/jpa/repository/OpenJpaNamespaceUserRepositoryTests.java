@@ -44,8 +44,7 @@ import org.springframework.test.context.ContextConfiguration;
 @ContextConfiguration("classpath:openjpa.xml")
 public class OpenJpaNamespaceUserRepositoryTests extends NamespaceUserRepositoryTests {
 
-	@PersistenceContext
-	EntityManager em;
+	@PersistenceContext EntityManager em;
 
 	/**
 	 * Ignored until https://issues.apache.org/jira/browse/OPENJPA-2018 gets fixed.
@@ -60,8 +59,7 @@ public class OpenJpaNamespaceUserRepositoryTests extends NamespaceUserRepository
 	 * Ignored until https://issues.apache.org/jira/browse/OPENJPA-2018 gets fixed.
 	 */
 	@Override
-	public void handlesIterableOfIdsCorrectly() {
-	}
+	public void handlesIterableOfIdsCorrectly() {}
 
 	@Test
 	public void checkQueryValidationWithOpenJpa() {
@@ -104,5 +102,13 @@ public class OpenJpaNamespaceUserRepositoryTests extends NamespaceUserRepository
 
 		List<User> resultList = query.getResultList();
 		assertThat(resultList.size(), is(2));
+	}
+
+	/**
+	 * Ignored until https://issues.apache.org/jira/browse/OPENJPA-2018 gets fixed.
+	 */
+	@Override
+	public void invokesQueryWithVarargsParametersCorrectly() {
+
 	}
 }

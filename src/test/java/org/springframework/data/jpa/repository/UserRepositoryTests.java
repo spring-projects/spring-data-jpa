@@ -1110,6 +1110,20 @@ public class UserRepositoryTests {
 	 * @see DATAJPA-415
 	 */
 	@Test
+	public void invokesQueryWithVarargsParametersCorrectly() {
+
+		flushTestUsers();
+
+		Collection<User> result = repository.findByIdIn(firstUser.getId(), secondUser.getId());
+
+		assertThat(result, hasSize(2));
+		assertThat(result, hasItems(firstUser, secondUser));
+	}
+
+	/**
+	 * @see DATAJPA-415
+	 */
+	@Test
 	public void shouldSupportModifyingQueryWithVarArgs() {
 
 		flushTestUsers();
@@ -1119,7 +1133,7 @@ public class UserRepositoryTests {
 
 		long expectedCount = repository.count();
 		assertThat(repository.findByActiveFalse().size(), is((int) expectedCount));
-		assertThat(repository.findByActiveTrue().size(), is((int) 0));
+		assertThat(repository.findByActiveTrue().size(), is(0));
 	}
 
 	private Page<User> executeSpecWithSort(Sort sort) {

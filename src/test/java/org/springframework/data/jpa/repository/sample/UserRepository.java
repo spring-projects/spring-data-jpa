@@ -275,6 +275,11 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	/**
 	 * @see DATAJPA-415
 	 */
+	Collection<User> findByIdIn(@Param("ids") Integer... ids);
+
+	/**
+	 * @see DATAJPA-415
+	 */
 	@Modifying
 	@Query("update #{#entityName} u set u.active = :activeState where u.id in :ids")
 	void updateUserActiveState(@Param("activeState") boolean activeState, @Param("ids") Integer... ids);
