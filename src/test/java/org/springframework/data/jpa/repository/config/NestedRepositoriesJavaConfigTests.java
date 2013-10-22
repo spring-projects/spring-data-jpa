@@ -33,6 +33,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * Integration test for the combination of JavaConfig and an {@link Repositories} wrapper.
  * 
  * @author Thomas Darimont
+ * @author Oliver Gierke
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
@@ -50,7 +51,6 @@ public class NestedRepositoriesJavaConfigTests {
 	 */
 	@Test
 	public void shouldSupportNestedRepositories() {
-
 		assertThat(nestedUserRepository, is(notNullValue()));
 	}
 }

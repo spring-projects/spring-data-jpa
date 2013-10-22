@@ -16,13 +16,14 @@
 package org.springframework.data.jpa.repository.sample;
 
 import org.springframework.data.jpa.domain.sample.User;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.repository.Repository;
 
 /**
- * @see DATACMNS-90
+ * @see DATAJPA-416
  * @author Thomas Darimont
+ * @author Oliver Gierke
  */
 public class ClassWithNestedRepository {
 
-	public static interface NestedUserRepository extends JpaRepository<User, Integer> {}
+	public static interface NestedUserRepository extends Repository<User, Integer> {}
 }

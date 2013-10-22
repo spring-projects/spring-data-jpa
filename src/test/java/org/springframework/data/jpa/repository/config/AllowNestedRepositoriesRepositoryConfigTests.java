@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2013 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import org.springframework.test.context.ContextConfiguration;
  * Integration test for repository name-space configuration with nested repositories.
  * 
  * @author Thomas Darimont
+ * @author Oliver Gierke
  */
 @ContextConfiguration(locations = "classpath:config/namespace-nested-repositories-application-context.xml")
 public class AllowNestedRepositoriesRepositoryConfigTests extends AbstractRepositoryConfigTests {
@@ -38,7 +39,6 @@ public class AllowNestedRepositoriesRepositoryConfigTests extends AbstractReposi
 	 */
 	@Test
 	public void shouldFindNestedRepository() {
-
 		assertThat(fooRepository, is(notNullValue()));
 	}
 }
