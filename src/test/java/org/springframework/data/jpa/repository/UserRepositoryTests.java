@@ -68,6 +68,7 @@ import org.springframework.transaction.annotation.Transactional;
  * 
  * @author Oliver Gierke
  * @author Kevin Raymond
+ * @author Thomas Darimont
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("classpath:application-context.xml")
@@ -1103,6 +1104,22 @@ public class UserRepositoryTests {
 
 		User result = repository.getOne(firstUser.getId());
 		assertThat(result, is(firstUser));
+	}
+
+	/**
+	 * @see DATAJPA-415
+	 */
+	@Test
+	public void shouldSupportModifyingQueryWithVarArgs() {
+
+		flushTestUsers();
+
+		repository.updateUserActiveState(false, firstUser.getId(), secondUser.getId(), thirdUser.getId(),
+				fourthUser.getId());
+
+		long expectedCount = repository.count();
+		assertThat(repository.findByActiveFalse().size(), is((int) expectedCount));
+		assertThat(repository.findByActiveTrue().size(), is((int) 0));
 	}
 
 	private Page<User> executeSpecWithSort(Sort sort) {

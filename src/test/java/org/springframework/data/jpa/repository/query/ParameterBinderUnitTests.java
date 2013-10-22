@@ -22,7 +22,9 @@ import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
 import javax.persistence.Embeddable;
 import javax.persistence.Query;
@@ -84,6 +86,7 @@ public class ParameterBinderUnitTests {
 
 		User invalidWithTemporalTypeParameter(@Temporal String registerDate);
 
+		List<User> validWithVarArgs(Integer... ids);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -217,6 +220,21 @@ public class ParameterBinderUnitTests {
 
 		JpaParameters parameters = new JpaParameters(method);
 		new ParameterBinder(parameters, new Object[] { "foo", "" });
+	}
+
+	/**
+	 * @see DATAJPA-415
+	 * @throws Exception
+	 */
+	@Test
+	public void shouldAllowBindingOfVarArgs() throws Exception {
+
+		Method method = SampleRepository.class.getMethod("validWithVarArgs", Integer[].class);
+		JpaParameters parameters = new JpaParameters(method);
+		Integer[] ids = new Integer[] { 1, 2, 3 };
+		new ParameterBinder(parameters, new Object[] { ids }).bind(query);
+
+		verify(query).setParameter(eq(1), eq(Arrays.asList(1, 2, 3)));
 	}
 
 	public SampleEntity findByEmbeddable(SampleEmbeddable embeddable) {

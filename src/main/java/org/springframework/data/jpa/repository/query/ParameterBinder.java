@@ -15,6 +15,9 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 
 import javax.persistence.Query;
@@ -128,11 +131,36 @@ public class ParameterBinder {
 			return;
 		}
 
+		Object valueToUse = convertArrayToCollectionIfNecessary(value);
+
 		if (hasNamedParameter(query) && parameter.isNamedParameter()) {
-			query.setParameter(parameter.getName(), value);
+			query.setParameter(parameter.getName(), valueToUse);
 		} else {
-			query.setParameter(position, value);
+			query.setParameter(position, valueToUse);
 		}
+	}
+
+	/**
+	 * In order to avoid errors like: IllegalArgumentException: Encountered array-valued parameter binding, but was
+	 * expecting [java.lang.Integer].
+	 * 
+	 * @see DATAJPA-415
+	 * @throws Exception
+	 */
+	private Object convertArrayToCollectionIfNecessary(Object value) {
+
+		Object result = value;
+
+		if (result != null && result.getClass().isArray()) {
+			int len = Array.getLength(value);
+			Collection<Object> list = new ArrayList<Object>(len);
+			for (int i = 0; i < len; i++) {
+				list.add(Array.get(value, i));
+			}
+			result = list;
+		}
+
+		return result;
 	}
 
 	/**
