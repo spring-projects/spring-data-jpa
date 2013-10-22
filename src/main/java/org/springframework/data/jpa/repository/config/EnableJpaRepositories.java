@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2012-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ import org.springframework.transaction.PlatformTransactionManager;
  * repositories by default.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
@@ -108,7 +109,7 @@ public @interface EnableJpaRepositories {
 	 */
 	Class<?> repositoryFactoryBeanClass() default JpaRepositoryFactoryBean.class;
 
-	// JPA sepcific configuration
+	// JPA specific configuration
 	/**
 	 * Configures the name of the {@link EntityManagerFactory} bean definition to be used to create repositories
 	 * discovered through this annotation. Defaults to {@code entityManagerFactory}.
@@ -118,10 +119,16 @@ public @interface EnableJpaRepositories {
 	String entityManagerFactoryRef() default "entityManagerFactory";
 
 	/**
-	 * /** Configures the name of the {@link PlatformTransactionManager} bean definition to be used to create repositories
+	 * Configures the name of the {@link PlatformTransactionManager} bean definition to be used to create repositories
 	 * discovered through this annotation. Defaults to {@code transactionManager}.
 	 * 
 	 * @return
 	 */
 	String transactionManagerRef() default "transactionManager";
+
+	/**
+	 * Configures whether nested repository-interfaces (e.g. defined as inner classes) should be discovered by the
+	 * repositories infrastructure.
+	 */
+	boolean considerNestedRepositories() default false;
 }
