@@ -90,6 +90,11 @@
             </tbody>
           </tgroup>
         </table>
+
+        <para>Note that we require a
+        <classname>PlatformTransactionManager</classname> bean named
+        <code>transactionManager</code> to be present if no explicit
+        <code>transaction-manager-ref</code> is defined.</para>
       </simplesect>
     </section>
 
