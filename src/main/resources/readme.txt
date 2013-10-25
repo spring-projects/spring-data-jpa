@@ -1,7 +1,7 @@
-SPRING DATA JPA 1.4.0 RC1 (Aug 01, 2013)
----------------------------------------
+SPRING DATA JPA 1.4.2 RELEASE (Oct 25, 2013)
+--------------------------------------------
 
-Spring Data Jpa is released under the terms of the Apache Software License Version 2.0 (see license.txt).
+Spring Data JPA is released under the terms of the Apache Software License Version 2.0 (see license.txt).
 
 
 DISTRIBUTION CONTENTS:
