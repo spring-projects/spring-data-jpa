@@ -27,8 +27,11 @@ import javax.persistence.PersistenceContext;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.data.jpa.domain.sample.QUser;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.augment.JpaSoftDeleteQueryAugmentor;
+import org.springframework.data.jpa.repository.augment.QueryDslSoftDeleteQueryAugmentor;
+import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.SoftDelete;
 import org.springframework.data.repository.SoftDelete.FlagMode;
@@ -39,6 +42,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.mysema.query.types.Predicate;
+
 /**
  * @author Oliver Gierke
  */
@@ -47,8 +52,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class SoftDeleteIntegrationTests {
 
-	@PersistenceContext
-	EntityManager em;
+	@PersistenceContext EntityManager em;
 
 	SoftUserRepository softRepository;
 	SpecialUserRepository repository;
@@ -57,10 +61,13 @@ public class SoftDeleteIntegrationTests {
 	public void setUp() {
 
 		JpaRepositoryFactory factory = new JpaRepositoryFactory(em);
-		JpaSoftDeleteQueryAugmentor augmentor = new JpaSoftDeleteQueryAugmentor();
+		JpaSoftDeleteQueryAugmentor jpaAugmentor = new JpaSoftDeleteQueryAugmentor();
+		QueryDslSoftDeleteQueryAugmentor queryDslAugmentor = new QueryDslSoftDeleteQueryAugmentor();
 
-		List<QueryAugmentor<? extends QueryContext<?>, ? extends QueryContext<?>, ? extends UpdateContext<?>>> augmentors = new ArrayList<QueryAugmentor<? extends QueryContext<?>, ? extends QueryContext<?>, ? extends UpdateContext<?>>>();
-		augmentors.add(augmentor);
+		List<QueryAugmentor<? extends QueryContext<?>, ? extends QueryContext<?>, ? extends UpdateContext<?>>> augmentors = //
+		new ArrayList<QueryAugmentor<? extends QueryContext<?>, ? extends QueryContext<?>, ? extends UpdateContext<?>>>();
+		augmentors.add(jpaAugmentor);
+		augmentors.add(queryDslAugmentor);
 
 		factory.setQueryAugmentors(augmentors);
 
@@ -86,15 +93,45 @@ public class SoftDeleteIntegrationTests {
 		assertThat(repository.count(), is(1L));
 		assertThat(repository.findAll(), hasItem(user));
 		assertThat(repository.findOne(user.getId()), is(notNullValue()));
+
+		Predicate predicate = QUser.user.firstname.eq("Foo");
+		assertThat(softRepository.findAll(predicate), is(emptyIterable()));
+		assertThat(softRepository.count(predicate), is(0L));
+		assertThat(softRepository.findOne(predicate), is(nullValue()));
+
+		assertThat(repository.count(predicate), is(1L));
+		assertThat(repository.findAll(predicate), hasItem(user));
+		assertThat(repository.findOne(predicate), is(notNullValue()));
+	}
+
+	@Test
+	public void basicSaveAndDeleteWithQueryDslPredicate() {
+
+		User user = new User("Tony", "Stark", "tony@stark.com");
+		user = softRepository.save(user);
+
+		assertThat(repository.findAll(), hasItem(user));
+		assertThat(softRepository.findAll(), hasItem(user));
+
+		softRepository.delete(user);
+
+		Predicate predicate = QUser.user.firstname.eq("Tony");
+		assertThat(softRepository.findAll(predicate), is(emptyIterable()));
+		assertThat(softRepository.count(predicate), is(0L));
+		assertThat(softRepository.findOne(predicate), is(nullValue()));
+
+		assertThat(repository.count(predicate), is(1L));
+		assertThat(repository.findAll(predicate), hasItem(user));
+		assertThat(repository.findOne(predicate), is(notNullValue()));
 	}
 
 	@SoftDelete(value = "active", flagMode = FlagMode.ACTIVE)
-	interface SoftUserRepository extends CrudRepository<User, Integer> {
+	interface SoftUserRepository extends CrudRepository<User, Integer>, QueryDslPredicateExecutor<User> {
 
 		List<User> findByLastname();
 	}
 
-	interface SpecialUserRepository extends CrudRepository<User, Integer> {
+	interface SpecialUserRepository extends CrudRepository<User, Integer>, QueryDslPredicateExecutor<User> {
 
 		List<User> findAll();
 	}

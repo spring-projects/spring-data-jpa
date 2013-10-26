@@ -123,6 +123,13 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 		this.engine = engine;
 	}
 
+	/**
+	 * @return the engine
+	 */
+	protected QueryAugmentationEngine getAugmentationEngine() {
+		return engine;
+	}
+
 	private Class<T> getDomainClass() {
 		return entityInformation.getJavaType();
 	}
