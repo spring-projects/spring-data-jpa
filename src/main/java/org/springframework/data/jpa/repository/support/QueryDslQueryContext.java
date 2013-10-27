@@ -23,11 +23,11 @@ import com.mysema.query.jpa.JPQLQuery;
  * @author Dev Naruka
  *
  */
+// TODO Which native implementation to be used? (SQLQuery or JPASQLQuery)
+// TODO Where QueryDslQueryContext can be used? (in QueryDslRepositorySupport ???)
 public class QueryDslQueryContext extends QueryContext<JPQLQuery> {
 
-	public QueryDslQueryContext(
-			JPQLQuery query,
-			QueryMode queryMode) {
+	public QueryDslQueryContext(JPQLQuery query, QueryMode queryMode) {
 		super(query, queryMode);
 		// TODO Auto-generated constructor stub
 	}
@@ -41,5 +41,4 @@ public class QueryDslQueryContext extends QueryContext<JPQLQuery> {
 		// TODO Auto-generated method stub
 		return null;
 	}
-
 }
