@@ -69,7 +69,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	private final PersistenceProvider provider;
 
 	private LockMetadataProvider lockMetadataProvider;
-	private QueryAugmentationEngine engine = QueryAugmentationEngine.NONE;
+	protected QueryAugmentationEngine engine = QueryAugmentationEngine.NONE;
 
 	/**
 	 * Creates a new {@link SimpleJpaRepository} to manage objects of the given {@link JpaEntityInformation}.

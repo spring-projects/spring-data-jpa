@@ -15,7 +15,6 @@
  */
 package org.springframework.data.jpa.repository.augment;
 
-import java.lang.reflect.Method;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -28,8 +27,6 @@ import org.springframework.data.jpa.repository.support.JpaUpdateContext;
 import org.springframework.data.repository.SoftDelete;
 import org.springframework.data.repository.augment.AbstractSoftDeleteQueryAugmentor;
 import org.springframework.data.repository.augment.QueryContext.QueryMode;
-import org.springframework.data.support.DirectFieldAccessFallbackBeanWrapper;
-import org.springframework.util.ReflectionUtils;
 
 /**
  * JPA implementation of {@link AbstractSoftDeleteQueryAugmentor} to transparently turn delete calls into entity
@@ -91,46 +88,5 @@ public class JpaSoftDeleteQueryAugmentor extends
 	@Override
 	protected BeanWrapper createBeanWrapper(JpaUpdateContext<?> context) {
 		return new PropertyChangeEnsuringBeanWrapper(context.getEntity());
-	}
-
-	/**
-	 * Custom {@link DirectFieldAccessFallbackBeanWrapper} to hook in additional functionality when setting a property by
-	 * field access.
-	 * 
-	 * @author Oliver Gierke
-	 */
-	private static class PropertyChangeEnsuringBeanWrapper extends DirectFieldAccessFallbackBeanWrapper {
-
-		public PropertyChangeEnsuringBeanWrapper(Object entity) {
-			super(entity);
-		}
-
-		/**
-		 * We in case of setting the value using field access, we need to make sure that EclipseLink detects the change.
-		 * Hence we check for an EclipseLink specific generated method that is used to record the changes and invoke it if
-		 * available.
-		 * 
-		 * @see org.springframework.data.support.DirectFieldAccessFallbackBeanWrapper#setPropertyUsingFieldAccess(java.lang.String,
-		 *      java.lang.Object)
-		 */
-		@Override
-		protected void setPropertyUsingFieldAccess(String propertyName, Object value) {
-
-			Object oldValue = getPropertyValue(propertyName);
-			super.setPropertyUsingFieldAccess(propertyName, oldValue);
-			triggerPropertyChangeMethodIfAvailable(propertyName, oldValue, oldValue);
-		}
-
-		private void triggerPropertyChangeMethodIfAvailable(String propertyName, Object oldValue, Object value) {
-
-			Method method = ReflectionUtils.findMethod(getWrappedClass(), "_persistence_propertyChange", String.class,
-					Object.class, Object.class);
-
-			if (method == null) {
-				return;
-			}
-
-			ReflectionUtils.invokeMethod(method, getWrappedInstance(), propertyName, oldValue, value);
-		}
 	}
 }
