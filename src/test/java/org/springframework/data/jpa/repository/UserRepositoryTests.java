@@ -1093,6 +1093,20 @@ public class UserRepositoryTests {
 		assertThat(lastname, hasItem("Dave"));
 	}
 
+	/**
+	 * @see DATAJPA-405
+	 */
+	@Test
+	public void executesFinderWithOrderClauseOnly() {
+
+		flushTestUsers();
+
+		List<User> result = repository.findAllByOrderByLastnameAsc();
+
+		assertThat(result, hasSize(4));
+		assertThat(result, contains(secondUser, firstUser, thirdUser, fourthUser));
+	}
+
 	private Page<User> executeSpecWithSort(Sort sort) {
 
 		flushTestUsers();
