@@ -129,7 +129,9 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<Object>,
 	 */
 	protected CriteriaQuery<Object> complete(Predicate predicate, Sort sort, CriteriaQuery<Object> query,
 			CriteriaBuilder builder, Root<?> root) {
-		return this.query.select(root).where(predicate).orderBy(QueryUtils.toOrders(sort, root, builder));
+
+		CriteriaQuery<Object> select = this.query.select(root).orderBy(QueryUtils.toOrders(sort, root, builder));
+		return predicate == null ? select : select.where(predicate);
 	}
 
 	/**

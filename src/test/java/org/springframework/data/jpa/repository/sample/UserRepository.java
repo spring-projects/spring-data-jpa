@@ -283,4 +283,9 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	@Modifying
 	@Query("update #{#entityName} u set u.active = :activeState where u.id in :ids")
 	void updateUserActiveState(@Param("activeState") boolean activeState, @Param("ids") Integer... ids);
+
+	/**
+	 * @see DATAJPA-405
+	 */
+	List<User> findAllByOrderByLastnameAsc();
 }
