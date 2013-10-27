@@ -25,7 +25,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
-import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -53,10 +53,8 @@ public class JavaConfigUserRepositoryTests extends UserRepositoryTests {
 	@ImportResource("classpath:infrastructure.xml")
 	static class Config {
 
-		@PersistenceContext
-		EntityManager entityManager;
-		@Autowired
-		BeanFactory beanFactory;
+		@PersistenceContext EntityManager entityManager;
+		@Autowired BeanFactory beanFactory;
 
 		@Bean
 		public UserRepository userRepository() throws IOException {
@@ -88,12 +86,13 @@ public class JavaConfigUserRepositoryTests extends UserRepositoryTests {
 	@Test(expected = NoSuchBeanDefinitionException.class)
 	public void doesNotPickUpJpaRepository() {
 
-		ApplicationContext context = new AnnotationConfigApplicationContext(JpaRepositoryConfig.class);
+		ConfigurableApplicationContext context = new AnnotationConfigApplicationContext(JpaRepositoryConfig.class);
 		context.getBean("jpaRepository");
+		context.close();
 	}
 
 	@Configuration
-	@EnableJpaRepositories
+	@EnableJpaRepositories(basePackageClasses = UserRepository.class)
 	@ImportResource("classpath:infrastructure.xml")
 	static class JpaRepositoryConfig {
 

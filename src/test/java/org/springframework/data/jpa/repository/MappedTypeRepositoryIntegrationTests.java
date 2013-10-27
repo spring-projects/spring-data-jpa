@@ -23,14 +23,12 @@ import java.util.List;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.ImportResource;
 import org.springframework.data.jpa.domain.sample.ConcreteType1;
 import org.springframework.data.jpa.domain.sample.ConcreteType2;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.data.jpa.repository.sample.ConcreteRepository1;
 import org.springframework.data.jpa.repository.sample.ConcreteRepository2;
 import org.springframework.data.jpa.repository.sample.MappedTypeRepository;
+import org.springframework.data.jpa.repository.sample.SampleConfig;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,13 +40,8 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Transactional
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration
+@ContextConfiguration(classes = SampleConfig.class)
 public class MappedTypeRepositoryIntegrationTests {
-
-	@Configuration
-	@ImportResource("classpath:infrastructure.xml")
-	@EnableJpaRepositories
-	static class Config {}
 
 	@Autowired ConcreteRepository1 concreteRepository1;
 	@Autowired ConcreteRepository2 concreteRepository2;

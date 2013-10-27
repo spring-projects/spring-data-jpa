@@ -22,7 +22,6 @@ package org.springframework.data.jpa.domain.sample;
  */
 public class Role {
 
-	private static final long serialVersionUID = -8832631113344035104L;
 	private static final String PREFIX = "ROLE_";
 
 	private Integer id;

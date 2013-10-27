@@ -15,13 +15,16 @@
  */
 package org.springframework.data.jpa.repository.sample;
 
-import org.springframework.context.annotation.Lazy;
-import org.springframework.data.jpa.domain.sample.ConcreteType1;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.ImportResource;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 /**
- * @author Thomas Darimont
+ * @author Oliver Gierke
  */
-@Lazy
-public interface ConcreteRepository1 extends MappedTypeRepository<ConcreteType1> {
+@Configuration
+@ImportResource("classpath:infrastructure.xml")
+@EnableJpaRepositories
+public class SampleConfig {
 
 }

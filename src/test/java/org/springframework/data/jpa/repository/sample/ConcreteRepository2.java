@@ -15,11 +15,13 @@
  */
 package org.springframework.data.jpa.repository.sample;
 
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.jpa.domain.sample.ConcreteType2;
 
 /**
  * @author Thomas Darimont
  */
+@Lazy
 public interface ConcreteRepository2 extends MappedTypeRepository<ConcreteType2> {
 
 }
