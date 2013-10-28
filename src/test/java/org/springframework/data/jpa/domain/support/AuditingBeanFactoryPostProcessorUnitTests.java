@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 the original author or authors.
+ * Copyright 2008-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,11 @@
  */
 package org.springframework.data.jpa.domain.support;
 
+import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
-
-import java.util.Arrays;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.core.io.ClassPathResource;
@@ -30,6 +28,7 @@ import org.springframework.core.io.ClassPathResource;
  * Unit test for {@link AuditingBeanFactoryPostProcessor}.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 public class AuditingBeanFactoryPostProcessorUnitTests {
 
@@ -52,12 +51,10 @@ public class AuditingBeanFactoryPostProcessorUnitTests {
 	}
 
 	@Test
-	public void testname() throws Exception {
+	public void beanConfigurerAspectShouldBeConfiguredAfterPostProcessing() throws Exception {
 
 		processor.postProcessBeanFactory(beanFactory);
-		BeanDefinition definition = beanFactory.getBeanDefinition("entityManagerFactory");
 
-		assertTrue(Arrays.asList(definition.getDependsOn()).contains(
-				AuditingBeanFactoryPostProcessor.BEAN_CONFIGURER_ASPECT_BEAN_NAME));
+		assertThat(beanFactory.isBeanNameInUse(AuditingBeanFactoryPostProcessor.BEAN_CONFIGURER_ASPECT_BEAN_NAME), is(true));
 	}
 }

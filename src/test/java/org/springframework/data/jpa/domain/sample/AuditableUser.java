@@ -33,21 +33,20 @@ import org.springframework.data.jpa.domain.AbstractAuditable;
  */
 @Entity
 @NamedQuery(name = "AuditableUser.findByFirstname", query = "SELECT u FROM AuditableUser u WHERE u.firstname = ?1")
-public class AuditableUser extends AbstractAuditable<AuditableUser, Long> {
+public class AuditableUser extends AbstractAuditable<AuditableUser, Integer> {
 
 	private static final long serialVersionUID = 7409344446795693011L;
 
 	private String firstname;
 
-	@ManyToMany(cascade = { CascadeType.PERSIST, CascadeType.MERGE })
-	private Set<AuditableRole> roles = new HashSet<AuditableRole>();
+	@ManyToMany(cascade = { CascadeType.PERSIST, CascadeType.MERGE }) private Set<AuditableRole> roles = new HashSet<AuditableRole>();
 
 	public AuditableUser() {
 
 		this(null);
 	}
 
-	public AuditableUser(Long id) {
+	public AuditableUser(Integer id) {
 
 		this.setId(id);
 	}
