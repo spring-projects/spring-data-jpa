@@ -39,17 +39,13 @@ public abstract class AbstractAuditable<U, PK extends Serializable> extends Abst
 
 	private static final long serialVersionUID = 141481953116476081L;
 
-	@ManyToOne
-	private U createdBy;
+	@ManyToOne private U createdBy;
 
-	@Temporal(TemporalType.TIMESTAMP)
-	private Date createdDate;
+	@Temporal(TemporalType.TIMESTAMP) private Date createdDate;
 
-	@ManyToOne
-	private U lastModifiedBy;
+	@ManyToOne private U lastModifiedBy;
 
-	@Temporal(TemporalType.TIMESTAMP)
-	private Date lastModifiedDate;
+	@Temporal(TemporalType.TIMESTAMP) private Date lastModifiedDate;
 
 	/*
 	 * (non-Javadoc)

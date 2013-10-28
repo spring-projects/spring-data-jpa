@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2012 the original author or authors.
+ * Copyright 2008-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,9 +29,10 @@ import org.springframework.util.ClassUtils;
 import org.w3c.dom.Element;
 
 /**
- * {@link BeanDefinitionParser} for the {@code auditing} element. Sets up an AudE
+ * {@link BeanDefinitionParser} for the {@code auditing} element.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 public class AuditingBeanDefinitionParser implements BeanDefinitionParser {
 
