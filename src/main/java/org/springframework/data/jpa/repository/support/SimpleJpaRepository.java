@@ -524,4 +524,9 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 		LockModeType type = lockMetadataProvider == null ? null : lockMetadataProvider.getLockModeType();
 		return type == null ? query : query.setLockMode(type);
 	}
+
+	@Override
+	public void refresh(T entity) {
+		em.refresh(entity);		
+	}	
 }

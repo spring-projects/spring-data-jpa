@@ -60,7 +60,7 @@ public interface JpaRepository<T, ID extends Serializable> extends PagingAndSort
 	 * Flushes all pending changes to the database.
 	 */
 	void flush();
-
+	
 	/**
 	 * Saves an entity and flushes changes instantly.
 	 * 
@@ -69,6 +69,11 @@ public interface JpaRepository<T, ID extends Serializable> extends PagingAndSort
 	 */
 	T saveAndFlush(T entity);
 
+	/**
+	 * Refresh the state of the instance from the database 
+	 */
+	void refresh(T entity);
+	
 	/**
 	 * Deletes the given entities in a batch which means it will create a single {@link Query}. Assume that we will clear
 	 * the {@link javax.persistence.EntityManager} after the call.
@@ -89,5 +94,5 @@ public interface JpaRepository<T, ID extends Serializable> extends PagingAndSort
 	 * @return a reference to the entity with the given identifier.
 	 * @see EntityManager#getReference(Class, Object)
 	 */
-	T getOne(ID id);
+	T getOne(ID id);	
 }
