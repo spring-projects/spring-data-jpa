@@ -91,4 +91,16 @@ public class SimpleJpaRepositoryUnitTests {
 
 		repo.delete(4711L);
 	}
+	
+	/**
+	 * @see DATAJPA-412
+	 */
+	@Test
+	public void callsEntityManagerRefreshOnEntity() {
+		User userInfo = new User();
+		userInfo.setId(412);
+		
+		repo.refresh(userInfo);
+		verify(em).refresh(userInfo);
+	}
 }
