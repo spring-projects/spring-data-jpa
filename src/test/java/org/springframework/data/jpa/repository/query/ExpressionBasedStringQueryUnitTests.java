@@ -59,6 +59,7 @@ public class ExpressionBasedStringQueryUnitTests {
 
 		StringQuery query = new ExpressionBasedStringQuery("select u from #{#entityName} u", metadata);
 		assertThat(query.getAlias(), is("u"));
+		assertThat(query.getQueryString(), is("select u from User u"));
 	}
 
 }
