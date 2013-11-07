@@ -37,9 +37,6 @@ import org.springframework.util.Assert;
 class ExpressionBasedStringQuery extends StringQuery {
 
 	private static final String ENTITY_NAME = "entityName";
-	private final JpaEntityMetadata<?> metadata;
-
-	private String parsedQuery;
 
 	/**
 	 * Creates a new {@link ExpressionBasedStringQuery} for the given query and {@link EntityMetadata}.
@@ -48,28 +45,18 @@ class ExpressionBasedStringQuery extends StringQuery {
 	 * @param metadata must not be {@literal null}.
 	 */
 	public ExpressionBasedStringQuery(String query, JpaEntityMetadata<?> metadata) {
-
-		super(query);
-		Assert.notNull(metadata, "JpaEntityMetadata must not be null!");
-		this.metadata = metadata;
+		super(renderQueryIfExpressionOrReturnQuery(query, metadata));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.query.StringQuery#getQueryString()
+	/**
+	 * @param query, the query expression potentially containing a SpEL expression. Must not be {@literal null}.}
+	 * @param metadata the {@link JpaEntityMetadata} for the given entity. Must not be {@literal null}.
+	 * @return
 	 */
-	@Override
-	public String getQueryString() {
+	private static String renderQueryIfExpressionOrReturnQuery(String query, JpaEntityMetadata<?> metadata) {
 
-		if (parsedQuery == null) {
-			String rawQuery = super.getQueryString();
-			this.parsedQuery = renderQueryIfExpressionOrReturnQuery(rawQuery);
-		}
-
-		return this.parsedQuery;
-	}
-
-	private String renderQueryIfExpressionOrReturnQuery(String query) {
+		Assert.notNull(query, "query must not be null!");
+		Assert.notNull(metadata, "metadata must not be null!");
 
 		if (!containsExpression(query)) {
 			return query;
