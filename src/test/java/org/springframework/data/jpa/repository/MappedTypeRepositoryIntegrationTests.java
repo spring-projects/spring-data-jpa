@@ -23,6 +23,9 @@ import java.util.List;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.sample.ConcreteType1;
 import org.springframework.data.jpa.domain.sample.ConcreteType2;
 import org.springframework.data.jpa.repository.sample.ConcreteRepository1;
@@ -60,5 +63,20 @@ public class MappedTypeRepositoryIntegrationTests {
 
 		assertThat(concretes1.size(), is(1));
 		assertThat(concretes2.size(), is(1));
+	}
+
+	/**
+	 * @see DATAJPA-424
+	 */
+	@Test
+	public void supportForPaginationCustomQueryMethodsWithEntityExpression() {
+
+		concreteRepository1.save(new ConcreteType1("foo"));
+		concreteRepository2.save(new ConcreteType2("foo"));
+
+		Page<ConcreteType2> page = concreteRepository2.findByAttribute1Custom("foo", new PageRequest(0, 10,
+				Sort.Direction.DESC, "attribute1"));
+
+		assertThat(page.getNumberOfElements(), is(1));
 	}
 }
