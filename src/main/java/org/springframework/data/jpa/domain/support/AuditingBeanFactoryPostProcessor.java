@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 the original author or authors.
+ * Copyright 2008-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,35 +15,30 @@
  */
 package org.springframework.data.jpa.domain.support;
 
-import java.util.Arrays;
-import java.util.List;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
-import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.aspectj.AnnotationBeanConfigurerAspect;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.data.domain.AuditorAware;
-import org.springframework.util.StringUtils;
+import org.springframework.context.annotation.aspectj.EnableSpringConfigured;
+import org.springframework.util.Assert;
 
 /**
- * {@link BeanFactoryPostProcessor} to add a {@code depends-on} from a
- * {@link org.springframework.orm.jpa.LocalEntityManagerFactoryBean} or
- * {@link org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean} towards the aspect bean configured via
- * {@code &lt;context:spring-configured&gt;}. This has to be done to ensure the aspect is up and running <em>before</em>
- * the {@link javax.persistence.EntityManagerFactory} gets created as this already instantiates entity listeners and we
- * need to get injection into {@link org.springframework.beans.factory.annotation.Configurable} to work in them.
+ * {@link BeanFactoryPostProcessor} that ensures that the {@link AnnotationBeanConfigurerAspect} aspect is up and
+ * running <em>before</em> the {@link javax.persistence.EntityManagerFactory} gets created as this already instantiates
+ * entity listeners and we need to get injection into {@link org.springframework.beans.factory.annotation.Configurable}
+ * to work in them.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 public class AuditingBeanFactoryPostProcessor implements BeanFactoryPostProcessor {
 
 	static final String BEAN_CONFIGURER_ASPECT_BEAN_NAME = "org.springframework.context.config.internalBeanConfigurerAspect";
 
-	private static final String JPA_PACKAGE = "org.springframework.orm.jpa.";
-	private static final List<String> CLASSES_TO_DEPEND = Arrays.asList(JPA_PACKAGE
-			+ "LocalContainerEntityManagerFactoryBean", JPA_PACKAGE + "LocalEntityManagerFactoryBean");
+	private final static Logger logger = LoggerFactory.getLogger(AuditingBeanFactoryPostProcessor.class);
 
 	/*
 	 * (non-Javadoc)
@@ -56,33 +51,23 @@ public class AuditingBeanFactoryPostProcessor implements BeanFactoryPostProcesso
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) {
 
 		if (!isSpringConfigured(beanFactory)) {
-			return;
-		}
-
-		for (String beanName : beanFactory.getBeanDefinitionNames()) {
-
-			BeanDefinition definition = beanFactory.getBeanDefinition(beanName);
-
-			if (CLASSES_TO_DEPEND.contains(definition.getBeanClassName())) {
-				definition.setDependsOn(StringUtils.addStringToArray(definition.getDependsOn(),
-						BEAN_CONFIGURER_ASPECT_BEAN_NAME));
-			}
-		}
-
-		for (String beanName : BeanFactoryUtils.beanNamesForTypeIncludingAncestors(beanFactory, AuditorAware.class, true,
-				false)) {
-			BeanDefinition definition = beanFactory.getBeanDefinition(beanName);
-			definition.setLazyInit(true);
+			logger.error("Could not configure Spring Data JPA auditing-feature because the bean "
+					+ BEAN_CONFIGURER_ASPECT_BEAN_NAME + " is not present!\n"
+					+ "If you want to use auditing please add the @EnableSpringConfigured annotation or\n"
+					+ "the <context:spring-configured> element to your configuration.");
 		}
 	}
 
 	/**
-	 * Returns whether we have a bean factory for which {@code &lt;context:spring-configured&gt;} was activated.
+	 * Returns whether we have a bean factory for which {@code &lt;context:spring-configured&gt;} or
+	 * {@link EnableSpringConfigured} was activated.
 	 * 
-	 * @param factory
+	 * @param factory must not be {@literal null}.
 	 * @return
 	 */
 	private boolean isSpringConfigured(BeanFactory factory) {
+
+		Assert.notNull(factory, "beanFactory must not be null!");
 
 		try {
 			factory.getBean(BEAN_CONFIGURER_ASPECT_BEAN_NAME);
