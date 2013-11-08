@@ -52,7 +52,7 @@ public class AuditingEntityListener<T> {
 	private AuditingHandler<T> handler;
 
 	/**
-	 * Creates an {@link AuditingEntityListener} that auto-wires itself according to the appropriate spring bean
+	 * Creates an {@link AuditingEntityListener} that auto-wires itself according to the appropriate Spring bean
 	 * configuration.
 	 */
 	public AuditingEntityListener() {

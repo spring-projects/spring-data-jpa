@@ -15,15 +15,18 @@
  */
 package org.springframework.data.jpa.domain.support;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import java.util.Arrays;
+import java.util.List;
+
+import javax.persistence.EntityManagerFactory;
+
+import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.aspectj.AnnotationBeanConfigurerAspect;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.context.annotation.aspectj.EnableSpringConfigured;
-import org.springframework.util.Assert;
+import org.springframework.data.domain.AuditorAware;
+import org.springframework.util.StringUtils;
 
 /**
  * {@link BeanFactoryPostProcessor} that ensures that the {@link AnnotationBeanConfigurerAspect} aspect is up and
@@ -37,8 +40,10 @@ import org.springframework.util.Assert;
 public class AuditingBeanFactoryPostProcessor implements BeanFactoryPostProcessor {
 
 	static final String BEAN_CONFIGURER_ASPECT_BEAN_NAME = "org.springframework.context.config.internalBeanConfigurerAspect";
-
-	private final static Logger logger = LoggerFactory.getLogger(AuditingBeanFactoryPostProcessor.class);
+	private static final String ENTITY_MANAGER_FACTORY_BEAN_NAME = "entityManagerFactory";
+	private static final String JPA_PACKAGE = "org.springframework.orm.jpa.";
+	private static final List<String> CLASSES_TO_DEPEND = Arrays.asList(JPA_PACKAGE
+			+ "LocalContainerEntityManagerFactoryBean", JPA_PACKAGE + "LocalEntityManagerFactoryBean");
 
 	/*
 	 * (non-Javadoc)
@@ -50,30 +55,22 @@ public class AuditingBeanFactoryPostProcessor implements BeanFactoryPostProcesso
 	 */
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) {
 
-		if (!isSpringConfigured(beanFactory)) {
-			logger.error("Could not configure Spring Data JPA auditing-feature because the bean "
-					+ BEAN_CONFIGURER_ASPECT_BEAN_NAME + " is not present!\n"
-					+ "If you want to use auditing please add the @EnableSpringConfigured annotation or\n"
-					+ "the <context:spring-configured> element to your configuration.");
+		List<String> beanNamesToDepend = Arrays.asList(beanFactory.getBeanNamesForType(EntityManagerFactory.class));
+
+		for (String beanName : beanFactory.getBeanDefinitionNames()) {
+
+			BeanDefinition definition = beanFactory.getBeanDefinition(beanName);
+
+			if (CLASSES_TO_DEPEND.contains(definition.getBeanClassName()) || beanNamesToDepend.contains(beanName)) {
+				definition.setDependsOn(StringUtils.addStringToArray(definition.getDependsOn(),
+						BEAN_CONFIGURER_ASPECT_BEAN_NAME));
+			}
 		}
-	}
 
-	/**
-	 * Returns whether we have a bean factory for which {@code &lt;context:spring-configured&gt;} or
-	 * {@link EnableSpringConfigured} was activated.
-	 * 
-	 * @param factory must not be {@literal null}.
-	 * @return
-	 */
-	private boolean isSpringConfigured(BeanFactory factory) {
-
-		Assert.notNull(factory, "beanFactory must not be null!");
-
-		try {
-			factory.getBean(BEAN_CONFIGURER_ASPECT_BEAN_NAME);
-			return true;
-		} catch (NoSuchBeanDefinitionException e) {
-			return false;
+		for (String beanName : BeanFactoryUtils.beanNamesForTypeIncludingAncestors(beanFactory, AuditorAware.class, true,
+				false)) {
+			BeanDefinition definition = beanFactory.getBeanDefinition(beanName);
+			definition.setLazyInit(true);
 		}
 	}
 }

@@ -19,9 +19,6 @@ import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-import javax.persistence.EntityManagerFactory;
-import javax.sql.DataSource;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -32,15 +29,8 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.data.jpa.domain.sample.AuditableUser;
 import org.springframework.data.jpa.repository.sample.AuditableUserRepository;
-import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
-import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
-import org.springframework.orm.jpa.JpaTransactionManager;
-import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
-import org.springframework.orm.jpa.vendor.Database;
-import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -56,42 +46,6 @@ public class AuditingViaJavaConfigRepositoriesTests {
 	@Autowired AuditableUserRepository auditableUserRepository;
 	@Autowired AuditorAware<AuditableUser> auditorAware;
 	AuditableUser auditor;
-
-	@Configuration
-	@EnableTransactionManagement
-	static class InfrastructureConfig {
-
-		@Bean
-		public DataSource dataSource() {
-			return new EmbeddedDatabaseBuilder().setName("auditingtests").setType(EmbeddedDatabaseType.HSQL).build();
-		}
-
-		@Bean
-		public JpaTransactionManager transactionManager(EntityManagerFactory emf) {
-			return new JpaTransactionManager(emf);
-		}
-
-		@Bean
-		public HibernateJpaVendorAdapter jpaVendorAdapter() {
-
-			HibernateJpaVendorAdapter adapter = new HibernateJpaVendorAdapter();
-			adapter.setGenerateDdl(true);
-			adapter.setDatabase(Database.HSQL);
-
-			return adapter;
-		}
-
-		@Bean
-		public LocalContainerEntityManagerFactoryBean entityManagerFactory() {
-
-			LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
-			em.setDataSource(dataSource());
-			em.setJpaVendorAdapter(jpaVendorAdapter());
-			em.setPackagesToScan("purejavaconfig");
-
-			return em;
-		}
-	}
 
 	@Configuration
 	@EnableJpaAuditing

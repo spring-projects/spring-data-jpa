@@ -86,21 +86,22 @@ class JpaAuditingRegistrar extends AuditingBeanDefinitionRegistrarSupport {
 	 */
 	private void registerBeanConfigurerAspectIfNecessary(BeanDefinitionRegistry registry) {
 
-		if (!registry.containsBeanDefinition(BEAN_CONFIGURER_ASPECT_BEAN_NAME)) {
-
-			if (!ClassUtils.isPresent(BEAN_CONFIGURER_ASPECT_CLASS_NAME, getClass().getClassLoader())) {
-				throw new BeanDefinitionStoreException("Could not configure Spring Data JPA auditing-feature because"
-						+ " spring-aspects.jar is not on the classpath!\n"
-						+ "If you want to use auditing please add spring-aspects.jar to the classpath.");
-			}
-
-			RootBeanDefinition def = new RootBeanDefinition();
-			def.setBeanClassName(BEAN_CONFIGURER_ASPECT_CLASS_NAME);
-			def.setFactoryMethodName("aspectOf");
-			def.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
-
-			registry.registerBeanDefinition(BEAN_CONFIGURER_ASPECT_BEAN_NAME, new BeanComponentDefinition(def,
-					BEAN_CONFIGURER_ASPECT_BEAN_NAME).getBeanDefinition());
+		if (registry.containsBeanDefinition(BEAN_CONFIGURER_ASPECT_BEAN_NAME)) {
+			return;
 		}
+
+		if (!ClassUtils.isPresent(BEAN_CONFIGURER_ASPECT_CLASS_NAME, getClass().getClassLoader())) {
+			throw new BeanDefinitionStoreException("Could not configure Spring Data JPA auditing-feature because"
+					+ " spring-aspects.jar is not on the classpath!\n"
+					+ "If you want to use auditing please add spring-aspects.jar to the classpath.");
+		}
+
+		RootBeanDefinition def = new RootBeanDefinition();
+		def.setBeanClassName(BEAN_CONFIGURER_ASPECT_CLASS_NAME);
+		def.setFactoryMethodName("aspectOf");
+		def.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+
+		registry.registerBeanDefinition(BEAN_CONFIGURER_ASPECT_BEAN_NAME, new BeanComponentDefinition(def,
+				BEAN_CONFIGURER_ASPECT_BEAN_NAME).getBeanDefinition());
 	}
 }
