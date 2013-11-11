@@ -19,17 +19,18 @@ import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
+import java.util.concurrent.TimeUnit;
+
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.data.jpa.domain.sample.AuditableUser;
 import org.springframework.data.jpa.repository.sample.AuditableUserRepository;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,44 +40,44 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Thomas Darimont
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration
 @Transactional
-public class AuditingViaJavaConfigRepositoriesTests {
+public abstract class AbstractAuditingViaJavaConfigRepositoriesTests {
 
 	@Autowired AuditableUserRepository auditableUserRepository;
 	@Autowired AuditorAware<AuditableUser> auditorAware;
 	AuditableUser auditor;
 
 	@Configuration
-	@EnableJpaAuditing(auditorAwareRef = "auditorProvider")
 	@Import(InfrastructureConfig.class)
 	@EnableJpaRepositories(basePackageClasses = AuditableUserRepository.class)
-	static class Config {
-
-		@Bean
-		public AuditorAware<AuditableUser> auditorProvider() {
-			return mock(AuditorAware.class);
-		}
-	}
+	static class TestConfig {}
 
 	@Before
 	public void setup() {
-		this.auditor = new AuditableUser(null);
-		this.auditor.setFirstname("auditor");
+		AuditableUser auditor = new AuditableUser(null);
+		auditor.setFirstname("auditor");
+		this.auditor = this.auditableUserRepository.save(auditor);
+
+		doReturn(this.auditor).when(this.auditorAware).getCurrentAuditor();
+	}
+
+	@After
+	public void teardown() {
+		auditableUserRepository.delete(this.auditor);
 	}
 
 	@Test
-	public void basicAuditing() {
-
-		this.auditor = auditableUserRepository.save(auditor);
-
-		doReturn(this.auditor).when(this.auditorAware).getCurrentAuditor();
+	@Transactional
+	public void basicAuditing() throws Exception {
 
 		AuditableUser user = new AuditableUser(null);
 		user.setFirstname("user");
 
 		AuditableUser savedUser = auditableUserRepository.save(user);
-		System.out.println(savedUser);
+		TimeUnit.MILLISECONDS.sleep(10);
+
+		assertThat(savedUser.getCreatedDate(), is(notNullValue()));
+		assertThat(savedUser.getCreatedDate().isBeforeNow(), is(true));
 
 		AuditableUser createdBy = savedUser.getCreatedBy();
 		assertThat(createdBy, is(notNullValue()));
