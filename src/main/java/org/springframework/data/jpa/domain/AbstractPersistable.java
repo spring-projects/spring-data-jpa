@@ -36,9 +36,7 @@ public abstract class AbstractPersistable<PK extends Serializable> implements Pe
 
 	private static final long serialVersionUID = -5554308939380869754L;
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
-	private PK id;
+	@Id @GeneratedValue(strategy = GenerationType.AUTO) private PK id;
 
 	/*
 	 * (non-Javadoc)
