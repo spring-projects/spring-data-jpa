@@ -1174,11 +1174,10 @@ class Config {
     }
 }</programlisting>
 
-        <para>Note that you have to provide a bean that implements the
-        <classname>AuditorAware</classname> interface. By default the Auditing
-        infrastructure requires such a bean with the name
-        <code>auditorProvider</code> to be present. The bean name can be
-        configured via the <code>auditorAwareRef</code> attribute of the
+        <para>Note that if you want to record information about the
+        create-User or modify-User, you have to provide a bean that implements
+        the <classname>AuditorAware</classname> interface. The bean name can
+        be configured via the <code>auditorAwareRef</code> attribute of the
         <classname>EnableJpaAuditing</classname> annotation.</para>
       </example>
 

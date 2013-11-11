@@ -48,7 +48,7 @@ public class AuditingViaJavaConfigRepositoriesTests {
 	AuditableUser auditor;
 
 	@Configuration
-	@EnableJpaAuditing
+	@EnableJpaAuditing(auditorAwareRef = "auditorProvider")
 	@Import(InfrastructureConfig.class)
 	@EnableJpaRepositories(basePackageClasses = AuditableUserRepository.class)
 	static class Config {
