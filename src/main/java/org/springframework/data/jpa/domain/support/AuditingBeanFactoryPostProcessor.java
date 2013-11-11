@@ -15,18 +15,23 @@
  */
 package org.springframework.data.jpa.domain.support;
 
-import java.util.Arrays;
-import java.util.List;
+import static java.util.Arrays.*;
+import static org.springframework.beans.factory.BeanFactoryUtils.*;
+import static org.springframework.util.StringUtils.*;
+
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.persistence.EntityManagerFactory;
 
-import org.springframework.beans.factory.BeanFactoryUtils;
+import org.springframework.beans.factory.ListableBeanFactory;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.aspectj.AnnotationBeanConfigurerAspect;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.data.domain.AuditorAware;
-import org.springframework.util.StringUtils;
+import org.springframework.orm.jpa.AbstractEntityManagerFactoryBean;
 
 /**
  * {@link BeanFactoryPostProcessor} that ensures that the {@link AnnotationBeanConfigurerAspect} aspect is up and
@@ -40,37 +45,51 @@ import org.springframework.util.StringUtils;
 public class AuditingBeanFactoryPostProcessor implements BeanFactoryPostProcessor {
 
 	static final String BEAN_CONFIGURER_ASPECT_BEAN_NAME = "org.springframework.context.config.internalBeanConfigurerAspect";
-	private static final String ENTITY_MANAGER_FACTORY_BEAN_NAME = "entityManagerFactory";
-	private static final String JPA_PACKAGE = "org.springframework.orm.jpa.";
-	private static final List<String> CLASSES_TO_DEPEND = Arrays.asList(JPA_PACKAGE
-			+ "LocalContainerEntityManagerFactoryBean", JPA_PACKAGE + "LocalEntityManagerFactoryBean");
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see org.springframework.beans.factory.config.BeanFactoryPostProcessor#
-	 * postProcessBeanFactory
-	 * (org.springframework.beans.factory.config.ConfigurableListableBeanFactory
-	 * )
+	 * @see org.springframework.beans.factory.config.BeanFactoryPostProcessor#postProcessBeanFactory(org.springframework.beans.factory.config.ConfigurableListableBeanFactory)
 	 */
+	@Override
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) {
 
-		List<String> beanNamesToDepend = Arrays.asList(beanFactory.getBeanNamesForType(EntityManagerFactory.class));
-
-		for (String beanName : beanFactory.getBeanDefinitionNames()) {
-
-			BeanDefinition definition = beanFactory.getBeanDefinition(beanName);
-
-			if (CLASSES_TO_DEPEND.contains(definition.getBeanClassName()) || beanNamesToDepend.contains(beanName)) {
-				definition.setDependsOn(StringUtils.addStringToArray(definition.getDependsOn(),
-						BEAN_CONFIGURER_ASPECT_BEAN_NAME));
-			}
+		try {
+			beanFactory.getBeanDefinition(BEAN_CONFIGURER_ASPECT_BEAN_NAME);
+		} catch (NoSuchBeanDefinitionException o_O) {
+			throw new IllegalStateException(
+					"Invalid auditing setup! Make sure you've used @EnableJpaAuditing or <jpa:auditing /> correctly!", o_O);
 		}
 
-		for (String beanName : BeanFactoryUtils.beanNamesForTypeIncludingAncestors(beanFactory, AuditorAware.class, true,
-				false)) {
+		for (String beanName : getEntityManagerFactoryBeanNames(beanFactory)) {
+			BeanDefinition definition = beanFactory.getBeanDefinition(beanName);
+			definition.setDependsOn(addStringToArray(definition.getDependsOn(), BEAN_CONFIGURER_ASPECT_BEAN_NAME));
+		}
+
+		for (String beanName : beanNamesForTypeIncludingAncestors(beanFactory, AuditorAware.class, true, false)) {
 			BeanDefinition definition = beanFactory.getBeanDefinition(beanName);
 			definition.setLazyInit(true);
 		}
+	}
+
+	/**
+	 * Return all bean names for bean definitions that will result in an {@link EntityManagerFactory} eventually. We're
+	 * checking for {@link EntityManagerFactory} and the well-known factory beans here to avoid eager initialization of
+	 * the factory beans. The double lookup is necessary especially for JavaConfig scenarios as people might declare an
+	 * {@link EntityManagerFactory} directly.
+	 * 
+	 * @param beanFactory
+	 * @return
+	 */
+	private Iterable<String> getEntityManagerFactoryBeanNames(ListableBeanFactory beanFactory) {
+
+		Set<String> names = new HashSet<String>();
+		names.addAll(asList(beanNamesForTypeIncludingAncestors(beanFactory, EntityManagerFactory.class, true, false)));
+
+		for (String factoryBeanName : beanNamesForTypeIncludingAncestors(beanFactory,
+				AbstractEntityManagerFactoryBean.class, true, false)) {
+			names.add(factoryBeanName.substring(1));
+		}
+
+		return names;
 	}
 }
