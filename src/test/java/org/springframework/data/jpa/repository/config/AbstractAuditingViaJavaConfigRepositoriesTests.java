@@ -38,6 +38,7 @@ import org.springframework.transaction.annotation.Transactional;
  * Integration tests for auditing via Java config.
  * 
  * @author Thomas Darimont
+ * @author Oliver Gierke
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @Transactional
@@ -54,10 +55,11 @@ public abstract class AbstractAuditingViaJavaConfigRepositoriesTests {
 
 	@Before
 	public void setup() {
+
 		AuditableUser auditor = new AuditableUser(null);
 		auditor.setFirstname("auditor");
-		this.auditor = this.auditableUserRepository.save(auditor);
 
+		this.auditor = this.auditableUserRepository.save(auditor);
 		doReturn(this.auditor).when(this.auditorAware).getCurrentAuditor();
 	}
 
@@ -67,7 +69,6 @@ public abstract class AbstractAuditingViaJavaConfigRepositoriesTests {
 	}
 
 	@Test
-	@Transactional
 	public void basicAuditing() throws Exception {
 
 		AuditableUser user = new AuditableUser(null);

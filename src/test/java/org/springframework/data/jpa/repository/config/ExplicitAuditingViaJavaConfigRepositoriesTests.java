@@ -28,8 +28,8 @@ import org.springframework.test.context.ContextConfiguration;
  * Integration tests for auditing via Java config with explicit configuration.
  * 
  * @author Thomas Darimont
+ * @author Oliver Gierke
  */
-
 @ContextConfiguration
 public class ExplicitAuditingViaJavaConfigRepositoriesTests extends AbstractAuditingViaJavaConfigRepositoriesTests {
 
@@ -39,6 +39,7 @@ public class ExplicitAuditingViaJavaConfigRepositoriesTests extends AbstractAudi
 	static class Config {
 
 		@Bean
+		@SuppressWarnings("unchecked")
 		public AuditorAware<AuditableUser> auditorProvider() {
 			return mock(AuditorAware.class);
 		}

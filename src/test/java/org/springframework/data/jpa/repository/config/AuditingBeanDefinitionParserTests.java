@@ -76,7 +76,7 @@ public class AuditingBeanDefinitionParserTests {
 
 		ShadowingClassLoader scl = new ShadowingClassLoader(getClass().getClassLoader());
 		scl.excludeClass(AuditingBeanDefinitionParser.AUDITING_ENTITY_LISTENER_CLASS_NAME);
-		DefaultListableBeanFactory factory = loadFactoryFrom("auditing/auditing-namespace-context.xml", scl);
+		loadFactoryFrom("auditing/auditing-namespace-context.xml", scl);
 	}
 
 	private void assertSetDatesIsSetTo(String configFile, String value) {

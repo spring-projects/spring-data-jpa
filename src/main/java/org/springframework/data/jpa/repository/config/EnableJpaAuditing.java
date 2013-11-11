@@ -22,13 +22,16 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import org.joda.time.DateTime;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.auditing.DateTimeProvider;
+import org.springframework.data.domain.AuditorAware;
 
 /**
  * Annotation to enable auditing in JPA via annotation configuration.
  * 
  * @author Thomas Darimont
+ * @author Oliver Gierke
  */
 @Inherited
 @Documented
@@ -38,23 +41,31 @@ import org.springframework.data.auditing.DateTimeProvider;
 public @interface EnableJpaAuditing {
 
 	/**
-	 * @return References a bean of type AuditorAware to represent the current principal.
+	 * Configures the {@link AuditorAware} bean to be used to lookup the current principal.
+	 * 
+	 * @return
 	 */
 	String auditorAwareRef() default "";
 
 	/**
-	 * @return Configures whether the creation and modification dates are set and defaults to {@literal true}.
+	 * Configures whether the creation and modification dates are set. Defaults to {@literal true}.
+	 * 
+	 * @return
 	 */
 	boolean setDates() default true;
 
 	/**
-	 * @return Configures whether the entity shall be marked as modified on creation and defaults to {@literal true}.
+	 * Configures whether the entity shall be marked as modified on creation. Defaults to {@literal true}.
+	 * 
+	 * @return
 	 */
 	boolean modifyOnCreate() default true;
 
 	/**
-	 * @return Configures a {@link DateTimeProvider} that allows customizing which DateTime shall be used for setting
-	 *         creation and modification dates.
+	 * Configures a {@link DateTimeProvider} bean name that allows customizing the {@link DateTime} to be used for setting
+	 * creation and modification dates.
+	 * 
+	 * @return
 	 */
 	String dateTimeProviderRef() default "";
 }

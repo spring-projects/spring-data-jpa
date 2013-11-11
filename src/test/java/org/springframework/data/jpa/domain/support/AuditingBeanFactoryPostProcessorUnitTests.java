@@ -15,11 +15,14 @@
  */
 package org.springframework.data.jpa.domain.support;
 
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
+
+import javax.persistence.EntityManagerFactory;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.core.io.ClassPathResource;
@@ -38,16 +41,21 @@ public class AuditingBeanFactoryPostProcessorUnitTests {
 	@Before
 	public void setUp() {
 
-		beanFactory = new DefaultListableBeanFactory();
-		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(beanFactory);
-		reader.loadBeanDefinitions(new ClassPathResource("auditing/" + getConfigFile()));
-
-		processor = new AuditingBeanFactoryPostProcessor();
+		this.beanFactory = getBeanFactory();
+		this.processor = new AuditingBeanFactoryPostProcessor();
 	}
 
 	protected String getConfigFile() {
-
 		return "auditing-bfpp-context.xml";
+	}
+
+	protected DefaultListableBeanFactory getBeanFactory() {
+
+		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
+		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(beanFactory);
+		reader.loadBeanDefinitions(new ClassPathResource("auditing/" + getConfigFile()));
+
+		return beanFactory;
 	}
 
 	@Test
@@ -56,5 +64,31 @@ public class AuditingBeanFactoryPostProcessorUnitTests {
 		processor.postProcessBeanFactory(beanFactory);
 
 		assertThat(beanFactory.isBeanNameInUse(AuditingBeanFactoryPostProcessor.BEAN_CONFIGURER_ASPECT_BEAN_NAME), is(true));
+	}
+
+	/**
+	 * @see DATAJPA-265
+	 */
+	@Test(expected = IllegalStateException.class)
+	public void rejectsConfigurationWithoutSpringConfigured() {
+		processor.postProcessBeanFactory(new DefaultListableBeanFactory());
+	}
+
+	/**
+	 * @see DATAJPA-265
+	 */
+	@Test
+	public void setsDependsOnOnEntityManagerFactory() {
+
+		processor.postProcessBeanFactory(beanFactory);
+
+		String[] emfDefinitionNames = beanFactory.getBeanNamesForType(EntityManagerFactory.class);
+
+		for (String emfDefinitionName : emfDefinitionNames) {
+			BeanDefinition emfDefinition = beanFactory.getBeanDefinition(emfDefinitionName);
+			assertThat(emfDefinition, is(notNullValue()));
+			assertThat(emfDefinition.getDependsOn(),
+					is(arrayContaining(AuditingBeanFactoryPostProcessor.BEAN_CONFIGURER_ASPECT_BEAN_NAME)));
+		}
 	}
 }

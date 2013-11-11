@@ -19,7 +19,6 @@ import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 
 import org.springframework.beans.factory.annotation.Configurable;
-import org.springframework.beans.factory.aspectj.AnnotationBeanConfigurerAspect;
 import org.springframework.data.auditing.AuditingHandler;
 import org.springframework.data.domain.Auditable;
 
@@ -40,6 +39,14 @@ import org.springframework.data.domain.Auditable;
  * After that it's just a matter of activating auditing in your Spring config:
  * 
  * <pre>
+ * &#064;Configuration
+ * &#064;EnableJpaAuditing
+ * class ApplicationConfig {
+ * 
+ * }
+ * </pre>
+ * 
+ * <pre>
  * &lt;jpa:auditing auditor-aware-ref="yourAuditorAwarebean" /&gt;
  * </pre>
  * 
@@ -52,14 +59,8 @@ public class AuditingEntityListener<T> {
 	private AuditingHandler<T> handler;
 
 	/**
-	 * Creates an {@link AuditingEntityListener} that auto-wires itself according to the appropriate Spring bean
-	 * configuration.
-	 */
-	public AuditingEntityListener() {
-		AnnotationBeanConfigurerAspect.aspectOf().configureBean(this);
-	}
-
-	/**
+	 * Configures the {@link AuditingHandler} to be used to set the current auditor on the domain types touched.
+	 * 
 	 * @param auditingHandler the handler to set
 	 */
 	public void setAuditingHandler(AuditingHandler<T> auditingHandler) {

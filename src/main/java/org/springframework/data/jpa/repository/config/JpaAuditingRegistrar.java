@@ -15,6 +15,8 @@
  */
 package org.springframework.data.jpa.repository.config;
 
+import static org.springframework.data.jpa.domain.support.AuditingBeanFactoryPostProcessor.*;
+
 import java.lang.annotation.Annotation;
 
 import org.springframework.beans.factory.BeanDefinitionStoreException;
@@ -39,13 +41,10 @@ import org.springframework.util.ClassUtils;
  */
 class JpaAuditingRegistrar extends AuditingBeanDefinitionRegistrarSupport {
 
-	/**
-	 * The bean name of the internally managed bean configurer aspect.
-	 */
-	private static final String BEAN_CONFIGURER_ASPECT_BEAN_NAME = "org.springframework.context.config.internalBeanConfigurerAspect";
 	private static final String BEAN_CONFIGURER_ASPECT_CLASS_NAME = "org.springframework.beans.factory.aspectj.AnnotationBeanConfigurerAspect";
 
-	/* (non-Javadoc)
+	/* 
+	 * (non-Javadoc)
 	 * @see org.springframework.data.auditing.config.AuditingBeanDefinitionRegistrarSupport#getAnnotation()
 	 */
 	@Override
@@ -53,7 +52,8 @@ class JpaAuditingRegistrar extends AuditingBeanDefinitionRegistrarSupport {
 		return EnableJpaAuditing.class;
 	}
 
-	/* (non-Javadoc)
+	/* 
+	 * (non-Javadoc)
 	 * @see org.springframework.data.auditing.config.AuditingBeanDefinitionRegistrarSupport#registerBeanDefinitions(org.springframework.core.type.AnnotationMetadata, org.springframework.beans.factory.support.BeanDefinitionRegistry)
 	 */
 	@Override
@@ -68,7 +68,8 @@ class JpaAuditingRegistrar extends AuditingBeanDefinitionRegistrarSupport {
 				.getRawBeanDefinition(), AuditingBeanFactoryPostProcessor.class.getName(), registry);
 	}
 
-	/* (non-Javadoc)
+	/* 
+	 * (non-Javadoc)
 	 * @see org.springframework.data.auditing.config.AuditingBeanDefinitionRegistrarSupport#registerAuditListener(org.springframework.beans.factory.config.BeanDefinition, org.springframework.beans.factory.support.BeanDefinitionRegistry)
 	 */
 	@Override
@@ -86,7 +87,7 @@ class JpaAuditingRegistrar extends AuditingBeanDefinitionRegistrarSupport {
 	 */
 	private void registerBeanConfigurerAspectIfNecessary(BeanDefinitionRegistry registry) {
 
-		if (registry.containsBeanDefinition(BEAN_CONFIGURER_ASPECT_BEAN_NAME)) {
+		if (registry.containsBeanDefinition(BEAN_CONFIGURER_ASPECT_CLASS_NAME)) {
 			return;
 		}
 
