@@ -63,7 +63,7 @@ public abstract class AbstractAuditingViaJavaConfigRepositoriesTests {
 
 	@After
 	public void teardown() {
-		auditableUserRepository.delete(this.auditor);
+		doReturn(null).when(this.auditorAware).getCurrentAuditor();
 	}
 
 	@Test
