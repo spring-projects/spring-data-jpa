@@ -1156,12 +1156,12 @@ public interface UserRepository extends JpaRepository&lt;User, Long&gt; {
         <programlisting language="xml">&lt;jpa:auditing auditor-aware-ref="yourAuditorAwareBean" /&gt;</programlisting>
       </example>
 
+      <para>As of Spring Data JPA 1.5, auditing can be enabled by annotating a
+      configuration class with the <classname>@EnableJpaAuditing</classname>
+      annotation.</para>
+
       <example>
         <title>Activating auditing via Java configuration</title>
-
-        <para>As of Spring Data JPA 1.5, auditing can be enabled by annotating
-        a configuration class with the
-        <classname>EnableJpaAuditing</classname> annotation.</para>
 
         <programlisting language="java">@Configuration
 @EnableJpaAuditing
@@ -1172,17 +1172,17 @@ class Config {
     return new AuditorAwareImpl();
   }
 }</programlisting>
-
-        <para>If you expose a bean of type
-        <interfacename>AuditorAware</interfacename> to the
-        <interfacename>ApplicationContext</interfacename>, the auditing
-        infrastructure will pick it up automatically and use it to determine
-        the current user to be set on domain types. If you have multiple
-        implementations registered in the
-        <interfacename>ApplicationContext</interfacename>, you can select the
-        one to be used by explicitly setting the auditorAwareRef attribute of
-        <interfacename>@EnableJpaAuditing</interfacename>.</para>
       </example>
+
+      <para>If you expose a bean of type
+      <interfacename>AuditorAware</interfacename> to the
+      <interfacename>ApplicationContext</interfacename>, the auditing
+      infrastructure will pick it up automatically and use it to determine the
+      current user to be set on domain types. If you have multiple
+      implementations registered in the
+      <interfacename>ApplicationContext</interfacename>, you can select the
+      one to be used by explicitly setting the <code>auditorAwareRef</code>
+      attribute of <interfacename>@EnableJpaAuditing</interfacename>.</para>
     </section>
   </section>
 

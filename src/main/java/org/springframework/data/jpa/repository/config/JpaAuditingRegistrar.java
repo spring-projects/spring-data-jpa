@@ -59,8 +59,8 @@ class JpaAuditingRegistrar extends AuditingBeanDefinitionRegistrarSupport {
 	@Override
 	public void registerBeanDefinitions(AnnotationMetadata annotationMetadata, BeanDefinitionRegistry registry) {
 
-		Assert.notNull(annotationMetadata, "annotationMetadata must not be null!");
-		Assert.notNull(annotationMetadata, "registry must not be null!");
+		Assert.notNull(annotationMetadata, "AnnotationMetadata must not be null!");
+		Assert.notNull(registry, "BeanDefinitionRegistry must not be null!");
 
 		registerBeanConfigurerAspectIfNecessary(registry);
 		super.registerBeanDefinitions(annotationMetadata, registry);
