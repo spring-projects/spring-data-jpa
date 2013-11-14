@@ -30,6 +30,7 @@ import org.springframework.data.domain.Sort;
  * 
  * @author Oliver Gierke
  * @author Thomas Darimont
+ * @author Komi Innocent
  */
 public class QueryUtilsUnitTests {
 
@@ -261,6 +262,14 @@ public class QueryUtilsUnitTests {
 	@Test
 	public void createsCountQueryForNestedReferenceCorrectly() {
 		assertCountQuery("select a.b from A a", "select count(a.b) from A a");
+	}
+        
+	/**
+	 * @see DATAJPA-420
+	 */
+	@Test
+	public void createsCountQueryForScalarSelects() {
+		assertCountQuery("select p.lastname,p.firstname from Person p", "select count(p) from Person p");
 	}
 
 	private void assertCountQuery(String originalQuery, String countQuery) {
