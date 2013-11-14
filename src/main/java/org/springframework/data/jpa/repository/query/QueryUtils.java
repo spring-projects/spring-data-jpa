@@ -64,6 +64,7 @@ import org.springframework.util.StringUtils;
  * @author Oliver Gierke
  * @author Kevin Raymond
  * @author Thomas Darimont
+ * @author Komi Innocent
  */
 public abstract class QueryUtils {
 
@@ -341,7 +342,7 @@ public abstract class QueryUtils {
 		Matcher matcher = COUNT_MATCH.matcher(originalQuery);
 		String variable = matcher.matches() ? matcher.group(4) : null;
 		boolean useVariable = StringUtils.hasText(variable) && !variable.startsWith("new")
-				&& !variable.startsWith("count(");
+				&& !variable.startsWith("count(") && !variable.contains(",");
 
 		String countQuery = matcher.replaceFirst(String.format(COUNT_REPLACEMENT_TEMPLATE, useVariable ? SIMPLE_COUNT_VALUE
 				: COMPLEX_COUNT_VALUE));
