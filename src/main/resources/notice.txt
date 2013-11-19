@@ -1,4 +1,4 @@
-Spring Data JPA 1.4.0 RELEASE
+Spring Data JPA 1.5.0 M1
 Copyright (c) [2011-2013] Pivotal Inc.
 
 This product is licensed to you under the Apache License, Version 2.0 (the "License").  
