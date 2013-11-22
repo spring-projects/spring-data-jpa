@@ -53,6 +53,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.domain.sample.Address;
 import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.sample.UserRepository;
@@ -1148,6 +1149,51 @@ public class UserRepositoryTests {
 
 		assertThat(result, hasSize(4));
 		assertThat(result, contains(secondUser, firstUser, thirdUser, fourthUser));
+	}
+
+	/**
+	 * @see DATAJPA-427
+	 */
+	@Test
+	public void sortByAssociationPropertyShouldUseLeftOuterJoin() {
+
+		secondUser.getColleagues().add(firstUser);
+		fourthUser.getColleagues().add(thirdUser);
+		flushTestUsers();
+
+		List<User> result = repository.findAll(new Sort(Sort.Direction.ASC, "colleagues.id"));
+
+		assertThat(result, hasSize(4));
+	}
+
+	/**
+	 * @see DATAJPA-427
+	 */
+	@Test
+	public void sortByAssociationPropertyInPageableShouldUseLeftOuterJoin() {
+
+		secondUser.getColleagues().add(firstUser);
+		fourthUser.getColleagues().add(thirdUser);
+		flushTestUsers();
+
+		Page<User> page = repository.findAll(new PageRequest(0, 10, new Sort(Sort.Direction.ASC, "colleagues.id")));
+
+		assertThat(page.getContent(), hasSize(4));
+	}
+
+	/**
+	 * @see DATAJPA-427
+	 */
+	@Test
+	public void sortByEmbeddedProperty() {
+
+		thirdUser.setAddress(new Address("Germany", "Saarbrücken", "HaveItYourWay", "123"));
+		flushTestUsers();
+
+		Page<User> page = repository.findAll(new PageRequest(0, 10, new Sort(Sort.Direction.ASC, "address.streetName")));
+
+		assertThat(page.getContent(), hasSize(4));
+		assertThat(page.getContent().get(3), is(thirdUser));
 	}
 
 	private Page<User> executeSpecWithSort(Sort sort) {
