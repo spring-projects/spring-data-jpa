@@ -15,7 +15,12 @@
  */
 package org.springframework.data.jpa.repository.support;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 import javax.persistence.EntityManager;
+import javax.persistence.metamodel.Attribute;
+import javax.persistence.metamodel.EntityType;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -30,6 +35,7 @@ import com.mysema.query.jpa.impl.JPAQuery;
 import com.mysema.query.types.EntityPath;
 import com.mysema.query.types.Expression;
 import com.mysema.query.types.OrderSpecifier;
+import com.mysema.query.types.path.EntityPathBase;
 import com.mysema.query.types.path.PathBuilder;
 
 /**
@@ -121,7 +127,7 @@ public class Querydsl {
 		}
 
 		for (Order order : sort) {
-			query.orderBy(toOrder(order));
+			query.orderBy(toOrder(order, query));
 		}
 
 		return query;
@@ -134,16 +140,58 @@ public class Querydsl {
 	 * @return
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private OrderSpecifier<?> toOrder(Order order) {
+	private OrderSpecifier<?> toOrder(Order order, JPQLQuery query) {
 
-		Expression<?> property = builder.get(order.getProperty());
-
-		// Apply ignore case in case we have a String and ignore case ordering is requested
-		if (order.isIgnoreCase()) {
-			property = builder.getString(order.getProperty()).lower();
-		}
+		Expression<?> property = createExpressionAndPotentionallyAddLeftJoinForReferencedAssociation(order, query);
 
 		return new OrderSpecifier(order.isAscending() ? com.mysema.query.types.Order.ASC
 				: com.mysema.query.types.Order.DESC, property);
+	}
+
+	/**
+	 * Potentially adds a left join to the given {@link JPQLQuery} query if the order contains a property path that uses
+	 * an association and returns the property expression build from the path of the association.
+	 * 
+	 * @param order must not be {@literal null}.
+	 * @param query must not be {@literal null}.
+	 * @return property expression.
+	 */
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	private Expression<?> createExpressionAndPotentionallyAddLeftJoinForReferencedAssociation(Order order, JPQLQuery query) {
+
+		Assert.notNull(order, "Order must not be null!");
+		Assert.notNull(query, "JPQLQuery must not be null!");
+
+		if (!order.getProperty().contains(".")) {
+			// Apply ignore case in case we have a String and ignore case ordering is requested
+			return order.isIgnoreCase() ? builder.getString(order.getProperty()).lower() : builder.get(order.getProperty());
+		}
+
+		EntityType<?> entitytype = em.getMetamodel().entity(builder.getType());
+
+		Set<Attribute<?, ?>> combinedAttributes = new LinkedHashSet<Attribute<?, ?>>();
+		combinedAttributes.addAll(entitytype.getSingularAttributes());
+		combinedAttributes.addAll(entitytype.getPluralAttributes());
+
+		for (Attribute<?, ?> attribute : combinedAttributes) {
+
+			String attributePrefix = attribute.getName() + ".";
+			if (order.getProperty().startsWith(attributePrefix)) {
+
+				EntityPathBase<?> associationPathRoot = new EntityPathBase<Object>(attribute.getJavaType(), attribute.getName());
+
+				query.leftJoin((EntityPath) builder.get(attribute.getName()), associationPathRoot);
+
+				PathBuilder<Object> attributePathBuilder = new PathBuilder<Object>(attribute.getJavaType(),
+						associationPathRoot.getMetadata());
+				String nestedAttributePath = order.getProperty().substring(attributePrefix.length());
+
+				return order.isIgnoreCase() ? attributePathBuilder.getString(nestedAttributePath).lower()
+						: attributePathBuilder.get(nestedAttributePath);
+			}
+		}
+
+		throw new IllegalArgumentException(
+				String.format("Could not create property expression for %s", order.getProperty()));
 	}
 }

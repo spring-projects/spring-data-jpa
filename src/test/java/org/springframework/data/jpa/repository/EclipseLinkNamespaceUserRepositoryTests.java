@@ -68,7 +68,17 @@ public class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserReposi
 	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=349477 is resolved.
 	 */
 	@Override
-	public void invokesQueryWithVarargsParametersCorrectly() {
+	public void invokesQueryWithVarargsParametersCorrectly() {}
 
-	}
+	/**
+	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=422450 is resolved.
+	 */
+	@Override
+	public void sortByAssociationPropertyShouldUseLeftOuterJoin() {}
+
+	/**
+	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=422450 is resolved.
+	 */
+	@Override
+	public void sortByAssociationPropertyInPageableShouldUseLeftOuterJoin() {}
 }

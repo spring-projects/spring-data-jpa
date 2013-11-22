@@ -1150,6 +1150,36 @@ public class UserRepositoryTests {
 		assertThat(result, contains(secondUser, firstUser, thirdUser, fourthUser));
 	}
 
+	/**
+	 * @see DATAJPA-427
+	 */
+	@Test
+	public void sortByAssociationPropertyShouldUseLeftOuterJoin() {
+
+		secondUser.getColleagues().add(firstUser);
+		fourthUser.getColleagues().add(thirdUser);
+		flushTestUsers();
+
+		List<User> result = repository.findAll(new Sort(Sort.Direction.ASC, "colleagues.id"));
+
+		assertThat(result, hasSize(4));
+	}
+
+	/**
+	 * @see DATAJPA-427
+	 */
+	@Test
+	public void sortByAssociationPropertyInPageableShouldUseLeftOuterJoin() {
+
+		secondUser.getColleagues().add(firstUser);
+		fourthUser.getColleagues().add(thirdUser);
+		flushTestUsers();
+
+		Page<User> page = repository.findAll(new PageRequest(0, 10, new Sort(Sort.Direction.ASC, "colleagues.id")));
+
+		assertThat(page.getContent(), hasSize(4));
+	}
+
 	private Page<User> executeSpecWithSort(Sort sort) {
 
 		flushTestUsers();
