@@ -63,4 +63,16 @@ public class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserReposi
 	public void shouldGenerateLeftOuterJoinInfindAllWithPaginationAndSortOnNestedPropertyPath() {
 		super.shouldGenerateLeftOuterJoinInfindAllWithPaginationAndSortOnNestedPropertyPath();
 	}
+
+	/**
+	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=422450 is resolved.
+	 */
+	@Override
+	public void sortByAssociationPropertyShouldUseLeftOuterJoin() {}
+
+	/**
+	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=422450 is resolved.
+	 */
+	@Override
+	public void sortByAssociationPropertyInPageableShouldUseLeftOuterJoin() {}
 }
