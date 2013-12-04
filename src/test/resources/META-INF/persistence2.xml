@@ -6,6 +6,8 @@
 		<class>org.springframework.data.jpa.domain.sample.User</class>
 		<class>org.springframework.data.jpa.domain.sample.SpecialUser</class>
 		<class>org.springframework.data.jpa.domain.sample.Role</class>
+		<class>org.springframework.data.jpa.domain.sample.MailMessage</class>
+		<class>org.springframework.data.jpa.domain.sample.MailSender</class>
 		<exclude-unlisted-classes>true</exclude-unlisted-classes>
 	</persistence-unit>
 	<persistence-unit name="second">
@@ -14,6 +16,8 @@
 		<class>org.springframework.data.jpa.domain.sample.Role</class>
 		<class>org.springframework.data.jpa.domain.sample.AuditableUser</class>
 		<class>org.springframework.data.jpa.domain.sample.AuditableRole</class>
+		<class>org.springframework.data.jpa.domain.sample.MailMessage</class>
+		<class>org.springframework.data.jpa.domain.sample.MailSender</class>
 		<exclude-unlisted-classes>true</exclude-unlisted-classes>
 	</persistence-unit>
 </persistence>

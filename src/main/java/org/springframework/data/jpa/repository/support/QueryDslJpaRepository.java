@@ -25,6 +25,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.querydsl.EntityPathResolver;
+import org.springframework.data.querydsl.QSort;
 import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 import org.springframework.data.querydsl.SimpleEntityPathResolver;
 
@@ -99,7 +100,10 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 	 * @see org.springframework.data.querydsl.QueryDslPredicateExecutor#findAll(com.mysema.query.types.Predicate, com.mysema.query.types.OrderSpecifier<?>[])
 	 */
 	public List<T> findAll(Predicate predicate, OrderSpecifier<?>... orders) {
-		return createQuery(predicate).orderBy(orders).list(path);
+
+		JPQLQuery query = createQuery(predicate);
+		query = querydsl.applySorting(new QSort(orders), query);
+		return query.list(path);
 	}
 
 	/*
