@@ -28,16 +28,22 @@
 		<class>org.springframework.data.jpa.domain.sample.Customer</class>
 		<class>org.springframework.data.jpa.domain.sample.Order</class>
 		<class>org.springframework.data.jpa.domain.sample.Address</class>
+		<class>org.springframework.data.jpa.domain.sample.MailMessage</class>
+		<class>org.springframework.data.jpa.domain.sample.MailSender</class>
 		<exclude-unlisted-classes>true</exclude-unlisted-classes>
 	</persistence-unit>
 	<persistence-unit name="querydsl">
 		<class>org.springframework.data.jpa.domain.sample.User</class>
+		<class>org.springframework.data.jpa.domain.sample.MailMessage</class>
+		<class>org.springframework.data.jpa.domain.sample.MailSender</class>
 		<exclude-unlisted-classes>true</exclude-unlisted-classes>
 	</persistence-unit>
 	<persistence-unit name="cdi">
 		<provider>org.hibernate.ejb.HibernatePersistence</provider>
 		<class>org.springframework.data.jpa.domain.sample.User</class>
 		<class>org.springframework.data.jpa.repository.cdi.Person</class>
+		<class>org.springframework.data.jpa.domain.sample.MailMessage</class>
+		<class>org.springframework.data.jpa.domain.sample.MailSender</class>
 		<exclude-unlisted-classes>true</exclude-unlisted-classes>
 		<properties>
 			<property name="hibernate.connection.username" value="sa" />
@@ -54,6 +60,8 @@
 	<persistence-unit name="metadata">
 		<provider>org.hibernate.ejb.HibernatePersistence</provider>
 		<class>org.springframework.data.jpa.domain.sample.User</class>
+		<class>org.springframework.data.jpa.domain.sample.MailMessage</class>
+		<class>org.springframework.data.jpa.domain.sample.MailSender</class>
 		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$Sample</class>
 		<exclude-unlisted-classes>true</exclude-unlisted-classes>
 		<properties>
@@ -63,12 +71,16 @@
 	<persistence-unit name="metadata_el">
 		<provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
 		<class>org.springframework.data.jpa.domain.sample.User</class>
+		<class>org.springframework.data.jpa.domain.sample.MailMessage</class>
+		<class>org.springframework.data.jpa.domain.sample.MailSender</class>
 		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$Sample</class>
 		<exclude-unlisted-classes>true</exclude-unlisted-classes>
 	</persistence-unit>
 	<persistence-unit name="metadata_oj">
 		<provider>org.apache.openjpa.persistence.PersistenceProviderImpl</provider>
 		<class>org.springframework.data.jpa.domain.sample.User</class>
+		<class>org.springframework.data.jpa.domain.sample.MailMessage</class>
+		<class>org.springframework.data.jpa.domain.sample.MailSender</class>
 		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$Sample</class>
 		<exclude-unlisted-classes>true</exclude-unlisted-classes>
 		<properties>

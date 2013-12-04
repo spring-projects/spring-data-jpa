@@ -64,10 +64,7 @@ public class User {
 	 * Creates a new empty instance of {@code User}.
 	 */
 	public User() {
-
-		this.roles = new HashSet<Role>();
-		this.colleagues = new HashSet<User>();
-		this.createdAt = new Date();
+		this(null, null, null);
 	}
 
 	/**
@@ -77,13 +74,15 @@ public class User {
 	 * @param lastname
 	 * @param emailAddress
 	 */
-	public User(final String firstname, final String lastname, final String emailAddress) {
+	public User(String firstname, String lastname, String emailAddress) {
 
-		this();
 		this.firstname = firstname;
 		this.lastname = lastname;
 		this.emailAddress = emailAddress;
 		this.active = true;
+		this.roles = new HashSet<Role>();
+		this.colleagues = new HashSet<User>();
+		this.createdAt = new Date();
 	}
 
 	/**
