@@ -156,7 +156,6 @@ public class Querydsl {
 	 * @param query must not be {@literal null}.
 	 * @return property expression.
 	 */
-	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private Expression<?> createExpressionAndPotentionallyAddLeftJoinForReferencedAssociation(Order order, JPQLQuery query) {
 
 		Assert.notNull(order, "Order must not be null!");
@@ -175,23 +174,37 @@ public class Querydsl {
 
 		for (Attribute<?, ?> attribute : combinedAttributes) {
 
-			String attributePrefix = attribute.getName() + ".";
-			if (order.getProperty().startsWith(attributePrefix)) {
+			if (order.getProperty().startsWith(attribute.getName() + ".")) {
 
-				EntityPathBase<?> associationPathRoot = new EntityPathBase<Object>(attribute.getJavaType(), attribute.getName());
-
-				query.leftJoin((EntityPath) builder.get(attribute.getName()), associationPathRoot);
-
-				PathBuilder<Object> attributePathBuilder = new PathBuilder<Object>(attribute.getJavaType(),
-						associationPathRoot.getMetadata());
-				String nestedAttributePath = order.getProperty().substring(attributePrefix.length());
-
-				return order.isIgnoreCase() ? attributePathBuilder.getString(nestedAttributePath).lower()
-						: attributePathBuilder.get(nestedAttributePath);
+				switch (attribute.getPersistentAttributeType()) {
+					case EMBEDDED:
+						return builder.get(order.getProperty());
+					default:
+						return createLeftJoinForAttributeInOrderBy(attribute, order, query);
+				}
 			}
 		}
 
 		throw new IllegalArgumentException(
 				String.format("Could not create property expression for %s", order.getProperty()));
+	}
+
+	/**
+	 * @param attribute
+	 * @param order
+	 * @param query
+	 * @return
+	 */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	private Expression<?> createLeftJoinForAttributeInOrderBy(Attribute<?, ?> attribute, Order order, JPQLQuery query) {
+
+		EntityPathBase<?> associationPathRoot = new EntityPathBase<Object>(attribute.getJavaType(), attribute.getName());
+		query.leftJoin((EntityPath) builder.get(attribute.getName()), associationPathRoot);
+		PathBuilder<Object> attributePathBuilder = new PathBuilder<Object>(attribute.getJavaType(),
+				associationPathRoot.getMetadata());
+
+		String nestedAttributePath = order.getProperty().substring(attribute.getName().length() + 1); // exclude "."
+		return order.isIgnoreCase() ? attributePathBuilder.getString(nestedAttributePath).lower() : attributePathBuilder
+				.get(nestedAttributePath);
 	}
 }

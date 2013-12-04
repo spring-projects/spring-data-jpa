@@ -21,6 +21,7 @@ import java.util.Set;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -56,6 +57,8 @@ public class User {
 	@ManyToMany private Set<Role> roles;
 
 	@ManyToOne private User manager;
+
+	@Embedded private Address address;
 
 	/**
 	 * Creates a new empty instance of {@code User}.
@@ -273,6 +276,20 @@ public class User {
 	 */
 	public Date getCreatedAt() {
 		return createdAt;
+	}
+
+	/**
+	 * @return the address
+	 */
+	public Address getAddress() {
+		return address;
+	}
+
+	/**
+	 * @param address the address to set
+	 */
+	public void setAddress(Address address) {
+		this.address = address;
 	}
 
 	/*

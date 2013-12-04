@@ -31,6 +31,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.domain.Sort.Order;
+import org.springframework.data.jpa.domain.sample.Address;
 import org.springframework.data.jpa.domain.sample.QUser;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.test.context.ContextConfiguration;
@@ -195,5 +196,23 @@ public class QueryDslJpaRepositoryTests {
 
 		assertThat(page.getContent(), hasSize(3));
 		assertThat(page.getContent(), hasItems(carter, dave, oliver));
+	}
+
+	/**
+	 * @see DATAJPA-427
+	 */
+	@Test
+	public void findBySpecificationWithSortByNestedEmbeddedPropertyInPageableShouldUseSortNullValuesFirst() {
+
+		oliver.setAddress(new Address("Germany", "Saarbrücken", "HaveItYourWay", "123"));
+
+		QUser user = QUser.user;
+
+		Page<User> page = repository.findAll(user.firstname.isNotNull(), new PageRequest(0, 10, new Sort(
+				Sort.Direction.ASC, "address.streetName")));
+
+		assertThat(page.getContent(), hasSize(3));
+		assertThat(page.getContent(), hasItems(dave, carter, oliver));
+		assertThat(page.getContent().get(2), is(oliver));
 	}
 }
