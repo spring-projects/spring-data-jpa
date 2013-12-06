@@ -34,6 +34,8 @@ import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.jpa.domain.sample.Address;
 import org.springframework.data.jpa.domain.sample.QUser;
 import org.springframework.data.jpa.domain.sample.User;
+import org.springframework.data.querydsl.QPageRequest;
+import org.springframework.data.querydsl.QSort;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
@@ -213,6 +215,62 @@ public class QueryDslJpaRepositoryTests {
 
 		assertThat(page.getContent(), hasSize(3));
 		assertThat(page.getContent(), hasItems(dave, carter, oliver));
+		assertThat(page.getContent().get(2), is(oliver));
+	}
+
+	/**
+	 * @see DATAJPA-12
+	 */
+	@Test
+	public void findBySpecificationWithSortByQueryDslOrderSpecifierWithQPageRequestAndQSort() {
+
+		QUser user = QUser.user;
+
+		Page<User> page = repository.findAll(user.firstname.isNotNull(),
+				new QPageRequest(0, 10, new QSort(user.firstname.asc())));
+
+		assertThat(page.getContent(), hasSize(3));
+		assertThat(page.getContent(), hasItems(carter, dave, oliver));
+		assertThat(page.getContent().get(0), is(carter));
+		assertThat(page.getContent().get(1), is(dave));
+		assertThat(page.getContent().get(2), is(oliver));
+	}
+
+	/**
+	 * @see DATAJPA-12
+	 */
+	@Test
+	public void findBySpecificationWithSortByQueryDslOrderSpecifierWithQPageRequest() {
+
+		QUser user = QUser.user;
+
+		Page<User> page = repository.findAll(user.firstname.isNotNull(), new QPageRequest(0, 10, user.firstname.asc()));
+
+		assertThat(page.getContent(), hasSize(3));
+		assertThat(page.getContent(), hasItems(carter, dave, oliver));
+		assertThat(page.getContent().get(0), is(carter));
+		assertThat(page.getContent().get(1), is(dave));
+		assertThat(page.getContent().get(2), is(oliver));
+	}
+
+	/**
+	 * @see DATAJPA-12
+	 */
+	@Test
+	public void findBySpecificationWithSortByQueryDslOrderSpecifierForAssociationShouldGenerateLeftJoinWithQPageRequest() {
+
+		oliver.setManager(dave);
+		dave.setManager(carter);
+
+		QUser user = QUser.user;
+
+		Page<User> page = repository.findAll(user.firstname.isNotNull(),
+				new QPageRequest(0, 10, user.manager.firstname.asc()));
+
+		assertThat(page.getContent(), hasSize(3));
+		assertThat(page.getContent(), hasItems(carter, dave, oliver));
+		assertThat(page.getContent().get(0), is(carter));
+		assertThat(page.getContent().get(1), is(dave));
 		assertThat(page.getContent().get(2), is(oliver));
 	}
 }

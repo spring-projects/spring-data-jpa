@@ -5,7 +5,7 @@
 	
 	<groupId>org.springframework.data</groupId>
 	<artifactId>spring-data-jpa</artifactId>
-	<version>1.5.0.BUILD-SNAPSHOT</version>
+	<version>1.5.0.DATAJPA-12-SNAPSHOT</version>
 
 	<name>Spring Data JPA</name>
 	<description>Spring Data module for JPA repositories.</description>
@@ -27,7 +27,7 @@
 		<hsqldb1>1.8.0.10</hsqldb1>
 		<jpa>2.0.0</jpa>
 		<openjpa>2.2.1</openjpa>
-		<springdata.commons>1.7.0.M1</springdata.commons>
+		<springdata.commons>1.7.0.BUILD-SNAPSHOT</springdata.commons>
 		
 	</properties>
 	
@@ -413,6 +413,69 @@
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>wagon-maven-plugin</artifactId>
 			</plugin>
+			
+			<plugin>
+				<!-- configuration for JPA Metamodel generation 
+					as described here: http://stackoverflow.com/questions/18853585/maven-build-with-annotationprocessor-that-parses-files-in-src-main-java-and-gene
+				 -->
+			
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<executions>
+					 <execution>
+                    <!-- normal compile and generation of other classes to standard location (implicit, you shouldn't need that) -->
+                    <id>default-compile</id>
+                    <goals>
+                        <goal>compile</goal>
+                    </goals>
+                </execution>
+                <execution>
+                    <goals>
+                        <goal>compile</goal>
+                    </goals>
+                    <configuration>
+                        <annotationProcessors>
+                            <annotationProcessor>org.hibernate.jpamodelgen.JPAMetaModelEntityProcessor</annotationProcessor>
+                        </annotationProcessors>
+                        <generatedSourcesDirectory>${project.build.directory}/generated-sources/test</generatedSourcesDirectory>
+                        <!-- generated class depends on test-scope libs, so don't compile now: proc:only DISABLES compilation of generated classes-->
+                        <proc>only</proc>
+                    </configuration>
+                </execution>
+                <!-- implicit test-compile:testCompile -->
+				</executions>
+				
+				<dependencies>
+					<dependency>
+						<groupId>org.hibernate</groupId>
+						<artifactId>hibernate-jpamodelgen</artifactId>
+						<version>1.2.0.Final</version>
+					</dependency>
+				</dependencies>
+			</plugin> 
+			
+			 <plugin>
+            <!-- adds source-dir during generate-test-sources:add-test-source 
+                 so that the path to our generated class is now known to the 
+                 compiler during test-compile:testCompile -->
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>build-helper-maven-plugin</artifactId>
+            <version>1.8</version>
+            <executions>
+                <execution>
+                    <id>add-test-source</id>
+                    <phase>generate-test-sources</phase>
+                    <goals>
+                        <goal>add-test-source</goal>
+                    </goals>
+                    <configuration>
+                        <sources>
+                            <source>${project.build.directory}/generated-sources/test</source>
+                        </sources>
+                    </configuration>
+                </execution> 
+            </executions>
+        </plugin>
 		</plugins>
 	</build>
 	

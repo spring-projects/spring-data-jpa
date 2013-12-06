@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2012-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,9 @@
  */
 package org.springframework.data.jpa.repository.support;
 
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 import javax.persistence.EntityManager;
@@ -25,6 +27,7 @@ import javax.persistence.metamodel.EntityType;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
+import org.springframework.data.querydsl.QSort;
 import org.springframework.util.Assert;
 
 import com.mysema.query.jpa.EclipseLinkTemplates;
@@ -35,6 +38,7 @@ import com.mysema.query.jpa.impl.JPAQuery;
 import com.mysema.query.types.EntityPath;
 import com.mysema.query.types.Expression;
 import com.mysema.query.types.OrderSpecifier;
+import com.mysema.query.types.Path;
 import com.mysema.query.types.path.EntityPathBase;
 import com.mysema.query.types.path.PathBuilder;
 
@@ -42,6 +46,7 @@ import com.mysema.query.types.path.PathBuilder;
  * Helper instance to ease access to Querydsl JPA query API.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 public class Querydsl {
 
@@ -126,8 +131,87 @@ public class Querydsl {
 			return query;
 		}
 
+		if (sort instanceof QSort) {
+			return addOrderByFrom((QSort) sort, query);
+		}
+
+		return addOrderByFrom(sort, query);
+	}
+
+	/**
+	 * Applies the given {@link OrderSpecifier}s to the given {@link JPQLQuery}. Potentially transforms the given
+	 * {@code OrderSpecifier}s to be able to injection potentially necessary left-joins.
+	 * 
+	 * @param qsort must not be {@literal null}.
+	 * @param query must not be {@literal null}.
+	 */
+
+	private JPQLQuery addOrderByFrom(QSort qsort, JPQLQuery query) {
+		return query.orderBy(adjustOrderSpecifierIfNecessary(qsort.getOrderSpecifiers(), query));
+	}
+
+	/**
+	 * Rewrites the given {@link OrderSpecifier} if necessary, e.g. generates proper aliases and left-joins to be created
+	 * if we detect ordering by an nested attribute.
+	 * 
+	 * @param originalOrderSpecifiers must not be {@literal null}.
+	 * @param query must not be {@literal null}.
+	 * @return
+	 */
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	private OrderSpecifier<?>[] adjustOrderSpecifierIfNecessary(List<OrderSpecifier<?>> originalOrderSpecifiers,
+			JPQLQuery query) {
+
+		Assert.notNull(originalOrderSpecifiers, "Original order specifiers must not be null!");
+		Assert.notNull(query, "Query must not be null!");
+
+		boolean orderModificationNecessary = false;
+		List<OrderSpecifier<?>> modifiedOrderSpecifiers = new ArrayList<OrderSpecifier<?>>();
+
+		for (OrderSpecifier<?> order : originalOrderSpecifiers) {
+
+			Path targetPath = ((Path) order.getTarget()).getMetadata().getParent();
+
+			boolean targetPathRootIsEntityRoot = targetPath.getRoot().equals(builder.getRoot());
+			boolean targetPathEqualsRootEnityPath = targetPath.toString().equals(builder.toString());
+
+			if (!targetPathRootIsEntityRoot) {
+
+				query.leftJoin((EntityPath) builder.get((String) targetPath.getMetadata().getElement()), targetPath);
+			} else if (targetPathRootIsEntityRoot && !targetPathEqualsRootEnityPath) {
+
+				PathBuilder joinPathBuilder = new PathBuilder(targetPath.getType(), targetPath.getMetadata().getElement()
+						.toString());
+				query.leftJoin((EntityPath) targetPath, joinPathBuilder);
+				OrderSpecifier<?> modifiedOrder = new OrderSpecifier(order.getOrder(), joinPathBuilder.get(((Path) order
+						.getTarget()).getMetadata().getElement().toString()), order.getNullHandling());
+				modifiedOrderSpecifiers.add(modifiedOrder);
+				orderModificationNecessary = true;
+				continue;
+			}
+
+			modifiedOrderSpecifiers.add(order);
+		}
+
+		return orderModificationNecessary ? modifiedOrderSpecifiers.toArray(new OrderSpecifier<?>[modifiedOrderSpecifiers
+				.size()]) : originalOrderSpecifiers.toArray(new OrderSpecifier<?>[originalOrderSpecifiers.size()]);
+	}
+
+	/**
+	 * Converts the {@link Order} items of the given {@link Sort} into {@link OrderSpecifier} and attaches those to the
+	 * given {@link JPQLQuery}.
+	 * 
+	 * @param sort must not be {@literal null}.
+	 * @param query must not be {@literal null}.
+	 * @return
+	 */
+	private JPQLQuery addOrderByFrom(Sort sort, JPQLQuery query) {
+
+		Assert.notNull(sort, "Sort must not be null!");
+		Assert.notNull(query, "Query must not be null!");
+
 		for (Order order : sort) {
-			query.orderBy(toOrder(order, query));
+			query.orderBy(toOrderSpecifier(order, query));
 		}
 
 		return query;
@@ -140,7 +224,7 @@ public class Querydsl {
 	 * @return
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private OrderSpecifier<?> toOrder(Order order, JPQLQuery query) {
+	private OrderSpecifier<?> toOrderSpecifier(Order order, JPQLQuery query) {
 
 		Expression<?> property = createExpressionAndPotentionallyAddLeftJoinForReferencedAssociation(order, query);
 
@@ -190,20 +274,29 @@ public class Querydsl {
 	}
 
 	/**
-	 * @param attribute
-	 * @param order
-	 * @param query
+	 * Adds a left-join to the given {@link JPQLQuery} with a proper alias for the property referenced on the given
+	 * {@link Order} relative to the given parent {@link Attribute}.
+	 * 
+	 * @param parentAttribute must not be {@literal null}.
+	 * @param order must not be {@literal null}.
+	 * @param query must not be {@literal null}.
 	 * @return
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private Expression<?> createLeftJoinForAttributeInOrderBy(Attribute<?, ?> attribute, Order order, JPQLQuery query) {
+	private Expression<?> createLeftJoinForAttributeInOrderBy(Attribute<?, ?> parentAttribute, Order order,
+			JPQLQuery query) {
 
-		EntityPathBase<?> associationPathRoot = new EntityPathBase<Object>(attribute.getJavaType(), attribute.getName());
-		query.leftJoin((EntityPath) builder.get(attribute.getName()), associationPathRoot);
-		PathBuilder<Object> attributePathBuilder = new PathBuilder<Object>(attribute.getJavaType(),
+		Assert.notNull(parentAttribute, "Attribute must not be null!");
+		Assert.notNull(order, "Order must not be null!");
+		Assert.notNull(query, "Query must not be null!");
+
+		EntityPathBase<?> associationPathRoot = new EntityPathBase<Object>(parentAttribute.getJavaType(),
+				parentAttribute.getName());
+		query.leftJoin((EntityPath) builder.get(parentAttribute.getName()), associationPathRoot);
+		PathBuilder<Object> attributePathBuilder = new PathBuilder<Object>(parentAttribute.getJavaType(),
 				associationPathRoot.getMetadata());
 
-		String nestedAttributePath = order.getProperty().substring(attribute.getName().length() + 1); // exclude "."
+		String nestedAttributePath = order.getProperty().substring(parentAttribute.getName().length() + 1); // exclude "."
 		return order.isIgnoreCase() ? attributePathBuilder.getString(nestedAttributePath).lower() : attributePathBuilder
 				.get(nestedAttributePath);
 	}

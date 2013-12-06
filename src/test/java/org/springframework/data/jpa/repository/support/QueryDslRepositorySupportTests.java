@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2011-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,14 +36,14 @@ import org.springframework.transaction.annotation.Transactional;
  * Integration test for {@link QueryDslRepositorySupport}.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({ "classpath:infrastructure.xml" })
 @Transactional
 public class QueryDslRepositorySupportTests {
 
-	@PersistenceContext
-	EntityManager em;
+	@PersistenceContext EntityManager em;
 
 	UserRepository repository;
 	User dave, carter;
