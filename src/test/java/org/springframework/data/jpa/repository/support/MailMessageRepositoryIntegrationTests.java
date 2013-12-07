@@ -17,18 +17,13 @@ package org.springframework.data.jpa.repository.support;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
-import static org.springframework.data.jpa.support.JpaMetaModelPathBuilder.*;
+import static org.springframework.data.jpa.domain.JpaSort.*;
 
 import java.util.List;
-
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort.Direction;
@@ -37,30 +32,27 @@ import org.springframework.data.jpa.domain.sample.MailMessage;
 import org.springframework.data.jpa.domain.sample.MailMessage_;
 import org.springframework.data.jpa.domain.sample.MailSender;
 import org.springframework.data.jpa.domain.sample.MailSender_;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.data.jpa.repository.config.InfrastructureConfig;
+import org.springframework.data.jpa.domain.sample.QMailMessage;
+import org.springframework.data.jpa.domain.sample.QMailSender;
 import org.springframework.data.jpa.repository.sample.MailMessageRepository;
+import org.springframework.data.jpa.repository.sample.SampleConfig;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
+ * Integration tests for {@link MailMessageRepository}.
+ * 
  * @author Thomas Darimont
+ * @author Oliver Gierke
  */
-@Transactional
-@ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
-public class JpaMetaModelRepositoryUnitTests {
+@ContextConfiguration(classes = SampleConfig.class)
+@Transactional
+public class MailMessageRepositoryIntegrationTests {
 
-	@Configuration
-	@Import(InfrastructureConfig.class)
-	@EnableJpaRepositories(basePackageClasses = MailMessageRepository.class)
-	static class Config {}
-
-	private static final MailMessage_ jmail = null;
-	private static final MailSender_ jsender = null;
-
-	@PersistenceContext EntityManager em;
+	static final QMailMessage message = QMailMessage.mailMessage;
+	static final QMailSender sender = QMailSender.mailSender;
 
 	@Autowired MailMessageRepository mailMessageRepository;
 
@@ -82,8 +74,32 @@ public class JpaMetaModelRepositoryUnitTests {
 		mailMessageRepository.save(message2);
 
 		Page<MailMessage> results = mailMessageRepository.findAll(new PageRequest(0, 20, //
-				new JpaSort(Direction.ASC, path(jmail.mailSender).get(jsender.name).build(em))));
+				new JpaSort(Direction.ASC, path(MailMessage_.mailSender).dot(MailSender_.name))));
 		List<MailMessage> messages = results.getContent();
+
+		assertThat(messages, hasSize(2));
+		assertThat(messages.get(0).getMailSender(), is(nullValue()));
+		assertThat(messages.get(1).getMailSender(), is(sender1));
+	}
+
+	/**
+	 * @see DATAJPA-12
+	 */
+	@Test
+	public void shouldSortMailWithQueryDslRepositoryAndDslSortCriteriaNullsFirst() {
+
+		MailMessage message1 = new MailMessage();
+		message1.setContent("abc");
+		MailSender sender1 = new MailSender("foo");
+		message1.setMailSender(sender1);
+
+		MailMessage message2 = new MailMessage();
+		message2.setContent("abc");
+
+		mailMessageRepository.save(message1);
+		mailMessageRepository.save(message2);
+
+		List<MailMessage> messages = mailMessageRepository.findAll(message.content.eq("abc"), message.mailSender.name.asc());
 
 		assertThat(messages, hasSize(2));
 		assertThat(messages.get(0).getMailSender(), is(nullValue()));

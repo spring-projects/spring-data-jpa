@@ -454,28 +454,31 @@
 				</dependencies>
 			</plugin> 
 			
-			 <plugin>
-            <!-- adds source-dir during generate-test-sources:add-test-source 
-                 so that the path to our generated class is now known to the 
-                 compiler during test-compile:testCompile -->
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>build-helper-maven-plugin</artifactId>
-            <version>1.8</version>
-            <executions>
-                <execution>
-                    <id>add-test-source</id>
-                    <phase>generate-test-sources</phase>
-                    <goals>
-                        <goal>add-test-source</goal>
-                    </goals>
-                    <configuration>
-                        <sources>
-                            <source>${project.build.directory}/generated-sources/test</source>
-                        </sources>
-                    </configuration>
-                </execution> 
-            </executions>
-        </plugin>
+            <!--
+            	Adds source-dir during generate-test-sources:add-test-source
+				so that the path to our generated class is now known to the
+				compiler during test-compile:testCompile
+			-->
+			<plugin>
+	            <groupId>org.codehaus.mojo</groupId>
+	            <artifactId>build-helper-maven-plugin</artifactId>
+	            <version>1.8</version>
+	            <executions>
+	                <execution>
+	                    <id>add-test-source</id>
+	                    <phase>generate-test-sources</phase>
+	                    <goals>
+	                        <goal>add-test-source</goal>
+	                    </goals>
+	                    <configuration>
+	                        <sources>
+	                            <source>${project.build.directory}/generated-sources/test</source>
+	                            <source>${project.build.directory}/generated-test-sources/test-annotations</source>
+	                        </sources>
+	                    </configuration>
+	                </execution>
+	            </executions>
+	        </plugin>
 		</plugins>
 	</build>
 	

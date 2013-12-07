@@ -17,98 +17,192 @@ package org.springframework.data.jpa.domain;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
-import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.Path;
-import javax.persistence.criteria.Root;
-import javax.persistence.metamodel.SingularAttribute;
+import javax.persistence.metamodel.Attribute;
+import javax.persistence.metamodel.PluralAttribute;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.util.Assert;
 
 /**
- * Sort option for queries that wraps JPA MetaModel {@link Expression}s for sorting.
+ * Sort option for queries that wraps JPA meta-model {@link Attribute}s for sorting.
  * 
  * @author Thomas Darimont
+ * @author Oliver Gierke
  */
 public class JpaSort extends Sort {
 
 	private static final long serialVersionUID = 1L;
 
 	/**
-	 * Creates a new {@link JpaSort} instance with the given {@link Path}s.
+	 * Creates a new {@link JpaSort} for the given attributes with the default sort direction.
 	 * 
-	 * @param jpaPaths must not be {@literal null} or empty.
+	 * @param attributes must not be {@literal null} or empty.
 	 */
-	public JpaSort(Path<?>... jpaPaths) {
-		this(Arrays.asList(jpaPaths));
+	public JpaSort(Attribute<?, ?>... attributes) {
+		this(DEFAULT_DIRECTION, attributes);
 	}
 
 	/**
 	 * Creates a new {@link JpaSort} instance with the given {@link Path}s.
 	 * 
-	 * @param direction
-	 * @param jpaPaths must not be {@literal null} or empty.
+	 * @param paths must not be {@literal null} or empty.
 	 */
-	public JpaSort(Direction direction, Path<?>... jpaPaths) {
-		this(direction, Arrays.asList(jpaPaths));
+	public JpaSort(JpaSort.Path<?, ?>... paths) {
+		this(DEFAULT_DIRECTION, paths);
 	}
 
 	/**
-	 * Creates a new {@link JpaSort} instance with the given {@link Path}s.
+	 * Creates a new {@link JpaSort} for the given direction and attributes.
 	 * 
-	 * @param jpaPaths must not be {@literal null} or empty.
+	 * @param direction the sorting direction.
+	 * @param attributes must not be {@literal null} or empty.
 	 */
-	public JpaSort(List<Path<?>> jpaPaths) {
-		this(DEFAULT_DIRECTION, jpaPaths);
+	public JpaSort(Direction direction, Attribute<?, ?>... attributes) {
+		this(direction, paths(Arrays.asList(attributes)));
 	}
 
 	/**
-	 * Creates a new {@link JpaSort} instance with the given {@link Path}s.
+	 * Creates a new {@link JpaSort} for the given direction and {@link Path}s.
 	 * 
-	 * @param direction
-	 * @param jpaPaths must not be {@literal null} or empty.
+	 * @param direction the sorting direction.
+	 * @param paths must not be {@literal null} or empty.
 	 */
-	public JpaSort(Direction direction, List<Path<?>> jpaPaths) {
-		super(direction, toPropertyPaths(jpaPaths));
+	public JpaSort(Direction direction, JpaSort.Path<?, ?>... paths) {
+		this(direction, Arrays.asList(paths));
+	}
+
+	private JpaSort(Direction direction, List<JpaSort.Path<?, ?>> paths) {
+		super(direction, toString(paths));
 	}
 
 	/**
-	 * @param jpaPaths must not be {@literal null} or empty.
+	 * Turns the given {@link Attribute}s into {@link Path}s.
+	 * 
+	 * @param attributes must not be {@literal null} or empty.
 	 * @return
 	 */
-	private static List<String> toPropertyPaths(List<Path<?>> jpaPaths) {
+	private static List<Path<?, ?>> paths(List<? extends Attribute<?, ?>> attributes) {
 
-		Assert.notEmpty(jpaPaths, "Jpa orders must not be null or empty!");
+		Assert.notNull(attributes, "Attributes must not be null!");
+		Assert.isTrue(!attributes.isEmpty(), "Attributes must not be empty");
 
-		List<String> propertyPaths = new ArrayList<String>();
+		List<Path<?, ?>> paths = new ArrayList<Path<?, ?>>(attributes.size());
 
-		for (Path<?> path : jpaPaths) {
-			propertyPaths.add(toPropertyPath(path));
+		for (Attribute<?, ?> attribute : attributes) {
+			paths.add(path(attribute));
 		}
 
-		return propertyPaths;
+		return paths;
 	}
 
 	/**
-	 * @param path
+	 * Renders the given {@link Path}s into a {@link String} array.
+	 * 
+	 * @param paths must not be {@literal null} or empty.
 	 * @return
 	 */
-	@SuppressWarnings("rawtypes")
-	private static String toPropertyPath(Path path) {
+	private static String[] toString(List<Path<?, ?>> paths) {
 
-		StringBuilder attributePath = new StringBuilder();
-		Path current = path;
-		while (!(current instanceof Root)) {
-			String attributePathSegment = ((SingularAttribute) current.getModel()).getName();
-			if (attributePath.length() > 0) {
-				attributePath.insert(0, ".");
+		List<String> strings = new ArrayList<String>(paths.size());
+
+		for (Path<?, ?> path : paths) {
+			strings.add(path.toString());
+		}
+
+		return strings.toArray(new String[strings.size()]);
+	}
+
+	/**
+	 * Creates a new {@link Path} for the given {@link Attribute}.
+	 * 
+	 * @param attribute must not be {@literal null}.
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	public static <T, S> Path<T, S> path(Attribute<T, S> attribute) {
+
+		Assert.notNull(attribute, "Attribute must not be null!");
+
+		List<? extends Attribute<?, ?>> attributes = Arrays.asList(attribute);
+		return new Path<T, S>(attributes);
+	}
+
+	/**
+	 * Creates a new {@link Path} for the given {@link PluralAttribute}.
+	 * 
+	 * @param attribute must not be {@literal null}.
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	public static <T, S> Path<T, S> path(PluralAttribute<T, ?, S> attribute) {
+
+		Assert.notNull(attribute, "Attribute must not be null!");
+
+		List<? extends Attribute<?, ?>> attributes = Arrays.asList(attribute);
+		return new Path<T, S>(attributes);
+	}
+
+	/**
+	 * Value object to abstract a collection of {@link Attribute}s.
+	 * 
+	 * @author Oliver Gierke
+	 */
+	public static class Path<T, S> {
+
+		private final Collection<Attribute<?, ?>> attributes;
+
+		private Path(List<? extends Attribute<?, ?>> attributes) {
+			this.attributes = Collections.unmodifiableList(attributes);
+		}
+
+		/**
+		 * Collects the given {@link Attribute} and returning a new {@link Path} pointing to the attribute type.
+		 * 
+		 * @param attribute must not be {@literal null}.
+		 * @return
+		 */
+		public <U> Path<S, U> dot(Attribute<S, U> attribute) {
+			return new Path<S, U>(add(attribute));
+		}
+
+		/**
+		 * Collects the given {@link Attribute} and returning a new {@link Path} pointing to the attribute type.
+		 * 
+		 * @param attribute must not be {@literal null}.
+		 * @return
+		 */
+		public <U> Path<S, U> dot(PluralAttribute<S, ?, U> attribute) {
+			return new Path<S, U>(add(attribute));
+		}
+
+		private List<Attribute<?, ?>> add(Attribute<?, ?> attribute) {
+
+			Assert.notNull(attribute, "Attribute must not be null!");
+
+			List<Attribute<?, ?>> newAttributes = new ArrayList<Attribute<?, ?>>(attributes.size() + 1);
+			newAttributes.addAll(attributes);
+			newAttributes.add(attribute);
+			return newAttributes;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see java.lang.Object#toString()
+		 */
+		@Override
+		public String toString() {
+
+			StringBuilder builder = new StringBuilder();
+
+			for (Attribute<?, ?> attribute : attributes) {
+				builder.append(attribute.getName()).append(".");
 			}
-			attributePath.insert(0, attributePathSegment);
-			current = current.getParentPath();
-		}
 
-		return attributePath.toString();
+			return builder.length() == 0 ? "" : builder.substring(0, builder.lastIndexOf("."));
+		}
 	}
 }

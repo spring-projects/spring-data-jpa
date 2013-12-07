@@ -17,172 +17,114 @@ package org.springframework.data.jpa.domain;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
-import static org.springframework.data.jpa.support.JpaMetaModelPathBuilder.*;
+import static org.springframework.data.jpa.domain.JpaSort.*;
 
-import java.util.List;
-
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Path;
-import javax.persistence.criteria.Root;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.metamodel.Attribute;
+import javax.persistence.metamodel.PluralAttribute;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.ImportResource;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.jpa.domain.sample.Address_;
 import org.springframework.data.jpa.domain.sample.MailMessage_;
 import org.springframework.data.jpa.domain.sample.MailSender_;
-import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.domain.sample.User_;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
- * Unit test for {@link JpaSort}.
+ * Integration tests for {@link JpaSort}. This has to be an integration test due to the design of the statically
+ * generated meta-model classes. The properties cannot be referred to statically (quite a surprise, as they're static)
+ * but only after they've been enhanced by the persistence provider. This requires an {@link EntityManagerFactory} to be
+ * bootstrapped.
  * 
+ * @see DATAJPA-12
  * @author Thomas Darimont
+ * @author Oliver Gierke
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration
+@ContextConfiguration("classpath:infrastructure.xml")
 public class JpaSortTests {
 
-	@Configuration
-	@ImportResource("classpath:infrastructure.xml")
-	static class Config {}
+	private static final Attribute<?, ?> NULL_ATTRIBUTE = null;
+	private static final Attribute<?, ?>[] EMPTY_ATTRIBUTES = new Attribute<?, ?>[0];
 
-	@PersistenceContext EntityManager em;
+	private static final PluralAttribute<?, ?, ?> NULL_PLURAL_ATTRIBUTE = null;
+	private static final PluralAttribute<?, ?, ?>[] EMPTY_PLURAL_ATTRIBUTES = new PluralAttribute<?, ?, ?>[0];
 
-	private static final MailMessage_ jmail = null;
-	private static final MailSender_ jsender = null;
-
-	/**
-	 * @see DATAJPA-12
-	 */
 	@Test(expected = IllegalArgumentException.class)
-	public void shouldThrowIfNoOrderSpecifiersAreGiven() {
-		new JpaSort();
+	public void rejectsNullAttribute() {
+		new JpaSort(NULL_ATTRIBUTE);
 	}
 
-	/**
-	 * @see DATAJPA-12
-	 */
 	@Test(expected = IllegalArgumentException.class)
-	public void shouldThrowIfNullIsGiven() {
-		new JpaSort((List<Path<?>>) null);
+	public void rejectsEmptyAttributes() {
+		new JpaSort(EMPTY_ATTRIBUTES);
 	}
 
-	/**
-	 * @see DATAJPA-12
-	 */
+	@Test(expected = IllegalArgumentException.class)
+	public void rejectsNullPluralAttribute() {
+		new JpaSort(NULL_PLURAL_ATTRIBUTE);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void rejectsEmptyPluralAttributes() {
+		new JpaSort(EMPTY_PLURAL_ATTRIBUTES);
+	}
+
 	@Test
 	public void sortBySinglePropertyWithDefaultSortDirection() {
-
-		CriteriaBuilder cb = em.getCriteriaBuilder();
-		CriteriaQuery<User> q = cb.createQuery(User.class);
-		Root<User> c = q.from(User.class);
-
-		JpaSort sort = new JpaSort(c.get("firstname"));
-
-		assertThat(sort, hasItems(new Sort.Order("firstname")));
+		assertThat(new JpaSort(path(User_.firstname)), hasItems(new Sort.Order("firstname")));
 	}
 
-	/**
-	 * @see DATAJPA-12
-	 */
 	@Test
 	public void sortByMultiplePropertiesWithDefaultSortDirection() {
 
-		CriteriaBuilder cb = em.getCriteriaBuilder();
-		CriteriaQuery<User> q = cb.createQuery(User.class);
-		Root<User> c = q.from(User.class);
-
-		JpaSort sort = new JpaSort(c.get("firstname"), c.get("lastname"));
-		assertThat(sort, hasItems(new Sort.Order("firstname"), new Sort.Order("lastname")));
+		assertThat(new JpaSort(User_.firstname, User_.lastname),
+				hasItems(new Sort.Order("firstname"), new Sort.Order("lastname")));
 	}
 
-	/**
-	 * @see DATAJPA-12
-	 */
 	@Test
 	public void sortByMultiplePropertiesWithDescSortDirection() {
 
-		CriteriaBuilder cb = em.getCriteriaBuilder();
-		CriteriaQuery<User> q = cb.createQuery(User.class);
-		Root<User> c = q.from(User.class);
-
-		JpaSort sort = new JpaSort(Direction.DESC, c.get("firstname"), c.get("lastname"));
-
-		assertThat(sort, hasItems(new Sort.Order(Direction.DESC, "firstname"), new Sort.Order(Direction.DESC, "lastname")));
+		assertThat(new JpaSort(Direction.DESC, User_.firstname, User_.lastname),
+				hasItems(new Sort.Order(Direction.DESC, "firstname"), new Sort.Order(Direction.DESC, "lastname")));
 	}
 
-	/**
-	 * @see DATAJPA-12
-	 */
 	@Test
 	public void combiningSortByMultipleProperties() {
 
-		CriteriaBuilder cb = em.getCriteriaBuilder();
-		CriteriaQuery<User> q = cb.createQuery(User.class);
-		Root<User> c = q.from(User.class);
-
-		Sort sort = new JpaSort(c.get("firstname")).and(new JpaSort(c.get("lastname")));
-
-		assertThat(sort, hasItems(new Sort.Order("firstname"), new Sort.Order("lastname")));
+		assertThat(new JpaSort(User_.firstname).and(new JpaSort(User_.lastname)),
+				hasItems(new Sort.Order("firstname"), new Sort.Order("lastname")));
 	}
 
-	/**
-	 * @see DATAJPA-12
-	 */
 	@Test
 	public void combiningSortByMultiplePropertiesWithDifferentSort() {
 
-		CriteriaBuilder cb = em.getCriteriaBuilder();
-		CriteriaQuery<User> q = cb.createQuery(User.class);
-		Root<User> c = q.from(User.class);
-
-		Sort sort = new JpaSort(c.get("firstname")).and(new JpaSort(Direction.DESC, c.get("lastname")));
-
-		assertThat(sort, hasItems(new Sort.Order("firstname"), new Sort.Order(Direction.DESC, "lastname")));
+		assertThat(new JpaSort(User_.firstname).and(new JpaSort(Direction.DESC, User_.lastname)),
+				hasItems(new Sort.Order("firstname"), new Sort.Order(Direction.DESC, "lastname")));
 	}
 
-	/**
-	 * @see DATAJPA-12
-	 */
 	@Test
 	public void combiningSortByNestedEmbeddedProperty() {
 
-		CriteriaBuilder cb = em.getCriteriaBuilder();
-		CriteriaQuery<User> q = cb.createQuery(User.class);
-		Root<User> c = q.from(User.class);
-
-		Sort sort = new JpaSort(c.get("address").get("streetName"));
-
-		assertThat(sort, hasItems(new Sort.Order("address.streetName")));
+		assertThat(new JpaSort(path(User_.address).dot(Address_.streetName)),
+				hasItems(new Sort.Order("address.streetName")));
 	}
 
-	/**
-	 * @see DATAJPA-12
-	 */
 	@Test
 	public void buildJpaSortFromJpaMetaModelSingleAttribute() {
 
-		Sort sort = new JpaSort(Direction.ASC, path(User_.firstname).build(em));
-
-		assertThat(sort, hasItems(new Sort.Order("firstname")));
+		assertThat(new JpaSort(Direction.ASC, path(User_.firstname)), //
+				hasItems(new Sort.Order("firstname")));
 	}
 
-	/**
-	 * @see DATAJPA-12
-	 */
 	@Test
 	public void buildJpaSortFromJpaMetaModelNestedAttribute() {
 
-		Sort sort = new JpaSort(Direction.ASC, path(MailMessage_.mailSender).get(MailSender_.name).build(em));
-
-		assertThat(sort, hasItems(new Sort.Order("mailSender.name")));
+		assertThat(new JpaSort(Direction.ASC, path(MailMessage_.mailSender).dot(MailSender_.name)),
+				hasItems(new Sort.Order("mailSender.name")));
 	}
 }
