@@ -28,6 +28,7 @@ import javax.persistence.metamodel.IdentifiableType;
 import javax.persistence.metamodel.ManagedType;
 import javax.persistence.metamodel.Metamodel;
 import javax.persistence.metamodel.SingularAttribute;
+import javax.persistence.metamodel.Type;
 import javax.persistence.metamodel.Type.PersistenceType;
 
 import org.springframework.beans.BeanWrapper;
@@ -225,15 +226,21 @@ public class JpaMetamodelEntityInformation<T, ID extends Serializable> extends J
 			Class<?> idType;
 
 			try {
-				idType = type.getIdType().getJavaType();
+				Type<?> idType2 = type.getIdType();
+				idType = idType2 == null ? fallbackIdTypeLookup(type) : idType2.getJavaType();
 			} catch (IllegalStateException e) {
 				// see https://hibernate.onjira.com/browse/HHH-6951
-				IdClass annotation = AnnotationUtils.findAnnotation(type.getJavaType(), IdClass.class);
-				idType = annotation == null ? null : annotation.value();
+				idType = fallbackIdTypeLookup(type);
 			}
 
 			this.idType = idType;
 			return idType;
+		}
+
+		private static Class<?> fallbackIdTypeLookup(IdentifiableType<?> type) {
+
+			IdClass annotation = AnnotationUtils.findAnnotation(type.getJavaType(), IdClass.class);
+			return annotation == null ? null : annotation.value();
 		}
 
 		public SingularAttribute<? super T, ?> getSimpleIdAttribute() {

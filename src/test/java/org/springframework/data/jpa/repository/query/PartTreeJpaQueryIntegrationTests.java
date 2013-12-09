@@ -32,6 +32,7 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.TemporalType;
 
+import org.hibernate.Version;
 import org.hibernate.ejb.HibernateQuery;
 import org.junit.Rule;
 import org.junit.Test;
@@ -105,12 +106,12 @@ public class PartTreeJpaQueryIntegrationTests {
 
 		Query query = jpaQuery.createQuery(new Object[] { "Matthews", new PageRequest(0, 1) });
 
-		HibernateQuery hibernateQuery = getValue(query, "h.target.val$jpaqlQuery");
+		HibernateQuery hibernateQuery = getValue(query, "h.target." + (isHibernate43() ? "jpqlQuery" : "val$jpaqlQuery"));
 		assertThat(hibernateQuery.getHibernateQuery().getQueryString(), endsWith("firstname=:param0"));
 
 		query = jpaQuery.createQuery(new Object[] { null, new PageRequest(0, 1) });
 
-		hibernateQuery = getValue(query, "h.target.val$jpaqlQuery");
+		hibernateQuery = getValue(query, "h.target." + (isHibernate43() ? "jpqlQuery" : "val$jpaqlQuery"));
 		assertThat(hibernateQuery.getHibernateQuery().getQueryString(), endsWith("firstname is null"));
 	}
 
@@ -138,6 +139,10 @@ public class PartTreeJpaQueryIntegrationTests {
 		}
 
 		return (T) result;
+	}
+
+	private static boolean isHibernate43() {
+		return Version.getVersionString().startsWith("4.3");
 	}
 
 	interface UserRepository extends Repository<User, Long> {
