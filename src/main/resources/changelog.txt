@@ -1,6 +1,35 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 1.4.3.RELEASE (2013-12-11)
+---------------------------------------------
+* Improved documentation on jpa:repository namespace (DATAJPA-410)
+* Fixed count projection for manual queries with projections (DATAJPA-420)
+* Guard against null predicates on query creation. (DATAJPA-405)
+* Fixed alias detection in manually defined queries using SpEL (DATAJPA-424)
+* Generate left joins for referenced associations in sort expressions (DATAJPA-427)
+* Tweaks to be compatible with Hibernate 4.3 (DATAJPA-430)
+* Release 1.4.3 (DATAJPA-434)
+ 
+Changes in version 1.5.0.M1 (2013-11-19)
+---------------------------------------------
+* CriteriaQuery caching causes problems with Hibernate's alias name generation in multithreaded environments (DATAJPA-396)
+* Unnecessary OUTER JOIN are generated for querying one single table (DATAJPA-401)
+* Unnecessary OUTER JOIN are generated when sorting on ElementCollection (DATAJPA-403)
+* Custom repository method doesn't parse OrderBy clause properly (DATAJPA-405)
+* Reference and Javadoc inconsistence - @Modifying.clearAutomatically default value (DATAJPA-406)
+* ClasspathScanningPersistenceUnitPostProcessor throws IndexOutOfBoundsException on Windows (DATAJPA-407)
+* org.springframework.data.jpa.repository.Query is not supported varargs (DATAJPA-415)
+* #entityName SpEL does not match alias regex when detecting alias (DATAJPA-424)
+* Make it possible to configure auditing with Java Config (DATAJPA-265)
+* Improve execution of native queries (DATAJPA-389)
+* Allow turning a CRUD method into a query method by annotating it with @Query (DATAJPA-398)
+* Add support for nested repositories (DATAJPA-416)
+* Upgrade to Spring Framework 3.2.5 (DATAJPA-418)
+* Improve accessibility of methods in SimpleJpaRepository (DATAJPA-426)
+* Add getReference method to the SimpleJpaRepository (DATAJPA-83)
+* @Lazy for interface defined repositories (DATAJPA-419)
+
 Changes in version 1.4.2.RELEASE (2013-10-25)
 ---------------------------------------------
 * CriteriaQuery caching causes problems with Hibernate's alias name generation in multithreaded environments (DATAJPA-396)

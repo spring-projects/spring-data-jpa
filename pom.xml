@@ -27,7 +27,7 @@
 		<hsqldb1>1.8.0.10</hsqldb1>
 		<jpa>2.0.0</jpa>
 		<openjpa>2.2.1</openjpa>
-		<springdata.commons>1.6.3.BUILD-SNAPSHOT</springdata.commons>
+		<springdata.commons>1.6.3.RELEASE</springdata.commons>
 		
 	</properties>
 	
@@ -422,8 +422,8 @@
 	
 	<repositories>
 		<repository>
-			<id>spring-libs-snapshot</id>
-			<url>http://repo.springsource.org/libs-snapshot-local</url>
+			<id>spring-libs-milestone</id>
+			<url>http://repo.springsource.org/libs-release-local</url>
 		</repository>
 	</repositories>
 
