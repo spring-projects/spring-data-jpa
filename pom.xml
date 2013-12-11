@@ -28,6 +28,8 @@
 		<jpa>2.0.0</jpa>
 		<openjpa>2.2.1</openjpa>
 		<springdata.commons>1.7.0.BUILD-SNAPSHOT</springdata.commons>
+
+		<sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
 		
 	</properties>
 	
