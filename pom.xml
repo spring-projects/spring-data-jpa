@@ -14,7 +14,7 @@
 	<parent>
 		<groupId>org.springframework.data.build</groupId>
 		<artifactId>spring-data-parent</artifactId>
-		<version>1.3.0.M1</version>
+		<version>1.3.0.BUILD-SNAPSHOT</version>
 		<relativePath>../spring-data-build/parent/pom.xml</relativePath>
 	</parent>
 	
@@ -430,8 +430,8 @@
 	
 	<repositories>
 		<repository>
-			<id>spring-libs-milestone</id>
-			<url>http://repo.springsource.org/libs-milestone-local</url>
+			<id>spring-libs-snapshot</id>
+			<url>http://repo.springsource.org/libs-snapshot-local</url>
 		</repository>
 	</repositories>
 
