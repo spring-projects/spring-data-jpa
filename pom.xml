@@ -14,7 +14,7 @@
 	<parent>
 		<groupId>org.springframework.data.build</groupId>
 		<artifactId>spring-data-parent</artifactId>
-		<version>1.3.0.BUILD-SNAPSHOT</version>
+		<version>1.3.0.M1</version>
 		<relativePath>../spring-data-build/parent/pom.xml</relativePath>
 	</parent>
 	
@@ -28,6 +28,8 @@
 		<jpa>2.0.0</jpa>
 		<openjpa>2.2.1</openjpa>
 		<springdata.commons>1.7.0.BUILD-SNAPSHOT</springdata.commons>
+
+		<sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
 		
 	</properties>
 	
@@ -35,13 +37,19 @@
 		<profile>
 			<id>hibernate-41</id>
 			<properties>
-				<hibernate>4.1.11.Final</hibernate>
+				<hibernate>4.1.12.Final</hibernate>
 			</properties>
 		</profile>
 		<profile>
 			<id>hibernate-42</id>
 			<properties>
-				<hibernate>4.2.0.Final</hibernate>
+				<hibernate>4.2.7.SP1</hibernate>
+			</properties>
+		</profile>
+		<profile>
+			<id>hibernate-43</id>
+			<properties>
+				<hibernate>4.3.0.CR2</hibernate>
 			</properties>
 		</profile>
 	</profiles>
@@ -143,12 +151,6 @@
 			<artifactId>hibernate-entitymanager</artifactId>
 			<version>${hibernate}</version>
 			<optional>true</optional>
-		</dependency>
-		<dependency>
-			<groupId>org.hibernate</groupId>
-			<artifactId>hibernate-jpamodelgen</artifactId>
-			<version>1.2.0.Final</version>
-			<scope>provided</scope>
 		</dependency>
 		
 		<dependency>
@@ -375,7 +377,10 @@
 				<artifactId>apt-maven-plugin</artifactId>
 				<version>${apt}</version>
 				<configuration>
-					<processor>com.mysema.query.apt.jpa.JPAAnnotationProcessor</processor>
+					<processors>
+						<processor>com.mysema.query.apt.jpa.JPAAnnotationProcessor</processor>
+						<processor>org.hibernate.jpamodelgen.JPAMetaModelEntityProcessor</processor>
+					</processors>
 				</configuration>
 				<executions>
 					<execution>
@@ -385,7 +390,7 @@
 							<goal>process</goal>
 						</goals>
 						<configuration>
-							<outputDirectory>target/generated-sources/main</outputDirectory>
+							<outputDirectory>target/generated-sources/annotations</outputDirectory>
 						</configuration>
 					</execution>
 					<execution>
@@ -395,7 +400,7 @@
 							<goal>test-process</goal>
 						</goals>
 						<configuration>
-							<outputDirectory>target/generated-sources/test</outputDirectory>
+							<testOutputDirectory>target/generated-test-sources/test-annotations</testOutputDirectory>
 							<options>
 								<querydsl.excludedClasses>
 									org.springframework.data.jpa.repository.util.JpaClassUtilsUnitTests.NamedUser,org.springframework.data.jpa.repository.query.ParameterBinderUnitTests.SampleEmbeddable
@@ -404,6 +409,13 @@
 						</configuration>
 					</execution>
 				</executions>
+				<dependencies>
+					<dependency>
+						<groupId>org.hibernate</groupId>
+						<artifactId>hibernate-jpamodelgen</artifactId>
+						<version>1.2.0.Final</version>
+					</dependency>
+				</dependencies>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -418,8 +430,8 @@
 	
 	<repositories>
 		<repository>
-			<id>spring-libs-snapshot</id>
-			<url>http://repo.springsource.org/libs-snapshot-local</url>
+			<id>spring-libs-milestone</id>
+			<url>http://repo.springsource.org/libs-milestone-local</url>
 		</repository>
 	</repositories>
 

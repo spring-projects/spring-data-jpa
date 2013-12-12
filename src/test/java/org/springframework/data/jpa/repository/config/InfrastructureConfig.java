@@ -35,7 +35,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  */
 @Configuration
 @EnableTransactionManagement
-class InfrastructureConfig {
+public class InfrastructureConfig {
 
 	@Bean
 	public DataSource dataSource() {

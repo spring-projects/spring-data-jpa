@@ -31,8 +31,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.domain.Sort.Order;
+import org.springframework.data.jpa.domain.sample.Address;
 import org.springframework.data.jpa.domain.sample.QUser;
 import org.springframework.data.jpa.domain.sample.User;
+import org.springframework.data.querydsl.QPageRequest;
+import org.springframework.data.querydsl.QSort;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
@@ -52,8 +55,7 @@ import com.mysema.query.types.path.PathBuilderFactory;
 @Transactional
 public class QueryDslJpaRepositoryTests {
 
-	@PersistenceContext
-	EntityManager em;
+	@PersistenceContext EntityManager em;
 
 	QueryDslJpaRepository<User, Integer> repository;
 	QUser user = new QUser("user");
@@ -130,5 +132,145 @@ public class QueryDslJpaRepositoryTests {
 		assertThat(result.getContent(), hasSize(2));
 		assertThat(result.getContent().get(0), is(dave));
 		assertThat(result.getContent().get(1), is(oliver));
+	}
+
+	/**
+	 * @see DATAJPA-427
+	 */
+	@Test
+	public void findBySpecificationWithSortByPluralAssociationPropertyInPageableShouldUseSortNullValuesLast() {
+
+		oliver.getColleagues().add(dave);
+		dave.getColleagues().add(oliver);
+
+		QUser user = QUser.user;
+
+		Page<User> page = repository.findAll(user.firstname.isNotNull(), new PageRequest(0, 10, new Sort(
+				Sort.Direction.ASC, "colleagues.firstname")));
+
+		assertThat(page.getContent(), hasSize(3));
+		assertThat(page.getContent(), hasItems(oliver, dave, carter));
+	}
+
+	/**
+	 * @see DATAJPA-427
+	 */
+	@Test
+	public void findBySpecificationWithSortBySingularAssociationPropertyInPageableShouldUseSortNullValuesLast() {
+
+		oliver.setManager(dave);
+		dave.setManager(carter);
+
+		QUser user = QUser.user;
+
+		Page<User> page = repository.findAll(user.firstname.isNotNull(), new PageRequest(0, 10, new Sort(
+				Sort.Direction.ASC, "manager.firstname")));
+
+		assertThat(page.getContent(), hasSize(3));
+		assertThat(page.getContent(), hasItems(dave, oliver, carter));
+	}
+
+	/**
+	 * @see DATAJPA-427
+	 */
+	@Test
+	public void findBySpecificationWithSortBySingularPropertyInPageableShouldUseSortNullValuesFirst() {
+
+		QUser user = QUser.user;
+
+		Page<User> page = repository.findAll(user.firstname.isNotNull(), new PageRequest(0, 10, new Sort(
+				Sort.Direction.ASC, "firstname")));
+
+		assertThat(page.getContent(), hasSize(3));
+		assertThat(page.getContent(), hasItems(carter, dave, oliver));
+	}
+
+	/**
+	 * @see DATAJPA-427
+	 */
+	@Test
+	public void findBySpecificationWithSortByOrderIgnoreCaseBySingularPropertyInPageableShouldUseSortNullValuesFirst() {
+
+		QUser user = QUser.user;
+
+		Page<User> page = repository.findAll(user.firstname.isNotNull(), new PageRequest(0, 10, new Sort(new Order(
+				Sort.Direction.ASC, "firstname").ignoreCase())));
+
+		assertThat(page.getContent(), hasSize(3));
+		assertThat(page.getContent(), hasItems(carter, dave, oliver));
+	}
+
+	/**
+	 * @see DATAJPA-427
+	 */
+	@Test
+	public void findBySpecificationWithSortByNestedEmbeddedPropertyInPageableShouldUseSortNullValuesFirst() {
+
+		oliver.setAddress(new Address("Germany", "Saarbrücken", "HaveItYourWay", "123"));
+
+		QUser user = QUser.user;
+
+		Page<User> page = repository.findAll(user.firstname.isNotNull(), new PageRequest(0, 10, new Sort(
+				Sort.Direction.ASC, "address.streetName")));
+
+		assertThat(page.getContent(), hasSize(3));
+		assertThat(page.getContent(), hasItems(dave, carter, oliver));
+		assertThat(page.getContent().get(2), is(oliver));
+	}
+
+	/**
+	 * @see DATAJPA-12
+	 */
+	@Test
+	public void findBySpecificationWithSortByQueryDslOrderSpecifierWithQPageRequestAndQSort() {
+
+		QUser user = QUser.user;
+
+		Page<User> page = repository.findAll(user.firstname.isNotNull(),
+				new QPageRequest(0, 10, new QSort(user.firstname.asc())));
+
+		assertThat(page.getContent(), hasSize(3));
+		assertThat(page.getContent(), hasItems(carter, dave, oliver));
+		assertThat(page.getContent().get(0), is(carter));
+		assertThat(page.getContent().get(1), is(dave));
+		assertThat(page.getContent().get(2), is(oliver));
+	}
+
+	/**
+	 * @see DATAJPA-12
+	 */
+	@Test
+	public void findBySpecificationWithSortByQueryDslOrderSpecifierWithQPageRequest() {
+
+		QUser user = QUser.user;
+
+		Page<User> page = repository.findAll(user.firstname.isNotNull(), new QPageRequest(0, 10, user.firstname.asc()));
+
+		assertThat(page.getContent(), hasSize(3));
+		assertThat(page.getContent(), hasItems(carter, dave, oliver));
+		assertThat(page.getContent().get(0), is(carter));
+		assertThat(page.getContent().get(1), is(dave));
+		assertThat(page.getContent().get(2), is(oliver));
+	}
+
+	/**
+	 * @see DATAJPA-12
+	 */
+	@Test
+	public void findBySpecificationWithSortByQueryDslOrderSpecifierForAssociationShouldGenerateLeftJoinWithQPageRequest() {
+
+		oliver.setManager(dave);
+		dave.setManager(carter);
+
+		QUser user = QUser.user;
+
+		Page<User> page = repository.findAll(user.firstname.isNotNull(),
+				new QPageRequest(0, 10, user.manager.firstname.asc()));
+
+		assertThat(page.getContent(), hasSize(3));
+		assertThat(page.getContent(), hasItems(carter, dave, oliver));
+		assertThat(page.getContent().get(0), is(carter));
+		assertThat(page.getContent().get(1), is(dave));
+		assertThat(page.getContent().get(2), is(oliver));
 	}
 }

@@ -272,6 +272,14 @@ public class QueryUtilsUnitTests {
 		assertCountQuery("select p.lastname,p.firstname from Person p", "select count(p) from Person p");
 	}
 
+	/**
+	 * @see DATAJPA-420
+	 */
+	@Test
+	public void createsCountQueryForScalarSelects() {
+		assertCountQuery("select p.lastname,p.firstname from Person p", "select count(p) from Person p");
+	}
+
 	private void assertCountQuery(String originalQuery, String countQuery) {
 		assertThat(createCountQueryFor(originalQuery), is(countQuery));
 	}
