@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2013 the original author or authors.
+ * Copyright 2008-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,9 @@ package org.springframework.data.jpa.repository.support;
 
 import static org.springframework.data.jpa.repository.utils.JpaClassUtils.*;
 
+import java.util.Arrays;
+import java.util.List;
+
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 
@@ -27,16 +30,22 @@ import org.springframework.data.jpa.repository.query.QueryExtractor;
 import org.springframework.util.Assert;
 
 /**
- * Enumeration representing peristence providers to be used.
+ * Enumeration representing persistence providers to be used.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 public enum PersistenceProvider implements QueryExtractor {
 
 	/**
 	 * Hibernate persistence provider.
+	 * <p>
+	 * Since Hibernate 4.3 the location of the HibernateEntityManager moved to the org.hibernate.jpa package. In order to
+	 * support both locations we interpret both classnames as the Hibernate {@code PersistenceProvider}.
+	 * 
+	 * @see DATAJPA-444
 	 */
-	HIBERNATE("org.hibernate.ejb.HibernateEntityManager") {
+	HIBERNATE("org.hibernate.ejb.HibernateEntityManager", "org.hibernate.jpa.HibernateEntityManager") {
 
 		public String extractQueryString(Query query) {
 
@@ -97,16 +106,19 @@ public enum PersistenceProvider implements QueryExtractor {
 		}
 	};
 
-	private String entityManagerClassName;
+	private List<String> entityManagerClassNames;
 
 	/**
 	 * Creates a new {@link PersistenceProvider}.
 	 * 
-	 * @param entityManagerClassName the name of the provider specific {@link EntityManager} implementation
+	 * @param entityManagerClassNames the names of the provider specific {@link EntityManager} implementations. Must not
+	 *          be {@literal null} or empty.
 	 */
-	private PersistenceProvider(String entityManagerClassName) {
+	private PersistenceProvider(String... entityManagerClassNames) {
 
-		this.entityManagerClassName = entityManagerClassName;
+		Assert.notEmpty(entityManagerClassNames, "EntityManagerClassNames must not be empty!");
+
+		this.entityManagerClassNames = Arrays.asList(entityManagerClassNames);
 	}
 
 	/**
@@ -121,8 +133,11 @@ public enum PersistenceProvider implements QueryExtractor {
 		Assert.notNull(em);
 
 		for (PersistenceProvider provider : values()) {
-			if (isEntityManagerOfType(em, provider.entityManagerClassName)) {
-				return provider;
+			for (String entityManagerClassName : provider.entityManagerClassNames) {
+
+				if (isEntityManagerOfType(em, entityManagerClassName)) {
+					return provider;
+				}
 			}
 		}
 
