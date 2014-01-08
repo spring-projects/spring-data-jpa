@@ -53,7 +53,7 @@ public class PersistenceProviderTests {
 
 		shadowingClassLoader.excludePackage("org.hibernate");
 
-		EntityManager em = mockProviderSpecificEntityManagerInterface("org.hibernate.ejb.HibernateEntityManager");
+		EntityManager em = mockProviderSpecificEntityManagerInterface(PersistenceProvider.Constants.HIBERNATE_ENTITY_MANAGER_INTERFACE);
 
 		assertThat(PersistenceProvider.fromEntityManager(em), is(PersistenceProvider.HIBERNATE));
 	}
@@ -66,7 +66,7 @@ public class PersistenceProviderTests {
 
 		shadowingClassLoader.excludePackage("org.hibernate");
 
-		EntityManager em = mockProviderSpecificEntityManagerInterface("org.hibernate.jpa.HibernateEntityManager");
+		EntityManager em = mockProviderSpecificEntityManagerInterface(PersistenceProvider.Constants.HIBERNATE43_ENTITY_MANAGER_INTERFACE);
 
 		assertThat(PersistenceProvider.fromEntityManager(em), is(PersistenceProvider.HIBERNATE));
 	}
@@ -76,7 +76,7 @@ public class PersistenceProviderTests {
 
 		shadowingClassLoader.excludePackage("org.apache.openjpa.persistence");
 
-		EntityManager em = mockProviderSpecificEntityManagerInterface("org.apache.openjpa.persistence.OpenJPAEntityManager");
+		EntityManager em = mockProviderSpecificEntityManagerInterface(PersistenceProvider.Constants.OPENJPA_ENTITY_MANAGER_INTERFACE);
 
 		assertThat(PersistenceProvider.fromEntityManager(em), is(PersistenceProvider.OPEN_JPA));
 	}
@@ -86,7 +86,7 @@ public class PersistenceProviderTests {
 
 		shadowingClassLoader.excludePackage("org.eclipse.persistence.jpa");
 
-		EntityManager em = mockProviderSpecificEntityManagerInterface("org.eclipse.persistence.jpa.JpaEntityManager");
+		EntityManager em = mockProviderSpecificEntityManagerInterface(PersistenceProvider.Constants.ECLIPSELINK_ENTITY_MANAGER_INTERFACE);
 
 		assertThat(PersistenceProvider.fromEntityManager(em), is(PersistenceProvider.ECLIPSELINK));
 	}

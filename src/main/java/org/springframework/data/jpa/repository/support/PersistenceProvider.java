@@ -45,7 +45,7 @@ public enum PersistenceProvider implements QueryExtractor {
 	 * 
 	 * @see DATAJPA-444
 	 */
-	HIBERNATE("org.hibernate.ejb.HibernateEntityManager", "org.hibernate.jpa.HibernateEntityManager") {
+	HIBERNATE(Constants.HIBERNATE_ENTITY_MANAGER_INTERFACE, Constants.HIBERNATE43_ENTITY_MANAGER_INTERFACE) {
 
 		public String extractQueryString(Query query) {
 
@@ -69,7 +69,7 @@ public enum PersistenceProvider implements QueryExtractor {
 	/**
 	 * EclipseLink persistence provider.
 	 */
-	ECLIPSELINK("org.eclipse.persistence.jpa.JpaEntityManager") {
+	ECLIPSELINK(Constants.ECLIPSELINK_ENTITY_MANAGER_INTERFACE) {
 
 		public String extractQueryString(Query query) {
 
@@ -81,7 +81,7 @@ public enum PersistenceProvider implements QueryExtractor {
 	/**
 	 * OpenJpa persistence provider.
 	 */
-	OPEN_JPA("org.apache.openjpa.persistence.OpenJPAEntityManager") {
+	OPEN_JPA(Constants.OPENJPA_ENTITY_MANAGER_INTERFACE) {
 
 		public String extractQueryString(Query query) {
 
@@ -92,7 +92,7 @@ public enum PersistenceProvider implements QueryExtractor {
 	/**
 	 * Unknown special provider. Use standard JPA.
 	 */
-	GENERIC_JPA("javax.persistence.EntityManager") {
+	GENERIC_JPA(Constants.GENERIC_JPA_ENTITY_MANAGER_INTERFACE) {
 
 		public String extractQueryString(Query query) {
 
@@ -105,6 +105,20 @@ public enum PersistenceProvider implements QueryExtractor {
 			return false;
 		}
 	};
+
+	/**
+	 * Holds the PersistenceProvider specific interface names.
+	 * 
+	 * @author Thomas Darimont
+	 */
+	public static interface Constants {
+
+		String GENERIC_JPA_ENTITY_MANAGER_INTERFACE = "javax.persistence.EntityManager";
+		String OPENJPA_ENTITY_MANAGER_INTERFACE = "org.apache.openjpa.persistence.OpenJPAEntityManager";
+		String ECLIPSELINK_ENTITY_MANAGER_INTERFACE = "org.eclipse.persistence.jpa.JpaEntityManager";
+		String HIBERNATE_ENTITY_MANAGER_INTERFACE = "org.hibernate.ejb.HibernateEntityManager";
+		String HIBERNATE43_ENTITY_MANAGER_INTERFACE = "org.hibernate.jpa.HibernateEntityManager";
+	}
 
 	private List<String> entityManagerClassNames;
 
