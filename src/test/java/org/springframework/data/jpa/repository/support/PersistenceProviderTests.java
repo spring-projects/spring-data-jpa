@@ -72,7 +72,7 @@ public class PersistenceProviderTests {
 	}
 
 	@Test
-	public void detectsOpenJPAPersistenceProvider() throws Exception {
+	public void detectsOpenJpaPersistenceProvider() throws Exception {
 
 		shadowingClassLoader.excludePackage("org.apache.openjpa.persistence");
 
@@ -99,18 +99,15 @@ public class PersistenceProviderTests {
 		assertThat(PersistenceProvider.fromEntityManager(em), is(PersistenceProvider.GENERIC_JPA));
 	}
 
-	/**
-	 * @param interfaceName
-	 * @return
-	 * @throws ClassNotFoundException
-	 */
 	private EntityManager mockProviderSpecificEntityManagerInterface(String interfaceName) throws ClassNotFoundException {
 
 		Class<?> providerSpecificEntityManagerInterface = InterfaceGenerator.generate(interfaceName, shadowingClassLoader,
 				EntityManager.class);
 
 		EntityManager em = EntityManager.class.cast(Mockito.mock(providerSpecificEntityManagerInterface));
-		Mockito.when(em.getDelegate()).thenReturn(em);
+		Mockito.when(em.getDelegate()).thenReturn(em); // delegate is used to determine the classloader of the provider
+																										// specific interface, therefore we return the proxied
+																										// EntityManager.
 
 		return em;
 	}
@@ -142,20 +139,27 @@ public class PersistenceProviderTests {
 			return new CustomClassLoader(parentClassLoader).loadClass(interfaceName);
 		}
 
-		private static byte[] generateByteCodeForInterface(final String interfaceName, Class<?>... interfaces) {
+		private static byte[] generateByteCodeForInterface(final String interfaceName, Class<?>... interfacesToImplement) {
 
 			String interfaceResourcePath = ClassUtils.convertClassNameToResourcePath(interfaceName);
+
 			ClassWriter cw = new ClassWriter(0);
-			List<String> interfaceResourcePaths = new ArrayList<String>(interfaces.length);
-			for (Class<?> iface : interfaces) {
-				interfaceResourcePaths.add(ClassUtils.convertClassNameToResourcePath(iface.getName()));
-			}
 			cw.visit(V1_6, ACC_PUBLIC + ACC_ABSTRACT + ACC_INTERFACE, interfaceResourcePath, null, "java/lang/Object",
-					interfaceResourcePaths.toArray(new String[interfaceResourcePaths.size()]));
+					toResourcePaths(interfacesToImplement));
 			cw.visitSource(interfaceResourcePath + ".java", null);
 			cw.visitEnd();
 
 			return cw.toByteArray();
+		}
+
+		private static String[] toResourcePaths(Class<?>... interfacesToImplement) {
+
+			List<String> interfaceResourcePaths = new ArrayList<String>(interfacesToImplement.length);
+			for (Class<?> iface : interfacesToImplement) {
+				interfaceResourcePaths.add(ClassUtils.convertClassNameToResourcePath(iface.getName()));
+			}
+
+			return interfaceResourcePaths.toArray(new String[interfaceResourcePaths.size()]);
 		}
 	}
 }

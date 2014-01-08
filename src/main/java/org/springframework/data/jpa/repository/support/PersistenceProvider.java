@@ -41,7 +41,7 @@ public enum PersistenceProvider implements QueryExtractor {
 	 * Hibernate persistence provider.
 	 * <p>
 	 * Since Hibernate 4.3 the location of the HibernateEntityManager moved to the org.hibernate.jpa package. In order to
-	 * support both locations we interpret both classnames as the Hibernate {@code PersistenceProvider}.
+	 * support both locations we interpret both classnames as a Hibernate {@code PersistenceProvider}.
 	 * 
 	 * @see DATAJPA-444
 	 */
@@ -111,7 +111,7 @@ public enum PersistenceProvider implements QueryExtractor {
 	 * 
 	 * @author Thomas Darimont
 	 */
-	public static interface Constants {
+	static interface Constants {
 
 		String GENERIC_JPA_ENTITY_MANAGER_INTERFACE = "javax.persistence.EntityManager";
 		String OPENJPA_ENTITY_MANAGER_INTERFACE = "org.apache.openjpa.persistence.OpenJPAEntityManager";
