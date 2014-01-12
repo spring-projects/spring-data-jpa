@@ -43,13 +43,13 @@
 		<profile>
 			<id>hibernate-42</id>
 			<properties>
-				<hibernate>4.2.7.SP1</hibernate>
+				<hibernate>4.2.8.Final</hibernate>
 			</properties>
 		</profile>
 		<profile>
 			<id>hibernate-43</id>
 			<properties>
-				<hibernate>4.3.0.CR2</hibernate>
+				<hibernate>4.3.0.Final</hibernate>
 			</properties>
 		</profile>
 	</profiles>
