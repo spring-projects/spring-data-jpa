@@ -54,16 +54,16 @@ import org.springframework.data.domain.Auditable;
  * @author Thomas Darimont
  */
 @Configurable
-public class AuditingEntityListener<T> {
+public class AuditingEntityListener {
 
-	private AuditingHandler<T> handler;
+	private AuditingHandler handler;
 
 	/**
 	 * Configures the {@link AuditingHandler} to be used to set the current auditor on the domain types touched.
 	 * 
 	 * @param auditingHandler the handler to set
 	 */
-	public void setAuditingHandler(AuditingHandler<T> auditingHandler) {
+	public void setAuditingHandler(AuditingHandler auditingHandler) {
 		this.handler = auditingHandler;
 	}
 
