@@ -45,7 +45,7 @@ public enum PersistenceProvider implements QueryExtractor {
 	 * 
 	 * @see DATAJPA-444
 	 */
-	HIBERNATE(Constants.HIBERNATE_ENTITY_MANAGER_INTERFACE, Constants.HIBERNATE43_ENTITY_MANAGER_INTERFACE) {
+	HIBERNATE(Constants.HIBERNATE43_ENTITY_MANAGER_INTERFACE, Constants.HIBERNATE_ENTITY_MANAGER_INTERFACE) {
 
 		public String extractQueryString(Query query) {
 

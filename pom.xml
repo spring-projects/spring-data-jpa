@@ -47,7 +47,7 @@
 		<profile>
 			<id>hibernate-43</id>
 			<properties>
-				<hibernate>4.3.0.Final</hibernate>
+				<hibernate>4.3.1.Final</hibernate>
 			</properties>
 		</profile>
 	</profiles>
