@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2013 the original author or authors.
+ * Copyright 2008-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -90,5 +90,15 @@ public class AuditingBeanFactoryPostProcessorUnitTests {
 			assertThat(emfDefinition.getDependsOn(),
 					is(arrayContaining(AuditingBeanFactoryPostProcessor.BEAN_CONFIGURER_ASPECT_BEAN_NAME)));
 		}
+	}
+
+	/**
+	 * @see DATAJPA-453
+	 */
+	@Test
+	public void findsEntityManagerFactoryInParentBeanFactory() {
+
+		DefaultListableBeanFactory childFactory = new DefaultListableBeanFactory(getBeanFactory());
+		processor.postProcessBeanFactory(childFactory);
 	}
 }

@@ -15,17 +15,12 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import static java.util.Arrays.*;
-import static org.springframework.beans.factory.BeanFactoryUtils.*;
-
-import java.util.HashSet;
-import java.util.Set;
+import static org.springframework.data.jpa.util.BeanDefinitionUtils.*;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
@@ -35,7 +30,7 @@ import org.springframework.beans.factory.support.AutowireCandidateQualifier;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.orm.jpa.AbstractEntityManagerFactoryBean;
+import org.springframework.data.jpa.util.BeanDefinitionUtils.EntityManagerFactoryBeanDefinition;
 import org.springframework.orm.jpa.SharedEntityManagerCreator;
 
 /**
@@ -56,47 +51,25 @@ public class EntityManagerBeanDefinitionRegistrarPostProcessor implements BeanFa
 	@Override
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
 
-		if (!(beanFactory instanceof BeanDefinitionRegistry)) {
-			return;
-		}
+		for (EntityManagerFactoryBeanDefinition definitions : getEntityManagerFactoryBeanDefinitions(beanFactory)) {
 
-		for (String emfName : getEntityManagerFactoryBeanNames(beanFactory)) {
+			if (!(definitions.beanFactory instanceof BeanDefinitionRegistry)) {
+				continue;
+			}
 
 			BeanDefinitionBuilder builder = BeanDefinitionBuilder
 					.rootBeanDefinition("org.springframework.orm.jpa.SharedEntityManagerCreator");
 			builder.setFactoryMethod("createSharedEntityManager");
-			builder.addConstructorArgReference(emfName);
+			builder.addConstructorArgReference(definitions.beanName);
 
 			AbstractBeanDefinition emBeanDefinition = builder.getRawBeanDefinition();
-			AbstractBeanDefinition emfBeanDefinition = (AbstractBeanDefinition) beanFactory.getBeanDefinition(emfName);
 
-			emBeanDefinition.addQualifier(new AutowireCandidateQualifier(Qualifier.class, emfName));
-			emBeanDefinition.setScope(emfBeanDefinition.getScope());
-			emBeanDefinition.setSource(emfBeanDefinition.getSource());
+			emBeanDefinition.addQualifier(new AutowireCandidateQualifier(Qualifier.class, definitions.beanName));
+			emBeanDefinition.setScope(definitions.beanDefinition.getScope());
+			emBeanDefinition.setSource(definitions.beanDefinition.getSource());
 
-			BeanDefinitionReaderUtils.registerWithGeneratedName(emBeanDefinition, (BeanDefinitionRegistry) beanFactory);
+			BeanDefinitionReaderUtils.registerWithGeneratedName(emBeanDefinition,
+					(BeanDefinitionRegistry) definitions.beanFactory);
 		}
-	}
-
-	/**
-	 * Return all bean names for bean definitions that will result in an {@link EntityManagerFactory} eventually. We're
-	 * checking for {@link EntityManagerFactory} and the well-known factory beans here to avoid eager initialization of
-	 * the factory beans. The double lookup is necessary especially for JavaConfig scenarios as people might declare an
-	 * {@link EntityManagerFactory} directly.
-	 * 
-	 * @param beanFactory
-	 * @return
-	 */
-	private static Iterable<String> getEntityManagerFactoryBeanNames(ListableBeanFactory beanFactory) {
-
-		Set<String> names = new HashSet<String>();
-		names.addAll(asList(beanNamesForTypeIncludingAncestors(beanFactory, EntityManagerFactory.class, true, false)));
-
-		for (String factoryBeanName : beanNamesForTypeIncludingAncestors(beanFactory,
-				AbstractEntityManagerFactoryBean.class, true, false)) {
-			names.add(factoryBeanName.substring(1));
-		}
-
-		return names;
 	}
 }

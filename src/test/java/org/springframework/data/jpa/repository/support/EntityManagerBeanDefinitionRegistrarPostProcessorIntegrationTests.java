@@ -87,10 +87,10 @@ public class EntityManagerBeanDefinitionRegistrarPostProcessorIntegrationTests {
 	@Autowired EntityManagerInjectionTarget target;
 
 	/**
-	 * @see
+	 * @see DATAJPA-445
 	 */
 	@Test
-	public void foo() {
+	public void injectsEntityManagerIntoConstructors() {
 
 		assertThat(target, is(notNullValue()));
 		assertThat(target.em, is(notNullValue()));
