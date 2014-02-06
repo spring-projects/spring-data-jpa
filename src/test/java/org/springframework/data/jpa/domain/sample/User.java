@@ -26,6 +26,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Lob;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQuery;
@@ -59,6 +60,8 @@ public class User {
 	@ManyToOne private User manager;
 
 	@Embedded private Address address;
+
+	@Lob private byte[] binaryData;
 
 	/**
 	 * Creates a new empty instance of {@code User}.
@@ -289,6 +292,20 @@ public class User {
 	 */
 	public void setAddress(Address address) {
 		this.address = address;
+	}
+
+	/**
+	 * @param binaryData the binaryData to set
+	 */
+	public void setBinaryData(byte[] binaryData) {
+		this.binaryData = binaryData;
+	}
+
+	/**
+	 * @return the binaryData
+	 */
+	public byte[] getBinaryData() {
+		return binaryData;
 	}
 
 	/*
