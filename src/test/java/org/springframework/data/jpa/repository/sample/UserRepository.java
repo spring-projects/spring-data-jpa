@@ -275,4 +275,9 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	 * @see DATAJPA-405
 	 */
 	List<User> findAllByOrderByLastnameAsc();
+
+	/**
+	 * @see DATAJPA-454
+	 */
+	List<User> findByBinaryData(byte[] data);
 }

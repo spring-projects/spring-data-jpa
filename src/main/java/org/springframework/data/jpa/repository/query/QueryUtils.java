@@ -450,7 +450,7 @@ public abstract class QueryUtils {
 			propertyPathModel = from.get(property.getSegment()).getModel();
 		}
 
-		if (property.isCollection() || requiresJoin(propertyPathModel)) {
+		if (requiresJoin(propertyPathModel)) {
 			Join<?, ?> join = getOrCreateJoin(from, property.getSegment());
 			return (Expression<T>) (property.hasNext() ? toExpressionRecursively(join, property.next()) : join);
 		} else {
@@ -481,7 +481,7 @@ public abstract class QueryUtils {
 		Class<? extends Annotation> associationAnnotation = ASSOCIATION_TYPES.get(attribute.getPersistentAttributeType());
 
 		if (associationAnnotation == null) {
-			return false;
+			return true;
 		}
 
 		Member member = attribute.getJavaMember();

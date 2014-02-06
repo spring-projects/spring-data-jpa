@@ -1154,6 +1154,22 @@ public class UserRepositoryTests {
 		assertThat(page.getContent().get(3), is(thirdUser));
 	}
 
+	/**
+	 * @see DATAJPA-454
+	 */
+	@Test
+	public void findsUserByBinaryDataReference() throws Exception {
+
+		byte[] data = "Woho!!".getBytes("UTF-8");
+		firstUser.setBinaryData(data);
+
+		flushTestUsers();
+
+		List<User> result = repository.findByBinaryData(data);
+		assertThat(result, hasSize(1));
+		assertThat(result, hasItem(firstUser));
+	}
+
 	private Page<User> executeSpecWithSort(Sort sort) {
 
 		flushTestUsers();
