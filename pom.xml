@@ -369,6 +369,7 @@
 				<artifactId>apt-maven-plugin</artifactId>
 				<version>${apt}</version>
 				<configuration>
+					<logOnlyOnError>true</logOnlyOnError>
 					<processors>
 						<processor>com.mysema.query.apt.jpa.JPAAnnotationProcessor</processor>
 						<processor>org.hibernate.jpamodelgen.JPAMetaModelEntityProcessor</processor>
