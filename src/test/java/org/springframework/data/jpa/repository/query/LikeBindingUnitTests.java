@@ -19,7 +19,7 @@ import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
 import org.junit.Test;
-import org.springframework.data.jpa.repository.query.StringQuery.LikeBinding;
+import org.springframework.data.jpa.repository.query.StringQuery.LikeParameterBinding;
 import org.springframework.data.repository.query.parser.Part.Type;
 
 /**
@@ -29,33 +29,33 @@ public class LikeBindingUnitTests {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void rejectsNullName() {
-		new LikeBinding(null, Type.CONTAINING);
+		new LikeParameterBinding(null, Type.CONTAINING);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void rejectsEmptyName() {
-		new LikeBinding("", Type.CONTAINING);
+		new LikeParameterBinding("", Type.CONTAINING);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void rejectsNullType() {
-		new LikeBinding("foo", null);
+		new LikeParameterBinding("foo", null);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void rejectsInvalidType() {
-		new LikeBinding("foo", Type.SIMPLE_PROPERTY);
+		new LikeParameterBinding("foo", Type.SIMPLE_PROPERTY);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void rejectsInvalidPosition() {
-		new LikeBinding(0, Type.CONTAINING);
+		new LikeParameterBinding(0, Type.CONTAINING);
 	}
 
 	@Test
 	public void setsUpInstanceForName() {
 
-		LikeBinding binding = new LikeBinding("foo", Type.CONTAINING);
+		LikeParameterBinding binding = new LikeParameterBinding("foo", Type.CONTAINING);
 
 		assertThat(binding.hasName("foo"), is(true));
 		assertThat(binding.hasName("bar"), is(false));
@@ -67,7 +67,7 @@ public class LikeBindingUnitTests {
 	@Test
 	public void setsUpInstanceForIndex() {
 
-		LikeBinding binding = new LikeBinding(1, Type.CONTAINING);
+		LikeParameterBinding binding = new LikeParameterBinding(1, Type.CONTAINING);
 
 		assertThat(binding.hasName("foo"), is(false));
 		assertThat(binding.hasName(null), is(false));
@@ -83,12 +83,12 @@ public class LikeBindingUnitTests {
 		assertAugmentedValue(Type.ENDING_WITH, "%value");
 		assertAugmentedValue(Type.STARTING_WITH, "value%");
 
-		assertThat(new LikeBinding(1, Type.CONTAINING).prepare(null), is(nullValue()));
+		assertThat(new LikeParameterBinding(1, Type.CONTAINING).prepare(null), is(nullValue()));
 	}
 
 	private static void assertAugmentedValue(Type type, Object value) {
 
-		LikeBinding binding = new LikeBinding("foo", type);
+		LikeParameterBinding binding = new LikeParameterBinding("foo", type);
 		assertThat(binding.prepare("value"), is(value));
 	}
 }
