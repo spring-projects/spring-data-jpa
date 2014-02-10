@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2013 the original author or authors.
+ * Copyright 2008-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -276,6 +276,18 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	 * @see DATAJPA-415
 	 */
 	Collection<User> findByIdIn(@Param("ids") Integer... ids);
+
+	/**
+	 * @see DATAJPA-461
+	 */
+	@Query("select u from User u where u.id in ?1")
+	Collection<User> findByIdsCustomWithPositionalVarArgs(Integer... ids);
+
+	/**
+	 * @see DATAJPA-461
+	 */
+	@Query("select u from User u where u.id in :ids")
+	Collection<User> findByIdsCustomWithNamedVarArgs(@Param("ids") Integer... ids);
 
 	/**
 	 * @see DATAJPA-415
