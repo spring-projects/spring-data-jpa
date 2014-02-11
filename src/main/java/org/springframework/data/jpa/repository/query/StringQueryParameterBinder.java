@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,13 +18,14 @@ package org.springframework.data.jpa.repository.query;
 import javax.persistence.Query;
 
 import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
-import org.springframework.data.jpa.repository.query.StringQuery.LikeBinding;
+import org.springframework.data.jpa.repository.query.StringQuery.LikeParameterBinding;
+import org.springframework.data.jpa.repository.query.StringQuery.ParameterBinding;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.util.Assert;
 
 /**
- * {@link ParameterBinder} that takes {@link LikeBinding}s encapsulated in a {@link StringQuery} into account.
+ * {@link ParameterBinder} that takes {@link LikeParameterBinding}s encapsulated in a {@link StringQuery} into account.
  * 
  * @author Oliver Gierke
  * @author Thomas Darimont
@@ -58,9 +59,9 @@ public class StringQueryParameterBinder extends ParameterBinder {
 
 		Object valueToBind = value;
 
-		if (query.hasLikeBindings()) {
+		if (query.hasParameterBindings()) {
 
-			LikeBinding binding = getBindingFor(jpaQuery, position, methodParameter);
+			ParameterBinding binding = getBindingFor(jpaQuery, position, methodParameter);
 
 			if (binding != null) {
 				valueToBind = binding.prepare(valueToBind);
@@ -71,14 +72,14 @@ public class StringQueryParameterBinder extends ParameterBinder {
 	}
 
 	/**
-	 * Finds the {@link LikeBinding} to be applied before binding a parameter value to the query.
+	 * Finds the {@link LikeParameterBinding} to be applied before binding a parameter value to the query.
 	 * 
 	 * @param jpaQuery must not be {@literal null}.
 	 * @param position
 	 * @param methodParameter must not be {@literal null}.
-	 * @return the {@link LikeBinding} for the given parameters or {@literal null} if none available.
+	 * @return the {@link LikeParameterBinding} for the given parameters or {@literal null} if none available.
 	 */
-	private LikeBinding getBindingFor(Query jpaQuery, int position, Parameter methodParameter) {
+	private ParameterBinding getBindingFor(Query jpaQuery, int position, Parameter methodParameter) {
 
 		try {
 
