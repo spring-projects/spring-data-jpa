@@ -1170,6 +1170,34 @@ public class UserRepositoryTests {
 		assertThat(result, hasItem(firstUser));
 	}
 
+	/**
+	 * @DATAJPA-461
+	 */
+	@Test
+	public void customFindByQueryWithPositionalVarargsParameters() {
+
+		flushTestUsers();
+
+		Collection<User> result = repository.findByIdsCustomWithPositionalVarArgs(firstUser.getId(), secondUser.getId());
+
+		assertThat(result, hasSize(2));
+		assertThat(result, hasItems(firstUser, secondUser));
+	}
+
+	/**
+	 * @DATAJPA-461
+	 */
+	@Test
+	public void customFindByQueryWithNamedVarargsParameters() {
+
+		flushTestUsers();
+
+		Collection<User> result = repository.findByIdsCustomWithNamedVarArgs(firstUser.getId(), secondUser.getId());
+
+		assertThat(result, hasSize(2));
+		assertThat(result, hasItems(firstUser, secondUser));
+	}
+
 	private Page<User> executeSpecWithSort(Sort sort) {
 
 		flushTestUsers();

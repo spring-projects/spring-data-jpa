@@ -60,7 +60,7 @@ final class SimpleJpaQuery extends AbstractJpaQuery {
 			throw new IllegalStateException("Cannot use native queries with dynamic sorting and/or pagination!");
 		}
 
-		String preparedQueryString = this.query.getQuery();
+		String preparedQueryString = this.query.getQueryString();
 
 		if (!method.isNativeQuery()) {
 			validateQuery(preparedQueryString, em, String.format("Validation failed for query for method %s!", method));
@@ -70,7 +70,7 @@ final class SimpleJpaQuery extends AbstractJpaQuery {
 				: QueryUtils.createCountQueryFor(preparedQueryString));
 
 		if (!method.isNativeQuery() && method.isPageQuery()) {
-			validateQuery(this.countQuery.getQuery(), em,
+			validateQuery(this.countQuery.getQueryString(), em,
 					String.format("Count query validation failed for method %s!", method));
 		}
 	}
@@ -128,7 +128,7 @@ final class SimpleJpaQuery extends AbstractJpaQuery {
 	public Query doCreateQuery(Object[] values) {
 
 		ParameterAccessor accessor = new ParametersParameterAccessor(method.getParameters(), values);
-		String sortedQueryString = QueryUtils.applySorting(query.getQuery(), accessor.getSort(), query.getAlias());
+		String sortedQueryString = QueryUtils.applySorting(query.getQueryString(), accessor.getSort(), query.getAlias());
 		EntityManager em = getEntityManager();
 
 		Query query = null;
@@ -149,7 +149,7 @@ final class SimpleJpaQuery extends AbstractJpaQuery {
 	 */
 	@Override
 	protected TypedQuery<Long> doCreateCountQuery(Object[] values) {
-		return createBinder(values).bind(getEntityManager().createQuery(countQuery.getQuery(), Long.class));
+		return createBinder(values).bind(getEntityManager().createQuery(countQuery.getQueryString(), Long.class));
 	}
 
 	/**
