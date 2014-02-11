@@ -50,20 +50,14 @@
         <answer>
           <para>You have to replace
           <classname>AnnotationSessionFactoryBean</classname> with the
-          <classname>LocalContainerEntityManagerFactoryBean</classname>.
-          Supposed you have registered it under
-          <code>entityManagerFactory</code> you can reference it in you
-          repositories based on <classname>HibernateDaoSupport</classname> as
-          follows:</para>
+          <classname>HibernateJpaSessionFactoryBean</classname> as follows:
 
           <example>
-            <title>Looking up a SessionFactory from an
+            <title>Looking up a SessionFactory from a
             HibernateEntityManagerFactory</title>
 
-            <programlisting language="xml">&lt;bean class="com.acme.YourDaoBasedOnHibernateDaoSupport"&gt;
-  &lt;property name="sessionFactory"&gt;
-    &lt;bean factory-bean="entityManagerFactory" factory-method="getSessionFactory" /&gt;
-  &lt;/property&gt;
+            <programlisting language="xml">&lt;bean id="sessionFactory" class="org.springframework.orm.jpa.vendor.HibernateJpaSessionFactoryBean"&gt;
+  &lt;property name="entityManagerFactory" ref="entityManagerFactory"/&gt;
 &lt;/bean&gt;</programlisting>
           </example>
         </answer>
