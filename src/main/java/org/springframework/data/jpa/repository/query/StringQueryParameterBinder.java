@@ -57,18 +57,8 @@ public class StringQueryParameterBinder extends ParameterBinder {
 	@Override
 	protected void bind(Query jpaQuery, JpaParameter methodParameter, Object value, int position) {
 
-		Object valueToBind = value;
-
-		if (query.hasParameterBindings()) {
-
-			ParameterBinding binding = getBindingFor(jpaQuery, position, methodParameter);
-
-			if (binding != null) {
-				valueToBind = binding.prepare(valueToBind);
-			}
-		}
-
-		super.bind(jpaQuery, methodParameter, valueToBind, position);
+		ParameterBinding binding = getBindingFor(jpaQuery, position, methodParameter);
+		super.bind(jpaQuery, methodParameter, binding.prepare(value), position);
 	}
 
 	/**
@@ -77,7 +67,7 @@ public class StringQueryParameterBinder extends ParameterBinder {
 	 * @param jpaQuery must not be {@literal null}.
 	 * @param position
 	 * @param methodParameter must not be {@literal null}.
-	 * @return the {@link LikeParameterBinding} for the given parameters or {@literal null} if none available.
+	 * @return the {@link ParameterBinding} for the given parameters or {@literal null} if none available.
 	 */
 	private ParameterBinding getBindingFor(Query jpaQuery, int position, Parameter methodParameter) {
 
@@ -93,6 +83,10 @@ public class StringQueryParameterBinder extends ParameterBinder {
 			}
 		}
 
-		return null;
+		// We should actually reject parameters unavailable, but as EclipseLink doesn't implement ….getParameter(int) for
+		// native queries correctly we need to fall back to an indexed parameter
+		// @see https://bugs.eclipse.org/bugs/show_bug.cgi?id=427892
+
+		return new ParameterBinding(position);
 	}
 }

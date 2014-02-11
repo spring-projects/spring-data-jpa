@@ -123,10 +123,11 @@ public class StringQueryUnitTests {
 		assertThat(query.getQueryString(), is(queryString));
 
 		List<ParameterBinding> bindings = query.getParameterBindings();
-		assertThat(bindings, hasSize(2));
+		assertThat(bindings, hasSize(3));
 
 		assertNamedBinding(InParameterBinding.class, "ids", bindings.get(0));
 		assertNamedBinding(InParameterBinding.class, "names", bindings.get(1));
+		assertNamedBinding(ParameterBinding.class, "bar", bindings.get(2));
 	}
 
 	/**
@@ -160,10 +161,11 @@ public class StringQueryUnitTests {
 		assertThat(query.getQueryString(), is(queryString));
 
 		List<ParameterBinding> bindings = query.getParameterBindings();
-		assertThat(bindings, hasSize(2));
+		assertThat(bindings, hasSize(3));
 
 		assertPositionalBinding(InParameterBinding.class, 1, bindings.get(0));
 		assertPositionalBinding(InParameterBinding.class, 2, bindings.get(1));
+		assertPositionalBinding(ParameterBinding.class, 3, bindings.get(2));
 	}
 
 	/**
