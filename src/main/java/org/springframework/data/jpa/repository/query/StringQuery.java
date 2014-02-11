@@ -97,18 +97,20 @@ class StringQuery {
 	/**
 	 * Returns the {@link ParameterBinding} for the given name.
 	 * 
-	 * @param name
+	 * @param name must not be {@literal null} or empty.
 	 * @return
 	 */
 	public ParameterBinding getBindingFor(String name) {
 
-		for (StringQuery.ParameterBinding binding : bindings) {
+		Assert.hasText(name, "Name must not be null or empty!");
+
+		for (ParameterBinding binding : bindings) {
 			if (binding.hasName(name)) {
 				return binding;
 			}
 		}
 
-		return null;
+		throw new IllegalArgumentException(String.format("No parameter binding found for name %s!", name));
 	}
 
 	/**
@@ -118,13 +120,14 @@ class StringQuery {
 	 * @return
 	 */
 	public ParameterBinding getBindingFor(int position) {
+
 		for (ParameterBinding binding : bindings) {
 			if (binding.hasPosition(position)) {
 				return binding;
 			}
 		}
 
-		return null;
+		throw new IllegalArgumentException(String.format("No parameter binding found for position %s!", position));
 	}
 
 	/**
@@ -132,7 +135,7 @@ class StringQuery {
 	 * 
 	 * @author Thomas Darimont
 	 */
-	static enum ParameterBindingParser {
+	private static enum ParameterBindingParser {
 
 		INSTANCE;
 
@@ -142,9 +145,19 @@ class StringQuery {
 
 		static {
 
+			List<String> keywords = new ArrayList<String>();
+
+			for (ParameterBindingType type : ParameterBindingType.values()) {
+				if (type.getKeyword() != null) {
+					keywords.add(type.getKeyword());
+				}
+			}
+
 			StringBuilder builder = new StringBuilder();
-			builder.append("(?<=(like|in))"); // parameterBindingType -> starts with "like" or "in"
-			builder.append("(?: )+"); // some whitespace
+			builder.append("(?<=(");
+			builder.append(StringUtils.collectionToDelimitedString(keywords, "|")); // keywords
+			builder.append("))");
+			builder.append("(?: )?"); // some whitespace
 			builder.append("(");
 			builder.append("%?(\\?(\\d+))%?"); // position parameter
 			builder.append("|"); // or
@@ -173,7 +186,8 @@ class StringQuery {
 				String parameterName = parameterIndexString != null ? null : matcher.group(6);
 				Integer parameterIndex = parameterIndexString == null ? null : Integer.valueOf(parameterIndexString);
 
-				switch (ParameterBindingKind.of(matcher.group(1))) {
+				switch (ParameterBindingType.of(matcher.group(1))) {
+
 					case LIKE:
 
 						Type likeType = LikeParameterBinding.getLikeTypeFrom(matcher.group(2));
@@ -187,7 +201,6 @@ class StringQuery {
 						}
 
 						result = StringUtils.replace(result, matcher.group(2), replacement);
-
 						break;
 
 					case IN:
@@ -198,11 +211,15 @@ class StringQuery {
 							checkAndRegister(new InParameterBinding(parameterName), bindings);
 						}
 
+						result = query;
 						break;
 
 					case AS_IS: // fall-through we don't need a special parameter binding for the given parameter.
 					default:
-						;
+
+						bindings.add(parameterIndex != null ? new ParameterBinding(parameterIndex) : new ParameterBinding(
+								parameterName));
+						result = query;
 				}
 			}
 
@@ -221,25 +238,44 @@ class StringQuery {
 		}
 
 		/**
-		 * An enum for the supported parameter binding kinds.
+		 * An enum for the different types of bindings.
 		 * 
 		 * @author Thomas Darimont
+		 * @author Oliver Gierke
 		 */
-		enum ParameterBindingKind {
+		private static enum ParameterBindingType {
 
-			LIKE, IN, AS_IS;
+			// Trailing whitespace is intentional to reflect that the keywords must be used with at least one whitespace
+			// character, while = does not.
+			LIKE("like "), IN("in "), AS_IS("=");
+
+			private final String keyword;
+
+			private ParameterBindingType(String keyword) {
+				this.keyword = keyword;
+			}
 
 			/**
-			 * Return the appropriate {@link ParameterBindingKind} for the given {@link String}. Returns {@value #AS_IS} in
-			 * case no other {@link ParameterBindingKind} could be found.
+			 * Returns the keyword that will tirgger the binding type or {@literal null} if the type is not triggered by a
+			 * keyword.
+			 * 
+			 * @return the keyword
+			 */
+			public String getKeyword() {
+				return keyword;
+			}
+
+			/**
+			 * Return the appropriate {@link ParameterBindingType} for the given {@link String}. Returns {@keyword
+			 * #AS_IS} in case no other {@link ParameterBindingType} could be found.
 			 * 
 			 * @param parameterBindingKindName
 			 * @return
 			 */
-			static ParameterBindingKind of(String parameterBindingKindName) {
+			static ParameterBindingType of(String parameterBindingKindName) {
 
-				for (ParameterBindingKind type : values()) {
-					if (type.name().equalsIgnoreCase(parameterBindingKindName)) {
+				for (ParameterBindingType type : values()) {
+					if (type.name().equalsIgnoreCase(parameterBindingKindName.trim())) {
 						return type;
 					}
 				}
@@ -321,6 +357,10 @@ class StringQuery {
 			return position;
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * @see java.lang.Object#hashCode()
+		 */
 		@Override
 		public int hashCode() {
 
@@ -332,6 +372,10 @@ class StringQuery {
 			return result;
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * @see java.lang.Object#equals(java.lang.Object)
+		 */
 		@Override
 		public boolean equals(Object obj) {
 
@@ -393,16 +437,7 @@ class StringQuery {
 		 * @see org.springframework.data.jpa.repository.query.StringQuery.ParameterBinding#prepare(java.lang.Object)
 		 */
 		@Override
-		public Object prepare(Object valueToBind) {
-			return convertArrayToCollectionIfNecessary(valueToBind);
-		}
-
-		/**
-		 * Returns the given value as collection if it is an array or as is if not.
-		 * 
-		 * @return
-		 */
-		private Object convertArrayToCollectionIfNecessary(Object value) {
+		public Object prepare(Object value) {
 
 			if (!ObjectUtils.isArray(value)) {
 				return value;
@@ -472,19 +507,20 @@ class StringQuery {
 		}
 
 		/**
-		 * Returns the type of the {@link LikeParameterBinding}.
+		 * Returns the {@link Type} of the binding.
 		 * 
-		 * @return
+		 * @return the type
 		 */
 		public Type getType() {
 			return type;
 		}
 
 		/**
-		 * Prepares the given raw value according to the like type.
+		 * Prepares the given raw keyword according to the like type.
 		 * 
-		 * @param value
+		 * @param keyword
 		 */
+		@Override
 		public Object prepare(Object value) {
 
 			if (value == null) {

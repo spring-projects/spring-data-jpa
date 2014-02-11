@@ -40,8 +40,8 @@ public class ParameterBinder {
 	/**
 	 * Creates a new {@link ParameterBinder}.
 	 * 
-	 * @param parameters
-	 * @param values
+	 * @param parameters must not be {@literal null}.
+	 * @param values must not be {@literal null}.
 	 */
 	public ParameterBinder(JpaParameters parameters, Object[] values) {
 
@@ -55,7 +55,6 @@ public class ParameterBinder {
 	}
 
 	ParameterBinder(JpaParameters parameters) {
-
 		this(parameters, new Object[0]);
 	}
 
@@ -128,12 +127,10 @@ public class ParameterBinder {
 			return;
 		}
 
-		Object valueToUse = value;
-
 		if (hasNamedParameter(query) && parameter.isNamedParameter()) {
-			query.setParameter(parameter.getName(), valueToUse);
+			query.setParameter(parameter.getName(), value);
 		} else {
-			query.setParameter(position, valueToUse);
+			query.setParameter(position, value);
 		}
 	}
 
@@ -144,8 +141,11 @@ public class ParameterBinder {
 	 * @return
 	 */
 	public Query bindAndPrepare(Query query) {
-
 		return bindAndPrepare(query, parameters);
+	}
+
+	boolean hasNamedParameter(Query query) {
+		return QueryUtils.hasNamedParameter(query);
 	}
 
 	private Query bindAndPrepare(Query query, Parameters<?, ?> parameters) {
@@ -160,10 +160,5 @@ public class ParameterBinder {
 		result.setMaxResults(getPageable().getPageSize());
 
 		return result;
-	}
-
-	boolean hasNamedParameter(Query query) {
-
-		return QueryUtils.hasNamedParameter(query);
 	}
 }
