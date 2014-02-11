@@ -153,9 +153,9 @@ class StringQuery {
 			}
 
 			StringBuilder builder = new StringBuilder();
-			builder.append("(?<=(");
+			builder.append("(");
 			builder.append(StringUtils.collectionToDelimitedString(keywords, "|")); // keywords
-			builder.append("))");
+			builder.append(")?");
 			builder.append("(?: )?"); // some whitespace
 			builder.append("(");
 			builder.append("%?(\\?(\\d+))%?"); // position parameter
@@ -184,8 +184,9 @@ class StringQuery {
 				String parameterIndexString = matcher.group(4);
 				String parameterName = parameterIndexString != null ? null : matcher.group(6);
 				Integer parameterIndex = parameterIndexString == null ? null : Integer.valueOf(parameterIndexString);
+				String typeSource = matcher.group(1);
 
-				switch (ParameterBindingType.of(matcher.group(1))) {
+				switch (ParameterBindingType.of(typeSource)) {
 
 					case LIKE:
 
@@ -246,7 +247,7 @@ class StringQuery {
 
 			// Trailing whitespace is intentional to reflect that the keywords must be used with at least one whitespace
 			// character, while = does not.
-			LIKE("like "), IN("in "), AS_IS("=");
+			LIKE("like "), IN("in "), AS_IS(null);
 
 			private final String keyword;
 
@@ -268,18 +269,22 @@ class StringQuery {
 			 * Return the appropriate {@link ParameterBindingType} for the given {@link String}. Returns {@keyword
 			 * #AS_IS} in case no other {@link ParameterBindingType} could be found.
 			 * 
-			 * @param parameterBindingKindName
+			 * @param typeSource
 			 * @return
 			 */
-			static ParameterBindingType of(String parameterBindingKindName) {
+			static ParameterBindingType of(String typeSource) {
+
+				if (!StringUtils.hasText(typeSource)) {
+					return AS_IS;
+				}
 
 				for (ParameterBindingType type : values()) {
-					if (type.name().equalsIgnoreCase(parameterBindingKindName.trim())) {
+					if (type.name().equalsIgnoreCase(typeSource.trim())) {
 						return type;
 					}
 				}
 
-				return AS_IS;
+				throw new IllegalArgumentException(String.format("Unsupported parameter binding type %s!", typeSource));
 			}
 		}
 	}

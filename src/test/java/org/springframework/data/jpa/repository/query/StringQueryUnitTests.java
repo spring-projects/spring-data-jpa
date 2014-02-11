@@ -181,6 +181,19 @@ public class StringQueryUnitTests {
 		new StringQuery("select u from User u where u.firstname like %?1 and u.lastname like ?1%");
 	}
 
+	/**
+	 * @see DATAJPA-461
+	 */
+	@Test
+	public void treatsGreaterThanBindingAsSimpleBinding() {
+
+		StringQuery query = new StringQuery("select u from User u where u.createdDate > ?1");
+		List<ParameterBinding> bindings = query.getParameterBindings();
+
+		assertThat(bindings, hasSize(1));
+		assertPositionalBinding(ParameterBinding.class, 1, bindings.get(0));
+	}
+
 	private void assertPositionalBinding(Class<? extends ParameterBinding> bindingType, Integer position,
 			ParameterBinding expectedBinding) {
 
