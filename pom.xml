@@ -14,7 +14,7 @@
 	<parent>
 		<groupId>org.springframework.data.build</groupId>
 		<artifactId>spring-data-parent</artifactId>
-		<version>1.2.0.RELEASE</version>
+		<version>1.2.1.RELEASE</version>
 		<relativePath>../spring-data-build/parent/pom.xml</relativePath>
 	</parent>
 	
@@ -27,7 +27,7 @@
 		<hsqldb1>1.8.0.10</hsqldb1>
 		<jpa>2.0.0</jpa>
 		<openjpa>2.2.1</openjpa>
-		<springdata.commons>1.6.3.RELEASE</springdata.commons>
+		<springdata.commons>1.6.4.RELEASE</springdata.commons>
 		
 	</properties>
 	
@@ -420,11 +420,18 @@
 		</plugins>
 	</build>
 	
-	<repositories>
+    <repositories>
 		<repository>
 			<id>spring-libs-milestone</id>
-			<url>http://repo.springsource.org/libs-release-local</url>
+			<url>http://repo.spring.io/libs-release</url>
 		</repository>
 	</repositories>
 
+	<pluginRepositories>
+		<pluginRepository>
+			<id>spring-plugins-release</id>
+			<url>http://repo.spring.io/plugins-release</url>
+		</pluginRepository>
+	</pluginRepositories>
+	
 </project>

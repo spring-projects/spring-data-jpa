@@ -1,6 +1,31 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 1.4.4.RELEASE (2014-02-17)
+---------------------------------------------
+* PersistenceProvider enum should also match org.hibernate.jpa.HibernateEntityManager (DATAJPA-444)
+* Query on byte array fails (DATAJPA-454)
+* Regression in parameter binding (DATAJPA-461)
+* Upgrade Hibernate 4 build to latest versions (DATAJPA-443)
+* Add contribution guidelines (DATAJPA-448)
+* Release 1.4.4 (DATAJPA-463)
+
+Changes in version 1.5.0.RC1 (2014-01-29)
+-----------------------------------------
+* Add Sort implementations that use JPA Metamodel API and/or QueryDsl API (DATAJPA-12)
+* Enable support to inject EntityManager via constructor (DATAJPA-445)
+* <jpa:repositories> needs explicitly given transaction manager even when there is only one tx manager (DATAJPA-410)
+* COUNT syntax error when use scalar select (select a.b, a.c from …) with paging (DATAJPA-420)
+* Sort by property of an associated object generates inner join instead of left join with QueryDsl and Hibernate (DATAJPA-427)
+* Fix incompatibilities with latest Hibernate 4.3 (CR2 currently) (DATAJPA-430)
+* Repository initialization causes transaction rollback in CDI environments (DATAJPA-442)
+* PersistenceProvider enum should also match org.hibernate.jpa.HibernateEntityManager (DATAJPA-444)
+* EntityManagerBeanDefinitionRegistrarPostProcessor doesn't find EntityManagerFactory definitions in BeanFactory hierarchy (DATAJPA-453)
+* Upgrade to EclipseLink 2.5.1 (DATAJPA-417)
+* Upgrade Hibernate 4 build to latest versions (DATAJPA-443)
+* Add contribution guidelines (DATAJPA-448)
+* Release Spring Data JPA 1.5.0.RC1 (DATAJPA-450)
+
 Changes in version 1.4.3.RELEASE (2013-12-11)
 ---------------------------------------------
 * Improved documentation on jpa:repository namespace (DATAJPA-410)
