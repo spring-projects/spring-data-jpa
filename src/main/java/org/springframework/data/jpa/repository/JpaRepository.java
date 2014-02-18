@@ -67,7 +67,7 @@ public interface JpaRepository<T, ID extends Serializable> extends PagingAndSort
 	 * @param entity
 	 * @return the saved entity
 	 */
-	T saveAndFlush(T entity);
+	<S extends T> S saveAndFlush(S entity);
 
 	/**
 	 * Deletes the given entities in a batch which means it will create a single {@link Query}. Assume that we will clear
