@@ -378,9 +378,9 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	 * @see org.springframework.data.jpa.repository.JpaRepository#saveAndFlush(java.lang.Object)
 	 */
 	@Transactional
-	public T saveAndFlush(T entity) {
+	public <S extends T> S saveAndFlush(S entity) {
 
-		T result = save(entity);
+		S result = save(entity);
 		flush();
 
 		return result;
