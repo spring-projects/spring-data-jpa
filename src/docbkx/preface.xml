@@ -10,7 +10,7 @@
     <itemizedlist spacing="compact">
       <listitem>
         <para>Version control - <ulink
-        url="git://github.com/SpringSource/spring-data-jpa.git">git://github.com/SpringSource/spring-data-jpa.git</ulink></para>
+        url="git://github.com/spring-projects/spring-data-jpa.git">git://github.com/spring-projects/spring-data-jpa.git</ulink></para>
       </listitem>
 
       <listitem>
@@ -20,17 +20,17 @@
 
       <listitem>
         <para>Release repository - <ulink
-        url="http://repo.springsource.org/libs-release">http://repo.springsource.org/libs-release</ulink></para>
+        url="http://repo.spring.io/libs-release">http://repo.spring.io/libs-release</ulink></para>
       </listitem>
 
       <listitem>
         <para>Milestone repository - <ulink
-        url="http://repo.springsource.org/libs-milestone">http://repo.springsource.org/libs-milestone</ulink></para>
+        url="http://repo.spring.io/libs-milestone">http://repo.spring.io/libs-milestone</ulink></para>
       </listitem>
 
       <listitem>
         <para>Snapshot repository - <ulink
-        url="http://repo.springsource.org/libs-snapshot">http://repo.springsource.org/libs-snapshot</ulink></para>
+        url="http://repo.spring.io/libs-snapshot">http://repo.spring.io/libs-snapshot</ulink></para>
       </listitem>
     </itemizedlist>
   </section>
