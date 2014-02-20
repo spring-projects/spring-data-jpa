@@ -9,7 +9,7 @@
 
 	<name>Spring Data JPA</name>
 	<description>Spring Data module for JPA repositories.</description>
-	<url>http://www.springframework.org/spring-data/jpa</url>
+	<url>http://projects.spring.io/spring-data-jpa</url>
 
 	<parent>
 		<groupId>org.springframework.data.build</groupId>

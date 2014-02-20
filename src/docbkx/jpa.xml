@@ -42,7 +42,7 @@
       in <xref linkend="repositories.create-instances"/>. Beyond that it
       activates persistence exception translation for all beans annotated with
       <interfacename>@Repository</interfacename> to let exceptions being
-      thrown by the JPA presistence providers be converted into Spring's
+      thrown by the JPA persistence providers be converted into Spring's
       <classname>DataAccessException</classname> hierarchy.</para>
 
       <simplesect id="jpa.namespace-attributes">
@@ -50,7 +50,7 @@
 
         <para>Beyond the default attributes of the <code>repositories</code>
         element the JPA namespace offers additional attributes to gain more
-        detailled control over the setup of the repositories:</para>
+        detailed control over the setup of the repositories:</para>
 
         <table>
           <title>Custom JPA-specific attributes of the repositories
@@ -98,7 +98,7 @@
       </simplesect>
     </section>
 
-    <section>
+    <section id="jpa.java-config">
       <title>Annotation based configuration</title>
 
       <para>The Spring Data JPA repositories support cannot only be activated
@@ -208,7 +208,7 @@ class ApplicationConfig {
                 Data JPA will delegate the new-detection to the
                 <methodname>isNew</methodname> - Method of the Entity. See the
                 <ulink
-                url="http://static.springsource.org/spring-data/data-commons/docs/current/api/index.html?org/springframework/data/domain/Persistable.html">JavaDoc</ulink>
+                url="http://docs.spring.io/spring-data/data-commons/docs/current/api/index.html?org/springframework/data/domain/Persistable.html">JavaDoc</ulink>
                 for details.</entry>
               </row>
 
@@ -226,7 +226,7 @@ class ApplicationConfig {
                 implementation of <classname>JpaRepositoryFactory</classname>
                 as a Spring bean. Note that this should be rarely necessary.
                 See the <ulink
-                url="http://static.springsource.org/spring-data/data-jpa/docs/current/api/index.html?org/springframework/data/jpa/repository/support/JpaRepositoryFactory.html">JavaDoc</ulink>
+                url="http://docs.spring.io/spring-data/data-jpa/docs/current/api/index.html?org/springframework/data/jpa/repository/support/JpaRepositoryFactory.html">JavaDoc</ulink>
                 for details.</entry>
               </row>
             </tbody>
@@ -321,6 +321,14 @@ class ApplicationConfig {
                 <entry><code>… where x.lastname = ?1 or x.firstname =
                 ?2</code></entry>
               </row>
+              
+              <row>
+                <entry><code>Is,Equals</code></entry>
+
+                <entry><code>findByFirstname,findByFirstnameIs,findByFirstnameEquals</code></entry>
+
+                <entry><code>… where x.firstname = 1?</code></entry>
+              </row>
 
               <row>
                 <entry><code>Between</code></entry>
@@ -338,6 +346,14 @@ class ApplicationConfig {
 
                 <entry><code>… where x.age &lt; ?1</code></entry>
               </row>
+              
+              <row>
+                <entry><code>LessThanEqual</code></entry>
+
+                <entry><code>findByAgeLessThan</code></entry>
+
+                <entry><code>… where x.age &lt;= ?1</code></entry>
+              </row>
 
               <row>
                 <entry><code>GreaterThan</code></entry>
@@ -345,6 +361,14 @@ class ApplicationConfig {
                 <entry><code>findByAgeGreaterThan</code></entry>
 
                 <entry><code>… where x.age &gt; ?1</code></entry>
+              </row>
+              
+              <row>
+                <entry><code>GreaterThanEqual</code></entry>
+
+                <entry><code>findByAgeGreaterThan</code></entry>
+
+                <entry><code>… where x.age &gt;= ?1</code></entry>
               </row>
 
               <row>
@@ -472,6 +496,15 @@ class ApplicationConfig {
 
                 <entry><code>… where x.active = false</code></entry>
               </row>
+              
+              <row>
+                <entry><code>IgnoreCase</code></entry>
+
+                <entry><code>findByFirstnameIgnoreCase</code></entry>
+
+                <entry><code>… where UPPER(x.firstame) = UPPER(?1)</code></entry>
+              </row>
+
             </tbody>
           </tgroup>
         </table><note>
@@ -645,7 +678,7 @@ public class User {
       binding as described in all the samples above. This makes query methods
       a little error prone to refactoring regarding the parameter position. To
       solve this issue you can use <code>@Param</code> annotation to give a
-      method parameter a concrete name and bind the name in the query:</para>
+      method parameter a concrete name and bind the name in the query.</para>
 
       <example>
         <title>Using named parameters</title>
@@ -662,7 +695,7 @@ public class User {
       </example>
     </section>
 
-    <section>
+    <section id="jpa.query.spel-expressions">
       <title id="jpa.query.spel">Using SpEL expressions</title>
 
       <para>As of Spring Data JPA Release 1.4 we support the usage of
@@ -722,7 +755,10 @@ public class User {
         <programlisting language="java">@Entity
 public class User {
 
-  @Id @GeneratedValue Long id; 
+  @Id
+  @GeneratedValue
+  Long id; 
+  
   String lastname;
 }
 
@@ -814,7 +850,7 @@ int setFixedFirstnameFor(String firstname, String lastname);</programlisting>
       you wish the <interfacename>EntityManager</interfacename> to be cleared
       automatically you can set <interfacename>@Modifying</interfacename>
       annotation's <code>clearAutomatically</code> attribute to
-      <literal>true</literal>;</para>
+      <literal>true</literal>.</para>
     </section>
 
     <section id="jpa.query-hints">
@@ -1031,7 +1067,7 @@ class UserManagementImpl implements UserManagement {
       none already running). The transaction configuration at the repositories
       will be neglected then as the outer transaction configuration determines
       the actual one used. Note that you will have to activate
-      <code>&lt;tx:annotation-driven /&gt;</code> explicitly to get annotation
+      <code>&lt;tx:annotation-driven /&gt;</code> or use <interfacename>@EnableTransactionManagement</interfacename> explicitly to get annotation
       based configuration at facades working. The example above assumes you
       are using component scanning.</para>
     </example>
@@ -1122,12 +1158,12 @@ public interface UserRepository extends JpaRepository&lt;User, Long&gt; {
   <section id="jpa.auditing">
     <title>Auditing</title>
 
-    <xi:include href="https://raw.github.com/SpringSource/spring-data-commons/master/src/docbkx/auditing.xml"
+    <xi:include href="https://raw.github.com/spring-projects/spring-data-commons/master/src/docbkx/auditing.xml"
                 xmlns:xi="http://www.w3.org/2001/XInclude">
       <xi:fallback href="../../../spring-data-commons/src/docbkx/auditing.xml"/>
     </xi:include>
 
-    <section>
+    <section id="jpa.auditing.configuration">
       <title>General auditing configuration</title>
 
       <para>Spring Data JPA ships with an entity listener that can be used to
@@ -1250,7 +1286,7 @@ class Config {
         <para>As of Spring 3.1 a package to scan can be configured on the
         <classname>LocalContainerEntityManagerFactoryBean</classname> directly
         to enable classpath scanning for entity classes. See the <ulink
-        url="http://static.springsource.org/spring/docs/3.1.x/javadoc-api/org/springframework/orm/jpa/LocalContainerEntityManagerFactoryBean.html#setPackagesToScan(java.lang.String...)">JavaDoc</ulink>
+        url="http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/orm/jpa/LocalContainerEntityManagerFactoryBean.html#setPackagesToScan(java.lang.String...)">JavaDoc</ulink>
         for details.</para>
       </note>
     </section>
