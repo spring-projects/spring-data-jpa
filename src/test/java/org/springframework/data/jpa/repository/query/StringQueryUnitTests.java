@@ -195,6 +195,24 @@ public class StringQueryUnitTests {
 		assertPositionalBinding(ParameterBinding.class, 1, bindings.get(0));
 	}
 
+	/**
+	 * @see DATAJPA-473
+	 */
+	@Test
+	public void removesLikeBindingsFromQueryIfQueryContainsSimpleBinding() {
+
+		StringQuery query = new StringQuery("SELECT a FROM Article a WHERE a.overview LIKE %:escapedWord% ESCAPE '~'"
+				+ " OR a.content LIKE %:escapedWord% ESCAPE '~' OR a.title = :word ORDER BY a.articleId DESC");
+
+		List<ParameterBinding> bindings = query.getParameterBindings();
+
+		assertThat(bindings, hasSize(2));
+		assertNamedBinding(LikeParameterBinding.class, "escapedWord", bindings.get(0));
+		assertNamedBinding(ParameterBinding.class, "word", bindings.get(1));
+		assertThat(query.getQueryString(), is("SELECT a FROM Article a WHERE a.overview LIKE :escapedWord ESCAPE '~'"
+				+ " OR a.content LIKE :escapedWord ESCAPE '~' OR a.title = :word ORDER BY a.articleId DESC"));
+	}
+
 	private void assertPositionalBinding(Class<? extends ParameterBinding> bindingType, Integer position,
 			ParameterBinding expectedBinding) {
 

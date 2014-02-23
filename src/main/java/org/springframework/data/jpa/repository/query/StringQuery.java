@@ -220,7 +220,6 @@ class StringQuery {
 
 						bindings.add(parameterIndex != null ? new ParameterBinding(parameterIndex) : new ParameterBinding(
 								parameterName));
-						result = query;
 				}
 			}
 
@@ -235,7 +234,9 @@ class StringQuery {
 				}
 			}
 
-			bindings.add(binding);
+			if (!bindings.contains(binding)) {
+				bindings.add(binding);
+			}
 		}
 
 		/**
