@@ -1270,7 +1270,8 @@ class Config {
 
       <para>You can now set up the infrastructure by implementing a CDI
       <interfacename>Producer</interfacename> for the
-      <classname>EntityManagerFactory</classname>:</para>
+      <classname>EntityManagerFactory</classname> and
+      <interfacename>EntityManager</interfacename>:</para>
 
       <programlisting language="java">class EntityManagerFactoryProducer {
 
@@ -1283,7 +1284,35 @@ class Config {
   public void close(@Disposes EntityManagerFactory entityManagerFactory) {
     entityManagerFactory.close();
   }
+
+  @Produces
+  @RequestScoped
+  public EntityManager createEntityManager(EntityManagerFactory entityManagerFactory) {
+    return entityManagerFactory.createEntityManager();
+  }
+
+  public void close(@Disposes EntityManager entityManager) {
+    entityManager.close();
+  }
 }</programlisting>
+
+      <para>The necessary setup can vary depending on the JavaEE environment
+      you run in. It might also just be enough to redeclare a
+      <interfacename>EntityManager</interfacename> as CDI bean as
+      follows:</para>
+
+      <programlisting language="java">class CdiConfig {
+
+  @Produces
+  @RequestScoped
+  @PersistenceContext
+  public EntityManager entityManager;
+}</programlisting>
+
+      <para>In this example, the container has to be capable of creating JPA
+      <interfacename>EntityManager</interfacename>s itself. All the
+      configuration does is re-exporting the JPA
+      <interfacename>EntityManager</interfacename> as CDI bean.</para>
 
       <para>The Spring Data JPA CDI extension will pick up all
       <interfacename>EntityManager</interfacename>s availables as CDI beans
