@@ -24,13 +24,11 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.ImportResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.sample.User;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.data.jpa.repository.sample.RedeclaringRepositoryMethodsRepository;
+import org.springframework.data.jpa.repository.sample.SampleConfig;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,14 +37,9 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Thomas Darimont
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration
+@ContextConfiguration(classes = SampleConfig.class)
 @Transactional
 public class RedeclaringRepositoryMethodsTests {
-
-	@Configuration
-	@ImportResource("classpath:infrastructure.xml")
-	@EnableJpaRepositories
-	static class Config {}
 
 	@Autowired RedeclaringRepositoryMethodsRepository repository;
 

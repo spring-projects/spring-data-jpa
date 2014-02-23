@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2013 the original author or authors.
+ * Copyright 2008-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,6 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
 
 import javax.persistence.Query;
@@ -27,7 +24,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.util.Assert;
-import org.springframework.util.ObjectUtils;
 
 /**
  * {@link ParameterBinder} is used to bind method parameters to a {@link Query}. This is usually done whenever an
@@ -44,8 +40,8 @@ public class ParameterBinder {
 	/**
 	 * Creates a new {@link ParameterBinder}.
 	 * 
-	 * @param parameters
-	 * @param values
+	 * @param parameters must not be {@literal null}.
+	 * @param values must not be {@literal null}.
 	 */
 	public ParameterBinder(JpaParameters parameters, Object[] values) {
 
@@ -59,7 +55,6 @@ public class ParameterBinder {
 	}
 
 	ParameterBinder(JpaParameters parameters) {
-
 		this(parameters, new Object[0]);
 	}
 
@@ -132,34 +127,11 @@ public class ParameterBinder {
 			return;
 		}
 
-		Object valueToUse = convertArrayToCollectionIfNecessary(value);
-
 		if (hasNamedParameter(query) && parameter.isNamedParameter()) {
-			query.setParameter(parameter.getName(), valueToUse);
+			query.setParameter(parameter.getName(), value);
 		} else {
-			query.setParameter(position, valueToUse);
+			query.setParameter(position, value);
 		}
-	}
-
-	/**
-	 * Returns the given value as collection if it is an array or as is if not.
-	 * 
-	 * @return
-	 */
-	private Object convertArrayToCollectionIfNecessary(Object value) {
-
-		if (!ObjectUtils.isArray(value)) {
-			return value;
-		}
-
-		int length = Array.getLength(value);
-		Collection<Object> result = new ArrayList<Object>(length);
-
-		for (int i = 0; i < length; i++) {
-			result.add(Array.get(value, i));
-		}
-
-		return result;
 	}
 
 	/**
@@ -169,8 +141,11 @@ public class ParameterBinder {
 	 * @return
 	 */
 	public Query bindAndPrepare(Query query) {
-
 		return bindAndPrepare(query, parameters);
+	}
+
+	boolean hasNamedParameter(Query query) {
+		return QueryUtils.hasNamedParameter(query);
 	}
 
 	private Query bindAndPrepare(Query query, Parameters<?, ?> parameters) {
@@ -185,10 +160,5 @@ public class ParameterBinder {
 		result.setMaxResults(getPageable().getPageSize());
 
 		return result;
-	}
-
-	boolean hasNamedParameter(Query query) {
-
-		return QueryUtils.hasNamedParameter(query);
 	}
 }

@@ -15,9 +15,10 @@
  */
 package org.springframework.data.jpa.repository.sample;
 
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.jpa.domain.sample.Parent;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
-public interface ParentRepository extends JpaRepository<Parent, Long>, JpaSpecificationExecutor<Parent> {
-}
+@Lazy
+public interface ParentRepository extends JpaRepository<Parent, Long>, JpaSpecificationExecutor<Parent> {}

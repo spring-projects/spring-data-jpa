@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2013 the original author or authors.
+ * Copyright 2008-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -223,18 +222,18 @@ public class ParameterBinderUnitTests {
 	}
 
 	/**
-	 * @see DATAJPA-415
+	 * @see DATAJPA-461
 	 * @throws Exception
 	 */
 	@Test
-	public void shouldAllowBindingOfVarArgs() throws Exception {
+	public void shouldAllowBindingOfVarArgsAsIs() throws Exception {
 
 		Method method = SampleRepository.class.getMethod("validWithVarArgs", Integer[].class);
 		JpaParameters parameters = new JpaParameters(method);
 		Integer[] ids = new Integer[] { 1, 2, 3 };
 		new ParameterBinder(parameters, new Object[] { ids }).bind(query);
 
-		verify(query).setParameter(eq(1), eq(Arrays.asList(1, 2, 3)));
+		verify(query).setParameter(eq(1), eq(ids));
 	}
 
 	public SampleEntity findByEmbeddable(SampleEmbeddable embeddable) {

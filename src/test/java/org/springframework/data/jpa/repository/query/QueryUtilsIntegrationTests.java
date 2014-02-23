@@ -90,6 +90,21 @@ public class QueryUtilsIntegrationTests {
 		QueryUtils.toExpressionRecursively(root, PropertyPath.from("customer", Order.class));
 	}
 
+	/**
+	 * @see DATAJPA-454
+	 */
+	@Test
+	public void createsJoingToTraverseCollectionPath() {
+
+		CriteriaBuilder builder = em.getCriteriaBuilder();
+		CriteriaQuery<User> query = builder.createQuery(User.class);
+		Root<User> root = query.from(User.class);
+
+		QueryUtils.toExpressionRecursively(root, PropertyPath.from("colleaguesLastname", User.class));
+
+		assertThat(root.getJoins(), hasSize(1));
+	}
+
 	protected void assertNoJoinRequestedForOptionalAssociation(Root<Order> root) {
 		assertThat(root.getJoins(), is(empty()));
 	}

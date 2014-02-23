@@ -22,12 +22,14 @@
 
 		<dist.key>DATAJPA</dist.key>
 		
-		<eclipselink>2.4.0</eclipselink>
+		<eclipselink>2.5.1</eclipselink>
 		<hibernate>3.6.10.Final</hibernate>
 		<hsqldb1>1.8.0.10</hsqldb1>
 		<jpa>2.0.0</jpa>
 		<openjpa>2.2.1</openjpa>
 		<springdata.commons>1.7.0.BUILD-SNAPSHOT</springdata.commons>
+
+		<sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
 		
 	</properties>
 	
@@ -35,13 +37,19 @@
 		<profile>
 			<id>hibernate-41</id>
 			<properties>
-				<hibernate>4.1.11.Final</hibernate>
+				<hibernate>4.1.12.Final</hibernate>
 			</properties>
 		</profile>
 		<profile>
 			<id>hibernate-42</id>
 			<properties>
-				<hibernate>4.2.0.Final</hibernate>
+				<hibernate>4.2.8.Final</hibernate>
+			</properties>
+		</profile>
+		<profile>
+			<id>hibernate-43</id>
+			<properties>
+				<hibernate>4.3.1.Final</hibernate>
 			</properties>
 		</profile>
 	</profiles>
@@ -57,44 +65,37 @@
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-orm</artifactId>
-			<version>${spring}</version>
 		</dependency>
 		
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-context</artifactId>
-			<version>${spring}</version>
 		</dependency>
 		
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-aop</artifactId>
-			<version>${spring}</version>
 		</dependency>
 		
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-tx</artifactId>
-			<version>${spring}</version>
 		</dependency>
 		
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-beans</artifactId>
-			<version>${spring}</version>
 		</dependency>
 		
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-instrument</artifactId>
-			<version>${spring}</version>
 			<scope>provided</scope>
 		</dependency>
 		
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-core</artifactId>
-			<version>${spring}</version>
 			<exclusions>
 				<exclusion>
 					<groupId>commons-logging</groupId>
@@ -114,10 +115,11 @@
 			<version>${aspectj}</version>
 			<scope>test</scope>
 		</dependency>
+		
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-aspects</artifactId>
-			<version>${spring}</version>
+			<scope>compile</scope>
 			<optional>true</optional>
 		</dependency>
 		
@@ -141,12 +143,6 @@
 			<artifactId>hibernate-entitymanager</artifactId>
 			<version>${hibernate}</version>
 			<optional>true</optional>
-		</dependency>
-		<dependency>
-			<groupId>org.hibernate</groupId>
-			<artifactId>hibernate-jpamodelgen</artifactId>
-			<version>1.2.0.Final</version>
-			<scope>provided</scope>
 		</dependency>
 		
 		<dependency>
@@ -373,7 +369,11 @@
 				<artifactId>apt-maven-plugin</artifactId>
 				<version>${apt}</version>
 				<configuration>
-					<processor>com.mysema.query.apt.jpa.JPAAnnotationProcessor</processor>
+					<logOnlyOnError>true</logOnlyOnError>
+					<processors>
+						<processor>com.mysema.query.apt.jpa.JPAAnnotationProcessor</processor>
+						<processor>org.hibernate.jpamodelgen.JPAMetaModelEntityProcessor</processor>
+					</processors>
 				</configuration>
 				<executions>
 					<execution>
@@ -383,7 +383,7 @@
 							<goal>process</goal>
 						</goals>
 						<configuration>
-							<outputDirectory>target/generated-sources/main</outputDirectory>
+							<outputDirectory>target/generated-sources/annotations</outputDirectory>
 						</configuration>
 					</execution>
 					<execution>
@@ -393,7 +393,7 @@
 							<goal>test-process</goal>
 						</goals>
 						<configuration>
-							<outputDirectory>target/generated-sources/test</outputDirectory>
+							<testOutputDirectory>target/generated-test-sources/test-annotations</testOutputDirectory>
 							<options>
 								<querydsl.excludedClasses>
 									org.springframework.data.jpa.repository.util.JpaClassUtilsUnitTests.NamedUser,org.springframework.data.jpa.repository.query.ParameterBinderUnitTests.SampleEmbeddable
@@ -402,6 +402,13 @@
 						</configuration>
 					</execution>
 				</executions>
+				<dependencies>
+					<dependency>
+						<groupId>org.hibernate</groupId>
+						<artifactId>hibernate-jpamodelgen</artifactId>
+						<version>1.2.0.Final</version>
+					</dependency>
+				</dependencies>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -417,8 +424,15 @@
 	<repositories>
 		<repository>
 			<id>spring-libs-snapshot</id>
-			<url>http://repo.springsource.org/libs-snapshot-local</url>
+			<url>http://repo.spring.io/libs-snapshot</url>
 		</repository>
 	</repositories>
+
+	<pluginRepositories>
+		<pluginRepository>
+			<id>spring-plugins-release</id>
+			<url>http://repo.spring.io/plugins-release</url>
+		</pluginRepository>
+	</pluginRepositories>
 
 </project>

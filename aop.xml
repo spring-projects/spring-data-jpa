@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<aspectj>
+	<aspects>
+		<aspect name="org.springframework.beans.factory.aspectj.AnnotationBeanConfigurerAspect.class" />
+		<include within="..*" />
+	</aspects>
+</aspectj>

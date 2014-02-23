@@ -24,7 +24,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
-import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
+import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.core.type.StandardAnnotationMetadata;
 import org.springframework.data.jpa.repository.sample.UserRepository;
@@ -49,7 +49,8 @@ public class JpaRepositoriesRegistrarUnitTests {
 	@Test
 	public void configuresRepositoriesCorrectly() {
 
-		ImportBeanDefinitionRegistrar registrar = new JpaRepositoriesRegistrar();
+		JpaRepositoriesRegistrar registrar = new JpaRepositoriesRegistrar();
+		registrar.setResourceLoader(new DefaultResourceLoader());
 		registrar.registerBeanDefinitions(metadata, registry);
 
 		Iterable<String> names = Arrays.asList(registry.getBeanDefinitionNames());

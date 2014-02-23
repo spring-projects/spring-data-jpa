@@ -90,6 +90,11 @@
             </tbody>
           </tgroup>
         </table>
+
+        <para>Note that we require a
+        <classname>PlatformTransactionManager</classname> bean named
+        <code>transactionManager</code> to be present if no explicit
+        <code>transaction-manager-ref</code> is defined.</para>
       </simplesect>
     </section>
 
@@ -1151,28 +1156,38 @@ public interface UserRepository extends JpaRepository&lt;User, Long&gt; {
       your configuration:</para>
 
       <example>
-        <title>Activating auditing in the Spring configuration</title>
+        <title>Activating auditing using XML configuration</title>
 
         <programlisting language="xml">&lt;jpa:auditing auditor-aware-ref="yourAuditorAwareBean" /&gt;</programlisting>
       </example>
 
-      <para>As you can see you have to provide a bean that implements the
-      <interfacename>AuditorAware</interfacename> interface which looks as
-      follows:</para>
+      <para>As of Spring Data JPA 1.5, auditing can be enabled by annotating a
+      configuration class with the <classname>@EnableJpaAuditing</classname>
+      annotation.</para>
 
       <example>
-        <title><interfacename>AuditorAware</interfacename> interface</title>
+        <title>Activating auditing via Java configuration</title>
 
-        <programlisting language="java">public interface AuditorAware&lt;T, ID extends Serializable&gt; {
+        <programlisting language="java">@Configuration
+@EnableJpaAuditing
+class Config {
 
-    T getCurrentAuditor();
+  @Bean
+  public AuditorAware&lt;AuditableUser&gt; auditorProvider() {
+    return new AuditorAwareImpl();
+  }
 }</programlisting>
       </example>
 
-      <para>Usually you will have some kind of authentication component in
-      your application that tracks the user currently working with the system.
-      This component should be <interfacename>AuditorAware</interfacename> and
-      thus allow seamless tracking of the auditor.</para>
+      <para>If you expose a bean of type
+      <interfacename>AuditorAware</interfacename> to the
+      <interfacename>ApplicationContext</interfacename>, the auditing
+      infrastructure will pick it up automatically and use it to determine the
+      current user to be set on domain types. If you have multiple
+      implementations registered in the
+      <interfacename>ApplicationContext</interfacename>, you can select the
+      one to be used by explicitly setting the <code>auditorAwareRef</code>
+      attribute of <interfacename>@EnableJpaAuditing</interfacename>.</para>
     </section>
   </section>
 
@@ -1255,7 +1270,8 @@ public interface UserRepository extends JpaRepository&lt;User, Long&gt; {
 
       <para>You can now set up the infrastructure by implementing a CDI
       <interfacename>Producer</interfacename> for the
-      <classname>EntityManagerFactory</classname>:</para>
+      <classname>EntityManagerFactory</classname> and
+      <interfacename>EntityManager</interfacename>:</para>
 
       <programlisting language="java">class EntityManagerFactoryProducer {
 
@@ -1268,7 +1284,35 @@ public interface UserRepository extends JpaRepository&lt;User, Long&gt; {
   public void close(@Disposes EntityManagerFactory entityManagerFactory) {
     entityManagerFactory.close();
   }
+
+  @Produces
+  @RequestScoped
+  public EntityManager createEntityManager(EntityManagerFactory entityManagerFactory) {
+    return entityManagerFactory.createEntityManager();
+  }
+
+  public void close(@Disposes EntityManager entityManager) {
+    entityManager.close();
+  }
 }</programlisting>
+
+      <para>The necessary setup can vary depending on the JavaEE environment
+      you run in. It might also just be enough to redeclare a
+      <interfacename>EntityManager</interfacename> as CDI bean as
+      follows:</para>
+
+      <programlisting language="java">class CdiConfig {
+
+  @Produces
+  @RequestScoped
+  @PersistenceContext
+  public EntityManager entityManager;
+}</programlisting>
+
+      <para>In this example, the container has to be capable of creating JPA
+      <interfacename>EntityManager</interfacename>s itself. All the
+      configuration does is re-exporting the JPA
+      <interfacename>EntityManager</interfacename> as CDI bean.</para>
 
       <para>The Spring Data JPA CDI extension will pick up all
       <interfacename>EntityManager</interfacename>s availables as CDI beans

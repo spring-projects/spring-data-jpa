@@ -102,7 +102,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 		this.lockMetadataProvider = lockMetadataProvider;
 	}
 
-	private Class<T> getDomainClass() {
+	protected Class<T> getDomainClass() {
 		return entityInformation.getJavaType();
 	}
 
@@ -425,7 +425,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	 * @param pageable can be {@literal null}.
 	 * @return
 	 */
-	private Page<T> readPage(TypedQuery<T> query, Pageable pageable, Specification<T> spec) {
+	protected Page<T> readPage(TypedQuery<T> query, Pageable pageable, Specification<T> spec) {
 
 		query.setFirstResult(pageable.getOffset());
 		query.setMaxResults(pageable.getPageSize());
@@ -443,7 +443,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	 * @param pageable can be {@literal null}.
 	 * @return
 	 */
-	private TypedQuery<T> getQuery(Specification<T> spec, Pageable pageable) {
+	protected TypedQuery<T> getQuery(Specification<T> spec, Pageable pageable) {
 
 		Sort sort = pageable == null ? null : pageable.getSort();
 		return getQuery(spec, sort);
@@ -456,7 +456,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	 * @param sort can be {@literal null}.
 	 * @return
 	 */
-	private TypedQuery<T> getQuery(Specification<T> spec, Sort sort) {
+	protected TypedQuery<T> getQuery(Specification<T> spec, Sort sort) {
 
 		CriteriaBuilder builder = em.getCriteriaBuilder();
 		CriteriaQuery<T> query = builder.createQuery(getDomainClass());
@@ -477,7 +477,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	 * @param spec can be {@literal null}.
 	 * @return
 	 */
-	private TypedQuery<Long> getCountQuery(Specification<T> spec) {
+	protected TypedQuery<Long> getCountQuery(Specification<T> spec) {
 
 		CriteriaBuilder builder = em.getCriteriaBuilder();
 		CriteriaQuery<Long> query = builder.createQuery(Long.class);

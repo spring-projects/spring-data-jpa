@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2013 the original author or authors.
+ * Copyright 2008-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,6 +64,7 @@ import org.springframework.util.StringUtils;
  * @author Oliver Gierke
  * @author Kevin Raymond
  * @author Thomas Darimont
+ * @author Komi Innocent
  */
 public abstract class QueryUtils {
 
@@ -341,7 +342,7 @@ public abstract class QueryUtils {
 		Matcher matcher = COUNT_MATCH.matcher(originalQuery);
 		String variable = matcher.matches() ? matcher.group(4) : null;
 		boolean useVariable = StringUtils.hasText(variable) && !variable.startsWith("new")
-				&& !variable.startsWith("count(");
+				&& !variable.startsWith("count(") && !variable.contains(",");
 
 		String countQuery = matcher.replaceFirst(String.format(COUNT_REPLACEMENT_TEMPLATE, useVariable ? SIMPLE_COUNT_VALUE
 				: COMPLEX_COUNT_VALUE));
@@ -439,9 +440,9 @@ public abstract class QueryUtils {
 
 		Bindable<?> propertyPathModel = null;
 		if (from.getModel() instanceof ManagedType) {
+
 			/*
-			 *  Avoid calling from.get(...) because this triggers the generation of an inner-join instead 
-			 *  of and outer-join in eclipse-link.
+			 *  Required to keep support for EclipseLink 2.4.x. TODO: Remove once we drop that (probably Dijkstra M1)
 			 *  See: https://bugs.eclipse.org/bugs/show_bug.cgi?id=413892
 			 */
 			propertyPathModel = (Bindable<?>) ((ManagedType<?>) from.getModel()).getAttribute(property.getSegment());
@@ -449,7 +450,7 @@ public abstract class QueryUtils {
 			propertyPathModel = from.get(property.getSegment()).getModel();
 		}
 
-		if (property.isCollection() || requiresJoin(propertyPathModel)) {
+		if (requiresJoin(propertyPathModel)) {
 			Join<?, ?> join = getOrCreateJoin(from, property.getSegment());
 			return (Expression<T>) (property.hasNext() ? toExpressionRecursively(join, property.next()) : join);
 		} else {
@@ -480,7 +481,7 @@ public abstract class QueryUtils {
 		Class<? extends Annotation> associationAnnotation = ASSOCIATION_TYPES.get(attribute.getPersistentAttributeType());
 
 		if (associationAnnotation == null) {
-			return false;
+			return true;
 		}
 
 		Member member = attribute.getJavaMember();

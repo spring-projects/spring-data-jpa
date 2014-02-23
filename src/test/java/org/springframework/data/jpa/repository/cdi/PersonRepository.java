@@ -17,6 +17,9 @@ package org.springframework.data.jpa.repository.cdi;
 
 import java.util.List;
 
+import org.springframework.data.repository.cdi.Eager;
+
+@Eager
 public interface PersonRepository {
 
 	List<Person> findAll();

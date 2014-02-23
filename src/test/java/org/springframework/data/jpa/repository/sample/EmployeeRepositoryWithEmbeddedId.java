@@ -15,6 +15,7 @@
  */
 package org.springframework.data.jpa.repository.sample;
 
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.jpa.domain.sample.EmbeddedIdExampleEmployee;
 import org.springframework.data.jpa.domain.sample.EmbeddedIdExampleEmployeePK;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -24,5 +25,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
  * 
  * @author Thomas Darimont
  */
+@Lazy
 public interface EmployeeRepositoryWithEmbeddedId extends
 		JpaRepository<EmbeddedIdExampleEmployee, EmbeddedIdExampleEmployeePK> {}

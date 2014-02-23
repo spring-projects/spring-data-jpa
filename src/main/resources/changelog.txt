@@ -1,6 +1,65 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 1.5.0.RC1 (2014-01-29)
+-----------------------------------------
+* Add Sort implementations that use JPA Metamodel API and/or QueryDsl API (DATAJPA-12)
+* Enable support to inject EntityManager via constructor (DATAJPA-445)
+* <jpa:repositories> needs explicitly given transaction manager even when there is only one tx manager (DATAJPA-410)
+* COUNT syntax error when use scalar select (select a.b, a.c from …) with paging (DATAJPA-420)
+* Sort by property of an associated object generates inner join instead of left join with QueryDsl and Hibernate (DATAJPA-427)
+* Fix incompatibilities with latest Hibernate 4.3 (CR2 currently) (DATAJPA-430)
+* Repository initialization causes transaction rollback in CDI environments (DATAJPA-442)
+* PersistenceProvider enum should also match org.hibernate.jpa.HibernateEntityManager (DATAJPA-444)
+* EntityManagerBeanDefinitionRegistrarPostProcessor doesn't find EntityManagerFactory definitions in BeanFactory hierarchy (DATAJPA-453)
+* Upgrade to EclipseLink 2.5.1 (DATAJPA-417)
+* Upgrade Hibernate 4 build to latest versions (DATAJPA-443)
+* Add contribution guidelines (DATAJPA-448)
+* Release Spring Data JPA 1.5.0.RC1 (DATAJPA-450)
+
+Changes in version 1.4.3.RELEASE (2013-12-11)
+---------------------------------------------
+* Improved documentation on jpa:repository namespace (DATAJPA-410)
+* Fixed count projection for manual queries with projections (DATAJPA-420)
+* Guard against null predicates on query creation. (DATAJPA-405)
+* Fixed alias detection in manually defined queries using SpEL (DATAJPA-424)
+* Generate left joins for referenced associations in sort expressions (DATAJPA-427)
+* Tweaks to be compatible with Hibernate 4.3 (DATAJPA-430)
+* Release 1.4.3 (DATAJPA-434)
+
+Changes in version 1.5.0.M1 (2013-11-19)
+----------------------------------------
+* CriteriaQuery caching causes problems with Hibernate's alias name generation in multithreaded environments (DATAJPA-396)
+* Unnecessary OUTER JOIN are generated for querying one single table (DATAJPA-401)
+* Unnecessary OUTER JOIN are generated when sorting on ElementCollection (DATAJPA-403)
+* Custom repository method doesn't parse OrderBy clause properly (DATAJPA-405)
+* Reference and Javadoc inconsistence - @Modifying.clearAutomatically default value (DATAJPA-406)
+* ClasspathScanningPersistenceUnitPostProcessor throws IndexOutOfBoundsException on Windows (DATAJPA-407)
+* org.springframework.data.jpa.repository.Query is not supported varargs (DATAJPA-415)
+* #entityName SpEL does not match alias regex when detecting alias (DATAJPA-424)
+* Make it possible to configure auditing with Java Config (DATAJPA-265)
+* Improve execution of native queries (DATAJPA-389)
+* Allow turning a CRUD method into a query method by annotating it with @Query (DATAJPA-398)
+* Add support for nested repositories (DATAJPA-416)
+* Upgrade to Spring Framework 3.2.5 (DATAJPA-418)
+* Improve accessibility of methods in SimpleJpaRepository (DATAJPA-426)
+* Add getReference method to the SimpleJpaRepository (DATAJPA-83)
+* @Lazy for interface defined repositories (DATAJPA-419)
+
+Changes in version 1.4.2.RELEASE (2013-10-25)
+---------------------------------------------
+* CriteriaQuery caching causes problems with Hibernate's alias name generation in multithreaded environments (DATAJPA-396)
+* Unnecessary OUTER JOIN are generated for querying one single table (DATAJPA-401)
+* Unnecessary OUTER JOIN are generated when sorting on ElementCollection (DATAJPA-403)
+* Reference and Javadoc inconsistence - @Modifying.clearAutomatically default value (DATAJPA-406)
+* ClasspathScanningPersistenceUnitPostProcessor throws IndexOutOfBoundsException on Windows (DATAJPA-407)
+* Add Java Config example to readme.md (DATAJPA-399)
+* Release 1.4.2 (DATAJPA-411)
+
+Changes in version 1.4.1.RELEASE (2013-09-09)
+---------------------------------------------
+* Update to Spring Data Commons 1.6.1 (DATAJPA-400)
+
 Changes in version 1.4.0.RELEASE (2013-09-09)
 ---------------------------------------------
 * The H2 database needs a quoted name parameter in a @Query annotation (DATAJPA-354)

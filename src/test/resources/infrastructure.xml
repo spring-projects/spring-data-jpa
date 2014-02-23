@@ -10,7 +10,7 @@
 	<bean id="entityManagerFactory"
 		class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
 		<property name="dataSource" ref="dataSource" />
-		<property name="persistenceUnitName" value="default" />
+		<property name="persistenceUnitName" value="spring-data-jpa" />
 		<property name="jpaVendorAdapter" ref="vendorAdaptor" />
 		<property name="jpaProperties" ref="jpaProperties" />
 	</bean>

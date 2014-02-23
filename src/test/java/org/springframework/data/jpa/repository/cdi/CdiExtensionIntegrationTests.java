@@ -27,6 +27,8 @@ import org.apache.webbeans.cditest.CdiTestContainer;
 import org.apache.webbeans.cditest.CdiTestContainerLoader;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Integration tests for Spring Data JPA CDI extension.
@@ -36,12 +38,17 @@ import org.junit.Test;
  */
 public class CdiExtensionIntegrationTests {
 
+	private static Logger LOGGER = LoggerFactory.getLogger(CdiExtensionIntegrationTests.class);
+
 	static CdiTestContainer container;
 
 	@BeforeClass
 	public static void setUp() throws Exception {
+
 		container = CdiTestContainerLoader.getCdiContainer();
 		container.bootContainer();
+
+		LOGGER.debug("CDI container bootstrapped!");
 	}
 
 	/**

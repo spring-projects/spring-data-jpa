@@ -39,20 +39,31 @@ import org.springframework.data.domain.Auditable;
  * After that it's just a matter of activating auditing in your Spring config:
  * 
  * <pre>
+ * &#064;Configuration
+ * &#064;EnableJpaAuditing
+ * class ApplicationConfig {
+ * 
+ * }
+ * </pre>
+ * 
+ * <pre>
  * &lt;jpa:auditing auditor-aware-ref="yourAuditorAwarebean" /&gt;
  * </pre>
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 @Configurable
-public class AuditingEntityListener<T> {
+public class AuditingEntityListener {
 
-	private AuditingHandler<T> handler;
+	private AuditingHandler handler;
 
 	/**
+	 * Configures the {@link AuditingHandler} to be used to set the current auditor on the domain types touched.
+	 * 
 	 * @param auditingHandler the handler to set
 	 */
-	public void setAuditingHandler(AuditingHandler<T> auditingHandler) {
+	public void setAuditingHandler(AuditingHandler auditingHandler) {
 		this.handler = auditingHandler;
 	}
 

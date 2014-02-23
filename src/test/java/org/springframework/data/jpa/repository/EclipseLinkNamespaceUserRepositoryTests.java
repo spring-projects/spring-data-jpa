@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2012 the original author or authors.
+ * Copyright 2008-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,25 +50,21 @@ public class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserReposi
 
 	}
 
-	@Override
-	public void doesNotDropNullValuesOnPagedSpecificationExecution() {}
-
-	/**
-	 * Works with a workaround in QueryUtils.toExpressionRecursively(…). TODO: remove once EclipseLink bug is fixed.
-	 * 
-	 * @see DATAJPA-346
-	 * @see https://bugs.eclipse.org/bugs/show_bug.cgi?id=413892
-	 */
-	@Override
-	public void shouldGenerateLeftOuterJoinInfindAllWithPaginationAndSortOnNestedPropertyPath() {
-		super.shouldGenerateLeftOuterJoinInfindAllWithPaginationAndSortOnNestedPropertyPath();
-	}
-
 	/**
 	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=349477 is resolved.
 	 */
 	@Override
-	public void invokesQueryWithVarargsParametersCorrectly() {
+	public void invokesQueryWithVarargsParametersCorrectly() {}
 
-	}
+	/**
+	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=422450 is resolved.
+	 */
+	@Override
+	public void sortByAssociationPropertyShouldUseLeftOuterJoin() {}
+
+	/**
+	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=422450 is resolved.
+	 */
+	@Override
+	public void sortByAssociationPropertyInPageableShouldUseLeftOuterJoin() {}
 }
