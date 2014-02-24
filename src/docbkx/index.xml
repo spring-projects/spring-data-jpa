@@ -10,29 +10,21 @@
     <authorgroup>
       <author>
         <firstname>Oliver</firstname>
-
         <surname>Gierke</surname>
-
         <affiliation>
           <jobtitle>Software Engineer</jobtitle>
-
           <orgname>GoPivotal Deutschland GmbH</orgname>
         </affiliation>
-
         <email>ogierke@gopivotal.com</email>
       </author>
       
       <author>
         <firstname>Thomas</firstname>
-
         <surname>Darimont</surname>
-
         <affiliation>
           <jobtitle>Software Engineer</jobtitle>
-
           <orgname>GoPivotal Deutschland GmbH</orgname>
         </affiliation>
-
         <email>tdarimont@gopivotal.com</email>
       </author>
     </authorgroup>
@@ -47,10 +39,12 @@
     <pubdate />
 
     <copyright>
-      <year>2008-2013</year>
+      <year>2008-2014</year>
 
-      <holder>The original authors</holder>
+      <holder>The original authors.</holder>
     </copyright>
+    
+    <productname>Spring Data JPA - Reference Documentation</productname>
     
   </bookinfo>
 
@@ -61,7 +55,7 @@
   <part id="reference">
     <title>Reference Documentation</title>
 
-    <xi:include href="https://raw.github.com/SpringSource/spring-data-commons/1.7.0.RC1/src/docbkx/repositories.xml">
+    <xi:include href="https://raw.github.com/spring-projects/spring-data-commons/1.7.0.RC1/src/docbkx/repositories.xml">
     	<xi:fallback href="../../../spring-data-commons/src/docbkx/repositories.xml" />
     </xi:include>
 
@@ -71,10 +65,10 @@
   <part id="appendix">
     <title>Appendix</title>
 
-    <xi:include href="https://raw.github.com/SpringSource/spring-data-commons/1.7.0.RC1/src/docbkx/repository-namespace-reference.xml">
+    <xi:include href="https://raw.github.com/spring-projects/spring-data-commons/1.7.0.RC1/src/docbkx/repository-namespace-reference.xml">
     	<xi:fallback href="../../../spring-data-commons/src/docbkx/repository-namespace-reference.xml" />
     </xi:include>
-    <xi:include href="https://raw.github.com/SpringSource/spring-data-commons/1.7.0.RC1/src/docbkx/repository-query-keywords-reference.xml">
+    <xi:include href="https://raw.github.com/spring-projects/spring-data-commons/1.7.0.RC1/src/docbkx/repository-query-keywords-reference.xml">
     	<xi:fallback href="../../../spring-data-commons/src/docbkx/repository-query-keywords-reference.xml" />
     </xi:include>
 

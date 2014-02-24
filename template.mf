@@ -1,7 +1,7 @@
 Bundle-ManifestVersion: 2
 Bundle-SymbolicName: org.springframework.data.jpa
 Bundle-Name: ${project.name}
-Bundle-Vendor: SpringSource
+Bundle-Vendor: Pivotal Software, Inc
 Bundle-Version: ${project.version}
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
 Export-Template: 
