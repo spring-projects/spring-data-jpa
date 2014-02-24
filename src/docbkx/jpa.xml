@@ -350,7 +350,7 @@ class ApplicationConfig {
               <row>
                 <entry><code>LessThanEqual</code></entry>
 
-                <entry><code>findByAgeLessThan</code></entry>
+                <entry><code>findByAgeLessThanEqual</code></entry>
 
                 <entry><code>… where x.age &lt;= ?1</code></entry>
               </row>
@@ -366,7 +366,7 @@ class ApplicationConfig {
               <row>
                 <entry><code>GreaterThanEqual</code></entry>
 
-                <entry><code>findByAgeGreaterThan</code></entry>
+                <entry><code>findByAgeGreaterThanEqual</code></entry>
 
                 <entry><code>… where x.age &gt;= ?1</code></entry>
               </row>
@@ -1067,9 +1067,10 @@ class UserManagementImpl implements UserManagement {
       none already running). The transaction configuration at the repositories
       will be neglected then as the outer transaction configuration determines
       the actual one used. Note that you will have to activate
-      <code>&lt;tx:annotation-driven /&gt;</code> or use <interfacename>@EnableTransactionManagement</interfacename> explicitly to get annotation
-      based configuration at facades working. The example above assumes you
-      are using component scanning.</para>
+      <code>&lt;tx:annotation-driven /&gt;</code> or use 
+      <interfacename>@EnableTransactionManagement</interfacename> explicitly
+      to get annotation based configuration at facades working. The example
+      above assumes you are using component scanning.</para>
     </example>
 
     <section id="transactional-query-methods">

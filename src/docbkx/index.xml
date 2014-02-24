@@ -8,8 +8,25 @@
     <releaseinfo>&version;</releaseinfo>
 
     <authorgroup>
-      <author>Oliver Gierke</author>
-      <author>Thomas Darimont</author>
+      <author>
+        <firstname>Oliver</firstname>
+        <surname>Gierke</surname>
+        <affiliation>
+          <jobtitle>Software Engineer</jobtitle>
+          <orgname>GoPivotal Deutschland GmbH</orgname>
+        </affiliation>
+        <email>ogierke@gopivotal.com</email>
+      </author>
+      
+      <author>
+        <firstname>Thomas</firstname>
+        <surname>Darimont</surname>
+        <affiliation>
+          <jobtitle>Software Engineer</jobtitle>
+          <orgname>GoPivotal Deutschland GmbH</orgname>
+        </affiliation>
+        <email>tdarimont@gopivotal.com</email>
+      </author>
     </authorgroup>
 
     <legalnotice>
