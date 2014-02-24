@@ -18,6 +18,7 @@ package org.springframework.data.jpa.repository.support;
 import static org.mockito.Mockito.*;
 
 import javax.persistence.EntityManager;
+import javax.persistence.LockModeType;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -103,4 +104,22 @@ public class SimpleJpaRepositoryUnitTests {
 		repo.refresh(userInfo);
 		verify(em).refresh(userInfo);
 	}
+
+    /**
+     * @see DATAJPA-412
+     */
+    @Test
+    public void callsEntityManagerRefreshOnEntityWithLockedType() {
+        User userInfo = new User();
+        userInfo.setId(412);
+        LockMetadataProvider optimisticLock = new LockMetadataProvider() {
+            @Override
+            public LockModeType getLockModeType() {
+                return LockModeType.OPTIMISTIC;
+            }
+        };
+        repo.setLockMetadataProvider(optimisticLock);
+        repo.refresh(userInfo);
+        verify(em).refresh(userInfo, LockModeType.OPTIMISTIC);
+    }
 }
