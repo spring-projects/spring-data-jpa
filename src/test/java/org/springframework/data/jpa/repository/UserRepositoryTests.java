@@ -55,6 +55,7 @@ import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.domain.sample.Address;
 import org.springframework.data.jpa.domain.sample.Role;
+import org.springframework.data.jpa.domain.sample.SpecialUser;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.test.context.ContextConfiguration;
@@ -1213,7 +1214,7 @@ public class UserRepositoryTests {
 	}
 
 	/**
-	 * @DATAJPA-461
+	 * @see DATAJPA-461
 	 */
 	@Test
 	public void customFindByQueryWithPositionalVarargsParameters() {
@@ -1227,7 +1228,7 @@ public class UserRepositoryTests {
 	}
 
 	/**
-	 * @DATAJPA-461
+	 * @see DATAJPA-461
 	 */
 	@Test
 	public void customFindByQueryWithNamedVarargsParameters() {
@@ -1238,6 +1239,23 @@ public class UserRepositoryTests {
 
 		assertThat(result, hasSize(2));
 		assertThat(result, hasItems(firstUser, secondUser));
+	}
+
+	/**
+	 * @see DATAJPA-464
+	 */
+	@Test
+	public void saveAndFlushShouldSupportReturningSubTypesOfRepositoryEntity() {
+
+		repository.deleteAll();
+		SpecialUser user = new SpecialUser();
+		user.setFirstname("Thomas");
+		user.setEmailAddress("thomas@example.org");
+
+		SpecialUser savedUser = repository.saveAndFlush(user);
+
+		assertThat(user.getFirstname(), is(savedUser.getFirstname()));
+		assertThat(user.getEmailAddress(), is(savedUser.getEmailAddress()));
 	}
 
 	private Page<User> executeSpecWithSort(Sort sort) {
