@@ -520,8 +520,18 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	}
 
 	private TypedQuery<T> applyLockMode(TypedQuery<T> query) {
-
 		LockModeType type = lockMetadataProvider == null ? null : lockMetadataProvider.getLockModeType();
 		return type == null ? query : query.setLockMode(type);
 	}
+
+	@Override
+	public void refresh(T entity) {
+        LockModeType type = lockMetadataProvider == null ? null : lockMetadataProvider.getLockModeType();
+        if (type == null) {
+            em.refresh(entity);
+        }
+        else {
+            em.refresh(entity,type);
+        }
+	}	
 }
