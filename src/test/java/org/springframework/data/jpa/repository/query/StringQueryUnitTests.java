@@ -213,6 +213,20 @@ public class StringQueryUnitTests {
 				+ " OR a.content LIKE :escapedWord ESCAPE '~' OR a.title = :word ORDER BY a.articleId DESC"));
 	}
 
+	/**
+	 * @see DATAJPA-483
+	 */
+	@Test
+	public void detectsInBindingWithParentheses() {
+
+		StringQuery query = new StringQuery("select count(we) from MyEntity we where we.status in (:statuses)");
+
+		List<ParameterBinding> bindings = query.getParameterBindings();
+
+		assertThat(bindings, hasSize(1));
+		assertNamedBinding(InParameterBinding.class, "statuses", bindings.get(0));
+	}
+
 	private void assertPositionalBinding(Class<? extends ParameterBinding> bindingType, Integer position,
 			ParameterBinding expectedBinding) {
 

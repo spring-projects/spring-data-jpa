@@ -158,11 +158,13 @@ class StringQuery {
 			builder.append(StringUtils.collectionToDelimitedString(keywords, "|")); // keywords
 			builder.append(")?");
 			builder.append("(?: )?"); // some whitespace
+			builder.append("\\(?"); // optional braces around paramters
 			builder.append("(");
 			builder.append("%?(\\?(\\d+))%?"); // position parameter
 			builder.append("|"); // or
 			builder.append("%?(:(\\w+))%?"); // named parameter;
 			builder.append(")");
+			builder.append("\\)?"); // optional braces around paramters
 
 			PARAMETER_BINDING_PATTERN = Pattern.compile(builder.toString(), CASE_INSENSITIVE);
 		}
