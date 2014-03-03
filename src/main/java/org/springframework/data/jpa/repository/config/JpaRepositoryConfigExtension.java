@@ -15,27 +15,32 @@
  */
 package org.springframework.data.jpa.repository.config;
 
+import java.util.HashSet;
+import java.util.Set;
+
+import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.PersistenceUnit;
+import javax.persistence.metamodel.ManagedType;
+import javax.persistence.metamodel.Metamodel;
 
+import org.springframework.beans.factory.FactoryBean;
+import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.annotation.AnnotationConfigUtils;
-import org.springframework.core.annotation.AnnotationAttributes;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
+import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
 import org.springframework.data.jpa.repository.support.EntityManagerBeanDefinitionRegistrarPostProcessor;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean;
-import org.springframework.data.repository.config.AnnotationRepositoryConfigurationSource;
 import org.springframework.data.repository.config.RepositoryConfigurationExtensionSupport;
 import org.springframework.data.repository.config.RepositoryConfigurationSource;
-import org.springframework.data.repository.config.XmlRepositoryConfigurationSource;
 import org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor;
-import org.springframework.util.StringUtils;
-import org.w3c.dom.Element;
+import org.springframework.util.Assert;
 
 /**
  * JPA specific configuration extension parsing custom attributes from the XML namespace and
@@ -53,6 +58,7 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 
 	private static final Class<?> PAB_POST_PROCESSOR = PersistenceAnnotationBeanPostProcessor.class;
 	private static final String DEFAULT_TRANSACTION_MANAGER_BEAN_NAME = "transactionManager";
+	private static final String JPA_MAPPING_CONTEXT_BEAN_NAME = "jpaMapppingContext";
 
 	/* 
 	 * (non-Javadoc)
@@ -73,40 +79,32 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 
 	/* 
 	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.config14.RepositoryConfigurationExtensionSupport#postProcess(org.springframework.beans.factory.support.BeanDefinitionBuilder, org.springframework.data.repository.config14.XmlRepositoryConfigurationSource)
+	 * @see org.springframework.data.repository.config.RepositoryConfigurationExtensionSupport#postProcess(org.springframework.beans.factory.support.BeanDefinitionBuilder, org.springframework.data.repository.config.RepositoryConfigurationSource)
 	 */
 	@Override
-	public void postProcess(BeanDefinitionBuilder builder, XmlRepositoryConfigurationSource config) {
+	public void postProcess(BeanDefinitionBuilder builder, RepositoryConfigurationSource source) {
 
-		Element element = config.getElement();
+		String transactionManagerRef = source.getAttribute("transactionManagerRef");
+		builder.addPropertyValue("transactionManager",
+				transactionManagerRef == null ? DEFAULT_TRANSACTION_MANAGER_BEAN_NAME : transactionManagerRef);
 
-		postProcess(builder, element.getAttribute("transaction-manager-ref"),
-				element.getAttribute("entity-manager-factory-ref"), config.getSource());
-	}
+		String entityManagerFactoryRef = getEntityManagerFactoryRef(source);
 
-	/* 
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.config.RepositoryConfigurationExtensionSupport#postProcess(org.springframework.beans.factory.support.BeanDefinitionBuilder, org.springframework.data.repository.config.AnnotationRepositoryConfigurationSource)
-	 */
-	@Override
-	public void postProcess(BeanDefinitionBuilder builder, AnnotationRepositoryConfigurationSource config) {
-
-		AnnotationAttributes attributes = config.getAttributes();
-
-		postProcess(builder, attributes.getString("transactionManagerRef"),
-				attributes.getString("entityManagerFactoryRef"), config.getSource());
-	}
-
-	private void postProcess(BeanDefinitionBuilder builder, String transactionManagerRef, String entityManagerRef,
-			Object source) {
-
-		transactionManagerRef = StringUtils.hasText(transactionManagerRef) ? transactionManagerRef
-				: DEFAULT_TRANSACTION_MANAGER_BEAN_NAME;
-		builder.addPropertyValue("transactionManager", transactionManagerRef);
-
-		if (StringUtils.hasText(entityManagerRef)) {
-			builder.addPropertyValue("entityManager", getEntityManagerBeanDefinitionFor(entityManagerRef, source));
+		if (entityManagerFactoryRef != null) {
+			builder.addPropertyValue("entityManager", getEntityManagerBeanDefinitionFor(entityManagerFactoryRef, source));
 		}
+
+		builder.addPropertyReference("mappingContext", JPA_MAPPING_CONTEXT_BEAN_NAME);
+	}
+
+	/**
+	 * @param source
+	 * @return
+	 */
+	private String getEntityManagerFactoryRef(RepositoryConfigurationSource source) {
+
+		String entityManagerFactoryRef = source.getAttribute("entityManagerFactoryRef");
+		return entityManagerFactoryRef == null ? "entityManagerFactory" : entityManagerFactoryRef;
 	}
 
 	/**
@@ -143,10 +141,87 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 		registerWithSourceAndGeneratedBeanName(registry, new RootBeanDefinition(
 				EntityManagerBeanDefinitionRegistrarPostProcessor.class), source);
 
+		BeanDefinition entityManagerBeanDefinitionFor = getEntityManagerBeanDefinitionFor(
+				getEntityManagerFactoryRef(configurationSource), source);
+
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder
+				.rootBeanDefinition(JpaMetamodelMappingContextFactoryBean.class);
+		builder.addPropertyValue("entityManager", entityManagerBeanDefinitionFor);
+
+		AbstractBeanDefinition definition = builder.getBeanDefinition();
+		definition.setSource(source);
+		registry.registerBeanDefinition(JPA_MAPPING_CONTEXT_BEAN_NAME, definition);
+
 		if (!hasBean(PAB_POST_PROCESSOR, registry)
 				&& !registry.containsBeanDefinition(AnnotationConfigUtils.PERSISTENCE_ANNOTATION_PROCESSOR_BEAN_NAME)) {
 
 			registerWithSourceAndGeneratedBeanName(registry, new RootBeanDefinition(PAB_POST_PROCESSOR), source);
+		}
+	}
+
+	/**
+	 * {@link FactoryBean} to setup {@link JpaMetamodelMappingContext} instances from Spring configuration.
+	 * 
+	 * @author Oliver Gierke
+	 * @since 1.6
+	 */
+	static class JpaMetamodelMappingContextFactoryBean extends AbstractFactoryBean<JpaMetamodelMappingContext> {
+
+		private EntityManager entityManager;
+
+		/**
+		 * Configures the {@link EntityManager} to use to create the {@link JpaMetamodelMappingContext}.
+		 * 
+		 * @param entityManager must not be {@literal null}.
+		 */
+		public void setEntityManager(EntityManager entityManager) {
+
+			Assert.notNull(entityManager, "EntityManager must not be null!");
+			this.entityManager = entityManager;
+		}
+
+		/* 
+		 * (non-Javadoc)
+		 * @see org.springframework.beans.factory.config.AbstractFactoryBean#getObjectType()
+		 */
+		@Override
+		public Class<?> getObjectType() {
+			return JpaMetamodelMappingContext.class;
+		}
+
+		/* 
+		 * (non-Javadoc)
+		 * @see org.springframework.beans.factory.config.AbstractFactoryBean#createInstance()
+		 */
+		@Override
+		protected JpaMetamodelMappingContext createInstance() throws Exception {
+
+			Metamodel metamodel = entityManager.getMetamodel();
+
+			Set<ManagedType<?>> managedTypes = metamodel.getManagedTypes();
+			Set<Class<?>> entitySources = new HashSet<Class<?>>(managedTypes.size());
+
+			for (ManagedType<?> type : managedTypes) {
+				entitySources.add(type.getJavaType());
+			}
+
+			JpaMetamodelMappingContext context = new JpaMetamodelMappingContext(metamodel);
+			context.setInitialEntitySet(entitySources);
+			context.initialize();
+
+			return context;
+		}
+
+		/* 
+		 * (non-Javadoc)
+		 * @see org.springframework.beans.factory.config.AbstractFactoryBean#afterPropertiesSet()
+		 */
+		@Override
+		public void afterPropertiesSet() throws Exception {
+
+			Assert.notNull(entityManager, "EntityManager must not be null!");
+
+			super.afterPropertiesSet();
 		}
 	}
 }

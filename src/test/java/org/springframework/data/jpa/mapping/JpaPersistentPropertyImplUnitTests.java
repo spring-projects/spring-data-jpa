@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ package org.springframework.data.jpa.mapping;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
+import javax.persistence.Embeddable;
+import javax.persistence.Embedded;
 import javax.persistence.OneToOne;
 import javax.persistence.Transient;
 import javax.persistence.metamodel.Metamodel;
@@ -66,9 +68,44 @@ public class JpaPersistentPropertyImplUnitTests {
 		assertThat(entity.getPersistentProperty("transientProp"), is(nullValue()));
 	}
 
+	/**
+	 * @see DATAJPA-484
+	 */
+	@Test
+	public void considersEmbeddableAnEntity() {
+		assertThat(context.getPersistentEntity(SampleEmbeddable.class), is(notNullValue()));
+	}
+
+	/**
+	 * @see DATAJPA-484
+	 */
+	@Test
+	public void considersEmbeddablePropertyAnAssociation() {
+		assertThat(entity.getPersistentProperty("embeddable").isAssociation(), is(true));
+	}
+
+	/**
+	 * @see DATAJPA-484
+	 */
+	@Test
+	public void considersEmbeddedPropertyAnAssociation() {
+		assertThat(entity.getPersistentProperty("embedded").isAssociation(), is(true));
+	}
+
 	static class Sample {
 
 		@OneToOne Sample other;
 		@Transient String transientProp;
+		SampleEmbeddable embeddable;
+		@Embedded SampleEmbedded embedded;
+	}
+
+	@Embeddable
+	static class SampleEmbeddable {
+
+	}
+
+	static class SampleEmbedded {
+
 	}
 }
