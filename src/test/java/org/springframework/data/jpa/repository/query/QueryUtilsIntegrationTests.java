@@ -18,7 +18,14 @@ package org.springframework.data.jpa.repository.query;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
+import java.util.Set;
+
+import javax.persistence.Entity;
 import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import javax.persistence.Persistence;
 import javax.persistence.PersistenceContext;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -105,7 +112,42 @@ public class QueryUtilsIntegrationTests {
 		assertThat(root.getJoins(), hasSize(1));
 	}
 
+	/**
+	 * @see DATAJPA-476
+	 */
+	@Test
+	public void traversesPluralAttributeCorrectly() {
+
+		EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("merchant");
+		CriteriaBuilder builder = entityManagerFactory.createEntityManager().getCriteriaBuilder();
+		CriteriaQuery<Merchant> query = builder.createQuery(Merchant.class);
+		Root<Merchant> root = query.from(Merchant.class);
+
+		QueryUtils.toExpressionRecursively(root, PropertyPath.from("employeesCredentialsUid", Merchant.class));
+	}
+
 	protected void assertNoJoinRequestedForOptionalAssociation(Root<Order> root) {
 		assertThat(root.getJoins(), is(empty()));
+	}
+
+	@Entity
+	static class Merchant {
+
+		@Id String id;
+		@OneToMany Set<Employee> employees;
+	}
+
+	@Entity
+	static class Employee {
+
+		@Id String id;
+		@OneToMany Set<Credential> credentials;
+	}
+
+	@Entity
+	static class Credential {
+
+		@Id String id;
+		String uid;
 	}
 }

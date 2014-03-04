@@ -50,6 +50,7 @@ import javax.persistence.metamodel.Attribute;
 import javax.persistence.metamodel.Attribute.PersistentAttributeType;
 import javax.persistence.metamodel.Bindable;
 import javax.persistence.metamodel.ManagedType;
+import javax.persistence.metamodel.PluralAttribute;
 
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.data.domain.Sort;
@@ -439,22 +440,25 @@ public abstract class QueryUtils {
 	static <T> Expression<T> toExpressionRecursively(From<?, ?> from, PropertyPath property) {
 
 		Bindable<?> propertyPathModel = null;
-		if (from.getModel() instanceof ManagedType) {
+		Bindable<?> model = from.getModel();
+		String segment = property.getSegment();
+
+		if (model instanceof ManagedType) {
 
 			/*
 			 *  Required to keep support for EclipseLink 2.4.x. TODO: Remove once we drop that (probably Dijkstra M1)
 			 *  See: https://bugs.eclipse.org/bugs/show_bug.cgi?id=413892
 			 */
-			propertyPathModel = (Bindable<?>) ((ManagedType<?>) from.getModel()).getAttribute(property.getSegment());
+			propertyPathModel = (Bindable<?>) ((ManagedType<?>) model).getAttribute(segment);
 		} else {
-			propertyPathModel = from.get(property.getSegment()).getModel();
+			propertyPathModel = from.get(segment).getModel();
 		}
 
-		if (requiresJoin(propertyPathModel)) {
-			Join<?, ?> join = getOrCreateJoin(from, property.getSegment());
+		if (requiresJoin(propertyPathModel, model instanceof PluralAttribute)) {
+			Join<?, ?> join = getOrCreateJoin(from, segment);
 			return (Expression<T>) (property.hasNext() ? toExpressionRecursively(join, property.next()) : join);
 		} else {
-			Path<Object> path = from.get(property.getSegment());
+			Path<Object> path = from.get(segment);
 			return (Expression<T>) (property.hasNext() ? toExpressionRecursively(path, property.next()) : path);
 		}
 	}
@@ -464,9 +468,14 @@ public abstract class QueryUtils {
 	 * non-optional association.
 	 * 
 	 * @param propertyPathModel must not be {@literal null}.
+	 * @param for
 	 * @return
 	 */
-	private static boolean requiresJoin(Bindable<?> propertyPathModel) {
+	private static boolean requiresJoin(Bindable<?> propertyPathModel, boolean forPluralAttribute) {
+
+		if (propertyPathModel == null && forPluralAttribute) {
+			return true;
+		}
 
 		if (!(propertyPathModel instanceof Attribute)) {
 			return false;
