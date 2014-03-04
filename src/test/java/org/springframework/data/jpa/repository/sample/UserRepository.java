@@ -23,6 +23,7 @@ import javax.persistence.QueryHint;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.sample.SpecialUser;
 import org.springframework.data.jpa.domain.sample.User;
@@ -305,4 +306,9 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	 * @see DATAJPA-454
 	 */
 	List<User> findByBinaryData(byte[] data);
+
+	/**
+	 * @see DATAJPA-486
+	 */
+	Slice<User> findSliceByLastname(String lastname, Pageable pageable);
 }

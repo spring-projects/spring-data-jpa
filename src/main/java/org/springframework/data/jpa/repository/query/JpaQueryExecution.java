@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2013 the original author or authors.
+ * Copyright 2008-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,8 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
 import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
@@ -87,13 +89,54 @@ public abstract class JpaQueryExecution {
 	protected abstract Object doExecute(AbstractJpaQuery query, Object[] values);
 
 	/**
-	 * Executes the {@link AbstractStringBasedJpaQuery} to return a simple collection of entities.
+	 * Executes the query to return a simple collection of entities.
 	 */
 	static class CollectionExecution extends JpaQueryExecution {
 
 		@Override
 		protected Object doExecute(AbstractJpaQuery query, Object[] values) {
 			return query.createQuery(values).getResultList();
+		}
+	}
+
+	/**
+	 * Executes the query to return a {@link Slice} of entities.
+	 * 
+	 * @author Oliver Gierke
+	 * @since 1.6
+	 */
+	static class SlicedExecution extends JpaQueryExecution {
+
+		private final Parameters<?, ?> parameters;
+
+		/**
+		 * Creates a new {@link SlicedExecution} using the given {@link Parameters}.
+		 * 
+		 * @param parameters must not be {@literal null}.
+		 */
+		public SlicedExecution(Parameters<?, ?> parameters) {
+			this.parameters = parameters;
+		}
+
+		/* 
+		 * (non-Javadoc)
+		 * @see org.springframework.data.jpa.repository.query.JpaQueryExecution#doExecute(org.springframework.data.jpa.repository.query.AbstractJpaQuery, java.lang.Object[])
+		 */
+		@Override
+		@SuppressWarnings("unchecked")
+		protected Object doExecute(AbstractJpaQuery query, Object[] values) {
+
+			ParametersParameterAccessor accessor = new ParametersParameterAccessor(parameters, values);
+			Pageable pageable = accessor.getPageable();
+
+			Query createQuery = query.createQuery(values);
+			int pageSize = pageable.getPageSize();
+			createQuery.setMaxResults(pageSize + 1);
+
+			List<Object> resultList = createQuery.getResultList();
+			boolean hasNext = resultList.size() > pageSize;
+
+			return new SliceImpl<Object>(hasNext ? resultList.subList(0, pageSize) : resultList, pageable, hasNext);
 		}
 	}
 
