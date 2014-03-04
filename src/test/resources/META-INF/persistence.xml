@@ -58,6 +58,18 @@
 		</properties>
 	</persistence-unit>
 	
+	<!-- DATAJPA-476 -->
+	<persistence-unit name="merchant">
+		<class>org.springframework.data.jpa.domain.sample.User</class>
+		<class>org.springframework.data.jpa.repository.query.QueryUtilsIntegrationTests$Merchant</class>
+		<class>org.springframework.data.jpa.repository.query.QueryUtilsIntegrationTests$Employee</class>
+		<class>org.springframework.data.jpa.repository.query.QueryUtilsIntegrationTests$Credential</class>
+		<exclude-unlisted-classes>true</exclude-unlisted-classes>
+		<properties>
+			<property name="hibernate.dialect" value="org.hibernate.dialect.HSQLDialect" />
+		</properties>
+	</persistence-unit>
+	
 	<!--  Custom PUs for metadata tests -->
 	
 	<persistence-unit name="metadata">
