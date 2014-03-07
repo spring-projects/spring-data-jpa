@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2012 the original author or authors.
+ * Copyright 2008-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,11 +23,11 @@ import java.util.Collection;
 import java.util.List;
 
 import javax.persistence.EntityManager;
-import javax.persistence.Parameter;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.ParameterExpression;
 import javax.persistence.criteria.Root;
 
 import org.junit.Ignore;
@@ -45,21 +45,6 @@ import org.springframework.test.context.ContextConfiguration;
 public class OpenJpaNamespaceUserRepositoryTests extends NamespaceUserRepositoryTests {
 
 	@PersistenceContext EntityManager em;
-
-	/**
-	 * Ignored until https://issues.apache.org/jira/browse/OPENJPA-2018 gets fixed.
-	 */
-	@Override
-	@Ignore
-	public void findsAllByGivenIds() {
-
-	}
-
-	/**
-	 * Ignored until https://issues.apache.org/jira/browse/OPENJPA-2018 gets fixed.
-	 */
-	@Override
-	public void handlesIterableOfIdsCorrectly() {}
 
 	@Test
 	public void checkQueryValidationWithOpenJpa() {
@@ -82,7 +67,7 @@ public class OpenJpaNamespaceUserRepositoryTests extends NamespaceUserRepository
 	/**
 	 * Test case for https://issues.apache.org/jira/browse/OPENJPA-2018
 	 */
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({ "rawtypes" })
 	@Test
 	@Ignore
 	public void queryUsingIn() {
@@ -93,22 +78,13 @@ public class OpenJpaNamespaceUserRepositoryTests extends NamespaceUserRepository
 
 		CriteriaQuery<User> criteriaQuery = builder.createQuery(User.class);
 		Root<User> root = criteriaQuery.from(User.class);
-		criteriaQuery.where(root.<Integer> get("id").in(builder.parameter(Collection.class)));
+		ParameterExpression<Collection> parameter = builder.parameter(Collection.class);
+		criteriaQuery.where(root.<Integer> get("id").in(parameter));
 
 		TypedQuery<User> query = em.createQuery(criteriaQuery);
-		for (Parameter parameter : query.getParameters()) {
-			query.setParameter(parameter, Arrays.asList(1, 2));
-		}
+		query.setParameter(parameter, Arrays.asList(1, 2));
 
 		List<User> resultList = query.getResultList();
 		assertThat(resultList.size(), is(2));
-	}
-
-	/**
-	 * Ignored until https://issues.apache.org/jira/browse/OPENJPA-2018 gets fixed.
-	 */
-	@Override
-	public void invokesQueryWithVarargsParametersCorrectly() {
-
 	}
 }
