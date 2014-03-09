@@ -92,7 +92,8 @@ class JpaAuditingRegistrar extends AuditingBeanDefinitionRegistrarSupport {
 		}
 
 		if (!ClassUtils.isPresent(BEAN_CONFIGURER_ASPECT_CLASS_NAME, getClass().getClassLoader())) {
-			throw new BeanDefinitionStoreException("Could not configure Spring Data JPA auditing-feature because"
+			throw new BeanDefinitionStoreException(BEAN_CONFIGURER_ASPECT_CLASS_NAME + " not found. \n"
+					+ "Could not configure Spring Data JPA auditing-feature because"
 					+ " spring-aspects.jar is not on the classpath!\n"
 					+ "If you want to use auditing please add spring-aspects.jar to the classpath.");
 		}
