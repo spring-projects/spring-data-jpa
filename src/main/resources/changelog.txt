@@ -1,6 +1,30 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 1.4.5.RELEASE (2014-03-10)
+---------------------------------------------
+* When used "LIKE expression" and "other expression" at the same time, occurred the QuerySyntaxException of Hibernate. (DATAJPA-473)
+* IllegalStateException caused by QueryUtils.toExpressionRecursively(…) (DATAJPA-476)
+* findAll(Iterable<ID>) : Invalid comparation Exception thrown (DATAJPA-492)
+* Improve FAQ, C2.1 on the SessionFactory replacement (DATAJPA-462)
+* Documentation on CDI setup is incomplete (DATAJPA-474)
+* Upgrade Hibernate build profiles to latest version (DATAJPA-485)
+* Release 1.4.5 (DATAJPA-488)
+
+Changes in version 1.5.0.RELEASE (2014-02-24)
+---------------------------------------------
+* Query on byte array fails (DATAJPA-454)
+* Regression in parameter binding (DATAJPA-461)
+* Nullpointer when using @Query (DATAJPA-465)
+* Build fails against Spring 4 (DATAJPA-471)
+* When used "LIKE expression" and "other expression" at the same time, occurred the QuerySyntaxException of Hibernate. (DATAJPA-473)
+* Improve FAQ, C2.1 on the SessionFactory replacement (DATAJPA-462)
+* Documentation on CDI setup is incomplete (DATAJPA-474)
+* Add aop.xml to prevent Eclipse from weaving unnecessary aspects (DATAJPA-458)
+* Reduce log output for Querydsl APT processor (DATAJPA-459)
+* Release 1.5 GA (DATAJPA-469)
+* Documentation overhaul (DATAJPA-470)
+
 Changes in version 1.4.4.RELEASE (2014-02-17)
 ---------------------------------------------
 * PersistenceProvider enum should also match org.hibernate.jpa.HibernateEntityManager (DATAJPA-444)

@@ -208,7 +208,7 @@ class ApplicationConfig {
                 Data JPA will delegate the new-detection to the
                 <methodname>isNew</methodname> - Method of the Entity. See the
                 <ulink
-                url="http://static.springsource.org/spring-data/data-commons/docs/current/api/index.html?org/springframework/data/domain/Persistable.html">JavaDoc</ulink>
+                url="http://docs.spring.io/spring-data/data-commons/docs/current/api/index.html?org/springframework/data/domain/Persistable.html">JavaDoc</ulink>
                 for details.</entry>
               </row>
 
@@ -226,7 +226,7 @@ class ApplicationConfig {
                 implementation of <classname>JpaRepositoryFactory</classname>
                 as a Spring bean. Note that this should be rarely necessary.
                 See the <ulink
-                url="http://static.springsource.org/spring-data/data-jpa/docs/current/api/index.html?org/springframework/data/jpa/repository/support/JpaRepositoryFactory.html">JavaDoc</ulink>
+                url="http://docs.spring.io/spring-data/data-jpa/docs/current/api/index.html?org/springframework/data/jpa/repository/support/JpaRepositoryFactory.html">JavaDoc</ulink>
                 for details.</entry>
               </row>
             </tbody>
@@ -1122,7 +1122,7 @@ public interface UserRepository extends JpaRepository&lt;User, Long&gt; {
   <section id="jpa.auditing">
     <title>Auditing</title>
 
-    <xi:include href="https://raw.github.com/SpringSource/spring-data-commons/master/src/docbkx/auditing.xml"
+    <xi:include href="https://raw.github.com/spring-projects/spring-data-commons/master/src/docbkx/auditing.xml"
                 xmlns:xi="http://www.w3.org/2001/XInclude">
       <xi:fallback href="../../../spring-data-commons/src/docbkx/auditing.xml"/>
     </xi:include>
@@ -1240,7 +1240,7 @@ public interface UserRepository extends JpaRepository&lt;User, Long&gt; {
         <para>As of Spring 3.1 a package to scan can be configured on the
         <classname>LocalContainerEntityManagerFactoryBean</classname> directly
         to enable classpath scanning for entity classes. See the <ulink
-        url="http://static.springsource.org/spring/docs/3.1.x/javadoc-api/org/springframework/orm/jpa/LocalContainerEntityManagerFactoryBean.html#setPackagesToScan(java.lang.String...)">JavaDoc</ulink>
+        url="http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/orm/jpa/LocalContainerEntityManagerFactoryBean.html#setPackagesToScan-java.lang.String...-">JavaDoc</ulink>
         for details.</para>
       </note>
     </section>
