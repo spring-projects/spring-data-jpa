@@ -51,7 +51,7 @@
           <para>You have to replace
           <classname>AnnotationSessionFactoryBean</classname> with the
           <classname>HibernateJpaSessionFactoryBean</classname> as follows:
-
+          </para>
           <example>
             <title>Looking up a SessionFactory from a
             HibernateEntityManagerFactory</title>
