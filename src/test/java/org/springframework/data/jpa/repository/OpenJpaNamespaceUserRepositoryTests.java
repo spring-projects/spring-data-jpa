@@ -40,6 +40,7 @@ import org.springframework.test.context.ContextConfiguration;
  * Testcase to run {@link UserRepository} integration tests on top of OpenJPA.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 @ContextConfiguration("classpath:openjpa.xml")
 public class OpenJpaNamespaceUserRepositoryTests extends NamespaceUserRepositoryTests {
@@ -87,4 +88,10 @@ public class OpenJpaNamespaceUserRepositoryTests extends NamespaceUserRepository
 		List<User> resultList = query.getResultList();
 		assertThat(resultList.size(), is(2));
 	}
+
+	/**
+	 * OpenJPA doesn't seem to support sorting by nested association expressions. TODO add OpenJPA JIRA Ticket.
+	 */
+	@Override
+	public void sortByNestedAssociationPropertyWithSortInPageable() {}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2013 the original author or authors.
+ * Copyright 2008-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -85,6 +85,7 @@ public class UserRepositoryTests {
 	// Test fixture
 	User firstUser, secondUser, thirdUser, fourthUser;
 	Integer id;
+	Role adminRole;
 
 	@Before
 	public void setUp() throws Exception {
@@ -98,6 +99,7 @@ public class UserRepositoryTests {
 		thirdUser.setAge(43);
 		fourthUser = new User("kevin", "raymond", "no@gmail.com");
 		fourthUser.setAge(31);
+		adminRole = new Role("admin");
 	}
 
 	@Test
@@ -918,6 +920,8 @@ public class UserRepositoryTests {
 
 	protected void flushTestUsers() {
 
+		em.persist(adminRole);
+
 		firstUser = repository.save(firstUser);
 		secondUser = repository.save(secondUser);
 		thirdUser = repository.save(thirdUser);
@@ -1256,6 +1260,25 @@ public class UserRepositoryTests {
 
 		assertThat(user.getFirstname(), is(savedUser.getFirstname()));
 		assertThat(user.getEmailAddress(), is(savedUser.getEmailAddress()));
+	}
+
+	/**
+	 * @see DATAJPA-491
+	 */
+	@Test
+	public void sortByNestedAssociationPropertyWithSortInPageable() {
+
+		firstUser.setManager(secondUser);
+		thirdUser.setManager(fourthUser);
+		secondUser.getRoles().add(adminRole);
+
+		flushTestUsers();
+
+		Page<User> page = repository.findAll(new PageRequest(0, 10, //
+				new Sort(Sort.Direction.ASC, "manager.roles.name")));
+
+		assertThat(page.getContent(), hasSize(4));
+		assertThat(page.getContent().get(0), is(secondUser));
 	}
 
 	private Page<User> executeSpecWithSort(Sort sort) {
