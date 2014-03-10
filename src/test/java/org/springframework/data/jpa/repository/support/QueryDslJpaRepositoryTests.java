@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 the original author or authors.
+ * Copyright 2008-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.jpa.domain.sample.Address;
 import org.springframework.data.jpa.domain.sample.QUser;
+import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.querydsl.QPageRequest;
 import org.springframework.data.querydsl.QSort;
@@ -49,6 +50,7 @@ import com.mysema.query.types.path.PathBuilderFactory;
  * Integration test for {@link QueryDslJpaRepository}.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({ "classpath:infrastructure.xml" })
@@ -60,6 +62,7 @@ public class QueryDslJpaRepositoryTests {
 	QueryDslJpaRepository<User, Integer> repository;
 	QUser user = new QUser("user");
 	User dave, carter, oliver;
+	Role adminRole;
 
 	@Before
 	public void setUp() {
@@ -71,6 +74,7 @@ public class QueryDslJpaRepositoryTests {
 		dave = repository.save(new User("Dave", "Matthews", "dave@matthews.com"));
 		carter = repository.save(new User("Carter", "Beauford", "carter@beauford.com"));
 		oliver = repository.save(new User("Oliver", "matthews", "oliver@matthews.com"));
+		adminRole = em.merge(new Role("admin"));
 	}
 
 	@Test
@@ -272,5 +276,21 @@ public class QueryDslJpaRepositoryTests {
 		assertThat(page.getContent().get(0), is(carter));
 		assertThat(page.getContent().get(1), is(dave));
 		assertThat(page.getContent().get(2), is(oliver));
+	}
+
+	/**
+	 * @see DATAJPA-491
+	 */
+	@Test
+	public void sortByNestedAssociationPropertyWithSpecificationAndSortInPageable() {
+
+		oliver.setManager(dave);
+		dave.getRoles().add(adminRole);
+
+		Page<User> page = repository.findAll(QUser.user.id.gt(0), new PageRequest(0, 10, //
+				new Sort(Sort.Direction.ASC, "manager.roles.name")));
+
+		assertThat(page.getContent(), hasSize(3));
+		assertThat(page.getContent().get(0), is(dave));
 	}
 }
