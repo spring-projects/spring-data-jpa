@@ -71,6 +71,8 @@ public class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserReposi
 
 	/**
 	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=422450 is resolved.
+	 * 
+	 * @see DATAJPA-491
 	 */
 	@Override
 	public void sortByNestedAssociationPropertyWithSortInPageable() {}

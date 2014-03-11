@@ -16,8 +16,10 @@
 package org.springframework.data.jpa.domain.sample;
 
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.ManyToOne;
 
 /**
  * @author Thomas Darimont
@@ -28,6 +30,8 @@ public class MailSender {
 	@Id @GeneratedValue private Long id;
 
 	private String name;
+
+	@ManyToOne(fetch = FetchType.LAZY) private MailUser mailUser;
 
 	public MailSender() {}
 
@@ -49,6 +53,14 @@ public class MailSender {
 
 	public void setId(Long id) {
 		this.id = id;
+	}
+
+	public MailUser getMailUser() {
+		return mailUser;
+	}
+
+	public void setMailUser(MailUser mailUser) {
+		this.mailUser = mailUser;
 	}
 
 	/* 

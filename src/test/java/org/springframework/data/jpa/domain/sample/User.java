@@ -195,7 +195,7 @@ public class User {
 	/**
 	 * Returns the user's roles.
 	 * 
-	 * @return the role
+	 * @return the roles
 	 */
 	public Set<Role> getRoles() {
 

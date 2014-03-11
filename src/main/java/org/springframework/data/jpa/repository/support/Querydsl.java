@@ -167,7 +167,7 @@ public class Querydsl {
 
 		for (OrderSpecifier<?> order : originalOrderSpecifiers) {
 
-			Path targetPath = ((Path) order.getTarget()).getMetadata().getParent();
+			Path targetPath = ((Path<?>) order.getTarget()).getMetadata().getParent();
 
 			boolean targetPathRootIsEntityRoot = targetPath.getRoot().equals(builder.getRoot());
 			boolean targetPathEqualsRootEnityPath = targetPath.toString().equals(builder.toString());
@@ -224,7 +224,7 @@ public class Querydsl {
 	private OrderSpecifier<?> toOrderSpecifier(Order order, JPQLQuery query) {
 
 		return new OrderSpecifier(order.isAscending() ? com.mysema.query.types.Order.ASC
-				: com.mysema.query.types.Order.DESC, createSortPropertyExpression(order), NullHandling.NullsLast);
+				: com.mysema.query.types.Order.DESC, buildOrderPropertyPathFrom(order), NullHandling.NullsLast);
 	}
 
 	/**
@@ -233,7 +233,7 @@ public class Querydsl {
 	 * @param order must not be {@literal null}.
 	 * @return
 	 */
-	private Expression<?> createSortPropertyExpression(Order order) {
+	private Expression<?> buildOrderPropertyPathFrom(Order order) {
 
 		Assert.notNull(order, "Order must not be null!");
 
@@ -243,6 +243,7 @@ public class Querydsl {
 		while (path != null) {
 
 			if (!path.hasNext() && order.isIgnoreCase()) {
+				// if order is ignore-case we have to treat the last path segment as a String.
 				sortPropertyExpression = ((PathBuilder<?>) sortPropertyExpression).getString(path.getSegment()).lower();
 			} else {
 				sortPropertyExpression = ((PathBuilder<?>) sortPropertyExpression).get(path.getSegment());
@@ -250,6 +251,7 @@ public class Querydsl {
 
 			path = path.next();
 		}
+
 		return sortPropertyExpression;
 	}
 }

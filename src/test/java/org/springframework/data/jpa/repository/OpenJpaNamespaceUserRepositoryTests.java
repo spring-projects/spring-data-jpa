@@ -90,7 +90,9 @@ public class OpenJpaNamespaceUserRepositoryTests extends NamespaceUserRepository
 	}
 
 	/**
-	 * OpenJPA doesn't seem to support sorting by nested association expressions. TODO add OpenJPA JIRA Ticket.
+	 * OpenJPA doesn't seem to support sorting by nested association expressions.
+	 * 
+	 * @see DATAJPA-491
 	 */
 	@Override
 	public void sortByNestedAssociationPropertyWithSortInPageable() {}
