@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2012 the original author or authors.
+ * Copyright 2008-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 
 	private final EntityManager entityManager;
 	private final QueryExtractor extractor;
-	private final LockModeRepositoryPostProcessor lockModePostProcessor;
+	private final CrudMethodMetadataPostProcessor lockModePostProcessor;
 
 	/**
 	 * Creates a new {@link JpaRepositoryFactory}.
@@ -53,7 +53,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 
 		this.entityManager = entityManager;
 		this.extractor = PersistenceProvider.fromEntityManager(entityManager);
-		this.lockModePostProcessor = LockModeRepositoryPostProcessor.INSTANCE;
+		this.lockModePostProcessor = CrudMethodMetadataPostProcessor.INSTANCE;
 
 		addRepositoryProxyPostProcessor(lockModePostProcessor);
 	}
@@ -64,7 +64,11 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	 */
 	@Override
 	protected Object getTargetRepository(RepositoryMetadata metadata) {
-		return getTargetRepository(metadata, entityManager);
+
+		SimpleJpaRepository<?, ?> repository = getTargetRepository(metadata, entityManager);
+		repository.setRepositoryMethodMetadata(lockModePostProcessor.getLockMetadataProvider());
+
+		return repository;
 	}
 
 	/**
@@ -77,7 +81,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	 * @return
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	protected <T, ID extends Serializable> JpaRepository<?, ?> getTargetRepository(RepositoryMetadata metadata,
+	protected <T, ID extends Serializable> SimpleJpaRepository<?, ?> getTargetRepository(RepositoryMetadata metadata,
 			EntityManager entityManager) {
 
 		Class<?> repositoryInterface = metadata.getRepositoryInterface();
@@ -85,7 +89,6 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 
 		SimpleJpaRepository<?, ?> repo = isQueryDslExecutor(repositoryInterface) ? new QueryDslJpaRepository(
 				entityInformation, entityManager) : new SimpleJpaRepository(entityInformation, entityManager);
-		repo.setLockMetadataProvider(lockModePostProcessor.getLockMetadataProvider());
 
 		return repo;
 	}

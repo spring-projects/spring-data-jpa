@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,17 @@
  */
 package org.springframework.data.jpa.repository.support;
 
+import java.util.Map;
+
 import javax.persistence.LockModeType;
 
 /**
- * Interface to abstract {@link LockMetadataProvider} that provide the {@link LockModeType} to be used for query
+ * Interface to abstract {@link CrudMethodMetadata} that provide the {@link LockModeType} to be used for query
  * execution.
  * 
  * @author Oliver Gierke
  */
-public interface LockMetadataProvider {
+public interface CrudMethodMetadata {
 
 	/**
 	 * Returns the {@link LockModeType} to be used.
@@ -31,4 +33,11 @@ public interface LockMetadataProvider {
 	 * @return
 	 */
 	LockModeType getLockModeType();
+
+	/**
+	 * Returns all query hints to be applied to queries executed for the CRUD method.
+	 * 
+	 * @return
+	 */
+	Map<String, Object> getQueryHints();
 }

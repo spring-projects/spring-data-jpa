@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2013 the original author or authors.
+ * Copyright 2008-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
@@ -66,7 +68,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	private final EntityManager em;
 	private final PersistenceProvider provider;
 
-	private LockMetadataProvider lockMetadataProvider;
+	private CrudMethodMetadata crudMethodMetadata;
 
 	/**
 	 * Creates a new {@link SimpleJpaRepository} to manage objects of the given {@link JpaEntityInformation}.
@@ -95,13 +97,13 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	}
 
 	/**
-	 * Configures a custom {@link LockMetadataProvider} to be used to detect {@link LockModeType}s to be applied to
-	 * queries.
+	 * Configures a custom {@link CrudMethodMetadata} to be used to detect {@link LockModeType}s and query hints to be
+	 * applied to queries.
 	 * 
-	 * @param lockMetadataProvider
+	 * @param crudMethodMetadata
 	 */
-	public void setLockMetadataProvider(LockMetadataProvider lockMetadataProvider) {
-		this.lockMetadataProvider = lockMetadataProvider;
+	public void setRepositoryMethodMetadata(CrudMethodMetadata crudMethodMetadata) {
+		this.crudMethodMetadata = crudMethodMetadata;
 	}
 
 	protected Class<T> getDomainClass() {
@@ -208,10 +210,12 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 
 		Assert.notNull(id, "The given id must not be null!");
 
-		LockModeType type = lockMetadataProvider == null ? null : lockMetadataProvider.getLockModeType();
+		LockModeType type = crudMethodMetadata.getLockModeType();
+		Map<String, Object> hints = crudMethodMetadata.getQueryHints();
+
 		Class<T> domainType = getDomainClass();
 
-		return type == null ? em.find(domainType, id) : em.find(domainType, id, type);
+		return type == null ? em.find(domainType, id, hints) : em.find(domainType, id, type, hints);
 	}
 
 	/* 
@@ -468,7 +472,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 			query.orderBy(toOrders(sort, root, builder));
 		}
 
-		return applyLockMode(em.createQuery(query));
+		return applyRepositoryMethodMetadata(em.createQuery(query));
 	}
 
 	/**
@@ -519,10 +523,16 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 		return root;
 	}
 
-	private TypedQuery<T> applyLockMode(TypedQuery<T> query) {
+	private TypedQuery<T> applyRepositoryMethodMetadata(TypedQuery<T> query) {
 
-		LockModeType type = lockMetadataProvider == null ? null : lockMetadataProvider.getLockModeType();
-		return type == null ? query : query.setLockMode(type);
+		LockModeType type = crudMethodMetadata.getLockModeType();
+		TypedQuery<T> toReturn = type == null ? query : query.setLockMode(type);
+
+		for (Entry<String, Object> hint : crudMethodMetadata.getQueryHints().entrySet()) {
+			query.setHint(hint.getKey(), hint.getValue());
+		}
+
+		return toReturn;
 	}
 
 	/**
