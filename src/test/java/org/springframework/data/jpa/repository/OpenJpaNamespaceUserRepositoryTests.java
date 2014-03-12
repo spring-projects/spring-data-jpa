@@ -40,6 +40,7 @@ import org.springframework.test.context.ContextConfiguration;
  * Testcase to run {@link UserRepository} integration tests on top of OpenJPA.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 @ContextConfiguration("classpath:openjpa.xml")
 public class OpenJpaNamespaceUserRepositoryTests extends NamespaceUserRepositoryTests {

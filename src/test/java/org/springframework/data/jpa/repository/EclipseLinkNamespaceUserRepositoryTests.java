@@ -22,6 +22,7 @@ import org.springframework.test.context.ContextConfiguration;
  * Testcase to run {@link UserRepository} integration tests on top of EclipseLink.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 @ContextConfiguration(value = "classpath:eclipselink.xml")
 public class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserRepositoryTests {
