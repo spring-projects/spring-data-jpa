@@ -64,4 +64,12 @@ public @interface Query {
 	 * @return
 	 */
 	String countName() default "";
+
+	/**
+	 * Returns whether the query should delete matching entities.
+	 * 
+	 * @since 1.6
+	 * @return
+	 */
+	boolean delete() default false;
 }

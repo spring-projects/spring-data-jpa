@@ -40,6 +40,7 @@ import org.springframework.util.Assert;
  * in various flavours.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 public abstract class JpaQueryExecution {
 
@@ -218,6 +219,45 @@ public abstract class JpaQueryExecution {
 
 			if (em != null) {
 				em.clear();
+			}
+
+			return result;
+		}
+	}
+
+	/**
+	 * {@link Execution} removing entities matching the query.
+	 * 
+	 * @author Thomas Darimont
+	 * @since 1.6
+	 */
+	static class DeleteExecution extends JpaQueryExecution {
+
+		private final EntityManager em;
+
+		public DeleteExecution(EntityManager em) {
+			this.em = em;
+		}
+
+		/* 
+		 * (non-Javadoc)
+		 * @see org.springframework.data.jpa.repository.query.JpaQueryExecution#doExecute(org.springframework.data.jpa.repository.query.AbstractJpaQuery, java.lang.Object[])
+		 */
+		@Override
+		protected Object doExecute(AbstractJpaQuery query, Object[] values) {
+
+			Query qry = query.createQuery(values);
+
+			List<?> resultList = qry.getResultList();
+			for (Object o : resultList) {
+				em.remove(o);
+			}
+
+			Object result = null;
+			if (query.getQueryMethod().isCollectionQuery()) {
+				result = resultList;
+			} else {
+				result = resultList.size();
 			}
 
 			return result;

@@ -1280,6 +1280,100 @@ public class UserRepositoryTests {
 		assertThat(page.getContent().get(3), is(firstUser));
 	}
 
+	/**
+	 * @see DATAJPA-460
+	 */
+	@Test
+	public void deleteByShouldReturnListOfDeletedElementsWhenRetunTypeIsCollectionLike() {
+
+		flushTestUsers();
+
+		List<User> result = repository.deleteByLastname(firstUser.getLastname());
+		assertThat(result, hasItem(firstUser));
+		assertThat(result, hasSize(1));
+	}
+
+	/**
+	 * @see DATAJPA-460
+	 */
+	@Test
+	public void deleteByShouldRemoveElementsMatchingDerivedQuery() {
+
+		flushTestUsers();
+
+		repository.deleteByLastname(firstUser.getLastname());
+		assertThat(repository.countByLastname(firstUser.getLastname()), is(0L));
+	}
+
+	/**
+	 * @see DATAJPA-460
+	 */
+	@Test
+	public void deleteByShouldReturnNumberOfEntitiesRemovedIfReturnTypeIsLong() {
+
+		flushTestUsers();
+
+		assertThat(repository.removeByLastname(firstUser.getLastname()), is(1L));
+	}
+
+	/**
+	 * @see DATAJPA-460
+	 */
+	@Test
+	public void deleteByShouldReturnZeroInCaseNoEntityHasBeenRemovedAndReturnTypeIsNumber() {
+
+		flushTestUsers();
+
+		assertThat(repository.removeByLastname("bubu"), is(0L));
+	}
+
+	/**
+	 * @see DATAJPA-460
+	 */
+	@Test
+	public void deleteByShouldReturnEmptyListInCaseNoEntityHasBeenRemovedAndReturnTypeIsCollectionLike() {
+
+		flushTestUsers();
+
+		assertThat(repository.deleteByLastname("dorfuaeB"), empty());
+	}
+
+	/**
+	 * @see DATAJPA-460
+	 */
+	@Test
+	public void deleteByUsingAnnotatedQueryShouldReturnListOfDeletedElementsWhenRetunTypeIsCollectionLike() {
+
+		flushTestUsers();
+
+		List<User> result = repository.deleteByLastnameUsingAnnotatedQuery(firstUser.getLastname());
+		assertThat(result, hasItem(firstUser));
+		assertThat(result, hasSize(1));
+	}
+
+	/**
+	 * @see DATAJPA-460
+	 */
+	@Test
+	public void deleteByUsingAnnotatedQueryShouldRemoveElementsMatchingDerivedQuery() {
+
+		flushTestUsers();
+
+		repository.removeByLastnameUsingAnnotatedQuery(firstUser.getLastname());
+		assertThat(repository.countByLastname(firstUser.getLastname()), is(0L));
+	}
+
+	/**
+	 * @see DATAJPA-460
+	 */
+	@Test
+	public void deleteByUsingAnnotatedQueryShouldReturnNumberOfDocumentsRemovedIfReturnTypeIsLong() {
+
+		flushTestUsers();
+
+		assertThat(repository.removeByLastnameUsingAnnotatedQuery(firstUser.getLastname()), is(1L));
+	}
+
 	private Page<User> executeSpecWithSort(Sort sort) {
 
 		flushTestUsers();
