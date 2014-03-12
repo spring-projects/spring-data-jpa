@@ -1268,17 +1268,16 @@ public class UserRepositoryTests {
 	@Test
 	public void sortByNestedAssociationPropertyWithSortInPageable() {
 
-		firstUser.setManager(secondUser);
+		firstUser.setManager(thirdUser);
 		thirdUser.setManager(fourthUser);
-		secondUser.getRoles().add(adminRole);
 
 		flushTestUsers();
 
 		Page<User> page = repository.findAll(new PageRequest(0, 10, //
-				new Sort(Sort.Direction.ASC, "manager.roles.name")));
+				new Sort(Sort.Direction.ASC, "manager.manager.firstname")));
 
 		assertThat(page.getContent(), hasSize(4));
-		assertThat(page.getContent().get(0), is(secondUser));
+		assertThat(page.getContent().get(3), is(firstUser));
 	}
 
 	private Page<User> executeSpecWithSort(Sort sort) {

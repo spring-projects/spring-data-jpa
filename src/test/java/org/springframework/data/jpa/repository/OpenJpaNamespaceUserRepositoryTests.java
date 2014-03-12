@@ -88,12 +88,4 @@ public class OpenJpaNamespaceUserRepositoryTests extends NamespaceUserRepository
 		List<User> resultList = query.getResultList();
 		assertThat(resultList.size(), is(2));
 	}
-
-	/**
-	 * OpenJPA doesn't seem to support sorting by nested association expressions.
-	 * 
-	 * @see DATAJPA-491
-	 */
-	@Override
-	public void sortByNestedAssociationPropertyWithSortInPageable() {}
 }
