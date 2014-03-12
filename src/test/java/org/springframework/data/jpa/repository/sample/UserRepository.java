@@ -311,4 +311,26 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	 * @see DATAJPA-486
 	 */
 	Slice<User> findSliceByLastname(String lastname, Pageable pageable);
+
+	/**
+	 * @see DATAJPA-460
+	 */
+	Long removeByLastname(String lastname);
+
+	/**
+	 * @see DATAJPA-460
+	 */
+	List<User> deleteByLastname(String lastname);
+
+	/**
+	 * @see DATAJPA-460
+	 */
+	@Query(value = "select u from User u where u.lastname = ?1", delete = true)
+	List<User> deleteByLastnameUsingAnnotatedQuery(String lastname);
+
+	/**
+	 * @see DATAJPA-460
+	 */
+	@Query(value = "select u from User u where u.lastname = ?1", delete = true)
+	Long removeByLastnameUsingAnnotatedQuery(String lastname);
 }
