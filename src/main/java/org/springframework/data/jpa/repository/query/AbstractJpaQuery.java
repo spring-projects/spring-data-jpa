@@ -23,6 +23,7 @@ import javax.persistence.TypedQuery;
 
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.CollectionExecution;
+import org.springframework.data.jpa.repository.query.JpaQueryExecution.DeleteExecution;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.ModifyingExecution;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.PagedExecution;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.SingleEntityExecution;
@@ -100,7 +101,9 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 
 	protected JpaQueryExecution getExecution() {
 
-		if (method.isCollectionQuery()) {
+		if (method.isDeleteQuery()) {
+			return new DeleteExecution(em);
+		} else if (method.isCollectionQuery()) {
 			return new CollectionExecution();
 		} else if (method.isSliceQuery()) {
 			return new SlicedExecution(method.getParameters());
