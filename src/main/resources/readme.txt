@@ -1,4 +1,4 @@
-Spring Data JPA 1.5.0 RELEASE (Feb 24th, 2014)
+Spring Data JPA 1.5.1 RELEASE (March 13th, 2014)
 ----------------------------------------------
 
 Spring Data Jpa is released under the terms of the Apache Software License Version 2.0 (see license.txt).

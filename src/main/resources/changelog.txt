@@ -1,6 +1,27 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 1.5.1.RELEASE (2014-03-13)
+---------------------------------------------
+
+* Verify that pagination works with entities with @IdClass. (DATAJPA-472)
+* Mitigate spec violations in Hibernate for query creation. (DATAJPA-476)
+* Fixed parameter binding detection with parentheses. (DATAJPA-483)
+* Upgraded to Hibernate profiles to 4.3.4 and 4.2.10. (DATAJPA-485)
+* Support order by arbitrarily nested association paths with Querydsl. (DATAJPA-491)
+* Altered implementation of findAll(Iterable<ID>) to work around bug in OpenJPA. (DATAJPA-492)
+* Fix template.mf to make sure auditing can be used on OSGi. (DATAJPA-494)
+
+Changes in version 1.4.5.RELEASE (2014-03-10)
+---------------------------------------------
+* When used "LIKE expression" and "other expression" at the same time, occurred the QuerySyntaxException of Hibernate. (DATAJPA-473)
+* IllegalStateException caused by QueryUtils.toExpressionRecursively(…) (DATAJPA-476)
+* findAll(Iterable<ID>) : Invalid comparation Exception thrown (DATAJPA-492)
+* Improve FAQ, C2.1 on the SessionFactory replacement (DATAJPA-462)
+* Documentation on CDI setup is incomplete (DATAJPA-474)
+* Upgrade Hibernate build profiles to latest version (DATAJPA-485)
+* Release 1.4.5 (DATAJPA-488)
+
 Changes in version 1.5.0.RELEASE (2014-02-24)
 -----------------------------------------
 
