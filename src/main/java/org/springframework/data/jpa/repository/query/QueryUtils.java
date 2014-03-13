@@ -118,6 +118,7 @@ public abstract class QueryUtils {
 		persistentAttributeTypes.put(ONE_TO_MANY, null);
 		persistentAttributeTypes.put(MANY_TO_ONE, ManyToOne.class);
 		persistentAttributeTypes.put(MANY_TO_MANY, null);
+		persistentAttributeTypes.put(ELEMENT_COLLECTION, null);
 
 		ASSOCIATION_TYPES = Collections.unmodifiableMap(persistentAttributeTypes);
 	}

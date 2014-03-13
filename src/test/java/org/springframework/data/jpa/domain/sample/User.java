@@ -21,6 +21,7 @@ import java.util.Set;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
+import javax.persistence.ElementCollection;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -63,6 +64,8 @@ public class User {
 
 	@Lob private byte[] binaryData;
 
+	@ElementCollection private Set<String> attributes;
+
 	/**
 	 * Creates a new empty instance of {@code User}.
 	 */
@@ -85,6 +88,7 @@ public class User {
 		this.active = true;
 		this.roles = new HashSet<Role>();
 		this.colleagues = new HashSet<User>();
+		this.attributes = new HashSet<String>();
 		this.createdAt = new Date();
 	}
 
@@ -327,6 +331,20 @@ public class User {
 		}
 
 		return this.getId().equals(that.getId());
+	}
+
+	/**
+	 * @return the attributes
+	 */
+	public Set<String> getAttributes() {
+		return attributes;
+	}
+
+	/**
+	 * @param attributes the attributes to set
+	 */
+	public void setAttributes(Set<String> attributes) {
+		this.attributes = attributes;
 	}
 
 	/*

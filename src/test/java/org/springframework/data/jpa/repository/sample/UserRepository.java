@@ -18,6 +18,7 @@ package org.springframework.data.jpa.repository.sample;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 import javax.persistence.QueryHint;
 
@@ -311,4 +312,9 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	 * @see DATAJPA-486
 	 */
 	Slice<User> findSliceByLastname(String lastname, Pageable pageable);
+
+	/**
+	 * @see DATAJPA-496
+	 */
+	List<User> findByAttributesIn(Set<String> attributes);
 }
