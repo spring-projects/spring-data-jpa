@@ -1262,6 +1262,24 @@ public class UserRepositoryTests {
 		assertThat(page.getContent().get(3), is(firstUser));
 	}
 
+	/**
+	 * @see DATAJPA-496
+	 */
+	@Test
+	public void findByElementCollectionAttribute() {
+
+		firstUser.getAttributes().add("cool");
+		secondUser.getAttributes().add("hip");
+		thirdUser.getAttributes().add("rockstar");
+
+		flushTestUsers();
+
+		List<User> result = repository.findByAttributesIn(new HashSet<String>(Arrays.asList("cool", "hip")));
+
+		assertThat(result, hasSize(2));
+		assertThat(result, hasItems(firstUser, secondUser));
+	}
+
 	private Page<User> executeSpecWithSort(Sort sort) {
 
 		flushTestUsers();
