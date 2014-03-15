@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2104 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,11 +21,16 @@ import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
 import javax.persistence.MapsId;
 
+/**
+ * @author Thomas Darimont
+ */
 @Entity
 public class EmbeddedIdExampleEmployee {
 
 	@EmbeddedId EmbeddedIdExampleEmployeePK employeePk;
-	@MapsId("departmentId") @ManyToOne(cascade = CascadeType.ALL)//
+
+	@MapsId("departmentId")//
+	@ManyToOne(cascade = CascadeType.ALL)//
 	EmbeddedIdExampleDepartment department;
 
 	public EmbeddedIdExampleEmployeePK getEmployeePk() {

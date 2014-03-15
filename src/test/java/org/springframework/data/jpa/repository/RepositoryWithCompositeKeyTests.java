@@ -18,6 +18,8 @@ package org.springframework.data.jpa.repository;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
+import java.util.List;
+
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -32,6 +34,7 @@ import org.springframework.data.jpa.domain.sample.EmbeddedIdExampleEmployeePK;
 import org.springframework.data.jpa.domain.sample.IdClassExampleDepartment;
 import org.springframework.data.jpa.domain.sample.IdClassExampleEmployee;
 import org.springframework.data.jpa.domain.sample.IdClassExampleEmployeePK;
+import org.springframework.data.jpa.domain.sample.QEmbeddedIdExampleEmployee;
 import org.springframework.data.jpa.repository.sample.EmployeeRepositoryWithEmbeddedId;
 import org.springframework.data.jpa.repository.sample.EmployeeRepositoryWithIdClass;
 import org.springframework.data.jpa.repository.sample.SampleConfig;
@@ -132,5 +135,44 @@ public class RepositoryWithCompositeKeyTests {
 
 		assertThat(page, is(notNullValue()));
 		assertThat(page.getTotalElements(), is(1L));
+	}
+
+	/**
+	 * @see DATAJPA-497
+	 */
+	@Test
+	public void sortByEmbeddedPkFieldInCompositePkWithEmbeddedIdInQueryDsl() {
+
+		EmbeddedIdExampleDepartment dep1 = new EmbeddedIdExampleDepartment();
+		dep1.setDepartmentId(1L);
+		dep1.setName("Dep1");
+
+		EmbeddedIdExampleDepartment dep2 = new EmbeddedIdExampleDepartment();
+		dep2.setDepartmentId(2L);
+		dep2.setName("Dep2");
+
+		EmbeddedIdExampleEmployee emp1 = new EmbeddedIdExampleEmployee();
+		emp1.setEmployeePk(new EmbeddedIdExampleEmployeePK(3L, null));
+		emp1.setDepartment(dep2);
+		emp1 = employeeRepositoryWithEmbeddedId.save(emp1);
+
+		EmbeddedIdExampleEmployee emp2 = new EmbeddedIdExampleEmployee();
+		emp2.setEmployeePk(new EmbeddedIdExampleEmployeePK(2L, null));
+		emp2.setDepartment(dep1);
+		emp2 = employeeRepositoryWithEmbeddedId.save(emp2);
+
+		EmbeddedIdExampleEmployee emp3 = new EmbeddedIdExampleEmployee();
+		emp3.setEmployeePk(new EmbeddedIdExampleEmployeePK(1L, null));
+		emp3.setDepartment(dep2);
+		emp3 = employeeRepositoryWithEmbeddedId.save(emp3);
+
+		QEmbeddedIdExampleEmployee emp = QEmbeddedIdExampleEmployee.embeddedIdExampleEmployee;
+		List<EmbeddedIdExampleEmployee> result = employeeRepositoryWithEmbeddedId.findAll(
+				emp.employeePk.departmentId.eq(dep2.getDepartmentId()), emp.employeePk.employeeId.asc());
+
+		assertThat(result, is(notNullValue()));
+		assertThat(result, hasSize(2));
+		assertThat(result.get(0), is(emp3));
+		assertThat(result.get(1), is(emp1));
 	}
 }
