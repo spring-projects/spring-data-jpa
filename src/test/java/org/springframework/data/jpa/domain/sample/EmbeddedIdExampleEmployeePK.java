@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,9 @@ import java.io.Serializable;
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
 
+/**
+ * @author Thomas Darimont
+ */
 @Embeddable
 public class EmbeddedIdExampleEmployeePK implements Serializable {
 	private static final long serialVersionUID = 1L;
@@ -27,6 +30,13 @@ public class EmbeddedIdExampleEmployeePK implements Serializable {
 	@Column(nullable = false) private Long employeeId;
 
 	@Column(nullable = false) private Long departmentId;
+
+	public EmbeddedIdExampleEmployeePK() {}
+
+	public EmbeddedIdExampleEmployeePK(Long employeeId, Long departmentId) {
+		this.employeeId = employeeId;
+		this.departmentId = departmentId;
+	}
 
 	public Long getEmployeeId() {
 		return this.employeeId;
