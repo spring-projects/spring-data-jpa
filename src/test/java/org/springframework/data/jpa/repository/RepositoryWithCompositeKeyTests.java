@@ -35,6 +35,7 @@ import org.springframework.data.jpa.domain.sample.IdClassExampleDepartment;
 import org.springframework.data.jpa.domain.sample.IdClassExampleEmployee;
 import org.springframework.data.jpa.domain.sample.IdClassExampleEmployeePK;
 import org.springframework.data.jpa.domain.sample.QEmbeddedIdExampleEmployee;
+import org.springframework.data.jpa.domain.sample.QIdClassExampleEmployee;
 import org.springframework.data.jpa.repository.sample.EmployeeRepositoryWithEmbeddedId;
 import org.springframework.data.jpa.repository.sample.EmployeeRepositoryWithIdClass;
 import org.springframework.data.jpa.repository.sample.SampleConfig;
@@ -169,6 +170,45 @@ public class RepositoryWithCompositeKeyTests {
 		QEmbeddedIdExampleEmployee emp = QEmbeddedIdExampleEmployee.embeddedIdExampleEmployee;
 		List<EmbeddedIdExampleEmployee> result = employeeRepositoryWithEmbeddedId.findAll(
 				emp.employeePk.departmentId.eq(dep2.getDepartmentId()), emp.employeePk.employeeId.asc());
+
+		assertThat(result, is(notNullValue()));
+		assertThat(result, hasSize(2));
+		assertThat(result.get(0), is(emp3));
+		assertThat(result.get(1), is(emp1));
+	}
+
+	/**
+	 * @see DATAJPA-497
+	 */
+	@Test
+	public void sortByEmbeddedPkFieldInCompositePkWithIdClassInQueryDsl() {
+
+		IdClassExampleDepartment dep1 = new IdClassExampleDepartment();
+		dep1.setDepartmentId(1L);
+		dep1.setName("Dep1");
+
+		IdClassExampleDepartment dep2 = new IdClassExampleDepartment();
+		dep2.setDepartmentId(2L);
+		dep2.setName("Dep2");
+
+		IdClassExampleEmployee emp1 = new IdClassExampleEmployee();
+		emp1.setEmpId(3L);
+		emp1.setDepartment(dep2);
+		emp1 = employeeRepositoryWithIdClass.save(emp1);
+
+		IdClassExampleEmployee emp2 = new IdClassExampleEmployee();
+		emp2.setEmpId(2L);
+		emp2.setDepartment(dep1);
+		emp2 = employeeRepositoryWithIdClass.save(emp2);
+
+		IdClassExampleEmployee emp3 = new IdClassExampleEmployee();
+		emp3.setEmpId(1L);
+		emp3.setDepartment(dep2);
+		emp3 = employeeRepositoryWithIdClass.save(emp3);
+
+		QIdClassExampleEmployee emp = QIdClassExampleEmployee.idClassExampleEmployee;
+		List<IdClassExampleEmployee> result = employeeRepositoryWithIdClass.findAll(
+				emp.department.departmentId.eq(dep2.getDepartmentId()), emp.empId.asc());
 
 		assertThat(result, is(notNullValue()));
 		assertThat(result, hasSize(2));
