@@ -171,11 +171,12 @@ public class Querydsl {
 
 			boolean targetPathRootIsEntityRoot = targetPath.getRoot().equals(builder.getRoot());
 			boolean targetPathEqualsRootEnityPath = targetPath.toString().equals(builder.toString());
+			boolean targetPathIsEntityPath = targetPath instanceof EntityPath;
 
 			if (!targetPathRootIsEntityRoot) {
 
 				query.leftJoin((EntityPath) builder.get((String) targetPath.getMetadata().getElement()), targetPath);
-			} else if (targetPathRootIsEntityRoot && !targetPathEqualsRootEnityPath) {
+			} else if (targetPathRootIsEntityRoot && !targetPathEqualsRootEnityPath && targetPathIsEntityPath) {
 
 				PathBuilder joinPathBuilder = new PathBuilder(targetPath.getType(), targetPath.getMetadata().getElement()
 						.toString());

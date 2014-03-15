@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,9 @@ package org.springframework.data.jpa.domain.sample;
 
 import java.io.Serializable;
 
+/**
+ * @author Thomas Darimont
+ */
 public class IdClassExampleEmployeePK implements Serializable {
 	private static final long serialVersionUID = 1L;
 
@@ -24,6 +27,11 @@ public class IdClassExampleEmployeePK implements Serializable {
 	private long department;
 
 	public IdClassExampleEmployeePK() {}
+
+	public IdClassExampleEmployeePK(long empId, long department) {
+		this.empId = empId;
+		this.department = department;
+	}
 
 	public long getEmpId() {
 		return this.empId;
@@ -41,9 +49,6 @@ public class IdClassExampleEmployeePK implements Serializable {
 		this.department = department;
 	}
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#hashCode()
-	 */
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -53,9 +58,6 @@ public class IdClassExampleEmployeePK implements Serializable {
 		return result;
 	}
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj) {
