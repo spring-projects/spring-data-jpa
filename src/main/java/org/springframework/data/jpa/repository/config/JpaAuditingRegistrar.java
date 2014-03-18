@@ -29,6 +29,7 @@ import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.data.auditing.config.AuditingBeanDefinitionRegistrarSupport;
+import org.springframework.data.config.ParsingUtils;
 import org.springframework.data.jpa.domain.support.AuditingBeanFactoryPostProcessor;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.util.Assert;
@@ -86,7 +87,8 @@ class JpaAuditingRegistrar extends AuditingBeanDefinitionRegistrarSupport {
 			BeanDefinitionRegistry registry) {
 
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(AuditingEntityListener.class);
-		builder.addPropertyValue("auditingHandler", auditingHandlerDefinition);
+		builder.addPropertyValue("auditingHandler",
+				ParsingUtils.getObjectFactoryBeanDefinition(getAuditingHandlerBeanName(), null));
 		registerInfrastructureBeanWithId(builder.getRawBeanDefinition(), AuditingEntityListener.class.getName(), registry);
 	}
 

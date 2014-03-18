@@ -56,9 +56,10 @@ import org.springframework.util.Assert;
  */
 public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensionSupport {
 
+	public static final String JPA_MAPPING_CONTEXT_BEAN_NAME = "jpaMapppingContext";
+
 	private static final Class<?> PAB_POST_PROCESSOR = PersistenceAnnotationBeanPostProcessor.class;
 	private static final String DEFAULT_TRANSACTION_MANAGER_BEAN_NAME = "transactionManager";
-	private static final String JPA_MAPPING_CONTEXT_BEAN_NAME = "jpaMapppingContext";
 
 	/* 
 	 * (non-Javadoc)

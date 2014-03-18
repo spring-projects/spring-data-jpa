@@ -18,9 +18,11 @@ package org.springframework.data.jpa.domain.support;
 import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 
+import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.data.auditing.AuditingHandler;
 import org.springframework.data.domain.Auditable;
+import org.springframework.util.Assert;
 
 /**
  * JPA entity listener to capture auditing information on persiting and updating entities. To get this one flying be
@@ -56,14 +58,16 @@ import org.springframework.data.domain.Auditable;
 @Configurable
 public class AuditingEntityListener {
 
-	private AuditingHandler handler;
+	private ObjectFactory<AuditingHandler> handler;
 
 	/**
 	 * Configures the {@link AuditingHandler} to be used to set the current auditor on the domain types touched.
 	 * 
-	 * @param auditingHandler the handler to set
+	 * @param auditingHandler must not be {@literal null}.
 	 */
-	public void setAuditingHandler(AuditingHandler auditingHandler) {
+	public void setAuditingHandler(ObjectFactory<AuditingHandler> auditingHandler) {
+
+		Assert.notNull(auditingHandler, "AuditingHandler must not be null!");
 		this.handler = auditingHandler;
 	}
 
@@ -76,7 +80,7 @@ public class AuditingEntityListener {
 	@PrePersist
 	public void touchForCreate(Object target) {
 		if (handler != null) {
-			handler.markCreated(target);
+			handler.getObject().markCreated(target);
 		}
 	}
 
@@ -89,7 +93,7 @@ public class AuditingEntityListener {
 	@PreUpdate
 	public void touchForUpdate(Object target) {
 		if (handler != null) {
-			handler.markModified(target);
+			handler.getObject().markModified(target);
 		}
 	}
 }

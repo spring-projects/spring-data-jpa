@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2013 the original author or authors.
+ * Copyright 2008-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,13 +39,11 @@ public class AuditingBeanDefinitionParserTests {
 
 	@Test
 	public void settingDatesIsConfigured() {
-
 		assertSetDatesIsSetTo("auditing/auditing-namespace-context.xml", "true");
 	}
 
 	@Test
 	public void notSettingDatesIsConfigured() {
-
 		assertSetDatesIsSetTo("auditing/auditing-namespace-context2.xml", "false");
 	}
 
@@ -55,15 +53,14 @@ public class AuditingBeanDefinitionParserTests {
 	@Test
 	public void wiresDateTimeProviderIfConfigured() {
 
-		String location = "auditing/auditing-namespace-context3.xml";
-		BeanDefinition definition = getBeanDefinition(location);
+		BeanDefinition definition = getBeanDefinition("auditing/auditing-namespace-context3.xml");
 		PropertyValue value = definition.getPropertyValues().getPropertyValue("dateTimeProvider");
 
 		assertThat(value, is(notNullValue()));
 		assertThat(value.getValue(), is(instanceOf(RuntimeBeanReference.class)));
 		assertThat(((RuntimeBeanReference) value.getValue()).getBeanName(), is("dateTimeProvider"));
 
-		BeanFactory factory = loadFactoryFrom(location);
+		BeanFactory factory = loadFactoryFrom("auditing/auditing-namespace-context3.xml");
 		Object bean = factory.getBean(AuditingBeanDefinitionParser.AUDITING_ENTITY_LISTENER_CLASS_NAME);
 		assertThat(bean, is(notNullValue()));
 	}
@@ -90,9 +87,14 @@ public class AuditingBeanDefinitionParserTests {
 	private BeanDefinition getBeanDefinition(String configFile) {
 
 		DefaultListableBeanFactory factory = loadFactoryFrom(configFile);
+
 		BeanDefinition definition = factory
 				.getBeanDefinition(AuditingBeanDefinitionParser.AUDITING_ENTITY_LISTENER_CLASS_NAME);
-		return (BeanDefinition) definition.getPropertyValues().getPropertyValue("auditingHandler").getValue();
+		BeanDefinition handlerDefinition = (BeanDefinition) definition.getPropertyValues()
+				.getPropertyValue("auditingHandler").getValue();
+
+		String beanName = handlerDefinition.getPropertyValues().getPropertyValue("targetBeanName").getValue().toString();
+		return factory.getBeanDefinition(beanName);
 	}
 
 	private DefaultListableBeanFactory loadFactoryFrom(String configFile) {

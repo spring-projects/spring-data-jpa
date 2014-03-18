@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2013 the original author or authors.
+ * Copyright 2008-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  */
 package org.springframework.data.jpa.domain.support;
 
-import static org.springframework.beans.factory.BeanFactoryUtils.*;
 import static org.springframework.data.jpa.util.BeanDefinitionUtils.*;
 import static org.springframework.util.StringUtils.*;
 
@@ -24,7 +23,6 @@ import org.springframework.beans.factory.aspectj.AnnotationBeanConfigurerAspect;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.data.domain.AuditorAware;
 
 /**
  * {@link BeanFactoryPostProcessor} that ensures that the {@link AnnotationBeanConfigurerAspect} aspect is up and
@@ -56,11 +54,6 @@ public class AuditingBeanFactoryPostProcessor implements BeanFactoryPostProcesso
 		for (String beanName : getEntityManagerFactoryBeanNames(beanFactory)) {
 			BeanDefinition definition = getBeanDefinition(beanName, beanFactory);
 			definition.setDependsOn(addStringToArray(definition.getDependsOn(), BEAN_CONFIGURER_ASPECT_BEAN_NAME));
-		}
-
-		for (String beanName : beanNamesForTypeIncludingAncestors(beanFactory, AuditorAware.class, true, false)) {
-			BeanDefinition definition = getBeanDefinition(beanName, beanFactory);
-			definition.setLazyInit(true);
 		}
 	}
 }

@@ -5,6 +5,8 @@
 		<class>org.springframework.data.jpa.domain.AbstractPersistable</class>
 		<class>org.springframework.data.jpa.domain.AbstractAuditable</class>
 		<class>org.springframework.data.jpa.domain.sample.Account</class>
+		<class>org.springframework.data.jpa.domain.sample.AbstractAnnotatedAuditable</class>
+		<class>org.springframework.data.jpa.domain.sample.AnnotatedAuditableUser</class>
 		<class>org.springframework.data.jpa.domain.sample.AuditableUser</class>
         <class>org.springframework.data.jpa.domain.sample.AuditableRole</class>
 		<class>org.springframework.data.jpa.domain.sample.Parent</class>
