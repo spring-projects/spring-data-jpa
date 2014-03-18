@@ -24,7 +24,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.data.config.AuditingHandlerBeanDefinitionParser;
+import org.springframework.data.auditing.config.AuditingHandlerBeanDefinitionParser;
 import org.springframework.util.ClassUtils;
 import org.w3c.dom.Element;
 
