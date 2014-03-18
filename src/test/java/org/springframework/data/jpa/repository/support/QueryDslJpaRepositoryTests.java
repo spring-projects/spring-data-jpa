@@ -293,4 +293,20 @@ public class QueryDslJpaRepositoryTests {
 		assertThat(page.getContent(), hasSize(3));
 		assertThat(page.getContent().get(0), is(dave));
 	}
+
+	/**
+	 * @DATAJPA-500
+	 */
+	@Test
+	public void sortByNestedEmbeddedAttribite() {
+
+		carter.setAddress(new Address("U", "Z", "Y", "41"));
+		dave.setAddress(new Address("U", "A", "Y", "41"));
+		oliver.setAddress(new Address("G", "D", "X", "42"));
+
+		List<User> users = repository.findAll(QUser.user.id.goe(0), QUser.user.address.streetName.asc());
+
+		assertThat(users, hasSize(3));
+		assertThat(users, hasItems(dave, oliver, carter));
+	}
 }
