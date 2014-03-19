@@ -43,7 +43,7 @@
 		<profile>
 			<id>hibernate-42</id>
 			<properties>
-				<hibernate>4.2.10.Final</hibernate>
+				<hibernate>4.2.11.Final</hibernate>
 			</properties>
 		</profile>
 		<profile>
