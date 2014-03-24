@@ -275,4 +275,30 @@ public class JpaQueryMethod extends QueryMethod {
 	public JpaParameters getParameters() {
 		return (JpaParameters) super.getParameters();
 	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.query.QueryMethod#isCollectionQuery()
+	 */
+	@Override
+	public boolean isCollectionQuery() {
+		return super.isCollectionQuery() && !isSimpleFieldPropertyArrayType(method.getReturnType());
+	}
+
+	/**
+	 * @see JPA 2.0 Specification 2.2 Persistent Fields and Properties Page 23 - Top paragraph.
+	 * @param returnType
+	 * @return
+	 */
+	private boolean isSimpleFieldPropertyArrayType(Class<?> returnType) {
+
+		if (returnType == byte[].class //
+				|| returnType == Byte[].class //
+				|| returnType == char[].class //
+				|| returnType == Character[].class) {
+			return true;
+		}
+
+		return false;
+	}
 }

@@ -87,4 +87,12 @@ public class OpenJpaNamespaceUserRepositoryTests extends NamespaceUserRepository
 		List<User> resultList = query.getResultList();
 		assertThat(resultList.size(), is(2));
 	}
+	/**
+	 * Test case for https://issues.apache.org/jira/browse/OPENJPA-2484
+	 */
+	// @Override
+	// public void findBinaryDataByIdJpaQl() throws Exception {
+	// // TODO Auto-generated method stub
+	// super.findBinaryDataByIdJpaQl();
+	// }
 }
