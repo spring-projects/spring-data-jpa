@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2013 the original author or authors.
+ * Copyright 2008-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import javax.persistence.LockModeType;
 import javax.persistence.QueryHint;
 
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -141,6 +142,18 @@ public class JpaQueryMethod extends QueryMethod {
 
 		Lock annotation = findAnnotation(method, Lock.class);
 		return (LockModeType) AnnotationUtils.getValue(annotation);
+	}
+
+	/**
+	 * Returns the {@link EntityGraph} to be used for the query.
+	 * 
+	 * @return
+	 * @since 1.6
+	 */
+	JpaEntityGraph getEntityGraph() {
+
+		EntityGraph annotation = findAnnotation(method, EntityGraph.class);
+		return annotation == null ? null : new JpaEntityGraph(annotation.value(), annotation.type());
 	}
 
 	/**
