@@ -37,6 +37,9 @@ import org.springframework.util.Assert;
  */
 public abstract class AbstractJpaQuery implements RepositoryQuery {
 
+	private static final String HINT_JPA_2_1_JAVAX_PERSISTENCE_FETCHGRAPH = "javax.persistence.fetchgraph";
+	private static final String HINT_JPA_2_1_JAVAX_PERSISTENCE_LOADGRAPH = "javax.persistence.loadgraph";
+
 	private final JpaQueryMethod method;
 	private final EntityManager em;
 
@@ -121,10 +124,32 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 	private <T extends Query> T applyHints(T query, JpaQueryMethod method) {
 
 		for (QueryHint hint : method.getHints()) {
-			query.setHint(hint.name(), hint.value());
+			applyQueryHint(query, hint);
 		}
 
 		return query;
+	}
+
+	/**
+	 * Protected to be able to customize in sub-classes.
+	 * 
+	 * @param query must not be {@literal null}
+	 * @param hint must not be {@literal null}
+	 */
+	protected <T extends Query> void applyQueryHint(T query, QueryHint hint) {
+
+		Assert.notNull(query, "Query must not be null!");
+		Assert.notNull(hint, "QueryHint must not be null!");
+
+		if (hint.name().equals(HINT_JPA_2_1_JAVAX_PERSISTENCE_FETCHGRAPH)
+				|| hint.name().equals(HINT_JPA_2_1_JAVAX_PERSISTENCE_LOADGRAPH)) {
+
+			if (Jpa21QueryCustomizer.INSTANCE.addFetchGraphHintIfRunningInJpa21(em, query, hint)) {
+				return;
+			}
+		}
+
+		query.setHint(hint.name(), hint.value());
 	}
 
 	/**

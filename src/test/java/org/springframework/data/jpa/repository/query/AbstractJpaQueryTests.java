@@ -49,8 +49,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration("classpath:infrastructure.xml")
 public class AbstractJpaQueryTests {
 
-	@PersistenceContext
-	EntityManager em;
+	@PersistenceContext EntityManager em;
 
 	Query query;
 	TypedQuery<Long> countQuery;
@@ -122,6 +121,26 @@ public class AbstractJpaQueryTests {
 		verify(result).setLockMode(LockModeType.PESSIMISTIC_WRITE);
 	}
 
+	/**
+	 * @see DATAJPA-466
+	 */
+	@Test
+	public void addFetchGraphHintWhenJPA21IsAvailable() throws Exception {
+
+		// TODO mock entity manager to return dummy fetchGraph object when asked for one
+
+		Method getById = SampleRepository.class.getMethod("getById", Integer.class);
+		QueryExtractor provider = PersistenceProvider.fromEntityManager(em);
+		JpaQueryMethod queryMethod = new JpaQueryMethod(getById, new DefaultRepositoryMetadata(SampleRepository.class),
+				provider);
+
+		AbstractJpaQuery jpaQuery = new DummyJpaQuery(queryMethod, em);
+		Query result = jpaQuery.createQuery(new Object[] { 1 });
+
+		verify(result).setHint("javax.persistence.fetchgraph", "User.propertyPath" // TODO check for dummy fetchGraph
+		);
+	}
+
 	interface SampleRepository extends Repository<User, Integer> {
 
 		@QueryHints({ @QueryHint(name = "foo", value = "bar") })
@@ -133,6 +152,12 @@ public class AbstractJpaQueryTests {
 		@Lock(LockModeType.PESSIMISTIC_WRITE)
 		@org.springframework.data.jpa.repository.Query("select u from User u where u.id = ?1")
 		List<User> findOneLocked(Integer primaryKey);
+
+		/**
+		 * @see DATAJPA-466
+		 */
+		@QueryHints(@QueryHint(name = "javax.persistence.fetchgraph", value = "User.propertyPath"))
+		User getById(Integer id);
 	}
 
 	class DummyJpaQuery extends AbstractJpaQuery {

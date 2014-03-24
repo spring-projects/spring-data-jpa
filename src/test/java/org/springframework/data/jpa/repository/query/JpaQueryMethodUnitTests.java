@@ -57,14 +57,12 @@ public class JpaQueryMethodUnitTests {
 	static final Class<?> DOMAIN_CLASS = User.class;
 	static final String METHOD_NAME = "findByFirstname";
 
-	@Mock
-	QueryExtractor extractor;
-	@Mock
-	RepositoryMetadata metadata;
+	@Mock QueryExtractor extractor;
+	@Mock RepositoryMetadata metadata;
 
 	Method repositoryMethod, invalidReturnType, pageableAndSort, pageableTwice, sortableTwice, modifyingMethod,
 			nativeQuery, namedQuery, findWithLockMethod, invalidNamedParameter, findsProjections, findsProjection,
-			withMetaAnnotation;
+			withMetaAnnotation, queryMethodWithCustomEntityFetchGraph;
 
 	/**
 	 * @throws Exception
@@ -91,6 +89,9 @@ public class JpaQueryMethodUnitTests {
 		findsProjection = ValidRepository.class.getMethod("findsProjection");
 
 		withMetaAnnotation = ValidRepository.class.getMethod("withMetaAnnotation");
+
+		queryMethodWithCustomEntityFetchGraph = ValidRepository.class.getMethod("queryMethodWithCustomEntityFetchGraph",
+				Integer.class);
 	}
 
 	@Test
@@ -314,6 +315,21 @@ public class JpaQueryMethodUnitTests {
 	}
 
 	/**
+	 * @see DATAJPA-466
+	 */
+	@Test
+	public void shouldStoreJpa21FetchGraphInformationAsHint() {
+
+		JpaQueryMethod method = new JpaQueryMethod(queryMethodWithCustomEntityFetchGraph, metadata, extractor);
+
+		assertThat(method.getHints(), hasSize(2));
+		assertThat(method.getHints().get(0).name(), is("javax.persistence.fetchgraph"));
+		assertThat(method.getHints().get(0).value(), is("User.propertyPath"));
+		assertThat(method.getHints().get(1).name(), is("javax.persistence.loadgraph"));
+		assertThat(method.getHints().get(1).value(), is("User.propertyLoadPath"));
+	}
+
+	/**
 	 * Interface to define invalid repository methods for testing.
 	 * 
 	 * @author Oliver Gierke
@@ -367,6 +383,13 @@ public class JpaQueryMethodUnitTests {
 
 		@CustomAnnotation
 		void withMetaAnnotation();
+
+		/**
+		 * @see DATAJPA-466
+		 */
+		@QueryHints({ @QueryHint(name = "javax.persistence.fetchgraph", value = "User.propertyPath"),
+				@QueryHint(name = "javax.persistence.loadgraph", value = "User.propertyLoadPath") })
+		User queryMethodWithCustomEntityFetchGraph(Integer id);
 	}
 
 	@Lock(LockModeType.OPTIMISTIC_FORCE_INCREMENT)
