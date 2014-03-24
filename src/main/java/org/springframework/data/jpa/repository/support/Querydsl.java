@@ -15,7 +15,6 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -36,7 +35,6 @@ import com.mysema.query.types.EntityPath;
 import com.mysema.query.types.Expression;
 import com.mysema.query.types.OrderSpecifier;
 import com.mysema.query.types.OrderSpecifier.NullHandling;
-import com.mysema.query.types.Path;
 import com.mysema.query.types.path.PathBuilder;
 
 /**
@@ -144,55 +142,9 @@ public class Querydsl {
 	 */
 
 	private JPQLQuery addOrderByFrom(QSort qsort, JPQLQuery query) {
-		return query.orderBy(adjustOrderSpecifierIfNecessary(qsort.getOrderSpecifiers(), query));
-	}
 
-	/**
-	 * Rewrites the given {@link OrderSpecifier} if necessary, e.g. generates proper aliases and left-joins to be created
-	 * if we detect ordering by an nested attribute.
-	 * 
-	 * @param originalOrderSpecifiers must not be {@literal null}.
-	 * @param query must not be {@literal null}.
-	 * @return
-	 */
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private OrderSpecifier<?>[] adjustOrderSpecifierIfNecessary(List<OrderSpecifier<?>> originalOrderSpecifiers,
-			JPQLQuery query) {
-
-		Assert.notNull(originalOrderSpecifiers, "Original order specifiers must not be null!");
-		Assert.notNull(query, "Query must not be null!");
-
-		boolean orderModificationNecessary = false;
-		List<OrderSpecifier<?>> modifiedOrderSpecifiers = new ArrayList<OrderSpecifier<?>>();
-
-		for (OrderSpecifier<?> order : originalOrderSpecifiers) {
-
-			Path targetPath = ((Path<?>) order.getTarget()).getMetadata().getParent();
-
-			boolean targetPathRootIsEntityRoot = targetPath.getRoot().equals(builder.getRoot());
-			boolean targetPathEqualsRootEnityPath = targetPath.toString().equals(builder.toString());
-			boolean targetPathIsEntityPath = targetPath instanceof EntityPath;
-
-			if (!targetPathRootIsEntityRoot) {
-
-				query.leftJoin((EntityPath) builder.get((String) targetPath.getMetadata().getElement()), targetPath);
-			} else if (targetPathRootIsEntityRoot && !targetPathEqualsRootEnityPath && targetPathIsEntityPath) {
-
-				PathBuilder joinPathBuilder = new PathBuilder(targetPath.getType(), targetPath.getMetadata().getElement()
-						.toString());
-				query.leftJoin((EntityPath) targetPath, joinPathBuilder);
-				OrderSpecifier<?> modifiedOrder = new OrderSpecifier(order.getOrder(), joinPathBuilder.get(((Path) order
-						.getTarget()).getMetadata().getElement().toString()), order.getNullHandling());
-				modifiedOrderSpecifiers.add(modifiedOrder);
-				orderModificationNecessary = true;
-				continue;
-			}
-
-			modifiedOrderSpecifiers.add(order);
-		}
-
-		return orderModificationNecessary ? modifiedOrderSpecifiers.toArray(new OrderSpecifier<?>[modifiedOrderSpecifiers
-				.size()]) : originalOrderSpecifiers.toArray(new OrderSpecifier<?>[originalOrderSpecifiers.size()]);
+		List<OrderSpecifier<?>> orderSpecifiers = qsort.getOrderSpecifiers();
+		return query.orderBy(orderSpecifiers.toArray(new OrderSpecifier[orderSpecifiers.size()]));
 	}
 
 	/**
