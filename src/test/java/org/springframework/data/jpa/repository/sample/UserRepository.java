@@ -327,4 +327,11 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	 * @see DATAJPA-460
 	 */
 	List<User> deleteByLastname(String lastname);
+
+	/**
+	 * @see DATAJPA-505
+	 * @see https://issues.apache.org/jira/browse/OPENJPA-2484
+	 */
+	// @Query(value = "select u.binaryData from User u where u.id = :id")
+	// byte[] findBinaryDataByIdJpaQl(@Param("id") Integer id);
 }
