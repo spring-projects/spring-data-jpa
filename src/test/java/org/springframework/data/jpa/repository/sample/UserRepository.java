@@ -311,4 +311,11 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	 * @see DATAJPA-496
 	 */
 	List<User> findByAttributesIn(Set<String> attributes);
+	
+	/**
+	 * @see DATAJPA-505
+	 * @see https://issues.apache.org/jira/browse/OPENJPA-2484
+	 */
+	// @Query(value = "select u.binaryData from User u where u.id = :id")
+	// byte[] findBinaryDataByIdJpaQl(@Param("id") Integer id);
 }

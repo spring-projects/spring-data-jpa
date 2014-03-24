@@ -20,7 +20,10 @@ import static org.springframework.core.annotation.AnnotationUtils.*;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.persistence.LockModeType;
 import javax.persistence.QueryHint;
@@ -46,6 +49,20 @@ import org.springframework.util.StringUtils;
  * @author Thomas Darimont
  */
 public class JpaQueryMethod extends QueryMethod {
+
+	// @see JPA 2.0 Specification 2.2 Persistent Fields and Properties Page 23 - Top paragraph.
+	private static final Set<Class<?>> NATIVE_ARRAY_TYPES;
+
+	static {
+
+		Set<Class<?>> types = new HashSet<Class<?>>(4);
+		types.add(byte[].class);
+		types.add(Byte[].class);
+		types.add(char[].class);
+		types.add(Character[].class);
+
+		NATIVE_ARRAY_TYPES = Collections.unmodifiableSet(types);
+	}
 
 	private final QueryExtractor extractor;
 	private final Method method;
@@ -274,5 +291,14 @@ public class JpaQueryMethod extends QueryMethod {
 	@Override
 	public JpaParameters getParameters() {
 		return (JpaParameters) super.getParameters();
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.query.QueryMethod#isCollectionQuery()
+	 */
+	@Override
+	public boolean isCollectionQuery() {
+		return super.isCollectionQuery() && !NATIVE_ARRAY_TYPES.contains(method.getReturnType());
 	}
 }
