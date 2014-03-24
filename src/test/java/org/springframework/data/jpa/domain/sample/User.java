@@ -30,6 +30,9 @@ import javax.persistence.Id;
 import javax.persistence.Lob;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
+import javax.persistence.NamedAttributeNode;
+import javax.persistence.NamedEntityGraph;
+import javax.persistence.NamedEntityGraphs;
 import javax.persistence.NamedQuery;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -42,6 +45,10 @@ import javax.persistence.TemporalType;
  * @author Thomas Darimont
  */
 @Entity
+@NamedEntityGraphs({
+		@NamedEntityGraph(name = "User.overview", attributeNodes = { @NamedAttributeNode("roles") }),
+		@NamedEntityGraph(name = "User.detail", attributeNodes = { @NamedAttributeNode("roles"),
+				@NamedAttributeNode("manager"), @NamedAttributeNode("colleagues") }) })
 @NamedQuery(name = "User.findByEmailAddress", query = "SELECT u FROM User u WHERE u.emailAddress = ?1")
 public class User {
 

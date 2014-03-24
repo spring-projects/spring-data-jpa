@@ -28,10 +28,13 @@ import javax.persistence.Query;
 import javax.persistence.QueryHint;
 import javax.persistence.TypedQuery;
 
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.data.jpa.domain.sample.User;
+import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.EntityGraph.EntityGraphType;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.jpa.repository.support.PersistenceProvider;
@@ -39,6 +42,8 @@ import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.core.support.DefaultRepositoryMetadata;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.ReflectionUtils;
 
 /**
  * Integration test for {@link AbstractJpaQuery}.
@@ -49,8 +54,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration("classpath:infrastructure.xml")
 public class AbstractJpaQueryTests {
 
-	@PersistenceContext
-	EntityManager em;
+	@PersistenceContext EntityManager em;
 
 	Query query;
 	TypedQuery<Long> countQuery;
@@ -122,6 +126,55 @@ public class AbstractJpaQueryTests {
 		verify(result).setLockMode(LockModeType.PESSIMISTIC_WRITE);
 	}
 
+	/**
+	 * @see DATAJPA-466
+	 */
+	@Test
+	@Transactional
+	public void shouldAddEntityGraphHintForFetch() throws Exception {
+
+		Assume.assumeTrue(currentEntityManagerIsAJpa21EntityManager());
+
+		Method findAllMethod = SampleRepository.class.getMethod("findAll");
+		QueryExtractor provider = PersistenceProvider.fromEntityManager(em);
+		JpaQueryMethod queryMethod = new JpaQueryMethod(findAllMethod,
+				new DefaultRepositoryMetadata(SampleRepository.class), provider);
+
+		javax.persistence.EntityGraph<?> entityGraph = em.getEntityGraph("User.overview");
+
+		AbstractJpaQuery jpaQuery = new DummyJpaQuery(queryMethod, em);
+		Query result = jpaQuery.createQuery(new Object[0]);
+
+		verify(result).setHint("javax.persistence.fetchgraph", entityGraph);
+	}
+
+	/**
+	 * @see DATAJPA-466
+	 */
+	@Test
+	@Transactional
+	public void shouldAddEntityGraphHintForLoad() throws Exception {
+
+		Assume.assumeTrue(currentEntityManagerIsAJpa21EntityManager());
+
+		Method getByIdMethod = SampleRepository.class.getMethod("getById", Integer.class);
+		QueryExtractor provider = PersistenceProvider.fromEntityManager(em);
+		JpaQueryMethod queryMethod = new JpaQueryMethod(getByIdMethod,
+				new DefaultRepositoryMetadata(SampleRepository.class), provider);
+
+		javax.persistence.EntityGraph<?> entityGraph = em.getEntityGraph("User.detail");
+
+		AbstractJpaQuery jpaQuery = new DummyJpaQuery(queryMethod, em);
+		Query result = jpaQuery.createQuery(new Object[] { 1 });
+
+		verify(result).setHint("javax.persistence.loadgraph", entityGraph);
+	}
+
+	private boolean currentEntityManagerIsAJpa21EntityManager() {
+		return ReflectionUtils.findMethod(((org.springframework.orm.jpa.EntityManagerProxy) em).getTargetEntityManager()
+				.getClass(), "getEntityGraph", String.class) != null;
+	}
+
 	interface SampleRepository extends Repository<User, Integer> {
 
 		@QueryHints({ @QueryHint(name = "foo", value = "bar") })
@@ -133,6 +186,18 @@ public class AbstractJpaQueryTests {
 		@Lock(LockModeType.PESSIMISTIC_WRITE)
 		@org.springframework.data.jpa.repository.Query("select u from User u where u.id = ?1")
 		List<User> findOneLocked(Integer primaryKey);
+
+		/**
+		 * @see DATAJPA-466
+		 */
+		@EntityGraph(value = "User.detail", type = EntityGraphType.LOAD)
+		User getById(Integer id);
+
+		/**
+		 * @see DATAJPA-466
+		 */
+		@EntityGraph("User.overview")
+		List<User> findAll();
 	}
 
 	class DummyJpaQuery extends AbstractJpaQuery {
