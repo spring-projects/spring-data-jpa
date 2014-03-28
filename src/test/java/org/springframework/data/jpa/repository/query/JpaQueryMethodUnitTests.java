@@ -35,7 +35,9 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.JpaEntityGraph.EntityGraphType;
 import org.springframework.data.jpa.domain.sample.User;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -322,11 +324,9 @@ public class JpaQueryMethodUnitTests {
 
 		JpaQueryMethod method = new JpaQueryMethod(queryMethodWithCustomEntityFetchGraph, metadata, extractor);
 
-		assertThat(method.getHints(), hasSize(2));
-		assertThat(method.getHints().get(0).name(), is("javax.persistence.fetchgraph"));
-		assertThat(method.getHints().get(0).value(), is("User.propertyPath"));
-		assertThat(method.getHints().get(1).name(), is("javax.persistence.loadgraph"));
-		assertThat(method.getHints().get(1).value(), is("User.propertyLoadPath"));
+		assertThat(method.getEntityGraph(), is(notNullValue()));
+		assertThat(method.getEntityGraph().getName(), is("User.propertyLoadPath"));
+		assertThat(method.getEntityGraph().getType(), is(EntityGraphType.LOAD));
 	}
 
 	/**
@@ -387,8 +387,7 @@ public class JpaQueryMethodUnitTests {
 		/**
 		 * @see DATAJPA-466
 		 */
-		@QueryHints({ @QueryHint(name = "javax.persistence.fetchgraph", value = "User.propertyPath"),
-				@QueryHint(name = "javax.persistence.loadgraph", value = "User.propertyLoadPath") })
+		@EntityGraph(value = "User.propertyLoadPath", type = EntityGraphType.LOAD)
 		User queryMethodWithCustomEntityFetchGraph(Integer id);
 	}
 

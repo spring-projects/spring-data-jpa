@@ -22,7 +22,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import org.springframework.data.annotation.QueryAnnotation;
-import org.springframework.data.jpa.domain.JpaEntityGraph.FetchGraphType;
+import org.springframework.data.jpa.domain.JpaEntityGraph.EntityGraphType;
 
 /**
  * Annotation to configure the JPA 2.1 {@link javax.persistence.EntityGraph}s that should be used on repository methods.
@@ -48,5 +48,5 @@ public @interface EntityGraph {
 	 * 
 	 * @return
 	 */
-	FetchGraphType type() default FetchGraphType.FETCH;
+	EntityGraphType type() default EntityGraphType.FETCH;
 }

@@ -28,7 +28,7 @@ import org.springframework.util.Assert;
 public class JpaEntityGraph {
 
 	private final String name;
-	private final FetchGraphType type;
+	private final EntityGraphType type;
 
 	/**
 	 * Creates an {@link JpaEntityGraph}.
@@ -36,7 +36,7 @@ public class JpaEntityGraph {
 	 * @param name must not be {@null}.
 	 * @param type must not be {@null}.
 	 */
-	public JpaEntityGraph(String name, FetchGraphType type) {
+	public JpaEntityGraph(String name, EntityGraphType type) {
 
 		Assert.notNull(name, "Name must not be null!");
 		Assert.notNull(type, "FetchGraphType must not be null!");
@@ -56,11 +56,11 @@ public class JpaEntityGraph {
 	}
 
 	/**
-	 * Returns the {@link FetchGraphType} of the {@link EntityGraph} to use.
+	 * Returns the {@link EntityGraphType} of the {@link EntityGraph} to use.
 	 * 
 	 * @return
 	 */
-	public FetchGraphType getType() {
+	public EntityGraphType getType() {
 		return type;
 	}
 
@@ -79,7 +79,7 @@ public class JpaEntityGraph {
 	 * @author Thomas Darimont
 	 * @since 1.6
 	 */
-	public enum FetchGraphType {
+	public enum EntityGraphType {
 
 		/**
 		 * Fetch Graph Semantics
@@ -107,7 +107,7 @@ public class JpaEntityGraph {
 
 		private final String key;
 
-		private FetchGraphType(String value) {
+		private EntityGraphType(String value) {
 			this.key = value;
 		}
 
