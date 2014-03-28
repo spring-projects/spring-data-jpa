@@ -32,6 +32,7 @@ import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.data.jpa.domain.JpaEntityGraph.EntityGraphType;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Lock;
@@ -130,20 +131,43 @@ public class AbstractJpaQueryTests {
 	 */
 	@Test
 	@Transactional
-	public void addFetchGraphHintWhenJPA21IsAvailable() throws Exception {
+	public void shouldAddEntityGraphHintForFetch() throws Exception {
 
 		Assume.assumeTrue(currentEntityManagerIsAJpa21EntityManager());
 
-		Method getById = SampleRepository.class.getMethod("getById", Integer.class);
+		Method findAllMethod = SampleRepository.class.getMethod("findAll");
 		QueryExtractor provider = PersistenceProvider.fromEntityManager(em);
-		JpaQueryMethod queryMethod = new JpaQueryMethod(getById, new DefaultRepositoryMetadata(SampleRepository.class),
-				provider);
+		JpaQueryMethod queryMethod = new JpaQueryMethod(findAllMethod,
+				new DefaultRepositoryMetadata(SampleRepository.class), provider);
+
+		javax.persistence.EntityGraph<?> entityGraph = em.getEntityGraph("User.overview");
+
+		AbstractJpaQuery jpaQuery = new DummyJpaQuery(queryMethod, em);
+		Query result = jpaQuery.createQuery(new Object[0]);
+
+		verify(result).setHint("javax.persistence.fetchgraph", entityGraph);
+	}
+
+	/**
+	 * @see DATAJPA-466
+	 */
+	@Test
+	@Transactional
+	public void shouldAddEntityGraphHintForLoad() throws Exception {
+
+		Assume.assumeTrue(currentEntityManagerIsAJpa21EntityManager());
+
+		Method getByIdMethod = SampleRepository.class.getMethod("getById", Integer.class);
+		QueryExtractor provider = PersistenceProvider.fromEntityManager(em);
+		JpaQueryMethod queryMethod = new JpaQueryMethod(getByIdMethod,
+				new DefaultRepositoryMetadata(SampleRepository.class), provider);
+
+		javax.persistence.EntityGraph<?> entityGraph = em.getEntityGraph("User.detail");
 
 		AbstractJpaQuery jpaQuery = new DummyJpaQuery(queryMethod, em);
 		Query result = jpaQuery.createQuery(new Object[] { 1 });
 
-		verify(result).setHint("javax.persistence.fetchgraph", "User.propertyPath" // TODO check for dummy fetchGraph
-		);
+		verify(result).setHint("javax.persistence.loadgraph", entityGraph);
 	}
 
 	private boolean currentEntityManagerIsAJpa21EntityManager() {
@@ -166,8 +190,14 @@ public class AbstractJpaQueryTests {
 		/**
 		 * @see DATAJPA-466
 		 */
-		@EntityGraph("User.propertyPath")
+		@EntityGraph(value = "User.detail", type = EntityGraphType.LOAD)
 		User getById(Integer id);
+
+		/**
+		 * @see DATAJPA-466
+		 */
+		@EntityGraph("User.overview")
+		List<User> findAll();
 	}
 
 	class DummyJpaQuery extends AbstractJpaQuery {
