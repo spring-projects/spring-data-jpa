@@ -17,10 +17,11 @@ package org.springframework.data.jpa.repository.query;
 
 import java.lang.reflect.Method;
 
+import javax.persistence.EntityGraph;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
-import javax.persistence.QueryHint;
 
+import org.springframework.data.jpa.domain.JpaEntityGraph;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
@@ -29,8 +30,10 @@ import org.springframework.util.ReflectionUtils;
  * Customizes a given JPA query with JPA 2.1 features.
  * 
  * @author Thomas Darimont
+ * @since 1.6
  */
 enum Jpa21QueryCustomizer {
+
 	INSTANCE;
 
 	private static final boolean JPA21_AVAILABLE = ClassUtils.isPresent("javax.persistence.NamedEntityGraph",
@@ -53,26 +56,23 @@ enum Jpa21QueryCustomizer {
 	 * @see JPA 2.1 Specfication 3.7.4 - Use of Entity Graphs in find and query operations P.117
 	 * @param em must not be {@literal null}
 	 * @param query must not be {@literal null}
-	 * @param hint must not be {@literal null}
-	 * @return {@literal true} if fetch-graph hint was added {@literal false} otherwise.
+	 * @param entityGraph must not be {@literal null}
 	 */
-	boolean addFetchGraphHintIfRunningInJpa21(EntityManager em, Query query, QueryHint hint) {
+	public void tryConfigureFetchGraph(EntityManager em, Query query, JpaEntityGraph entityGraph) {
 
 		Assert.notNull(em, "EntityManager must not be null!");
 		Assert.notNull(query, "Query must not be null!");
-		Assert.notNull(hint, "QueryHint must not be null!");
+		Assert.notNull(entityGraph, "EntityGraph must not be null!");
+		Assert.isTrue(JPA21_AVAILABLE, "The EntityGraph-Feature requires at least a JPA 2.1 persistence provider!");
+		Assert.isTrue(GET_ENTITY_GRAPH_METHOD != null,
+				"It seems that you have the JPA 2.1 API but a JPA 2.0 implementation on the classpath!");
 
-		if (!JPA21_AVAILABLE || GET_ENTITY_GRAPH_METHOD == null) {
-			return false;
+		EntityGraph<?> graph = em.getEntityGraph(entityGraph.getName());
+
+		if (graph == null) {
+			return;
 		}
 
-		Object entityGraph = ReflectionUtils.invokeMethod(GET_ENTITY_GRAPH_METHOD, em, hint.value());
-
-		if (entityGraph != null) {
-			query.setHint(hint.name(), entityGraph);
-			return true;
-		}
-
-		return false;
+		query.setHint(entityGraph.getType().getKey(), graph);
 	}
 }

@@ -28,10 +28,12 @@ import javax.persistence.Query;
 import javax.persistence.QueryHint;
 import javax.persistence.TypedQuery;
 
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.data.jpa.domain.sample.User;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.jpa.repository.support.PersistenceProvider;
@@ -39,6 +41,8 @@ import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.core.support.DefaultRepositoryMetadata;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.ReflectionUtils;
 
 /**
  * Integration test for {@link AbstractJpaQuery}.
@@ -125,9 +129,10 @@ public class AbstractJpaQueryTests {
 	 * @see DATAJPA-466
 	 */
 	@Test
+	@Transactional
 	public void addFetchGraphHintWhenJPA21IsAvailable() throws Exception {
 
-		// TODO mock entity manager to return dummy fetchGraph object when asked for one
+		Assume.assumeTrue(currentEntityManagerIsAJpa21EntityManager());
 
 		Method getById = SampleRepository.class.getMethod("getById", Integer.class);
 		QueryExtractor provider = PersistenceProvider.fromEntityManager(em);
@@ -139,6 +144,11 @@ public class AbstractJpaQueryTests {
 
 		verify(result).setHint("javax.persistence.fetchgraph", "User.propertyPath" // TODO check for dummy fetchGraph
 		);
+	}
+
+	private boolean currentEntityManagerIsAJpa21EntityManager() {
+		return ReflectionUtils.findMethod(((org.springframework.orm.jpa.EntityManagerProxy) em).getTargetEntityManager()
+				.getClass(), "getEntityGraph", String.class) != null;
 	}
 
 	interface SampleRepository extends Repository<User, Integer> {
@@ -156,7 +166,7 @@ public class AbstractJpaQueryTests {
 		/**
 		 * @see DATAJPA-466
 		 */
-		@QueryHints(@QueryHint(name = "javax.persistence.fetchgraph", value = "User.propertyPath"))
+		@EntityGraph("User.propertyPath")
 		User getById(Integer id);
 	}
 

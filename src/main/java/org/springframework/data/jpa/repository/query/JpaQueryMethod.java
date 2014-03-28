@@ -26,6 +26,8 @@ import javax.persistence.LockModeType;
 import javax.persistence.QueryHint;
 
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.data.jpa.domain.JpaEntityGraph;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -141,6 +143,23 @@ public class JpaQueryMethod extends QueryMethod {
 
 		Lock annotation = findAnnotation(method, Lock.class);
 		return (LockModeType) AnnotationUtils.getValue(annotation);
+	}
+
+	/**
+	 * Returns the {@link EntityGraph} to be used for the query.
+	 * 
+	 * @return
+	 * @since 1.6
+	 */
+	JpaEntityGraph getEntityGraph() {
+
+		EntityGraph annotation = findAnnotation(method, EntityGraph.class);
+
+		if (annotation == null) {
+			return null;
+		}
+
+		return new JpaEntityGraph(annotation.value(), annotation.type());
 	}
 
 	/**
