@@ -18,6 +18,8 @@ package org.springframework.data.jpa.repository.query;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 
 import javax.persistence.Entity;
@@ -30,7 +32,11 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
+import javax.persistence.spi.PersistenceProvider;
+import javax.persistence.spi.PersistenceProviderResolver;
+import javax.persistence.spi.PersistenceProviderResolverHolder;
 
+import org.hibernate.ejb.HibernatePersistence;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.data.jpa.domain.sample.Order;
@@ -118,12 +124,22 @@ public class QueryUtilsIntegrationTests {
 	@Test
 	public void traversesPluralAttributeCorrectly() {
 
-		EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("merchant");
-		CriteriaBuilder builder = entityManagerFactory.createEntityManager().getCriteriaBuilder();
-		CriteriaQuery<Merchant> query = builder.createQuery(Merchant.class);
-		Root<Merchant> root = query.from(Merchant.class);
+		PersistenceProviderResolver originalPersistenceProviderResolver = PersistenceProviderResolverHolder
+				.getPersistenceProviderResolver();
 
-		QueryUtils.toExpressionRecursively(root, PropertyPath.from("employeesCredentialsUid", Merchant.class));
+		try {
+
+			PersistenceProviderResolverHolder.setPersistenceProviderResolver(new HibernateOnlyPersistenceProviderResolver());
+			EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("merchant");
+			CriteriaBuilder builder = entityManagerFactory.createEntityManager().getCriteriaBuilder();
+			CriteriaQuery<Merchant> query = builder.createQuery(Merchant.class);
+			Root<Merchant> root = query.from(Merchant.class);
+
+			QueryUtils.toExpressionRecursively(root, PropertyPath.from("employeesCredentialsUid", Merchant.class));
+
+		} finally {
+			PersistenceProviderResolverHolder.setPersistenceProviderResolver(originalPersistenceProviderResolver);
+		}
 	}
 
 	protected void assertNoJoinRequestedForOptionalAssociation(Root<Order> root) {
@@ -149,5 +165,22 @@ public class QueryUtilsIntegrationTests {
 
 		@Id String id;
 		String uid;
+	}
+
+	/**
+	 * A {@link PersistenceProviderResolver} that returns only {@link HibernatePersistence} and ignores other
+	 * {@link PersistenceProvider}s.
+	 * 
+	 * @author Thomas Darimont
+	 */
+	static class HibernateOnlyPersistenceProviderResolver implements PersistenceProviderResolver {
+
+		@Override
+		public List<PersistenceProvider> getPersistenceProviders() {
+			return Arrays.<PersistenceProvider> asList(new HibernatePersistence());
+		}
+
+		@Override
+		public void clearCachedProviders() {}
 	}
 }

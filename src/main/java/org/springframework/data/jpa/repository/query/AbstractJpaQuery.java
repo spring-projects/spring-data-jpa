@@ -21,6 +21,8 @@ import javax.persistence.Query;
 import javax.persistence.QueryHint;
 import javax.persistence.TypedQuery;
 
+import org.springframework.data.jpa.domain.JpaEntityGraph;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.CollectionExecution;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.ModifyingExecution;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.PagedExecution;
@@ -121,10 +123,24 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 	private <T extends Query> T applyHints(T query, JpaQueryMethod method) {
 
 		for (QueryHint hint : method.getHints()) {
-			query.setHint(hint.name(), hint.value());
+			applyQueryHint(query, hint);
 		}
 
 		return query;
+	}
+
+	/**
+	 * Protected to be able to customize in sub-classes.
+	 * 
+	 * @param query must not be {@literal null}
+	 * @param hint must not be {@literal null}
+	 */
+	protected <T extends Query> void applyQueryHint(T query, QueryHint hint) {
+
+		Assert.notNull(query, "Query must not be null!");
+		Assert.notNull(hint, "QueryHint must not be null!");
+
+		query.setHint(hint.name(), hint.value());
 	}
 
 	/**
@@ -145,7 +161,28 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 	}
 
 	protected Query createQuery(Object[] values) {
-		return applyLockMode(applyHints(doCreateQuery(values), method), method);
+		return applyLockMode(applyEntityGraphConfiguration(applyHints(doCreateQuery(values), method), method), method);
+	}
+
+	/**
+	 * Configures the {@link javax.persistence.EntityGraph} to use for the given {@link JpaQueryMethod} if the
+	 * {@link EntityGraph} annotation is present.
+	 * 
+	 * @param query must not be {@literal null}.
+	 * @param method must not be {@literal null}.
+	 * @return
+	 */
+	private Query applyEntityGraphConfiguration(Query query, JpaQueryMethod method) {
+
+		Assert.notNull(query, "Query must not be null!");
+		Assert.notNull(method, "JpaQueryMethod must not be null!");
+
+		JpaEntityGraph entityGraph = method.getEntityGraph();
+		if (entityGraph != null) {
+			Jpa21QueryCustomizer.INSTANCE.tryConfigureFetchGraph(em, query, entityGraph);
+		}
+
+		return query;
 	}
 
 	protected TypedQuery<Long> createCountQuery(Object[] values) {
