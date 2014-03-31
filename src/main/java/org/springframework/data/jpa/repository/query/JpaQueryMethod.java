@@ -48,6 +48,9 @@ import org.springframework.util.StringUtils;
  */
 public class JpaQueryMethod extends QueryMethod {
 
+	private final static List<Class<?>> SIMPLE_FIELD_PROPERTY_ARRAY_TYPES = Arrays.<Class<?>> asList(byte[].class, Byte[].class,
+			char[].class, Character[].class);
+
 	private final QueryExtractor extractor;
 	private final Method method;
 
@@ -304,14 +307,6 @@ public class JpaQueryMethod extends QueryMethod {
 	 * @return
 	 */
 	private boolean isSimpleFieldPropertyArrayType(Class<?> returnType) {
-
-		if (returnType == byte[].class //
-				|| returnType == Byte[].class //
-				|| returnType == char[].class //
-				|| returnType == Character[].class) {
-			return true;
-		}
-
-		return false;
+		return SIMPLE_FIELD_PROPERTY_ARRAY_TYPES.contains(returnType);
 	}
 }
