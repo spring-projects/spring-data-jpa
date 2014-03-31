@@ -1215,6 +1215,7 @@ public class UserRepositoryTests {
 		List<User> result = repository.findByBinaryData(data);
 		assertThat(result, hasSize(1));
 		assertThat(result, hasItem(firstUser));
+		assertThat(result.get(0).getBinaryData(), is(data));
 	}
 
 	/**
@@ -1296,6 +1297,25 @@ public class UserRepositoryTests {
 
 		assertThat(result, hasSize(2));
 		assertThat(result, hasItems(firstUser, secondUser));
+	}
+
+	/**
+	 * @see DATAJPA-505 Doesn't work with OPENJPA - bootstrap fails.
+	 *      <p>
+	 *      Adjust test when https://issues.apache.org/jira/browse/OPENJPA-2484 is fixed.
+	 */
+	@Test
+	@Ignore
+	public void findBinaryDataByIdJpaQl() throws Exception {
+
+		byte[] data = "Woho!!".getBytes("UTF-8");
+		firstUser.setBinaryData(data);
+
+		flushTestUsers();
+
+		byte[] result = null; // repository.findBinaryDataByIdJpaQl(firstUser.getId());
+		assertThat(result.length, is(data.length));
+		assertThat(result, is(data));
 	}
 
 	private Page<User> executeSpecWithSort(Sort sort) {

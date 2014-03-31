@@ -48,6 +48,9 @@ import org.springframework.util.StringUtils;
  */
 public class JpaQueryMethod extends QueryMethod {
 
+	private final static List<Class<?>> SIMPLE_FIELD_PROPERTY_ARRAY_TYPES = Arrays.<Class<?>> asList(byte[].class, Byte[].class,
+			char[].class, Character[].class);
+
 	private final QueryExtractor extractor;
 	private final Method method;
 
@@ -287,5 +290,23 @@ public class JpaQueryMethod extends QueryMethod {
 	@Override
 	public JpaParameters getParameters() {
 		return (JpaParameters) super.getParameters();
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.query.QueryMethod#isCollectionQuery()
+	 */
+	@Override
+	public boolean isCollectionQuery() {
+		return super.isCollectionQuery() && !isSimpleFieldPropertyArrayType(method.getReturnType());
+	}
+
+	/**
+	 * @see JPA 2.0 Specification 2.2 Persistent Fields and Properties Page 23 - Top paragraph.
+	 * @param returnType
+	 * @return
+	 */
+	private boolean isSimpleFieldPropertyArrayType(Class<?> returnType) {
+		return SIMPLE_FIELD_PROPERTY_ARRAY_TYPES.contains(returnType);
 	}
 }
