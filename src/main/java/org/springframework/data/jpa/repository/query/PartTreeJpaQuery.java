@@ -70,7 +70,6 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 	 */
 	@Override
 	public Query doCreateQuery(Object[] values) {
-
 		return query.createQuery(values);
 	}
 
@@ -81,7 +80,6 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 	@Override
 	@SuppressWarnings("unchecked")
 	public TypedQuery<Long> doCreateCountQuery(Object[] values) {
-
 		return (TypedQuery<Long>) countQuery.createQuery(values);
 	}
 
@@ -91,12 +89,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 	 */
 	@Override
 	protected JpaQueryExecution getExecution() {
-
-		if (this.tree.isDelete()) {
-			return new DeleteExecution(em);
-		}
-
-		return super.getExecution();
+		return this.tree.isDelete() ? new DeleteExecution(em) : super.getExecution();
 	}
 
 	/**

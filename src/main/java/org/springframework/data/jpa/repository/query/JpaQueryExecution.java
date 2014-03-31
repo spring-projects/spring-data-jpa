@@ -229,6 +229,7 @@ public abstract class JpaQueryExecution {
 	 * {@link Execution} removing entities matching the query.
 	 * 
 	 * @author Thomas Darimont
+	 * @author Oliver Gierke
 	 * @since 1.6
 	 */
 	static class DeleteExecution extends JpaQueryExecution {
@@ -244,23 +245,16 @@ public abstract class JpaQueryExecution {
 		 * @see org.springframework.data.jpa.repository.query.JpaQueryExecution#doExecute(org.springframework.data.jpa.repository.query.AbstractJpaQuery, java.lang.Object[])
 		 */
 		@Override
-		protected Object doExecute(AbstractJpaQuery query, Object[] values) {
+		protected Object doExecute(AbstractJpaQuery jpaQuery, Object[] values) {
 
-			Query qry = query.createQuery(values);
+			Query query = jpaQuery.createQuery(values);
+			List<?> resultList = query.getResultList();
 
-			List<?> resultList = qry.getResultList();
 			for (Object o : resultList) {
 				em.remove(o);
 			}
 
-			Object result = null;
-			if (query.getQueryMethod().isCollectionQuery()) {
-				result = resultList;
-			} else {
-				result = resultList.size();
-			}
-
-			return result;
+			return jpaQuery.getQueryMethod().isCollectionQuery() ? resultList : resultList.size();
 		}
 	}
 }

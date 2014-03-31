@@ -288,15 +288,4 @@ public class JpaQueryMethod extends QueryMethod {
 	public JpaParameters getParameters() {
 		return (JpaParameters) super.getParameters();
 	}
-
-	/**
-	 * Return {@literal true} if this backing method is a query method with the {@link Query#delete()} attribute set to
-	 * {@literal true} else {@literal false}.
-	 * 
-	 * @return
-	 * @since 1.6
-	 */
-	public boolean isDeleteQuery() {
-		return getAnnotationValue("delete", Boolean.class);
-	}
 }

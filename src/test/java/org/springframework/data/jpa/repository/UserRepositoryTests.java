@@ -1298,7 +1298,6 @@ public class UserRepositoryTests {
 		assertThat(result, hasItems(firstUser, secondUser));
 	}
 
-    
 	/**
 	 * @see DATAJPA-460
 	 */
@@ -1355,42 +1354,6 @@ public class UserRepositoryTests {
 		flushTestUsers();
 
 		assertThat(repository.deleteByLastname("dorfuaeB"), empty());
-	}
-
-	/**
-	 * @see DATAJPA-460
-	 */
-	@Test
-	public void deleteByUsingAnnotatedQueryShouldReturnListOfDeletedElementsWhenRetunTypeIsCollectionLike() {
-
-		flushTestUsers();
-
-		List<User> result = repository.deleteByLastnameUsingAnnotatedQuery(firstUser.getLastname());
-		assertThat(result, hasItem(firstUser));
-		assertThat(result, hasSize(1));
-	}
-
-	/**
-	 * @see DATAJPA-460
-	 */
-	@Test
-	public void deleteByUsingAnnotatedQueryShouldRemoveElementsMatchingDerivedQuery() {
-
-		flushTestUsers();
-
-		repository.removeByLastnameUsingAnnotatedQuery(firstUser.getLastname());
-		assertThat(repository.countByLastname(firstUser.getLastname()), is(0L));
-	}
-
-	/**
-	 * @see DATAJPA-460
-	 */
-	@Test
-	public void deleteByUsingAnnotatedQueryShouldReturnNumberOfDocumentsRemovedIfReturnTypeIsLong() {
-
-		flushTestUsers();
-
-		assertThat(repository.removeByLastnameUsingAnnotatedQuery(firstUser.getLastname()), is(1L));
 	}
 
 	private Page<User> executeSpecWithSort(Sort sort) {
