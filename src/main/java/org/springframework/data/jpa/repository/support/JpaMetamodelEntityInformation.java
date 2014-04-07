@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Set;
 
 import javax.persistence.IdClass;
+import javax.persistence.metamodel.EntityType;
 import javax.persistence.metamodel.IdentifiableType;
 import javax.persistence.metamodel.ManagedType;
 import javax.persistence.metamodel.Metamodel;
@@ -51,6 +52,7 @@ public class JpaMetamodelEntityInformation<T, ID extends Serializable> extends J
 	private final IdMetadata<T> idMetadata;
 	private final SingularAttribute<? super T, ?> versionAttribute;
 	private final Metamodel metamodel;
+	private final String entityName;
 
 	/**
 	 * Creates a new {@link JpaMetamodelEntityInformation} for the given domain class and {@link Metamodel}.
@@ -66,10 +68,11 @@ public class JpaMetamodelEntityInformation<T, ID extends Serializable> extends J
 		this.metamodel = metamodel;
 
 		ManagedType<T> type = metamodel.managedType(domainClass);
-
 		if (type == null) {
 			throw new IllegalArgumentException("The given domain class can not be found in the given Metamodel!");
 		}
+
+		this.entityName = type instanceof EntityType ? ((EntityType<?>) type).getName() : null;
 
 		if (!(type instanceof IdentifiableType)) {
 			throw new IllegalArgumentException("The given domain class does not contain an id attribute!");
@@ -77,6 +80,15 @@ public class JpaMetamodelEntityInformation<T, ID extends Serializable> extends J
 
 		this.idMetadata = new IdMetadata<T>((IdentifiableType<T>) type);
 		this.versionAttribute = findVersionAttribute(type);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.jpa.repository.support.JpaEntityInformationSupport#getEntityName()
+	 */
+	@Override
+	public String getEntityName() {
+		return entityName != null ? entityName : super.getEntityName();
 	}
 
 	/**
@@ -129,9 +141,7 @@ public class JpaMetamodelEntityInformation<T, ID extends Serializable> extends J
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.springframework.data.repository.support.EntityInformation#getIdType()
+	 * @see org.springframework.data.repository.core.EntityInformation#getIdType()
 	 */
 	@SuppressWarnings("unchecked")
 	public Class<ID> getIdType() {
@@ -140,9 +150,7 @@ public class JpaMetamodelEntityInformation<T, ID extends Serializable> extends J
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see org.springframework.data.jpa.repository.support.JpaEntityMetadata#
-	 * getIdAttribute()
+	 * @see org.springframework.data.jpa.repository.support.JpaEntityInformation#getIdAttribute()
 	 */
 	public SingularAttribute<? super T, ?> getIdAttribute() {
 		return idMetadata.getSimpleIdAttribute();
