@@ -118,6 +118,12 @@ public final class JpaQueryLookupStrategy {
 				return query;
 			}
 
+			query = JpaQueryFactory.INSTANCE.fromProcedureAnnotation(method, em);
+
+			if (null != query) {
+				return query;
+			}
+
 			String name = method.getNamedQueryName();
 			if (namedQueries.hasQuery(name)) {
 				return JpaQueryFactory.INSTANCE.fromMethodWithQueryString(method, em, namedQueries.getQuery(name));

@@ -21,6 +21,7 @@ import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.Query;
+import javax.persistence.StoredProcedureQuery;
 import javax.persistence.TypedQuery;
 
 import org.springframework.data.domain.PageImpl;
@@ -236,6 +237,31 @@ public abstract class JpaQueryExecution {
 			}
 
 			return jpaQuery.getQueryMethod().isCollectionQuery() ? resultList : resultList.size();
+		}
+	}
+
+	/**
+	 * {@link Execution} executing a stored procedure.
+	 * 
+	 * @author Thomas Darimont
+	 * @since 1.6
+	 */
+	static class ProcedureExecution extends JpaQueryExecution {
+
+		/* 
+		 * (non-Javadoc)
+		 * @see org.springframework.data.jpa.repository.query.JpaQueryExecution#doExecute(org.springframework.data.jpa.repository.query.AbstractJpaQuery, java.lang.Object[])
+		 */
+		@Override
+		protected Object doExecute(AbstractJpaQuery jpaQuery, Object[] values) {
+
+			Assert.isInstanceOf(StoredProcedureJpaQuery.class, jpaQuery);
+
+			StoredProcedureJpaQuery storedProcedureJpaQuery = (StoredProcedureJpaQuery) jpaQuery;
+			StoredProcedureQuery storedProcedure = storedProcedureJpaQuery.createQuery(values);
+			storedProcedure.execute();
+
+			return storedProcedureJpaQuery.extractOutputValue(storedProcedure);
 		}
 	}
 }

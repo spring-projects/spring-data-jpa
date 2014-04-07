@@ -53,6 +53,7 @@ public class JpaQueryMethod extends QueryMethod {
 
 	// @see JPA 2.0 Specification 2.2 Persistent Fields and Properties Page 23 - Top paragraph.
 	private static final Set<Class<?>> NATIVE_ARRAY_TYPES;
+	private static final StoredProcedureAttributeSource storedProcedureAttributeSource = StoredProcedureAttributeSource.INSTANCE;
 
 	static {
 
@@ -67,6 +68,8 @@ public class JpaQueryMethod extends QueryMethod {
 
 	private final QueryExtractor extractor;
 	private final Method method;
+
+	private StoredProcedureAttributes storedProcedureAttributes;
 
 	/**
 	 * Creates a {@link JpaQueryMethod}.
@@ -313,5 +316,29 @@ public class JpaQueryMethod extends QueryMethod {
 	@Override
 	public boolean isCollectionQuery() {
 		return super.isCollectionQuery() && !NATIVE_ARRAY_TYPES.contains(method.getReturnType());
+	}
+
+	/**
+	 * Return {@literal true} if the method contains a {@link Procedure} annotation.
+	 * 
+	 * @return
+	 */
+	public boolean isProcedureQuery() {
+		return method.getAnnotation(Procedure.class) != null;
+	}
+
+	/**
+	 * Returns a new {@link StoredProcedureAttributes} representing the stored procedure meta-data for this
+	 * {@link JpaQueryMethod}.
+	 * 
+	 * @return
+	 */
+	StoredProcedureAttributes getProcedureAttributes() {
+
+		if (storedProcedureAttributes == null) {
+			this.storedProcedureAttributes = storedProcedureAttributeSource.createFrom(method, getEntityInformation());
+		}
+
+		return storedProcedureAttributes;
 	}
 }

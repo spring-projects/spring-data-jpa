@@ -20,6 +20,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
+import javax.persistence.EntityManager;
 import javax.persistence.QueryHint;
 
 import org.springframework.data.domain.Page;
@@ -33,6 +34,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryHints;
+import org.springframework.data.jpa.repository.query.Procedure;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
@@ -334,4 +336,36 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	 */
 	// @Query(value = "select u.binaryData from User u where u.id = :id")
 	// byte[] findBinaryDataByIdJpaQl(@Param("id") Integer id);
+
+	/**
+	 * Explicitly mapped to a procedure with name "plus1inout" in database.
+	 * 
+	 * @see DATAJPA-455
+	 */
+	@Procedure("plus1inout")
+	Integer explicitlyNamedPlus1inout(Integer arg);
+
+	/**
+	 * Implicitly mapped to a procedure with name "plus1inout" in database via alias.
+	 * 
+	 * @see DATAJPA-455
+	 */
+	@Procedure(procedureName = "plus1inout")
+	Integer plus1inout(Integer arg);
+
+	/**
+	 * Explicitly mapped to named stored procedure "User.plus1IO" in {@link EntityManager}.
+	 * 
+	 * @see DATAJPA-455
+	 */
+	@Procedure(name = "User.plus1IO")
+	Integer entityAnnotatedCustomNamedProcedurePlus1IO(@Param("arg") Integer arg);
+
+	/**
+	 * Implicitly mapped to named stored procedure "User.plus1" in {@link EntityManager}.
+	 * 
+	 * @see DATAJPA-455
+	 */
+	@Procedure
+	Integer plus1(@Param("arg") Integer arg);
 }

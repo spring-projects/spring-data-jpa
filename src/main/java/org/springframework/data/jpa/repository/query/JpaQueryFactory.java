@@ -65,4 +65,20 @@ enum JpaQueryFactory {
 		return method.isNativeQuery() ? new NativeJpaQuery(method, em, queryString) : //
 				new SimpleJpaQuery(method, em, queryString);
 	}
+
+	/**
+	 * Creates a {@link StoredProcedureJpaQuery} from the given {@link JpaQueryMethod} query.
+	 * 
+	 * @param method must not be {@literal null}.
+	 * @param em must not be {@literal null}.
+	 * @return
+	 */
+	public StoredProcedureJpaQuery fromProcedureAnnotation(JpaQueryMethod method, EntityManager em) {
+
+		if (!method.isProcedureQuery()) {
+			return null;
+		}
+
+		return new StoredProcedureJpaQuery(method, em);
+	}
 }
