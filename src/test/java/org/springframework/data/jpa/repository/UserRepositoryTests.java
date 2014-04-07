@@ -1264,6 +1264,24 @@ public class UserRepositoryTests {
 	}
 
 	/**
+	 * @see DATAJPA-510
+	 */
+	@Test
+	public void sortByNestedAssociationPropertyWithSortOrderIgnoreCaseInPageable() {
+
+		firstUser.setManager(thirdUser);
+		thirdUser.setManager(fourthUser);
+
+		flushTestUsers();
+
+		Page<User> page = repository.findAll(new PageRequest(0, 10, //
+				new Sort(new Sort.Order(Direction.ASC, "manager.manager.firstname").ignoreCase())));
+
+		assertThat(page.getContent(), hasSize(4));
+		assertThat(page.getContent().get(3), is(firstUser));
+	}
+
+	/**
 	 * @see DATAJPA-496
 	 */
 	@Test

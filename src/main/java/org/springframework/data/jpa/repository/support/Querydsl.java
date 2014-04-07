@@ -31,10 +31,12 @@ import com.mysema.query.jpa.HQLTemplates;
 import com.mysema.query.jpa.JPQLQuery;
 import com.mysema.query.jpa.OpenJPATemplates;
 import com.mysema.query.jpa.impl.JPAQuery;
+import com.mysema.query.support.Expressions;
 import com.mysema.query.types.EntityPath;
 import com.mysema.query.types.Expression;
 import com.mysema.query.types.OrderSpecifier;
 import com.mysema.query.types.OrderSpecifier.NullHandling;
+import com.mysema.query.types.Path;
 import com.mysema.query.types.path.PathBuilder;
 
 /**
@@ -197,9 +199,9 @@ public class Querydsl {
 
 			if (!path.hasNext() && order.isIgnoreCase()) {
 				// if order is ignore-case we have to treat the last path segment as a String.
-				sortPropertyExpression = ((PathBuilder<?>) sortPropertyExpression).getString(path.getSegment()).lower();
+				sortPropertyExpression = Expressions.stringPath((Path<?>) sortPropertyExpression, path.getSegment()).lower();
 			} else {
-				sortPropertyExpression = ((PathBuilder<?>) sortPropertyExpression).get(path.getSegment());
+				sortPropertyExpression = Expressions.path(path.getType(), (Path<?>) sortPropertyExpression, path.getSegment());
 			}
 
 			path = path.next();
