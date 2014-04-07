@@ -34,6 +34,10 @@ import javax.persistence.NamedAttributeNode;
 import javax.persistence.NamedEntityGraph;
 import javax.persistence.NamedEntityGraphs;
 import javax.persistence.NamedQuery;
+import javax.persistence.NamedStoredProcedureQueries;
+import javax.persistence.NamedStoredProcedureQuery;
+import javax.persistence.ParameterMode;
+import javax.persistence.StoredProcedureParameter;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
@@ -50,6 +54,14 @@ import javax.persistence.TemporalType;
 		@NamedEntityGraph(name = "User.detail", attributeNodes = { @NamedAttributeNode("roles"),
 				@NamedAttributeNode("manager"), @NamedAttributeNode("colleagues") }) })
 @NamedQuery(name = "User.findByEmailAddress", query = "SELECT u FROM User u WHERE u.emailAddress = ?1")
+@NamedStoredProcedureQueries({ //
+@NamedStoredProcedureQuery(name = "User.plus1", procedureName = "plus1inout", parameters = {
+		@StoredProcedureParameter(mode = ParameterMode.IN, name = "arg", type = Integer.class),
+		@StoredProcedureParameter(mode = ParameterMode.OUT, name = "res", type = Integer.class) }) //
+})
+@NamedStoredProcedureQuery(name = "User.plus1IO", procedureName = "plus1inout", parameters = {
+		@StoredProcedureParameter(mode = ParameterMode.IN, name = "arg", type = Integer.class),
+		@StoredProcedureParameter(mode = ParameterMode.OUT, name = "res", type = Integer.class) })
 public class User {
 
 	@Id @GeneratedValue(strategy = GenerationType.AUTO) private Integer id;

@@ -314,4 +314,23 @@ public class JpaQueryMethod extends QueryMethod {
 	public boolean isCollectionQuery() {
 		return super.isCollectionQuery() && !NATIVE_ARRAY_TYPES.contains(method.getReturnType());
 	}
+
+	/**
+	 * Return {@literal true} if the method contains a {@link Procedure} annotation.
+	 * 
+	 * @return
+	 */
+	public boolean isProcedureQuery() {
+		return method.getAnnotation(Procedure.class) != null;
+	}
+
+	/**
+	 * Returns a new {@link StoredProcedureAttributes} representing the stored procedure meta-data for this
+	 * {@link JpaQueryMethod}.
+	 * 
+	 * @return
+	 */
+	public StoredProcedureAttributes getProcedureAttributes() {
+		return new StoredProcedureAttributeCreator().createFrom(method, getEntityInformation());
+	}
 }

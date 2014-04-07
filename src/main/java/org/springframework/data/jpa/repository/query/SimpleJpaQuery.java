@@ -67,6 +67,10 @@ final class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
 	 */
 	private final void validateQuery(String query, String errorMessage) {
 
+		if (getQueryMethod().isProcedureQuery()) {
+			return;
+		}
+
 		EntityManager validatingEm = null;
 
 		try {

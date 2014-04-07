@@ -25,6 +25,7 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.CollectionExecution;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.ModifyingExecution;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.PagedExecution;
+import org.springframework.data.jpa.repository.query.JpaQueryExecution.ProcedureExecution;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.SingleEntityExecution;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.SlicedExecution;
 import org.springframework.data.repository.query.RepositoryQuery;
@@ -98,7 +99,9 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 
 	protected JpaQueryExecution getExecution() {
 
-		if (method.isCollectionQuery()) {
+		if (method.isProcedureQuery()) {
+			return new ProcedureExecution();
+		} else if (method.isCollectionQuery()) {
 			return new CollectionExecution();
 		} else if (method.isSliceQuery()) {
 			return new SlicedExecution(method.getParameters());
@@ -117,7 +120,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 	 * @param query
 	 * @return
 	 */
-	private <T extends Query> T applyHints(T query, JpaQueryMethod method) {
+	protected <T extends Query> T applyHints(T query, JpaQueryMethod method) {
 
 		for (QueryHint hint : method.getHints()) {
 			applyQueryHint(query, hint);

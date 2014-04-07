@@ -24,6 +24,8 @@
 		<property name="entityManagerFactory" ref="entityManagerFactory" />
 	</bean>
 	
-	<jdbc:embedded-database id="dataSource" type="HSQL" />
+	<jdbc:embedded-database id="dataSource" type="HSQL">
+		<jdbc:script execution="INIT" separator="/;" location="classpath:scripts/schema-stored-procedures.sql"/>
+	</jdbc:embedded-database>
 
 </beans>
