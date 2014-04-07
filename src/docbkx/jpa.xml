@@ -321,7 +321,7 @@ class ApplicationConfig {
                 <entry><code>… where x.lastname = ?1 or x.firstname =
                 ?2</code></entry>
               </row>
-              
+
               <row>
                 <entry><code>Is,Equals</code></entry>
 
@@ -346,7 +346,7 @@ class ApplicationConfig {
 
                 <entry><code>… where x.age &lt; ?1</code></entry>
               </row>
-              
+
               <row>
                 <entry><code>LessThanEqual</code></entry>
 
@@ -362,7 +362,7 @@ class ApplicationConfig {
 
                 <entry><code>… where x.age &gt; ?1</code></entry>
               </row>
-              
+
               <row>
                 <entry><code>GreaterThanEqual</code></entry>
 
@@ -496,15 +496,15 @@ class ApplicationConfig {
 
                 <entry><code>… where x.active = false</code></entry>
               </row>
-              
+
               <row>
                 <entry><code>IgnoreCase</code></entry>
 
                 <entry><code>findByFirstnameIgnoreCase</code></entry>
 
-                <entry><code>… where UPPER(x.firstame) = UPPER(?1)</code></entry>
+                <entry><code>… where UPPER(x.firstame) =
+                UPPER(?1)</code></entry>
               </row>
-
             </tbody>
           </tgroup>
         </table><note>
@@ -747,6 +747,13 @@ public class User {
       defined query. In order not to have to state the actual entity name in
       the query string of a <code>@Query</code> annotation one can use the
       <code>#{#entityName}</code> Variable.</para>
+
+      <note>
+        <para>The <code>entityName</code> can be customized via the
+        <code>@Entity</code> annotation. Customizations via
+        <literal>orm.xml</literal> are not supported for the SpEL
+        expressions.</para>
+      </note>
 
       <example>
         <title>Using SpEL expressions in Repository query methods -
@@ -1067,7 +1074,7 @@ class UserManagementImpl implements UserManagement {
       none already running). The transaction configuration at the repositories
       will be neglected then as the outer transaction configuration determines
       the actual one used. Note that you will have to activate
-      <code>&lt;tx:annotation-driven /&gt;</code> or use 
+      <code>&lt;tx:annotation-driven /&gt;</code> or use
       <interfacename>@EnableTransactionManagement</interfacename> explicitly
       to get annotation based configuration at facades working. The example
       above assumes you are using component scanning.</para>

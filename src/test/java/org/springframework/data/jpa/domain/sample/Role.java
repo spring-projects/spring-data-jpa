@@ -36,9 +36,7 @@ public class Role {
 	/**
 	 * Creates a new instance of {@code Role}.
 	 */
-	public Role() {
-
-	}
+	public Role() {}
 
 	/**
 	 * Creates a new preconfigured {@code Role}.
@@ -46,7 +44,6 @@ public class Role {
 	 * @param name
 	 */
 	public Role(final String name) {
-
 		this.name = name;
 	}
 
@@ -58,6 +55,13 @@ public class Role {
 	public Integer getId() {
 
 		return id;
+	}
+
+	/**
+	 * @return the name
+	 */
+	public String getName() {
+		return name;
 	}
 
 	/*

@@ -13,7 +13,7 @@
 		<query>SELECT u FROM User u WHERE u.lastname = ?1</query>
 	</named-query>
 	
-	<entity class="org.springframework.data.jpa.domain.sample.Role" access="FIELD">
+	<entity class="org.springframework.data.jpa.domain.sample.Role" access="FIELD" name="ROLE">
 		<attributes>
 			<id name="id">
 				<generated-value strategy="AUTO" />
