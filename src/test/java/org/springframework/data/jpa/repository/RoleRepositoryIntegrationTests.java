@@ -86,4 +86,16 @@ public class RoleRepositoryIntegrationTests {
 
 		assertThat(repository.exists(reference.getId()), is(true));
 	}
+
+	/**
+	 * @see DATAJPA-509
+	 */
+	@Test
+	public void shouldUseExplicitlyConfiguredEntityNameInDerivedCountQueries() {
+
+		Role reference = new Role("ADMIN");
+		reference = repository.save(reference);
+
+		assertThat(repository.countByName(reference.getName()), is(1L));
+	}
 }
