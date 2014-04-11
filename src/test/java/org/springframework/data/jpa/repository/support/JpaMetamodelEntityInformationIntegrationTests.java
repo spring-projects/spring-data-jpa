@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.data.jpa.domain.AbstractPersistable;
+import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.domain.sample.SampleWithIdClass;
 import org.springframework.data.jpa.domain.sample.SampleWithIdClassPK;
 import org.springframework.data.jpa.domain.sample.SampleWithPrimitiveId;
@@ -49,6 +50,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * Integration tests for {@link JpaMetamodelEntityInformation}.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({ "classpath:infrastructure.xml" })
@@ -153,6 +155,18 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 
 		sample.setId(5L);
 		assertThat(information.isNew(sample), is(false));
+	}
+
+	/**
+	 * @see DATAJPA-509
+	 */
+	@Test
+	public void jpaMetamodelEntityInformationShouldRespectExplicitlyConfiguredEntityNameFromOrmXml() {
+
+		JpaEntityInformation<Role, Integer> info = new JpaMetamodelEntityInformation<Role, Integer>(Role.class,
+				em.getMetamodel());
+
+		assertThat(info.getEntityName(), is("ROLE"));
 	}
 
 	protected String getMetadadataPersitenceUnitName() {

@@ -27,6 +27,7 @@ import org.springframework.data.repository.CrudRepository;
  * Typing interface for {@code Role}.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 public interface RoleRepository extends CrudRepository<Role, Integer> {
 
@@ -45,4 +46,9 @@ public interface RoleRepository extends CrudRepository<Role, Integer> {
 	@Lock(LockModeType.READ)
 	@QueryHints(@QueryHint(name = "foo", value = "bar"))
 	Role findOne(Integer id);
+
+	/**
+	 * @see DATAJPA-509
+	 */
+	long countByName(String name);
 }
