@@ -102,7 +102,7 @@ class StringQuery {
 	 */
 	public ParameterBinding getBindingFor(String name) {
 
-		Assert.hasText(name, "Name must not be null or empty!");
+		Assert.hasText(name, "Name for parameter binding must not be null or empty!");
 
 		for (ParameterBinding binding : bindings) {
 			if (binding.hasName(name)) {
