@@ -20,10 +20,13 @@ import static org.junit.Assert.*;
 
 import java.util.List;
 
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.springframework.data.jpa.repository.query.StringQuery.InParameterBinding;
 import org.springframework.data.jpa.repository.query.StringQuery.LikeParameterBinding;
 import org.springframework.data.jpa.repository.query.StringQuery.ParameterBinding;
+import org.springframework.data.repository.query.Param;
 import org.springframework.data.repository.query.parser.Part.Type;
 
 /**
@@ -33,6 +36,8 @@ import org.springframework.data.repository.query.parser.Part.Type;
  * @author Thomas Darimont
  */
 public class StringQueryUnitTests {
+
+	public @Rule ExpectedException exception = ExpectedException.none();
 
 	/**
 	 * @see DATAJPA-341
@@ -225,6 +230,20 @@ public class StringQueryUnitTests {
 
 		assertThat(bindings, hasSize(1));
 		assertNamedBinding(InParameterBinding.class, "statuses", bindings.get(0));
+	}
+
+	/**
+	 * @see DATAJPA-513
+	 */
+	@Test
+	public void rejectsNullParameterNameHintingTowardsAtParamForNullParameterName() {
+
+		StringQuery query = new StringQuery("select x from X");
+
+		exception.expect(IllegalArgumentException.class);
+		exception.expectMessage(Param.class.getSimpleName());
+
+		query.getBindingFor(null);
 	}
 
 	private void assertPositionalBinding(Class<? extends ParameterBinding> bindingType, Integer position,
