@@ -36,8 +36,11 @@ import org.springframework.util.StringUtils;
  * 
  * @author Oliver Gierke
  * @author Thomas Darimont
+ * @author Oliver Wehrens
  */
 class StringQuery {
+
+	private static final String PARAMETER_NAME_MISSING = "Name for parameter binding must not be null or empty! For named parameters you need to use @Param for query method parameters on Java versions < 8.";
 
 	private final String query;
 	private final List<ParameterBinding> bindings;
@@ -102,7 +105,7 @@ class StringQuery {
 	 */
 	public ParameterBinding getBindingFor(String name) {
 
-		Assert.hasText(name, "Name must not be null or empty!");
+		Assert.hasText(name, PARAMETER_NAME_MISSING);
 
 		for (ParameterBinding binding : bindings) {
 			if (binding.hasName(name)) {
