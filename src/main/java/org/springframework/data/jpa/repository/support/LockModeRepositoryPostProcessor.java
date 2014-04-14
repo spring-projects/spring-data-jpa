@@ -16,6 +16,8 @@
 package org.springframework.data.jpa.repository.support;
 
 import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.persistence.LockModeType;
 
@@ -71,6 +73,8 @@ public enum LockModeRepositoryPostProcessor implements RepositoryProxyPostProces
 
 		INSTANCE;
 
+		private final Map<Method, Object> lockModeTypeCache = new HashMap<Method, Object>();
+
 		/* 
 		 * (non-Javadoc)
 		 * @see org.aopalliance.intercept.MethodInterceptor#invoke(org.aopalliance.intercept.MethodInvocation)
@@ -84,9 +88,18 @@ public enum LockModeRepositoryPostProcessor implements RepositoryProxyPostProces
 				return invocation.proceed();
 			}
 
-			Lock annotation = AnnotationUtils.findAnnotation(method, Lock.class);
-			LockModeType lockMode = (LockModeType) AnnotationUtils.getValue(annotation);
-			TransactionSynchronizationManager.bindResource(method, lockMode == null ? NULL : lockMode);
+			Object lockModeType = lockModeTypeCache.get(method);
+
+			if (lockModeType == null) {
+
+				Lock annotation = AnnotationUtils.findAnnotation(method, Lock.class);
+				lockModeType = AnnotationUtils.getValue(annotation);
+				lockModeType = lockModeType == null ? NULL : lockModeType;
+
+				lockModeTypeCache.put(method, lockModeType);
+			}
+
+			TransactionSynchronizationManager.bindResource(method, lockModeType);
 
 			try {
 				return invocation.proceed();
