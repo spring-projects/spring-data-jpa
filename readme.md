@@ -30,7 +30,7 @@ Download the jar though Maven:
 <dependency>
   <groupId>org.springframework.data</groupId>
   <artifactId>spring-data-jpa</artifactId>
-  <version>1.5.1.RELEASE</version>
+  <version>1.5.2.RELEASE</version>
 </dependency>
 ```
 

@@ -1,6 +1,46 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 1.5.2.RELEASE (2014-04-15)
+---------------------------------------------
+* Sorting for a field in a composite primary key throws "Can't cast to EntityPath". (DATAJPA-497)
+* Sorting of Embeddables raises ClassCastException. (DATAJPA-500)
+* OSGi version conflict regarding joda-time. (DATAJPA-502)
+* Error on QueryDSL after upgrade (DATAJPA-504)
+* Blob query result only returns first byte. (DATAJPA-505)
+* Entity name used in 'count' queries ignores the entity name set in ORM mapping file. (DATAJPA-509)
+* Performance tuning LockModePopulatingMethodIntercceptor.invoke(). (DATAJPA-507)
+* Improve error message for missing @Param annotations for query methods with named parameters. (DATAJPA-513)
+* Release 1.5.2. (DATAJPA-515)
+
+Changes in version 1.6.0.M1 (2014-03-31)
+----------------------------------------
+* Can't use pagination (Pageable) with @IdClass entities (spring-data-jpa 1.4.3 & Hibernate 4.1.9). (DATAJPA-472)
+* IllegalStateException caused by QueryUtils.toExpressionRecursively(…). (DATAJPA-476)
+* Parameter binding detection for in clause broken for parameters surrounded with parentheses. (DATAJPA-483)
+* findAll(Iterable<ID>) : Invalid comparation Exception thrown. (DATAJPA-492)
+* Missing Imports in Spring Data JPA for Auditing. (DATAJPA-494)
+* Query derivation doesn't create joins for in-clauses on element collections. (DATAJPA-496)
+* Sorting for a field in a composite primary key throws "Can't cast to EntityPath". (DATAJPA-497)
+* Sorting of Embeddables raises ClassCastException. (DATAJPA-500)
+* OSGi version conflict regarding joda-time. (DATAJPA-502)
+* Error on QueryDSL after upgrade. (DATAJPA-504)
+* Blob query result only returns first byte. (DATAJPA-505)
+* Support for @QueryHints on CRUD methods. (DATAJPA-173)
+* Add support for returning subtypes of Repository Entity in JpaRepository.saveAndFlush. (DATAJPA-464)
+* Postpone the construction of AuditorAware in AuditEntityListener. (DATAJPA-478)
+* Repositories should expose a single MappingContext instance. (DATAJPA-484)
+* Sort by property of an associated object generates left join only for the first level. (DATAJPA-491)
+* Update auditing configuration to be able to use accessor annotations. (DATAJPA-501)
+* Query creation for deleteBy / removeBy prefix. (DATAJPA-460)
+* Add support for lazy loading configuration via JPA 2.1 fetch-/loadgraph. (DATAJPA-466)
+* Add support for sliced execution. (DATAJPA-486)
+* Upgrade Hibernate build profiles to latest version. (DATAJPA-485)
+* Adapt to auditing configuration changes in Spring Data Commons. (DATAJPA-487)
+* Adapt to API changes in RepositoryProxyPostProcessor. (DATAJPA-489)
+* Upgrade to OpenJPA 2.3.0. (DATAJPA-493)
+* Release 1.6 M1. (DATAJPA-481)
+
 Changes in version 1.5.1.RELEASE (2014-03-13)
 ---------------------------------------------
 * Verify that pagination works with entities with @IdClass. (DATAJPA-472)
