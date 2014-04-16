@@ -43,7 +43,7 @@ import org.springframework.util.Assert;
  * 
  * @author Oliver Gierke
  */
-enum CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor {
+enum CrudMethodMetadataPostProcessor implements CrudMethodMetadataProvider {
 
 	INSTANCE;
 
@@ -58,9 +58,9 @@ enum CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor {
 		factory.addAdvice(CrudMethodMetadataPopulatingMethodIntercceptor.INSTANCE);
 	}
 
-	/**
-	 * Returns a {@link CrudMethodMetadata} proxy that will lookup the actual target object by obtaining a thread bound
-	 * instance from the {@link TransactionSynchronizationManager} later.
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.jpa.repository.support.CrudMethodMetadataProvider#getLockMetadataProvider()
 	 */
 	public CrudMethodMetadata getLockMetadataProvider() {
 
