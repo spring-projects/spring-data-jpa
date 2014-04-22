@@ -210,10 +210,14 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 
 		Assert.notNull(id, "The given id must not be null!");
 
+		Class<T> domainType = getDomainClass();
+
+		if (crudMethodMetadata == null) {
+			return em.find(domainType, id);
+		}
+
 		LockModeType type = crudMethodMetadata.getLockModeType();
 		Map<String, Object> hints = crudMethodMetadata.getQueryHints();
-
-		Class<T> domainType = getDomainClass();
 
 		return type == null ? em.find(domainType, id, hints) : em.find(domainType, id, type, hints);
 	}
@@ -524,6 +528,10 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	}
 
 	private TypedQuery<T> applyRepositoryMethodMetadata(TypedQuery<T> query) {
+
+		if (crudMethodMetadata == null) {
+			return query;
+		}
 
 		LockModeType type = crudMethodMetadata.getLockModeType();
 		TypedQuery<T> toReturn = type == null ? query : query.setLockMode(type);
