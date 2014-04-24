@@ -57,7 +57,7 @@ public class StoredProcedureAttributeCreator {
 			return newProcedureAttributesFrom(method, namedStoredProc);
 		}
 
-		String procedureName = deriveProcedureNameFrom(procedure);
+		String procedureName = deriveProcedureNameFrom(method, procedure);
 		if (StringUtils.isEmpty(procedureName)) {
 			throw new IllegalArgumentException("Could not determine name of procedure for @Procedure annotated method: "
 					+ method);
@@ -67,11 +67,24 @@ public class StoredProcedureAttributeCreator {
 	}
 
 	/**
+	 * Tries to derive the procedure name from the given {@link Procedure}, falls back to the name of the given
+	 * {@link Method}.
+	 * 
+	 * @param method
 	 * @param procedure
 	 * @return
 	 */
-	private String deriveProcedureNameFrom(Procedure procedure) {
-		return StringUtils.hasText(procedure.value()) ? procedure.value() : procedure.procedureName();
+	private String deriveProcedureNameFrom(Method method, Procedure procedure) {
+
+		if (StringUtils.hasText(procedure.value())) {
+			return procedure.value();
+		}
+
+		if (StringUtils.hasText(procedure.procedureName())) {
+			return procedure.procedureName();
+		}
+
+		return method.getName();
 	}
 
 	/**

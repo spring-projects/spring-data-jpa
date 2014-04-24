@@ -55,6 +55,19 @@ public class StoredProcedureAttributeCreatorUnitTests {
 	 * @see DATAJPA-455
 	 */
 	@Test
+	public void shouldCreateStoredProcedureAttributesFromProcedureMethodWithImplicitProcedureName() {
+
+		StoredProcedureAttributes attr = creator.createFrom(method("plus1inout", Integer.class), entityMetadata);
+
+		assertThat(attr.getProcedureName(), is("plus1inout"));
+		assertThat(attr.getOutputParameterType(), is(typeCompatibleWith(Integer.class)));
+		assertThat(attr.getOutputParameterName(), is(nullValue()));
+	}
+
+	/**
+	 * @see DATAJPA-455
+	 */
+	@Test
 	public void shouldCreateStoredProcedureAttributesFromProcedureMethodWithExplictName() {
 
 		StoredProcedureAttributes attr = creator.createFrom(method("explicitlyNamedPlus1inout", Integer.class),
@@ -69,9 +82,24 @@ public class StoredProcedureAttributeCreatorUnitTests {
 	 * @see DATAJPA-455
 	 */
 	@Test
-	public void shouldCreateStoredProcedureAttributesFromProcedureMethodWithExplictProcedureName() {
+	public void shouldCreateStoredProcedureAttributesFromProcedureMethodWithExplictProcedureNameValue() {
 
-		StoredProcedureAttributes attr = creator.createFrom(method("plus1inout", Integer.class), entityMetadata);
+		StoredProcedureAttributes attr = creator.createFrom(method("explicitlyNamedPlus1inout", Integer.class),
+				entityMetadata);
+
+		assertThat(attr.getProcedureName(), is("plus1inout"));
+		assertThat(attr.getOutputParameterType(), is(typeCompatibleWith(Integer.class)));
+		assertThat(attr.getOutputParameterName(), is(nullValue()));
+	}
+
+	/**
+	 * @see DATAJPA-455
+	 */
+	@Test
+	public void shouldCreateStoredProcedureAttributesFromProcedureMethodWithExplictProcedureNameAlias() {
+
+		StoredProcedureAttributes attr = creator.createFrom(
+				method("explicitPlus1inoutViaProcedureNameAlias", Integer.class), entityMetadata);
 
 		assertThat(attr.getProcedureName(), is("plus1inout"));
 		assertThat(attr.getOutputParameterType(), is(typeCompatibleWith(Integer.class)));
@@ -123,11 +151,19 @@ public class StoredProcedureAttributeCreatorUnitTests {
 		Integer explicitlyNamedPlus1inout(Integer arg);
 
 		/**
-		 * Implicitly mapped to a procedure with name "plus1inout" in database via alias.
+		 * Explicitly mapped to a procedure with name "plus1inout" in database via alias.
 		 * 
 		 * @see DATAJPA-455
 		 */
 		@Procedure(procedureName = "plus1inout")
+		Integer explicitPlus1inoutViaProcedureNameAlias(Integer arg);
+
+		/**
+		 * Implicitly mapped to a procedure with name "plus1inout" in database via alias.
+		 * 
+		 * @see DATAJPA-455
+		 */
+		@Procedure
 		Integer plus1inout(Integer arg);
 
 		/**
