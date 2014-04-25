@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,11 @@ package org.springframework.data.jpa.support;
 
 import static org.mockito.Mockito.*;
 
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Set;
+
 import javax.persistence.Entity;
 
 import org.junit.Test;
@@ -24,6 +29,9 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.core.io.DefaultResourceLoader;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.orm.jpa.persistenceunit.MutablePersistenceUnitInfo;
 import org.springframework.orm.jpa.persistenceunit.PersistenceUnitPostProcessor;
 
@@ -106,6 +114,49 @@ public class ClasspathScanningPersistenceUnitPostProcessorUnitTests {
 
 		verify(pui).addMappingFileName("org/springframework/data/jpa/support/module1/module1-orm.xml");
 		verify(pui).addMappingFileName("org/springframework/data/jpa/support/module2/module2-orm.xml");
+	}
+
+	/**
+	 * @see DATAJPA-519
+	 */
+	@Test
+	public void shouldFindJpaMappingFilesFromNestedJarLocationsOnClasspath() {
+
+		ClasspathScanningPersistenceUnitPostProcessor processor = new ClasspathScanningPersistenceUnitPostProcessor(
+				basePackage);
+
+		String nestedModule3Path = "org/springframework/data/jpa/support/module3/module3-orm.xml";
+		final String fileInJarUrl = "jar:file:/foo/bar/lib/somelib.jar!/" + nestedModule3Path;
+
+		processor.resolver = new PathMatchingResourcePatternResolver(new DefaultResourceLoader()) {
+
+			public Resource[] getResources(String locationPattern) throws IOException {
+
+				Resource[] resources = super.getResources(locationPattern);
+				resources = Arrays.copyOf(resources, resources.length + 1);
+				resources[resources.length - 1] = new UrlResource(fileInJarUrl);
+
+				return resources;
+			}
+
+			@Override
+			protected Set<Resource> doFindPathMatchingJarResources(Resource rootDirResource, String subPattern)
+					throws IOException {
+
+				if (fileInJarUrl.equals(rootDirResource.getURI().toString())) {
+					return Collections.singleton(rootDirResource);
+				}
+
+				return super.doFindPathMatchingJarResources(rootDirResource, subPattern);
+			}
+		};
+
+		processor.setMappingFileNamePattern("**/*orm.xml");
+		processor.postProcessPersistenceUnitInfo(pui);
+
+		verify(pui).addMappingFileName("org/springframework/data/jpa/support/module1/module1-orm.xml");
+		verify(pui).addMappingFileName("org/springframework/data/jpa/support/module2/module2-orm.xml");
+		verify(pui).addMappingFileName(nestedModule3Path);
 	}
 
 	@Entity
