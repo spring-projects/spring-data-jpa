@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package org.springframework.data.jpa.support;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -51,6 +52,7 @@ public class ClasspathScanningPersistenceUnitPostProcessor implements Persistenc
 	private static final Logger LOG = LoggerFactory.getLogger(ClasspathScanningPersistenceUnitPostProcessor.class);
 
 	private final String basePackage;
+
 	private ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver(getClass().getClassLoader());
 	private String mappingFileNamePattern;
 
@@ -142,7 +144,7 @@ public class ClasspathScanningPersistenceUnitPostProcessor implements Persistenc
 
 		for (Resource resource : scannedResources) {
 			try {
-				String resourcePath = resource.getURI().getPath();
+				String resourcePath = getResourcePath(resource.getURI());
 				String resourcePathInClasspath = resourcePath.substring(resourcePath.indexOf(basePackagePathComponent));
 				mappingFileUris.add(resourcePathInClasspath);
 			} catch (IOException e) {
@@ -151,5 +153,31 @@ public class ClasspathScanningPersistenceUnitPostProcessor implements Persistenc
 		}
 
 		return mappingFileUris;
+	}
+
+	/**
+	 * Returns the path from the given {@link URI}. In case the given {@link URI} is opaque, e.g. beginning with jar:file,
+	 * the path is extracted from URI by leaving out the protocol prefix.
+	 * 
+	 * @param uri
+	 * @return
+	 * @see DATAJPA-519
+	 */
+	private static String getResourcePath(URI uri) throws IOException {
+
+		if (uri.isOpaque()) {
+			// e.g. jar:file:/foo/lib/somelib.jar!/com/acme/orm.xml
+			String rawPath = uri.toString();
+			if (rawPath != null) {
+				int exclamationMarkIndex = rawPath.lastIndexOf('!');
+				if (exclamationMarkIndex > -1) {
+
+					// /com/acme/orm.xml
+					return rawPath.substring(exclamationMarkIndex + 1);
+				}
+			}
+		}
+
+		return uri.getPath();
 	}
 }
