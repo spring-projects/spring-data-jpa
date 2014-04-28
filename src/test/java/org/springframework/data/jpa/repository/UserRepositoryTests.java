@@ -1375,6 +1375,34 @@ public class UserRepositoryTests {
 		assertThat(result, is(data));
 	}
 
+	/**
+	 * @see DATAJPA-456
+	 */
+	@Test
+	public void findPaginatedExplicitQueryWithCountQueryProjection() {
+
+		firstUser.setFirstname(null);
+
+		flushTestUsers();
+
+		Page<User> result = repository.findAllByFirstnameLike("", new PageRequest(0, 10));
+
+		assertThat(result.getContent().size(), is(3));
+	}
+
+	/**
+	 * @see DATAJPA-456
+	 */
+	@Test
+	public void findPaginatedNamedQueryWithCountQueryProjection() {
+
+		flushTestUsers();
+
+		Page<User> result = repository.findByNamedQueryAndCountProjection("Gierke", new PageRequest(0, 10));
+
+		assertThat(result.getContent().size(), is(1));
+	}
+
 	private Page<User> executeSpecWithSort(Sort sort) {
 
 		flushTestUsers();
