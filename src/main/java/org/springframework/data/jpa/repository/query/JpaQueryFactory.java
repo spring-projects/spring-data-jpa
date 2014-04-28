@@ -44,7 +44,7 @@ enum JpaQueryFactory {
 	 */
 	AbstractJpaQuery fromQueryAnnotation(JpaQueryMethod queryMethod, EntityManager em) {
 
-		LOG.debug("Looking up query for method {}", queryMethod.getName());
+		LOG.debug("Looking up query for method {}", queryMethod);
 		return fromMethodWithQueryString(queryMethod, em, queryMethod.getAnnotatedQuery());
 	}
 
@@ -62,8 +62,16 @@ enum JpaQueryFactory {
 			return null;
 		}
 
-		return method.isNativeQuery() ? new NativeJpaQuery(method, em, queryString) : //
-				new SimpleJpaQuery(method, em, queryString);
+		if (method.isNativeQuery()) {
+
+			LOG.debug("Discovered manually declared native query on method {}.", method);
+			return new NativeJpaQuery(method, em, queryString);
+
+		} else {
+
+			LOG.debug("Discovered manually declared JPQL query on method {}.", method);
+			return new SimpleJpaQuery(method, em, queryString);
+		}
 	}
 
 	/**
@@ -79,6 +87,7 @@ enum JpaQueryFactory {
 			return null;
 		}
 
+		LOG.debug("Discovered stored procedure query for method {}.", method);
 		return new StoredProcedureJpaQuery(method, em);
 	}
 }

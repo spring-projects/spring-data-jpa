@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2013 the original author or authors.
+ * Copyright 2008-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,11 +24,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.QueryCreationException;
 import org.springframework.data.repository.query.RepositoryQuery;
+import org.springframework.util.Assert;
 
 /**
  * Implementation of {@link RepositoryQuery} based on {@link javax.persistence.NamedQuery}s.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 final class NamedQuery extends AbstractJpaQuery {
 
@@ -98,20 +100,28 @@ final class NamedQuery extends AbstractJpaQuery {
 	/**
 	 * Looks up a named query for the given {@link org.springframework.data.repository.query.QueryMethod}.
 	 * 
-	 * @param method
+	 * @param method must not be {@literal null}.
+	 * @param em must not be {@literal null}.
 	 * @return
 	 */
 	public static RepositoryQuery lookupFrom(JpaQueryMethod method, EntityManager em) {
+
+		Assert.notNull("method", "JpaQueryMethod must not be null!");
+		Assert.notNull("em", "EntityManager must not be null!");
 
 		final String queryName = method.getNamedQueryName();
 
 		LOG.debug("Looking up named query {}", queryName);
 
 		try {
+
 			RepositoryQuery query = new NamedQuery(method, em);
 			LOG.debug("Found named query {}!", queryName);
 			return query;
+
 		} catch (IllegalArgumentException e) {
+
+			LOG.debug("Could not find named query {} for method {}!", queryName, method);
 			return null;
 		}
 	}

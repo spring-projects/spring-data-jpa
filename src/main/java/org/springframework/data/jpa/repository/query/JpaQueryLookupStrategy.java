@@ -19,6 +19,8 @@ import java.lang.reflect.Method;
 
 import javax.persistence.EntityManager;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.repository.core.NamedQueries;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.QueryLookupStrategy;
@@ -32,6 +34,8 @@ import org.springframework.data.repository.query.RepositoryQuery;
  * @author Thomas Darimont
  */
 public final class JpaQueryLookupStrategy {
+
+	private static final Logger LOG = LoggerFactory.getLogger(JpaQueryLookupStrategy.class);
 
 	/**
 	 * Private constructor to prevent instantiation.
@@ -58,14 +62,9 @@ public final class JpaQueryLookupStrategy {
 
 		/*
 		 * (non-Javadoc)
-		 * 
-		 * @see org.springframework.data.repository.query.QueryLookupStrategy#
-		 * resolveQuery(java.lang.reflect.Method,
-		 * org.springframework.data.repository.core.RepositoryMetadata,
-		 * org.springframework.data.repository.core.NamedQueries)
+		 * @see org.springframework.data.repository.query.QueryLookupStrategy#resolveQuery(java.lang.reflect.Method, org.springframework.data.repository.core.RepositoryMetadata, org.springframework.data.repository.core.NamedQueries)
 		 */
 		public final RepositoryQuery resolveQuery(Method method, RepositoryMetadata metadata, NamedQueries namedQueries) {
-
 			return resolveQuery(new JpaQueryMethod(method, metadata, provider), em, namedQueries);
 		}
 
@@ -88,7 +87,12 @@ public final class JpaQueryLookupStrategy {
 		protected RepositoryQuery resolveQuery(JpaQueryMethod method, EntityManager em, NamedQueries namedQueries) {
 
 			try {
-				return new PartTreeJpaQuery(method, em);
+
+				PartTreeJpaQuery query = new PartTreeJpaQuery(method, em);
+				LOG.debug("Created derived query for method {}.", method);
+
+				return query;
+
 			} catch (IllegalArgumentException e) {
 				throw new IllegalArgumentException(String.format("Could not create query metamodel for method %s!",
 						method.toString()), e);
@@ -101,8 +105,11 @@ public final class JpaQueryLookupStrategy {
 	 * a JPA named query lookup.
 	 * 
 	 * @author Oliver Gierke
+	 * @author Thomas Darimont
 	 */
 	private static class DeclaredQueryLookupStrategy extends AbstractQueryLookupStrategy {
+
+		private static final String NAMED_QUERY_NOT_FOUND_MESSAGE = "Did neither find a NamedQuery with name nor an annotated query for method %s!";
 
 		public DeclaredQueryLookupStrategy(EntityManager em, QueryExtractor extractor) {
 
@@ -125,6 +132,7 @@ public final class JpaQueryLookupStrategy {
 			}
 
 			String name = method.getNamedQueryName();
+
 			if (namedQueries.hasQuery(name)) {
 				return JpaQueryFactory.INSTANCE.fromMethodWithQueryString(method, em, namedQueries.getQuery(name));
 			}
@@ -135,8 +143,7 @@ public final class JpaQueryLookupStrategy {
 				return query;
 			}
 
-			throw new IllegalStateException(String.format(
-					"Did neither find a NamedQuery nor an annotated query for method %s!", method));
+			throw new IllegalStateException(String.format(NAMED_QUERY_NOT_FOUND_MESSAGE, method));
 		}
 	}
 
@@ -148,6 +155,8 @@ public final class JpaQueryLookupStrategy {
 	 * @author Oliver Gierke
 	 */
 	private static class CreateIfNotFoundQueryLookupStrategy extends AbstractQueryLookupStrategy {
+
+		private static final Logger LOG = LoggerFactory.getLogger(CreateIfNotFoundQueryLookupStrategy.class);
 
 		private final DeclaredQueryLookupStrategy strategy;
 		private final CreateQueryLookupStrategy createStrategy;
@@ -165,6 +174,11 @@ public final class JpaQueryLookupStrategy {
 			try {
 				return strategy.resolveQuery(method, em, namedQueries);
 			} catch (IllegalStateException e) {
+
+				if (method.isExplicitlyNamedQueryMethod()) {
+					LOG.debug("No named query found, falling back to query derivation. Problem was: {}", e.getMessage());
+				}
+
 				return createStrategy.resolveQuery(method, em, namedQueries);
 			}
 		}

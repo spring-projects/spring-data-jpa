@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2013 the original author or authors.
+ * Copyright 2012-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,6 +43,7 @@ import org.springframework.data.repository.query.QueryLookupStrategy.Key;
  * Unit tests for {@link JpaQueryLookupStrategy}.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 @RunWith(MockitoJUnitRunner.class)
 public class JpaQueryLookupStrategyUnitTests {
@@ -79,9 +80,32 @@ public class JpaQueryLookupStrategyUnitTests {
 		}
 	}
 
+	/**
+	 * @see DATAJPA-516
+	 */
+	@Test
+	public void shouldThrowAndReportRepositoryMethodIfReferencedNamedQueryWasNotFound() throws Exception {
+
+		QueryLookupStrategy strategy = JpaQueryLookupStrategy.create(em, Key.CREATE_IF_NOT_FOUND, extractor);
+		Method method = UserRepository.class.getMethod("namedQueryThatDoesNotExist");
+		RepositoryMetadata metadata = new DefaultRepositoryMetadata(UserRepository.class);
+
+		when(em.createNamedQuery(anyString())).thenThrow(new IllegalArgumentException());
+		when(em.createQuery(anyString())).thenThrow(new IllegalArgumentException());
+
+		try {
+			strategy.resolveQuery(method, metadata, namedQueries);
+		} catch (Exception e) {
+			assertThat(e, is(instanceOf(RuntimeException.class)));
+		}
+	}
+
 	interface UserRepository extends Repository<User, Long> {
 
 		@Query("something absurd")
 		User findByFoo(String foo);
+
+		@Query(name = "User.doesNotExist")
+		User namedQueryThatDoesNotExist();
 	}
 }
