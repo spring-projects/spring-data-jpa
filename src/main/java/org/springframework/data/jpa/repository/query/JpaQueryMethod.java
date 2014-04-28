@@ -238,6 +238,16 @@ public class JpaQueryMethod extends QueryMethod {
 		return getAnnotationValue("nativeQuery", Boolean.class).booleanValue();
 	}
 
+	/**
+	 * Returns whether this {@link JpaQueryMethod} represents an explicitly named query.
+	 * 
+	 * @return
+	 * @since 1.6
+	 */
+	boolean isExplicitlyNamedQueryMethod() {
+		return StringUtils.hasText(getAnnotationValue("name", String.class));
+	}
+
 	/* 
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.query.QueryMethod#getNamedQueryName()

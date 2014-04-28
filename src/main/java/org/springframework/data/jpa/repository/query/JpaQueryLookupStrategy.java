@@ -19,6 +19,8 @@ import java.lang.reflect.Method;
 
 import javax.persistence.EntityManager;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.repository.core.NamedQueries;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.QueryLookupStrategy;
@@ -101,8 +103,11 @@ public final class JpaQueryLookupStrategy {
 	 * a JPA named query lookup.
 	 * 
 	 * @author Oliver Gierke
+	 * @author Thomas Darimont
 	 */
 	private static class DeclaredQueryLookupStrategy extends AbstractQueryLookupStrategy {
+
+		private static final String NAMED_QUERY_NOT_FOUND_MESSAGE = "Did neither find a NamedQuery nor an annotated query for method %s!";
 
 		public DeclaredQueryLookupStrategy(EntityManager em, QueryExtractor extractor) {
 
@@ -123,14 +128,13 @@ public final class JpaQueryLookupStrategy {
 				return JpaQueryFactory.INSTANCE.fromMethodWithQueryString(method, em, namedQueries.getQuery(name));
 			}
 
-			query = NamedQuery.lookupFrom(method, em);
+			query = NamedQuery.lookupFrom(method, em, name);
 
 			if (null != query) {
 				return query;
 			}
 
-			throw new IllegalStateException(String.format(
-					"Did neither find a NamedQuery nor an annotated query for method %s!", method));
+			throw new IllegalStateException(String.format(NAMED_QUERY_NOT_FOUND_MESSAGE, method));
 		}
 	}
 
@@ -142,6 +146,8 @@ public final class JpaQueryLookupStrategy {
 	 * @author Oliver Gierke
 	 */
 	private static class CreateIfNotFoundQueryLookupStrategy extends AbstractQueryLookupStrategy {
+
+		private static final Logger LOG = LoggerFactory.getLogger(CreateIfNotFoundQueryLookupStrategy.class);
 
 		private final DeclaredQueryLookupStrategy strategy;
 		private final CreateQueryLookupStrategy createStrategy;
@@ -159,6 +165,11 @@ public final class JpaQueryLookupStrategy {
 			try {
 				return strategy.resolveQuery(method, em, namedQueries);
 			} catch (IllegalStateException e) {
+
+				if (LOG.isDebugEnabled() && method.isExplicitlyNamedQueryMethod()) {
+					LOG.debug("Problem resolving named query, falling back to query derivation. Problem was: {}", e.getMessage());
+				}
+
 				return createStrategy.resolveQuery(method, em, namedQueries);
 			}
 		}
