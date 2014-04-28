@@ -177,7 +177,34 @@ public class Querydsl {
 	private OrderSpecifier<?> toOrderSpecifier(Order order, JPQLQuery query) {
 
 		return new OrderSpecifier(order.isAscending() ? com.mysema.query.types.Order.ASC
-				: com.mysema.query.types.Order.DESC, buildOrderPropertyPathFrom(order), NullHandling.NullsLast);
+				: com.mysema.query.types.Order.DESC, buildOrderPropertyPathFrom(order),
+				toQueryDslNullHandling(order.getNullHandling()));
+	}
+
+	/**
+	 * Converts the given {@link org.springframework.data.domain.Sort.NullHandling} to the appropriate Querydsl
+	 * {@link NullHandling}.
+	 * 
+	 * @param nullHandling must not be {@literal null}
+	 * @return
+	 * @since 1.6
+	 */
+	private NullHandling toQueryDslNullHandling(org.springframework.data.domain.Sort.NullHandling nullHandling) {
+
+		Assert.notNull(nullHandling, "NullHandling must not be null!");
+
+		switch (nullHandling) {
+
+			case NULLS_FIRST:
+				return NullHandling.NullsFirst;
+
+			case NULLS_LAST:
+				return NullHandling.NullsLast;
+
+			case NATIVE:
+			default:
+				return NullHandling.Default;
+		}
 	}
 
 	/**
