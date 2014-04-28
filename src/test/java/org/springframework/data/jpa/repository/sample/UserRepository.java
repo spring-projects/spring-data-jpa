@@ -368,4 +368,16 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	 */
 	@Procedure
 	Integer plus1(@Param("arg") Integer arg);
+
+	/**
+	 * @see DATAJPA-456
+	 */
+	@Query(value = "select u from User u where u.firstname like ?1%", countProjection = "u.firstname")
+	Page<User> findAllByFirstnameLike(String firstname, Pageable page);
+
+	/**
+	 * @see DATAJPA-456
+	 */
+	@Query(name = "User.findBySpringDataNamedQuery", countProjection = "u.firstname")
+	Page<User> findByNamedQueryAndCountProjection(String firstname, Pageable page);
 }

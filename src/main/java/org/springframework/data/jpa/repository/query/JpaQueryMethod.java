@@ -233,6 +233,19 @@ public class JpaQueryMethod extends QueryMethod {
 	}
 
 	/**
+	 * Returns the count query projection string declared in a {@link Query} annotation or {@literal null} if neither the
+	 * annotation found nor the attribute was specified.
+	 * 
+	 * @return
+	 * @since 1.6
+	 */
+	String getCountQueryProjection() {
+
+		String countProjection = getAnnotationValue("countProjection", String.class);
+		return StringUtils.hasText(countProjection) ? countProjection : null;
+	}
+
+	/**
 	 * Returns whether the backing query is a native one.
 	 * 
 	 * @return
