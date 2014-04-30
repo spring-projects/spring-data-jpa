@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 the original author or authors.
+ * Copyright 2008-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 package org.springframework.data.jpa.domain;
 
+import java.io.Serializable;
+
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
@@ -24,8 +26,9 @@ import javax.persistence.criteria.Root;
  * Specification in the sense of Domain Driven Design.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
-public interface Specification<T> {
+public interface Specification<T> extends Serializable {
 
 	/**
 	 * Creates a WHERE clause for a query of the referenced entity in form of a {@link Predicate} for the given
