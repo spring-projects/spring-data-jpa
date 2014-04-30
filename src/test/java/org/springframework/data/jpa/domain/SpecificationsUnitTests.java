@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,9 @@ import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.data.jpa.domain.Specifications.*;
+import static org.springframework.util.SerializationUtils.*;
+
+import java.io.Serializable;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -33,24 +36,24 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 /**
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 @RunWith(MockitoJUnitRunner.class)
 public class SpecificationsUnitTests {
 
-	@Mock
 	Specification<Object> mockSpec;
-	@Mock
-	Root<Object> root;
-	@Mock
-	CriteriaQuery<?> query;
-	@Mock
-	CriteriaBuilder builder;
+	@Mock(extraInterfaces = Serializable.class) Root<Object> root;
+	@Mock(extraInterfaces = Serializable.class) CriteriaQuery<?> query;
+	@Mock(extraInterfaces = Serializable.class) CriteriaBuilder builder;
 
-	@Mock
-	Predicate predicate;
+	@Mock(extraInterfaces = Serializable.class) Predicate predicate;
 
 	@Before
+	@SuppressWarnings("unchecked")
 	public void setUp() {
+
+		mockSpec = (Specification<Object>) mock(Specification.class, withSettings().serializable());
+
 		when(mockSpec.toPredicate(root, query, builder)).thenReturn(predicate);
 	}
 
@@ -127,5 +130,22 @@ public class SpecificationsUnitTests {
 
 		assertThat(specification, is(notNullValue()));
 		assertThat(specification.toPredicate(root, query, builder), is(predicate));
+	}
+
+	/**
+	 * @see DATAJPA-523
+	 */
+	@Test
+	public void specificationsShouldBeSerializable() {
+
+		Specifications<Object> specification = where(mockSpec);
+		specification = specification.and(mockSpec);
+
+		assertThat(specification, is(notNullValue()));
+
+		@SuppressWarnings("unchecked")
+		Specifications<Object> transferedSpecification = (Specifications<Object>) deserialize(serialize(specification));
+
+		assertThat(transferedSpecification, is(notNullValue()));
 	}
 }
