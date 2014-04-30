@@ -26,6 +26,7 @@ import javax.persistence.criteria.Root;
  * @author Oliver Gierke
  * @author Thomas Darimont
  */
+@SuppressWarnings("serial")
 public class Specifications<T> implements Specification<T> {
 
 	private static final long serialVersionUID = 1L;
