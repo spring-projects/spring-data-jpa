@@ -8,8 +8,19 @@ Changes in version 1.5.3.RELEASE (2014-06-18)
 * DATAJPA-548 - Improve documentation on custom namespace attributes for jpa:repositories.
 * DATAJPA-545 - Special characters not allowed anymore in named binding parameter.
 * DATAJPA-527 - CrudRepository.exists(ID id) fails for entity with @IdClass.
+
+
+Changes in version 1.6.0.RC1 (2014-05-02)
+-----------------------------------------
+* DATAJPA-522 - Release 1.6 RC1.
+* DATAJPA-517 - Defensively check for null for optional dependency to CrudMethodMetadata in SimpleJpaRepository.
 * DATAJPA-516 - Missing/Misspelled NamedQuery gives dubious Exception.
-* DATAJPA-510 - Regression in 1.5.1 - Sort by property of an associated object doesn't work. Join property and INNER vs OUTER join when sorting.
+* DATAJPA-513 - Improve error message for missing @Param annotations for query methods with named parameters.
+* DATAJPA-509 - Entity name used in 'count' queries ignores the entity name set in ORM mapping file.
+* DATAJPA-499 - Paginate with QueryDSL generate "nulls last" illegal syntax when using MSSQL.
+* DATAJPA-479 - Oracle Function Type should be supported in Spring Data JPA.
+* DATAJPA-455 - Add support for JPA 2.1 stored procedures.
+* DATAJPA-438 - JpaRepository: add Optional<T> as alternative to null result.
 
 
 Changes in version 1.5.2.RELEASE (2014-04-15)
