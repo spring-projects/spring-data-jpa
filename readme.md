@@ -18,8 +18,8 @@ This README as well as the [reference documentation](http://docs.spring.io/sprin
 
 The main project [website](http://projects.spring.io/spring-data) contains links to basic project information such as source code, JavaDocs, Issue tracking, etc.
 
-For more detailed questions, use [stackoverflow](http://stackoverflow.com/questions/tagged/spring-data-jpa) or the [forum](forum.spring.io/forum/jpa-orm). If you are new to Spring as well as to Spring Data, look for information about [Spring projects](http://projects.spring.io). You should also have a look at our new Spring Guide
-[Accessing Data with JPA](https://spring.io/guides/gs/accessing-data-jpa/) that leverages the simplified configuration provided by [Spring Boot](http://projects.spring.io/spring-boot/).
+For more detailed questions, use [stackoverflow](http://stackoverflow.com/questions/tagged/spring-data-jpa) or the [forum](forum.spring.io/forum/jpa-orm). If you are new to Spring as well as to Spring Data, look for information about [Spring projects](http://projects.spring.io). You should also have a look at our new Spring Guides
+[Accessing Data with JPA](http://spring.io/guides/gs/accessing-data-jpa/) that leverages the simplified configuration provided by [Spring Boot](http://projects.spring.io/spring-boot/) as well as [Accessing JPA Data with REST](http://spring.io/guides/gs/accessing-data-rest/)..
 
 
 ## Quick Start ##
