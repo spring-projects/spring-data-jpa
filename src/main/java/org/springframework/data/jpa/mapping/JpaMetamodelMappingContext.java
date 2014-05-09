@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2012-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@ package org.springframework.data.jpa.mapping;
 
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.persistence.metamodel.Metamodel;
 
@@ -30,6 +32,7 @@ import org.springframework.util.Assert;
  * {@link MappingContext} implementation based on a Jpa {@link Metamodel}.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  * @since 1.3
  */
 public class JpaMetamodelMappingContext extends
@@ -46,6 +49,28 @@ public class JpaMetamodelMappingContext extends
 
 		Assert.notNull(model, "JPA Metamodel must not be null!");
 		this.model = model;
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.mapping.context.AbstractMappingContext#setInitialEntitySet(java.util.Set)
+	 */
+	@Override
+	public void setInitialEntitySet(Set<? extends Class<?>> initialEntitySet) {
+
+		Set<Class<?>> set = new HashSet<Class<?>>();
+
+		for (Class<?> entityType : initialEntitySet) {
+
+			// FIX for DATAJPA-525
+			if (entityType == null) {
+				continue;
+			}
+
+			set.add(entityType);
+		}
+
+		super.setInitialEntitySet(set);
 	}
 
 	/* 
