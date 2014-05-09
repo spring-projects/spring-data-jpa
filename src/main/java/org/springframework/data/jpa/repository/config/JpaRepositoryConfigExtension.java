@@ -203,7 +203,12 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 			Set<Class<?>> entitySources = new HashSet<Class<?>>(managedTypes.size());
 
 			for (ManagedType<?> type : managedTypes) {
-				entitySources.add(type.getJavaType());
+
+				Class<?> javaType = type.getJavaType();
+
+				if (javaType != null) {
+					entitySources.add(javaType);
+				}
 			}
 
 			JpaMetamodelMappingContext context = new JpaMetamodelMappingContext(metamodel);
