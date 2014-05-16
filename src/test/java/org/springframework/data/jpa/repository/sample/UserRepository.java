@@ -445,4 +445,10 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	 * @see DATAJPA-551
 	 */
 	Slice<User> findTop2UsersBy(Pageable page);
+	
+	/**
+	 * @see DATAJPA-506
+	 */
+	@Query(value = "select u.binaryData from User u where u.id = ?", nativeQuery = true)
+	byte[] findBinaryDataByIdNative(Integer id);
 }
