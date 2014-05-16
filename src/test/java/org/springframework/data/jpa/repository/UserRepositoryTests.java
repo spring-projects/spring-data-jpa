@@ -1389,6 +1389,23 @@ public class UserRepositoryTests {
 		flushTestUsers();
 
 		byte[] result = null; // repository.findBinaryDataByIdJpaQl(firstUser.getId());
+
+		assertThat(result.length, is(data.length));
+		assertThat(result, is(data));
+	}
+
+	/**
+	 * @see DATAJPA-506
+	 */
+	@Test
+	public void findBinaryDataByIdNative() throws Exception {
+
+		byte[] data = "Woho!!".getBytes("UTF-8");
+		firstUser.setBinaryData(data);
+
+		flushTestUsers();
+
+		byte[] result = repository.findBinaryDataByIdNative(firstUser.getId());
 		assertThat(result.length, is(data.length));
 		assertThat(result, is(data));
 	}
