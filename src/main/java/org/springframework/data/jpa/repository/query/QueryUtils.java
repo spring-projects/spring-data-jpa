@@ -332,22 +332,41 @@ public abstract class QueryUtils {
 	}
 
 	/**
-	 * Creates a count projected query from the given orginal query.
+	 * Creates a count projected query from the given original query.
 	 * 
 	 * @param originalQuery must not be {@literal null} or empty
 	 * @return
 	 */
 	public static String createCountQueryFor(String originalQuery) {
+		return createCountQueryFor(originalQuery, null);
+	}
 
-		Assert.hasText(originalQuery);
+	/**
+	 * Creates a count projected query from the given original query.
+	 * 
+	 * @param originalQuery must not be {@literal null}
+	 * @param countProjection may be {@literal null}
+	 * @return
+	 * @since 1.6
+	 */
+	public static String createCountQueryFor(String originalQuery, String countProjection) {
+
+		Assert.hasText(originalQuery, "OriginalQuery must not be null or empty!");
 
 		Matcher matcher = COUNT_MATCH.matcher(originalQuery);
-		String variable = matcher.matches() ? matcher.group(4) : null;
-		boolean useVariable = StringUtils.hasText(variable) && !variable.startsWith("new")
-				&& !variable.startsWith("count(") && !variable.contains(",");
+		String countQuery = null;
 
-		String countQuery = matcher.replaceFirst(String.format(COUNT_REPLACEMENT_TEMPLATE, useVariable ? SIMPLE_COUNT_VALUE
-				: COMPLEX_COUNT_VALUE));
+		if (countProjection == null) {
+
+			String variable = matcher.matches() ? matcher.group(4) : null;
+			boolean useVariable = variable != null && StringUtils.hasText(variable) && !variable.startsWith("new")
+					&& !variable.startsWith("count(") && !variable.contains(",");
+
+			countQuery = matcher.replaceFirst(String.format(COUNT_REPLACEMENT_TEMPLATE, useVariable ? SIMPLE_COUNT_VALUE
+					: COMPLEX_COUNT_VALUE));
+		} else {
+			countQuery = matcher.replaceFirst(String.format(COUNT_REPLACEMENT_TEMPLATE, countProjection));
+		}
 
 		return countQuery.replaceFirst(ORDER_BY_PART, "");
 	}
