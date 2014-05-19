@@ -886,6 +886,135 @@ int setFixedFirstnameFor(String firstname, String lastname);</programlisting>
         number of pages.</para>
       </example>
     </section>
+
+    <section id="jpa.entity-graph">
+      <title>Configuring Fetch- and LoadGraphs</title>
+
+      <para>The JPA 2.1 specification introduced support for specifiying
+      Fetch- and LoadGraphs that we also support via the
+      <interfacename>EntityGraph</interfacename> annotation which allows to
+      reference a <interfacename>NamedEntityGraph</interfacename> definition,
+      that can be annotated on an entity, to be used to configure the fetch
+      plan of the resulting query. The type (Fetch / Load) of the fetching can
+      be configured via the <code>type</code> attribute on the
+      <interfacename>EntityGraph</interfacename> annotation. Please have a
+      look at the JPA 2.1 Spec 3.7.4 for further reference.</para>
+
+      <example>
+        <title>Defining a named entity graph on an entity.</title>
+
+        <programlisting language="java">@Entity
+@NamedEntityGraph(name = "GroupInfo.detail",
+  attributeNodes = @NamedAttributeNode("members"))
+public class GroupInfo {
+
+  // default fetch mode is lazy.
+  @ManyToMany
+  List&lt;GroupMember&gt; members = new ArrayList&lt;GroupMember&gt;();
+
+  …
+}</programlisting>
+      </example>
+
+      <example>
+        <title>Referencing a named entity graph definition on an repository
+        query method.</title>
+
+        <programlisting language="java">@Repository
+public interface GroupRepository extends CrudRepository&lt;GroupInfo, String&gt; {
+
+  @EntityGraph(value = "GroupInfo.detail", type = EntityGraphType.LOAD)
+  GroupInfo getByGroupName(String name);
+
+}</programlisting>
+
+        <para/>
+      </example>
+    </section>
+  </section>
+
+  <section id="jpa.stored-procedures">
+    <title>Stored procedures</title>
+
+    <para>The JPA 2.1 specification introduced support for calling stored
+    procedures via the JPA criteria query API. We Introduced the
+    <interfacename>Procedure</interfacename> annotation for declaring stored
+    procedure metadata on a repository method.</para>
+
+    <example>
+      <title>The definition of the pus1inout procedure in HSQL DB.</title>
+
+      <programlisting language="sql">/;
+DROP procedure IF EXISTS plus1inout
+/;
+CREATE procedure plus1inout (IN arg int, OUT res int)
+BEGIN ATOMIC
+ set res = arg + 1;
+END
+/;</programlisting>
+    </example>
+
+    <section id="jpa.stored-procedure-entity-metadata">
+      <para>Metadata for stored procedures can be configured via the
+      <interfacename>NamedStoredProcedureQuery</interfacename> annotation on
+      an entity type.</para>
+
+      <example>
+        <title>StoredProcedure metadata definitions on an entity.</title>
+
+        <programlisting language="java">@Entity
+@NamedStoredProcedureQuery(name = "User.plus1", procedureName = "plus1inout", parameters = {
+  @StoredProcedureParameter(mode = ParameterMode.IN, name = "arg", type = Integer.class),
+  @StoredProcedureParameter(mode = ParameterMode.OUT, name = "res", type = Integer.class) })
+public class User {
+
+}</programlisting>
+      </example>
+    </section>
+
+    <section id="jpa.stored-procedure-reference">
+      <para>Stored procedures can be referenced from a
+      <interfacename>Repository</interfacename> method in multiple ways. The
+      stored procedure to be called can either be defined directly via the
+      <code>value</code> or <code>procedureName</code> attribute of the
+      <interfacename>@Procedure</interfacename> annotation or indirectly via
+      the <code>name</code> attribute. If no name is configured the name of
+      the repository method is used as a fallback.</para>
+
+      <example>
+        <title>Referencing explicitly mapped procedure with name "plus1inout"
+        in database.</title>
+
+        <programlisting language="java">@Procedure("plus1inout")
+Integer explicitlyNamedPlus1inout(Integer arg);</programlisting>
+      </example>
+
+      <example>
+        <title>Referencing implicitly mapped procedure with name "plus1inout"
+        in database via <code>procedureName</code> alias.</title>
+
+        <programlisting language="java">@Procedure(procedureName = "plus1inout")
+Integer plus1inout(Integer arg);</programlisting>
+      </example>
+
+      <example>
+        <title>Referencing explicitly mapped named stored procedure
+        "User.plus1IO" in
+        <interfacename>EntityManager</interfacename>.</title>
+
+        <programlisting language="java">@Procedure(name = "User.plus1IO")
+Integer entityAnnotatedCustomNamedProcedurePlus1IO(@Param("arg") Integer arg);</programlisting>
+      </example>
+
+      <example>
+        <title>Referencing implicitly mapped named stored procedure
+        "User.plus1" in <interfacename>EntityManager</interfacename> via
+        method-name.</title>
+
+        <programlisting language="java">@Procedure
+Integer plus1(@Param("arg") Integer arg);</programlisting>
+      </example>
+    </section>
   </section>
 
   <section id="specifications">
