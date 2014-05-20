@@ -10,6 +10,17 @@ Changes in version 1.5.3.RELEASE (2014-06-18)
 * DATAJPA-527 - CrudRepository.exists(ID id) fails for entity with @IdClass.
 
 
+Changes in version 1.6.0.RELEASE (2014-05-20)
+---------------------------------------------
+* DATAJPA-544 - Add Travis build configuration to trigger matrix builds.
+* DATAJPA-543 - Update reference documentation for JPA 2.1 features.
+* DATAJPA-542 - Release 1.6 GA.
+* DATAJPA-531 - Add link to Accessing JPA Data With REST from readme.md.
+* DATAJPA-525 - JpaMetamodelMappingContext should guard against null Java type returned from ManagedType.
+* DATAJPA-510 - Regression in 1.5.1 - Sort by property of an associated object doesn't work. Join property and INNER vs OUTER join when sorting.
+* DATAJPA-456 - Add support for specifying only the projection part of a custom count query.
+
+
 Changes in version 1.6.0.RC1 (2014-05-02)
 -----------------------------------------
 * DATAJPA-522 - Release 1.6 RC1.
