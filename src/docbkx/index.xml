@@ -74,7 +74,7 @@
   <part id="reference">
     <title>Reference Documentation</title>
 
-    <xi:include href="https://raw.github.com/SpringSource/spring-data-commons/1.8.0.RC1/src/docbkx/repositories.xml" 
+    <xi:include href="https://raw.github.com/SpringSource/spring-data-commons/1.8.0.RELEASE/src/docbkx/repositories.xml" 
     			xmlns:xi="http://www.w3.org/2001/XInclude">
     	<xi:fallback href="../../../spring-data-commons/src/docbkx/repositories.xml" />
     </xi:include>
@@ -85,12 +85,12 @@
   <part id="appendix">
     <title>Appendix</title>
     
-    <xi:include href="https://raw.github.com/SpringSource/spring-data-commons/1.8.0.RC1/src/docbkx/repository-namespace-reference.xml" 
+    <xi:include href="https://raw.github.com/SpringSource/spring-data-commons/1.8.0.RELEASE/src/docbkx/repository-namespace-reference.xml" 
     			xmlns:xi="http://www.w3.org/2001/XInclude">
     	<xi:fallback href="../../../spring-data-commons/src/docbkx/repository-namespace-reference.xml" />
     </xi:include>
     
-    <xi:include href="https://raw.github.com/SpringSource/spring-data-commons/1.8.0.RC1/src/docbkx/repository-query-keywords-reference.xml" 
+    <xi:include href="https://raw.github.com/SpringSource/spring-data-commons/1.8.0.RELEASE/src/docbkx/repository-query-keywords-reference.xml" 
     			xmlns:xi="http://www.w3.org/2001/XInclude">
     	<xi:fallback href="../../../spring-data-commons/src/docbkx/repository-query-keywords-reference.xml" />
     </xi:include>
