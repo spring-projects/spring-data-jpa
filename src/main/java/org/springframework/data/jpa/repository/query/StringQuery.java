@@ -165,7 +165,7 @@ class StringQuery {
 			builder.append("(");
 			builder.append("%?(\\?(\\d+))%?"); // position parameter
 			builder.append("|"); // or
-			builder.append("%?(:(\\w+))%?"); // named parameter;
+			builder.append("%?(:([\\p{L}\\w]+))%?"); // named parameter;
 			builder.append(")");
 			builder.append("\\)?"); // optional braces around paramters
 
