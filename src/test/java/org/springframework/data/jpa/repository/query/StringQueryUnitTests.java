@@ -246,6 +246,62 @@ public class StringQueryUnitTests {
 		query.getBindingFor(null);
 	}
 
+	/**
+	 * @see DATAJPA-545
+	 */
+	@Test
+	public void detectsInBindingWithSpecialFrenchCharactersInParentheses() {
+
+		StringQuery query = new StringQuery("select * from MyEntity where abonnés in (:abonnés)");
+
+		List<ParameterBinding> bindings = query.getParameterBindings();
+
+		assertThat(bindings, hasSize(1));
+		assertNamedBinding(InParameterBinding.class, "abonnés", bindings.get(0));
+	}
+
+	/**
+	 * @see DATAJPA-545
+	 */
+	@Test
+	public void detectsInBindingWithSpecialCharactersInParentheses() {
+
+		StringQuery query = new StringQuery("select * from MyEntity where øre in (:øre)");
+
+		List<ParameterBinding> bindings = query.getParameterBindings();
+
+		assertThat(bindings, hasSize(1));
+		assertNamedBinding(InParameterBinding.class, "øre", bindings.get(0));
+	}
+
+	/**
+	 * @see DATAJPA-545
+	 */
+	@Test
+	public void detectsInBindingWithSpecialAsianCharactersInParentheses() {
+
+		StringQuery query = new StringQuery("select * from MyEntity where 생일 in (:생일)");
+
+		List<ParameterBinding> bindings = query.getParameterBindings();
+
+		assertThat(bindings, hasSize(1));
+		assertNamedBinding(InParameterBinding.class, "생일", bindings.get(0));
+	}
+
+	/**
+	 * @see DATAJPA-545
+	 */
+	@Test
+	public void detectsInBindingWithSpecialCharactersAndWordCharactersMixedInParentheses() {
+
+		StringQuery query = new StringQuery("select * from MyEntity where foo in (:ab1babc생일233)");
+
+		List<ParameterBinding> bindings = query.getParameterBindings();
+
+		assertThat(bindings, hasSize(1));
+		assertNamedBinding(InParameterBinding.class, "ab1babc생일233", bindings.get(0));
+	}
+
 	private void assertPositionalBinding(Class<? extends ParameterBinding> bindingType, Integer position,
 			ParameterBinding expectedBinding) {
 
