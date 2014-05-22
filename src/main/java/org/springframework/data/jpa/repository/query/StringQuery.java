@@ -15,8 +15,9 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static java.util.regex.Pattern.*;
-import static org.springframework.util.ObjectUtils.*;
+import static java.util.regex.Pattern.CASE_INSENSITIVE;
+import static org.springframework.util.ObjectUtils.nullSafeEquals;
+import static org.springframework.util.ObjectUtils.nullSafeHashCode;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
@@ -165,7 +166,7 @@ class StringQuery {
 			builder.append("(");
 			builder.append("%?(\\?(\\d+))%?"); // position parameter
 			builder.append("|"); // or
-			builder.append("%?(:(\\w+))%?"); // named parameter;
+			builder.append("%?(:([\\p{L}\\w]+))%?"); // named parameter;
 			builder.append(")");
 			builder.append("\\)?"); // optional braces around paramters
 
