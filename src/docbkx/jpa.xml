@@ -67,9 +67,9 @@
                 <code>repositories</code> element. Usually used if multiple
                 <interfacename>EntityManagerFactory</interfacename> beans are
                 used within the application. If not configured we will
-                automatically lookup the single
-                <interfacename>EntityManagerFactory</interfacename> configured
-                in the
+                automatically lookup the
+                <interfacename>EntityManagerFactory</interfacename> bean with
+                the name <code>entityManagerFactory</code> in the
                 <interfacename>ApplicationContext</interfacename>.</entry>
               </row>
 
