@@ -215,4 +215,52 @@ public class RepositoryWithCompositeKeyTests {
 		assertThat(result.get(0), is(emp3));
 		assertThat(result.get(1), is(emp1));
 	}
+
+	/**
+	 * @see DATAJPA-527
+	 */
+	@Test
+	public void testExistsWithIdClass() {
+
+		IdClassExampleDepartment dep = new IdClassExampleDepartment();
+		dep.setName("TestDepartment");
+		dep.setDepartmentId(-1);
+
+		IdClassExampleEmployee emp = new IdClassExampleEmployee();
+		emp.setDepartment(dep);
+
+		employeeRepositoryWithIdClass.save(emp);
+
+		IdClassExampleEmployeePK key = new IdClassExampleEmployeePK();
+		key.setDepartment(dep.getDepartmentId());
+		key.setEmpId(emp.getEmpId());
+
+		assertThat(employeeRepositoryWithIdClass.exists(key), is(true));
+	}
+
+	/**
+	 * @see DATAJPA-527
+	 */
+	@Test
+	public void testExistsWithEmbeddedId() {
+
+		EmbeddedIdExampleDepartment dep1 = new EmbeddedIdExampleDepartment();
+		dep1.setDepartmentId(1L);
+		dep1.setName("Dep1");
+
+		EmbeddedIdExampleEmployeePK key = new EmbeddedIdExampleEmployeePK();
+		key.setDepartmentId(1L);
+		key.setEmployeeId(1L);
+
+		EmbeddedIdExampleEmployee emp = new EmbeddedIdExampleEmployee();
+		emp.setDepartment(dep1);
+		emp.setEmployeePk(key);
+
+		emp = employeeRepositoryWithEmbeddedId.save(emp);
+
+		key.setDepartmentId(emp.getDepartment().getDepartmentId());
+		key.setEmployeeId(emp.getEmployeePk().getEmployeeId());
+
+		assertThat(employeeRepositoryWithEmbeddedId.exists(key), is(true));
+	}
 }
