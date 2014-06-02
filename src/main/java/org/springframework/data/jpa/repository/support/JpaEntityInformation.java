@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import javax.persistence.metamodel.SingularAttribute;
 import org.springframework.data.repository.core.EntityInformation;
 
 /**
- * Extension of {@link EntityInformation} to capture aditional JPA specific information about entities.
+ * Extension of {@link EntityInformation} to capture additional JPA specific information about entities.
  * 
  * @author Oliver Gierke
  * @author Thomas Darimont
@@ -38,7 +38,7 @@ public interface JpaEntityInformation<T, ID extends Serializable> extends Entity
 	SingularAttribute<? super T, ?> getIdAttribute();
 
 	/**
-	 * Returns {@literal true} if the entity has a composite id
+	 * Returns {@literal true} if the entity has a composite id.
 	 * 
 	 * @return
 	 */
