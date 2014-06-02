@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2013 the original author or authors.
+ * Copyright 2008-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,14 +40,14 @@ import org.springframework.transaction.annotation.Transactional;
  * Integration test for {@link JpaRepository}.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({ "classpath:infrastructure.xml" })
 @Transactional
 public class JpaRepositoryTests {
 
-	@PersistenceContext
-	EntityManager em;
+	@PersistenceContext EntityManager em;
 
 	JpaRepository<SampleEntity, SampleEntityPK> repository;
 	CrudRepository<SampleWithIdClass, SampleWithIdClassPK> idClassRepository;
@@ -102,6 +102,23 @@ public class JpaRepositoryTests {
 		assertThat(idClassRepository.exists(s1.getId()), is(true));
 		assertThat(idClassRepository.exists(s2.getId()), is(true));
 		assertThat(idClassRepository.exists(new SampleWithIdClassPK(1L, 2L)), is(false));
+	}
+
+	/**
+	 * @see DATAJPA-527
+	 */
+	@Test
+	public void executesExistsForEntityWithIdClass() {
+
+		SampleWithIdClass entity = new SampleWithIdClass(1L, 1L);
+		idClassRepository.save(entity);
+
+		assertThat(entity.getFirst(), is(notNullValue()));
+		assertThat(entity.getSecond(), is(notNullValue()));
+
+		SampleWithIdClassPK id = new SampleWithIdClassPK(entity.getFirst(), entity.getSecond());
+
+		assertThat(idClassRepository.exists(id), is(true));
 	}
 
 	private static interface SampleEntityRepository extends JpaRepository<SampleEntity, SampleEntityPK> {

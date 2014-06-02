@@ -241,27 +241,39 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 
 		Assert.notNull(id, "The given id must not be null!");
 
-		if (entityInformation.getIdAttribute() != null) {
-
-			String placeholder = provider.getCountQueryPlaceholder();
-			String entityName = entityInformation.getEntityName();
-			Iterable<String> idAttributeNames = entityInformation.getIdAttributeNames();
-			String existsQuery = QueryUtils.getExistsQueryString(entityName, placeholder, idAttributeNames);
-
-			TypedQuery<Long> query = em.createQuery(existsQuery, Long.class);
-
-			if (entityInformation.hasCompositeId()) {
-				for (String idAttributeName : idAttributeNames) {
-					query.setParameter(idAttributeName, entityInformation.getCompositeIdAttributeValue(id, idAttributeName));
-				}
-			} else {
-				query.setParameter(idAttributeNames.iterator().next(), id);
-			}
-
-			return query.getSingleResult() == 1L;
-		} else {
+		if (entityInformation.getIdAttribute() == null) {
 			return findOne(id) != null;
 		}
+
+		String placeholder = provider.getCountQueryPlaceholder();
+		String entityName = entityInformation.getEntityName();
+		Iterable<String> idAttributeNames = entityInformation.getIdAttributeNames();
+		String existsQuery = QueryUtils.getExistsQueryString(entityName, placeholder, idAttributeNames);
+
+		TypedQuery<Long> query = em.createQuery(existsQuery, Long.class);
+
+		if (!entityInformation.hasCompositeId()) {
+			query.setParameter(idAttributeNames.iterator().next(), id);
+			return query.getSingleResult() == 1L;
+		}
+
+		for (String idAttributeName : idAttributeNames) {
+
+			Object idAttributeValue = entityInformation.getCompositeIdAttributeValue(id, idAttributeName);
+
+			boolean complexIdParameterValueDiscovered = idAttributeValue != null
+					&& !query.getParameter(idAttributeName).getParameterType().isAssignableFrom(idAttributeValue.getClass());
+
+			if (complexIdParameterValueDiscovered) {
+
+				// fall-back to findOne(id) which does the proper mapping for the parameter.
+				return findOne(id) != null;
+			}
+
+			query.setParameter(idAttributeName, idAttributeValue);
+		}
+
+		return query.getSingleResult() == 1L;
 	}
 
 	/*
