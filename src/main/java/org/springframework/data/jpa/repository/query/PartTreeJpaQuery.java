@@ -128,7 +128,37 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 			}
 
 			TypedQuery<?> jpaQuery = createQuery(criteriaQuery);
-			return invokeBinding(getBinder(values, expressions), jpaQuery);
+
+			return restrictMaxResultsIfNecessary(invokeBinding(getBinder(values, expressions), jpaQuery));
+		}
+
+		/**
+		 * Restricts the max results of the given {@link Query} if the current {@code tree} marks this {@code query} as
+		 * limited.
+		 * 
+		 * @param query
+		 * @return
+		 */
+		private Query restrictMaxResultsIfNecessary(Query query) {
+
+			if (tree.isLimiting()) {
+
+				if (query.getMaxResults() != Integer.MAX_VALUE) {
+					/*
+					 * In order to return the correct results, we have to adjust the first result offset to be returned if:
+					 * - a Pageable parameter is present 
+					 * - AND the requested page number > 0
+					 * - AND the requested page size was bigger than the derived result limitation via the First/Top keyword.
+					 */
+					if (query.getMaxResults() > tree.getMaxResults() && query.getFirstResult() > 0) {
+						query.setFirstResult(query.getFirstResult() - (query.getMaxResults() - tree.getMaxResults()));
+					}
+				}
+
+				query.setMaxResults(tree.getMaxResults());
+			}
+
+			return query;
 		}
 
 		/**
