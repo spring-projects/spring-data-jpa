@@ -425,4 +425,24 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	 * @see DATAJPA-551
 	 */
 	List<User> findTop2UsersBy(Sort sort);
+
+	/**
+	 * @see DATAJPA-551
+	 */
+	Page<User> findFirst3UsersBy(Pageable page);
+
+	/**
+	 * @see DATAJPA-551
+	 */
+	Page<User> findFirst2UsersBy(Pageable page);
+
+	/**
+	 * @see DATAJPA-551
+	 */
+	Slice<User> findTop3UsersBy(Pageable page);
+
+	/**
+	 * @see DATAJPA-551
+	 */
+	Slice<User> findTop2UsersBy(Pageable page);
 }

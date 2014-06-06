@@ -141,9 +141,11 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 		 */
 		private Query restrictMaxResultsIfNecessary(Query query) {
 
-			if (tree.isLimiting()) {
-				query.setMaxResults(tree.getMaxResults());
+			if (!tree.isLimiting()) {
+				return query;
 			}
+
+			query.setMaxResults(tree.getMaxResults());
 
 			return query;
 		}
@@ -200,6 +202,14 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 			return parameters.potentiallySortsDynamically() ? new ParametersParameterAccessor(parameters, values).getSort()
 					: null;
 		}
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.data.jpa.repository.query.AbstractJpaQuery#isLimiting()
+	 */
+	@Override
+	protected boolean isLimiting() {
+		return tree.isLimiting();
 	}
 
 	/**

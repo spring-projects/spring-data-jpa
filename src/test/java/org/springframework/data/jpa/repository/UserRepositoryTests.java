@@ -49,6 +49,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.domain.Sort.Order;
@@ -1477,6 +1478,130 @@ public class UserRepositoryTests {
 
 		assertThat(repository.findFirst2UsersBy(new Sort(ASC, "age")), hasItems(youngest1, youngest2));
 		assertThat(repository.findTop2UsersBy(new Sort(ASC, "age")), hasItems(youngest1, youngest2));
+	}
+
+	/**
+	 * @see DATAJPA-551
+	 */
+	@Test
+	public void find3YoungestUsersPageableWithPageSize2() {
+
+		flushTestUsers();
+
+		User youngest1 = firstUser;
+		User youngest2 = fourthUser;
+		User youngest3 = secondUser;
+
+		Page<User> firstPage = repository.findFirst3UsersBy(new PageRequest(0, 2, ASC, "age"));
+		assertThat(firstPage.getContent(), hasItems(youngest1, youngest2));
+		assertThat(firstPage.hasNext(), is(true));
+
+		Page<User> secondPage = repository.findFirst3UsersBy(new PageRequest(1, 2, ASC, "age"));
+		assertThat(secondPage.getContent(), hasItems(youngest3));
+		assertThat(secondPage.hasNext(), is(false));
+	}
+
+	/**
+	 * @see DATAJPA-551
+	 */
+	@Test
+	public void find3YoungestUsersPageableWithPageSize4() {
+
+		flushTestUsers();
+
+		User youngest1 = firstUser;
+		User youngest2 = fourthUser;
+		User youngest3 = secondUser;
+
+		Page<User> firstPage = repository.findFirst3UsersBy(new PageRequest(0, 4, ASC, "age"));
+
+		assertThat(firstPage.getContent(), hasItems(youngest1, youngest2, youngest3));
+		assertThat(firstPage.hasNext(), is(false));
+	}
+
+	/**
+	 * @see DATAJPA-551
+	 */
+	@Test
+	public void find3YoungestUsersPageableWithPageSize2And2Page() {
+
+		flushTestUsers();
+
+		User youngest3 = secondUser;
+
+		Page<User> second = repository.findFirst3UsersBy(new PageRequest(1, 2, ASC, "age"));
+
+		assertThat(second.getContent(), hasItems(youngest3));
+		assertThat(second.hasNext(), is(false));
+	}
+
+	/**
+	 * @see DATAJPA-551
+	 */
+	@Test
+	public void find2YoungestUsersPageableWithPageSize4And2Page() {
+
+		flushTestUsers();
+
+		Page<User> secondPage = repository.findFirst2UsersBy(new PageRequest(1, 4, ASC, "age"));
+
+		assertThat(secondPage.getContent(), hasSize(0));
+		assertThat(secondPage.hasNext(), is(false));
+	}
+
+	/**
+	 * @see DATAJPA-551
+	 */
+	@Test
+	public void find3YoungestUsersPageableWithPageSize2Sliced() {
+
+		flushTestUsers();
+
+		User youngest1 = firstUser;
+		User youngest2 = fourthUser;
+		User youngest3 = secondUser;
+
+		Slice<User> firstPage = repository.findTop3UsersBy(new PageRequest(0, 2, ASC, "age"));
+		assertThat(firstPage.getContent(), hasItems(youngest1, youngest2));
+		assertThat(firstPage.hasNext(), is(true));
+
+		Slice<User> secondPage = repository.findTop3UsersBy(new PageRequest(1, 2, ASC, "age"));
+		assertThat(secondPage.getContent(), hasItems(youngest3));
+		assertThat(secondPage.hasNext(), is(false));
+	}
+
+	/**
+	 * @see DATAJPA-551
+	 */
+	@Test
+	public void find2YoungestUsersPageableWithPageSize3Sliced() {
+
+		flushTestUsers();
+
+		User youngest1 = firstUser;
+		User youngest2 = fourthUser;
+
+		Slice<User> firstPage = repository.findTop2UsersBy(new PageRequest(0, 3, ASC, "age"));
+
+		assertThat(firstPage.getContent(), hasItems(youngest1, youngest2));
+		assertThat(firstPage.hasNext(), is(false));
+	}
+
+	/**
+	 * @see DATAJPA-551
+	 */
+	@Test
+	public void find2YoungestUsersPageableWithPageSize2Sliced() {
+
+		flushTestUsers();
+
+		User youngest1 = firstUser;
+		User youngest2 = fourthUser;
+
+		Slice<User> firstPage = repository.findTop2UsersBy(new PageRequest(0, 2, ASC, "age"));
+
+		assertThat(firstPage.getContent(), hasItems(youngest1, youngest2));
+		assertThat(firstPage.hasNext(), is(false));
 	}
 
 	private Page<User> executeSpecWithSort(Sort sort) {
