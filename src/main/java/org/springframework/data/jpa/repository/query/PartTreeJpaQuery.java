@@ -128,7 +128,24 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 			}
 
 			TypedQuery<?> jpaQuery = createQuery(criteriaQuery);
-			return invokeBinding(getBinder(values, expressions), jpaQuery);
+
+			return restrictMaxResultsIfNecessary(invokeBinding(getBinder(values, expressions), jpaQuery));
+		}
+
+		/**
+		 * Restricts the max results of the given {@link Query} if the current {@code tree} marks this {@code query} as
+		 * limited.
+		 * 
+		 * @param query
+		 * @return
+		 */
+		private Query restrictMaxResultsIfNecessary(Query query) {
+
+			if (tree.isLimiting()) {
+				query.setMaxResults(tree.getMaxResults());
+			}
+
+			return query;
 		}
 
 		/**

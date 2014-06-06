@@ -1421,6 +1421,64 @@ public class UserRepositoryTests {
 		assertThat(result.getContent().size(), is(1));
 	}
 
+	/**
+	 * @see DATAJPA-551
+	 */
+	@Test
+	public void findOldestUser() {
+
+		flushTestUsers();
+
+		User oldest = thirdUser;
+
+		assertThat(repository.findFirstByOrderByAgeDesc(), is(oldest));
+		assertThat(repository.findFirst1ByOrderByAgeDesc(), is(oldest));
+	}
+
+	/**
+	 * @see DATAJPA-551
+	 */
+	@Test
+	public void findYoungestUser() {
+
+		flushTestUsers();
+
+		User youngest = firstUser;
+
+		assertThat(repository.findTopByOrderByAgeAsc(), is(youngest));
+		assertThat(repository.findTop1ByOrderByAgeAsc(), is(youngest));
+	}
+
+	/**
+	 * @see DATAJPA-551
+	 */
+	@Test
+	public void find2OldestUsers() {
+
+		flushTestUsers();
+
+		User oldest1 = thirdUser;
+		User oldest2 = secondUser;
+
+		assertThat(repository.findFirst2ByOrderByAgeDesc(), hasItems(oldest1, oldest2));
+		assertThat(repository.findTop2ByOrderByAgeDesc(), hasItems(oldest1, oldest2));
+	}
+
+	/**
+	 * @see DATAJPA-551
+	 */
+	@Test
+	public void find2YoungestUsers() {
+
+		flushTestUsers();
+
+		User youngest1 = firstUser;
+		User youngest2 = fourthUser;
+
+		assertThat(repository.findFirst2UsersBy(new Sort(ASC, "age")), hasItems(youngest1, youngest2));
+		assertThat(repository.findTop2UsersBy(new Sort(ASC, "age")), hasItems(youngest1, youngest2));
+	}
+
 	private Page<User> executeSpecWithSort(Sort sort) {
 
 		flushTestUsers();
