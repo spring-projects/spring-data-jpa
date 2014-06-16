@@ -380,4 +380,10 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	 */
 	@Query(name = "User.findBySpringDataNamedQuery", countProjection = "u.firstname")
 	Page<User> findByNamedQueryAndCountProjection(String firstname, Pageable page);
+
+	/**
+	 * @see DATAJPA-506
+	 */
+	@Query(value = "select u.binaryData from User u where u.id = ?", nativeQuery = true)
+	byte[] findBinaryDataByIdNative(Integer id);
 }

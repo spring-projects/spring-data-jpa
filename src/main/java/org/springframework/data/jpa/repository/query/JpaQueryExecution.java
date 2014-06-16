@@ -24,6 +24,7 @@ import javax.persistence.Query;
 import javax.persistence.StoredProcedureQuery;
 import javax.persistence.TypedQuery;
 
+import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -43,6 +44,12 @@ import org.springframework.util.Assert;
  */
 public abstract class JpaQueryExecution {
 
+	private static final DefaultConversionService conversionService = new DefaultConversionService();
+
+	static {
+		conversionService.addConverter(JpaResultConverters.BlobToByteArrayConverter.INSTANCE);
+	}
+
 	/**
 	 * Executes the given {@link AbstractStringBasedJpaQuery} with the given {@link ParameterBinder}.
 	 * 
@@ -55,11 +62,26 @@ public abstract class JpaQueryExecution {
 		Assert.notNull(query);
 		Assert.notNull(values);
 
+		Object result;
+
 		try {
-			return doExecute(query, values);
+			result = doExecute(query, values);
 		} catch (NoResultException e) {
 			return null;
 		}
+
+		if (result == null) {
+			return null;
+		}
+
+		JpaQueryMethod queryMethod = query.getQueryMethod();
+		Class<?> requiredType = queryMethod.getReturnType();
+
+		if (void.class.equals(requiredType) || requiredType.isAssignableFrom(result.getClass())) {
+			return result;
+		}
+
+		return conversionService.convert(result, requiredType);
 	}
 
 	/**
