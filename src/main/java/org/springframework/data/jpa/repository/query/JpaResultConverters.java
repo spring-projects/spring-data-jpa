@@ -22,6 +22,8 @@ import java.sql.Blob;
 import java.sql.SQLException;
 
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.dao.CleanupFailureDataAccessException;
+import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.util.StreamUtils;
 
 /**
@@ -53,9 +55,10 @@ class JpaResultConverters {
 				return null;
 			}
 
+			InputStream blobStream = null;
 			try {
 
-				InputStream blobStream = source.getBinaryStream();
+				blobStream = source.getBinaryStream();
 
 				if (blobStream != null) {
 
@@ -65,9 +68,17 @@ class JpaResultConverters {
 				}
 
 			} catch (SQLException e) {
-				throw new RuntimeException(e);
+				throw new DataRetrievalFailureException("Couldn't retrieve data from blob.", e);
 			} catch (IOException e) {
-				throw new RuntimeException(e);
+				throw new DataRetrievalFailureException("Couldn't retrieve data from blob.", e);
+			} finally {
+				if (blobStream != null) {
+					try {
+						blobStream.close();
+					} catch (IOException e) {
+						throw new CleanupFailureDataAccessException("Couldn't close binary stream for given blob.", e);
+					}
+				}
 			}
 
 			return null;
