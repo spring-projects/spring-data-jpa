@@ -9,7 +9,6 @@ env:
     - PROFILE=spring4
     - PROFILE=spring32-next
     - PROFILE=spring4-next
-    - PROFILE=querydsl-next
     - PROFILE=hibernate-41
     - PROFILE=hibernate-42
     - PROFILE=hibernate-43
