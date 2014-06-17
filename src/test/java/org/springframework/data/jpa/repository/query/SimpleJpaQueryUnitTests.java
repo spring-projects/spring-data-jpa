@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2013 the original author or authors.
+ * Copyright 2008-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -137,14 +137,20 @@ public class SimpleJpaQueryUnitTests {
 		verify(em).createNativeQuery("SELECT u FROM User u WHERE u.lastname = ?1", User.class);
 	}
 
-	@Test(expected = IllegalStateException.class)
+	/**
+	 * @see DATAJPA-554
+	 */
+	@Test(expected = InvalidJpaQueryMethodException.class)
 	public void rejectsNativeQueryWithDynamicSort() throws Exception {
 
 		Method method = SampleRepository.class.getMethod("findNativeByLastname", String.class, Sort.class);
 		createJpaQuery(method);
 	}
 
-	@Test(expected = IllegalStateException.class)
+	/**
+	 * @see DATAJPA-554
+	 */
+	@Test(expected = InvalidJpaQueryMethodException.class)
 	public void rejectsNativeQueryWithPageable() throws Exception {
 
 		Method method = SampleRepository.class.getMethod("findNativeByLastname", String.class, Pageable.class);
