@@ -380,4 +380,69 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	 */
 	@Query(name = "User.findBySpringDataNamedQuery", countProjection = "u.firstname")
 	Page<User> findByNamedQueryAndCountProjection(String firstname, Pageable page);
+
+	/**
+	 * @see DATAJPA-551
+	 */
+	User findFirstByOrderByAgeDesc();
+
+	/**
+	 * @see DATAJPA-551
+	 */
+	User findFirst1ByOrderByAgeDesc();
+
+	/**
+	 * @see DATAJPA-551
+	 */
+	User findTopByOrderByAgeDesc();
+
+	/**
+	 * @see DATAJPA-551
+	 */
+	User findTopByOrderByAgeAsc();
+
+	/**
+	 * @see DATAJPA-551
+	 */
+	User findTop1ByOrderByAgeAsc();
+
+	/**
+	 * @see DATAJPA-551
+	 */
+	List<User> findTop2ByOrderByAgeDesc();
+
+	/**
+	 * @see DATAJPA-551
+	 */
+	List<User> findFirst2ByOrderByAgeDesc();
+
+	/**
+	 * @see DATAJPA-551
+	 */
+	List<User> findFirst2UsersBy(Sort sort);
+
+	/**
+	 * @see DATAJPA-551
+	 */
+	List<User> findTop2UsersBy(Sort sort);
+
+	/**
+	 * @see DATAJPA-551
+	 */
+	Page<User> findFirst3UsersBy(Pageable page);
+
+	/**
+	 * @see DATAJPA-551
+	 */
+	Page<User> findFirst2UsersBy(Pageable page);
+
+	/**
+	 * @see DATAJPA-551
+	 */
+	Slice<User> findTop3UsersBy(Pageable page);
+
+	/**
+	 * @see DATAJPA-551
+	 */
+	Slice<User> findTop2UsersBy(Pageable page);
 }

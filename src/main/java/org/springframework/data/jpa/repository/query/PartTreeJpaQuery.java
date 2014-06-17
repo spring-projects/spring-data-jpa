@@ -128,7 +128,26 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 			}
 
 			TypedQuery<?> jpaQuery = createQuery(criteriaQuery);
-			return invokeBinding(getBinder(values, expressions), jpaQuery);
+
+			return restrictMaxResultsIfNecessary(invokeBinding(getBinder(values, expressions), jpaQuery));
+		}
+
+		/**
+		 * Restricts the max results of the given {@link Query} if the current {@code tree} marks this {@code query} as
+		 * limited.
+		 * 
+		 * @param query
+		 * @return
+		 */
+		private Query restrictMaxResultsIfNecessary(Query query) {
+
+			if (!tree.isLimiting()) {
+				return query;
+			}
+
+			query.setMaxResults(tree.getMaxResults());
+
+			return query;
 		}
 
 		/**
@@ -183,6 +202,14 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 			return parameters.potentiallySortsDynamically() ? new ParametersParameterAccessor(parameters, values).getSort()
 					: null;
 		}
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.data.jpa.repository.query.AbstractJpaQuery#isLimiting()
+	 */
+	@Override
+	protected boolean isLimiting() {
+		return tree.isLimiting();
 	}
 
 	/**

@@ -206,4 +206,13 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 	 * @return
 	 */
 	protected abstract TypedQuery<Long> doCreateCountQuery(Object[] values);
+
+	/**
+	 * Returns {@literal true} if this query imposes a hard limit on the query results.
+	 * 
+	 * @return
+	 */
+	protected boolean isLimiting() {
+		return false;
+	}
 }

@@ -107,16 +107,21 @@ public abstract class JpaQueryExecution {
 		 */
 		@Override
 		@SuppressWarnings("unchecked")
-		protected Object doExecute(AbstractJpaQuery query, Object[] values) {
+		protected Object doExecute(AbstractJpaQuery jpaQuery, Object[] values) {
 
 			ParametersParameterAccessor accessor = new ParametersParameterAccessor(parameters, values);
 			Pageable pageable = accessor.getPageable();
 
-			Query createQuery = query.createQuery(values);
+			Query query = jpaQuery.createQuery(values);
 			int pageSize = pageable.getPageSize();
-			createQuery.setMaxResults(pageSize + 1);
 
-			List<Object> resultList = createQuery.getResultList();
+			boolean queryIsUnrestricted = !jpaQuery.isLimiting() || query.getMaxResults() > pageSize;
+			if (queryIsUnrestricted) {
+				// We try to fetch an additional row to test whether there is more data available
+				query.setMaxResults(pageSize + 1);
+			}
+
+			List<Object> resultList = query.getResultList();
 			boolean hasNext = resultList.size() > pageSize;
 
 			return new SliceImpl<Object>(hasNext ? resultList.subList(0, pageSize) : resultList, pageable, hasNext);
