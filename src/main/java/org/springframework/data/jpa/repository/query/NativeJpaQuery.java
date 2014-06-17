@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,8 @@ final class NativeJpaQuery extends AbstractStringBasedJpaQuery {
 		boolean hasPagingOrSortingParameter = parameters.hasPageableParameter() || parameters.hasSortParameter();
 
 		if (hasPagingOrSortingParameter) {
-			throw new IllegalStateException("Cannot use native queries with dynamic sorting and/or pagination!");
+			throw new InvalidJpaQueryMethodException(
+					"Cannot use native queries with dynamic sorting and/or pagination in Method " + method);
 		}
 	}
 

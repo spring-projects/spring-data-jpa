@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2013 the original author or authors.
+ * Copyright 2012-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.Repository;
@@ -43,6 +45,7 @@ import org.springframework.data.repository.query.QueryLookupStrategy.Key;
  * Unit tests for {@link JpaQueryLookupStrategy}.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 @RunWith(MockitoJUnitRunner.class)
 public class JpaQueryLookupStrategyUnitTests {
@@ -79,9 +82,32 @@ public class JpaQueryLookupStrategyUnitTests {
 		}
 	}
 
+	/**
+	 * @see DATAJPA-554
+	 */
+	@Test
+	public void sholdThrowMorePreciseExceptionIfTryingToUsePaginationInNativeQueries() throws Exception {
+
+		QueryLookupStrategy strategy = JpaQueryLookupStrategy.create(em, Key.CREATE_IF_NOT_FOUND, extractor);
+		Method method = UserRepository.class.getMethod("findByInvalidNativeQuery", String.class, Pageable.class);
+		RepositoryMetadata metadata = new DefaultRepositoryMetadata(UserRepository.class);
+
+		try {
+			strategy.resolveQuery(method, metadata, namedQueries);
+		} catch (Exception e) {
+			assertThat(e, is(instanceOf(InvalidJpaQueryMethodException.class)));
+			assertThat(e.getMessage(),
+					is(containsString("Cannot use native queries with dynamic sorting and/or pagination in Method")));
+			assertThat(e.getMessage(), is(containsString(method.toString())));
+		}
+	}
+
 	interface UserRepository extends Repository<User, Long> {
 
 		@Query("something absurd")
 		User findByFoo(String foo);
+
+		@Query(value = "select u.* from User u", nativeQuery = true)
+		Page<User> findByInvalidNativeQuery(String param, Pageable page);
 	}
 }
