@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
@@ -14,7 +14,7 @@
 	<parent>
 		<groupId>org.springframework.data.build</groupId>
 		<artifactId>spring-data-parent</artifactId>
-		<version>1.3.3.BUILD-SNAPSHOT</version>
+		<version>1.3.3.RELEASE</version>
 		<relativePath>../spring-data-build/parent/pom.xml</relativePath>
 	</parent>
 
@@ -27,7 +27,7 @@
 		<hsqldb1>1.8.0.10</hsqldb1>
 		<jpa>2.0.0</jpa>
 		<openjpa>2.2.1</openjpa>
-		<springdata.commons>1.7.3.BUILD-SNAPSHOT</springdata.commons>
+		<springdata.commons>1.7.3.RELEASE</springdata.commons>
 
 		<sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
 
@@ -423,8 +423,8 @@
 
 	<repositories>
 		<repository>
-			<id>spring-libs-snapshot</id>
- 			<url>http://repo.spring.io/libs-snapshot</url>
+			<id>spring-libs-release</id>
+ 			<url>http://repo.spring.io/libs-release</url>
 		</repository>
 	</repositories>
 
