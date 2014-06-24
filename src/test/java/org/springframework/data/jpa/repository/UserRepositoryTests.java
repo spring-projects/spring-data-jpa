@@ -1556,6 +1556,32 @@ public class UserRepositoryTests {
 		assertThat(secondPage.getContent(), hasItems(youngest3));
 	}
 
+	/**
+	 * @see DATAJPA-XXX
+	 */
+	@Test
+	public void shouldFindUserByFirstnameAndLastnameWithSpelExpressionInStringBasedQuery() {
+
+		flushTestUsers();
+		List<User> users = repository.findByFirstnameAndLastnameWithSpelExpression("Oliver", "ierk");
+
+		assertThat(users, hasSize(1));
+		assertThat(users.get(0), is(firstUser));
+	}
+
+	/**
+	 * @see DATAJPA-XXX
+	 */
+	@Test
+	public void shouldFindUserByLastnameWithSpelExpressionInStringBasedQuery() {
+
+		flushTestUsers();
+		List<User> users = repository.findByLastnameWithSpelExpression("ierk");
+
+		assertThat(users, hasSize(1));
+		assertThat(users.get(0), is(firstUser));
+	}
+
 	private Page<User> executeSpecWithSort(Sort sort) {
 
 		flushTestUsers();

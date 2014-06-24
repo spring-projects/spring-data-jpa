@@ -41,6 +41,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	private final EntityManager entityManager;
 	private final QueryExtractor extractor;
 	private final CrudMethodMetadataPostProcessor lockModePostProcessor;
+	private final ExpressionEvaluationContextProvider evaluationContextProvider;
 
 	/**
 	 * Creates a new {@link JpaRepositoryFactory}.
@@ -48,12 +49,23 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	 * @param entityManager must not be {@literal null}
 	 */
 	public JpaRepositoryFactory(EntityManager entityManager) {
+		this(entityManager, StandardExpressionEvaluationContextProvider.INSTANCE);
+	}
+
+	/**
+	 * Creates a new {@link JpaRepositoryFactory}.
+	 * 
+	 * @param entityManager must not be {@literal null}
+	 * @param evaluationContextProvider must not be {@literal null}
+	 */
+	public JpaRepositoryFactory(EntityManager entityManager, ExpressionEvaluationContextProvider evaluationContextProvider) {
 
 		Assert.notNull(entityManager);
 
 		this.entityManager = entityManager;
 		this.extractor = PersistenceProvider.fromEntityManager(entityManager);
 		this.lockModePostProcessor = CrudMethodMetadataPostProcessor.INSTANCE;
+		this.evaluationContextProvider = evaluationContextProvider;
 
 		addRepositoryProxyPostProcessor(lockModePostProcessor);
 	}
@@ -132,7 +144,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	@Override
 	protected QueryLookupStrategy getQueryLookupStrategy(Key key) {
 
-		return JpaQueryLookupStrategy.create(entityManager, key, extractor);
+		return JpaQueryLookupStrategy.create(entityManager, key, extractor, evaluationContextProvider);
 	}
 
 	/*

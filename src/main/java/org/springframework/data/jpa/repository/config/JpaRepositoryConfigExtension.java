@@ -27,6 +27,7 @@ import javax.persistence.metamodel.Metamodel;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.FieldRetrievingFactoryBean;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
@@ -37,10 +38,12 @@ import org.springframework.dao.annotation.PersistenceExceptionTranslationPostPro
 import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
 import org.springframework.data.jpa.repository.support.EntityManagerBeanDefinitionRegistrarPostProcessor;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean;
+import org.springframework.data.jpa.repository.support.StandardExpressionEvaluationContextProvider;
 import org.springframework.data.repository.config.RepositoryConfigurationExtensionSupport;
 import org.springframework.data.repository.config.RepositoryConfigurationSource;
 import org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * JPA specific configuration extension parsing custom attributes from the XML namespace and
@@ -55,6 +58,8 @@ import org.springframework.util.Assert;
  * @author Gil Markham
  */
 public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensionSupport {
+
+	private static final String DEFAULT_EXPRESSION_EVALUATION_CONTEXT_PROVIDER = "expressionEvaluationContextProvider";
 
 	public static final String JPA_MAPPING_CONTEXT_BEAN_NAME = "jpaMapppingContext";
 
@@ -96,6 +101,11 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 		}
 
 		builder.addPropertyReference("mappingContext", JPA_MAPPING_CONTEXT_BEAN_NAME);
+
+		String expressionEvaluationContextProviderRef = source.getAttribute("expressionEvaluationContextProviderRef");
+		if (StringUtils.hasText(expressionEvaluationContextProviderRef)) {
+			builder.addPropertyReference("expressionEvaluationContextProvider", expressionEvaluationContextProviderRef);
+		}
 	}
 
 	/**
@@ -157,6 +167,14 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 				&& !registry.containsBeanDefinition(AnnotationConfigUtils.PERSISTENCE_ANNOTATION_PROCESSOR_BEAN_NAME)) {
 
 			registerWithSourceAndGeneratedBeanName(registry, new RootBeanDefinition(PAB_POST_PROCESSOR), source);
+		}
+
+		if (!registry.containsBeanDefinition(DEFAULT_EXPRESSION_EVALUATION_CONTEXT_PROVIDER)) {
+			registry.registerBeanDefinition(
+					DEFAULT_EXPRESSION_EVALUATION_CONTEXT_PROVIDER,
+					BeanDefinitionBuilder.rootBeanDefinition(FieldRetrievingFactoryBean.class)
+							.addPropertyValue("targetClass", StandardExpressionEvaluationContextProvider.class)
+							.addPropertyValue("targetField", "INSTANCE").getBeanDefinition());
 		}
 	}
 

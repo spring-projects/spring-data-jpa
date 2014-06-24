@@ -142,6 +142,8 @@ class StringQuery {
 
 		INSTANCE;
 
+		private static final String EXPRESSION_PREFIX = "__$synthetic$__";
+		private static final Pattern PARAMETER_BINDING_BY_INDEX = Pattern.compile("\\?(\\d+)");
 		private static final Pattern PARAMETER_BINDING_PATTERN;
 		private static final String MESSAGE = "Already found parameter binding with same index / parameter name but differing binding type! "
 				+ "Already have: %s, found %s! If you bind a parameter multiple times make sure they use the same binding.";
@@ -161,13 +163,15 @@ class StringQuery {
 			builder.append(StringUtils.collectionToDelimitedString(keywords, "|")); // keywords
 			builder.append(")?");
 			builder.append("(?: )?"); // some whitespace
-			builder.append("\\(?"); // optional braces around paramters
+			builder.append("\\(?"); // optional braces around parameters
 			builder.append("(");
-			builder.append("%?(\\?(\\d+))%?"); // position parameter
+			builder.append("%?(\\?(\\d+))%?"); // position parameter and parameter index
 			builder.append("|"); // or
-			builder.append("%?(:([\\p{L}\\w]+))%?"); // named parameter;
+			builder.append("%?(:([\\p{L}\\w]+))%?"); // named parameter and the parameter name
+			builder.append("|"); // or
+			builder.append("%?((:|\\?)#\\{([^}]+)\\})%?"); // expression parameter and expression
 			builder.append(")");
-			builder.append("\\)?"); // optional braces around paramters
+			builder.append("\\)?"); // optional braces around parameters
 
 			PARAMETER_BINDING_PATTERN = Pattern.compile(builder.toString(), CASE_INSENSITIVE);
 		}
@@ -182,8 +186,18 @@ class StringQuery {
 		private final String parseParameterBindingsOfQueryIntoBindingsAndReturnCleanedQuery(String query,
 				List<ParameterBinding> bindings) {
 
-			Matcher matcher = PARAMETER_BINDING_PATTERN.matcher(query);
 			String result = query;
+			Matcher matcher = PARAMETER_BINDING_PATTERN.matcher(query);
+
+			int greatestParameterIndex = determineGreatestParameterIndexIfPresent(query);
+
+			boolean parametersShouldBeAccessedByIndex = greatestParameterIndex != -1;
+
+			/*
+			 * If parameters need to be bound by index, we bind the synthetic expression parameters starting from position of the greatest discovered index parameter in order to
+			 * not mix-up with the actual parameter indices.  
+			 */
+			int expressionParameterIndex = parametersShouldBeAccessedByIndex ? greatestParameterIndex : 0;
 
 			while (matcher.find()) {
 
@@ -191,30 +205,46 @@ class StringQuery {
 				String parameterName = parameterIndexString != null ? null : matcher.group(6);
 				Integer parameterIndex = parameterIndexString == null ? null : Integer.valueOf(parameterIndexString);
 				String typeSource = matcher.group(1);
+				String expression = null;
+				String replacement = null;
+
+				if (parameterName == null && parameterIndex == null) {
+					expressionParameterIndex++;
+
+					if (parametersShouldBeAccessedByIndex) {
+						parameterIndex = expressionParameterIndex;
+						replacement = "?" + parameterIndex;
+					} else {
+						parameterName = EXPRESSION_PREFIX + expressionParameterIndex;
+						replacement = ":" + parameterName;
+					}
+
+					expression = matcher.group(9);
+				}
 
 				switch (ParameterBindingType.of(typeSource)) {
 
 					case LIKE:
 
 						Type likeType = LikeParameterBinding.getLikeTypeFrom(matcher.group(2));
-						String replacement = matcher.group(3);
+						replacement = replacement != null ? replacement : matcher.group(3);
 
 						if (parameterIndex != null) {
-							checkAndRegister(new LikeParameterBinding(parameterIndex, likeType), bindings);
+							checkAndRegister(new LikeParameterBinding(parameterIndex, likeType, expression), bindings);
 						} else {
-							checkAndRegister(new LikeParameterBinding(parameterName, likeType), bindings);
-							replacement = matcher.group(5);
+							checkAndRegister(new LikeParameterBinding(parameterName, likeType, expression), bindings);
+
+							replacement = expression != null ? ":" + parameterName : matcher.group(5);
 						}
 
-						result = StringUtils.replace(result, matcher.group(2), replacement);
 						break;
 
 					case IN:
 
 						if (parameterIndex != null) {
-							checkAndRegister(new InParameterBinding(parameterIndex), bindings);
+							checkAndRegister(new InParameterBinding(parameterIndex, expression), bindings);
 						} else {
-							checkAndRegister(new InParameterBinding(parameterName), bindings);
+							checkAndRegister(new InParameterBinding(parameterName, expression), bindings);
 						}
 
 						result = query;
@@ -223,12 +253,30 @@ class StringQuery {
 					case AS_IS: // fall-through we don't need a special parameter binding for the given parameter.
 					default:
 
-						bindings.add(parameterIndex != null ? new ParameterBinding(parameterIndex) : new ParameterBinding(
-								parameterName));
+						bindings.add(parameterIndex != null ? new ParameterBinding(null, parameterIndex, expression)
+								: new ParameterBinding(parameterName, null, expression));
 				}
+
+				if (replacement != null) {
+					result = StringUtils.replace(result, matcher.group(2), replacement);
+				}
+
 			}
 
 			return result;
+		}
+
+		private int determineGreatestParameterIndexIfPresent(String query) {
+
+			Matcher parameterIndexMatcher = PARAMETER_BINDING_BY_INDEX.matcher(query);
+
+			int greatestParameterIndex = -1;
+			while (parameterIndexMatcher.find()) {
+				String parameterIndexString = parameterIndexMatcher.group(1);
+				greatestParameterIndex = Math.max(greatestParameterIndex, Integer.parseInt(parameterIndexString));
+			}
+
+			return greatestParameterIndex;
 		}
 
 		private static void checkAndRegister(ParameterBinding binding, List<ParameterBinding> bindings) {
@@ -304,6 +352,7 @@ class StringQuery {
 	static class ParameterBinding {
 
 		private final String name;
+		private final String expression;
 		private final Integer position;
 
 		/**
@@ -312,11 +361,7 @@ class StringQuery {
 		 * @param name must not be {@literal null}.
 		 */
 		public ParameterBinding(String name) {
-
-			Assert.notNull(name, "Name must not be null!");
-
-			this.name = name;
-			this.position = null;
+			this(name, null, null);
 		}
 
 		/**
@@ -325,11 +370,30 @@ class StringQuery {
 		 * @param position must not be {@literal null}.
 		 */
 		public ParameterBinding(Integer position) {
+			this(null, position, null);
+		}
 
-			Assert.notNull(position, "Position must not be null!");
+		/**
+		 * Creates a new {@link ParameterBinding} for the parameter with the given name, position and expression
+		 * information.
+		 * 
+		 * @param name
+		 * @param position
+		 * @param expression
+		 */
+		ParameterBinding(String name, Integer position, String expression) {
 
-			this.name = null;
+			if (name == null) {
+				Assert.notNull(position, "Position must not be null!");
+			}
+
+			if (position == null) {
+				Assert.notNull(name, "Name must not be null!");
+			}
+
+			this.name = name;
 			this.position = position;
+			this.expression = expression;
 		}
 
 		/**
@@ -368,6 +432,13 @@ class StringQuery {
 			return position;
 		}
 
+		/**
+		 * @return {@literal true} if this parameter binding is a synthetic SpEL expression.
+		 */
+		public boolean isExpression() {
+			return this.expression != null;
+		}
+
 		/*
 		 * (non-Javadoc)
 		 * @see java.lang.Object#hashCode()
@@ -379,6 +450,7 @@ class StringQuery {
 
 			result += nullSafeHashCode(this.name);
 			result += nullSafeHashCode(this.position);
+			result += nullSafeHashCode(this.expression);
 
 			return result;
 		}
@@ -396,7 +468,8 @@ class StringQuery {
 
 			ParameterBinding that = (ParameterBinding) obj;
 
-			return nullSafeEquals(this.name, that.name) && nullSafeEquals(this.position, that.position);
+			return nullSafeEquals(this.name, that.name) && nullSafeEquals(this.position, that.position)
+					&& nullSafeEquals(this.expression, that.expression);
 		}
 
 		/* 
@@ -405,7 +478,8 @@ class StringQuery {
 		 */
 		@Override
 		public String toString() {
-			return String.format("ParameterBinding [name: %s, position: %d]", getName(), getPosition());
+			return String.format("ParameterBinding [name: %s, position: %d, expression: %s]", getName(), getPosition(),
+					getExpression());
 		}
 
 		/**
@@ -414,6 +488,10 @@ class StringQuery {
 		 */
 		public Object prepare(Object valueToBind) {
 			return valueToBind;
+		}
+
+		public String getExpression() {
+			return expression;
 		}
 	}
 
@@ -429,18 +507,20 @@ class StringQuery {
 		 * Creates a new {@link InParameterBinding} for the parameter with the given name.
 		 * 
 		 * @param name
+		 * @param expression
 		 */
-		public InParameterBinding(String name) {
-			super(name);
+		public InParameterBinding(String name, String expression) {
+			super(name, null, expression);
 		}
 
 		/**
 		 * Creates a new {@link InParameterBinding} for the parameter with the given position.
 		 * 
 		 * @param position
+		 * @param expression
 		 */
-		public InParameterBinding(int position) {
-			super(position);
+		public InParameterBinding(int position, String expression) {
+			super(null, position, expression);
 		}
 
 		/* 
@@ -486,8 +566,20 @@ class StringQuery {
 		 * @param type must not be {@literal null}.
 		 */
 		public LikeParameterBinding(String name, Type type) {
+			this(name, type, null);
+		}
 
-			super(name);
+		/**
+		 * Creates a new {@link LikeParameterBinding} for the parameter with the given name and {@link Type} and parameter
+		 * binding input.
+		 * 
+		 * @param name must not be {@literal null} or empty.
+		 * @param type must not be {@literal null}.
+		 * @param expression may be {@literal null}.
+		 */
+		public LikeParameterBinding(String name, Type type, String expression) {
+
+			super(name, null, expression);
 
 			Assert.hasText(name, "Name must not be null or empty!");
 			Assert.notNull(type, "Type must not be null!");
@@ -505,8 +597,19 @@ class StringQuery {
 		 * @param type must not be {@literal null}.
 		 */
 		public LikeParameterBinding(int position, Type type) {
+			this(position, type, null);
+		}
 
-			super(position);
+		/**
+		 * Creates a new {@link LikeParameterBinding} for the parameter with the given position and {@link Type}.
+		 * 
+		 * @param position
+		 * @param type must not be {@literal null}.
+		 * @param expression may be {@literal null}.
+		 */
+		public LikeParameterBinding(int position, Type type, String expression) {
+
+			super(null, position, expression);
 
 			Assert.isTrue(position > 0, "Position must be greater than zero!");
 			Assert.notNull(type, "Type must not be null!");

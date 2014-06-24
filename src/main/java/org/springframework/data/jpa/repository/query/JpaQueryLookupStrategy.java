@@ -19,6 +19,7 @@ import java.lang.reflect.Method;
 
 import javax.persistence.EntityManager;
 
+import org.springframework.data.jpa.repository.support.ExpressionEvaluationContextProvider;
 import org.springframework.data.repository.core.NamedQueries;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.QueryLookupStrategy;
@@ -104,15 +105,19 @@ public final class JpaQueryLookupStrategy {
 	 */
 	private static class DeclaredQueryLookupStrategy extends AbstractQueryLookupStrategy {
 
-		public DeclaredQueryLookupStrategy(EntityManager em, QueryExtractor extractor) {
+		private final ExpressionEvaluationContextProvider evaluationContextProvider;
+
+		public DeclaredQueryLookupStrategy(EntityManager em, QueryExtractor extractor,
+				ExpressionEvaluationContextProvider evaluationContextProvider) {
 
 			super(em, extractor);
+			this.evaluationContextProvider = evaluationContextProvider;
 		}
 
 		@Override
 		protected RepositoryQuery resolveQuery(JpaQueryMethod method, EntityManager em, NamedQueries namedQueries) {
 
-			RepositoryQuery query = JpaQueryFactory.INSTANCE.fromQueryAnnotation(method, em);
+			RepositoryQuery query = JpaQueryFactory.INSTANCE.fromQueryAnnotation(method, em, this.evaluationContextProvider);
 
 			if (null != query) {
 				return query;
@@ -126,7 +131,8 @@ public final class JpaQueryLookupStrategy {
 
 			String name = method.getNamedQueryName();
 			if (namedQueries.hasQuery(name)) {
-				return JpaQueryFactory.INSTANCE.fromMethodWithQueryString(method, em, namedQueries.getQuery(name));
+				return JpaQueryFactory.INSTANCE.fromMethodWithQueryString(method, em, namedQueries.getQuery(name),
+						this.evaluationContextProvider);
 			}
 
 			query = NamedQuery.lookupFrom(method, em);
@@ -149,21 +155,22 @@ public final class JpaQueryLookupStrategy {
 	 */
 	private static class CreateIfNotFoundQueryLookupStrategy extends AbstractQueryLookupStrategy {
 
-		private final DeclaredQueryLookupStrategy strategy;
+		private final DeclaredQueryLookupStrategy lookupStrategy;
 		private final CreateQueryLookupStrategy createStrategy;
 
-		public CreateIfNotFoundQueryLookupStrategy(EntityManager em, QueryExtractor extractor) {
+		public CreateIfNotFoundQueryLookupStrategy(EntityManager em, QueryExtractor extractor,
+				CreateQueryLookupStrategy createStrategy, DeclaredQueryLookupStrategy lookupStrategy) {
 
 			super(em, extractor);
-			this.strategy = new DeclaredQueryLookupStrategy(em, extractor);
-			this.createStrategy = new CreateQueryLookupStrategy(em, extractor);
+			this.createStrategy = createStrategy;
+			this.lookupStrategy = lookupStrategy;
 		}
 
 		@Override
 		protected RepositoryQuery resolveQuery(JpaQueryMethod method, EntityManager em, NamedQueries namedQueries) {
 
 			try {
-				return strategy.resolveQuery(method, em, namedQueries);
+				return lookupStrategy.resolveQuery(method, em, namedQueries);
 			} catch (IllegalStateException e) {
 				return createStrategy.resolveQuery(method, em, namedQueries);
 			}
@@ -175,21 +182,20 @@ public final class JpaQueryLookupStrategy {
 	 * 
 	 * @param em
 	 * @param key
+	 * @param evaluationContextProvider
 	 * @return
 	 */
-	public static QueryLookupStrategy create(EntityManager em, Key key, QueryExtractor extractor) {
+	public static QueryLookupStrategy create(EntityManager em, Key key, QueryExtractor extractor,
+			ExpressionEvaluationContextProvider evaluationContextProvider) {
 
-		if (key == null) {
-			return new CreateIfNotFoundQueryLookupStrategy(em, extractor);
-		}
-
-		switch (key) {
+		switch (key != null ? key : Key.CREATE_IF_NOT_FOUND) {
 			case CREATE:
 				return new CreateQueryLookupStrategy(em, extractor);
 			case USE_DECLARED_QUERY:
-				return new DeclaredQueryLookupStrategy(em, extractor);
+				return new DeclaredQueryLookupStrategy(em, extractor, evaluationContextProvider);
 			case CREATE_IF_NOT_FOUND:
-				return new CreateIfNotFoundQueryLookupStrategy(em, extractor);
+				return new CreateIfNotFoundQueryLookupStrategy(em, extractor, new CreateQueryLookupStrategy(em, extractor),
+						new DeclaredQueryLookupStrategy(em, extractor, evaluationContextProvider));
 			default:
 				throw new IllegalArgumentException(String.format("Unsupported query lookup strategy %s!", key));
 		}
