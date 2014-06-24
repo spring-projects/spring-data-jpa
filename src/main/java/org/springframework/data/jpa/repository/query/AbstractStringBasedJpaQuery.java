@@ -19,6 +19,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 
+import org.springframework.data.jpa.repository.support.ExpressionEvaluationContextProvider;
 import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.util.Assert;
@@ -33,6 +34,7 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 
 	private final StringQuery query;
 	private final StringQuery countQuery;
+	private final ExpressionEvaluationContextProvider evaluationContextProvider;
 
 	/**
 	 * Creates a new {@link AbstractStringBasedJpaQuery} from the given {@link JpaQueryMethod}, {@link EntityManager} and
@@ -41,13 +43,17 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 	 * @param method must not be {@literal null}.
 	 * @param em must not be {@literal null}.
 	 * @param queryString must not be {@literal null}.
+	 * @param evaluationContextProvider must not be {@literal null}.
 	 */
-	public AbstractStringBasedJpaQuery(JpaQueryMethod method, EntityManager em, String queryString) {
+	public AbstractStringBasedJpaQuery(JpaQueryMethod method, EntityManager em, String queryString,
+			ExpressionEvaluationContextProvider evaluationContextProvider) {
 
 		super(method, em);
 
 		Assert.hasText(queryString, "Query string must not be null or empty!");
+		Assert.notNull(evaluationContextProvider, "ExpressionEvaluationContextProvider must not be null!");
 
+		this.evaluationContextProvider = evaluationContextProvider;
 		this.query = new ExpressionBasedStringQuery(queryString, method.getEntityInformation());
 		this.countQuery = new StringQuery(method.getCountQuery() != null ? method.getCountQuery()
 				: QueryUtils.createCountQueryFor(this.query.getQueryString(), method.getCountQueryProjection()));
@@ -74,7 +80,8 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 	 */
 	@Override
 	protected ParameterBinder createBinder(Object[] values) {
-		return new StringQueryParameterBinder(getQueryMethod().getParameters(), values, query);
+		return new SpelExpressionStringQueryParameterBinder(getQueryMethod().getParameters(), values, query,
+				evaluationContextProvider);
 	}
 
 	/**

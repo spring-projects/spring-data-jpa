@@ -161,4 +161,13 @@ public class ParameterBinder {
 
 		return result;
 	}
+
+	/**
+	 * Returns the values to bind.
+	 * 
+	 * @return
+	 */
+	Object[] getValues() {
+		return values;
+	}
 }

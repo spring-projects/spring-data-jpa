@@ -131,4 +131,6 @@ public @interface EnableJpaRepositories {
 	 * repositories infrastructure.
 	 */
 	boolean considerNestedRepositories() default false;
+
+	String expressionEvaluationContextProviderRef() default "expressionEvaluationContextProvider";
 }

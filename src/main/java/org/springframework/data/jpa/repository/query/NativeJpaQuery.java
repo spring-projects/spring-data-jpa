@@ -18,6 +18,7 @@ package org.springframework.data.jpa.repository.query;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 
+import org.springframework.data.jpa.repository.support.ExpressionEvaluationContextProvider;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.RepositoryQuery;
 
@@ -36,10 +37,12 @@ final class NativeJpaQuery extends AbstractStringBasedJpaQuery {
 	 * @param method must not be {@literal null}.
 	 * @param em must not be {@literal null}.
 	 * @param queryString must not be {@literal null} or empty.
+	 * @param evaluationContextProvider
 	 */
-	public NativeJpaQuery(JpaQueryMethod method, EntityManager em, String queryString) {
+	public NativeJpaQuery(JpaQueryMethod method, EntityManager em, String queryString,
+			ExpressionEvaluationContextProvider evaluationContextProvider) {
 
-		super(method, em, queryString);
+		super(method, em, queryString, evaluationContextProvider);
 
 		Parameters<?, ?> parameters = method.getParameters();
 		boolean hasPagingOrSortingParameter = parameters.hasPageableParameter() || parameters.hasSortParameter();

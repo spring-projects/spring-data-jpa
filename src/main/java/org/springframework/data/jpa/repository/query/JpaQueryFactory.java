@@ -20,6 +20,7 @@ import javax.persistence.EntityManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.support.ExpressionEvaluationContextProvider;
 import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.RepositoryQuery;
 
@@ -40,12 +41,14 @@ enum JpaQueryFactory {
 	 * 
 	 * @param queryMethod must not be {@literal null}.
 	 * @param em must not be {@literal null}.
+	 * @param evaluationContextProvider
 	 * @return the {@link RepositoryQuery} derived from the annotation or {@code null} if no annotation found.
 	 */
-	AbstractJpaQuery fromQueryAnnotation(JpaQueryMethod queryMethod, EntityManager em) {
+	AbstractJpaQuery fromQueryAnnotation(JpaQueryMethod queryMethod, EntityManager em,
+			ExpressionEvaluationContextProvider evaluationContextProvider) {
 
 		LOG.debug("Looking up query for method {}", queryMethod.getName());
-		return fromMethodWithQueryString(queryMethod, em, queryMethod.getAnnotatedQuery());
+		return fromMethodWithQueryString(queryMethod, em, queryMethod.getAnnotatedQuery(), evaluationContextProvider);
 	}
 
 	/**
@@ -54,16 +57,18 @@ enum JpaQueryFactory {
 	 * @param method must not be {@literal null}.
 	 * @param em must not be {@literal null}.
 	 * @param queryString must not be {@literal null} or empty.
+	 * @param evaluationContextProvider
 	 * @return
 	 */
-	AbstractJpaQuery fromMethodWithQueryString(JpaQueryMethod method, EntityManager em, String queryString) {
+	AbstractJpaQuery fromMethodWithQueryString(JpaQueryMethod method, EntityManager em, String queryString,
+			ExpressionEvaluationContextProvider evaluationContextProvider) {
 
 		if (queryString == null) {
 			return null;
 		}
 
-		return method.isNativeQuery() ? new NativeJpaQuery(method, em, queryString) : //
-				new SimpleJpaQuery(method, em, queryString);
+		return method.isNativeQuery() ? new NativeJpaQuery(method, em, queryString, evaluationContextProvider) : //
+				new SimpleJpaQuery(method, em, queryString, evaluationContextProvider);
 	}
 
 	/**
