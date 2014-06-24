@@ -18,6 +18,7 @@ package org.springframework.data.jpa.repository.query;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 
+import org.springframework.data.jpa.repository.support.ExpressionEvaluationContextProvider;
 import org.springframework.data.repository.query.RepositoryQuery;
 
 /**
@@ -36,8 +37,9 @@ final class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
 	 * @param method must not be {@literal null}.
 	 * @param em must not be {@literal null}.
 	 */
-	public SimpleJpaQuery(JpaQueryMethod method, EntityManager em) {
-		this(method, em, method.getAnnotatedQuery());
+	public SimpleJpaQuery(JpaQueryMethod method, EntityManager em,
+			ExpressionEvaluationContextProvider evaluationContextProvider) {
+		this(method, em, method.getAnnotatedQuery(), evaluationContextProvider);
 	}
 
 	/**
@@ -47,9 +49,10 @@ final class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
 	 * @param em must not be {@literal null}.
 	 * @param queryString must not be {@literal null} or empty.
 	 */
-	public SimpleJpaQuery(JpaQueryMethod method, EntityManager em, String queryString) {
+	public SimpleJpaQuery(JpaQueryMethod method, EntityManager em, String queryString,
+			ExpressionEvaluationContextProvider evaluationContextProvider) {
 
-		super(method, em, queryString);
+		super(method, em, queryString, evaluationContextProvider);
 
 		validateQuery(getQuery().getQueryString(), String.format("Validation failed for query for method %s!", method));
 
