@@ -26,6 +26,8 @@ import javax.persistence.criteria.CriteriaQuery;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.DeleteExecution;
 import org.springframework.data.jpa.repository.query.ParameterMetadataProvider.ParameterMetadata;
+import org.springframework.data.jpa.repository.support.ExpressionEvaluationContextProvider;
+import org.springframework.data.jpa.repository.support.StandardExpressionEvaluationContextProvider;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.parser.PartTree;
 
@@ -43,7 +45,8 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 
 	private final QueryPreparer query;
 	private final QueryPreparer countQuery;
-	private EntityManager em;
+	private final EntityManager em;
+	private final ExpressionEvaluationContextProvider evaluationContextProvider;
 
 	/**
 	 * Creates a new {@link PartTreeJpaQuery}.
@@ -53,8 +56,22 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 	 */
 	public PartTreeJpaQuery(JpaQueryMethod method, EntityManager em) {
 
+		this(method, em, StandardExpressionEvaluationContextProvider.INSTANCE);
+	}
+
+	/**
+	 * Creates a new {@link PartTreeJpaQuery}.
+	 * 
+	 * @param method must not be {@literal null}.
+	 * @param em must not be {@literal null}.
+	 * @param evaluationContextProvider
+	 */
+	public PartTreeJpaQuery(JpaQueryMethod method, EntityManager em,
+			ExpressionEvaluationContextProvider evaluationContextProvider) {
+
 		super(method, em);
 		this.em = em;
+		this.evaluationContextProvider = evaluationContextProvider;
 
 		this.domainClass = method.getEntityInformation().getJavaType();
 		this.tree = new PartTree(method.getName(), domainClass);
@@ -205,7 +222,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 		}
 
 		private ParameterBinder getBinder(Object[] values, List<ParameterMetadata<?>> expressions) {
-			return new CriteriaQueryParameterBinder(parameters, values, expressions);
+			return new CriteriaQueryParameterBinder(parameters, values, expressions, evaluationContextProvider);
 		}
 
 		private Sort getDynamicSort(Object[] values) {

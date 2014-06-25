@@ -23,6 +23,7 @@ import javax.persistence.Query;
 
 import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
 import org.springframework.data.jpa.repository.query.ParameterMetadataProvider.ParameterMetadata;
+import org.springframework.data.jpa.repository.support.ExpressionEvaluationContextProvider;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.util.Assert;
 
@@ -33,7 +34,7 @@ import org.springframework.util.Assert;
  * @author Oliver Gierke
  * @author Thomas Darimont
  */
-class CriteriaQueryParameterBinder extends ParameterBinder {
+class CriteriaQueryParameterBinder extends ExpressionAwareParameterBinder {
 
 	private final Iterator<ParameterMetadata<?>> expressions;
 
@@ -42,10 +43,14 @@ class CriteriaQueryParameterBinder extends ParameterBinder {
 	 * {@link javax.persistence.criteria.ParameterExpression}.
 	 * 
 	 * @param parameters
+	 * @param values
+	 * @param expressions
+	 * @param evaluationContextProvider
 	 */
-	CriteriaQueryParameterBinder(JpaParameters parameters, Object[] values, Iterable<ParameterMetadata<?>> expressions) {
+	CriteriaQueryParameterBinder(JpaParameters parameters, Object[] values, Iterable<ParameterMetadata<?>> expressions,
+			ExpressionEvaluationContextProvider evaluationContextProvider) {
 
-		super(parameters, values);
+		super(parameters, values, evaluationContextProvider);
 		Assert.notNull(expressions);
 		this.expressions = expressions.iterator();
 	}
