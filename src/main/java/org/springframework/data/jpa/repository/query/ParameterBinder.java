@@ -106,7 +106,8 @@ public class ParameterBinder {
 
 			if (parameter.isBindable()) {
 
-				Object value = values[methodParameterPosition];
+				Object value = computeParameterValue(parameter, values[methodParameterPosition], values);
+
 				bind(query, parameter, value, queryParameterPosition++);
 			}
 
@@ -116,6 +117,27 @@ public class ParameterBinder {
 		return query;
 	}
 
+	/**
+	 * Computes the value to bind for the given {@link JpaParameter} and the given {@code value} by potentially using the
+	 * other {@code values}. This is intended to be customized in sub-classes.
+	 * 
+	 * @param parameter
+	 * @param value
+	 * @param values
+	 * @return
+	 */
+	protected Object computeParameterValue(JpaParameter parameter, Object value, Object[] values) {
+		return value;
+	}
+
+	/**
+	 * Perform the actual query parameter binding.
+	 * 
+	 * @param query
+	 * @param parameter
+	 * @param value
+	 * @param position
+	 */
 	protected void bind(Query query, JpaParameter parameter, Object value, int position) {
 
 		if (parameter.isTemporalParameter()) {

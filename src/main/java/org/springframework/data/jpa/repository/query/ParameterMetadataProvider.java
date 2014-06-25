@@ -30,6 +30,7 @@ import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.parser.Part;
 import org.springframework.data.repository.query.parser.Part.Type;
+import org.springframework.expression.Expression;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
@@ -121,7 +122,14 @@ class ParameterMetadataProvider {
 
 		Assert.notNull(type);
 
-		ParameterExpression<T> expression = name == null ? builder.parameter(type) : builder.parameter(type, name);
+		/*
+		 * We treat Expression types as Object vales since the real value to be bound as a parameter is determined at query time.
+		 */
+		@SuppressWarnings("unchecked")
+		Class<T> reifiedType = Expression.class.equals(type) ? (Class<T>) Object.class : type;
+
+		ParameterExpression<T> expression = name == null ? builder.parameter(reifiedType) : builder.parameter(reifiedType,
+				name);
 		ParameterMetadata<T> value = new ParameterMetadata<T>(expression, part.getType(),
 				accessor == null ? ParameterMetadata.PLACEHOLDER : accessor.next());
 		expressions.add(value);
