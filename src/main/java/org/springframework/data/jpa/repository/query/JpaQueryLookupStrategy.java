@@ -50,11 +50,14 @@ public final class JpaQueryLookupStrategy {
 
 		private final EntityManager em;
 		private final QueryExtractor provider;
+		protected final ExpressionEvaluationContextProvider evaluationContextProvider;
 
-		public AbstractQueryLookupStrategy(EntityManager em, QueryExtractor extractor) {
+		public AbstractQueryLookupStrategy(EntityManager em, QueryExtractor extractor,
+				ExpressionEvaluationContextProvider evaluationContextProvider) {
 
 			this.em = em;
 			this.provider = extractor;
+			this.evaluationContextProvider = evaluationContextProvider;
 		}
 
 		/*
@@ -80,16 +83,17 @@ public final class JpaQueryLookupStrategy {
 	 */
 	private static class CreateQueryLookupStrategy extends AbstractQueryLookupStrategy {
 
-		public CreateQueryLookupStrategy(EntityManager em, QueryExtractor extractor) {
+		public CreateQueryLookupStrategy(EntityManager em, QueryExtractor extractor,
+				ExpressionEvaluationContextProvider evaluationContextProvider) {
 
-			super(em, extractor);
+			super(em, extractor, evaluationContextProvider);
 		}
 
 		@Override
 		protected RepositoryQuery resolveQuery(JpaQueryMethod method, EntityManager em, NamedQueries namedQueries) {
 
 			try {
-				return new PartTreeJpaQuery(method, em);
+				return new PartTreeJpaQuery(method, em, this.evaluationContextProvider);
 			} catch (IllegalArgumentException e) {
 				throw new IllegalArgumentException(String.format("Could not create query metamodel for method %s!",
 						method.toString()), e);
@@ -105,13 +109,10 @@ public final class JpaQueryLookupStrategy {
 	 */
 	private static class DeclaredQueryLookupStrategy extends AbstractQueryLookupStrategy {
 
-		private final ExpressionEvaluationContextProvider evaluationContextProvider;
-
 		public DeclaredQueryLookupStrategy(EntityManager em, QueryExtractor extractor,
 				ExpressionEvaluationContextProvider evaluationContextProvider) {
 
-			super(em, extractor);
-			this.evaluationContextProvider = evaluationContextProvider;
+			super(em, extractor, evaluationContextProvider);
 		}
 
 		@Override
@@ -159,9 +160,11 @@ public final class JpaQueryLookupStrategy {
 		private final CreateQueryLookupStrategy createStrategy;
 
 		public CreateIfNotFoundQueryLookupStrategy(EntityManager em, QueryExtractor extractor,
-				CreateQueryLookupStrategy createStrategy, DeclaredQueryLookupStrategy lookupStrategy) {
+				CreateQueryLookupStrategy createStrategy, DeclaredQueryLookupStrategy lookupStrategy,
+				ExpressionEvaluationContextProvider evaluationContextProvider) {
 
-			super(em, extractor);
+			super(em, extractor, evaluationContextProvider);
+
 			this.createStrategy = createStrategy;
 			this.lookupStrategy = lookupStrategy;
 		}
@@ -190,12 +193,13 @@ public final class JpaQueryLookupStrategy {
 
 		switch (key != null ? key : Key.CREATE_IF_NOT_FOUND) {
 			case CREATE:
-				return new CreateQueryLookupStrategy(em, extractor);
+				return new CreateQueryLookupStrategy(em, extractor, evaluationContextProvider);
 			case USE_DECLARED_QUERY:
 				return new DeclaredQueryLookupStrategy(em, extractor, evaluationContextProvider);
 			case CREATE_IF_NOT_FOUND:
-				return new CreateIfNotFoundQueryLookupStrategy(em, extractor, new CreateQueryLookupStrategy(em, extractor),
-						new DeclaredQueryLookupStrategy(em, extractor, evaluationContextProvider));
+				return new CreateIfNotFoundQueryLookupStrategy(em, extractor, new CreateQueryLookupStrategy(em, extractor,
+						evaluationContextProvider), new DeclaredQueryLookupStrategy(em, extractor, evaluationContextProvider),
+						evaluationContextProvider);
 			default:
 				throw new IllegalArgumentException(String.format("Unsupported query lookup strategy %s!", key));
 		}

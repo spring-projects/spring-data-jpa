@@ -59,6 +59,8 @@ import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.domain.sample.SpecialUser;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.sample.UserRepository;
+import org.springframework.expression.Expression;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
@@ -287,7 +289,7 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		repository.findByLastname(null);
+		repository.findByLastname((String) null);
 	}
 
 	@Test
@@ -1610,6 +1612,21 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 		List<User> users = repository.findByLastnameWithSpelExpression("ierk");
+
+		assertThat(users, hasSize(1));
+		assertThat(users.get(0), is(firstUser));
+	}
+
+	/**
+	 * @see DATAJPA-XXX
+	 */
+	@Test
+	public void shouldFindUserByLastnameWithSpelExpressionInDerivedQuery() {
+
+		flushTestUsers();
+
+		Expression expr = new SpelExpressionParser().parseExpression("'Gier' + 'ke'");
+		List<User> users = repository.queryByLastname(expr);
 
 		assertThat(users, hasSize(1));
 		assertThat(users.get(0), is(firstUser));

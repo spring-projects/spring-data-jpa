@@ -20,6 +20,7 @@ import javax.persistence.Query;
 import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
 import org.springframework.data.jpa.repository.query.StringQuery.LikeParameterBinding;
 import org.springframework.data.jpa.repository.query.StringQuery.ParameterBinding;
+import org.springframework.data.jpa.repository.support.ExpressionEvaluationContextProvider;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.util.Assert;
@@ -30,7 +31,7 @@ import org.springframework.util.Assert;
  * @author Oliver Gierke
  * @author Thomas Darimont
  */
-public class StringQueryParameterBinder extends ParameterBinder {
+public class StringQueryParameterBinder extends ExpressionAwareParameterBinder {
 
 	private final StringQuery query;
 
@@ -41,10 +42,12 @@ public class StringQueryParameterBinder extends ParameterBinder {
 	 * @param parameters must not be {@literal null}.
 	 * @param values must not be {@literal null}.
 	 * @param query must not be {@literal null}.
+	 * @param evaluationContextProvider
 	 */
-	public StringQueryParameterBinder(JpaParameters parameters, Object[] values, StringQuery query) {
+	public StringQueryParameterBinder(JpaParameters parameters, Object[] values, StringQuery query,
+			ExpressionEvaluationContextProvider evaluationContextProvider) {
 
-		super(parameters, values);
+		super(parameters, values, evaluationContextProvider);
 
 		Assert.notNull(query, "StringQuery must not be null!");
 		this.query = query;
