@@ -169,6 +169,7 @@ class ExpressionAwareParameterBinder extends ParameterBinder {
 			Assert.notNull(delegatee, "EvaluationContext delegatee must not be null!");
 
 			this.delegatee = delegatee;
+			setRootObject(delegatee.getRootObject().getValue(), delegatee.getRootObject().getTypeDescriptor());
 		}
 
 		/* (non-Javadoc)
