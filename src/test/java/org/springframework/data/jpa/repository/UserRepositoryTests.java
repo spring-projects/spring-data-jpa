@@ -1621,6 +1621,58 @@ public class UserRepositoryTests {
 	 * @see DATAJPA-XXX
 	 */
 	@Test
+	public void shouldFindBySpELExpressionWithoutArgumentsWithQuestionmark() {
+
+		flushTestUsers();
+		List<User> users = repository.findOliverBySpELExpressionWithoutArgumentsWithQuestionmark();
+
+		assertThat(users, hasSize(1));
+		assertThat(users.get(0), is(firstUser));
+	}
+
+	/**
+	 * @see DATAJPA-XXX
+	 */
+	@Test
+	public void shouldFindBySpELExpressionWithoutArgumentsWithColon() {
+
+		flushTestUsers();
+		List<User> users = repository.findOliverBySpELExpressionWithoutArgumentsWithColon();
+
+		assertThat(users, hasSize(1));
+		assertThat(users.get(0), is(firstUser));
+	}
+
+	/**
+	 * @see DATAJPA-XXX
+	 */
+	@Test
+	public void shouldFindUsersByAgeForSpELExpression() {
+
+		flushTestUsers();
+		List<User> users = repository.findUsersByAgeForSpELExpressionByIndexedParameter(35);
+
+		assertThat(users, hasSize(1));
+		assertThat(users.get(0), is(secondUser));
+	}
+
+	/**
+	 * @see DATAJPA-XXX
+	 */
+	@Test
+	public void shouldfindUsersByFirstnameForSpELExpressionWithParameterNameVariableReference() {
+
+		flushTestUsers();
+		List<User> users = repository.findUsersByFirstnameForSpELExpression("Joachim");
+
+		assertThat(users, hasSize(1));
+		assertThat(users.get(0), is(secondUser));
+	}
+
+	/**
+	 * @see DATAJPA-XXX
+	 */
+	@Test
 	public void shouldFindUserByLastnameWithSpelExpressionInDerivedQuery() {
 
 		flushTestUsers();

@@ -477,4 +477,28 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	 * @see DATAJPA-XXX
 	 */
 	List<User> queryByLastname(Expression lastname);
+
+	/**
+	 * @see DATAJPA-XXX
+	 */
+	@Query("select u from User u where u.firstname = ?#{'Oliver'}")
+	List<User> findOliverBySpELExpressionWithoutArgumentsWithQuestionmark();
+
+	/**
+	 * @see DATAJPA-XXX
+	 */
+	@Query("select u from User u where u.firstname = :#{'Oliver'}")
+	List<User> findOliverBySpELExpressionWithoutArgumentsWithColon();
+
+	/**
+	 * @see DATAJPA-XXX
+	 */
+	@Query("select u from User u where u.age = ?#{[0]}")
+	List<User> findUsersByAgeForSpELExpressionByIndexedParameter(int age);
+
+	/**
+	 * @see DATAJPA-XXX
+	 */
+	@Query("select u from User u where u.firstname = :firstname and u.firstname = :#{#firstname}")
+	List<User> findUsersByFirstnameForSpELExpression(@Param("firstname") String firstname);
 }

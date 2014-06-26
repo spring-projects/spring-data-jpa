@@ -192,4 +192,13 @@ public class ParameterBinder {
 	Object[] getValues() {
 		return values;
 	}
+
+	/**
+	 * Returns the parameters.
+	 * 
+	 * @return
+	 */
+	JpaParameters getParameters() {
+		return parameters;
+	}
 }
