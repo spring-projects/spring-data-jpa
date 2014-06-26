@@ -104,7 +104,8 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 
 		String expressionEvaluationContextProviderRef = source.getAttribute("expressionEvaluationContextProviderRef");
 		if (StringUtils.hasText(expressionEvaluationContextProviderRef)) {
-			builder.addPropertyReference("expressionEvaluationContextProvider", expressionEvaluationContextProviderRef);
+			builder.addPropertyReference(DEFAULT_EXPRESSION_EVALUATION_CONTEXT_PROVIDER,
+					expressionEvaluationContextProviderRef);
 		}
 	}
 

@@ -37,9 +37,11 @@ import org.springframework.util.Assert;
 public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID extends Serializable> extends
 		TransactionalRepositoryFactoryBeanSupport<T, S, ID> {
 
-	private EntityManager entityManager;
+	protected EntityManager entityManager;
 
 	private ExpressionEvaluationContextProvider expressionEvaluationContextProvider = StandardExpressionEvaluationContextProvider.INSTANCE;
+
+	private JpaResultPostProcessor jpaResultPostProcessor;
 
 	/**
 	 * The {@link EntityManager} to be used.
@@ -61,11 +63,24 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID extends
 	}
 
 	/**
-	 * @param expressionEvaluationContextProvider the expressionEvaluationContextProvider to set
+	 * The {@link ExpressionEvaluationContextProvider} to be used.
+	 * 
+	 * @param expressionEvaluationContextProvider the expressionEvaluationContextProvider to set.
+	 * @since 1.7
 	 */
 	public void setExpressionEvaluationContextProvider(
 			ExpressionEvaluationContextProvider expressionEvaluationContextProvider) {
 		this.expressionEvaluationContextProvider = expressionEvaluationContextProvider;
+	}
+
+	/**
+	 * The {@link JpaResultPostProcessor} to be used.
+	 * 
+	 * @param jpaResultPostProcessor the jpaResultPostProcessor to set.
+	 * @since 1.7
+	 */
+	public void setJpaResultPostProcessor(JpaResultPostProcessor jpaResultPostProcessor) {
+		this.jpaResultPostProcessor = jpaResultPostProcessor;
 	}
 
 	/*
@@ -86,7 +101,7 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID extends
 	 * @return
 	 */
 	protected RepositoryFactorySupport createRepositoryFactory(EntityManager entityManager) {
-		return new JpaRepositoryFactory(entityManager, expressionEvaluationContextProvider);
+		return new JpaRepositoryFactory(entityManager, expressionEvaluationContextProvider, jpaResultPostProcessor);
 	}
 
 	/*

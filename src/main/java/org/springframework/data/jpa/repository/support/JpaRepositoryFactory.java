@@ -35,6 +35,7 @@ import org.springframework.util.Assert;
  * JPA specific generic repository factory.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 public class JpaRepositoryFactory extends RepositoryFactorySupport {
 
@@ -42,6 +43,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	private final QueryExtractor extractor;
 	private final CrudMethodMetadataPostProcessor lockModePostProcessor;
 	private final ExpressionEvaluationContextProvider evaluationContextProvider;
+	private final JpaResultPostProcessor jpaResultPostProcessor;
 
 	/**
 	 * Creates a new {@link JpaRepositoryFactory}.
@@ -49,7 +51,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	 * @param entityManager must not be {@literal null}
 	 */
 	public JpaRepositoryFactory(EntityManager entityManager) {
-		this(entityManager, StandardExpressionEvaluationContextProvider.INSTANCE);
+		this(entityManager, StandardExpressionEvaluationContextProvider.INSTANCE, NoopJpaResultPostProcessor.INSTANCE);
 	}
 
 	/**
@@ -58,7 +60,8 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	 * @param entityManager must not be {@literal null}
 	 * @param evaluationContextProvider must not be {@literal null}
 	 */
-	public JpaRepositoryFactory(EntityManager entityManager, ExpressionEvaluationContextProvider evaluationContextProvider) {
+	public JpaRepositoryFactory(EntityManager entityManager,
+			ExpressionEvaluationContextProvider evaluationContextProvider, JpaResultPostProcessor jpaResultPostProcessor) {
 
 		Assert.notNull(entityManager);
 
@@ -66,6 +69,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 		this.extractor = PersistenceProvider.fromEntityManager(entityManager);
 		this.lockModePostProcessor = CrudMethodMetadataPostProcessor.INSTANCE;
 		this.evaluationContextProvider = evaluationContextProvider;
+		this.jpaResultPostProcessor = jpaResultPostProcessor;
 
 		addRepositoryProxyPostProcessor(lockModePostProcessor);
 	}
@@ -79,6 +83,10 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 
 		SimpleJpaRepository<?, ?> repository = getTargetRepository(metadata, entityManager);
 		repository.setRepositoryMethodMetadata(lockModePostProcessor.getLockMetadataProvider());
+
+		if (jpaResultPostProcessor != null) {
+			repository.setJpaResultPostProcessor(jpaResultPostProcessor);
+		}
 
 		return repository;
 	}
