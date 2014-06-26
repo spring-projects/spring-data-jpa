@@ -21,6 +21,8 @@
 				</constructor-arg>
 			</bean>
 		</property>
+		
+		<property name="expressionEvaluationContextProvider" ref="expressionEvaluationContextProvider"/>
 	</bean>
 	
 	<bean id="roleDao" class="org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean">

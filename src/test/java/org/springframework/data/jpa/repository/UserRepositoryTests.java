@@ -58,6 +58,7 @@ import org.springframework.data.jpa.domain.sample.Address;
 import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.domain.sample.SpecialUser;
 import org.springframework.data.jpa.domain.sample.User;
+import org.springframework.data.jpa.repository.SampleSecurity.SampleSecurityContextHolder;
 import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
@@ -105,6 +106,8 @@ public class UserRepositoryTests {
 		fourthUser = new User("kevin", "raymond", "no@gmail.com");
 		fourthUser.setAge(31);
 		adminRole = new Role("admin");
+
+		SampleSecurityContextHolder.clear();
 	}
 
 	@Test
@@ -1592,7 +1595,7 @@ public class UserRepositoryTests {
 	}
 	
 	/**
-	 * @see DATAJPA-XXX
+	 * @see DATAJPA-564
 	 */
 	@Test
 	public void shouldFindUserByFirstnameAndLastnameWithSpelExpressionInStringBasedQuery() {
@@ -1605,7 +1608,7 @@ public class UserRepositoryTests {
 	}
 
 	/**
-	 * @see DATAJPA-XXX
+	 * @see DATAJPA-564
 	 */
 	@Test
 	public void shouldFindUserByLastnameWithSpelExpressionInStringBasedQuery() {
@@ -1618,7 +1621,7 @@ public class UserRepositoryTests {
 	}
 
 	/**
-	 * @see DATAJPA-XXX
+	 * @see DATAJPA-564
 	 */
 	@Test
 	public void shouldFindBySpELExpressionWithoutArgumentsWithQuestionmark() {
@@ -1631,7 +1634,7 @@ public class UserRepositoryTests {
 	}
 
 	/**
-	 * @see DATAJPA-XXX
+	 * @see DATAJPA-564
 	 */
 	@Test
 	public void shouldFindBySpELExpressionWithoutArgumentsWithColon() {
@@ -1644,7 +1647,7 @@ public class UserRepositoryTests {
 	}
 
 	/**
-	 * @see DATAJPA-XXX
+	 * @see DATAJPA-564
 	 */
 	@Test
 	public void shouldFindUsersByAgeForSpELExpression() {
@@ -1657,7 +1660,7 @@ public class UserRepositoryTests {
 	}
 
 	/**
-	 * @see DATAJPA-XXX
+	 * @see DATAJPA-564
 	 */
 	@Test
 	public void shouldfindUsersByFirstnameForSpELExpressionWithParameterNameVariableReference() {
@@ -1670,7 +1673,7 @@ public class UserRepositoryTests {
 	}
 
 	/**
-	 * @see DATAJPA-XXX
+	 * @see DATAJPA-564
 	 */
 	@Test
 	public void shouldFindUserByLastnameWithSpelExpressionInDerivedQuery() {
@@ -1682,6 +1685,42 @@ public class UserRepositoryTests {
 
 		assertThat(users, hasSize(1));
 		assertThat(users.get(0), is(firstUser));
+	}
+
+	/**
+	 * @see DATAJPA-564
+	 */
+	@Test
+	public void shouldFindCurrentUserWithCustomQueryDependingOnSecurityContext() {
+
+		flushTestUsers();
+
+		SampleSecurityContextHolder.getCurrent().setPrincipal(secondUser);
+		List<User> users = repository.findCurrentUserWithCustomQuery();
+
+		assertThat(users, hasSize(1));
+		assertThat(users.get(0), is(secondUser));
+
+		SampleSecurityContextHolder.getCurrent().setPrincipal(firstUser);
+		users = repository.findCurrentUserWithCustomQuery();
+
+		assertThat(users, hasSize(1));
+		assertThat(users.get(0), is(firstUser));
+	}
+
+	/**
+	 * @see DATAJPA-564
+	 */
+	@Test
+	public void shouldFindByFirstnameAndCurrentUserWithCustomQuery() {
+
+		flushTestUsers();
+
+		SampleSecurityContextHolder.getCurrent().setPrincipal(secondUser);
+		List<User> users = repository.findByFirstnameAndCurrentUserWithCustomQuery("Joachim");
+
+		assertThat(users, hasSize(1));
+		assertThat(users.get(0), is(secondUser));
 	}
 
 	private Page<User> executeSpecWithSort(Sort sort) {

@@ -15,10 +15,12 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
 import org.springframework.data.jpa.repository.support.ExpressionEvaluationContextProvider;
+import org.springframework.expression.AccessException;
 import org.springframework.expression.BeanResolver;
 import org.springframework.expression.ConstructorResolver;
 import org.springframework.expression.EvaluationContext;
@@ -29,7 +31,9 @@ import org.springframework.expression.PropertyAccessor;
 import org.springframework.expression.TypeComparator;
 import org.springframework.expression.TypeConverter;
 import org.springframework.expression.TypeLocator;
+import org.springframework.expression.TypedValue;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.expression.spel.support.ReflectivePropertyAccessor;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.util.Assert;
 
@@ -143,11 +147,15 @@ class ExpressionAwareParameterBinder extends ParameterBinder {
 				evalContext.setVariable(param.getName(), getValues()[param.getIndex()]);
 			}
 		}
+
+		evalContext.setVariable("args", getValues());
 	}
 
 	/**
 	 * A {@link StandardEvaluationContext} that delegates to the given {@link EvaluationContext}. Variables are first
-	 * looked-up locally and if not the lookup is performed against the delegatee.
+	 * looked-up locally and if not the lookup is performed against the delegatee. Property references at the expression
+	 * root are resolved against the delegatees rootObject first potentially followed by a second lookup against the
+	 * current rootObject.
 	 * 
 	 * @author Thomas Darimont
 	 */
@@ -158,12 +166,11 @@ class ExpressionAwareParameterBinder extends ParameterBinder {
 		/**
 		 * Creates a new {@link DelegatingStandardEvaluationContext}.
 		 * 
-		 * @param values must not be {@literal null}
+		 * @param objects
 		 * @param delegatee must not be {@literal null}
 		 */
-		public DelegatingStandardEvaluationContext(Object[] values, EvaluationContext delegatee) {
-
-			super(values);
+		public DelegatingStandardEvaluationContext(Object[] parameterValues, EvaluationContext delegatee) {
+			super(parameterValues);
 
 			Assert.notNull(delegatee, "EvaluationContext delegatee must not be null!");
 
@@ -191,7 +198,38 @@ class ExpressionAwareParameterBinder extends ParameterBinder {
 		 */
 		@Override
 		public List<PropertyAccessor> getPropertyAccessors() {
-			return delegatee.getPropertyAccessors();
+
+			List<PropertyAccessor> propertyAccessors = new ArrayList<PropertyAccessor>();
+
+			// First we want to lookup properties against the delegatees root object
+			propertyAccessors.add(newDelegatingPropertyAccessor(delegatee.getRootObject()));
+
+			// Second we want to loopup properties against the current root object
+			propertyAccessors.addAll(delegatee.getPropertyAccessors());
+
+			return propertyAccessors;
+		}
+
+		/**
+		 * Returns a {@link ReflectivePropertyAccessor} that always looks up properties at the expression root against the
+		 * delegates root object first.
+		 * 
+		 * @param delegateRoot
+		 * @return
+		 */
+		private ReflectivePropertyAccessor newDelegatingPropertyAccessor(final TypedValue delegateRoot) {
+
+			return new ReflectivePropertyAccessor() {
+				@Override
+				public boolean canRead(EvaluationContext context, Object target, String name) throws AccessException {
+					return super.canRead(context, delegateRoot.getValue(), name);
+				}
+
+				@Override
+				public TypedValue read(EvaluationContext context, Object target, String name) throws AccessException {
+					return super.read(context, delegateRoot.getValue(), name);
+				}
+			};
 		}
 
 		/* (non-Javadoc)

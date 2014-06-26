@@ -65,6 +65,7 @@ public class JavaConfigUserRepositoryTests extends UserRepositoryTests {
 			factory.setRepositoryInterface(UserRepository.class);
 			factory.setCustomImplementation(new UserRepositoryImpl());
 			factory.setNamedQueries(namedQueries());
+			factory.setExpressionEvaluationContextProvider(new SampleExpressionEvaluationContextProvider());
 			factory.afterPropertiesSet();
 
 			return factory.getObject();

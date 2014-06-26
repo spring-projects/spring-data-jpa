@@ -23,7 +23,7 @@
 		! do not have to be explicitly registered as they are included by namespace parser                   !
 		
 	-->
-	<jpa:repositories base-package="org.springframework.data.jpa.repository.sample" />
+	<jpa:repositories base-package="org.springframework.data.jpa.repository.sample" expression-evaluation-context-provider-ref="expressionEvaluationContextProvider" />
 	
 	<!-- Register custom DAO implementation explicitly -->
 	<bean id="userRepositoryImpl" class="org.springframework.data.jpa.repository.sample.UserRepositoryImpl" />

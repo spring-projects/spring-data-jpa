@@ -448,7 +448,7 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	 * @see DATAJPA-551
 	 */
 	Slice<User> findTop2UsersBy(Pageable page);
-	
+
 	/**
 	 * @see DATAJPA-506
 	 */
@@ -462,43 +462,55 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	Optional<User> findOptionalByEmailAddress(String emailAddress);
 	
 	/**
-	 * @see DATAJPA-XXX
+	 * @see DATAJPA-564
 	 */
 	@Query("select u from User u where u.firstname = ?#{[0]} and u.firstname = ?1 and u.lastname like %?#{[1]}% and u.lastname like %?2%")
 	List<User> findByFirstnameAndLastnameWithSpelExpression(String firstname, String lastname);
 
 	/**
-	 * @see DATAJPA-XXX
+	 * @see DATAJPA-564
 	 */
 	@Query("select u from User u where u.lastname like %:#{[0]}% and u.lastname like %:lastname%")
 	List<User> findByLastnameWithSpelExpression(@Param("lastname") String lastname);
 
 	/**
-	 * @see DATAJPA-XXX
+	 * @see DATAJPA-564
 	 */
 	List<User> queryByLastname(Expression lastname);
 
 	/**
-	 * @see DATAJPA-XXX
+	 * @see DATAJPA-564
 	 */
 	@Query("select u from User u where u.firstname = ?#{'Oliver'}")
 	List<User> findOliverBySpELExpressionWithoutArgumentsWithQuestionmark();
 
 	/**
-	 * @see DATAJPA-XXX
+	 * @see DATAJPA-564
 	 */
 	@Query("select u from User u where u.firstname = :#{'Oliver'}")
 	List<User> findOliverBySpELExpressionWithoutArgumentsWithColon();
 
 	/**
-	 * @see DATAJPA-XXX
+	 * @see DATAJPA-564
 	 */
 	@Query("select u from User u where u.age = ?#{[0]}")
 	List<User> findUsersByAgeForSpELExpressionByIndexedParameter(int age);
 
 	/**
-	 * @see DATAJPA-XXX
+	 * @see DATAJPA-564
 	 */
 	@Query("select u from User u where u.firstname = :firstname and u.firstname = :#{#firstname}")
 	List<User> findUsersByFirstnameForSpELExpression(@Param("firstname") String firstname);
+
+	/**
+	 * @see DATAJPA-564
+	 */
+	@Query("select u from User u where u.emailAddress = ?#{principal.emailAddress}")
+	List<User> findCurrentUserWithCustomQuery();
+
+	/**
+	 * @see DATAJPA-564
+	 */
+	@Query("select u from User u where u.firstname = ?1 and u.firstname=?#{[0]} and u.emailAddress = ?#{principal.emailAddress}")
+	List<User> findByFirstnameAndCurrentUserWithCustomQuery(String firstname);
 }

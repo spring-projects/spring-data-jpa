@@ -56,6 +56,7 @@ import org.springframework.util.StringUtils;
  * @author Oliver Gierke
  * @author Eberhard Wolff
  * @author Gil Markham
+ * @author Thomas Darimont
  */
 public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensionSupport {
 
@@ -104,7 +105,8 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 
 		String expressionEvaluationContextProviderRef = source.getAttribute("expressionEvaluationContextProviderRef");
 		if (StringUtils.hasText(expressionEvaluationContextProviderRef)) {
-			builder.addPropertyReference("expressionEvaluationContextProvider", expressionEvaluationContextProviderRef);
+			builder.addPropertyReference(DEFAULT_EXPRESSION_EVALUATION_CONTEXT_PROVIDER,
+					expressionEvaluationContextProviderRef);
 		}
 	}
 
