@@ -36,6 +36,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.data.jpa.domain.AbstractPersistable;
+import org.springframework.data.jpa.domain.sample.PrimitiveVersionProperty;
 import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.domain.sample.SampleWithIdClass;
 import org.springframework.data.jpa.domain.sample.SampleWithIdClassPK;
@@ -167,6 +168,18 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 				em.getMetamodel());
 
 		assertThat(info.getEntityName(), is("ROLE"));
+	}
+
+	/**
+	 * @see DATAJPA-561
+	 */
+	@Test
+	public void considersEntityWithPrimitiveVersionPropertySetToDefaultNew() {
+
+		EntityInformation<PrimitiveVersionProperty, Serializable> information = new JpaMetamodelEntityInformation<PrimitiveVersionProperty, Serializable>(
+				PrimitiveVersionProperty.class, em.getMetamodel());
+
+		assertThat(information.isNew(new PrimitiveVersionProperty()), is(true));
 	}
 
 	protected String getMetadadataPersitenceUnitName() {
