@@ -118,7 +118,7 @@ class ExpressionAwareParameterBinder extends ParameterBinder {
 	 * @return
 	 */
 	protected Object evaluateExpression(Expression expr) {
-		return expr.getValue(getEvaluationContext(), String.class);
+		return expr.getValue(getEvaluationContext(), Object.class);
 	}
 
 	/**
@@ -131,7 +131,18 @@ class ExpressionAwareParameterBinder extends ParameterBinder {
 		EvaluationContext delegatee = evaluationContextProvider.getEvaluationContext();
 		StandardEvaluationContext evalContext = new DelegatingStandardEvaluationContext(getValues(), delegatee);
 
+		populateParameterVariables(evalContext);
+
 		return evalContext;
+	}
+
+	private void populateParameterVariables(StandardEvaluationContext evalContext) {
+
+		for (JpaParameter param : getParameters()) {
+			if (param.isNamedParameter()) {
+				evalContext.setVariable(param.getName(), getValues()[param.getIndex()]);
+			}
+		}
 	}
 
 	/**
