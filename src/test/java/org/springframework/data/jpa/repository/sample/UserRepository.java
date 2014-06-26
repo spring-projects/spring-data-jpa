@@ -450,13 +450,13 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	/**
 	 * @see DATAJPA-XXX
 	 */
-	@Query("select u from User u where u.firstname = ?#{[0]} and u.firstname = ?1 and u.lastname like %?#{[1]}% and u.lastname like %?2%")
+	@Query("select u from User u where u.firstname = ?#{#args[0]} and u.firstname = ?1 and u.lastname like %?#{#args[1]}% and u.lastname like %?2%")
 	List<User> findByFirstnameAndLastnameWithSpelExpression(String firstname, String lastname);
 
 	/**
 	 * @see DATAJPA-XXX
 	 */
-	@Query("select u from User u where u.lastname like %:#{[0]}% and u.lastname like %:lastname%")
+	@Query("select u from User u where u.lastname like %:#{#args[0]}% and u.lastname like %:lastname%")
 	List<User> findByLastnameWithSpelExpression(@Param("lastname") String lastname);
 
 	/**
@@ -479,7 +479,7 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	/**
 	 * @see DATAJPA-XXX
 	 */
-	@Query("select u from User u where u.age = ?#{[0]}")
+	@Query("select u from User u where u.age = ?#{#args[0]}")
 	List<User> findUsersByAgeForSpELExpressionByIndexedParameter(int age);
 
 	/**

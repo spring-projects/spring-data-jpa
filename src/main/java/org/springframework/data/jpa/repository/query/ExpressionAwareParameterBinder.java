@@ -129,7 +129,7 @@ class ExpressionAwareParameterBinder extends ParameterBinder {
 	protected StandardEvaluationContext getEvaluationContext() {
 
 		EvaluationContext delegatee = evaluationContextProvider.getEvaluationContext();
-		StandardEvaluationContext evalContext = new DelegatingStandardEvaluationContext(getValues(), delegatee);
+		StandardEvaluationContext evalContext = new DelegatingStandardEvaluationContext(delegatee);
 
 		populateParameterVariables(evalContext);
 
@@ -143,6 +143,8 @@ class ExpressionAwareParameterBinder extends ParameterBinder {
 				evalContext.setVariable(param.getName(), getValues()[param.getIndex()]);
 			}
 		}
+
+		evalContext.setVariable("args", getValues());
 	}
 
 	/**
@@ -158,12 +160,11 @@ class ExpressionAwareParameterBinder extends ParameterBinder {
 		/**
 		 * Creates a new {@link DelegatingStandardEvaluationContext}.
 		 * 
-		 * @param values must not be {@literal null}
 		 * @param delegatee must not be {@literal null}
 		 */
-		public DelegatingStandardEvaluationContext(Object[] values, EvaluationContext delegatee) {
+		public DelegatingStandardEvaluationContext(EvaluationContext delegatee) {
 
-			super(values);
+			super(delegatee.getRootObject());
 
 			Assert.notNull(delegatee, "EvaluationContext delegatee must not be null!");
 
