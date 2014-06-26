@@ -189,9 +189,17 @@ class StringQuery {
 			String result = query;
 			Matcher matcher = PARAMETER_BINDING_PATTERN.matcher(query);
 
-			int greatestParameterIndex = determineGreatestParameterIndexIfPresent(query);
+			int greatestParameterIndex = tryFindGreatestParameterIndexIn(query);
 
 			boolean parametersShouldBeAccessedByIndex = greatestParameterIndex != -1;
+
+			/*
+			 * Prefer indexed access over named parameters if only SpEL Expression parameters are present.
+			 */
+			if (!parametersShouldBeAccessedByIndex && query.contains("?#{")) {
+				parametersShouldBeAccessedByIndex = true;
+				greatestParameterIndex = 0;
+			}
 
 			/*
 			 * If parameters need to be bound by index, we bind the synthetic expression parameters starting from position of the greatest discovered index parameter in order to
@@ -266,7 +274,7 @@ class StringQuery {
 			return result;
 		}
 
-		private int determineGreatestParameterIndexIfPresent(String query) {
+		private int tryFindGreatestParameterIndexIn(String query) {
 
 			Matcher parameterIndexMatcher = PARAMETER_BINDING_BY_INDEX.matcher(query);
 
