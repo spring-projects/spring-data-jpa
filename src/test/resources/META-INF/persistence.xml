@@ -10,6 +10,7 @@
 		<class>org.springframework.data.jpa.domain.sample.AuditableUser</class>
         <class>org.springframework.data.jpa.domain.sample.AuditableRole</class>
 		<class>org.springframework.data.jpa.domain.sample.Parent</class>
+		<class>org.springframework.data.jpa.domain.sample.PrimitiveVersionProperty</class>
 		<class>org.springframework.data.jpa.domain.sample.Child</class>
 		<class>org.springframework.data.jpa.domain.sample.Role</class>
 		<class>org.springframework.data.jpa.domain.sample.SpecialUser</class>

@@ -196,7 +196,14 @@ public class JpaMetamodelEntityInformation<T, ID extends Serializable> extends J
 			return super.isNew(entity);
 		}
 
-		return new DirectFieldAccessFallbackBeanWrapper(entity).getPropertyValue(versionAttribute.getName()) == null;
+		BeanWrapper wrapper = new DirectFieldAccessFallbackBeanWrapper(entity);
+		Object versionValue = wrapper.getPropertyValue(versionAttribute.getName());
+
+		if (versionValue == null) {
+			return true;
+		}
+
+		return versionAttribute.getJavaType().isPrimitive() && ((Number) versionValue).longValue() == 0;
 	}
 
 	/**
