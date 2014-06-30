@@ -1,6 +1,18 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 1.6.1.RELEASE (2014-06-30)
+---------------------------------------------
+* DATAJPA-563 - Release 1.6.1.
+* DATAJPA-561 - Entity with primitive version property invalidly considered not new.
+* DATAJPA-558 - StackOverflow error when creating the MappingContext for domain types with generics.
+* DATAJPA-554 - Avoid falling back to query derivation for invalid native queries.
+* DATAJPA-548 - Improve documentation on custom namespace attributes for jpa:repositories.
+* DATAJPA-545 - Special characters not allowed anymore in named binding parameter.
+* DATAJPA-527 - CrudRepository.exists(ID id) fails for entity with @IdClass.
+* DATAJPA-519 - ClasspathScanningPersistenceUnitPostProcessor throws NPE.
+
+
 Changes in version 1.5.3.RELEASE (2014-06-18)
 ---------------------------------------------
 * DATAJPA-557 - Release 1.5.3.
