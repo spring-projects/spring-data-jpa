@@ -1,6 +1,18 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 1.6.1.RELEASE (2014-06-30)
+---------------------------------------------
+* DATAJPA-563 - Release 1.6.1.
+* DATAJPA-561 - Entity with primitive version property invalidly considered not new.
+* DATAJPA-558 - StackOverflow error when creating the MappingContext for domain types with generics.
+* DATAJPA-554 - Avoid falling back to query derivation for invalid native queries.
+* DATAJPA-548 - Improve documentation on custom namespace attributes for jpa:repositories.
+* DATAJPA-545 - Special characters not allowed anymore in named binding parameter.
+* DATAJPA-527 - CrudRepository.exists(ID id) fails for entity with @IdClass.
+* DATAJPA-519 - ClasspathScanningPersistenceUnitPostProcessor throws NPE.
+
+
 Changes in version 1.5.3.RELEASE (2014-06-18)
 ---------------------------------------------
 * DATAJPA-557 - Release 1.5.3.
@@ -10,6 +22,7 @@ Changes in version 1.5.3.RELEASE (2014-06-18)
 * DATAJPA-527 - CrudRepository.exists(ID id) fails for entity with @IdClass.
 * DATAJPA-516 - Missing/Misspelled NamedQuery gives dubious Exception.
 * DATAJPA-510 - Regression in 1.5.1 - Sort by property of an associated object doesn't work. Join property and INNER vs OUTER join when sorting.
+
 
 Changes in version 1.6.0.RELEASE (2014-05-20)
 ---------------------------------------------
@@ -366,7 +379,7 @@ Changes in version 1.1.0.RELEASE (2012-05-16)
 * Release 1.1 GA (DATAJPA-212)
 
 Changes in version 1.1.0.RC1 (2012-02-03)
------------------------------------------    
+-----------------------------------------
 * Support for locking (DATAJPA-73)
 * Added CDI integration for repositories (DATAJPA-136)
 * Support for @IdClass in entities (DATAJPA-50)
