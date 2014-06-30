@@ -1,6 +1,16 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 1.5.3.RELEASE (2014-06-18)
+---------------------------------------------
+* DATAJPA-557 - Release 1.5.3.
+* DATAJPA-554 - Avoid falling back to query derivation for invalid native queries.
+* DATAJPA-548 - Improve documentation on custom namespace attributes for jpa:repositories.
+* DATAJPA-545 - Special characters not allowed anymore in named binding parameter.
+* DATAJPA-527 - CrudRepository.exists(ID id) fails for entity with @IdClass.
+* DATAJPA-516 - Missing/Misspelled NamedQuery gives dubious Exception.
+* DATAJPA-510 - Regression in 1.5.1 - Sort by property of an associated object doesn't work. Join property and INNER vs OUTER join when sorting.
+
 Changes in version 1.6.0.RELEASE (2014-05-20)
 ---------------------------------------------
 * DATAJPA-544 - Add Travis build configuration to trigger matrix builds.
@@ -23,7 +33,6 @@ Changes in version 1.6.0.RC1 (2014-05-02)
 * DATAJPA-479 - Oracle Function Type should be supported in Spring Data JPA.
 * DATAJPA-455 - Add support for JPA 2.1 stored procedures.
 * DATAJPA-438 - JpaRepository: add Optional<T> as alternative to null result.
-
 
 Changes in version 1.5.2.RELEASE (2014-04-15)
 ---------------------------------------------
