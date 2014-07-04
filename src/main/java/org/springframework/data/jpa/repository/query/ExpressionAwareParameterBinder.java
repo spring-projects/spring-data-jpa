@@ -15,25 +15,9 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
 import org.springframework.data.jpa.repository.support.EvaluationContextProvider;
-import org.springframework.expression.AccessException;
-import org.springframework.expression.BeanResolver;
-import org.springframework.expression.ConstructorResolver;
-import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
-import org.springframework.expression.MethodResolver;
-import org.springframework.expression.OperatorOverloader;
-import org.springframework.expression.PropertyAccessor;
-import org.springframework.expression.TypeComparator;
-import org.springframework.expression.TypeConverter;
-import org.springframework.expression.TypeLocator;
-import org.springframework.expression.TypedValue;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.expression.spel.support.ReflectivePropertyAccessor;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.util.Assert;
 
@@ -73,27 +57,6 @@ class ExpressionAwareParameterBinder extends ParameterBinder {
 		this.evaluationContextProvider = evaluationContextProvider;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.query.ParameterBinder#computeParameterValue(org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter, java.lang.Object, java.lang.Object[])
-	 */
-	@Override
-	protected Object computeParameterValue(JpaParameter parameter, Object value, Object[] values) {
-
-		if (!parameter.isExpressionParameter()) {
-			return super.computeParameterValue(parameter, value, values);
-		}
-
-		if (value instanceof String) {
-			return evaluateExpression((String) value);
-		}
-
-		if (value instanceof Expression) {
-			return evaluateExpression((Expression) value);
-		}
-
-		throw new IllegalArgumentException("Cannot convert Value: " + value + " to a SpEL expression");
-	}
-
 	/**
 	 * Parses the given {@code expressionString} into a SpEL {@link Expression}.
 	 * 
@@ -130,159 +93,6 @@ class ExpressionAwareParameterBinder extends ParameterBinder {
 	 * @return
 	 */
 	protected StandardEvaluationContext getEvaluationContext() {
-
-		EvaluationContext delegatee = evaluationContextProvider.getEvaluationContext();
-		StandardEvaluationContext evalContext = new DelegatingStandardEvaluationContext(getValues(), delegatee);
-
-		populateParameterVariables(evalContext);
-
-		return evalContext;
-	}
-
-	private void populateParameterVariables(StandardEvaluationContext evalContext) {
-
-		for (JpaParameter param : getParameters()) {
-			if (param.isNamedParameter()) {
-				evalContext.setVariable(param.getName(), getValues()[param.getIndex()]);
-			}
-		}
-
-		evalContext.setVariable("args", getValues());
-	}
-
-	/**
-	 * A {@link StandardEvaluationContext} that delegates to the given {@link EvaluationContext}. Variables are first
-	 * looked-up locally and if not the lookup is performed against the delegatee. Property references at the expression
-	 * root are resolved against the delegatees rootObject first potentially followed by a second lookup against the
-	 * current rootObject.
-	 * 
-	 * @author Thomas Darimont
-	 */
-	protected static class DelegatingStandardEvaluationContext extends StandardEvaluationContext {
-
-		private final EvaluationContext delegatee;
-
-		/**
-		 * Creates a new {@link DelegatingStandardEvaluationContext}.
-		 * 
-		 * @param objects
-		 * @param delegatee must not be {@literal null}
-		 */
-		public DelegatingStandardEvaluationContext(Object[] parameterValues, EvaluationContext delegatee) {
-			super(parameterValues);
-
-			Assert.notNull(delegatee, "EvaluationContext delegatee must not be null!");
-
-			this.delegatee = delegatee;
-		}
-
-		/* (non-Javadoc)
-		 * @see org.springframework.expression.spel.support.StandardEvaluationContext#getConstructorResolvers()
-		 */
-		@Override
-		public List<ConstructorResolver> getConstructorResolvers() {
-			return delegatee.getConstructorResolvers();
-		}
-
-		/* (non-Javadoc)
-		 * @see org.springframework.expression.spel.support.StandardEvaluationContext#getMethodResolvers()
-		 */
-		@Override
-		public List<MethodResolver> getMethodResolvers() {
-			return delegatee.getMethodResolvers();
-		}
-
-		/* (non-Javadoc)
-		 * @see org.springframework.expression.spel.support.StandardEvaluationContext#getPropertyAccessors()
-		 */
-		@Override
-		public List<PropertyAccessor> getPropertyAccessors() {
-
-			List<PropertyAccessor> propertyAccessors = new ArrayList<PropertyAccessor>();
-
-			// First we want to lookup properties against the delegatees root object
-			propertyAccessors.add(newDelegatingPropertyAccessor(delegatee.getRootObject()));
-
-			// Second we want to loopup properties against the current root object
-			propertyAccessors.addAll(delegatee.getPropertyAccessors());
-
-			return propertyAccessors;
-		}
-
-		/**
-		 * Returns a {@link ReflectivePropertyAccessor} that always looks up properties at the expression root against the
-		 * delegates root object first.
-		 * 
-		 * @param delegateRoot
-		 * @return
-		 */
-		private ReflectivePropertyAccessor newDelegatingPropertyAccessor(final TypedValue delegateRoot) {
-
-			return new ReflectivePropertyAccessor() {
-				@Override
-				public boolean canRead(EvaluationContext context, Object target, String name) throws AccessException {
-					return super.canRead(context, delegateRoot.getValue(), name);
-				}
-
-				@Override
-				public TypedValue read(EvaluationContext context, Object target, String name) throws AccessException {
-					return super.read(context, delegateRoot.getValue(), name);
-				}
-			};
-		}
-
-		/* (non-Javadoc)
-		 * @see org.springframework.expression.spel.support.StandardEvaluationContext#getTypeLocator()
-		 */
-		@Override
-		public TypeLocator getTypeLocator() {
-			return delegatee.getTypeLocator();
-		}
-
-		/* (non-Javadoc)
-		 * @see org.springframework.expression.spel.support.StandardEvaluationContext#getTypeConverter()
-		 */
-		@Override
-		public TypeConverter getTypeConverter() {
-			return delegatee.getTypeConverter();
-		}
-
-		/* (non-Javadoc)
-		 * @see org.springframework.expression.spel.support.StandardEvaluationContext#getTypeComparator()
-		 */
-		@Override
-		public TypeComparator getTypeComparator() {
-			return delegatee.getTypeComparator();
-		}
-
-		/* (non-Javadoc)
-		 * @see org.springframework.expression.spel.support.StandardEvaluationContext#getOperatorOverloader()
-		 */
-		@Override
-		public OperatorOverloader getOperatorOverloader() {
-			return delegatee.getOperatorOverloader();
-		}
-
-		/* (non-Javadoc)
-		 * @see org.springframework.expression.spel.support.StandardEvaluationContext#getBeanResolver()
-		 */
-		@Override
-		public BeanResolver getBeanResolver() {
-			return delegatee.getBeanResolver();
-		}
-
-		/* (non-Javadoc)
-		 * @see org.springframework.expression.spel.support.StandardEvaluationContext#lookupVariable(java.lang.String)
-		 */
-		@Override
-		public Object lookupVariable(String name) {
-
-			Object result = super.lookupVariable(name);
-			if (result != null) {
-				return result;
-			}
-
-			return delegatee.lookupVariable(name);
-		}
+		return evaluationContextProvider.getEvaluationContext(getValues(), getParameters());
 	}
 }

@@ -25,6 +25,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -35,6 +36,8 @@ import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.data.jpa.repository.sample.UserRepositoryImpl;
+import org.springframework.data.jpa.repository.support.EvaluationContextExtension;
+import org.springframework.data.jpa.repository.support.ExtensibleEvaluationContextProvider;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean;
 import org.springframework.data.repository.core.NamedQueries;
 import org.springframework.data.repository.core.support.PropertiesBasedNamedQueries;
@@ -45,6 +48,7 @@ import org.springframework.test.context.support.AnnotationConfigContextLoader;
  * Integration test for {@link UserRepository} using JavaConfig.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 @ContextConfiguration(inheritLocations = false, loader = AnnotationConfigContextLoader.class)
 public class JavaConfigUserRepositoryTests extends UserRepositoryTests {
@@ -57,7 +61,15 @@ public class JavaConfigUserRepositoryTests extends UserRepositoryTests {
 		@Autowired BeanFactory beanFactory;
 
 		@Bean
-		public UserRepository userRepository() throws IOException {
+		public EvaluationContextExtension sampleEvaluationContextExtension() {
+			return new SampleEvaluationContextExtension();
+		}
+
+		@Bean
+		public UserRepository userRepository() throws Exception {
+
+			ExtensibleEvaluationContextProvider evaluationContextProvider = new ExtensibleEvaluationContextProvider();
+			evaluationContextProvider.setApplicationContext((ApplicationContext) beanFactory);
 
 			JpaRepositoryFactoryBean<UserRepository, User, Integer> factory = new JpaRepositoryFactoryBean<UserRepository, User, Integer>();
 			factory.setEntityManager(entityManager);
@@ -65,7 +77,7 @@ public class JavaConfigUserRepositoryTests extends UserRepositoryTests {
 			factory.setRepositoryInterface(UserRepository.class);
 			factory.setCustomImplementation(new UserRepositoryImpl());
 			factory.setNamedQueries(namedQueries());
-			factory.setExpressionEvaluationContextProvider(new SampleExpressionEvaluationContextProvider());
+			factory.setExpressionEvaluationContextProvider(evaluationContextProvider);
 			factory.afterPropertiesSet();
 
 			return factory.getObject();

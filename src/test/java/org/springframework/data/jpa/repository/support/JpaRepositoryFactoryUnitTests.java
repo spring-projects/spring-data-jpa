@@ -15,9 +15,9 @@
  */
 package org.springframework.data.jpa.repository.support;
 
+import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
-import static org.hamcrest.CoreMatchers.*;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -36,6 +36,7 @@ import org.springframework.data.jpa.repository.custom.CustomGenericJpaRepository
 import org.springframework.data.jpa.repository.custom.UserCustomExtendedRepository;
 import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 import org.springframework.data.repository.core.support.DefaultRepositoryMetadata;
+import org.springframework.data.repository.query.QueryLookupStrategy.Key;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -48,17 +49,14 @@ public class JpaRepositoryFactoryUnitTests {
 
 	JpaRepositoryFactory factory;
 
-	@Mock
-	EntityManager entityManager;
-	@Mock
-	@SuppressWarnings("rawtypes")
-	JpaEntityInformation metadata;
+	@Mock EntityManager entityManager;
+	@Mock @SuppressWarnings("rawtypes") JpaEntityInformation metadata;
 
 	@Before
 	public void setUp() {
 
 		// Setup standard factory configuration
-		factory = new JpaRepositoryFactory(entityManager) {
+		factory = new JpaRepositoryFactory(entityManager, StandardEvaluationContextProvider.INSTANCE) {
 
 			@Override
 			@SuppressWarnings("unchecked")
@@ -67,6 +65,8 @@ public class JpaRepositoryFactoryUnitTests {
 				return metadata;
 			};
 		};
+
+		factory.setQueryLookupStrategyKey(Key.CREATE_IF_NOT_FOUND);
 	}
 
 	/**
@@ -125,6 +125,7 @@ public class JpaRepositoryFactoryUnitTests {
 	public void createsProxyWithCustomBaseClass() {
 
 		JpaRepositoryFactory factory = new CustomGenericJpaRepositoryFactory(entityManager);
+		factory.setQueryLookupStrategyKey(Key.CREATE_IF_NOT_FOUND);
 		UserCustomExtendedRepository repository = factory.getRepository(UserCustomExtendedRepository.class);
 
 		repository.customMethod(1);

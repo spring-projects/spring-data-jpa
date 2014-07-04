@@ -15,20 +15,37 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import org.springframework.data.repository.query.Parameter;
-import org.springframework.expression.spel.support.StandardEvaluationContext;
+import java.lang.reflect.Method;
+import java.util.Map;
+
+import org.springframework.expression.EvaluationContext;
 
 /**
- * Provides a way to access a centrally defined potentially shared {@link StandardEvaluationContext}.
+ * A SPI that allows a user to add a set of properties and function definitions accessible via the root of an
+ * {@link EvaluationContext} provided by a {@link ExtensibleEvaluationContextProvider}.
  * 
  * @author Thomas Darimont
+ * @since 1.7
  */
-public interface EvaluationContextProvider {
+public interface EvaluationContextExtension {
 
 	/**
-	 * Returns a potentially new {@link StandardEvaluationContext}.
-	 * 
+	 * @return the scope
+	 */
+	String getScope();
+
+	/**
+	 * @return the properties
+	 */
+	Map<String, Object> getProperties();
+
+	/**
 	 * @return
 	 */
-	StandardEvaluationContext getEvaluationContext(Object[] parameterValues, Iterable<? extends Parameter> parameters);
+	Map<String, Object> getVariables();
+
+	/**
+	 * @return the functions
+	 */
+	Map<String, Method> getFunctions();
 }

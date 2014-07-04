@@ -26,7 +26,6 @@ import org.springframework.data.jpa.repository.Temporal;
 import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
-import org.springframework.expression.Expression;
 
 /**
  * Custom extension of {@link Parameters} discovering additional query parameter annotations.
@@ -109,13 +108,6 @@ public class JpaParameters extends Parameters<JpaParameters, JpaParameter> {
 		 */
 		public boolean isTemporalParameter() {
 			return isDateParameter() && hasTemporalParamAnnotation();
-		}
-
-		/**
-		 * @return {@literal true} if this parameter is of type {@link Expression}.
-		 */
-		public boolean isExpressionParameter() {
-			return Expression.class.equals(getType());
 		}
 
 		/**

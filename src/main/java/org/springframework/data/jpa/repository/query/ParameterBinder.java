@@ -126,7 +126,7 @@ public class ParameterBinder {
 	 * @param values
 	 * @return
 	 */
-	protected Object computeParameterValue(JpaParameter parameter, Object value, Object[] values) {
+	private Object computeParameterValue(JpaParameter parameter, Object value, Object[] values) {
 		return value;
 	}
 

@@ -15,6 +15,7 @@
  */
 package org.springframework.data.jpa.repository.support;
 
+import org.springframework.data.repository.query.Parameter;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 
@@ -27,12 +28,9 @@ public enum StandardEvaluationContextProvider implements EvaluationContextProvid
 
 	INSTANCE;
 
-	/* 
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.support.EvaluationContextProvider#getEvaluationContext()
-	 */
 	@Override
-	public StandardEvaluationContext getEvaluationContext() {
+	public StandardEvaluationContext getEvaluationContext(Object[] parameterValues,
+			Iterable<? extends Parameter> parameters) {
 		return new StandardEvaluationContext();
 	}
 }
