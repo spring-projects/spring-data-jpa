@@ -37,7 +37,6 @@ import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.jpa.repository.query.Procedure;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
-import org.springframework.expression.Expression;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.base.Optional;
@@ -472,11 +471,6 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	 */
 	@Query("select u from User u where u.lastname like %:#{[0]}% and u.lastname like %:lastname%")
 	List<User> findByLastnameWithSpelExpression(@Param("lastname") String lastname);
-
-	/**
-	 * @see DATAJPA-564
-	 */
-	List<User> queryByLastname(Expression lastname);
 
 	/**
 	 * @see DATAJPA-564

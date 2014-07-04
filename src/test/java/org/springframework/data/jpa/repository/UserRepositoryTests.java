@@ -60,8 +60,6 @@ import org.springframework.data.jpa.domain.sample.SpecialUser;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.SampleSecurity.SampleSecurityContextHolder;
 import org.springframework.data.jpa.repository.sample.UserRepository;
-import org.springframework.expression.Expression;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
@@ -1670,21 +1668,6 @@ public class UserRepositoryTests {
 
 		assertThat(users, hasSize(1));
 		assertThat(users.get(0), is(secondUser));
-	}
-
-	/**
-	 * @see DATAJPA-564
-	 */
-	@Test
-	public void shouldFindUserByLastnameWithSpelExpressionInDerivedQuery() {
-
-		flushTestUsers();
-
-		Expression expr = new SpelExpressionParser().parseExpression("'Gier' + 'ke'");
-		List<User> users = repository.queryByLastname(expr);
-
-		assertThat(users, hasSize(1));
-		assertThat(users.get(0), is(firstUser));
 	}
 
 	/**
