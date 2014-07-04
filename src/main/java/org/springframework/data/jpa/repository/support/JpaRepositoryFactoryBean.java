@@ -39,7 +39,7 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID extends
 
 	private EntityManager entityManager;
 
-	private ExpressionEvaluationContextProvider expressionEvaluationContextProvider = StandardExpressionEvaluationContextProvider.INSTANCE;
+	private EvaluationContextProvider expressionEvaluationContextProvider = StandardEvaluationContextProvider.INSTANCE;
 
 	/**
 	 * The {@link EntityManager} to be used.
@@ -64,7 +64,7 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID extends
 	 * @param expressionEvaluationContextProvider the expressionEvaluationContextProvider to set
 	 */
 	public void setExpressionEvaluationContextProvider(
-			ExpressionEvaluationContextProvider expressionEvaluationContextProvider) {
+			EvaluationContextProvider expressionEvaluationContextProvider) {
 		this.expressionEvaluationContextProvider = expressionEvaluationContextProvider;
 	}
 

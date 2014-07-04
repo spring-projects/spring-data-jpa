@@ -41,7 +41,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	private final EntityManager entityManager;
 	private final QueryExtractor extractor;
 	private final CrudMethodMetadataPostProcessor lockModePostProcessor;
-	private final ExpressionEvaluationContextProvider evaluationContextProvider;
+	private final EvaluationContextProvider evaluationContextProvider;
 
 	/**
 	 * Creates a new {@link JpaRepositoryFactory}.
@@ -49,7 +49,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	 * @param entityManager must not be {@literal null}
 	 */
 	public JpaRepositoryFactory(EntityManager entityManager) {
-		this(entityManager, StandardExpressionEvaluationContextProvider.INSTANCE);
+		this(entityManager, StandardEvaluationContextProvider.INSTANCE);
 	}
 
 	/**
@@ -58,7 +58,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	 * @param entityManager must not be {@literal null}
 	 * @param evaluationContextProvider must not be {@literal null}
 	 */
-	public JpaRepositoryFactory(EntityManager entityManager, ExpressionEvaluationContextProvider evaluationContextProvider) {
+	public JpaRepositoryFactory(EntityManager entityManager, EvaluationContextProvider evaluationContextProvider) {
 
 		Assert.notNull(entityManager);
 

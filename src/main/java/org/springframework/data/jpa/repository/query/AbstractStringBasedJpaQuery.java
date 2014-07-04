@@ -19,7 +19,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 
-import org.springframework.data.jpa.repository.support.ExpressionEvaluationContextProvider;
+import org.springframework.data.jpa.repository.support.EvaluationContextProvider;
 import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.util.Assert;
@@ -34,7 +34,7 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 
 	private final StringQuery query;
 	private final StringQuery countQuery;
-	private final ExpressionEvaluationContextProvider evaluationContextProvider;
+	private final EvaluationContextProvider evaluationContextProvider;
 
 	/**
 	 * Creates a new {@link AbstractStringBasedJpaQuery} from the given {@link JpaQueryMethod}, {@link EntityManager} and
@@ -46,7 +46,7 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 	 * @param evaluationContextProvider must not be {@literal null}.
 	 */
 	public AbstractStringBasedJpaQuery(JpaQueryMethod method, EntityManager em, String queryString,
-			ExpressionEvaluationContextProvider evaluationContextProvider) {
+			EvaluationContextProvider evaluationContextProvider) {
 
 		super(method, em);
 

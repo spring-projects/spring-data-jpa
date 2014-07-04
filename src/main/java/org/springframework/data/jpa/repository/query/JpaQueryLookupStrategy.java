@@ -19,7 +19,7 @@ import java.lang.reflect.Method;
 
 import javax.persistence.EntityManager;
 
-import org.springframework.data.jpa.repository.support.ExpressionEvaluationContextProvider;
+import org.springframework.data.jpa.repository.support.EvaluationContextProvider;
 import org.springframework.data.repository.core.NamedQueries;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.QueryLookupStrategy;
@@ -37,23 +37,29 @@ public final class JpaQueryLookupStrategy {
 	/**
 	 * Private constructor to prevent instantiation.
 	 */
-	private JpaQueryLookupStrategy() {
-
-	}
+	private JpaQueryLookupStrategy() {}
 
 	/**
 	 * Base class for {@link QueryLookupStrategy} implementations that need access to an {@link EntityManager}.
 	 * 
 	 * @author Oliver Gierke
+	 * @author Thomas Darimont
 	 */
 	private abstract static class AbstractQueryLookupStrategy implements QueryLookupStrategy {
 
 		private final EntityManager em;
 		private final QueryExtractor provider;
-		protected final ExpressionEvaluationContextProvider evaluationContextProvider;
+		protected final EvaluationContextProvider evaluationContextProvider;
 
+		/**
+		 * Creates a new {@link AbstractQueryLookupStrategy}.
+		 * 
+		 * @param em
+		 * @param extractor
+		 * @param evaluationContextProvider
+		 */
 		public AbstractQueryLookupStrategy(EntityManager em, QueryExtractor extractor,
-				ExpressionEvaluationContextProvider evaluationContextProvider) {
+				EvaluationContextProvider evaluationContextProvider) {
 
 			this.em = em;
 			this.provider = extractor;
@@ -80,11 +86,12 @@ public final class JpaQueryLookupStrategy {
 	 * {@link QueryLookupStrategy} to create a query from the method name.
 	 * 
 	 * @author Oliver Gierke
+	 * @author Thomas Darimont
 	 */
 	private static class CreateQueryLookupStrategy extends AbstractQueryLookupStrategy {
 
 		public CreateQueryLookupStrategy(EntityManager em, QueryExtractor extractor,
-				ExpressionEvaluationContextProvider evaluationContextProvider) {
+				EvaluationContextProvider evaluationContextProvider) {
 
 			super(em, extractor, evaluationContextProvider);
 		}
@@ -106,11 +113,19 @@ public final class JpaQueryLookupStrategy {
 	 * a JPA named query lookup.
 	 * 
 	 * @author Oliver Gierke
+	 * @author Thomas Darimont
 	 */
 	private static class DeclaredQueryLookupStrategy extends AbstractQueryLookupStrategy {
 
+		/**
+		 * Creates a new {@link DeclaredQueryLookupStrategy}.
+		 * 
+		 * @param em
+		 * @param extractor
+		 * @param evaluationContextProvider
+		 */
 		public DeclaredQueryLookupStrategy(EntityManager em, QueryExtractor extractor,
-				ExpressionEvaluationContextProvider evaluationContextProvider) {
+				EvaluationContextProvider evaluationContextProvider) {
 
 			super(em, extractor, evaluationContextProvider);
 		}
@@ -153,15 +168,25 @@ public final class JpaQueryLookupStrategy {
 	 * query creation.
 	 * 
 	 * @author Oliver Gierke
+	 * @author Thomas Darimont
 	 */
 	private static class CreateIfNotFoundQueryLookupStrategy extends AbstractQueryLookupStrategy {
 
 		private final DeclaredQueryLookupStrategy lookupStrategy;
 		private final CreateQueryLookupStrategy createStrategy;
 
+		/**
+		 * Creates a new {@link CreateIfNotFoundQueryLookupStrategy}.
+		 * 
+		 * @param em
+		 * @param extractor
+		 * @param createStrategy
+		 * @param lookupStrategy
+		 * @param evaluationContextProvider
+		 */
 		public CreateIfNotFoundQueryLookupStrategy(EntityManager em, QueryExtractor extractor,
 				CreateQueryLookupStrategy createStrategy, DeclaredQueryLookupStrategy lookupStrategy,
-				ExpressionEvaluationContextProvider evaluationContextProvider) {
+				EvaluationContextProvider evaluationContextProvider) {
 
 			super(em, extractor, evaluationContextProvider);
 
@@ -189,7 +214,7 @@ public final class JpaQueryLookupStrategy {
 	 * @return
 	 */
 	public static QueryLookupStrategy create(EntityManager em, Key key, QueryExtractor extractor,
-			ExpressionEvaluationContextProvider evaluationContextProvider) {
+			EvaluationContextProvider evaluationContextProvider) {
 
 		switch (key != null ? key : Key.CREATE_IF_NOT_FOUND) {
 			case CREATE:

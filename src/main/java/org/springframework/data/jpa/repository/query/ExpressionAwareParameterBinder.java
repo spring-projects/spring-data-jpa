@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
-import org.springframework.data.jpa.repository.support.ExpressionEvaluationContextProvider;
+import org.springframework.data.jpa.repository.support.EvaluationContextProvider;
 import org.springframework.expression.AccessException;
 import org.springframework.expression.BeanResolver;
 import org.springframework.expression.ConstructorResolver;
@@ -44,16 +44,15 @@ import org.springframework.util.Assert;
  */
 class ExpressionAwareParameterBinder extends ParameterBinder {
 
-	private final ExpressionEvaluationContextProvider evaluationContextProvider;
+	private final EvaluationContextProvider evaluationContextProvider;
 
 	/**
 	 * Creates a new {@literal ExpressionAwareParameterBinder}.
 	 * 
 	 * @param parameters
-	 * @param evaluationContextProvider
+	 * @param evaluationContextProvider must not be {@literal null}.
 	 */
-	public ExpressionAwareParameterBinder(JpaParameters parameters,
-			ExpressionEvaluationContextProvider evaluationContextProvider) {
+	public ExpressionAwareParameterBinder(JpaParameters parameters, EvaluationContextProvider evaluationContextProvider) {
 		this(parameters, new Object[0], evaluationContextProvider);
 	}
 
@@ -62,14 +61,14 @@ class ExpressionAwareParameterBinder extends ParameterBinder {
 	 * 
 	 * @param parameters
 	 * @param values
-	 * @param evaluationContextProvider
+	 * @param evaluationContextProvider must not be {@literal null}.
 	 */
 	public ExpressionAwareParameterBinder(JpaParameters parameters, Object[] values,
-			ExpressionEvaluationContextProvider evaluationContextProvider) {
+			EvaluationContextProvider evaluationContextProvider) {
 
 		super(parameters, values);
 
-		Assert.notNull(evaluationContextProvider, "ExpressionEvaluationContextProvider must not be null!");
+		Assert.notNull(evaluationContextProvider, "EvaluationContextProvider must not be null!");
 
 		this.evaluationContextProvider = evaluationContextProvider;
 	}

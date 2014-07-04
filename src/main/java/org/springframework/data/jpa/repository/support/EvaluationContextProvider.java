@@ -22,7 +22,7 @@ import org.springframework.expression.EvaluationContext;
  * 
  * @author Thomas Darimont
  */
-public interface ExpressionEvaluationContextProvider {
+public interface EvaluationContextProvider {
 
 	/**
 	 * Returns the {@link EvaluationContext}.
