@@ -18,7 +18,7 @@ package org.springframework.data.jpa.repository.query;
 import javax.persistence.Query;
 
 import org.springframework.data.jpa.repository.query.StringQuery.ParameterBinding;
-import org.springframework.data.jpa.repository.support.ExpressionEvaluationContextProvider;
+import org.springframework.data.jpa.repository.support.EvaluationContextProvider;
 import org.springframework.expression.Expression;
 import org.springframework.util.Assert;
 
@@ -40,11 +40,11 @@ class SpelExpressionStringQueryParameterBinder extends StringQueryParameterBinde
 	 * @param evaluationContextProvider must not be {@literal null}
 	 */
 	public SpelExpressionStringQueryParameterBinder(JpaParameters parameters, Object[] values, StringQuery query,
-			ExpressionEvaluationContextProvider evaluationContextProvider) {
+			EvaluationContextProvider evaluationContextProvider) {
 
 		super(parameters, values, query, evaluationContextProvider);
 
-		Assert.notNull(evaluationContextProvider, "ExpressionEvaluationContextProvider must not be null!");
+		Assert.notNull(evaluationContextProvider, "EvaluationContextProvider must not be null!");
 
 		this.query = query;
 	}

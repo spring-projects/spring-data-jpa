@@ -38,7 +38,7 @@ import org.springframework.dao.annotation.PersistenceExceptionTranslationPostPro
 import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
 import org.springframework.data.jpa.repository.support.EntityManagerBeanDefinitionRegistrarPostProcessor;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean;
-import org.springframework.data.jpa.repository.support.StandardExpressionEvaluationContextProvider;
+import org.springframework.data.jpa.repository.support.StandardEvaluationContextProvider;
 import org.springframework.data.repository.config.RepositoryConfigurationExtensionSupport;
 import org.springframework.data.repository.config.RepositoryConfigurationSource;
 import org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor;
@@ -175,7 +175,7 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 			registry.registerBeanDefinition(
 					DEFAULT_EXPRESSION_EVALUATION_CONTEXT_PROVIDER,
 					BeanDefinitionBuilder.rootBeanDefinition(FieldRetrievingFactoryBean.class)
-							.addPropertyValue("targetClass", StandardExpressionEvaluationContextProvider.class)
+							.addPropertyValue("targetClass", StandardEvaluationContextProvider.class)
 							.addPropertyValue("targetField", "INSTANCE").getBeanDefinition());
 		}
 	}

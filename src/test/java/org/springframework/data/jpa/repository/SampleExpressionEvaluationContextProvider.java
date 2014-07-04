@@ -16,14 +16,14 @@
 package org.springframework.data.jpa.repository;
 
 import org.springframework.data.jpa.repository.SampleSecurity.SampleSecurityContextHolder;
-import org.springframework.data.jpa.repository.support.ExpressionEvaluationContextProvider;
+import org.springframework.data.jpa.repository.support.EvaluationContextProvider;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 
 /**
  * @author Thomas Darimont
  */
-public class SampleExpressionEvaluationContextProvider implements ExpressionEvaluationContextProvider {
+public class SampleExpressionEvaluationContextProvider implements EvaluationContextProvider {
 
 	@Override
 	public EvaluationContext getEvaluationContext() {

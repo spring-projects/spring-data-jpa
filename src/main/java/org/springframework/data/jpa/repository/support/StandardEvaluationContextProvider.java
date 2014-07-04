@@ -19,18 +19,17 @@ import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 
 /**
- * Default implementation of {@link ExpressionEvaluationContextProvider} that always creates a new
- * {@link EvaluationContext}.
+ * Default implementation of {@link EvaluationContextProvider} that always creates a new {@link EvaluationContext}.
  * 
  * @author Thomas Darimont
  */
-public enum StandardExpressionEvaluationContextProvider implements ExpressionEvaluationContextProvider {
+public enum StandardEvaluationContextProvider implements EvaluationContextProvider {
 
 	INSTANCE;
 
 	/* 
 	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.support.ExpressionEvaluationContextProvider#getEvaluationContext()
+	 * @see org.springframework.data.jpa.repository.support.EvaluationContextProvider#getEvaluationContext()
 	 */
 	@Override
 	public StandardEvaluationContext getEvaluationContext() {

@@ -44,7 +44,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.data.jpa.repository.support.DefaultJpaEntityMetadata;
 import org.springframework.data.jpa.repository.support.JpaEntityMetadata;
-import org.springframework.data.jpa.repository.support.StandardExpressionEvaluationContextProvider;
+import org.springframework.data.jpa.repository.support.StandardEvaluationContextProvider;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.RepositoryQuery;
 
@@ -97,7 +97,7 @@ public class SimpleJpaQueryUnitTests {
 		when(em.createQuery("foo", Long.class)).thenReturn(query);
 
 		SimpleJpaQuery jpaQuery = new SimpleJpaQuery(method, em, "select u from User u",
-				StandardExpressionEvaluationContextProvider.INSTANCE);
+				StandardEvaluationContextProvider.INSTANCE);
 
 		assertThat(jpaQuery.createCountQuery(new Object[] {}), is(query));
 	}
@@ -114,7 +114,7 @@ public class SimpleJpaQueryUnitTests {
 		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, extractor);
 
 		AbstractJpaQuery jpaQuery = new SimpleJpaQuery(queryMethod, em, "select u from User u",
-				StandardExpressionEvaluationContextProvider.INSTANCE);
+				StandardEvaluationContextProvider.INSTANCE);
 		jpaQuery.createCountQuery(new Object[] { new PageRequest(1, 10) });
 
 		verify(query, times(0)).setFirstResult(anyInt());
@@ -128,7 +128,7 @@ public class SimpleJpaQueryUnitTests {
 		Method method = SampleRepository.class.getMethod("findNativeByLastname", String.class);
 		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, extractor);
 		AbstractJpaQuery jpaQuery = JpaQueryFactory.INSTANCE.fromQueryAnnotation(queryMethod, em,
-				StandardExpressionEvaluationContextProvider.INSTANCE);
+				StandardEvaluationContextProvider.INSTANCE);
 
 		assertThat(jpaQuery instanceof NativeJpaQuery, is(true));
 
@@ -210,7 +210,7 @@ public class SimpleJpaQueryUnitTests {
 
 		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, extractor);
 		return JpaQueryFactory.INSTANCE.fromQueryAnnotation(queryMethod, em,
-				StandardExpressionEvaluationContextProvider.INSTANCE);
+				StandardEvaluationContextProvider.INSTANCE);
 	}
 
 	interface SampleRepository {
