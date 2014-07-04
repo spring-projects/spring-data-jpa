@@ -61,11 +61,10 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID extends
 	}
 
 	/**
-	 * @param expressionEvaluationContextProvider the expressionEvaluationContextProvider to set
+	 * @param evaluationContextProvider the {@link EvaluationContextProvider} to set
 	 */
-	public void setExpressionEvaluationContextProvider(
-			EvaluationContextProvider expressionEvaluationContextProvider) {
-		this.expressionEvaluationContextProvider = expressionEvaluationContextProvider;
+	public void setExpressionEvaluationContextProvider(EvaluationContextProvider evaluationContextProvider) {
+		this.expressionEvaluationContextProvider = evaluationContextProvider;
 	}
 
 	/*

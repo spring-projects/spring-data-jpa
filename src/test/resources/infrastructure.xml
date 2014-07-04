@@ -24,7 +24,8 @@
 		<property name="entityManagerFactory" ref="entityManagerFactory" />
 	</bean>
 	
-	<bean name="expressionEvaluationContextProvider" class="org.springframework.data.jpa.repository.SampleExpressionEvaluationContextProvider"/>
+	<bean name="expressionEvaluationContextProvider" class="org.springframework.data.jpa.repository.support.ExtensibleEvaluationContextProvider"/>
+	<bean name="sampleEvaluationContextExtension" class="org.springframework.data.jpa.repository.SampleEvaluationContextExtension"/>
 	
 	<jdbc:embedded-database id="dataSource" type="HSQL">
 		<jdbc:script execution="INIT" separator="/;" location="classpath:scripts/schema-stored-procedures.sql"/>

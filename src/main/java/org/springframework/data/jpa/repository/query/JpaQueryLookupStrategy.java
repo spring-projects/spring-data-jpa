@@ -25,6 +25,7 @@ import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.data.repository.query.QueryLookupStrategy.Key;
 import org.springframework.data.repository.query.RepositoryQuery;
+import org.springframework.util.Assert;
 
 /**
  * Query lookup strategy to execute finders.
@@ -208,13 +209,18 @@ public final class JpaQueryLookupStrategy {
 	/**
 	 * Creates a {@link QueryLookupStrategy} for the given {@link EntityManager} and {@link Key}.
 	 * 
-	 * @param em
-	 * @param key
-	 * @param evaluationContextProvider
+	 * @param em must not be {@literal null}.
+	 * @param key may be {@literal null}.
+	 * @param extractor must not be {@literal null}.
+	 * @param evaluationContextProvider must not be {@literal null}.
 	 * @return
 	 */
 	public static QueryLookupStrategy create(EntityManager em, Key key, QueryExtractor extractor,
 			EvaluationContextProvider evaluationContextProvider) {
+
+		Assert.notNull(em, "EntityManager must not be null!");
+		Assert.notNull(extractor, "QueryExtractor must not be null!");
+		Assert.notNull(evaluationContextProvider, "EvaluationContextProvider must not be null!");
 
 		switch (key != null ? key : Key.CREATE_IF_NOT_FOUND) {
 			case CREATE:
