@@ -15,7 +15,8 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import org.springframework.data.jpa.repository.support.EvaluationContextProvider;
+import org.springframework.data.repository.query.EvaluationContextProvider;
+import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
@@ -92,7 +93,7 @@ class ExpressionAwareParameterBinder extends ParameterBinder {
 	 * 
 	 * @return
 	 */
-	protected StandardEvaluationContext getEvaluationContext() {
-		return evaluationContextProvider.getEvaluationContext(getValues(), getParameters());
+	protected EvaluationContext getEvaluationContext() {
+		return evaluationContextProvider.getEvaluationContext(getParameters(), getValues());
 	}
 }

@@ -18,7 +18,7 @@ package org.springframework.data.jpa.repository.query;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 
-import org.springframework.data.jpa.repository.support.EvaluationContextProvider;
+import org.springframework.data.repository.query.EvaluationContextProvider;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.RepositoryQuery;
 
