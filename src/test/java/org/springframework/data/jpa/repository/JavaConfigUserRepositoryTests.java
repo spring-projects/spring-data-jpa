@@ -16,6 +16,7 @@
 package org.springframework.data.jpa.repository;
 
 import java.io.IOException;
+import java.util.List;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -34,13 +35,14 @@ import org.springframework.context.annotation.ImportResource;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.data.jpa.repository.sample.SampleEvaluationContextExtension;
 import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.data.jpa.repository.sample.UserRepositoryImpl;
-import org.springframework.data.jpa.repository.support.EvaluationContextExtension;
-import org.springframework.data.jpa.repository.support.ExtensibleEvaluationContextProvider;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean;
 import org.springframework.data.repository.core.NamedQueries;
 import org.springframework.data.repository.core.support.PropertiesBasedNamedQueries;
+import org.springframework.data.repository.query.ExtensionAwareEvaluationContextProvider;
+import org.springframework.data.repository.query.spi.EvaluationContextExtension;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
 
@@ -58,7 +60,8 @@ public class JavaConfigUserRepositoryTests extends UserRepositoryTests {
 	static class Config {
 
 		@PersistenceContext EntityManager entityManager;
-		@Autowired BeanFactory beanFactory;
+		@Autowired ApplicationContext applicationContext;
+		@Autowired List<EvaluationContextExtension> extensions;
 
 		@Bean
 		public EvaluationContextExtension sampleEvaluationContextExtension() {
@@ -68,16 +71,17 @@ public class JavaConfigUserRepositoryTests extends UserRepositoryTests {
 		@Bean
 		public UserRepository userRepository() throws Exception {
 
-			ExtensibleEvaluationContextProvider evaluationContextProvider = new ExtensibleEvaluationContextProvider();
-			evaluationContextProvider.setApplicationContext((ApplicationContext) beanFactory);
+			ExtensionAwareEvaluationContextProvider evaluationContextProvider = new ExtensionAwareEvaluationContextProvider(
+					extensions);
+			evaluationContextProvider.setApplicationContext(applicationContext);
 
 			JpaRepositoryFactoryBean<UserRepository, User, Integer> factory = new JpaRepositoryFactoryBean<UserRepository, User, Integer>();
 			factory.setEntityManager(entityManager);
-			factory.setBeanFactory(beanFactory);
+			factory.setBeanFactory(applicationContext);
 			factory.setRepositoryInterface(UserRepository.class);
 			factory.setCustomImplementation(new UserRepositoryImpl());
 			factory.setNamedQueries(namedQueries());
-			factory.setExpressionEvaluationContextProvider(evaluationContextProvider);
+			factory.setEvaluationContextProvider(evaluationContextProvider);
 			factory.afterPropertiesSet();
 
 			return factory.getObject();

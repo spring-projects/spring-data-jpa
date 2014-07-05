@@ -36,13 +36,11 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
 import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
 import org.springframework.data.jpa.repository.support.EntityManagerBeanDefinitionRegistrarPostProcessor;
-import org.springframework.data.jpa.repository.support.ExtensibleEvaluationContextProvider;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean;
 import org.springframework.data.repository.config.RepositoryConfigurationExtensionSupport;
 import org.springframework.data.repository.config.RepositoryConfigurationSource;
 import org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 /**
  * JPA specific configuration extension parsing custom attributes from the XML namespace and
@@ -58,8 +56,6 @@ import org.springframework.util.StringUtils;
  * @author Thomas Darimont
  */
 public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensionSupport {
-
-	private static final String EXPRESSION_EVALUATION_CONTEXT_PROVIDER = "expressionEvaluationContextProvider";
 
 	public static final String JPA_MAPPING_CONTEXT_BEAN_NAME = "jpaMapppingContext";
 
@@ -101,11 +97,6 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 		}
 
 		builder.addPropertyReference("mappingContext", JPA_MAPPING_CONTEXT_BEAN_NAME);
-
-		String expressionEvaluationContextProviderRef = source.getAttribute("expressionEvaluationContextProviderRef");
-		if (StringUtils.hasText(expressionEvaluationContextProviderRef)) {
-			builder.addPropertyReference(EXPRESSION_EVALUATION_CONTEXT_PROVIDER, expressionEvaluationContextProviderRef);
-		}
 	}
 
 	/**
@@ -167,11 +158,6 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 				&& !registry.containsBeanDefinition(AnnotationConfigUtils.PERSISTENCE_ANNOTATION_PROCESSOR_BEAN_NAME)) {
 
 			registerWithSourceAndGeneratedBeanName(registry, new RootBeanDefinition(PAB_POST_PROCESSOR), source);
-		}
-
-		if (!registry.containsBeanDefinition(EXPRESSION_EVALUATION_CONTEXT_PROVIDER)) {
-			registry.registerBeanDefinition(EXPRESSION_EVALUATION_CONTEXT_PROVIDER,
-					BeanDefinitionBuilder.rootBeanDefinition(ExtensibleEvaluationContextProvider.class).getBeanDefinition());
 		}
 	}
 

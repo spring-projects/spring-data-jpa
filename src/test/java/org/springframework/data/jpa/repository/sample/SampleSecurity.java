@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.jpa.repository;
+package org.springframework.data.jpa.repository.sample;
 
 /**
  * Minimalistic thread-scoped security context analogous to Spring Security for testing.

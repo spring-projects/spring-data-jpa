@@ -27,6 +27,7 @@ import org.springframework.data.jpa.repository.query.QueryExtractor;
 import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.core.support.RepositoryFactorySupport;
+import org.springframework.data.repository.query.EvaluationContextProvider;
 import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.data.repository.query.QueryLookupStrategy.Key;
 import org.springframework.util.Assert;
@@ -41,7 +42,6 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	private final EntityManager entityManager;
 	private final QueryExtractor extractor;
 	private final CrudMethodMetadataPostProcessor lockModePostProcessor;
-	private final EvaluationContextProvider evaluationContextProvider;
 
 	/**
 	 * Creates a new {@link JpaRepositoryFactory}.
@@ -49,23 +49,12 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	 * @param entityManager must not be {@literal null}
 	 */
 	public JpaRepositoryFactory(EntityManager entityManager) {
-		this(entityManager, StandardEvaluationContextProvider.INSTANCE);
-	}
-
-	/**
-	 * Creates a new {@link JpaRepositoryFactory}.
-	 * 
-	 * @param entityManager must not be {@literal null}
-	 * @param evaluationContextProvider must not be {@literal null}
-	 */
-	public JpaRepositoryFactory(EntityManager entityManager, EvaluationContextProvider evaluationContextProvider) {
 
 		Assert.notNull(entityManager);
 
 		this.entityManager = entityManager;
 		this.extractor = PersistenceProvider.fromEntityManager(entityManager);
 		this.lockModePostProcessor = CrudMethodMetadataPostProcessor.INSTANCE;
-		this.evaluationContextProvider = evaluationContextProvider;
 
 		addRepositoryProxyPostProcessor(lockModePostProcessor);
 	}
@@ -133,17 +122,12 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 		return QUERY_DSL_PRESENT && QueryDslPredicateExecutor.class.isAssignableFrom(repositoryInterface);
 	}
 
-	/*
+	/* 
 	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.springframework.data.repository.support.RepositoryFactorySupport#
-	 * getQueryLookupStrategy
-	 * (org.springframework.data.repository.query.QueryLookupStrategy.Key)
+	 * @see org.springframework.data.repository.core.support.RepositoryFactorySupport#getQueryLookupStrategy(org.springframework.data.repository.query.QueryLookupStrategy.Key, org.springframework.data.repository.query.EvaluationContextProvider)
 	 */
 	@Override
-	protected QueryLookupStrategy getQueryLookupStrategy(Key key) {
-
+	protected QueryLookupStrategy getQueryLookupStrategy(Key key, EvaluationContextProvider evaluationContextProvider) {
 		return JpaQueryLookupStrategy.create(entityManager, key, extractor, evaluationContextProvider);
 	}
 

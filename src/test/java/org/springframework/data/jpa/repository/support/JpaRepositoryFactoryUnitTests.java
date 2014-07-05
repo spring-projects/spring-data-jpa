@@ -56,7 +56,7 @@ public class JpaRepositoryFactoryUnitTests {
 	public void setUp() {
 
 		// Setup standard factory configuration
-		factory = new JpaRepositoryFactory(entityManager, StandardEvaluationContextProvider.INSTANCE) {
+		factory = new JpaRepositoryFactory(entityManager) {
 
 			@Override
 			@SuppressWarnings("unchecked")

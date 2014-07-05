@@ -13,36 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.jpa.repository.support;
+package org.springframework.data.jpa.repository.sample;
 
-import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.Map;
 
+import org.springframework.data.jpa.repository.sample.SampleSecurity.SampleSecurityContextHolder;
+import org.springframework.data.repository.query.spi.EvaluationContextExtension;
+import org.springframework.data.repository.query.spi.EvaluationContextExtensionSupport;
+
 /**
- * A base class for {@link EvaluationContextExtension}s.
+ * A sample implementation of a custom {@link EvaluationContextExtension}.
  * 
  * @author Thomas Darimont
  */
-public class DefaultEvaluationContextExtension implements EvaluationContextExtension {
+public class SampleEvaluationContextExtension extends EvaluationContextExtensionSupport {
 
 	@Override
-	public String getScope() {
-		return null;
+	public String getExtensionId() {
+		return "security";
 	}
 
 	@Override
 	public Map<String, Object> getProperties() {
-		return Collections.emptyMap();
-	}
-
-	@Override
-	public Map<String, Object> getVariables() {
-		return Collections.emptyMap();
-	}
-
-	@Override
-	public Map<String, Method> getFunctions() {
-		return Collections.emptyMap();
+		return Collections.singletonMap("principal", SampleSecurityContextHolder.getCurrent().getPrincipal());
 	}
 }

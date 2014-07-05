@@ -22,10 +22,9 @@
 	
 	<bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
 		<property name="entityManagerFactory" ref="entityManagerFactory" />
-	</bean>
-	
-	<bean name="expressionEvaluationContextProvider" class="org.springframework.data.jpa.repository.support.ExtensibleEvaluationContextProvider"/>
-	<bean name="sampleEvaluationContextExtension" class="org.springframework.data.jpa.repository.SampleEvaluationContextExtension"/>
+	</bean>	
+
+	<bean name="sampleEvaluationContextExtension" class="org.springframework.data.jpa.repository.sample.SampleEvaluationContextExtension"/>
 	
 	<jdbc:embedded-database id="dataSource" type="HSQL">
 		<jdbc:script execution="INIT" separator="/;" location="classpath:scripts/schema-stored-procedures.sql"/>
