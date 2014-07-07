@@ -1732,6 +1732,27 @@ public class UserRepositoryTests {
 		assertThat(users.get(0), is(secondUser));
 	}
 
+	/**
+	 * @see DATAJPA-564
+	 */
+	@Test
+	public void shouldFindUsersInNativeQueryWithPagination() {
+
+		flushTestUsers();
+
+		Page<User> users = repository.findUsersInNativeQueryWithPagination(new PageRequest(0, 2));
+
+		assertThat(users.getContent(), hasSize(2));
+		assertThat(users.getContent().get(0), is(firstUser));
+		assertThat(users.getContent().get(1), is(secondUser));
+
+		users = repository.findUsersInNativeQueryWithPagination(new PageRequest(1, 2));
+
+		assertThat(users.getContent(), hasSize(2));
+		assertThat(users.getContent().get(0), is(thirdUser));
+		assertThat(users.getContent().get(1), is(fourthUser));
+	}
+
 	private Page<User> executeSpecWithSort(Sort sort) {
 
 		flushTestUsers();

@@ -519,4 +519,12 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	 */
 	@Query("select u from User u where u.firstname = ?#{[0]}")
 	List<User> findUsersByFirstnameForSpELExpressionWithParameterIndexOnly(String firstname);
+
+	/**
+	 * @see DATAJPA-564
+	 */
+	@Query(
+			value = "select * from (select rownum() as RN, u.* from User u) where RN between ?#{ #pageable.offset -1} and ?#{#pageable.offset + #pageable.pageSize}",
+			countQuery = "select count(u.id) from User u", nativeQuery = true)
+	Page<User> findUsersInNativeQueryWithPagination(Pageable pageable);
 }
