@@ -89,7 +89,7 @@ public class OpenJpaNamespaceUserRepositoryTests extends NamespaceUserRepository
 	}
 
 	/**
-	 * Temporarily ignored until issue with native queries and pagination is resolved.
+	 * Temporarily ignored until openjpa works with hsqldb 2.x.
 	 */
 	@Override
 	public void shouldFindUsersInNativeQueryWithPagination() {}

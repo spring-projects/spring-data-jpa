@@ -63,7 +63,8 @@ class SpelExpressionStringQueryParameterBinder extends StringQueryParameterBinde
 	 */
 	private <T extends Query> T potentiallyBindExpressionParameters(T jpaQuery) {
 
-		if (jpaQuery.getParameters().isEmpty()) {
+		if (isJpaParameterInformationReliable(jpaQuery) && jpaQuery.getParameters().isEmpty()) {
+			// We can rely on the fact there are no parameters in the given query.
 			return jpaQuery;
 		}
 
@@ -75,14 +76,28 @@ class SpelExpressionStringQueryParameterBinder extends StringQueryParameterBinde
 
 				Object value = evaluateExpression(expr);
 
-				if (binding.getName() != null) {
-					jpaQuery.setParameter(binding.getName(), binding.prepare(value));
-				} else {
-					jpaQuery.setParameter(binding.getPosition(), binding.prepare(value));
+				try {
+					if (binding.getName() != null) {
+						jpaQuery.setParameter(binding.getName(), binding.prepare(value));
+					} else {
+						jpaQuery.setParameter(binding.getPosition(), binding.prepare(value));
+					}
+				} catch (IllegalArgumentException iae) {
+					/*
+					 * Since Eclipse doesn't reliably report whether a query has parameters 
+					 * we simply try to set the parameters and ignore possible failures.
+					 * 
+					 */
 				}
 			}
 		}
 
 		return jpaQuery;
+	}
+
+	private <T extends Query> boolean isJpaParameterInformationReliable(T jpaQuery) {
+
+		String className = jpaQuery.getClass().getName();
+		return className.startsWith("org.apache.openjpa") || className.startsWith("org.hibernate");
 	}
 }
