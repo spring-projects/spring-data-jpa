@@ -15,6 +15,8 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import java.util.List;
+
 import javax.persistence.Query;
 
 import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
@@ -62,6 +64,34 @@ public class StringQueryParameterBinder extends ExpressionAwareParameterBinder {
 
 		ParameterBinding binding = getBindingFor(jpaQuery, position, methodParameter);
 		super.bind(jpaQuery, methodParameter, binding.prepare(value), position);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.data.jpa.repository.query.ParameterBinder#canBindParameter(org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter)
+	 */
+	@Override
+	protected boolean canBindParameter(JpaParameter parameter) {
+
+		List<ParameterBinding> parameterBindings = query.getParameterBindings();
+
+		// if no parameter bindings are present, we simply rely on the check in super.
+		if (parameterBindings.isEmpty()) {
+			return super.canBindParameter(parameter);
+		}
+
+		// otherwise determine whether there are any non expression parameters left to be bound.
+		int expressionParameterCount = 0;
+		for (ParameterBinding binding : parameterBindings) {
+
+			if (binding.isExpression()) {
+				expressionParameterCount++;
+			}
+		}
+
+		boolean allParametersAreUsedInExpressions = parameterBindings.size() - expressionParameterCount == 0;
+
+		// if all parameters are used in expressions, then we can skip their bindings now, since they'll get bound later.
+		return !allParametersAreUsedInExpressions && super.canBindParameter(parameter);
 	}
 
 	/**

@@ -507,4 +507,16 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	 */
 	@Query("select u from User u where u.firstname = ?1 and u.firstname=?#{[0]} and u.emailAddress = ?#{principal.emailAddress}")
 	List<User> findByFirstnameAndCurrentUserWithCustomQuery(String firstname);
+
+	/**
+	 * @see DATAJPA-564
+	 */
+	@Query("select u from User u where u.firstname = :#{#firstname}")
+	List<User> findUsersByFirstnameForSpELExpressionWithParameterVariableOnly(@Param("firstname") String firstname);
+
+	/**
+	 * @see DATAJPA-564
+	 */
+	@Query("select u from User u where u.firstname = ?#{[0]}")
+	List<User> findUsersByFirstnameForSpELExpressionWithParameterIndexOnly(String firstname);
 }

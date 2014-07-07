@@ -138,11 +138,11 @@ class StringQuery {
 	 * 
 	 * @author Thomas Darimont
 	 */
-	private static enum ParameterBindingParser {
+	public static enum ParameterBindingParser {
 
 		INSTANCE;
 
-		private static final String EXPRESSION_PREFIX = "__$synthetic$__";
+		static final String EXPRESSION_PARAMETER_PREFIX = "__$synthetic$__";
 		private static final Pattern PARAMETER_BINDING_BY_INDEX = Pattern.compile("\\?(\\d+)");
 		private static final Pattern PARAMETER_BINDING_PATTERN;
 		private static final String MESSAGE = "Already found parameter binding with same index / parameter name but differing binding type! "
@@ -223,7 +223,7 @@ class StringQuery {
 						parameterIndex = expressionParameterIndex;
 						replacement = "?" + parameterIndex;
 					} else {
-						parameterName = EXPRESSION_PREFIX + expressionParameterIndex;
+						parameterName = EXPRESSION_PARAMETER_PREFIX + expressionParameterIndex;
 						replacement = ":" + parameterName;
 					}
 
