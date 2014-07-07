@@ -39,6 +39,8 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.common.base.Optional;
+
 /**
  * Repository interface for {@code User}s.
  * 
@@ -445,10 +447,16 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	 * @see DATAJPA-551
 	 */
 	Slice<User> findTop2UsersBy(Pageable page);
-	
+
 	/**
 	 * @see DATAJPA-506
 	 */
-	@Query(value = "select u.binaryData from User u where u.id = ?", nativeQuery = true)
+	@Query(value = "select u.binaryData from User u where u.id = ?1", nativeQuery = true)
 	byte[] findBinaryDataByIdNative(Integer id);
+
+	/**
+	 * @see DATAJPA-506
+	 */
+	@Query("select u from User u where u.emailAddress = ?1")
+	Optional<User> findOptionalByEmailAddress(String emailAddress);
 }

@@ -217,6 +217,13 @@
 			<scope>test</scope>
 		</dependency>
 
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>17.0</version>
+			<scope>test</scope>
+		</dependency>
+
 	</dependencies>
 
 	<build>
@@ -408,6 +415,11 @@
 						<groupId>org.hibernate</groupId>
 						<artifactId>hibernate-jpamodelgen</artifactId>
 						<version>1.3.0.Final</version>
+					</dependency>
+					<dependency>
+						<groupId>com.google.guava</groupId>
+						<artifactId>guava</artifactId>
+						<version>17.0</version>
 					</dependency>
 				</dependencies>
 			</plugin>

@@ -63,6 +63,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.common.base.Optional;
+
 /**
  * Base integration test class for {@code UserRepository}. Loads a basic (non-namespace) Spring configuration file as
  * well as Hibernate configuration to execute tests.
@@ -1571,6 +1573,20 @@ public class UserRepositoryTests {
 
 		Slice<User> secondPage = repository.findTop2UsersBy(new PageRequest(1, 3, ASC, "age"));
 		assertThat(secondPage.getContent(), hasItems(youngest3));
+	}
+
+	/**
+	 * @see DATAJPA-506
+	 */
+	@Test
+	public void invokesQueryWithWrapperType() {
+
+		flushTestUsers();
+
+		Optional<User> result = repository.findOptionalByEmailAddress("gierke@synyx.de");
+
+		assertThat(result.isPresent(), is(true));
+		assertThat(result.get(), is(firstUser));
 	}
 
 	private Page<User> executeSpecWithSort(Sort sort) {
