@@ -74,10 +74,4 @@ public class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserReposi
 	 */
 	@Override
 	public void findByElementCollectionAttribute() {}
-
-	/**
-	 * Temporarily ignored until issue with native queries and pagination is resolved.
-	 */
-	@Override
-	public void shouldFindUsersInNativeQueryWithPagination() {}
 }
