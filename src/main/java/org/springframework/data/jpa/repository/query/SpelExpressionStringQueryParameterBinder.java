@@ -63,6 +63,10 @@ class SpelExpressionStringQueryParameterBinder extends StringQueryParameterBinde
 	 */
 	private <T extends Query> T potentiallyBindExpressionParameters(T jpaQuery) {
 
+		if (jpaQuery.getParameters().isEmpty()) {
+			return jpaQuery;
+		}
+
 		for (ParameterBinding binding : query.getParameterBindings()) {
 
 			if (binding.isExpression()) {

@@ -46,8 +46,10 @@ final class NativeJpaQuery extends AbstractStringBasedJpaQuery {
 
 		Parameters<?, ?> parameters = method.getParameters();
 		boolean hasPagingOrSortingParameter = parameters.hasPageableParameter() || parameters.hasSortParameter();
+		boolean containsPageableOrSortInQueryExpression = queryString.contains("#pageable")
+				|| queryString.contains("#sort");
 
-		if (hasPagingOrSortingParameter) {
+		if (hasPagingOrSortingParameter && !containsPageableOrSortInQueryExpression) {
 			throw new InvalidJpaQueryMethodException(
 					"Cannot use native queries with dynamic sorting and/or pagination in method " + method);
 		}
