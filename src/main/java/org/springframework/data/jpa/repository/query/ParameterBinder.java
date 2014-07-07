@@ -104,7 +104,7 @@ public class ParameterBinder {
 
 		for (JpaParameter parameter : parameters) {
 
-			if (parameter.isBindable()) {
+			if (canBindParameter(parameter)) {
 
 				Object value = computeParameterValue(parameter, values[methodParameterPosition], values);
 
@@ -115,6 +115,16 @@ public class ParameterBinder {
 		}
 
 		return query;
+	}
+
+	/**
+	 * Returns {@literal true} if the given parameter can be bound.
+	 * 
+	 * @param parameter
+	 * @return
+	 */
+	protected boolean canBindParameter(JpaParameter parameter) {
+		return parameter.isBindable();
 	}
 
 	/**

@@ -58,8 +58,8 @@ import org.springframework.data.jpa.domain.sample.Address;
 import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.domain.sample.SpecialUser;
 import org.springframework.data.jpa.domain.sample.User;
-import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.data.jpa.repository.sample.SampleSecurity.SampleSecurityContextHolder;
+import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
@@ -1701,6 +1701,32 @@ public class UserRepositoryTests {
 
 		SampleSecurityContextHolder.getCurrent().setPrincipal(secondUser);
 		List<User> users = repository.findByFirstnameAndCurrentUserWithCustomQuery("Joachim");
+
+		assertThat(users, hasSize(1));
+		assertThat(users.get(0), is(secondUser));
+	}
+
+	/**
+	 * @see DATAJPA-564
+	 */
+	@Test
+	public void shouldfindUsersByFirstnameForSpELExpressionOnlyWithParameterNameVariableReference() {
+
+		flushTestUsers();
+		List<User> users = repository.findUsersByFirstnameForSpELExpressionWithParameterVariableOnly("Joachim");
+
+		assertThat(users, hasSize(1));
+		assertThat(users.get(0), is(secondUser));
+	}
+
+	/**
+	 * @see DATAJPA-564
+	 */
+	@Test
+	public void shouldfindUsersByFirstnameForSpELExpressionOnlyWithParameterIndexReference() {
+
+		flushTestUsers();
+		List<User> users = repository.findUsersByFirstnameForSpELExpressionWithParameterIndexOnly("Joachim");
 
 		assertThat(users, hasSize(1));
 		assertThat(users.get(0), is(secondUser));
