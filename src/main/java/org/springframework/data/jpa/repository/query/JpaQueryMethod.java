@@ -141,7 +141,7 @@ public class JpaQueryMethod extends QueryMethod {
 	 * 
 	 * @return
 	 */
-	List<QueryHint> getHints() {
+	protected List<QueryHint> getHints() {
 
 		List<QueryHint> result = new ArrayList<QueryHint>();
 
@@ -158,7 +158,7 @@ public class JpaQueryMethod extends QueryMethod {
 	 * 
 	 * @return
 	 */
-	LockModeType getLockModeType() {
+	protected LockModeType getLockModeType() {
 
 		Lock annotation = findAnnotation(method, Lock.class);
 		return (LockModeType) AnnotationUtils.getValue(annotation);

@@ -40,7 +40,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 
 	private final EntityManager entityManager;
 	private final QueryExtractor extractor;
-	private final CrudMethodMetadataPostProcessor lockModePostProcessor;
+	private final CrudMethodMetadataProvider lockModePostProcessor;
 
 	/**
 	 * Creates a new {@link JpaRepositoryFactory}.
@@ -48,12 +48,22 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	 * @param entityManager must not be {@literal null}
 	 */
 	public JpaRepositoryFactory(EntityManager entityManager) {
-
+		this(entityManager,CrudMethodMetadataPostProcessor.INSTANCE);
+	}
+	
+	/**
+	 * Creates a new {@link JpaRepositoryFactory}.
+	 * 
+	 * @param entityManager must not be {@literal null}
+	 * @param crudMethodMetadataPostProcessor must not be {@literal null}
+	 */
+	public JpaRepositoryFactory(EntityManager entityManager, CrudMethodMetadataProvider crudMethodMetadataProvider) {
 		Assert.notNull(entityManager);
+		Assert.notNull(crudMethodMetadataProvider);
 
 		this.entityManager = entityManager;
 		this.extractor = PersistenceProvider.fromEntityManager(entityManager);
-		this.lockModePostProcessor = CrudMethodMetadataPostProcessor.INSTANCE;
+		this.lockModePostProcessor = crudMethodMetadataProvider;
 
 		addRepositoryProxyPostProcessor(lockModePostProcessor);
 	}
