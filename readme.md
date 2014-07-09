@@ -18,7 +18,7 @@ This README as well as the [reference documentation](http://docs.spring.io/sprin
 
 The main project [website](http://projects.spring.io/spring-data) contains links to basic project information such as source code, JavaDocs, Issue tracking, etc.
 
-For more detailed questions, use [stackoverflow](http://stackoverflow.com/questions/tagged/spring-data-jpa) or the [forum](forum.spring.io/forum/jpa-orm). If you are new to Spring as well as to Spring Data, look for information about [Spring projects](http://projects.spring.io). You should also have a look at our new Spring Guides
+For more detailed questions, use [stackoverflow](http://stackoverflow.com/questions/tagged/spring-data-jpa). If you are new to Spring as well as to Spring Data, look for information about [Spring projects](http://projects.spring.io). You should also have a look at our new Spring Guides
 [Accessing Data with JPA](http://spring.io/guides/gs/accessing-data-jpa/) that leverages the simplified configuration provided by [Spring Boot](http://projects.spring.io/spring-boot/) as well as [Accessing JPA Data with REST](http://spring.io/guides/gs/accessing-data-rest/)..
 
 
@@ -125,7 +125,7 @@ public class UserRepositoryIntegrationTest {
 
 Here are some ways for you to get involved in the community:
 
-* Get involved with the Spring community by helping out on [stackoverflow](http://stackoverflow.com/questions/tagged/spring-data-jpa) and the [forum](forum.spring.io/forum/jpa-orm) by responding to questions and joining the debate.
+* Get involved with the Spring community by helping out on [stackoverflow](http://stackoverflow.com/questions/tagged/spring-data-jpa) by responding to questions and joining the debate.
 * Create [JIRA](https://jira.springsource.org/browse/DATAJPA) tickets for bugs and new features and comment and vote on the ones that you are interested in.  
 * Github is for social coding: if you want to write code, we encourage contributions through pull requests from [forks of this repository](http://help.github.com/forking/). If you want to contribute code this way, please reference a JIRA ticket as well covering the specific issue you are addressing.
 * Watch for upcoming articles on Spring by [subscribing](http://spring.io/blog) to spring.io.
