@@ -13,5 +13,5 @@ The reference manual and javadoc are located in the 'docs' directory.
 
 ADDITIONAL RESOURCES:
 
-Spring Data Homepage: http://projects.spring.io/spring-data
-Spring Data Forum:    http://forum.spring.io/forum/jpa-orm
+Spring Data Homepage: 				http://projects.spring.io/spring-data
+Spring Data JPA on Stackoverflow:	http://stackoverflow.com/questions/tagged/spring-data-jpa
