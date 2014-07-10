@@ -58,7 +58,7 @@ import org.springframework.data.jpa.domain.sample.Address;
 import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.domain.sample.SpecialUser;
 import org.springframework.data.jpa.domain.sample.User;
-import org.springframework.data.jpa.repository.sample.SampleSecurity.SampleSecurityContextHolder;
+import org.springframework.data.jpa.repository.sample.SampleEvaluationContextExtension.SampleSecurityContextHolder;
 import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -1591,7 +1591,7 @@ public class UserRepositoryTests {
 		assertThat(result.isPresent(), is(true));
 		assertThat(result.get(), is(firstUser));
 	}
-	
+
 	/**
 	 * @see DATAJPA-564
 	 */

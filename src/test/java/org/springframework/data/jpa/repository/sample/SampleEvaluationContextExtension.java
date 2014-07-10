@@ -18,7 +18,6 @@ package org.springframework.data.jpa.repository.sample;
 import java.util.Collections;
 import java.util.Map;
 
-import org.springframework.data.jpa.repository.sample.SampleSecurity.SampleSecurityContextHolder;
 import org.springframework.data.repository.query.spi.EvaluationContextExtension;
 import org.springframework.data.repository.query.spi.EvaluationContextExtensionSupport;
 
@@ -37,5 +36,89 @@ public class SampleEvaluationContextExtension extends EvaluationContextExtension
 	@Override
 	public Map<String, Object> getProperties() {
 		return Collections.singletonMap("principal", SampleSecurityContextHolder.getCurrent().getPrincipal());
+	}
+
+	/**
+	 * @author Thomas Darimont
+	 */
+	public static class SampleSecurityContextHolder {
+
+		private static ThreadLocal<SampleAuthentication> auth = new ThreadLocal<SampleAuthentication>() {
+
+			protected SampleAuthentication initialValue() {
+				return new SampleAuthentication(new SampleUser(-1, "anonymous"));
+			}
+
+		};
+
+		public static SampleAuthentication getCurrent() {
+			return auth.get();
+		}
+
+		public static void clear() {
+			auth.remove();
+		}
+	}
+
+	/**
+	 * @author Thomas Darimont
+	 */
+	public static class SampleAuthentication {
+
+		private Object principal;
+
+		public SampleAuthentication(Object principal) {
+			this.principal = principal;
+		}
+
+		public Object getPrincipal() {
+			return principal;
+		}
+
+		public void setPrincipal(Object principal) {
+			this.principal = principal;
+		}
+	}
+
+	/**
+	 * @author Thomas Darimont
+	 */
+	public static class SampleUser {
+
+		private Object id;
+		private String name;
+
+		public SampleUser(Object id, String name) {
+			this.id = id;
+			this.name = name;
+		}
+
+		public Object getId() {
+			return id;
+		}
+
+		public void setId(Object id) {
+			this.id = id;
+		}
+
+		public String getName() {
+			return name;
+		}
+
+		public void setName(String name) {
+			this.name = name;
+		}
+
+		public SampleUser withName(String name) {
+
+			this.name = name;
+			return this;
+		}
+
+		public SampleUser withId(Object id) {
+
+			this.id = id;
+			return this;
+		}
 	}
 }
