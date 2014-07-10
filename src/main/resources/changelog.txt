@@ -1,6 +1,24 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 1.7.0.M1 (2014-07-10)
+----------------------------------------
+* DATAJPA-572 - Remove links to forum.spring.io.
+* DATAJPA-571 - Release 1.7 M1.
+* DATAJPA-568 - Cannot update the new inserted entity which has @Version.
+* DATAJPA-567 - OptimisticLock does not work anymore.
+* DATAJPA-566 - Adapt to Spring 4 upgrade.
+* DATAJPA-564 - Support for SpEL based parameter expressions in repository query methods.
+* DATAJPA-561 - Entity with primitive version property invalidly considered not new.
+* DATAJPA-558 - StackOverflow error when creating the MappingContext for domain types with generics.
+* DATAJPA-551 - Add support for limiting the query result in the query derivation mechanism.
+* DATAJPA-548 - Improve documentation on custom namespace attributes for jpa:repositories.
+* DATAJPA-545 - Special characters not allowed anymore in named binding parameter.
+* DATAJPA-527 - CrudRepository.exists(ID id) fails for entity with @IdClass.
+* DATAJPA-519 - ClasspathScanningPersistenceUnitPostProcessor throws NPE.
+* DATAJPA-506 - Add support for conversion of Blob values to byte[] in native queries.
+
+
 Changes in version 1.6.1.RELEASE (2014-06-30)
 ---------------------------------------------
 * DATAJPA-563 - Release 1.6.1.
