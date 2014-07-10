@@ -26,6 +26,7 @@ import javax.persistence.PersistenceContext;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.data.jpa.domain.sample.PrimitiveVersionProperty;
 import org.springframework.data.jpa.domain.sample.SampleEntity;
 import org.springframework.data.jpa.domain.sample.SampleEntityPK;
 import org.springframework.data.jpa.domain.sample.SampleWithIdClass;
@@ -41,6 +42,7 @@ import org.springframework.transaction.annotation.Transactional;
  * 
  * @author Oliver Gierke
  * @author Thomas Darimont
+ * @author Christoph Strobl
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({ "classpath:infrastructure.xml" })
@@ -51,12 +53,15 @@ public class JpaRepositoryTests {
 
 	JpaRepository<SampleEntity, SampleEntityPK> repository;
 	CrudRepository<SampleWithIdClass, SampleWithIdClassPK> idClassRepository;
+	JpaRepository<PrimitiveVersionProperty, Long> primitiveVersionRepository;
 
 	@Before
 	public void setUp() {
 
 		repository = new JpaRepositoryFactory(em).getRepository(SampleEntityRepository.class);
 		idClassRepository = new JpaRepositoryFactory(em).getRepository(SampleWithIdClassRepository.class);
+		primitiveVersionRepository = new JpaRepositoryFactory(em)
+				.getRepository(SampleWithPrimitiveVersionPropertyRepository.class);
 	}
 
 	@Test
@@ -121,6 +126,29 @@ public class JpaRepositoryTests {
 		assertThat(idClassRepository.exists(id), is(true));
 	}
 
+	/**
+	 * @see DATAJPA-568
+	 */
+	@Test
+	public void usingPrimitiveTypeAsVersionPropertyWorksCorrectly() {
+
+		PrimitiveVersionProperty initial = new PrimitiveVersionProperty();
+		primitiveVersionRepository.save(initial);
+		primitiveVersionRepository.flush();
+
+		PrimitiveVersionProperty loaded = primitiveVersionRepository.getOne(initial.getId());
+		Long refId = loaded.getId();
+		Long refVersion = loaded.getVersion();
+		loaded.setSomeValue("foo");
+
+		primitiveVersionRepository.save(loaded);
+		primitiveVersionRepository.flush();
+
+		PrimitiveVersionProperty reloaded = primitiveVersionRepository.getOne(initial.getId());
+		assertThat(reloaded.getId(), equalTo(refId));
+		assertThat(reloaded.getVersion(), is(refVersion + 1));
+	}
+
 	private static interface SampleEntityRepository extends JpaRepository<SampleEntity, SampleEntityPK> {
 
 	}
@@ -128,4 +156,7 @@ public class JpaRepositoryTests {
 	private static interface SampleWithIdClassRepository extends CrudRepository<SampleWithIdClass, SampleWithIdClassPK> {
 
 	}
+
+	private static interface SampleWithPrimitiveVersionPropertyRepository extends
+			JpaRepository<PrimitiveVersionProperty, Long> {}
 }
