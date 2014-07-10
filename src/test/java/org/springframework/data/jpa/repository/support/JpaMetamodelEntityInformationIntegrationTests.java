@@ -52,6 +52,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * 
  * @author Oliver Gierke
  * @author Thomas Darimont
+ * @author Christoph Strobl
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({ "classpath:infrastructure.xml" })
@@ -182,6 +183,39 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 		assertThat(information.isNew(new PrimitiveVersionProperty()), is(true));
 	}
 
+	/**
+	 * @see DATAJPA-568
+	 */
+	@Test
+	public void considersEntityAsNotNewWhenHavingIdSetAndUsingPrimitiveTypeForVersionProperty() {
+
+		EntityInformation<PrimitiveVersionProperty, Serializable> information = new JpaMetamodelEntityInformation<PrimitiveVersionProperty, Serializable>(
+				PrimitiveVersionProperty.class, em.getMetamodel());
+
+		PrimitiveVersionProperty pvp = new PrimitiveVersionProperty();
+		pvp.id = 100L;
+
+		assertThat(information.isNew(pvp), is(false));
+	}
+
+	/**
+	 * @see DATAJPA-568
+	 */
+	@Test
+	public void fallsBackToIdInspectionForAPrimitiveVersionProperty() {
+
+		EntityInformation<PrimitiveVersionProperty, Serializable> information = new JpaMetamodelEntityInformation<PrimitiveVersionProperty, Serializable>(
+				PrimitiveVersionProperty.class, em.getMetamodel());
+
+		PrimitiveVersionProperty pvp = new PrimitiveVersionProperty();
+		pvp.version = 1L;
+
+		assertThat(information.isNew(pvp), is(true));
+
+		pvp.id = 1L;
+		assertThat(information.isNew(pvp), is(false));
+	}
+
 	protected String getMetadadataPersitenceUnitName() {
 		return "metadata";
 	}
@@ -207,4 +241,5 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 	public static class Sample extends Identifiable {
 
 	}
+
 }

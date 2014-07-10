@@ -43,6 +43,7 @@ import org.springframework.util.Assert;
  * 
  * @author Oliver Gierke
  * @author Thomas Darimont
+ * @author Christoph Strobl
  */
 public class JpaMetamodelEntityInformation<T, ID extends Serializable> extends JpaEntityInformationSupport<T, ID> {
 
@@ -192,7 +193,7 @@ public class JpaMetamodelEntityInformation<T, ID extends Serializable> extends J
 	@Override
 	public boolean isNew(T entity) {
 
-		if (versionAttribute == null) {
+		if (versionAttribute == null || versionAttribute.getJavaType().isPrimitive()) {
 			return super.isNew(entity);
 		}
 
@@ -203,7 +204,7 @@ public class JpaMetamodelEntityInformation<T, ID extends Serializable> extends J
 			return true;
 		}
 
-		return versionAttribute.getJavaType().isPrimitive() && ((Number) versionValue).longValue() == 0;
+		return ((Number) versionValue).longValue() == 0;
 	}
 
 	/**
