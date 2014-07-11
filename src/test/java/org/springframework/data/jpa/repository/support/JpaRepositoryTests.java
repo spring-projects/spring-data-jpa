@@ -51,12 +51,15 @@ public class JpaRepositoryTests {
 
 	JpaRepository<SampleEntity, SampleEntityPK> repository;
 	CrudRepository<SampleWithIdClass, SampleWithIdClassPK> idClassRepository;
+	SampleEntityRepository detachingRepository;
 
 	@Before
 	public void setUp() {
 
 		repository = new JpaRepositoryFactory(em).getRepository(SampleEntityRepository.class);
 		idClassRepository = new JpaRepositoryFactory(em).getRepository(SampleWithIdClassRepository.class);
+		detachingRepository = new JpaRepositoryFactory(em, new DetachingJpaResultPostProcessor(em))
+				.getRepository(SampleEntityRepository.class);
 	}
 
 	@Test
@@ -119,6 +122,59 @@ public class JpaRepositoryTests {
 		SampleWithIdClassPK id = new SampleWithIdClassPK(entity.getFirst(), entity.getSecond());
 
 		assertThat(idClassRepository.exists(id), is(true));
+	}
+
+	/**
+	 * @see DATAJPA-562
+	 */
+	@Test
+	public void shouldNotPropagateChangesViaImplicitFlushing() {
+
+		SampleEntityPK id = new SampleEntityPK("foo", "bar");
+		SampleEntity entity = new SampleEntity("foo", "bar");
+		entity = detachingRepository.saveAndFlush(entity);
+
+		SampleEntity detachedEntity = detachingRepository.findOne(id);
+		detachedEntity.setAttribute1("bubu");
+
+		SampleEntity detachedEntity2 = detachingRepository.findOne(id);
+		assertThat(detachedEntity2.getAttribute1(), is(nullValue()));
+	}
+
+	/**
+	 * @see DATAJPA-562
+	 */
+	@Test
+	public void shouldPropagateChangesViaExplcitSaveAndFlush() {
+
+		SampleEntityPK id = new SampleEntityPK("foo", "bar");
+		SampleEntity entity = new SampleEntity("foo", "bar");
+		entity = detachingRepository.saveAndFlush(entity);
+
+		SampleEntity detachedEntity = detachingRepository.findOne(id);
+		detachedEntity.setAttribute1("bubu");
+		detachedEntity = detachingRepository.saveAndFlush(detachedEntity);
+
+		SampleEntity detachedEntity2 = detachingRepository.findOne(id);
+		assertThat(detachedEntity2.getAttribute1(), is(detachedEntity.getAttribute1()));
+	}
+
+	/**
+	 * @see DATAJPA-562
+	 */
+	@Test
+	public void shouldPropagateChangesViaExplcitSave() {
+
+		SampleEntityPK id = new SampleEntityPK("foo", "bar");
+		SampleEntity entity = new SampleEntity("foo", "bar");
+		entity = detachingRepository.saveAndFlush(entity);
+
+		SampleEntity detachedEntity = detachingRepository.findOne(id);
+		detachedEntity.setAttribute1("bubu");
+		detachedEntity = detachingRepository.save(detachedEntity);
+
+		SampleEntity detachedEntity2 = detachingRepository.findOne(id);
+		assertThat(detachedEntity2.getAttribute1(), is(detachedEntity.getAttribute1()));
 	}
 
 	private static interface SampleEntityRepository extends JpaRepository<SampleEntity, SampleEntityPK> {

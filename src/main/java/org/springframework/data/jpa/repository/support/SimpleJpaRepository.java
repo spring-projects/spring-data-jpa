@@ -70,6 +70,8 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 
 	private CrudMethodMetadata crudMethodMetadata;
 
+	private JpaResultPostProcessor jpaResultPostProcessor = NoopJpaResultPostProcessor.INSTANCE;
+
 	/**
 	 * Creates a new {@link SimpleJpaRepository} to manage objects of the given {@link JpaEntityInformation}.
 	 * 
@@ -104,6 +106,19 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	 */
 	public void setRepositoryMethodMetadata(CrudMethodMetadata crudMethodMetadata) {
 		this.crudMethodMetadata = crudMethodMetadata;
+	}
+
+	/**
+	 * Configures a custom {@link JpaResultPostProcessor} to be used to post-process query results.
+	 * 
+	 * @param jpaResultPostProcessor must not be {@literal null}.
+	 * @since 1.7
+	 */
+	public void setJpaResultPostProcessor(JpaResultPostProcessor jpaResultPostProcessor) {
+
+		Assert.notNull(jpaResultPostProcessor, "JpaResultPostProcessor must not be null!");
+
+		this.jpaResultPostProcessor = jpaResultPostProcessor;
 	}
 
 	protected Class<T> getDomainClass() {
@@ -213,13 +228,14 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 		Class<T> domainType = getDomainClass();
 
 		if (crudMethodMetadata == null) {
-			return em.find(domainType, id);
+			return potentiallyPostProcessResult(em.find(domainType, id));
 		}
 
 		LockModeType type = crudMethodMetadata.getLockModeType();
 		Map<String, Object> hints = crudMethodMetadata.getQueryHints();
 
-		return type == null ? em.find(domainType, id, hints) : em.find(domainType, id, type, hints);
+		return potentiallyPostProcessResult(type == null ? em.find(domainType, id, hints) : em.find(domainType, id, type,
+				hints));
 	}
 
 	/* 
@@ -230,7 +246,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	public T getOne(ID id) {
 
 		Assert.notNull(id, "The given id must not be null!");
-		return em.getReference(getDomainClass(), id);
+		return potentiallyPostProcessResult(em.getReference(getDomainClass(), id));
 	}
 
 	/*
@@ -276,12 +292,20 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 		return query.getSingleResult() == 1L;
 	}
 
+	private List<T> potentiallyPostProcessResults(List<T> resultList) {
+		return jpaResultPostProcessor.postProcessResults(getDomainClass(), resultList);
+	}
+
+	private <R> R potentiallyPostProcessResult(R result) {
+		return jpaResultPostProcessor.postProcessResult(getDomainClass(), result);
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.JpaRepository#findAll()
 	 */
 	public List<T> findAll() {
-		return getQuery(null, (Sort) null).getResultList();
+		return potentiallyPostProcessResults(getQuery(null, (Sort) null).getResultList());
 	}
 
 	/*
@@ -297,7 +321,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 		ByIdsSpecification specification = new ByIdsSpecification();
 		TypedQuery<T> query = getQuery(specification, (Sort) null);
 
-		return query.setParameter(specification.parameter, ids).getResultList();
+		return potentiallyPostProcessResults(query.setParameter(specification.parameter, ids).getResultList());
 	}
 
 	/*
@@ -305,7 +329,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	 * @see org.springframework.data.jpa.repository.JpaRepository#findAll(org.springframework.data.domain.Sort)
 	 */
 	public List<T> findAll(Sort sort) {
-		return getQuery(null, sort).getResultList();
+		return potentiallyPostProcessResults(getQuery(null, sort).getResultList());
 	}
 
 	/*
@@ -328,7 +352,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	public T findOne(Specification<T> spec) {
 
 		try {
-			return getQuery(spec, (Sort) null).getSingleResult();
+			return potentiallyPostProcessResult(getQuery(spec, (Sort) null).getSingleResult());
 		} catch (NoResultException e) {
 			return null;
 		}
@@ -339,7 +363,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	 * @see org.springframework.data.jpa.repository.JpaSpecificationExecutor#findAll(org.springframework.data.jpa.domain.Specification)
 	 */
 	public List<T> findAll(Specification<T> spec) {
-		return getQuery(spec, (Sort) null).getResultList();
+		return potentiallyPostProcessResults(getQuery(spec, (Sort) null).getResultList());
 	}
 
 	/*
@@ -349,7 +373,8 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	public Page<T> findAll(Specification<T> spec, Pageable pageable) {
 
 		TypedQuery<T> query = getQuery(spec, pageable);
-		return pageable == null ? new PageImpl<T>(query.getResultList()) : readPage(query, pageable, spec);
+		return pageable == null ? new PageImpl<T>(potentiallyPostProcessResults(query.getResultList())) : readPage(query,
+				pageable, spec);
 	}
 
 	/*
@@ -358,7 +383,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	 */
 	public List<T> findAll(Specification<T> spec, Sort sort) {
 
-		return getQuery(spec, sort).getResultList();
+		return potentiallyPostProcessResults(getQuery(spec, sort).getResultList());
 	}
 
 	/*
@@ -366,7 +391,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	 * @see org.springframework.data.repository.CrudRepository#count()
 	 */
 	public long count() {
-		return em.createQuery(getCountQueryString(), Long.class).getSingleResult();
+		return this.potentiallyPostProcessResult(em.createQuery(getCountQueryString(), Long.class).getSingleResult());
 	}
 
 	/*
@@ -375,7 +400,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	 */
 	public long count(Specification<T> spec) {
 
-		return getCountQuery(spec).getSingleResult();
+		return this.potentiallyPostProcessResult(getCountQuery(spec).getSingleResult());
 	}
 
 	/*
@@ -451,7 +476,8 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 		query.setMaxResults(pageable.getPageSize());
 
 		Long total = QueryUtils.executeCountQuery(getCountQuery(spec));
-		List<T> content = total > pageable.getOffset() ? query.getResultList() : Collections.<T> emptyList();
+		List<T> content = total > pageable.getOffset() ? potentiallyPostProcessResults(query.getResultList()) : Collections
+				.<T> emptyList();
 
 		return new PageImpl<T>(content, pageable, total);
 	}
