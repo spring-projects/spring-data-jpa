@@ -41,7 +41,7 @@ public class AuditingBeanDefinitionParser implements BeanDefinitionParser {
 	private static final String AUDITING_BFPP_CLASS_NAME = "org.springframework.data.jpa.domain.support.AuditingBeanFactoryPostProcessor";
 
 	private final AuditingHandlerBeanDefinitionParser auditingHandlerParser = new AuditingHandlerBeanDefinitionParser(
-			JpaRepositoryConfigExtension.JPA_MAPPING_CONTEXT_BEAN_NAME);
+			BeanDefinitionNames.JPA_MAPPING_CONTEXT_BEAN_NAME);
 	private final SpringConfiguredBeanDefinitionParser springConfiguredParser = new SpringConfiguredBeanDefinitionParser();
 
 	/*

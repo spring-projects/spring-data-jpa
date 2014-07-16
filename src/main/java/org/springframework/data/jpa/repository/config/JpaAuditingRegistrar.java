@@ -16,6 +16,7 @@
 package org.springframework.data.jpa.repository.config;
 
 import static org.springframework.data.jpa.domain.support.AuditingBeanFactoryPostProcessor.*;
+import static org.springframework.data.jpa.repository.config.BeanDefinitionNames.*;
 
 import java.lang.annotation.Annotation;
 
@@ -29,6 +30,7 @@ import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.data.auditing.config.AuditingBeanDefinitionRegistrarSupport;
+import org.springframework.data.auditing.config.AuditingConfiguration;
 import org.springframework.data.config.ParsingUtils;
 import org.springframework.data.jpa.domain.support.AuditingBeanFactoryPostProcessor;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -64,6 +66,17 @@ class JpaAuditingRegistrar extends AuditingBeanDefinitionRegistrarSupport {
 
 	/* 
 	 * (non-Javadoc)
+	 * @see org.springframework.data.auditing.config.AuditingBeanDefinitionRegistrarSupport#getAuditHandlerBeanDefinitionBuilder(org.springframework.data.auditing.config.AuditingConfiguration)
+	 */
+	@Override
+	protected BeanDefinitionBuilder getAuditHandlerBeanDefinitionBuilder(AuditingConfiguration configuration) {
+
+		BeanDefinitionBuilder builder = super.getAuditHandlerBeanDefinitionBuilder(configuration);
+		return builder.addConstructorArgReference(JPA_MAPPING_CONTEXT_BEAN_NAME);
+	}
+
+	/* 
+	 * (non-Javadoc)
 	 * @see org.springframework.data.auditing.config.AuditingBeanDefinitionRegistrarSupport#registerBeanDefinitions(org.springframework.core.type.AnnotationMetadata, org.springframework.beans.factory.support.BeanDefinitionRegistry)
 	 */
 	@Override
@@ -85,6 +98,11 @@ class JpaAuditingRegistrar extends AuditingBeanDefinitionRegistrarSupport {
 	@Override
 	protected void registerAuditListenerBeanDefinition(BeanDefinition auditingHandlerDefinition,
 			BeanDefinitionRegistry registry) {
+
+		if (!registry.containsBeanDefinition(JPA_MAPPING_CONTEXT_BEAN_NAME)) {
+			registry.registerBeanDefinition(JPA_MAPPING_CONTEXT_BEAN_NAME, //
+					new RootBeanDefinition(JpaMetamodelMappingContextFactoryBean.class));
+		}
 
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(AuditingEntityListener.class);
 		builder.addPropertyValue("auditingHandler",
