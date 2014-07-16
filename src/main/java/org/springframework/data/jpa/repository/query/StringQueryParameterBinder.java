@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,21 +15,25 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import java.util.List;
+
 import javax.persistence.Query;
 
 import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
-import org.springframework.data.jpa.repository.query.StringQuery.LikeBinding;
+import org.springframework.data.jpa.repository.query.StringQuery.LikeParameterBinding;
+import org.springframework.data.jpa.repository.query.StringQuery.ParameterBinding;
+import org.springframework.data.repository.query.EvaluationContextProvider;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.util.Assert;
 
 /**
- * {@link ParameterBinder} that takes {@link LikeBinding}s encapsulated in a {@link StringQuery} into account.
+ * {@link ParameterBinder} that takes {@link LikeParameterBinding}s encapsulated in a {@link StringQuery} into account.
  * 
  * @author Oliver Gierke
  * @author Thomas Darimont
  */
-public class StringQueryParameterBinder extends ParameterBinder {
+public class StringQueryParameterBinder extends ExpressionAwareParameterBinder {
 
 	private final StringQuery query;
 
@@ -40,10 +44,12 @@ public class StringQueryParameterBinder extends ParameterBinder {
 	 * @param parameters must not be {@literal null}.
 	 * @param values must not be {@literal null}.
 	 * @param query must not be {@literal null}.
+	 * @param evaluationContextProvider must not be {@literal null}.
 	 */
-	public StringQueryParameterBinder(JpaParameters parameters, Object[] values, StringQuery query) {
+	public StringQueryParameterBinder(JpaParameters parameters, Object[] values, StringQuery query,
+			EvaluationContextProvider evaluationContextProvider) {
 
-		super(parameters, values);
+		super(parameters, values, evaluationContextProvider);
 
 		Assert.notNull(query, "StringQuery must not be null!");
 		this.query = query;
@@ -56,29 +62,47 @@ public class StringQueryParameterBinder extends ParameterBinder {
 	@Override
 	protected void bind(Query jpaQuery, JpaParameter methodParameter, Object value, int position) {
 
-		Object valueToBind = value;
+		ParameterBinding binding = getBindingFor(jpaQuery, position, methodParameter);
+		super.bind(jpaQuery, methodParameter, binding.prepare(value), position);
+	}
 
-		if (query.hasLikeBindings()) {
+	/* (non-Javadoc)
+	 * @see org.springframework.data.jpa.repository.query.ParameterBinder#canBindParameter(org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter)
+	 */
+	@Override
+	protected boolean canBindParameter(JpaParameter parameter) {
 
-			LikeBinding binding = getBindingFor(jpaQuery, position, methodParameter);
+		List<ParameterBinding> parameterBindings = query.getParameterBindings();
 
-			if (binding != null) {
-				valueToBind = binding.prepare(valueToBind);
+		// if no parameter bindings are present, we simply rely on the check in super.
+		if (parameterBindings.isEmpty()) {
+			return super.canBindParameter(parameter);
+		}
+
+		// otherwise determine whether there are any non expression parameters left to be bound.
+		int expressionParameterCount = 0;
+		for (ParameterBinding binding : parameterBindings) {
+
+			if (binding.isExpression()) {
+				expressionParameterCount++;
 			}
 		}
 
-		super.bind(jpaQuery, methodParameter, valueToBind, position);
+		boolean allParametersAreUsedInExpressions = parameterBindings.size() - expressionParameterCount == 0;
+
+		// if all parameters are used in expressions, then we can skip their bindings now, since they'll get bound later.
+		return !allParametersAreUsedInExpressions && super.canBindParameter(parameter);
 	}
 
 	/**
-	 * Finds the {@link LikeBinding} to be applied before binding a parameter value to the query.
+	 * Finds the {@link LikeParameterBinding} to be applied before binding a parameter value to the query.
 	 * 
 	 * @param jpaQuery must not be {@literal null}.
 	 * @param position
 	 * @param methodParameter must not be {@literal null}.
-	 * @return the {@link LikeBinding} for the given parameters or {@literal null} if none available.
+	 * @return the {@link ParameterBinding} for the given parameters or {@literal null} if none available.
 	 */
-	private LikeBinding getBindingFor(Query jpaQuery, int position, Parameter methodParameter) {
+	private ParameterBinding getBindingFor(Query jpaQuery, int position, Parameter methodParameter) {
 
 		try {
 
@@ -92,6 +116,10 @@ public class StringQueryParameterBinder extends ParameterBinder {
 			}
 		}
 
-		return null;
+		// We should actually reject parameters unavailable, but as EclipseLink doesn't implement ….getParameter(int) for
+		// native queries correctly we need to fall back to an indexed parameter
+		// @see https://bugs.eclipse.org/bugs/show_bug.cgi?id=427892
+
+		return new ParameterBinding(position);
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2013 the original author or authors.
+ * Copyright 2008-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,12 +20,16 @@ import static org.springframework.core.annotation.AnnotationUtils.*;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.persistence.LockModeType;
 import javax.persistence.QueryHint;
 
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -47,8 +51,25 @@ import org.springframework.util.StringUtils;
  */
 public class JpaQueryMethod extends QueryMethod {
 
+	// @see JPA 2.0 Specification 2.2 Persistent Fields and Properties Page 23 - Top paragraph.
+	private static final Set<Class<?>> NATIVE_ARRAY_TYPES;
+	private static final StoredProcedureAttributeSource storedProcedureAttributeSource = StoredProcedureAttributeSource.INSTANCE;
+
+	static {
+
+		Set<Class<?>> types = new HashSet<Class<?>>(4);
+		types.add(byte[].class);
+		types.add(Byte[].class);
+		types.add(char[].class);
+		types.add(Character[].class);
+
+		NATIVE_ARRAY_TYPES = Collections.unmodifiableSet(types);
+	}
+
 	private final QueryExtractor extractor;
 	private final Method method;
+
+	private StoredProcedureAttributes storedProcedureAttributes;
 
 	/**
 	 * Creates a {@link JpaQueryMethod}.
@@ -86,7 +107,8 @@ public class JpaQueryMethod extends QueryMethod {
 				continue;
 			}
 
-			if (!annotatedQuery.contains(String.format(":%s", parameter.getName()))) {
+			if (!annotatedQuery.contains(String.format(":%s", parameter.getName()))
+					&& !annotatedQuery.contains(String.format("#%s", parameter.getName()))) {
 				throw new IllegalStateException(String.format(
 						"Using named parameters for method %s but parameter '%s' not found in annotated query '%s'!", method,
 						parameter.getName(), annotatedQuery));
@@ -144,6 +166,18 @@ public class JpaQueryMethod extends QueryMethod {
 	}
 
 	/**
+	 * Returns the {@link EntityGraph} to be used for the query.
+	 * 
+	 * @return
+	 * @since 1.6
+	 */
+	JpaEntityGraph getEntityGraph() {
+
+		EntityGraph annotation = findAnnotation(method, EntityGraph.class);
+		return annotation == null ? null : new JpaEntityGraph(annotation.value(), annotation.type());
+	}
+
+	/**
 	 * Returns whether the potentially configured {@link QueryHint}s shall be applied when triggering the count query for
 	 * pagination.
 	 * 
@@ -197,6 +231,19 @@ public class JpaQueryMethod extends QueryMethod {
 
 		String countQuery = getAnnotationValue("countQuery", String.class);
 		return StringUtils.hasText(countQuery) ? countQuery : null;
+	}
+
+	/**
+	 * Returns the count query projection string declared in a {@link Query} annotation or {@literal null} if neither the
+	 * annotation found nor the attribute was specified.
+	 * 
+	 * @return
+	 * @since 1.6
+	 */
+	String getCountQueryProjection() {
+
+		String countProjection = getAnnotationValue("countProjection", String.class);
+		return StringUtils.hasText(countProjection) ? countProjection : null;
 	}
 
 	/**
@@ -274,5 +321,38 @@ public class JpaQueryMethod extends QueryMethod {
 	@Override
 	public JpaParameters getParameters() {
 		return (JpaParameters) super.getParameters();
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.query.QueryMethod#isCollectionQuery()
+	 */
+	@Override
+	public boolean isCollectionQuery() {
+		return super.isCollectionQuery() && !NATIVE_ARRAY_TYPES.contains(method.getReturnType());
+	}
+
+	/**
+	 * Return {@literal true} if the method contains a {@link Procedure} annotation.
+	 * 
+	 * @return
+	 */
+	public boolean isProcedureQuery() {
+		return method.getAnnotation(Procedure.class) != null;
+	}
+
+	/**
+	 * Returns a new {@link StoredProcedureAttributes} representing the stored procedure meta-data for this
+	 * {@link JpaQueryMethod}.
+	 * 
+	 * @return
+	 */
+	StoredProcedureAttributes getProcedureAttributes() {
+
+		if (storedProcedureAttributes == null) {
+			this.storedProcedureAttributes = storedProcedureAttributeSource.createFrom(method, getEntityInformation());
+		}
+
+		return storedProcedureAttributes;
 	}
 }

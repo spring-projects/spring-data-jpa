@@ -21,10 +21,13 @@
 				</constructor-arg>
 			</bean>
 		</property>
+		
+		<property name="evaluationContextProvider" ref="expressionEvaluationContextProvider"/>
 	</bean>
 	
 	<bean id="roleDao" class="org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean">
 		<property name="repositoryInterface" value="org.springframework.data.jpa.repository.sample.RoleRepository" />
+		<property name="evaluationContextProvider" ref="expressionEvaluationContextProvider"/>
 	</bean>
 
 	<!-- Necessary to get the entity manager injected into the factory bean -->
@@ -35,5 +38,7 @@
 
 	<!-- Adds dependency checks for setters annotated with @Required -->
 	<bean class="org.springframework.beans.factory.annotation.RequiredAnnotationBeanPostProcessor" />
+	
+	<bean id="expressionEvaluationContextProvider" class="org.springframework.data.repository.query.ExtensionAwareEvaluationContextProvider" />
 
 </beans>

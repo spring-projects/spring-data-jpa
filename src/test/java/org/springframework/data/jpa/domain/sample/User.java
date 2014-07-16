@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2013 the original author or authors.
+ * Copyright 2008-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,13 +21,23 @@ import java.util.Set;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
+import javax.persistence.ElementCollection;
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Lob;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
+import javax.persistence.NamedAttributeNode;
+import javax.persistence.NamedEntityGraph;
+import javax.persistence.NamedEntityGraphs;
 import javax.persistence.NamedQuery;
+import javax.persistence.NamedStoredProcedureQueries;
+import javax.persistence.NamedStoredProcedureQuery;
+import javax.persistence.ParameterMode;
+import javax.persistence.StoredProcedureParameter;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
@@ -39,7 +49,19 @@ import javax.persistence.TemporalType;
  * @author Thomas Darimont
  */
 @Entity
+@NamedEntityGraphs({
+		@NamedEntityGraph(name = "User.overview", attributeNodes = { @NamedAttributeNode("roles") }),
+		@NamedEntityGraph(name = "User.detail", attributeNodes = { @NamedAttributeNode("roles"),
+				@NamedAttributeNode("manager"), @NamedAttributeNode("colleagues") }) })
 @NamedQuery(name = "User.findByEmailAddress", query = "SELECT u FROM User u WHERE u.emailAddress = ?1")
+@NamedStoredProcedureQueries({ //
+@NamedStoredProcedureQuery(name = "User.plus1", procedureName = "plus1inout", parameters = {
+		@StoredProcedureParameter(mode = ParameterMode.IN, name = "arg", type = Integer.class),
+		@StoredProcedureParameter(mode = ParameterMode.OUT, name = "res", type = Integer.class) }) //
+})
+@NamedStoredProcedureQuery(name = "User.plus1IO", procedureName = "plus1inout", parameters = {
+		@StoredProcedureParameter(mode = ParameterMode.IN, name = "arg", type = Integer.class),
+		@StoredProcedureParameter(mode = ParameterMode.OUT, name = "res", type = Integer.class) })
 public class User {
 
 	@Id @GeneratedValue(strategy = GenerationType.AUTO) private Integer id;
@@ -57,14 +79,17 @@ public class User {
 
 	@ManyToOne private User manager;
 
+	@Embedded private Address address;
+
+	@Lob private byte[] binaryData;
+
+	@ElementCollection private Set<String> attributes;
+
 	/**
 	 * Creates a new empty instance of {@code User}.
 	 */
 	public User() {
-
-		this.roles = new HashSet<Role>();
-		this.colleagues = new HashSet<User>();
-		this.createdAt = new Date();
+		this(null, null, null);
 	}
 
 	/**
@@ -74,13 +99,16 @@ public class User {
 	 * @param lastname
 	 * @param emailAddress
 	 */
-	public User(final String firstname, final String lastname, final String emailAddress) {
+	public User(String firstname, String lastname, String emailAddress) {
 
-		this();
 		this.firstname = firstname;
 		this.lastname = lastname;
 		this.emailAddress = emailAddress;
 		this.active = true;
+		this.roles = new HashSet<Role>();
+		this.colleagues = new HashSet<User>();
+		this.attributes = new HashSet<String>();
+		this.createdAt = new Date();
 	}
 
 	/**
@@ -190,9 +218,9 @@ public class User {
 	/**
 	 * Returns the user's roles.
 	 * 
-	 * @return the role
+	 * @return the roles
 	 */
-	public Set<Role> getRole() {
+	public Set<Role> getRoles() {
 
 		return roles;
 	}
@@ -275,6 +303,34 @@ public class User {
 		return createdAt;
 	}
 
+	/**
+	 * @return the address
+	 */
+	public Address getAddress() {
+		return address;
+	}
+
+	/**
+	 * @param address the address to set
+	 */
+	public void setAddress(Address address) {
+		this.address = address;
+	}
+
+	/**
+	 * @param binaryData the binaryData to set
+	 */
+	public void setBinaryData(byte[] binaryData) {
+		this.binaryData = binaryData;
+	}
+
+	/**
+	 * @return the binaryData
+	 */
+	public byte[] getBinaryData() {
+		return binaryData;
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -294,6 +350,20 @@ public class User {
 		}
 
 		return this.getId().equals(that.getId());
+	}
+
+	/**
+	 * @return the attributes
+	 */
+	public Set<String> getAttributes() {
+		return attributes;
+	}
+
+	/**
+	 * @param attributes the attributes to set
+	 */
+	public void setAttributes(Set<String> attributes) {
+		this.attributes = attributes;
 	}
 
 	/*

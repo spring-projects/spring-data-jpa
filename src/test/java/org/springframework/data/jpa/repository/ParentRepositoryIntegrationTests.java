@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,8 +47,7 @@ import org.springframework.transaction.annotation.Transactional;
 @ContextConfiguration("classpath:config/namespace-application-context.xml")
 public class ParentRepositoryIntegrationTests {
 
-	@Autowired
-	ParentRepository repository;
+	@Autowired ParentRepository repository;
 
 	@Before
 	public void setUp() {
@@ -60,6 +59,9 @@ public class ParentRepositoryIntegrationTests {
 		repository.flush();
 	}
 
+	/**
+	 * @see DATAJPA-287
+	 */
 	@Test
 	public void testWithoutJoin() throws Exception {
 
@@ -80,15 +82,17 @@ public class ParentRepositoryIntegrationTests {
 		assertThat(page.getTotalPages(), is(1));
 	}
 
+	/**
+	 * @see DATAJPA-287
+	 */
 	@Test
 	public void testWithJoin() throws Exception {
 		Page<Parent> page = repository.findAll(new Specification<Parent>() {
 			public Predicate toPredicate(Root<Parent> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
-				Path<Set<Child>> childrenPath = root.get("children");
 				root.join("children");
 				// we are interesting in distinct items, especially when join presents in query
 				query.distinct(true);
-				return cb.isNotEmpty(childrenPath);
+				return cb.isNotEmpty(root.<Set<Child>> get("children"));
 			}
 		}, new PageRequest(0, 5, new Sort(Sort.Direction.ASC, "id")));
 

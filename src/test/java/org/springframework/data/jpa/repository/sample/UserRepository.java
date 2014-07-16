@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2013 the original author or authors.
+ * Copyright 2008-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,14 @@ package org.springframework.data.jpa.repository.sample;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
+import javax.persistence.EntityManager;
 import javax.persistence.QueryHint;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.sample.SpecialUser;
 import org.springframework.data.jpa.domain.sample.User;
@@ -31,9 +34,12 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryHints;
+import org.springframework.data.jpa.repository.query.Procedure;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.google.common.base.Optional;
 
 /**
  * Repository interface for {@code User}s.
@@ -278,6 +284,18 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	Collection<User> findByIdIn(@Param("ids") Integer... ids);
 
 	/**
+	 * @see DATAJPA-461
+	 */
+	@Query("select u from User u where u.id in ?1")
+	Collection<User> findByIdsCustomWithPositionalVarArgs(Integer... ids);
+
+	/**
+	 * @see DATAJPA-461
+	 */
+	@Query("select u from User u where u.id in :ids")
+	Collection<User> findByIdsCustomWithNamedVarArgs(@Param("ids") Integer... ids);
+
+	/**
 	 * @see DATAJPA-415
 	 */
 	@Modifying
@@ -288,4 +306,225 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	 * @see DATAJPA-405
 	 */
 	List<User> findAllByOrderByLastnameAsc();
+
+	/**
+	 * @see DATAJPA-454
+	 */
+	List<User> findByBinaryData(byte[] data);
+
+	/**
+	 * @see DATAJPA-486
+	 */
+	Slice<User> findSliceByLastname(String lastname, Pageable pageable);
+
+	/**
+	 * @see DATAJPA-496
+	 */
+	List<User> findByAttributesIn(Set<String> attributes);
+
+	/**
+	 * @see DATAJPA-460
+	 */
+	Long removeByLastname(String lastname);
+
+	/**
+	 * @see DATAJPA-460
+	 */
+	List<User> deleteByLastname(String lastname);
+
+	/**
+	 * @see DATAJPA-505
+	 * @see https://issues.apache.org/jira/browse/OPENJPA-2484
+	 */
+	// @Query(value = "select u.binaryData from User u where u.id = :id")
+	// byte[] findBinaryDataByIdJpaQl(@Param("id") Integer id);
+
+	/**
+	 * Explicitly mapped to a procedure with name "plus1inout" in database.
+	 * 
+	 * @see DATAJPA-455
+	 */
+	@Procedure("plus1inout")
+	Integer explicitlyNamedPlus1inout(Integer arg);
+
+	/**
+	 * Implicitly mapped to a procedure with name "plus1inout" in database via alias.
+	 * 
+	 * @see DATAJPA-455
+	 */
+	@Procedure(procedureName = "plus1inout")
+	Integer plus1inout(Integer arg);
+
+	/**
+	 * Explicitly mapped to named stored procedure "User.plus1IO" in {@link EntityManager}.
+	 * 
+	 * @see DATAJPA-455
+	 */
+	@Procedure(name = "User.plus1IO")
+	Integer entityAnnotatedCustomNamedProcedurePlus1IO(@Param("arg") Integer arg);
+
+	/**
+	 * Implicitly mapped to named stored procedure "User.plus1" in {@link EntityManager}.
+	 * 
+	 * @see DATAJPA-455
+	 */
+	@Procedure
+	Integer plus1(@Param("arg") Integer arg);
+
+	/**
+	 * @see DATAJPA-456
+	 */
+	@Query(value = "select u from User u where u.firstname like ?1%", countProjection = "u.firstname")
+	Page<User> findAllByFirstnameLike(String firstname, Pageable page);
+
+	/**
+	 * @see DATAJPA-456
+	 */
+	@Query(name = "User.findBySpringDataNamedQuery", countProjection = "u.firstname")
+	Page<User> findByNamedQueryAndCountProjection(String firstname, Pageable page);
+
+	/**
+	 * @see DATAJPA-551
+	 */
+	User findFirstByOrderByAgeDesc();
+
+	/**
+	 * @see DATAJPA-551
+	 */
+	User findFirst1ByOrderByAgeDesc();
+
+	/**
+	 * @see DATAJPA-551
+	 */
+	User findTopByOrderByAgeDesc();
+
+	/**
+	 * @see DATAJPA-551
+	 */
+	User findTopByOrderByAgeAsc();
+
+	/**
+	 * @see DATAJPA-551
+	 */
+	User findTop1ByOrderByAgeAsc();
+
+	/**
+	 * @see DATAJPA-551
+	 */
+	List<User> findTop2ByOrderByAgeDesc();
+
+	/**
+	 * @see DATAJPA-551
+	 */
+	List<User> findFirst2ByOrderByAgeDesc();
+
+	/**
+	 * @see DATAJPA-551
+	 */
+	List<User> findFirst2UsersBy(Sort sort);
+
+	/**
+	 * @see DATAJPA-551
+	 */
+	List<User> findTop2UsersBy(Sort sort);
+
+	/**
+	 * @see DATAJPA-551
+	 */
+	Page<User> findFirst3UsersBy(Pageable page);
+
+	/**
+	 * @see DATAJPA-551
+	 */
+	Page<User> findFirst2UsersBy(Pageable page);
+
+	/**
+	 * @see DATAJPA-551
+	 */
+	Slice<User> findTop3UsersBy(Pageable page);
+
+	/**
+	 * @see DATAJPA-551
+	 */
+	Slice<User> findTop2UsersBy(Pageable page);
+
+	/**
+	 * @see DATAJPA-506
+	 */
+	@Query(value = "select u.binaryData from User u where u.id = ?1", nativeQuery = true)
+	byte[] findBinaryDataByIdNative(Integer id);
+
+	/**
+	 * @see DATAJPA-506
+	 */
+	@Query("select u from User u where u.emailAddress = ?1")
+	Optional<User> findOptionalByEmailAddress(String emailAddress);
+	
+	/**
+	 * @see DATAJPA-564
+	 */
+	@Query("select u from User u where u.firstname = ?#{[0]} and u.firstname = ?1 and u.lastname like %?#{[1]}% and u.lastname like %?2%")
+	List<User> findByFirstnameAndLastnameWithSpelExpression(String firstname, String lastname);
+
+	/**
+	 * @see DATAJPA-564
+	 */
+	@Query("select u from User u where u.lastname like %:#{[0]}% and u.lastname like %:lastname%")
+	List<User> findByLastnameWithSpelExpression(@Param("lastname") String lastname);
+
+	/**
+	 * @see DATAJPA-564
+	 */
+	@Query("select u from User u where u.firstname = ?#{'Oliver'}")
+	List<User> findOliverBySpELExpressionWithoutArgumentsWithQuestionmark();
+
+	/**
+	 * @see DATAJPA-564
+	 */
+	@Query("select u from User u where u.firstname = :#{'Oliver'}")
+	List<User> findOliverBySpELExpressionWithoutArgumentsWithColon();
+
+	/**
+	 * @see DATAJPA-564
+	 */
+	@Query("select u from User u where u.age = ?#{[0]}")
+	List<User> findUsersByAgeForSpELExpressionByIndexedParameter(int age);
+
+	/**
+	 * @see DATAJPA-564
+	 */
+	@Query("select u from User u where u.firstname = :firstname and u.firstname = :#{#firstname}")
+	List<User> findUsersByFirstnameForSpELExpression(@Param("firstname") String firstname);
+
+	/**
+	 * @see DATAJPA-564
+	 */
+	@Query("select u from User u where u.emailAddress = ?#{principal.emailAddress}")
+	List<User> findCurrentUserWithCustomQuery();
+
+	/**
+	 * @see DATAJPA-564
+	 */
+	@Query("select u from User u where u.firstname = ?1 and u.firstname=?#{[0]} and u.emailAddress = ?#{principal.emailAddress}")
+	List<User> findByFirstnameAndCurrentUserWithCustomQuery(String firstname);
+
+	/**
+	 * @see DATAJPA-564
+	 */
+	@Query("select u from User u where u.firstname = :#{#firstname}")
+	List<User> findUsersByFirstnameForSpELExpressionWithParameterVariableOnly(@Param("firstname") String firstname);
+
+	/**
+	 * @see DATAJPA-564
+	 */
+	@Query("select u from User u where u.firstname = ?#{[0]}")
+	List<User> findUsersByFirstnameForSpELExpressionWithParameterIndexOnly(String firstname);
+
+	/**
+	 * @see DATAJPA-564
+	 */
+	@Query(
+			value = "select * from (select rownum() as RN, u.* from User u) where RN between ?#{ #pageable.offset -1} and ?#{#pageable.offset + #pageable.pageSize}",
+			countQuery = "select count(u.id) from User u", nativeQuery = true)
+	Page<User> findUsersInNativeQueryWithPagination(Pageable pageable);
 }

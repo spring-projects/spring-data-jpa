@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 the original author or authors.
+ * Copyright 2008-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package org.springframework.data.jpa.repository;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
+import static org.springframework.data.domain.Sort.Direction.*;
 
 import java.util.Arrays;
 import java.util.List;
@@ -27,8 +28,8 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.data.repository.query.QueryLookupStrategy;
@@ -47,8 +48,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class UserRepositoryFinderTests {
 
-	@Autowired
-	UserRepository userRepository;
+	@Autowired UserRepository userRepository;
 
 	User dave, carter, oliver;
 
@@ -136,6 +136,9 @@ public class UserRepositoryFinderTests {
 		assertThat(result.get(0), is(oliver));
 	}
 
+	/**
+	 * @see DATAJPA-92
+	 */
 	@Test
 	public void findsByLastnameIgnoringCase() throws Exception {
 		List<User> result = userRepository.findByLastnameIgnoringCase("BeAUfoRd");
@@ -143,6 +146,9 @@ public class UserRepositoryFinderTests {
 		assertThat(result.get(0), is(carter));
 	}
 
+	/**
+	 * @see DATAJPA-92
+	 */
 	@Test
 	public void findsByLastnameIgnoringCaseLike() throws Exception {
 		List<User> result = userRepository.findByLastnameIgnoringCaseLike("BeAUfo%");
@@ -150,6 +156,9 @@ public class UserRepositoryFinderTests {
 		assertThat(result.get(0), is(carter));
 	}
 
+	/**
+	 * @see DATAJPA-92
+	 */
 	@Test
 	public void findByLastnameAndFirstnameAllIgnoringCase() throws Exception {
 		List<User> result = userRepository.findByLastnameAndFirstnameAllIgnoringCase("MaTTheWs", "DaVe");
@@ -157,12 +166,15 @@ public class UserRepositoryFinderTests {
 		assertThat(result.get(0), is(dave));
 	}
 
+	/**
+	 * @see DATAJPA-94
+	 */
 	@Test
 	public void respectsPageableOrderOnQueryGenerateFromMethodName() throws Exception {
-		Page<User> ascending = userRepository.findByLastnameIgnoringCase(new PageRequest(0, 10, new Sort(Direction.ASC,
-				"firstname")), "Matthews");
-		Page<User> descending = userRepository.findByLastnameIgnoringCase(new PageRequest(0, 10, new Sort(Direction.DESC,
-				"firstname")), "Matthews");
+		Page<User> ascending = userRepository.findByLastnameIgnoringCase(
+				new PageRequest(0, 10, new Sort(ASC, "firstname")), "Matthews");
+		Page<User> descending = userRepository.findByLastnameIgnoringCase(new PageRequest(0, 10,
+				new Sort(DESC, "firstname")), "Matthews");
 		assertThat(ascending.getTotalElements(), is(2L));
 		assertThat(descending.getTotalElements(), is(2L));
 		assertThat(ascending.getContent().get(0).getFirstname(), is(not(equalTo(descending.getContent().get(0)
@@ -171,4 +183,15 @@ public class UserRepositoryFinderTests {
 		assertThat(ascending.getContent().get(1).getFirstname(), is(equalTo(descending.getContent().get(0).getFirstname())));
 	}
 
+	/**
+	 * @see DATAJPA-486
+	 */
+	@Test
+	public void executesQueryToSlice() {
+
+		Slice<User> slice = userRepository.findSliceByLastname("Matthews", new PageRequest(0, 1, ASC, "firstname"));
+
+		assertThat(slice.getContent(), hasItem(dave));
+		assertThat(slice.hasNext(), is(true));
+	}
 }

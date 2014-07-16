@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,16 @@
  */
 package org.springframework.data.jpa.repository.sample;
 
+import java.util.List;
+
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.jpa.domain.sample.IdClassExampleEmployee;
 import org.springframework.data.jpa.domain.sample.IdClassExampleEmployeePK;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.querydsl.QueryDslPredicateExecutor;
+
+import com.mysema.query.types.OrderSpecifier;
+import com.mysema.query.types.Predicate;
 
 /**
  * Demonstrates the support for composite primary keys with {@code @IdClass}.
@@ -26,4 +32,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
  * @author Thomas Darimont
  */
 @Lazy
-public interface EmployeeRepositoryWithIdClass extends JpaRepository<IdClassExampleEmployee, IdClassExampleEmployeePK> {}
+public interface EmployeeRepositoryWithIdClass extends JpaRepository<IdClassExampleEmployee, IdClassExampleEmployeePK>,
+		QueryDslPredicateExecutor<IdClassExampleEmployee> {
+
+	List<IdClassExampleEmployee> findAll(Predicate predicate, OrderSpecifier<?>... orders);
+
+}

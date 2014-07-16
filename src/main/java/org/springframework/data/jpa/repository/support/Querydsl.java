@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2012-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,15 @@
  */
 package org.springframework.data.jpa.repository.support;
 
+import java.util.List;
+
 import javax.persistence.EntityManager;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
+import org.springframework.data.mapping.PropertyPath;
+import org.springframework.data.querydsl.QSort;
 import org.springframework.util.Assert;
 
 import com.mysema.query.jpa.EclipseLinkTemplates;
@@ -27,15 +31,19 @@ import com.mysema.query.jpa.HQLTemplates;
 import com.mysema.query.jpa.JPQLQuery;
 import com.mysema.query.jpa.OpenJPATemplates;
 import com.mysema.query.jpa.impl.JPAQuery;
+import com.mysema.query.support.Expressions;
 import com.mysema.query.types.EntityPath;
 import com.mysema.query.types.Expression;
 import com.mysema.query.types.OrderSpecifier;
+import com.mysema.query.types.OrderSpecifier.NullHandling;
+import com.mysema.query.types.Path;
 import com.mysema.query.types.path.PathBuilder;
 
 /**
  * Helper instance to ease access to Querydsl JPA query API.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 public class Querydsl {
 
@@ -120,8 +128,42 @@ public class Querydsl {
 			return query;
 		}
 
+		if (sort instanceof QSort) {
+			return addOrderByFrom((QSort) sort, query);
+		}
+
+		return addOrderByFrom(sort, query);
+	}
+
+	/**
+	 * Applies the given {@link OrderSpecifier}s to the given {@link JPQLQuery}. Potentially transforms the given
+	 * {@code OrderSpecifier}s to be able to injection potentially necessary left-joins.
+	 * 
+	 * @param qsort must not be {@literal null}.
+	 * @param query must not be {@literal null}.
+	 */
+
+	private JPQLQuery addOrderByFrom(QSort qsort, JPQLQuery query) {
+
+		List<OrderSpecifier<?>> orderSpecifiers = qsort.getOrderSpecifiers();
+		return query.orderBy(orderSpecifiers.toArray(new OrderSpecifier[orderSpecifiers.size()]));
+	}
+
+	/**
+	 * Converts the {@link Order} items of the given {@link Sort} into {@link OrderSpecifier} and attaches those to the
+	 * given {@link JPQLQuery}.
+	 * 
+	 * @param sort must not be {@literal null}.
+	 * @param query must not be {@literal null}.
+	 * @return
+	 */
+	private JPQLQuery addOrderByFrom(Sort sort, JPQLQuery query) {
+
+		Assert.notNull(sort, "Sort must not be null!");
+		Assert.notNull(query, "Query must not be null!");
+
 		for (Order order : sort) {
-			query.orderBy(toOrder(order));
+			query.orderBy(toOrderSpecifier(order, query));
 		}
 
 		return query;
@@ -130,20 +172,68 @@ public class Querydsl {
 	/**
 	 * Transforms a plain {@link Order} into a QueryDsl specific {@link OrderSpecifier}.
 	 * 
-	 * @param order
+	 * @param order must not be {@literal null}.
 	 * @return
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private OrderSpecifier<?> toOrder(Order order) {
-
-		Expression<?> property = builder.get(order.getProperty());
-
-		// Apply ignore case in case we have a String and ignore case ordering is requested
-		if (order.isIgnoreCase()) {
-			property = builder.getString(order.getProperty()).lower();
-		}
+	private OrderSpecifier<?> toOrderSpecifier(Order order, JPQLQuery query) {
 
 		return new OrderSpecifier(order.isAscending() ? com.mysema.query.types.Order.ASC
-				: com.mysema.query.types.Order.DESC, property);
+				: com.mysema.query.types.Order.DESC, buildOrderPropertyPathFrom(order),
+				toQueryDslNullHandling(order.getNullHandling()));
+	}
+
+	/**
+	 * Converts the given {@link org.springframework.data.domain.Sort.NullHandling} to the appropriate Querydsl
+	 * {@link NullHandling}.
+	 * 
+	 * @param nullHandling must not be {@literal null}.
+	 * @return
+	 * @since 1.6
+	 */
+	private NullHandling toQueryDslNullHandling(org.springframework.data.domain.Sort.NullHandling nullHandling) {
+
+		Assert.notNull(nullHandling, "NullHandling must not be null!");
+
+		switch (nullHandling) {
+
+			case NULLS_FIRST:
+				return NullHandling.NullsFirst;
+
+			case NULLS_LAST:
+				return NullHandling.NullsLast;
+
+			case NATIVE:
+			default:
+				return NullHandling.Default;
+		}
+	}
+
+	/**
+	 * Creates an {@link Expression} for the given {@link Order} property.
+	 * 
+	 * @param order must not be {@literal null}.
+	 * @return
+	 */
+	private Expression<?> buildOrderPropertyPathFrom(Order order) {
+
+		Assert.notNull(order, "Order must not be null!");
+
+		PropertyPath path = PropertyPath.from(order.getProperty(), builder.getType());
+		Expression<?> sortPropertyExpression = builder;
+
+		while (path != null) {
+
+			if (!path.hasNext() && order.isIgnoreCase()) {
+				// if order is ignore-case we have to treat the last path segment as a String.
+				sortPropertyExpression = Expressions.stringPath((Path<?>) sortPropertyExpression, path.getSegment()).lower();
+			} else {
+				sortPropertyExpression = Expressions.path(path.getType(), (Path<?>) sortPropertyExpression, path.getSegment());
+			}
+
+			path = path.next();
+		}
+
+		return sortPropertyExpression;
 	}
 }

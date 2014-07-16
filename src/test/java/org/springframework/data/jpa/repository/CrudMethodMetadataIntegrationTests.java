@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@ import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 import java.io.Serializable;
+import java.util.Collections;
+import java.util.Map;
 
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
@@ -42,7 +44,7 @@ import org.springframework.data.jpa.repository.support.JpaRepositoryFactory;
  * @author Oliver Gierke
  */
 @RunWith(MockitoJUnitRunner.class)
-public class LockIntegrationTests {
+public class CrudMethodMetadataIntegrationTests {
 
 	@Mock EntityManager em;
 	@Mock CriteriaBuilder builder;
@@ -69,7 +71,7 @@ public class LockIntegrationTests {
 	}
 
 	/**
-	 * @see DATAJPA-73
+	 * @see DATAJPA-73, DATAJPA-173
 	 */
 	@Test
 	public void usesLockInformationAnnotatedAtRedeclaredMethod() {
@@ -82,16 +84,20 @@ public class LockIntegrationTests {
 		repository.findAll();
 
 		verify(query).setLockMode(LockModeType.READ);
+		verify(query).setHint("foo", "bar");
 	}
 
 	/**
-	 * @see DATAJPA-359
+	 * @see DATAJPA-359, DATAJPA-173
 	 */
 	@Test
-	public void usesLockInformationAnnotatedAtRedeclaredFindOne() {
+	public void usesMetadataAnnotatedAtRedeclaredFindOne() {
 
 		repository.findOne(1);
 
-		verify(em).find(Role.class, 1, LockModeType.READ);
+		Map<String, Object> expectedLinks = Collections.singletonMap("foo", (Object) "bar");
+		LockModeType expectedLockModeType = LockModeType.READ;
+
+		verify(em).find(Role.class, 1, expectedLockModeType, expectedLinks);
 	}
 }

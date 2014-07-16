@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,8 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.data.jpa.domain.AbstractPersistable;
+import org.springframework.data.jpa.domain.sample.PrimitiveVersionProperty;
+import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.domain.sample.SampleWithIdClass;
 import org.springframework.data.jpa.domain.sample.SampleWithIdClassPK;
 import org.springframework.data.jpa.domain.sample.SampleWithPrimitiveId;
@@ -49,6 +51,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * Integration tests for {@link JpaMetamodelEntityInformation}.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
+ * @author Christoph Strobl
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({ "classpath:infrastructure.xml" })
@@ -155,6 +159,63 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 		assertThat(information.isNew(sample), is(false));
 	}
 
+	/**
+	 * @see DATAJPA-509
+	 */
+	@Test
+	public void jpaMetamodelEntityInformationShouldRespectExplicitlyConfiguredEntityNameFromOrmXml() {
+
+		JpaEntityInformation<Role, Integer> info = new JpaMetamodelEntityInformation<Role, Integer>(Role.class,
+				em.getMetamodel());
+
+		assertThat(info.getEntityName(), is("ROLE"));
+	}
+
+	/**
+	 * @see DATAJPA-561
+	 */
+	@Test
+	public void considersEntityWithPrimitiveVersionPropertySetToDefaultNew() {
+
+		EntityInformation<PrimitiveVersionProperty, Serializable> information = new JpaMetamodelEntityInformation<PrimitiveVersionProperty, Serializable>(
+				PrimitiveVersionProperty.class, em.getMetamodel());
+
+		assertThat(information.isNew(new PrimitiveVersionProperty()), is(true));
+	}
+
+	/**
+	 * @see DATAJPA-568
+	 */
+	@Test
+	public void considersEntityAsNotNewWhenHavingIdSetAndUsingPrimitiveTypeForVersionProperty() {
+
+		EntityInformation<PrimitiveVersionProperty, Serializable> information = new JpaMetamodelEntityInformation<PrimitiveVersionProperty, Serializable>(
+				PrimitiveVersionProperty.class, em.getMetamodel());
+
+		PrimitiveVersionProperty pvp = new PrimitiveVersionProperty();
+		pvp.id = 100L;
+
+		assertThat(information.isNew(pvp), is(false));
+	}
+
+	/**
+	 * @see DATAJPA-568
+	 */
+	@Test
+	public void fallsBackToIdInspectionForAPrimitiveVersionProperty() {
+
+		EntityInformation<PrimitiveVersionProperty, Serializable> information = new JpaMetamodelEntityInformation<PrimitiveVersionProperty, Serializable>(
+				PrimitiveVersionProperty.class, em.getMetamodel());
+
+		PrimitiveVersionProperty pvp = new PrimitiveVersionProperty();
+		pvp.version = 1L;
+
+		assertThat(information.isNew(pvp), is(true));
+
+		pvp.id = 1L;
+		assertThat(information.isNew(pvp), is(false));
+	}
+
 	protected String getMetadadataPersitenceUnitName() {
 		return "metadata";
 	}
@@ -180,4 +241,5 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 	public static class Sample extends Identifiable {
 
 	}
+
 }

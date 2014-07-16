@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,14 +32,14 @@ import org.springframework.transaction.annotation.Transactional;
  * Integration tests for {@link RoleRepository}.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:application-context.xml" })
 @Transactional
 public class RoleRepositoryIntegrationTests {
 
-	@Autowired
-	RoleRepository repository;
+	@Autowired RoleRepository repository;
 
 	@Test
 	public void createsRole() throws Exception {
@@ -61,5 +61,41 @@ public class RoleRepositoryIntegrationTests {
 		repository.save(reference);
 
 		assertThat(repository.findOne(result.getId()), is(reference));
+	}
+
+	/**
+	 * @see DATAJPA-509
+	 */
+	@Test
+	public void shouldUseExplicitlyConfiguredEntityNameInOrmXmlInCountQueries() {
+
+		Role reference = new Role("ADMIN");
+		repository.save(reference);
+
+		assertThat(repository.count(), is(1L));
+	}
+
+	/**
+	 * @see DATAJPA-509
+	 */
+	@Test
+	public void shouldUseExplicitlyConfiguredEntityNameInOrmXmlInExistsQueries() {
+
+		Role reference = new Role("ADMIN");
+		reference = repository.save(reference);
+
+		assertThat(repository.exists(reference.getId()), is(true));
+	}
+
+	/**
+	 * @see DATAJPA-509
+	 */
+	@Test
+	public void shouldUseExplicitlyConfiguredEntityNameInDerivedCountQueries() {
+
+		Role reference = new Role("ADMIN");
+		reference = repository.save(reference);
+
+		assertThat(repository.countByName(reference.getName()), is(1L));
 	}
 }

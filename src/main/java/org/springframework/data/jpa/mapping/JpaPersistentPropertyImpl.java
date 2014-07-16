@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2013 the original author or authors.
+ * Copyright 2012-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.persistence.Embeddable;
+import javax.persistence.Embedded;
 import javax.persistence.EmbeddedId;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
@@ -30,8 +32,6 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Transient;
-import javax.persistence.metamodel.EmbeddableType;
-import javax.persistence.metamodel.ManagedType;
 import javax.persistence.metamodel.Metamodel;
 
 import org.springframework.data.mapping.Association;
@@ -58,6 +58,7 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 		annotations.add(OneToOne.class);
 		annotations.add(ManyToMany.class);
 		annotations.add(ManyToOne.class);
+		annotations.add(Embedded.class);
 
 		ASSOCIATION_ANNOTATIONS = Collections.unmodifiableSet(annotations);
 
@@ -110,8 +111,8 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 	public boolean isEntity() {
 
 		try {
-			ManagedType<?> type = metamodel.managedType(getType());
-			return !(type instanceof EmbeddableType);
+			metamodel.managedType(getType());
+			return true;
 		} catch (IllegalArgumentException o_O) {
 			return false;
 		}
@@ -128,6 +129,10 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 			if (findAnnotation(annotationType) != null) {
 				return true;
 			}
+		}
+
+		if (getType().isAnnotationPresent(Embeddable.class)) {
+			return true;
 		}
 
 		return false;

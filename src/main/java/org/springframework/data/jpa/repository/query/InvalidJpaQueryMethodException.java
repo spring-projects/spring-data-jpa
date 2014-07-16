@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,22 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.jpa.repository.support;
-
-import javax.persistence.LockModeType;
+package org.springframework.data.jpa.repository.query;
 
 /**
- * Interface to abstract {@link LockMetadataProvider} that provide the {@link LockModeType} to be used for query
- * execution.
+ * Signals that we encountered an invalid query method.
  * 
+ * @author Thomas Darimont
  * @author Oliver Gierke
  */
-public interface LockMetadataProvider {
+public class InvalidJpaQueryMethodException extends RuntimeException {
+
+	private static final long serialVersionUID = 1L;
 
 	/**
-	 * Returns the {@link LockModeType} to be used.
+	 * Creates a new {@link InvalidJpaQueryMethodException} with the given message.
 	 * 
-	 * @return
+	 * @param message must not be {@literal null} or empty.
 	 */
-	LockModeType getLockModeType();
+	public InvalidJpaQueryMethodException(String message) {
+		super(message);
+	}
 }

@@ -23,9 +23,11 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Auditable;
+import org.springframework.data.jpa.domain.sample.AnnotatedAuditableUser;
 import org.springframework.data.jpa.domain.sample.AuditableRole;
 import org.springframework.data.jpa.domain.sample.AuditableUser;
 import org.springframework.data.jpa.domain.sample.AuditorAwareStub;
+import org.springframework.data.jpa.repository.sample.AnnotatedAuditableUserRepository;
 import org.springframework.data.jpa.repository.sample.AuditableUserRepository;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -43,11 +45,10 @@ import org.springframework.transaction.annotation.Transactional;
 @DirtiesContext
 public class AuditingEntityListenerTests {
 
-	@Autowired
-	AuditableUserRepository repository;
+	@Autowired AuditableUserRepository repository;
+	@Autowired AnnotatedAuditableUserRepository annotatedUserRepository;
 
-	@Autowired
-	AuditorAwareStub auditorAware;
+	@Autowired AuditorAwareStub auditorAware;
 
 	AuditableUser user;
 
@@ -95,6 +96,18 @@ public class AuditingEntityListenerTests {
 		assertDatesSet(role);
 		assertUserIsAuditor(user, user);
 		assertUserIsAuditor(user, role);
+	}
+
+	/**
+	 * @see DATAJPA-501
+	 */
+	@Test
+	public void usesAnnotationMetadata() {
+
+		AnnotatedAuditableUser auditableUser = annotatedUserRepository.save(new AnnotatedAuditableUser());
+
+		assertThat(auditableUser.getCreateAt(), is(notNullValue()));
+		assertThat(auditableUser.getLastModifiedBy(), is(notNullValue()));
 	}
 
 	private static void assertDatesSet(Auditable<?, ?> auditable) {

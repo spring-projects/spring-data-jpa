@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2013 the original author or authors.
+ * Copyright 2012-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,11 +55,9 @@ import org.springframework.util.ClassUtils;
 @ContextConfiguration
 public class JpaRepositoriesRegistrarIntegrationTests {
 
-	@Autowired
-	UserRepository repository;
+	@Autowired UserRepository repository;
 
-	@Autowired
-	SampleRepository sampleRepository;
+	@Autowired SampleRepository sampleRepository;
 
 	@Configuration
 	@EnableJpaRepositories(basePackages = "org.springframework.data.jpa.repository.sample")
@@ -74,7 +72,7 @@ public class JpaRepositoriesRegistrarIntegrationTests {
 		public EntityManagerFactory entityManagerFactory() {
 			LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();
 			factory.setDataSource(dataSource());
-			factory.setPersistenceUnitName("default");
+			factory.setPersistenceUnitName("spring-data-jpa");
 			factory.setJpaVendorAdapter(new HibernateJpaVendorAdapter());
 			factory.afterPropertiesSet();
 			return factory.getObject();

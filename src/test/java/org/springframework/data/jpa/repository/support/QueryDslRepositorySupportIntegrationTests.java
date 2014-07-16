@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2011-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 import javax.persistence.EntityManager;
@@ -24,28 +24,67 @@ import javax.persistence.PersistenceContext;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.domain.sample.User;
+import org.springframework.data.jpa.repository.config.InfrastructureConfig;
 import org.springframework.data.jpa.repository.support.QueryDslRepositorySupportTests.UserRepository;
+import org.springframework.data.jpa.repository.support.QueryDslRepositorySupportTests.UserRepositoryImpl;
+import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Integration test for the setup of beans extending {@link QueryDslRepositorySupport}.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
+@Transactional
+@ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration("classpath:querydsl.xml")
 public class QueryDslRepositorySupportIntegrationTests {
 
-	@Autowired
-	UserRepository repository;
+	@Configuration
+	@EnableTransactionManagement
+	static class Config extends InfrastructureConfig {
+		@Bean
+		public UserRepositoryImpl userRepositoryImpl() {
+			return new UserRepositoryImpl() {
+				@Override
+				@PersistenceContext(unitName = "querydsl")
+				public void setEntityManager(EntityManager entityManager) {
+					super.setEntityManager(entityManager);
+				}
+			};
+		}
 
-	@Autowired
-	ReconfiguringUserRepositoryImpl reconfiguredRepo;
+		@Bean
+		public ReconfiguringUserRepositoryImpl reconfiguringUserRepositoryImpl() {
+			return new ReconfiguringUserRepositoryImpl();
+		}
 
-	@PersistenceContext(unitName = "querydsl")
-	EntityManager em;
+		@Bean
+		public EntityManagerContainer entityManagerContainer() {
+			return new EntityManagerContainer();
+		}
+
+		@Override
+		@Bean
+		public LocalContainerEntityManagerFactoryBean entityManagerFactory() {
+
+			LocalContainerEntityManagerFactoryBean emf = super.entityManagerFactory();
+			emf.setPersistenceUnitName("querydsl");
+			return emf;
+		}
+	}
+
+	@Autowired UserRepository repository;
+	@Autowired ReconfiguringUserRepositoryImpl reconfiguredRepo;
+
+	@PersistenceContext(unitName = "querydsl") EntityManager em;
 
 	@Test
 	public void createsRepoCorrectly() {
@@ -77,7 +116,6 @@ public class QueryDslRepositorySupportIntegrationTests {
 
 	static class EntityManagerContainer {
 
-		@PersistenceContext(unitName = "querydsl")
-		EntityManager em;
+		@PersistenceContext(unitName = "querydsl") EntityManager em;
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2013 the original author or authors.
+ * Copyright 2008-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import org.springframework.data.domain.Sort;
  * 
  * @author Oliver Gierke
  * @author Thomas Darimont
+ * @author Komi Innocent
  */
 public class QueryUtilsUnitTests {
 
@@ -261,6 +262,23 @@ public class QueryUtilsUnitTests {
 	@Test
 	public void createsCountQueryForNestedReferenceCorrectly() {
 		assertCountQuery("select a.b from A a", "select count(a.b) from A a");
+	}
+
+	/**
+	 * @see DATAJPA-420
+	 */
+	@Test
+	public void createsCountQueryForScalarSelects() {
+		assertCountQuery("select p.lastname,p.firstname from Person p", "select count(p) from Person p");
+	}
+
+	/**
+	 * @see DATAJPA-456
+	 */
+	@Test
+	public void createCountQueryFromTheGivenCountProjection() {
+		assertThat(createCountQueryFor("select p.lastname,p.firstname from Person p", "p.lastname"),
+				is("select count(p.lastname) from Person p"));
 	}
 
 	private void assertCountQuery(String originalQuery, String countQuery) {

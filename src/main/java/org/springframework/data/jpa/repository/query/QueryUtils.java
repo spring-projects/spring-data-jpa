@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2013 the original author or authors.
+ * Copyright 2008-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,6 +50,7 @@ import javax.persistence.metamodel.Attribute;
 import javax.persistence.metamodel.Attribute.PersistentAttributeType;
 import javax.persistence.metamodel.Bindable;
 import javax.persistence.metamodel.ManagedType;
+import javax.persistence.metamodel.PluralAttribute;
 
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.data.domain.Sort;
@@ -64,6 +65,7 @@ import org.springframework.util.StringUtils;
  * @author Oliver Gierke
  * @author Kevin Raymond
  * @author Thomas Darimont
+ * @author Komi Innocent
  */
 public abstract class QueryUtils {
 
@@ -116,6 +118,7 @@ public abstract class QueryUtils {
 		persistentAttributeTypes.put(ONE_TO_MANY, null);
 		persistentAttributeTypes.put(MANY_TO_ONE, ManyToOne.class);
 		persistentAttributeTypes.put(MANY_TO_MANY, null);
+		persistentAttributeTypes.put(ELEMENT_COLLECTION, null);
 
 		ASSOCIATION_TYPES = Collections.unmodifiableMap(persistentAttributeTypes);
 	}
@@ -329,22 +332,41 @@ public abstract class QueryUtils {
 	}
 
 	/**
-	 * Creates a count projected query from the given orginal query.
+	 * Creates a count projected query from the given original query.
 	 * 
-	 * @param originalQuery must not be {@literal null} or empty
+	 * @param originalQuery must not be {@literal null} or empty.
 	 * @return
 	 */
 	public static String createCountQueryFor(String originalQuery) {
+		return createCountQueryFor(originalQuery, null);
+	}
 
-		Assert.hasText(originalQuery);
+	/**
+	 * Creates a count projected query from the given original query.
+	 * 
+	 * @param originalQuery must not be {@literal null}.
+	 * @param countProjection may be {@literal null}.
+	 * @return
+	 * @since 1.6
+	 */
+	public static String createCountQueryFor(String originalQuery, String countProjection) {
+
+		Assert.hasText(originalQuery, "OriginalQuery must not be null or empty!");
 
 		Matcher matcher = COUNT_MATCH.matcher(originalQuery);
-		String variable = matcher.matches() ? matcher.group(4) : null;
-		boolean useVariable = StringUtils.hasText(variable) && !variable.startsWith("new")
-				&& !variable.startsWith("count(");
+		String countQuery = null;
 
-		String countQuery = matcher.replaceFirst(String.format(COUNT_REPLACEMENT_TEMPLATE, useVariable ? SIMPLE_COUNT_VALUE
-				: COMPLEX_COUNT_VALUE));
+		if (countProjection == null) {
+
+			String variable = matcher.matches() ? matcher.group(4) : null;
+			boolean useVariable = variable != null && StringUtils.hasText(variable) && !variable.startsWith("new")
+					&& !variable.startsWith("count(") && !variable.contains(",");
+
+			String replacement = useVariable ? SIMPLE_COUNT_VALUE : COMPLEX_COUNT_VALUE;
+			countQuery = matcher.replaceFirst(String.format(COUNT_REPLACEMENT_TEMPLATE, replacement));
+		} else {
+			countQuery = matcher.replaceFirst(String.format(COUNT_REPLACEMENT_TEMPLATE, countProjection));
+		}
 
 		return countQuery.replaceFirst(ORDER_BY_PART, "");
 	}
@@ -438,22 +460,25 @@ public abstract class QueryUtils {
 	static <T> Expression<T> toExpressionRecursively(From<?, ?> from, PropertyPath property) {
 
 		Bindable<?> propertyPathModel = null;
-		if (from.getModel() instanceof ManagedType) {
+		Bindable<?> model = from.getModel();
+		String segment = property.getSegment();
+
+		if (model instanceof ManagedType) {
+
 			/*
-			 *  Avoid calling from.get(...) because this triggers the generation of an inner-join instead 
-			 *  of and outer-join in eclipse-link.
+			 *  Required to keep support for EclipseLink 2.4.x. TODO: Remove once we drop that (probably Dijkstra M1)
 			 *  See: https://bugs.eclipse.org/bugs/show_bug.cgi?id=413892
 			 */
-			propertyPathModel = (Bindable<?>) ((ManagedType<?>) from.getModel()).getAttribute(property.getSegment());
+			propertyPathModel = (Bindable<?>) ((ManagedType<?>) model).getAttribute(segment);
 		} else {
-			propertyPathModel = from.get(property.getSegment()).getModel();
+			propertyPathModel = from.get(segment).getModel();
 		}
 
-		if (property.isCollection() || requiresJoin(propertyPathModel)) {
-			Join<?, ?> join = getOrCreateJoin(from, property.getSegment());
+		if (requiresJoin(propertyPathModel, model instanceof PluralAttribute)) {
+			Join<?, ?> join = getOrCreateJoin(from, segment);
 			return (Expression<T>) (property.hasNext() ? toExpressionRecursively(join, property.next()) : join);
 		} else {
-			Path<Object> path = from.get(property.getSegment());
+			Path<Object> path = from.get(segment);
 			return (Expression<T>) (property.hasNext() ? toExpressionRecursively(path, property.next()) : path);
 		}
 	}
@@ -463,9 +488,14 @@ public abstract class QueryUtils {
 	 * non-optional association.
 	 * 
 	 * @param propertyPathModel must not be {@literal null}.
+	 * @param for
 	 * @return
 	 */
-	private static boolean requiresJoin(Bindable<?> propertyPathModel) {
+	private static boolean requiresJoin(Bindable<?> propertyPathModel, boolean forPluralAttribute) {
+
+		if (propertyPathModel == null && forPluralAttribute) {
+			return true;
+		}
 
 		if (!(propertyPathModel instanceof Attribute)) {
 			return false;
@@ -480,7 +510,7 @@ public abstract class QueryUtils {
 		Class<? extends Annotation> associationAnnotation = ASSOCIATION_TYPES.get(attribute.getPersistentAttributeType());
 
 		if (associationAnnotation == null) {
-			return false;
+			return true;
 		}
 
 		Member member = attribute.getJavaMember();

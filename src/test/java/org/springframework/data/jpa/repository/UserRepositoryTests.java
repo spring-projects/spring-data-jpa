@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2013 the original author or authors.
+ * Copyright 2008-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,16 +49,22 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.domain.sample.Address;
 import org.springframework.data.jpa.domain.sample.Role;
+import org.springframework.data.jpa.domain.sample.SpecialUser;
 import org.springframework.data.jpa.domain.sample.User;
+import org.springframework.data.jpa.repository.sample.SampleEvaluationContextExtension.SampleSecurityContextHolder;
 import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.google.common.base.Optional;
 
 /**
  * Base integration test class for {@code UserRepository}. Loads a basic (non-namespace) Spring configuration file as
@@ -83,6 +89,7 @@ public class UserRepositoryTests {
 	// Test fixture
 	User firstUser, secondUser, thirdUser, fourthUser;
 	Integer id;
+	Role adminRole;
 
 	@Before
 	public void setUp() throws Exception {
@@ -96,6 +103,9 @@ public class UserRepositoryTests {
 		thirdUser.setAge(43);
 		fourthUser = new User("kevin", "raymond", "no@gmail.com");
 		fourthUser.setAge(31);
+		adminRole = new Role("admin");
+
+		SampleSecurityContextHolder.clear();
 	}
 
 	@Test
@@ -280,7 +290,7 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		repository.findByLastname(null);
+		repository.findByLastname((String) null);
 	}
 
 	@Test
@@ -916,6 +926,8 @@ public class UserRepositoryTests {
 
 	protected void flushTestUsers() {
 
+		em.persist(adminRole);
+
 		firstUser = repository.save(firstUser);
 		secondUser = repository.save(secondUser);
 		thirdUser = repository.save(thirdUser);
@@ -1148,6 +1160,597 @@ public class UserRepositoryTests {
 
 		assertThat(result, hasSize(4));
 		assertThat(result, contains(secondUser, firstUser, thirdUser, fourthUser));
+	}
+
+	/**
+	 * @see DATAJPA-427
+	 */
+	@Test
+	public void sortByAssociationPropertyShouldUseLeftOuterJoin() {
+
+		secondUser.getColleagues().add(firstUser);
+		fourthUser.getColleagues().add(thirdUser);
+		flushTestUsers();
+
+		List<User> result = repository.findAll(new Sort(Sort.Direction.ASC, "colleagues.id"));
+
+		assertThat(result, hasSize(4));
+	}
+
+	/**
+	 * @see DATAJPA-427
+	 */
+	@Test
+	public void sortByAssociationPropertyInPageableShouldUseLeftOuterJoin() {
+
+		secondUser.getColleagues().add(firstUser);
+		fourthUser.getColleagues().add(thirdUser);
+		flushTestUsers();
+
+		Page<User> page = repository.findAll(new PageRequest(0, 10, new Sort(Sort.Direction.ASC, "colleagues.id")));
+
+		assertThat(page.getContent(), hasSize(4));
+	}
+
+	/**
+	 * @see DATAJPA-427
+	 */
+	@Test
+	public void sortByEmbeddedProperty() {
+
+		thirdUser.setAddress(new Address("Germany", "Saarbrücken", "HaveItYourWay", "123"));
+		flushTestUsers();
+
+		Page<User> page = repository.findAll(new PageRequest(0, 10, new Sort(Sort.Direction.ASC, "address.streetName")));
+
+		assertThat(page.getContent(), hasSize(4));
+		assertThat(page.getContent().get(3), is(thirdUser));
+	}
+
+	/**
+	 * @see DATAJPA-454
+	 */
+	@Test
+	public void findsUserByBinaryDataReference() throws Exception {
+
+		byte[] data = "Woho!!".getBytes("UTF-8");
+		firstUser.setBinaryData(data);
+
+		flushTestUsers();
+
+		List<User> result = repository.findByBinaryData(data);
+		assertThat(result, hasSize(1));
+		assertThat(result, hasItem(firstUser));
+		assertThat(result.get(0).getBinaryData(), is(data));
+	}
+
+	/**
+	 * @see DATAJPA-461
+	 */
+	@Test
+	public void customFindByQueryWithPositionalVarargsParameters() {
+
+		flushTestUsers();
+
+		Collection<User> result = repository.findByIdsCustomWithPositionalVarArgs(firstUser.getId(), secondUser.getId());
+
+		assertThat(result, hasSize(2));
+		assertThat(result, hasItems(firstUser, secondUser));
+	}
+
+	/**
+	 * @see DATAJPA-461
+	 */
+	@Test
+	public void customFindByQueryWithNamedVarargsParameters() {
+
+		flushTestUsers();
+
+		Collection<User> result = repository.findByIdsCustomWithNamedVarArgs(firstUser.getId(), secondUser.getId());
+
+		assertThat(result, hasSize(2));
+		assertThat(result, hasItems(firstUser, secondUser));
+	}
+
+	/**
+	 * @see DATAJPA-464
+	 */
+	@Test
+	public void saveAndFlushShouldSupportReturningSubTypesOfRepositoryEntity() {
+
+		repository.deleteAll();
+		SpecialUser user = new SpecialUser();
+		user.setFirstname("Thomas");
+		user.setEmailAddress("thomas@example.org");
+
+		SpecialUser savedUser = repository.saveAndFlush(user);
+
+		assertThat(user.getFirstname(), is(savedUser.getFirstname()));
+		assertThat(user.getEmailAddress(), is(savedUser.getEmailAddress()));
+	}
+
+	/**
+	 * @see DATAJPA-491
+	 */
+	@Test
+	public void sortByNestedAssociationPropertyWithSortInPageable() {
+
+		firstUser.setManager(thirdUser);
+		thirdUser.setManager(fourthUser);
+
+		flushTestUsers();
+
+		Page<User> page = repository.findAll(new PageRequest(0, 10, //
+				new Sort(Sort.Direction.ASC, "manager.manager.firstname")));
+
+		assertThat(page.getContent(), hasSize(4));
+		assertThat(page.getContent().get(3), is(firstUser));
+	}
+
+	/**
+	 * @see DATAJPA-510
+	 */
+	@Test
+	public void sortByNestedAssociationPropertyWithSortOrderIgnoreCaseInPageable() {
+
+		firstUser.setManager(thirdUser);
+		thirdUser.setManager(fourthUser);
+
+		flushTestUsers();
+
+		Page<User> page = repository.findAll(new PageRequest(0, 10, //
+				new Sort(new Sort.Order(Direction.ASC, "manager.manager.firstname").ignoreCase())));
+
+		assertThat(page.getContent(), hasSize(4));
+		assertThat(page.getContent().get(3), is(firstUser));
+	}
+
+	/**
+	 * @see DATAJPA-496
+	 */
+	@Test
+	public void findByElementCollectionAttribute() {
+
+		firstUser.getAttributes().add("cool");
+		secondUser.getAttributes().add("hip");
+		thirdUser.getAttributes().add("rockstar");
+
+		flushTestUsers();
+
+		List<User> result = repository.findByAttributesIn(new HashSet<String>(Arrays.asList("cool", "hip")));
+
+		assertThat(result, hasSize(2));
+		assertThat(result, hasItems(firstUser, secondUser));
+	}
+
+	/**
+	 * @see DATAJPA-460
+	 */
+	@Test
+	public void deleteByShouldReturnListOfDeletedElementsWhenRetunTypeIsCollectionLike() {
+
+		flushTestUsers();
+
+		List<User> result = repository.deleteByLastname(firstUser.getLastname());
+		assertThat(result, hasItem(firstUser));
+		assertThat(result, hasSize(1));
+	}
+
+	/**
+	 * @see DATAJPA-460
+	 */
+	@Test
+	public void deleteByShouldRemoveElementsMatchingDerivedQuery() {
+
+		flushTestUsers();
+
+		repository.deleteByLastname(firstUser.getLastname());
+		assertThat(repository.countByLastname(firstUser.getLastname()), is(0L));
+	}
+
+	/**
+	 * @see DATAJPA-460
+	 */
+	@Test
+	public void deleteByShouldReturnNumberOfEntitiesRemovedIfReturnTypeIsLong() {
+
+		flushTestUsers();
+
+		assertThat(repository.removeByLastname(firstUser.getLastname()), is(1L));
+	}
+
+	/**
+	 * @see DATAJPA-460
+	 */
+	@Test
+	public void deleteByShouldReturnZeroInCaseNoEntityHasBeenRemovedAndReturnTypeIsNumber() {
+
+		flushTestUsers();
+
+		assertThat(repository.removeByLastname("bubu"), is(0L));
+	}
+
+	/**
+	 * @see DATAJPA-460
+	 */
+	@Test
+	public void deleteByShouldReturnEmptyListInCaseNoEntityHasBeenRemovedAndReturnTypeIsCollectionLike() {
+
+		flushTestUsers();
+
+		assertThat(repository.deleteByLastname("dorfuaeB"), empty());
+	}
+
+	/**
+	 * @see DATAJPA-505
+	 * @see https://issues.apache.org/jira/browse/OPENJPA-2484
+	 */
+	@Test
+	@Ignore
+	public void findBinaryDataByIdJpaQl() throws Exception {
+
+		byte[] data = "Woho!!".getBytes("UTF-8");
+		firstUser.setBinaryData(data);
+
+		flushTestUsers();
+
+		byte[] result = null; // repository.findBinaryDataByIdJpaQl(firstUser.getId());
+
+		assertThat(result.length, is(data.length));
+		assertThat(result, is(data));
+	}
+
+	/**
+	 * @see DATAJPA-506
+	 */
+	@Test
+	public void findBinaryDataByIdNative() throws Exception {
+
+		byte[] data = "Woho!!".getBytes("UTF-8");
+		firstUser.setBinaryData(data);
+
+		flushTestUsers();
+
+		byte[] result = repository.findBinaryDataByIdNative(firstUser.getId());
+		assertThat(result.length, is(data.length));
+		assertThat(result, is(data));
+	}
+
+	/**
+	 * @see DATAJPA-456
+	 */
+	@Test
+	public void findPaginatedExplicitQueryWithCountQueryProjection() {
+
+		firstUser.setFirstname(null);
+
+		flushTestUsers();
+
+		Page<User> result = repository.findAllByFirstnameLike("", new PageRequest(0, 10));
+
+		assertThat(result.getContent().size(), is(3));
+	}
+
+	/**
+	 * @see DATAJPA-456
+	 */
+	@Test
+	public void findPaginatedNamedQueryWithCountQueryProjection() {
+
+		flushTestUsers();
+
+		Page<User> result = repository.findByNamedQueryAndCountProjection("Gierke", new PageRequest(0, 10));
+
+		assertThat(result.getContent().size(), is(1));
+	}
+
+	/**
+	 * @see DATAJPA-551
+	 */
+	@Test
+	public void findOldestUser() {
+
+		flushTestUsers();
+
+		User oldest = thirdUser;
+
+		assertThat(repository.findFirstByOrderByAgeDesc(), is(oldest));
+		assertThat(repository.findFirst1ByOrderByAgeDesc(), is(oldest));
+	}
+
+	/**
+	 * @see DATAJPA-551
+	 */
+	@Test
+	public void findYoungestUser() {
+
+		flushTestUsers();
+
+		User youngest = firstUser;
+
+		assertThat(repository.findTopByOrderByAgeAsc(), is(youngest));
+		assertThat(repository.findTop1ByOrderByAgeAsc(), is(youngest));
+	}
+
+	/**
+	 * @see DATAJPA-551
+	 */
+	@Test
+	public void find2OldestUsers() {
+
+		flushTestUsers();
+
+		User oldest1 = thirdUser;
+		User oldest2 = secondUser;
+
+		assertThat(repository.findFirst2ByOrderByAgeDesc(), hasItems(oldest1, oldest2));
+		assertThat(repository.findTop2ByOrderByAgeDesc(), hasItems(oldest1, oldest2));
+	}
+
+	/**
+	 * @see DATAJPA-551
+	 */
+	@Test
+	public void find2YoungestUsers() {
+
+		flushTestUsers();
+
+		User youngest1 = firstUser;
+		User youngest2 = fourthUser;
+
+		assertThat(repository.findFirst2UsersBy(new Sort(ASC, "age")), hasItems(youngest1, youngest2));
+		assertThat(repository.findTop2UsersBy(new Sort(ASC, "age")), hasItems(youngest1, youngest2));
+	}
+
+	/**
+	 * @see DATAJPA-551
+	 */
+	@Test
+	public void find3YoungestUsersPageableWithPageSize2() {
+
+		flushTestUsers();
+
+		User youngest1 = firstUser;
+		User youngest2 = fourthUser;
+		User youngest3 = secondUser;
+
+		Page<User> firstPage = repository.findFirst3UsersBy(new PageRequest(0, 2, ASC, "age"));
+		assertThat(firstPage.getContent(), hasItems(youngest1, youngest2));
+
+		Page<User> secondPage = repository.findFirst3UsersBy(new PageRequest(1, 2, ASC, "age"));
+		assertThat(secondPage.getContent(), hasItems(youngest3));
+	}
+
+	/**
+	 * @see DATAJPA-551
+	 */
+	@Test
+	public void find2YoungestUsersPageableWithPageSize3() {
+
+		flushTestUsers();
+
+		User youngest1 = firstUser;
+		User youngest2 = fourthUser;
+		User youngest3 = secondUser;
+
+		Page<User> firstPage = repository.findFirst2UsersBy(new PageRequest(0, 3, ASC, "age"));
+		assertThat(firstPage.getContent(), hasItems(youngest1, youngest2));
+
+		Page<User> secondPage = repository.findFirst2UsersBy(new PageRequest(1, 3, ASC, "age"));
+		assertThat(secondPage.getContent(), hasItems(youngest3));
+	}
+
+	/**
+	 * @see DATAJPA-551
+	 */
+	@Test
+	public void find3YoungestUsersPageableWithPageSize2Sliced() {
+
+		flushTestUsers();
+
+		User youngest1 = firstUser;
+		User youngest2 = fourthUser;
+		User youngest3 = secondUser;
+
+		Slice<User> firstPage = repository.findTop3UsersBy(new PageRequest(0, 2, ASC, "age"));
+		assertThat(firstPage.getContent(), hasItems(youngest1, youngest2));
+
+		Slice<User> secondPage = repository.findTop3UsersBy(new PageRequest(1, 2, ASC, "age"));
+		assertThat(secondPage.getContent(), hasItems(youngest3));
+	}
+
+	/**
+	 * @see DATAJPA-551
+	 */
+	@Test
+	public void find2YoungestUsersPageableWithPageSize3Sliced() {
+
+		flushTestUsers();
+
+		User youngest1 = firstUser;
+		User youngest2 = fourthUser;
+		User youngest3 = secondUser;
+
+		Slice<User> firstPage = repository.findTop2UsersBy(new PageRequest(0, 3, ASC, "age"));
+		assertThat(firstPage.getContent(), hasItems(youngest1, youngest2));
+
+		Slice<User> secondPage = repository.findTop2UsersBy(new PageRequest(1, 3, ASC, "age"));
+		assertThat(secondPage.getContent(), hasItems(youngest3));
+	}
+
+	/**
+	 * @see DATAJPA-506
+	 */
+	@Test
+	public void invokesQueryWithWrapperType() {
+
+		flushTestUsers();
+
+		Optional<User> result = repository.findOptionalByEmailAddress("gierke@synyx.de");
+
+		assertThat(result.isPresent(), is(true));
+		assertThat(result.get(), is(firstUser));
+	}
+
+	/**
+	 * @see DATAJPA-564
+	 */
+	@Test
+	public void shouldFindUserByFirstnameAndLastnameWithSpelExpressionInStringBasedQuery() {
+
+		flushTestUsers();
+		List<User> users = repository.findByFirstnameAndLastnameWithSpelExpression("Oliver", "ierk");
+
+		assertThat(users, hasSize(1));
+		assertThat(users.get(0), is(firstUser));
+	}
+
+	/**
+	 * @see DATAJPA-564
+	 */
+	@Test
+	public void shouldFindUserByLastnameWithSpelExpressionInStringBasedQuery() {
+
+		flushTestUsers();
+		List<User> users = repository.findByLastnameWithSpelExpression("ierk");
+
+		assertThat(users, hasSize(1));
+		assertThat(users.get(0), is(firstUser));
+	}
+
+	/**
+	 * @see DATAJPA-564
+	 */
+	@Test
+	public void shouldFindBySpELExpressionWithoutArgumentsWithQuestionmark() {
+
+		flushTestUsers();
+		List<User> users = repository.findOliverBySpELExpressionWithoutArgumentsWithQuestionmark();
+
+		assertThat(users, hasSize(1));
+		assertThat(users.get(0), is(firstUser));
+	}
+
+	/**
+	 * @see DATAJPA-564
+	 */
+	@Test
+	public void shouldFindBySpELExpressionWithoutArgumentsWithColon() {
+
+		flushTestUsers();
+		List<User> users = repository.findOliverBySpELExpressionWithoutArgumentsWithColon();
+
+		assertThat(users, hasSize(1));
+		assertThat(users.get(0), is(firstUser));
+	}
+
+	/**
+	 * @see DATAJPA-564
+	 */
+	@Test
+	public void shouldFindUsersByAgeForSpELExpression() {
+
+		flushTestUsers();
+		List<User> users = repository.findUsersByAgeForSpELExpressionByIndexedParameter(35);
+
+		assertThat(users, hasSize(1));
+		assertThat(users.get(0), is(secondUser));
+	}
+
+	/**
+	 * @see DATAJPA-564
+	 */
+	@Test
+	public void shouldfindUsersByFirstnameForSpELExpressionWithParameterNameVariableReference() {
+
+		flushTestUsers();
+		List<User> users = repository.findUsersByFirstnameForSpELExpression("Joachim");
+
+		assertThat(users, hasSize(1));
+		assertThat(users.get(0), is(secondUser));
+	}
+
+	/**
+	 * @see DATAJPA-564
+	 */
+	@Test
+	public void shouldFindCurrentUserWithCustomQueryDependingOnSecurityContext() {
+
+		flushTestUsers();
+
+		SampleSecurityContextHolder.getCurrent().setPrincipal(secondUser);
+		List<User> users = repository.findCurrentUserWithCustomQuery();
+
+		assertThat(users, hasSize(1));
+		assertThat(users.get(0), is(secondUser));
+
+		SampleSecurityContextHolder.getCurrent().setPrincipal(firstUser);
+		users = repository.findCurrentUserWithCustomQuery();
+
+		assertThat(users, hasSize(1));
+		assertThat(users.get(0), is(firstUser));
+	}
+
+	/**
+	 * @see DATAJPA-564
+	 */
+	@Test
+	public void shouldFindByFirstnameAndCurrentUserWithCustomQuery() {
+
+		flushTestUsers();
+
+		SampleSecurityContextHolder.getCurrent().setPrincipal(secondUser);
+		List<User> users = repository.findByFirstnameAndCurrentUserWithCustomQuery("Joachim");
+
+		assertThat(users, hasSize(1));
+		assertThat(users.get(0), is(secondUser));
+	}
+
+	/**
+	 * @see DATAJPA-564
+	 */
+	@Test
+	public void shouldfindUsersByFirstnameForSpELExpressionOnlyWithParameterNameVariableReference() {
+
+		flushTestUsers();
+		List<User> users = repository.findUsersByFirstnameForSpELExpressionWithParameterVariableOnly("Joachim");
+
+		assertThat(users, hasSize(1));
+		assertThat(users.get(0), is(secondUser));
+	}
+
+	/**
+	 * @see DATAJPA-564
+	 */
+	@Test
+	public void shouldfindUsersByFirstnameForSpELExpressionOnlyWithParameterIndexReference() {
+
+		flushTestUsers();
+		List<User> users = repository.findUsersByFirstnameForSpELExpressionWithParameterIndexOnly("Joachim");
+
+		assertThat(users, hasSize(1));
+		assertThat(users.get(0), is(secondUser));
+	}
+
+	/**
+	 * @see DATAJPA-564
+	 */
+	@Test
+	public void shouldFindUsersInNativeQueryWithPagination() {
+
+		flushTestUsers();
+
+		Page<User> users = repository.findUsersInNativeQueryWithPagination(new PageRequest(0, 2));
+
+		assertThat(users.getContent(), hasSize(2));
+		assertThat(users.getContent().get(0), is(firstUser));
+		assertThat(users.getContent().get(1), is(secondUser));
+
+		users = repository.findUsersInNativeQueryWithPagination(new PageRequest(1, 2));
+
+		assertThat(users.getContent(), hasSize(2));
+		assertThat(users.getContent().get(0), is(thirdUser));
+		assertThat(users.getContent().get(1), is(fourthUser));
 	}
 
 	private Page<User> executeSpecWithSort(Sort sort) {

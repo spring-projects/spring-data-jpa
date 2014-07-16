@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,20 +41,14 @@ public class SimpleJpaRepositoryUnitTests {
 
 	SimpleJpaRepository<User, Long> repo;
 
-	@Mock
-	EntityManager em;
-	@Mock
-	CriteriaBuilder builder;
-	@Mock
-	CriteriaQuery<User> criteriaQuery;
-	@Mock
-	CriteriaQuery<Long> countCriteriaQuery;
-	@Mock
-	TypedQuery<User> query;
-	@Mock
-	TypedQuery<Long> countQuery;
-	@Mock
-	JpaEntityInformation<User, Long> information;
+	@Mock EntityManager em;
+	@Mock CriteriaBuilder builder;
+	@Mock CriteriaQuery<User> criteriaQuery;
+	@Mock CriteriaQuery<Long> countCriteriaQuery;
+	@Mock TypedQuery<User> query;
+	@Mock TypedQuery<Long> countQuery;
+	@Mock JpaEntityInformation<User, Long> information;
+	@Mock CrudMethodMetadata metadata;
 
 	@Before
 	public void setUp() {
@@ -69,6 +63,7 @@ public class SimpleJpaRepositoryUnitTests {
 		when(em.createQuery(countCriteriaQuery)).thenReturn(countQuery);
 
 		repo = new SimpleJpaRepository<User, Long>(information, em);
+		repo.setRepositoryMethodMetadata(metadata);
 	}
 
 	/**

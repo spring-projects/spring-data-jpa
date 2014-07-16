@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2013 the original author or authors.
+ * Copyright 2008-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
 import org.springframework.data.jpa.repository.sample.AuditableUserRepository;
 import org.springframework.data.jpa.repository.sample.RoleRepository;
 import org.springframework.data.jpa.repository.sample.UserRepository;
@@ -33,14 +34,11 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 public abstract class AbstractRepositoryConfigTests {
 
-	@Autowired(required = false)
-	UserRepository userRepository;
+	@Autowired(required = false) UserRepository userRepository;
+	@Autowired(required = false) RoleRepository roleRepository;
+	@Autowired(required = false) AuditableUserRepository auditableUserRepository;
 
-	@Autowired(required = false)
-	RoleRepository roleRepository;
-
-	@Autowired(required = false)
-	AuditableUserRepository auditableUserRepository;
+	@Autowired JpaMetamodelMappingContext mappingContext;
 
 	/**
 	 * Asserts that context creation detects 3 repository beans.
@@ -53,11 +51,22 @@ public abstract class AbstractRepositoryConfigTests {
 		assertNotNull(auditableUserRepository);
 	}
 
+	/**
+	 * @see DATAJPA-330
+	 */
 	@Test
 	public void repositoriesHaveExceptionTranslationApplied() {
 
 		JpaRepositoriesRegistrarIntegrationTests.assertExceptionTranslationActive(userRepository);
 		JpaRepositoriesRegistrarIntegrationTests.assertExceptionTranslationActive(roleRepository);
 		JpaRepositoriesRegistrarIntegrationTests.assertExceptionTranslationActive(auditableUserRepository);
+	}
+
+	/**
+	 * @see DATAJPA-???
+	 */
+	@Test
+	public void exposesJpaMappingContext() {
+		assertNotNull(mappingContext);
 	}
 }

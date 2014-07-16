@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,15 @@ package org.springframework.data.jpa.repository.config;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Set;
+
+import javax.persistence.EntityManager;
+import javax.persistence.metamodel.ManagedType;
+import javax.persistence.metamodel.Metamodel;
 
 import org.hamcrest.Matchers;
 import org.junit.Rule;
@@ -32,6 +39,8 @@ import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.annotation.AnnotationConfigUtils;
+import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
+import org.springframework.data.jpa.repository.config.JpaRepositoryConfigExtension.JpaMetamodelMappingContextFactoryBean;
 import org.springframework.data.repository.config.RepositoryConfigurationExtension;
 import org.springframework.data.repository.config.RepositoryConfigurationSource;
 import org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor;
@@ -47,11 +56,9 @@ public class JpaRepositoryConfigExtensionUnitTests {
 	private static final String RIABPP_CLASS_NAME = "org.springframework.data.repository.core.support.RepositoryInterfaceAwareBeanPostProcessor";
 	private static final String PABPP_CLASS_NAME = "org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor";
 
-	@Mock
-	RepositoryConfigurationSource configSource;
+	@Mock RepositoryConfigurationSource configSource;
 
-	@Rule
-	public ExpectedException exception = ExpectedException.none();
+	@Rule public ExpectedException exception = ExpectedException.none();
 
 	@Test
 	public void registersDefaultBeanPostProcessorsByDefault() {
@@ -63,8 +70,8 @@ public class JpaRepositoryConfigExtensionUnitTests {
 
 		Iterable<String> names = Arrays.asList(factory.getBeanDefinitionNames());
 
-		assertThat(names, Matchers.<String> hasItem(startsWith(PABPP_CLASS_NAME)));
-		assertThat(names, Matchers.<String> hasItem(startsWith(RIABPP_CLASS_NAME)));
+		assertThat(names, Matchers.<String> hasItem(Matchers.startsWith(PABPP_CLASS_NAME)));
+		assertThat(names, Matchers.<String> hasItem(Matchers.startsWith(RIABPP_CLASS_NAME)));
 	}
 
 	@Test
@@ -87,6 +94,28 @@ public class JpaRepositoryConfigExtensionUnitTests {
 		factory.registerBeanDefinition(beanName, pabppDefinition);
 
 		assertOnlyOnePersistenceAnnotationBeanPostProcessorRegistered(factory, beanName);
+	}
+
+	/**
+	 * @see DATAJPA-525
+	 */
+	@Test
+	public void guardsAgainstNullJavaTypesReturnedFromJpaMetamodel() throws Exception {
+
+		EntityManager em = mock(EntityManager.class);
+		Metamodel metamodel = mock(Metamodel.class);
+		ManagedType<?> managedType = mock(ManagedType.class);
+
+		Set<ManagedType<?>> managedTypes = Collections.<ManagedType<?>> singleton(managedType);
+
+		when(em.getMetamodel()).thenReturn(metamodel);
+		when(metamodel.getManagedTypes()).thenReturn(managedTypes);
+
+		JpaMetamodelMappingContextFactoryBean factoryBean = new JpaRepositoryConfigExtension.JpaMetamodelMappingContextFactoryBean();
+		factoryBean.setEntityManager(em);
+
+		JpaMetamodelMappingContext context = factoryBean.createInstance();
+		context.afterPropertiesSet();
 	}
 
 	private void assertOnlyOnePersistenceAnnotationBeanPostProcessorRegistered(DefaultListableBeanFactory factory,

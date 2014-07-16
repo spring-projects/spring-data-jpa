@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2012-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,19 +29,18 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.data.jpa.repository.Lock;
-import org.springframework.data.jpa.repository.support.LockModeRepositoryPostProcessor.LockModePopulatingMethodIntercceptor;
+import org.springframework.data.jpa.repository.support.CrudMethodMetadataPostProcessor.CrudMethodMetadataPopulatingMethodIntercceptor;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 /**
- * Unit tests for {@link LockModePopulatingMethodIntercceptor}.
+ * Unit tests for {@link CrudMethodMetadataPopulatingMethodIntercceptor}.
  * 
  * @author Oliver Gierke
  */
 @RunWith(MockitoJUnitRunner.class)
-public class LockModePopulatingMethodInterceptorUnitTests {
+public class CrudMethodMetadataPopulatingMethodInterceptorUnitTests {
 
-	@Mock
-	MethodInvocation invocation;
+	@Mock MethodInvocation invocation;
 
 	/**
 	 * @see DATAJPA-268
@@ -52,7 +51,7 @@ public class LockModePopulatingMethodInterceptorUnitTests {
 		Method method = Sample.class.getMethod("someMethod");
 		when(invocation.getMethod()).thenReturn(method);
 
-		LockModePopulatingMethodIntercceptor interceptor = LockModePopulatingMethodIntercceptor.INSTANCE;
+		CrudMethodMetadataPopulatingMethodIntercceptor interceptor = CrudMethodMetadataPopulatingMethodIntercceptor.INSTANCE;
 		interceptor.invoke(invocation);
 
 		assertThat(TransactionSynchronizationManager.getResource(method), is(nullValue()));

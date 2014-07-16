@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2013 the original author or authors.
+ * Copyright 2008-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,13 +21,17 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.persistence.NoResultException;
+import javax.persistence.Parameter;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.ParameterExpression;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
@@ -64,7 +68,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	private final EntityManager em;
 	private final PersistenceProvider provider;
 
-	private LockMetadataProvider lockMetadataProvider;
+	private CrudMethodMetadata crudMethodMetadata;
 
 	/**
 	 * Creates a new {@link SimpleJpaRepository} to manage objects of the given {@link JpaEntityInformation}.
@@ -93,13 +97,13 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	}
 
 	/**
-	 * Configures a custom {@link LockMetadataProvider} to be used to detect {@link LockModeType}s to be applied to
-	 * queries.
+	 * Configures a custom {@link CrudMethodMetadata} to be used to detect {@link LockModeType}s and query hints to be
+	 * applied to queries.
 	 * 
-	 * @param lockMetadataProvider
+	 * @param crudMethodMetadata
 	 */
-	public void setLockMetadataProvider(LockMetadataProvider lockMetadataProvider) {
-		this.lockMetadataProvider = lockMetadataProvider;
+	public void setRepositoryMethodMetadata(CrudMethodMetadata crudMethodMetadata) {
+		this.crudMethodMetadata = crudMethodMetadata;
 	}
 
 	protected Class<T> getDomainClass() {
@@ -206,10 +210,16 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 
 		Assert.notNull(id, "The given id must not be null!");
 
-		LockModeType type = lockMetadataProvider == null ? null : lockMetadataProvider.getLockModeType();
 		Class<T> domainType = getDomainClass();
 
-		return type == null ? em.find(domainType, id) : em.find(domainType, id, type);
+		if (crudMethodMetadata == null) {
+			return em.find(domainType, id);
+		}
+
+		LockModeType type = crudMethodMetadata.getLockModeType();
+		Map<String, Object> hints = crudMethodMetadata.getQueryHints();
+
+		return type == null ? em.find(domainType, id, hints) : em.find(domainType, id, type, hints);
 	}
 
 	/* 
@@ -231,27 +241,39 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 
 		Assert.notNull(id, "The given id must not be null!");
 
-		if (entityInformation.getIdAttribute() != null) {
-
-			String placeholder = provider.getCountQueryPlaceholder();
-			String entityName = entityInformation.getEntityName();
-			Iterable<String> idAttributeNames = entityInformation.getIdAttributeNames();
-			String existsQuery = QueryUtils.getExistsQueryString(entityName, placeholder, idAttributeNames);
-
-			TypedQuery<Long> query = em.createQuery(existsQuery, Long.class);
-
-			if (entityInformation.hasCompositeId()) {
-				for (String idAttributeName : idAttributeNames) {
-					query.setParameter(idAttributeName, entityInformation.getCompositeIdAttributeValue(id, idAttributeName));
-				}
-			} else {
-				query.setParameter(idAttributeNames.iterator().next(), id);
-			}
-
-			return query.getSingleResult() == 1L;
-		} else {
+		if (entityInformation.getIdAttribute() == null) {
 			return findOne(id) != null;
 		}
+
+		String placeholder = provider.getCountQueryPlaceholder();
+		String entityName = entityInformation.getEntityName();
+		Iterable<String> idAttributeNames = entityInformation.getIdAttributeNames();
+		String existsQuery = QueryUtils.getExistsQueryString(entityName, placeholder, idAttributeNames);
+
+		TypedQuery<Long> query = em.createQuery(existsQuery, Long.class);
+
+		if (!entityInformation.hasCompositeId()) {
+			query.setParameter(idAttributeNames.iterator().next(), id);
+			return query.getSingleResult() == 1L;
+		}
+
+		for (String idAttributeName : idAttributeNames) {
+
+			Object idAttributeValue = entityInformation.getCompositeIdAttributeValue(id, idAttributeName);
+
+			boolean complexIdParameterValueDiscovered = idAttributeValue != null
+					&& !query.getParameter(idAttributeName).getParameterType().isAssignableFrom(idAttributeValue.getClass());
+
+			if (complexIdParameterValueDiscovered) {
+
+				// fall-back to findOne(id) which does the proper mapping for the parameter.
+				return findOne(id) != null;
+			}
+
+			query.setParameter(idAttributeName, idAttributeValue);
+		}
+
+		return query.getSingleResult() == 1L;
 	}
 
 	/*
@@ -272,12 +294,10 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 			return Collections.emptyList();
 		}
 
-		return getQuery(new Specification<T>() {
-			public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
-				Path<?> path = root.get(entityInformation.getIdAttribute());
-				return path.in(cb.parameter(Iterable.class, "ids"));
-			}
-		}, (Sort) null).setParameter("ids", ids).getResultList();
+		ByIdsSpecification specification = new ByIdsSpecification();
+		TypedQuery<T> query = getQuery(specification, (Sort) null);
+
+		return query.setParameter(specification.parameter, ids).getResultList();
 	}
 
 	/*
@@ -378,9 +398,9 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	 * @see org.springframework.data.jpa.repository.JpaRepository#saveAndFlush(java.lang.Object)
 	 */
 	@Transactional
-	public T saveAndFlush(T entity) {
+	public <S extends T> S saveAndFlush(S entity) {
 
-		T result = save(entity);
+		S result = save(entity);
 		flush();
 
 		return result;
@@ -468,7 +488,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 			query.orderBy(toOrders(sort, root, builder));
 		}
 
-		return applyLockMode(em.createQuery(query));
+		return applyRepositoryMethodMetadata(em.createQuery(query));
 	}
 
 	/**
@@ -519,9 +539,44 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 		return root;
 	}
 
-	private TypedQuery<T> applyLockMode(TypedQuery<T> query) {
+	private TypedQuery<T> applyRepositoryMethodMetadata(TypedQuery<T> query) {
 
-		LockModeType type = lockMetadataProvider == null ? null : lockMetadataProvider.getLockModeType();
-		return type == null ? query : query.setLockMode(type);
+		if (crudMethodMetadata == null) {
+			return query;
+		}
+
+		LockModeType type = crudMethodMetadata.getLockModeType();
+		TypedQuery<T> toReturn = type == null ? query : query.setLockMode(type);
+
+		for (Entry<String, Object> hint : crudMethodMetadata.getQueryHints().entrySet()) {
+			query.setHint(hint.getKey(), hint.getValue());
+		}
+
+		return toReturn;
+	}
+
+	/**
+	 * Specification that gives access to the {@link Parameter} instance used to bind the ids for
+	 * {@link SimpleJpaRepository#findAll(Iterable)}. Workaround for OpenJPA not binding collections to in-clauses
+	 * correctly when using by-name binding.
+	 * 
+	 * @see https://issues.apache.org/jira/browse/OPENJPA-2018?focusedCommentId=13924055
+	 * @author Oliver Gierke
+	 */
+	@SuppressWarnings("rawtypes")
+	private final class ByIdsSpecification implements Specification<T> {
+
+		ParameterExpression<Iterable> parameter;
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.jpa.domain.Specification#toPredicate(javax.persistence.criteria.Root, javax.persistence.criteria.CriteriaQuery, javax.persistence.criteria.CriteriaBuilder)
+		 */
+		public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+
+			Path<?> path = root.get(entityInformation.getIdAttribute());
+			parameter = cb.parameter(Iterable.class);
+			return path.in(parameter);
+		}
 	}
 }

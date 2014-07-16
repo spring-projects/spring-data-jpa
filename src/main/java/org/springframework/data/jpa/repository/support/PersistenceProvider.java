@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2013 the original author or authors.
+ * Copyright 2008-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,9 @@ package org.springframework.data.jpa.repository.support;
 
 import static org.springframework.data.jpa.repository.utils.JpaClassUtils.*;
 
+import java.util.Arrays;
+import java.util.List;
+
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 
@@ -27,16 +30,22 @@ import org.springframework.data.jpa.repository.query.QueryExtractor;
 import org.springframework.util.Assert;
 
 /**
- * Enumeration representing peristence providers to be used.
+ * Enumeration representing persistence providers to be used.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 public enum PersistenceProvider implements QueryExtractor {
 
 	/**
 	 * Hibernate persistence provider.
+	 * <p>
+	 * Since Hibernate 4.3 the location of the HibernateEntityManager moved to the org.hibernate.jpa package. In order to
+	 * support both locations we interpret both classnames as a Hibernate {@code PersistenceProvider}.
+	 * 
+	 * @see DATAJPA-444
 	 */
-	HIBERNATE("org.hibernate.ejb.HibernateEntityManager") {
+	HIBERNATE(Constants.HIBERNATE43_ENTITY_MANAGER_INTERFACE, Constants.HIBERNATE_ENTITY_MANAGER_INTERFACE) {
 
 		public String extractQueryString(Query query) {
 
@@ -60,7 +69,7 @@ public enum PersistenceProvider implements QueryExtractor {
 	/**
 	 * EclipseLink persistence provider.
 	 */
-	ECLIPSELINK("org.eclipse.persistence.jpa.JpaEntityManager") {
+	ECLIPSELINK(Constants.ECLIPSELINK_ENTITY_MANAGER_INTERFACE) {
 
 		public String extractQueryString(Query query) {
 
@@ -72,7 +81,7 @@ public enum PersistenceProvider implements QueryExtractor {
 	/**
 	 * OpenJpa persistence provider.
 	 */
-	OPEN_JPA("org.apache.openjpa.persistence.OpenJPAEntityManager") {
+	OPEN_JPA(Constants.OPENJPA_ENTITY_MANAGER_INTERFACE) {
 
 		public String extractQueryString(Query query) {
 
@@ -83,7 +92,7 @@ public enum PersistenceProvider implements QueryExtractor {
 	/**
 	 * Unknown special provider. Use standard JPA.
 	 */
-	GENERIC_JPA("javax.persistence.EntityManager") {
+	GENERIC_JPA(Constants.GENERIC_JPA_ENTITY_MANAGER_INTERFACE) {
 
 		public String extractQueryString(Query query) {
 
@@ -97,16 +106,33 @@ public enum PersistenceProvider implements QueryExtractor {
 		}
 	};
 
-	private String entityManagerClassName;
+	/**
+	 * Holds the PersistenceProvider specific interface names.
+	 * 
+	 * @author Thomas Darimont
+	 */
+	static interface Constants {
+
+		String GENERIC_JPA_ENTITY_MANAGER_INTERFACE = "javax.persistence.EntityManager";
+		String OPENJPA_ENTITY_MANAGER_INTERFACE = "org.apache.openjpa.persistence.OpenJPAEntityManager";
+		String ECLIPSELINK_ENTITY_MANAGER_INTERFACE = "org.eclipse.persistence.jpa.JpaEntityManager";
+		String HIBERNATE_ENTITY_MANAGER_INTERFACE = "org.hibernate.ejb.HibernateEntityManager";
+		String HIBERNATE43_ENTITY_MANAGER_INTERFACE = "org.hibernate.jpa.HibernateEntityManager";
+	}
+
+	private List<String> entityManagerClassNames;
 
 	/**
 	 * Creates a new {@link PersistenceProvider}.
 	 * 
-	 * @param entityManagerClassName the name of the provider specific {@link EntityManager} implementation
+	 * @param entityManagerClassNames the names of the provider specific {@link EntityManager} implementations. Must not
+	 *          be {@literal null} or empty.
 	 */
-	private PersistenceProvider(String entityManagerClassName) {
+	private PersistenceProvider(String... entityManagerClassNames) {
 
-		this.entityManagerClassName = entityManagerClassName;
+		Assert.notEmpty(entityManagerClassNames, "EntityManagerClassNames must not be empty!");
+
+		this.entityManagerClassNames = Arrays.asList(entityManagerClassNames);
 	}
 
 	/**
@@ -121,8 +147,11 @@ public enum PersistenceProvider implements QueryExtractor {
 		Assert.notNull(em);
 
 		for (PersistenceProvider provider : values()) {
-			if (isEntityManagerOfType(em, provider.entityManagerClassName)) {
-				return provider;
+			for (String entityManagerClassName : provider.entityManagerClassNames) {
+
+				if (isEntityManagerOfType(em, entityManagerClassName)) {
+					return provider;
+				}
 			}
 		}
 

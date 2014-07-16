@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,10 +32,11 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  * Reusable config class for testing pure java based Spring configuration.
  * 
  * @author Thomas Darimont
+ * @author Oliver Gierke
  */
 @Configuration
 @EnableTransactionManagement
-class InfrastructureConfig {
+public class InfrastructureConfig {
 
 	@Bean
 	public DataSource dataSource() {
@@ -61,6 +62,7 @@ class InfrastructureConfig {
 	public LocalContainerEntityManagerFactoryBean entityManagerFactory() {
 
 		LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
+		em.setPersistenceUnitName("spring-data-jpa");
 		em.setDataSource(dataSource());
 		em.setJpaVendorAdapter(jpaVendorAdapter());
 		em.setPackagesToScan("purejavaconfig");
