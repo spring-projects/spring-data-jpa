@@ -507,7 +507,7 @@ public class UserRepositoryTests {
 
 		Page<User> users = repository.findAll(spec, new PageRequest(0, 1));
 		assertThat(users.getSize(), is(1));
-		assertThat(users.hasPreviousPage(), is(false));
+		assertThat(users.hasPrevious(), is(false));
 		assertThat(users.getTotalElements(), is(2L));
 	}
 
