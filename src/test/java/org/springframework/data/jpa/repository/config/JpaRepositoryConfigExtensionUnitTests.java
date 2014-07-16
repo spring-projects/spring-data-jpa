@@ -23,7 +23,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Set;
 
-import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import javax.persistence.metamodel.ManagedType;
 import javax.persistence.metamodel.Metamodel;
 
@@ -38,9 +38,8 @@ import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.support.RootBeanDefinition;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigUtils;
-import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
-import org.springframework.data.jpa.repository.config.JpaRepositoryConfigExtension.JpaMetamodelMappingContextFactoryBean;
 import org.springframework.data.repository.config.RepositoryConfigurationExtension;
 import org.springframework.data.repository.config.RepositoryConfigurationSource;
 import org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor;
@@ -102,20 +101,21 @@ public class JpaRepositoryConfigExtensionUnitTests {
 	@Test
 	public void guardsAgainstNullJavaTypesReturnedFromJpaMetamodel() throws Exception {
 
-		EntityManager em = mock(EntityManager.class);
+		ApplicationContext context = mock(ApplicationContext.class);
+		EntityManagerFactory emf = mock(EntityManagerFactory.class);
 		Metamodel metamodel = mock(Metamodel.class);
 		ManagedType<?> managedType = mock(ManagedType.class);
 
 		Set<ManagedType<?>> managedTypes = Collections.<ManagedType<?>> singleton(managedType);
 
-		when(em.getMetamodel()).thenReturn(metamodel);
+		when(context.getBeansOfType(EntityManagerFactory.class)).thenReturn(Collections.singletonMap("emf", emf));
+		when(emf.getMetamodel()).thenReturn(metamodel);
 		when(metamodel.getManagedTypes()).thenReturn(managedTypes);
 
-		JpaMetamodelMappingContextFactoryBean factoryBean = new JpaRepositoryConfigExtension.JpaMetamodelMappingContextFactoryBean();
-		factoryBean.setEntityManager(em);
+		JpaMetamodelMappingContextFactoryBean factoryBean = new JpaMetamodelMappingContextFactoryBean();
+		factoryBean.setApplicationContext(context);
 
-		JpaMetamodelMappingContext context = factoryBean.createInstance();
-		context.afterPropertiesSet();
+		factoryBean.createInstance().afterPropertiesSet();
 	}
 
 	private void assertOnlyOnePersistenceAnnotationBeanPostProcessorRegistered(DefaultListableBeanFactory factory,

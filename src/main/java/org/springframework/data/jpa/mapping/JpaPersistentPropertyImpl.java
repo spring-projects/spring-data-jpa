@@ -38,6 +38,7 @@ import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.PersistentEntity;
 import org.springframework.data.mapping.model.AnnotationBasedPersistentProperty;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
+import org.springframework.util.Assert;
 
 /**
  * {@link JpaPersistentProperty} implementation usind a JPA {@link Metamodel}.
@@ -84,6 +85,9 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 			PersistentEntity<?, JpaPersistentProperty> owner, SimpleTypeHolder simpleTypeHolder) {
 
 		super(field, propertyDescriptor, owner, simpleTypeHolder);
+
+		Assert.notNull(metamodel, "Metamodel must not be null!");
+
 		this.metamodel = metamodel;
 	}
 

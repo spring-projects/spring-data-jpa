@@ -17,7 +17,10 @@ package org.springframework.data.jpa.mapping;
 
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
+import java.util.Collections;
+import java.util.Set;
 
+import javax.persistence.metamodel.ManagedType;
 import javax.persistence.metamodel.Metamodel;
 
 import org.springframework.data.mapping.context.AbstractMappingContext;
@@ -35,17 +38,22 @@ import org.springframework.util.Assert;
 public class JpaMetamodelMappingContext extends
 		AbstractMappingContext<JpaPersistentEntityImpl<?>, JpaPersistentProperty> {
 
-	private final Metamodel model;
+	private final Set<Metamodel> models;
 
 	/**
 	 * Creates a new JPA {@link Metamodel} based {@link MappingContext}.
 	 * 
-	 * @param model must not be {@literal null}.
+	 * @param models must not be {@literal null} or empty.
 	 */
-	public JpaMetamodelMappingContext(Metamodel model) {
+	public JpaMetamodelMappingContext(Set<Metamodel> models) {
 
-		Assert.notNull(model, "JPA Metamodel must not be null!");
-		this.model = model;
+		Assert.notNull(models, "JPA metamodel must not be null!");
+		Assert.notEmpty(models, "At least one JPA metamodel must be present!");
+		this.models = models;
+	}
+
+	public JpaMetamodelMappingContext(Metamodel model) {
+		this(Collections.singleton(model));
 	}
 
 	/* 
@@ -64,7 +72,9 @@ public class JpaMetamodelMappingContext extends
 	@Override
 	protected JpaPersistentProperty createPersistentProperty(Field field, PropertyDescriptor descriptor,
 			JpaPersistentEntityImpl<?> owner, SimpleTypeHolder simpleTypeHolder) {
-		return new JpaPersistentPropertyImpl(model, field, descriptor, owner, simpleTypeHolder);
+
+		Metamodel metamodel = getMetamodelFor(owner.getType());
+		return new JpaPersistentPropertyImpl(metamodel, field, descriptor, owner, simpleTypeHolder);
 	}
 
 	/* 
@@ -73,12 +83,35 @@ public class JpaMetamodelMappingContext extends
 	 */
 	@Override
 	protected boolean shouldCreatePersistentEntityFor(TypeInformation<?> type) {
+		return getMetamodelFor(type.getType()) != null;
+	}
 
-		try {
-			model.managedType(type.getType());
-			return true;
-		} catch (IllegalArgumentException o_O) {
-			return false;
+	/**
+	 * Returns the {@link Metamodel} aware of the given type.
+	 * 
+	 * @param type
+	 * @return
+	 */
+	private Metamodel getMetamodelFor(Class<?> type) {
+
+		for (Metamodel model : models) {
+
+			try {
+				model.managedType(type);
+				return model;
+			} catch (IllegalArgumentException o_O) {
+
+				// Fall back to inspect *all* managed types manually as Metamodel.managedType(…) only
+				// returns for entities, embeddables and managed supperclasses.
+
+				for (ManagedType<?> managedType : model.getManagedTypes()) {
+					if (type.equals(managedType.getJavaType())) {
+						return model;
+					}
+				}
+			}
 		}
+
+		return null;
 	}
 }
