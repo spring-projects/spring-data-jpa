@@ -28,11 +28,13 @@ import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 
+import org.hibernate.ejb.HibernateEntityManager;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.data.jpa.domain.sample.QRole;
 import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.repository.sample.RoleRepository;
 import org.springframework.data.jpa.repository.support.JpaEntityInformation;
@@ -50,7 +52,8 @@ public class CrudMethodMetadataIntegrationTests {
 	@Mock CriteriaBuilder builder;
 	@Mock CriteriaQuery<Role> criteriaQuery;
 	@Mock JpaEntityInformation<Role, Integer> information;
-	@Mock TypedQuery<Role> query;
+	@Mock TypedQuery<Role> typedQuery;
+	@Mock javax.persistence.Query query;
 
 	RoleRepository repository;
 
@@ -78,13 +81,13 @@ public class CrudMethodMetadataIntegrationTests {
 
 		when(em.getCriteriaBuilder()).thenReturn(builder);
 		when(builder.createQuery(Role.class)).thenReturn(criteriaQuery);
-		when(em.createQuery(criteriaQuery)).thenReturn(query);
-		when(query.setLockMode(any(LockModeType.class))).thenReturn(query);
+		when(em.createQuery(criteriaQuery)).thenReturn(typedQuery);
+		when(typedQuery.setLockMode(any(LockModeType.class))).thenReturn(typedQuery);
 
 		repository.findAll();
 
-		verify(query).setLockMode(LockModeType.READ);
-		verify(query).setHint("foo", "bar");
+		verify(typedQuery).setLockMode(LockModeType.READ);
+		verify(typedQuery).setHint("foo", "bar");
 	}
 
 	/**
@@ -99,5 +102,20 @@ public class CrudMethodMetadataIntegrationTests {
 		LockModeType expectedLockModeType = LockModeType.READ;
 
 		verify(em).find(Role.class, 1, expectedLockModeType, expectedLinks);
+	}
+
+	/**
+	 * @see DATAJPA-574
+	 */
+	@Test
+	public void appliesLockModeAndQueryHintsToQuerydslQuery() {
+
+		when(em.getDelegate()).thenReturn(mock(HibernateEntityManager.class));
+		when(em.createQuery(anyString())).thenReturn(query);
+
+		repository.findOne(QRole.role.name.eq("role"));
+
+		verify(query).setLockMode(LockModeType.READ);
+		verify(query).setHint("foo", "bar");
 	}
 }

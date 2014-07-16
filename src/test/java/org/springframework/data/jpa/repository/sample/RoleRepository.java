@@ -21,7 +21,10 @@ import javax.persistence.QueryHint;
 import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.QueryHints;
+import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 import org.springframework.data.repository.CrudRepository;
+
+import com.mysema.query.types.Predicate;
 
 /**
  * Typing interface for {@code Role}.
@@ -29,7 +32,7 @@ import org.springframework.data.repository.CrudRepository;
  * @author Oliver Gierke
  * @author Thomas Darimont
  */
-public interface RoleRepository extends CrudRepository<Role, Integer> {
+public interface RoleRepository extends CrudRepository<Role, Integer>, QueryDslPredicateExecutor<Role> {
 
 	/* 
 	 * (non-Javadoc)
@@ -46,6 +49,15 @@ public interface RoleRepository extends CrudRepository<Role, Integer> {
 	@Lock(LockModeType.READ)
 	@QueryHints(@QueryHint(name = "foo", value = "bar"))
 	Role findOne(Integer id);
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.querydsl.QueryDslPredicateExecutor#findOne(com.mysema.query.types.Predicate)
+	 */
+	@Override
+	@Lock(LockModeType.READ)
+	@QueryHints(@QueryHint(name = "foo", value = "bar"))
+	Role findOne(Predicate predicate);
 
 	/**
 	 * @see DATAJPA-509

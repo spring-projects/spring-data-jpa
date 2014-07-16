@@ -30,6 +30,7 @@ import com.mysema.query.jpa.EclipseLinkTemplates;
 import com.mysema.query.jpa.HQLTemplates;
 import com.mysema.query.jpa.JPQLQuery;
 import com.mysema.query.jpa.OpenJPATemplates;
+import com.mysema.query.jpa.impl.AbstractJPAQuery;
 import com.mysema.query.jpa.impl.JPAQuery;
 import com.mysema.query.support.Expressions;
 import com.mysema.query.types.EntityPath;
@@ -72,7 +73,7 @@ public class Querydsl {
 	 * 
 	 * @return
 	 */
-	public JPQLQuery createQuery() {
+	public AbstractJPAQuery<JPAQuery> createQuery() {
 
 		switch (provider) {
 			case ECLIPSELINK:
@@ -92,7 +93,7 @@ public class Querydsl {
 	 * 
 	 * @return
 	 */
-	public JPQLQuery createQuery(EntityPath<?>... paths) {
+	public AbstractJPAQuery<JPAQuery> createQuery(EntityPath<?>... paths) {
 		return createQuery().from(paths);
 	}
 

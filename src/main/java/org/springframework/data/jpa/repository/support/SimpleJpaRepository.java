@@ -106,6 +106,10 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 		this.crudMethodMetadata = crudMethodMetadata;
 	}
 
+	protected CrudMethodMetadata getRepositoryMethodMetadata() {
+		return crudMethodMetadata;
+	}
+
 	protected Class<T> getDomainClass() {
 		return entityInformation.getJavaType();
 	}

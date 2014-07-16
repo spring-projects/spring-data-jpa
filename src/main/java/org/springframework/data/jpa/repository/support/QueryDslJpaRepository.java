@@ -18,8 +18,10 @@ package org.springframework.data.jpa.repository.support;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map.Entry;
 
 import javax.persistence.EntityManager;
+import javax.persistence.LockModeType;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -30,6 +32,7 @@ import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 import org.springframework.data.querydsl.SimpleEntityPathResolver;
 
 import com.mysema.query.jpa.JPQLQuery;
+import com.mysema.query.jpa.impl.JPAQuery;
 import com.mysema.query.types.EntityPath;
 import com.mysema.query.types.OrderSpecifier;
 import com.mysema.query.types.Predicate;
@@ -136,6 +139,21 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 	 * @return the Querydsl {@link JPQLQuery}.
 	 */
 	protected JPQLQuery createQuery(Predicate... predicate) {
-		return querydsl.createQuery(path).where(predicate);
+
+		JPAQuery query = querydsl.createQuery(path).where(predicate);
+		CrudMethodMetadata metadata = getRepositoryMethodMetadata();
+
+		if (metadata == null) {
+			return query;
+		}
+
+		LockModeType type = metadata.getLockModeType();
+		query = type == null ? query : query.setLockMode(type);
+
+		for (Entry<String, Object> hint : metadata.getQueryHints().entrySet()) {
+			query.setHint(hint.getKey(), hint.getValue());
+		}
+
+		return query;
 	}
 }
