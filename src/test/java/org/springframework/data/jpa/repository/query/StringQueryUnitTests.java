@@ -182,6 +182,9 @@ public class StringQueryUnitTests {
 		new StringQuery("select u from User u where u.firstname like %:firstname or foo like :bar");
 	}
 
+	/**
+	 * @see DATAJPA-292, DATAJPA-362
+	 */
 	@Test(expected = IllegalArgumentException.class)
 	public void rejectsDifferentBindingsForRepeatedParameter() {
 		new StringQuery("select u from User u where u.firstname like %?1 and u.lastname like ?1%");
@@ -300,6 +303,14 @@ public class StringQueryUnitTests {
 
 		assertThat(bindings, hasSize(1));
 		assertNamedBinding(InParameterBinding.class, "ab1babc생일233", bindings.get(0));
+	}
+
+	/**
+	 * @see DATAJPA-362
+	 */
+	@Test(expected = IllegalArgumentException.class)
+	public void rejectsDifferentBindingsForRepeatedParameter2() {
+		new StringQuery("select u from User u where u.firstname like ?1 and u.lastname like %?1");
 	}
 
 	private void assertPositionalBinding(Class<? extends ParameterBinding> bindingType, Integer position,
