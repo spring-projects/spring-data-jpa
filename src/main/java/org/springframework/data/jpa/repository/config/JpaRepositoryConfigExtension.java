@@ -17,6 +17,13 @@ package org.springframework.data.jpa.repository.config;
 
 import static org.springframework.data.jpa.repository.config.BeanDefinitionNames.*;
 
+import java.lang.annotation.Annotation;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Locale;
+
+import javax.persistence.Entity;
+import javax.persistence.MappedSuperclass;
 import javax.persistence.PersistenceContext;
 import javax.persistence.PersistenceUnit;
 
@@ -53,6 +60,15 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 
 	/* 
 	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.config.RepositoryConfigurationExtensionSupport#getModuleName()
+	 */
+	@Override
+	public String getModuleName() {
+		return "JPA";
+	}
+
+	/* 
+	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.config14.RepositoryConfigurationExtension#getRepositoryInterface()
 	 */
 	public String getRepositoryFactoryClassName() {
@@ -65,7 +81,17 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 	 */
 	@Override
 	protected String getModulePrefix() {
-		return "jpa";
+		return getModuleName().toLowerCase(Locale.US);
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.config.RepositoryConfigurationExtensionSupport#getIdentifyingAnnotations()
+	 */
+	@Override
+	@SuppressWarnings("unchecked")
+	protected Collection<Class<? extends Annotation>> getIdentifyingAnnotations() {
+		return Arrays.asList(Entity.class, MappedSuperclass.class);
 	}
 
 	/* 
