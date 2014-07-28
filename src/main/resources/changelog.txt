@@ -1,6 +1,15 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 1.6.2.RELEASE (2014-07-28)
+---------------------------------------------
+* DATAJPA-578 - Release 1.6.2.
+* DATAJPA-572 - Remove links to forum.spring.io.
+* DATAJPA-568 - Cannot update the new inserted entity which has @Version.
+* DATAJPA-567 - OptimisticLock does not work anymore.
+* DATAJPA-362 - Parameter used in % LIKE expression is changed for whole query.
+
+
 Changes in version 1.7.0.M1 (2014-07-10)
 ----------------------------------------
 * DATAJPA-572 - Remove links to forum.spring.io.
