@@ -44,7 +44,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery, QueryAugmenta
 	private final JpaQueryMethod method;
 	private final EntityManager em;
 
-	private QueryAugmentationEngine augmentationEngine;
+	private QueryAugmentationEngine augmentationEngine = QueryAugmentationEngine.NONE;
 
 	/**
 	 * Creates a new {@link AbstractJpaQuery} from the given {@link JpaQueryMethod}.

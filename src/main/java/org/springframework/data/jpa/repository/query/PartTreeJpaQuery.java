@@ -192,8 +192,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 
 			QueryAugmentationEngine engine = getAugmentationEngine();
 
-			if (engine != null
-					&& engine.augmentationNeeded(JpaCriteriaQueryContext.class, mode, getQueryMethod().getEntityInformation())) {
+			if (engine.augmentationNeeded(JpaCriteriaQueryContext.class, mode, getQueryMethod().getEntityInformation())) {
 				JpaCriteriaQueryContext<T, T> context = new JpaCriteriaQueryContext<T, T>(mode, getEntityManager(), query, null);
 				return engine.invokeAugmentors(context).getQuery();
 			} else {
