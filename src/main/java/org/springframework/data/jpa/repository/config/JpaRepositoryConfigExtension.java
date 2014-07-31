@@ -20,6 +20,7 @@ import static org.springframework.data.jpa.repository.config.BeanDefinitionNames
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Locale;
 
 import javax.persistence.Entity;
@@ -34,6 +35,7 @@ import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.annotation.AnnotationConfigUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.support.EntityManagerBeanDefinitionRegistrarPostProcessor;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean;
 import org.springframework.data.repository.config.RepositoryConfigurationExtensionSupport;
@@ -92,6 +94,15 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 	@SuppressWarnings("unchecked")
 	protected Collection<Class<? extends Annotation>> getIdentifyingAnnotations() {
 		return Arrays.asList(Entity.class, MappedSuperclass.class);
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.config.RepositoryConfigurationExtensionSupport#getIdentifyingTypes()
+	 */
+	@Override
+	protected Collection<Class<?>> getIdentifyingTypes() {
+		return Collections.<Class<?>> singleton(JpaRepository.class);
 	}
 
 	/* 
