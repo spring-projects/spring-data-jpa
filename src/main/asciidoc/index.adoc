@@ -1,0 +1,28 @@
+= Spring Data JPA - Reference Documentation
+Oliver Gierke; Thomas Darimont; Christoph Strobl
+{version}
+:toc:
+:spring-data-commons-docs: https://raw.githubusercontent.com/spring-projects/spring-data-commons/master/src/main/asciidoc
+:spring-framework-docs: http://docs.spring.io/spring-framework/docs/current/spring-framework-reference/html
+
+NOTE: Copies of this document may be made for your own use and for distribution to others, provided that you do not charge any fee for such copies and further provided that each copy contains this Copyright Notice, whether distributed in print or electronically.
+
+include::preface.adoc[]
+
+[[reference]]
+= Reference Documentation
+:leveloffset: 1
+include::{spring-data-commons-docs}/repositories.adoc[]
+include::jpa.adoc[]
+:leveloffset: 0
+
+[[appendix]]
+= Appendix
+:numbered!:
+:leveloffset: 1
+include::{spring-data-commons-docs}/repository-namespace-reference.adoc[]
+include::{spring-data-commons-docs}/repository-populator-namespace-reference.adoc[]
+include::{spring-data-commons-docs}/repository-query-keywords-reference.adoc[]
+include::faq.adoc[]
+include::glossary.adoc[]
+:leveloffset: 0

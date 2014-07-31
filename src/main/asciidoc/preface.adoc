@@ -1,0 +1,13 @@
+[[preface]]
+[preface]
+= Preface
+
+[[project]]
+== Project metadata
+
+[options="compact"]
+- Version control - link:$$git://github.com/spring-projects/spring-data-jpa.git$$[git://github.com/spring-projects/spring-data-jpa.git]
+- Bugtracker - link:$$https://jira.springsource.org/browse/DATAJPA$$[https://jira.springsource.org/browse/DATAJPA]
+- Release repository - link:$$http://repo.spring.io/libs-release$$[http://repo.spring.io/libs-release]
+- Milestone repository - link:$$http://repo.spring.io/libs-milestone$$[http://repo.spring.io/libs-milestone]
+- Snapshot repository - link:$$http://repo.spring.io/libs-snapshot$$[http://repo.spring.io/libs-snapshot]
