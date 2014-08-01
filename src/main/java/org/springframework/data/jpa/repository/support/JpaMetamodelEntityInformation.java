@@ -200,11 +200,7 @@ public class JpaMetamodelEntityInformation<T, ID extends Serializable> extends J
 		BeanWrapper wrapper = new DirectFieldAccessFallbackBeanWrapper(entity);
 		Object versionValue = wrapper.getPropertyValue(versionAttribute.getName());
 
-		if (versionValue == null) {
-			return true;
-		}
-
-		return ((Number) versionValue).longValue() == 0;
+		return versionValue == null;
 	}
 
 	/**

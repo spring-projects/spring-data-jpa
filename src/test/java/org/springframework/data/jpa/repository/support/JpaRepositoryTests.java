@@ -28,8 +28,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.data.jpa.domain.sample.SampleEntity;
 import org.springframework.data.jpa.domain.sample.SampleEntityPK;
-import org.springframework.data.jpa.domain.sample.SampleWithIdClass;
-import org.springframework.data.jpa.domain.sample.SampleWithIdClassPK;
+import org.springframework.data.jpa.domain.sample.PersistableWithIdClass;
+import org.springframework.data.jpa.domain.sample.PersistableWithIdClassPK;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.test.context.ContextConfiguration;
@@ -50,7 +50,7 @@ public class JpaRepositoryTests {
 	@PersistenceContext EntityManager em;
 
 	JpaRepository<SampleEntity, SampleEntityPK> repository;
-	CrudRepository<SampleWithIdClass, SampleWithIdClassPK> idClassRepository;
+	CrudRepository<PersistableWithIdClass, PersistableWithIdClassPK> idClassRepository;
 
 	@Before
 	public void setUp() {
@@ -79,13 +79,13 @@ public class JpaRepositoryTests {
 	@Test
 	public void executesCrudOperationsForEntityWithIdClass() {
 
-		SampleWithIdClass entity = new SampleWithIdClass(1L, 1L);
+		PersistableWithIdClass entity = new PersistableWithIdClass(1L, 1L);
 		idClassRepository.save(entity);
 
 		assertThat(entity.getFirst(), is(notNullValue()));
 		assertThat(entity.getSecond(), is(notNullValue()));
 
-		SampleWithIdClassPK id = new SampleWithIdClassPK(entity.getFirst(), entity.getSecond());
+		PersistableWithIdClassPK id = new PersistableWithIdClassPK(entity.getFirst(), entity.getSecond());
 
 		assertThat(idClassRepository.findOne(id), is(entity));
 	}
@@ -96,12 +96,12 @@ public class JpaRepositoryTests {
 	@Test
 	public void testExistsForDomainObjectsWithCompositeKeys() throws Exception {
 
-		SampleWithIdClass s1 = idClassRepository.save(new SampleWithIdClass(1L, 1L));
-		SampleWithIdClass s2 = idClassRepository.save(new SampleWithIdClass(2L, 2L));
+		PersistableWithIdClass s1 = idClassRepository.save(new PersistableWithIdClass(1L, 1L));
+		PersistableWithIdClass s2 = idClassRepository.save(new PersistableWithIdClass(2L, 2L));
 
 		assertThat(idClassRepository.exists(s1.getId()), is(true));
 		assertThat(idClassRepository.exists(s2.getId()), is(true));
-		assertThat(idClassRepository.exists(new SampleWithIdClassPK(1L, 2L)), is(false));
+		assertThat(idClassRepository.exists(new PersistableWithIdClassPK(1L, 2L)), is(false));
 	}
 
 	/**
@@ -110,13 +110,13 @@ public class JpaRepositoryTests {
 	@Test
 	public void executesExistsForEntityWithIdClass() {
 
-		SampleWithIdClass entity = new SampleWithIdClass(1L, 1L);
+		PersistableWithIdClass entity = new PersistableWithIdClass(1L, 1L);
 		idClassRepository.save(entity);
 
 		assertThat(entity.getFirst(), is(notNullValue()));
 		assertThat(entity.getSecond(), is(notNullValue()));
 
-		SampleWithIdClassPK id = new SampleWithIdClassPK(entity.getFirst(), entity.getSecond());
+		PersistableWithIdClassPK id = new PersistableWithIdClassPK(entity.getFirst(), entity.getSecond());
 
 		assertThat(idClassRepository.exists(id), is(true));
 	}
@@ -125,7 +125,7 @@ public class JpaRepositoryTests {
 
 	}
 
-	private static interface SampleWithIdClassRepository extends CrudRepository<SampleWithIdClass, SampleWithIdClassPK> {
+	private static interface SampleWithIdClassRepository extends CrudRepository<PersistableWithIdClass, PersistableWithIdClassPK> {
 
 	}
 }

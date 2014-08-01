@@ -23,18 +23,18 @@ import java.io.Serializable;
  * 
  * @author Oliver Gierke
  */
-public class SampleWithIdClassPK implements Serializable {
+public class PersistableWithIdClassPK implements Serializable {
 
 	private static final long serialVersionUID = 23126782341L;
 
 	private Long first;
 	private Long second;
 
-	public SampleWithIdClassPK() {
+	public PersistableWithIdClassPK() {
 
 	}
 
-	public SampleWithIdClassPK(Long first, Long second) {
+	public PersistableWithIdClassPK(Long first, Long second) {
 		this.first = first;
 		this.second = second;
 	}
@@ -62,7 +62,7 @@ public class SampleWithIdClassPK implements Serializable {
 			return false;
 		}
 
-		SampleWithIdClassPK that = (SampleWithIdClassPK) obj;
+		PersistableWithIdClassPK that = (PersistableWithIdClassPK) obj;
 
 		return nullSafeEquals(this.first, that.first) && nullSafeEquals(this.second, that.second);
 	}
