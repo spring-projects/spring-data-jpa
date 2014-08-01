@@ -56,6 +56,14 @@ public class EclipseLinkJpaMetamodelEntityInformationIntegrationTests extends
 	@Ignore
 	public void detectsNewStateForEntityWithPrimitiveId() {}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests#considersEntityWithUnSetCompundIdNew()
+	 */
+	@Override
+	@Ignore
+	public void considersEntityWithUnsetCompundIdNew() {}
+
 	@Override
 	protected String getMetadadataPersitenceUnitName() {
 		return "metadata_el";

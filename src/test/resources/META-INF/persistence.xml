@@ -11,6 +11,7 @@
         <class>org.springframework.data.jpa.domain.sample.AuditableRole</class>
 		<class>org.springframework.data.jpa.domain.sample.Parent</class>
 		<class>org.springframework.data.jpa.domain.sample.PrimitiveVersionProperty</class>
+		<class>org.springframework.data.jpa.domain.sample.PersistableWithIdClass</class>
 		<class>org.springframework.data.jpa.domain.sample.Child</class>
 		<class>org.springframework.data.jpa.domain.sample.Role</class>
 		<class>org.springframework.data.jpa.domain.sample.SpecialUser</class>
@@ -19,6 +20,7 @@
 		<class>org.springframework.data.jpa.domain.sample.SampleEntityPK</class>
 		<class>org.springframework.data.jpa.domain.sample.SampleWithIdClass</class>
 		<class>org.springframework.data.jpa.domain.sample.SampleWithPrimitiveId</class>
+		<class>org.springframework.data.jpa.domain.sample.SampleWithTimestampVersion</class>
 		<class>org.springframework.data.jpa.domain.sample.VersionedUser</class>
 		<class>org.springframework.data.jpa.domain.sample.AbstractMappedType</class>
 		<class>org.springframework.data.jpa.domain.sample.ConcreteType1</class>

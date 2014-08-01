@@ -19,6 +19,8 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 import java.io.Serializable;
+import java.sql.Timestamp;
+import java.util.Date;
 
 import javax.persistence.Access;
 import javax.persistence.AccessType;
@@ -36,11 +38,14 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.data.jpa.domain.AbstractPersistable;
+import org.springframework.data.jpa.domain.sample.PersistableWithIdClass;
+import org.springframework.data.jpa.domain.sample.PersistableWithIdClassPK;
 import org.springframework.data.jpa.domain.sample.PrimitiveVersionProperty;
 import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.domain.sample.SampleWithIdClass;
-import org.springframework.data.jpa.domain.sample.SampleWithIdClassPK;
+import org.springframework.data.jpa.domain.sample.SampleWithIdClass.SampleWithIdClassPK;
 import org.springframework.data.jpa.domain.sample.SampleWithPrimitiveId;
+import org.springframework.data.jpa.domain.sample.SampleWithTimestampVersion;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.domain.sample.VersionedUser;
 import org.springframework.data.repository.core.EntityInformation;
@@ -88,9 +93,9 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 	@Test
 	public void detectsIdClass() {
 
-		EntityInformation<SampleWithIdClass, ?> information = JpaEntityInformationSupport.getMetadata(
-				SampleWithIdClass.class, em);
-		assertThat(information.getIdType(), is(typeCompatibleWith(SampleWithIdClassPK.class)));
+		EntityInformation<PersistableWithIdClass, ?> information = JpaEntityInformationSupport.getMetadata(
+				PersistableWithIdClass.class, em);
+		assertThat(information.getIdType(), is(typeCompatibleWith(PersistableWithIdClassPK.class)));
 	}
 
 	/**
@@ -99,14 +104,14 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 	@Test
 	public void returnsIdInstanceCorrectly() {
 
-		SampleWithIdClass entity = new SampleWithIdClass(2L, 4L);
+		PersistableWithIdClass entity = new PersistableWithIdClass(2L, 4L);
 
-		JpaEntityInformation<SampleWithIdClass, ?> information = JpaEntityInformationSupport.getMetadata(
-				SampleWithIdClass.class, em);
+		JpaEntityInformation<PersistableWithIdClass, ?> information = JpaEntityInformationSupport.getMetadata(
+				PersistableWithIdClass.class, em);
 		Object id = information.getId(entity);
 
-		assertThat(id, is(instanceOf(SampleWithIdClassPK.class)));
-		assertThat(id, is((Object) new SampleWithIdClassPK(2L, 4L)));
+		assertThat(id, is(instanceOf(PersistableWithIdClassPK.class)));
+		assertThat(id, is((Object) new PersistableWithIdClassPK(2L, 4L)));
 	}
 
 	/**
@@ -216,6 +221,51 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 		assertThat(information.isNew(pvp), is(false));
 	}
 
+	/**
+	 * @see DATAJPA-582
+	 */
+	@Test
+	public void considersEntityWithUnsetCompundIdNew() {
+
+		EntityInformation<SampleWithIdClass, SampleWithIdClassPK> information = new JpaMetamodelEntityInformation<SampleWithIdClass, SampleWithIdClassPK>(
+				SampleWithIdClass.class, em.getMetamodel());
+
+		assertThat(information.isNew(new SampleWithIdClass()), is(true));
+	}
+
+	/**
+	 * @see DATAJPA-582
+	 */
+	@Test
+	public void considersEntityWithSetTimestampVersionNotNew() {
+
+		EntityInformation<SampleWithTimestampVersion, Long> information = getEntityInformation(SampleWithTimestampVersion.class);
+
+		SampleWithTimestampVersion entity = new SampleWithTimestampVersion();
+		entity.version = new Timestamp(new Date().getTime());
+
+		assertThat(information.isNew(entity), is(false));
+	}
+
+	/**
+	 * @see DATAJPA-582, DATAJPA-581
+	 */
+	@Test
+	public void considersEntityWithNonPrimitiveNonNullIdTypeNotNew() {
+
+		EntityInformation<User, Long> information = getEntityInformation(User.class);
+
+		User user = new User();
+		assertThat(information.isNew(user), is(true));
+
+		user.setId(0);
+		assertThat(information.isNew(user), is(false));
+	}
+
+	private <T, ID extends Serializable> EntityInformation<T, ID> getEntityInformation(Class<T> domainType) {
+		return new JpaMetamodelEntityInformation<T, ID>(domainType, em.getMetamodel());
+	}
+
 	protected String getMetadadataPersitenceUnitName() {
 		return "metadata";
 	}
@@ -241,5 +291,4 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 	public static class Sample extends Identifiable {
 
 	}
-
 }
