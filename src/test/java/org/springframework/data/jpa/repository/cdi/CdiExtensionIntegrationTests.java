@@ -18,10 +18,9 @@ package org.springframework.data.jpa.repository.cdi;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
-import java.util.Set;
-
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.spi.Bean;
+import java.util.Set;
 
 import org.apache.webbeans.cditest.CdiTestContainer;
 import org.apache.webbeans.cditest.CdiTestContainerLoader;
@@ -29,12 +28,14 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.jpa.domain.sample.User;
 
 /**
  * Integration tests for Spring Data JPA CDI extension.
  * 
  * @author Dirk Mahler
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 public class CdiExtensionIntegrationTests {
 
@@ -72,5 +73,16 @@ public class CdiExtensionIntegrationTests {
 		Person person = new Person();
 		repositoryConsumer.save(person);
 		repositoryConsumer.findAll();
+	}
+
+	/**
+	 * @see DATAJPA-583
+	 */
+	@Test
+	public void customImpl() {
+
+		RepositoryConsumer repositoryConsumer = container.getInstance(RepositoryConsumer.class);
+
+		assertEquals(42, repositoryConsumer.getCustomMethod());
 	}
 }

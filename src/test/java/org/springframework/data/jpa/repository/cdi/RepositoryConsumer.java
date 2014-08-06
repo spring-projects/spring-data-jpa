@@ -36,4 +36,9 @@ class RepositoryConsumer {
 		unqualifiedRepo.save(person);
 		qualifiedRepo.save(person);
 	}
+
+
+	public int getCustomMethod() {
+		return unqualifiedRepo.getCustomMethod();
+	}
 }
