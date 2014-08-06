@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,15 +20,29 @@ import javax.enterprise.inject.Produces;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 
+/**
+ * @author Oliver Gierke
+ * @author Mark Paluch
+ */
 class QualifiedEntityManagerProducer {
 
 	@Produces
 	@PersonDB
-	public EntityManager createEntityManager(EntityManagerFactory entityManagerFactory) {
+	public EntityManager createPersonDBEntityManager(EntityManagerFactory entityManagerFactory) {
 		return entityManagerFactory.createEntityManager();
 	}
 
-	public void close(@Disposes @PersonDB EntityManager entityManager) {
+	public void closePersonDB(@Disposes @PersonDB EntityManager entityManager) {
+		entityManager.close();
+	}
+
+	@Produces
+	@UserDB
+	public EntityManager createUserDBEntityManager(EntityManagerFactory entityManagerFactory) {
+		return entityManagerFactory.createEntityManager();
+	}
+
+	public void closeUserDB(@Disposes @UserDB EntityManager entityManager) {
 		entityManager.close();
 	}
 }

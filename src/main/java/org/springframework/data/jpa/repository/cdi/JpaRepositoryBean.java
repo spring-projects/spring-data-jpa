@@ -32,6 +32,7 @@ import org.springframework.util.Assert;
  * 
  * @author Dirk Mahler
  * @author Oliver Gierke
+ * @author Mark Paluch
  * @param <T> The type of the repository.
  */
 class JpaRepositoryBean<T> extends CdiRepositoryBean<T> {
@@ -45,27 +46,29 @@ class JpaRepositoryBean<T> extends CdiRepositoryBean<T> {
 	 * @param entityManagerBean must not be {@literal null}.
 	 * @param qualifiers must not be {@literal null}.
 	 * @param repositoryType must not be {@literal null}.
+	 * @param customImplementationBean can be {@literal null}.
 	 */
 	JpaRepositoryBean(BeanManager beanManager, Bean<EntityManager> entityManagerBean, Set<Annotation> qualifiers,
-			Class<T> repositoryType) {
+			Class<T> repositoryType, Bean<?> customImplementationBean) {
 
-		super(qualifiers, repositoryType, beanManager);
+		super(qualifiers, repositoryType, beanManager, customImplementationBean);
 
 		Assert.notNull(entityManagerBean);
 		this.entityManagerBean = entityManagerBean;
 	}
 
-	/*
+	/* 
 	 * (non-Javadoc)
-	 * @see javax.enterprise.context.spi.Contextual#create(javax.enterprise .context.spi.CreationalContext)
+	 * @see org.springframework.data.repository.cdi.CdiRepositoryBean#create(javax.enterprise.context.spi.CreationalContext, java.lang.Class, java.lang.Object)
 	 */
 	@Override
-	public T create(CreationalContext<T> creationalContext, Class<T> repositoryType) {
+	public T create(CreationalContext<T> creationalContext, Class<T> repositoryType, Object customImplementation) {
 
 		// Get an instance from the associated entity manager bean.
 		EntityManager entityManager = getDependencyInstance(entityManagerBean, EntityManager.class);
+
 		// Create the JPA repository instance and return it.
 		JpaRepositoryFactory factory = new JpaRepositoryFactory(entityManager);
-		return factory.getRepository(repositoryType);
+		return factory.getRepository(repositoryType, customImplementation);
 	}
 }
