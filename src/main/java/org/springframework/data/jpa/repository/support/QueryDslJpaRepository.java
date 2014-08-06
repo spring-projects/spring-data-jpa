@@ -30,6 +30,9 @@ import org.springframework.data.querydsl.EntityPathResolver;
 import org.springframework.data.querydsl.QSort;
 import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 import org.springframework.data.querydsl.SimpleEntityPathResolver;
+import org.springframework.data.repository.augment.QueryAugmentationEngine;
+import org.springframework.data.repository.augment.QueryContext.QueryMode;
+import org.springframework.data.repository.core.EntityInformation;
 
 import com.mysema.query.jpa.JPQLQuery;
 import com.mysema.query.jpa.impl.JPAQuery;
@@ -52,6 +55,7 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 	private final EntityPath<T> path;
 	private final PathBuilder<T> builder;
 	private final Querydsl querydsl;
+	private final EntityInformation<T, ID> entityInformation;
 
 	/**
 	 * Creates a new {@link QueryDslJpaRepository} from the given domain class and {@link EntityManager}. This will use
@@ -77,6 +81,7 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 
 		super(entityInformation, entityManager);
 
+		this.entityInformation = entityInformation;
 		this.path = resolver.createPath(entityInformation.getJavaType());
 		this.builder = new PathBuilder<T>(path.getType(), path.getMetadata());
 		this.querydsl = new Querydsl(entityManager, builder);
@@ -145,6 +150,15 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 
 		if (metadata == null) {
 			return query;
+		}
+
+		QueryAugmentationEngine engine = getAugmentationEngine();
+
+		if (engine.augmentationNeeded(QueryDslJpaQueryContext.class, QueryMode.FIND, entityInformation)) {
+
+			QueryDslJpaQueryContext<T> context = new QueryDslJpaQueryContext<T>(query, path, builder, QueryMode.FIND);
+			context = engine.invokeAugmentors(context);
+			query = context.getQuery();
 		}
 
 		LockModeType type = metadata.getLockModeType();

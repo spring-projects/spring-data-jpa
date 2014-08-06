@@ -5,7 +5,7 @@
 
 	<groupId>org.springframework.data</groupId>
 	<artifactId>spring-data-jpa</artifactId>
-	<version>1.7.0.BUILD-SNAPSHOT</version>
+	<version>1.7.0.DATAJPA-307-SNAPSHOT</version>
 
 	<name>Spring Data JPA</name>
 	<description>Spring Data module for JPA repositories.</description>
@@ -23,11 +23,11 @@
 		<dist.key>DATAJPA</dist.key>
 
 		<eclipselink>2.5.1</eclipselink>
-		<hibernate>3.6.10.Final</hibernate>
+		<hibernate>4.1.12.Final</hibernate>
 		<hsqldb1>1.8.0.10</hsqldb1>
 		<jpa>2.0.0</jpa>
 		<openjpa>2.3.0</openjpa>
-		<springdata.commons>1.9.0.BUILD-SNAPSHOT</springdata.commons>
+		<springdata.commons>1.9.0.DATACMNS-293-SNAPSHOT</springdata.commons>
 
 		<sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
 
@@ -119,7 +119,6 @@
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-aspects</artifactId>
-			<scope>compile</scope>
 			<optional>true</optional>
 		</dependency>
 
@@ -129,7 +128,15 @@
 			<version>2.2.8</version>
 			<scope>test</scope>
 		</dependency>
-
+		
+		<!-- Do not upgrade to 173 as this drops support for indexes on BLOBs (which OpenJPA apparently turns -->
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<version>1.3.172</version>
+			<scope>test</scope>
+		</dependency>
+		
 		<dependency>
 			<groupId>joda-time</groupId>
 			<artifactId>joda-time</artifactId>
@@ -158,20 +165,8 @@
 			<artifactId>openjpa-persistence-jdbc</artifactId>
 			<version>${openjpa}</version>
 			<optional>true</optional>
-			<exclusions>
-				<exclusion>
-					<groupId>commons-logging</groupId>
-					<artifactId>commons-logging</artifactId>
-				</exclusion>
-				<!-- Transitive dependency pulls in JUnit 3.8.1 -->
-				<!-- http://sourceforge.net/tracker/?func=detail&aid=2572567&group_id=31479&atid=402282 -->
-				<exclusion>
-					<groupId>junit</groupId>
-					<artifactId>junit</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
-
+		
 		<!-- QueryDsl -->
 		<dependency>
 			<groupId>com.mysema.querydsl</groupId>
