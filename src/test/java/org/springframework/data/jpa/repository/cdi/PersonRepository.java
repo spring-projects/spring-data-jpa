@@ -20,7 +20,7 @@ import java.util.List;
 import org.springframework.data.repository.cdi.Eager;
 
 @Eager
-public interface PersonRepository extends PersonRepositoryCustom{
+public interface PersonRepository {
 
 	List<Person> findAll();
 

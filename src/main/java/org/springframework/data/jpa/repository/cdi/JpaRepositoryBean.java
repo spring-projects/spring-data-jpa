@@ -15,12 +15,13 @@
  */
 package org.springframework.data.jpa.repository.cdi;
 
+import java.lang.annotation.Annotation;
+import java.util.Set;
+
 import javax.enterprise.context.spi.CreationalContext;
 import javax.enterprise.inject.spi.Bean;
 import javax.enterprise.inject.spi.BeanManager;
 import javax.persistence.EntityManager;
-import java.lang.annotation.Annotation;
-import java.util.Set;
 
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactory;
 import org.springframework.data.repository.cdi.CdiRepositoryBean;
@@ -28,49 +29,30 @@ import org.springframework.util.Assert;
 
 /**
  * A bean which represents a JPA repository.
- *
+ * 
  * @author Dirk Mahler
  * @author Oliver Gierke
- * @author Mark Paluch
  * @param <T> The type of the repository.
  */
 class JpaRepositoryBean<T> extends CdiRepositoryBean<T> {
 
 	private final Bean<EntityManager> entityManagerBean;
-	private final Object customImplementation;
 
 	/**
 	 * Constructs a {@link JpaRepositoryBean}.
-	 *
+	 * 
 	 * @param beanManager must not be {@literal null}.
 	 * @param entityManagerBean must not be {@literal null}.
 	 * @param qualifiers must not be {@literal null}.
 	 * @param repositoryType must not be {@literal null}.
 	 */
 	JpaRepositoryBean(BeanManager beanManager, Bean<EntityManager> entityManagerBean, Set<Annotation> qualifiers,
-					  Class<T> repositoryType) {
-
-		this(beanManager, entityManagerBean, qualifiers, repositoryType, null);
-	}
-
-
-	/**
-	 * Constructs a {@link JpaRepositoryBean} together with its custom repository implementation.
-	 *
-	 * @param beanManager must not be {@literal null}.
-	 * @param entityManagerBean must not be {@literal null}.
-	 * @param qualifiers must not be {@literal null}.
-	 * @param repositoryType must not be {@literal null}.
-	 * @param customImplementation can be {@literal null}.
-	 */
-	JpaRepositoryBean(BeanManager beanManager, Bean<EntityManager> entityManagerBean, Set<Annotation> qualifiers,
-					  Class<T> repositoryType, Object customImplementation) {
+			Class<T> repositoryType) {
 
 		super(qualifiers, repositoryType, beanManager);
 
 		Assert.notNull(entityManagerBean);
 		this.entityManagerBean = entityManagerBean;
-		this.customImplementation = customImplementation;
 	}
 
 	/*
@@ -84,6 +66,6 @@ class JpaRepositoryBean<T> extends CdiRepositoryBean<T> {
 		EntityManager entityManager = getDependencyInstance(entityManagerBean, EntityManager.class);
 		// Create the JPA repository instance and return it.
 		JpaRepositoryFactory factory = new JpaRepositoryFactory(entityManager);
-		return factory.getRepository(repositoryType, customImplementation);
+		return factory.getRepository(repositoryType);
 	}
 }
