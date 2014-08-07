@@ -18,10 +18,9 @@ package org.springframework.data.jpa.repository.cdi;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
-import java.util.Set;
-
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.spi.Bean;
+import java.util.Set;
 
 import org.apache.webbeans.cditest.CdiTestContainer;
 import org.apache.webbeans.cditest.CdiTestContainerLoader;
@@ -35,6 +34,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Dirk Mahler
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 public class CdiExtensionIntegrationTests {
 
@@ -72,5 +72,27 @@ public class CdiExtensionIntegrationTests {
 		Person person = new Person();
 		repositoryConsumer.save(person);
 		repositoryConsumer.findAll();
+	}
+
+	/**
+	 * @see DATACMNS-557
+	 */
+	@Test
+	public void returnOneFromCustomImpl() {
+
+		RepositoryConsumer repositoryConsumer = container.getInstance(RepositoryConsumer.class);
+
+		assertThat(repositoryConsumer.returnOne(), is(1));
+	}
+
+	/**
+	 * @see DATACMNS-557
+	 */
+	@Test
+	public void useQualifiedCustomizedUserRepo() {
+
+		RepositoryConsumer repositoryConsumer = container.getInstance(RepositoryConsumer.class);
+
+		repositoryConsumer.doSomethonOnUserDB();
 	}
 }
