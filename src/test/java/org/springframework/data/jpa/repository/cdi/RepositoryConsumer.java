@@ -27,6 +27,13 @@ class RepositoryConsumer {
 	@PersonDB
 	private PersonRepository qualifiedRepo;
 
+	@Inject
+	private SamplePersonRepository samplePersonRepository;
+
+	@UserDB
+	@Inject
+	private QualifiedCustomizedUserRepository qualifiedCustomizedUserRepository;
+
 	public void findAll() {
 		unqualifiedRepo.findAll();
 		qualifiedRepo.findAll();
@@ -35,5 +42,13 @@ class RepositoryConsumer {
 	public void save(Person person) {
 		unqualifiedRepo.save(person);
 		qualifiedRepo.save(person);
+	}
+
+	public int returnOne() {
+		return samplePersonRepository.returnOne();
+	}
+
+	public void doSomethonOnUserDB() {
+		qualifiedCustomizedUserRepository.doSomething();
 	}
 }

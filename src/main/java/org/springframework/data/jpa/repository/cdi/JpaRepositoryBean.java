@@ -15,13 +15,12 @@
  */
 package org.springframework.data.jpa.repository.cdi;
 
-import java.lang.annotation.Annotation;
-import java.util.Set;
-
 import javax.enterprise.context.spi.CreationalContext;
 import javax.enterprise.inject.spi.Bean;
 import javax.enterprise.inject.spi.BeanManager;
 import javax.persistence.EntityManager;
+import java.lang.annotation.Annotation;
+import java.util.Set;
 
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactory;
 import org.springframework.data.repository.cdi.CdiRepositoryBean;
@@ -32,6 +31,7 @@ import org.springframework.util.Assert;
  * 
  * @author Dirk Mahler
  * @author Oliver Gierke
+ * @author Mark Paluch
  * @param <T> The type of the repository.
  */
 class JpaRepositoryBean<T> extends CdiRepositoryBean<T> {
@@ -45,11 +45,12 @@ class JpaRepositoryBean<T> extends CdiRepositoryBean<T> {
 	 * @param entityManagerBean must not be {@literal null}.
 	 * @param qualifiers must not be {@literal null}.
 	 * @param repositoryType must not be {@literal null}.
+	 * @param customImplementation can be {@literal null}.
 	 */
 	JpaRepositoryBean(BeanManager beanManager, Bean<EntityManager> entityManagerBean, Set<Annotation> qualifiers,
-			Class<T> repositoryType) {
+			Class<T> repositoryType, Object customImplementation) {
 
-		super(qualifiers, repositoryType, beanManager);
+		super(qualifiers, repositoryType, beanManager,customImplementation);
 
 		Assert.notNull(entityManagerBean);
 		this.entityManagerBean = entityManagerBean;
@@ -60,12 +61,12 @@ class JpaRepositoryBean<T> extends CdiRepositoryBean<T> {
 	 * @see javax.enterprise.context.spi.Contextual#create(javax.enterprise .context.spi.CreationalContext)
 	 */
 	@Override
-	public T create(CreationalContext<T> creationalContext, Class<T> repositoryType) {
+	public T create(CreationalContext<T> creationalContext, Class<T> repositoryType, Object customImplementation) {
 
 		// Get an instance from the associated entity manager bean.
 		EntityManager entityManager = getDependencyInstance(entityManagerBean, EntityManager.class);
 		// Create the JPA repository instance and return it.
 		JpaRepositoryFactory factory = new JpaRepositoryFactory(entityManager);
-		return factory.getRepository(repositoryType);
+		return factory.getRepository(repositoryType, customImplementation);
 	}
 }

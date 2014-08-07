@@ -24,11 +24,22 @@ class QualifiedEntityManagerProducer {
 
 	@Produces
 	@PersonDB
-	public EntityManager createEntityManager(EntityManagerFactory entityManagerFactory) {
+	public EntityManager createPersonDBEntityManager(EntityManagerFactory entityManagerFactory) {
 		return entityManagerFactory.createEntityManager();
 	}
 
-	public void close(@Disposes @PersonDB EntityManager entityManager) {
+	public void closePersonDB(@Disposes @PersonDB EntityManager entityManager) {
 		entityManager.close();
 	}
+
+	@Produces
+	@UserDB
+	public EntityManager createUserDBEntityManager(EntityManagerFactory entityManagerFactory) {
+		return entityManagerFactory.createEntityManager();
+	}
+
+	public void closeUserDB(@Disposes @UserDB EntityManager entityManager) {
+		entityManager.close();
+	}
+
 }
