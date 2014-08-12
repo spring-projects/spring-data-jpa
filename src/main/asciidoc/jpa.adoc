@@ -135,7 +135,7 @@ public interface UserRepository extends Repository<User, Long> {
   List<User> findByEmailAddressAndLastname(String emailAddress, String lastname);
 }
 ----
-We will create a query using the JPA criteria API from this but essentially this translates into the following query: `select u from User u where u.emailAddress = ?1 and u.lastname = ?2`. Spring Data JPA will do a property check and traverse nested properties as described in . Here's an overview of the keywords supported for JPA and what a method containing that keyword essentially translates to.
+We will create a query using the JPA criteria API from this but essentially this translates into the following query: `select u from User u where u.emailAddress = ?1 and u.lastname = ?2`. Spring Data JPA will do a property check and traverse nested properties as described in <<repositories.query-methods.query-property-expressions>>. Here's an overview of the keywords supported for JPA and what a method containing that keyword essentially translates to.
 ====
 
 .Supported keywords inside method names
