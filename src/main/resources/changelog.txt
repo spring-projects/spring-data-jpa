@@ -1,6 +1,20 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 1.7.0.RC1 (2014-08-13)
+-----------------------------------------
+* DATAJPA-587 - Release 1.7 RC1.
+* DATAJPA-584 - Add support for custom implementations in CDI.
+* DATAJPA-582 - JpaMetamodelEntityInformation.isNew(…) throws ClassCastException for @Version of type Calendar.
+* DATAJPA-581 - Can no longer call save() with a @Version'ed detached entity in 1.6.2.
+* DATAJPA-580 - Move to Asciidoctor for reference documentation.
+* DATAJPA-579 - Adapt to new multi-store configuration detection.
+* DATAJPA-576 - Improve JpaMappingContext setup in configuration.
+* DATAJPA-575 - Adapt to deprecation removals in Spring Data Commons.
+* DATAJPA-574 - Support @QueryHints in implementation of QueryDslPredicateExecutor.
+* DATAJPA-362 - Parameter used in % LIKE expression is changed for whole query.
+
+
 Changes in version 1.6.2.RELEASE (2014-07-28)
 ---------------------------------------------
 * DATAJPA-578 - Release 1.6.2.
