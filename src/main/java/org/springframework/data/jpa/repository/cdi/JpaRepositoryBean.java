@@ -25,6 +25,7 @@ import javax.persistence.EntityManager;
 
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactory;
 import org.springframework.data.repository.cdi.CdiRepositoryBean;
+import org.springframework.data.repository.config.CustomRepositoryImplementationDetector;
 import org.springframework.util.Assert;
 
 /**
@@ -46,12 +47,12 @@ class JpaRepositoryBean<T> extends CdiRepositoryBean<T> {
 	 * @param entityManagerBean must not be {@literal null}.
 	 * @param qualifiers must not be {@literal null}.
 	 * @param repositoryType must not be {@literal null}.
-	 * @param customImplementationBean can be {@literal null}.
+	 * @param detector can be {@literal null}.
 	 */
 	JpaRepositoryBean(BeanManager beanManager, Bean<EntityManager> entityManagerBean, Set<Annotation> qualifiers,
-			Class<T> repositoryType, Bean<?> customImplementationBean) {
+			Class<T> repositoryType, CustomRepositoryImplementationDetector detector) {
 
-		super(qualifiers, repositoryType, beanManager, customImplementationBean);
+		super(qualifiers, repositoryType, beanManager, detector);
 
 		Assert.notNull(entityManagerBean);
 		this.entityManagerBean = entityManagerBean;
