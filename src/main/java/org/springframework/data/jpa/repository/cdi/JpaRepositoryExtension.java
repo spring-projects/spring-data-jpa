@@ -119,10 +119,8 @@ public class JpaRepositoryExtension extends CdiRepositoryExtensionSupport {
 					EntityManager.class.getName(), qualifiers));
 		}
 
-		Bean<?> customImplementationBean = getCustomImplementationBean(repositoryType, beanManager, qualifiers);
-
 		// Construct and return the repository bean.
 		return new JpaRepositoryBean<T>(beanManager, entityManagerBean, qualifiers, repositoryType,
-				customImplementationBean);
+				getCustomImplementationDetector());
 	}
 }
