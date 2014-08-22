@@ -43,3 +43,4 @@ Currently I have implemented a repository layer based on `HibernateDaoSupport`. 
 [qanda]
 I want to use Spring Data JPA auditing capabilities but have my database already set up to set modification and creation date on entities. How to prevent Spring Data from setting the date programmatically.::
   Just use the `set-dates` attribute of the `auditing` namespace element to false.
+
