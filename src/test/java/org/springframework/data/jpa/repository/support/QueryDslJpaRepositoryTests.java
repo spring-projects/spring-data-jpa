@@ -15,14 +15,17 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
 
 import java.util.List;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
+import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -308,5 +311,21 @@ public class QueryDslJpaRepositoryTests {
 
 		assertThat(users, hasSize(3));
 		assertThat(users, hasItems(dave, oliver, carter));
+	}
+	
+	/**
+	 * @DATAJPA-566
+	 */
+	@Test
+	public void shouldSupportSortByOperatorWithDateExpressions() {
+		
+		carter.setDateOfBirth(new LocalDate(2000, 2, 1).toDate());
+		dave.setDateOfBirth(new LocalDate(2000, 1, 1).toDate());
+		oliver.setDateOfBirth(new LocalDate(2003, 5, 1).toDate());
+		
+		List<User> users = repository.findAll(QUser.user.id.goe(0), QUser.user.dateOfBirth.yearMonth().asc());
+		
+		assertThat(users, hasSize(3));
+		assertThat(users, hasItems(dave, carter, oliver));
 	}
 }

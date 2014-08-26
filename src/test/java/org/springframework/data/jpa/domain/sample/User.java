@@ -84,6 +84,8 @@ public class User {
 	@Lob private byte[] binaryData;
 
 	@ElementCollection private Set<String> attributes;
+	
+	@Temporal(TemporalType.DATE) private Date dateOfBirth;
 
 	/**
 	 * Creates a new empty instance of {@code User}.
@@ -364,6 +366,14 @@ public class User {
 	 */
 	public void setAttributes(Set<String> attributes) {
 		this.attributes = attributes;
+	}
+	
+	public Date getDateOfBirth() {
+		return dateOfBirth;
+	}
+
+	public void setDateOfBirth(Date dateOfBirth) {
+		this.dateOfBirth = dateOfBirth;
 	}
 
 	/*
