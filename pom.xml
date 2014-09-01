@@ -329,7 +329,7 @@
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>aspectj-maven-plugin</artifactId>
-				<version>1.3</version>
+				<version>1.6</version>
 				<dependencies>
 					<dependency>
 						<groupId>org.aspectj</groupId>
@@ -360,8 +360,10 @@
 					<includes>
 						<include>**/domain/support/AuditingEntityListener.java</include>
 					</includes>
+					<complianceLevel>${source.level}</complianceLevel>
 					<source>${source.level}</source>
 					<target>${source.level}</target>
+					<xmlConfigured>aop.xml</xmlConfigured>
 				</configuration>
 			</plugin>
 
