@@ -33,6 +33,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Transient;
 import javax.persistence.metamodel.Metamodel;
+import javax.persistence.Version;
 
 import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.PersistentEntity;
@@ -105,6 +106,15 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 		}
 
 		return false;
+	}
+	
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.mapping.model.AnnotationBasedPersistentProperty#isVersionProperty()
+	 */
+	@Override
+	public boolean isVersionProperty() {
+		return isAnnotationPresent(Version.class);
 	}
 
 	/* 
