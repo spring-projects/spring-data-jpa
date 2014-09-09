@@ -22,6 +22,7 @@ import javax.persistence.Embeddable;
 import javax.persistence.Embedded;
 import javax.persistence.OneToOne;
 import javax.persistence.Transient;
+import javax.persistence.Version;
 import javax.persistence.metamodel.Metamodel;
 
 import org.junit.Before;
@@ -29,6 +30,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
 
 /**
  * Unit tests for {@link JpaPersistentPropertyImpl}.
@@ -92,12 +94,21 @@ public class JpaPersistentPropertyImplUnitTests {
 		assertThat(entity.getPersistentProperty("embedded").isAssociation(), is(true));
 	}
 
+    /**
+     * @see DATAJPA-605
+     */
+    @Test
+    public void considerJpaVersionPropertyAnVersion(){
+        assertTrue(entity.getPersistentProperty("version").isVersionProperty());
+    }
+
 	static class Sample {
 
 		@OneToOne Sample other;
 		@Transient String transientProp;
 		SampleEmbeddable embeddable;
 		@Embedded SampleEmbedded embedded;
+        @Version long version;
 	}
 
 	@Embeddable
