@@ -1,6 +1,28 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 1.7.0.RELEASE (2014-09-05)
+---------------------------------------------
+* DATAJPA-604 - Release 1.7 GA.
+* DATAJPA-603 - Update Travis build profiles to build against Spring 4.0 and 4.1 snapshots.
+* DATAJPA-602 - Upgrade to AspectJ Maven Plugin 1.6.
+* DATAJPA-597 - Saving detatched entity breaks when moving from Spring Data JPA 1.5.3 to 1.6.2.
+* DATAJPA-596 - Allow sorting by querydsl operator expression.
+* DATAJPA-594 - Polish Asciidoctor rerefernce documentation.
+* DATAJPA-593 - Custom repository implementations are not picked up when using CDI.
+
+
+Changes in version 1.6.4.RELEASE (2014-08-27)
+---------------------------------------------
+* DATAJPA-597 - Saving detatched entity breaks when moving from Spring Data JPA 1.5.3 to 1.6.2.
+* DATAJPA-596 - Allow sorting by querydsl operator expression.
+* DATAJPA-595 - Release 1.6.4.
+* DATAJPA-592 - Auditing annotations not working when applied to methods.
+* DATAJPA-590 - @Version implementation changes from 1.6.0 to 1.6.2 is a breaking change that doesn't make much sense.
+* DATAJPA-582 - JpaMetamodelEntityInformation.isNew(…) throws ClassCastException for @Version of type Calendar.
+* DATAJPA-581 - Can no longer call save() with a @Version'ed detached entity in 1.6.2.
+
+
 Changes in version 1.7.0.RC1 (2014-08-13)
 -----------------------------------------
 * DATAJPA-587 - Release 1.7 RC1.
