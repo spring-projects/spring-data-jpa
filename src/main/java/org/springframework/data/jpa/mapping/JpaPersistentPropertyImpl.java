@@ -115,7 +115,7 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 	public boolean isEntity() {
 
 		try {
-			metamodel.managedType(getType());
+			metamodel.managedType(getActualType());
 			return true;
 		} catch (IllegalArgumentException o_O) {
 			return false;
