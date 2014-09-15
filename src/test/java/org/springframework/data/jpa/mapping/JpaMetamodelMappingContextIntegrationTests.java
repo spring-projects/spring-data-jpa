@@ -40,8 +40,7 @@ public class JpaMetamodelMappingContextIntegrationTests {
 
 	JpaMetamodelMappingContext context;
 
-	@PersistenceContext
-	EntityManager em;
+	@PersistenceContext EntityManager em;
 
 	@Before
 	public void setUp() {
@@ -83,5 +82,17 @@ public class JpaMetamodelMappingContextIntegrationTests {
 
 		property = entity.getPersistentProperty("lastname");
 		assertThat(property.isEntity(), is(false));
+	}
+
+	/**
+	 * @see DATAJPA-608
+	 */
+	@Test
+	public void detectsEntityPropertyForCollections() {
+
+		JpaPersistentEntityImpl<?> entity = context.getPersistentEntity(User.class);
+		assertThat(entity, is(notNullValue()));
+
+		assertThat(entity.getPersistentProperty("colleagues").isEntity(), is(true));
 	}
 }
