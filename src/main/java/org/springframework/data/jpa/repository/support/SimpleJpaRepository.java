@@ -15,7 +15,11 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import static org.springframework.data.jpa.repository.query.QueryUtils.*;
+import static org.springframework.data.jpa.repository.query.QueryUtils.COUNT_QUERY_STRING;
+import static org.springframework.data.jpa.repository.query.QueryUtils.DELETE_ALL_QUERY_STRING;
+import static org.springframework.data.jpa.repository.query.QueryUtils.applyAndBind;
+import static org.springframework.data.jpa.repository.query.QueryUtils.getQueryString;
+import static org.springframework.data.jpa.repository.query.QueryUtils.toOrders;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -24,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.persistence.EntityGraph;
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.persistence.NoResultException;
@@ -44,6 +49,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.query.Jpa21Utils;
+import org.springframework.data.jpa.repository.query.JpaEntityGraph;
 import org.springframework.data.jpa.repository.query.QueryUtils;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -68,7 +75,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	private final EntityManager em;
 	private final PersistenceProvider provider;
 
-	private CrudMethodMetadata crudMethodMetadata;
+	private CrudMethodMetadata metadata;
 
 	/**
 	 * Creates a new {@link SimpleJpaRepository} to manage objects of the given {@link JpaEntityInformation}.
@@ -103,11 +110,11 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	 * @param crudMethodMetadata
 	 */
 	public void setRepositoryMethodMetadata(CrudMethodMetadata crudMethodMetadata) {
-		this.crudMethodMetadata = crudMethodMetadata;
+		this.metadata = crudMethodMetadata;
 	}
 
 	protected CrudMethodMetadata getRepositoryMethodMetadata() {
-		return crudMethodMetadata;
+		return metadata;
 	}
 
 	protected Class<T> getDomainClass() {
@@ -216,12 +223,12 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 
 		Class<T> domainType = getDomainClass();
 
-		if (crudMethodMetadata == null) {
+		if (metadata == null) {
 			return em.find(domainType, id);
 		}
 
-		LockModeType type = crudMethodMetadata.getLockModeType();
-		Map<String, Object> hints = crudMethodMetadata.getQueryHints();
+		LockModeType type = metadata.getLockModeType();
+		Map<String, Object> hints = metadata.getQueryHints();
 
 		return type == null ? em.find(domainType, id, hints) : em.find(domainType, id, type, hints);
 	}
@@ -545,16 +552,28 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 
 	private TypedQuery<T> applyRepositoryMethodMetadata(TypedQuery<T> query) {
 
-		if (crudMethodMetadata == null) {
+		if (metadata == null) {
 			return query;
 		}
 
-		LockModeType type = crudMethodMetadata.getLockModeType();
+		LockModeType type = metadata.getLockModeType();
 		TypedQuery<T> toReturn = type == null ? query : query.setLockMode(type);
 
-		for (Entry<String, Object> hint : crudMethodMetadata.getQueryHints().entrySet()) {
+		for (Entry<String, Object> hint : metadata.getQueryHints().entrySet()) {
 			query.setHint(hint.getKey(), hint.getValue());
 		}
+
+		JpaEntityGraph entityGraph = metadata.getEntityGraph();
+		if (entityGraph == null) {
+			return toReturn;
+		}
+
+		EntityGraph<?> eg = Jpa21Utils.INSTANCE.tryGetFetchGraph(em, entityGraph);
+		if (eg == null) {
+			return toReturn;
+		}
+
+		query.setHint(entityGraph.getType().getKey(), eg);
 
 		return toReturn;
 	}

@@ -19,11 +19,14 @@ import java.util.Map;
 
 import javax.persistence.LockModeType;
 
+import org.springframework.data.jpa.repository.query.JpaEntityGraph;
+
 /**
  * Interface to abstract {@link CrudMethodMetadata} that provide the {@link LockModeType} to be used for query
  * execution.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 public interface CrudMethodMetadata {
 
@@ -40,4 +43,12 @@ public interface CrudMethodMetadata {
 	 * @return
 	 */
 	Map<String, Object> getQueryHints();
+	
+	/**
+	 * Returns the {@link JpaEntityGraph} to be used. 
+	 * 
+	 * @return
+	 * @since 1.8
+	 */
+	JpaEntityGraph getEntityGraph();
 }

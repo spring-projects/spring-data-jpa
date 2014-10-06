@@ -26,18 +26,18 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
 
 /**
- * Customizes a given JPA query with JPA 2.1 features.
+ * Utils for brideing various JPA 2.1 features.
  * 
  * @author Thomas Darimont
  * @since 1.6
  */
-enum Jpa21QueryCustomizer {
+public enum Jpa21Utils {
 
 	INSTANCE;
 
 	private static final Method GET_ENTITY_GRAPH_METHOD;
-	private static final boolean JPA21_AVAILABLE = ClassUtils.isPresent("javax.persistence.NamedEntityGraph",
-			Jpa21QueryCustomizer.class.getClassLoader());
+	public static final boolean JPA21_AVAILABLE = ClassUtils.isPresent("javax.persistence.NamedEntityGraph",
+			Jpa21Utils.class.getClassLoader());
 
 	static {
 
@@ -58,8 +58,25 @@ enum Jpa21QueryCustomizer {
 	 */
 	public void tryConfigureFetchGraph(EntityManager em, Query query, JpaEntityGraph entityGraph) {
 
+		EntityGraph<?> graph = tryGetFetchGraph(em, entityGraph);
+
+		if (graph == null) {
+			return;
+		}
+
+		query.setHint(entityGraph.getType().getKey(), graph);
+	}
+	
+	/**
+	 * Adds a JPA 2.1 fetch-graph or load-graph hint to the given {@link Query} if running under JPA 2.1.
+	 * 
+	 * @see JPA 2.1 Specfication 3.7.4 - Use of Entity Graphs in find and query operations P.117
+	 * @param em must not be {@literal null}
+	 * @param entityGraph must not be {@literal null}
+	 */
+	public EntityGraph<?> tryGetFetchGraph(EntityManager em, JpaEntityGraph entityGraph) {
+
 		Assert.notNull(em, "EntityManager must not be null!");
-		Assert.notNull(query, "Query must not be null!");
 		Assert.notNull(entityGraph, "EntityGraph must not be null!");
 
 		Assert.isTrue(JPA21_AVAILABLE, "The EntityGraph-Feature requires at least a JPA 2.1 persistence provider!");
@@ -68,10 +85,6 @@ enum Jpa21QueryCustomizer {
 
 		EntityGraph<?> graph = em.getEntityGraph(entityGraph.getName());
 
-		if (graph == null) {
-			return;
-		}
-
-		query.setHint(entityGraph.getType().getKey(), graph);
+		return graph;
 	}
 }

@@ -15,9 +15,18 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.when;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -38,6 +47,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.EntityGraph.EntityGraphType;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -328,6 +338,19 @@ public class JpaQueryMethodUnitTests {
 		assertThat(method.getEntityGraph().getName(), is("User.propertyLoadPath"));
 		assertThat(method.getEntityGraph().getType(), is(EntityGraphType.LOAD));
 	}
+	
+	/**
+	 * @see DATAJPA-612
+	 */
+	@Test
+	public void shouldFindEntityGraphAnnotationOnOverriddenSimpleJpaRepositoryMethod() throws Exception{
+		
+		JpaQueryMethod method = new JpaQueryMethod(JpaRepositoryOverride.class.getMethod("findAll"), metadata, extractor);
+		
+		assertThat(method.getEntityGraph(), is(notNullValue()));
+		assertThat(method.getEntityGraph().getName(), is("User.detail"));
+		assertThat(method.getEntityGraph().getType(), is(EntityGraphType.FETCH));
+	}
 
 	/**
 	 * Interface to define invalid repository methods for testing.
@@ -389,6 +412,16 @@ public class JpaQueryMethodUnitTests {
 		 */
 		@EntityGraph(value = "User.propertyLoadPath", type = EntityGraphType.LOAD)
 		User queryMethodWithCustomEntityFetchGraph(Integer id);
+	}
+	
+	static interface JpaRepositoryOverride extends JpaRepository<User, Long>{
+
+		/**
+		 * DATAJPA-612
+		 */
+		@Override
+		@EntityGraph("User.detail")
+		public List<User> findAll();
 	}
 
 	@Lock(LockModeType.OPTIMISTIC_FORCE_INCREMENT)

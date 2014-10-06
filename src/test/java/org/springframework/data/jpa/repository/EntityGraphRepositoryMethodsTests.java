@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,17 +17,21 @@ package org.springframework.data.jpa.repository;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
+import static org.springframework.data.jpa.support.EntityManagerTestUtils.currentEntityManagerIsAJpa21EntityManager;
 
 import java.util.List;
 
+import javax.persistence.EntityManager;
+import javax.persistence.Persistence;
+
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.domain.sample.User;
-import org.springframework.data.jpa.repository.sample.RedeclaringRepositoryMethodsRepository;
+import org.springframework.data.jpa.repository.sample.RepositoryMethodsWithEntityGraphConfigJpaRepository;
 import org.springframework.data.jpa.repository.sample.SampleConfig;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -39,45 +43,37 @@ import org.springframework.transaction.annotation.Transactional;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = SampleConfig.class)
 @Transactional
-public class RedeclaringRepositoryMethodsTests {
+public class EntityGraphRepositoryMethodsTests {
 
-	@Autowired RedeclaringRepositoryMethodsRepository repository;
+	@Autowired EntityManager em;
+	@Autowired RepositoryMethodsWithEntityGraphConfigJpaRepository repository;
 
-	User ollie, tom;
+	User tom;
+	Role role;
 
 	@Before
 	public void setup() {
 
-		ollie = new User("Oliver", "Gierke", "ogierke@gopivotal.com");
-		tom = new User("Thomas", "Darimont", "tdarimont@gopivotal.com");
+		tom = new User("Thomas", "Darimont", "tdarimont@example.org");
+		role = new Role("Developer");
+		em.persist(role);
+		tom.getRoles().add(role);
 	}
 
 	/**
-	 * @see DATAJPA-398
+	 * @see DATAJPA-612
 	 */
 	@Test
-	public void adjustedWellKnownPagedFindAllMethodShouldReturnOnlyTheUserWithFirstnameOliver() {
+	public void shouldRespectConfiguredJpaEntityGraph() {
 
-		ollie = repository.save(ollie);
-		tom = repository.save(tom);
+		Assume.assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
 
-		Page<User> page = repository.findAll(new PageRequest(0, 2));
-
-		assertThat(page.getNumberOfElements(), is(1));
-		assertThat(page.getContent().get(0).getFirstname(), is("Oliver"));
-	}
-
-	/**
-	 * @see DATAJPA-398
-	 */
-	@Test
-	public void adjustedWllKnownFindAllMethodShouldReturnAnEmptyList() {
-
-		ollie = repository.save(ollie);
 		tom = repository.save(tom);
 
 		List<User> result = repository.findAll();
 
-		assertThat(result.isEmpty(), is(true));
+		assertThat(result.size(), is(1));
+		assertThat(Persistence.getPersistenceUtil().isLoaded(result.get(0).getRoles()), is(true));
+		assertThat(result.get(0), is(tom));
 	}
 }

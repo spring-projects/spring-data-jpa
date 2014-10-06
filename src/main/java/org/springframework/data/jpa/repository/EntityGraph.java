@@ -21,8 +21,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.springframework.data.annotation.QueryAnnotation;
-
 /**
  * Annotation to configure the JPA 2.1 {@link javax.persistence.EntityGraph}s that should be used on repository methods.
  * 
@@ -31,7 +29,6 @@ import org.springframework.data.annotation.QueryAnnotation;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-@QueryAnnotation
 @Documented
 public @interface EntityGraph {
 
@@ -83,6 +80,38 @@ public @interface EntityGraph {
 
 		public String getKey() {
 			return key;
+		}
+	}
+
+	/**
+	 * Contains information about and the {@link EntityGraphType} and name of the {@link javax.persistence.EntityGraph} to
+	 * use.
+	 * 
+	 * @author Thomas Darimont
+	 * @since 1.8
+	 */
+	public static class EntityGraphHint {
+
+		private final EntityGraphType graphType;
+		private final String graphName;
+
+		/**
+		 * Creates a new {@link EntityGraphHint}.
+		 * 
+		 * @param graphType
+		 * @param graphName
+		 */
+		public EntityGraphHint(EntityGraphType graphType, String graphName) {
+			this.graphType = graphType;
+			this.graphName = graphName;
+		}
+
+		public EntityGraphType getGraphType() {
+			return graphType;
+		}
+
+		public String getGraphName() {
+			return graphName;
 		}
 	}
 }

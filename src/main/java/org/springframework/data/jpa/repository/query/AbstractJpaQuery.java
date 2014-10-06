@@ -180,7 +180,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 		JpaEntityGraph entityGraph = method.getEntityGraph();
 
 		if (entityGraph != null) {
-			Jpa21QueryCustomizer.INSTANCE.tryConfigureFetchGraph(em, query, entityGraph);
+			Jpa21Utils.INSTANCE.tryConfigureFetchGraph(em, query, entityGraph);
 		}
 
 		return query;
