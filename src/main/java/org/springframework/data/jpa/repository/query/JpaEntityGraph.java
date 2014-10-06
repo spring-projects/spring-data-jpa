@@ -34,7 +34,7 @@ public class JpaEntityGraph {
 	/**
 	 * Creates an {@link JpaEntityGraph}.
 	 * 
-	 * @param name must not be {@null}.
+	 * @param name must not be {@null} or empty.
 	 * @param type must not be {@null}.
 	 */
 	public JpaEntityGraph(String name, EntityGraphType type) {

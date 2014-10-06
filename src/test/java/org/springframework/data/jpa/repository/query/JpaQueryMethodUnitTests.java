@@ -38,6 +38,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.EntityGraph.EntityGraphType;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -52,6 +53,7 @@ import org.springframework.data.repository.query.QueryMethod;
  * Unit test for {@link QueryMethod}.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 @RunWith(MockitoJUnitRunner.class)
 public class JpaQueryMethodUnitTests {
@@ -330,6 +332,19 @@ public class JpaQueryMethodUnitTests {
 	}
 
 	/**
+	 * @see DATAJPA-612
+	 */
+	@Test
+	public void shouldFindEntityGraphAnnotationOnOverriddenSimpleJpaRepositoryMethod() throws Exception {
+
+		JpaQueryMethod method = new JpaQueryMethod(JpaRepositoryOverride.class.getMethod("findAll"), metadata, extractor);
+
+		assertThat(method.getEntityGraph(), is(notNullValue()));
+		assertThat(method.getEntityGraph().getName(), is("User.detail"));
+		assertThat(method.getEntityGraph().getType(), is(EntityGraphType.FETCH));
+	}
+
+	/**
 	 * Interface to define invalid repository methods for testing.
 	 * 
 	 * @author Oliver Gierke
@@ -389,6 +404,16 @@ public class JpaQueryMethodUnitTests {
 		 */
 		@EntityGraph(value = "User.propertyLoadPath", type = EntityGraphType.LOAD)
 		User queryMethodWithCustomEntityFetchGraph(Integer id);
+	}
+
+	static interface JpaRepositoryOverride extends JpaRepository<User, Long> {
+
+		/**
+		 * DATAJPA-612
+		 */
+		@Override
+		@EntityGraph("User.detail")
+		public List<User> findAll();
 	}
 
 	@Lock(LockModeType.OPTIMISTIC_FORCE_INCREMENT)
