@@ -17,6 +17,7 @@ package org.springframework.data.jpa.repository.query;
 
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
+import static org.springframework.data.jpa.support.EntityManagerTestUtils.*;
 
 import java.lang.reflect.Method;
 import java.util.List;
@@ -43,12 +44,12 @@ import org.springframework.data.repository.core.support.DefaultRepositoryMetadat
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.ReflectionUtils;
 
 /**
  * Integration test for {@link AbstractJpaQuery}.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("classpath:infrastructure.xml")
@@ -133,7 +134,7 @@ public class AbstractJpaQueryTests {
 	@Transactional
 	public void shouldAddEntityGraphHintForFetch() throws Exception {
 
-		Assume.assumeTrue(currentEntityManagerIsAJpa21EntityManager());
+		Assume.assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
 
 		Method findAllMethod = SampleRepository.class.getMethod("findAll");
 		QueryExtractor provider = PersistenceProvider.fromEntityManager(em);
@@ -155,7 +156,7 @@ public class AbstractJpaQueryTests {
 	@Transactional
 	public void shouldAddEntityGraphHintForLoad() throws Exception {
 
-		Assume.assumeTrue(currentEntityManagerIsAJpa21EntityManager());
+		Assume.assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
 
 		Method getByIdMethod = SampleRepository.class.getMethod("getById", Integer.class);
 		QueryExtractor provider = PersistenceProvider.fromEntityManager(em);
@@ -168,11 +169,6 @@ public class AbstractJpaQueryTests {
 		Query result = jpaQuery.createQuery(new Object[] { 1 });
 
 		verify(result).setHint("javax.persistence.loadgraph", entityGraph);
-	}
-
-	private boolean currentEntityManagerIsAJpa21EntityManager() {
-		return ReflectionUtils.findMethod(((org.springframework.orm.jpa.EntityManagerProxy) em).getTargetEntityManager()
-				.getClass(), "getEntityGraph", String.class) != null;
 	}
 
 	interface SampleRepository extends Repository<User, Integer> {

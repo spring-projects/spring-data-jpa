@@ -21,8 +21,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.springframework.data.annotation.QueryAnnotation;
-
 /**
  * Annotation to configure the JPA 2.1 {@link javax.persistence.EntityGraph}s that should be used on repository methods.
  * 
@@ -31,7 +29,6 @@ import org.springframework.data.annotation.QueryAnnotation;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-@QueryAnnotation
 @Documented
 public @interface EntityGraph {
 

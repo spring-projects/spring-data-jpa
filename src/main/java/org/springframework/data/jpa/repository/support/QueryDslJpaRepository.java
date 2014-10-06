@@ -20,12 +20,15 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
 
+import javax.persistence.EntityGraph;
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.query.JpaEntityGraph;
+import org.springframework.data.jpa.util.Jpa21Utils;
 import org.springframework.data.querydsl.EntityPathResolver;
 import org.springframework.data.querydsl.QSort;
 import org.springframework.data.querydsl.QueryDslPredicateExecutor;
@@ -52,6 +55,7 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 	private final EntityPath<T> path;
 	private final PathBuilder<T> builder;
 	private final Querydsl querydsl;
+	private final EntityManager em;
 
 	/**
 	 * Creates a new {@link QueryDslJpaRepository} from the given domain class and {@link EntityManager}. This will use
@@ -76,7 +80,7 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 			EntityPathResolver resolver) {
 
 		super(entityInformation, entityManager);
-
+		this.em = entityManager;
 		this.path = resolver.createPath(entityInformation.getJavaType());
 		this.builder = new PathBuilder<T>(path.getType(), path.getMetadata());
 		this.querydsl = new Querydsl(entityManager, builder);
@@ -153,6 +157,20 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 		for (Entry<String, Object> hint : metadata.getQueryHints().entrySet()) {
 			query.setHint(hint.getKey(), hint.getValue());
 		}
+
+		JpaEntityGraph jpaEntityGraph = metadata.getEntityGraph();
+
+		if (jpaEntityGraph == null) {
+			return query;
+		}
+
+		EntityGraph<?> entityGraph = Jpa21Utils.tryGetFetchGraph(em, jpaEntityGraph);
+
+		if (entityGraph == null) {
+			return query;
+		}
+
+		query.setHint(jpaEntityGraph.getType().getKey(), entityGraph);
 
 		return query;
 	}

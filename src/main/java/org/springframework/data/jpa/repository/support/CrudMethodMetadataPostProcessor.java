@@ -29,8 +29,10 @@ import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.interceptor.ExposeInvocationInterceptor;
 import org.springframework.aop.target.AbstractLazyCreationTargetSource;
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.QueryHints;
+import org.springframework.data.jpa.repository.query.JpaEntityGraph;
 import org.springframework.data.repository.core.RepositoryInformation;
 import org.springframework.data.repository.core.support.RepositoryProxyPostProcessor;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -42,6 +44,7 @@ import org.springframework.util.Assert;
  * or query hints on them.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 enum CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor {
 
@@ -73,8 +76,8 @@ enum CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor {
 	}
 
 	/**
-	 * {@link MethodInterceptor} to build and cache {@link DefaultCrudMethodMetadata} instances for the invoked
-	 * methods. Will bind the found information to a {@link TransactionSynchronizationManager} for later lookup.
+	 * {@link MethodInterceptor} to build and cache {@link DefaultCrudMethodMetadata} instances for the invoked methods.
+	 * Will bind the found information to a {@link TransactionSynchronizationManager} for later lookup.
 	 * 
 	 * @see DefaultCrudMethodMetadata
 	 * @author Oliver Gierke
@@ -119,14 +122,16 @@ enum CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor {
 	 * Default implementation of {@link CrudMethodMetadata} that will inspect the backing method for annotations.
 	 * 
 	 * @author Oliver Gierke
+	 * @author Thomas Darimont
 	 */
 	private static class DefaultCrudMethodMetadata implements CrudMethodMetadata {
 
 		private final LockModeType lockModeType;
 		private final Map<String, Object> queryHints;
+		private final JpaEntityGraph entityGraph;
 
 		/**
-		 * Creates a new {@link DefaultCrudMethodMetadata} foir the given {@link Method}.
+		 * Creates a new {@link DefaultCrudMethodMetadata} for the given {@link Method}.
 		 * 
 		 * @param method must not be {@literal null}.
 		 */
@@ -136,6 +141,14 @@ enum CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor {
 
 			this.lockModeType = findLockModeType(method);
 			this.queryHints = findQueryHints(method);
+			this.entityGraph = findEntityGraph(method);
+		}
+
+		private static final JpaEntityGraph findEntityGraph(Method method) {
+
+			EntityGraph entityGraphAnnotation = AnnotationUtils.findAnnotation(method, EntityGraph.class);
+			return entityGraphAnnotation == null ? null : new JpaEntityGraph(entityGraphAnnotation.value(),
+					entityGraphAnnotation.type());
 		}
 
 		private static final LockModeType findLockModeType(Method method) {
@@ -181,6 +194,15 @@ enum CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor {
 		@Override
 		public Map<String, Object> getQueryHints() {
 			return queryHints;
+		}
+
+		/* 
+		 * (non-Javadoc)
+		 * @see org.springframework.data.jpa.repository.support.CrudMethodMetadata#getEntityGraphHint()
+		 */
+		@Override
+		public JpaEntityGraph getEntityGraph() {
+			return this.entityGraph;
 		}
 	}
 

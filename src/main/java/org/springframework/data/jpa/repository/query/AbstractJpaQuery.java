@@ -28,6 +28,7 @@ import org.springframework.data.jpa.repository.query.JpaQueryExecution.PagedExec
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.ProcedureExecution;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.SingleEntityExecution;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.SlicedExecution;
+import org.springframework.data.jpa.util.Jpa21Utils;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.util.Assert;
 
@@ -180,7 +181,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 		JpaEntityGraph entityGraph = method.getEntityGraph();
 
 		if (entityGraph != null) {
-			Jpa21QueryCustomizer.INSTANCE.tryConfigureFetchGraph(em, query, entityGraph);
+			Jpa21Utils.tryConfigureFetchGraph(em, query, entityGraph);
 		}
 
 		return query;
