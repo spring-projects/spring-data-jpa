@@ -82,36 +82,4 @@ public @interface EntityGraph {
 			return key;
 		}
 	}
-
-	/**
-	 * Contains information about and the {@link EntityGraphType} and name of the {@link javax.persistence.EntityGraph} to
-	 * use.
-	 * 
-	 * @author Thomas Darimont
-	 * @since 1.8
-	 */
-	public static class EntityGraphHint {
-
-		private final EntityGraphType graphType;
-		private final String graphName;
-
-		/**
-		 * Creates a new {@link EntityGraphHint}.
-		 * 
-		 * @param graphType
-		 * @param graphName
-		 */
-		public EntityGraphHint(EntityGraphType graphType, String graphName) {
-			this.graphType = graphType;
-			this.graphName = graphName;
-		}
-
-		public EntityGraphType getGraphType() {
-			return graphType;
-		}
-
-		public String getGraphName() {
-			return graphName;
-		}
-	}
 }
