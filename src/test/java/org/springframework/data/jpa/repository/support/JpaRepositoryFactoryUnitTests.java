@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 the original author or authors.
+ * Copyright 2008-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.Serializable;
 
 import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -43,6 +44,7 @@ import org.springframework.transaction.annotation.Transactional;
  * Unit test for {@code JpaRepositoryFactory}.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 @RunWith(MockitoJUnitRunner.class)
 public class JpaRepositoryFactoryUnitTests {
@@ -51,6 +53,7 @@ public class JpaRepositoryFactoryUnitTests {
 
 	@Mock EntityManager entityManager;
 	@Mock @SuppressWarnings("rawtypes") JpaEntityInformation metadata;
+	@Mock EntityManagerFactory emf;
 
 	@Before
 	public void setUp() {
@@ -67,6 +70,9 @@ public class JpaRepositoryFactoryUnitTests {
 		};
 
 		factory.setQueryLookupStrategyKey(Key.CREATE_IF_NOT_FOUND);
+		
+		when(entityManager.getEntityManagerFactory()).thenReturn(emf);
+		when(emf.createEntityManager()).thenReturn(entityManager);
 	}
 
 	/**

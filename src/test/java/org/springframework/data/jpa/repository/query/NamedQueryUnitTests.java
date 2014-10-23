@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 the original author or authors.
+ * Copyright 2008-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import static org.mockito.Mockito.*;
 import java.lang.reflect.Method;
 
 import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -36,16 +37,15 @@ import org.springframework.data.repository.query.QueryCreationException;
  * Unit tests for {@link NamedQuery}.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 @RunWith(MockitoJUnitRunner.class)
 public class NamedQueryUnitTests {
 
-	@Mock
-	RepositoryMetadata metadata;
-	@Mock
-	QueryExtractor extractor;
-	@Mock
-	EntityManager em;
+	@Mock RepositoryMetadata metadata;
+	@Mock QueryExtractor extractor;
+	@Mock EntityManager em;
+	@Mock EntityManagerFactory emf;
 
 	Method method;
 
@@ -56,6 +56,9 @@ public class NamedQueryUnitTests {
 		method = SampleRepository.class.getMethod("foo", Pageable.class);
 		when(metadata.getDomainType()).thenReturn((Class) String.class);
 		when(metadata.getReturnedDomainClass(method)).thenReturn((Class) String.class);
+		
+		when(em.getEntityManagerFactory()).thenReturn(emf);
+		when(emf.createEntityManager()).thenReturn(em);
 	}
 
 	@Test(expected = QueryCreationException.class)
