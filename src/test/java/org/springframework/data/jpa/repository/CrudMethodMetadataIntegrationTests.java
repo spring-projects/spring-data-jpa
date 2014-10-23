@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.Map;
 
 import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import javax.persistence.LockModeType;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -44,11 +45,13 @@ import org.springframework.data.jpa.repository.support.JpaRepositoryFactory;
  * Integratio test for lock support.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 @RunWith(MockitoJUnitRunner.class)
 public class CrudMethodMetadataIntegrationTests {
 
 	@Mock EntityManager em;
+	@Mock EntityManagerFactory emf;
 	@Mock CriteriaBuilder builder;
 	@Mock CriteriaQuery<Role> criteriaQuery;
 	@Mock JpaEntityInformation<Role, Integer> information;
@@ -61,6 +64,9 @@ public class CrudMethodMetadataIntegrationTests {
 	public void setUp() {
 
 		when(information.getJavaType()).thenReturn(Role.class);
+
+		when(em.getEntityManagerFactory()).thenReturn(emf);
+		when(emf.createEntityManager()).thenReturn(em);
 
 		JpaRepositoryFactory factory = new JpaRepositoryFactory(em) {
 			@Override
