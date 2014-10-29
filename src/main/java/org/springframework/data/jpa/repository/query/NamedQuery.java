@@ -113,7 +113,7 @@ final class NamedQuery extends AbstractJpaQuery {
 	 */
 	public static RepositoryQuery lookupFrom(JpaQueryMethod method, EntityManager em) {
 
-		final String queryName = method.getNamedQueryName();
+		String queryName = method.getNamedQueryName();
 
 		LOG.debug("Looking up named query {}", queryName);
 
