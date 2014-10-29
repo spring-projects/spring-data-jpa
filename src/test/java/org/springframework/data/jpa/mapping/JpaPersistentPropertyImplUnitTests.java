@@ -18,6 +18,8 @@ package org.springframework.data.jpa.mapping;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
+import javax.persistence.Access;
+import javax.persistence.AccessType;
 import javax.persistence.Embeddable;
 import javax.persistence.Embedded;
 import javax.persistence.OneToOne;
@@ -29,6 +31,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.data.annotation.AccessType.Type;
 
 /**
  * Unit tests for {@link JpaPersistentPropertyImpl}.
@@ -92,6 +95,59 @@ public class JpaPersistentPropertyImplUnitTests {
 		assertThat(entity.getPersistentProperty("embedded").isAssociation(), is(true));
 	}
 
+	/**
+	 * @see DATAJPA-619
+	 */
+	@Test
+	public void considersPropertyLevelAccessTypeDefinitions() {
+
+		assertThat(getProperty(PropertyLevelPropertyAccess.class, "field").usePropertyAccess(), is(false));
+		assertThat(getProperty(PropertyLevelPropertyAccess.class, "property").usePropertyAccess(), is(true));
+	}
+
+	/**
+	 * @see DATAJPA-619
+	 */
+	@Test
+	public void propertyLevelAccessTypeTrumpsTypeLevelDefinition() {
+
+		assertThat(getProperty(PropertyLevelDefinitionTrumpsTypeLevelOne.class, "field").usePropertyAccess(), is(false));
+		assertThat(getProperty(PropertyLevelDefinitionTrumpsTypeLevelOne.class, "property").usePropertyAccess(), is(true));
+
+		assertThat(getProperty(PropertyLevelDefinitionTrumpsTypeLevelOne2.class, "field").usePropertyAccess(), is(false));
+		assertThat(getProperty(PropertyLevelDefinitionTrumpsTypeLevelOne2.class, "property").usePropertyAccess(), is(true));
+	}
+
+	/**
+	 * @see DATAJPA-619
+	 */
+	@Test
+	public void considersJpaAccessDefinitionAnnotations() {
+		assertThat(getProperty(TypeLevelPropertyAccess.class, "id").usePropertyAccess(), is(true));
+	}
+
+	/**
+	 * @see DATAJPA-619
+	 */
+	@Test
+	public void springDataAnnotationTrumpsJpaIfBothOnTypeLevel() {
+		assertThat(getProperty(CompetingTypeLevelAnnotations.class, "id").usePropertyAccess(), is(false));
+	}
+
+	/**
+	 * @see DATAJPA-619
+	 */
+	@Test
+	public void springDataAnnotationTrumpsJpaIfBothOnPropertyLevel() {
+		assertThat(getProperty(CompetingPropertyLevelAnnotations.class, "id").usePropertyAccess(), is(false));
+	}
+
+	private JpaPersistentProperty getProperty(Class<?> ownerType, String propertyName) {
+
+		JpaPersistentEntity<?> entity = context.getPersistentEntity(ownerType);
+		return entity.getPersistentProperty(propertyName);
+	}
+
 	static class Sample {
 
 		@OneToOne Sample other;
@@ -107,5 +163,82 @@ public class JpaPersistentPropertyImplUnitTests {
 
 	static class SampleEmbedded {
 
+	}
+
+	@Access(AccessType.PROPERTY)
+	static class TypeLevelPropertyAccess {
+
+		private String id;
+
+		public String getId() {
+			return id;
+		}
+	}
+
+	static class PropertyLevelPropertyAccess {
+
+		String field;
+		String property;
+
+		/**
+		 * @return the property
+		 */
+		@org.springframework.data.annotation.AccessType(Type.PROPERTY)
+		public String getProperty() {
+			return property;
+		}
+	}
+
+	@Access(AccessType.FIELD)
+	static class PropertyLevelDefinitionTrumpsTypeLevelOne {
+
+		String field;
+		String property;
+
+		/**
+		 * @return the property
+		 */
+		@org.springframework.data.annotation.AccessType(Type.PROPERTY)
+		public String getProperty() {
+			return property;
+		}
+	}
+
+	@org.springframework.data.annotation.AccessType(Type.PROPERTY)
+	static class PropertyLevelDefinitionTrumpsTypeLevelOne2 {
+
+		@Access(AccessType.FIELD) String field;
+		String property;
+
+		/**
+		 * @return the property
+		 */
+		public String getProperty() {
+			return property;
+		}
+	}
+
+	@org.springframework.data.annotation.AccessType(Type.FIELD)
+	@Access(AccessType.PROPERTY)
+	static class CompetingTypeLevelAnnotations {
+
+		private String id;
+
+		public String getId() {
+			return id;
+		}
+	}
+
+	@org.springframework.data.annotation.AccessType(Type.FIELD)
+	@Access(AccessType.PROPERTY)
+	static class CompetingPropertyLevelAnnotations {
+
+		private String id;
+
+		@org.springframework.data.annotation.AccessType(Type.FIELD)
+		@Access(AccessType.PROPERTY)
+		public String getId() {
+			return id;
+		}
 	}
 }
