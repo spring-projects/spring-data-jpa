@@ -1,6 +1,15 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 1.7.1.RELEASE (2014-10-30)
+---------------------------------------------
+* DATAJPA-621 - Release 1.7.1.
+* DATAJPA-620 - Infinite loop in unsynchronized HashMap in CrudMethodMetadataPostProcessor.
+* DATAJPA-617 - Named query lookups might cause transaction to be rolled back.
+* DATAJPA-615 - The top and first query keyword to statically limit results are missing in documentation.
+* DATAJPA-612 - Allow @EntityGraph on a method inherited from JpaRepository.
+
+
 Changes in version 1.7.0.RELEASE (2014-09-05)
 ---------------------------------------------
 * DATAJPA-604 - Release 1.7 GA.
