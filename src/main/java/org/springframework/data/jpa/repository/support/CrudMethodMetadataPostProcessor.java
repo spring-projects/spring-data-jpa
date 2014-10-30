@@ -19,6 +19,8 @@ import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import javax.persistence.LockModeType;
 import javax.persistence.QueryHint;
@@ -78,12 +80,13 @@ enum CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor {
 	 * 
 	 * @see DefaultCrudMethodMetadata
 	 * @author Oliver Gierke
+	 * @author Thomas Darimont
 	 */
 	static enum CrudMethodMetadataPopulatingMethodIntercceptor implements MethodInterceptor {
 
 		INSTANCE;
 
-		private final Map<Method, CrudMethodMetadata> metadataCache = new HashMap<Method, CrudMethodMetadata>();
+		private final ConcurrentMap<Method, CrudMethodMetadata> metadataCache = new ConcurrentHashMap<Method, CrudMethodMetadata>();
 
 		/* 
 		 * (non-Javadoc)
@@ -101,8 +104,13 @@ enum CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor {
 			CrudMethodMetadata methodMetadata = metadataCache.get(method);
 
 			if (methodMetadata == null) {
+
 				methodMetadata = new DefaultCrudMethodMetadata(method);
-				metadataCache.put(method, methodMetadata);
+				CrudMethodMetadata tmp = metadataCache.putIfAbsent(method, methodMetadata);
+
+				if (tmp != null) {
+					metadata = tmp;
+				}
 			}
 
 			TransactionSynchronizationManager.bindResource(method, methodMetadata);
