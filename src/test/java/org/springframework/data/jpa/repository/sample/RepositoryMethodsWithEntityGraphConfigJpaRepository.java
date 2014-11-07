@@ -18,9 +18,9 @@ package org.springframework.data.jpa.repository.sample;
 import java.util.List;
 
 import org.springframework.data.jpa.domain.sample.User;
-import org.springframework.data.jpa.repository.EntityGraph;
-import org.springframework.data.jpa.repository.EntityGraph.EntityGraphType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.repository.EntityGraph;
+import org.springframework.data.repository.EntityGraph.EntityGraphType;
 
 /**
  * Custom repository interface that customizes the fetching behavior of querys of well known repository interface methods via {@link EntityGraph}

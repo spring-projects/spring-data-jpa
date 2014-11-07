@@ -17,7 +17,8 @@ package org.springframework.data.jpa.repository.query;
 
 import javax.persistence.EntityGraph;
 
-import org.springframework.data.jpa.repository.EntityGraph.EntityGraphType;
+import org.springframework.data.repository.EntityGraph.EntityGraphType;
+import org.springframework.data.repository.query.EntityGraphable;
 import org.springframework.util.Assert;
 
 /**
@@ -26,7 +27,7 @@ import org.springframework.util.Assert;
  * @author Thomas Darimont
  * @since 1.6
  */
-public class JpaEntityGraph {
+public class JpaEntityGraph implements EntityGraphable {
 
 	private final String name;
 	private final EntityGraphType type;

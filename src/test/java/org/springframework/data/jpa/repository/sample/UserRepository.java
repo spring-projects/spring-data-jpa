@@ -36,6 +36,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.jpa.repository.query.Procedure;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.query.EntityGraphable;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -527,4 +528,11 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 			value = "select * from (select rownum() as RN, u.* from User u) where RN between ?#{ #pageable.offset -1} and ?#{#pageable.offset + #pageable.pageSize}",
 			countQuery = "select count(u.id) from User u", nativeQuery = true)
 	Page<User> findUsersInNativeQueryWithPagination(Pageable pageable);
+
+	/**
+	 * @see DATAJPA-560
+	 */
+	@Query("select u from User u where u.id in :ids")
+	List<User> getByUserId(@Param("ids")
+	Integer id, EntityGraphable graghable);
 }

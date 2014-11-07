@@ -33,12 +33,13 @@ import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.data.jpa.domain.sample.User;
-import org.springframework.data.jpa.repository.EntityGraph;
-import org.springframework.data.jpa.repository.EntityGraph.EntityGraphType;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.jpa.repository.support.PersistenceProvider;
+import org.springframework.data.repository.EntityGraph;
+import org.springframework.data.repository.EntityGraph.EntityGraphType;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.core.support.DefaultRepositoryMetadata;
 import org.springframework.test.context.ContextConfiguration;

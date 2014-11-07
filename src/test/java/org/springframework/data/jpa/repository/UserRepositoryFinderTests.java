@@ -15,9 +15,16 @@
  */
 package org.springframework.data.jpa.repository;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
-import static org.springframework.data.domain.Sort.Direction.*;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.hasItem;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.springframework.data.domain.Sort.Direction.ASC;
+import static org.springframework.data.domain.Sort.Direction.DESC;
 
 import java.util.Arrays;
 import java.util.List;
@@ -25,13 +32,16 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.sample.User;
+import org.springframework.data.jpa.repository.query.JpaEntityGraph;
 import org.springframework.data.jpa.repository.sample.UserRepository;
+import org.springframework.data.repository.EntityGraph.EntityGraphType;
 import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -194,4 +204,16 @@ public class UserRepositoryFinderTests {
 		assertThat(slice.getContent(), hasItem(dave));
 		assertThat(slice.hasNext(), is(true));
 	}
+
+	/**
+	 * @see DATAJPA-560
+	 */
+	@Test
+	public void testEntityGraph() {
+
+		List<User> list = userRepository.getByUserId(dave.getId(), new JpaEntityGraph("User.detail",
+				EntityGraphType.LOAD));
+		assertEquals(list.get(0).getFirstname(), "Dave");
+	}
+
 }

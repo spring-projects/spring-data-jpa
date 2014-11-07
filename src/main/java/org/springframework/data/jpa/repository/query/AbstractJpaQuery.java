@@ -21,7 +21,6 @@ import javax.persistence.Query;
 import javax.persistence.QueryHint;
 import javax.persistence.TypedQuery;
 
-import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.CollectionExecution;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.ModifyingExecution;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.PagedExecution;
@@ -162,7 +161,8 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 	}
 
 	protected Query createQuery(Object[] values) {
-		return applyLockMode(applyEntityGraphConfiguration(applyHints(doCreateQuery(values), method), method), method);
+		return applyLockMode(applyEntityGraphConfiguration(applyHints(doCreateQuery(values), method), method, values),
+				method);
 	}
 
 	/**
@@ -173,7 +173,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 	 * @param method must not be {@literal null}.
 	 * @return
 	 */
-	private Query applyEntityGraphConfiguration(Query query, JpaQueryMethod method) {
+	private Query applyEntityGraphConfiguration(Query query, JpaQueryMethod method, Object[] values) {
 
 		Assert.notNull(query, "Query must not be null!");
 		Assert.notNull(method, "JpaQueryMethod must not be null!");
@@ -183,6 +183,15 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 		if (entityGraph != null) {
 			Jpa21Utils.tryConfigureFetchGraph(em, query, entityGraph);
 		}
+		else {
+			for (Object parameter : values) {
+				if (parameter instanceof JpaEntityGraph) {
+					Jpa21Utils.tryConfigureFetchGraph(em, query, (JpaEntityGraph) parameter);
+					break;
+				}
+			}
+		}
+
 
 		return query;
 	}

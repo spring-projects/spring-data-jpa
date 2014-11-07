@@ -15,7 +15,8 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.springframework.core.annotation.AnnotationUtils.*;
+import static org.springframework.core.annotation.AnnotationUtils.findAnnotation;
+import static org.springframework.core.annotation.AnnotationUtils.getAnnotation;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -29,13 +30,13 @@ import javax.persistence.LockModeType;
 import javax.persistence.QueryHint;
 
 import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.jpa.repository.support.DefaultJpaEntityMetadata;
 import org.springframework.data.jpa.repository.support.JpaEntityMetadata;
+import org.springframework.data.repository.EntityGraph;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
