@@ -48,6 +48,15 @@ public class JpaEntityGraph implements EntityGraphable {
 	}
 
 	/**
+	 * Creates an {@link JpaEntityGraph}.
+	 * 
+	 * @param name must not be {@null} or empty.
+	 */
+	public JpaEntityGraph(String name) {
+		this(name, EntityGraphType.FETCH);
+	}
+
+	/**
 	 * Returns the name of the {@link EntityGraph} configuration to use.
 	 * 
 	 * @return

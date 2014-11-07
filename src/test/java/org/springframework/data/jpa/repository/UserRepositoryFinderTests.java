@@ -213,7 +213,17 @@ public class UserRepositoryFinderTests {
 
 		List<User> list = userRepository.getByUserId(dave.getId(), new JpaEntityGraph("User.detail",
 				EntityGraphType.LOAD));
-		assertEquals(list.get(0).getFirstname(), "Dave");
+		assertThat(list.get(0), is(dave));
+	}
+
+	/**
+	 * @see DATAJPA-560
+	 */
+	@Test
+	public void testDefaultEntityGraph() {
+
+		List<User> list = userRepository.getByUserId(dave.getId(), new JpaEntityGraph("User.detail"));
+		assertThat(list.get(0), is(dave));
 	}
 
 }
