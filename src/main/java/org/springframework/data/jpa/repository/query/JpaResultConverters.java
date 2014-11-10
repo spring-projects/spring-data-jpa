@@ -32,7 +32,7 @@ import org.springframework.util.StreamUtils;
  * @author Thomas Darimont
  * @since 1.6
  */
-class JpaResultConverters {
+final class JpaResultConverters {
 
 	/**
 	 * {@code private} to prevent instantiation.
