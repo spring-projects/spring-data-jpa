@@ -93,6 +93,7 @@ public abstract class QueryUtils {
 	private static final Map<PersistentAttributeType, Class<? extends Annotation>> ASSOCIATION_TYPES;
 
 	private static final int QUERY_JOIN_ALIAS_GROUP_INDEX = 3;
+	private static final int VARIABLE_NAME_GROUP_INDEX = 4;
 
 	static {
 
@@ -360,7 +361,7 @@ public abstract class QueryUtils {
 
 		if (countProjection == null) {
 
-			String variable = matcher.matches() ? matcher.group(4) : null;
+			String variable = matcher.matches() ? matcher.group(VARIABLE_NAME_GROUP_INDEX) : null;
 			boolean useVariable = variable != null && StringUtils.hasText(variable) && !variable.startsWith("new")
 					&& !variable.startsWith("count(") && !variable.contains(",");
 
