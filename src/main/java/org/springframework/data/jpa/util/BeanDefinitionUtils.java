@@ -126,6 +126,8 @@ public class BeanDefinitionUtils {
 	}
 
 	/**
+	 * Value object to represent a {@link BeanDefinition} for an {@link EntityManagerFactory} with a dedicated bean name.
+	 * 
 	 * @author Oliver Gierke
 	 * @author Thomas Darimont
 	 */
@@ -143,19 +145,35 @@ public class BeanDefinitionUtils {
 		 * @param beanDefinition
 		 */
 		public EntityManagerFactoryBeanDefinition(String beanName, BeanFactory beanFactory, BeanDefinition beanDefinition) {
+
 			this.beanName = beanName;
 			this.beanFactory = beanFactory;
 			this.beanDefinition = beanDefinition;
 		}
 
+		/**
+		 * Returns the bean name of the {@link BeanDefinition} for the {@link EntityManagerFactory}.
+		 * 
+		 * @return
+		 */
 		public String getBeanName() {
 			return beanName;
 		}
 
+		/**
+		 * Returns the underlying {@link BeanFactory}.
+		 * 
+		 * @return
+		 */
 		public BeanFactory getBeanFactory() {
 			return beanFactory;
 		}
 
+		/**
+		 * Returns the {@link BeanDefinition} for the {@link EntityManagerFactory}.
+		 * 
+		 * @return
+		 */
 		public BeanDefinition getBeanDefinition() {
 			return beanDefinition;
 		}

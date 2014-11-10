@@ -19,6 +19,7 @@ package org.springframework.data.jpa.repository.config;
  * Helper class to manage bean definition names in a single place.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 interface BeanDefinitionNames {
 
