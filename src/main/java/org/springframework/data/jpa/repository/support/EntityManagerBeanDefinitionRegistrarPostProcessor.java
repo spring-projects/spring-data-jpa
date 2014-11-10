@@ -51,25 +51,25 @@ public class EntityManagerBeanDefinitionRegistrarPostProcessor implements BeanFa
 	@Override
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
 
-		for (EntityManagerFactoryBeanDefinition definitions : getEntityManagerFactoryBeanDefinitions(beanFactory)) {
+		for (EntityManagerFactoryBeanDefinition definition : getEntityManagerFactoryBeanDefinitions(beanFactory)) {
 
-			if (!(definitions.beanFactory instanceof BeanDefinitionRegistry)) {
+			if (!(definition.getBeanFactory() instanceof BeanDefinitionRegistry)) {
 				continue;
 			}
 
 			BeanDefinitionBuilder builder = BeanDefinitionBuilder
 					.rootBeanDefinition("org.springframework.orm.jpa.SharedEntityManagerCreator");
 			builder.setFactoryMethod("createSharedEntityManager");
-			builder.addConstructorArgReference(definitions.beanName);
+			builder.addConstructorArgReference(definition.getBeanName());
 
 			AbstractBeanDefinition emBeanDefinition = builder.getRawBeanDefinition();
 
-			emBeanDefinition.addQualifier(new AutowireCandidateQualifier(Qualifier.class, definitions.beanName));
-			emBeanDefinition.setScope(definitions.beanDefinition.getScope());
-			emBeanDefinition.setSource(definitions.beanDefinition.getSource());
+			emBeanDefinition.addQualifier(new AutowireCandidateQualifier(Qualifier.class, definition.getBeanName()));
+			emBeanDefinition.setScope(definition.getBeanDefinition().getScope());
+			emBeanDefinition.setSource(definition.getBeanDefinition().getSource());
 
 			BeanDefinitionReaderUtils.registerWithGeneratedName(emBeanDefinition,
-					(BeanDefinitionRegistry) definitions.beanFactory);
+					(BeanDefinitionRegistry) definition.getBeanFactory());
 		}
 	}
 }
