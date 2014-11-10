@@ -50,7 +50,6 @@ public final class JpaQueryLookupStrategy {
 
 		private final EntityManager em;
 		private final QueryExtractor provider;
-		private final EvaluationContextProvider evaluationContextProvider;
 
 		/**
 		 * Creates a new {@link AbstractQueryLookupStrategy}.
@@ -59,32 +58,21 @@ public final class JpaQueryLookupStrategy {
 		 * @param extractor
 		 * @param evaluationContextProvider
 		 */
-		public AbstractQueryLookupStrategy(EntityManager em, QueryExtractor extractor,
-				EvaluationContextProvider evaluationContextProvider) {
+		public AbstractQueryLookupStrategy(EntityManager em, QueryExtractor extractor) {
 
 			this.em = em;
 			this.provider = extractor;
-			this.evaluationContextProvider = evaluationContextProvider;
 		}
 
 		/*
 		 * (non-Javadoc)
-		 * 
-		 * @see org.springframework.data.repository.query.QueryLookupStrategy#
-		 * resolveQuery(java.lang.reflect.Method,
-		 * org.springframework.data.repository.core.RepositoryMetadata,
-		 * org.springframework.data.repository.core.NamedQueries)
+		 * @see org.springframework.data.repository.query.QueryLookupStrategy#resolveQuery(java.lang.reflect.Method, org.springframework.data.repository.core.RepositoryMetadata, org.springframework.data.repository.core.NamedQueries)
 		 */
 		public final RepositoryQuery resolveQuery(Method method, RepositoryMetadata metadata, NamedQueries namedQueries) {
-
 			return resolveQuery(new JpaQueryMethod(method, metadata, provider), em, namedQueries);
 		}
 
 		protected abstract RepositoryQuery resolveQuery(JpaQueryMethod method, EntityManager em, NamedQueries namedQueries);
-
-		protected EvaluationContextProvider getEvaluationContextProvider() {
-			return evaluationContextProvider;
-		}
 	}
 
 	/**
@@ -95,10 +83,8 @@ public final class JpaQueryLookupStrategy {
 	 */
 	private static class CreateQueryLookupStrategy extends AbstractQueryLookupStrategy {
 
-		public CreateQueryLookupStrategy(EntityManager em, QueryExtractor extractor,
-				EvaluationContextProvider evaluationContextProvider) {
-
-			super(em, extractor, evaluationContextProvider);
+		public CreateQueryLookupStrategy(EntityManager em, QueryExtractor extractor) {
+			super(em, extractor);
 		}
 
 		@Override
@@ -123,6 +109,8 @@ public final class JpaQueryLookupStrategy {
 	 */
 	private static class DeclaredQueryLookupStrategy extends AbstractQueryLookupStrategy {
 
+		private final EvaluationContextProvider evaluationContextProvider;
+
 		/**
 		 * Creates a new {@link DeclaredQueryLookupStrategy}.
 		 * 
@@ -133,13 +121,18 @@ public final class JpaQueryLookupStrategy {
 		public DeclaredQueryLookupStrategy(EntityManager em, QueryExtractor extractor,
 				EvaluationContextProvider evaluationContextProvider) {
 
-			super(em, extractor, evaluationContextProvider);
+			super(em, extractor);
+			this.evaluationContextProvider = evaluationContextProvider;
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.jpa.repository.query.JpaQueryLookupStrategy.AbstractQueryLookupStrategy#resolveQuery(org.springframework.data.jpa.repository.query.JpaQueryMethod, javax.persistence.EntityManager, org.springframework.data.repository.core.NamedQueries)
+		 */
 		@Override
 		protected RepositoryQuery resolveQuery(JpaQueryMethod method, EntityManager em, NamedQueries namedQueries) {
 
-			RepositoryQuery query = JpaQueryFactory.INSTANCE.fromQueryAnnotation(method, em, getEvaluationContextProvider());
+			RepositoryQuery query = JpaQueryFactory.INSTANCE.fromQueryAnnotation(method, em, evaluationContextProvider);
 
 			if (null != query) {
 				return query;
@@ -154,7 +147,7 @@ public final class JpaQueryLookupStrategy {
 			String name = method.getNamedQueryName();
 			if (namedQueries.hasQuery(name)) {
 				return JpaQueryFactory.INSTANCE.fromMethodWithQueryString(method, em, namedQueries.getQuery(name),
-						getEvaluationContextProvider());
+						evaluationContextProvider);
 			}
 
 			query = NamedQuery.lookupFrom(method, em);
@@ -191,15 +184,18 @@ public final class JpaQueryLookupStrategy {
 		 * @param evaluationContextProvider
 		 */
 		public CreateIfNotFoundQueryLookupStrategy(EntityManager em, QueryExtractor extractor,
-				CreateQueryLookupStrategy createStrategy, DeclaredQueryLookupStrategy lookupStrategy,
-				EvaluationContextProvider evaluationContextProvider) {
+				CreateQueryLookupStrategy createStrategy, DeclaredQueryLookupStrategy lookupStrategy) {
 
-			super(em, extractor, evaluationContextProvider);
+			super(em, extractor);
 
 			this.createStrategy = createStrategy;
 			this.lookupStrategy = lookupStrategy;
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.jpa.repository.query.JpaQueryLookupStrategy.AbstractQueryLookupStrategy#resolveQuery(org.springframework.data.jpa.repository.query.JpaQueryMethod, javax.persistence.EntityManager, org.springframework.data.repository.core.NamedQueries)
+		 */
 		@Override
 		protected RepositoryQuery resolveQuery(JpaQueryMethod method, EntityManager em, NamedQueries namedQueries) {
 
@@ -229,13 +225,12 @@ public final class JpaQueryLookupStrategy {
 
 		switch (key != null ? key : Key.CREATE_IF_NOT_FOUND) {
 			case CREATE:
-				return new CreateQueryLookupStrategy(em, extractor, evaluationContextProvider);
+				return new CreateQueryLookupStrategy(em, extractor);
 			case USE_DECLARED_QUERY:
 				return new DeclaredQueryLookupStrategy(em, extractor, evaluationContextProvider);
 			case CREATE_IF_NOT_FOUND:
-				return new CreateIfNotFoundQueryLookupStrategy(em, extractor, new CreateQueryLookupStrategy(em, extractor,
-						evaluationContextProvider), new DeclaredQueryLookupStrategy(em, extractor, evaluationContextProvider),
-						evaluationContextProvider);
+				return new CreateIfNotFoundQueryLookupStrategy(em, extractor, new CreateQueryLookupStrategy(em, extractor),
+						new DeclaredQueryLookupStrategy(em, extractor, evaluationContextProvider));
 			default:
 				throw new IllegalArgumentException(String.format("Unsupported query lookup strategy %s!", key));
 		}

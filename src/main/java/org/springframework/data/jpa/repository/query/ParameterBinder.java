@@ -128,19 +128,6 @@ public class ParameterBinder {
 	}
 
 	/**
-	 * Computes the value to bind for the given {@link JpaParameter} and the given {@code value} by potentially using the
-	 * other {@code values}. This is intended to be customized in sub-classes.
-	 * 
-	 * @param parameter
-	 * @param value
-	 * @param values
-	 * @return
-	 */
-	private Object computeParameterValue(JpaParameter parameter, Object value, Object[] values) {
-		return value;
-	}
-
-	/**
 	 * Perform the actual query parameter binding.
 	 * 
 	 * @param query
