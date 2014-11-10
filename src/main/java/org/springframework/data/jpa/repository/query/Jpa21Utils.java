@@ -47,6 +47,10 @@ public class Jpa21Utils {
 		}
 	}
 
+	private Jpa21Utils() {
+		// prevent instantiation
+	}
+
 	/**
 	 * Adds a JPA 2.1 fetch-graph or load-graph hint to the given {@link Query} if running under JPA 2.1.
 	 * 

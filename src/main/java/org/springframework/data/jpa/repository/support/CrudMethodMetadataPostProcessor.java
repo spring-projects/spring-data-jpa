@@ -98,7 +98,7 @@ enum CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor {
 		public Object invoke(MethodInvocation invocation) throws Throwable {
 
 			Method method = invocation.getMethod();
-			Object metadata = TransactionSynchronizationManager.getResource(method);
+			CrudMethodMetadata metadata = (CrudMethodMetadata) TransactionSynchronizationManager.getResource(method);
 
 			if (metadata != null) {
 				return invocation.proceed();
@@ -112,7 +112,7 @@ enum CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor {
 				CrudMethodMetadata tmp = metadataCache.putIfAbsent(method, methodMetadata);
 
 				if (tmp != null) {
-					metadata = tmp;
+					methodMetadata = tmp;
 				}
 			}
 
@@ -152,20 +152,20 @@ enum CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor {
 			this.entityGraph = findEntityGraph(method);
 		}
 
-		private static final JpaEntityGraph findEntityGraph(Method method) {
+		private static JpaEntityGraph findEntityGraph(Method method) {
 
 			EntityGraph entityGraphAnnotation = AnnotationUtils.findAnnotation(method, EntityGraph.class);
 			return entityGraphAnnotation == null ? null : new JpaEntityGraph(entityGraphAnnotation.value(),
 					entityGraphAnnotation.type());
 		}
 
-		private static final LockModeType findLockModeType(Method method) {
+		private static LockModeType findLockModeType(Method method) {
 
 			Lock annotation = AnnotationUtils.findAnnotation(method, Lock.class);
 			return annotation == null ? null : (LockModeType) AnnotationUtils.getValue(annotation);
 		}
 
-		private static final Map<String, Object> findQueryHints(Method method) {
+		private static Map<String, Object> findQueryHints(Method method) {
 
 			Map<String, Object> queryHints = new HashMap<String, Object>();
 			QueryHints queryHintsAnnotation = AnnotationUtils.findAnnotation(method, QueryHints.class);
