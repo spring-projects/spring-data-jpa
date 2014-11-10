@@ -134,7 +134,7 @@ public class ClasspathScanningPersistenceUnitPostProcessor implements Persistenc
 		String path = ResourcePatternResolver.CLASSPATH_ALL_URL_PREFIX + basePackagePathComponent + slash
 				+ mappingFileNamePattern;
 		Set<String> mappingFileUris = new HashSet<String>();
-		Resource[] scannedResources = new Resource[0];
+		Resource[] scannedResources;
 
 		try {
 			scannedResources = resolver.getResources(path);
