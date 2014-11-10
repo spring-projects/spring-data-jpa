@@ -24,7 +24,6 @@ import javax.persistence.NamedStoredProcedureQueries;
 import javax.persistence.NamedStoredProcedureQuery;
 import javax.persistence.StoredProcedureParameter;
 
-import org.springframework.data.jpa.repository.support.JpaEntityMetadata;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 

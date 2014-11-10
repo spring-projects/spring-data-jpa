@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.jpa.util;
+package org.springframework.data.jpa.repository.query;
 
 import java.lang.reflect.Method;
 
@@ -21,7 +21,6 @@ import javax.persistence.EntityGraph;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 
-import org.springframework.data.jpa.repository.query.JpaEntityGraph;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
