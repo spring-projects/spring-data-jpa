@@ -65,6 +65,8 @@ import org.springframework.util.Assert;
 public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepository<T, ID>,
 		JpaSpecificationExecutor<T> {
 
+	private static final String ID_MUST_NOT_BE_NULL = "The given id must not be null!";
+
 	private final JpaEntityInformation<T, ?> entityInformation;
 	private final EntityManager em;
 	private final PersistenceProvider provider;
@@ -132,7 +134,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	@Transactional
 	public void delete(ID id) {
 
-		Assert.notNull(id, "The given id must not be null!");
+		Assert.notNull(id, ID_MUST_NOT_BE_NULL);
 
 		T entity = findOne(id);
 
@@ -213,7 +215,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	 */
 	public T findOne(ID id) {
 
-		Assert.notNull(id, "The given id must not be null!");
+		Assert.notNull(id, ID_MUST_NOT_BE_NULL);
 
 		Class<T> domainType = getDomainClass();
 
@@ -234,7 +236,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	@Override
 	public T getOne(ID id) {
 
-		Assert.notNull(id, "The given id must not be null!");
+		Assert.notNull(id, ID_MUST_NOT_BE_NULL);
 		return em.getReference(getDomainClass(), id);
 	}
 
@@ -244,7 +246,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	 */
 	public boolean exists(ID id) {
 
-		Assert.notNull(id, "The given id must not be null!");
+		Assert.notNull(id, ID_MUST_NOT_BE_NULL);
 
 		if (entityInformation.getIdAttribute() == null) {
 			return findOne(id) != null;
