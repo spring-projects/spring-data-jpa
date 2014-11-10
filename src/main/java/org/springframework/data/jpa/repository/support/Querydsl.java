@@ -164,7 +164,7 @@ public class Querydsl {
 		Assert.notNull(query, "Query must not be null!");
 
 		for (Order order : sort) {
-			query.orderBy(toOrderSpecifier(order, query));
+			query.orderBy(toOrderSpecifier(order));
 		}
 
 		return query;
@@ -177,7 +177,7 @@ public class Querydsl {
 	 * @return
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private OrderSpecifier<?> toOrderSpecifier(Order order, JPQLQuery query) {
+	private OrderSpecifier<?> toOrderSpecifier(Order order) {
 
 		return new OrderSpecifier(order.isAscending() ? com.mysema.query.types.Order.ASC
 				: com.mysema.query.types.Order.DESC, buildOrderPropertyPathFrom(order),
