@@ -98,7 +98,7 @@ enum CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor {
 		public Object invoke(MethodInvocation invocation) throws Throwable {
 
 			Method method = invocation.getMethod();
-			Object metadata = TransactionSynchronizationManager.getResource(method);
+			CrudMethodMetadata metadata = (CrudMethodMetadata) TransactionSynchronizationManager.getResource(method);
 
 			if (metadata != null) {
 				return invocation.proceed();
@@ -112,7 +112,7 @@ enum CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor {
 				CrudMethodMetadata tmp = metadataCache.putIfAbsent(method, methodMetadata);
 
 				if (tmp != null) {
-					metadata = tmp;
+					methodMetadata = tmp;
 				}
 			}
 
