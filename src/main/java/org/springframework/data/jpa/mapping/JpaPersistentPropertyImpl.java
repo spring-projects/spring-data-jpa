@@ -34,6 +34,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Transient;
+import javax.persistence.Version;
 import javax.persistence.metamodel.Metamodel;
 
 import org.springframework.data.annotation.AccessType.Type;
@@ -172,6 +173,15 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 	@Override
 	public boolean usePropertyAccess() {
 		return usePropertyAccess != null ? usePropertyAccess : super.usePropertyAccess();
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.mapping.model.AnnotationBasedPersistentProperty#isVersionProperty()
+	 */
+	@Override
+	public boolean isVersionProperty() {
+		return isAnnotationPresent(Version.class) || super.isVersionProperty();
 	}
 
 	/**

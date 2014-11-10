@@ -32,6 +32,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.data.annotation.AccessType.Type;
+import org.springframework.data.annotation.Version;
 
 /**
  * Unit tests for {@link JpaPersistentPropertyImpl}.
@@ -142,6 +143,22 @@ public class JpaPersistentPropertyImplUnitTests {
 		assertThat(getProperty(CompetingPropertyLevelAnnotations.class, "id").usePropertyAccess(), is(false));
 	}
 
+	/**
+	 * @see DATAJPA-605
+	 */
+	@Test
+	public void detectsJpaVersionAnnotation() {
+		assertThat(getProperty(JpaVersioned.class, "version").isVersionProperty(), is(true));
+	}
+
+	/**
+	 * @see DATAJPA-605
+	 */
+	@Test
+	public void detectsSpringDataVersionAnnotation() {
+		assertThat(getProperty(SpringDataVersioned.class, "version").isVersionProperty(), is(true));
+	}
+
 	private JpaPersistentProperty getProperty(Class<?> ownerType, String propertyName) {
 
 		JpaPersistentEntity<?> entity = context.getPersistentEntity(ownerType);
@@ -240,5 +257,15 @@ public class JpaPersistentPropertyImplUnitTests {
 		public String getId() {
 			return id;
 		}
+	}
+
+	static class SpringDataVersioned {
+
+		@Version long version;
+	}
+
+	static class JpaVersioned {
+
+		@Version long version;
 	}
 }
