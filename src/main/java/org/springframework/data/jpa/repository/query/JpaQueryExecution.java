@@ -146,9 +146,14 @@ public abstract class JpaQueryExecution {
 			List<Long> totals = projection.getResultList();
 			Long total = totals.size() == 1 ? totals.get(0) : totals.size();
 
-			Query query = repositoryQuery.createQuery(values);
 			ParameterAccessor accessor = new ParametersParameterAccessor(parameters, values);
 			Pageable pageable = accessor.getPageable();
+
+			if (total.equals(0L)) {
+				return new PageImpl<Object>(Collections.emptyList(), pageable, total);
+			}
+
+			Query query = repositoryQuery.createQuery(values);
 
 			List<Object> content = pageable == null || total > pageable.getOffset() ? query.getResultList() : Collections
 					.emptyList();
