@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2013 the original author or authors.
+ * Copyright 2008-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package org.springframework.data.jpa.repository.query;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 import java.util.Arrays;
@@ -41,6 +42,7 @@ import org.springframework.data.repository.query.Parameters;
  * Unit test for {@link JpaQueryExecution}.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 @RunWith(MockitoJUnitRunner.class)
 public class JpaQueryExecutionUnitTests {
@@ -126,6 +128,24 @@ public class JpaQueryExecutionUnitTests {
 		execution.doExecute(jpaQuery, new Object[] { new PageRequest(2, 10) });
 
 		verify(query, times(0)).getResultList();
+	}
+
+	/**
+	 * @see DATAJPA-477
+	 */
+	@Test
+	public void pagedExecutionShouldNotGenerateUnecessaryQueryIfCountReportedNoResults() throws Exception {
+
+		Parameters<?, ?> parameters = new DefaultParameters(getClass().getMethod("sampleMethod", Pageable.class));
+		when(jpaQuery.createCountQuery(Mockito.any(Object[].class))).thenReturn(countQuery);
+		// when(jpaQuery.createQuery(Mockito.any(Object[].class))).thenReturn(query);
+		when(countQuery.getResultList()).thenReturn(Arrays.asList(0L));
+
+		PagedExecution execution = new PagedExecution(parameters);
+		execution.doExecute(jpaQuery, new Object[] { new PageRequest(0, 10) });
+
+		verify(query, times(0)).getResultList();
+		verify(jpaQuery, times(0)).createQuery((Object[]) any());
 	}
 
 	public static void sampleMethod(Pageable pageable) {
