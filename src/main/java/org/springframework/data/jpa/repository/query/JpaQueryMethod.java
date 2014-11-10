@@ -57,7 +57,7 @@ public class JpaQueryMethod extends QueryMethod {
 
 	static {
 
-		Set<Class<?>> types = new HashSet<Class<?>>(4);
+		Set<Class<?>> types = new HashSet<Class<?>>();
 		types.add(byte[].class);
 		types.add(Byte[].class);
 		types.add(char[].class);
