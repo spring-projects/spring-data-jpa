@@ -106,7 +106,7 @@ public class ParameterBinder {
 
 			if (canBindParameter(parameter)) {
 
-				Object value = computeParameterValue(parameter, values[methodParameterPosition], values);
+				Object value = values[methodParameterPosition];
 
 				bind(query, parameter, value, queryParameterPosition++);
 			}

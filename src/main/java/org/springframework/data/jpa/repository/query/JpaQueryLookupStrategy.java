@@ -50,7 +50,7 @@ public final class JpaQueryLookupStrategy {
 
 		private final EntityManager em;
 		private final QueryExtractor provider;
-		protected final EvaluationContextProvider evaluationContextProvider;
+		private final EvaluationContextProvider evaluationContextProvider;
 
 		/**
 		 * Creates a new {@link AbstractQueryLookupStrategy}.
@@ -81,6 +81,10 @@ public final class JpaQueryLookupStrategy {
 		}
 
 		protected abstract RepositoryQuery resolveQuery(JpaQueryMethod method, EntityManager em, NamedQueries namedQueries);
+
+		protected EvaluationContextProvider getEvaluationContextProvider() {
+			return evaluationContextProvider;
+		}
 	}
 
 	/**
@@ -107,6 +111,7 @@ public final class JpaQueryLookupStrategy {
 						method.toString()), e);
 			}
 		}
+
 	}
 
 	/**
@@ -134,7 +139,7 @@ public final class JpaQueryLookupStrategy {
 		@Override
 		protected RepositoryQuery resolveQuery(JpaQueryMethod method, EntityManager em, NamedQueries namedQueries) {
 
-			RepositoryQuery query = JpaQueryFactory.INSTANCE.fromQueryAnnotation(method, em, this.evaluationContextProvider);
+			RepositoryQuery query = JpaQueryFactory.INSTANCE.fromQueryAnnotation(method, em, getEvaluationContextProvider());
 
 			if (null != query) {
 				return query;
@@ -149,7 +154,7 @@ public final class JpaQueryLookupStrategy {
 			String name = method.getNamedQueryName();
 			if (namedQueries.hasQuery(name)) {
 				return JpaQueryFactory.INSTANCE.fromMethodWithQueryString(method, em, namedQueries.getQuery(name),
-						this.evaluationContextProvider);
+						getEvaluationContextProvider());
 			}
 
 			query = NamedQuery.lookupFrom(method, em);

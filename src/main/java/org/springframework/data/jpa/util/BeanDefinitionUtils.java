@@ -83,10 +83,10 @@ public class BeanDefinitionUtils {
 
 				String transformedName = transformedBeanName(name);
 
-				EntityManagerFactoryBeanDefinition definition = new EntityManagerFactoryBeanDefinition();
-				definition.beanName = transformedName;
-				definition.beanFactory = beanFactory;
-				definition.beanDefinition = beanFactory.getBeanDefinition(transformedName);
+				EntityManagerFactoryBeanDefinition definition = new EntityManagerFactoryBeanDefinition( //
+						transformedName, //
+						beanFactory, //
+						beanFactory.getBeanDefinition(transformedName));
 
 				definitions.add(definition);
 			}
@@ -125,10 +125,39 @@ public class BeanDefinitionUtils {
 		}
 	}
 
+	/**
+	 * @author Oliver Gierke
+	 * @author Thomas Darimont
+	 */
 	public static class EntityManagerFactoryBeanDefinition {
 
-		public String beanName;
-		public BeanDefinition beanDefinition;
-		public BeanFactory beanFactory;
+		private final String beanName;
+		private final BeanFactory beanFactory;
+		private final BeanDefinition beanDefinition;
+
+		/**
+		 * Creates a new {@link EntityManagerFactoryBeanDefinition}.
+		 * 
+		 * @param beanName
+		 * @param beanFactory
+		 * @param beanDefinition
+		 */
+		public EntityManagerFactoryBeanDefinition(String beanName, BeanFactory beanFactory, BeanDefinition beanDefinition) {
+			this.beanName = beanName;
+			this.beanFactory = beanFactory;
+			this.beanDefinition = beanDefinition;
+		}
+
+		public String getBeanName() {
+			return beanName;
+		}
+
+		public BeanFactory getBeanFactory() {
+			return beanFactory;
+		}
+
+		public BeanDefinition getBeanDefinition() {
+			return beanDefinition;
+		}
 	}
 }
