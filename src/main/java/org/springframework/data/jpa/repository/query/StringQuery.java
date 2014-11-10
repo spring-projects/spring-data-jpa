@@ -423,7 +423,7 @@ class StringQuery {
 		 * @return
 		 */
 		public boolean hasPosition(Integer position) {
-			return position != null && this.name == null && this.position == position;
+			return position != null && this.name == null && position.equals(this.position);
 		}
 
 		/**
