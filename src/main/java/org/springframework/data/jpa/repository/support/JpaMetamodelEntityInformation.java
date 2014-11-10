@@ -207,6 +207,7 @@ public class JpaMetamodelEntityInformation<T, ID extends Serializable> extends J
 	 * Simple value object to encapsulate id specific metadata.
 	 * 
 	 * @author Oliver Gierke
+	 * @author Thomas Darimont
 	 */
 	private static class IdMetadata<T> implements Iterable<SingularAttribute<? super T, ?>> {
 
@@ -232,18 +233,21 @@ public class JpaMetamodelEntityInformation<T, ID extends Serializable> extends J
 				return idType;
 			}
 
-			Class<?> idType;
+			// lazy initialization of idType field with tolerable benign data-race
+			this.idType = tryExtractIdTypeWithFallbackToIdTypeLookup();
+
+			return this.idType;
+		}
+
+		private Class<?> tryExtractIdTypeWithFallbackToIdTypeLookup() {
 
 			try {
 				Type<?> idType2 = type.getIdType();
-				idType = idType2 == null ? fallbackIdTypeLookup(type) : idType2.getJavaType();
+				return idType2 == null ? fallbackIdTypeLookup(type) : idType2.getJavaType();
 			} catch (IllegalStateException e) {
 				// see https://hibernate.onjira.com/browse/HHH-6951
-				idType = fallbackIdTypeLookup(type);
+				return fallbackIdTypeLookup(type);
 			}
-
-			this.idType = idType;
-			return idType;
 		}
 
 		private static Class<?> fallbackIdTypeLookup(IdentifiableType<?> type) {
