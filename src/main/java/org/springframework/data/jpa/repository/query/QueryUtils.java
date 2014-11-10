@@ -92,6 +92,8 @@ public abstract class QueryUtils {
 
 	private static final Map<PersistentAttributeType, Class<? extends Annotation>> ASSOCIATION_TYPES;
 
+	private static final int QUERY_JOIN_ALIAS_GROUP_INDEX = 3;
+
 	static {
 
 		StringBuilder builder = new StringBuilder();
@@ -254,7 +256,7 @@ public abstract class QueryUtils {
 
 		while (matcher.find()) {
 
-			String alias = matcher.group(3);
+			String alias = matcher.group(QUERY_JOIN_ALIAS_GROUP_INDEX);
 			if (StringUtils.hasText(alias)) {
 				result.add(alias);
 			}
