@@ -42,8 +42,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.sample.UserRepository;
-import org.springframework.data.jpa.repository.support.DefaultJpaEntityMetadata;
-import org.springframework.data.jpa.repository.support.JpaEntityMetadata;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.DefaultEvaluationContextProvider;

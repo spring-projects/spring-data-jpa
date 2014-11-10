@@ -15,7 +15,6 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import org.springframework.data.jpa.repository.support.JpaEntityMetadata;
 import org.springframework.data.repository.core.EntityMetadata;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ParserContext;

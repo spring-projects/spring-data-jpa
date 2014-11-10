@@ -19,6 +19,7 @@ import java.io.Serializable;
 
 import javax.persistence.metamodel.SingularAttribute;
 
+import org.springframework.data.jpa.repository.query.JpaEntityMetadata;
 import org.springframework.data.repository.core.EntityInformation;
 
 /**

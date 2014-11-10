@@ -28,7 +28,6 @@ import org.springframework.data.jpa.repository.query.JpaQueryExecution.PagedExec
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.ProcedureExecution;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.SingleEntityExecution;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.SlicedExecution;
-import org.springframework.data.jpa.util.Jpa21Utils;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.util.Assert;
 

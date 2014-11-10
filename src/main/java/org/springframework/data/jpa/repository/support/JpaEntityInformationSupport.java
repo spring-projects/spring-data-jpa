@@ -21,6 +21,8 @@ import javax.persistence.EntityManager;
 import javax.persistence.metamodel.Metamodel;
 
 import org.springframework.data.domain.Persistable;
+import org.springframework.data.jpa.repository.query.DefaultJpaEntityMetadata;
+import org.springframework.data.jpa.repository.query.JpaEntityMetadata;
 import org.springframework.data.repository.core.support.AbstractEntityInformation;
 import org.springframework.util.Assert;
 

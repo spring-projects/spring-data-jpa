@@ -23,7 +23,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.springframework.data.jpa.repository.support.JpaEntityMetadata;
 
 /**
  * Unit tests for {@link ExpressionBasedStringQuery}.

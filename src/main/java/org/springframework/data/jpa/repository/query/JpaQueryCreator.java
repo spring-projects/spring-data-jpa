@@ -199,55 +199,55 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<Object>,
 			Expression<Object> path = toExpressionRecursively(root, property);
 
 			switch (part.getType()) {
-			case BETWEEN:
-				ParameterMetadata<Comparable> first = provider.next(part);
-				ParameterMetadata<Comparable> second = provider.next(part);
-				return builder.between(getComparablePath(root, part), first.getExpression(), second.getExpression());
-			case AFTER:
-			case GREATER_THAN:
-				return builder
-						.greaterThan(getComparablePath(root, part), provider.next(part, Comparable.class).getExpression());
-			case GREATER_THAN_EQUAL:
-				return builder.greaterThanOrEqualTo(getComparablePath(root, part), provider.next(part, Comparable.class)
-						.getExpression());
-			case BEFORE:
-			case LESS_THAN:
-				return builder.lessThan(getComparablePath(root, part), provider.next(part, Comparable.class).getExpression());
-			case LESS_THAN_EQUAL:
-				return builder.lessThanOrEqualTo(getComparablePath(root, part), provider.next(part, Comparable.class)
-						.getExpression());
-			case IS_NULL:
-				return path.isNull();
-			case IS_NOT_NULL:
-				return path.isNotNull();
-			case NOT_IN:
-				return path.in(provider.next(part, Collection.class).getExpression()).not();
-			case IN:
-				return path.in(provider.next(part, Collection.class).getExpression());
-			case STARTING_WITH:
-			case ENDING_WITH:
-			case CONTAINING:
-			case LIKE:
-			case NOT_LIKE:
-				Expression<String> stringPath = getTypedPath(root, part);
-				Expression<String> propertyExpression = upperIfIgnoreCase(stringPath);
-				Expression<String> parameterExpression = upperIfIgnoreCase(provider.next(part, String.class).getExpression());
-				Predicate like = builder.like(propertyExpression, parameterExpression);
-				return part.getType() == Type.NOT_LIKE ? like.not() : like;
-			case TRUE:
-				Expression<Boolean> truePath = getTypedPath(root, part);
-				return builder.isTrue(truePath);
-			case FALSE:
-				Expression<Boolean> falsePath = getTypedPath(root, part);
-				return builder.isFalse(falsePath);
-			case SIMPLE_PROPERTY:
-				ParameterMetadata<Object> expression = provider.next(part);
-				return expression.isIsNullParameter() ? path.isNull() : builder.equal(upperIfIgnoreCase(path),
-						upperIfIgnoreCase(expression.getExpression()));
-			case NEGATING_SIMPLE_PROPERTY:
-				return builder.notEqual(upperIfIgnoreCase(path), upperIfIgnoreCase(provider.next(part).getExpression()));
-			default:
-				throw new IllegalArgumentException("Unsupported keyword " + part.getType());
+				case BETWEEN:
+					ParameterMetadata<Comparable> first = provider.next(part);
+					ParameterMetadata<Comparable> second = provider.next(part);
+					return builder.between(getComparablePath(root, part), first.getExpression(), second.getExpression());
+				case AFTER:
+				case GREATER_THAN:
+					return builder.greaterThan(getComparablePath(root, part), provider.next(part, Comparable.class)
+							.getExpression());
+				case GREATER_THAN_EQUAL:
+					return builder.greaterThanOrEqualTo(getComparablePath(root, part), provider.next(part, Comparable.class)
+							.getExpression());
+				case BEFORE:
+				case LESS_THAN:
+					return builder.lessThan(getComparablePath(root, part), provider.next(part, Comparable.class).getExpression());
+				case LESS_THAN_EQUAL:
+					return builder.lessThanOrEqualTo(getComparablePath(root, part), provider.next(part, Comparable.class)
+							.getExpression());
+				case IS_NULL:
+					return path.isNull();
+				case IS_NOT_NULL:
+					return path.isNotNull();
+				case NOT_IN:
+					return path.in(provider.next(part, Collection.class).getExpression()).not();
+				case IN:
+					return path.in(provider.next(part, Collection.class).getExpression());
+				case STARTING_WITH:
+				case ENDING_WITH:
+				case CONTAINING:
+				case LIKE:
+				case NOT_LIKE:
+					Expression<String> stringPath = getTypedPath(root, part);
+					Expression<String> propertyExpression = upperIfIgnoreCase(stringPath);
+					Expression<String> parameterExpression = upperIfIgnoreCase(provider.next(part, String.class).getExpression());
+					Predicate like = builder.like(propertyExpression, parameterExpression);
+					return part.getType() == Type.NOT_LIKE ? like.not() : like;
+				case TRUE:
+					Expression<Boolean> truePath = getTypedPath(root, part);
+					return builder.isTrue(truePath);
+				case FALSE:
+					Expression<Boolean> falsePath = getTypedPath(root, part);
+					return builder.isFalse(falsePath);
+				case SIMPLE_PROPERTY:
+					ParameterMetadata<Object> expression = provider.next(part);
+					return expression.isIsNullParameter() ? path.isNull() : builder.equal(upperIfIgnoreCase(path),
+							upperIfIgnoreCase(expression.getExpression()));
+				case NEGATING_SIMPLE_PROPERTY:
+					return builder.notEqual(upperIfIgnoreCase(path), upperIfIgnoreCase(provider.next(part).getExpression()));
+				default:
+					throw new IllegalArgumentException("Unsupported keyword " + part.getType());
 			}
 		}
 
@@ -261,16 +261,24 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<Object>,
 		private <T> Expression<T> upperIfIgnoreCase(Expression<? extends T> expression) {
 
 			switch (part.shouldIgnoreCase()) {
-			case ALWAYS:
-				Assert.state(canUpperCase(expression), "Unable to ignore case of " + expression.getJavaType().getName()
-						+ " types, the property '" + part.getProperty().getSegment() + "' must reference a String");
-				return (Expression<T>) builder.upper((Expression<String>) expression);
-			case WHEN_POSSIBLE:
-				if (canUpperCase(expression)) {
+
+				case ALWAYS:
+
+					Assert.state(canUpperCase(expression), "Unable to ignore case of " + expression.getJavaType().getName()
+							+ " types, the property '" + part.getProperty().getSegment() + "' must reference a String");
 					return (Expression<T>) builder.upper((Expression<String>) expression);
-				}
+
+				case WHEN_POSSIBLE:
+
+					if (canUpperCase(expression)) {
+						return (Expression<T>) builder.upper((Expression<String>) expression);
+					}
+
+				case NEVER:
+				default:
+
+					return (Expression<T>) expression;
 			}
-			return (Expression<T>) expression;
 		}
 
 		private boolean canUpperCase(Expression<?> expression) {

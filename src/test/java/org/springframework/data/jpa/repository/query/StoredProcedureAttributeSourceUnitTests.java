@@ -30,7 +30,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.data.jpa.domain.sample.User;
-import org.springframework.data.jpa.repository.support.JpaEntityMetadata;
 import org.springframework.data.repository.query.Param;
 import org.springframework.util.ReflectionUtils;
 
