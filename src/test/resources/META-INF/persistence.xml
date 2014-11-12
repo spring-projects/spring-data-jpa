@@ -35,6 +35,7 @@
 		<class>org.springframework.data.jpa.domain.sample.SpecialUser</class>
 		<class>org.springframework.data.jpa.domain.sample.User</class>
 		<class>org.springframework.data.jpa.domain.sample.VersionedUser</class>
+		<class>org.springframework.data.jpa.domain.sample.CustomAbstractPersistable</class>
 		<exclude-unlisted-classes>true</exclude-unlisted-classes>
 	</persistence-unit>
 	<persistence-unit name="querydsl">
@@ -42,6 +43,7 @@
 		<class>org.springframework.data.jpa.domain.sample.MailSender</class>
 		<class>org.springframework.data.jpa.domain.sample.MailUser</class>
 		<class>org.springframework.data.jpa.domain.sample.User</class>
+		<class>org.springframework.data.jpa.domain.sample.CustomAbstractPersistable</class>
 		<exclude-unlisted-classes>true</exclude-unlisted-classes>
 	</persistence-unit>
 	<persistence-unit name="cdi">
@@ -83,6 +85,7 @@
 		<class>org.springframework.data.jpa.domain.sample.MailSender</class>
 		<class>org.springframework.data.jpa.domain.sample.MailUser</class>
 		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$Sample</class>
+		<class>org.springframework.data.jpa.domain.sample.CustomAbstractPersistable</class>
 		<exclude-unlisted-classes>true</exclude-unlisted-classes>
 		<properties>
 			<property name="hibernate.dialect" value="org.hibernate.dialect.HSQLDialect" />
@@ -95,6 +98,7 @@
 		<class>org.springframework.data.jpa.domain.sample.MailSender</class>
 		<class>org.springframework.data.jpa.domain.sample.MailUser</class>
 		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$Sample</class>
+		<class>org.springframework.data.jpa.domain.sample.CustomAbstractPersistable</class>
 		<exclude-unlisted-classes>true</exclude-unlisted-classes>
 	</persistence-unit>
 	<persistence-unit name="metadata_oj">
@@ -104,6 +108,7 @@
 		<class>org.springframework.data.jpa.domain.sample.MailSender</class>
 		<class>org.springframework.data.jpa.domain.sample.MailUser</class>
 		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$Sample</class>
+		<class>org.springframework.data.jpa.domain.sample.CustomAbstractPersistable</class>
 		<exclude-unlisted-classes>true</exclude-unlisted-classes>
 		<properties>
 			<property name="openjpa.jdbc.DBDictionary" value="hsql" />
