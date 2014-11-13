@@ -37,6 +37,7 @@ import org.springframework.data.querydsl.SimpleEntityPathResolver;
 import com.mysema.query.jpa.JPQLQuery;
 import com.mysema.query.jpa.impl.JPAQuery;
 import com.mysema.query.types.EntityPath;
+import com.mysema.query.types.FactoryExpression;
 import com.mysema.query.types.OrderSpecifier;
 import com.mysema.query.types.Predicate;
 import com.mysema.query.types.path.PathBuilder;
@@ -173,5 +174,16 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 		query.setHint(jpaEntityGraph.getType().getKey(), entityGraph);
 
 		return query;
+	}
+
+	@Override
+	public Page<T> findAll(FactoryExpression<T> factoryExpression, Predicate predicate, Pageable pageable) {
+		JPQLQuery countQuery = createQuery(predicate);
+		JPQLQuery query = querydsl.applyPagination(pageable, createQuery(predicate));
+
+		Long total = countQuery.count();
+		List<T> content = total > pageable.getOffset() ? query.list(factoryExpression) : Collections.<T> emptyList();
+
+		return new PageImpl<T>(content, pageable, total);
 	}
 }

@@ -18,6 +18,8 @@ package org.springframework.data.jpa.repository.support;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 
 import java.util.List;
@@ -29,6 +31,7 @@ import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -45,6 +48,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.mysema.query.types.Predicate;
+import com.mysema.query.types.Projections;
 import com.mysema.query.types.expr.BooleanExpression;
 import com.mysema.query.types.path.PathBuilder;
 import com.mysema.query.types.path.PathBuilderFactory;
@@ -327,5 +331,28 @@ public class QueryDslJpaRepositoryTests {
 		
 		assertThat(users, hasSize(3));
 		assertThat(users, hasItems(dave, carter, oliver));
+	}
+	
+	/**
+	 * @see DATAJPA-393
+	 */
+	@Test
+	public void findBySpecificationWithSortBySingularPropertyInPageableShouldUseSortNullValuesFirstWithFactoryExpression() {
+
+		QUser user = QUser.user;
+
+		Page<User> page = repository.findAll(Projections.bean(User.class, user.firstname), user.firstname.isNotNull(), new PageRequest(0, 10, new Sort(
+				Sort.Direction.ASC, "firstname")));
+
+		assertThat(page.getContent(), hasSize(3));
+		assertEquals(page.getContent().get(0).getFirstname(), "Carter");
+		assertNull(page.getContent().get(0).getLastname());
+		assertNull(page.getContent().get(0).getEmailAddress());
+		assertEquals(page.getContent().get(1).getFirstname(), "Dave");
+		assertNull(page.getContent().get(1).getLastname());
+		assertNull(page.getContent().get(1).getEmailAddress());
+		assertEquals(page.getContent().get(2).getFirstname(), "Oliver");
+		assertNull(page.getContent().get(2).getLastname());
+		assertNull(page.getContent().get(2).getEmailAddress());
 	}
 }
