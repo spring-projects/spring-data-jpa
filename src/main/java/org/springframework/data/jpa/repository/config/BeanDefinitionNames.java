@@ -23,5 +23,5 @@ package org.springframework.data.jpa.repository.config;
  */
 interface BeanDefinitionNames {
 
-	public static final String JPA_MAPPING_CONTEXT_BEAN_NAME = "jpaMapppingContext";
+	public static final String JPA_MAPPING_CONTEXT_BEAN_NAME = "jpaMappingContext";
 }
