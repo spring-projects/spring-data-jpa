@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2012 the original author or authors.
+ * Copyright 2008-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import javax.persistence.LockModeType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.QueryDslJpaPredicateExecutor;
 import org.springframework.data.jpa.repository.query.Jpa21Utils;
 import org.springframework.data.jpa.repository.query.JpaEntityGraph;
 import org.springframework.data.querydsl.EntityPathResolver;
@@ -37,6 +38,8 @@ import org.springframework.data.querydsl.SimpleEntityPathResolver;
 import com.mysema.query.jpa.JPQLQuery;
 import com.mysema.query.jpa.impl.JPAQuery;
 import com.mysema.query.types.EntityPath;
+import com.mysema.query.types.Expression;
+import com.mysema.query.types.FactoryExpression;
 import com.mysema.query.types.OrderSpecifier;
 import com.mysema.query.types.Predicate;
 import com.mysema.query.types.path.PathBuilder;
@@ -46,9 +49,10 @@ import com.mysema.query.types.path.PathBuilder;
  * {@link QueryDslPredicateExecutor}.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpaRepository<T, ID> implements
-		QueryDslPredicateExecutor<T> {
+		QueryDslJpaPredicateExecutor<T> {
 
 	private static final EntityPathResolver DEFAULT_ENTITY_PATH_RESOLVER = SimpleEntityPathResolver.INSTANCE;
 
@@ -107,10 +111,7 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 	 * @see org.springframework.data.querydsl.QueryDslPredicateExecutor#findAll(com.mysema.query.types.Predicate, com.mysema.query.types.OrderSpecifier<?>[])
 	 */
 	public List<T> findAll(Predicate predicate, OrderSpecifier<?>... orders) {
-
-		JPQLQuery query = createQuery(predicate);
-		query = querydsl.applySorting(new QSort(orders), query);
-		return query.list(path);
+		return findAll(path, predicate, orders);
 	}
 
 	/*
@@ -118,14 +119,7 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 	 * @see org.springframework.data.querydsl.QueryDslPredicateExecutor#findAll(com.mysema.query.types.Predicate, org.springframework.data.domain.Pageable)
 	 */
 	public Page<T> findAll(Predicate predicate, Pageable pageable) {
-
-		JPQLQuery countQuery = createQuery(predicate);
-		JPQLQuery query = querydsl.applyPagination(pageable, createQuery(predicate));
-
-		Long total = countQuery.count();
-		List<T> content = total > pageable.getOffset() ? query.list(path) : Collections.<T> emptyList();
-
-		return new PageImpl<T>(content, pageable, total);
+		return findAll(path, predicate, pageable);
 	}
 
 	/*
@@ -173,5 +167,47 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 		query.setHint(jpaEntityGraph.getType().getKey(), entityGraph);
 
 		return query;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.data.jpa.repository.QueryDslJpaPredicateExecutor#findAll(com.mysema.query.types.FactoryExpression, com.mysema.query.types.Predicate, org.springframework.data.domain.Pageable)
+	 */
+	@Override
+	public Page<T> findAll(FactoryExpression<T> projection, Predicate predicate, Pageable pageable) {
+		return findAll((Expression<T>) projection, predicate, pageable);
+	}
+
+	private Page<T> findAll(Expression<T> expr, Predicate predicate, Pageable pageable) {
+
+		JPQLQuery countQuery = createQuery(predicate);
+		JPQLQuery query = querydsl.applyPagination(pageable, createQuery(predicate));
+
+		Long total = countQuery.count();
+		List<T> content = total > pageable.getOffset() ? query.list(expr) : Collections.<T> emptyList();
+
+		return new PageImpl<T>(content, pageable, total);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.data.jpa.repository.QueryDslJpaPredicateExecutor#findAll(com.mysema.query.types.FactoryExpression, com.mysema.query.types.Predicate)
+	 */
+	@Override
+	public List<T> findAll(FactoryExpression<T> projection, Predicate predicate) {
+		return createQuery(predicate).list(projection);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.data.jpa.repository.QueryDslJpaPredicateExecutor#findAll(com.mysema.query.types.FactoryExpression, com.mysema.query.types.Predicate, com.mysema.query.types.OrderSpecifier[])
+	 */
+	@Override
+	public List<T> findAll(FactoryExpression<T> projection, Predicate predicate, OrderSpecifier<?>... orders) {
+		return findAll((Expression<T>) projection, predicate, orders);
+	}
+
+	private List<T> findAll(Expression<T> expr, Predicate predicate, OrderSpecifier<?>... orders) {
+
+		JPQLQuery query = createQuery(predicate);
+		query = querydsl.applySorting(new QSort(orders), query);
+		return query.list(expr);
 	}
 }

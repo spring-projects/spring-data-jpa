@@ -15,10 +15,8 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import static org.hamcrest.Matchers.hasItems;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 import java.util.List;
 
@@ -45,6 +43,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.mysema.query.types.Predicate;
+import com.mysema.query.types.Projections;
+import com.mysema.query.types.QBean;
 import com.mysema.query.types.expr.BooleanExpression;
 import com.mysema.query.types.path.PathBuilder;
 import com.mysema.query.types.path.PathBuilderFactory;
@@ -312,20 +312,108 @@ public class QueryDslJpaRepositoryTests {
 		assertThat(users, hasSize(3));
 		assertThat(users, hasItems(dave, oliver, carter));
 	}
-	
+
 	/**
 	 * @DATAJPA-566
 	 */
 	@Test
 	public void shouldSupportSortByOperatorWithDateExpressions() {
-		
+
 		carter.setDateOfBirth(new LocalDate(2000, 2, 1).toDate());
 		dave.setDateOfBirth(new LocalDate(2000, 1, 1).toDate());
 		oliver.setDateOfBirth(new LocalDate(2003, 5, 1).toDate());
-		
+
 		List<User> users = repository.findAll(QUser.user.id.goe(0), QUser.user.dateOfBirth.yearMonth().asc());
-		
+
 		assertThat(users, hasSize(3));
 		assertThat(users, hasItems(dave, carter, oliver));
+	}
+
+	/**
+	 * @see DATAJPA-393
+	 */
+	@Test
+	public void findBySpecificationWithSortBySingularPropertyInPageableShouldUseSortNullValuesFirstWithProjection() {
+
+		QUser user = QUser.user;
+
+		QBean<User> projection = Projections.bean(User.class, user.firstname);
+		Page<User> page = repository.findAll(projection, user.firstname.isNotNull(), new PageRequest(0, 10, new Sort(
+				Sort.Direction.ASC, "firstname")));
+
+		assertThat(page.getContent(), hasSize(3));
+
+		User carter = page.getContent().get(0);
+		assertEquals(carter.getFirstname(), "Carter");
+		assertNull(carter.getLastname());
+		assertNull(carter.getEmailAddress());
+
+		User dave = page.getContent().get(1);
+		assertEquals(dave.getFirstname(), "Dave");
+		assertNull(dave.getLastname());
+		assertNull(dave.getEmailAddress());
+
+		User oliver = page.getContent().get(2);
+		assertEquals(oliver.getFirstname(), "Oliver");
+		assertNull(oliver.getLastname());
+		assertNull(oliver.getEmailAddress());
+	}
+
+	/**
+	 * @see DATAJPA-393
+	 */
+	@Test
+	public void findBySpecificationWithProjection() {
+
+		QUser user = QUser.user;
+
+		QBean<User> projection = Projections.bean(User.class, user.firstname);
+		List<User> users = repository.findAll(projection, user.firstname.isNotNull());
+
+		assertThat(users, hasSize(3));
+
+		User dave = users.get(0);
+		assertEquals(dave.getFirstname(), "Dave");
+		assertNull(dave.getLastname());
+		assertNull(dave.getEmailAddress());
+
+		User carter = users.get(1);
+		assertEquals(carter.getFirstname(), "Carter");
+		assertNull(carter.getLastname());
+		assertNull(carter.getEmailAddress());
+
+		User oliver = users.get(2);
+		assertEquals(oliver.getFirstname(), "Oliver");
+		assertNull(oliver.getLastname());
+		assertNull(oliver.getEmailAddress());
+	}
+
+	/**
+	 * @see DATAJPA-393
+	 */
+	@Test
+	public void findBySpecificationWithProjectionAndOrdering() {
+
+		QUser user = QUser.user;
+
+		QBean<User> projection = Projections.bean(User.class, user.firstname);
+		List<User> users = repository.findAll(projection, user.firstname.isNotNull(), user.firstname.asc());
+
+		assertThat(users, hasSize(3));
+
+		User carter = users.get(0);
+		assertEquals(carter.getFirstname(), "Carter");
+		assertNull(carter.getLastname());
+		assertNull(carter.getEmailAddress());
+
+		User dave = users.get(1);
+		assertEquals(dave.getFirstname(), "Dave");
+		assertNull(dave.getLastname());
+		assertNull(dave.getEmailAddress());
+
+		User oliver = users.get(2);
+		assertEquals(oliver.getFirstname(), "Oliver");
+		assertNull(oliver.getLastname());
+		assertNull(oliver.getEmailAddress());
 	}
 }
