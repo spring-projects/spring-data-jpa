@@ -30,6 +30,7 @@ import org.springframework.data.repository.query.RepositoryQuery;
  * @author Thomas Darimont
  */
 final class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
+	
 
 	/**
 	 * Creates a new {@link SimpleJpaQuery} encapsulating the query annotated on the given {@link JpaQueryMethod}.
@@ -48,11 +49,16 @@ final class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
 	 * @param method must not be {@literal null}.
 	 * @param em must not be {@literal null}.
 	 * @param queryString must not be {@literal null} or empty.
+	 * @param firstResult default 0
+	 * @param maxResult default -1
 	 */
 	public SimpleJpaQuery(JpaQueryMethod method, EntityManager em, String queryString,
-			EvaluationContextProvider evaluationContextProvider) {
+			EvaluationContextProvider evaluationContextProvider, int firstResult, int maxResult) {
 
 		super(method, em, queryString, evaluationContextProvider);
+		
+		this.firstResult = firstResult;
+		this.maxResult = maxResult;
 
 		validateQuery(getQuery().getQueryString(), String.format("Validation failed for query for method %s!", method));
 
@@ -60,6 +66,18 @@ final class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
 			validateQuery(getCountQuery().getQueryString(),
 					String.format("Count query validation failed for method %s!", method));
 		}
+	}
+
+	/**
+	 * Creates a new {@link SimpleJpaQuery} that encapsulates a simple query string.
+	 * 
+	 * @param method must not be {@literal null}.
+	 * @param em must not be {@literal null}.
+	 * @param queryString must not be {@literal null} or empty.
+	 */
+	public SimpleJpaQuery(JpaQueryMethod method, EntityManager em, String queryString,
+			EvaluationContextProvider evaluationContextProvider) {
+		this(method, em, queryString, evaluationContextProvider, 0, -1);
 	}
 
 	/**

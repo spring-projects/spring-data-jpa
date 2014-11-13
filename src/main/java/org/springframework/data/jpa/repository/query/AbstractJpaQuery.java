@@ -42,6 +42,8 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 
 	private final JpaQueryMethod method;
 	private final EntityManager em;
+	protected int firstResult = 0;
+	protected int maxResult = -1;
 
 	/**
 	 * Creates a new {@link AbstractJpaQuery} from the given {@link JpaQueryMethod}.
@@ -57,6 +59,40 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 		this.method = method;
 		this.em = em;
 	}
+	
+
+	/**
+	 * @return the firstResult
+	 */
+	public int getFirstResult() {
+		return firstResult;
+	}
+
+
+	/**
+	 * @param firstResult the firstResult to set
+	 */
+	public void setFirstResult(int firstResult) {
+		this.firstResult = firstResult;
+	}
+
+
+	/**
+	 * @return the maxResult
+	 */
+	public int getMaxResult() {
+		return maxResult;
+	}
+
+
+	/**
+	 * @param maxResult the maxResult to set
+	 */
+	public void setMaxResult(int maxResult) {
+		this.maxResult = maxResult;
+	}
+
+
 
 	/*
 	 * (non-Javadoc)

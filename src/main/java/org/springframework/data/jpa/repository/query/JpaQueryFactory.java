@@ -48,9 +48,29 @@ enum JpaQueryFactory {
 			EvaluationContextProvider evaluationContextProvider) {
 
 		LOG.debug("Looking up query for method {}", queryMethod.getName());
-		return fromMethodWithQueryString(queryMethod, em, queryMethod.getAnnotatedQuery(), evaluationContextProvider);
+		return fromMethodWithQueryString(queryMethod, em, queryMethod.getAnnotatedQuery(), evaluationContextProvider, queryMethod.getAnnotatedFirstResult(), queryMethod.getAnnotatedMaxResult());
 	}
 
+	/**
+	 * Creates a {@link RepositoryQuery} from the given {@link String} query.
+	 * 
+	 * @param method must not be {@literal null}.
+	 * @param em must not be {@literal null}.
+	 * @param queryString must not be {@literal null} or empty.
+	 * @param evaluationContextProvider
+	 * @return
+	 */
+	AbstractJpaQuery fromMethodWithQueryString(JpaQueryMethod method, EntityManager em, String queryString,
+			EvaluationContextProvider evaluationContextProvider, int firstResult, int maxResult) {
+
+		if (queryString == null) {
+			return null;
+		}
+
+		return method.isNativeQuery() ? new NativeJpaQuery(method, em, queryString, evaluationContextProvider) : //
+				new SimpleJpaQuery(method, em, queryString, evaluationContextProvider, firstResult, maxResult);
+	}
+	
 	/**
 	 * Creates a {@link RepositoryQuery} from the given {@link String} query.
 	 * 

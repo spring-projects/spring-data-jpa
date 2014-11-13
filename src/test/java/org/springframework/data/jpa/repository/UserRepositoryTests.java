@@ -1752,6 +1752,45 @@ public class UserRepositoryTests {
 		assertThat(users.getContent().get(0), is(thirdUser));
 		assertThat(users.getContent().get(1), is(fourthUser));
 	}
+	
+	/**
+	 * @see DATAJPA-564
+	 */
+	@Test
+	public void findUsersByFirstnameForSpELExpressionWithFirstAndMax() {
+
+		flushTestUsers();
+		List<User> user = repository.findUsersByEmailAddressForSpELExpressionWithFirstAndMax("no@email.com");
+		assertThat(user, is(notNullValue()));
+		assertThat(user.size(), is(1));
+		assertThat(user, hasItems(secondUser));
+	}
+	
+	/**
+	 * @see DATAJPA-564
+	 */
+	@Test
+	public void findUsersByFirstnameForSpELExpressionWithFirst() {
+
+		flushTestUsers();
+		List<User> user = repository.findUsersByEmailAddressForSpELExpressionWithFirst("no@email.com");
+		assertThat(user, is(notNullValue()));
+		assertThat(user.size(), is(2));
+		assertThat(user, hasItems(secondUser, fourthUser));
+	}
+	
+	/**
+	 * @see DATAJPA-564
+	 */
+	@Test
+	public void findUsersByFirstnameForSpELExpressionWithMax() {
+
+		flushTestUsers();
+		List<User> user = repository.findUsersByEmailAddressForSpELExpressionWithMax("no@email.com");
+		assertThat(user, is(notNullValue()));
+		assertThat(user.size(), is(2));
+		assertThat(user, hasItems(firstUser, secondUser));
+	}
 
 	private Page<User> executeSpecWithSort(Sort sort) {
 

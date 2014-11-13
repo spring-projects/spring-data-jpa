@@ -265,6 +265,31 @@ public class JpaQueryMethod extends QueryMethod {
 		String annotatedName = getAnnotationValue("name", String.class);
 		return StringUtils.hasText(annotatedName) ? annotatedName : super.getNamedQueryName();
 	}
+	
+	/**
+	 * Returns the first result declared in a {@link Query} annotation or {@literal 0} if neither the annotation found
+	 * nor the attribute was specified.
+	 * 
+	 * @return
+	 */
+	int getAnnotatedFirstResult() {
+
+		Integer query = getAnnotationValue("firstResult", Integer.class);
+		return query != null ? query : 0;
+	}
+
+	/**
+	 * Returns the max result declared in a {@link Query} annotation or {@literal -1} if neither the annotation found
+	 * nor the attribute was specified.
+	 * 
+	 * @return
+	 */
+	int getAnnotatedMaxResult() {
+
+		Integer query = getAnnotationValue("maxResult", Integer.class);
+		return query != null ? query : -1;
+	}
+	
 
 	/**
 	 * Returns the name of the {@link NamedQuery} that shall be used for count queries.

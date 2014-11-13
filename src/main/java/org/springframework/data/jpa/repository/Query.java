@@ -74,4 +74,22 @@ public @interface Query {
 	 * @return
 	 */
 	String countName() default "";
+
+	/**
+	 * Skip the first number of records JPA query will return. Default to {@literal 0} which means don't skip any
+	 * records.
+	 * 
+	 * @see #firstResult()
+	 * @return
+	 */
+	int firstResult() default 0;
+
+	/**
+	 * Returns the maximum number of records JPA query will return. Default to {@literal -1} which means return all the
+	 * records.
+	 * 
+	 * @see #maxResult()
+	 * @return
+	 */
+	int maxResult() default -1;
 }

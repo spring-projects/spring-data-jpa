@@ -28,6 +28,7 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.ConfigurableConversionService;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
@@ -107,7 +108,10 @@ public abstract class JpaQueryExecution {
 
 		@Override
 		protected Object doExecute(AbstractJpaQuery query, Object[] values) {
-			return query.createQuery(values).getResultList();
+			List resultList = query.createQuery(values).getResultList();
+			int firstResult = query.getFirstResult() > 0 ? query.getFirstResult() - 1: 0;
+			int maxResult = query.getMaxResult() != -1 ? firstResult + query.getMaxResult(): resultList.size();
+			return resultList.subList(firstResult, maxResult);
 		}
 	}
 
@@ -137,10 +141,9 @@ public abstract class JpaQueryExecution {
 		@Override
 		@SuppressWarnings("unchecked")
 		protected Object doExecute(AbstractJpaQuery query, Object[] values) {
-
 			ParametersParameterAccessor accessor = new ParametersParameterAccessor(parameters, values);
 			Pageable pageable = accessor.getPageable();
-
+			
 			Query createQuery = query.createQuery(values);
 			int pageSize = pageable.getPageSize();
 			createQuery.setMaxResults(pageSize + 1);

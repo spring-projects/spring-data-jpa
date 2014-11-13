@@ -527,4 +527,22 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 			value = "select * from (select rownum() as RN, u.* from User u) where RN between ?#{ #pageable.offset -1} and ?#{#pageable.offset + #pageable.pageSize}",
 			countQuery = "select count(u.id) from User u", nativeQuery = true)
 	Page<User> findUsersInNativeQueryWithPagination(Pageable pageable);
+	
+	/**
+	 * @see DATAJPA-414
+	 */
+	@Query(value = "select u from User u where u.emailAddress != :#{#emailAddress}", firstResult = 2, maxResult = 1)
+	List<User> findUsersByEmailAddressForSpELExpressionWithFirstAndMax(@Param("emailAddress")String emailAddress);
+	
+	/**
+	 * @see DATAJPA-414
+	 */
+	@Query(value = "select u from User u where u.emailAddress != :#{#emailAddress}", firstResult = 2)
+	List<User> findUsersByEmailAddressForSpELExpressionWithFirst(@Param("emailAddress")String emailAddress);
+	
+	/**
+	 * @see DATAJPA-414
+	 */
+	@Query(value = "select u from User u where u.emailAddress != :#{#emailAddress}", maxResult = 2)
+	List<User> findUsersByEmailAddressForSpELExpressionWithMax(@Param("emailAddress")String emailAddress);
 }
