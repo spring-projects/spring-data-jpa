@@ -1754,11 +1754,10 @@ public class UserRepositoryTests {
 	}
 	
 	/**
-	 * @see DATAJPA-564
+	 * @see DATAJPA-414
 	 */
 	@Test
 	public void findUsersByFirstnameForSpELExpressionWithFirstAndMax() {
-
 		flushTestUsers();
 		List<User> user = repository.findUsersByEmailAddressForSpELExpressionWithFirstAndMax("no@email.com");
 		assertThat(user, is(notNullValue()));
@@ -1767,11 +1766,10 @@ public class UserRepositoryTests {
 	}
 	
 	/**
-	 * @see DATAJPA-564
+	 * @see DATAJPA-414
 	 */
 	@Test
 	public void findUsersByFirstnameForSpELExpressionWithFirst() {
-
 		flushTestUsers();
 		List<User> user = repository.findUsersByEmailAddressForSpELExpressionWithFirst("no@email.com");
 		assertThat(user, is(notNullValue()));
@@ -1780,11 +1778,10 @@ public class UserRepositoryTests {
 	}
 	
 	/**
-	 * @see DATAJPA-564
+	 * @see DATAJPA-414
 	 */
 	@Test
 	public void findUsersByFirstnameForSpELExpressionWithMax() {
-
 		flushTestUsers();
 		List<User> user = repository.findUsersByEmailAddressForSpELExpressionWithMax("no@email.com");
 		assertThat(user, is(notNullValue()));

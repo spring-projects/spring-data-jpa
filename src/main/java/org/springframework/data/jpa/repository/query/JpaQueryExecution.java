@@ -143,7 +143,6 @@ public abstract class JpaQueryExecution {
 		protected Object doExecute(AbstractJpaQuery query, Object[] values) {
 			ParametersParameterAccessor accessor = new ParametersParameterAccessor(parameters, values);
 			Pageable pageable = accessor.getPageable();
-			
 			Query createQuery = query.createQuery(values);
 			int pageSize = pageable.getPageSize();
 			createQuery.setMaxResults(pageSize + 1);

@@ -273,7 +273,6 @@ public class JpaQueryMethod extends QueryMethod {
 	 * @return
 	 */
 	int getAnnotatedFirstResult() {
-
 		Integer query = getAnnotationValue("firstResult", Integer.class);
 		return query != null ? query : 0;
 	}
@@ -285,7 +284,6 @@ public class JpaQueryMethod extends QueryMethod {
 	 * @return
 	 */
 	int getAnnotatedMaxResult() {
-
 		Integer query = getAnnotationValue("maxResult", Integer.class);
 		return query != null ? query : -1;
 	}
