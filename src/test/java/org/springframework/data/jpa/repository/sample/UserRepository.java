@@ -459,7 +459,7 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	 */
 	@Query("select u from User u where u.emailAddress = ?1")
 	Optional<User> findOptionalByEmailAddress(String emailAddress);
-	
+
 	/**
 	 * @see DATAJPA-564
 	 */
@@ -527,4 +527,11 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 			value = "select * from (select rownum() as RN, u.* from User u) where RN between ?#{ #pageable.offset -1} and ?#{#pageable.offset + #pageable.pageSize}",
 			countQuery = "select count(u.id) from User u", nativeQuery = true)
 	Page<User> findUsersInNativeQueryWithPagination(Pageable pageable);
+
+	/**
+	 * @see DATAJPA-629
+	 */
+	@Query("select u from #{#entityName} u where u.firstname = ?#{[0]} and u.lastname = ?#{[1]}")
+	List<User> findUsersByFirstnameForSpELExpressionWithParameterIndexOnlyWithEntityExpression(String firstname,
+			String lastname);
 }

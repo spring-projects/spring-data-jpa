@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 package org.springframework.data.jpa.repository.query;
+
+import java.util.regex.Pattern;
 
 import org.springframework.data.repository.core.EntityMetadata;
 import org.springframework.expression.Expression;
@@ -34,6 +36,13 @@ import org.springframework.util.Assert;
  * @author Oliver Gierke
  */
 class ExpressionBasedStringQuery extends StringQuery {
+
+	private static final String EXPRESSION_PARAMETER = "?#{";
+	private static final String QUOTED_EXPRESSION_PARAMETER = "?__HASH__{";
+
+	private static final Pattern EXPRESSION_PARAMETER_QUOTING = Pattern.compile(Pattern.quote(EXPRESSION_PARAMETER));
+	private static final Pattern EXPRESSION_PARAMETER_UNQUOTING = Pattern.compile(Pattern
+			.quote(QUOTED_EXPRESSION_PARAMETER));
 
 	private static final String ENTITY_NAME = "entityName";
 	private static final String ENTITY_NAME_VARIABLE = "#" + ENTITY_NAME;
@@ -70,10 +79,25 @@ class ExpressionBasedStringQuery extends StringQuery {
 		StandardEvaluationContext evalContext = new StandardEvaluationContext();
 		evalContext.setVariable(ENTITY_NAME, metadata.getEntityName());
 
+		query = potentiallyQuoteExpressionsParameter(query);
+
 		Expression expr = parser.parseExpression(query, ParserContext.TEMPLATE_EXPRESSION);
 
-		Object result = expr.getValue(evalContext, String.class);
-		return result == null ? query : String.valueOf(result);
+		String result = expr.getValue(evalContext, String.class);
+
+		if (result == null) {
+			return query;
+		}
+
+		return potentiallyUnquoteParameterExpressions(result);
+	}
+
+	private static String potentiallyUnquoteParameterExpressions(String result) {
+		return EXPRESSION_PARAMETER_UNQUOTING.matcher(result).replaceAll(EXPRESSION_PARAMETER);
+	}
+
+	private static String potentiallyQuoteExpressionsParameter(String query) {
+		return EXPRESSION_PARAMETER_QUOTING.matcher(query).replaceAll(QUOTED_EXPRESSION_PARAMETER);
 	}
 
 	private static boolean containsExpression(String query) {
