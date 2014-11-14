@@ -7,11 +7,13 @@ import java.lang.reflect.Method;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.ParameterExpression;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.data.jpa.domain.sample.User;
+import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.repository.query.DefaultParameters;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
@@ -42,7 +44,9 @@ public class ParameterExpressionProviderTests {
 		ParametersParameterAccessor accessor = new ParametersParameterAccessor(parameters, new Object[] { 1 });
 		Part part = new Part("IdGreaterThan", User.class);
 
-		ParameterMetadataProvider provider = new ParameterMetadataProvider(em.getCriteriaBuilder(), accessor);
+		CriteriaBuilder builder = em.getCriteriaBuilder();
+		PersistenceProvider persistenceProvider = PersistenceProvider.fromEntityManager(em);
+		ParameterMetadataProvider provider = new ParameterMetadataProvider(builder, accessor, persistenceProvider);
 		ParameterExpression<? extends Comparable> expression = provider.next(part, Comparable.class).getExpression();
 		assertThat(expression.getParameterType(), is(typeCompatibleWith(int.class)));
 	}

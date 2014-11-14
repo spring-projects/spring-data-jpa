@@ -19,6 +19,7 @@ import static org.springframework.data.jpa.provider.JpaClassUtils.*;
 import static org.springframework.data.jpa.provider.PersistenceProvider.Constants.*;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 
 import javax.persistence.EntityManager;
@@ -85,6 +86,14 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 		public Object getIdentifierFrom(Object entity) {
 			return ((HibernateProxy) entity).getHibernateLazyInitializer().getIdentifier();
 		}
+
+		/* (non-Javadoc)
+		 * @see org.springframework.data.jpa.provider.PersistenceProvider#potentiallyConvertEmptyCollection(java.util.Collection)
+		 */
+		@Override
+		public <T> Collection<T> potentiallyConvertEmptyCollection(Collection<T> collection) {
+			return collection == null || collection.isEmpty() ? null : collection;
+		}
 	},
 
 	/**
@@ -113,6 +122,14 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 		@Override
 		public Object getIdentifierFrom(Object entity) {
 			return null;
+		}
+
+		/* (non-Javadoc)
+		 * @see org.springframework.data.jpa.provider.PersistenceProvider#potentiallyConvertEmptyCollection(java.util.Collection)
+		 */
+		@Override
+		public <T> Collection<T> potentiallyConvertEmptyCollection(Collection<T> collection) {
+			return collection == null || collection.isEmpty() ? null : collection;
 		}
 	},
 
@@ -280,5 +297,17 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 	 */
 	public String getCountQueryPlaceholder() {
 		return "x";
+	}
+
+	/**
+	 * Potentially converts an empty collection to the appropriate representation of this {@link PersistenceProvider},
+	 * since some JPA providers cannot correctly handle empty collections.
+	 * 
+	 * @see DATAJPA-606
+	 * @param collection
+	 * @return
+	 */
+	public <T> Collection<T> potentiallyConvertEmptyCollection(Collection<T> collection) {
+		return collection;
 	}
 }
