@@ -15,10 +15,9 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import org.springframework.data.repository.query.EvaluationContextProvider;
+import org.springframework.data.jpa.support.SpelParserAwareEvaluationContextProvider;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.util.Assert;
 
@@ -29,7 +28,7 @@ import org.springframework.util.Assert;
  */
 class ExpressionAwareParameterBinder extends ParameterBinder {
 
-	private final EvaluationContextProvider evaluationContextProvider;
+	private final SpelParserAwareEvaluationContextProvider evaluationContextProvider;
 
 	/**
 	 * Creates a new {@literal ExpressionAwareParameterBinder}.
@@ -37,7 +36,8 @@ class ExpressionAwareParameterBinder extends ParameterBinder {
 	 * @param parameters
 	 * @param evaluationContextProvider must not be {@literal null}.
 	 */
-	public ExpressionAwareParameterBinder(JpaParameters parameters, EvaluationContextProvider evaluationContextProvider) {
+	public ExpressionAwareParameterBinder(JpaParameters parameters,
+			SpelParserAwareEvaluationContextProvider evaluationContextProvider) {
 		this(parameters, new Object[0], evaluationContextProvider);
 	}
 
@@ -49,7 +49,7 @@ class ExpressionAwareParameterBinder extends ParameterBinder {
 	 * @param evaluationContextProvider must not be {@literal null}.
 	 */
 	public ExpressionAwareParameterBinder(JpaParameters parameters, Object[] values,
-			EvaluationContextProvider evaluationContextProvider) {
+			SpelParserAwareEvaluationContextProvider evaluationContextProvider) {
 
 		super(parameters, values);
 
@@ -65,7 +65,7 @@ class ExpressionAwareParameterBinder extends ParameterBinder {
 	 * @return
 	 */
 	protected Expression parseExpressionString(String expressionString) {
-		return new SpelExpressionParser().parseExpression(expressionString);
+		return evaluationContextProvider.getParser().parseExpression(expressionString);
 	}
 
 	/**

@@ -22,7 +22,7 @@ import javax.persistence.Query;
 import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
 import org.springframework.data.jpa.repository.query.StringQuery.LikeParameterBinding;
 import org.springframework.data.jpa.repository.query.StringQuery.ParameterBinding;
-import org.springframework.data.repository.query.EvaluationContextProvider;
+import org.springframework.data.jpa.support.SpelParserAwareEvaluationContextProvider;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.util.Assert;
@@ -47,7 +47,7 @@ public class StringQueryParameterBinder extends ExpressionAwareParameterBinder {
 	 * @param evaluationContextProvider must not be {@literal null}.
 	 */
 	public StringQueryParameterBinder(JpaParameters parameters, Object[] values, StringQuery query,
-			EvaluationContextProvider evaluationContextProvider) {
+			SpelParserAwareEvaluationContextProvider evaluationContextProvider) {
 
 		super(parameters, values, evaluationContextProvider);
 
