@@ -43,8 +43,10 @@ import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.data.repository.core.RepositoryMetadata;
-import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.DefaultEvaluationContextProvider;
+import org.springframework.data.repository.query.EvaluationContextProvider;
+import org.springframework.data.repository.query.RepositoryQuery;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 
 /**
  * Unit test for {@link SimpleJpaQuery}.
@@ -56,6 +58,8 @@ import org.springframework.data.repository.query.DefaultEvaluationContextProvide
 public class SimpleJpaQueryUnitTests {
 
 	static final String USER_QUERY = "select u from User u";
+	static final SpelExpressionParser PARSER = new SpelExpressionParser();
+	private static final EvaluationContextProvider EVALUATION_CONTEXT_PROVIDER = DefaultEvaluationContextProvider.INSTANCE;
 
 	JpaQueryMethod method;
 
@@ -94,8 +98,8 @@ public class SimpleJpaQueryUnitTests {
 		when(method.getEntityInformation()).thenReturn((JpaEntityMetadata) new DefaultJpaEntityMetadata<User>(User.class));
 		when(em.createQuery("foo", Long.class)).thenReturn(query);
 
-		SimpleJpaQuery jpaQuery = new SimpleJpaQuery(method, em, "select u from User u",
-				DefaultEvaluationContextProvider.INSTANCE);
+		SimpleJpaQuery jpaQuery = new SimpleJpaQuery(method, em, "select u from User u", EVALUATION_CONTEXT_PROVIDER,
+				PARSER);
 
 		assertThat(jpaQuery.createCountQuery(new Object[] {}), is(query));
 	}
@@ -112,7 +116,7 @@ public class SimpleJpaQueryUnitTests {
 		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, extractor);
 
 		AbstractJpaQuery jpaQuery = new SimpleJpaQuery(queryMethod, em, "select u from User u",
-				DefaultEvaluationContextProvider.INSTANCE);
+				EVALUATION_CONTEXT_PROVIDER, PARSER);
 		jpaQuery.createCountQuery(new Object[] { new PageRequest(1, 10) });
 
 		verify(query, times(0)).setFirstResult(anyInt());
@@ -126,7 +130,7 @@ public class SimpleJpaQueryUnitTests {
 		Method method = SampleRepository.class.getMethod("findNativeByLastname", String.class);
 		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, extractor);
 		AbstractJpaQuery jpaQuery = JpaQueryFactory.INSTANCE.fromQueryAnnotation(queryMethod, em,
-				DefaultEvaluationContextProvider.INSTANCE);
+				EVALUATION_CONTEXT_PROVIDER);
 
 		assertThat(jpaQuery instanceof NativeJpaQuery, is(true));
 
@@ -207,8 +211,7 @@ public class SimpleJpaQueryUnitTests {
 	private RepositoryQuery createJpaQuery(Method method) {
 
 		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, extractor);
-		return JpaQueryFactory.INSTANCE.fromQueryAnnotation(queryMethod, em,
-				DefaultEvaluationContextProvider.INSTANCE);
+		return JpaQueryFactory.INSTANCE.fromQueryAnnotation(queryMethod, em, EVALUATION_CONTEXT_PROVIDER);
 	}
 
 	interface SampleRepository {

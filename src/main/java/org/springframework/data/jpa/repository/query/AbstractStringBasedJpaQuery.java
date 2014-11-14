@@ -22,6 +22,7 @@ import javax.persistence.TypedQuery;
 import org.springframework.data.repository.query.EvaluationContextProvider;
 import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.util.Assert;
 
 /**
@@ -35,6 +36,7 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 	private final StringQuery query;
 	private final StringQuery countQuery;
 	private final EvaluationContextProvider evaluationContextProvider;
+	private final SpelExpressionParser parser;
 
 	/**
 	 * Creates a new {@link AbstractStringBasedJpaQuery} from the given {@link JpaQueryMethod}, {@link EntityManager} and
@@ -44,19 +46,22 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 	 * @param em must not be {@literal null}.
 	 * @param queryString must not be {@literal null}.
 	 * @param evaluationContextProvider must not be {@literal null}.
+	 * @param parser must not be {@literal null}.
 	 */
 	public AbstractStringBasedJpaQuery(JpaQueryMethod method, EntityManager em, String queryString,
-			EvaluationContextProvider evaluationContextProvider) {
+			EvaluationContextProvider evaluationContextProvider, SpelExpressionParser parser) {
 
 		super(method, em);
 
 		Assert.hasText(queryString, "Query string must not be null or empty!");
 		Assert.notNull(evaluationContextProvider, "ExpressionEvaluationContextProvider must not be null!");
+		Assert.notNull(parser, "Parser must not be null or empty!");
 
 		this.evaluationContextProvider = evaluationContextProvider;
-		this.query = new ExpressionBasedStringQuery(queryString, method.getEntityInformation());
+		this.query = new ExpressionBasedStringQuery(queryString, method.getEntityInformation(), parser);
 		this.countQuery = new StringQuery(method.getCountQuery() != null ? method.getCountQuery()
 				: QueryUtils.createCountQueryFor(this.query.getQueryString(), method.getCountQueryProjection()));
+		this.parser = parser;
 	}
 
 	/*
@@ -81,7 +86,7 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 	@Override
 	protected ParameterBinder createBinder(Object[] values) {
 		return new SpelExpressionStringQueryParameterBinder(getQueryMethod().getParameters(), values, query,
-				evaluationContextProvider);
+				evaluationContextProvider, parser);
 	}
 
 	/**

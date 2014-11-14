@@ -40,8 +40,9 @@ import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.core.NamedQueries;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.core.support.DefaultRepositoryMetadata;
-import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.data.repository.query.DefaultEvaluationContextProvider;
+import org.springframework.data.repository.query.EvaluationContextProvider;
+import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.data.repository.query.QueryLookupStrategy.Key;
 
 /**
@@ -53,6 +54,7 @@ import org.springframework.data.repository.query.QueryLookupStrategy.Key;
 @RunWith(MockitoJUnitRunner.class)
 public class JpaQueryLookupStrategyUnitTests {
 
+	private static final EvaluationContextProvider EVALUATION_CONTEXT_PROVIDER = DefaultEvaluationContextProvider.INSTANCE;
 	@Mock EntityManager em;
 	@Mock EntityManagerFactory emf;
 	@Mock QueryExtractor extractor;
@@ -74,7 +76,7 @@ public class JpaQueryLookupStrategyUnitTests {
 	public void invalidAnnotatedQueryCausesException() throws Exception {
 
 		QueryLookupStrategy strategy = JpaQueryLookupStrategy.create(em, Key.CREATE_IF_NOT_FOUND, extractor,
-				DefaultEvaluationContextProvider.INSTANCE);
+				EVALUATION_CONTEXT_PROVIDER);
 		Method method = UserRepository.class.getMethod("findByFoo", String.class);
 		RepositoryMetadata metadata = new DefaultRepositoryMetadata(UserRepository.class);
 
@@ -96,7 +98,7 @@ public class JpaQueryLookupStrategyUnitTests {
 	public void sholdThrowMorePreciseExceptionIfTryingToUsePaginationInNativeQueries() throws Exception {
 
 		QueryLookupStrategy strategy = JpaQueryLookupStrategy.create(em, Key.CREATE_IF_NOT_FOUND, extractor,
-				DefaultEvaluationContextProvider.INSTANCE);
+				EVALUATION_CONTEXT_PROVIDER);
 		Method method = UserRepository.class.getMethod("findByInvalidNativeQuery", String.class, Pageable.class);
 		RepositoryMetadata metadata = new DefaultRepositoryMetadata(UserRepository.class);
 
