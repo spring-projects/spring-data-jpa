@@ -19,9 +19,9 @@ import java.lang.reflect.Method;
 
 import javax.persistence.EntityManager;
 
+import org.springframework.data.jpa.support.SpelParserAwareEvaluationContextProvider;
 import org.springframework.data.repository.core.NamedQueries;
 import org.springframework.data.repository.core.RepositoryMetadata;
-import org.springframework.data.repository.query.EvaluationContextProvider;
 import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.data.repository.query.QueryLookupStrategy.Key;
 import org.springframework.data.repository.query.RepositoryQuery;
@@ -109,7 +109,7 @@ public final class JpaQueryLookupStrategy {
 	 */
 	private static class DeclaredQueryLookupStrategy extends AbstractQueryLookupStrategy {
 
-		private final EvaluationContextProvider evaluationContextProvider;
+		private final SpelParserAwareEvaluationContextProvider evaluationContextProvider;
 
 		/**
 		 * Creates a new {@link DeclaredQueryLookupStrategy}.
@@ -119,7 +119,7 @@ public final class JpaQueryLookupStrategy {
 		 * @param evaluationContextProvider
 		 */
 		public DeclaredQueryLookupStrategy(EntityManager em, QueryExtractor extractor,
-				EvaluationContextProvider evaluationContextProvider) {
+				SpelParserAwareEvaluationContextProvider evaluationContextProvider) {
 
 			super(em, extractor);
 			this.evaluationContextProvider = evaluationContextProvider;
@@ -217,7 +217,7 @@ public final class JpaQueryLookupStrategy {
 	 * @return
 	 */
 	public static QueryLookupStrategy create(EntityManager em, Key key, QueryExtractor extractor,
-			EvaluationContextProvider evaluationContextProvider) {
+			SpelParserAwareEvaluationContextProvider evaluationContextProvider) {
 
 		Assert.notNull(em, "EntityManager must not be null!");
 		Assert.notNull(extractor, "QueryExtractor must not be null!");

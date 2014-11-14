@@ -24,6 +24,7 @@ import javax.persistence.EntityManager;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.query.JpaQueryLookupStrategy;
 import org.springframework.data.jpa.repository.query.QueryExtractor;
+import org.springframework.data.jpa.support.SpelParserAwareEvaluationContextProvider;
 import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.core.support.RepositoryFactorySupport;
@@ -128,7 +129,8 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	 */
 	@Override
 	protected QueryLookupStrategy getQueryLookupStrategy(Key key, EvaluationContextProvider evaluationContextProvider) {
-		return JpaQueryLookupStrategy.create(entityManager, key, extractor, evaluationContextProvider);
+		return JpaQueryLookupStrategy.create(entityManager, key, extractor, new SpelParserAwareEvaluationContextProvider(
+				evaluationContextProvider));
 	}
 
 	/*

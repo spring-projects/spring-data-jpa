@@ -19,7 +19,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 
-import org.springframework.data.repository.query.EvaluationContextProvider;
+import org.springframework.data.jpa.support.SpelParserAwareEvaluationContextProvider;
 import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.util.Assert;
@@ -34,7 +34,7 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 
 	private final StringQuery query;
 	private final StringQuery countQuery;
-	private final EvaluationContextProvider evaluationContextProvider;
+	private final SpelParserAwareEvaluationContextProvider evaluationContextProvider;
 
 	/**
 	 * Creates a new {@link AbstractStringBasedJpaQuery} from the given {@link JpaQueryMethod}, {@link EntityManager} and
@@ -46,7 +46,7 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 	 * @param evaluationContextProvider must not be {@literal null}.
 	 */
 	public AbstractStringBasedJpaQuery(JpaQueryMethod method, EntityManager em, String queryString,
-			EvaluationContextProvider evaluationContextProvider) {
+			SpelParserAwareEvaluationContextProvider evaluationContextProvider) {
 
 		super(method, em);
 
@@ -54,7 +54,8 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 		Assert.notNull(evaluationContextProvider, "ExpressionEvaluationContextProvider must not be null!");
 
 		this.evaluationContextProvider = evaluationContextProvider;
-		this.query = new ExpressionBasedStringQuery(queryString, method.getEntityInformation());
+		this.query = new ExpressionBasedStringQuery(queryString, method.getEntityInformation(),
+				evaluationContextProvider.getParser());
 		this.countQuery = new StringQuery(method.getCountQuery() != null ? method.getCountQuery()
 				: QueryUtils.createCountQueryFor(this.query.getQueryString(), method.getCountQueryProjection()));
 	}
