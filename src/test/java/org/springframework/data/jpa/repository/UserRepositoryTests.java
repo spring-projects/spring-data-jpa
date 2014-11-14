@@ -1753,6 +1753,20 @@ public class UserRepositoryTests {
 		assertThat(users.getContent().get(1), is(fourthUser));
 	}
 
+	/**
+	 * @see DATAJPA-629
+	 */
+	@Test
+	public void shouldfindUsersBySpELExpressionParametersWithSpelTemplateExpression() {
+
+		flushTestUsers();
+		List<User> users = repository.findUsersByFirstnameForSpELExpressionWithParameterIndexOnlyWithEntityExpression(
+				"Joachim", "Arrasz");
+
+		assertThat(users, hasSize(1));
+		assertThat(users.get(0), is(secondUser));
+	}
+
 	private Page<User> executeSpecWithSort(Sort sort) {
 
 		flushTestUsers();
