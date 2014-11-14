@@ -21,6 +21,7 @@ import javax.persistence.Query;
 import org.springframework.data.repository.query.EvaluationContextProvider;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.RepositoryQuery;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 
 /**
  * {@link RepositoryQuery} implementation that inspects a {@link org.springframework.data.repository.query.QueryMethod}
@@ -40,9 +41,9 @@ final class NativeJpaQuery extends AbstractStringBasedJpaQuery {
 	 * @param evaluationContextProvider
 	 */
 	public NativeJpaQuery(JpaQueryMethod method, EntityManager em, String queryString,
-			EvaluationContextProvider evaluationContextProvider) {
+			EvaluationContextProvider evaluationContextProvider, SpelExpressionParser parser) {
 
-		super(method, em, queryString, evaluationContextProvider);
+		super(method, em, queryString, evaluationContextProvider, parser);
 
 		Parameters<?, ?> parameters = method.getParameters();
 		boolean hasPagingOrSortingParameter = parameters.hasPageableParameter() || parameters.hasSortParameter();

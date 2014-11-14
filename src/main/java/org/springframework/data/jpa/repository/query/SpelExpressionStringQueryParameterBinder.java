@@ -15,11 +15,17 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import java.util.List;
+
 import javax.persistence.Query;
 
+import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
 import org.springframework.data.jpa.repository.query.StringQuery.ParameterBinding;
 import org.springframework.data.repository.query.EvaluationContextProvider;
+import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.util.Assert;
 
 /**
@@ -30,6 +36,8 @@ import org.springframework.util.Assert;
 class SpelExpressionStringQueryParameterBinder extends StringQueryParameterBinder {
 
 	private final StringQuery query;
+	private final EvaluationContextProvider evaluationContextProvider;
+	private final SpelExpressionParser parser;
 
 	/**
 	 * Creates a new {@link SpelExpressionStringQueryParameterBinder}.
@@ -38,18 +46,22 @@ class SpelExpressionStringQueryParameterBinder extends StringQueryParameterBinde
 	 * @param values must not be {@literal null}
 	 * @param query must not be {@literal null}
 	 * @param evaluationContextProvider must not be {@literal null}
+	 * @param parser must not be {@literal null}
 	 */
 	public SpelExpressionStringQueryParameterBinder(JpaParameters parameters, Object[] values, StringQuery query,
-			EvaluationContextProvider evaluationContextProvider) {
+			EvaluationContextProvider evaluationContextProvider, SpelExpressionParser parser) {
 
-		super(parameters, values, query, evaluationContextProvider);
-
+		super(parameters, values, query);
 		Assert.notNull(evaluationContextProvider, "EvaluationContextProvider must not be null!");
+		Assert.notNull(parser, "SpelExpressionParser must not be null!");
 
+		this.evaluationContextProvider = evaluationContextProvider;
 		this.query = query;
+		this.parser = parser;
 	}
 
-	/* (non-Javadoc)
+	/* 
+	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.query.ParameterBinder#bind(javax.persistence.Query)
 	 */
 	@Override
@@ -83,11 +95,9 @@ class SpelExpressionStringQueryParameterBinder extends StringQueryParameterBinde
 						jpaQuery.setParameter(binding.getPosition(), binding.prepare(value));
 					}
 				} catch (IllegalArgumentException iae) {
-					/*
-					 * Since Eclipse doesn't reliably report whether a query has parameters 
-					 * we simply try to set the parameters and ignore possible failures.
-					 * 
-					 */
+
+					// Since Eclipse doesn't reliably report whether a query has parameters
+					// we simply try to set the parameters and ignore possible failures.
 				}
 			}
 		}
@@ -99,5 +109,63 @@ class SpelExpressionStringQueryParameterBinder extends StringQueryParameterBinde
 
 		String className = jpaQuery.getClass().getName();
 		return className.startsWith("org.apache.openjpa") || className.startsWith("org.hibernate");
+	}
+
+	/**
+	 * Parses the given {@code expressionString} into a SpEL {@link Expression}.
+	 * 
+	 * @param expressionString
+	 * @return
+	 */
+	private Expression parseExpressionString(String expressionString) {
+		return parser.parseExpression(expressionString);
+	}
+
+	/**
+	 * Evaluates the given SpEL {@link Expression}.
+	 * 
+	 * @param expr
+	 * @return
+	 */
+	private Object evaluateExpression(Expression expr) {
+		return expr.getValue(getEvaluationContext(), Object.class);
+	}
+
+	/**
+	 * Returns the {@link StandardEvaluationContext} to use for evaluation.
+	 * 
+	 * @return
+	 */
+	private EvaluationContext getEvaluationContext() {
+		return evaluationContextProvider.getEvaluationContext(getParameters(), getValues());
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.jpa.repository.query.ParameterBinder#canBindParameter(org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter)
+	 */
+	@Override
+	protected boolean canBindParameter(JpaParameter parameter) {
+
+		List<ParameterBinding> parameterBindings = query.getParameterBindings();
+
+		// if no parameter bindings are present, we simply rely on the check in super.
+		if (parameterBindings.isEmpty()) {
+			return super.canBindParameter(parameter);
+		}
+
+		// otherwise determine whether there are any non expression parameters left to be bound.
+		int expressionParameterCount = 0;
+		for (ParameterBinding binding : parameterBindings) {
+
+			if (binding.isExpression()) {
+				expressionParameterCount++;
+			}
+		}
+
+		boolean allParametersAreUsedInExpressions = parameterBindings.size() - expressionParameterCount == 0;
+
+		// if all parameters are used in expressions, then we can skip their bindings now, since they'll get bound later.
+		return !allParametersAreUsedInExpressions && super.canBindParameter(parameter);
 	}
 }
