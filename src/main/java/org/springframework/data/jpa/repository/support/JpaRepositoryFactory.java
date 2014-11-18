@@ -24,7 +24,6 @@ import javax.persistence.EntityManager;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.query.JpaQueryLookupStrategy;
 import org.springframework.data.jpa.repository.query.QueryExtractor;
-import org.springframework.data.jpa.support.SpelParserAwareEvaluationContextProvider;
 import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.core.support.RepositoryFactorySupport;
@@ -35,7 +34,7 @@ import org.springframework.util.Assert;
 
 /**
  * JPA specific generic repository factory.
- * 
+ *
  * @author Oliver Gierke
  */
 public class JpaRepositoryFactory extends RepositoryFactorySupport {
@@ -46,7 +45,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 
 	/**
 	 * Creates a new {@link JpaRepositoryFactory}.
-	 * 
+	 *
 	 * @param entityManager must not be {@literal null}
 	 */
 	public JpaRepositoryFactory(EntityManager entityManager) {
@@ -75,7 +74,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 
 	/**
 	 * Callback to create a {@link JpaRepository} instance with the given {@link EntityManager}
-	 * 
+	 *
 	 * @param <T>
 	 * @param <ID>
 	 * @param entityManager
@@ -97,7 +96,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * org.springframework.data.repository.support.RepositoryFactorySupport#
 	 * getRepositoryBaseClass()
@@ -114,7 +113,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 
 	/**
 	 * Returns whether the given repository interface requires a QueryDsl specific implementation to be chosen.
-	 * 
+	 *
 	 * @param repositoryInterface
 	 * @return
 	 */
@@ -123,19 +122,18 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 		return QUERY_DSL_PRESENT && QueryDslPredicateExecutor.class.isAssignableFrom(repositoryInterface);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.core.support.RepositoryFactorySupport#getQueryLookupStrategy(org.springframework.data.repository.query.QueryLookupStrategy.Key, org.springframework.data.repository.query.EvaluationContextProvider)
 	 */
 	@Override
 	protected QueryLookupStrategy getQueryLookupStrategy(Key key, EvaluationContextProvider evaluationContextProvider) {
-		return JpaQueryLookupStrategy.create(entityManager, key, extractor, new SpelParserAwareEvaluationContextProvider(
-				evaluationContextProvider));
+		return JpaQueryLookupStrategy.create(entityManager, key, extractor, evaluationContextProvider);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * org.springframework.data.repository.support.RepositoryFactorySupport#
 	 * getEntityInformation(java.lang.Class)

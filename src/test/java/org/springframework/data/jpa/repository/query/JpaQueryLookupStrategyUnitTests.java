@@ -36,26 +36,25 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.jpa.support.SpelParserAwareEvaluationContextProvider;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.core.NamedQueries;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.core.support.DefaultRepositoryMetadata;
 import org.springframework.data.repository.query.DefaultEvaluationContextProvider;
+import org.springframework.data.repository.query.EvaluationContextProvider;
 import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.data.repository.query.QueryLookupStrategy.Key;
 
 /**
  * Unit tests for {@link JpaQueryLookupStrategy}.
- * 
+ *
  * @author Oliver Gierke
  * @author Thomas Darimont
  */
 @RunWith(MockitoJUnitRunner.class)
 public class JpaQueryLookupStrategyUnitTests {
 
-	private static final SpelParserAwareEvaluationContextProvider EVALUATION_CONTEXT_PROVIDER = new SpelParserAwareEvaluationContextProvider(
-			DefaultEvaluationContextProvider.INSTANCE);
+	private static final EvaluationContextProvider EVALUATION_CONTEXT_PROVIDER = DefaultEvaluationContextProvider.INSTANCE;
 	@Mock EntityManager em;
 	@Mock EntityManagerFactory emf;
 	@Mock QueryExtractor extractor;

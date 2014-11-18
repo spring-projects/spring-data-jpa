@@ -18,35 +18,43 @@ package org.springframework.data.jpa.repository.query;
 import javax.persistence.Query;
 
 import org.springframework.data.jpa.repository.query.StringQuery.ParameterBinding;
-import org.springframework.data.jpa.support.SpelParserAwareEvaluationContextProvider;
+import org.springframework.data.repository.query.EvaluationContextProvider;
+import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.util.Assert;
 
 /**
  * A {@link StringQueryParameterBinder} that is able to bind synthetic query parameters.
- * 
+ *
  * @author Thomas Darimont
  */
 class SpelExpressionStringQueryParameterBinder extends StringQueryParameterBinder {
 
 	private final StringQuery query;
+	private final EvaluationContextProvider evaluationContextProvider;
+	private final SpelExpressionParser parser;
 
 	/**
 	 * Creates a new {@link SpelExpressionStringQueryParameterBinder}.
-	 * 
+	 *
 	 * @param parameters must not be {@literal null}
 	 * @param values must not be {@literal null}
 	 * @param query must not be {@literal null}
 	 * @param evaluationContextProvider must not be {@literal null}
+	 * @param parser must not be {@literal null}
 	 */
 	public SpelExpressionStringQueryParameterBinder(JpaParameters parameters, Object[] values, StringQuery query,
-			SpelParserAwareEvaluationContextProvider evaluationContextProvider) {
+			EvaluationContextProvider evaluationContextProvider, SpelExpressionParser parser) {
 
-		super(parameters, values, query, evaluationContextProvider);
-
+		super(parameters, values, query);
 		Assert.notNull(evaluationContextProvider, "EvaluationContextProvider must not be null!");
+		Assert.notNull(parser, "SpelExpressionParser must not be null!");
 
+		this.evaluationContextProvider = evaluationContextProvider;
 		this.query = query;
+		this.parser = parser;
 	}
 
 	/* (non-Javadoc)
@@ -84,9 +92,9 @@ class SpelExpressionStringQueryParameterBinder extends StringQueryParameterBinde
 					}
 				} catch (IllegalArgumentException iae) {
 					/*
-					 * Since Eclipse doesn't reliably report whether a query has parameters 
+					 * Since Eclipse doesn't reliably report whether a query has parameters
 					 * we simply try to set the parameters and ignore possible failures.
-					 * 
+					 *
 					 */
 				}
 			}
@@ -99,5 +107,44 @@ class SpelExpressionStringQueryParameterBinder extends StringQueryParameterBinde
 
 		String className = jpaQuery.getClass().getName();
 		return className.startsWith("org.apache.openjpa") || className.startsWith("org.hibernate");
+	}
+
+	/**
+	 * Parses the given {@code expressionString} into a SpEL {@link Expression}.
+	 *
+	 * @param expressionString
+	 * @return
+	 */
+	protected Expression parseExpressionString(String expressionString) {
+		return parser.parseExpression(expressionString);
+	}
+
+	/**
+	 * Evaluates the given {@code expressionString} as a SpEL {@link Expression}.
+	 *
+	 * @param expressionString
+	 * @return
+	 */
+	protected Object evaluateExpression(String expressionString) {
+		return evaluateExpression(parseExpressionString(expressionString));
+	}
+
+	/**
+	 * Evaluates the given SpEL {@link Expression}.
+	 *
+	 * @param expr
+	 * @return
+	 */
+	protected Object evaluateExpression(Expression expr) {
+		return expr.getValue(getEvaluationContext(), Object.class);
+	}
+
+	/**
+	 * Returns the {@link StandardEvaluationContext} to use for evaluation.
+	 *
+	 * @return
+	 */
+	protected EvaluationContext getEvaluationContext() {
+		return evaluationContextProvider.getEvaluationContext(getParameters(), getValues());
 	}
 }

@@ -42,14 +42,15 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.sample.UserRepository;
-import org.springframework.data.jpa.support.SpelParserAwareEvaluationContextProvider;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.DefaultEvaluationContextProvider;
+import org.springframework.data.repository.query.EvaluationContextProvider;
 import org.springframework.data.repository.query.RepositoryQuery;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 
 /**
  * Unit test for {@link SimpleJpaQuery}.
- * 
+ *
  * @author Oliver Gierke
  * @author Thomas Darimont
  */
@@ -57,8 +58,8 @@ import org.springframework.data.repository.query.RepositoryQuery;
 public class SimpleJpaQueryUnitTests {
 
 	static final String USER_QUERY = "select u from User u";
-	private static final SpelParserAwareEvaluationContextProvider EVALUATION_CONTEXT_PROVIDER = new SpelParserAwareEvaluationContextProvider(
-			DefaultEvaluationContextProvider.INSTANCE);
+	static final SpelExpressionParser PARSER = new SpelExpressionParser();
+	private static final EvaluationContextProvider EVALUATION_CONTEXT_PROVIDER = DefaultEvaluationContextProvider.INSTANCE;
 
 	JpaQueryMethod method;
 
@@ -97,7 +98,8 @@ public class SimpleJpaQueryUnitTests {
 		when(method.getEntityInformation()).thenReturn((JpaEntityMetadata) new DefaultJpaEntityMetadata<User>(User.class));
 		when(em.createQuery("foo", Long.class)).thenReturn(query);
 
-		SimpleJpaQuery jpaQuery = new SimpleJpaQuery(method, em, "select u from User u", EVALUATION_CONTEXT_PROVIDER);
+		SimpleJpaQuery jpaQuery = new SimpleJpaQuery(method, em, "select u from User u", EVALUATION_CONTEXT_PROVIDER,
+				PARSER);
 
 		assertThat(jpaQuery.createCountQuery(new Object[] {}), is(query));
 	}
@@ -113,7 +115,8 @@ public class SimpleJpaQueryUnitTests {
 		Method method = UserRepository.class.getMethod("findAllPaged", Pageable.class);
 		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, extractor);
 
-		AbstractJpaQuery jpaQuery = new SimpleJpaQuery(queryMethod, em, "select u from User u", EVALUATION_CONTEXT_PROVIDER);
+		AbstractJpaQuery jpaQuery = new SimpleJpaQuery(queryMethod, em, "select u from User u",
+				EVALUATION_CONTEXT_PROVIDER, PARSER);
 		jpaQuery.createCountQuery(new Object[] { new PageRequest(1, 10) });
 
 		verify(query, times(0)).setFirstResult(anyInt());

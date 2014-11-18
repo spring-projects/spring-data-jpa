@@ -22,40 +22,37 @@ import javax.persistence.Query;
 import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
 import org.springframework.data.jpa.repository.query.StringQuery.LikeParameterBinding;
 import org.springframework.data.jpa.repository.query.StringQuery.ParameterBinding;
-import org.springframework.data.jpa.support.SpelParserAwareEvaluationContextProvider;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.util.Assert;
 
 /**
  * {@link ParameterBinder} that takes {@link LikeParameterBinding}s encapsulated in a {@link StringQuery} into account.
- * 
+ *
  * @author Oliver Gierke
  * @author Thomas Darimont
  */
-public class StringQueryParameterBinder extends ExpressionAwareParameterBinder {
+public class StringQueryParameterBinder extends ParameterBinder {
 
 	private final StringQuery query;
 
 	/**
 	 * Creates a new {@link StringQueryParameterBinder} from the given {@link Parameters}, method arguments and
 	 * {@link StringQuery}.
-	 * 
+	 *
 	 * @param parameters must not be {@literal null}.
 	 * @param values must not be {@literal null}.
 	 * @param query must not be {@literal null}.
-	 * @param evaluationContextProvider must not be {@literal null}.
 	 */
-	public StringQueryParameterBinder(JpaParameters parameters, Object[] values, StringQuery query,
-			SpelParserAwareEvaluationContextProvider evaluationContextProvider) {
+	public StringQueryParameterBinder(JpaParameters parameters, Object[] values, StringQuery query) {
 
-		super(parameters, values, evaluationContextProvider);
+		super(parameters, values);
 
 		Assert.notNull(query, "StringQuery must not be null!");
 		this.query = query;
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.query.ParameterBinder#bind(javax.persistence.Query, org.springframework.data.repository.query.Parameter, java.lang.Object, int)
 	 */
@@ -96,7 +93,7 @@ public class StringQueryParameterBinder extends ExpressionAwareParameterBinder {
 
 	/**
 	 * Finds the {@link LikeParameterBinding} to be applied before binding a parameter value to the query.
-	 * 
+	 *
 	 * @param jpaQuery must not be {@literal null}.
 	 * @param position
 	 * @param methodParameter must not be {@literal null}.
