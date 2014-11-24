@@ -7,6 +7,7 @@
 		<class>org.springframework.data.jpa.domain.sample.AuditableRole</class>
 		<class>org.springframework.data.jpa.domain.sample.AuditableUser</class>
 		<class>org.springframework.data.jpa.domain.sample.Category</class>
+<class>org.springframework.data.jpa.domain.sample.CustomAbstractPersistable</class>
 		<class>org.springframework.data.jpa.domain.sample.MailMessage</class>
 		<class>org.springframework.data.jpa.domain.sample.MailSender</class>
 		<class>org.springframework.data.jpa.domain.sample.MailUser</class>
@@ -21,6 +22,7 @@
 		<class>org.springframework.data.jpa.domain.sample.AuditableUser</class>
 		<class>org.springframework.data.jpa.domain.sample.AuditableRole</class>
 		<class>org.springframework.data.jpa.domain.sample.Category</class>
+<class>org.springframework.data.jpa.domain.sample.CustomAbstractPersistable</class>
 		<class>org.springframework.data.jpa.domain.sample.MailMessage</class>
 		<class>org.springframework.data.jpa.domain.sample.MailSender</class>
 		<class>org.springframework.data.jpa.domain.sample.MailUser</class>
