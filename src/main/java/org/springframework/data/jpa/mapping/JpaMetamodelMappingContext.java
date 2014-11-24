@@ -17,7 +17,6 @@ package org.springframework.data.jpa.mapping;
 
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
-import java.util.Collections;
 import java.util.Set;
 
 import javax.persistence.metamodel.ManagedType;
@@ -49,11 +48,8 @@ public class JpaMetamodelMappingContext extends
 
 		Assert.notNull(models, "JPA metamodel must not be null!");
 		Assert.notEmpty(models, "At least one JPA metamodel must be present!");
-		this.models = models;
-	}
 
-	public JpaMetamodelMappingContext(Metamodel model) {
-		this(Collections.singleton(model));
+		this.models = models;
 	}
 
 	/* 
@@ -62,7 +58,7 @@ public class JpaMetamodelMappingContext extends
 	 */
 	@Override
 	protected <T> JpaPersistentEntityImpl<?> createPersistentEntity(TypeInformation<T> typeInformation) {
-		return new JpaPersistentEntityImpl<T>(typeInformation, null);
+		return new JpaPersistentEntityImpl<T>(typeInformation, getMetamodelFor(typeInformation.getType()));
 	}
 
 	/* 

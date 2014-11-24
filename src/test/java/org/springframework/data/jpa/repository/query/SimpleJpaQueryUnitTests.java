@@ -40,6 +40,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.sample.User;
+import org.springframework.data.jpa.provider.QueryExtractor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.data.repository.core.RepositoryMetadata;

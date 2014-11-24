@@ -35,6 +35,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.sample.User;
+import org.springframework.data.jpa.provider.QueryExtractor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.core.NamedQueries;

@@ -18,6 +18,8 @@ package org.springframework.data.jpa.mapping;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
+import java.util.Collections;
+
 import javax.persistence.Access;
 import javax.persistence.AccessType;
 import javax.persistence.Embeddable;
@@ -50,7 +52,7 @@ public class JpaPersistentPropertyImplUnitTests {
 	@Before
 	public void setUp() {
 
-		context = new JpaMetamodelMappingContext(model);
+		context = new JpaMetamodelMappingContext(Collections.singleton(model));
 		entity = context.getPersistentEntity(Sample.class);
 	}
 

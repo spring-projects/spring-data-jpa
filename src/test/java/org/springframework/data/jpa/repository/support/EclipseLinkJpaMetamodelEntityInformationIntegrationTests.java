@@ -38,7 +38,8 @@ public class EclipseLinkJpaMetamodelEntityInformationIntegrationTests extends
 	 */
 	@Test
 	public void reactivatedDetectsIdTypeForMappedSuperclass() {
-		JpaEntityInformation<?, ?> information = JpaEntityInformationSupport.getMetadata(AbstractPersistable.class, em);
+		JpaEntityInformation<?, ?> information = JpaEntityInformationSupport.getEntityInformation(
+				AbstractPersistable.class, em);
 		assertEquals(String.class, information.getIdType());
 	}
 
@@ -56,10 +57,6 @@ public class EclipseLinkJpaMetamodelEntityInformationIntegrationTests extends
 	@Ignore
 	public void detectsNewStateForEntityWithPrimitiveId() {}
 
-	/* 
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests#considersEntityWithUnSetCompundIdNew()
-	 */
 	@Override
 	@Ignore
 	public void considersEntityWithUnsetCompundIdNew() {}

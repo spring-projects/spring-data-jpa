@@ -29,6 +29,7 @@ import javax.persistence.LockModeType;
 import javax.persistence.QueryHint;
 
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.data.jpa.provider.QueryExtractor;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;

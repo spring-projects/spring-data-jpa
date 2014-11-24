@@ -52,11 +52,15 @@ public class JpaRepositoryFactoryUnitTests {
 	JpaRepositoryFactory factory;
 
 	@Mock EntityManager entityManager;
-	@Mock @SuppressWarnings("rawtypes") JpaEntityInformation metadata;
+	@Mock @SuppressWarnings("rawtypes") JpaEntityInformation entityInformation;
 	@Mock EntityManagerFactory emf;
 
 	@Before
 	public void setUp() {
+
+		when(entityManager.getEntityManagerFactory()).thenReturn(emf);
+		when(entityManager.getDelegate()).thenReturn(entityManager);
+		when(emf.createEntityManager()).thenReturn(entityManager);
 
 		// Setup standard factory configuration
 		factory = new JpaRepositoryFactory(entityManager) {
@@ -64,15 +68,11 @@ public class JpaRepositoryFactoryUnitTests {
 			@Override
 			@SuppressWarnings("unchecked")
 			public <T, ID extends Serializable> JpaEntityInformation<T, ID> getEntityInformation(Class<T> domainClass) {
-
-				return metadata;
+				return entityInformation;
 			};
 		};
 
 		factory.setQueryLookupStrategyKey(Key.CREATE_IF_NOT_FOUND);
-		
-		when(entityManager.getEntityManagerFactory()).thenReturn(emf);
-		when(emf.createEntityManager()).thenReturn(entityManager);
 	}
 
 	/**
@@ -140,7 +140,7 @@ public class JpaRepositoryFactoryUnitTests {
 	@Test
 	public void usesQueryDslRepositoryIfInterfaceImplementsExecutor() {
 
-		when(metadata.getJavaType()).thenReturn(User.class);
+		when(entityInformation.getJavaType()).thenReturn(User.class);
 		assertEquals(QueryDslJpaRepository.class,
 				factory.getRepositoryBaseClass(new DefaultRepositoryMetadata(QueryDslSampleRepository.class)));
 

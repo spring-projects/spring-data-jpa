@@ -53,6 +53,8 @@ public class SimpleJpaRepositoryUnitTests {
 	@Before
 	public void setUp() {
 
+		when(em.getDelegate()).thenReturn(em);
+
 		when(information.getJavaType()).thenReturn(User.class);
 		when(em.getCriteriaBuilder()).thenReturn(builder);
 

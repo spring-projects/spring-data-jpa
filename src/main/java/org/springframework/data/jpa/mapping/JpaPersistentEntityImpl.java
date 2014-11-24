@@ -17,8 +17,15 @@ package org.springframework.data.jpa.mapping;
 
 import java.util.Comparator;
 
+import javax.persistence.metamodel.Metamodel;
+
+import org.springframework.data.jpa.provider.PersistenceProvider;
+import org.springframework.data.jpa.provider.ProxyIdAccessor;
+import org.springframework.data.mapping.IdentifierAccessor;
 import org.springframework.data.mapping.model.BasicPersistentEntity;
+import org.springframework.data.mapping.model.IdPropertyIdentifierAccessor;
 import org.springframework.data.util.TypeInformation;
+import org.springframework.util.Assert;
 
 /**
  * Implementation of {@link JpaPersistentEntity}.
@@ -29,14 +36,20 @@ import org.springframework.data.util.TypeInformation;
 class JpaPersistentEntityImpl<T> extends BasicPersistentEntity<T, JpaPersistentProperty> implements
 		JpaPersistentEntity<T> {
 
+	private final ProxyIdAccessor proxyIdAccessor;
+
 	/**
 	 * Creates a new {@link JpaPersistentEntityImpl} using the given {@link TypeInformation} and {@link Comparator}.
 	 * 
 	 * @param information must not be {@literal null}.
-	 * @param comparator must not be {@literal null}.
+	 * @param metamodel must not be {@literal null}.
 	 */
-	public JpaPersistentEntityImpl(TypeInformation<T> information, Comparator<JpaPersistentProperty> comparator) {
-		super(information, comparator);
+	public JpaPersistentEntityImpl(TypeInformation<T> information, Metamodel metamodel) {
+
+		super(information, null);
+
+		Assert.notNull(metamodel, "Metamodel must not be null!");
+		this.proxyIdAccessor = PersistenceProvider.fromMetamodel(metamodel);
 	}
 
 	/* 
@@ -46,5 +59,55 @@ class JpaPersistentEntityImpl<T> extends BasicPersistentEntity<T, JpaPersistentP
 	@Override
 	protected JpaPersistentProperty returnPropertyIfBetterIdPropertyCandidateOrNull(JpaPersistentProperty property) {
 		return property.isIdProperty() ? property : null;
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.mapping.model.BasicPersistentEntity#getIdentifierAccessor(java.lang.Object)
+	 */
+	@Override
+	public IdentifierAccessor getIdentifierAccessor(Object bean) {
+		return new JpaProxyAwareIdentifierAccessor(this, bean, proxyIdAccessor);
+	}
+
+	/**
+	 * {@link IdentifierAccessor} that tries to use a {@link ProxyIdAccessor} for id access to potentially avoid the
+	 * initialization of JPA proxies. We're falling back to the default behavior of {@link IdPropertyIdentifierAccessor}
+	 * if that's not possible.
+	 *
+	 * @author Oliver Gierke
+	 */
+	private static class JpaProxyAwareIdentifierAccessor extends IdPropertyIdentifierAccessor {
+
+		private final Object bean;
+		private final ProxyIdAccessor proxyIdAccessor;
+
+		/**
+		 * Creates a new {@link JpaProxyAwareIdentifierAccessor} for the given {@link JpaPersistentEntity}, target bean and
+		 * {@link ProxyIdAccessor}.
+		 * 
+		 * @param entity must not be {@literal null}.
+		 * @param bean must not be {@literal null}.
+		 * @param proxyIdAccessor must not be {@literal null}.
+		 */
+		public JpaProxyAwareIdentifierAccessor(JpaPersistentEntity<?> entity, Object bean, ProxyIdAccessor proxyIdAccessor) {
+
+			super(entity, bean);
+
+			Assert.notNull(proxyIdAccessor, "Proxy identifier accessor must not be null!");
+
+			this.proxyIdAccessor = proxyIdAccessor;
+			this.bean = bean;
+		}
+
+		/* 
+		 * (non-Javadoc)
+		 * @see org.springframework.data.mapping.IdentifierAccessor#getIdentifier()
+		 */
+		@Override
+		public Object getIdentifier() {
+			return proxyIdAccessor.shouldUseAccessorFor(bean) ? proxyIdAccessor.getIdentifierFrom(bean) : super
+					.getIdentifier();
+		}
 	}
 }

@@ -48,7 +48,7 @@ import org.springframework.data.jpa.repository.support.JpaRepositoryFactory;
  * @author Thomas Darimont
  */
 @RunWith(MockitoJUnitRunner.class)
-public class CrudMethodMetadataIntegrationTests {
+public class CrudMethodMetadataUnitTests {
 
 	@Mock EntityManager em;
 	@Mock EntityManagerFactory emf;
@@ -65,6 +65,7 @@ public class CrudMethodMetadataIntegrationTests {
 
 		when(information.getJavaType()).thenReturn(Role.class);
 
+		when(em.getDelegate()).thenReturn(em);
 		when(em.getEntityManagerFactory()).thenReturn(emf);
 		when(emf.createEntityManager()).thenReturn(em);
 

@@ -42,6 +42,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.query.Jpa21Utils;
@@ -96,7 +97,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	 * @param em must not be {@literal null}.
 	 */
 	public SimpleJpaRepository(Class<T> domainClass, EntityManager em) {
-		this(JpaEntityInformationSupport.getMetadata(domainClass, em), em);
+		this(JpaEntityInformationSupport.getEntityInformation(domainClass, em), em);
 	}
 
 	/**

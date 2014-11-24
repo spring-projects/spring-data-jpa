@@ -61,7 +61,7 @@ public class JpaEntityInformationSupportUnitTests {
 	public void rejectsClassNotBeingFoundInMetamodel() {
 
 		when(em.getMetamodel()).thenReturn(metaModel);
-		JpaEntityInformationSupport.getMetadata(User.class, em);
+		JpaEntityInformationSupport.getEntityInformation(User.class, em);
 	}
 
 	static class User {

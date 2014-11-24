@@ -22,6 +22,7 @@ import javax.persistence.EntityManager;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
+import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.querydsl.QSort;
 import org.springframework.util.Assert;
