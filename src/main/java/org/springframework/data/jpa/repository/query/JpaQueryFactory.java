@@ -34,11 +34,7 @@ enum JpaQueryFactory {
 
 	INSTANCE;
 
-	/**
-	 * The {@link SpelExpressionParser} is shared between all created {@link RepositoryQuery}s.
-	 */
-	private final SpelExpressionParser PARSER = new SpelExpressionParser();
-
+	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
 	private static final Logger LOG = LoggerFactory.getLogger(JpaQueryFactory.class);
 
 	/**
