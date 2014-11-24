@@ -41,11 +41,9 @@ public abstract class AbstractPersistable<PK extends Serializable> implements Pe
 
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see org.springframework.data.domain.Persistable#getId()
 	 */
 	public PK getId() {
-
 		return id;
 	}
 
@@ -55,7 +53,6 @@ public abstract class AbstractPersistable<PK extends Serializable> implements Pe
 	 * @param id the id to set
 	 */
 	protected void setId(final PK id) {
-
 		this.id = id;
 	}
 
@@ -67,7 +64,6 @@ public abstract class AbstractPersistable<PK extends Serializable> implements Pe
 	 */
 	@Transient
 	public boolean isNew() {
-
 		return null == getId();
 	}
 
@@ -78,7 +74,6 @@ public abstract class AbstractPersistable<PK extends Serializable> implements Pe
 	 */
 	@Override
 	public String toString() {
-
 		return String.format("Entity of type %s with id: %s", this.getClass().getName(), getId());
 	}
 

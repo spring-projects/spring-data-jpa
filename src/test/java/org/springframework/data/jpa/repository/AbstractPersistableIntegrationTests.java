@@ -21,6 +21,7 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.domain.AbstractPersistable;
 import org.springframework.data.jpa.domain.sample.CustomAbstractPersistable;
 import org.springframework.data.jpa.repository.sample.CustomAbstractPersistableRepository;
 import org.springframework.test.context.ContextConfiguration;
@@ -28,12 +29,14 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
+ * Integration tests for {@link AbstractPersistable}.
+ * 
  * @author Thomas Darimont
  */
 @Transactional
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:config/namespace-autoconfig-context.xml" })
-public class CustomAbstractPersistableIntegrationTests {
+public class AbstractPersistableIntegrationTests {
 
 	@Autowired CustomAbstractPersistableRepository repository;
 
@@ -45,10 +48,8 @@ public class CustomAbstractPersistableIntegrationTests {
 
 		CustomAbstractPersistable entity = new CustomAbstractPersistable();
 		CustomAbstractPersistable saved = repository.save(entity);
-
 		CustomAbstractPersistable found = repository.findOne(saved.getId());
 
 		assertThat(found, is(saved));
 	}
-
 }

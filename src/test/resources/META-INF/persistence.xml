@@ -13,6 +13,7 @@
 		<class>org.springframework.data.jpa.domain.sample.Child</class>
 		<class>org.springframework.data.jpa.domain.sample.ConcreteType1</class>
 		<class>org.springframework.data.jpa.domain.sample.ConcreteType2</class>
+		<class>org.springframework.data.jpa.domain.sample.CustomAbstractPersistable</class>
 		<class>org.springframework.data.jpa.domain.sample.Customer</class>
 		<class>org.springframework.data.jpa.domain.sample.EmbeddedIdExampleEmployeePK</class>
 		<class>org.springframework.data.jpa.domain.sample.EmbeddedIdExampleEmployee</class>
@@ -35,15 +36,14 @@
 		<class>org.springframework.data.jpa.domain.sample.SpecialUser</class>
 		<class>org.springframework.data.jpa.domain.sample.User</class>
 		<class>org.springframework.data.jpa.domain.sample.VersionedUser</class>
-		<class>org.springframework.data.jpa.domain.sample.CustomAbstractPersistable</class>
 		<exclude-unlisted-classes>true</exclude-unlisted-classes>
 	</persistence-unit>
 	<persistence-unit name="querydsl">
+		<class>org.springframework.data.jpa.domain.sample.CustomAbstractPersistable</class>
 		<class>org.springframework.data.jpa.domain.sample.MailMessage</class>
 		<class>org.springframework.data.jpa.domain.sample.MailSender</class>
 		<class>org.springframework.data.jpa.domain.sample.MailUser</class>
 		<class>org.springframework.data.jpa.domain.sample.User</class>
-		<class>org.springframework.data.jpa.domain.sample.CustomAbstractPersistable</class>
 		<exclude-unlisted-classes>true</exclude-unlisted-classes>
 	</persistence-unit>
 	<persistence-unit name="cdi">
@@ -80,12 +80,12 @@
 	
 	<persistence-unit name="metadata">
 		<provider>org.hibernate.ejb.HibernatePersistence</provider>
-		<class>org.springframework.data.jpa.domain.sample.User</class>
+		<class>org.springframework.data.jpa.domain.sample.CustomAbstractPersistable</class>
 		<class>org.springframework.data.jpa.domain.sample.MailMessage</class>
 		<class>org.springframework.data.jpa.domain.sample.MailSender</class>
 		<class>org.springframework.data.jpa.domain.sample.MailUser</class>
+		<class>org.springframework.data.jpa.domain.sample.User</class>
 		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$Sample</class>
-		<class>org.springframework.data.jpa.domain.sample.CustomAbstractPersistable</class>
 		<exclude-unlisted-classes>true</exclude-unlisted-classes>
 		<properties>
 			<property name="hibernate.dialect" value="org.hibernate.dialect.HSQLDialect" />
@@ -93,22 +93,22 @@
 	</persistence-unit>
 	<persistence-unit name="metadata_el">
 		<provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
-		<class>org.springframework.data.jpa.domain.sample.User</class>
+		<class>org.springframework.data.jpa.domain.sample.CustomAbstractPersistable</class>
 		<class>org.springframework.data.jpa.domain.sample.MailMessage</class>
 		<class>org.springframework.data.jpa.domain.sample.MailSender</class>
 		<class>org.springframework.data.jpa.domain.sample.MailUser</class>
+		<class>org.springframework.data.jpa.domain.sample.User</class>
 		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$Sample</class>
-		<class>org.springframework.data.jpa.domain.sample.CustomAbstractPersistable</class>
 		<exclude-unlisted-classes>true</exclude-unlisted-classes>
 	</persistence-unit>
 	<persistence-unit name="metadata_oj">
 		<provider>org.apache.openjpa.persistence.PersistenceProviderImpl</provider>
-		<class>org.springframework.data.jpa.domain.sample.User</class>
+		<class>org.springframework.data.jpa.domain.sample.CustomAbstractPersistable</class>
 		<class>org.springframework.data.jpa.domain.sample.MailMessage</class>
 		<class>org.springframework.data.jpa.domain.sample.MailSender</class>
 		<class>org.springframework.data.jpa.domain.sample.MailUser</class>
+		<class>org.springframework.data.jpa.domain.sample.User</class>
 		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$Sample</class>
-		<class>org.springframework.data.jpa.domain.sample.CustomAbstractPersistable</class>
 		<exclude-unlisted-classes>true</exclude-unlisted-classes>
 		<properties>
 			<property name="openjpa.jdbc.DBDictionary" value="hsql" />
