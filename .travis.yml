@@ -1,8 +1,10 @@
 language: java
+
 jdk:
   - oraclejdk7
   - openjdk6
   - oraclejdk8
+
 env:
   matrix:
     - PROFILE=ci
@@ -11,8 +13,13 @@ env:
     - PROFILE=hibernate-41
     - PROFILE=hibernate-42
     - PROFILE=hibernate-43
+
+sudo: false
+
 cache:
   directories:
     - $HOME/.m2
+
 install: true
+
 script: "mvn clean dependency:list test -P${PROFILE} -Dsort"
