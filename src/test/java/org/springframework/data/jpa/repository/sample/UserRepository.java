@@ -534,4 +534,19 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	@Query("select u from #{#entityName} u where u.firstname = ?#{[0]} and u.lastname = ?#{[1]}")
 	List<User> findUsersByFirstnameForSpELExpressionWithParameterIndexOnlyWithEntityExpression(String firstname,
 			String lastname);
+
+	/**
+	 * DATAJPA-606
+	 */
+	List<User> findByAgeIn(Collection<Integer> ages);
+
+	/**
+	 * DATAJPA-606
+	 */
+	List<User> queryByAgeIn(Integer[] ages);
+
+	/**
+	 * DATAJPA-606
+	 */
+	List<User> queryByAgeInOrFirstname(Integer[] ages, String firstname);
 }
