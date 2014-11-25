@@ -18,6 +18,7 @@ package org.springframework.data.jpa.repository.support;
 import static org.springframework.data.jpa.repository.utils.JpaClassUtils.*;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -64,6 +65,15 @@ public enum PersistenceProvider implements QueryExtractor {
 
 			return "*";
 		}
+
+		/**
+		 * Return null as surrogate for an empty collection as Hibernate cannot deal with empty collections in query
+		 * parameters.
+		 */
+		@Override
+		public <T> Collection<T> potentiallyConvertEmptyCollection(Collection<T> collection) {
+			return collection == null || collection.isEmpty() ? null : collection;
+		}
 	},
 
 	/**
@@ -76,6 +86,14 @@ public enum PersistenceProvider implements QueryExtractor {
 			return ((JpaQuery<?>) query).getDatabaseQuery().getJPQLString();
 		}
 
+		/**
+		 * Return null as surrogate for an empty collection as eclipse-link cannot deal with empty collections in query
+		 * parameters.
+		 */
+		@Override
+		public <T> Collection<T> potentiallyConvertEmptyCollection(Collection<T> collection) {
+			return collection == null || collection.isEmpty() ? null : collection;
+		}
 	},
 
 	/**
@@ -178,5 +196,17 @@ public enum PersistenceProvider implements QueryExtractor {
 	protected String getCountQueryPlaceholder() {
 
 		return "x";
+	}
+
+	/**
+	 * Potentially converts an empty collection to the appropriate representation of this {@link PersistenceProvider},
+	 * since some JPA providers cannot correctly handle empty collections.
+	 * 
+	 * @see DATAJPA-606
+	 * @param collection
+	 * @return
+	 */
+	public <T> Collection<T> potentiallyConvertEmptyCollection(Collection<T> collection) {
+		return collection;
 	}
 }
