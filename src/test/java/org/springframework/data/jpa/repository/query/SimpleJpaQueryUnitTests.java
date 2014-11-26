@@ -89,14 +89,10 @@ public class SimpleJpaQueryUnitTests {
 	}
 
 	@Test
-	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void prefersDeclaredCountQueryOverCreatingOne() throws Exception {
 
-		method = mock(JpaQueryMethod.class);
-		when(method.getCountQuery()).thenReturn("foo");
-		when(method.getParameters()).thenReturn(
-				new JpaParameters(SimpleJpaQueryUnitTests.class.getMethod("prefersDeclaredCountQueryOverCreatingOne")));
-		when(method.getEntityInformation()).thenReturn((JpaEntityMetadata) new DefaultJpaEntityMetadata<User>(User.class));
+		method = new JpaQueryMethod(SimpleJpaQueryUnitTests.class.getMethod("prefersDeclaredCountQueryOverCreatingOne"),
+				metadata, extractor); // mock(JpaQueryMethod.class);
 		when(em.createQuery("foo", Long.class)).thenReturn(query);
 
 		SimpleJpaQuery jpaQuery = new SimpleJpaQuery(method, em, "select u from User u", EVALUATION_CONTEXT_PROVIDER,
