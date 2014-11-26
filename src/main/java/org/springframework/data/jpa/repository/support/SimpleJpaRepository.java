@@ -48,6 +48,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.query.Jpa21Utils;
 import org.springframework.data.jpa.repository.query.QueryUtils;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
@@ -62,7 +63,7 @@ import org.springframework.util.Assert;
  * @param <ID> the type of the entity's identifier
  */
 @Repository
-@Transactional(readOnly = true)
+@Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
 public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepository<T, ID>,
 		JpaSpecificationExecutor<T> {
 
