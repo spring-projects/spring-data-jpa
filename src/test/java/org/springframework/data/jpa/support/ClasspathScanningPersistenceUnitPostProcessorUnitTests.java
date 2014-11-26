@@ -152,7 +152,7 @@ public class ClasspathScanningPersistenceUnitPostProcessorUnitTests {
 
 		ClasspathScanningPersistenceUnitPostProcessor processor = new ClasspathScanningPersistenceUnitPostProcessor(
 				basePackage);
-		ReflectionTestUtils.setField(processor, "resolver", resolver);
+		ReflectionTestUtils.setField(processor, "mappingFileResolver", resolver);
 		processor.setMappingFileNamePattern("**/*orm.xml");
 		processor.postProcessPersistenceUnitInfo(pui);
 
@@ -162,7 +162,5 @@ public class ClasspathScanningPersistenceUnitPostProcessorUnitTests {
 	}
 
 	@Entity
-	public static class SampleEntity {
-
-	}
+	public static class SampleEntity {}
 }
