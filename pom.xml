@@ -427,14 +427,14 @@
 	<repositories>
 		<repository>
 			<id>spring-libs-snapshot</id>
-			<url>http://repo.spring.io/libs-snapshot</url>
+			<url>https://repo.spring.io/libs-snapshot</url>
 		</repository>
 	</repositories>
 
 	<pluginRepositories>
 		<pluginRepository>
 			<id>spring-plugins-release</id>
-			<url>http://repo.spring.io/plugins-release</url>
+			<url>https://repo.spring.io/plugins-release</url>
 		</pluginRepository>
 	</pluginRepositories>
 
