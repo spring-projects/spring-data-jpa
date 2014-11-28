@@ -294,7 +294,18 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 			return Collections.emptyList();
 		}
 
-		ByIdsSpecification specification = new ByIdsSpecification();
+		if (entityInformation.hasCompositeId()) {
+
+			List<T> results = new ArrayList<T>();
+
+			for (ID id : ids) {
+				results.add(findOne(id));
+			}
+
+			return results;
+		}
+
+		ByIdsSpecification<T> specification = new ByIdsSpecification<T>(entityInformation);
 		TypedQuery<T> query = getQuery(specification, (Sort) null);
 
 		return query.setParameter(specification.parameter, ids).getResultList();
@@ -564,9 +575,15 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	 * @author Oliver Gierke
 	 */
 	@SuppressWarnings("rawtypes")
-	private final class ByIdsSpecification implements Specification<T> {
+	private static final class ByIdsSpecification<T> implements Specification<T> {
+
+		private final JpaEntityInformation<T, ?> entityInformation;
 
 		ParameterExpression<Iterable> parameter;
+
+		public ByIdsSpecification(JpaEntityInformation<T, ?> entityInformation) {
+			this.entityInformation = entityInformation;
+		}
 
 		/*
 		 * (non-Javadoc)
