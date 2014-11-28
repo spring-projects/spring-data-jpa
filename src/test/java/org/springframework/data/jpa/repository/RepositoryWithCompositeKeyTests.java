@@ -18,6 +18,7 @@ package org.springframework.data.jpa.repository;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Rule;
@@ -262,5 +263,42 @@ public class RepositoryWithCompositeKeyTests {
 		key.setEmployeeId(emp.getEmployeePk().getEmployeeId());
 
 		assertThat(employeeRepositoryWithEmbeddedId.exists(key), is(true));
+	}
+
+	/**
+	 * @see DATAJPA-611
+	 */
+	@Test
+	public void shouldAllowFindAllWithIdsForEntitiesWithCompoundIdClassKeys() {
+
+		IdClassExampleDepartment dep2 = new IdClassExampleDepartment();
+		dep2.setDepartmentId(2L);
+		dep2.setName("Dep2");
+
+		IdClassExampleEmployee emp1 = new IdClassExampleEmployee();
+		emp1.setEmpId(3L);
+		emp1.setDepartment(dep2);
+		emp1 = employeeRepositoryWithIdClass.save(emp1);
+
+		IdClassExampleDepartment dep1 = new IdClassExampleDepartment();
+		dep1.setDepartmentId(1L);
+		dep1.setName("Dep1");
+
+		IdClassExampleEmployee emp2 = new IdClassExampleEmployee();
+		emp2.setEmpId(2L);
+		emp2.setDepartment(dep1);
+		emp2 = employeeRepositoryWithIdClass.save(emp2);
+
+		IdClassExampleEmployeePK emp1PK = new IdClassExampleEmployeePK();
+		emp1PK.setDepartment(2L);
+		emp1PK.setEmpId(3L);
+
+		IdClassExampleEmployeePK emp2PK = new IdClassExampleEmployeePK();
+		emp1PK.setDepartment(1L);
+		emp1PK.setEmpId(2L);
+
+		List<IdClassExampleEmployee> result = employeeRepositoryWithIdClass.findAll(Arrays.asList(emp1PK, emp2PK));
+
+		assertThat(result, hasSize(2));
 	}
 }
