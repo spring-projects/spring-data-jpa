@@ -107,10 +107,16 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 	 * @see org.springframework.data.querydsl.QueryDslPredicateExecutor#findAll(com.mysema.query.types.Predicate, com.mysema.query.types.OrderSpecifier<?>[])
 	 */
 	public List<T> findAll(Predicate predicate, OrderSpecifier<?>... orders) {
+		return executeSorted(createQuery(predicate), orders);
+	}
 
-		JPQLQuery query = createQuery(predicate);
-		query = querydsl.applySorting(new QSort(orders), query);
-		return query.list(path);
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.querydsl.QueryDslPredicateExecutor#findAll(com.mysema.query.types.OrderSpecifier[])
+	 */
+	@Override
+	public List<T> findAll(OrderSpecifier<?>... orders) {
+		return executeSorted(createQuery(new Predicate[0]), orders);
 	}
 
 	/*
@@ -173,5 +179,16 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 		query.setHint(jpaEntityGraph.getType().getKey(), entityGraph);
 
 		return query;
+	}
+
+	/**
+	 * Executes the given {@link JPQLQuery} after applying the given {@link OrderSpecifier}s.
+	 * 
+	 * @param query must not be {@literal null}.
+	 * @param orders must not be {@literal null}.
+	 * @return
+	 */
+	private List<T> executeSorted(JPQLQuery query, OrderSpecifier<?>... orders) {
+		return querydsl.applySorting(new QSort(orders), query).list(path);
 	}
 }
