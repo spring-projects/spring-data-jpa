@@ -1,6 +1,34 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 1.8.0.M1 (2014-12-01)
+----------------------------------------
+* DATAJPA-638 - Improve bean definition setup for root configuration element.
+* DATAJPA-636 - Release 1.8 M1.
+* DATAJPA-635 - Add implementation for new QueryDslPredicateExecutor.findAll(OrderSpecifier<?>... orders).
+* DATAJPA-634 - Switch to HTTPS for repository declarations.
+* DATAJPA-632 - Improve SimpleJpaQueryUnitTests that fails after SonarQube improvements in Spring Data Commons.
+* DATAJPA-631 - ClasspathScanningPersistenceUnitPostProcessor should forward ResourceLoader configured to the ClassPathScanningCandidateComponentProvider used for the entity type scanning.
+* DATAJPA-630 - Identifier lookup fails for JPA proxies.
+* DATAJPA-629 - SPEL expression does not work with #{#entityName} in @Query.
+* DATAJPA-628 - Use a shared SpelParser instead of recreating it for queries.
+* DATAJPA-627 - Typo in BeanDefinitionNames.
+* DATAJPA-624 - Fix SonarQube warnings as far as possible/reasonable.
+* DATAJPA-623 - Remove package cycles accidentally introduced in 1.6.
+* DATAJPA-622 - Hibernate thinks AbstractPersistable.isNew() is a property.
+* DATAJPA-620 - Infinite loop in unsynchronized HashMap in CrudMethodMetadataPostProcessor.
+* DATAJPA-619 - JpaPersistentPropertyImpl should consider JPA access type settings.
+* DATAJPA-617 - Named query lookups might cause transaction to be rolled back.
+* DATAJPA-615 - The top and first query keyword to statically limit results are missing in documentation.
+* DATAJPA-612 - Allow @EntityGraph on a method inherited from JpaRepository.
+* DATAJPA-611 - SimpleJpaRepository.findAll(Iterable<ID ids) not working when for composite primary keys.
+* DATAJPA-608 - JpaPersistentEntityImpl.isEntity() should consider actual type.
+* DATAJPA-606 - SQLGrammarException for IN-clause with empty collection as parameter.
+* DATAJPA-605 - JpaPersistentPropertyImpl does not override method isVersionProperty.
+* DATAJPA-523 - Specifications should implement Serializable.
+* DATAJPA-477 - Avoid query creation in PagedExecution if count query reports no results.
+
+
 Changes in version 1.7.1.RELEASE (2014-10-30)
 ---------------------------------------------
 * DATAJPA-621 - Release 1.7.1.
