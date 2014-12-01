@@ -129,19 +129,15 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 		super.registerBeansForRoot(registry, config);
 
 		Object source = config.getSource();
-		registerWithSourceAndGeneratedBeanName(registry, new RootBeanDefinition(
-				EntityManagerBeanDefinitionRegistrarPostProcessor.class), source);
 
-		if (!registry.containsBeanDefinition(JPA_MAPPING_CONTEXT_BEAN_NAME)) {
-			registry.registerBeanDefinition(JPA_MAPPING_CONTEXT_BEAN_NAME, //
-					new RootBeanDefinition(JpaMetamodelMappingContextFactoryBean.class));
-		}
+		registerIfNotAlreadyRegistered(new RootBeanDefinition(EntityManagerBeanDefinitionRegistrarPostProcessor.class),
+				registry, "foo", source);
 
-		if (!hasBean(PAB_POST_PROCESSOR, registry)
-				&& !registry.containsBeanDefinition(AnnotationConfigUtils.PERSISTENCE_ANNOTATION_PROCESSOR_BEAN_NAME)) {
+		registerIfNotAlreadyRegistered(new RootBeanDefinition(JpaMetamodelMappingContextFactoryBean.class), registry,
+				JPA_MAPPING_CONTEXT_BEAN_NAME, source);
 
-			registerWithSourceAndGeneratedBeanName(registry, new RootBeanDefinition(PAB_POST_PROCESSOR), source);
-		}
+		registerIfNotAlreadyRegistered(new RootBeanDefinition(PAB_POST_PROCESSOR), registry,
+				AnnotationConfigUtils.PERSISTENCE_ANNOTATION_PROCESSOR_BEAN_NAME, source);
 	}
 
 	/**
