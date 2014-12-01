@@ -53,7 +53,6 @@ import org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcesso
 public class JpaRepositoryConfigExtensionUnitTests {
 
 	private static final String RIABPP_CLASS_NAME = "org.springframework.data.repository.core.support.RepositoryInterfaceAwareBeanPostProcessor";
-	private static final String PABPP_CLASS_NAME = "org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor";
 
 	@Mock RepositoryConfigurationSource configSource;
 
@@ -69,8 +68,8 @@ public class JpaRepositoryConfigExtensionUnitTests {
 
 		Iterable<String> names = Arrays.asList(factory.getBeanDefinitionNames());
 
-		assertThat(names, Matchers.<String> hasItem(Matchers.startsWith(PABPP_CLASS_NAME)));
-		assertThat(names, Matchers.<String> hasItem(Matchers.startsWith(RIABPP_CLASS_NAME)));
+		assertThat(names, Matchers.<String> hasItem(AnnotationConfigUtils.PERSISTENCE_ANNOTATION_PROCESSOR_BEAN_NAME));
+		assertThat(names, Matchers.<String> hasItem(RIABPP_CLASS_NAME));
 	}
 
 	@Test
