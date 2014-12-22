@@ -58,6 +58,7 @@ import org.springframework.util.Assert;
  * @author Oliver Gierke
  * @author Eberhard Wolff
  * @author Thomas Darimont
+ * @author Eugene McKissick
  * @param <T> the type of the entity to handle
  * @param <ID> the type of the entity's identifier
  */
@@ -454,6 +455,21 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 
 		em.flush();
 	}
+
+    /**
+     * Refresh the state of the instance from the database
+     * @param entity
+     */
+    @Override
+    public void refresh(T entity) {
+        LockModeType type = metadata == null ? null : metadata.getLockModeType();
+        if (type == null) {
+            em.refresh(entity);
+        }
+        else {
+            em.refresh(entity,type);
+        }
+    }
 
 	/**
 	 * Reads the given {@link TypedQuery} into a {@link Page} applying the given {@link Pageable} and

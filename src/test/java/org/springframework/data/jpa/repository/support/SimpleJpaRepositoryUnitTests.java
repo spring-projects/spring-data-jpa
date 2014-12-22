@@ -18,6 +18,7 @@ package org.springframework.data.jpa.repository.support;
 import static org.mockito.Mockito.*;
 
 import javax.persistence.EntityManager;
+import javax.persistence.LockModeType;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -30,11 +31,15 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.sample.User;
+import org.springframework.data.jpa.repository.query.JpaEntityGraph;
+
+import java.util.Map;
 
 /**
  * Unit tests for {@link SimpleJpaRepository}.
  * 
  * @author Oliver Gierke
+ * @author Eugene McKissick
  */
 @RunWith(MockitoJUnitRunner.class)
 public class SimpleJpaRepositoryUnitTests {
@@ -88,4 +93,44 @@ public class SimpleJpaRepositoryUnitTests {
 
 		repo.delete(4711L);
 	}
+
+    /**
+     * @see DATAJPA-412
+     */
+    @Test
+    public void callsEntityManagerRefreshOnEntity() {
+        User userInfo = new User();
+        userInfo.setId(412);
+
+        repo.refresh(userInfo);
+        verify(em).refresh(userInfo);
+    }
+
+    /**
+     * @see DATAJPA-412
+     */
+    @Test
+    public void callsEntityManagerRefreshOnEntityWithLockedType() {
+        User userInfo = new User();
+        userInfo.setId(412);
+        CrudMethodMetadata optimisticLock = new CrudMethodMetadata() {
+            @Override
+            public LockModeType getLockModeType() {
+                return LockModeType.OPTIMISTIC;
+            }
+
+            @Override
+            public Map<String, Object> getQueryHints() {
+                return null;
+            }
+
+            @Override
+            public JpaEntityGraph getEntityGraph() {
+                return null;
+            }
+        };
+        repo.setRepositoryMethodMetadata(optimisticLock);
+        repo.refresh(userInfo);
+        verify(em).refresh(userInfo, LockModeType.OPTIMISTIC);
+    }
 }

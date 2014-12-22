@@ -28,6 +28,7 @@ import org.springframework.data.repository.PagingAndSortingRepository;
  * JPA specific extension of {@link org.springframework.data.repository.Repository}.
  * 
  * @author Oliver Gierke
+ * @author Eugene McKissick
  */
 @NoRepositoryBean
 public interface JpaRepository<T, ID extends Serializable> extends PagingAndSortingRepository<T, ID> {
@@ -90,4 +91,11 @@ public interface JpaRepository<T, ID extends Serializable> extends PagingAndSort
 	 * @see EntityManager#getReference(Class, Object)
 	 */
 	T getOne(ID id);
+
+    /**
+     *Refresh the state of the instance from the database, overwriting changes made to the entity, if any.
+     * @param entity
+     * @see EntityManager#refresh(Object)
+     */
+    void refresh(T entity);
 }
