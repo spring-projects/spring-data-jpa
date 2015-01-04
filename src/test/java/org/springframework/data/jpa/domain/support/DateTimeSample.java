@@ -35,4 +35,9 @@ public class DateTimeSample {
 	LocalDate localDate;
 	LocalTime localTime;
 	LocalDateTime localDateTime;
+
+	org.threeten.bp.Instant bpInstant;
+	org.threeten.bp.LocalDate bpLocalDate;
+	org.threeten.bp.LocalTime bpLocalTime;
+	org.threeten.bp.LocalDateTime bpLocalDateTime;
 }

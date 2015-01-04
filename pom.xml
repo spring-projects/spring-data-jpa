@@ -137,6 +137,13 @@
 			<optional>true</optional>
 		</dependency>
 
+		<dependency>
+			<groupId>org.threeten</groupId>
+			<artifactId>threetenbp</artifactId>
+			<version>${threetenbp}</version>
+			<optional>true</optional>
+		</dependency>
+
 		<!-- Persistence providers -->
 
 		<dependency>

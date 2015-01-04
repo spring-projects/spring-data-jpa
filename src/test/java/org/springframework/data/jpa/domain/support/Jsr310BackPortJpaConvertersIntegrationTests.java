@@ -20,22 +20,21 @@ import static org.junit.Assert.*;
 import static org.junit.Assume.*;
 import static org.springframework.data.jpa.support.EntityManagerTestUtils.*;
 
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
 import org.junit.Test;
+import org.threeten.bp.Instant;
+import org.threeten.bp.LocalDate;
+import org.threeten.bp.LocalDateTime;
+import org.threeten.bp.LocalTime;
 
 /**
- * Integration tests for {@link Jsr310JpaConverters}.
+ * Integration tests for {@link Jsr310BackPortJpaConverters}.
  * 
  * @author Oliver Gierke
  */
-public class Jsr310JpaConvertersIntegrationTests extends AbstractAttributeConverterIntegrationTests {
+public class Jsr310BackPortJpaConvertersIntegrationTests extends AbstractAttributeConverterIntegrationTests {
 
 	@PersistenceContext EntityManager em;
 
@@ -43,16 +42,16 @@ public class Jsr310JpaConvertersIntegrationTests extends AbstractAttributeConver
 	 * @see DATAJPA-650
 	 */
 	@Test
-	public void usesJsr310JpaConverters() {
+	public void usesJsr310BackPortJpaConverters() {
 
 		assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
 
 		DateTimeSample sample = new DateTimeSample();
 
-		sample.instant = Instant.now();
-		sample.localDate = LocalDate.now();
-		sample.localTime = LocalTime.now();
-		sample.localDateTime = LocalDateTime.now();
+		sample.bpInstant = Instant.now();
+		sample.bpLocalDate = LocalDate.now();
+		sample.bpLocalTime = LocalTime.now();
+		sample.bpLocalDateTime = LocalDateTime.now();
 
 		em.persist(sample);
 		em.clear();
@@ -60,9 +59,9 @@ public class Jsr310JpaConvertersIntegrationTests extends AbstractAttributeConver
 		DateTimeSample result = em.find(DateTimeSample.class, sample.id);
 
 		assertThat(result, is(notNullValue()));
-		assertThat(result.instant, is(sample.instant));
-		assertThat(result.localDate, is(sample.localDate));
-		assertThat(result.localTime, is(sample.localTime));
-		assertThat(result.localDateTime, is(sample.localDateTime));
+		assertThat(result.bpInstant, is(sample.bpInstant));
+		assertThat(result.bpLocalDate, is(sample.bpLocalDate));
+		assertThat(result.bpLocalTime, is(sample.bpLocalTime));
+		assertThat(result.bpLocalDateTime, is(sample.bpLocalDateTime));
 	}
 }
