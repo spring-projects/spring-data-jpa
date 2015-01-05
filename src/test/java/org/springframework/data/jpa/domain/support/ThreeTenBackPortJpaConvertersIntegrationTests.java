@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,11 +30,12 @@ import org.threeten.bp.LocalDateTime;
 import org.threeten.bp.LocalTime;
 
 /**
- * Integration tests for {@link Jsr310BackPortJpaConverters}.
+ * Integration tests for {@link ThreeTenBackPortJpaConverters}.
  * 
  * @author Oliver Gierke
+ * @since 1.8
  */
-public class Jsr310BackPortJpaConvertersIntegrationTests extends AbstractAttributeConverterIntegrationTests {
+public class ThreeTenBackPortJpaConvertersIntegrationTests extends AbstractAttributeConverterIntegrationTests {
 
 	@PersistenceContext EntityManager em;
 
@@ -42,7 +43,7 @@ public class Jsr310BackPortJpaConvertersIntegrationTests extends AbstractAttribu
 	 * @see DATAJPA-650
 	 */
 	@Test
-	public void usesJsr310BackPortJpaConverters() {
+	public void usesThreeTenBackPortJpaConverters() {
 
 		assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
 

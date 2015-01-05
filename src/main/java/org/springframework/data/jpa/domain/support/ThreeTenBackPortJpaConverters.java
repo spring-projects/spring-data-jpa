@@ -20,14 +20,14 @@ import java.util.Date;
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
 
-import org.springframework.data.convert.Jsr310BackPortConverters.DateToInstantConverter;
-import org.springframework.data.convert.Jsr310BackPortConverters.DateToLocalDateConverter;
-import org.springframework.data.convert.Jsr310BackPortConverters.DateToLocalDateTimeConverter;
-import org.springframework.data.convert.Jsr310BackPortConverters.DateToLocalTimeConverter;
-import org.springframework.data.convert.Jsr310BackPortConverters.InstantToDateConverter;
-import org.springframework.data.convert.Jsr310BackPortConverters.LocalDateTimeToDateConverter;
-import org.springframework.data.convert.Jsr310BackPortConverters.LocalDateToDateConverter;
-import org.springframework.data.convert.Jsr310BackPortConverters.LocalTimeToDateConverter;
+import org.springframework.data.convert.ThreeTenBackPortConverters.DateToInstantConverter;
+import org.springframework.data.convert.ThreeTenBackPortConverters.DateToLocalDateConverter;
+import org.springframework.data.convert.ThreeTenBackPortConverters.DateToLocalDateTimeConverter;
+import org.springframework.data.convert.ThreeTenBackPortConverters.DateToLocalTimeConverter;
+import org.springframework.data.convert.ThreeTenBackPortConverters.InstantToDateConverter;
+import org.springframework.data.convert.ThreeTenBackPortConverters.LocalDateTimeToDateConverter;
+import org.springframework.data.convert.ThreeTenBackPortConverters.LocalDateToDateConverter;
+import org.springframework.data.convert.ThreeTenBackPortConverters.LocalTimeToDateConverter;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.threeten.bp.Instant;
 import org.threeten.bp.LocalDate;
@@ -42,8 +42,9 @@ import org.threeten.bp.LocalTime;
  * 
  * @author Oliver Gierke
  * @see http://www.threeten.org/threetenbp
+ * @since 1.8
  */
-public class Jsr310BackPortJpaConverters {
+public class ThreeTenBackPortJpaConverters {
 
 	@Converter(autoApply = true)
 	public static class LocalDateConverter implements AttributeConverter<LocalDate, Date> {
