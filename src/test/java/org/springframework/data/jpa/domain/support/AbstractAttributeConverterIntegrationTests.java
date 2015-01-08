@@ -20,7 +20,6 @@ import javax.sql.DataSource;
 
 import org.junit.runner.RunWith;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
@@ -29,10 +28,8 @@ import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.AbstractJpaVendorAdapter;
 import org.springframework.orm.jpa.vendor.Database;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Base class for integration tests for JPA 2.1 {@link AttributeConverter} integration.
@@ -40,15 +37,12 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Oliver Gierke
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration
-@Transactional
 public abstract class AbstractAttributeConverterIntegrationTests {
 
-	@Configuration
-	static class Config {
+	protected abstract static class InfrastructureConfig {
 
 		@Bean
-		public LocalContainerEntityManagerFactoryBean entityManagerFactory() {
+		LocalContainerEntityManagerFactoryBean entityManagerFactory() {
 
 			AbstractJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
 			vendorAdapter.setDatabase(Database.HSQL);
@@ -56,18 +50,22 @@ public abstract class AbstractAttributeConverterIntegrationTests {
 
 			LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();
 			factory.setDataSource(dataSource());
-			factory.setPackagesToScan(getClass().getPackage().getName(), User.class.getPackage().getName());
+			factory.setPackagesToScan(getPackageName(), User.class.getPackage().getName());
 			factory.setJpaVendorAdapter(vendorAdapter);
 
 			return factory;
 		}
 
-		public @Bean PlatformTransactionManager transactionManager() {
+		@Bean
+		PlatformTransactionManager transactionManager() {
 			return new JpaTransactionManager();
 		}
 
-		public @Bean DataSource dataSource() {
+		@Bean
+		DataSource dataSource() {
 			return new EmbeddedDatabaseBuilder().setType(EmbeddedDatabaseType.HSQL).build();
 		}
+
+		protected abstract String getPackageName();
 	}
 }

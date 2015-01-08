@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,29 +13,44 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.jpa.domain.support;
+package org.springframework.data.jpa.convert.threetenbp;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 import static org.junit.Assume.*;
 import static org.springframework.data.jpa.support.EntityManagerTestUtils.*;
 
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
 import org.junit.Test;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.jpa.domain.support.AbstractAttributeConverterIntegrationTests;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.transaction.annotation.Transactional;
+import org.threeten.bp.Instant;
+import org.threeten.bp.LocalDate;
+import org.threeten.bp.LocalDateTime;
+import org.threeten.bp.LocalTime;
 
 /**
- * Integration tests for {@link Jsr310JpaConverters}.
+ * Integration tests for {@link ThreeTenBackPortJpaConverters}.
  * 
  * @author Oliver Gierke
+ * @since 1.8
  */
-public class Jsr310JpaConvertersIntegrationTests extends AbstractAttributeConverterIntegrationTests {
+@ContextConfiguration
+@Transactional
+public class ThreeTenBackPortJpaConvertersIntegrationTests extends AbstractAttributeConverterIntegrationTests {
+
+	@Configuration
+	static class Config extends InfrastructureConfig {
+
+		@Override
+		protected String getPackageName() {
+			return getClass().getPackage().getName();
+		}
+	}
 
 	@PersistenceContext EntityManager em;
 
@@ -43,7 +58,7 @@ public class Jsr310JpaConvertersIntegrationTests extends AbstractAttributeConver
 	 * @see DATAJPA-650
 	 */
 	@Test
-	public void usesJsr310JpaConverters() {
+	public void usesThreeTenBackPortJpaConverters() {
 
 		assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
 

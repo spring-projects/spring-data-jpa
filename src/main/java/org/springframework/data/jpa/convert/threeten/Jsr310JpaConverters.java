@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,38 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.jpa.domain.support;
+package org.springframework.data.jpa.convert.threeten;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Date;
 
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
 
-import org.springframework.data.convert.ThreeTenBackPortConverters.DateToInstantConverter;
-import org.springframework.data.convert.ThreeTenBackPortConverters.DateToLocalDateConverter;
-import org.springframework.data.convert.ThreeTenBackPortConverters.DateToLocalDateTimeConverter;
-import org.springframework.data.convert.ThreeTenBackPortConverters.DateToLocalTimeConverter;
-import org.springframework.data.convert.ThreeTenBackPortConverters.InstantToDateConverter;
-import org.springframework.data.convert.ThreeTenBackPortConverters.LocalDateTimeToDateConverter;
-import org.springframework.data.convert.ThreeTenBackPortConverters.LocalDateToDateConverter;
-import org.springframework.data.convert.ThreeTenBackPortConverters.LocalTimeToDateConverter;
+import org.springframework.data.convert.Jsr310Converters.DateToInstantConverter;
+import org.springframework.data.convert.Jsr310Converters.DateToLocalDateConverter;
+import org.springframework.data.convert.Jsr310Converters.DateToLocalDateTimeConverter;
+import org.springframework.data.convert.Jsr310Converters.DateToLocalTimeConverter;
+import org.springframework.data.convert.Jsr310Converters.InstantToDateConverter;
+import org.springframework.data.convert.Jsr310Converters.LocalDateTimeToDateConverter;
+import org.springframework.data.convert.Jsr310Converters.LocalDateToDateConverter;
+import org.springframework.data.convert.Jsr310Converters.LocalTimeToDateConverter;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
-import org.threeten.bp.Instant;
-import org.threeten.bp.LocalDate;
-import org.threeten.bp.LocalDateTime;
-import org.threeten.bp.LocalTime;
 
 /**
- * JPA 2.1 converters to turn ThreeTen back port types into legacy {@link Date}s. To activate these converters make sure
- * your persistence provider detects them by including this class in the list of mapped classes. In Spring environments,
- * you can simply register the package of this class (i.e. {@code org.springframework.data.jpa.domain.support}) as
- * package to be scanned on e.g. the {@link LocalContainerEntityManagerFactoryBean}.
+ * JPA 2.1 converters to turn JSR-310 types into legacy {@link Date}s. To activate these converters make sure your
+ * persistence provider detects them by including this class in the list of mapped classes. In Spring environments, you
+ * can simply register the package of this class (i.e. {@code org.springframework.data.jpa.domain.support}) as package
+ * to be scanned on e.g. the {@link LocalContainerEntityManagerFactoryBean}.
  * 
  * @author Oliver Gierke
- * @see http://www.threeten.org/threetenbp
- * @since 1.8
  */
-public class ThreeTenBackPortJpaConverters {
+public class Jsr310JpaConverters {
 
 	@Converter(autoApply = true)
 	public static class LocalDateConverter implements AttributeConverter<LocalDate, Date> {

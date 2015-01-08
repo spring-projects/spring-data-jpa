@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.jpa.domain.support;
-
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+package org.springframework.data.jpa.convert.threetenbp;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+
+import org.threeten.bp.Instant;
+import org.threeten.bp.LocalDate;
+import org.threeten.bp.LocalDateTime;
+import org.threeten.bp.LocalTime;
 
 /**
  * @author Oliver Gierke
@@ -31,13 +31,9 @@ import javax.persistence.Id;
 public class DateTimeSample {
 
 	@Id @GeneratedValue Long id;
+
 	Instant instant;
 	LocalDate localDate;
 	LocalTime localTime;
 	LocalDateTime localDateTime;
-
-	org.threeten.bp.Instant bpInstant;
-	org.threeten.bp.LocalDate bpLocalDate;
-	org.threeten.bp.LocalTime bpLocalTime;
-	org.threeten.bp.LocalDateTime bpLocalDateTime;
 }
