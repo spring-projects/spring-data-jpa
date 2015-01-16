@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -117,5 +117,18 @@ public class UserRepositoryStoredProcedureTests {
 		proc.execute();
 
 		assertThat(proc.getOutputParameterValue("res"), is((Object) 2));
+	}
+
+	/**
+	 * @see DATAJPA-652
+	 */
+	@Test
+	public void executesProcedureWithNoOutput() {
+
+		assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
+
+		repository.executeNoOutputProcedure(1);
+
+		assertTrue(true);
 	}
 }

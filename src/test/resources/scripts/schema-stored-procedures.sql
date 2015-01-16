@@ -6,3 +6,11 @@ BEGIN ATOMIC
 	set res = arg + 1; 
 END
 /;
+DROP procedure IF EXISTS nooutput
+/;
+CREATE procedure nooutput (IN arg int)  
+BEGIN ATOMIC 
+	declare res int;
+	set res = arg + 1; 
+END
+/;
