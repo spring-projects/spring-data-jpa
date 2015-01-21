@@ -118,17 +118,4 @@ public class UserRepositoryStoredProcedureTests {
 
 		assertThat(proc.getOutputParameterValue("res"), is((Object) 2));
 	}
-
-	/**
-	 * @see DATAJPA-652
-	 */
-	@Test
-	public void executesProcedureWithNoOutput() {
-
-		assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
-
-		repository.executeNoOutputProcedure(1);
-
-		assertTrue(true);
-	}
 }

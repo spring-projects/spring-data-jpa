@@ -549,12 +549,4 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	 * DATAJPA-606
 	 */
 	List<User> queryByAgeInOrFirstname(Integer[] ages, String firstname);
-
-	/**
-	 * Explicitly mapped to a procedure with name "nooutput" in database.
-	 * 
-	 * @see DATAJPA-652
-	 */
-	@Procedure(procedureName = "nooutput")
-	void executeNoOutputProcedure(Integer arg);
 }
