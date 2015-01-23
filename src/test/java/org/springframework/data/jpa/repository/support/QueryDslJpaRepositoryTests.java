@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2014 the original author or authors.
+ * Copyright 2008-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -324,5 +324,16 @@ public class QueryDslJpaRepositoryTests {
 
 		assertThat(users, hasSize(3));
 		assertThat(users, hasItems(dave, carter, oliver));
+	}
+
+	/**
+	 * @see DATAJPA-665
+	 */
+	@Test
+	public void shouldSupportExistsWithPredicate() throws Exception {
+
+		assertThat(repository.exists(user.firstname.eq("Dave")), is(true));
+		assertThat(repository.exists(user.firstname.eq("Unknown")), is(false));
+		assertThat(repository.exists((Predicate) null), is(true));
 	}
 }
