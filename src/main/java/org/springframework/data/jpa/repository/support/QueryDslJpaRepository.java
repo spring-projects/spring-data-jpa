@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2012 the original author or authors.
+ * Copyright 2008-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,6 +46,7 @@ import com.mysema.query.types.path.PathBuilder;
  * {@link QueryDslPredicateExecutor}.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpaRepository<T, ID> implements
 		QueryDslPredicateExecutor<T> {
@@ -140,6 +141,13 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 	 */
 	public long count(Predicate predicate) {
 		return createQuery(predicate).count();
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.data.querydsl.QueryDslPredicateExecutor#exists(com.mysema.query.types.Predicate)
+	 */
+	public boolean exists(Predicate predicate) {
+		return createQuery(predicate).exists();
 	}
 
 	/**
