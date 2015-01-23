@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2014 the original author or authors.
+ * Copyright 2008-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -549,4 +549,16 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	 * DATAJPA-606
 	 */
 	List<User> queryByAgeInOrFirstname(Integer[] ages, String firstname);
+
+	/**
+	 * @see DATAJPA-666
+	 * 
+	 * <pre>
+	 * @Query("FROM User ORDER BY rand()")
+	 * 
+	 * <pre>
+	 * Works with hibernate but neither with eclipse-link nor openjpa.
+	 */
+	@Query(value = "SELECT u.* FROM User u ORDER BY rand()", nativeQuery = true)
+	User findRandomUser();
 }

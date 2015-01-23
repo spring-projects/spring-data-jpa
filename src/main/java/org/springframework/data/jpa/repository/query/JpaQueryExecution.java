@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2014 the original author or authors.
+ * Copyright 2008-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -199,7 +199,19 @@ public abstract class JpaQueryExecution {
 		@Override
 		protected Object doExecute(AbstractJpaQuery query, Object[] values) {
 
-			return query.createQuery(values).getSingleResult();
+			/*
+			 * Setting maxResults to 1 has the effect that 
+			 * custom queries via @Query that return multiple results 
+			 * which previously resulted in a TooManyResultsException will now 
+			 * return the first result.
+			 * 
+			 * This enables some advanced use cases such as:
+			 * <pre>
+			 * @Query("FROM Image ORDER BY rand()")
+			 * Image findFirstRandomImage();
+			 * <pre>
+			 */
+			return query.createQuery(values).setMaxResults(1).getSingleResult();
 		}
 	}
 
