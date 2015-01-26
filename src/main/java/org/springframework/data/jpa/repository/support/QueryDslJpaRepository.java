@@ -91,6 +91,7 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 	 * (non-Javadoc)
 	 * @see org.springframework.data.querydsl.QueryDslPredicateExecutor#findOne(com.mysema.query.types.Predicate)
 	 */
+	@Override
 	public T findOne(Predicate predicate) {
 		return createQuery(predicate).uniqueResult(path);
 	}
@@ -99,6 +100,7 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 	 * (non-Javadoc)
 	 * @see org.springframework.data.querydsl.QueryDslPredicateExecutor#findAll(com.mysema.query.types.Predicate)
 	 */
+	@Override
 	public List<T> findAll(Predicate predicate) {
 		return createQuery(predicate).list(path);
 	}
@@ -107,6 +109,7 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 	 * (non-Javadoc)
 	 * @see org.springframework.data.querydsl.QueryDslPredicateExecutor#findAll(com.mysema.query.types.Predicate, com.mysema.query.types.OrderSpecifier<?>[])
 	 */
+	@Override
 	public List<T> findAll(Predicate predicate, OrderSpecifier<?>... orders) {
 		return executeSorted(createQuery(predicate), orders);
 	}
@@ -124,6 +127,7 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 	 * (non-Javadoc)
 	 * @see org.springframework.data.querydsl.QueryDslPredicateExecutor#findAll(com.mysema.query.types.Predicate, org.springframework.data.domain.Pageable)
 	 */
+	@Override
 	public Page<T> findAll(Predicate predicate, Pageable pageable) {
 
 		JPQLQuery countQuery = createQuery(predicate);
@@ -139,13 +143,16 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 	 * (non-Javadoc)
 	 * @see org.springframework.data.querydsl.QueryDslPredicateExecutor#count(com.mysema.query.types.Predicate)
 	 */
+	@Override
 	public long count(Predicate predicate) {
 		return createQuery(predicate).count();
 	}
 
-	/* (non-Javadoc)
+	/* 
+	 * (non-Javadoc)
 	 * @see org.springframework.data.querydsl.QueryDslPredicateExecutor#exists(com.mysema.query.types.Predicate)
 	 */
+	@Override
 	public boolean exists(Predicate predicate) {
 		return createQuery(predicate).exists();
 	}
