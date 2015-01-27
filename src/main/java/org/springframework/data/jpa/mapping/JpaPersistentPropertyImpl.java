@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2014 the original author or authors.
+ * Copyright 2012-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,11 +37,14 @@ import javax.persistence.Transient;
 import javax.persistence.Version;
 import javax.persistence.metamodel.Metamodel;
 
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.data.annotation.AccessType.Type;
 import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.PersistentEntity;
 import org.springframework.data.mapping.model.AnnotationBasedPersistentProperty;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
+import org.springframework.data.util.ClassTypeInformation;
+import org.springframework.data.util.TypeInformation;
 import org.springframework.util.Assert;
 
 /**
@@ -76,6 +79,7 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 
 	private final Metamodel metamodel;
 	private final Boolean usePropertyAccess;
+	private final TypeInformation<?> associationTargetType;
 
 	/**
 	 * Creates a new {@link JpaPersistentPropertyImpl}
@@ -95,6 +99,26 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 
 		this.metamodel = metamodel;
 		this.usePropertyAccess = detectPropertyAccess();
+		this.associationTargetType = isAssociation() ? detectAssociationTargetType() : null;
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.mapping.model.AbstractPersistentProperty#getActualType()
+	 */
+	@Override
+	public Class<?> getActualType() {
+		return associationTargetType == null ? super.getActualType() : associationTargetType.getType();
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.mapping.model.AbstractPersistentProperty#getPersistentEntityType()
+	 */
+	@Override
+	public Iterable<? extends TypeInformation<?>> getPersistentEntityType() {
+		return associationTargetType == null ? super.getPersistentEntityType() : Collections
+				.singleton(associationTargetType);
 	}
 
 	/* 
@@ -214,5 +238,25 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 
 		access = findPropertyOrOwnerAnnotation(Access.class);
 		return access == null ? null : AccessType.PROPERTY.equals(access.value());
+	}
+
+	/**
+	 * Inspects the association annotations on the property and returns the target entity type if specified.
+	 * 
+	 * @return
+	 */
+	private TypeInformation<?> detectAssociationTargetType() {
+
+		for (Class<? extends Annotation> associationAnnotation : ASSOCIATION_ANNOTATIONS) {
+
+			Annotation annotation = findAnnotation(associationAnnotation);
+			Object targetEntity = AnnotationUtils.getValue(annotation, "targetEntity");
+
+			if (targetEntity != null && !void.class.equals(targetEntity)) {
+				return ClassTypeInformation.from((Class<?>) targetEntity);
+			}
+		}
+
+		return null;
 	}
 }

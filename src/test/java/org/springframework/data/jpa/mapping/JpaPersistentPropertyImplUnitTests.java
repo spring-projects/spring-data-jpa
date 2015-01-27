@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 package org.springframework.data.jpa.mapping;
 
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 import java.util.Collections;
@@ -24,6 +24,7 @@ import javax.persistence.Access;
 import javax.persistence.AccessType;
 import javax.persistence.Embeddable;
 import javax.persistence.Embedded;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.Transient;
 import javax.persistence.metamodel.Metamodel;
@@ -35,6 +36,8 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.data.annotation.AccessType.Type;
 import org.springframework.data.annotation.Version;
+import org.springframework.data.util.ClassTypeInformation;
+import org.springframework.data.util.TypeInformation;
 
 /**
  * Unit tests for {@link JpaPersistentPropertyImpl}.
@@ -161,6 +164,23 @@ public class JpaPersistentPropertyImplUnitTests {
 		assertThat(getProperty(SpringDataVersioned.class, "version").isVersionProperty(), is(true));
 	}
 
+	/**
+	 * @see DATAJPA-664
+	 */
+	@Test
+	@SuppressWarnings("rawtypes")
+	public void considersTargetEntityTypeForPropertyType() {
+
+		JpaPersistentProperty property = getProperty(SpecializedAssociation.class, "api");
+
+		assertThat(property.getType(), is(typeCompatibleWith(Api.class)));
+		assertThat(property.getActualType(), is(typeCompatibleWith(Implementation.class)));
+
+		Iterable<? extends TypeInformation<?>> entityType = property.getPersistentEntityType();
+		assertThat(entityType.iterator().hasNext(), is(true));
+		assertThat(entityType.iterator().next(), is((TypeInformation) ClassTypeInformation.from(Implementation.class)));
+	}
+
 	private JpaPersistentProperty getProperty(Class<?> ownerType, String propertyName) {
 
 		JpaPersistentEntity<?> entity = context.getPersistentEntity(ownerType);
@@ -270,4 +290,13 @@ public class JpaPersistentPropertyImplUnitTests {
 
 		@Version long version;
 	}
+
+	static class SpecializedAssociation {
+
+		@ManyToOne(targetEntity = Implementation.class) Api api;
+	}
+
+	static interface Api {}
+
+	static class Implementation {}
 }
