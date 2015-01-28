@@ -1,6 +1,28 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 1.7.2.RELEASE (2015-01-28)
+---------------------------------------------
+* DATAJPA-661 - Release 1.7.2.
+* DATAJPA-654 - Enable Spring 4.1 build profile for Travis.
+* DATAJPA-653 - Make sure test work with Spring 4.1.
+* DATAJPA-641 - Move to new Travis build infrastructure.
+* DATAJPA-639 - Set up Travis to only build with JDK 8.
+* DATAJPA-638 - Improve bean definition setup for root configuration element.
+* DATAJPA-634 - Switch to HTTPS for repository declarations.
+* DATAJPA-632 - Improve SimpleJpaQueryUnitTests that fails after SonarQube improvements in Spring Data Commons.
+* DATAJPA-631 - ClasspathScanningPersistenceUnitPostProcessor should forward ResourceLoader configured to the ClassPathScanningCandidateComponentProvider used for the entity type scanning.
+* DATAJPA-629 - SPEL expression does not work with #{#entityName} in @Query.
+* DATAJPA-628 - Use a shared SpelParser instead of recreating it for queries.
+* DATAJPA-627 - Typo in BeanDefinitionNames.
+* DATAJPA-624 - Fix SonarQube warnings as far as possible/reasonable.
+* DATAJPA-622 - Hibernate thinks AbstractPersistable.isNew() is a property.
+* DATAJPA-611 - SimpleJpaRepository.findAll(Iterable<ID ids) not working when for composite primary keys.
+* DATAJPA-606 - SQLGrammarException for IN-clause with empty collection as parameter.
+* DATAJPA-523 - Specifications should implement Serializable.
+* DATAJPA-477 - Avoid query creation in PagedExecution if count query reports no results.
+
+
 Changes in version 1.6.5.RELEASE (2015-01-27)
 ---------------------------------------------
 * DATAJPA-660 - Release 1.6.5.
