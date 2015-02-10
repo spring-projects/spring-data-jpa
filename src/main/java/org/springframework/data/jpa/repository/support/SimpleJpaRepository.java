@@ -394,7 +394,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	 */
 	public long count(Specification<T> spec) {
 
-		return getCountQuery(spec).getSingleResult();
+		return executeCountQuery(getCountQuery(spec));
 	}
 
 	/*
@@ -469,7 +469,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 		query.setFirstResult(pageable.getOffset());
 		query.setMaxResults(pageable.getPageSize());
 
-		Long total = QueryUtils.executeCountQuery(getCountQuery(spec));
+		Long total = executeCountQuery(getCountQuery(spec));
 		List<T> content = total > pageable.getOffset() ? query.getResultList() : Collections.<T> emptyList();
 
 		return new PageImpl<T>(content, pageable, total);
@@ -572,6 +572,26 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 		}
 
 		return Jpa21Utils.tryConfigureFetchGraph(em, toReturn, metadata.getEntityGraph());
+	}
+
+	/**
+	 * Executes a count query and transparently sums up all values returned.
+	 * 
+	 * @param query must not be {@literal null}.
+	 * @return
+	 */
+	private static Long executeCountQuery(TypedQuery<Long> query) {
+
+		Assert.notNull(query);
+
+		List<Long> totals = query.getResultList();
+		Long total = 0L;
+
+		for (Long element : totals) {
+			total += element == null ? 0 : element;
+		}
+
+		return total;
 	}
 
 	/**
