@@ -36,6 +36,7 @@ import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.data.util.DirectFieldAccessFallbackBeanWrapper;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 
 /**
  * Implementation of {@link org.springframework.data.repository.core.EntityInformation} that uses JPA {@link Metamodel}
@@ -321,20 +322,63 @@ public class JpaMetamodelEntityInformation<T, ID extends Serializable> extends J
 		@Override
 		public void setPropertyValue(String propertyName, Object value) {
 
-			if (isIdentifierDerivationNecessary(value)) {
-
-				// Derive the identifer from the nested entity that is part of the composite key.
-				@SuppressWarnings({ "rawtypes", "unchecked" })
-				JpaMetamodelEntityInformation nestedEntityInformation = new JpaMetamodelEntityInformation(value.getClass(),
-						this.metamodel);
-				Object nestedIdPropertyValue = new DirectFieldAccessFallbackBeanWrapper(value)
-						.getPropertyValue(nestedEntityInformation.getIdAttribute().getName());
-				super.setPropertyValue(propertyName, nestedIdPropertyValue);
-
+			if (!isIdentifierDerivationNecessary(value)) {
+				super.setPropertyValue(propertyName, value);
 				return;
 			}
 
-			super.setPropertyValue(propertyName, value);
+			// Derive the identifier from the nested entity that is part of the composite key.
+			@SuppressWarnings({ "rawtypes", "unchecked" })
+			JpaMetamodelEntityInformation nestedEntityInformation = new JpaMetamodelEntityInformation(value.getClass(),
+					this.metamodel);
+
+			if (!nestedEntityInformation.getJavaType().isAnnotationPresent(IdClass.class)) {
+
+				Object nestedIdPropertyValue = new DirectFieldAccessFallbackBeanWrapper(value)
+						.getPropertyValue(nestedEntityInformation.getIdAttribute().getName());
+				super.setPropertyValue(propertyName, nestedIdPropertyValue);
+				return;
+			}
+
+			// We have an IdClass property, we need to inspect the current value in order to map potentially multiple id
+			// properties correctly.
+
+			BeanWrapper sourceIdValueWrapper = new DirectFieldAccessFallbackBeanWrapper(value);
+			BeanWrapper targetIdClassTypeWrapper = new BeanWrapperImpl(nestedEntityInformation.getIdType());
+
+			for (String idAttributeName : (Iterable<String>) nestedEntityInformation.getIdAttributeNames()) {
+				targetIdClassTypeWrapper.setPropertyValue(idAttributeName,
+						extractActualIdPropertyValue(sourceIdValueWrapper, idAttributeName));
+			}
+
+			super.setPropertyValue(propertyName, targetIdClassTypeWrapper.getWrappedInstance());
+		}
+
+		private Object extractActualIdPropertyValue(BeanWrapper sourceIdValueWrapper, String idAttributeName) {
+
+			Object idPropertyValue = sourceIdValueWrapper.getPropertyValue(idAttributeName);
+
+			Class<? extends Object> idPropertyValueType = idPropertyValue.getClass();
+
+			if (ClassUtils.isPrimitiveOrWrapper(idPropertyValueType)) {
+				return idPropertyValue;
+			}
+
+			return new DirectFieldAccessFallbackBeanWrapper(idPropertyValue)
+					.getPropertyValue(tryFindSingularIdAttributeNameOrUseFallback(idPropertyValueType, idAttributeName));
+		}
+
+		private String tryFindSingularIdAttributeNameOrUseFallback(Class<? extends Object> idPropertyValueType,
+				String fallbackIdTypePropertyName) {
+
+			ManagedType<? extends Object> idPropertyType = metamodel.managedType(idPropertyValueType);
+			for (SingularAttribute<?, ?> sa : idPropertyType.getSingularAttributes()) {
+				if (sa.isId()) {
+					return sa.getName();
+				}
+			}
+
+			return fallbackIdTypePropertyName;
 		}
 
 		/**
