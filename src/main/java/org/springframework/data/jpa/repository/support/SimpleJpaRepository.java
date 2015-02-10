@@ -385,8 +385,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	 * @see org.springframework.data.jpa.repository.JpaSpecificationExecutor#count(org.springframework.data.jpa.domain.Specification)
 	 */
 	public long count(Specification<T> spec) {
-
-		return getCountQuery(spec).getSingleResult();
+		return QueryUtils.executeCountQuery(getCountQuery(spec));
 	}
 
 	/*
