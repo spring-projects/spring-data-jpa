@@ -90,4 +90,20 @@ public interface JpaRepository<T, ID extends Serializable> extends PagingAndSort
 	 * @see EntityManager#getReference(Class, Object)
 	 */
 	T getOne(ID id);
+
+  /**
+   * Refresh the state of an entity from the database,
+   * overwriting changes made to it, if any.
+   *
+   * @param entity  entity instance to refresh.
+   * @throws IllegalArgumentException if the instance is not
+   *         an entity or the entity is not managed
+   * @throws javax.persistence.TransactionRequiredException if invoked on a
+   *         container-managed entity manager of type
+   *         <code>PersistenceContextType.TRANSACTION</code> and there is
+   *         no transaction
+   * @throws javax.persistence.EntityNotFoundException if the entity no longer
+   *         exists in the database
+   */
+  void refresh(T entity);
 }

@@ -104,7 +104,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	 * Configures a custom {@link CrudMethodMetadata} to be used to detect {@link LockModeType}s and query hints to be
 	 * applied to queries.
 	 * 
-	 * @param crudMethodMetadata
+	 * @param crudMethodMetadata {@link CrudMethodMetadata} for executing repository methods.
 	 */
 	public void setRepositoryMethodMetadata(CrudMethodMetadata crudMethodMetadata) {
 		this.metadata = crudMethodMetadata;
@@ -455,6 +455,15 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 		em.flush();
 	}
 
+  /*
+   * (non-Javadoc)
+   * @see org.springframework.data.repository.JpaRepository#refresh(java.lang.Object)
+   */
+  public void refresh(T entity) {
+    Assert.notNull(entity, "The entity must not be null!");
+    em.refresh(em.contains(entity) ? entity : em.merge(entity));
+  }
+
 	/**
 	 * Reads the given {@link TypedQuery} into a {@link Page} applying the given {@link Pageable} and
 	 * {@link Specification}.
@@ -462,7 +471,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	 * @param query must not be {@literal null}.
 	 * @param spec can be {@literal null}.
 	 * @param pageable can be {@literal null}.
-	 * @return
+	 * @return A {@link Page} of entities matching the {@link TypedQuery}.
 	 */
 	protected Page<T> readPage(TypedQuery<T> query, Pageable pageable, Specification<T> spec) {
 
@@ -480,12 +489,10 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	 * 
 	 * @param spec can be {@literal null}.
 	 * @param pageable can be {@literal null}.
-	 * @return
+	 * @return A {@link TypedQuery} for the given {@code spec} and {@code pageable}.
 	 */
 	protected TypedQuery<T> getQuery(Specification<T> spec, Pageable pageable) {
-
-		Sort sort = pageable == null ? null : pageable.getSort();
-		return getQuery(spec, sort);
+		return getQuery(spec, pageable == null ? null : pageable.getSort());
 	}
 
 	/**
@@ -493,7 +500,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	 * 
 	 * @param spec can be {@literal null}.
 	 * @param sort can be {@literal null}.
-	 * @return
+   * @return A {@link TypedQuery} for the given {@code spec} and {@code sort}.
 	 */
 	protected TypedQuery<T> getQuery(Specification<T> spec, Sort sort) {
 
@@ -514,7 +521,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	 * Creates a new count query for the given {@link Specification}.
 	 * 
 	 * @param spec can be {@literal null}.
-	 * @return
+	 * @return A {@link TypedQuery} for the given {@code spec}.
 	 */
 	protected TypedQuery<Long> getCountQuery(Specification<T> spec) {
 
@@ -537,7 +544,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	 * 
 	 * @param spec can be {@literal null}.
 	 * @param query must not be {@literal null}.
-	 * @return
+   * @return A {@link TypedQuery} for the given {@code spec} and {@code query}.
 	 */
 	private <S> Root<T> applySpecificationToCriteria(Specification<T> spec, CriteriaQuery<S> query) {
 
@@ -578,7 +585,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	 * Executes a count query and transparently sums up all values returned.
 	 * 
 	 * @param query must not be {@literal null}.
-	 * @return
+	 * @return The count obtained as a result of executing the query.
 	 */
 	private static Long executeCountQuery(TypedQuery<Long> query) {
 
