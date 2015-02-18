@@ -35,7 +35,7 @@ import org.springframework.util.Assert;
 
 /**
  * JPA specific generic repository factory.
- * 
+ *
  * @author Oliver Gierke
  */
 public class JpaRepositoryFactory extends RepositoryFactorySupport {
@@ -46,7 +46,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 
 	/**
 	 * Creates a new {@link JpaRepositoryFactory}.
-	 * 
+	 *
 	 * @param entityManager must not be {@literal null}
 	 */
 	public JpaRepositoryFactory(EntityManager entityManager) {
@@ -73,9 +73,37 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 		return repository;
 	}
 
+  /**
+   * Creates a new {@link SimpleJpaRepository} suitable for handling JPA operations
+   * on a specified JPA entity.
+   *
+   * @param entityInformation A {@link JpaEntityInformation} containing information
+   *                          on the JPA entity for which the repository is required.
+   * @param entityManager A JPA {@link EntityManager} that the repository can use
+   *                      to execute JPA commands.
+   * @return A {@link SimpleJpaRepository}.
+   */
+  protected SimpleJpaRepository<?, ?> getDefaultTargetRepository(JpaEntityInformation<?, Serializable> entityInformation, EntityManager entityManager) {
+    return new SimpleJpaRepository(entityInformation, entityManager);
+  }
+
+  /**
+   * Creates a new {@link QueryDslJpaRepository} suitable for handling JPA operations
+   * on a specified JPA entity.
+   *
+   * @param entityInformation A {@link JpaEntityInformation} containing information
+   *                          on the JPA entity for which the repository is required.
+   * @param entityManager A JPA {@link EntityManager} that the repository can use
+   *                      to execute JPA commands.
+   * @return A {@link QueryDslJpaRepository}.
+   */
+  protected QueryDslJpaRepository<?, ?> getQueryDslTargetRepository(JpaEntityInformation<?, Serializable> entityInformation, EntityManager entityManager) {
+    return new QueryDslJpaRepository(entityInformation, entityManager);
+  }
+
 	/**
 	 * Callback to create a {@link JpaRepository} instance with the given {@link EntityManager}
-	 * 
+	 *
 	 * @param <T>
 	 * @param <ID>
 	 * @param entityManager
@@ -85,36 +113,49 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	protected <T, ID extends Serializable> SimpleJpaRepository<?, ?> getTargetRepository(RepositoryMetadata metadata,
 			EntityManager entityManager) {
-
-		Class<?> repositoryInterface = metadata.getRepositoryInterface();
 		JpaEntityInformation<?, Serializable> entityInformation = getEntityInformation(metadata.getDomainType());
 
-		SimpleJpaRepository<?, ?> repo = isQueryDslExecutor(repositoryInterface) ? new QueryDslJpaRepository(
-				entityInformation, entityManager) : new SimpleJpaRepository(entityInformation, entityManager);
-
-		return repo;
+		return isQueryDslExecutor(metadata.getRepositoryInterface())
+        ? getQueryDslTargetRepository(entityInformation, entityManager)
+        : getDefaultTargetRepository(entityInformation, entityManager);
 	}
+
+  /**
+   * Gets the base class for all repositories instantiated by this factory.
+   *
+   * @return {@code SimpleJpaRepository.class}.
+   */
+  protected Class<?> getDefaultTargetRepositoryClass() {
+    return SimpleJpaRepository.class;
+  }
+
+  /**
+   * Gets the base class for all repositories instantiated by this factory
+   * when QueryDSL is enabled.
+   *
+   * @return {@code QueryDslJpaRepository.class}.
+   */
+  protected Class<?> getQueryDslTargetRepositoryClass() {
+    return QueryDslJpaRepository.class;
+  }
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * org.springframework.data.repository.support.RepositoryFactorySupport#
 	 * getRepositoryBaseClass()
 	 */
 	@Override
 	protected Class<?> getRepositoryBaseClass(RepositoryMetadata metadata) {
-
-		if (isQueryDslExecutor(metadata.getRepositoryInterface())) {
-			return QueryDslJpaRepository.class;
-		} else {
-			return SimpleJpaRepository.class;
-		}
+    return isQueryDslExecutor(metadata.getRepositoryInterface())
+		  ? getQueryDslTargetRepositoryClass()
+		  : getDefaultTargetRepositoryClass();
 	}
 
 	/**
 	 * Returns whether the given repository interface requires a QueryDsl specific implementation to be chosen.
-	 * 
+	 *
 	 * @param repositoryInterface
 	 * @return
 	 */
@@ -123,7 +164,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 		return QUERY_DSL_PRESENT && QueryDslPredicateExecutor.class.isAssignableFrom(repositoryInterface);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.core.support.RepositoryFactorySupport#getQueryLookupStrategy(org.springframework.data.repository.query.QueryLookupStrategy.Key, org.springframework.data.repository.query.EvaluationContextProvider)
 	 */
@@ -134,7 +175,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * org.springframework.data.repository.support.RepositoryFactorySupport#
 	 * getEntityInformation(java.lang.Class)
