@@ -27,6 +27,7 @@ import javax.persistence.LockModeType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.query.Jpa21Utils;
 import org.springframework.data.jpa.repository.query.JpaEntityGraph;
 import org.springframework.data.querydsl.EntityPathResolver;
@@ -112,6 +113,14 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 	@Override
 	public List<T> findAll(Predicate predicate, OrderSpecifier<?>... orders) {
 		return executeSorted(createQuery(predicate), orders);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.data.querydsl.QueryDslPredicateExecutor#findAll(com.mysema.query.types.Predicate, org.springframework.data.domain.Sort)
+	 */
+	@Override
+	public List<T> findAll(Predicate predicate, Sort sort) {
+		return executeSorted(createQuery(predicate), sort);
 	}
 
 	/* 
@@ -204,6 +213,17 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 	 * @return
 	 */
 	private List<T> executeSorted(JPQLQuery query, OrderSpecifier<?>... orders) {
-		return querydsl.applySorting(new QSort(orders), query).list(path);
+		return executeSorted(query, new QSort(orders));
+	}
+
+	/**
+	 * Executes the given {@link JPQLQuery} after applying the given {@link Sort}.
+	 * 
+	 * @param query must not be {@literal null}.
+	 * @param sort must not be {@literal null}.
+	 * @return
+	 */
+	private List<T> executeSorted(JPQLQuery query, Sort sort) {
+		return querydsl.applySorting(sort, query).list(path);
 	}
 }
