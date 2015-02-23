@@ -336,4 +336,18 @@ public class QueryDslJpaRepositoryTests {
 		assertThat(repository.exists(user.firstname.eq("Unknown")), is(false));
 		assertThat(repository.exists((Predicate) null), is(true));
 	}
+
+	/**
+	 * @see DATAJPA-679
+	 */
+	@Test
+	public void shouldSupportFindAllWithPredicateAndSort() {
+
+		List<User> users = repository.findAll(user.dateOfBirth.isNull(), new Sort(Direction.ASC, "firstname"));
+
+		assertThat(users, hasSize(3));
+		assertThat(users.get(0).getFirstname(), is(carter.getFirstname()));
+		assertThat(users.get(2).getFirstname(), is(oliver.getFirstname()));
+		assertThat(users, hasItems(carter, dave, oliver));
+	}
 }
