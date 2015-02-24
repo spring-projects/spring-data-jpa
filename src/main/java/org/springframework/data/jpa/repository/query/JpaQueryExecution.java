@@ -15,8 +15,13 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import java.lang.reflect.Field;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Spliterator;
+import java.util.Spliterators;
+import java.util.stream.StreamSupport;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
@@ -24,6 +29,9 @@ import javax.persistence.Query;
 import javax.persistence.StoredProcedureQuery;
 import javax.persistence.TypedQuery;
 
+import org.hibernate.ScrollMode;
+import org.hibernate.ScrollableResults;
+import org.hibernate.ejb.QueryImpl;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.ConfigurableConversionService;
 import org.springframework.core.convert.support.GenericConversionService;
@@ -34,7 +42,10 @@ import org.springframework.data.domain.SliceImpl;
 import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
+import org.springframework.data.util.CloseableIterator;
+import org.springframework.data.util.CloseableIteratorDisposingRunnable;
 import org.springframework.util.Assert;
+import org.springframework.util.ReflectionUtils;
 
 /**
  * Set of classes to contain query execution strategies. Depending (mostly) on the return type of a
@@ -296,6 +307,50 @@ public abstract class JpaQueryExecution {
 			storedProcedure.execute();
 
 			return storedProcedureJpaQuery.extractOutputValue(storedProcedure);
+		}
+	}
+
+	static class StreamExecution extends JpaQueryExecution {
+
+		@Override
+		protected Object doExecute(AbstractJpaQuery query, Object[] values) {
+
+			Query jpaQuery = query.createQuery(values);
+
+			QueryImpl<Object> queryImpl = (QueryImpl<Object>) jpaQuery;
+
+			Field field = ReflectionUtils.findField(QueryImpl.class, "query");
+			ReflectionUtils.makeAccessible(field);
+
+			org.hibernate.Query qry = (org.hibernate.Query) ReflectionUtils.getField(field, queryImpl);
+
+			final ScrollableResults scrollableResults = qry.scroll(ScrollMode.FORWARD_ONLY);
+
+			CloseableIterator<Object> iter = new CloseableIterator<Object>() {
+
+				@Override
+				public Iterator<Object> iterator() {
+					return this;
+				}
+
+				@Override
+				public Object next() {
+					return scrollableResults.get()[0];
+				}
+
+				@Override
+				public boolean hasNext() {
+					return scrollableResults.next();
+				}
+
+				@Override
+				public void close() {
+					scrollableResults.close();
+				}
+			};
+
+			Spliterator<Object> spliterator = Spliterators.spliteratorUnknownSize(iter, Spliterator.NONNULL);
+			return StreamSupport.stream(spliterator, false).onClose(new CloseableIteratorDisposingRunnable(iter));
 		}
 	}
 }

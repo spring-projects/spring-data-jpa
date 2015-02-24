@@ -28,6 +28,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -1814,6 +1816,30 @@ public class UserRepositoryTests {
 		List<User> users = repository.queryByAgeInOrFirstname(new Integer[0], secondUser.getFirstname());
 		assertThat(users, hasSize(1));
 		assertThat(users.get(0), is(secondUser));
+	}
+
+	/**
+	 * @see DATAJPA-677
+	 */
+	@Test
+	public void shouldSupportJava8StreamsForRepositoryFinderMethods() throws Exception {
+
+		flushTestUsers();
+
+		Stream<User> users = repository.findAllByCustomQueryAndStream();
+
+		try {
+			users.forEach(new Consumer<User>() {
+
+				@Override
+				public void accept(User user) {
+					System.out.printf("%s%n", user);
+				}
+
+			});
+		} finally {
+			users.close();
+		}
 	}
 
 	private Page<User> executeSpecWithSort(Sort sort) {
