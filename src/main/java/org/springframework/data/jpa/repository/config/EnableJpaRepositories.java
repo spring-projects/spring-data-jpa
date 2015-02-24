@@ -28,6 +28,7 @@ import org.springframework.beans.factory.FactoryBean;
 import org.springframework.context.annotation.ComponentScan.Filter;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean;
+import org.springframework.data.repository.config.DefaultRepositoryBaseClass;
 import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.data.repository.query.QueryLookupStrategy.Key;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -109,7 +110,16 @@ public @interface EnableJpaRepositories {
 	 */
 	Class<?> repositoryFactoryBeanClass() default JpaRepositoryFactoryBean.class;
 
+	/**
+	 * Configure the repository base class to be used to create repository proxies for this particular configuration.
+	 * 
+	 * @return
+	 * @since 1.9
+	 */
+	Class<?> repositoryBaseClass() default DefaultRepositoryBaseClass.class;
+
 	// JPA specific configuration
+
 	/**
 	 * Configures the name of the {@link EntityManagerFactory} bean definition to be used to create repositories
 	 * discovered through this annotation. Defaults to {@code entityManagerFactory}.

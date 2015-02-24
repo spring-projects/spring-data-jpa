@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2014 the original author or authors.
+ * Copyright 2008-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -152,6 +152,18 @@ public class JpaRepositoryFactoryUnitTests {
 		}
 	}
 
+	/**
+	 * @see DATAJPA-710, DATACMNS-542
+	 */
+	@Test
+	public void usesConfiguredRepositoryBaseClass() {
+
+		factory.setRepositoryBaseClass(CustomJpaRepository.class);
+
+		SampleRepository repository = factory.getRepository(SampleRepository.class);
+		assertEquals(CustomJpaRepository.class, ((Advised) repository).getTargetClass());
+	}
+
 	private interface SimpleSampleRepository extends JpaRepository<User, Integer> {
 
 		@Transactional
@@ -195,4 +207,11 @@ public class JpaRepositoryFactoryUnitTests {
 	private interface QueryDslSampleRepository extends SimpleSampleRepository, QueryDslPredicateExecutor<User> {
 
 	}
+
+	static class CustomJpaRepository<T, ID extends Serializable> extends SimpleJpaRepository<T, ID> {
+
+		public CustomJpaRepository(JpaEntityInformation<T, ?> entityInformation, EntityManager entityManager) {
+			super(entityInformation, entityManager);
+		}
+	};
 }
