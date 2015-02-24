@@ -115,6 +115,14 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 		return executeSorted(createQuery(predicate), orders);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.querydsl.QueryDslPredicateExecutor#findAll(com.mysema.query.types.Predicate, org.springframework.data.domain.Sort)
+	 */
+	@Override
+	public List<T> findAll(Predicate predicate, Sort sort) {
+		return executeSorted(createQuery(predicate), sort);
+	}
+
 	/* 
 	 * (non-Javadoc)
 	 * @see org.springframework.data.querydsl.QueryDslPredicateExecutor#findAll(com.mysema.query.types.Predicate, org.springframework.data.domain.Sort)
