@@ -64,7 +64,15 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	 * Redeclaration of {@link CrudRepository#findOne(java.io.Serializable)} to change transaction configuration.
 	 */
 	@Transactional
-	public User findOne(Integer primaryKey);
+	User findOne(Integer primaryKey);
+
+	/**
+	 * Redeclaration of {@link CrudRepository#delete(java.io.Serializable)}. to make sure the transaction configuration of
+	 * the original method is considered if the redeclaration does not carry a {@link Transactional} annotation.
+	 * 
+	 * @see DATACMNS-649
+	 */
+	void delete(Integer id);
 
 	/**
 	 * Retrieve users by their email address. The finder {@literal User.findByEmailAddress} is declared as annotation at

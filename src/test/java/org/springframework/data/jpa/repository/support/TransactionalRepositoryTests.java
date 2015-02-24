@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 the original author or authors.
+ * Copyright 2008-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,11 +39,8 @@ import org.springframework.transaction.TransactionStatus;
 @ContextConfiguration({ "classpath:config/namespace-autoconfig-context.xml", "classpath:tx-manager.xml" })
 public class TransactionalRepositoryTests extends AbstractJUnit4SpringContextTests {
 
-	@Autowired
-	UserRepository repository;
-
-	@Autowired
-	DelegatingTransactionManager transactionManager;
+	@Autowired UserRepository repository;
+	@Autowired DelegatingTransactionManager transactionManager;
 
 	@Before
 	public void setUp() {
@@ -82,6 +79,18 @@ public class TransactionalRepositoryTests extends AbstractJUnit4SpringContextTes
 	public void invokeRedeclaredMethod() throws Exception {
 
 		repository.findOne(1);
+		assertFalse(transactionManager.getDefinition().isReadOnly());
+	}
+
+	/**
+	 * @see DATACMNS-649
+	 */
+	@Test
+	public void invokeRedeclaredDeleteMethodWithoutTransactionDeclaration() throws Exception {
+
+		User user = repository.saveAndFlush(new User("foo", "bar", "foo@bar.de"));
+		repository.delete(user.getId());
+
 		assertFalse(transactionManager.getDefinition().isReadOnly());
 	}
 
