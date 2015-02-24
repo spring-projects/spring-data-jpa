@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2014 the original author or authors.
+ * Copyright 2008-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,9 +31,12 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
+import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
+import org.springframework.data.util.CloseableIterator;
+import org.springframework.data.util.Java8StreamUtils;
 import org.springframework.util.Assert;
 
 /**
@@ -296,6 +299,25 @@ public abstract class JpaQueryExecution {
 			storedProcedure.execute();
 
 			return storedProcedureJpaQuery.extractOutputValue(storedProcedure);
+		}
+	}
+
+	/**
+	 * {@link Execution} executing a Java 8 Stream.
+	 * 
+	 * @author Thomas Darimont
+	 * @since 1.8
+	 */
+	static class StreamExecution extends JpaQueryExecution {
+
+		@Override
+		protected Object doExecute(final AbstractJpaQuery query, Object[] values) {
+
+			Query jpaQuery = query.createQuery(values);
+			PersistenceProvider persistenceProvider = PersistenceProvider.fromEntityManager(query.getEntityManager());
+			CloseableIterator<Object> iter = persistenceProvider.executeQueryWithResultStream(jpaQuery);
+
+			return Java8StreamUtils.createStreamFromIterator(iter);
 		}
 	}
 }

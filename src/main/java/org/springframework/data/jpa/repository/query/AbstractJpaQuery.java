@@ -28,6 +28,7 @@ import org.springframework.data.jpa.repository.query.JpaQueryExecution.PagedExec
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.ProcedureExecution;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.SingleEntityExecution;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.SlicedExecution;
+import org.springframework.data.jpa.repository.query.JpaQueryExecution.StreamExecution;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.util.Assert;
 
@@ -99,7 +100,9 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 
 	protected JpaQueryExecution getExecution() {
 
-		if (method.isProcedureQuery()) {
+		if (method.isStreamQuery()) {
+			return new StreamExecution();
+		} else if (method.isProcedureQuery()) {
 			return new ProcedureExecution();
 		} else if (method.isCollectionQuery()) {
 			return new CollectionExecution();
