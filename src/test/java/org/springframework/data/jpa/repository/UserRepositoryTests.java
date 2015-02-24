@@ -1826,20 +1826,26 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		Stream<User> users = repository.findAllByCustomQueryAndStream();
+		Stream<User> stream = repository.findAllByCustomQueryAndStream();
+
+		final List<User> users = new ArrayList<User>();
 
 		try {
-			users.forEach(new Consumer<User>() {
+			stream.forEach(new Consumer<User>() {
 
 				@Override
 				public void accept(User user) {
-					System.out.printf("%s%n", user);
+
+					// System.out.printf("%s%n", user);
+					users.add(user);
 				}
 
 			});
 		} finally {
-			users.close();
+			stream.close();
 		}
+
+		assertThat(users, hasSize(4));
 	}
 
 	private Page<User> executeSpecWithSort(Sort sort) {
