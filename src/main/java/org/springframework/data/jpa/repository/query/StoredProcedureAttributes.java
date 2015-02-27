@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.data.jpa.repository.query;
 import javax.persistence.StoredProcedureQuery;
 
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * Stored procedure configuration for JPA 2.1 {@link StoredProcedureQuery}s.
@@ -27,6 +28,9 @@ import org.springframework.util.Assert;
  * @since 1.6
  */
 class StoredProcedureAttributes {
+
+	// A syntheic output parameter name to be used in case of derived stored procedures and named parameters
+	static final String SYNTHETIC_OUTPUT_PARAMETER_NAME = "out";
 
 	private final boolean namedStoredProcedure;
 	private final String procedureName;
@@ -48,7 +52,8 @@ class StoredProcedureAttributes {
 		Assert.notNull(outputParameterType, "OutputParameterType must not be null!");
 
 		this.procedureName = procedureName;
-		this.outputParameterName = outputParameterName;
+		this.outputParameterName = !namedStoredProcedure && !StringUtils.hasText(outputParameterName) ? SYNTHETIC_OUTPUT_PARAMETER_NAME
+				: outputParameterName;
 		this.outputParameterType = outputParameterType;
 		this.namedStoredProcedure = namedStoredProcedure;
 	}

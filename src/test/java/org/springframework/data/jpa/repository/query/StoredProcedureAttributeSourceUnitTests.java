@@ -66,7 +66,7 @@ public class StoredProcedureAttributeSourceUnitTests {
 
 		assertThat(attr.getProcedureName(), is("plus1inout"));
 		assertThat(attr.getOutputParameterType(), is(typeCompatibleWith(Integer.class)));
-		assertThat(attr.getOutputParameterName(), is(nullValue()));
+		assertThat(attr.getOutputParameterName(), is(StoredProcedureAttributes.SYNTHETIC_OUTPUT_PARAMETER_NAME));
 	}
 
 	/**
@@ -80,7 +80,7 @@ public class StoredProcedureAttributeSourceUnitTests {
 
 		assertThat(attr.getProcedureName(), is("plus1inout"));
 		assertThat(attr.getOutputParameterType(), is(typeCompatibleWith(Integer.class)));
-		assertThat(attr.getOutputParameterName(), is(nullValue()));
+		assertThat(attr.getOutputParameterName(), is(StoredProcedureAttributes.SYNTHETIC_OUTPUT_PARAMETER_NAME));
 	}
 
 	/**
@@ -94,7 +94,7 @@ public class StoredProcedureAttributeSourceUnitTests {
 
 		assertThat(attr.getProcedureName(), is("plus1inout"));
 		assertThat(attr.getOutputParameterType(), is(typeCompatibleWith(Integer.class)));
-		assertThat(attr.getOutputParameterName(), is(nullValue()));
+		assertThat(attr.getOutputParameterName(), is(StoredProcedureAttributes.SYNTHETIC_OUTPUT_PARAMETER_NAME));
 	}
 
 	/**
@@ -108,7 +108,7 @@ public class StoredProcedureAttributeSourceUnitTests {
 
 		assertThat(attr.getProcedureName(), is("plus1inout"));
 		assertThat(attr.getOutputParameterType(), is(typeCompatibleWith(Integer.class)));
-		assertThat(attr.getOutputParameterName(), is(nullValue()));
+		assertThat(attr.getOutputParameterName(), is(StoredProcedureAttributes.SYNTHETIC_OUTPUT_PARAMETER_NAME));
 	}
 
 	/**
