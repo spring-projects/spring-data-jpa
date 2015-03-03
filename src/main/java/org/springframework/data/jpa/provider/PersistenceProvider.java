@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2014 the original author or authors.
+ * Copyright 2008-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,6 @@ import org.apache.openjpa.persistence.jdbc.LRSSizeAlgorithm;
 import org.apache.openjpa.persistence.jdbc.ResultSetType;
 import org.eclipse.persistence.jpa.JpaQuery;
 import org.eclipse.persistence.queries.ScrollableCursor;
-import org.hibernate.Hibernate;
 import org.hibernate.ScrollMode;
 import org.hibernate.ScrollableResults;
 import org.hibernate.ejb.HibernateQuery;
@@ -111,8 +110,8 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 		}
 
 		@Override
-		public CloseableIterator<Object> executeQueryWithResultStream(Query jpaQuery, EntityManager entityManager) {
-			return new HibernateScrollableResultsIterator<Object>(jpaQuery, entityManager);
+		public CloseableIterator<Object> executeQueryWithResultStream(Query jpaQuery) {
+			return new HibernateScrollableResultsIterator<Object>(jpaQuery);
 		}
 	},
 
@@ -153,8 +152,8 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 		}
 
 		@Override
-		public CloseableIterator<Object> executeQueryWithResultStream(Query jpaQuery, EntityManager entityManager) {
-			return new EclipseLinkScrollableResultsIterator<Object>(jpaQuery, entityManager);
+		public CloseableIterator<Object> executeQueryWithResultStream(Query jpaQuery) {
+			return new EclipseLinkScrollableResultsIterator<Object>(jpaQuery);
 		}
 	},
 
@@ -191,8 +190,8 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 		}
 
 		@Override
-		public CloseableIterator<Object> executeQueryWithResultStream(Query jpaQuery, EntityManager entityManager) {
-			return new OpenJpaResultStreamingIterator<Object>(jpaQuery, entityManager);
+		public CloseableIterator<Object> executeQueryWithResultStream(Query jpaQuery) {
+			return new OpenJpaResultStreamingIterator<Object>(jpaQuery);
 		}
 	},
 
@@ -341,7 +340,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 		return collection;
 	}
 
-	public CloseableIterator<Object> executeQueryWithResultStream(Query jpaQuery, EntityManager entityManager) {
+	public CloseableIterator<Object> executeQueryWithResultStream(Query jpaQuery) {
 		throw new UnsupportedOperationException("Streaming results is not implement for this PersistenceProvider: "
 				+ name());
 	}
@@ -351,12 +350,12 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 	 * @param <T>
 	 * @since 1.8
 	 */
+	@SuppressWarnings("unchecked")
 	static class HibernateScrollableResultsIterator<T> implements CloseableIterator<T> {
 
 		private ScrollableResults scrollableResults;
-		private EntityManager entityManager;
 
-		public HibernateScrollableResultsIterator(Query jpaQuery, EntityManager entityManager) {
+		public HibernateScrollableResultsIterator(Query jpaQuery) {
 
 			// see http://java.dzone.com/articles/bulk-fetching-hibernate
 			// we could also use a Hibernate stateless session here for constructing a query
@@ -370,22 +369,12 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 			ScrollableResults scrollableResults = qry.setReadOnly(true).scroll(ScrollMode.FORWARD_ONLY);
 
 			this.scrollableResults = scrollableResults;
-			this.entityManager = entityManager;
 		}
 
 		@Override
 		public T next() {
 
 			Object item = scrollableResults.get()[0];
-
-			// initialize item
-			Hibernate.initialize(item);
-
-			// detach the item from session
-			entityManager.detach(item);
-
-			// potentially detach from second level cache
-			// ???
 
 			return (T) item;
 		}
@@ -411,7 +400,6 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 				scrollableResults.close();
 			} finally {
 				scrollableResults = null;
-				entityManager = null;
 			}
 		}
 	}
@@ -421,16 +409,15 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 	 * @param <T>
 	 * @since 1.8
 	 */
+	@SuppressWarnings("unchecked")
 	static class EclipseLinkScrollableResultsIterator<T> implements CloseableIterator<T> {
 
 		private ScrollableCursor scrollableCursor;
-		private EntityManager entityManager;
 
-		public EclipseLinkScrollableResultsIterator(Query jpaQuery, EntityManager entityManager) {
+		public EclipseLinkScrollableResultsIterator(Query jpaQuery) {
 
 			jpaQuery.setHint("eclipselink.cursor.scrollable", true);
 			this.scrollableCursor = (ScrollableCursor) jpaQuery.getSingleResult();
-			this.entityManager = entityManager;
 		}
 
 		@Override
@@ -447,10 +434,6 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 		public T next() {
 
 			Object item = scrollableCursor.next();
-
-			// detach the item from session
-			entityManager.detach(item);
-
 			return (T) item;
 		}
 
@@ -465,7 +448,6 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 				scrollableCursor.close();
 			} finally {
 				scrollableCursor = null;
-				entityManager = null;
 			}
 		}
 	}
@@ -480,7 +462,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 		private Iterator<T> iterator;
 
 		@SuppressWarnings({ "rawtypes", "unchecked" })
-		public OpenJpaResultStreamingIterator(Query jpaQuery, EntityManager entityManager) {
+		public OpenJpaResultStreamingIterator(Query jpaQuery) {
 
 			OpenJPAQuery kq = OpenJPAPersistence.cast(jpaQuery);
 			JDBCFetchPlan fetch = (JDBCFetchPlan) kq.getFetchPlan();

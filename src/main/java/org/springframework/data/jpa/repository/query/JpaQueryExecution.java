@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2014 the original author or authors.
+ * Copyright 2008-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -310,11 +310,9 @@ public abstract class JpaQueryExecution {
 		@Override
 		protected Object doExecute(final AbstractJpaQuery query, Object[] values) {
 
-			PersistenceProvider persistenceProvider = PersistenceProvider.fromEntityManager(query.getEntityManager());
-
 			Query jpaQuery = query.createQuery(values);
-			CloseableIterator<Object> iter = persistenceProvider.executeQueryWithResultStream(jpaQuery,
-					query.getEntityManager());
+			CloseableIterator<Object> iter = PersistenceProvider.fromEntityManager(query.getEntityManager())
+					.executeQueryWithResultStream(jpaQuery);
 
 			Spliterator<Object> spliterator = Spliterators.spliteratorUnknownSize(iter, Spliterator.NONNULL);
 			return StreamSupport.stream(spliterator, false).onClose(new CloseableIteratorDisposingRunnable(iter));
