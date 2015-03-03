@@ -43,6 +43,7 @@ import org.hibernate.ejb.HibernateQuery;
 import org.hibernate.proxy.HibernateProxy;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.data.util.CloseableIterator;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
@@ -364,7 +365,8 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 
 			org.hibernate.Query qry = IS_HIBERNATE3 ? extractHibernate3QueryFrom(jpaQuery) : extractHibernate4Query(jpaQuery);
 
-			ScrollableResults scrollableResults = qry.setReadOnly(true).scroll(ScrollMode.FORWARD_ONLY);
+			ScrollableResults scrollableResults = qry.setReadOnly(
+					TransactionSynchronizationManager.isCurrentTransactionReadOnly()).scroll(ScrollMode.FORWARD_ONLY);
 
 			this.scrollableResults = scrollableResults;
 		}
