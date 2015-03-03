@@ -101,7 +101,8 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 			return ((HibernateProxy) entity).getHibernateLazyInitializer().getIdentifier();
 		}
 
-		/* (non-Javadoc)
+		/* 
+		 * (non-Javadoc)
 		 * @see org.springframework.data.jpa.provider.PersistenceProvider#potentiallyConvertEmptyCollection(java.util.Collection)
 		 */
 		@Override
@@ -109,6 +110,10 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 			return collection == null || collection.isEmpty() ? null : collection;
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.jpa.provider.PersistenceProvider#executeQueryWithResultStream(javax.persistence.Query)
+		 */
 		@Override
 		public CloseableIterator<Object> executeQueryWithResultStream(Query jpaQuery) {
 			return new HibernateScrollableResultsIterator<Object>(jpaQuery);
@@ -151,6 +156,10 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 			return collection == null || collection.isEmpty() ? null : collection;
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.jpa.provider.PersistenceProvider#executeQueryWithResultStream(javax.persistence.Query)
+		 */
 		@Override
 		public CloseableIterator<Object> executeQueryWithResultStream(Query jpaQuery) {
 			return new EclipseLinkScrollableResultsIterator<Object>(jpaQuery);
@@ -346,151 +355,172 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 	}
 
 	/**
+	 * {@link CloseableIterator} for Hibernate.
+	 * 
 	 * @author Thomas Darimont
-	 * @param <T>
+	 * @author Oliver Gierke
+	 * @param <T> the domain type to return≠
 	 * @since 1.8
 	 */
 	@SuppressWarnings("unchecked")
-	static class HibernateScrollableResultsIterator<T> implements CloseableIterator<T> {
+	private static class HibernateScrollableResultsIterator<T> implements CloseableIterator<T> {
 
-		private ScrollableResults scrollableResults;
+		private final ScrollableResults scrollableResults;
 
 		private static final boolean IS_HIBERNATE3 = ClassUtils.isPresent("org.hibernate.ejb.QueryImpl",
 				HibernateScrollableResultsIterator.class.getClassLoader());
 
+		/**
+		 * Creates a new {@link HibernateScrollableResultsIterator} for the given {@link Query}.
+		 * 
+		 * @param jpaQuery must not be {@literal null}.
+		 */
 		public HibernateScrollableResultsIterator(Query jpaQuery) {
 
-			// see http://java.dzone.com/articles/bulk-fetching-hibernate
-			// we could also use a Hibernate stateless session here for constructing a query
+			org.hibernate.Query query = IS_HIBERNATE3 ? extractHibernate3QueryFrom(jpaQuery)
+					: extractHibernate4Query(jpaQuery);
 
-			org.hibernate.Query qry = IS_HIBERNATE3 ? extractHibernate3QueryFrom(jpaQuery) : extractHibernate4Query(jpaQuery);
-
-			ScrollableResults scrollableResults = qry.setReadOnly(
-					TransactionSynchronizationManager.isCurrentTransactionReadOnly()).scroll(ScrollMode.FORWARD_ONLY);
-
-			this.scrollableResults = scrollableResults;
+			this.scrollableResults = query.setReadOnly(TransactionSynchronizationManager.isCurrentTransactionReadOnly())
+					.scroll(ScrollMode.FORWARD_ONLY);
 		}
 
-		private org.hibernate.Query extractHibernate4Query(Query jpaQuery) {
-
-			Object queryImpl = jpaQuery;
-			if (jpaQuery.getClass().getName().equals("org.hibernate.jpa.criteria.compile.CriteriaQueryTypeQueryAdapter")) {
-				queryImpl = new DirectFieldAccessor(jpaQuery).getPropertyValue("jpqlQuery");
-			}
-
-			return extractHibernateQueryFromQueryImpl(queryImpl);
-		}
-
-		private org.hibernate.Query extractHibernate3QueryFrom(Query jpaQuery) {
-
-			Object queryImpl = jpaQuery;
-			if (jpaQuery.getClass().isAnonymousClass()
-					&& jpaQuery.getClass().getEnclosingClass().getName()
-							.equals("org.hibernate.ejb.criteria.CriteriaQueryCompiler")) {
-				queryImpl = new DirectFieldAccessor(jpaQuery).getPropertyValue("val$jpaqlQuery");
-			}
-
-			return extractHibernateQueryFromQueryImpl(queryImpl);
-		}
-
-		private org.hibernate.Query extractHibernateQueryFromQueryImpl(Object queryImpl) {
-			return (org.hibernate.Query) new DirectFieldAccessor(queryImpl).getPropertyValue("query");
-		}
-
+		/*
+		 * (non-Javadoc)
+		 * @see java.util.Iterator#next()
+		 */
 		@Override
 		public T next() {
-
-			Object item = scrollableResults.get()[0];
-
-			return (T) item;
+			return (T) scrollableResults.get()[0];
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * @see java.util.Iterator#hasNext()
+		 */
 		@Override
 		public boolean hasNext() {
-
-			if (scrollableResults == null) {
-				return false;
-			}
-
-			return scrollableResults.next();
+			return scrollableResults == null ? false : scrollableResults.next();
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.util.CloseableIterator#close()
+		 */
 		@Override
 		public void close() {
 
-			if (scrollableResults == null) {
-				return;
+			if (scrollableResults != null) {
+				scrollableResults.close();
+			}
+		}
+
+		private static org.hibernate.Query extractHibernate4Query(Query jpaQuery) {
+
+			Object query = jpaQuery;
+
+			if (jpaQuery.getClass().getName().equals("org.hibernate.jpa.criteria.compile.CriteriaQueryTypeQueryAdapter")) {
+				query = new DirectFieldAccessor(jpaQuery).getPropertyValue("jpqlQuery");
 			}
 
-			try {
-				scrollableResults.close();
-			} finally {
-				scrollableResults = null;
+			return extractHibernateQueryFromQueryImpl(query);
+		}
+
+		private static org.hibernate.Query extractHibernate3QueryFrom(Query jpaQuery) {
+
+			Object query = jpaQuery;
+
+			if (jpaQuery.getClass().isAnonymousClass()
+					&& jpaQuery.getClass().getEnclosingClass().getName()
+							.equals("org.hibernate.ejb.criteria.CriteriaQueryCompiler")) {
+				query = new DirectFieldAccessor(jpaQuery).getPropertyValue("val$jpaqlQuery");
 			}
+
+			return extractHibernateQueryFromQueryImpl(query);
+		}
+
+		private static org.hibernate.Query extractHibernateQueryFromQueryImpl(Object queryImpl) {
+			return (org.hibernate.Query) new DirectFieldAccessor(queryImpl).getPropertyValue("query");
 		}
 	}
 
 	/**
+	 * {@link CloseableIterator} for EclipseLink.
+	 * 
 	 * @author Thomas Darimont
+	 * @author Oliver Gierke
 	 * @param <T>
 	 * @since 1.8
 	 */
 	@SuppressWarnings("unchecked")
-	static class EclipseLinkScrollableResultsIterator<T> implements CloseableIterator<T> {
+	private static class EclipseLinkScrollableResultsIterator<T> implements CloseableIterator<T> {
 
-		private ScrollableCursor scrollableCursor;
+		private final ScrollableCursor scrollableCursor;
 
+		/**
+		 * Creates a new {@link EclipseLinkScrollableResultsIterator} for the given JPA {@link Query}.
+		 * 
+		 * @param jpaQuery must not be {@literal null}.
+		 */
 		public EclipseLinkScrollableResultsIterator(Query jpaQuery) {
 
 			jpaQuery.setHint("eclipselink.cursor.scrollable", true);
+
 			this.scrollableCursor = (ScrollableCursor) jpaQuery.getSingleResult();
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * @see java.util.Iterator#hasNext()
+		 */
 		@Override
 		public boolean hasNext() {
-
-			if (scrollableCursor == null) {
-				return false;
-			}
-
-			return scrollableCursor.hasNext();
+			return scrollableCursor == null ? false : scrollableCursor.hasNext();
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * @see java.util.Iterator#next()
+		 */
 		@Override
 		public T next() {
-
-			Object item = scrollableCursor.next();
-			return (T) item;
+			return (T) scrollableCursor.next();
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.util.CloseableIterator#close()
+		 */
 		@Override
 		public void close() {
 
-			if (scrollableCursor == null) {
-				return;
-			}
-
-			try {
+			if (scrollableCursor != null) {
 				scrollableCursor.close();
-			} finally {
-				scrollableCursor = null;
 			}
 		}
 	}
 
 	/**
+	 * {@link CloseableIterator} for OpenJpa.
+	 * 
 	 * @author Thomas Darimont
-	 * @param <T>
+	 * @author Oliver Gierke
+	 * @param <T> the domain type to return
 	 * @since 1.8
 	 */
-	static class OpenJpaResultStreamingIterator<T> implements CloseableIterator<T> {
+	private static class OpenJpaResultStreamingIterator<T> implements CloseableIterator<T> {
 
-		private Iterator<T> iterator;
+		private final Iterator<T> iterator;
 
+		/**
+		 * Createsa new {@link OpenJpaResultStreamingIterator} for the given JPA {@link Query}.
+		 * 
+		 * @param jpaQuery must not be {@literal null}.
+		 */
 		@SuppressWarnings({ "rawtypes", "unchecked" })
 		public OpenJpaResultStreamingIterator(Query jpaQuery) {
 
 			OpenJPAQuery kq = OpenJPAPersistence.cast(jpaQuery);
+
 			JDBCFetchPlan fetch = (JDBCFetchPlan) kq.getFetchPlan();
 			fetch.setFetchBatchSize(20);
 			fetch.setResultSetType(ResultSetType.SCROLL_SENSITIVE);
@@ -501,33 +531,34 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 			iterator = resultList.iterator();
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * @see java.util.Iterator#hasNext()
+		 */
 		@Override
 		public boolean hasNext() {
-
-			if (iterator == null) {
-				return false;
-			}
-
-			return iterator.hasNext();
+			return iterator == null ? false : iterator.hasNext();
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * @see java.util.Iterator#next()
+		 */
 		@Override
 		public T next() {
 			return iterator.next();
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.util.CloseableIterator#close()
+		 */
 		@Override
 		public void close() {
-			if (iterator == null) {
-				return;
-			}
 
-			try {
+			if (iterator != null) {
 				OpenJPAPersistence.close(iterator);
-			} finally {
-				iterator = null;
 			}
 		}
-
 	}
 }

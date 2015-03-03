@@ -1831,16 +1831,15 @@ public class UserRepositoryTests {
 		final List<User> users = new ArrayList<User>();
 
 		try {
+
 			stream.forEach(new Consumer<User>() {
 
 				@Override
 				public void accept(User user) {
-
-					// System.out.printf("%s%n", user);
 					users.add(user);
 				}
-
 			});
+
 		} finally {
 			stream.close();
 		}
@@ -1861,21 +1860,49 @@ public class UserRepositoryTests {
 		final List<User> users = new ArrayList<User>();
 
 		try {
+
 			stream.forEach(new Consumer<User>() {
 
 				@Override
 				public void accept(User user) {
-
-					// System.out.printf("%s%n", user);
 					users.add(user);
 				}
-
 			});
+
 		} finally {
 			stream.close();
 		}
 
 		assertThat(users, hasSize(4));
+	}
+
+	/**
+	 * @see DATAJPA-677
+	 */
+	@Test
+	public void supportsJava8StreamForPageableMethod() {
+
+		flushTestUsers();
+
+		Stream<User> stream = repository.streamAllPaged(new PageRequest(0, 2));
+
+		final List<User> users = new ArrayList<User>();
+
+		try {
+
+			stream.forEach(new Consumer<User>() {
+
+				@Override
+				public void accept(User user) {
+					users.add(user);
+				}
+			});
+
+		} finally {
+			stream.close();
+		}
+
+		assertThat(users, hasSize(2));
 	}
 
 	private Page<User> executeSpecWithSort(Sort sort) {

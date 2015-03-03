@@ -36,7 +36,7 @@ import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.util.CloseableIterator;
-import org.springframework.data.util.Java8StreamUtils;
+import org.springframework.data.util.StreamUtils;
 import org.springframework.util.Assert;
 
 /**
@@ -310,6 +310,10 @@ public abstract class JpaQueryExecution {
 	 */
 	static class StreamExecution extends JpaQueryExecution {
 
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.jpa.repository.query.JpaQueryExecution#doExecute(org.springframework.data.jpa.repository.query.AbstractJpaQuery, java.lang.Object[])
+		 */
 		@Override
 		protected Object doExecute(final AbstractJpaQuery query, Object[] values) {
 
@@ -317,7 +321,7 @@ public abstract class JpaQueryExecution {
 			PersistenceProvider persistenceProvider = PersistenceProvider.fromEntityManager(query.getEntityManager());
 			CloseableIterator<Object> iter = persistenceProvider.executeQueryWithResultStream(jpaQuery);
 
-			return Java8StreamUtils.createStreamFromIterator(iter);
+			return StreamUtils.createStreamFromIterator(iter);
 		}
 	}
 }
