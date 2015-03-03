@@ -1822,11 +1822,41 @@ public class UserRepositoryTests {
 	 * @see DATAJPA-677
 	 */
 	@Test
-	public void shouldSupportJava8StreamsForRepositoryFinderMethods() throws Exception {
+	public void shouldSupportJava8StreamsForRepositoryFinderMethods() {
 
 		flushTestUsers();
 
 		Stream<User> stream = repository.findAllByCustomQueryAndStream();
+
+		final List<User> users = new ArrayList<User>();
+
+		try {
+			stream.forEach(new Consumer<User>() {
+
+				@Override
+				public void accept(User user) {
+
+					// System.out.printf("%s%n", user);
+					users.add(user);
+				}
+
+			});
+		} finally {
+			stream.close();
+		}
+
+		assertThat(users, hasSize(4));
+	}
+
+	/**
+	 * @see DATAJPA-677
+	 */
+	@Test
+	public void shouldSupportJava8StreamsForRepositoryDerivedFinderMethods() {
+
+		flushTestUsers();
+
+		Stream<User> stream = repository.readAllByFirstnameNotNull();
 
 		final List<User> users = new ArrayList<User>();
 

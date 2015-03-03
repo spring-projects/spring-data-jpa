@@ -564,4 +564,9 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	 */
 	@Query("select u from User u")
 	Stream<User> findAllByCustomQueryAndStream();
+
+	/**
+	 * DATAJPA-677
+	 */
+	Stream<User> readAllByFirstnameNotNull();
 }

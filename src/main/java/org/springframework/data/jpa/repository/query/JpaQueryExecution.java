@@ -17,9 +17,6 @@ package org.springframework.data.jpa.repository.query;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Spliterator;
-import java.util.Spliterators;
-import java.util.stream.StreamSupport;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
@@ -39,7 +36,7 @@ import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.util.CloseableIterator;
-import org.springframework.data.util.CloseableIteratorDisposingRunnable;
+import org.springframework.data.util.Java8StreamUtils;
 import org.springframework.util.Assert;
 
 /**
@@ -305,17 +302,22 @@ public abstract class JpaQueryExecution {
 		}
 	}
 
+	/**
+	 * {@link Execution} executing a Java 8 Stream.
+	 * 
+	 * @author Thomas Darimont
+	 * @since 1.8
+	 */
 	static class StreamExecution extends JpaQueryExecution {
 
 		@Override
 		protected Object doExecute(final AbstractJpaQuery query, Object[] values) {
 
 			Query jpaQuery = query.createQuery(values);
-			CloseableIterator<Object> iter = PersistenceProvider.fromEntityManager(query.getEntityManager())
-					.executeQueryWithResultStream(jpaQuery);
+			PersistenceProvider persistenceProvider = PersistenceProvider.fromEntityManager(query.getEntityManager());
+			CloseableIterator<Object> iter = persistenceProvider.executeQueryWithResultStream(jpaQuery);
 
-			Spliterator<Object> spliterator = Spliterators.spliteratorUnknownSize(iter, Spliterator.NONNULL);
-			return StreamSupport.stream(spliterator, false).onClose(new CloseableIteratorDisposingRunnable(iter));
+			return Java8StreamUtils.createStreamFromIterator(iter);
 		}
 	}
 }

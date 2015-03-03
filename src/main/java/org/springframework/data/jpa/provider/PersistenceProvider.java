@@ -18,7 +18,6 @@ package org.springframework.data.jpa.provider;
 import static org.springframework.data.jpa.provider.JpaClassUtils.*;
 import static org.springframework.data.jpa.provider.PersistenceProvider.Constants.*;
 
-import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -41,11 +40,11 @@ import org.eclipse.persistence.queries.ScrollableCursor;
 import org.hibernate.ScrollMode;
 import org.hibernate.ScrollableResults;
 import org.hibernate.ejb.HibernateQuery;
-import org.hibernate.ejb.QueryImpl;
 import org.hibernate.proxy.HibernateProxy;
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.data.util.CloseableIterator;
 import org.springframework.util.Assert;
-import org.springframework.util.ReflectionUtils;
+import org.springframework.util.ClassUtils;
 
 /**
  * Enumeration representing persistence providers to be used.
@@ -355,20 +354,45 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 
 		private ScrollableResults scrollableResults;
 
+		private static final boolean IS_HIBERNATE3 = ClassUtils.isPresent("org.hibernate.ejb.QueryImpl",
+				HibernateScrollableResultsIterator.class.getClassLoader());
+
 		public HibernateScrollableResultsIterator(Query jpaQuery) {
 
 			// see http://java.dzone.com/articles/bulk-fetching-hibernate
 			// we could also use a Hibernate stateless session here for constructing a query
-			QueryImpl<Object> queryImpl = (QueryImpl<Object>) jpaQuery;
 
-			Field field = ReflectionUtils.findField(QueryImpl.class, "query");
-			ReflectionUtils.makeAccessible(field);
-
-			org.hibernate.Query qry = (org.hibernate.Query) ReflectionUtils.getField(field, queryImpl);
+			org.hibernate.Query qry = IS_HIBERNATE3 ? extractHibernate3QueryFrom(jpaQuery) : extractHibernate4Query(jpaQuery);
 
 			ScrollableResults scrollableResults = qry.setReadOnly(true).scroll(ScrollMode.FORWARD_ONLY);
 
 			this.scrollableResults = scrollableResults;
+		}
+
+		private org.hibernate.Query extractHibernate4Query(Query jpaQuery) {
+
+			Object queryImpl = jpaQuery;
+			if (jpaQuery.getClass().getName().equals("org.hibernate.jpa.criteria.compile.CriteriaQueryTypeQueryAdapter")) {
+				queryImpl = new DirectFieldAccessor(jpaQuery).getPropertyValue("jpqlQuery");
+			}
+
+			return extractHibernateQueryFromQueryImpl(queryImpl);
+		}
+
+		private org.hibernate.Query extractHibernate3QueryFrom(Query jpaQuery) {
+
+			Object queryImpl = jpaQuery;
+			if (jpaQuery.getClass().isAnonymousClass()
+					&& jpaQuery.getClass().getEnclosingClass().getName()
+							.equals("org.hibernate.ejb.criteria.CriteriaQueryCompiler")) {
+				queryImpl = new DirectFieldAccessor(jpaQuery).getPropertyValue("val$jpaqlQuery");
+			}
+
+			return extractHibernateQueryFromQueryImpl(queryImpl);
+		}
+
+		private org.hibernate.Query extractHibernateQueryFromQueryImpl(Object queryImpl) {
+			return (org.hibernate.Query) new DirectFieldAccessor(queryImpl).getPropertyValue("query");
 		}
 
 		@Override
