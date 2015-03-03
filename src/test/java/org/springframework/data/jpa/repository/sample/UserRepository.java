@@ -19,6 +19,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import javax.persistence.EntityManager;
 import javax.persistence.QueryHint;
@@ -557,4 +558,15 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	 * DATAJPA-606
 	 */
 	List<User> queryByAgeInOrFirstname(Integer[] ages, String firstname);
+
+	/**
+	 * DATAJPA-677
+	 */
+	@Query("select u from User u")
+	Stream<User> findAllByCustomQueryAndStream();
+
+	/**
+	 * DATAJPA-677
+	 */
+	Stream<User> readAllByFirstnameNotNull();
 }

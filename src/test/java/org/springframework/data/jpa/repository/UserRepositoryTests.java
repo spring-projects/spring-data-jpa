@@ -28,6 +28,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -1814,6 +1816,66 @@ public class UserRepositoryTests {
 		List<User> users = repository.queryByAgeInOrFirstname(new Integer[0], secondUser.getFirstname());
 		assertThat(users, hasSize(1));
 		assertThat(users.get(0), is(secondUser));
+	}
+
+	/**
+	 * @see DATAJPA-677
+	 */
+	@Test
+	public void shouldSupportJava8StreamsForRepositoryFinderMethods() {
+
+		flushTestUsers();
+
+		Stream<User> stream = repository.findAllByCustomQueryAndStream();
+
+		final List<User> users = new ArrayList<User>();
+
+		try {
+			stream.forEach(new Consumer<User>() {
+
+				@Override
+				public void accept(User user) {
+
+					// System.out.printf("%s%n", user);
+					users.add(user);
+				}
+
+			});
+		} finally {
+			stream.close();
+		}
+
+		assertThat(users, hasSize(4));
+	}
+
+	/**
+	 * @see DATAJPA-677
+	 */
+	@Test
+	public void shouldSupportJava8StreamsForRepositoryDerivedFinderMethods() {
+
+		flushTestUsers();
+
+		Stream<User> stream = repository.readAllByFirstnameNotNull();
+
+		final List<User> users = new ArrayList<User>();
+
+		try {
+			stream.forEach(new Consumer<User>() {
+
+				@Override
+				public void accept(User user) {
+
+					// System.out.printf("%s%n", user);
+					users.add(user);
+				}
+
+			});
+		} finally {
+			stream.close();
+		}
+
+		assertThat(users, hasSize(4));
 	}
 
 	private Page<User> executeSpecWithSort(Sort sort) {
