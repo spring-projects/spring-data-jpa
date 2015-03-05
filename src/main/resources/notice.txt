@@ -1,8 +1,8 @@
-Spring Data JPA 1.8 M1
-Copyright (c) [2011-2014] Pivotal Software, Inc.
+Spring Data JPA 1.8 RC1
+Copyright (c) [2011-2015] Pivotal Software, Inc.
 
-This product is licensed to you under the Apache License, Version 2.0 (the "License").  
-You may not use this product except in compliance with the License.  
+This product is licensed to you under the Apache License, Version 2.0 (the "License").
+You may not use this product except in compliance with the License.
 
 This product may include a number of subcomponents with
 separate copyright notices and license terms. Your use of the source
