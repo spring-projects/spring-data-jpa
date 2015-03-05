@@ -1,6 +1,26 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 1.8.0.RC1 (2015-03-05)
+-----------------------------------------
+* DATAJPA-686 - Release 1.8 RC1.
+* DATAJPA-681 - Execution of derived stored procedures fails if named parameters are used.
+* DATAJPA-679 - Add QueryDslPredicateExecutor.findAll(Predicate, Sort) method.
+* DATAJPA-677 - Add support for Java 8 Stream in repository finder methods.
+* DATAJPA-672 - Activate Spring 4.2 build profile for travis.
+* DATAJPA-665 - Add 'exists' method to QueryDslJpaRepository which accepts a querydsl Predicate.
+* DATAJPA-664 - JpaPersistentProperty.getActualType() should consider specialized association type.
+* DATAJPA-656 - Count query with group by returns wrong result.
+* DATAJPA-655 - Add AttributeConverters for ThreeTen back port library.
+* DATAJPA-654 - Enable Spring 4.1 build profile for Travis.
+* DATAJPA-653 - Make sure test work with Spring 4.1.
+* DATAJPA-652 - Provide support for ParameterMode.REF_CURSOR.
+* DATAJPA-651 - Re-enable querydsl-next build profile for Travis.
+* DATAJPA-650 - Add AttributeConverters for non-timezoned JSR-310 types.
+* DATAJPA-641 - Move to new Travis build infrastructure.
+* DATAJPA-546 - Provide a way to customize the domain type managed by a repository.
+
+
 Changes in version 1.7.2.RELEASE (2015-01-28)
 ---------------------------------------------
 * DATAJPA-661 - Release 1.7.2.
