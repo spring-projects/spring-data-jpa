@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,16 +23,22 @@ import org.springframework.data.jpa.repository.EntityGraph.EntityGraphType;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 /**
- * Custom repository interface that customizes the fetching behavior of querys of well known repository interface methods via {@link EntityGraph}
- * annotation.
+ * Custom repository interface that customizes the fetching behavior of querys of well known repository interface
+ * methods via {@link EntityGraph} annotation.
  * 
  * @author Thomas Darimont
  */
-public interface RepositoryMethodsWithEntityGraphConfigJpaRepository extends JpaRepository<User, Long> {
+public interface RepositoryMethodsWithEntityGraphConfigJpaRepository extends JpaRepository<User, Integer> {
 
 	/**
 	 * Should find all users.
 	 */
 	@EntityGraph(type = EntityGraphType.LOAD, value = "User.overview")
 	List<User> findAll();
+
+	/**
+	 * Should fetch all user details
+	 */
+	@EntityGraph(type = EntityGraphType.FETCH, value = "User.detail")
+	User findOne(Integer id);
 }
