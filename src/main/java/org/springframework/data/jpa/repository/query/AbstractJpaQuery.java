@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2014 the original author or authors.
+ * Copyright 2008-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 package org.springframework.data.jpa.repository.query;
+
+import java.util.Map;
 
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
@@ -180,10 +182,10 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 		Assert.notNull(query, "Query must not be null!");
 		Assert.notNull(method, "JpaQueryMethod must not be null!");
 
-		JpaEntityGraph entityGraph = method.getEntityGraph();
+		Map<String, Object> hints = Jpa21Utils.tryGetFetchGraphHints(em, method.getEntityGraph());
 
-		if (entityGraph != null) {
-			Jpa21Utils.tryConfigureFetchGraph(em, query, entityGraph);
+		for (Map.Entry<String, Object> hint : hints.entrySet()) {
+			query.setHint(hint.getKey(), hint.getValue());
 		}
 
 		return query;

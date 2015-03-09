@@ -346,6 +346,19 @@ public class JpaQueryMethodUnitTests {
 	}
 
 	/**
+	 * @see DATAJPA-689
+	 */
+	@Test
+	public void shouldFindEntityGraphAnnotationOnOverriddenSimpleJpaRepositoryMethodFindOne() throws Exception {
+
+		JpaQueryMethod method = new JpaQueryMethod(JpaRepositoryOverride.class.getMethod("findOne"), metadata, extractor);
+
+		assertThat(method.getEntityGraph(), is(notNullValue()));
+		assertThat(method.getEntityGraph().getName(), is("User.detail"));
+		assertThat(method.getEntityGraph().getType(), is(EntityGraphType.FETCH));
+	}
+
+	/**
 	 * Interface to define invalid repository methods for testing.
 	 * 
 	 * @author Oliver Gierke
@@ -414,7 +427,13 @@ public class JpaQueryMethodUnitTests {
 		 */
 		@Override
 		@EntityGraph("User.detail")
-		public List<User> findAll();
+		List<User> findAll();
+
+		/**
+		 * DATAJPA-689
+		 */
+		@EntityGraph("User.detail")
+		User findOne();
 	}
 
 	@Lock(LockModeType.OPTIMISTIC_FORCE_INCREMENT)
