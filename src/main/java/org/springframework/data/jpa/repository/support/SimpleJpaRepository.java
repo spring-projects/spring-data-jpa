@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2014 the original author or authors.
+ * Copyright 2008-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,16 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import static org.springframework.data.jpa.repository.query.QueryUtils.*;
+import static org.springframework.data.jpa.repository.query.QueryUtils.COUNT_QUERY_STRING;
+import static org.springframework.data.jpa.repository.query.QueryUtils.DELETE_ALL_QUERY_STRING;
+import static org.springframework.data.jpa.repository.query.QueryUtils.applyAndBind;
+import static org.springframework.data.jpa.repository.query.QueryUtils.getQueryString;
+import static org.springframework.data.jpa.repository.query.QueryUtils.toOrders;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -28,6 +33,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.persistence.NoResultException;
 import javax.persistence.Parameter;
+import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -42,6 +48,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.query.Jpa21Utils;
@@ -224,9 +231,29 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 		}
 
 		LockModeType type = metadata.getLockModeType();
-		Map<String, Object> hints = metadata.getQueryHints();
+
+		Map<String, Object> hints = getQueryHints();
 
 		return type == null ? em.find(domainType, id, hints) : em.find(domainType, id, type, hints);
+	}
+
+	/**
+	 * Returns a {@link Map} with the query hints based on the current {@link CrudMethodMetadata} and potential
+	 * {@link EntityGraph} information.
+	 * 
+	 * @return
+	 */
+	protected Map<String, Object> getQueryHints() {
+
+		if (metadata.getEntityGraph() == null) {
+			return metadata.getQueryHints();
+		}
+
+		Map<String, Object> hints = new HashMap<String, Object>();
+		hints.putAll(metadata.getQueryHints());
+		hints.putAll(Jpa21Utils.tryGetFetchGraphHints(em, metadata.getEntityGraph()));
+
+		return hints;
 	}
 
 	/* 
@@ -565,11 +592,16 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 		LockModeType type = metadata.getLockModeType();
 		TypedQuery<T> toReturn = type == null ? query : query.setLockMode(type);
 
-		for (Entry<String, Object> hint : metadata.getQueryHints().entrySet()) {
+		applyQueryHints(toReturn);
+
+		return toReturn;
+	}
+
+	private void applyQueryHints(Query query) {
+
+		for (Entry<String, Object> hint : getQueryHints().entrySet()) {
 			query.setHint(hint.getKey(), hint.getValue());
 		}
-
-		return Jpa21Utils.tryConfigureFetchGraph(em, toReturn, metadata.getEntityGraph());
 	}
 
 	/**

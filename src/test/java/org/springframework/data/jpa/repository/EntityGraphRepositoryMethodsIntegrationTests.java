@@ -48,12 +48,15 @@ public class EntityGraphRepositoryMethodsIntegrationTests {
 	@Autowired RepositoryMethodsWithEntityGraphConfigJpaRepository repository;
 
 	User tom;
+	User olli;
 	Role role;
 
 	@Before
 	public void setup() {
 
 		tom = new User("Thomas", "Darimont", "tdarimont@example.org");
+		olli = new User("Oliver", "Gierke", "ogierke@example.org");
+
 		role = new Role("Developer");
 		em.persist(role);
 		tom.getRoles().add(role);
@@ -74,5 +77,26 @@ public class EntityGraphRepositoryMethodsIntegrationTests {
 		assertThat(result.size(), is(1));
 		assertThat(Persistence.getPersistenceUtil().isLoaded(result.get(0).getRoles()), is(true));
 		assertThat(result.get(0), is(tom));
+	}
+
+	/**
+	 * @see DATAJPA-689
+	 */
+	@Test
+	public void shouldRespectConfiguredJpaEntityGraphInFindOne() {
+
+		Assume.assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
+
+		olli = repository.save(olli);
+		tom.getColleagues().add(olli);
+		tom = repository.save(tom);
+
+		em.flush();
+
+		User user = repository.findOne(tom.getId());
+
+		assertThat(user, is(notNullValue()));
+		assertThat("colleages should be fetched with 'user.detail' fetchgraph",
+				Persistence.getPersistenceUtil().isLoaded(user.getColleagues()), is(true));
 	}
 }
