@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2013 the original author or authors.
+ * Copyright 2012-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -131,4 +131,13 @@ public @interface EnableJpaRepositories {
 	 * repositories infrastructure.
 	 */
 	boolean considerNestedRepositories() default false;
+
+	/**
+	 * Configures whether to enable default transactions for Spring Data JPA repositories. Defaults to {@literal true}. If
+	 * disabled, repositories must be used behind a facade that's configuring transactions (e.g. using Spring's annotation
+	 * driven transaction facilities) or repository methods have to be used to demarcate transactions.
+	 * 
+	 * @return whether to enable default transactions, defaults to {@literal true}.
+	 */
+	boolean enableDefaultTransactions() default true;
 }
