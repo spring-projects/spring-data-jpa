@@ -54,31 +54,12 @@ public class Jpa21Utils {
 	}
 
 	/**
-	 * Adds a JPA 2.1 fetch-graph or load-graph hint to the given {@link Query} if running under JPA 2.1.
-	 * 
-	 * @see JPA 2.1 Specfication 3.7.4 - Use of Entity Graphs in find and query operations P.117
-	 * @param em must not be {@literal null}
-	 * @param query must not be {@literal null}
-	 * @param entityGraph can be {@literal null}
-	 */
-	public static <T extends Query> T tryConfigureFetchGraph(EntityManager em, T query, JpaEntityGraph entityGraph) {
-
-		Map<String, Object> hints = tryGetFetchGraphHints(em, entityGraph);
-
-		for (Map.Entry<String, Object> hint : hints.entrySet()) {
-			query.setHint(hint.getKey(), hint.getValue());
-		}
-
-		return query;
-	}
-
-	/**
 	 * Returns a {@link Map} with hints for a JPA 2.1 fetch-graph or load-graph if running under JPA 2.1.
 	 * 
 	 * @param em must not be {@literal null}
 	 * @param query must not be {@literal null}
 	 * @param entityGraph can be {@literal null}
-	 * @return
+	 * @return a {@code Map} with the hints or an empty {@code Map} if no hints were found
 	 * @since 1.8
 	 */
 	public static Map<String, Object> tryGetFetchGraphHints(EntityManager em, JpaEntityGraph entityGraph) {
