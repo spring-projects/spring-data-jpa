@@ -1,6 +1,13 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 1.8.0.RELEASE (2015-03-23)
+---------------------------------------------
+* DATAJPA-692 - Release 1.8 GA.
+* DATAJPA-689 - Allow @EntityGraph on findOne method of CrudRepository.
+* DATAJPA-685 - Allow to disable default transaction handling in @EnableJpaRepositories and XML namespace.
+
+
 Changes in version 1.8.0.RC1 (2015-03-05)
 -----------------------------------------
 * DATAJPA-686 - Release 1.8 RC1.
