@@ -30,7 +30,7 @@ import org.springframework.data.domain.Persistable;
  * 
  * @author Oliver Gierke
  * @author Thomas Darimont
- * @param <PK> the the of the entity
+ * @param <PK> the type of the identifier of the entity
  */
 @MappedSuperclass
 public abstract class AbstractPersistable<PK extends Serializable> implements Persistable<PK> {
