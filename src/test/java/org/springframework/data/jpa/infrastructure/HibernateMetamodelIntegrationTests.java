@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,29 +17,22 @@ package org.springframework.data.jpa.infrastructure;
 
 import org.junit.Ignore;
 import org.junit.Test;
-import org.springframework.test.context.ContextConfiguration;
 
 /**
- * Metamodel tests using OpenJPA.
+ * Hibernate-specific integration test using the JPA metamodel.
  * 
  * @author Oliver Gierke
+ * @soundtrack Umphrey's McGee - Intentions Clear (Safety In Numbers)
  */
-@ContextConfiguration("classpath:eclipselink.xml")
-public class EclipseLinkMetamodelIntegrationTests extends MetamodelIntegrationTests {
+public class HibernateMetamodelIntegrationTests extends MetamodelIntegrationTests {
 
-	/**
-	 * TODO: Remove, once https://bugs.eclipse.org/bugs/show_bug.cgi?id=427892 is fixed.
-	 */
-	@Test
-	@Ignore
-	@Override
-	public void canAccessParametersByIndexForNativeQueries() {}
-
-	/**
-	 * TODO: Remove, once https://bugs.eclipse.org/bugs/show_bug.cgi?id=463663 is fixed.
-	 */
 	@Test
 	@Ignore
 	@Override
 	public void pathToEntityIsOfBindableTypeEntityType() {}
+
+	@Test
+	@Ignore
+	@Override
+	public void considersOneToOneAttributeAnAssociation() {}
 }

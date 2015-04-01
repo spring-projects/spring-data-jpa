@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2011-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,11 +29,9 @@ public class EclipseLinkUserRepositoryFinderTests extends UserRepositoryFinderTe
 
 	@Ignore
 	@Override
-	public void executesNotInQueryCorrectly() throws Exception {
-	}
+	public void executesNotInQueryCorrectly() throws Exception {}
 
 	@Ignore
 	@Override
-	public void executesInKeywordForPageCorrectly() {
-	}
+	public void executesInKeywordForPageCorrectly() {}
 }
