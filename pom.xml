@@ -22,7 +22,7 @@
 
 		<dist.key>DATAJPA</dist.key>
 
-		<eclipselink>2.5.1</eclipselink>
+		<eclipselink>2.5.2</eclipselink>
 		<hibernate>3.6.10.Final</hibernate>
 		<hsqldb1>1.8.0.10</hsqldb1>
 		<jpa>2.0.0</jpa>
@@ -245,11 +245,6 @@
 						<scope>runtime</scope>
 					</dependency>
 				</dependencies>
-				<configuration>
-					<excludes>
-						<exclude>**/infrastructure/*</exclude>
-					</excludes>
-				</configuration>
 				<executions>
 					<execution>
 						<id>default-test</id>
@@ -286,7 +281,6 @@
 								<exclude>**/*UnitTests.java</exclude>
 								<exclude>**/OpenJpa*</exclude>
 								<exclude>**/EclipseLink*</exclude>
-								<exclude>**/infrastructure/*</exclude>
 							</excludes>
 							<argLine>-javaagent:${settings.localRepository}/org/springframework/spring-instrument/${spring}/spring-instrument-${spring}.jar</argLine>
 						</configuration>

@@ -41,7 +41,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({ "classpath:infrastructure.xml" })
-public class MetamodelIntegrationTests {
+public abstract class MetamodelIntegrationTests {
 
 	@PersistenceContext EntityManager em;
 
