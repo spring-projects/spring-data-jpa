@@ -15,7 +15,8 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.springframework.core.annotation.AnnotationUtils.*;
+import static org.springframework.core.annotation.AnnotationUtils.findAnnotation;
+import static org.springframework.core.annotation.AnnotationUtils.getAnnotation;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -173,7 +174,7 @@ public class JpaQueryMethod extends QueryMethod {
 	JpaEntityGraph getEntityGraph() {
 
 		EntityGraph annotation = findAnnotation(method, EntityGraph.class);
-		return annotation == null ? null : new JpaEntityGraph(annotation.value(), annotation.type());
+		return annotation == null ? null : new JpaEntityGraph(annotation, getNamedQueryName());
 	}
 
 	/**

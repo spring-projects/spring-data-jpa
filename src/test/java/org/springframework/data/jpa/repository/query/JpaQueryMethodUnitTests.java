@@ -324,6 +324,9 @@ public class JpaQueryMethodUnitTests {
 	 */
 	@Test
 	public void shouldStoreJpa21FetchGraphInformationAsHint() {
+		
+		doReturn(User.class).when(metadata).getDomainType();
+		doReturn(User.class).when(metadata).getReturnedDomainClass(queryMethodWithCustomEntityFetchGraph);
 
 		JpaQueryMethod method = new JpaQueryMethod(queryMethodWithCustomEntityFetchGraph, metadata, extractor);
 
@@ -338,6 +341,9 @@ public class JpaQueryMethodUnitTests {
 	@Test
 	public void shouldFindEntityGraphAnnotationOnOverriddenSimpleJpaRepositoryMethod() throws Exception {
 
+		doReturn(User.class).when(metadata).getDomainType();
+		doReturn(User.class).when(metadata).getReturnedDomainClass((Method)any());
+		
 		JpaQueryMethod method = new JpaQueryMethod(JpaRepositoryOverride.class.getMethod("findAll"), metadata, extractor);
 
 		assertThat(method.getEntityGraph(), is(notNullValue()));
@@ -351,10 +357,29 @@ public class JpaQueryMethodUnitTests {
 	@Test
 	public void shouldFindEntityGraphAnnotationOnOverriddenSimpleJpaRepositoryMethodFindOne() throws Exception {
 
-		JpaQueryMethod method = new JpaQueryMethod(JpaRepositoryOverride.class.getMethod("findOne"), metadata, extractor);
+		doReturn(User.class).when(metadata).getDomainType();
+		doReturn(User.class).when(metadata).getReturnedDomainClass((Method)any());
+		
+		JpaQueryMethod method = new JpaQueryMethod(JpaRepositoryOverride.class.getMethod("findOne", Long.class), metadata, extractor);
 
 		assertThat(method.getEntityGraph(), is(notNullValue()));
 		assertThat(method.getEntityGraph().getName(), is("User.detail"));
+		assertThat(method.getEntityGraph().getType(), is(EntityGraphType.FETCH));
+	}
+	
+	/**
+	 * DATAJPA-696
+	 */
+	@Test
+	public void shouldFindEntityGraphAnnotationOnQueryMethodGetOneByWithDerivedName() throws Exception {
+
+		doReturn(User.class).when(metadata).getDomainType();
+		doReturn(User.class).when(metadata).getReturnedDomainClass((Method)any());
+		
+		JpaQueryMethod method = new JpaQueryMethod(JpaRepositoryOverride.class.getMethod("getOneById", Long.class), metadata, extractor);
+
+		assertThat(method.getEntityGraph(), is(notNullValue()));
+		assertThat(method.getEntityGraph().getName(), is("User.getOneById"));
 		assertThat(method.getEntityGraph().getType(), is(EntityGraphType.FETCH));
 	}
 
@@ -433,7 +458,13 @@ public class JpaQueryMethodUnitTests {
 		 * DATAJPA-689
 		 */
 		@EntityGraph("User.detail")
-		User findOne();
+		User findOne(Long id);
+		
+		/**
+		 * DATAJPA-696
+		 */
+		@EntityGraph
+		User getOneById(Long id);
 	}
 
 	@Lock(LockModeType.OPTIMISTIC_FORCE_INCREMENT)

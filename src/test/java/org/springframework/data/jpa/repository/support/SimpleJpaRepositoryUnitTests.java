@@ -15,8 +15,12 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import static java.util.Collections.*;
-import static org.mockito.Mockito.*;
+import static java.util.Collections.singletonMap;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.io.Serializable;
 
 import javax.persistence.EntityGraph;
 import javax.persistence.EntityManager;
@@ -33,7 +37,7 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.EntityGraph.EntityGraphType;
-import org.springframework.data.jpa.repository.query.JpaEntityGraph;
+import org.springframework.data.repository.CrudRepository;
 
 /**
  * Unit tests for {@link SimpleJpaRepository}.
@@ -55,6 +59,7 @@ public class SimpleJpaRepositoryUnitTests {
 	@Mock JpaEntityInformation<User, Long> information;
 	@Mock CrudMethodMetadata metadata;
 	@Mock EntityGraph<User> entityGraph;
+	@Mock org.springframework.data.jpa.repository.EntityGraph entityGraphAnnotation;
 
 	@Before
 	public void setUp() {
@@ -97,15 +102,20 @@ public class SimpleJpaRepositoryUnitTests {
 
 	/**
 	 * @see DATAJPA-689
+	 * @see DATAJPA-696
 	 */
 	@Test
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public void shouldPropagateConfiguredEntityGraphToFindOne() {
+	public void shouldPropagateConfiguredEntityGraphToFindOne() throws Exception{
 
 		String entityGraphName = "User.detail";
-		when(metadata.getEntityGraph()).thenReturn(new JpaEntityGraph(entityGraphName, EntityGraphType.LOAD));
+		when(entityGraphAnnotation.value()).thenReturn(entityGraphName);
+		when(entityGraphAnnotation.type()).thenReturn(EntityGraphType.LOAD);
+		when(metadata.getEntityGraph()).thenReturn(entityGraphAnnotation);
 		when(em.getEntityGraph(entityGraphName)).thenReturn((EntityGraph) entityGraph);
-
+		when(information.getEntityName()).thenReturn("User");
+		when(metadata.getMethod()).thenReturn(CrudRepository.class.getMethod("findOne", Serializable.class));
+		
 		Integer id = 0;
 		repo.findOne(id);
 
