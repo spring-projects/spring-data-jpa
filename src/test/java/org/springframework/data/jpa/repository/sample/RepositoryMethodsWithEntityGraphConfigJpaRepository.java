@@ -41,4 +41,16 @@ public interface RepositoryMethodsWithEntityGraphConfigJpaRepository extends Jpa
 	 */
 	@EntityGraph(type = EntityGraphType.FETCH, value = "User.detail")
 	User findOne(Integer id);
+
+	/**
+	 * @see DATAJPA-696
+	 */
+	@EntityGraph
+	User getOneWithDefinedEntityGraphById(Integer id);
+	
+	/**
+	 * @see DATAJPA-696
+	 */
+	@EntityGraph(attributePaths = { "roles", "colleagues.roles" })
+	User getOneWithAttributeNamesById(Integer id);
 }

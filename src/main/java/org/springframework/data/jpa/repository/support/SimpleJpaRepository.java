@@ -15,7 +15,11 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import static org.springframework.data.jpa.repository.query.QueryUtils.*;
+import static org.springframework.data.jpa.repository.query.QueryUtils.COUNT_QUERY_STRING;
+import static org.springframework.data.jpa.repository.query.QueryUtils.DELETE_ALL_QUERY_STRING;
+import static org.springframework.data.jpa.repository.query.QueryUtils.applyAndBind;
+import static org.springframework.data.jpa.repository.query.QueryUtils.getQueryString;
+import static org.springframework.data.jpa.repository.query.QueryUtils.toOrders;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -49,6 +53,7 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.query.Jpa21Utils;
+import org.springframework.data.jpa.repository.query.JpaEntityGraph;
 import org.springframework.data.jpa.repository.query.QueryUtils;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -248,9 +253,16 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 
 		Map<String, Object> hints = new HashMap<String, Object>();
 		hints.putAll(metadata.getQueryHints());
-		hints.putAll(Jpa21Utils.tryGetFetchGraphHints(em, metadata.getEntityGraph()));
+
+		hints.putAll(Jpa21Utils.tryGetFetchGraphHints(em, getEntityGraph(), getDomainClass()));
 
 		return hints;
+	}
+
+	private JpaEntityGraph getEntityGraph() {
+		
+		String fallbackName = this.entityInformation.getEntityName() + "." + metadata.getMethod().getName();
+		return new JpaEntityGraph(metadata.getEntityGraph(), fallbackName);
 	}
 
 	/* 

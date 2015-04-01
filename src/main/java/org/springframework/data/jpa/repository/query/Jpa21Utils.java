@@ -23,6 +23,7 @@ import javax.persistence.EntityGraph;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 
+import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
@@ -59,16 +60,18 @@ public class Jpa21Utils {
 	 * @param em must not be {@literal null}
 	 * @param query must not be {@literal null}
 	 * @param entityGraph can be {@literal null}
+	 * @param entityType must not be {@literal null}
 	 * @return a {@code Map} with the hints or an empty {@code Map} if no hints were found
 	 * @since 1.8
 	 */
-	public static Map<String, Object> tryGetFetchGraphHints(EntityManager em, JpaEntityGraph entityGraph) {
+	public static Map<String, Object> tryGetFetchGraphHints(EntityManager em, JpaEntityGraph entityGraph,
+			Class<?> entityType) {
 
 		if (entityGraph == null) {
 			return Collections.emptyMap();
 		}
 
-		EntityGraph<?> graph = tryGetFetchGraph(em, entityGraph);
+		EntityGraph<?> graph = tryGetFetchGraph(em, entityGraph, entityType);
 
 		if (graph == null) {
 			return Collections.emptyMap();
@@ -83,17 +86,25 @@ public class Jpa21Utils {
 	 * @see JPA 2.1 Specfication 3.7.4 - Use of Entity Graphs in find and query operations P.117
 	 * @param em must not be {@literal null}.
 	 * @param jpaEntityGraph must not be {@literal null}.
+	 * @param entityType must not be {@literal null}.
 	 * @return the {@link EntityGraph} described by the given {@code entityGraph}.
 	 */
-	public static EntityGraph<?> tryGetFetchGraph(EntityManager em, JpaEntityGraph jpaEntityGraph) {
+	private static EntityGraph<?> tryGetFetchGraph(EntityManager em, JpaEntityGraph jpaEntityGraph, Class<?> entityType) {
 
 		Assert.notNull(em, "EntityManager must not be null!");
 		Assert.notNull(jpaEntityGraph, "EntityGraph must not be null!");
+		Assert.notNull(entityType, "EntityType must not be null!");
 
 		Assert.isTrue(JPA21_AVAILABLE, "The EntityGraph-Feature requires at least a JPA 2.1 persistence provider!");
 		Assert.isTrue(GET_ENTITY_GRAPH_METHOD != null,
 				"It seems that you have the JPA 2.1 API but a JPA 2.0 implementation on the classpath!");
 
-		return em.getEntityGraph(jpaEntityGraph.getName());
+		try {
+			// first check whether an entityGraph with that name is already registered.
+			return em.getEntityGraph(jpaEntityGraph.getName());
+		} catch (Exception ex) {
+			// try to create and dynamically register the entityGraph
+			return PersistenceProvider.fromEntityManager(em).createDynamicEntityGraph(em, jpaEntityGraph, entityType);
+		}
 	}
 }

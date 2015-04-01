@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,12 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import javax.persistence.EntityGraph;
+import java.util.Arrays;
 
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.EntityGraph.EntityGraphType;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * EntityGraph configuration for JPA 2.1 {@link EntityGraph}s.
@@ -28,22 +30,38 @@ import org.springframework.util.Assert;
  */
 public class JpaEntityGraph {
 
+	private static String[] EMPTY_ATTRIBUTE_PATHS = {};
+
 	private final String name;
 	private final EntityGraphType type;
+	private final String[] attributePaths;
 
 	/**
 	 * Creates an {@link JpaEntityGraph}.
 	 * 
-	 * @param name must not be {@null} or empty.
-	 * @param type must not be {@null}.
+	 * @param entityGraph must not be {@literal null}.
+	 * @param nameFallback must not be {@literal null} or empty.
 	 */
-	public JpaEntityGraph(String name, EntityGraphType type) {
+	public JpaEntityGraph(EntityGraph entityGraph, String nameFallback) {
+		this(StringUtils.hasText(entityGraph.value()) ? entityGraph.value() : nameFallback, entityGraph.type(), entityGraph
+				.attributePaths());
+	}
+
+	/**
+	 * Creates an {@link JpaEntityGraph}.
+	 * 
+	 * @param name must not be {@literal null} or empty.
+	 * @param type must not be {@literal null}.
+	 * @param attributePaths may be {@literal null}.
+	 */
+	public JpaEntityGraph(String name, EntityGraphType type, String[] attributePaths) {
 
 		Assert.hasText(name, "The name of an EntityGraph must not be null or empty!");
 		Assert.notNull(type, "FetchGraphType must not be null!");
 
 		this.name = name;
 		this.type = type;
+		this.attributePaths = attributePaths == null ? EMPTY_ATTRIBUTE_PATHS : attributePaths;
 	}
 
 	/**
@@ -64,12 +82,32 @@ public class JpaEntityGraph {
 		return type;
 	}
 
+	/**
+	 * Returns the attribute node names to be used for this {@link JpaEntityGraph}.
+	 * 
+	 * @return
+	 * @since 1.9
+	 */
+	public String[] getAttributePaths() {
+		return attributePaths;
+	}
+
+	/**
+	 * Return {@literal true} if this {@link JpaEntityGraph} needs to be generated on-the-fly.
+	 * 
+	 * @return
+	 */
+	public boolean isDynamicEntityGraph() {
+		return this.attributePaths.length > 0;
+	}
+
 	/* 
 	 * (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
 	public String toString() {
-		return "JpaEntityGraph [name=" + name + ", type=" + type + "]";
+		return "JpaEntityGraph [name=" + name + ", type=" + type + ", attributePaths=" + Arrays.toString(attributePaths)
+				+ "]";
 	}
 }
