@@ -15,22 +15,11 @@
  */
 package org.springframework.data.jpa.provider;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.springframework.data.jpa.provider.PersistenceProvider.ECLIPSELINK;
-import static org.springframework.data.jpa.provider.PersistenceProvider.GENERIC_JPA;
-import static org.springframework.data.jpa.provider.PersistenceProvider.HIBERNATE;
-import static org.springframework.data.jpa.provider.PersistenceProvider.OPEN_JPA;
-import static org.springframework.data.jpa.provider.PersistenceProvider.fromEntityManager;
-import static org.springframework.data.jpa.provider.PersistenceProvider.Constants.ECLIPSELINK_ENTITY_MANAGER_INTERFACE;
-import static org.springframework.data.jpa.provider.PersistenceProvider.Constants.HIBERNATE43_ENTITY_MANAGER_INTERFACE;
-import static org.springframework.data.jpa.provider.PersistenceProvider.Constants.HIBERNATE_ENTITY_MANAGER_INTERFACE;
-import static org.springframework.data.jpa.provider.PersistenceProvider.Constants.OPENJPA_ENTITY_MANAGER_INTERFACE;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
+import static org.springframework.data.jpa.provider.PersistenceProvider.*;
+import static org.springframework.data.jpa.provider.PersistenceProvider.Constants.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -125,17 +114,20 @@ public class PersistenceProviderUnitTests {
 	public void shouldBuildCorrectSubgraphForJpaEntityGraph() throws Exception {
 
 		EntityGraph<?> entityGraph = mock(EntityGraph.class);
-		Subgraph<?> subgraph = mock(Subgraph.class);
-		doReturn(subgraph).when(entityGraph).addSubgraph(anyString());
+		Subgraph<?> guguSubgraph = mock(Subgraph.class);
+		Subgraph<?> blaSubgraph = mock(Subgraph.class);
+		doReturn(guguSubgraph).when(entityGraph).addSubgraph("gugu");
+		doReturn(blaSubgraph).when(entityGraph).addSubgraph("bla");
 
-		JpaEntityGraph jpaEntityGraph = new JpaEntityGraph("foo", EntityGraphType.FETCH,
-				new String[] { "foo", "gugu.gaga" });
+		JpaEntityGraph jpaEntityGraph = new JpaEntityGraph("foo", EntityGraphType.FETCH, new String[] { "foo", "gugu.gaga",
+				"bar", "gugu.fugu", "bla.fasel" });
 
 		PersistenceProvider.GENERIC_JPA.configureFetchGraphFrom(jpaEntityGraph, entityGraph);
 
-		verify(entityGraph, times(1)).addAttributeNodes("foo");
+		verify(entityGraph, times(1)).addAttributeNodes(new String[] { "foo", "bar" });
 		verify(entityGraph, times(1)).addSubgraph("gugu");
-		verify(subgraph, times(1)).addAttributeNodes("gaga");
+		verify(guguSubgraph, times(1)).addAttributeNodes(new String[] { "gaga", "fugu" });
+		verify(blaSubgraph, times(1)).addAttributeNodes("fasel");
 	}
 
 	private EntityManager mockProviderSpecificEntityManagerInterface(String interfaceName) throws ClassNotFoundException {

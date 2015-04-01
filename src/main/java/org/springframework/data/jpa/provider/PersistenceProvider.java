@@ -15,23 +15,17 @@
  */
 package org.springframework.data.jpa.provider;
 
-import static org.springframework.data.jpa.provider.JpaClassUtils.isEntityManagerOfType;
-import static org.springframework.data.jpa.provider.JpaClassUtils.isMetamodelOfType;
-import static org.springframework.data.jpa.provider.PersistenceProvider.Constants.ECLIPSELINK_ENTITY_MANAGER_INTERFACE;
-import static org.springframework.data.jpa.provider.PersistenceProvider.Constants.ECLIPSELINK_JPA_METAMODEL_TYPE;
-import static org.springframework.data.jpa.provider.PersistenceProvider.Constants.GENERIC_JPA_ENTITY_MANAGER_INTERFACE;
-import static org.springframework.data.jpa.provider.PersistenceProvider.Constants.HIBERNATE43_ENTITY_MANAGER_INTERFACE;
-import static org.springframework.data.jpa.provider.PersistenceProvider.Constants.HIBERNATE43_JPA_METAMODEL_TYPE;
-import static org.springframework.data.jpa.provider.PersistenceProvider.Constants.HIBERNATE_ENTITY_MANAGER_INTERFACE;
-import static org.springframework.data.jpa.provider.PersistenceProvider.Constants.HIBERNATE_JPA_METAMODEL_TYPE;
-import static org.springframework.data.jpa.provider.PersistenceProvider.Constants.OPENJPA_ENTITY_MANAGER_INTERFACE;
-import static org.springframework.data.jpa.provider.PersistenceProvider.Constants.OPENJPA_JPA_METAMODEL_TYPE;
+import static org.springframework.data.jpa.provider.JpaClassUtils.*;
+import static org.springframework.data.jpa.provider.PersistenceProvider.Constants.*;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import javax.persistence.EntityGraph;
 import javax.persistence.EntityManager;
@@ -259,6 +253,8 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 		}
 	};
 
+	private static final String ROOT_GRAPH_KEY = ".";
+
 	/**
 	 * Holds the PersistenceProvider specific interface names.
 	 * 
@@ -368,13 +364,12 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 	}
 
 	/**
-	 * Creates a dynamic {@link EntityGraph} from the given {@link JpaEntityGraph} information. 
+	 * Creates a dynamic {@link EntityGraph} from the given {@link JpaEntityGraph} information.
 	 * 
 	 * @param em
 	 * @param jpaEntityGraph
 	 * @param entityType
 	 * @return
-	 * 
 	 * @since 1.9
 	 */
 	public EntityGraph<?> createDynamicEntityGraph(EntityManager em, JpaEntityGraph jpaEntityGraph, Class<?> entityType) {
@@ -388,7 +383,6 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 		return entityGraph;
 	}
 
-	
 	/**
 	 * Configures the given {@link EntityGraph} with the fetch graph information stored in {@link JpaEntityGraph}.
 	 * 
@@ -398,36 +392,92 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 	/* visible for testing */
 	void configureFetchGraphFrom(JpaEntityGraph jpaEntityGraph, EntityGraph<?> entityGraph) {
 
-		String[] attributePaths = jpaEntityGraph.getAttributePaths().clone();
+		Map<String, List<String>> pathToPropertiesMap = new HashMap<String, List<String>>();
+		Map<String, Subgraph<?>> pathToGraphMap = new HashMap<String, Subgraph<?>>();
 
-		// sort to ensure that the intermediate entity subgraphs are created accordingly.
-		Arrays.sort(attributePaths);
+		buildSubgraphsAndCollectEntityGraphPropertyPathsInto(pathToPropertiesMap, pathToGraphMap, jpaEntityGraph,
+				entityGraph);
 
-		// we build the entity graph based on the paths with highest depth first
-		for (int i = attributePaths.length - 1; i >= 0; i--) {
+		for (Map.Entry<String, Subgraph<?>> entry : pathToGraphMap.entrySet()) {
 
-			String path = attributePaths[i];
-			
-			//fast path just single attribute
-			if (!path.contains(".")) {
-				entityGraph.addAttributeNodes(path);
+			List<String> properties = pathToPropertiesMap.get(entry.getKey());
+			if (properties.isEmpty()) {
 				continue;
 			}
 
-			//we need to build nested sub fetch graphs
+			String[] propertyStrings = properties.toArray(new String[properties.size()]);
+
+			if (entry.getKey().equals(ROOT_GRAPH_KEY)) {
+				entityGraph.addAttributeNodes(propertyStrings);
+				continue;
+			}
+
+			entry.getValue().addAttributeNodes(propertyStrings);
+		}
+	}
+
+	private void buildSubgraphsAndCollectEntityGraphPropertyPathsInto(Map<String, List<String>> pathToPropertiesMap,
+			Map<String, Subgraph<?>> pathToGraphMap, JpaEntityGraph jpaEntityGraph, EntityGraph<?> entityGraph) {
+
+		String[] attributePaths = jpaEntityGraph.getAttributePaths().clone();
+		for (int i = 0; i < attributePaths.length; i++) {
+
+			String path = attributePaths[i];
+
+			if (!path.contains(".")) {
+
+				registerRootGraphAttribute(path, pathToPropertiesMap, pathToGraphMap);
+				continue;
+			}
+
 			String[] pathComponents = StringUtils.delimitedListToStringArray(path, ".");
 
-			Subgraph<?> parent = null;
-			for (int c = 0; c < pathComponents.length - 1; c++) {
+			String subgraphKey = createAndRegisterRequiredSubgraphs(pathToGraphMap, entityGraph, pathComponents);
 
-				if (c == 0) {
-					parent = entityGraph.addSubgraph(pathComponents[c]);
-				} else {
-					parent = parent.addSubgraph(pathComponents[c]);
-				}
+			List<String> subgraphProperties = null;
+			if ((subgraphProperties = pathToPropertiesMap.get(subgraphKey)) == null) {
+				pathToPropertiesMap.put(subgraphKey, subgraphProperties = new ArrayList<String>());
 			}
-			parent.addAttributeNodes(pathComponents[pathComponents.length - 1]);
+			subgraphProperties.add(pathComponents[pathComponents.length - 1]);
 		}
+	}
+
+	private String createAndRegisterRequiredSubgraphs(Map<String, Subgraph<?>> pathToGraphMap,
+			EntityGraph<?> entityGraph, String[] pathComponents) {
+
+		StringBuilder parentPath = new StringBuilder();
+
+		Subgraph<?> parent = null;
+		for (int c = 0; c < pathComponents.length - 1; c++) {
+
+			parentPath.append('.').append(pathComponents[c]);
+
+			if (pathToGraphMap.containsKey(parentPath.toString())) {
+				continue;
+			}
+
+			if (c == 0) {
+				parent = entityGraph.addSubgraph(pathComponents[c]);
+			} else {
+				parent = parent.addSubgraph(pathComponents[c]);
+			}
+
+			pathToGraphMap.put(parentPath.toString(), parent);
+		}
+
+		return parentPath.toString();
+	}
+
+	private void registerRootGraphAttribute(String path, Map<String, List<String>> pathToPropertiesMap,
+			Map<String, Subgraph<?>> pathToGraphMap) {
+		pathToGraphMap.put(ROOT_GRAPH_KEY, null);
+
+		List<String> rootProperties = null;
+		if ((rootProperties = pathToPropertiesMap.get(ROOT_GRAPH_KEY)) == null) {
+			pathToPropertiesMap.put(ROOT_GRAPH_KEY, rootProperties = new ArrayList<String>());
+		}
+
+		rootProperties.add(path);
 	}
 
 	/**
