@@ -39,7 +39,7 @@ public interface RepositoryMethodsWithEntityGraphConfigJpaRepository extends Jpa
 	/**
 	 * Should fetch all user details
 	 */
-	@EntityGraph(type = EntityGraphType.FETCH, value = "User.detail")
+	@EntityGraph("User.detail")
 	User findOne(Integer id);
 
 	/**
@@ -51,6 +51,6 @@ public interface RepositoryMethodsWithEntityGraphConfigJpaRepository extends Jpa
 	/**
 	 * @see DATAJPA-696
 	 */
-	@EntityGraph(attributePaths = { "roles", "colleagues.roles" })
+	@EntityGraph(attributePaths = { "roles", "colleagues" })
 	User getOneWithAttributeNamesById(Integer id);
 }

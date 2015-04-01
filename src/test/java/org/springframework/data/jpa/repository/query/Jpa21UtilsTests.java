@@ -17,6 +17,8 @@ package org.springframework.data.jpa.repository.query;
 
 import static org.mockito.Mockito.*;
 
+import java.util.List;
+
 import javax.persistence.EntityGraph;
 import javax.persistence.Subgraph;
 
@@ -45,11 +47,30 @@ public class Jpa21UtilsTests {
 		JpaEntityGraph jpaEntityGraph = new JpaEntityGraph("foo", EntityGraphType.FETCH, new String[] { "foo", "gugu.gaga",
 				"bar", "gugu.fugu", "bla.fasel" });
 
-		Jpa21Utils.configureFetchGraphFrom(jpaEntityGraph, entityGraph);
+		Jpa21Utils.configureFetchGraphFrom(jpaEntityGraph, entityGraph, RootEntity.class);
 
 		verify(entityGraph, times(1)).addAttributeNodes(new String[] { "foo", "bar" });
 		verify(entityGraph, times(1)).addSubgraph("gugu");
 		verify(guguSubgraph, times(1)).addAttributeNodes(new String[] { "gaga", "fugu" });
 		verify(blaSubgraph, times(1)).addAttributeNodes("fasel");
+	}
+
+	public static class RootEntity {
+
+		List<String> foo;
+		List<String> bar;
+		GuguNestedEntity gugu;
+		BlaNestedEntity bla;
+	}
+
+	public static class GuguNestedEntity {
+
+		List<String> gaga;
+		List<String> fugu;
+	}
+
+	public static class BlaNestedEntity {
+
+		List<String> fasel;
 	}
 }

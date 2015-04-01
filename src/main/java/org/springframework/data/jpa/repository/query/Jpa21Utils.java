@@ -27,7 +27,8 @@ import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.persistence.Subgraph;
 
-import org.springframework.data.jpa.provider.PersistenceProvider;
+import org.springframework.data.mapping.PropertyPath;
+import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
@@ -105,13 +106,13 @@ public class Jpa21Utils {
 		Assert.isTrue(GET_ENTITY_GRAPH_METHOD != null,
 				"It seems that you have the JPA 2.1 API but a JPA 2.0 implementation on the classpath!");
 
-		if(!jpaEntityGraph.isDynamicEntityGraph()){
-			return em.getEntityGraph(jpaEntityGraph.getName()); 
+		if (!jpaEntityGraph.isDynamicEntityGraph()) {
+			return em.getEntityGraph(jpaEntityGraph.getName());
 		}
-		
+
 		return createDynamicEntityGraph(em, jpaEntityGraph, entityType);
 	}
-	
+
 	/**
 	 * Creates a dynamic {@link EntityGraph} from the given {@link JpaEntityGraph} information.
 	 * 
@@ -121,13 +122,14 @@ public class Jpa21Utils {
 	 * @return
 	 * @since 1.9
 	 */
-	public static EntityGraph<?> createDynamicEntityGraph(EntityManager em, JpaEntityGraph jpaEntityGraph, Class<?> entityType) {
+	public static EntityGraph<?> createDynamicEntityGraph(EntityManager em, JpaEntityGraph jpaEntityGraph,
+			Class<?> entityType) {
 
 		Assert.isTrue(jpaEntityGraph.isDynamicEntityGraph(), "The given " + jpaEntityGraph + " is not dynamic!");
 
 		EntityGraph<?> entityGraph = em.createEntityGraph(entityType);
 
-		configureFetchGraphFrom(jpaEntityGraph, entityGraph);
+		configureFetchGraphFrom(jpaEntityGraph, entityGraph, entityType);
 
 		return entityGraph;
 	}
@@ -137,15 +139,18 @@ public class Jpa21Utils {
 	 * 
 	 * @param jpaEntityGraph
 	 * @param entityGraph
+	 * @param entityType
 	 */
 	/* visible for testing */
-	static void configureFetchGraphFrom(JpaEntityGraph jpaEntityGraph, EntityGraph<?> entityGraph) {
+	static void configureFetchGraphFrom(JpaEntityGraph jpaEntityGraph, EntityGraph<?> entityGraph, Class<?> entityType) {
 
 		Map<String, List<String>> pathToPropertiesMap = new HashMap<String, List<String>>();
 		Map<String, Subgraph<?>> pathToGraphMap = new HashMap<String, Subgraph<?>>();
 
+		ClassTypeInformation<?> entityTypeInformation = ClassTypeInformation.from(entityType);
+
 		buildSubgraphsAndCollectEntityGraphPropertyPathsInto(pathToPropertiesMap, pathToGraphMap, jpaEntityGraph,
-				entityGraph);
+				entityGraph, entityTypeInformation);
 
 		for (Map.Entry<String, Subgraph<?>> entry : pathToGraphMap.entrySet()) {
 
@@ -165,13 +170,17 @@ public class Jpa21Utils {
 		}
 	}
 
-	private static void buildSubgraphsAndCollectEntityGraphPropertyPathsInto(Map<String, List<String>> pathToPropertiesMap,
-			Map<String, Subgraph<?>> pathToGraphMap, JpaEntityGraph jpaEntityGraph, EntityGraph<?> entityGraph) {
+	private static void buildSubgraphsAndCollectEntityGraphPropertyPathsInto(
+			Map<String, List<String>> pathToPropertiesMap, Map<String, Subgraph<?>> pathToGraphMap,
+			JpaEntityGraph jpaEntityGraph, EntityGraph<?> entityGraph, ClassTypeInformation<?> entityTypeInformation) {
 
 		String[] attributePaths = jpaEntityGraph.getAttributePaths().clone();
 		for (int i = 0; i < attributePaths.length; i++) {
 
 			String path = attributePaths[i];
+
+			// verify that the path is valid
+			PropertyPath.from(path, entityTypeInformation);
 
 			if (!path.contains(".")) {
 
@@ -219,6 +228,7 @@ public class Jpa21Utils {
 
 	private static void registerRootGraphAttribute(String path, Map<String, List<String>> pathToPropertiesMap,
 			Map<String, Subgraph<?>> pathToGraphMap) {
+
 		pathToGraphMap.put(ROOT_GRAPH_KEY, null);
 
 		List<String> rootProperties = null;
