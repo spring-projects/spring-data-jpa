@@ -326,7 +326,7 @@
 							<includes>
 								<include>**/EclipseLink*Tests.java</include>
 							</includes>
-							<argLine>-javaagent:${settings.localRepository}/org/springframework/spring-instrument/${spring}/spring-instrument-${spring}.jar</argLine>
+							<argLine>-javaagent:${settings.localRepository}/org/eclipse/persistence/org.eclipse.persistence.jpa/${eclipselink}/org.eclipse.persistence.jpa-${eclipselink}.jar -javaagent:${settings.localRepository}/org/springframework/spring-instrument/${spring}/spring-instrument-${spring}.jar</argLine>
 						</configuration>
 					</execution>
 					<execution>

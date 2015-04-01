@@ -15,10 +15,12 @@
  */
 package org.springframework.data.jpa.repository.support;
 
+import java.lang.reflect.Method;
 import java.util.Map;
 
 import javax.persistence.LockModeType;
 
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.query.JpaEntityGraph;
 
 /**
@@ -45,10 +47,18 @@ public interface CrudMethodMetadata {
 	Map<String, Object> getQueryHints();
 
 	/**
-	 * Returns the {@link JpaEntityGraph} to be used.
+	 * Returns the {@link EntityGraph} to be used.
 	 * 
 	 * @return
-	 * @since 1.8
+	 * @since 1.9
 	 */
-	JpaEntityGraph getEntityGraph();
+	EntityGraph getEntityGraph();
+	
+	/**
+	 * Returns the {@link Method} to be used.
+	 * 
+	 * @return
+	 * @since 1.9
+	 */
+	Method getMethod();
 }

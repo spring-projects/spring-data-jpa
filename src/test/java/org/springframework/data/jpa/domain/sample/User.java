@@ -52,6 +52,8 @@ import javax.persistence.TemporalType;
 @NamedEntityGraphs({
 		@NamedEntityGraph(name = "User.overview", attributeNodes = { @NamedAttributeNode("roles") }),
 		@NamedEntityGraph(name = "User.detail", attributeNodes = { @NamedAttributeNode("roles"),
+				@NamedAttributeNode("manager"), @NamedAttributeNode("colleagues") }),
+		@NamedEntityGraph(name = "User.getOneWithDefinedEntityGraphById", attributeNodes = { @NamedAttributeNode("roles"),
 				@NamedAttributeNode("manager"), @NamedAttributeNode("colleagues") }) })
 @NamedQuery(name = "User.findByEmailAddress", query = "SELECT u FROM User u WHERE u.emailAddress = ?1")
 @NamedStoredProcedureQueries({ //

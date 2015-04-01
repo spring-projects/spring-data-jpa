@@ -29,11 +29,11 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.data.jpa.repository.Lock;
-import org.springframework.data.jpa.repository.support.CrudMethodMetadataPostProcessor.CrudMethodMetadataPopulatingMethodIntercceptor;
+import org.springframework.data.jpa.repository.support.CrudMethodMetadataPostProcessor.CrudMethodMetadataPopulatingMethodInterceptor;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 /**
- * Unit tests for {@link CrudMethodMetadataPopulatingMethodIntercceptor}.
+ * Unit tests for {@link CrudMethodMetadataPopulatingMethodInterceptor}.
  * 
  * @author Oliver Gierke
  */
@@ -51,7 +51,7 @@ public class CrudMethodMetadataPopulatingMethodInterceptorUnitTests {
 		Method method = Sample.class.getMethod("someMethod");
 		when(invocation.getMethod()).thenReturn(method);
 
-		CrudMethodMetadataPopulatingMethodIntercceptor interceptor = CrudMethodMetadataPopulatingMethodIntercceptor.INSTANCE;
+		CrudMethodMetadataPopulatingMethodInterceptor interceptor = CrudMethodMetadataPopulatingMethodInterceptor.INSTANCE;
 		interceptor.invoke(invocation);
 
 		assertThat(TransactionSynchronizationManager.getResource(method), is(nullValue()));
