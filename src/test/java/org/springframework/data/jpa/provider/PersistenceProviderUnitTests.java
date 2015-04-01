@@ -17,24 +17,19 @@ package org.springframework.data.jpa.provider;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
 import static org.springframework.data.jpa.provider.PersistenceProvider.*;
 import static org.springframework.data.jpa.provider.PersistenceProvider.Constants.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.persistence.EntityGraph;
 import javax.persistence.EntityManager;
-import javax.persistence.Subgraph;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.asm.ClassWriter;
 import org.springframework.asm.Opcodes;
-import org.springframework.data.jpa.repository.EntityGraph.EntityGraphType;
-import org.springframework.data.jpa.repository.query.JpaEntityGraph;
 import org.springframework.instrument.classloading.ShadowingClassLoader;
 import org.springframework.util.ClassUtils;
 
@@ -105,29 +100,6 @@ public class PersistenceProviderUnitTests {
 		EntityManager em = mockProviderSpecificEntityManagerInterface("foo.bar.unknown.jpa.JpaEntityManager");
 
 		assertThat(fromEntityManager(em), is(GENERIC_JPA));
-	}
-
-	/**
-	 * @see DATAJPA-696
-	 */
-	@Test
-	public void shouldBuildCorrectSubgraphForJpaEntityGraph() throws Exception {
-
-		EntityGraph<?> entityGraph = mock(EntityGraph.class);
-		Subgraph<?> guguSubgraph = mock(Subgraph.class);
-		Subgraph<?> blaSubgraph = mock(Subgraph.class);
-		doReturn(guguSubgraph).when(entityGraph).addSubgraph("gugu");
-		doReturn(blaSubgraph).when(entityGraph).addSubgraph("bla");
-
-		JpaEntityGraph jpaEntityGraph = new JpaEntityGraph("foo", EntityGraphType.FETCH, new String[] { "foo", "gugu.gaga",
-				"bar", "gugu.fugu", "bla.fasel" });
-
-		PersistenceProvider.GENERIC_JPA.configureFetchGraphFrom(jpaEntityGraph, entityGraph);
-
-		verify(entityGraph, times(1)).addAttributeNodes(new String[] { "foo", "bar" });
-		verify(entityGraph, times(1)).addSubgraph("gugu");
-		verify(guguSubgraph, times(1)).addAttributeNodes(new String[] { "gaga", "fugu" });
-		verify(blaSubgraph, times(1)).addAttributeNodes("fasel");
 	}
 
 	private EntityManager mockProviderSpecificEntityManagerInterface(String interfaceName) throws ClassNotFoundException {

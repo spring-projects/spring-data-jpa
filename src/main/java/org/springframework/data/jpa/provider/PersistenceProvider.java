@@ -253,8 +253,6 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 		}
 	};
 
-	private static final String ROOT_GRAPH_KEY = ".";
-
 	/**
 	 * Holds the PersistenceProvider specific interface names.
 	 * 
@@ -361,123 +359,6 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 	public CloseableIterator<Object> executeQueryWithResultStream(Query jpaQuery) {
 		throw new UnsupportedOperationException("Streaming results is not implement for this PersistenceProvider: "
 				+ name());
-	}
-
-	/**
-	 * Creates a dynamic {@link EntityGraph} from the given {@link JpaEntityGraph} information.
-	 * 
-	 * @param em
-	 * @param jpaEntityGraph
-	 * @param entityType
-	 * @return
-	 * @since 1.9
-	 */
-	public EntityGraph<?> createDynamicEntityGraph(EntityManager em, JpaEntityGraph jpaEntityGraph, Class<?> entityType) {
-
-		Assert.isTrue(jpaEntityGraph.isDynamicEntityGraph(), "The given " + jpaEntityGraph + " is not dynamic!");
-
-		EntityGraph<?> entityGraph = em.createEntityGraph(entityType);
-
-		configureFetchGraphFrom(jpaEntityGraph, entityGraph);
-
-		return entityGraph;
-	}
-
-	/**
-	 * Configures the given {@link EntityGraph} with the fetch graph information stored in {@link JpaEntityGraph}.
-	 * 
-	 * @param jpaEntityGraph
-	 * @param entityGraph
-	 */
-	/* visible for testing */
-	void configureFetchGraphFrom(JpaEntityGraph jpaEntityGraph, EntityGraph<?> entityGraph) {
-
-		Map<String, List<String>> pathToPropertiesMap = new HashMap<String, List<String>>();
-		Map<String, Subgraph<?>> pathToGraphMap = new HashMap<String, Subgraph<?>>();
-
-		buildSubgraphsAndCollectEntityGraphPropertyPathsInto(pathToPropertiesMap, pathToGraphMap, jpaEntityGraph,
-				entityGraph);
-
-		for (Map.Entry<String, Subgraph<?>> entry : pathToGraphMap.entrySet()) {
-
-			List<String> properties = pathToPropertiesMap.get(entry.getKey());
-			if (properties.isEmpty()) {
-				continue;
-			}
-
-			String[] propertyStrings = properties.toArray(new String[properties.size()]);
-
-			if (entry.getKey().equals(ROOT_GRAPH_KEY)) {
-				entityGraph.addAttributeNodes(propertyStrings);
-				continue;
-			}
-
-			entry.getValue().addAttributeNodes(propertyStrings);
-		}
-	}
-
-	private void buildSubgraphsAndCollectEntityGraphPropertyPathsInto(Map<String, List<String>> pathToPropertiesMap,
-			Map<String, Subgraph<?>> pathToGraphMap, JpaEntityGraph jpaEntityGraph, EntityGraph<?> entityGraph) {
-
-		String[] attributePaths = jpaEntityGraph.getAttributePaths().clone();
-		for (int i = 0; i < attributePaths.length; i++) {
-
-			String path = attributePaths[i];
-
-			if (!path.contains(".")) {
-
-				registerRootGraphAttribute(path, pathToPropertiesMap, pathToGraphMap);
-				continue;
-			}
-
-			String[] pathComponents = StringUtils.delimitedListToStringArray(path, ".");
-
-			String subgraphKey = createAndRegisterRequiredSubgraphs(pathToGraphMap, entityGraph, pathComponents);
-
-			List<String> subgraphProperties = null;
-			if ((subgraphProperties = pathToPropertiesMap.get(subgraphKey)) == null) {
-				pathToPropertiesMap.put(subgraphKey, subgraphProperties = new ArrayList<String>());
-			}
-			subgraphProperties.add(pathComponents[pathComponents.length - 1]);
-		}
-	}
-
-	private String createAndRegisterRequiredSubgraphs(Map<String, Subgraph<?>> pathToGraphMap,
-			EntityGraph<?> entityGraph, String[] pathComponents) {
-
-		StringBuilder parentPath = new StringBuilder();
-
-		Subgraph<?> parent = null;
-		for (int c = 0; c < pathComponents.length - 1; c++) {
-
-			parentPath.append('.').append(pathComponents[c]);
-
-			if (pathToGraphMap.containsKey(parentPath.toString())) {
-				continue;
-			}
-
-			if (c == 0) {
-				parent = entityGraph.addSubgraph(pathComponents[c]);
-			} else {
-				parent = parent.addSubgraph(pathComponents[c]);
-			}
-
-			pathToGraphMap.put(parentPath.toString(), parent);
-		}
-
-		return parentPath.toString();
-	}
-
-	private void registerRootGraphAttribute(String path, Map<String, List<String>> pathToPropertiesMap,
-			Map<String, Subgraph<?>> pathToGraphMap) {
-		pathToGraphMap.put(ROOT_GRAPH_KEY, null);
-
-		List<String> rootProperties = null;
-		if ((rootProperties = pathToPropertiesMap.get(ROOT_GRAPH_KEY)) == null) {
-			pathToPropertiesMap.put(ROOT_GRAPH_KEY, rootProperties = new ArrayList<String>());
-		}
-
-		rootProperties.add(path);
 	}
 
 	/**

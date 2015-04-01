@@ -16,17 +16,22 @@
 package org.springframework.data.jpa.repository.query;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.persistence.EntityGraph;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
+import javax.persistence.Subgraph;
 
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
+import org.springframework.util.StringUtils;
 
 /**
  * Utils for bridging various JPA 2.1 features.
@@ -37,6 +42,7 @@ import org.springframework.util.ReflectionUtils;
  */
 public class Jpa21Utils {
 
+	private static final String ROOT_GRAPH_KEY = ".";
 	private static final Method GET_ENTITY_GRAPH_METHOD;
 	private static final boolean JPA21_AVAILABLE = ClassUtils.isPresent("javax.persistence.NamedEntityGraph",
 			Jpa21Utils.class.getClassLoader());
@@ -99,12 +105,128 @@ public class Jpa21Utils {
 		Assert.isTrue(GET_ENTITY_GRAPH_METHOD != null,
 				"It seems that you have the JPA 2.1 API but a JPA 2.0 implementation on the classpath!");
 
-		try {
-			// first check whether an entityGraph with that name is already registered.
-			return em.getEntityGraph(jpaEntityGraph.getName());
-		} catch (Exception ex) {
-			// try to create and dynamically register the entityGraph
-			return PersistenceProvider.fromEntityManager(em).createDynamicEntityGraph(em, jpaEntityGraph, entityType);
+		if(!jpaEntityGraph.isDynamicEntityGraph()){
+			return em.getEntityGraph(jpaEntityGraph.getName()); 
+		}
+		
+		return createDynamicEntityGraph(em, jpaEntityGraph, entityType);
+	}
+	
+	/**
+	 * Creates a dynamic {@link EntityGraph} from the given {@link JpaEntityGraph} information.
+	 * 
+	 * @param em
+	 * @param jpaEntityGraph
+	 * @param entityType
+	 * @return
+	 * @since 1.9
+	 */
+	public static EntityGraph<?> createDynamicEntityGraph(EntityManager em, JpaEntityGraph jpaEntityGraph, Class<?> entityType) {
+
+		Assert.isTrue(jpaEntityGraph.isDynamicEntityGraph(), "The given " + jpaEntityGraph + " is not dynamic!");
+
+		EntityGraph<?> entityGraph = em.createEntityGraph(entityType);
+
+		configureFetchGraphFrom(jpaEntityGraph, entityGraph);
+
+		return entityGraph;
+	}
+
+	/**
+	 * Configures the given {@link EntityGraph} with the fetch graph information stored in {@link JpaEntityGraph}.
+	 * 
+	 * @param jpaEntityGraph
+	 * @param entityGraph
+	 */
+	/* visible for testing */
+	static void configureFetchGraphFrom(JpaEntityGraph jpaEntityGraph, EntityGraph<?> entityGraph) {
+
+		Map<String, List<String>> pathToPropertiesMap = new HashMap<String, List<String>>();
+		Map<String, Subgraph<?>> pathToGraphMap = new HashMap<String, Subgraph<?>>();
+
+		buildSubgraphsAndCollectEntityGraphPropertyPathsInto(pathToPropertiesMap, pathToGraphMap, jpaEntityGraph,
+				entityGraph);
+
+		for (Map.Entry<String, Subgraph<?>> entry : pathToGraphMap.entrySet()) {
+
+			List<String> properties = pathToPropertiesMap.get(entry.getKey());
+			if (properties.isEmpty()) {
+				continue;
+			}
+
+			String[] propertyStrings = properties.toArray(new String[properties.size()]);
+
+			if (entry.getKey().equals(ROOT_GRAPH_KEY)) {
+				entityGraph.addAttributeNodes(propertyStrings);
+				continue;
+			}
+
+			entry.getValue().addAttributeNodes(propertyStrings);
 		}
 	}
+
+	private static void buildSubgraphsAndCollectEntityGraphPropertyPathsInto(Map<String, List<String>> pathToPropertiesMap,
+			Map<String, Subgraph<?>> pathToGraphMap, JpaEntityGraph jpaEntityGraph, EntityGraph<?> entityGraph) {
+
+		String[] attributePaths = jpaEntityGraph.getAttributePaths().clone();
+		for (int i = 0; i < attributePaths.length; i++) {
+
+			String path = attributePaths[i];
+
+			if (!path.contains(".")) {
+
+				registerRootGraphAttribute(path, pathToPropertiesMap, pathToGraphMap);
+				continue;
+			}
+
+			String[] pathComponents = StringUtils.delimitedListToStringArray(path, ".");
+
+			String subgraphKey = createAndRegisterRequiredSubgraphs(pathToGraphMap, entityGraph, pathComponents);
+
+			List<String> subgraphProperties = null;
+			if ((subgraphProperties = pathToPropertiesMap.get(subgraphKey)) == null) {
+				pathToPropertiesMap.put(subgraphKey, subgraphProperties = new ArrayList<String>());
+			}
+			subgraphProperties.add(pathComponents[pathComponents.length - 1]);
+		}
+	}
+
+	private static String createAndRegisterRequiredSubgraphs(Map<String, Subgraph<?>> pathToGraphMap,
+			EntityGraph<?> entityGraph, String[] pathComponents) {
+
+		StringBuilder parentPath = new StringBuilder();
+
+		Subgraph<?> parent = null;
+		for (int c = 0; c < pathComponents.length - 1; c++) {
+
+			parentPath.append('.').append(pathComponents[c]);
+
+			if (pathToGraphMap.containsKey(parentPath.toString())) {
+				continue;
+			}
+
+			if (c == 0) {
+				parent = entityGraph.addSubgraph(pathComponents[c]);
+			} else {
+				parent = parent.addSubgraph(pathComponents[c]);
+			}
+
+			pathToGraphMap.put(parentPath.toString(), parent);
+		}
+
+		return parentPath.toString();
+	}
+
+	private static void registerRootGraphAttribute(String path, Map<String, List<String>> pathToPropertiesMap,
+			Map<String, Subgraph<?>> pathToGraphMap) {
+		pathToGraphMap.put(ROOT_GRAPH_KEY, null);
+
+		List<String> rootProperties = null;
+		if ((rootProperties = pathToPropertiesMap.get(ROOT_GRAPH_KEY)) == null) {
+			pathToPropertiesMap.put(ROOT_GRAPH_KEY, rootProperties = new ArrayList<String>());
+		}
+
+		rootProperties.add(path);
+	}
+
 }
