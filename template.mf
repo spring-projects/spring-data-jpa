@@ -22,7 +22,8 @@ Import-Template:
  org.springframework.beans.factory.aspectj;version="${spring:[=.=.=.=,+1.1.0)}";resolution:=optional,
  org.springframework.data.*;version="${springdata.commons:[=.=.=.=,+1.0.0)}",
  org.threeten.bp.*;version="${threetenbp:[=.=.=,+1.0.0)}";resolution:=optional,
- org.w3c.*;version="0.0.0"
+ org.w3c.*;version="0.0.0",
+ rx.*;version="0.0.0"
 Import-Package: org.aspectj.lang;version="${aspectj:[=.=.=,+1.0.0)}";resolution:=optional,
  org.aspectj.runtime.reflect;version="${aspectj:[=.=.=,+1.0.0)}";resolution:=optional,
  org.springframework.beans.factory.aspectj;version="${spring:[=.=.=.=,+1.1.0)}";resolution:=optional

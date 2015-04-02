@@ -40,6 +40,8 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
+import rx.Observable;
+
 import com.google.common.base.Optional;
 
 /**
@@ -575,4 +577,10 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	 */
 	@Query("select u from User u")
 	Stream<User> streamAllPaged(Pageable pageable);
+	
+	/**
+	 * @DATAJPA-701
+	 */
+	@Query("select u from User u")
+	Observable<User> streamAllViaObservable();
 }
