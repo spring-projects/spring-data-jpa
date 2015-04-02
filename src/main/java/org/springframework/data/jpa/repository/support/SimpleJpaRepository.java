@@ -254,17 +254,11 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 		Map<String, Object> hints = new HashMap<String, Object>();
 		hints.putAll(metadata.getQueryHints());
 
-		hints.putAll(Jpa21Utils.tryGetFetchGraphHints(em, getEntityGraph(), getDomainClass()));
+		hints.putAll(Jpa21Utils.tryGetFetchGraphHints(em, metadata.getEntityGraph(), getDomainClass()));
 
 		return hints;
 	}
-
-	private JpaEntityGraph getEntityGraph() {
-		
-		String fallbackName = this.entityInformation.getEntityName() + "." + metadata.getMethod().getName();
-		return new JpaEntityGraph(metadata.getEntityGraph(), fallbackName);
-	}
-
+	
 	/* 
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.JpaRepository#getOne(java.io.Serializable)

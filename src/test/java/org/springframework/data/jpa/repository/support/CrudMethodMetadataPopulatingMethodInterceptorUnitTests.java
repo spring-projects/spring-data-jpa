@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2014 the original author or authors.
+ * Copyright 2012-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,17 +30,20 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.support.CrudMethodMetadataPostProcessor.CrudMethodMetadataPopulatingMethodInterceptor;
+import org.springframework.data.repository.core.RepositoryInformation;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 /**
  * Unit tests for {@link CrudMethodMetadataPopulatingMethodInterceptor}.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 @RunWith(MockitoJUnitRunner.class)
 public class CrudMethodMetadataPopulatingMethodInterceptorUnitTests {
 
 	@Mock MethodInvocation invocation;
+	@Mock RepositoryInformation repositoryInformation;
 
 	/**
 	 * @see DATAJPA-268
@@ -51,7 +54,7 @@ public class CrudMethodMetadataPopulatingMethodInterceptorUnitTests {
 		Method method = Sample.class.getMethod("someMethod");
 		when(invocation.getMethod()).thenReturn(method);
 
-		CrudMethodMetadataPopulatingMethodInterceptor interceptor = CrudMethodMetadataPopulatingMethodInterceptor.INSTANCE;
+		CrudMethodMetadataPopulatingMethodInterceptor interceptor = new CrudMethodMetadataPopulatingMethodInterceptor(repositoryInformation);
 		interceptor.invoke(invocation);
 
 		assertThat(TransactionSynchronizationManager.getResource(method), is(nullValue()));

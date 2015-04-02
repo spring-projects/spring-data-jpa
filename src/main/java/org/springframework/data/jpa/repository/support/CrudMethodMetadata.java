@@ -47,18 +47,10 @@ public interface CrudMethodMetadata {
 	Map<String, Object> getQueryHints();
 
 	/**
-	 * Returns the {@link EntityGraph} to be used.
+	 * Returns the {@link JpaEntityGraph} to be used.
 	 * 
 	 * @return
-	 * @since 1.9
+	 * @since 1.8
 	 */
-	EntityGraph getEntityGraph();
-	
-	/**
-	 * Returns the {@link Method} to be used.
-	 * 
-	 * @return
-	 * @since 1.9
-	 */
-	Method getMethod();
+	JpaEntityGraph getEntityGraph();
 }

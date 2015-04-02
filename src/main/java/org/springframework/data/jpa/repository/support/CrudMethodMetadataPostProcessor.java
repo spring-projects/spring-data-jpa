@@ -37,7 +37,6 @@ import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.jpa.repository.query.JpaEntityGraph;
 import org.springframework.data.repository.core.RepositoryInformation;
 import org.springframework.data.repository.core.support.RepositoryProxyPostProcessor;
-import org.springframework.data.util.ReflectionUtils;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
 
@@ -61,7 +60,7 @@ enum CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor {
 	public void postProcess(ProxyFactory factory, RepositoryInformation repositoryInformation) {
 
 		factory.addAdvice(ExposeInvocationInterceptor.INSTANCE);
-		factory.addAdvice(CrudMethodMetadataPopulatingMethodInterceptor.INSTANCE);
+		factory.addAdvice(new CrudMethodMetadataPopulatingMethodInterceptor(repositoryInformation));
 	}
 
 	/**
@@ -86,11 +85,14 @@ enum CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor {
 	 * @author Oliver Gierke
 	 * @author Thomas Darimont
 	 */
-	static enum CrudMethodMetadataPopulatingMethodInterceptor implements MethodInterceptor {
-
-		INSTANCE;
+	static class CrudMethodMetadataPopulatingMethodInterceptor implements MethodInterceptor {
 
 		private final ConcurrentMap<Method, CrudMethodMetadata> metadataCache = new ConcurrentHashMap<Method, CrudMethodMetadata>();
+		private final RepositoryInformation repositoryInformation;
+
+		public CrudMethodMetadataPopulatingMethodInterceptor(RepositoryInformation repositoryInformation) {
+			this.repositoryInformation = repositoryInformation;
+		}
 
 		/* 
 		 * (non-Javadoc)
@@ -109,7 +111,7 @@ enum CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor {
 
 			if (methodMetadata == null) {
 
-				methodMetadata = new DefaultCrudMethodMetadata(method);
+				methodMetadata = new DefaultCrudMethodMetadata(method, repositoryInformation);
 				CrudMethodMetadata tmp = metadataCache.putIfAbsent(method, methodMetadata);
 
 				if (tmp != null) {
@@ -137,26 +139,34 @@ enum CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor {
 
 		private final LockModeType lockModeType;
 		private final Map<String, Object> queryHints;
-		private final EntityGraph entityGraph;
-		private final Method method;
+		private final JpaEntityGraph entityGraph;
 
 		/**
 		 * Creates a new {@link DefaultCrudMethodMetadata} for the given {@link Method}.
 		 * 
 		 * @param method must not be {@literal null}.
+		 * @param repositoryInformation must not be {@literal null}.
 		 */
-		public DefaultCrudMethodMetadata(Method method) {
+		public DefaultCrudMethodMetadata(Method method, RepositoryInformation repositoryInformation) {
 
 			Assert.notNull(method, "Method must not be null!");
+			Assert.notNull(repositoryInformation, "RepositoryInformation must not be null!");
 
 			this.lockModeType = findLockModeType(method);
 			this.queryHints = findQueryHints(method);
-			this.entityGraph = findEntityGraph(method);
-			this.method = method;
+			this.entityGraph = findEntityGraph(method, repositoryInformation);
 		}
 
-		private static EntityGraph findEntityGraph(Method method) {
-			return AnnotationUtils.findAnnotation(method, EntityGraph.class);
+		private static JpaEntityGraph findEntityGraph(Method method, RepositoryInformation repositoryInformation) {
+
+			EntityGraph annotation = AnnotationUtils.findAnnotation(method, EntityGraph.class);
+			if (annotation == null) {
+				return null;
+			}
+
+			String nameFallback = String.format("%s.%s", repositoryInformation.getDomainType().getSimpleName(),
+					method.getName());
+			return new JpaEntityGraph(annotation, nameFallback);
 		}
 
 		private static LockModeType findLockModeType(Method method) {
@@ -203,21 +213,13 @@ enum CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor {
 		public Map<String, Object> getQueryHints() {
 			return queryHints;
 		}
-		
+
 		/* (non-Javadoc)
 		 * @see org.springframework.data.jpa.repository.support.CrudMethodMetadata#getEntityGraph()
 		 */
 		@Override
-		public EntityGraph getEntityGraph() {
+		public JpaEntityGraph getEntityGraph() {
 			return entityGraph;
-		}
-		
-		/* (non-Javadoc)
-		 * @see org.springframework.data.jpa.repository.support.CrudMethodMetadata#getMethod()
-		 */
-		@Override
-		public Method getMethod() {
-			return method;
 		}
 	}
 
