@@ -204,10 +204,10 @@
 		</dependency>
 		
 		<dependency>
-			<groupId>com.netflix.rxjava</groupId>
-			<artifactId>rxjava-core</artifactId>
-			<version>0.20.7</version>
+			<groupId>io.reactivex</groupId>
+			<artifactId>rxjava</artifactId>
 			<optional>true</optional>
+			<version>1.0.8</version>
 		</dependency>
 
 		<dependency>
