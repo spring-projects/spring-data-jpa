@@ -15,6 +15,7 @@
  */
 package org.springframework.data.jpa.repository;
 
+import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.test.context.ContextConfiguration;
 
@@ -22,7 +23,12 @@ import org.springframework.test.context.ContextConfiguration;
  * Testcase to run {@link StoredProcedureIntegrationTests} integration tests on top of EclipseLink.
  * 
  * @author Thomas Darimont
+ * @author Oliver Gierke
  */
-@ContextConfiguration(classes = { StoredProcedureIntegrationTests.Config.class })
-@ImportResource("classpath:eclipselink.xml")
-public class EclipseLinkStoredProcedureIntegrationTests extends StoredProcedureIntegrationTests {}
+@ContextConfiguration
+public class EclipseLinkStoredProcedureIntegrationTests extends StoredProcedureIntegrationTests {
+
+	@Configuration
+	@ImportResource({ "classpath:infrastructure.xml", "classpath:eclipselink.xml" })
+	static class TestConfig extends Config {}
+}

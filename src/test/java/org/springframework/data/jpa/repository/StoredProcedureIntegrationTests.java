@@ -26,6 +26,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,35 +42,33 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * @see scripts/schema-stored-procedures.sql for procedure definitions.
+ * Integration tests for
+ * 
  * @author Thomas Darimont
+ * @author Oliver Gierke
+ * @see scripts/schema-stored-procedures.sql for procedure definitions.
  */
 @Transactional
-@ContextConfiguration
+@ContextConfiguration(classes = StoredProcedureIntegrationTests.TestConfig.class)
 @RunWith(SpringJUnit4ClassRunner.class)
 public class StoredProcedureIntegrationTests {
+
+	private static final String NOT_SUPPORTED = "Stored procedures with ResultSets are currently not supported for any JPA provider";
 
 	@PersistenceContext EntityManager em;
 	@Autowired DummyRepository repository;
 
-	Dummy dummyA;
-	Dummy dummyB;
-	Dummy dummyC;
-
 	@Configuration
 	@EnableJpaRepositories(basePackageClasses = DummyRepository.class, includeFilters = { @Filter(
 			pattern = ".*DummyRepository", type = FilterType.REGEX) })
+	static abstract class Config {}
+
 	@ImportResource("classpath:infrastructure.xml")
-	static class Config {}
+	static class TestConfig extends Config {}
 
 	@Before
 	public void setup() {
-
 		assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
-
-		dummyA = em.merge(new Dummy("A"));
-		dummyB = em.merge(new Dummy("B"));
-		dummyC = em.merge(new Dummy("C"));
 	}
 
 	/**
@@ -77,7 +76,7 @@ public class StoredProcedureIntegrationTests {
 	 */
 	@Test
 	public void shouldExecuteAdHocProcedureWithNoInputAnd1OutputParameter() {
-		assertThat(repository.adHocProcedureWithNoInputAnd1OutputParameter(), is(equalTo(42)));
+		assertThat(repository.adHocProcedureWithNoInputAnd1OutputParameter(), is(42));
 	}
 
 	/**
@@ -85,7 +84,7 @@ public class StoredProcedureIntegrationTests {
 	 */
 	@Test
 	public void shouldExecuteAdHocProcedureWith1InputAnd1OutputParameter() {
-		assertThat(repository.adHocProcedureWith1InputAnd1OutputParameter(23), is(equalTo(24)));
+		assertThat(repository.adHocProcedureWith1InputAnd1OutputParameter(23), is(24));
 	}
 
 	/**
@@ -93,24 +92,17 @@ public class StoredProcedureIntegrationTests {
 	 */
 	@Test
 	public void shouldExecuteAdHocProcedureWith1InputAndNoOutputParameter() {
-
 		repository.adHocProcedureWith1InputAndNoOutputParameter(42);
-
-		assertTrue(true);
 	}
 
 	/**
 	 * @see DATAJPA-652
 	 */
 	@Test
+	@Ignore(NOT_SUPPORTED)
 	public void shouldExecuteAdHocProcedureWith1InputAnd1OutputParameterWithResultSet() {
 
-		// hibernate currently (v4.3) doesn't support returning ResultSets in output parameters
-		assumeFalse(currentEntityManagerIsHibernateEntityManager(em));
-
 		List<Dummy> dummies = repository.adHocProcedureWith1InputAnd1OutputParameterWithResultSet("FOO");
-
-		System.out.println("### Found dummies: " + dummies);
 
 		assertThat(dummies, is(notNullValue()));
 		assertThat(dummies.size(), is(equalTo(3)));
@@ -120,14 +112,10 @@ public class StoredProcedureIntegrationTests {
 	 * @see DATAJPA-652
 	 */
 	@Test
+	@Ignore(NOT_SUPPORTED)
 	public void shouldExecuteAdHocProcedureWith1InputAnd1OutputParameterWithResultSetWithUpdate() {
 
-		// hibernate currently (v4.3) doesn't support returning ResultSets in output parameters
-		assumeFalse(currentEntityManagerIsHibernateEntityManager(em));
-
 		List<Dummy> dummies = repository.adHocProcedureWith1InputAnd1OutputParameterWithResultSetWithUpdate("FOO");
-
-		System.out.println("### Found dummies: " + dummies);
 
 		assertThat(dummies, is(notNullValue()));
 		assertThat(dummies.size(), is(equalTo(3)));
@@ -138,10 +126,7 @@ public class StoredProcedureIntegrationTests {
 	 */
 	@Test
 	public void shouldExecuteAdHocProcedureWith1InputAnd1OutputParameterWithUpdate() {
-
 		repository.adHocProcedureWith1InputAndNoOutputParameterWithUpdate("FOO");
-
-		assertTrue(true);
 	}
 
 	/**
@@ -149,7 +134,7 @@ public class StoredProcedureIntegrationTests {
 	 */
 	@Test
 	public void shouldExecuteProcedureWithNoInputAnd1OutputParameter() {
-		assertThat(repository.procedureWithNoInputAnd1OutputParameter(), is(equalTo(42)));
+		assertThat(repository.procedureWithNoInputAnd1OutputParameter(), is(42));
 	}
 
 	/**
@@ -157,7 +142,7 @@ public class StoredProcedureIntegrationTests {
 	 */
 	@Test
 	public void shouldExecuteProcedureWith1InputAnd1OutputParameter() {
-		assertThat(repository.procedureWith1InputAnd1OutputParameter(23), is(equalTo(24)));
+		assertThat(repository.procedureWith1InputAnd1OutputParameter(23), is(24));
 	}
 
 	/**
@@ -165,20 +150,15 @@ public class StoredProcedureIntegrationTests {
 	 */
 	@Test
 	public void shouldExecuteProcedureWith1InputAndNoOutputParameter() {
-
 		repository.procedureWith1InputAndNoOutputParameter(42);
-
-		assertTrue(true);
 	}
 
 	/**
 	 * @see DATAJPA-652
 	 */
 	@Test
+	@Ignore(NOT_SUPPORTED)
 	public void shouldExecuteProcedureWith1InputAnd1OutputParameterWithResultSet() {
-
-		// hibernate currently (v4.3) doesn't support returning ResultSets in output parameters
-		assumeFalse(currentEntityManagerIsHibernateEntityManager(em));
 
 		List<Dummy> dummies = repository.procedureWith1InputAnd1OutputParameterWithResultSet("FOO");
 
@@ -190,10 +170,8 @@ public class StoredProcedureIntegrationTests {
 	 * @see DATAJPA-652
 	 */
 	@Test
+	@Ignore(NOT_SUPPORTED)
 	public void shouldExecuteProcedureWith1InputAnd1OutputParameterWithResultSetWithUpdate() {
-
-		// hibernate currently (v4.3) doesn't support returning ResultSets in output parameters
-		assumeFalse(currentEntityManagerIsHibernateEntityManager(em));
 
 		List<Dummy> dummies = repository.procedureWith1InputAnd1OutputParameterWithResultSetWithUpdate("FOO");
 
@@ -206,9 +184,6 @@ public class StoredProcedureIntegrationTests {
 	 */
 	@Test
 	public void shouldExecuteProcedureWith1InputAnd1OutputParameterWithUpdate() {
-
 		repository.procedureWith1InputAndNoOutputParameterWithUpdate("FOO");
-
-		assertTrue(true);
 	}
 }

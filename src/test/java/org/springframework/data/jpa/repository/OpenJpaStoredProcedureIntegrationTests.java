@@ -24,8 +24,12 @@ import org.springframework.test.context.ContextConfiguration;
  * supported since, the OpenJPA tests need to be executed with hsqldb1 which doesn't supported stored procedures.
  * 
  * @author Thomas Darimont
+ * @author Oliver Gierke
  */
 @Ignore
 @ContextConfiguration(classes = { StoredProcedureIntegrationTests.Config.class })
-@ImportResource("classpath:openjpa.xml")
-public class OpenJpaStoredProcedureIntegrationTests extends StoredProcedureIntegrationTests {}
+public class OpenJpaStoredProcedureIntegrationTests extends StoredProcedureIntegrationTests {
+
+	@ImportResource({ "classpath:infrastructure.xml", "classpath:openjpa.xml" })
+	static class TestConfig extends Config {}
+}
