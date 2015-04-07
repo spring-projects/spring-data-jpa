@@ -22,7 +22,11 @@ import org.springframework.test.context.ContextConfiguration;
  * Testcase to run {@link StoredProcedureIntegrationTests} integration tests on top of EclipseLink.
  * 
  * @author Thomas Darimont
+ * @author Oliver Gierke
  */
-@ContextConfiguration(classes = { StoredProcedureIntegrationTests.Config.class })
-@ImportResource("classpath:eclipselink.xml")
-public class EclipseLinkStoredProcedureIntegrationTests extends StoredProcedureIntegrationTests {}
+@ContextConfiguration
+public class EclipseLinkStoredProcedureIntegrationTests extends StoredProcedureIntegrationTests {
+
+	@ImportResource({ "classpath:infrastructure.xml", "classpath:eclipselink.xml" })
+	static class TestConfig extends Config {}
+}

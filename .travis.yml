@@ -6,13 +6,12 @@ jdk:
 env:
   matrix:
     - PROFILE=ci
-    - PROFILE=spring4-next
-    - PROFILE=spring41
     - PROFILE=spring41-next
     - PROFILE=spring42-next
     - PROFILE=hibernate-41
     - PROFILE=hibernate-42
     - PROFILE=hibernate-43
+    - PROFILE=hibernate-5
     - PROFILE=querydsl-next
 
 sudo: false
