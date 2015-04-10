@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2014 the original author or authors.
+ * Copyright 2008-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package org.springframework.data.jpa.repository.query;
 
 import static org.springframework.core.annotation.AnnotationUtils.*;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -31,7 +32,10 @@ import javax.persistence.QueryHint;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.data.jpa.provider.QueryExtractor;
 import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.JpaCountQueryProvider;
+import org.springframework.data.jpa.repository.JpaQueryProvider;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.MethodAwareJpaQueryProvider;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryHints;
@@ -69,6 +73,8 @@ public class JpaQueryMethod extends QueryMethod {
 	private final Method method;
 
 	private StoredProcedureAttributes storedProcedureAttributes;
+
+	private JpaQueryProvider queryProviderInstance;
 
 	/**
 	 * Creates a {@link JpaQueryMethod}.
@@ -209,40 +215,84 @@ public class JpaQueryMethod extends QueryMethod {
 	}
 
 	/**
-	 * Returns the query string declared in a {@link Query} annotation or {@literal null} if neither the annotation found
-	 * nor the attribute was specified.
+	 * Returns the query string provided by the {@link JpaQueryProvider} declared in the {@link Query} annotation or the
+	 * query string declared in the {@link Query} annotation. In the event that neither the query provider nor the query
+	 * itself is declared, returns null.
 	 * 
 	 * @return
 	 */
 	String getAnnotatedQuery() {
+		String query;
 
-		String query = getAnnotationValue("value", String.class);
-		return StringUtils.hasText(query) ? query : null;
+		JpaQueryProvider queryProvider = getJpaQueryProviderOrNull();
+		if (queryProvider != null) {
+			query = queryProvider.getQuery();
+
+			if (StringUtils.hasText(query))
+				return query;
+		}
+
+		query = getAnnotationValue("value", String.class);
+
+		if (StringUtils.hasText(query))
+			return query;
+
+		return null;
 	}
 
 	/**
-	 * Returns the countQuery string declared in a {@link Query} annotation or {@literal null} if neither the annotation
-	 * found nor the attribute was specified.
+	 * Returns the countQuery string provided by the {@link JpaCountQueryProvider} declared in the {@link Query}
+	 * annotation or the countQuery string declared in the {@link Query} annotation. In the event that neither the query
+	 * provider nor the countQuery itself is declared, returns null.
 	 * 
 	 * @return
 	 */
 	String getCountQuery() {
 
-		String countQuery = getAnnotationValue("countQuery", String.class);
-		return StringUtils.hasText(countQuery) ? countQuery : null;
+		String countQuery;
+
+		JpaCountQueryProvider queryProvider = getJpaCountQueryProviderOrNull();
+		if (queryProvider != null) {
+			countQuery = queryProvider.getCountQuery();
+
+			if (StringUtils.hasText(countQuery))
+				return countQuery;
+		}
+
+		countQuery = getAnnotationValue("countQuery", String.class);
+
+		if (StringUtils.hasText(countQuery))
+			return countQuery;
+
+		return null;
 	}
 
 	/**
-	 * Returns the count query projection string declared in a {@link Query} annotation or {@literal null} if neither the
-	 * annotation found nor the attribute was specified.
+	 * Returns the countProjection string provided by the {@link JpaCountQueryProvider} declared in the {@link Query}
+	 * annotation or the countProjection string declared in the {@link Query} annotation. In the event that neither the
+	 * query provider nor the countProjection itself is declared, returns null.
 	 * 
 	 * @return
 	 * @since 1.6
 	 */
 	String getCountQueryProjection() {
 
-		String countProjection = getAnnotationValue("countProjection", String.class);
-		return StringUtils.hasText(countProjection) ? countProjection : null;
+		String countProjection;
+
+		JpaCountQueryProvider queryProvider = getJpaCountQueryProviderOrNull();
+		if (queryProvider != null) {
+			countProjection = queryProvider.getCountProjection();
+
+			if (StringUtils.hasText(countProjection))
+				return countProjection;
+		}
+
+		countProjection = getAnnotationValue("countProjection", String.class);
+
+		if (StringUtils.hasText(countProjection))
+			return countProjection;
+
+		return null;
 	}
 
 	/**
@@ -353,5 +403,80 @@ public class JpaQueryMethod extends QueryMethod {
 		}
 
 		return storedProcedureAttributes;
+	}
+
+	/**
+	 * Returns an instance of the {@link JpaQueryProvider} declared in the {@link Query} annotation, or null if it wasn't
+	 * declared.
+	 * 
+	 * Please note that the {@link JpaQueryProvider} is constructed only once.
+	 * 
+	 * This method is also responsible for calling setMethod on instances of {@link MethodAwareJpaQueryProvider}.
+	 * 
+	 * @return
+	 */
+	private JpaQueryProvider getJpaQueryProviderOrNull() {
+
+		if (queryProviderInstance != null) {
+			return queryProviderInstance;
+		}
+
+		@SuppressWarnings("unchecked")
+		Class<? extends JpaQueryProvider> queryProvider = getAnnotationValue("queryProvider", Class.class);
+
+		if (queryProvider == null || queryProvider.equals(JpaQueryProvider.class)) {
+			return null;
+		}
+
+		try {
+
+			queryProviderInstance = queryProvider.getConstructor().newInstance();
+
+			if (queryProviderInstance instanceof MethodAwareJpaQueryProvider) {
+				((MethodAwareJpaQueryProvider) queryProviderInstance).setMethod(method);
+			}
+
+			return queryProviderInstance;
+
+		} catch (InstantiationException e) {
+			throw new IllegalStateException(String.format(
+					"Using query provider for method %s but the query provider couldn't be instantiated!", method), e);
+		} catch (IllegalAccessException e) {
+			throw new IllegalStateException(String.format(
+					"Using query provider for method %s but the query provider constructor is not accessible!", method), e);
+		} catch (IllegalArgumentException e) {
+			// Should never happen, since getConstructor() should return the no-argument constructor
+			throw new IllegalStateException(String.format(
+					"Using query provider for method %s but the query provider constructor requires arguments!", method), e);
+		} catch (InvocationTargetException e) {
+			throw new IllegalStateException(String.format(
+					"Using query provider for method %s but the query provider constructor threw an exception!", method), e);
+		} catch (NoSuchMethodException e) {
+			throw new IllegalStateException(String.format(
+					"Using query provider for method %s but the query provider doesn't have a no-argument constructor!", method),
+					e);
+		} catch (SecurityException e) {
+			throw new IllegalStateException(
+					String.format(
+							"Using query provider for method %s but a security exception was thrown while searching for the no-argument constructor!",
+							method), e);
+		}
+	}
+
+	/**
+	 * Returns an instance of the {@link JpaCountQueryProvider} declared in the {@link Query} annotation, or null if the
+	 * query provider in the {@link Query} annotation doesn't inherit {@link JpaCountQueryProvider}. Just like
+	 * {@link #getJpaQueryProviderOrNull()}, this method returns null if the query provider is not declared.
+	 * 
+	 * @return
+	 */
+	private JpaCountQueryProvider getJpaCountQueryProviderOrNull() {
+		JpaQueryProvider queryProvider = getJpaQueryProviderOrNull();
+
+		if (queryProvider != null && queryProvider instanceof JpaCountQueryProvider) {
+			return (JpaCountQueryProvider) queryProvider;
+		}
+
+		return null;
 	}
 }

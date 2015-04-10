@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 the original author or authors.
+ * Copyright 2008-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,8 +39,11 @@ import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.provider.QueryExtractor;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.EntityGraph.EntityGraphType;
+import org.springframework.data.jpa.repository.JpaCountQueryProvider;
+import org.springframework.data.jpa.repository.JpaQueryProvider;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.MethodAwareJpaQueryProvider;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryHints;
@@ -67,7 +70,8 @@ public class JpaQueryMethodUnitTests {
 
 	Method repositoryMethod, invalidReturnType, pageableAndSort, pageableTwice, sortableTwice, modifyingMethod,
 			nativeQuery, namedQuery, findWithLockMethod, invalidNamedParameter, findsProjections, findsProjection,
-			withMetaAnnotation, queryMethodWithCustomEntityFetchGraph;
+			withMetaAnnotation, queryMethodWithCustomEntityFetchGraph, queryMethodUsingQueryProvider,
+			queryMethodUsingMethodAwareProvider, queryMethodWithoutValue, queryMethodUsingCountQueryProvider;
 
 	/**
 	 * @throws Exception
@@ -97,6 +101,13 @@ public class JpaQueryMethodUnitTests {
 
 		queryMethodWithCustomEntityFetchGraph = ValidRepository.class.getMethod("queryMethodWithCustomEntityFetchGraph",
 				Integer.class);
+
+		queryMethodUsingQueryProvider = ValidRepository.class.getMethod("queryMethodUsingQueryProvider", String.class);
+		queryMethodUsingCountQueryProvider = ValidRepository.class.getMethod("queryMethodUsingCountQueryProvider",
+				String.class);
+		queryMethodUsingMethodAwareProvider = ValidRepository.class.getMethod("queryMethodUsingMethodAwareProvider",
+				String.class);
+		queryMethodWithoutValue = ValidRepository.class.getMethod("queryMethodWithoutValue", String.class);
 	}
 
 	@Test
@@ -359,6 +370,54 @@ public class JpaQueryMethodUnitTests {
 	}
 
 	/**
+	 * @see DATAJPA-704
+	 */
+	@Test
+	public void returnsQueryIfAvailableUsingProvider() {
+
+		JpaQueryMethod method = new JpaQueryMethod(queryMethodUsingQueryProvider, metadata, extractor);
+
+		assertEquals(method.getAnnotatedQuery(), "query");
+		assertNull(method.getCountQuery());
+		assertNull(method.getCountQueryProjection());
+	}
+
+	/**
+	 * @see DATAJPA-704
+	 */
+	@Test
+	public void returnsCountQueryIfAvailableUsingProvider() {
+
+		JpaQueryMethod method = new JpaQueryMethod(queryMethodUsingCountQueryProvider, metadata, extractor);
+
+		assertEquals(method.getAnnotatedQuery(), "query");
+		assertEquals(method.getCountQuery(), "countQuery");
+		assertEquals(method.getCountQueryProjection(), "countProjection");
+	}
+
+	/**
+	 * @see DATAJPA-704
+	 */
+	@Test
+	public void queryProviderReceivesMethodBeforeGetQueryCall() {
+
+		JpaQueryMethod method = new JpaQueryMethod(queryMethodUsingMethodAwareProvider, metadata, extractor);
+
+		assertNotNull(method.getAnnotatedQuery());
+	}
+
+	/**
+	 * @see DATAJPA-704
+	 */
+	@Test
+	public void doesntReturnQueryIfNotAvailable() {
+
+		JpaQueryMethod method = new JpaQueryMethod(queryMethodWithoutValue, metadata, extractor);
+
+		assertNull(method.getAnnotatedQuery());
+	}
+
+	/**
 	 * Interface to define invalid repository methods for testing.
 	 * 
 	 * @author Oliver Gierke
@@ -396,6 +455,58 @@ public class JpaQueryMethodUnitTests {
 
 	static interface ValidRepository {
 
+		/**
+		 * @see DATAJPA-704
+		 */
+		static class ValidQueryProvider implements JpaQueryProvider {
+
+			@Override
+			public String getQuery() {
+				return "query";
+			}
+		}
+
+		/**
+		 * @see DATAJPA-704
+		 */
+		static class ValidCountQueryProvider implements JpaQueryProvider, JpaCountQueryProvider {
+
+			@Override
+			public String getQuery() {
+				return "query";
+			}
+
+			@Override
+			public String getCountQuery() {
+				return "countQuery";
+			}
+
+			@Override
+			public String getCountProjection() {
+				return "countProjection";
+			}
+		}
+
+		/**
+		 * @see DATAJPA-704
+		 */
+		static class MethodAwareQueryProvider implements JpaQueryProvider, MethodAwareJpaQueryProvider {
+
+			private Method method;
+
+			@Override
+			public void setMethod(Method method) {
+				this.method = method;
+			}
+
+			@Override
+			public String getQuery() {
+				assertNotNull("setMethod hasn't been called before getQuery!", method);
+				return method.getName();
+			}
+
+		}
+
 		@Query(value = "query", nativeQuery = true)
 		List<User> findByLastname(String lastname);
 
@@ -418,6 +529,30 @@ public class JpaQueryMethodUnitTests {
 		 */
 		@EntityGraph(value = "User.propertyLoadPath", type = EntityGraphType.LOAD)
 		User queryMethodWithCustomEntityFetchGraph(Integer id);
+
+		/**
+		 * @see DATAJPA-704
+		 */
+		@Query(value = "constQuery", queryProvider = ValidQueryProvider.class)
+		List<User> queryMethodUsingQueryProvider(String lastname);
+
+		/**
+		 * @see DATAJPA-704
+		 */
+		@Query(value = "constQuery", countQuery = "constCountQuery", countProjection = "constCountProjection", queryProvider = ValidCountQueryProvider.class)
+		List<User> queryMethodUsingCountQueryProvider(String lastname);
+
+		/**
+		 * @see DATAJPA-704
+		 */
+		@Query(queryProvider = MethodAwareQueryProvider.class)
+		List<User> queryMethodUsingMethodAwareProvider(String lastname);
+
+		/**
+		 * @see DATAJPA-704
+		 */
+		@Query()
+		List<User> queryMethodWithoutValue(String lastname);
 	}
 
 	static interface JpaRepositoryOverride extends JpaRepository<User, Long> {

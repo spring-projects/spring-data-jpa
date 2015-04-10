@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2014 the original author or authors.
+ * Copyright 2008-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,18 +37,24 @@ public @interface Query {
 
 	/**
 	 * Defines the JPA query to be executed when the annotated method is called.
+	 * 
+	 * Can be overruled by the {@link #queryProvider()}.
 	 */
 	String value() default "";
 
 	/**
 	 * Defines a special count query that shall be used for pagination queries to lookup the total number of elements for
 	 * a page. If non is configured we will derive the count query from the method name.
+	 * 
+	 * Can be overruled by the {@link #queryProvider()}.
 	 */
 	String countQuery() default "";
 
 	/**
 	 * Defines the projection part of the count query that is generated for pagination. If neither {@link #countQuery()}
 	 * not {@link #countProjection()} is configured we will derive the count query from the method name.
+	 * 
+	 * Can be overruled by the {@link #queryProvider()}.
 	 * 
 	 * @return
 	 * @since 1.6
@@ -74,4 +80,18 @@ public @interface Query {
 	 * @return
 	 */
 	String countName() default "";
+
+	/**
+	 * Returns the class that provides the JPA queries to be executed.
+	 * 
+	 * @see #value()
+	 * @see #countQuery()
+	 * @see #countProjection()
+	 * 
+	 * @see JpaQueryProvider
+	 * @see JpaCountQueryProvider
+	 * @see MethodAwareJpaQueryProvider
+	 */
+	Class<? extends JpaQueryProvider> queryProvider() default JpaQueryProvider.class;
+
 }
