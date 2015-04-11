@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,7 +62,7 @@ public class JpaSort extends Sort {
 	 * @param attributes must not be {@literal null} or empty.
 	 */
 	public JpaSort(Direction direction, Attribute<?, ?>... attributes) {
-		this(direction, paths(Arrays.asList(attributes)));
+		this(direction, paths(attributes));
 	}
 
 	/**
@@ -71,12 +71,50 @@ public class JpaSort extends Sort {
 	 * @param direction the sorting direction.
 	 * @param paths must not be {@literal null} or empty.
 	 */
-	public JpaSort(Direction direction, JpaSort.Path<?, ?>... paths) {
+	public JpaSort(Direction direction, Path<?, ?>... paths) {
 		this(direction, Arrays.asList(paths));
 	}
 
-	private JpaSort(Direction direction, List<JpaSort.Path<?, ?>> paths) {
-		super(direction, toString(paths));
+	private JpaSort(Direction direction, List<Path<?, ?>> paths) {
+		this(Collections.<Order> emptyList(), direction, paths);
+	}
+
+	private JpaSort(List<Order> orders, Direction direction, List<Path<?, ?>> paths) {
+		super(combine(orders, direction, paths));
+	}
+
+	/**
+	 * Returns a new {@link JpaSort} with the given sorting criteria added to the current one.
+	 * 
+	 * @param direction can be {@literal null}.
+	 * @param attributes must not be {@literal null}.
+	 * @return
+	 */
+	public JpaSort and(Direction direction, Attribute<?, ?>... attributes) {
+
+		Assert.notNull(attributes, "Attributes must not be null!");
+
+		return and(direction, paths(attributes));
+	}
+
+	/**
+	 * Returns a new {@link JpaSort} with the given sorting criteria added to the current one.
+	 * 
+	 * @param direction can be {@literal null}.
+	 * @param paths must not be {@literal null}.
+	 * @return
+	 */
+	public JpaSort and(Direction direction, Path<?, ?>... paths) {
+
+		Assert.notNull(paths, "Paths must not be null!");
+
+		List<Order> existing = new ArrayList<Order>();
+
+		for (Order order : this) {
+			existing.add(order);
+		}
+
+		return new JpaSort(existing, direction, Arrays.asList(paths));
 	}
 
 	/**
@@ -85,35 +123,29 @@ public class JpaSort extends Sort {
 	 * @param attributes must not be {@literal null} or empty.
 	 * @return
 	 */
-	private static List<Path<?, ?>> paths(List<? extends Attribute<?, ?>> attributes) {
+	private static Path<?, ?>[] paths(Attribute<?, ?>[] attributes) {
 
 		Assert.notNull(attributes, "Attributes must not be null!");
-		Assert.isTrue(!attributes.isEmpty(), "Attributes must not be empty");
+		Assert.isTrue(attributes.length > 0, "Attributes must not be empty");
 
-		List<Path<?, ?>> paths = new ArrayList<Path<?, ?>>(attributes.size());
+		Path<?, ?>[] paths = new Path[attributes.length];
 
-		for (Attribute<?, ?> attribute : attributes) {
-			paths.add(path(attribute));
+		for (int i = 0; i < attributes.length; i++) {
+			paths[i] = path(attributes[i]);
 		}
 
 		return paths;
 	}
 
-	/**
-	 * Renders the given {@link Path}s into a {@link String} array.
-	 * 
-	 * @param paths must not be {@literal null} or empty.
-	 * @return
-	 */
-	private static String[] toString(List<Path<?, ?>> paths) {
+	private static List<Order> combine(List<Order> orders, Direction direction, List<Path<?, ?>> paths) {
 
-		List<String> strings = new ArrayList<String>(paths.size());
+		List<Order> result = new ArrayList<Sort.Order>(orders);
 
 		for (Path<?, ?> path : paths) {
-			strings.add(path.toString());
+			result.add(new Order(direction, path.toString()));
 		}
 
-		return strings.toArray(new String[strings.size()]);
+		return result;
 	}
 
 	/**
@@ -123,12 +155,10 @@ public class JpaSort extends Sort {
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
-	public static <T, S> Path<T, S> path(Attribute<T, S> attribute) {
+	public static <A extends Attribute<T, S>, T, S> Path<T, S> path(A attribute) {
 
 		Assert.notNull(attribute, "Attribute must not be null!");
-
-		List<? extends Attribute<?, ?>> attributes = Arrays.asList(attribute);
-		return new Path<T, S>(attributes);
+		return new Path<T, S>(Arrays.asList(attribute));
 	}
 
 	/**
@@ -138,12 +168,10 @@ public class JpaSort extends Sort {
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
-	public static <T, S> Path<T, S> path(PluralAttribute<T, ?, S> attribute) {
+	public static <P extends PluralAttribute<T, ?, S>, T, S> Path<T, S> path(P attribute) {
 
 		Assert.notNull(attribute, "Attribute must not be null!");
-
-		List<? extends Attribute<?, ?>> attributes = Arrays.asList(attribute);
-		return new Path<T, S>(attributes);
+		return new Path<T, S>(Arrays.asList(attribute));
 	}
 
 	/**
@@ -165,17 +193,17 @@ public class JpaSort extends Sort {
 		 * @param attribute must not be {@literal null}.
 		 * @return
 		 */
-		public <U> Path<S, U> dot(Attribute<S, U> attribute) {
+		public <A extends Attribute<S, U>, U> Path<S, U> dot(A attribute) {
 			return new Path<S, U>(add(attribute));
 		}
 
 		/**
-		 * Collects the given {@link Attribute} and returning a new {@link Path} pointing to the attribute type.
+		 * Collects the given {@link PluralAttribute} and returning a new {@link Path} pointing to the attribute type.
 		 * 
 		 * @param attribute must not be {@literal null}.
 		 * @return
 		 */
-		public <U> Path<S, U> dot(PluralAttribute<S, ?, U> attribute) {
+		public <P extends PluralAttribute<S, ?, U>, U> Path<S, U> dot(P attribute) {
 			return new Path<S, U>(add(attribute));
 		}
 
