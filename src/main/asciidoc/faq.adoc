@@ -1,0 +1,46 @@
+[[faq]]
+[appendix]
+= Frequently asked questions
+
+== Common
+
+[qanda]
+I'd like to get more detailed logging information on what methods are called inside `JpaRepository`, e.g. How can I gain them?::
+  You can make use of `CustomizableTraceInterceptor` provided by Spring:
++
+[source, xml]
+----
+<bean id="customizableTraceInterceptor" class="
+  org.springframework.aop.interceptor.CustomizableTraceInterceptor">
+  <property name="enterMessage" value="Entering $[methodName]($[arguments])"/>
+  <property name="exitMessage" value="Leaving $[methodName](): $[returnValue]"/>
+</bean>
+
+<aop:config>
+  <aop:advisor advice-ref="customizableTraceInterceptor"
+    pointcut="execution(public * org.springframework.data.jpa.repository.JpaRepository+.*(..))"/>
+</aop:config>
+----
+
+== Infrastructure
+
+[qanda]
+Currently I have implemented a repository layer based on `HibernateDaoSupport`. I create a `SessionFactory` by using Spring's `AnnotationSessionFactoryBean`. How do I get Spring Data repositories working in this environment?::
+  You have to replace `AnnotationSessionFactoryBean` with the `HibernateJpaSessionFactoryBean` as follows:
++
+.Looking up a SessionFactory from a HibernateEntityManagerFactory
+====
+[source, xml]
+----
+<bean id="sessionFactory" class="org.springframework.orm.jpa.vendor.HibernateJpaSessionFactoryBean">
+  <property name="entityManagerFactory" ref="entityManagerFactory"/>
+</bean>
+----
+====
+
+== Auditing
+
+[qanda]
+I want to use Spring Data JPA auditing capabilities but have my database already set up to set modification and creation date on entities. How to prevent Spring Data from setting the date programmatically.::
+  Just use the `set-dates` attribute of the `auditing` namespace element to false.
+

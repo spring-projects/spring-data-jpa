@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2013 the original author or authors.
+ * Copyright 2008-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,12 +40,14 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.sample.User;
+import org.springframework.data.jpa.provider.QueryExtractor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.sample.UserRepository;
-import org.springframework.data.jpa.repository.support.DefaultJpaEntityMetadata;
-import org.springframework.data.jpa.repository.support.JpaEntityMetadata;
 import org.springframework.data.repository.core.RepositoryMetadata;
+import org.springframework.data.repository.query.DefaultEvaluationContextProvider;
+import org.springframework.data.repository.query.EvaluationContextProvider;
 import org.springframework.data.repository.query.RepositoryQuery;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 
 /**
  * Unit test for {@link SimpleJpaQuery}.
@@ -57,6 +59,8 @@ import org.springframework.data.repository.query.RepositoryQuery;
 public class SimpleJpaQueryUnitTests {
 
 	static final String USER_QUERY = "select u from User u";
+	static final SpelExpressionParser PARSER = new SpelExpressionParser();
+	private static final EvaluationContextProvider EVALUATION_CONTEXT_PROVIDER = DefaultEvaluationContextProvider.INSTANCE;
 
 	JpaQueryMethod method;
 
@@ -85,17 +89,14 @@ public class SimpleJpaQueryUnitTests {
 	}
 
 	@Test
-	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void prefersDeclaredCountQueryOverCreatingOne() throws Exception {
 
-		method = mock(JpaQueryMethod.class);
-		when(method.getCountQuery()).thenReturn("foo");
-		when(method.getParameters()).thenReturn(
-				new JpaParameters(SimpleJpaQueryUnitTests.class.getMethod("prefersDeclaredCountQueryOverCreatingOne")));
-		when(method.getEntityInformation()).thenReturn((JpaEntityMetadata) new DefaultJpaEntityMetadata<User>(User.class));
+		method = new JpaQueryMethod(SimpleJpaQueryUnitTests.class.getMethod("prefersDeclaredCountQueryOverCreatingOne"),
+				metadata, extractor); // mock(JpaQueryMethod.class);
 		when(em.createQuery("foo", Long.class)).thenReturn(query);
 
-		SimpleJpaQuery jpaQuery = new SimpleJpaQuery(method, em, "select u from User u");
+		SimpleJpaQuery jpaQuery = new SimpleJpaQuery(method, em, "select u from User u", EVALUATION_CONTEXT_PROVIDER,
+				PARSER);
 
 		assertThat(jpaQuery.createCountQuery(new Object[] {}), is(query));
 	}
@@ -111,7 +112,8 @@ public class SimpleJpaQueryUnitTests {
 		Method method = UserRepository.class.getMethod("findAllPaged", Pageable.class);
 		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, extractor);
 
-		AbstractJpaQuery jpaQuery = new SimpleJpaQuery(queryMethod, em, "select u from User u");
+		AbstractJpaQuery jpaQuery = new SimpleJpaQuery(queryMethod, em, "select u from User u",
+				EVALUATION_CONTEXT_PROVIDER, PARSER);
 		jpaQuery.createCountQuery(new Object[] { new PageRequest(1, 10) });
 
 		verify(query, times(0)).setFirstResult(anyInt());
@@ -124,7 +126,8 @@ public class SimpleJpaQueryUnitTests {
 
 		Method method = SampleRepository.class.getMethod("findNativeByLastname", String.class);
 		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, extractor);
-		AbstractJpaQuery jpaQuery = JpaQueryFactory.INSTANCE.fromQueryAnnotation(queryMethod, em);
+		AbstractJpaQuery jpaQuery = JpaQueryFactory.INSTANCE.fromQueryAnnotation(queryMethod, em,
+				EVALUATION_CONTEXT_PROVIDER);
 
 		assertThat(jpaQuery instanceof NativeJpaQuery, is(true));
 
@@ -137,14 +140,20 @@ public class SimpleJpaQueryUnitTests {
 		verify(em).createNativeQuery("SELECT u FROM User u WHERE u.lastname = ?1", User.class);
 	}
 
-	@Test(expected = IllegalStateException.class)
+	/**
+	 * @see DATAJPA-554
+	 */
+	@Test(expected = InvalidJpaQueryMethodException.class)
 	public void rejectsNativeQueryWithDynamicSort() throws Exception {
 
 		Method method = SampleRepository.class.getMethod("findNativeByLastname", String.class, Sort.class);
 		createJpaQuery(method);
 	}
 
-	@Test(expected = IllegalStateException.class)
+	/**
+	 * @see DATAJPA-554
+	 */
+	@Test(expected = InvalidJpaQueryMethodException.class)
 	public void rejectsNativeQueryWithPageable() throws Exception {
 
 		Method method = SampleRepository.class.getMethod("findNativeByLastname", String.class, Pageable.class);
@@ -199,7 +208,7 @@ public class SimpleJpaQueryUnitTests {
 	private RepositoryQuery createJpaQuery(Method method) {
 
 		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, extractor);
-		return JpaQueryFactory.INSTANCE.fromQueryAnnotation(queryMethod, em);
+		return JpaQueryFactory.INSTANCE.fromQueryAnnotation(queryMethod, em, EVALUATION_CONTEXT_PROVIDER);
 	}
 
 	interface SampleRepository {

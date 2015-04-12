@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2013 the original author or authors.
+ * Copyright 2012-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,10 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.persistence.Access;
+import javax.persistence.AccessType;
+import javax.persistence.Embeddable;
+import javax.persistence.Embedded;
 import javax.persistence.EmbeddedId;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
@@ -30,14 +34,18 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Transient;
-import javax.persistence.metamodel.EmbeddableType;
-import javax.persistence.metamodel.ManagedType;
+import javax.persistence.Version;
 import javax.persistence.metamodel.Metamodel;
 
+import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.data.annotation.AccessType.Type;
 import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.PersistentEntity;
 import org.springframework.data.mapping.model.AnnotationBasedPersistentProperty;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
+import org.springframework.data.util.ClassTypeInformation;
+import org.springframework.data.util.TypeInformation;
+import org.springframework.util.Assert;
 
 /**
  * {@link JpaPersistentProperty} implementation usind a JPA {@link Metamodel}.
@@ -58,6 +66,7 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 		annotations.add(OneToOne.class);
 		annotations.add(ManyToMany.class);
 		annotations.add(ManyToOne.class);
+		annotations.add(Embedded.class);
 
 		ASSOCIATION_ANNOTATIONS = Collections.unmodifiableSet(annotations);
 
@@ -69,6 +78,8 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 	}
 
 	private final Metamodel metamodel;
+	private final Boolean usePropertyAccess;
+	private final TypeInformation<?> associationTargetType;
 
 	/**
 	 * Creates a new {@link JpaPersistentPropertyImpl}
@@ -83,7 +94,31 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 			PersistentEntity<?, JpaPersistentProperty> owner, SimpleTypeHolder simpleTypeHolder) {
 
 		super(field, propertyDescriptor, owner, simpleTypeHolder);
+
+		Assert.notNull(metamodel, "Metamodel must not be null!");
+
 		this.metamodel = metamodel;
+		this.usePropertyAccess = detectPropertyAccess();
+		this.associationTargetType = isAssociation() ? detectAssociationTargetType() : null;
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.mapping.model.AbstractPersistentProperty#getActualType()
+	 */
+	@Override
+	public Class<?> getActualType() {
+		return associationTargetType == null ? super.getActualType() : associationTargetType.getType();
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.mapping.model.AbstractPersistentProperty#getPersistentEntityType()
+	 */
+	@Override
+	public Iterable<? extends TypeInformation<?>> getPersistentEntityType() {
+		return associationTargetType == null ? super.getPersistentEntityType() : Collections
+				.singleton(associationTargetType);
 	}
 
 	/* 
@@ -110,8 +145,8 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 	public boolean isEntity() {
 
 		try {
-			ManagedType<?> type = metamodel.managedType(getType());
-			return !(type instanceof EmbeddableType);
+			metamodel.managedType(getActualType());
+			return true;
 		} catch (IllegalArgumentException o_O) {
 			return false;
 		}
@@ -128,6 +163,10 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 			if (findAnnotation(annotationType) != null) {
 				return true;
 			}
+		}
+
+		if (getType().isAnnotationPresent(Embeddable.class)) {
+			return true;
 		}
 
 		return false;
@@ -149,5 +188,75 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 	@Override
 	protected Association<JpaPersistentProperty> createAssociation() {
 		return new Association<JpaPersistentProperty>(this, null);
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.mapping.model.AnnotationBasedPersistentProperty#usePropertyAccess()
+	 */
+	@Override
+	public boolean usePropertyAccess() {
+		return usePropertyAccess != null ? usePropertyAccess : super.usePropertyAccess();
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.mapping.model.AnnotationBasedPersistentProperty#isVersionProperty()
+	 */
+	@Override
+	public boolean isVersionProperty() {
+		return isAnnotationPresent(Version.class) || super.isVersionProperty();
+	}
+
+	/**
+	 * Looks up both Spring Data's and JPA's access type definition annotations on the property or type level to determine
+	 * the access type to be used. Will consider property-level annotations over type-level ones, favoring the Spring Data
+	 * ones over the JPA ones if found on the same level. Returns {@literal null} if no explicit annotation can be found
+	 * falling back to the defaults implemented in the super class.
+	 * 
+	 * @return
+	 */
+	private Boolean detectPropertyAccess() {
+
+		org.springframework.data.annotation.AccessType accessType = findAnnotation(org.springframework.data.annotation.AccessType.class);
+
+		if (accessType != null) {
+			return Type.PROPERTY.equals(accessType.value());
+		}
+
+		Access access = findAnnotation(Access.class);
+
+		if (access != null) {
+			return AccessType.PROPERTY.equals(access.value());
+		}
+
+		accessType = findPropertyOrOwnerAnnotation(org.springframework.data.annotation.AccessType.class);
+
+		if (accessType != null) {
+			return Type.PROPERTY.equals(accessType.value());
+		}
+
+		access = findPropertyOrOwnerAnnotation(Access.class);
+		return access == null ? null : AccessType.PROPERTY.equals(access.value());
+	}
+
+	/**
+	 * Inspects the association annotations on the property and returns the target entity type if specified.
+	 * 
+	 * @return
+	 */
+	private TypeInformation<?> detectAssociationTargetType() {
+
+		for (Class<? extends Annotation> associationAnnotation : ASSOCIATION_ANNOTATIONS) {
+
+			Annotation annotation = findAnnotation(associationAnnotation);
+			Object targetEntity = AnnotationUtils.getValue(annotation, "targetEntity");
+
+			if (targetEntity != null && !void.class.equals(targetEntity)) {
+				return ClassTypeInformation.from((Class<?>) targetEntity);
+			}
+		}
+
+		return null;
 	}
 }

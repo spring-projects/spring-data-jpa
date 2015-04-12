@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2012-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
-import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
+import org.springframework.core.env.StandardEnvironment;
+import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.core.type.StandardAnnotationMetadata;
 import org.springframework.data.jpa.repository.sample.UserRepository;
@@ -49,7 +50,9 @@ public class JpaRepositoriesRegistrarUnitTests {
 	@Test
 	public void configuresRepositoriesCorrectly() {
 
-		ImportBeanDefinitionRegistrar registrar = new JpaRepositoriesRegistrar();
+		JpaRepositoriesRegistrar registrar = new JpaRepositoriesRegistrar();
+		registrar.setResourceLoader(new DefaultResourceLoader());
+		registrar.setEnvironment(new StandardEnvironment());
 		registrar.registerBeanDefinitions(metadata, registry);
 
 		Iterable<String> names = Arrays.asList(registry.getBeanDefinitionNames());

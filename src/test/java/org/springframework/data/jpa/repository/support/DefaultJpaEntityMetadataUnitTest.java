@@ -21,6 +21,7 @@ import static org.junit.Assert.*;
 import javax.persistence.Entity;
 
 import org.junit.Test;
+import org.springframework.data.jpa.repository.query.DefaultJpaEntityMetadata;
 
 /**
  * Unit tests for {@link DefaultJpaEntityMetadata}.

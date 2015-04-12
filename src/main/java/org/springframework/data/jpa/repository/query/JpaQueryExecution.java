@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2013 the original author or authors.
+ * Copyright 2008-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,15 +21,22 @@ import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.Query;
+import javax.persistence.StoredProcedureQuery;
 import javax.persistence.TypedQuery;
 
 import org.springframework.core.convert.ConversionService;
-import org.springframework.core.convert.support.DefaultConversionService;
+import org.springframework.core.convert.support.ConfigurableConversionService;
+import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
+import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
+import org.springframework.data.util.CloseableIterator;
+import org.springframework.data.util.StreamUtils;
 import org.springframework.util.Assert;
 
 /**
@@ -38,10 +45,19 @@ import org.springframework.util.Assert;
  * in various flavours.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 public abstract class JpaQueryExecution {
 
-	private static final ConversionService conversionService = new DefaultConversionService();
+	private static final ConversionService CONVERSION_SERVICE;
+
+	static {
+
+		ConfigurableConversionService conversionService = new GenericConversionService();
+		conversionService.addConverter(JpaResultConverters.BlobToByteArrayConverter.INSTANCE);
+
+		CONVERSION_SERVICE = conversionService;
+	}
 
 	/**
 	 * Executes the given {@link AbstractStringBasedJpaQuery} with the given {@link ParameterBinder}.
@@ -64,7 +80,7 @@ public abstract class JpaQueryExecution {
 		}
 
 		if (result == null) {
-			return result;
+			return null;
 		}
 
 		JpaQueryMethod queryMethod = query.getQueryMethod();
@@ -74,7 +90,8 @@ public abstract class JpaQueryExecution {
 			return result;
 		}
 
-		return conversionService.convert(result, requiredType);
+		return CONVERSION_SERVICE.canConvert(result.getClass(), requiredType) ? CONVERSION_SERVICE.convert(result,
+				requiredType) : result;
 	}
 
 	/**
@@ -87,13 +104,54 @@ public abstract class JpaQueryExecution {
 	protected abstract Object doExecute(AbstractJpaQuery query, Object[] values);
 
 	/**
-	 * Executes the {@link AbstractStringBasedJpaQuery} to return a simple collection of entities.
+	 * Executes the query to return a simple collection of entities.
 	 */
 	static class CollectionExecution extends JpaQueryExecution {
 
 		@Override
 		protected Object doExecute(AbstractJpaQuery query, Object[] values) {
 			return query.createQuery(values).getResultList();
+		}
+	}
+
+	/**
+	 * Executes the query to return a {@link Slice} of entities.
+	 * 
+	 * @author Oliver Gierke
+	 * @since 1.6
+	 */
+	static class SlicedExecution extends JpaQueryExecution {
+
+		private final Parameters<?, ?> parameters;
+
+		/**
+		 * Creates a new {@link SlicedExecution} using the given {@link Parameters}.
+		 * 
+		 * @param parameters must not be {@literal null}.
+		 */
+		public SlicedExecution(Parameters<?, ?> parameters) {
+			this.parameters = parameters;
+		}
+
+		/* 
+		 * (non-Javadoc)
+		 * @see org.springframework.data.jpa.repository.query.JpaQueryExecution#doExecute(org.springframework.data.jpa.repository.query.AbstractJpaQuery, java.lang.Object[])
+		 */
+		@Override
+		@SuppressWarnings("unchecked")
+		protected Object doExecute(AbstractJpaQuery query, Object[] values) {
+
+			ParametersParameterAccessor accessor = new ParametersParameterAccessor(parameters, values);
+			Pageable pageable = accessor.getPageable();
+
+			Query createQuery = query.createQuery(values);
+			int pageSize = pageable.getPageSize();
+			createQuery.setMaxResults(pageSize + 1);
+
+			List<Object> resultList = createQuery.getResultList();
+			boolean hasNext = resultList.size() > pageSize;
+
+			return new SliceImpl<Object>(hasNext ? resultList.subList(0, pageSize) : resultList, pageable, hasNext);
 		}
 	}
 
@@ -120,9 +178,14 @@ public abstract class JpaQueryExecution {
 			List<Long> totals = projection.getResultList();
 			Long total = totals.size() == 1 ? totals.get(0) : totals.size();
 
-			Query query = repositoryQuery.createQuery(values);
 			ParameterAccessor accessor = new ParametersParameterAccessor(parameters, values);
 			Pageable pageable = accessor.getPageable();
+
+			if (total.equals(0L)) {
+				return new PageImpl<Object>(Collections.emptyList(), pageable, total);
+			}
+
+			Query query = repositoryQuery.createQuery(values);
 
 			List<Object> content = pageable == null || total > pageable.getOffset() ? query.getResultList() : Collections
 					.emptyList();
@@ -178,6 +241,87 @@ public abstract class JpaQueryExecution {
 			}
 
 			return result;
+		}
+	}
+
+	/**
+	 * {@link Execution} removing entities matching the query.
+	 * 
+	 * @author Thomas Darimont
+	 * @author Oliver Gierke
+	 * @since 1.6
+	 */
+	static class DeleteExecution extends JpaQueryExecution {
+
+		private final EntityManager em;
+
+		public DeleteExecution(EntityManager em) {
+			this.em = em;
+		}
+
+		/* 
+		 * (non-Javadoc)
+		 * @see org.springframework.data.jpa.repository.query.JpaQueryExecution#doExecute(org.springframework.data.jpa.repository.query.AbstractJpaQuery, java.lang.Object[])
+		 */
+		@Override
+		protected Object doExecute(AbstractJpaQuery jpaQuery, Object[] values) {
+
+			Query query = jpaQuery.createQuery(values);
+			List<?> resultList = query.getResultList();
+
+			for (Object o : resultList) {
+				em.remove(o);
+			}
+
+			return jpaQuery.getQueryMethod().isCollectionQuery() ? resultList : resultList.size();
+		}
+	}
+
+	/**
+	 * {@link Execution} executing a stored procedure.
+	 * 
+	 * @author Thomas Darimont
+	 * @since 1.6
+	 */
+	static class ProcedureExecution extends JpaQueryExecution {
+
+		/* 
+		 * (non-Javadoc)
+		 * @see org.springframework.data.jpa.repository.query.JpaQueryExecution#doExecute(org.springframework.data.jpa.repository.query.AbstractJpaQuery, java.lang.Object[])
+		 */
+		@Override
+		protected Object doExecute(AbstractJpaQuery jpaQuery, Object[] values) {
+
+			Assert.isInstanceOf(StoredProcedureJpaQuery.class, jpaQuery);
+
+			StoredProcedureJpaQuery storedProcedureJpaQuery = (StoredProcedureJpaQuery) jpaQuery;
+			StoredProcedureQuery storedProcedure = storedProcedureJpaQuery.createQuery(values);
+			storedProcedure.execute();
+
+			return storedProcedureJpaQuery.extractOutputValue(storedProcedure);
+		}
+	}
+
+	/**
+	 * {@link Execution} executing a Java 8 Stream.
+	 * 
+	 * @author Thomas Darimont
+	 * @since 1.8
+	 */
+	static class StreamExecution extends JpaQueryExecution {
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.jpa.repository.query.JpaQueryExecution#doExecute(org.springframework.data.jpa.repository.query.AbstractJpaQuery, java.lang.Object[])
+		 */
+		@Override
+		protected Object doExecute(final AbstractJpaQuery query, Object[] values) {
+
+			Query jpaQuery = query.createQuery(values);
+			PersistenceProvider persistenceProvider = PersistenceProvider.fromEntityManager(query.getEntityManager());
+			CloseableIterator<Object> iter = persistenceProvider.executeQueryWithResultStream(jpaQuery);
+
+			return StreamUtils.createStreamFromIterator(iter);
 		}
 	}
 }

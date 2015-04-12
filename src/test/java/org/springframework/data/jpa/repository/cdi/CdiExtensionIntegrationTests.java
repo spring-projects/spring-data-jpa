@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,21 +27,29 @@ import org.apache.webbeans.cditest.CdiTestContainer;
 import org.apache.webbeans.cditest.CdiTestContainerLoader;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Integration tests for Spring Data JPA CDI extension.
  * 
  * @author Dirk Mahler
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 public class CdiExtensionIntegrationTests {
+
+	private static Logger LOGGER = LoggerFactory.getLogger(CdiExtensionIntegrationTests.class);
 
 	static CdiTestContainer container;
 
 	@BeforeClass
 	public static void setUp() throws Exception {
+
 		container = CdiTestContainerLoader.getCdiContainer();
 		container.bootContainer();
+
+		LOGGER.debug("CDI container bootstrapped!");
 	}
 
 	/**
@@ -65,5 +73,25 @@ public class CdiExtensionIntegrationTests {
 		Person person = new Person();
 		repositoryConsumer.save(person);
 		repositoryConsumer.findAll();
+	}
+
+	/**
+	 * @see DATAJPA-584
+	 */
+	@Test
+	public void returnOneFromCustomImpl() {
+
+		RepositoryConsumer repositoryConsumer = container.getInstance(RepositoryConsumer.class);
+		assertThat(repositoryConsumer.returnOne(), is(1));
+	}
+
+	/**
+	 * @see DATAJPA-584
+	 */
+	@Test
+	public void useQualifiedCustomizedUserRepo() {
+
+		RepositoryConsumer repositoryConsumer = container.getInstance(RepositoryConsumer.class);
+		repositoryConsumer.doSomethonOnUserDB();
 	}
 }

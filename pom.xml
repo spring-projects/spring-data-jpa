@@ -1,38 +1,38 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
-	
+
 	<groupId>org.springframework.data</groupId>
 	<artifactId>spring-data-jpa</artifactId>
-	<version>1.5.0.BUILD-SNAPSHOT</version>
+	<version>1.9.0.BUILD-SNAPSHOT</version>
 
 	<name>Spring Data JPA</name>
 	<description>Spring Data module for JPA repositories.</description>
-	<url>http://www.springframework.org/spring-data/jpa</url>
+	<url>http://projects.spring.io/spring-data-jpa</url>
 
 	<parent>
 		<groupId>org.springframework.data.build</groupId>
 		<artifactId>spring-data-parent</artifactId>
-		<version>1.3.0.M1</version>
+		<version>1.7.0.BUILD-SNAPSHOT</version>
 		<relativePath>../spring-data-build/parent/pom.xml</relativePath>
 	</parent>
-	
+
 	<properties>
 
 		<dist.key>DATAJPA</dist.key>
-		
-		<eclipselink>2.4.0</eclipselink>
+
+		<eclipselink>2.6.0</eclipselink>
 		<hibernate>3.6.10.Final</hibernate>
 		<hsqldb1>1.8.0.10</hsqldb1>
 		<jpa>2.0.0</jpa>
-		<openjpa>2.2.1</openjpa>
-		<springdata.commons>1.7.0.BUILD-SNAPSHOT</springdata.commons>
+		<openjpa>2.3.0</openjpa>
+		<springdata.commons>1.11.0.BUILD-SNAPSHOT</springdata.commons>
 
 		<sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
-		
+
 	</properties>
-	
+
 	<profiles>
 		<profile>
 			<id>hibernate-41</id>
@@ -43,66 +43,59 @@
 		<profile>
 			<id>hibernate-42</id>
 			<properties>
-				<hibernate>4.2.7.SP1</hibernate>
+				<hibernate>4.2.11.Final</hibernate>
 			</properties>
 		</profile>
 		<profile>
 			<id>hibernate-43</id>
 			<properties>
-				<hibernate>4.3.0.CR2</hibernate>
+				<hibernate>4.3.4.Final</hibernate>
 			</properties>
 		</profile>
 	</profiles>
 
 	<dependencies>
-	
+
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>spring-data-commons</artifactId>
 			<version>${springdata.commons}</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-orm</artifactId>
-			<version>${spring}</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-context</artifactId>
-			<version>${spring}</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-aop</artifactId>
-			<version>${spring}</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-tx</artifactId>
-			<version>${spring}</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-beans</artifactId>
-			<version>${spring}</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-instrument</artifactId>
-			<version>${spring}</version>
 			<scope>provided</scope>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-core</artifactId>
-			<version>${spring}</version>
 			<exclusions>
 				<exclusion>
 					<groupId>commons-logging</groupId>
@@ -110,7 +103,7 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.aspectj</groupId>
 			<artifactId>aspectjrt</artifactId>
@@ -122,44 +115,51 @@
 			<version>${aspectj}</version>
 			<scope>test</scope>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-aspects</artifactId>
-			<version>${spring}</version>
 			<scope>compile</scope>
 			<optional>true</optional>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.hsqldb</groupId>
 			<artifactId>hsqldb</artifactId>
 			<version>2.2.8</version>
 			<scope>test</scope>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>joda-time</groupId>
 			<artifactId>joda-time</artifactId>
 			<version>${jodatime}</version>
 			<optional>true</optional>
 		</dependency>
-		
-		<!-- Persistence providers -->
+
 		<dependency>
-			<groupId>org.hibernate</groupId>
-			<artifactId>hibernate-entitymanager</artifactId>
-			<version>${hibernate}</version>
+			<groupId>org.threeten</groupId>
+			<artifactId>threetenbp</artifactId>
+			<version>${threetenbp}</version>
 			<optional>true</optional>
 		</dependency>
-		
+
+		<!-- Persistence providers -->
+
 		<dependency>
 			<groupId>org.eclipse.persistence</groupId>
 			<artifactId>org.eclipse.persistence.jpa</artifactId>
 			<version>${eclipselink}</version>
 			<optional>true</optional>
 		</dependency>
-		
+
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-entitymanager</artifactId>
+			<version>${hibernate}</version>
+			<optional>true</optional>
+		</dependency>
+
 		<dependency>
 			<groupId>org.apache.openjpa</groupId>
 			<artifactId>openjpa-persistence-jdbc</artifactId>
@@ -178,7 +178,7 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-		
+
 		<!-- QueryDsl -->
 		<dependency>
 			<groupId>com.mysema.querydsl</groupId>
@@ -186,14 +186,14 @@
 			<version>${querydsl}</version>
 			<scope>provided</scope>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>com.mysema.querydsl</groupId>
 			<artifactId>querydsl-jpa</artifactId>
 			<version>${querydsl}</version>
 			<optional>true</optional>
 		</dependency>
-		
+
 		<!-- CDI -->
 		<dependency>
 			<groupId>javax.enterprise</groupId>
@@ -202,30 +202,37 @@
 			<scope>provided</scope>
 			<optional>true</optional>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>javax.el</groupId>
 			<artifactId>el-api</artifactId>
 			<version>${cdi}</version>
 			<scope>test</scope>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.apache.openwebbeans.test</groupId>
 			<artifactId>cditest-owb</artifactId>
 			<version>${webbeans}</version>
 			<scope>test</scope>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>javax.servlet</groupId>
-			<artifactId>servlet-api</artifactId>
-			<version>2.5</version>
+			<artifactId>javax.servlet-api</artifactId>
+			<version>3.0.1</version>
 			<scope>test</scope>
 		</dependency>
-		
+
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>17.0</version>
+			<scope>test</scope>
+		</dependency>
+
 	</dependencies>
-	
+
 	<build>
 		<plugins>
 			<plugin>
@@ -252,11 +259,6 @@
 						<scope>runtime</scope>
 					</dependency>
 				</dependencies>
-				<configuration>
-					<excludes>
-						<exclude>**/infrastructure/*</exclude>
-					</excludes>
-				</configuration>
 				<executions>
 					<execution>
 						<id>default-test</id>
@@ -293,7 +295,6 @@
 								<exclude>**/*UnitTests.java</exclude>
 								<exclude>**/OpenJpa*</exclude>
 								<exclude>**/EclipseLink*</exclude>
-								<exclude>**/infrastructure/*</exclude>
 							</excludes>
 							<argLine>-javaagent:${settings.localRepository}/org/springframework/spring-instrument/${spring}/spring-instrument-${spring}.jar</argLine>
 						</configuration>
@@ -332,11 +333,11 @@
 					</execution>
 				</executions>
 			</plugin>
-			
+
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>aspectj-maven-plugin</artifactId>
-				<version>1.3</version>
+				<version>1.6</version>
 				<dependencies>
 					<dependency>
 						<groupId>org.aspectj</groupId>
@@ -367,16 +368,19 @@
 					<includes>
 						<include>**/domain/support/AuditingEntityListener.java</include>
 					</includes>
+					<complianceLevel>${source.level}</complianceLevel>
 					<source>${source.level}</source>
 					<target>${source.level}</target>
+					<xmlConfigured>aop.xml</xmlConfigured>
 				</configuration>
 			</plugin>
-			
+
 			<plugin>
 				<groupId>com.mysema.maven</groupId>
 				<artifactId>apt-maven-plugin</artifactId>
 				<version>${apt}</version>
 				<configuration>
+					<logOnlyOnError>true</logOnlyOnError>
 					<processors>
 						<processor>com.mysema.query.apt.jpa.JPAAnnotationProcessor</processor>
 						<processor>org.hibernate.jpamodelgen.JPAMetaModelEntityProcessor</processor>
@@ -413,7 +417,12 @@
 					<dependency>
 						<groupId>org.hibernate</groupId>
 						<artifactId>hibernate-jpamodelgen</artifactId>
-						<version>1.2.0.Final</version>
+						<version>1.3.0.Final</version>
+					</dependency>
+					<dependency>
+						<groupId>com.google.guava</groupId>
+						<artifactId>guava</artifactId>
+						<version>17.0</version>
 					</dependency>
 				</dependencies>
 			</plugin>
@@ -425,14 +434,25 @@
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>wagon-maven-plugin</artifactId>
 			</plugin>
+			<plugin>
+				<groupId>org.asciidoctor</groupId>
+				<artifactId>asciidoctor-maven-plugin</artifactId>
+			</plugin>
 		</plugins>
 	</build>
-	
+
 	<repositories>
 		<repository>
-			<id>spring-libs-milestone</id>
-			<url>http://repo.springsource.org/libs-milestone-local</url>
+			<id>spring-libs-snapshot</id>
+			<url>https://repo.spring.io/libs-snapshot</url>
 		</repository>
 	</repositories>
+
+	<pluginRepositories>
+		<pluginRepository>
+			<id>spring-plugins-release</id>
+			<url>https://repo.spring.io/plugins-release</url>
+		</pluginRepository>
+	</pluginRepositories>
 
 </project>

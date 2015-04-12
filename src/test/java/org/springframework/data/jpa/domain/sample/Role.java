@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 the original author or authors.
+ * Copyright 2008-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,24 +15,28 @@
  */
 package org.springframework.data.jpa.domain.sample;
 
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+
 /**
  * Sample domain class representing roles. Mapped with XML.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
+@Entity
 public class Role {
 
 	private static final String PREFIX = "ROLE_";
 
-	private Integer id;
+	@Id @GeneratedValue private Integer id;
 	private String name;
 
 	/**
 	 * Creates a new instance of {@code Role}.
 	 */
-	public Role() {
-
-	}
+	public Role() {}
 
 	/**
 	 * Creates a new preconfigured {@code Role}.
@@ -40,7 +44,6 @@ public class Role {
 	 * @param name
 	 */
 	public Role(final String name) {
-
 		this.name = name;
 	}
 
@@ -52,6 +55,13 @@ public class Role {
 	public Integer getId() {
 
 		return id;
+	}
+
+	/**
+	 * @return the name
+	 */
+	public String getName() {
+		return name;
 	}
 
 	/*

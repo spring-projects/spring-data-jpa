@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,10 @@ package org.springframework.data.jpa.repository.query;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 
+import org.springframework.data.repository.query.EvaluationContextProvider;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.RepositoryQuery;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 
 /**
  * {@link RepositoryQuery} implementation that inspects a {@link org.springframework.data.repository.query.QueryMethod}
@@ -36,16 +38,21 @@ final class NativeJpaQuery extends AbstractStringBasedJpaQuery {
 	 * @param method must not be {@literal null}.
 	 * @param em must not be {@literal null}.
 	 * @param queryString must not be {@literal null} or empty.
+	 * @param evaluationContextProvider
 	 */
-	public NativeJpaQuery(JpaQueryMethod method, EntityManager em, String queryString) {
+	public NativeJpaQuery(JpaQueryMethod method, EntityManager em, String queryString,
+			EvaluationContextProvider evaluationContextProvider, SpelExpressionParser parser) {
 
-		super(method, em, queryString);
+		super(method, em, queryString, evaluationContextProvider, parser);
 
 		Parameters<?, ?> parameters = method.getParameters();
 		boolean hasPagingOrSortingParameter = parameters.hasPageableParameter() || parameters.hasSortParameter();
+		boolean containsPageableOrSortInQueryExpression = queryString.contains("#pageable")
+				|| queryString.contains("#sort");
 
-		if (hasPagingOrSortingParameter) {
-			throw new IllegalStateException("Cannot use native queries with dynamic sorting and/or pagination!");
+		if (hasPagingOrSortingParameter && !containsPageableOrSortInQueryExpression) {
+			throw new InvalidJpaQueryMethodException(
+					"Cannot use native queries with dynamic sorting and/or pagination in method " + method);
 		}
 	}
 

@@ -17,18 +17,18 @@ package org.springframework.data.jpa.repository.sample;
 
 import java.util.List;
 
-import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.sample.AbstractMappedType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.query.Param;
 
 /**
  * @author Thomas Darimont
  */
-@Lazy
+@NoRepositoryBean
 public interface MappedTypeRepository<T extends AbstractMappedType> extends JpaRepository<T, Long> {
 
 	@Query("from #{#entityName} t where t.attribute1=?1")

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,15 +17,17 @@ package org.springframework.data.jpa.repository.cdi;
 
 import javax.inject.Inject;
 
+/**
+ * @author Oliver Gierke
+ * @author Mark Paluch
+ */
 @Transactional
 class RepositoryConsumer {
 
-	@Inject
-	private PersonRepository unqualifiedRepo;
-
-	@Inject
-	@PersonDB
-	private PersonRepository qualifiedRepo;
+	@Inject PersonRepository unqualifiedRepo;
+	@Inject @PersonDB PersonRepository qualifiedRepo;
+	@Inject SamplePersonRepository samplePersonRepository;
+	@Inject @UserDB QualifiedCustomizedUserRepository qualifiedCustomizedUserRepository;
 
 	public void findAll() {
 		unqualifiedRepo.findAll();
@@ -35,5 +37,13 @@ class RepositoryConsumer {
 	public void save(Person person) {
 		unqualifiedRepo.save(person);
 		qualifiedRepo.save(person);
+	}
+
+	public int returnOne() {
+		return samplePersonRepository.returnOne();
+	}
+
+	public void doSomethonOnUserDB() {
+		qualifiedCustomizedUserRepository.doSomething();
 	}
 }

@@ -33,6 +33,7 @@ import javax.persistence.EntityManager;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.repository.cdi.CdiRepositoryBean;
 import org.springframework.data.repository.cdi.CdiRepositoryExtensionSupport;
 
 /**
@@ -40,6 +41,7 @@ import org.springframework.data.repository.cdi.CdiRepositoryExtensionSupport;
  * 
  * @author Dirk Mahler
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 public class JpaRepositoryExtension extends CdiRepositoryExtensionSupport {
 
@@ -56,7 +58,7 @@ public class JpaRepositoryExtension extends CdiRepositoryExtensionSupport {
 	 * later association with corresponding repository beans.
 	 * 
 	 * @param <X> The type.
-	 * @param processAnnotatedType The annotated type as defined by CDI.
+	 * @param processBean The annotated type as defined by CDI.
 	 */
 	@SuppressWarnings("unchecked")
 	<X> void processBean(@Observes ProcessBean<X> processBean) {
@@ -87,10 +89,13 @@ public class JpaRepositoryExtension extends CdiRepositoryExtensionSupport {
 
 			Class<?> repositoryType = entry.getKey();
 			Set<Annotation> qualifiers = entry.getValue();
+
 			// Create the bean representing the repository.
-			Bean<?> repositoryBean = createRepositoryBean(repositoryType, qualifiers, beanManager);
+			CdiRepositoryBean<?> repositoryBean = createRepositoryBean(repositoryType, qualifiers, beanManager);
 			LOGGER.info("Registering bean for '{}' with qualifiers {}.", repositoryType.getName(), qualifiers);
-			// Register the bean to the container.
+
+			// Register the bean to the extension and the container.
+			registerBean(repositoryBean);
 			afterBeanDiscovery.addBean(repositoryBean);
 		}
 	}
@@ -103,7 +108,8 @@ public class JpaRepositoryExtension extends CdiRepositoryExtensionSupport {
 	 * @param beanManager The BeanManager instance.
 	 * @return The bean.
 	 */
-	private <T> Bean<T> createRepositoryBean(Class<T> repositoryType, Set<Annotation> qualifiers, BeanManager beanManager) {
+	private <T> CdiRepositoryBean<T> createRepositoryBean(Class<T> repositoryType, Set<Annotation> qualifiers,
+			BeanManager beanManager) {
 
 		// Determine the entity manager bean which matches the qualifiers of the repository.
 		Bean<EntityManager> entityManagerBean = entityManagers.get(qualifiers);
@@ -114,6 +120,7 @@ public class JpaRepositoryExtension extends CdiRepositoryExtensionSupport {
 		}
 
 		// Construct and return the repository bean.
-		return new JpaRepositoryBean<T>(beanManager, entityManagerBean, qualifiers, repositoryType);
+		return new JpaRepositoryBean<T>(beanManager, entityManagerBean, qualifiers, repositoryType,
+				getCustomImplementationDetector());
 	}
 }

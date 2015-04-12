@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2012 the original author or authors.
+ * Copyright 2008-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,12 +21,14 @@ import java.io.Serializable;
 
 import javax.persistence.EntityManager;
 
+import org.springframework.data.jpa.provider.PersistenceProvider;
+import org.springframework.data.jpa.provider.QueryExtractor;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.query.JpaQueryLookupStrategy;
-import org.springframework.data.jpa.repository.query.QueryExtractor;
 import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.core.support.RepositoryFactorySupport;
+import org.springframework.data.repository.query.EvaluationContextProvider;
 import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.data.repository.query.QueryLookupStrategy.Key;
 import org.springframework.util.Assert;
@@ -40,7 +42,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 
 	private final EntityManager entityManager;
 	private final QueryExtractor extractor;
-	private final LockModeRepositoryPostProcessor lockModePostProcessor;
+	private final CrudMethodMetadataPostProcessor lockModePostProcessor;
 
 	/**
 	 * Creates a new {@link JpaRepositoryFactory}.
@@ -53,7 +55,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 
 		this.entityManager = entityManager;
 		this.extractor = PersistenceProvider.fromEntityManager(entityManager);
-		this.lockModePostProcessor = LockModeRepositoryPostProcessor.INSTANCE;
+		this.lockModePostProcessor = CrudMethodMetadataPostProcessor.INSTANCE;
 
 		addRepositoryProxyPostProcessor(lockModePostProcessor);
 	}
@@ -64,7 +66,11 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	 */
 	@Override
 	protected Object getTargetRepository(RepositoryMetadata metadata) {
-		return getTargetRepository(metadata, entityManager);
+
+		SimpleJpaRepository<?, ?> repository = getTargetRepository(metadata, entityManager);
+		repository.setRepositoryMethodMetadata(lockModePostProcessor.getLockMetadataProvider());
+
+		return repository;
 	}
 
 	/**
@@ -77,7 +83,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	 * @return
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	protected <T, ID extends Serializable> JpaRepository<?, ?> getTargetRepository(RepositoryMetadata metadata,
+	protected <T, ID extends Serializable> SimpleJpaRepository<?, ?> getTargetRepository(RepositoryMetadata metadata,
 			EntityManager entityManager) {
 
 		Class<?> repositoryInterface = metadata.getRepositoryInterface();
@@ -85,7 +91,6 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 
 		SimpleJpaRepository<?, ?> repo = isQueryDslExecutor(repositoryInterface) ? new QueryDslJpaRepository(
 				entityInformation, entityManager) : new SimpleJpaRepository(entityInformation, entityManager);
-		repo.setLockMetadataProvider(lockModePostProcessor.getLockMetadataProvider());
 
 		return repo;
 	}
@@ -118,18 +123,13 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 		return QUERY_DSL_PRESENT && QueryDslPredicateExecutor.class.isAssignableFrom(repositoryInterface);
 	}
 
-	/*
+	/* 
 	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.springframework.data.repository.support.RepositoryFactorySupport#
-	 * getQueryLookupStrategy
-	 * (org.springframework.data.repository.query.QueryLookupStrategy.Key)
+	 * @see org.springframework.data.repository.core.support.RepositoryFactorySupport#getQueryLookupStrategy(org.springframework.data.repository.query.QueryLookupStrategy.Key, org.springframework.data.repository.query.EvaluationContextProvider)
 	 */
 	@Override
-	protected QueryLookupStrategy getQueryLookupStrategy(Key key) {
-
-		return JpaQueryLookupStrategy.create(entityManager, key, extractor);
+	protected QueryLookupStrategy getQueryLookupStrategy(Key key, EvaluationContextProvider evaluationContextProvider) {
+		return JpaQueryLookupStrategy.create(entityManager, key, extractor, evaluationContextProvider);
 	}
 
 	/*
@@ -143,6 +143,6 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	@SuppressWarnings("unchecked")
 	public <T, ID extends Serializable> JpaEntityInformation<T, ID> getEntityInformation(Class<T> domainClass) {
 
-		return (JpaEntityInformation<T, ID>) JpaEntityInformationSupport.getMetadata(domainClass, entityManager);
+		return (JpaEntityInformation<T, ID>) JpaEntityInformationSupport.getEntityInformation(domainClass, entityManager);
 	}
 }

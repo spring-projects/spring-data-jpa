@@ -10,7 +10,7 @@
 	<bean id="entityManagerFactory"
 		class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
 		<property name="dataSource" ref="dataSource" />
-		<property name="persistenceUnitName" value="default" />
+		<property name="persistenceUnitName" value="spring-data-jpa" />
 		<property name="jpaVendorAdapter" ref="vendorAdaptor" />
 		<property name="jpaProperties" ref="jpaProperties" />
 	</bean>
@@ -22,8 +22,13 @@
 	
 	<bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
 		<property name="entityManagerFactory" ref="entityManagerFactory" />
-	</bean>
+	</bean>	
+
+	<bean name="sampleEvaluationContextExtension" class="org.springframework.data.jpa.repository.sample.SampleEvaluationContextExtension"/>
 	
-	<jdbc:embedded-database id="dataSource" type="HSQL" />
+	<jdbc:embedded-database id="dataSource" type="HSQL">
+		<jdbc:script execution="INIT" separator="/;" location="classpath:scripts/hsqldb-init.sql"/>
+		<jdbc:script execution="INIT" separator="/;" location="classpath:scripts/schema-stored-procedures.sql"/>
+	</jdbc:embedded-database>
 
 </beans>

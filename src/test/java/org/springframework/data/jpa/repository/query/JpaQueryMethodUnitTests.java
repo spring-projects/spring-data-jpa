@@ -36,6 +36,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.sample.User;
+import org.springframework.data.jpa.provider.QueryExtractor;
+import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.EntityGraph.EntityGraphType;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -50,6 +54,7 @@ import org.springframework.data.repository.query.QueryMethod;
  * Unit test for {@link QueryMethod}.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 @RunWith(MockitoJUnitRunner.class)
 public class JpaQueryMethodUnitTests {
@@ -57,14 +62,12 @@ public class JpaQueryMethodUnitTests {
 	static final Class<?> DOMAIN_CLASS = User.class;
 	static final String METHOD_NAME = "findByFirstname";
 
-	@Mock
-	QueryExtractor extractor;
-	@Mock
-	RepositoryMetadata metadata;
+	@Mock QueryExtractor extractor;
+	@Mock RepositoryMetadata metadata;
 
 	Method repositoryMethod, invalidReturnType, pageableAndSort, pageableTwice, sortableTwice, modifyingMethod,
 			nativeQuery, namedQuery, findWithLockMethod, invalidNamedParameter, findsProjections, findsProjection,
-			withMetaAnnotation;
+			withMetaAnnotation, queryMethodWithCustomEntityFetchGraph;
 
 	/**
 	 * @throws Exception
@@ -91,6 +94,9 @@ public class JpaQueryMethodUnitTests {
 		findsProjection = ValidRepository.class.getMethod("findsProjection");
 
 		withMetaAnnotation = ValidRepository.class.getMethod("withMetaAnnotation");
+
+		queryMethodWithCustomEntityFetchGraph = ValidRepository.class.getMethod("queryMethodWithCustomEntityFetchGraph",
+				Integer.class);
 	}
 
 	@Test
@@ -314,6 +320,45 @@ public class JpaQueryMethodUnitTests {
 	}
 
 	/**
+	 * @see DATAJPA-466
+	 */
+	@Test
+	public void shouldStoreJpa21FetchGraphInformationAsHint() {
+
+		JpaQueryMethod method = new JpaQueryMethod(queryMethodWithCustomEntityFetchGraph, metadata, extractor);
+
+		assertThat(method.getEntityGraph(), is(notNullValue()));
+		assertThat(method.getEntityGraph().getName(), is("User.propertyLoadPath"));
+		assertThat(method.getEntityGraph().getType(), is(EntityGraphType.LOAD));
+	}
+
+	/**
+	 * @see DATAJPA-612
+	 */
+	@Test
+	public void shouldFindEntityGraphAnnotationOnOverriddenSimpleJpaRepositoryMethod() throws Exception {
+
+		JpaQueryMethod method = new JpaQueryMethod(JpaRepositoryOverride.class.getMethod("findAll"), metadata, extractor);
+
+		assertThat(method.getEntityGraph(), is(notNullValue()));
+		assertThat(method.getEntityGraph().getName(), is("User.detail"));
+		assertThat(method.getEntityGraph().getType(), is(EntityGraphType.FETCH));
+	}
+
+	/**
+	 * @see DATAJPA-689
+	 */
+	@Test
+	public void shouldFindEntityGraphAnnotationOnOverriddenSimpleJpaRepositoryMethodFindOne() throws Exception {
+
+		JpaQueryMethod method = new JpaQueryMethod(JpaRepositoryOverride.class.getMethod("findOne"), metadata, extractor);
+
+		assertThat(method.getEntityGraph(), is(notNullValue()));
+		assertThat(method.getEntityGraph().getName(), is("User.detail"));
+		assertThat(method.getEntityGraph().getType(), is(EntityGraphType.FETCH));
+	}
+
+	/**
 	 * Interface to define invalid repository methods for testing.
 	 * 
 	 * @author Oliver Gierke
@@ -367,6 +412,28 @@ public class JpaQueryMethodUnitTests {
 
 		@CustomAnnotation
 		void withMetaAnnotation();
+
+		/**
+		 * @see DATAJPA-466
+		 */
+		@EntityGraph(value = "User.propertyLoadPath", type = EntityGraphType.LOAD)
+		User queryMethodWithCustomEntityFetchGraph(Integer id);
+	}
+
+	static interface JpaRepositoryOverride extends JpaRepository<User, Long> {
+
+		/**
+		 * DATAJPA-612
+		 */
+		@Override
+		@EntityGraph("User.detail")
+		List<User> findAll();
+
+		/**
+		 * DATAJPA-689
+		 */
+		@EntityGraph("User.detail")
+		User findOne();
 	}
 
 	@Lock(LockModeType.OPTIMISTIC_FORCE_INCREMENT)

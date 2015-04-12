@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 the original author or authors.
+ * Copyright 2008-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
+import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,6 +34,7 @@ import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.jpa.domain.sample.Address;
 import org.springframework.data.jpa.domain.sample.QUser;
+import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.querydsl.QPageRequest;
 import org.springframework.data.querydsl.QSort;
@@ -49,6 +51,7 @@ import com.mysema.query.types.path.PathBuilderFactory;
  * Integration test for {@link QueryDslJpaRepository}.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({ "classpath:infrastructure.xml" })
@@ -60,6 +63,7 @@ public class QueryDslJpaRepositoryTests {
 	QueryDslJpaRepository<User, Integer> repository;
 	QUser user = new QUser("user");
 	User dave, carter, oliver;
+	Role adminRole;
 
 	@Before
 	public void setUp() {
@@ -71,6 +75,7 @@ public class QueryDslJpaRepositoryTests {
 		dave = repository.save(new User("Dave", "Matthews", "dave@matthews.com"));
 		carter = repository.save(new User("Carter", "Beauford", "carter@beauford.com"));
 		oliver = repository.save(new User("Oliver", "matthews", "oliver@matthews.com"));
+		adminRole = em.merge(new Role("admin"));
 	}
 
 	@Test
@@ -272,5 +277,77 @@ public class QueryDslJpaRepositoryTests {
 		assertThat(page.getContent().get(0), is(carter));
 		assertThat(page.getContent().get(1), is(dave));
 		assertThat(page.getContent().get(2), is(oliver));
+	}
+
+	/**
+	 * @see DATAJPA-491
+	 */
+	@Test
+	public void sortByNestedAssociationPropertyWithSpecificationAndSortInPageable() {
+
+		oliver.setManager(dave);
+		dave.getRoles().add(adminRole);
+
+		Page<User> page = repository.findAll(new PageRequest(0, 10, new Sort(Sort.Direction.ASC, "manager.roles.name")));
+
+		assertThat(page.getContent(), hasSize(3));
+		assertThat(page.getContent().get(0), is(dave));
+	}
+
+	/**
+	 * @see DATAJPA-500, DATAJPA-635
+	 */
+	@Test
+	public void sortByNestedEmbeddedAttribite() {
+
+		carter.setAddress(new Address("U", "Z", "Y", "41"));
+		dave.setAddress(new Address("U", "A", "Y", "41"));
+		oliver.setAddress(new Address("G", "D", "X", "42"));
+
+		List<User> users = repository.findAll(QUser.user.address.streetName.asc());
+
+		assertThat(users, hasSize(3));
+		assertThat(users, hasItems(dave, oliver, carter));
+	}
+
+	/**
+	 * @see DATAJPA-566, DATAJPA-635
+	 */
+	@Test
+	public void shouldSupportSortByOperatorWithDateExpressions() {
+
+		carter.setDateOfBirth(new LocalDate(2000, 2, 1).toDate());
+		dave.setDateOfBirth(new LocalDate(2000, 1, 1).toDate());
+		oliver.setDateOfBirth(new LocalDate(2003, 5, 1).toDate());
+
+		List<User> users = repository.findAll(QUser.user.dateOfBirth.yearMonth().asc());
+
+		assertThat(users, hasSize(3));
+		assertThat(users, hasItems(dave, carter, oliver));
+	}
+
+	/**
+	 * @see DATAJPA-665
+	 */
+	@Test
+	public void shouldSupportExistsWithPredicate() throws Exception {
+
+		assertThat(repository.exists(user.firstname.eq("Dave")), is(true));
+		assertThat(repository.exists(user.firstname.eq("Unknown")), is(false));
+		assertThat(repository.exists((Predicate) null), is(true));
+	}
+
+	/**
+	 * @see DATAJPA-679
+	 */
+	@Test
+	public void shouldSupportFindAllWithPredicateAndSort() {
+
+		List<User> users = repository.findAll(user.dateOfBirth.isNull(), new Sort(Direction.ASC, "firstname"));
+
+		assertThat(users, hasSize(3));
+		assertThat(users.get(0).getFirstname(), is(carter.getFirstname()));
+		assertThat(users.get(2).getFirstname(), is(oliver.getFirstname()));
+		assertThat(users, hasItems(carter, dave, oliver));
 	}
 }

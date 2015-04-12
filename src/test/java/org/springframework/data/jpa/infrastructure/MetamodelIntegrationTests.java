@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import static org.junit.Assert.*;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Path;
@@ -40,10 +41,9 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({ "classpath:infrastructure.xml" })
-public class MetamodelIntegrationTests {
+public abstract class MetamodelIntegrationTests {
 
-	@PersistenceContext
-	EntityManager em;
+	@PersistenceContext EntityManager em;
 
 	@Test
 	public void considersOneToOneAttributeAnAssociation() {
@@ -65,5 +65,13 @@ public class MetamodelIntegrationTests {
 		Path<Object> path = root.get("manager");
 
 		assertThat(path.getModel().getBindableType(), is(BindableType.ENTITY_TYPE));
+	}
+
+	@Test
+	public void canAccessParametersByIndexForNativeQueries() {
+
+		Query query = em.createNativeQuery("SELECT u from User u where u.lastname = ?1");
+
+		assertThat(query.getParameter(1), is(notNullValue()));
 	}
 }

@@ -34,8 +34,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.springframework.data.jpa.domain.sample.SampleWithIdClass;
-import org.springframework.data.jpa.domain.sample.SampleWithIdClassPK;
+import org.springframework.data.jpa.domain.sample.PersistableWithIdClass;
+import org.springframework.data.jpa.domain.sample.PersistableWithIdClassPK;
 
 /**
  * Unit tests for {@link JpaMetamodelEntityInformation}.
@@ -49,9 +49,9 @@ public class JpaMetamodelEntityInformationUnitTests {
 	Metamodel metamodel;
 
 	@Mock
-	IdentifiableType<SampleWithIdClass> type;
+	IdentifiableType<PersistableWithIdClass> type;
 	@Mock
-	SingularAttribute<SampleWithIdClass, ?> first, second;
+	SingularAttribute<PersistableWithIdClass, ?> first, second;
 
 	@Mock
 	@SuppressWarnings("rawtypes")
@@ -63,15 +63,15 @@ public class JpaMetamodelEntityInformationUnitTests {
 
 		when(first.getName()).thenReturn("first");
 		when(second.getName()).thenReturn("second");
-		Set<SingularAttribute<? super SampleWithIdClass, ?>> attributes = new HashSet<SingularAttribute<? super SampleWithIdClass, ?>>(
+		Set<SingularAttribute<? super PersistableWithIdClass, ?>> attributes = new HashSet<SingularAttribute<? super PersistableWithIdClass, ?>>(
 				asList(first, second));
 
 		when(type.getIdClassAttributes()).thenReturn(attributes);
 
-		when(metamodel.managedType(SampleWithIdClass.class)).thenReturn(type);
+		when(metamodel.managedType(PersistableWithIdClass.class)).thenReturn(type);
 
 		when(type.getIdType()).thenReturn(idType);
-		when(idType.getJavaType()).thenReturn(SampleWithIdClassPK.class);
+		when(idType.getJavaType()).thenReturn(PersistableWithIdClassPK.class);
 	}
 
 	/**
@@ -80,13 +80,13 @@ public class JpaMetamodelEntityInformationUnitTests {
 	@Test
 	public void doesNotCreateIdIfAllPartialAttributesAreNull() {
 
-		JpaMetamodelEntityInformation<SampleWithIdClass, Serializable> information = new JpaMetamodelEntityInformation<SampleWithIdClass, Serializable>(
-				SampleWithIdClass.class, metamodel);
+		JpaMetamodelEntityInformation<PersistableWithIdClass, Serializable> information = new JpaMetamodelEntityInformation<PersistableWithIdClass, Serializable>(
+				PersistableWithIdClass.class, metamodel);
 
-		SampleWithIdClass entity = new SampleWithIdClass(null, null);
+		PersistableWithIdClass entity = new PersistableWithIdClass(null, null);
 		assertThat(information.getId(entity), is(nullValue()));
 
-		entity = new SampleWithIdClass(2L, null);
+		entity = new PersistableWithIdClass(2L, null);
 		assertThat(information.getId(entity), is(notNullValue()));
 	}
 }

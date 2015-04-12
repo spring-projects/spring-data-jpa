@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 the original author or authors.
+ * Copyright 2008-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,22 +32,22 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * Integration test for XML configuration of {@link QueryLookupStrategy.Key}s.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = "classpath:config/lookup-strategies-context.xml")
 public class QueryLookupStrategyTests {
 
-	@Autowired
-	ApplicationContext context;
+	@Autowired ApplicationContext context;
 
 	/**
-	 * Assert that {@link QueryLookupStrategy#USE_DECLARED_QUERY} is being set on the factory if configured.
+	 * Assert that {@link Key#CREATE_IF_NOT_FOUND} is being set on the factory if configured.
 	 */
 	@Test
-	public void assertUseDeclaredQuery() {
+	public void shouldUseExplicitlyConfiguredQueryLookUpStrategy() {
 
 		JpaRepositoryFactoryBean<?, ?, ?> factory = context.getBean("&roleRepository", JpaRepositoryFactoryBean.class);
 
-		assertEquals(Key.USE_DECLARED_QUERY, getField(factory, "queryLookupStrategyKey"));
+		assertEquals(Key.CREATE_IF_NOT_FOUND, getField(factory, "queryLookupStrategyKey"));
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2013 the original author or authors.
+ * Copyright 2008-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,14 +20,20 @@ import static org.springframework.data.jpa.repository.query.QueryUtils.*;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.persistence.NoResultException;
+import javax.persistence.Parameter;
+import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.ParameterExpression;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
@@ -38,8 +44,11 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.provider.PersistenceProvider;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.query.Jpa21Utils;
 import org.springframework.data.jpa.repository.query.QueryUtils;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -60,11 +69,13 @@ import org.springframework.util.Assert;
 public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepository<T, ID>,
 		JpaSpecificationExecutor<T> {
 
+	private static final String ID_MUST_NOT_BE_NULL = "The given id must not be null!";
+
 	private final JpaEntityInformation<T, ?> entityInformation;
 	private final EntityManager em;
 	private final PersistenceProvider provider;
 
-	private LockMetadataProvider lockMetadataProvider;
+	private CrudMethodMetadata metadata;
 
 	/**
 	 * Creates a new {@link SimpleJpaRepository} to manage objects of the given {@link JpaEntityInformation}.
@@ -89,17 +100,21 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	 * @param em must not be {@literal null}.
 	 */
 	public SimpleJpaRepository(Class<T> domainClass, EntityManager em) {
-		this(JpaEntityInformationSupport.getMetadata(domainClass, em), em);
+		this(JpaEntityInformationSupport.getEntityInformation(domainClass, em), em);
 	}
 
 	/**
-	 * Configures a custom {@link LockMetadataProvider} to be used to detect {@link LockModeType}s to be applied to
-	 * queries.
+	 * Configures a custom {@link CrudMethodMetadata} to be used to detect {@link LockModeType}s and query hints to be
+	 * applied to queries.
 	 * 
-	 * @param lockMetadataProvider
+	 * @param crudMethodMetadata
 	 */
-	public void setLockMetadataProvider(LockMetadataProvider lockMetadataProvider) {
-		this.lockMetadataProvider = lockMetadataProvider;
+	public void setRepositoryMethodMetadata(CrudMethodMetadata crudMethodMetadata) {
+		this.metadata = crudMethodMetadata;
+	}
+
+	protected CrudMethodMetadata getRepositoryMethodMetadata() {
+		return metadata;
 	}
 
 	protected Class<T> getDomainClass() {
@@ -123,7 +138,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	@Transactional
 	public void delete(ID id) {
 
-		Assert.notNull(id, "The given id must not be null!");
+		Assert.notNull(id, ID_MUST_NOT_BE_NULL);
 
 		T entity = findOne(id);
 
@@ -204,12 +219,38 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	 */
 	public T findOne(ID id) {
 
-		Assert.notNull(id, "The given id must not be null!");
+		Assert.notNull(id, ID_MUST_NOT_BE_NULL);
 
-		LockModeType type = lockMetadataProvider == null ? null : lockMetadataProvider.getLockModeType();
 		Class<T> domainType = getDomainClass();
 
-		return type == null ? em.find(domainType, id) : em.find(domainType, id, type);
+		if (metadata == null) {
+			return em.find(domainType, id);
+		}
+
+		LockModeType type = metadata.getLockModeType();
+
+		Map<String, Object> hints = getQueryHints();
+
+		return type == null ? em.find(domainType, id, hints) : em.find(domainType, id, type, hints);
+	}
+
+	/**
+	 * Returns a {@link Map} with the query hints based on the current {@link CrudMethodMetadata} and potential
+	 * {@link EntityGraph} information.
+	 * 
+	 * @return
+	 */
+	protected Map<String, Object> getQueryHints() {
+
+		if (metadata.getEntityGraph() == null) {
+			return metadata.getQueryHints();
+		}
+
+		Map<String, Object> hints = new HashMap<String, Object>();
+		hints.putAll(metadata.getQueryHints());
+		hints.putAll(Jpa21Utils.tryGetFetchGraphHints(em, metadata.getEntityGraph()));
+
+		return hints;
 	}
 
 	/* 
@@ -219,7 +260,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	@Override
 	public T getOne(ID id) {
 
-		Assert.notNull(id, "The given id must not be null!");
+		Assert.notNull(id, ID_MUST_NOT_BE_NULL);
 		return em.getReference(getDomainClass(), id);
 	}
 
@@ -229,29 +270,41 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	 */
 	public boolean exists(ID id) {
 
-		Assert.notNull(id, "The given id must not be null!");
+		Assert.notNull(id, ID_MUST_NOT_BE_NULL);
 
-		if (entityInformation.getIdAttribute() != null) {
-
-			String placeholder = provider.getCountQueryPlaceholder();
-			String entityName = entityInformation.getEntityName();
-			Iterable<String> idAttributeNames = entityInformation.getIdAttributeNames();
-			String existsQuery = QueryUtils.getExistsQueryString(entityName, placeholder, idAttributeNames);
-
-			TypedQuery<Long> query = em.createQuery(existsQuery, Long.class);
-
-			if (entityInformation.hasCompositeId()) {
-				for (String idAttributeName : idAttributeNames) {
-					query.setParameter(idAttributeName, entityInformation.getCompositeIdAttributeValue(id, idAttributeName));
-				}
-			} else {
-				query.setParameter(idAttributeNames.iterator().next(), id);
-			}
-
-			return query.getSingleResult() == 1L;
-		} else {
+		if (entityInformation.getIdAttribute() == null) {
 			return findOne(id) != null;
 		}
+
+		String placeholder = provider.getCountQueryPlaceholder();
+		String entityName = entityInformation.getEntityName();
+		Iterable<String> idAttributeNames = entityInformation.getIdAttributeNames();
+		String existsQuery = QueryUtils.getExistsQueryString(entityName, placeholder, idAttributeNames);
+
+		TypedQuery<Long> query = em.createQuery(existsQuery, Long.class);
+
+		if (!entityInformation.hasCompositeId()) {
+			query.setParameter(idAttributeNames.iterator().next(), id);
+			return query.getSingleResult() == 1L;
+		}
+
+		for (String idAttributeName : idAttributeNames) {
+
+			Object idAttributeValue = entityInformation.getCompositeIdAttributeValue(id, idAttributeName);
+
+			boolean complexIdParameterValueDiscovered = idAttributeValue != null
+					&& !query.getParameter(idAttributeName).getParameterType().isAssignableFrom(idAttributeValue.getClass());
+
+			if (complexIdParameterValueDiscovered) {
+
+				// fall-back to findOne(id) which does the proper mapping for the parameter.
+				return findOne(id) != null;
+			}
+
+			query.setParameter(idAttributeName, idAttributeValue);
+		}
+
+		return query.getSingleResult() == 1L;
 	}
 
 	/*
@@ -272,12 +325,21 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 			return Collections.emptyList();
 		}
 
-		return getQuery(new Specification<T>() {
-			public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
-				Path<?> path = root.get(entityInformation.getIdAttribute());
-				return path.in(cb.parameter(Iterable.class, "ids"));
+		if (entityInformation.hasCompositeId()) {
+
+			List<T> results = new ArrayList<T>();
+
+			for (ID id : ids) {
+				results.add(findOne(id));
 			}
-		}, (Sort) null).setParameter("ids", ids).getResultList();
+
+			return results;
+		}
+
+		ByIdsSpecification<T> specification = new ByIdsSpecification<T>(entityInformation);
+		TypedQuery<T> query = getQuery(specification, (Sort) null);
+
+		return query.setParameter(specification.parameter, ids).getResultList();
 	}
 
 	/*
@@ -355,7 +417,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	 */
 	public long count(Specification<T> spec) {
 
-		return getCountQuery(spec).getSingleResult();
+		return executeCountQuery(getCountQuery(spec));
 	}
 
 	/*
@@ -378,9 +440,9 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	 * @see org.springframework.data.jpa.repository.JpaRepository#saveAndFlush(java.lang.Object)
 	 */
 	@Transactional
-	public T saveAndFlush(T entity) {
+	public <S extends T> S saveAndFlush(S entity) {
 
-		T result = save(entity);
+		S result = save(entity);
 		flush();
 
 		return result;
@@ -430,7 +492,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 		query.setFirstResult(pageable.getOffset());
 		query.setMaxResults(pageable.getPageSize());
 
-		Long total = QueryUtils.executeCountQuery(getCountQuery(spec));
+		Long total = executeCountQuery(getCountQuery(spec));
 		List<T> content = total > pageable.getOffset() ? query.getResultList() : Collections.<T> emptyList();
 
 		return new PageImpl<T>(content, pageable, total);
@@ -468,7 +530,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 			query.orderBy(toOrders(sort, root, builder));
 		}
 
-		return applyLockMode(em.createQuery(query));
+		return applyRepositoryMethodMetadata(em.createQuery(query));
 	}
 
 	/**
@@ -519,9 +581,75 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 		return root;
 	}
 
-	private TypedQuery<T> applyLockMode(TypedQuery<T> query) {
+	private TypedQuery<T> applyRepositoryMethodMetadata(TypedQuery<T> query) {
 
-		LockModeType type = lockMetadataProvider == null ? null : lockMetadataProvider.getLockModeType();
-		return type == null ? query : query.setLockMode(type);
+		if (metadata == null) {
+			return query;
+		}
+
+		LockModeType type = metadata.getLockModeType();
+		TypedQuery<T> toReturn = type == null ? query : query.setLockMode(type);
+
+		applyQueryHints(toReturn);
+
+		return toReturn;
+	}
+
+	private void applyQueryHints(Query query) {
+
+		for (Entry<String, Object> hint : getQueryHints().entrySet()) {
+			query.setHint(hint.getKey(), hint.getValue());
+		}
+	}
+
+	/**
+	 * Executes a count query and transparently sums up all values returned.
+	 * 
+	 * @param query must not be {@literal null}.
+	 * @return
+	 */
+	private static Long executeCountQuery(TypedQuery<Long> query) {
+
+		Assert.notNull(query);
+
+		List<Long> totals = query.getResultList();
+		Long total = 0L;
+
+		for (Long element : totals) {
+			total += element == null ? 0 : element;
+		}
+
+		return total;
+	}
+
+	/**
+	 * Specification that gives access to the {@link Parameter} instance used to bind the ids for
+	 * {@link SimpleJpaRepository#findAll(Iterable)}. Workaround for OpenJPA not binding collections to in-clauses
+	 * correctly when using by-name binding.
+	 * 
+	 * @see https://issues.apache.org/jira/browse/OPENJPA-2018?focusedCommentId=13924055
+	 * @author Oliver Gierke
+	 */
+	@SuppressWarnings("rawtypes")
+	private static final class ByIdsSpecification<T> implements Specification<T> {
+
+		private final JpaEntityInformation<T, ?> entityInformation;
+
+		ParameterExpression<Iterable> parameter;
+
+		public ByIdsSpecification(JpaEntityInformation<T, ?> entityInformation) {
+			this.entityInformation = entityInformation;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.jpa.domain.Specification#toPredicate(javax.persistence.criteria.Root, javax.persistence.criteria.CriteriaQuery, javax.persistence.criteria.CriteriaBuilder)
+		 */
+		public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+
+			Path<?> path = root.get(entityInformation.getIdAttribute());
+			parameter = cb.parameter(Iterable.class);
+			return path.in(parameter);
+		}
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2013 the original author or authors.
+ * Copyright 2008-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,22 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import java.util.Map;
+
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.persistence.Query;
 import javax.persistence.QueryHint;
 import javax.persistence.TypedQuery;
 
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.CollectionExecution;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.ModifyingExecution;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.PagedExecution;
+import org.springframework.data.jpa.repository.query.JpaQueryExecution.ProcedureExecution;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.SingleEntityExecution;
+import org.springframework.data.jpa.repository.query.JpaQueryExecution.SlicedExecution;
+import org.springframework.data.jpa.repository.query.JpaQueryExecution.StreamExecution;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.util.Assert;
 
@@ -82,7 +88,6 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 	 * .lang.Object[])
 	 */
 	public Object execute(Object[] parameters) {
-
 		return doExecute(getExecution(), parameters);
 	}
 
@@ -92,14 +97,19 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 	 * @return
 	 */
 	private Object doExecute(JpaQueryExecution execution, Object[] values) {
-
 		return execution.execute(this, values);
 	}
 
 	protected JpaQueryExecution getExecution() {
 
-		if (method.isCollectionQuery()) {
+		if (method.isStreamQuery()) {
+			return new StreamExecution();
+		} else if (method.isProcedureQuery()) {
+			return new ProcedureExecution();
+		} else if (method.isCollectionQuery()) {
 			return new CollectionExecution();
+		} else if (method.isSliceQuery()) {
+			return new SlicedExecution(method.getParameters());
 		} else if (method.isPageQuery()) {
 			return new PagedExecution(method.getParameters());
 		} else if (method.isModifyingQuery()) {
@@ -115,13 +125,27 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 	 * @param query
 	 * @return
 	 */
-	private <T extends Query> T applyHints(T query, JpaQueryMethod method) {
+	protected <T extends Query> T applyHints(T query, JpaQueryMethod method) {
 
 		for (QueryHint hint : method.getHints()) {
-			query.setHint(hint.name(), hint.value());
+			applyQueryHint(query, hint);
 		}
 
 		return query;
+	}
+
+	/**
+	 * Protected to be able to customize in sub-classes.
+	 * 
+	 * @param query must not be {@literal null}.
+	 * @param hint must not be {@literal null}.
+	 */
+	protected <T extends Query> void applyQueryHint(T query, QueryHint hint) {
+
+		Assert.notNull(query, "Query must not be null!");
+		Assert.notNull(hint, "QueryHint must not be null!");
+
+		query.setHint(hint.name(), hint.value());
 	}
 
 	/**
@@ -142,7 +166,29 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 	}
 
 	protected Query createQuery(Object[] values) {
-		return applyLockMode(applyHints(doCreateQuery(values), method), method);
+		return applyLockMode(applyEntityGraphConfiguration(applyHints(doCreateQuery(values), method), method), method);
+	}
+
+	/**
+	 * Configures the {@link javax.persistence.EntityGraph} to use for the given {@link JpaQueryMethod} if the
+	 * {@link EntityGraph} annotation is present.
+	 * 
+	 * @param query must not be {@literal null}.
+	 * @param method must not be {@literal null}.
+	 * @return
+	 */
+	private Query applyEntityGraphConfiguration(Query query, JpaQueryMethod method) {
+
+		Assert.notNull(query, "Query must not be null!");
+		Assert.notNull(method, "JpaQueryMethod must not be null!");
+
+		Map<String, Object> hints = Jpa21Utils.tryGetFetchGraphHints(em, method.getEntityGraph());
+
+		for (Map.Entry<String, Object> hint : hints.entrySet()) {
+			query.setHint(hint.getKey(), hint.getValue());
+		}
+
+		return query;
 	}
 
 	protected TypedQuery<Long> createCountQuery(Object[] values) {

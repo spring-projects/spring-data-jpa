@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2013 the original author or authors.
+ * Copyright 2008-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,10 @@ import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 
+import org.springframework.data.repository.query.EvaluationContextProvider;
 import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.util.Assert;
 
 /**
@@ -33,6 +35,8 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 
 	private final StringQuery query;
 	private final StringQuery countQuery;
+	private final EvaluationContextProvider evaluationContextProvider;
+	private final SpelExpressionParser parser;
 
 	/**
 	 * Creates a new {@link AbstractStringBasedJpaQuery} from the given {@link JpaQueryMethod}, {@link EntityManager} and
@@ -41,16 +45,23 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 	 * @param method must not be {@literal null}.
 	 * @param em must not be {@literal null}.
 	 * @param queryString must not be {@literal null}.
+	 * @param evaluationContextProvider must not be {@literal null}.
+	 * @param parser must not be {@literal null}.
 	 */
-	public AbstractStringBasedJpaQuery(JpaQueryMethod method, EntityManager em, String queryString) {
+	public AbstractStringBasedJpaQuery(JpaQueryMethod method, EntityManager em, String queryString,
+			EvaluationContextProvider evaluationContextProvider, SpelExpressionParser parser) {
 
 		super(method, em);
 
 		Assert.hasText(queryString, "Query string must not be null or empty!");
+		Assert.notNull(evaluationContextProvider, "ExpressionEvaluationContextProvider must not be null!");
+		Assert.notNull(parser, "Parser must not be null or empty!");
 
-		this.query = new ExpressionBasedStringQuery(queryString, method.getEntityInformation());
+		this.evaluationContextProvider = evaluationContextProvider;
+		this.query = new ExpressionBasedStringQuery(queryString, method.getEntityInformation(), parser);
 		this.countQuery = new StringQuery(method.getCountQuery() != null ? method.getCountQuery()
-				: QueryUtils.createCountQueryFor(this.query.getQueryString()));
+				: QueryUtils.createCountQueryFor(this.query.getQueryString(), method.getCountQueryProjection()));
+		this.parser = parser;
 	}
 
 	/*
@@ -74,7 +85,8 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 	 */
 	@Override
 	protected ParameterBinder createBinder(Object[] values) {
-		return new StringQueryParameterBinder(getQueryMethod().getParameters(), values, query);
+		return new SpelExpressionStringQueryParameterBinder(getQueryMethod().getParameters(), values, query,
+				evaluationContextProvider, parser);
 	}
 
 	/**

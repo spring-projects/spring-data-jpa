@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2011-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,10 @@
  */
 package org.springframework.data.jpa.repository.support;
 
+import static java.util.Collections.*;
 import static org.mockito.Mockito.*;
 
+import javax.persistence.EntityGraph;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -30,34 +32,34 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.sample.User;
+import org.springframework.data.jpa.repository.EntityGraph.EntityGraphType;
+import org.springframework.data.jpa.repository.query.JpaEntityGraph;
 
 /**
  * Unit tests for {@link SimpleJpaRepository}.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 @RunWith(MockitoJUnitRunner.class)
 public class SimpleJpaRepositoryUnitTests {
 
-	SimpleJpaRepository<User, Long> repo;
+	SimpleJpaRepository<User, Integer> repo;
 
-	@Mock
-	EntityManager em;
-	@Mock
-	CriteriaBuilder builder;
-	@Mock
-	CriteriaQuery<User> criteriaQuery;
-	@Mock
-	CriteriaQuery<Long> countCriteriaQuery;
-	@Mock
-	TypedQuery<User> query;
-	@Mock
-	TypedQuery<Long> countQuery;
-	@Mock
-	JpaEntityInformation<User, Long> information;
+	@Mock EntityManager em;
+	@Mock CriteriaBuilder builder;
+	@Mock CriteriaQuery<User> criteriaQuery;
+	@Mock CriteriaQuery<Long> countCriteriaQuery;
+	@Mock TypedQuery<User> query;
+	@Mock TypedQuery<Long> countQuery;
+	@Mock JpaEntityInformation<User, Long> information;
+	@Mock CrudMethodMetadata metadata;
+	@Mock EntityGraph<User> entityGraph;
 
 	@Before
 	public void setUp() {
+
+		when(em.getDelegate()).thenReturn(em);
 
 		when(information.getJavaType()).thenReturn(User.class);
 		when(em.getCriteriaBuilder()).thenReturn(builder);
@@ -68,7 +70,8 @@ public class SimpleJpaRepositoryUnitTests {
 		when(em.createQuery(criteriaQuery)).thenReturn(query);
 		when(em.createQuery(countCriteriaQuery)).thenReturn(countQuery);
 
-		repo = new SimpleJpaRepository<User, Long>(information, em);
+		repo = new SimpleJpaRepository<User, Integer>(information, em);
+		repo.setRepositoryMethodMetadata(metadata);
 	}
 
 	/**
@@ -89,6 +92,23 @@ public class SimpleJpaRepositoryUnitTests {
 	@Test(expected = EmptyResultDataAccessException.class)
 	public void throwsExceptionIfEntityToDeleteDoesNotExist() {
 
-		repo.delete(4711L);
+		repo.delete(4711);
+	}
+
+	/**
+	 * @see DATAJPA-689
+	 */
+	@Test
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public void shouldPropagateConfiguredEntityGraphToFindOne() {
+
+		String entityGraphName = "User.detail";
+		when(metadata.getEntityGraph()).thenReturn(new JpaEntityGraph(entityGraphName, EntityGraphType.LOAD));
+		when(em.getEntityGraph(entityGraphName)).thenReturn((EntityGraph) entityGraph);
+
+		Integer id = 0;
+		repo.findOne(id);
+
+		verify(em).find(User.class, id, singletonMap(EntityGraphType.LOAD.getKey(), (Object) entityGraph));
 	}
 }

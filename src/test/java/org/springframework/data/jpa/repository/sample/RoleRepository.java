@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 the original author or authors.
+ * Copyright 2008-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,23 +16,30 @@
 package org.springframework.data.jpa.repository.sample;
 
 import javax.persistence.LockModeType;
+import javax.persistence.QueryHint;
 
 import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.QueryHints;
+import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 import org.springframework.data.repository.CrudRepository;
+
+import com.mysema.query.types.Predicate;
 
 /**
  * Typing interface for {@code Role}.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
-public interface RoleRepository extends CrudRepository<Role, Integer> {
+public interface RoleRepository extends CrudRepository<Role, Integer>, QueryDslPredicateExecutor<Role> {
 
 	/* 
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.CrudRepository#findAll()
 	 */
 	@Lock(LockModeType.READ)
+	@QueryHints(@QueryHint(name = "foo", value = "bar"))
 	Iterable<Role> findAll();
 
 	/* 
@@ -40,5 +47,20 @@ public interface RoleRepository extends CrudRepository<Role, Integer> {
 	 * @see org.springframework.data.repository.CrudRepository#findOne(java.io.Serializable)
 	 */
 	@Lock(LockModeType.READ)
+	@QueryHints(@QueryHint(name = "foo", value = "bar"))
 	Role findOne(Integer id);
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.querydsl.QueryDslPredicateExecutor#findOne(com.mysema.query.types.Predicate)
+	 */
+	@Override
+	@Lock(LockModeType.READ)
+	@QueryHints(@QueryHint(name = "foo", value = "bar"))
+	Role findOne(Predicate predicate);
+
+	/**
+	 * @see DATAJPA-509
+	 */
+	long countByName(String name);
 }

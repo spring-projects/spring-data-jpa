@@ -1,216 +1,237 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<context version="7.0.3.1152">
-    <scope name="spring-data-jpa" type="Project">
-        <element name="Filter" type="TypeFilterReferenceOverridden">
-            <element name="org.springframework.data.jpa.**" type="IncludeTypePattern"/>
+<context version="7.1.10.209">
+    <scope type="Project" name="spring-data-jpa">
+        <element type="TypeFilterReferenceOverridden" name="Filter">
+            <element type="IncludeTypePattern" name="org.springframework.data.jpa.**"/>
         </element>
         <architecture>
-            <element name="Domain" type="Layer">
-                <element name="Assignment" type="TypeFilter">
-                    <element name="**.domain.**" type="IncludeTypePattern"/>
+            <element type="Layer" name="Support">
+                <element type="TypeFilter" name="Assignment">
+                    <element type="WeakTypePattern" name="**.support.**"/>
+                </element>
+                <dependency toName="Project|spring-data-jpa::Layer|Domain" type="AllowedDependency"/>
+            </element>
+            <element type="Layer" name="Repository">
+                <element type="TypeFilter" name="Assignment">
+                    <element type="IncludeTypePattern" name="**.repository.**"/>
+                </element>
+                <element type="Subsystem" name="Configuration">
+                    <element type="TypeFilter" name="Assignment">
+                        <element type="IncludeTypePattern" name="**.config.**"/>
+                    </element>
+                    <dependency toName="Project|spring-data-jpa::Layer|Repository::Subsystem|API" type="AllowedDependency"/>
+                    <dependency toName="Project|spring-data-jpa::Layer|Repository::Subsystem|Implementation" type="AllowedDependency"/>
+                </element>
+                <element type="Subsystem" name="API">
+                    <element type="TypeFilter" name="Assignment">
+                        <element type="WeakTypePattern" name="**"/>
+                    </element>
+                </element>
+                <element type="Subsystem" name="Query">
+                    <element type="TypeFilter" name="Assignment">
+                        <element type="IncludeTypePattern" name="**.query.**"/>
+                    </element>
+                    <dependency toName="Project|spring-data-jpa::Layer|Repository::Subsystem|API" type="AllowedDependency"/>
+                </element>
+                <element type="Subsystem" name="Implementation">
+                    <element type="TypeFilter" name="Assignment">
+                        <element type="IncludeTypePattern" name="**.support.**"/>
+                    </element>
+                    <dependency toName="Project|spring-data-jpa::Layer|Repository::Subsystem|API" type="AllowedDependency"/>
+                    <dependency toName="Project|spring-data-jpa::Layer|Repository::Subsystem|Query" type="AllowedDependency"/>
+                    <dependency toName="Project|spring-data-jpa::Layer|Repository::Subsystem|Util" type="AllowedDependency"/>
+                </element>
+                <element type="Subsystem" name="Util">
+                    <element type="TypeFilter" name="Assignment">
+                        <element type="IncludeTypePattern" name="**.utils.**"/>
+                    </element>
+                </element>
+                <element type="Subsystem" name="CDI">
+                    <element type="TypeFilter" name="Assignment">
+                        <element type="IncludeTypePattern" name="**.cdi.**"/>
+                    </element>
+                    <stereotype name="Unrestricted"/>
+                </element>
+                <dependency toName="Project|spring-data-jpa::Layer|Domain" type="AllowedDependency"/>
+                <dependency toName="Project|spring-data-jpa::Layer|Mapping" type="AllowedDependency"/>
+                <dependency toName="Project|spring-data-jpa::Layer|Utilities" type="AllowedDependency"/>
+            </element>
+            <element type="Layer" name="Domain">
+                <element type="TypeFilter" name="Assignment">
+                    <element type="IncludeTypePattern" name="**.domain.**"/>
                 </element>
                 <stereotype name="Unrestricted"/>
             </element>
-            <element name="Repository" type="Layer">
-                <element name="Assignment" type="TypeFilter">
-                    <element name="**.repository.**" type="IncludeTypePattern"/>
+            <element type="Layer" name="Mapping">
+                <element type="TypeFilter" name="Assignment">
+                    <element type="IncludeTypePattern" name="**.mapping.**"/>
                 </element>
-                <element name="Configuration" type="Subsystem">
-                    <element name="Assignment" type="TypeFilter">
-                        <element name="**.config.**" type="IncludeTypePattern"/>
-                    </element>
-                    <stereotype name="Unrestricted"/>
-                </element>
-                <element name="Query" type="Subsystem">
-                    <element name="Assignment" type="TypeFilter">
-                        <element name="**.query.**" type="IncludeTypePattern"/>
-                    </element>
-                    <stereotype name="Unrestricted"/>
-                </element>
-                <element name="Core" type="Subsystem">
-                    <element name="Assignment" type="TypeFilter">
-                        <element name="**.support.**" type="IncludeTypePattern"/>
-                    </element>
-                    <stereotype name="Unrestricted"/>
-                </element>
-                <element name="Util" type="Subsystem">
-                    <element name="Assignment" type="TypeFilter">
-                        <element name="**.utils.**" type="IncludeTypePattern"/>
-                    </element>
-                    <stereotype name="Unrestricted"/>
-                </element>
-                <stereotype name="Unrestricted"/>
             </element>
-            <element name="Support" type="Layer">
-                <element name="Assignment" type="TypeFilter">
-                    <element name="**.support.**" type="WeakTypePattern"/>
+            <element type="Layer" name="Utilities">
+                <element type="TypeFilter" name="Assignment">
+                    <element type="WeakTypePattern" name="**.util.**"/>
                 </element>
-                <stereotype name="Unrestricted"/>
             </element>
         </architecture>
         <workspace>
-            <element name="src/main/java" type="JavaRootDirectory">
+            <element type="JavaRootDirectory" name="src/main/java">
                 <reference name="Project|spring-data-jpa::BuildUnit|spring-data-jpa"/>
             </element>
-            <element name="target/classes" type="JavaRootDirectory">
-                <reference name="Project|spring-data-jpa::BuildUnit|spring-data-jpa"/>
-            </element>
-            <element name="target/generated-sources/main" type="JavaRootDirectory">
+            <element type="JavaRootDirectory" name="target/classes">
                 <reference name="Project|spring-data-jpa::BuildUnit|spring-data-jpa"/>
             </element>
         </workspace>
         <physical>
-            <element name="spring-data-jpa" type="BuildUnit"/>
+            <element type="BuildUnit" name="spring-data-jpa"/>
         </physical>
     </scope>
-    <scope name="External" type="External">
-        <element name="Filter" type="TypeFilter">
-            <element name="**" type="IncludeTypePattern"/>
-            <element name="java.io.*" type="ExcludeTypePattern"/>
-            <element name="java.lang.*" type="ExcludeTypePattern"/>
-            <element name="java.lang.annotation.*" type="ExcludeTypePattern"/>
-            <element name="java.lang.ref.*" type="ExcludeTypePattern"/>
-            <element name="java.math.*" type="ExcludeTypePattern"/>
-            <element name="java.nio.*" type="ExcludeTypePattern"/>
-            <element name="java.nio.channels.*" type="ExcludeTypePattern"/>
-            <element name="java.nio.channels.spi.*" type="ExcludeTypePattern"/>
-            <element name="java.nio.charset.*" type="ExcludeTypePattern"/>
-            <element name="java.nio.charset.spi.*" type="ExcludeTypePattern"/>
-            <element name="java.text.*" type="ExcludeTypePattern"/>
-            <element name="java.util.*" type="ExcludeTypePattern"/>
-            <element name="java.util.jar.*" type="ExcludeTypePattern"/>
-            <element name="java.util.prefs.*" type="ExcludeTypePattern"/>
-            <element name="java.util.regex.*" type="ExcludeTypePattern"/>
-            <element name="java.util.zip.*" type="ExcludeTypePattern"/>
+    <scope type="External" name="External">
+        <element type="TypeFilter" name="Filter">
+            <element type="IncludeTypePattern" name="**"/>
+            <element type="ExcludeTypePattern" name="java.io.*"/>
+            <element type="ExcludeTypePattern" name="java.lang.*"/>
+            <element type="ExcludeTypePattern" name="java.lang.annotation.*"/>
+            <element type="ExcludeTypePattern" name="java.lang.ref.*"/>
+            <element type="ExcludeTypePattern" name="java.math.*"/>
+            <element type="ExcludeTypePattern" name="java.nio.*"/>
+            <element type="ExcludeTypePattern" name="java.nio.channels.*"/>
+            <element type="ExcludeTypePattern" name="java.nio.channels.spi.*"/>
+            <element type="ExcludeTypePattern" name="java.nio.charset.*"/>
+            <element type="ExcludeTypePattern" name="java.nio.charset.spi.*"/>
+            <element type="ExcludeTypePattern" name="java.text.*"/>
+            <element type="ExcludeTypePattern" name="java.util.*"/>
+            <element type="ExcludeTypePattern" name="java.util.jar.*"/>
+            <element type="ExcludeTypePattern" name="java.util.prefs.*"/>
+            <element type="ExcludeTypePattern" name="java.util.regex.*"/>
+            <element type="ExcludeTypePattern" name="java.util.zip.*"/>
         </element>
         <architecture>
-            <element name="Querydsl" type="Subsystem">
-                <element name="Assignment" type="TypeFilter">
-                    <element name="com.mysema.query.**" type="IncludeTypePattern"/>
+            <element type="Subsystem" name="Querydsl">
+                <element type="TypeFilter" name="Assignment">
+                    <element type="IncludeTypePattern" name="com.mysema.query.**"/>
                 </element>
             </element>
-            <element name="Spring" type="Subsystem">
-                <element name="Assignment" type="TypeFilter">
-                    <element name="org.springframework.**" type="WeakTypePattern"/>
+            <element type="Subsystem" name="Spring">
+                <element type="TypeFilter" name="Assignment">
+                    <element type="WeakTypePattern" name="org.springframework.**"/>
                 </element>
             </element>
-            <element name="Spring Data Commons" type="Subsystem">
-                <element name="Assignment" type="TypeFilter">
-                    <element name="org.springframework.data.**" type="IncludeTypePattern"/>
+            <element type="Subsystem" name="Spring Data Commons">
+                <element type="TypeFilter" name="Assignment">
+                    <element type="IncludeTypePattern" name="org.springframework.data.**"/>
                 </element>
             </element>
         </architecture>
     </scope>
-    <scope name="Global" type="Global">
-        <element name="Configuration" type="Configuration"/>
-        <element name="Filter" type="TypeFilter">
-            <element name="**" type="IncludeTypePattern"/>
+    <scope type="Global" name="Global">
+        <element type="Configuration" name="Configuration"/>
+        <element type="TypeFilter" name="Filter">
+            <element type="IncludeTypePattern" name="**"/>
         </element>
         <itemDefinition>
             <item type="ThresholdItem">
-                <property name="AttributeId" value="NumberOfNotAssignedTypes"/>
-                <property name="LowerValue" value=""/>
-                <property name="NamedElementGroup" value="Project"/>
-                <property name="UpperValue" value="0"/>
+                <property value="NumberOfNotAssignedTypes" name="AttributeId"/>
+                <property value="" name="LowerValue"/>
+                <property value="Project" name="NamedElementGroup"/>
+                <property value="0" name="UpperValue"/>
             </item>
             <item type="ThresholdItem">
-                <property name="AttributeId" value="NumberOfParameters"/>
-                <property name="LowerValue" value=""/>
-                <property name="NamedElementGroup" value="Method"/>
-                <property name="UpperValue" value="7"/>
+                <property value="NumberOfParameters" name="AttributeId"/>
+                <property value="" name="LowerValue"/>
+                <property value="Method" name="NamedElementGroup"/>
+                <property value="7" name="UpperValue"/>
             </item>
             <item type="ThresholdItem">
-                <property name="AttributeId" value="NumberOfAccessibleTypes"/>
-                <property name="LowerValue" value=""/>
-                <property name="NamedElementGroup" value="Namespace"/>
-                <property name="UpperValue" value="30"/>
+                <property value="NumberOfAccessibleTypes" name="AttributeId"/>
+                <property value="" name="LowerValue"/>
+                <property value="Namespace" name="NamedElementGroup"/>
+                <property value="30" name="UpperValue"/>
             </item>
             <item type="ThresholdItem">
-                <property name="AttributeId" value="NormalizedCumulativeComponentDependency"/>
-                <property name="LowerValue" value=""/>
-                <property name="NamedElementGroup" value="Project"/>
-                <property name="UpperValue" value="7"/>
+                <property value="NormalizedCumulativeComponentDependency" name="AttributeId"/>
+                <property value="" name="LowerValue"/>
+                <property value="Project" name="NamedElementGroup"/>
+                <property value="7" name="UpperValue"/>
             </item>
             <item type="ThresholdItem">
-                <property name="AttributeId" value="LinesOfCode"/>
-                <property name="LowerValue" value=""/>
-                <property name="NamedElementGroup" value="SourceFile"/>
-                <property name="UpperValue" value="700"/>
+                <property value="LinesOfCode" name="AttributeId"/>
+                <property value="" name="LowerValue"/>
+                <property value="SourceFile" name="NamedElementGroup"/>
+                <property value="700" name="UpperValue"/>
             </item>
             <item type="ThresholdItem">
-                <property name="AttributeId" value="NumberOfInternalTypes"/>
-                <property name="LowerValue" value=""/>
-                <property name="NamedElementGroup" value="Namespace"/>
-                <property name="UpperValue" value="50"/>
+                <property value="NumberOfInternalTypes" name="AttributeId"/>
+                <property value="" name="LowerValue"/>
+                <property value="Namespace" name="NamedElementGroup"/>
+                <property value="50" name="UpperValue"/>
             </item>
             <item type="ThresholdItem">
-                <property name="AttributeId" value="NumberOfMethods"/>
-                <property name="LowerValue" value=""/>
-                <property name="NamedElementGroup" value="Type"/>
-                <property name="UpperValue" value="50"/>
+                <property value="NumberOfMethods" name="AttributeId"/>
+                <property value="" name="LowerValue"/>
+                <property value="Type" name="NamedElementGroup"/>
+                <property value="50" name="UpperValue"/>
             </item>
             <item type="ThresholdItem">
-                <property name="AttributeId" value="ModifiedCyclomaticComplexity"/>
-                <property name="LowerValue" value=""/>
-                <property name="NamedElementGroup" value="Method"/>
-                <property name="UpperValue" value="20"/>
+                <property value="ModifiedCyclomaticComplexity" name="AttributeId"/>
+                <property value="" name="LowerValue"/>
+                <property value="Method" name="NamedElementGroup"/>
+                <property value="20" name="UpperValue"/>
             </item>
         </itemDefinition>
     </scope>
     <attributeConfiguration type="AttributeConfiguration">
-        <property name="ExtendedCyclomaticComplexity" value="disabled"/>
-        <property name="MaxExtendedCyclomaticComplexityPerMethod" value="disabled"/>
-        <property name="NumberOfWarnings" value="disabled"/>
-        <property name="AverageCyclomaticComplexityPerMethod" value="disabled"/>
-        <property name="NumberOfAbstractTypes" value="disabled"/>
-        <property name="JdkVersion" value="disabled"/>
-        <property name="NumberOfCyclicDirectories" value="disabled"/>
-        <property name="CyclomaticComplexity" value="disabled"/>
-        <property name="NumberOfMethodsWithImplementation" value="disabled"/>
-        <property name="NumberOfIgnoredWarnings" value="disabled"/>
-        <property name="NumberOfNamedInterfaces" value="disabled"/>
-        <property name="NumberOfCyclicProjects" value="disabled"/>
-        <property name="NumberOfRefactorings" value="disabled"/>
-        <property name="DependsUpon" value="disabled"/>
-        <property name="NumberOfVerticalSliceGroups" value="disabled"/>
-        <property name="DistributedOverPathContainers" value="disabled"/>
-        <property name="AverageExtendedCyclomaticComplexityPerMethod" value="disabled"/>
-        <property name="AverageTypeDependency" value="disabled"/>
-        <property name="NumberOfDuplicateCodeBlocksWarnings" value="disabled"/>
-        <property name="RelativeAverageTypeDependency" value="disabled"/>
-        <property name="AverageAccumulatedExtendedCyclomaticComplexityPerType" value="disabled"/>
-        <property name="NumberOfLayerGroups" value="disabled"/>
-        <property name="NumberOfIgnoredViolations" value="disabled"/>
-        <property name="NumberOfFixWarnings" value="disabled"/>
-        <property name="NumberOfExcludedSourceFiles" value="disabled"/>
-        <property name="NumberOfVerticalSlices" value="disabled"/>
-        <property name="AverageAccumulatedCyclomaticComplexityPerType" value="disabled"/>
-        <property name="Timestamp" value="disabled"/>
-        <property name="AverageAssertionUsage" value="disabled"/>
-        <property name="NumberOfCyclicSubsystems" value="disabled"/>
-        <property name="NumberOfCyclicNamespaces" value="disabled"/>
-        <property name="NumberOfExcludedTargetFiles" value="disabled"/>
-        <property name="NumberOfCyclicVerticalSliceGroups" value="disabled"/>
-        <property name="AccumulatedExtendedCyclomaticComplexity" value="disabled"/>
-        <property name="NumberOfLayers" value="disabled"/>
-        <property name="NumberOfCyclicSourceFiles" value="disabled"/>
-        <property name="MaxAccumulatedCyclomaticComplexityPerType" value="disabled"/>
-        <property name="MaxAccumulatedExtendedCyclomaticComplexityPerType" value="disabled"/>
-        <property name="NumberOfCyclicLayerGroups" value="disabled"/>
-        <property name="NumberOfAssertions" value="disabled"/>
-        <property name="NumberOfCyclicVerticalSlices" value="disabled"/>
-        <property name="NormalizedCumulativeTypeDependency" value="disabled"/>
-        <property name="AccumulatedCyclomaticComplexity" value="disabled"/>
-        <property name="NumberOfCyclicWarnings" value="disabled"/>
-        <property name="NumberOfMetricWarnings" value="disabled"/>
-        <property name="NumberOfNameParts" value="disabled"/>
-        <property name="NumberOfTasks" value="disabled"/>
-        <property name="NumberOfWorkspaceWarnings" value="disabled"/>
-        <property name="NumberOfAbstractMethods" value="disabled"/>
-        <property name="NumberOfTypesWithImplementation" value="disabled"/>
-        <property name="Level" value="disabled"/>
-        <property name="NumberOfSubsystems" value="disabled"/>
-        <property name="NumberOfCyclicLayers" value="disabled"/>
-        <property name="MaxCyclomaticComplexityPerMethod" value="disabled"/>
+        <property value="disabled" name="ExtendedCyclomaticComplexity"/>
+        <property value="disabled" name="MaxExtendedCyclomaticComplexityPerMethod"/>
+        <property value="disabled" name="NumberOfWarnings"/>
+        <property value="disabled" name="AverageCyclomaticComplexityPerMethod"/>
+        <property value="disabled" name="NumberOfAbstractTypes"/>
+        <property value="disabled" name="JdkVersion"/>
+        <property value="disabled" name="NumberOfCyclicDirectories"/>
+        <property value="disabled" name="CyclomaticComplexity"/>
+        <property value="disabled" name="NumberOfMethodsWithImplementation"/>
+        <property value="disabled" name="NumberOfIgnoredWarnings"/>
+        <property value="disabled" name="NumberOfNamedInterfaces"/>
+        <property value="disabled" name="NumberOfCyclicProjects"/>
+        <property value="disabled" name="NumberOfRefactorings"/>
+        <property value="disabled" name="DependsUpon"/>
+        <property value="disabled" name="NumberOfVerticalSliceGroups"/>
+        <property value="disabled" name="DistributedOverPathContainers"/>
+        <property value="disabled" name="AverageExtendedCyclomaticComplexityPerMethod"/>
+        <property value="disabled" name="AverageTypeDependency"/>
+        <property value="disabled" name="NumberOfDuplicateCodeBlocksWarnings"/>
+        <property value="disabled" name="RelativeAverageTypeDependency"/>
+        <property value="disabled" name="AverageAccumulatedExtendedCyclomaticComplexityPerType"/>
+        <property value="disabled" name="NumberOfLayerGroups"/>
+        <property value="disabled" name="NumberOfIgnoredViolations"/>
+        <property value="disabled" name="NumberOfFixWarnings"/>
+        <property value="disabled" name="NumberOfExcludedSourceFiles"/>
+        <property value="disabled" name="NumberOfVerticalSlices"/>
+        <property value="disabled" name="AverageAccumulatedCyclomaticComplexityPerType"/>
+        <property value="disabled" name="Timestamp"/>
+        <property value="disabled" name="AverageAssertionUsage"/>
+        <property value="disabled" name="NumberOfCyclicSubsystems"/>
+        <property value="disabled" name="NumberOfCyclicNamespaces"/>
+        <property value="disabled" name="NumberOfExcludedTargetFiles"/>
+        <property value="disabled" name="NumberOfCyclicVerticalSliceGroups"/>
+        <property value="disabled" name="AccumulatedExtendedCyclomaticComplexity"/>
+        <property value="disabled" name="NumberOfLayers"/>
+        <property value="disabled" name="NumberOfCyclicSourceFiles"/>
+        <property value="disabled" name="MaxAccumulatedCyclomaticComplexityPerType"/>
+        <property value="disabled" name="MaxAccumulatedExtendedCyclomaticComplexityPerType"/>
+        <property value="disabled" name="NumberOfCyclicLayerGroups"/>
+        <property value="disabled" name="NumberOfAssertions"/>
+        <property value="disabled" name="NumberOfCyclicVerticalSlices"/>
+        <property value="disabled" name="NormalizedCumulativeTypeDependency"/>
+        <property value="disabled" name="AccumulatedCyclomaticComplexity"/>
+        <property value="disabled" name="NumberOfMetricWarnings"/>
+        <property value="disabled" name="NumberOfNameParts"/>
+        <property value="disabled" name="NumberOfTasks"/>
+        <property value="disabled" name="NumberOfWorkspaceWarnings"/>
+        <property value="disabled" name="NumberOfAbstractMethods"/>
+        <property value="disabled" name="NumberOfTypesWithImplementation"/>
+        <property value="disabled" name="Level"/>
+        <property value="disabled" name="NumberOfSubsystems"/>
+        <property value="disabled" name="NumberOfCyclicLayers"/>
+        <property value="disabled" name="MaxCyclomaticComplexityPerMethod"/>
     </attributeConfiguration>
 </context>

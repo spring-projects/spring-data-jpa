@@ -20,6 +20,7 @@ import java.util.Iterator;
 
 import javax.persistence.Parameter;
 import javax.persistence.Query;
+import javax.persistence.criteria.CriteriaQuery;
 
 import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
 import org.springframework.data.jpa.repository.query.ParameterMetadataProvider.ParameterMetadata;
@@ -27,8 +28,7 @@ import org.springframework.data.repository.query.Parameters;
 import org.springframework.util.Assert;
 
 /**
- * Special {@link ParameterBinder} that uses {@link javax.persistence.criteria.ParameterExpression}s to bind query
- * parameters.
+ * Special {@link ParameterBinder} to bind {@link CriteriaQuery} parameters. parameters.
  * 
  * @author Oliver Gierke
  * @author Thomas Darimont
@@ -42,6 +42,8 @@ class CriteriaQueryParameterBinder extends ParameterBinder {
 	 * {@link javax.persistence.criteria.ParameterExpression}.
 	 * 
 	 * @param parameters
+	 * @param values
+	 * @param expressions
 	 */
 	CriteriaQueryParameterBinder(JpaParameters parameters, Object[] values, Iterable<ParameterMetadata<?>> expressions) {
 

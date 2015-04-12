@@ -24,7 +24,8 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.data.config.AuditingHandlerBeanDefinitionParser;
+import org.springframework.data.auditing.config.AuditingHandlerBeanDefinitionParser;
+import org.springframework.data.config.ParsingUtils;
 import org.springframework.util.ClassUtils;
 import org.w3c.dom.Element;
 
@@ -39,7 +40,9 @@ public class AuditingBeanDefinitionParser implements BeanDefinitionParser {
 	static final String AUDITING_ENTITY_LISTENER_CLASS_NAME = "org.springframework.data.jpa.domain.support.AuditingEntityListener";
 	private static final String AUDITING_BFPP_CLASS_NAME = "org.springframework.data.jpa.domain.support.AuditingBeanFactoryPostProcessor";
 
-	private final BeanDefinitionParser auditingHandlerParser = new AuditingHandlerBeanDefinitionParser();
+	private final AuditingHandlerBeanDefinitionParser auditingHandlerParser = new AuditingHandlerBeanDefinitionParser(
+			BeanDefinitionNames.JPA_MAPPING_CONTEXT_BEAN_NAME);
+	private final SpringConfiguredBeanDefinitionParser springConfiguredParser = new SpringConfiguredBeanDefinitionParser();
 
 	/*
 	 * (non-Javadoc)
@@ -47,12 +50,14 @@ public class AuditingBeanDefinitionParser implements BeanDefinitionParser {
 	 */
 	public BeanDefinition parse(Element element, ParserContext parser) {
 
-		new SpringConfiguredBeanDefinitionParser().parse(element, parser);
+		springConfiguredParser.parse(element, parser);
+		auditingHandlerParser.parse(element, parser);
 
-		BeanDefinition auditingHandlerDefinition = auditingHandlerParser.parse(element, parser);
+		Object source = parser.getReaderContext().extractSource(element);
 
 		BeanDefinitionBuilder builder = rootBeanDefinition(AUDITING_ENTITY_LISTENER_CLASS_NAME);
-		builder.addPropertyValue("auditingHandler", auditingHandlerDefinition);
+		builder.addPropertyValue("auditingHandler",
+				ParsingUtils.getObjectFactoryBeanDefinition(auditingHandlerParser.getResolvedBeanName(), source));
 		builder.setScope("prototype");
 
 		registerInfrastructureBeanWithId(builder.getRawBeanDefinition(), AUDITING_ENTITY_LISTENER_CLASS_NAME, parser,

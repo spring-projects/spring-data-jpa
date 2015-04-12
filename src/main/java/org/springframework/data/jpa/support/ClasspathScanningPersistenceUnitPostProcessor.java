@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package org.springframework.data.jpa.support;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -26,12 +27,17 @@ import javax.persistence.MappedSuperclass;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.EnvironmentAware;
 import org.springframework.context.ResourceLoaderAware;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.StandardEnvironment;
+import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
+import org.springframework.core.io.support.ResourcePatternUtils;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.orm.jpa.persistenceunit.MutablePersistenceUnitInfo;
 import org.springframework.orm.jpa.persistenceunit.PersistenceUnitPostProcessor;
@@ -46,12 +52,16 @@ import org.springframework.util.StringUtils;
  * @author Oliver Gierke
  * @author Thomas Darimont
  */
-public class ClasspathScanningPersistenceUnitPostProcessor implements PersistenceUnitPostProcessor, ResourceLoaderAware {
+public class ClasspathScanningPersistenceUnitPostProcessor implements PersistenceUnitPostProcessor,
+		ResourceLoaderAware, EnvironmentAware {
 
 	private static final Logger LOG = LoggerFactory.getLogger(ClasspathScanningPersistenceUnitPostProcessor.class);
 
 	private final String basePackage;
-	private ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver(getClass().getClassLoader());
+
+	private ResourcePatternResolver mappingFileResolver = new PathMatchingResourcePatternResolver();
+	private Environment environment = new StandardEnvironment();
+	private ResourceLoader resourceLoader = new DefaultResourceLoader();
 	private String mappingFileNamePattern;
 
 	/**
@@ -60,7 +70,8 @@ public class ClasspathScanningPersistenceUnitPostProcessor implements Persistenc
 	 * @param basePackage must not be {@literal null} or empty.
 	 */
 	public ClasspathScanningPersistenceUnitPostProcessor(String basePackage) {
-		Assert.hasText(basePackage);
+
+		Assert.hasText(basePackage, "Base package must not be null!");
 		this.basePackage = basePackage;
 	}
 
@@ -71,7 +82,8 @@ public class ClasspathScanningPersistenceUnitPostProcessor implements Persistenc
 	 * @param mappingFilePattern must not be {@literal null} or empty.
 	 */
 	public void setMappingFileNamePattern(String mappingFilePattern) {
-		Assert.hasText(mappingFilePattern);
+
+		Assert.hasText(mappingFilePattern, "Mapping file pattern must not be null or empty!");
 		this.mappingFileNamePattern = mappingFilePattern;
 	}
 
@@ -80,8 +92,21 @@ public class ClasspathScanningPersistenceUnitPostProcessor implements Persistenc
 	 * @see org.springframework.context.ResourceLoaderAware#setResourceLoader(org.springframework.core.io.ResourceLoader)
 	 */
 	public void setResourceLoader(ResourceLoader resourceLoader) {
-		Assert.notNull(resourceLoader);
-		this.resolver = new PathMatchingResourcePatternResolver(resourceLoader);
+
+		Assert.notNull(resourceLoader, "ResourceLoader must not be null!");
+		this.mappingFileResolver = ResourcePatternUtils.getResourcePatternResolver(resourceLoader);
+		this.resourceLoader = resourceLoader;
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.context.EnvironmentAware#setEnvironment(org.springframework.core.env.Environment)
+	 */
+	@Override
+	public void setEnvironment(Environment environment) {
+
+		Assert.notNull(environment, "Environment must not be null!");
+		this.environment = environment;
 	}
 
 	/* 
@@ -91,6 +116,9 @@ public class ClasspathScanningPersistenceUnitPostProcessor implements Persistenc
 	public void postProcessPersistenceUnitInfo(MutablePersistenceUnitInfo pui) {
 
 		ClassPathScanningCandidateComponentProvider provider = new ClassPathScanningCandidateComponentProvider(false);
+
+		provider.setEnvironment(environment);
+		provider.setResourceLoader(resourceLoader);
 		provider.addIncludeFilter(new AnnotationTypeFilter(Entity.class));
 		provider.addIncludeFilter(new AnnotationTypeFilter(MappedSuperclass.class));
 
@@ -104,7 +132,6 @@ public class ClasspathScanningPersistenceUnitPostProcessor implements Persistenc
 			LOG.debug("Registering classpath-scanned entity mapping file in persistence unit info!", location);
 			pui.addMappingFileName(location);
 		}
-
 	}
 
 	/**
@@ -117,7 +144,7 @@ public class ClasspathScanningPersistenceUnitPostProcessor implements Persistenc
 	 */
 	private Set<String> scanForMappingFileLocations() {
 
-		if (resolver == null || !StringUtils.hasText(mappingFileNamePattern)) {
+		if (!StringUtils.hasText(mappingFileNamePattern)) {
 			return Collections.emptySet();
 		}
 
@@ -132,17 +159,17 @@ public class ClasspathScanningPersistenceUnitPostProcessor implements Persistenc
 		String path = ResourcePatternResolver.CLASSPATH_ALL_URL_PREFIX + basePackagePathComponent + slash
 				+ mappingFileNamePattern;
 		Set<String> mappingFileUris = new HashSet<String>();
-		Resource[] scannedResources = new Resource[0];
+		Resource[] scannedResources;
 
 		try {
-			scannedResources = resolver.getResources(path);
+			scannedResources = mappingFileResolver.getResources(path);
 		} catch (IOException e) {
 			throw new IllegalStateException(String.format("Cannot load mapping files from path %s!", path), e);
 		}
 
 		for (Resource resource : scannedResources) {
 			try {
-				String resourcePath = resource.getURI().getPath();
+				String resourcePath = getResourcePath(resource.getURI());
 				String resourcePathInClasspath = resourcePath.substring(resourcePath.indexOf(basePackagePathComponent));
 				mappingFileUris.add(resourcePathInClasspath);
 			} catch (IOException e) {
@@ -151,5 +178,31 @@ public class ClasspathScanningPersistenceUnitPostProcessor implements Persistenc
 		}
 
 		return mappingFileUris;
+	}
+
+	/**
+	 * Returns the path from the given {@link URI}. In case the given {@link URI} is opaque, e.g. beginning with jar:file,
+	 * the path is extracted from URI by leaving out the protocol prefix.
+	 * 
+	 * @param uri
+	 * @return
+	 * @see DATAJPA-519
+	 */
+	private static String getResourcePath(URI uri) throws IOException {
+
+		if (uri.isOpaque()) {
+			// e.g. jar:file:/foo/lib/somelib.jar!/com/acme/orm.xml
+			String rawPath = uri.toString();
+			if (rawPath != null) {
+				int exclamationMarkIndex = rawPath.lastIndexOf('!');
+				if (exclamationMarkIndex > -1) {
+
+					// /com/acme/orm.xml
+					return rawPath.substring(exclamationMarkIndex + 1);
+				}
+			}
+		}
+
+		return uri.getPath();
 	}
 }

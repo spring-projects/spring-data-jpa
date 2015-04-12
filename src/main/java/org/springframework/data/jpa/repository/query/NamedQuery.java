@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2013 the original author or authors.
+ * Copyright 2008-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import javax.persistence.TypedQuery;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.jpa.provider.QueryExtractor;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.QueryCreationException;
 import org.springframework.data.repository.query.RepositoryQuery;
@@ -29,6 +30,7 @@ import org.springframework.data.repository.query.RepositoryQuery;
  * Implementation of {@link RepositoryQuery} based on {@link javax.persistence.NamedQuery}s.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 final class NamedQuery extends AbstractJpaQuery {
 
@@ -41,7 +43,9 @@ final class NamedQuery extends AbstractJpaQuery {
 
 	private final String queryName;
 	private final String countQueryName;
+	private final String countProjection;
 	private final QueryExtractor extractor;
+	private final boolean namedCountQueryIsPresent;
 
 	/**
 	 * Creates a new {@link NamedQuery}.
@@ -53,19 +57,18 @@ final class NamedQuery extends AbstractJpaQuery {
 		this.queryName = method.getNamedQueryName();
 		this.countQueryName = method.getNamedCountQueryName();
 		this.extractor = method.getQueryExtractor();
+		this.countProjection = method.getCountQueryProjection();
 
 		Parameters<?, ?> parameters = method.getParameters();
-
-		// Let's see if the referenced named query exists
-		em.createNamedQuery(queryName);
 
 		if (parameters.hasSortParameter()) {
 			throw new IllegalStateException(String.format("Finder method %s is backed " + "by a NamedQuery and must "
 					+ "not contain a sort parameter as we cannot modify the query! Use @Query instead!", method));
 		}
 
-		boolean weNeedToCreateCountQuery = !hasNamedQuery(em, countQueryName)
-				&& method.getParameters().hasPageableParameter();
+		this.namedCountQueryIsPresent = hasNamedQuery(em, countQueryName);
+
+		boolean weNeedToCreateCountQuery = !namedCountQueryIsPresent && method.getParameters().hasPageableParameter();
 		boolean cantExtractQuery = !this.extractor.canExtractQuery();
 
 		if (weNeedToCreateCountQuery && cantExtractQuery) {
@@ -86,12 +89,20 @@ final class NamedQuery extends AbstractJpaQuery {
 	 */
 	private static boolean hasNamedQuery(EntityManager em, String queryName) {
 
+		/*
+		 * @see DATAJPA-617
+		 * we have to use a dedicated em for the lookups to avoid a potential rollback of the running tx.
+		 */
+		EntityManager lookupEm = em.getEntityManagerFactory().createEntityManager();
+
 		try {
-			em.createNamedQuery(queryName);
+			lookupEm.createNamedQuery(queryName);
 			return true;
 		} catch (IllegalArgumentException e) {
 			LOG.debug("Did not find named query {}", queryName);
 			return false;
+		} finally {
+			lookupEm.close();
 		}
 	}
 
@@ -106,6 +117,10 @@ final class NamedQuery extends AbstractJpaQuery {
 		final String queryName = method.getNamedQueryName();
 
 		LOG.debug("Looking up named query {}", queryName);
+
+		if (!hasNamedQuery(em, queryName)) {
+			return null;
+		}
 
 		try {
 			RepositoryQuery query = new NamedQuery(method, em);
@@ -137,12 +152,12 @@ final class NamedQuery extends AbstractJpaQuery {
 		EntityManager em = getEntityManager();
 		TypedQuery<Long> countQuery = null;
 
-		if (hasNamedQuery(em, countQueryName)) {
+		if (namedCountQueryIsPresent) {
 			countQuery = em.createNamedQuery(countQueryName, Long.class);
 		} else {
 			Query query = createQuery(values);
 			String queryString = extractor.extractQueryString(query);
-			countQuery = em.createQuery(QueryUtils.createCountQueryFor(queryString), Long.class);
+			countQuery = em.createQuery(QueryUtils.createCountQueryFor(queryString, countProjection), Long.class);
 		}
 
 		return createBinder(values).bind(countQuery);

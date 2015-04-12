@@ -1,8 +1,335 @@
 Spring Data JPA Changelog
 =========================
 
-Changes in version 1.5.0.M1 (2013-11-19)
+Changes in version 1.8.0.RELEASE (2015-03-23)
 ---------------------------------------------
+* DATAJPA-692 - Release 1.8 GA.
+* DATAJPA-689 - Allow @EntityGraph on findOne method of CrudRepository.
+* DATAJPA-685 - Allow to disable default transaction handling in @EnableJpaRepositories and XML namespace.
+
+
+Changes in version 1.8.0.RC1 (2015-03-05)
+-----------------------------------------
+* DATAJPA-686 - Release 1.8 RC1.
+* DATAJPA-681 - Execution of derived stored procedures fails if named parameters are used.
+* DATAJPA-679 - Add QueryDslPredicateExecutor.findAll(Predicate, Sort) method.
+* DATAJPA-677 - Add support for Java 8 Stream in repository finder methods.
+* DATAJPA-672 - Activate Spring 4.2 build profile for travis.
+* DATAJPA-665 - Add 'exists' method to QueryDslJpaRepository which accepts a querydsl Predicate.
+* DATAJPA-664 - JpaPersistentProperty.getActualType() should consider specialized association type.
+* DATAJPA-656 - Count query with group by returns wrong result.
+* DATAJPA-655 - Add AttributeConverters for ThreeTen back port library.
+* DATAJPA-654 - Enable Spring 4.1 build profile for Travis.
+* DATAJPA-653 - Make sure test work with Spring 4.1.
+* DATAJPA-652 - Provide support for ParameterMode.REF_CURSOR.
+* DATAJPA-651 - Re-enable querydsl-next build profile for Travis.
+* DATAJPA-650 - Add AttributeConverters for non-timezoned JSR-310 types.
+* DATAJPA-641 - Move to new Travis build infrastructure.
+* DATAJPA-546 - Provide a way to customize the domain type managed by a repository.
+
+
+Changes in version 1.7.2.RELEASE (2015-01-28)
+---------------------------------------------
+* DATAJPA-661 - Release 1.7.2.
+* DATAJPA-654 - Enable Spring 4.1 build profile for Travis.
+* DATAJPA-653 - Make sure test work with Spring 4.1.
+* DATAJPA-641 - Move to new Travis build infrastructure.
+* DATAJPA-639 - Set up Travis to only build with JDK 8.
+* DATAJPA-638 - Improve bean definition setup for root configuration element.
+* DATAJPA-634 - Switch to HTTPS for repository declarations.
+* DATAJPA-632 - Improve SimpleJpaQueryUnitTests that fails after SonarQube improvements in Spring Data Commons.
+* DATAJPA-631 - ClasspathScanningPersistenceUnitPostProcessor should forward ResourceLoader configured to the ClassPathScanningCandidateComponentProvider used for the entity type scanning.
+* DATAJPA-629 - SPEL expression does not work with #{#entityName} in @Query.
+* DATAJPA-628 - Use a shared SpelParser instead of recreating it for queries.
+* DATAJPA-627 - Typo in BeanDefinitionNames.
+* DATAJPA-624 - Fix SonarQube warnings as far as possible/reasonable.
+* DATAJPA-622 - Hibernate thinks AbstractPersistable.isNew() is a property.
+* DATAJPA-611 - SimpleJpaRepository.findAll(Iterable<ID ids) not working when for composite primary keys.
+* DATAJPA-606 - SQLGrammarException for IN-clause with empty collection as parameter.
+* DATAJPA-523 - Specifications should implement Serializable.
+* DATAJPA-477 - Avoid query creation in PagedExecution if count query reports no results.
+
+
+Changes in version 1.6.5.RELEASE (2015-01-27)
+---------------------------------------------
+* DATAJPA-660 - Release 1.6.5.
+* DATAJPA-654 - Enable Spring 4.1 build profile for Travis.
+* DATAJPA-653 - Make sure test work with Spring 4.1.
+* DATAJPA-641 - Move to new Travis build infrastructure.
+* DATAJPA-639 - Set up Travis to only build with JDK 8.
+* DATAJPA-634 - Switch to HTTPS for repository declarations.
+* DATAJPA-632 - Improve SimpleJpaQueryUnitTests that fails after SonarQube improvements in Spring Data Commons.
+* DATAJPA-631 - ClasspathScanningPersistenceUnitPostProcessor should forward ResourceLoader configured to the ClassPathScanningCandidateComponentProvider used for the entity type scanning.
+* DATAJPA-627 - Typo in BeanDefinitionNames.
+* DATAJPA-622 - Hibernate thinks AbstractPersistable.isNew() is a property.
+* DATAJPA-620 - Infinite loop in unsynchronized HashMap in CrudMethodMetadataPostProcessor.
+* DATAJPA-611 - SimpleJpaRepository.findAll(Iterable<ID ids) not working when for composite primary keys.
+* DATAJPA-608 - JpaPersistentEntityImpl.isEntity() should consider actual type.
+* DATAJPA-603 - Update Travis build profiles to build against Spring 4.0 and 4.1 snapshots.
+* DATAJPA-588 - Regression in Spring Data Evans metamodel processing with property based JPA annotations.
+* DATAJPA-523 - Specifications should implement Serializable.
+* DATAJPA-477 - Avoid query creation in PagedExecution if count query reports no results.
+
+
+Changes in version 1.8.0.M1 (2014-12-01)
+----------------------------------------
+* DATAJPA-638 - Improve bean definition setup for root configuration element.
+* DATAJPA-636 - Release 1.8 M1.
+* DATAJPA-635 - Add implementation for new QueryDslPredicateExecutor.findAll(OrderSpecifier<?>... orders).
+* DATAJPA-634 - Switch to HTTPS for repository declarations.
+* DATAJPA-632 - Improve SimpleJpaQueryUnitTests that fails after SonarQube improvements in Spring Data Commons.
+* DATAJPA-631 - ClasspathScanningPersistenceUnitPostProcessor should forward ResourceLoader configured to the ClassPathScanningCandidateComponentProvider used for the entity type scanning.
+* DATAJPA-630 - Identifier lookup fails for JPA proxies.
+* DATAJPA-629 - SPEL expression does not work with #{#entityName} in @Query.
+* DATAJPA-628 - Use a shared SpelParser instead of recreating it for queries.
+* DATAJPA-627 - Typo in BeanDefinitionNames.
+* DATAJPA-624 - Fix SonarQube warnings as far as possible/reasonable.
+* DATAJPA-623 - Remove package cycles accidentally introduced in 1.6.
+* DATAJPA-622 - Hibernate thinks AbstractPersistable.isNew() is a property.
+* DATAJPA-620 - Infinite loop in unsynchronized HashMap in CrudMethodMetadataPostProcessor.
+* DATAJPA-619 - JpaPersistentPropertyImpl should consider JPA access type settings.
+* DATAJPA-617 - Named query lookups might cause transaction to be rolled back.
+* DATAJPA-615 - The top and first query keyword to statically limit results are missing in documentation.
+* DATAJPA-612 - Allow @EntityGraph on a method inherited from JpaRepository.
+* DATAJPA-611 - SimpleJpaRepository.findAll(Iterable<ID ids) not working when for composite primary keys.
+* DATAJPA-608 - JpaPersistentEntityImpl.isEntity() should consider actual type.
+* DATAJPA-606 - SQLGrammarException for IN-clause with empty collection as parameter.
+* DATAJPA-605 - JpaPersistentPropertyImpl does not override method isVersionProperty.
+* DATAJPA-523 - Specifications should implement Serializable.
+* DATAJPA-477 - Avoid query creation in PagedExecution if count query reports no results.
+
+
+Changes in version 1.7.1.RELEASE (2014-10-30)
+---------------------------------------------
+* DATAJPA-621 - Release 1.7.1.
+* DATAJPA-620 - Infinite loop in unsynchronized HashMap in CrudMethodMetadataPostProcessor.
+* DATAJPA-617 - Named query lookups might cause transaction to be rolled back.
+* DATAJPA-615 - The top and first query keyword to statically limit results are missing in documentation.
+* DATAJPA-612 - Allow @EntityGraph on a method inherited from JpaRepository.
+
+
+Changes in version 1.7.0.RELEASE (2014-09-05)
+---------------------------------------------
+* DATAJPA-604 - Release 1.7 GA.
+* DATAJPA-603 - Update Travis build profiles to build against Spring 4.0 and 4.1 snapshots.
+* DATAJPA-602 - Upgrade to AspectJ Maven Plugin 1.6.
+* DATAJPA-597 - Saving detatched entity breaks when moving from Spring Data JPA 1.5.3 to 1.6.2.
+* DATAJPA-596 - Allow sorting by querydsl operator expression.
+* DATAJPA-594 - Polish Asciidoctor rerefernce documentation.
+* DATAJPA-593 - Custom repository implementations are not picked up when using CDI.
+
+
+Changes in version 1.6.4.RELEASE (2014-08-27)
+---------------------------------------------
+* DATAJPA-597 - Saving detatched entity breaks when moving from Spring Data JPA 1.5.3 to 1.6.2.
+* DATAJPA-596 - Allow sorting by querydsl operator expression.
+* DATAJPA-595 - Release 1.6.4.
+* DATAJPA-592 - Auditing annotations not working when applied to methods.
+* DATAJPA-590 - @Version implementation changes from 1.6.0 to 1.6.2 is a breaking change that doesn't make much sense.
+* DATAJPA-582 - JpaMetamodelEntityInformation.isNew(…) throws ClassCastException for @Version of type Calendar.
+* DATAJPA-581 - Can no longer call save() with a @Version'ed detached entity in 1.6.2.
+
+
+Changes in version 1.7.0.RC1 (2014-08-13)
+-----------------------------------------
+* DATAJPA-587 - Release 1.7 RC1.
+* DATAJPA-584 - Add support for custom implementations in CDI.
+* DATAJPA-582 - JpaMetamodelEntityInformation.isNew(…) throws ClassCastException for @Version of type Calendar.
+* DATAJPA-581 - Can no longer call save() with a @Version'ed detached entity in 1.6.2.
+* DATAJPA-580 - Move to Asciidoctor for reference documentation.
+* DATAJPA-579 - Adapt to new multi-store configuration detection.
+* DATAJPA-576 - Improve JpaMappingContext setup in configuration.
+* DATAJPA-575 - Adapt to deprecation removals in Spring Data Commons.
+* DATAJPA-574 - Support @QueryHints in implementation of QueryDslPredicateExecutor.
+* DATAJPA-362 - Parameter used in % LIKE expression is changed for whole query.
+
+
+Changes in version 1.6.2.RELEASE (2014-07-28)
+---------------------------------------------
+* DATAJPA-578 - Release 1.6.2.
+* DATAJPA-572 - Remove links to forum.spring.io.
+* DATAJPA-568 - Cannot update the new inserted entity which has @Version.
+* DATAJPA-567 - OptimisticLock does not work anymore.
+* DATAJPA-362 - Parameter used in % LIKE expression is changed for whole query.
+
+
+Changes in version 1.7.0.M1 (2014-07-10)
+----------------------------------------
+* DATAJPA-572 - Remove links to forum.spring.io.
+* DATAJPA-571 - Release 1.7 M1.
+* DATAJPA-568 - Cannot update the new inserted entity which has @Version.
+* DATAJPA-567 - OptimisticLock does not work anymore.
+* DATAJPA-566 - Adapt to Spring 4 upgrade.
+* DATAJPA-564 - Support for SpEL based parameter expressions in repository query methods.
+* DATAJPA-561 - Entity with primitive version property invalidly considered not new.
+* DATAJPA-558 - StackOverflow error when creating the MappingContext for domain types with generics.
+* DATAJPA-551 - Add support for limiting the query result in the query derivation mechanism.
+* DATAJPA-548 - Improve documentation on custom namespace attributes for jpa:repositories.
+* DATAJPA-545 - Special characters not allowed anymore in named binding parameter.
+* DATAJPA-527 - CrudRepository.exists(ID id) fails for entity with @IdClass.
+* DATAJPA-519 - ClasspathScanningPersistenceUnitPostProcessor throws NPE.
+* DATAJPA-506 - Add support for conversion of Blob values to byte[] in native queries.
+
+
+Changes in version 1.6.1.RELEASE (2014-06-30)
+---------------------------------------------
+* DATAJPA-563 - Release 1.6.1.
+* DATAJPA-561 - Entity with primitive version property invalidly considered not new.
+* DATAJPA-558 - StackOverflow error when creating the MappingContext for domain types with generics.
+* DATAJPA-554 - Avoid falling back to query derivation for invalid native queries.
+* DATAJPA-548 - Improve documentation on custom namespace attributes for jpa:repositories.
+* DATAJPA-545 - Special characters not allowed anymore in named binding parameter.
+* DATAJPA-527 - CrudRepository.exists(ID id) fails for entity with @IdClass.
+* DATAJPA-519 - ClasspathScanningPersistenceUnitPostProcessor throws NPE.
+
+
+Changes in version 1.5.3.RELEASE (2014-06-18)
+---------------------------------------------
+* DATAJPA-557 - Release 1.5.3.
+* DATAJPA-554 - Avoid falling back to query derivation for invalid native queries.
+* DATAJPA-548 - Improve documentation on custom namespace attributes for jpa:repositories.
+* DATAJPA-545 - Special characters not allowed anymore in named binding parameter.
+* DATAJPA-527 - CrudRepository.exists(ID id) fails for entity with @IdClass.
+* DATAJPA-516 - Missing/Misspelled NamedQuery gives dubious Exception.
+* DATAJPA-510 - Regression in 1.5.1 - Sort by property of an associated object doesn't work. Join property and INNER vs OUTER join when sorting.
+
+
+Changes in version 1.6.0.RELEASE (2014-05-20)
+---------------------------------------------
+* DATAJPA-544 - Add Travis build configuration to trigger matrix builds.
+* DATAJPA-543 - Update reference documentation for JPA 2.1 features.
+* DATAJPA-542 - Release 1.6 GA.
+* DATAJPA-531 - Add link to Accessing JPA Data With REST from readme.md.
+* DATAJPA-525 - JpaMetamodelMappingContext should guard against null Java type returned from ManagedType.
+* DATAJPA-510 - Regression in 1.5.1 - Sort by property of an associated object doesn't work. Join property and INNER vs OUTER join when sorting.
+* DATAJPA-456 - Add support for specifying only the projection part of a custom count query.
+
+
+Changes in version 1.6.0.RC1 (2014-05-02)
+-----------------------------------------
+* DATAJPA-522 - Release 1.6 RC1.
+* DATAJPA-517 - Defensively check for null for optional dependency to CrudMethodMetadata in SimpleJpaRepository.
+* DATAJPA-516 - Missing/Misspelled NamedQuery gives dubious Exception.
+* DATAJPA-513 - Improve error message for missing @Param annotations for query methods with named parameters.
+* DATAJPA-509 - Entity name used in 'count' queries ignores the entity name set in ORM mapping file.
+* DATAJPA-499 - Paginate with QueryDSL generate "nulls last" illegal syntax when using MSSQL.
+* DATAJPA-479 - Oracle Function Type should be supported in Spring Data JPA.
+* DATAJPA-455 - Add support for JPA 2.1 stored procedures.
+* DATAJPA-438 - JpaRepository: add Optional<T> as alternative to null result.
+
+Changes in version 1.5.2.RELEASE (2014-04-15)
+---------------------------------------------
+* Sorting for a field in a composite primary key throws "Can't cast to EntityPath". (DATAJPA-497)
+* Sorting of Embeddables raises ClassCastException. (DATAJPA-500)
+* OSGi version conflict regarding joda-time. (DATAJPA-502)
+* Error on QueryDSL after upgrade (DATAJPA-504)
+* Blob query result only returns first byte. (DATAJPA-505)
+* Entity name used in 'count' queries ignores the entity name set in ORM mapping file. (DATAJPA-509)
+* Performance tuning LockModePopulatingMethodIntercceptor.invoke(). (DATAJPA-507)
+* Improve error message for missing @Param annotations for query methods with named parameters. (DATAJPA-513)
+* Release 1.5.2. (DATAJPA-515)
+
+Changes in version 1.6.0.M1 (2014-03-31)
+----------------------------------------
+* Can't use pagination (Pageable) with @IdClass entities (spring-data-jpa 1.4.3 & Hibernate 4.1.9). (DATAJPA-472)
+* IllegalStateException caused by QueryUtils.toExpressionRecursively(…). (DATAJPA-476)
+* Parameter binding detection for in clause broken for parameters surrounded with parentheses. (DATAJPA-483)
+* findAll(Iterable<ID>) : Invalid comparation Exception thrown. (DATAJPA-492)
+* Missing Imports in Spring Data JPA for Auditing. (DATAJPA-494)
+* Query derivation doesn't create joins for in-clauses on element collections. (DATAJPA-496)
+* Sorting for a field in a composite primary key throws "Can't cast to EntityPath". (DATAJPA-497)
+* Sorting of Embeddables raises ClassCastException. (DATAJPA-500)
+* OSGi version conflict regarding joda-time. (DATAJPA-502)
+* Error on QueryDSL after upgrade. (DATAJPA-504)
+* Blob query result only returns first byte. (DATAJPA-505)
+* Support for @QueryHints on CRUD methods. (DATAJPA-173)
+* Add support for returning subtypes of Repository Entity in JpaRepository.saveAndFlush. (DATAJPA-464)
+* Postpone the construction of AuditorAware in AuditEntityListener. (DATAJPA-478)
+* Repositories should expose a single MappingContext instance. (DATAJPA-484)
+* Sort by property of an associated object generates left join only for the first level. (DATAJPA-491)
+* Update auditing configuration to be able to use accessor annotations. (DATAJPA-501)
+* Query creation for deleteBy / removeBy prefix. (DATAJPA-460)
+* Add support for lazy loading configuration via JPA 2.1 fetch-/loadgraph. (DATAJPA-466)
+* Add support for sliced execution. (DATAJPA-486)
+* Upgrade Hibernate build profiles to latest version. (DATAJPA-485)
+* Adapt to auditing configuration changes in Spring Data Commons. (DATAJPA-487)
+* Adapt to API changes in RepositoryProxyPostProcessor. (DATAJPA-489)
+* Upgrade to OpenJPA 2.3.0. (DATAJPA-493)
+* Release 1.6 M1. (DATAJPA-481)
+
+Changes in version 1.5.1.RELEASE (2014-03-13)
+---------------------------------------------
+* Verify that pagination works with entities with @IdClass. (DATAJPA-472)
+* Mitigate spec violations in Hibernate for query creation. (DATAJPA-476)
+* Fixed parameter binding detection with parentheses. (DATAJPA-483)
+* Upgraded to Hibernate profiles to 4.3.4 and 4.2.10. (DATAJPA-485)
+* Support order by arbitrarily nested association paths with Querydsl. (DATAJPA-491)
+* Altered implementation of findAll(Iterable<ID>) to work around bug in OpenJPA. (DATAJPA-492)
+* Fix template.mf to make sure auditing can be used on OSGi. (DATAJPA-494)
+* Query derivation doesn't create joins for in-clauses on element collections. (DATAJPA-496)
+
+Changes in version 1.4.5.RELEASE (2014-03-10)
+---------------------------------------------
+* When used "LIKE expression" and "other expression" at the same time, occurred the QuerySyntaxException of Hibernate. (DATAJPA-473)
+* IllegalStateException caused by QueryUtils.toExpressionRecursively(…). (DATAJPA-476)
+* findAll(Iterable<ID>) : Invalid comparation Exception thrown. (DATAJPA-492)
+* Improve FAQ, C2.1 on the SessionFactory replacement. (DATAJPA-462)
+* Documentation on CDI setup is incomplete. (DATAJPA-474)
+* Upgrade Hibernate build profiles to latest version. (DATAJPA-485)
+* Release 1.4.5. (DATAJPA-488)
+
+Changes in version 1.5.0.RELEASE (2014-02-24)
+-----------------------------------------
+
+* Query on byte array fails (DATAJPA-454)
+* Regression in parameter binding (DATAJPA-461)
+* Nullpointer when using @Query (DATAJPA-465)
+* Build fails against Spring 4 (DATAJPA-471)
+* When used "LIKE expression" and "other expression" at the same time, occurred the QuerySyntaxException of Hibernate. (DATAJPA-473)
+* Improve FAQ, C2.1 on the SessionFactory replacement (DATAJPA-462)
+* Documentation on CDI setup is incomplete (DATAJPA-474)
+* Add aop.xml to prevent Eclipse from weaving unnecessary aspects (DATAJPA-458)
+* Reduce log output for Querydsl APT processor (DATAJPA-459)
+* Release 1.5 GA (DATAJPA-469)
+* Documentation overhaul (DATAJPA-470)
+
+Changes in version 1.4.4.RELEASE (2014-02-17)
+---------------------------------------------
+* PersistenceProvider enum should also match org.hibernate.jpa.HibernateEntityManager (DATAJPA-444)
+* Query on byte array fails (DATAJPA-454)
+* Regression in parameter binding (DATAJPA-461)
+* Upgrade Hibernate 4 build to latest versions (DATAJPA-443)
+* Add contribution guidelines (DATAJPA-448)
+* Release 1.4.4 (DATAJPA-463)
+
+Changes in version 1.5.0.RC1 (2014-01-29)
+-----------------------------------------
+* Add Sort implementations that use JPA Metamodel API and/or QueryDsl API (DATAJPA-12)
+* Enable support to inject EntityManager via constructor (DATAJPA-445)
+* <jpa:repositories> needs explicitly given transaction manager even when there is only one tx manager (DATAJPA-410)
+* COUNT syntax error when use scalar select (select a.b, a.c from …) with paging (DATAJPA-420)
+* Sort by property of an associated object generates inner join instead of left join with QueryDsl and Hibernate (DATAJPA-427)
+* Fix incompatibilities with latest Hibernate 4.3 (CR2 currently) (DATAJPA-430)
+* Repository initialization causes transaction rollback in CDI environments (DATAJPA-442)
+* PersistenceProvider enum should also match org.hibernate.jpa.HibernateEntityManager (DATAJPA-444)
+* EntityManagerBeanDefinitionRegistrarPostProcessor doesn't find EntityManagerFactory definitions in BeanFactory hierarchy (DATAJPA-453)
+* Upgrade to EclipseLink 2.5.1 (DATAJPA-417)
+* Upgrade Hibernate 4 build to latest versions (DATAJPA-443)
+* Add contribution guidelines (DATAJPA-448)
+* Release Spring Data JPA 1.5.0.RC1 (DATAJPA-450)
+
+Changes in version 1.4.3.RELEASE (2013-12-11)
+---------------------------------------------
+* Improved documentation on jpa:repository namespace (DATAJPA-410)
+* Fixed count projection for manual queries with projections (DATAJPA-420)
+* Guard against null predicates on query creation. (DATAJPA-405)
+* Fixed alias detection in manually defined queries using SpEL (DATAJPA-424)
+* Generate left joins for referenced associations in sort expressions (DATAJPA-427)
+* Tweaks to be compatible with Hibernate 4.3 (DATAJPA-430)
+* Release 1.4.3 (DATAJPA-434)
+
+Changes in version 1.5.0.M1 (2013-11-19)
+----------------------------------------
 * CriteriaQuery caching causes problems with Hibernate's alias name generation in multithreaded environments (DATAJPA-396)
 * Unnecessary OUTER JOIN are generated for querying one single table (DATAJPA-401)
 * Unnecessary OUTER JOIN are generated when sorting on ElementCollection (DATAJPA-403)
@@ -222,7 +549,7 @@ Changes in version 1.1.0.RELEASE (2012-05-16)
 * Release 1.1 GA (DATAJPA-212)
 
 Changes in version 1.1.0.RC1 (2012-02-03)
------------------------------------------    
+-----------------------------------------
 * Support for locking (DATAJPA-73)
 * Added CDI integration for repositories (DATAJPA-136)
 * Support for @IdClass in entities (DATAJPA-50)

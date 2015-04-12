@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2013 the original author or authors.
+ * Copyright 2008-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,8 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.provider.PersistenceProvider;
+import org.springframework.data.jpa.repository.query.JpaQueryExecution.DeleteExecution;
 import org.springframework.data.jpa.repository.query.ParameterMetadataProvider.ParameterMetadata;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.parser.PartTree;
@@ -42,6 +44,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 
 	private final QueryPreparer query;
 	private final QueryPreparer countQuery;
+	private final EntityManager em;
 
 	/**
 	 * Creates a new {@link PartTreeJpaQuery}.
@@ -52,6 +55,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 	public PartTreeJpaQuery(JpaQueryMethod method, EntityManager em) {
 
 		super(method, em);
+		this.em = em;
 
 		this.domainClass = method.getEntityInformation().getJavaType();
 		this.tree = new PartTree(method.getName(), domainClass);
@@ -67,7 +71,6 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 	 */
 	@Override
 	public Query doCreateQuery(Object[] values) {
-
 		return query.createQuery(values);
 	}
 
@@ -78,14 +81,23 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 	@Override
 	@SuppressWarnings("unchecked")
 	public TypedQuery<Long> doCreateCountQuery(Object[] values) {
-
 		return (TypedQuery<Long>) countQuery.createQuery(values);
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.jpa.repository.query.AbstractJpaQuery#getExecution()
+	 */
+	@Override
+	protected JpaQueryExecution getExecution() {
+		return this.tree.isDelete() ? new DeleteExecution(em) : super.getExecution();
 	}
 
 	/**
 	 * Query preparer to create {@link CriteriaQuery} instances and potentially cache them.
 	 * 
 	 * @author Oliver Gierke
+	 * @author Thomas Darimont
 	 */
 	private class QueryPreparer {
 
@@ -118,7 +130,37 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 			}
 
 			TypedQuery<?> jpaQuery = createQuery(criteriaQuery);
-			return invokeBinding(getBinder(values, expressions), jpaQuery);
+
+			return restrictMaxResultsIfNecessary(invokeBinding(getBinder(values, expressions), jpaQuery));
+		}
+
+		/**
+		 * Restricts the max results of the given {@link Query} if the current {@code tree} marks this {@code query} as
+		 * limited.
+		 * 
+		 * @param query
+		 * @return
+		 */
+		private Query restrictMaxResultsIfNecessary(Query query) {
+
+			if (tree.isLimiting()) {
+
+				if (query.getMaxResults() != Integer.MAX_VALUE) {
+					/*
+					 * In order to return the correct results, we have to adjust the first result offset to be returned if:
+					 * - a Pageable parameter is present 
+					 * - AND the requested page number > 0
+					 * - AND the requested page size was bigger than the derived result limitation via the First/Top keyword.
+					 */
+					if (query.getMaxResults() > tree.getMaxResults() && query.getFirstResult() > 0) {
+						query.setFirstResult(query.getFirstResult() - (query.getMaxResults() - tree.getMaxResults()));
+					}
+				}
+
+				query.setMaxResults(tree.getMaxResults());
+			}
+
+			return query;
 		}
 
 		/**
@@ -145,9 +187,10 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 
 			EntityManager entityManager = getEntityManager();
 			CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+			PersistenceProvider persistenceProvider = PersistenceProvider.fromEntityManager(entityManager);
 
-			ParameterMetadataProvider provider = accessor == null ? new ParameterMetadataProvider(builder, parameters)
-					: new ParameterMetadataProvider(builder, accessor);
+			ParameterMetadataProvider provider = accessor == null ? new ParameterMetadataProvider(builder, parameters,
+					persistenceProvider) : new ParameterMetadataProvider(builder, accessor, persistenceProvider);
 
 			return new JpaQueryCreator(tree, domainClass, builder, provider);
 		}
@@ -179,6 +222,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 	 * Special {@link QueryPreparer} to create count queries.
 	 * 
 	 * @author Oliver Gierke
+	 * @author Thomas Darimont
 	 */
 	private class CountQueryPreparer extends QueryPreparer {
 
@@ -195,9 +239,10 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 
 			EntityManager entityManager = getEntityManager();
 			CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+			PersistenceProvider persistenceProvider = PersistenceProvider.fromEntityManager(entityManager);
 
-			ParameterMetadataProvider provider = accessor == null ? new ParameterMetadataProvider(builder, parameters)
-					: new ParameterMetadataProvider(builder, accessor);
+			ParameterMetadataProvider provider = accessor == null ? new ParameterMetadataProvider(builder, parameters,
+					persistenceProvider) : new ParameterMetadataProvider(builder, accessor, persistenceProvider);
 
 			return new JpaCountQueryCreator(tree, domainClass, builder, provider);
 		}

@@ -1,49 +1,63 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <persistence version="2.0" xmlns="http://java.sun.com/xml/ns/persistence" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd">
-	<persistence-unit name="default">
-		<class>org.springframework.data.jpa.domain.sample.AbstractMappedType</class>
+	<persistence-unit name="spring-data-jpa">
 		<class>org.springframework.data.jpa.domain.AbstractPersistable</class>
 		<class>org.springframework.data.jpa.domain.AbstractAuditable</class>
+		<class>org.springframework.data.jpa.domain.sample.AbstractAnnotatedAuditable</class>
+		<class>org.springframework.data.jpa.domain.sample.AbstractMappedType</class>
 		<class>org.springframework.data.jpa.domain.sample.Account</class>
-		<class>org.springframework.data.jpa.domain.sample.AuditableUser</class>
+		<class>org.springframework.data.jpa.domain.sample.Address</class>
+		<class>org.springframework.data.jpa.domain.sample.AnnotatedAuditableUser</class>
         <class>org.springframework.data.jpa.domain.sample.AuditableRole</class>
-		<class>org.springframework.data.jpa.domain.sample.Parent</class>
+		<class>org.springframework.data.jpa.domain.sample.AuditableUser</class>
+		<class>org.springframework.data.jpa.domain.sample.Category</class>
 		<class>org.springframework.data.jpa.domain.sample.Child</class>
+		<class>org.springframework.data.jpa.domain.sample.ConcreteType1</class>
+		<class>org.springframework.data.jpa.domain.sample.ConcreteType2</class>
+		<class>org.springframework.data.jpa.domain.sample.CustomAbstractPersistable</class>
+		<class>org.springframework.data.jpa.domain.sample.Customer</class>
+		<class>org.springframework.data.jpa.domain.sample.EmbeddedIdExampleEmployeePK</class>
+		<class>org.springframework.data.jpa.domain.sample.EmbeddedIdExampleEmployee</class>
+		<class>org.springframework.data.jpa.domain.sample.EmbeddedIdExampleDepartment</class>
+		<class>org.springframework.data.jpa.domain.sample.IdClassExampleEmployee</class>
+		<class>org.springframework.data.jpa.domain.sample.IdClassExampleDepartment</class>
+		<class>org.springframework.data.jpa.domain.sample.MailMessage</class>
+		<class>org.springframework.data.jpa.domain.sample.MailSender</class>
+		<class>org.springframework.data.jpa.domain.sample.MailUser</class>
+		<class>org.springframework.data.jpa.domain.sample.Order</class>
+		<class>org.springframework.data.jpa.domain.sample.Parent</class>
+		<class>org.springframework.data.jpa.domain.sample.PersistableWithIdClass</class>
+		<class>org.springframework.data.jpa.domain.sample.PrimitiveVersionProperty</class>
+		<class>org.springframework.data.jpa.domain.sample.Product</class>
 		<class>org.springframework.data.jpa.domain.sample.Role</class>
-		<class>org.springframework.data.jpa.domain.sample.SpecialUser</class>
-		<class>org.springframework.data.jpa.domain.sample.User</class>
 		<class>org.springframework.data.jpa.domain.sample.SampleEntity</class>
 		<class>org.springframework.data.jpa.domain.sample.SampleEntityPK</class>
 		<class>org.springframework.data.jpa.domain.sample.SampleWithIdClass</class>
 		<class>org.springframework.data.jpa.domain.sample.SampleWithPrimitiveId</class>
+		<class>org.springframework.data.jpa.domain.sample.SampleWithTimestampVersion</class>
+		<class>org.springframework.data.jpa.domain.sample.SpecialUser</class>
+		<class>org.springframework.data.jpa.domain.sample.User</class>
 		<class>org.springframework.data.jpa.domain.sample.VersionedUser</class>
-		<class>org.springframework.data.jpa.domain.sample.AbstractMappedType</class>
-		<class>org.springframework.data.jpa.domain.sample.ConcreteType1</class>
-		<class>org.springframework.data.jpa.domain.sample.ConcreteType2</class>
-		<class>org.springframework.data.jpa.domain.sample.IdClassExampleEmployee</class>
-		<class>org.springframework.data.jpa.domain.sample.IdClassExampleDepartment</class>
-		<class>org.springframework.data.jpa.domain.sample.EmbeddedIdExampleEmployeePK</class>
-		<class>org.springframework.data.jpa.domain.sample.EmbeddedIdExampleEmployee</class>
-		<class>org.springframework.data.jpa.domain.sample.EmbeddedIdExampleDepartment</class>
-		<class>org.springframework.data.jpa.domain.sample.Customer</class>
-		<class>org.springframework.data.jpa.domain.sample.Order</class>
-		<class>org.springframework.data.jpa.domain.sample.Address</class>
-		<class>org.springframework.data.jpa.domain.sample.MailMessage</class>
-		<class>org.springframework.data.jpa.domain.sample.MailSender</class>
+		<class>org.springframework.data.jpa.domain.sample.Dummy</class>
 		<exclude-unlisted-classes>true</exclude-unlisted-classes>
 	</persistence-unit>
 	<persistence-unit name="querydsl">
-		<class>org.springframework.data.jpa.domain.sample.User</class>
+		<class>org.springframework.data.jpa.domain.sample.CustomAbstractPersistable</class>
 		<class>org.springframework.data.jpa.domain.sample.MailMessage</class>
 		<class>org.springframework.data.jpa.domain.sample.MailSender</class>
+		<class>org.springframework.data.jpa.domain.sample.MailUser</class>
+		<class>org.springframework.data.jpa.domain.sample.User</class>
+		<class>org.springframework.data.jpa.domain.sample.Dummy</class>
 		<exclude-unlisted-classes>true</exclude-unlisted-classes>
 	</persistence-unit>
 	<persistence-unit name="cdi">
 		<provider>org.hibernate.ejb.HibernatePersistence</provider>
-		<class>org.springframework.data.jpa.domain.sample.User</class>
-		<class>org.springframework.data.jpa.repository.cdi.Person</class>
 		<class>org.springframework.data.jpa.domain.sample.MailMessage</class>
 		<class>org.springframework.data.jpa.domain.sample.MailSender</class>
+		<class>org.springframework.data.jpa.domain.sample.MailUser</class>
+		<class>org.springframework.data.jpa.domain.sample.User</class>
+		<class>org.springframework.data.jpa.repository.cdi.Person</class>
+		<class>org.springframework.data.jpa.domain.sample.Dummy</class>
 		<exclude-unlisted-classes>true</exclude-unlisted-classes>
 		<properties>
 			<property name="hibernate.connection.username" value="sa" />
@@ -55,13 +69,27 @@
 		</properties>
 	</persistence-unit>
 	
+	<!-- DATAJPA-476 -->
+	<persistence-unit name="merchant">
+		<class>org.springframework.data.jpa.domain.sample.User</class>
+		<class>org.springframework.data.jpa.repository.query.QueryUtilsIntegrationTests$Merchant</class>
+		<class>org.springframework.data.jpa.repository.query.QueryUtilsIntegrationTests$Employee</class>
+		<class>org.springframework.data.jpa.repository.query.QueryUtilsIntegrationTests$Credential</class>
+		<exclude-unlisted-classes>true</exclude-unlisted-classes>
+		<properties>
+			<property name="hibernate.dialect" value="org.hibernate.dialect.HSQLDialect" />
+		</properties>
+	</persistence-unit>
+	
 	<!--  Custom PUs for metadata tests -->
 	
 	<persistence-unit name="metadata">
 		<provider>org.hibernate.ejb.HibernatePersistence</provider>
-		<class>org.springframework.data.jpa.domain.sample.User</class>
+		<class>org.springframework.data.jpa.domain.sample.CustomAbstractPersistable</class>
 		<class>org.springframework.data.jpa.domain.sample.MailMessage</class>
 		<class>org.springframework.data.jpa.domain.sample.MailSender</class>
+		<class>org.springframework.data.jpa.domain.sample.MailUser</class>
+		<class>org.springframework.data.jpa.domain.sample.User</class>
 		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$Sample</class>
 		<exclude-unlisted-classes>true</exclude-unlisted-classes>
 		<properties>
@@ -70,18 +98,24 @@
 	</persistence-unit>
 	<persistence-unit name="metadata_el">
 		<provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
-		<class>org.springframework.data.jpa.domain.sample.User</class>
+		<class>org.springframework.data.jpa.domain.sample.CustomAbstractPersistable</class>
 		<class>org.springframework.data.jpa.domain.sample.MailMessage</class>
 		<class>org.springframework.data.jpa.domain.sample.MailSender</class>
+		<class>org.springframework.data.jpa.domain.sample.MailUser</class>
+		<class>org.springframework.data.jpa.domain.sample.User</class>
 		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$Sample</class>
+		<class>org.springframework.data.jpa.domain.sample.Dummy</class>
 		<exclude-unlisted-classes>true</exclude-unlisted-classes>
 	</persistence-unit>
 	<persistence-unit name="metadata_oj">
 		<provider>org.apache.openjpa.persistence.PersistenceProviderImpl</provider>
-		<class>org.springframework.data.jpa.domain.sample.User</class>
+		<class>org.springframework.data.jpa.domain.sample.CustomAbstractPersistable</class>
 		<class>org.springframework.data.jpa.domain.sample.MailMessage</class>
 		<class>org.springframework.data.jpa.domain.sample.MailSender</class>
+		<class>org.springframework.data.jpa.domain.sample.MailUser</class>
+		<class>org.springframework.data.jpa.domain.sample.User</class>
 		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$Sample</class>
+		<class>org.springframework.data.jpa.domain.sample.Dummy</class>
 		<exclude-unlisted-classes>true</exclude-unlisted-classes>
 		<properties>
 			<property name="openjpa.jdbc.DBDictionary" value="hsql" />
@@ -91,5 +125,5 @@
 	        <property name="openjpa.ConnectionPassword" value="" />
 		</properties>
 	</persistence-unit>
-	
+
 </persistence>

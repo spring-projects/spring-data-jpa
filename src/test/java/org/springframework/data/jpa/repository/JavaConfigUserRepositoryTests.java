@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2013 the original author or authors.
+ * Copyright 2012-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,16 @@
 package org.springframework.data.jpa.repository;
 
 import java.io.IOException;
+import java.util.List;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
 import org.junit.Test;
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -33,11 +34,14 @@ import org.springframework.context.annotation.ImportResource;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.data.jpa.repository.sample.SampleEvaluationContextExtension;
 import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.data.jpa.repository.sample.UserRepositoryImpl;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean;
 import org.springframework.data.repository.core.NamedQueries;
 import org.springframework.data.repository.core.support.PropertiesBasedNamedQueries;
+import org.springframework.data.repository.query.ExtensionAwareEvaluationContextProvider;
+import org.springframework.data.repository.query.spi.EvaluationContextExtension;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
 
@@ -45,6 +49,7 @@ import org.springframework.test.context.support.AnnotationConfigContextLoader;
  * Integration test for {@link UserRepository} using JavaConfig.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 @ContextConfiguration(inheritLocations = false, loader = AnnotationConfigContextLoader.class)
 public class JavaConfigUserRepositoryTests extends UserRepositoryTests {
@@ -54,17 +59,28 @@ public class JavaConfigUserRepositoryTests extends UserRepositoryTests {
 	static class Config {
 
 		@PersistenceContext EntityManager entityManager;
-		@Autowired BeanFactory beanFactory;
+		@Autowired ApplicationContext applicationContext;
+		@Autowired List<EvaluationContextExtension> extensions;
 
 		@Bean
-		public UserRepository userRepository() throws IOException {
+		public EvaluationContextExtension sampleEvaluationContextExtension() {
+			return new SampleEvaluationContextExtension();
+		}
+
+		@Bean
+		public UserRepository userRepository() throws Exception {
+
+			ExtensionAwareEvaluationContextProvider evaluationContextProvider = new ExtensionAwareEvaluationContextProvider(
+					extensions);
+			evaluationContextProvider.setApplicationContext(applicationContext);
 
 			JpaRepositoryFactoryBean<UserRepository, User, Integer> factory = new JpaRepositoryFactoryBean<UserRepository, User, Integer>();
 			factory.setEntityManager(entityManager);
-			factory.setBeanFactory(beanFactory);
+			factory.setBeanFactory(applicationContext);
 			factory.setRepositoryInterface(UserRepository.class);
 			factory.setCustomImplementation(new UserRepositoryImpl());
 			factory.setNamedQueries(namedQueries());
+			factory.setEvaluationContextProvider(evaluationContextProvider);
 			factory.afterPropertiesSet();
 
 			return factory.getObject();
