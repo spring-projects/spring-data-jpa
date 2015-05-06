@@ -22,6 +22,7 @@ import java.util.Collections;
 
 import javax.persistence.Access;
 import javax.persistence.AccessType;
+import javax.persistence.Column;
 import javax.persistence.Embeddable;
 import javax.persistence.Embedded;
 import javax.persistence.ManyToOne;
@@ -181,6 +182,14 @@ public class JpaPersistentPropertyImplUnitTests {
 		assertThat(entityType.iterator().next(), is((TypeInformation) ClassTypeInformation.from(Implementation.class)));
 	}
 
+	/**
+	 * @see DATAJPA-716
+	 */
+	@Test
+	public void considersNonUpdateablePropertyNotWriteable() {
+		assertThat(getProperty(WithReadOnly.class, "name").isWritable(), is(false));
+	}
+
 	private JpaPersistentProperty getProperty(Class<?> ownerType, String propertyName) {
 
 		JpaPersistentEntity<?> entity = context.getPersistentEntity(ownerType);
@@ -299,4 +308,8 @@ public class JpaPersistentPropertyImplUnitTests {
 	static interface Api {}
 
 	static class Implementation {}
+
+	static class WithReadOnly {
+		@Column(updatable = false) String name;
+	}
 }
