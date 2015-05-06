@@ -25,6 +25,7 @@ import java.util.Set;
 
 import javax.persistence.Access;
 import javax.persistence.AccessType;
+import javax.persistence.Column;
 import javax.persistence.Embeddable;
 import javax.persistence.Embedded;
 import javax.persistence.EmbeddedId;
@@ -33,6 +34,7 @@ import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
+import javax.persistence.OrderColumn;
 import javax.persistence.Transient;
 import javax.persistence.Version;
 import javax.persistence.metamodel.Metamodel;
@@ -58,6 +60,7 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 
 	private static final Collection<Class<? extends Annotation>> ASSOCIATION_ANNOTATIONS;
 	private static final Collection<Class<? extends Annotation>> ID_ANNOTATIONS;
+	private static final Collection<Class<? extends Annotation>> UPDATEABLE_ANNOTATIONS;
 
 	static {
 
@@ -74,12 +77,19 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 		annotations.add(Id.class);
 		annotations.add(EmbeddedId.class);
 
-		ID_ANNOTATIONS = annotations;
+		ID_ANNOTATIONS = Collections.unmodifiableSet(annotations);
+
+		annotations = new HashSet<Class<? extends Annotation>>();
+		annotations.add(Column.class);
+		annotations.add(OrderColumn.class);
+
+		UPDATEABLE_ANNOTATIONS = Collections.unmodifiableSet(annotations);
 	}
 
 	private final Metamodel metamodel;
 	private final Boolean usePropertyAccess;
 	private final TypeInformation<?> associationTargetType;
+	private final boolean updateable;
 
 	/**
 	 * Creates a new {@link JpaPersistentPropertyImpl}
@@ -100,6 +110,7 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 		this.metamodel = metamodel;
 		this.usePropertyAccess = detectPropertyAccess();
 		this.associationTargetType = isAssociation() ? detectAssociationTargetType() : null;
+		this.updateable = detectUpdatability();
 	}
 
 	/* 
@@ -208,6 +219,15 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 		return isAnnotationPresent(Version.class) || super.isVersionProperty();
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.mapping.model.AnnotationBasedPersistentProperty#isWritable()
+	 */
+	@Override
+	public boolean isWritable() {
+		return updateable && super.isWritable();
+	}
+
 	/**
 	 * Looks up both Spring Data's and JPA's access type definition annotations on the property or type level to determine
 	 * the access type to be used. Will consider property-level annotations over type-level ones, favoring the Spring Data
@@ -258,5 +278,25 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 		}
 
 		return null;
+	}
+
+	/**
+	 * Checks whether {@code updateable} attribute of any of the {@link #UPDATEABLE_ANNOTATIONS} is configured to
+	 * {@literal true}.
+	 * 
+	 * @return
+	 */
+	private final boolean detectUpdatability() {
+
+		for (Class<? extends Annotation> annotationType : UPDATEABLE_ANNOTATIONS) {
+
+			Annotation annotation = findAnnotation(annotationType);
+
+			if (annotation != null && AnnotationUtils.getValue(annotation, "updateable") == Boolean.TRUE) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 }
