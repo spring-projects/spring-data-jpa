@@ -13,6 +13,7 @@ env:
     - PROFILE=hibernate-41
     - PROFILE=hibernate-42
     - PROFILE=hibernate-43
+    - PROFILE=hibernate-5
 
 sudo: false
 

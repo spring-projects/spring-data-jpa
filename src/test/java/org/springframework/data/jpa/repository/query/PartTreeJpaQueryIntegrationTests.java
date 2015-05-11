@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License
 import org.springframework.aop.framework.Advised;
@@ -59,6 +59,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration("classpath:infrastructure.xml")
 public class PartTreeJpaQueryIntegrationTests {
 
+	private static String PROPERTY = "h.target." + getQueryProperty();
+
 	@Rule public ExpectedException thrown = ExpectedException.none();
 
 	@PersistenceContext EntityManager entityManager;
@@ -106,12 +108,12 @@ public class PartTreeJpaQueryIntegrationTests {
 
 		Query query = jpaQuery.createQuery(new Object[] { "Matthews", new PageRequest(0, 1) });
 
-		HibernateQuery hibernateQuery = getValue(query, "h.target." + (isHibernate43() ? "jpqlQuery" : "val$jpaqlQuery"));
+		HibernateQuery hibernateQuery = getValue(query, PROPERTY);
 		assertThat(hibernateQuery.getHibernateQuery().getQueryString(), endsWith("firstname=:param0"));
 
 		query = jpaQuery.createQuery(new Object[] { null, new PageRequest(0, 1) });
 
-		hibernateQuery = getValue(query, "h.target." + (isHibernate43() ? "jpqlQuery" : "val$jpaqlQuery"));
+		hibernateQuery = getValue(query, PROPERTY);
 		assertThat(hibernateQuery.getHibernateQuery().getQueryString(), endsWith("firstname is null"));
 	}
 
@@ -141,8 +143,16 @@ public class PartTreeJpaQueryIntegrationTests {
 		return (T) result;
 	}
 
+	private static String getQueryProperty() {
+		return isHibernate43() || isHibernate5() ? "jpqlQuery" : "val$jpaqlQuery";
+	}
+
 	private static boolean isHibernate43() {
 		return Version.getVersionString().startsWith("4.3");
+	}
+
+	private static boolean isHibernate5() {
+		return Version.getVersionString().startsWith("5.");
 	}
 
 	interface UserRepository extends Repository<User, Long> {
