@@ -16,6 +16,7 @@
 package org.springframework.data.jpa.repository.query;
 
 import java.util.Arrays;
+import java.util.List;
 
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.EntityGraph.EntityGraphType;
@@ -34,7 +35,7 @@ public class JpaEntityGraph {
 
 	private final String name;
 	private final EntityGraphType type;
-	private final String[] attributePaths;
+	private final List<String> attributePaths;
 
 	/**
 	 * Creates an {@link JpaEntityGraph}.
@@ -48,11 +49,12 @@ public class JpaEntityGraph {
 	}
 
 	/**
-	 * Creates an {@link JpaEntityGraph}.
+	 * Creates an {@link JpaEntityGraph} with the given name, {@link EntityGraphType} and attribute paths.
 	 * 
 	 * @param name must not be {@literal null} or empty.
 	 * @param type must not be {@literal null}.
 	 * @param attributePaths may be {@literal null}.
+	 * @since 1.9
 	 */
 	public JpaEntityGraph(String name, EntityGraphType type, String[] attributePaths) {
 
@@ -61,7 +63,7 @@ public class JpaEntityGraph {
 
 		this.name = name;
 		this.type = type;
-		this.attributePaths = attributePaths == null ? EMPTY_ATTRIBUTE_PATHS : attributePaths;
+		this.attributePaths = Arrays.asList(attributePaths == null ? EMPTY_ATTRIBUTE_PATHS : attributePaths);
 	}
 
 	/**
@@ -88,7 +90,7 @@ public class JpaEntityGraph {
 	 * @return
 	 * @since 1.9
 	 */
-	public String[] getAttributePaths() {
+	public List<String> getAttributePaths() {
 		return attributePaths;
 	}
 
@@ -96,9 +98,10 @@ public class JpaEntityGraph {
 	 * Return {@literal true} if this {@link JpaEntityGraph} needs to be generated on-the-fly.
 	 * 
 	 * @return
+	 * @since 1.9
 	 */
-	public boolean isDynamicEntityGraph() {
-		return this.attributePaths.length > 0;
+	public boolean isAdHocEntityGraph() {
+		return !attributePaths.isEmpty();
 	}
 
 	/* 
@@ -107,7 +110,6 @@ public class JpaEntityGraph {
 	 */
 	@Override
 	public String toString() {
-		return "JpaEntityGraph [name=" + name + ", type=" + type + ", attributePaths=" + Arrays.toString(attributePaths)
-				+ "]";
+		return "JpaEntityGraph [name=" + name + ", type=" + type + ", attributePaths=" + attributePaths.toString() + "]";
 	}
 }

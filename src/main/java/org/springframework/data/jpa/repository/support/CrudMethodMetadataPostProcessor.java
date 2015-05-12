@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 the original author or authors.
+ * Copyright 2011-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,10 +34,8 @@ import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.QueryHints;
-import org.springframework.data.jpa.repository.query.JpaEntityGraph;
 import org.springframework.data.repository.core.RepositoryInformation;
 import org.springframework.data.repository.core.support.RepositoryProxyPostProcessor;
-import org.springframework.data.util.ReflectionUtils;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
 
@@ -203,16 +201,18 @@ enum CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor {
 		public Map<String, Object> getQueryHints() {
 			return queryHints;
 		}
-		
-		/* (non-Javadoc)
+
+		/* 
+		 * (non-Javadoc)
 		 * @see org.springframework.data.jpa.repository.support.CrudMethodMetadata#getEntityGraph()
 		 */
 		@Override
 		public EntityGraph getEntityGraph() {
 			return entityGraph;
 		}
-		
-		/* (non-Javadoc)
+
+		/* 
+		 * (non-Javadoc)
 		 * @see org.springframework.data.jpa.repository.support.CrudMethodMetadata#getMethod()
 		 */
 		@Override

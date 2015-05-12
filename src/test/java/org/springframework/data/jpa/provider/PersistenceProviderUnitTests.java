@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,37 +15,21 @@
  */
 package org.springframework.data.jpa.provider;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.springframework.data.jpa.provider.PersistenceProvider.ECLIPSELINK;
-import static org.springframework.data.jpa.provider.PersistenceProvider.GENERIC_JPA;
-import static org.springframework.data.jpa.provider.PersistenceProvider.HIBERNATE;
-import static org.springframework.data.jpa.provider.PersistenceProvider.OPEN_JPA;
-import static org.springframework.data.jpa.provider.PersistenceProvider.fromEntityManager;
-import static org.springframework.data.jpa.provider.PersistenceProvider.Constants.ECLIPSELINK_ENTITY_MANAGER_INTERFACE;
-import static org.springframework.data.jpa.provider.PersistenceProvider.Constants.HIBERNATE43_ENTITY_MANAGER_INTERFACE;
-import static org.springframework.data.jpa.provider.PersistenceProvider.Constants.HIBERNATE_ENTITY_MANAGER_INTERFACE;
-import static org.springframework.data.jpa.provider.PersistenceProvider.Constants.OPENJPA_ENTITY_MANAGER_INTERFACE;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.*;
+import static org.springframework.data.jpa.provider.PersistenceProvider.*;
+import static org.springframework.data.jpa.provider.PersistenceProvider.Constants.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.persistence.EntityGraph;
 import javax.persistence.EntityManager;
-import javax.persistence.Subgraph;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.asm.ClassWriter;
 import org.springframework.asm.Opcodes;
-import org.springframework.data.jpa.repository.EntityGraph.EntityGraphType;
-import org.springframework.data.jpa.repository.query.JpaEntityGraph;
 import org.springframework.instrument.classloading.ShadowingClassLoader;
 import org.springframework.util.ClassUtils;
 
@@ -116,26 +100,6 @@ public class PersistenceProviderUnitTests {
 		EntityManager em = mockProviderSpecificEntityManagerInterface("foo.bar.unknown.jpa.JpaEntityManager");
 
 		assertThat(fromEntityManager(em), is(GENERIC_JPA));
-	}
-
-	/**
-	 * @see DATAJPA-696
-	 */
-	@Test
-	public void shouldBuildCorrectSubgraphForJpaEntityGraph() throws Exception {
-
-		EntityGraph<?> entityGraph = mock(EntityGraph.class);
-		Subgraph<?> subgraph = mock(Subgraph.class);
-		doReturn(subgraph).when(entityGraph).addSubgraph(anyString());
-
-		JpaEntityGraph jpaEntityGraph = new JpaEntityGraph("foo", EntityGraphType.FETCH,
-				new String[] { "foo", "gugu.gaga" });
-
-		PersistenceProvider.GENERIC_JPA.configureFetchGraphFrom(jpaEntityGraph, entityGraph);
-
-		verify(entityGraph, times(1)).addAttributeNodes("foo");
-		verify(entityGraph, times(1)).addSubgraph("gugu");
-		verify(subgraph, times(1)).addAttributeNodes("gaga");
 	}
 
 	private EntityManager mockProviderSpecificEntityManagerInterface(String interfaceName) throws ClassNotFoundException {

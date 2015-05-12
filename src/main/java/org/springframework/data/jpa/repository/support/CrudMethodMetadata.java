@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 the original author or authors.
+ * Copyright 2011-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import java.util.Map;
 import javax.persistence.LockModeType;
 
 import org.springframework.data.jpa.repository.EntityGraph;
-import org.springframework.data.jpa.repository.query.JpaEntityGraph;
 
 /**
  * Interface to abstract {@link CrudMethodMetadata} that provide the {@link LockModeType} to be used for query
@@ -53,7 +52,7 @@ public interface CrudMethodMetadata {
 	 * @since 1.9
 	 */
 	EntityGraph getEntityGraph();
-	
+
 	/**
 	 * Returns the {@link Method} to be used.
 	 * 
