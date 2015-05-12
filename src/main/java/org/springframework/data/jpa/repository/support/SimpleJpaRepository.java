@@ -15,11 +15,7 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import static org.springframework.data.jpa.repository.query.QueryUtils.COUNT_QUERY_STRING;
-import static org.springframework.data.jpa.repository.query.QueryUtils.DELETE_ALL_QUERY_STRING;
-import static org.springframework.data.jpa.repository.query.QueryUtils.applyAndBind;
-import static org.springframework.data.jpa.repository.query.QueryUtils.getQueryString;
-import static org.springframework.data.jpa.repository.query.QueryUtils.toOrders;
+import static org.springframework.data.jpa.repository.query.QueryUtils.*;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -260,7 +256,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	}
 
 	private JpaEntityGraph getEntityGraph() {
-		
+
 		String fallbackName = this.entityInformation.getEntityName() + "." + metadata.getMethod().getName();
 		return new JpaEntityGraph(metadata.getEntityGraph(), fallbackName);
 	}

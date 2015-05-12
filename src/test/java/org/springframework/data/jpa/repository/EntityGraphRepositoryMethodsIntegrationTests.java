@@ -31,13 +31,16 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.domain.sample.User;
-import org.springframework.data.jpa.repository.sample.RepositoryMethodsWithEntityGraphConfigJpaRepository;
+import org.springframework.data.jpa.repository.sample.RepositoryMethodsWithEntityGraphConfigRepository;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
+ * Integration tests for RepositoryMethodsWithEntityGraphConfigJpaRepository.
+ * 
  * @author Thomas Darimont
+ * @author Oliver Gierke
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("classpath:config/namespace-autoconfig-context.xml")
@@ -45,25 +48,25 @@ import org.springframework.transaction.annotation.Transactional;
 public class EntityGraphRepositoryMethodsIntegrationTests {
 
 	@Autowired EntityManager em;
-	@Autowired RepositoryMethodsWithEntityGraphConfigJpaRepository repository;
+	@Autowired RepositoryMethodsWithEntityGraphConfigRepository repository;
 
 	User tom;
-	User olli;
+	User ollie;
 	Role role;
 
 	@Before
 	public void setup() {
 
 		tom = new User("Thomas", "Darimont", "tdarimont@example.org");
-		olli = new User("Oliver", "Gierke", "ogierke@example.org");
+		ollie = new User("Oliver", "Gierke", "ogierke@example.org");
 
 		role = new Role("Developer");
 		em.persist(role);
 		tom.getRoles().add(role);
 		tom = repository.save(tom);
-		
-		olli = repository.save(olli);
-		tom.getColleagues().add(olli);
+
+		ollie = repository.save(ollie);
+		tom.getColleagues().add(ollie);
 	}
 
 	/**
@@ -95,7 +98,7 @@ public class EntityGraphRepositoryMethodsIntegrationTests {
 		assertThat("colleages should be fetched with 'user.detail' fetchgraph",
 				Persistence.getPersistenceUtil().isLoaded(user.getColleagues()), is(true));
 	}
-	
+
 	/**
 	 * @see DATAJPA-696
 	 */
@@ -110,7 +113,7 @@ public class EntityGraphRepositoryMethodsIntegrationTests {
 		assertThat("colleages should be fetched with 'user.detail' fetchgraph",
 				Persistence.getPersistenceUtil().isLoaded(user.getColleagues()), is(true));
 	}
-	
+
 	/**
 	 * @see DATAJPA-696
 	 */

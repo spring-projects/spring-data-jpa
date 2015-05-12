@@ -15,17 +15,8 @@
  */
 package org.springframework.data.jpa.provider;
 
-import static org.springframework.data.jpa.provider.JpaClassUtils.isEntityManagerOfType;
-import static org.springframework.data.jpa.provider.JpaClassUtils.isMetamodelOfType;
-import static org.springframework.data.jpa.provider.PersistenceProvider.Constants.ECLIPSELINK_ENTITY_MANAGER_INTERFACE;
-import static org.springframework.data.jpa.provider.PersistenceProvider.Constants.ECLIPSELINK_JPA_METAMODEL_TYPE;
-import static org.springframework.data.jpa.provider.PersistenceProvider.Constants.GENERIC_JPA_ENTITY_MANAGER_INTERFACE;
-import static org.springframework.data.jpa.provider.PersistenceProvider.Constants.HIBERNATE43_ENTITY_MANAGER_INTERFACE;
-import static org.springframework.data.jpa.provider.PersistenceProvider.Constants.HIBERNATE43_JPA_METAMODEL_TYPE;
-import static org.springframework.data.jpa.provider.PersistenceProvider.Constants.HIBERNATE_ENTITY_MANAGER_INTERFACE;
-import static org.springframework.data.jpa.provider.PersistenceProvider.Constants.HIBERNATE_JPA_METAMODEL_TYPE;
-import static org.springframework.data.jpa.provider.PersistenceProvider.Constants.OPENJPA_ENTITY_MANAGER_INTERFACE;
-import static org.springframework.data.jpa.provider.PersistenceProvider.Constants.OPENJPA_JPA_METAMODEL_TYPE;
+import static org.springframework.data.jpa.provider.JpaClassUtils.*;
+import static org.springframework.data.jpa.provider.PersistenceProvider.Constants.*;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -33,10 +24,8 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.persistence.EntityGraph;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
-import javax.persistence.Subgraph;
 import javax.persistence.metamodel.Metamodel;
 
 import org.apache.openjpa.enhance.PersistenceCapable;
@@ -53,12 +42,10 @@ import org.hibernate.ScrollableResults;
 import org.hibernate.ejb.HibernateQuery;
 import org.hibernate.proxy.HibernateProxy;
 import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.data.jpa.repository.query.JpaEntityGraph;
 import org.springframework.data.util.CloseableIterator;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
-import org.springframework.util.StringUtils;
 
 /**
  * Enumeration representing persistence providers to be used.
@@ -365,69 +352,6 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 	public CloseableIterator<Object> executeQueryWithResultStream(Query jpaQuery) {
 		throw new UnsupportedOperationException("Streaming results is not implement for this PersistenceProvider: "
 				+ name());
-	}
-
-	/**
-	 * Creates a dynamic {@link EntityGraph} from the given {@link JpaEntityGraph} information. 
-	 * 
-	 * @param em
-	 * @param jpaEntityGraph
-	 * @param entityType
-	 * @return
-	 * 
-	 * @since 1.9
-	 */
-	public EntityGraph<?> createDynamicEntityGraph(EntityManager em, JpaEntityGraph jpaEntityGraph, Class<?> entityType) {
-
-		Assert.isTrue(jpaEntityGraph.isDynamicEntityGraph(), "The given " + jpaEntityGraph + " is not dynamic!");
-
-		EntityGraph<?> entityGraph = em.createEntityGraph(entityType);
-
-		configureFetchGraphFrom(jpaEntityGraph, entityGraph);
-
-		return entityGraph;
-	}
-
-	
-	/**
-	 * Configures the given {@link EntityGraph} with the fetch graph information stored in {@link JpaEntityGraph}.
-	 * 
-	 * @param jpaEntityGraph
-	 * @param entityGraph
-	 */
-	/* visible for testing */
-	void configureFetchGraphFrom(JpaEntityGraph jpaEntityGraph, EntityGraph<?> entityGraph) {
-
-		String[] attributePaths = jpaEntityGraph.getAttributePaths().clone();
-
-		// sort to ensure that the intermediate entity subgraphs are created accordingly.
-		Arrays.sort(attributePaths);
-
-		// we build the entity graph based on the paths with highest depth first
-		for (int i = attributePaths.length - 1; i >= 0; i--) {
-
-			String path = attributePaths[i];
-			
-			//fast path just single attribute
-			if (!path.contains(".")) {
-				entityGraph.addAttributeNodes(path);
-				continue;
-			}
-
-			//we need to build nested sub fetch graphs
-			String[] pathComponents = StringUtils.delimitedListToStringArray(path, ".");
-
-			Subgraph<?> parent = null;
-			for (int c = 0; c < pathComponents.length - 1; c++) {
-
-				if (c == 0) {
-					parent = entityGraph.addSubgraph(pathComponents[c]);
-				} else {
-					parent = parent.addSubgraph(pathComponents[c]);
-				}
-			}
-			parent.addAttributeNodes(pathComponents[pathComponents.length - 1]);
-		}
 	}
 
 	/**

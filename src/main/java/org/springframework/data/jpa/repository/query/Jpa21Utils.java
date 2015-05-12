@@ -16,17 +16,20 @@
 package org.springframework.data.jpa.repository.query;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import javax.persistence.EntityGraph;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
+import javax.persistence.Subgraph;
 
-import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
+import org.springframework.util.StringUtils;
 
 /**
  * Utils for bridging various JPA 2.1 features.
@@ -57,11 +60,10 @@ public class Jpa21Utils {
 	/**
 	 * Returns a {@link Map} with hints for a JPA 2.1 fetch-graph or load-graph if running under JPA 2.1.
 	 * 
-	 * @param em must not be {@literal null}
-	 * @param query must not be {@literal null}
-	 * @param entityGraph can be {@literal null}
-	 * @param entityType must not be {@literal null}
-	 * @return a {@code Map} with the hints or an empty {@code Map} if no hints were found
+	 * @param em must not be {@literal null}.
+	 * @param entityGraph can be {@literal null}.
+	 * @param entityType must not be {@literal null}.
+	 * @return a {@code Map} with the hints or an empty {@code Map} if no hints were found.
 	 * @since 1.8
 	 */
 	public static Map<String, Object> tryGetFetchGraphHints(EntityManager em, JpaEntityGraph entityGraph,
@@ -104,7 +106,65 @@ public class Jpa21Utils {
 			return em.getEntityGraph(jpaEntityGraph.getName());
 		} catch (Exception ex) {
 			// try to create and dynamically register the entityGraph
-			return PersistenceProvider.fromEntityManager(em).createDynamicEntityGraph(em, jpaEntityGraph, entityType);
+			return createDynamicEntityGraph(em, jpaEntityGraph, entityType);
+		}
+	}
+
+	/**
+	 * Creates a dynamic {@link EntityGraph} from the given {@link JpaEntityGraph} information.
+	 * 
+	 * @param em must not be {@literal null}.
+	 * @param jpaEntityGraph must not be {@literal null}.
+	 * @param entityType must not be {@literal null}.
+	 * @return
+	 * @since 1.9
+	 */
+	private static EntityGraph<?> createDynamicEntityGraph(EntityManager em, JpaEntityGraph jpaEntityGraph,
+			Class<?> entityType) {
+
+		Assert.notNull(em, "EntityManager must not be null!");
+		Assert.notNull(jpaEntityGraph, "JpaEntityGraph must not be null!");
+		Assert.notNull(entityType, "Entity type must not be null!");
+		Assert.isTrue(jpaEntityGraph.isAdHocEntityGraph(), "The given " + jpaEntityGraph + " is not dynamic!");
+
+		EntityGraph<?> entityGraph = em.createEntityGraph(entityType);
+		configureFetchGraphFrom(jpaEntityGraph, entityGraph);
+
+		return entityGraph;
+	}
+
+	/**
+	 * Configures the given {@link EntityGraph} with the fetch graph information stored in {@link JpaEntityGraph}.
+	 * 
+	 * @param jpaEntityGraph
+	 * @param entityGraph
+	 */
+	static void configureFetchGraphFrom(JpaEntityGraph jpaEntityGraph, EntityGraph<?> entityGraph) {
+
+		List<String> attributePaths = new ArrayList<String>(jpaEntityGraph.getAttributePaths());
+
+		// Sort to ensure that the intermediate entity subgraphs are created accordingly.
+		Collections.sort(attributePaths);
+		Collections.reverse(attributePaths);
+
+		// We build the entity graph based on the paths with highest depth first
+		for (String path : attributePaths) {
+
+			// Fast path - just single attribute
+			if (!path.contains(".")) {
+				entityGraph.addAttributeNodes(path);
+				continue;
+			}
+
+			// We need to build nested sub fetch graphs
+			String[] pathComponents = StringUtils.delimitedListToStringArray(path, ".");
+			Subgraph<?> parent = null;
+
+			for (int c = 0; c < pathComponents.length - 1; c++) {
+				parent = c == 0 ? entityGraph.addSubgraph(pathComponents[c]) : parent.addSubgraph(pathComponents[c]);
+			}
+
+			parent.addAttributeNodes(pathComponents[pathComponents.length - 1]);
 		}
 	}
 }
