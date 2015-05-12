@@ -15,7 +15,6 @@
 		<groupId>org.springframework.data.build</groupId>
 		<artifactId>spring-data-parent</artifactId>
 		<version>1.5.3.BUILD-SNAPSHOT</version>
-		<relativePath>../spring-data-build/parent/pom.xml</relativePath>
 	</parent>
 
 	<properties>
