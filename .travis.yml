@@ -23,3 +23,6 @@ cache:
 install: true
 
 script: "mvn clean dependency:list test -P${PROFILE} -Dsort"
+notifications:
+  slack:
+    secure: VYoJ2D6BM3etTNHJArJ47rVvj49PRZ+eIg12itOzlQSCnsPPob9X2OJVZ8Umatfx6TyP+rOrJAz+pqA1geumEzx+dIWTtBf6og703XKS9feLpM7sa1DupdstlGu506Wwevmb7nUq/Ct0ziCZykD3Cqu9tOhnai5wWlULBYDQ4WE=
