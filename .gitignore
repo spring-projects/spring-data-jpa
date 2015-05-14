@@ -5,3 +5,7 @@ target/
 .springBeans
 .sonar4clipse
 *.sonar4clipseExternals
+*.iml
+.idea
+_site
+dump.rdb
