@@ -32,6 +32,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.data.jpa.domain.sample.Category;
+import org.springframework.data.jpa.domain.sample.OrmXmlEntity;
 import org.springframework.data.jpa.domain.sample.Product;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
@@ -47,6 +48,7 @@ import org.springframework.transaction.support.TransactionTemplate;
  * Integration tests for {@link JpaMetamodelMappingContext}.
  *
  * @author Oliver Gierke
+ * @author Thomas Darimont
  * @since 1.3
  */
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -146,5 +148,16 @@ public class JpaMetamodelMappingContextIntegrationTests {
 
 			return null;
 		});
+	}
+
+	/**
+	 * @see DATAJPA-658
+	 */
+	@Test
+	public void shouldDetectIdPropertyForEntityConfiguredViaOrmXmlWithoutAnyAnnotations() {
+
+		JpaPersistentEntity<?> entity = context.getPersistentEntity(OrmXmlEntity.class);
+
+		assertThat(entity.getIdProperty(), is(notNullValue()));
 	}
 }
