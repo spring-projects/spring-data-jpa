@@ -37,7 +37,9 @@ import javax.persistence.OneToOne;
 import javax.persistence.OrderColumn;
 import javax.persistence.Transient;
 import javax.persistence.Version;
+import javax.persistence.metamodel.EntityType;
 import javax.persistence.metamodel.Metamodel;
+import javax.persistence.metamodel.SingularAttribute;
 
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.data.annotation.AccessType.Type;
@@ -53,6 +55,7 @@ import org.springframework.util.Assert;
  * {@link JpaPersistentProperty} implementation usind a JPA {@link Metamodel}.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  * @since 1.3
  */
 class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPersistentProperty> implements
@@ -90,6 +93,7 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 	private final Boolean usePropertyAccess;
 	private final TypeInformation<?> associationTargetType;
 	private final boolean updateable;
+	private final EntityType<?> entityType;
 
 	/**
 	 * Creates a new {@link JpaPersistentPropertyImpl}
@@ -108,9 +112,32 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 		Assert.notNull(metamodel, "Metamodel must not be null!");
 
 		this.metamodel = metamodel;
+		this.entityType = tryResolveEntityType(metamodel, getOwner().getType());
 		this.usePropertyAccess = detectPropertyAccess();
 		this.associationTargetType = isAssociation() ? detectAssociationTargetType() : null;
 		this.updateable = detectUpdatability();
+	}
+
+	/**
+	 * Return the {@link EntityType} for the given Entity {@link Class} or null if given {@code type} is not a mapped
+	 * entity.
+	 * 
+	 * @param metamodel
+	 * @param type
+	 * @return
+	 */
+	private EntityType<?> tryResolveEntityType(Metamodel metamodel, Class<?> type) {
+
+		EntityType<?> ownerEntityType = null;
+
+		for (EntityType<?> entityType : metamodel.getEntities()) {
+			if (entityType.getJavaType().equals(type)) {
+				ownerEntityType = entityType;
+				break;
+			}
+		}
+
+		return ownerEntityType;
 	}
 
 	/* 
@@ -145,7 +172,20 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 			}
 		}
 
+		if (isIdPropertyCandidateAccordingToMetaModel()) {
+
+			SingularAttribute<?, ?> idAttribute = entityType.getId(getType());
+			if (idAttribute.getName().equals(getName())) {
+				return true;
+			}
+		}
+
 		return false;
+	}
+
+	private boolean isIdPropertyCandidateAccordingToMetaModel() {
+		return entityType != null && entityType.hasSingleIdAttribute()
+				&& entityType.getIdType().getJavaType().equals(getType());
 	}
 
 	/* 
