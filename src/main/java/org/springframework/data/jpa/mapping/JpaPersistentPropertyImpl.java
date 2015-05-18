@@ -35,7 +35,9 @@ import javax.persistence.OneToOne;
 import javax.persistence.OrderColumn;
 import javax.persistence.Transient;
 import javax.persistence.Version;
+import javax.persistence.metamodel.EntityType;
 import javax.persistence.metamodel.Metamodel;
+import javax.persistence.metamodel.SingularAttribute;
 
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.data.annotation.AccessType.Type;
@@ -54,6 +56,7 @@ import org.springframework.util.Assert;
  * {@link JpaPersistentProperty} implementation usind a JPA {@link Metamodel}.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  * @author Greg Turnquist
  * @author Christoph Strobl
  * @author Mark Paluch
@@ -94,6 +97,7 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 	private final @Nullable TypeInformation<?> associationTargetType;
 	private final boolean updateable;
 	private final JpaMetamodel metamodel;
+	private final EntityType<?> entityType;
 
 	/**
 	 * Creates a new {@link JpaPersistentPropertyImpl}
@@ -110,10 +114,33 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 
 		Assert.notNull(metamodel, "Metamodel must not be null!");
 
+		this.entityType = tryResolveEntityType(metamodel, getOwner().getType());
 		this.usePropertyAccess = detectPropertyAccess();
 		this.associationTargetType = detectAssociationTargetType();
 		this.updateable = detectUpdatability();
 		this.metamodel = new JpaMetamodel(metamodel);
+	}
+
+	/**
+	 * Return the {@link EntityType} for the given Entity {@link Class} or null if given {@code type} is not a mapped
+	 * entity.
+	 * 
+	 * @param metamodel
+	 * @param type
+	 * @return
+	 */
+	private EntityType<?> tryResolveEntityType(Metamodel metamodel, Class<?> type) {
+
+		EntityType<?> ownerEntityType = null;
+
+		for (EntityType<?> entityType : metamodel.getEntities()) {
+			if (entityType.getJavaType().equals(type)) {
+				ownerEntityType = entityType;
+				break;
+			}
+		}
+
+		return ownerEntityType;
 	}
 
 	/* 
@@ -141,7 +168,27 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 	 */
 	@Override
 	public boolean isIdProperty() {
-		return ID_ANNOTATIONS.stream().anyMatch(it -> isAnnotationPresent(it));
+
+		boolean isId ID_ANNOTATIONS.stream().anyMatch(it -> isAnnotationPresent(it));
+
+		if (isId) {
+			return true;
+		}
+
+		if (isIdPropertyCandidateAccordingToMetaModel()) {
+
+			SingularAttribute<?, ?> idAttribute = entityType.getId(getType());
+			if (idAttribute.getName().equals(getName())) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private boolean isIdPropertyCandidateAccordingToMetaModel() {
+		return entityType != null && entityType.hasSingleIdAttribute()
+				&& entityType.getIdType().getJavaType().equals(getType());
 	}
 
 	/* 
