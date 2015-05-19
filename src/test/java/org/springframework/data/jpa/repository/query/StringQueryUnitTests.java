@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -312,7 +312,31 @@ public class StringQueryUnitTests {
 	public void rejectsDifferentBindingsForRepeatedParameter2() {
 		new StringQuery("select u from User u where u.firstname like ?1 and u.lastname like %?1");
 	}
+	
+	/**
+	 * @see @DATAJPA-712
+	 */
+	@Test
+	public void shouldReplaceAllNamedExpressionParametersWithInClause() {
+		
+		StringQuery query = new StringQuery("select a from A a where a.b in :#{#bs} and a.c in :#{#cs}");
+		String queryString = query.getQueryString();
+		
+		assertThat(queryString, is("select a from A a where a.b in :__$synthetic$__1 and a.c in :__$synthetic$__2"));
+	}
 
+	/**
+	 * @see @DATAJPA-712
+	 */
+	@Test
+	public void shouldReplaceAllPositionExpressionParametersWithInClause() {
+		
+		StringQuery query = new StringQuery("select a from A a where a.b in ?#{#bs} and a.c in ?#{#cs}");
+		String queryString = query.getQueryString();
+		
+		assertThat(queryString, is("select a from A a where a.b in ?1 and a.c in ?2"));
+	}
+	
 	private void assertPositionalBinding(Class<? extends ParameterBinding> bindingType, Integer position,
 			ParameterBinding expectedBinding) {
 
