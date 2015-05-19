@@ -188,6 +188,7 @@ public class JpaPersistentPropertyImplUnitTests {
 	@Test
 	public void considersNonUpdateablePropertyNotWriteable() {
 		assertThat(getProperty(WithReadOnly.class, "name").isWritable(), is(false));
+		assertThat(getProperty(WithReadOnly.class, "updatable").isWritable(), is(true));
 	}
 
 	private JpaPersistentProperty getProperty(Class<?> ownerType, String propertyName) {
@@ -311,5 +312,6 @@ public class JpaPersistentPropertyImplUnitTests {
 
 	static class WithReadOnly {
 		@Column(updatable = false) String name;
+		String updatable;
 	}
 }

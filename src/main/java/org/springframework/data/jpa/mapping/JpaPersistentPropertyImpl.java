@@ -292,11 +292,11 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 
 			Annotation annotation = findAnnotation(annotationType);
 
-			if (annotation != null && AnnotationUtils.getValue(annotation, "updateable") == Boolean.TRUE) {
-				return true;
+			if (annotation != null && AnnotationUtils.getValue(annotation, "updatable").equals(Boolean.FALSE)) {
+				return false;
 			}
 		}
 
-		return false;
+		return true;
 	}
 }
