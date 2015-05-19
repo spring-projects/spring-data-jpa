@@ -255,7 +255,6 @@ class StringQuery {
 							checkAndRegister(new InParameterBinding(parameterName, expression), bindings);
 						}
 
-						result = query;
 						break;
 
 					case AS_IS: // fall-through we don't need a special parameter binding for the given parameter.
