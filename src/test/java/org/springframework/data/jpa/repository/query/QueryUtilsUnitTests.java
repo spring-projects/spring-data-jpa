@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2014 the original author or authors.
+ * Copyright 2008-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -150,11 +150,13 @@ public class QueryUtilsUnitTests {
 		assertThat(aliases, hasSize(1));
 		assertThat(aliases, hasItems("b2_$ar"));
 
-		aliases = getOuterJoinAliases("select p from Person p left outer join x.foo as b2_$ar, left join x.bar as foo where …");
+		aliases = getOuterJoinAliases(
+				"select p from Person p left outer join x.foo as b2_$ar, left join x.bar as foo where …");
 		assertThat(aliases, hasSize(2));
 		assertThat(aliases, hasItems("b2_$ar", "foo"));
 
-		aliases = getOuterJoinAliases("select p from Person p left join x.foo as b2_$ar, left outer join x.bar foo where …");
+		aliases = getOuterJoinAliases(
+				"select p from Person p left join x.foo as b2_$ar, left outer join x.bar foo where …");
 		assertThat(aliases, hasSize(2));
 		assertThat(aliases, hasItems("b2_$ar", "foo"));
 	}
@@ -279,6 +281,18 @@ public class QueryUtilsUnitTests {
 	public void createCountQueryFromTheGivenCountProjection() {
 		assertThat(createCountQueryFor("select p.lastname,p.firstname from Person p", "p.lastname"),
 				is("select count(p.lastname) from Person p"));
+	}
+
+	/**
+	 * @see DATAJPA-726
+	 */
+	@Test
+	public void detectsAliassesInPlainJoins() {
+
+		String query = "select p from Customer c join c.productOrder p where p.delayed = true";
+		Sort sort = new Sort("p.lineItems");
+
+		assertThat(applySorting(query, sort, "c"), endsWith("order by p.lineItems asc"));
 	}
 
 	private void assertCountQuery(String originalQuery, String countQuery) {
