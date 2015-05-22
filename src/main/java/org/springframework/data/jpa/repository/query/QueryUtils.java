@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2014 the original author or authors.
+ * Copyright 2008-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -84,13 +84,16 @@ public abstract class QueryUtils {
 	private static final String IDENTIFIER = "[\\p{Alnum}._$]+";
 	private static final String IDENTIFIER_GROUP = String.format("(%s)", IDENTIFIER);
 
-	private static final String LEFT_JOIN = "left (outer )?join " + IDENTIFIER + " (as )?" + IDENTIFIER_GROUP;
-	private static final Pattern LEFT_JOIN_PATTERN = Pattern.compile(LEFT_JOIN, Pattern.CASE_INSENSITIVE);
+	private static final String JOIN = "join " + IDENTIFIER + " (as )?" + IDENTIFIER_GROUP;
+	private static final Pattern JOIN_PATTERN = Pattern.compile(JOIN, Pattern.CASE_INSENSITIVE);
 
 	private static final String EQUALS_CONDITION_STRING = "%s.%s = :%s";
 	private static final Pattern ORDER_BY = Pattern.compile(".*order\\s+by\\s+.*", CASE_INSENSITIVE);
 
 	private static final Map<PersistentAttributeType, Class<? extends Annotation>> ASSOCIATION_TYPES;
+
+	private static final int QUERY_JOIN_ALIAS_GROUP_INDEX = 2;
+	private static final int VARIABLE_NAME_GROUP_INDEX = 4;
 
 	static {
 
@@ -250,11 +253,11 @@ public abstract class QueryUtils {
 	static Set<String> getOuterJoinAliases(String query) {
 
 		Set<String> result = new HashSet<String>();
-		Matcher matcher = LEFT_JOIN_PATTERN.matcher(query);
+		Matcher matcher = JOIN_PATTERN.matcher(query);
 
 		while (matcher.find()) {
 
-			String alias = matcher.group(3);
+			String alias = matcher.group(QUERY_JOIN_ALIAS_GROUP_INDEX);
 			if (StringUtils.hasText(alias)) {
 				result.add(alias);
 			}
@@ -358,7 +361,7 @@ public abstract class QueryUtils {
 
 		if (countProjection == null) {
 
-			String variable = matcher.matches() ? matcher.group(4) : null;
+			String variable = matcher.matches() ? matcher.group(VARIABLE_NAME_GROUP_INDEX) : null;
 			boolean useVariable = variable != null && StringUtils.hasText(variable) && !variable.startsWith("new")
 					&& !variable.startsWith("count(") && !variable.contains(",");
 
