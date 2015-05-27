@@ -66,6 +66,9 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
+import rx.Observable;
+import rx.functions.Action1;
+
 import com.google.common.base.Optional;
 
 /**
@@ -1903,6 +1906,27 @@ public class UserRepositoryTests {
 		}
 
 		assertThat(users, hasSize(2));
+	}
+	
+	/**
+	 * @see DATAJPA-701
+	 */
+	@Test
+	public void shouldSupportRxObservableForRepositoryFinderMethodsWithCustomQuery() {
+
+		flushTestUsers();
+		Observable<User> obsv = repository.streamAllViaObservable();
+		
+		final List<User> users = new ArrayList<User>();
+		
+		obsv.forEach(new Action1<User>() {
+
+			@Override
+			public void call(User user) {
+				users.add(user);
+			}});
+		
+		assertThat(users, hasSize(4));
 	}
 
 	private Page<User> executeSpecWithSort(Sort sort) {

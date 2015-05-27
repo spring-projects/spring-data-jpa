@@ -16,6 +16,7 @@
 package org.springframework.data.jpa.repository.query;
 
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -38,6 +39,12 @@ import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.util.CloseableIterator;
 import org.springframework.data.util.StreamUtils;
 import org.springframework.util.Assert;
+
+import rx.Observable;
+import rx.Observer;
+import rx.Subscriber;
+import rx.functions.Action;
+import rx.functions.Action0;
 
 /**
  * Set of classes to contain query execution strategies. Depending (mostly) on the return type of a
@@ -322,6 +329,40 @@ public abstract class JpaQueryExecution {
 			CloseableIterator<Object> iter = persistenceProvider.executeQueryWithResultStream(jpaQuery);
 
 			return StreamUtils.createStreamFromIterator(iter);
+		}
+	}
+	
+	/**
+	 * {@link Execution} executing a RxJava {@link rx.Observable}.
+	 * 
+	 * @author Thomas Darimont
+	 * @since 1.9
+	 */
+	static class ObservableExecution extends JpaQueryExecution {
+		
+		/* (non-Javadoc)
+		 * @see org.springframework.data.jpa.repository.query.JpaQueryExecution#doExecute(org.springframework.data.jpa.repository.query.AbstractJpaQuery, java.lang.Object[])
+		 */
+		@Override
+		protected Object doExecute(AbstractJpaQuery query, Object[] values) {
+			
+			Query jpaQuery = query.createQuery(values);
+			PersistenceProvider persistenceProvider = PersistenceProvider.fromEntityManager(query.getEntityManager());
+			final CloseableIterator<Object> iter = persistenceProvider.executeQueryWithResultStream(jpaQuery);
+			
+			return Observable.<Object>from(new Iterable<Object>(){
+
+				@Override
+				public Iterator<Object> iterator() {
+					return iter;
+				}
+			}).doOnTerminate(new Action0(){
+
+				@Override
+				public void call() {
+					iter.close();
+				}
+			});
 		}
 	}
 }
