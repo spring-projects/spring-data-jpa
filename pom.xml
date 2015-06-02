@@ -14,7 +14,7 @@
 	<parent>
 		<groupId>org.springframework.data.build</groupId>
 		<artifactId>spring-data-parent</artifactId>
-		<version>1.7.0.BUILD-SNAPSHOT</version>
+		<version>1.7.0.M1</version>
 	</parent>
 
 	<properties>
@@ -27,7 +27,7 @@
 		<jpa>2.0.0</jpa>
 		<openjpa>2.3.0</openjpa>
 		<querydsl>3.6.3</querydsl>
-		<springdata.commons>1.11.0.BUILD-SNAPSHOT</springdata.commons>
+		<springdata.commons>1.11.0.M1</springdata.commons>
 
 		<sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
 
@@ -461,8 +461,8 @@
 
 	<repositories>
 		<repository>
-			<id>spring-libs-snapshot</id>
-			<url>https://repo.spring.io/libs-snapshot</url>
+			<id>spring-libs-milestone</id>
+			<url>https://repo.spring.io/libs-milestone</url>
 		</repository>
 	</repositories>
 
