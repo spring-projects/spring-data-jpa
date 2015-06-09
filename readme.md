@@ -24,7 +24,7 @@ For more detailed questions, use [stackoverflow](http://stackoverflow.com/questi
 
 ## Quick Start ##
 
-Download the jar though Maven:
+Download the jar through Maven:
 
 ```xml
 <dependency>
