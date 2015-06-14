@@ -295,6 +295,14 @@ public class QueryUtilsUnitTests {
 		assertThat(applySorting(query, sort, "c"), endsWith("order by p.lineItems asc"));
 	}
 
+	/**
+	 * @see DATAJPA-736
+	 */
+	@Test
+	public void supportsNonAsciiCharactersInEntityNames() {
+		assertThat(createCountQueryFor("select u from Usèr u"), is("select count(u) from Usèr u"));
+	}
+
 	private void assertCountQuery(String originalQuery, String countQuery) {
 		assertThat(createCountQueryFor(originalQuery), is(countQuery));
 	}
