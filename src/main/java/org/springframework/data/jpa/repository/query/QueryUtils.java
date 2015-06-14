@@ -80,7 +80,7 @@ public abstract class QueryUtils {
 	private static final Pattern ALIAS_MATCH;
 	private static final Pattern COUNT_MATCH;
 
-	private static final String IDENTIFIER = "[\\p{Alnum}._$]+";
+	private static final String IDENTIFIER = "[\\p{Lu}\\P{InBASIC_LATIN}\\p{Alnum}._$]+";
 	private static final String IDENTIFIER_GROUP = String.format("(%s)", IDENTIFIER);
 
 	private static final String JOIN = "join " + IDENTIFIER + " (as )?" + IDENTIFIER_GROUP;
