@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,12 @@
  */
 package org.springframework.data.jpa.mapping;
 
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 import javax.persistence.Embeddable;
 import javax.persistence.Embedded;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.Transient;
 import javax.persistence.metamodel.Metamodel;
@@ -92,6 +93,24 @@ public class JpaPersistentPropertyImplUnitTests {
 		assertThat(entity.getPersistentProperty("embedded").isAssociation(), is(true));
 	}
 
+	/**
+	 * @see DATAJPA-664
+	 */
+	@Test
+	public void considersTargetEntityTypeForPropertyType() {
+
+		JpaPersistentProperty property = getProperty(SpecializedAssociation.class, "api");
+
+		assertThat(property.getType(), is(typeCompatibleWith(Api.class)));
+		assertThat(property.getActualType(), is(typeCompatibleWith(Implementation.class)));
+	}
+
+	private JpaPersistentProperty getProperty(Class<?> ownerType, String propertyName) {
+
+		JpaPersistentEntity<?> entity = context.getPersistentEntity(ownerType);
+		return entity.getPersistentProperty(propertyName);
+	}
+
 	static class Sample {
 
 		@OneToOne Sample other;
@@ -108,4 +127,15 @@ public class JpaPersistentPropertyImplUnitTests {
 	static class SampleEmbedded {
 
 	}
+
+	// DATAJPA-664
+
+	static class SpecializedAssociation {
+
+		@ManyToOne(targetEntity = Implementation.class) Api api;
+	}
+
+	static interface Api {}
+
+	static class Implementation {}
 }

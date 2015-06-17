@@ -34,10 +34,13 @@ import javax.persistence.OneToOne;
 import javax.persistence.Transient;
 import javax.persistence.metamodel.Metamodel;
 
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.PersistentEntity;
 import org.springframework.data.mapping.model.AnnotationBasedPersistentProperty;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
+import org.springframework.data.util.ClassTypeInformation;
+import org.springframework.data.util.TypeInformation;
 import org.springframework.util.Assert;
 
 /**
@@ -46,8 +49,8 @@ import org.springframework.util.Assert;
  * @author Oliver Gierke
  * @since 1.3
  */
-class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPersistentProperty> implements
-		JpaPersistentProperty {
+class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPersistentProperty>
+		implements JpaPersistentProperty {
 
 	private static final Collection<Class<? extends Annotation>> ASSOCIATION_ANNOTATIONS;
 	private static final Collection<Class<? extends Annotation>> ID_ANNOTATIONS;
@@ -71,6 +74,7 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 	}
 
 	private final Metamodel metamodel;
+	private final TypeInformation<?> associationTargetType;
 
 	/**
 	 * Creates a new {@link JpaPersistentPropertyImpl}
@@ -89,6 +93,26 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 		Assert.notNull(metamodel, "Metamodel must not be null!");
 
 		this.metamodel = metamodel;
+		this.associationTargetType = isAssociation() ? detectAssociationTargetType() : null;
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.mapping.model.AbstractPersistentProperty#getActualType()
+	 */
+	@Override
+	public Class<?> getActualType() {
+		return associationTargetType == null ? super.getActualType() : associationTargetType.getType();
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.mapping.model.AbstractPersistentProperty#getPersistentEntityType()
+	 */
+	@Override
+	public Iterable<? extends TypeInformation<?>> getPersistentEntityType() {
+		return associationTargetType == null ? super.getPersistentEntityType()
+				: Collections.singleton(associationTargetType);
 	}
 
 	/* 
@@ -158,5 +182,25 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 	@Override
 	protected Association<JpaPersistentProperty> createAssociation() {
 		return new Association<JpaPersistentProperty>(this, null);
+	}
+
+	/**
+	 * Inspects the association annotations on the property and returns the target entity type if specified.
+	 * 
+	 * @return
+	 */
+	private TypeInformation<?> detectAssociationTargetType() {
+
+		for (Class<? extends Annotation> associationAnnotation : ASSOCIATION_ANNOTATIONS) {
+
+			Annotation annotation = findAnnotation(associationAnnotation);
+			Object targetEntity = AnnotationUtils.getValue(annotation, "targetEntity");
+
+			if (targetEntity != null && !void.class.equals(targetEntity)) {
+				return ClassTypeInformation.from((Class<?>) targetEntity);
+			}
+		}
+
+		return null;
 	}
 }
