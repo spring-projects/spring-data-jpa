@@ -1,6 +1,29 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 1.7.3.RELEASE (2015-07-01)
+---------------------------------------------
+* DATAJPA-751 - Release 1.7.3 (Evans).
+* DATAJPA-743 - Typo in README.
+* DATAJPA-741 - Back-port DATAJPA-608 to Evans.
+* DATAJPA-736 - Count query creation fails when entity names contain non-ASCII characters.
+* DATAJPA-728 - PageImpl : wrong total count.
+* DATAJPA-726 - Pageable Always Adding From Entity to Sort Field Name.
+* DATAJPA-721 - Enable Slack notifications for Travis build.
+* DATAJPA-720 - Remove relative reference to parent POM to make sure the right Spring version is picked up.
+* DATAJPA-715 - Fix typo in @EnableJpaRepositories' JavaDoc.
+* DATAJPA-714 - Include new section on Spring Data and Spring Framework dependencies in reference documentation.
+* DATAJPA-712 - Bug in binding in clause parameters with SPEL.
+* DATAJPA-703 - Assert Hibernate 5 compatibilty.
+* DATAJPA-702 - Add convenience methods to ease building up a more complex JpaSort.
+* DATAJPA-699 - Upgrade to EclipseLink 2.5.2.
+* DATAJPA-689 - Allow @EntityGraph on findOne method of CrudRepository.
+* DATAJPA-681 - Execution of derived stored procedures fails if named parameters are used.
+* DATAJPA-672 - Activate Spring 4.2 build profile for travis.
+* DATAJPA-656 - Count query with group by returns wrong result.
+* DATAJPA-633 - Target entity type not considered for associations.
+
+
 Changes in version 1.8.1.RELEASE (2015-06-30)
 ---------------------------------------------
 * DATAJPA-752 - Release 1.8.1 (Fowler).
