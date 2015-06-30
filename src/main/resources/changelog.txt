@@ -1,6 +1,25 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 1.8.1.RELEASE (2015-06-30)
+---------------------------------------------
+* DATAJPA-752 - Release 1.8.1 (Fowler).
+* DATAJPA-743 - Typo in README.
+* DATAJPA-736 - Count query creation fails when entity names contain non-ASCII characters.
+* DATAJPA-728 - PageImpl : wrong total count.
+* DATAJPA-726 - Pageable Always Adding From Entity to Sort Field Name.
+* DATAJPA-721 - Enable Slack notifications for Travis build.
+* DATAJPA-720 - Remove relative reference to parent POM to make sure the right Spring version is picked up.
+* DATAJPA-716 - JpaPersistentProperty should consider updatable flag of mapping annotations.
+* DATAJPA-715 - Fix typo in @EnableJpaRepositories' JavaDoc.
+* DATAJPA-714 - Include new section on Spring Data and Spring Framework dependencies in reference documentation.
+* DATAJPA-712 - Bug in binding in clause parameters with SPEL.
+* DATAJPA-703 - Assert Hibernate 5 compatibilty.
+* DATAJPA-702 - Add convenience methods to ease building up a more complex JpaSort.
+* DATAJPA-699 - Upgrade to EclipseLink 2.5.2.
+* DATAJPA-695 - Package reference in javadoc wrong in Jsr310JpaConverters, ThreeTenBackPortJpaConverters.
+
+
 Changes in version 1.9.0.M1 (2015-06-02)
 ----------------------------------------
 * DATAJPA-731 - Donwgrade to Querydsl 3.6.3.
