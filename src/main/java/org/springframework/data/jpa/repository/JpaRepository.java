@@ -21,6 +21,7 @@ import java.util.List;
 import javax.persistence.EntityManager;
 
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Example;
 import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.PagingAndSortingRepository;
 
@@ -78,7 +79,7 @@ public interface JpaRepository<T, ID extends Serializable> extends PagingAndSort
 	void deleteInBatch(Iterable<T> entities);
 
 	/**
-	 * Deletes all entites in a batch call.
+	 * Deletes all entities in a batch call.
 	 */
 	void deleteAllInBatch();
 
@@ -90,4 +91,15 @@ public interface JpaRepository<T, ID extends Serializable> extends PagingAndSort
 	 * @see EntityManager#getReference(Class, Object)
 	 */
 	T getOne(ID id);
+	
+	/**
+	 * Returns all instances of the type specified by the given {@link Example}.
+	 * 
+	 * This method is deliberately <b>not<b> named {@code findByExample} to not interfere
+	 * with existing repository methods that rely on query derivation. 
+	 * 
+	 * @param example must not be {@literal null}.
+	 * @return
+	 */
+	List<T> findWithExample(Example<T> example);
 }
