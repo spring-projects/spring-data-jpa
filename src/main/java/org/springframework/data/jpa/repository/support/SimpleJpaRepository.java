@@ -19,6 +19,7 @@ import static org.springframework.data.jpa.repository.query.QueryUtils.*;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -37,12 +38,16 @@ import javax.persistence.criteria.ParameterExpression;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import javax.persistence.metamodel.Attribute;
 
+import org.springframework.beans.BeanWrapper;
+import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Example;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -54,6 +59,7 @@ import org.springframework.data.jpa.repository.query.QueryUtils;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 
 /**
  * Default implementation of the {@link org.springframework.data.repository.CrudRepository} interface. This will offer
@@ -409,6 +415,38 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	public List<T> findAll(Specification<T> spec, Sort sort) {
 
 		return getQuery(spec, sort).getResultList();
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.data.jpa.repository.JpaRepository#findWithExample(org.springframework.data.jpa.domain.Example)
+	 */
+	public List<T> findWithExample(Example<T> example) {
+
+		Assert.notNull(example, "Example must not be null!");
+
+		CriteriaBuilder builder = em.getCriteriaBuilder();
+		CriteriaQuery<T> query = builder.createQuery(getDomainClass());
+		Root<T> root = query.from(getDomainClass());
+
+		BeanWrapper bean = new BeanWrapperImpl(example.getPrototype());
+
+		List<Predicate> predicates = new ArrayList<Predicate>();
+		for (Attribute<?, ?> attribute : em.getMetamodel().managedType(getDomainClass()).getAttributes()) {
+
+			Object value = bean.getPropertyValue(attribute.getName());
+
+			// TODO support different matching modes configured on the provided Example
+			if (value == null //
+					|| (value instanceof Collection && CollectionUtils.isEmpty((Collection<?>) value))
+					|| (value instanceof Map && CollectionUtils.isEmpty((Map<?, ?>) value))
+					|| example.isAttributeIgnored(attribute.getName())) {
+				continue;
+			}
+
+			predicates.add(builder.equal(root.get(attribute.getName()), value));
+		}
+
+		return em.createQuery(query.where(predicates.toArray(new Predicate[predicates.size()]))).getResultList();
 	}
 
 	/*

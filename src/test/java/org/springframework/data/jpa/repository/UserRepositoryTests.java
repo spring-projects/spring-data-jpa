@@ -16,9 +16,11 @@
 package org.springframework.data.jpa.repository;
 
 import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.*;
 import static org.springframework.data.domain.Sort.Direction.*;
 import static org.springframework.data.jpa.domain.Specifications.*;
+import static org.springframework.data.jpa.domain.Specifications.not;
 import static org.springframework.data.jpa.domain.sample.UserSpecifications.*;
 
 import java.util.ArrayList;
@@ -55,6 +57,7 @@ import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.domain.Sort.Order;
+import org.springframework.data.jpa.domain.Example;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.domain.sample.Address;
 import org.springframework.data.jpa.domain.sample.Role;
@@ -1903,6 +1906,41 @@ public class UserRepositoryTests {
 		}
 
 		assertThat(users, hasSize(2));
+	}
+	
+	/**
+	 * @see DATAJPA-218 
+	 */
+	@Test
+	public void queryByExample() {
+		
+		flushTestUsers();
+		
+		User prototype = new User();
+		prototype.setAge(28);
+		prototype.setCreatedAt(null);
+		
+		List<User> users = repository.findWithExample(Example.exampleOf(prototype));
+		
+		assertThat(users, hasSize(1));
+		assertThat(users.get(0), is(firstUser));
+	}
+	
+	/**
+	 * @see DATAJPA-218 
+	 */
+	@Test
+	public void queryByExampleWithExcludedAttributes() {
+		
+		flushTestUsers();
+		
+		User prototype = new User();
+		prototype.setAge(28);
+		
+		List<User> users = repository.findWithExample(Example.newExample(prototype).ignoring("createdAt").build());
+		
+		assertThat(users, hasSize(1));
+		assertThat(users.get(0), is(firstUser));
 	}
 
 	private Page<User> executeSpecWithSort(Sort sort) {
