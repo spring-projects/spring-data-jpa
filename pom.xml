@@ -55,7 +55,7 @@
 		<profile>
 			<id>hibernate-5</id>
 			<properties>
-				<hibernate>5.0.0.Beta2</hibernate>
+				<hibernate>5.0.0.CR1</hibernate>
 			</properties>
 		</profile>
 		<profile>

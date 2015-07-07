@@ -48,8 +48,8 @@ import com.google.common.base.Optional;
  * @author Oliver Gierke
  * @author Thomas Darimont
  */
-public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecificationExecutor<User>,
-		UserRepositoryCustom {
+public interface UserRepository
+		extends JpaRepository<User, Integer>, JpaSpecificationExecutor<User>, UserRepositoryCustom {
 
 	/**
 	 * Retrieve users by their lastname. The finder {@literal User.findByLastname} is declared in
@@ -224,7 +224,7 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	/**
 	 * @see DATAJPA-117
 	 */
-	@Query(value = "SELECT * FROM User WHERE lastname = ?1", nativeQuery = true)
+	@Query(value = "SELECT * FROM SD_User WHERE lastname = ?1", nativeQuery = true)
 	List<User> findNativeByLastname(String lastname);
 
 	/**
@@ -268,7 +268,7 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	 */
 	List<User> findByFirstnameContaining(String firstname);
 
-	@Query(value = "SELECT 1 FROM User", nativeQuery = true)
+	@Query(value = "SELECT 1 FROM SD_User", nativeQuery = true)
 	List<Integer> findOnesByNativeQuery();
 
 	/**
@@ -460,7 +460,7 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	/**
 	 * @see DATAJPA-506
 	 */
-	@Query(value = "select u.binaryData from User u where u.id = ?1", nativeQuery = true)
+	@Query(value = "select u.binaryData from SD_User u where u.id = ?1", nativeQuery = true)
 	byte[] findBinaryDataByIdNative(Integer id);
 
 	/**
@@ -533,8 +533,8 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	 * @see DATAJPA-564
 	 */
 	@Query(
-			value = "select * from (select rownum() as RN, u.* from User u) where RN between ?#{ #pageable.offset -1} and ?#{#pageable.offset + #pageable.pageSize}",
-			countQuery = "select count(u.id) from User u", nativeQuery = true)
+			value = "select * from (select rownum() as RN, u.* from SD_User u) where RN between ?#{ #pageable.offset -1} and ?#{#pageable.offset + #pageable.pageSize}",
+			countQuery = "select count(u.id) from SD_User u", nativeQuery = true)
 	Page<User> findUsersInNativeQueryWithPagination(Pageable pageable);
 
 	/**

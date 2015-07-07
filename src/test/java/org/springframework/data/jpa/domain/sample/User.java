@@ -38,6 +38,7 @@ import javax.persistence.NamedStoredProcedureQueries;
 import javax.persistence.NamedStoredProcedureQuery;
 import javax.persistence.ParameterMode;
 import javax.persistence.StoredProcedureParameter;
+import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
@@ -64,6 +65,7 @@ import javax.persistence.TemporalType;
 @NamedStoredProcedureQuery(name = "User.plus1IO", procedureName = "plus1inout", parameters = {
 		@StoredProcedureParameter(mode = ParameterMode.IN, name = "arg", type = Integer.class),
 		@StoredProcedureParameter(mode = ParameterMode.OUT, name = "res", type = Integer.class) })
+@Table(name = "SD_User")
 public class User {
 
 	@Id @GeneratedValue(strategy = GenerationType.AUTO) private Integer id;
