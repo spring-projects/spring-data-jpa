@@ -182,7 +182,8 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 		Assert.notNull(query, "Query must not be null!");
 		Assert.notNull(method, "JpaQueryMethod must not be null!");
 
-		Map<String, Object> hints = Jpa21Utils.tryGetFetchGraphHints(em, method.getEntityGraph(), getQueryMethod().getEntityInformation().getJavaType());
+		Map<String, Object> hints = Jpa21Utils.tryGetFetchGraphHints(em, method.getEntityGraph(),
+				getQueryMethod().getEntityInformation().getJavaType());
 
 		for (Map.Entry<String, Object> hint : hints.entrySet()) {
 			query.setHint(hint.getKey(), hint.getValue());
@@ -191,8 +192,8 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 		return query;
 	}
 
-	protected TypedQuery<Long> createCountQuery(Object[] values) {
-		TypedQuery<Long> countQuery = doCreateCountQuery(values);
+	protected Query createCountQuery(Object[] values) {
+		Query countQuery = doCreateCountQuery(values);
 		return method.applyHintsToCountQuery() ? applyHints(countQuery, method) : countQuery;
 	}
 
@@ -210,5 +211,5 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 	 * @param values must not be {@literal null}.
 	 * @return
 	 */
-	protected abstract TypedQuery<Long> doCreateCountQuery(Object[] values);
+	protected abstract Query doCreateCountQuery(Object[] values);
 }

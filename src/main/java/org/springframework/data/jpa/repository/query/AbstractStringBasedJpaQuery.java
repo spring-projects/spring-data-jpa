@@ -17,7 +17,6 @@ package org.springframework.data.jpa.repository.query;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
-import javax.persistence.TypedQuery;
 
 import org.springframework.data.repository.query.EvaluationContextProvider;
 import org.springframework.data.repository.query.ParameterAccessor;
@@ -105,8 +104,13 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 	 * @see org.springframework.data.jpa.repository.query.AbstractJpaQuery#doCreateCountQuery(java.lang.Object[])
 	 */
 	@Override
-	protected TypedQuery<Long> doCreateCountQuery(Object[] values) {
-		return createBinder(values).bind(getEntityManager().createQuery(countQuery.getQueryString(), Long.class));
+	protected Query doCreateCountQuery(Object[] values) {
+
+		String queryString = countQuery.getQueryString();
+		EntityManager em = getEntityManager();
+
+		return createBinder(values).bind(
+				getQueryMethod().isNativeQuery() ? em.createNativeQuery(queryString) : em.createQuery(queryString, Long.class));
 	}
 
 	/**

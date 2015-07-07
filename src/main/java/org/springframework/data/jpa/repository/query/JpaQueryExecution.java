@@ -22,11 +22,10 @@ import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.Query;
 import javax.persistence.StoredProcedureQuery;
-import javax.persistence.TypedQuery;
 
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.ConfigurableConversionService;
-import org.springframework.core.convert.support.GenericConversionService;
+import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -53,7 +52,7 @@ public abstract class JpaQueryExecution {
 
 	static {
 
-		ConfigurableConversionService conversionService = new GenericConversionService();
+		ConfigurableConversionService conversionService = new DefaultConversionService();
 		conversionService.addConverter(JpaResultConverters.BlobToByteArrayConverter.INSTANCE);
 
 		CONVERSION_SERVICE = conversionService;
@@ -90,8 +89,8 @@ public abstract class JpaQueryExecution {
 			return result;
 		}
 
-		return CONVERSION_SERVICE.canConvert(result.getClass(), requiredType) ? CONVERSION_SERVICE.convert(result,
-				requiredType) : result;
+		return CONVERSION_SERVICE.canConvert(result.getClass(), requiredType)
+				? CONVERSION_SERVICE.convert(result, requiredType) : result;
 	}
 
 	/**
@@ -173,10 +172,10 @@ public abstract class JpaQueryExecution {
 		protected Object doExecute(AbstractJpaQuery repositoryQuery, Object[] values) {
 
 			// Execute query to compute total
-			TypedQuery<Long> projection = repositoryQuery.createCountQuery(values);
+			Query projection = repositoryQuery.createCountQuery(values);
 
-			List<Long> totals = projection.getResultList();
-			Long total = totals.size() == 1 ? totals.get(0) : totals.size();
+			List<?> totals = projection.getResultList();
+			Long total = totals.size() == 1 ? CONVERSION_SERVICE.convert(totals.get(0), Long.class) : totals.size();
 
 			ParameterAccessor accessor = new ParametersParameterAccessor(parameters, values);
 			Pageable pageable = accessor.getPageable();
@@ -187,8 +186,8 @@ public abstract class JpaQueryExecution {
 
 			Query query = repositoryQuery.createQuery(values);
 
-			List<Object> content = pageable == null || total > pageable.getOffset() ? query.getResultList() : Collections
-					.emptyList();
+			List<Object> content = pageable == null || total > pageable.getOffset() ? query.getResultList()
+					: Collections.emptyList();
 
 			return new PageImpl<Object>(content, pageable, total);
 		}
