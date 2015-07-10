@@ -89,6 +89,9 @@ public abstract class QueryUtils {
 	private static final String EQUALS_CONDITION_STRING = "%s.%s = :%s";
 	private static final Pattern ORDER_BY = Pattern.compile(".*order\\s+by\\s+.*", CASE_INSENSITIVE);
 
+	private static final Pattern NAMED_PARAMETER = Pattern.compile(":" + IDENTIFIER + "|\\#" + IDENTIFIER,
+			CASE_INSENSITIVE);
+
 	private static final Map<PersistentAttributeType, Class<? extends Annotation>> ASSOCIATION_TYPES;
 
 	private static final int QUERY_JOIN_ALIAS_GROUP_INDEX = 2;
@@ -388,6 +391,16 @@ public abstract class QueryUtils {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Returns whether the given query contains named parameters.
+	 * 
+	 * @param query can be {@literal null} or empty.
+	 * @return
+	 */
+	public static boolean hasNamedParameter(String query) {
+		return StringUtils.hasText(query) && NAMED_PARAMETER.matcher(query).find();
 	}
 
 	/**

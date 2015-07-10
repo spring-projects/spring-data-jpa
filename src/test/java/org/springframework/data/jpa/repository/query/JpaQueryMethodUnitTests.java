@@ -359,6 +359,16 @@ public class JpaQueryMethodUnitTests {
 	}
 
 	/**
+	 * @see DATAJPA-758
+	 */
+	@Test
+	public void allowsPositionalBindingEvenIfParametersAreNamed() throws Exception {
+
+		new JpaQueryMethod(ValidRepository.class.getMethod("queryWithPositionalBinding", String.class), metadata,
+				extractor);
+	}
+
+	/**
 	 * Interface to define invalid repository methods for testing.
 	 * 
 	 * @author Oliver Gierke
@@ -418,6 +428,9 @@ public class JpaQueryMethodUnitTests {
 		 */
 		@EntityGraph(value = "User.propertyLoadPath", type = EntityGraphType.LOAD)
 		User queryMethodWithCustomEntityFetchGraph(Integer id);
+
+		@Query("select u from User u where u.firstname = ?1")
+		User queryWithPositionalBinding(@Param("firstname") String firstname);
 	}
 
 	static interface JpaRepositoryOverride extends JpaRepository<User, Long> {
