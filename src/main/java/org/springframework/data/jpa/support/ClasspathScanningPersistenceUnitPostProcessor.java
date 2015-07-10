@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 the original author or authors.
+ * Copyright 2011-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,14 +46,14 @@ import org.springframework.util.StringUtils;
 
 /**
  * {@link PersistenceUnitPostProcessor} that will scan for classes annotated with {@link Entity} or
- * {@link MappedSuperclass} and add them to the {@link javax.persistence.PersistenceUnit} post prcessed. Beyond that JPA
- * XML mapping files can be scanned as well by configuring a file name pattern.
+ * {@link MappedSuperclass} and add them to the {@link javax.persistence.PersistenceUnit} post processed. Beyond that
+ * JPA XML mapping files can be scanned as well by configuring a file name pattern.
  * 
  * @author Oliver Gierke
  * @author Thomas Darimont
  */
-public class ClasspathScanningPersistenceUnitPostProcessor implements PersistenceUnitPostProcessor,
-		ResourceLoaderAware, EnvironmentAware {
+public class ClasspathScanningPersistenceUnitPostProcessor
+		implements PersistenceUnitPostProcessor, ResourceLoaderAware, EnvironmentAware {
 
 	private static final Logger LOG = LoggerFactory.getLogger(ClasspathScanningPersistenceUnitPostProcessor.class);
 
@@ -124,7 +124,7 @@ public class ClasspathScanningPersistenceUnitPostProcessor implements Persistenc
 
 		for (BeanDefinition definition : provider.findCandidateComponents(basePackage)) {
 
-			LOG.debug("Registering classpath-scanned entity %s in persistence unit info!", definition.getBeanClassName());
+			LOG.debug("Registering classpath-scanned entity {} in persistence unit info!", definition.getBeanClassName());
 			pui.addManagedClassName(definition.getBeanClassName());
 		}
 
