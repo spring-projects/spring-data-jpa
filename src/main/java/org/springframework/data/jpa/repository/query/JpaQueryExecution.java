@@ -15,6 +15,7 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -41,7 +42,7 @@ import org.springframework.util.Assert;
 /**
  * Set of classes to contain query execution strategies. Depending (mostly) on the return type of a
  * {@link org.springframework.data.repository.query.QueryMethod} a {@link AbstractStringBasedJpaQuery} can be executed
- * in various flavours.
+ * in various flavors.
  * 
  * @author Oliver Gierke
  * @author Thomas Darimont
@@ -53,6 +54,7 @@ public abstract class JpaQueryExecution {
 	static {
 
 		ConfigurableConversionService conversionService = new DefaultConversionService();
+		conversionService.removeConvertible(Collection.class, Object.class);
 		conversionService.addConverter(JpaResultConverters.BlobToByteArrayConverter.INSTANCE);
 
 		CONVERSION_SERVICE = conversionService;
