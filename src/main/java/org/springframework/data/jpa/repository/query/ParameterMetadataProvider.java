@@ -61,7 +61,6 @@ class ParameterMetadataProvider {
 	 */
 	public ParameterMetadataProvider(CriteriaBuilder builder, ParametersParameterAccessor accessor,
 			PersistenceProvider provider) {
-
 		this(builder, accessor.iterator(), accessor.getParameters(), provider);
 	}
 
@@ -121,7 +120,7 @@ class ParameterMetadataProvider {
 	public <T> ParameterMetadata<T> next(Part part) {
 
 		Parameter parameter = parameters.next();
-		return (ParameterMetadata<T>) next(part, parameter.getType(), parameter.getName());
+		return (ParameterMetadata<T>) next(part, parameter.getType(), parameter);
 	}
 
 	/**
@@ -137,7 +136,7 @@ class ParameterMetadataProvider {
 
 		Parameter parameter = parameters.next();
 		Class<?> typeToUse = ClassUtils.isAssignable(type, parameter.getType()) ? parameter.getType() : type;
-		return (ParameterMetadata<? extends T>) next(part, typeToUse, null);
+		return (ParameterMetadata<? extends T>) next(part, typeToUse, parameter);
 	}
 
 	/**
@@ -149,7 +148,7 @@ class ParameterMetadataProvider {
 	 * @param name
 	 * @return
 	 */
-	private <T> ParameterMetadata<T> next(Part part, Class<T> type, String name) {
+	private <T> ParameterMetadata<T> next(Part part, Class<T> type, Parameter parameter) {
 
 		Assert.notNull(type);
 
@@ -159,8 +158,8 @@ class ParameterMetadataProvider {
 		@SuppressWarnings("unchecked")
 		Class<T> reifiedType = Expression.class.equals(type) ? (Class<T>) Object.class : type;
 
-		ParameterExpression<T> expression = name == null ? builder.parameter(reifiedType) : builder.parameter(reifiedType,
-				name);
+		ParameterExpression<T> expression = parameter.isExplicitlyNamed()
+				? builder.parameter(reifiedType, parameter.getName()) : builder.parameter(reifiedType);
 		ParameterMetadata<T> value = new ParameterMetadata<T>(expression, part.getType(),
 				bindableParameterValues == null ? ParameterMetadata.PLACEHOLDER : bindableParameterValues.next(),
 				this.persistenceProvider);
@@ -233,8 +232,8 @@ class ParameterMetadataProvider {
 				case CONTAINING:
 					return String.format("%%%s%%", value.toString());
 				default:
-					return Collection.class.isAssignableFrom(expression.getJavaType()) ? persistenceProvider
-							.potentiallyConvertEmptyCollection(toCollection(value)) : value;
+					return Collection.class.isAssignableFrom(expression.getJavaType())
+							? persistenceProvider.potentiallyConvertEmptyCollection(toCollection(value)) : value;
 			}
 		}
 
