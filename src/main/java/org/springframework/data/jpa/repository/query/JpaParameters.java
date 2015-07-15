@@ -24,6 +24,7 @@ import javax.persistence.TemporalType;
 import org.springframework.core.MethodParameter;
 import org.springframework.data.jpa.repository.Temporal;
 import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
+import org.springframework.data.repository.query.Param;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
 
@@ -74,6 +75,7 @@ public class JpaParameters extends Parameters<JpaParameters, JpaParameter> {
 	static class JpaParameter extends Parameter {
 
 		private final Temporal annotation;
+		private final boolean explicitlyNamed;
 		private TemporalType temporalType;
 
 		/**
@@ -86,11 +88,12 @@ public class JpaParameters extends Parameters<JpaParameters, JpaParameter> {
 			super(parameter);
 
 			this.annotation = parameter.getParameterAnnotation(Temporal.class);
+			this.explicitlyNamed = parameter.getParameterAnnotation(Param.class) != null;
 			this.temporalType = null;
 
 			if (!isDateParameter() && hasTemporalParamAnnotation()) {
-				throw new IllegalArgumentException(Temporal.class.getSimpleName()
-						+ " annotation is only allowed on Date parameter!");
+				throw new IllegalArgumentException(
+						Temporal.class.getSimpleName() + " annotation is only allowed on Date parameter!");
 			}
 		}
 
@@ -120,6 +123,10 @@ public class JpaParameters extends Parameters<JpaParameters, JpaParameter> {
 			}
 
 			return this.temporalType;
+		}
+
+		public boolean isExplicitlyNamed() {
+			return explicitlyNamed;
 		}
 
 		private boolean hasTemporalParamAnnotation() {

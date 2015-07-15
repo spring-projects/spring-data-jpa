@@ -26,6 +26,7 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.ParameterExpression;
 
 import org.springframework.data.jpa.provider.PersistenceProvider;
+import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
@@ -45,7 +46,7 @@ import org.springframework.util.ObjectUtils;
 class ParameterMetadataProvider {
 
 	private final CriteriaBuilder builder;
-	private final Iterator<? extends Parameter> parameters;
+	private final Iterator<? extends JpaParameter> parameters;
 	private final List<ParameterMetadata<?>> expressions;
 	private final Iterator<Object> bindableParameterValues;
 	private final PersistenceProvider persistenceProvider;
@@ -61,8 +62,7 @@ class ParameterMetadataProvider {
 	 */
 	public ParameterMetadataProvider(CriteriaBuilder builder, ParametersParameterAccessor accessor,
 			PersistenceProvider provider) {
-
-		this(builder, accessor.iterator(), accessor.getParameters(), provider);
+		this(builder, accessor.iterator(), (JpaParameters) accessor.getParameters(), provider);
 	}
 
 	/**
@@ -73,7 +73,7 @@ class ParameterMetadataProvider {
 	 * @param parameters must not be {@literal null}.
 	 * @param provider must not be {@literal null}.
 	 */
-	public ParameterMetadataProvider(CriteriaBuilder builder, Parameters<?, ?> parameters, PersistenceProvider provider) {
+	public ParameterMetadataProvider(CriteriaBuilder builder, JpaParameters parameters, PersistenceProvider provider) {
 
 		this(builder, null, parameters, provider);
 	}
@@ -89,7 +89,7 @@ class ParameterMetadataProvider {
 	 * @param provider must not be {@literal null}.
 	 */
 	private ParameterMetadataProvider(CriteriaBuilder builder, Iterator<Object> bindableParameterValues,
-			Parameters<?, ?> parameters, PersistenceProvider provider) {
+			JpaParameters parameters, PersistenceProvider provider) {
 
 		Assert.notNull(builder);
 		Assert.notNull(parameters);
@@ -120,8 +120,8 @@ class ParameterMetadataProvider {
 	@SuppressWarnings("unchecked")
 	public <T> ParameterMetadata<T> next(Part part) {
 
-		Parameter parameter = parameters.next();
-		return (ParameterMetadata<T>) next(part, parameter.getType(), parameter.getName());
+		JpaParameter parameter = parameters.next();
+		return (ParameterMetadata<T>) next(part, parameter.getType(), parameter);
 	}
 
 	/**
@@ -135,9 +135,9 @@ class ParameterMetadataProvider {
 	@SuppressWarnings("unchecked")
 	public <T> ParameterMetadata<? extends T> next(Part part, Class<T> type) {
 
-		Parameter parameter = parameters.next();
+		JpaParameter parameter = parameters.next();
 		Class<?> typeToUse = ClassUtils.isAssignable(type, parameter.getType()) ? parameter.getType() : type;
-		return (ParameterMetadata<? extends T>) next(part, typeToUse, null);
+		return (ParameterMetadata<? extends T>) next(part, typeToUse, parameter);
 	}
 
 	/**
@@ -149,7 +149,7 @@ class ParameterMetadataProvider {
 	 * @param name
 	 * @return
 	 */
-	private <T> ParameterMetadata<T> next(Part part, Class<T> type, String name) {
+	private <T> ParameterMetadata<T> next(Part part, Class<T> type, JpaParameter parameter) {
 
 		Assert.notNull(type);
 
@@ -159,8 +159,8 @@ class ParameterMetadataProvider {
 		@SuppressWarnings("unchecked")
 		Class<T> reifiedType = Expression.class.equals(type) ? (Class<T>) Object.class : type;
 
-		ParameterExpression<T> expression = name == null ? builder.parameter(reifiedType) : builder.parameter(reifiedType,
-				name);
+		ParameterExpression<T> expression = parameter.isExplicitlyNamed()
+				? builder.parameter(reifiedType, parameter.getName()) : builder.parameter(reifiedType);
 		ParameterMetadata<T> value = new ParameterMetadata<T>(expression, part.getType(),
 				bindableParameterValues == null ? ParameterMetadata.PLACEHOLDER : bindableParameterValues.next(),
 				this.persistenceProvider);
@@ -233,8 +233,8 @@ class ParameterMetadataProvider {
 				case CONTAINING:
 					return String.format("%%%s%%", value.toString());
 				default:
-					return Collection.class.isAssignableFrom(expression.getJavaType()) ? persistenceProvider
-							.potentiallyConvertEmptyCollection(toCollection(value)) : value;
+					return Collection.class.isAssignableFrom(expression.getJavaType())
+							? persistenceProvider.potentiallyConvertEmptyCollection(toCollection(value)) : value;
 			}
 		}
 

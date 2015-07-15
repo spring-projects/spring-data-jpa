@@ -14,7 +14,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.provider.PersistenceProvider;
-import org.springframework.data.repository.query.DefaultParameters;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.parser.Part;
@@ -40,7 +39,7 @@ public class ParameterExpressionProviderTests {
 	public void createsParameterExpressionWithMostConcreteType() throws Exception {
 
 		Method method = SampleRepository.class.getMethod("findByIdGreaterThan", int.class);
-		Parameters<?, ?> parameters = new DefaultParameters(method);
+		Parameters<?, ?> parameters = new JpaParameters(method);
 		ParametersParameterAccessor accessor = new ParametersParameterAccessor(parameters, new Object[] { 1 });
 		Part part = new Part("IdGreaterThan", User.class);
 
