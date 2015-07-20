@@ -40,6 +40,7 @@ import javax.persistence.Parameter;
 import javax.persistence.Query;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Fetch;
 import javax.persistence.criteria.From;
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.JoinType;
@@ -469,7 +470,7 @@ public abstract class QueryUtils {
 			propertyPathModel = from.get(segment).getModel();
 		}
 
-		if (requiresJoin(propertyPathModel, model instanceof PluralAttribute)) {
+		if (requiresJoin(propertyPathModel, model instanceof PluralAttribute) && !isAlreadyFetched(from, segment)) {
 			Join<?, ?> join = getOrCreateJoin(from, segment);
 			return (Expression<T>) (property.hasNext() ? toExpressionRecursively(join, property.next()) : join);
 		} else {
@@ -543,5 +544,17 @@ public abstract class QueryUtils {
 		}
 
 		return from.join(attribute, JoinType.LEFT);
+	}
+
+
+	private static boolean isAlreadyFetched(final From<?, ?> from, final String attribute) {
+		for(final Fetch<?, ?> f : from.getFetches()) {
+			final boolean sameName = f.getAttribute().getName().equals(attribute);
+
+			if(sameName && f.getJoinType().equals(JoinType.LEFT)) {
+				return true;
+			}
+		}
+		return false;
 	}
 }
