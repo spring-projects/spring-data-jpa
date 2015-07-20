@@ -60,7 +60,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * Simple utility class to create JPA queries.
- * 
+ *
  * @author Oliver Gierke
  * @author Kevin Raymond
  * @author Thomas Darimont
@@ -137,7 +137,7 @@ public abstract class QueryUtils {
 
 	/**
 	 * Returns the query string to execute an exists query for the given id attributes.
-	 * 
+	 *
 	 * @param entityName the name of the entity to create the query for, must not be {@literal null}.
 	 * @param countQueryPlaceHolder the placeholder for the count clause, must not be {@literal null}.
 	 * @param idAttributes the id attributes for the entity, must not be {@literal null}.
@@ -160,7 +160,7 @@ public abstract class QueryUtils {
 
 	/**
 	 * Returns the query string for the given class name.
-	 * 
+	 *
 	 * @param template
 	 * @param entityName
 	 * @return
@@ -174,7 +174,7 @@ public abstract class QueryUtils {
 
 	/**
 	 * Adds {@literal order by} clause to the JPQL query. Uses the {@link #DEFAULT_ALIAS} to bind the sorting property to.
-	 * 
+	 *
 	 * @param query
 	 * @param sort
 	 * @return
@@ -186,7 +186,7 @@ public abstract class QueryUtils {
 
 	/**
 	 * Adds {@literal order by} clause to the JPQL query.
-	 * 
+	 *
 	 * @param query
 	 * @param sort
 	 * @param alias
@@ -222,7 +222,7 @@ public abstract class QueryUtils {
 	/**
 	 * Returns the order clause for the given {@link Order}. Will prefix the clause with the given alias if the referenced
 	 * property refers to a join alias.
-	 * 
+	 *
 	 * @param joinAliases the join aliases of the original query.
 	 * @param alias the alias for the root entity.
 	 * @param order the order object to build the clause for.
@@ -248,7 +248,7 @@ public abstract class QueryUtils {
 
 	/**
 	 * Returns the aliases used for {@code left (outer) join}s.
-	 * 
+	 *
 	 * @param query
 	 * @return
 	 */
@@ -274,7 +274,7 @@ public abstract class QueryUtils {
 
 	/**
 	 * Resolves the alias for the entity to be retrieved from the given JPA query.
-	 * 
+	 *
 	 * @param query
 	 * @return
 	 */
@@ -288,7 +288,7 @@ public abstract class QueryUtils {
 	/**
 	 * Creates a where-clause referencing the given entities and appends it to the given query string. Binds the given
 	 * entities to the query.
-	 * 
+	 *
 	 * @param <T>
 	 * @param queryString
 	 * @param entities
@@ -338,7 +338,7 @@ public abstract class QueryUtils {
 
 	/**
 	 * Creates a count projected query from the given original query.
-	 * 
+	 *
 	 * @param originalQuery must not be {@literal null} or empty.
 	 * @return
 	 */
@@ -348,7 +348,7 @@ public abstract class QueryUtils {
 
 	/**
 	 * Creates a count projected query from the given original query.
-	 * 
+	 *
 	 * @param originalQuery must not be {@literal null}.
 	 * @param countProjection may be {@literal null}.
 	 * @return
@@ -378,7 +378,7 @@ public abstract class QueryUtils {
 
 	/**
 	 * Returns whether the given {@link Query} contains named parameters.
-	 * 
+	 *
 	 * @param query
 	 * @return
 	 */
@@ -395,7 +395,7 @@ public abstract class QueryUtils {
 
 	/**
 	 * Returns whether the given query contains named parameters.
-	 * 
+	 *
 	 * @param query can be {@literal null} or empty.
 	 * @return
 	 */
@@ -405,7 +405,7 @@ public abstract class QueryUtils {
 
 	/**
 	 * Turns the given {@link Sort} into {@link javax.persistence.criteria.Order}s.
-	 * 
+	 *
 	 * @param sort the {@link Sort} instance to be transformed into JPA {@link javax.persistence.criteria.Order}s.
 	 * @param root must not be {@literal null}.
 	 * @param cb must not be {@literal null}.
@@ -431,7 +431,7 @@ public abstract class QueryUtils {
 
 	/**
 	 * Creates a criteria API {@link javax.persistence.criteria.Order} from the given {@link Order}.
-	 * 
+	 *
 	 * @param order the order to transform into a JPA {@link javax.persistence.criteria.Order}
 	 * @param root the {@link Root} the {@link Order} expression is based on
 	 * @param cb the {@link CriteriaBuilder} to build the {@link javax.persistence.criteria.Order} with
@@ -469,7 +469,7 @@ public abstract class QueryUtils {
 			propertyPathModel = from.get(segment).getModel();
 		}
 
-		if (requiresJoin(propertyPathModel, model instanceof PluralAttribute)) {
+		if (requiresJoin(propertyPathModel, model instanceof PluralAttribute) && !isAlreadyFetched(from, segment)) {
 			Join<?, ?> join = getOrCreateJoin(from, segment);
 			return (Expression<T>) (property.hasNext() ? toExpressionRecursively(join, property.next()) : join);
 		} else {
@@ -481,7 +481,7 @@ public abstract class QueryUtils {
 	/**
 	 * Returns whether the given {@code propertyPathModel} requires the creation of a join. This is the case if we find a
 	 * non-optional association.
-	 * 
+	 *
 	 * @param propertyPathModel must not be {@literal null}.
 	 * @param for
 	 * @return
@@ -526,7 +526,7 @@ public abstract class QueryUtils {
 
 	/**
 	 * Returns an existing join for the given attribute if one already exists or creates a new one if not.
-	 * 
+	 *
 	 * @param from the {@link From} to get the current joins from.
 	 * @param attribute the {@link Attribute} to look for in the current joins.
 	 * @return will never be {@literal null}.
@@ -543,5 +543,17 @@ public abstract class QueryUtils {
 		}
 
 		return from.join(attribute, JoinType.LEFT);
+	}
+
+
+	private static boolean isAlreadyFetched(final From<?, ?> from, final String attribute) {
+		for(final Fetch<?, ?> f : from.getFetches()) {
+			final boolean sameName = f.getAttribute().getName().equals(attribute);
+
+			if(sameName && f.getJoinType().equals(JoinType.LEFT)) {
+				return true;
+			}
+		}
+		return false;
 	}
 }
