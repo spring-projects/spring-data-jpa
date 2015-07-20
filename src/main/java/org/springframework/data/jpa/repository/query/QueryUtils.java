@@ -546,15 +546,24 @@ public abstract class QueryUtils {
 		return from.join(attribute, JoinType.LEFT);
 	}
 
+	/**
+	 * Return whether the given {@link From} contains a fetch declaration for the attribute with the given name.
+	 * 
+	 * @param from the {@link From} to check for fetches.
+	 * @param attribute the attribute name to check.
+	 * @return
+	 */
+	private static boolean isAlreadyFetched(From<?, ?> from, String attribute) {
 
-	private static boolean isAlreadyFetched(final From<?, ?> from, final String attribute) {
-		for(final Fetch<?, ?> f : from.getFetches()) {
-			final boolean sameName = f.getAttribute().getName().equals(attribute);
+		for (Fetch<?, ?> f : from.getFetches()) {
 
-			if(sameName && f.getJoinType().equals(JoinType.LEFT)) {
+			boolean sameName = f.getAttribute().getName().equals(attribute);
+
+			if (sameName && f.getJoinType().equals(JoinType.LEFT)) {
 				return true;
 			}
 		}
+
 		return false;
 	}
 }

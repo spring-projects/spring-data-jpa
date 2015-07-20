@@ -17,8 +17,10 @@ package org.springframework.data.jpa.repository.query;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -40,9 +42,9 @@ import javax.persistence.spi.PersistenceProviderResolverHolder;
 import org.hibernate.ejb.HibernatePersistence;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.springframework.data.jpa.domain.sample.Category;
 import org.springframework.data.jpa.domain.sample.Order;
-import org.springframework.data.jpa.domain.sample.Product;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.test.context.ContextConfiguration;
@@ -149,19 +151,22 @@ public class QueryUtilsIntegrationTests {
 	 * @see DATAJPA-763
 	 */
 	@Test
+	@SuppressWarnings("unchecked")
 	public void doesNotCreateAJoinForAlreadyFetchedAssociation() {
 
-		final CriteriaBuilder builder = em.getCriteriaBuilder();
-		final CriteriaQuery<Category> query = builder.createQuery(Category.class);
-		final Root<Category> root = query.from(Category.class);
-		root.fetch("product", JoinType.LEFT);
+		CriteriaBuilder builder = em.getCriteriaBuilder();
+		CriteriaQuery<Category> query = builder.createQuery(Category.class);
 
-		QueryUtils.toExpressionRecursively(root, PropertyPath.from("product", Category.class));
-		assertThat(root.getJoins(), is(empty()));
-	}
+		Root<Category> root = query.from(Category.class);
 
-	protected void assertNoJoinRequestedForOptionalAssociation(Root<Order> root) {
-		assertThat(root.getJoins(), is(empty()));
+		Root<Category> mock = Mockito.mock(Root.class);
+		doReturn(root.getModel()).when(mock).getModel();
+		doReturn(Collections.singleton(root.fetch("product", JoinType.LEFT))).when(mock).getFetches();
+
+		QueryUtils.toExpressionRecursively(mock, PropertyPath.from("product", Category.class));
+
+		verify(mock, times(1)).get("product");
+		verify(mock, times(0)).join(Mockito.eq("product"), Mockito.any(JoinType.class));
 	}
 
 	@Entity
