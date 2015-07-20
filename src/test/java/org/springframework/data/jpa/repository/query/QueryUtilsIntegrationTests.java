@@ -29,9 +29,7 @@ import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Persistence;
 import javax.persistence.PersistenceContext;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Root;
+import javax.persistence.criteria.*;
 import javax.persistence.spi.PersistenceProvider;
 import javax.persistence.spi.PersistenceProviderResolver;
 import javax.persistence.spi.PersistenceProviderResolverHolder;
@@ -39,7 +37,9 @@ import javax.persistence.spi.PersistenceProviderResolverHolder;
 import org.hibernate.ejb.HibernatePersistence;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.data.jpa.domain.sample.Category;
 import org.springframework.data.jpa.domain.sample.Order;
+import org.springframework.data.jpa.domain.sample.Product;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.test.context.ContextConfiguration;
@@ -140,6 +140,21 @@ public class QueryUtilsIntegrationTests {
 		} finally {
 			PersistenceProviderResolverHolder.setPersistenceProviderResolver(originalPersistenceProviderResolver);
 		}
+	}
+
+	/**
+	 * @see DATAJPA-763
+	 */
+	@Test
+	public void doesNotCreateAJoinForAlreadyFetchedAssociation() {
+
+		final CriteriaBuilder builder = em.getCriteriaBuilder();
+		final CriteriaQuery<Category> query = builder.createQuery(Category.class);
+		final Root<Category> root = query.from(Category.class);
+		root.fetch("product", JoinType.LEFT);
+
+		QueryUtils.toExpressionRecursively(root, PropertyPath.from("product", Category.class));
+		assertThat(root.getJoins(), is(empty()));
 	}
 
 	protected void assertNoJoinRequestedForOptionalAssociation(Root<Order> root) {
