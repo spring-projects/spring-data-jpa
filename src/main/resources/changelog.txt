@@ -1,6 +1,14 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 1.8.2.RELEASE (2015-07-28)
+---------------------------------------------
+* DATAJPA-766 - Release 1.8.2 (Fowler).
+* DATAJPA-763 - Executing a Specification with fetch-joins leads to wrong HQL query.
+* DATAJPA-759 - Log names of Class and Mapping Files found during scan to DEBUG level in ClasspathScanningPersistenceUnitPostProcessor.
+* DATAJPA-758 - Using Java 8 named parameter prevents positional query parameter binding.
+
+
 Changes in version 1.6.6.RELEASE (2015-07-01)
 ---------------------------------------------
 * DATAJPA-750 - Release 1.6.6 (Dijkstra).
