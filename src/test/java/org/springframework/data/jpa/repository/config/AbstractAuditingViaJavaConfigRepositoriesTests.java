@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,18 +19,28 @@ import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
+import java.util.Date;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import javax.persistence.EntityManager;
+
+import org.joda.time.DateTime;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.data.jpa.domain.sample.AuditableUser;
 import org.springframework.data.jpa.repository.sample.AuditableUserRepository;
+import org.springframework.data.jpa.repository.sample.SampleEvaluationContextExtension;
+import org.springframework.data.jpa.repository.sample.SampleEvaluationContextExtension.SampleSecurityContextHolder;
+import org.springframework.data.jpa.util.FixedDate;
+import org.springframework.data.repository.query.spi.EvaluationContextExtension;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,10 +58,17 @@ public abstract class AbstractAuditingViaJavaConfigRepositoriesTests {
 	@Autowired AuditorAware<AuditableUser> auditorAware;
 	AuditableUser auditor;
 
+	@Autowired EntityManager em;
+
 	@Configuration
 	@Import(InfrastructureConfig.class)
 	@EnableJpaRepositories(basePackageClasses = AuditableUserRepository.class)
-	static class TestConfig {}
+	static class TestConfig {
+		@Bean
+		EvaluationContextExtension sampleEvaluationContextExtension() {
+			return new SampleEvaluationContextExtension();
+		}
+	}
 
 	@Before
 	public void setup() {
@@ -83,5 +100,36 @@ public abstract class AbstractAuditingViaJavaConfigRepositoriesTests {
 		AuditableUser createdBy = savedUser.getCreatedBy();
 		assertThat(createdBy, is(notNullValue()));
 		assertThat(createdBy.getFirstname(), is(this.auditor.getFirstname()));
+	}
+
+	/**
+	 * @see DATAJPA-382
+	 */
+	@Test
+	public void shouldAllowUseOfDynamicSpelParametersInUpdateQueries() {
+
+		AuditableUser oliver = auditableUserRepository.save(new AuditableUser(null, "oliver"));
+		AuditableUser christoph = auditableUserRepository.save(new AuditableUser(null, "christoph"));
+		AuditableUser thomas = auditableUserRepository.save(new AuditableUser(null, "thomas"));
+
+		em.detach(oliver);
+		em.detach(christoph);
+		em.detach(thomas);
+		em.detach(auditor);
+
+		FixedDate.INSTANCE.setDate(new Date());
+
+		SampleSecurityContextHolder.getCurrent().setPrincipal(thomas);
+		auditableUserRepository.updateAllNamesToUpperCase();
+
+		DateTime now = new DateTime(FixedDate.INSTANCE.getDate());
+		List<AuditableUser> users = auditableUserRepository.findAll();
+
+		for (AuditableUser user : users) {
+
+			assertThat(user.getFirstname(), is(user.getFirstname().toUpperCase()));
+			assertThat(user.getLastModifiedBy(), is(thomas));
+			assertThat(user.getLastModifiedDate(), is(now));
+		}
 	}
 }
