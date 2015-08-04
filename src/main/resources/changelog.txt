@@ -1,6 +1,18 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 1.9.0.RC1 (2015-08-04)
+-----------------------------------------
+* DATAJPA-768 - Release 1.9 RC1 (Gosling).
+* DATAJPA-763 - Executing a Specification with fetch-joins leads to wrong HQL query.
+* DATAJPA-759 - Log names of Class and Mapping Files found during scan to DEBUG level in ClasspathScanningPersistenceUnitPostProcessor.
+* DATAJPA-758 - Using Java 8 named parameter prevents positional query parameter binding.
+* DATAJPA-743 - Typo in README.
+* DATAJPA-736 - Count query creation fails when entity names contain non-ASCII characters.
+* DATAJPA-728 - PageImpl : wrong total count.
+* DATAJPA-669 - Provide a way to get the injected Entity Manager [Factory] in the custom implementations.
+
+
 Changes in version 1.8.2.RELEASE (2015-07-28)
 ---------------------------------------------
 * DATAJPA-766 - Release 1.8.2 (Fowler).
