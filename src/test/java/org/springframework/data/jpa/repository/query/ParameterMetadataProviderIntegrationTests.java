@@ -72,6 +72,18 @@ public class ParameterMetadataProviderIntegrationTests {
 		assertThat(metadata.getExpression().getName(), is(nullValue()));
 	}
 
+	/**
+	 * @see DATAJPA-772
+	 */
+	@Test
+	public void doesNotApplyLikeExpansionOnNonStringProperties() throws Exception {
+
+		ParameterMetadataProvider provider = createProvider(Sample.class.getMethod("findByAgeContaining", Integer.class));
+		ParameterMetadata<Object> metadata = provider.next(new Part("ageContaining", User.class));
+
+		assertThat(metadata.prepare(1), is((Object) 1));
+	}
+
 	private ParameterMetadataProvider createProvider(Method method) {
 
 		JpaParameters parameters = new JpaParameters(method);
@@ -94,5 +106,7 @@ public class ParameterMetadataProviderIntegrationTests {
 		User findByFirstname(@Param("name") String firstname);
 
 		User findByLastname(String lastname);
+
+		User findByAgeContaining(@Param("age") Integer age);
 	}
 }

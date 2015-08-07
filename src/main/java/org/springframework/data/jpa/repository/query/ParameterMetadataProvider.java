@@ -224,17 +224,24 @@ class ParameterMetadataProvider {
 
 			Assert.notNull(value);
 
-			switch (type) {
-				case STARTING_WITH:
-					return String.format("%s%%", value.toString());
-				case ENDING_WITH:
-					return String.format("%%%s", value.toString());
-				case CONTAINING:
-					return String.format("%%%s%%", value.toString());
-				default:
-					return Collection.class.isAssignableFrom(expression.getJavaType())
-							? persistenceProvider.potentiallyConvertEmptyCollection(toCollection(value)) : value;
+			Class<? extends T> expressionType = expression.getJavaType();
+
+			if (String.class.equals(expressionType)) {
+
+				switch (type) {
+					case STARTING_WITH:
+						return String.format("%s%%", value.toString());
+					case ENDING_WITH:
+						return String.format("%%%s", value.toString());
+					case CONTAINING:
+						return String.format("%%%s%%", value.toString());
+					default:
+						return value;
+				}
 			}
+
+			return Collection.class.isAssignableFrom(expressionType)
+					? persistenceProvider.potentiallyConvertEmptyCollection(toCollection(value)) : value;
 		}
 
 		/**
