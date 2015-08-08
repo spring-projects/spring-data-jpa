@@ -57,8 +57,6 @@ enum CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor {
 	 */
 	@Override
 	public void postProcess(ProxyFactory factory, RepositoryInformation repositoryInformation) {
-
-		factory.addAdvice(ExposeInvocationInterceptor.INSTANCE);
 		factory.addAdvice(CrudMethodMetadataPopulatingMethodInterceptor.INSTANCE);
 	}
 
