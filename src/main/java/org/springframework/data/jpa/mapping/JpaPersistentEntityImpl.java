@@ -19,6 +19,7 @@ import java.util.Comparator;
 
 import javax.persistence.metamodel.Metamodel;
 
+import org.springframework.data.annotation.Version;
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.provider.ProxyIdAccessor;
 import org.springframework.data.mapping.IdentifierAccessor;
@@ -31,10 +32,15 @@ import org.springframework.util.Assert;
  * Implementation of {@link JpaPersistentEntity}.
  * 
  * @author Oliver Gierke
+ * @author Greg Turnquist
  * @since 1.3
  */
-class JpaPersistentEntityImpl<T> extends BasicPersistentEntity<T, JpaPersistentProperty> implements
-		JpaPersistentEntity<T> {
+class JpaPersistentEntityImpl<T> extends BasicPersistentEntity<T, JpaPersistentProperty>
+		implements JpaPersistentEntity<T> {
+
+	private static final String INVALID_VERSION_ANNOTATION = "%s is annotated with "
+			+ org.springframework.data.annotation.Version.class.getName() + " but needs to use "
+			+ javax.persistence.Version.class.getName() + " to trigger optimistic locking correctly!";
 
 	private final ProxyIdAccessor proxyIdAccessor;
 
@@ -68,6 +74,26 @@ class JpaPersistentEntityImpl<T> extends BasicPersistentEntity<T, JpaPersistentP
 	@Override
 	public IdentifierAccessor getIdentifierAccessor(Object bean) {
 		return new JpaProxyAwareIdentifierAccessor(this, bean, proxyIdAccessor);
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.mapping.model.BasicPersistentEntity#verify()
+	 */
+	@Override
+	public void verify() {
+
+		super.verify();
+
+		JpaPersistentProperty versionProperty = getVersionProperty();
+
+		if (versionProperty == null) {
+			return;
+		}
+
+		if (versionProperty.isAnnotationPresent(Version.class)) {
+			throw new IllegalArgumentException(String.format(INVALID_VERSION_ANNOTATION, versionProperty));
+		}
 	}
 
 	/**

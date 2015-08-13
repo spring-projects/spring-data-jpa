@@ -159,15 +159,6 @@ public class JpaPersistentPropertyImplUnitTests {
 	}
 
 	/**
-	 * @see DATAJPA-605
-	 * @see DATAJPA-775
-	 */
-	@Test(expected = IllegalArgumentException.class)
-	public void detectsSpringDataVersionAnnotation() {
-		getProperty(SpringDataVersioned.class, "version");
-	}
-
-	/**
 	 * @see DATAJPA-664
 	 */
 	@Test
