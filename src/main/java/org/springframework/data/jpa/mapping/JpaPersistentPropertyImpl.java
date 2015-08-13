@@ -53,6 +53,7 @@ import org.springframework.util.Assert;
  * {@link JpaPersistentProperty} implementation usind a JPA {@link Metamodel}.
  * 
  * @author Oliver Gierke
+ * @author Greg Turnquist
  * @since 1.3
  */
 class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPersistentProperty> implements
@@ -210,13 +211,22 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 		return usePropertyAccess != null ? usePropertyAccess : super.usePropertyAccess();
 	}
 
-	/* 
-	 * (non-Javadoc)
-	 * @see org.springframework.data.mapping.model.AnnotationBasedPersistentProperty#isVersionProperty()
+	/**
+	 * Lookup if the property is versioned. In the event it's versioned using Spring Data Commons and NOT JPA,
+	 * fail fast with a detailed error message.
+	 *
+	 * @return
 	 */
 	@Override
 	public boolean isVersionProperty() {
-		return isAnnotationPresent(Version.class) || super.isVersionProperty();
+
+		if (super.isVersionProperty() && !isAnnotationPresent(Version.class)) {
+			throw new IllegalArgumentException(this.owner.getName() + "." + this.getName() + " is annotated with " +
+					org.springframework.data.annotation.Version.class.getCanonicalName() + ". With Spring Data JPA, use " +
+					Version.class.getCanonicalName() + ".");
+		}
+
+		return isAnnotationPresent(Version.class);
 	}
 
 	/* 
