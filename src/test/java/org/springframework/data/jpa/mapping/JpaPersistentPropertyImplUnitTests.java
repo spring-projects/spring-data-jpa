@@ -35,6 +35,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
 import org.springframework.data.annotation.AccessType.Type;
 import org.springframework.data.annotation.Version;
 import org.springframework.data.util.ClassTypeInformation;
@@ -44,6 +45,7 @@ import org.springframework.data.util.TypeInformation;
  * Unit tests for {@link JpaPersistentPropertyImpl}.
  * 
  * @author Oliver Gierke
+ * @author Greg Turnquist
  */
 @RunWith(MockitoJUnitRunner.class)
 public class JpaPersistentPropertyImplUnitTests {
@@ -159,10 +161,11 @@ public class JpaPersistentPropertyImplUnitTests {
 
 	/**
 	 * @see DATAJPA-605
+	 * @see DATAJPA-775
 	 */
-	@Test
+	@Test(expected = IllegalArgumentException.class)
 	public void detectsSpringDataVersionAnnotation() {
-		assertThat(getProperty(SpringDataVersioned.class, "version").isVersionProperty(), is(true));
+		getProperty(SpringDataVersioned.class, "version");
 	}
 
 	/**
@@ -298,7 +301,7 @@ public class JpaPersistentPropertyImplUnitTests {
 
 	static class JpaVersioned {
 
-		@Version long version;
+		@javax.persistence.Version long version;
 	}
 
 	static class SpecializedAssociation {
