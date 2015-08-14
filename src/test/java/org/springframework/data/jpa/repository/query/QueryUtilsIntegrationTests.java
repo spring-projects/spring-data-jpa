@@ -45,6 +45,8 @@ import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.data.jpa.domain.sample.Category;
 import org.springframework.data.jpa.domain.sample.Order;
+import org.springframework.data.jpa.domain.sample.Parent;
+import org.springframework.data.jpa.domain.sample.Parent_;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.test.context.ContextConfiguration;
@@ -121,6 +123,38 @@ public class QueryUtilsIntegrationTests {
 		QueryUtils.toExpressionRecursively(root, PropertyPath.from("colleaguesLastname", User.class));
 
 		assertThat(root.getJoins(), hasSize(1));
+	}
+
+	/**
+	 * @see DATAJPA-776
+	 */
+	@Test
+	public void usesAliasedJoinInOrderByClause() {
+
+		CriteriaBuilder builder = em.getCriteriaBuilder();
+		CriteriaQuery<Parent> query = builder.createQuery(Parent.class);
+		Root<Parent> root = query.from(Parent.class);
+		root.join(Parent_.children, JoinType.INNER).alias("children_springDataOrderBy");
+
+		QueryUtils.toExpressionRecursively(root, PropertyPath.from("children", Parent.class));
+
+		assertThat(root.getJoins(), hasSize(1));
+	}
+
+	/**
+	 * @see DATAJPA-776
+	 */
+	@Test
+	public void withoutExtensionAliasIsNotUsedInOrderBy() {
+
+		CriteriaBuilder builder = em.getCriteriaBuilder();
+		CriteriaQuery<Parent> query = builder.createQuery(Parent.class);
+		Root<Parent> root = query.from(Parent.class);
+		root.join(Parent_.children, JoinType.INNER).alias("children");
+
+		QueryUtils.toExpressionRecursively(root, PropertyPath.from("children", Parent.class));
+
+		assertThat(root.getJoins(), hasSize(2));
 	}
 
 	/**
