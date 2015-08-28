@@ -70,6 +70,7 @@ public class ThreeTenBackPortJpaConvertersIntegrationTests extends AbstractAttri
 		sample.localDateTime = LocalDateTime.now();
 
 		em.persist(sample);
+		em.flush();
 		em.clear();
 
 		DateTimeSample result = em.find(DateTimeSample.class, sample.id);

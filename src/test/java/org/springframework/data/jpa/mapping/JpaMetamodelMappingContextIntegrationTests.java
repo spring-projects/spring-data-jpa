@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2014 the original author or authors.
+ * Copyright 2012-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,9 +57,9 @@ public class JpaMetamodelMappingContextIntegrationTests {
 
 	@Configuration
 	@ImportResource("classpath:infrastructure.xml")
-	@EnableJpaRepositories(basePackageClasses = CategoryRepository.class,//
+	@EnableJpaRepositories(basePackageClasses = CategoryRepository.class, //
 			includeFilters = @Filter(value = { CategoryRepository.class, ProductRepository.class },
-					type = FilterType.ASSIGNABLE_TYPE))
+					type = FilterType.ASSIGNABLE_TYPE) )
 	static class Config {
 
 	}
@@ -131,14 +131,21 @@ public class JpaMetamodelMappingContextIntegrationTests {
 	@Test
 	public void lookingUpIdentifierOfProxyDoesNotInitializeProxy() {
 
-		new TransactionTemplate(transactionManager).execute(new TransactionCallback<Void>() {
+		TransactionTemplate template = new TransactionTemplate(transactionManager);
+		final Category category = template.execute(new TransactionCallback<Category>() {
+
+			@Override
+			public Category doInTransaction(TransactionStatus status) {
+
+				Product product = products.save(new Product());
+				return categories.save(new Category(product));
+			}
+		});
+
+		template.execute(new TransactionCallback<Void>() {
 
 			@Override
 			public Void doInTransaction(TransactionStatus status) {
-
-				Product product = products.save(new Product());
-				Category category = categories.save(new Category(product));
-				em.clear();
 
 				Category loaded = categories.findOne(category.getId());
 				Product loadedProduct = loaded.getProduct();
@@ -146,7 +153,7 @@ public class JpaMetamodelMappingContextIntegrationTests {
 				JpaPersistentEntity<?> entity = context.getPersistentEntity(Product.class);
 				IdentifierAccessor accessor = entity.getIdentifierAccessor(loadedProduct);
 
-				assertThat(accessor.getIdentifier(), is((Object) product.getId()));
+				assertThat(accessor.getIdentifier(), is((Object) category.getProduct().getId()));
 				assertThat(loadedProduct, is(instanceOf(HibernateProxy.class)));
 				assertThat(((HibernateProxy) loadedProduct).getHibernateLazyInitializer().isUninitialized(), is(true));
 
