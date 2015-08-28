@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 the original author or authors.
+ * Copyright 2008-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +19,14 @@ import java.util.List;
 
 import org.springframework.data.jpa.domain.sample.AuditableUser;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 
 /**
  * Repository interface for {@code AuditableUser}.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 public interface AuditableUserRepository extends JpaRepository<AuditableUser, Long> {
 
@@ -33,5 +36,9 @@ public interface AuditableUserRepository extends JpaRepository<AuditableUser, Lo
 	 * @param firstname
 	 * @return all users with the given firstname.
 	 */
-	public List<AuditableUser> findByFirstname(final String firstname);
+	List<AuditableUser> findByFirstname(final String firstname);
+
+	@Modifying
+	@Query("update AuditableUser a set a.firstname = upper(a.firstname), a.lastModifiedBy = :#{#security.principal}, a.lastModifiedDate = :#{T(org.springframework.data.jpa.util.FixedDate).INSTANCE.getDate()}")
+	void updateAllNamesToUpperCase();
 }
