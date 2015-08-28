@@ -70,6 +70,7 @@ public class Jsr310JpaConvertersIntegrationTests extends AbstractAttributeConver
 		sample.localDateTime = LocalDateTime.now();
 
 		em.persist(sample);
+		em.flush();
 		em.clear();
 
 		DateTimeSample result = em.find(DateTimeSample.class, sample.id);
