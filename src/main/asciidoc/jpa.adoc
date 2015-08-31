@@ -777,6 +777,33 @@ If you expose a bean of type AuditorAware to the ApplicationContext, the auditin
 [[jpa.misc]]
 = Miscellaneous
 
+[[jpa.misc.jpa-context]]
+== Using JpaContext in custom implementations
+
+When working with multiple `EntityManager` instances and <<repositories.custom-implementations,custom repository implementations>> you'll need to make sure you wire the correct `EntityManager` into the repository implementation class. This could be solved by explicitly naming the `EntityManager` in the `@PersistenceContext` annotation or using `@Qualifier` in case the `EntityManager` is injected via `@Autowired`.
+
+As of Spring Data JPA 1.9, we ship a class `JpaContext` that allows to obtain the `EntityManager` by managed domain class assuming it's only managed by one of the `EntityManager` instances in the application.
+
+.Using JpaContext in a custom repository implementation
+====
+[source, java]
+----
+class UserRepositoryImpl implements UserRepositoryCustom {
+
+  private final EntityManager em;
+
+  @Autowired
+  public UserRepositoryImpl(JpaContext context) {
+    this.em = context.getEntityManagerByManagedType(User.class);
+  }
+
+  …
+}
+----
+====
+
+This approach has the advantage that the repository does not have to be touched to alter the reference to the persistence unit in case the domain type gets assigned to a different persistence unit.
+
 [[jpa.misc.merging-persistence-units]]
 == Merging persistence units
 
