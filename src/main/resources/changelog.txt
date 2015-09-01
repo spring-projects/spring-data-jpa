@@ -1,6 +1,16 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 1.9.0.RELEASE (2015-09-01)
+---------------------------------------------
+* DATAJPA-787 - Release 1.9 GA (Gosling).
+* DATAJPA-785 - Make sure the build works with Hibernate 5 GA.
+* DATAJPA-779 - Update reference documentation to mention newly introduced JpaContext.
+* DATAJPA-775 - Fail fast when entity uses Spring Data Commons @Version instead of JPA @Version.
+* DATAJPA-773 - Remove explicit registration of ExposeInvocationInterceptor from CrudMethodMetadataPostProcessor.
+* DATAJPA-772 - ParameterMetadataProvider should apply LIKE-expansion only on String properties.
+
+
 Changes in version 1.9.0.RC1 (2015-08-04)
 -----------------------------------------
 * DATAJPA-768 - Release 1.9 RC1 (Gosling).
