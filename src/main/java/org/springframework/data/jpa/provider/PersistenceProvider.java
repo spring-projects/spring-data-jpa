@@ -41,11 +41,9 @@ import org.hibernate.ScrollMode;
 import org.hibernate.ScrollableResults;
 import org.hibernate.ejb.HibernateQuery;
 import org.hibernate.proxy.HibernateProxy;
-import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.data.util.CloseableIterator;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
 
 /**
  * Enumeration representing persistence providers to be used.
@@ -367,9 +365,6 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 
 		private final ScrollableResults scrollableResults;
 
-		private static final boolean IS_HIBERNATE3 = ClassUtils.isPresent("org.hibernate.ejb.QueryImpl",
-				HibernateScrollableResultsIterator.class.getClassLoader());
-
 		/**
 		 * Creates a new {@link HibernateScrollableResultsIterator} for the given {@link Query}.
 		 * 
@@ -377,8 +372,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 		 */
 		public HibernateScrollableResultsIterator(Query jpaQuery) {
 
-			org.hibernate.Query query = IS_HIBERNATE3 ? extractHibernate3QueryFrom(jpaQuery)
-					: extractHibernate4Query(jpaQuery);
+			org.hibernate.Query query = jpaQuery.unwrap(org.hibernate.Query.class);
 
 			this.scrollableResults = query.setReadOnly(TransactionSynchronizationManager.isCurrentTransactionReadOnly())
 					.scroll(ScrollMode.FORWARD_ONLY);
@@ -412,34 +406,6 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 			if (scrollableResults != null) {
 				scrollableResults.close();
 			}
-		}
-
-		private static org.hibernate.Query extractHibernate4Query(Query jpaQuery) {
-
-			Object query = jpaQuery;
-
-			if (jpaQuery.getClass().getName().equals("org.hibernate.jpa.criteria.compile.CriteriaQueryTypeQueryAdapter")) {
-				query = new DirectFieldAccessor(jpaQuery).getPropertyValue("jpqlQuery");
-			}
-
-			return extractHibernateQueryFromQueryImpl(query);
-		}
-
-		private static org.hibernate.Query extractHibernate3QueryFrom(Query jpaQuery) {
-
-			Object query = jpaQuery;
-
-			if (jpaQuery.getClass().isAnonymousClass()
-					&& jpaQuery.getClass().getEnclosingClass().getName()
-							.equals("org.hibernate.ejb.criteria.CriteriaQueryCompiler")) {
-				query = new DirectFieldAccessor(jpaQuery).getPropertyValue("val$jpaqlQuery");
-			}
-
-			return extractHibernateQueryFromQueryImpl(query);
-		}
-
-		private static org.hibernate.Query extractHibernateQueryFromQueryImpl(Object queryImpl) {
-			return (org.hibernate.Query) new DirectFieldAccessor(queryImpl).getPropertyValue("query");
 		}
 	}
 
