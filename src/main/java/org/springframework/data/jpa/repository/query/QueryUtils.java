@@ -84,7 +84,7 @@ public abstract class QueryUtils {
 	private static final String IDENTIFIER = "[\\p{Lu}\\P{InBASIC_LATIN}\\p{Alnum}._$]+";
 	private static final String IDENTIFIER_GROUP = String.format("(%s)", IDENTIFIER);
 
-	private static final String JOIN = "join " + IDENTIFIER + " (as )?" + IDENTIFIER_GROUP;
+	private static final String JOIN = "join\\s" + IDENTIFIER + "\\s(as\\s)?" + IDENTIFIER_GROUP;
 	private static final Pattern JOIN_PATTERN = Pattern.compile(JOIN, Pattern.CASE_INSENSITIVE);
 
 	private static final String EQUALS_CONDITION_STRING = "%s.%s = :%s";
@@ -102,10 +102,10 @@ public abstract class QueryUtils {
 
 		StringBuilder builder = new StringBuilder();
 		builder.append("(?<=from)"); // from as starting delimiter
-		builder.append("(?: )+"); // at least one space separating
+		builder.append("(?:\\s)+"); // at least one space separating
 		builder.append(IDENTIFIER_GROUP); // Entity name, can be qualified (any
-		builder.append("(?: as)*"); // exclude possible "as" keyword
-		builder.append("(?: )+"); // at least one space separating
+		builder.append("(?:\\sas)*"); // exclude possible "as" keyword
+		builder.append("(?:\\s)+"); // at least one space separating
 		builder.append("(\\w*)"); // the actual alias
 
 		ALIAS_MATCH = compile(builder.toString(), CASE_INSENSITIVE);
