@@ -22,14 +22,14 @@ import javax.persistence.PersistenceContext;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.Assert;
 
-import com.mysema.query.dml.DeleteClause;
-import com.mysema.query.dml.UpdateClause;
-import com.mysema.query.jpa.JPQLQuery;
-import com.mysema.query.jpa.impl.JPADeleteClause;
-import com.mysema.query.jpa.impl.JPAUpdateClause;
-import com.mysema.query.types.EntityPath;
-import com.mysema.query.types.path.PathBuilder;
-import com.mysema.query.types.path.PathBuilderFactory;
+import com.querydsl.core.dml.DeleteClause;
+import com.querydsl.core.dml.UpdateClause;
+import com.querydsl.core.types.EntityPath;
+import com.querydsl.core.types.dsl.PathBuilder;
+import com.querydsl.core.types.dsl.PathBuilderFactory;
+import com.querydsl.jpa.JPQLQuery;
+import com.querydsl.jpa.impl.JPADeleteClause;
+import com.querydsl.jpa.impl.JPAUpdateClause;
 
 /**
  * Base class for implementing repositories using QueryDsl library.
@@ -88,10 +88,21 @@ public abstract class QueryDslRepositorySupport {
 	/**
 	 * Returns a fresh {@link JPQLQuery}.
 	 * 
+	 * @param path must not be {@literal null}.
 	 * @return the Querydsl {@link JPQLQuery}.
 	 */
-	protected JPQLQuery from(EntityPath<?>... paths) {
+	protected JPQLQuery<Object> from(EntityPath<?>... paths) {
 		return querydsl.createQuery(paths);
+	}
+
+	/**
+	 * Returns a {@link JPQLQuery} for the given {@link EntityPath}.
+	 * 
+	 * @param path must not be {@literal null}.
+	 * @return
+	 */
+	protected <T> JPQLQuery<T> from(EntityPath<T> path) {
+		return querydsl.createQuery(path).select(path);
 	}
 
 	/**

@@ -26,7 +26,6 @@
 		<hsqldb1>1.8.0.10</hsqldb1>
 		<jpa>2.0.0</jpa>
 		<openjpa>2.4.0</openjpa>
-		<querydsl>3.6.3</querydsl>
 		<springdata.commons>1.12.0.BUILD-SNAPSHOT</springdata.commons>
 
 		<sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
@@ -223,14 +222,14 @@
 
 		<!-- QueryDsl -->
 		<dependency>
-			<groupId>com.mysema.querydsl</groupId>
+			<groupId>com.querydsl</groupId>
 			<artifactId>querydsl-apt</artifactId>
 			<version>${querydsl}</version>
 			<scope>provided</scope>
 		</dependency>
 
 		<dependency>
-			<groupId>com.mysema.querydsl</groupId>
+			<groupId>com.querydsl</groupId>
 			<artifactId>querydsl-jpa</artifactId>
 			<version>${querydsl}</version>
 			<optional>true</optional>
@@ -424,7 +423,7 @@
 				<configuration>
 					<logOnlyOnError>true</logOnlyOnError>
 					<processors>
-						<processor>com.mysema.query.apt.jpa.JPAAnnotationProcessor</processor>
+						<processor>com.querydsl.apt.jpa.JPAAnnotationProcessor</processor>
 						<processor>org.hibernate.jpamodelgen.JPAMetaModelEntityProcessor</processor>
 					</processors>
 				</configuration>

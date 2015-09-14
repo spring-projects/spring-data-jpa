@@ -43,10 +43,10 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.mysema.query.types.Predicate;
-import com.mysema.query.types.expr.BooleanExpression;
-import com.mysema.query.types.path.PathBuilder;
-import com.mysema.query.types.path.PathBuilderFactory;
+import com.querydsl.core.types.Predicate;
+import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.PathBuilder;
+import com.querydsl.core.types.dsl.PathBuilderFactory;
 
 /**
  * Integration test for {@link QueryDslJpaRepository}.
@@ -151,8 +151,8 @@ public class QueryDslJpaRepositoryTests {
 
 		QUser user = QUser.user;
 
-		Page<User> page = repository.findAll(user.firstname.isNotNull(), new PageRequest(0, 10, new Sort(
-				Sort.Direction.ASC, "colleagues.firstname")));
+		Page<User> page = repository.findAll(user.firstname.isNotNull(),
+				new PageRequest(0, 10, new Sort(Sort.Direction.ASC, "colleagues.firstname")));
 
 		assertThat(page.getContent(), hasSize(3));
 		assertThat(page.getContent(), hasItems(oliver, dave, carter));
@@ -169,8 +169,8 @@ public class QueryDslJpaRepositoryTests {
 
 		QUser user = QUser.user;
 
-		Page<User> page = repository.findAll(user.firstname.isNotNull(), new PageRequest(0, 10, new Sort(
-				Sort.Direction.ASC, "manager.firstname")));
+		Page<User> page = repository.findAll(user.firstname.isNotNull(),
+				new PageRequest(0, 10, new Sort(Sort.Direction.ASC, "manager.firstname")));
 
 		assertThat(page.getContent(), hasSize(3));
 		assertThat(page.getContent(), hasItems(dave, oliver, carter));
@@ -184,8 +184,8 @@ public class QueryDslJpaRepositoryTests {
 
 		QUser user = QUser.user;
 
-		Page<User> page = repository.findAll(user.firstname.isNotNull(), new PageRequest(0, 10, new Sort(
-				Sort.Direction.ASC, "firstname")));
+		Page<User> page = repository.findAll(user.firstname.isNotNull(),
+				new PageRequest(0, 10, new Sort(Sort.Direction.ASC, "firstname")));
 
 		assertThat(page.getContent(), hasSize(3));
 		assertThat(page.getContent(), hasItems(carter, dave, oliver));
@@ -199,8 +199,8 @@ public class QueryDslJpaRepositoryTests {
 
 		QUser user = QUser.user;
 
-		Page<User> page = repository.findAll(user.firstname.isNotNull(), new PageRequest(0, 10, new Sort(new Order(
-				Sort.Direction.ASC, "firstname").ignoreCase())));
+		Page<User> page = repository.findAll(user.firstname.isNotNull(),
+				new PageRequest(0, 10, new Sort(new Order(Sort.Direction.ASC, "firstname").ignoreCase())));
 
 		assertThat(page.getContent(), hasSize(3));
 		assertThat(page.getContent(), hasItems(carter, dave, oliver));
@@ -216,8 +216,8 @@ public class QueryDslJpaRepositoryTests {
 
 		QUser user = QUser.user;
 
-		Page<User> page = repository.findAll(user.firstname.isNotNull(), new PageRequest(0, 10, new Sort(
-				Sort.Direction.ASC, "address.streetName")));
+		Page<User> page = repository.findAll(user.firstname.isNotNull(),
+				new PageRequest(0, 10, new Sort(Sort.Direction.ASC, "address.streetName")));
 
 		assertThat(page.getContent(), hasSize(3));
 		assertThat(page.getContent(), hasItems(dave, carter, oliver));

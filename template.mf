@@ -7,7 +7,7 @@ Bundle-RequiredExecutionEnvironment: J2SE-1.5
 Export-Template: 
  org.springframework.data.jpa.*;version="${project.version}"
 Import-Template:
- com.mysema.query.*;version="${querydsl:[=.=.=,+1.0.0)}";resolution:=optional,
+ com.querydsl.*;version="${querydsl:[=.=.=,+1.0.0)}";resolution:=optional,
  javax.persistence.*;version="${jpa:[=.=.=,+1.0.0)}",
  javax.annotation.*;version="0.0.0",
  javax.enterprise.*;version="${cdi:[=.=.=,+1.0.0)}";resolution:=optional,
