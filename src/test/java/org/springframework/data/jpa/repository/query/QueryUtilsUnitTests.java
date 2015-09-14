@@ -303,6 +303,14 @@ public class QueryUtilsUnitTests {
 		assertThat(createCountQueryFor("select u from Usèr u"), is("select count(u) from Usèr u"));
 	}
 
+	/**
+	 * @see DATAJPA-798
+	 */
+	@Test
+	public void detectsAliasInQueryContainingLineBreaks() {
+		assertThat(detectAlias("select \n u \n from \n User \nu"), is("u"));
+	}
+
 	private void assertCountQuery(String originalQuery, String countQuery) {
 		assertThat(createCountQueryFor(originalQuery), is(countQuery));
 	}
