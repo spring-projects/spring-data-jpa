@@ -24,6 +24,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -68,6 +69,7 @@ public class Jsr310JpaConvertersIntegrationTests extends AbstractAttributeConver
 		sample.localDate = LocalDate.now();
 		sample.localTime = LocalTime.now();
 		sample.localDateTime = LocalDateTime.now();
+		sample.zoneId = ZoneId.of("Europe/Berlin");
 
 		em.persist(sample);
 		em.flush();
@@ -80,5 +82,6 @@ public class Jsr310JpaConvertersIntegrationTests extends AbstractAttributeConver
 		assertThat(result.localDate, is(sample.localDate));
 		assertThat(result.localTime, is(sample.localTime));
 		assertThat(result.localDateTime, is(sample.localDateTime));
+		assertThat(result.zoneId, is(sample.zoneId));
 	}
 }

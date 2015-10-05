@@ -23,6 +23,7 @@ import org.threeten.bp.Instant;
 import org.threeten.bp.LocalDate;
 import org.threeten.bp.LocalDateTime;
 import org.threeten.bp.LocalTime;
+import org.threeten.bp.ZoneId;
 
 /**
  * @author Oliver Gierke
@@ -36,4 +37,5 @@ public class DateTimeSample {
 	LocalDate localDate;
 	LocalTime localTime;
 	LocalDateTime localDateTime;
+	ZoneId zoneId;
 }

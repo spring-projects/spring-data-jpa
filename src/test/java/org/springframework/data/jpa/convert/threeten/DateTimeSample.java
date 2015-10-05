@@ -19,6 +19,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -35,4 +36,5 @@ public class DateTimeSample {
 	LocalDate localDate;
 	LocalTime localTime;
 	LocalDateTime localDateTime;
+	ZoneId zoneId;
 }

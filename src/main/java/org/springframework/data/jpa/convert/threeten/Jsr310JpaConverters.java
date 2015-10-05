@@ -19,6 +19,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.Date;
 
 import javax.persistence.AttributeConverter;
@@ -32,6 +33,8 @@ import org.springframework.data.convert.Jsr310Converters.InstantToDateConverter;
 import org.springframework.data.convert.Jsr310Converters.LocalDateTimeToDateConverter;
 import org.springframework.data.convert.Jsr310Converters.LocalDateToDateConverter;
 import org.springframework.data.convert.Jsr310Converters.LocalTimeToDateConverter;
+import org.springframework.data.convert.Jsr310Converters.StringToZoneIdConverter;
+import org.springframework.data.convert.Jsr310Converters.ZoneIdToStringConverter;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 
 /**
@@ -97,6 +100,19 @@ public class Jsr310JpaConverters {
 		@Override
 		public Instant convertToEntityAttribute(Date date) {
 			return DateToInstantConverter.INSTANCE.convert(date);
+		}
+	}
+
+	@Converter(autoApply = true)
+	public static class ZoneIdConverter implements AttributeConverter<ZoneId, String> {
+
+		public String convertToDatabaseColumn(ZoneId zoneId) {
+			return ZoneIdToStringConverter.INSTANCE.convert(zoneId);
+		}
+
+		@Override
+		public ZoneId convertToEntityAttribute(String zoneId) {
+			return StringToZoneIdConverter.INSTANCE.convert(zoneId);
 		}
 	}
 }

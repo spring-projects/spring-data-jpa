@@ -32,6 +32,7 @@ import org.threeten.bp.Instant;
 import org.threeten.bp.LocalDate;
 import org.threeten.bp.LocalDateTime;
 import org.threeten.bp.LocalTime;
+import org.threeten.bp.ZoneId;
 
 /**
  * Integration tests for {@link ThreeTenBackPortJpaConverters}.
@@ -68,6 +69,7 @@ public class ThreeTenBackPortJpaConvertersIntegrationTests extends AbstractAttri
 		sample.localDate = LocalDate.now();
 		sample.localTime = LocalTime.now();
 		sample.localDateTime = LocalDateTime.now();
+		sample.zoneId = ZoneId.of("Europe/Berlin");
 
 		em.persist(sample);
 		em.flush();
@@ -80,5 +82,6 @@ public class ThreeTenBackPortJpaConvertersIntegrationTests extends AbstractAttri
 		assertThat(result.localDate, is(sample.localDate));
 		assertThat(result.localTime, is(sample.localTime));
 		assertThat(result.localDateTime, is(sample.localDateTime));
+		assertThat(result.zoneId, is(sample.zoneId));
 	}
 }

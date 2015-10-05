@@ -28,11 +28,14 @@ import org.springframework.data.convert.ThreeTenBackPortConverters.InstantToDate
 import org.springframework.data.convert.ThreeTenBackPortConverters.LocalDateTimeToDateConverter;
 import org.springframework.data.convert.ThreeTenBackPortConverters.LocalDateToDateConverter;
 import org.springframework.data.convert.ThreeTenBackPortConverters.LocalTimeToDateConverter;
+import org.springframework.data.convert.ThreeTenBackPortConverters.StringToZoneIdConverter;
+import org.springframework.data.convert.ThreeTenBackPortConverters.ZoneIdToStringConverter;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.threeten.bp.Instant;
 import org.threeten.bp.LocalDate;
 import org.threeten.bp.LocalDateTime;
 import org.threeten.bp.LocalTime;
+import org.threeten.bp.ZoneId;
 
 /**
  * JPA 2.1 converters to turn ThreeTen back port types into legacy {@link Date}s. To activate these converters make sure
@@ -99,6 +102,19 @@ public class ThreeTenBackPortJpaConverters {
 		@Override
 		public Instant convertToEntityAttribute(Date date) {
 			return DateToInstantConverter.INSTANCE.convert(date);
+		}
+	}
+
+	@Converter(autoApply = true)
+	public static class ZoneIdConverter implements AttributeConverter<ZoneId, String> {
+
+		public String convertToDatabaseColumn(ZoneId zoneId) {
+			return ZoneIdToStringConverter.INSTANCE.convert(zoneId);
+		}
+
+		@Override
+		public ZoneId convertToEntityAttribute(String zoneId) {
+			return StringToZoneIdConverter.INSTANCE.convert(zoneId);
 		}
 	}
 }
