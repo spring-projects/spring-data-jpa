@@ -29,6 +29,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.domain.Sort.Order;
@@ -349,5 +350,13 @@ public class QueryDslJpaRepositoryTests {
 		assertThat(users.get(0).getFirstname(), is(carter.getFirstname()));
 		assertThat(users.get(2).getFirstname(), is(oliver.getFirstname()));
 		assertThat(users, hasItems(carter, dave, oliver));
+	}
+
+	/**
+	 * @see DATAJPA-585
+	 */
+	@Test
+	public void worksWithNullPageable() {
+		assertThat(repository.findAll(user.dateOfBirth.isNull(), (Pageable) null).getContent(), hasSize(3));
 	}
 }
