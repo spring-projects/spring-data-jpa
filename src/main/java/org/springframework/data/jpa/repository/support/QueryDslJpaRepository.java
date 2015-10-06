@@ -139,7 +139,7 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 		JPQLQuery query = querydsl.applyPagination(pageable, createQuery(predicate));
 
 		Long total = countQuery.count();
-		List<T> content = total > pageable.getOffset() ? query.list(path) : Collections.<T> emptyList();
+		List<T> content = pageable == null || total > pageable.getOffset() ? query.list(path) : Collections.<T> emptyList();
 
 		return new PageImpl<T>(content, pageable, total);
 	}
