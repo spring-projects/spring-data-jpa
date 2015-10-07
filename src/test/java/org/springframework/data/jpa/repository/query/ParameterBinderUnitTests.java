@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2014 the original author or authors.
+ * Copyright 2008-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import static org.mockito.Mockito.*;
 import java.lang.reflect.Method;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 import javax.persistence.Embeddable;
 import javax.persistence.Query;
@@ -86,6 +87,8 @@ public class ParameterBinderUnitTests {
 		User invalidWithTemporalTypeParameter(@Temporal String registerDate);
 
 		List<User> validWithVarArgs(Integer... ids);
+
+		User optionalParameter(Optional<String> name);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -174,8 +177,8 @@ public class ParameterBinderUnitTests {
 	public void bindsSortForIndexedParameters() throws Exception {
 
 		Sort sort = new Sort("name");
-		ParameterBinder binder = new ParameterBinder(new JpaParameters(indexedParametersWithSort), new Object[] { "name",
-				sort });
+		ParameterBinder binder = new ParameterBinder(new JpaParameters(indexedParametersWithSort),
+				new Object[] { "name", sort });
 		assertThat(binder.getSort(), is(sort));
 	}
 
@@ -223,7 +226,6 @@ public class ParameterBinderUnitTests {
 
 	/**
 	 * @see DATAJPA-461
-	 * @throws Exception
 	 */
 	@Test
 	public void shouldAllowBindingOfVarArgsAsIs() throws Exception {
@@ -234,6 +236,20 @@ public class ParameterBinderUnitTests {
 		new ParameterBinder(parameters, new Object[] { ids }).bind(query);
 
 		verify(query).setParameter(eq(1), eq(ids));
+	}
+
+	/**
+	 * @see DATAJPA-809
+	 */
+	@Test
+	public void unwrapsOptionalParameter() throws Exception {
+
+		Method method = SampleRepository.class.getMethod("optionalParameter", Optional.class);
+		JpaParameters parameters = new JpaParameters(method);
+
+		new ParameterBinder(parameters, new Object[] { Optional.of("Foo") }).bind(query);
+
+		verify(query).setParameter(eq(1), eq("Foo"));
 	}
 
 	public SampleEntity findByEmbeddable(SampleEmbeddable embeddable) {

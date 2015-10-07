@@ -22,7 +22,9 @@ import javax.persistence.Query;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
+import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.Parameters;
+import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.util.Assert;
 
 /**
@@ -35,6 +37,7 @@ import org.springframework.util.Assert;
 public class ParameterBinder {
 
 	private final JpaParameters parameters;
+	private final ParameterAccessor accessor;
 	private final Object[] values;
 
 	/**
@@ -52,6 +55,7 @@ public class ParameterBinder {
 
 		this.parameters = parameters;
 		this.values = values.clone();
+		this.accessor = new ParametersParameterAccessor(parameters, this.values);
 	}
 
 	ParameterBinder(JpaParameters parameters) {
@@ -64,12 +68,7 @@ public class ParameterBinder {
 	 * @return
 	 */
 	public Pageable getPageable() {
-
-		if (!parameters.hasPageableParameter()) {
-			return null;
-		}
-
-		return (Pageable) values[parameters.getPageableIndex()];
+		return accessor.getPageable();
 	}
 
 	/**
@@ -79,16 +78,7 @@ public class ParameterBinder {
 	 * @return
 	 */
 	public Sort getSort() {
-
-		if (parameters.hasSortParameter()) {
-			return (Sort) values[parameters.getSortIndex()];
-		}
-
-		if (parameters.hasPageableParameter() && getPageable() != null) {
-			return getPageable().getSort();
-		}
-
-		return null;
+		return accessor.getSort();
 	}
 
 	/**
@@ -99,19 +89,17 @@ public class ParameterBinder {
 	 */
 	public <T extends Query> T bind(T query) {
 
-		int methodParameterPosition = 0;
+		int bindableParameterIndex = 0;
 		int queryParameterPosition = 1;
 
 		for (JpaParameter parameter : parameters) {
 
 			if (canBindParameter(parameter)) {
 
-				Object value = values[methodParameterPosition];
-
+				Object value = accessor.getBindableValue(bindableParameterIndex);
 				bind(query, parameter, value, queryParameterPosition++);
+				bindableParameterIndex++;
 			}
-
-			methodParameterPosition++;
 		}
 
 		return query;
@@ -182,20 +170,15 @@ public class ParameterBinder {
 	}
 
 	/**
-	 * Returns the values to bind.
-	 * 
-	 * @return
-	 */
-	Object[] getValues() {
-		return values;
-	}
-
-	/**
 	 * Returns the parameters.
 	 * 
 	 * @return
 	 */
 	JpaParameters getParameters() {
 		return parameters;
+	}
+
+	protected Object[] getValues() {
+		return values;
 	}
 }
