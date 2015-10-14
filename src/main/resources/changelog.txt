@@ -1,6 +1,11 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 1.7.4.RELEASE (2015-10-14)
+---------------------------------------------
+* DATAJPA-812 - Release 1.7.4 (Evans).
+
+
 Changes in version 1.9.0.RELEASE (2015-09-01)
 ---------------------------------------------
 * DATAJPA-787 - Release 1.9 GA (Gosling).
