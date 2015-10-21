@@ -311,6 +311,18 @@ public class QueryUtilsUnitTests {
 		assertThat(detectAlias("select \n u \n from \n User \nu"), is("u"));
 	}
 
+	/**
+	 * @see DATAJPA-815
+	 */
+	@Test
+	public void doesPrefixPropertyWith() {
+
+		String query = "from Cat c join Dog d";
+		Sort sort = new Sort("dPropertyStartingWithJoinAlias");
+
+		assertThat(applySorting(query, sort, "c"), endsWith("order by c.dPropertyStartingWithJoinAlias asc"));
+	}
+
 	private void assertCountQuery(String originalQuery, String countQuery) {
 		assertThat(createCountQueryFor(originalQuery), is(countQuery));
 	}
