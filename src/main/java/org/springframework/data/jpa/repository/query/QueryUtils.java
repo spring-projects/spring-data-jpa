@@ -222,7 +222,7 @@ public abstract class QueryUtils {
 
 	/**
 	 * Returns the order clause for the given {@link Order}. Will prefix the clause with the given alias if the referenced
-	 * property refers to a join alias.
+	 * property refers to a join alias, i.e. starts with {@code $alias.}.
 	 * 
 	 * @param joinAliases the join aliases of the original query.
 	 * @param alias the alias for the root entity.
@@ -235,7 +235,7 @@ public abstract class QueryUtils {
 		boolean qualifyReference = !property.contains("("); // ( indicates a function
 
 		for (String joinAlias : joinAliases) {
-			if (property.startsWith(joinAlias)) {
+			if (property.startsWith(joinAlias.concat("."))) {
 				qualifyReference = false;
 				break;
 			}
