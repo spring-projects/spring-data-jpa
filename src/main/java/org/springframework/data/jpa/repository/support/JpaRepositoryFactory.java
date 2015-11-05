@@ -43,7 +43,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 
 	private final EntityManager entityManager;
 	private final QueryExtractor extractor;
-	private final CrudMethodMetadataPostProcessor lockModePostProcessor;
+	private final CrudMethodMetadataPostProcessor crudMethodMetadataPostProcessor;
 
 	/**
 	 * Creates a new {@link JpaRepositoryFactory}.
@@ -56,9 +56,19 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 
 		this.entityManager = entityManager;
 		this.extractor = PersistenceProvider.fromEntityManager(entityManager);
-		this.lockModePostProcessor = CrudMethodMetadataPostProcessor.INSTANCE;
+		this.crudMethodMetadataPostProcessor = new CrudMethodMetadataPostProcessor();
 
-		addRepositoryProxyPostProcessor(lockModePostProcessor);
+		addRepositoryProxyPostProcessor(crudMethodMetadataPostProcessor);
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.core.support.RepositoryFactorySupport#setBeanClassLoader(java.lang.ClassLoader)
+	 */
+	@Override
+	public void setBeanClassLoader(ClassLoader classLoader) {
+		super.setBeanClassLoader(classLoader);
+		this.crudMethodMetadataPostProcessor.setBeanClassLoader(classLoader);
 	}
 
 	/*
@@ -69,7 +79,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	protected Object getTargetRepository(RepositoryInformation information) {
 
 		SimpleJpaRepository<?, ?> repository = getTargetRepository(information, entityManager);
-		repository.setRepositoryMethodMetadata(lockModePostProcessor.getLockMetadataProvider());
+		repository.setRepositoryMethodMetadata(crudMethodMetadataPostProcessor.getCrudMethodMetadata());
 
 		return repository;
 	}

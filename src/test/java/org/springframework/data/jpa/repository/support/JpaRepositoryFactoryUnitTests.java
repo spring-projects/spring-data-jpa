@@ -31,6 +31,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.aop.framework.Advised;
+import org.springframework.core.OverridingClassLoader;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.custom.CustomGenericJpaRepositoryFactory;
@@ -38,7 +39,9 @@ import org.springframework.data.jpa.repository.custom.UserCustomExtendedReposito
 import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 import org.springframework.data.repository.core.support.DefaultRepositoryMetadata;
 import org.springframework.data.repository.query.QueryLookupStrategy.Key;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.ClassUtils;
 
 /**
  * Unit test for {@code JpaRepositoryFactory}.
@@ -162,6 +165,20 @@ public class JpaRepositoryFactoryUnitTests {
 
 		SampleRepository repository = factory.getRepository(SampleRepository.class);
 		assertEquals(CustomJpaRepository.class, ((Advised) repository).getTargetClass());
+	}
+
+	/**
+	 * @see DATAJPA-819
+	 */
+	@Test
+	public void crudMethodMetadataPostProcessorUsesBeanClassLoader() {
+
+		ClassLoader classLoader = new OverridingClassLoader(ClassUtils.getDefaultClassLoader());
+
+		factory.setBeanClassLoader(classLoader);
+
+		Object processor = ReflectionTestUtils.getField(factory, "crudMethodMetadataPostProcessor");
+		assertThat(ReflectionTestUtils.getField(processor, "classLoader"), is((Object) classLoader));
 	}
 
 	private interface SimpleSampleRepository extends JpaRepository<User, Integer> {

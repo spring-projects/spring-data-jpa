@@ -30,6 +30,7 @@ import org.aopalliance.intercept.MethodInvocation;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.interceptor.ExposeInvocationInterceptor;
 import org.springframework.aop.target.AbstractLazyCreationTargetSource;
+import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Lock;
@@ -38,6 +39,7 @@ import org.springframework.data.repository.core.RepositoryInformation;
 import org.springframework.data.repository.core.support.RepositoryProxyPostProcessor;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 
 /**
  * {@link RepositoryProxyPostProcessor} that sets up interceptors to read metadata information from the invoked method.
@@ -47,9 +49,19 @@ import org.springframework.util.Assert;
  * @author Oliver Gierke
  * @author Thomas Darimont
  */
-enum CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor {
+class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, BeanClassLoaderAware {
 
-	INSTANCE;
+	private ClassLoader classLoader = ClassUtils.getDefaultClassLoader();
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.beans.factory.BeanClassLoaderAware#setBeanClassLoader(java.lang.ClassLoader)
+	 */
+	@Override
+	public void setBeanClassLoader(ClassLoader classLoader) {
+		this.classLoader = classLoader == null ? ClassUtils.getDefaultClassLoader() : classLoader;
+
+	}
 
 	/* 
 	 * (non-Javadoc)
@@ -64,14 +76,14 @@ enum CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor {
 	 * Returns a {@link CrudMethodMetadata} proxy that will lookup the actual target object by obtaining a thread bound
 	 * instance from the {@link TransactionSynchronizationManager} later.
 	 */
-	public CrudMethodMetadata getLockMetadataProvider() {
+	public CrudMethodMetadata getCrudMethodMetadata() {
 
 		ProxyFactory factory = new ProxyFactory();
 
 		factory.addInterface(CrudMethodMetadata.class);
 		factory.setTargetSource(new ThreadBoundTargetSource());
 
-		return (CrudMethodMetadata) factory.getProxy();
+		return (CrudMethodMetadata) factory.getProxy(this.classLoader);
 	}
 
 	/**
