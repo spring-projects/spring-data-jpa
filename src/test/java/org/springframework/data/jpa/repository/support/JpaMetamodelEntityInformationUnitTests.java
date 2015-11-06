@@ -45,17 +45,12 @@ import org.springframework.data.jpa.domain.sample.PersistableWithIdClassPK;
 @RunWith(MockitoJUnitRunner.class)
 public class JpaMetamodelEntityInformationUnitTests {
 
-	@Mock
-	Metamodel metamodel;
+	@Mock Metamodel metamodel;
 
-	@Mock
-	IdentifiableType<PersistableWithIdClass> type;
-	@Mock
-	SingularAttribute<PersistableWithIdClass, ?> first, second;
+	@Mock IdentifiableType<PersistableWithIdClass> type;
+	@Mock SingularAttribute<PersistableWithIdClass, ?> first, second;
 
-	@Mock
-	@SuppressWarnings("rawtypes")
-	Type idType;
+	@Mock @SuppressWarnings("rawtypes") Type idType;
 
 	@Before
 	@SuppressWarnings("unchecked")
@@ -68,6 +63,7 @@ public class JpaMetamodelEntityInformationUnitTests {
 
 		when(type.getIdClassAttributes()).thenReturn(attributes);
 
+		when(metamodel.managedType(Object.class)).thenThrow(IllegalArgumentException.class);
 		when(metamodel.managedType(PersistableWithIdClass.class)).thenReturn(type);
 
 		when(type.getIdType()).thenReturn(idType);
