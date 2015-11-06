@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,19 +18,22 @@ package org.springframework.data.jpa.domain.sample;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
+import javax.persistence.Version;
 
 /**
  * @author Thomas Darimont
+ * @author Oliver Gierke
  */
 @MappedSuperclass
 public abstract class AbstractMappedType {
+
+	@Id @GeneratedValue Long id;
+	@Version Long version;
+	String attribute1;
 
 	public AbstractMappedType() {}
 
 	public AbstractMappedType(String attribute1) {
 		this.attribute1 = attribute1;
 	}
-
-	@Id @GeneratedValue Long id;
-	String attribute1;
 }

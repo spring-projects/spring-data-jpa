@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 the original author or authors.
+ * Copyright 2011-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,6 +66,7 @@ public class JpaMetamodelEntityInformation<T, ID extends Serializable> extends J
 		this.metamodel = metamodel;
 
 		ManagedType<T> type = metamodel.managedType(domainClass);
+
 		if (type == null) {
 			throw new IllegalArgumentException("The given domain class can not be found in the given Metamodel!");
 		}
@@ -76,8 +77,10 @@ public class JpaMetamodelEntityInformation<T, ID extends Serializable> extends J
 			throw new IllegalArgumentException("The given domain class does not contain an id attribute!");
 		}
 
-		this.idMetadata = new IdMetadata<T>((IdentifiableType<T>) type);
-		this.versionAttribute = findVersionAttribute(type);
+		IdentifiableType<T> identifiableType = (IdentifiableType<T>) type;
+
+		this.idMetadata = new IdMetadata<T>(identifiableType);
+		this.versionAttribute = findVersionAttribute(identifiableType, metamodel);
 	}
 
 	/*
@@ -93,9 +96,18 @@ public class JpaMetamodelEntityInformation<T, ID extends Serializable> extends J
 	 * Returns the version attribute of the given {@link ManagedType} or {@literal null} if none available.
 	 * 
 	 * @param type must not be {@literal null}.
+	 * @param metamodel must not be {@literal null}.
 	 * @return
 	 */
-	private static <T> SingularAttribute<? super T, ?> findVersionAttribute(ManagedType<T> type) {
+	@SuppressWarnings("unchecked")
+	private static <T> SingularAttribute<? super T, ?> findVersionAttribute(IdentifiableType<T> type,
+			Metamodel metamodel) {
+
+		try {
+			return type.getVersion(Object.class);
+		} catch (IllegalArgumentException o_O) {
+			// Needs workarounds as the method is implemented with a strict type check on e.g. Hibernate < 4.3
+		}
 
 		Set<SingularAttribute<? super T, ?>> attributes = type.getSingularAttributes();
 
@@ -105,7 +117,21 @@ public class JpaMetamodelEntityInformation<T, ID extends Serializable> extends J
 			}
 		}
 
-		return null;
+		Class<?> superType = type.getJavaType().getSuperclass();
+
+		try {
+
+			ManagedType<?> managedSuperType = metamodel.managedType(superType);
+
+			if (!(managedSuperType instanceof IdentifiableType)) {
+				return null;
+			}
+
+			return (SingularAttribute<? super T, ?>) findVersionAttribute((IdentifiableType<T>) managedSuperType, metamodel);
+
+		} catch (IllegalArgumentException o_O) {
+			return null;
+		}
 	}
 
 	/*
@@ -219,8 +245,8 @@ public class JpaMetamodelEntityInformation<T, ID extends Serializable> extends J
 		public IdMetadata(IdentifiableType<T> source) {
 
 			this.type = source;
-			this.attributes = (Set<SingularAttribute<? super T, ?>>) (source.hasSingleIdAttribute() ? Collections
-					.singleton(source.getId(source.getIdType().getJavaType())) : source.getIdClassAttributes());
+			this.attributes = (Set<SingularAttribute<? super T, ?>>) (source.hasSingleIdAttribute()
+					? Collections.singleton(source.getId(source.getIdType().getJavaType())) : source.getIdClassAttributes());
 		}
 
 		public boolean hasSimpleId() {
@@ -275,8 +301,8 @@ public class JpaMetamodelEntityInformation<T, ID extends Serializable> extends J
 	 * 
 	 * @author Thomas Darimont
 	 */
-	private static class IdentifierDerivingDirectFieldAccessFallbackBeanWrapper extends
-			DirectFieldAccessFallbackBeanWrapper {
+	private static class IdentifierDerivingDirectFieldAccessFallbackBeanWrapper
+			extends DirectFieldAccessFallbackBeanWrapper {
 
 		private final Metamodel metamodel;
 

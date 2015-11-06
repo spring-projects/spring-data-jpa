@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 the original author or authors.
+ * Copyright 2011-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.data.jpa.domain.AbstractPersistable;
+import org.springframework.data.jpa.domain.sample.ConcreteType1;
 import org.springframework.data.jpa.domain.sample.PersistableWithIdClass;
 import org.springframework.data.jpa.domain.sample.PersistableWithIdClassPK;
 import org.springframework.data.jpa.domain.sample.PrimitiveVersionProperty;
@@ -51,6 +52,7 @@ import org.springframework.data.jpa.domain.sample.VersionedUser;
 import org.springframework.data.repository.core.EntityInformation;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * Integration tests for {@link JpaMetamodelEntityInformation}.
@@ -105,7 +107,8 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 
 		PersistableWithIdClass entity = new PersistableWithIdClass(2L, 4L);
 
-		JpaEntityInformation<PersistableWithIdClass, ?> information = getEntityInformation(PersistableWithIdClass.class, em);
+		JpaEntityInformation<PersistableWithIdClass, ?> information = getEntityInformation(PersistableWithIdClass.class,
+				em);
 		Object id = information.getId(entity);
 
 		assertThat(id, is(instanceOf(PersistableWithIdClassPK.class)));
@@ -258,6 +261,19 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 
 		user.setId(0);
 		assertThat(information.isNew(user), is(false));
+	}
+
+	/**
+	 * @see DATAJPA-820 - Ignored as Hibernate < 4.3 doesn't expose the version property properly if it's declared on the
+	 *      superclass.
+	 */
+	@Test
+	@Ignore
+	public void detectsVersionPropertyOnMappedSuperClass() {
+
+		EntityInformation<ConcreteType1, ?> information = getEntityInformation(ConcreteType1.class, em);
+
+		assertThat(ReflectionTestUtils.getField(information, "versionAttribute"), is(notNullValue()));
 	}
 
 	protected String getMetadadataPersitenceUnitName() {
