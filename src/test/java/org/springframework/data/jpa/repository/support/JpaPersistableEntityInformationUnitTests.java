@@ -39,20 +39,17 @@ import org.springframework.data.repository.core.EntityInformation;
 @RunWith(MockitoJUnitRunner.class)
 public class JpaPersistableEntityInformationUnitTests {
 
-	@Mock
-	Metamodel metamodel;
+	@Mock Metamodel metamodel;
 
-	@Mock
-	EntityType<Foo> type;
+	@Mock EntityType<Foo> type;
 
-	@Mock
-	@SuppressWarnings("rawtypes")
-	Type idType;
+	@Mock @SuppressWarnings("rawtypes") Type idType;
 
 	@Before
 	@SuppressWarnings("unchecked")
 	public void setUp() {
 
+		when(metamodel.managedType(Object.class)).thenThrow(IllegalArgumentException.class);
 		when(metamodel.managedType(Foo.class)).thenReturn(type);
 		when(type.getIdType()).thenReturn(idType);
 	}
