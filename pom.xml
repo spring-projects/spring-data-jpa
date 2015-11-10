@@ -25,7 +25,7 @@
 		<hibernate>3.6.10.Final</hibernate>
 		<hsqldb1>1.8.0.10</hsqldb1>
 		<jpa>2.0.0</jpa>
-		<openjpa>2.3.0</openjpa>
+		<openjpa>2.4.0</openjpa>
 		<querydsl>3.6.3</querydsl>
 		<springdata.commons>1.12.0.BUILD-SNAPSHOT</springdata.commons>
 
