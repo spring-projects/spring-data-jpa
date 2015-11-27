@@ -31,6 +31,8 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.provider.QueryExtractor;
+import org.springframework.data.projection.ProjectionFactory;
+import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.QueryCreationException;
 
@@ -47,6 +49,7 @@ public class NamedQueryUnitTests {
 	@Mock QueryExtractor extractor;
 	@Mock EntityManager em;
 	@Mock EntityManagerFactory emf;
+	ProjectionFactory projectionFactory = new SpelAwareProxyProjectionFactory();
 
 	Method method;
 
@@ -57,7 +60,7 @@ public class NamedQueryUnitTests {
 		method = SampleRepository.class.getMethod("foo", Pageable.class);
 		when(metadata.getDomainType()).thenReturn((Class) String.class);
 		when(metadata.getReturnedDomainClass(method)).thenReturn((Class) String.class);
-		
+
 		when(em.getEntityManagerFactory()).thenReturn(emf);
 		when(emf.createEntityManager()).thenReturn(em);
 	}
@@ -66,7 +69,7 @@ public class NamedQueryUnitTests {
 	public void rejectsPersistenceProviderIfIncapableOfExtractingQueriesAndPagebleBeingUsed() {
 
 		when(extractor.canExtractQuery()).thenReturn(false);
-		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, extractor);
+		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, projectionFactory, extractor);
 
 		when(em.createNamedQuery(queryMethod.getNamedCountQueryName())).thenThrow(new IllegalArgumentException());
 		NamedQuery.lookupFrom(queryMethod, em);
@@ -79,7 +82,7 @@ public class NamedQueryUnitTests {
 	public void doesNotRejectPersistenceProviderIfNamedCountQueryIsAvailable() {
 
 		when(extractor.canExtractQuery()).thenReturn(false);
-		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, extractor);
+		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, projectionFactory, extractor);
 
 		when(em.createNamedQuery(queryMethod.getNamedCountQueryName())).thenReturn(null);
 		NamedQuery query = (NamedQuery) NamedQuery.lookupFrom(queryMethod, em);

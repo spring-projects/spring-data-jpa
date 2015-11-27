@@ -17,10 +17,13 @@ package org.springframework.data.jpa.repository.query;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
+import javax.persistence.Tuple;
 
 import org.springframework.data.repository.query.EvaluationContextProvider;
 import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
+import org.springframework.data.repository.query.ResultProcessor;
+import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.util.Assert;
 
@@ -96,7 +99,12 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 	 * @return
 	 */
 	public Query createJpaQuery(String queryString) {
-		return getEntityManager().createQuery(queryString);
+
+		ResultProcessor resultFactory = getQueryMethod().getResultProcessor();
+		ReturnedType returnedType = resultFactory.getReturnedType();
+		EntityManager em = getEntityManager();
+
+		return returnedType.isProjecting() ? em.createQuery(queryString, Tuple.class) : em.createQuery(queryString);
 	}
 
 	/*

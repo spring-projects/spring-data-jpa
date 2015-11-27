@@ -35,6 +35,7 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryHints;
+import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
@@ -77,9 +78,10 @@ public class JpaQueryMethod extends QueryMethod {
 	 * @param extractor must not be {@literal null}
 	 * @param metadata must not be {@literal null}
 	 */
-	public JpaQueryMethod(Method method, RepositoryMetadata metadata, QueryExtractor extractor) {
+	public JpaQueryMethod(Method method, RepositoryMetadata metadata, ProjectionFactory factory,
+			QueryExtractor extractor) {
 
-		super(method, metadata);
+		super(method, metadata, factory);
 
 		Assert.notNull(method, "Method must not be null!");
 		Assert.notNull(extractor, "Query extractor must not be null!");
@@ -108,9 +110,9 @@ public class JpaQueryMethod extends QueryMethod {
 
 			if (!annotatedQuery.contains(String.format(":%s", parameter.getName()))
 					&& !annotatedQuery.contains(String.format("#%s", parameter.getName()))) {
-				throw new IllegalStateException(String.format(
-						"Using named parameters for method %s but parameter '%s' not found in annotated query '%s'!", method,
-						parameter.getName(), annotatedQuery));
+				throw new IllegalStateException(
+						String.format("Using named parameters for method %s but parameter '%s' not found in annotated query '%s'!",
+								method, parameter.getName(), annotatedQuery));
 			}
 		}
 	}
@@ -298,8 +300,8 @@ public class JpaQueryMethod extends QueryMethod {
 	private <T> T getAnnotationValue(String attribute, Class<T> type) {
 
 		Query annotation = method.getAnnotation(Query.class);
-		Object value = annotation == null ? AnnotationUtils.getDefaultValue(Query.class, attribute) : AnnotationUtils
-				.getValue(annotation, attribute);
+		Object value = annotation == null ? AnnotationUtils.getDefaultValue(Query.class, attribute)
+				: AnnotationUtils.getValue(annotation, attribute);
 
 		return type.cast(value);
 	}

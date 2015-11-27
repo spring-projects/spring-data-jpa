@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 the original author or authors.
+ * Copyright 2008-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,11 +35,11 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.provider.PersistenceProvider;
-import org.springframework.data.jpa.provider.QueryExtractor;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.EntityGraph.EntityGraphType;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.QueryHints;
+import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.core.support.DefaultRepositoryMetadata;
 import org.springframework.test.context.ContextConfiguration;
@@ -75,10 +75,7 @@ public class AbstractJpaQueryTests {
 	@Test
 	public void addsHintsToQueryObject() throws Exception {
 
-		Method method = SampleRepository.class.getMethod("findByLastname", String.class);
-		QueryExtractor provider = PersistenceProvider.fromEntityManager(em);
-		JpaQueryMethod queryMethod = new JpaQueryMethod(method, new DefaultRepositoryMetadata(SampleRepository.class),
-				provider);
+		JpaQueryMethod queryMethod = getMethod("findByLastname", String.class);
 
 		AbstractJpaQuery jpaQuery = new DummyJpaQuery(queryMethod, em);
 
@@ -96,11 +93,7 @@ public class AbstractJpaQueryTests {
 	@Test
 	public void skipsHintsForCountQueryIfConfigured() throws Exception {
 
-		Method method = SampleRepository.class.getMethod("findByFirstname", String.class);
-		QueryExtractor provider = PersistenceProvider.fromEntityManager(em);
-		JpaQueryMethod queryMethod = new JpaQueryMethod(method, new DefaultRepositoryMetadata(SampleRepository.class),
-				provider);
-
+		JpaQueryMethod queryMethod = getMethod("findByFirstname", String.class);
 		AbstractJpaQuery jpaQuery = new DummyJpaQuery(queryMethod, em);
 
 		Query result = jpaQuery.createQuery(new Object[] { "Dave" });
@@ -118,10 +111,7 @@ public class AbstractJpaQueryTests {
 
 		when(query.setLockMode(any(LockModeType.class))).thenReturn(query);
 
-		Method method = SampleRepository.class.getMethod("findOneLocked", Integer.class);
-		QueryExtractor provider = PersistenceProvider.fromEntityManager(em);
-		JpaQueryMethod queryMethod = new JpaQueryMethod(method, new DefaultRepositoryMetadata(SampleRepository.class),
-				provider);
+		JpaQueryMethod queryMethod = getMethod("findOneLocked", Integer.class);
 
 		AbstractJpaQuery jpaQuery = new DummyJpaQuery(queryMethod, em);
 		Query result = jpaQuery.createQuery(new Object[] { Integer.valueOf(1) });
@@ -137,10 +127,7 @@ public class AbstractJpaQueryTests {
 
 		Assume.assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
 
-		Method findAllMethod = SampleRepository.class.getMethod("findAll");
-		QueryExtractor provider = PersistenceProvider.fromEntityManager(em);
-		JpaQueryMethod queryMethod = new JpaQueryMethod(findAllMethod,
-				new DefaultRepositoryMetadata(SampleRepository.class), provider);
+		JpaQueryMethod queryMethod = getMethod("findAll");
 
 		javax.persistence.EntityGraph<?> entityGraph = em.getEntityGraph("User.overview");
 
@@ -159,10 +146,7 @@ public class AbstractJpaQueryTests {
 
 		Assume.assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
 
-		Method getByIdMethod = SampleRepository.class.getMethod("getById", Integer.class);
-		QueryExtractor provider = PersistenceProvider.fromEntityManager(em);
-		JpaQueryMethod queryMethod = new JpaQueryMethod(getByIdMethod,
-				new DefaultRepositoryMetadata(SampleRepository.class), provider);
+		JpaQueryMethod queryMethod = getMethod("getById", Integer.class);
 
 		javax.persistence.EntityGraph<?> entityGraph = em.getEntityGraph("User.detail");
 
@@ -170,6 +154,15 @@ public class AbstractJpaQueryTests {
 		Query result = jpaQuery.createQuery(new Object[] { 1 });
 
 		verify(result).setHint("javax.persistence.loadgraph", entityGraph);
+	}
+
+	private JpaQueryMethod getMethod(String name, Class<?>... parameterTypes) throws Exception {
+
+		Method method = SampleRepository.class.getMethod(name, parameterTypes);
+		PersistenceProvider persistenceProvider = PersistenceProvider.fromEntityManager(em);
+
+		return new JpaQueryMethod(method, new DefaultRepositoryMetadata(SampleRepository.class),
+				new SpelAwareProxyProjectionFactory(), persistenceProvider);
 	}
 
 	interface SampleRepository extends Repository<User, Integer> {

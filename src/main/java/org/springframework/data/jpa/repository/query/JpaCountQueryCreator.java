@@ -17,10 +17,12 @@ package org.springframework.data.jpa.repository.query;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 import org.springframework.data.domain.Sort;
+import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.repository.query.parser.PartTree;
 
 /**
@@ -38,9 +40,9 @@ public class JpaCountQueryCreator extends JpaQueryCreator {
 	 * @param parameters
 	 * @param em
 	 */
-	public JpaCountQueryCreator(PartTree tree, Class<?> domainClass, CriteriaBuilder builder,
+	public JpaCountQueryCreator(PartTree tree, ReturnedType type, CriteriaBuilder builder,
 			ParameterMetadataProvider provider) {
-		super(tree, domainClass, builder, provider);
+		super(tree, type, builder, provider);
 	}
 
 	/*
@@ -48,10 +50,10 @@ public class JpaCountQueryCreator extends JpaQueryCreator {
 	 * @see org.springframework.data.jpa.repository.query.JpaQueryCreator#complete(javax.persistence.criteria.Predicate, org.springframework.data.domain.Sort, javax.persistence.criteria.CriteriaQuery, javax.persistence.criteria.CriteriaBuilder, javax.persistence.criteria.Root)
 	 */
 	@Override
-	protected CriteriaQuery<Object> complete(Predicate predicate, Sort sort, CriteriaQuery<Object> query,
-			CriteriaBuilder builder, Root<?> root) {
+	protected CriteriaQuery<? extends Object> complete(Predicate predicate, Sort sort,
+			CriteriaQuery<? extends Object> query, CriteriaBuilder builder, Root<?> root) {
 
-		CriteriaQuery<Object> select = query.select(builder.count(root));
+		CriteriaQuery<? extends Object> select = query.select((Expression) builder.count(root));
 		return predicate == null ? select : select.where(predicate);
 	}
 }

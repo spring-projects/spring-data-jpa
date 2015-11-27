@@ -35,4 +35,12 @@ public class HibernateMetamodelIntegrationTests extends MetamodelIntegrationTest
 	@Ignore
 	@Override
 	public void considersOneToOneAttributeAnAssociation() {}
+
+	/**
+	 * @see https://hibernate.atlassian.net/browse/HHH-10341
+	 */
+	@Test
+	@Ignore
+	@Override
+	public void doesNotExposeAliasForTupleIfNoneDefined() {}
 }

@@ -18,6 +18,7 @@ package org.springframework.data.jpa.repository.query;
 import static org.springframework.data.jpa.repository.query.QueryUtils.*;
 import static org.springframework.data.repository.query.parser.Part.Type.*;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -28,10 +29,12 @@ import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import javax.persistence.criteria.Selection;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.query.ParameterMetadataProvider.ParameterMetadata;
 import org.springframework.data.mapping.PropertyPath;
+import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 import org.springframework.data.repository.query.parser.Part;
 import org.springframework.data.repository.query.parser.Part.Type;
@@ -43,12 +46,13 @@ import org.springframework.util.Assert;
  * 
  * @author Oliver Gierke
  */
-public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<Object>, Predicate> {
+public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extends Object>, Predicate> {
 
 	private final CriteriaBuilder builder;
 	private final Root<?> root;
-	private final CriteriaQuery<Object> query;
+	private final CriteriaQuery<? extends Object> query;
 	private final ParameterMetadataProvider provider;
+	private final ReturnedType returnedType;
 
 	/**
 	 * Create a new {@link JpaQueryCreator}.
@@ -58,15 +62,21 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<Object>,
 	 * @param accessor
 	 * @param em
 	 */
-	public JpaQueryCreator(PartTree tree, Class<?> domainClass, CriteriaBuilder builder,
+	public JpaQueryCreator(PartTree tree, ReturnedType type, CriteriaBuilder builder,
 			ParameterMetadataProvider provider) {
 
 		super(tree);
 
+		Class<?> typeToRead = type.getTypeToRead();
+
+		CriteriaQuery<? extends Object> criteriaQuery = typeToRead == null ? builder.createTupleQuery()
+				: builder.createQuery(typeToRead);
+
 		this.builder = builder;
-		this.query = builder.createQuery().distinct(tree.isDistinct());
-		this.root = query.from(domainClass);
+		this.query = criteriaQuery.distinct(tree.isDistinct());
+		this.root = query.from(type.getDomainType());
 		this.provider = provider;
+		this.returnedType = type;
 	}
 
 	/**
@@ -94,7 +104,6 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<Object>,
 	 */
 	@Override
 	protected Predicate and(Part part, Predicate base, Iterator<Object> iterator) {
-
 		return builder.and(base, toPredicate(part, root));
 	}
 
@@ -104,7 +113,6 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<Object>,
 	 */
 	@Override
 	protected Predicate or(Predicate base, Predicate predicate) {
-
 		return builder.or(base, predicate);
 	}
 
@@ -114,8 +122,7 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<Object>,
 	 * and {@link CriteriaBuilder}.
 	 */
 	@Override
-	protected final CriteriaQuery<Object> complete(Predicate predicate, Sort sort) {
-
+	protected final CriteriaQuery<? extends Object> complete(Predicate predicate, Sort sort) {
 		return complete(predicate, sort, query, builder, root);
 	}
 
@@ -129,10 +136,24 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<Object>,
 	 * @param builder
 	 * @return
 	 */
-	protected CriteriaQuery<Object> complete(Predicate predicate, Sort sort, CriteriaQuery<Object> query,
-			CriteriaBuilder builder, Root<?> root) {
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	protected CriteriaQuery<? extends Object> complete(Predicate predicate, Sort sort,
+			CriteriaQuery<? extends Object> query, CriteriaBuilder builder, Root<?> root) {
 
-		CriteriaQuery<Object> select = this.query.select(root).orderBy(QueryUtils.toOrders(sort, root, builder));
+		if (returnedType.needsCustomConstruction()) {
+
+			List<Selection<?>> selections = new ArrayList<Selection<?>>();
+
+			for (String property : returnedType.getInputProperties()) {
+				selections.add(root.get(property).alias(property));
+			}
+
+			query = query.multiselect(selections);
+		} else {
+			query = query.select((Root) root);
+		}
+
+		CriteriaQuery<? extends Object> select = query.orderBy(QueryUtils.toOrders(sort, root, builder));
 		return predicate == null ? select : select.where(predicate);
 	}
 
@@ -146,6 +167,23 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<Object>,
 	 */
 	private Predicate toPredicate(Part part, Root<?> root) {
 		return new PredicateBuilder(part, root).build();
+	}
+
+	/**
+	 * Returns a path to a {@link Comparable}.
+	 * 
+	 * @param root
+	 * @param part
+	 * @return
+	 */
+	@SuppressWarnings({ "rawtypes" })
+	private Expression<? extends Comparable> getComparablePath(Root<?> root, Part part) {
+
+		return getTypedPath(root, part);
+	}
+
+	private <T> Expression<T> getTypedPath(Root<?> root, Part part) {
+		return toExpressionRecursively(root, part.getProperty());
 	}
 
 	/**

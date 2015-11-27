@@ -15,12 +15,17 @@
  */
 package org.springframework.data.jpa.infrastructure;
 
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
+
+import java.util.List;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+import javax.persistence.Tuple;
+import javax.persistence.TupleElement;
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Path;
@@ -35,6 +40,7 @@ import org.junit.runner.RunWith;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Oliver Gierke
@@ -73,5 +79,24 @@ public abstract class MetamodelIntegrationTests {
 		Query query = em.createNativeQuery("SELECT u from User u where u.lastname = ?1");
 
 		assertThat(query.getParameter(1), is(notNullValue()));
+	}
+
+	@Test
+	@Transactional
+	public void doesNotExposeAliasForTupleIfNoneDefined() {
+
+		User user = new User();
+		user.setFirstname("Dave");
+		user.setEmailAddress("email");
+
+		em.persist(user);
+
+		TypedQuery<Tuple> query = em.createQuery("SELECT u.firstname from User u", Tuple.class);
+
+		List<Tuple> result = query.getResultList();
+		List<TupleElement<?>> elements = result.get(0).getElements();
+
+		assertThat(elements, hasSize(1));
+		assertThat(elements.get(0).getAlias(), is(nullValue()));
 	}
 }

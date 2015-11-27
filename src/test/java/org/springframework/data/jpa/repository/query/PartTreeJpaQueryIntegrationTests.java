@@ -44,6 +44,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.repository.Temporal;
+import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.core.support.DefaultRepositoryMetadata;
 import org.springframework.data.repository.query.Param;
@@ -72,9 +73,7 @@ public class PartTreeJpaQueryIntegrationTests {
 	@Test
 	public void test() throws Exception {
 
-		Method method = UserRepository.class.getMethod("findByFirstname", String.class, Pageable.class);
-		JpaQueryMethod queryMethod = new JpaQueryMethod(method, new DefaultRepositoryMetadata(UserRepository.class),
-				PersistenceProvider.fromEntityManager(entityManager));
+		JpaQueryMethod queryMethod = getQueryMethod("findByFirstname", String.class, Pageable.class);
 		PartTreeJpaQuery jpaQuery = new PartTreeJpaQuery(queryMethod, entityManager);
 
 		jpaQuery.createQuery(new Object[] { "Matthews", new PageRequest(0, 1) });
@@ -101,9 +100,7 @@ public class PartTreeJpaQueryIntegrationTests {
 	@Test
 	public void recreatesQueryIfNullValueIsGiven() throws Exception {
 
-		Method method = UserRepository.class.getMethod("findByFirstname", String.class, Pageable.class);
-		JpaQueryMethod queryMethod = new JpaQueryMethod(method, new DefaultRepositoryMetadata(UserRepository.class),
-				PersistenceProvider.fromEntityManager(entityManager));
+		JpaQueryMethod queryMethod = getQueryMethod("findByFirstname", String.class, Pageable.class);
 		PartTreeJpaQuery jpaQuery = new PartTreeJpaQuery(queryMethod, entityManager);
 
 		Query query = jpaQuery.createQuery(new Object[] { "Matthews", new PageRequest(0, 1) });
@@ -124,10 +121,16 @@ public class PartTreeJpaQueryIntegrationTests {
 			parameterTypes[i] = values[i].getClass();
 		}
 		Method method = UserRepository.class.getMethod(methodName, parameterTypes);
-		JpaQueryMethod queryMethod = new JpaQueryMethod(method, new DefaultRepositoryMetadata(UserRepository.class),
-				PersistenceProvider.fromEntityManager(entityManager));
+		JpaQueryMethod queryMethod = getQueryMethod(methodName, parameterTypes);
 		PartTreeJpaQuery jpaQuery = new PartTreeJpaQuery(queryMethod, entityManager);
+
 		jpaQuery.createQuery(values);
+	}
+
+	private JpaQueryMethod getQueryMethod(String methodName, Class<?>... parameterTypes) throws Exception {
+		Method method = UserRepository.class.getMethod(methodName, parameterTypes);
+		return new JpaQueryMethod(method, new DefaultRepositoryMetadata(UserRepository.class),
+				new SpelAwareProxyProjectionFactory(), PersistenceProvider.fromEntityManager(entityManager));
 	}
 
 	@SuppressWarnings("unchecked")

@@ -43,6 +43,8 @@ import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.provider.QueryExtractor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.sample.UserRepository;
+import org.springframework.data.projection.ProjectionFactory;
+import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.EvaluationContextProvider;
 import org.springframework.data.repository.query.ExtensionAwareEvaluationContextProvider;
@@ -72,6 +74,8 @@ public class SimpleJpaQueryUnitTests {
 	@Mock RepositoryMetadata metadata;
 	@Mock ParameterBinder binder;
 
+	ProjectionFactory factory = new SpelAwareProxyProjectionFactory();
+
 	public @Rule ExpectedException exception = ExpectedException.none();
 
 	@Before
@@ -86,14 +90,14 @@ public class SimpleJpaQueryUnitTests {
 		when(metadata.getReturnedDomainClass(Mockito.any(Method.class))).thenReturn((Class) User.class);
 
 		Method setUp = UserRepository.class.getMethod("findByLastname", String.class);
-		method = new JpaQueryMethod(setUp, metadata, extractor);
+		method = new JpaQueryMethod(setUp, metadata, factory, extractor);
 	}
 
 	@Test
 	public void prefersDeclaredCountQueryOverCreatingOne() throws Exception {
 
 		method = new JpaQueryMethod(SimpleJpaQueryUnitTests.class.getMethod("prefersDeclaredCountQueryOverCreatingOne"),
-				metadata, extractor);
+				metadata, factory, extractor);
 		when(em.createQuery("foo", Long.class)).thenReturn(typedQuery);
 
 		SimpleJpaQuery jpaQuery = new SimpleJpaQuery(method, em, "select u from User u", EVALUATION_CONTEXT_PROVIDER,
@@ -111,7 +115,7 @@ public class SimpleJpaQueryUnitTests {
 		when(em.createQuery(Mockito.anyString())).thenReturn(query);
 
 		Method method = UserRepository.class.getMethod("findAllPaged", Pageable.class);
-		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, extractor);
+		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, factory, extractor);
 
 		AbstractJpaQuery jpaQuery = new SimpleJpaQuery(queryMethod, em, "select u from User u", EVALUATION_CONTEXT_PROVIDER,
 				PARSER);
@@ -126,7 +130,7 @@ public class SimpleJpaQueryUnitTests {
 	public void discoversNativeQuery() throws Exception {
 
 		Method method = SampleRepository.class.getMethod("findNativeByLastname", String.class);
-		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, extractor);
+		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, factory, extractor);
 		AbstractJpaQuery jpaQuery = JpaQueryFactory.INSTANCE.fromQueryAnnotation(queryMethod, em,
 				EVALUATION_CONTEXT_PROVIDER);
 
@@ -224,7 +228,7 @@ public class SimpleJpaQueryUnitTests {
 
 	private AbstractJpaQuery createJpaQuery(Method method) {
 
-		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, extractor);
+		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, factory, extractor);
 		return JpaQueryFactory.INSTANCE.fromQueryAnnotation(queryMethod, em, EVALUATION_CONTEXT_PROVIDER);
 	}
 

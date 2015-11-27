@@ -20,6 +20,7 @@ import java.lang.reflect.Method;
 import javax.persistence.EntityManager;
 
 import org.springframework.data.jpa.provider.QueryExtractor;
+import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.core.NamedQueries;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.EvaluationContextProvider;
@@ -65,12 +66,14 @@ public final class JpaQueryLookupStrategy {
 			this.provider = extractor;
 		}
 
-		/*
+		/* 
 		 * (non-Javadoc)
-		 * @see org.springframework.data.repository.query.QueryLookupStrategy#resolveQuery(java.lang.reflect.Method, org.springframework.data.repository.core.RepositoryMetadata, org.springframework.data.repository.core.NamedQueries)
+		 * @see org.springframework.data.repository.query.QueryLookupStrategy#resolveQuery(java.lang.reflect.Method, org.springframework.data.repository.core.RepositoryMetadata, org.springframework.data.projection.ProjectionFactory, org.springframework.data.repository.core.NamedQueries)
 		 */
-		public final RepositoryQuery resolveQuery(Method method, RepositoryMetadata metadata, NamedQueries namedQueries) {
-			return resolveQuery(new JpaQueryMethod(method, metadata, provider), em, namedQueries);
+		@Override
+		public final RepositoryQuery resolveQuery(Method method, RepositoryMetadata metadata, ProjectionFactory factory,
+				NamedQueries namedQueries) {
+			return resolveQuery(new JpaQueryMethod(method, metadata, factory, provider), em, namedQueries);
 		}
 
 		protected abstract RepositoryQuery resolveQuery(JpaQueryMethod method, EntityManager em, NamedQueries namedQueries);
@@ -94,8 +97,8 @@ public final class JpaQueryLookupStrategy {
 			try {
 				return new PartTreeJpaQuery(method, em);
 			} catch (IllegalArgumentException e) {
-				throw new IllegalArgumentException(String.format("Could not create query metamodel for method %s!",
-						method.toString()), e);
+				throw new IllegalArgumentException(
+						String.format("Could not create query metamodel for method %s!", method.toString()), e);
 			}
 		}
 
@@ -157,8 +160,8 @@ public final class JpaQueryLookupStrategy {
 				return query;
 			}
 
-			throw new IllegalStateException(String.format(
-					"Did neither find a NamedQuery nor an annotated query for method %s!", method));
+			throw new IllegalStateException(
+					String.format("Did neither find a NamedQuery nor an annotated query for method %s!", method));
 		}
 	}
 

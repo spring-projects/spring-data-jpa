@@ -37,6 +37,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.provider.QueryExtractor;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.core.NamedQueries;
 import org.springframework.data.repository.core.RepositoryMetadata;
@@ -60,6 +61,7 @@ public class JpaQueryLookupStrategyUnitTests {
 	@Mock EntityManagerFactory emf;
 	@Mock QueryExtractor extractor;
 	@Mock NamedQueries namedQueries;
+	@Mock ProjectionFactory projectionFactory;
 
 	public @Rule ExpectedException exception = ExpectedException.none();
 
@@ -85,7 +87,7 @@ public class JpaQueryLookupStrategyUnitTests {
 		when(em.createQuery(anyString())).thenThrow(reference);
 
 		try {
-			strategy.resolveQuery(method, metadata, namedQueries);
+			strategy.resolveQuery(method, metadata, projectionFactory, namedQueries);
 		} catch (Exception e) {
 			assertThat(e, is(instanceOf(IllegalArgumentException.class)));
 			assertThat(e.getCause(), is(reference));
@@ -107,7 +109,7 @@ public class JpaQueryLookupStrategyUnitTests {
 		exception.expectMessage("Cannot use native queries with dynamic sorting and/or pagination in method");
 		exception.expectMessage(method.toString());
 
-		strategy.resolveQuery(method, metadata, namedQueries);
+		strategy.resolveQuery(method, metadata, projectionFactory, namedQueries);
 	}
 
 	interface UserRepository extends Repository<User, Long> {

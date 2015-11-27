@@ -31,4 +31,12 @@ public class OpenJpaMetamodelIntegrationTests extends MetamodelIntegrationTests 
 	@Ignore
 	@Override
 	public void canAccessParametersByIndexForNativeQueries() {}
+
+	/**
+	 * TODO: Remove once https://issues.apache.org/jira/browse/OPENJPA-2618 is fixed.
+	 */
+	@Test
+	@Ignore
+	@Override
+	public void doesNotExposeAliasForTupleIfNoneDefined() {}
 }
