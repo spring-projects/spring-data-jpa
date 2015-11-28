@@ -129,7 +129,7 @@ public class ClasspathScanningPersistenceUnitPostProcessor
 		}
 
 		for (String location : scanForMappingFileLocations()) {
-			LOG.debug("Registering classpath-scanned entity mapping file in persistence unit info!", location);
+			LOG.debug("Registering classpath-scanned entity mapping file {} in persistence unit info!", location);
 			pui.addMappingFileName(location);
 		}
 	}
