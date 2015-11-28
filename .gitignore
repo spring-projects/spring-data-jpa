@@ -1,4 +1,6 @@
 target/
+spring-data-jpa.iml
+.idea/
 .settings/
 .project
 .classpath
