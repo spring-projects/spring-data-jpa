@@ -16,6 +16,7 @@
 package org.springframework.data.jpa.repository.query;
 
 import static org.springframework.data.jpa.repository.query.QueryUtils.*;
+import static org.springframework.data.repository.query.parser.Part.Type.*;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -197,8 +198,9 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<Object>,
 
 			PropertyPath property = part.getProperty();
 			Expression<Object> path = toExpressionRecursively(root, property);
+			Type type = part.getType();
 
-			switch (part.getType()) {
+			switch (type) {
 				case BETWEEN:
 					ParameterMetadata<Comparable> first = provider.next(part);
 					ParameterMetadata<Comparable> second = provider.next(part);
@@ -229,11 +231,12 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<Object>,
 				case CONTAINING:
 				case LIKE:
 				case NOT_LIKE:
+				case NOT_CONTAINING:
 					Expression<String> stringPath = getTypedPath(root, part);
 					Expression<String> propertyExpression = upperIfIgnoreCase(stringPath);
 					Expression<String> parameterExpression = upperIfIgnoreCase(provider.next(part, String.class).getExpression());
 					Predicate like = builder.like(propertyExpression, parameterExpression);
-					return part.getType() == Type.NOT_LIKE ? like.not() : like;
+					return type.equals(NOT_LIKE) || type.equals(NOT_CONTAINING) ? like.not() : like;
 				case TRUE:
 					Expression<Boolean> truePath = getTypedPath(root, part);
 					return builder.isTrue(truePath);
@@ -247,7 +250,7 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<Object>,
 				case NEGATING_SIMPLE_PROPERTY:
 					return builder.notEqual(upperIfIgnoreCase(path), upperIfIgnoreCase(provider.next(part).getExpression()));
 				default:
-					throw new IllegalArgumentException("Unsupported keyword " + part.getType());
+					throw new IllegalArgumentException("Unsupported keyword " + type);
 			}
 		}
 
