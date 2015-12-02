@@ -28,6 +28,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.domain.sample.SpecialUser;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -580,4 +581,14 @@ public interface UserRepository
 	 * @see DATAJPA-830
 	 */
 	List<User> findByLastnameNotContaining(String part);
+
+	/**
+	 * DATAJPA-829
+	 */
+	List<User> findByRolesContaining(Role role);
+
+	/**
+	 * DATAJPA-829
+	 */
+	List<User> findByRolesNotContaining(Role role);
 }

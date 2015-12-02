@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2012 the original author or authors.
+ * Copyright 2008-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import java.util.List;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
@@ -148,26 +149,10 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<Object>,
 	}
 
 	/**
-	 * Returns a path to a {@link Comparable}.
-	 * 
-	 * @param root
-	 * @param part
-	 * @return
-	 */
-	@SuppressWarnings({ "rawtypes" })
-	private Expression<? extends Comparable> getComparablePath(Root<?> root, Part part) {
-
-		return getTypedPath(root, part);
-	}
-
-	private <T> Expression<T> getTypedPath(Root<?> root, Part part) {
-		return toExpressionRecursively(root, part.getProperty());
-	}
-
-	/**
 	 * Simple builder to contain logic to create JPA {@link Predicate}s from {@link Part}s.
 	 * 
 	 * @author Phil Webb
+	 * @author Oliver Gierke
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private class PredicateBuilder {
@@ -197,7 +182,6 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<Object>,
 		public Predicate build() {
 
 			PropertyPath property = part.getProperty();
-			Expression<Object> path = toExpressionRecursively(root, property);
 			Type type = part.getType();
 
 			switch (type) {
@@ -207,31 +191,42 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<Object>,
 					return builder.between(getComparablePath(root, part), first.getExpression(), second.getExpression());
 				case AFTER:
 				case GREATER_THAN:
-					return builder.greaterThan(getComparablePath(root, part), provider.next(part, Comparable.class)
-							.getExpression());
+					return builder.greaterThan(getComparablePath(root, part),
+							provider.next(part, Comparable.class).getExpression());
 				case GREATER_THAN_EQUAL:
-					return builder.greaterThanOrEqualTo(getComparablePath(root, part), provider.next(part, Comparable.class)
-							.getExpression());
+					return builder.greaterThanOrEqualTo(getComparablePath(root, part),
+							provider.next(part, Comparable.class).getExpression());
 				case BEFORE:
 				case LESS_THAN:
 					return builder.lessThan(getComparablePath(root, part), provider.next(part, Comparable.class).getExpression());
 				case LESS_THAN_EQUAL:
-					return builder.lessThanOrEqualTo(getComparablePath(root, part), provider.next(part, Comparable.class)
-							.getExpression());
+					return builder.lessThanOrEqualTo(getComparablePath(root, part),
+							provider.next(part, Comparable.class).getExpression());
 				case IS_NULL:
-					return path.isNull();
+					return getTypedPath(root, part).isNull();
 				case IS_NOT_NULL:
-					return path.isNotNull();
+					return getTypedPath(root, part).isNotNull();
 				case NOT_IN:
-					return path.in(provider.next(part, Collection.class).getExpression()).not();
+					return getTypedPath(root, part).in(provider.next(part, Collection.class).getExpression()).not();
 				case IN:
-					return path.in(provider.next(part, Collection.class).getExpression());
+					return getTypedPath(root, part).in(provider.next(part, Collection.class).getExpression());
 				case STARTING_WITH:
 				case ENDING_WITH:
 				case CONTAINING:
+				case NOT_CONTAINING:
+
+					if (property.isCollection()) {
+
+						Expression<Collection<Object>> propertyExpression = traversePath(root, property);
+						Expression<Object> parameterExpression = provider.next(part).getExpression();
+
+						// Can't just call .not() in case of negation as EclipseLink chokes on that.
+						return type.equals(NOT_CONTAINING) ? builder.isNotMember(parameterExpression, propertyExpression)
+								: builder.isMember(parameterExpression, propertyExpression);
+					}
+
 				case LIKE:
 				case NOT_LIKE:
-				case NOT_CONTAINING:
 					Expression<String> stringPath = getTypedPath(root, part);
 					Expression<String> propertyExpression = upperIfIgnoreCase(stringPath);
 					Expression<String> parameterExpression = upperIfIgnoreCase(provider.next(part, String.class).getExpression());
@@ -245,10 +240,12 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<Object>,
 					return builder.isFalse(falsePath);
 				case SIMPLE_PROPERTY:
 					ParameterMetadata<Object> expression = provider.next(part);
-					return expression.isIsNullParameter() ? path.isNull() : builder.equal(upperIfIgnoreCase(path),
-							upperIfIgnoreCase(expression.getExpression()));
+					Expression<Object> path = getTypedPath(root, part);
+					return expression.isIsNullParameter() ? path.isNull()
+							: builder.equal(upperIfIgnoreCase(path), upperIfIgnoreCase(expression.getExpression()));
 				case NEGATING_SIMPLE_PROPERTY:
-					return builder.notEqual(upperIfIgnoreCase(path), upperIfIgnoreCase(provider.next(part).getExpression()));
+					return builder.notEqual(upperIfIgnoreCase(getTypedPath(root, part)),
+							upperIfIgnoreCase(provider.next(part).getExpression()));
 				default:
 					throw new IllegalArgumentException("Unsupported keyword " + type);
 			}
@@ -286,6 +283,27 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<Object>,
 
 		private boolean canUpperCase(Expression<?> expression) {
 			return String.class.equals(expression.getJavaType());
+		}
+
+		/**
+		 * Returns a path to a {@link Comparable}.
+		 * 
+		 * @param root
+		 * @param part
+		 * @return
+		 */
+		private Expression<? extends Comparable> getComparablePath(Root<?> root, Part part) {
+			return getTypedPath(root, part);
+		}
+
+		private <T> Expression<T> getTypedPath(Root<?> root, Part part) {
+			return toExpressionRecursively(root, part.getProperty());
+		}
+
+		private <T> Expression<T> traversePath(Path<?> root, PropertyPath path) {
+
+			Path<Object> result = root.get(path.getSegment());
+			return (Expression<T>) (path.hasNext() ? traversePath(result, path.next()) : result);
 		}
 	}
 }
