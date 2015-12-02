@@ -15,6 +15,7 @@
  */
 package org.springframework.data.jpa.domain.sample;
 
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -95,19 +96,20 @@ public class User {
 	}
 
 	/**
-	 * Creates a new instance of {@code User} with preinitialized values for firstname, lastname and email address.
+	 * Creates a new instance of {@code User} with preinitialized values for firstname, lastname, email address and roles.
 	 * 
 	 * @param firstname
 	 * @param lastname
 	 * @param emailAddress
+	 * @param roles
 	 */
-	public User(String firstname, String lastname, String emailAddress) {
+	public User(String firstname, String lastname, String emailAddress, Role... roles) {
 
 		this.firstname = firstname;
 		this.lastname = lastname;
 		this.emailAddress = emailAddress;
 		this.active = true;
-		this.roles = new HashSet<Role>();
+		this.roles = new HashSet<Role>(Arrays.asList(roles));
 		this.colleagues = new HashSet<User>();
 		this.attributes = new HashSet<String>();
 		this.createdAt = new Date();

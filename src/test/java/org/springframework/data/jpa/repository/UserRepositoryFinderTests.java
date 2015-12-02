@@ -30,7 +30,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.domain.sample.User;
+import org.springframework.data.jpa.repository.sample.RoleRepository;
 import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.test.context.ContextConfiguration;
@@ -49,22 +51,21 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserRepositoryFinderTests {
 
 	@Autowired UserRepository userRepository;
+	@Autowired RoleRepository roleRepository;
 
 	User dave, carter, oliver;
+	Role drummer, guitarist, singer;
 
 	@Before
 	public void setUp() {
 
-		// This one matches both criterias
-		dave = new User("Dave", "Matthews", "dave@dmband.com");
-		userRepository.save(dave);
+		drummer = roleRepository.save(new Role("DRUMMER"));
+		guitarist = roleRepository.save(new Role("GUITARIST"));
+		singer = roleRepository.save(new Role("SINGER"));
 
-		// This one matches only the second one
-		carter = new User("Carter", "Beauford", "carter@dmband.com");
-		userRepository.save(carter);
-
-		oliver = new User("Oliver August", "Matthews", "oliver@dmband.com");
-		userRepository.save(oliver);
+		dave = userRepository.save(new User("Dave", "Matthews", "dave@dmband.com", singer));
+		carter = userRepository.save(new User("Carter", "Beauford", "carter@dmband.com", singer, drummer));
+		oliver = userRepository.save(new User("Oliver August", "Matthews", "oliver@dmband.com"));
 	}
 
 	/**
@@ -171,16 +172,18 @@ public class UserRepositoryFinderTests {
 	 */
 	@Test
 	public void respectsPageableOrderOnQueryGenerateFromMethodName() throws Exception {
-		Page<User> ascending = userRepository.findByLastnameIgnoringCase(
-				new PageRequest(0, 10, new Sort(ASC, "firstname")), "Matthews");
-		Page<User> descending = userRepository.findByLastnameIgnoringCase(new PageRequest(0, 10,
-				new Sort(DESC, "firstname")), "Matthews");
+		Page<User> ascending = userRepository.findByLastnameIgnoringCase(new PageRequest(0, 10, new Sort(ASC, "firstname")),
+				"Matthews");
+		Page<User> descending = userRepository
+				.findByLastnameIgnoringCase(new PageRequest(0, 10, new Sort(DESC, "firstname")), "Matthews");
 		assertThat(ascending.getTotalElements(), is(2L));
 		assertThat(descending.getTotalElements(), is(2L));
-		assertThat(ascending.getContent().get(0).getFirstname(), is(not(equalTo(descending.getContent().get(0)
-				.getFirstname()))));
-		assertThat(ascending.getContent().get(0).getFirstname(), is(equalTo(descending.getContent().get(1).getFirstname())));
-		assertThat(ascending.getContent().get(1).getFirstname(), is(equalTo(descending.getContent().get(0).getFirstname())));
+		assertThat(ascending.getContent().get(0).getFirstname(),
+				is(not(equalTo(descending.getContent().get(0).getFirstname()))));
+		assertThat(ascending.getContent().get(0).getFirstname(),
+				is(equalTo(descending.getContent().get(1).getFirstname())));
+		assertThat(ascending.getContent().get(1).getFirstname(),
+				is(equalTo(descending.getContent().get(0).getFirstname())));
 	}
 
 	/**
@@ -201,5 +204,26 @@ public class UserRepositoryFinderTests {
 	@Test
 	public void executesMethodWithNotContainingOnStringCorrectly() {
 		assertThat(userRepository.findByLastnameNotContaining("u"), containsInAnyOrder(dave, oliver));
+	}
+
+	/**
+	 * @see DATAJPA-829
+	 */
+	@Test
+	public void translatesContainsToMemberOf() {
+
+		List<User> singers = userRepository.findByRolesContaining(singer);
+
+		assertThat(singers, hasSize(2));
+		assertThat(singers, hasItems(dave, carter));
+		assertThat(userRepository.findByRolesContaining(drummer), contains(carter));
+	}
+
+	/**
+	 * @see DATAJPA-829
+	 */
+	@Test
+	public void translatesNotContainsToNotMemberOf() {
+		assertThat(userRepository.findByRolesNotContaining(drummer), hasItems(dave, oliver));
 	}
 }
