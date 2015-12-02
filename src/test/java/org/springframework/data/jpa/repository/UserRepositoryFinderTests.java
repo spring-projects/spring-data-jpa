@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2014 the original author or authors.
+ * Copyright 2008-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 package org.springframework.data.jpa.repository;
 
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 import static org.springframework.data.domain.Sort.Direction.*;
 
@@ -193,5 +193,13 @@ public class UserRepositoryFinderTests {
 
 		assertThat(slice.getContent(), hasItem(dave));
 		assertThat(slice.hasNext(), is(true));
+	}
+
+	/**
+	 * @see DATAJPA-830
+	 */
+	@Test
+	public void executesMethodWithNotContainingOnStringCorrectly() {
+		assertThat(userRepository.findByLastnameNotContaining("u"), containsInAnyOrder(dave, oliver));
 	}
 }

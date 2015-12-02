@@ -235,6 +235,7 @@ class ParameterMetadataProvider {
 					case ENDING_WITH:
 						return String.format("%%%s", value.toString());
 					case CONTAINING:
+					case NOT_CONTAINING:
 						return String.format("%%%s%%", value.toString());
 					default:
 						return value;
