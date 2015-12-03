@@ -163,7 +163,7 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 		Object source = config.getSource();
 
 		registerIfNotAlreadyRegistered(new RootBeanDefinition(EntityManagerBeanDefinitionRegistrarPostProcessor.class),
-				registry, "foo", source);
+				registry, EM_BEAN_DEFINITION_REGISTRAR_POST_PROCESSOR_BEAN_NAME, source);
 
 		registerIfNotAlreadyRegistered(new RootBeanDefinition(JpaMetamodelMappingContextFactoryBean.class), registry,
 				JPA_MAPPING_CONTEXT_BEAN_NAME, source);
