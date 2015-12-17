@@ -27,9 +27,9 @@ import javax.persistence.QueryHint;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
+import org.springframework.aop.TargetSource;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.interceptor.ExposeInvocationInterceptor;
-import org.springframework.aop.target.AbstractLazyCreationTargetSource;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -224,17 +224,42 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 		}
 	}
 
-	private static class ThreadBoundTargetSource extends AbstractLazyCreationTargetSource {
+	private static class ThreadBoundTargetSource implements TargetSource {
 
 		/* 
 		 * (non-Javadoc)
-		 * @see org.springframework.aop.target.AbstractLazyCreationTargetSource#createObject()
+		 * @see org.springframework.aop.TargetSource#getTargetClass()
 		 */
 		@Override
-		protected Object createObject() throws Exception {
+		public Class<?> getTargetClass() {
+			return CrudMethodMetadata.class;
+		}
+
+		/* 
+		 * (non-Javadoc)
+		 * @see org.springframework.aop.TargetSource#isStatic()
+		 */
+		@Override
+		public boolean isStatic() {
+			return false;
+		}
+
+		/* 
+		 * (non-Javadoc)
+		 * @see org.springframework.aop.TargetSource#getTarget()
+		 */
+		@Override
+		public Object getTarget() throws Exception {
 
 			MethodInvocation invocation = ExposeInvocationInterceptor.currentInvocation();
 			return TransactionSynchronizationManager.getResource(invocation.getMethod());
 		}
+
+		/* 
+		 * (non-Javadoc)
+		 * @see org.springframework.aop.TargetSource#releaseTarget(java.lang.Object)
+		 */
+		@Override
+		public void releaseTarget(Object target) throws Exception {}
 	}
 }
