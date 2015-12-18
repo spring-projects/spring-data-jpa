@@ -1,6 +1,17 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 1.9.2.RELEASE (2015-12-18)
+---------------------------------------------
+* DATAJPA-839 - Thread-bound lookup of CrudMethodMetadata broken.
+* DATAJPA-837 - Release 1.9.2 (Gosling).
+* DATAJPA-834 - Use a less common bean name for EntityManagerBeanDefinitionRegistrarPostProcessor to avoid collisions.
+* DATAJPA-833 - Improve log message in ClasspathScanningPersistenceUnitPostProcessor.
+* DATAJPA-831 - Upgrade Hibernate build profile to 5.0.5.
+* DATAJPA-830 - NotContaining doesn't work for String properties on query methods.
+* DATAJPA-829 - Contains expression on a collection property should result in member of predicate.
+
+
 Changes in version 1.9.1.RELEASE (2015-11-15)
 ---------------------------------------------
 * DATAJPA-823 - Release 1.9.1 (Gosling).
