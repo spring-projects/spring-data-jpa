@@ -19,6 +19,8 @@ import java.util.List;
 
 import javax.persistence.Query;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
 import org.springframework.data.jpa.repository.query.StringQuery.ParameterBinding;
 import org.springframework.data.repository.query.EvaluationContextProvider;
@@ -38,6 +40,8 @@ class SpelExpressionStringQueryParameterBinder extends StringQueryParameterBinde
 	private final StringQuery query;
 	private final EvaluationContextProvider evaluationContextProvider;
 	private final SpelExpressionParser parser;
+
+	private static final Logger LOG = LoggerFactory.getLogger(SpelExpressionStringQueryParameterBinder.class);
 
 	/**
 	 * Creates a new {@link SpelExpressionStringQueryParameterBinder}.
@@ -95,9 +99,14 @@ class SpelExpressionStringQueryParameterBinder extends StringQueryParameterBinde
 						jpaQuery.setParameter(binding.getPosition(), binding.prepare(value));
 					}
 				} catch (IllegalArgumentException iae) {
-
 					// Since Eclipse doesn't reliably report whether a query has parameters
 					// we simply try to set the parameters and ignore possible failures.
+					LOG.warn(String.format("Failed to set Spel JPA query parameter with value %s, cause: %s",
+							binding.getExpression(),iae.getMessage()));
+
+					if(LOG.isDebugEnabled()){
+						iae.printStackTrace();
+					}
 				}
 			}
 		}
