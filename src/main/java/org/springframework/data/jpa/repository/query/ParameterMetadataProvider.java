@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 the original author or authors.
+ * Copyright 2011-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,7 +73,6 @@ class ParameterMetadataProvider {
 	 * @param provider must not be {@literal null}.
 	 */
 	public ParameterMetadataProvider(CriteriaBuilder builder, Parameters<?, ?> parameters, PersistenceProvider provider) {
-
 		this(builder, null, parameters, provider);
 	}
 
@@ -90,9 +89,9 @@ class ParameterMetadataProvider {
 	private ParameterMetadataProvider(CriteriaBuilder builder, Iterator<Object> bindableParameterValues,
 			Parameters<?, ?> parameters, PersistenceProvider provider) {
 
-		Assert.notNull(builder);
-		Assert.notNull(parameters);
-		Assert.notNull(provider);
+		Assert.notNull(builder, "CriteriaBuilder must not be null!");
+		Assert.notNull(parameters, "Parameters must not be null!");
+		Assert.notNull(provider, "PesistenceProvider must not be null!");
 
 		this.builder = builder;
 		this.parameters = parameters.getBindableParameters().iterator();

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2015 the original author or authors.
+ * Copyright 2011-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License
 import org.springframework.aop.framework.Advised;
@@ -74,7 +74,8 @@ public class PartTreeJpaQueryIntegrationTests {
 	public void test() throws Exception {
 
 		JpaQueryMethod queryMethod = getQueryMethod("findByFirstname", String.class, Pageable.class);
-		PartTreeJpaQuery jpaQuery = new PartTreeJpaQuery(queryMethod, entityManager);
+		PartTreeJpaQuery jpaQuery = new PartTreeJpaQuery(queryMethod, entityManager,
+				PersistenceProvider.fromEntityManager(entityManager));
 
 		jpaQuery.createQuery(new Object[] { "Matthews", new PageRequest(0, 1) });
 		jpaQuery.createQuery(new Object[] { "Matthews", new PageRequest(0, 1) });
@@ -101,7 +102,8 @@ public class PartTreeJpaQueryIntegrationTests {
 	public void recreatesQueryIfNullValueIsGiven() throws Exception {
 
 		JpaQueryMethod queryMethod = getQueryMethod("findByFirstname", String.class, Pageable.class);
-		PartTreeJpaQuery jpaQuery = new PartTreeJpaQuery(queryMethod, entityManager);
+		PartTreeJpaQuery jpaQuery = new PartTreeJpaQuery(queryMethod, entityManager,
+				PersistenceProvider.fromEntityManager(entityManager));
 
 		Query query = jpaQuery.createQuery(new Object[] { "Matthews", new PageRequest(0, 1) });
 
@@ -122,8 +124,8 @@ public class PartTreeJpaQueryIntegrationTests {
 		}
 		Method method = UserRepository.class.getMethod(methodName, parameterTypes);
 		JpaQueryMethod queryMethod = getQueryMethod(methodName, parameterTypes);
-		PartTreeJpaQuery jpaQuery = new PartTreeJpaQuery(queryMethod, entityManager);
-
+		PartTreeJpaQuery jpaQuery = new PartTreeJpaQuery(queryMethod, entityManager,
+				PersistenceProvider.fromEntityManager(entityManager));
 		jpaQuery.createQuery(values);
 	}
 

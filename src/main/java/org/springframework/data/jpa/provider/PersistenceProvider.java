@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2015 the original author or authors.
+ * Copyright 2008-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,7 @@ import org.hibernate.proxy.HibernateProxy;
 import org.springframework.data.util.CloseableIterator;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
+import org.springframework.util.ConcurrentReferenceHashMap;
 
 /**
  * Enumeration representing persistence providers to be used.
@@ -51,7 +52,7 @@ import org.springframework.util.Assert;
  * @author Oliver Gierke
  * @author Thomas Darimont
  */
-public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
+public enum PersistenceProvider implements QueryExtractor,ProxyIdAccessor {
 
 	/**
 	 * Hibernate persistence provider.
@@ -121,8 +122,8 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 	/**
 	 * EclipseLink persistence provider.
 	 */
-	ECLIPSELINK(Collections.singleton(ECLIPSELINK_ENTITY_MANAGER_INTERFACE), Collections
-			.singleton(ECLIPSELINK_JPA_METAMODEL_TYPE)) {
+	ECLIPSELINK(Collections.singleton(ECLIPSELINK_ENTITY_MANAGER_INTERFACE),
+			Collections.singleton(ECLIPSELINK_JPA_METAMODEL_TYPE)) {
 
 		public String extractQueryString(Query query) {
 			return ((JpaQuery<?>) query).getDatabaseQuery().getJPQLString();
@@ -263,6 +264,8 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 		String OPENJPA_JPA_METAMODEL_TYPE = "org.apache.openjpa.persistence.meta.MetamodelImpl";
 	}
 
+	private static ConcurrentReferenceHashMap<Class<?>, PersistenceProvider> CACHE = new ConcurrentReferenceHashMap<Class<?>, PersistenceProvider>();
+
 	private final Iterable<String> entityManagerClassNames;
 	private final Iterable<String> metamodelClassNames;
 
@@ -287,32 +290,65 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 	 */
 	public static PersistenceProvider fromEntityManager(EntityManager em) {
 
-		Assert.notNull(em);
+		Assert.notNull(em, "EntityManager must not be null!");
+
+		Class<?> entityManagerType = em.getDelegate().getClass();
+		PersistenceProvider cachedProvider = CACHE.get(entityManagerType);
+
+		if (cachedProvider != null) {
+			return cachedProvider;
+		}
 
 		for (PersistenceProvider provider : values()) {
 			for (String entityManagerClassName : provider.entityManagerClassNames) {
 				if (isEntityManagerOfType(em, entityManagerClassName)) {
-					return provider;
+					return cacheAndReturn(entityManagerType, provider);
 				}
 			}
 		}
 
-		return GENERIC_JPA;
+		return cacheAndReturn(entityManagerType, GENERIC_JPA);
 	}
 
+	/**
+	 * Determines the {@link PersistenceProvider} from the given {@link Metamodel}. If no special one can be determined
+	 * {@link #GENERIC_JPA} will be returned.
+	 * 
+	 * @param metamodel must not be {@literal null}.
+	 * @return will never be {@literal null}.
+	 */
 	public static PersistenceProvider fromMetamodel(Metamodel metamodel) {
 
 		Assert.notNull(metamodel, "Metamodel must not be null!");
 
+		Class<? extends Metamodel> metamodelType = metamodel.getClass();
+		PersistenceProvider cachedProvider = CACHE.get(metamodelType);
+
+		if (cachedProvider != null) {
+			return cachedProvider;
+		}
+
 		for (PersistenceProvider provider : values()) {
 			for (String metamodelClassName : provider.metamodelClassNames) {
 				if (isMetamodelOfType(metamodel, metamodelClassName)) {
-					return provider;
+					return cacheAndReturn(metamodelType, provider);
 				}
 			}
 		}
 
-		return GENERIC_JPA;
+		return cacheAndReturn(metamodelType, GENERIC_JPA);
+	}
+
+	/**
+	 * Caches the given {@link PersistenceProvider} for the given source type.
+	 * 
+	 * @param type must not be {@literal null}.
+	 * @param provider must not be {@literal null}.
+	 * @return
+	 */
+	private static PersistenceProvider cacheAndReturn(Class<?> type, PersistenceProvider provider) {
+		CACHE.put(type, provider);
+		return provider;
 	}
 
 	/*
@@ -348,8 +384,8 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 	}
 
 	public CloseableIterator<Object> executeQueryWithResultStream(Query jpaQuery) {
-		throw new UnsupportedOperationException("Streaming results is not implement for this PersistenceProvider: "
-				+ name());
+		throw new UnsupportedOperationException(
+				"Streaming results is not implement for this PersistenceProvider: " + name());
 	}
 
 	/**
