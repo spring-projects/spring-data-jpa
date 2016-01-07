@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2014 the original author or authors.
+ * Copyright 2012-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,7 @@ package org.springframework.data.jpa.mapping;
 
 import java.util.Comparator;
 
-import javax.persistence.metamodel.Metamodel;
-
 import org.springframework.data.annotation.Version;
-import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.provider.ProxyIdAccessor;
 import org.springframework.data.mapping.IdentifierAccessor;
 import org.springframework.data.mapping.model.BasicPersistentEntity;
@@ -48,14 +45,14 @@ class JpaPersistentEntityImpl<T> extends BasicPersistentEntity<T, JpaPersistentP
 	 * Creates a new {@link JpaPersistentEntityImpl} using the given {@link TypeInformation} and {@link Comparator}.
 	 * 
 	 * @param information must not be {@literal null}.
-	 * @param metamodel must not be {@literal null}.
+	 * @param proxyIdAccessor must not be {@literal null}.
 	 */
-	public JpaPersistentEntityImpl(TypeInformation<T> information, Metamodel metamodel) {
+	public JpaPersistentEntityImpl(TypeInformation<T> information, ProxyIdAccessor proxyIdAccessor) {
 
 		super(information, null);
 
-		Assert.notNull(metamodel, "Metamodel must not be null!");
-		this.proxyIdAccessor = PersistenceProvider.fromMetamodel(metamodel);
+		Assert.notNull(proxyIdAccessor, "ProxyIdAccessor must not be null!");
+		this.proxyIdAccessor = proxyIdAccessor;
 	}
 
 	/* 
@@ -116,7 +113,8 @@ class JpaPersistentEntityImpl<T> extends BasicPersistentEntity<T, JpaPersistentP
 		 * @param bean must not be {@literal null}.
 		 * @param proxyIdAccessor must not be {@literal null}.
 		 */
-		public JpaProxyAwareIdentifierAccessor(JpaPersistentEntity<?> entity, Object bean, ProxyIdAccessor proxyIdAccessor) {
+		public JpaProxyAwareIdentifierAccessor(JpaPersistentEntity<?> entity, Object bean,
+				ProxyIdAccessor proxyIdAccessor) {
 
 			super(entity, bean);
 
@@ -132,8 +130,8 @@ class JpaPersistentEntityImpl<T> extends BasicPersistentEntity<T, JpaPersistentP
 		 */
 		@Override
 		public Object getIdentifier() {
-			return proxyIdAccessor.shouldUseAccessorFor(bean) ? proxyIdAccessor.getIdentifierFrom(bean) : super
-					.getIdentifier();
+			return proxyIdAccessor.shouldUseAccessorFor(bean) ? proxyIdAccessor.getIdentifierFrom(bean)
+					: super.getIdentifier();
 		}
 	}
 }
