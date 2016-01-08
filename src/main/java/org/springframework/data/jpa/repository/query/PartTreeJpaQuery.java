@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2014 the original author or authors.
+ * Copyright 2008-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,7 +52,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 	 * @param method must not be {@literal null}.
 	 * @param em must not be {@literal null}.
 	 */
-	public PartTreeJpaQuery(JpaQueryMethod method, EntityManager em) {
+	public PartTreeJpaQuery(JpaQueryMethod method, EntityManager em, PersistenceProvider persistenceProvider) {
 
 		super(method, em);
 		this.em = em;
@@ -61,8 +61,9 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 		this.tree = new PartTree(method.getName(), domainClass);
 		this.parameters = method.getParameters();
 
-		this.countQuery = new CountQueryPreparer(parameters.potentiallySortsDynamically());
-		this.query = tree.isCountProjection() ? countQuery : new QueryPreparer(parameters.potentiallySortsDynamically());
+		this.countQuery = new CountQueryPreparer(persistenceProvider, parameters.potentiallySortsDynamically());
+		this.query = tree.isCountProjection() ? countQuery
+				: new QueryPreparer(persistenceProvider, parameters.potentiallySortsDynamically());
 	}
 
 	/*
@@ -103,10 +104,14 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 
 		private final CriteriaQuery<?> cachedCriteriaQuery;
 		private final List<ParameterMetadata<?>> expressions;
+		private final PersistenceProvider persistenceProvider;
 
-		public QueryPreparer(boolean recreateQueries) {
+		public QueryPreparer(PersistenceProvider persistenceProvider, boolean recreateQueries) {
+
+			this.persistenceProvider = persistenceProvider;
 
 			JpaQueryCreator creator = createCreator(null);
+
 			this.cachedCriteriaQuery = recreateQueries ? null : creator.createQuery();
 			this.expressions = recreateQueries ? null : creator.getParameterExpressions();
 		}
@@ -187,10 +192,10 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 
 			EntityManager entityManager = getEntityManager();
 			CriteriaBuilder builder = entityManager.getCriteriaBuilder();
-			PersistenceProvider persistenceProvider = PersistenceProvider.fromEntityManager(entityManager);
 
-			ParameterMetadataProvider provider = accessor == null ? new ParameterMetadataProvider(builder, parameters,
-					persistenceProvider) : new ParameterMetadataProvider(builder, accessor, persistenceProvider);
+			ParameterMetadataProvider provider = accessor == null
+					? new ParameterMetadataProvider(builder, parameters, persistenceProvider)
+					: new ParameterMetadataProvider(builder, accessor, persistenceProvider);
 
 			return new JpaQueryCreator(tree, domainClass, builder, provider);
 		}
@@ -226,8 +231,8 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 	 */
 	private class CountQueryPreparer extends QueryPreparer {
 
-		public CountQueryPreparer(boolean recreateQueries) {
-			super(recreateQueries);
+		public CountQueryPreparer(PersistenceProvider persistenceProvider, boolean recreateQueries) {
+			super(persistenceProvider, recreateQueries);
 		}
 
 		/*
@@ -241,8 +246,9 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 			CriteriaBuilder builder = entityManager.getCriteriaBuilder();
 			PersistenceProvider persistenceProvider = PersistenceProvider.fromEntityManager(entityManager);
 
-			ParameterMetadataProvider provider = accessor == null ? new ParameterMetadataProvider(builder, parameters,
-					persistenceProvider) : new ParameterMetadataProvider(builder, accessor, persistenceProvider);
+			ParameterMetadataProvider provider = accessor == null
+					? new ParameterMetadataProvider(builder, parameters, persistenceProvider)
+					: new ParameterMetadataProvider(builder, accessor, persistenceProvider);
 
 			return new JpaCountQueryCreator(tree, domainClass, builder, provider);
 		}
