@@ -22,6 +22,7 @@ import java.util.Set;
 import javax.persistence.metamodel.ManagedType;
 import javax.persistence.metamodel.Metamodel;
 
+import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.mapping.context.AbstractMappingContext;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
@@ -34,10 +35,11 @@ import org.springframework.util.Assert;
  * @author Oliver Gierke
  * @since 1.3
  */
-public class JpaMetamodelMappingContext extends
-		AbstractMappingContext<JpaPersistentEntityImpl<?>, JpaPersistentProperty> {
+public class JpaMetamodelMappingContext
+		extends AbstractMappingContext<JpaPersistentEntityImpl<?>, JpaPersistentProperty> {
 
 	private final Set<Metamodel> models;
+	private final PersistenceProvider persistenceProvider;
 
 	/**
 	 * Creates a new JPA {@link Metamodel} based {@link MappingContext}.
@@ -50,6 +52,7 @@ public class JpaMetamodelMappingContext extends
 		Assert.notEmpty(models, "At least one JPA metamodel must be present!");
 
 		this.models = models;
+		this.persistenceProvider = PersistenceProvider.fromMetamodel(models.iterator().next());
 	}
 
 	/* 
@@ -58,7 +61,7 @@ public class JpaMetamodelMappingContext extends
 	 */
 	@Override
 	protected <T> JpaPersistentEntityImpl<?> createPersistentEntity(TypeInformation<T> typeInformation) {
-		return new JpaPersistentEntityImpl<T>(typeInformation, getMetamodelFor(typeInformation.getType()));
+		return new JpaPersistentEntityImpl<T>(typeInformation, persistenceProvider);
 	}
 
 	/* 
