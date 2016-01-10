@@ -55,6 +55,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 	public PartTreeJpaQuery(JpaQueryMethod method, EntityManager em, PersistenceProvider persistenceProvider) {
 
 		super(method, em);
+
 		this.em = em;
 
 		this.domainClass = method.getEntityInformation().getJavaType();
@@ -110,7 +111,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 
 			this.persistenceProvider = persistenceProvider;
 
-			JpaQueryCreator creator = createCreator(null);
+			JpaQueryCreator creator = createCreator(null, persistenceProvider);
 
 			this.cachedCriteriaQuery = recreateQueries ? null : creator.createQuery();
 			this.expressions = recreateQueries ? null : creator.getParameterExpressions();
@@ -129,7 +130,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 			ParametersParameterAccessor accessor = new ParametersParameterAccessor(parameters, values);
 
 			if (cachedCriteriaQuery == null || accessor.hasBindableNullValue()) {
-				JpaQueryCreator creator = createCreator(accessor);
+				JpaQueryCreator creator = createCreator(accessor, persistenceProvider);
 				criteriaQuery = creator.createQuery(getDynamicSort(values));
 				expressions = creator.getParameterExpressions();
 			}
@@ -188,7 +189,8 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 			return getEntityManager().createQuery(criteriaQuery);
 		}
 
-		protected JpaQueryCreator createCreator(ParametersParameterAccessor accessor) {
+		protected JpaQueryCreator createCreator(ParametersParameterAccessor accessor,
+				PersistenceProvider persistenceProvider) {
 
 			EntityManager entityManager = getEntityManager();
 			CriteriaBuilder builder = entityManager.getCriteriaBuilder();
@@ -237,14 +239,14 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 
 		/*
 		 * (non-Javadoc)
-		 * @see org.springframework.data.jpa.repository.query.PartTreeJpaQuery.QueryPreparer#createCreator(org.springframework.data.repository.query.ParametersParameterAccessor)
+		 * @see org.springframework.data.jpa.repository.query.PartTreeJpaQuery.QueryPreparer#createCreator(org.springframework.data.repository.query.ParametersParameterAccessor, org.springframework.data.jpa.provider.PersistenceProvider)
 		 */
 		@Override
-		protected JpaQueryCreator createCreator(ParametersParameterAccessor accessor) {
+		protected JpaQueryCreator createCreator(ParametersParameterAccessor accessor,
+				PersistenceProvider persistenceProvider) {
 
 			EntityManager entityManager = getEntityManager();
 			CriteriaBuilder builder = entityManager.getCriteriaBuilder();
-			PersistenceProvider persistenceProvider = PersistenceProvider.fromEntityManager(entityManager);
 
 			ParameterMetadataProvider provider = accessor == null
 					? new ParameterMetadataProvider(builder, parameters, persistenceProvider)
