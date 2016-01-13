@@ -21,7 +21,7 @@
 
 		<dist.key>DATAJPA</dist.key>
 
-		<eclipselink>2.6.1</eclipselink>
+		<eclipselink>2.6.2</eclipselink>
 		<hibernate>3.6.10.Final</hibernate>
 		<hsqldb1>1.8.0.10</hsqldb1>
 		<jpa>2.0.0</jpa>
