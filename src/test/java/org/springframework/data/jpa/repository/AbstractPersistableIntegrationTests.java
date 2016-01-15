@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ package org.springframework.data.jpa.repository;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
+import javax.persistence.EntityManager;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
  * Integration tests for {@link AbstractPersistable}.
  * 
  * @author Thomas Darimont
+ * @author Oliver Gierke
  */
 @Transactional
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -39,6 +42,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class AbstractPersistableIntegrationTests {
 
 	@Autowired CustomAbstractPersistableRepository repository;
+	@Autowired EntityManager em;
 
 	/**
 	 * @see DATAJPA-622
@@ -51,5 +55,20 @@ public class AbstractPersistableIntegrationTests {
 		CustomAbstractPersistable found = repository.findOne(saved.getId());
 
 		assertThat(found, is(saved));
+	}
+
+	/**
+	 * @see DATAJPA-848
+	 */
+	@Test
+	public void equalsWorksForProxiedEntities() {
+
+		CustomAbstractPersistable entity = repository.saveAndFlush(new CustomAbstractPersistable());
+
+		em.clear();
+
+		CustomAbstractPersistable proxy = repository.getOne(entity.getId());
+
+		assertThat(proxy, is(proxy));
 	}
 }
