@@ -30,12 +30,21 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.ComponentScan.Filter;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.data.jpa.domain.sample.Category;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.JpaContext;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
+import org.springframework.stereotype.Component;
 
 /**
  * Integration tests for {@link DefaultJpaContext}.
@@ -100,14 +109,58 @@ public class DefaultJpaContextIntegrationTests {
 		jpaContext.getEntityManagerByManagedType(User.class);
 	}
 
-	private static final EntityManagerFactory createEntityManagerFactory(String persistenceUnitName) {
+	/**
+	 * @see DATAJPA-813
+	 */
+	@Test
+	public void bootstrapsDefaultJpaContextInSpringContainer() {
+
+		ConfigurableApplicationContext context = new AnnotationConfigApplicationContext(Config.class);
+		ApplicationComponent component = context.getBean(ApplicationComponent.class);
+
+		assertThat(component.context, is(notNullValue()));
+
+		context.close();
+	}
+
+	private static final LocalContainerEntityManagerFactoryBean createEntityManagerFactoryBean(
+			String persistenceUnitName) {
 
 		LocalContainerEntityManagerFactoryBean factoryBean = new LocalContainerEntityManagerFactoryBean();
 		factoryBean.setPersistenceProvider(new HibernatePersistence());
 		factoryBean.setDataSource(new EmbeddedDatabaseBuilder().setType(EmbeddedDatabaseType.HSQL).build());
 		factoryBean.setPersistenceUnitName(persistenceUnitName);
+
+		return factoryBean;
+	}
+
+	private static final EntityManagerFactory createEntityManagerFactory(String persistenceUnitName) {
+
+		LocalContainerEntityManagerFactoryBean factoryBean = createEntityManagerFactoryBean(persistenceUnitName);
 		factoryBean.afterPropertiesSet();
 
 		return factoryBean.getObject();
+	}
+
+	@EnableJpaRepositories
+	@ComponentScan(includeFilters = @Filter(type = FilterType.ASSIGNABLE_TYPE, value = ApplicationComponent.class) ,
+			useDefaultFilters = false)
+	static class Config {
+
+		@Bean
+		public LocalContainerEntityManagerFactoryBean entityManagerFactory() {
+			return createEntityManagerFactoryBean("spring-data-jpa");
+		}
+	}
+
+	@Component
+	static class ApplicationComponent {
+
+		JpaContext context;
+
+		@Autowired
+		public ApplicationComponent(JpaContext context) {
+			this.context = context;
+		}
 	}
 }
