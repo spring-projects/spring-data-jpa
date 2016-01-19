@@ -109,7 +109,7 @@ public class UserRepositoryIntegrationTest {
   @Test
   public void sampleTestCase() {
     User dave = new User("Dave", "Matthews");
-    dave = repository.save(user);
+    dave = repository.save(dave);
          
     User carter = new User("Carter", "Beauford");
     carter = repository.save(carter);
