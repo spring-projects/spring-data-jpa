@@ -52,7 +52,7 @@ import org.springframework.util.ConcurrentReferenceHashMap;
  * @author Oliver Gierke
  * @author Thomas Darimont
  */
-public enum PersistenceProvider implements QueryExtractor,ProxyIdAccessor {
+public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 
 	/**
 	 * Hibernate persistence provider.
@@ -117,13 +117,14 @@ public enum PersistenceProvider implements QueryExtractor,ProxyIdAccessor {
 		public CloseableIterator<Object> executeQueryWithResultStream(Query jpaQuery) {
 			return new HibernateScrollableResultsIterator<Object>(jpaQuery);
 		}
+
 	},
 
 	/**
 	 * EclipseLink persistence provider.
 	 */
-	ECLIPSELINK(Collections.singleton(ECLIPSELINK_ENTITY_MANAGER_INTERFACE),
-			Collections.singleton(ECLIPSELINK_JPA_METAMODEL_TYPE)) {
+	ECLIPSELINK(Collections.singleton(ECLIPSELINK_ENTITY_MANAGER_INTERFACE), Collections
+			.singleton(ECLIPSELINK_JPA_METAMODEL_TYPE)) {
 
 		public String extractQueryString(Query query) {
 			return ((JpaQuery<?>) query).getDatabaseQuery().getJPQLString();
@@ -163,6 +164,7 @@ public enum PersistenceProvider implements QueryExtractor,ProxyIdAccessor {
 		public CloseableIterator<Object> executeQueryWithResultStream(Query jpaQuery) {
 			return new EclipseLinkScrollableResultsIterator<Object>(jpaQuery);
 		}
+
 	},
 
 	/**
@@ -201,6 +203,7 @@ public enum PersistenceProvider implements QueryExtractor,ProxyIdAccessor {
 		public CloseableIterator<Object> executeQueryWithResultStream(Query jpaQuery) {
 			return new OpenJpaResultStreamingIterator<Object>(jpaQuery);
 		}
+
 	},
 
 	/**
@@ -243,6 +246,7 @@ public enum PersistenceProvider implements QueryExtractor,ProxyIdAccessor {
 		public Object getIdentifierFrom(Object entity) {
 			return null;
 		}
+
 	};
 
 	/**
@@ -384,8 +388,8 @@ public enum PersistenceProvider implements QueryExtractor,ProxyIdAccessor {
 	}
 
 	public CloseableIterator<Object> executeQueryWithResultStream(Query jpaQuery) {
-		throw new UnsupportedOperationException(
-				"Streaming results is not implement for this PersistenceProvider: " + name());
+		throw new UnsupportedOperationException("Streaming results is not implement for this PersistenceProvider: "
+				+ name());
 	}
 
 	/**
