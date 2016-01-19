@@ -16,11 +16,10 @@
 package org.springframework.data.jpa.repository;
 
 import static org.hamcrest.Matchers.*;
-import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.*;
+import static org.springframework.data.domain.Example.*;
 import static org.springframework.data.domain.Sort.Direction.*;
 import static org.springframework.data.jpa.domain.Specifications.*;
-import static org.springframework.data.jpa.domain.Specifications.not;
 import static org.springframework.data.jpa.domain.sample.UserSpecifications.*;
 
 import java.util.ArrayList;
@@ -42,6 +41,7 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 import org.hamcrest.Matchers;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -49,20 +49,24 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.Example.StringMatcher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PropertySpecifier;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.domain.Sort.Order;
-import org.springframework.data.jpa.domain.Example;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.domain.sample.Address;
 import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.domain.sample.SpecialUser;
 import org.springframework.data.jpa.domain.sample.User;
+import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.repository.sample.SampleEvaluationContextExtension.SampleSecurityContextHolder;
 import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.test.context.ContextConfiguration;
@@ -1907,40 +1911,339 @@ public class UserRepositoryTests {
 
 		assertThat(users, hasSize(2));
 	}
-	
+
 	/**
-	 * @see DATAJPA-218 
+	 * @see DATAJPA-218
 	 */
 	@Test
-	public void queryByExample() {
-		
+	public void findAllByExample() {
+
 		flushTestUsers();
-		
+
 		User prototype = new User();
 		prototype.setAge(28);
 		prototype.setCreatedAt(null);
-		
-		List<User> users = repository.findWithExample(Example.exampleOf(prototype));
-		
+
+		List<User> users = repository.findAllByExample(exampleOf(prototype));
+
 		assertThat(users, hasSize(1));
 		assertThat(users.get(0), is(firstUser));
 	}
-	
+
 	/**
-	 * @see DATAJPA-218 
+	 * @see DATAJPA-218
+	 */
+	@Test(expected = InvalidDataAccessApiUsageException.class)
+	public void findAllByNullExample() {
+		repository.findAllByExample(null);
+	}
+
+	/**
+	 * @see DATAJPA-218
 	 */
 	@Test
-	public void queryByExampleWithExcludedAttributes() {
-		
+	public void findAllByExampleWithExcludedAttributes() {
+
 		flushTestUsers();
-		
+
 		User prototype = new User();
 		prototype.setAge(28);
-		
-		List<User> users = repository.findWithExample(Example.newExample(prototype).ignoring("createdAt").build());
-		
+
+		List<User> users = repository.findAllByExample(newExampleOf(prototype).ignore("createdAt").get());
+
 		assertThat(users, hasSize(1));
 		assertThat(users.get(0), is(firstUser));
+	}
+
+	/**
+	 * @see DATAJPA-218
+	 */
+	@Test
+	public void findAllByExampleWithAssociation() {
+
+		flushTestUsers();
+
+		firstUser.setManager(secondUser);
+		thirdUser.setManager(firstUser);
+		repository.save(Arrays.asList(firstUser, thirdUser));
+
+		User manager = new User();
+		manager.setLastname("Arrasz");
+		manager.setAge(secondUser.getAge());
+		manager.setCreatedAt(null);
+
+		User prototype = new User();
+		prototype.setCreatedAt(null);
+		prototype.setManager(manager);
+
+		List<User> users = repository.findAllByExample(newExampleOf(prototype).ignore("age").get());
+
+		assertThat(users, hasSize(1));
+		assertThat(users.get(0), is(firstUser));
+	}
+
+	/**
+	 * @see DATAJPA-218
+	 */
+	@Test
+	public void findAllByExampleWithEmbedded() {
+
+		flushTestUsers();
+
+		firstUser.setAddress(new Address("germany", "dresden", "", ""));
+		repository.save(firstUser);
+
+		User prototype = new User();
+		prototype.setCreatedAt(null);
+		prototype.setAddress(new Address("germany", null, null, null));
+
+		List<User> users = repository.findAllByExample(newExampleOf(prototype).ignore("age").get());
+
+		assertThat(users, hasSize(1));
+		assertThat(users.get(0), is(firstUser));
+	}
+
+	/**
+	 * @see DATAJPA-218
+	 */
+	@Test
+	public void findAllByExampleWithStartingStringMatcher() {
+
+		flushTestUsers();
+
+		User prototype = new User();
+		prototype.setFirstname("Ol");
+
+		Example<User> example = newExampleOf(prototype).with(StringMatcher.STARTING).ignore("age", "createdAt").get();
+
+		List<User> users = repository.findAllByExample(example);
+
+		assertThat(users, hasSize(1));
+		assertThat(users.get(0), is(firstUser));
+	}
+
+	/**
+	 * @see DATAJPA-218
+	 */
+	@Test
+	public void findAllByExampleWithEndingStringMatcher() {
+
+		flushTestUsers();
+
+		User prototype = new User();
+		prototype.setFirstname("ver");
+
+		Example<User> example = newExampleOf(prototype).with(StringMatcher.ENDING).ignore("age", "createdAt").get();
+
+		List<User> users = repository.findAllByExample(example);
+
+		assertThat(users, hasSize(1));
+		assertThat(users.get(0), is(firstUser));
+	}
+
+	/**
+	 * @see DATAJPA-218
+	 */
+	@Test(expected = InvalidDataAccessApiUsageException.class)
+	public void findAllByExampleWithRegexStringMatcher() {
+
+		flushTestUsers();
+
+		User prototype = new User();
+		prototype.setFirstname("^Oliver$");
+
+		Example<User> example = newExampleOf(prototype).with(StringMatcher.REGEX).ignore("age", "createdAt").get();
+
+		repository.findAllByExample(example);
+	}
+
+	/**
+	 * @see DATAJPA-218
+	 */
+	@Test
+	public void findAllByExampleWithIgnoreCase() {
+
+		flushTestUsers();
+
+		User prototype = new User();
+		prototype.setFirstname("oLiVer");
+
+		Example<User> example = newExampleOf(prototype).matchStringsWithIgnoreCase().ignore("age", "createdAt").get();
+
+		List<User> users = repository.findAllByExample(example);
+
+		assertThat(users, hasSize(1));
+		assertThat(users.get(0), is(firstUser));
+	}
+
+	/**
+	 * @see DATAJPA-218
+	 */
+	@Test
+	public void findAllByExampleWithStringMatcherAndIgnoreCase() {
+
+		flushTestUsers();
+
+		User prototype = new User();
+		prototype.setFirstname("oLiV");
+
+		Example<User> example = newExampleOf(prototype).matchStringsStartingWith().matchStringsWithIgnoreCase()
+				.ignore("age", "createdAt").get();
+
+		List<User> users = repository.findAllByExample(example);
+
+		assertThat(users, hasSize(1));
+		assertThat(users.get(0), is(firstUser));
+	}
+
+	/**
+	 * @see DATAJPA-218
+	 */
+	@Test
+	public void findAllByExampleWithIncludeNull() {
+
+		// something is wrong with OpenJPA - I do not know what
+		Assume.assumeThat(PersistenceProvider.fromEntityManager(em), not(equalTo(PersistenceProvider.OPEN_JPA)));
+
+		flushTestUsers();
+
+		firstUser.setAddress(new Address("andor", "caemlyn", "", ""));
+
+		User fifthUser = new User();
+		fifthUser.setEmailAddress("foo@bar.com");
+		fifthUser.setActive(firstUser.isActive());
+		fifthUser.setAge(firstUser.getAge());
+		fifthUser.setFirstname(firstUser.getFirstname());
+		fifthUser.setLastname(firstUser.getLastname());
+
+		repository.save(Arrays.asList(firstUser, fifthUser));
+
+		User prototype = new User();
+		prototype.setFirstname(firstUser.getFirstname());
+
+		Example<User> example = newExampleOf(prototype).includeNullValues()
+				.ignore("id", "binaryData", "lastname", "emailAddress", "age", "createdAt").get();
+
+		List<User> users = repository.findAllByExample(example);
+
+		assertThat(users, hasSize(1));
+		assertThat(users.get(0), is(fifthUser));
+	}
+
+	/**
+	 * @see DATAJPA-218
+	 */
+	@Test
+	public void findAllByExampleWithPropertySpecifier() {
+
+		flushTestUsers();
+
+		User prototype = new User();
+		prototype.setFirstname("oLi");
+
+		Example<User> example = newExampleOf(prototype).matchStringsWithIgnoreCase().ignore("age", "createdAt")
+				.with(PropertySpecifier.newPropertySpecifier("firstname").stringMatcher(StringMatcher.STARTING).get()).get();
+
+		List<User> users = repository.findAllByExample(example);
+
+		assertThat(users, hasSize(1));
+		assertThat(users.get(0), is(firstUser));
+	}
+
+	/**
+	 * @see DATAJPA-218
+	 */
+	@Test
+	public void findAllByExampleWithSort() {
+
+		flushTestUsers();
+
+		User user1 = new User("Oliver", "Srping", "o@s.de");
+		user1.setAge(30);
+
+		repository.save(user1);
+
+		User prototype = new User();
+		prototype.setFirstname("oLi");
+
+		Example<User> example = newExampleOf(prototype).with(StringMatcher.STARTING).matchStringsWithIgnoreCase()
+				.ignore("age", "createdAt").get();
+
+		List<User> users = repository.findAllByExample(example, new Sort(DESC, "age"));
+
+		assertThat(users, hasSize(2));
+		assertThat(users.get(0), is(user1));
+		assertThat(users.get(1), is(firstUser));
+	}
+
+	/**
+	 * @see DATAJPA-218
+	 */
+	@Test
+	public void findAllByExampleWithPageable() {
+
+		flushTestUsers();
+
+		for (int i = 0; i < 99; i++) {
+			User user1 = new User("Oliver-" + i, "Srping", "o" + i + "@s.de");
+			user1.setAge(30 + i);
+
+			repository.save(user1);
+		}
+
+		User prototype = new User();
+		prototype.setFirstname("oLi");
+
+		Example<User> example = newExampleOf(prototype).with(StringMatcher.STARTING).matchStringsWithIgnoreCase()
+				.ignore("age", "createdAt").get();
+
+		Page<User> users = repository.findAllByExample(example, new PageRequest(0, 10, new Sort(DESC, "age")));
+
+		assertThat(users.getSize(), is(10));
+		assertThat(users.hasNext(), is(true));
+		assertThat(users.getTotalElements(), is(100L));
+	}
+
+	/**
+	 * @see DATAJPA-218
+	 */
+	@Test(expected = InvalidDataAccessApiUsageException.class)
+	public void findAllByExampleShouldNotAllowCycles() {
+
+		flushTestUsers();
+
+		User user1 = new User();
+		user1.setFirstname("user1");
+
+		user1.setManager(user1);
+
+		Example<User> example = newExampleOf(user1).with(StringMatcher.STARTING).matchStringsWithIgnoreCase()
+				.ignore("age", "createdAt").get();
+
+		repository.findAllByExample(example, new PageRequest(0, 10, new Sort(DESC, "age")));
+	}
+
+	/**
+	 * @see DATAJPA-218
+	 */
+	@Test(expected = InvalidDataAccessApiUsageException.class)
+	public void findAllByExampleShouldNotAllowCyclesOverSeveralInstances() {
+
+		flushTestUsers();
+
+		User user1 = new User();
+		user1.setFirstname("user1");
+
+		User user2 = new User();
+		user2.setFirstname("user2");
+
+		user1.setManager(user2);
+		user2.setManager(user1);
+
+		Example<User> example = newExampleOf(user1).with(StringMatcher.STARTING).matchStringsWithIgnoreCase()
+				.ignore("age", "createdAt").get();
+
+		repository.findAllByExample(example, new PageRequest(0, 10, new Sort(DESC, "age")));
 	}
 
 	private Page<User> executeSpecWithSort(Sort sort) {
@@ -1953,4 +2256,5 @@ public class UserRepositoryTests {
 		assertThat(result.getTotalElements(), is(2L));
 		return result;
 	}
+
 }
