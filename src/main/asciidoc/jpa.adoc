@@ -744,6 +744,19 @@ Note that the auditing feature requires `spring-aspects.jar` to be on the classp
 ----
 ====
 
+You can also enable the `AuditingEntityListener` per entity using the `@EntityListeners` annotation:
+
+====
+[source, java]
+----
+@Entity
+@EntityListeners(AuditingEntityListener.class)
+public class MyEntity {
+
+}
+----
+====
+
 Now activating auditing functionality is just a matter of adding the Spring Data JPA `auditing` namespace element to your configuration:
 
 .Activating auditing using XML configuration
