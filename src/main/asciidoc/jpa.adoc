@@ -728,8 +728,6 @@ include::{spring-data-commons-docs}/auditing.adoc[]
 
 Spring Data JPA ships with an entity listener that can be used to trigger capturing auditing information. So first you have to register the `AuditingEntityListener` inside your `orm.xml` to be used for all entities in your persistence contexts:
 
-Note that the auditing feature requires `spring-aspects.jar` to be on the classpath.
-
 .Auditing configuration orm.xml
 ====
 [source, xml]
@@ -757,7 +755,9 @@ public class MyEntity {
 ----
 ====
 
-Now activating auditing functionality is just a matter of adding the Spring Data JPA `auditing` namespace element to your configuration:
+Note that the auditing feature requires `spring-aspects.jar` to be on the classpath.
+
+With that in place, activating auditing functionality is just a matter of adding the Spring Data JPA `auditing` namespace element to your configuration:
 
 .Activating auditing using XML configuration
 ====
@@ -785,7 +785,7 @@ class Config {
 ----
 ====
 
-If you expose a bean of type AuditorAware to the ApplicationContext, the auditing infrastructure will pick it up automatically and use it to determine the current user to be set on domain types. If you have multiple implementations registered in the ApplicationContext, you can select the one to be used by explicitly setting the `auditorAwareRef` attribute of @EnableJpaAuditing.
+If you expose a bean of type `AuditorAware` to the `ApplicationContext`, the auditing infrastructure will pick it up automatically and use it to determine the current user to be set on domain types. If you have multiple implementations registered in the `ApplicationContext`, you can select the one to be used by explicitly setting the `auditorAwareRef` attribute of `@EnableJpaAuditing`.
 
 [[jpa.misc]]
 = Miscellaneous
