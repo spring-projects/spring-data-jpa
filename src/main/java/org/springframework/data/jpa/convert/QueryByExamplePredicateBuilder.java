@@ -75,8 +75,8 @@ public class QueryByExamplePredicateBuilder {
 		Assert.notNull(cb, "CriteriaBuilder must not be null!");
 		Assert.notNull(example, "Root must not be null!");
 
-		List<Predicate> predicates = getPredicates("", cb, root, root.getModel(), example.getProbe(), example,
-				new PathNode("root", null, example.getProbe()));
+		List<Predicate> predicates = getPredicates("", cb, root, root.getModel(), example.getSampleObject(), example,
+				new PathNode("root", null, example.getSampleObject()));
 
 		if (predicates.isEmpty()) {
 			return cb.isTrue(cb.literal(false));
@@ -133,7 +133,7 @@ public class QueryByExamplePredicateBuilder {
 				if (node.spansCycle()) {
 					throw new InvalidDataAccessApiUsageException(String.format(
 							"Path '%s' from root %s must not span a cyclic property reference!\r\n%s", currentPath,
-							ClassUtils.getShortName(example.getProbeType()), node));
+							ClassUtils.getShortName(example.getSampleType()), node));
 				}
 
 				predicates.addAll(getPredicates(currentPath, cb, ((From<?, ?>) from).join(attribute.getName()),

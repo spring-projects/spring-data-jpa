@@ -2014,7 +2014,7 @@ public class UserRepositoryTests {
 		User prototype = new User();
 		prototype.setFirstname("Ol");
 
-		Example<User> example = newExampleOf(prototype).with(StringMatcher.STARTING).ignore("age", "createdAt").get();
+		Example<User> example = newExampleOf(prototype).matchStringsStartingWith().ignore("age", "createdAt").get();
 
 		List<User> users = repository.findAllByExample(example);
 
@@ -2033,7 +2033,7 @@ public class UserRepositoryTests {
 		User prototype = new User();
 		prototype.setFirstname("ver");
 
-		Example<User> example = newExampleOf(prototype).with(StringMatcher.ENDING).ignore("age", "createdAt").get();
+		Example<User> example = newExampleOf(prototype).matchStringsEndingWith().ignore("age", "createdAt").get();
 
 		List<User> users = repository.findAllByExample(example);
 
@@ -2052,7 +2052,8 @@ public class UserRepositoryTests {
 		User prototype = new User();
 		prototype.setFirstname("^Oliver$");
 
-		Example<User> example = newExampleOf(prototype).with(StringMatcher.REGEX).ignore("age", "createdAt").get();
+		Example<User> example = newExampleOf(prototype).withStringMatcher(StringMatcher.REGEX).ignore("age", "createdAt")
+				.get();
 
 		repository.findAllByExample(example);
 	}
@@ -2142,7 +2143,8 @@ public class UserRepositoryTests {
 		prototype.setFirstname("oLi");
 
 		Example<User> example = newExampleOf(prototype).matchStringsWithIgnoreCase().ignore("age", "createdAt")
-				.with(PropertySpecifier.newPropertySpecifier("firstname").stringMatcher(StringMatcher.STARTING).get()).get();
+				.withPropertySpecifier(PropertySpecifier.newPropertySpecifier("firstname").matchStringStartingWith().get())
+				.get();
 
 		List<User> users = repository.findAllByExample(example);
 
@@ -2166,7 +2168,7 @@ public class UserRepositoryTests {
 		User prototype = new User();
 		prototype.setFirstname("oLi");
 
-		Example<User> example = newExampleOf(prototype).with(StringMatcher.STARTING).matchStringsWithIgnoreCase()
+		Example<User> example = newExampleOf(prototype).matchStringsStartingWith().matchStringsWithIgnoreCase()
 				.ignore("age", "createdAt").get();
 
 		List<User> users = repository.findAllByExample(example, new Sort(DESC, "age"));
@@ -2194,7 +2196,7 @@ public class UserRepositoryTests {
 		User prototype = new User();
 		prototype.setFirstname("oLi");
 
-		Example<User> example = newExampleOf(prototype).with(StringMatcher.STARTING).matchStringsWithIgnoreCase()
+		Example<User> example = newExampleOf(prototype).matchStringsStartingWith().matchStringsWithIgnoreCase()
 				.ignore("age", "createdAt").get();
 
 		Page<User> users = repository.findAllByExample(example, new PageRequest(0, 10, new Sort(DESC, "age")));
@@ -2217,7 +2219,7 @@ public class UserRepositoryTests {
 
 		user1.setManager(user1);
 
-		Example<User> example = newExampleOf(user1).with(StringMatcher.STARTING).matchStringsWithIgnoreCase()
+		Example<User> example = newExampleOf(user1).matchStringsStartingWith().matchStringsWithIgnoreCase()
 				.ignore("age", "createdAt").get();
 
 		repository.findAllByExample(example, new PageRequest(0, 10, new Sort(DESC, "age")));
@@ -2240,7 +2242,7 @@ public class UserRepositoryTests {
 		user1.setManager(user2);
 		user2.setManager(user1);
 
-		Example<User> example = newExampleOf(user1).with(StringMatcher.STARTING).matchStringsWithIgnoreCase()
+		Example<User> example = newExampleOf(user1).matchStringsStartingWith().matchStringsWithIgnoreCase()
 				.ignore("age", "createdAt").get();
 
 		repository.findAllByExample(example, new PageRequest(0, 10, new Sort(DESC, "age")));
