@@ -169,19 +169,6 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extend
 		return new PredicateBuilder(part, root).build();
 	}
 
-	/**
-	 * Returns a path to a {@link Comparable}.
-	 * 
-	 * @param root
-	 * @param part
-	 * @return
-	 */
-	@SuppressWarnings({ "rawtypes" })
-	private Expression<? extends Comparable> getComparablePath(Root<?> root, Part part) {
-
-		return getTypedPath(root, part);
-	}
-
 	private <T> Expression<T> getTypedPath(Root<?> root, Part part) {
 		return toExpressionRecursively(root, part.getProperty());
 	}
