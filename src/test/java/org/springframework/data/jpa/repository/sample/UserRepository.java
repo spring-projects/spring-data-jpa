@@ -591,4 +591,9 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	 * DATAJPA-829
 	 */
 	List<User> findByRolesNotContaining(Role role);
+
+	/**
+	 * @see DATAJPA-858
+	 */
+	List<User> findByRolesNameContaining(String name);
 }
