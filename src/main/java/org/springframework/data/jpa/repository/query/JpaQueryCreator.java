@@ -215,7 +215,7 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<Object>,
 				case CONTAINING:
 				case NOT_CONTAINING:
 
-					if (property.isCollection()) {
+					if (property.getLeafProperty().isCollection()) {
 
 						Expression<Collection<Object>> propertyExpression = traversePath(root, property);
 						Expression<Object> parameterExpression = provider.next(part).getExpression();
