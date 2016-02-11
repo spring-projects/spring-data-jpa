@@ -54,13 +54,31 @@
 		<profile>
 			<id>hibernate-5</id>
 			<properties>
-				<hibernate>5.0.5.Final</hibernate>
+				<hibernate>5.0.7.Final</hibernate>
 			</properties>
 		</profile>
 		<profile>
 			<id>hibernate-5-next</id>
 			<properties>
-				<hibernate>5.0.5-SNAPSHOT</hibernate>
+				<hibernate>5.0.8-SNAPSHOT</hibernate>
+			</properties>
+			<repositories>
+				<repository>
+					<id>jboss</id>
+					<url>https://repository.jboss.org/nexus/content/repositories/public</url>
+				</repository>
+			</repositories>
+		</profile>
+		<profile>
+			<id>hibernate-51</id>
+			<properties>
+				<hibernate>5.1.0.Final</hibernate>
+			</properties>
+		</profile>
+		<profile>
+			<id>hibernate-51-next</id>
+			<properties>
+				<hibernate>5.1.1-SNAPSHOT</hibernate>
 			</properties>
 			<repositories>
 				<repository>
