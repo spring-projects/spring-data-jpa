@@ -1,6 +1,43 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 1.10.0.M1 (2016-02-12)
+-----------------------------------------
+* DATAJPA-859 - Add build profile for Hibernate 5.1.
+* DATAJPA-858 - Contains binding inspects first property for collections, not the leaf property.
+* DATAJPA-854 - Add code of conduct.
+* DATAJPA-852 - Release 1.10 M1 (Hopper).
+* DATAJPA-850 - Reference documentation should mention @EntityListener to set up auditing.
+* DATAJPA-849 - Sample in README broken.
+* DATAJPA-848 - AbstractPersistable.equals(…) always returns false if target entity is a proxy.
+* DATAJPA-847 - Upgrade to EclipseLink 2.6.2.
+* DATAJPA-845 - PersistenceProvider static from* methods are a performance hit.
+* DATAJPA-839 - EntityGraph, specified for repository method, that was called first, applies to all other methods of the same repository.
+* DATAJPA-834 - Use a less common bean name for EntityManagerBeanDefinitionRegistrarPostProcessor to avoid collisions.
+* DATAJPA-833 - Improve log message in ClasspathScanningPersistenceUnitPostProcessor.
+* DATAJPA-831 - Upgrade Hibernate build profile to 5.0.5.
+* DATAJPA-830 - NotContaining doesn't work for String properties on query methods.
+* DATAJPA-829 - Contains expression on a collection property should result in member of predicate.
+* DATAJPA-826 - Add Jacoco agent to test executions explicitly.
+* DATAJPA-821 - Upgrade to OpenJPA 2.4.0.
+* DATAJPA-820 - New entity merged rather than persisted when ID is not generated and version is in a MappedSuperClass.
+* DATAJPA-819 - CrudMethodMetadataPostProcessor does not use bean class loader.
+* DATAJPA-817 - Upgrade to EclipseLink 2.6.1.
+* DATAJPA-815 - order by qualifyReference when property begins with joinAlias.
+* DATAJPA-809 - ParameterBinder should use ParameterAccessor.
+* DATAJPA-808 - Add AttributeConverter implementations for ZoneId.
+* DATAJPA-805 - Typo in @Modifying documentation.
+* DATAJPA-804 - Support projections on repository query methods.
+* DATAJPA-798 - Repository query method fails when sorting with Pageable and query with line breaks.
+* DATAJPA-796 - Typo in JavaDoc of AbstractPersistable.
+* DATAJPA-795 - Upgrade Hibernate 5 build profile to 5.0.1.
+* DATAJPA-793 - Spring Boot has broken custom repository methods in Spring Data JPA.
+* DATAJPA-765 - Upgrade to Querydsl 4.
+* DATAJPA-742 - Java 8 Stream support broken.
+* DATAJPA-585 - Incomplete null handling in QueryDslJpaRepository.
+* DATAJPA-382 - Provide access to auditor in manually defined queries.
+
+
 Changes in version 1.9.2.RELEASE (2015-12-18)
 ---------------------------------------------
 * DATAJPA-839 - Thread-bound lookup of CrudMethodMetadata broken.
