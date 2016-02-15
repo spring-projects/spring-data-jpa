@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
  * {@link Query} from it.
  * 
  * @author Thomas Darimont
+ * @author Oliver Gierke
  */
 final class NativeJpaQuery extends AbstractStringBasedJpaQuery {
 
@@ -61,8 +62,9 @@ final class NativeJpaQuery extends AbstractStringBasedJpaQuery {
 	 * @see org.springframework.data.jpa.repository.query.AbstractStringBasedJpaQuery#createJpaQuery(java.lang.String)
 	 */
 	@Override
-	public Query createJpaQuery(String queryString) {
-		return getQueryMethod().isQueryForEntity() ? getEntityManager().createNativeQuery(queryString,
-				getQueryMethod().getReturnedObjectType()) : getEntityManager().createNativeQuery(queryString);
+	protected Query createJpaQuery(String queryString) {
+		return getQueryMethod().isQueryForEntity()
+				? getEntityManager().createNativeQuery(queryString, getQueryMethod().getReturnedObjectType())
+				: getEntityManager().createNativeQuery(queryString);
 	}
 }

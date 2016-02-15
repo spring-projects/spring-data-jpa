@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2014 the original author or authors.
+ * Copyright 2008-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -91,22 +91,6 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 				evaluationContextProvider, parser);
 	}
 
-	/**
-	 * Creates an appropriate JPA query from an {@link EntityManager} according to the current {@link AbstractJpaQuery}
-	 * type.
-	 * 
-	 * @param queryString
-	 * @return
-	 */
-	public Query createJpaQuery(String queryString) {
-
-		ResultProcessor resultFactory = getQueryMethod().getResultProcessor();
-		ReturnedType returnedType = resultFactory.getReturnedType();
-		EntityManager em = getEntityManager();
-
-		return returnedType.isProjecting() ? em.createQuery(queryString, Tuple.class) : em.createQuery(queryString);
-	}
-
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.query.AbstractJpaQuery#doCreateCountQuery(java.lang.Object[])
@@ -133,5 +117,26 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 	 */
 	public StringQuery getCountQuery() {
 		return countQuery;
+	}
+
+	/**
+	 * Creates an appropriate JPA query from an {@link EntityManager} according to the current {@link AbstractJpaQuery}
+	 * type.
+	 * 
+	 * @param queryString
+	 * @return
+	 */
+	protected Query createJpaQuery(String queryString) {
+
+		EntityManager em = getEntityManager();
+
+		if (this.query.hasConstructorExpression()) {
+			return em.createQuery(queryString);
+		}
+
+		ResultProcessor resultFactory = getQueryMethod().getResultProcessor();
+		ReturnedType returnedType = resultFactory.getReturnedType();
+
+		return returnedType.isProjecting() ? em.createQuery(queryString, Tuple.class) : em.createQuery(queryString);
 	}
 }

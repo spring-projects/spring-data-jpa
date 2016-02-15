@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2015 the original author or authors.
+ * Copyright 2013-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,6 +45,7 @@ class StringQuery {
 	private final String query;
 	private final List<ParameterBinding> bindings;
 	private final String alias;
+	private final boolean hasConstructorExpression;
 
 	/**
 	 * Creates a new {@link StringQuery} from the given JPQL query.
@@ -59,6 +60,7 @@ class StringQuery {
 		this.query = ParameterBindingParser.INSTANCE.parseParameterBindingsOfQueryIntoBindingsAndReturnCleanedQuery(query,
 				this.bindings);
 		this.alias = QueryUtils.detectAlias(query);
+		this.hasConstructorExpression = QueryUtils.hasConstructorExpression(query);
 	}
 
 	/**
@@ -131,6 +133,16 @@ class StringQuery {
 		}
 
 		throw new IllegalArgumentException(String.format("No parameter binding found for position %s!", position));
+	}
+
+	/**
+	 * Returns whether the query is using a constructor expression.
+	 * 
+	 * @return
+	 * @since 1.10
+	 */
+	public boolean hasConstructorExpression() {
+		return hasConstructorExpression;
 	}
 
 	/**
@@ -328,8 +340,8 @@ class StringQuery {
 			}
 
 			/**
-			 * Return the appropriate {@link ParameterBindingType} for the given {@link String}. Returns {@keyword
-			 * #AS_IS} in case no other {@link ParameterBindingType} could be found.
+			 * Return the appropriate {@link ParameterBindingType} for the given {@link String}. Returns {@keyword #AS_IS} in
+			 * case no other {@link ParameterBindingType} could be found.
 			 * 
 			 * @param typeSource
 			 * @return

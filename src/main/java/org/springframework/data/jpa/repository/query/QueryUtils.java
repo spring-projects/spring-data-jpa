@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2015 the original author or authors.
+ * Copyright 2008-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -93,6 +93,8 @@ public abstract class QueryUtils {
 	private static final Pattern NAMED_PARAMETER = Pattern.compile(":" + IDENTIFIER + "|\\#" + IDENTIFIER,
 			CASE_INSENSITIVE);
 
+	private static final Pattern CONSTRUCTOR_EXPRESSION;
+
 	private static final Map<PersistentAttributeType, Class<? extends Annotation>> ASSOCIATION_TYPES;
 
 	private static final int QUERY_JOIN_ALIAS_GROUP_INDEX = 2;
@@ -127,6 +129,19 @@ public abstract class QueryUtils {
 		persistentAttributeTypes.put(ELEMENT_COLLECTION, null);
 
 		ASSOCIATION_TYPES = Collections.unmodifiableMap(persistentAttributeTypes);
+
+		builder = new StringBuilder();
+		builder.append("select");
+		builder.append("\\s+"); // at least one space separating
+		builder.append("new");
+		builder.append("\\s+"); // at least one space separating
+		builder.append(IDENTIFIER);
+		builder.append("\\s*"); // zero to unlimited space separating
+		builder.append("\\(");
+		builder.append(".*");
+		builder.append("\\)");
+
+		CONSTRUCTOR_EXPRESSION = compile(builder.toString(), CASE_INSENSITIVE);
 	}
 
 	/**
@@ -428,6 +443,20 @@ public abstract class QueryUtils {
 		}
 
 		return orders;
+	}
+
+	/**
+	 * Returns whether the given JPQL query contains a constructor expression.
+	 * 
+	 * @param query must not be {@literal null} or empty.
+	 * @return
+	 * @since 1.10
+	 */
+	public static boolean hasConstructorExpression(String query) {
+
+		Assert.hasText(query, "Query must not be null or empty!");
+
+		return CONSTRUCTOR_EXPRESSION.matcher(query).find();
 	}
 
 	/**
