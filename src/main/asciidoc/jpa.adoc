@@ -273,7 +273,7 @@ Native queriesThe `@Query` annotation allows to execute native queries by settin
 ----
 public interface UserRepository extends JpaRepository<User, Long> {
 
-  @Query(value = "SELECT * FROM USERS WHERE EMAIL_ADDRESS = ?0", nativeQuery = true)
+  @Query(value = "SELECT * FROM USERS WHERE EMAIL_ADDRESS = ?1", nativeQuery = true)
   User findByEmailAddress(String emailAddress);
 }
 ----
