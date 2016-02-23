@@ -1,6 +1,18 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 1.9.4.RELEASE (2016-02-23)
+---------------------------------------------
+* DATAJPA-862 - Reference documentation contains wrong property index "?0" in @Query example.
+* DATAJPA-860 - Release 1.9.4 (Gosling SR4).
+* DATAJPA-859 - Add build profile for Hibernate 5.1.
+* DATAJPA-858 - Contains binding inspects first property for collections, not the leaf property.
+* DATAJPA-850 - Reference documentation should mention @EntityListener to set up auditing.
+* DATAJPA-848 - AbstractPersistable.equals(…) always returns false if target entity is a proxy.
+* DATAJPA-847 - Upgrade to EclipseLink 2.6.2.
+* DATAJPA-845 - PersistenceProvider static from* methods are a performance hit.
+
+
 Changes in version 1.10.0.M1 (2016-02-12)
 -----------------------------------------
 * DATAJPA-859 - Add build profile for Hibernate 5.1.
