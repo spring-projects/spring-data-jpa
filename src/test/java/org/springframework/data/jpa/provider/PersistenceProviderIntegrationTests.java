@@ -30,6 +30,8 @@ import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.data.jpa.domain.sample.Category;
 import org.springframework.data.jpa.domain.sample.Product;
+import org.springframework.data.jpa.provider.PersistenceProvider;
+import org.springframework.data.jpa.provider.ProxyIdAccessor;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.data.jpa.repository.sample.CategoryRepository;
 import org.springframework.data.jpa.repository.sample.ProductRepository;

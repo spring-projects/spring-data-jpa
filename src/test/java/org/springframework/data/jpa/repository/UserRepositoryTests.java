@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2014 the original author or authors.
+ * Copyright 2008-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,12 @@
 package org.springframework.data.jpa.repository;
 
 import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.*;
 import static org.springframework.data.domain.Example.*;
 import static org.springframework.data.domain.Sort.Direction.*;
 import static org.springframework.data.jpa.domain.Specifications.*;
+import static org.springframework.data.jpa.domain.Specifications.not;
 import static org.springframework.data.jpa.domain.sample.UserSpecifications.*;
 
 import java.util.ArrayList;
@@ -51,12 +53,13 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Example;
-import org.springframework.data.domain.Example.StringMatcher;
+import org.springframework.data.domain.ExampleSpec;
+import org.springframework.data.domain.ExampleSpec.GenericPropertyMatcher;
+import org.springframework.data.domain.ExampleSpec.StringMatcher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.PropertySpecifier;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
@@ -84,6 +87,7 @@ import com.google.common.base.Optional;
  * @author Oliver Gierke
  * @author Kevin Raymond
  * @author Thomas Darimont
+ * @author Mark Paluch
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("classpath:application-context.xml")
@@ -593,7 +597,7 @@ public class UserRepositoryTests {
 		Pageable pageable = new PageRequest(0, 1);
 
 		flushTestUsers();
-		assertThat(repository.findAll(null, pageable), is(repository.findAll(pageable)));
+		assertThat(repository.findAll((Specification<User>) null, pageable), is(repository.findAll(pageable)));
 	}
 
 	@Test
@@ -1279,6 +1283,68 @@ public class UserRepositoryTests {
 	}
 
 	/**
+	 * @see DATAJPA-218
+	 */
+	@Test
+	public void findAllByUntypedExampleShouldReturnSubTypesOfRepositoryEntity() {
+
+		flushTestUsers();
+
+		SpecialUser user = new SpecialUser();
+		user.setFirstname("Thomas");
+		user.setEmailAddress("thomas@example.org");
+
+		repository.saveAndFlush(user);
+
+		List<User> result = repository
+				.findAll(Example.of(new User(), ExampleSpec.untyped().withIgnorePaths("age", "createdAt", "dateOfBirth")));
+
+		assertThat(result, hasSize(5));
+	}
+
+	/**
+	 * @see DATAJPA-218
+	 */
+	@Test
+	public void findAllByTypedUserExampleShouldReturnSubTypesOfRepositoryEntity() {
+
+		flushTestUsers();
+
+		SpecialUser user = new SpecialUser();
+		user.setFirstname("Thomas");
+		user.setEmailAddress("thomas@example.org");
+
+		repository.saveAndFlush(user);
+
+		Example<User> example = Example.of(new User(),
+				ExampleSpec.typed(User.class).withIgnorePaths("age", "createdAt", "dateOfBirth"));
+		List<User> result = repository.findAll(example);
+
+		assertThat(result, hasSize(5));
+	}
+
+	/**
+	 * @see DATAJPA-218
+	 */
+	@Test
+	public void findAllByTypedSpecialUserExampleShouldReturnSubTypesOfRepositoryEntity() {
+
+		flushTestUsers();
+
+		SpecialUser user = new SpecialUser();
+		user.setFirstname("Thomas");
+		user.setEmailAddress("thomas@example.org");
+
+		repository.saveAndFlush(user);
+
+		Example<User> example = Example.of(new User(),
+				ExampleSpec.typed(SpecialUser.class).withIgnorePaths("age", "createdAt", "dateOfBirth"));
+		List<User> result = repository.findAll(example);
+
+		assertThat(result, hasSize(1));
+	}
+
+	/**
 	 * @see DATAJPA-491
 	 */
 	@Test
@@ -1924,7 +1990,7 @@ public class UserRepositoryTests {
 		prototype.setAge(28);
 		prototype.setCreatedAt(null);
 
-		List<User> users = repository.findAllByExample(exampleOf(prototype));
+		List<User> users = repository.findAll(of(prototype));
 
 		assertThat(users, hasSize(1));
 		assertThat(users.get(0), is(firstUser));
@@ -1933,9 +1999,26 @@ public class UserRepositoryTests {
 	/**
 	 * @see DATAJPA-218
 	 */
+	@Test
+	public void findAllByExampleWithEmptyProbe() {
+
+		flushTestUsers();
+
+		User prototype = new User();
+		prototype.setCreatedAt(null);
+
+		List<User> users = repository
+				.findAll(of(prototype, ExampleSpec.untyped().withIgnorePaths("age", "createdAt", "active")));
+
+		assertThat(users, hasSize(4));
+	}
+
+	/**
+	 * @see DATAJPA-218
+	 */
 	@Test(expected = InvalidDataAccessApiUsageException.class)
 	public void findAllByNullExample() {
-		repository.findAllByExample(null);
+		repository.findAll((Example) null);
 	}
 
 	/**
@@ -1949,7 +2032,8 @@ public class UserRepositoryTests {
 		User prototype = new User();
 		prototype.setAge(28);
 
-		List<User> users = repository.findAllByExample(newExampleOf(prototype).ignore("createdAt").get());
+		Example<User> example = Example.of(prototype, ExampleSpec.typed(User.class).withIgnorePaths("createdAt"));
+		List<User> users = repository.findAll(example);
 
 		assertThat(users, hasSize(1));
 		assertThat(users.get(0), is(firstUser));
@@ -1976,7 +2060,8 @@ public class UserRepositoryTests {
 		prototype.setCreatedAt(null);
 		prototype.setManager(manager);
 
-		List<User> users = repository.findAllByExample(newExampleOf(prototype).ignore("age").get());
+		Example<User> example = Example.of(prototype, ExampleSpec.typed(User.class).withIgnorePaths("age"));
+		List<User> users = repository.findAll(example);
 
 		assertThat(users, hasSize(1));
 		assertThat(users.get(0), is(firstUser));
@@ -1997,7 +2082,8 @@ public class UserRepositoryTests {
 		prototype.setCreatedAt(null);
 		prototype.setAddress(new Address("germany", null, null, null));
 
-		List<User> users = repository.findAllByExample(newExampleOf(prototype).ignore("age").get());
+		Example<User> example = Example.of(prototype, ExampleSpec.typed(User.class).withIgnorePaths("age"));
+		List<User> users = repository.findAll(example);
 
 		assertThat(users, hasSize(1));
 		assertThat(users.get(0), is(firstUser));
@@ -2014,9 +2100,9 @@ public class UserRepositoryTests {
 		User prototype = new User();
 		prototype.setFirstname("Ol");
 
-		Example<User> example = newExampleOf(prototype).matchStringsStartingWith().ignore("age", "createdAt").get();
-
-		List<User> users = repository.findAllByExample(example);
+		Example<User> example = Example.of(prototype,
+				ExampleSpec.typed(User.class).withStringMatcher(StringMatcher.STARTING).withIgnorePaths("age", "createdAt"));
+		List<User> users = repository.findAll(example);
 
 		assertThat(users, hasSize(1));
 		assertThat(users.get(0), is(firstUser));
@@ -2033,9 +2119,9 @@ public class UserRepositoryTests {
 		User prototype = new User();
 		prototype.setFirstname("ver");
 
-		Example<User> example = newExampleOf(prototype).matchStringsEndingWith().ignore("age", "createdAt").get();
-
-		List<User> users = repository.findAllByExample(example);
+		Example<User> example = Example.of(prototype,
+				ExampleSpec.typed(User.class).withStringMatcher(StringMatcher.ENDING).withIgnorePaths("age", "createdAt"));
+		List<User> users = repository.findAll(example);
 
 		assertThat(users, hasSize(1));
 		assertThat(users.get(0), is(firstUser));
@@ -2052,10 +2138,8 @@ public class UserRepositoryTests {
 		User prototype = new User();
 		prototype.setFirstname("^Oliver$");
 
-		Example<User> example = newExampleOf(prototype).withStringMatcher(StringMatcher.REGEX).ignore("age", "createdAt")
-				.get();
-
-		repository.findAllByExample(example);
+		Example<User> example = Example.of(prototype, ExampleSpec.typed(User.class).withStringMatcher(StringMatcher.REGEX));
+		repository.findAll(example);
 	}
 
 	/**
@@ -2069,9 +2153,10 @@ public class UserRepositoryTests {
 		User prototype = new User();
 		prototype.setFirstname("oLiVer");
 
-		Example<User> example = newExampleOf(prototype).matchStringsWithIgnoreCase().ignore("age", "createdAt").get();
+		Example<User> example = Example.of(prototype,
+				ExampleSpec.typed(User.class).withIgnoreCase().withIgnorePaths("age", "createdAt"));
 
-		List<User> users = repository.findAllByExample(example);
+		List<User> users = repository.findAll(example);
 
 		assertThat(users, hasSize(1));
 		assertThat(users.get(0), is(firstUser));
@@ -2088,10 +2173,10 @@ public class UserRepositoryTests {
 		User prototype = new User();
 		prototype.setFirstname("oLiV");
 
-		Example<User> example = newExampleOf(prototype).matchStringsStartingWith().matchStringsWithIgnoreCase()
-				.ignore("age", "createdAt").get();
+		Example<User> example = Example.of(prototype, ExampleSpec.typed(User.class)
+				.withStringMatcher(StringMatcher.STARTING).withIgnoreCase().withIgnorePaths("age", "createdAt"));
 
-		List<User> users = repository.findAllByExample(example);
+		List<User> users = repository.findAll(example);
 
 		assertThat(users, hasSize(1));
 		assertThat(users.get(0), is(firstUser));
@@ -2122,10 +2207,10 @@ public class UserRepositoryTests {
 		User prototype = new User();
 		prototype.setFirstname(firstUser.getFirstname());
 
-		Example<User> example = newExampleOf(prototype).includeNullValues()
-				.ignore("id", "binaryData", "lastname", "emailAddress", "age", "createdAt").get();
+		Example<User> example = Example.of(prototype, ExampleSpec.typed(User.class).withIncludeNullValues()
+				.withIgnorePaths("id", "binaryData", "lastname", "emailAddress", "age", "createdAt"));
 
-		List<User> users = repository.findAllByExample(example);
+		List<User> users = repository.findAll(example);
 
 		assertThat(users, hasSize(1));
 		assertThat(users.get(0), is(fifthUser));
@@ -2142,11 +2227,10 @@ public class UserRepositoryTests {
 		User prototype = new User();
 		prototype.setFirstname("oLi");
 
-		Example<User> example = newExampleOf(prototype).matchStringsWithIgnoreCase().ignore("age", "createdAt")
-				.withPropertySpecifier(PropertySpecifier.newPropertySpecifier("firstname").matchStringStartingWith().get())
-				.get();
+		Example<User> example = Example.of(prototype, ExampleSpec.typed(User.class).withIgnoreCase()
+				.withIgnorePaths("age", "createdAt").withMatcher("firstname", new GenericPropertyMatcher().startsWith()));
 
-		List<User> users = repository.findAllByExample(example);
+		List<User> users = repository.findAll(example);
 
 		assertThat(users, hasSize(1));
 		assertThat(users.get(0), is(firstUser));
@@ -2168,10 +2252,10 @@ public class UserRepositoryTests {
 		User prototype = new User();
 		prototype.setFirstname("oLi");
 
-		Example<User> example = newExampleOf(prototype).matchStringsStartingWith().matchStringsWithIgnoreCase()
-				.ignore("age", "createdAt").get();
+		Example<User> example = Example.of(prototype, ExampleSpec.typed(User.class).withIgnoreCase()
+				.withIgnorePaths("age", "createdAt").withStringMatcher(StringMatcher.STARTING).withIgnoreCase());
 
-		List<User> users = repository.findAllByExample(example, new Sort(DESC, "age"));
+		List<User> users = repository.findAll(example, new Sort(DESC, "age"));
 
 		assertThat(users, hasSize(2));
 		assertThat(users.get(0), is(user1));
@@ -2196,10 +2280,10 @@ public class UserRepositoryTests {
 		User prototype = new User();
 		prototype.setFirstname("oLi");
 
-		Example<User> example = newExampleOf(prototype).matchStringsStartingWith().matchStringsWithIgnoreCase()
-				.ignore("age", "createdAt").get();
+		Example<User> example = Example.of(prototype, ExampleSpec.typed(User.class).withIgnoreCase()
+				.withIgnorePaths("age", "createdAt").withStringMatcher(StringMatcher.STARTING).withIgnoreCase());
 
-		Page<User> users = repository.findAllByExample(example, new PageRequest(0, 10, new Sort(DESC, "age")));
+		Page<User> users = repository.findAll(example, new PageRequest(0, 10, new Sort(DESC, "age")));
 
 		assertThat(users.getSize(), is(10));
 		assertThat(users.hasNext(), is(true));
@@ -2219,10 +2303,10 @@ public class UserRepositoryTests {
 
 		user1.setManager(user1);
 
-		Example<User> example = newExampleOf(user1).matchStringsStartingWith().matchStringsWithIgnoreCase()
-				.ignore("age", "createdAt").get();
+		Example<User> example = Example.of(user1, ExampleSpec.typed(User.class).withIgnoreCase()
+				.withIgnorePaths("age", "createdAt").withStringMatcher(StringMatcher.STARTING).withIgnoreCase());
 
-		repository.findAllByExample(example, new PageRequest(0, 10, new Sort(DESC, "age")));
+		repository.findAll(example, new PageRequest(0, 10, new Sort(DESC, "age")));
 	}
 
 	/**
@@ -2242,10 +2326,61 @@ public class UserRepositoryTests {
 		user1.setManager(user2);
 		user2.setManager(user1);
 
-		Example<User> example = newExampleOf(user1).matchStringsStartingWith().matchStringsWithIgnoreCase()
-				.ignore("age", "createdAt").get();
+		Example<User> example = Example.of(user1, ExampleSpec.typed(User.class).withIgnoreCase()
+				.withIgnorePaths("age", "createdAt").withStringMatcher(StringMatcher.STARTING).withIgnoreCase());
 
-		repository.findAllByExample(example, new PageRequest(0, 10, new Sort(DESC, "age")));
+		repository.findAll(example, new PageRequest(0, 10, new Sort(DESC, "age")));
+	}
+
+	/**
+	 * @see DATAJPA-218
+	 */
+	@Test
+	public void findOneByExampleWithExcludedAttributes() {
+
+		flushTestUsers();
+
+		User prototype = new User();
+		prototype.setAge(28);
+
+		Example<User> example = Example.of(prototype, ExampleSpec.typed(User.class).withIgnorePaths("createdAt"));
+		User users = repository.findOne(example);
+
+		assertThat(users, is(firstUser));
+	}
+
+	/**
+	 * @see DATAJPA-218
+	 */
+	@Test
+	public void countByExampleWithExcludedAttributes() {
+
+		flushTestUsers();
+
+		User prototype = new User();
+		prototype.setAge(28);
+
+		Example<User> example = Example.of(prototype, ExampleSpec.typed(User.class).withIgnorePaths("createdAt"));
+		long count = repository.count(example);
+
+		assertThat(count, is(1L));
+	}
+
+	/**
+	 * @see DATAJPA-218
+	 */
+	@Test
+	public void existsByExampleWithExcludedAttributes() {
+
+		flushTestUsers();
+
+		User prototype = new User();
+		prototype.setAge(28);
+
+		Example<User> example = Example.of(prototype, ExampleSpec.typed(User.class).withIgnorePaths("createdAt"));
+		boolean exists = repository.exists(example);
+
+		assertThat(exists, is(true));
 	}
 
 	private Page<User> executeSpecWithSort(Sort sort) {
@@ -2258,5 +2393,4 @@ public class UserRepositoryTests {
 		assertThat(result.getTotalElements(), is(2L));
 		return result;
 	}
-
 }

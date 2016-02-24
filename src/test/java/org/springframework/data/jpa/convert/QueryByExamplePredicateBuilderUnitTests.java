@@ -47,6 +47,7 @@ import org.springframework.util.ObjectUtils;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 @RunWith(MockitoJUnitRunner.class)
 public class QueryByExamplePredicateBuilderUnitTests {
@@ -55,7 +56,7 @@ public class QueryByExamplePredicateBuilderUnitTests {
 	@Mock Root root;
 	@Mock EntityType<Person> personEntityType;
 	@Mock Expression expressionMock;
-	@Mock Predicate falsePredicate;
+	@Mock Predicate truePredicate;
 	@Mock Predicate dummyPredicate;
 	@Mock Predicate listPredicate;
 	@Mock Path dummyPath;
@@ -100,7 +101,7 @@ public class QueryByExamplePredicateBuilderUnitTests {
 		when(cb.like(any(Expression.class), any(String.class))).thenReturn(dummyPredicate);
 
 		when(cb.literal(any(Boolean.class))).thenReturn(expressionMock);
-		when(cb.isTrue(eq(expressionMock))).thenReturn(falsePredicate);
+		when(cb.isTrue(eq(expressionMock))).thenReturn(truePredicate);
 		when(cb.and(Matchers.<Predicate> anyVararg())).thenReturn(listPredicate);
 	}
 
@@ -109,7 +110,7 @@ public class QueryByExamplePredicateBuilderUnitTests {
 	 */
 	@Test(expected = IllegalArgumentException.class)
 	public void getPredicateShouldThrowExceptionOnNullRoot() {
-		QueryByExamplePredicateBuilder.getPredicate(null, cb, exampleOf(new Person()));
+		QueryByExamplePredicateBuilder.getPredicate(null, cb, of(new Person()));
 	}
 
 	/**
@@ -117,7 +118,7 @@ public class QueryByExamplePredicateBuilderUnitTests {
 	 */
 	@Test(expected = IllegalArgumentException.class)
 	public void getPredicateShouldThrowExceptionOnNullCriteriaBuilder() {
-		QueryByExamplePredicateBuilder.getPredicate(root, null, exampleOf(new Person()));
+		QueryByExamplePredicateBuilder.getPredicate(root, null, of(new Person()));
 	}
 
 	/**
@@ -132,8 +133,8 @@ public class QueryByExamplePredicateBuilderUnitTests {
 	 * @see DATAJPA-218
 	 */
 	@Test
-	public void emptyCriteriaListShouldResultFalsePredicate() {
-		assertThat(QueryByExamplePredicateBuilder.getPredicate(root, cb, exampleOf(new Person())), equalTo(falsePredicate));
+	public void emptyCriteriaListShouldResultTruePredicate() {
+		assertThat(QueryByExamplePredicateBuilder.getPredicate(root, cb, of(new Person())), equalTo(truePredicate));
 	}
 
 	/**
@@ -145,7 +146,7 @@ public class QueryByExamplePredicateBuilderUnitTests {
 		Person p = new Person();
 		p.firstname = "foo";
 
-		assertThat(QueryByExamplePredicateBuilder.getPredicate(root, cb, exampleOf(p)), equalTo(dummyPredicate));
+		assertThat(QueryByExamplePredicateBuilder.getPredicate(root, cb, of(p)), equalTo(dummyPredicate));
 		verify(cb, times(1)).equal(any(Expression.class), eq("foo"));
 	}
 
@@ -159,7 +160,7 @@ public class QueryByExamplePredicateBuilderUnitTests {
 		p.firstname = "foo";
 		p.age = 2L;
 
-		assertThat(QueryByExamplePredicateBuilder.getPredicate(root, cb, exampleOf(p)), equalTo(listPredicate));
+		assertThat(QueryByExamplePredicateBuilder.getPredicate(root, cb, of(p)), equalTo(listPredicate));
 
 		verify(cb, times(1)).equal(any(Expression.class), eq("foo"));
 		verify(cb, times(1)).equal(any(Expression.class), eq(2L));
