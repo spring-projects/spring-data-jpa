@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.metamodel.ManagedType;
 import javax.persistence.metamodel.Metamodel;
 
-import org.hamcrest.Matchers;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -42,6 +41,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigUtils;
 import org.springframework.data.repository.config.RepositoryConfigurationExtension;
 import org.springframework.data.repository.config.RepositoryConfigurationSource;
+import org.springframework.data.repository.core.support.RepositoryFactoryBeanSupport;
 import org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor;
 
 /**
@@ -52,11 +52,11 @@ import org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcesso
 @RunWith(MockitoJUnitRunner.class)
 public class JpaRepositoryConfigExtensionUnitTests {
 
-	private static final String RIABPP_CLASS_NAME = "org.springframework.data.repository.core.support.RepositoryInterfaceAwareBeanPostProcessor";
+	private static final String RIABPP_CLASS_NAME = RepositoryFactoryBeanSupport.class.getName().concat("_Predictor");
 
 	@Mock RepositoryConfigurationSource configSource;
 
-	@Rule public ExpectedException exception = ExpectedException.none();
+	public @Rule ExpectedException exception = ExpectedException.none();
 
 	@Test
 	public void registersDefaultBeanPostProcessorsByDefault() {
@@ -68,8 +68,7 @@ public class JpaRepositoryConfigExtensionUnitTests {
 
 		Iterable<String> names = Arrays.asList(factory.getBeanDefinitionNames());
 
-		assertThat(names, Matchers.<String> hasItem(AnnotationConfigUtils.PERSISTENCE_ANNOTATION_PROCESSOR_BEAN_NAME));
-		assertThat(names, Matchers.<String> hasItem(RIABPP_CLASS_NAME));
+		assertThat(names, hasItems(AnnotationConfigUtils.PERSISTENCE_ANNOTATION_PROCESSOR_BEAN_NAME, RIABPP_CLASS_NAME));
 	}
 
 	@Test

@@ -37,12 +37,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ComponentScan.Filter;
 import org.springframework.context.annotation.FilterType;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.jpa.domain.sample.Category;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.JpaContext;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
+import org.springframework.mock.jndi.SimpleNamingContextBuilder;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.stereotype.Component;
 
@@ -116,6 +118,23 @@ public class DefaultJpaContextIntegrationTests {
 	public void bootstrapsDefaultJpaContextInSpringContainer() {
 
 		ConfigurableApplicationContext context = new AnnotationConfigApplicationContext(Config.class);
+		ApplicationComponent component = context.getBean(ApplicationComponent.class);
+
+		assertThat(component.context, is(notNullValue()));
+
+		context.close();
+	}
+
+	/**
+	 * @see DATAJPA-813
+	 */
+	@Test
+	public void bootstrapsDefaultJpaContextInSpringContainerWithEntityManagerFromJndi() throws Exception {
+
+		SimpleNamingContextBuilder builder = SimpleNamingContextBuilder.emptyActivatedContextBuilder();
+		builder.bind("some/EMF", createEntityManagerFactory("spring-data-jpa"));
+
+		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext("config/jpa-context-with-jndi.xml");
 		ApplicationComponent component = context.getBean(ApplicationComponent.class);
 
 		assertThat(component.context, is(notNullValue()));
