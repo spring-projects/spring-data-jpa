@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2015 the original author or authors.
+ * Copyright 2008-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,17 +60,18 @@ import org.springframework.util.Assert;
 /**
  * Default implementation of the {@link org.springframework.data.repository.CrudRepository} interface. This will offer
  * you a more sophisticated interface than the plain {@link EntityManager} .
- * 
+ *
  * @author Oliver Gierke
  * @author Eberhard Wolff
  * @author Thomas Darimont
+ * @author Mark Paluch
  * @param <T> the type of the entity to handle
  * @param <ID> the type of the entity's identifier
  */
 @Repository
 @Transactional(readOnly = true)
-public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepository<T, ID>,
-		JpaSpecificationExecutor<T> {
+public class SimpleJpaRepository<T, ID extends Serializable>
+		implements JpaRepository<T, ID>, JpaSpecificationExecutor<T> {
 
 	private static final String ID_MUST_NOT_BE_NULL = "The given id must not be null!";
 
@@ -82,7 +83,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 
 	/**
 	 * Creates a new {@link SimpleJpaRepository} to manage objects of the given {@link JpaEntityInformation}.
-	 * 
+	 *
 	 * @param entityInformation must not be {@literal null}.
 	 * @param entityManager must not be {@literal null}.
 	 */
@@ -98,7 +99,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 
 	/**
 	 * Creates a new {@link SimpleJpaRepository} to manage objects of the given domain type.
-	 * 
+	 *
 	 * @param domainClass must not be {@literal null}.
 	 * @param em must not be {@literal null}.
 	 */
@@ -109,7 +110,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	/**
 	 * Configures a custom {@link CrudMethodMetadata} to be used to detect {@link LockModeType}s and query hints to be
 	 * applied to queries.
-	 * 
+	 *
 	 * @param crudMethodMetadata
 	 */
 	public void setRepositoryMethodMetadata(CrudMethodMetadata crudMethodMetadata) {
@@ -138,6 +139,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.CrudRepository#delete(java.io.Serializable)
 	 */
+	@Override
 	@Transactional
 	public void delete(ID id) {
 
@@ -146,8 +148,8 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 		T entity = findOne(id);
 
 		if (entity == null) {
-			throw new EmptyResultDataAccessException(String.format("No %s entity with id %s exists!",
-					entityInformation.getJavaType(), id), 1);
+			throw new EmptyResultDataAccessException(
+					String.format("No %s entity with id %s exists!", entityInformation.getJavaType(), id), 1);
 		}
 
 		delete(entity);
@@ -157,6 +159,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.CrudRepository#delete(java.lang.Object)
 	 */
+	@Override
 	@Transactional
 	public void delete(T entity) {
 
@@ -168,6 +171,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.CrudRepository#delete(java.lang.Iterable)
 	 */
+	@Override
 	@Transactional
 	public void delete(Iterable<? extends T> entities) {
 
@@ -182,6 +186,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.JpaRepository#deleteInBatch(java.lang.Iterable)
 	 */
+	@Override
 	@Transactional
 	public void deleteInBatch(Iterable<T> entities) {
 
@@ -199,6 +204,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.Repository#deleteAll()
 	 */
+	@Override
 	@Transactional
 	public void deleteAll() {
 
@@ -207,10 +213,11 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 		}
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.JpaRepository#deleteAllInBatch()
 	 */
+	@Override
 	@Transactional
 	public void deleteAllInBatch() {
 		em.createQuery(getDeleteAllQueryString()).executeUpdate();
@@ -220,6 +227,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.CrudRepository#findOne(java.io.Serializable)
 	 */
+	@Override
 	public T findOne(ID id) {
 
 		Assert.notNull(id, ID_MUST_NOT_BE_NULL);
@@ -240,7 +248,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	/**
 	 * Returns a {@link Map} with the query hints based on the current {@link CrudMethodMetadata} and potential
 	 * {@link EntityGraph} information.
-	 * 
+	 *
 	 * @return
 	 */
 	protected Map<String, Object> getQueryHints() {
@@ -263,7 +271,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 		return new JpaEntityGraph(metadata.getEntityGraph(), fallbackName);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.JpaRepository#getOne(java.io.Serializable)
 	 */
@@ -278,6 +286,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.CrudRepository#exists(java.io.Serializable)
 	 */
+	@Override
 	public boolean exists(ID id) {
 
 		Assert.notNull(id, ID_MUST_NOT_BE_NULL);
@@ -321,6 +330,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.JpaRepository#findAll()
 	 */
+	@Override
 	public List<T> findAll() {
 		return getQuery(null, (Sort) null).getResultList();
 	}
@@ -329,6 +339,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.CrudRepository#findAll(ID[])
 	 */
+	@Override
 	public List<T> findAll(Iterable<ID> ids) {
 
 		if (ids == null || !ids.iterator().hasNext()) {
@@ -356,6 +367,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.JpaRepository#findAll(org.springframework.data.domain.Sort)
 	 */
+	@Override
 	public List<T> findAll(Sort sort) {
 		return getQuery(null, sort).getResultList();
 	}
@@ -364,19 +376,21 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.PagingAndSortingRepository#findAll(org.springframework.data.domain.Pageable)
 	 */
+	@Override
 	public Page<T> findAll(Pageable pageable) {
 
 		if (null == pageable) {
 			return new PageImpl<T>(findAll());
 		}
 
-		return findAll(null, pageable);
+		return findAll((Specification<T>) null, pageable);
 	}
 
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.JpaSpecificationExecutor#findOne(org.springframework.data.jpa.domain.Specification)
 	 */
+	@Override
 	public T findOne(Specification<T> spec) {
 
 		try {
@@ -390,6 +404,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.JpaSpecificationExecutor#findAll(org.springframework.data.jpa.domain.Specification)
 	 */
+	@Override
 	public List<T> findAll(Specification<T> spec) {
 		return getQuery(spec, (Sort) null).getResultList();
 	}
@@ -398,6 +413,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.JpaSpecificationExecutor#findAll(org.springframework.data.jpa.domain.Specification, org.springframework.data.domain.Pageable)
 	 */
+	@Override
 	public Page<T> findAll(Specification<T> spec, Pageable pageable) {
 
 		TypedQuery<T> query = getQuery(spec, pageable);
@@ -408,41 +424,68 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.JpaSpecificationExecutor#findAll(org.springframework.data.jpa.domain.Specification, org.springframework.data.domain.Sort)
 	 */
+	@Override
 	public List<T> findAll(Specification<T> spec, Sort sort) {
 
 		return getQuery(spec, sort).getResultList();
 	}
 
 	/* (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.JpaRepository#findWithExample(org.springframework.data.jpa.domain.Example)
+	 * @see org.springframework.data.repository.query.QueryByExampleExecutor#findOne(org.springframework.data.domain.Example)
 	 */
 	@Override
-	public List<T> findAllByExample(Example<T> example) {
-		return findAll(new ExampleSpecification<T>(example));
+	public <S extends T> T findOne(Example<S> example) {
+		return findOne(new ExampleSpecification<T>((Example) example));
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.data.repository.query.QueryByExampleExecutor#count(org.springframework.data.domain.Example)
+	 */
+	@Override
+	public <S extends T> long count(Example<S> example) {
+		return count(new ExampleSpecification<T>((Example) example));
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.data.repository.query.QueryByExampleExecutor#exists(org.springframework.data.domain.Example)
+	 */
+	@Override
+	public <S extends T> boolean exists(Example<S> example) {
+		return !getQuery(new ExampleSpecification<T>((Example) example), (Sort) null).getResultList().isEmpty();
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.JpaRepository#findAllByExample(org.springframework.data.domain.Example, org.springframework.data.domain.Sort)
+	 * @see org.springframework.data.repository.query.QueryByExampleExecutor#findAll(org.springframework.data.domain.Example)
 	 */
 	@Override
-	public List<T> findAllByExample(Example<T> example, Sort sort) {
-		return findAll(new ExampleSpecification<T>(example), sort);
+	public <S extends T> List<T> findAll(Example<S> example) {
+		return findAll(new ExampleSpecification<T>((Example) example));
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.JpaRepository#findAllByExample(org.springframework.data.domain.Example, org.springframework.data.domain.Pageable)
+	 * @see org.springframework.data.repository.query.QueryByExampleExecutor#findAll(org.springframework.data.domain.Example, org.springframework.data.domain.Sort)
 	 */
 	@Override
-	public Page<T> findAllByExample(Example<T> example, Pageable pageable) {
-		return findAll(new ExampleSpecification<T>(example), pageable);
+	public <S extends T> List<T> findAll(Example<S> example, Sort sort) {
+		return findAll(new ExampleSpecification<T>((Example) example), sort);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.query.QueryByExampleExecutor#findAll(org.springframework.data.domain.Example, org.springframework.data.domain.Pageable)
+	 */
+	@Override
+	public <S extends T> Page<T> findAll(Example<S> example, Pageable pageable) {
+		return findAll(new ExampleSpecification<T>((Example) example), pageable);
 	}
 
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.CrudRepository#count()
 	 */
+	@Override
 	public long count() {
 		return em.createQuery(getCountQueryString(), Long.class).getSingleResult();
 	}
@@ -451,6 +494,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.JpaSpecificationExecutor#count(org.springframework.data.jpa.domain.Specification)
 	 */
+	@Override
 	public long count(Specification<T> spec) {
 
 		return executeCountQuery(getCountQuery(spec));
@@ -460,6 +504,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.CrudRepository#save(java.lang.Object)
 	 */
+	@Override
 	@Transactional
 	public <S extends T> S save(S entity) {
 
@@ -475,6 +520,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.JpaRepository#saveAndFlush(java.lang.Object)
 	 */
+	@Override
 	@Transactional
 	public <S extends T> S saveAndFlush(S entity) {
 
@@ -488,6 +534,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.JpaRepository#save(java.lang.Iterable)
 	 */
+	@Override
 	@Transactional
 	public <S extends T> List<S> save(Iterable<S> entities) {
 
@@ -508,6 +555,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.JpaRepository#flush()
 	 */
+	@Override
 	@Transactional
 	public void flush() {
 
@@ -517,7 +565,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	/**
 	 * Reads the given {@link TypedQuery} into a {@link Page} applying the given {@link Pageable} and
 	 * {@link Specification}.
-	 * 
+	 *
 	 * @param query must not be {@literal null}.
 	 * @param spec can be {@literal null}.
 	 * @param pageable can be {@literal null}.
@@ -536,7 +584,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 
 	/**
 	 * Creates a new {@link TypedQuery} from the given {@link Specification}.
-	 * 
+	 *
 	 * @param spec can be {@literal null}.
 	 * @param pageable can be {@literal null}.
 	 * @return
@@ -549,7 +597,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 
 	/**
 	 * Creates a {@link TypedQuery} for the given {@link Specification} and {@link Sort}.
-	 * 
+	 *
 	 * @param spec can be {@literal null}.
 	 * @param sort can be {@literal null}.
 	 * @return
@@ -571,7 +619,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 
 	/**
 	 * Creates a new count query for the given {@link Specification}.
-	 * 
+	 *
 	 * @param spec can be {@literal null}.
 	 * @return
 	 */
@@ -593,7 +641,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 
 	/**
 	 * Applies the given {@link Specification} to the given {@link CriteriaQuery}.
-	 * 
+	 *
 	 * @param spec can be {@literal null}.
 	 * @param query must not be {@literal null}.
 	 * @return
@@ -640,7 +688,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 
 	/**
 	 * Executes a count query and transparently sums up all values returned.
-	 * 
+	 *
 	 * @param query must not be {@literal null}.
 	 * @return
 	 */
@@ -662,7 +710,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	 * Specification that gives access to the {@link Parameter} instance used to bind the ids for
 	 * {@link SimpleJpaRepository#findAll(Iterable)}. Workaround for OpenJPA not binding collections to in-clauses
 	 * correctly when using by-name binding.
-	 * 
+	 *
 	 * @see https://issues.apache.org/jira/browse/OPENJPA-2018?focusedCommentId=13924055
 	 * @author Oliver Gierke
 	 */
@@ -681,6 +729,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 		 * (non-Javadoc)
 		 * @see org.springframework.data.jpa.domain.Specification#toPredicate(javax.persistence.criteria.Root, javax.persistence.criteria.CriteriaQuery, javax.persistence.criteria.CriteriaBuilder)
 		 */
+		@Override
 		public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
 
 			Path<?> path = root.get(entityInformation.getIdAttribute());
@@ -692,7 +741,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 	/**
 	 * {@link Specification} that gives access to the {@link Predicate} instance representing the values contained in the
 	 * {@link Example}.
-	 * 
+	 *
 	 * @author Christoph Strobl
 	 * @since 1.10
 	 * @param <T>
@@ -703,7 +752,7 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 
 		/**
 		 * Creates new {@link ExampleSpecification}.
-		 * 
+		 *
 		 * @param example
 		 */
 		public ExampleSpecification(Example<T> example) {

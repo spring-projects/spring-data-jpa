@@ -34,7 +34,8 @@ import javax.persistence.metamodel.SingularAttribute;
 
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Example;
-import org.springframework.data.domain.Example.NullHandler;
+import org.springframework.data.domain.ExampleSpec;
+import org.springframework.data.domain.ExampleSpecAccessor;
 import org.springframework.data.util.DirectFieldAccessFallbackBeanWrapper;
 import org.springframework.orm.jpa.JpaSystemException;
 import org.springframework.util.Assert;
@@ -48,8 +49,9 @@ import org.springframework.util.StringUtils;
  * The builder includes any {@link SingularAttribute} of the {@link Example#getProbe()} applying {@link String} and
  * {@literal null} matching strategies configured on the {@link Example}. Ignored paths are no matter of their actual
  * value not considered. <br />
- * 
+ *
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 1.10
  */
 public class QueryByExamplePredicateBuilder {
@@ -63,7 +65,7 @@ public class QueryByExamplePredicateBuilder {
 
 	/**
 	 * Extract the {@link Predicate} representing the {@link Example}.
-	 * 
+	 *
 	 * @param root must not be {@literal null}.
 	 * @param cb must not be {@literal null}.
 	 * @param example must not be {@literal null}.
@@ -73,10 +75,11 @@ public class QueryByExamplePredicateBuilder {
 
 		Assert.notNull(root, "Root must not be null!");
 		Assert.notNull(cb, "CriteriaBuilder must not be null!");
-		Assert.notNull(example, "Root must not be null!");
+		Assert.notNull(example, "Example must not be null!");
 
-		List<Predicate> predicates = getPredicates("", cb, root, root.getModel(), example.getSampleObject(), example,
-				new PathNode("root", null, example.getSampleObject()));
+		List<Predicate> predicates = getPredicates("", cb, root, root.getModel(), example.getProbe(),
+				example.getProbeType(), new ExampleSpecAccessor(example.getExampleSpec()),
+				new PathNode("root", null, example.getProbe()));
 
 		if (predicates.isEmpty()) {
 			return cb.isTrue(cb.literal(false));
@@ -90,8 +93,8 @@ public class QueryByExamplePredicateBuilder {
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	static List<Predicate> getPredicates(String path, CriteriaBuilder cb, Path<?> from, ManagedType<?> type,
-			Object value, Example<?> example, PathNode currentNode) {
+	static List<Predicate> getPredicates(String path, CriteriaBuilder cb, Path<?> from, ManagedType<?> type, Object value,
+			Class<?> probeType, ExampleSpecAccessor exampleAccessor, PathNode currentNode) {
 
 		List<Predicate> predicates = new ArrayList<Predicate>();
 		DirectFieldAccessFallbackBeanWrapper beanWrapper = new DirectFieldAccessFallbackBeanWrapper(value);
@@ -100,16 +103,16 @@ public class QueryByExamplePredicateBuilder {
 
 			String currentPath = !StringUtils.hasText(path) ? attribute.getName() : path + "." + attribute.getName();
 
-			if (example.isIgnoredPath(currentPath)) {
+			if (exampleAccessor.isIgnoredPath(currentPath)) {
 				continue;
 			}
 
-			Object attributeValue = example.getValueTransformerForPath(currentPath).convert(
-					beanWrapper.getPropertyValue(attribute.getName()));
+			Object attributeValue = exampleAccessor.getValueTransformerForPath(currentPath)
+					.convert(beanWrapper.getPropertyValue(attribute.getName()));
 
 			if (attributeValue == null) {
 
-				if (example.getNullHandler().equals(NullHandler.INCLUDE)) {
+				if (exampleAccessor.getNullHandler().equals(ExampleSpec.NullHandler.INCLUDE)) {
 					predicates.add(cb.isNull(from.get(attribute)));
 				}
 				continue;
@@ -118,26 +121,26 @@ public class QueryByExamplePredicateBuilder {
 			if (attribute.getPersistentAttributeType().equals(PersistentAttributeType.EMBEDDED)) {
 
 				predicates.addAll(getPredicates(currentPath, cb, from.get(attribute.getName()),
-						(ManagedType<?>) attribute.getType(), attributeValue, example, currentNode));
+						(ManagedType<?>) attribute.getType(), attributeValue, probeType, exampleAccessor, currentNode));
 				continue;
 			}
 
 			if (isAssociation(attribute)) {
 
 				if (!(from instanceof From)) {
-					throw new JpaSystemException(new IllegalArgumentException(String.format(
-							"Unexpected path type for %s. Found % where From.class was expected.", currentPath, from)));
+					throw new JpaSystemException(new IllegalArgumentException(
+							String.format("Unexpected path type for %s. Found % where From.class was expected.", currentPath, from)));
 				}
 
 				PathNode node = currentNode.add(attribute.getName(), attributeValue);
 				if (node.spansCycle()) {
-					throw new InvalidDataAccessApiUsageException(String.format(
-							"Path '%s' from root %s must not span a cyclic property reference!\r\n%s", currentPath,
-							ClassUtils.getShortName(example.getSampleType()), node));
+					throw new InvalidDataAccessApiUsageException(
+							String.format("Path '%s' from root %s must not span a cyclic property reference!\r\n%s", currentPath,
+									ClassUtils.getShortName(probeType), node));
 				}
 
 				predicates.addAll(getPredicates(currentPath, cb, ((From<?, ?>) from).join(attribute.getName()),
-						(ManagedType<?>) attribute.getType(), attributeValue, example, node));
+						(ManagedType<?>) attribute.getType(), attributeValue, probeType, exampleAccessor, node));
 
 				continue;
 			}
@@ -145,12 +148,12 @@ public class QueryByExamplePredicateBuilder {
 			if (attribute.getJavaType().equals(String.class)) {
 
 				Expression<String> expression = from.get(attribute);
-				if (example.isIgnoreCaseForPath(currentPath)) {
+				if (exampleAccessor.isIgnoreCaseForPath(currentPath)) {
 					expression = cb.lower(expression);
 					attributeValue = attributeValue.toString().toLowerCase();
 				}
 
-				switch (example.getStringMatcherForPath(currentPath)) {
+				switch (exampleAccessor.getStringMatcherForPath(currentPath)) {
 
 					case DEFAULT:
 					case EXACT:
@@ -166,8 +169,8 @@ public class QueryByExamplePredicateBuilder {
 						predicates.add(cb.like(expression, "%" + attributeValue));
 						break;
 					default:
-						throw new IllegalArgumentException("Unsupported StringMatcher "
-								+ example.getStringMatcherForPath(currentPath));
+						throw new IllegalArgumentException(
+								"Unsupported StringMatcher " + exampleAccessor.getStringMatcherForPath(currentPath));
 				}
 			} else {
 				predicates.add(cb.equal(from.get(attribute), attributeValue));
@@ -184,7 +187,7 @@ public class QueryByExamplePredicateBuilder {
 	/**
 	 * {@link PathNode} is used to dynamically grow a directed graph structure that allows to detect cycles within its
 	 * direct predecessor nodes by comparing parent node values using {@link System#identityHashCode(Object)}.
-	 * 
+	 *
 	 * @author Christoph Strobl
 	 */
 	private static class PathNode {
