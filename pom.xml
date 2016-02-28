@@ -25,7 +25,7 @@
 		<hibernate>3.6.10.Final</hibernate>
 		<hsqldb1>1.8.0.10</hsqldb1>
 		<jpa>2.0.0</jpa>
-		<openjpa>2.4.0</openjpa>
+		<openjpa>2.4.1</openjpa>
 		<springdata.commons>1.12.0.BUILD-SNAPSHOT</springdata.commons>
 
 		<sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
@@ -42,14 +42,38 @@
 		<profile>
 			<id>hibernate-42</id>
 			<properties>
-				<hibernate>4.2.20.Final</hibernate>
+				<hibernate>4.2.21.Final</hibernate>
 			</properties>
+		</profile>
+		<profile>
+			<id>hibernate-42-next</id>
+			<properties>
+				<hibernate>4.2.22-SNAPSHOT</hibernate>
+			</properties>
+			<repositories>
+				<repository>
+					<id>jboss</id>
+					<url>https://repository.jboss.org/nexus/content/repositories/public</url>
+				</repository>
+			</repositories>
 		</profile>
 		<profile>
 			<id>hibernate-43</id>
 			<properties>
 				<hibernate>4.3.11.Final</hibernate>
 			</properties>
+		</profile>
+		<profile>
+			<id>hibernate-43-next</id>
+			<properties>
+				<hibernate>4.3.12-SNAPSHOT</hibernate>
+			</properties>
+			<repositories>
+				<repository>
+					<id>jboss</id>
+					<url>https://repository.jboss.org/nexus/content/repositories/public</url>
+				</repository>
+			</repositories>
 		</profile>
 		<profile>
 			<id>hibernate-5</id>
@@ -90,7 +114,7 @@
 		<profile>
 			<id>eclipselink-next</id>
 			<properties>
-				<eclipselink>2.6.2-SNAPSHOT</eclipselink>
+				<eclipselink>2.6.3-SNAPSHOT</eclipselink>
 			</properties>
 			<repositories>
 				<repository>

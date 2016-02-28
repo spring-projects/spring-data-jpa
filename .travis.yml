@@ -10,8 +10,15 @@ env:
     - PROFILE=spring42-next
     - PROFILE=hibernate-41
     - PROFILE=hibernate-42
+    - PROFILE=hibernate-42-next
     - PROFILE=hibernate-43
+    - PROFILE=hibernate-43-next
     - PROFILE=hibernate-5
+    - PROFILE=hibernate-5-next
+    - PROFILE=hibernate-51
+    - PROFILE=hibernate-51-next
+    - PROFILE=eclipselink-next
+    - PROFILE=eclipselink-27-next
     - PROFILE=querydsl-next
 
 sudo: false
@@ -22,7 +29,7 @@ cache:
 
 install: true
 
-script: "mvn clean dependency:list test -P${PROFILE} -Dsort"
+script: "mvn clean dependency:list test -P${PROFILE} -Dsort -Dbundlor.enabled=false"
 notifications:
   slack:
     secure: VYoJ2D6BM3etTNHJArJ47rVvj49PRZ+eIg12itOzlQSCnsPPob9X2OJVZ8Umatfx6TyP+rOrJAz+pqA1geumEzx+dIWTtBf6og703XKS9feLpM7sa1DupdstlGu506Wwevmb7nUq/Ct0ziCZykD3Cqu9tOhnai5wWlULBYDQ4WE=
