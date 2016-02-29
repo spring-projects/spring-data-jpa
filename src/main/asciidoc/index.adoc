@@ -24,6 +24,7 @@ include::{spring-data-commons-docs}/repositories.adoc[]
 
 :leveloffset: +1
 include::jpa.adoc[]
+include::{spring-data-commons-docs}/query-by-example.adoc[]
 include::query-by-example.adoc[]
 :leveloffset: -1
 
