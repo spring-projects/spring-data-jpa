@@ -104,12 +104,12 @@ public interface JpaRepository<T, ID extends Serializable>
 	 * @see org.springframework.data.repository.query.QueryByExampleExecutor#findAll(org.springframework.data.domain.Example)
 	 */
 	@Override
-	<S extends T> List<T> findAll(Example<S> example);
+	<S extends T> List<S> findAll(Example<S> example);
 
 	/* (non-Javadoc)
 	 * @see org.springframework.data.repository.query.QueryByExampleExecutor#findAll(org.springframework.data.domain.Example, org.springframework.data.domain.Sort)
 	 */
 	@Override
-	<S extends T> List<T> findAll(Example<S> example, Sort sort);
+	<S extends T> List<S> findAll(Example<S> example, Sort sort);
 
 }

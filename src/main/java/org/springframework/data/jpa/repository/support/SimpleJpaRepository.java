@@ -433,17 +433,23 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	/* (non-Javadoc)
 	 * @see org.springframework.data.repository.query.QueryByExampleExecutor#findOne(org.springframework.data.domain.Example)
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
-	public <S extends T> T findOne(Example<S> example) {
-		return findOne(new ExampleSpecification<T>((Example) example));
+	public <S extends T> S findOne(Example<S> example) {
+		try {
+			return getQuery(new ExampleSpecification<S>(example), example.getResultType(), (Sort) null).getSingleResult();
+		} catch (NoResultException e) {
+			return null;
+		}
 	}
 
 	/* (non-Javadoc)
 	 * @see org.springframework.data.repository.query.QueryByExampleExecutor#count(org.springframework.data.domain.Example)
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
 	public <S extends T> long count(Example<S> example) {
-		return count(new ExampleSpecification<T>((Example) example));
+		return executeCountQuery(getCountQuery(new ExampleSpecification<S>(example), example.getResultType()));
 	}
 
 	/* (non-Javadoc)
@@ -451,7 +457,8 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	 */
 	@Override
 	public <S extends T> boolean exists(Example<S> example) {
-		return !getQuery(new ExampleSpecification<T>((Example) example), (Sort) null).getResultList().isEmpty();
+		return !getQuery(new ExampleSpecification<S>(example), example.getResultType(), (Sort) null).getResultList()
+				.isEmpty();
 	}
 
 	/*
@@ -459,8 +466,8 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	 * @see org.springframework.data.repository.query.QueryByExampleExecutor#findAll(org.springframework.data.domain.Example)
 	 */
 	@Override
-	public <S extends T> List<T> findAll(Example<S> example) {
-		return findAll(new ExampleSpecification<T>((Example) example));
+	public <S extends T> List<S> findAll(Example<S> example) {
+		return getQuery(new ExampleSpecification<S>(example), example.getResultType(), (Sort) null).getResultList();
 	}
 
 	/*
@@ -468,8 +475,8 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	 * @see org.springframework.data.repository.query.QueryByExampleExecutor#findAll(org.springframework.data.domain.Example, org.springframework.data.domain.Sort)
 	 */
 	@Override
-	public <S extends T> List<T> findAll(Example<S> example, Sort sort) {
-		return findAll(new ExampleSpecification<T>((Example) example), sort);
+	public <S extends T> List<S> findAll(Example<S> example, Sort sort) {
+		return getQuery(new ExampleSpecification<S>(example), example.getResultType(), sort).getResultList();
 	}
 
 	/*
@@ -477,8 +484,12 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	 * @see org.springframework.data.repository.query.QueryByExampleExecutor#findAll(org.springframework.data.domain.Example, org.springframework.data.domain.Pageable)
 	 */
 	@Override
-	public <S extends T> Page<T> findAll(Example<S> example, Pageable pageable) {
-		return findAll(new ExampleSpecification<T>((Example) example), pageable);
+	public <S extends T> Page<S> findAll(Example<S> example, Pageable pageable) {
+
+		ExampleSpecification<S> spec = new ExampleSpecification<S>(example);
+		TypedQuery<S> query = getQuery(new ExampleSpecification<S>(example), example.getResultType(), pageable);
+		return pageable == null ? new PageImpl<S>(query.getResultList())
+				: readPage(query, example.getResultType(), pageable, spec);
 	}
 
 	/*
@@ -496,7 +507,6 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	 */
 	@Override
 	public long count(Specification<T> spec) {
-
 		return executeCountQuery(getCountQuery(spec));
 	}
 
@@ -572,14 +582,29 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	 * @return
 	 */
 	protected Page<T> readPage(TypedQuery<T> query, Pageable pageable, Specification<T> spec) {
+		return readPage(query, getDomainClass(), pageable, spec);
+	}
+
+	/**
+	 * Reads the given {@link TypedQuery} into a {@link Page} applying the given {@link Pageable} and
+	 * {@link Specification}.
+	 *
+	 * @param query must not be {@literal null}.
+	 * @param domainClass must not be {@literal null}.
+	 * @param spec can be {@literal null}.
+	 * @param pageable can be {@literal null}.
+	 * @return
+	 */
+	protected <S extends T> Page<S> readPage(TypedQuery<S> query, Class<S> domainClass, Pageable pageable,
+			Specification<S> spec) {
 
 		query.setFirstResult(pageable.getOffset());
 		query.setMaxResults(pageable.getPageSize());
 
-		Long total = executeCountQuery(getCountQuery(spec));
-		List<T> content = total > pageable.getOffset() ? query.getResultList() : Collections.<T> emptyList();
+		Long total = executeCountQuery(getCountQuery(spec, domainClass));
+		List<S> content = total > pageable.getOffset() ? query.getResultList() : Collections.<S> emptyList();
 
-		return new PageImpl<T>(content, pageable, total);
+		return new PageImpl<S>(content, pageable, total);
 	}
 
 	/**
@@ -592,7 +617,21 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	protected TypedQuery<T> getQuery(Specification<T> spec, Pageable pageable) {
 
 		Sort sort = pageable == null ? null : pageable.getSort();
-		return getQuery(spec, sort);
+		return getQuery(spec, getDomainClass(), sort);
+	}
+
+	/**
+	 * Creates a new {@link TypedQuery} from the given {@link Specification}.
+	 *
+	 * @param spec can be {@literal null}.
+	 * @param domainClass must not be {@literal null}.
+	 * @param pageable can be {@literal null}.
+	 * @return
+	 */
+	protected <S extends T> TypedQuery<S> getQuery(Specification<S> spec, Class<S> domainClass, Pageable pageable) {
+
+		Sort sort = pageable == null ? null : pageable.getSort();
+		return getQuery(spec, domainClass, sort);
 	}
 
 	/**
@@ -603,11 +642,23 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	 * @return
 	 */
 	protected TypedQuery<T> getQuery(Specification<T> spec, Sort sort) {
+		return getQuery(spec, getDomainClass(), sort);
+	}
+
+	/**
+	 * Creates a {@link TypedQuery} for the given {@link Specification} and {@link Sort}.
+	 *
+	 * @param spec can be {@literal null}.
+	 * @param domainClass must not be {@literal null}.
+	 * @param sort can be {@literal null}.
+	 * @return
+	 */
+	protected <S extends T> TypedQuery<S> getQuery(Specification<S> spec, Class<S> domainClass, Sort sort) {
 
 		CriteriaBuilder builder = em.getCriteriaBuilder();
-		CriteriaQuery<T> query = builder.createQuery(getDomainClass());
+		CriteriaQuery<S> query = builder.createQuery(domainClass);
 
-		Root<T> root = applySpecificationToCriteria(spec, query);
+		Root<S> root = applySpecificationToCriteria(spec, domainClass, query);
 		query.select(root);
 
 		if (sort != null) {
@@ -624,11 +675,22 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	 * @return
 	 */
 	protected TypedQuery<Long> getCountQuery(Specification<T> spec) {
+		return getCountQuery(spec, getDomainClass());
+	}
+
+	/**
+	 * Creates a new count query for the given {@link Specification}.
+	 *
+	 * @param spec can be {@literal null}.
+	 * @param domainClass must not be {@literal null}.
+	 * @return
+	 */
+	protected <S extends T> TypedQuery<Long> getCountQuery(Specification<S> spec, Class<S> domainClass) {
 
 		CriteriaBuilder builder = em.getCriteriaBuilder();
 		CriteriaQuery<Long> query = builder.createQuery(Long.class);
 
-		Root<T> root = applySpecificationToCriteria(spec, query);
+		Root<S> root = applySpecificationToCriteria(spec, domainClass, query);
 
 		if (query.isDistinct()) {
 			query.select(builder.countDistinct(root));
@@ -647,9 +709,24 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	 * @return
 	 */
 	private <S> Root<T> applySpecificationToCriteria(Specification<T> spec, CriteriaQuery<S> query) {
+		return applySpecificationToCriteria(spec, getDomainClass(), query);
+
+	}
+
+	/**
+	 * Applies the given {@link Specification} to the given {@link CriteriaQuery}.
+	 *
+	 * @param spec can be {@literal null}.
+	 * @param domainClass must not be {@literal null}.
+	 * @param query must not be {@literal null}.
+	 * @return
+	 */
+	private <S, U extends T> Root<U> applySpecificationToCriteria(Specification<U> spec, Class<U> domainClass,
+			CriteriaQuery<S> query) {
 
 		Assert.notNull(query);
-		Root<T> root = query.from(getDomainClass());
+		Assert.notNull(domainClass);
+		Root<U> root = query.from(domainClass);
 
 		if (spec == null) {
 			return root;
@@ -665,14 +742,14 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 		return root;
 	}
 
-	private TypedQuery<T> applyRepositoryMethodMetadata(TypedQuery<T> query) {
+	private <S> TypedQuery<S> applyRepositoryMethodMetadata(TypedQuery<S> query) {
 
 		if (metadata == null) {
 			return query;
 		}
 
 		LockModeType type = metadata.getLockModeType();
-		TypedQuery<T> toReturn = type == null ? query : query.setLockMode(type);
+		TypedQuery<S> toReturn = type == null ? query : query.setLockMode(type);
 
 		applyQueryHints(toReturn);
 

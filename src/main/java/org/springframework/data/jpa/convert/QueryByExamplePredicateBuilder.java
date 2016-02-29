@@ -35,7 +35,7 @@ import javax.persistence.metamodel.SingularAttribute;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleSpec;
-import org.springframework.data.domain.ExampleSpecAccessor;
+import org.springframework.data.repository.core.support.ExampleSpecAccessor;
 import org.springframework.data.util.DirectFieldAccessFallbackBeanWrapper;
 import org.springframework.orm.jpa.JpaSystemException;
 import org.springframework.util.Assert;
