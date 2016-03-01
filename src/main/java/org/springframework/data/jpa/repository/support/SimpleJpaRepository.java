@@ -44,6 +44,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.TypedExampleSpec;
 import org.springframework.data.jpa.convert.QueryByExamplePredicateBuilder;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.provider.PersistenceProvider;
@@ -437,7 +438,7 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	@Override
 	public <S extends T> S findOne(Example<S> example) {
 		try {
-			return getQuery(new ExampleSpecification<S>(example), example.getResultType(), (Sort) null).getSingleResult();
+			return getQuery(new ExampleSpecification<S>(example), getResultType(example), (Sort) null).getSingleResult();
 		} catch (NoResultException e) {
 			return null;
 		}
@@ -449,7 +450,7 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	@SuppressWarnings("unchecked")
 	@Override
 	public <S extends T> long count(Example<S> example) {
-		return executeCountQuery(getCountQuery(new ExampleSpecification<S>(example), example.getResultType()));
+		return executeCountQuery(getCountQuery(new ExampleSpecification<S>(example), getResultType(example)));
 	}
 
 	/* (non-Javadoc)
@@ -457,7 +458,7 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	 */
 	@Override
 	public <S extends T> boolean exists(Example<S> example) {
-		return !getQuery(new ExampleSpecification<S>(example), example.getResultType(), (Sort) null).getResultList()
+		return !getQuery(new ExampleSpecification<S>(example), getResultType(example), (Sort) null).getResultList()
 				.isEmpty();
 	}
 
@@ -467,7 +468,7 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	 */
 	@Override
 	public <S extends T> List<S> findAll(Example<S> example) {
-		return getQuery(new ExampleSpecification<S>(example), example.getResultType(), (Sort) null).getResultList();
+		return getQuery(new ExampleSpecification<S>(example), getResultType(example), (Sort) null).getResultList();
 	}
 
 	/*
@@ -476,7 +477,7 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	 */
 	@Override
 	public <S extends T> List<S> findAll(Example<S> example, Sort sort) {
-		return getQuery(new ExampleSpecification<S>(example), example.getResultType(), sort).getResultList();
+		return getQuery(new ExampleSpecification<S>(example), getResultType(example), sort).getResultList();
 	}
 
 	/*
@@ -487,9 +488,9 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	public <S extends T> Page<S> findAll(Example<S> example, Pageable pageable) {
 
 		ExampleSpecification<S> spec = new ExampleSpecification<S>(example);
-		TypedQuery<S> query = getQuery(new ExampleSpecification<S>(example), example.getResultType(), pageable);
+		TypedQuery<S> query = getQuery(new ExampleSpecification<S>(example), getResultType(example), pageable);
 		return pageable == null ? new PageImpl<S>(query.getResultList())
-				: readPage(query, example.getResultType(), pageable, spec);
+				: readPage(query, getResultType(example), pageable, spec);
 	}
 
 	/*
@@ -761,6 +762,15 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 		for (Entry<String, Object> hint : getQueryHints().entrySet()) {
 			query.setHint(hint.getKey(), hint.getValue());
 		}
+	}
+
+
+	private <S extends T> Class<S> getResultType(Example<S> example) {
+
+		if(example.getExampleSpec() instanceof TypedExampleSpec<?>){
+			return example.getResultType();
+		}
+		return (Class<S>) getDomainClass();
 	}
 
 	/**
