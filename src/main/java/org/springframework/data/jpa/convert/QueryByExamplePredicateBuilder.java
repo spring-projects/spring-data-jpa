@@ -82,7 +82,7 @@ public class QueryByExamplePredicateBuilder {
 				new PathNode("root", null, example.getProbe()));
 
 		if (predicates.isEmpty()) {
-			return cb.isTrue(cb.literal(false));
+			return cb.isTrue(cb.literal(true));
 		}
 
 		if (predicates.size() == 1) {

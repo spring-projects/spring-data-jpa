@@ -41,28 +41,24 @@ public interface JpaRepository<T, ID extends Serializable>
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.CrudRepository#findAll()
 	 */
-	@Override
 	List<T> findAll();
 
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.PagingAndSortingRepository#findAll(org.springframework.data.domain.Sort)
 	 */
-	@Override
 	List<T> findAll(Sort sort);
 
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.CrudRepository#findAll(java.lang.Iterable)
 	 */
-	@Override
 	List<T> findAll(Iterable<ID> ids);
 
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.CrudRepository#save(java.lang.Iterable)
 	 */
-	@Override
 	<S extends T> List<S> save(Iterable<S> entities);
 
 	/**
@@ -72,7 +68,7 @@ public interface JpaRepository<T, ID extends Serializable>
 
 	/**
 	 * Saves an entity and flushes changes instantly.
-	 *
+	 * 
 	 * @param entity
 	 * @return the saved entity
 	 */
@@ -81,7 +77,7 @@ public interface JpaRepository<T, ID extends Serializable>
 	/**
 	 * Deletes the given entities in a batch which means it will create a single {@link Query}. Assume that we will clear
 	 * the {@link javax.persistence.EntityManager} after the call.
-	 *
+	 * 
 	 * @param entities
 	 */
 	void deleteInBatch(Iterable<T> entities);
@@ -93,7 +89,7 @@ public interface JpaRepository<T, ID extends Serializable>
 
 	/**
 	 * Returns a reference to the entity with the given identifier.
-	 *
+	 * 
 	 * @param id must not be {@literal null}.
 	 * @return a reference to the entity with the given identifier.
 	 * @see EntityManager#getReference(Class, Object)

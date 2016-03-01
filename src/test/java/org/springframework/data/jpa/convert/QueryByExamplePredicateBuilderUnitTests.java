@@ -56,7 +56,7 @@ public class QueryByExamplePredicateBuilderUnitTests {
 	@Mock Root root;
 	@Mock EntityType<Person> personEntityType;
 	@Mock Expression expressionMock;
-	@Mock Predicate falsePredicate;
+	@Mock Predicate truePredicate;
 	@Mock Predicate dummyPredicate;
 	@Mock Predicate listPredicate;
 	@Mock Path dummyPath;
@@ -101,7 +101,7 @@ public class QueryByExamplePredicateBuilderUnitTests {
 		when(cb.like(any(Expression.class), any(String.class))).thenReturn(dummyPredicate);
 
 		when(cb.literal(any(Boolean.class))).thenReturn(expressionMock);
-		when(cb.isTrue(eq(expressionMock))).thenReturn(falsePredicate);
+		when(cb.isTrue(eq(expressionMock))).thenReturn(truePredicate);
 		when(cb.and(Matchers.<Predicate> anyVararg())).thenReturn(listPredicate);
 	}
 
@@ -133,8 +133,8 @@ public class QueryByExamplePredicateBuilderUnitTests {
 	 * @see DATAJPA-218
 	 */
 	@Test
-	public void emptyCriteriaListShouldResultFalsePredicate() {
-		assertThat(QueryByExamplePredicateBuilder.getPredicate(root, cb, of(new Person())), equalTo(falsePredicate));
+	public void emptyCriteriaListShouldResultTruePredicate() {
+		assertThat(QueryByExamplePredicateBuilder.getPredicate(root, cb, of(new Person())), equalTo(truePredicate));
 	}
 
 	/**

@@ -61,7 +61,7 @@ import org.springframework.util.Assert;
 /**
  * Default implementation of the {@link org.springframework.data.repository.CrudRepository} interface. This will offer
  * you a more sophisticated interface than the plain {@link EntityManager} .
- *
+ * 
  * @author Oliver Gierke
  * @author Eberhard Wolff
  * @author Thomas Darimont
@@ -84,7 +84,7 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 
 	/**
 	 * Creates a new {@link SimpleJpaRepository} to manage objects of the given {@link JpaEntityInformation}.
-	 *
+	 * 
 	 * @param entityInformation must not be {@literal null}.
 	 * @param entityManager must not be {@literal null}.
 	 */
@@ -100,7 +100,7 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 
 	/**
 	 * Creates a new {@link SimpleJpaRepository} to manage objects of the given domain type.
-	 *
+	 * 
 	 * @param domainClass must not be {@literal null}.
 	 * @param em must not be {@literal null}.
 	 */
@@ -111,7 +111,7 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	/**
 	 * Configures a custom {@link CrudMethodMetadata} to be used to detect {@link LockModeType}s and query hints to be
 	 * applied to queries.
-	 *
+	 * 
 	 * @param crudMethodMetadata
 	 */
 	public void setRepositoryMethodMetadata(CrudMethodMetadata crudMethodMetadata) {
@@ -140,7 +140,6 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.CrudRepository#delete(java.io.Serializable)
 	 */
-	@Override
 	@Transactional
 	public void delete(ID id) {
 
@@ -149,8 +148,8 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 		T entity = findOne(id);
 
 		if (entity == null) {
-			throw new EmptyResultDataAccessException(
-					String.format("No %s entity with id %s exists!", entityInformation.getJavaType(), id), 1);
+			throw new EmptyResultDataAccessException(String.format("No %s entity with id %s exists!",
+					entityInformation.getJavaType(), id), 1);
 		}
 
 		delete(entity);
@@ -160,7 +159,6 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.CrudRepository#delete(java.lang.Object)
 	 */
-	@Override
 	@Transactional
 	public void delete(T entity) {
 
@@ -172,7 +170,6 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.CrudRepository#delete(java.lang.Iterable)
 	 */
-	@Override
 	@Transactional
 	public void delete(Iterable<? extends T> entities) {
 
@@ -187,7 +184,6 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.JpaRepository#deleteInBatch(java.lang.Iterable)
 	 */
-	@Override
 	@Transactional
 	public void deleteInBatch(Iterable<T> entities) {
 
@@ -205,7 +201,6 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.Repository#deleteAll()
 	 */
-	@Override
 	@Transactional
 	public void deleteAll() {
 
@@ -214,11 +209,10 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 		}
 	}
 
-	/*
+	/* 
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.JpaRepository#deleteAllInBatch()
 	 */
-	@Override
 	@Transactional
 	public void deleteAllInBatch() {
 		em.createQuery(getDeleteAllQueryString()).executeUpdate();
@@ -228,7 +222,6 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.CrudRepository#findOne(java.io.Serializable)
 	 */
-	@Override
 	public T findOne(ID id) {
 
 		Assert.notNull(id, ID_MUST_NOT_BE_NULL);
@@ -249,7 +242,7 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	/**
 	 * Returns a {@link Map} with the query hints based on the current {@link CrudMethodMetadata} and potential
 	 * {@link EntityGraph} information.
-	 *
+	 * 
 	 * @return
 	 */
 	protected Map<String, Object> getQueryHints() {
@@ -272,7 +265,7 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 		return new JpaEntityGraph(metadata.getEntityGraph(), fallbackName);
 	}
 
-	/*
+	/* 
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.JpaRepository#getOne(java.io.Serializable)
 	 */
@@ -287,7 +280,6 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.CrudRepository#exists(java.io.Serializable)
 	 */
-	@Override
 	public boolean exists(ID id) {
 
 		Assert.notNull(id, ID_MUST_NOT_BE_NULL);
@@ -331,7 +323,6 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.JpaRepository#findAll()
 	 */
-	@Override
 	public List<T> findAll() {
 		return getQuery(null, (Sort) null).getResultList();
 	}
@@ -340,7 +331,6 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.CrudRepository#findAll(ID[])
 	 */
-	@Override
 	public List<T> findAll(Iterable<ID> ids) {
 
 		if (ids == null || !ids.iterator().hasNext()) {
@@ -368,7 +358,6 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.JpaRepository#findAll(org.springframework.data.domain.Sort)
 	 */
-	@Override
 	public List<T> findAll(Sort sort) {
 		return getQuery(null, sort).getResultList();
 	}
@@ -377,7 +366,6 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.PagingAndSortingRepository#findAll(org.springframework.data.domain.Pageable)
 	 */
-	@Override
 	public Page<T> findAll(Pageable pageable) {
 
 		if (null == pageable) {
@@ -391,7 +379,6 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.JpaSpecificationExecutor#findOne(org.springframework.data.jpa.domain.Specification)
 	 */
-	@Override
 	public T findOne(Specification<T> spec) {
 
 		try {
@@ -405,7 +392,6 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.JpaSpecificationExecutor#findAll(org.springframework.data.jpa.domain.Specification)
 	 */
-	@Override
 	public List<T> findAll(Specification<T> spec) {
 		return getQuery(spec, (Sort) null).getResultList();
 	}
@@ -414,7 +400,6 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.JpaSpecificationExecutor#findAll(org.springframework.data.jpa.domain.Specification, org.springframework.data.domain.Pageable)
 	 */
-	@Override
 	public Page<T> findAll(Specification<T> spec, Pageable pageable) {
 
 		TypedQuery<T> query = getQuery(spec, pageable);
@@ -425,7 +410,6 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.JpaSpecificationExecutor#findAll(org.springframework.data.jpa.domain.Specification, org.springframework.data.domain.Sort)
 	 */
-	@Override
 	public List<T> findAll(Specification<T> spec, Sort sort) {
 
 		return getQuery(spec, sort).getResultList();
@@ -497,7 +481,6 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.CrudRepository#count()
 	 */
-	@Override
 	public long count() {
 		return em.createQuery(getCountQueryString(), Long.class).getSingleResult();
 	}
@@ -506,8 +489,8 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.JpaSpecificationExecutor#count(org.springframework.data.jpa.domain.Specification)
 	 */
-	@Override
 	public long count(Specification<T> spec) {
+
 		return executeCountQuery(getCountQuery(spec));
 	}
 
@@ -515,7 +498,6 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.CrudRepository#save(java.lang.Object)
 	 */
-	@Override
 	@Transactional
 	public <S extends T> S save(S entity) {
 
@@ -531,7 +513,6 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.JpaRepository#saveAndFlush(java.lang.Object)
 	 */
-	@Override
 	@Transactional
 	public <S extends T> S saveAndFlush(S entity) {
 
@@ -545,7 +526,6 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.JpaRepository#save(java.lang.Iterable)
 	 */
-	@Override
 	@Transactional
 	public <S extends T> List<S> save(Iterable<S> entities) {
 
@@ -566,7 +546,6 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.JpaRepository#flush()
 	 */
-	@Override
 	@Transactional
 	public void flush() {
 
@@ -637,7 +616,7 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 
 	/**
 	 * Creates a {@link TypedQuery} for the given {@link Specification} and {@link Sort}.
-	 *
+	 * 
 	 * @param spec can be {@literal null}.
 	 * @param sort can be {@literal null}.
 	 * @return
@@ -671,7 +650,7 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 
 	/**
 	 * Creates a new count query for the given {@link Specification}.
-	 *
+	 * 
 	 * @param spec can be {@literal null}.
 	 * @return
 	 */
@@ -704,7 +683,7 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 
 	/**
 	 * Applies the given {@link Specification} to the given {@link CriteriaQuery}.
-	 *
+	 * 
 	 * @param spec can be {@literal null}.
 	 * @param query must not be {@literal null}.
 	 * @return
@@ -775,7 +754,7 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 
 	/**
 	 * Executes a count query and transparently sums up all values returned.
-	 *
+	 * 
 	 * @param query must not be {@literal null}.
 	 * @return
 	 */
@@ -797,7 +776,7 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	 * Specification that gives access to the {@link Parameter} instance used to bind the ids for
 	 * {@link SimpleJpaRepository#findAll(Iterable)}. Workaround for OpenJPA not binding collections to in-clauses
 	 * correctly when using by-name binding.
-	 *
+	 * 
 	 * @see https://issues.apache.org/jira/browse/OPENJPA-2018?focusedCommentId=13924055
 	 * @author Oliver Gierke
 	 */
@@ -816,7 +795,6 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 		 * (non-Javadoc)
 		 * @see org.springframework.data.jpa.domain.Specification#toPredicate(javax.persistence.criteria.Root, javax.persistence.criteria.CriteriaQuery, javax.persistence.criteria.CriteriaBuilder)
 		 */
-		@Override
 		public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
 
 			Path<?> path = root.get(entityInformation.getIdAttribute());

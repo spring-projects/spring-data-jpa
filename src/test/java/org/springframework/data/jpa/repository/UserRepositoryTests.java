@@ -83,7 +83,7 @@ import com.google.common.base.Optional;
  * well as Hibernate configuration to execute tests.
  * <p>
  * To test further persistence providers subclass this class and provide a custom provider configuration.
- *
+ * 
  * @author Oliver Gierke
  * @author Kevin Raymond
  * @author Thomas Darimont
@@ -319,7 +319,7 @@ public class UserRepositoryTests {
 
 	/**
 	 * Tests, that searching by the email address of the reference user returns exactly that instance.
-	 *
+	 * 
 	 * @throws Exception
 	 */
 	@Test
@@ -347,7 +347,7 @@ public class UserRepositoryTests {
 
 	/**
 	 * Tests that all users get deleted by triggering {@link UserRepository#deleteAll()}.
-	 *
+	 * 
 	 * @throws Exception
 	 */
 	@Test
@@ -530,8 +530,8 @@ public class UserRepositoryTests {
 		firstUser = repository.save(firstUser);
 		secondUser = repository.save(secondUser);
 
-		assertTrue(
-				repository.findByLastnameOrFirstname("Oliver", "Arrasz").containsAll(Arrays.asList(firstUser, secondUser)));
+		assertTrue(repository.findByLastnameOrFirstname("Oliver", "Arrasz").containsAll(
+				Arrays.asList(firstUser, secondUser)));
 	}
 
 	@Test
@@ -1015,7 +1015,6 @@ public class UserRepositoryTests {
 		flushTestUsers();
 
 		Page<User> page = repository.findAll(new Specification<User>() {
-			@Override
 			public Predicate toPredicate(Root<User> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
 				return cb.equal(root.get("lastname"), "Gierke");
 			}
@@ -1836,8 +1835,8 @@ public class UserRepositoryTests {
 	public void shouldfindUsersBySpELExpressionParametersWithSpelTemplateExpression() {
 
 		flushTestUsers();
-		List<User> users = repository
-				.findUsersByFirstnameForSpELExpressionWithParameterIndexOnlyWithEntityExpression("Joachim", "Arrasz");
+		List<User> users = repository.findUsersByFirstnameForSpELExpressionWithParameterIndexOnlyWithEntityExpression(
+				"Joachim", "Arrasz");
 
 		assertThat(users, hasSize(1));
 		assertThat(users.get(0), is(secondUser));
@@ -1995,6 +1994,23 @@ public class UserRepositoryTests {
 
 		assertThat(users, hasSize(1));
 		assertThat(users.get(0), is(firstUser));
+	}
+
+	/**
+	 * @see DATAJPA-218
+	 */
+	@Test
+	public void findAllByExampleWithEmptyProbe() {
+
+		flushTestUsers();
+
+		User prototype = new User();
+		prototype.setCreatedAt(null);
+
+		List<User> users = repository
+				.findAll(of(prototype, ExampleSpec.untyped().withIgnorePaths("age", "createdAt", "active")));
+
+		assertThat(users, hasSize(4));
 	}
 
 	/**
@@ -2377,5 +2393,4 @@ public class UserRepositoryTests {
 		assertThat(result.getTotalElements(), is(2L));
 		return result;
 	}
-
 }
