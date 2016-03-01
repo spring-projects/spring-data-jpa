@@ -1,5 +1,5 @@
 [[query.by.example.execution]]
-== Executing Query by Example
+== Executing Example
 
 In Spring Data JPA you can use Query by Example with Repositories.
 
@@ -21,6 +21,8 @@ public class PersonService {
 }
 ----
 ====
+
+An `Example` containing an untyped `ExampleSpec` uses the Repository type. Typed `ExampleSpec` use their type for creating JPA queries.
 
 NOTE: Only SingularAttribute properties can be used for property matching.
 

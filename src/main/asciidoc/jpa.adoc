@@ -604,6 +604,9 @@ List<Customer> customers = customerRepository.findAll(
 As you can see, `Specifications` offers some glue-code methods to chain and combine `Specification` instances. Thus extending your data access layer is just a matter of creating new `Specification` implementations and combining them with ones already existing.
 ====
 
+include::{spring-data-commons-docs}/query-by-example.adoc[]
+include::query-by-example.adoc[]
+
 [[transactions]]
 == Transactionality
 CRUD methods on repository instances are transactional by default. For reading operations the transaction configuration `readOnly` flag is set to true, all others are configured with a plain `@Transactional` so that default transaction configuration applies. For details see JavaDoc of `CrudRepository`. If you need to tweak transaction configuration for one of the methods declared in a repository simply redeclare the method in your repository interface as follows:
