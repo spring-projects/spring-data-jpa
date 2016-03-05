@@ -124,7 +124,7 @@ public class BeanDefinitionUtils {
 		BeanDefinition definition = beanFactory.getBeanDefinition(name);
 
 		if (JNDI_OBJECT_FACTORY_BEAN.equals(definition.getBeanClassName())) {
-			if (!definition.getPropertyValues().get("expectedType").equals(EntityManagerFactory.class.getName())) {
+			if (!EntityManagerFactory.class.getName().equals(definition.getPropertyValues().get("expectedType"))) {
 				return;
 			}
 		}

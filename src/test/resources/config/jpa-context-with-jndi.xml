@@ -14,7 +14,10 @@
 	<jee:jndi-lookup id="entityManagerFactory" 
 		jndi-name="some/EMF" 
 		expected-type="javax.persistence.EntityManagerFactory" />
-	
+
+	<jee:jndi-lookup id="someOtherJndiBean"
+		jndi-name="some/other/Component" />
+
 	<bean class="org.springframework.data.jpa.repository.support.DefaultJpaContextIntegrationTests$ApplicationComponent" autowire="constructor" />
 
 </beans>

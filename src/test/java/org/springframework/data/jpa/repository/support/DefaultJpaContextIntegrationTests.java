@@ -133,6 +133,7 @@ public class DefaultJpaContextIntegrationTests {
 
 		SimpleNamingContextBuilder builder = SimpleNamingContextBuilder.emptyActivatedContextBuilder();
 		builder.bind("some/EMF", createEntityManagerFactory("spring-data-jpa"));
+		builder.bind("some/other/Component", new Object());
 
 		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext("config/jpa-context-with-jndi.xml");
 		ApplicationComponent component = context.getBean(ApplicationComponent.class);
