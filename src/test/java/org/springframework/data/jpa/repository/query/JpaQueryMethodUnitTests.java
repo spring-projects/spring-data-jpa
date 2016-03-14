@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 the original author or authors.
+ * Copyright 2008-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.core.annotation.AliasFor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -59,6 +60,7 @@ import org.springframework.data.repository.query.QueryMethod;
  * 
  * @author Oliver Gierke
  * @author Thomas Darimont
+ * @author Christoph Strobl
  */
 @RunWith(MockitoJUnitRunner.class)
 public class JpaQueryMethodUnitTests {
@@ -394,6 +396,148 @@ public class JpaQueryMethodUnitTests {
 	}
 
 	/**
+	 * @see DATAJPA-871
+	 */
+	@Test
+	public void usesAliasedValueForLockLockMode() throws Exception {
+
+		JpaQueryMethod method = getQueryMethod(ValidRepository.class, "withMetaAnnotationUsingAliasFor");
+
+		assertThat(method.getLockModeType(), is(LockModeType.PESSIMISTIC_FORCE_INCREMENT));
+	}
+
+	/**
+	 * @see DATAJPA-871
+	 */
+	@Test
+	public void usesAliasedValueForQueryHints() throws Exception {
+
+		JpaQueryMethod method = getQueryMethod(ValidRepository.class, "withMetaAnnotationUsingAliasFor");
+
+		assertThat(method.getHints(), hasSize(1));
+		assertThat(method.getHints().get(0).name(), is("foo"));
+		assertThat(method.getHints().get(0).value(), is("bar"));
+
+	}
+
+	/**
+	 * @see DATAJPA-871
+	 */
+	@Test
+	public void usesAliasedValueForQueryHintsCounting() throws Exception {
+
+		JpaQueryMethod method = getQueryMethod(ValidRepository.class, "withMetaAnnotationUsingAliasFor");
+
+		assertThat(method.applyHintsToCountQuery(), is(true));
+	}
+
+	/**
+	 * @see DATAJPA-871
+	 */
+	@Test
+	public void usesAliasedValueForModifyingClearAutomatically() throws Exception {
+
+		JpaQueryMethod method = getQueryMethod(ValidRepository.class, "withMetaAnnotationUsingAliasFor");
+
+		assertThat(method.isModifyingQuery(), is(true));
+		assertThat(method.getClearAutomatically(), is(true));
+	}
+
+	/**
+	 * @see DATAJPA-871
+	 */
+	@Test
+	public void usesAliasedValueForHintsApplyToCountQuery() throws Exception {
+
+		JpaQueryMethod method = getQueryMethod(ValidRepository.class, "withMetaAnnotationUsingAliasFor");
+
+		assertThat(method.applyHintsToCountQuery(), is(true));
+	}
+
+	/**
+	 * @see DATAJPA-871
+	 */
+	@Test
+	public void usesAliasedValueForQueryValue() throws Exception {
+
+		JpaQueryMethod method = getQueryMethod(ValidRepository.class, "withMetaAnnotationUsingAliasFor");
+
+		assertThat(method.getAnnotatedQuery(), is(equalTo("select u from User u where u.firstname = ?1")));
+	}
+
+	/**
+	 * @see DATAJPA-871
+	 */
+	@Test
+	public void usesAliasedValueForQueryCountQuery() throws Exception {
+
+		JpaQueryMethod method = getQueryMethod(ValidRepository.class, "withMetaAnnotationUsingAliasFor");
+
+		assertThat(method.getCountQuery(), is(equalTo("select u from User u where u.lastname = ?1")));
+	}
+
+	/**
+	 * @see DATAJPA-871
+	 */
+	@Test
+	public void usesAliasedValueForQueryCountQueryProjection() throws Exception {
+
+		JpaQueryMethod method = getQueryMethod(ValidRepository.class, "withMetaAnnotationUsingAliasFor");
+
+		assertThat(method.getCountQueryProjection(), is(equalTo("foo-bar")));
+	}
+
+	/**
+	 * @see DATAJPA-871
+	 */
+	@Test
+	public void usesAliasedValueForQueryNamedQueryName() throws Exception {
+
+		JpaQueryMethod method = getQueryMethod(ValidRepository.class, "withMetaAnnotationUsingAliasFor");
+
+		assertThat(method.getNamedQueryName(), is(equalTo("namedQueryName")));
+	}
+
+	/**
+	 * @see DATAJPA-871
+	 */
+	@Test
+	public void usesAliasedValueForQueryNamedCountQueryName() throws Exception {
+
+		JpaQueryMethod method = getQueryMethod(ValidRepository.class, "withMetaAnnotationUsingAliasFor");
+
+		assertThat(method.getNamedCountQueryName(), is(equalTo("namedCountQueryName")));
+	}
+
+	/**
+	 * @see DATAJPA-871
+	 */
+	@Test
+	public void usesAliasedValueForQueryNativeQuery() throws Exception {
+
+		JpaQueryMethod method = getQueryMethod(ValidRepository.class, "withMetaAnnotationUsingAliasFor");
+
+		assertThat(method.isNativeQuery(), is(true));
+	}
+
+	/**
+	 * @see DATAJPA-871
+	 */
+	@Test
+	public void usesAliasedValueForEntityGraph() throws Exception {
+
+		doReturn(User.class).when(metadata).getDomainType();
+		doReturn(User.class).when(metadata).getReturnedDomainClass((Method) any());
+
+		JpaQueryMethod method = new JpaQueryMethod(
+				JpaRepositoryOverride.class.getMethod("getOneWithCustomEntityGraphAnnotation"), metadata, factory, extractor);
+
+		assertThat(method.getEntityGraph(), is(notNullValue()));
+		assertThat(method.getEntityGraph().getName(), is("User.detail"));
+		assertThat(method.getEntityGraph().getType(), is(EntityGraphType.LOAD));
+	}
+
+	/**
 	 * Interface to define invalid repository methods for testing.
 	 * 
 	 * @author Oliver Gierke
@@ -456,6 +600,9 @@ public class JpaQueryMethodUnitTests {
 
 		@Query("select u from User u where u.firstname = ?1")
 		User queryWithPositionalBinding(@Param("firstname") String firstname);
+
+		@CustomComposedAnnotationWithAliasFor
+		void withMetaAnnotationUsingAliasFor();
 	}
 
 	static interface JpaRepositoryOverride extends JpaRepository<User, Long> {
@@ -478,6 +625,10 @@ public class JpaQueryMethodUnitTests {
 		 */
 		@EntityGraph
 		User getOneById(Long id);
+
+		@CustomComposedEntityGraphAnnotationWithAliasFor
+		User getOneWithCustomEntityGraphAnnotation();
+
 	}
 
 	@Lock(LockModeType.OPTIMISTIC_FORCE_INCREMENT)
@@ -485,5 +636,58 @@ public class JpaQueryMethodUnitTests {
 	@Retention(RetentionPolicy.RUNTIME)
 	static @interface CustomAnnotation {
 
+	}
+
+	@Modifying
+	@Query
+	@Lock(LockModeType.OPTIMISTIC_FORCE_INCREMENT)
+	@QueryHints(@QueryHint(name = "foo", value = "bar"))
+	@Retention(RetentionPolicy.RUNTIME)
+	static @interface CustomComposedAnnotationWithAliasFor {
+
+		@AliasFor(annotation = Modifying.class, attribute = "clearAutomatically")
+		boolean doClear() default true;
+
+		@AliasFor(annotation = Query.class, attribute = "value")
+		String querystring() default "select u from User u where u.firstname = ?1";
+
+		@AliasFor(annotation = Query.class, attribute = "countQuery")
+		String countQueryString() default "select u from User u where u.lastname = ?1";
+
+		@AliasFor(annotation = Query.class, attribute = "countProjection")
+		String countProjectionString() default "foo-bar";
+
+		@AliasFor(annotation = Query.class, attribute = "nativeQuery")
+		boolean isNativeQuery() default true;
+
+		@AliasFor(annotation = Query.class, attribute = "name")
+		String namedQueryName() default "namedQueryName";
+
+		@AliasFor(annotation = Query.class, attribute = "countName")
+		String namedCountQueryName() default "namedCountQueryName";
+
+		@AliasFor(annotation = Lock.class, attribute = "value")
+		LockModeType lock() default LockModeType.PESSIMISTIC_FORCE_INCREMENT;
+
+		@AliasFor(annotation = QueryHints.class, attribute = "value")
+		QueryHint[] hints() default @QueryHint(name = "foo", value = "bar")
+		;
+
+		@AliasFor(annotation = QueryHints.class, attribute = "forCounting")
+		boolean doCount() default true;
+	}
+
+	@EntityGraph
+	@Retention(RetentionPolicy.RUNTIME)
+	static @interface CustomComposedEntityGraphAnnotationWithAliasFor {
+
+		@AliasFor(annotation = EntityGraph.class, attribute = "value")
+		String graphName() default "User.detail";
+
+		@AliasFor(annotation = EntityGraph.class, attribute = "type")
+		EntityGraphType graphType() default EntityGraphType.LOAD;
+
+		@AliasFor(annotation = EntityGraph.class, attribute = "attributePaths")
+		String[] paths() default { "foo", "bar" };
 	}
 }

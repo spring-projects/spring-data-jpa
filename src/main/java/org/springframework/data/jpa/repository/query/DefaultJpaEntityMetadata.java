@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package org.springframework.data.jpa.repository.query;
 
 import javax.persistence.Entity;
 
+import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -24,6 +25,7 @@ import org.springframework.util.StringUtils;
  * Default implementation for {@link JpaEntityMetadata}.
  * 
  * @author Oliver Gierke
+ * @author Christoph Strobl
  */
 public class DefaultJpaEntityMetadata<T> implements JpaEntityMetadata<T> {
 
@@ -55,7 +57,7 @@ public class DefaultJpaEntityMetadata<T> implements JpaEntityMetadata<T> {
 	 */
 	public String getEntityName() {
 
-		Entity entity = domainType.getAnnotation(Entity.class);
+		Entity entity = AnnotatedElementUtils.findMergedAnnotation(domainType, Entity.class);
 		boolean hasName = null != entity && StringUtils.hasText(entity.name());
 
 		return hasName ? entity.name() : domainType.getSimpleName();

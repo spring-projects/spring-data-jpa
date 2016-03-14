@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2015 the original author or authors.
+ * Copyright 2011-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import org.springframework.aop.TargetSource;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.interceptor.ExposeInvocationInterceptor;
 import org.springframework.beans.factory.BeanClassLoaderAware;
+import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Lock;
@@ -48,6 +49,7 @@ import org.springframework.util.ClassUtils;
  * 
  * @author Oliver Gierke
  * @author Thomas Darimont
+ * @author Christoph Strobl
  */
 class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, BeanClassLoaderAware {
 
@@ -164,19 +166,19 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 		}
 
 		private static EntityGraph findEntityGraph(Method method) {
-			return AnnotationUtils.findAnnotation(method, EntityGraph.class);
+			return AnnotatedElementUtils.findMergedAnnotation(method, EntityGraph.class);
 		}
 
 		private static LockModeType findLockModeType(Method method) {
 
-			Lock annotation = AnnotationUtils.findAnnotation(method, Lock.class);
+			Lock annotation = AnnotatedElementUtils.findMergedAnnotation(method, Lock.class);
 			return annotation == null ? null : (LockModeType) AnnotationUtils.getValue(annotation);
 		}
 
 		private static Map<String, Object> findQueryHints(Method method) {
 
 			Map<String, Object> queryHints = new HashMap<String, Object>();
-			QueryHints queryHintsAnnotation = AnnotationUtils.findAnnotation(method, QueryHints.class);
+			QueryHints queryHintsAnnotation = AnnotatedElementUtils.findMergedAnnotation(method, QueryHints.class);
 
 			if (queryHintsAnnotation != null) {
 
