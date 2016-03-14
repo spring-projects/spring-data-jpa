@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,8 @@ import static org.hamcrest.object.IsCompatibleType.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Method;
 
 import javax.persistence.EntityManager;
@@ -29,6 +31,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.core.annotation.AliasFor;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.repository.query.Param;
 import org.springframework.util.ReflectionUtils;
@@ -38,6 +41,7 @@ import org.springframework.util.ReflectionUtils;
  * 
  * @author Thomas Darimont
  * @author Oliver Gierke
+ * @author Christoph Strobl
  * @since 1.6
  */
 @RunWith(MockitoJUnitRunner.class)
@@ -137,6 +141,34 @@ public class StoredProcedureAttributeSourceUnitTests {
 		assertThat(attr.getOutputParameterName(), is("res"));
 	}
 
+	/**
+	 * @see DATAJPA-871
+	 */
+	@Test
+	public void aliasedStoredProcedure() {
+
+		StoredProcedureAttributes attr = creator
+				.createFrom(method("plus1inoutWithComposedAnnotationOverridingProcedureName", Integer.class), entityMetadata);
+
+		assertThat(attr.getProcedureName(), is(equalTo("plus1inout")));
+		assertThat(attr.getOutputParameterType(), is(typeCompatibleWith(Integer.class)));
+		assertThat(attr.getOutputParameterName(), is(StoredProcedureAttributes.SYNTHETIC_OUTPUT_PARAMETER_NAME));
+	}
+
+	/**
+	 * @see DATAJPA-871
+	 */
+	@Test
+	public void aliasedStoredProcedure2() {
+
+		StoredProcedureAttributes attr = creator
+				.createFrom(method("plus1inoutWithComposedAnnotationOverridingName", Integer.class), entityMetadata);
+
+		assertThat(attr.getProcedureName(), is(equalTo("User.plus1")));
+		assertThat(attr.getOutputParameterType(), is(typeCompatibleWith(Integer.class)));
+		assertThat(attr.getOutputParameterName(), is(equalTo("res")));
+	}
+
 	private static Method method(String name, Class<?>... paramTypes) {
 		return ReflectionUtils.findMethod(DummyRepository.class, name, paramTypes);
 	}
@@ -185,5 +217,29 @@ public class StoredProcedureAttributeSourceUnitTests {
 		 */
 		@Procedure
 		Integer plus1(@Param("arg") Integer arg);
+
+		@ComposedProcedureUsingAliasFor(explicitProcedureName = "plus1inout")
+		Integer plus1inoutWithComposedAnnotationOverridingProcedureName(Integer arg);
+
+		@ComposedProcedureUsingAliasFor(emProcedureName = "User.plus1")
+		Integer plus1inoutWithComposedAnnotationOverridingName(Integer arg);
+	}
+
+	@Procedure
+	@Retention(RetentionPolicy.RUNTIME)
+	static @interface ComposedProcedureUsingAliasFor {
+
+		@AliasFor(annotation = Procedure.class, attribute = "value")
+		String dbProcedureName() default "";
+
+		@AliasFor(annotation = Procedure.class, attribute = "procedureName")
+		String explicitProcedureName() default "";
+
+		@AliasFor(annotation = Procedure.class, attribute = "name")
+		String emProcedureName() default "";
+
+		@AliasFor(annotation = Procedure.class, attribute = "outputParameterName")
+		String outParamName() default "";
+
 	}
 }

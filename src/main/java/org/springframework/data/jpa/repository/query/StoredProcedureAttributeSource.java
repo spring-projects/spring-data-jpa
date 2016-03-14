@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import javax.persistence.NamedStoredProcedureQueries;
 import javax.persistence.NamedStoredProcedureQuery;
 import javax.persistence.StoredProcedureParameter;
 
+import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -32,6 +33,7 @@ import org.springframework.util.StringUtils;
  * 
  * @author Thomas Darimont
  * @author Oliver Gierke
+ * @author Christoph Strobl
  * @since 1.6
  */
 enum StoredProcedureAttributeSource {
@@ -50,7 +52,7 @@ enum StoredProcedureAttributeSource {
 		Assert.notNull(method, "Method must not be null!");
 		Assert.notNull(entityMetadata, "EntityMetadata must not be null!");
 
-		Procedure procedure = method.getAnnotation(Procedure.class);
+		Procedure procedure = AnnotatedElementUtils.findMergedAnnotation(method, Procedure.class);
 		Assert.notNull(procedure, "Method must have an @Procedure annotation!");
 
 		NamedStoredProcedureQuery namedStoredProc = tryFindAnnotatedNamedStoredProcedureQuery(method, entityMetadata,
@@ -201,12 +203,14 @@ enum StoredProcedureAttributeSource {
 
 		List<NamedStoredProcedureQuery> queries = new ArrayList<NamedStoredProcedureQuery>();
 
-		NamedStoredProcedureQueries namedQueriesAnnotation = entityType.getAnnotation(NamedStoredProcedureQueries.class);
+		NamedStoredProcedureQueries namedQueriesAnnotation = AnnotatedElementUtils.findMergedAnnotation(entityType,
+				NamedStoredProcedureQueries.class);
 		if (namedQueriesAnnotation != null) {
 			queries.addAll(Arrays.asList(namedQueriesAnnotation.value()));
 		}
 
-		NamedStoredProcedureQuery namedQueryAnnotation = entityType.getAnnotation(NamedStoredProcedureQuery.class);
+		NamedStoredProcedureQuery namedQueryAnnotation = AnnotatedElementUtils.findMergedAnnotation(entityType,
+				NamedStoredProcedureQuery.class);
 		if (namedQueryAnnotation != null) {
 			queries.add(namedQueryAnnotation);
 		}

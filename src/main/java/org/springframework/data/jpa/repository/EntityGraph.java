@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import org.springframework.data.jpa.repository.query.JpaQueryMethod;
  * 
  * Since 1.9 we support the definition of dynamic {@link EntityGraph}s by allowing to customize the fetch-graph via 
  * via {@link #attributePaths()} ad-hoc fetch-graph configuration.
+ * @author Christoph Strobl
  * 
  * If {@link #attributePaths()} are specified then we ignore the entity-graph name {@link #value()}
  * and treat this {@link EntityGraph} as dynamic.
@@ -38,7 +39,7 @@ import org.springframework.data.jpa.repository.query.JpaQueryMethod;
  * @since 1.6
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
+@Target({ ElementType.METHOD, ElementType.ANNOTATION_TYPE })
 @Documented
 public @interface EntityGraph {
 
