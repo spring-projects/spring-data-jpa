@@ -6,8 +6,8 @@ jdk:
 env:
   matrix:
     - PROFILE=ci
-    - PROFILE=spring41-next
     - PROFILE=spring42-next
+    - PROFILE=spring43-next
     - PROFILE=hibernate-41
     - PROFILE=hibernate-42
     - PROFILE=hibernate-42-next
