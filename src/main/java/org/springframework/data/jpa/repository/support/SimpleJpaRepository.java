@@ -44,7 +44,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.domain.TypedExampleSpec;
 import org.springframework.data.jpa.convert.QueryByExamplePredicateBuilder;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.provider.PersistenceProvider;
@@ -148,8 +147,8 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 		T entity = findOne(id);
 
 		if (entity == null) {
-			throw new EmptyResultDataAccessException(String.format("No %s entity with id %s exists!",
-					entityInformation.getJavaType(), id), 1);
+			throw new EmptyResultDataAccessException(
+					String.format("No %s entity with id %s exists!", entityInformation.getJavaType(), id), 1);
 		}
 
 		delete(entity);
@@ -422,7 +421,7 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	@Override
 	public <S extends T> S findOne(Example<S> example) {
 		try {
-			return getQuery(new ExampleSpecification<S>(example), getResultType(example), (Sort) null).getSingleResult();
+			return getQuery(new ExampleSpecification<S>(example), example.getProbeType(), (Sort) null).getSingleResult();
 		} catch (NoResultException e) {
 			return null;
 		}
@@ -431,10 +430,10 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	/* (non-Javadoc)
 	 * @see org.springframework.data.repository.query.QueryByExampleExecutor#count(org.springframework.data.domain.Example)
 	 */
-	@SuppressWarnings("unchecked")
 	@Override
+	@SuppressWarnings("unchecked")
 	public <S extends T> long count(Example<S> example) {
-		return executeCountQuery(getCountQuery(new ExampleSpecification<S>(example), getResultType(example)));
+		return executeCountQuery(getCountQuery(new ExampleSpecification<S>(example), example.getProbeType()));
 	}
 
 	/* (non-Javadoc)
@@ -442,7 +441,7 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	 */
 	@Override
 	public <S extends T> boolean exists(Example<S> example) {
-		return !getQuery(new ExampleSpecification<S>(example), getResultType(example), (Sort) null).getResultList()
+		return !getQuery(new ExampleSpecification<S>(example), example.getProbeType(), (Sort) null).getResultList()
 				.isEmpty();
 	}
 
@@ -452,7 +451,7 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	 */
 	@Override
 	public <S extends T> List<S> findAll(Example<S> example) {
-		return getQuery(new ExampleSpecification<S>(example), getResultType(example), (Sort) null).getResultList();
+		return getQuery(new ExampleSpecification<S>(example), example.getProbeType(), (Sort) null).getResultList();
 	}
 
 	/*
@@ -461,7 +460,7 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	 */
 	@Override
 	public <S extends T> List<S> findAll(Example<S> example, Sort sort) {
-		return getQuery(new ExampleSpecification<S>(example), getResultType(example), sort).getResultList();
+		return getQuery(new ExampleSpecification<S>(example), example.getProbeType(), sort).getResultList();
 	}
 
 	/*
@@ -472,9 +471,10 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	public <S extends T> Page<S> findAll(Example<S> example, Pageable pageable) {
 
 		ExampleSpecification<S> spec = new ExampleSpecification<S>(example);
-		TypedQuery<S> query = getQuery(new ExampleSpecification<S>(example), getResultType(example), pageable);
-		return pageable == null ? new PageImpl<S>(query.getResultList())
-				: readPage(query, getResultType(example), pageable, spec);
+		Class<S> probeType = example.getProbeType();
+		TypedQuery<S> query = getQuery(new ExampleSpecification<S>(example), probeType, pageable);
+
+		return pageable == null ? new PageImpl<S>(query.getResultList()) : readPage(query, probeType, pageable, spec);
 	}
 
 	/*
@@ -741,15 +741,6 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 		for (Entry<String, Object> hint : getQueryHints().entrySet()) {
 			query.setHint(hint.getKey(), hint.getValue());
 		}
-	}
-
-
-	private <S extends T> Class<S> getResultType(Example<S> example) {
-
-		if(example.getExampleSpec() instanceof TypedExampleSpec<?>){
-			return example.getResultType();
-		}
-		return (Class<S>) getDomainClass();
 	}
 
 	/**

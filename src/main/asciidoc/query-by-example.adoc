@@ -7,9 +7,7 @@ In Spring Data JPA you can use Query by Example with Repositories.
 ====
 [source, java]
 ----
-public interface PersonRepository extends JpaRepository<Person, String> {
-
-}
+public interface PersonRepository extends JpaRepository<Person, String> { … }
 
 public class PersonService {
 
@@ -22,10 +20,7 @@ public class PersonService {
 ----
 ====
 
-An `Example` containing an untyped `ExampleSpec` uses the Repository type. Typed `ExampleSpec` use their type for creating JPA queries.
-
-NOTE: Only SingularAttribute properties can be used for property matching.
-
+NOTE: Only `SingularAttribute` properties can currently be used for property matching.
 
 Property specifier accepts property names (e.g. "firstname" and "lastname"). You can navigate by chaining properties together with dots ("address.city"). You can tune it with matching options and case sensitivity.
 

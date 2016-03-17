@@ -34,8 +34,8 @@ import javax.persistence.metamodel.SingularAttribute;
 
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Example;
-import org.springframework.data.domain.ExampleSpec;
-import org.springframework.data.repository.core.support.ExampleSpecAccessor;
+import org.springframework.data.domain.ExampleMatcher;
+import org.springframework.data.repository.core.support.ExampleMatcherAccessor;
 import org.springframework.data.util.DirectFieldAccessFallbackBeanWrapper;
 import org.springframework.orm.jpa.JpaSystemException;
 import org.springframework.util.Assert;
@@ -78,7 +78,7 @@ public class QueryByExamplePredicateBuilder {
 		Assert.notNull(example, "Example must not be null!");
 
 		List<Predicate> predicates = getPredicates("", cb, root, root.getModel(), example.getProbe(),
-				example.getProbeType(), new ExampleSpecAccessor(example.getExampleSpec()),
+				example.getProbeType(), new ExampleMatcherAccessor(example.getMatcher()),
 				new PathNode("root", null, example.getProbe()));
 
 		if (predicates.isEmpty()) {
@@ -94,7 +94,7 @@ public class QueryByExamplePredicateBuilder {
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	static List<Predicate> getPredicates(String path, CriteriaBuilder cb, Path<?> from, ManagedType<?> type, Object value,
-			Class<?> probeType, ExampleSpecAccessor exampleAccessor, PathNode currentNode) {
+			Class<?> probeType, ExampleMatcherAccessor exampleAccessor, PathNode currentNode) {
 
 		List<Predicate> predicates = new ArrayList<Predicate>();
 		DirectFieldAccessFallbackBeanWrapper beanWrapper = new DirectFieldAccessFallbackBeanWrapper(value);
@@ -112,7 +112,7 @@ public class QueryByExamplePredicateBuilder {
 
 			if (attributeValue == null) {
 
-				if (exampleAccessor.getNullHandler().equals(ExampleSpec.NullHandler.INCLUDE)) {
+				if (exampleAccessor.getNullHandler().equals(ExampleMatcher.NullHandler.INCLUDE)) {
 					predicates.add(cb.isNull(from.get(attribute)));
 				}
 				continue;
