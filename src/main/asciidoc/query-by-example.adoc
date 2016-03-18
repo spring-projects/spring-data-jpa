@@ -1,5 +1,5 @@
-[[query.by.example.execution]]
-== Executing Example
+[[query-by-example.execution]]
+== Executing an example
 
 In Spring Data JPA you can use Query by Example with Repositories.
 

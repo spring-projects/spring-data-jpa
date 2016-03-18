@@ -604,8 +604,8 @@ List<Customer> customers = customerRepository.findAll(
 As you can see, `Specifications` offers some glue-code methods to chain and combine `Specification` instances. Thus extending your data access layer is just a matter of creating new `Specification` implementations and combining them with ones already existing.
 ====
 
-include::{spring-data-commons-docs}/query-by-example.adoc[]
-include::query-by-example.adoc[]
+include::{spring-data-commons-docs}/query-by-example.adoc[leveloffset=+1]
+include::query-by-example.adoc[leveloffset=+1]
 
 [[transactions]]
 == Transactionality
