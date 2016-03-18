@@ -1,6 +1,17 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 1.10.0.RC1 (2016-03-18)
+------------------------------------------
+* DATAJPA-871 - Allow usage of composed annotations using @AliasFor.
+* DATAJPA-869 - Release 1.10 RC1 (Hopper).
+* DATAJPA-867 - Upgrade persistence provider dependencies to latest version.
+* DATAJPA-864 - Query execution fails for manually defined queries containing a constructor expression.
+* DATAJPA-862 - Reference documentation contains wrong property index "?0" in @Query example.
+* DATAJPA-813 - Error creating DefaultJpaContext bean in test cases.
+* DATAJPA-218 - Support for Query by Example.
+
+
 Changes in version 1.9.4.RELEASE (2016-02-23)
 ---------------------------------------------
 * DATAJPA-862 - Reference documentation contains wrong property index "?0" in @Query example.
