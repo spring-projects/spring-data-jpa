@@ -445,6 +445,8 @@ public interface GroupRepository extends CrudRepository<GroupInfo, String> {
 ----
 ====
 
+include::{spring-data-commons-docs}/repository-projections.adoc[leveloffset=+2]
+
 [[jpa.stored-procedures]]
 == Stored procedures
 The JPA 2.1 specification introduced support for calling stored procedures via the JPA criteria query API. We Introduced the `@Procedure` annotation for declaring stored procedure metadata on a repository method.
@@ -458,7 +460,7 @@ DROP procedure IF EXISTS plus1inout
 /;
 CREATE procedure plus1inout (IN arg int, OUT res int)
 BEGIN ATOMIC
- set res = arg ` 1;
+ set res = arg + 1;
 END
 /;
 ----
