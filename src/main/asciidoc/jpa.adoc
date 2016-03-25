@@ -445,6 +445,23 @@ public interface GroupRepository extends CrudRepository<GroupInfo, String> {
 ----
 ====
 
+It is also possible to define _ad-hoc_ entity graphs via `@EntityGraph`. The provided `attributePaths` will be translated into the according `EntityGraph` without the need of having to explicitly add `@NamedEntityGraph` to your domain types.
+
+.Using AD-HOC entity graph definition on an repository query method.
+====
+[source, java]
+----
+@Repository
+public interface GroupRepository extends CrudRepository<GroupInfo, String> {
+
+  @EntityGraph(attributePaths = { "members" })
+  GroupInfo getByGroupName(String name);
+
+}
+----
+====
+
+
 include::{spring-data-commons-docs}/repository-projections.adoc[leveloffset=+2]
 
 [[jpa.stored-procedures]]

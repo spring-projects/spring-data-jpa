@@ -14,7 +14,9 @@ NOTE: Copies of this document may be made for your own use and for distribution 
 toc::[]
 
 include::preface.adoc[]
+
 :leveloffset: +1
+include::new-features.adoc[]
 include::{spring-data-commons-docs}/dependencies.adoc[]
 include::{spring-data-commons-docs}/repositories.adoc[]
 :leveloffset: -1

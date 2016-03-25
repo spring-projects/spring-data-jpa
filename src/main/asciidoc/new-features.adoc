@@ -1,0 +1,13 @@
+[[new-features]]
+= New & Noteworthy
+
+[[new-features.1-10-0]]
+== What's new in Spring Data JAP 1.10
+
+* Support for <<projections>> in repository query methods.
+* Support for <<query-by-example>>.
+* The following annotations have been enabled to build own, composed annotations: `@EntityGraph`, `@Lock`, `@Modifying`, `@Query`, `@QueryHints` and `@Procedure`.
+* Support for `Contains` keyword on collection expressions.
+* AttributeConverters for `ZoneId` of JSR-310 and ThreeTenBP.
+* Upgrade to Querydsl 4, Hibernate 5, OpenJPA 2.4 and EclipseLink 2.6.1.
+
