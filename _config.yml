@@ -22,9 +22,6 @@ project: spring-data-jpa
 # Project github URL
 github_repo_url: http://github.com/spring-projects/spring-data-jpa
 
-# Project forum URL
-forum: http://forum.spring.io/forum/spring-projects/data
-
 # If you want to include a custom pom.xml or gradle template set these value to true and add _include files
 custom_pom_template: false
 custom_gradle_template: false
@@ -35,4 +32,3 @@ custom_gradle_template: false
 main_site_url: http://spring.io
 projects_site_url: http://projects.spring.io
 questions_url: http://spring.io/questions
-forum_url: http://forum.spring.io
