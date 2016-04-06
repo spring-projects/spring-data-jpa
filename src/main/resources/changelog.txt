@@ -1,6 +1,12 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 1.10.1.RELEASE (2016-04-06)
+----------------------------------------------
+* DATAJPA-883 - Auditing broken in Hopper GA.
+* DATAJPA-881 - Release 1.10.1 (Hopper SR1).
+
+
 Changes in version 1.10.0.RELEASE (2016-04-06)
 ----------------------------------------------
 * DATAJPA-880 - Add pull request template.
