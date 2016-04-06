@@ -454,7 +454,7 @@
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>aspectj-maven-plugin</artifactId>
-				<version>1.6</version>
+				<version>1.8</version>
 				<dependencies>
 					<dependency>
 						<groupId>org.aspectj</groupId>
@@ -476,6 +476,15 @@
 				</executions>
 				<configuration>
 					<verbose>true</verbose>
+					<!--
+						To workaround:
+
+						- https://issues.apache.org/jira/browse/MCOMPILER-205
+						- https://issues.apache.org/jira/browse/MCOMPILER-209
+						- https://github.com/mojohaus/aspectj-maven-plugin/issues/15
+
+					-->
+					<forceAjcCompile>true</forceAjcCompile>
 					<aspectLibraries>
 						<aspectLibrary>
 							<groupId>org.springframework</groupId>
