@@ -348,6 +348,18 @@ public class StringQueryUnitTests {
 		assertThat(new StringQuery("select a from A a").hasConstructorExpression(), is(false));
 	}
 
+	/**
+	 * @see DATAJPA-886
+	 * @see JPA 2.1 specification, section 4.8
+	 */
+	@Test
+	public void detectsConstructorExpressionForDefaultConstructor() {
+
+		// Parentheses required
+		assertThat(new StringQuery("select new Dto() from A a").hasConstructorExpression(), is(true));
+		assertThat(new StringQuery("select new Dto from A a").hasConstructorExpression(), is(false));
+	}
+
 	private void assertPositionalBinding(Class<? extends ParameterBinding> bindingType, Integer position,
 			ParameterBinding expectedBinding) {
 
