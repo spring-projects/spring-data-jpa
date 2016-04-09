@@ -34,10 +34,12 @@ import javax.persistence.TemporalType;
 
 import org.hibernate.Version;
 import org.hibernate.ejb.HibernateQuery;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
+import org.springframework.data.annotation.PersistenceConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -66,6 +68,13 @@ public class PartTreeJpaQueryIntegrationTests {
 
 	@PersistenceContext EntityManager entityManager;
 
+	PersistenceProvider provider;
+
+	@Before
+	public void setUp() {
+		this.provider = PersistenceProvider.fromEntityManager(entityManager);
+	}
+
 	/**
 	 * @see DATADOC-90
 	 * @throws Exception
@@ -74,8 +83,7 @@ public class PartTreeJpaQueryIntegrationTests {
 	public void test() throws Exception {
 
 		JpaQueryMethod queryMethod = getQueryMethod("findByFirstname", String.class, Pageable.class);
-		PartTreeJpaQuery jpaQuery = new PartTreeJpaQuery(queryMethod, entityManager,
-				PersistenceProvider.fromEntityManager(entityManager));
+		PartTreeJpaQuery jpaQuery = new PartTreeJpaQuery(queryMethod, entityManager, provider);
 
 		jpaQuery.createQuery(new Object[] { "Matthews", new PageRequest(0, 1) });
 		jpaQuery.createQuery(new Object[] { "Matthews", new PageRequest(0, 1) });
@@ -102,8 +110,7 @@ public class PartTreeJpaQueryIntegrationTests {
 	public void recreatesQueryIfNullValueIsGiven() throws Exception {
 
 		JpaQueryMethod queryMethod = getQueryMethod("findByFirstname", String.class, Pageable.class);
-		PartTreeJpaQuery jpaQuery = new PartTreeJpaQuery(queryMethod, entityManager,
-				PersistenceProvider.fromEntityManager(entityManager));
+		PartTreeJpaQuery jpaQuery = new PartTreeJpaQuery(queryMethod, entityManager, provider);
 
 		Query query = jpaQuery.createQuery(new Object[] { "Matthews", new PageRequest(0, 1) });
 
