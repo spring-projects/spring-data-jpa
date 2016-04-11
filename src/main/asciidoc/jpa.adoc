@@ -249,7 +249,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
 ----
 ====
 
-Using advanced `LIKE` expressionsThe query execution mechanism for manually defined queries using @Query allow the definition of advanced `LIKE` expressions inside the query definition.
+==== Using advanced `LIKE` expressions
+
+The query execution mechanism for manually defined queries using @Query allows the definition of advanced `LIKE` expressions inside the query definition.
 
 .Advanced like-expressions in @Query
 ====
@@ -265,7 +267,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
 In the just shown sample `LIKE` delimiter character `%` is recognized and the query transformed into a valid JPQL query (removing the `%`). Upon query execution the parameter handed into the method call gets augmented with the previously recognized `LIKE` pattern.
 
-Native queriesThe `@Query` annotation allows to execute native queries by setting the `nativeQuery` flag to true. Note, that we currently don't support execution of pagination or dynamic sorting for native queries as we'd have to manipulate the actual query declared and we cannot do this reliably for native SQL.
+==== Native queries
+
+The `@Query` annotation allows to execute native queries by setting the `nativeQuery` flag to true.
 
 .Declare a native query at the query method using @Query
 ====
@@ -279,6 +283,25 @@ public interface UserRepository extends JpaRepository<User, Long> {
 ----
 
 ====
+
+Note, that we currently don't support execution of dynamic sorting for native queries as we'd have to manipulate the actual query declared and we cannot do this reliably for native SQL. You can however use native queries for pagination by specifying the count query yourself:
+
+.Declare native count queries for pagination at the query method using @Query
+====
+[source, java]
+----
+public interface UserRepository extends JpaRepository<User, Long> {
+
+  @Query(value = "SELECT * FROM USERS WHERE LASTNAME = ?1",
+    countQuery = "SELECT count(*) FROM USERS WHERE LASTNAME = ?1",
+    nativeQuery = true)
+  Page<User> findByLastname(String lastname, Pageable pageable);
+}
+----
+
+====
+
+This also works with named native queries by adding the suffix `.count` to a copy of your query. Be aware that you probably must register a result set mapping for your count query, though.
 
 [[jpa.named-parameters]]
 === Using named parameters
