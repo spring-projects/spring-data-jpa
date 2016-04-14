@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2015 the original author or authors.
+ * Copyright 2012-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ import javax.persistence.OneToOne;
 import javax.persistence.OrderColumn;
 import javax.persistence.Transient;
 import javax.persistence.Version;
+import javax.persistence.metamodel.ManagedType;
 import javax.persistence.metamodel.Metamodel;
 
 import org.springframework.core.annotation.AnnotationUtils;
@@ -155,12 +156,13 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 	@Override
 	public boolean isEntity() {
 
-		try {
-			metamodel.managedType(getActualType());
-			return true;
-		} catch (IllegalArgumentException o_O) {
-			return false;
+		for (ManagedType<?> type : metamodel.getManagedTypes()) {
+			if (type.getJavaType().equals(getActualType())) {
+				return true;
+			}
 		}
+
+		return false;
 	}
 
 	/* 
