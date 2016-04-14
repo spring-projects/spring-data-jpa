@@ -56,8 +56,8 @@ import org.springframework.util.Assert;
  * @author Oliver Gierke
  * @since 1.3
  */
-class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPersistentProperty> implements
-		JpaPersistentProperty {
+class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPersistentProperty>
+		implements JpaPersistentProperty {
 
 	private static final Collection<Class<? extends Annotation>> ASSOCIATION_ANNOTATIONS;
 	private static final Collection<Class<? extends Annotation>> ID_ANNOTATIONS;
@@ -129,8 +129,8 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 	 */
 	@Override
 	public Iterable<? extends TypeInformation<?>> getPersistentEntityType() {
-		return associationTargetType == null ? super.getPersistentEntityType() : Collections
-				.singleton(associationTargetType);
+		return associationTargetType == null ? super.getPersistentEntityType()
+				: Collections.singleton(associationTargetType);
 	}
 
 	/* 
@@ -240,7 +240,8 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 	 */
 	private Boolean detectPropertyAccess() {
 
-		org.springframework.data.annotation.AccessType accessType = findAnnotation(org.springframework.data.annotation.AccessType.class);
+		org.springframework.data.annotation.AccessType accessType = findAnnotation(
+				org.springframework.data.annotation.AccessType.class);
 
 		if (accessType != null) {
 			return Type.PROPERTY.equals(accessType.value());
