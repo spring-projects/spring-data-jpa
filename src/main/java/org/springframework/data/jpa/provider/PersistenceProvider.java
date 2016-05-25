@@ -115,7 +115,7 @@ public enum PersistenceProvider implements QueryExtractor,ProxyIdAccessor {
 		 */
 		@Override
 		public CloseableIterator<Object> executeQueryWithResultStream(Query jpaQuery) {
-			return new HibernateScrollableResultsIterator<Object>(jpaQuery);
+			return new HibernateScrollableResultsIterator(jpaQuery);
 		}
 	},
 
@@ -197,6 +197,10 @@ public enum PersistenceProvider implements QueryExtractor,ProxyIdAccessor {
 			return ((PersistenceCapable) entity).pcFetchObjectId();
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.jpa.provider.PersistenceProvider#executeQueryWithResultStream(javax.persistence.Query)
+		 */
 		@Override
 		public CloseableIterator<Object> executeQueryWithResultStream(Query jpaQuery) {
 			return new OpenJpaResultStreamingIterator<Object>(jpaQuery);
@@ -396,8 +400,7 @@ public enum PersistenceProvider implements QueryExtractor,ProxyIdAccessor {
 	 * @param <T> the domain type to return≠
 	 * @since 1.8
 	 */
-	@SuppressWarnings("unchecked")
-	private static class HibernateScrollableResultsIterator<T> implements CloseableIterator<T> {
+	private static class HibernateScrollableResultsIterator implements CloseableIterator<Object> {
 
 		private final ScrollableResults scrollableResults;
 
@@ -419,8 +422,11 @@ public enum PersistenceProvider implements QueryExtractor,ProxyIdAccessor {
 		 * @see java.util.Iterator#next()
 		 */
 		@Override
-		public T next() {
-			return (T) scrollableResults.get()[0];
+		public Object next() {
+
+			Object[] row = scrollableResults.get();
+
+			return row.length == 1 ? row[0] : row;
 		}
 
 		/*
