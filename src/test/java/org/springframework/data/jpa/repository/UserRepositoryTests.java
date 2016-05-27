@@ -1905,6 +1905,21 @@ public class UserRepositoryTests {
 		assertThat(users, hasSize(2));
 	}
 
+	/**
+	 * @see DATAJPA-905
+	 */
+	@Test
+	public void excutesPagedSpecificationSettingAnOrder() {
+
+		flushTestUsers();
+
+		Page<User> result = repository.findAll(where(userHasLastnameLikeWithSort("e")), new PageRequest(0, 1));
+
+		assertThat(result.getTotalElements(), is(2L));
+		assertThat(result.getNumberOfElements(), is(1));
+		assertThat(result.getContent().get(0), is(thirdUser));
+	}
+
 	private Page<User> executeSpecWithSort(Sort sort) {
 
 		flushTestUsers();

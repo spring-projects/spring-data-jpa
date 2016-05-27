@@ -33,6 +33,7 @@ import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Order;
 import javax.persistence.criteria.ParameterExpression;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
@@ -559,6 +560,9 @@ public class SimpleJpaRepository<T, ID extends Serializable> implements JpaRepos
 		} else {
 			query.select(builder.count(root));
 		}
+
+		// Remove all Orders the Specifications might have applied
+		query.orderBy(Collections.<Order> emptyList());
 
 		return em.createQuery(query);
 	}

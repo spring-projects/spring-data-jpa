@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 the original author or authors.
+ * Copyright 2008-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,6 +64,26 @@ public class UserSpecifications {
 			public Predicate toPredicate(Root<User> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
 
 				return cb.like(root.get("firstname").as(String.class), String.format("%%%s%%", expression));
+			}
+		};
+	}
+
+	/**
+	 * A {@link Specification} to do a like-match on a {@link User}'s lastname but also adding a sort order on the
+	 * firstname.
+	 * 
+	 * @param firstname
+	 * @return
+	 */
+	public static Specification<User> userHasLastnameLikeWithSort(final String expression) {
+
+		return new Specification<User>() {
+
+			public Predicate toPredicate(Root<User> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+
+				query.orderBy(cb.asc(root.get("firstname")));
+
+				return cb.like(root.get("lastname").as(String.class), String.format("%%%s%%", expression));
 			}
 		};
 	}
