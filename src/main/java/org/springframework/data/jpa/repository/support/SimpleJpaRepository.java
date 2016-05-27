@@ -403,7 +403,8 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	public Page<T> findAll(Specification<T> spec, Pageable pageable) {
 
 		TypedQuery<T> query = getQuery(spec, pageable);
-		return pageable == null ? new PageImpl<T>(query.getResultList()) : readPage(query, pageable, spec);
+		return pageable == null ? new PageImpl<T>(query.getResultList())
+				: readPage(query, getDomainClass(), pageable, spec);
 	}
 
 	/*
@@ -411,14 +412,13 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	 * @see org.springframework.data.jpa.repository.JpaSpecificationExecutor#findAll(org.springframework.data.jpa.domain.Specification, org.springframework.data.domain.Sort)
 	 */
 	public List<T> findAll(Specification<T> spec, Sort sort) {
-
 		return getQuery(spec, sort).getResultList();
 	}
 
-	/* (non-Javadoc)
+	/* 
+	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.query.QueryByExampleExecutor#findOne(org.springframework.data.domain.Example)
 	 */
-	@SuppressWarnings("unchecked")
 	@Override
 	public <S extends T> S findOne(Example<S> example) {
 		try {
@@ -428,16 +428,17 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 		}
 	}
 
-	/* (non-Javadoc)
+	/* 
+	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.query.QueryByExampleExecutor#count(org.springframework.data.domain.Example)
 	 */
 	@Override
-	@SuppressWarnings("unchecked")
 	public <S extends T> long count(Example<S> example) {
 		return executeCountQuery(getCountQuery(new ExampleSpecification<S>(example), example.getProbeType()));
 	}
 
-	/* (non-Javadoc)
+	/* 
+	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.query.QueryByExampleExecutor#exists(org.springframework.data.domain.Example)
 	 */
 	@Override
@@ -491,8 +492,7 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	 * @see org.springframework.data.jpa.repository.JpaSpecificationExecutor#count(org.springframework.data.jpa.domain.Specification)
 	 */
 	public long count(Specification<T> spec) {
-
-		return executeCountQuery(getCountQuery(spec));
+		return executeCountQuery(getCountQuery(spec, getDomainClass()));
 	}
 
 	/*
@@ -561,7 +561,9 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	 * @param spec can be {@literal null}.
 	 * @param pageable can be {@literal null}.
 	 * @return
+	 * @deprecated use {@link #readPage(TypedQuery, Class, Pageable, Specification)} instead
 	 */
+	@Deprecated
 	protected Page<T> readPage(TypedQuery<T> query, Pageable pageable, Specification<T> spec) {
 		return readPage(query, getDomainClass(), pageable, spec);
 	}
@@ -654,7 +656,9 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	 * 
 	 * @param spec can be {@literal null}.
 	 * @return
+	 * @deprecated override {@link #getCountQuery(Specification, Class)} instead
 	 */
+	@Deprecated
 	protected TypedQuery<Long> getCountQuery(Specification<T> spec) {
 		return getCountQuery(spec, getDomainClass());
 	}
