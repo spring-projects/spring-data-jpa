@@ -33,6 +33,7 @@ import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Order;
 import javax.persistence.criteria.ParameterExpression;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
@@ -678,19 +679,10 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 			query.select(builder.count(root));
 		}
 
+		// Remove all Orders the Specifications might have applied
+		query.orderBy(Collections.<Order> emptyList());
+
 		return em.createQuery(query);
-	}
-
-	/**
-	 * Applies the given {@link Specification} to the given {@link CriteriaQuery}.
-	 * 
-	 * @param spec can be {@literal null}.
-	 * @param query must not be {@literal null}.
-	 * @return
-	 */
-	private <S> Root<T> applySpecificationToCriteria(Specification<T> spec, CriteriaQuery<S> query) {
-		return applySpecificationToCriteria(spec, getDomainClass(), query);
-
 	}
 
 	/**
