@@ -322,6 +322,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
 ====
 Note that the method parameters are switched according to the occurrence in the query defined.
 
+[NOTE]
+====
+Spring 4 fully supports Java 8’s parameter name discovery based on the `-parameters` compiler flag. Using this flag in your build as an alternative to debug information, you can omit the `@Param` annotation for named parameters.
+====
+
 [[jpa.query.spel-expressions]]
 === Using SpEL expressions
 
