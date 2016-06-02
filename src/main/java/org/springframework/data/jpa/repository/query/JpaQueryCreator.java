@@ -67,16 +67,27 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extend
 
 		super(tree);
 
-		Class<?> typeToRead = type.getTypeToRead();
-
-		CriteriaQuery<? extends Object> criteriaQuery = typeToRead == null ? builder.createTupleQuery()
-				: builder.createQuery(typeToRead);
+		CriteriaQuery<? extends Object> criteriaQuery = createCriteriaQuery(builder, type);
 
 		this.builder = builder;
 		this.query = criteriaQuery.distinct(tree.isDistinct());
 		this.root = query.from(type.getDomainType());
 		this.provider = provider;
 		this.returnedType = type;
+	}
+
+	/**
+	 * Creates the {@link CriteriaQuery} to apply predicates on.
+	 * 
+	 * @param builder will never be {@literal null}.
+	 * @param type will never be {@literal null}.
+	 * @return must not be {@literal null}.
+	 */
+	protected CriteriaQuery<? extends Object> createCriteriaQuery(CriteriaBuilder builder, ReturnedType type) {
+
+		Class<?> typeToRead = type.getTypeToRead();
+
+		return typeToRead == null ? builder.createTupleQuery() : builder.createQuery(typeToRead);
 	}
 
 	/**
@@ -167,10 +178,6 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extend
 	 */
 	private Predicate toPredicate(Part part, Root<?> root) {
 		return new PredicateBuilder(part, root).build();
-	}
-
-	private <T> Expression<T> getTypedPath(Root<?> root, Part part) {
-		return toExpressionRecursively(root, part.getProperty());
 	}
 
 	/**
