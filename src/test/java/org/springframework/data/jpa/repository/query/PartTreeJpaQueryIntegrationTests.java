@@ -33,7 +33,6 @@ import javax.persistence.Query;
 import javax.persistence.TemporalType;
 
 import org.hibernate.Version;
-import org.hibernate.ejb.HibernateQuery;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -42,6 +41,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.sample.User;
+import org.springframework.data.jpa.provider.HibernateUtils;
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.repository.Temporal;
 import org.springframework.data.repository.Repository;
@@ -110,18 +110,17 @@ public class PartTreeJpaQueryIntegrationTests {
 
 		Query query = jpaQuery.createQuery(new Object[] { "Matthews", new PageRequest(0, 1) });
 
-		HibernateQuery hibernateQuery = getValue(query, PROPERTY);
-		assertThat(hibernateQuery.getHibernateQuery().getQueryString(), endsWith("firstname=:param0"));
+		assertThat(HibernateUtils.getHibernateQuery(getValue(query, PROPERTY)), endsWith("firstname=:param0"));
 
 		query = jpaQuery.createQuery(new Object[] { null, new PageRequest(0, 1) });
 
-		hibernateQuery = getValue(query, PROPERTY);
-		assertThat(hibernateQuery.getHibernateQuery().getQueryString(), endsWith("firstname is null"));
+		assertThat(HibernateUtils.getHibernateQuery(getValue(query, PROPERTY)), endsWith("firstname is null"));
 	}
 
 	private void testIgnoreCase(String methodName, Object... values) throws Exception {
 
 		Class<?>[] parameterTypes = new Class[values.length];
+
 		for (int i = 0; i < values.length; i++) {
 			parameterTypes[i] = values[i].getClass();
 		}
