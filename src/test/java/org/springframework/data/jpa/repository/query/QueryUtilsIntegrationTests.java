@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,13 +39,13 @@ import javax.persistence.spi.PersistenceProvider;
 import javax.persistence.spi.PersistenceProviderResolver;
 import javax.persistence.spi.PersistenceProviderResolverHolder;
 
-import org.hibernate.ejb.HibernatePersistence;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.data.jpa.domain.sample.Category;
 import org.springframework.data.jpa.domain.sample.Order;
 import org.springframework.data.jpa.domain.sample.User;
+import org.springframework.data.jpa.infrastructure.HibernateTestUtils;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -191,16 +191,16 @@ public class QueryUtilsIntegrationTests {
 	}
 
 	/**
-	 * A {@link PersistenceProviderResolver} that returns only {@link HibernatePersistence} and ignores other
-	 * {@link PersistenceProvider}s.
+	 * A {@link PersistenceProviderResolver} that returns only a Hibernate {@link PersistenceProvider} and ignores others.
 	 * 
 	 * @author Thomas Darimont
+	 * @author Oliver Gierke
 	 */
 	static class HibernateOnlyPersistenceProviderResolver implements PersistenceProviderResolver {
 
 		@Override
 		public List<PersistenceProvider> getPersistenceProviders() {
-			return Arrays.<PersistenceProvider> asList(new HibernatePersistence());
+			return Arrays.asList(HibernateTestUtils.getPersistenceProvider());
 		}
 
 		@Override

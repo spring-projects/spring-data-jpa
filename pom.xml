@@ -23,6 +23,7 @@
 
 		<eclipselink>2.6.2</eclipselink>
 		<hibernate>3.6.10.Final</hibernate>
+		<hibernate.artifact>hibernate-entitymanager</hibernate.artifact>
 		<hsqldb1>1.8.0.10</hsqldb1>
 		<jpa>2.0.0</jpa>
 		<openjpa>2.4.1</openjpa>
@@ -110,6 +111,13 @@
 					<url>https://repository.jboss.org/nexus/content/repositories/public</url>
 				</repository>
 			</repositories>
+		</profile>
+		<profile>
+			<id>hibernate-52</id>
+			<properties>
+				<hibernate>5.2.0.Final</hibernate>
+				<hibernate.artifact>hibernate-core</hibernate.artifact>
+			</properties>
 		</profile>
 		<profile>
 			<id>eclipselink-next</id>
@@ -250,7 +258,7 @@
 
 		<dependency>
 			<groupId>org.hibernate</groupId>
-			<artifactId>hibernate-entitymanager</artifactId>
+			<artifactId>${hibernate.artifact}</artifactId>
 			<version>${hibernate}</version>
 			<optional>true</optional>
 		</dependency>
