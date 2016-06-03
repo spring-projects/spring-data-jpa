@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2015 the original author or authors.
+ * Copyright 2011-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,6 @@ import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 
-import org.hibernate.ejb.HibernateEntityManager;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -117,7 +116,7 @@ public class CrudMethodMetadataUnitTests {
 	@Test
 	public void appliesLockModeAndQueryHintsToQuerydslQuery() {
 
-		when(em.getDelegate()).thenReturn(mock(HibernateEntityManager.class));
+		when(em.getDelegate()).thenReturn(mock(EntityManager.class));
 		when(em.createQuery(anyString())).thenReturn(query);
 
 		repository.findOne(QRole.role.name.eq("role"));

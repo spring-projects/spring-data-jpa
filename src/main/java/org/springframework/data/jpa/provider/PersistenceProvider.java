@@ -39,7 +39,6 @@ import org.eclipse.persistence.jpa.JpaQuery;
 import org.eclipse.persistence.queries.ScrollableCursor;
 import org.hibernate.ScrollMode;
 import org.hibernate.ScrollableResults;
-import org.hibernate.ejb.HibernateQuery;
 import org.hibernate.proxy.HibernateProxy;
 import org.springframework.data.util.CloseableIterator;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -67,7 +66,7 @@ public enum PersistenceProvider implements QueryExtractor,ProxyIdAccessor {
 			Arrays.asList(HIBERNATE43_JPA_METAMODEL_TYPE, HIBERNATE_JPA_METAMODEL_TYPE)) {
 
 		public String extractQueryString(Query query) {
-			return ((HibernateQuery) query).getHibernateQuery().getQueryString();
+			return HibernateUtils.getHibernateQuery(query);
 		}
 
 		/**

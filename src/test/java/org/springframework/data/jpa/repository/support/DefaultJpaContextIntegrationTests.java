@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ import java.util.HashSet;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 
-import org.hibernate.ejb.HibernatePersistence;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -40,6 +39,7 @@ import org.springframework.context.annotation.FilterType;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.jpa.domain.sample.Category;
 import org.springframework.data.jpa.domain.sample.User;
+import org.springframework.data.jpa.infrastructure.HibernateTestUtils;
 import org.springframework.data.jpa.repository.JpaContext;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
@@ -147,7 +147,7 @@ public class DefaultJpaContextIntegrationTests {
 			String persistenceUnitName) {
 
 		LocalContainerEntityManagerFactoryBean factoryBean = new LocalContainerEntityManagerFactoryBean();
-		factoryBean.setPersistenceProvider(new HibernatePersistence());
+		factoryBean.setPersistenceProvider(HibernateTestUtils.getPersistenceProvider());
 		factoryBean.setDataSource(new EmbeddedDatabaseBuilder().setType(EmbeddedDatabaseType.HSQL).build());
 		factoryBean.setPersistenceUnitName(persistenceUnitName);
 
