@@ -81,6 +81,7 @@ public abstract class QueryUtils {
 	private static final Pattern ALIAS_MATCH;
 	private static final Pattern COUNT_MATCH;
 
+	private static final Pattern NO_DIGITS = Pattern.compile("\\D+");
 	private static final String IDENTIFIER = "[\\p{Lu}\\P{InBASIC_LATIN}\\p{Alnum}._$]+";
 	private static final String IDENTIFIER_GROUP = String.format("(%s)", IDENTIFIER);
 
@@ -386,7 +387,11 @@ public abstract class QueryUtils {
 	public static boolean hasNamedParameter(Query query) {
 
 		for (Parameter<?> parameter : query.getParameters()) {
-			if (parameter.getName() != null) {
+
+			String name = parameter.getName();
+
+			// Hibernate 3 specific hack as it returns the index as String for the name.
+			if (name != null && NO_DIGITS.matcher(name).find()) {
 				return true;
 			}
 		}

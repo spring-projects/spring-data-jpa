@@ -18,6 +18,7 @@ package org.springframework.data.jpa.provider;
 import static org.springframework.data.jpa.provider.JpaClassUtils.*;
 import static org.springframework.data.jpa.provider.PersistenceProvider.Constants.*;
 
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -43,7 +44,9 @@ import org.hibernate.proxy.HibernateProxy;
 import org.springframework.data.util.CloseableIterator;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.ConcurrentReferenceHashMap;
+import org.springframework.util.ReflectionUtils;
 
 /**
  * Enumeration representing persistence providers to be used.
@@ -401,6 +404,11 @@ public enum PersistenceProvider implements QueryExtractor,ProxyIdAccessor {
 	 */
 	private static class HibernateScrollableResultsIterator implements CloseableIterator<Object> {
 
+		private static final Method READ_ONLY_METHOD = ClassUtils.getMethod(org.hibernate.Query.class, "setReadOnly",
+				boolean.class);
+		private static final Method SCROLL_METHOD = ClassUtils.getMethod(READ_ONLY_METHOD.getReturnType(), "scroll",
+				ScrollMode.class);
+
 		private final ScrollableResults scrollableResults;
 
 		/**
@@ -411,9 +419,18 @@ public enum PersistenceProvider implements QueryExtractor,ProxyIdAccessor {
 		public HibernateScrollableResultsIterator(Query jpaQuery) {
 
 			org.hibernate.Query query = jpaQuery.unwrap(org.hibernate.Query.class);
+			boolean isReadOnly = TransactionSynchronizationManager.isCurrentTransactionReadOnly();
 
-			this.scrollableResults = query.setReadOnly(TransactionSynchronizationManager.isCurrentTransactionReadOnly())
-					.scroll(ScrollMode.FORWARD_ONLY);
+			if (READ_ONLY_METHOD.getReturnType().equals(org.hibernate.Query.class)) {
+
+				this.scrollableResults = query.setReadOnly(isReadOnly).scroll(ScrollMode.FORWARD_ONLY);
+
+			} else {
+
+				Object intermediate = ReflectionUtils.invokeMethod(READ_ONLY_METHOD, jpaQuery, isReadOnly);
+				this.scrollableResults = (ScrollableResults) ReflectionUtils.invokeMethod(SCROLL_METHOD, intermediate,
+						ScrollMode.FORWARD_ONLY);
+			}
 		}
 
 		/*
