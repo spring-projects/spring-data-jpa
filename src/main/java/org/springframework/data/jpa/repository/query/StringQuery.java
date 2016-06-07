@@ -146,6 +146,15 @@ class StringQuery {
 	}
 
 	/**
+	 * Returns whether the query uses the default projection, i.e. returns the main alias defined for the query.
+	 * 
+	 * @return
+	 */
+	public boolean isDefaultProjection() {
+		return QueryUtils.getProjection(query).equals(alias);
+	}
+
+	/**
 	 * A parser that extracts the parameter bindings from a given query string.
 	 * 
 	 * @author Thomas Darimont

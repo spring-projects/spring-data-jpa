@@ -131,7 +131,7 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 
 		EntityManager em = getEntityManager();
 
-		if (this.query.hasConstructorExpression()) {
+		if (this.query.hasConstructorExpression() || this.query.isDefaultProjection()) {
 			return em.createQuery(queryString);
 		}
 

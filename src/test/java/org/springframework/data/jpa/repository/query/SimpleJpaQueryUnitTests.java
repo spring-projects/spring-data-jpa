@@ -21,10 +21,12 @@ import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 import java.lang.reflect.Method;
+import java.util.Collection;
 import java.util.List;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.Tuple;
 import javax.persistence.TypedQuery;
 
 import org.junit.Before;
@@ -223,7 +225,23 @@ public class SimpleJpaQueryUnitTests {
 
 		jpaQuery.doCreateCountQuery(new Object[] { new PageRequest(0, 10) });
 
-		verify(em, times(1)).createNativeQuery(anyString());
+		verify(em).createNativeQuery(anyString());
+	}
+
+	/**
+	 * @see DATAJPA-885
+	 */
+	@Test
+	public void projectsWithManuallyDeclaredQuery() throws Exception {
+
+		AbstractJpaQuery jpaQuery = createJpaQuery(SampleRepository.class.getMethod("projectWithExplicitQuery"));
+
+		jpaQuery.createQuery(new Object[0]);
+
+		verify(em, times(0)).createQuery(anyString(), eq(Tuple.class));
+
+		// Two times, first one is from the query validation
+		verify(em, times(2)).createQuery(anyString());
 	}
 
 	private AbstractJpaQuery createJpaQuery(Method method) {
@@ -248,5 +266,10 @@ public class SimpleJpaQueryUnitTests {
 
 		@Query(USER_QUERY)
 		Page<User> pageByAnnotatedQuery(Pageable pageable);
+
+		@Query("select u from User u")
+		Collection<UserProjection> projectWithExplicitQuery();
 	}
+
+	interface UserProjection {}
 }
