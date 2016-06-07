@@ -80,6 +80,7 @@ public abstract class QueryUtils {
 
 	private static final Pattern ALIAS_MATCH;
 	private static final Pattern COUNT_MATCH;
+	private static final Pattern PROJECTION_CLAUSE = Pattern.compile("select\\s+(.+)\\s+from");
 
 	private static final Pattern NO_DIGITS = Pattern.compile("\\D+");
 	private static final String IDENTIFIER = "[\\p{Lu}\\P{InBASIC_LATIN}\\p{Alnum}._$]+";
@@ -462,6 +463,21 @@ public abstract class QueryUtils {
 		Assert.hasText(query, "Query must not be null or empty!");
 
 		return CONSTRUCTOR_EXPRESSION.matcher(query).find();
+	}
+
+	/**
+	 * Returns the projection part of the query, i.e. everything between {@code select} and {@code from}.
+	 * 
+	 * @param query must not be {@literal null} or empty.
+	 * @return
+	 * @since 1.10.2
+	 */
+	public static String getProjection(String query) {
+
+		Assert.hasText(query, "Query must not be null or empty!");
+
+		Matcher matcher = PROJECTION_CLAUSE.matcher(query);
+		return matcher.find() ? matcher.group(1) : "";
 	}
 
 	/**
