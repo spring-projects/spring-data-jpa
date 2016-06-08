@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2015 the original author or authors.
+ * Copyright 2013-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package org.springframework.data.jpa.mapping;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 import java.util.Collections;
 
@@ -28,6 +29,7 @@ import javax.persistence.Embedded;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.Transient;
+import javax.persistence.metamodel.ManagedType;
 import javax.persistence.metamodel.Metamodel;
 
 import org.junit.Before;
@@ -182,6 +184,18 @@ public class JpaPersistentPropertyImplUnitTests {
 	public void considersNonUpdateablePropertyNotWriteable() {
 		assertThat(getProperty(WithReadOnly.class, "name").isWritable(), is(false));
 		assertThat(getProperty(WithReadOnly.class, "updatable").isWritable(), is(true));
+	}
+
+	/**
+	 * @see DATAJPA-904
+	 */
+	@Test
+	public void isEntityWorksEvenWithManagedTypeWithNullJavaType() {
+
+		ManagedType<?> managedType = mock(ManagedType.class);
+		doReturn(Collections.singleton(managedType)).when(model).getManagedTypes();
+
+		assertThat(getProperty(Sample.class, "other").isEntity(), is(false));
 	}
 
 	private JpaPersistentProperty getProperty(Class<?> ownerType, String propertyName) {
