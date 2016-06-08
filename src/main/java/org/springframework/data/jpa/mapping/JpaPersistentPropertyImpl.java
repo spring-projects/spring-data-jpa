@@ -88,10 +88,10 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 		UPDATEABLE_ANNOTATIONS = Collections.unmodifiableSet(annotations);
 	}
 
-	private final Metamodel metamodel;
 	private final Boolean usePropertyAccess;
 	private final TypeInformation<?> associationTargetType;
 	private final boolean updateable;
+	private final Set<Class<?>> managedTypes;
 
 	/**
 	 * Creates a new {@link JpaPersistentPropertyImpl}
@@ -109,10 +109,10 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 
 		Assert.notNull(metamodel, "Metamodel must not be null!");
 
-		this.metamodel = metamodel;
 		this.usePropertyAccess = detectPropertyAccess();
 		this.associationTargetType = isAssociation() ? detectAssociationTargetType() : null;
 		this.updateable = detectUpdatability();
+		this.managedTypes = getManagedTypes(metamodel);
 	}
 
 	/* 
@@ -156,14 +156,7 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 	 */
 	@Override
 	public boolean isEntity() {
-
-		for (ManagedType<?> type : metamodel.getManagedTypes()) {
-			if (type.getJavaType().equals(getActualType())) {
-				return true;
-			}
-		}
-
-		return false;
+		return managedTypes.contains(getActualType());
 	}
 
 	/* 
@@ -302,5 +295,28 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 		}
 
 		return true;
+	}
+
+	/**
+	 * Returns all types managed by the given {@link Metamodel}.
+	 * 
+	 * @param metamodel must not be {@literal null}.
+	 * @return
+	 */
+	private static Set<Class<?>> getManagedTypes(Metamodel metamodel) {
+
+		Set<ManagedType<?>> managedTypes = metamodel.getManagedTypes();
+		Set<Class<?>> types = new HashSet<Class<?>>(managedTypes.size());
+
+		for (ManagedType<?> managedType : metamodel.getManagedTypes()) {
+
+			Class<?> type = managedType.getJavaType();
+
+			if (type != null) {
+				types.add(type);
+			}
+		}
+
+		return Collections.unmodifiableSet(types);
 	}
 }
