@@ -7,6 +7,7 @@ env:
   matrix:
     - PROFILE=ci
     - PROFILE=spring42-next
+    - PROFILE=spring43
     - PROFILE=spring43-next
     - PROFILE=hibernate-41
     - PROFILE=hibernate-42
@@ -14,9 +15,10 @@ env:
     - PROFILE=hibernate-43
     - PROFILE=hibernate-43-next
     - PROFILE=hibernate-5
-    - PROFILE=hibernate-5-next
     - PROFILE=hibernate-51
     - PROFILE=hibernate-51-next
+    - PROFILE=hibernate-52
+    - PROFILE=hibernate-52-next
     - PROFILE=eclipselink-next
     - PROFILE=eclipselink-27-next
     - PROFILE=querydsl-next
