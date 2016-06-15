@@ -1,6 +1,19 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 1.10.2.RELEASE (2016-06-15)
+----------------------------------------------
+* DATAJPA-909 - Count query breaks if pagination is used with projections.
+* DATAJPA-908 - Add note about when @Param is needed for named parameters.
+* DATAJPA-904 - Potential NullPointerException in JpaPersistentPropertyImpl.isEntity().
+* DATAJPA-903 - Stream<Object[]> missing result attributes on Hibernate.
+* DATAJPA-891 - Avoid exceptions being thrown and caught immediately in JpaPersistentPropertyImpl.isEntity().
+* DATAJPA-888 - Clarify usage of native queries with Pageable.
+* DATAJPA-886 - NullPointerException for repository query methods using DTOs.
+* DATAJPA-885 - No aliases found in result tuple.
+* DATAJPA-884 - Release 1.10.2 (Hopper SR2).
+
+
 Changes in version 1.10.1.RELEASE (2016-04-06)
 ----------------------------------------------
 * DATAJPA-883 - Auditing broken in Hopper GA.
