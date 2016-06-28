@@ -56,6 +56,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * Integration tests for {@link PartTreeJpaQuery}.
  * 
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("classpath:infrastructure.xml")
@@ -120,6 +121,34 @@ public class PartTreeJpaQueryIntegrationTests {
 		assertThat(HibernateUtils.getHibernateQuery(getValue(query, PROPERTY)), endsWith("firstname is null"));
 	}
 
+	/**
+	 * @see DATAJPA-920
+	 */
+	@Test
+	public void shouldLimitExistsProjectionQueries() throws Exception {
+
+		JpaQueryMethod queryMethod = getQueryMethod("existsByFirstname", String.class);
+		PartTreeJpaQuery jpaQuery = new PartTreeJpaQuery(queryMethod, entityManager, provider);
+
+		Query query = jpaQuery.createQuery(new Object[]{"Matthews"});
+
+		assertThat(query.getMaxResults(), is(1));
+	}
+
+	/**
+	 * @see DATAJPA-920
+	 */
+	@Test
+	public void shouldSelectAliasedIdForExistsProjectionQueries() throws Exception {
+
+		JpaQueryMethod queryMethod = getQueryMethod("existsByFirstname", String.class);
+		PartTreeJpaQuery jpaQuery = new PartTreeJpaQuery(queryMethod, entityManager, provider);
+
+		Query query = jpaQuery.createQuery(new Object[]{"Matthews"});
+
+		assertThat(HibernateUtils.getHibernateQuery(getValue(query, PROPERTY)), containsString(".id from User as"));
+	}
+
 	private void testIgnoreCase(String methodName, Object... values) throws Exception {
 
 		Class<?>[] parameterTypes = new Class[values.length];
@@ -172,6 +201,8 @@ public class PartTreeJpaQueryIntegrationTests {
 		User findByIdIgnoringCase(Integer id);
 
 		User findByIdAllIgnoringCase(Integer id);
+
+		boolean existsByFirstname(String firstname);
 
 		List<User> findByCreatedAtAfter(@Temporal(TemporalType.TIMESTAMP) @Param("refDate") Date refDate);
 	}

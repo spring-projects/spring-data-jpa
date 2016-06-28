@@ -283,6 +283,11 @@ public interface UserRepository
 	int countUsersByFirstname(String firstname);
 
 	/**
+	 * @see DATAJPA-920
+	 */
+	boolean existsByLastname(String lastname);
+
+	/**
 	 * @see DATAJPA-391
 	 */
 	@Query("select u.firstname from User u where u.lastname = ?1")

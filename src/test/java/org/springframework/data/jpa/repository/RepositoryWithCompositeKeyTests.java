@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,8 +46,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests some usage variants of composite keys with spring data jpa.
- * 
+ *
  * @author Thomas Darimont
+ * @author Mark Paluch
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = SampleConfig.class)
@@ -300,5 +301,50 @@ public class RepositoryWithCompositeKeyTests {
 		List<IdClassExampleEmployee> result = employeeRepositoryWithIdClass.findAll(Arrays.asList(emp1PK, emp2PK));
 
 		assertThat(result, hasSize(2));
+	}
+
+	/**
+	 * @see DATAJPA-920
+	 */
+	@Test
+	public void shouldExecuteExistsQueryForEntitiesWithEmbeddedId() {
+
+		EmbeddedIdExampleDepartment dep1 = new EmbeddedIdExampleDepartment();
+		dep1.setDepartmentId(1L);
+		dep1.setName("Dep1");
+
+		EmbeddedIdExampleEmployeePK key = new EmbeddedIdExampleEmployeePK();
+		key.setDepartmentId(1L);
+		key.setEmployeeId(1L);
+
+		EmbeddedIdExampleEmployee emp = new EmbeddedIdExampleEmployee();
+		emp.setDepartment(dep1);
+		emp.setEmployeePk(key);
+		emp.setName("White");
+
+		employeeRepositoryWithEmbeddedId.save(emp);
+
+		assertThat(employeeRepositoryWithEmbeddedId.existsByName(emp.getName()), is(true));
+	}
+
+	/**
+	 * @see DATAJPA-920
+	 */
+	@Test
+	public void shouldExecuteExistsQueryForEntitiesWithCompoundIdClassKeys() {
+
+		IdClassExampleDepartment dep2 = new IdClassExampleDepartment();
+		dep2.setDepartmentId(2L);
+		dep2.setName("Dep2");
+
+		IdClassExampleEmployee emp1 = new IdClassExampleEmployee();
+		emp1.setEmpId(3L);
+		emp1.setDepartment(dep2);
+		emp1.setName("White");
+
+		employeeRepositoryWithIdClass.save(emp1);
+
+		assertThat(employeeRepositoryWithIdClass.existsByName(emp1.getName()), is(true));
+		assertThat(employeeRepositoryWithIdClass.existsByName("Walter"), is(false));
 	}
 }

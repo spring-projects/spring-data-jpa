@@ -26,6 +26,7 @@ import javax.persistence.criteria.CriteriaQuery;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.DeleteExecution;
+import org.springframework.data.jpa.repository.query.JpaQueryExecution.ExistsExecution;
 import org.springframework.data.jpa.repository.query.ParameterMetadataProvider.ParameterMetadata;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.ResultProcessor;
@@ -94,7 +95,14 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 	 */
 	@Override
 	protected JpaQueryExecution getExecution() {
-		return this.tree.isDelete() ? new DeleteExecution(em) : super.getExecution();
+
+		if(this.tree.isDelete()) {
+			return new DeleteExecution(em);
+		} else if(this.tree.isExistsProjection()) {
+			return new ExistsExecution();
+		}
+
+		return super.getExecution();
 	}
 
 	/**
@@ -166,6 +174,10 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 				}
 
 				query.setMaxResults(tree.getMaxResults());
+			}
+
+			if(tree.isExistsProjection()) {
+				query.setMaxResults(1);
 			}
 
 			return query;
