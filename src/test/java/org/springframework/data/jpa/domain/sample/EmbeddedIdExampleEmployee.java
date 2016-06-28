@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2104 the original author or authors.
+ * Copyright 2013-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import javax.persistence.MapsId;
 
 /**
  * @author Thomas Darimont
+ * @author Mark Paluch
  */
 @Entity
 public class EmbeddedIdExampleEmployee {
@@ -32,6 +33,8 @@ public class EmbeddedIdExampleEmployee {
 	@MapsId("departmentId")//
 	@ManyToOne(cascade = CascadeType.ALL)//
 	EmbeddedIdExampleDepartment department;
+
+	String name;
 
 	public EmbeddedIdExampleEmployeePK getEmployeePk() {
 		return employeePk;
@@ -47,5 +50,13 @@ public class EmbeddedIdExampleEmployee {
 
 	public void setDepartment(EmbeddedIdExampleDepartment department) {
 		this.department = department;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
 	}
 }
