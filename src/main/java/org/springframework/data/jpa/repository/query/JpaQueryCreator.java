@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2015 the original author or authors.
+ * Copyright 2008-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import static org.springframework.data.jpa.domain.AbstractPersistable_.*;
 import static org.springframework.data.jpa.repository.query.QueryUtils.*;
 import static org.springframework.data.repository.query.parser.Part.Type.*;
 
@@ -22,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -31,6 +33,7 @@ import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Selection;
+import javax.persistence.metamodel.SingularAttribute;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.query.ParameterMetadataProvider.ParameterMetadata;
@@ -46,6 +49,7 @@ import org.springframework.util.Assert;
  * Query creator to create a {@link CriteriaQuery} from a {@link PartTree}.
  * 
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extends Object>, Predicate> {
 
@@ -54,6 +58,7 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extend
 	private final CriteriaQuery<? extends Object> query;
 	private final ParameterMetadataProvider provider;
 	private final ReturnedType returnedType;
+	private final PartTree tree;
 
 	/**
 	 * Create a new {@link JpaQueryCreator}.
@@ -67,6 +72,7 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extend
 			ParameterMetadataProvider provider) {
 
 		super(tree);
+		this.tree = tree;
 
 		CriteriaQuery<? extends Object> criteriaQuery = createCriteriaQuery(builder, type);
 
@@ -88,7 +94,7 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extend
 
 		Class<?> typeToRead = type.getTypeToRead();
 
-		return typeToRead == null ? builder.createTupleQuery() : builder.createQuery(typeToRead);
+		return (typeToRead == null || tree.isExistsProjection()) ? builder.createTupleQuery() : builder.createQuery(typeToRead);
 	}
 
 	/**
@@ -163,6 +169,24 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extend
 			}
 
 			query = query.multiselect(selections);
+		} else if (tree.isExistsProjection()) {
+
+			if (root.getModel().hasSingleIdAttribute()) {
+
+				SingularAttribute<?, ?> id = root.getModel().getId(root.getModel().getIdType().getJavaType());
+				query = query.multiselect(root.get((SingularAttribute) id).alias(id.getName()));
+			} else {
+
+				List<Selection<?>> selections = new ArrayList<Selection<?>>();
+
+				Set<SingularAttribute<?, ?>> idClassAttributes = (Set<SingularAttribute<?, ?>>) root.getModel().getIdClassAttributes();
+
+				for (SingularAttribute<?, ?> attribute : idClassAttributes) {
+					selections.add(root.get((SingularAttribute) attribute).alias(attribute.getName()));
+				}
+				selections.add(root.get((SingularAttribute) id).alias(id.getName()));
+				query = query.multiselect(selections);
+			}
 		} else {
 			query = query.select((Root) root);
 		}
@@ -173,7 +197,7 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extend
 
 	/**
 	 * Creates a {@link Predicate} from the given {@link Part}.
-	 * 
+	 *
 	 * @param part
 	 * @param root
 	 * @param iterator
