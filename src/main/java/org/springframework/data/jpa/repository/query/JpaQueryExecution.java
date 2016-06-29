@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2015 the original author or authors.
+ * Copyright 2008-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 package org.springframework.data.jpa.repository.query;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -27,7 +26,6 @@ import javax.persistence.StoredProcedureQuery;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.ConfigurableConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
@@ -35,6 +33,8 @@ import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
+import org.springframework.data.repository.support.PageableExecutionUtils;
+import org.springframework.data.repository.support.PageableExecutionUtils.TotalSupplier;
 import org.springframework.data.util.CloseableIterator;
 import org.springframework.data.util.StreamUtils;
 import org.springframework.util.Assert;
@@ -46,6 +46,7 @@ import org.springframework.util.Assert;
  * 
  * @author Oliver Gierke
  * @author Thomas Darimont
+ * @author Mark Paluch
  */
 public abstract class JpaQueryExecution {
 
@@ -171,27 +172,20 @@ public abstract class JpaQueryExecution {
 
 		@Override
 		@SuppressWarnings("unchecked")
-		protected Object doExecute(AbstractJpaQuery repositoryQuery, Object[] values) {
-
-			// Execute query to compute total
-			Query projection = repositoryQuery.createCountQuery(values);
-
-			List<?> totals = projection.getResultList();
-			Long total = totals.size() == 1 ? CONVERSION_SERVICE.convert(totals.get(0), Long.class) : totals.size();
+		protected Object doExecute(final AbstractJpaQuery repositoryQuery, final Object[] values) {
 
 			ParameterAccessor accessor = new ParametersParameterAccessor(parameters, values);
-			Pageable pageable = accessor.getPageable();
-
-			if (total.equals(0L)) {
-				return new PageImpl<Object>(Collections.emptyList(), pageable, total);
-			}
-
 			Query query = repositoryQuery.createQuery(values);
 
-			List<Object> content = pageable == null || total > pageable.getOffset() ? query.getResultList()
-					: Collections.emptyList();
+			return PageableExecutionUtils.getPage(query.getResultList(), accessor.getPageable(), new TotalSupplier() {
 
-			return new PageImpl<Object>(content, pageable, total);
+				@Override
+				public long get() {
+
+					List<?> totals = repositoryQuery.createCountQuery(values).getResultList();
+					return (totals.size() == 1 ? CONVERSION_SERVICE.convert(totals.get(0), Long.class) : totals.size());
+				}
+			});
 		}
 	}
 

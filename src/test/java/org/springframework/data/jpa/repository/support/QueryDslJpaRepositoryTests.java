@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2015 the original author or authors.
+ * Copyright 2008-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,6 +53,7 @@ import com.querydsl.core.types.dsl.PathBuilderFactory;
  * 
  * @author Oliver Gierke
  * @author Thomas Darimont
+ * @author Mark Paluch
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({ "classpath:infrastructure.xml" })
@@ -358,5 +359,35 @@ public class QueryDslJpaRepositoryTests {
 	@Test
 	public void worksWithNullPageable() {
 		assertThat(repository.findAll(user.dateOfBirth.isNull(), (Pageable) null).getContent(), hasSize(3));
+	}
+
+	/**
+	 * @see DATAJPA-912
+	 */
+	@Test
+	public void pageableQueryReportsTotalFromResult() {
+
+		Page<User> firstPage = repository.findAll(user.dateOfBirth.isNull(), new PageRequest(0, 10));
+		assertThat(firstPage.getContent(), hasSize(3));
+		assertThat(firstPage.getTotalElements(), is(3L));
+
+		Page<User> secondPage = repository.findAll(user.dateOfBirth.isNull(), new PageRequest(1, 2));
+		assertThat(secondPage.getContent(), hasSize(1));
+		assertThat(secondPage.getTotalElements(), is(3L));
+	}
+
+	/**
+	 * @see DATAJPA-912
+	 */
+	@Test
+	public void pageableQueryReportsTotalFromCount() {
+
+		Page<User> firstPage = repository.findAll(user.dateOfBirth.isNull(), new PageRequest(0, 3));
+		assertThat(firstPage.getContent(), hasSize(3));
+		assertThat(firstPage.getTotalElements(), is(3L));
+
+		Page<User> secondPage = repository.findAll(user.dateOfBirth.isNull(), new PageRequest(10, 10));
+		assertThat(secondPage.getContent(), hasSize(0));
+		assertThat(secondPage.getTotalElements(), is(3L));
 	}
 }

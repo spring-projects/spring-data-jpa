@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2015 the original author or authors.
+ * Copyright 2011-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,11 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import static java.util.Collections.singletonMap;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static java.util.Collections.*;
+import static org.mockito.Mockito.*;
 
 import java.io.Serializable;
+import java.util.Arrays;
 
 import javax.persistence.EntityGraph;
 import javax.persistence.EntityManager;
@@ -44,6 +43,7 @@ import org.springframework.data.repository.CrudRepository;
  * 
  * @author Oliver Gierke
  * @author Thomas Darimont
+ * @author Mark Paluch
  */
 @RunWith(MockitoJUnitRunner.class)
 public class SimpleJpaRepositoryUnitTests {
@@ -81,14 +81,41 @@ public class SimpleJpaRepositoryUnitTests {
 
 	/**
 	 * @see DATAJPA-124
+	 * @see DATAJPA-912
 	 */
 	@Test
-	public void doesNotActuallyRetrieveObjectsForPageableOutOfRange() {
+	public void retrieveObjectsForPageableOutOfRange() {
 
 		when(countQuery.getSingleResult()).thenReturn(20L);
 		repo.findAll(new PageRequest(2, 10));
 
-		verify(query, times(0)).getResultList();
+		verify(query).getResultList();
+	}
+
+	/**
+	 * @see DATAJPA-912
+	 */
+	@Test
+	public void doesNotRetrieveCountWithoutOffsetAndResultsWithinPageSize() {
+
+		when(query.getResultList()).thenReturn(Arrays.asList(new User(), new User()));
+
+		repo.findAll(new PageRequest(0, 10));
+
+		verify(countQuery, never()).getSingleResult();
+	}
+
+	/**
+	 * @see DATAJPA-912
+	 */
+	@Test
+	public void doesNotRetrieveCountWithOffsetAndResultsWithinPageSize() {
+
+		when(query.getResultList()).thenReturn(Arrays.asList(new User(), new User()));
+
+		repo.findAll(new PageRequest(2, 10));
+
+		verify(countQuery, never()).getSingleResult();
 	}
 
 	/**
@@ -106,7 +133,7 @@ public class SimpleJpaRepositoryUnitTests {
 	 */
 	@Test
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public void shouldPropagateConfiguredEntityGraphToFindOne() throws Exception{
+	public void shouldPropagateConfiguredEntityGraphToFindOne() throws Exception {
 
 		String entityGraphName = "User.detail";
 		when(entityGraphAnnotation.value()).thenReturn(entityGraphName);
@@ -115,7 +142,7 @@ public class SimpleJpaRepositoryUnitTests {
 		when(em.getEntityGraph(entityGraphName)).thenReturn((EntityGraph) entityGraph);
 		when(information.getEntityName()).thenReturn("User");
 		when(metadata.getMethod()).thenReturn(CrudRepository.class.getMethod("findOne", Serializable.class));
-		
+
 		Integer id = 0;
 		repo.findOne(id);
 

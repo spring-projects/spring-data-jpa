@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2015 the original author or authors.
+ * Copyright 2008-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 package org.springframework.data.jpa.repository.support;
 
 import java.io.Serializable;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
 
@@ -24,13 +23,14 @@ import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.querydsl.EntityPathResolver;
 import org.springframework.data.querydsl.QSort;
 import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 import org.springframework.data.querydsl.SimpleEntityPathResolver;
+import org.springframework.data.repository.support.PageableExecutionUtils;
+import org.springframework.data.repository.support.PageableExecutionUtils.TotalSupplier;
 
 import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.OrderSpecifier;
@@ -45,6 +45,7 @@ import com.querydsl.jpa.impl.AbstractJPAQuery;
  * 
  * @author Oliver Gierke
  * @author Thomas Darimont
+ * @author Mark Paluch
  */
 public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpaRepository<T, ID>
 		implements QueryDslPredicateExecutor<T> {
@@ -136,13 +137,16 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 	@Override
 	public Page<T> findAll(Predicate predicate, Pageable pageable) {
 
-		JPQLQuery<?> countQuery = createQuery(predicate);
+		final JPQLQuery<?> countQuery = createQuery(predicate);
 		JPQLQuery<T> query = querydsl.applyPagination(pageable, createQuery(predicate).select(path));
 
-		long total = countQuery.fetchCount();
-		List<T> content = pageable == null || total > pageable.getOffset() ? query.fetch() : Collections.<T> emptyList();
+		return PageableExecutionUtils.getPage(query.fetch(), pageable, new TotalSupplier() {
 
-		return new PageImpl<T>(content, pageable, total);
+			@Override
+			public long get() {
+				return countQuery.fetchCount();
+			}
+		});
 	}
 
 	/*
