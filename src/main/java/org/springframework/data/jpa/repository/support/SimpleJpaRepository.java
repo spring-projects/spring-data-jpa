@@ -54,6 +54,8 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.query.Jpa21Utils;
 import org.springframework.data.jpa.repository.query.JpaEntityGraph;
 import org.springframework.data.jpa.repository.query.QueryUtils;
+import org.springframework.data.repository.support.PageableExecutionUtils;
+import org.springframework.data.repository.support.PageableExecutionUtils.TotalSupplier;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -578,16 +580,19 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	 * @param pageable can be {@literal null}.
 	 * @return
 	 */
-	protected <S extends T> Page<S> readPage(TypedQuery<S> query, Class<S> domainClass, Pageable pageable,
-			Specification<S> spec) {
+	protected <S extends T> Page<S> readPage(TypedQuery<S> query, final Class<S> domainClass, Pageable pageable,
+			final Specification<S> spec) {
 
 		query.setFirstResult(pageable.getOffset());
 		query.setMaxResults(pageable.getPageSize());
 
-		Long total = executeCountQuery(getCountQuery(spec, domainClass));
-		List<S> content = total > pageable.getOffset() ? query.getResultList() : Collections.<S> emptyList();
+		return PageableExecutionUtils.getPage(query.getResultList(), pageable, new TotalSupplier() {
 
-		return new PageImpl<S>(content, pageable, total);
+			@Override
+			public long get() {
+				return executeCountQuery(getCountQuery(spec, domainClass));
+			}
+		});
 	}
 
 	/**

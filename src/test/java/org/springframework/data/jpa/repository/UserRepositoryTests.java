@@ -21,8 +21,8 @@ import static org.junit.Assert.*;
 import static org.springframework.data.domain.Example.*;
 import static org.springframework.data.domain.ExampleMatcher.*;
 import static org.springframework.data.domain.Sort.Direction.*;
-import static org.springframework.data.jpa.domain.Specifications.*;
 import static org.springframework.data.jpa.domain.Specifications.not;
+import static org.springframework.data.jpa.domain.Specifications.*;
 import static org.springframework.data.jpa.domain.sample.UserSpecifications.*;
 
 import java.util.ArrayList;
@@ -55,8 +55,7 @@ import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
-import org.springframework.data.domain.ExampleMatcher.GenericPropertyMatcher;
-import org.springframework.data.domain.ExampleMatcher.StringMatcher;
+import org.springframework.data.domain.ExampleMatcher.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -1651,6 +1650,40 @@ public class UserRepositoryTests {
 
 		Slice<User> secondPage = repository.findTop2UsersBy(new PageRequest(1, 3, ASC, "age"));
 		assertThat(secondPage.getContent(), hasItems(youngest3));
+	}
+
+	/**
+	 * @see DATAJPA-912
+	 */
+	@Test
+	public void pageableQueryReportsTotalFromResult() {
+
+		flushTestUsers();
+
+		Page<User> firstPage = repository.findAll(new PageRequest(0, 10));
+		assertThat(firstPage.getContent(), hasSize(4));
+		assertThat(firstPage.getTotalElements(), is(4L));
+
+		Page<User> secondPage = repository.findAll(new PageRequest(1, 3));
+		assertThat(secondPage.getContent(), hasSize(1));
+		assertThat(secondPage.getTotalElements(), is(4L));
+	}
+
+	/**
+	 * @see DATAJPA-912
+	 */
+	@Test
+	public void pageableQueryReportsTotalFromCount() {
+
+		flushTestUsers();
+
+		Page<User> firstPage = repository.findAll(new PageRequest(0, 4));
+		assertThat(firstPage.getContent(), hasSize(4));
+		assertThat(firstPage.getTotalElements(), is(4L));
+
+		Page<User> secondPage = repository.findAll(new PageRequest(10, 10));
+		assertThat(secondPage.getContent(), hasSize(0));
+		assertThat(secondPage.getTotalElements(), is(4L));
 	}
 
 	/**
