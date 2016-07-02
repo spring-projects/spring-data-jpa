@@ -52,6 +52,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Oliver Gierke
  * @since 1.10
  */
 public class QueryByExamplePredicateBuilder {
@@ -77,9 +78,10 @@ public class QueryByExamplePredicateBuilder {
 		Assert.notNull(cb, "CriteriaBuilder must not be null!");
 		Assert.notNull(example, "Example must not be null!");
 
+		ExampleMatcher matcher = example.getMatcher();
+
 		List<Predicate> predicates = getPredicates("", cb, root, root.getModel(), example.getProbe(),
-				example.getProbeType(), new ExampleMatcherAccessor(example.getMatcher()),
-				new PathNode("root", null, example.getProbe()));
+				example.getProbeType(), new ExampleMatcherAccessor(matcher), new PathNode("root", null, example.getProbe()));
 
 		if (predicates.isEmpty()) {
 			return cb.isTrue(cb.literal(true));
@@ -89,7 +91,9 @@ public class QueryByExamplePredicateBuilder {
 			return predicates.iterator().next();
 		}
 
-		return cb.and(predicates.toArray(new Predicate[predicates.size()]));
+		Predicate[] array = predicates.toArray(new Predicate[predicates.size()]);
+
+		return matcher.isAllMatching() ? cb.and(array) : cb.or(array);
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })

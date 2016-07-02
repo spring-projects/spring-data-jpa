@@ -43,6 +43,8 @@ import org.junit.runner.RunWith;
 import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.util.ObjectUtils;
 
 /**
@@ -59,6 +61,7 @@ public class QueryByExamplePredicateBuilderUnitTests {
 	@Mock Predicate truePredicate;
 	@Mock Predicate dummyPredicate;
 	@Mock Predicate listPredicate;
+	@Mock Predicate orPredicate;
 	@Mock Path dummyPath;
 
 	Set<SingularAttribute<? super Person, ?>> personEntityAttribtues;
@@ -102,7 +105,8 @@ public class QueryByExamplePredicateBuilderUnitTests {
 
 		when(cb.literal(any(Boolean.class))).thenReturn(expressionMock);
 		when(cb.isTrue(eq(expressionMock))).thenReturn(truePredicate);
-		when(cb.and(Matchers.<Predicate> anyVararg())).thenReturn(listPredicate);
+		when(cb.and(Matchers.<Predicate>anyVararg())).thenReturn(listPredicate);
+		when(cb.or(Matchers.<Predicate>anyVararg())).thenReturn(orPredicate);
 	}
 
 	/**
@@ -164,6 +168,23 @@ public class QueryByExamplePredicateBuilderUnitTests {
 
 		verify(cb, times(1)).equal(any(Expression.class), eq("foo"));
 		verify(cb, times(1)).equal(any(Expression.class), eq(2L));
+	}
+
+	/**
+	 * @see DATAJPA-879
+	 */
+	@Test
+	public void orConcatenatesPredicatesIfMatcherSpecifies() {
+
+		Person person = new Person();
+		person.firstname = "foo";
+		person.age = 2L;
+
+		Example<Person> example = of(person, ExampleMatcher.matchingAny());
+
+		assertThat(QueryByExamplePredicateBuilder.getPredicate(root, cb, example), equalTo(orPredicate));
+
+		verify(cb, times(1)).or(Matchers.<Predicate>anyVararg());
 	}
 
 	static class Person {
