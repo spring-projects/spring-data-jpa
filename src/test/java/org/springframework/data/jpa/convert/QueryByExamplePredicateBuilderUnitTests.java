@@ -50,18 +50,17 @@ import org.springframework.util.ObjectUtils;
 /**
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Oliver Gierke
  */
 @RunWith(MockitoJUnitRunner.class)
+@SuppressWarnings({ "rawtypes", "unchecked" })
 public class QueryByExamplePredicateBuilderUnitTests {
 
 	@Mock CriteriaBuilder cb;
 	@Mock Root root;
 	@Mock EntityType<Person> personEntityType;
 	@Mock Expression expressionMock;
-	@Mock Predicate truePredicate;
-	@Mock Predicate dummyPredicate;
-	@Mock Predicate listPredicate;
-	@Mock Predicate orPredicate;
+	@Mock Predicate truePredicate, dummyPredicate, andPredicate, orPredicate;
 	@Mock Path dummyPath;
 
 	Set<SingularAttribute<? super Person, ?>> personEntityAttribtues;
@@ -95,18 +94,19 @@ public class QueryByExamplePredicateBuilderUnitTests {
 		personEntityAttribtues.add(personAddressAttribute);
 		personEntityAttribtues.add(personSkillAttribute);
 
-		when(root.get(any(SingularAttribute.class))).thenReturn(dummyPath);
-		when(root.getModel()).thenReturn(personEntityType);
-		when(personEntityType.getSingularAttributes()).thenReturn(personEntityAttribtues);
+		doReturn(dummyPath).when(root).get(any(SingularAttribute.class));
 
-		when(cb.equal(any(Expression.class), any(String.class))).thenReturn(dummyPredicate);
-		when(cb.equal(any(Expression.class), any(Long.class))).thenReturn(dummyPredicate);
-		when(cb.like(any(Expression.class), any(String.class))).thenReturn(dummyPredicate);
+		doReturn(personEntityType).when(root).getModel();
+		doReturn(personEntityAttribtues).when(personEntityType).getSingularAttributes();
 
-		when(cb.literal(any(Boolean.class))).thenReturn(expressionMock);
-		when(cb.isTrue(eq(expressionMock))).thenReturn(truePredicate);
-		when(cb.and(Matchers.<Predicate>anyVararg())).thenReturn(listPredicate);
-		when(cb.or(Matchers.<Predicate>anyVararg())).thenReturn(orPredicate);
+		doReturn(dummyPredicate).when(cb).equal(any(Expression.class), any(String.class));
+		doReturn(dummyPredicate).when(cb).equal(any(Expression.class), any(Long.class));
+		doReturn(dummyPredicate).when(cb).like(any(Expression.class), any(String.class));
+
+		doReturn(expressionMock).when(cb).literal(any(Boolean.class));
+		doReturn(truePredicate).when(cb).isTrue(eq(expressionMock));
+		doReturn(andPredicate).when(cb).and(Matchers.<Predicate>anyVararg());
+		doReturn(orPredicate).when(cb).or(Matchers.<Predicate>anyVararg());
 	}
 
 	/**
@@ -164,7 +164,7 @@ public class QueryByExamplePredicateBuilderUnitTests {
 		p.firstname = "foo";
 		p.age = 2L;
 
-		assertThat(QueryByExamplePredicateBuilder.getPredicate(root, cb, of(p)), equalTo(listPredicate));
+		assertThat(QueryByExamplePredicateBuilder.getPredicate(root, cb, of(p)), equalTo(andPredicate));
 
 		verify(cb, times(1)).equal(any(Expression.class), eq("foo"));
 		verify(cb, times(1)).equal(any(Expression.class), eq(2L));
