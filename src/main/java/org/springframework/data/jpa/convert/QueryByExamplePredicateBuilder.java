@@ -64,7 +64,7 @@ public class QueryByExamplePredicateBuilder {
 	}
 
 	/**
-	 * Extract the {@link Predicate} representing the {@link Example}.
+	 * Extract the {@link Predicate} representing the {@link Example} using operator <b>AND</b> to join the restrictions.
 	 *
 	 * @param root must not be {@literal null}.
 	 * @param cb must not be {@literal null}.
@@ -73,14 +73,44 @@ public class QueryByExamplePredicateBuilder {
 	 */
 	public static <T> Predicate getPredicate(Root<T> root, CriteriaBuilder cb, Example<T> example) {
 
-		Assert.notNull(root, "Root must not be null!");
-		Assert.notNull(cb, "CriteriaBuilder must not be null!");
-		Assert.notNull(example, "Example must not be null!");
+		List<Predicate> predicates = getPredicateList(root, cb, example);
 
-		List<Predicate> predicates = getPredicates("", cb, root, root.getModel(), example.getProbe(),
-				example.getProbeType(), new ExampleMatcherAccessor(example.getMatcher()),
-				new PathNode("root", null, example.getProbe()));
+		Predicate emptyOrOnlyPredicate = checkPredicate(cb, predicates);
+		if (emptyOrOnlyPredicate == null) {
+			return cb.and(predicates.toArray(new Predicate[predicates.size()]));
+		}
+		return emptyOrOnlyPredicate;
 
+	}
+
+	/**
+	 * Extract the {@link Predicate} representing the {@link Example} using operator <b>OR</b> to join the restrictions.
+	 *
+	 * @param root must not be {@literal null}.
+	 * @param cb must not be {@literal null}.
+	 * @param example must not be {@literal null}.
+	 * @return never {@literal null}.
+	 */
+	public static <T> Predicate getPredicateDisjunction(Root<T> root, CriteriaBuilder cb, Example<T> example) {
+
+		List<Predicate> predicates = getPredicateList(root, cb, example);
+
+		Predicate emptyOrOnlyPredicate = checkPredicate(cb, predicates);
+		if (emptyOrOnlyPredicate == null) {
+			return cb.or(predicates.toArray(new Predicate[predicates.size()]));
+		}
+		return emptyOrOnlyPredicate;
+
+	}
+
+	/**
+	 * Check if the list of predicates contains an only element or if it's empty.
+	 * 
+	 * @param cb must not be {@literal null}.
+	 * @param predicates must not be {@literal null}.
+	 * @return a {@link Predicate} if the condition above is true or {@literal null}.
+	 */
+	private static Predicate checkPredicate(CriteriaBuilder cb, List<Predicate> predicates) {
 		if (predicates.isEmpty()) {
 			return cb.isTrue(cb.literal(true));
 		}
@@ -88,8 +118,26 @@ public class QueryByExamplePredicateBuilder {
 		if (predicates.size() == 1) {
 			return predicates.iterator().next();
 		}
+		return null;
+	}
 
-		return cb.and(predicates.toArray(new Predicate[predicates.size()]));
+	/**
+	 * List of predicates to be used.
+	 * 
+	 * @param root must not be {@literal null}.
+	 * @param cb must not be {@literal null}.
+	 * @param example must not be {@literal null}.
+	 * @return
+	 */
+	public static <T> List<Predicate> getPredicateList(Root<T> root, CriteriaBuilder cb, Example<T> example) {
+		Assert.notNull(root, "Root must not be null!");
+		Assert.notNull(cb, "CriteriaBuilder must not be null!");
+		Assert.notNull(example, "Example must not be null!");
+
+		List<Predicate> predicates = getPredicates("", cb, root, root.getModel(), example.getProbe(),
+				example.getProbeType(), new ExampleMatcherAccessor(example.getMatcher()),
+				new PathNode("root", null, example.getProbe()));
+		return predicates;
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
@@ -155,22 +203,22 @@ public class QueryByExamplePredicateBuilder {
 
 				switch (exampleAccessor.getStringMatcherForPath(currentPath)) {
 
-					case DEFAULT:
-					case EXACT:
-						predicates.add(cb.equal(expression, attributeValue));
-						break;
-					case CONTAINING:
-						predicates.add(cb.like(expression, "%" + attributeValue + "%"));
-						break;
-					case STARTING:
-						predicates.add(cb.like(expression, attributeValue + "%"));
-						break;
-					case ENDING:
-						predicates.add(cb.like(expression, "%" + attributeValue));
-						break;
-					default:
-						throw new IllegalArgumentException(
-								"Unsupported StringMatcher " + exampleAccessor.getStringMatcherForPath(currentPath));
+				case DEFAULT:
+				case EXACT:
+					predicates.add(cb.equal(expression, attributeValue));
+					break;
+				case CONTAINING:
+					predicates.add(cb.like(expression, "%" + attributeValue + "%"));
+					break;
+				case STARTING:
+					predicates.add(cb.like(expression, attributeValue + "%"));
+					break;
+				case ENDING:
+					predicates.add(cb.like(expression, "%" + attributeValue));
+					break;
+				default:
+					throw new IllegalArgumentException(
+							"Unsupported StringMatcher " + exampleAccessor.getStringMatcherForPath(currentPath));
 				}
 			} else {
 				predicates.add(cb.equal(from.get(attribute), attributeValue));
