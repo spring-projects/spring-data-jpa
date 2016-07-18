@@ -21,6 +21,8 @@
 		<class>org.springframework.data.jpa.domain.sample.EmbeddedIdExampleDepartment</class>
 		<class>org.springframework.data.jpa.domain.sample.IdClassExampleEmployee</class>
 		<class>org.springframework.data.jpa.domain.sample.IdClassExampleDepartment</class>
+		<class>org.springframework.data.jpa.domain.sample.Item</class>
+		<class>org.springframework.data.jpa.domain.sample.ItemSite</class>
 		<class>org.springframework.data.jpa.domain.sample.MailMessage</class>
 		<class>org.springframework.data.jpa.domain.sample.MailSender</class>
 		<class>org.springframework.data.jpa.domain.sample.MailUser</class>
@@ -35,6 +37,7 @@
 		<class>org.springframework.data.jpa.domain.sample.SampleWithIdClass</class>
 		<class>org.springframework.data.jpa.domain.sample.SampleWithPrimitiveId</class>
 		<class>org.springframework.data.jpa.domain.sample.SampleWithTimestampVersion</class>
+		<class>org.springframework.data.jpa.domain.sample.Site</class>
 		<class>org.springframework.data.jpa.domain.sample.SpecialUser</class>
 		<class>org.springframework.data.jpa.domain.sample.User</class>
 		<class>org.springframework.data.jpa.domain.sample.VersionedUser</class>
