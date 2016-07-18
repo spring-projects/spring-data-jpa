@@ -40,6 +40,10 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.data.jpa.domain.AbstractPersistable;
 import org.springframework.data.jpa.domain.sample.ConcreteType1;
+import org.springframework.data.jpa.domain.sample.Item;
+import org.springframework.data.jpa.domain.sample.ItemId;
+import org.springframework.data.jpa.domain.sample.ItemSite;
+import org.springframework.data.jpa.domain.sample.ItemSiteId;
 import org.springframework.data.jpa.domain.sample.PersistableWithIdClass;
 import org.springframework.data.jpa.domain.sample.PersistableWithIdClassPK;
 import org.springframework.data.jpa.domain.sample.PrimitiveVersionProperty;
@@ -47,6 +51,7 @@ import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.domain.sample.SampleWithIdClass;
 import org.springframework.data.jpa.domain.sample.SampleWithPrimitiveId;
 import org.springframework.data.jpa.domain.sample.SampleWithTimestampVersion;
+import org.springframework.data.jpa.domain.sample.Site;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.domain.sample.VersionedUser;
 import org.springframework.data.repository.core.EntityInformation;
@@ -103,7 +108,7 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 	 * @see DATAJPA-50
 	 */
 	@Test
-	public void returnsIdInstanceCorrectly() {
+	public void returnsIdOfPersistableInstanceCorrectly() {
 
 		PersistableWithIdClass entity = new PersistableWithIdClass(2L, 4L);
 
@@ -113,6 +118,57 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 
 		assertThat(id, is(instanceOf(PersistableWithIdClassPK.class)));
 		assertThat(id, is((Object) new PersistableWithIdClassPK(2L, 4L)));
+	}
+
+	/**
+	 * @see DATAJPA-413
+	 */
+	@Test
+	public void returnsIdOfEntityWithIdClassCorrectly() {
+
+		Item item = new Item(2, 1);
+
+		JpaEntityInformation<Item, ?> information = getEntityInformation(Item.class, em);
+		Object id = information.getId(item);
+
+		assertThat(id, is(instanceOf(ItemId.class)));
+		assertThat(id, is((Object) new ItemId(2, 1)));
+	}
+
+	/**
+	 * @see DATAJPA-413
+	 */
+	@Test
+	public void returnsDerivedIdOfEntityWithIdClassCorrectly() {
+
+		Item item = new Item(1, 2);
+		Site site = new Site(3);
+
+		ItemSite itemSite = new ItemSite(item, site);
+
+		JpaEntityInformation<ItemSite, ?> information = getEntityInformation(ItemSite.class, em);
+		Object id = information.getId(itemSite);
+
+		assertThat(id, is(instanceOf(ItemSiteId.class)));
+		assertThat(id, is((Object) new ItemSiteId(new ItemId(1, 2), 3)));
+	}
+
+	/**
+	 * @see DATAJPA-413
+	 */
+	@Test
+	public void returnsPartialEmptyDerivedIdOfEntityWithIdClassCorrectly() {
+
+		Item item = new Item(1, null);
+		Site site = new Site(3);
+
+		ItemSite itemSite = new ItemSite(item, site);
+
+		JpaEntityInformation<ItemSite, ?> information = getEntityInformation(ItemSite.class, em);
+		Object id = information.getId(itemSite);
+
+		assertThat(id, is(instanceOf(ItemSiteId.class)));
+		assertThat(id, is((Object) new ItemSiteId(new ItemId(1, null), 3)));
 	}
 
 	/**
