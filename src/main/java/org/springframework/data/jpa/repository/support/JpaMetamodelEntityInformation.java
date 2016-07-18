@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2015 the original author or authors.
+ * Copyright 2011-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,6 +45,7 @@ import org.springframework.util.ClassUtils;
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 public class JpaMetamodelEntityInformation<T, ID extends Serializable> extends JpaEntityInformationSupport<T, ID> {
 
@@ -297,7 +298,7 @@ public class JpaMetamodelEntityInformation<T, ID extends Serializable> extends J
 	}
 
 	/**
-	 * Custom extension of {@link DirectFieldAccessFallbackBeanWrapper} that allows to derived the identifier if composite
+	 * Custom extension of {@link DirectFieldAccessFallbackBeanWrapper} that allows to derive the identifier if composite
 	 * keys with complex key attribute types (e.g. types that are annotated with {@code @Entity} themselves) are used.
 	 * 
 	 * @author Thomas Darimont
@@ -358,14 +359,19 @@ public class JpaMetamodelEntityInformation<T, ID extends Serializable> extends J
 
 			Object idPropertyValue = sourceIdValueWrapper.getPropertyValue(idAttributeName);
 
-			Class<? extends Object> idPropertyValueType = idPropertyValue.getClass();
+			if (idPropertyValue != null) {
 
-			if (ClassUtils.isPrimitiveOrWrapper(idPropertyValueType)) {
-				return idPropertyValue;
+				Class<? extends Object> idPropertyValueType = idPropertyValue.getClass();
+
+				if (ClassUtils.isPrimitiveOrWrapper(idPropertyValueType)) {
+					return idPropertyValue;
+				}
+
+				return new DirectFieldAccessFallbackBeanWrapper(idPropertyValue)
+						.getPropertyValue(tryFindSingularIdAttributeNameOrUseFallback(idPropertyValueType, idAttributeName));
 			}
 
-			return new DirectFieldAccessFallbackBeanWrapper(idPropertyValue)
-					.getPropertyValue(tryFindSingularIdAttributeNameOrUseFallback(idPropertyValueType, idAttributeName));
+			return null;
 		}
 
 		private String tryFindSingularIdAttributeNameOrUseFallback(Class<? extends Object> idPropertyValueType,
