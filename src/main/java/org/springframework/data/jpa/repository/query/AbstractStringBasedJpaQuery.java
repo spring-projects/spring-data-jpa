@@ -18,7 +18,6 @@ package org.springframework.data.jpa.repository.query;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.persistence.Tuple;
-import javax.persistence.metamodel.ManagedType;
 
 import org.springframework.data.repository.query.EvaluationContextProvider;
 import org.springframework.data.repository.query.ParameterAccessor;
@@ -138,25 +137,9 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 		ResultProcessor resultFactory = getQueryMethod().getResultProcessor();
 		ReturnedType returnedType = resultFactory.getReturnedType();
 
-		return returnedType.isProjecting() && !isJpaManaged(returnedType.getReturnedType(), em)
+		getMetamodel().isJpaManaged(returnedType.getReturnedType());
+
+		return returnedType.isProjecting() && !getMetamodel().isJpaManaged(returnedType.getReturnedType())
 				? em.createQuery(queryString, Tuple.class) : em.createQuery(queryString);
-	}
-
-	/**
-	 * Returns whether the given type is managed by the given {@link EntityManager}
-	 * @param type must not be {@literal null}.
-	 * @param em must not be {@literal null}.
-	 * 
-	 * @return
-	 */
-	private static boolean isJpaManaged(Class<?> type, EntityManager em) {
-
-		for (ManagedType<?> managedType : em.getMetamodel().getManagedTypes()) {
-			if (managedType.getJavaType().equals(type)) {
-				return true;
-			}
-		}
-
-		return false;
 	}
 }

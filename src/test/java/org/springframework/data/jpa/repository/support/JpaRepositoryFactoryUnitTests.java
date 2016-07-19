@@ -24,6 +24,7 @@ import java.io.Serializable;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.metamodel.Metamodel;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -55,12 +56,14 @@ public class JpaRepositoryFactoryUnitTests {
 	JpaRepositoryFactory factory;
 
 	@Mock EntityManager entityManager;
+	@Mock Metamodel metamodel;
 	@Mock @SuppressWarnings("rawtypes") JpaEntityInformation entityInformation;
 	@Mock EntityManagerFactory emf;
 
 	@Before
 	public void setUp() {
 
+		when(entityManager.getMetamodel()).thenReturn(metamodel);
 		when(entityManager.getEntityManagerFactory()).thenReturn(emf);
 		when(entityManager.getDelegate()).thenReturn(entityManager);
 		when(emf.createEntityManager()).thenReturn(entityManager);
