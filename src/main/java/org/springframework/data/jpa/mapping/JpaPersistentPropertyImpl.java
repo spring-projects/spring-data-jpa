@@ -37,11 +37,11 @@ import javax.persistence.OneToOne;
 import javax.persistence.OrderColumn;
 import javax.persistence.Transient;
 import javax.persistence.Version;
-import javax.persistence.metamodel.ManagedType;
 import javax.persistence.metamodel.Metamodel;
 
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.data.annotation.AccessType.Type;
+import org.springframework.data.jpa.util.JpaMetamodel;
 import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.PersistentEntity;
 import org.springframework.data.mapping.model.AnnotationBasedPersistentProperty;
@@ -91,7 +91,7 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 	private final Boolean usePropertyAccess;
 	private final TypeInformation<?> associationTargetType;
 	private final boolean updateable;
-	private final Set<Class<?>> managedTypes;
+	private final JpaMetamodel metamodel;
 
 	/**
 	 * Creates a new {@link JpaPersistentPropertyImpl}
@@ -112,7 +112,7 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 		this.usePropertyAccess = detectPropertyAccess();
 		this.associationTargetType = isAssociation() ? detectAssociationTargetType() : null;
 		this.updateable = detectUpdatability();
-		this.managedTypes = getManagedTypes(metamodel);
+		this.metamodel = new JpaMetamodel(metamodel);
 	}
 
 	/* 
@@ -156,7 +156,7 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 	 */
 	@Override
 	public boolean isEntity() {
-		return managedTypes.contains(getActualType());
+		return metamodel.isJpaManaged(getActualType());
 	}
 
 	/* 
@@ -297,26 +297,4 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 		return true;
 	}
 
-	/**
-	 * Returns all types managed by the given {@link Metamodel}.
-	 * 
-	 * @param metamodel must not be {@literal null}.
-	 * @return
-	 */
-	private static Set<Class<?>> getManagedTypes(Metamodel metamodel) {
-
-		Set<ManagedType<?>> managedTypes = metamodel.getManagedTypes();
-		Set<Class<?>> types = new HashSet<Class<?>>(managedTypes.size());
-
-		for (ManagedType<?> managedType : metamodel.getManagedTypes()) {
-
-			Class<?> type = managedType.getJavaType();
-
-			if (type != null) {
-				types.add(type);
-			}
-		}
-
-		return Collections.unmodifiableSet(types);
-	}
 }

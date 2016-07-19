@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2015 the original author or authors.
+ * Copyright 2008-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Tuple;
 import javax.persistence.TypedQuery;
+import javax.persistence.metamodel.Metamodel;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -75,6 +76,7 @@ public class SimpleJpaQueryUnitTests {
 	@Mock TypedQuery<Long> typedQuery;
 	@Mock RepositoryMetadata metadata;
 	@Mock ParameterBinder binder;
+	@Mock Metamodel metamodel;
 
 	ProjectionFactory factory = new SpelAwareProxyProjectionFactory();
 
@@ -84,6 +86,7 @@ public class SimpleJpaQueryUnitTests {
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void setUp() throws SecurityException, NoSuchMethodException {
 
+		when(em.getMetamodel()).thenReturn(metamodel);
 		when(em.createQuery(anyString())).thenReturn(query);
 		when(em.createQuery(anyString(), eq(Long.class))).thenReturn(typedQuery);
 		when(em.getEntityManagerFactory()).thenReturn(emf);

@@ -24,6 +24,7 @@ import java.lang.reflect.Method;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.metamodel.Metamodel;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -61,6 +62,7 @@ public class JpaQueryLookupStrategyUnitTests {
 	@Mock EntityManagerFactory emf;
 	@Mock QueryExtractor extractor;
 	@Mock NamedQueries namedQueries;
+	@Mock Metamodel metamodel;
 	@Mock ProjectionFactory projectionFactory;
 
 	public @Rule ExpectedException exception = ExpectedException.none();
@@ -68,6 +70,7 @@ public class JpaQueryLookupStrategyUnitTests {
 	@Before
 	public void setUp() {
 
+		when(em.getMetamodel()).thenReturn(metamodel);
 		when(em.getEntityManagerFactory()).thenReturn(emf);
 		when(emf.createEntityManager()).thenReturn(em);
 		when(em.getDelegate()).thenReturn(em);

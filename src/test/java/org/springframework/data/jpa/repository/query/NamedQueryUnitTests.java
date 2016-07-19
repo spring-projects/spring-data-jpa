@@ -22,6 +22,7 @@ import java.lang.reflect.Method;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.metamodel.Metamodel;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -49,6 +50,8 @@ public class NamedQueryUnitTests {
 	@Mock QueryExtractor extractor;
 	@Mock EntityManager em;
 	@Mock EntityManagerFactory emf;
+	@Mock Metamodel metamodel;
+
 	ProjectionFactory projectionFactory = new SpelAwareProxyProjectionFactory();
 
 	Method method;
@@ -61,6 +64,7 @@ public class NamedQueryUnitTests {
 		when(metadata.getDomainType()).thenReturn((Class) String.class);
 		when(metadata.getReturnedDomainClass(method)).thenReturn((Class) String.class);
 
+		when(em.getMetamodel()).thenReturn(metamodel);
 		when(em.getEntityManagerFactory()).thenReturn(emf);
 		when(emf.createEntityManager()).thenReturn(em);
 	}

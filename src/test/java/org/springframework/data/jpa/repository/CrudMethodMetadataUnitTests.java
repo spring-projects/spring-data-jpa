@@ -28,6 +28,7 @@ import javax.persistence.LockModeType;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.metamodel.Metamodel;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -56,6 +57,7 @@ public class CrudMethodMetadataUnitTests {
 	@Mock JpaEntityInformation<Role, Integer> information;
 	@Mock TypedQuery<Role> typedQuery;
 	@Mock javax.persistence.Query query;
+	@Mock Metamodel metamodel;
 
 	RoleRepository repository;
 
@@ -64,6 +66,7 @@ public class CrudMethodMetadataUnitTests {
 
 		when(information.getJavaType()).thenReturn(Role.class);
 
+		when(em.getMetamodel()).thenReturn(metamodel);
 		when(em.getDelegate()).thenReturn(em);
 		when(em.getEntityManagerFactory()).thenReturn(emf);
 		when(emf.createEntityManager()).thenReturn(em);

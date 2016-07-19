@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2015 the original author or authors.
+ * Copyright 2008-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import org.springframework.data.jpa.repository.query.JpaQueryExecution.Procedure
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.SingleEntityExecution;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.SlicedExecution;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.StreamExecution;
+import org.springframework.data.jpa.util.JpaMetamodel;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ResultProcessor;
@@ -50,6 +51,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 
 	private final JpaQueryMethod method;
 	private final EntityManager em;
+	private final JpaMetamodel metamodel;
 
 	/**
 	 * Creates a new {@link AbstractJpaQuery} from the given {@link JpaQueryMethod}.
@@ -65,6 +67,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 
 		this.method = method;
 		this.em = em;
+		this.metamodel = new JpaMetamodel(em.getMetamodel());
 	}
 
 	/*
@@ -82,6 +85,15 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 	 */
 	protected EntityManager getEntityManager() {
 		return em;
+	}
+
+	/**
+	 * Returns the {@link JpaMetamodel}.
+	 * 
+	 * @return
+	 */
+	protected JpaMetamodel getMetamodel() {
+		return metamodel;
 	}
 
 	/*
