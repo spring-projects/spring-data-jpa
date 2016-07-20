@@ -47,15 +47,7 @@ public class Item {
 		return id;
 	}
 
-	public void setId(Integer id) {
-		this.id = id;
-	}
-
 	public Integer getManufacturerId() {
 		return manufacturerId;
-	}
-
-	public void setManufacturerId(Integer manufacturerId) {
-		this.manufacturerId = manufacturerId;
 	}
 }
