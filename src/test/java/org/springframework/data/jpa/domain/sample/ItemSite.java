@@ -32,29 +32,12 @@ import javax.persistence.Table;
 public class ItemSite {
 
 	@Id @ManyToOne Item item;
-
 	@Id @ManyToOne Site site;
 
 	public ItemSite() {}
 
 	public ItemSite(Item item, Site site) {
 		this.item = item;
-		this.site = site;
-	}
-
-	public Item getItem() {
-		return item;
-	}
-
-	public void setItem(Item item) {
-		this.item = item;
-	}
-
-	public Site getSite() {
-		return site;
-	}
-
-	public void setSite(Site site) {
 		this.site = site;
 	}
 }
