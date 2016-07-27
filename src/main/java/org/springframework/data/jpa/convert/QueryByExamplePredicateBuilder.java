@@ -129,7 +129,7 @@ public class QueryByExamplePredicateBuilder {
 
 				if (!(from instanceof From)) {
 					throw new JpaSystemException(new IllegalArgumentException(
-							String.format("Unexpected path type for %s. Found % where From.class was expected.", currentPath, from)));
+							String.format("Unexpected path type for %s. Found %s where From.class was expected.", currentPath, from)));
 				}
 
 				PathNode node = currentNode.add(attribute.getName(), attributeValue);

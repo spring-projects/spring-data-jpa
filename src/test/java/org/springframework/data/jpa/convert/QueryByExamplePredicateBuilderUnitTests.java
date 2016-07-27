@@ -37,8 +37,11 @@ import javax.persistence.metamodel.ManagedType;
 import javax.persistence.metamodel.SingularAttribute;
 import javax.persistence.metamodel.Type;
 
+import org.hamcrest.core.IsInstanceOf;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Matchers;
 import org.mockito.Mock;
@@ -46,6 +49,8 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.util.ObjectUtils;
 
 /**
+ * Unit tests for {@link QueryByExamplePredicateBuilder}.
+ *
  * @author Christoph Strobl
  * @author Mark Paluch
  */
@@ -70,6 +75,8 @@ public class QueryByExamplePredicateBuilderUnitTests {
 	SingularAttribute<? super Person, Skill> personSkillAttribute;
 	SingularAttribute<? super Person, Address> personAddressAttribute;
 
+	public @Rule ExpectedException exception = ExpectedException.none();
+
 	@Before
 	public void setUp() {
 
@@ -78,7 +85,7 @@ public class QueryByExamplePredicateBuilderUnitTests {
 				String.class);
 		personAgeAttribute = new SingluarAttributeStub<Person, Long>("age", PersistentAttributeType.BASIC, Long.class);
 		personFatherAttribute = new SingluarAttributeStub<Person, Person>("father", PersistentAttributeType.MANY_TO_ONE,
-				Person.class);
+				Person.class, personEntityType);
 		personSkillAttribute = new SingluarAttributeStub<Person, Skill>("skill", PersistentAttributeType.MANY_TO_ONE,
 				Skill.class);
 		personAddressAttribute = new SingluarAttributeStub<Person, Address>("address", PersistentAttributeType.EMBEDDED,
@@ -151,6 +158,23 @@ public class QueryByExamplePredicateBuilderUnitTests {
 	}
 
 	/**
+	 * @see DATAJPA-937
+	 */
+	@Test
+	public void unresolvableNestedAssociatedPathShouldFail() {
+
+		Person p = new Person();
+		Person father = new Person();
+		father.father = new Person();
+		p.father = father;
+
+		exception.expectCause(IsInstanceOf.<Throwable> instanceOf(IllegalArgumentException.class));
+		exception.expectMessage("Unexpected path type");
+
+		QueryByExamplePredicateBuilder.getPredicate(root, cb, of(p));
+	}
+
+	/**
 	 * @see DATAJPA-218
 	 */
 	@Test
@@ -193,12 +217,19 @@ public class QueryByExamplePredicateBuilderUnitTests {
 
 		private String name;
 		private PersistentAttributeType attributeType;
-		private Class<T> type;
+		private Class<T> javaType;
+		private Type<T> type;
 
 		public SingluarAttributeStub(String name,
-				javax.persistence.metamodel.Attribute.PersistentAttributeType attributeType, Class<T> type) {
+				javax.persistence.metamodel.Attribute.PersistentAttributeType attributeType, Class<T> javaType) {
+			this(name, attributeType, javaType, null);
+		}
+
+		public SingluarAttributeStub(String name,
+				javax.persistence.metamodel.Attribute.PersistentAttributeType attributeType, Class<T> javaType, Type<T> type) {
 			this.name = name;
 			this.attributeType = attributeType;
+			this.javaType = javaType;
 			this.type = type;
 		}
 
@@ -219,7 +250,7 @@ public class QueryByExamplePredicateBuilderUnitTests {
 
 		@Override
 		public Class<T> getJavaType() {
-			return type;
+			return javaType;
 		}
 
 		@Override
@@ -245,7 +276,7 @@ public class QueryByExamplePredicateBuilderUnitTests {
 
 		@Override
 		public Class<T> getBindableJavaType() {
-			return type;
+			return javaType;
 		}
 
 		@Override
@@ -265,7 +296,7 @@ public class QueryByExamplePredicateBuilderUnitTests {
 
 		@Override
 		public Type<T> getType() {
-			return null;
+			return type;
 		}
 
 	}
