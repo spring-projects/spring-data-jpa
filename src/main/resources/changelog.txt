@@ -1,6 +1,27 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 1.11.0.M1 (2016-07-27)
+-----------------------------------------
+* DATAJPA-937 - Broken placeholder in exception message to be created in QueryByExamplePredicateBuilder.getPredicate(…).
+* DATAJPA-932 - Integrate version badge from spring.io.
+* DATAJPA-923 - Add support for query by example using OR operator instead of AND.
+* DATAJPA-915 - Update Hibernate build profiles.
+* DATAJPA-912 - Optimize out the count query for paging when the data query returns less than a full page with a 0 offset.
+* DATAJPA-909 - Count query breaks if pagination is used with projections.
+* DATAJPA-908 - Add note about when @Param is needed for named parameters.
+* DATAJPA-904 - Potential NullPointerException in JpaPersistentPropertyImpl.isEntity().
+* DATAJPA-903 - Stream<Object[]> missing result attributes on Hibernate.
+* DATAJPA-893 - Update Spring Data JPA version in Github readme.
+* DATAJPA-891 - Avoid exceptions being thrown and caught immediately in JpaPersistentPropertyImpl.isEntity().
+* DATAJPA-888 - Clarify usage of native queries with Pageable.
+* DATAJPA-886 - NullPointerException for repository query methods using DTOs.
+* DATAJPA-885 - No aliases found in result tuple.
+* DATAJPA-883 - Auditing broken in Hopper GA.
+* DATAJPA-882 - Release 1.11 M1 (Ingalls).
+* DATAJPA-413 - Nested Id classes fail to populate in JpaMetamodelEntityInformation.
+
+
 Changes in version 1.10.2.RELEASE (2016-06-15)
 ----------------------------------------------
 * DATAJPA-909 - Count query breaks if pagination is used with projections.
