@@ -135,6 +135,7 @@ public abstract class QueryUtils {
 		builder = new StringBuilder();
 		builder.append("select");
 		builder.append("\\s+"); // at least one space separating
+		builder.append("(.*\\s+)?"); // anything in between (e.g. distinct) at least one space separating
 		builder.append("new");
 		builder.append("\\s+"); // at least one space separating
 		builder.append(IDENTIFIER);

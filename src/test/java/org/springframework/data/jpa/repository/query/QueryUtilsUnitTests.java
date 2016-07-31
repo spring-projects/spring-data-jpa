@@ -323,7 +323,15 @@ public class QueryUtilsUnitTests {
 		assertThat(applySorting(query, sort, "c"), endsWith("order by c.dPropertyStartingWithJoinAlias asc"));
 	}
 
-	private void assertCountQuery(String originalQuery, String countQuery) {
+	/**
+	 * @see DATAJPA-938
+	 */
+	@Test
+	public void detectsConstructorExpressionInDistinctQuery() {
+		assertThat(hasConstructorExpression("select distinct new Foo() from Bar b"), is(true));
+	}
+
+	private static void assertCountQuery(String originalQuery, String countQuery) {
 		assertThat(createCountQueryFor(originalQuery), is(countQuery));
 	}
 }
