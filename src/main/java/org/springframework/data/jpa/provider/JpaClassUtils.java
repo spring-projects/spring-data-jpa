@@ -55,13 +55,6 @@ abstract class JpaClassUtils {
 		Assert.notNull(source, "Source instance must not be null!");
 		Assert.hasText(typeName, "Target type name must not be null or empty!");
 
-		try {
-
-			ClassUtils.forName(typeName, classLoader).cast(source);
-			return true;
-
-		} catch (Exception e) {
-			return false;
-		}
+		return ClassUtils.forName(typeName, classLoader).isInstance(source);
 	}
 }
