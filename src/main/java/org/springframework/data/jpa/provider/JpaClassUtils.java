@@ -25,6 +25,7 @@ import org.springframework.util.ClassUtils;
  * Utility class to work with classes.
  * 
  * @author Oliver Gierke
+ * @author Milan Mimica
  */
 abstract class JpaClassUtils {
 
@@ -55,6 +56,14 @@ abstract class JpaClassUtils {
 		Assert.notNull(source, "Source instance must not be null!");
 		Assert.hasText(typeName, "Target type name must not be null or empty!");
 
-		return ClassUtils.forName(typeName, classLoader).isInstance(source);
+        Class<?> clazz;
+        try {
+
+            clazz = ClassUtils.forName(typeName, classLoader);
+
+        } catch (Exception e) {
+            return false;
+        }
+        return clazz.isInstance(source);
 	}
 }
