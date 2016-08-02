@@ -31,9 +31,7 @@ abstract class JpaClassUtils {
 	/**
 	 * Private constructor to prevent instantiation.
 	 */
-	private JpaClassUtils() {
-
-	}
+	private JpaClassUtils() {}
 
 	/**
 	 * Returns whether the given {@link EntityManager} is of the given type.
@@ -56,10 +54,7 @@ abstract class JpaClassUtils {
 		Assert.hasText(typeName, "Target type name must not be null or empty!");
 
 		try {
-
-			ClassUtils.forName(typeName, classLoader).cast(source);
-			return true;
-
+			return ClassUtils.forName(typeName, classLoader).isInstance(source);
 		} catch (Exception e) {
 			return false;
 		}
