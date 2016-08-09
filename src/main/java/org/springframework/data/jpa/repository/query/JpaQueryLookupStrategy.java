@@ -49,7 +49,7 @@ public final class JpaQueryLookupStrategy {
 	 * @author Oliver Gierke
 	 * @author Thomas Darimont
 	 */
-	private abstract static class AbstractQueryLookupStrategy implements QueryLookupStrategy {
+	public abstract static class AbstractQueryLookupStrategy implements QueryLookupStrategy {
 
 		private final EntityManager em;
 		private final QueryExtractor provider;
@@ -72,7 +72,7 @@ public final class JpaQueryLookupStrategy {
 		 * @see org.springframework.data.repository.query.QueryLookupStrategy#resolveQuery(java.lang.reflect.Method, org.springframework.data.repository.core.RepositoryMetadata, org.springframework.data.projection.ProjectionFactory, org.springframework.data.repository.core.NamedQueries)
 		 */
 		@Override
-		public final RepositoryQuery resolveQuery(Method method, RepositoryMetadata metadata, ProjectionFactory factory,
+		public RepositoryQuery resolveQuery(Method method, RepositoryMetadata metadata, ProjectionFactory factory,
 				NamedQueries namedQueries) {
 			return resolveQuery(new JpaQueryMethod(method, metadata, factory, provider), em, namedQueries);
 		}
@@ -86,7 +86,7 @@ public final class JpaQueryLookupStrategy {
 	 * @author Oliver Gierke
 	 * @author Thomas Darimont
 	 */
-	private static class CreateQueryLookupStrategy extends AbstractQueryLookupStrategy {
+	public static class CreateQueryLookupStrategy extends AbstractQueryLookupStrategy {
 
 		private final PersistenceProvider persistenceProvider;
 
@@ -116,7 +116,7 @@ public final class JpaQueryLookupStrategy {
 	 * @author Oliver Gierke
 	 * @author Thomas Darimont
 	 */
-	private static class DeclaredQueryLookupStrategy extends AbstractQueryLookupStrategy {
+	public static class DeclaredQueryLookupStrategy extends AbstractQueryLookupStrategy {
 
 		private final EvaluationContextProvider evaluationContextProvider;
 
@@ -178,7 +178,7 @@ public final class JpaQueryLookupStrategy {
 	 * @author Oliver Gierke
 	 * @author Thomas Darimont
 	 */
-	private static class CreateIfNotFoundQueryLookupStrategy extends AbstractQueryLookupStrategy {
+	public static class CreateIfNotFoundQueryLookupStrategy extends AbstractQueryLookupStrategy {
 
 		private final DeclaredQueryLookupStrategy lookupStrategy;
 		private final CreateQueryLookupStrategy createStrategy;

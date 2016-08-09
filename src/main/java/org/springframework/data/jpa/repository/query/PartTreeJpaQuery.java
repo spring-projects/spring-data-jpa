@@ -65,8 +65,8 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 
 		boolean recreationRequired = parameters.hasDynamicProjection() || parameters.potentiallySortsDynamically();
 
-		this.countQuery = new CountQueryPreparer(persistenceProvider, recreationRequired);
-		this.query = tree.isCountProjection() ? countQuery : new QueryPreparer(persistenceProvider, recreationRequired);
+		this.countQuery = createCountQueryPreparer(persistenceProvider, recreationRequired);
+		this.query = tree.isCountProjection() ? countQuery : createQueryPreparer(persistenceProvider, recreationRequired);
 	}
 
 	/*
@@ -98,12 +98,36 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 	}
 
 	/**
+	 * @return the {@link CountQueryPreparer} to use
+	 */
+	protected CountQueryPreparer createCountQueryPreparer(PersistenceProvider persistenceProvider,
+			boolean recreationRequired) {
+		return new CountQueryPreparer(persistenceProvider, recreationRequired);
+	}
+
+	/**
+	 * @return the {@link QueryPreparer} to use
+	 */
+	protected QueryPreparer createQueryPreparer(PersistenceProvider persistenceProvider,
+			boolean recreationRequired) {
+		return new QueryPreparer(persistenceProvider, recreationRequired);
+	}
+
+	protected PartTree getTree() {
+		return tree;
+	}
+
+	protected JpaParameters getParameters() {
+		return parameters;
+	}
+
+	/**
 	 * Query preparer to create {@link CriteriaQuery} instances and potentially cache them.
 	 * 
 	 * @author Oliver Gierke
 	 * @author Thomas Darimont
 	 */
-	private class QueryPreparer {
+	protected class QueryPreparer {
 
 		private final CriteriaQuery<?> cachedCriteriaQuery;
 		private final List<ParameterMetadata<?>> expressions;
