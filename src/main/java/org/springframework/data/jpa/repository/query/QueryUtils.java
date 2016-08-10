@@ -144,7 +144,7 @@ public abstract class QueryUtils {
 		builder.append(".*");
 		builder.append("\\)");
 
-		CONSTRUCTOR_EXPRESSION = compile(builder.toString(), CASE_INSENSITIVE);
+		CONSTRUCTOR_EXPRESSION = compile(builder.toString(), CASE_INSENSITIVE + DOTALL);
 	}
 
 	/**
