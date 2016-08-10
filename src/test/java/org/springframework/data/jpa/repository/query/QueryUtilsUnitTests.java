@@ -331,6 +331,27 @@ public class QueryUtilsUnitTests {
 		assertThat(hasConstructorExpression("select distinct new Foo() from Bar b"), is(true));
 	}
 
+	/**
+	 * @see DATAJPA-938
+	 */
+	@Test
+	public void detectsComplexConstructorExpression() {
+
+		assertThat(hasConstructorExpression("select new foo.bar.Foo(ip.id, ip.name, sum(lp.amount)) " //
+				+ "from Bar lp join lp.investmentProduct ip " //
+				+ "where (lp.toDate is null and lp.fromDate <= :now and lp.fromDate is not null) and lp.accountId = :accountId " //
+				+ "group by ip.id, ip.name, lp.accountId " //
+				+ "order by ip.name ASC"), is(true));
+	}
+
+	/**
+	 * @see DATAJPA-938
+	 */
+	@Test
+	public void detectsConstructorExpressionWithLineBreaks() {
+		assertThat(hasConstructorExpression("select new foo.bar.FooBar(\na.id) from DtoA a "), is(true));
+	}
+
 	private static void assertCountQuery(String originalQuery, String countQuery) {
 		assertThat(createCountQueryFor(originalQuery), is(countQuery));
 	}
