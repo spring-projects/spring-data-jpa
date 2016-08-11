@@ -115,14 +115,14 @@
 		<profile>
 			<id>hibernate-52</id>
 			<properties>
-				<hibernate>5.2.1.Final</hibernate>
+				<hibernate>5.2.2.Final</hibernate>
 				<hibernate.artifact>hibernate-core</hibernate.artifact>
 			</properties>
 		</profile>
 		<profile>
 			<id>hibernate-52-next</id>
 			<properties>
-				<hibernate>5.2.2-SNAPSHOT</hibernate>
+				<hibernate>5.2.3-SNAPSHOT</hibernate>
 				<hibernate.artifact>hibernate-core</hibernate.artifact>
 			</properties>
 			<repositories>
