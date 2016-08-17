@@ -17,10 +17,11 @@ package org.springframework.data.jpa.repository.query;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
 import java.util.Arrays;
+import java.util.Optional;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
@@ -147,15 +148,32 @@ public class JpaQueryExecutionUnitTests {
 		verify(jpaQuery, times(0)).createQuery((Object[]) any());
 	}
 
-	public static void sampleMethod(Pageable pageable) {
+	/**
+	 * @see DATAJPA-951
+	 */
+	@Test
+	public void doesNotPreemtivelyWrapResultIntoOptional() throws Exception {
 
+		doReturn(method).when(jpaQuery).getQueryMethod();
+		doReturn(Optional.class).when(method).getReturnType();
+
+		StubQueryExecution execution = new StubQueryExecution() {
+			protected Object doExecute(AbstractJpaQuery query, Object[] values) {
+				return "result";
+			}
+		};
+
+		Object result = execution.execute(jpaQuery, new Object[0]);
+
+		assertThat(result, is(instanceOf(String.class)));
 	}
+
+	public static void sampleMethod(Pageable pageable) {}
 
 	static class StubQueryExecution extends JpaQueryExecution {
 
 		@Override
 		protected Object doExecute(AbstractJpaQuery query, Object[] values) {
-
 			return null;
 		}
 	}

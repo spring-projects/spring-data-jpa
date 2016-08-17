@@ -18,6 +18,7 @@ package org.springframework.data.jpa.repository.query;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
@@ -38,6 +39,7 @@ import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.util.CloseableIterator;
 import org.springframework.data.util.StreamUtils;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 
 /**
  * Set of classes to contain query execution strategies. Depending (mostly) on the return type of a
@@ -54,8 +56,10 @@ public abstract class JpaQueryExecution {
 	static {
 
 		ConfigurableConversionService conversionService = new DefaultConversionService();
-		conversionService.removeConvertible(Collection.class, Object.class);
+
 		conversionService.addConverter(JpaResultConverters.BlobToByteArrayConverter.INSTANCE);
+		conversionService.removeConvertible(Collection.class, Object.class);
+		potentiallyRemoveOptionalConverter(conversionService);
 
 		CONVERSION_SERVICE = conversionService;
 	}
@@ -323,6 +327,31 @@ public abstract class JpaQueryExecution {
 			CloseableIterator<Object> iter = persistenceProvider.executeQueryWithResultStream(jpaQuery);
 
 			return StreamUtils.createStreamFromIterator(iter);
+		}
+	}
+
+	/**
+	 * Removes the converter being able to convert any object into an {@link Optional} from the given
+	 * {@link ConversionService} in case we're running on Java 8.
+	 * 
+	 * @param conversionService must not be {@literal null}.
+	 */
+	public static void potentiallyRemoveOptionalConverter(ConfigurableConversionService conversionService) {
+
+		ClassLoader classLoader = JpaQueryExecution.class.getClassLoader();
+
+		if (ClassUtils.isPresent("java.util.Optional", classLoader)) {
+
+			try {
+
+				Class<?> optionalType = ClassUtils.forName("java.util.Optional", classLoader);
+				conversionService.removeConvertible(Object.class, optionalType);
+
+			} catch (ClassNotFoundException e) {
+				return;
+			} catch (LinkageError e) {
+				return;
+			}
 		}
 	}
 }
