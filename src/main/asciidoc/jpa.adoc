@@ -147,7 +147,7 @@ We will create a query using the JPA criteria API from this but essentially this
 |`Is,Equals`|`findByFirstname`,`findByFirstnameIs`,`findByFirstnameEquals`|`… where x.firstname = 1?`
 |`Between`|`findByStartDateBetween`|`… where x.startDate between 1? and ?2`
 |`LessThan`|`findByAgeLessThan`|`… where x.age < ?1`
-|`LessThanEqual`|`findByAgeLessThanEqual`|`… where x.age <= ?1`
+|`LessThanEqual`|`findByAgeLessThanEqual`|`… where x.age \<= ?1`
 |`GreaterThan`|`findByAgeGreaterThan`|`… where x.age > ?1`
 |`GreaterThanEqual`|`findByAgeGreaterThanEqual`|`… where x.age >= ?1`
 |`After`|`findByStartDateAfter`|`… where x.startDate > ?1`
