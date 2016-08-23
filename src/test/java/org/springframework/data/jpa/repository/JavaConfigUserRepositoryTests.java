@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2013 the original author or authors.
+ * Copyright 2012-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,13 @@
 package org.springframework.data.jpa.repository;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
 import org.junit.Test;
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
@@ -38,6 +38,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.data.jpa.repository.sample.SampleEvaluationContextExtension;
 import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.data.jpa.repository.sample.UserRepositoryImpl;
+import org.springframework.data.jpa.repository.support.DefaultJpaContext;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean;
 import org.springframework.data.repository.core.NamedQueries;
 import org.springframework.data.repository.core.support.PropertiesBasedNamedQueries;
@@ -79,7 +80,8 @@ public class JavaConfigUserRepositoryTests extends UserRepositoryTests {
 			factory.setEntityManager(entityManager);
 			factory.setBeanFactory(applicationContext);
 			factory.setRepositoryInterface(UserRepository.class);
-			factory.setCustomImplementation(new UserRepositoryImpl());
+			factory
+					.setCustomImplementation(new UserRepositoryImpl(new DefaultJpaContext(Collections.singleton(entityManager))));
 			factory.setNamedQueries(namedQueries());
 			factory.setEvaluationContextProvider(evaluationContextProvider);
 			factory.afterPropertiesSet();

@@ -144,10 +144,10 @@ We will create a query using the JPA criteria API from this but essentially this
 |Keyword|Sample|JPQL snippet
 |`And`|`findByLastnameAndFirstname`|`… where x.lastname = ?1 and x.firstname = ?2`
 |`Or`|`findByLastnameOrFirstname`|`… where x.lastname = ?1 or x.firstname = ?2`
-|`Is,Equals`|`findByFirstname`,`findByFirstnameIs`,`findByFirstnameEquals`|`… where x.firstname = 1?`
-|`Between`|`findByStartDateBetween`|`… where x.startDate between 1? and ?2`
+|`Is,Equals`|`findByFirstname`,`findByFirstnameIs`,`findByFirstnameEquals`|`… where x.firstname = ?1`
+|`Between`|`findByStartDateBetween`|`… where x.startDate between ?1 and ?2`
 |`LessThan`|`findByAgeLessThan`|`… where x.age < ?1`
-|`LessThanEqual`|`findByAgeLessThanEqual`|`… where x.age <= ?1`
+|`LessThanEqual`|`findByAgeLessThanEqual`|`… where x.age \<= ?1`
 |`GreaterThan`|`findByAgeGreaterThan`|`… where x.age > ?1`
 |`GreaterThanEqual`|`findByAgeGreaterThanEqual`|`… where x.age >= ?1`
 |`After`|`findByStartDateAfter`|`… where x.startDate > ?1`
@@ -249,7 +249,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
 ----
 ====
 
-Using advanced `LIKE` expressionsThe query execution mechanism for manually defined queries using @Query allow the definition of advanced `LIKE` expressions inside the query definition.
+==== Using advanced `LIKE` expressions
+
+The query execution mechanism for manually defined queries using @Query allows the definition of advanced `LIKE` expressions inside the query definition.
 
 .Advanced like-expressions in @Query
 ====
@@ -265,7 +267,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
 In the just shown sample `LIKE` delimiter character `%` is recognized and the query transformed into a valid JPQL query (removing the `%`). Upon query execution the parameter handed into the method call gets augmented with the previously recognized `LIKE` pattern.
 
-Native queriesThe `@Query` annotation allows to execute native queries by setting the `nativeQuery` flag to true. Note, that we currently don't support execution of pagination or dynamic sorting for native queries as we'd have to manipulate the actual query declared and we cannot do this reliably for native SQL.
+==== Native queries
+
+The `@Query` annotation allows to execute native queries by setting the `nativeQuery` flag to true.
 
 .Declare a native query at the query method using @Query
 ====
@@ -273,12 +277,31 @@ Native queriesThe `@Query` annotation allows to execute native queries by settin
 ----
 public interface UserRepository extends JpaRepository<User, Long> {
 
-  @Query(value = "SELECT * FROM USERS WHERE EMAIL_ADDRESS = ?0", nativeQuery = true)
+  @Query(value = "SELECT * FROM USERS WHERE EMAIL_ADDRESS = ?1", nativeQuery = true)
   User findByEmailAddress(String emailAddress);
 }
 ----
 
 ====
+
+Note, that we currently don't support execution of dynamic sorting for native queries as we'd have to manipulate the actual query declared and we cannot do this reliably for native SQL. You can however use native queries for pagination by specifying the count query yourself:
+
+.Declare native count queries for pagination at the query method using @Query
+====
+[source, java]
+----
+public interface UserRepository extends JpaRepository<User, Long> {
+
+  @Query(value = "SELECT * FROM USERS WHERE LASTNAME = ?1",
+    countQuery = "SELECT count(*) FROM USERS WHERE LASTNAME = ?1",
+    nativeQuery = true)
+  Page<User> findByLastname(String lastname, Pageable pageable);
+}
+----
+
+====
+
+This also works with named native queries by adding the suffix `.count` to a copy of your query. Be aware that you probably must register a result set mapping for your count query, though.
 
 [[jpa.named-parameters]]
 === Using named parameters
@@ -298,6 +321,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
 ----
 ====
 Note that the method parameters are switched according to the occurrence in the query defined.
+
+[NOTE]
+====
+Spring 4 fully supports Java 8’s parameter name discovery based on the `-parameters` compiler flag. Using this flag in your build as an alternative to debug information, you can omit the `@Param` annotation for named parameters.
+====
 
 [[jpa.query.spel-expressions]]
 === Using SpEL expressions
@@ -445,6 +473,25 @@ public interface GroupRepository extends CrudRepository<GroupInfo, String> {
 ----
 ====
 
+It is also possible to define _ad-hoc_ entity graphs via `@EntityGraph`. The provided `attributePaths` will be translated into the according `EntityGraph` without the need of having to explicitly add `@NamedEntityGraph` to your domain types.
+
+.Using AD-HOC entity graph definition on an repository query method.
+====
+[source, java]
+----
+@Repository
+public interface GroupRepository extends CrudRepository<GroupInfo, String> {
+
+  @EntityGraph(attributePaths = { "members" })
+  GroupInfo getByGroupName(String name);
+
+}
+----
+====
+
+
+include::{spring-data-commons-docs}/repository-projections.adoc[leveloffset=+2]
+
 [[jpa.stored-procedures]]
 == Stored procedures
 The JPA 2.1 specification introduced support for calling stored procedures via the JPA criteria query API. We Introduced the `@Procedure` annotation for declaring stored procedure metadata on a repository method.
@@ -458,7 +505,7 @@ DROP procedure IF EXISTS plus1inout
 /;
 CREATE procedure plus1inout (IN arg int, OUT res int)
 BEGIN ATOMIC
- set res = arg ` 1;
+ set res = arg + 1;
 END
 /;
 ----
@@ -604,6 +651,9 @@ List<Customer> customers = customerRepository.findAll(
 As you can see, `Specifications` offers some glue-code methods to chain and combine `Specification` instances. Thus extending your data access layer is just a matter of creating new `Specification` implementations and combining them with ones already existing.
 ====
 
+include::{spring-data-commons-docs}/query-by-example.adoc[leveloffset=+1]
+include::query-by-example.adoc[leveloffset=+1]
+
 [[transactions]]
 == Transactionality
 CRUD methods on repository instances are transactional by default. For reading operations the transaction configuration `readOnly` flag is set to true, all others are configured with a plain `@Transactional` so that default transaction configuration applies. For details see JavaDoc of `CrudRepository`. If you need to tweak transaction configuration for one of the methods declared in a repository simply redeclare the method in your repository interface as follows:
@@ -728,8 +778,6 @@ include::{spring-data-commons-docs}/auditing.adoc[]
 
 Spring Data JPA ships with an entity listener that can be used to trigger capturing auditing information. So first you have to register the `AuditingEntityListener` inside your `orm.xml` to be used for all entities in your persistence contexts:
 
-Note that the auditing feature requires `spring-aspects.jar` to be on the classpath.
-
 .Auditing configuration orm.xml
 ====
 [source, xml]
@@ -744,7 +792,22 @@ Note that the auditing feature requires `spring-aspects.jar` to be on the classp
 ----
 ====
 
-Now activating auditing functionality is just a matter of adding the Spring Data JPA `auditing` namespace element to your configuration:
+You can also enable the `AuditingEntityListener` per entity using the `@EntityListeners` annotation:
+
+====
+[source, java]
+----
+@Entity
+@EntityListeners(AuditingEntityListener.class)
+public class MyEntity {
+
+}
+----
+====
+
+Note that the auditing feature requires `spring-aspects.jar` to be on the classpath.
+
+With that in place, activating auditing functionality is just a matter of adding the Spring Data JPA `auditing` namespace element to your configuration:
 
 .Activating auditing using XML configuration
 ====
@@ -772,10 +835,37 @@ class Config {
 ----
 ====
 
-If you expose a bean of type AuditorAware to the ApplicationContext, the auditing infrastructure will pick it up automatically and use it to determine the current user to be set on domain types. If you have multiple implementations registered in the ApplicationContext, you can select the one to be used by explicitly setting the `auditorAwareRef` attribute of @EnableJpaAuditing.
+If you expose a bean of type `AuditorAware` to the `ApplicationContext`, the auditing infrastructure will pick it up automatically and use it to determine the current user to be set on domain types. If you have multiple implementations registered in the `ApplicationContext`, you can select the one to be used by explicitly setting the `auditorAwareRef` attribute of `@EnableJpaAuditing`.
 
 [[jpa.misc]]
 = Miscellaneous
+
+[[jpa.misc.jpa-context]]
+== Using JpaContext in custom implementations
+
+When working with multiple `EntityManager` instances and <<repositories.custom-implementations,custom repository implementations>> you'll need to make sure you wire the correct `EntityManager` into the repository implementation class. This could be solved by explicitly naming the `EntityManager` in the `@PersistenceContext` annotation or using `@Qualifier` in case the `EntityManager` is injected via `@Autowired`.
+
+As of Spring Data JPA 1.9, we ship a class `JpaContext` that allows to obtain the `EntityManager` by managed domain class assuming it's only managed by one of the `EntityManager` instances in the application.
+
+.Using JpaContext in a custom repository implementation
+====
+[source, java]
+----
+class UserRepositoryImpl implements UserRepositoryCustom {
+
+  private final EntityManager em;
+
+  @Autowired
+  public UserRepositoryImpl(JpaContext context) {
+    this.em = context.getEntityManagerByManagedType(User.class);
+  }
+
+  …
+}
+----
+====
+
+This approach has the advantage that the repository does not have to be touched to alter the reference to the persistence unit in case the domain type gets assigned to a different persistence unit.
 
 [[jpa.misc.merging-persistence-units]]
 == Merging persistence units

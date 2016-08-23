@@ -23,6 +23,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.EvaluationContextProvider;
 import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.RepositoryQuery;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 
 /**
  * Factory to create the appropriate {@link RepositoryQuery} for a {@link JpaQueryMethod}.
@@ -33,22 +34,23 @@ enum JpaQueryFactory {
 
 	INSTANCE;
 
+	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
 	private static final Logger LOG = LoggerFactory.getLogger(JpaQueryFactory.class);
 
 	/**
 	 * Creates a {@link RepositoryQuery} from the given {@link QueryMethod} that is potentially annotated with
 	 * {@link Query}.
 	 * 
-	 * @param queryMethod must not be {@literal null}.
+	 * @param method must not be {@literal null}.
 	 * @param em must not be {@literal null}.
 	 * @param evaluationContextProvider
 	 * @return the {@link RepositoryQuery} derived from the annotation or {@code null} if no annotation found.
 	 */
-	AbstractJpaQuery fromQueryAnnotation(JpaQueryMethod queryMethod, EntityManager em,
+	AbstractJpaQuery fromQueryAnnotation(JpaQueryMethod method, EntityManager em,
 			EvaluationContextProvider evaluationContextProvider) {
 
-		LOG.debug("Looking up query for method {}", queryMethod.getName());
-		return fromMethodWithQueryString(queryMethod, em, queryMethod.getAnnotatedQuery(), evaluationContextProvider);
+		LOG.debug("Looking up query for method {}", method.getName());
+		return fromMethodWithQueryString(method, em, method.getAnnotatedQuery(), evaluationContextProvider);
 	}
 
 	/**
@@ -67,8 +69,8 @@ enum JpaQueryFactory {
 			return null;
 		}
 
-		return method.isNativeQuery() ? new NativeJpaQuery(method, em, queryString, evaluationContextProvider) : //
-				new SimpleJpaQuery(method, em, queryString, evaluationContextProvider);
+		return method.isNativeQuery() ? new NativeJpaQuery(method, em, queryString, evaluationContextProvider, PARSER)
+				: new SimpleJpaQuery(method, em, queryString, evaluationContextProvider, PARSER);
 	}
 
 	/**

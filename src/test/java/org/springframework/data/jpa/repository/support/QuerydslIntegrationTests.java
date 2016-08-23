@@ -30,8 +30,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.mysema.query.jpa.JPQLQuery;
-import com.mysema.query.types.path.PathBuilder;
+import com.querydsl.core.types.dsl.PathBuilder;
+import com.querydsl.jpa.JPQLQuery;
 
 /**
  * Integration tests for {@link Querydsl}.
@@ -47,14 +47,14 @@ public class QuerydslIntegrationTests {
 
 	Querydsl querydsl;
 	PathBuilder<User> userPath;
-	JPQLQuery userQuery;
+	JPQLQuery<User> userQuery;
 
 	@Before
 	public void setup() {
 
 		userPath = new PathBuilder<User>(User.class, "user");
 		querydsl = new Querydsl(em, userPath);
-		userQuery = querydsl.createQuery().from(userPath);
+		userQuery = querydsl.createQuery().select(userPath);
 	}
 
 	/**
@@ -63,7 +63,7 @@ public class QuerydslIntegrationTests {
 	@Test
 	public void defaultOrderingShouldNotGenerateAnNullOrderingHint() {
 
-		JPQLQuery result = querydsl.applySorting(new Sort(new Sort.Order("firstname")), userQuery);
+		JPQLQuery<User> result = querydsl.applySorting(new Sort(new Sort.Order("firstname")), userQuery);
 
 		assertThat(result, is(notNullValue()));
 		assertThat(result.toString(), is(not(anyOf(containsString("nulls first"), containsString("nulls last")))));

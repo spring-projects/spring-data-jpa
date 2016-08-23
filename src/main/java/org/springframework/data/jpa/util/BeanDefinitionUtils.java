@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,8 @@ import static java.util.Arrays.*;
 import static org.springframework.beans.factory.BeanFactoryUtils.*;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -33,7 +33,9 @@ import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.jndi.JndiObjectFactoryBean;
 import org.springframework.orm.jpa.AbstractEntityManagerFactoryBean;
+import org.springframework.util.ClassUtils;
 
 /**
  * Utility methods to work with {@link BeanDefinition} instances from {@link BeanFactoryPostProcessor}s.
@@ -41,6 +43,22 @@ import org.springframework.orm.jpa.AbstractEntityManagerFactoryBean;
  * @author Oliver Gierke
  */
 public class BeanDefinitionUtils {
+
+	private static final String JNDI_OBJECT_FACTORY_BEAN = "org.springframework.jndi.JndiObjectFactoryBean";
+	private static final List<Class<?>> EMF_TYPES;
+
+	static {
+
+		List<Class<?>> types = new ArrayList<Class<?>>();
+		types.add(EntityManagerFactory.class);
+		types.add(AbstractEntityManagerFactoryBean.class);
+
+		if (ClassUtils.isPresent(JNDI_OBJECT_FACTORY_BEAN, ClassUtils.getDefaultClassLoader())) {
+			types.add(JndiObjectFactoryBean.class);
+		}
+
+		EMF_TYPES = Collections.unmodifiableList(types);
+	}
 
 	/**
 	 * Return all bean names for bean definitions that will result in an {@link EntityManagerFactory} eventually. We're
@@ -71,24 +89,15 @@ public class BeanDefinitionUtils {
 	 * @param beanFactory must not be {@literal null}.
 	 * @return
 	 */
-	@SuppressWarnings("unchecked")
 	public static Collection<EntityManagerFactoryBeanDefinition> getEntityManagerFactoryBeanDefinitions(
 			ConfigurableListableBeanFactory beanFactory) {
 
 		List<EntityManagerFactoryBeanDefinition> definitions = new ArrayList<EntityManagerFactoryBeanDefinition>();
 
-		for (Class<?> type : Arrays.asList(EntityManagerFactory.class, AbstractEntityManagerFactoryBean.class)) {
+		for (Class<?> type : EMF_TYPES) {
 
 			for (String name : beanFactory.getBeanNamesForType(type, true, false)) {
-
-				String transformedName = transformedBeanName(name);
-
-				EntityManagerFactoryBeanDefinition definition = new EntityManagerFactoryBeanDefinition();
-				definition.beanName = transformedName;
-				definition.beanFactory = beanFactory;
-				definition.beanDefinition = beanFactory.getBeanDefinition(transformedName);
-
-				definitions.add(definition);
+				registerEntityManagerFactoryBeanDefinition(transformedBeanName(name), beanFactory, definitions);
 			}
 		}
 
@@ -99,6 +108,28 @@ public class BeanDefinitionUtils {
 		}
 
 		return definitions;
+	}
+
+	/**
+	 * Registers an {@link EntityManagerFactoryBeanDefinition} for the bean with the given name. Drops
+	 * {@link JndiObjectFactoryBean} instances that don't point to an {@link EntityManagerFactory} bean as expected type.
+	 * 
+	 * @param name
+	 * @param beanFactory
+	 * @param definitions
+	 */
+	private static void registerEntityManagerFactoryBeanDefinition(String name,
+			ConfigurableListableBeanFactory beanFactory, List<EntityManagerFactoryBeanDefinition> definitions) {
+
+		BeanDefinition definition = beanFactory.getBeanDefinition(name);
+
+		if (JNDI_OBJECT_FACTORY_BEAN.equals(definition.getBeanClassName())) {
+			if (!EntityManagerFactory.class.getName().equals(definition.getPropertyValues().get("expectedType"))) {
+				return;
+			}
+		}
+
+		definitions.add(new EntityManagerFactoryBeanDefinition(name, beanFactory));
 	}
 
 	/**
@@ -125,10 +156,54 @@ public class BeanDefinitionUtils {
 		}
 	}
 
+	/**
+	 * Value object to represent a {@link BeanDefinition} for an {@link EntityManagerFactory} with a dedicated bean name.
+	 * 
+	 * @author Oliver Gierke
+	 * @author Thomas Darimont
+	 */
 	public static class EntityManagerFactoryBeanDefinition {
 
-		public String beanName;
-		public BeanDefinition beanDefinition;
-		public BeanFactory beanFactory;
+		private final String beanName;
+		private final ConfigurableListableBeanFactory beanFactory;
+
+		/**
+		 * Creates a new {@link EntityManagerFactoryBeanDefinition}.
+		 * 
+		 * @param beanName
+		 * @param beanFactory
+		 */
+		public EntityManagerFactoryBeanDefinition(String beanName, ConfigurableListableBeanFactory beanFactory) {
+
+			this.beanName = beanName;
+			this.beanFactory = beanFactory;
+		}
+
+		/**
+		 * Returns the bean name of the {@link BeanDefinition} for the {@link EntityManagerFactory}.
+		 * 
+		 * @return
+		 */
+		public String getBeanName() {
+			return beanName;
+		}
+
+		/**
+		 * Returns the underlying {@link BeanFactory}.
+		 * 
+		 * @return
+		 */
+		public BeanFactory getBeanFactory() {
+			return beanFactory;
+		}
+
+		/**
+		 * Returns the {@link BeanDefinition} for the {@link EntityManagerFactory}.
+		 * 
+		 * @return
+		 */
+		public BeanDefinition getBeanDefinition() {
+			return beanFactory.getBeanDefinition(beanName);
+		}
 	}
 }

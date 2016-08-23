@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 the original author or authors.
+ * Copyright 2008-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import org.springframework.data.jpa.domain.AbstractAuditable;
  * necessary. Furthermore no auditing information has to be declared explicitly.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 @Entity
 @NamedQuery(name = "AuditableUser.findByFirstname", query = "SELECT u FROM AuditableUser u WHERE u.firstname = ?1")
@@ -42,13 +43,16 @@ public class AuditableUser extends AbstractAuditable<AuditableUser, Integer> {
 	@ManyToMany(cascade = { CascadeType.PERSIST, CascadeType.MERGE }) private Set<AuditableRole> roles = new HashSet<AuditableRole>();
 
 	public AuditableUser() {
-
 		this(null);
 	}
 
 	public AuditableUser(Integer id) {
+		this(id, null);
+	}
 
-		this.setId(id);
+	public AuditableUser(Integer id, String firstname) {
+		setId(id);
+		this.firstname = firstname;
 	}
 
 	/**

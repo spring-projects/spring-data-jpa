@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2014 the original author or authors.
+ * Copyright 2008-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,10 +21,12 @@ import java.io.Serializable;
 
 import javax.persistence.EntityManager;
 
+import org.springframework.data.jpa.provider.PersistenceProvider;
+import org.springframework.data.jpa.provider.QueryExtractor;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.query.JpaQueryLookupStrategy;
-import org.springframework.data.jpa.repository.query.QueryExtractor;
 import org.springframework.data.querydsl.QueryDslPredicateExecutor;
+import org.springframework.data.repository.core.RepositoryInformation;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.core.support.RepositoryFactorySupport;
 import org.springframework.data.repository.query.EvaluationContextProvider;
@@ -41,7 +43,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 
 	private final EntityManager entityManager;
 	private final QueryExtractor extractor;
-	private final CrudMethodMetadataPostProcessor lockModePostProcessor;
+	private final CrudMethodMetadataPostProcessor crudMethodMetadataPostProcessor;
 
 	/**
 	 * Creates a new {@link JpaRepositoryFactory}.
@@ -54,9 +56,19 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 
 		this.entityManager = entityManager;
 		this.extractor = PersistenceProvider.fromEntityManager(entityManager);
-		this.lockModePostProcessor = CrudMethodMetadataPostProcessor.INSTANCE;
+		this.crudMethodMetadataPostProcessor = new CrudMethodMetadataPostProcessor();
 
-		addRepositoryProxyPostProcessor(lockModePostProcessor);
+		addRepositoryProxyPostProcessor(crudMethodMetadataPostProcessor);
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.core.support.RepositoryFactorySupport#setBeanClassLoader(java.lang.ClassLoader)
+	 */
+	@Override
+	public void setBeanClassLoader(ClassLoader classLoader) {
+		super.setBeanClassLoader(classLoader);
+		this.crudMethodMetadataPostProcessor.setBeanClassLoader(classLoader);
 	}
 
 	/*
@@ -64,10 +76,10 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	 * @see org.springframework.data.repository.core.support.RepositoryFactorySupport#getTargetRepository(org.springframework.data.repository.core.RepositoryMetadata)
 	 */
 	@Override
-	protected Object getTargetRepository(RepositoryMetadata metadata) {
+	protected Object getTargetRepository(RepositoryInformation information) {
 
-		SimpleJpaRepository<?, ?> repository = getTargetRepository(metadata, entityManager);
-		repository.setRepositoryMethodMetadata(lockModePostProcessor.getLockMetadataProvider());
+		SimpleJpaRepository<?, ?> repository = getTargetRepository(information, entityManager);
+		repository.setRepositoryMethodMetadata(crudMethodMetadataPostProcessor.getCrudMethodMetadata());
 
 		return repository;
 	}
@@ -81,17 +93,12 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	 * @see #getTargetRepository(RepositoryMetadata)
 	 * @return
 	 */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	protected <T, ID extends Serializable> SimpleJpaRepository<?, ?> getTargetRepository(RepositoryMetadata metadata,
-			EntityManager entityManager) {
+	protected <T, ID extends Serializable> SimpleJpaRepository<?, ?> getTargetRepository(
+			RepositoryInformation information, EntityManager entityManager) {
 
-		Class<?> repositoryInterface = metadata.getRepositoryInterface();
-		JpaEntityInformation<?, Serializable> entityInformation = getEntityInformation(metadata.getDomainType());
+		JpaEntityInformation<?, Serializable> entityInformation = getEntityInformation(information.getDomainType());
 
-		SimpleJpaRepository<?, ?> repo = isQueryDslExecutor(repositoryInterface) ? new QueryDslJpaRepository(
-				entityInformation, entityManager) : new SimpleJpaRepository(entityInformation, entityManager);
-
-		return repo;
+		return getTargetRepositoryViaReflection(information, entityInformation, entityManager);
 	}
 
 	/*
@@ -142,6 +149,6 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	@SuppressWarnings("unchecked")
 	public <T, ID extends Serializable> JpaEntityInformation<T, ID> getEntityInformation(Class<T> domainClass) {
 
-		return (JpaEntityInformation<T, ID>) JpaEntityInformationSupport.getMetadata(domainClass, entityManager);
+		return (JpaEntityInformation<T, ID>) JpaEntityInformationSupport.getEntityInformation(domainClass, entityManager);
 	}
 }

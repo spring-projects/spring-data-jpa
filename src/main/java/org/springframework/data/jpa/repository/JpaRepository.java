@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2013 the original author or authors.
+ * Copyright 2008-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,17 +20,22 @@ import java.util.List;
 
 import javax.persistence.EntityManager;
 
+import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.PagingAndSortingRepository;
+import org.springframework.data.repository.query.QueryByExampleExecutor;
 
 /**
  * JPA specific extension of {@link org.springframework.data.repository.Repository}.
- * 
+ *
  * @author Oliver Gierke
+ * @author Christoph Strobl
+ * @author Mark Paluch
  */
 @NoRepositoryBean
-public interface JpaRepository<T, ID extends Serializable> extends PagingAndSortingRepository<T, ID> {
+public interface JpaRepository<T, ID extends Serializable>
+		extends PagingAndSortingRepository<T, ID>, QueryByExampleExecutor<T> {
 
 	/*
 	 * (non-Javadoc)
@@ -78,7 +83,7 @@ public interface JpaRepository<T, ID extends Serializable> extends PagingAndSort
 	void deleteInBatch(Iterable<T> entities);
 
 	/**
-	 * Deletes all entites in a batch call.
+	 * Deletes all entities in a batch call.
 	 */
 	void deleteAllInBatch();
 
@@ -90,4 +95,17 @@ public interface JpaRepository<T, ID extends Serializable> extends PagingAndSort
 	 * @see EntityManager#getReference(Class, Object)
 	 */
 	T getOne(ID id);
+
+	/* (non-Javadoc)
+	 * @see org.springframework.data.repository.query.QueryByExampleExecutor#findAll(org.springframework.data.domain.Example)
+	 */
+	@Override
+	<S extends T> List<S> findAll(Example<S> example);
+
+	/* (non-Javadoc)
+	 * @see org.springframework.data.repository.query.QueryByExampleExecutor#findAll(org.springframework.data.domain.Example, org.springframework.data.domain.Sort)
+	 */
+	@Override
+	<S extends T> List<S> findAll(Example<S> example, Sort sort);
+
 }

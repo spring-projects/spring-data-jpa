@@ -23,7 +23,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.springframework.data.jpa.repository.support.JpaEntityMetadata;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 
 /**
  * Unit tests for {@link ExpressionBasedStringQuery}.
@@ -36,6 +36,8 @@ public class ExpressionBasedStringQueryUnitTests {
 
 	@Mock JpaEntityMetadata<?> metadata;
 
+	static final SpelExpressionParser SPEL_PARSER = new SpelExpressionParser();
+
 	/**
 	 * @see DATAJPA-170
 	 */
@@ -45,7 +47,7 @@ public class ExpressionBasedStringQueryUnitTests {
 		when(metadata.getEntityName()).thenReturn("User");
 
 		String source = "select from #{#entityName} u where u.firstname like :firstname";
-		StringQuery query = new ExpressionBasedStringQuery(source, metadata);
+		StringQuery query = new ExpressionBasedStringQuery(source, metadata, SPEL_PARSER);
 		assertThat(query.getQueryString(), is("select from User u where u.firstname like :firstname"));
 	}
 
@@ -57,7 +59,7 @@ public class ExpressionBasedStringQueryUnitTests {
 
 		when(metadata.getEntityName()).thenReturn("User");
 
-		StringQuery query = new ExpressionBasedStringQuery("select u from #{#entityName} u", metadata);
+		StringQuery query = new ExpressionBasedStringQuery("select u from #{#entityName} u", metadata, SPEL_PARSER);
 		assertThat(query.getAlias(), is("u"));
 		assertThat(query.getQueryString(), is("select u from User u"));
 	}

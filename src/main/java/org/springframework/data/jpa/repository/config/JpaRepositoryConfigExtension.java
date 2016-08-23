@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2014 the original author or authors.
+ * Copyright 2012-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,14 +33,19 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.annotation.AnnotationConfigUtils;
+import org.springframework.core.annotation.AnnotationAttributes;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.support.DefaultJpaContext;
 import org.springframework.data.jpa.repository.support.EntityManagerBeanDefinitionRegistrarPostProcessor;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean;
+import org.springframework.data.repository.config.AnnotationRepositoryConfigurationSource;
 import org.springframework.data.repository.config.RepositoryConfigurationExtensionSupport;
 import org.springframework.data.repository.config.RepositoryConfigurationSource;
+import org.springframework.data.repository.config.XmlRepositoryConfigurationSource;
 import org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor;
+import org.springframework.util.StringUtils;
 
 /**
  * JPA specific configuration extension parsing custom attributes from the XML namespace and
@@ -59,6 +64,7 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 
 	private static final Class<?> PAB_POST_PROCESSOR = PersistenceAnnotationBeanPostProcessor.class;
 	private static final String DEFAULT_TRANSACTION_MANAGER_BEAN_NAME = "transactionManager";
+	private static final String ENABLE_DEFAULT_TRANSACTIONS_ATTRIBUTE = "enableDefaultTransactions";
 
 	/* 
 	 * (non-Javadoc)
@@ -121,6 +127,33 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 
 	/* 
 	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.config.RepositoryConfigurationExtensionSupport#postProcess(org.springframework.beans.factory.support.BeanDefinitionBuilder, org.springframework.data.repository.config.AnnotationRepositoryConfigurationSource)
+	 */
+	@Override
+	public void postProcess(BeanDefinitionBuilder builder, AnnotationRepositoryConfigurationSource config) {
+
+		AnnotationAttributes attributes = config.getAttributes();
+
+		builder.addPropertyValue(ENABLE_DEFAULT_TRANSACTIONS_ATTRIBUTE,
+				attributes.getBoolean(ENABLE_DEFAULT_TRANSACTIONS_ATTRIBUTE));
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.config.RepositoryConfigurationExtensionSupport#postProcess(org.springframework.beans.factory.support.BeanDefinitionBuilder, org.springframework.data.repository.config.XmlRepositoryConfigurationSource)
+	 */
+	@Override
+	public void postProcess(BeanDefinitionBuilder builder, XmlRepositoryConfigurationSource config) {
+
+		String enableDefaultTransactions = config.getAttribute(ENABLE_DEFAULT_TRANSACTIONS_ATTRIBUTE);
+
+		if (StringUtils.hasText(enableDefaultTransactions)) {
+			builder.addPropertyValue(ENABLE_DEFAULT_TRANSACTIONS_ATTRIBUTE, enableDefaultTransactions);
+		}
+	}
+
+	/* 
+	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.config.RepositoryConfigurationExtensionSupport#registerBeansForRoot(org.springframework.beans.factory.support.BeanDefinitionRegistry, org.springframework.data.repository.config.RepositoryConfigurationSource)
 	 */
 	@Override
@@ -129,19 +162,22 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 		super.registerBeansForRoot(registry, config);
 
 		Object source = config.getSource();
-		registerWithSourceAndGeneratedBeanName(registry, new RootBeanDefinition(
-				EntityManagerBeanDefinitionRegistrarPostProcessor.class), source);
 
-		if (!registry.containsBeanDefinition(JPA_MAPPING_CONTEXT_BEAN_NAME)) {
-			registry.registerBeanDefinition(JPA_MAPPING_CONTEXT_BEAN_NAME, //
-					new RootBeanDefinition(JpaMetamodelMappingContextFactoryBean.class));
-		}
+		registerIfNotAlreadyRegistered(new RootBeanDefinition(EntityManagerBeanDefinitionRegistrarPostProcessor.class),
+				registry, EM_BEAN_DEFINITION_REGISTRAR_POST_PROCESSOR_BEAN_NAME, source);
 
-		if (!hasBean(PAB_POST_PROCESSOR, registry)
-				&& !registry.containsBeanDefinition(AnnotationConfigUtils.PERSISTENCE_ANNOTATION_PROCESSOR_BEAN_NAME)) {
+		registerIfNotAlreadyRegistered(new RootBeanDefinition(JpaMetamodelMappingContextFactoryBean.class), registry,
+				JPA_MAPPING_CONTEXT_BEAN_NAME, source);
 
-			registerWithSourceAndGeneratedBeanName(registry, new RootBeanDefinition(PAB_POST_PROCESSOR), source);
-		}
+		registerIfNotAlreadyRegistered(new RootBeanDefinition(PAB_POST_PROCESSOR), registry,
+				AnnotationConfigUtils.PERSISTENCE_ANNOTATION_PROCESSOR_BEAN_NAME, source);
+
+		// Register bean definition for DefaultJpaContext
+
+		RootBeanDefinition contextDefinition = new RootBeanDefinition(DefaultJpaContext.class);
+		contextDefinition.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_CONSTRUCTOR);
+
+		registerIfNotAlreadyRegistered(contextDefinition, registry, JPA_CONTEXT_BEAN_NAME, source);
 	}
 
 	/**

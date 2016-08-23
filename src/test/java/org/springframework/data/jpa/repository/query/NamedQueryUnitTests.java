@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 the original author or authors.
+ * Copyright 2008-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,8 @@ import static org.mockito.Mockito.*;
 import java.lang.reflect.Method;
 
 import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.metamodel.Metamodel;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -29,6 +31,9 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.provider.QueryExtractor;
+import org.springframework.data.projection.ProjectionFactory;
+import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.QueryCreationException;
 
@@ -36,16 +41,18 @@ import org.springframework.data.repository.query.QueryCreationException;
  * Unit tests for {@link NamedQuery}.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 @RunWith(MockitoJUnitRunner.class)
 public class NamedQueryUnitTests {
 
-	@Mock
-	RepositoryMetadata metadata;
-	@Mock
-	QueryExtractor extractor;
-	@Mock
-	EntityManager em;
+	@Mock RepositoryMetadata metadata;
+	@Mock QueryExtractor extractor;
+	@Mock EntityManager em;
+	@Mock EntityManagerFactory emf;
+	@Mock Metamodel metamodel;
+
+	ProjectionFactory projectionFactory = new SpelAwareProxyProjectionFactory();
 
 	Method method;
 
@@ -56,13 +63,17 @@ public class NamedQueryUnitTests {
 		method = SampleRepository.class.getMethod("foo", Pageable.class);
 		when(metadata.getDomainType()).thenReturn((Class) String.class);
 		when(metadata.getReturnedDomainClass(method)).thenReturn((Class) String.class);
+
+		when(em.getMetamodel()).thenReturn(metamodel);
+		when(em.getEntityManagerFactory()).thenReturn(emf);
+		when(emf.createEntityManager()).thenReturn(em);
 	}
 
 	@Test(expected = QueryCreationException.class)
 	public void rejectsPersistenceProviderIfIncapableOfExtractingQueriesAndPagebleBeingUsed() {
 
 		when(extractor.canExtractQuery()).thenReturn(false);
-		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, extractor);
+		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, projectionFactory, extractor);
 
 		when(em.createNamedQuery(queryMethod.getNamedCountQueryName())).thenThrow(new IllegalArgumentException());
 		NamedQuery.lookupFrom(queryMethod, em);
@@ -75,7 +86,7 @@ public class NamedQueryUnitTests {
 	public void doesNotRejectPersistenceProviderIfNamedCountQueryIsAvailable() {
 
 		when(extractor.canExtractQuery()).thenReturn(false);
-		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, extractor);
+		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, projectionFactory, extractor);
 
 		when(em.createNamedQuery(queryMethod.getNamedCountQueryName())).thenReturn(null);
 		NamedQuery query = (NamedQuery) NamedQuery.lookupFrom(queryMethod, em);

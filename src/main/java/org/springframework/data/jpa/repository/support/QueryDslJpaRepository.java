@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2012 the original author or authors.
+ * Copyright 2008-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 package org.springframework.data.jpa.repository.support;
 
 import java.io.Serializable;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
 
@@ -24,28 +23,32 @@ import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.querydsl.EntityPathResolver;
 import org.springframework.data.querydsl.QSort;
 import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 import org.springframework.data.querydsl.SimpleEntityPathResolver;
+import org.springframework.data.repository.support.PageableExecutionUtils;
+import org.springframework.data.repository.support.PageableExecutionUtils.TotalSupplier;
 
-import com.mysema.query.jpa.JPQLQuery;
-import com.mysema.query.jpa.impl.JPAQuery;
-import com.mysema.query.types.EntityPath;
-import com.mysema.query.types.OrderSpecifier;
-import com.mysema.query.types.Predicate;
-import com.mysema.query.types.path.PathBuilder;
+import com.querydsl.core.types.EntityPath;
+import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.Predicate;
+import com.querydsl.core.types.dsl.PathBuilder;
+import com.querydsl.jpa.JPQLQuery;
+import com.querydsl.jpa.impl.AbstractJPAQuery;
 
 /**
  * QueryDsl specific extension of {@link SimpleJpaRepository} which adds implementation for
  * {@link QueryDslPredicateExecutor}.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
+ * @author Mark Paluch
  */
-public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpaRepository<T, ID> implements
-		QueryDslPredicateExecutor<T> {
+public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpaRepository<T, ID>
+		implements QueryDslPredicateExecutor<T> {
 
 	private static final EntityPathResolver DEFAULT_ENTITY_PATH_RESOLVER = SimpleEntityPathResolver.INSTANCE;
 
@@ -86,50 +89,82 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 	 * (non-Javadoc)
 	 * @see org.springframework.data.querydsl.QueryDslPredicateExecutor#findOne(com.mysema.query.types.Predicate)
 	 */
+	@Override
 	public T findOne(Predicate predicate) {
-		return createQuery(predicate).uniqueResult(path);
+		return createQuery(predicate).select(path).fetchOne();
 	}
 
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.querydsl.QueryDslPredicateExecutor#findAll(com.mysema.query.types.Predicate)
 	 */
+	@Override
 	public List<T> findAll(Predicate predicate) {
-		return createQuery(predicate).list(path);
+		return createQuery(predicate).select(path).fetch();
 	}
 
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.querydsl.QueryDslPredicateExecutor#findAll(com.mysema.query.types.Predicate, com.mysema.query.types.OrderSpecifier<?>[])
 	 */
+	@Override
 	public List<T> findAll(Predicate predicate, OrderSpecifier<?>... orders) {
+		return executeSorted(createQuery(predicate).select(path), orders);
+	}
 
-		JPQLQuery query = createQuery(predicate);
-		query = querydsl.applySorting(new QSort(orders), query);
-		return query.list(path);
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.querydsl.QueryDslPredicateExecutor#findAll(com.mysema.query.types.Predicate, org.springframework.data.domain.Sort)
+	 */
+	@Override
+	public List<T> findAll(Predicate predicate, Sort sort) {
+		return executeSorted(createQuery(predicate).select(path), sort);
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.querydsl.QueryDslPredicateExecutor#findAll(com.mysema.query.types.OrderSpecifier[])
+	 */
+	@Override
+	public List<T> findAll(OrderSpecifier<?>... orders) {
+		return executeSorted(createQuery(new Predicate[0]).select(path), orders);
 	}
 
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.querydsl.QueryDslPredicateExecutor#findAll(com.mysema.query.types.Predicate, org.springframework.data.domain.Pageable)
 	 */
+	@Override
 	public Page<T> findAll(Predicate predicate, Pageable pageable) {
 
-		JPQLQuery countQuery = createQuery(predicate);
-		JPQLQuery query = querydsl.applyPagination(pageable, createQuery(predicate));
+		final JPQLQuery<?> countQuery = createQuery(predicate);
+		JPQLQuery<T> query = querydsl.applyPagination(pageable, createQuery(predicate).select(path));
 
-		Long total = countQuery.count();
-		List<T> content = total > pageable.getOffset() ? query.list(path) : Collections.<T> emptyList();
+		return PageableExecutionUtils.getPage(query.fetch(), pageable, new TotalSupplier() {
 
-		return new PageImpl<T>(content, pageable, total);
+			@Override
+			public long get() {
+				return countQuery.fetchCount();
+			}
+		});
 	}
 
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.querydsl.QueryDslPredicateExecutor#count(com.mysema.query.types.Predicate)
 	 */
+	@Override
 	public long count(Predicate predicate) {
-		return createQuery(predicate).count();
+		return createQuery(predicate).fetchCount();
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.querydsl.QueryDslPredicateExecutor#exists(com.mysema.query.types.Predicate)
+	 */
+	@Override
+	public boolean exists(Predicate predicate) {
+		return createQuery(predicate).fetchCount() > 0;
 	}
 
 	/**
@@ -138,9 +173,9 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 	 * @param predicate
 	 * @return the Querydsl {@link JPQLQuery}.
 	 */
-	protected JPQLQuery createQuery(Predicate... predicate) {
+	protected JPQLQuery<?> createQuery(Predicate... predicate) {
 
-		JPAQuery query = querydsl.createQuery(path).where(predicate);
+		AbstractJPAQuery<?, ?> query = querydsl.createQuery(path).where(predicate);
 		CrudMethodMetadata metadata = getRepositoryMethodMetadata();
 
 		if (metadata == null) {
@@ -150,10 +185,32 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 		LockModeType type = metadata.getLockModeType();
 		query = type == null ? query : query.setLockMode(type);
 
-		for (Entry<String, Object> hint : metadata.getQueryHints().entrySet()) {
+		for (Entry<String, Object> hint : getQueryHints().entrySet()) {
 			query.setHint(hint.getKey(), hint.getValue());
 		}
 
 		return query;
+	}
+
+	/**
+	 * Executes the given {@link JPQLQuery} after applying the given {@link OrderSpecifier}s.
+	 * 
+	 * @param query must not be {@literal null}.
+	 * @param orders must not be {@literal null}.
+	 * @return
+	 */
+	private List<T> executeSorted(JPQLQuery<T> query, OrderSpecifier<?>... orders) {
+		return executeSorted(query, new QSort(orders));
+	}
+
+	/**
+	 * Executes the given {@link JPQLQuery} after applying the given {@link Sort}.
+	 * 
+	 * @param query must not be {@literal null}.
+	 * @param sort must not be {@literal null}.
+	 * @return
+	 */
+	private List<T> executeSorted(JPQLQuery<T> query, Sort sort) {
+		return querydsl.applySorting(sort, query).fetch();
 	}
 }

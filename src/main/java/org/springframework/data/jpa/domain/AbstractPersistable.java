@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 the original author or authors.
+ * Copyright 2008-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,35 +18,33 @@ package org.springframework.data.jpa.domain;
 import java.io.Serializable;
 
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
+import javax.persistence.Transient;
 
 import org.springframework.data.domain.Persistable;
+import org.springframework.util.ClassUtils;
 
 /**
  * Abstract base class for entities. Allows parameterization of id type, chooses auto-generation and implements
  * {@link #equals(Object)} and {@link #hashCode()} based on that id.
  * 
  * @author Oliver Gierke
- * @param <PK> the the of the entity
+ * @author Thomas Darimont
+ * @param <PK> the type of the identifier.
  */
 @MappedSuperclass
 public abstract class AbstractPersistable<PK extends Serializable> implements Persistable<PK> {
 
 	private static final long serialVersionUID = -5554308939380869754L;
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
-	private PK id;
+	@Id @GeneratedValue private PK id;
 
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see org.springframework.data.domain.Persistable#getId()
 	 */
 	public PK getId() {
-
 		return id;
 	}
 
@@ -56,17 +54,17 @@ public abstract class AbstractPersistable<PK extends Serializable> implements Pe
 	 * @param id the id to set
 	 */
 	protected void setId(final PK id) {
-
 		this.id = id;
 	}
 
-	/*
-	 * (non-Javadoc)
+	/**
+	 * Must be {@link Transient} in order to ensure that no JPA provider complains because of a missing setter.
 	 * 
+	 * @see DATAJPA-622
 	 * @see org.springframework.data.domain.Persistable#isNew()
 	 */
+	@Transient
 	public boolean isNew() {
-
 		return null == getId();
 	}
 
@@ -77,7 +75,6 @@ public abstract class AbstractPersistable<PK extends Serializable> implements Pe
 	 */
 	@Override
 	public String toString() {
-
 		return String.format("Entity of type %s with id: %s", this.getClass().getName(), getId());
 	}
 
@@ -97,7 +94,7 @@ public abstract class AbstractPersistable<PK extends Serializable> implements Pe
 			return true;
 		}
 
-		if (!getClass().equals(obj.getClass())) {
+		if (!getClass().equals(ClassUtils.getUserClass(obj))) {
 			return false;
 		}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2014 the original author or authors.
+ * Copyright 2008-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,11 +21,14 @@ import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 import java.lang.reflect.Method;
+import java.util.Collection;
 import java.util.List;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.Tuple;
 import javax.persistence.TypedQuery;
+import javax.persistence.metamodel.Metamodel;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -40,13 +43,16 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.sample.User;
+import org.springframework.data.jpa.provider.QueryExtractor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.sample.UserRepository;
-import org.springframework.data.jpa.repository.support.DefaultJpaEntityMetadata;
-import org.springframework.data.jpa.repository.support.JpaEntityMetadata;
+import org.springframework.data.projection.ProjectionFactory;
+import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.data.repository.core.RepositoryMetadata;
+import org.springframework.data.repository.query.EvaluationContextProvider;
+import org.springframework.data.repository.query.ExtensionAwareEvaluationContextProvider;
 import org.springframework.data.repository.query.RepositoryQuery;
-import org.springframework.data.repository.query.DefaultEvaluationContextProvider;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 
 /**
  * Unit test for {@link SimpleJpaQuery}.
@@ -58,15 +64,21 @@ import org.springframework.data.repository.query.DefaultEvaluationContextProvide
 public class SimpleJpaQueryUnitTests {
 
 	static final String USER_QUERY = "select u from User u";
+	static final SpelExpressionParser PARSER = new SpelExpressionParser();
+	private static final EvaluationContextProvider EVALUATION_CONTEXT_PROVIDER = new ExtensionAwareEvaluationContextProvider();
 
 	JpaQueryMethod method;
 
 	@Mock EntityManager em;
 	@Mock EntityManagerFactory emf;
 	@Mock QueryExtractor extractor;
-	@Mock TypedQuery<Long> query;
+	@Mock javax.persistence.Query query;
+	@Mock TypedQuery<Long> typedQuery;
 	@Mock RepositoryMetadata metadata;
 	@Mock ParameterBinder binder;
+	@Mock Metamodel metamodel;
+
+	ProjectionFactory factory = new SpelAwareProxyProjectionFactory();
 
 	public @Rule ExpectedException exception = ExpectedException.none();
 
@@ -74,32 +86,29 @@ public class SimpleJpaQueryUnitTests {
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void setUp() throws SecurityException, NoSuchMethodException {
 
+		when(em.getMetamodel()).thenReturn(metamodel);
 		when(em.createQuery(anyString())).thenReturn(query);
-		when(em.createQuery(anyString(), eq(Long.class))).thenReturn(query);
+		when(em.createQuery(anyString(), eq(Long.class))).thenReturn(typedQuery);
 		when(em.getEntityManagerFactory()).thenReturn(emf);
 		when(emf.createEntityManager()).thenReturn(em);
 		when(metadata.getDomainType()).thenReturn((Class) User.class);
 		when(metadata.getReturnedDomainClass(Mockito.any(Method.class))).thenReturn((Class) User.class);
 
 		Method setUp = UserRepository.class.getMethod("findByLastname", String.class);
-		method = new JpaQueryMethod(setUp, metadata, extractor);
+		method = new JpaQueryMethod(setUp, metadata, factory, extractor);
 	}
 
 	@Test
-	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void prefersDeclaredCountQueryOverCreatingOne() throws Exception {
 
-		method = mock(JpaQueryMethod.class);
-		when(method.getCountQuery()).thenReturn("foo");
-		when(method.getParameters()).thenReturn(
-				new JpaParameters(SimpleJpaQueryUnitTests.class.getMethod("prefersDeclaredCountQueryOverCreatingOne")));
-		when(method.getEntityInformation()).thenReturn((JpaEntityMetadata) new DefaultJpaEntityMetadata<User>(User.class));
-		when(em.createQuery("foo", Long.class)).thenReturn(query);
+		method = new JpaQueryMethod(SimpleJpaQueryUnitTests.class.getMethod("prefersDeclaredCountQueryOverCreatingOne"),
+				metadata, factory, extractor);
+		when(em.createQuery("foo", Long.class)).thenReturn(typedQuery);
 
-		SimpleJpaQuery jpaQuery = new SimpleJpaQuery(method, em, "select u from User u",
-				DefaultEvaluationContextProvider.INSTANCE);
+		SimpleJpaQuery jpaQuery = new SimpleJpaQuery(method, em, "select u from User u", EVALUATION_CONTEXT_PROVIDER,
+				PARSER);
 
-		assertThat(jpaQuery.createCountQuery(new Object[] {}), is(query));
+		assertThat(jpaQuery.createCountQuery(new Object[] {}), is((javax.persistence.Query) typedQuery));
 	}
 
 	/**
@@ -111,10 +120,10 @@ public class SimpleJpaQueryUnitTests {
 		when(em.createQuery(Mockito.anyString())).thenReturn(query);
 
 		Method method = UserRepository.class.getMethod("findAllPaged", Pageable.class);
-		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, extractor);
+		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, factory, extractor);
 
-		AbstractJpaQuery jpaQuery = new SimpleJpaQuery(queryMethod, em, "select u from User u",
-				DefaultEvaluationContextProvider.INSTANCE);
+		AbstractJpaQuery jpaQuery = new SimpleJpaQuery(queryMethod, em, "select u from User u", EVALUATION_CONTEXT_PROVIDER,
+				PARSER);
 		jpaQuery.createCountQuery(new Object[] { new PageRequest(1, 10) });
 
 		verify(query, times(0)).setFirstResult(anyInt());
@@ -126,9 +135,9 @@ public class SimpleJpaQueryUnitTests {
 	public void discoversNativeQuery() throws Exception {
 
 		Method method = SampleRepository.class.getMethod("findNativeByLastname", String.class);
-		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, extractor);
+		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, factory, extractor);
 		AbstractJpaQuery jpaQuery = JpaQueryFactory.INSTANCE.fromQueryAnnotation(queryMethod, em,
-				DefaultEvaluationContextProvider.INSTANCE);
+				EVALUATION_CONTEXT_PROVIDER);
 
 		assertThat(jpaQuery instanceof NativeJpaQuery, is(true));
 
@@ -170,7 +179,7 @@ public class SimpleJpaQueryUnitTests {
 	public void doesNotValidateCountQueryIfNotPagingMethod() throws Exception {
 
 		Method method = SampleRepository.class.getMethod("findByAnnotatedQuery");
-		when(em.createQuery(contains("count"))).thenThrow(IllegalArgumentException.class);
+		when(em.createQuery(Mockito.contains("count"))).thenThrow(IllegalArgumentException.class);
 
 		createJpaQuery(method);
 	}
@@ -184,7 +193,7 @@ public class SimpleJpaQueryUnitTests {
 
 		Method method = SampleRepository.class.getMethod("pageByAnnotatedQuery", Pageable.class);
 
-		when(em.createQuery(contains("count"))).thenThrow(IllegalArgumentException.class);
+		when(em.createQuery(Mockito.contains("count"))).thenThrow(IllegalArgumentException.class);
 		exception.expect(IllegalArgumentException.class);
 		exception.expectMessage("Count");
 		exception.expectMessage(method.getName());
@@ -206,11 +215,42 @@ public class SimpleJpaQueryUnitTests {
 		assertThat(query instanceof NativeJpaQuery, is(true));
 	}
 
-	private RepositoryQuery createJpaQuery(Method method) {
+	/**
+	 * @see DATAJPA-757
+	 */
+	@Test
+	public void createsNativeCountQuery() throws Exception {
 
-		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, extractor);
-		return JpaQueryFactory.INSTANCE.fromQueryAnnotation(queryMethod, em,
-				DefaultEvaluationContextProvider.INSTANCE);
+		when(em.createNativeQuery(anyString())).thenReturn(query);
+
+		AbstractJpaQuery jpaQuery = createJpaQuery(
+				UserRepository.class.getMethod("findUsersInNativeQueryWithPagination", Pageable.class));
+
+		jpaQuery.doCreateCountQuery(new Object[] { new PageRequest(0, 10) });
+
+		verify(em).createNativeQuery(anyString());
+	}
+
+	/**
+	 * @see DATAJPA-885
+	 */
+	@Test
+	public void projectsWithManuallyDeclaredQuery() throws Exception {
+
+		AbstractJpaQuery jpaQuery = createJpaQuery(SampleRepository.class.getMethod("projectWithExplicitQuery"));
+
+		jpaQuery.createQuery(new Object[0]);
+
+		verify(em, times(0)).createQuery(anyString(), eq(Tuple.class));
+
+		// Two times, first one is from the query validation
+		verify(em, times(2)).createQuery(anyString());
+	}
+
+	private AbstractJpaQuery createJpaQuery(Method method) {
+
+		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, factory, extractor);
+		return JpaQueryFactory.INSTANCE.fromQueryAnnotation(queryMethod, em, EVALUATION_CONTEXT_PROVIDER);
 	}
 
 	interface SampleRepository {
@@ -229,5 +269,10 @@ public class SimpleJpaQueryUnitTests {
 
 		@Query(USER_QUERY)
 		Page<User> pageByAnnotatedQuery(Pageable pageable);
+
+		@Query("select u from User u")
+		Collection<UserProjection> projectWithExplicitQuery();
 	}
+
+	interface UserProjection {}
 }

@@ -15,14 +15,11 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import java.util.List;
-
 import javax.persistence.Query;
 
 import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
 import org.springframework.data.jpa.repository.query.StringQuery.LikeParameterBinding;
 import org.springframework.data.jpa.repository.query.StringQuery.ParameterBinding;
-import org.springframework.data.repository.query.EvaluationContextProvider;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.util.Assert;
@@ -33,7 +30,7 @@ import org.springframework.util.Assert;
  * @author Oliver Gierke
  * @author Thomas Darimont
  */
-public class StringQueryParameterBinder extends ExpressionAwareParameterBinder {
+public class StringQueryParameterBinder extends ParameterBinder {
 
 	private final StringQuery query;
 
@@ -44,12 +41,10 @@ public class StringQueryParameterBinder extends ExpressionAwareParameterBinder {
 	 * @param parameters must not be {@literal null}.
 	 * @param values must not be {@literal null}.
 	 * @param query must not be {@literal null}.
-	 * @param evaluationContextProvider must not be {@literal null}.
 	 */
-	public StringQueryParameterBinder(JpaParameters parameters, Object[] values, StringQuery query,
-			EvaluationContextProvider evaluationContextProvider) {
+	public StringQueryParameterBinder(JpaParameters parameters, Object[] values, StringQuery query) {
 
-		super(parameters, values, evaluationContextProvider);
+		super(parameters, values);
 
 		Assert.notNull(query, "StringQuery must not be null!");
 		this.query = query;
@@ -66,34 +61,6 @@ public class StringQueryParameterBinder extends ExpressionAwareParameterBinder {
 		super.bind(jpaQuery, methodParameter, binding.prepare(value), position);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.query.ParameterBinder#canBindParameter(org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter)
-	 */
-	@Override
-	protected boolean canBindParameter(JpaParameter parameter) {
-
-		List<ParameterBinding> parameterBindings = query.getParameterBindings();
-
-		// if no parameter bindings are present, we simply rely on the check in super.
-		if (parameterBindings.isEmpty()) {
-			return super.canBindParameter(parameter);
-		}
-
-		// otherwise determine whether there are any non expression parameters left to be bound.
-		int expressionParameterCount = 0;
-		for (ParameterBinding binding : parameterBindings) {
-
-			if (binding.isExpression()) {
-				expressionParameterCount++;
-			}
-		}
-
-		boolean allParametersAreUsedInExpressions = parameterBindings.size() - expressionParameterCount == 0;
-
-		// if all parameters are used in expressions, then we can skip their bindings now, since they'll get bound later.
-		return !allParametersAreUsedInExpressions && super.canBindParameter(parameter);
-	}
-
 	/**
 	 * Finds the {@link LikeParameterBinding} to be applied before binding a parameter value to the query.
 	 * 
@@ -104,6 +71,10 @@ public class StringQueryParameterBinder extends ExpressionAwareParameterBinder {
 	 */
 	private ParameterBinding getBindingFor(Query jpaQuery, int position, Parameter methodParameter) {
 
+		if (hasNamedParameter(jpaQuery)) {
+			return query.getBindingFor(methodParameter.getName());
+		}
+
 		try {
 
 			jpaQuery.getParameter(position);
@@ -111,15 +82,11 @@ public class StringQueryParameterBinder extends ExpressionAwareParameterBinder {
 
 		} catch (IllegalArgumentException o_O) {
 
-			if (hasNamedParameter(jpaQuery)) {
-				return query.getBindingFor(methodParameter.getName());
-			}
+			// We should actually reject parameters unavailable, but as EclipseLink doesn't implement ….getParameter(int) for
+			// native queries correctly we need to fall back to an indexed parameter
+			// @see https://bugs.eclipse.org/bugs/show_bug.cgi?id=427892
+
+			return new ParameterBinding(position);
 		}
-
-		// We should actually reject parameters unavailable, but as EclipseLink doesn't implement ….getParameter(int) for
-		// native queries correctly we need to fall back to an indexed parameter
-		// @see https://bugs.eclipse.org/bugs/show_bug.cgi?id=427892
-
-		return new ParameterBinding(position);
 	}
 }

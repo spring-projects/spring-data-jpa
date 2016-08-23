@@ -1,4 +1,7 @@
-# Spring Data JPA #
+[![Spring Data JPA](https://spring.io/badges/spring-data-jpa/ga.svg)](http://projects.spring.io/spring-data-jpa/#quick-start)
+[![Spring Data JPA](https://spring.io/badges/spring-data-jpa/snapshot.svg)](http://projects.spring.io/spring-data-jpa/#quick-start)
+
+# Spring Data JPA [![Build Status](https://travis-ci.org/spring-projects/spring-data-jpa.svg?branch=master)](https://travis-ci.org/spring-projects/spring-data-jpa) [![Build status](https://build.spring.io/plugins/servlet/buildStatusImage//SPRINGDATAJPA-DATAJPA)](https://build.spring.io/browse//SPRINGDATAJPA-DATAJPA)
 
 The primary goal of the [Spring Data](http://projects.spring.io/spring-data) project is to make it easier to build Spring-powered applications that use data access technologies. This module deals with enhanced support for JPA based data access layers.
 
@@ -24,13 +27,13 @@ For more detailed questions, use [stackoverflow](http://stackoverflow.com/questi
 
 ## Quick Start ##
 
-Download the jar though Maven:
+Download the jar through Maven:
 
 ```xml
 <dependency>
   <groupId>org.springframework.data</groupId>
   <artifactId>spring-data-jpa</artifactId>
-  <version>1.6.0.RELEASE</version>
+  <version>${version}.RELEASE</version>
 </dependency>
 ```
 
@@ -109,7 +112,7 @@ public class UserRepositoryIntegrationTest {
   @Test
   public void sampleTestCase() {
     User dave = new User("Dave", "Matthews");
-    dave = repository.save(user);
+    dave = repository.save(dave);
          
     User carter = new User("Carter", "Beauford");
     carter = repository.save(carter);

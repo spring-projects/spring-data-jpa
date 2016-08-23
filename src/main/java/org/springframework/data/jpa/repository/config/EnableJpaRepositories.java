@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2013 the original author or authors.
+ * Copyright 2012-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import org.springframework.beans.factory.FactoryBean;
 import org.springframework.context.annotation.ComponentScan.Filter;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean;
+import org.springframework.data.repository.config.DefaultRepositoryBaseClass;
 import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.data.repository.query.QueryLookupStrategy.Key;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -87,7 +88,7 @@ public @interface EnableJpaRepositories {
 
 	/**
 	 * Configures the location of where to find the Spring Data named queries properties file. Will default to
-	 * {@code META-INFO/jpa-named-queries.properties}.
+	 * {@code META-INF/jpa-named-queries.properties}.
 	 * 
 	 * @return
 	 */
@@ -109,7 +110,16 @@ public @interface EnableJpaRepositories {
 	 */
 	Class<?> repositoryFactoryBeanClass() default JpaRepositoryFactoryBean.class;
 
+	/**
+	 * Configure the repository base class to be used to create repository proxies for this particular configuration.
+	 * 
+	 * @return
+	 * @since 1.9
+	 */
+	Class<?> repositoryBaseClass() default DefaultRepositoryBaseClass.class;
+
 	// JPA specific configuration
+
 	/**
 	 * Configures the name of the {@link EntityManagerFactory} bean definition to be used to create repositories
 	 * discovered through this annotation. Defaults to {@code entityManagerFactory}.
@@ -131,4 +141,13 @@ public @interface EnableJpaRepositories {
 	 * repositories infrastructure.
 	 */
 	boolean considerNestedRepositories() default false;
+
+	/**
+	 * Configures whether to enable default transactions for Spring Data JPA repositories. Defaults to {@literal true}. If
+	 * disabled, repositories must be used behind a facade that's configuring transactions (e.g. using Spring's annotation
+	 * driven transaction facilities) or repository methods have to be used to demarcate transactions.
+	 * 
+	 * @return whether to enable default transactions, defaults to {@literal true}.
+	 */
+	boolean enableDefaultTransactions() default true;
 }

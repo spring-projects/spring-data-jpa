@@ -1,0 +1,63 @@
+[[query-by-example.execution]]
+== Executing an example
+
+In Spring Data JPA you can use Query by Example with Repositories.
+
+.Query by Example using a Repository
+====
+[source, java]
+----
+public interface PersonRepository extends JpaRepository<Person, String> { … }
+
+public class PersonService {
+
+  @Autowired PersonRepository personRepository;
+
+  public List<Person> findPeople(Person probe) {
+    return personRepository.findAll(Example.of(probe));
+  }
+}
+----
+====
+
+NOTE: Only `SingularAttribute` properties can currently be used for property matching.
+
+Property specifier accepts property names (e.g. "firstname" and "lastname"). You can navigate by chaining properties together with dots ("address.city"). You can tune it with matching options and case sensitivity.
+
+[cols="1,2", options="header"]
+.`StringMatcher` options
+|===
+| Matching
+| Logical result
+
+| `DEFAULT` (case-sensitive)
+| `firstname = ?0`
+
+| `DEFAULT` (case-insensitive)
+| `LOWER(firstname) = LOWER(?0)`
+
+| `EXACT`  (case-sensitive)
+| `firstname = ?0`
+
+| `EXACT` (case-insensitive)
+| `LOWER(firstname) = LOWER(?0)`
+
+| `STARTING`  (case-sensitive)
+| `firstname like ?0 + '%'`
+
+| `STARTING` (case-insensitive)
+| `LOWER(firstname) like LOWER(?0) + '%'`
+
+| `ENDING`  (case-sensitive)
+| `firstname like '%' + ?0`
+
+| `ENDING` (case-insensitive)
+| `LOWER(firstname) like '%' + LOWER(?0)`
+
+| `CONTAINING`  (case-sensitive)
+| `firstname like '%' + ?0 + '%'`
+
+| `CONTAINING` (case-insensitive)
+| `LOWER(firstname) like '%' + LOWER(?0) + '%'`
+
+|===

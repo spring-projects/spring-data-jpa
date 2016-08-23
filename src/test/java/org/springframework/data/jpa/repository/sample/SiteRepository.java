@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.jpa.repository.support;
+package org.springframework.data.jpa.repository.sample;
 
-import org.springframework.data.repository.core.EntityMetadata;
+import org.springframework.data.jpa.domain.sample.Site;
+import org.springframework.data.jpa.repository.JpaRepository;
 
 /**
- * JPA specific extension of {@link EntityMetadata}.
- * 
- * @author Oliver Gierke
+ * @author Mark Paluch
+ * @see DATAJPA-413
+ * @see Final JPA 2.1 Specification 2.4.1.3 Derived Identities Example 2
  */
-public interface JpaEntityMetadata<T> extends EntityMetadata<T> {
-
-	/**
-	 * Returns the name of the entity.
-	 * 
-	 * @return
-	 */
-	String getEntityName();
-}
+public interface SiteRepository extends JpaRepository<Site, Integer> {}

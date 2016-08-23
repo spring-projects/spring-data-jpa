@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2014 the original author or authors.
+ * Copyright 2008-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package org.springframework.data.jpa.domain.sample;
 
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -38,6 +39,7 @@ import javax.persistence.NamedStoredProcedureQueries;
 import javax.persistence.NamedStoredProcedureQuery;
 import javax.persistence.ParameterMode;
 import javax.persistence.StoredProcedureParameter;
+import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
@@ -52,6 +54,8 @@ import javax.persistence.TemporalType;
 @NamedEntityGraphs({
 		@NamedEntityGraph(name = "User.overview", attributeNodes = { @NamedAttributeNode("roles") }),
 		@NamedEntityGraph(name = "User.detail", attributeNodes = { @NamedAttributeNode("roles"),
+				@NamedAttributeNode("manager"), @NamedAttributeNode("colleagues") }),
+		@NamedEntityGraph(name = "User.getOneWithDefinedEntityGraphById", attributeNodes = { @NamedAttributeNode("roles"),
 				@NamedAttributeNode("manager"), @NamedAttributeNode("colleagues") }) })
 @NamedQuery(name = "User.findByEmailAddress", query = "SELECT u FROM User u WHERE u.emailAddress = ?1")
 @NamedStoredProcedureQueries({ //
@@ -62,6 +66,7 @@ import javax.persistence.TemporalType;
 @NamedStoredProcedureQuery(name = "User.plus1IO", procedureName = "plus1inout", parameters = {
 		@StoredProcedureParameter(mode = ParameterMode.IN, name = "arg", type = Integer.class),
 		@StoredProcedureParameter(mode = ParameterMode.OUT, name = "res", type = Integer.class) })
+@Table(name = "SD_User")
 public class User {
 
 	@Id @GeneratedValue(strategy = GenerationType.AUTO) private Integer id;
@@ -84,7 +89,7 @@ public class User {
 	@Lob private byte[] binaryData;
 
 	@ElementCollection private Set<String> attributes;
-	
+
 	@Temporal(TemporalType.DATE) private Date dateOfBirth;
 
 	/**
@@ -95,19 +100,20 @@ public class User {
 	}
 
 	/**
-	 * Creates a new instance of {@code User} with preinitialized values for firstname, lastname and email address.
+	 * Creates a new instance of {@code User} with preinitialized values for firstname, lastname, email address and roles.
 	 * 
 	 * @param firstname
 	 * @param lastname
 	 * @param emailAddress
+	 * @param roles
 	 */
-	public User(String firstname, String lastname, String emailAddress) {
+	public User(String firstname, String lastname, String emailAddress, Role... roles) {
 
 		this.firstname = firstname;
 		this.lastname = lastname;
 		this.emailAddress = emailAddress;
 		this.active = true;
-		this.roles = new HashSet<Role>();
+		this.roles = new HashSet<Role>(Arrays.asList(roles));
 		this.colleagues = new HashSet<User>();
 		this.attributes = new HashSet<String>();
 		this.createdAt = new Date();
@@ -367,13 +373,17 @@ public class User {
 	public void setAttributes(Set<String> attributes) {
 		this.attributes = attributes;
 	}
-	
+
 	public Date getDateOfBirth() {
 		return dateOfBirth;
 	}
 
 	public void setDateOfBirth(Date dateOfBirth) {
 		this.dateOfBirth = dateOfBirth;
+	}
+	
+	public void setCreatedAt(Date createdAt) {
+		this.createdAt = createdAt;
 	}
 
 	/*

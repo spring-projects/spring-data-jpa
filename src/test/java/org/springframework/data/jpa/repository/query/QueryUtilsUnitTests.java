@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2014 the original author or authors.
+ * Copyright 2008-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -150,11 +150,13 @@ public class QueryUtilsUnitTests {
 		assertThat(aliases, hasSize(1));
 		assertThat(aliases, hasItems("b2_$ar"));
 
-		aliases = getOuterJoinAliases("select p from Person p left outer join x.foo as b2_$ar, left join x.bar as foo where …");
+		aliases = getOuterJoinAliases(
+				"select p from Person p left outer join x.foo as b2_$ar, left join x.bar as foo where …");
 		assertThat(aliases, hasSize(2));
 		assertThat(aliases, hasItems("b2_$ar", "foo"));
 
-		aliases = getOuterJoinAliases("select p from Person p left join x.foo as b2_$ar, left outer join x.bar foo where …");
+		aliases = getOuterJoinAliases(
+				"select p from Person p left join x.foo as b2_$ar, left outer join x.bar foo where …");
 		assertThat(aliases, hasSize(2));
 		assertThat(aliases, hasItems("b2_$ar", "foo"));
 	}
@@ -281,7 +283,76 @@ public class QueryUtilsUnitTests {
 				is("select count(p.lastname) from Person p"));
 	}
 
-	private void assertCountQuery(String originalQuery, String countQuery) {
+	/**
+	 * @see DATAJPA-726
+	 */
+	@Test
+	public void detectsAliassesInPlainJoins() {
+
+		String query = "select p from Customer c join c.productOrder p where p.delayed = true";
+		Sort sort = new Sort("p.lineItems");
+
+		assertThat(applySorting(query, sort, "c"), endsWith("order by p.lineItems asc"));
+	}
+
+	/**
+	 * @see DATAJPA-736
+	 */
+	@Test
+	public void supportsNonAsciiCharactersInEntityNames() {
+		assertThat(createCountQueryFor("select u from Usèr u"), is("select count(u) from Usèr u"));
+	}
+
+	/**
+	 * @see DATAJPA-798
+	 */
+	@Test
+	public void detectsAliasInQueryContainingLineBreaks() {
+		assertThat(detectAlias("select \n u \n from \n User \nu"), is("u"));
+	}
+
+	/**
+	 * @see DATAJPA-815
+	 */
+	@Test
+	public void doesPrefixPropertyWith() {
+
+		String query = "from Cat c join Dog d";
+		Sort sort = new Sort("dPropertyStartingWithJoinAlias");
+
+		assertThat(applySorting(query, sort, "c"), endsWith("order by c.dPropertyStartingWithJoinAlias asc"));
+	}
+
+	/**
+	 * @see DATAJPA-938
+	 */
+	@Test
+	public void detectsConstructorExpressionInDistinctQuery() {
+		assertThat(hasConstructorExpression("select distinct new Foo() from Bar b"), is(true));
+	}
+
+	/**
+	 * @see DATAJPA-938
+	 */
+	@Test
+	public void detectsComplexConstructorExpression() {
+
+		assertThat(hasConstructorExpression("select new foo.bar.Foo(ip.id, ip.name, sum(lp.amount)) " //
+				+ "from Bar lp join lp.investmentProduct ip " //
+				+ "where (lp.toDate is null and lp.fromDate <= :now and lp.fromDate is not null) and lp.accountId = :accountId " //
+				+ "group by ip.id, ip.name, lp.accountId " //
+				+ "order by ip.name ASC"), is(true));
+	}
+
+	/**
+	 * @see DATAJPA-938
+	 */
+	@Test
+	public void detectsConstructorExpressionWithLineBreaks() {
+		assertThat(hasConstructorExpression("select new foo.bar.FooBar(\na.id) from DtoA a "), is(true));
+	}
+
+	private static void assertCountQuery(String originalQuery, String countQuery) {
 		assertThat(createCountQueryFor(originalQuery), is(countQuery));
 	}
 }

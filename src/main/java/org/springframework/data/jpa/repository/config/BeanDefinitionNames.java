@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,12 @@ package org.springframework.data.jpa.repository.config;
  * Helper class to manage bean definition names in a single place.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
+ * @author Andrew Walters
  */
-class BeanDefinitionNames {
+interface BeanDefinitionNames {
 
-	public static final String JPA_MAPPING_CONTEXT_BEAN_NAME = "jpaMapppingContext";
+	public static final String JPA_MAPPING_CONTEXT_BEAN_NAME = "jpaMappingContext";
+	public static final String JPA_CONTEXT_BEAN_NAME = "jpaContext";
+	public static final String EM_BEAN_DEFINITION_REGISTRAR_POST_PROCESSOR_BEAN_NAME = "emBeanDefinitionRegistrarPostProcessor";
 }

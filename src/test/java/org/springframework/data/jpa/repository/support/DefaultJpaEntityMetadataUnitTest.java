@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,14 +18,20 @@ package org.springframework.data.jpa.repository.support;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+
 import javax.persistence.Entity;
 
 import org.junit.Test;
+import org.springframework.core.annotation.AliasFor;
+import org.springframework.data.jpa.repository.query.DefaultJpaEntityMetadata;
 
 /**
  * Unit tests for {@link DefaultJpaEntityMetadata}.
  * 
  * @author Oliver Gierke
+ * @author Christoph Strobl
  */
 public class DefaultJpaEntityMetadataUnitTest {
 
@@ -56,8 +62,30 @@ public class DefaultJpaEntityMetadataUnitTest {
 		assertThat(metadata.getEntityName(), is("Entity"));
 	}
 
+	/**
+	 * @see DATAJPA-871
+	 */
+	@Test
+	public void returnsCustomizedEntityNameIfConfiguredViaComposedAnnotation() {
+
+		DefaultJpaEntityMetadata<BarWithComposedAnnotation> metadata = new DefaultJpaEntityMetadata<BarWithComposedAnnotation>(
+				BarWithComposedAnnotation.class);
+		assertThat(metadata.getEntityName(), is("Entity"));
+	}
+
 	static class Foo {}
 
 	@Entity(name = "Entity")
 	static class Bar {}
+
+	@CustomEntityAnnotationUsingAliasFor(entityName = "Entity")
+	static class BarWithComposedAnnotation {}
+
+	@Entity
+	@Retention(RetentionPolicy.RUNTIME)
+	static @interface CustomEntityAnnotationUsingAliasFor {
+
+		@AliasFor(annotation = Entity.class, attribute = "name")
+		String entityName();
+	}
 }

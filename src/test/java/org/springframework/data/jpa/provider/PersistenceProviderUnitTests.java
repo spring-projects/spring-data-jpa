@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.jpa.repository.support;
+package org.springframework.data.jpa.provider;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
+import static org.springframework.data.jpa.provider.PersistenceProvider.*;
+import static org.springframework.data.jpa.provider.PersistenceProvider.Constants.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,27 +37,28 @@ import org.springframework.util.ClassUtils;
  * Tests for PersistenceProvider detection logic in {@link PersistenceProvider}.
  * 
  * @author Thomas Darimont
+ * @author Oliver Gierke
  */
-public class PersistenceProviderTests {
+public class PersistenceProviderUnitTests {
 
-	private ShadowingClassLoader shadowingClassLoader;
+	ShadowingClassLoader shadowingClassLoader;
 
 	@Before
 	public void setup() {
-		shadowingClassLoader = new ShadowingClassLoader(getClass().getClassLoader());
+		this.shadowingClassLoader = new ShadowingClassLoader(getClass().getClassLoader());
 	}
 
 	/**
 	 * @see DATAJPA-444
 	 */
 	@Test
-	public void detectsHibernatePersistenceProviderForHibernateVersionLessThan4dot3() throws Exception {
+	public void detectsHibernatePersistenceProviderForHibernateVersionLessThan4Dot3() throws Exception {
 
 		shadowingClassLoader.excludePackage("org.hibernate");
 
-		EntityManager em = mockProviderSpecificEntityManagerInterface(PersistenceProvider.Constants.HIBERNATE_ENTITY_MANAGER_INTERFACE);
+		EntityManager em = mockProviderSpecificEntityManagerInterface(HIBERNATE_ENTITY_MANAGER_INTERFACE);
 
-		assertThat(PersistenceProvider.fromEntityManager(em), is(PersistenceProvider.HIBERNATE));
+		assertThat(fromEntityManager(em), is(HIBERNATE));
 	}
 
 	/**
@@ -66,9 +69,9 @@ public class PersistenceProviderTests {
 
 		shadowingClassLoader.excludePackage("org.hibernate");
 
-		EntityManager em = mockProviderSpecificEntityManagerInterface(PersistenceProvider.Constants.HIBERNATE43_ENTITY_MANAGER_INTERFACE);
+		EntityManager em = mockProviderSpecificEntityManagerInterface(HIBERNATE43_ENTITY_MANAGER_INTERFACE);
 
-		assertThat(PersistenceProvider.fromEntityManager(em), is(PersistenceProvider.HIBERNATE));
+		assertThat(fromEntityManager(em), is(HIBERNATE));
 	}
 
 	@Test
@@ -76,9 +79,9 @@ public class PersistenceProviderTests {
 
 		shadowingClassLoader.excludePackage("org.apache.openjpa.persistence");
 
-		EntityManager em = mockProviderSpecificEntityManagerInterface(PersistenceProvider.Constants.OPENJPA_ENTITY_MANAGER_INTERFACE);
+		EntityManager em = mockProviderSpecificEntityManagerInterface(OPENJPA_ENTITY_MANAGER_INTERFACE);
 
-		assertThat(PersistenceProvider.fromEntityManager(em), is(PersistenceProvider.OPEN_JPA));
+		assertThat(fromEntityManager(em), is(OPEN_JPA));
 	}
 
 	@Test
@@ -86,9 +89,9 @@ public class PersistenceProviderTests {
 
 		shadowingClassLoader.excludePackage("org.eclipse.persistence.jpa");
 
-		EntityManager em = mockProviderSpecificEntityManagerInterface(PersistenceProvider.Constants.ECLIPSELINK_ENTITY_MANAGER_INTERFACE);
+		EntityManager em = mockProviderSpecificEntityManagerInterface(ECLIPSELINK_ENTITY_MANAGER_INTERFACE);
 
-		assertThat(PersistenceProvider.fromEntityManager(em), is(PersistenceProvider.ECLIPSELINK));
+		assertThat(fromEntityManager(em), is(ECLIPSELINK));
 	}
 
 	@Test
@@ -96,7 +99,7 @@ public class PersistenceProviderTests {
 
 		EntityManager em = mockProviderSpecificEntityManagerInterface("foo.bar.unknown.jpa.JpaEntityManager");
 
-		assertThat(PersistenceProvider.fromEntityManager(em), is(PersistenceProvider.GENERIC_JPA));
+		assertThat(fromEntityManager(em), is(GENERIC_JPA));
 	}
 
 	private EntityManager mockProviderSpecificEntityManagerInterface(String interfaceName) throws ClassNotFoundException {

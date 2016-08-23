@@ -22,23 +22,24 @@ import javax.persistence.EntityManager;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
+import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.querydsl.QSort;
 import org.springframework.util.Assert;
 
-import com.mysema.query.jpa.EclipseLinkTemplates;
-import com.mysema.query.jpa.HQLTemplates;
-import com.mysema.query.jpa.JPQLQuery;
-import com.mysema.query.jpa.OpenJPATemplates;
-import com.mysema.query.jpa.impl.AbstractJPAQuery;
-import com.mysema.query.jpa.impl.JPAQuery;
-import com.mysema.query.support.Expressions;
-import com.mysema.query.types.EntityPath;
-import com.mysema.query.types.Expression;
-import com.mysema.query.types.OrderSpecifier;
-import com.mysema.query.types.OrderSpecifier.NullHandling;
-import com.mysema.query.types.Path;
-import com.mysema.query.types.path.PathBuilder;
+import com.querydsl.core.types.EntityPath;
+import com.querydsl.core.types.Expression;
+import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.OrderSpecifier.NullHandling;
+import com.querydsl.core.types.Path;
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.PathBuilder;
+import com.querydsl.jpa.EclipseLinkTemplates;
+import com.querydsl.jpa.HQLTemplates;
+import com.querydsl.jpa.JPQLQuery;
+import com.querydsl.jpa.OpenJPATemplates;
+import com.querydsl.jpa.impl.AbstractJPAQuery;
+import com.querydsl.jpa.impl.JPAQuery;
 
 /**
  * Helper instance to ease access to Querydsl JPA query API.
@@ -73,18 +74,18 @@ public class Querydsl {
 	 * 
 	 * @return
 	 */
-	public AbstractJPAQuery<JPAQuery> createQuery() {
+	public <T> AbstractJPAQuery<T, JPAQuery<T>> createQuery() {
 
 		switch (provider) {
 			case ECLIPSELINK:
-				return new JPAQuery(em, EclipseLinkTemplates.DEFAULT);
+				return new JPAQuery<T>(em, EclipseLinkTemplates.DEFAULT);
 			case HIBERNATE:
-				return new JPAQuery(em, HQLTemplates.DEFAULT);
+				return new JPAQuery<T>(em, HQLTemplates.DEFAULT);
 			case OPEN_JPA:
-				return new JPAQuery(em, OpenJPATemplates.DEFAULT);
+				return new JPAQuery<T>(em, OpenJPATemplates.DEFAULT);
 			case GENERIC_JPA:
 			default:
-				return new JPAQuery(em);
+				return new JPAQuery<T>(em);
 		}
 	}
 
@@ -93,7 +94,7 @@ public class Querydsl {
 	 * 
 	 * @return
 	 */
-	public AbstractJPAQuery<JPAQuery> createQuery(EntityPath<?>... paths) {
+	public AbstractJPAQuery<Object, JPAQuery<Object>> createQuery(EntityPath<?>... paths) {
 		return createQuery().from(paths);
 	}
 
@@ -104,7 +105,7 @@ public class Querydsl {
 	 * @param query must not be {@literal null}.
 	 * @return the Querydsl {@link JPQLQuery}.
 	 */
-	public JPQLQuery applyPagination(Pageable pageable, JPQLQuery query) {
+	public <T> JPQLQuery<T> applyPagination(Pageable pageable, JPQLQuery<T> query) {
 
 		if (pageable == null) {
 			return query;
@@ -123,7 +124,7 @@ public class Querydsl {
 	 * @param query must not be {@literal null}.
 	 * @return the Querydsl {@link JPQLQuery}
 	 */
-	public JPQLQuery applySorting(Sort sort, JPQLQuery query) {
+	public <T> JPQLQuery<T> applySorting(Sort sort, JPQLQuery<T> query) {
 
 		if (sort == null) {
 			return query;
@@ -143,8 +144,7 @@ public class Querydsl {
 	 * @param qsort must not be {@literal null}.
 	 * @param query must not be {@literal null}.
 	 */
-
-	private JPQLQuery addOrderByFrom(QSort qsort, JPQLQuery query) {
+	private <T> JPQLQuery<T> addOrderByFrom(QSort qsort, JPQLQuery<T> query) {
 
 		List<OrderSpecifier<?>> orderSpecifiers = qsort.getOrderSpecifiers();
 		return query.orderBy(orderSpecifiers.toArray(new OrderSpecifier[orderSpecifiers.size()]));
@@ -158,13 +158,13 @@ public class Querydsl {
 	 * @param query must not be {@literal null}.
 	 * @return
 	 */
-	private JPQLQuery addOrderByFrom(Sort sort, JPQLQuery query) {
+	private <T> JPQLQuery<T> addOrderByFrom(Sort sort, JPQLQuery<T> query) {
 
 		Assert.notNull(sort, "Sort must not be null!");
 		Assert.notNull(query, "Query must not be null!");
 
 		for (Order order : sort) {
-			query.orderBy(toOrderSpecifier(order, query));
+			query.orderBy(toOrderSpecifier(order));
 		}
 
 		return query;
@@ -177,11 +177,11 @@ public class Querydsl {
 	 * @return
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private OrderSpecifier<?> toOrderSpecifier(Order order, JPQLQuery query) {
+	private OrderSpecifier<?> toOrderSpecifier(Order order) {
 
-		return new OrderSpecifier(order.isAscending() ? com.mysema.query.types.Order.ASC
-				: com.mysema.query.types.Order.DESC, buildOrderPropertyPathFrom(order),
-				toQueryDslNullHandling(order.getNullHandling()));
+		return new OrderSpecifier(
+				order.isAscending() ? com.querydsl.core.types.Order.ASC : com.querydsl.core.types.Order.DESC,
+				buildOrderPropertyPathFrom(order), toQueryDslNullHandling(order.getNullHandling()));
 	}
 
 	/**

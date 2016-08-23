@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,10 @@ package org.springframework.data.jpa.repository.query;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -31,16 +33,19 @@ import javax.persistence.Persistence;
 import javax.persistence.PersistenceContext;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Root;
 import javax.persistence.spi.PersistenceProvider;
 import javax.persistence.spi.PersistenceProviderResolver;
 import javax.persistence.spi.PersistenceProviderResolverHolder;
 
-import org.hibernate.ejb.HibernatePersistence;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.springframework.data.jpa.domain.sample.Category;
 import org.springframework.data.jpa.domain.sample.Order;
 import org.springframework.data.jpa.domain.sample.User;
+import org.springframework.data.jpa.infrastructure.HibernateTestUtils;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -142,8 +147,26 @@ public class QueryUtilsIntegrationTests {
 		}
 	}
 
-	protected void assertNoJoinRequestedForOptionalAssociation(Root<Order> root) {
-		assertThat(root.getJoins(), is(empty()));
+	/**
+	 * @see DATAJPA-763
+	 */
+	@Test
+	@SuppressWarnings("unchecked")
+	public void doesNotCreateAJoinForAlreadyFetchedAssociation() {
+
+		CriteriaBuilder builder = em.getCriteriaBuilder();
+		CriteriaQuery<Category> query = builder.createQuery(Category.class);
+
+		Root<Category> root = query.from(Category.class);
+
+		Root<Category> mock = Mockito.mock(Root.class);
+		doReturn(root.getModel()).when(mock).getModel();
+		doReturn(Collections.singleton(root.fetch("product", JoinType.LEFT))).when(mock).getFetches();
+
+		QueryUtils.toExpressionRecursively(mock, PropertyPath.from("product", Category.class));
+
+		verify(mock, times(1)).get("product");
+		verify(mock, times(0)).join(Mockito.eq("product"), Mockito.any(JoinType.class));
 	}
 
 	@Entity
@@ -168,16 +191,16 @@ public class QueryUtilsIntegrationTests {
 	}
 
 	/**
-	 * A {@link PersistenceProviderResolver} that returns only {@link HibernatePersistence} and ignores other
-	 * {@link PersistenceProvider}s.
+	 * A {@link PersistenceProviderResolver} that returns only a Hibernate {@link PersistenceProvider} and ignores others.
 	 * 
 	 * @author Thomas Darimont
+	 * @author Oliver Gierke
 	 */
 	static class HibernateOnlyPersistenceProviderResolver implements PersistenceProviderResolver {
 
 		@Override
 		public List<PersistenceProvider> getPersistenceProviders() {
-			return Arrays.<PersistenceProvider> asList(new HibernatePersistence());
+			return Arrays.asList(HibernateTestUtils.getPersistenceProvider());
 		}
 
 		@Override

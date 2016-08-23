@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2014 the original author or authors.
+ * Copyright 2008-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,34 +15,40 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import java.util.Collections;
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.Query;
 import javax.persistence.StoredProcedureQuery;
-import javax.persistence.TypedQuery;
 
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.ConfigurableConversionService;
-import org.springframework.core.convert.support.GenericConversionService;
-import org.springframework.data.domain.PageImpl;
+import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
+import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
+import org.springframework.data.repository.support.PageableExecutionUtils;
+import org.springframework.data.repository.support.PageableExecutionUtils.TotalSupplier;
+import org.springframework.data.util.CloseableIterator;
+import org.springframework.data.util.StreamUtils;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 
 /**
  * Set of classes to contain query execution strategies. Depending (mostly) on the return type of a
  * {@link org.springframework.data.repository.query.QueryMethod} a {@link AbstractStringBasedJpaQuery} can be executed
- * in various flavours.
+ * in various flavors.
  * 
  * @author Oliver Gierke
  * @author Thomas Darimont
+ * @author Mark Paluch
  */
 public abstract class JpaQueryExecution {
 
@@ -50,8 +56,11 @@ public abstract class JpaQueryExecution {
 
 	static {
 
-		ConfigurableConversionService conversionService = new GenericConversionService();
+		ConfigurableConversionService conversionService = new DefaultConversionService();
+
 		conversionService.addConverter(JpaResultConverters.BlobToByteArrayConverter.INSTANCE);
+		conversionService.removeConvertible(Collection.class, Object.class);
+		potentiallyRemoveOptionalConverter(conversionService);
 
 		CONVERSION_SERVICE = conversionService;
 	}
@@ -87,8 +96,8 @@ public abstract class JpaQueryExecution {
 			return result;
 		}
 
-		return CONVERSION_SERVICE.canConvert(result.getClass(), requiredType) ? CONVERSION_SERVICE.convert(result,
-				requiredType) : result;
+		return CONVERSION_SERVICE.canConvert(result.getClass(), requiredType)
+				? CONVERSION_SERVICE.convert(result, requiredType) : result;
 	}
 
 	/**
@@ -167,22 +176,20 @@ public abstract class JpaQueryExecution {
 
 		@Override
 		@SuppressWarnings("unchecked")
-		protected Object doExecute(AbstractJpaQuery repositoryQuery, Object[] values) {
+		protected Object doExecute(final AbstractJpaQuery repositoryQuery, final Object[] values) {
 
-			// Execute query to compute total
-			TypedQuery<Long> projection = repositoryQuery.createCountQuery(values);
-
-			List<Long> totals = projection.getResultList();
-			Long total = totals.size() == 1 ? totals.get(0) : totals.size();
-
-			Query query = repositoryQuery.createQuery(values);
 			ParameterAccessor accessor = new ParametersParameterAccessor(parameters, values);
-			Pageable pageable = accessor.getPageable();
+			Query query = repositoryQuery.createQuery(values);
 
-			List<Object> content = pageable == null || total > pageable.getOffset() ? query.getResultList() : Collections
-					.emptyList();
+			return PageableExecutionUtils.getPage(query.getResultList(), accessor.getPageable(), new TotalSupplier() {
 
-			return new PageImpl<Object>(content, pageable, total);
+				@Override
+				public long get() {
+
+					List<?> totals = repositoryQuery.createCountQuery(values).getResultList();
+					return (totals.size() == 1 ? CONVERSION_SERVICE.convert(totals.get(0), Long.class) : totals.size());
+				}
+			});
 		}
 	}
 
@@ -291,6 +298,54 @@ public abstract class JpaQueryExecution {
 			storedProcedure.execute();
 
 			return storedProcedureJpaQuery.extractOutputValue(storedProcedure);
+		}
+	}
+
+	/**
+	 * {@link Execution} executing a Java 8 Stream.
+	 * 
+	 * @author Thomas Darimont
+	 * @since 1.8
+	 */
+	static class StreamExecution extends JpaQueryExecution {
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.jpa.repository.query.JpaQueryExecution#doExecute(org.springframework.data.jpa.repository.query.AbstractJpaQuery, java.lang.Object[])
+		 */
+		@Override
+		protected Object doExecute(final AbstractJpaQuery query, Object[] values) {
+
+			Query jpaQuery = query.createQuery(values);
+			PersistenceProvider persistenceProvider = PersistenceProvider.fromEntityManager(query.getEntityManager());
+			CloseableIterator<Object> iter = persistenceProvider.executeQueryWithResultStream(jpaQuery);
+
+			return StreamUtils.createStreamFromIterator(iter);
+		}
+	}
+
+	/**
+	 * Removes the converter being able to convert any object into an {@link Optional} from the given
+	 * {@link ConversionService} in case we're running on Java 8.
+	 * 
+	 * @param conversionService must not be {@literal null}.
+	 */
+	public static void potentiallyRemoveOptionalConverter(ConfigurableConversionService conversionService) {
+
+		ClassLoader classLoader = JpaQueryExecution.class.getClassLoader();
+
+		if (ClassUtils.isPresent("java.util.Optional", classLoader)) {
+
+			try {
+
+				Class<?> optionalType = ClassUtils.forName("java.util.Optional", classLoader);
+				conversionService.removeConvertible(Object.class, optionalType);
+
+			} catch (ClassNotFoundException e) {
+				return;
+			} catch (LinkageError e) {
+				return;
+			}
 		}
 	}
 }

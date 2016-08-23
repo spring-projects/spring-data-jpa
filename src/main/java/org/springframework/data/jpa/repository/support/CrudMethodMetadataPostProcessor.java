@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 the original author or authors.
+ * Copyright 2011-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,22 +19,28 @@ import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import javax.persistence.LockModeType;
 import javax.persistence.QueryHint;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
+import org.springframework.aop.TargetSource;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.interceptor.ExposeInvocationInterceptor;
-import org.springframework.aop.target.AbstractLazyCreationTargetSource;
+import org.springframework.beans.factory.BeanClassLoaderAware;
+import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.core.RepositoryInformation;
 import org.springframework.data.repository.core.support.RepositoryProxyPostProcessor;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 
 /**
  * {@link RepositoryProxyPostProcessor} that sets up interceptors to read metadata information from the invoked method.
@@ -42,10 +48,22 @@ import org.springframework.util.Assert;
  * or query hints on them.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
+ * @author Christoph Strobl
  */
-enum CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor {
+class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, BeanClassLoaderAware {
 
-	INSTANCE;
+	private ClassLoader classLoader = ClassUtils.getDefaultClassLoader();
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.beans.factory.BeanClassLoaderAware#setBeanClassLoader(java.lang.ClassLoader)
+	 */
+	@Override
+	public void setBeanClassLoader(ClassLoader classLoader) {
+		this.classLoader = classLoader == null ? ClassUtils.getDefaultClassLoader() : classLoader;
+
+	}
 
 	/* 
 	 * (non-Javadoc)
@@ -53,37 +71,36 @@ enum CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor {
 	 */
 	@Override
 	public void postProcess(ProxyFactory factory, RepositoryInformation repositoryInformation) {
-
-		factory.addAdvice(ExposeInvocationInterceptor.INSTANCE);
-		factory.addAdvice(CrudMethodMetadataPopulatingMethodIntercceptor.INSTANCE);
+		factory.addAdvice(CrudMethodMetadataPopulatingMethodInterceptor.INSTANCE);
 	}
 
 	/**
 	 * Returns a {@link CrudMethodMetadata} proxy that will lookup the actual target object by obtaining a thread bound
 	 * instance from the {@link TransactionSynchronizationManager} later.
 	 */
-	public CrudMethodMetadata getLockMetadataProvider() {
+	public CrudMethodMetadata getCrudMethodMetadata() {
 
 		ProxyFactory factory = new ProxyFactory();
 
 		factory.addInterface(CrudMethodMetadata.class);
 		factory.setTargetSource(new ThreadBoundTargetSource());
 
-		return (CrudMethodMetadata) factory.getProxy();
+		return (CrudMethodMetadata) factory.getProxy(this.classLoader);
 	}
 
 	/**
-	 * {@link MethodInterceptor} to build and cache {@link DefaultCrudMethodMetadata} instances for the invoked
-	 * methods. Will bind the found information to a {@link TransactionSynchronizationManager} for later lookup.
+	 * {@link MethodInterceptor} to build and cache {@link DefaultCrudMethodMetadata} instances for the invoked methods.
+	 * Will bind the found information to a {@link TransactionSynchronizationManager} for later lookup.
 	 * 
 	 * @see DefaultCrudMethodMetadata
 	 * @author Oliver Gierke
+	 * @author Thomas Darimont
 	 */
-	static enum CrudMethodMetadataPopulatingMethodIntercceptor implements MethodInterceptor {
+	static enum CrudMethodMetadataPopulatingMethodInterceptor implements MethodInterceptor {
 
 		INSTANCE;
 
-		private final Map<Method, CrudMethodMetadata> metadataCache = new HashMap<Method, CrudMethodMetadata>();
+		private final ConcurrentMap<Method, CrudMethodMetadata> metadataCache = new ConcurrentHashMap<Method, CrudMethodMetadata>();
 
 		/* 
 		 * (non-Javadoc)
@@ -92,7 +109,7 @@ enum CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor {
 		public Object invoke(MethodInvocation invocation) throws Throwable {
 
 			Method method = invocation.getMethod();
-			Object metadata = TransactionSynchronizationManager.getResource(method);
+			CrudMethodMetadata metadata = (CrudMethodMetadata) TransactionSynchronizationManager.getResource(method);
 
 			if (metadata != null) {
 				return invocation.proceed();
@@ -101,8 +118,13 @@ enum CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor {
 			CrudMethodMetadata methodMetadata = metadataCache.get(method);
 
 			if (methodMetadata == null) {
+
 				methodMetadata = new DefaultCrudMethodMetadata(method);
-				metadataCache.put(method, methodMetadata);
+				CrudMethodMetadata tmp = metadataCache.putIfAbsent(method, methodMetadata);
+
+				if (tmp != null) {
+					methodMetadata = tmp;
+				}
 			}
 
 			TransactionSynchronizationManager.bindResource(method, methodMetadata);
@@ -119,14 +141,17 @@ enum CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor {
 	 * Default implementation of {@link CrudMethodMetadata} that will inspect the backing method for annotations.
 	 * 
 	 * @author Oliver Gierke
+	 * @author Thomas Darimont
 	 */
 	private static class DefaultCrudMethodMetadata implements CrudMethodMetadata {
 
 		private final LockModeType lockModeType;
 		private final Map<String, Object> queryHints;
+		private final EntityGraph entityGraph;
+		private final Method method;
 
 		/**
-		 * Creates a new {@link DefaultCrudMethodMetadata} foir the given {@link Method}.
+		 * Creates a new {@link DefaultCrudMethodMetadata} for the given {@link Method}.
 		 * 
 		 * @param method must not be {@literal null}.
 		 */
@@ -136,18 +161,24 @@ enum CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor {
 
 			this.lockModeType = findLockModeType(method);
 			this.queryHints = findQueryHints(method);
+			this.entityGraph = findEntityGraph(method);
+			this.method = method;
 		}
 
-		private static final LockModeType findLockModeType(Method method) {
+		private static EntityGraph findEntityGraph(Method method) {
+			return AnnotatedElementUtils.findMergedAnnotation(method, EntityGraph.class);
+		}
 
-			Lock annotation = AnnotationUtils.findAnnotation(method, Lock.class);
+		private static LockModeType findLockModeType(Method method) {
+
+			Lock annotation = AnnotatedElementUtils.findMergedAnnotation(method, Lock.class);
 			return annotation == null ? null : (LockModeType) AnnotationUtils.getValue(annotation);
 		}
 
-		private static final Map<String, Object> findQueryHints(Method method) {
+		private static Map<String, Object> findQueryHints(Method method) {
 
 			Map<String, Object> queryHints = new HashMap<String, Object>();
-			QueryHints queryHintsAnnotation = AnnotationUtils.findAnnotation(method, QueryHints.class);
+			QueryHints queryHintsAnnotation = AnnotatedElementUtils.findMergedAnnotation(method, QueryHints.class);
 
 			if (queryHintsAnnotation != null) {
 
@@ -182,19 +213,62 @@ enum CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor {
 		public Map<String, Object> getQueryHints() {
 			return queryHints;
 		}
-	}
-
-	private static class ThreadBoundTargetSource extends AbstractLazyCreationTargetSource {
 
 		/* 
 		 * (non-Javadoc)
-		 * @see org.springframework.aop.target.AbstractLazyCreationTargetSource#createObject()
+		 * @see org.springframework.data.jpa.repository.support.CrudMethodMetadata#getEntityGraph()
 		 */
 		@Override
-		protected Object createObject() throws Exception {
+		public EntityGraph getEntityGraph() {
+			return entityGraph;
+		}
+
+		/* 
+		 * (non-Javadoc)
+		 * @see org.springframework.data.jpa.repository.support.CrudMethodMetadata#getMethod()
+		 */
+		@Override
+		public Method getMethod() {
+			return method;
+		}
+	}
+
+	private static class ThreadBoundTargetSource implements TargetSource {
+
+		/* 
+		 * (non-Javadoc)
+		 * @see org.springframework.aop.TargetSource#getTargetClass()
+		 */
+		@Override
+		public Class<?> getTargetClass() {
+			return CrudMethodMetadata.class;
+		}
+
+		/* 
+		 * (non-Javadoc)
+		 * @see org.springframework.aop.TargetSource#isStatic()
+		 */
+		@Override
+		public boolean isStatic() {
+			return false;
+		}
+
+		/* 
+		 * (non-Javadoc)
+		 * @see org.springframework.aop.TargetSource#getTarget()
+		 */
+		@Override
+		public Object getTarget() throws Exception {
 
 			MethodInvocation invocation = ExposeInvocationInterceptor.currentInvocation();
 			return TransactionSynchronizationManager.getResource(invocation.getMethod());
 		}
+
+		/* 
+		 * (non-Javadoc)
+		 * @see org.springframework.aop.TargetSource#releaseTarget(java.lang.Object)
+		 */
+		@Override
+		public void releaseTarget(Object target) throws Exception {}
 	}
 }

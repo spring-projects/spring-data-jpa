@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,15 +30,16 @@ import org.springframework.test.context.ContextConfiguration;
  * @author Oliver Gierke
  */
 @ContextConfiguration("classpath:eclipselink.xml")
-public class EclipseLinkJpaMetamodelEntityInformationIntegrationTests extends
-		JpaMetamodelEntityInformationIntegrationTests {
+public class EclipseLinkJpaMetamodelEntityInformationIntegrationTests
+		extends JpaMetamodelEntityInformationIntegrationTests {
 
 	/**
 	 * Re-activate test. Change to check for {@link String} as OpenJpa defaults {@link Serializable}s to {@link String}.
 	 */
 	@Test
 	public void reactivatedDetectsIdTypeForMappedSuperclass() {
-		JpaEntityInformation<?, ?> information = JpaEntityInformationSupport.getMetadata(AbstractPersistable.class, em);
+		JpaEntityInformation<?, ?> information = JpaEntityInformationSupport.getEntityInformation(AbstractPersistable.class,
+				em);
 		assertEquals(String.class, information.getIdType());
 	}
 
@@ -56,13 +57,17 @@ public class EclipseLinkJpaMetamodelEntityInformationIntegrationTests extends
 	@Ignore
 	public void detectsNewStateForEntityWithPrimitiveId() {}
 
-	/* 
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests#considersEntityWithUnSetCompundIdNew()
-	 */
 	@Override
 	@Ignore
 	public void considersEntityWithUnsetCompundIdNew() {}
+
+	/**
+	 * Re-activate test for DATAJPA-820.
+	 */
+	@Test
+	public void detectsVersionPropertyOnMappedSuperClass() {
+		super.detectsVersionPropertyOnMappedSuperClass();
+	}
 
 	@Override
 	protected String getMetadadataPersitenceUnitName() {

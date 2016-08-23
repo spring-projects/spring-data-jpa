@@ -24,6 +24,7 @@ import javax.persistence.EntityManager;
 import org.springframework.data.jpa.repository.support.JpaEntityInformation;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactory;
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
+import org.springframework.data.repository.core.RepositoryInformation;
 import org.springframework.data.repository.core.RepositoryMetadata;
 
 /**
@@ -47,10 +48,10 @@ public class CustomGenericJpaRepositoryFactory extends JpaRepositoryFactory {
 	 */
 	@Override
 	@SuppressWarnings("unchecked")
-	protected SimpleJpaRepository<?, ?> getTargetRepository(RepositoryMetadata metadata, EntityManager em) {
+	protected SimpleJpaRepository<?, ?> getTargetRepository(RepositoryInformation information, EntityManager em) {
 
 		JpaEntityInformation<Object, Serializable> entityMetadata = mock(JpaEntityInformation.class);
-		when(entityMetadata.getJavaType()).thenReturn((Class<Object>) metadata.getDomainType());
+		when(entityMetadata.getJavaType()).thenReturn((Class<Object>) information.getDomainType());
 		return new CustomGenericJpaRepository<Object, Serializable>(entityMetadata, em);
 	}
 

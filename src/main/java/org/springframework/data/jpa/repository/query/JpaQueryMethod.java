@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2014 the original author or authors.
+ * Copyright 2008-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,7 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.springframework.core.annotation.AnnotationUtils.*;
-
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,14 +27,15 @@ import java.util.Set;
 import javax.persistence.LockModeType;
 import javax.persistence.QueryHint;
 
+import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.data.jpa.provider.QueryExtractor;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryHints;
-import org.springframework.data.jpa.repository.support.DefaultJpaEntityMetadata;
-import org.springframework.data.jpa.repository.support.JpaEntityMetadata;
+import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
@@ -48,6 +48,7 @@ import org.springframework.util.StringUtils;
  * 
  * @author Oliver Gierke
  * @author Thomas Darimont
+ * @author Christoph Strobl
  */
 public class JpaQueryMethod extends QueryMethod {
 
@@ -57,7 +58,7 @@ public class JpaQueryMethod extends QueryMethod {
 
 	static {
 
-		Set<Class<?>> types = new HashSet<Class<?>>(4);
+		Set<Class<?>> types = new HashSet<Class<?>>();
 		types.add(byte[].class);
 		types.add(Byte[].class);
 		types.add(char[].class);
@@ -78,9 +79,10 @@ public class JpaQueryMethod extends QueryMethod {
 	 * @param extractor must not be {@literal null}
 	 * @param metadata must not be {@literal null}
 	 */
-	public JpaQueryMethod(Method method, RepositoryMetadata metadata, QueryExtractor extractor) {
+	public JpaQueryMethod(Method method, RepositoryMetadata metadata, ProjectionFactory factory,
+			QueryExtractor extractor) {
 
-		super(method, metadata);
+		super(method, metadata, factory);
 
 		Assert.notNull(method, "Method must not be null!");
 		Assert.notNull(extractor, "Query extractor must not be null!");
@@ -97,7 +99,7 @@ public class JpaQueryMethod extends QueryMethod {
 
 		String annotatedQuery = getAnnotatedQuery();
 
-		if (!StringUtils.hasText(annotatedQuery)) {
+		if (!QueryUtils.hasNamedParameter(annotatedQuery)) {
 			return;
 		}
 
@@ -109,9 +111,9 @@ public class JpaQueryMethod extends QueryMethod {
 
 			if (!annotatedQuery.contains(String.format(":%s", parameter.getName()))
 					&& !annotatedQuery.contains(String.format("#%s", parameter.getName()))) {
-				throw new IllegalStateException(String.format(
-						"Using named parameters for method %s but parameter '%s' not found in annotated query '%s'!", method,
-						parameter.getName(), annotatedQuery));
+				throw new IllegalStateException(
+						String.format("Using named parameters for method %s but parameter '%s' not found in annotated query '%s'!",
+								method, parameter.getName(), annotatedQuery));
 			}
 		}
 	}
@@ -134,7 +136,7 @@ public class JpaQueryMethod extends QueryMethod {
 	@Override
 	public boolean isModifyingQuery() {
 
-		return null != method.getAnnotation(Modifying.class);
+		return null != AnnotationUtils.findAnnotation(method, Modifying.class);
 	}
 
 	/**
@@ -146,7 +148,7 @@ public class JpaQueryMethod extends QueryMethod {
 
 		List<QueryHint> result = new ArrayList<QueryHint>();
 
-		QueryHints hints = getAnnotation(method, QueryHints.class);
+		QueryHints hints = AnnotatedElementUtils.findMergedAnnotation(method, QueryHints.class);
 		if (hints != null) {
 			result.addAll(Arrays.asList(hints.value()));
 		}
@@ -161,7 +163,7 @@ public class JpaQueryMethod extends QueryMethod {
 	 */
 	LockModeType getLockModeType() {
 
-		Lock annotation = findAnnotation(method, Lock.class);
+		Lock annotation = AnnotatedElementUtils.findMergedAnnotation(method, Lock.class);
 		return (LockModeType) AnnotationUtils.getValue(annotation);
 	}
 
@@ -173,8 +175,8 @@ public class JpaQueryMethod extends QueryMethod {
 	 */
 	JpaEntityGraph getEntityGraph() {
 
-		EntityGraph annotation = findAnnotation(method, EntityGraph.class);
-		return annotation == null ? null : new JpaEntityGraph(annotation.value(), annotation.type());
+		EntityGraph annotation = AnnotatedElementUtils.findMergedAnnotation(method, EntityGraph.class);
+		return annotation == null ? null : new JpaEntityGraph(annotation, getNamedQueryName());
 	}
 
 	/**
@@ -185,7 +187,7 @@ public class JpaQueryMethod extends QueryMethod {
 	 */
 	boolean applyHintsToCountQuery() {
 
-		QueryHints hints = getAnnotation(method, QueryHints.class);
+		QueryHints hints = AnnotatedElementUtils.findMergedAnnotation(method, QueryHints.class);
 		return hints != null ? hints.forCounting() : false;
 	}
 
@@ -283,8 +285,7 @@ public class JpaQueryMethod extends QueryMethod {
 	 * @return
 	 */
 	boolean getClearAutomatically() {
-
-		return (Boolean) AnnotationUtils.getValue(method.getAnnotation(Modifying.class), "clearAutomatically");
+		return getMergedOrDefaultAnnotationValue("clearAutomatically", Modifying.class, Boolean.class);
 	}
 
 	/**
@@ -297,12 +298,18 @@ public class JpaQueryMethod extends QueryMethod {
 	 * @return
 	 */
 	private <T> T getAnnotationValue(String attribute, Class<T> type) {
+		return getMergedOrDefaultAnnotationValue(attribute, Query.class, type);
+	}
 
-		Query annotation = method.getAnnotation(Query.class);
-		Object value = annotation == null ? AnnotationUtils.getDefaultValue(Query.class, attribute) : AnnotationUtils
-				.getValue(annotation, attribute);
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	private <T> T getMergedOrDefaultAnnotationValue(String attribute, Class annotationType, Class<T> targetType) {
 
-		return type.cast(value);
+		Annotation annotation = AnnotatedElementUtils.findMergedAnnotation(method, annotationType);
+		if (annotation == null) {
+			return targetType.cast(AnnotationUtils.getDefaultValue(annotationType, attribute));
+		}
+
+		return targetType.cast(AnnotationUtils.getValue(annotation, attribute));
 	}
 
 	/* 
@@ -338,7 +345,7 @@ public class JpaQueryMethod extends QueryMethod {
 	 * @return
 	 */
 	public boolean isProcedureQuery() {
-		return method.getAnnotation(Procedure.class) != null;
+		return AnnotationUtils.findAnnotation(method, Procedure.class) != null;
 	}
 
 	/**

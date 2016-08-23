@@ -19,6 +19,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import javax.persistence.EntityManager;
 import javax.persistence.QueryHint;
@@ -27,6 +28,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.domain.sample.SpecialUser;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -47,8 +49,8 @@ import com.google.common.base.Optional;
  * @author Oliver Gierke
  * @author Thomas Darimont
  */
-public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecificationExecutor<User>,
-		UserRepositoryCustom {
+public interface UserRepository
+		extends JpaRepository<User, Integer>, JpaSpecificationExecutor<User>, UserRepositoryCustom {
 
 	/**
 	 * Retrieve users by their lastname. The finder {@literal User.findByLastname} is declared in
@@ -64,7 +66,15 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	 * Redeclaration of {@link CrudRepository#findOne(java.io.Serializable)} to change transaction configuration.
 	 */
 	@Transactional
-	public User findOne(Integer primaryKey);
+	User findOne(Integer primaryKey);
+
+	/**
+	 * Redeclaration of {@link CrudRepository#delete(java.io.Serializable)}. to make sure the transaction configuration of
+	 * the original method is considered if the redeclaration does not carry a {@link Transactional} annotation.
+	 * 
+	 * @see DATACMNS-649
+	 */
+	void delete(Integer id);
 
 	/**
 	 * Retrieve users by their email address. The finder {@literal User.findByEmailAddress} is declared as annotation at
@@ -215,7 +225,7 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	/**
 	 * @see DATAJPA-117
 	 */
-	@Query(value = "SELECT * FROM User WHERE lastname = ?1", nativeQuery = true)
+	@Query(value = "SELECT * FROM SD_User WHERE lastname = ?1", nativeQuery = true)
 	List<User> findNativeByLastname(String lastname);
 
 	/**
@@ -259,7 +269,7 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	 */
 	List<User> findByFirstnameContaining(String firstname);
 
-	@Query(value = "SELECT 1 FROM User", nativeQuery = true)
+	@Query(value = "SELECT 1 FROM SD_User", nativeQuery = true)
 	List<Integer> findOnesByNativeQuery();
 
 	/**
@@ -451,7 +461,7 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	/**
 	 * @see DATAJPA-506
 	 */
-	@Query(value = "select u.binaryData from User u where u.id = ?1", nativeQuery = true)
+	@Query(value = "select u.binaryData from SD_User u where u.id = ?1", nativeQuery = true)
 	byte[] findBinaryDataByIdNative(Integer id);
 
 	/**
@@ -459,7 +469,7 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	 */
 	@Query("select u from User u where u.emailAddress = ?1")
 	Optional<User> findOptionalByEmailAddress(String emailAddress);
-	
+
 	/**
 	 * @see DATAJPA-564
 	 */
@@ -524,7 +534,66 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	 * @see DATAJPA-564
 	 */
 	@Query(
-			value = "select * from (select rownum() as RN, u.* from User u) where RN between ?#{ #pageable.offset -1} and ?#{#pageable.offset + #pageable.pageSize}",
-			countQuery = "select count(u.id) from User u", nativeQuery = true)
+			value = "select * from (select rownum() as RN, u.* from SD_User u) where RN between ?#{ #pageable.offset -1} and ?#{#pageable.offset + #pageable.pageSize}",
+			countQuery = "select count(u.id) from SD_User u", nativeQuery = true)
 	Page<User> findUsersInNativeQueryWithPagination(Pageable pageable);
+
+	/**
+	 * @see DATAJPA-629
+	 */
+	@Query("select u from #{#entityName} u where u.firstname = ?#{[0]} and u.lastname = ?#{[1]}")
+	List<User> findUsersByFirstnameForSpELExpressionWithParameterIndexOnlyWithEntityExpression(String firstname,
+			String lastname);
+
+	/**
+	 * @see DATAJPA-606
+	 */
+	List<User> findByAgeIn(Collection<Integer> ages);
+
+	/**
+	 * @see DATAJPA-606
+	 */
+	List<User> queryByAgeIn(Integer[] ages);
+
+	/**
+	 * @see DATAJPA-606
+	 */
+	List<User> queryByAgeInOrFirstname(Integer[] ages, String firstname);
+
+	/**
+	 * @see DATAJPA-677
+	 */
+	@Query("select u from User u")
+	Stream<User> findAllByCustomQueryAndStream();
+
+	/**
+	 * @see DATAJPA-677
+	 */
+	Stream<User> readAllByFirstnameNotNull();
+
+	/**
+	 * @see DATAJPA-677
+	 */
+	@Query("select u from User u")
+	Stream<User> streamAllPaged(Pageable pageable);
+
+	/**
+	 * @see DATAJPA-830
+	 */
+	List<User> findByLastnameNotContaining(String part);
+
+	/**
+	 * @see DATAJPA-829
+	 */
+	List<User> findByRolesContaining(Role role);
+
+	/**
+	 * @see DATAJPA-829
+	 */
+	List<User> findByRolesNotContaining(Role role);
+
+	/**
+	 * @see DATAJPA-858
+	 */
+	List<User> findByRolesNameContaining(String name);
 }

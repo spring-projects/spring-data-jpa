@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2014 the original author or authors.
+ * Copyright 2008-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,9 +38,9 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.Parameter;
 import javax.persistence.Query;
-import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Fetch;
 import javax.persistence.criteria.From;
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.JoinType;
@@ -80,26 +80,36 @@ public abstract class QueryUtils {
 
 	private static final Pattern ALIAS_MATCH;
 	private static final Pattern COUNT_MATCH;
+	private static final Pattern PROJECTION_CLAUSE = Pattern.compile("select\\s+(.+)\\s+from");
 
-	private static final String IDENTIFIER = "[\\p{Alnum}._$]+";
+	private static final Pattern NO_DIGITS = Pattern.compile("\\D+");
+	private static final String IDENTIFIER = "[\\p{Lu}\\P{InBASIC_LATIN}\\p{Alnum}._$]+";
 	private static final String IDENTIFIER_GROUP = String.format("(%s)", IDENTIFIER);
 
-	private static final String LEFT_JOIN = "left (outer )?join " + IDENTIFIER + " (as )?" + IDENTIFIER_GROUP;
-	private static final Pattern LEFT_JOIN_PATTERN = Pattern.compile(LEFT_JOIN, Pattern.CASE_INSENSITIVE);
+	private static final String JOIN = "join\\s" + IDENTIFIER + "\\s(as\\s)?" + IDENTIFIER_GROUP;
+	private static final Pattern JOIN_PATTERN = Pattern.compile(JOIN, Pattern.CASE_INSENSITIVE);
 
 	private static final String EQUALS_CONDITION_STRING = "%s.%s = :%s";
 	private static final Pattern ORDER_BY = Pattern.compile(".*order\\s+by\\s+.*", CASE_INSENSITIVE);
 
+	private static final Pattern NAMED_PARAMETER = Pattern.compile(":" + IDENTIFIER + "|\\#" + IDENTIFIER,
+			CASE_INSENSITIVE);
+
+	private static final Pattern CONSTRUCTOR_EXPRESSION;
+
 	private static final Map<PersistentAttributeType, Class<? extends Annotation>> ASSOCIATION_TYPES;
+
+	private static final int QUERY_JOIN_ALIAS_GROUP_INDEX = 2;
+	private static final int VARIABLE_NAME_GROUP_INDEX = 4;
 
 	static {
 
 		StringBuilder builder = new StringBuilder();
 		builder.append("(?<=from)"); // from as starting delimiter
-		builder.append("(?: )+"); // at least one space separating
+		builder.append("(?:\\s)+"); // at least one space separating
 		builder.append(IDENTIFIER_GROUP); // Entity name, can be qualified (any
-		builder.append("(?: as)*"); // exclude possible "as" keyword
-		builder.append("(?: )+"); // at least one space separating
+		builder.append("(?:\\sas)*"); // exclude possible "as" keyword
+		builder.append("(?:\\s)+"); // at least one space separating
 		builder.append("(\\w*)"); // the actual alias
 
 		ALIAS_MATCH = compile(builder.toString(), CASE_INSENSITIVE);
@@ -121,6 +131,20 @@ public abstract class QueryUtils {
 		persistentAttributeTypes.put(ELEMENT_COLLECTION, null);
 
 		ASSOCIATION_TYPES = Collections.unmodifiableMap(persistentAttributeTypes);
+
+		builder = new StringBuilder();
+		builder.append("select");
+		builder.append("\\s+"); // at least one space separating
+		builder.append("(.*\\s+)?"); // anything in between (e.g. distinct) at least one space separating
+		builder.append("new");
+		builder.append("\\s+"); // at least one space separating
+		builder.append(IDENTIFIER);
+		builder.append("\\s*"); // zero to unlimited space separating
+		builder.append("\\(");
+		builder.append(".*");
+		builder.append("\\)");
+
+		CONSTRUCTOR_EXPRESSION = compile(builder.toString(), CASE_INSENSITIVE + DOTALL);
 	}
 
 	/**
@@ -216,7 +240,7 @@ public abstract class QueryUtils {
 
 	/**
 	 * Returns the order clause for the given {@link Order}. Will prefix the clause with the given alias if the referenced
-	 * property refers to a join alias.
+	 * property refers to a join alias, i.e. starts with {@code $alias.}.
 	 * 
 	 * @param joinAliases the join aliases of the original query.
 	 * @param alias the alias for the root entity.
@@ -229,7 +253,7 @@ public abstract class QueryUtils {
 		boolean qualifyReference = !property.contains("("); // ( indicates a function
 
 		for (String joinAlias : joinAliases) {
-			if (property.startsWith(joinAlias)) {
+			if (property.startsWith(joinAlias.concat("."))) {
 				qualifyReference = false;
 				break;
 			}
@@ -250,11 +274,11 @@ public abstract class QueryUtils {
 	static Set<String> getOuterJoinAliases(String query) {
 
 		Set<String> result = new HashSet<String>();
-		Matcher matcher = LEFT_JOIN_PATTERN.matcher(query);
+		Matcher matcher = JOIN_PATTERN.matcher(query);
 
 		while (matcher.find()) {
 
-			String alias = matcher.group(3);
+			String alias = matcher.group(QUERY_JOIN_ALIAS_GROUP_INDEX);
 			if (StringUtils.hasText(alias)) {
 				result.add(alias);
 			}
@@ -358,7 +382,7 @@ public abstract class QueryUtils {
 
 		if (countProjection == null) {
 
-			String variable = matcher.matches() ? matcher.group(4) : null;
+			String variable = matcher.matches() ? matcher.group(VARIABLE_NAME_GROUP_INDEX) : null;
 			boolean useVariable = variable != null && StringUtils.hasText(variable) && !variable.startsWith("new")
 					&& !variable.startsWith("count(") && !variable.contains(",");
 
@@ -380,12 +404,26 @@ public abstract class QueryUtils {
 	public static boolean hasNamedParameter(Query query) {
 
 		for (Parameter<?> parameter : query.getParameters()) {
-			if (parameter.getName() != null) {
+
+			String name = parameter.getName();
+
+			// Hibernate 3 specific hack as it returns the index as String for the name.
+			if (name != null && NO_DIGITS.matcher(name).find()) {
 				return true;
 			}
 		}
 
 		return false;
+	}
+
+	/**
+	 * Returns whether the given query contains named parameters.
+	 * 
+	 * @param query can be {@literal null} or empty.
+	 * @return
+	 */
+	public static boolean hasNamedParameter(String query) {
+		return StringUtils.hasText(query) && NAMED_PARAMETER.matcher(query).find();
 	}
 
 	/**
@@ -415,23 +453,32 @@ public abstract class QueryUtils {
 	}
 
 	/**
-	 * Executes a count query and transparently sums up all values returned.
+	 * Returns whether the given JPQL query contains a constructor expression.
 	 * 
-	 * @param query must not be {@literal null}.
+	 * @param query must not be {@literal null} or empty.
 	 * @return
+	 * @since 1.10
 	 */
-	public static Long executeCountQuery(TypedQuery<Long> query) {
+	public static boolean hasConstructorExpression(String query) {
 
-		Assert.notNull(query);
+		Assert.hasText(query, "Query must not be null or empty!");
 
-		List<Long> totals = query.getResultList();
-		Long total = 0L;
+		return CONSTRUCTOR_EXPRESSION.matcher(query).find();
+	}
 
-		for (Long element : totals) {
-			total += element == null ? 0 : element;
-		}
+	/**
+	 * Returns the projection part of the query, i.e. everything between {@code select} and {@code from}.
+	 * 
+	 * @param query must not be {@literal null} or empty.
+	 * @return
+	 * @since 1.10.2
+	 */
+	public static String getProjection(String query) {
 
-		return total;
+		Assert.hasText(query, "Query must not be null or empty!");
+
+		Matcher matcher = PROJECTION_CLAUSE.matcher(query);
+		return matcher.find() ? matcher.group(1) : "";
 	}
 
 	/**
@@ -474,7 +521,7 @@ public abstract class QueryUtils {
 			propertyPathModel = from.get(segment).getModel();
 		}
 
-		if (requiresJoin(propertyPathModel, model instanceof PluralAttribute)) {
+		if (requiresJoin(propertyPathModel, model instanceof PluralAttribute) && !isAlreadyFetched(from, segment)) {
 			Join<?, ?> join = getOrCreateJoin(from, segment);
 			return (Expression<T>) (property.hasNext() ? toExpressionRecursively(join, property.next()) : join);
 		} else {
@@ -548,5 +595,26 @@ public abstract class QueryUtils {
 		}
 
 		return from.join(attribute, JoinType.LEFT);
+	}
+
+	/**
+	 * Return whether the given {@link From} contains a fetch declaration for the attribute with the given name.
+	 * 
+	 * @param from the {@link From} to check for fetches.
+	 * @param attribute the attribute name to check.
+	 * @return
+	 */
+	private static boolean isAlreadyFetched(From<?, ?> from, String attribute) {
+
+		for (Fetch<?, ?> f : from.getFetches()) {
+
+			boolean sameName = f.getAttribute().getName().equals(attribute);
+
+			if (sameName && f.getJoinType().equals(JoinType.LEFT)) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 }

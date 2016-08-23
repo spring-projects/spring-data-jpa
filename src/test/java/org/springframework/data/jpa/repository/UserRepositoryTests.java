@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2014 the original author or authors.
+ * Copyright 2008-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,12 @@
 package org.springframework.data.jpa.repository;
 
 import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.*;
+import static org.springframework.data.domain.Example.*;
+import static org.springframework.data.domain.ExampleMatcher.*;
 import static org.springframework.data.domain.Sort.Direction.*;
+import static org.springframework.data.jpa.domain.Specifications.not;
 import static org.springframework.data.jpa.domain.Specifications.*;
 import static org.springframework.data.jpa.domain.sample.UserSpecifications.*;
 
@@ -28,6 +32,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -38,6 +44,7 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 import org.hamcrest.Matchers;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -45,6 +52,10 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.ExampleMatcher;
+import org.springframework.data.domain.ExampleMatcher.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -58,6 +69,7 @@ import org.springframework.data.jpa.domain.sample.Address;
 import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.domain.sample.SpecialUser;
 import org.springframework.data.jpa.domain.sample.User;
+import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.repository.sample.SampleEvaluationContextExtension.SampleSecurityContextHolder;
 import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.test.context.ContextConfiguration;
@@ -75,6 +87,7 @@ import com.google.common.base.Optional;
  * @author Oliver Gierke
  * @author Kevin Raymond
  * @author Thomas Darimont
+ * @author Mark Paluch
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("classpath:application-context.xml")
@@ -517,8 +530,8 @@ public class UserRepositoryTests {
 		firstUser = repository.save(firstUser);
 		secondUser = repository.save(secondUser);
 
-		assertTrue(repository.findByLastnameOrFirstname("Oliver", "Arrasz").containsAll(
-				Arrays.asList(firstUser, secondUser)));
+		assertTrue(
+				repository.findByLastnameOrFirstname("Oliver", "Arrasz").containsAll(Arrays.asList(firstUser, secondUser)));
 	}
 
 	@Test
@@ -584,7 +597,7 @@ public class UserRepositoryTests {
 		Pageable pageable = new PageRequest(0, 1);
 
 		flushTestUsers();
-		assertThat(repository.findAll(null, pageable), is(repository.findAll(pageable)));
+		assertThat(repository.findAll((Specification<User>) null, pageable), is(repository.findAll(pageable)));
 	}
 
 	@Test
@@ -1270,6 +1283,67 @@ public class UserRepositoryTests {
 	}
 
 	/**
+	 * @see DATAJPA-218
+	 */
+	@Test
+	public void findAllByUntypedExampleShouldReturnSubTypesOfRepositoryEntity() {
+
+		flushTestUsers();
+
+		SpecialUser user = new SpecialUser();
+		user.setFirstname("Thomas");
+		user.setEmailAddress("thomas@example.org");
+
+		repository.saveAndFlush(user);
+
+		List<User> result = repository
+				.findAll(Example.of(new User(), ExampleMatcher.matching().withIgnorePaths("age", "createdAt", "dateOfBirth")));
+
+		assertThat(result, hasSize(5));
+	}
+
+	/**
+	 * @see DATAJPA-218
+	 */
+	@Test
+	public void findAllByTypedUserExampleShouldReturnSubTypesOfRepositoryEntity() {
+
+		flushTestUsers();
+
+		SpecialUser user = new SpecialUser();
+		user.setFirstname("Thomas");
+		user.setEmailAddress("thomas@example.org");
+
+		repository.saveAndFlush(user);
+
+		Example<User> example = Example.of(new User(), matching().withIgnorePaths("age", "createdAt", "dateOfBirth"));
+		List<User> result = repository.findAll(example);
+
+		assertThat(result, hasSize(5));
+	}
+
+	/**
+	 * @see DATAJPA-218
+	 */
+	@Test
+	public void findAllByTypedSpecialUserExampleShouldReturnSubTypesOfRepositoryEntity() {
+
+		flushTestUsers();
+
+		SpecialUser user = new SpecialUser();
+		user.setFirstname("Thomas");
+		user.setEmailAddress("thomas@example.org");
+
+		repository.saveAndFlush(user);
+
+		Example<SpecialUser> example = Example.of(new SpecialUser(),
+				matching().withIgnorePaths("age", "createdAt", "dateOfBirth"));
+		List<SpecialUser> result = repository.findAll(example);
+
+		assertThat(result, hasSize(1));
+	}
+
+	/**
 	 * @see DATAJPA-491
 	 */
 	@Test
@@ -1579,6 +1653,40 @@ public class UserRepositoryTests {
 	}
 
 	/**
+	 * @see DATAJPA-912
+	 */
+	@Test
+	public void pageableQueryReportsTotalFromResult() {
+
+		flushTestUsers();
+
+		Page<User> firstPage = repository.findAll(new PageRequest(0, 10));
+		assertThat(firstPage.getContent(), hasSize(4));
+		assertThat(firstPage.getTotalElements(), is(4L));
+
+		Page<User> secondPage = repository.findAll(new PageRequest(1, 3));
+		assertThat(secondPage.getContent(), hasSize(1));
+		assertThat(secondPage.getTotalElements(), is(4L));
+	}
+
+	/**
+	 * @see DATAJPA-912
+	 */
+	@Test
+	public void pageableQueryReportsTotalFromCount() {
+
+		flushTestUsers();
+
+		Page<User> firstPage = repository.findAll(new PageRequest(0, 4));
+		assertThat(firstPage.getContent(), hasSize(4));
+		assertThat(firstPage.getTotalElements(), is(4L));
+
+		Page<User> secondPage = repository.findAll(new PageRequest(10, 10));
+		assertThat(secondPage.getContent(), hasSize(0));
+		assertThat(secondPage.getTotalElements(), is(4L));
+	}
+
+	/**
 	 * @see DATAJPA-506
 	 */
 	@Test
@@ -1751,6 +1859,575 @@ public class UserRepositoryTests {
 		assertThat(users.getContent(), hasSize(2));
 		assertThat(users.getContent().get(0), is(thirdUser));
 		assertThat(users.getContent().get(1), is(fourthUser));
+	}
+
+	/**
+	 * @see DATAJPA-629
+	 */
+	@Test
+	public void shouldfindUsersBySpELExpressionParametersWithSpelTemplateExpression() {
+
+		flushTestUsers();
+		List<User> users = repository
+				.findUsersByFirstnameForSpELExpressionWithParameterIndexOnlyWithEntityExpression("Joachim", "Arrasz");
+
+		assertThat(users, hasSize(1));
+		assertThat(users.get(0), is(secondUser));
+	}
+
+	/**
+	 * @see DATAJPA-606
+	 */
+	@Test
+	public void findByEmptyCollectionOfStrings() throws Exception {
+
+		flushTestUsers();
+
+		List<User> users = repository.findByAttributesIn(new HashSet<String>());
+		assertThat(users, hasSize(0));
+	}
+
+	/**
+	 * @see DATAJPA-606
+	 */
+	@Test
+	public void findByEmptyCollectionOfIntegers() throws Exception {
+
+		flushTestUsers();
+
+		List<User> users = repository.findByAgeIn(Arrays.<Integer> asList());
+		assertThat(users, hasSize(0));
+	}
+
+	/**
+	 * @see DATAJPA-606
+	 */
+	@Test
+	public void findByEmptyArrayOfIntegers() throws Exception {
+
+		flushTestUsers();
+
+		List<User> users = repository.queryByAgeIn(new Integer[0]);
+		assertThat(users, hasSize(0));
+	}
+
+	/**
+	 * @see DATAJPA-606
+	 */
+	@Test
+	public void findByAgeWithEmptyArrayOfIntegersOrFirstName() {
+
+		flushTestUsers();
+
+		List<User> users = repository.queryByAgeInOrFirstname(new Integer[0], secondUser.getFirstname());
+		assertThat(users, hasSize(1));
+		assertThat(users.get(0), is(secondUser));
+	}
+
+	/**
+	 * @see DATAJPA-677
+	 */
+	@Test
+	public void shouldSupportJava8StreamsForRepositoryFinderMethods() {
+
+		flushTestUsers();
+
+		Stream<User> stream = repository.findAllByCustomQueryAndStream();
+
+		final List<User> users = new ArrayList<User>();
+
+		try {
+
+			stream.forEach(new Consumer<User>() {
+
+				@Override
+				public void accept(User user) {
+					users.add(user);
+				}
+			});
+
+		} finally {
+			stream.close();
+		}
+
+		assertThat(users, hasSize(4));
+	}
+
+	/**
+	 * @see DATAJPA-677
+	 */
+	@Test
+	public void shouldSupportJava8StreamsForRepositoryDerivedFinderMethods() {
+
+		flushTestUsers();
+
+		Stream<User> stream = repository.readAllByFirstnameNotNull();
+
+		final List<User> users = new ArrayList<User>();
+
+		try {
+
+			stream.forEach(new Consumer<User>() {
+
+				@Override
+				public void accept(User user) {
+					users.add(user);
+				}
+			});
+
+		} finally {
+			stream.close();
+		}
+
+		assertThat(users, hasSize(4));
+	}
+
+	/**
+	 * @see DATAJPA-677
+	 */
+	@Test
+	public void supportsJava8StreamForPageableMethod() {
+
+		flushTestUsers();
+
+		Stream<User> stream = repository.streamAllPaged(new PageRequest(0, 2));
+
+		final List<User> users = new ArrayList<User>();
+
+		try {
+
+			stream.forEach(new Consumer<User>() {
+
+				@Override
+				public void accept(User user) {
+					users.add(user);
+				}
+			});
+
+		} finally {
+			stream.close();
+		}
+
+		assertThat(users, hasSize(2));
+	}
+
+	/**
+	 * @see DATAJPA-218
+	 */
+	@Test
+	public void findAllByExample() {
+
+		flushTestUsers();
+
+		User prototype = new User();
+		prototype.setAge(28);
+		prototype.setCreatedAt(null);
+
+		List<User> users = repository.findAll(of(prototype));
+
+		assertThat(users, hasSize(1));
+		assertThat(users.get(0), is(firstUser));
+	}
+
+	/**
+	 * @see DATAJPA-218
+	 */
+	@Test
+	public void findAllByExampleWithEmptyProbe() {
+
+		flushTestUsers();
+
+		User prototype = new User();
+		prototype.setCreatedAt(null);
+
+		List<User> users = repository
+				.findAll(of(prototype, ExampleMatcher.matching().withIgnorePaths("age", "createdAt", "active")));
+
+		assertThat(users, hasSize(4));
+	}
+
+	/**
+	 * @see DATAJPA-218
+	 */
+	@Test(expected = InvalidDataAccessApiUsageException.class)
+	public void findAllByNullExample() {
+		repository.findAll((Example<User>) null);
+	}
+
+	/**
+	 * @see DATAJPA-218
+	 */
+	@Test
+	public void findAllByExampleWithExcludedAttributes() {
+
+		flushTestUsers();
+
+		User prototype = new User();
+		prototype.setAge(28);
+
+		Example<User> example = Example.of(prototype, matching().withIgnorePaths("createdAt"));
+		List<User> users = repository.findAll(example);
+
+		assertThat(users, hasSize(1));
+		assertThat(users.get(0), is(firstUser));
+	}
+
+	/**
+	 * @see DATAJPA-218
+	 */
+	@Test
+	public void findAllByExampleWithAssociation() {
+
+		flushTestUsers();
+
+		firstUser.setManager(secondUser);
+		thirdUser.setManager(firstUser);
+		repository.save(Arrays.asList(firstUser, thirdUser));
+
+		User manager = new User();
+		manager.setLastname("Arrasz");
+		manager.setAge(secondUser.getAge());
+		manager.setCreatedAt(null);
+
+		User prototype = new User();
+		prototype.setCreatedAt(null);
+		prototype.setManager(manager);
+
+		Example<User> example = Example.of(prototype, matching().withIgnorePaths("age"));
+		List<User> users = repository.findAll(example);
+
+		assertThat(users, hasSize(1));
+		assertThat(users.get(0), is(firstUser));
+	}
+
+	/**
+	 * @see DATAJPA-218
+	 */
+	@Test
+	public void findAllByExampleWithEmbedded() {
+
+		flushTestUsers();
+
+		firstUser.setAddress(new Address("germany", "dresden", "", ""));
+		repository.save(firstUser);
+
+		User prototype = new User();
+		prototype.setCreatedAt(null);
+		prototype.setAddress(new Address("germany", null, null, null));
+
+		Example<User> example = Example.of(prototype, matching().withIgnorePaths("age"));
+		List<User> users = repository.findAll(example);
+
+		assertThat(users, hasSize(1));
+		assertThat(users.get(0), is(firstUser));
+	}
+
+	/**
+	 * @see DATAJPA-218
+	 */
+	@Test
+	public void findAllByExampleWithStartingStringMatcher() {
+
+		flushTestUsers();
+
+		User prototype = new User();
+		prototype.setFirstname("Ol");
+
+		Example<User> example = Example.of(prototype,
+				matching().withStringMatcher(StringMatcher.STARTING).withIgnorePaths("age", "createdAt"));
+		List<User> users = repository.findAll(example);
+
+		assertThat(users, hasSize(1));
+		assertThat(users.get(0), is(firstUser));
+	}
+
+	/**
+	 * @see DATAJPA-218
+	 */
+	@Test
+	public void findAllByExampleWithEndingStringMatcher() {
+
+		flushTestUsers();
+
+		User prototype = new User();
+		prototype.setFirstname("ver");
+
+		Example<User> example = Example.of(prototype,
+				matching().withStringMatcher(StringMatcher.ENDING).withIgnorePaths("age", "createdAt"));
+		List<User> users = repository.findAll(example);
+
+		assertThat(users, hasSize(1));
+		assertThat(users.get(0), is(firstUser));
+	}
+
+	/**
+	 * @see DATAJPA-218
+	 */
+	@Test(expected = InvalidDataAccessApiUsageException.class)
+	public void findAllByExampleWithRegexStringMatcher() {
+
+		flushTestUsers();
+
+		User prototype = new User();
+		prototype.setFirstname("^Oliver$");
+
+		Example<User> example = Example.of(prototype, matching().withStringMatcher(StringMatcher.REGEX));
+		repository.findAll(example);
+	}
+
+	/**
+	 * @see DATAJPA-218
+	 */
+	@Test
+	public void findAllByExampleWithIgnoreCase() {
+
+		flushTestUsers();
+
+		User prototype = new User();
+		prototype.setFirstname("oLiVer");
+
+		Example<User> example = Example.of(prototype, matching().withIgnoreCase().withIgnorePaths("age", "createdAt"));
+
+		List<User> users = repository.findAll(example);
+
+		assertThat(users, hasSize(1));
+		assertThat(users.get(0), is(firstUser));
+	}
+
+	/**
+	 * @see DATAJPA-218
+	 */
+	@Test
+	public void findAllByExampleWithStringMatcherAndIgnoreCase() {
+
+		flushTestUsers();
+
+		User prototype = new User();
+		prototype.setFirstname("oLiV");
+
+		Example<User> example = Example.of(prototype,
+				matching().withStringMatcher(StringMatcher.STARTING).withIgnoreCase().withIgnorePaths("age", "createdAt"));
+
+		List<User> users = repository.findAll(example);
+
+		assertThat(users, hasSize(1));
+		assertThat(users.get(0), is(firstUser));
+	}
+
+	/**
+	 * @see DATAJPA-218
+	 */
+	@Test
+	public void findAllByExampleWithIncludeNull() {
+
+		// something is wrong with OpenJPA - I do not know what
+		Assume.assumeThat(PersistenceProvider.fromEntityManager(em), not(equalTo(PersistenceProvider.OPEN_JPA)));
+
+		flushTestUsers();
+
+		firstUser.setAddress(new Address("andor", "caemlyn", "", ""));
+
+		User fifthUser = new User();
+		fifthUser.setEmailAddress("foo@bar.com");
+		fifthUser.setActive(firstUser.isActive());
+		fifthUser.setAge(firstUser.getAge());
+		fifthUser.setFirstname(firstUser.getFirstname());
+		fifthUser.setLastname(firstUser.getLastname());
+
+		repository.save(Arrays.asList(firstUser, fifthUser));
+
+		User prototype = new User();
+		prototype.setFirstname(firstUser.getFirstname());
+
+		Example<User> example = Example.of(prototype, matching().withIncludeNullValues().withIgnorePaths("id", "binaryData",
+				"lastname", "emailAddress", "age", "createdAt"));
+
+		List<User> users = repository.findAll(example);
+
+		assertThat(users, hasSize(1));
+		assertThat(users.get(0), is(fifthUser));
+	}
+
+	/**
+	 * @see DATAJPA-218
+	 */
+	@Test
+	public void findAllByExampleWithPropertySpecifier() {
+
+		flushTestUsers();
+
+		User prototype = new User();
+		prototype.setFirstname("oLi");
+
+		Example<User> example = Example.of(prototype, matching().withIgnoreCase().withIgnorePaths("age", "createdAt")
+				.withMatcher("firstname", new GenericPropertyMatcher().startsWith()));
+
+		List<User> users = repository.findAll(example);
+
+		assertThat(users, hasSize(1));
+		assertThat(users.get(0), is(firstUser));
+	}
+
+	/**
+	 * @see DATAJPA-218
+	 */
+	@Test
+	public void findAllByExampleWithSort() {
+
+		flushTestUsers();
+
+		User user1 = new User("Oliver", "Srping", "o@s.de");
+		user1.setAge(30);
+
+		repository.save(user1);
+
+		User prototype = new User();
+		prototype.setFirstname("oLi");
+
+		Example<User> example = Example.of(prototype, matching().withIgnoreCase().withIgnorePaths("age", "createdAt")
+				.withStringMatcher(StringMatcher.STARTING).withIgnoreCase());
+
+		List<User> users = repository.findAll(example, new Sort(DESC, "age"));
+
+		assertThat(users, hasSize(2));
+		assertThat(users.get(0), is(user1));
+		assertThat(users.get(1), is(firstUser));
+	}
+
+	/**
+	 * @see DATAJPA-218
+	 */
+	@Test
+	public void findAllByExampleWithPageable() {
+
+		flushTestUsers();
+
+		for (int i = 0; i < 99; i++) {
+			User user1 = new User("Oliver-" + i, "Srping", "o" + i + "@s.de");
+			user1.setAge(30 + i);
+
+			repository.save(user1);
+		}
+
+		User prototype = new User();
+		prototype.setFirstname("oLi");
+
+		Example<User> example = Example.of(prototype, matching().withIgnoreCase().withIgnorePaths("age", "createdAt")
+				.withStringMatcher(StringMatcher.STARTING).withIgnoreCase());
+
+		Page<User> users = repository.findAll(example, new PageRequest(0, 10, new Sort(DESC, "age")));
+
+		assertThat(users.getSize(), is(10));
+		assertThat(users.hasNext(), is(true));
+		assertThat(users.getTotalElements(), is(100L));
+	}
+
+	/**
+	 * @see DATAJPA-218
+	 */
+	@Test(expected = InvalidDataAccessApiUsageException.class)
+	public void findAllByExampleShouldNotAllowCycles() {
+
+		flushTestUsers();
+
+		User user1 = new User();
+		user1.setFirstname("user1");
+
+		user1.setManager(user1);
+
+		Example<User> example = Example.of(user1, matching().withIgnoreCase().withIgnorePaths("age", "createdAt")
+				.withStringMatcher(StringMatcher.STARTING).withIgnoreCase());
+
+		repository.findAll(example, new PageRequest(0, 10, new Sort(DESC, "age")));
+	}
+
+	/**
+	 * @see DATAJPA-218
+	 */
+	@Test(expected = InvalidDataAccessApiUsageException.class)
+	public void findAllByExampleShouldNotAllowCyclesOverSeveralInstances() {
+
+		flushTestUsers();
+
+		User user1 = new User();
+		user1.setFirstname("user1");
+
+		User user2 = new User();
+		user2.setFirstname("user2");
+
+		user1.setManager(user2);
+		user2.setManager(user1);
+
+		Example<User> example = Example.of(user1, matching().withIgnoreCase().withIgnorePaths("age", "createdAt")
+				.withStringMatcher(StringMatcher.STARTING).withIgnoreCase());
+
+		repository.findAll(example, new PageRequest(0, 10, new Sort(DESC, "age")));
+	}
+
+	/**
+	 * @see DATAJPA-218
+	 */
+	@Test
+	public void findOneByExampleWithExcludedAttributes() {
+
+		flushTestUsers();
+
+		User prototype = new User();
+		prototype.setAge(28);
+
+		Example<User> example = Example.of(prototype, matching().withIgnorePaths("createdAt"));
+		User users = repository.findOne(example);
+
+		assertThat(users, is(firstUser));
+	}
+
+	/**
+	 * @see DATAJPA-218
+	 */
+	@Test
+	public void countByExampleWithExcludedAttributes() {
+
+		flushTestUsers();
+
+		User prototype = new User();
+		prototype.setAge(28);
+
+		Example<User> example = Example.of(prototype, matching().withIgnorePaths("createdAt"));
+		long count = repository.count(example);
+
+		assertThat(count, is(1L));
+	}
+
+	/**
+	 * @see DATAJPA-218
+	 */
+	@Test
+	public void existsByExampleWithExcludedAttributes() {
+
+		flushTestUsers();
+
+		User prototype = new User();
+		prototype.setAge(28);
+
+		Example<User> example = Example.of(prototype, matching().withIgnorePaths("createdAt"));
+		boolean exists = repository.exists(example);
+
+		assertThat(exists, is(true));
+	}
+
+	/**
+	 * @see DATAJPA-905
+	 */
+	@Test
+	public void excutesPagedSpecificationSettingAnOrder() {
+
+		flushTestUsers();
+
+		Page<User> result = repository.findAll(where(userHasLastnameLikeWithSort("e")), new PageRequest(0, 1));
+
+		assertThat(result.getTotalElements(), is(2L));
+		assertThat(result.getNumberOfElements(), is(1));
+		assertThat(result.getContent().get(0), is(thirdUser));
 	}
 
 	private Page<User> executeSpecWithSort(Sort sort) {

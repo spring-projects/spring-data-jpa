@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,26 +21,35 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.springframework.data.annotation.QueryAnnotation;
+import javax.persistence.NamedAttributeNode;
+
+import org.springframework.data.jpa.repository.query.JpaQueryMethod;
 
 /**
  * Annotation to configure the JPA 2.1 {@link javax.persistence.EntityGraph}s that should be used on repository methods.
+ * 
+ * Since 1.9 we support the definition of dynamic {@link EntityGraph}s by allowing to customize the fetch-graph via 
+ * via {@link #attributePaths()} ad-hoc fetch-graph configuration.
+ * @author Christoph Strobl
+ * 
+ * If {@link #attributePaths()} are specified then we ignore the entity-graph name {@link #value()}
+ * and treat this {@link EntityGraph} as dynamic.
  * 
  * @author Thomas Darimont
  * @since 1.6
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
-@QueryAnnotation
+@Target({ ElementType.METHOD, ElementType.ANNOTATION_TYPE })
 @Documented
 public @interface EntityGraph {
 
 	/**
 	 * The name of the EntityGraph to use.
+	 * If empty we fall-back to {@link JpaQueryMethod#getNamedQueryName()} as the value.
 	 * 
 	 * @return
 	 */
-	String value();
+	String value() default "";
 
 	/**
 	 * The {@link Type} of the EntityGraph to use, defaults to {@link Type#FETCH}.
@@ -48,6 +57,16 @@ public @interface EntityGraph {
 	 * @return
 	 */
 	EntityGraphType type() default EntityGraphType.FETCH;
+	
+	/**
+	 * The paths of attributes of this {@link EntityGraph} to use, empty by default.
+	 * 
+	 * You can refer to direct properties of the entity or nested properties via a {@code property.nestedProperty}. 
+	 * 
+	 * @return
+	 * @since 1.9
+	 */
+	String[] attributePaths() default {};
 
 	/**
 	 * Enum for JPA 2.1 {@link javax.persistence.EntityGraph} types.

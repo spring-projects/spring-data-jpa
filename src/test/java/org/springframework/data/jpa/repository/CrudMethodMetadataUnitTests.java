@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 the original author or authors.
+ * Copyright 2011-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,12 +23,13 @@ import java.util.Collections;
 import java.util.Map;
 
 import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import javax.persistence.LockModeType;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.metamodel.Metamodel;
 
-import org.hibernate.ejb.HibernateEntityManager;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -41,19 +42,22 @@ import org.springframework.data.jpa.repository.support.JpaEntityInformation;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactory;
 
 /**
- * Integratio test for lock support.
+ * Integration test for lock support.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 @RunWith(MockitoJUnitRunner.class)
-public class CrudMethodMetadataIntegrationTests {
+public class CrudMethodMetadataUnitTests {
 
 	@Mock EntityManager em;
+	@Mock EntityManagerFactory emf;
 	@Mock CriteriaBuilder builder;
 	@Mock CriteriaQuery<Role> criteriaQuery;
 	@Mock JpaEntityInformation<Role, Integer> information;
 	@Mock TypedQuery<Role> typedQuery;
 	@Mock javax.persistence.Query query;
+	@Mock Metamodel metamodel;
 
 	RoleRepository repository;
 
@@ -61,6 +65,11 @@ public class CrudMethodMetadataIntegrationTests {
 	public void setUp() {
 
 		when(information.getJavaType()).thenReturn(Role.class);
+
+		when(em.getMetamodel()).thenReturn(metamodel);
+		when(em.getDelegate()).thenReturn(em);
+		when(em.getEntityManagerFactory()).thenReturn(emf);
+		when(emf.createEntityManager()).thenReturn(em);
 
 		JpaRepositoryFactory factory = new JpaRepositoryFactory(em) {
 			@Override
@@ -110,7 +119,7 @@ public class CrudMethodMetadataIntegrationTests {
 	@Test
 	public void appliesLockModeAndQueryHintsToQuerydslQuery() {
 
-		when(em.getDelegate()).thenReturn(mock(HibernateEntityManager.class));
+		when(em.getDelegate()).thenReturn(mock(EntityManager.class));
 		when(em.createQuery(anyString())).thenReturn(query);
 
 		repository.findOne(QRole.role.name.eq("role"));

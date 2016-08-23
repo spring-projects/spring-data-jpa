@@ -6,7 +6,7 @@
 		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
 
 	<!-- EclipseLink vendor adaptor with workaround platform class for HSQL usage -->
-	<bean id="vendorAdaptor" class="org.springframework.orm.jpa.vendor.EclipseLinkJpaVendorAdapter" parent="abstractVendorAdaptor" />	
+	<bean id="vendorAdaptor" class="org.springframework.data.jpa.repository.CustomEclipseLinkJpaVendorAdapter" parent="abstractVendorAdaptor" />	
 	
 	<util:properties id="jpaProperties">
 		<prop key="javax.persistence.jdbc.driver">org.hsqldb.jdbcDriver</prop>

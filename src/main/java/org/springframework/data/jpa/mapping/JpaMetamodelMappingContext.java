@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2012-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,12 @@ package org.springframework.data.jpa.mapping;
 
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
-import java.util.Collections;
 import java.util.Set;
 
 import javax.persistence.metamodel.ManagedType;
 import javax.persistence.metamodel.Metamodel;
 
+import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.mapping.context.AbstractMappingContext;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
@@ -35,10 +35,11 @@ import org.springframework.util.Assert;
  * @author Oliver Gierke
  * @since 1.3
  */
-public class JpaMetamodelMappingContext extends
-		AbstractMappingContext<JpaPersistentEntityImpl<?>, JpaPersistentProperty> {
+public class JpaMetamodelMappingContext
+		extends AbstractMappingContext<JpaPersistentEntityImpl<?>, JpaPersistentProperty> {
 
 	private final Set<Metamodel> models;
+	private final PersistenceProvider persistenceProvider;
 
 	/**
 	 * Creates a new JPA {@link Metamodel} based {@link MappingContext}.
@@ -49,11 +50,9 @@ public class JpaMetamodelMappingContext extends
 
 		Assert.notNull(models, "JPA metamodel must not be null!");
 		Assert.notEmpty(models, "At least one JPA metamodel must be present!");
-		this.models = models;
-	}
 
-	public JpaMetamodelMappingContext(Metamodel model) {
-		this(Collections.singleton(model));
+		this.models = models;
+		this.persistenceProvider = PersistenceProvider.fromMetamodel(models.iterator().next());
 	}
 
 	/* 
@@ -62,7 +61,7 @@ public class JpaMetamodelMappingContext extends
 	 */
 	@Override
 	protected <T> JpaPersistentEntityImpl<?> createPersistentEntity(TypeInformation<T> typeInformation) {
-		return new JpaPersistentEntityImpl<T>(typeInformation, null);
+		return new JpaPersistentEntityImpl<T>(typeInformation, persistenceProvider);
 	}
 
 	/* 

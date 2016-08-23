@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import javax.persistence.NamedStoredProcedureQueries;
 import javax.persistence.NamedStoredProcedureQuery;
 import javax.persistence.StoredProcedureParameter;
 
-import org.springframework.data.jpa.repository.support.JpaEntityMetadata;
+import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -33,6 +33,7 @@ import org.springframework.util.StringUtils;
  * 
  * @author Thomas Darimont
  * @author Oliver Gierke
+ * @author Christoph Strobl
  * @since 1.6
  */
 enum StoredProcedureAttributeSource {
@@ -51,14 +52,14 @@ enum StoredProcedureAttributeSource {
 		Assert.notNull(method, "Method must not be null!");
 		Assert.notNull(entityMetadata, "EntityMetadata must not be null!");
 
-		Procedure procedure = method.getAnnotation(Procedure.class);
+		Procedure procedure = AnnotatedElementUtils.findMergedAnnotation(method, Procedure.class);
 		Assert.notNull(procedure, "Method must have an @Procedure annotation!");
 
 		NamedStoredProcedureQuery namedStoredProc = tryFindAnnotatedNamedStoredProcedureQuery(method, entityMetadata,
 				procedure);
 
 		if (namedStoredProc != null) {
-			return newProcedureAttributesFrom(method, namedStoredProc);
+			return newProcedureAttributesFrom(method, namedStoredProc, procedure);
 		}
 
 		String procedureName = deriveProcedureNameFrom(method, procedure);
@@ -91,31 +92,55 @@ enum StoredProcedureAttributeSource {
 	/**
 	 * @param method
 	 * @param namedStoredProc
+	 * @param procedure
 	 * @return
 	 */
-	private StoredProcedureAttributes newProcedureAttributesFrom(Method method, NamedStoredProcedureQuery namedStoredProc) {
+	private StoredProcedureAttributes newProcedureAttributesFrom(Method method,
+			NamedStoredProcedureQuery namedStoredProc, Procedure procedure) {
 
 		String outputParameterName = null;
 		Class<?> outputParameterType = null;
 
-		int outputParameterCount = 0;
+		if (!procedure.outputParameterName().isEmpty()) {
+
+			// we give the output parameter definition from the @Procedure annotation precedence
+			outputParameterName = procedure.outputParameterName();
+		} else {
+
+			// try to discover the output parameter
+			List<StoredProcedureParameter> outputParameters = extractOutputParametersFrom(namedStoredProc);
+
+			if (outputParameters.size() != 1 && !void.class.equals(method.getReturnType())) {
+				throw new IllegalStateException(String.format(
+						"Could not create ProcedureAttributes from %s. We currently support exactly one output parameter!", method));
+			}
+
+			if (!outputParameters.isEmpty()) {
+				StoredProcedureParameter outputParameter = outputParameters.get(0);
+				outputParameterName = outputParameter.name();
+				outputParameterType = outputParameter.type();
+			}
+		}
+
+		if (outputParameterType == null || Object.class.equals(outputParameterType)
+				|| void.class.equals(outputParameterType)) {
+			outputParameterType = method.getReturnType();
+		}
+
+		return new StoredProcedureAttributes(namedStoredProc.name(), outputParameterName, outputParameterType, true);
+	}
+
+	private List<StoredProcedureParameter> extractOutputParametersFrom(NamedStoredProcedureQuery namedStoredProc) {
+
+		List<StoredProcedureParameter> outputParameters = new ArrayList<StoredProcedureParameter>();
 
 		for (StoredProcedureParameter param : namedStoredProc.parameters()) {
+
 			switch (param.mode()) {
 				case OUT:
 				case INOUT:
-
-					if (outputParameterCount > 0) {
-						throw new IllegalStateException(
-								String.format(
-										"Could not create ProcedureAttributes from %s. We currently support only one output parameter!",
-										method));
-					}
-
-					outputParameterName = param.name();
-					outputParameterType = param.type();
-
-					outputParameterCount++;
+				case REF_CURSOR:
+					outputParameters.add(param);
 					break;
 				case IN:
 				default:
@@ -123,11 +148,7 @@ enum StoredProcedureAttributeSource {
 			}
 		}
 
-		if (outputParameterType == null) {
-			outputParameterType = method.getReturnType();
-		}
-
-		return new StoredProcedureAttributes(namedStoredProc.name(), outputParameterName, outputParameterType, true);
+		return outputParameters;
 	}
 
 	/**
@@ -182,12 +203,14 @@ enum StoredProcedureAttributeSource {
 
 		List<NamedStoredProcedureQuery> queries = new ArrayList<NamedStoredProcedureQuery>();
 
-		NamedStoredProcedureQueries namedQueriesAnnotation = entityType.getAnnotation(NamedStoredProcedureQueries.class);
+		NamedStoredProcedureQueries namedQueriesAnnotation = AnnotatedElementUtils.findMergedAnnotation(entityType,
+				NamedStoredProcedureQueries.class);
 		if (namedQueriesAnnotation != null) {
 			queries.addAll(Arrays.asList(namedQueriesAnnotation.value()));
 		}
 
-		NamedStoredProcedureQuery namedQueryAnnotation = entityType.getAnnotation(NamedStoredProcedureQuery.class);
+		NamedStoredProcedureQuery namedQueryAnnotation = AnnotatedElementUtils.findMergedAnnotation(entityType,
+				NamedStoredProcedureQuery.class);
 		if (namedQueryAnnotation != null) {
 			queries.add(namedQueryAnnotation);
 		}

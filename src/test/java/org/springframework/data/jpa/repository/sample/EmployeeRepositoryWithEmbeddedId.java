@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,8 +23,8 @@ import org.springframework.data.jpa.domain.sample.EmbeddedIdExampleEmployeePK;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 
-import com.mysema.query.types.OrderSpecifier;
-import com.mysema.query.types.Predicate;
+import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.Predicate;
 
 /**
  * Demonstrates the support for composite primary keys with {@code @EmbeddedId}.
@@ -32,10 +32,9 @@ import com.mysema.query.types.Predicate;
  * @author Thomas Darimont
  */
 @Lazy
-public interface EmployeeRepositoryWithEmbeddedId extends
-		JpaRepository<EmbeddedIdExampleEmployee, EmbeddedIdExampleEmployeePK>,
+public interface EmployeeRepositoryWithEmbeddedId
+		extends JpaRepository<EmbeddedIdExampleEmployee, EmbeddedIdExampleEmployeePK>,
 		QueryDslPredicateExecutor<EmbeddedIdExampleEmployee> {
 
 	List<EmbeddedIdExampleEmployee> findAll(Predicate predicate, OrderSpecifier<?>... orders);
-
 }

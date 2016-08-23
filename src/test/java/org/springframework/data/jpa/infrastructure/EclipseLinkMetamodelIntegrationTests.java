@@ -33,7 +33,21 @@ public class EclipseLinkMetamodelIntegrationTests extends MetamodelIntegrationTe
 	@Test
 	@Ignore
 	@Override
-	public void canAccessParametersByIndexForNativeQueries() {
+	public void canAccessParametersByIndexForNativeQueries() {}
 
-	}
+	/**
+	 * TODO: Remove, once https://bugs.eclipse.org/bugs/show_bug.cgi?id=463663 is fixed.
+	 */
+	@Test
+	@Ignore
+	@Override
+	public void pathToEntityIsOfBindableTypeEntityType() {}
+
+	/**
+	 * TODO: Remove, once https://bugs.eclipse.org/bugs/show_bug.cgi?id=289141 is fixed.
+	 */
+	@Test
+	@Ignore
+	@Override
+	public void doesNotExposeAliasForTupleIfNoneDefined() {}
 }

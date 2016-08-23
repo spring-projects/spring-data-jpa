@@ -1,20 +1,23 @@
 = Spring Data JPA - Reference Documentation
-Oliver Gierke; Thomas Darimont; Christoph Strobl
+Oliver Gierke; Thomas Darimont; Christoph Strobl; Mark Paluch
 :revnumber: {version}
 :revdate: {localdate}
 :toc:
 :toc-placement!:
-:spring-data-commons-docs: https://raw.githubusercontent.com/spring-projects/spring-data-commons/master/src/main/asciidoc
+:spring-data-commons-docs: ../../../../spring-data-commons/src/main/asciidoc
 :spring-framework-docs: http://docs.spring.io/spring-framework/docs/current/spring-framework-reference/html
 
-(C) 2008-2014 The original authors.
+(C) 2008-2016 The original authors.
 
 NOTE: Copies of this document may be made for your own use and for distribution to others, provided that you do not charge any fee for such copies and further provided that each copy contains this Copyright Notice, whether distributed in print or electronically.
 
 toc::[]
 
 include::preface.adoc[]
+
 :leveloffset: +1
+include::new-features.adoc[]
+include::{spring-data-commons-docs}/dependencies.adoc[]
 include::{spring-data-commons-docs}/repositories.adoc[]
 :leveloffset: -1
 
@@ -33,6 +36,7 @@ include::jpa.adoc[]
 include::{spring-data-commons-docs}/repository-namespace-reference.adoc[]
 include::{spring-data-commons-docs}/repository-populator-namespace-reference.adoc[]
 include::{spring-data-commons-docs}/repository-query-keywords-reference.adoc[]
+include::{spring-data-commons-docs}/repository-query-return-types-reference.adoc[]
 include::faq.adoc[]
 include::glossary.adoc[]
 :leveloffset: -1

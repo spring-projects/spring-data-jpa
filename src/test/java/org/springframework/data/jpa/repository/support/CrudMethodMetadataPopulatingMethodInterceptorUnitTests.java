@@ -23,17 +23,20 @@ import java.lang.reflect.Method;
 
 import javax.persistence.LockModeType;
 
+import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.aop.framework.ProxyFactory;
+import org.springframework.aop.interceptor.ExposeInvocationInterceptor;
 import org.springframework.data.jpa.repository.Lock;
-import org.springframework.data.jpa.repository.support.CrudMethodMetadataPostProcessor.CrudMethodMetadataPopulatingMethodIntercceptor;
+import org.springframework.data.jpa.repository.support.CrudMethodMetadataPostProcessor.CrudMethodMetadataPopulatingMethodInterceptor;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 /**
- * Unit tests for {@link CrudMethodMetadataPopulatingMethodIntercceptor}.
+ * Unit tests for {@link CrudMethodMetadataPopulatingMethodInterceptor}.
  * 
  * @author Oliver Gierke
  */
@@ -48,18 +51,59 @@ public class CrudMethodMetadataPopulatingMethodInterceptorUnitTests {
 	@Test
 	public void cleansUpBoundResources() throws Throwable {
 
-		Method method = Sample.class.getMethod("someMethod");
-		when(invocation.getMethod()).thenReturn(method);
+		Method method = prepareMethodInvocation("someMethod");
 
-		CrudMethodMetadataPopulatingMethodIntercceptor interceptor = CrudMethodMetadataPopulatingMethodIntercceptor.INSTANCE;
+		CrudMethodMetadataPopulatingMethodInterceptor interceptor = CrudMethodMetadataPopulatingMethodInterceptor.INSTANCE;
 		interceptor.invoke(invocation);
 
 		assertThat(TransactionSynchronizationManager.getResource(method), is(nullValue()));
+	}
+
+	/**
+	 * @see DATAJPA-839
+	 */
+	@Test
+	public void looksUpCrudMethodMetadataForEveryInvocation() throws Throwable {
+
+		CrudMethodMetadata metadata = new CrudMethodMetadataPostProcessor().getCrudMethodMetadata();
+
+		expectLockModeType(metadata, LockModeType.OPTIMISTIC).someMethod();
+		expectLockModeType(metadata, LockModeType.PESSIMISTIC_READ).someOtherMethod();
+	}
+
+	private Method prepareMethodInvocation(String name) throws Throwable {
+
+		Method method = Sample.class.getMethod(name);
+		ExposeInvocationInterceptor.INSTANCE.invoke(invocation);
+		when(invocation.getMethod()).thenReturn(method);
+
+		return method;
+	}
+
+	private static Sample expectLockModeType(final CrudMethodMetadata metadata, final LockModeType type) {
+
+		ProxyFactory factory = new ProxyFactory(new Object());
+		factory.addInterface(Sample.class);
+		factory.addAdvice(ExposeInvocationInterceptor.INSTANCE);
+		factory.addAdvice(CrudMethodMetadataPopulatingMethodInterceptor.INSTANCE);
+		factory.addAdvice(new MethodInterceptor() {
+
+			@Override
+			public Object invoke(MethodInvocation invocation) {
+				assertThat(metadata.getLockModeType(), is(type));
+				return null;
+			}
+		});
+
+		return (Sample) factory.getProxy();
 	}
 
 	interface Sample {
 
 		@Lock(LockModeType.OPTIMISTIC)
 		void someMethod();
+
+		@Lock(LockModeType.PESSIMISTIC_READ)
+		void someOtherMethod();
 	}
 }

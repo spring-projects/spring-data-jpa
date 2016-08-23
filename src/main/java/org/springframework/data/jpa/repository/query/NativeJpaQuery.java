@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import javax.persistence.Query;
 import org.springframework.data.repository.query.EvaluationContextProvider;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.RepositoryQuery;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 
 /**
  * {@link RepositoryQuery} implementation that inspects a {@link org.springframework.data.repository.query.QueryMethod}
@@ -28,6 +29,7 @@ import org.springframework.data.repository.query.RepositoryQuery;
  * {@link Query} from it.
  * 
  * @author Thomas Darimont
+ * @author Oliver Gierke
  */
 final class NativeJpaQuery extends AbstractStringBasedJpaQuery {
 
@@ -40,9 +42,9 @@ final class NativeJpaQuery extends AbstractStringBasedJpaQuery {
 	 * @param evaluationContextProvider
 	 */
 	public NativeJpaQuery(JpaQueryMethod method, EntityManager em, String queryString,
-			EvaluationContextProvider evaluationContextProvider) {
+			EvaluationContextProvider evaluationContextProvider, SpelExpressionParser parser) {
 
-		super(method, em, queryString, evaluationContextProvider);
+		super(method, em, queryString, evaluationContextProvider, parser);
 
 		Parameters<?, ?> parameters = method.getParameters();
 		boolean hasPagingOrSortingParameter = parameters.hasPageableParameter() || parameters.hasSortParameter();
@@ -60,8 +62,9 @@ final class NativeJpaQuery extends AbstractStringBasedJpaQuery {
 	 * @see org.springframework.data.jpa.repository.query.AbstractStringBasedJpaQuery#createJpaQuery(java.lang.String)
 	 */
 	@Override
-	public Query createJpaQuery(String queryString) {
-		return getQueryMethod().isQueryForEntity() ? getEntityManager().createNativeQuery(queryString,
-				getQueryMethod().getReturnedObjectType()) : getEntityManager().createNativeQuery(queryString);
+	protected Query createJpaQuery(String queryString) {
+		return getQueryMethod().isQueryForEntity()
+				? getEntityManager().createNativeQuery(queryString, getQueryMethod().getReturnedObjectType())
+				: getEntityManager().createNativeQuery(queryString);
 	}
 }

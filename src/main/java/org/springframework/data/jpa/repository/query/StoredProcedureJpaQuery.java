@@ -22,6 +22,8 @@ import javax.persistence.StoredProcedureQuery;
 import javax.persistence.TypedQuery;
 
 import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
+import org.springframework.data.repository.query.Parameter;
+import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -36,6 +38,7 @@ import org.springframework.util.StringUtils;
 class StoredProcedureJpaQuery extends AbstractJpaQuery {
 
 	private final StoredProcedureAttributes procedureAttributes;
+	private final boolean useNamedParameters;
 
 	/**
 	 * Creates a new {@link StoredProcedureJpaQuery}.
@@ -47,6 +50,25 @@ class StoredProcedureJpaQuery extends AbstractJpaQuery {
 
 		super(method, em);
 		this.procedureAttributes = method.getProcedureAttributes();
+		this.useNamedParameters = useNamedParameters(method);
+
+	}
+
+	/**
+	 * Determine whether to used named parameters for the given query method.
+	 * 
+	 * @param method must not be {@literal null}.
+	 * @return
+	 */
+	private static boolean useNamedParameters(QueryMethod method) {
+
+		for (Parameter parameter : method.getParameters()) {
+			if (parameter.isNamedParameter()) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/*
@@ -64,10 +86,7 @@ class StoredProcedureJpaQuery extends AbstractJpaQuery {
 	 */
 	@Override
 	protected StoredProcedureQuery doCreateQuery(Object[] values) {
-
-		StoredProcedureQuery proc = createStoredProcedure();
-
-		return createBinder(values).bind(proc);
+		return createBinder(values).bind(createStoredProcedure());
 	}
 
 	/* 
@@ -93,11 +112,12 @@ class StoredProcedureJpaQuery extends AbstractJpaQuery {
 			return null;
 		}
 
-		if (StringUtils.hasText(procedureAttributes.getOutputParameterName())) {
-			return storedProcedureQuery.getOutputParameterValue(procedureAttributes.getOutputParameterName());
-		}
+		String outputParameterName = procedureAttributes.getOutputParameterName();
+		JpaParameters parameters = getQueryMethod().getParameters();
 
-		return storedProcedureQuery.getOutputParameterValue(getQueryMethod().getParameters().getNumberOfParameters() + 1);
+		return useNamedParameters && StringUtils.hasText(outputParameterName) ? //
+				storedProcedureQuery.getOutputParameterValue(outputParameterName)
+				: storedProcedureQuery.getOutputParameterValue(parameters.getNumberOfParameters() + 1);
 	}
 
 	/**
@@ -126,17 +146,18 @@ class StoredProcedureJpaQuery extends AbstractJpaQuery {
 	 */
 	private StoredProcedureQuery newAdhocStoredProcedureQuery() {
 
-		StoredProcedureQuery procedureQuery = getEntityManager().createStoredProcedureQuery(
-				procedureAttributes.getProcedureName());
-
 		JpaParameters params = getQueryMethod().getParameters();
+		String procedureName = procedureAttributes.getProcedureName();
+
+		StoredProcedureQuery procedureQuery = getEntityManager().createStoredProcedureQuery(procedureName);
+
 		for (JpaParameter param : params) {
 
 			if (!param.isBindable()) {
 				continue;
 			}
 
-			if (param.isNamedParameter()) {
+			if (useNamedParameters) {
 				procedureQuery.registerStoredProcedureParameter(param.getName(), param.getType(), ParameterMode.IN);
 			} else {
 				procedureQuery.registerStoredProcedureParameter(param.getIndex() + 1, param.getType(), ParameterMode.IN);
@@ -144,8 +165,18 @@ class StoredProcedureJpaQuery extends AbstractJpaQuery {
 		}
 
 		if (procedureAttributes.hasReturnValue()) {
-			procedureQuery.registerStoredProcedureParameter(params.getNumberOfParameters() + 1,
-					procedureAttributes.getOutputParameterType(), ParameterMode.OUT);
+
+			Class<?> outputParameterType = procedureAttributes.getOutputParameterType();
+			ParameterMode mode = ParameterMode.OUT;
+
+			if (useNamedParameters) {
+
+				String outputParameterName = procedureAttributes.getOutputParameterName();
+				procedureQuery.registerStoredProcedureParameter(outputParameterName, outputParameterType, mode);
+
+			} else {
+				procedureQuery.registerStoredProcedureParameter(params.getNumberOfParameters() + 1, outputParameterType, mode);
+			}
 		}
 
 		return procedureQuery;

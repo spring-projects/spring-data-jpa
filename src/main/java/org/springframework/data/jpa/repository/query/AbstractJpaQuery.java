@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2014 the original author or authors.
+ * Copyright 2008-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,18 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.persistence.Query;
 import javax.persistence.QueryHint;
+import javax.persistence.Tuple;
+import javax.persistence.TupleElement;
 import javax.persistence.TypedQuery;
 
+import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.CollectionExecution;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.ModifyingExecution;
@@ -28,7 +34,11 @@ import org.springframework.data.jpa.repository.query.JpaQueryExecution.PagedExec
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.ProcedureExecution;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.SingleEntityExecution;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.SlicedExecution;
+import org.springframework.data.jpa.repository.query.JpaQueryExecution.StreamExecution;
+import org.springframework.data.jpa.util.JpaMetamodel;
+import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.RepositoryQuery;
+import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.util.Assert;
 
 /**
@@ -41,11 +51,13 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 
 	private final JpaQueryMethod method;
 	private final EntityManager em;
+	private final JpaMetamodel metamodel;
 
 	/**
 	 * Creates a new {@link AbstractJpaQuery} from the given {@link JpaQueryMethod}.
 	 * 
 	 * @param method
+	 * @param resultFactory
 	 * @param em
 	 */
 	public AbstractJpaQuery(JpaQueryMethod method, EntityManager em) {
@@ -55,34 +67,38 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 
 		this.method = method;
 		this.em = em;
+		this.metamodel = new JpaMetamodel(em.getMetamodel());
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.springframework.data.repository.query.RepositoryQuery#getQueryMethod
-	 * ()
+	 * @see org.springframework.data.repository.query.RepositoryQuery#getQueryMethod()
 	 */
 	public JpaQueryMethod getQueryMethod() {
-
 		return method;
 	}
 
 	/**
-	 * @return the em
+	 * Returns the {@link EntityManager}.
+	 * 
+	 * @return will never be {@literal null}.
 	 */
 	protected EntityManager getEntityManager() {
-
 		return em;
+	}
+
+	/**
+	 * Returns the {@link JpaMetamodel}.
+	 * 
+	 * @return
+	 */
+	protected JpaMetamodel getMetamodel() {
+		return metamodel;
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.springframework.data.repository.query.RepositoryQuery#execute(java
-	 * .lang.Object[])
+	 * @see org.springframework.data.repository.query.RepositoryQuery#execute(java.lang.Object[])
 	 */
 	public Object execute(Object[] parameters) {
 		return doExecute(getExecution(), parameters);
@@ -94,12 +110,20 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 	 * @return
 	 */
 	private Object doExecute(JpaQueryExecution execution, Object[] values) {
-		return execution.execute(this, values);
+
+		Object result = execution.execute(this, values);
+
+		ParametersParameterAccessor accessor = new ParametersParameterAccessor(method.getParameters(), values);
+		ResultProcessor withDynamicProjection = method.getResultProcessor().withDynamicProjection(accessor);
+
+		return withDynamicProjection.processResult(result, TupleConverter.INSTANCE);
 	}
 
 	protected JpaQueryExecution getExecution() {
 
-		if (method.isProcedureQuery()) {
+		if (method.isStreamQuery()) {
+			return new StreamExecution();
+		} else if (method.isProcedureQuery()) {
 			return new ProcedureExecution();
 		} else if (method.isCollectionQuery()) {
 			return new CollectionExecution();
@@ -177,17 +201,18 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 		Assert.notNull(query, "Query must not be null!");
 		Assert.notNull(method, "JpaQueryMethod must not be null!");
 
-		JpaEntityGraph entityGraph = method.getEntityGraph();
+		Map<String, Object> hints = Jpa21Utils.tryGetFetchGraphHints(em, method.getEntityGraph(),
+				getQueryMethod().getEntityInformation().getJavaType());
 
-		if (entityGraph != null) {
-			Jpa21QueryCustomizer.INSTANCE.tryConfigureFetchGraph(em, query, entityGraph);
+		for (Map.Entry<String, Object> hint : hints.entrySet()) {
+			query.setHint(hint.getKey(), hint.getValue());
 		}
 
 		return query;
 	}
 
-	protected TypedQuery<Long> createCountQuery(Object[] values) {
-		TypedQuery<Long> countQuery = doCreateCountQuery(values);
+	protected Query createCountQuery(Object[] values) {
+		Query countQuery = doCreateCountQuery(values);
 		return method.applyHintsToCountQuery() ? applyHints(countQuery, method) : countQuery;
 	}
 
@@ -205,5 +230,48 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 	 * @param values must not be {@literal null}.
 	 * @return
 	 */
-	protected abstract TypedQuery<Long> doCreateCountQuery(Object[] values);
+	protected abstract Query doCreateCountQuery(Object[] values);
+
+	private static enum TupleConverter implements Converter<Object, Object> {
+
+		INSTANCE;
+
+		/* 
+		 * (non-Javadoc)
+		 * @see org.springframework.core.convert.converter.Converter#convert(java.lang.Object)
+		 */
+		@Override
+		public Object convert(Object source) {
+
+			if (!(source instanceof Tuple)) {
+				return source;
+			}
+
+			Tuple tuple = (Tuple) source;
+			Map<String, Object> result = new HashMap<String, Object>();
+
+			for (TupleElement<?> element : tuple.getElements()) {
+
+				String alias = element.getAlias();
+
+				if (alias == null || isIndexAsString(alias)) {
+					throw new IllegalStateException("No aliases found in result tuple! Make sure your query defines aliases!");
+				}
+
+				result.put(element.getAlias(), tuple.get(element));
+			}
+
+			return result;
+		}
+
+		private static boolean isIndexAsString(String source) {
+
+			try {
+				Integer.parseInt(source);
+				return true;
+			} catch (NumberFormatException o_O) {
+				return false;
+			}
+		}
+	}
 }

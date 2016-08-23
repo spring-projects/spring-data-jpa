@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 the original author or authors.
+ * Copyright 2011-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package org.springframework.data.jpa.repository.support;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
+import static org.springframework.data.jpa.repository.support.JpaEntityInformationSupport.*;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
@@ -38,19 +39,25 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.data.jpa.domain.AbstractPersistable;
+import org.springframework.data.jpa.domain.sample.ConcreteType1;
+import org.springframework.data.jpa.domain.sample.Item;
+import org.springframework.data.jpa.domain.sample.ItemId;
+import org.springframework.data.jpa.domain.sample.ItemSite;
+import org.springframework.data.jpa.domain.sample.ItemSiteId;
 import org.springframework.data.jpa.domain.sample.PersistableWithIdClass;
 import org.springframework.data.jpa.domain.sample.PersistableWithIdClassPK;
 import org.springframework.data.jpa.domain.sample.PrimitiveVersionProperty;
 import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.domain.sample.SampleWithIdClass;
-import org.springframework.data.jpa.domain.sample.SampleWithIdClass.SampleWithIdClassPK;
 import org.springframework.data.jpa.domain.sample.SampleWithPrimitiveId;
 import org.springframework.data.jpa.domain.sample.SampleWithTimestampVersion;
+import org.springframework.data.jpa.domain.sample.Site;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.domain.sample.VersionedUser;
 import org.springframework.data.repository.core.EntityInformation;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * Integration tests for {@link JpaMetamodelEntityInformation}.
@@ -68,7 +75,7 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 	@Test
 	public void detectsIdTypeForEntity() {
 
-		JpaEntityInformation<User, ?> information = JpaEntityInformationSupport.getMetadata(User.class, em);
+		JpaEntityInformation<User, ?> information = getEntityInformation(User.class, em);
 		assertThat(information.getIdType(), is(typeCompatibleWith(Integer.class)));
 	}
 
@@ -83,7 +90,7 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 	@Ignore
 	public void detectsIdTypeForMappedSuperclass() {
 
-		JpaEntityInformation<?, ?> information = JpaEntityInformationSupport.getMetadata(AbstractPersistable.class, em);
+		JpaEntityInformation<?, ?> information = getEntityInformation(AbstractPersistable.class, em);
 		assertEquals(Serializable.class, information.getIdType());
 	}
 
@@ -93,8 +100,7 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 	@Test
 	public void detectsIdClass() {
 
-		EntityInformation<PersistableWithIdClass, ?> information = JpaEntityInformationSupport.getMetadata(
-				PersistableWithIdClass.class, em);
+		EntityInformation<PersistableWithIdClass, ?> information = getEntityInformation(PersistableWithIdClass.class, em);
 		assertThat(information.getIdType(), is(typeCompatibleWith(PersistableWithIdClassPK.class)));
 	}
 
@@ -102,16 +108,67 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 	 * @see DATAJPA-50
 	 */
 	@Test
-	public void returnsIdInstanceCorrectly() {
+	public void returnsIdOfPersistableInstanceCorrectly() {
 
 		PersistableWithIdClass entity = new PersistableWithIdClass(2L, 4L);
 
-		JpaEntityInformation<PersistableWithIdClass, ?> information = JpaEntityInformationSupport.getMetadata(
-				PersistableWithIdClass.class, em);
+		JpaEntityInformation<PersistableWithIdClass, ?> information = getEntityInformation(PersistableWithIdClass.class,
+				em);
 		Object id = information.getId(entity);
 
 		assertThat(id, is(instanceOf(PersistableWithIdClassPK.class)));
 		assertThat(id, is((Object) new PersistableWithIdClassPK(2L, 4L)));
+	}
+
+	/**
+	 * @see DATAJPA-413
+	 */
+	@Test
+	public void returnsIdOfEntityWithIdClassCorrectly() {
+
+		Item item = new Item(2, 1);
+
+		JpaEntityInformation<Item, ?> information = getEntityInformation(Item.class, em);
+		Object id = information.getId(item);
+
+		assertThat(id, is(instanceOf(ItemId.class)));
+		assertThat(id, is((Object) new ItemId(2, 1)));
+	}
+
+	/**
+	 * @see DATAJPA-413
+	 */
+	@Test
+	public void returnsDerivedIdOfEntityWithIdClassCorrectly() {
+
+		Item item = new Item(1, 2);
+		Site site = new Site(3);
+
+		ItemSite itemSite = new ItemSite(item, site);
+
+		JpaEntityInformation<ItemSite, ?> information = getEntityInformation(ItemSite.class, em);
+		Object id = information.getId(itemSite);
+
+		assertThat(id, is(instanceOf(ItemSiteId.class)));
+		assertThat(id, is((Object) new ItemSiteId(new ItemId(1, 2), 3)));
+	}
+
+	/**
+	 * @see DATAJPA-413
+	 */
+	@Test
+	public void returnsPartialEmptyDerivedIdOfEntityWithIdClassCorrectly() {
+
+		Item item = new Item(1, null);
+		Site site = new Site(3);
+
+		ItemSite itemSite = new ItemSite(item, site);
+
+		JpaEntityInformation<ItemSite, ?> information = getEntityInformation(ItemSite.class, em);
+		Object id = information.getId(itemSite);
+
+		assertThat(id, is(instanceOf(ItemSiteId.class)));
+		assertThat(id, is((Object) new ItemSiteId(new ItemId(1, null), 3)));
 	}
 
 	/**
@@ -227,8 +284,7 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 	@Test
 	public void considersEntityWithUnsetCompundIdNew() {
 
-		EntityInformation<SampleWithIdClass, SampleWithIdClassPK> information = new JpaMetamodelEntityInformation<SampleWithIdClass, SampleWithIdClassPK>(
-				SampleWithIdClass.class, em.getMetamodel());
+		EntityInformation<SampleWithIdClass, ?> information = getEntityInformation(SampleWithIdClass.class, em);
 
 		assertThat(information.isNew(new SampleWithIdClass()), is(true));
 	}
@@ -239,7 +295,8 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 	@Test
 	public void considersEntityWithSetTimestampVersionNotNew() {
 
-		EntityInformation<SampleWithTimestampVersion, Long> information = getEntityInformation(SampleWithTimestampVersion.class);
+		EntityInformation<SampleWithTimestampVersion, ?> information = getEntityInformation(
+				SampleWithTimestampVersion.class, em);
 
 		SampleWithTimestampVersion entity = new SampleWithTimestampVersion();
 		entity.version = new Timestamp(new Date().getTime());
@@ -253,7 +310,7 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 	@Test
 	public void considersEntityWithNonPrimitiveNonNullIdTypeNotNew() {
 
-		EntityInformation<User, Long> information = getEntityInformation(User.class);
+		EntityInformation<User, ?> information = getEntityInformation(User.class, em);
 
 		User user = new User();
 		assertThat(information.isNew(user), is(true));
@@ -262,8 +319,17 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 		assertThat(information.isNew(user), is(false));
 	}
 
-	private <T, ID extends Serializable> EntityInformation<T, ID> getEntityInformation(Class<T> domainType) {
-		return new JpaMetamodelEntityInformation<T, ID>(domainType, em.getMetamodel());
+	/**
+	 * @see DATAJPA-820 - Ignored as Hibernate < 4.3 doesn't expose the version property properly if it's declared on the
+	 *      superclass.
+	 */
+	@Test
+	@Ignore
+	public void detectsVersionPropertyOnMappedSuperClass() {
+
+		EntityInformation<ConcreteType1, ?> information = getEntityInformation(ConcreteType1.class, em);
+
+		assertThat(ReflectionTestUtils.getField(information, "versionAttribute"), is(notNullValue()));
 	}
 
 	protected String getMetadadataPersitenceUnitName() {

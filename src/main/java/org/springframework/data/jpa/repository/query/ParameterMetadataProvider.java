@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import java.util.List;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.ParameterExpression;
 
+import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
@@ -39,36 +40,64 @@ import org.springframework.util.ObjectUtils;
  * Helper class to allow easy creation of {@link ParameterMetadata}s.
  * 
  * @author Oliver Gierke
+ * @author Thomas Darimont
  */
 class ParameterMetadataProvider {
 
 	private final CriteriaBuilder builder;
 	private final Iterator<? extends Parameter> parameters;
 	private final List<ParameterMetadata<?>> expressions;
-	private Iterator<Object> accessor;
+	private final Iterator<Object> bindableParameterValues;
+	private final PersistenceProvider persistenceProvider;
 
 	/**
 	 * Creates a new {@link ParameterMetadataProvider} from the given {@link CriteriaBuilder} and
-	 * {@link ParametersParameterAccessor}.
+	 * {@link ParametersParameterAccessor} with support for parameter value customizations via {@link PersistenceProvider}
+	 * .
+	 * 
+	 * @param builder must not be {@literal null}.
+	 * @param accessor must not be {@literal null}.
+	 * @param provider must not be {@literal null}.
+	 */
+	public ParameterMetadataProvider(CriteriaBuilder builder, ParametersParameterAccessor accessor,
+			PersistenceProvider provider) {
+		this(builder, accessor.iterator(), accessor.getParameters(), provider);
+	}
+
+	/**
+	 * Creates a new {@link ParameterMetadataProvider} from the given {@link CriteriaBuilder} and {@link Parameters} with
+	 * support for parameter value customizations via {@link PersistenceProvider}.
 	 * 
 	 * @param builder must not be {@literal null}.
 	 * @param parameters must not be {@literal null}.
+	 * @param provider must not be {@literal null}.
 	 */
-	public ParameterMetadataProvider(CriteriaBuilder builder, ParametersParameterAccessor accessor) {
-
-		this(builder, accessor.getParameters());
-		Assert.notNull(accessor);
-		this.accessor = accessor.iterator();
+	public ParameterMetadataProvider(CriteriaBuilder builder, Parameters<?, ?> parameters, PersistenceProvider provider) {
+		this(builder, null, parameters, provider);
 	}
 
-	public ParameterMetadataProvider(CriteriaBuilder builder, Parameters<?, ?> parameters) {
+	/**
+	 * Creates a new {@link ParameterMetadataProvider} from the given {@link CriteriaBuilder} an {@link Iterable} of all
+	 * bindable parameter values, and {@link Parameters} with support for parameter value customizations via
+	 * {@link PersistenceProvider}.
+	 * 
+	 * @param builder must not be {@literal null}.
+	 * @param bindableParameterValues may be {@literal null}.
+	 * @param parameters must not be {@literal null}.
+	 * @param provider must not be {@literal null}.
+	 */
+	private ParameterMetadataProvider(CriteriaBuilder builder, Iterator<Object> bindableParameterValues,
+			Parameters<?, ?> parameters, PersistenceProvider provider) {
 
-		Assert.notNull(builder);
+		Assert.notNull(builder, "CriteriaBuilder must not be null!");
+		Assert.notNull(parameters, "Parameters must not be null!");
+		Assert.notNull(provider, "PesistenceProvider must not be null!");
 
 		this.builder = builder;
 		this.parameters = parameters.getBindableParameters().iterator();
 		this.expressions = new ArrayList<ParameterMetadata<?>>();
-		this.accessor = null;
+		this.bindableParameterValues = bindableParameterValues;
+		this.persistenceProvider = provider;
 	}
 
 	/**
@@ -90,7 +119,7 @@ class ParameterMetadataProvider {
 	public <T> ParameterMetadata<T> next(Part part) {
 
 		Parameter parameter = parameters.next();
-		return (ParameterMetadata<T>) next(part, parameter.getType(), parameter.getName());
+		return (ParameterMetadata<T>) next(part, parameter.getType(), parameter);
 	}
 
 	/**
@@ -106,7 +135,7 @@ class ParameterMetadataProvider {
 
 		Parameter parameter = parameters.next();
 		Class<?> typeToUse = ClassUtils.isAssignable(type, parameter.getType()) ? parameter.getType() : type;
-		return (ParameterMetadata<? extends T>) next(part, typeToUse, null);
+		return (ParameterMetadata<? extends T>) next(part, typeToUse, parameter);
 	}
 
 	/**
@@ -118,7 +147,7 @@ class ParameterMetadataProvider {
 	 * @param name
 	 * @return
 	 */
-	private <T> ParameterMetadata<T> next(Part part, Class<T> type, String name) {
+	private <T> ParameterMetadata<T> next(Part part, Class<T> type, Parameter parameter) {
 
 		Assert.notNull(type);
 
@@ -128,25 +157,41 @@ class ParameterMetadataProvider {
 		@SuppressWarnings("unchecked")
 		Class<T> reifiedType = Expression.class.equals(type) ? (Class<T>) Object.class : type;
 
-		ParameterExpression<T> expression = name == null ? builder.parameter(reifiedType) : builder.parameter(reifiedType,
-				name);
+		ParameterExpression<T> expression = parameter.isExplicitlyNamed()
+				? builder.parameter(reifiedType, parameter.getName()) : builder.parameter(reifiedType);
 		ParameterMetadata<T> value = new ParameterMetadata<T>(expression, part.getType(),
-				accessor == null ? ParameterMetadata.PLACEHOLDER : accessor.next());
+				bindableParameterValues == null ? ParameterMetadata.PLACEHOLDER : bindableParameterValues.next(),
+				this.persistenceProvider);
 		expressions.add(value);
 
 		return value;
 	}
 
+	/**
+	 * @author Oliver Gierke
+	 * @author Thomas Darimont
+	 * @param <T>
+	 */
 	static class ParameterMetadata<T> {
 
 		static final Object PLACEHOLDER = new Object();
 
-		private final ParameterExpression<T> expression;
 		private final Type type;
+		private final ParameterExpression<T> expression;
+		private final PersistenceProvider persistenceProvider;
 
-		public ParameterMetadata(ParameterExpression<T> expression, Type type, Object value) {
+		/**
+		 * Creates a new {@link ParameterMetadata}.
+		 * 
+		 * @param expression
+		 * @param type
+		 * @param value
+		 * @param provider
+		 */
+		public ParameterMetadata(ParameterExpression<T> expression, Type type, Object value, PersistenceProvider provider) {
 
 			this.expression = expression;
+			this.persistenceProvider = provider;
 			this.type = value == null && Type.SIMPLE_PROPERTY.equals(type) ? Type.IS_NULL : type;
 		}
 
@@ -171,27 +216,36 @@ class ParameterMetadataProvider {
 		/**
 		 * Prepares the object before it's actually bound to the {@link javax.persistence.Query;}.
 		 * 
-		 * @param parameter must not be {@literal null}.
+		 * @param value must not be {@literal null}.
 		 * @return
 		 */
-		public Object prepare(Object parameter) {
+		public Object prepare(Object value) {
 
-			Assert.notNull(parameter);
+			Assert.notNull(value);
 
-			switch (type) {
-				case STARTING_WITH:
-					return String.format("%s%%", parameter.toString());
-				case ENDING_WITH:
-					return String.format("%%%s", parameter.toString());
-				case CONTAINING:
-					return String.format("%%%s%%", parameter.toString());
-				default:
-					return Collection.class.equals(expression.getJavaType()) ? toCollection(parameter) : parameter;
+			Class<? extends T> expressionType = expression.getJavaType();
+
+			if (String.class.equals(expressionType)) {
+
+				switch (type) {
+					case STARTING_WITH:
+						return String.format("%s%%", value.toString());
+					case ENDING_WITH:
+						return String.format("%%%s", value.toString());
+					case CONTAINING:
+					case NOT_CONTAINING:
+						return String.format("%%%s%%", value.toString());
+					default:
+						return value;
+				}
 			}
+
+			return Collection.class.isAssignableFrom(expressionType)
+					? persistenceProvider.potentiallyConvertEmptyCollection(toCollection(value)) : value;
 		}
 
 		/**
-		 * Return sthe given argument as {@link Collection} which means it will return it as is if it's a
+		 * Returns the given argument as {@link Collection} which means it will return it as is if it's a
 		 * {@link Collections}, turn an array into an {@link ArrayList} or simply wrap any other value into a single element
 		 * {@link Collections}.
 		 * 

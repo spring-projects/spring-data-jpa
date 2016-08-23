@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.jpa.repository.utils;
+package org.springframework.data.jpa.provider;
 
 import javax.persistence.EntityManager;
+import javax.persistence.metamodel.Metamodel;
 
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -25,14 +26,12 @@ import org.springframework.util.ClassUtils;
  * 
  * @author Oliver Gierke
  */
-public abstract class JpaClassUtils {
+abstract class JpaClassUtils {
 
 	/**
 	 * Private constructor to prevent instantiation.
 	 */
-	private JpaClassUtils() {
-
-	}
+	private JpaClassUtils() {}
 
 	/**
 	 * Returns whether the given {@link EntityManager} is of the given type.
@@ -42,18 +41,20 @@ public abstract class JpaClassUtils {
 	 * @return
 	 */
 	public static boolean isEntityManagerOfType(EntityManager em, String type) {
+		return isOfType(em, type, em.getDelegate().getClass().getClassLoader());
+	}
 
-		Assert.notNull(em, "EntityManager must not be null!");
-		Assert.hasText(type, "EntityManager type must not be null!");
+	public static boolean isMetamodelOfType(Metamodel metamodel, String type) {
+		return isOfType(metamodel, type, metamodel.getClass().getClassLoader());
+	}
+
+	private static boolean isOfType(Object source, String typeName, ClassLoader classLoader) {
+
+		Assert.notNull(source, "Source instance must not be null!");
+		Assert.hasText(typeName, "Target type name must not be null or empty!");
 
 		try {
-
-			ClassLoader loader = em.getDelegate().getClass().getClassLoader();
-			Class<?> emType = ClassUtils.forName(type, loader);
-
-			emType.cast(em);
-			return true;
-
+			return ClassUtils.forName(typeName, classLoader).isInstance(source);
 		} catch (Exception e) {
 			return false;
 		}

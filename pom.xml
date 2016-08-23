@@ -5,7 +5,7 @@
 
 	<groupId>org.springframework.data</groupId>
 	<artifactId>spring-data-jpa</artifactId>
-	<version>1.8.0.BUILD-SNAPSHOT</version>
+	<version>1.11.0.BUILD-SNAPSHOT</version>
 
 	<name>Spring Data JPA</name>
 	<description>Spring Data module for JPA repositories.</description>
@@ -14,20 +14,20 @@
 	<parent>
 		<groupId>org.springframework.data.build</groupId>
 		<artifactId>spring-data-parent</artifactId>
-		<version>1.6.0.BUILD-SNAPSHOT</version>
-		<relativePath>../spring-data-build/parent/pom.xml</relativePath>
+		<version>1.9.0.BUILD-SNAPSHOT</version>
 	</parent>
 
 	<properties>
 
 		<dist.key>DATAJPA</dist.key>
 
-		<eclipselink>2.5.1</eclipselink>
+		<eclipselink>2.6.2</eclipselink>
 		<hibernate>3.6.10.Final</hibernate>
+		<hibernate.artifact>hibernate-entitymanager</hibernate.artifact>
 		<hsqldb1>1.8.0.10</hsqldb1>
 		<jpa>2.0.0</jpa>
-		<openjpa>2.3.0</openjpa>
-		<springdata.commons>1.10.0.BUILD-SNAPSHOT</springdata.commons>
+		<openjpa>2.4.1</openjpa>
+		<springdata.commons>1.13.0.BUILD-SNAPSHOT</springdata.commons>
 
 		<sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
 
@@ -43,14 +43,130 @@
 		<profile>
 			<id>hibernate-42</id>
 			<properties>
-				<hibernate>4.2.11.Final</hibernate>
+				<hibernate>4.2.21.Final</hibernate>
 			</properties>
+		</profile>
+		<profile>
+			<id>hibernate-42-next</id>
+			<properties>
+				<hibernate>4.2.24-SNAPSHOT</hibernate>
+			</properties>
+			<repositories>
+				<repository>
+					<id>jboss</id>
+					<url>https://repository.jboss.org/nexus/content/repositories/public</url>
+				</repository>
+			</repositories>
 		</profile>
 		<profile>
 			<id>hibernate-43</id>
 			<properties>
-				<hibernate>4.3.4.Final</hibernate>
+				<hibernate>4.3.11.Final</hibernate>
 			</properties>
+		</profile>
+		<profile>
+			<id>hibernate-43-next</id>
+			<properties>
+				<hibernate>4.3.12-SNAPSHOT</hibernate>
+			</properties>
+			<repositories>
+				<repository>
+					<id>jboss</id>
+					<url>https://repository.jboss.org/nexus/content/repositories/public</url>
+				</repository>
+			</repositories>
+		</profile>
+		<profile>
+			<id>hibernate-5</id>
+			<properties>
+				<hibernate>5.0.9.Final</hibernate>
+			</properties>
+		</profile>
+		<profile>
+			<id>hibernate-5-next</id>
+			<properties>
+				<hibernate>5.0.10-SNAPSHOTS</hibernate>
+			</properties>
+			<repositories>
+				<repository>
+					<id>jboss</id>
+					<url>https://repository.jboss.org/nexus/content/repositories/public</url>
+				</repository>
+			</repositories>
+		</profile>
+		<profile>
+			<id>hibernate-51</id>
+			<properties>
+				<hibernate>5.1.0.Final</hibernate>
+			</properties>
+		</profile>
+		<profile>
+			<id>hibernate-51-next</id>
+			<properties>
+				<hibernate>5.1.1-SNAPSHOT</hibernate>
+			</properties>
+			<repositories>
+				<repository>
+					<id>jboss</id>
+					<url>https://repository.jboss.org/nexus/content/repositories/public</url>
+				</repository>
+			</repositories>
+		</profile>
+		<profile>
+			<id>hibernate-52</id>
+			<properties>
+				<hibernate>5.2.2.Final</hibernate>
+				<hibernate.artifact>hibernate-core</hibernate.artifact>
+			</properties>
+		</profile>
+		<profile>
+			<id>hibernate-52-next</id>
+			<properties>
+				<hibernate>5.2.3-SNAPSHOT</hibernate>
+				<hibernate.artifact>hibernate-core</hibernate.artifact>
+			</properties>
+			<repositories>
+				<repository>
+					<id>jboss</id>
+					<url>https://repository.jboss.org/nexus/content/repositories/public</url>
+				</repository>
+			</repositories>
+		</profile>
+		<profile>
+			<id>eclipselink-next</id>
+			<properties>
+				<eclipselink>2.6.3-SNAPSHOT</eclipselink>
+			</properties>
+			<repositories>
+				<repository>
+					<id>oss-sonatype</id>
+					<url>https://oss.sonatype.org/content/groups/staging</url>
+				</repository>
+			</repositories>
+		</profile>
+		<profile>
+			<id>eclipselink-27-next</id>
+			<properties>
+				<eclipselink>2.7.0-SNAPSHOT</eclipselink>
+			</properties>
+			<repositories>
+				<repository>
+					<id>oss-sonatype</id>
+					<url>https://oss.sonatype.org/content/groups/staging</url>
+				</repository>
+			</repositories>
+		</profile>
+		<profile>
+			<id>release</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.jfrog.buildinfo</groupId>
+						<artifactId>artifactory-maven-plugin</artifactId>
+						<inherited>false</inherited>
+					</plugin>
+				</plugins>
+			</build>
 		</profile>
 	</profiles>
 
@@ -137,6 +253,13 @@
 			<optional>true</optional>
 		</dependency>
 
+		<dependency>
+			<groupId>org.threeten</groupId>
+			<artifactId>threetenbp</artifactId>
+			<version>${threetenbp}</version>
+			<optional>true</optional>
+		</dependency>
+
 		<!-- Persistence providers -->
 
 		<dependency>
@@ -148,7 +271,7 @@
 
 		<dependency>
 			<groupId>org.hibernate</groupId>
-			<artifactId>hibernate-entitymanager</artifactId>
+			<artifactId>${hibernate.artifact}</artifactId>
 			<version>${hibernate}</version>
 			<optional>true</optional>
 		</dependency>
@@ -174,14 +297,14 @@
 
 		<!-- QueryDsl -->
 		<dependency>
-			<groupId>com.mysema.querydsl</groupId>
+			<groupId>com.querydsl</groupId>
 			<artifactId>querydsl-apt</artifactId>
 			<version>${querydsl}</version>
 			<scope>provided</scope>
 		</dependency>
 
 		<dependency>
-			<groupId>com.mysema.querydsl</groupId>
+			<groupId>com.querydsl</groupId>
 			<artifactId>querydsl-jpa</artifactId>
 			<version>${querydsl}</version>
 			<optional>true</optional>
@@ -228,6 +351,28 @@
 
 	<build>
 		<plugins>
+
+			<!--
+			     Jacoco plugin redeclared to make sure it's downloaded and
+			     the agents can be explicitly added to the test executions.
+			-->
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>${jacoco}</version>
+				<configuration>
+					<destFile>${jacoco.destfile}</destFile>
+				</configuration>
+				<executions>
+					<execution>
+						<id>jacoco-initialize</id>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
@@ -252,11 +397,6 @@
 						<scope>runtime</scope>
 					</dependency>
 				</dependencies>
-				<configuration>
-					<excludes>
-						<exclude>**/infrastructure/*</exclude>
-					</excludes>
-				</configuration>
 				<executions>
 					<execution>
 						<id>default-test</id>
@@ -293,9 +433,8 @@
 								<exclude>**/*UnitTests.java</exclude>
 								<exclude>**/OpenJpa*</exclude>
 								<exclude>**/EclipseLink*</exclude>
-								<exclude>**/infrastructure/*</exclude>
 							</excludes>
-							<argLine>-javaagent:${settings.localRepository}/org/springframework/spring-instrument/${spring}/spring-instrument-${spring}.jar</argLine>
+							<argLine>-javaagent:${settings.localRepository}/org/springframework/spring-instrument/${spring}/spring-instrument-${spring}.jar -javaagent:${settings.localRepository}/org/jacoco/org.jacoco.agent/${jacoco}/org.jacoco.agent-${jacoco}-runtime.jar=destfile=${jacoco.destfile}</argLine>
 						</configuration>
 					</execution>
 					<execution>
@@ -308,7 +447,7 @@
 							<includes>
 								<include>**/EclipseLink*Tests.java</include>
 							</includes>
-							<argLine>-javaagent:${settings.localRepository}/org/springframework/spring-instrument/${spring}/spring-instrument-${spring}.jar</argLine>
+							<argLine>-javaagent:${settings.localRepository}/org/jacoco/org.jacoco.agent/${jacoco}/org.jacoco.agent-${jacoco}-runtime.jar=destfile=${jacoco.destfile} -javaagent:${settings.localRepository}/org/eclipse/persistence/org.eclipse.persistence.jpa/${eclipselink}/org.eclipse.persistence.jpa-${eclipselink}.jar -javaagent:${settings.localRepository}/org/springframework/spring-instrument/${spring}/spring-instrument-${spring}.jar</argLine>
 						</configuration>
 					</execution>
 					<execution>
@@ -321,7 +460,7 @@
 							<includes>
 								<include>**/OpenJpa*Tests.java</include>
 							</includes>
-							<argLine>-javaagent:${settings.localRepository}/org/apache/openjpa/openjpa/${openjpa}/openjpa-${openjpa}.jar</argLine>
+							<argLine>-javaagent:${settings.localRepository}/org/jacoco/org.jacoco.agent/${jacoco}/org.jacoco.agent-${jacoco}-runtime.jar=destfile=${jacoco.destfile} -javaagent:${settings.localRepository}/org/apache/openjpa/openjpa/${openjpa}/openjpa-${openjpa}.jar</argLine>
 							<classpathDependencyExcludes>
 								<classpathDepencyExclude>org.hsqldb:hsqldb</classpathDepencyExclude>
 							</classpathDependencyExcludes>
@@ -336,7 +475,7 @@
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>aspectj-maven-plugin</artifactId>
-				<version>1.6</version>
+				<version>1.8</version>
 				<dependencies>
 					<dependency>
 						<groupId>org.aspectj</groupId>
@@ -358,6 +497,15 @@
 				</executions>
 				<configuration>
 					<verbose>true</verbose>
+					<!--
+						To workaround:
+
+						- https://issues.apache.org/jira/browse/MCOMPILER-205
+						- https://issues.apache.org/jira/browse/MCOMPILER-209
+						- https://github.com/mojohaus/aspectj-maven-plugin/issues/15
+
+					-->
+					<forceAjcCompile>true</forceAjcCompile>
 					<aspectLibraries>
 						<aspectLibrary>
 							<groupId>org.springframework</groupId>
@@ -381,7 +529,7 @@
 				<configuration>
 					<logOnlyOnError>true</logOnlyOnError>
 					<processors>
-						<processor>com.mysema.query.apt.jpa.JPAAnnotationProcessor</processor>
+						<processor>com.querydsl.apt.jpa.JPAAnnotationProcessor</processor>
 						<processor>org.hibernate.jpamodelgen.JPAMetaModelEntityProcessor</processor>
 					</processors>
 				</configuration>
@@ -443,14 +591,14 @@
 	<repositories>
 		<repository>
 			<id>spring-libs-snapshot</id>
-			<url>http://repo.spring.io/libs-snapshot</url>
+			<url>https://repo.spring.io/libs-snapshot</url>
 		</repository>
 	</repositories>
 
 	<pluginRepositories>
 		<pluginRepository>
 			<id>spring-plugins-release</id>
-			<url>http://repo.spring.io/plugins-release</url>
+			<url>https://repo.spring.io/plugins-release</url>
 		</pluginRepository>
 	</pluginRepositories>
 
