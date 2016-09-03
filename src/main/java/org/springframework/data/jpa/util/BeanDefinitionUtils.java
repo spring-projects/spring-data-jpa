@@ -127,6 +127,8 @@ public class BeanDefinitionUtils {
 			if (!EntityManagerFactory.class.getName().equals(definition.getPropertyValues().get("expectedType"))) {
 				return;
 			}
+		} else if (!EntityManagerFactory.class.equals(beanFactory.getType(name))) {
+			return;
 		}
 
 		definitions.add(new EntityManagerFactoryBeanDefinition(name, beanFactory));

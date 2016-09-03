@@ -17,12 +17,15 @@ package org.springframework.data.jpa.repository.support;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 import java.util.Arrays;
 import java.util.HashSet;
 
+import javax.naming.NamingException;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.sql.DataSource;
 
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -44,6 +47,8 @@ import org.springframework.data.jpa.repository.JpaContext;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
+import org.springframework.jndi.JndiObjectFactoryBean;
+import org.springframework.mock.jndi.ExpectedLookupTemplate;
 import org.springframework.mock.jndi.SimpleNamingContextBuilder;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.stereotype.Component;
@@ -113,6 +118,7 @@ public class DefaultJpaContextIntegrationTests {
 
 	/**
 	 * @see DATAJPA-813
+	 * @see DATAJPA-956
 	 */
 	@Test
 	public void bootstrapsDefaultJpaContextInSpringContainer() {
@@ -163,13 +169,28 @@ public class DefaultJpaContextIntegrationTests {
 	}
 
 	@EnableJpaRepositories
-	@ComponentScan(includeFilters = @Filter(type = FilterType.ASSIGNABLE_TYPE, value = ApplicationComponent.class) ,
+	@ComponentScan(includeFilters = @Filter(type = FilterType.ASSIGNABLE_TYPE, value = ApplicationComponent.class),
 			useDefaultFilters = false)
 	static class Config {
 
 		@Bean
 		public LocalContainerEntityManagerFactoryBean entityManagerFactory() {
 			return createEntityManagerFactoryBean("spring-data-jpa");
+		}
+
+		// A non-EntityManagerFactory JNDI object to make sure the detection doesn't include it
+		// @see DATAJPA-956
+
+		@Bean
+		public JndiObjectFactoryBean jndiObject() throws NamingException {
+
+			JndiObjectFactoryBean bean = new JndiObjectFactoryBean();
+
+			bean.setJndiName("some/DataSource");
+			bean.setJndiTemplate(new ExpectedLookupTemplate("some/DataSource", mock(DataSource.class)));
+			bean.setExpectedType(DataSource.class);
+
+			return bean;
 		}
 	}
 
