@@ -352,6 +352,15 @@ public class QueryUtilsUnitTests {
 		assertThat(hasConstructorExpression("select new foo.bar.FooBar(\na.id) from DtoA a "), is(true));
 	}
 
+	/**
+	 * @see DATAJPA-960
+	 */
+	@Test
+	public void doesNotQualifySortIfNoAliasDetected() {
+		assertThat(applySorting("from mytable where ?1 is null", new Sort("firstname")),
+				endsWith("order by firstname asc"));
+	}
+
 	private static void assertCountQuery(String originalQuery, String countQuery) {
 		assertThat(createCountQueryFor(originalQuery), is(countQuery));
 	}
