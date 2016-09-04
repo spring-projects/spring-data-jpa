@@ -107,7 +107,7 @@ public abstract class QueryUtils {
 		builder.append(IDENTIFIER_GROUP); // Entity name, can be qualified (any
 		builder.append("(?:\\sas)*"); // exclude possible "as" keyword
 		builder.append("(?:\\s)+"); // at least one space separating
-		builder.append("(\\w*)"); // the actual alias
+		builder.append("(?!(?:where))(\\w*)"); // the actual alias
 
 		ALIAS_MATCH = compile(builder.toString(), CASE_INSENSITIVE);
 
@@ -182,8 +182,7 @@ public abstract class QueryUtils {
 	 * @return
 	 */
 	public static String applySorting(String query, Sort sort) {
-
-		return applySorting(query, sort, DEFAULT_ALIAS);
+		return applySorting(query, sort, detectAlias(query));
 	}
 
 	/**
@@ -242,7 +241,8 @@ public abstract class QueryUtils {
 			}
 		}
 
-		String reference = qualifyReference ? String.format("%s.%s", alias, property) : property;
+		String reference = qualifyReference && StringUtils.hasText(alias) ? String.format("%s.%s", alias, property)
+				: property;
 		String wrapped = order.isIgnoreCase() ? String.format("lower(%s)", reference) : reference;
 
 		return String.format("%s %s", wrapped, toJpaDirection(order));

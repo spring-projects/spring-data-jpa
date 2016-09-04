@@ -323,6 +323,15 @@ public class QueryUtilsUnitTests {
 		assertThat(applySorting(query, sort, "c"), endsWith("order by c.dPropertyStartingWithJoinAlias asc"));
 	}
 
+	/**
+	 * @see DATAJPA-960
+	 */
+	@Test
+	public void doesNotQualifySortIfNoAliasDetected() {
+		assertThat(applySorting("from mytable where ?1 is null", new Sort("firstname")),
+				endsWith("order by firstname asc"));
+	}
+
 	private void assertCountQuery(String originalQuery, String countQuery) {
 		assertThat(createCountQueryFor(originalQuery), is(countQuery));
 	}
