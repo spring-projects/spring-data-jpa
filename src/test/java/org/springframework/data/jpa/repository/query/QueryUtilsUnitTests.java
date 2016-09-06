@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2015 the original author or authors.
+ * Copyright 2008-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,9 @@ import java.util.Set;
 
 import org.hamcrest.Matcher;
 import org.junit.Test;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.JpaSort;
 
 /**
  * Unit test for {@link QueryUtils}.
@@ -31,6 +33,7 @@ import org.springframework.data.domain.Sort;
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Komi Innocent
+ * @author Christoph Strobl
  */
 public class QueryUtilsUnitTests {
 
@@ -230,7 +233,7 @@ public class QueryUtilsUnitTests {
 	/**
 	 * @see DATAJPA-148
 	 */
-	@Test
+	@Test(expected = InvalidDataAccessApiUsageException.class)
 	public void doesNotPrefixSortsIfFunction() {
 
 		Sort sort = new Sort("sum(foo)");
@@ -359,6 +362,134 @@ public class QueryUtilsUnitTests {
 	public void doesNotQualifySortIfNoAliasDetected() {
 		assertThat(applySorting("from mytable where ?1 is null", new Sort("firstname")),
 				endsWith("order by firstname asc"));
+	}
+
+	/**
+	 * @see DATAJPA-???
+	 */
+	@Test(expected = InvalidDataAccessApiUsageException.class)
+	public void doesNotAllowWhitespaceInSort() {
+
+		Sort sort = new Sort("case when foo then bar");
+		applySorting("select p from Person p", sort, "p");
+	}
+
+	/**
+	 * @see DATAJPA-???
+	 */
+	@Test
+	public void doesNotPrefixUnsageJpaSortFunctionCalls() {
+
+		JpaSort sort = JpaSort.unsafe("sum(foo)");
+		assertThat(applySorting("select p from Person p", sort, "p"), endsWith("order by sum(foo) asc"));
+	}
+
+	/**
+	 * @see DATAJPA-???
+	 */
+	@Test
+	public void doesNotPrefixMultipleAliasedFunctionCalls() {
+
+		String query = "SELECT AVG(m.price) AS avgPrice, SUM(m.stocks) AS sumStocks FROM Magazine m";
+		Sort sort = new Sort("avgPrice", "sumStocks");
+
+		assertThat(applySorting(query, sort, "m"), endsWith("order by avgPrice asc, sumStocks asc"));
+	}
+
+	/**
+	 * @see DATAJPA-???
+	 */
+	@Test
+	public void doesNotPrefixSingleAliasedFunctionCalls() {
+
+		String query = "SELECT AVG(m.price) AS avgPrice FROM Magazine m";
+		Sort sort = new Sort("avgPrice");
+
+		assertThat(applySorting(query, sort, "m"), endsWith("order by avgPrice asc"));
+	}
+
+	/**
+	 * @see DATAJPA-???
+	 */
+	@Test
+	public void prefixesSingleNonAliasedFunctionCallRelatedSortProperty() {
+
+		String query = "SELECT AVG(m.price) AS avgPrice FROM Magazine m";
+		Sort sort = new Sort("someOtherProperty");
+
+		assertThat(applySorting(query, sort, "m"), endsWith("order by m.someOtherProperty asc"));
+	}
+
+	/**
+	 * @see DATAJPA-???
+	 */
+	@Test
+	public void prefixesNonAliasedFunctionCallRelatedSortPropertyWhenSelectClauseContainesAliasedFunctionForDifferentProperty() {
+
+		String query = "SELECT m.name, AVG(m.price) AS avgPrice FROM Magazine m";
+		Sort sort = new Sort("name", "avgPrice");
+
+		assertThat(applySorting(query, sort, "m"), endsWith("order by m.name asc, avgPrice asc"));
+	}
+
+	/**
+	 * @see DATAJPA-???
+	 */
+	@Test
+	public void doesNotPrefixAliasedFunctionCallNameWithMultipleNumericParameters() {
+
+		String query = "SELECT SUBSTRING(m.name, 2, 5) AS trimmedName FROM Magazine m";
+		Sort sort = new Sort("trimmedName");
+
+		assertThat(applySorting(query, sort, "m"), endsWith("order by trimmedName asc"));
+	}
+
+	/**
+	 * @see DATAJPA-???
+	 */
+	@Test
+	public void doesNotPrefixAliasedFunctionCallNameWithMultipleStringParameters() {
+
+		String query = "SELECT CONCAT(m.name, 'foo') AS extendedName FROM Magazine m";
+		Sort sort = new Sort("extendedName");
+
+		assertThat(applySorting(query, sort, "m"), endsWith("order by extendedName asc"));
+	}
+
+	/**
+	 * @see DATAJPA-???
+	 */
+	@Test
+	public void doesNotPrefixAliasedFunctionCallNameWithUnderscores() {
+
+		String query = "SELECT AVG(m.price) AS avg_price FROM Magazine m";
+		Sort sort = new Sort("avg_price");
+
+		assertThat(applySorting(query, sort, "m"), endsWith("order by avg_price asc"));
+	}
+
+	/**
+	 * @see DATAJPA-???
+	 */
+	@Test
+	public void doesNotPrefixAliasedFunctionCallNameWithDots() {
+
+		String query = "SELECT AVG(m.price) AS m.avg FROM Magazine m";
+		Sort sort = new Sort("m.avg");
+
+		assertThat(applySorting(query, sort, "m"), endsWith("order by m.avg asc"));
+	}
+
+	/**
+	 * @see DATAJPA-???
+	 */
+	@Test
+	public void doesNotPrefixAliasedFunctionCallNameWhenQueryStringContainsMultipleWhiteSpaces() {
+
+		String query = "SELECT  AVG(  m.price  )   AS   avgPrice   FROM Magazine   m";
+		Sort sort = new Sort("avgPrice");
+
+		assertThat(applySorting(query, sort, "m"), endsWith("order by avgPrice asc"));
 	}
 
 	private static void assertCountQuery(String originalQuery, String countQuery) {

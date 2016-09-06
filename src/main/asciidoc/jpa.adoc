@@ -303,6 +303,42 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
 This also works with named native queries by adding the suffix `.count` to a copy of your query. Be aware that you probably must register a result set mapping for your count query, though.
 
+[[jpa.query-methods.sorting]]
+=== Using Sort
+
+Sorting can be done be either providing a `PageRequest` or using `Sort` directly. The properties actually used within the `Order` instances of `Sort` need to match to your domain model, which means they need to resolve to either a property or an alias used within the query. The JPQL defines this as a _state_field_path_expression_.
+
+[NOTE]
+====
+Using any non referenceable path expression leads to an Exception.
+====
+
+Using `Sort` together with <<jpa.query-methods.at-query, @Query>> however allows you to sneak in non path checked `Order` instances containing _functions_ within the `ORDER BY` clause. This is possible because the `Order` is just appended to the given query string. By default we will reject any `Order` instance containing function calls, but you can use `JpaSort.unsafe` to add potentially unsafe ordering.
+
+.Using Sort and JpaSort
+====
+[source, java]
+----
+public interface UserRepository extends JpaRepository<User, Long> {
+
+  @Query("select u from User u where u.lastname like ?1%")
+  List<User> findByAndSort(String lastname, Sort sort);
+
+  @Query("select u.id, LENGTH(u.firstname) as fn_len from User u where u.lastname like ?1%")
+  List<Object[]> findByAsArrayAndSort(String lastname, Sort sort);
+}
+
+repo.findByAndSort("lannister", new Sort("firstname"));               <1>
+repo.findByAndSort("stark", new Sort("LENGTH(firstname)"));           <2>
+repo.findByAndSort("targaryen", JpaSort.unsafe("LENGTH(firstname)")); <3>
+repo.findByAsArrayAndSort("bolton", new Sort("fn_len"));              <4>
+----
+<1> Valid `Sort` expression pointing to property in domain model.
+<2> Invalid `Sort` containing function call. Thows Exception.
+<3> Valid `Sort` containing explicitly _unsafe_ `Order`.
+<4> Valid `Sort` expression pointing to aliased function.
+====
+
 [[jpa.named-parameters]]
 === Using named parameters
 
