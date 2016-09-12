@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2015 the original author or authors.
+ * Copyright 2008-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,8 +53,10 @@ import javax.persistence.metamodel.ManagedType;
 import javax.persistence.metamodel.PluralAttribute;
 
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
+import org.springframework.data.jpa.domain.JpaSort.JpaOrder;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -66,6 +68,7 @@ import org.springframework.util.StringUtils;
  * @author Kevin Raymond
  * @author Thomas Darimont
  * @author Komi Innocent
+ * @author Christoph Strobl
  */
 public abstract class QueryUtils {
 
@@ -98,6 +101,10 @@ public abstract class QueryUtils {
 	private static final int QUERY_JOIN_ALIAS_GROUP_INDEX = 2;
 	private static final int VARIABLE_NAME_GROUP_INDEX = 4;
 
+	private static final Pattern PUNCTATION_PATTERN = Pattern.compile(".*((?![\\._])[\\p{Punct}|\\s])");
+	private static final String FUNCTION_ALIAS_GROUP_NAME = "alias";
+	private static final Pattern FUNCTION_PATTERN;
+
 	static {
 
 		StringBuilder builder = new StringBuilder();
@@ -127,6 +134,13 @@ public abstract class QueryUtils {
 		persistentAttributeTypes.put(ELEMENT_COLLECTION, null);
 
 		ASSOCIATION_TYPES = Collections.unmodifiableMap(persistentAttributeTypes);
+
+		builder = new StringBuilder();
+		builder.append("\\s+"); // at least one space
+		builder.append("\\w+\\([0-9a-zA-z\\._,\\s']+\\)"); // any function call including parameters within the brackets
+		builder.append("\\s+[as|AS]+\\s+(?<" + FUNCTION_ALIAS_GROUP_NAME + ">[\\w\\.]+)"); // the potential alias
+
+		FUNCTION_PATTERN = compile(builder.toString());
 	}
 
 	/**
@@ -210,9 +224,10 @@ public abstract class QueryUtils {
 		}
 
 		Set<String> aliases = getOuterJoinAliases(query);
+		Set<String> functionAliases = getFunctionAliases(query);
 
 		for (Order order : sort) {
-			builder.append(getOrderClause(aliases, alias, order)).append(", ");
+			builder.append(getOrderClause(aliases, functionAliases, alias, order)).append(", ");
 		}
 
 		builder.delete(builder.length() - 2, builder.length());
@@ -229,9 +244,16 @@ public abstract class QueryUtils {
 	 * @param order the order object to build the clause for.
 	 * @return
 	 */
-	private static String getOrderClause(Set<String> joinAliases, String alias, Order order) {
+	private static String getOrderClause(Set<String> joinAliases, Set<String> functionAlias, String alias, Order order) {
 
 		String property = order.getProperty();
+
+		checkSortExpression(order);
+
+		if (functionAlias.contains(property)) {
+			return String.format("%s %s", property, toJpaDirection(order));
+		}
+
 		boolean qualifyReference = !property.contains("("); // ( indicates a function
 
 		for (String joinAlias : joinAliases) {
@@ -241,7 +263,8 @@ public abstract class QueryUtils {
 			}
 		}
 
-		String reference = qualifyReference ? String.format("%s.%s", alias, property) : property;
+		String reference = qualifyReference && StringUtils.hasText(alias) ? String.format("%s.%s", alias, property)
+				: property;
 		String wrapped = order.isIgnoreCase() ? String.format("lower(%s)", reference) : reference;
 
 		return String.format("%s %s", wrapped, toJpaDirection(order));
@@ -261,6 +284,28 @@ public abstract class QueryUtils {
 		while (matcher.find()) {
 
 			String alias = matcher.group(QUERY_JOIN_ALIAS_GROUP_INDEX);
+			if (StringUtils.hasText(alias)) {
+				result.add(alias);
+			}
+		}
+
+		return result;
+	}
+
+	/**
+	 * Returns the aliases used for aggregate functions like {@code SUM, COUNT, ...}.
+	 *
+	 * @param query
+	 * @return
+	 */
+	static Set<String> getFunctionAliases(String query) {
+
+		Set<String> result = new HashSet<String>();
+		Matcher matcher = FUNCTION_PATTERN.matcher(query);
+
+		while (matcher.find()) {
+
+			String alias = matcher.group(FUNCTION_ALIAS_GROUP_NAME);
 			if (StringUtils.hasText(alias)) {
 				result.add(alias);
 			}
@@ -565,5 +610,23 @@ public abstract class QueryUtils {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Check any given {@link JpaOrder#isUnsafe()} order for presence of at least one property offending the
+	 * {@link #PUNCTATION_PATTERN} and throw an {@link Exception} indicating potential unsafe order by expression.
+	 *
+	 * @param order
+	 */
+	private static void checkSortExpression(Order order) {
+
+		if (order instanceof JpaOrder && ((JpaOrder) order).isUnsafe()) {
+			return;
+		}
+
+		if (PUNCTATION_PATTERN.matcher(order.getProperty()).find()) {
+			throw new InvalidDataAccessApiUsageException(String
+					.format("Sort expression '%s' must not contain functions or expressions. Please use JpaSort.unsafe.", order));
+		}
 	}
 }
