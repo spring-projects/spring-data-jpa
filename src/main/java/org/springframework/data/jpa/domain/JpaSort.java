@@ -241,6 +241,7 @@ public class JpaSort extends Sort {
 		Assert.notEmpty(properties, "Properties must not be empty!");
 
 		List<Order> orders = new ArrayList<Order>();
+
 		for (String property : properties) {
 			orders.add(new JpaOrder(direction, property));
 		}
@@ -309,9 +310,16 @@ public class JpaSort extends Sort {
 	}
 
 	/**
+	 * Custom {@link Order} that keeps a flag to indicate unsafe property handling, i.e. the String provided is not
+	 * necessarily a property but can be an arbitrary expression piped into the query execution. We also keep an
+	 * additional {@code ignoreCase} flag around as the constructor of the superclass is private currently.
+	 * 
 	 * @author Christoph Strobl
+	 * @author Oliver Gierke
 	 */
 	public static class JpaOrder extends Order {
+
+		private static final long serialVersionUID = 1L;
 
 		private final boolean unsafe;
 		private final boolean ignoreCase;
@@ -365,32 +373,6 @@ public class JpaSort extends Sort {
 			return new JpaOrder(getDirection(), getProperty(), nullHandling, isIgnoreCase(), this.unsafe);
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.domain.Sort.Order#nullsFirst()
-		 */
-		@Override
-		public JpaOrder nullsFirst() {
-			return with(NullHandling.NULLS_FIRST);
-		}
-
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.domain.Sort.Order#nullsLast()
-		 */
-		@Override
-		public JpaOrder nullsLast() {
-			return with(NullHandling.NULLS_LAST);
-		}
-
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.domain.Sort.Order#nullsNative()
-		 */
-		public JpaOrder nullsNative() {
-			return with(NullHandling.NATIVE);
-		}
-
 		/**
 		 * Creates new {@link Sort} with potentially unsafe {@link Order} instances.
 		 *
@@ -403,9 +385,11 @@ public class JpaSort extends Sort {
 			Assert.noNullElements(properties, "Properties must not contain null values!");
 
 			List<Order> orders = new ArrayList<Order>();
+
 			for (String property : properties) {
 				orders.add(new JpaOrder(getDirection(), property, getNullHandling(), isIgnoreCase(), this.unsafe));
 			}
+
 			return new Sort(orders);
 		}
 

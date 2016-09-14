@@ -105,6 +105,10 @@ public abstract class QueryUtils {
 	private static final String FUNCTION_ALIAS_GROUP_NAME = "alias";
 	private static final Pattern FUNCTION_PATTERN;
 
+	private static final String UNSAFE_PROPERTY_REFERENCE = "Sort expression '%s' must only contain property references or "
+			+ "aliases used in the select clause. If you really want to use something other than that for sorting, please use "
+			+ "JpaSort.unsafe(…)!";
+
 	static {
 
 		StringBuilder builder = new StringBuilder();
@@ -298,7 +302,7 @@ public abstract class QueryUtils {
 	 * @param query
 	 * @return
 	 */
-	static Set<String> getFunctionAliases(String query) {
+	private static Set<String> getFunctionAliases(String query) {
 
 		Set<String> result = new HashSet<String>();
 		Matcher matcher = FUNCTION_PATTERN.matcher(query);
@@ -306,6 +310,7 @@ public abstract class QueryUtils {
 		while (matcher.find()) {
 
 			String alias = matcher.group(FUNCTION_ALIAS_GROUP_NAME);
+
 			if (StringUtils.hasText(alias)) {
 				result.add(alias);
 			}
@@ -625,8 +630,7 @@ public abstract class QueryUtils {
 		}
 
 		if (PUNCTATION_PATTERN.matcher(order.getProperty()).find()) {
-			throw new InvalidDataAccessApiUsageException(String
-					.format("Sort expression '%s' must not contain functions or expressions. Please use JpaSort.unsafe.", order));
+			throw new InvalidDataAccessApiUsageException(String.format(UNSAFE_PROPERTY_REFERENCE, order));
 		}
 	}
 }
