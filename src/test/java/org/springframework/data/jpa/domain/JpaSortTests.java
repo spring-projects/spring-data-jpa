@@ -226,5 +226,4 @@ public class JpaSortTests {
 		assertThat(sort.getOrderFor("colleagues.roles.name"), is(not(instanceOf(JpaOrder.class))));
 		assertThat(sort.getOrderFor("foo.bar"), is(instanceOf(JpaOrder.class)));
 	}
-
 }
