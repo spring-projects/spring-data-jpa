@@ -75,7 +75,6 @@ public abstract class QueryUtils {
 	public static final String COUNT_QUERY_STRING = "select count(%s) from %s x";
 	public static final String DELETE_ALL_QUERY_STRING = "delete from %s x";
 
-	private static final String DEFAULT_ALIAS = "x";
 	private static final String COUNT_REPLACEMENT_TEMPLATE = "select count(%s) $5$6$7";
 	private static final String SIMPLE_COUNT_VALUE = "$2";
 	private static final String COMPLEX_COUNT_VALUE = "$3$6";
@@ -105,6 +104,10 @@ public abstract class QueryUtils {
 	private static final Pattern PUNCTATION_PATTERN = Pattern.compile(".*((?![\\._])[\\p{Punct}|\\s])");
 	private static final String FUNCTION_ALIAS_GROUP_NAME = "alias";
 	private static final Pattern FUNCTION_PATTERN;
+
+	private static final String UNSAFE_PROPERTY_REFERENCE = "Sort expression '%s' must only contain property references or "
+			+ "aliases used in the select clause. If you really want to use something other than that for sorting, please use "
+			+ "JpaSort.unsafe(…)!";
 
 	static {
 
@@ -298,7 +301,7 @@ public abstract class QueryUtils {
 	 * @param query
 	 * @return
 	 */
-	static Set<String> getFunctionAliases(String query) {
+	private static Set<String> getFunctionAliases(String query) {
 
 		Set<String> result = new HashSet<String>();
 		Matcher matcher = FUNCTION_PATTERN.matcher(query);
@@ -306,6 +309,7 @@ public abstract class QueryUtils {
 		while (matcher.find()) {
 
 			String alias = matcher.group(FUNCTION_ALIAS_GROUP_NAME);
+
 			if (StringUtils.hasText(alias)) {
 				result.add(alias);
 			}
@@ -629,8 +633,7 @@ public abstract class QueryUtils {
 		}
 
 		if (PUNCTATION_PATTERN.matcher(order.getProperty()).find()) {
-			throw new InvalidDataAccessApiUsageException(String
-					.format("Sort expression '%s' must not contain functions or expressions. Please use JpaSort.unsafe.", order));
+			throw new InvalidDataAccessApiUsageException(String.format(UNSAFE_PROPERTY_REFERENCE, order));
 		}
 	}
 }
