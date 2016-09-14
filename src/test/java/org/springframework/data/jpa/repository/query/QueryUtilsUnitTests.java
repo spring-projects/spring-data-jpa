@@ -48,9 +48,7 @@ public class QueryUtilsUnitTests {
 
 	@Test
 	public void createsCountQueryCorrectly() throws Exception {
-
 		assertCountQuery(QUERY, COUNT_QUERY);
-
 	}
 
 	/**
