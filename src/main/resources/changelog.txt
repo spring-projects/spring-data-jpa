@@ -1,6 +1,20 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 1.9.5.RELEASE (2016-09-20)
+---------------------------------------------
+* DATAJPA-965 - Mapping Sort instances to ORDER BY expressions should be restricted to fields for manually defined queries.
+* DATAJPA-964 - Release 1.9.5 (Gosling SR5).
+* DATAJPA-960 - Order by clause not created correctly if a manually defined query is not using an alias.
+* DATAJPA-953 - Fix typo in reference documentation.
+* DATAJPA-908 - Add note about when @Param is needed for named parameters.
+* DATAJPA-904 - Potential NullPointerException in JpaPersistentPropertyImpl.isEntity().
+* DATAJPA-903 - Stream<Object[]> missing result attributes on Hibernate.
+* DATAJPA-891 - Avoid exceptions being thrown and caught immediately in JpaPersistentPropertyImpl.isEntity().
+* DATAJPA-888 - Clarify usage of native queries with Pageable.
+* DATAJPA-413 - Nested Id classes fail to populate in JpaMetamodelEntityInformation.
+
+
 Changes in version 1.10.3.RELEASE (2016-09-20)
 ----------------------------------------------
 * DATAJPA-965 - Mapping Sort instances to ORDER BY expressions should be restricted to fields for manually defined queries.
