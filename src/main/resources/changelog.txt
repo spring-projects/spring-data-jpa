@@ -1,6 +1,21 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 1.10.3.RELEASE (2016-09-20)
+----------------------------------------------
+* DATAJPA-965 - Mapping Sort instances to ORDER BY expressions should be restricted to fields for manually defined queries.
+* DATAJPA-960 - Order by clause not created correctly if a manually defined query is not using an alias.
+* DATAJPA-956 - Error creating DefaultJpaContext bean with a non-EntityManagerFactory JndiObjectFactoryBean defined via JavaConfig.
+* DATAJPA-953 - Fix typo in reference documentation.
+* DATAJPA-951 - Projections not handled correctly when Optional is used as wrapping return type.
+* DATAJPA-950 - Upgrade Hibernate 5 build profile to 5.2.2.
+* DATAJPA-938 - Complex select clauses in manually declared query using constructor expressions fail.
+* DATAJPA-937 - Broken placeholder in exception message to be created in QueryByExamplePredicateBuilder.getPredicate(…).
+* DATAJPA-929 - NullPointerException in AbstractStringBasedJpaQuery.isJpaManaged().
+* DATAJPA-916 - Release 1.10.3 (Hopper SR3).
+* DATAJPA-413 - Nested Id classes fail to populate in JpaMetamodelEntityInformation.
+
+
 Changes in version 1.11.0.M1 (2016-07-27)
 -----------------------------------------
 * DATAJPA-937 - Broken placeholder in exception message to be created in QueryByExamplePredicateBuilder.getPredicate(…).
