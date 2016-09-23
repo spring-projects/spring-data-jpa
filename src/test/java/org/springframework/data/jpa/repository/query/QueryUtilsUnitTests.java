@@ -335,7 +335,8 @@ public class QueryUtilsUnitTests {
 	}
 
 	/**
-	 * @see DATAJPA-???
+	 * @see DATAJPA-965
+	 * @see DATAJPA-970
 	 */
 	@Test(expected = InvalidDataAccessApiUsageException.class)
 	public void doesNotAllowWhitespaceInSort() {
@@ -345,7 +346,8 @@ public class QueryUtilsUnitTests {
 	}
 
 	/**
-	 * @see DATAJPA-???
+	 * @see DATAJPA-965
+	 * @see DATAJPA-970
 	 */
 	@Test
 	public void doesNotPrefixUnsageJpaSortFunctionCalls() {
@@ -355,7 +357,8 @@ public class QueryUtilsUnitTests {
 	}
 
 	/**
-	 * @see DATAJPA-???
+	 * @see DATAJPA-965
+	 * @see DATAJPA-970
 	 */
 	@Test
 	public void doesNotPrefixMultipleAliasedFunctionCalls() {
@@ -367,7 +370,8 @@ public class QueryUtilsUnitTests {
 	}
 
 	/**
-	 * @see DATAJPA-???
+	 * @see DATAJPA-965
+	 * @see DATAJPA-970
 	 */
 	@Test
 	public void doesNotPrefixSingleAliasedFunctionCalls() {
@@ -379,7 +383,8 @@ public class QueryUtilsUnitTests {
 	}
 
 	/**
-	 * @see DATAJPA-???
+	 * @see DATAJPA-965
+	 * @see DATAJPA-970
 	 */
 	@Test
 	public void prefixesSingleNonAliasedFunctionCallRelatedSortProperty() {
@@ -391,7 +396,8 @@ public class QueryUtilsUnitTests {
 	}
 
 	/**
-	 * @see DATAJPA-???
+	 * @see DATAJPA-965
+	 * @see DATAJPA-970
 	 */
 	@Test
 	public void prefixesNonAliasedFunctionCallRelatedSortPropertyWhenSelectClauseContainesAliasedFunctionForDifferentProperty() {
@@ -403,7 +409,8 @@ public class QueryUtilsUnitTests {
 	}
 
 	/**
-	 * @see DATAJPA-???
+	 * @see DATAJPA-965
+	 * @see DATAJPA-970
 	 */
 	@Test
 	public void doesNotPrefixAliasedFunctionCallNameWithMultipleNumericParameters() {
@@ -415,7 +422,8 @@ public class QueryUtilsUnitTests {
 	}
 
 	/**
-	 * @see DATAJPA-???
+	 * @see DATAJPA-965
+	 * @see DATAJPA-970
 	 */
 	@Test
 	public void doesNotPrefixAliasedFunctionCallNameWithMultipleStringParameters() {
@@ -427,7 +435,8 @@ public class QueryUtilsUnitTests {
 	}
 
 	/**
-	 * @see DATAJPA-???
+	 * @see DATAJPA-965
+	 * @see DATAJPA-970
 	 */
 	@Test
 	public void doesNotPrefixAliasedFunctionCallNameWithUnderscores() {
@@ -439,7 +448,8 @@ public class QueryUtilsUnitTests {
 	}
 
 	/**
-	 * @see DATAJPA-???
+	 * @see DATAJPA-965
+	 * @see DATAJPA-970
 	 */
 	@Test
 	public void doesNotPrefixAliasedFunctionCallNameWithDots() {
@@ -451,7 +461,8 @@ public class QueryUtilsUnitTests {
 	}
 
 	/**
-	 * @see DATAJPA-???
+	 * @see DATAJPA-965
+	 * @see DATAJPA-970
 	 */
 	@Test
 	public void doesNotPrefixAliasedFunctionCallNameWhenQueryStringContainsMultipleWhiteSpaces() {

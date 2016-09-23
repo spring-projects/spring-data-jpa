@@ -102,7 +102,6 @@ public abstract class QueryUtils {
 	private static final int VARIABLE_NAME_GROUP_INDEX = 4;
 
 	private static final Pattern PUNCTATION_PATTERN = Pattern.compile(".*((?![\\._])[\\p{Punct}|\\s])");
-	private static final String FUNCTION_ALIAS_GROUP_NAME = "alias";
 	private static final Pattern FUNCTION_PATTERN;
 
 	private static final String UNSAFE_PROPERTY_REFERENCE = "Sort expression '%s' must only contain property references or "
@@ -142,7 +141,7 @@ public abstract class QueryUtils {
 		builder = new StringBuilder();
 		builder.append("\\s+"); // at least one space
 		builder.append("\\w+\\([0-9a-zA-z\\._,\\s']+\\)"); // any function call including parameters within the brackets
-		builder.append("\\s+[as|AS]+\\s+(?<" + FUNCTION_ALIAS_GROUP_NAME + ">[\\w\\.]+)"); // the potential alias
+		builder.append("\\s+[as|AS]+\\s+(([\\w\\.]+))"); // the potential alias
 
 		FUNCTION_PATTERN = compile(builder.toString());
 	}
@@ -308,7 +307,7 @@ public abstract class QueryUtils {
 
 		while (matcher.find()) {
 
-			String alias = matcher.group(FUNCTION_ALIAS_GROUP_NAME);
+			String alias = matcher.group(1);
 
 			if (StringUtils.hasText(alias)) {
 				result.add(alias);
