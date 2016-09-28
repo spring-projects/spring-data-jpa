@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.domain.sample.QUser;
 import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.sample.RepositoryMethodsWithEntityGraphConfigRepository;
@@ -41,6 +44,7 @@ import org.springframework.transaction.annotation.Transactional;
  * 
  * @author Thomas Darimont
  * @author Oliver Gierke
+ * @author Jocelyn Ntakpe
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("classpath:config/namespace-autoconfig-context.xml")
@@ -127,5 +131,21 @@ public class EntityGraphRepositoryMethodsIntegrationTests {
 		assertThat(user, is(notNullValue()));
 		assertThat("colleages should be fetched with 'user.detail' fetchgraph",
 				Persistence.getPersistenceUtil().isLoaded(user.getColleagues()), is(true));
+	}
+
+	/**
+	 * @see DATAJPA-790
+	 */
+	@Test
+	public void shouldRespectConfiguredJpaEntityGraphWithPaginationAndQueryDslPredicates() {
+
+		Assume.assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
+
+		Page<User> page = repository.findAll(QUser.user.firstname.isNotNull(), new PageRequest(0, 100));
+		List<User> result = page.getContent();
+
+		assertThat(result.size(), is(2));
+		assertThat(Persistence.getPersistenceUtil().isLoaded(result.get(0).getRoles()), is(true));
+		assertThat(result.get(0), is(tom));
 	}
 }

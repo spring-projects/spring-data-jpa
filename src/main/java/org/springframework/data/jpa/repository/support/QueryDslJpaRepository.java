@@ -45,6 +45,7 @@ import com.mysema.query.types.path.PathBuilder;
  * 
  * @author Oliver Gierke
  * @author Thomas Darimont
+ * @author Jocelyn Ntakpe
  */
 public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpaRepository<T, ID> implements
 		QueryDslPredicateExecutor<T> {
@@ -135,7 +136,7 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 	@Override
 	public Page<T> findAll(Predicate predicate, Pageable pageable) {
 
-		JPQLQuery countQuery = createQuery(predicate);
+		JPQLQuery countQuery = createCountQuery(predicate);
 		JPQLQuery query = querydsl.applyPagination(pageable, createQuery(predicate));
 
 		Long total = countQuery.count();
@@ -185,6 +186,16 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 		}
 
 		return query;
+	}
+
+	/**
+	 * Creates a new {@link JPQLQuery} count query for the given {@link Predicate}.
+	 *
+	 * @param predicate, can be {@literal null}.
+	 * @return the Querydsl count {@link JPQLQuery}.
+	 */
+	protected JPQLQuery createCountQuery(Predicate predicate) {
+		return querydsl.createQuery(path).where(predicate);
 	}
 
 	/**
