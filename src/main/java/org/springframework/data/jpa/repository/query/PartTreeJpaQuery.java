@@ -64,7 +64,8 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 		this.tree = new PartTree(method.getName(), domainClass);
 		this.parameters = method.getParameters();
 
-		boolean recreationRequired = parameters.hasDynamicProjection() || parameters.potentiallySortsDynamically();
+		boolean recreationRequired = parameters.hasDynamicProjection() || parameters.potentiallySortsDynamically()
+				|| PersistenceProvider.OPEN_JPA.equals(persistenceProvider);
 
 		this.countQuery = new CountQueryPreparer(persistenceProvider, recreationRequired);
 		this.query = tree.isCountProjection() ? countQuery : new QueryPreparer(persistenceProvider, recreationRequired);
