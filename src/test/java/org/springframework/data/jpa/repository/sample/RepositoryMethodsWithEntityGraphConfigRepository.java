@@ -17,10 +17,13 @@ package org.springframework.data.jpa.repository.sample;
 
 import java.util.List;
 
+import com.querydsl.core.types.Predicate;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.EntityGraph.EntityGraphType;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 import org.springframework.data.repository.CrudRepository;
 
 /**
@@ -28,8 +31,9 @@ import org.springframework.data.repository.CrudRepository;
  * methods via {@link EntityGraph} annotation.
  * 
  * @author Thomas Darimont
+ * @author Jocelyn Ntakpe
  */
-public interface RepositoryMethodsWithEntityGraphConfigRepository extends CrudRepository<User, Integer> {
+public interface RepositoryMethodsWithEntityGraphConfigRepository extends CrudRepository<User, Integer>, QueryDslPredicateExecutor<User> {
 
 	/**
 	 * Should find all users.
@@ -54,4 +58,10 @@ public interface RepositoryMethodsWithEntityGraphConfigRepository extends CrudRe
 	 */
 	@EntityGraph(attributePaths = { "roles", "colleagues.roles" })
 	User getOneWithAttributeNamesById(Integer id);
+
+	/**
+	 * @see DATAJPA-790
+	 */
+	@EntityGraph(type = EntityGraphType.FETCH, value = "User.detail")
+	Page<User> findAll(Predicate predicate, Pageable pageable);
 }
