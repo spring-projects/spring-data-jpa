@@ -596,4 +596,13 @@ public interface UserRepository
 	 * @see DATAJPA-858
 	 */
 	List<User> findByRolesNameContaining(String name);
+
+	List<RolesAndFirstname> findRolesAndFirstnameBy();
+
+	static interface RolesAndFirstname {
+
+		String getFirstname();
+
+		Set<Role> getRoles();
+	}
 }

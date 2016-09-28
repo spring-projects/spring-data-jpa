@@ -226,4 +226,12 @@ public class UserRepositoryFinderTests {
 	public void translatesNotContainsToNotMemberOf() {
 		assertThat(userRepository.findByRolesNotContaining(drummer), hasItems(dave, oliver));
 	}
+
+	/**
+	 * @see DATAJPA-974
+	 */
+	@Test
+	public void executesQueryWithProjectionContainingReferenceToPluralAttribute() {
+		assertThat(userRepository.findRolesAndFirstnameBy(), is(notNullValue()));
+	}
 }
