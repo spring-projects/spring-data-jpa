@@ -1,6 +1,12 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 1.9.6.RELEASE (2016-09-29)
+---------------------------------------------
+* DATAJPA-975 - Release 1.9.6 (Gosling SR6).
+* DATAJPA-970 - Ensure JDK 6 compatibility of regular expression used in QueryUtils.
+
+
 Changes in version 1.9.5.RELEASE (2016-09-20)
 ---------------------------------------------
 * DATAJPA-965 - Mapping Sort instances to ORDER BY expressions should be restricted to fields for manually defined queries.
