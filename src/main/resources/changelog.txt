@@ -1,6 +1,13 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 1.10.4.RELEASE (2016-09-29)
+----------------------------------------------
+* DATAJPA-974 - Projections referring to collection attributes don't create a proper selection (missing joins).
+* DATAJPA-970 - Ensure JDK 6 compatibility of regular expression used in QueryUtils.
+* DATAJPA-966 - Release 1.10.4 (Hopper SR4).
+
+
 Changes in version 1.9.6.RELEASE (2016-09-29)
 ---------------------------------------------
 * DATAJPA-975 - Release 1.9.6 (Gosling SR6).
