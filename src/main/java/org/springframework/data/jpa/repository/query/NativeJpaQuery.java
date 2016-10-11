@@ -15,12 +15,16 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import java.util.Map;
+
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 
 import org.springframework.data.repository.query.EvaluationContextProvider;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.RepositoryQuery;
+import org.springframework.data.repository.query.ResultProcessor;
+import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 
 /**
@@ -63,8 +67,21 @@ final class NativeJpaQuery extends AbstractStringBasedJpaQuery {
 	 */
 	@Override
 	protected Query createJpaQuery(String queryString) {
-		return getQueryMethod().isQueryForEntity()
-				? getEntityManager().createNativeQuery(queryString, getQueryMethod().getReturnedObjectType())
-				: getEntityManager().createNativeQuery(queryString);
+
+		EntityManager em = getEntityManager();
+
+		if (this.getQuery().hasConstructorExpression() || this.getQuery().isDefaultProjection()) {
+			return em.createNativeQuery(queryString);
+		}
+
+		ResultProcessor resultFactory = getQueryMethod().getResultProcessor();
+		ReturnedType returnedType = resultFactory.getReturnedType();
+
+		return returnedType.isProjecting() && !getMetamodel().isJpaManaged(returnedType.getReturnedType())
+				? em.createNativeQuery(queryString, Map.class) : em.createNativeQuery(queryString);
+
+		// return getQueryMethod().isQueryForEntity()
+		// ? getEntityManager().createNativeQuery(queryString, getQueryMethod().getReturnedObjectType())
+		// : getEntityManager().createNativeQuery(queryString);
 	}
 }
