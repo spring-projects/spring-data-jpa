@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.*;
 
 import javax.persistence.Query;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.test.context.ContextConfiguration;
@@ -85,4 +86,12 @@ public class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserReposi
 				"Due to a bug eclipse has size 0. If this is no longer the case the special code path triggered in NamedOrIndexedQueryParameterSetter.registerExcessParameters can be removed")
 				.hasSize(0);
 	}
+
+	/**
+	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=525319 is fixed.
+	 */
+	@Ignore
+	@Override
+	@Test // DATAJPA-980
+	public void supportsProjectionsWithNativeQueries() {}
 }

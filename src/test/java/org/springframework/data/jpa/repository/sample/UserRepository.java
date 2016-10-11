@@ -505,11 +505,21 @@ public interface UserRepository
 	// DATAJPA-1185
 	<T> List<T> findAsListByFirstnameLike(String name, Class<T> projectionType);
 
+	// DATAJPA-980
+	@Query(value = "SELECT firstname, lastname FROM SD_User WHERE id = ?1", nativeQuery = true)
+	NameOnly findByNativeQuery(Integer id);
 
 	static interface RolesAndFirstname {
 
 		String getFirstname();
 
 		Set<Role> getRoles();
+	}
+
+	static interface NameOnly {
+
+		String getFirstname();
+
+		String getLastname();
 	}
 }

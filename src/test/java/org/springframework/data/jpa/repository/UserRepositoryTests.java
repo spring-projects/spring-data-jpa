@@ -52,6 +52,8 @@ import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
+import org.springframework.data.domain.ExampleMatcher.GenericPropertyMatcher;
+import org.springframework.data.domain.ExampleMatcher.StringMatcher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -60,7 +62,6 @@ import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.domain.Sort.Order;
-import org.springframework.data.domain.ExampleMatcher.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.domain.sample.Address;
 import org.springframework.data.jpa.domain.sample.Role;
@@ -68,6 +69,7 @@ import org.springframework.data.jpa.domain.sample.SpecialUser;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.sample.SampleEvaluationContextExtension.SampleSecurityContextHolder;
 import org.springframework.data.jpa.repository.sample.UserRepository;
+import org.springframework.data.jpa.repository.sample.UserRepository.NameOnly;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
@@ -2094,6 +2096,19 @@ public class UserRepositoryTests {
 		List<User> users = repository.findUsersByDuplicateSpel("Oliver");
 
 		assertThat(users).hasSize(1);
+	}
+
+	@Test // DATAJPA-980
+	public void supportsProjectionsWithNativeQueries() {
+
+		flushTestUsers();
+
+		User user = repository.findAll().get(0);
+
+		NameOnly result = repository.findByNativeQuery(user.getId());
+
+		assertThat(result.getFirstname()).isEqualTo(user.getFirstname());
+		assertThat(result.getLastname()).isEqualTo(user.getLastname());
 	}
 
 	private Page<User> executeSpecWithSort(Sort sort) {
