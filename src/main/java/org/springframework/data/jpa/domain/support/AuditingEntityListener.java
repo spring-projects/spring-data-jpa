@@ -32,7 +32,7 @@ import org.springframework.util.Assert;
  * &lt;persistence-unit-metadata&gt;
  *     &lt;persistence-unit-defaults&gt;
  *         &lt;entity-listeners&gt;
- *             &lt;entity-listener class="org.springframework.data.jpa.domain.auditing.support.AuditingEntityListener" /&gt;
+ *             &lt;entity-listener class="org.springframework.data.jpa.domain.support.AuditingEntityListener" /&gt;
  *         &lt;/entity-listeners&gt;
  *     &lt;/persistence-unit-defaults&gt;
  * &lt;/persistence-unit-metadata&gt;
