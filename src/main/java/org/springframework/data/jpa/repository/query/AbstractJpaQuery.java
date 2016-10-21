@@ -16,6 +16,7 @@
 package org.springframework.data.jpa.repository.query;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.persistence.EntityManager;
@@ -39,6 +40,7 @@ import org.springframework.data.jpa.util.JpaMetamodel;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ResultProcessor;
+import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.util.Assert;
 
 /**
@@ -116,7 +118,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 		ParametersParameterAccessor accessor = new ParametersParameterAccessor(method.getParameters(), values);
 		ResultProcessor withDynamicProjection = method.getResultProcessor().withDynamicProjection(accessor);
 
-		return withDynamicProjection.processResult(result, TupleConverter.INSTANCE);
+		return withDynamicProjection.processResult(result, new TupleConverter(withDynamicProjection.getReturnedType()));
 	}
 
 	protected JpaQueryExecution getExecution() {
@@ -232,9 +234,21 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 	 */
 	protected abstract Query doCreateCountQuery(Object[] values);
 
-	private static enum TupleConverter implements Converter<Object, Object> {
+	static class TupleConverter implements Converter<Object, Object> {
 
-		INSTANCE;
+		private final ReturnedType type;
+
+		/**
+		 * Creates a new {@link TupleConverter} for the given {@link ReturnedType}.
+		 * 
+		 * @param type must not be {@literal null}.
+		 */
+		public TupleConverter(ReturnedType type) {
+
+			Assert.notNull(type, "Returned type must not be null!");
+
+			this.type = type;
+		}
 
 		/* 
 		 * (non-Javadoc)
@@ -249,8 +263,18 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 
 			Tuple tuple = (Tuple) source;
 			Map<String, Object> result = new HashMap<String, Object>();
+			List<TupleElement<?>> elements = tuple.getElements();
 
-			for (TupleElement<?> element : tuple.getElements()) {
+			if (elements.size() == 1) {
+
+				Object value = tuple.get(elements.get(0));
+
+				if (type.isInstance(value)) {
+					return value;
+				}
+			}
+
+			for (TupleElement<?> element : elements) {
 
 				String alias = element.getAlias();
 
