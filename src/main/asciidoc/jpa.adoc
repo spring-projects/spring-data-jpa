@@ -87,7 +87,7 @@ class ApplicationConfig {
 }
 ----
 ====
-NB: It's important to create `LocalContainerEntityManagerFactoryBean` and not `EntityManagerFactory` directly since the former also participates in exception translation mechanisms besides simply creating `EntityManagerFactory`.
+NOTE: It's important to create `LocalContainerEntityManagerFactoryBean` and not `EntityManagerFactory` directly since the former also participates in exception translation mechanisms besides simply creating `EntityManagerFactory`.
 
 The just shown configuration class sets up an embedded HSQL database using the `EmbeddedDatabaseBuilder` API of spring-jdbc. We then set up a `EntityManagerFactory` and use Hibernate as sample persistence provider. The last infrastructure component declared here is the `JpaTransactionManager`. We finally activate Spring Data JPA repositories using the `@EnableJpaRepositories` annotation which essentially carries the same attributes as the XML namespace does. If no base package is configured it will use the one the configuration class resides in.
 
