@@ -1,6 +1,16 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 1.10.5.RELEASE (2016-11-03)
+----------------------------------------------
+* DATAJPA-993 - Improve infrastructure setup example in reference documentation.
+* DATAJPA-992 - Fix package name in JavaDoc of AuditingEntityListener.
+* DATAJPA-984 - JPA projection query returning single non-standard JPA type results in "No aliases found in result tuple" error.
+* DATAJPA-978 - Upgrade Hibernate 5.2 build profile to 5.2.4.
+* DATAJPA-977 - Release 1.10.5 (Hopper SR5).
+* DATAJPA-790 - org.hibernate.QueryException when applying @EntityGraph on (Querydsl) findAll(Predicate, Pageable) method.
+
+
 Changes in version 1.10.4.RELEASE (2016-09-29)
 ----------------------------------------------
 * DATAJPA-974 - Projections referring to collection attributes don't create a proper selection (missing joins).
