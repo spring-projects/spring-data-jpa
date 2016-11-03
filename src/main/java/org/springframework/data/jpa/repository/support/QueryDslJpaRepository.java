@@ -137,7 +137,7 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 	@Override
 	public Page<T> findAll(Predicate predicate, Pageable pageable) {
 
-		JPQLQuery<?> countQuery = createCountQuery(predicate);
+		final JPQLQuery<?> countQuery = createCountQuery(predicate);
 		JPQLQuery<T> query = querydsl.applyPagination(pageable, createQuery(predicate).select(path));
 
 		long total = countQuery.fetchCount();
@@ -192,7 +192,7 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 	/**
 	 * Creates a new {@link JPQLQuery} count query for the given {@link Predicate}.
 	 *
-	 * @param predicate
+	 * @param predicate, can be {@literal null}.
 	 * @return the Querydsl count {@link JPQLQuery}.
 	 */
 	protected JPQLQuery<?> createCountQuery(Predicate predicate) {
