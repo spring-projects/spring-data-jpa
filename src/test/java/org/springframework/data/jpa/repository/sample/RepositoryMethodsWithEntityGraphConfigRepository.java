@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@ package org.springframework.data.jpa.repository.sample;
 
 import java.util.List;
 
-import com.querydsl.core.types.Predicate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.sample.User;
@@ -26,6 +25,8 @@ import org.springframework.data.jpa.repository.EntityGraph.EntityGraphType;
 import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 import org.springframework.data.repository.CrudRepository;
 
+import com.querydsl.core.types.Predicate;
+
 /**
  * Custom repository interface that customizes the fetching behavior of querys of well known repository interface
  * methods via {@link EntityGraph} annotation.
@@ -33,7 +34,8 @@ import org.springframework.data.repository.CrudRepository;
  * @author Thomas Darimont
  * @author Jocelyn Ntakpe
  */
-public interface RepositoryMethodsWithEntityGraphConfigRepository extends CrudRepository<User, Integer>, QueryDslPredicateExecutor<User> {
+public interface RepositoryMethodsWithEntityGraphConfigRepository
+		extends CrudRepository<User, Integer>, QueryDslPredicateExecutor<User> {
 
 	/**
 	 * Should find all users.
@@ -52,7 +54,7 @@ public interface RepositoryMethodsWithEntityGraphConfigRepository extends CrudRe
 	 */
 	@EntityGraph
 	User getOneWithDefinedEntityGraphById(Integer id);
-	
+
 	/**
 	 * @see DATAJPA-696
 	 */
@@ -62,6 +64,6 @@ public interface RepositoryMethodsWithEntityGraphConfigRepository extends CrudRe
 	/**
 	 * @see DATAJPA-790
 	 */
-	@EntityGraph(type = EntityGraphType.FETCH, value = "User.detail")
+	@EntityGraph("User.detail")
 	Page<User> findAll(Predicate predicate, Pageable pageable);
 }

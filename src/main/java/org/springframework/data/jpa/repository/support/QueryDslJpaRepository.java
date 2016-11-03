@@ -196,7 +196,7 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 	/**
 	 * Creates a new {@link JPQLQuery} count query for the given {@link Predicate}.
 	 *
-	 * @param predicate
+	 * @param predicate, can be {@literal null}.
 	 * @return the Querydsl count {@link JPQLQuery}.
 	 */
 	protected JPQLQuery<?> createCountQuery(Predicate predicate) {
