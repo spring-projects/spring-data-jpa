@@ -29,6 +29,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.domain.sample.QUser;
 import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.sample.RepositoryMethodsWithEntityGraphConfigRepository;
@@ -128,4 +131,18 @@ public class EntityGraphRepositoryMethodsIntegrationTests {
 		assertThat("colleages should be fetched with 'user.detail' fetchgraph",
 				Persistence.getPersistenceUtil().isLoaded(user.getColleagues()), is(true));
 	}
+
+	/**
+	 * @see DATAJPA-790
+	 */
+	@Test
+	public void shouldRespectConfiguredJpaEntityGraphWithPaginationAndQueryDslPredicates() {
+		Assume.assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
+		Page<User> page = repository.findAll(QUser.user.firstname.isNotNull(), new PageRequest(0, 100));
+		List<User> result = page.getContent();
+		assertThat(result.size(), is(2));
+		assertThat(Persistence.getPersistenceUtil().isLoaded(result.get(0).getRoles()), is(true));
+		assertThat(result.get(0), is(tom));
+	}
+
 }
