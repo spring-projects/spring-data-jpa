@@ -92,6 +92,23 @@ public class QueryDslJpaRepositoryTests {
 		assertThat(result, hasItems(carter, dave));
 	}
 
+    @Test
+    public void executesDeletePredicatesCorrectly() throws Exception {
+
+        BooleanExpression isCalledDave = user.firstname.eq("Dave");
+        BooleanExpression isBeauford = user.lastname.eq("Beauford");
+
+        List<User> result = repository.findAll(isCalledDave.or(isBeauford));
+
+        assertThat(result.size(), is(2));
+
+        repository.delete(isCalledDave);
+
+        result = repository.findAll(isCalledDave.or(isBeauford));
+
+        assertThat(result.size(), is(1));
+    }
+
 	@Test
 	public void executesStringBasedPredicatesCorrectly() throws Exception {
 

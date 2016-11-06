@@ -28,6 +28,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.querydsl.EntityPathResolver;
 import org.springframework.data.querydsl.QSort;
 import org.springframework.data.querydsl.QueryDslPredicateExecutor;
+import org.springframework.data.querydsl.QueryDslPredicateModifyingExecutor;
 import org.springframework.data.querydsl.SimpleEntityPathResolver;
 import org.springframework.data.repository.support.PageableExecutionUtils;
 import org.springframework.data.repository.support.PageableExecutionUtils.TotalSupplier;
@@ -38,29 +39,32 @@ import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.AbstractJPAQuery;
+import com.querydsl.jpa.impl.JPADeleteClause;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * QueryDsl specific extension of {@link SimpleJpaRepository} which adds implementation for
  * {@link QueryDslPredicateExecutor}.
- * 
+ *
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Mark Paluch
  * @author Jocelyn Ntakpe
  */
 public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpaRepository<T, ID>
-		implements QueryDslPredicateExecutor<T> {
+		implements QueryDslPredicateExecutor<T>, QueryDslPredicateModifyingExecutor {
 
 	private static final EntityPathResolver DEFAULT_ENTITY_PATH_RESOLVER = SimpleEntityPathResolver.INSTANCE;
 
 	private final EntityPath<T> path;
 	private final PathBuilder<T> builder;
 	private final Querydsl querydsl;
+    private final DeleteQuerydsl deleteQuerydsl;
 
 	/**
 	 * Creates a new {@link QueryDslJpaRepository} from the given domain class and {@link EntityManager}. This will use
 	 * the {@link SimpleEntityPathResolver} to translate the given domain class into an {@link EntityPath}.
-	 * 
+	 *
 	 * @param entityInformation must not be {@literal null}.
 	 * @param entityManager must not be {@literal null}.
 	 */
@@ -71,7 +75,7 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 	/**
 	 * Creates a new {@link QueryDslJpaRepository} from the given domain class and {@link EntityManager} and uses the
 	 * given {@link EntityPathResolver} to translate the domain class into an {@link EntityPath}.
-	 * 
+	 *
 	 * @param entityInformation must not be {@literal null}.
 	 * @param entityManager must not be {@literal null}.
 	 * @param resolver must not be {@literal null}.
@@ -84,6 +88,7 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 		this.path = resolver.createPath(entityInformation.getJavaType());
 		this.builder = new PathBuilder<T>(path.getType(), path.getMetadata());
 		this.querydsl = new Querydsl(entityManager, builder);
+        this.deleteQuerydsl = new DeleteQuerydsl(entityManager, path);
 	}
 
 	/*
@@ -113,7 +118,7 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 		return executeSorted(createQuery(predicate).select(path), orders);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.querydsl.QueryDslPredicateExecutor#findAll(com.mysema.query.types.Predicate, org.springframework.data.domain.Sort)
 	 */
@@ -122,7 +127,7 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 		return executeSorted(createQuery(predicate).select(path), sort);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.querydsl.QueryDslPredicateExecutor#findAll(com.mysema.query.types.OrderSpecifier[])
 	 */
@@ -150,6 +155,16 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 		});
 	}
 
+    /*
+     * (non-Javadoc)
+     * @see org.springframework.data.querydsl.QueryDslPredicateModifyingExecutor#delete(com.mysema.query.types.Predicate)
+     */
+    @Transactional
+    @Override
+    public long delete(Predicate... predicate) {
+        return createDeleteClause(predicate).execute();
+    }
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.querydsl.QueryDslPredicateExecutor#count(com.mysema.query.types.Predicate)
@@ -159,7 +174,7 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 		return createQuery(predicate).fetchCount();
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.querydsl.QueryDslPredicateExecutor#exists(com.mysema.query.types.Predicate)
 	 */
@@ -170,7 +185,7 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 
 	/**
 	 * Creates a new {@link JPQLQuery} for the given {@link Predicate}.
-	 * 
+	 *
 	 * @param predicate
 	 * @return the Querydsl {@link JPQLQuery}.
 	 */
@@ -193,7 +208,29 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 		return query;
 	}
 
-	/**
+    /**
+     * Creates a new {@link JPADeleteClause} for the given {@link Predicate}.
+     *
+     * @param predicate
+     * @return the Querydsl {@link JPADeleteClause}.
+     */
+    protected JPADeleteClause createDeleteClause(Predicate... predicate) {
+        JPADeleteClause deleteClause = deleteQuerydsl.createQuery().where(predicate);
+        CrudMethodMetadata metadata = getRepositoryMethodMetadata();
+
+        if (metadata == null) {
+            return deleteClause;
+        }
+
+        LockModeType type = metadata.getLockModeType();
+        deleteClause = type == null ? deleteClause : deleteClause.setLockMode(type);
+
+
+        return deleteClause;
+    }
+
+
+    /**
 	 * Creates a new {@link JPQLQuery} count query for the given {@link Predicate}.
 	 *
 	 * @param predicate, can be {@literal null}.
@@ -205,7 +242,7 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 
 	/**
 	 * Executes the given {@link JPQLQuery} after applying the given {@link OrderSpecifier}s.
-	 * 
+	 *
 	 * @param query must not be {@literal null}.
 	 * @param orders must not be {@literal null}.
 	 * @return
@@ -216,7 +253,7 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 
 	/**
 	 * Executes the given {@link JPQLQuery} after applying the given {@link Sort}.
-	 * 
+	 *
 	 * @param query must not be {@literal null}.
 	 * @param sort must not be {@literal null}.
 	 * @return
