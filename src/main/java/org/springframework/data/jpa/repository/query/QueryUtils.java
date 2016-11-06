@@ -87,7 +87,7 @@ public abstract class QueryUtils {
 	private static final String IDENTIFIER = "[\\p{Lu}\\P{InBASIC_LATIN}\\p{Alnum}._$]+";
 	private static final String IDENTIFIER_GROUP = String.format("(%s)", IDENTIFIER);
 
-	private static final String JOIN = "join\\s" + IDENTIFIER + "\\s(as\\s)?" + IDENTIFIER_GROUP;
+	private static final String JOIN = "join\\s+(fetch\\s+)?" + IDENTIFIER + "\\s+(as\\s+)?" + IDENTIFIER_GROUP;
 	private static final Pattern JOIN_PATTERN = Pattern.compile(JOIN, Pattern.CASE_INSENSITIVE);
 
 	private static final String EQUALS_CONDITION_STRING = "%s.%s = :%s";
@@ -98,7 +98,7 @@ public abstract class QueryUtils {
 
 	private static final Map<PersistentAttributeType, Class<? extends Annotation>> ASSOCIATION_TYPES;
 
-	private static final int QUERY_JOIN_ALIAS_GROUP_INDEX = 2;
+	private static final int QUERY_JOIN_ALIAS_GROUP_INDEX = 3;
 	private static final int VARIABLE_NAME_GROUP_INDEX = 4;
 
 	private static final Pattern PUNCTATION_PATTERN = Pattern.compile(".*((?![\\._])[\\p{Punct}|\\s])");
