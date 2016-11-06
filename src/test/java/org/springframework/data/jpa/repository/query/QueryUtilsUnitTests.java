@@ -501,6 +501,18 @@ public class QueryUtilsUnitTests {
 		assertThat(applySorting(query, sort, "m"), endsWith("order by avgPrice asc"));
 	}
 
+	/**
+	 * @see DATAJPA-1000
+	 */
+	@Test
+	public void discoversCorrectAliasForJoinFetch() {
+
+		Set<String> aliases = QueryUtils
+				.getOuterJoinAliases("SELECT DISTINCT user FROM User user LEFT JOIN FETCH user.authorities AS authority");
+
+		assertThat(aliases, contains("authority"));
+	}
+
 	private static void assertCountQuery(String originalQuery, String countQuery) {
 		assertThat(createCountQueryFor(originalQuery), is(countQuery));
 	}
