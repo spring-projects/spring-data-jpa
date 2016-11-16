@@ -18,6 +18,7 @@ package org.springframework.data.jpa.support;
 import static org.mockito.Mockito.*;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Set;
@@ -139,14 +140,14 @@ public class ClasspathScanningPersistenceUnitPostProcessorUnitTests {
 			}
 
 			@Override
-			protected Set<Resource> doFindPathMatchingJarResources(Resource rootDirResource, String subPattern)
+			protected Set<Resource> doFindPathMatchingJarResources(Resource rootDirResource, URL rootUri, String subPattern)
 					throws IOException {
 
-				if (fileInJarUrl.equals(rootDirResource.getURI().toString())) {
+				if (fileInJarUrl.equals(rootUri.toString())) {
 					return Collections.singleton(rootDirResource);
 				}
 
-				return super.doFindPathMatchingJarResources(rootDirResource, subPattern);
+				return super.doFindPathMatchingJarResources(rootDirResource, rootUri, subPattern);
 			}
 		};
 

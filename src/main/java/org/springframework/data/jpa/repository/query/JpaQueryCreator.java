@@ -26,6 +26,7 @@ import java.util.List;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.ParameterExpression;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
@@ -252,11 +253,11 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extend
 					if (property.getLeafProperty().isCollection()) {
 
 						Expression<Collection<Object>> propertyExpression = traversePath(root, property);
-						Expression<Object> parameterExpression = provider.next(part).getExpression();
+						ParameterExpression<Object> parameterExpression = provider.next(part).getExpression();
 
 						// Can't just call .not() in case of negation as EclipseLink chokes on that.
-						return type.equals(NOT_CONTAINING) ? builder.isNotMember(parameterExpression, propertyExpression)
-								: builder.isMember(parameterExpression, propertyExpression);
+						return type.equals(NOT_CONTAINING) ? isNotMember(builder, parameterExpression, propertyExpression)
+								: isMember(builder, parameterExpression, propertyExpression);
 					}
 
 				case LIKE:
@@ -283,6 +284,16 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extend
 				default:
 					throw new IllegalArgumentException("Unsupported keyword " + type);
 			}
+		}
+
+		private <T> Predicate isMember(CriteriaBuilder builder, Expression<T> parameter,
+				Expression<Collection<T>> property) {
+			return builder.isMember(parameter, property);
+		}
+
+		private <T> Predicate isNotMember(CriteriaBuilder builder, Expression<T> parameter,
+				Expression<Collection<T>> property) {
+			return builder.isNotMember(parameter, property);
 		}
 
 		/**
