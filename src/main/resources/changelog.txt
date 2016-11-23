@@ -1,6 +1,12 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 2.0.0.M1 (2016-11-23)
+----------------------------------------
+* DATAJPA-998 - Set up 2.0 development.
+* DATAJPA-997 - Release 2.0 M1 (Kay).
+
+
 Changes in version 1.10.5.RELEASE (2016-11-03)
 ----------------------------------------------
 * DATAJPA-993 - Improve infrastructure setup example in reference documentation.
