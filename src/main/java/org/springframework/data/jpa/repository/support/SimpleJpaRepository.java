@@ -18,6 +18,7 @@ package org.springframework.data.jpa.repository.support;
 import static org.springframework.data.jpa.repository.query.QueryUtils.*;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -69,6 +70,7 @@ import org.springframework.util.Assert;
  * @author Stefan Fussenegger
  * @author Jens Schauder
  * @author David Madden
+ * @author Moritz Becker
  * @param <T> the type of the entity to handle
  * @param <ID> the type of the entity's identifier
  */
@@ -358,10 +360,16 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 			return results;
 		}
 
+		// required for eclipselink workaround, see DATAJPA-433
+		List<ID> idCollection = new ArrayList<ID>();
+		for (ID id : ids) {
+			idCollection.add(id);
+		}
+
 		ByIdsSpecification<T> specification = new ByIdsSpecification<T>(entityInformation);
 		TypedQuery<T> query = getQuery(specification, Sort.unsorted());
 
-		return query.setParameter(specification.parameter, ids).getResultList();
+		return query.setParameter(specification.parameter, idCollection).getResultList();
 	}
 
 	/*
@@ -801,7 +809,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 		private final JpaEntityInformation<T, ?> entityInformation;
 
-		@Nullable ParameterExpression<Iterable> parameter;
+		@Nullable ParameterExpression<Collection<?>> parameter;
 
 		ByIdsSpecification(JpaEntityInformation<T, ?> entityInformation) {
 			this.entityInformation = entityInformation;
@@ -815,7 +823,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
 
 			Path<?> path = root.get(entityInformation.getIdAttribute());
-			parameter = cb.parameter(Iterable.class);
+			parameter = (ParameterExpression<Collection<?>>) (ParameterExpression) cb.parameter(Collection.class);
 			return path.in(parameter);
 		}
 	}

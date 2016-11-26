@@ -33,37 +33,17 @@ import org.springframework.test.context.ContextConfiguration;
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Jens Schauder
+ * @author Moritz Becker
  */
 @ContextConfiguration(value = "classpath:eclipselink.xml")
 public class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserRepositoryTests {
 
 	/**
-	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=349477 is resolved.
-	 */
-	@Override
-	public void findsAllByGivenIds() {
-
-	}
-
-	/**
-	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=349477 is resolved.
-	 */
-	@Override
-	public void handlesIterableOfIdsCorrectly() {
-
-	}
-
-	/**
-	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=349477 is resolved.
-	 */
-	@Override
-	public void invokesQueryWithVarargsParametersCorrectly() {}
-
-	/**
 	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=422450 is resolved.
 	 */
 	@Override
-	public void sortByAssociationPropertyShouldUseLeftOuterJoin() {}
+	public void sortByAssociationPropertyShouldUseLeftOuterJoin() {
+	}
 
 	/**
 	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=422450 is resolved.
@@ -123,56 +103,29 @@ public class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserReposi
 	public void bindsNativeQueryResultsToProjectionByName() {}
 
 	/**
-	 * Ignores the test for EclipseLink 2.7.2. Reconsider once https://bugs.eclipse.org/bugs/show_bug.cgi?id=533240 is
-	 * fixed.
+	 * Ignores the test. Reconsider once https://bugs.eclipse.org/bugs/show_bug.cgi?id=533240 is fixed.
 	 */
 	@Override
-	@Test // DATAJPA-1314
-	public void findByEmptyArrayOfIntegers() throws Exception {
-
-		assumeNotEclipseLink2_7_2plus();
-
-		super.findByEmptyArrayOfIntegers();
-	}
+	public void findByEmptyArrayOfIntegers() throws Exception {}
 
 	/**
-	 * Ignores the test for EclipseLink 2.7.2. Reconsider once https://bugs.eclipse.org/bugs/show_bug.cgi?id=533240 is
-	 * fixed.
+	 * Ignores the test. Reconsider once https://bugs.eclipse.org/bugs/show_bug.cgi?id=533240 is fixed.
 	 */
 	@Override
-	@Test // DATAJPA-1314
 	public void findByAgeWithEmptyArrayOfIntegersOrFirstName() {
-
-		assumeNotEclipseLink2_7_2plus();
-
-		super.findByAgeWithEmptyArrayOfIntegersOrFirstName();
 	}
 
 	/**
-	 * Ignores the test for EclipseLink 2.7.2. Reconsider once https://bugs.eclipse.org/bugs/show_bug.cgi?id=533240 is
-	 * fixed.
+	 * Ignores the test. Reconsider once https://bugs.eclipse.org/bugs/show_bug.cgi?id=533240 is fixed.
 	 */
 	@Override
-	@Test // DATAJPA-1314
-	public void findByEmptyCollectionOfIntegers() throws Exception {
-
-		assumeNotEclipseLink2_7_2plus();
-
-		super.findByEmptyCollectionOfIntegers();
-	}
+	public void findByEmptyCollectionOfIntegers() throws Exception {}
 
 	/**
-	 * Ignores the test for EclipseLink 2.7.2. Reconsider once https://bugs.eclipse.org/bugs/show_bug.cgi?id=533240 is
-	 * fixed.
+	 * Ignores the test. Reconsider once https://bugs.eclipse.org/bugs/show_bug.cgi?id=533240 is fixed.
 	 */
 	@Override
-	@Test // DATAJPA-1314
-	public void findByEmptyCollectionOfStrings() throws Exception {
-
-		assumeNotEclipseLink2_7_2plus();
-
-		super.findByEmptyCollectionOfStrings();
-	}
+	public void findByEmptyCollectionOfStrings() throws Exception {}
 
 	/**
 	 * Ignores the test for EclipseLink.
@@ -181,10 +134,4 @@ public class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserReposi
 	@Test
 	@Ignore
 	public void savingUserThrowsAnException() {}
-
-	private void assumeNotEclipseLink2_7_2plus() {
-
-		Assume.assumeFalse("Empty collections seem to be broken in EclipseLink 2.7.2+",
-				Version.parse(getVersion()).isGreaterThanOrEqualTo(new Version(2, 7, 2)));
-	}
 }
