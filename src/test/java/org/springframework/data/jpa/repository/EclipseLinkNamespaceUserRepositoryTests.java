@@ -28,40 +28,39 @@ import org.springframework.test.context.ContextConfiguration;
 public class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserRepositoryTests {
 
 	/**
-	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=349477 is resolved.
-	 */
-	@Override
-	public void findsAllByGivenIds() {
-
-	}
-
-	/**
-	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=349477 is resolved.
-	 */
-	@Override
-	public void handlesIterableOfIdsCorrectly() {
-
-	}
-
-	/**
-	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=349477 is resolved.
-	 */
-	@Override
-	public void allowsExecutingPageableMethodWithNullPageable() {
-
-	}
-
-	/**
-	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=349477 is resolved.
-	 */
-	@Override
-	public void invokesQueryWithVarargsParametersCorrectly() {}
-
-	/**
 	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=422450 is resolved.
 	 */
 	@Override
 	public void sortByAssociationPropertyShouldUseLeftOuterJoin() {}
+
+
+	/**
+	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=349477 is resolved.
+	 */
+	@Override
+	public void findByEmptyArrayOfIntegers() throws Exception {
+	}
+
+	/**
+	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=349477 is resolved.
+	 */
+	@Override
+	public void findByAgeWithEmptyArrayOfIntegersOrFirstName() {
+	}
+
+	/**
+	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=349477 is resolved.
+	 */
+	@Override
+	public void findByEmptyCollectionOfIntegers() throws Exception {
+	}
+
+	/**
+	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=349477 is resolved.
+	 */
+	@Override
+	public void findByEmptyCollectionOfStrings() throws Exception {
+	}
 
 	/**
 	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=422450 is resolved.
@@ -69,9 +68,4 @@ public class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserReposi
 	@Override
 	public void sortByAssociationPropertyInPageableShouldUseLeftOuterJoin() {}
 
-	/**
-	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=349477 is resolved.
-	 */
-	@Override
-	public void findByElementCollectionAttribute() {}
 }

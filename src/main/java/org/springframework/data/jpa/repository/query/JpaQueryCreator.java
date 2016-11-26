@@ -241,9 +241,9 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extend
 				case IS_NOT_NULL:
 					return getTypedPath(root, part).isNotNull();
 				case NOT_IN:
-					return getTypedPath(root, part).in(provider.next(part, Collection.class).getExpression()).not();
+					return getTypedPath(root, part).in((Expression<Collection<?>>) provider.next(part, Collection.class).getExpression()).not();
 				case IN:
-					return getTypedPath(root, part).in(provider.next(part, Collection.class).getExpression());
+					return getTypedPath(root, part).in((Expression<Collection<?>>) provider.next(part, Collection.class).getExpression());
 				case STARTING_WITH:
 				case ENDING_WITH:
 				case CONTAINING:

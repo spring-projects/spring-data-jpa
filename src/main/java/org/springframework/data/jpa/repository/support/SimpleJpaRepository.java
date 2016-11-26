@@ -19,6 +19,7 @@ import static org.springframework.data.jpa.repository.query.QueryUtils.*;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -350,10 +351,16 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 			return results;
 		}
 
+		// required for eclipselink workaround
+		List<ID> idCollection = new ArrayList<ID>();
+		for (ID id : ids) {
+			idCollection.add(id);
+		}
+
 		ByIdsSpecification<T> specification = new ByIdsSpecification<T>(entityInformation);
 		TypedQuery<T> query = getQuery(specification, (Sort) null);
 
-		return query.setParameter(specification.parameter, ids).getResultList();
+		return query.setParameter(specification.parameter, idCollection).getResultList();
 	}
 
 	/*
@@ -777,7 +784,7 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 
 		private final JpaEntityInformation<T, ?> entityInformation;
 
-		ParameterExpression<Iterable> parameter;
+		ParameterExpression<Collection<?>> parameter;
 
 		public ByIdsSpecification(JpaEntityInformation<T, ?> entityInformation) {
 			this.entityInformation = entityInformation;
@@ -790,7 +797,7 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 		public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
 
 			Path<?> path = root.get(entityInformation.getIdAttribute());
-			parameter = cb.parameter(Iterable.class);
+			parameter = (ParameterExpression<Collection<?>>) (ParameterExpression) cb.parameter(Collection.class);
 			return path.in(parameter);
 		}
 	}
