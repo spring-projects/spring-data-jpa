@@ -69,6 +69,7 @@ import org.springframework.util.Assert;
  * @author Eberhard Wolff
  * @author Thomas Darimont
  * @author Mark Paluch
+ * @author Moritz Becker
  * @param <T> the type of the entity to handle
  * @param <ID> the type of the entity's identifier
  */
@@ -351,7 +352,7 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 			return results;
 		}
 
-		// required for eclipselink workaround
+		// required for eclipselink workaround, see DATAJPA-433
 		List<ID> idCollection = new ArrayList<ID>();
 		for (ID id : ids) {
 			idCollection.add(id);

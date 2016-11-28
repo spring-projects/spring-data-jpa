@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2015 the original author or authors.
+ * Copyright 2008-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,6 +45,7 @@ import org.springframework.util.Assert;
  * Query creator to create a {@link CriteriaQuery} from a {@link PartTree}.
  * 
  * @author Oliver Gierke
+ * @author Moritz Becker
  */
 public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extends Object>, Predicate> {
 
@@ -241,8 +242,10 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extend
 				case IS_NOT_NULL:
 					return getTypedPath(root, part).isNotNull();
 				case NOT_IN:
+					// cast required for eclipselink workaround, see DATAJPA-433
 					return getTypedPath(root, part).in((Expression<Collection<?>>) provider.next(part, Collection.class).getExpression()).not();
 				case IN:
+					// cast required for eclipselink workaround, see DATAJPA-433
 					return getTypedPath(root, part).in((Expression<Collection<?>>) provider.next(part, Collection.class).getExpression());
 				case STARTING_WITH:
 				case ENDING_WITH:

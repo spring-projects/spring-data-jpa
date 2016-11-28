@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2014 the original author or authors.
+ * Copyright 2008-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import org.springframework.test.context.ContextConfiguration;
  * 
  * @author Oliver Gierke
  * @author Thomas Darimont
+ * @author Moritz Becker
  */
 @ContextConfiguration(value = "classpath:eclipselink.xml")
 public class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserRepositoryTests {
@@ -31,7 +32,8 @@ public class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserReposi
 	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=422450 is resolved.
 	 */
 	@Override
-	public void sortByAssociationPropertyShouldUseLeftOuterJoin() {}
+	public void sortByAssociationPropertyShouldUseLeftOuterJoin() {
+	}
 
 
 	/**
@@ -66,6 +68,7 @@ public class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserReposi
 	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=422450 is resolved.
 	 */
 	@Override
-	public void sortByAssociationPropertyInPageableShouldUseLeftOuterJoin() {}
+	public void sortByAssociationPropertyInPageableShouldUseLeftOuterJoin() {
+	}
 
 }
