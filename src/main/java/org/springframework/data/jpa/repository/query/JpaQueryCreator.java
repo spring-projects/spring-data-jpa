@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -63,10 +62,10 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extend
 	/**
 	 * Create a new {@link JpaQueryCreator}.
 	 * 
-	 * @param tree
-	 * @param domainClass
-	 * @param accessor
-	 * @param em
+	 * @param tree must not be {@literal null}.
+	 * @param type must not be {@literal null}.
+	 * @param builder must not be {@literal null}.
+	 * @param provider must not be {@literal null}.
 	 */
 	public JpaQueryCreator(PartTree tree, ReturnedType type, CriteriaBuilder builder,
 			ParameterMetadataProvider provider) {
@@ -94,7 +93,8 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extend
 
 		Class<?> typeToRead = type.getTypeToRead();
 
-		return (typeToRead == null || tree.isExistsProjection()) ? builder.createTupleQuery() : builder.createQuery(typeToRead);
+		return typeToRead == null || tree.isExistsProjection() ? builder.createTupleQuery()
+				: builder.createQuery(typeToRead);
 	}
 
 	/**
@@ -169,24 +169,26 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extend
 			}
 
 			query = query.multiselect(selections);
+
 		} else if (tree.isExistsProjection()) {
 
 			if (root.getModel().hasSingleIdAttribute()) {
 
 				SingularAttribute<?, ?> id = root.getModel().getId(root.getModel().getIdType().getJavaType());
 				query = query.multiselect(root.get((SingularAttribute) id).alias(id.getName()));
+
 			} else {
 
 				List<Selection<?>> selections = new ArrayList<Selection<?>>();
 
-				Set<SingularAttribute<?, ?>> idClassAttributes = (Set<SingularAttribute<?, ?>>) root.getModel().getIdClassAttributes();
-
-				for (SingularAttribute<?, ?> attribute : idClassAttributes) {
+				for (SingularAttribute<?, ?> attribute : root.getModel().getIdClassAttributes()) {
 					selections.add(root.get((SingularAttribute) attribute).alias(attribute.getName()));
 				}
+
 				selections.add(root.get((SingularAttribute) id).alias(id.getName()));
 				query = query.multiselect(selections);
 			}
+
 		} else {
 			query = query.select((Root) root);
 		}
