@@ -597,8 +597,8 @@
 
 	<pluginRepositories>
 		<pluginRepository>
-			<id>spring-plugins-release</id>
-			<url>https://repo.spring.io/plugins-release</url>
+			<id>spring-plugins-snapshot</id>
+			<url>https://repo.spring.io/plugins-snapshot</url>
 		</pluginRepository>
 	</pluginRepositories>
 
