@@ -15,15 +15,9 @@
  */
 package org.springframework.data.jpa.domain.sample;
 
-import java.util.UUID;
-
-import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
 import javax.persistence.Table;
 
-import org.hibernate.annotations.GenericGenerator;
 import org.springframework.data.jpa.domain.AbstractPersistable;
 
 /**
@@ -31,16 +25,7 @@ import org.springframework.data.jpa.domain.AbstractPersistable;
  */
 @Entity
 @Table(name = "customAbstractPersistable")
-public class CustomAbstractPersistable extends AbstractPersistable<UUID> {
+public class CustomAbstractPersistable extends AbstractPersistable<Long> {
 
 	private static final long serialVersionUID = 1L;
-
-	@Id
-	@Override
-	@GeneratedValue(generator = "uuid2")
-	@GenericGenerator(name = "uuid2", strategy = "uuid2")
-	@Column(name = "task_id", columnDefinition = "BINARY(16)")
-	public UUID getId() {
-		return super.getId();
-	}
 }
