@@ -49,13 +49,13 @@
 		<profile>
 			<id>hibernate-5</id>
 			<properties>
-				<hibernate>5.0.9.Final</hibernate>
+				<hibernate>5.0.10.Final</hibernate>
 			</properties>
 		</profile>
 		<profile>
 			<id>hibernate-5-next</id>
 			<properties>
-				<hibernate>5.0.10-SNAPSHOTS</hibernate>
+				<hibernate>5.0.11-SNAPSHOTS</hibernate>
 			</properties>
 			<repositories>
 				<repository>
