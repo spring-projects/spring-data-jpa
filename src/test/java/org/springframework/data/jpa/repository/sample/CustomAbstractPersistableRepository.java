@@ -15,8 +15,6 @@
  */
 package org.springframework.data.jpa.repository.sample;
 
-import java.util.UUID;
-
 import org.springframework.data.jpa.domain.sample.CustomAbstractPersistable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -24,4 +22,4 @@ import org.springframework.data.jpa.repository.JpaRepository;
  * @author Thomas Darimont
  * @author Oliver Gierke
  */
-public interface CustomAbstractPersistableRepository extends JpaRepository<CustomAbstractPersistable, UUID> {}
+public interface CustomAbstractPersistableRepository extends JpaRepository<CustomAbstractPersistable, Long> {}
