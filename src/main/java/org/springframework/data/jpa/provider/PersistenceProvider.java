@@ -54,7 +54,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Oliver Gierke
  * @author Thomas Darimont
  */
-public enum PersistenceProvider implements QueryExtractor,ProxyIdAccessor {
+public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 
 	/**
 	 * Hibernate persistence provider.
@@ -65,8 +65,9 @@ public enum PersistenceProvider implements QueryExtractor,ProxyIdAccessor {
 	 * @see DATAJPA-444
 	 */
 	HIBERNATE(//
-			Arrays.asList(HIBERNATE43_ENTITY_MANAGER_INTERFACE, HIBERNATE_ENTITY_MANAGER_INTERFACE), //
-			Arrays.asList(HIBERNATE43_JPA_METAMODEL_TYPE, HIBERNATE_JPA_METAMODEL_TYPE)) {
+			Arrays.asList(HIBERNATE52_ENTITY_MANAGER_INTERFACE, HIBERNATE43_ENTITY_MANAGER_INTERFACE,
+					HIBERNATE_ENTITY_MANAGER_INTERFACE), //
+			Arrays.asList(HIBERNATE52_JPA_METAMODEL_TYPE, HIBERNATE43_JPA_METAMODEL_TYPE, HIBERNATE_JPA_METAMODEL_TYPE)) {
 
 		public String extractQueryString(Query query) {
 			return HibernateUtils.getHibernateQuery(query);
@@ -124,8 +125,7 @@ public enum PersistenceProvider implements QueryExtractor,ProxyIdAccessor {
 	/**
 	 * EclipseLink persistence provider.
 	 */
-	ECLIPSELINK(Collections.singleton(ECLIPSELINK_ENTITY_MANAGER_INTERFACE),
-			Collections.singleton(ECLIPSELINK_JPA_METAMODEL_TYPE)) {
+	ECLIPSELINK(Collections.singleton(ECLIPSELINK_ENTITY_MANAGER_INTERFACE), Collections.singleton(ECLIPSELINK_JPA_METAMODEL_TYPE)) {
 
 		public String extractQueryString(Query query) {
 			return ((JpaQuery<?>) query).getDatabaseQuery().getJPQLString();
@@ -263,9 +263,11 @@ public enum PersistenceProvider implements QueryExtractor,ProxyIdAccessor {
 		String ECLIPSELINK_ENTITY_MANAGER_INTERFACE = "org.eclipse.persistence.jpa.JpaEntityManager";
 		String HIBERNATE_ENTITY_MANAGER_INTERFACE = "org.hibernate.ejb.HibernateEntityManager";
 		String HIBERNATE43_ENTITY_MANAGER_INTERFACE = "org.hibernate.jpa.HibernateEntityManager";
+		String HIBERNATE52_ENTITY_MANAGER_INTERFACE = "org.hibernate.Session";
 
 		String HIBERNATE_JPA_METAMODEL_TYPE = "org.hibernate.ejb.metamodel.MetamodelImpl";
 		String HIBERNATE43_JPA_METAMODEL_TYPE = "org.hibernate.jpa.internal.metamodel.MetamodelImpl";
+		String HIBERNATE52_JPA_METAMODEL_TYPE = "org.hibernate.metamodel.internal.MetamodelImpl";
 		String ECLIPSELINK_JPA_METAMODEL_TYPE = "org.eclipse.persistence.internal.jpa.metamodel.MetamodelImpl";
 		String OPENJPA_JPA_METAMODEL_TYPE = "org.apache.openjpa.persistence.meta.MetamodelImpl";
 	}

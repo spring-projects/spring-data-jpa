@@ -25,6 +25,8 @@ import java.util.List;
 
 import javax.persistence.EntityManager;
 
+import org.hibernate.Version;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -100,6 +102,21 @@ public class PersistenceProviderUnitTests {
 		EntityManager em = mockProviderSpecificEntityManagerInterface("foo.bar.unknown.jpa.JpaEntityManager");
 
 		assertThat(fromEntityManager(em), is(GENERIC_JPA));
+	}
+
+	/**
+	 * @see DATAJPA-1019
+	 */
+	@Test
+	public void detectsHibernatePersistenceProviderForHibernateVersion52() throws Exception {
+
+		Assume.assumeThat(Version.getVersionString(), startsWith("5.2"));
+
+		shadowingClassLoader.excludePackage("org.hibernate");
+
+		EntityManager em = mockProviderSpecificEntityManagerInterface(HIBERNATE52_ENTITY_MANAGER_INTERFACE);
+
+		assertThat(fromEntityManager(em), is(HIBERNATE));
 	}
 
 	private EntityManager mockProviderSpecificEntityManagerInterface(String interfaceName) throws ClassNotFoundException {
