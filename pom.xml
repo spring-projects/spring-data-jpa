@@ -56,13 +56,13 @@
 		<profile>
 			<id>hibernate-5</id>
 			<properties>
-				<hibernate>5.0.7.Final</hibernate>
+				<hibernate>5.0.10.Final</hibernate>
 			</properties>
 		</profile>
 		<profile>
 			<id>hibernate-5-next</id>
 			<properties>
-				<hibernate>5.0.8-SNAPSHOT</hibernate>
+				<hibernate>5.0.11-SNAPSHOTS</hibernate>
 			</properties>
 			<repositories>
 				<repository>
