@@ -97,13 +97,13 @@
 		<profile>
 			<id>hibernate-51</id>
 			<properties>
-				<hibernate>5.1.0.Final</hibernate>
+				<hibernate>5.1.1.Final</hibernate>
 			</properties>
 		</profile>
 		<profile>
 			<id>hibernate-51-next</id>
 			<properties>
-				<hibernate>5.1.1-SNAPSHOT</hibernate>
+				<hibernate>5.1.2-SNAPSHOT</hibernate>
 			</properties>
 			<repositories>
 				<repository>
