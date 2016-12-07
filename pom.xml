@@ -30,10 +30,23 @@
 		<springdata.commons>1.13.0.BUILD-SNAPSHOT</springdata.commons>
 
 		<sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
+		<skip-openjpa>false</skip-openjpa>
 
 	</properties>
 
 	<profiles>
+		<profile>
+			<id>spring5</id>
+			<properties>
+				<skip-openjpa>true</skip-openjpa>
+			</properties>
+		</profile>
+		<profile>
+			<id>spring5-next</id>
+			<properties>
+				<skip-openjpa>true</skip-openjpa>
+			</properties>
+		</profile>
 		<profile>
 			<id>hibernate-41</id>
 			<properties>
@@ -457,6 +470,7 @@
 						</goals>
 						<phase>test</phase>
 						<configuration>
+							<skip>${skip-openjpa}</skip>
 							<includes>
 								<include>**/OpenJpa*Tests.java</include>
 							</includes>
