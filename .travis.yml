@@ -9,8 +9,6 @@ env:
     - PROFILE=spring42-next
     - PROFILE=spring43
     - PROFILE=spring43-next
-    - PROFILE=spring5,hibernate-43
-    - PROFILE=spring5-next,hibernate-43
     - PROFILE=hibernate-41
     - PROFILE=hibernate-42
     - PROFILE=hibernate-42-next
