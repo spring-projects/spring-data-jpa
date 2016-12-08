@@ -555,7 +555,7 @@
 							<goal>process</goal>
 						</goals>
 						<configuration>
-							<outputDirectory>target/generated-sources/annotations</outputDirectory>
+							<outputDirectory>target/generated-sources/querydsl</outputDirectory>
 						</configuration>
 					</execution>
 					<execution>
@@ -565,7 +565,7 @@
 							<goal>test-process</goal>
 						</goals>
 						<configuration>
-							<testOutputDirectory>target/generated-test-sources/test-annotations</testOutputDirectory>
+							<testOutputDirectory>target/generated-test-sources/test-querydsl</testOutputDirectory>
 							<options>
 								<querydsl.excludedClasses>
 									org.springframework.data.jpa.repository.util.JpaClassUtilsUnitTests.NamedUser,org.springframework.data.jpa.repository.query.ParameterBinderUnitTests.SampleEmbeddable
