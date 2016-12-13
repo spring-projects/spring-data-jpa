@@ -269,7 +269,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 
 				Object value = tuple.get(elements.get(0));
 
-				if (type.isInstance(value)) {
+				if (type.isInstance(value) || value == null) {
 					return value;
 				}
 			}
