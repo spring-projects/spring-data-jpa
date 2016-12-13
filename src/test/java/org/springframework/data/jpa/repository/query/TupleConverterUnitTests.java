@@ -24,6 +24,7 @@ import java.util.Arrays;
 import javax.persistence.Tuple;
 import javax.persistence.TupleElement;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -49,6 +50,17 @@ public class TupleConverterUnitTests {
 	@Mock TupleElement<String> element;
 	@Mock ProjectionFactory factory;
 
+	ReturnedType type;
+
+	@Before
+	public void setUp() throws Exception {
+
+		RepositoryMetadata metadata = new DefaultRepositoryMetadata(SampleRepository.class);
+		QueryMethod method = new QueryMethod(SampleRepository.class.getMethod("someMethod"), metadata, factory);
+
+		this.type = method.getResultProcessor().getReturnedType();
+	}
+
 	/**
 	 * @see DATAJPA-984
 	 */
@@ -56,17 +68,27 @@ public class TupleConverterUnitTests {
 	@SuppressWarnings("unchecked")
 	public void returnsSingleTupleElementIfItMatchesExpectedType() throws Exception {
 
-		RepositoryMetadata metadata = new DefaultRepositoryMetadata(SampleRepository.class);
-		QueryMethod method = new QueryMethod(SampleRepository.class.getMethod("someMethod"), metadata, factory);
-		ReturnedType type = method.getResultProcessor().getReturnedType();
-
-		doReturn(element).when(tuple).get(0);
 		doReturn(Arrays.asList(element)).when(tuple).getElements();
 		doReturn("Foo").when(tuple).get(element);
 
 		TupleConverter converter = new TupleConverter(type);
 
 		assertThat(converter.convert(tuple), is((Object) "Foo"));
+	}
+
+	/**
+	 * @see DATAJPA-1024
+	 */
+	@Test
+	@SuppressWarnings("unchecked")
+	public void returnsNullForSingleElementTupleWithNullValue() throws Exception {
+
+		doReturn(Arrays.asList(element)).when(tuple).getElements();
+		doReturn(null).when(tuple).get(element);
+
+		TupleConverter converter = new TupleConverter(type);
+
+		assertThat(converter.convert(tuple), is(nullValue()));
 	}
 
 	static interface SampleRepository extends CrudRepository<Object, Long> {
