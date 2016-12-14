@@ -27,10 +27,12 @@ import javax.persistence.StoredProcedureQuery;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.ConfigurableConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
 import org.springframework.data.jpa.provider.PersistenceProvider;
+import org.springframework.data.repository.core.support.SurroundingTransactionDetectorMethodInterceptor;
 import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
@@ -323,12 +325,18 @@ public abstract class JpaQueryExecution {
 	 */
 	static class StreamExecution extends JpaQueryExecution {
 
+		private static final String NO_SURROUNDING_TRANSACTION = "You're trying to execute a streaming query method without a surrounding transaction that keeps the connection open so that the Stream can actually be consumed. Make sure the code consuming the stream uses @Transactional or any other way of declaring a (read-only) transaction.";
+
 		/*
 		 * (non-Javadoc)
 		 * @see org.springframework.data.jpa.repository.query.JpaQueryExecution#doExecute(org.springframework.data.jpa.repository.query.AbstractJpaQuery, java.lang.Object[])
 		 */
 		@Override
 		protected Object doExecute(final AbstractJpaQuery query, Object[] values) {
+
+			if (!SurroundingTransactionDetectorMethodInterceptor.INSTANCE.isSurroundingTransactionActive()) {
+				throw new InvalidDataAccessApiUsageException(NO_SURROUNDING_TRANSACTION);
+			}
 
 			Query jpaQuery = query.createQuery(values);
 			PersistenceProvider persistenceProvider = PersistenceProvider.fromEntityManager(query.getEntityManager());
