@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2015 the original author or authors.
+ * Copyright 2008-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,10 +22,12 @@ import static org.springframework.data.domain.Sort.Direction.*;
 import java.util.Arrays;
 import java.util.List;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
@@ -37,6 +39,7 @@ import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -66,6 +69,13 @@ public class UserRepositoryFinderTests {
 		dave = userRepository.save(new User("Dave", "Matthews", "dave@dmband.com", singer));
 		carter = userRepository.save(new User("Carter", "Beauford", "carter@dmband.com", singer, drummer));
 		oliver = userRepository.save(new User("Oliver August", "Matthews", "oliver@dmband.com"));
+	}
+
+	@After
+	public void clearUp() {
+
+		userRepository.deleteAll();
+		roleRepository.deleteAll();
 	}
 
 	/**
@@ -233,5 +243,14 @@ public class UserRepositoryFinderTests {
 	@Test
 	public void executesQueryWithProjectionContainingReferenceToPluralAttribute() {
 		assertThat(userRepository.findRolesAndFirstnameBy(), is(notNullValue()));
+	}
+
+	/**
+	 * @see DATAJPA-1023, DATACMNS-959
+	 */
+	@Test(expected = InvalidDataAccessApiUsageException.class)
+	@Transactional(propagation = Propagation.NOT_SUPPORTED)
+	public void rejectsStreamExecutionIfNoSurroundingTransactionActive() {
+		userRepository.findAllByCustomQueryAndStream();
 	}
 }
