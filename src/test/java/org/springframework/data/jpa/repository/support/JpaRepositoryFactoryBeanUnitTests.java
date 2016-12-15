@@ -51,18 +51,12 @@ public class JpaRepositoryFactoryBeanUnitTests {
 
 	JpaRepositoryFactoryBean<SimpleSampleRepository, User, Integer> factoryBean;
 
-	@Mock
-	EntityManager entityManager;
-	@Mock
-	RepositoryFactorySupport factory;
-	@Mock
-	ListableBeanFactory beanFactory;
-	@Mock
-	PersistenceExceptionTranslator translator;
-	@Mock
-	Repository<?, ?> repository;
-	@Mock
-	Metamodel metamodel;
+	@Mock EntityManager entityManager;
+	@Mock RepositoryFactorySupport factory;
+	@Mock ListableBeanFactory beanFactory;
+	@Mock PersistenceExceptionTranslator translator;
+	@Mock Repository<?, ?> repository;
+	@Mock Metamodel metamodel;
 
 	@Before
 	@SuppressWarnings("unchecked")
@@ -70,14 +64,14 @@ public class JpaRepositoryFactoryBeanUnitTests {
 
 		Map<String, PersistenceExceptionTranslator> beans = new HashMap<String, PersistenceExceptionTranslator>();
 		beans.put("foo", translator);
-		when(beanFactory.getBeansOfType(eq(PersistenceExceptionTranslator.class), anyBoolean(), anyBoolean())).thenReturn(
-				beans);
+		when(beanFactory.getBeansOfType(eq(PersistenceExceptionTranslator.class), anyBoolean(), anyBoolean()))
+				.thenReturn(beans);
 		when(factory.getRepository(any(Class.class), any(Object.class))).thenReturn(repository);
 		when(entityManager.getMetamodel()).thenReturn(metamodel);
 
 		// Setup standard factory configuration
-		factoryBean = new DummyJpaRepositoryFactoryBean<SimpleSampleRepository, User, Integer>();
-		factoryBean.setRepositoryInterface(SimpleSampleRepository.class);
+		factoryBean = new DummyJpaRepositoryFactoryBean<SimpleSampleRepository, User, Integer>(
+				SimpleSampleRepository.class);
 		factoryBean.setEntityManager(entityManager);
 	}
 
@@ -107,34 +101,22 @@ public class JpaRepositoryFactoryBeanUnitTests {
 	 */
 	@Test(expected = IllegalArgumentException.class)
 	public void preventsNullRepositoryInterface() {
-
-		factoryBean.setRepositoryInterface(null);
+		new JpaRepositoryFactoryBean<Repository<Object, Long>, Object, Long>(null);
 	}
 
-	/**
-	 * Assert that the factory detects unset repository class and interface in
-	 * {@code JpaRepositoryFactoryBean#afterPropertiesSet()}.
-	 */
-	@Test(expected = IllegalArgumentException.class)
-	public void preventsUnsetRepositoryInterface() throws Exception {
+	private class DummyJpaRepositoryFactoryBean<T extends JpaRepository<S, ID>, S, ID extends Serializable>
+			extends JpaRepositoryFactoryBean<T, S, ID> {
 
-		factoryBean = new JpaRepositoryFactoryBean<SimpleSampleRepository, User, Integer>();
-		factoryBean.afterPropertiesSet();
-	}
-
-	private class DummyJpaRepositoryFactoryBean<T extends JpaRepository<S, ID>, S, ID extends Serializable> extends
-			JpaRepositoryFactoryBean<T, S, ID> {
+		public DummyJpaRepositoryFactoryBean(Class<? extends T> repositoryInterface) {
+			super(repositoryInterface);
+		}
 
 		/*
 		 * (non-Javadoc)
-		 * 
-		 * @see
-		 * org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean
-		 * #createRepositoryFactory()
+		 * @see org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean#doCreateRepositoryFactory()
 		 */
 		@Override
 		protected RepositoryFactorySupport doCreateRepositoryFactory() {
-
 			return factory;
 		}
 	}

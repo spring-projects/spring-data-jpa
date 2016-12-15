@@ -41,7 +41,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigUtils;
 import org.springframework.data.repository.config.RepositoryConfigurationExtension;
 import org.springframework.data.repository.config.RepositoryConfigurationSource;
-import org.springframework.data.repository.core.support.RepositoryFactoryBeanSupport;
 import org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor;
 
 /**
@@ -51,8 +50,6 @@ import org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcesso
  */
 @RunWith(MockitoJUnitRunner.class)
 public class JpaRepositoryConfigExtensionUnitTests {
-
-	private static final String RIABPP_CLASS_NAME = RepositoryFactoryBeanSupport.class.getName().concat("_Predictor");
 
 	@Mock RepositoryConfigurationSource configSource;
 
@@ -68,7 +65,7 @@ public class JpaRepositoryConfigExtensionUnitTests {
 
 		Iterable<String> names = Arrays.asList(factory.getBeanDefinitionNames());
 
-		assertThat(names, hasItems(AnnotationConfigUtils.PERSISTENCE_ANNOTATION_PROCESSOR_BEAN_NAME, RIABPP_CLASS_NAME));
+		assertThat(names, hasItems(AnnotationConfigUtils.PERSISTENCE_ANNOTATION_PROCESSOR_BEAN_NAME));
 	}
 
 	@Test

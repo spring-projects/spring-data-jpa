@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 the original author or authors.
+ * Copyright 2008-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,8 +29,12 @@ import org.springframework.data.repository.core.support.RepositoryFactorySupport
  * @author Gil Markham
  * @author Oliver Gierke
  */
-public class CustomGenericJpaRepositoryFactoryBean<T extends JpaRepository<Object, Serializable>> extends
-		JpaRepositoryFactoryBean<T, Object, Serializable> {
+public class CustomGenericJpaRepositoryFactoryBean<T extends JpaRepository<Object, Serializable>>
+		extends JpaRepositoryFactoryBean<T, Object, Serializable> {
+
+	public CustomGenericJpaRepositoryFactoryBean(Class<? extends T> repositoryInterface) {
+		super(repositoryInterface);
+	}
 
 	/*
 	 * (non-Javadoc)

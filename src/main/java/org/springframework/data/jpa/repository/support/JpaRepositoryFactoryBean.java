@@ -34,10 +34,19 @@ import org.springframework.util.Assert;
  * @author Eberhard Wolff
  * @param <T> the type of the repository
  */
-public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID extends Serializable> extends
-		TransactionalRepositoryFactoryBeanSupport<T, S, ID> {
+public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID extends Serializable>
+		extends TransactionalRepositoryFactoryBeanSupport<T, S, ID> {
 
 	private EntityManager entityManager;
+
+	/**
+	 * Creates a new {@link JpaRepositoryFactoryBean} for the given repository interface.
+	 * 
+	 * @param repositoryInterface must not be {@literal null}.
+	 */
+	public JpaRepositoryFactoryBean(Class<? extends T> repositoryInterface) {
+		super(repositoryInterface);
+	}
 
 	/**
 	 * The {@link EntityManager} to be used.
