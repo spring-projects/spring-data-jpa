@@ -76,10 +76,10 @@ public class JavaConfigUserRepositoryTests extends UserRepositoryTests {
 					extensions);
 			evaluationContextProvider.setApplicationContext(applicationContext);
 
-			JpaRepositoryFactoryBean<UserRepository, User, Integer> factory = new JpaRepositoryFactoryBean<UserRepository, User, Integer>();
+			JpaRepositoryFactoryBean<UserRepository, User, Integer> factory = new JpaRepositoryFactoryBean<UserRepository, User, Integer>(
+					UserRepository.class);
 			factory.setEntityManager(entityManager);
 			factory.setBeanFactory(applicationContext);
-			factory.setRepositoryInterface(UserRepository.class);
 			factory
 					.setCustomImplementation(new UserRepositoryImpl(new DefaultJpaContext(Collections.singleton(entityManager))));
 			factory.setNamedQueries(namedQueries());

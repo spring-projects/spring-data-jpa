@@ -10,7 +10,7 @@
 
 	<!-- Configure a DAO for User class -->
 	<bean id="userDao" class="org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean">
-		<property name="repositoryInterface" value="org.springframework.data.jpa.repository.sample.UserRepository" />
+		<constructor-arg value="org.springframework.data.jpa.repository.sample.UserRepository" />
 		<property name="customImplementation">
 			<bean class="org.springframework.data.jpa.repository.sample.UserRepositoryImpl">
 				<constructor-arg>
@@ -25,12 +25,11 @@
 				</constructor-arg>
 			</bean>
 		</property>
-		
 		<property name="evaluationContextProvider" ref="expressionEvaluationContextProvider"/>
 	</bean>
 	
 	<bean id="roleDao" class="org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean">
-		<property name="repositoryInterface" value="org.springframework.data.jpa.repository.sample.RoleRepository" />
+		<constructor-arg value="org.springframework.data.jpa.repository.sample.RoleRepository" />
 		<property name="evaluationContextProvider" ref="expressionEvaluationContextProvider"/>
 	</bean>
 
