@@ -23,6 +23,11 @@ env:
     - PROFILE=eclipselink-27-next
     - PROFILE=querydsl-next
 
+addons:
+  apt:
+    packages:
+    - oracle-java8-installer
+
 sudo: false
 
 cache:
