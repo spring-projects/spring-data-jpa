@@ -1,6 +1,21 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 1.10.6.RELEASE (2016-12-21)
+----------------------------------------------
+* DATAJPA-1029 - JpaQueryCreator should deduplicate multi-select selections.
+* DATAJPA-1024 - Querrying empty table for non-standard JPA type results in IllegalStateExcepion with the message "No aliases found in result tuple".
+* DATAJPA-1022 - Drop Travis CI build profile for Spring 5 for Hopper.
+* DATAJPA-1021 - Make sure builds against Spring 5 skip tests for OpenJPA.
+* DATAJPA-1020 - Tweak Travis build against Hibernate 5.2 to run on Spring 4.3.
+* DATAJPA-1019 - Make sure build runs on Hibernate 5.
+* DATAJPA-1018 - Upgrade Hibernate build profile to latest releases.
+* DATAJPA-1000 - Pageable With Fetch not returning the right alias Name.
+* DATAJPA-994 - Release 1.10.6 (Hopper SR6).
+* DATAJPA-914 - findAll with Iterable parameter gives JpaSystemException when using Hibernate 5.2.
+* DATAJPA-911 - Assert compatibility with Hibernate 5.2.
+
+
 Changes in version 1.11.0.RC1 (2016-12-21)
 ------------------------------------------
 * DATAJPA-1029 - JpaQueryCreator should deduplicate multi-select selections.
