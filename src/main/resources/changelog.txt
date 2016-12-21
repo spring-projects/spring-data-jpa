@@ -1,6 +1,40 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 1.11.0.RC1 (2016-12-21)
+------------------------------------------
+* DATAJPA-1029 - JpaQueryCreator should deduplicate multi-select selections.
+* DATAJPA-1027 - Upgrade to a newer JDK version on TravisCI.
+* DATAJPA-1026 - Adapt API in RepositoryFactoryBeanSupport implementation.
+* DATAJPA-1023 - Reject stream executions if not executed within transaction.
+* DATAJPA-1021 - Make sure builds against Spring 5 skip tests for OpenJPA.
+* DATAJPA-1019 - Make sure build runs on Hibernate 5.
+* DATAJPA-1018 - Upgrade Hibernate build profile to latest releases.
+* DATAJPA-1017 - Make sure tests work on Spring 5.
+* DATAJPA-1014 - Register repository factory in spring.factories for multi-store support.
+* DATAJPA-1000 - Pageable With Fetch not returning the right alias Name.
+* DATAJPA-993 - Improve infrastructure setup example in reference documentation.
+* DATAJPA-992 - Fix package name in JavaDoc of AuditingEntityListener.
+* DATAJPA-984 - JPA projection query returning single non-standard JPA type results in "No aliases found in result tuple" error.
+* DATAJPA-978 - Upgrade Hibernate 5.2 build profile to 5.2.4.
+* DATAJPA-974 - Projections referring to collection attributes don't create a proper selection (missing joins).
+* DATAJPA-970 - Ensure JDK 6 compatibility of regular expression used in QueryUtils.
+* DATAJPA-965 - Mapping Sort instances to ORDER BY expressions should be restricted to fields for manually defined queries.
+* DATAJPA-962 - Update Travis configuration with build profiles for Spring 5.
+* DATAJPA-960 - Order by clause not created correctly if a manually defined query is not using an alias.
+* DATAJPA-956 - Error creating DefaultJpaContext bean with a non-EntityManagerFactory JndiObjectFactoryBean defined via JavaConfig.
+* DATAJPA-953 - Fix typo in reference documentation.
+* DATAJPA-951 - Projections not handled correctly when Optional is used as wrapping return type.
+* DATAJPA-950 - Upgrade Hibernate 5 build profile to 5.2.2.
+* DATAJPA-941 - JpaClassUtils.isOfType performance improvement.
+* DATAJPA-939 - Release 1.11 RC1 (Ingalls).
+* DATAJPA-938 - Complex select clauses in manually declared query using constructor expressions fail.
+* DATAJPA-920 - Add support for exists projection in repository query derivation.
+* DATAJPA-914 - findAll with Iterable parameter gives JpaSystemException when using Hibernate 5.2.
+* DATAJPA-911 - Assert compatibility with Hibernate 5.2.
+* DATAJPA-790 - org.hibernate.QueryException when applying @EntityGraph on (Querydsl) findAll(Predicate, Pageable) method.
+
+
 Changes in version 2.0.0.M1 (2016-11-23)
 ----------------------------------------
 * DATAJPA-998 - Set up 2.0 development.
