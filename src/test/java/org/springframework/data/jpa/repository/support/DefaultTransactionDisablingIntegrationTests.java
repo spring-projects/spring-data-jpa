@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,10 +47,7 @@ public abstract class DefaultTransactionDisablingIntegrationTests {
 	@Autowired UserRepository repository;
 	@Autowired DelegatingTransactionManager txManager;
 
-	/**
-	 * @see DATAJPA-685
-	 */
-	@Test
+	@Test // DATAJPA-685
 	public void considersExplicitConfigurationOnRepositoryInterface() {
 
 		repository.findOne(1);
@@ -58,10 +55,7 @@ public abstract class DefaultTransactionDisablingIntegrationTests {
 		assertThat(txManager.getDefinition().isReadOnly(), is(false));
 	}
 
-	/**
-	 * @see DATAJPA-685
-	 */
-	@Test
+	@Test // DATAJPA-685
 	public void doesNotUseDefaultTransactionsOnNonRedeclaredMethod() {
 
 		repository.findAll(new PageRequest(0, 10));
@@ -69,10 +63,7 @@ public abstract class DefaultTransactionDisablingIntegrationTests {
 		assertThat(txManager.getDefinition(), is(nullValue()));
 	}
 
-	/**
-	 * @see DATAJPA-685
-	 */
-	@Test
+	@Test // DATAJPA-685
 	public void persistingAnEntityShouldThrowExceptionDueToMissingTransaction() {
 
 		exception.expect(InvalidDataAccessApiUsageException.class);

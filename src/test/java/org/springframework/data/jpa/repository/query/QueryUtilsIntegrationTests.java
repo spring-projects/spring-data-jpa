@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,10 +61,7 @@ public class QueryUtilsIntegrationTests {
 
 	@PersistenceContext EntityManager em;
 
-	/**
-	 * @see DATAJPA-403
-	 */
-	@Test
+	@Test // DATAJPA-403
 	public void reusesExistingJoinForExpression() {
 
 		CriteriaBuilder builder = em.getCriteriaBuilder();
@@ -80,10 +77,7 @@ public class QueryUtilsIntegrationTests {
 		assertThat(from.getJoins(), hasSize(1));
 	}
 
-	/**
-	 * @see DATAJPA-401
-	 */
-	@Test
+	@Test // DATAJPA-401
 	public void createsJoinForOptionalAssociation() {
 
 		CriteriaBuilder builder = em.getCriteriaBuilder();
@@ -95,10 +89,7 @@ public class QueryUtilsIntegrationTests {
 		assertThat(root.getJoins(), hasSize(1));
 	}
 
-	/**
-	 * @see DATAJPA-401
-	 */
-	@Test
+	@Test // DATAJPA-401
 	public void doesNotCreateAJoinForNonOptionalAssociation() {
 
 		CriteriaBuilder builder = em.getCriteriaBuilder();
@@ -108,10 +99,7 @@ public class QueryUtilsIntegrationTests {
 		QueryUtils.toExpressionRecursively(root, PropertyPath.from("customer", Order.class));
 	}
 
-	/**
-	 * @see DATAJPA-454
-	 */
-	@Test
+	@Test // DATAJPA-454
 	public void createsJoingToTraverseCollectionPath() {
 
 		CriteriaBuilder builder = em.getCriteriaBuilder();
@@ -123,10 +111,7 @@ public class QueryUtilsIntegrationTests {
 		assertThat(root.getJoins(), hasSize(1));
 	}
 
-	/**
-	 * @see DATAJPA-476
-	 */
-	@Test
+	@Test // DATAJPA-476
 	public void traversesPluralAttributeCorrectly() {
 
 		PersistenceProviderResolver originalPersistenceProviderResolver = PersistenceProviderResolverHolder
@@ -147,10 +132,7 @@ public class QueryUtilsIntegrationTests {
 		}
 	}
 
-	/**
-	 * @see DATAJPA-763
-	 */
-	@Test
+	@Test // DATAJPA-763
 	@SuppressWarnings("unchecked")
 	public void doesNotCreateAJoinForAlreadyFetchedAssociation() {
 

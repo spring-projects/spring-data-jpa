@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,10 +63,7 @@ public class MailMessageRepositoryIntegrationTests {
 
 	@Autowired MailMessageRepository mailMessageRepository;
 
-	/**
-	 * @see DATAJPA-12
-	 */
-	@Test
+	@Test // DATAJPA-12
 	public void shouldSortMailWithPageRequestAndJpaSortCriteriaNullsFirst() {
 
 		MailMessage message1 = new MailMessage();
@@ -89,10 +86,7 @@ public class MailMessageRepositoryIntegrationTests {
 		assertThat(messages.get(1).getMailSender(), is(sender1));
 	}
 
-	/**
-	 * @see DATAJPA-12
-	 */
-	@Test
+	@Test // DATAJPA-12
 	public void shouldSortMailWithQueryDslRepositoryAndDslSortCriteriaNullsFirst() {
 
 		MailMessage message1 = new MailMessage();
@@ -114,10 +108,7 @@ public class MailMessageRepositoryIntegrationTests {
 		assertThat(messages.get(1).getMailSender(), is(sender1));
 	}
 
-	/**
-	 * @see DATAJPA-491
-	 */
-	@Test
+	@Test // DATAJPA-491
 	public void shouldSortMailWithNestedQueryDslSortCriteriaNullsFirst() {
 
 		MailUser fooMailUser = new MailUser("foo");
@@ -143,10 +134,7 @@ public class MailMessageRepositoryIntegrationTests {
 		assertThat(messages.get(1).getMailSender(), is(sender1));
 	}
 
-	/**
-	 * @see DATAJPA-491
-	 */
-	@Test
+	@Test // DATAJPA-491
 	public void shouldSortMailWithNestedStringBasedSortCriteriaNullsFirst() {
 
 		MailUser fooMailUser = new MailUser("foo");

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,6 @@ import org.springframework.core.type.AnnotationMetadata;
 /**
  * Unit tests for {@link JpaAuditingRegistrar}.
  * 
- * @see DATAJPA-265
  * @author Oliver Gierke
  */
 @RunWith(MockitoJUnitRunner.class)
@@ -36,12 +35,12 @@ public class JpaAuditingRegistrarUnitTests {
 	@Mock AnnotationMetadata metadata;
 	@Mock BeanDefinitionRegistry registry;
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAJPA-265
 	public void rejectsNullAnnotationMetadata() {
 		registrar.registerBeanDefinitions(null, registry);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAJPA-265
 	public void rejectsNullBeanDefinitionRegistry() {
 		registrar.registerBeanDefinitions(metadata, null);
 	}

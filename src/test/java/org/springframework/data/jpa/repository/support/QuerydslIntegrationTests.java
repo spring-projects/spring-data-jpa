@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,10 +57,7 @@ public class QuerydslIntegrationTests {
 		userQuery = querydsl.createQuery().select(userPath);
 	}
 
-	/**
-	 * @see DATAJPA-499
-	 */
-	@Test
+	@Test // DATAJPA-499
 	public void defaultOrderingShouldNotGenerateAnNullOrderingHint() {
 
 		JPQLQuery<User> result = querydsl.applySorting(new Sort(new Sort.Order("firstname")), userQuery);

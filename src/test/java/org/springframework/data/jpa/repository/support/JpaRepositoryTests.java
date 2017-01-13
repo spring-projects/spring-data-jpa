@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2014 the original author or authors.
+ * Copyright 2008-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,10 +73,7 @@ public class JpaRepositoryTests {
 		assertThat(repository.count(), is(0L));
 	}
 
-	/**
-	 * @see DATAJPA-50
-	 */
-	@Test
+	@Test // DATAJPA-50
 	public void executesCrudOperationsForEntityWithIdClass() {
 
 		PersistableWithIdClass entity = new PersistableWithIdClass(1L, 1L);
@@ -90,10 +87,7 @@ public class JpaRepositoryTests {
 		assertThat(idClassRepository.findOne(id), is(entity));
 	}
 
-	/**
-	 * @see DATAJPA-266
-	 */
-	@Test
+	@Test // DATAJPA-266
 	public void testExistsForDomainObjectsWithCompositeKeys() throws Exception {
 
 		PersistableWithIdClass s1 = idClassRepository.save(new PersistableWithIdClass(1L, 1L));
@@ -104,10 +98,7 @@ public class JpaRepositoryTests {
 		assertThat(idClassRepository.exists(new PersistableWithIdClassPK(1L, 2L)), is(false));
 	}
 
-	/**
-	 * @see DATAJPA-527
-	 */
-	@Test
+	@Test // DATAJPA-527
 	public void executesExistsForEntityWithIdClass() {
 
 		PersistableWithIdClass entity = new PersistableWithIdClass(1L, 1L);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,62 +63,41 @@ public class JpaPersistentPropertyImplUnitTests {
 		entity = context.getPersistentEntity(Sample.class);
 	}
 
-	/**
-	 * @see DATAJPA-284
-	 */
-	@Test
+	@Test // DATAJPA-284
 	public void considersOneToOneMappedPropertyAnAssociation() {
 
 		JpaPersistentProperty property = entity.getPersistentProperty("other");
 		assertThat(property.isAssociation(), is(true));
 	}
 
-	/**
-	 * @see DATAJPA-376
-	 */
-	@Test
+	@Test // DATAJPA-376
 	public void considersJpaTransientFieldsAsTransient() {
 		assertThat(entity.getPersistentProperty("transientProp"), is(nullValue()));
 	}
 
-	/**
-	 * @see DATAJPA-484
-	 */
-	@Test
+	@Test // DATAJPA-484
 	public void considersEmbeddableAnEntity() {
 		assertThat(context.getPersistentEntity(SampleEmbeddable.class), is(notNullValue()));
 	}
 
-	/**
-	 * @see DATAJPA-484
-	 */
-	@Test
+	@Test // DATAJPA-484
 	public void considersEmbeddablePropertyAnAssociation() {
 		assertThat(entity.getPersistentProperty("embeddable").isAssociation(), is(true));
 	}
 
-	/**
-	 * @see DATAJPA-484
-	 */
-	@Test
+	@Test // DATAJPA-484
 	public void considersEmbeddedPropertyAnAssociation() {
 		assertThat(entity.getPersistentProperty("embedded").isAssociation(), is(true));
 	}
 
-	/**
-	 * @see DATAJPA-619
-	 */
-	@Test
+	@Test // DATAJPA-619
 	public void considersPropertyLevelAccessTypeDefinitions() {
 
 		assertThat(getProperty(PropertyLevelPropertyAccess.class, "field").usePropertyAccess(), is(false));
 		assertThat(getProperty(PropertyLevelPropertyAccess.class, "property").usePropertyAccess(), is(true));
 	}
 
-	/**
-	 * @see DATAJPA-619
-	 */
-	@Test
+	@Test // DATAJPA-619
 	public void propertyLevelAccessTypeTrumpsTypeLevelDefinition() {
 
 		assertThat(getProperty(PropertyLevelDefinitionTrumpsTypeLevelOne.class, "field").usePropertyAccess(), is(false));
@@ -128,42 +107,27 @@ public class JpaPersistentPropertyImplUnitTests {
 		assertThat(getProperty(PropertyLevelDefinitionTrumpsTypeLevelOne2.class, "property").usePropertyAccess(), is(true));
 	}
 
-	/**
-	 * @see DATAJPA-619
-	 */
-	@Test
+	@Test // DATAJPA-619
 	public void considersJpaAccessDefinitionAnnotations() {
 		assertThat(getProperty(TypeLevelPropertyAccess.class, "id").usePropertyAccess(), is(true));
 	}
 
-	/**
-	 * @see DATAJPA-619
-	 */
-	@Test
+	@Test // DATAJPA-619
 	public void springDataAnnotationTrumpsJpaIfBothOnTypeLevel() {
 		assertThat(getProperty(CompetingTypeLevelAnnotations.class, "id").usePropertyAccess(), is(false));
 	}
 
-	/**
-	 * @see DATAJPA-619
-	 */
-	@Test
+	@Test // DATAJPA-619
 	public void springDataAnnotationTrumpsJpaIfBothOnPropertyLevel() {
 		assertThat(getProperty(CompetingPropertyLevelAnnotations.class, "id").usePropertyAccess(), is(false));
 	}
 
-	/**
-	 * @see DATAJPA-605
-	 */
-	@Test
+	@Test // DATAJPA-605
 	public void detectsJpaVersionAnnotation() {
 		assertThat(getProperty(JpaVersioned.class, "version").isVersionProperty(), is(true));
 	}
 
-	/**
-	 * @see DATAJPA-664
-	 */
-	@Test
+	@Test // DATAJPA-664
 	@SuppressWarnings("rawtypes")
 	public void considersTargetEntityTypeForPropertyType() {
 
@@ -177,19 +141,13 @@ public class JpaPersistentPropertyImplUnitTests {
 		assertThat(entityType.iterator().next(), is((TypeInformation) ClassTypeInformation.from(Implementation.class)));
 	}
 
-	/**
-	 * @see DATAJPA-716
-	 */
-	@Test
+	@Test // DATAJPA-716
 	public void considersNonUpdateablePropertyNotWriteable() {
 		assertThat(getProperty(WithReadOnly.class, "name").isWritable(), is(false));
 		assertThat(getProperty(WithReadOnly.class, "updatable").isWritable(), is(true));
 	}
 
-	/**
-	 * @see DATAJPA-904
-	 */
-	@Test
+	@Test // DATAJPA-904
 	public void isEntityWorksEvenWithManagedTypeWithNullJavaType() {
 
 		ManagedType<?> managedType = mock(ManagedType.class);

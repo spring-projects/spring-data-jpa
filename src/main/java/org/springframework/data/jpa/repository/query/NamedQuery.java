@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2014 the original author or authors.
+ * Copyright 2008-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import javax.persistence.TypedQuery;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import org.springframework.data.jpa.provider.QueryExtractor;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.QueryCreationException;
@@ -90,8 +91,8 @@ final class NamedQuery extends AbstractJpaQuery {
 	private static boolean hasNamedQuery(EntityManager em, String queryName) {
 
 		/*
-		 * @see DATAJPA-617
-		 * we have to use a dedicated em for the lookups to avoid a potential rollback of the running tx.
+		 * See DATAJPA-617, we have to use a dedicated em for the lookups to avoid a
+		 * potential rollback of the running tx.
 		 */
 		EntityManager lookupEm = em.getEntityManagerFactory().createEntityManager();
 

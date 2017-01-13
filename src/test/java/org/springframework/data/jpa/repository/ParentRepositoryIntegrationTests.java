@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,10 +59,7 @@ public class ParentRepositoryIntegrationTests {
 		repository.flush();
 	}
 
-	/**
-	 * @see DATAJPA-287
-	 */
-	@Test
+	@Test // DATAJPA-287
 	public void testWithoutJoin() throws Exception {
 
 		Page<Parent> page = repository.findAll(new Specification<Parent>() {
@@ -82,10 +79,7 @@ public class ParentRepositoryIntegrationTests {
 		assertThat(page.getTotalPages(), is(1));
 	}
 
-	/**
-	 * @see DATAJPA-287
-	 */
-	@Test
+	@Test // DATAJPA-287
 	public void testWithJoin() throws Exception {
 		Page<Parent> page = repository.findAll(new Specification<Parent>() {
 			public Predicate toPredicate(Root<Parent> root, CriteriaQuery<?> query, CriteriaBuilder cb) {

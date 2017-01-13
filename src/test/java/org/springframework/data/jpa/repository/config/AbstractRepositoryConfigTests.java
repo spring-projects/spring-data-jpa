@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2014 the original author or authors.
+ * Copyright 2008-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,10 +51,7 @@ public abstract class AbstractRepositoryConfigTests {
 		assertNotNull(auditableUserRepository);
 	}
 
-	/**
-	 * @see DATAJPA-330
-	 */
-	@Test
+	@Test // DATAJPA-330
 	public void repositoriesHaveExceptionTranslationApplied() {
 
 		JpaRepositoriesRegistrarIntegrationTests.assertExceptionTranslationActive(userRepository);
@@ -62,10 +59,7 @@ public abstract class AbstractRepositoryConfigTests {
 		JpaRepositoriesRegistrarIntegrationTests.assertExceptionTranslationActive(auditableUserRepository);
 	}
 
-	/**
-	 * @see DATAJPA-???
-	 */
-	@Test
+	@Test // DATAJPA-484
 	public void exposesJpaMappingContext() {
 		assertNotNull(mappingContext);
 	}

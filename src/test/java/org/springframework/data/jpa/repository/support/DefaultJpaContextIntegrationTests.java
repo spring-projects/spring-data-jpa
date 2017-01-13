@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -84,10 +84,7 @@ public class DefaultJpaContextIntegrationTests {
 		this.jpaContext = new DefaultJpaContext(new HashSet<EntityManager>(Arrays.asList(firstEm, secondEm)));
 	}
 
-	/**
-	 * @see DATAJPA-669
-	 */
-	@Test
+	@Test // DATAJPA-669
 	public void rejectsUnmanagedType() {
 
 		exception.expect(IllegalArgumentException.class);
@@ -96,18 +93,12 @@ public class DefaultJpaContextIntegrationTests {
 		jpaContext.getEntityManagerByManagedType(Object.class);
 	}
 
-	/**
-	 * @see DATAJPA-669
-	 */
-	@Test
+	@Test // DATAJPA-669
 	public void returnsEntitymanagerForUniqueType() {
 		assertThat(jpaContext.getEntityManagerByManagedType(Category.class), is(firstEm));
 	}
 
-	/**
-	 * @see DATAJPA-669
-	 */
-	@Test
+	@Test // DATAJPA-669
 	public void rejectsRequestForTypeManagedByMultipleEntityManagers() {
 
 		exception.expect(IllegalArgumentException.class);
@@ -116,11 +107,7 @@ public class DefaultJpaContextIntegrationTests {
 		jpaContext.getEntityManagerByManagedType(User.class);
 	}
 
-	/**
-	 * @see DATAJPA-813
-	 * @see DATAJPA-956
-	 */
-	@Test
+	@Test // DATAJPA-813, DATAJPA-956
 	public void bootstrapsDefaultJpaContextInSpringContainer() {
 
 		ConfigurableApplicationContext context = new AnnotationConfigApplicationContext(Config.class);
@@ -131,10 +118,7 @@ public class DefaultJpaContextIntegrationTests {
 		context.close();
 	}
 
-	/**
-	 * @see DATAJPA-813
-	 */
-	@Test
+	@Test // DATAJPA-813
 	public void bootstrapsDefaultJpaContextInSpringContainerWithEntityManagerFromJndi() throws Exception {
 
 		SimpleNamingContextBuilder builder = SimpleNamingContextBuilder.emptyActivatedContextBuilder();
@@ -179,8 +163,7 @@ public class DefaultJpaContextIntegrationTests {
 		}
 
 		// A non-EntityManagerFactory JNDI object to make sure the detection doesn't include it
-		// @see DATAJPA-956
-
+		// see DATAJPA-956
 		@Bean
 		public JndiObjectFactoryBean jndiObject() throws NamingException {
 

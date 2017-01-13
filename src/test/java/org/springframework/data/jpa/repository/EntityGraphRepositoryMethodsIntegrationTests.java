@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,10 +73,7 @@ public class EntityGraphRepositoryMethodsIntegrationTests {
 		tom.getColleagues().add(ollie);
 	}
 
-	/**
-	 * @see DATAJPA-612
-	 */
-	@Test
+	@Test // DATAJPA-612
 	public void shouldRespectConfiguredJpaEntityGraph() {
 
 		Assume.assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
@@ -88,10 +85,7 @@ public class EntityGraphRepositoryMethodsIntegrationTests {
 		assertThat(result.get(0), is(tom));
 	}
 
-	/**
-	 * @see DATAJPA-689
-	 */
-	@Test
+	@Test // DATAJPA-689
 	public void shouldRespectConfiguredJpaEntityGraphInFindOne() {
 
 		Assume.assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
@@ -103,10 +97,7 @@ public class EntityGraphRepositoryMethodsIntegrationTests {
 				Persistence.getPersistenceUtil().isLoaded(user.getColleagues()), is(true));
 	}
 
-	/**
-	 * @see DATAJPA-696
-	 */
-	@Test
+	@Test // DATAJPA-696
 	public void shouldRespectInferFetchGraphFromMethodName() {
 
 		Assume.assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
@@ -118,10 +109,7 @@ public class EntityGraphRepositoryMethodsIntegrationTests {
 				Persistence.getPersistenceUtil().isLoaded(user.getColleagues()), is(true));
 	}
 
-	/**
-	 * @see DATAJPA-696
-	 */
-	@Test
+	@Test // DATAJPA-696
 	public void shouldRespectDynamicFetchGraphForGetOneWithAttributeNamesById() {
 
 		Assume.assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
@@ -133,10 +121,7 @@ public class EntityGraphRepositoryMethodsIntegrationTests {
 				Persistence.getPersistenceUtil().isLoaded(user.getColleagues()), is(true));
 	}
 
-	/**
-	 * @see DATAJPA-790
-	 */
-	@Test
+	@Test // DATAJPA-790
 	public void shouldRespectConfiguredJpaEntityGraphWithPaginationAndQueryDslPredicates() {
 
 		Assume.assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));

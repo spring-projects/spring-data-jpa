@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2016 the original author or authors.
+ * Copyright 2011-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,11 +79,7 @@ public class SimpleJpaRepositoryUnitTests {
 		repo.setRepositoryMethodMetadata(metadata);
 	}
 
-	/**
-	 * @see DATAJPA-124
-	 * @see DATAJPA-912
-	 */
-	@Test
+	@Test // DATAJPA-124, DATAJPA-912
 	public void retrieveObjectsForPageableOutOfRange() {
 
 		when(countQuery.getSingleResult()).thenReturn(20L);
@@ -92,10 +88,7 @@ public class SimpleJpaRepositoryUnitTests {
 		verify(query).getResultList();
 	}
 
-	/**
-	 * @see DATAJPA-912
-	 */
-	@Test
+	@Test // DATAJPA-912
 	public void doesNotRetrieveCountWithoutOffsetAndResultsWithinPageSize() {
 
 		when(query.getResultList()).thenReturn(Arrays.asList(new User(), new User()));
@@ -105,10 +98,7 @@ public class SimpleJpaRepositoryUnitTests {
 		verify(countQuery, never()).getSingleResult();
 	}
 
-	/**
-	 * @see DATAJPA-912
-	 */
-	@Test
+	@Test // DATAJPA-912
 	public void doesNotRetrieveCountWithOffsetAndResultsWithinPageSize() {
 
 		when(query.getResultList()).thenReturn(Arrays.asList(new User(), new User()));
@@ -118,20 +108,13 @@ public class SimpleJpaRepositoryUnitTests {
 		verify(countQuery, never()).getSingleResult();
 	}
 
-	/**
-	 * @see DATAJPA-177
-	 */
-	@Test(expected = EmptyResultDataAccessException.class)
+	@Test(expected = EmptyResultDataAccessException.class) // DATAJPA-177
 	public void throwsExceptionIfEntityToDeleteDoesNotExist() {
 
 		repo.delete(4711);
 	}
 
-	/**
-	 * @see DATAJPA-689
-	 * @see DATAJPA-696
-	 */
-	@Test
+	@Test // DATAJPA-689, DATAJPA-696
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void shouldPropagateConfiguredEntityGraphToFindOne() throws Exception {
 

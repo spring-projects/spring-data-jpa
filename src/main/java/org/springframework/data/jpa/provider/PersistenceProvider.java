@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2016 the original author or authors.
+ * Copyright 2008-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,7 +62,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 	 * Since Hibernate 4.3 the location of the HibernateEntityManager moved to the org.hibernate.jpa package. In order to
 	 * support both locations we interpret both classnames as a Hibernate {@code PersistenceProvider}.
 	 * 
-	 * @see DATAJPA-444
+	 * @see <a href="https://jira.spring.io/browse/DATAJPA-444">DATAJPA-444</a>
 	 */
 	HIBERNATE(//
 			Arrays.asList(HIBERNATE52_ENTITY_MANAGER_INTERFACE, HIBERNATE43_ENTITY_MANAGER_INTERFACE,
@@ -77,8 +77,8 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 		 * Return custom placeholder ({@code *}) as Hibernate does create invalid queries for count queries for objects with
 		 * compound keys.
 		 * 
-		 * @see HHH-4044
-		 * @see HHH-3096
+		 * @see <a href="https://hibernate.atlassian.net/browse/HHH-4044">HHH-4044</a>
+		 * @see <a href="https://hibernate.atlassian.net/browse/HHH-3096">HHH-3096</a>
 		 */
 		@Override
 		public String getCountQueryPlaceholder() {
@@ -383,7 +383,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 	 * Potentially converts an empty collection to the appropriate representation of this {@link PersistenceProvider},
 	 * since some JPA providers cannot correctly handle empty collections.
 	 * 
-	 * @see DATAJPA-606
+	 * @see <a href="https://jira.spring.io/browse/DATAJPA-606">DATAJPA-606</a>
 	 * @param collection
 	 * @return
 	 */

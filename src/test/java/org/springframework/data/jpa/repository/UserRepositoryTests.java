@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2016 the original author or authors.
+ * Copyright 2008-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -236,11 +236,7 @@ public class UserRepositoryTests {
 		assertThat(result.get(3), is(fourthUser));
 	}
 
-	/**
-	 * @see DATAJPA-296
-	 * @author Kevin Raymond
-	 */
-	@Test
+	@Test // DATAJPA-296
 	public void returnsAllIgnoreCaseSortedCorrectly() throws Exception {
 
 		flushTestUsers();
@@ -360,10 +356,7 @@ public class UserRepositoryTests {
 		assertThat(repository.count(), is(0L));
 	}
 
-	/**
-	 * @see DATAJPA-137
-	 */
-	@Test
+	@Test // DATAJPA-137
 	public void deleteAllInBatch() {
 
 		flushTestUsers();
@@ -498,10 +491,7 @@ public class UserRepositoryTests {
 		assertThat(repository.findAll(spec), hasSize(2));
 	}
 
-	/**
-	 * @see DATAJPA-253
-	 */
-	@Test
+	@Test // DATAJPA-253
 	public void executesNegatingSpecificationCorrectly() {
 
 		flushTestUsers();
@@ -730,10 +720,7 @@ public class UserRepositoryTests {
 		assertThat(result, hasItem(firstUser));
 	}
 
-	/**
-	 * @see DATADOC-86
-	 */
-	@Test
+	@Test // DATADOC-86
 	public void readsPageWithGroupByClauseCorrectly() {
 
 		flushTestUsers();
@@ -762,10 +749,7 @@ public class UserRepositoryTests {
 		assertThat(result, hasItems(secondUser, thirdUser));
 	}
 
-	/**
-	 * @see DATAJPA-117
-	 */
-	@Test
+	@Test // DATAJPA-117
 	public void executesNativeQueryCorrectly() {
 
 		flushTestUsers();
@@ -776,10 +760,7 @@ public class UserRepositoryTests {
 		assertThat(result.size(), is(1));
 	}
 
-	/**
-	 * @see DATAJPA-132
-	 */
-	@Test
+	@Test // DATAJPA-132
 	public void executesFinderWithTrueKeywordCorrectly() {
 
 		flushTestUsers();
@@ -791,10 +772,7 @@ public class UserRepositoryTests {
 		assertThat(result, hasItems(secondUser, thirdUser, fourthUser));
 	}
 
-	/**
-	 * @see DATAJPA-132
-	 */
-	@Test
+	@Test // DATAJPA-132
 	public void executesFinderWithFalseKeywordCorrectly() {
 
 		flushTestUsers();
@@ -822,10 +800,7 @@ public class UserRepositoryTests {
 		assertThat(result, hasItem(thirdUser));
 	}
 
-	/**
-	 * @see DATAJPA-188
-	 */
-	@Test
+	@Test // DATAJPA-188
 	public void executesFinderWithAfterKeywordCorrectly() {
 
 		flushTestUsers();
@@ -835,10 +810,7 @@ public class UserRepositoryTests {
 		assertThat(result, hasItems(thirdUser, fourthUser));
 	}
 
-	/**
-	 * @see DATAJPA-188
-	 */
-	@Test
+	@Test // DATAJPA-188
 	public void executesFinderWithBeforeKeywordCorrectly() {
 
 		flushTestUsers();
@@ -848,10 +820,7 @@ public class UserRepositoryTests {
 		assertThat(result, hasItems(firstUser, secondUser));
 	}
 
-	/**
-	 * @see DATAJPA-180
-	 */
-	@Test
+	@Test // DATAJPA-180
 	public void executesFinderWithStartingWithCorrectly() {
 
 		flushTestUsers();
@@ -860,10 +829,7 @@ public class UserRepositoryTests {
 		assertThat(result, hasItem(firstUser));
 	}
 
-	/**
-	 * @see DATAJPA-180
-	 */
-	@Test
+	@Test // DATAJPA-180
 	public void executesFinderWithEndingWithCorrectly() {
 
 		flushTestUsers();
@@ -872,10 +838,7 @@ public class UserRepositoryTests {
 		assertThat(result, hasItem(firstUser));
 	}
 
-	/**
-	 * @see DATAJPA-180
-	 */
-	@Test
+	@Test // DATAJPA-180
 	public void executesFinderWithContainingCorrectly() {
 
 		flushTestUsers();
@@ -884,10 +847,7 @@ public class UserRepositoryTests {
 		assertThat(result, hasItems(secondUser, thirdUser));
 	}
 
-	/**
-	 * @see DATAJPA-201
-	 */
-	@Test
+	@Test // DATAJPA-201
 	public void allowsExecutingPageableMethodWithNullPageable() {
 
 		flushTestUsers();
@@ -905,10 +865,7 @@ public class UserRepositoryTests {
 		assertThat(page.getContent(), hasItems(firstUser, secondUser, thirdUser, fourthUser));
 	}
 
-	/**
-	 * @see DATAJPA-207
-	 */
-	@Test
+	@Test // DATAJPA-207
 	public void executesNativeQueryForNonEntitiesCorrectly() {
 
 		flushTestUsers();
@@ -919,10 +876,7 @@ public class UserRepositoryTests {
 		assertThat(result, hasItem(1));
 	}
 
-	/**
-	 * @see DATAJPA-232
-	 */
-	@Test
+	@Test // DATAJPA-232
 	public void handlesIterableOfIdsCorrectly() {
 
 		flushTestUsers();
@@ -993,10 +947,7 @@ public class UserRepositoryTests {
 		assertThat(all.getContent().isEmpty(), is(false));
 	}
 
-	/**
-	 * @see DATAJPA-252
-	 */
-	@Test
+	@Test // DATAJPA-252
 	public void bindsSortingToOuterJoinCorrectly() {
 
 		flushTestUsers();
@@ -1006,10 +957,7 @@ public class UserRepositoryTests {
 		assertThat(result.getContent(), hasSize((int) repository.count()));
 	}
 
-	/**
-	 * @see DATAJPA-277
-	 */
-	@Test
+	@Test // DATAJPA-277
 	public void doesNotDropNullValuesOnPagedSpecificationExecution() {
 
 		flushTestUsers();
@@ -1024,10 +972,7 @@ public class UserRepositoryTests {
 		assertThat(page, hasItem(firstUser));
 	}
 
-	/**
-	 * @see DATAJPA-346
-	 */
-	@Test
+	@Test // DATAJPA-346
 	public void shouldGenerateLeftOuterJoinInfindAllWithPaginationAndSortOnNestedPropertyPath() {
 
 		firstUser.setManager(null);
@@ -1046,10 +991,7 @@ public class UserRepositoryTests {
 		assertThat(pages.getTotalElements(), is(4L));
 	}
 
-	/**
-	 * @see DATAJPA-292
-	 */
-	@Test
+	@Test // DATAJPA-292
 	public void executesManualQueryWithPositionLikeExpressionCorrectly() {
 
 		flushTestUsers();
@@ -1060,10 +1002,7 @@ public class UserRepositoryTests {
 		assertThat(result, hasItem(thirdUser));
 	}
 
-	/**
-	 * @see DATAJPA-292
-	 */
-	@Test
+	@Test // DATAJPA-292
 	public void executesManualQueryWithNamedLikeExpressionCorrectly() {
 
 		flushTestUsers();
@@ -1074,10 +1013,7 @@ public class UserRepositoryTests {
 		assertThat(result, hasItem(thirdUser));
 	}
 
-	/**
-	 * @see DATAJPA-231
-	 */
-	@Test
+	@Test // DATAJPA-231
 	public void executesDerivedCountQueryToLong() {
 
 		flushTestUsers();
@@ -1085,10 +1021,7 @@ public class UserRepositoryTests {
 		assertThat(repository.countByLastname("Matthews"), is(1L));
 	}
 
-	/**
-	 * @see DATAJPA-231
-	 */
-	@Test
+	@Test // DATAJPA-231
 	public void executesDerivedCountQueryToInt() {
 
 		flushTestUsers();
@@ -1096,10 +1029,7 @@ public class UserRepositoryTests {
 		assertThat(repository.countUsersByFirstname("Dave"), is(1));
 	}
 
-	/**
-	 * @see DATAJPA-231
-	 */
-	@Test
+	@Test // DATAJPA-231
 	public void executesDerivedExistsQuery() {
 
 		flushTestUsers();
@@ -1108,20 +1038,14 @@ public class UserRepositoryTests {
 		assertThat(repository.existsByLastname("Hans Peter"), is(false));
 	}
 
-	/**
-	 * @see DATAJPA-332
-	 */
-	@Test
+	@Test // DATAJPA-332
 	public void findAllReturnsEmptyIterableIfNoIdsGiven() {
 
 		assertThat(repository.findAll(Collections.<Integer> emptySet()), is(emptyIterable()));
 		assertThat(repository.findAll((Iterable<Integer>) null), is(emptyIterable()));
 	}
 
-	/**
-	 * @see DATAJPA-391
-	 */
-	@Test
+	@Test // DATAJPA-391
 	public void executesManuallyDefinedQueryWithFieldProjection() {
 
 		flushTestUsers();
@@ -1131,10 +1055,7 @@ public class UserRepositoryTests {
 		assertThat(lastname, hasItem("Dave"));
 	}
 
-	/**
-	 * @see DATAJPA-83
-	 */
-	@Test
+	@Test // DATAJPA-83
 	public void looksUpEntityReference() {
 
 		flushTestUsers();
@@ -1143,10 +1064,7 @@ public class UserRepositoryTests {
 		assertThat(result, is(firstUser));
 	}
 
-	/**
-	 * @see DATAJPA-415
-	 */
-	@Test
+	@Test // DATAJPA-415
 	public void invokesQueryWithVarargsParametersCorrectly() {
 
 		flushTestUsers();
@@ -1157,10 +1075,7 @@ public class UserRepositoryTests {
 		assertThat(result, hasItems(firstUser, secondUser));
 	}
 
-	/**
-	 * @see DATAJPA-415
-	 */
-	@Test
+	@Test // DATAJPA-415
 	public void shouldSupportModifyingQueryWithVarArgs() {
 
 		flushTestUsers();
@@ -1173,10 +1088,7 @@ public class UserRepositoryTests {
 		assertThat(repository.findByActiveTrue().size(), is(0));
 	}
 
-	/**
-	 * @see DATAJPA-405
-	 */
-	@Test
+	@Test // DATAJPA-405
 	public void executesFinderWithOrderClauseOnly() {
 
 		flushTestUsers();
@@ -1187,10 +1099,7 @@ public class UserRepositoryTests {
 		assertThat(result, contains(secondUser, firstUser, thirdUser, fourthUser));
 	}
 
-	/**
-	 * @see DATAJPA-427
-	 */
-	@Test
+	@Test // DATAJPA-427
 	public void sortByAssociationPropertyShouldUseLeftOuterJoin() {
 
 		secondUser.getColleagues().add(firstUser);
@@ -1202,10 +1111,7 @@ public class UserRepositoryTests {
 		assertThat(result, hasSize(4));
 	}
 
-	/**
-	 * @see DATAJPA-427
-	 */
-	@Test
+	@Test // DATAJPA-427
 	public void sortByAssociationPropertyInPageableShouldUseLeftOuterJoin() {
 
 		secondUser.getColleagues().add(firstUser);
@@ -1217,10 +1123,7 @@ public class UserRepositoryTests {
 		assertThat(page.getContent(), hasSize(4));
 	}
 
-	/**
-	 * @see DATAJPA-427
-	 */
-	@Test
+	@Test // DATAJPA-427
 	public void sortByEmbeddedProperty() {
 
 		thirdUser.setAddress(new Address("Germany", "Saarbrücken", "HaveItYourWay", "123"));
@@ -1232,10 +1135,7 @@ public class UserRepositoryTests {
 		assertThat(page.getContent().get(3), is(thirdUser));
 	}
 
-	/**
-	 * @see DATAJPA-454
-	 */
-	@Test
+	@Test // DATAJPA-454
 	public void findsUserByBinaryDataReference() throws Exception {
 
 		byte[] data = "Woho!!".getBytes("UTF-8");
@@ -1249,10 +1149,7 @@ public class UserRepositoryTests {
 		assertThat(result.get(0).getBinaryData(), is(data));
 	}
 
-	/**
-	 * @see DATAJPA-461
-	 */
-	@Test
+	@Test // DATAJPA-461
 	public void customFindByQueryWithPositionalVarargsParameters() {
 
 		flushTestUsers();
@@ -1263,10 +1160,7 @@ public class UserRepositoryTests {
 		assertThat(result, hasItems(firstUser, secondUser));
 	}
 
-	/**
-	 * @see DATAJPA-461
-	 */
-	@Test
+	@Test // DATAJPA-461
 	public void customFindByQueryWithNamedVarargsParameters() {
 
 		flushTestUsers();
@@ -1277,10 +1171,7 @@ public class UserRepositoryTests {
 		assertThat(result, hasItems(firstUser, secondUser));
 	}
 
-	/**
-	 * @see DATAJPA-464
-	 */
-	@Test
+	@Test // DATAJPA-464
 	public void saveAndFlushShouldSupportReturningSubTypesOfRepositoryEntity() {
 
 		repository.deleteAll();
@@ -1294,10 +1185,7 @@ public class UserRepositoryTests {
 		assertThat(user.getEmailAddress(), is(savedUser.getEmailAddress()));
 	}
 
-	/**
-	 * @see DATAJPA-218
-	 */
-	@Test
+	@Test // DATAJPA-218
 	public void findAllByUntypedExampleShouldReturnSubTypesOfRepositoryEntity() {
 
 		flushTestUsers();
@@ -1314,10 +1202,7 @@ public class UserRepositoryTests {
 		assertThat(result, hasSize(5));
 	}
 
-	/**
-	 * @see DATAJPA-218
-	 */
-	@Test
+	@Test // DATAJPA-218
 	public void findAllByTypedUserExampleShouldReturnSubTypesOfRepositoryEntity() {
 
 		flushTestUsers();
@@ -1334,10 +1219,7 @@ public class UserRepositoryTests {
 		assertThat(result, hasSize(5));
 	}
 
-	/**
-	 * @see DATAJPA-218
-	 */
-	@Test
+	@Test // DATAJPA-218
 	public void findAllByTypedSpecialUserExampleShouldReturnSubTypesOfRepositoryEntity() {
 
 		flushTestUsers();
@@ -1355,10 +1237,7 @@ public class UserRepositoryTests {
 		assertThat(result, hasSize(1));
 	}
 
-	/**
-	 * @see DATAJPA-491
-	 */
-	@Test
+	@Test // DATAJPA-491
 	public void sortByNestedAssociationPropertyWithSortInPageable() {
 
 		firstUser.setManager(thirdUser);
@@ -1373,10 +1252,7 @@ public class UserRepositoryTests {
 		assertThat(page.getContent().get(3), is(firstUser));
 	}
 
-	/**
-	 * @see DATAJPA-510
-	 */
-	@Test
+	@Test // DATAJPA-510
 	public void sortByNestedAssociationPropertyWithSortOrderIgnoreCaseInPageable() {
 
 		firstUser.setManager(thirdUser);
@@ -1391,10 +1267,7 @@ public class UserRepositoryTests {
 		assertThat(page.getContent().get(3), is(firstUser));
 	}
 
-	/**
-	 * @see DATAJPA-496
-	 */
-	@Test
+	@Test // DATAJPA-496
 	public void findByElementCollectionAttribute() {
 
 		firstUser.getAttributes().add("cool");
@@ -1409,10 +1282,7 @@ public class UserRepositoryTests {
 		assertThat(result, hasItems(firstUser, secondUser));
 	}
 
-	/**
-	 * @see DATAJPA-460
-	 */
-	@Test
+	@Test // DATAJPA-460
 	public void deleteByShouldReturnListOfDeletedElementsWhenRetunTypeIsCollectionLike() {
 
 		flushTestUsers();
@@ -1422,10 +1292,7 @@ public class UserRepositoryTests {
 		assertThat(result, hasSize(1));
 	}
 
-	/**
-	 * @see DATAJPA-460
-	 */
-	@Test
+	@Test // DATAJPA-460
 	public void deleteByShouldRemoveElementsMatchingDerivedQuery() {
 
 		flushTestUsers();
@@ -1434,10 +1301,7 @@ public class UserRepositoryTests {
 		assertThat(repository.countByLastname(firstUser.getLastname()), is(0L));
 	}
 
-	/**
-	 * @see DATAJPA-460
-	 */
-	@Test
+	@Test // DATAJPA-460
 	public void deleteByShouldReturnNumberOfEntitiesRemovedIfReturnTypeIsLong() {
 
 		flushTestUsers();
@@ -1445,10 +1309,7 @@ public class UserRepositoryTests {
 		assertThat(repository.removeByLastname(firstUser.getLastname()), is(1L));
 	}
 
-	/**
-	 * @see DATAJPA-460
-	 */
-	@Test
+	@Test // DATAJPA-460
 	public void deleteByShouldReturnZeroInCaseNoEntityHasBeenRemovedAndReturnTypeIsNumber() {
 
 		flushTestUsers();
@@ -1456,10 +1317,7 @@ public class UserRepositoryTests {
 		assertThat(repository.removeByLastname("bubu"), is(0L));
 	}
 
-	/**
-	 * @see DATAJPA-460
-	 */
-	@Test
+	@Test // DATAJPA-460
 	public void deleteByShouldReturnEmptyListInCaseNoEntityHasBeenRemovedAndReturnTypeIsCollectionLike() {
 
 		flushTestUsers();
@@ -1468,10 +1326,9 @@ public class UserRepositoryTests {
 	}
 
 	/**
-	 * @see DATAJPA-505
 	 * @see https://issues.apache.org/jira/browse/OPENJPA-2484
 	 */
-	@Test
+	@Test // DATAJPA-505
 	@Ignore
 	public void findBinaryDataByIdJpaQl() throws Exception {
 
@@ -1486,10 +1343,7 @@ public class UserRepositoryTests {
 		assertThat(result, is(data));
 	}
 
-	/**
-	 * @see DATAJPA-506
-	 */
-	@Test
+	@Test // DATAJPA-506
 	public void findBinaryDataByIdNative() throws Exception {
 
 		byte[] data = "Woho!!".getBytes("UTF-8");
@@ -1502,10 +1356,7 @@ public class UserRepositoryTests {
 		assertThat(result, is(data));
 	}
 
-	/**
-	 * @see DATAJPA-456
-	 */
-	@Test
+	@Test // DATAJPA-456
 	public void findPaginatedExplicitQueryWithCountQueryProjection() {
 
 		firstUser.setFirstname(null);
@@ -1517,10 +1368,7 @@ public class UserRepositoryTests {
 		assertThat(result.getContent().size(), is(3));
 	}
 
-	/**
-	 * @see DATAJPA-456
-	 */
-	@Test
+	@Test // DATAJPA-456
 	public void findPaginatedNamedQueryWithCountQueryProjection() {
 
 		flushTestUsers();
@@ -1530,10 +1378,7 @@ public class UserRepositoryTests {
 		assertThat(result.getContent().size(), is(1));
 	}
 
-	/**
-	 * @see DATAJPA-551
-	 */
-	@Test
+	@Test // DATAJPA-551
 	public void findOldestUser() {
 
 		flushTestUsers();
@@ -1544,10 +1389,7 @@ public class UserRepositoryTests {
 		assertThat(repository.findFirst1ByOrderByAgeDesc(), is(oldest));
 	}
 
-	/**
-	 * @see DATAJPA-551
-	 */
-	@Test
+	@Test // DATAJPA-551
 	public void findYoungestUser() {
 
 		flushTestUsers();
@@ -1558,10 +1400,7 @@ public class UserRepositoryTests {
 		assertThat(repository.findTop1ByOrderByAgeAsc(), is(youngest));
 	}
 
-	/**
-	 * @see DATAJPA-551
-	 */
-	@Test
+	@Test // DATAJPA-551
 	public void find2OldestUsers() {
 
 		flushTestUsers();
@@ -1573,10 +1412,7 @@ public class UserRepositoryTests {
 		assertThat(repository.findTop2ByOrderByAgeDesc(), hasItems(oldest1, oldest2));
 	}
 
-	/**
-	 * @see DATAJPA-551
-	 */
-	@Test
+	@Test // DATAJPA-551
 	public void find2YoungestUsers() {
 
 		flushTestUsers();
@@ -1588,10 +1424,7 @@ public class UserRepositoryTests {
 		assertThat(repository.findTop2UsersBy(new Sort(ASC, "age")), hasItems(youngest1, youngest2));
 	}
 
-	/**
-	 * @see DATAJPA-551
-	 */
-	@Test
+	@Test // DATAJPA-551
 	public void find3YoungestUsersPageableWithPageSize2() {
 
 		flushTestUsers();
@@ -1607,10 +1440,7 @@ public class UserRepositoryTests {
 		assertThat(secondPage.getContent(), hasItems(youngest3));
 	}
 
-	/**
-	 * @see DATAJPA-551
-	 */
-	@Test
+	@Test // DATAJPA-551
 	public void find2YoungestUsersPageableWithPageSize3() {
 
 		flushTestUsers();
@@ -1626,10 +1456,7 @@ public class UserRepositoryTests {
 		assertThat(secondPage.getContent(), hasItems(youngest3));
 	}
 
-	/**
-	 * @see DATAJPA-551
-	 */
-	@Test
+	@Test // DATAJPA-551
 	public void find3YoungestUsersPageableWithPageSize2Sliced() {
 
 		flushTestUsers();
@@ -1645,10 +1472,7 @@ public class UserRepositoryTests {
 		assertThat(secondPage.getContent(), hasItems(youngest3));
 	}
 
-	/**
-	 * @see DATAJPA-551
-	 */
-	@Test
+	@Test // DATAJPA-551
 	public void find2YoungestUsersPageableWithPageSize3Sliced() {
 
 		flushTestUsers();
@@ -1664,10 +1488,7 @@ public class UserRepositoryTests {
 		assertThat(secondPage.getContent(), hasItems(youngest3));
 	}
 
-	/**
-	 * @see DATAJPA-912
-	 */
-	@Test
+	@Test // DATAJPA-912
 	public void pageableQueryReportsTotalFromResult() {
 
 		flushTestUsers();
@@ -1681,10 +1502,7 @@ public class UserRepositoryTests {
 		assertThat(secondPage.getTotalElements(), is(4L));
 	}
 
-	/**
-	 * @see DATAJPA-912
-	 */
-	@Test
+	@Test // DATAJPA-912
 	public void pageableQueryReportsTotalFromCount() {
 
 		flushTestUsers();
@@ -1698,10 +1516,7 @@ public class UserRepositoryTests {
 		assertThat(secondPage.getTotalElements(), is(4L));
 	}
 
-	/**
-	 * @see DATAJPA-506
-	 */
-	@Test
+	@Test // DATAJPA-506
 	public void invokesQueryWithWrapperType() {
 
 		flushTestUsers();
@@ -1712,10 +1527,7 @@ public class UserRepositoryTests {
 		assertThat(result.get(), is(firstUser));
 	}
 
-	/**
-	 * @see DATAJPA-564
-	 */
-	@Test
+	@Test // DATAJPA-564
 	public void shouldFindUserByFirstnameAndLastnameWithSpelExpressionInStringBasedQuery() {
 
 		flushTestUsers();
@@ -1725,10 +1537,7 @@ public class UserRepositoryTests {
 		assertThat(users.get(0), is(firstUser));
 	}
 
-	/**
-	 * @see DATAJPA-564
-	 */
-	@Test
+	@Test // DATAJPA-564
 	public void shouldFindUserByLastnameWithSpelExpressionInStringBasedQuery() {
 
 		flushTestUsers();
@@ -1738,10 +1547,7 @@ public class UserRepositoryTests {
 		assertThat(users.get(0), is(firstUser));
 	}
 
-	/**
-	 * @see DATAJPA-564
-	 */
-	@Test
+	@Test // DATAJPA-564
 	public void shouldFindBySpELExpressionWithoutArgumentsWithQuestionmark() {
 
 		flushTestUsers();
@@ -1751,10 +1557,7 @@ public class UserRepositoryTests {
 		assertThat(users.get(0), is(firstUser));
 	}
 
-	/**
-	 * @see DATAJPA-564
-	 */
-	@Test
+	@Test // DATAJPA-564
 	public void shouldFindBySpELExpressionWithoutArgumentsWithColon() {
 
 		flushTestUsers();
@@ -1764,10 +1567,7 @@ public class UserRepositoryTests {
 		assertThat(users.get(0), is(firstUser));
 	}
 
-	/**
-	 * @see DATAJPA-564
-	 */
-	@Test
+	@Test // DATAJPA-564
 	public void shouldFindUsersByAgeForSpELExpression() {
 
 		flushTestUsers();
@@ -1777,10 +1577,7 @@ public class UserRepositoryTests {
 		assertThat(users.get(0), is(secondUser));
 	}
 
-	/**
-	 * @see DATAJPA-564
-	 */
-	@Test
+	@Test // DATAJPA-564
 	public void shouldfindUsersByFirstnameForSpELExpressionWithParameterNameVariableReference() {
 
 		flushTestUsers();
@@ -1790,10 +1587,7 @@ public class UserRepositoryTests {
 		assertThat(users.get(0), is(secondUser));
 	}
 
-	/**
-	 * @see DATAJPA-564
-	 */
-	@Test
+	@Test // DATAJPA-564
 	public void shouldFindCurrentUserWithCustomQueryDependingOnSecurityContext() {
 
 		flushTestUsers();
@@ -1811,10 +1605,7 @@ public class UserRepositoryTests {
 		assertThat(users.get(0), is(firstUser));
 	}
 
-	/**
-	 * @see DATAJPA-564
-	 */
-	@Test
+	@Test // DATAJPA-564
 	public void shouldFindByFirstnameAndCurrentUserWithCustomQuery() {
 
 		flushTestUsers();
@@ -1826,10 +1617,7 @@ public class UserRepositoryTests {
 		assertThat(users.get(0), is(secondUser));
 	}
 
-	/**
-	 * @see DATAJPA-564
-	 */
-	@Test
+	@Test // DATAJPA-564
 	public void shouldfindUsersByFirstnameForSpELExpressionOnlyWithParameterNameVariableReference() {
 
 		flushTestUsers();
@@ -1839,10 +1627,7 @@ public class UserRepositoryTests {
 		assertThat(users.get(0), is(secondUser));
 	}
 
-	/**
-	 * @see DATAJPA-564
-	 */
-	@Test
+	@Test // DATAJPA-564
 	public void shouldfindUsersByFirstnameForSpELExpressionOnlyWithParameterIndexReference() {
 
 		flushTestUsers();
@@ -1852,10 +1637,7 @@ public class UserRepositoryTests {
 		assertThat(users.get(0), is(secondUser));
 	}
 
-	/**
-	 * @see DATAJPA-564
-	 */
-	@Test
+	@Test // DATAJPA-564
 	public void shouldFindUsersInNativeQueryWithPagination() {
 
 		flushTestUsers();
@@ -1873,10 +1655,7 @@ public class UserRepositoryTests {
 		assertThat(users.getContent().get(1), is(fourthUser));
 	}
 
-	/**
-	 * @see DATAJPA-629
-	 */
-	@Test
+	@Test // DATAJPA-629
 	public void shouldfindUsersBySpELExpressionParametersWithSpelTemplateExpression() {
 
 		flushTestUsers();
@@ -1887,10 +1666,7 @@ public class UserRepositoryTests {
 		assertThat(users.get(0), is(secondUser));
 	}
 
-	/**
-	 * @see DATAJPA-606
-	 */
-	@Test
+	@Test // DATAJPA-606
 	public void findByEmptyCollectionOfStrings() throws Exception {
 
 		flushTestUsers();
@@ -1899,10 +1675,7 @@ public class UserRepositoryTests {
 		assertThat(users, hasSize(0));
 	}
 
-	/**
-	 * @see DATAJPA-606
-	 */
-	@Test
+	@Test // DATAJPA-606
 	public void findByEmptyCollectionOfIntegers() throws Exception {
 
 		flushTestUsers();
@@ -1911,10 +1684,7 @@ public class UserRepositoryTests {
 		assertThat(users, hasSize(0));
 	}
 
-	/**
-	 * @see DATAJPA-606
-	 */
-	@Test
+	@Test // DATAJPA-606
 	public void findByEmptyArrayOfIntegers() throws Exception {
 
 		flushTestUsers();
@@ -1923,10 +1693,7 @@ public class UserRepositoryTests {
 		assertThat(users, hasSize(0));
 	}
 
-	/**
-	 * @see DATAJPA-606
-	 */
-	@Test
+	@Test // DATAJPA-606
 	public void findByAgeWithEmptyArrayOfIntegersOrFirstName() {
 
 		flushTestUsers();
@@ -1936,10 +1703,7 @@ public class UserRepositoryTests {
 		assertThat(users.get(0), is(secondUser));
 	}
 
-	/**
-	 * @see DATAJPA-677
-	 */
-	@Test
+	@Test // DATAJPA-677
 	public void shouldSupportJava8StreamsForRepositoryFinderMethods() {
 
 		flushTestUsers();
@@ -1965,10 +1729,7 @@ public class UserRepositoryTests {
 		assertThat(users, hasSize(4));
 	}
 
-	/**
-	 * @see DATAJPA-677
-	 */
-	@Test
+	@Test // DATAJPA-677
 	public void shouldSupportJava8StreamsForRepositoryDerivedFinderMethods() {
 
 		flushTestUsers();
@@ -1994,10 +1755,7 @@ public class UserRepositoryTests {
 		assertThat(users, hasSize(4));
 	}
 
-	/**
-	 * @see DATAJPA-677
-	 */
-	@Test
+	@Test // DATAJPA-677
 	public void supportsJava8StreamForPageableMethod() {
 
 		flushTestUsers();
@@ -2023,10 +1781,7 @@ public class UserRepositoryTests {
 		assertThat(users, hasSize(2));
 	}
 
-	/**
-	 * @see DATAJPA-218
-	 */
-	@Test
+	@Test // DATAJPA-218
 	public void findAllByExample() {
 
 		flushTestUsers();
@@ -2041,10 +1796,7 @@ public class UserRepositoryTests {
 		assertThat(users.get(0), is(firstUser));
 	}
 
-	/**
-	 * @see DATAJPA-218
-	 */
-	@Test
+	@Test // DATAJPA-218
 	public void findAllByExampleWithEmptyProbe() {
 
 		flushTestUsers();
@@ -2058,18 +1810,12 @@ public class UserRepositoryTests {
 		assertThat(users, hasSize(4));
 	}
 
-	/**
-	 * @see DATAJPA-218
-	 */
-	@Test(expected = InvalidDataAccessApiUsageException.class)
+	@Test(expected = InvalidDataAccessApiUsageException.class) // DATAJPA-218
 	public void findAllByNullExample() {
 		repository.findAll((Example<User>) null);
 	}
 
-	/**
-	 * @see DATAJPA-218
-	 */
-	@Test
+	@Test // DATAJPA-218
 	public void findAllByExampleWithExcludedAttributes() {
 
 		flushTestUsers();
@@ -2084,10 +1830,7 @@ public class UserRepositoryTests {
 		assertThat(users.get(0), is(firstUser));
 	}
 
-	/**
-	 * @see DATAJPA-218
-	 */
-	@Test
+	@Test // DATAJPA-218
 	public void findAllByExampleWithAssociation() {
 
 		flushTestUsers();
@@ -2112,10 +1855,7 @@ public class UserRepositoryTests {
 		assertThat(users.get(0), is(firstUser));
 	}
 
-	/**
-	 * @see DATAJPA-218
-	 */
-	@Test
+	@Test // DATAJPA-218
 	public void findAllByExampleWithEmbedded() {
 
 		flushTestUsers();
@@ -2134,10 +1874,7 @@ public class UserRepositoryTests {
 		assertThat(users.get(0), is(firstUser));
 	}
 
-	/**
-	 * @see DATAJPA-218
-	 */
-	@Test
+	@Test // DATAJPA-218
 	public void findAllByExampleWithStartingStringMatcher() {
 
 		flushTestUsers();
@@ -2153,10 +1890,7 @@ public class UserRepositoryTests {
 		assertThat(users.get(0), is(firstUser));
 	}
 
-	/**
-	 * @see DATAJPA-218
-	 */
-	@Test
+	@Test // DATAJPA-218
 	public void findAllByExampleWithEndingStringMatcher() {
 
 		flushTestUsers();
@@ -2172,10 +1906,7 @@ public class UserRepositoryTests {
 		assertThat(users.get(0), is(firstUser));
 	}
 
-	/**
-	 * @see DATAJPA-218
-	 */
-	@Test(expected = InvalidDataAccessApiUsageException.class)
+	@Test(expected = InvalidDataAccessApiUsageException.class) // DATAJPA-218
 	public void findAllByExampleWithRegexStringMatcher() {
 
 		flushTestUsers();
@@ -2187,10 +1918,7 @@ public class UserRepositoryTests {
 		repository.findAll(example);
 	}
 
-	/**
-	 * @see DATAJPA-218
-	 */
-	@Test
+	@Test // DATAJPA-218
 	public void findAllByExampleWithIgnoreCase() {
 
 		flushTestUsers();
@@ -2206,10 +1934,7 @@ public class UserRepositoryTests {
 		assertThat(users.get(0), is(firstUser));
 	}
 
-	/**
-	 * @see DATAJPA-218
-	 */
-	@Test
+	@Test // DATAJPA-218
 	public void findAllByExampleWithStringMatcherAndIgnoreCase() {
 
 		flushTestUsers();
@@ -2226,10 +1951,7 @@ public class UserRepositoryTests {
 		assertThat(users.get(0), is(firstUser));
 	}
 
-	/**
-	 * @see DATAJPA-218
-	 */
-	@Test
+	@Test // DATAJPA-218
 	public void findAllByExampleWithIncludeNull() {
 
 		// something is wrong with OpenJPA - I do not know what
@@ -2260,10 +1982,7 @@ public class UserRepositoryTests {
 		assertThat(users.get(0), is(fifthUser));
 	}
 
-	/**
-	 * @see DATAJPA-218
-	 */
-	@Test
+	@Test // DATAJPA-218
 	public void findAllByExampleWithPropertySpecifier() {
 
 		flushTestUsers();
@@ -2280,10 +1999,7 @@ public class UserRepositoryTests {
 		assertThat(users.get(0), is(firstUser));
 	}
 
-	/**
-	 * @see DATAJPA-218
-	 */
-	@Test
+	@Test // DATAJPA-218
 	public void findAllByExampleWithSort() {
 
 		flushTestUsers();
@@ -2306,10 +2022,7 @@ public class UserRepositoryTests {
 		assertThat(users.get(1), is(firstUser));
 	}
 
-	/**
-	 * @see DATAJPA-218
-	 */
-	@Test
+	@Test // DATAJPA-218
 	public void findAllByExampleWithPageable() {
 
 		flushTestUsers();
@@ -2334,10 +2047,7 @@ public class UserRepositoryTests {
 		assertThat(users.getTotalElements(), is(100L));
 	}
 
-	/**
-	 * @see DATAJPA-218
-	 */
-	@Test(expected = InvalidDataAccessApiUsageException.class)
+	@Test(expected = InvalidDataAccessApiUsageException.class) // DATAJPA-218
 	public void findAllByExampleShouldNotAllowCycles() {
 
 		flushTestUsers();
@@ -2353,10 +2063,7 @@ public class UserRepositoryTests {
 		repository.findAll(example, new PageRequest(0, 10, new Sort(DESC, "age")));
 	}
 
-	/**
-	 * @see DATAJPA-218
-	 */
-	@Test(expected = InvalidDataAccessApiUsageException.class)
+	@Test(expected = InvalidDataAccessApiUsageException.class) // DATAJPA-218
 	public void findAllByExampleShouldNotAllowCyclesOverSeveralInstances() {
 
 		flushTestUsers();
@@ -2376,10 +2083,7 @@ public class UserRepositoryTests {
 		repository.findAll(example, new PageRequest(0, 10, new Sort(DESC, "age")));
 	}
 
-	/**
-	 * @see DATAJPA-218
-	 */
-	@Test
+	@Test // DATAJPA-218
 	public void findOneByExampleWithExcludedAttributes() {
 
 		flushTestUsers();
@@ -2393,10 +2097,7 @@ public class UserRepositoryTests {
 		assertThat(users, is(firstUser));
 	}
 
-	/**
-	 * @see DATAJPA-218
-	 */
-	@Test
+	@Test // DATAJPA-218
 	public void countByExampleWithExcludedAttributes() {
 
 		flushTestUsers();
@@ -2410,10 +2111,7 @@ public class UserRepositoryTests {
 		assertThat(count, is(1L));
 	}
 
-	/**
-	 * @see DATAJPA-218
-	 */
-	@Test
+	@Test // DATAJPA-218
 	public void existsByExampleWithExcludedAttributes() {
 
 		flushTestUsers();
@@ -2427,10 +2125,7 @@ public class UserRepositoryTests {
 		assertThat(exists, is(true));
 	}
 
-	/**
-	 * @see DATAJPA-905
-	 */
-	@Test
+	@Test // DATAJPA-905
 	public void excutesPagedSpecificationSettingAnOrder() {
 
 		flushTestUsers();

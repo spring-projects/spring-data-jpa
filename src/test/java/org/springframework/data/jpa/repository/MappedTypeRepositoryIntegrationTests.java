@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,10 +49,7 @@ public class MappedTypeRepositoryIntegrationTests {
 	@Autowired ConcreteRepository1 concreteRepository1;
 	@Autowired ConcreteRepository2 concreteRepository2;
 
-	/**
-	 * @see DATAJPA-170
-	 */
-	@Test
+	@Test // DATAJPA-170
 	public void supportForExpressionBasedQueryMethods() {
 
 		concreteRepository1.save(new ConcreteType1("foo"));
@@ -65,10 +62,7 @@ public class MappedTypeRepositoryIntegrationTests {
 		assertThat(concretes2.size(), is(1));
 	}
 
-	/**
-	 * @see DATAJPA-424
-	 */
-	@Test
+	@Test // DATAJPA-424
 	public void supportForPaginationCustomQueryMethodsWithEntityExpression() {
 
 		concreteRepository1.save(new ConcreteType1("foo"));

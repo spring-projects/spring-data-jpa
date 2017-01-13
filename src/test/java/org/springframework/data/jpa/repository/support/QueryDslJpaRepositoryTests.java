@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2016 the original author or authors.
+ * Copyright 2008-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -106,10 +106,7 @@ public class QueryDslJpaRepositoryTests {
 		assertThat(result, hasItems(carter, dave));
 	}
 
-	/**
-	 * @see DATAJPA-243
-	 */
-	@Test
+	@Test // DATAJPA-243
 	public void considersSortingProvidedThroughPageable() {
 
 		Predicate lastnameContainsE = user.lastname.contains("e");
@@ -126,10 +123,7 @@ public class QueryDslJpaRepositoryTests {
 		assertThat(result.getContent().get(1), is(dave));
 	}
 
-	/**
-	 * @see DATAJPA-296
-	 */
-	@Test
+	@Test // DATAJPA-296
 	public void appliesIgnoreCaseOrdering() {
 
 		Sort sort = new Sort(new Order(Direction.DESC, "lastname").ignoreCase(), new Order(Direction.ASC, "firstname"));
@@ -141,10 +135,7 @@ public class QueryDslJpaRepositoryTests {
 		assertThat(result.getContent().get(1), is(oliver));
 	}
 
-	/**
-	 * @see DATAJPA-427
-	 */
-	@Test
+	@Test // DATAJPA-427
 	public void findBySpecificationWithSortByPluralAssociationPropertyInPageableShouldUseSortNullValuesLast() {
 
 		oliver.getColleagues().add(dave);
@@ -159,10 +150,7 @@ public class QueryDslJpaRepositoryTests {
 		assertThat(page.getContent(), hasItems(oliver, dave, carter));
 	}
 
-	/**
-	 * @see DATAJPA-427
-	 */
-	@Test
+	@Test // DATAJPA-427
 	public void findBySpecificationWithSortBySingularAssociationPropertyInPageableShouldUseSortNullValuesLast() {
 
 		oliver.setManager(dave);
@@ -177,10 +165,7 @@ public class QueryDslJpaRepositoryTests {
 		assertThat(page.getContent(), hasItems(dave, oliver, carter));
 	}
 
-	/**
-	 * @see DATAJPA-427
-	 */
-	@Test
+	@Test // DATAJPA-427
 	public void findBySpecificationWithSortBySingularPropertyInPageableShouldUseSortNullValuesFirst() {
 
 		QUser user = QUser.user;
@@ -192,10 +177,7 @@ public class QueryDslJpaRepositoryTests {
 		assertThat(page.getContent(), hasItems(carter, dave, oliver));
 	}
 
-	/**
-	 * @see DATAJPA-427
-	 */
-	@Test
+	@Test // DATAJPA-427
 	public void findBySpecificationWithSortByOrderIgnoreCaseBySingularPropertyInPageableShouldUseSortNullValuesFirst() {
 
 		QUser user = QUser.user;
@@ -207,10 +189,7 @@ public class QueryDslJpaRepositoryTests {
 		assertThat(page.getContent(), hasItems(carter, dave, oliver));
 	}
 
-	/**
-	 * @see DATAJPA-427
-	 */
-	@Test
+	@Test // DATAJPA-427
 	public void findBySpecificationWithSortByNestedEmbeddedPropertyInPageableShouldUseSortNullValuesFirst() {
 
 		oliver.setAddress(new Address("Germany", "Saarbrücken", "HaveItYourWay", "123"));
@@ -225,10 +204,7 @@ public class QueryDslJpaRepositoryTests {
 		assertThat(page.getContent().get(2), is(oliver));
 	}
 
-	/**
-	 * @see DATAJPA-12
-	 */
-	@Test
+	@Test // DATAJPA-12
 	public void findBySpecificationWithSortByQueryDslOrderSpecifierWithQPageRequestAndQSort() {
 
 		QUser user = QUser.user;
@@ -243,10 +219,7 @@ public class QueryDslJpaRepositoryTests {
 		assertThat(page.getContent().get(2), is(oliver));
 	}
 
-	/**
-	 * @see DATAJPA-12
-	 */
-	@Test
+	@Test // DATAJPA-12
 	public void findBySpecificationWithSortByQueryDslOrderSpecifierWithQPageRequest() {
 
 		QUser user = QUser.user;
@@ -260,10 +233,7 @@ public class QueryDslJpaRepositoryTests {
 		assertThat(page.getContent().get(2), is(oliver));
 	}
 
-	/**
-	 * @see DATAJPA-12
-	 */
-	@Test
+	@Test // DATAJPA-12
 	public void findBySpecificationWithSortByQueryDslOrderSpecifierForAssociationShouldGenerateLeftJoinWithQPageRequest() {
 
 		oliver.setManager(dave);
@@ -281,10 +251,7 @@ public class QueryDslJpaRepositoryTests {
 		assertThat(page.getContent().get(2), is(oliver));
 	}
 
-	/**
-	 * @see DATAJPA-491
-	 */
-	@Test
+	@Test // DATAJPA-491
 	public void sortByNestedAssociationPropertyWithSpecificationAndSortInPageable() {
 
 		oliver.setManager(dave);
@@ -296,10 +263,7 @@ public class QueryDslJpaRepositoryTests {
 		assertThat(page.getContent().get(0), is(dave));
 	}
 
-	/**
-	 * @see DATAJPA-500, DATAJPA-635
-	 */
-	@Test
+	@Test // DATAJPA-500, DATAJPA-635
 	public void sortByNestedEmbeddedAttribite() {
 
 		carter.setAddress(new Address("U", "Z", "Y", "41"));
@@ -312,10 +276,7 @@ public class QueryDslJpaRepositoryTests {
 		assertThat(users, hasItems(dave, oliver, carter));
 	}
 
-	/**
-	 * @see DATAJPA-566, DATAJPA-635
-	 */
-	@Test
+	@Test // DATAJPA-566, DATAJPA-635
 	public void shouldSupportSortByOperatorWithDateExpressions() {
 
 		carter.setDateOfBirth(new LocalDate(2000, 2, 1).toDate());
@@ -328,10 +289,7 @@ public class QueryDslJpaRepositoryTests {
 		assertThat(users, hasItems(dave, carter, oliver));
 	}
 
-	/**
-	 * @see DATAJPA-665
-	 */
-	@Test
+	@Test // DATAJPA-665
 	public void shouldSupportExistsWithPredicate() throws Exception {
 
 		assertThat(repository.exists(user.firstname.eq("Dave")), is(true));
@@ -339,10 +297,7 @@ public class QueryDslJpaRepositoryTests {
 		assertThat(repository.exists((Predicate) null), is(true));
 	}
 
-	/**
-	 * @see DATAJPA-679
-	 */
-	@Test
+	@Test // DATAJPA-679
 	public void shouldSupportFindAllWithPredicateAndSort() {
 
 		List<User> users = repository.findAll(user.dateOfBirth.isNull(), new Sort(Direction.ASC, "firstname"));
@@ -353,18 +308,12 @@ public class QueryDslJpaRepositoryTests {
 		assertThat(users, hasItems(carter, dave, oliver));
 	}
 
-	/**
-	 * @see DATAJPA-585
-	 */
-	@Test
+	@Test // DATAJPA-585
 	public void worksWithNullPageable() {
 		assertThat(repository.findAll(user.dateOfBirth.isNull(), (Pageable) null).getContent(), hasSize(3));
 	}
 
-	/**
-	 * @see DATAJPA-912
-	 */
-	@Test
+	@Test // DATAJPA-912
 	public void pageableQueryReportsTotalFromResult() {
 
 		Page<User> firstPage = repository.findAll(user.dateOfBirth.isNull(), new PageRequest(0, 10));
@@ -376,10 +325,7 @@ public class QueryDslJpaRepositoryTests {
 		assertThat(secondPage.getTotalElements(), is(3L));
 	}
 
-	/**
-	 * @see DATAJPA-912
-	 */
-	@Test
+	@Test // DATAJPA-912
 	public void pageableQueryReportsTotalFromCount() {
 
 		Page<User> firstPage = repository.findAll(user.dateOfBirth.isNull(), new PageRequest(0, 3));

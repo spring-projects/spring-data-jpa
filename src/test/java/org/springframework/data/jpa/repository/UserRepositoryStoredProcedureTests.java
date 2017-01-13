@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,10 +50,7 @@ public class UserRepositoryStoredProcedureTests {
 	@Autowired UserRepository repository;
 	@PersistenceContext EntityManager em;
 
-	/**
-	 * @see DATAJPA-455
-	 */
-	@Test
+	@Test // DATAJPA-455
 	public void callProcedureWithInAndOutParameters() {
 
 		assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
@@ -61,10 +58,7 @@ public class UserRepositoryStoredProcedureTests {
 		assertThat(repository.plus1inout(1), is(2));
 	}
 
-	/**
-	 * @see DATAJPA-455
-	 */
-	@Test
+	@Test // DATAJPA-455
 	public void callProcedureExplicitNameWithInAndOutParameters() {
 
 		assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
@@ -72,10 +66,7 @@ public class UserRepositoryStoredProcedureTests {
 		assertThat(repository.explicitlyNamedPlus1inout(1), is(2));
 	}
 
-	/**
-	 * @see DATAJPA-455
-	 */
-	@Test
+	@Test // DATAJPA-455
 	public void entityAnnotatedCustomNamedProcedurePlus1IO() {
 
 		assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
@@ -83,10 +74,7 @@ public class UserRepositoryStoredProcedureTests {
 		assertThat(repository.entityAnnotatedCustomNamedProcedurePlus1IO(1), is(2));
 	}
 
-	/**
-	 * @see DATAJPA-455
-	 */
-	@Test
+	@Test // DATAJPA-455
 	@Ignore
 	public void plainJpa21() {
 
@@ -102,10 +90,7 @@ public class UserRepositoryStoredProcedureTests {
 		assertThat(proc.getOutputParameterValue(2), is((Object) 2));
 	}
 
-	/**
-	 * @see DATAJPA-455
-	 */
-	@Test
+	@Test // DATAJPA-455
 	@Ignore
 	public void plainJpa21_entityAnnotatedCustomNamedProcedurePlus1IO() {
 

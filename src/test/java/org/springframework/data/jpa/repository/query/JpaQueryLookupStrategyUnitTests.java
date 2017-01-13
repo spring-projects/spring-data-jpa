@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2016 the original author or authors.
+ * Copyright 2012-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -76,10 +76,7 @@ public class JpaQueryLookupStrategyUnitTests {
 		when(em.getDelegate()).thenReturn(em);
 	}
 
-	/**
-	 * @see DATAJPA-226
-	 */
-	@Test
+	@Test // DATAJPA-226
 	public void invalidAnnotatedQueryCausesException() throws Exception {
 
 		QueryLookupStrategy strategy = JpaQueryLookupStrategy.create(em, Key.CREATE_IF_NOT_FOUND, extractor,
@@ -98,10 +95,7 @@ public class JpaQueryLookupStrategyUnitTests {
 		}
 	}
 
-	/**
-	 * @see DATAJPA-554
-	 */
-	@Test
+	@Test // DATAJPA-554
 	public void sholdThrowMorePreciseExceptionIfTryingToUsePaginationInNativeQueries() throws Exception {
 
 		QueryLookupStrategy strategy = JpaQueryLookupStrategy.create(em, Key.CREATE_IF_NOT_FOUND, extractor,

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2015 the original author or authors.
+ * Copyright 2011-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -152,7 +152,7 @@ public class ClasspathScanningPersistenceUnitPostProcessor
 		 * Note that we cannot use File.pathSeparator here since resourcePath uses a forward slash path ('/') separator 
 		 * being an URI, while basePackagePathComponent has system dependent separator (on windows it's the backslash separator). 
 		 * 
-		 * @see DATAJPA-407  
+		 * See DATAJPA-407.
 		 */
 		char slash = '/';
 		String basePackagePathComponent = basePackage.replace('.', slash);
@@ -182,11 +182,10 @@ public class ClasspathScanningPersistenceUnitPostProcessor
 
 	/**
 	 * Returns the path from the given {@link URI}. In case the given {@link URI} is opaque, e.g. beginning with jar:file,
-	 * the path is extracted from URI by leaving out the protocol prefix.
+	 * the path is extracted from URI by leaving out the protocol prefix, see DATAJPA-519.
 	 * 
 	 * @param uri
 	 * @return
-	 * @see DATAJPA-519
 	 */
 	private static String getResourcePath(URI uri) throws IOException {
 

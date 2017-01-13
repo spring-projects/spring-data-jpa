@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2016 the original author or authors.
+ * Copyright 2011-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -82,10 +82,7 @@ public class CrudMethodMetadataUnitTests {
 		repository = factory.getRepository(RoleRepository.class);
 	}
 
-	/**
-	 * @see DATAJPA-73, DATAJPA-173
-	 */
-	@Test
+	@Test // DATAJPA-73, DATAJPA-173
 	public void usesLockInformationAnnotatedAtRedeclaredMethod() {
 
 		when(em.getCriteriaBuilder()).thenReturn(builder);
@@ -99,10 +96,7 @@ public class CrudMethodMetadataUnitTests {
 		verify(typedQuery).setHint("foo", "bar");
 	}
 
-	/**
-	 * @see DATAJPA-359, DATAJPA-173
-	 */
-	@Test
+	@Test // DATAJPA-359, DATAJPA-173
 	public void usesMetadataAnnotatedAtRedeclaredFindOne() {
 
 		repository.findOne(1);
@@ -113,10 +107,7 @@ public class CrudMethodMetadataUnitTests {
 		verify(em).find(Role.class, 1, expectedLockModeType, expectedLinks);
 	}
 
-	/**
-	 * @see DATAJPA-574
-	 */
-	@Test
+	@Test // DATAJPA-574
 	public void appliesLockModeAndQueryHintsToQuerydslQuery() {
 
 		when(em.getDelegate()).thenReturn(mock(EntityManager.class));

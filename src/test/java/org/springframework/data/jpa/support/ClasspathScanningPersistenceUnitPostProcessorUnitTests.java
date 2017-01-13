@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 the original author or authors.
+ * Copyright 2011-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -83,10 +83,7 @@ public class ClasspathScanningPersistenceUnitPostProcessorUnitTests {
 		verify(pui).addManagedClassName(SampleEntity.class.getName());
 	}
 
-	/**
-	 * @see DATAJPA-407
-	 */
-	@Test
+	@Test // DATAJPA-407
 	public void findsMappingFile() {
 
 		ClasspathScanningPersistenceUnitPostProcessor processor = new ClasspathScanningPersistenceUnitPostProcessor(
@@ -101,11 +98,7 @@ public class ClasspathScanningPersistenceUnitPostProcessorUnitTests {
 		verify(pui).addMappingFileName(expected);
 	}
 
-	/**
-	 * @see DATAJPA-353
-	 * @see DATAJPA-407
-	 */
-	@Test
+	@Test // DATAJPA-353, DATAJPA-407
 	public void shouldFindJpaMappingFilesFromMultipleLocationsOnClasspath() {
 
 		ClasspathScanningPersistenceUnitPostProcessor processor = new ClasspathScanningPersistenceUnitPostProcessor(
@@ -119,10 +112,7 @@ public class ClasspathScanningPersistenceUnitPostProcessorUnitTests {
 		verify(pui).addMappingFileName("org/springframework/data/jpa/support/module2/module2-orm.xml");
 	}
 
-	/**
-	 * @see DATAJPA-519
-	 */
-	@Test
+	@Test // DATAJPA-519
 	public void shouldFindJpaMappingFilesFromNestedJarLocationsOnClasspath() {
 
 		String nestedModule3Path = "org/springframework/data/jpa/support/module3/module3-orm.xml";

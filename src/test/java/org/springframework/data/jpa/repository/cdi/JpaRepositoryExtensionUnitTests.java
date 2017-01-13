@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,10 +66,7 @@ public class JpaRepositoryExtensionUnitTests {
 		assertEntityManagerRegistered(extension, em);
 	}
 
-	/**
-	 * @see DATAJPA-388
-	 */
-	@Test
+	@Test // DATAJPA-388
 	public void alternativeEntityManagerOverridesDefault() {
 
 		JpaRepositoryExtension extension = new JpaRepositoryExtension();
@@ -79,10 +76,7 @@ public class JpaRepositoryExtensionUnitTests {
 		assertEntityManagerRegistered(extension, alternativeEm);
 	}
 
-	/**
-	 * @see DATAJPA-388
-	 */
-	@Test
+	@Test // DATAJPA-388
 	public void alternativeEntityManagerDoesNotGetOverridden() {
 
 		JpaRepositoryExtension extension = new JpaRepositoryExtension();

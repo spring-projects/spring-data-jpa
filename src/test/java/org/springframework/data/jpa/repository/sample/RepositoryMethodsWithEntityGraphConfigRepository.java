@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,21 +49,15 @@ public interface RepositoryMethodsWithEntityGraphConfigRepository
 	@EntityGraph(type = EntityGraphType.FETCH, value = "User.detail")
 	User findOne(Integer id);
 
-	/**
-	 * @see DATAJPA-696
-	 */
+	// DATAJPA-696
 	@EntityGraph
 	User getOneWithDefinedEntityGraphById(Integer id);
 
-	/**
-	 * @see DATAJPA-696
-	 */
+	// DATAJPA-696
 	@EntityGraph(attributePaths = { "roles", "colleagues.roles" })
 	User getOneWithAttributeNamesById(Integer id);
 
-	/**
-	 * @see DATAJPA-790
-	 */
+	// DATAJPA-790
 	@EntityGraph("User.detail")
 	Page<User> findAll(Predicate predicate, Pageable pageable);
 }

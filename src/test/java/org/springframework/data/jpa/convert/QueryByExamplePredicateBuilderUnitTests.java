@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -116,42 +116,27 @@ public class QueryByExamplePredicateBuilderUnitTests {
 		doReturn(orPredicate).when(cb).or(Matchers.<Predicate>anyVararg());
 	}
 
-	/**
-	 * @see DATAJPA-218
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAJPA-218
 	public void getPredicateShouldThrowExceptionOnNullRoot() {
 		QueryByExamplePredicateBuilder.getPredicate(null, cb, of(new Person()));
 	}
 
-	/**
-	 * @see DATAJPA-218
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAJPA-218
 	public void getPredicateShouldThrowExceptionOnNullCriteriaBuilder() {
 		QueryByExamplePredicateBuilder.getPredicate(root, null, of(new Person()));
 	}
 
-	/**
-	 * @see DATAJPA-218
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAJPA-218
 	public void getPredicateShouldThrowExceptionOnNullExample() {
 		QueryByExamplePredicateBuilder.getPredicate(root, null, null);
 	}
 
-	/**
-	 * @see DATAJPA-218
-	 */
-	@Test
+	@Test // DATAJPA-218
 	public void emptyCriteriaListShouldResultTruePredicate() {
 		assertThat(QueryByExamplePredicateBuilder.getPredicate(root, cb, of(new Person())), equalTo(truePredicate));
 	}
 
-	/**
-	 * @see DATAJPA-218
-	 */
-	@Test
+	@Test // DATAJPA-218
 	public void singleElementCriteriaShouldJustReturnIt() {
 
 		Person p = new Person();
@@ -161,10 +146,7 @@ public class QueryByExamplePredicateBuilderUnitTests {
 		verify(cb, times(1)).equal(any(Expression.class), eq("foo"));
 	}
 
-	/**
-	 * @see DATAJPA-937
-	 */
-	@Test
+	@Test // DATAJPA-937
 	public void unresolvableNestedAssociatedPathShouldFail() {
 
 		Person p = new Person();
@@ -178,10 +160,7 @@ public class QueryByExamplePredicateBuilderUnitTests {
 		QueryByExamplePredicateBuilder.getPredicate(root, cb, of(p));
 	}
 
-	/**
-	 * @see DATAJPA-218
-	 */
-	@Test
+	@Test // DATAJPA-218
 	public void multiPredicateCriteriaShouldReturnCombinedOnes() {
 
 		Person p = new Person();
@@ -194,10 +173,7 @@ public class QueryByExamplePredicateBuilderUnitTests {
 		verify(cb, times(1)).equal(any(Expression.class), eq(2L));
 	}
 
-	/**
-	 * @see DATAJPA-879
-	 */
-	@Test
+	@Test // DATAJPA-879
 	public void orConcatenatesPredicatesIfMatcherSpecifies() {
 
 		Person person = new Person();

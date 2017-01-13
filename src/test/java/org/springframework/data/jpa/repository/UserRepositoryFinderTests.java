@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2016 the original author or authors.
+ * Copyright 2008-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -147,40 +147,28 @@ public class UserRepositoryFinderTests {
 		assertThat(result.get(0), is(oliver));
 	}
 
-	/**
-	 * @see DATAJPA-92
-	 */
-	@Test
+	@Test // DATAJPA-92
 	public void findsByLastnameIgnoringCase() throws Exception {
 		List<User> result = userRepository.findByLastnameIgnoringCase("BeAUfoRd");
 		assertThat(result.size(), is(1));
 		assertThat(result.get(0), is(carter));
 	}
 
-	/**
-	 * @see DATAJPA-92
-	 */
-	@Test
+	@Test // DATAJPA-92
 	public void findsByLastnameIgnoringCaseLike() throws Exception {
 		List<User> result = userRepository.findByLastnameIgnoringCaseLike("BeAUfo%");
 		assertThat(result.size(), is(1));
 		assertThat(result.get(0), is(carter));
 	}
 
-	/**
-	 * @see DATAJPA-92
-	 */
-	@Test
+	@Test // DATAJPA-92
 	public void findByLastnameAndFirstnameAllIgnoringCase() throws Exception {
 		List<User> result = userRepository.findByLastnameAndFirstnameAllIgnoringCase("MaTTheWs", "DaVe");
 		assertThat(result.size(), is(1));
 		assertThat(result.get(0), is(dave));
 	}
 
-	/**
-	 * @see DATAJPA-94
-	 */
-	@Test
+	@Test // DATAJPA-94
 	public void respectsPageableOrderOnQueryGenerateFromMethodName() throws Exception {
 		Page<User> ascending = userRepository.findByLastnameIgnoringCase(new PageRequest(0, 10, new Sort(ASC, "firstname")),
 				"Matthews");
@@ -196,10 +184,7 @@ public class UserRepositoryFinderTests {
 				is(equalTo(descending.getContent().get(0).getFirstname())));
 	}
 
-	/**
-	 * @see DATAJPA-486
-	 */
-	@Test
+	@Test // DATAJPA-486
 	public void executesQueryToSlice() {
 
 		Slice<User> slice = userRepository.findSliceByLastname("Matthews", new PageRequest(0, 1, ASC, "firstname"));
@@ -208,18 +193,12 @@ public class UserRepositoryFinderTests {
 		assertThat(slice.hasNext(), is(true));
 	}
 
-	/**
-	 * @see DATAJPA-830
-	 */
-	@Test
+	@Test // DATAJPA-830
 	public void executesMethodWithNotContainingOnStringCorrectly() {
 		assertThat(userRepository.findByLastnameNotContaining("u"), containsInAnyOrder(dave, oliver));
 	}
 
-	/**
-	 * @see DATAJPA-829
-	 */
-	@Test
+	@Test // DATAJPA-829
 	public void translatesContainsToMemberOf() {
 
 		List<User> singers = userRepository.findByRolesContaining(singer);
@@ -229,26 +208,17 @@ public class UserRepositoryFinderTests {
 		assertThat(userRepository.findByRolesContaining(drummer), contains(carter));
 	}
 
-	/**
-	 * @see DATAJPA-829
-	 */
-	@Test
+	@Test // DATAJPA-829
 	public void translatesNotContainsToNotMemberOf() {
 		assertThat(userRepository.findByRolesNotContaining(drummer), hasItems(dave, oliver));
 	}
 
-	/**
-	 * @see DATAJPA-974
-	 */
-	@Test
+	@Test // DATAJPA-974
 	public void executesQueryWithProjectionContainingReferenceToPluralAttribute() {
 		assertThat(userRepository.findRolesAndFirstnameBy(), is(notNullValue()));
 	}
 
-	/**
-	 * @see DATAJPA-1023, DATACMNS-959
-	 */
-	@Test(expected = InvalidDataAccessApiUsageException.class)
+	@Test(expected = InvalidDataAccessApiUsageException.class) // DATAJPA-1023, DATACMNS-959
 	@Transactional(propagation = Propagation.NOT_SUPPORTED)
 	public void rejectsStreamExecutionIfNoSurroundingTransactionActive() {
 		userRepository.findAllByCustomQueryAndStream();

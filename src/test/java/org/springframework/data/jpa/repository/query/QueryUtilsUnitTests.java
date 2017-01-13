@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2016 the original author or authors.
+ * Copyright 2008-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,9 +51,6 @@ public class QueryUtilsUnitTests {
 		assertCountQuery(QUERY, COUNT_QUERY);
 	}
 
-	/**
-	 * @see #303
-	 */
 	@Test
 	public void createsCountQueriesCorrectlyForCapitalLetterJPQL() {
 
@@ -62,9 +59,6 @@ public class QueryUtilsUnitTests {
 		assertCountQuery("SELECT u FROM User u where u.foo.bar = ?", "select count(u) FROM User u where u.foo.bar = ?");
 	}
 
-	/**
-	 * @see #351
-	 */
 	@Test
 	public void createsCountQueryForDistinctQueries() throws Exception {
 
@@ -72,9 +66,6 @@ public class QueryUtilsUnitTests {
 				"select count(distinct u) from User u where u.foo = ?");
 	}
 
-	/**
-	 * @see #351
-	 */
 	@Test
 	public void createsCountQueryForConstructorQueries() throws Exception {
 
@@ -82,9 +73,6 @@ public class QueryUtilsUnitTests {
 				"select count(distinct u) from User u where u.foo = ?");
 	}
 
-	/**
-	 * @see #352
-	 */
 	@Test
 	public void createsCountQueryForJoins() throws Exception {
 
@@ -92,9 +80,6 @@ public class QueryUtilsUnitTests {
 				"select count(distinct u) from User u left outer join u.roles r WHERE r = ?");
 	}
 
-	/**
-	 * @see #352
-	 */
 	@Test
 	public void createsCountQueryForQueriesWithSubSelects() throws Exception {
 
@@ -102,9 +87,6 @@ public class QueryUtilsUnitTests {
 				"select count(u) from User u left outer join u.roles r where r in (select r from Role)");
 	}
 
-	/**
-	 * @see #355
-	 */
 	@Test
 	public void createsCountQueryForAliasesCorrectly() throws Exception {
 
@@ -137,10 +119,7 @@ public class QueryUtilsUnitTests {
 		assertCountQuery(FQ_QUERY, "select count(u) from org.acme.domain.User$Foo_Bar u");
 	}
 
-	/**
-	 * @see DATAJPA-252
-	 */
-	@Test
+	@Test // DATAJPA-252
 	public void detectsJoinAliasesCorrectly() {
 
 		Set<String> aliases = getOuterJoinAliases("select p from Person p left outer join x.foo b2_$ar where …");
@@ -162,10 +141,7 @@ public class QueryUtilsUnitTests {
 		assertThat(aliases, hasItems("b2_$ar", "foo"));
 	}
 
-	/**
-	 * @see DATAJPA-252
-	 */
-	@Test
+	@Test // DATAJPA-252
 	public void doesNotPrefixOrderReferenceIfOuterJoinAliasDetected() {
 
 		String query = "select p from Person p left join p.address address";
@@ -174,20 +150,14 @@ public class QueryUtilsUnitTests {
 				endsWith("order by address.city asc, p.lastname asc"));
 	}
 
-	/**
-	 * @see DATAJPA-252
-	 */
-	@Test
+	@Test // DATAJPA-252
 	public void extendsExistingOrderByClausesCorrectly() {
 
 		String query = "select p from Person p order by p.lastname asc";
 		assertThat(applySorting(query, new Sort("firstname"), "p"), endsWith("order by p.lastname asc, p.firstname asc"));
 	}
 
-	/**
-	 * @see DATAJPA-296
-	 */
-	@Test
+	@Test // DATAJPA-296
 	public void appliesIgnoreCaseOrderingCorrectly() {
 
 		Sort sort = new Sort(new Sort.Order("firstname").ignoreCase());
@@ -196,10 +166,7 @@ public class QueryUtilsUnitTests {
 		assertThat(applySorting(query, sort, "p"), endsWith("order by lower(p.firstname) asc"));
 	}
 
-	/**
-	 * @see DATAJPA-296
-	 */
-	@Test
+	@Test // DATAJPA-296
 	public void appendsIgnoreCaseOrderingCorrectly() {
 
 		Sort sort = new Sort(new Sort.Order("firstname").ignoreCase());
@@ -208,50 +175,35 @@ public class QueryUtilsUnitTests {
 		assertThat(applySorting(query, sort, "p"), endsWith("order by p.lastname asc, lower(p.firstname) asc"));
 	}
 
-	/**
-	 * @see DATAJPA-342
-	 */
-	@Test
+	@Test // DATAJPA-342
 	public void usesReturnedVariableInCOuntProjectionIfSet() {
 
 		assertCountQuery("select distinct m.genre from Media m where m.user = ?1 order by m.genre asc",
 				"select count(distinct m.genre) from Media m where m.user = ?1");
 	}
 
-	/**
-	 * @see DATAJPA-343
-	 */
-	@Test
+	@Test // DATAJPA-343
 	public void projectsCOuntQueriesForQueriesWithSubselects() {
 
 		assertCountQuery("select o from Foo o where cb.id in (select b from Bar b)",
 				"select count(o) from Foo o where cb.id in (select b from Bar b)");
 	}
 
-	/**
-	 * @see DATAJPA-148
-	 */
-	@Test(expected = InvalidDataAccessApiUsageException.class)
+	@Test(expected = InvalidDataAccessApiUsageException.class) // DATAJPA-148
 	public void doesNotPrefixSortsIfFunction() {
 
 		Sort sort = new Sort("sum(foo)");
 		assertThat(applySorting("select p from Person p", sort, "p"), endsWith("order by sum(foo) asc"));
 	}
 
-	/**
-	 * @see DATAJPA-377
-	 */
-	@Test
+	@Test // DATAJPA-377
 	public void removesOrderByInGeneratedCountQueryFromOriginalQueryIfPresent() {
 
 		assertCountQuery("select distinct m.genre from Media m where m.user = ?1 OrDer  By   m.genre ASC",
 				"select count(distinct m.genre) from Media m where m.user = ?1");
 	}
 
-	/**
-	 * @see DATAJPA-375
-	 */
-	@Test
+	@Test // DATAJPA-375
 	public void findsExistingOrderByIndependentOfCase() {
 
 		Sort sort = new Sort("lastname");
@@ -259,35 +211,23 @@ public class QueryUtilsUnitTests {
 		assertThat(query, endsWith("ORDER BY p.firstname, p.lastname asc"));
 	}
 
-	/**
-	 * @see DATAJPA-409
-	 */
-	@Test
+	@Test // DATAJPA-409
 	public void createsCountQueryForNestedReferenceCorrectly() {
 		assertCountQuery("select a.b from A a", "select count(a.b) from A a");
 	}
 
-	/**
-	 * @see DATAJPA-420
-	 */
-	@Test
+	@Test // DATAJPA-420
 	public void createsCountQueryForScalarSelects() {
 		assertCountQuery("select p.lastname,p.firstname from Person p", "select count(p) from Person p");
 	}
 
-	/**
-	 * @see DATAJPA-456
-	 */
-	@Test
+	@Test // DATAJPA-456
 	public void createCountQueryFromTheGivenCountProjection() {
 		assertThat(createCountQueryFor("select p.lastname,p.firstname from Person p", "p.lastname"),
 				is("select count(p.lastname) from Person p"));
 	}
 
-	/**
-	 * @see DATAJPA-726
-	 */
-	@Test
+	@Test // DATAJPA-726
 	public void detectsAliassesInPlainJoins() {
 
 		String query = "select p from Customer c join c.productOrder p where p.delayed = true";
@@ -296,26 +236,17 @@ public class QueryUtilsUnitTests {
 		assertThat(applySorting(query, sort, "c"), endsWith("order by p.lineItems asc"));
 	}
 
-	/**
-	 * @see DATAJPA-736
-	 */
-	@Test
+	@Test // DATAJPA-736
 	public void supportsNonAsciiCharactersInEntityNames() {
 		assertThat(createCountQueryFor("select u from Usèr u"), is("select count(u) from Usèr u"));
 	}
 
-	/**
-	 * @see DATAJPA-798
-	 */
-	@Test
+	@Test // DATAJPA-798
 	public void detectsAliasInQueryContainingLineBreaks() {
 		assertThat(detectAlias("select \n u \n from \n User \nu"), is("u"));
 	}
 
-	/**
-	 * @see DATAJPA-815
-	 */
-	@Test
+	@Test // DATAJPA-815
 	public void doesPrefixPropertyWith() {
 
 		String query = "from Cat c join Dog d";
@@ -324,18 +255,12 @@ public class QueryUtilsUnitTests {
 		assertThat(applySorting(query, sort, "c"), endsWith("order by c.dPropertyStartingWithJoinAlias asc"));
 	}
 
-	/**
-	 * @see DATAJPA-938
-	 */
-	@Test
+	@Test // DATAJPA-938
 	public void detectsConstructorExpressionInDistinctQuery() {
 		assertThat(hasConstructorExpression("select distinct new Foo() from Bar b"), is(true));
 	}
 
-	/**
-	 * @see DATAJPA-938
-	 */
-	@Test
+	@Test // DATAJPA-938
 	public void detectsComplexConstructorExpression() {
 
 		assertThat(hasConstructorExpression("select new foo.bar.Foo(ip.id, ip.name, sum(lp.amount)) " //
@@ -345,50 +270,32 @@ public class QueryUtilsUnitTests {
 				+ "order by ip.name ASC"), is(true));
 	}
 
-	/**
-	 * @see DATAJPA-938
-	 */
-	@Test
+	@Test // DATAJPA-938
 	public void detectsConstructorExpressionWithLineBreaks() {
 		assertThat(hasConstructorExpression("select new foo.bar.FooBar(\na.id) from DtoA a "), is(true));
 	}
 
-	/**
-	 * @see DATAJPA-960
-	 */
-	@Test
+	@Test // DATAJPA-960
 	public void doesNotQualifySortIfNoAliasDetected() {
 		assertThat(applySorting("from mytable where ?1 is null", new Sort("firstname")),
 				endsWith("order by firstname asc"));
 	}
 
-	/**
-	 * @see DATAJPA-965
-	 * @see DATAJPA-970
-	 */
-	@Test(expected = InvalidDataAccessApiUsageException.class)
+	@Test(expected = InvalidDataAccessApiUsageException.class) // DATAJPA-965, DATAJPA-970
 	public void doesNotAllowWhitespaceInSort() {
 
 		Sort sort = new Sort("case when foo then bar");
 		applySorting("select p from Person p", sort, "p");
 	}
 
-	/**
-	 * @see DATAJPA-965
-	 * @see DATAJPA-970
-	 */
-	@Test
+	@Test // DATAJPA-965, DATAJPA-970
 	public void doesNotPrefixUnsageJpaSortFunctionCalls() {
 
 		JpaSort sort = JpaSort.unsafe("sum(foo)");
 		assertThat(applySorting("select p from Person p", sort, "p"), endsWith("order by sum(foo) asc"));
 	}
 
-	/**
-	 * @see DATAJPA-965
-	 * @see DATAJPA-970
-	 */
-	@Test
+	@Test // DATAJPA-965, DATAJPA-970
 	public void doesNotPrefixMultipleAliasedFunctionCalls() {
 
 		String query = "SELECT AVG(m.price) AS avgPrice, SUM(m.stocks) AS sumStocks FROM Magazine m";
@@ -397,11 +304,7 @@ public class QueryUtilsUnitTests {
 		assertThat(applySorting(query, sort, "m"), endsWith("order by avgPrice asc, sumStocks asc"));
 	}
 
-	/**
-	 * @see DATAJPA-965
-	 * @see DATAJPA-970
-	 */
-	@Test
+	@Test // DATAJPA-965, DATAJPA-970
 	public void doesNotPrefixSingleAliasedFunctionCalls() {
 
 		String query = "SELECT AVG(m.price) AS avgPrice FROM Magazine m";
@@ -410,11 +313,7 @@ public class QueryUtilsUnitTests {
 		assertThat(applySorting(query, sort, "m"), endsWith("order by avgPrice asc"));
 	}
 
-	/**
-	 * @see DATAJPA-965
-	 * @see DATAJPA-970
-	 */
-	@Test
+	@Test // DATAJPA-965, DATAJPA-970
 	public void prefixesSingleNonAliasedFunctionCallRelatedSortProperty() {
 
 		String query = "SELECT AVG(m.price) AS avgPrice FROM Magazine m";
@@ -423,11 +322,7 @@ public class QueryUtilsUnitTests {
 		assertThat(applySorting(query, sort, "m"), endsWith("order by m.someOtherProperty asc"));
 	}
 
-	/**
-	 * @see DATAJPA-965
-	 * @see DATAJPA-970
-	 */
-	@Test
+	@Test // DATAJPA-965, DATAJPA-970
 	public void prefixesNonAliasedFunctionCallRelatedSortPropertyWhenSelectClauseContainesAliasedFunctionForDifferentProperty() {
 
 		String query = "SELECT m.name, AVG(m.price) AS avgPrice FROM Magazine m";
@@ -436,11 +331,7 @@ public class QueryUtilsUnitTests {
 		assertThat(applySorting(query, sort, "m"), endsWith("order by m.name asc, avgPrice asc"));
 	}
 
-	/**
-	 * @see DATAJPA-965
-	 * @see DATAJPA-970
-	 */
-	@Test
+	@Test // DATAJPA-965, DATAJPA-970
 	public void doesNotPrefixAliasedFunctionCallNameWithMultipleNumericParameters() {
 
 		String query = "SELECT SUBSTRING(m.name, 2, 5) AS trimmedName FROM Magazine m";
@@ -449,11 +340,7 @@ public class QueryUtilsUnitTests {
 		assertThat(applySorting(query, sort, "m"), endsWith("order by trimmedName asc"));
 	}
 
-	/**
-	 * @see DATAJPA-965
-	 * @see DATAJPA-970
-	 */
-	@Test
+	@Test // DATAJPA-965, DATAJPA-970
 	public void doesNotPrefixAliasedFunctionCallNameWithMultipleStringParameters() {
 
 		String query = "SELECT CONCAT(m.name, 'foo') AS extendedName FROM Magazine m";
@@ -462,11 +349,7 @@ public class QueryUtilsUnitTests {
 		assertThat(applySorting(query, sort, "m"), endsWith("order by extendedName asc"));
 	}
 
-	/**
-	 * @see DATAJPA-965
-	 * @see DATAJPA-970
-	 */
-	@Test
+	@Test // DATAJPA-965, DATAJPA-970
 	public void doesNotPrefixAliasedFunctionCallNameWithUnderscores() {
 
 		String query = "SELECT AVG(m.price) AS avg_price FROM Magazine m";
@@ -475,11 +358,7 @@ public class QueryUtilsUnitTests {
 		assertThat(applySorting(query, sort, "m"), endsWith("order by avg_price asc"));
 	}
 
-	/**
-	 * @see DATAJPA-965
-	 * @see DATAJPA-970
-	 */
-	@Test
+	@Test // DATAJPA-965, DATAJPA-970
 	public void doesNotPrefixAliasedFunctionCallNameWithDots() {
 
 		String query = "SELECT AVG(m.price) AS m.avg FROM Magazine m";
@@ -488,11 +367,7 @@ public class QueryUtilsUnitTests {
 		assertThat(applySorting(query, sort, "m"), endsWith("order by m.avg asc"));
 	}
 
-	/**
-	 * @see DATAJPA-965
-	 * @see DATAJPA-970
-	 */
-	@Test
+	@Test // DATAJPA-965, DATAJPA-970
 	public void doesNotPrefixAliasedFunctionCallNameWhenQueryStringContainsMultipleWhiteSpaces() {
 
 		String query = "SELECT  AVG(  m.price  )   AS   avgPrice   FROM Magazine   m";
@@ -501,10 +376,7 @@ public class QueryUtilsUnitTests {
 		assertThat(applySorting(query, sort, "m"), endsWith("order by avgPrice asc"));
 	}
 
-	/**
-	 * @see DATAJPA-1000
-	 */
-	@Test
+	@Test // DATAJPA-1000
 	public void discoversCorrectAliasForJoinFetch() {
 
 		Set<String> aliases = QueryUtils

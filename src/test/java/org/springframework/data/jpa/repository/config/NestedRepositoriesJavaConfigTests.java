@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,10 +46,7 @@ public class NestedRepositoriesJavaConfigTests {
 
 	@Autowired NestedUserRepository nestedUserRepository;
 
-	/**
-	 * @see DATAJPA-416
-	 */
-	@Test
+	@Test // DATAJPA-416
 	public void shouldSupportNestedRepositories() {
 		assertThat(nestedUserRepository, is(notNullValue()));
 	}

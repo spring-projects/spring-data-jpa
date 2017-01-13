@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,15 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.when;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 
 /**
@@ -38,10 +39,7 @@ public class ExpressionBasedStringQueryUnitTests {
 
 	static final SpelExpressionParser SPEL_PARSER = new SpelExpressionParser();
 
-	/**
-	 * @see DATAJPA-170
-	 */
-	@Test
+	@Test // DATAJPA-170
 	public void shouldReturnQueryWithDomainTypeExpressionReplacedWithSimpleDomainTypeName() {
 
 		when(metadata.getEntityName()).thenReturn("User");
@@ -51,10 +49,7 @@ public class ExpressionBasedStringQueryUnitTests {
 		assertThat(query.getQueryString(), is("select from User u where u.firstname like :firstname"));
 	}
 
-	/**
-	 * @DATAJPA-424
-	 */
-	@Test
+	@Test // DATAJPA-424
 	public void renderAliasInExpressionQueryCorrectly() {
 
 		when(metadata.getEntityName()).thenReturn("User");

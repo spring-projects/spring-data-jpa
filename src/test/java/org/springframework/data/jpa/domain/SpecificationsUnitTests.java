@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,10 +57,7 @@ public class SpecificationsUnitTests {
 		when(mockSpec.toPredicate(root, query, builder)).thenReturn(predicate);
 	}
 
-	/**
-	 * @see DATAJPA-300
-	 */
-	@Test
+	@Test // DATAJPA-300
 	public void createsSpecificationsFromNull() {
 
 		Specifications<Object> specification = where(null);
@@ -68,10 +65,7 @@ public class SpecificationsUnitTests {
 		assertThat(specification.toPredicate(root, query, builder), is(nullValue()));
 	}
 
-	/**
-	 * @see DATAJPA-300
-	 */
-	@Test
+	@Test // DATAJPA-300
 	public void negatesNullSpecToNull() {
 
 		Specifications<Object> specification = not((Specification<Object>) null);
@@ -80,10 +74,7 @@ public class SpecificationsUnitTests {
 		assertThat(specification.toPredicate(root, query, builder), is(nullValue()));
 	}
 
-	/**
-	 * @see DATAJPA-300
-	 */
-	@Test
+	@Test // DATAJPA-300
 	public void andConcatenatesSpecToNullSpec() {
 
 		Specifications<Object> specification = where(null);
@@ -93,10 +84,7 @@ public class SpecificationsUnitTests {
 		assertThat(specification.toPredicate(root, query, builder), is(predicate));
 	}
 
-	/**
-	 * @see DATAJPA-300
-	 */
-	@Test
+	@Test // DATAJPA-300
 	public void andConcatenatesNullSpecToSpec() {
 
 		Specifications<Object> specification = where(mockSpec);
@@ -106,10 +94,7 @@ public class SpecificationsUnitTests {
 		assertThat(specification.toPredicate(root, query, builder), is(predicate));
 	}
 
-	/**
-	 * @see DATAJPA-300
-	 */
-	@Test
+	@Test // DATAJPA-300
 	public void orConcatenatesSpecToNullSpec() {
 
 		Specifications<Object> specification = where(null);
@@ -119,10 +104,7 @@ public class SpecificationsUnitTests {
 		assertThat(specification.toPredicate(root, query, builder), is(predicate));
 	}
 
-	/**
-	 * @see DATAJPA-300
-	 */
-	@Test
+	@Test // DATAJPA-300
 	public void orConcatenatesNullSpecToSpec() {
 
 		Specifications<Object> specification = where(mockSpec);
@@ -132,10 +114,7 @@ public class SpecificationsUnitTests {
 		assertThat(specification.toPredicate(root, query, builder), is(predicate));
 	}
 
-	/**
-	 * @see DATAJPA-523
-	 */
-	@Test
+	@Test // DATAJPA-523
 	public void specificationsShouldBeSerializable() {
 
 		Specifications<Object> specification = where(mockSpec);
@@ -149,10 +128,7 @@ public class SpecificationsUnitTests {
 		assertThat(transferedSpecification, is(notNullValue()));
 	}
 
-	/**
-	 * @see DATAJPA-523
-	 */
-	@Test
+	@Test // DATAJPA-523
 	public void complexSpecificationsShouldBeSerializable() {
 
 		Specifications<Object> specification = where(mockSpec);

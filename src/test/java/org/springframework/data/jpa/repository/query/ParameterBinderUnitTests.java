@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2015 the original author or authors.
+ * Copyright 2008-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -182,10 +182,7 @@ public class ParameterBinderUnitTests {
 		assertThat(binder.getSort(), is(sort));
 	}
 
-	/**
-	 * @see DATAJPA-107
-	 */
-	@Test
+	@Test // DATAJPA-107
 	public void shouldSetTemporalQueryParameterToDate() throws Exception {
 
 		Method method = SampleRepository.class.getMethod("validWithDefaultTemporalTypeParameter", Date.class);
@@ -197,10 +194,7 @@ public class ParameterBinderUnitTests {
 		verify(query).setParameter(eq(1), eq(date), eq(TemporalType.DATE));
 	}
 
-	/**
-	 * @see DATAJPA-107
-	 */
-	@Test
+	@Test // DATAJPA-107
 	public void shouldSetTemporalQueryParameterToTimestamp() throws Exception {
 
 		Method method = SampleRepository.class.getMethod("validWithCustomTemporalTypeParameter", Date.class);
@@ -212,10 +206,7 @@ public class ParameterBinderUnitTests {
 		verify(query).setParameter(eq(1), eq(date), eq(TemporalType.TIMESTAMP));
 	}
 
-	/**
-	 * @see DATAJPA-107
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAJPA-107
 	public void shouldThrowIllegalArgumentExceptionIfIsAnnotatedWithTemporalParamAndParameterTypeIsNotDate()
 			throws Exception {
 		Method method = SampleRepository.class.getMethod("invalidWithTemporalTypeParameter", String.class);
@@ -224,10 +215,7 @@ public class ParameterBinderUnitTests {
 		new ParameterBinder(parameters, new Object[] { "foo", "" });
 	}
 
-	/**
-	 * @see DATAJPA-461
-	 */
-	@Test
+	@Test // DATAJPA-461
 	public void shouldAllowBindingOfVarArgsAsIs() throws Exception {
 
 		Method method = SampleRepository.class.getMethod("validWithVarArgs", Integer[].class);
@@ -238,10 +226,7 @@ public class ParameterBinderUnitTests {
 		verify(query).setParameter(eq(1), eq(ids));
 	}
 
-	/**
-	 * @see DATAJPA-809
-	 */
-	@Test
+	@Test // DATAJPA-809
 	public void unwrapsOptionalParameter() throws Exception {
 
 		Method method = SampleRepository.class.getMethod("optionalParameter", Optional.class);

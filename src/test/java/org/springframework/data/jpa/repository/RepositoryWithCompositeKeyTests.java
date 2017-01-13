@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,10 +61,9 @@ public class RepositoryWithCompositeKeyTests {
 	@Autowired EmployeeRepositoryWithEmbeddedId employeeRepositoryWithEmbeddedId;
 
 	/**
-	 * @see DATAJPA-269
 	 * @see Final JPA 2.0 Specification 2.4.1.3 Derived Identities Example 2
 	 */
-	@Test
+	@Test // DATAJPA-269
 	public void shouldSupportSavingEntitiesWithCompositeKeyClassesWithIdClassAndDerivedIdentities() {
 
 		IdClassExampleDepartment dep = new IdClassExampleDepartment();
@@ -87,10 +86,9 @@ public class RepositoryWithCompositeKeyTests {
 	}
 
 	/**
-	 * @see DATAJPA-269
 	 * @see Final JPA 2.0 Specification 2.4.1.3 Derived Identities Example 3
 	 */
-	@Test
+	@Test // DATAJPA-269
 	public void shouldSupportSavingEntitiesWithCompositeKeyClassesWithEmbeddedIdsAndDerivedIdentities() {
 
 		EmbeddedIdExampleDepartment dep = new EmbeddedIdExampleDepartment();
@@ -113,11 +111,7 @@ public class RepositoryWithCompositeKeyTests {
 		assertThat(persistedEmp.getDepartment().getName(), is(dep.getName()));
 	}
 
-	/**
-	 * @see DATAJPA-472
-	 * @see DATAJPA-912
-	 */
-	@Test
+	@Test // DATAJPA-472, DATAJPA-912
 	public void shouldSupportFindAllWithPageableAndEntityWithIdClass() throws Exception {
 
 		if (Package.getPackage("org.hibernate.cfg").getImplementationVersion().startsWith("4.1.")) {
@@ -141,10 +135,7 @@ public class RepositoryWithCompositeKeyTests {
 		assertThat(page.getTotalElements(), is(1L));
 	}
 
-	/**
-	 * @see DATAJPA-497
-	 */
-	@Test
+	@Test // DATAJPA-497
 	public void sortByEmbeddedPkFieldInCompositePkWithEmbeddedIdInQueryDsl() {
 
 		EmbeddedIdExampleDepartment dep1 = new EmbeddedIdExampleDepartment();
@@ -180,10 +171,7 @@ public class RepositoryWithCompositeKeyTests {
 		assertThat(result.get(1), is(emp1));
 	}
 
-	/**
-	 * @see DATAJPA-497
-	 */
-	@Test
+	@Test // DATAJPA-497
 	public void sortByEmbeddedPkFieldInCompositePkWithIdClassInQueryDsl() {
 
 		IdClassExampleDepartment dep1 = new IdClassExampleDepartment();
@@ -219,10 +207,7 @@ public class RepositoryWithCompositeKeyTests {
 		assertThat(result.get(1), is(emp1));
 	}
 
-	/**
-	 * @see DATAJPA-527
-	 */
-	@Test
+	@Test // DATAJPA-527
 	public void testExistsWithIdClass() {
 
 		IdClassExampleDepartment dep = new IdClassExampleDepartment();
@@ -241,10 +226,7 @@ public class RepositoryWithCompositeKeyTests {
 		assertThat(employeeRepositoryWithIdClass.exists(key), is(true));
 	}
 
-	/**
-	 * @see DATAJPA-527
-	 */
-	@Test
+	@Test // DATAJPA-527
 	public void testExistsWithEmbeddedId() {
 
 		EmbeddedIdExampleDepartment dep1 = new EmbeddedIdExampleDepartment();
@@ -267,10 +249,7 @@ public class RepositoryWithCompositeKeyTests {
 		assertThat(employeeRepositoryWithEmbeddedId.exists(key), is(true));
 	}
 
-	/**
-	 * @see DATAJPA-611
-	 */
-	@Test
+	@Test // DATAJPA-611
 	public void shouldAllowFindAllWithIdsForEntitiesWithCompoundIdClassKeys() {
 
 		IdClassExampleDepartment dep2 = new IdClassExampleDepartment();
@@ -304,10 +283,7 @@ public class RepositoryWithCompositeKeyTests {
 		assertThat(result, hasSize(2));
 	}
 
-	/**
-	 * @see DATAJPA-920
-	 */
-	@Test
+	@Test // DATAJPA-920
 	public void shouldExecuteExistsQueryForEntitiesWithEmbeddedId() {
 
 		EmbeddedIdExampleDepartment dep1 = new EmbeddedIdExampleDepartment();
@@ -328,10 +304,7 @@ public class RepositoryWithCompositeKeyTests {
 		assertThat(employeeRepositoryWithEmbeddedId.existsByName(emp.getName()), is(true));
 	}
 
-	/**
-	 * @see DATAJPA-920
-	 */
-	@Test
+	@Test // DATAJPA-920
 	public void shouldExecuteExistsQueryForEntitiesWithCompoundIdClassKeys() {
 
 		IdClassExampleDepartment dep2 = new IdClassExampleDepartment();

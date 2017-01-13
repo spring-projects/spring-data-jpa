@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2015 the original author or authors.
+ * Copyright 2011-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ import org.hibernate.Version;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.data.jpa.domain.AbstractPersistable;
 import org.springframework.data.jpa.domain.sample.ConcreteType1;
 import org.springframework.data.jpa.domain.sample.Item;
@@ -85,9 +86,8 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 	 * {@link MappedSuperclass}es correctly).
 	 * 
 	 * @see https://hibernate.onjira.com/browse/HHH-6896
-	 * @see DATAJPA-141
 	 */
-	@Test
+	@Test // DATAJPA-141
 	@Ignore
 	public void detectsIdTypeForMappedSuperclass() {
 
@@ -95,20 +95,14 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 		assertEquals(Serializable.class, information.getIdType());
 	}
 
-	/**
-	 * @see DATAJPA-50
-	 */
-	@Test
+	@Test // DATAJPA-50
 	public void detectsIdClass() {
 
 		EntityInformation<PersistableWithIdClass, ?> information = getEntityInformation(PersistableWithIdClass.class, em);
 		assertThat(information.getIdType(), is(typeCompatibleWith(PersistableWithIdClassPK.class)));
 	}
 
-	/**
-	 * @see DATAJPA-50
-	 */
-	@Test
+	@Test // DATAJPA-50
 	public void returnsIdOfPersistableInstanceCorrectly() {
 
 		PersistableWithIdClass entity = new PersistableWithIdClass(2L, 4L);
@@ -121,10 +115,7 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 		assertThat(id, is((Object) new PersistableWithIdClassPK(2L, 4L)));
 	}
 
-	/**
-	 * @see DATAJPA-413
-	 */
-	@Test
+	@Test // DATAJPA-413
 	public void returnsIdOfEntityWithIdClassCorrectly() {
 
 		Item item = new Item(2, 1);
@@ -136,10 +127,7 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 		assertThat(id, is((Object) new ItemId(2, 1)));
 	}
 
-	/**
-	 * @see DATAJPA-413
-	 */
-	@Test
+	@Test // DATAJPA-413
 	public void returnsDerivedIdOfEntityWithIdClassCorrectly() {
 
 		Item item = new Item(1, 2);
@@ -154,10 +142,7 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 		assertThat(id, is((Object) new ItemSiteId(new ItemId(1, 2), 3)));
 	}
 
-	/**
-	 * @see DATAJPA-413
-	 */
-	@Test
+	@Test // DATAJPA-413
 	public void returnsPartialEmptyDerivedIdOfEntityWithIdClassCorrectly() {
 
 		Item item = new Item(1, null);
@@ -172,10 +157,7 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 		assertThat(id, is((Object) new ItemSiteId(new ItemId(1, null), 3)));
 	}
 
-	/**
-	 * @see DATAJPA-119
-	 */
-	@Test
+	@Test // DATAJPA-119
 	public void favoursVersionAnnotationIfPresent() {
 
 		EntityInformation<VersionedUser, Long> information = new JpaMetamodelEntityInformation<VersionedUser, Long>(
@@ -191,10 +173,7 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 		assertThat(information.isNew(entity), is(false));
 	}
 
-	/**
-	 * @see DATAJPA-348
-	 */
-	@Test
+	@Test // DATAJPA-348
 	public void findsIdClassOnMappedSuperclass() {
 
 		EntityManagerFactory emf = Persistence.createEntityManagerFactory(getMetadadataPersitenceUnitName());
@@ -206,10 +185,7 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 		assertThat(information.getIdType(), is((Object) BaseIdClass.class));
 	}
 
-	/**
-	 * @see DATACMNS-357
-	 */
-	@Test
+	@Test // DATACMNS-357
 	public void detectsNewStateForEntityWithPrimitiveId() {
 
 		EntityInformation<SampleWithPrimitiveId, Long> information = new JpaMetamodelEntityInformation<SampleWithPrimitiveId, Long>(
@@ -222,10 +198,7 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 		assertThat(information.isNew(sample), is(false));
 	}
 
-	/**
-	 * @see DATAJPA-509
-	 */
-	@Test
+	@Test // DATAJPA-509
 	public void jpaMetamodelEntityInformationShouldRespectExplicitlyConfiguredEntityNameFromOrmXml() {
 
 		JpaEntityInformation<Role, Integer> info = new JpaMetamodelEntityInformation<Role, Integer>(Role.class,
@@ -234,10 +207,7 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 		assertThat(info.getEntityName(), is("ROLE"));
 	}
 
-	/**
-	 * @see DATAJPA-561
-	 */
-	@Test
+	@Test // DATAJPA-561
 	public void considersEntityWithPrimitiveVersionPropertySetToDefaultNew() {
 
 		EntityInformation<PrimitiveVersionProperty, Serializable> information = new JpaMetamodelEntityInformation<PrimitiveVersionProperty, Serializable>(
@@ -246,10 +216,7 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 		assertThat(information.isNew(new PrimitiveVersionProperty()), is(true));
 	}
 
-	/**
-	 * @see DATAJPA-568
-	 */
-	@Test
+	@Test // DATAJPA-568
 	public void considersEntityAsNotNewWhenHavingIdSetAndUsingPrimitiveTypeForVersionProperty() {
 
 		EntityInformation<PrimitiveVersionProperty, Serializable> information = new JpaMetamodelEntityInformation<PrimitiveVersionProperty, Serializable>(
@@ -261,10 +228,7 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 		assertThat(information.isNew(pvp), is(false));
 	}
 
-	/**
-	 * @see DATAJPA-568
-	 */
-	@Test
+	@Test // DATAJPA-568
 	public void fallsBackToIdInspectionForAPrimitiveVersionProperty() {
 
 		EntityInformation<PrimitiveVersionProperty, Serializable> information = new JpaMetamodelEntityInformation<PrimitiveVersionProperty, Serializable>(
@@ -279,10 +243,7 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 		assertThat(information.isNew(pvp), is(false));
 	}
 
-	/**
-	 * @see DATAJPA-582
-	 */
-	@Test
+	@Test // DATAJPA-582
 	public void considersEntityWithUnsetCompundIdNew() {
 
 		EntityInformation<SampleWithIdClass, ?> information = getEntityInformation(SampleWithIdClass.class, em);
@@ -290,10 +251,7 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 		assertThat(information.isNew(new SampleWithIdClass()), is(true));
 	}
 
-	/**
-	 * @see DATAJPA-582
-	 */
-	@Test
+	@Test // DATAJPA-582
 	public void considersEntityWithSetTimestampVersionNotNew() {
 
 		EntityInformation<SampleWithTimestampVersion, ?> information = getEntityInformation(
@@ -305,10 +263,7 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 		assertThat(information.isNew(entity), is(false));
 	}
 
-	/**
-	 * @see DATAJPA-582, DATAJPA-581
-	 */
-	@Test
+	@Test // DATAJPA-582, DATAJPA-581
 	public void considersEntityWithNonPrimitiveNonNullIdTypeNotNew() {
 
 		EntityInformation<User, ?> information = getEntityInformation(User.class, em);
@@ -321,10 +276,9 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 	}
 
 	/**
-	 * @see DATAJPA-820 - Ignored as Hibernate < 4.3 doesn't expose the version property properly if it's declared on the
-	 *      superclass.
+	 * Ignored as Hibernate < 4.3 doesn't expose the version property properly if it's declared on the superclass.
 	 */
-	@Test
+	@Test // DATAJPA-820
 	@Ignore
 	public void detectsVersionPropertyOnMappedSuperClass() {
 
