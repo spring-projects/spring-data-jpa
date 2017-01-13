@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -85,7 +85,8 @@ public class Jpa21Utils {
 	/**
 	 * Adds a JPA 2.1 fetch-graph or load-graph hint to the given {@link Query} if running under JPA 2.1.
 	 * 
-	 * @see JPA 2.1 Specfication 3.7.4 - Use of Entity Graphs in find and query operations P.117
+	 * @see <a href="download.oracle.com/otn-pub/jcp/persistence-2_1-fr-eval-spec/JavaPersistence.pdf">JPA 2.1
+	 *      Specfication 3.7.4 - Use of Entity Graphs in find and query operations P.117</a>
 	 * @param em must not be {@literal null}.
 	 * @param jpaEntityGraph must not be {@literal null}.
 	 * @param entityType must not be {@literal null}.

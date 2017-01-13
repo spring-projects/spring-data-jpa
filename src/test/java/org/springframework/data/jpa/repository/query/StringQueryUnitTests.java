@@ -292,7 +292,7 @@ public class StringQueryUnitTests {
 	}
 
 	/**
-	 * @see JPA 2.1 specification, section 4.8
+	 * @see <a href="download.oracle.com/otn-pub/jcp/persistence-2_1-fr-eval-spec/JavaPersistence.pdf">JPA 2.1 specification, section 4.8</a>
 	 */
 	@Test // DATAJPA-886
 	public void detectsConstructorExpressionForDefaultConstructor() {

@@ -1326,7 +1326,7 @@ public class UserRepositoryTests {
 	}
 
 	/**
-	 * @see https://issues.apache.org/jira/browse/OPENJPA-2484
+	 * @see <a href="https://issues.apache.org/jira/browse/OPENJPA-2484">OPENJPA-2484</a>
 	 */
 	@Test // DATAJPA-505
 	@Ignore

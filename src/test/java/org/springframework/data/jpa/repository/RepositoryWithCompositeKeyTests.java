@@ -25,6 +25,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Page;
@@ -61,7 +62,8 @@ public class RepositoryWithCompositeKeyTests {
 	@Autowired EmployeeRepositoryWithEmbeddedId employeeRepositoryWithEmbeddedId;
 
 	/**
-	 * @see Final JPA 2.0 Specification 2.4.1.3 Derived Identities Example 2
+	 * @see <a href="download.oracle.com/otn-pub/jcp/persistence-2_1-fr-eval-spec/JavaPersistence.pdf">Final JPA 2.0
+	 *      Specification 2.4.1.3 Derived Identities Example 2</a>
 	 */
 	@Test // DATAJPA-269
 	public void shouldSupportSavingEntitiesWithCompositeKeyClassesWithIdClassAndDerivedIdentities() {
@@ -86,7 +88,8 @@ public class RepositoryWithCompositeKeyTests {
 	}
 
 	/**
-	 * @see Final JPA 2.0 Specification 2.4.1.3 Derived Identities Example 3
+	 * @see <a href="download.oracle.com/otn-pub/jcp/persistence-2_1-fr-eval-spec/JavaPersistence.pdf">Final JPA 2.0
+	 *      Specification 2.4.1.3 Derived Identities Example 3</a>
 	 */
 	@Test // DATAJPA-269
 	public void shouldSupportSavingEntitiesWithCompositeKeyClassesWithEmbeddedIdsAndDerivedIdentities() {
@@ -162,8 +165,8 @@ public class RepositoryWithCompositeKeyTests {
 		emp3 = employeeRepositoryWithEmbeddedId.save(emp3);
 
 		QEmbeddedIdExampleEmployee emp = QEmbeddedIdExampleEmployee.embeddedIdExampleEmployee;
-		List<EmbeddedIdExampleEmployee> result = employeeRepositoryWithEmbeddedId.findAll(
-				emp.employeePk.departmentId.eq(dep2.getDepartmentId()), emp.employeePk.employeeId.asc());
+		List<EmbeddedIdExampleEmployee> result = employeeRepositoryWithEmbeddedId
+				.findAll(emp.employeePk.departmentId.eq(dep2.getDepartmentId()), emp.employeePk.employeeId.asc());
 
 		assertThat(result, is(notNullValue()));
 		assertThat(result, hasSize(2));
@@ -198,8 +201,8 @@ public class RepositoryWithCompositeKeyTests {
 		emp3 = employeeRepositoryWithIdClass.save(emp3);
 
 		QIdClassExampleEmployee emp = QIdClassExampleEmployee.idClassExampleEmployee;
-		List<IdClassExampleEmployee> result = employeeRepositoryWithIdClass.findAll(
-				emp.department.departmentId.eq(dep2.getDepartmentId()), emp.empId.asc());
+		List<IdClassExampleEmployee> result = employeeRepositoryWithIdClass
+				.findAll(emp.department.departmentId.eq(dep2.getDepartmentId()), emp.empId.asc());
 
 		assertThat(result, is(notNullValue()));
 		assertThat(result, hasSize(2));

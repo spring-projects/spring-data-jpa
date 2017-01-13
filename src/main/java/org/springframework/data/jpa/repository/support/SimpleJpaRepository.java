@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2016 the original author or authors.
+ * Copyright 2008-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -769,7 +769,7 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	 * {@link SimpleJpaRepository#findAll(Iterable)}. Workaround for OpenJPA not binding collections to in-clauses
 	 * correctly when using by-name binding.
 	 * 
-	 * @see https://issues.apache.org/jira/browse/OPENJPA-2018?focusedCommentId=13924055
+	 * @see <a href="https://issues.apache.org/jira/browse/OPENJPA-2018?focusedCommentId=13924055">OPENJPA-2018</a>
 	 * @author Oliver Gierke
 	 */
 	@SuppressWarnings("rawtypes")
