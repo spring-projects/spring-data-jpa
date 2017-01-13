@@ -63,7 +63,7 @@ public abstract class HibernateUtils {
 			queryInterface = ClassUtils.forName("org.hibernate.query.Query", classLoader);
 		} catch (Exception o_O) {}
 
-		HIBERNATE_QUERY_INTERFACE = queryInterface;
+		HIBERNATE_QUERY_INTERFACE = queryInterface == null ? type : queryInterface;
 		QUERY_STRING_METHOD = HIBERNATE_QUERY_INTERFACE == null ? null
 				: ReflectionUtils.findMethod(HIBERNATE_QUERY_INTERFACE, "getQueryString");
 	}
@@ -76,8 +76,13 @@ public abstract class HibernateUtils {
 	 */
 	public static String getHibernateQuery(Object query) {
 
-		if (HIBERNATE_QUERY_INTERFACE != null && HIBERNATE_QUERY_INTERFACE.isInstance(query)) {
+		if (HIBERNATE_QUERY_INTERFACE != null && QUERY_STRING_METHOD != null
+				&& HIBERNATE_QUERY_INTERFACE.isInstance(query)) {
 			return String.class.cast(ReflectionUtils.invokeMethod(QUERY_STRING_METHOD, query));
+		}
+
+		if (HIBERNATE_QUERY_INTERFACE != null && !HIBERNATE_QUERY_INTERFACE.isInstance(query)) {
+			query = ((javax.persistence.Query) query).unwrap(HIBERNATE_QUERY_INTERFACE);
 		}
 
 		return ((Query) ReflectionUtils.invokeMethod(GET_HIBERNATE_QUERY, query)).getQueryString();

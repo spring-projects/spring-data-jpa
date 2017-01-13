@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2013 the original author or authors.
+ * Copyright 2008-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import org.springframework.data.repository.query.parser.PartTree;
  * Special {@link JpaQueryCreator} that creates a count projecting query.
  * 
  * @author Oliver Gierke
+ * @author Marc Lefrançois
  */
 public class JpaCountQueryCreator extends JpaQueryCreator {
 
@@ -59,11 +60,16 @@ public class JpaCountQueryCreator extends JpaQueryCreator {
 	 * @see org.springframework.data.jpa.repository.query.JpaQueryCreator#complete(javax.persistence.criteria.Predicate, org.springframework.data.domain.Sort, javax.persistence.criteria.CriteriaQuery, javax.persistence.criteria.CriteriaBuilder, javax.persistence.criteria.Root)
 	 */
 	@Override
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings("unchecked")
 	protected CriteriaQuery<? extends Object> complete(Predicate predicate, Sort sort,
 			CriteriaQuery<? extends Object> query, CriteriaBuilder builder, Root<?> root) {
 
-		CriteriaQuery<? extends Object> select = query.select((Expression) builder.count(root));
+		CriteriaQuery<? extends Object> select = query.select(getCountQuery(query, builder, root));
 		return predicate == null ? select : select.where(predicate);
+	}
+
+	@SuppressWarnings("rawtypes")
+	private static Expression getCountQuery(CriteriaQuery<?> query, CriteriaBuilder builder, Root<?> root) {
+		return query.isDistinct() ? builder.countDistinct(root) : builder.count(root);
 	}
 }
