@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2014 the original author or authors.
+ * Copyright 2008-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,10 +47,7 @@ public class AuditingBeanDefinitionParserTests {
 		assertSetDatesIsSetTo("auditing/auditing-namespace-context2.xml", "false");
 	}
 
-	/**
-	 * @see DATAJPA-9
-	 */
-	@Test
+	@Test // DATAJPA-9
 	public void wiresDateTimeProviderIfConfigured() {
 
 		BeanDefinition definition = getBeanDefinition("auditing/auditing-namespace-context3.xml");
@@ -65,10 +62,7 @@ public class AuditingBeanDefinitionParserTests {
 		assertThat(bean, is(notNullValue()));
 	}
 
-	/**
-	 * @see DATAJPA-367
-	 */
-	@Test(expected = BeanDefinitionParsingException.class)
+	@Test(expected = BeanDefinitionParsingException.class) // DATAJPA-367
 	public void shouldThrowBeanDefinitionParsingExceptionIfClassFromSpringAspectsJarCannotBeFound() {
 
 		ShadowingClassLoader scl = new ShadowingClassLoader(getClass().getClassLoader());

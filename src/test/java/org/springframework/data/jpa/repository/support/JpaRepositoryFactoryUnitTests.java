@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2015 the original author or authors.
+ * Copyright 2008-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -158,10 +158,7 @@ public class JpaRepositoryFactoryUnitTests {
 		}
 	}
 
-	/**
-	 * @see DATAJPA-710, DATACMNS-542
-	 */
-	@Test
+	@Test // DATAJPA-710, DATACMNS-542
 	public void usesConfiguredRepositoryBaseClass() {
 
 		factory.setRepositoryBaseClass(CustomJpaRepository.class);
@@ -170,10 +167,7 @@ public class JpaRepositoryFactoryUnitTests {
 		assertEquals(CustomJpaRepository.class, ((Advised) repository).getTargetClass());
 	}
 
-	/**
-	 * @see DATAJPA-819
-	 */
-	@Test
+	@Test // DATAJPA-819
 	public void crudMethodMetadataPostProcessorUsesBeanClassLoader() {
 
 		ClassLoader classLoader = new OverridingClassLoader(ClassUtils.getDefaultClassLoader());

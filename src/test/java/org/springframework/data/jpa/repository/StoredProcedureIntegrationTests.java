@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,34 +71,22 @@ public class StoredProcedureIntegrationTests {
 		assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
 	}
 
-	/**
-	 * @see DATAJPA-652
-	 */
-	@Test
+	@Test // DATAJPA-652
 	public void shouldExecuteAdHocProcedureWithNoInputAnd1OutputParameter() {
 		assertThat(repository.adHocProcedureWithNoInputAnd1OutputParameter(), is(42));
 	}
 
-	/**
-	 * @see DATAJPA-652
-	 */
-	@Test
+	@Test // DATAJPA-652
 	public void shouldExecuteAdHocProcedureWith1InputAnd1OutputParameter() {
 		assertThat(repository.adHocProcedureWith1InputAnd1OutputParameter(23), is(24));
 	}
 
-	/**
-	 * @see DATAJPA-652
-	 */
-	@Test
+	@Test // DATAJPA-652
 	public void shouldExecuteAdHocProcedureWith1InputAndNoOutputParameter() {
 		repository.adHocProcedureWith1InputAndNoOutputParameter(42);
 	}
 
-	/**
-	 * @see DATAJPA-652
-	 */
-	@Test
+	@Test // DATAJPA-652
 	@Ignore(NOT_SUPPORTED)
 	public void shouldExecuteAdHocProcedureWith1InputAnd1OutputParameterWithResultSet() {
 
@@ -108,10 +96,7 @@ public class StoredProcedureIntegrationTests {
 		assertThat(dummies.size(), is(equalTo(3)));
 	}
 
-	/**
-	 * @see DATAJPA-652
-	 */
-	@Test
+	@Test // DATAJPA-652
 	@Ignore(NOT_SUPPORTED)
 	public void shouldExecuteAdHocProcedureWith1InputAnd1OutputParameterWithResultSetWithUpdate() {
 
@@ -121,42 +106,27 @@ public class StoredProcedureIntegrationTests {
 		assertThat(dummies.size(), is(equalTo(3)));
 	}
 
-	/**
-	 * @see DATAJPA-652
-	 */
-	@Test
+	@Test // DATAJPA-652
 	public void shouldExecuteAdHocProcedureWith1InputAnd1OutputParameterWithUpdate() {
 		repository.adHocProcedureWith1InputAndNoOutputParameterWithUpdate("FOO");
 	}
 
-	/**
-	 * @see DATAJPA-652
-	 */
-	@Test
+	@Test // DATAJPA-652
 	public void shouldExecuteProcedureWithNoInputAnd1OutputParameter() {
 		assertThat(repository.procedureWithNoInputAnd1OutputParameter(), is(42));
 	}
 
-	/**
-	 * @see DATAJPA-652
-	 */
-	@Test
+	@Test // DATAJPA-652
 	public void shouldExecuteProcedureWith1InputAnd1OutputParameter() {
 		assertThat(repository.procedureWith1InputAnd1OutputParameter(23), is(24));
 	}
 
-	/**
-	 * @see DATAJPA-652
-	 */
-	@Test
+	@Test // DATAJPA-652
 	public void shouldExecuteProcedureWith1InputAndNoOutputParameter() {
 		repository.procedureWith1InputAndNoOutputParameter(42);
 	}
 
-	/**
-	 * @see DATAJPA-652
-	 */
-	@Test
+	@Test // DATAJPA-652
 	@Ignore(NOT_SUPPORTED)
 	public void shouldExecuteProcedureWith1InputAnd1OutputParameterWithResultSet() {
 
@@ -166,10 +136,7 @@ public class StoredProcedureIntegrationTests {
 		assertThat(dummies.size(), is(equalTo(3)));
 	}
 
-	/**
-	 * @see DATAJPA-652
-	 */
-	@Test
+	@Test // DATAJPA-652
 	@Ignore(NOT_SUPPORTED)
 	public void shouldExecuteProcedureWith1InputAnd1OutputParameterWithResultSetWithUpdate() {
 
@@ -179,10 +146,7 @@ public class StoredProcedureIntegrationTests {
 		assertThat(dummies.size(), is(equalTo(3)));
 	}
 
-	/**
-	 * @see DATAJPA-652
-	 */
-	@Test
+	@Test // DATAJPA-652
 	public void shouldExecuteProcedureWith1InputAnd1OutputParameterWithUpdate() {
 		repository.procedureWith1InputAndNoOutputParameterWithUpdate("FOO");
 	}

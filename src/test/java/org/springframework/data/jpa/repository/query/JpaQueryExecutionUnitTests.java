@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2016 the original author or authors.
+ * Copyright 2008-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -116,11 +116,7 @@ public class JpaQueryExecutionUnitTests {
 		new ModifyingExecution(method, em);
 	}
 
-	/**
-	 * @see DATAJPA-124
-	 * @see DATAJPA-912
-	 */
-	@Test
+	@Test // DATAJPA-124, DATAJPA-912
 	public void pagedExecutionRetrievesObjectsForPageableOutOfRange() throws Exception {
 
 		Parameters<?, ?> parameters = new DefaultParameters(getClass().getMethod("sampleMethod", Pageable.class));
@@ -135,11 +131,7 @@ public class JpaQueryExecutionUnitTests {
 		verify(countQuery).getResultList();
 	}
 
-	/**
-	 * @see DATAJPA-477
-	 * @see DATAJPA-912
-	 */
-	@Test
+	@Test // DATAJPA-477, DATAJPA-912
 	public void pagedExecutionShouldNotGenerateCountQueryIfQueryReportedNoResults() throws Exception {
 
 		Parameters<?, ?> parameters = new DefaultParameters(getClass().getMethod("sampleMethod", Pageable.class));
@@ -153,10 +145,7 @@ public class JpaQueryExecutionUnitTests {
 		verify(jpaQuery, times(0)).createCountQuery((Object[]) any());
 	}
 
-	/**
-	 * @see DATAJPA-912
-	 */
-	@Test
+	@Test // DATAJPA-912
 	public void pagedExecutionShouldUseCountFromResultIfOffsetIsZeroAndResultsWithinPageSize() throws Exception {
 
 		Parameters<?, ?> parameters = new DefaultParameters(getClass().getMethod("sampleMethod", Pageable.class));
@@ -169,10 +158,7 @@ public class JpaQueryExecutionUnitTests {
 		verify(jpaQuery, times(0)).createCountQuery((Object[]) any());
 	}
 
-	/**
-	 * @see DATAJPA-912
-	 */
-	@Test
+	@Test // DATAJPA-912
 	public void pagedExecutionShouldUseCountFromResultWithOffsetAndResultsWithinPageSize() throws Exception {
 
 		Parameters<?, ?> parameters = new DefaultParameters(getClass().getMethod("sampleMethod", Pageable.class));
@@ -185,10 +171,7 @@ public class JpaQueryExecutionUnitTests {
 		verify(jpaQuery, times(0)).createCountQuery((Object[]) any());
 	}
 
-	/**
-	 * @see DATAJPA-912
-	 */
-	@Test
+	@Test // DATAJPA-912
 	public void pagedExecutionShouldUseRequestCountFromResultWithOffsetAndResultsHitLowerPageSizeBounds() throws Exception {
 
 		Parameters<?, ?> parameters = new DefaultParameters(getClass().getMethod("sampleMethod", Pageable.class));
@@ -203,10 +186,7 @@ public class JpaQueryExecutionUnitTests {
 		verify(jpaQuery).createCountQuery((Object[]) any());
 	}
 
-	/**
-	 * @see DATAJPA-912
-	 */
-	@Test
+	@Test // DATAJPA-912
 	public void pagedExecutionShouldUseRequestCountFromResultWithOffsetAndResultsHitUpperPageSizeBounds() throws Exception {
 
 		Parameters<?, ?> parameters = new DefaultParameters(getClass().getMethod("sampleMethod", Pageable.class));
@@ -221,10 +201,7 @@ public class JpaQueryExecutionUnitTests {
 		verify(jpaQuery).createCountQuery((Object[]) any());
 	}
 
-	/**
-	 * @see DATAJPA-951
-	 */
-	@Test
+	@Test // DATAJPA-951
 	public void doesNotPreemtivelyWrapResultIntoOptional() throws Exception {
 
 		doReturn(method).when(jpaQuery).getQueryMethod();

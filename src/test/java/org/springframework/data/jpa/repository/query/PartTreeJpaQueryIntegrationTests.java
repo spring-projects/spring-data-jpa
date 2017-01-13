@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2016 the original author or authors.
+ * Copyright 2011-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License
 import org.springframework.aop.framework.Advised;
@@ -75,11 +75,7 @@ public class PartTreeJpaQueryIntegrationTests {
 		this.provider = PersistenceProvider.fromEntityManager(entityManager);
 	}
 
-	/**
-	 * @see DATADOC-90
-	 * @throws Exception
-	 */
-	@Test
+	@Test // DATADOC-90
 	public void test() throws Exception {
 
 		JpaQueryMethod queryMethod = getQueryMethod("findByFirstname", String.class, Pageable.class);
@@ -103,10 +99,7 @@ public class PartTreeJpaQueryIntegrationTests {
 		testIgnoreCase("findByIdAllIgnoringCase", 3);
 	}
 
-	/**
-	 * @see DATAJPA-121
-	 */
-	@Test
+	@Test // DATAJPA-121
 	public void recreatesQueryIfNullValueIsGiven() throws Exception {
 
 		JpaQueryMethod queryMethod = getQueryMethod("findByFirstname", String.class, Pageable.class);
@@ -121,10 +114,7 @@ public class PartTreeJpaQueryIntegrationTests {
 		assertThat(HibernateUtils.getHibernateQuery(getValue(query, PROPERTY)), endsWith("firstname is null"));
 	}
 
-	/**
-	 * @see DATAJPA-920
-	 */
-	@Test
+	@Test // DATAJPA-920
 	public void shouldLimitExistsProjectionQueries() throws Exception {
 
 		JpaQueryMethod queryMethod = getQueryMethod("existsByFirstname", String.class);
@@ -135,10 +125,7 @@ public class PartTreeJpaQueryIntegrationTests {
 		assertThat(query.getMaxResults(), is(1));
 	}
 
-	/**
-	 * @see DATAJPA-920
-	 */
-	@Test
+	@Test // DATAJPA-920
 	public void shouldSelectAliasedIdForExistsProjectionQueries() throws Exception {
 
 		JpaQueryMethod queryMethod = getQueryMethod("existsByFirstname", String.class);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 the original author or authors.
+ * Copyright 2011-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,10 +63,7 @@ public class RoleRepositoryIntegrationTests {
 		assertThat(repository.findOne(result.getId()), is(reference));
 	}
 
-	/**
-	 * @see DATAJPA-509
-	 */
-	@Test
+	@Test // DATAJPA-509
 	public void shouldUseExplicitlyConfiguredEntityNameInOrmXmlInCountQueries() {
 
 		Role reference = new Role("ADMIN");
@@ -75,10 +72,7 @@ public class RoleRepositoryIntegrationTests {
 		assertThat(repository.count(), is(1L));
 	}
 
-	/**
-	 * @see DATAJPA-509
-	 */
-	@Test
+	@Test // DATAJPA-509
 	public void shouldUseExplicitlyConfiguredEntityNameInOrmXmlInExistsQueries() {
 
 		Role reference = new Role("ADMIN");
@@ -87,10 +81,7 @@ public class RoleRepositoryIntegrationTests {
 		assertThat(repository.exists(reference.getId()), is(true));
 	}
 
-	/**
-	 * @see DATAJPA-509
-	 */
-	@Test
+	@Test // DATAJPA-509
 	public void shouldUseExplicitlyConfiguredEntityNameInDerivedCountQueries() {
 
 		Role reference = new Role("ADMIN");

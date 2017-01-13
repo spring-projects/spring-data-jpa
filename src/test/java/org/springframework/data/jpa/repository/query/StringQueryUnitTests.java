@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,10 +39,7 @@ public class StringQueryUnitTests {
 
 	public @Rule ExpectedException exception = ExpectedException.none();
 
-	/**
-	 * @see DATAJPA-341
-	 */
-	@Test
+	@Test // DATAJPA-341
 	public void doesNotConsiderPlainLikeABinding() {
 
 		String source = "select from User u where u.firstname like :firstname";
@@ -98,10 +95,7 @@ public class StringQueryUnitTests {
 		assertThat(binding.getType(), is(Type.ENDING_WITH));
 	}
 
-	/**
-	 * @see DATAJPA-461
-	 */
-	@Test
+	@Test // DATAJPA-461
 	public void detectsNamedInParameterBindings() {
 
 		String queryString = "select u from User u where u.id in :ids";
@@ -116,10 +110,7 @@ public class StringQueryUnitTests {
 		assertNamedBinding(InParameterBinding.class, "ids", bindings.get(0));
 	}
 
-	/**
-	 * @see DATAJPA-461
-	 */
-	@Test
+	@Test // DATAJPA-461
 	public void detectsMultipleNamedInParameterBindings() {
 
 		String queryString = "select u from User u where u.id in :ids and u.name in :names and foo = :bar";
@@ -136,10 +127,7 @@ public class StringQueryUnitTests {
 		assertNamedBinding(ParameterBinding.class, "bar", bindings.get(2));
 	}
 
-	/**
-	 * @see DATAJPA-461
-	 */
-	@Test
+	@Test // DATAJPA-461
 	public void detectsPositionalInParameterBindings() {
 
 		String queryString = "select u from User u where u.id in ?1";
@@ -154,10 +142,7 @@ public class StringQueryUnitTests {
 		assertPositionalBinding(InParameterBinding.class, 1, bindings.get(0));
 	}
 
-	/**
-	 * @see DATAJPA-461
-	 */
-	@Test
+	@Test // DATAJPA-461
 	public void detectsMultiplePositionalInParameterBindings() {
 
 		String queryString = "select u from User u where u.id in ?1 and u.names in ?2 and foo = ?3";
@@ -174,26 +159,17 @@ public class StringQueryUnitTests {
 		assertPositionalBinding(ParameterBinding.class, 3, bindings.get(2));
 	}
 
-	/**
-	 * @see DATAJPA-373
-	 */
-	@Test
+	@Test // DATAJPA-373
 	public void handlesMultipleNamedLikeBindingsCorrectly() {
 		new StringQuery("select u from User u where u.firstname like %:firstname or foo like :bar");
 	}
 
-	/**
-	 * @see DATAJPA-292, DATAJPA-362
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAJPA-292, DATAJPA-362
 	public void rejectsDifferentBindingsForRepeatedParameter() {
 		new StringQuery("select u from User u where u.firstname like %?1 and u.lastname like ?1%");
 	}
 
-	/**
-	 * @see DATAJPA-461
-	 */
-	@Test
+	@Test // DATAJPA-461
 	public void treatsGreaterThanBindingAsSimpleBinding() {
 
 		StringQuery query = new StringQuery("select u from User u where u.createdDate > ?1");
@@ -203,10 +179,7 @@ public class StringQueryUnitTests {
 		assertPositionalBinding(ParameterBinding.class, 1, bindings.get(0));
 	}
 
-	/**
-	 * @see DATAJPA-473
-	 */
-	@Test
+	@Test // DATAJPA-473
 	public void removesLikeBindingsFromQueryIfQueryContainsSimpleBinding() {
 
 		StringQuery query = new StringQuery("SELECT a FROM Article a WHERE a.overview LIKE %:escapedWord% ESCAPE '~'"
@@ -221,10 +194,7 @@ public class StringQueryUnitTests {
 				+ " OR a.content LIKE :escapedWord ESCAPE '~' OR a.title = :word ORDER BY a.articleId DESC"));
 	}
 
-	/**
-	 * @see DATAJPA-483
-	 */
-	@Test
+	@Test // DATAJPA-483
 	public void detectsInBindingWithParentheses() {
 
 		StringQuery query = new StringQuery("select count(we) from MyEntity we where we.status in (:statuses)");
@@ -235,10 +205,7 @@ public class StringQueryUnitTests {
 		assertNamedBinding(InParameterBinding.class, "statuses", bindings.get(0));
 	}
 
-	/**
-	 * @see DATAJPA-513
-	 */
-	@Test
+	@Test // DATAJPA-513
 	public void rejectsNullParameterNameHintingTowardsAtParamForNullParameterName() {
 
 		StringQuery query = new StringQuery("select x from X");
@@ -249,10 +216,7 @@ public class StringQueryUnitTests {
 		query.getBindingFor(null);
 	}
 
-	/**
-	 * @see DATAJPA-545
-	 */
-	@Test
+	@Test // DATAJPA-545
 	public void detectsInBindingWithSpecialFrenchCharactersInParentheses() {
 
 		StringQuery query = new StringQuery("select * from MyEntity where abonnés in (:abonnés)");
@@ -263,10 +227,7 @@ public class StringQueryUnitTests {
 		assertNamedBinding(InParameterBinding.class, "abonnés", bindings.get(0));
 	}
 
-	/**
-	 * @see DATAJPA-545
-	 */
-	@Test
+	@Test // DATAJPA-545
 	public void detectsInBindingWithSpecialCharactersInParentheses() {
 
 		StringQuery query = new StringQuery("select * from MyEntity where øre in (:øre)");
@@ -277,10 +238,7 @@ public class StringQueryUnitTests {
 		assertNamedBinding(InParameterBinding.class, "øre", bindings.get(0));
 	}
 
-	/**
-	 * @see DATAJPA-545
-	 */
-	@Test
+	@Test // DATAJPA-545
 	public void detectsInBindingWithSpecialAsianCharactersInParentheses() {
 
 		StringQuery query = new StringQuery("select * from MyEntity where 생일 in (:생일)");
@@ -291,10 +249,7 @@ public class StringQueryUnitTests {
 		assertNamedBinding(InParameterBinding.class, "생일", bindings.get(0));
 	}
 
-	/**
-	 * @see DATAJPA-545
-	 */
-	@Test
+	@Test // DATAJPA-545
 	public void detectsInBindingWithSpecialCharactersAndWordCharactersMixedInParentheses() {
 
 		StringQuery query = new StringQuery("select * from MyEntity where foo in (:ab1babc생일233)");
@@ -305,18 +260,12 @@ public class StringQueryUnitTests {
 		assertNamedBinding(InParameterBinding.class, "ab1babc생일233", bindings.get(0));
 	}
 
-	/**
-	 * @see DATAJPA-362
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAJPA-362
 	public void rejectsDifferentBindingsForRepeatedParameter2() {
 		new StringQuery("select u from User u where u.firstname like ?1 and u.lastname like %?1");
 	}
 
-	/**
-	 * @see @DATAJPA-712
-	 */
-	@Test
+	@Test // DATAJPA-712
 	public void shouldReplaceAllNamedExpressionParametersWithInClause() {
 
 		StringQuery query = new StringQuery("select a from A a where a.b in :#{#bs} and a.c in :#{#cs}");
@@ -325,10 +274,7 @@ public class StringQueryUnitTests {
 		assertThat(queryString, is("select a from A a where a.b in :__$synthetic$__1 and a.c in :__$synthetic$__2"));
 	}
 
-	/**
-	 * @see @DATAJPA-712
-	 */
-	@Test
+	@Test // DATAJPA-712
 	public void shouldReplaceAllPositionExpressionParametersWithInClause() {
 
 		StringQuery query = new StringQuery("select a from A a where a.b in ?#{#bs} and a.c in ?#{#cs}");
@@ -337,10 +283,7 @@ public class StringQueryUnitTests {
 		assertThat(queryString, is("select a from A a where a.b in ?1 and a.c in ?2"));
 	}
 
-	/**
-	 * @see DATAJPA-864
-	 */
-	@Test
+	@Test // DATAJPA-864
 	public void detectsConstructorExpressions() {
 
 		assertThat(new StringQuery("select  new  Dto(a.foo, a.bar)  from A a").hasConstructorExpression(), is(true));
@@ -349,10 +292,9 @@ public class StringQueryUnitTests {
 	}
 
 	/**
-	 * @see DATAJPA-886
 	 * @see JPA 2.1 specification, section 4.8
 	 */
-	@Test
+	@Test // DATAJPA-886
 	public void detectsConstructorExpressionForDefaultConstructor() {
 
 		// Parentheses required

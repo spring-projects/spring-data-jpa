@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2014 the original author or authors.
+ * Copyright 2008-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,18 +66,12 @@ public class AuditingBeanFactoryPostProcessorUnitTests {
 		assertThat(beanFactory.isBeanNameInUse(AuditingBeanFactoryPostProcessor.BEAN_CONFIGURER_ASPECT_BEAN_NAME), is(true));
 	}
 
-	/**
-	 * @see DATAJPA-265
-	 */
-	@Test(expected = IllegalStateException.class)
+	@Test(expected = IllegalStateException.class) // DATAJPA-265
 	public void rejectsConfigurationWithoutSpringConfigured() {
 		processor.postProcessBeanFactory(new DefaultListableBeanFactory());
 	}
 
-	/**
-	 * @see DATAJPA-265
-	 */
-	@Test
+	@Test // DATAJPA-265
 	public void setsDependsOnOnEntityManagerFactory() {
 
 		processor.postProcessBeanFactory(beanFactory);
@@ -92,10 +86,7 @@ public class AuditingBeanFactoryPostProcessorUnitTests {
 		}
 	}
 
-	/**
-	 * @see DATAJPA-453
-	 */
-	@Test
+	@Test // DATAJPA-453
 	public void findsEntityManagerFactoryInParentBeanFactory() {
 
 		DefaultListableBeanFactory childFactory = new DefaultListableBeanFactory(getBeanFactory());

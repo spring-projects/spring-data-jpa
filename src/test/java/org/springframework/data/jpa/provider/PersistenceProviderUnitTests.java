@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,10 +50,7 @@ public class PersistenceProviderUnitTests {
 		this.shadowingClassLoader = new ShadowingClassLoader(getClass().getClassLoader());
 	}
 
-	/**
-	 * @see DATAJPA-444
-	 */
-	@Test
+	@Test // DATAJPA-444
 	public void detectsHibernatePersistenceProviderForHibernateVersionLessThan4Dot3() throws Exception {
 
 		shadowingClassLoader.excludePackage("org.hibernate");
@@ -63,10 +60,7 @@ public class PersistenceProviderUnitTests {
 		assertThat(fromEntityManager(em), is(HIBERNATE));
 	}
 
-	/**
-	 * @see DATAJPA-444
-	 */
-	@Test
+	@Test // DATAJPA-444
 	public void detectsHibernatePersistenceProviderForHibernateVersionGreaterEqual4dot3() throws Exception {
 
 		shadowingClassLoader.excludePackage("org.hibernate");
@@ -104,10 +98,7 @@ public class PersistenceProviderUnitTests {
 		assertThat(fromEntityManager(em), is(GENERIC_JPA));
 	}
 
-	/**
-	 * @see DATAJPA-1019
-	 */
-	@Test
+	@Test // DATAJPA-1019
 	public void detectsHibernatePersistenceProviderForHibernateVersion52() throws Exception {
 
 		Assume.assumeThat(Version.getVersionString(), startsWith("5.2"));

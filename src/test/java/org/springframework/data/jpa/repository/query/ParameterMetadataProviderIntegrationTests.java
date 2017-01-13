@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,10 +48,7 @@ public class ParameterMetadataProviderIntegrationTests {
 
 	@PersistenceContext EntityManager em;
 
-	/**
-	 * @see DATAJPA-758
-	 */
-	@Test
+	@Test // DATAJPA-758
 	public void forwardsParameterNameIfTransparentlyNamed() throws Exception {
 
 		ParameterMetadataProvider provider = createProvider(Sample.class.getMethod("findByFirstname", String.class));
@@ -60,10 +57,7 @@ public class ParameterMetadataProviderIntegrationTests {
 		assertThat(metadata.getExpression().getName(), is("name"));
 	}
 
-	/**
-	 * @see DATAJPA-758
-	 */
-	@Test
+	@Test // DATAJPA-758
 	public void forwardsParameterNameIfExplicitlyAnnotated() throws Exception {
 
 		ParameterMetadataProvider provider = createProvider(Sample.class.getMethod("findByLastname", String.class));
@@ -72,10 +66,7 @@ public class ParameterMetadataProviderIntegrationTests {
 		assertThat(metadata.getExpression().getName(), is(nullValue()));
 	}
 
-	/**
-	 * @see DATAJPA-772
-	 */
-	@Test
+	@Test // DATAJPA-772
 	public void doesNotApplyLikeExpansionOnNonStringProperties() throws Exception {
 
 		ParameterMetadataProvider provider = createProvider(Sample.class.getMethod("findByAgeContaining", Integer.class));

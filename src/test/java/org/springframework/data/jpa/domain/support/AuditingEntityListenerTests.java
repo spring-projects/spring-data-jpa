@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2013 the original author or authors.
+ * Copyright 2008-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,10 +68,7 @@ public class AuditingEntityListenerTests {
 		assertUserIsAuditor(user, user);
 	}
 
-	/**
-	 * @see DATAJPA-303
-	 */
-	@Test
+	@Test // DATAJPA-303
 	public void updatesLastModifiedDates() throws Exception {
 
 		Thread.sleep(200);
@@ -98,10 +95,7 @@ public class AuditingEntityListenerTests {
 		assertUserIsAuditor(user, role);
 	}
 
-	/**
-	 * @see DATAJPA-501
-	 */
-	@Test
+	@Test // DATAJPA-501
 	public void usesAnnotationMetadata() {
 
 		AnnotatedAuditableUser auditableUser = annotatedUserRepository.save(new AnnotatedAuditableUser());

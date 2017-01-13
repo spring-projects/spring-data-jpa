@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2014 the original author or authors.
+ * Copyright 2012-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,10 +45,7 @@ public class CrudMethodMetadataPopulatingMethodInterceptorUnitTests {
 
 	@Mock MethodInvocation invocation;
 
-	/**
-	 * @see DATAJPA-268
-	 */
-	@Test
+	@Test // DATAJPA-268
 	public void cleansUpBoundResources() throws Throwable {
 
 		Method method = prepareMethodInvocation("someMethod");
@@ -59,10 +56,7 @@ public class CrudMethodMetadataPopulatingMethodInterceptorUnitTests {
 		assertThat(TransactionSynchronizationManager.getResource(method), is(nullValue()));
 	}
 
-	/**
-	 * @see DATAJPA-839
-	 */
-	@Test
+	@Test // DATAJPA-839
 	public void looksUpCrudMethodMetadataForEveryInvocation() throws Throwable {
 
 		CrudMethodMetadata metadata = new CrudMethodMetadataPostProcessor().getCrudMethodMetadata();

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,10 +44,7 @@ public class AbstractPersistableIntegrationTests {
 	@Autowired CustomAbstractPersistableRepository repository;
 	@Autowired EntityManager em;
 
-	/**
-	 * @see DATAJPA-622
-	 */
-	@Test
+	@Test // DATAJPA-622
 	public void shouldBeAbleToSaveAndLoadCustomPersistableWithUuidId() {
 
 		CustomAbstractPersistable entity = new CustomAbstractPersistable();
@@ -57,10 +54,7 @@ public class AbstractPersistableIntegrationTests {
 		assertThat(found, is(saved));
 	}
 
-	/**
-	 * @see DATAJPA-848
-	 */
-	@Test
+	@Test // DATAJPA-848
 	public void equalsWorksForProxiedEntities() {
 
 		CustomAbstractPersistable entity = repository.saveAndFlush(new CustomAbstractPersistable());

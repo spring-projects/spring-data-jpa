@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,10 +59,7 @@ public class StoredProcedureAttributeSourceUnitTests {
 		when(entityMetadata.getEntityName()).thenReturn("User");
 	}
 
-	/**
-	 * @see DATAJPA-455
-	 */
-	@Test
+	@Test // DATAJPA-455
 	public void shouldCreateStoredProcedureAttributesFromProcedureMethodWithImplicitProcedureName() {
 
 		StoredProcedureAttributes attr = creator.createFrom(method("plus1inout", Integer.class), entityMetadata);
@@ -72,10 +69,7 @@ public class StoredProcedureAttributeSourceUnitTests {
 		assertThat(attr.getOutputParameterName(), is(StoredProcedureAttributes.SYNTHETIC_OUTPUT_PARAMETER_NAME));
 	}
 
-	/**
-	 * @see DATAJPA-455
-	 */
-	@Test
+	@Test // DATAJPA-455
 	public void shouldCreateStoredProcedureAttributesFromProcedureMethodWithExplictName() {
 
 		StoredProcedureAttributes attr = creator.createFrom(method("explicitlyNamedPlus1inout", Integer.class),
@@ -86,10 +80,7 @@ public class StoredProcedureAttributeSourceUnitTests {
 		assertThat(attr.getOutputParameterName(), is(StoredProcedureAttributes.SYNTHETIC_OUTPUT_PARAMETER_NAME));
 	}
 
-	/**
-	 * @see DATAJPA-455
-	 */
-	@Test
+	@Test // DATAJPA-455
 	public void shouldCreateStoredProcedureAttributesFromProcedureMethodWithExplictProcedureNameValue() {
 
 		StoredProcedureAttributes attr = creator.createFrom(method("explicitlyNamedPlus1inout", Integer.class),
@@ -100,10 +91,7 @@ public class StoredProcedureAttributeSourceUnitTests {
 		assertThat(attr.getOutputParameterName(), is(StoredProcedureAttributes.SYNTHETIC_OUTPUT_PARAMETER_NAME));
 	}
 
-	/**
-	 * @see DATAJPA-455
-	 */
-	@Test
+	@Test // DATAJPA-455
 	public void shouldCreateStoredProcedureAttributesFromProcedureMethodWithExplictProcedureNameAlias() {
 
 		StoredProcedureAttributes attr = creator
@@ -114,10 +102,7 @@ public class StoredProcedureAttributeSourceUnitTests {
 		assertThat(attr.getOutputParameterName(), is(StoredProcedureAttributes.SYNTHETIC_OUTPUT_PARAMETER_NAME));
 	}
 
-	/**
-	 * @see DATAJPA-455
-	 */
-	@Test
+	@Test // DATAJPA-455
 	public void shouldCreateStoredProcedureAttributesFromProcedureMethodBackedWithExplicitlyNamedProcedure() {
 
 		StoredProcedureAttributes attr = creator
@@ -128,10 +113,7 @@ public class StoredProcedureAttributeSourceUnitTests {
 		assertThat(attr.getOutputParameterName(), is("res"));
 	}
 
-	/**
-	 * @see DATAJPA-455
-	 */
-	@Test
+	@Test // DATAJPA-455
 	public void shouldCreateStoredProcedureAttributesFromProcedureMethodBackedWithImplicitlyNamedProcedure() {
 
 		StoredProcedureAttributes attr = creator.createFrom(method("plus1", Integer.class), entityMetadata);
@@ -141,10 +123,7 @@ public class StoredProcedureAttributeSourceUnitTests {
 		assertThat(attr.getOutputParameterName(), is("res"));
 	}
 
-	/**
-	 * @see DATAJPA-871
-	 */
-	@Test
+	@Test // DATAJPA-871
 	public void aliasedStoredProcedure() {
 
 		StoredProcedureAttributes attr = creator
@@ -155,10 +134,7 @@ public class StoredProcedureAttributeSourceUnitTests {
 		assertThat(attr.getOutputParameterName(), is(StoredProcedureAttributes.SYNTHETIC_OUTPUT_PARAMETER_NAME));
 	}
 
-	/**
-	 * @see DATAJPA-871
-	 */
-	@Test
+	@Test // DATAJPA-871
 	public void aliasedStoredProcedure2() {
 
 		StoredProcedureAttributes attr = creator
@@ -180,42 +156,32 @@ public class StoredProcedureAttributeSourceUnitTests {
 
 		/**
 		 * Explicitly mapped to a procedure with name "plus1inout" in database.
-		 * 
-		 * @see DATAJPA-455
 		 */
-		@Procedure("plus1inout")
+		@Procedure("plus1inout") // DATAJPA-455
 		Integer explicitlyNamedPlus1inout(Integer arg);
 
 		/**
 		 * Explicitly mapped to a procedure with name "plus1inout" in database via alias.
-		 * 
-		 * @see DATAJPA-455
 		 */
-		@Procedure(procedureName = "plus1inout")
+		@Procedure(procedureName = "plus1inout") // DATAJPA-455
 		Integer explicitPlus1inoutViaProcedureNameAlias(Integer arg);
 
 		/**
 		 * Implicitly mapped to a procedure with name "plus1inout" in database via alias.
-		 * 
-		 * @see DATAJPA-455
 		 */
-		@Procedure
+		@Procedure // DATAJPA-455
 		Integer plus1inout(Integer arg);
 
 		/**
 		 * Explicitly mapped to named stored procedure "User.plus1IO" in {@link EntityManager}.
-		 * 
-		 * @see DATAJPA-455
 		 */
-		@Procedure(name = "User.plus1IO")
+		@Procedure(name = "User.plus1IO") // DATAJPA-455
 		Integer entityAnnotatedCustomNamedProcedurePlus1IO(@Param("arg") Integer arg);
 
 		/**
 		 * Implicitly mapped to named stored procedure "User.plus1" in {@link EntityManager}.
-		 * 
-		 * @see DATAJPA-455
 		 */
-		@Procedure
+		@Procedure // DATAJPA-455
 		Integer plus1(@Param("arg") Integer arg);
 
 		@ComposedProcedureUsingAliasFor(explicitProcedureName = "plus1inout")

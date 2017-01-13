@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2016 the original author or authors.
+ * Copyright 2008-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -111,10 +111,7 @@ public class SimpleJpaQueryUnitTests {
 		assertThat(jpaQuery.createCountQuery(new Object[] {}), is((javax.persistence.Query) typedQuery));
 	}
 
-	/**
-	 * @see DATAJPA-77
-	 */
-	@Test
+	@Test // DATAJPA-77
 	public void doesNotApplyPaginationToCountQuery() throws Exception {
 
 		when(em.createQuery(Mockito.anyString())).thenReturn(query);
@@ -150,31 +147,21 @@ public class SimpleJpaQueryUnitTests {
 		verify(em).createNativeQuery("SELECT u FROM User u WHERE u.lastname = ?1", User.class);
 	}
 
-	/**
-	 * @see DATAJPA-554
-	 */
-	@Test(expected = InvalidJpaQueryMethodException.class)
+	@Test(expected = InvalidJpaQueryMethodException.class) // DATAJPA-554
 	public void rejectsNativeQueryWithDynamicSort() throws Exception {
 
 		Method method = SampleRepository.class.getMethod("findNativeByLastname", String.class, Sort.class);
 		createJpaQuery(method);
 	}
 
-	/**
-	 * @see DATAJPA-554
-	 */
-	@Test(expected = InvalidJpaQueryMethodException.class)
+	@Test(expected = InvalidJpaQueryMethodException.class) // DATAJPA-554
 	public void rejectsNativeQueryWithPageable() throws Exception {
 
 		Method method = SampleRepository.class.getMethod("findNativeByLastname", String.class, Pageable.class);
 		createJpaQuery(method);
 	}
 
-	/**
-	 * @see DATAJPA-352
-	 * @throws Exception
-	 */
-	@Test
+	@Test // DATAJPA-352
 	@SuppressWarnings("unchecked")
 	public void doesNotValidateCountQueryIfNotPagingMethod() throws Exception {
 
@@ -184,10 +171,7 @@ public class SimpleJpaQueryUnitTests {
 		createJpaQuery(method);
 	}
 
-	/**
-	 * @see DATAJPA-352
-	 */
-	@Test
+	@Test // DATAJPA-352
 	@SuppressWarnings("unchecked")
 	public void validatesAndRejectsCountQueryIfPagingMethod() throws Exception {
 
@@ -215,10 +199,7 @@ public class SimpleJpaQueryUnitTests {
 		assertThat(query instanceof NativeJpaQuery, is(true));
 	}
 
-	/**
-	 * @see DATAJPA-757
-	 */
-	@Test
+	@Test // DATAJPA-757
 	public void createsNativeCountQuery() throws Exception {
 
 		when(em.createNativeQuery(anyString())).thenReturn(query);
@@ -231,10 +212,7 @@ public class SimpleJpaQueryUnitTests {
 		verify(em).createNativeQuery(anyString());
 	}
 
-	/**
-	 * @see DATAJPA-885
-	 */
-	@Test
+	@Test // DATAJPA-885
 	public void projectsWithManuallyDeclaredQuery() throws Exception {
 
 		AbstractJpaQuery jpaQuery = createJpaQuery(SampleRepository.class.getMethod("projectWithExplicitQuery"));

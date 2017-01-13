@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,10 +52,7 @@ public class RedeclaringRepositoryMethodsTests {
 		tom = new User("Thomas", "Darimont", "tdarimont@gopivotal.com");
 	}
 
-	/**
-	 * @see DATAJPA-398
-	 */
-	@Test
+	@Test // DATAJPA-398
 	public void adjustedWellKnownPagedFindAllMethodShouldReturnOnlyTheUserWithFirstnameOliver() {
 
 		ollie = repository.save(ollie);
@@ -67,10 +64,7 @@ public class RedeclaringRepositoryMethodsTests {
 		assertThat(page.getContent().get(0).getFirstname(), is("Oliver"));
 	}
 
-	/**
-	 * @see DATAJPA-398
-	 */
-	@Test
+	@Test // DATAJPA-398
 	public void adjustedWllKnownFindAllMethodShouldReturnAnEmptyList() {
 
 		ollie = repository.save(ollie);

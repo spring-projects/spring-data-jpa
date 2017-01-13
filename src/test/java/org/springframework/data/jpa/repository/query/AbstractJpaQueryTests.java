@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2015 the original author or authors.
+ * Copyright 2008-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,11 +68,7 @@ public class AbstractJpaQueryTests {
 		countQuery = mock(TypedQuery.class);
 	}
 
-	/**
-	 * @see DATADOC-97
-	 * @throws Exception
-	 */
-	@Test
+	@Test // DATADOC-97
 	public void addsHintsToQueryObject() throws Exception {
 
 		JpaQueryMethod queryMethod = getMethod("findByLastname", String.class);
@@ -86,11 +82,7 @@ public class AbstractJpaQueryTests {
 		verify(result).setHint("foo", "bar");
 	}
 
-	/**
-	 * @see DATAJPA-54
-	 * @throws Exception
-	 */
-	@Test
+	@Test // DATAJPA-54
 	public void skipsHintsForCountQueryIfConfigured() throws Exception {
 
 		JpaQueryMethod queryMethod = getMethod("findByFirstname", String.class);
@@ -103,10 +95,7 @@ public class AbstractJpaQueryTests {
 		verify(result, never()).setHint("bar", "foo");
 	}
 
-	/**
-	 * @see DATAJPA-73
-	 */
-	@Test
+	@Test // DATAJPA-73
 	public void addsLockingModeToQueryObject() throws Exception {
 
 		when(query.setLockMode(any(LockModeType.class))).thenReturn(query);
@@ -118,10 +107,7 @@ public class AbstractJpaQueryTests {
 		verify(result).setLockMode(LockModeType.PESSIMISTIC_WRITE);
 	}
 
-	/**
-	 * @see DATAJPA-466
-	 */
-	@Test
+	@Test // DATAJPA-466
 	@Transactional
 	public void shouldAddEntityGraphHintForFetch() throws Exception {
 
@@ -137,10 +123,7 @@ public class AbstractJpaQueryTests {
 		verify(result).setHint("javax.persistence.fetchgraph", entityGraph);
 	}
 
-	/**
-	 * @see DATAJPA-466
-	 */
-	@Test
+	@Test // DATAJPA-466
 	@Transactional
 	public void shouldAddEntityGraphHintForLoad() throws Exception {
 
@@ -177,15 +160,11 @@ public class AbstractJpaQueryTests {
 		@org.springframework.data.jpa.repository.Query("select u from User u where u.id = ?1")
 		List<User> findOneLocked(Integer primaryKey);
 
-		/**
-		 * @see DATAJPA-466
-		 */
+		// DATAJPA-466
 		@EntityGraph(value = "User.detail", type = EntityGraphType.LOAD)
 		User getById(Integer id);
 
-		/**
-		 * @see DATAJPA-466
-		 */
+		// DATAJPA-466
 		@EntityGraph("User.overview")
 		List<User> findAll();
 	}

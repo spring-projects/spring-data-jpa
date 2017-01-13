@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2015 the original author or authors.
+ * Copyright 2012-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -113,10 +113,7 @@ public class JpaMetamodelMappingContextIntegrationTests {
 		assertThat(property.isEntity(), is(false));
 	}
 
-	/**
-	 * @see DATAJPA-608
-	 */
-	@Test
+	@Test // DATAJPA-608
 	public void detectsEntityPropertyForCollections() {
 
 		JpaPersistentEntityImpl<?> entity = context.getPersistentEntity(User.class);
@@ -125,10 +122,7 @@ public class JpaMetamodelMappingContextIntegrationTests {
 		assertThat(entity.getPersistentProperty("colleagues").isEntity(), is(true));
 	}
 
-	/**
-	 * @see DATAJPA-630
-	 */
-	@Test
+	@Test // DATAJPA-630
 	public void lookingUpIdentifierOfProxyDoesNotInitializeProxy() {
 
 		TransactionTemplate template = new TransactionTemplate(transactionManager);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -86,10 +86,7 @@ public class EntityManagerBeanDefinitionRegistrarPostProcessorIntegrationTests {
 
 	@Autowired EntityManagerInjectionTarget target;
 
-	/**
-	 * @see DATAJPA-445
-	 */
-	@Test
+	@Test // DATAJPA-445
 	public void injectsEntityManagerIntoConstructors() {
 
 		assertThat(target, is(notNullValue()));

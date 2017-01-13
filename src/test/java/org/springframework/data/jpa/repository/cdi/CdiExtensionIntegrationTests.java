@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 the original author or authors.
+ * Copyright 2011-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,10 +52,7 @@ public class CdiExtensionIntegrationTests {
 		LOGGER.debug("CDI container bootstrapped!");
 	}
 
-	/**
-	 * @see DATAJPA-319
-	 */
-	@Test
+	@Test // DATAJPA-319
 	@SuppressWarnings("rawtypes")
 	public void foo() {
 
@@ -75,20 +72,14 @@ public class CdiExtensionIntegrationTests {
 		repositoryConsumer.findAll();
 	}
 
-	/**
-	 * @see DATAJPA-584
-	 */
-	@Test
+	@Test // DATAJPA-584
 	public void returnOneFromCustomImpl() {
 
 		RepositoryConsumer repositoryConsumer = container.getInstance(RepositoryConsumer.class);
 		assertThat(repositoryConsumer.returnOne(), is(1));
 	}
 
-	/**
-	 * @see DATAJPA-584
-	 */
-	@Test
+	@Test // DATAJPA-584
 	public void useQualifiedCustomizedUserRepo() {
 
 		RepositoryConsumer repositoryConsumer = container.getInstance(RepositoryConsumer.class);

@@ -30,10 +30,7 @@ public interface UserCustomExtendedRepository extends CustomGenericRepository<Us
 
 	/**
 	 * Sample method to test reconfiguring transactions on CRUD methods in combination with custom factory.
-	 * 
-	 * @see #421
 	 */
-
 	@Transactional(readOnly = false, timeout = 10)
 	List<User> findAll();
 
