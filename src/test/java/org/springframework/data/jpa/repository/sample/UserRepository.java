@@ -109,7 +109,7 @@ public interface UserRepository
 	/**
 	 * Retrieves a user by its username using the query annotated to the method.
 	 * 
-	 * @param username
+	 * @param emailAddress
 	 * @return
 	 */
 	@Query("select u from User u where u.emailAddress = ?1")
@@ -162,8 +162,8 @@ public interface UserRepository
 	/**
 	 * Method where parameters will be applied by name. Note that the order of the parameters is then not crucial anymore.
 	 * 
-	 * @param firstname
-	 * @param lastname
+	 * @param foo
+	 * @param bar
 	 * @return
 	 */
 	@Query("select u from User u where u.lastname = :lastname or u.firstname = :firstname")
@@ -298,7 +298,7 @@ public interface UserRepository
 	List<User> deleteByLastname(String lastname);
 
 	/**
-	 * @see https://issues.apache.org/jira/browse/OPENJPA-2484
+	 * @see <a href="https://issues.apache.org/jira/browse/OPENJPA-2484">OPENJPA-2484</a>
 	 */
 	// DATAJPA-505
 	// @Query(value = "select u.binaryData from User u where u.id = :id")

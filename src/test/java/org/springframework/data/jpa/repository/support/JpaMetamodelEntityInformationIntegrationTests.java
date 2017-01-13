@@ -85,7 +85,7 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 	 * Ignored for Hibernate as it does not implement {@link Metamodel#managedType(Class)} correctly (does not consider
 	 * {@link MappedSuperclass}es correctly).
 	 * 
-	 * @see https://hibernate.onjira.com/browse/HHH-6896
+	 * @see <a href="https://hibernate.atlassian.net/browse/HHH-6896">HHH-6896</a>
 	 */
 	@Test // DATAJPA-141
 	@Ignore

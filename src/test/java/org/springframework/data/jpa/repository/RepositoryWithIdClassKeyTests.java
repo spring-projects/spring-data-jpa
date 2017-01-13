@@ -22,6 +22,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
@@ -69,7 +70,8 @@ public class RepositoryWithIdClassKeyTests {
 	}
 
 	/**
-	 * @see Final JPA 2.1 Specification 2.4.1.3 Derived Identities Example 2
+	 * @see <a href="download.oracle.com/otn-pub/jcp/persistence-2_1-fr-eval-spec/JavaPersistence.pdf">Final JPA 2.1
+	 *      Specification 2.4.1.3 Derived Identities Example 2</a>
 	 */
 	@Test // DATAJPA-413
 	public void shouldSaveAndLoadEntitiesWithDerivedIdentities() throws Exception {

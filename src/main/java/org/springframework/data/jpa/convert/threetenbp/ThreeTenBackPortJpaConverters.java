@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ import org.threeten.bp.ZoneId;
  * package to be scanned on e.g. the {@link LocalContainerEntityManagerFactoryBean}.
  * 
  * @author Oliver Gierke
- * @see http://www.threeten.org/threetenbp
+ * @see <a href="http://www.threeten.org/threetenbp">http://www.threeten.org/threetenbp</a>
  * @since 1.8
  */
 public class ThreeTenBackPortJpaConverters {

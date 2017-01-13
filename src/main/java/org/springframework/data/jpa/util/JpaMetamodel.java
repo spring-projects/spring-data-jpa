@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,7 +66,7 @@ public class JpaMetamodel {
 	 * {@literal null} for calls to {@link ManagedType#getJavaType()}.
 	 * 
 	 * @return all managed types.
-	 * @see https://hibernate.atlassian.net/browse/HHH-10968
+	 * @see <a href="https://hibernate.atlassian.net/browse/HHH-10968">HHH-10968</a>
 	 */
 	private Collection<Class<?>> getManagedTypes() {
 

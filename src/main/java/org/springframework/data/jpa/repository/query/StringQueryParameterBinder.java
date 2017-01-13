@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -84,7 +84,7 @@ public class StringQueryParameterBinder extends ParameterBinder {
 
 			// We should actually reject parameters unavailable, but as EclipseLink doesn't implement ….getParameter(int) for
 			// native queries correctly we need to fall back to an indexed parameter
-			// @see https://bugs.eclipse.org/bugs/show_bug.cgi?id=427892
+			// see https://bugs.eclipse.org/bugs/show_bug.cgi?id=427892
 
 			return new ParameterBinding(position);
 		}

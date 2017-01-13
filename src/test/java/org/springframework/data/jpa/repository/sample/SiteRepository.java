@@ -20,6 +20,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 /**
  * @author Mark Paluch
- * @see Final JPA 2.1 Specification 2.4.1.3 Derived Identities Example 2
+ * @see <a href="download.oracle.com/otn-pub/jcp/persistence-2_1-fr-eval-spec/JavaPersistence.pdf">Final JPA 2.1
+ *      Specification 2.4.1.3 Derived Identities Example 2</a>
  */
 public interface SiteRepository extends JpaRepository<Site, Integer> {}
