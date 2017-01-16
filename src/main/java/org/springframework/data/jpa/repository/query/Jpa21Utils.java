@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import javax.persistence.AttributeNode;
 import javax.persistence.EntityGraph;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
@@ -28,6 +29,7 @@ import javax.persistence.Subgraph;
 
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
@@ -36,6 +38,7 @@ import org.springframework.util.StringUtils;
  * 
  * @author Thomas Darimont
  * @author Oliver Gierke
+ * @author Christoph Strobl
  * @since 1.6
  */
 public class Jpa21Utils {
@@ -146,26 +149,103 @@ public class Jpa21Utils {
 
 		// Sort to ensure that the intermediate entity subgraphs are created accordingly.
 		Collections.sort(attributePaths);
-		Collections.reverse(attributePaths);
 
-		// We build the entity graph based on the paths with highest depth first
 		for (String path : attributePaths) {
 
-			// Fast path - just single attribute
-			if (!path.contains(".")) {
-				entityGraph.addAttributeNodes(path);
-				continue;
-			}
-
-			// We need to build nested sub fetch graphs
 			String[] pathComponents = StringUtils.delimitedListToStringArray(path, ".");
-			Subgraph<?> parent = null;
-
-			for (int c = 0; c < pathComponents.length - 1; c++) {
-				parent = c == 0 ? entityGraph.addSubgraph(pathComponents[c]) : parent.addSubgraph(pathComponents[c]);
-			}
-
-			parent.addAttributeNodes(pathComponents[pathComponents.length - 1]);
+			createGraph(pathComponents, 0, entityGraph, null);
 		}
 	}
+
+	private static void createGraph(String[] pathComponents, int offset, EntityGraph<?> root, Subgraph<?> parent) {
+
+		String attributeName = pathComponents[offset];
+
+		// we found our leaf property, now let's see if it already exists and add it if not
+		if (pathComponents.length - 1 == offset) {
+
+			if (parent == null && !exists(attributeName, root.getAttributeNodes())) {
+				root.addAttributeNodes(attributeName);
+			} else if (parent != null && !exists(attributeName, parent.getAttributeNodes())) {
+				parent.addAttributeNodes(attributeName);
+			}
+			return;
+		}
+
+		AttributeNode<?> node = findAttributeNode(attributeName, root, parent);
+		if (node != null) {
+
+			Subgraph<?> subgraph = getSubgraph(node);
+			if (subgraph == null) {
+				subgraph = parent != null ? parent.addSubgraph(attributeName) : root.addSubgraph(attributeName);
+			}
+			createGraph(pathComponents, offset + 1, root, subgraph);
+			return;
+		}
+
+		if (parent == null) {
+			createGraph(pathComponents, offset + 1, root, root.addSubgraph(attributeName));
+		} else {
+			createGraph(pathComponents, offset + 1, root, parent.addSubgraph(attributeName));
+		}
+	}
+
+	/**
+	 * Checks the given {@link List} of {@link AttributeNode}s for the existence of an {@link AttributeNode} matching the
+	 * given {@literal attributeNodeName}.
+	 *
+	 * @param attributeNodeName
+	 * @param nodes
+	 * @return
+	 */
+	private static boolean exists(String attributeNodeName, List<AttributeNode<?>> nodes) {
+		return findAttributeNode(attributeNodeName, nodes) != null;
+	}
+
+	/**
+	 * Find the {@link AttributeNode} matching the given {@literal attributeNodeName} in given {@link Subgraph} or
+	 * {@link EntityGraph} favoring matches {@link Subgraph} over {@link EntityGraph}.
+	 *
+	 * @param attributeNodeName
+	 * @param entityGraph
+	 * @param parent
+	 * @return {@literal null} if not found.
+	 */
+	private static AttributeNode<?> findAttributeNode(String attributeNodeName, EntityGraph<?> entityGraph,
+			Subgraph parent) {
+		return findAttributeNode(attributeNodeName,
+				parent != null ? parent.getAttributeNodes() : entityGraph.getAttributeNodes());
+	}
+
+	/**
+	 * Find the {@link AttributeNode} matching the given {@literal attributeNodeName} in given {@link List} of
+	 * {@link AttributeNode}s.
+	 *
+	 * @param attributeNodeName
+	 * @param nodes
+	 * @return {@literal null} if not found.
+	 */
+	private static AttributeNode<?> findAttributeNode(String attributeNodeName, List<AttributeNode<?>> nodes) {
+
+		for (AttributeNode<?> node : nodes) {
+			if (ObjectUtils.nullSafeEquals(node.getAttributeName(), attributeNodeName)) {
+				return node;
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * Extracts the first {@link Subgraph} from the given {@link AttributeNode}. Ignores any potential different
+	 * {@link Subgraph}s registered for more concrete {@link Class}es as the dynamically created graph does not
+	 * distinguish between those.
+	 *
+	 * @param node
+	 * @return
+	 */
+	private static Subgraph<?> getSubgraph(AttributeNode<?> node) {
+		return node.getSubgraphs().isEmpty() ? null : node.getSubgraphs().values().iterator().next();
+	}
+
 }
