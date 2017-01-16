@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import javax.persistence.AttributeNode;
 import javax.persistence.EntityGraph;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
@@ -28,6 +29,7 @@ import javax.persistence.Subgraph;
 
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
@@ -36,6 +38,7 @@ import org.springframework.util.StringUtils;
  * 
  * @author Thomas Darimont
  * @author Oliver Gierke
+ * @author Christoph Strobl
  * @since 1.6
  */
 public class Jpa21Utils {
@@ -152,7 +155,10 @@ public class Jpa21Utils {
 
 			// Fast path - just single attribute
 			if (!path.contains(".")) {
-				entityGraph.addAttributeNodes(path);
+
+				if(findAttributeNode(path, entityGraph) == null) {
+					entityGraph.addAttributeNodes(path);
+				}
 				continue;
 			}
 
@@ -161,10 +167,37 @@ public class Jpa21Utils {
 			Subgraph<?> parent = null;
 
 			for (int c = 0; c < pathComponents.length - 1; c++) {
-				parent = c == 0 ? entityGraph.addSubgraph(pathComponents[c]) : parent.addSubgraph(pathComponents[c]);
+				parent = c == 0 ? findOrCreateSubgraph(pathComponents[c], entityGraph) : parent.addSubgraph(pathComponents[c]);
 			}
 
 			parent.addAttributeNodes(pathComponents[pathComponents.length - 1]);
 		}
+	}
+
+	private static Subgraph<?> findOrCreateSubgraph(String attributeNode, EntityGraph<?> entityGraph) {
+
+		Subgraph<?> subgraph = findSubgraph(attributeNode, entityGraph);
+		return subgraph != null ? subgraph : entityGraph.addSubgraph(attributeNode);
+	}
+
+	private static Subgraph<?> findSubgraph(String attributeNode, EntityGraph<?> entityGraph) {
+
+		AttributeNode<?> node = findAttributeNode(attributeNode, entityGraph);
+		if(node != null && !ObjectUtils.isEmpty(node.getSubgraphs())) {
+			return node.getSubgraphs().values().iterator().next();
+		}
+
+		return null;
+	}
+
+	private static AttributeNode<?> findAttributeNode(String attributeNode, EntityGraph<?> entityGraph) {
+
+		for(AttributeNode<?> node : entityGraph.getAttributeNodes()) {
+			if(ObjectUtils.nullSafeEquals(node.getAttributeName(), attributeNode)) {
+				return node;
+			}
+		}
+
+		return null;
 	}
 }
