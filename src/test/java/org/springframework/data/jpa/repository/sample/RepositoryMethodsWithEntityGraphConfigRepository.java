@@ -33,6 +33,7 @@ import com.querydsl.core.types.Predicate;
  * 
  * @author Thomas Darimont
  * @author Jocelyn Ntakpe
+ * @author Christoph Strobl
  */
 public interface RepositoryMethodsWithEntityGraphConfigRepository
 		extends CrudRepository<User, Integer>, QueryDslPredicateExecutor<User> {
@@ -60,4 +61,13 @@ public interface RepositoryMethodsWithEntityGraphConfigRepository
 	// DATAJPA-790
 	@EntityGraph("User.detail")
 	Page<User> findAll(Predicate predicate, Pageable pageable);
+
+	// DATAJPA-1041
+	@EntityGraph(type = EntityGraphType.FETCH, value = "User.withSubGraph")
+	User findOneWithMultipleSubGraphsUsingNamedEntityGraphById(Integer id);
+
+	// DATAJPA-1041
+	@EntityGraph(attributePaths = { "colleagues", "colleagues.roles", "colleagues.colleagues" })
+	User findOneWithMultipleSubGraphsById(Integer id);
+
 }
