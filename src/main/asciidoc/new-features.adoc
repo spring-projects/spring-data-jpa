@@ -1,6 +1,13 @@
 [[new-features]]
 = New & Noteworthy
 
+[[new-features.1-11-0]]
+== What's new in Spring Data JPA 1.11
+* Improved compatibility with Hibernate 5.2.
+* Support any-match mode for <<query-by-example>>.
+* Paged query execution optimizations.
+* Support for `exists` projection in repository query derivation.
+
 [[new-features.1-10-0]]
 == What's new in Spring Data JPA 1.10
 
