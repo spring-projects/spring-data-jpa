@@ -157,9 +157,10 @@ public class Jpa21Utils {
 			// Fast path - just single attribute
 			if (!path.contains(".")) {
 
-				if(findAttributeNode(path, entityGraph) == null) {
+				if (findAttributeNode(path, entityGraph) == null) {
 					entityGraph.addAttributeNodes(path);
 				}
+
 				continue;
 			}
 
@@ -175,26 +176,50 @@ public class Jpa21Utils {
 		}
 	}
 
-	private static Subgraph<?> findOrCreateSubgraph(String attributeNode, EntityGraph<?> entityGraph) {
+	/**
+	 * Returns the {@link Subgraph} with the given name fro the given {@link EntityGraph} or creates a new one if none
+	 * already available.
+	 * 
+	 * @param name
+	 * @param entityGraph
+	 * @return
+	 */
+	private static Subgraph<?> findOrCreateSubgraph(String name, EntityGraph<?> entityGraph) {
 
-		Subgraph<?> subgraph = findSubgraph(attributeNode, entityGraph);
-		return subgraph != null ? subgraph : entityGraph.addSubgraph(attributeNode);
+		Subgraph<?> subgraph = findSubgraph(name, entityGraph);
+
+		return subgraph != null ? subgraph : entityGraph.addSubgraph(name);
 	}
 
-	private static Subgraph<?> findSubgraph(String attributeNode, EntityGraph<?> entityGraph) {
+	/**
+	 * Returns the {@link Subgraph} with the given name from the given {@link EntityGraph}.
+	 * 
+	 * @param name
+	 * @param entityGraph
+	 * @return
+	 */
+	private static Subgraph<?> findSubgraph(String name, EntityGraph<?> entityGraph) {
 
-		AttributeNode<?> node = findAttributeNode(attributeNode, entityGraph);
-		if(node != null && !ObjectUtils.isEmpty(node.getSubgraphs())) {
+		AttributeNode<?> node = findAttributeNode(name, entityGraph);
+
+		if (node != null && !ObjectUtils.isEmpty(node.getSubgraphs())) {
 			return node.getSubgraphs().values().iterator().next();
 		}
 
 		return null;
 	}
 
-	private static AttributeNode<?> findAttributeNode(String attributeNode, EntityGraph<?> entityGraph) {
+	/**
+	 * Returns the {@link AttributeNode} with the given name if present in the given {@link EntityGraph}.
+	 * 
+	 * @param name
+	 * @param entityGraph must not be {@literal null}.
+	 * @return
+	 */
+	private static AttributeNode<?> findAttributeNode(String name, EntityGraph<?> entityGraph) {
 
-		for(AttributeNode<?> node : entityGraph.getAttributeNodes()) {
-			if(ObjectUtils.nullSafeEquals(node.getAttributeName(), attributeNode)) {
+		for (AttributeNode<?> node : entityGraph.getAttributeNodes()) {
+			if (ObjectUtils.nullSafeEquals(node.getAttributeName(), name)) {
 				return node;
 			}
 		}
