@@ -69,5 +69,4 @@ public interface RepositoryMethodsWithEntityGraphConfigRepository
 	// DATAJPA-1041
 	@EntityGraph(attributePaths = { "colleagues", "colleagues.roles", "colleagues.colleagues" })
 	User findOneWithMultipleSubGraphsById(Integer id);
-
 }
