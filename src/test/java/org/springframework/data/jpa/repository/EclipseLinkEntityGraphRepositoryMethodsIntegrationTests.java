@@ -15,13 +15,26 @@
  */
 package org.springframework.data.jpa.repository;
 
+import org.junit.Ignore;
+import org.junit.Test;
 import org.springframework.test.context.ContextConfiguration;
 
 /**
  * @author Oliver Gierke
  */
 @ContextConfiguration("classpath:eclipselink.xml")
-public class EclipseLinkEntityGraphRepositoryMethodsIntegrationTests extends
-		EntityGraphRepositoryMethodsIntegrationTests {
+public class EclipseLinkEntityGraphRepositoryMethodsIntegrationTests
+		extends EntityGraphRepositoryMethodsIntegrationTests {
 
+	@Ignore
+	@Test
+	public void shouldRespectNamedEntitySubGraph() {}
+
+	@Ignore
+	@Test
+	public void shouldRespectMultipleSubGraphForSameAttributeWithDynamicFetchGraph() {}
+
+	@Ignore
+	@Test
+	public void shouldRespectDynamicFetchGraphForGetOneWithAttributeNamesById() {}
 }

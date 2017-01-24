@@ -19,11 +19,11 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 import static org.springframework.data.jpa.support.EntityManagerTestUtils.*;
 
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
-import javax.persistence.*;
+import javax.persistence.EntityManager;
+import javax.persistence.Persistence;
+import javax.persistence.PersistenceUtil;
 
 import org.junit.Assume;
 import org.junit.Before;
@@ -39,7 +39,6 @@ import org.springframework.data.jpa.repository.sample.RepositoryMethodsWithEntit
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 /**
  * Integration tests for RepositoryMethodsWithEntityGraphConfigJpaRepository.
@@ -61,6 +60,8 @@ public class EntityGraphRepositoryMethodsIntegrationTests {
 	User ollie;
 	User christoph;
 	Role role;
+
+	PersistenceUtil util = Persistence.getPersistenceUtil();
 
 	@Before
 	public void setup() {
@@ -94,7 +95,7 @@ public class EntityGraphRepositoryMethodsIntegrationTests {
 		List<User> result = repository.findAll();
 
 		assertThat(result.size(), is(3));
-		assertThat(Persistence.getPersistenceUtil().isLoaded(result.get(0), "roles"), is(true));
+		assertThat(util.isLoaded(result.get(0), "roles"), is(true));
 		assertThat(result.get(0), is(tom));
 	}
 
@@ -109,8 +110,8 @@ public class EntityGraphRepositoryMethodsIntegrationTests {
 		User user = repository.findOne(tom.getId());
 
 		assertThat(user, is(notNullValue()));
-		assertThat("colleages should be fetched with 'user.detail' fetchgraph",
-				Persistence.getPersistenceUtil().isLoaded(user, "colleagues"), is(true));
+		assertThat("colleages should be fetched with 'user.detail' fetchgraph", util.isLoaded(user, "colleagues"),
+				is(true));
 	}
 
 	/**
@@ -124,8 +125,8 @@ public class EntityGraphRepositoryMethodsIntegrationTests {
 		User user = repository.getOneWithDefinedEntityGraphById(tom.getId());
 
 		assertThat(user, is(notNullValue()));
-		assertThat("colleages should be fetched with 'user.detail' fetchgraph",
-				Persistence.getPersistenceUtil().isLoaded(user, "colleagues"), is(true));
+		assertThat("colleages should be fetched with 'user.detail' fetchgraph", util.isLoaded(user, "colleagues"),
+				is(true));
 	}
 
 	/**
@@ -142,12 +143,13 @@ public class EntityGraphRepositoryMethodsIntegrationTests {
 		User user = repository.getOneWithAttributeNamesById(tom.getId());
 
 		assertThat(user, is(notNullValue()));
-		assertThat("colleages should be fetched with 'user.detail' fetchgraph",
-				Persistence.getPersistenceUtil().isLoaded(user, "colleagues"), is(true));
-		assertThat(Persistence.getPersistenceUtil().isLoaded(user, "colleagues"), is(true));
+
+		assertThat("colleages should be fetched with 'user.detail' fetchgraph", util.isLoaded(user, "colleagues"),
+				is(true));
+		assertThat(util.isLoaded(user, "colleagues"), is(true));
 
 		for (User colleague : user.getColleagues()) {
-			assertThat(Persistence.getPersistenceUtil().isLoaded(colleague, "roles"), is(true));
+			assertThat(util.isLoaded(colleague, "roles"), is(true));
 		}
 	}
 
@@ -163,7 +165,7 @@ public class EntityGraphRepositoryMethodsIntegrationTests {
 		List<User> result = page.getContent();
 
 		assertThat(result.size(), is(3));
-		assertThat(Persistence.getPersistenceUtil().isLoaded(result.get(0).getRoles()), is(true));
+		assertThat(util.isLoaded(result.get(0).getRoles()), is(true));
 		assertThat(result.get(0), is(tom));
 	}
 
@@ -180,11 +182,11 @@ public class EntityGraphRepositoryMethodsIntegrationTests {
 		assertThat(user, is(notNullValue()));
 
 		assertThat("colleagues on root should have been fetched by named 'User.colleagues' subgraph declaration",
-				Persistence.getPersistenceUtil().isLoaded(user, "colleagues"), is(true));
+				util.isLoaded(user, "colleagues"), is(true));
 
 		for (User colleague : user.getColleagues()) {
-			assertThat(Persistence.getPersistenceUtil().isLoaded(colleague, "colleagues"), is(true));
-			assertThat(Persistence.getPersistenceUtil().isLoaded(colleague, "roles"), is(true));
+			assertThat(util.isLoaded(colleague, "colleagues"), is(true));
+			assertThat(util.isLoaded(colleague, "roles"), is(true));
 		}
 	}
 
@@ -201,55 +203,11 @@ public class EntityGraphRepositoryMethodsIntegrationTests {
 		assertThat(user, is(notNullValue()));
 
 		assertThat("colleagues on root should have been fetched by dynamic subgraph declaration",
-				Persistence.getPersistenceUtil().isLoaded(user, "colleagues"), is(true));
+				util.isLoaded(user, "colleagues"), is(true));
 
 		for (User colleague : user.getColleagues()) {
-			assertThat(Persistence.getPersistenceUtil().isLoaded(colleague, "colleagues"), is(true));
-			assertThat(Persistence.getPersistenceUtil().isLoaded(colleague, "roles"), is(true));
-		}
-	}
-
-	@Test // DATAJPA-1041 - TODO: remove when done fighting with eclipselink.
-	public void thisOneFailsWithEclipselink() {
-
-		Assume.assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
-
-		em.flush();
-		em.clear();
-
-		javax.persistence.EntityGraph<?> graph = em.getEntityGraph("User.withSubGraph");
-
-		printGraph(graph);
-
-		User result = (User) em.createQuery("Select u from User u where u.id = " + tom.getId())
-				.setHint("javax.persistence.loadgraph", graph).getResultList().get(0);
-
-		assertThat(Persistence.getPersistenceUtil().isLoaded(result, "roles"), is(true));
-		assertThat(Persistence.getPersistenceUtil().isLoaded(result, "colleagues"), is(true));
-	}
-
-	private void printGraph(javax.persistence.EntityGraph<?> graph) {
-
-		try {
-			for (AttributeNode<?> node : graph.getAttributeNodes()) {
-				System.out.println("|- node.getAttributeName(): " + node.getAttributeName());
-				for (Map.Entry<Class, Subgraph> subGraph : node.getSubgraphs().entrySet()) {
-					System.out.print("|  +- subGraph: " + subGraph.getKey().getSimpleName() + " -> [");
-
-					Iterator it = subGraph.getValue().getAttributeNodes().iterator();
-					while (it.hasNext()) {
-
-						AttributeNode<?> an = (AttributeNode<?>) it.next();
-						System.out.print(an.getAttributeName());
-						if (it.hasNext()) {
-							System.out.print(", ");
-						}
-					}
-					System.out.println("]");
-				}
-			}
-		} catch (Exception e) {
-			// o_O what happened here - ignore it - it's just debug output.
+			assertThat(util.isLoaded(colleague, "colleagues"), is(true));
+			assertThat(util.isLoaded(colleague, "roles"), is(true));
 		}
 	}
 }

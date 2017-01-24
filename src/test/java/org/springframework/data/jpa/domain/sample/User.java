@@ -53,30 +53,27 @@ import javax.persistence.TemporalType;
  * @author Christoph Strobl
  */
 @Entity
-@NamedEntityGraphs({
-		@NamedEntityGraph(name = "User.overview", attributeNodes = { @NamedAttributeNode("roles") }),
-		@NamedEntityGraph(name = "User.detail", attributeNodes = { @NamedAttributeNode("roles"),
-				@NamedAttributeNode("manager"), @NamedAttributeNode("colleagues") }),
-		@NamedEntityGraph(name = "User.getOneWithDefinedEntityGraphById", attributeNodes = { @NamedAttributeNode("roles"),
-				@NamedAttributeNode("manager"), @NamedAttributeNode("colleagues") }),
-        @NamedEntityGraph(name = "User.withSubGraph",
-				attributeNodes = {
-        			@NamedAttributeNode("roles"),
-					@NamedAttributeNode(value="colleagues", subgraph = "User.colleagues")
-				},
-				subgraphs = {
-        			@NamedSubgraph(name = "User.colleagues", attributeNodes = {@NamedAttributeNode("colleagues"), @NamedAttributeNode("roles")})
-				}
-		)})
+@NamedEntityGraphs({ @NamedEntityGraph(name = "User.overview", attributeNodes = { @NamedAttributeNode("roles") }),
+		@NamedEntityGraph(name = "User.detail",
+				attributeNodes = { @NamedAttributeNode("roles"), @NamedAttributeNode("manager"),
+						@NamedAttributeNode("colleagues") }),
+		@NamedEntityGraph(name = "User.getOneWithDefinedEntityGraphById",
+				attributeNodes = { @NamedAttributeNode("roles"), @NamedAttributeNode("manager"),
+						@NamedAttributeNode("colleagues") }),
+		@NamedEntityGraph(name = "User.withSubGraph",
+				attributeNodes = { @NamedAttributeNode("roles"),
+						@NamedAttributeNode(value = "colleagues", subgraph = "User.colleagues") },
+				subgraphs = { @NamedSubgraph(name = "User.colleagues",
+						attributeNodes = { @NamedAttributeNode("colleagues"), @NamedAttributeNode("roles") }) }) })
 @NamedQuery(name = "User.findByEmailAddress", query = "SELECT u FROM User u WHERE u.emailAddress = ?1")
 @NamedStoredProcedureQueries({ //
-@NamedStoredProcedureQuery(name = "User.plus1", procedureName = "plus1inout", parameters = {
-		@StoredProcedureParameter(mode = ParameterMode.IN, name = "arg", type = Integer.class),
-		@StoredProcedureParameter(mode = ParameterMode.OUT, name = "res", type = Integer.class) }) //
+		@NamedStoredProcedureQuery(name = "User.plus1", procedureName = "plus1inout",
+				parameters = { @StoredProcedureParameter(mode = ParameterMode.IN, name = "arg", type = Integer.class),
+						@StoredProcedureParameter(mode = ParameterMode.OUT, name = "res", type = Integer.class) }) //
 })
-@NamedStoredProcedureQuery(name = "User.plus1IO", procedureName = "plus1inout", parameters = {
-		@StoredProcedureParameter(mode = ParameterMode.IN, name = "arg", type = Integer.class),
-		@StoredProcedureParameter(mode = ParameterMode.OUT, name = "res", type = Integer.class) })
+@NamedStoredProcedureQuery(name = "User.plus1IO", procedureName = "plus1inout",
+		parameters = { @StoredProcedureParameter(mode = ParameterMode.IN, name = "arg", type = Integer.class),
+				@StoredProcedureParameter(mode = ParameterMode.OUT, name = "res", type = Integer.class) })
 @Table(name = "SD_User")
 public class User {
 
@@ -392,7 +389,7 @@ public class User {
 	public void setDateOfBirth(Date dateOfBirth) {
 		this.dateOfBirth = dateOfBirth;
 	}
-	
+
 	public void setCreatedAt(Date createdAt) {
 		this.createdAt = createdAt;
 	}
