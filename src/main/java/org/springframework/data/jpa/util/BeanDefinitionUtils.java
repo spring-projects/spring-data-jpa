@@ -127,7 +127,8 @@ public class BeanDefinitionUtils {
 			if (!EntityManagerFactory.class.getName().equals(definition.getPropertyValues().get("expectedType"))) {
 				return;
 			}
-		} else if (!EntityManagerFactory.class.equals(beanFactory.getType(name))) {
+		} else if (beanFactory.getType(name) == null
+				|| !EntityManagerFactory.class.isAssignableFrom(beanFactory.getType(name))) {
 			return;
 		}
 
