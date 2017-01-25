@@ -17,10 +17,14 @@ package org.springframework.data.jpa.repository.support;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
+
+import javax.persistence.EntityManagerFactory;
 
 import org.junit.Test;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
@@ -47,5 +51,41 @@ public class EntityManagerBeanDefinitionRegistratPostProcessorUnitTests {
 		processor.postProcessBeanFactory(childFactory);
 
 		assertThat(beanFactory.getBeanDefinitionCount(), is(2));
+	}
+
+	@Test // DATAJPA-1005, DATAJPA-1045
+	public void discoversFactoryBeanReturningConcreteEntityManagerFactoryType() {
+
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(StubEntityManagerFactoryBean.class);
+		builder.addConstructorArgValue(SpecialEntityManagerFactory.class);
+
+		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
+		beanFactory.registerBeanDefinition("factory", builder.getBeanDefinition());
+
+		BeanFactoryPostProcessor processor = new EntityManagerBeanDefinitionRegistrarPostProcessor();
+		processor.postProcessBeanFactory(beanFactory);
+
+		assertThat(beanFactory.getBeanDefinitionCount(), is(2));
+	}
+
+	interface SpecialEntityManagerFactory extends EntityManagerFactory {}
+
+	static class StubEntityManagerFactoryBean extends LocalContainerEntityManagerFactoryBean {
+
+		private final Class<? extends EntityManagerFactory> emfType;
+
+		public StubEntityManagerFactoryBean(Class<? extends EntityManagerFactory> emfType) {
+			this.emfType = emfType;
+		}
+
+		@Override
+		public Class<? extends EntityManagerFactory> getObjectType() {
+			return emfType;
+		}
+
+		@Override
+		protected EntityManagerFactory createEntityManagerFactoryProxy(EntityManagerFactory emf) {
+			return mock(emfType);
+		}
 	}
 }
