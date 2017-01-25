@@ -45,6 +45,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Thomas Darimont
  * @author Oliver Gierke
  * @author Jocelyn Ntakpe
+ * @author Christoph Strobl
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("classpath:config/namespace-autoconfig-context.xml")
@@ -56,6 +57,7 @@ public class EntityGraphRepositoryMethodsIntegrationTests {
 
 	User tom;
 	User ollie;
+	User christoph;
 	Role role;
 
 	@Before
@@ -63,6 +65,7 @@ public class EntityGraphRepositoryMethodsIntegrationTests {
 
 		tom = new User("Thomas", "Darimont", "tdarimont@example.org");
 		ollie = new User("Oliver", "Gierke", "ogierke@example.org");
+		christoph = new User("Christoph", "Strobl", "cstrobl@example.org");
 
 		role = new Role("Developer");
 		em.persist(role);
@@ -71,17 +74,25 @@ public class EntityGraphRepositoryMethodsIntegrationTests {
 
 		ollie = repository.save(ollie);
 		tom.getColleagues().add(ollie);
+
+		christoph.addRole(role);
+		christoph = repository.save(christoph);
+
+		ollie.getColleagues().add(christoph);
+		repository.save(ollie);
 	}
 
 	@Test // DATAJPA-612
 	public void shouldRespectConfiguredJpaEntityGraph() {
 
 		Assume.assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
+		em.flush();
+		em.clear();
 
 		List<User> result = repository.findAll();
 
-		assertThat(result.size(), is(2));
-		assertThat(Persistence.getPersistenceUtil().isLoaded(result.get(0).getRoles()), is(true));
+		assertThat(result.size(), is(3));
+		assertThat(Persistence.getPersistenceUtil().isLoaded(result.get(0), "roles"), is(true));
 		assertThat(result.get(0), is(tom));
 	}
 
@@ -89,48 +100,125 @@ public class EntityGraphRepositoryMethodsIntegrationTests {
 	public void shouldRespectConfiguredJpaEntityGraphInFindOne() {
 
 		Assume.assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
+		em.flush();
+		em.clear();
 
 		User user = repository.findOne(tom.getId());
 
 		assertThat(user, is(notNullValue()));
 		assertThat("colleages should be fetched with 'user.detail' fetchgraph",
-				Persistence.getPersistenceUtil().isLoaded(user.getColleagues()), is(true));
+				Persistence.getPersistenceUtil().isLoaded(user, "colleagues"), is(true));
 	}
 
 	@Test // DATAJPA-696
 	public void shouldRespectInferFetchGraphFromMethodName() {
 
 		Assume.assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
+		em.flush();
+		em.clear();
 
 		User user = repository.getOneWithDefinedEntityGraphById(tom.getId());
 
 		assertThat(user, is(notNullValue()));
 		assertThat("colleages should be fetched with 'user.detail' fetchgraph",
-				Persistence.getPersistenceUtil().isLoaded(user.getColleagues()), is(true));
+				Persistence.getPersistenceUtil().isLoaded(user, "colleagues"), is(true));
 	}
 
 	@Test // DATAJPA-696
 	public void shouldRespectDynamicFetchGraphForGetOneWithAttributeNamesById() {
 
 		Assume.assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
+		em.flush();
+		em.clear();
 
 		User user = repository.getOneWithAttributeNamesById(tom.getId());
 
 		assertThat(user, is(notNullValue()));
 		assertThat("colleages should be fetched with 'user.detail' fetchgraph",
-				Persistence.getPersistenceUtil().isLoaded(user.getColleagues()), is(true));
+				Persistence.getPersistenceUtil().isLoaded(user, "colleagues"), is(true));
+		assertThat(Persistence.getPersistenceUtil().isLoaded(user, "colleagues"), is(true));
+
+		for (User colleague : user.getColleagues()) {
+			assertThat(Persistence.getPersistenceUtil().isLoaded(colleague, "roles"), is(true));
+		}
 	}
 
 	@Test // DATAJPA-790
 	public void shouldRespectConfiguredJpaEntityGraphWithPaginationAndQueryDslPredicates() {
 
 		Assume.assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
+		em.flush();
+		em.clear();
 
 		Page<User> page = repository.findAll(QUser.user.firstname.isNotNull(), new PageRequest(0, 100));
 		List<User> result = page.getContent();
 
-		assertThat(result.size(), is(2));
+		assertThat(result.size(), is(3));
 		assertThat(Persistence.getPersistenceUtil().isLoaded(result.get(0).getRoles()), is(true));
 		assertThat(result.get(0), is(tom));
+	}
+
+	@Test // DATAJPA-1041
+	public void shouldRespectNamedEntitySubGraph() {
+
+		Assume.assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
+		em.flush();
+		em.clear();
+
+		User user = repository.findOneWithMultipleSubGraphsUsingNamedEntityGraphById(tom.getId());
+
+		assertThat(user, is(notNullValue()));
+
+		assertThat("colleagues on root should have been fetched by named 'User.colleagues' subgraph declaration",
+				Persistence.getPersistenceUtil().isLoaded(user, "colleagues"), is(true));
+
+		for (User colleague : user.getColleagues()) {
+			assertThat(Persistence.getPersistenceUtil().isLoaded(colleague, "colleagues"), is(true));
+			assertThat(Persistence.getPersistenceUtil().isLoaded(colleague, "roles"), is(true));
+		}
+	}
+
+	@Test // DATAJPA-1041
+	public void shouldRespectMultipleSubGraphForSameAttributeWithDynamicFetchGraph() {
+
+		Assume.assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
+		em.flush();
+		em.clear();
+
+		User user = repository.findOneWithMultipleSubGraphsById(tom.getId());
+
+		assertThat(user, is(notNullValue()));
+
+		assertThat("colleagues on root should have been fetched by dynamic subgraph declaration",
+				Persistence.getPersistenceUtil().isLoaded(user, "colleagues"), is(true));
+
+		for (User colleague : user.getColleagues()) {
+			assertThat(Persistence.getPersistenceUtil().isLoaded(colleague, "colleagues"), is(true));
+			assertThat(Persistence.getPersistenceUtil().isLoaded(colleague, "roles"), is(true));
+		}
+	}
+
+	@Test // DATAJPA-1041
+	public void shouldCreateDynamicGraphWithMultipleLevelsOfSubgraphs() {
+
+		Assume.assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
+		em.flush();
+		em.clear();
+
+		User user = repository.findOneWithDeepGraphById(tom.getId());
+
+		assertThat(user, is(notNullValue()));
+
+		assertThat("colleagues on root should have been fetched by dynamic subgraph declaration",
+				Persistence.getPersistenceUtil().isLoaded(user, "colleagues"), is(true));
+
+		for (User colleague : user.getColleagues()) {
+			assertThat(Persistence.getPersistenceUtil().isLoaded(colleague, "colleagues"), is(true));
+			assertThat(Persistence.getPersistenceUtil().isLoaded(colleague, "roles"), is(true));
+			for (User colleagueOfColleague : colleague.getColleagues()) {
+				assertThat(Persistence.getPersistenceUtil().isLoaded(colleagueOfColleague, "roles"), is(true));
+				assertThat(Persistence.getPersistenceUtil().isLoaded(colleagueOfColleague, "colleagues"), is(false));
+			}
+		}
 	}
 }

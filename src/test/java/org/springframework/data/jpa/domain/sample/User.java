@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2015 the original author or authors.
+ * Copyright 2008-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ import javax.persistence.NamedEntityGraphs;
 import javax.persistence.NamedQuery;
 import javax.persistence.NamedStoredProcedureQueries;
 import javax.persistence.NamedStoredProcedureQuery;
+import javax.persistence.NamedSubgraph;
 import javax.persistence.ParameterMode;
 import javax.persistence.StoredProcedureParameter;
 import javax.persistence.Table;
@@ -49,6 +50,7 @@ import javax.persistence.TemporalType;
  * 
  * @author Oliver Gierke
  * @author Thomas Darimont
+ * @author Christoph Strobl
  */
 @Entity
 @NamedEntityGraphs({
@@ -56,7 +58,30 @@ import javax.persistence.TemporalType;
 		@NamedEntityGraph(name = "User.detail", attributeNodes = { @NamedAttributeNode("roles"),
 				@NamedAttributeNode("manager"), @NamedAttributeNode("colleagues") }),
 		@NamedEntityGraph(name = "User.getOneWithDefinedEntityGraphById", attributeNodes = { @NamedAttributeNode("roles"),
-				@NamedAttributeNode("manager"), @NamedAttributeNode("colleagues") }) })
+				@NamedAttributeNode("manager"), @NamedAttributeNode("colleagues") }),
+        @NamedEntityGraph(name = "User.withSubGraph",
+				attributeNodes = {
+        			@NamedAttributeNode("roles"),
+					@NamedAttributeNode(value="colleagues", subgraph = "User.colleagues")
+				},
+				subgraphs = {
+        			@NamedSubgraph(name = "User.colleagues", attributeNodes = {@NamedAttributeNode("colleagues"), @NamedAttributeNode("roles")})
+				}),
+		@NamedEntityGraph(name = "User.deepGraph",
+				attributeNodes = {
+					@NamedAttributeNode("roles"),
+					@NamedAttributeNode(value="colleagues", subgraph = "User.colleagues")
+				},
+				subgraphs = {
+					@NamedSubgraph(name = "User.colleagues", attributeNodes = {
+						@NamedAttributeNode("roles"),
+						@NamedAttributeNode(value = "colleagues", subgraph = "User.colleaguesOfColleagues")
+					}),
+					@NamedSubgraph(name="User.colleaguesOfColleagues", attributeNodes = {
+						@NamedAttributeNode("roles"),
+					})
+				})
+		})
 @NamedQuery(name = "User.findByEmailAddress", query = "SELECT u FROM User u WHERE u.emailAddress = ?1")
 @NamedStoredProcedureQueries({ //
 @NamedStoredProcedureQuery(name = "User.plus1", procedureName = "plus1inout", parameters = {
