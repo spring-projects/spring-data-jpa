@@ -1,6 +1,18 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 1.11.0.RELEASE (2017-01-26)
+----------------------------------------------
+* DATAJPA-1049 - Update "what’s new" section in reference documentation.
+* DATAJPA-1048 - Upgrade Hibernate 5.2 build profile to 5.2.7.
+* DATAJPA-1044 - Bug in JpaCountQueryCreator when doing Paged execution of a Query that uses the Distinct Keyword.
+* DATAJPA-1043 - Update project documentation with the CLA tool integration.
+* DATAJPA-1042 - Migrate ticket references in test code to Spring Framework style.
+* DATAJPA-1041 - Dynamic entity graphs may omit subgraphs.
+* DATAJPA-1031 - Release 1.11 GA (Ingalls).
+* DATAJPA-1005 - Error bootstrapping Spring Data JPA with EntityManagerFactory already semi-initialized.
+
+
 Changes in version 1.10.6.RELEASE (2016-12-21)
 ----------------------------------------------
 * DATAJPA-1029 - JpaQueryCreator should deduplicate multi-select selections.
