@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import org.springframework.util.Assert;
  * 
  * @author Oliver Gierke
  * @author Thomas Darimont
+ * @author Mark Paluch
  */
 class CriteriaQueryParameterBinder extends ParameterBinder {
 
@@ -41,14 +42,15 @@ class CriteriaQueryParameterBinder extends ParameterBinder {
 	 * Creates a new {@link CriteriaQueryParameterBinder} for the given {@link Parameters}, values and some
 	 * {@link javax.persistence.criteria.ParameterExpression}.
 	 * 
-	 * @param parameters
-	 * @param values
-	 * @param expressions
+	 * @param parameters must not be {@literal null}.
+	 * @param values must not be {@literal null}.
+	 * @param expressions must not be {@literal null}.
 	 */
 	CriteriaQueryParameterBinder(JpaParameters parameters, Object[] values, Iterable<ParameterMetadata<?>> expressions) {
 
 		super(parameters, values);
-		Assert.notNull(expressions);
+
+		Assert.notNull(expressions, "Iterable of ParameterMetadata must not be null!");
 		this.expressions = expressions.iterator();
 	}
 

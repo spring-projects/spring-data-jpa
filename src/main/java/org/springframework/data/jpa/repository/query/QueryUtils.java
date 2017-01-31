@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2016 the original author or authors.
+ * Copyright 2008-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,6 +69,7 @@ import org.springframework.util.StringUtils;
  * @author Thomas Darimont
  * @author Komi Innocent
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 public abstract class QueryUtils {
 
@@ -221,14 +222,14 @@ public abstract class QueryUtils {
 	/**
 	 * Adds {@literal order by} clause to the JPQL query.
 	 * 
-	 * @param query
+	 * @param query must not be {@literal null} or empty.
 	 * @param sort
 	 * @param alias
 	 * @return
 	 */
 	public static String applySorting(String query, Sort sort, String alias) {
 
-		Assert.hasText(query);
+		Assert.hasText(query, "Query must not be null or empty!");
 
 		if (null == sort || !sort.iterator().hasNext()) {
 			return query;
@@ -356,16 +357,16 @@ public abstract class QueryUtils {
 	 * entities to the query.
 	 * 
 	 * @param <T>
-	 * @param queryString
-	 * @param entities
-	 * @param entityManager
+	 * @param queryString must not be {@literal null}.
+	 * @param entities must not be {@literal null}.
+	 * @param entityManager must not be {@literal null}.
 	 * @return
 	 */
 	public static <T> Query applyAndBind(String queryString, Iterable<T> entities, EntityManager entityManager) {
 
-		Assert.notNull(queryString);
-		Assert.notNull(entities);
-		Assert.notNull(entityManager);
+		Assert.notNull(queryString, "Querystring must not be null!");
+		Assert.notNull(entities, "Iterable of entities must not be null!");
+		Assert.notNull(entityManager, "EntityManager must not be null!");
 
 		Iterator<T> iterator = entities.iterator();
 
@@ -489,8 +490,8 @@ public abstract class QueryUtils {
 			return orders;
 		}
 
-		Assert.notNull(root);
-		Assert.notNull(cb);
+		Assert.notNull(root, "Root must not be null!");
+		Assert.notNull(cb, "CriteriaBuilder must not be null!");
 
 		for (org.springframework.data.domain.Sort.Order order : sort) {
 			orders.add(toJpaOrder(order, root, cb));

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2011-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import org.springframework.util.Assert;
  * Base class for {@link JpaEntityInformation} implementations to share common method implementations.
  * 
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 public abstract class JpaEntityInformationSupport<T, ID extends Serializable> extends AbstractEntityInformation<T, ID>
 		implements JpaEntityInformation<T, ID> {
@@ -56,8 +57,8 @@ public abstract class JpaEntityInformationSupport<T, ID extends Serializable> ex
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public static <T> JpaEntityInformation<T, ?> getEntityInformation(Class<T> domainClass, EntityManager em) {
 
-		Assert.notNull(domainClass);
-		Assert.notNull(em);
+		Assert.notNull(domainClass, "Domain class must not be null!");
+		Assert.notNull(em, "EntityManager must not be null!");
 
 		Metamodel metamodel = em.getMetamodel();
 
