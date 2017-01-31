@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2016 the original author or authors.
+ * Copyright 2008-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,6 +48,7 @@ import org.springframework.util.Assert;
  * 
  * @author Oliver Gierke
  * @author Thomas Darimont
+ * @author Mark Paluch
  */
 public abstract class AbstractJpaQuery implements RepositoryQuery {
 
@@ -59,13 +60,12 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 	 * Creates a new {@link AbstractJpaQuery} from the given {@link JpaQueryMethod}.
 	 * 
 	 * @param method
-	 * @param resultFactory
 	 * @param em
 	 */
 	public AbstractJpaQuery(JpaQueryMethod method, EntityManager em) {
 
-		Assert.notNull(method);
-		Assert.notNull(em);
+		Assert.notNull(method, "JpaQueryMethod must not be null!");
+		Assert.notNull(em, "EntityManager must not be null!");
 
 		this.method = method;
 		this.em = em;
