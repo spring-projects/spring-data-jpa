@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2011-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import com.querydsl.jpa.impl.JPAUpdateClause;
  * Base class for implementing repositories using QueryDsl library.
  * 
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 @Repository
 public abstract class QueryDslRepositorySupport {
@@ -50,7 +51,8 @@ public abstract class QueryDslRepositorySupport {
 	 * @param domainClass must not be {@literal null}.
 	 */
 	public QueryDslRepositorySupport(Class<?> domainClass) {
-		Assert.notNull(domainClass);
+
+		Assert.notNull(domainClass, "Domain class must not be null!");
 		this.builder = new PathBuilderFactory().create(domainClass);
 	}
 
@@ -62,7 +64,7 @@ public abstract class QueryDslRepositorySupport {
 	@PersistenceContext
 	public void setEntityManager(EntityManager entityManager) {
 
-		Assert.notNull(entityManager);
+		Assert.notNull(entityManager, "EntityManager must not be null!");
 		this.querydsl = new Querydsl(entityManager, builder);
 		this.entityManager = entityManager;
 	}
@@ -88,7 +90,7 @@ public abstract class QueryDslRepositorySupport {
 	/**
 	 * Returns a fresh {@link JPQLQuery}.
 	 * 
-	 * @param path must not be {@literal null}.
+	 * @param paths must not be {@literal null}.
 	 * @return the Querydsl {@link JPQLQuery}.
 	 */
 	protected JPQLQuery<Object> from(EntityPath<?>... paths) {

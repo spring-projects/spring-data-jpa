@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2016 the original author or authors.
+ * Copyright 2008-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -228,8 +228,8 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extend
 		 */
 		public PredicateBuilder(Part part, Root<?> root) {
 
-			Assert.notNull(part);
-			Assert.notNull(root);
+			Assert.notNull(part, "Part must not be null!");
+			Assert.notNull(root, "Root must not be null!");
 			this.part = part;
 			this.root = root;
 		}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2016 the original author or authors.
+ * Copyright 2011-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,7 +64,7 @@ public class JpaMetamodelEntityInformation<T, ID extends Serializable> extends J
 
 		super(domainClass);
 
-		Assert.notNull(metamodel);
+		Assert.notNull(metamodel, "Metamodel must not be null!");
 		this.metamodel = metamodel;
 
 		ManagedType<T> type = metamodel.managedType(domainClass);
@@ -210,7 +210,9 @@ public class JpaMetamodelEntityInformation<T, ID extends Serializable> extends J
 	 * @see org.springframework.data.jpa.repository.support.JpaEntityInformation#getCompositeIdAttributeValue(java.io.Serializable, java.lang.String)
 	 */
 	public Object getCompositeIdAttributeValue(Serializable id, String idAttribute) {
-		Assert.isTrue(hasCompositeId());
+		
+		Assert.isTrue(hasCompositeId(), "Model must have a composite Id!");
+		
 		return new DirectFieldAccessFallbackBeanWrapper(id).getPropertyValue(idAttribute);
 	}
 
