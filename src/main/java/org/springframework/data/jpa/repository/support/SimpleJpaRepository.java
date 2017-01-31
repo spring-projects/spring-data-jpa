@@ -92,8 +92,8 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	 */
 	public SimpleJpaRepository(JpaEntityInformation<T, ?> entityInformation, EntityManager entityManager) {
 
-		Assert.notNull(entityInformation);
-		Assert.notNull(entityManager);
+		Assert.notNull(entityInformation, "JpaEntityInformation must not be null!");
+		Assert.notNull(entityManager, "EntityManager must not be null!");
 
 		this.entityInformation = entityInformation;
 		this.em = entityManager;
@@ -705,8 +705,9 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	private <S, U extends T> Root<U> applySpecificationToCriteria(Specification<U> spec, Class<U> domainClass,
 			CriteriaQuery<S> query) {
 
-		Assert.notNull(query);
-		Assert.notNull(domainClass);
+		Assert.notNull(domainClass, "Domain class must not be null!");
+		Assert.notNull(query, "CriteriaQuery must not be null!");
+
 		Root<U> root = query.from(domainClass);
 
 		if (spec == null) {
@@ -752,7 +753,7 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	 */
 	private static Long executeCountQuery(TypedQuery<Long> query) {
 
-		Assert.notNull(query);
+		Assert.notNull(query, "TypedQuery must not be null!");
 
 		List<Long> totals = query.getResultList();
 		Long total = 0L;

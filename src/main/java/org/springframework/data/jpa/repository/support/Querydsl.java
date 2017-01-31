@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2014 the original author or authors.
+ * Copyright 2012-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,6 +46,7 @@ import com.querydsl.jpa.impl.JPAQuery;
  * 
  * @author Oliver Gierke
  * @author Thomas Darimont
+ * @author Mark Paluch
  */
 public class Querydsl {
 
@@ -61,8 +62,8 @@ public class Querydsl {
 	 */
 	public Querydsl(EntityManager em, PathBuilder<?> builder) {
 
-		Assert.notNull(em);
-		Assert.notNull(builder);
+		Assert.notNull(em, "EntityManager must not be null!");
+		Assert.notNull(builder, "PathBuilder must not be null!");
 
 		this.em = em;
 		this.provider = PersistenceProvider.fromEntityManager(em);
