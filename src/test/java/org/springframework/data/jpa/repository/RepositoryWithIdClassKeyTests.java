@@ -18,6 +18,8 @@ package org.springframework.data.jpa.repository;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
+import java.util.Optional;
+
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -81,9 +83,10 @@ public class RepositoryWithIdClassKeyTests {
 
 		itemSiteRepository.save(new ItemSite(item, site));
 
-		ItemSite loaded = itemSiteRepository
+		Optional<ItemSite> loaded = itemSiteRepository
 				.findOne(new ItemSiteId(new ItemId(item.getId(), item.getManufacturerId()), site.getId()));
 
 		assertThat(loaded, is(notNullValue()));
+		assertThat(loaded.isPresent(), is(true));
 	}
 }

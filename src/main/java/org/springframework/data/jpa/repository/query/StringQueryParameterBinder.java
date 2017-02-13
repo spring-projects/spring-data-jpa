@@ -29,6 +29,7 @@ import org.springframework.util.Assert;
  * 
  * @author Oliver Gierke
  * @author Thomas Darimont
+ * @author Christoph Strobl
  */
 public class StringQueryParameterBinder extends ParameterBinder {
 
@@ -72,7 +73,7 @@ public class StringQueryParameterBinder extends ParameterBinder {
 	private ParameterBinding getBindingFor(Query jpaQuery, int position, Parameter methodParameter) {
 
 		if (hasNamedParameter(jpaQuery)) {
-			return query.getBindingFor(methodParameter.getName());
+			return query.getBindingFor(methodParameter.getName().orElseThrow(() -> new IllegalArgumentException("Parameter needs to be named!")));
 		}
 
 		try {

@@ -21,7 +21,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.jpa.domain.sample.EmbeddedIdExampleEmployee;
 import org.springframework.data.jpa.domain.sample.EmbeddedIdExampleEmployeePK;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.querydsl.QueryDslPredicateExecutor;
+import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Predicate;
@@ -35,7 +35,7 @@ import com.querydsl.core.types.Predicate;
 @Lazy
 public interface EmployeeRepositoryWithEmbeddedId
 		extends JpaRepository<EmbeddedIdExampleEmployee, EmbeddedIdExampleEmployeePK>,
-		QueryDslPredicateExecutor<EmbeddedIdExampleEmployee> {
+		QuerydslPredicateExecutor<EmbeddedIdExampleEmployee> {
 
 	List<EmbeddedIdExampleEmployee> findAll(Predicate predicate, OrderSpecifier<?>... orders);
 

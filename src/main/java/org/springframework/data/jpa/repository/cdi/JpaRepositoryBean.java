@@ -16,6 +16,7 @@
 package org.springframework.data.jpa.repository.cdi;
 
 import java.lang.annotation.Annotation;
+import java.util.Optional;
 import java.util.Set;
 
 import javax.enterprise.context.spi.CreationalContext;
@@ -34,6 +35,7 @@ import org.springframework.util.Assert;
  * @author Dirk Mahler
  * @author Oliver Gierke
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @param <T> The type of the repository.
  */
 class JpaRepositoryBean<T> extends CdiRepositoryBean<T> {
@@ -50,7 +52,7 @@ class JpaRepositoryBean<T> extends CdiRepositoryBean<T> {
 	 * @param detector can be {@literal null}.
 	 */
 	JpaRepositoryBean(BeanManager beanManager, Bean<EntityManager> entityManagerBean, Set<Annotation> qualifiers,
-			Class<T> repositoryType, CustomRepositoryImplementationDetector detector) {
+			Class<T> repositoryType, Optional<CustomRepositoryImplementationDetector> detector) {
 
 		super(qualifiers, repositoryType, beanManager, detector);
 
@@ -63,13 +65,13 @@ class JpaRepositoryBean<T> extends CdiRepositoryBean<T> {
 	 * @see org.springframework.data.repository.cdi.CdiRepositoryBean#create(javax.enterprise.context.spi.CreationalContext, java.lang.Class, java.lang.Object)
 	 */
 	@Override
-	public T create(CreationalContext<T> creationalContext, Class<T> repositoryType, Object customImplementation) {
+	public T create(CreationalContext<T> creationalContext, Class<T> repositoryType, Optional<Object> customImplementation) {
 
 		// Get an instance from the associated entity manager bean.
 		EntityManager entityManager = getDependencyInstance(entityManagerBean, EntityManager.class);
 
 		// Create the JPA repository instance and return it.
 		JpaRepositoryFactory factory = new JpaRepositoryFactory(entityManager);
-		return factory.getRepository(repositoryType, customImplementation);
+		return customImplementation.isPresent() ? factory.getRepository(repositoryType, customImplementation.get()) : factory.getRepository(repositoryType);
 	}
 }

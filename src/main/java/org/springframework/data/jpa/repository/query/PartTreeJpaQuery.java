@@ -16,6 +16,7 @@
 package org.springframework.data.jpa.repository.query;
 
 import java.util.List;
+import java.util.Optional;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
@@ -37,6 +38,7 @@ import org.springframework.data.repository.query.parser.PartTree;
  * 
  * @author Oliver Gierke
  * @author Thomas Darimont
+ * @author Christoph Strobl
  */
 public class PartTreeJpaQuery extends AbstractJpaQuery {
 
@@ -52,8 +54,8 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 	 * Creates a new {@link PartTreeJpaQuery}.
 	 * 
 	 * @param method must not be {@literal null}.
-	 * @param factory must not be {@literal null}.
 	 * @param em must not be {@literal null}.
+	 * @param persistenceProvider must not be {@literal null}.
 	 */
 	public PartTreeJpaQuery(JpaQueryMethod method, EntityManager em, PersistenceProvider persistenceProvider) {
 
@@ -212,7 +214,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 					? new ParameterMetadataProvider(builder, parameters, persistenceProvider)
 					: new ParameterMetadataProvider(builder, accessor, persistenceProvider);
 
-			ResultProcessor resultFactory = getQueryMethod().getResultProcessor().withDynamicProjection(accessor);
+			ResultProcessor resultFactory = getQueryMethod().getResultProcessor().withDynamicProjection(Optional.ofNullable(accessor));
 
 			return new JpaQueryCreator(tree, resultFactory.getReturnedType(), builder, provider);
 		}

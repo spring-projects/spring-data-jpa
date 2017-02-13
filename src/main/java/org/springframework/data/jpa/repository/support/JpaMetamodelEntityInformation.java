@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import javax.persistence.IdClass;
@@ -141,12 +142,12 @@ public class JpaMetamodelEntityInformation<T, ID extends Serializable> extends J
 	 * @see org.springframework.data.repository.core.EntityInformation#getId(java.lang.Object)
 	 */
 	@SuppressWarnings("unchecked")
-	public ID getId(T entity) {
+	public Optional<ID> getId(T entity) {
 
 		BeanWrapper entityWrapper = new DirectFieldAccessFallbackBeanWrapper(entity);
 
 		if (idMetadata.hasSimpleId()) {
-			return (ID) entityWrapper.getPropertyValue(idMetadata.getSimpleIdAttribute().getName());
+			return  Optional.ofNullable((ID)entityWrapper.getPropertyValue(idMetadata.getSimpleIdAttribute().getName()));
 		}
 
 		BeanWrapper idWrapper = new IdentifierDerivingDirectFieldAccessFallbackBeanWrapper(idMetadata.getType(), metamodel);
@@ -162,7 +163,7 @@ public class JpaMetamodelEntityInformation<T, ID extends Serializable> extends J
 			idWrapper.setPropertyValue(attribute.getName(), propertyValue);
 		}
 
-		return (ID) (partialIdValueFound ? idWrapper.getWrappedInstance() : null);
+		return partialIdValueFound ? Optional.ofNullable((ID)idWrapper.getWrappedInstance()) : Optional.empty();
 	}
 
 	/*
@@ -318,9 +319,7 @@ public class JpaMetamodelEntityInformation<T, ID extends Serializable> extends J
 		/**
 		 * In addition to the functionality described in {@link BeanWrapperImpl} it is checked whether we have a nested
 		 * entity that is part of the id key. If this is the case, we need to derive the identifier of the nested entity.
-		 * 
-		 * @see org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformation.DirectFieldAccessFallbackBeanWrapper#setPropertyValue(java.lang.String,
-		 *      java.lang.Object)
+		 *
 		 */
 		@Override
 		public void setPropertyValue(String propertyName, Object value) {

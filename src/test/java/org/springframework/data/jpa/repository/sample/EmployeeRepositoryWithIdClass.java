@@ -21,7 +21,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.jpa.domain.sample.IdClassExampleEmployee;
 import org.springframework.data.jpa.domain.sample.IdClassExampleEmployeePK;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.querydsl.QueryDslPredicateExecutor;
+import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Predicate;
@@ -34,7 +34,7 @@ import com.querydsl.core.types.Predicate;
  */
 @Lazy
 public interface EmployeeRepositoryWithIdClass extends JpaRepository<IdClassExampleEmployee, IdClassExampleEmployeePK>,
-		QueryDslPredicateExecutor<IdClassExampleEmployee> {
+		QuerydslPredicateExecutor<IdClassExampleEmployee> {
 
 	List<IdClassExampleEmployee> findAll(Predicate predicate, OrderSpecifier<?>... orders);
 

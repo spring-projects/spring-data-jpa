@@ -21,6 +21,7 @@ import static org.mockito.Mockito.*;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.Optional;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -37,7 +38,7 @@ import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.custom.CustomGenericJpaRepositoryFactory;
 import org.springframework.data.jpa.repository.custom.UserCustomExtendedRepository;
-import org.springframework.data.querydsl.QueryDslPredicateExecutor;
+import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import org.springframework.data.repository.core.support.DefaultRepositoryMetadata;
 import org.springframework.data.repository.query.QueryLookupStrategy.Key;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -147,12 +148,12 @@ public class JpaRepositoryFactoryUnitTests {
 	public void usesQueryDslRepositoryIfInterfaceImplementsExecutor() {
 
 		when(entityInformation.getJavaType()).thenReturn(User.class);
-		assertEquals(QueryDslJpaRepository.class,
+		assertEquals(QuerydslJpaRepository.class,
 				factory.getRepositoryBaseClass(new DefaultRepositoryMetadata(QueryDslSampleRepository.class)));
 
 		try {
 			QueryDslSampleRepository repository = factory.getRepository(QueryDslSampleRepository.class);
-			assertEquals(QueryDslJpaRepository.class, ((Advised) repository).getTargetClass());
+			assertEquals(QuerydslJpaRepository.class, ((Advised) repository).getTargetClass());
 		} catch (IllegalArgumentException e) {
 			assertThat(e.getStackTrace()[0].getClassName(), is("org.springframework.data.querydsl.SimpleEntityPathResolver"));
 		}
@@ -181,7 +182,7 @@ public class JpaRepositoryFactoryUnitTests {
 	private interface SimpleSampleRepository extends JpaRepository<User, Integer> {
 
 		@Transactional
-		User findOne(Integer id);
+		Optional<User> findOne(Integer id);
 	}
 
 	/**
@@ -218,7 +219,7 @@ public class JpaRepositoryFactoryUnitTests {
 
 	}
 
-	private interface QueryDslSampleRepository extends SimpleSampleRepository, QueryDslPredicateExecutor<User> {
+	private interface QueryDslSampleRepository extends SimpleSampleRepository, QuerydslPredicateExecutor<User> {
 
 	}
 

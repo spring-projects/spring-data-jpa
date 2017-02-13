@@ -15,9 +15,10 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import static org.springframework.data.querydsl.QueryDslUtils.*;
+import static org.springframework.data.querydsl.QuerydslUtils.*;
 
 import java.io.Serializable;
+import java.util.Optional;
 
 import javax.persistence.EntityManager;
 
@@ -25,7 +26,7 @@ import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.provider.QueryExtractor;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.query.JpaQueryLookupStrategy;
-import org.springframework.data.querydsl.QueryDslPredicateExecutor;
+import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import org.springframework.data.repository.core.RepositoryInformation;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.core.support.RepositoryFactorySupport;
@@ -39,6 +40,7 @@ import org.springframework.util.Assert;
  * 
  * @author Oliver Gierke
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
 public class JpaRepositoryFactory extends RepositoryFactorySupport {
 
@@ -91,7 +93,6 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	 * @param <T>
 	 * @param <ID>
 	 * @param entityManager
-	 * @see #getTargetRepository(RepositoryMetadata)
 	 * @return
 	 */
 	protected <T, ID extends Serializable> SimpleJpaRepository<?, ?> getTargetRepository(
@@ -113,7 +114,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	protected Class<?> getRepositoryBaseClass(RepositoryMetadata metadata) {
 
 		if (isQueryDslExecutor(metadata.getRepositoryInterface())) {
-			return QueryDslJpaRepository.class;
+			return QuerydslJpaRepository.class;
 		} else {
 			return SimpleJpaRepository.class;
 		}
@@ -127,7 +128,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	 */
 	private boolean isQueryDslExecutor(Class<?> repositoryInterface) {
 
-		return QUERY_DSL_PRESENT && QueryDslPredicateExecutor.class.isAssignableFrom(repositoryInterface);
+		return QUERY_DSL_PRESENT && QuerydslPredicateExecutor.class.isAssignableFrom(repositoryInterface);
 	}
 
 	/* 
@@ -135,8 +136,8 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	 * @see org.springframework.data.repository.core.support.RepositoryFactorySupport#getQueryLookupStrategy(org.springframework.data.repository.query.QueryLookupStrategy.Key, org.springframework.data.repository.query.EvaluationContextProvider)
 	 */
 	@Override
-	protected QueryLookupStrategy getQueryLookupStrategy(Key key, EvaluationContextProvider evaluationContextProvider) {
-		return JpaQueryLookupStrategy.create(entityManager, key, extractor, evaluationContextProvider);
+	protected Optional<QueryLookupStrategy> getQueryLookupStrategy(Key key, EvaluationContextProvider evaluationContextProvider) {
+		return Optional.of(JpaQueryLookupStrategy.create(entityManager, key, extractor, evaluationContextProvider));
 	}
 
 	/*

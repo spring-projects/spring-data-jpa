@@ -82,7 +82,7 @@ public class PersistenceProviderIntegrationTests {
 			@Override
 			public Void doInTransaction(TransactionStatus status) {
 
-				Product product = categories.findOne(category.getId()).getProduct();
+				Product product = categories.findOne(category.getId()).get().getProduct();
 				ProxyIdAccessor accessor = PersistenceProvider.fromEntityManager(em);
 
 				assertThat(accessor.shouldUseAccessorFor(product), is(true));

@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2016 the original author or authors.
+ * Copyright 2012-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import javax.persistence.metamodel.Metamodel;
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.mapping.context.AbstractMappingContext;
 import org.springframework.data.mapping.context.MappingContext;
+import org.springframework.data.mapping.model.Property;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.util.Assert;
@@ -33,6 +34,7 @@ import org.springframework.util.Assert;
  * {@link MappingContext} implementation based on a Jpa {@link Metamodel}.
  * 
  * @author Oliver Gierke
+ * @author Christoph Strobl
  * @since 1.3
  */
 public class JpaMetamodelMappingContext
@@ -69,11 +71,11 @@ public class JpaMetamodelMappingContext
 	 * @see org.springframework.data.mapping.context.AbstractMappingContext#createPersistentProperty(java.lang.reflect.Field, java.beans.PropertyDescriptor, org.springframework.data.mapping.model.MutablePersistentEntity, org.springframework.data.mapping.model.SimpleTypeHolder)
 	 */
 	@Override
-	protected JpaPersistentProperty createPersistentProperty(Field field, PropertyDescriptor descriptor,
+	protected JpaPersistentProperty createPersistentProperty(Property property,
 			JpaPersistentEntityImpl<?> owner, SimpleTypeHolder simpleTypeHolder) {
 
 		Metamodel metamodel = getMetamodelFor(owner.getType());
-		return new JpaPersistentPropertyImpl(metamodel, field, descriptor, owner, simpleTypeHolder);
+		return new JpaPersistentPropertyImpl(metamodel, property, owner, simpleTypeHolder);
 	}
 
 	/* 

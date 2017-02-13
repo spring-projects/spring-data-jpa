@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2016 the original author or authors.
+ * Copyright 2012-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 import javax.persistence.Access;
@@ -45,6 +46,7 @@ import org.springframework.data.jpa.util.JpaMetamodel;
 import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.PersistentEntity;
 import org.springframework.data.mapping.model.AnnotationBasedPersistentProperty;
+import org.springframework.data.mapping.model.Property;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
 import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.data.util.TypeInformation;
@@ -55,6 +57,7 @@ import org.springframework.util.Assert;
  * 
  * @author Oliver Gierke
  * @author Greg Turnquist
+ * @author Christoph Strobl
  * @since 1.3
  */
 class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPersistentProperty>
@@ -97,15 +100,14 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 	 * Creates a new {@link JpaPersistentPropertyImpl}
 	 * 
 	 * @param metamodel must not be {@literal null}.
-	 * @param field must not be {@literal null}.
-	 * @param propertyDescriptor can be {@literal null}.
+	 * @param property must not be {@literal null}.
 	 * @param owner must not be {@literal null}.
 	 * @param simpleTypeHolder must not be {@literal null}.
 	 */
-	public JpaPersistentPropertyImpl(Metamodel metamodel, Field field, PropertyDescriptor propertyDescriptor,
+	public JpaPersistentPropertyImpl(Metamodel metamodel, Property property,
 			PersistentEntity<?, JpaPersistentProperty> owner, SimpleTypeHolder simpleTypeHolder) {
 
-		super(field, propertyDescriptor, owner, simpleTypeHolder);
+		super(property, owner, simpleTypeHolder);
 
 		Assert.notNull(metamodel, "Metamodel must not be null!");
 
@@ -234,27 +236,27 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 	 */
 	private Boolean detectPropertyAccess() {
 
-		org.springframework.data.annotation.AccessType accessType = findAnnotation(
+		Optional<org.springframework.data.annotation.AccessType> accessType = findAnnotation(
 				org.springframework.data.annotation.AccessType.class);
 
-		if (accessType != null) {
-			return Type.PROPERTY.equals(accessType.value());
+		if (accessType.isPresent()) {
+			return Type.PROPERTY.equals(accessType.get().value());
 		}
 
-		Access access = findAnnotation(Access.class);
+		Optional<Access> access = findAnnotation(Access.class);
 
-		if (access != null) {
-			return AccessType.PROPERTY.equals(access.value());
+		if (access.isPresent()) {
+			return AccessType.PROPERTY.equals(access.get().value());
 		}
 
 		accessType = findPropertyOrOwnerAnnotation(org.springframework.data.annotation.AccessType.class);
 
-		if (accessType != null) {
-			return Type.PROPERTY.equals(accessType.value());
+		if (accessType.isPresent()) {
+			return Type.PROPERTY.equals(accessType.get().value());
 		}
 
 		access = findPropertyOrOwnerAnnotation(Access.class);
-		return access == null ? null : AccessType.PROPERTY.equals(access.value());
+		return access.map(t -> AccessType.PROPERTY.equals(t.value())).orElse(null);
 	}
 
 	/**
@@ -266,11 +268,14 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 
 		for (Class<? extends Annotation> associationAnnotation : ASSOCIATION_ANNOTATIONS) {
 
-			Annotation annotation = findAnnotation(associationAnnotation);
-			Object targetEntity = AnnotationUtils.getValue(annotation, "targetEntity");
+			Optional<? extends Annotation> annotation = findAnnotation(associationAnnotation);
+			if(annotation.isPresent()) {
 
-			if (targetEntity != null && !void.class.equals(targetEntity)) {
-				return ClassTypeInformation.from((Class<?>) targetEntity);
+				Object targetEntity = AnnotationUtils.getValue(annotation.get(), "targetEntity");
+
+				if (targetEntity != null && !void.class.equals(targetEntity)) {
+					return ClassTypeInformation.from((Class<?>) targetEntity);
+				}
 			}
 		}
 
@@ -287,9 +292,9 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 
 		for (Class<? extends Annotation> annotationType : UPDATEABLE_ANNOTATIONS) {
 
-			Annotation annotation = findAnnotation(annotationType);
+			Optional<? extends Annotation> annotation = findAnnotation(annotationType);
 
-			if (annotation != null && AnnotationUtils.getValue(annotation, "updatable").equals(Boolean.FALSE)) {
+			if (annotation.isPresent() && AnnotationUtils.getValue(annotation.get(), "updatable").equals(Boolean.FALSE)) {
 				return false;
 			}
 		}

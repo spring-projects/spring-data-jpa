@@ -18,10 +18,12 @@ package org.springframework.data.jpa.repository.sample;
 import javax.persistence.LockModeType;
 import javax.persistence.QueryHint;
 
+import java.util.Optional;
+
 import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.QueryHints;
-import org.springframework.data.querydsl.QueryDslPredicateExecutor;
+import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import org.springframework.data.repository.CrudRepository;
 
 import com.querydsl.core.types.Predicate;
@@ -32,7 +34,7 @@ import com.querydsl.core.types.Predicate;
  * @author Oliver Gierke
  * @author Thomas Darimont
  */
-public interface RoleRepository extends CrudRepository<Role, Integer>, QueryDslPredicateExecutor<Role> {
+public interface RoleRepository extends CrudRepository<Role, Integer>, QuerydslPredicateExecutor<Role> {
 
 	/* 
 	 * (non-Javadoc)
@@ -48,7 +50,7 @@ public interface RoleRepository extends CrudRepository<Role, Integer>, QueryDslP
 	 */
 	@Lock(LockModeType.READ)
 	@QueryHints(@QueryHint(name = "foo", value = "bar"))
-	Role findOne(Integer id);
+	Optional<Role> findOne(Integer id);
 
 	/* 
 	 * (non-Javadoc)

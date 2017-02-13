@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import org.springframework.util.StringUtils;
  * 
  * @author Thomas Darimont
  * @author Oliver Gierke
+ * @author Christoph Strobl
  * @since 1.6
  */
 class StoredProcedureJpaQuery extends AbstractJpaQuery {
@@ -158,7 +159,7 @@ class StoredProcedureJpaQuery extends AbstractJpaQuery {
 			}
 
 			if (useNamedParameters) {
-				procedureQuery.registerStoredProcedureParameter(param.getName(), param.getType(), ParameterMode.IN);
+				procedureQuery.registerStoredProcedureParameter(param.getName().orElseThrow(() -> new IllegalArgumentException("Parameter needs to be named!")), param.getType(), ParameterMode.IN);
 			} else {
 				procedureQuery.registerStoredProcedureParameter(param.getIndex() + 1, param.getType(), ParameterMode.IN);
 			}
