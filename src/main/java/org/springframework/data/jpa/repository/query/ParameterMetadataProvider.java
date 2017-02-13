@@ -42,6 +42,7 @@ import org.springframework.util.ObjectUtils;
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
 class ParameterMetadataProvider {
 
@@ -159,7 +160,7 @@ class ParameterMetadataProvider {
 		Class<T> reifiedType = Expression.class.equals(type) ? (Class<T>) Object.class : type;
 
 		ParameterExpression<T> expression = parameter.isExplicitlyNamed()
-				? builder.parameter(reifiedType, parameter.getName()) : builder.parameter(reifiedType);
+				? builder.parameter(reifiedType, parameter.getName().orElseThrow(() -> new IllegalArgumentException("o_O Parameter needs to be named"))) : builder.parameter(reifiedType);
 		ParameterMetadata<T> value = new ParameterMetadata<T>(expression, part.getType(),
 				bindableParameterValues == null ? ParameterMetadata.PLACEHOLDER : bindableParameterValues.next(),
 				this.persistenceProvider);

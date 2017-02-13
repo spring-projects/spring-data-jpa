@@ -137,7 +137,7 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		User foundPerson = repository.findOne(id);
+		User foundPerson = repository.findOne(id).get();
 		assertThat(firstUser.getFirstname(), is(foundPerson.getFirstname()));
 	}
 
@@ -155,7 +155,7 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		assertThat(repository.findOne(id * 27), is(nullValue()));
+		assertThat(repository.findOne(id * 27), is(java.util.Optional.empty()));
 	}
 
 	@Test
@@ -188,10 +188,10 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		User foundPerson = repository.findOne(id);
+		User foundPerson = repository.findOne(id).get();
 		foundPerson.setLastname("Schlicht");
 
-		User updatedPerson = repository.findOne(id);
+		User updatedPerson = repository.findOne(id).get();
 		assertThat(updatedPerson.getFirstname(), is(foundPerson.getFirstname()));
 	}
 
@@ -210,7 +210,7 @@ public class UserRepositoryTests {
 
 		repository.delete(firstUser.getId());
 		assertThat(repository.exists(id), is(false));
-		assertThat(repository.findOne(id), is(nullValue()));
+		assertThat(repository.findOne(id), is(java.util.Optional.empty()));
 	}
 
 	@Test
@@ -220,7 +220,7 @@ public class UserRepositoryTests {
 
 		repository.delete(firstUser);
 		assertThat(repository.exists(id), is(false));
-		assertThat(repository.findOne(id), is(nullValue()));
+		assertThat(repository.findOne(id), is(java.util.Optional.empty()));
 	}
 
 	@Test
@@ -379,7 +379,7 @@ public class UserRepositoryTests {
 		flushTestUsers();
 
 		// Fetches first user from database
-		User firstReferenceUser = repository.findOne(firstUser.getId());
+		User firstReferenceUser = repository.findOne(firstUser.getId()).get();
 		assertThat(firstReferenceUser, is(firstUser));
 
 		// Fetch colleagues and assert link
@@ -411,7 +411,7 @@ public class UserRepositoryTests {
 		firstUser.addColleague(new User("Florian", "Hopf", "hopf@synyx.de"));
 		firstUser = repository.save(firstUser);
 
-		User reference = repository.findOne(firstUser.getId());
+		User reference = repository.findOne(firstUser.getId()).get();
 		Set<User> colleagues = reference.getColleagues();
 
 		assertThat(colleagues, is(notNullValue()));

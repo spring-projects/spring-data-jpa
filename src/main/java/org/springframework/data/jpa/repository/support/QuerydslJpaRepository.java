@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2016 the original author or authors.
+ * Copyright 2008-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,10 +27,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.querydsl.EntityPathResolver;
 import org.springframework.data.querydsl.QSort;
-import org.springframework.data.querydsl.QueryDslPredicateExecutor;
+import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import org.springframework.data.querydsl.SimpleEntityPathResolver;
 import org.springframework.data.repository.support.PageableExecutionUtils;
-import org.springframework.data.repository.support.PageableExecutionUtils.TotalSupplier;
 
 import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.OrderSpecifier;
@@ -41,15 +40,16 @@ import com.querydsl.jpa.impl.AbstractJPAQuery;
 
 /**
  * QueryDsl specific extension of {@link SimpleJpaRepository} which adds implementation for
- * {@link QueryDslPredicateExecutor}.
+ * {@link QuerydslPredicateExecutor}.
  * 
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Mark Paluch
  * @author Jocelyn Ntakpe
+ * @author Christoph Strobl
  */
-public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpaRepository<T, ID>
-		implements QueryDslPredicateExecutor<T> {
+public class QuerydslJpaRepository<T, ID extends Serializable> extends SimpleJpaRepository<T, ID>
+		implements QuerydslPredicateExecutor<T> {
 
 	private static final EntityPathResolver DEFAULT_ENTITY_PATH_RESOLVER = SimpleEntityPathResolver.INSTANCE;
 
@@ -58,26 +58,26 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 	private final Querydsl querydsl;
 
 	/**
-	 * Creates a new {@link QueryDslJpaRepository} from the given domain class and {@link EntityManager}. This will use
+	 * Creates a new {@link QuerydslJpaRepository} from the given domain class and {@link EntityManager}. This will use
 	 * the {@link SimpleEntityPathResolver} to translate the given domain class into an {@link EntityPath}.
 	 * 
 	 * @param entityInformation must not be {@literal null}.
 	 * @param entityManager must not be {@literal null}.
 	 */
-	public QueryDslJpaRepository(JpaEntityInformation<T, ID> entityInformation, EntityManager entityManager) {
+	public QuerydslJpaRepository(JpaEntityInformation<T, ID> entityInformation, EntityManager entityManager) {
 		this(entityInformation, entityManager, DEFAULT_ENTITY_PATH_RESOLVER);
 	}
 
 	/**
-	 * Creates a new {@link QueryDslJpaRepository} from the given domain class and {@link EntityManager} and uses the
+	 * Creates a new {@link QuerydslJpaRepository} from the given domain class and {@link EntityManager} and uses the
 	 * given {@link EntityPathResolver} to translate the domain class into an {@link EntityPath}.
 	 * 
 	 * @param entityInformation must not be {@literal null}.
 	 * @param entityManager must not be {@literal null}.
 	 * @param resolver must not be {@literal null}.
 	 */
-	public QueryDslJpaRepository(JpaEntityInformation<T, ID> entityInformation, EntityManager entityManager,
-			EntityPathResolver resolver) {
+	public QuerydslJpaRepository(JpaEntityInformation<T, ID> entityInformation, EntityManager entityManager,
+								 EntityPathResolver resolver) {
 
 		super(entityInformation, entityManager);
 
@@ -141,13 +141,7 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 		final JPQLQuery<?> countQuery = createCountQuery(predicate);
 		JPQLQuery<T> query = querydsl.applyPagination(pageable, createQuery(predicate).select(path));
 
-		return PageableExecutionUtils.getPage(query.fetch(), pageable, new TotalSupplier() {
-
-			@Override
-			public long get() {
-				return countQuery.fetchCount();
-			}
-		});
+		return PageableExecutionUtils.getPage(query.fetch(), pageable == null ? Pageable.NONE : pageable, () -> countQuery.fetchCount());
 	}
 
 	/*

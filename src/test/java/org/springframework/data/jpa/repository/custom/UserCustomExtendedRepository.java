@@ -16,6 +16,7 @@
 package org.springframework.data.jpa.repository.custom;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,6 +36,6 @@ public interface UserCustomExtendedRepository extends CustomGenericRepository<Us
 	List<User> findAll();
 
 	@Transactional(readOnly = false, timeout = 10)
-	User findOne(Integer id);
+	Optional<User> findOne(Integer id);
 
 }

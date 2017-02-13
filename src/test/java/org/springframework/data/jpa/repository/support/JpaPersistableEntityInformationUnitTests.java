@@ -23,6 +23,8 @@ import javax.persistence.metamodel.EntityType;
 import javax.persistence.metamodel.Metamodel;
 import javax.persistence.metamodel.Type;
 
+import java.util.Optional;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -62,11 +64,11 @@ public class JpaPersistableEntityInformationUnitTests {
 
 		Foo foo = new Foo();
 		assertThat(entityInformation.isNew(foo), is(false));
-		assertThat(entityInformation.getId(foo), is(nullValue()));
+		assertThat(entityInformation.getId(foo), is(Optional.empty()));
 
 		foo.id = 1L;
 		assertThat(entityInformation.isNew(foo), is(true));
-		assertThat(entityInformation.getId(foo), is(1L));
+		assertThat(entityInformation.getId(foo), is(Optional.of(1L)));
 	}
 
 	@SuppressWarnings("serial")

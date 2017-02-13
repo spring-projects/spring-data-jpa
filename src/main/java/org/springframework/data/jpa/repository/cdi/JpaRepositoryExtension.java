@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2011-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 
 import javax.enterprise.event.Observes;
@@ -42,6 +43,7 @@ import org.springframework.data.repository.cdi.CdiRepositoryExtensionSupport;
  * @author Dirk Mahler
  * @author Oliver Gierke
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
 public class JpaRepositoryExtension extends CdiRepositoryExtensionSupport {
 
@@ -121,6 +123,6 @@ public class JpaRepositoryExtension extends CdiRepositoryExtensionSupport {
 
 		// Construct and return the repository bean.
 		return new JpaRepositoryBean<T>(beanManager, entityManagerBean, qualifiers, repositoryType,
-				getCustomImplementationDetector());
+				Optional.ofNullable(getCustomImplementationDetector()));
 	}
 }

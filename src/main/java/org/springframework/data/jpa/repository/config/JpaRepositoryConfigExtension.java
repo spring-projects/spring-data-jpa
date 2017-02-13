@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2015 the original author or authors.
+ * Copyright 2012-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Locale;
+import java.util.Optional;
 
 import javax.persistence.Entity;
 import javax.persistence.MappedSuperclass;
@@ -59,6 +60,7 @@ import org.springframework.util.StringUtils;
  * @author Eberhard Wolff
  * @author Gil Markham
  * @author Thomas Darimont
+ * @author Christoph Strobl
  */
 public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensionSupport {
 
@@ -118,9 +120,8 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 	@Override
 	public void postProcess(BeanDefinitionBuilder builder, RepositoryConfigurationSource source) {
 
-		String transactionManagerRef = source.getAttribute("transactionManagerRef");
-		builder.addPropertyValue("transactionManager",
-				transactionManagerRef == null ? DEFAULT_TRANSACTION_MANAGER_BEAN_NAME : transactionManagerRef);
+		Optional<String> transactionManagerRef = source.getAttribute("transactionManagerRef");
+		builder.addPropertyValue("transactionManager", transactionManagerRef.orElse(DEFAULT_TRANSACTION_MANAGER_BEAN_NAME));
 		builder.addPropertyValue("entityManager", getEntityManagerBeanDefinitionFor(source, source.getSource()));
 		builder.addPropertyReference("mappingContext", JPA_MAPPING_CONTEXT_BEAN_NAME);
 	}
@@ -145,10 +146,10 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 	@Override
 	public void postProcess(BeanDefinitionBuilder builder, XmlRepositoryConfigurationSource config) {
 
-		String enableDefaultTransactions = config.getAttribute(ENABLE_DEFAULT_TRANSACTIONS_ATTRIBUTE);
+		Optional<String> enableDefaultTransactions = config.getAttribute(ENABLE_DEFAULT_TRANSACTIONS_ATTRIBUTE);
 
-		if (StringUtils.hasText(enableDefaultTransactions)) {
-			builder.addPropertyValue(ENABLE_DEFAULT_TRANSACTIONS_ATTRIBUTE, enableDefaultTransactions);
+		if (enableDefaultTransactions.isPresent() && StringUtils.hasText(enableDefaultTransactions.get())) {
+			builder.addPropertyValue(ENABLE_DEFAULT_TRANSACTIONS_ATTRIBUTE, enableDefaultTransactions.get());
 		}
 	}
 
@@ -184,7 +185,7 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 	 * Creates an anonymous factory to extract the actual {@link javax.persistence.EntityManager} from the
 	 * {@link javax.persistence.EntityManagerFactory} bean name reference.
 	 * 
-	 * @param entityManagerFactoryBeanName
+	 * @param config
 	 * @param source
 	 * @return
 	 */
@@ -204,7 +205,8 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 
 	private static String getEntityManagerBeanRef(RepositoryConfigurationSource config) {
 
-		String entityManagerFactoryRef = config == null ? null : config.getAttribute("entityManagerFactoryRef");
-		return entityManagerFactoryRef == null ? "entityManagerFactory" : entityManagerFactoryRef;
+		Optional<String> entityManagerFactoryRef = config == null ? Optional.empty()
+				: config.getAttribute("entityManagerFactoryRef");
+		return entityManagerFactoryRef.orElse("entityManagerFactory");
 	}
 }

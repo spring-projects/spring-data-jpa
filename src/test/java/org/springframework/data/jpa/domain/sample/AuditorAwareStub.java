@@ -15,6 +15,8 @@
  */
 package org.springframework.data.jpa.domain.sample;
 
+import java.util.Optional;
+
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.data.jpa.repository.sample.AuditableUserRepository;
 import org.springframework.util.Assert;
@@ -47,8 +49,8 @@ public class AuditorAwareStub implements AuditorAware<AuditableUser> {
 	 * 
 	 * @see org.springframework.data.domain.AuditorAware#getCurrentAuditor()
 	 */
-	public AuditableUser getCurrentAuditor() {
+	public Optional<AuditableUser> getCurrentAuditor() {
 
-		return auditor;
+		return Optional.ofNullable(auditor);
 	}
 }

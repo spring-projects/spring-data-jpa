@@ -66,7 +66,7 @@ public interface UserRepository
 	 * Redeclaration of {@link CrudRepository#findOne(java.io.Serializable)} to change transaction configuration.
 	 */
 	@Transactional
-	User findOne(Integer primaryKey);
+	java.util.Optional<User> findOne(Integer primaryKey);
 
 	/**
 	 * Redeclaration of {@link CrudRepository#delete(java.io.Serializable)}. to make sure the transaction configuration of

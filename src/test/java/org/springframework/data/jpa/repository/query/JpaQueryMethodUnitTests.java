@@ -24,6 +24,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Optional;
 
 import javax.persistence.LockModeType;
 import javax.persistence.QueryHint;
@@ -544,7 +545,7 @@ public class JpaQueryMethodUnitTests {
 		 * DATAJPA-689
 		 */
 		@EntityGraph("User.detail")
-		User findOne(Long id);
+		Optional<User> findOne(Long id);
 
 		/**
 		 * DATAJPA-696

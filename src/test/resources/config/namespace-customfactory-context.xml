@@ -9,7 +9,6 @@
 	<import resource="../infrastructure.xml" />
 	<import resource="../tx-manager.xml" />
 
-	<jpa:repositories base-package="org.springframework.**.repository.custom" 
-        factory-class="org.springframework.data.jpa.repository.custom.CustomGenericJpaRepositoryFactoryBean" />
+	<jpa:repositories base-package="org.springframework.**.repository.custom" base-class="org.springframework.data.jpa.repository.custom.CustomGenericJpaRepository" />
 
 </beans>

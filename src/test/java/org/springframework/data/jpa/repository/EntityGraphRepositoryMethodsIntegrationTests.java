@@ -101,7 +101,7 @@ public class EntityGraphRepositoryMethodsIntegrationTests {
 
 		Assume.assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
 
-		User user = repository.findOne(tom.getId());
+		User user = repository.findOne(tom.getId()).get();
 
 		assertThat(user, is(notNullValue()));
 		assertThat("colleages should be fetched with 'user.detail' fetchgraph", util.isLoaded(user, "colleagues"),

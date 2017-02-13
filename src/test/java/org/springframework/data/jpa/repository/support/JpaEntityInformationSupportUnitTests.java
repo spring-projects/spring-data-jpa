@@ -20,6 +20,7 @@ import static org.mockito.Mockito.*;
 
 import java.io.Serializable;
 import java.util.Collections;
+import java.util.Optional;
 
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
@@ -82,9 +83,9 @@ public class JpaEntityInformationSupportUnitTests {
 			return null;
 		}
 
-		public ID getId(T entity) {
+		public Optional<ID> getId(T entity) {
 
-			return null;
+			return Optional.empty();
 		}
 
 		public Class<ID> getIdType() {

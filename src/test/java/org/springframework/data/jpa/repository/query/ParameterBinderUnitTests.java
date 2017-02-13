@@ -111,14 +111,14 @@ public class ParameterBinderUnitTests {
 	}
 
 	@Test
-	public void returnsNullIfNoPageableWasProvided() throws SecurityException, NoSuchMethodException {
+	public void returnsPageableNoneIfNoPageableWasProvided() throws SecurityException, NoSuchMethodException {
 
 		Method method = SampleRepository.class.getMethod("validWithPageable", String.class, Pageable.class);
 
 		JpaParameters parameters = new JpaParameters(method);
 		ParameterBinder binder = new ParameterBinder(parameters, new Object[] { "foo", null });
 
-		assertThat(binder.getPageable(), is(nullValue()));
+		assertThat(binder.getPageable(), is(Pageable.NONE));
 	}
 
 	@Test

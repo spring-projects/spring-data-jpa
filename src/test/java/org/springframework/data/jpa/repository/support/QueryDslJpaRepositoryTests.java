@@ -49,7 +49,7 @@ import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.core.types.dsl.PathBuilderFactory;
 
 /**
- * Integration test for {@link QueryDslJpaRepository}.
+ * Integration test for {@link QuerydslJpaRepository}.
  * 
  * @author Oliver Gierke
  * @author Thomas Darimont
@@ -62,7 +62,7 @@ public class QueryDslJpaRepositoryTests {
 
 	@PersistenceContext EntityManager em;
 
-	QueryDslJpaRepository<User, Integer> repository;
+	QuerydslJpaRepository<User, Integer> repository;
 	QUser user = new QUser("user");
 	User dave, carter, oliver;
 	Role adminRole;
@@ -73,7 +73,7 @@ public class QueryDslJpaRepositoryTests {
 		JpaEntityInformation<User, Integer> information = new JpaMetamodelEntityInformation<User, Integer>(User.class,
 				em.getMetamodel());
 
-		repository = new QueryDslJpaRepository<User, Integer>(information, em);
+		repository = new QuerydslJpaRepository<User, Integer>(information, em);
 		dave = repository.save(new User("Dave", "Matthews", "dave@matthews.com"));
 		carter = repository.save(new User("Carter", "Beauford", "carter@beauford.com"));
 		oliver = repository.save(new User("Oliver", "matthews", "oliver@matthews.com"));

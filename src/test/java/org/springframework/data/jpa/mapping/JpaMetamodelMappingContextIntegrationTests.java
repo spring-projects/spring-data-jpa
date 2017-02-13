@@ -19,6 +19,7 @@ import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
 import java.util.Collections;
+import java.util.Optional;
 
 import javax.persistence.EntityManager;
 
@@ -79,47 +80,47 @@ public class JpaMetamodelMappingContextIntegrationTests {
 	@Test
 	public void setsUpMappingContextCorrectly() {
 
-		JpaPersistentEntityImpl<?> entity = context.getPersistentEntity(User.class);
+		JpaPersistentEntityImpl<?> entity = context.getRequiredPersistentEntity(User.class);
 		assertThat(entity, is(notNullValue()));
 	}
 
 	@Test
 	public void detectsIdProperty() {
 
-		JpaPersistentEntityImpl<?> entity = context.getPersistentEntity(User.class);
+		JpaPersistentEntityImpl<?> entity = context.getRequiredPersistentEntity(User.class);
 		assertThat(entity.getIdProperty(), is(notNullValue()));
 	}
 
 	@Test
 	public void detectsAssociation() {
 
-		JpaPersistentEntityImpl<?> entity = context.getPersistentEntity(User.class);
+		JpaPersistentEntityImpl<?> entity = context.getRequiredPersistentEntity(User.class);
 		assertThat(entity, is(notNullValue()));
 
-		JpaPersistentProperty property = entity.getPersistentProperty("manager");
+		JpaPersistentProperty property = entity.getRequiredPersistentProperty("manager");
 		assertThat(property.isAssociation(), is(true));
 	}
 
 	@Test
 	public void detectsPropertyIsEntity() {
 
-		JpaPersistentEntityImpl<?> entity = context.getPersistentEntity(User.class);
+		JpaPersistentEntityImpl<?> entity = context.getRequiredPersistentEntity(User.class);
 		assertThat(entity, is(notNullValue()));
 
-		JpaPersistentProperty property = entity.getPersistentProperty("manager");
+		JpaPersistentProperty property = entity.getRequiredPersistentProperty("manager");
 		assertThat(property.isEntity(), is(true));
 
-		property = entity.getPersistentProperty("lastname");
+		property = entity.getRequiredPersistentProperty("lastname");
 		assertThat(property.isEntity(), is(false));
 	}
 
 	@Test // DATAJPA-608
 	public void detectsEntityPropertyForCollections() {
 
-		JpaPersistentEntityImpl<?> entity = context.getPersistentEntity(User.class);
+		JpaPersistentEntityImpl<?> entity = context.getRequiredPersistentEntity(User.class);
 		assertThat(entity, is(notNullValue()));
 
-		assertThat(entity.getPersistentProperty("colleagues").isEntity(), is(true));
+		assertThat(entity.getRequiredPersistentProperty("colleagues").isEntity(), is(true));
 	}
 
 	@Test // DATAJPA-630
@@ -141,13 +142,13 @@ public class JpaMetamodelMappingContextIntegrationTests {
 			@Override
 			public Void doInTransaction(TransactionStatus status) {
 
-				Category loaded = categories.findOne(category.getId());
+				Category loaded = categories.findOne(category.getId()).get();
 				Product loadedProduct = loaded.getProduct();
 
-				JpaPersistentEntity<?> entity = context.getPersistentEntity(Product.class);
+				JpaPersistentEntity<?> entity = context.getRequiredPersistentEntity(Product.class);
 				IdentifierAccessor accessor = entity.getIdentifierAccessor(loadedProduct);
 
-				assertThat(accessor.getIdentifier(), is((Object) category.getProduct().getId()));
+				assertThat(accessor.getIdentifier(), is(Optional.of(category.getProduct().getId())));
 				assertThat(loadedProduct, is(instanceOf(HibernateProxy.class)));
 				assertThat(((HibernateProxy) loadedProduct).getHibernateLazyInitializer().isUninitialized(), is(true));
 

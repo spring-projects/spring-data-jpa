@@ -49,7 +49,7 @@ public class AbstractPersistableIntegrationTests {
 
 		CustomAbstractPersistable entity = new CustomAbstractPersistable();
 		CustomAbstractPersistable saved = repository.save(entity);
-		CustomAbstractPersistable found = repository.findOne(saved.getId());
+		CustomAbstractPersistable found = repository.findOne(saved.getId()).get();
 
 		assertThat(found, is(saved));
 	}

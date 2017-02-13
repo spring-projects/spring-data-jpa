@@ -18,6 +18,8 @@ package org.springframework.data.jpa.repository;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
+import java.util.Optional;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,7 +62,7 @@ public class RoleRepositoryIntegrationTests {
 		ReflectionTestUtils.setField(reference, "name", "USER");
 		repository.save(reference);
 
-		assertThat(repository.findOne(result.getId()), is(reference));
+		assertThat(repository.findOne(result.getId()), is(Optional.of(reference)));
 	}
 
 	@Test // DATAJPA-509

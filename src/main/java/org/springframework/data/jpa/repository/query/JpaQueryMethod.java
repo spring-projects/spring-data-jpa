@@ -113,8 +113,8 @@ public class JpaQueryMethod extends QueryMethod {
 				continue;
 			}
 
-			if (!annotatedQuery.contains(String.format(":%s", parameter.getName()))
-					&& !annotatedQuery.contains(String.format("#%s", parameter.getName()))) {
+			if (!annotatedQuery.contains(String.format(":%s", parameter.getName().get()))
+					&& !annotatedQuery.contains(String.format("#%s", parameter.getName().get()))) {
 				throw new IllegalStateException(
 						String.format("Using named parameters for method %s but parameter '%s' not found in annotated query '%s'!",
 								method, parameter.getName(), annotatedQuery));

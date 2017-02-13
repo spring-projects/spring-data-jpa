@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2016 the original author or authors.
+ * Copyright 2012-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package org.springframework.data.jpa.mapping;
 
 import java.util.Comparator;
+import java.util.Optional;
 
 import org.springframework.data.annotation.Version;
 import org.springframework.data.jpa.provider.ProxyIdAccessor;
@@ -30,6 +31,7 @@ import org.springframework.util.Assert;
  * 
  * @author Oliver Gierke
  * @author Greg Turnquist
+ * @author Christoph Strobl
  * @since 1.3
  */
 class JpaPersistentEntityImpl<T> extends BasicPersistentEntity<T, JpaPersistentProperty>
@@ -49,7 +51,7 @@ class JpaPersistentEntityImpl<T> extends BasicPersistentEntity<T, JpaPersistentP
 	 */
 	public JpaPersistentEntityImpl(TypeInformation<T> information, ProxyIdAccessor proxyIdAccessor) {
 
-		super(information, null);
+		super(information, Optional.empty());
 
 		Assert.notNull(proxyIdAccessor, "ProxyIdAccessor must not be null!");
 		this.proxyIdAccessor = proxyIdAccessor;
@@ -82,13 +84,13 @@ class JpaPersistentEntityImpl<T> extends BasicPersistentEntity<T, JpaPersistentP
 
 		super.verify();
 
-		JpaPersistentProperty versionProperty = getVersionProperty();
+		Optional<JpaPersistentProperty> versionProperty = getVersionProperty();
 
-		if (versionProperty == null) {
+		if (!versionProperty.isPresent()) {
 			return;
 		}
 
-		if (versionProperty.isAnnotationPresent(Version.class)) {
+		if (versionProperty.get().isAnnotationPresent(Version.class)) {
 			throw new IllegalArgumentException(String.format(INVALID_VERSION_ANNOTATION, versionProperty));
 		}
 	}
@@ -129,8 +131,8 @@ class JpaPersistentEntityImpl<T> extends BasicPersistentEntity<T, JpaPersistentP
 		 * @see org.springframework.data.mapping.IdentifierAccessor#getIdentifier()
 		 */
 		@Override
-		public Object getIdentifier() {
-			return proxyIdAccessor.shouldUseAccessorFor(bean) ? proxyIdAccessor.getIdentifierFrom(bean)
+		public Optional<Object> getIdentifier() {
+			return proxyIdAccessor.shouldUseAccessorFor(bean) ? Optional.ofNullable(proxyIdAccessor.getIdentifierFrom(bean))
 					: super.getIdentifier();
 		}
 	}

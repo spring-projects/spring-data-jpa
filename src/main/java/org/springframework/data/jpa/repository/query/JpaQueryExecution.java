@@ -37,7 +37,6 @@ import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.support.PageableExecutionUtils;
-import org.springframework.data.repository.support.PageableExecutionUtils.TotalSupplier;
 import org.springframework.data.util.CloseableIterator;
 import org.springframework.data.util.StreamUtils;
 import org.springframework.util.Assert;
@@ -51,6 +50,7 @@ import org.springframework.util.ClassUtils;
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
 public abstract class JpaQueryExecution {
 
@@ -106,7 +106,7 @@ public abstract class JpaQueryExecution {
 	 * Method to implement {@link AbstractStringBasedJpaQuery} executions by single enum values.
 	 * 
 	 * @param query
-	 * @param binder
+	 * @param values
 	 * @return
 	 */
 	protected abstract Object doExecute(AbstractJpaQuery query, Object[] values);
@@ -183,17 +183,17 @@ public abstract class JpaQueryExecution {
 			ParameterAccessor accessor = new ParametersParameterAccessor(parameters, values);
 			Query query = repositoryQuery.createQuery(values);
 
-			return PageableExecutionUtils.getPage(query.getResultList(), accessor.getPageable(), new TotalSupplier() {
+			return PageableExecutionUtils.getPage(query.getResultList(), accessor.getPageable(), () -> count(repositoryQuery, values));
 
-				@Override
-				public long get() {
+		}
 
-					List<?> totals = repositoryQuery.createCountQuery(values).getResultList();
-					return (totals.size() == 1 ? CONVERSION_SERVICE.convert(totals.get(0), Long.class) : totals.size());
-				}
-			});
+		private long count(AbstractJpaQuery repositoryQuery, Object[] values) {
+
+			List<?> totals = repositoryQuery.createCountQuery(values).getResultList();
+			return (totals.size() == 1 ? CONVERSION_SERVICE.convert(totals.get(0), Long.class) : totals.size());
 		}
 	}
+
 
 	/**
 	 * Executes a {@link AbstractStringBasedJpaQuery} to return a single entity.
@@ -246,7 +246,7 @@ public abstract class JpaQueryExecution {
 	}
 
 	/**
-	 * {@link Execution} removing entities matching the query.
+	 * {@link JpaQueryExecution} removing entities matching the query.
 	 * 
 	 * @author Thomas Darimont
 	 * @author Oliver Gierke
@@ -279,7 +279,7 @@ public abstract class JpaQueryExecution {
 	}
 
 	/**
-	 * {@link Execution} performing an exists check on the query.
+	 * {@link JpaQueryExecution} performing an exists check on the query.
 	 *
 	 * @author Mark Paluch
 	 * @since 1.11
@@ -293,7 +293,7 @@ public abstract class JpaQueryExecution {
 	}
 
 	/**
-	 * {@link Execution} executing a stored procedure.
+	 * {@link JpaQueryExecution} executing a stored procedure.
 	 * 
 	 * @author Thomas Darimont
 	 * @since 1.6
@@ -318,7 +318,7 @@ public abstract class JpaQueryExecution {
 	}
 
 	/**
-	 * {@link Execution} executing a Java 8 Stream.
+	 * {@link JpaQueryExecution} executing a Java 8 Stream.
 	 * 
 	 * @author Thomas Darimont
 	 * @since 1.8

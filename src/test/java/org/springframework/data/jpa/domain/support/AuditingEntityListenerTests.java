@@ -18,6 +18,10 @@ package org.springframework.data.jpa.domain.support;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.util.Optional;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -76,7 +80,7 @@ public class AuditingEntityListenerTests {
 
 		user = repository.saveAndFlush(user);
 
-		assertThat(user.getCreatedDate().isBefore(user.getLastModifiedDate()), is(true));
+		assertThat(user.getCreatedDate().get().isBefore(user.getLastModifiedDate().get()), is(true));
 	}
 
 	@Test
@@ -104,15 +108,15 @@ public class AuditingEntityListenerTests {
 		assertThat(auditableUser.getLastModifiedBy(), is(notNullValue()));
 	}
 
-	private static void assertDatesSet(Auditable<?, ?> auditable) {
+	private static void assertDatesSet(Auditable<?, ?, LocalDateTime> auditable) {
 
-		assertThat(auditable.getCreatedDate(), is(notNullValue()));
-		assertThat(auditable.getLastModifiedDate(), is(notNullValue()));
+		assertThat(auditable.getCreatedDate().isPresent(), is(true));
+		assertThat(auditable.getLastModifiedDate().isPresent(), is(true));
 	}
 
-	private static void assertUserIsAuditor(AuditableUser user, Auditable<AuditableUser, ?> auditable) {
+	private static void assertUserIsAuditor(AuditableUser user, Auditable<AuditableUser, ?, LocalDateTime> auditable) {
 
-		assertThat(auditable.getCreatedBy(), is(user));
-		assertThat(auditable.getLastModifiedBy(), is(user));
+		assertThat(auditable.getCreatedBy(), is(Optional.of(user)));
+		assertThat(auditable.getLastModifiedBy(), is(Optional.of(user)));
 	}
 }

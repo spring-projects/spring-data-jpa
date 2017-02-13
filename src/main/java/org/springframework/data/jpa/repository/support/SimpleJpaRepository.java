@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
@@ -55,10 +56,10 @@ import org.springframework.data.jpa.repository.query.Jpa21Utils;
 import org.springframework.data.jpa.repository.query.JpaEntityGraph;
 import org.springframework.data.jpa.repository.query.QueryUtils;
 import org.springframework.data.repository.support.PageableExecutionUtils;
-import org.springframework.data.repository.support.PageableExecutionUtils.TotalSupplier;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 
 /**
  * Default implementation of the {@link org.springframework.data.repository.CrudRepository} interface. This will offer
@@ -68,6 +69,7 @@ import org.springframework.util.Assert;
  * @author Eberhard Wolff
  * @author Thomas Darimont
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @param <T> the type of the entity to handle
  * @param <ID> the type of the entity's identifier
  */
@@ -147,14 +149,8 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 
 		Assert.notNull(id, ID_MUST_NOT_BE_NULL);
 
-		T entity = findOne(id);
-
-		if (entity == null) {
-			throw new EmptyResultDataAccessException(
-					String.format("No %s entity with id %s exists!", entityInformation.getJavaType(), id), 1);
-		}
-
-		delete(entity);
+		delete(findOne(id).orElseThrow(() -> new EmptyResultDataAccessException(
+				String.format("No %s entity with id %s exists!", entityInformation.getJavaType(), id), 1)));
 	}
 
 	/*
@@ -224,21 +220,21 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.CrudRepository#findOne(java.io.Serializable)
 	 */
-	public T findOne(ID id) {
+	public Optional<T> findOne(ID id) {
 
 		Assert.notNull(id, ID_MUST_NOT_BE_NULL);
 
 		Class<T> domainType = getDomainClass();
 
 		if (metadata == null) {
-			return em.find(domainType, id);
+			return Optional.ofNullable(em.find(domainType, id));
 		}
 
 		LockModeType type = metadata.getLockModeType();
 
 		Map<String, Object> hints = getQueryHints();
 
-		return type == null ? em.find(domainType, id, hints) : em.find(domainType, id, type, hints);
+		return Optional.ofNullable(type == null ? em.find(domainType, id, hints) : em.find(domainType, id, type, hints));
 	}
 
 	/**
@@ -344,7 +340,7 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 			List<T> results = new ArrayList<T>();
 
 			for (ID id : ids) {
-				results.add(findOne(id));
+				findOne(id).ifPresent(results::add);
 			}
 
 			return results;
@@ -583,16 +579,14 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	protected <S extends T> Page<S> readPage(TypedQuery<S> query, final Class<S> domainClass, Pageable pageable,
 			final Specification<S> spec) {
 
-		query.setFirstResult(pageable.getOffset());
-		query.setMaxResults(pageable.getPageSize());
+		if (!ObjectUtils.nullSafeEquals(Pageable.NONE, pageable)) {
 
-		return PageableExecutionUtils.getPage(query.getResultList(), pageable, new TotalSupplier() {
+			query.setFirstResult((int) pageable.getOffset());
+			query.setMaxResults(pageable.getPageSize());
+		}
 
-			@Override
-			public long get() {
-				return executeCountQuery(getCountQuery(spec, domainClass));
-			}
-		});
+		return PageableExecutionUtils.getPage(query.getResultList(), pageable,
+				() -> executeCountQuery(getCountQuery(spec, domainClass)));
 	}
 
 	/**
@@ -649,7 +643,7 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 		Root<S> root = applySpecificationToCriteria(spec, domainClass, query);
 		query.select(root);
 
-		if (sort != null) {
+		if (sort != null && !ObjectUtils.nullSafeEquals(sort, Sort.unsorted())) {
 			query.orderBy(toOrders(sort, root, builder));
 		}
 

@@ -19,8 +19,12 @@ import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import javax.persistence.EntityManager;
@@ -30,6 +34,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -76,13 +81,14 @@ public abstract class AbstractAuditingViaJavaConfigRepositoriesTests {
 		AuditableUser auditor = new AuditableUser(null);
 		auditor.setFirstname("auditor");
 
+		when(this.auditorAware.getCurrentAuditor()).thenReturn(Optional.empty());
 		this.auditor = this.auditableUserRepository.save(auditor);
-		doReturn(this.auditor).when(this.auditorAware).getCurrentAuditor();
+		when(this.auditorAware.getCurrentAuditor()).thenReturn(Optional.of(this.auditor));
 	}
 
 	@After
 	public void teardown() {
-		doReturn(null).when(this.auditorAware).getCurrentAuditor();
+		Mockito.reset(this.auditorAware);
 	}
 
 	@Test
@@ -95,9 +101,9 @@ public abstract class AbstractAuditingViaJavaConfigRepositoriesTests {
 		TimeUnit.MILLISECONDS.sleep(10);
 
 		assertThat(savedUser.getCreatedDate(), is(notNullValue()));
-		assertThat(savedUser.getCreatedDate().isBeforeNow(), is(true));
+		assertThat(savedUser.getCreatedDate().get().isBefore(LocalDateTime.now()), is(true));
 
-		AuditableUser createdBy = savedUser.getCreatedBy();
+		AuditableUser createdBy = savedUser.getCreatedBy().get();
 		assertThat(createdBy, is(notNullValue()));
 		assertThat(createdBy.getFirstname(), is(this.auditor.getFirstname()));
 	}
@@ -119,14 +125,15 @@ public abstract class AbstractAuditingViaJavaConfigRepositoriesTests {
 		SampleSecurityContextHolder.getCurrent().setPrincipal(thomas);
 		auditableUserRepository.updateAllNamesToUpperCase();
 
-		DateTime now = new DateTime(FixedDate.INSTANCE.getDate());
+//		DateTime now = new DateTime(FixedDate.INSTANCE.getDate());
+		LocalDateTime now = LocalDateTime.ofInstant(FixedDate.INSTANCE.getDate().toInstant(), ZoneId.systemDefault());
 		List<AuditableUser> users = auditableUserRepository.findAll();
 
 		for (AuditableUser user : users) {
 
 			assertThat(user.getFirstname(), is(user.getFirstname().toUpperCase()));
-			assertThat(user.getLastModifiedBy(), is(thomas));
-			assertThat(user.getLastModifiedDate(), is(now));
+			assertThat(user.getLastModifiedBy(), is(Optional.of(thomas)));
+			assertThat(user.getLastModifiedDate(), is(Optional.of(now)));
 		}
 	}
 }

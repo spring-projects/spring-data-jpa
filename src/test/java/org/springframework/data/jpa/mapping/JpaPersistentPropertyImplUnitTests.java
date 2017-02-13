@@ -20,6 +20,7 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 import java.util.Collections;
+import java.util.Optional;
 
 import javax.persistence.Access;
 import javax.persistence.AccessType;
@@ -60,19 +61,19 @@ public class JpaPersistentPropertyImplUnitTests {
 	public void setUp() {
 
 		context = new JpaMetamodelMappingContext(Collections.singleton(model));
-		entity = context.getPersistentEntity(Sample.class);
+		entity = context.getRequiredPersistentEntity(Sample.class);
 	}
 
 	@Test // DATAJPA-284
 	public void considersOneToOneMappedPropertyAnAssociation() {
 
-		JpaPersistentProperty property = entity.getPersistentProperty("other");
+		JpaPersistentProperty property = entity.getRequiredPersistentProperty("other");
 		assertThat(property.isAssociation(), is(true));
 	}
 
 	@Test // DATAJPA-376
 	public void considersJpaTransientFieldsAsTransient() {
-		assertThat(entity.getPersistentProperty("transientProp"), is(nullValue()));
+		assertThat(entity.getPersistentProperty("transientProp"), is(Optional.empty()));
 	}
 
 	@Test // DATAJPA-484
@@ -82,12 +83,12 @@ public class JpaPersistentPropertyImplUnitTests {
 
 	@Test // DATAJPA-484
 	public void considersEmbeddablePropertyAnAssociation() {
-		assertThat(entity.getPersistentProperty("embeddable").isAssociation(), is(true));
+		assertThat(entity.getRequiredPersistentProperty("embeddable").isAssociation(), is(true));
 	}
 
 	@Test // DATAJPA-484
 	public void considersEmbeddedPropertyAnAssociation() {
-		assertThat(entity.getPersistentProperty("embedded").isAssociation(), is(true));
+		assertThat(entity.getRequiredPersistentProperty("embedded").isAssociation(), is(true));
 	}
 
 	@Test // DATAJPA-619
@@ -158,8 +159,8 @@ public class JpaPersistentPropertyImplUnitTests {
 
 	private JpaPersistentProperty getProperty(Class<?> ownerType, String propertyName) {
 
-		JpaPersistentEntity<?> entity = context.getPersistentEntity(ownerType);
-		return entity.getPersistentProperty(propertyName);
+		JpaPersistentEntity<?> entity = context.getRequiredPersistentEntity(ownerType);
+		return entity.getRequiredPersistentProperty(propertyName);
 	}
 
 	static class Sample {

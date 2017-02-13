@@ -19,6 +19,7 @@ import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
 import java.util.Arrays;
+import java.util.Optional;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -66,7 +67,7 @@ public class JpaRepositoryTests {
 		repository.saveAndFlush(entity);
 		assertThat(repository.exists(new SampleEntityPK("foo", "bar")), is(true));
 		assertThat(repository.count(), is(1L));
-		assertThat(repository.findOne(new SampleEntityPK("foo", "bar")), is(entity));
+		assertThat(repository.findOne(new SampleEntityPK("foo", "bar")), is(Optional.of(entity)));
 
 		repository.delete(Arrays.asList(entity));
 		repository.flush();
@@ -84,7 +85,7 @@ public class JpaRepositoryTests {
 
 		PersistableWithIdClassPK id = new PersistableWithIdClassPK(entity.getFirst(), entity.getSecond());
 
-		assertThat(idClassRepository.findOne(id), is(entity));
+		assertThat(idClassRepository.findOne(id), is(Optional.of(entity)));
 	}
 
 	@Test // DATAJPA-266

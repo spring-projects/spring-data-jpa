@@ -22,6 +22,7 @@ import static org.mockito.Mockito.*;
 
 import java.io.Serializable;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 import javax.persistence.metamodel.IdentifiableType;
@@ -77,7 +78,7 @@ public class JpaMetamodelEntityInformationUnitTests {
 				PersistableWithIdClass.class, metamodel);
 
 		PersistableWithIdClass entity = new PersistableWithIdClass(null, null);
-		assertThat(information.getId(entity), is(nullValue()));
+		assertThat(information.getId(entity), is(Optional.empty()));
 
 		entity = new PersistableWithIdClass(2L, null);
 		assertThat(information.getId(entity), is(notNullValue()));

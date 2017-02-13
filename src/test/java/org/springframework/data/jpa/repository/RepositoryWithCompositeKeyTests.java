@@ -80,7 +80,7 @@ public class RepositoryWithCompositeKeyTests {
 		IdClassExampleEmployeePK key = new IdClassExampleEmployeePK();
 		key.setDepartment(dep.getDepartmentId());
 		key.setEmpId(emp.getEmpId());
-		IdClassExampleEmployee persistedEmp = employeeRepositoryWithIdClass.findOne(key);
+		IdClassExampleEmployee persistedEmp = employeeRepositoryWithIdClass.findOne(key).get();
 
 		assertThat(persistedEmp, is(notNullValue()));
 		assertThat(persistedEmp.getDepartment(), is(notNullValue()));
@@ -107,7 +107,7 @@ public class RepositoryWithCompositeKeyTests {
 		EmbeddedIdExampleEmployeePK key = new EmbeddedIdExampleEmployeePK();
 		key.setDepartmentId(emp.getDepartment().getDepartmentId());
 		key.setEmployeeId(emp.getEmployeePk().getEmployeeId());
-		EmbeddedIdExampleEmployee persistedEmp = employeeRepositoryWithEmbeddedId.findOne(key);
+		EmbeddedIdExampleEmployee persistedEmp = employeeRepositoryWithEmbeddedId.findOne(key).get();
 
 		assertThat(persistedEmp, is(notNullValue()));
 		assertThat(persistedEmp.getDepartment(), is(notNullValue()));
@@ -278,8 +278,8 @@ public class RepositoryWithCompositeKeyTests {
 		emp1PK.setEmpId(3L);
 
 		IdClassExampleEmployeePK emp2PK = new IdClassExampleEmployeePK();
-		emp1PK.setDepartment(1L);
-		emp1PK.setEmpId(2L);
+		emp2PK.setDepartment(1L);
+		emp2PK.setEmpId(2L);
 
 		List<IdClassExampleEmployee> result = employeeRepositoryWithIdClass.findAll(Arrays.asList(emp1PK, emp2PK));
 

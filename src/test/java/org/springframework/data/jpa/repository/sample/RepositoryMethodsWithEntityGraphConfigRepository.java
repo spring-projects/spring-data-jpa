@@ -16,13 +16,14 @@
 package org.springframework.data.jpa.repository.sample;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.EntityGraph.EntityGraphType;
-import org.springframework.data.querydsl.QueryDslPredicateExecutor;
+import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import org.springframework.data.repository.CrudRepository;
 
 import com.querydsl.core.types.Predicate;
@@ -36,7 +37,7 @@ import com.querydsl.core.types.Predicate;
  * @author Christoph Strobl
  */
 public interface RepositoryMethodsWithEntityGraphConfigRepository
-		extends CrudRepository<User, Integer>, QueryDslPredicateExecutor<User> {
+		extends CrudRepository<User, Integer>, QuerydslPredicateExecutor<User> {
 
 	/**
 	 * Should find all users.
@@ -48,7 +49,7 @@ public interface RepositoryMethodsWithEntityGraphConfigRepository
 	 * Should fetch all user details
 	 */
 	@EntityGraph(type = EntityGraphType.FETCH, value = "User.detail")
-	User findOne(Integer id);
+	Optional<User> findOne(Integer id);
 
 	// DATAJPA-696
 	@EntityGraph

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package org.springframework.data.jpa.repository.support;
 
 import java.io.Serializable;
+import java.util.Optional;
 
 import javax.persistence.metamodel.Metamodel;
 
@@ -25,6 +26,7 @@ import org.springframework.data.domain.Persistable;
  * Extension of {@link JpaMetamodelEntityInformation} that consideres methods of {@link Persistable} to lookup the id.
  * 
  * @author Oliver Gierke
+ * @author Christoph Strobl
  */
 public class JpaPersistableEntityInformation<T extends Persistable<ID>, ID extends Serializable> extends
 		JpaMetamodelEntityInformation<T, ID> {
@@ -53,7 +55,7 @@ public class JpaPersistableEntityInformation<T extends Persistable<ID>, ID exten
 	 * @see org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformation#getId(java.lang.Object)
 	 */
 	@Override
-	public ID getId(T entity) {
-		return entity.getId();
+	public Optional<ID> getId(T entity) {
+		return Optional.ofNullable(entity.getId());
 	}
 }

@@ -22,6 +22,7 @@ import static org.mockito.Mockito.*;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.persistence.EntityManager;
 import javax.persistence.metamodel.Metamodel;
@@ -30,6 +31,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.ListableBeanFactory;
@@ -37,6 +40,9 @@ import org.springframework.dao.support.PersistenceExceptionTranslator;
 import org.springframework.data.domain.Persistable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.Repository;
+import org.springframework.data.repository.core.EntityInformation;
+import org.springframework.data.repository.core.RepositoryInformation;
+import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.core.support.RepositoryFactorySupport;
 
 /**
@@ -52,7 +58,7 @@ public class JpaRepositoryFactoryBeanUnitTests {
 	JpaRepositoryFactoryBean<SimpleSampleRepository, User, Integer> factoryBean;
 
 	@Mock EntityManager entityManager;
-	@Mock RepositoryFactorySupport factory;
+	StubRepositoryFactorySupport factory;
 	@Mock ListableBeanFactory beanFactory;
 	@Mock PersistenceExceptionTranslator translator;
 	@Mock Repository<?, ?> repository;
@@ -66,8 +72,9 @@ public class JpaRepositoryFactoryBeanUnitTests {
 		beans.put("foo", translator);
 		when(beanFactory.getBeansOfType(eq(PersistenceExceptionTranslator.class), anyBoolean(), anyBoolean()))
 				.thenReturn(beans);
-		when(factory.getRepository(any(Class.class), any(Object.class))).thenReturn(repository);
 		when(entityManager.getMetamodel()).thenReturn(metamodel);
+
+		factory = Mockito.spy(new StubRepositoryFactorySupport(repository));
 
 		// Setup standard factory configuration
 		factoryBean = new DummyJpaRepositoryFactoryBean<SimpleSampleRepository, User, Integer>(
@@ -126,12 +133,45 @@ public class JpaRepositoryFactoryBeanUnitTests {
 	}
 
 	/**
-	 * Helper class to make the factory use {@link PersistableMetadata} .
+	 * Helper class to make the factory use {@link Persistable} .
 	 * 
 	 * @author Oliver Gierke
 	 */
 	@SuppressWarnings("serial")
 	private static abstract class User implements Persistable<Long> {
 
+	}
+
+	/**
+	 * required to trick Mockito on invoking protected getRepository(Class<T> repositoryInterface, Optional<Object>
+	 * customImplementation
+	 */
+	private static class StubRepositoryFactorySupport extends RepositoryFactorySupport {
+
+		private final Repository<?, ?> repository;
+
+		private StubRepositoryFactorySupport(Repository<?, ?> repository) {
+			this.repository = repository;
+		}
+
+		@Override
+		protected <T> T getRepository(Class<T> repositoryInterface, Optional<Object> customImplementation) {
+			return (T) repository;
+		}
+
+		@Override
+		public <T, ID extends Serializable> EntityInformation<T, ID> getEntityInformation(Class<T> domainClass) {
+			return null;
+		}
+
+		@Override
+		protected Object getTargetRepository(RepositoryInformation metadata) {
+			return null;
+		}
+
+		@Override
+		protected Class<?> getRepositoryBaseClass(RepositoryMetadata metadata) {
+			return null;
+		}
 	}
 }
