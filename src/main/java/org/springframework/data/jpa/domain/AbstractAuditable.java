@@ -72,7 +72,8 @@ public abstract class AbstractAuditable<U, PK extends Serializable> extends Abst
 	 */
 	public void setCreatedBy(final Optional<? extends U> createdBy) {
 
-		this.createdBy = createdBy.orElse(null);
+		// TODO: this null guard should really not be required since we expect an optional here
+		this.createdBy = createdBy != null ? createdBy.orElse(null) : null;
 	}
 
 	/*
@@ -117,7 +118,8 @@ public abstract class AbstractAuditable<U, PK extends Serializable> extends Abst
 	 */
 	public void setLastModifiedBy(final Optional<? extends U> lastModifiedBy) {
 
-		this.lastModifiedBy = lastModifiedBy.orElse(null);
+		// TODO: this null guard should really not be required since we expect an optional here
+		this.lastModifiedBy = lastModifiedBy != null ? lastModifiedBy.orElse(null) : null;
 	}
 
 	/*
