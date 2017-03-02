@@ -1,6 +1,12 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 1.11.1.RELEASE (2017-03-02)
+----------------------------------------------
+* DATAJPA-1054 - Remove references to single-argument assertion methods of Spring.
+* DATAJPA-1051 - Release 1.11.1 (Ingalls SR1).
+
+
 Changes in version 1.10.7.RELEASE (2017-01-26)
 ----------------------------------------------
 * DATAJPA-1048 - Upgrade Hibernate 5.2 build profile to 5.2.7.
