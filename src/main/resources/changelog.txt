@@ -30,6 +30,11 @@ Changes in version 2.0.0.M2 (2017-04-04)
 * DATAJPA-911 - Assert compatibility with Hibernate 5.2.
 
 
+Changes in version 1.10.8.RELEASE (2017-03-02)
+----------------------------------------------
+* DATAJPA-1054 - Remove references to single-argument assertion methods of Spring.
+* DATAJPA-1050 - Release 1.10.8 (Hopper SR8).
+
 Changes in version 1.11.1.RELEASE (2017-03-02)
 ----------------------------------------------
 * DATAJPA-1054 - Remove references to single-argument assertion methods of Spring.
