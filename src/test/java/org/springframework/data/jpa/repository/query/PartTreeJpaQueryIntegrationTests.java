@@ -100,7 +100,7 @@ public class PartTreeJpaQueryIntegrationTests {
 		testIgnoreCase("findByIdAllIgnoringCase", 3);
 	}
 
-	@Test
+	@Test // DATAJPA-1074
 	public void isEmptyCollection() throws Exception {
 
 		JpaQueryMethod queryMethod = getQueryMethod("findByRolesIsEmpty");
@@ -111,7 +111,7 @@ public class PartTreeJpaQueryIntegrationTests {
 		assertThat(HibernateUtils.getHibernateQuery(getValue(query, PROPERTY)), endsWith("roles is empty"));
 	}
 
-	@Test
+	@Test // DATAJPA-1074
 	public void isNotEmptyCollection() throws Exception {
 
 		JpaQueryMethod queryMethod = getQueryMethod("findByRolesIsNotEmpty");
