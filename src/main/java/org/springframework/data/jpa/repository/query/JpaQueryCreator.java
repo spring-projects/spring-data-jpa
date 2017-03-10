@@ -48,6 +48,7 @@ import org.springframework.util.Assert;
  * 
  * @author Oliver Gierke
  * @author Mark Paluch
+ * @author Michael Cramer
  */
 public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extends Object>, Predicate> {
 

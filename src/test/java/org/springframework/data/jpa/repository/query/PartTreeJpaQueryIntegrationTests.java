@@ -57,6 +57,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * 
  * @author Oliver Gierke
  * @author Mark Paluch
+ * @author Michael Cramer
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("classpath:infrastructure.xml")
