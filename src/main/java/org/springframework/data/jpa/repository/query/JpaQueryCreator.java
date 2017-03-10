@@ -48,6 +48,7 @@ import org.springframework.util.Assert;
  * 
  * @author Oliver Gierke
  * @author Mark Paluch
+ * @author Michael Cramer
  */
 public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extends Object>, Predicate> {
 
@@ -306,6 +307,13 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extend
 				case NEGATING_SIMPLE_PROPERTY:
 					return builder.notEqual(upperIfIgnoreCase(getTypedPath(root, part)),
 							upperIfIgnoreCase(provider.next(part).getExpression()));
+				case IS_EMPTY:
+				case IS_NOT_EMPTY:
+					if (property.getLeafProperty().isCollection()) {
+						Expression<Collection<Object>> emptyExpression = traversePath(root, property);
+						return type.equals(IS_NOT_EMPTY) ? builder.isNotEmpty(emptyExpression)
+								: builder.isEmpty(emptyExpression);
+					}
 				default:
 					throw new IllegalArgumentException("Unsupported keyword " + type);
 			}

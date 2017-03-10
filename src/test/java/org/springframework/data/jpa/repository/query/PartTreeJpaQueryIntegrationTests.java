@@ -57,6 +57,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * 
  * @author Oliver Gierke
  * @author Mark Paluch
+ * @author Michael Cramer
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("classpath:infrastructure.xml")
@@ -97,6 +98,28 @@ public class PartTreeJpaQueryIntegrationTests {
 	public void cannotIgnoreCaseIfNotStringUnlessIgnoringAll() throws Exception {
 
 		testIgnoreCase("findByIdAllIgnoringCase", 3);
+	}
+
+	@Test // DATAJPA-1074
+	public void isEmptyCollection() throws Exception {
+
+		JpaQueryMethod queryMethod = getQueryMethod("findByRolesIsEmpty");
+		PartTreeJpaQuery jpaQuery = new PartTreeJpaQuery(queryMethod, entityManager, provider);
+
+		Query query = jpaQuery.createQuery(new Object[] { });
+
+		assertThat(HibernateUtils.getHibernateQuery(getValue(query, PROPERTY)), endsWith("roles is empty"));
+	}
+
+	@Test // DATAJPA-1074
+	public void isNotEmptyCollection() throws Exception {
+
+		JpaQueryMethod queryMethod = getQueryMethod("findByRolesIsNotEmpty");
+		PartTreeJpaQuery jpaQuery = new PartTreeJpaQuery(queryMethod, entityManager, provider);
+
+		Query query = jpaQuery.createQuery(new Object[] { });
+
+		assertThat(HibernateUtils.getHibernateQuery(getValue(query, PROPERTY)), endsWith("roles is not empty"));
 	}
 
 	@Test // DATAJPA-121
@@ -192,5 +215,9 @@ public class PartTreeJpaQueryIntegrationTests {
 		boolean existsByFirstname(String firstname);
 
 		List<User> findByCreatedAtAfter(@Temporal(TemporalType.TIMESTAMP) @Param("refDate") Date refDate);
+
+		List<User> findByRolesIsEmpty();
+
+		List<User> findByRolesIsNotEmpty();
 	}
 }
