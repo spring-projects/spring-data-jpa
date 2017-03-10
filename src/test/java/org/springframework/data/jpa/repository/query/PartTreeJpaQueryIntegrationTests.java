@@ -99,6 +99,28 @@ public class PartTreeJpaQueryIntegrationTests {
 		testIgnoreCase("findByIdAllIgnoringCase", 3);
 	}
 
+	@Test
+	public void isEmptyCollection() throws Exception {
+
+		JpaQueryMethod queryMethod = getQueryMethod("findByRolesIsEmpty");
+		PartTreeJpaQuery jpaQuery = new PartTreeJpaQuery(queryMethod, entityManager, provider);
+
+		Query query = jpaQuery.createQuery(new Object[] { });
+
+		assertThat(HibernateUtils.getHibernateQuery(getValue(query, PROPERTY)), endsWith("roles is empty"));
+	}
+
+	@Test
+	public void isNotEmptyCollection() throws Exception {
+
+		JpaQueryMethod queryMethod = getQueryMethod("findByRolesIsNotEmpty");
+		PartTreeJpaQuery jpaQuery = new PartTreeJpaQuery(queryMethod, entityManager, provider);
+
+		Query query = jpaQuery.createQuery(new Object[] { });
+
+		assertThat(HibernateUtils.getHibernateQuery(getValue(query, PROPERTY)), endsWith("roles is not empty"));
+	}
+
 	@Test // DATAJPA-121
 	public void recreatesQueryIfNullValueIsGiven() throws Exception {
 
@@ -192,5 +214,9 @@ public class PartTreeJpaQueryIntegrationTests {
 		boolean existsByFirstname(String firstname);
 
 		List<User> findByCreatedAtAfter(@Temporal(TemporalType.TIMESTAMP) @Param("refDate") Date refDate);
+
+		List<User> findByRolesIsEmpty();
+
+		List<User> findByRolesIsNotEmpty();
 	}
 }
