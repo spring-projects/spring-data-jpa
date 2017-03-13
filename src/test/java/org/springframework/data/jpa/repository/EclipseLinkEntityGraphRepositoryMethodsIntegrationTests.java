@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import org.springframework.test.context.ContextConfiguration;
 
 /**
  * @author Oliver Gierke
+ * @author Christoph Strobl
  */
 @ContextConfiguration("classpath:eclipselink.xml")
 public class EclipseLinkEntityGraphRepositoryMethodsIntegrationTests
@@ -37,4 +38,16 @@ public class EclipseLinkEntityGraphRepositoryMethodsIntegrationTests
 	@Ignore
 	@Test
 	public void shouldRespectDynamicFetchGraphForGetOneWithAttributeNamesById() {}
+
+	@Ignore
+	@Test
+	public void shouldCreateDynamicGraphWithMultipleLevelsOfSubgraphs() {}
+
+	@Ignore
+	@Test
+	public void shouldRespectConfiguredJpaEntityGraphInFindOne() {}
+
+	@Ignore
+	@Test
+	public void shouldRespectInferFetchGraphFromMethodName() {}
 }
