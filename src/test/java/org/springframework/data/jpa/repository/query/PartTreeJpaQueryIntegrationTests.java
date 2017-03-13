@@ -121,7 +121,7 @@ public class PartTreeJpaQueryIntegrationTests {
 		JpaQueryMethod queryMethod = getQueryMethod("existsByFirstname", String.class);
 		PartTreeJpaQuery jpaQuery = new PartTreeJpaQuery(queryMethod, entityManager, provider);
 
-		Query query = jpaQuery.createQuery(new Object[]{"Matthews"});
+		Query query = jpaQuery.createQuery(new Object[] { "Matthews" });
 
 		assertThat(query.getMaxResults(), is(1));
 	}
@@ -132,7 +132,7 @@ public class PartTreeJpaQueryIntegrationTests {
 		JpaQueryMethod queryMethod = getQueryMethod("existsByFirstname", String.class);
 		PartTreeJpaQuery jpaQuery = new PartTreeJpaQuery(queryMethod, entityManager, provider);
 
-		Query query = jpaQuery.createQuery(new Object[]{"Matthews"});
+		Query query = jpaQuery.createQuery(new Object[] { "Matthews" });
 
 		assertThat(HibernateUtils.getHibernateQuery(getValue(query, PROPERTY)), containsString(".id from User as"));
 	}
@@ -157,6 +157,15 @@ public class PartTreeJpaQueryIntegrationTests {
 		Query query = jpaQuery.createQuery(new Object[] {});
 
 		assertThat(HibernateUtils.getHibernateQuery(getValue(query, PROPERTY)), endsWith("roles is not empty"));
+	}
+
+	@Test(expected = IllegalArgumentException.class) // DATAJPA-1074
+	public void rejectsIsEmptyOnNonCollectionProperty() throws Exception {
+
+		JpaQueryMethod method = getQueryMethod("findByFirstnameIsEmpty");
+		AbstractJpaQuery jpaQuery = new PartTreeJpaQuery(method, entityManager, provider);
+
+		jpaQuery.createQuery(new Object[] { "Oliver" });
 	}
 
 	private void testIgnoreCase(String methodName, Object... values) throws Exception {
@@ -219,5 +228,7 @@ public class PartTreeJpaQueryIntegrationTests {
 		List<User> findByRolesIsEmpty();
 
 		List<User> findByRolesIsNotEmpty();
+
+		List<User> findByFirstnameIsEmpty();
 	}
 }

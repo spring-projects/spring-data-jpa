@@ -310,11 +310,14 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extend
 							upperIfIgnoreCase(provider.next(part).getExpression()));
 				case IS_EMPTY:
 				case IS_NOT_EMPTY:
-					if (property.getLeafProperty().isCollection()) {
-						Expression<Collection<Object>> emptyExpression = traversePath(root, property);
-						return type.equals(IS_NOT_EMPTY) ? builder.isNotEmpty(emptyExpression)
-								: builder.isEmpty(emptyExpression);
+
+					if (!property.getLeafProperty().isCollection()) {
+						throw new IllegalArgumentException("IsEmpty / IsNotEmpty can only be used on collection properties!");
 					}
+
+					Expression<Collection<Object>> collectionPath = traversePath(root, property);
+					return type.equals(IS_NOT_EMPTY) ? builder.isNotEmpty(collectionPath) : builder.isEmpty(collectionPath);
+
 				default:
 					throw new IllegalArgumentException("Unsupported keyword " + type);
 			}
