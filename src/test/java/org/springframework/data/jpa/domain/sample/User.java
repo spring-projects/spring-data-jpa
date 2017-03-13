@@ -64,7 +64,17 @@ import javax.persistence.TemporalType;
 				attributeNodes = { @NamedAttributeNode("roles"),
 						@NamedAttributeNode(value = "colleagues", subgraph = "User.colleagues") },
 				subgraphs = { @NamedSubgraph(name = "User.colleagues",
-						attributeNodes = { @NamedAttributeNode("colleagues"), @NamedAttributeNode("roles") }) }) })
+						attributeNodes = { @NamedAttributeNode("colleagues"),
+								@NamedAttributeNode("roles") }) }),
+		@NamedEntityGraph(name = "User.deepGraph",
+				attributeNodes = { @NamedAttributeNode("roles"),
+						@NamedAttributeNode(value = "colleagues", subgraph = "User.colleagues") },
+				subgraphs = {
+						@NamedSubgraph(name = "User.colleagues",
+								attributeNodes = { @NamedAttributeNode("roles"),
+										@NamedAttributeNode(value = "colleagues", subgraph = "User.colleaguesOfColleagues") }),
+						@NamedSubgraph(name = "User.colleaguesOfColleagues",
+								attributeNodes = { @NamedAttributeNode("roles"), }) }) })
 @NamedQuery(name = "User.findByEmailAddress", query = "SELECT u FROM User u WHERE u.emailAddress = ?1")
 @NamedStoredProcedureQueries({ //
 		@NamedStoredProcedureQuery(name = "User.plus1", procedureName = "plus1inout",
