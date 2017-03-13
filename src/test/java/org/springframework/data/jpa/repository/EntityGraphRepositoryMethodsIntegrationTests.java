@@ -78,6 +78,7 @@ public class EntityGraphRepositoryMethodsIntegrationTests {
 		ollie = repository.save(ollie);
 		tom.getColleagues().add(ollie);
 
+		christoph.addRole(role);
 		christoph = repository.save(christoph);
 
 		ollie.getColleagues().add(christoph);
@@ -88,6 +89,8 @@ public class EntityGraphRepositoryMethodsIntegrationTests {
 	public void shouldRespectConfiguredJpaEntityGraph() {
 
 		Assume.assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
+		em.flush();
+		em.clear();
 
 		List<User> result = repository.findAll();
 
@@ -100,6 +103,8 @@ public class EntityGraphRepositoryMethodsIntegrationTests {
 	public void shouldRespectConfiguredJpaEntityGraphInFindOne() {
 
 		Assume.assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
+		em.flush();
+		em.clear();
 
 		User user = repository.findOne(tom.getId());
 
@@ -112,6 +117,8 @@ public class EntityGraphRepositoryMethodsIntegrationTests {
 	public void shouldRespectInferFetchGraphFromMethodName() {
 
 		Assume.assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
+		em.flush();
+		em.clear();
 
 		User user = repository.getOneWithDefinedEntityGraphById(tom.getId());
 
@@ -124,6 +131,8 @@ public class EntityGraphRepositoryMethodsIntegrationTests {
 	public void shouldRespectDynamicFetchGraphForGetOneWithAttributeNamesById() {
 
 		Assume.assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
+		em.flush();
+		em.clear();
 
 		em.flush();
 		em.clear();
@@ -145,6 +154,8 @@ public class EntityGraphRepositoryMethodsIntegrationTests {
 	public void shouldRespectConfiguredJpaEntityGraphWithPaginationAndQueryDslPredicates() {
 
 		Assume.assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
+		em.flush();
+		em.clear();
 
 		Page<User> page = repository.findAll(QUser.user.firstname.isNotNull(), new PageRequest(0, 100));
 		List<User> result = page.getContent();
@@ -193,6 +204,30 @@ public class EntityGraphRepositoryMethodsIntegrationTests {
 		for (User colleague : user.getColleagues()) {
 			assertThat(util.isLoaded(colleague, "colleagues"), is(true));
 			assertThat(util.isLoaded(colleague, "roles"), is(true));
+		}
+	}
+
+	@Test // DATAJPA-1041, DATAJPA-1075
+	public void shouldCreateDynamicGraphWithMultipleLevelsOfSubgraphs() {
+
+		Assume.assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
+		em.flush();
+		em.clear();
+
+		User user = repository.findOneWithDeepGraphById(tom.getId());
+
+		assertThat(user, is(notNullValue()));
+
+		assertThat("colleagues on root should have been fetched by dynamic subgraph declaration",
+				Persistence.getPersistenceUtil().isLoaded(user, "colleagues"), is(true));
+
+		for (User colleague : user.getColleagues()) {
+			assertThat(Persistence.getPersistenceUtil().isLoaded(colleague, "colleagues"), is(true));
+			assertThat(Persistence.getPersistenceUtil().isLoaded(colleague, "roles"), is(true));
+			for (User colleagueOfColleague : colleague.getColleagues()) {
+				assertThat(Persistence.getPersistenceUtil().isLoaded(colleagueOfColleague, "roles"), is(true));
+				assertThat(Persistence.getPersistenceUtil().isLoaded(colleagueOfColleague, "colleagues"), is(false));
+			}
 		}
 	}
 }
