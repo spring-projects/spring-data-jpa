@@ -29,6 +29,7 @@ import org.springframework.data.jpa.repository.EntityGraph.EntityGraphType;
  * 
  * @author Thomas Darimont
  * @author Oliver Gierke
+ * @author Sebastian Staudt
  */
 public class Jpa21UtilsUnitTests {
 
@@ -40,12 +41,16 @@ public class Jpa21UtilsUnitTests {
 		doReturn(subgraph).when(entityGraph).addSubgraph(anyString());
 
 		JpaEntityGraph jpaEntityGraph = new JpaEntityGraph("foo", EntityGraphType.FETCH,
-				new String[] { "foo", "gugu.gaga" });
+				new String[] { "foo", "bar", "bar.baz", "gugu.gaga", "gugu.bar" });
 
 		Jpa21Utils.configureFetchGraphFrom(jpaEntityGraph, entityGraph);
 
 		verify(entityGraph, times(1)).addAttributeNodes("foo");
+		verify(entityGraph, never()).addAttributeNodes("bar");
+		verify(entityGraph, times(1)).addSubgraph("bar");
+		verify(subgraph, times(1)).addAttributeNodes("baz");
 		verify(entityGraph, times(1)).addSubgraph("gugu");
 		verify(subgraph, times(1)).addAttributeNodes("gaga");
+		verify(subgraph, times(1)).addAttributeNodes("bar");
 	}
 }
