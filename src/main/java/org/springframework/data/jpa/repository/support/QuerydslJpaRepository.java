@@ -30,6 +30,7 @@ import org.springframework.data.querydsl.QSort;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import org.springframework.data.querydsl.SimpleEntityPathResolver;
 import org.springframework.data.repository.support.PageableExecutionUtils;
+import org.springframework.util.Assert;
 
 import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.OrderSpecifier;
@@ -77,7 +78,7 @@ public class QuerydslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 	 * @param resolver must not be {@literal null}.
 	 */
 	public QuerydslJpaRepository(JpaEntityInformation<T, ID> entityInformation, EntityManager entityManager,
-								 EntityPathResolver resolver) {
+			EntityPathResolver resolver) {
 
 		super(entityInformation, entityManager);
 
@@ -88,7 +89,7 @@ public class QuerydslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.querydsl.QueryDslPredicateExecutor#findOne(com.mysema.query.types.Predicate)
+	 * @see org.springframework.data.querydsl.QuerydslPredicateExecutor#findOne(com.mysema.query.types.Predicate)
 	 */
 	@Override
 	public T findOne(Predicate predicate) {
@@ -97,7 +98,7 @@ public class QuerydslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.querydsl.QueryDslPredicateExecutor#findAll(com.mysema.query.types.Predicate)
+	 * @see org.springframework.data.querydsl.QuerydslPredicateExecutor#findAll(com.mysema.query.types.Predicate)
 	 */
 	@Override
 	public List<T> findAll(Predicate predicate) {
@@ -106,7 +107,7 @@ public class QuerydslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.querydsl.QueryDslPredicateExecutor#findAll(com.mysema.query.types.Predicate, com.mysema.query.types.OrderSpecifier<?>[])
+	 * @see org.springframework.data.querydsl.QuerydslPredicateExecutor#findAll(com.mysema.query.types.Predicate, com.mysema.query.types.OrderSpecifier<?>[])
 	 */
 	@Override
 	public List<T> findAll(Predicate predicate, OrderSpecifier<?>... orders) {
@@ -115,33 +116,41 @@ public class QuerydslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 
 	/* 
 	 * (non-Javadoc)
-	 * @see org.springframework.data.querydsl.QueryDslPredicateExecutor#findAll(com.mysema.query.types.Predicate, org.springframework.data.domain.Sort)
+	 * @see org.springframework.data.querydsl.QuerydslPredicateExecutor#findAll(com.mysema.query.types.Predicate, org.springframework.data.domain.Sort)
 	 */
 	@Override
 	public List<T> findAll(Predicate predicate, Sort sort) {
+
+		Assert.notNull(sort, "Sort must not be null!");
+
 		return executeSorted(createQuery(predicate).select(path), sort);
 	}
 
 	/* 
 	 * (non-Javadoc)
-	 * @see org.springframework.data.querydsl.QueryDslPredicateExecutor#findAll(com.mysema.query.types.OrderSpecifier[])
+	 * @see org.springframework.data.querydsl.QuerydslPredicateExecutor#findAll(com.mysema.query.types.OrderSpecifier[])
 	 */
 	@Override
 	public List<T> findAll(OrderSpecifier<?>... orders) {
+
+		Assert.notNull(orders, "Order specifiers must not be null!");
+
 		return executeSorted(createQuery(new Predicate[0]).select(path), orders);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.querydsl.QueryDslPredicateExecutor#findAll(com.mysema.query.types.Predicate, org.springframework.data.domain.Pageable)
+	 * @see org.springframework.data.querydsl.QuerydslPredicateExecutor#findAll(com.querydsl.core.types.Predicate, org.springframework.data.domain.Pageable)
 	 */
 	@Override
 	public Page<T> findAll(Predicate predicate, Pageable pageable) {
 
+		Assert.notNull(pageable, "Pageable must not be null!");
+
 		final JPQLQuery<?> countQuery = createCountQuery(predicate);
 		JPQLQuery<T> query = querydsl.applyPagination(pageable, createQuery(predicate).select(path));
 
-		return PageableExecutionUtils.getPage(query.fetch(), pageable == null ? Pageable.NONE : pageable, () -> countQuery.fetchCount());
+		return PageableExecutionUtils.getPage(query.fetch(), pageable, () -> countQuery.fetchCount());
 	}
 
 	/*

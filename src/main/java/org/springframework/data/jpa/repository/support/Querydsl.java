@@ -40,7 +40,6 @@ import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.OpenJPATemplates;
 import com.querydsl.jpa.impl.AbstractJPAQuery;
 import com.querydsl.jpa.impl.JPAQuery;
-import org.springframework.util.ObjectUtils;
 
 /**
  * Helper instance to ease access to Querydsl JPA query API.
@@ -110,7 +109,7 @@ public class Querydsl {
 	 */
 	public <T> JPQLQuery<T> applyPagination(Pageable pageable, JPQLQuery<T> query) {
 
-		if (pageable == null || ObjectUtils.nullSafeEquals(Pageable.NONE, pageable)) {
+		if (pageable.isUnpaged()) {
 			return query;
 		}
 

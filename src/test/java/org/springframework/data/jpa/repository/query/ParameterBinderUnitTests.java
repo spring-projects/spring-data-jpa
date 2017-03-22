@@ -118,7 +118,7 @@ public class ParameterBinderUnitTests {
 		JpaParameters parameters = new JpaParameters(method);
 		ParameterBinder binder = new ParameterBinder(parameters, new Object[] { "foo", null });
 
-		assertThat(binder.getPageable(), is(Pageable.NONE));
+		assertThat(binder.getPageable(), is(Pageable.unpaged()));
 	}
 
 	@Test

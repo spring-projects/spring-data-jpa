@@ -25,6 +25,7 @@ import org.hamcrest.Matcher;
 import org.junit.Test;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.jpa.domain.JpaSort;
 
 /**
@@ -145,8 +146,8 @@ public class QueryUtilsUnitTests {
 	public void doesNotPrefixOrderReferenceIfOuterJoinAliasDetected() {
 
 		String query = "select p from Person p left join p.address address";
-		assertThat(applySorting(query, new Sort("address.city")), endsWith("order by address.city asc"));
-		assertThat(applySorting(query, new Sort("address.city", "lastname"), "p"),
+		assertThat(applySorting(query, Sort.by("address.city")), endsWith("order by address.city asc"));
+		assertThat(applySorting(query, Sort.by("address.city", "lastname"), "p"),
 				endsWith("order by address.city asc, p.lastname asc"));
 	}
 
@@ -154,13 +155,13 @@ public class QueryUtilsUnitTests {
 	public void extendsExistingOrderByClausesCorrectly() {
 
 		String query = "select p from Person p order by p.lastname asc";
-		assertThat(applySorting(query, new Sort("firstname"), "p"), endsWith("order by p.lastname asc, p.firstname asc"));
+		assertThat(applySorting(query, Sort.by("firstname"), "p"), endsWith("order by p.lastname asc, p.firstname asc"));
 	}
 
 	@Test // DATAJPA-296
 	public void appliesIgnoreCaseOrderingCorrectly() {
 
-		Sort sort = new Sort(new Sort.Order("firstname").ignoreCase());
+		Sort sort = Sort.by(Order.by("firstname").ignoreCase());
 
 		String query = "select p from Person p";
 		assertThat(applySorting(query, sort, "p"), endsWith("order by lower(p.firstname) asc"));
@@ -169,7 +170,7 @@ public class QueryUtilsUnitTests {
 	@Test // DATAJPA-296
 	public void appendsIgnoreCaseOrderingCorrectly() {
 
-		Sort sort = new Sort(new Sort.Order("firstname").ignoreCase());
+		Sort sort = Sort.by(Order.by("firstname").ignoreCase());
 
 		String query = "select p from Person p order by p.lastname asc";
 		assertThat(applySorting(query, sort, "p"), endsWith("order by p.lastname asc, lower(p.firstname) asc"));
@@ -192,7 +193,7 @@ public class QueryUtilsUnitTests {
 	@Test(expected = InvalidDataAccessApiUsageException.class) // DATAJPA-148
 	public void doesNotPrefixSortsIfFunction() {
 
-		Sort sort = new Sort("sum(foo)");
+		Sort sort = Sort.by("sum(foo)");
 		assertThat(applySorting("select p from Person p", sort, "p"), endsWith("order by sum(foo) asc"));
 	}
 
@@ -206,7 +207,7 @@ public class QueryUtilsUnitTests {
 	@Test // DATAJPA-375
 	public void findsExistingOrderByIndependentOfCase() {
 
-		Sort sort = new Sort("lastname");
+		Sort sort = Sort.by("lastname");
 		String query = applySorting("select p from Person p ORDER BY p.firstname", sort, "p");
 		assertThat(query, endsWith("ORDER BY p.firstname, p.lastname asc"));
 	}
@@ -231,7 +232,7 @@ public class QueryUtilsUnitTests {
 	public void detectsAliassesInPlainJoins() {
 
 		String query = "select p from Customer c join c.productOrder p where p.delayed = true";
-		Sort sort = new Sort("p.lineItems");
+		Sort sort = Sort.by("p.lineItems");
 
 		assertThat(applySorting(query, sort, "c"), endsWith("order by p.lineItems asc"));
 	}
@@ -250,7 +251,7 @@ public class QueryUtilsUnitTests {
 	public void doesPrefixPropertyWith() {
 
 		String query = "from Cat c join Dog d";
-		Sort sort = new Sort("dPropertyStartingWithJoinAlias");
+		Sort sort = Sort.by("dPropertyStartingWithJoinAlias");
 
 		assertThat(applySorting(query, sort, "c"), endsWith("order by c.dPropertyStartingWithJoinAlias asc"));
 	}
@@ -277,14 +278,13 @@ public class QueryUtilsUnitTests {
 
 	@Test // DATAJPA-960
 	public void doesNotQualifySortIfNoAliasDetected() {
-		assertThat(applySorting("from mytable where ?1 is null", new Sort("firstname")),
-				endsWith("order by firstname asc"));
+		assertThat(applySorting("from mytable where ?1 is null", Sort.by("firstname")), endsWith("order by firstname asc"));
 	}
 
 	@Test(expected = InvalidDataAccessApiUsageException.class) // DATAJPA-965, DATAJPA-970
 	public void doesNotAllowWhitespaceInSort() {
 
-		Sort sort = new Sort("case when foo then bar");
+		Sort sort = Sort.by("case when foo then bar");
 		applySorting("select p from Person p", sort, "p");
 	}
 
@@ -299,7 +299,7 @@ public class QueryUtilsUnitTests {
 	public void doesNotPrefixMultipleAliasedFunctionCalls() {
 
 		String query = "SELECT AVG(m.price) AS avgPrice, SUM(m.stocks) AS sumStocks FROM Magazine m";
-		Sort sort = new Sort("avgPrice", "sumStocks");
+		Sort sort = Sort.by("avgPrice", "sumStocks");
 
 		assertThat(applySorting(query, sort, "m"), endsWith("order by avgPrice asc, sumStocks asc"));
 	}
@@ -308,7 +308,7 @@ public class QueryUtilsUnitTests {
 	public void doesNotPrefixSingleAliasedFunctionCalls() {
 
 		String query = "SELECT AVG(m.price) AS avgPrice FROM Magazine m";
-		Sort sort = new Sort("avgPrice");
+		Sort sort = Sort.by("avgPrice");
 
 		assertThat(applySorting(query, sort, "m"), endsWith("order by avgPrice asc"));
 	}
@@ -317,7 +317,7 @@ public class QueryUtilsUnitTests {
 	public void prefixesSingleNonAliasedFunctionCallRelatedSortProperty() {
 
 		String query = "SELECT AVG(m.price) AS avgPrice FROM Magazine m";
-		Sort sort = new Sort("someOtherProperty");
+		Sort sort = Sort.by("someOtherProperty");
 
 		assertThat(applySorting(query, sort, "m"), endsWith("order by m.someOtherProperty asc"));
 	}
@@ -326,7 +326,7 @@ public class QueryUtilsUnitTests {
 	public void prefixesNonAliasedFunctionCallRelatedSortPropertyWhenSelectClauseContainesAliasedFunctionForDifferentProperty() {
 
 		String query = "SELECT m.name, AVG(m.price) AS avgPrice FROM Magazine m";
-		Sort sort = new Sort("name", "avgPrice");
+		Sort sort = Sort.by("name", "avgPrice");
 
 		assertThat(applySorting(query, sort, "m"), endsWith("order by m.name asc, avgPrice asc"));
 	}
@@ -335,7 +335,7 @@ public class QueryUtilsUnitTests {
 	public void doesNotPrefixAliasedFunctionCallNameWithMultipleNumericParameters() {
 
 		String query = "SELECT SUBSTRING(m.name, 2, 5) AS trimmedName FROM Magazine m";
-		Sort sort = new Sort("trimmedName");
+		Sort sort = Sort.by("trimmedName");
 
 		assertThat(applySorting(query, sort, "m"), endsWith("order by trimmedName asc"));
 	}
@@ -344,7 +344,7 @@ public class QueryUtilsUnitTests {
 	public void doesNotPrefixAliasedFunctionCallNameWithMultipleStringParameters() {
 
 		String query = "SELECT CONCAT(m.name, 'foo') AS extendedName FROM Magazine m";
-		Sort sort = new Sort("extendedName");
+		Sort sort = Sort.by("extendedName");
 
 		assertThat(applySorting(query, sort, "m"), endsWith("order by extendedName asc"));
 	}
@@ -353,7 +353,7 @@ public class QueryUtilsUnitTests {
 	public void doesNotPrefixAliasedFunctionCallNameWithUnderscores() {
 
 		String query = "SELECT AVG(m.price) AS avg_price FROM Magazine m";
-		Sort sort = new Sort("avg_price");
+		Sort sort = Sort.by("avg_price");
 
 		assertThat(applySorting(query, sort, "m"), endsWith("order by avg_price asc"));
 	}
@@ -362,7 +362,7 @@ public class QueryUtilsUnitTests {
 	public void doesNotPrefixAliasedFunctionCallNameWithDots() {
 
 		String query = "SELECT AVG(m.price) AS m.avg FROM Magazine m";
-		Sort sort = new Sort("m.avg");
+		Sort sort = Sort.by("m.avg");
 
 		assertThat(applySorting(query, sort, "m"), endsWith("order by m.avg asc"));
 	}
@@ -371,7 +371,7 @@ public class QueryUtilsUnitTests {
 	public void doesNotPrefixAliasedFunctionCallNameWhenQueryStringContainsMultipleWhiteSpaces() {
 
 		String query = "SELECT  AVG(  m.price  )   AS   avgPrice   FROM Magazine   m";
-		Sort sort = new Sort("avgPrice");
+		Sort sort = Sort.by("avgPrice");
 
 		assertThat(applySorting(query, sort, "m"), endsWith("order by avgPrice asc"));
 	}
