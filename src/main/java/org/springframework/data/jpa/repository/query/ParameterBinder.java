@@ -19,7 +19,6 @@ import java.util.Date;
 
 import javax.persistence.Query;
 
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
@@ -27,7 +26,6 @@ import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.util.Assert;
-import org.springframework.util.ObjectUtils;
 
 /**
  * {@link ParameterBinder} is used to bind method parameters to a {@link Query}. This is usually done whenever an
@@ -131,7 +129,9 @@ public class ParameterBinder {
 
 		if (parameter.isTemporalParameter()) {
 			if (hasNamedParameter(query) && parameter.isNamedParameter()) {
-				query.setParameter(parameter.getName().orElseThrow(() -> new IllegalArgumentException("o_O paraneter needs to have a name!")), (Date) value, parameter.getTemporalType());
+				query.setParameter(
+						parameter.getName().orElseThrow(() -> new IllegalArgumentException("o_O paraneter needs to have a name!")),
+						(Date) value, parameter.getTemporalType());
 			} else {
 				query.setParameter(position, (Date) value, parameter.getTemporalType());
 			}
@@ -139,7 +139,9 @@ public class ParameterBinder {
 		}
 
 		if (hasNamedParameter(query) && parameter.isNamedParameter()) {
-			query.setParameter(parameter.getName().orElseThrow(() -> new IllegalArgumentException("o_O paraneter needs to have a name!")), value);
+			query.setParameter(
+					parameter.getName().orElseThrow(() -> new IllegalArgumentException("o_O paraneter needs to have a name!")),
+					value);
 		} else {
 			query.setParameter(position, value);
 		}
@@ -163,10 +165,9 @@ public class ParameterBinder {
 
 		Query result = bind(query);
 
-		if (!parameters.hasPageableParameter() || getPageable() == null || ObjectUtils.nullSafeEquals(Pageable.NONE, getPageable())) {
+		if (!parameters.hasPageableParameter() || getPageable().isUnpaged()) {
 			return result;
 		}
-
 
 		result.setFirstResult((int) getPageable().getOffset());
 		result.setMaxResults(getPageable().getPageSize());

@@ -579,8 +579,7 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	protected <S extends T> Page<S> readPage(TypedQuery<S> query, final Class<S> domainClass, Pageable pageable,
 			final Specification<S> spec) {
 
-		if (!ObjectUtils.nullSafeEquals(Pageable.NONE, pageable)) {
-
+		if (pageable.isPaged()) {
 			query.setFirstResult((int) pageable.getOffset());
 			query.setMaxResults(pageable.getPageSize());
 		}
