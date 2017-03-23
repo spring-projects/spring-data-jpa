@@ -451,6 +451,8 @@ public abstract class QueryUtils {
 	 */
 	public static boolean hasNamedParameter(Query query) {
 
+		Assert.notNull(query, "Query must not be null!");
+
 		for (Parameter<?> parameter : query.getParameters()) {
 
 			String name = parameter.getName();

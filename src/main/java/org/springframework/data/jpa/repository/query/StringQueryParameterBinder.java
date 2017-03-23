@@ -67,13 +67,17 @@ public class StringQueryParameterBinder extends ParameterBinder {
 	 * 
 	 * @param jpaQuery must not be {@literal null}.
 	 * @param position
-	 * @param methodParameter must not be {@literal null}.
+	 * @param parameter must not be {@literal null}.
 	 * @return the {@link ParameterBinding} for the given parameters or {@literal null} if none available.
 	 */
-	private ParameterBinding getBindingFor(Query jpaQuery, int position, Parameter methodParameter) {
+	private ParameterBinding getBindingFor(Query jpaQuery, int position, Parameter parameter) {
+
+		Assert.notNull(jpaQuery, "Query must not be null!");
+		Assert.notNull(parameter, "Parameter must not be null!");
 
 		if (hasNamedParameter(jpaQuery)) {
-			return query.getBindingFor(methodParameter.getName().orElseThrow(() -> new IllegalArgumentException("Parameter needs to be named!")));
+			return query.getBindingFor(
+					parameter.getName().orElseThrow(() -> new IllegalArgumentException("Parameter needs to be named!")));
 		}
 
 		try {

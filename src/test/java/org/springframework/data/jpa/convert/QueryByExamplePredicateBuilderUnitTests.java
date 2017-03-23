@@ -17,7 +17,7 @@ package org.springframework.data.jpa.convert;
 
 import static org.hamcrest.core.IsEqual.*;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.data.domain.Example.*;
 
@@ -43,9 +43,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.util.ObjectUtils;
@@ -57,7 +57,7 @@ import org.springframework.util.ObjectUtils;
  * @author Mark Paluch
  * @author Oliver Gierke
  */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class QueryByExamplePredicateBuilderUnitTests {
 
@@ -112,8 +112,8 @@ public class QueryByExamplePredicateBuilderUnitTests {
 
 		doReturn(expressionMock).when(cb).literal(any(Boolean.class));
 		doReturn(truePredicate).when(cb).isTrue(eq(expressionMock));
-		doReturn(andPredicate).when(cb).and(Matchers.<Predicate>anyVararg());
-		doReturn(orPredicate).when(cb).or(Matchers.<Predicate>anyVararg());
+		doReturn(andPredicate).when(cb).and(ArgumentMatchers.any());
+		doReturn(orPredicate).when(cb).or(ArgumentMatchers.any());
 	}
 
 	@Test(expected = IllegalArgumentException.class) // DATAJPA-218
@@ -184,7 +184,7 @@ public class QueryByExamplePredicateBuilderUnitTests {
 
 		assertThat(QueryByExamplePredicateBuilder.getPredicate(root, cb, example), equalTo(orPredicate));
 
-		verify(cb, times(1)).or(Matchers.<Predicate>anyVararg());
+		verify(cb, times(1)).or(ArgumentMatchers.any());
 	}
 
 	static class Person {
