@@ -18,7 +18,6 @@ package org.springframework.data.jpa.repository.query;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
@@ -118,7 +117,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 		Object result = execution.execute(this, values);
 
 		ParametersParameterAccessor accessor = new ParametersParameterAccessor(method.getParameters(), values);
-		ResultProcessor withDynamicProjection = method.getResultProcessor().withDynamicProjection(Optional.of(accessor));
+		ResultProcessor withDynamicProjection = method.getResultProcessor().withDynamicProjection(accessor);
 
 		return withDynamicProjection.processResult(result, new TupleConverter(withDynamicProjection.getReturnedType()));
 	}
