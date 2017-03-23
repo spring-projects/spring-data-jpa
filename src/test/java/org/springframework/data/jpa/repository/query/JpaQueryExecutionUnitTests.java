@@ -17,7 +17,7 @@ package org.springframework.data.jpa.repository.query;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import java.util.Arrays;
@@ -32,7 +32,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.ModifyingExecution;
@@ -47,7 +47,7 @@ import org.springframework.data.repository.query.Parameters;
  * @author Thomas Darimont
  * @author Mark Paluch
  */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class JpaQueryExecutionUnitTests {
 
 	@Mock EntityManager em;
@@ -172,7 +172,8 @@ public class JpaQueryExecutionUnitTests {
 	}
 
 	@Test // DATAJPA-912
-	public void pagedExecutionShouldUseRequestCountFromResultWithOffsetAndResultsHitLowerPageSizeBounds() throws Exception {
+	public void pagedExecutionShouldUseRequestCountFromResultWithOffsetAndResultsHitLowerPageSizeBounds()
+			throws Exception {
 
 		Parameters<?, ?> parameters = new DefaultParameters(getClass().getMethod("sampleMethod", Pageable.class));
 		when(jpaQuery.createQuery(Mockito.any(Object[].class))).thenReturn(query);
@@ -187,7 +188,8 @@ public class JpaQueryExecutionUnitTests {
 	}
 
 	@Test // DATAJPA-912
-	public void pagedExecutionShouldUseRequestCountFromResultWithOffsetAndResultsHitUpperPageSizeBounds() throws Exception {
+	public void pagedExecutionShouldUseRequestCountFromResultWithOffsetAndResultsHitUpperPageSizeBounds()
+			throws Exception {
 
 		Parameters<?, ?> parameters = new DefaultParameters(getClass().getMethod("sampleMethod", Pageable.class));
 		when(jpaQuery.createQuery(Mockito.any(Object[].class))).thenReturn(query);

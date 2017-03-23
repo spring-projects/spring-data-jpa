@@ -28,7 +28,7 @@ import javax.persistence.spi.PersistenceUnitInfo;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.orm.jpa.persistenceunit.MutablePersistenceUnitInfo;

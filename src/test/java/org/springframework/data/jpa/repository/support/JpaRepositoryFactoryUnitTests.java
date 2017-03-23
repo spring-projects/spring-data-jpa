@@ -31,7 +31,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.aop.framework.Advised;
 import org.springframework.core.OverridingClassLoader;
 import org.springframework.data.jpa.domain.sample.User;
@@ -51,7 +51,7 @@ import org.springframework.util.ClassUtils;
  * @author Oliver Gierke
  * @author Thomas Darimont
  */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class JpaRepositoryFactoryUnitTests {
 
 	JpaRepositoryFactory factory;

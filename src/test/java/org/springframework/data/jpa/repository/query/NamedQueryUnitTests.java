@@ -15,20 +15,21 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.mockito.Matchers.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import java.lang.reflect.Method;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.TypedQuery;
 import javax.persistence.metamodel.Metamodel;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.provider.QueryExtractor;
@@ -80,12 +81,14 @@ public class NamedQueryUnitTests {
 	}
 
 	@Test // DATAJPA-142
+	@SuppressWarnings("unchecked")
 	public void doesNotRejectPersistenceProviderIfNamedCountQueryIsAvailable() {
 
 		when(extractor.canExtractQuery()).thenReturn(false);
 		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, projectionFactory, extractor);
 
-		when(em.createNamedQuery(queryMethod.getNamedCountQueryName())).thenReturn(null);
+		TypedQuery<Long> countQuery = mock(TypedQuery.class);
+		when(em.createNamedQuery(eq(queryMethod.getNamedCountQueryName()), eq(Long.class))).thenReturn(countQuery);
 		NamedQuery query = (NamedQuery) NamedQuery.lookupFrom(queryMethod, em);
 
 		query.doCreateCountQuery(new Object[1]);

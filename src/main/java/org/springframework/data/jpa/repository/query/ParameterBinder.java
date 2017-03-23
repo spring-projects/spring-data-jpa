@@ -86,10 +86,12 @@ public class ParameterBinder {
 	/**
 	 * Binds the parameters to the given {@link Query}.
 	 * 
-	 * @param query
+	 * @param query must not be {@literal null}.
 	 * @return
 	 */
 	public <T extends Query> T bind(T query) {
+
+		Assert.notNull(query, "Query must not be null!");
 
 		int bindableParameterIndex = 0;
 		int queryParameterPosition = 1;
@@ -150,10 +152,13 @@ public class ParameterBinder {
 	/**
 	 * Binds the parameters to the given query and applies special parameter types (e.g. pagination).
 	 * 
-	 * @param query
+	 * @param query must not be {@literal null}.
 	 * @return
 	 */
 	public Query bindAndPrepare(Query query) {
+
+		Assert.notNull(query, "Query must not be null!");
+
 		return bindAndPrepare(query, parameters);
 	}
 

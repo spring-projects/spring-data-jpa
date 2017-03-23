@@ -16,7 +16,7 @@
 package org.springframework.data.jpa.repository.support;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import java.io.Serializable;
@@ -32,8 +32,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.Spy;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.dao.support.PersistenceExceptionTranslator;
@@ -52,7 +51,7 @@ import org.springframework.data.repository.core.support.RepositoryFactorySupport
  * 
  * @author Oliver Gierke
  */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class JpaRepositoryFactoryBeanUnitTests {
 
 	JpaRepositoryFactoryBean<SimpleSampleRepository, User, Integer> factoryBean;
@@ -65,10 +64,9 @@ public class JpaRepositoryFactoryBeanUnitTests {
 	@Mock Metamodel metamodel;
 
 	@Before
-	@SuppressWarnings("unchecked")
 	public void setUp() {
 
-		Map<String, PersistenceExceptionTranslator> beans = new HashMap<String, PersistenceExceptionTranslator>();
+		Map<String, PersistenceExceptionTranslator> beans = new HashMap<>();
 		beans.put("foo", translator);
 		when(beanFactory.getBeansOfType(eq(PersistenceExceptionTranslator.class), anyBoolean(), anyBoolean()))
 				.thenReturn(beans);
@@ -77,8 +75,7 @@ public class JpaRepositoryFactoryBeanUnitTests {
 		factory = Mockito.spy(new StubRepositoryFactorySupport(repository));
 
 		// Setup standard factory configuration
-		factoryBean = new DummyJpaRepositoryFactoryBean<SimpleSampleRepository, User, Integer>(
-				SimpleSampleRepository.class);
+		factoryBean = new DummyJpaRepositoryFactoryBean<>(SimpleSampleRepository.class);
 		factoryBean.setEntityManager(entityManager);
 	}
 
