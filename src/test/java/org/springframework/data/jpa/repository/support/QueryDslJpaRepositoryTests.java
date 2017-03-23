@@ -58,7 +58,7 @@ import com.querydsl.core.types.dsl.PathBuilderFactory;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({ "classpath:infrastructure.xml" })
 @Transactional
-public class QueryDslJpaRepositoryTests {
+public class QuerydslJpaRepositoryTests {
 
 	@PersistenceContext EntityManager em;
 
@@ -111,12 +111,12 @@ public class QueryDslJpaRepositoryTests {
 
 		Predicate lastnameContainsE = user.lastname.contains("e");
 
-		Page<User> result = repository.findAll(lastnameContainsE, new PageRequest(0, 1, Direction.ASC, "lastname"));
+		Page<User> result = repository.findAll(lastnameContainsE, PageRequest.of(0, 1, Direction.ASC, "lastname"));
 
 		assertThat(result.getContent(), hasSize(1));
 		assertThat(result.getContent().get(0), is(carter));
 
-		result = repository.findAll(lastnameContainsE, new PageRequest(0, 2, Direction.DESC, "lastname"));
+		result = repository.findAll(lastnameContainsE, PageRequest.of(0, 2, Direction.DESC, "lastname"));
 
 		assertThat(result.getContent(), hasSize(2));
 		assertThat(result.getContent().get(0), is(oliver));
@@ -126,9 +126,9 @@ public class QueryDslJpaRepositoryTests {
 	@Test // DATAJPA-296
 	public void appliesIgnoreCaseOrdering() {
 
-		Sort sort = new Sort(new Order(Direction.DESC, "lastname").ignoreCase(), new Order(Direction.ASC, "firstname"));
+		Sort sort = Sort.by(new Order(Direction.DESC, "lastname").ignoreCase(), new Order(Direction.ASC, "firstname"));
 
-		Page<User> result = repository.findAll(user.lastname.contains("e"), new PageRequest(0, 2, sort));
+		Page<User> result = repository.findAll(user.lastname.contains("e"), PageRequest.of(0, 2, sort));
 
 		assertThat(result.getContent(), hasSize(2));
 		assertThat(result.getContent().get(0), is(dave));
@@ -144,7 +144,7 @@ public class QueryDslJpaRepositoryTests {
 		QUser user = QUser.user;
 
 		Page<User> page = repository.findAll(user.firstname.isNotNull(),
-				new PageRequest(0, 10, new Sort(Sort.Direction.ASC, "colleagues.firstname")));
+				PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "colleagues.firstname")));
 
 		assertThat(page.getContent(), hasSize(3));
 		assertThat(page.getContent(), hasItems(oliver, dave, carter));
@@ -159,7 +159,7 @@ public class QueryDslJpaRepositoryTests {
 		QUser user = QUser.user;
 
 		Page<User> page = repository.findAll(user.firstname.isNotNull(),
-				new PageRequest(0, 10, new Sort(Sort.Direction.ASC, "manager.firstname")));
+				PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "manager.firstname")));
 
 		assertThat(page.getContent(), hasSize(3));
 		assertThat(page.getContent(), hasItems(dave, oliver, carter));
@@ -171,7 +171,7 @@ public class QueryDslJpaRepositoryTests {
 		QUser user = QUser.user;
 
 		Page<User> page = repository.findAll(user.firstname.isNotNull(),
-				new PageRequest(0, 10, new Sort(Sort.Direction.ASC, "firstname")));
+				PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "firstname")));
 
 		assertThat(page.getContent(), hasSize(3));
 		assertThat(page.getContent(), hasItems(carter, dave, oliver));
@@ -183,7 +183,7 @@ public class QueryDslJpaRepositoryTests {
 		QUser user = QUser.user;
 
 		Page<User> page = repository.findAll(user.firstname.isNotNull(),
-				new PageRequest(0, 10, new Sort(new Order(Sort.Direction.ASC, "firstname").ignoreCase())));
+				PageRequest.of(0, 10, Sort.by(new Order(Sort.Direction.ASC, "firstname").ignoreCase())));
 
 		assertThat(page.getContent(), hasSize(3));
 		assertThat(page.getContent(), hasItems(carter, dave, oliver));
@@ -197,7 +197,7 @@ public class QueryDslJpaRepositoryTests {
 		QUser user = QUser.user;
 
 		Page<User> page = repository.findAll(user.firstname.isNotNull(),
-				new PageRequest(0, 10, new Sort(Sort.Direction.ASC, "address.streetName")));
+				PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "address.streetName")));
 
 		assertThat(page.getContent(), hasSize(3));
 		assertThat(page.getContent(), hasItems(dave, carter, oliver));
@@ -257,7 +257,7 @@ public class QueryDslJpaRepositoryTests {
 		oliver.setManager(dave);
 		dave.getRoles().add(adminRole);
 
-		Page<User> page = repository.findAll(new PageRequest(0, 10, new Sort(Sort.Direction.ASC, "manager.roles.name")));
+		Page<User> page = repository.findAll(PageRequest.of(0, 10, Sort.by(Direction.ASC, "manager.roles.name")));
 
 		assertThat(page.getContent(), hasSize(3));
 		assertThat(page.getContent().get(0), is(dave));
@@ -300,7 +300,7 @@ public class QueryDslJpaRepositoryTests {
 	@Test // DATAJPA-679
 	public void shouldSupportFindAllWithPredicateAndSort() {
 
-		List<User> users = repository.findAll(user.dateOfBirth.isNull(), new Sort(Direction.ASC, "firstname"));
+		List<User> users = repository.findAll(user.dateOfBirth.isNull(), Sort.by(Direction.ASC, "firstname"));
 
 		assertThat(users, hasSize(3));
 		assertThat(users.get(0).getFirstname(), is(carter.getFirstname()));
@@ -309,18 +309,18 @@ public class QueryDslJpaRepositoryTests {
 	}
 
 	@Test // DATAJPA-585
-	public void worksWithNullPageable() {
-		assertThat(repository.findAll(user.dateOfBirth.isNull(), (Pageable) null).getContent(), hasSize(3));
+	public void worksWithUnpagedPageable() {
+		assertThat(repository.findAll(user.dateOfBirth.isNull(), Pageable.unpaged()).getContent(), hasSize(3));
 	}
 
 	@Test // DATAJPA-912
 	public void pageableQueryReportsTotalFromResult() {
 
-		Page<User> firstPage = repository.findAll(user.dateOfBirth.isNull(), new PageRequest(0, 10));
+		Page<User> firstPage = repository.findAll(user.dateOfBirth.isNull(), PageRequest.of(0, 10));
 		assertThat(firstPage.getContent(), hasSize(3));
 		assertThat(firstPage.getTotalElements(), is(3L));
 
-		Page<User> secondPage = repository.findAll(user.dateOfBirth.isNull(), new PageRequest(1, 2));
+		Page<User> secondPage = repository.findAll(user.dateOfBirth.isNull(), PageRequest.of(1, 2));
 		assertThat(secondPage.getContent(), hasSize(1));
 		assertThat(secondPage.getTotalElements(), is(3L));
 	}
@@ -328,11 +328,11 @@ public class QueryDslJpaRepositoryTests {
 	@Test // DATAJPA-912
 	public void pageableQueryReportsTotalFromCount() {
 
-		Page<User> firstPage = repository.findAll(user.dateOfBirth.isNull(), new PageRequest(0, 3));
+		Page<User> firstPage = repository.findAll(user.dateOfBirth.isNull(), PageRequest.of(0, 3));
 		assertThat(firstPage.getContent(), hasSize(3));
 		assertThat(firstPage.getTotalElements(), is(3L));
 
-		Page<User> secondPage = repository.findAll(user.dateOfBirth.isNull(), new PageRequest(10, 10));
+		Page<User> secondPage = repository.findAll(user.dateOfBirth.isNull(), PageRequest.of(10, 10));
 		assertThat(secondPage.getContent(), hasSize(0));
 		assertThat(secondPage.getTotalElements(), is(3L));
 	}
