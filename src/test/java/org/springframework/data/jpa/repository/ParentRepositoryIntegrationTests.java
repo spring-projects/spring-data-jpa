@@ -68,7 +68,7 @@ public class ParentRepositoryIntegrationTests {
 				query.distinct(true);
 				return cb.isNotEmpty(childrenPath);
 			}
-		}, new PageRequest(0, 5, new Sort(Sort.Direction.ASC, "id")));
+		}, PageRequest.of(0, 5, Sort.by(Sort.Direction.ASC, "id")));
 
 		List<Parent> content = page.getContent();
 
@@ -88,7 +88,7 @@ public class ParentRepositoryIntegrationTests {
 				query.distinct(true);
 				return cb.isNotEmpty(root.<Set<Child>> get("children"));
 			}
-		}, new PageRequest(0, 5, new Sort(Sort.Direction.ASC, "id")));
+		}, PageRequest.of(0, 5, Sort.by(Sort.Direction.ASC, "id")));
 
 		List<Parent> content = page.getContent();
 

@@ -29,8 +29,9 @@ import org.springframework.util.Assert;
  */
 public class AuditorAwareStub implements AuditorAware<AuditableUser> {
 
-	@SuppressWarnings("unused")
+	@SuppressWarnings("unused") //
 	private final AuditableUserRepository repository;
+
 	private AuditableUser auditor;
 
 	public AuditorAwareStub(AuditableUserRepository repository) {
@@ -40,17 +41,15 @@ public class AuditorAwareStub implements AuditorAware<AuditableUser> {
 	}
 
 	public void setAuditor(AuditableUser auditor) {
-
 		this.auditor = auditor;
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see org.springframework.data.domain.AuditorAware#getCurrentAuditor()
 	 */
+	@Override
 	public Optional<AuditableUser> getCurrentAuditor() {
-
 		return Optional.ofNullable(auditor);
 	}
 }

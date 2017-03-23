@@ -68,7 +68,7 @@ public class MappedTypeRepositoryIntegrationTests {
 		concreteRepository1.save(new ConcreteType1("foo"));
 		concreteRepository2.save(new ConcreteType2("foo"));
 
-		Page<ConcreteType2> page = concreteRepository2.findByAttribute1Custom("foo", new PageRequest(0, 10,
+		Page<ConcreteType2> page = concreteRepository2.findByAttribute1Custom("foo", PageRequest.of(0, 10,
 				Sort.Direction.DESC, "attribute1"));
 
 		assertThat(page.getNumberOfElements(), is(1));

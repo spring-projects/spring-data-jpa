@@ -28,8 +28,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.config.InfrastructureConfig;
-import org.springframework.data.jpa.repository.support.QueryDslRepositorySupportTests.QuerydslRepositorySupport;
-import org.springframework.data.jpa.repository.support.QueryDslRepositorySupportTests.QuerydslRepositorySupport;
+import org.springframework.data.jpa.repository.support.QuerydslRepositorySupportTests.UserRepositoryImpl;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -81,7 +80,7 @@ public class QuerydslRepositorySupportIntegrationTests {
 		}
 	}
 
-	@Autowired UserRepository repository;
+	@Autowired org.springframework.data.jpa.repository.support.QuerydslRepositorySupportTests.UserRepository repository;
 	@Autowired ReconfiguringUserRepositoryImpl reconfiguredRepo;
 
 	@PersistenceContext(unitName = "querydsl") EntityManager em;

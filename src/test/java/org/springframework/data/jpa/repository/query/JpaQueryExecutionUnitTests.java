@@ -125,7 +125,7 @@ public class JpaQueryExecutionUnitTests {
 		when(countQuery.getResultList()).thenReturn(Arrays.asList(20L));
 
 		PagedExecution execution = new PagedExecution(parameters);
-		execution.doExecute(jpaQuery, new Object[] { new PageRequest(2, 10) });
+		execution.doExecute(jpaQuery, new Object[] { PageRequest.of(2, 10) });
 
 		verify(query).getResultList();
 		verify(countQuery).getResultList();
@@ -139,7 +139,7 @@ public class JpaQueryExecutionUnitTests {
 		when(query.getResultList()).thenReturn(Arrays.asList(0L));
 
 		PagedExecution execution = new PagedExecution(parameters);
-		execution.doExecute(jpaQuery, new Object[] { new PageRequest(0, 10) });
+		execution.doExecute(jpaQuery, new Object[] { PageRequest.of(0, 10) });
 
 		verify(countQuery, times(0)).getResultList();
 		verify(jpaQuery, times(0)).createCountQuery((Object[]) any());
@@ -153,7 +153,7 @@ public class JpaQueryExecutionUnitTests {
 		when(query.getResultList()).thenReturn(Arrays.asList(new Object(), new Object(), new Object(), new Object()));
 
 		PagedExecution execution = new PagedExecution(parameters);
-		execution.doExecute(jpaQuery, new Object[] { new PageRequest(0, 10) });
+		execution.doExecute(jpaQuery, new Object[] { PageRequest.of(0, 10) });
 
 		verify(jpaQuery, times(0)).createCountQuery((Object[]) any());
 	}
@@ -166,7 +166,7 @@ public class JpaQueryExecutionUnitTests {
 		when(query.getResultList()).thenReturn(Arrays.asList(new Object(), new Object(), new Object(), new Object()));
 
 		PagedExecution execution = new PagedExecution(parameters);
-		execution.doExecute(jpaQuery, new Object[] { new PageRequest(5, 10) });
+		execution.doExecute(jpaQuery, new Object[] { PageRequest.of(5, 10) });
 
 		verify(jpaQuery, times(0)).createCountQuery((Object[]) any());
 	}
@@ -181,7 +181,7 @@ public class JpaQueryExecutionUnitTests {
 		when(countQuery.getResultList()).thenReturn(Arrays.asList(20L));
 
 		PagedExecution execution = new PagedExecution(parameters);
-		execution.doExecute(jpaQuery, new Object[] { new PageRequest(4, 4) });
+		execution.doExecute(jpaQuery, new Object[] { PageRequest.of(4, 4) });
 
 		verify(jpaQuery).createCountQuery((Object[]) any());
 	}
@@ -196,7 +196,7 @@ public class JpaQueryExecutionUnitTests {
 		when(countQuery.getResultList()).thenReturn(Arrays.asList(20L));
 
 		PagedExecution execution = new PagedExecution(parameters);
-		execution.doExecute(jpaQuery, new Object[] { new PageRequest(4, 4) });
+		execution.doExecute(jpaQuery, new Object[] { PageRequest.of(4, 4) });
 
 		verify(jpaQuery).createCountQuery((Object[]) any());
 	}

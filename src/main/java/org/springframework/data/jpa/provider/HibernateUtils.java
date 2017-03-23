@@ -30,7 +30,6 @@ import org.springframework.util.ReflectionUtils;
  * @since 1.10.2
  * @soundtrack Benny Greb - Soulfood (Live, https://www.youtube.com/watch?v=9_ErMa_CtSw)
  */
-@SuppressWarnings({ "deprecation", "rawtypes" })
 public abstract class HibernateUtils {
 
 	private static final List<String> TYPES = Arrays.asList("org.hibernate.jpa.HibernateQuery",

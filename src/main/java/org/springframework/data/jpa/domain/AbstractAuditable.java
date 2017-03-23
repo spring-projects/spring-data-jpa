@@ -37,110 +37,94 @@ import org.springframework.data.domain.Auditable;
  * @param <PK> the type of the auditing type's idenifier
  */
 @MappedSuperclass
-public abstract class AbstractAuditable<U, PK extends Serializable> extends AbstractPersistable<PK> implements
-		Auditable<U, PK, LocalDateTime> {
+public abstract class AbstractAuditable<U, PK extends Serializable> extends AbstractPersistable<PK>
+		implements Auditable<U, PK, LocalDateTime> {
 
 	private static final long serialVersionUID = 141481953116476081L;
 
-	@ManyToOne
+	@ManyToOne //
 	private U createdBy;
 
-	@Temporal(TemporalType.TIMESTAMP)
+	@Temporal(TemporalType.TIMESTAMP) //
 	private Date createdDate;
 
-	@ManyToOne
+	@ManyToOne //
 	private U lastModifiedBy;
 
-	@Temporal(TemporalType.TIMESTAMP)
+	@Temporal(TemporalType.TIMESTAMP) //
 	private Date lastModifiedDate;
 
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see org.springframework.data.domain.Auditable#getCreatedBy()
 	 */
+	@Override
 	public Optional<U> getCreatedBy() {
-
 		return Optional.ofNullable(createdBy);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.springframework.data.domain.Auditable#setCreatedBy(java.lang.Object)
+	 * @see org.springframework.data.domain.Auditable#setCreatedBy(java.lang.Object)
 	 */
-	public void setCreatedBy(final Optional<? extends U> createdBy) {
-
-		// TODO: this null guard should really not be required since we expect an optional here
-		this.createdBy = createdBy != null ? createdBy.orElse(null) : null;
+	@Override
+	public void setCreatedBy(U createdBy) {
+		this.createdBy = createdBy;
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see org.springframework.data.domain.Auditable#getCreatedDate()
 	 */
 	@Override
 	public Optional<LocalDateTime> getCreatedDate() {
-
-		return null == createdDate ? Optional.empty() : Optional.of(LocalDateTime.ofInstant(createdDate.toInstant(), ZoneId.systemDefault()));
+		return null == createdDate ? Optional.empty()
+				: Optional.of(LocalDateTime.ofInstant(createdDate.toInstant(), ZoneId.systemDefault()));
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.springframework.data.domain.Auditable#setCreatedDate(org.joda.time
-	 * .DateTime)
+	 * @see org.springframework.data.domain.Auditable#setCreatedDate(java.time.temporal.TemporalAccessor)
 	 */
-	public void setCreatedDate(Optional<? extends LocalDateTime> createdDate) {
-
-		this.createdDate = createdDate.map(d -> Date.from(d.atZone(ZoneId.systemDefault()).toInstant())).orElse(null);
+	@Override
+	public void setCreatedDate(LocalDateTime createdDate) {
+		this.createdDate = Date.from(createdDate.atZone(ZoneId.systemDefault()).toInstant());
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see org.springframework.data.domain.Auditable#getLastModifiedBy()
 	 */
+	@Override
 	public Optional<U> getLastModifiedBy() {
-
 		return Optional.ofNullable(lastModifiedBy);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.springframework.data.domain.Auditable#setLastModifiedBy(java.lang
-	 * .Object)
+	 * @see org.springframework.data.domain.Auditable#setLastModifiedBy(java.lang.Object)
 	 */
-	public void setLastModifiedBy(final Optional<? extends U> lastModifiedBy) {
-
-		// TODO: this null guard should really not be required since we expect an optional here
-		this.lastModifiedBy = lastModifiedBy != null ? lastModifiedBy.orElse(null) : null;
+	@Override
+	public void setLastModifiedBy(U lastModifiedBy) {
+		this.lastModifiedBy = lastModifiedBy;
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see org.springframework.data.domain.Auditable#getLastModifiedDate()
 	 */
+	@Override
 	public Optional<LocalDateTime> getLastModifiedDate() {
-
-		return null == lastModifiedDate ? Optional.empty() : Optional.of(LocalDateTime.ofInstant(lastModifiedDate.toInstant(), ZoneId.systemDefault()));
+		return null == lastModifiedDate ? Optional.empty()
+				: Optional.of(LocalDateTime.ofInstant(lastModifiedDate.toInstant(), ZoneId.systemDefault()));
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.springframework.data.domain.Auditable#setLastModifiedDate(org.joda
-	 * .time.DateTime)
+	 * @see org.springframework.data.domain.Auditable#setLastModifiedDate(java.time.temporal.TemporalAccessor)
 	 */
-	public void setLastModifiedDate(Optional<? extends LocalDateTime> lastModifiedDate) {
-
-		this.lastModifiedDate = lastModifiedDate.map(d -> Date.from(d.atZone(ZoneId.systemDefault()).toInstant())).orElse(null);
+	@Override
+	public void setLastModifiedDate(LocalDateTime lastModifiedDate) {
+		this.lastModifiedDate = Date.from(lastModifiedDate.atZone(ZoneId.systemDefault()).toInstant());
 	}
 }

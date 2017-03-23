@@ -146,7 +146,7 @@ public class EntityGraphRepositoryMethodsIntegrationTests {
 
 		Assume.assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
 
-		Page<User> page = repository.findAll(QUser.user.firstname.isNotNull(), new PageRequest(0, 100));
+		Page<User> page = repository.findAll(QUser.user.firstname.isNotNull(), PageRequest.of(0, 100));
 		List<User> result = page.getContent();
 
 		assertThat(result.size(), is(3));

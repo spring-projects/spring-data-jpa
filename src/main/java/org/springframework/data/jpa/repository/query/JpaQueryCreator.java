@@ -15,7 +15,6 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.springframework.data.jpa.domain.AbstractPersistable_.*;
 import static org.springframework.data.jpa.repository.query.QueryUtils.*;
 import static org.springframework.data.repository.query.parser.Part.Type.*;
 
@@ -23,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -180,14 +180,9 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extend
 
 			} else {
 
-				List<Selection<?>> selections = new ArrayList<Selection<?>>();
-
-				for (SingularAttribute<?, ?> attribute : root.getModel().getIdClassAttributes()) {
-					selections.add(root.get((SingularAttribute) attribute).alias(attribute.getName()));
-				}
-
-				selections.add(root.get((SingularAttribute) id).alias(id.getName()));
-				query = query.multiselect(selections);
+				query = query.multiselect(root.getModel().getIdClassAttributes().stream()//
+						.map(it -> (Selection<?>) root.get((SingularAttribute) it).alias(it.getName()))
+						.collect(Collectors.toList()));
 			}
 
 		} else {

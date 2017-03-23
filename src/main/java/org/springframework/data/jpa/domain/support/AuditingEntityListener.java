@@ -80,6 +80,9 @@ public class AuditingEntityListener {
 	 */
 	@PrePersist
 	public void touchForCreate(Object target) {
+
+		Assert.notNull(target, "Entity must not be null!");
+
 		if (handler != null) {
 			handler.getObject().markCreated(target);
 		}
@@ -93,6 +96,9 @@ public class AuditingEntityListener {
 	 */
 	@PreUpdate
 	public void touchForUpdate(Object target) {
+
+		Assert.notNull(target, "Entity must not be null!");
+
 		if (handler != null) {
 			handler.getObject().markModified(target);
 		}

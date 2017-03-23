@@ -58,7 +58,7 @@ public class RedeclaringRepositoryMethodsTests {
 		ollie = repository.save(ollie);
 		tom = repository.save(tom);
 
-		Page<User> page = repository.findAll(new PageRequest(0, 2));
+		Page<User> page = repository.findAll(PageRequest.of(0, 2));
 
 		assertThat(page.getNumberOfElements(), is(1));
 		assertThat(page.getContent().get(0).getFirstname(), is("Oliver"));

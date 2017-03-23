@@ -15,8 +15,6 @@
  */
 package org.springframework.data.jpa.mapping;
 
-import java.beans.PropertyDescriptor;
-import java.lang.reflect.Field;
 import java.util.Set;
 
 import javax.persistence.metamodel.ManagedType;
@@ -71,8 +69,8 @@ public class JpaMetamodelMappingContext
 	 * @see org.springframework.data.mapping.context.AbstractMappingContext#createPersistentProperty(java.lang.reflect.Field, java.beans.PropertyDescriptor, org.springframework.data.mapping.model.MutablePersistentEntity, org.springframework.data.mapping.model.SimpleTypeHolder)
 	 */
 	@Override
-	protected JpaPersistentProperty createPersistentProperty(Property property,
-			JpaPersistentEntityImpl<?> owner, SimpleTypeHolder simpleTypeHolder) {
+	protected JpaPersistentProperty createPersistentProperty(Property property, JpaPersistentEntityImpl<?> owner,
+			SimpleTypeHolder simpleTypeHolder) {
 
 		Metamodel metamodel = getMetamodelFor(owner.getType());
 		return new JpaPersistentPropertyImpl(metamodel, property, owner, simpleTypeHolder);
