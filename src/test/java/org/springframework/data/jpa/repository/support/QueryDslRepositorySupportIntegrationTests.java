@@ -28,8 +28,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.config.InfrastructureConfig;
-import org.springframework.data.jpa.repository.support.QueryDslRepositorySupportTests.UserRepository;
-import org.springframework.data.jpa.repository.support.QueryDslRepositorySupportTests.UserRepositoryImpl;
+import org.springframework.data.jpa.repository.support.QueryDslRepositorySupportTests.QuerydslRepositorySupport;
+import org.springframework.data.jpa.repository.support.QueryDslRepositorySupportTests.QuerydslRepositorySupport;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -37,7 +37,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Integration test for the setup of beans extending {@link QueryDslRepositorySupport}.
+ * Integration test for the setup of beans extending {@link QuerydslRepositorySupport}.
  * 
  * @author Oliver Gierke
  * @author Thomas Darimont
@@ -45,7 +45,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
-public class QueryDslRepositorySupportIntegrationTests {
+public class QuerydslRepositorySupportIntegrationTests {
 
 	@Configuration
 	@EnableTransactionManagement
@@ -98,7 +98,7 @@ public class QueryDslRepositorySupportIntegrationTests {
 		assertThat(reconfiguredRepo.getEntityManager().getEntityManagerFactory(), is(em.getEntityManagerFactory()));
 	}
 
-	static class ReconfiguringUserRepositoryImpl extends QueryDslRepositorySupport {
+	static class ReconfiguringUserRepositoryImpl extends QuerydslRepositorySupport {
 
 		public ReconfiguringUserRepositoryImpl() {
 			super(User.class);
