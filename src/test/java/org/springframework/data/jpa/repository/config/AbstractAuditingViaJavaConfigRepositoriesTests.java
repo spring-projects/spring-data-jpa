@@ -19,7 +19,6 @@ import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
@@ -29,7 +28,6 @@ import java.util.concurrent.TimeUnit;
 
 import javax.persistence.EntityManager;
 
-import org.joda.time.DateTime;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -46,6 +44,7 @@ import org.springframework.data.jpa.repository.sample.SampleEvaluationContextExt
 import org.springframework.data.jpa.repository.sample.SampleEvaluationContextExtension.SampleSecurityContextHolder;
 import org.springframework.data.jpa.util.FixedDate;
 import org.springframework.data.repository.query.spi.EvaluationContextExtension;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -57,6 +56,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @Transactional
+@DirtiesContext
 public abstract class AbstractAuditingViaJavaConfigRepositoriesTests {
 
 	@Autowired AuditableUserRepository auditableUserRepository;
@@ -125,7 +125,7 @@ public abstract class AbstractAuditingViaJavaConfigRepositoriesTests {
 		SampleSecurityContextHolder.getCurrent().setPrincipal(thomas);
 		auditableUserRepository.updateAllNamesToUpperCase();
 
-//		DateTime now = new DateTime(FixedDate.INSTANCE.getDate());
+		// DateTime now = new DateTime(FixedDate.INSTANCE.getDate());
 		LocalDateTime now = LocalDateTime.ofInstant(FixedDate.INSTANCE.getDate().toInstant(), ZoneId.systemDefault());
 		List<AuditableUser> users = auditableUserRepository.findAll();
 

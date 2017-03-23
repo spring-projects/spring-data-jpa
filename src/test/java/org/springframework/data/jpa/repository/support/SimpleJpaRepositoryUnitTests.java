@@ -83,7 +83,7 @@ public class SimpleJpaRepositoryUnitTests {
 	public void retrieveObjectsForPageableOutOfRange() {
 
 		when(countQuery.getSingleResult()).thenReturn(20L);
-		repo.findAll(new PageRequest(2, 10));
+		repo.findAll(PageRequest.of(2, 10));
 
 		verify(query).getResultList();
 	}
@@ -93,7 +93,7 @@ public class SimpleJpaRepositoryUnitTests {
 
 		when(query.getResultList()).thenReturn(Arrays.asList(new User(), new User()));
 
-		repo.findAll(new PageRequest(0, 10));
+		repo.findAll(PageRequest.of(0, 10));
 
 		verify(countQuery, never()).getSingleResult();
 	}
@@ -103,7 +103,7 @@ public class SimpleJpaRepositoryUnitTests {
 
 		when(query.getResultList()).thenReturn(Arrays.asList(new User(), new User()));
 
-		repo.findAll(new PageRequest(2, 10));
+		repo.findAll(PageRequest.of(2, 10));
 
 		verify(countQuery, never()).getSingleResult();
 	}

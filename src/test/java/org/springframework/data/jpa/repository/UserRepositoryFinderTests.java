@@ -116,7 +116,7 @@ public class UserRepositoryFinderTests {
 	@Test
 	public void executesPagingMethodToPageCorrectly() {
 
-		Page<User> page = userRepository.findByLastname(new PageRequest(0, 1), "Matthews");
+		Page<User> page = userRepository.findByLastname(PageRequest.of(0, 1), "Matthews");
 		assertThat(page.getNumberOfElements(), is(1));
 		assertThat(page.getTotalElements(), is(2L));
 		assertThat(page.getTotalPages(), is(2));
@@ -125,14 +125,14 @@ public class UserRepositoryFinderTests {
 	@Test
 	public void executesPagingMethodToListCorrectly() {
 
-		List<User> list = userRepository.findByFirstname("Carter", new PageRequest(0, 1));
+		List<User> list = userRepository.findByFirstname("Carter", PageRequest.of(0, 1));
 		assertThat(list.size(), is(1));
 	}
 
 	@Test
 	public void executesInKeywordForPageCorrectly() {
 
-		Page<User> page = userRepository.findByFirstnameIn(new PageRequest(0, 1), "Dave", "Oliver August");
+		Page<User> page = userRepository.findByFirstnameIn(PageRequest.of(0, 1), "Dave", "Oliver August");
 
 		assertThat(page.getNumberOfElements(), is(1));
 		assertThat(page.getTotalElements(), is(2L));
@@ -170,10 +170,10 @@ public class UserRepositoryFinderTests {
 
 	@Test // DATAJPA-94
 	public void respectsPageableOrderOnQueryGenerateFromMethodName() throws Exception {
-		Page<User> ascending = userRepository.findByLastnameIgnoringCase(new PageRequest(0, 10, new Sort(ASC, "firstname")),
+		Page<User> ascending = userRepository.findByLastnameIgnoringCase(PageRequest.of(0, 10, Sort.by(ASC, "firstname")),
 				"Matthews");
 		Page<User> descending = userRepository
-				.findByLastnameIgnoringCase(new PageRequest(0, 10, new Sort(DESC, "firstname")), "Matthews");
+				.findByLastnameIgnoringCase(PageRequest.of(0, 10, Sort.by(DESC, "firstname")), "Matthews");
 		assertThat(ascending.getTotalElements(), is(2L));
 		assertThat(descending.getTotalElements(), is(2L));
 		assertThat(ascending.getContent().get(0).getFirstname(),
@@ -187,7 +187,7 @@ public class UserRepositoryFinderTests {
 	@Test // DATAJPA-486
 	public void executesQueryToSlice() {
 
-		Slice<User> slice = userRepository.findSliceByLastname("Matthews", new PageRequest(0, 1, ASC, "firstname"));
+		Slice<User> slice = userRepository.findSliceByLastname("Matthews", PageRequest.of(0, 1, ASC, "firstname"));
 
 		assertThat(slice.getContent(), hasItem(dave));
 		assertThat(slice.hasNext(), is(true));

@@ -60,7 +60,7 @@ public class QuerydslIntegrationTests {
 	@Test // DATAJPA-499
 	public void defaultOrderingShouldNotGenerateAnNullOrderingHint() {
 
-		JPQLQuery<User> result = querydsl.applySorting(new Sort(new Sort.Order("firstname")), userQuery);
+		JPQLQuery<User> result = querydsl.applySorting(Sort.by("firstname"), userQuery);
 
 		assertThat(result, is(notNullValue()));
 		assertThat(result.toString(), is(not(anyOf(containsString("nulls first"), containsString("nulls last")))));

@@ -77,7 +77,7 @@ public class MailMessageRepositoryIntegrationTests {
 		mailMessageRepository.save(message1);
 		mailMessageRepository.save(message2);
 
-		Page<MailMessage> results = mailMessageRepository.findAll(new PageRequest(0, 20, //
+		Page<MailMessage> results = mailMessageRepository.findAll(PageRequest.of(0, 20, //
 				new JpaSort(Direction.ASC, path(MailMessage_.mailSender).dot(MailSender_.name))));
 		List<MailMessage> messages = results.getContent();
 
@@ -100,8 +100,8 @@ public class MailMessageRepositoryIntegrationTests {
 		mailMessageRepository.save(message1);
 		mailMessageRepository.save(message2);
 
-		List<MailMessage> messages = mailMessageRepository
-				.findAll(message.content.eq("abc"), message.mailSender.name.asc());
+		List<MailMessage> messages = mailMessageRepository.findAll(message.content.eq("abc"),
+				message.mailSender.name.asc());
 
 		assertThat(messages, hasSize(2));
 		assertThat(messages.get(0).getMailSender(), is(nullValue()));
@@ -152,8 +152,8 @@ public class MailMessageRepositoryIntegrationTests {
 		mailMessageRepository.save(message1);
 		mailMessageRepository.save(message2);
 
-		Page<MailMessage> page = mailMessageRepository.findAll(new PageRequest(0, 10, new Sort(Sort.Direction.ASC,
-				"mailSender.mailUser.name")));
+		Page<MailMessage> page = mailMessageRepository
+				.findAll(PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "mailSender.mailUser.name")));
 
 		List<MailMessage> messages = page.getContent();
 

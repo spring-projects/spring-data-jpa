@@ -80,10 +80,12 @@ public class JpaSort extends Sort {
 		this(Collections.<Order> emptyList(), direction, paths);
 	}
 
+	@SuppressWarnings("deprecation")
 	private JpaSort(List<Order> orders, Direction direction, List<Path<?, ?>> paths) {
 		super(combine(orders, direction, paths));
 	}
 
+	@SuppressWarnings("deprecation")
 	private JpaSort(List<Order> orders) {
 		super(orders);
 	}
@@ -183,7 +185,6 @@ public class JpaSort extends Sort {
 	 * @param attribute must not be {@literal null}.
 	 * @return
 	 */
-	@SuppressWarnings("unchecked")
 	public static <A extends Attribute<T, S>, T, S> Path<T, S> path(A attribute) {
 
 		Assert.notNull(attribute, "Attribute must not be null!");
@@ -196,7 +197,6 @@ public class JpaSort extends Sort {
 	 * @param attribute must not be {@literal null}.
 	 * @return
 	 */
-	@SuppressWarnings("unchecked")
 	public static <P extends PluralAttribute<T, ?, S>, T, S> Path<T, S> path(P attribute) {
 
 		Assert.notNull(attribute, "Attribute must not be null!");
@@ -390,7 +390,7 @@ public class JpaSort extends Sort {
 				orders.add(new JpaOrder(getDirection(), property, getNullHandling(), isIgnoreCase(), this.unsafe));
 			}
 
-			return new Sort(orders);
+			return Sort.by(orders);
 		}
 
 		/*

@@ -37,23 +37,18 @@ import org.springframework.transaction.annotation.Transactional;
 @ContextConfiguration(locations = "classpath:multiple-entity-manager-integration-context.xml")
 public class EntityManagerFactoryRefTests {
 
-	@Autowired
-	UserRepository userRepository;
-
-	@Autowired
-	AuditableUserRepository auditableUserRepository;
+	@Autowired UserRepository userRepository;
+	@Autowired AuditableUserRepository auditableUserRepository;
 
 	@Test
 	@Transactional
 	public void useUserRepository() throws Exception {
-
 		userRepository.saveAndFlush(new User("firstname", "lastname", "foo@bar.de"));
 	}
 
 	@Test
 	@Transactional("transactionManager-2")
 	public void useAuditableUserRepository() throws Exception {
-
 		auditableUserRepository.saveAndFlush(new AuditableUser());
 	}
 }

@@ -147,7 +147,7 @@ public class JpaMetamodelEntityInformation<T, ID extends Serializable> extends J
 		BeanWrapper entityWrapper = new DirectFieldAccessFallbackBeanWrapper(entity);
 
 		if (idMetadata.hasSimpleId()) {
-			return  Optional.ofNullable((ID)entityWrapper.getPropertyValue(idMetadata.getSimpleIdAttribute().getName()));
+			return Optional.ofNullable((ID) entityWrapper.getPropertyValue(idMetadata.getSimpleIdAttribute().getName()));
 		}
 
 		BeanWrapper idWrapper = new IdentifierDerivingDirectFieldAccessFallbackBeanWrapper(idMetadata.getType(), metamodel);
@@ -163,7 +163,7 @@ public class JpaMetamodelEntityInformation<T, ID extends Serializable> extends J
 			idWrapper.setPropertyValue(attribute.getName(), propertyValue);
 		}
 
-		return partialIdValueFound ? Optional.ofNullable((ID)idWrapper.getWrappedInstance()) : Optional.empty();
+		return partialIdValueFound ? Optional.ofNullable((ID) idWrapper.getWrappedInstance()) : Optional.empty();
 	}
 
 	/*
@@ -211,9 +211,9 @@ public class JpaMetamodelEntityInformation<T, ID extends Serializable> extends J
 	 * @see org.springframework.data.jpa.repository.support.JpaEntityInformation#getCompositeIdAttributeValue(java.io.Serializable, java.lang.String)
 	 */
 	public Object getCompositeIdAttributeValue(Serializable id, String idAttribute) {
-		
+
 		Assert.isTrue(hasCompositeId(), "Model must have a composite Id!");
-		
+
 		return new DirectFieldAccessFallbackBeanWrapper(id).getPropertyValue(idAttribute);
 	}
 
@@ -319,9 +319,9 @@ public class JpaMetamodelEntityInformation<T, ID extends Serializable> extends J
 		/**
 		 * In addition to the functionality described in {@link BeanWrapperImpl} it is checked whether we have a nested
 		 * entity that is part of the id key. If this is the case, we need to derive the identifier of the nested entity.
-		 *
 		 */
 		@Override
+		@SuppressWarnings("unchecked")
 		public void setPropertyValue(String propertyName, Object value) {
 
 			if (!isIdentifierDerivationNecessary(value)) {
@@ -330,7 +330,7 @@ public class JpaMetamodelEntityInformation<T, ID extends Serializable> extends J
 			}
 
 			// Derive the identifier from the nested entity that is part of the composite key.
-			@SuppressWarnings({ "rawtypes", "unchecked" })
+			@SuppressWarnings("rawtypes")
 			JpaMetamodelEntityInformation nestedEntityInformation = new JpaMetamodelEntityInformation(value.getClass(),
 					this.metamodel);
 

@@ -176,7 +176,7 @@ public class ParameterBinderUnitTests {
 	@Test
 	public void bindsSortForIndexedParameters() throws Exception {
 
-		Sort sort = new Sort("name");
+		Sort sort = Sort.by("name");
 		ParameterBinder binder = new ParameterBinder(new JpaParameters(indexedParametersWithSort),
 				new Object[] { "name", sort });
 		assertThat(binder.getSort(), is(sort));

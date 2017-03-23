@@ -121,7 +121,7 @@ public class SimpleJpaQueryUnitTests {
 
 		AbstractJpaQuery jpaQuery = new SimpleJpaQuery(queryMethod, em, "select u from User u", EVALUATION_CONTEXT_PROVIDER,
 				PARSER);
-		jpaQuery.createCountQuery(new Object[] { new PageRequest(1, 10) });
+		jpaQuery.createCountQuery(new Object[] { PageRequest.of(1, 10) });
 
 		verify(query, times(0)).setFirstResult(anyInt());
 		verify(query, times(0)).setMaxResults(anyInt());
@@ -207,7 +207,7 @@ public class SimpleJpaQueryUnitTests {
 		AbstractJpaQuery jpaQuery = createJpaQuery(
 				UserRepository.class.getMethod("findUsersInNativeQueryWithPagination", Pageable.class));
 
-		jpaQuery.doCreateCountQuery(new Object[] { new PageRequest(0, 10) });
+		jpaQuery.doCreateCountQuery(new Object[] { PageRequest.of(0, 10) });
 
 		verify(em).createNativeQuery(anyString());
 	}

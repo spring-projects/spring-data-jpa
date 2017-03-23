@@ -58,7 +58,7 @@ public abstract class DefaultTransactionDisablingIntegrationTests {
 	@Test // DATAJPA-685
 	public void doesNotUseDefaultTransactionsOnNonRedeclaredMethod() {
 
-		repository.findAll(new PageRequest(0, 10));
+		repository.findAll(PageRequest.of(0, 10));
 
 		assertThat(txManager.getDefinition(), is(nullValue()));
 	}

@@ -132,7 +132,7 @@ public class RepositoryWithCompositeKeyTests {
 		emp.setDepartment(dep);
 		emp = employeeRepositoryWithIdClass.save(emp);
 
-		Page<IdClassExampleEmployee> page = employeeRepositoryWithIdClass.findAll(new PageRequest(0, 1));
+		Page<IdClassExampleEmployee> page = employeeRepositoryWithIdClass.findAll(PageRequest.of(0, 1));
 
 		assertThat(page, is(notNullValue()));
 		assertThat(page.getTotalElements(), is(1L));

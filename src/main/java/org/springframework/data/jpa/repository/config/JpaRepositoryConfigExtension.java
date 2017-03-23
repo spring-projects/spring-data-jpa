@@ -99,7 +99,6 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 	 * @see org.springframework.data.repository.config.RepositoryConfigurationExtensionSupport#getIdentifyingAnnotations()
 	 */
 	@Override
-	@SuppressWarnings("unchecked")
 	protected Collection<Class<? extends Annotation>> getIdentifyingAnnotations() {
 		return Arrays.asList(Entity.class, MappedSuperclass.class);
 	}

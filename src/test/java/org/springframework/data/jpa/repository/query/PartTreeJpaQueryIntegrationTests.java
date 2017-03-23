@@ -81,8 +81,8 @@ public class PartTreeJpaQueryIntegrationTests {
 		JpaQueryMethod queryMethod = getQueryMethod("findByFirstname", String.class, Pageable.class);
 		PartTreeJpaQuery jpaQuery = new PartTreeJpaQuery(queryMethod, entityManager, provider);
 
-		jpaQuery.createQuery(new Object[] { "Matthews", new PageRequest(0, 1) });
-		jpaQuery.createQuery(new Object[] { "Matthews", new PageRequest(0, 1) });
+		jpaQuery.createQuery(new Object[] { "Matthews", PageRequest.of(0, 1) });
+		jpaQuery.createQuery(new Object[] { "Matthews", PageRequest.of(0, 1) });
 	}
 
 	@Test
@@ -105,11 +105,11 @@ public class PartTreeJpaQueryIntegrationTests {
 		JpaQueryMethod queryMethod = getQueryMethod("findByFirstname", String.class, Pageable.class);
 		PartTreeJpaQuery jpaQuery = new PartTreeJpaQuery(queryMethod, entityManager, provider);
 
-		Query query = jpaQuery.createQuery(new Object[] { "Matthews", new PageRequest(0, 1) });
+		Query query = jpaQuery.createQuery(new Object[] { "Matthews", PageRequest.of(0, 1) });
 
 		assertThat(HibernateUtils.getHibernateQuery(getValue(query, PROPERTY)), endsWith("firstname=:param0"));
 
-		query = jpaQuery.createQuery(new Object[] { null, new PageRequest(0, 1) });
+		query = jpaQuery.createQuery(new Object[] { null, PageRequest.of(0, 1) });
 
 		assertThat(HibernateUtils.getHibernateQuery(getValue(query, PROPERTY)), endsWith("firstname is null"));
 	}

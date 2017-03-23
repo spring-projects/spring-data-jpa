@@ -227,7 +227,7 @@ public class UserRepositoryTests {
 	public void returnsAllSortedCorrectly() throws Exception {
 
 		flushTestUsers();
-		List<User> result = repository.findAll(new Sort(ASC, "lastname"));
+		List<User> result = repository.findAll(Sort.by(ASC, "lastname"));
 		assertThat(result, is(notNullValue()));
 		assertThat(result.size(), is(4));
 		assertThat(result.get(0), is(secondUser));
@@ -242,7 +242,7 @@ public class UserRepositoryTests {
 		flushTestUsers();
 
 		Order order = new Order(ASC, "firstname").ignoreCase();
-		List<User> result = repository.findAll(new Sort(order));
+		List<User> result = repository.findAll(Sort.by(order));
 
 		assertThat(result, is(notNullValue()));
 		assertThat(result.size(), is(4));
@@ -508,7 +508,7 @@ public class UserRepositoryTests {
 		flushTestUsers();
 		Specification<User> spec = where(userHasFirstname("Oliver")).or(userHasLastname("Arrasz"));
 
-		Page<User> users = repository.findAll(spec, new PageRequest(0, 1));
+		Page<User> users = repository.findAll(spec, PageRequest.of(0, 1));
 		assertThat(users.getSize(), is(1));
 		assertThat(users.hasPrevious(), is(false));
 		assertThat(users.getTotalElements(), is(2L));
@@ -584,7 +584,7 @@ public class UserRepositoryTests {
 	@Test
 	public void returnsSamePageIfNoSpecGiven() throws Exception {
 
-		Pageable pageable = new PageRequest(0, 1);
+		Pageable pageable = PageRequest.of(0, 1);
 
 		flushTestUsers();
 		assertThat(repository.findAll((Specification<User>) null, pageable), is(repository.findAll(pageable)));
@@ -619,7 +619,7 @@ public class UserRepositoryTests {
 	@Test
 	public void executesPagedSpecificationsWithSortCorrectly() throws Exception {
 
-		Page<User> result = executeSpecWithSort(new Sort(Direction.ASC, "lastname"));
+		Page<User> result = executeSpecWithSort(Sort.by(Direction.ASC, "lastname"));
 
 		assertThat(result.getContent(), hasItem(firstUser));
 		assertThat(result.getContent(), not(hasItem(secondUser)));
@@ -629,7 +629,7 @@ public class UserRepositoryTests {
 	@Test
 	public void executesPagedSpecificationWithSortCorrectly2() throws Exception {
 
-		Page<User> result = executeSpecWithSort(new Sort(Direction.DESC, "lastname"));
+		Page<User> result = executeSpecWithSort(Sort.by(Direction.DESC, "lastname"));
 
 		assertThat(result.getContent(), hasItem(thirdUser));
 		assertThat(result.getContent(), not(hasItem(secondUser)));
@@ -701,7 +701,7 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		List<User> result = repository.findByEmailAddressLike("%@%", new Sort(Direction.ASC, "lastname"));
+		List<User> result = repository.findByEmailAddressLike("%@%", Sort.by(Direction.ASC, "lastname"));
 
 		assertThat(result.size(), is(4));
 		assertThat(result.get(0), is(secondUser));
@@ -725,7 +725,7 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		Page<String> result = repository.findByLastnameGrouped(new PageRequest(0, 10));
+		Page<String> result = repository.findByLastnameGrouped(PageRequest.of(0, 10));
 		assertThat(result.getTotalPages(), is(1));
 	}
 
@@ -942,7 +942,7 @@ public class UserRepositoryTests {
 		firstUser.setManager(thirdUser);
 		repository.save(firstUser);
 
-		Page<User> all = repository.findAll(new PageRequest(0, 10, new Sort("manager.id")));
+		Page<User> all = repository.findAll(PageRequest.of(0, 10, Sort.by("manager.id")));
 
 		assertThat(all.getContent().isEmpty(), is(false));
 	}
@@ -953,7 +953,7 @@ public class UserRepositoryTests {
 		flushTestUsers();
 
 		// Managers not set, make sure adding the sort does not rule out those Users
-		Page<User> result = repository.findAllPaged(new PageRequest(0, 10, new Sort("manager.lastname")));
+		Page<User> result = repository.findAllPaged(PageRequest.of(0, 10, Sort.by("manager.lastname")));
 		assertThat(result.getContent(), hasSize((int) repository.count()));
 	}
 
@@ -966,7 +966,7 @@ public class UserRepositoryTests {
 			public Predicate toPredicate(Root<User> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
 				return cb.equal(root.get("lastname"), "Gierke");
 			}
-		}, new PageRequest(0, 20, new Sort("manager.lastname")));
+		}, PageRequest.of(0, 20, Sort.by("manager.lastname")));
 
 		assertThat(page.getNumberOfElements(), is(1));
 		assertThat(page, hasItem(firstUser));
@@ -982,7 +982,7 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		Page<User> pages = repository.findAll(new PageRequest(0, 4, new Sort(Sort.Direction.ASC, "manager.firstname")));
+		Page<User> pages = repository.findAll(PageRequest.of(0, 4, Sort.by(Sort.Direction.ASC, "manager.firstname")));
 		assertThat(pages.getSize(), is(4));
 		assertThat(pages.getContent().get(0).getManager(), is(nullValue()));
 		assertThat(pages.getContent().get(1).getManager(), is(nullValue()));
@@ -1106,7 +1106,7 @@ public class UserRepositoryTests {
 		fourthUser.getColleagues().add(thirdUser);
 		flushTestUsers();
 
-		List<User> result = repository.findAll(new Sort(Sort.Direction.ASC, "colleagues.id"));
+		List<User> result = repository.findAll(Sort.by(Sort.Direction.ASC, "colleagues.id"));
 
 		assertThat(result, hasSize(4));
 	}
@@ -1118,7 +1118,7 @@ public class UserRepositoryTests {
 		fourthUser.getColleagues().add(thirdUser);
 		flushTestUsers();
 
-		Page<User> page = repository.findAll(new PageRequest(0, 10, new Sort(Sort.Direction.ASC, "colleagues.id")));
+		Page<User> page = repository.findAll(PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "colleagues.id")));
 
 		assertThat(page.getContent(), hasSize(4));
 	}
@@ -1129,7 +1129,7 @@ public class UserRepositoryTests {
 		thirdUser.setAddress(new Address("Germany", "Saarbrücken", "HaveItYourWay", "123"));
 		flushTestUsers();
 
-		Page<User> page = repository.findAll(new PageRequest(0, 10, new Sort(Sort.Direction.ASC, "address.streetName")));
+		Page<User> page = repository.findAll(PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "address.streetName")));
 
 		assertThat(page.getContent(), hasSize(4));
 		assertThat(page.getContent().get(3), is(thirdUser));
@@ -1245,8 +1245,8 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		Page<User> page = repository.findAll(new PageRequest(0, 10, //
-				new Sort(Sort.Direction.ASC, "manager.manager.firstname")));
+		Page<User> page = repository.findAll(PageRequest.of(0, 10, //
+				Sort.by(Sort.Direction.ASC, "manager.manager.firstname")));
 
 		assertThat(page.getContent(), hasSize(4));
 		assertThat(page.getContent().get(3), is(firstUser));
@@ -1260,8 +1260,8 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		Page<User> page = repository.findAll(new PageRequest(0, 10, //
-				new Sort(new Sort.Order(Direction.ASC, "manager.manager.firstname").ignoreCase())));
+		Page<User> page = repository.findAll(PageRequest.of(0, 10, //
+				Sort.by(new Sort.Order(Direction.ASC, "manager.manager.firstname").ignoreCase())));
 
 		assertThat(page.getContent(), hasSize(4));
 		assertThat(page.getContent().get(3), is(firstUser));
@@ -1363,7 +1363,7 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		Page<User> result = repository.findAllByFirstnameLike("", new PageRequest(0, 10));
+		Page<User> result = repository.findAllByFirstnameLike("", PageRequest.of(0, 10));
 
 		assertThat(result.getContent().size(), is(3));
 	}
@@ -1373,7 +1373,7 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		Page<User> result = repository.findByNamedQueryAndCountProjection("Gierke", new PageRequest(0, 10));
+		Page<User> result = repository.findByNamedQueryAndCountProjection("Gierke", PageRequest.of(0, 10));
 
 		assertThat(result.getContent().size(), is(1));
 	}
@@ -1420,8 +1420,8 @@ public class UserRepositoryTests {
 		User youngest1 = firstUser;
 		User youngest2 = fourthUser;
 
-		assertThat(repository.findFirst2UsersBy(new Sort(ASC, "age")), hasItems(youngest1, youngest2));
-		assertThat(repository.findTop2UsersBy(new Sort(ASC, "age")), hasItems(youngest1, youngest2));
+		assertThat(repository.findFirst2UsersBy(Sort.by(ASC, "age")), hasItems(youngest1, youngest2));
+		assertThat(repository.findTop2UsersBy(Sort.by(ASC, "age")), hasItems(youngest1, youngest2));
 	}
 
 	@Test // DATAJPA-551
@@ -1433,10 +1433,10 @@ public class UserRepositoryTests {
 		User youngest2 = fourthUser;
 		User youngest3 = secondUser;
 
-		Page<User> firstPage = repository.findFirst3UsersBy(new PageRequest(0, 2, ASC, "age"));
+		Page<User> firstPage = repository.findFirst3UsersBy(PageRequest.of(0, 2, ASC, "age"));
 		assertThat(firstPage.getContent(), hasItems(youngest1, youngest2));
 
-		Page<User> secondPage = repository.findFirst3UsersBy(new PageRequest(1, 2, ASC, "age"));
+		Page<User> secondPage = repository.findFirst3UsersBy(PageRequest.of(1, 2, ASC, "age"));
 		assertThat(secondPage.getContent(), hasItems(youngest3));
 	}
 
@@ -1449,10 +1449,10 @@ public class UserRepositoryTests {
 		User youngest2 = fourthUser;
 		User youngest3 = secondUser;
 
-		Page<User> firstPage = repository.findFirst2UsersBy(new PageRequest(0, 3, ASC, "age"));
+		Page<User> firstPage = repository.findFirst2UsersBy(PageRequest.of(0, 3, ASC, "age"));
 		assertThat(firstPage.getContent(), hasItems(youngest1, youngest2));
 
-		Page<User> secondPage = repository.findFirst2UsersBy(new PageRequest(1, 3, ASC, "age"));
+		Page<User> secondPage = repository.findFirst2UsersBy(PageRequest.of(1, 3, ASC, "age"));
 		assertThat(secondPage.getContent(), hasItems(youngest3));
 	}
 
@@ -1465,10 +1465,10 @@ public class UserRepositoryTests {
 		User youngest2 = fourthUser;
 		User youngest3 = secondUser;
 
-		Slice<User> firstPage = repository.findTop3UsersBy(new PageRequest(0, 2, ASC, "age"));
+		Slice<User> firstPage = repository.findTop3UsersBy(PageRequest.of(0, 2, ASC, "age"));
 		assertThat(firstPage.getContent(), hasItems(youngest1, youngest2));
 
-		Slice<User> secondPage = repository.findTop3UsersBy(new PageRequest(1, 2, ASC, "age"));
+		Slice<User> secondPage = repository.findTop3UsersBy(PageRequest.of(1, 2, ASC, "age"));
 		assertThat(secondPage.getContent(), hasItems(youngest3));
 	}
 
@@ -1481,10 +1481,10 @@ public class UserRepositoryTests {
 		User youngest2 = fourthUser;
 		User youngest3 = secondUser;
 
-		Slice<User> firstPage = repository.findTop2UsersBy(new PageRequest(0, 3, ASC, "age"));
+		Slice<User> firstPage = repository.findTop2UsersBy(PageRequest.of(0, 3, ASC, "age"));
 		assertThat(firstPage.getContent(), hasItems(youngest1, youngest2));
 
-		Slice<User> secondPage = repository.findTop2UsersBy(new PageRequest(1, 3, ASC, "age"));
+		Slice<User> secondPage = repository.findTop2UsersBy(PageRequest.of(1, 3, ASC, "age"));
 		assertThat(secondPage.getContent(), hasItems(youngest3));
 	}
 
@@ -1493,11 +1493,11 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		Page<User> firstPage = repository.findAll(new PageRequest(0, 10));
+		Page<User> firstPage = repository.findAll(PageRequest.of(0, 10));
 		assertThat(firstPage.getContent(), hasSize(4));
 		assertThat(firstPage.getTotalElements(), is(4L));
 
-		Page<User> secondPage = repository.findAll(new PageRequest(1, 3));
+		Page<User> secondPage = repository.findAll(PageRequest.of(1, 3));
 		assertThat(secondPage.getContent(), hasSize(1));
 		assertThat(secondPage.getTotalElements(), is(4L));
 	}
@@ -1507,11 +1507,11 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		Page<User> firstPage = repository.findAll(new PageRequest(0, 4));
+		Page<User> firstPage = repository.findAll(PageRequest.of(0, 4));
 		assertThat(firstPage.getContent(), hasSize(4));
 		assertThat(firstPage.getTotalElements(), is(4L));
 
-		Page<User> secondPage = repository.findAll(new PageRequest(10, 10));
+		Page<User> secondPage = repository.findAll(PageRequest.of(10, 10));
 		assertThat(secondPage.getContent(), hasSize(0));
 		assertThat(secondPage.getTotalElements(), is(4L));
 	}
@@ -1642,13 +1642,13 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		Page<User> users = repository.findUsersInNativeQueryWithPagination(new PageRequest(0, 2));
+		Page<User> users = repository.findUsersInNativeQueryWithPagination(PageRequest.of(0, 2));
 
 		assertThat(users.getContent(), hasSize(2));
 		assertThat(users.getContent().get(0), is(firstUser));
 		assertThat(users.getContent().get(1), is(secondUser));
 
-		users = repository.findUsersInNativeQueryWithPagination(new PageRequest(1, 2));
+		users = repository.findUsersInNativeQueryWithPagination(PageRequest.of(1, 2));
 
 		assertThat(users.getContent(), hasSize(2));
 		assertThat(users.getContent().get(0), is(thirdUser));
@@ -1760,7 +1760,7 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		Stream<User> stream = repository.streamAllPaged(new PageRequest(0, 2));
+		Stream<User> stream = repository.streamAllPaged(PageRequest.of(0, 2));
 
 		final List<User> users = new ArrayList<User>();
 
@@ -2015,7 +2015,7 @@ public class UserRepositoryTests {
 		Example<User> example = Example.of(prototype, matching().withIgnoreCase().withIgnorePaths("age", "createdAt")
 				.withStringMatcher(StringMatcher.STARTING).withIgnoreCase());
 
-		List<User> users = repository.findAll(example, new Sort(DESC, "age"));
+		List<User> users = repository.findAll(example, Sort.by(DESC, "age"));
 
 		assertThat(users, hasSize(2));
 		assertThat(users.get(0), is(user1));
@@ -2040,7 +2040,7 @@ public class UserRepositoryTests {
 		Example<User> example = Example.of(prototype, matching().withIgnoreCase().withIgnorePaths("age", "createdAt")
 				.withStringMatcher(StringMatcher.STARTING).withIgnoreCase());
 
-		Page<User> users = repository.findAll(example, new PageRequest(0, 10, new Sort(DESC, "age")));
+		Page<User> users = repository.findAll(example, PageRequest.of(0, 10, Sort.by(DESC, "age")));
 
 		assertThat(users.getSize(), is(10));
 		assertThat(users.hasNext(), is(true));
@@ -2060,7 +2060,7 @@ public class UserRepositoryTests {
 		Example<User> example = Example.of(user1, matching().withIgnoreCase().withIgnorePaths("age", "createdAt")
 				.withStringMatcher(StringMatcher.STARTING).withIgnoreCase());
 
-		repository.findAll(example, new PageRequest(0, 10, new Sort(DESC, "age")));
+		repository.findAll(example, PageRequest.of(0, 10, Sort.by(DESC, "age")));
 	}
 
 	@Test(expected = InvalidDataAccessApiUsageException.class) // DATAJPA-218
@@ -2080,7 +2080,7 @@ public class UserRepositoryTests {
 		Example<User> example = Example.of(user1, matching().withIgnoreCase().withIgnorePaths("age", "createdAt")
 				.withStringMatcher(StringMatcher.STARTING).withIgnoreCase());
 
-		repository.findAll(example, new PageRequest(0, 10, new Sort(DESC, "age")));
+		repository.findAll(example, PageRequest.of(0, 10, Sort.by(DESC, "age")));
 	}
 
 	@Test // DATAJPA-218
@@ -2130,7 +2130,7 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		Page<User> result = repository.findAll(where(userHasLastnameLikeWithSort("e")), new PageRequest(0, 1));
+		Page<User> result = repository.findAll(where(userHasLastnameLikeWithSort("e")), PageRequest.of(0, 1));
 
 		assertThat(result.getTotalElements(), is(2L));
 		assertThat(result.getNumberOfElements(), is(1));
@@ -2143,7 +2143,7 @@ public class UserRepositoryTests {
 
 		Specification<User> spec = where(userHasFirstname("Oliver")).or(userHasLastname("Matthews"));
 
-		Page<User> result = repository.findAll(spec, new PageRequest(0, 1, sort));
+		Page<User> result = repository.findAll(spec, PageRequest.of(0, 1, sort));
 		assertThat(result.getTotalElements(), is(2L));
 		return result;
 	}

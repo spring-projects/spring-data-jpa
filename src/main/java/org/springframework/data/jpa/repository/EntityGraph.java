@@ -21,8 +21,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import javax.persistence.NamedAttributeNode;
-
 import org.springframework.data.jpa.repository.query.JpaQueryMethod;
 
 /**
