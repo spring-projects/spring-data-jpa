@@ -33,7 +33,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Integration test for {@link QueryDslRepositorySupport}.
+ * Integration test for {@link QuerydslRepositorySupport}.
  * 
  * @author Oliver Gierke
  * @author Thomas Darimont
@@ -41,7 +41,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({ "classpath:infrastructure.xml" })
 @Transactional
-public class QueryDslRepositorySupportTests {
+public class QuerydslRepositorySupportTests {
 
 	@PersistenceContext EntityManager em;
 
@@ -123,7 +123,7 @@ public class QueryDslRepositorySupportTests {
 		long deleteAllWithLastname(String lastname);
 	}
 
-	static class UserRepositoryImpl extends QueryDslRepositorySupport implements UserRepository {
+	static class UserRepositoryImpl extends QuerydslRepositorySupport implements UserRepository {
 
 		private static final QUser user = QUser.user;
 

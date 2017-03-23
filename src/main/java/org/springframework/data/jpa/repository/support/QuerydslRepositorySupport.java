@@ -38,7 +38,7 @@ import com.querydsl.jpa.impl.JPAUpdateClause;
  * @author Mark Paluch
  */
 @Repository
-public abstract class QueryDslRepositorySupport {
+public abstract class QuerydslRepositorySupport {
 
 	private final PathBuilder<?> builder;
 
@@ -46,11 +46,11 @@ public abstract class QueryDslRepositorySupport {
 	private Querydsl querydsl;
 
 	/**
-	 * Creates a new {@link QueryDslRepositorySupport} instance for the given domain type.
+	 * Creates a new {@link QuerydslRepositorySupport} instance for the given domain type.
 	 * 
 	 * @param domainClass must not be {@literal null}.
 	 */
-	public QueryDslRepositorySupport(Class<?> domainClass) {
+	public QuerydslRepositorySupport(Class<?> domainClass) {
 
 		Assert.notNull(domainClass, "Domain class must not be null!");
 		this.builder = new PathBuilderFactory().create(domainClass);
