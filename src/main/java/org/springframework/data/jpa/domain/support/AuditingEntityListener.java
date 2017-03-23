@@ -18,8 +18,6 @@ package org.springframework.data.jpa.domain.support;
 import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 
-import java.util.Optional;
-
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.data.auditing.AuditingHandler;
@@ -83,7 +81,7 @@ public class AuditingEntityListener {
 	@PrePersist
 	public void touchForCreate(Object target) {
 		if (handler != null) {
-			handler.getObject().markCreated(Optional.ofNullable(target));
+			handler.getObject().markCreated(target);
 		}
 	}
 
@@ -96,7 +94,7 @@ public class AuditingEntityListener {
 	@PreUpdate
 	public void touchForUpdate(Object target) {
 		if (handler != null) {
-			handler.getObject().markModified(Optional.ofNullable(target));
+			handler.getObject().markModified(target);
 		}
 	}
 }
