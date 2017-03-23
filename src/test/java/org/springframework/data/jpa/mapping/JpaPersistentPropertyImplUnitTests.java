@@ -15,8 +15,9 @@
  */
 package org.springframework.data.jpa.mapping;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.*;
 
 import java.util.Collections;
@@ -155,6 +156,15 @@ public class JpaPersistentPropertyImplUnitTests {
 		doReturn(Collections.singleton(managedType)).when(model).getManagedTypes();
 
 		assertThat(getProperty(Sample.class, "other").isEntity(), is(false));
+	}
+
+	@Test // DATAJPA-1064
+	public void simplePropertyIsNotConsideredAnAssociation() {
+
+		JpaPersistentEntityImpl<?> entity = context.getRequiredPersistentEntity(WithReadOnly.class);
+		JpaPersistentProperty property = entity.getRequiredPersistentProperty("updatable");
+
+		assertThat(property.isAssociation()).isFalse();
 	}
 
 	private JpaPersistentProperty getProperty(Class<?> ownerType, String propertyName) {
