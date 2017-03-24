@@ -77,11 +77,12 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 		return "JPA";
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.config14.RepositoryConfigurationExtension#getRepositoryInterface()
+	 * @see org.springframework.data.repository.config.RepositoryConfigurationExtension#getRepositoryFactoryBeanClassName()
 	 */
-	public String getRepositoryFactoryClassName() {
+	@Override
+	public String getRepositoryFactoryBeanClassName() {
 		return JpaRepositoryFactoryBean.class.getName();
 	}
 
