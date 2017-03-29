@@ -70,6 +70,7 @@ import org.springframework.util.StringUtils;
  * @author Komi Innocent
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Sébastien Péralta
  */
 public abstract class QueryUtils {
 
@@ -480,11 +481,11 @@ public abstract class QueryUtils {
 	 * Turns the given {@link Sort} into {@link javax.persistence.criteria.Order}s.
 	 * 
 	 * @param sort the {@link Sort} instance to be transformed into JPA {@link javax.persistence.criteria.Order}s.
-	 * @param root must not be {@literal null}.
+	 * @param from must not be {@literal null}.
 	 * @param cb must not be {@literal null}.
 	 * @return
 	 */
-	public static List<javax.persistence.criteria.Order> toOrders(Sort sort, Root<?> root, CriteriaBuilder cb) {
+	public static List<javax.persistence.criteria.Order> toOrders(Sort sort, From<?,?> from, CriteriaBuilder cb) {
 
 		List<javax.persistence.criteria.Order> orders = new ArrayList<javax.persistence.criteria.Order>();
 
@@ -492,11 +493,11 @@ public abstract class QueryUtils {
 			return orders;
 		}
 
-		Assert.notNull(root, "Root must not be null!");
+		Assert.notNull(from, "From must not be null!");
 		Assert.notNull(cb, "CriteriaBuilder must not be null!");
 
 		for (org.springframework.data.domain.Sort.Order order : sort) {
-			orders.add(toJpaOrder(order, root, cb));
+			orders.add(toJpaOrder(order, from, cb));
 		}
 
 		return orders;
@@ -535,15 +536,15 @@ public abstract class QueryUtils {
 	 * Creates a criteria API {@link javax.persistence.criteria.Order} from the given {@link Order}.
 	 * 
 	 * @param order the order to transform into a JPA {@link javax.persistence.criteria.Order}
-	 * @param root the {@link Root} the {@link Order} expression is based on
+	 * @param from the {@link From} the {@link Order} expression is based on
 	 * @param cb the {@link CriteriaBuilder} to build the {@link javax.persistence.criteria.Order} with
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
-	private static javax.persistence.criteria.Order toJpaOrder(Order order, Root<?> root, CriteriaBuilder cb) {
+	private static javax.persistence.criteria.Order toJpaOrder(Order order, From<?,?> from, CriteriaBuilder cb) {
 
-		PropertyPath property = PropertyPath.from(order.getProperty(), root.getJavaType());
-		Expression<?> expression = toExpressionRecursively(root, property);
+		PropertyPath property = PropertyPath.from(order.getProperty(), from.getJavaType());
+		Expression<?> expression = toExpressionRecursively(from, property);
 
 		if (order.isIgnoreCase() && String.class.equals(expression.getJavaType())) {
 			Expression<String> lower = cb.lower((Expression<String>) expression);
