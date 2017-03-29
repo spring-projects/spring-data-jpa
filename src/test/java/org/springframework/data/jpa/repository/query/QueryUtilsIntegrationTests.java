@@ -33,6 +33,7 @@ import javax.persistence.Persistence;
 import javax.persistence.PersistenceContext;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Join;
 import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Root;
 import javax.persistence.spi.PersistenceProvider;
@@ -42,6 +43,8 @@ import javax.persistence.spi.PersistenceProviderResolverHolder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.jpa.domain.sample.Category;
 import org.springframework.data.jpa.domain.sample.Order;
 import org.springframework.data.jpa.domain.sample.User;
@@ -54,6 +57,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * Integration tests for {@link QueryUtils}.
  * 
  * @author Oliver Gierke
+ * @author Sébastien Péralta
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("classpath:infrastructure.xml")
@@ -149,6 +153,20 @@ public class QueryUtilsIntegrationTests {
 
 		verify(mock, times(1)).get("product");
 		verify(mock, times(0)).join(Mockito.eq("product"), Mockito.any(JoinType.class));
+	}
+
+	@Test // DATAJPA-1080
+	public void sortByJoinColumn() {
+		CriteriaBuilder builder = em.getCriteriaBuilder();
+		CriteriaQuery<User> query = builder.createQuery(User.class);
+		Root<User> root = query.from(User.class);
+		Join<User, User> join = root.join("manager", JoinType.LEFT);
+
+		Sort sort = new Sort(Direction.ASC, "age");
+
+		List<javax.persistence.criteria.Order> orders = QueryUtils.toOrders(sort, join, builder);
+
+		assertThat(orders, hasSize(1));
 	}
 
 	@Entity
