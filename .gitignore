@@ -7,3 +7,5 @@ target/
 .springBeans
 .sonar4clipse
 *.sonar4clipseExternals
+.idea/
+*.iml
