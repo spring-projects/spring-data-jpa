@@ -50,26 +50,6 @@ public class PersistenceProviderUnitTests {
 		this.shadowingClassLoader = new ShadowingClassLoader(getClass().getClassLoader());
 	}
 
-	@Test // DATAJPA-444
-	public void detectsHibernatePersistenceProviderForHibernateVersionLessThan4Dot3() throws Exception {
-
-		shadowingClassLoader.excludePackage("org.hibernate");
-
-		EntityManager em = mockProviderSpecificEntityManagerInterface(HIBERNATE_ENTITY_MANAGER_INTERFACE);
-
-		assertThat(fromEntityManager(em), is(HIBERNATE));
-	}
-
-	@Test // DATAJPA-444
-	public void detectsHibernatePersistenceProviderForHibernateVersionGreaterEqual4dot3() throws Exception {
-
-		shadowingClassLoader.excludePackage("org.hibernate");
-
-		EntityManager em = mockProviderSpecificEntityManagerInterface(HIBERNATE43_ENTITY_MANAGER_INTERFACE);
-
-		assertThat(fromEntityManager(em), is(HIBERNATE));
-	}
-
 	@Test
 	public void detectsOpenJpaPersistenceProvider() throws Exception {
 
@@ -105,7 +85,7 @@ public class PersistenceProviderUnitTests {
 
 		shadowingClassLoader.excludePackage("org.hibernate");
 
-		EntityManager em = mockProviderSpecificEntityManagerInterface(HIBERNATE52_ENTITY_MANAGER_INTERFACE);
+		EntityManager em = mockProviderSpecificEntityManagerInterface(HIBERNATE_ENTITY_MANAGER_INTERFACE);
 
 		assertThat(fromEntityManager(em), is(HIBERNATE));
 	}

@@ -22,8 +22,7 @@
 		<dist.key>DATAJPA</dist.key>
 
 		<eclipselink>2.6.2</eclipselink>
-		<hibernate>4.3.11.Final</hibernate>
-		<hibernate.artifact>hibernate-entitymanager</hibernate.artifact>
+		<hibernate>5.2.9.Final</hibernate>
 		<hsqldb1>1.8.0.10</hsqldb1>
 		<jpa>2.0.0</jpa>
 		<openjpa>2.4.1</openjpa>
@@ -35,65 +34,9 @@
 
 	<profiles>
 		<profile>
-			<id>hibernate-43-next</id>
-			<properties>
-				<hibernate>4.3.12-SNAPSHOT</hibernate>
-			</properties>
-			<repositories>
-				<repository>
-					<id>jboss</id>
-					<url>https://repository.jboss.org/nexus/content/repositories/public</url>
-				</repository>
-			</repositories>
-		</profile>
-		<profile>
-			<id>hibernate-5</id>
-			<properties>
-				<hibernate>5.0.10.Final</hibernate>
-			</properties>
-		</profile>
-		<profile>
-			<id>hibernate-5-next</id>
-			<properties>
-				<hibernate>5.0.11-SNAPSHOTS</hibernate>
-			</properties>
-			<repositories>
-				<repository>
-					<id>jboss</id>
-					<url>https://repository.jboss.org/nexus/content/repositories/public</url>
-				</repository>
-			</repositories>
-		</profile>
-		<profile>
-			<id>hibernate-51</id>
-			<properties>
-				<hibernate>5.1.1.Final</hibernate>
-			</properties>
-		</profile>
-		<profile>
-			<id>hibernate-51-next</id>
-			<properties>
-				<hibernate>5.1.2-SNAPSHOT</hibernate>
-			</properties>
-			<repositories>
-				<repository>
-					<id>jboss</id>
-					<url>https://repository.jboss.org/nexus/content/repositories/public</url>
-				</repository>
-			</repositories>
-		</profile>
-		<profile>
-			<id>hibernate-52</id>
-			<properties>
-				<hibernate>5.2.7.Final</hibernate>
-				<hibernate.artifact>hibernate-core</hibernate.artifact>
-			</properties>
-		</profile>
-		<profile>
 			<id>hibernate-52-next</id>
 			<properties>
-				<hibernate>5.2.8-SNAPSHOT</hibernate>
-				<hibernate.artifact>hibernate-core</hibernate.artifact>
+				<hibernate>5.2.10-SNAPSHOT</hibernate>
 			</properties>
 			<repositories>
 				<repository>
@@ -241,7 +184,7 @@
 
 		<dependency>
 			<groupId>org.hibernate</groupId>
-			<artifactId>${hibernate.artifact}</artifactId>
+			<artifactId>hibernate-core</artifactId>
 			<version>${hibernate}</version>
 			<optional>true</optional>
 		</dependency>

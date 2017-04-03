@@ -18,7 +18,6 @@ package org.springframework.data.jpa.provider;
 import static org.springframework.data.jpa.provider.JpaClassUtils.*;
 import static org.springframework.data.jpa.provider.PersistenceProvider.Constants.*;
 
-import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -44,9 +43,7 @@ import org.hibernate.proxy.HibernateProxy;
 import org.springframework.data.util.CloseableIterator;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
 import org.springframework.util.ConcurrentReferenceHashMap;
-import org.springframework.util.ReflectionUtils;
 
 /**
  * Enumeration representing persistence providers to be used.
@@ -65,9 +62,8 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 	 * @see <a href="https://jira.spring.io/browse/DATAJPA-444">DATAJPA-444</a>
 	 */
 	HIBERNATE(//
-			Arrays.asList(HIBERNATE52_ENTITY_MANAGER_INTERFACE, HIBERNATE43_ENTITY_MANAGER_INTERFACE,
-					HIBERNATE_ENTITY_MANAGER_INTERFACE), //
-			Arrays.asList(HIBERNATE52_JPA_METAMODEL_TYPE, HIBERNATE43_JPA_METAMODEL_TYPE, HIBERNATE_JPA_METAMODEL_TYPE)) {
+			Arrays.asList(HIBERNATE_ENTITY_MANAGER_INTERFACE), //
+			Arrays.asList(HIBERNATE_JPA_METAMODEL_TYPE)) {
 
 		public String extractQueryString(Query query) {
 			return HibernateUtils.getHibernateQuery(query);
@@ -261,13 +257,11 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 		String GENERIC_JPA_ENTITY_MANAGER_INTERFACE = "javax.persistence.EntityManager";
 		String OPENJPA_ENTITY_MANAGER_INTERFACE = "org.apache.openjpa.persistence.OpenJPAEntityManager";
 		String ECLIPSELINK_ENTITY_MANAGER_INTERFACE = "org.eclipse.persistence.jpa.JpaEntityManager";
-		String HIBERNATE_ENTITY_MANAGER_INTERFACE = "org.hibernate.ejb.HibernateEntityManager";
-		String HIBERNATE43_ENTITY_MANAGER_INTERFACE = "org.hibernate.jpa.HibernateEntityManager";
-		String HIBERNATE52_ENTITY_MANAGER_INTERFACE = "org.hibernate.Session";
+		String HIBERNATE_SESSION_INTERFACE = "org.hibernate.Session";
+		// needed as Spring only exposes that interface via the EM proxy
+		String HIBERNATE_ENTITY_MANAGER_INTERFACE = "org.hibernate.jpa.HibernateEntityManager";
 
-		String HIBERNATE_JPA_METAMODEL_TYPE = "org.hibernate.ejb.metamodel.MetamodelImpl";
-		String HIBERNATE43_JPA_METAMODEL_TYPE = "org.hibernate.jpa.internal.metamodel.MetamodelImpl";
-		String HIBERNATE52_JPA_METAMODEL_TYPE = "org.hibernate.metamodel.internal.MetamodelImpl";
+		String HIBERNATE_JPA_METAMODEL_TYPE = "org.hibernate.metamodel.internal.MetamodelImpl";
 		String ECLIPSELINK_JPA_METAMODEL_TYPE = "org.eclipse.persistence.internal.jpa.metamodel.MetamodelImpl";
 		String OPENJPA_JPA_METAMODEL_TYPE = "org.apache.openjpa.persistence.meta.MetamodelImpl";
 	}
@@ -406,11 +400,6 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 	 */
 	private static class HibernateScrollableResultsIterator implements CloseableIterator<Object> {
 
-		private static final Method READ_ONLY_METHOD = ClassUtils.getMethod(org.hibernate.Query.class, "setReadOnly",
-				boolean.class);
-		private static final Method SCROLL_METHOD = ClassUtils.getMethod(READ_ONLY_METHOD.getReturnType(), "scroll",
-				ScrollMode.class);
-
 		private final ScrollableResults scrollableResults;
 
 		/**
@@ -420,19 +409,9 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 		 */
 		public HibernateScrollableResultsIterator(Query jpaQuery) {
 
-			org.hibernate.Query query = jpaQuery.unwrap(org.hibernate.Query.class);
-			boolean isReadOnly = TransactionSynchronizationManager.isCurrentTransactionReadOnly();
-
-			if (READ_ONLY_METHOD.getReturnType().equals(org.hibernate.Query.class)) {
-
-				this.scrollableResults = query.setReadOnly(isReadOnly).scroll(ScrollMode.FORWARD_ONLY);
-
-			} else {
-
-				Object intermediate = ReflectionUtils.invokeMethod(READ_ONLY_METHOD, jpaQuery, isReadOnly);
-				this.scrollableResults = (ScrollableResults) ReflectionUtils.invokeMethod(SCROLL_METHOD, intermediate,
-						ScrollMode.FORWARD_ONLY);
-			}
+			org.hibernate.query.Query<?> query = jpaQuery.unwrap(org.hibernate.query.Query.class);
+			this.scrollableResults = query.setReadOnly(TransactionSynchronizationManager.isCurrentTransactionReadOnly())//
+					.scroll(ScrollMode.FORWARD_ONLY);
 		}
 
 		/*
