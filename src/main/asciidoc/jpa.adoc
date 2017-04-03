@@ -443,10 +443,36 @@ All the sections above describe how to declare queries to access a given entity 
 @Query("update User u set u.firstname = ?1 where u.lastname = ?2")
 int setFixedFirstnameFor(String firstname, String lastname);
 ----
-
 ====
 
 This will trigger the query annotated to the method as updating query instead of a selecting one. As the `EntityManager` might contain outdated entities after the execution of the modifying query, we do not automatically clear it (see JavaDoc of `EntityManager.clear()` for details) since this will effectively drop all non-flushed changes still pending in the `EntityManager`. If you wish the `EntityManager` to be cleared automatically you can set `@Modifying` annotation's `clearAutomatically` attribute to `true`.
+
+[[jpa.modifying-queries.derived-delete]]
+==== Derived delete queries
+Spring Data JPA also supports derived delete queries that allow you to avoid having to declare the JPQL query explicitly.
+
+.Using a derived delete query
+====
+[source, java]
+----
+interface UserRepository extends Repository<User, Long> {
+
+  void deleteByRoleId(long roleId);
+
+  @Modifying
+  @Query("delete from User u where user.role.id = ?1")
+  void deleteInBulkByRoleId(long roleId);
+}
+----
+====
+
+Although the `deleteByRoleId(…)` method looks like it's basically producing the same result as the `deleteInBulkByRoleId(…)`, there is an important difference between the two method declarations in terms of the way they get executed.
+As the name suggests, the latter method will issue a single JPQL query (i.e. the one defined in the annotation) against the database.
+This means, even currently loaded instances of `User` won't see lifecycle callbacks invoked.
+
+To make sure lifecycle queries are actually invoked, an invocation of `deleteByRoleId(…)` will actually execute a query and then deleting the returned instances one by one, so that the persistence provider can actually invoke `@PreRemove` callbacks on those entities.
+
+In fact, a derived delete query is a shortcut for executing the query and then calling `CrudRepository.delete(Iterable<User> users)` on the result and keep behavior in sync with the implementations of other `delete(…)` methods in `CrudRepository`.
 
 [[jpa.query-hints]]
 === Applying query hints
@@ -1003,4 +1029,3 @@ class RepositoryClient {
   }
 }
 ----
-
