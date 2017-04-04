@@ -1,6 +1,35 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 2.0.0.M2 (2017-04-04)
+----------------------------------------
+* DATAJPA-1085 - Upgrade Hibernate baseline to 5.2.
+* DATAJPA-1084 - Document rationale behind the execution behavior of derived deleteBy…(…) queries.
+* DATAJPA-1079 - Adapt to API changes in RepositoryConfigurationExtensionSupport.
+* DATAJPA-1074 - Add support for IsEmpty and IsNotEmpty keyword in query derivation.
+* DATAJPA-1054 - Remove references to single-argument assertion methods of Spring.
+* DATAJPA-1049 - Update "what’s new" section in reference documentation.
+* DATAJPA-1048 - Upgrade Hibernate 5.2 build profile to 5.2.7.
+* DATAJPA-1044 - Bug in JpaCountQueryCreator when doing Paged execution of a Query that uses the Distinct Keyword.
+* DATAJPA-1043 - Update project documentation with the CLA tool integration.
+* DATAJPA-1042 - Migrate ticket references in test code to Spring Framework style.
+* DATAJPA-1041 - Dynamic entity graphs may omit subgraphs.
+* DATAJPA-1029 - JpaQueryCreator should deduplicate multi-select selections.
+* DATAJPA-1027 - Upgrade to a newer JDK version on TravisCI.
+* DATAJPA-1026 - Adapt API in RepositoryFactoryBeanSupport implementation.
+* DATAJPA-1024 - Querrying empty table for non-standard JPA type results in IllegalStateExcepion with the message "No aliases found in result tuple".
+* DATAJPA-1023 - Reject stream executions if not executed within transaction.
+* DATAJPA-1019 - Make sure build runs on Hibernate 5.
+* DATAJPA-1018 - Upgrade Hibernate build profile to latest releases.
+* DATAJPA-1016 - Bump infrastructure requirement to JPA 2.1.
+* DATAJPA-1014 - Register repository factory in spring.factories for multi-store support.
+* DATAJPA-1009 - Release 2.0 M2 (Kay).
+* DATAJPA-1005 - Error bootstrapping Spring Data JPA with EntityManagerFactory already semi-initialized.
+* DATAJPA-920 - Add support for exists projection in repository query derivation.
+* DATAJPA-914 - findAll with Iterable parameter gives JpaSystemException when using Hibernate 5.2.
+* DATAJPA-911 - Assert compatibility with Hibernate 5.2.
+
+
 Changes in version 1.10.8.RELEASE (2017-03-02)
 ----------------------------------------------
 * DATAJPA-1054 - Remove references to single-argument assertion methods of Spring.
