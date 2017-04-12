@@ -154,7 +154,7 @@ public class EntityGraphRepositoryMethodsIntegrationTests {
 	}
 
 	/**
-	 * @see DATAJPA-790
+	 * @see DATAJPA-790, DATAJPA-1087
 	 */
 	@Test
 	public void shouldRespectConfiguredJpaEntityGraphWithPaginationAndQueryDslPredicates() {
