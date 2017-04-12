@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2016 the original author or authors.
+ * Copyright 2011-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -147,7 +148,7 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 
 		private final LockModeType lockModeType;
 		private final Map<String, Object> queryHints;
-		private final EntityGraph entityGraph;
+		private final Optional<EntityGraph> entityGraph;
 		private final Method method;
 
 		/**
@@ -161,7 +162,7 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 
 			this.lockModeType = findLockModeType(method);
 			this.queryHints = findQueryHints(method);
-			this.entityGraph = findEntityGraph(method);
+			this.entityGraph = Optional.ofNullable(findEntityGraph(method));
 			this.method = method;
 		}
 
@@ -219,7 +220,7 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 		 * @see org.springframework.data.jpa.repository.support.CrudMethodMetadata#getEntityGraph()
 		 */
 		@Override
-		public EntityGraph getEntityGraph() {
+		public Optional<EntityGraph> getEntityGraph() {
 			return entityGraph;
 		}
 

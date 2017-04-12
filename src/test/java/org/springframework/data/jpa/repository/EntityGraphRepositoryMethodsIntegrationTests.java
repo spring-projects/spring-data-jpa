@@ -147,7 +147,7 @@ public class EntityGraphRepositoryMethodsIntegrationTests {
 		}
 	}
 
-	@Test // DATAJPA-790
+	@Test // DATAJPA-790, DATAJPA-1087
 	public void shouldRespectConfiguredJpaEntityGraphWithPaginationAndQueryDslPredicates() {
 
 		Assume.assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
