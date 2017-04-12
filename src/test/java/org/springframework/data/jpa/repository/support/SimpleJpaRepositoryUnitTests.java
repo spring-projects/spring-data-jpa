@@ -20,6 +20,7 @@ import static org.mockito.Mockito.*;
 
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.Optional;
 
 import javax.persistence.EntityGraph;
 import javax.persistence.EntityManager;
@@ -121,7 +122,7 @@ public class SimpleJpaRepositoryUnitTests {
 		String entityGraphName = "User.detail";
 		when(entityGraphAnnotation.value()).thenReturn(entityGraphName);
 		when(entityGraphAnnotation.type()).thenReturn(EntityGraphType.LOAD);
-		when(metadata.getEntityGraph()).thenReturn(entityGraphAnnotation);
+		when(metadata.getEntityGraph()).thenReturn(Optional.of(entityGraphAnnotation));
 		when(em.getEntityGraph(entityGraphName)).thenReturn((EntityGraph) entityGraph);
 		when(information.getEntityName()).thenReturn("User");
 		when(metadata.getMethod()).thenReturn(CrudRepository.class.getMethod("findOne", Serializable.class));
