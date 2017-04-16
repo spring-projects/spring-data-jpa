@@ -42,7 +42,7 @@ import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
  * persistence provider detects them by including this class in the list of mapped classes. In Spring environments, you
  * can simply register the package of this class (i.e. {@code org.springframework.data.jpa.convert.threeten}) as package
  * to be scanned on e.g. the {@link LocalContainerEntityManagerFactoryBean}.
- * 
+ *
  * @author Oliver Gierke
  */
 public class Jsr310JpaConverters {

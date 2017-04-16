@@ -42,7 +42,7 @@ import org.threeten.bp.ZoneId;
  * your persistence provider detects them by including this class in the list of mapped classes. In Spring environments,
  * you can simply register the package of this class (i.e. {@code org.springframework.data.jpa.convert.threetenbp}) as
  * package to be scanned on e.g. the {@link LocalContainerEntityManagerFactoryBean}.
- * 
+ *
  * @author Oliver Gierke
  * @see <a href="http://www.threeten.org/threetenbp">http://www.threeten.org/threetenbp</a>
  * @since 1.8
