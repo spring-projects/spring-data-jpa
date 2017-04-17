@@ -52,6 +52,7 @@ import org.springframework.util.Assert;
  * @author Thomas Darimont
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Nicolas Cirigliano
  * @author Jens Schauder
  * @author Сергей Цыпанов
  */
@@ -145,7 +146,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 		} else if (method.isPageQuery()) {
 			return new PagedExecution(method.getParameters());
 		} else if (method.isModifyingQuery()) {
-			return method.getClearAutomatically() ? new ModifyingExecution(method, em) : new ModifyingExecution(method, null);
+			return new ModifyingExecution(method, em);
 		} else {
 			return new SingleEntityExecution();
 		}
