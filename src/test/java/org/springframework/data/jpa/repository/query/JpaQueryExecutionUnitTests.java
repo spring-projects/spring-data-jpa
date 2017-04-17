@@ -46,6 +46,7 @@ import org.springframework.data.repository.query.Parameters;
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Mark Paluch
+ * @author Nicolas Cirigliano
  */
 @RunWith(MockitoJUnitRunner.class)
 public class JpaQueryExecutionUnitTests {
@@ -84,16 +85,35 @@ public class JpaQueryExecutionUnitTests {
 
 	@Test
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public void modifyingExecutionClearsEntityManagerIfSet() {
+	public void modifyingExecutionFlushesEntityManagerIfSet() {
 
 		when(query.executeUpdate()).thenReturn(0);
 		when(method.getReturnType()).thenReturn((Class) void.class);
+		when(method.getFlushAutomatically()).thenReturn(true);
 		when(jpaQuery.createQuery(Mockito.any(Object[].class))).thenReturn(query);
 		when(jpaQuery.getQueryMethod()).thenReturn(method);
 
 		ModifyingExecution execution = new ModifyingExecution(method, em);
 		execution.execute(jpaQuery, new Object[] {});
 
+		verify(em, times(1)).flush();
+		verify(em, times(0)).clear();
+	}
+
+	@Test
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public void modifyingExecutionClearsEntityManagerIfSet() {
+
+		when(query.executeUpdate()).thenReturn(0);
+		when(method.getReturnType()).thenReturn((Class) void.class);
+		when(method.getClearAutomatically()).thenReturn(true);
+		when(jpaQuery.createQuery(Mockito.any(Object[].class))).thenReturn(query);
+		when(jpaQuery.getQueryMethod()).thenReturn(method);
+
+		ModifyingExecution execution = new ModifyingExecution(method, em);
+		execution.execute(jpaQuery, new Object[] {});
+
+		verify(em, times(0)).flush();
 		verify(em, times(1)).clear();
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2017 the original author or authors.
+ * Copyright 2008-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,6 +49,7 @@ import org.springframework.util.Assert;
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Mark Paluch
+ * @author Nicolas Cirigliano
  */
 public abstract class AbstractJpaQuery implements RepositoryQuery {
 
@@ -134,7 +135,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 		} else if (method.isPageQuery()) {
 			return new PagedExecution(method.getParameters());
 		} else if (method.isModifyingQuery()) {
-			return method.getClearAutomatically() ? new ModifyingExecution(method, em) : new ModifyingExecution(method, null);
+			return new ModifyingExecution(method, em);
 		} else {
 			return new SingleEntityExecution();
 		}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2017 the original author or authors.
+ * Copyright 2008-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,6 +53,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Mark Paluch
+ * @author Nicolas Cirigliano
  */
 public abstract class JpaQueryExecution {
 
@@ -215,10 +216,13 @@ public abstract class JpaQueryExecution {
 	static class ModifyingExecution extends JpaQueryExecution {
 
 		private final EntityManager em;
+		private final boolean flush;
+		private final boolean clear;
 
 		/**
-		 * Creates an execution that automatically clears the given {@link EntityManager} after execution if the given
-		 * {@link EntityManager} is not {@literal null}.
+		 * Creates an execution that automatically flushes the given {@link EntityManager} before execution and/or
+		 * clears the given {@link EntityManager} after execution if the given {@link EntityManager} is not
+		 * {@literal null}.
 		 * 
 		 * @param em
 		 */
@@ -232,14 +236,20 @@ public abstract class JpaQueryExecution {
 			Assert.isTrue(isInt || isVoid, "Modifying queries can only use void or int/Integer as return type!");
 
 			this.em = em;
+			this.flush = method.getFlushAutomatically();
+			this.clear = method.getClearAutomatically();
 		}
 
 		@Override
 		protected Object doExecute(AbstractJpaQuery query, Object[] values) {
 
+			if (em != null && flush) {
+				em.flush();
+			}
+
 			int result = query.createQuery(values).executeUpdate();
 
-			if (em != null) {
+			if (em != null && clear) {
 				em.clear();
 			}
 
