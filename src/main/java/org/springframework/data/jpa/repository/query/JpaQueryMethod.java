@@ -50,6 +50,7 @@ import org.springframework.util.StringUtils;
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Christoph Strobl
+ * @author Nicolas Cirigliano
  * @author Mark Paluch
  * @author Сергей Цыпанов
  */
@@ -309,6 +310,15 @@ public class JpaQueryMethod extends QueryMethod {
 
 		String annotatedName = getAnnotationValue("countName", String.class);
 		return StringUtils.hasText(annotatedName) ? annotatedName : getNamedQueryName() + ".count";
+	}
+
+	/**
+	 * Returns whether we should flush automatically for modifying queries.
+	 * 
+	 * @return
+	 */
+	boolean getFlushAutomatically() {
+		return getMergedOrDefaultAnnotationValue("flushAutomatically", Modifying.class, Boolean.class);
 	}
 
 	/**

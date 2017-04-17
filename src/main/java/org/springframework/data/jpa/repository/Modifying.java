@@ -26,11 +26,19 @@ import java.lang.annotation.Target;
  *
  * @author Oliver Gierke
  * @author Christoph Strobl
+ * @author Nicolas Cirigliano
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.METHOD, ElementType.ANNOTATION_TYPE })
 @Documented
 public @interface Modifying {
+
+	/**
+	 * Defines whether we should flush the underlying persistence context before executing the modifying query.
+	 * 
+	 * @return
+	 */
+	boolean flushAutomatically() default false;
 
 	/**
 	 * Defines whether we should clear the underlying persistence context after executing the modifying query.
