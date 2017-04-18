@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2015 the original author or authors.
+ * Copyright 2008-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,6 +46,7 @@ import com.querydsl.jpa.impl.AbstractJPAQuery;
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Jocelyn Ntakpe
+ * @author Christoph Strobl
  */
 public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpaRepository<T, ID>
 		implements QueryDslPredicateExecutor<T> {
@@ -196,7 +197,18 @@ public class QueryDslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 	 * @return the Querydsl count {@link JPQLQuery}.
 	 */
 	protected JPQLQuery<?> createCountQuery(Predicate predicate) {
-		return querydsl.createQuery(path).where(predicate);
+		AbstractJPAQuery<?, ?> query = querydsl.createQuery(path).where(predicate);
+
+		CrudMethodMetadata metadata = getRepositoryMethodMetadata();
+		if (metadata == null) {
+			return query;
+		}
+
+		for (Entry<String, Object> hint : metadata.getQueryHints().entrySet()) {
+			query.setHint(hint.getKey(), hint.getValue());
+		}
+
+		return query;
 	}
 
 	/**
