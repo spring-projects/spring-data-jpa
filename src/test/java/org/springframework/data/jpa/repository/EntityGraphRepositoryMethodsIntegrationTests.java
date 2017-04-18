@@ -146,9 +146,6 @@ public class EntityGraphRepositoryMethodsIntegrationTests {
 		em.flush();
 		em.clear();
 
-		em.flush();
-		em.clear();
-
 		User user = repository.getOneWithAttributeNamesById(tom.getId());
 
 		assertThat(user, is(notNullValue()));
@@ -232,14 +229,16 @@ public class EntityGraphRepositoryMethodsIntegrationTests {
 		User user = repository.findOneWithDeepGraphById(tom.getId());
 
 		assertThat(user, is(notNullValue()));
-
-		assertThat("colleagues on root should have been fetched by dynamic subgraph declaration",
+		assertThat("Colleagues on root should have been fetched by dynamic subgraph declaration",
 				Persistence.getPersistenceUtil().isLoaded(user, "colleagues"), is(true));
 
 		for (User colleague : user.getColleagues()) {
+
 			assertThat(Persistence.getPersistenceUtil().isLoaded(colleague, "colleagues"), is(true));
 			assertThat(Persistence.getPersistenceUtil().isLoaded(colleague, "roles"), is(true));
+
 			for (User colleagueOfColleague : colleague.getColleagues()) {
+
 				assertThat(Persistence.getPersistenceUtil().isLoaded(colleagueOfColleague, "roles"), is(true));
 				assertThat(Persistence.getPersistenceUtil().isLoaded(colleagueOfColleague, "colleagues"), is(false));
 			}

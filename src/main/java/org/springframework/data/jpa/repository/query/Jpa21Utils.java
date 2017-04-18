@@ -168,17 +168,22 @@ public class Jpa21Utils {
 			} else if (parent != null && !exists(attributeName, parent.getAttributeNodes())) {
 				parent.addAttributeNodes(attributeName);
 			}
+
 			return;
 		}
 
 		AttributeNode<?> node = findAttributeNode(attributeName, root, parent);
+
 		if (node != null) {
 
 			Subgraph<?> subgraph = getSubgraph(node);
+
 			if (subgraph == null) {
 				subgraph = parent != null ? parent.addSubgraph(attributeName) : root.addSubgraph(attributeName);
 			}
+
 			createGraph(pathComponents, offset + 1, root, subgraph);
+
 			return;
 		}
 
@@ -211,7 +216,7 @@ public class Jpa21Utils {
 	 * @return {@literal null} if not found.
 	 */
 	private static AttributeNode<?> findAttributeNode(String attributeNodeName, EntityGraph<?> entityGraph,
-			Subgraph parent) {
+			Subgraph<?> parent) {
 		return findAttributeNode(attributeNodeName,
 				parent != null ? parent.getAttributeNodes() : entityGraph.getAttributeNodes());
 	}
@@ -246,5 +251,4 @@ public class Jpa21Utils {
 	private static Subgraph<?> getSubgraph(AttributeNode<?> node) {
 		return node.getSubgraphs().isEmpty() ? null : node.getSubgraphs().values().iterator().next();
 	}
-
 }
