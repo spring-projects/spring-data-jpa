@@ -20,8 +20,6 @@ import static org.springframework.data.jpa.repository.query.QueryUtils.*;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -53,9 +51,8 @@ import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.data.jpa.repository.query.Jpa21Utils;
-import org.springframework.data.jpa.repository.query.JpaEntityGraph;
 import org.springframework.data.jpa.repository.query.QueryUtils;
+import org.springframework.data.jpa.repository.support.QueryHints.NoHints;
 import org.springframework.data.repository.support.PageableExecutionUtils;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -233,7 +230,7 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 
 		LockModeType type = metadata.getLockModeType();
 
-		Map<String, Object> hints = getQueryHints().withFetchGraphs().asMap();
+		Map<String, Object> hints = getQueryHints().withFetchGraphs(em).asMap();
 
 		return Optional.ofNullable(type == null ? em.find(domainType, id, hints) : em.find(domainType, id, type, hints));
 	}
@@ -245,13 +242,7 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	 * @return
 	 */
 	protected QueryHints getQueryHints() {
-		return new QueryHintsImpl(metadata);
-	}
-
-	private JpaEntityGraph getEntityGraph(EntityGraph entityGraph) {
-
-		String fallbackName = this.entityInformation.getEntityName() + "." + metadata.getMethod().getName();
-		return new JpaEntityGraph(entityGraph, fallbackName);
+		return metadata == null ? NoHints.INSTANCE : DefaultQueryHints.of(entityInformation, metadata);
 	}
 
 	/* 
@@ -724,7 +715,7 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 
 	private void applyQueryHints(Query query) {
 
-		for (Entry<String, Object> hint : getQueryHints().withFetchGraphs()) {
+		for (Entry<String, Object> hint : getQueryHints().withFetchGraphs(em)) {
 			query.setHint(hint.getKey(), hint.getValue());
 		}
 	}
@@ -810,79 +801,6 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 		@Override
 		public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
 			return QueryByExamplePredicateBuilder.getPredicate(root, cb, example);
-		}
-	}
-
-	/**
-	 * QueryHints provides access to query hints defined via {@link CrudMethodMetadata#getQueryHints()} by default
-	 * excluding JPA {@link javax.persistence.EntityGraph}.
-	 *
-	 * @author Christoph Strobl
-	 * @since 2.0
-	 */
-	public interface QueryHints extends Iterable<Map.Entry<String, Object>> {
-
-		/**
-		 * Creates and returns a new {@link QueryHints} instance including {@link javax.persistence.EntityGraph}.
-		 *
-		 * @return new instance of {@link QueryHints}.
-		 */
-		QueryHints withFetchGraphs();
-
-		/**
-		 * Get the query hints as a {@link Map}.
-		 *
-		 * @return never {@literal null}.
-		 */
-		Map<String, Object> asMap();
-	}
-
-	/**
-	 * Default implementation of {@link QueryHints}.
-	 *
-	 * @author Christoph Strobl
-	 * @since 2.0
-	 */
-	private class QueryHintsImpl implements QueryHints {
-
-		final boolean includeFetchGraphs;
-		final CrudMethodMetadata metadata;
-
-		private QueryHintsImpl(CrudMethodMetadata metadata) {
-			this(metadata, false);
-		}
-
-		private QueryHintsImpl(CrudMethodMetadata metadata, boolean includeFetchGraphs) {
-			this.metadata = metadata;
-			this.includeFetchGraphs = includeFetchGraphs;
-		}
-
-		@Override
-		public QueryHints withFetchGraphs() {
-			return new QueryHintsImpl(this.metadata, true);
-		}
-
-		@Override
-		public Iterator<Entry<String, Object>> iterator() {
-			return asMap().entrySet().iterator();
-		}
-
-		@Override
-		public Map<String, Object> asMap() {
-
-			Map<String, Object> hints = new HashMap<>();
-
-			if (metadata != null) {
-
-				hints.putAll(metadata.getQueryHints());
-
-				if (includeFetchGraphs) {
-					metadata.getEntityGraph().ifPresent(entityGraph -> hints
-							.putAll(Jpa21Utils.tryGetFetchGraphHints(em, getEntityGraph(entityGraph), getDomainClass())));
-				}
-			}
-
-			return hints;
 		}
 	}
 }

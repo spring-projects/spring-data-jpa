@@ -57,6 +57,7 @@ public class QuerydslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 	private final EntityPath<T> path;
 	private final PathBuilder<T> builder;
 	private final Querydsl querydsl;
+	private final EntityManager entityManager;
 
 	/**
 	 * Creates a new {@link QuerydslJpaRepository} from the given domain class and {@link EntityManager}. This will use
@@ -85,6 +86,7 @@ public class QuerydslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 		this.path = resolver.createPath(entityInformation.getJavaType());
 		this.builder = new PathBuilder<T>(path.getType(), path.getMetadata());
 		this.querydsl = new Querydsl(entityManager, builder);
+		this.entityManager = entityManager;
 	}
 
 	/*
@@ -179,7 +181,7 @@ public class QuerydslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 	 */
 	protected JPQLQuery<?> createQuery(Predicate... predicate) {
 
-		AbstractJPAQuery<?, ?> query = doCreateQuery(getQueryHints().withFetchGraphs(), predicate);
+		AbstractJPAQuery<?, ?> query = doCreateQuery(getQueryHints().withFetchGraphs(entityManager), predicate);
 
 		CrudMethodMetadata metadata = getRepositoryMethodMetadata();
 

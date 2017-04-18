@@ -162,12 +162,12 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 
 			this.lockModeType = findLockModeType(method);
 			this.queryHints = findQueryHints(method);
-			this.entityGraph = Optional.ofNullable(findEntityGraph(method));
+			this.entityGraph = findEntityGraph(method);
 			this.method = method;
 		}
 
-		private static EntityGraph findEntityGraph(Method method) {
-			return AnnotatedElementUtils.findMergedAnnotation(method, EntityGraph.class);
+		private static Optional<EntityGraph> findEntityGraph(Method method) {
+			return Optional.ofNullable(AnnotatedElementUtils.findMergedAnnotation(method, EntityGraph.class));
 		}
 
 		private static LockModeType findLockModeType(Method method) {
