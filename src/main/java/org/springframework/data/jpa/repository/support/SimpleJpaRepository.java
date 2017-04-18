@@ -21,6 +21,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -232,35 +233,25 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 
 		LockModeType type = metadata.getLockModeType();
 
-		Map<String, Object> hints = getQueryHints();
+		Map<String, Object> hints = getQueryHints().withFetchGraphs().asMap();
 
 		return Optional.ofNullable(type == null ? em.find(domainType, id, hints) : em.find(domainType, id, type, hints));
 	}
 
 	/**
-	 * Returns a {@link Map} with the query hints based on the current {@link CrudMethodMetadata} and potential
+	 * Returns {@link QueryHints} with the query hints based on the current {@link CrudMethodMetadata} and potential
 	 * {@link EntityGraph} information.
 	 * 
 	 * @return
 	 */
-	protected Map<String, Object> getQueryHints() {
-
-		if (metadata.getEntityGraph() == null) {
-			return metadata.getQueryHints();
-		}
-
-		Map<String, Object> hints = new HashMap<String, Object>();
-		hints.putAll(metadata.getQueryHints());
-
-		hints.putAll(Jpa21Utils.tryGetFetchGraphHints(em, getEntityGraph(), getDomainClass()));
-
-		return hints;
+	protected QueryHints getQueryHints() {
+		return new QueryHintsImpl(metadata);
 	}
 
-	private JpaEntityGraph getEntityGraph() {
+	private JpaEntityGraph getEntityGraph(EntityGraph entityGraph) {
 
 		String fallbackName = this.entityInformation.getEntityName() + "." + metadata.getMethod().getName();
-		return new JpaEntityGraph(metadata.getEntityGraph(), fallbackName);
+		return new JpaEntityGraph(entityGraph, fallbackName);
 	}
 
 	/* 
@@ -733,7 +724,7 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 
 	private void applyQueryHints(Query query) {
 
-		for (Entry<String, Object> hint : getQueryHints().entrySet()) {
+		for (Entry<String, Object> hint : getQueryHints().withFetchGraphs()) {
 			query.setHint(hint.getKey(), hint.getValue());
 		}
 	}
@@ -819,6 +810,79 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 		@Override
 		public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
 			return QueryByExamplePredicateBuilder.getPredicate(root, cb, example);
+		}
+	}
+
+	/**
+	 * QueryHints provides access to query hints defined via {@link CrudMethodMetadata#getQueryHints()} by default
+	 * excluding JPA {@link javax.persistence.EntityGraph}.
+	 *
+	 * @author Christoph Strobl
+	 * @since 2.0
+	 */
+	public interface QueryHints extends Iterable<Map.Entry<String, Object>> {
+
+		/**
+		 * Creates and returns a new {@link QueryHints} instance including {@link javax.persistence.EntityGraph}.
+		 *
+		 * @return new instance of {@link QueryHints}.
+		 */
+		QueryHints withFetchGraphs();
+
+		/**
+		 * Get the query hints as a {@link Map}.
+		 *
+		 * @return never {@literal null}.
+		 */
+		Map<String, Object> asMap();
+	}
+
+	/**
+	 * Default implementation of {@link QueryHints}.
+	 *
+	 * @author Christoph Strobl
+	 * @since 2.0
+	 */
+	private class QueryHintsImpl implements QueryHints {
+
+		final boolean includeFetchGraphs;
+		final CrudMethodMetadata metadata;
+
+		private QueryHintsImpl(CrudMethodMetadata metadata) {
+			this(metadata, false);
+		}
+
+		private QueryHintsImpl(CrudMethodMetadata metadata, boolean includeFetchGraphs) {
+			this.metadata = metadata;
+			this.includeFetchGraphs = includeFetchGraphs;
+		}
+
+		@Override
+		public QueryHints withFetchGraphs() {
+			return new QueryHintsImpl(this.metadata, true);
+		}
+
+		@Override
+		public Iterator<Entry<String, Object>> iterator() {
+			return asMap().entrySet().iterator();
+		}
+
+		@Override
+		public Map<String, Object> asMap() {
+
+			Map<String, Object> hints = new HashMap<>();
+
+			if (metadata != null) {
+
+				hints.putAll(metadata.getQueryHints());
+
+				if (includeFetchGraphs) {
+					metadata.getEntityGraph().ifPresent(entityGraph -> hints
+							.putAll(Jpa21Utils.tryGetFetchGraphHints(em, getEntityGraph(entityGraph), getDomainClass())));
+				}
+			}
+
+			return hints;
 		}
 	}
 }

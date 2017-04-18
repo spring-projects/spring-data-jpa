@@ -179,7 +179,8 @@ public class QuerydslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 	 */
 	protected JPQLQuery<?> createQuery(Predicate... predicate) {
 
-		AbstractJPAQuery<?, ?> query = querydsl.createQuery(path).where(predicate);
+		AbstractJPAQuery<?, ?> query = doCreateQuery(getQueryHints().withFetchGraphs(), predicate);
+
 		CrudMethodMetadata metadata = getRepositoryMethodMetadata();
 
 		if (metadata == null) {
@@ -187,13 +188,7 @@ public class QuerydslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 		}
 
 		LockModeType type = metadata.getLockModeType();
-		query = type == null ? query : query.setLockMode(type);
-
-		for (Entry<String, Object> hint : getQueryHints().entrySet()) {
-			query.setHint(hint.getKey(), hint.getValue());
-		}
-
-		return query;
+		return type == null ? query : query.setLockMode(type);
 	}
 
 	/**
@@ -202,8 +197,19 @@ public class QuerydslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 	 * @param predicate, can be {@literal null}.
 	 * @return the Querydsl count {@link JPQLQuery}.
 	 */
-	protected JPQLQuery<?> createCountQuery(Predicate predicate) {
-		return querydsl.createQuery(path).where(predicate);
+	protected JPQLQuery<?> createCountQuery(Predicate... predicate) {
+		return doCreateQuery(getQueryHints(), predicate);
+	}
+
+	private AbstractJPAQuery<?, ?> doCreateQuery(QueryHints hints, Predicate... predicate) {
+
+		AbstractJPAQuery<?, ?> query = querydsl.createQuery(path).where(predicate);
+
+		for (Entry<String, Object> hint : hints) {
+			query.setHint(hint.getKey(), hint.getValue());
+		}
+
+		return query;
 	}
 
 	/**
