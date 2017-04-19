@@ -1,6 +1,11 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 1.10.10.RELEASE (2017-04-19)
+-----------------------------------------------
+* DATAJPA-1095 - Release 1.10.10 (Hopper SR10).
+
+
 Changes in version 1.11.3.RELEASE (2017-04-19)
 ----------------------------------------------
 * DATAJPA-1094 - Release 1.11.3 (Ingalls SR3).
