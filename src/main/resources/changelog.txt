@@ -1,6 +1,14 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 1.10.9.RELEASE (2017-04-19)
+----------------------------------------------
+* DATAJPA-1087 - Regression: query hints not applied to count queries for QueryDSL.
+* DATAJPA-1084 - Document rationale behind the execution behavior of derived deleteBy…(…) queries.
+* DATAJPA-1075 - Dynamic entity graphs may still omit subgraphs.
+* DATAJPA-1072 - Release 1.10.9 (Hopper SR9).
+
+
 Changes in version 1.11.2.RELEASE (2017-04-19)
 ----------------------------------------------
 * DATAJPA-1087 - Regression: query hints not applied to count queries for QueryDSL.
