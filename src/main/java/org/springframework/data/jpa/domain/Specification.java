@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2014 the original author or authors.
+ * Copyright 2008-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import javax.persistence.criteria.Root;
  * 
  * @author Oliver Gierke
  * @author Thomas Darimont
+ * @author Krzysztof Rzymkowski
  */
 public interface Specification<T> {
 
@@ -34,7 +35,7 @@ public interface Specification<T> {
 	 * 
 	 * @param root
 	 * @param query
-	 * @return a {@link Predicate}, must not be {@literal null}.
+	 * @return a {@link Predicate}, may be {@literal null}.
 	 */
 	Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder cb);
 }
