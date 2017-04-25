@@ -23,6 +23,9 @@ cache:
   directories:
     - $HOME/.m2
 
+before_install:
+  - rm ~/.m2/settings.xml
+
 install: true
 
 script: "mvn clean dependency:list test -P${PROFILE} -Dsort -Dbundlor.enabled=false -B"
