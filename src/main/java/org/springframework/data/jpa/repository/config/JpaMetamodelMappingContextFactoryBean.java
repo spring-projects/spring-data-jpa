@@ -57,7 +57,7 @@ class JpaMetamodelMappingContextFactoryBean extends AbstractFactoryBean<JpaMetam
 		Set<Class<?>> entitySources = new HashSet<Class<?>>();
 
 		for (Metamodel metamodel : models) {
-
+			if(metamodel == null) continue;
 			for (ManagedType<?> type : metamodel.getManagedTypes()) {
 
 				Class<?> javaType = type.getJavaType();
