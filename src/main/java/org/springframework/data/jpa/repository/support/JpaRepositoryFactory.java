@@ -105,10 +105,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.springframework.data.repository.support.RepositoryFactorySupport#
-	 * getRepositoryBaseClass()
+	 * @see org.springframework.data.repository.core.support.RepositoryFactorySupport#getRepositoryBaseClass(org.springframework.data.repository.core.RepositoryMetadata)
 	 */
 	@Override
 	protected Class<?> getRepositoryBaseClass(RepositoryMetadata metadata) {
@@ -136,20 +133,18 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	 * @see org.springframework.data.repository.core.support.RepositoryFactorySupport#getQueryLookupStrategy(org.springframework.data.repository.query.QueryLookupStrategy.Key, org.springframework.data.repository.query.EvaluationContextProvider)
 	 */
 	@Override
-	protected Optional<QueryLookupStrategy> getQueryLookupStrategy(Key key, EvaluationContextProvider evaluationContextProvider) {
+	protected Optional<QueryLookupStrategy> getQueryLookupStrategy(Key key,
+			EvaluationContextProvider evaluationContextProvider) {
 		return Optional.of(JpaQueryLookupStrategy.create(entityManager, key, extractor, evaluationContextProvider));
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.springframework.data.repository.support.RepositoryFactorySupport#
-	 * getEntityInformation(java.lang.Class)
+	 * @see org.springframework.data.repository.core.support.RepositoryFactorySupport#getEntityInformation(java.lang.Class)
 	 */
 	@Override
 	@SuppressWarnings("unchecked")
-	public <T, ID extends Serializable> JpaEntityInformation<T, ID> getEntityInformation(Class<T> domainClass) {
+	public <T, ID> JpaEntityInformation<T, ID> getEntityInformation(Class<T> domainClass) {
 
 		return (JpaEntityInformation<T, ID>) JpaEntityInformationSupport.getEntityInformation(domainClass, entityManager);
 	}

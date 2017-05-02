@@ -40,10 +40,8 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class JpaEntityInformationSupportUnitTests {
 
-	@Mock
-	EntityManager em;
-	@Mock
-	Metamodel metaModel;
+	@Mock EntityManager em;
+	@Mock Metamodel metaModel;
 
 	@Test
 	public void usesSimpleClassNameIfNoEntityNameGiven() throws Exception {
@@ -71,25 +69,21 @@ public class JpaEntityInformationSupportUnitTests {
 
 	}
 
-	static class DummyJpaEntityInformation<T, ID extends Serializable> extends JpaEntityInformationSupport<T, ID> {
+	static class DummyJpaEntityInformation<T, ID> extends JpaEntityInformationSupport<T, ID> {
 
 		public DummyJpaEntityInformation(Class<T> domainClass) {
-
 			super(domainClass);
 		}
 
 		public SingularAttribute<? super T, ?> getIdAttribute() {
-
 			return null;
 		}
 
 		public Optional<ID> getId(T entity) {
-
 			return Optional.empty();
 		}
 
 		public Class<ID> getIdType() {
-
 			return null;
 		}
 

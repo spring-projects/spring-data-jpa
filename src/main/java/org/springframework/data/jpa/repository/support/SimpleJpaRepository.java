@@ -143,11 +143,11 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	 * @see org.springframework.data.repository.CrudRepository#delete(java.io.Serializable)
 	 */
 	@Transactional
-	public void delete(ID id) {
+	public void deleteById(ID id) {
 
 		Assert.notNull(id, ID_MUST_NOT_BE_NULL);
 
-		delete(findOne(id).orElseThrow(() -> new EmptyResultDataAccessException(
+		delete(findById(id).orElseThrow(() -> new EmptyResultDataAccessException(
 				String.format("No %s entity with id %s exists!", entityInformation.getJavaType(), id), 1)));
 	}
 
@@ -167,7 +167,7 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	 * @see org.springframework.data.repository.CrudRepository#delete(java.lang.Iterable)
 	 */
 	@Transactional
-	public void delete(Iterable<? extends T> entities) {
+	public void deleteAll(Iterable<? extends T> entities) {
 
 		Assert.notNull(entities, "The given Iterable of entities not be null!");
 
@@ -218,7 +218,7 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.CrudRepository#findOne(java.io.Serializable)
 	 */
-	public Optional<T> findOne(ID id) {
+	public Optional<T> findById(ID id) {
 
 		Assert.notNull(id, ID_MUST_NOT_BE_NULL);
 
@@ -260,12 +260,12 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.CrudRepository#exists(java.io.Serializable)
 	 */
-	public boolean exists(ID id) {
+	public boolean existsById(ID id) {
 
 		Assert.notNull(id, ID_MUST_NOT_BE_NULL);
 
 		if (entityInformation.getIdAttribute() == null) {
-			return findOne(id) != null;
+			return findById(id) != null;
 		}
 
 		String placeholder = provider.getCountQueryPlaceholder();
@@ -290,7 +290,7 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 			if (complexIdParameterValueDiscovered) {
 
 				// fall-back to findOne(id) which does the proper mapping for the parameter.
-				return findOne(id) != null;
+				return findById(id) != null;
 			}
 
 			query.setParameter(idAttributeName, idAttributeValue);
@@ -311,7 +311,7 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.CrudRepository#findAll(ID[])
 	 */
-	public List<T> findAll(Iterable<ID> ids) {
+	public List<T> findAllById(Iterable<ID> ids) {
 
 		if (ids == null || !ids.iterator().hasNext()) {
 			return Collections.emptyList();
@@ -322,7 +322,7 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 			List<T> results = new ArrayList<T>();
 
 			for (ID id : ids) {
-				findOne(id).ifPresent(results::add);
+				findById(id).ifPresent(results::add);
 			}
 
 			return results;
@@ -508,7 +508,7 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	 * @see org.springframework.data.jpa.repository.JpaRepository#save(java.lang.Iterable)
 	 */
 	@Transactional
-	public <S extends T> List<S> save(Iterable<S> entities) {
+	public <S extends T> List<S> saveAll(Iterable<S> entities) {
 
 		List<S> result = new ArrayList<S>();
 
@@ -742,7 +742,7 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 
 	/**
 	 * Specification that gives access to the {@link Parameter} instance used to bind the ids for
-	 * {@link SimpleJpaRepository#findAll(Iterable)}. Workaround for OpenJPA not binding collections to in-clauses
+	 * {@link SimpleJpaRepository#findAllById(Iterable)}. Workaround for OpenJPA not binding collections to in-clauses
 	 * correctly when using by-name binding.
 	 * 
 	 * @see <a href="https://issues.apache.org/jira/browse/OPENJPA-2018?focusedCommentId=13924055">OPENJPA-2018</a>

@@ -15,7 +15,6 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import java.io.Serializable;
 import java.util.Optional;
 
 import javax.persistence.metamodel.Metamodel;
@@ -28,8 +27,8 @@ import org.springframework.data.domain.Persistable;
  * @author Oliver Gierke
  * @author Christoph Strobl
  */
-public class JpaPersistableEntityInformation<T extends Persistable<ID>, ID extends Serializable> extends
-		JpaMetamodelEntityInformation<T, ID> {
+public class JpaPersistableEntityInformation<T extends Persistable<ID>, ID>
+		extends JpaMetamodelEntityInformation<T, ID> {
 
 	/**
 	 * Creates a new {@link JpaPersistableEntityInformation} for the given domain class and {@link Metamodel}.

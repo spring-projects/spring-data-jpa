@@ -73,7 +73,7 @@ public class CustomRepositoryFactoryConfigTests {
 	@Test
 	public void reconfiguresTransactionalMethodWithGenericParameter() {
 
-		userRepository.findOne(1);
+		userRepository.findById(1);
 
 		assertFalse(transactionManager.getDefinition().isReadOnly());
 		assertThat(transactionManager.getDefinition().getTimeout(), is(10));

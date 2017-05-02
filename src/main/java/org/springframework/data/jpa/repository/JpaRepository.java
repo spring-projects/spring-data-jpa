@@ -53,13 +53,13 @@ public interface JpaRepository<T, ID extends Serializable>
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.CrudRepository#findAll(java.lang.Iterable)
 	 */
-	List<T> findAll(Iterable<ID> ids);
+	List<T> findAllById(Iterable<ID> ids);
 
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.CrudRepository#save(java.lang.Iterable)
 	 */
-	<S extends T> List<S> save(Iterable<S> entities);
+	<S extends T> List<S> saveAll(Iterable<S> entities);
 
 	/**
 	 * Flushes all pending changes to the database.

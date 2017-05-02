@@ -63,16 +63,17 @@ public interface UserRepository
 	List<User> findByLastname(String lastname);
 
 	/**
-	 * Redeclaration of {@link CrudRepository#findOne(java.io.Serializable)} to change transaction configuration.
+	 * Redeclaration of {@link CrudRepository#findById(java.io.Serializable)} to change transaction configuration.
 	 */
 	@Transactional
-	java.util.Optional<User> findOne(Integer primaryKey);
+	java.util.Optional<User> findById(Integer primaryKey);
 
 	/**
-	 * Redeclaration of {@link CrudRepository#delete(java.io.Serializable)}. to make sure the transaction configuration of
-	 * the original method is considered if the redeclaration does not carry a {@link Transactional} annotation.
+	 * Redeclaration of {@link CrudRepository#deleteById(java.io.Serializable)}. to make sure the transaction
+	 * configuration of the original method is considered if the redeclaration does not carry a {@link Transactional}
+	 * annotation.
 	 */
-	void delete(Integer id); // DATACMNS-649
+	void deleteById(Integer id); // DATACMNS-649
 
 	/**
 	 * Retrieve users by their email address. The finder {@literal User.findByEmailAddress} is declared as annotation at

@@ -74,7 +74,7 @@ public class JpaRepositoryFactoryUnitTests {
 
 			@Override
 			@SuppressWarnings("unchecked")
-			public <T, ID extends Serializable> JpaEntityInformation<T, ID> getEntityInformation(Class<T> domainClass) {
+			public <T, ID> JpaEntityInformation<T, ID> getEntityInformation(Class<T> domainClass) {
 				return entityInformation;
 			};
 		};
@@ -182,7 +182,7 @@ public class JpaRepositoryFactoryUnitTests {
 	private interface SimpleSampleRepository extends JpaRepository<User, Integer> {
 
 		@Transactional
-		Optional<User> findOne(Integer id);
+		Optional<User> findById(Integer id);
 	}
 
 	/**

@@ -15,8 +15,6 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import java.io.Serializable;
-
 import javax.persistence.EntityManager;
 import javax.persistence.metamodel.Metamodel;
 
@@ -32,7 +30,7 @@ import org.springframework.util.Assert;
  * @author Oliver Gierke
  * @author Mark Paluch
  */
-public abstract class JpaEntityInformationSupport<T, ID extends Serializable> extends AbstractEntityInformation<T, ID>
+public abstract class JpaEntityInformationSupport<T, ID> extends AbstractEntityInformation<T, ID>
 		implements JpaEntityInformation<T, ID> {
 
 	private JpaEntityMetadata<T> metadata;

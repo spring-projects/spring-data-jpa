@@ -21,8 +21,8 @@ import static org.junit.Assert.*;
 import static org.springframework.data.domain.Example.*;
 import static org.springframework.data.domain.ExampleMatcher.*;
 import static org.springframework.data.domain.Sort.Direction.*;
-import static org.springframework.data.jpa.domain.Specifications.not;
 import static org.springframework.data.jpa.domain.Specifications.*;
+import static org.springframework.data.jpa.domain.Specifications.not;
 import static org.springframework.data.jpa.domain.sample.UserSpecifications.*;
 
 import java.util.ArrayList;
@@ -55,7 +55,8 @@ import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
-import org.springframework.data.domain.ExampleMatcher.*;
+import org.springframework.data.domain.ExampleMatcher.GenericPropertyMatcher;
+import org.springframework.data.domain.ExampleMatcher.StringMatcher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -137,7 +138,7 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		User foundPerson = repository.findOne(id).get();
+		User foundPerson = repository.findById(id).get();
 		assertThat(firstUser.getFirstname(), is(foundPerson.getFirstname()));
 	}
 
@@ -146,7 +147,7 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		Iterable<User> result = repository.findAll(Arrays.asList(firstUser.getId(), secondUser.getId()));
+		Iterable<User> result = repository.findAllById(Arrays.asList(firstUser.getId(), secondUser.getId()));
 		assertThat(result, hasItems(firstUser, secondUser));
 	}
 
@@ -155,13 +156,13 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		assertThat(repository.findOne(id * 27), is(java.util.Optional.empty()));
+		assertThat(repository.findById(id * 27), is(java.util.Optional.empty()));
 	}
 
 	@Test
 	public void savesCollectionCorrectly() throws Exception {
 
-		List<User> result = repository.save(Arrays.asList(firstUser, secondUser, thirdUser));
+		List<User> result = repository.saveAll(Arrays.asList(firstUser, secondUser, thirdUser));
 		assertThat(result, is(notNullValue()));
 		assertThat(result.size(), is(3));
 		assertThat(result, hasItems(firstUser, secondUser, thirdUser));
@@ -170,7 +171,7 @@ public class UserRepositoryTests {
 	@Test
 	public void savingNullCollectionIsNoOp() throws Exception {
 
-		List<User> result = repository.save((Collection<User>) null);
+		List<User> result = repository.saveAll((Collection<User>) null);
 		assertThat(result, is(notNullValue()));
 		assertThat(result.isEmpty(), is(true));
 	}
@@ -178,7 +179,7 @@ public class UserRepositoryTests {
 	@Test
 	public void savingEmptyCollectionIsNoOp() throws Exception {
 
-		List<User> result = repository.save(new ArrayList<User>());
+		List<User> result = repository.saveAll(new ArrayList<User>());
 		assertThat(result, is(notNullValue()));
 		assertThat(result.isEmpty(), is(true));
 	}
@@ -188,10 +189,10 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		User foundPerson = repository.findOne(id).get();
+		User foundPerson = repository.findById(id).get();
 		foundPerson.setLastname("Schlicht");
 
-		User updatedPerson = repository.findOne(id).get();
+		User updatedPerson = repository.findById(id).get();
 		assertThat(updatedPerson.getFirstname(), is(foundPerson.getFirstname()));
 	}
 
@@ -199,8 +200,8 @@ public class UserRepositoryTests {
 	public void existReturnsWhetherAnEntityCanBeLoaded() throws Exception {
 
 		flushTestUsers();
-		assertThat(repository.exists(id), is(true));
-		assertThat(repository.exists(id * 27), is(false));
+		assertThat(repository.existsById(id), is(true));
+		assertThat(repository.existsById(id * 27), is(false));
 	}
 
 	@Test
@@ -208,9 +209,9 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		repository.delete(firstUser.getId());
-		assertThat(repository.exists(id), is(false));
-		assertThat(repository.findOne(id), is(java.util.Optional.empty()));
+		repository.deleteById(firstUser.getId());
+		assertThat(repository.existsById(id), is(false));
+		assertThat(repository.findById(id), is(java.util.Optional.empty()));
 	}
 
 	@Test
@@ -219,8 +220,8 @@ public class UserRepositoryTests {
 		flushTestUsers();
 
 		repository.delete(firstUser);
-		assertThat(repository.exists(id), is(false));
-		assertThat(repository.findOne(id), is(java.util.Optional.empty()));
+		assertThat(repository.existsById(id), is(false));
+		assertThat(repository.findById(id), is(java.util.Optional.empty()));
 	}
 
 	@Test
@@ -259,9 +260,9 @@ public class UserRepositoryTests {
 
 		long before = repository.count();
 
-		repository.delete(Arrays.asList(firstUser, secondUser));
-		assertThat(repository.exists(firstUser.getId()), is(false));
-		assertThat(repository.exists(secondUser.getId()), is(false));
+		repository.deleteAll(Arrays.asList(firstUser, secondUser));
+		assertThat(repository.existsById(firstUser.getId()), is(false));
+		assertThat(repository.existsById(secondUser.getId()), is(false));
 		assertThat(repository.count(), is(before - 2));
 	}
 
@@ -273,8 +274,8 @@ public class UserRepositoryTests {
 		long before = repository.count();
 
 		repository.deleteInBatch(Arrays.asList(firstUser, secondUser));
-		assertThat(repository.exists(firstUser.getId()), is(false));
-		assertThat(repository.exists(secondUser.getId()), is(false));
+		assertThat(repository.existsById(firstUser.getId()), is(false));
+		assertThat(repository.existsById(secondUser.getId()), is(false));
 		assertThat(repository.count(), is(before - 2));
 	}
 
@@ -379,7 +380,7 @@ public class UserRepositoryTests {
 		flushTestUsers();
 
 		// Fetches first user from database
-		User firstReferenceUser = repository.findOne(firstUser.getId()).get();
+		User firstReferenceUser = repository.findById(firstUser.getId()).get();
 		assertThat(firstReferenceUser, is(firstUser));
 
 		// Fetch colleagues and assert link
@@ -411,7 +412,7 @@ public class UserRepositoryTests {
 		firstUser.addColleague(new User("Florian", "Hopf", "hopf@synyx.de"));
 		firstUser = repository.save(firstUser);
 
-		User reference = repository.findOne(firstUser.getId()).get();
+		User reference = repository.findById(firstUser.getId()).get();
 		Set<User> colleagues = reference.getColleagues();
 
 		assertThat(colleagues, is(notNullValue()));
@@ -643,7 +644,7 @@ public class UserRepositoryTests {
 
 		firstUser.setManager(secondUser);
 		thirdUser.setManager(firstUser);
-		repository.save(Arrays.asList(firstUser, thirdUser));
+		repository.saveAll(Arrays.asList(firstUser, thirdUser));
 
 		List<User> result = repository.findByManagerLastname("Arrasz");
 
@@ -662,7 +663,7 @@ public class UserRepositoryTests {
 
 		firstUser.addColleague(secondUser);
 		thirdUser.addColleague(firstUser);
-		repository.save(Arrays.asList(firstUser, thirdUser));
+		repository.saveAll(Arrays.asList(firstUser, thirdUser));
 
 		List<User> result = repository.findByColleaguesLastname(secondUser.getLastname());
 
@@ -885,7 +886,7 @@ public class UserRepositoryTests {
 		set.add(firstUser.getId());
 		set.add(secondUser.getId());
 
-		Iterable<User> result = repository.findAll(set);
+		Iterable<User> result = repository.findAllById(set);
 
 		assertThat(result, is(Matchers.<User> iterableWithSize(2)));
 		assertThat(result, hasItems(firstUser, secondUser));
@@ -909,10 +910,10 @@ public class UserRepositoryTests {
 		assertThat(thirdUser.getId(), is(notNullValue()));
 		assertThat(fourthUser.getId(), is(notNullValue()));
 
-		assertThat(repository.exists(id), is(true));
-		assertThat(repository.exists(secondUser.getId()), is(true));
-		assertThat(repository.exists(thirdUser.getId()), is(true));
-		assertThat(repository.exists(fourthUser.getId()), is(true));
+		assertThat(repository.existsById(id), is(true));
+		assertThat(repository.existsById(secondUser.getId()), is(true));
+		assertThat(repository.existsById(thirdUser.getId()), is(true));
+		assertThat(repository.existsById(fourthUser.getId()), is(true));
 	}
 
 	private static <T> void assertSameElements(Collection<T> first, Collection<T> second) {
@@ -931,7 +932,7 @@ public class UserRepositoryTests {
 		flushTestUsers();
 		long count = repository.count();
 
-		repository.delete(collection);
+		repository.deleteAll(collection);
 		assertThat(repository.count(), is(count));
 	}
 
@@ -1041,8 +1042,8 @@ public class UserRepositoryTests {
 	@Test // DATAJPA-332
 	public void findAllReturnsEmptyIterableIfNoIdsGiven() {
 
-		assertThat(repository.findAll(Collections.<Integer> emptySet()), is(emptyIterable()));
-		assertThat(repository.findAll((Iterable<Integer>) null), is(emptyIterable()));
+		assertThat(repository.findAllById(Collections.<Integer> emptySet()), is(emptyIterable()));
+		assertThat(repository.findAllById((Iterable<Integer>) null), is(emptyIterable()));
 	}
 
 	@Test // DATAJPA-391
@@ -1837,7 +1838,7 @@ public class UserRepositoryTests {
 
 		firstUser.setManager(secondUser);
 		thirdUser.setManager(firstUser);
-		repository.save(Arrays.asList(firstUser, thirdUser));
+		repository.saveAll(Arrays.asList(firstUser, thirdUser));
 
 		User manager = new User();
 		manager.setLastname("Arrasz");
@@ -1968,7 +1969,7 @@ public class UserRepositoryTests {
 		fifthUser.setFirstname(firstUser.getFirstname());
 		fifthUser.setLastname(firstUser.getLastname());
 
-		repository.save(Arrays.asList(firstUser, fifthUser));
+		repository.saveAll(Arrays.asList(firstUser, fifthUser));
 
 		User prototype = new User();
 		prototype.setFirstname(firstUser.getFirstname());

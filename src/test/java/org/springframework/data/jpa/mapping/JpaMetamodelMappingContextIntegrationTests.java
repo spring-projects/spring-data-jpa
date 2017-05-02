@@ -42,8 +42,6 @@ import org.springframework.data.mapping.IdentifierAccessor;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 
 /**
@@ -60,7 +58,7 @@ public class JpaMetamodelMappingContextIntegrationTests {
 	@ImportResource("classpath:infrastructure.xml")
 	@EnableJpaRepositories(basePackageClasses = CategoryRepository.class, //
 			includeFilters = @Filter(value = { CategoryRepository.class, ProductRepository.class },
-					type = FilterType.ASSIGNABLE_TYPE) )
+					type = FilterType.ASSIGNABLE_TYPE))
 	static class Config {
 
 	}
@@ -127,35 +125,27 @@ public class JpaMetamodelMappingContextIntegrationTests {
 	public void lookingUpIdentifierOfProxyDoesNotInitializeProxy() {
 
 		TransactionTemplate template = new TransactionTemplate(transactionManager);
-		final Category category = template.execute(new TransactionCallback<Category>() {
+		final Category category = template.execute(status -> {
 
-			@Override
-			public Category doInTransaction(TransactionStatus status) {
-
-				Product product = products.save(new Product());
-				return categories.save(new Category(product));
-			}
+			Product product = products.save(new Product());
+			return categories.save(new Category(product));
 		});
 
-		template.execute(new TransactionCallback<Void>() {
+		template.execute(status -> {
 
-			@Override
-			public Void doInTransaction(TransactionStatus status) {
+			Category loaded = categories.findById(category.getId()).get();
+			Product loadedProduct = loaded.getProduct();
 
-				Category loaded = categories.findOne(category.getId()).get();
-				Product loadedProduct = loaded.getProduct();
+			JpaPersistentEntity<?> entity = context.getRequiredPersistentEntity(Product.class);
+			IdentifierAccessor accessor = entity.getIdentifierAccessor(loadedProduct);
 
-				JpaPersistentEntity<?> entity = context.getRequiredPersistentEntity(Product.class);
-				IdentifierAccessor accessor = entity.getIdentifierAccessor(loadedProduct);
+			assertThat(accessor.getIdentifier(), is(Optional.of(category.getProduct().getId())));
+			assertThat(loadedProduct, is(instanceOf(HibernateProxy.class)));
+			assertThat(((HibernateProxy) loadedProduct).getHibernateLazyInitializer().isUninitialized(), is(true));
 
-				assertThat(accessor.getIdentifier(), is(Optional.of(category.getProduct().getId())));
-				assertThat(loadedProduct, is(instanceOf(HibernateProxy.class)));
-				assertThat(((HibernateProxy) loadedProduct).getHibernateLazyInitializer().isUninitialized(), is(true));
+			status.setRollbackOnly();
 
-				status.setRollbackOnly();
-
-				return null;
-			}
+			return null;
 		});
 	}
 }

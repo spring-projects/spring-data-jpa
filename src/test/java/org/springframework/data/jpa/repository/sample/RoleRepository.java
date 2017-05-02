@@ -50,7 +50,7 @@ public interface RoleRepository extends CrudRepository<Role, Integer>, QuerydslP
 	 */
 	@Lock(LockModeType.READ)
 	@QueryHints(@QueryHint(name = "foo", value = "bar"))
-	Optional<Role> findOne(Integer id);
+	Optional<Role> findById(Integer id);
 
 	/* 
 	 * (non-Javadoc)

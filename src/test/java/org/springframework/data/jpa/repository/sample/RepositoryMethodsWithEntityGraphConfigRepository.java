@@ -49,7 +49,7 @@ public interface RepositoryMethodsWithEntityGraphConfigRepository
 	 * Should fetch all user details
 	 */
 	@EntityGraph(type = EntityGraphType.FETCH, value = "User.detail")
-	Optional<User> findOne(Integer id);
+	Optional<User> findById(Integer id);
 
 	// DATAJPA-696
 	@EntityGraph

@@ -48,7 +48,7 @@ import org.springframework.util.ClassUtils;
  * @author Christoph Strobl
  * @author Mark Paluch
  */
-public class JpaMetamodelEntityInformation<T, ID extends Serializable> extends JpaEntityInformationSupport<T, ID> {
+public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSupport<T, ID> {
 
 	private final IdMetadata<T> idMetadata;
 	private final SingularAttribute<? super T, ?> versionAttribute;

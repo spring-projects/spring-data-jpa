@@ -50,7 +50,7 @@ public abstract class DefaultTransactionDisablingIntegrationTests {
 	@Test // DATAJPA-685
 	public void considersExplicitConfigurationOnRepositoryInterface() {
 
-		repository.findOne(1);
+		repository.findById(1);
 
 		assertThat(txManager.getDefinition().isReadOnly(), is(false));
 	}

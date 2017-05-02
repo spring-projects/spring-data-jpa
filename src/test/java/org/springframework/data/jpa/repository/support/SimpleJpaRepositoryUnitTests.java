@@ -18,7 +18,6 @@ package org.springframework.data.jpa.repository.support;
 import static java.util.Collections.*;
 import static org.mockito.Mockito.*;
 
-import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Optional;
 
@@ -112,7 +111,7 @@ public class SimpleJpaRepositoryUnitTests {
 	@Test(expected = EmptyResultDataAccessException.class) // DATAJPA-177
 	public void throwsExceptionIfEntityToDeleteDoesNotExist() {
 
-		repo.delete(4711);
+		repo.deleteById(4711);
 	}
 
 	@Test // DATAJPA-689, DATAJPA-696
@@ -125,10 +124,10 @@ public class SimpleJpaRepositoryUnitTests {
 		when(metadata.getEntityGraph()).thenReturn(Optional.of(entityGraphAnnotation));
 		when(em.getEntityGraph(entityGraphName)).thenReturn((EntityGraph) entityGraph);
 		when(information.getEntityName()).thenReturn("User");
-		when(metadata.getMethod()).thenReturn(CrudRepository.class.getMethod("findOne", Serializable.class));
+		when(metadata.getMethod()).thenReturn(CrudRepository.class.getMethod("findById", Object.class));
 
 		Integer id = 0;
-		repo.findOne(id);
+		repo.findById(id);
 
 		verify(em).find(User.class, id, singletonMap(EntityGraphType.LOAD.getKey(), (Object) entityGraph));
 	}

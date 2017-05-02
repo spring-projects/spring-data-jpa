@@ -80,7 +80,7 @@ public class RepositoryWithCompositeKeyTests {
 		IdClassExampleEmployeePK key = new IdClassExampleEmployeePK();
 		key.setDepartment(dep.getDepartmentId());
 		key.setEmpId(emp.getEmpId());
-		IdClassExampleEmployee persistedEmp = employeeRepositoryWithIdClass.findOne(key).get();
+		IdClassExampleEmployee persistedEmp = employeeRepositoryWithIdClass.findById(key).get();
 
 		assertThat(persistedEmp, is(notNullValue()));
 		assertThat(persistedEmp.getDepartment(), is(notNullValue()));
@@ -107,7 +107,7 @@ public class RepositoryWithCompositeKeyTests {
 		EmbeddedIdExampleEmployeePK key = new EmbeddedIdExampleEmployeePK();
 		key.setDepartmentId(emp.getDepartment().getDepartmentId());
 		key.setEmployeeId(emp.getEmployeePk().getEmployeeId());
-		EmbeddedIdExampleEmployee persistedEmp = employeeRepositoryWithEmbeddedId.findOne(key).get();
+		EmbeddedIdExampleEmployee persistedEmp = employeeRepositoryWithEmbeddedId.findById(key).get();
 
 		assertThat(persistedEmp, is(notNullValue()));
 		assertThat(persistedEmp.getDepartment(), is(notNullValue()));
@@ -226,7 +226,7 @@ public class RepositoryWithCompositeKeyTests {
 		key.setDepartment(dep.getDepartmentId());
 		key.setEmpId(emp.getEmpId());
 
-		assertThat(employeeRepositoryWithIdClass.exists(key), is(true));
+		assertThat(employeeRepositoryWithIdClass.existsById(key), is(true));
 	}
 
 	@Test // DATAJPA-527
@@ -249,7 +249,7 @@ public class RepositoryWithCompositeKeyTests {
 		key.setDepartmentId(emp.getDepartment().getDepartmentId());
 		key.setEmployeeId(emp.getEmployeePk().getEmployeeId());
 
-		assertThat(employeeRepositoryWithEmbeddedId.exists(key), is(true));
+		assertThat(employeeRepositoryWithEmbeddedId.existsById(key), is(true));
 	}
 
 	@Test // DATAJPA-611
@@ -281,7 +281,7 @@ public class RepositoryWithCompositeKeyTests {
 		emp2PK.setDepartment(1L);
 		emp2PK.setEmpId(2L);
 
-		List<IdClassExampleEmployee> result = employeeRepositoryWithIdClass.findAll(Arrays.asList(emp1PK, emp2PK));
+		List<IdClassExampleEmployee> result = employeeRepositoryWithIdClass.findAllById(Arrays.asList(emp1PK, emp2PK));
 
 		assertThat(result, hasSize(2));
 	}

@@ -84,7 +84,7 @@ public class RepositoryWithIdClassKeyTests {
 		itemSiteRepository.save(new ItemSite(item, site));
 
 		Optional<ItemSite> loaded = itemSiteRepository
-				.findOne(new ItemSiteId(new ItemId(item.getId(), item.getManufacturerId()), site.getId()));
+				.findById(new ItemSiteId(new ItemId(item.getId(), item.getManufacturerId()), site.getId()));
 
 		assertThat(loaded, is(notNullValue()));
 		assertThat(loaded.isPresent(), is(true));

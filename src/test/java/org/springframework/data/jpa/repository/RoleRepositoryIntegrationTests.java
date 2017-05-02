@@ -62,7 +62,7 @@ public class RoleRepositoryIntegrationTests {
 		ReflectionTestUtils.setField(reference, "name", "USER");
 		repository.save(reference);
 
-		assertThat(repository.findOne(result.getId()), is(Optional.of(reference)));
+		assertThat(repository.findById(result.getId()), is(Optional.of(reference)));
 	}
 
 	@Test // DATAJPA-509
@@ -80,7 +80,7 @@ public class RoleRepositoryIntegrationTests {
 		Role reference = new Role("ADMIN");
 		reference = repository.save(reference);
 
-		assertThat(repository.exists(reference.getId()), is(true));
+		assertThat(repository.existsById(reference.getId()), is(true));
 	}
 
 	@Test // DATAJPA-509

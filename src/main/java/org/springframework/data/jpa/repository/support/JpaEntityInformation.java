@@ -28,8 +28,7 @@ import org.springframework.data.repository.core.EntityInformation;
  * @author Oliver Gierke
  * @author Thomas Darimont
  */
-public interface JpaEntityInformation<T, ID extends Serializable> extends EntityInformation<T, ID>,
-		JpaEntityMetadata<T> {
+public interface JpaEntityInformation<T, ID> extends EntityInformation<T, ID>, JpaEntityMetadata<T> {
 
 	/**
 	 * Returns the id attribute of the entity.

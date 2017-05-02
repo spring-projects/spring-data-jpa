@@ -106,7 +106,7 @@ public class EntityGraphRepositoryMethodsIntegrationTests {
 		em.flush();
 		em.clear();
 
-		User user = repository.findOne(tom.getId()).get();
+		User user = repository.findById(tom.getId()).get();
 
 		assertThat(user, is(notNullValue()));
 		assertThat("colleages should be fetched with 'user.detail' fetchgraph", util.isLoaded(user, "colleagues"),

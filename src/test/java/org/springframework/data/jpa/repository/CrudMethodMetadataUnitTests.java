@@ -18,7 +18,6 @@ package org.springframework.data.jpa.repository;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import java.io.Serializable;
 import java.util.Collections;
 import java.util.Map;
 
@@ -74,7 +73,7 @@ public class CrudMethodMetadataUnitTests {
 		JpaRepositoryFactory factory = new JpaRepositoryFactory(em) {
 			@Override
 			@SuppressWarnings("unchecked")
-			public <T, ID extends Serializable> JpaEntityInformation<T, ID> getEntityInformation(Class<T> domainClass) {
+			public <T, ID> JpaEntityInformation<T, ID> getEntityInformation(Class<T> domainClass) {
 				return (JpaEntityInformation<T, ID>) information;
 			}
 		};
@@ -99,7 +98,7 @@ public class CrudMethodMetadataUnitTests {
 	@Test // DATAJPA-359, DATAJPA-173
 	public void usesMetadataAnnotatedAtRedeclaredFindOne() {
 
-		repository.findOne(1);
+		repository.findById(1);
 
 		Map<String, Object> expectedLinks = Collections.singletonMap("foo", (Object) "bar");
 		LockModeType expectedLockModeType = LockModeType.READ;

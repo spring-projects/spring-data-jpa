@@ -157,7 +157,7 @@ public class JpaRepositoryFactoryBeanUnitTests {
 		}
 
 		@Override
-		public <T, ID extends Serializable> EntityInformation<T, ID> getEntityInformation(Class<T> domainClass) {
+		public <T, ID> EntityInformation<T, ID> getEntityInformation(Class<T> domainClass) {
 			return null;
 		}
 

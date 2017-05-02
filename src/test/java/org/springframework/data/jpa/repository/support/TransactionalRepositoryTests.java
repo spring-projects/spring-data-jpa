@@ -78,7 +78,7 @@ public class TransactionalRepositoryTests extends AbstractJUnit4SpringContextTes
 	@Test
 	public void invokeRedeclaredMethod() throws Exception {
 
-		repository.findOne(1);
+		repository.findById(1);
 		assertFalse(transactionManager.getDefinition().isReadOnly());
 	}
 
@@ -86,7 +86,7 @@ public class TransactionalRepositoryTests extends AbstractJUnit4SpringContextTes
 	public void invokeRedeclaredDeleteMethodWithoutTransactionDeclaration() throws Exception {
 
 		User user = repository.saveAndFlush(new User("foo", "bar", "foo@bar.de"));
-		repository.delete(user.getId());
+		repository.deleteById(user.getId());
 
 		assertFalse(transactionManager.getDefinition().isReadOnly());
 	}

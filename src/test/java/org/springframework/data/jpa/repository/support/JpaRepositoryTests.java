@@ -65,11 +65,11 @@ public class JpaRepositoryTests {
 
 		SampleEntity entity = new SampleEntity("foo", "bar");
 		repository.saveAndFlush(entity);
-		assertThat(repository.exists(new SampleEntityPK("foo", "bar")), is(true));
+		assertThat(repository.existsById(new SampleEntityPK("foo", "bar")), is(true));
 		assertThat(repository.count(), is(1L));
-		assertThat(repository.findOne(new SampleEntityPK("foo", "bar")), is(Optional.of(entity)));
+		assertThat(repository.findById(new SampleEntityPK("foo", "bar")), is(Optional.of(entity)));
 
-		repository.delete(Arrays.asList(entity));
+		repository.deleteAll(Arrays.asList(entity));
 		repository.flush();
 		assertThat(repository.count(), is(0L));
 	}
@@ -85,7 +85,7 @@ public class JpaRepositoryTests {
 
 		PersistableWithIdClassPK id = new PersistableWithIdClassPK(entity.getFirst(), entity.getSecond());
 
-		assertThat(idClassRepository.findOne(id), is(Optional.of(entity)));
+		assertThat(idClassRepository.findById(id), is(Optional.of(entity)));
 	}
 
 	@Test // DATAJPA-266
@@ -94,9 +94,9 @@ public class JpaRepositoryTests {
 		PersistableWithIdClass s1 = idClassRepository.save(new PersistableWithIdClass(1L, 1L));
 		PersistableWithIdClass s2 = idClassRepository.save(new PersistableWithIdClass(2L, 2L));
 
-		assertThat(idClassRepository.exists(s1.getId()), is(true));
-		assertThat(idClassRepository.exists(s2.getId()), is(true));
-		assertThat(idClassRepository.exists(new PersistableWithIdClassPK(1L, 2L)), is(false));
+		assertThat(idClassRepository.existsById(s1.getId()), is(true));
+		assertThat(idClassRepository.existsById(s2.getId()), is(true));
+		assertThat(idClassRepository.existsById(new PersistableWithIdClassPK(1L, 2L)), is(false));
 	}
 
 	@Test // DATAJPA-527
@@ -110,7 +110,7 @@ public class JpaRepositoryTests {
 
 		PersistableWithIdClassPK id = new PersistableWithIdClassPK(entity.getFirst(), entity.getSecond());
 
-		assertThat(idClassRepository.exists(id), is(true));
+		assertThat(idClassRepository.existsById(id), is(true));
 	}
 
 	private static interface SampleEntityRepository extends JpaRepository<SampleEntity, SampleEntityPK> {
