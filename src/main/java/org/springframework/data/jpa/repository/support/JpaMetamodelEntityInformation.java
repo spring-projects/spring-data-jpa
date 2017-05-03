@@ -15,7 +15,6 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -208,9 +207,9 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.support.JpaEntityInformation#getCompositeIdAttributeValue(java.io.Serializable, java.lang.String)
+	 * @see org.springframework.data.jpa.repository.support.JpaEntityInformation#getCompositeIdAttributeValue(java.lang.Object, java.lang.String)
 	 */
-	public Object getCompositeIdAttributeValue(Serializable id, String idAttribute) {
+	public Object getCompositeIdAttributeValue(Object id, String idAttribute) {
 
 		Assert.isTrue(hasCompositeId(), "Model must have a composite Id!");
 

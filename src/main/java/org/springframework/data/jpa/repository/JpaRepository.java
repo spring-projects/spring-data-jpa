@@ -15,7 +15,6 @@
  */
 package org.springframework.data.jpa.repository;
 
-import java.io.Serializable;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -34,8 +33,7 @@ import org.springframework.data.repository.query.QueryByExampleExecutor;
  * @author Mark Paluch
  */
 @NoRepositoryBean
-public interface JpaRepository<T, ID extends Serializable>
-		extends PagingAndSortingRepository<T, ID>, QueryByExampleExecutor<T> {
+public interface JpaRepository<T, ID> extends PagingAndSortingRepository<T, ID>, QueryByExampleExecutor<T> {
 
 	/*
 	 * (non-Javadoc)
@@ -96,16 +94,17 @@ public interface JpaRepository<T, ID extends Serializable>
 	 */
 	T getOne(ID id);
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.query.QueryByExampleExecutor#findAll(org.springframework.data.domain.Example)
 	 */
 	@Override
 	<S extends T> List<S> findAll(Example<S> example);
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.query.QueryByExampleExecutor#findAll(org.springframework.data.domain.Example, org.springframework.data.domain.Sort)
 	 */
 	@Override
 	<S extends T> List<S> findAll(Example<S> example, Sort sort);
-
 }

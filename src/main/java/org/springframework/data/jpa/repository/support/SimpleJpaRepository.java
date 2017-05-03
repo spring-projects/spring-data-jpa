@@ -17,7 +17,6 @@ package org.springframework.data.jpa.repository.support;
 
 import static org.springframework.data.jpa.repository.query.QueryUtils.*;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -73,8 +72,7 @@ import org.springframework.util.ObjectUtils;
  */
 @Repository
 @Transactional(readOnly = true)
-public class SimpleJpaRepository<T, ID extends Serializable>
-		implements JpaRepository<T, ID>, JpaSpecificationExecutor<T> {
+public class SimpleJpaRepository<T, ID> implements JpaRepository<T, ID>, JpaSpecificationExecutor<T> {
 
 	private static final String ID_MUST_NOT_BE_NULL = "The given id must not be null!";
 

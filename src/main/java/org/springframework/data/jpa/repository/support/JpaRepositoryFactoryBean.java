@@ -15,8 +15,6 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import java.io.Serializable;
-
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
@@ -34,7 +32,7 @@ import org.springframework.util.Assert;
  * @author Eberhard Wolff
  * @param <T> the type of the repository
  */
-public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID extends Serializable>
+public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 		extends TransactionalRepositoryFactoryBeanSupport<T, S, ID> {
 
 	private EntityManager entityManager;

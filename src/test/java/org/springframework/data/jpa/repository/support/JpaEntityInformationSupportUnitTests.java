@@ -95,7 +95,7 @@ public class JpaEntityInformationSupportUnitTests {
 			return false;
 		}
 
-		public Object getCompositeIdAttributeValue(Serializable id, String idAttribute) {
+		public Object getCompositeIdAttributeValue(Object id, String idAttribute) {
 			return null;
 		}
 	}

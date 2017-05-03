@@ -15,8 +15,6 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import java.io.Serializable;
-
 import javax.persistence.metamodel.SingularAttribute;
 
 import org.springframework.data.jpa.repository.query.JpaEntityMetadata;
@@ -59,5 +57,5 @@ public interface JpaEntityInformation<T, ID> extends EntityInformation<T, ID>, J
 	 * @param idAttribute
 	 * @return
 	 */
-	Object getCompositeIdAttributeValue(Serializable id, String idAttribute);
+	Object getCompositeIdAttributeValue(Object id, String idAttribute);
 }
