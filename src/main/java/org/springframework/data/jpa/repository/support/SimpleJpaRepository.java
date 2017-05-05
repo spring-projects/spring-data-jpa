@@ -398,11 +398,13 @@ public class SimpleJpaRepository<T, ID> implements JpaRepository<T, ID>, JpaSpec
 	 * @see org.springframework.data.repository.query.QueryByExampleExecutor#findOne(org.springframework.data.domain.Example)
 	 */
 	@Override
-	public <S extends T> S findOne(Example<S> example) {
+	public <S extends T> Optional<S> findOne(Example<S> example) {
+
 		try {
-			return getQuery(new ExampleSpecification<S>(example), example.getProbeType(), (Sort) null).getSingleResult();
+			return Optional
+					.of(getQuery(new ExampleSpecification<S>(example), example.getProbeType(), (Sort) null).getSingleResult());
 		} catch (NoResultException e) {
-			return null;
+			return Optional.empty();
 		}
 	}
 

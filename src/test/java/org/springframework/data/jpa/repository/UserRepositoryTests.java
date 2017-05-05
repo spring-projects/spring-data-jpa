@@ -43,6 +43,7 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
+import org.assertj.core.api.Assertions;
 import org.hamcrest.Matchers;
 import org.junit.Assume;
 import org.junit.Before;
@@ -2093,9 +2094,8 @@ public class UserRepositoryTests {
 		prototype.setAge(28);
 
 		Example<User> example = Example.of(prototype, matching().withIgnorePaths("createdAt"));
-		User users = repository.findOne(example);
 
-		assertThat(users, is(firstUser));
+		Assertions.assertThat(repository.findOne(example)).contains(firstUser);
 	}
 
 	@Test // DATAJPA-218
