@@ -15,9 +15,8 @@
  */
 package org.springframework.data.jpa.repository;
 
-import static org.hamcrest.Matchers.*;
-import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
+import static org.hamcrest.core.IsEqual.*;
 import static org.springframework.data.domain.Example.*;
 import static org.springframework.data.domain.ExampleMatcher.*;
 import static org.springframework.data.domain.Sort.Direction.*;
@@ -43,8 +42,7 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
-import org.assertj.core.api.Assertions;
-import org.hamcrest.Matchers;
+import org.hamcrest.core.IsNot;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -56,8 +54,6 @@ import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
-import org.springframework.data.domain.ExampleMatcher.GenericPropertyMatcher;
-import org.springframework.data.domain.ExampleMatcher.StringMatcher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -66,6 +62,7 @@ import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.domain.Sort.Order;
+import org.springframework.data.domain.ExampleMatcher.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.domain.sample.Address;
 import org.springframework.data.jpa.domain.sample.Role;
@@ -85,10 +82,11 @@ import com.google.common.base.Optional;
  * well as Hibernate configuration to execute tests.
  * <p>
  * To test further persistence providers subclass this class and provide a custom provider configuration.
- * 
+ *
  * @author Oliver Gierke
  * @author Kevin Raymond
  * @author Thomas Darimont
+ * @author Christoph Strobl
  * @author Mark Paluch
  */
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -131,7 +129,7 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		assertThat((Long) countQuery.getSingleResult(), is(before + 4));
+		assertThat((Long) countQuery.getSingleResult()).isEqualTo(before + 4L);
 	}
 
 	@Test
@@ -139,8 +137,7 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		User foundPerson = repository.findById(id).get();
-		assertThat(firstUser.getFirstname(), is(foundPerson.getFirstname()));
+		assertThat(repository.findById(id)).map(User::getFirstname).contains(firstUser.getFirstname());
 	}
 
 	@Test
@@ -148,8 +145,8 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		Iterable<User> result = repository.findAllById(Arrays.asList(firstUser.getId(), secondUser.getId()));
-		assertThat(result, hasItems(firstUser, secondUser));
+		assertThat(repository.findAllById(Arrays.asList(firstUser.getId(), secondUser.getId()))).contains(firstUser,
+				secondUser);
 	}
 
 	@Test
@@ -157,32 +154,24 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		assertThat(repository.findById(id * 27), is(java.util.Optional.empty()));
+		assertThat(repository.findById(id * 27)).isNotPresent();
 	}
 
 	@Test
 	public void savesCollectionCorrectly() throws Exception {
 
-		List<User> result = repository.saveAll(Arrays.asList(firstUser, secondUser, thirdUser));
-		assertThat(result, is(notNullValue()));
-		assertThat(result.size(), is(3));
-		assertThat(result, hasItems(firstUser, secondUser, thirdUser));
+		assertThat(repository.saveAll(Arrays.asList(firstUser, secondUser, thirdUser))).hasSize(3).contains(firstUser,
+				secondUser, thirdUser);
 	}
 
 	@Test
 	public void savingNullCollectionIsNoOp() throws Exception {
-
-		List<User> result = repository.saveAll((Collection<User>) null);
-		assertThat(result, is(notNullValue()));
-		assertThat(result.isEmpty(), is(true));
+		assertThat(repository.saveAll(null)).isEmpty();
 	}
 
 	@Test
 	public void savingEmptyCollectionIsNoOp() throws Exception {
-
-		List<User> result = repository.saveAll(new ArrayList<User>());
-		assertThat(result, is(notNullValue()));
-		assertThat(result.isEmpty(), is(true));
+		assertThat(repository.saveAll(new ArrayList<>())).isEmpty();
 	}
 
 	@Test
@@ -193,16 +182,15 @@ public class UserRepositoryTests {
 		User foundPerson = repository.findById(id).get();
 		foundPerson.setLastname("Schlicht");
 
-		User updatedPerson = repository.findById(id).get();
-		assertThat(updatedPerson.getFirstname(), is(foundPerson.getFirstname()));
+		assertThat(repository.findById(id)).map(User::getFirstname).contains(foundPerson.getFirstname());
 	}
 
 	@Test
 	public void existReturnsWhetherAnEntityCanBeLoaded() throws Exception {
 
 		flushTestUsers();
-		assertThat(repository.existsById(id), is(true));
-		assertThat(repository.existsById(id * 27), is(false));
+		assertThat(repository.existsById(id)).isTrue();
+		assertThat(repository.existsById(id * 27)).isFalse();
 	}
 
 	@Test
@@ -211,8 +199,9 @@ public class UserRepositoryTests {
 		flushTestUsers();
 
 		repository.deleteById(firstUser.getId());
-		assertThat(repository.existsById(id), is(false));
-		assertThat(repository.findById(id), is(java.util.Optional.empty()));
+
+		assertThat(repository.existsById(id)).isFalse();
+		assertThat(repository.findById(id)).isNotPresent();
 	}
 
 	@Test
@@ -221,21 +210,18 @@ public class UserRepositoryTests {
 		flushTestUsers();
 
 		repository.delete(firstUser);
-		assertThat(repository.existsById(id), is(false));
-		assertThat(repository.findById(id), is(java.util.Optional.empty()));
+
+		assertThat(repository.existsById(id)).isFalse();
+		assertThat(repository.findById(id)).isNotPresent();
 	}
 
 	@Test
 	public void returnsAllSortedCorrectly() throws Exception {
 
 		flushTestUsers();
-		List<User> result = repository.findAll(Sort.by(ASC, "lastname"));
-		assertThat(result, is(notNullValue()));
-		assertThat(result.size(), is(4));
-		assertThat(result.get(0), is(secondUser));
-		assertThat(result.get(1), is(firstUser));
-		assertThat(result.get(2), is(thirdUser));
-		assertThat(result.get(3), is(fourthUser));
+
+		assertThat(repository.findAll(Sort.by(ASC, "lastname"))).hasSize(4).containsExactly(secondUser, firstUser,
+				thirdUser, fourthUser);
 	}
 
 	@Test // DATAJPA-296
@@ -246,12 +232,8 @@ public class UserRepositoryTests {
 		Order order = new Order(ASC, "firstname").ignoreCase();
 		List<User> result = repository.findAll(Sort.by(order));
 
-		assertThat(result, is(notNullValue()));
-		assertThat(result.size(), is(4));
-		assertThat(result.get(0), is(thirdUser));
-		assertThat(result.get(1), is(secondUser));
-		assertThat(result.get(2), is(fourthUser));
-		assertThat(result.get(3), is(firstUser));
+		assertThat(repository.findAll(Sort.by(order))).hasSize(4).containsExactly(thirdUser, secondUser, fourthUser,
+				firstUser);
 	}
 
 	@Test
@@ -262,9 +244,9 @@ public class UserRepositoryTests {
 		long before = repository.count();
 
 		repository.deleteAll(Arrays.asList(firstUser, secondUser));
-		assertThat(repository.existsById(firstUser.getId()), is(false));
-		assertThat(repository.existsById(secondUser.getId()), is(false));
-		assertThat(repository.count(), is(before - 2));
+		assertThat(repository.existsById(firstUser.getId())).isFalse();
+		assertThat(repository.existsById(secondUser.getId())).isFalse();
+		assertThat(repository.count()).isEqualTo(before - 2);
 	}
 
 	@Test
@@ -275,9 +257,10 @@ public class UserRepositoryTests {
 		long before = repository.count();
 
 		repository.deleteInBatch(Arrays.asList(firstUser, secondUser));
-		assertThat(repository.existsById(firstUser.getId()), is(false));
-		assertThat(repository.existsById(secondUser.getId()), is(false));
-		assertThat(repository.count(), is(before - 2));
+
+		assertThat(repository.existsById(firstUser.getId())).isFalse();
+		assertThat(repository.existsById(secondUser.getId())).isFalse();
+		assertThat(repository.count()).isEqualTo(before - 2);
 	}
 
 	@Test
@@ -293,7 +276,7 @@ public class UserRepositoryTests {
 		repository.renameAllUsersTo("newLastname");
 
 		long expected = repository.count();
-		assertThat(repository.findByLastname("newLastname").size(), is(Long.valueOf(expected).intValue()));
+		assertThat(repository.findByLastname("newLastname").size()).isEqualTo(Long.valueOf(expected).intValue());
 	}
 
 	@Test
@@ -309,15 +292,12 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		List<User> byName = repository.findByLastname("Gierke");
-
-		assertThat(byName.size(), is(1));
-		assertThat(byName.get(0), is(firstUser));
+		assertThat(repository.findByLastname("Gierke")).containsOnly(firstUser);
 	}
 
 	/**
 	 * Tests, that searching by the email address of the reference user returns exactly that instance.
-	 * 
+	 *
 	 * @throws Exception
 	 */
 	@Test
@@ -325,10 +305,7 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		User byName = repository.findByEmailAddress("gierke@synyx.de");
-
-		assertThat(byName, is(notNullValue()));
-		assertThat(byName, is(firstUser));
+		assertThat(repository.findByEmailAddress("gierke@synyx.de")).isEqualTo(firstUser);
 	}
 
 	/**
@@ -339,13 +316,13 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		assertThat(repository.count(), is(4L));
-		assertThat(repository.findAll(), hasItems(firstUser, secondUser, thirdUser, fourthUser));
+		assertThat(repository.count()).isEqualTo(4L);
+		assertThat(repository.findAll()).contains(firstUser, secondUser, thirdUser, fourthUser);
 	}
 
 	/**
 	 * Tests that all users get deleted by triggering {@link UserRepository#deleteAll()}.
-	 * 
+	 *
 	 * @throws Exception
 	 */
 	@Test
@@ -355,7 +332,7 @@ public class UserRepositoryTests {
 
 		repository.deleteAll();
 
-		assertThat(repository.count(), is(0L));
+		assertThat(repository.count()).isZero();
 	}
 
 	@Test // DATAJPA-137
@@ -365,7 +342,7 @@ public class UserRepositoryTests {
 
 		repository.deleteAllInBatch();
 
-		assertThat(repository.count(), is(0L));
+		assertThat(repository.count()).isZero();
 	}
 
 	/**
@@ -382,12 +359,11 @@ public class UserRepositoryTests {
 
 		// Fetches first user from database
 		User firstReferenceUser = repository.findById(firstUser.getId()).get();
-		assertThat(firstReferenceUser, is(firstUser));
+		assertThat(firstReferenceUser).isEqualTo(firstUser);
 
 		// Fetch colleagues and assert link
 		Set<User> colleagues = firstReferenceUser.getColleagues();
-		assertThat(colleagues.size(), is(1));
-		assertThat(colleagues.contains(secondUser), is(true));
+		assertThat(colleagues).containsOnly(secondUser);
 	}
 
 	/**
@@ -416,8 +392,7 @@ public class UserRepositoryTests {
 		User reference = repository.findById(firstUser.getId()).get();
 		Set<User> colleagues = reference.getColleagues();
 
-		assertThat(colleagues, is(notNullValue()));
-		assertThat(colleagues.size(), is(2));
+		assertThat(colleagues).hasSize(2);
 	}
 
 	@Test
@@ -429,7 +404,7 @@ public class UserRepositoryTests {
 		user.setEmailAddress("gierke@synyx.de");
 		repository.save(user);
 
-		assertThat(repository.count() == count + 1, is(true));
+		assertThat(repository.count()).isEqualTo(count + 1);
 	}
 
 	@Test
@@ -447,35 +422,35 @@ public class UserRepositoryTests {
 	@Test
 	public void testUsesQueryAnnotation() {
 
-		assertThat(repository.findByAnnotatedQuery("gierke@synyx.de"), is(nullValue()));
+		assertThat(repository.findByAnnotatedQuery("gierke@synyx.de")).isNull();
 	}
 
 	@Test
 	public void testExecutionOfProjectingMethod() {
 
 		flushTestUsers();
-		assertThat(repository.countWithFirstname("Oliver").longValue(), is(1L));
+		assertThat(repository.countWithFirstname("Oliver")).isEqualTo(1L);
 	}
 
 	@Test
 	public void executesSpecificationCorrectly() {
 
 		flushTestUsers();
-		assertThat(repository.findAll(where(userHasFirstname("Oliver"))).size(), is(1));
+		assertThat(repository.findAll(where(userHasFirstname("Oliver")))).hasSize(1);
 	}
 
 	@Test
 	public void executesSingleEntitySpecificationCorrectly() throws Exception {
 
 		flushTestUsers();
-		assertThat(repository.findOne(userHasFirstname("Oliver")), is(firstUser));
+		assertThat(repository.findOne(userHasFirstname("Oliver"))).isEqualTo(firstUser);
 	}
 
 	@Test
 	public void returnsNullIfNoEntityFoundForSingleEntitySpecification() throws Exception {
 
 		flushTestUsers();
-		assertThat(repository.findOne(userHasLastname("Beauford")), is(nullValue()));
+		assertThat(repository.findOne(userHasLastname("Beauford"))).isNull();
 	}
 
 	@Test(expected = IncorrectResultSizeDataAccessException.class)
@@ -490,7 +465,7 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 		Specification<User> spec = where(userHasFirstname("Oliver")).or(userHasLastname("Arrasz"));
-		assertThat(repository.findAll(spec), hasSize(2));
+		assertThat(repository.findAll(spec)).hasSize(2);
 	}
 
 	@Test // DATAJPA-253
@@ -498,10 +473,8 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 		Specification<User> spec = not(userHasFirstname("Oliver")).and(userHasLastname("Arrasz"));
-		List<User> result = repository.findAll(spec);
 
-		assertThat(result, hasSize(1));
-		assertThat(result, hasItem(secondUser));
+		assertThat(repository.findAll(spec)).containsOnly(secondUser);
 	}
 
 	@Test
@@ -511,9 +484,9 @@ public class UserRepositoryTests {
 		Specification<User> spec = where(userHasFirstname("Oliver")).or(userHasLastname("Arrasz"));
 
 		Page<User> users = repository.findAll(spec, PageRequest.of(0, 1));
-		assertThat(users.getSize(), is(1));
-		assertThat(users.hasPrevious(), is(false));
-		assertThat(users.getTotalElements(), is(2L));
+		assertThat(users.getSize()).isEqualTo(1);
+		assertThat(users.hasPrevious()).isFalse();
+		assertThat(users.getTotalElements()).isEqualTo(2L);
 	}
 
 	@Test
@@ -522,8 +495,7 @@ public class UserRepositoryTests {
 		firstUser = repository.save(firstUser);
 		secondUser = repository.save(secondUser);
 
-		assertTrue(
-				repository.findByLastnameOrFirstname("Oliver", "Arrasz").containsAll(Arrays.asList(firstUser, secondUser)));
+		assertThat(repository.findByLastnameOrFirstname("Oliver", "Arrasz")).contains(firstUser, secondUser);
 	}
 
 	@Test
@@ -532,9 +504,7 @@ public class UserRepositoryTests {
 		firstUser = repository.save(firstUser);
 		secondUser = repository.save(secondUser);
 
-		List<User> result = repository.findByFirstnameOrLastname("Oliver", "Arrasz");
-		assertThat(result.size(), is(2));
-		assertThat(result, hasItems(firstUser, secondUser));
+		assertThat(repository.findByFirstnameOrLastname("Oliver", "Arrasz")).containsOnly(firstUser, secondUser);
 	}
 
 	@Test
@@ -542,11 +512,8 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		List<User> result = repository.findByLastnameLikeOrderByFirstnameDesc("%r%");
-		assertThat(result.size(), is(3));
-		assertEquals(fourthUser, result.get(0));
-		assertEquals(firstUser, result.get(1));
-		assertEquals(secondUser, result.get(2));
+		assertThat(repository.findByLastnameLikeOrderByFirstnameDesc("%r%")).hasSize(3).containsExactly(fourthUser,
+				firstUser, secondUser);
 	}
 
 	@Test
@@ -554,9 +521,7 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		List<User> result = repository.findByLastnameNotLike("%er%");
-		assertThat(result.size(), is(3));
-		assertThat(result, hasItems(secondUser, thirdUser, fourthUser));
+		assertThat(repository.findByLastnameNotLike("%er%")).containsOnly(secondUser, thirdUser, fourthUser);
 	}
 
 	@Test
@@ -564,9 +529,7 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		List<User> result = repository.findByLastnameNot("Gierke");
-		assertThat(result.size(), is(3));
-		assertThat(result, hasItems(secondUser, thirdUser, fourthUser));
+		assertThat(repository.findByLastnameNot("Gierke")).containsOnly(secondUser, thirdUser, fourthUser);
 	}
 
 	@Test
@@ -589,14 +552,14 @@ public class UserRepositoryTests {
 		Pageable pageable = PageRequest.of(0, 1);
 
 		flushTestUsers();
-		assertThat(repository.findAll((Specification<User>) null, pageable), is(repository.findAll(pageable)));
+		assertThat(repository.findAll((Specification<User>) null, pageable)).isEqualTo(repository.findAll(pageable));
 	}
 
 	@Test
 	public void returnsAllAsPageIfNoPageableIsGiven() throws Exception {
 
 		flushTestUsers();
-		assertThat(repository.findAll((Pageable) null), is((Page<User>) new PageImpl<User>(repository.findAll())));
+		assertThat(repository.findAll((Pageable) null)).isEqualTo(new PageImpl<User>(repository.findAll()));
 	}
 
 	@Test
@@ -607,15 +570,14 @@ public class UserRepositoryTests {
 		em.detach(firstUser);
 		repository.delete(firstUser);
 
-		assertThat(repository.count(), is(3L));
+		assertThat(repository.count()).isEqualTo(3L);
 	}
 
 	@Test
 	public void executesPagedSpecificationsCorrectly() throws Exception {
 
 		Page<User> result = executeSpecWithSort(null);
-		assertThat(result.getContent(), anyOf(hasItem(firstUser), hasItem(thirdUser)));
-		assertThat(result.getContent(), not(hasItem(secondUser)));
+		assertThat(result.getContent()).isSubsetOf(firstUser, thirdUser);
 	}
 
 	@Test
@@ -623,9 +585,7 @@ public class UserRepositoryTests {
 
 		Page<User> result = executeSpecWithSort(Sort.by(Direction.ASC, "lastname"));
 
-		assertThat(result.getContent(), hasItem(firstUser));
-		assertThat(result.getContent(), not(hasItem(secondUser)));
-		assertThat(result.getContent(), not(hasItem(thirdUser)));
+		assertThat(result.getContent()).contains(firstUser).doesNotContain(secondUser, thirdUser);
 	}
 
 	@Test
@@ -633,9 +593,7 @@ public class UserRepositoryTests {
 
 		Page<User> result = executeSpecWithSort(Sort.by(Direction.DESC, "lastname"));
 
-		assertThat(result.getContent(), hasItem(thirdUser));
-		assertThat(result.getContent(), not(hasItem(secondUser)));
-		assertThat(result.getContent(), not(hasItem(firstUser)));
+		assertThat(result.getContent()).contains(thirdUser).doesNotContain(secondUser, firstUser);
 	}
 
 	@Test
@@ -647,14 +605,8 @@ public class UserRepositoryTests {
 		thirdUser.setManager(firstUser);
 		repository.saveAll(Arrays.asList(firstUser, thirdUser));
 
-		List<User> result = repository.findByManagerLastname("Arrasz");
-
-		assertThat(result.size(), is(1));
-		assertThat(result, hasItem(firstUser));
-
-		result = repository.findByManagerLastname("Gierke");
-		assertThat(result.size(), is(1));
-		assertThat(result, hasItem(thirdUser));
+		assertThat(repository.findByManagerLastname("Arrasz")).containsOnly(firstUser);
+		assertThat(repository.findByManagerLastname("Gierke")).containsOnly(thirdUser);
 	}
 
 	@Test
@@ -666,24 +618,17 @@ public class UserRepositoryTests {
 		thirdUser.addColleague(firstUser);
 		repository.saveAll(Arrays.asList(firstUser, thirdUser));
 
-		List<User> result = repository.findByColleaguesLastname(secondUser.getLastname());
+		assertThat(repository.findByColleaguesLastname(secondUser.getLastname())).containsOnly(firstUser);
 
-		assertThat(result.size(), is(1));
-		assertThat(result, hasItem(firstUser));
-
-		result = repository.findByColleaguesLastname("Gierke");
-		assertThat(result.size(), is(2));
-		assertThat(result, hasItems(thirdUser, secondUser));
+		assertThat(repository.findByColleaguesLastname("Gierke")).containsOnly(thirdUser, secondUser);
 	}
 
 	@Test
 	public void executesFindByNotNullLastnameCorrectly() throws Exception {
 
 		flushTestUsers();
-		List<User> result = repository.findByLastnameNotNull();
 
-		assertThat(result.size(), is(4));
-		assertThat(result, hasItems(firstUser, secondUser, thirdUser, fourthUser));
+		assertThat(repository.findByLastnameNotNull()).containsOnly(firstUser, secondUser, thirdUser, fourthUser);
 	}
 
 	@Test
@@ -692,10 +637,7 @@ public class UserRepositoryTests {
 		flushTestUsers();
 		User forthUser = repository.save(new User("Foo", null, "email@address.com"));
 
-		List<User> result = repository.findByLastnameNull();
-
-		assertThat(result.size(), is(1));
-		assertThat(result, hasItems(forthUser));
+		assertThat(repository.findByLastnameNull()).containsOnly(forthUser);
 	}
 
 	@Test
@@ -703,13 +645,8 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		List<User> result = repository.findByEmailAddressLike("%@%", Sort.by(Direction.ASC, "lastname"));
-
-		assertThat(result.size(), is(4));
-		assertThat(result.get(0), is(secondUser));
-		assertThat(result.get(1), is(firstUser));
-		assertThat(result.get(2), is(thirdUser));
-		assertThat(result.get(3), is(fourthUser));
+		assertThat(repository.findByEmailAddressLike("%@%", Sort.by(Direction.ASC, "lastname"))).containsExactly(secondUser,
+				firstUser, thirdUser, fourthUser);
 	}
 
 	@Test
@@ -717,9 +654,7 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		List<User> result = repository.findBySpringDataNamedQuery("Gierke");
-		assertThat(result.size(), is(1));
-		assertThat(result, hasItem(firstUser));
+		assertThat(repository.findBySpringDataNamedQuery("Gierke")).containsOnly(firstUser);
 	}
 
 	@Test // DATADOC-86
@@ -728,7 +663,7 @@ public class UserRepositoryTests {
 		flushTestUsers();
 
 		Page<String> result = repository.findByLastnameGrouped(PageRequest.of(0, 10));
-		assertThat(result.getTotalPages(), is(1));
+		assertThat(result.getTotalPages()).isEqualTo(1);
 	}
 
 	@Test
@@ -736,9 +671,7 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		List<User> result = repository.findByAgeLessThanEqual(35);
-		assertThat(result.size(), is(3));
-		assertThat(result, hasItems(firstUser, secondUser, fourthUser));
+		assertThat(repository.findByAgeLessThanEqual(35)).containsOnly(firstUser, secondUser, fourthUser);
 	}
 
 	@Test
@@ -746,9 +679,7 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		List<User> result = repository.findByAgeGreaterThanEqual(35);
-		assertThat(result.size(), is(2));
-		assertThat(result, hasItems(secondUser, thirdUser));
+		assertThat(repository.findByAgeGreaterThanEqual(35)).containsOnly(secondUser, thirdUser);
 	}
 
 	@Test // DATAJPA-117
@@ -756,10 +687,7 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		List<User> result = repository.findNativeByLastname("Matthews");
-
-		assertThat(result, hasItem(thirdUser));
-		assertThat(result.size(), is(1));
+		assertThat(repository.findNativeByLastname("Matthews")).containsOnly(thirdUser);
 	}
 
 	@Test // DATAJPA-132
@@ -769,9 +697,7 @@ public class UserRepositoryTests {
 		firstUser.setActive(false);
 		repository.save(firstUser);
 
-		List<User> result = repository.findByActiveTrue();
-		assertThat(result.size(), is(3));
-		assertThat(result, hasItems(secondUser, thirdUser, fourthUser));
+		assertThat(repository.findByActiveTrue()).containsOnly(secondUser, thirdUser, fourthUser);
 	}
 
 	@Test // DATAJPA-132
@@ -781,9 +707,7 @@ public class UserRepositoryTests {
 		firstUser.setActive(false);
 		repository.save(firstUser);
 
-		List<User> result = repository.findByActiveFalse();
-		assertThat(result.size(), is(1));
-		assertThat(result, hasItem(firstUser));
+		assertThat(repository.findByActiveFalse()).containsOnly(firstUser);
 	}
 
 	/**
@@ -798,8 +722,7 @@ public class UserRepositoryTests {
 		repository.save(firstUser);
 
 		List<User> result = null; // repository.findColleaguesFor(firstUser);
-		assertThat(result.size(), is(1));
-		assertThat(result, hasItem(thirdUser));
+		assertThat(result).containsOnly(thirdUser);
 	}
 
 	@Test // DATAJPA-188
@@ -807,9 +730,7 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		List<User> result = repository.findByCreatedAtAfter(secondUser.getCreatedAt());
-		assertThat(result.size(), is(2));
-		assertThat(result, hasItems(thirdUser, fourthUser));
+		assertThat(repository.findByCreatedAtAfter(secondUser.getCreatedAt())).containsOnly(thirdUser, fourthUser);
 	}
 
 	@Test // DATAJPA-188
@@ -817,36 +738,31 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		List<User> result = repository.findByCreatedAtBefore(thirdUser.getCreatedAt());
-		assertThat(result.size(), is(2));
-		assertThat(result, hasItems(firstUser, secondUser));
+		assertThat(repository.findByCreatedAtBefore(thirdUser.getCreatedAt())).containsOnly(firstUser, secondUser);
 	}
 
 	@Test // DATAJPA-180
 	public void executesFinderWithStartingWithCorrectly() {
 
 		flushTestUsers();
-		List<User> result = repository.findByFirstnameStartingWith("Oli");
-		assertThat(result.size(), is(1));
-		assertThat(result, hasItem(firstUser));
+
+		assertThat(repository.findByFirstnameStartingWith("Oli")).containsOnly(firstUser);
 	}
 
 	@Test // DATAJPA-180
 	public void executesFinderWithEndingWithCorrectly() {
 
 		flushTestUsers();
-		List<User> result = repository.findByFirstnameEndingWith("er");
-		assertThat(result.size(), is(1));
-		assertThat(result, hasItem(firstUser));
+
+		assertThat(repository.findByFirstnameEndingWith("er")).containsOnly(firstUser);
 	}
 
 	@Test // DATAJPA-180
 	public void executesFinderWithContainingCorrectly() {
 
 		flushTestUsers();
-		List<User> result = repository.findByFirstnameContaining("a");
-		assertThat(result.size(), is(2));
-		assertThat(result, hasItems(secondUser, thirdUser));
+
+		assertThat(repository.findByFirstnameContaining("a")).containsOnly(secondUser, thirdUser);
 	}
 
 	@Test // DATAJPA-201
@@ -854,17 +770,15 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		List<User> users = repository.findByFirstname("Oliver", null);
-		assertThat(users.size(), is(1));
-		assertThat(users, hasItem(firstUser));
+		assertThat(repository.findByFirstname("Oliver", null)).containsOnly(firstUser);
 
 		Page<User> page = repository.findByFirstnameIn(null, "Oliver");
-		assertThat(page.getNumberOfElements(), is(1));
-		assertThat(page.getContent(), hasItem(firstUser));
+		assertThat(page.getNumberOfElements()).isEqualTo(1);
+		assertThat(page.getContent()).contains(firstUser);
 
 		page = repository.findAll((Pageable) null);
-		assertThat(page.getNumberOfElements(), is(4));
-		assertThat(page.getContent(), hasItems(firstUser, secondUser, thirdUser, fourthUser));
+		assertThat(page.getNumberOfElements()).isEqualTo(4);
+		assertThat(page.getContent()).contains(firstUser, secondUser, thirdUser, fourthUser);
 	}
 
 	@Test // DATAJPA-207
@@ -874,8 +788,8 @@ public class UserRepositoryTests {
 
 		List<Integer> result = repository.findOnesByNativeQuery();
 
-		assertThat(result.size(), is(4));
-		assertThat(result, hasItem(1));
+		assertThat(result.size()).isEqualTo(4);
+		assertThat(result).contains(1);
 	}
 
 	@Test // DATAJPA-232
@@ -883,14 +797,11 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		Set<Integer> set = new HashSet<Integer>();
+		Set<Integer> set = new HashSet<>();
 		set.add(firstUser.getId());
 		set.add(secondUser.getId());
 
-		Iterable<User> result = repository.findAllById(set);
-
-		assertThat(result, is(Matchers.<User> iterableWithSize(2)));
-		assertThat(result, hasItems(firstUser, secondUser));
+		assertThat(repository.findAllById(set)).containsOnly(firstUser, secondUser);
 	}
 
 	protected void flushTestUsers() {
@@ -906,25 +817,25 @@ public class UserRepositoryTests {
 
 		id = firstUser.getId();
 
-		assertThat(id, is(notNullValue()));
-		assertThat(secondUser.getId(), is(notNullValue()));
-		assertThat(thirdUser.getId(), is(notNullValue()));
-		assertThat(fourthUser.getId(), is(notNullValue()));
+		assertThat(id).isNotNull();
+		assertThat(secondUser.getId()).isNotNull();
+		assertThat(thirdUser.getId()).isNotNull();
+		assertThat(fourthUser.getId()).isNotNull();
 
-		assertThat(repository.existsById(id), is(true));
-		assertThat(repository.existsById(secondUser.getId()), is(true));
-		assertThat(repository.existsById(thirdUser.getId()), is(true));
-		assertThat(repository.existsById(fourthUser.getId()), is(true));
+		assertThat(repository.existsById(id)).isTrue();
+		assertThat(repository.existsById(secondUser.getId())).isTrue();
+		assertThat(repository.existsById(thirdUser.getId())).isTrue();
+		assertThat(repository.existsById(fourthUser.getId())).isTrue();
 	}
 
 	private static <T> void assertSameElements(Collection<T> first, Collection<T> second) {
 
 		for (T element : first) {
-			assertThat(element, isIn(second));
+			assertThat(element).isIn(second);
 		}
 
 		for (T element : second) {
-			assertThat(element, isIn(first));
+			assertThat(element).isIn(first);
 		}
 	}
 
@@ -934,7 +845,7 @@ public class UserRepositoryTests {
 		long count = repository.count();
 
 		repository.deleteAll(collection);
-		assertThat(repository.count(), is(count));
+		assertThat(repository.count()).isEqualTo(count);
 	}
 
 	@Test
@@ -946,7 +857,7 @@ public class UserRepositoryTests {
 
 		Page<User> all = repository.findAll(PageRequest.of(0, 10, Sort.by("manager.id")));
 
-		assertThat(all.getContent().isEmpty(), is(false));
+		assertThat(all.getContent().isEmpty()).isFalse();
 	}
 
 	@Test // DATAJPA-252
@@ -956,7 +867,7 @@ public class UserRepositoryTests {
 
 		// Managers not set, make sure adding the sort does not rule out those Users
 		Page<User> result = repository.findAllPaged(PageRequest.of(0, 10, Sort.by("manager.lastname")));
-		assertThat(result.getContent(), hasSize((int) repository.count()));
+		assertThat(result.getContent()).hasSize((int) repository.count());
 	}
 
 	@Test // DATAJPA-277
@@ -970,8 +881,8 @@ public class UserRepositoryTests {
 			}
 		}, PageRequest.of(0, 20, Sort.by("manager.lastname")));
 
-		assertThat(page.getNumberOfElements(), is(1));
-		assertThat(page, hasItem(firstUser));
+		assertThat(page.getNumberOfElements()).isEqualTo(1);
+		assertThat(page).containsOnly(firstUser);
 	}
 
 	@Test // DATAJPA-346
@@ -985,12 +896,12 @@ public class UserRepositoryTests {
 		flushTestUsers();
 
 		Page<User> pages = repository.findAll(PageRequest.of(0, 4, Sort.by(Sort.Direction.ASC, "manager.firstname")));
-		assertThat(pages.getSize(), is(4));
-		assertThat(pages.getContent().get(0).getManager(), is(nullValue()));
-		assertThat(pages.getContent().get(1).getManager(), is(nullValue()));
-		assertThat(pages.getContent().get(2).getManager().getFirstname(), is("Joachim"));
-		assertThat(pages.getContent().get(3).getManager().getFirstname(), is("Oliver"));
-		assertThat(pages.getTotalElements(), is(4L));
+		assertThat(pages.getSize()).isEqualTo(4);
+		assertThat(pages.getContent().get(0).getManager()).isNull();
+		assertThat(pages.getContent().get(1).getManager()).isNull();
+		assertThat(pages.getContent().get(2).getManager().getFirstname()).isEqualTo("Joachim");
+		assertThat(pages.getContent().get(3).getManager().getFirstname()).isEqualTo("Oliver");
+		assertThat(pages.getTotalElements()).isEqualTo(4L);
 	}
 
 	@Test // DATAJPA-292
@@ -1000,8 +911,7 @@ public class UserRepositoryTests {
 
 		List<User> result = repository.findByFirstnameLike("Da");
 
-		assertThat(result, hasSize(1));
-		assertThat(result, hasItem(thirdUser));
+		assertThat(result).containsOnly(thirdUser);
 	}
 
 	@Test // DATAJPA-292
@@ -1011,8 +921,7 @@ public class UserRepositoryTests {
 
 		List<User> result = repository.findByFirstnameLikeNamed("Da");
 
-		assertThat(result, hasSize(1));
-		assertThat(result, hasItem(thirdUser));
+		assertThat(result).containsOnly(thirdUser);
 	}
 
 	@Test // DATAJPA-231
@@ -1020,7 +929,7 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		assertThat(repository.countByLastname("Matthews"), is(1L));
+		assertThat(repository.countByLastname("Matthews")).isEqualTo(1L);
 	}
 
 	@Test // DATAJPA-231
@@ -1028,7 +937,7 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		assertThat(repository.countUsersByFirstname("Dave"), is(1));
+		assertThat(repository.countUsersByFirstname("Dave")).isEqualTo(1);
 	}
 
 	@Test // DATAJPA-231
@@ -1036,15 +945,15 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		assertThat(repository.existsByLastname("Matthews"), is(true));
-		assertThat(repository.existsByLastname("Hans Peter"), is(false));
+		assertThat(repository.existsByLastname("Matthews")).isEqualTo(true);
+		assertThat(repository.existsByLastname("Hans Peter")).isEqualTo(false);
 	}
 
 	@Test // DATAJPA-332
 	public void findAllReturnsEmptyIterableIfNoIdsGiven() {
 
-		assertThat(repository.findAllById(Collections.<Integer> emptySet()), is(emptyIterable()));
-		assertThat(repository.findAllById((Iterable<Integer>) null), is(emptyIterable()));
+		assertThat(repository.findAllById(Collections.<Integer> emptySet())).isEmpty();
+		assertThat(repository.findAllById((Iterable<Integer>) null)).isEmpty();
 	}
 
 	@Test // DATAJPA-391
@@ -1053,8 +962,7 @@ public class UserRepositoryTests {
 		flushTestUsers();
 		List<String> lastname = repository.findFirstnamesByLastname("Matthews");
 
-		assertThat(lastname, hasSize(1));
-		assertThat(lastname, hasItem("Dave"));
+		assertThat(lastname).containsOnly("Dave");
 	}
 
 	@Test // DATAJPA-83
@@ -1063,7 +971,7 @@ public class UserRepositoryTests {
 		flushTestUsers();
 
 		User result = repository.getOne(firstUser.getId());
-		assertThat(result, is(firstUser));
+		assertThat(result).isEqualTo(firstUser);
 	}
 
 	@Test // DATAJPA-415
@@ -1073,8 +981,7 @@ public class UserRepositoryTests {
 
 		Collection<User> result = repository.findByIdIn(firstUser.getId(), secondUser.getId());
 
-		assertThat(result, hasSize(2));
-		assertThat(result, hasItems(firstUser, secondUser));
+		assertThat(result).containsOnly(firstUser, secondUser);
 	}
 
 	@Test // DATAJPA-415
@@ -1086,8 +993,8 @@ public class UserRepositoryTests {
 				fourthUser.getId());
 
 		long expectedCount = repository.count();
-		assertThat(repository.findByActiveFalse().size(), is((int) expectedCount));
-		assertThat(repository.findByActiveTrue().size(), is(0));
+		assertThat(repository.findByActiveFalse().size()).isEqualTo((int) expectedCount);
+		assertThat(repository.findByActiveTrue().size()).isEqualTo(0);
 	}
 
 	@Test // DATAJPA-405
@@ -1095,10 +1002,7 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		List<User> result = repository.findAllByOrderByLastnameAsc();
-
-		assertThat(result, hasSize(4));
-		assertThat(result, contains(secondUser, firstUser, thirdUser, fourthUser));
+		assertThat(repository.findAllByOrderByLastnameAsc()).containsOnly(secondUser, firstUser, thirdUser, fourthUser);
 	}
 
 	@Test // DATAJPA-427
@@ -1110,7 +1014,7 @@ public class UserRepositoryTests {
 
 		List<User> result = repository.findAll(Sort.by(Sort.Direction.ASC, "colleagues.id"));
 
-		assertThat(result, hasSize(4));
+		assertThat(result).hasSize(4);
 	}
 
 	@Test // DATAJPA-427
@@ -1122,7 +1026,7 @@ public class UserRepositoryTests {
 
 		Page<User> page = repository.findAll(PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "colleagues.id")));
 
-		assertThat(page.getContent(), hasSize(4));
+		assertThat(page.getContent()).hasSize(4);
 	}
 
 	@Test // DATAJPA-427
@@ -1133,8 +1037,8 @@ public class UserRepositoryTests {
 
 		Page<User> page = repository.findAll(PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "address.streetName")));
 
-		assertThat(page.getContent(), hasSize(4));
-		assertThat(page.getContent().get(3), is(thirdUser));
+		assertThat(page.getContent()).hasSize(4);
+		assertThat(page.getContent().get(3)).isEqualTo(thirdUser);
 	}
 
 	@Test // DATAJPA-454
@@ -1146,9 +1050,8 @@ public class UserRepositoryTests {
 		flushTestUsers();
 
 		List<User> result = repository.findByBinaryData(data);
-		assertThat(result, hasSize(1));
-		assertThat(result, hasItem(firstUser));
-		assertThat(result.get(0).getBinaryData(), is(data));
+		assertThat(result).containsOnly(firstUser);
+		assertThat(result.get(0).getBinaryData()).isEqualTo(data);
 	}
 
 	@Test // DATAJPA-461
@@ -1158,8 +1061,7 @@ public class UserRepositoryTests {
 
 		Collection<User> result = repository.findByIdsCustomWithPositionalVarArgs(firstUser.getId(), secondUser.getId());
 
-		assertThat(result, hasSize(2));
-		assertThat(result, hasItems(firstUser, secondUser));
+		assertThat(result).containsOnly(firstUser, secondUser);
 	}
 
 	@Test // DATAJPA-461
@@ -1169,8 +1071,7 @@ public class UserRepositoryTests {
 
 		Collection<User> result = repository.findByIdsCustomWithNamedVarArgs(firstUser.getId(), secondUser.getId());
 
-		assertThat(result, hasSize(2));
-		assertThat(result, hasItems(firstUser, secondUser));
+		assertThat(result).containsOnly(firstUser, secondUser);
 	}
 
 	@Test // DATAJPA-464
@@ -1183,8 +1084,8 @@ public class UserRepositoryTests {
 
 		SpecialUser savedUser = repository.saveAndFlush(user);
 
-		assertThat(user.getFirstname(), is(savedUser.getFirstname()));
-		assertThat(user.getEmailAddress(), is(savedUser.getEmailAddress()));
+		assertThat(user.getFirstname()).isEqualTo(savedUser.getFirstname());
+		assertThat(user.getEmailAddress()).isEqualTo(savedUser.getEmailAddress());
 	}
 
 	@Test // DATAJPA-218
@@ -1201,7 +1102,7 @@ public class UserRepositoryTests {
 		List<User> result = repository
 				.findAll(Example.of(new User(), ExampleMatcher.matching().withIgnorePaths("age", "createdAt", "dateOfBirth")));
 
-		assertThat(result, hasSize(5));
+		assertThat(result).hasSize(5);
 	}
 
 	@Test // DATAJPA-218
@@ -1218,7 +1119,7 @@ public class UserRepositoryTests {
 		Example<User> example = Example.of(new User(), matching().withIgnorePaths("age", "createdAt", "dateOfBirth"));
 		List<User> result = repository.findAll(example);
 
-		assertThat(result, hasSize(5));
+		assertThat(result).hasSize(5);
 	}
 
 	@Test // DATAJPA-218
@@ -1236,7 +1137,7 @@ public class UserRepositoryTests {
 				matching().withIgnorePaths("age", "createdAt", "dateOfBirth"));
 		List<SpecialUser> result = repository.findAll(example);
 
-		assertThat(result, hasSize(1));
+		assertThat(result).hasSize(1);
 	}
 
 	@Test // DATAJPA-491
@@ -1250,8 +1151,8 @@ public class UserRepositoryTests {
 		Page<User> page = repository.findAll(PageRequest.of(0, 10, //
 				Sort.by(Sort.Direction.ASC, "manager.manager.firstname")));
 
-		assertThat(page.getContent(), hasSize(4));
-		assertThat(page.getContent().get(3), is(firstUser));
+		assertThat(page.getContent()).hasSize(4);
+		assertThat(page.getContent().get(3)).isEqualTo(firstUser);
 	}
 
 	@Test // DATAJPA-510
@@ -1265,8 +1166,8 @@ public class UserRepositoryTests {
 		Page<User> page = repository.findAll(PageRequest.of(0, 10, //
 				Sort.by(new Sort.Order(Direction.ASC, "manager.manager.firstname").ignoreCase())));
 
-		assertThat(page.getContent(), hasSize(4));
-		assertThat(page.getContent().get(3), is(firstUser));
+		assertThat(page.getContent()).hasSize(4);
+		assertThat(page.getContent().get(3)).isEqualTo(firstUser);
 	}
 
 	@Test // DATAJPA-496
@@ -1280,8 +1181,7 @@ public class UserRepositoryTests {
 
 		List<User> result = repository.findByAttributesIn(new HashSet<String>(Arrays.asList("cool", "hip")));
 
-		assertThat(result, hasSize(2));
-		assertThat(result, hasItems(firstUser, secondUser));
+		assertThat(result).containsOnly(firstUser, secondUser);
 	}
 
 	@Test // DATAJPA-460
@@ -1290,8 +1190,7 @@ public class UserRepositoryTests {
 		flushTestUsers();
 
 		List<User> result = repository.deleteByLastname(firstUser.getLastname());
-		assertThat(result, hasItem(firstUser));
-		assertThat(result, hasSize(1));
+		assertThat(result).containsOnly(firstUser);
 	}
 
 	@Test // DATAJPA-460
@@ -1300,7 +1199,7 @@ public class UserRepositoryTests {
 		flushTestUsers();
 
 		repository.deleteByLastname(firstUser.getLastname());
-		assertThat(repository.countByLastname(firstUser.getLastname()), is(0L));
+		assertThat(repository.countByLastname(firstUser.getLastname())).isEqualTo(0L);
 	}
 
 	@Test // DATAJPA-460
@@ -1308,7 +1207,7 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		assertThat(repository.removeByLastname(firstUser.getLastname()), is(1L));
+		assertThat(repository.removeByLastname(firstUser.getLastname())).isEqualTo(1L);
 	}
 
 	@Test // DATAJPA-460
@@ -1316,7 +1215,7 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		assertThat(repository.removeByLastname("bubu"), is(0L));
+		assertThat(repository.removeByLastname("bubu")).isEqualTo(0L);
 	}
 
 	@Test // DATAJPA-460
@@ -1324,7 +1223,7 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		assertThat(repository.deleteByLastname("dorfuaeB"), empty());
+		assertThat(repository.deleteByLastname("dorfuaeB")).isEmpty();
 	}
 
 	/**
@@ -1341,8 +1240,8 @@ public class UserRepositoryTests {
 
 		byte[] result = null; // repository.findBinaryDataByIdJpaQl(firstUser.getId());
 
-		assertThat(result.length, is(data.length));
-		assertThat(result, is(data));
+		assertThat(result.length).isEqualTo(data.length);
+		assertThat(result).isEqualTo(data);
 	}
 
 	@Test // DATAJPA-506
@@ -1354,8 +1253,8 @@ public class UserRepositoryTests {
 		flushTestUsers();
 
 		byte[] result = repository.findBinaryDataByIdNative(firstUser.getId());
-		assertThat(result.length, is(data.length));
-		assertThat(result, is(data));
+		assertThat(result.length).isEqualTo(data.length);
+		assertThat(result).isEqualTo(data);
 	}
 
 	@Test // DATAJPA-456
@@ -1367,7 +1266,7 @@ public class UserRepositoryTests {
 
 		Page<User> result = repository.findAllByFirstnameLike("", PageRequest.of(0, 10));
 
-		assertThat(result.getContent().size(), is(3));
+		assertThat(result.getContent().size()).isEqualTo(3);
 	}
 
 	@Test // DATAJPA-456
@@ -1377,7 +1276,7 @@ public class UserRepositoryTests {
 
 		Page<User> result = repository.findByNamedQueryAndCountProjection("Gierke", PageRequest.of(0, 10));
 
-		assertThat(result.getContent().size(), is(1));
+		assertThat(result.getContent().size()).isEqualTo(1);
 	}
 
 	@Test // DATAJPA-551
@@ -1387,8 +1286,8 @@ public class UserRepositoryTests {
 
 		User oldest = thirdUser;
 
-		assertThat(repository.findFirstByOrderByAgeDesc(), is(oldest));
-		assertThat(repository.findFirst1ByOrderByAgeDesc(), is(oldest));
+		assertThat(repository.findFirstByOrderByAgeDesc()).isEqualTo(oldest);
+		assertThat(repository.findFirst1ByOrderByAgeDesc()).isEqualTo(oldest);
 	}
 
 	@Test // DATAJPA-551
@@ -1398,8 +1297,8 @@ public class UserRepositoryTests {
 
 		User youngest = firstUser;
 
-		assertThat(repository.findTopByOrderByAgeAsc(), is(youngest));
-		assertThat(repository.findTop1ByOrderByAgeAsc(), is(youngest));
+		assertThat(repository.findTopByOrderByAgeAsc()).isEqualTo(youngest);
+		assertThat(repository.findTop1ByOrderByAgeAsc()).isEqualTo(youngest);
 	}
 
 	@Test // DATAJPA-551
@@ -1410,8 +1309,8 @@ public class UserRepositoryTests {
 		User oldest1 = thirdUser;
 		User oldest2 = secondUser;
 
-		assertThat(repository.findFirst2ByOrderByAgeDesc(), hasItems(oldest1, oldest2));
-		assertThat(repository.findTop2ByOrderByAgeDesc(), hasItems(oldest1, oldest2));
+		assertThat(repository.findFirst2ByOrderByAgeDesc()).contains(oldest1, oldest2);
+		assertThat(repository.findTop2ByOrderByAgeDesc()).contains(oldest1, oldest2);
 	}
 
 	@Test // DATAJPA-551
@@ -1422,8 +1321,8 @@ public class UserRepositoryTests {
 		User youngest1 = firstUser;
 		User youngest2 = fourthUser;
 
-		assertThat(repository.findFirst2UsersBy(Sort.by(ASC, "age")), hasItems(youngest1, youngest2));
-		assertThat(repository.findTop2UsersBy(Sort.by(ASC, "age")), hasItems(youngest1, youngest2));
+		assertThat(repository.findFirst2UsersBy(Sort.by(ASC, "age"))).contains(youngest1, youngest2);
+		assertThat(repository.findTop2UsersBy(Sort.by(ASC, "age"))).contains(youngest1, youngest2);
 	}
 
 	@Test // DATAJPA-551
@@ -1436,10 +1335,10 @@ public class UserRepositoryTests {
 		User youngest3 = secondUser;
 
 		Page<User> firstPage = repository.findFirst3UsersBy(PageRequest.of(0, 2, ASC, "age"));
-		assertThat(firstPage.getContent(), hasItems(youngest1, youngest2));
+		assertThat(firstPage.getContent()).contains(youngest1, youngest2);
 
 		Page<User> secondPage = repository.findFirst3UsersBy(PageRequest.of(1, 2, ASC, "age"));
-		assertThat(secondPage.getContent(), hasItems(youngest3));
+		assertThat(secondPage.getContent()).contains(youngest3);
 	}
 
 	@Test // DATAJPA-551
@@ -1452,10 +1351,10 @@ public class UserRepositoryTests {
 		User youngest3 = secondUser;
 
 		Page<User> firstPage = repository.findFirst2UsersBy(PageRequest.of(0, 3, ASC, "age"));
-		assertThat(firstPage.getContent(), hasItems(youngest1, youngest2));
+		assertThat(firstPage.getContent()).contains(youngest1, youngest2);
 
 		Page<User> secondPage = repository.findFirst2UsersBy(PageRequest.of(1, 3, ASC, "age"));
-		assertThat(secondPage.getContent(), hasItems(youngest3));
+		assertThat(secondPage.getContent()).contains(youngest3);
 	}
 
 	@Test // DATAJPA-551
@@ -1468,10 +1367,10 @@ public class UserRepositoryTests {
 		User youngest3 = secondUser;
 
 		Slice<User> firstPage = repository.findTop3UsersBy(PageRequest.of(0, 2, ASC, "age"));
-		assertThat(firstPage.getContent(), hasItems(youngest1, youngest2));
+		assertThat(firstPage.getContent()).contains(youngest1, youngest2);
 
 		Slice<User> secondPage = repository.findTop3UsersBy(PageRequest.of(1, 2, ASC, "age"));
-		assertThat(secondPage.getContent(), hasItems(youngest3));
+		assertThat(secondPage.getContent()).contains(youngest3);
 	}
 
 	@Test // DATAJPA-551
@@ -1484,10 +1383,10 @@ public class UserRepositoryTests {
 		User youngest3 = secondUser;
 
 		Slice<User> firstPage = repository.findTop2UsersBy(PageRequest.of(0, 3, ASC, "age"));
-		assertThat(firstPage.getContent(), hasItems(youngest1, youngest2));
+		assertThat(firstPage.getContent()).contains(youngest1, youngest2);
 
 		Slice<User> secondPage = repository.findTop2UsersBy(PageRequest.of(1, 3, ASC, "age"));
-		assertThat(secondPage.getContent(), hasItems(youngest3));
+		assertThat(secondPage.getContent()).contains(youngest3);
 	}
 
 	@Test // DATAJPA-912
@@ -1496,12 +1395,12 @@ public class UserRepositoryTests {
 		flushTestUsers();
 
 		Page<User> firstPage = repository.findAll(PageRequest.of(0, 10));
-		assertThat(firstPage.getContent(), hasSize(4));
-		assertThat(firstPage.getTotalElements(), is(4L));
+		assertThat(firstPage.getContent()).hasSize(4);
+		assertThat(firstPage.getTotalElements()).isEqualTo(4L);
 
 		Page<User> secondPage = repository.findAll(PageRequest.of(1, 3));
-		assertThat(secondPage.getContent(), hasSize(1));
-		assertThat(secondPage.getTotalElements(), is(4L));
+		assertThat(secondPage.getContent()).hasSize(1);
+		assertThat(secondPage.getTotalElements()).isEqualTo(4L);
 	}
 
 	@Test // DATAJPA-912
@@ -1510,12 +1409,12 @@ public class UserRepositoryTests {
 		flushTestUsers();
 
 		Page<User> firstPage = repository.findAll(PageRequest.of(0, 4));
-		assertThat(firstPage.getContent(), hasSize(4));
-		assertThat(firstPage.getTotalElements(), is(4L));
+		assertThat(firstPage.getContent()).hasSize(4);
+		assertThat(firstPage.getTotalElements()).isEqualTo(4L);
 
 		Page<User> secondPage = repository.findAll(PageRequest.of(10, 10));
-		assertThat(secondPage.getContent(), hasSize(0));
-		assertThat(secondPage.getTotalElements(), is(4L));
+		assertThat(secondPage.getContent()).hasSize(0);
+		assertThat(secondPage.getTotalElements()).isEqualTo(4L);
 	}
 
 	@Test // DATAJPA-506
@@ -1525,8 +1424,8 @@ public class UserRepositoryTests {
 
 		Optional<User> result = repository.findOptionalByEmailAddress("gierke@synyx.de");
 
-		assertThat(result.isPresent(), is(true));
-		assertThat(result.get(), is(firstUser));
+		assertThat(result.isPresent()).isEqualTo(true);
+		assertThat(result.get()).isEqualTo(firstUser);
 	}
 
 	@Test // DATAJPA-564
@@ -1535,8 +1434,7 @@ public class UserRepositoryTests {
 		flushTestUsers();
 		List<User> users = repository.findByFirstnameAndLastnameWithSpelExpression("Oliver", "ierk");
 
-		assertThat(users, hasSize(1));
-		assertThat(users.get(0), is(firstUser));
+		assertThat(users).containsOnly(firstUser);
 	}
 
 	@Test // DATAJPA-564
@@ -1545,8 +1443,7 @@ public class UserRepositoryTests {
 		flushTestUsers();
 		List<User> users = repository.findByLastnameWithSpelExpression("ierk");
 
-		assertThat(users, hasSize(1));
-		assertThat(users.get(0), is(firstUser));
+		assertThat(users).containsOnly(firstUser);
 	}
 
 	@Test // DATAJPA-564
@@ -1555,8 +1452,7 @@ public class UserRepositoryTests {
 		flushTestUsers();
 		List<User> users = repository.findOliverBySpELExpressionWithoutArgumentsWithQuestionmark();
 
-		assertThat(users, hasSize(1));
-		assertThat(users.get(0), is(firstUser));
+		assertThat(users).containsOnly(firstUser);
 	}
 
 	@Test // DATAJPA-564
@@ -1565,8 +1461,7 @@ public class UserRepositoryTests {
 		flushTestUsers();
 		List<User> users = repository.findOliverBySpELExpressionWithoutArgumentsWithColon();
 
-		assertThat(users, hasSize(1));
-		assertThat(users.get(0), is(firstUser));
+		assertThat(users).containsOnly(firstUser);
 	}
 
 	@Test // DATAJPA-564
@@ -1575,8 +1470,7 @@ public class UserRepositoryTests {
 		flushTestUsers();
 		List<User> users = repository.findUsersByAgeForSpELExpressionByIndexedParameter(35);
 
-		assertThat(users, hasSize(1));
-		assertThat(users.get(0), is(secondUser));
+		assertThat(users).containsOnly(secondUser);
 	}
 
 	@Test // DATAJPA-564
@@ -1585,8 +1479,7 @@ public class UserRepositoryTests {
 		flushTestUsers();
 		List<User> users = repository.findUsersByFirstnameForSpELExpression("Joachim");
 
-		assertThat(users, hasSize(1));
-		assertThat(users.get(0), is(secondUser));
+		assertThat(users).containsOnly(secondUser);
 	}
 
 	@Test // DATAJPA-564
@@ -1597,14 +1490,12 @@ public class UserRepositoryTests {
 		SampleSecurityContextHolder.getCurrent().setPrincipal(secondUser);
 		List<User> users = repository.findCurrentUserWithCustomQuery();
 
-		assertThat(users, hasSize(1));
-		assertThat(users.get(0), is(secondUser));
+		assertThat(users).containsOnly(secondUser);
 
 		SampleSecurityContextHolder.getCurrent().setPrincipal(firstUser);
 		users = repository.findCurrentUserWithCustomQuery();
 
-		assertThat(users, hasSize(1));
-		assertThat(users.get(0), is(firstUser));
+		assertThat(users).contains(firstUser);
 	}
 
 	@Test // DATAJPA-564
@@ -1615,8 +1506,7 @@ public class UserRepositoryTests {
 		SampleSecurityContextHolder.getCurrent().setPrincipal(secondUser);
 		List<User> users = repository.findByFirstnameAndCurrentUserWithCustomQuery("Joachim");
 
-		assertThat(users, hasSize(1));
-		assertThat(users.get(0), is(secondUser));
+		assertThat(users).containsOnly(secondUser);
 	}
 
 	@Test // DATAJPA-564
@@ -1625,8 +1515,7 @@ public class UserRepositoryTests {
 		flushTestUsers();
 		List<User> users = repository.findUsersByFirstnameForSpELExpressionWithParameterVariableOnly("Joachim");
 
-		assertThat(users, hasSize(1));
-		assertThat(users.get(0), is(secondUser));
+		assertThat(users).containsOnly(secondUser);
 	}
 
 	@Test // DATAJPA-564
@@ -1635,8 +1524,7 @@ public class UserRepositoryTests {
 		flushTestUsers();
 		List<User> users = repository.findUsersByFirstnameForSpELExpressionWithParameterIndexOnly("Joachim");
 
-		assertThat(users, hasSize(1));
-		assertThat(users.get(0), is(secondUser));
+		assertThat(users).containsOnly(secondUser);
 	}
 
 	@Test // DATAJPA-564
@@ -1646,15 +1534,11 @@ public class UserRepositoryTests {
 
 		Page<User> users = repository.findUsersInNativeQueryWithPagination(PageRequest.of(0, 2));
 
-		assertThat(users.getContent(), hasSize(2));
-		assertThat(users.getContent().get(0), is(firstUser));
-		assertThat(users.getContent().get(1), is(secondUser));
+		assertThat(users.getContent()).hasSize(2).containsExactly(firstUser, secondUser);
 
 		users = repository.findUsersInNativeQueryWithPagination(PageRequest.of(1, 2));
 
-		assertThat(users.getContent(), hasSize(2));
-		assertThat(users.getContent().get(0), is(thirdUser));
-		assertThat(users.getContent().get(1), is(fourthUser));
+		assertThat(users.getContent()).hasSize(2).containsExactly(thirdUser, fourthUser);
 	}
 
 	@Test // DATAJPA-629
@@ -1664,8 +1548,7 @@ public class UserRepositoryTests {
 		List<User> users = repository
 				.findUsersByFirstnameForSpELExpressionWithParameterIndexOnlyWithEntityExpression("Joachim", "Arrasz");
 
-		assertThat(users, hasSize(1));
-		assertThat(users.get(0), is(secondUser));
+		assertThat(users).containsOnly(secondUser);
 	}
 
 	@Test // DATAJPA-606
@@ -1674,7 +1557,7 @@ public class UserRepositoryTests {
 		flushTestUsers();
 
 		List<User> users = repository.findByAttributesIn(new HashSet<String>());
-		assertThat(users, hasSize(0));
+		assertThat(users).hasSize(0);
 	}
 
 	@Test // DATAJPA-606
@@ -1683,7 +1566,7 @@ public class UserRepositoryTests {
 		flushTestUsers();
 
 		List<User> users = repository.findByAgeIn(Arrays.<Integer> asList());
-		assertThat(users, hasSize(0));
+		assertThat(users).hasSize(0);
 	}
 
 	@Test // DATAJPA-606
@@ -1692,7 +1575,7 @@ public class UserRepositoryTests {
 		flushTestUsers();
 
 		List<User> users = repository.queryByAgeIn(new Integer[0]);
-		assertThat(users, hasSize(0));
+		assertThat(users).hasSize(0);
 	}
 
 	@Test // DATAJPA-606
@@ -1701,8 +1584,7 @@ public class UserRepositoryTests {
 		flushTestUsers();
 
 		List<User> users = repository.queryByAgeInOrFirstname(new Integer[0], secondUser.getFirstname());
-		assertThat(users, hasSize(1));
-		assertThat(users.get(0), is(secondUser));
+		assertThat(users).containsOnly(secondUser);
 	}
 
 	@Test // DATAJPA-677
@@ -1728,7 +1610,7 @@ public class UserRepositoryTests {
 			stream.close();
 		}
 
-		assertThat(users, hasSize(4));
+		assertThat(users).hasSize(4);
 	}
 
 	@Test // DATAJPA-677
@@ -1754,7 +1636,7 @@ public class UserRepositoryTests {
 			stream.close();
 		}
 
-		assertThat(users, hasSize(4));
+		assertThat(users).hasSize(4);
 	}
 
 	@Test // DATAJPA-677
@@ -1780,7 +1662,7 @@ public class UserRepositoryTests {
 			stream.close();
 		}
 
-		assertThat(users, hasSize(2));
+		assertThat(users).hasSize(2);
 	}
 
 	@Test // DATAJPA-218
@@ -1794,8 +1676,8 @@ public class UserRepositoryTests {
 
 		List<User> users = repository.findAll(of(prototype));
 
-		assertThat(users, hasSize(1));
-		assertThat(users.get(0), is(firstUser));
+		assertThat(users).hasSize(1);
+		assertThat(users.get(0)).isEqualTo(firstUser);
 	}
 
 	@Test // DATAJPA-218
@@ -1809,7 +1691,7 @@ public class UserRepositoryTests {
 		List<User> users = repository
 				.findAll(of(prototype, ExampleMatcher.matching().withIgnorePaths("age", "createdAt", "active")));
 
-		assertThat(users, hasSize(4));
+		assertThat(users).hasSize(4);
 	}
 
 	@Test(expected = InvalidDataAccessApiUsageException.class) // DATAJPA-218
@@ -1828,8 +1710,7 @@ public class UserRepositoryTests {
 		Example<User> example = Example.of(prototype, matching().withIgnorePaths("createdAt"));
 		List<User> users = repository.findAll(example);
 
-		assertThat(users, hasSize(1));
-		assertThat(users.get(0), is(firstUser));
+		assertThat(users).containsOnly(firstUser);
 	}
 
 	@Test // DATAJPA-218
@@ -1853,8 +1734,8 @@ public class UserRepositoryTests {
 		Example<User> example = Example.of(prototype, matching().withIgnorePaths("age"));
 		List<User> users = repository.findAll(example);
 
-		assertThat(users, hasSize(1));
-		assertThat(users.get(0), is(firstUser));
+		assertThat(users).hasSize(1);
+		assertThat(users.get(0)).isEqualTo(firstUser);
 	}
 
 	@Test // DATAJPA-218
@@ -1872,8 +1753,7 @@ public class UserRepositoryTests {
 		Example<User> example = Example.of(prototype, matching().withIgnorePaths("age"));
 		List<User> users = repository.findAll(example);
 
-		assertThat(users, hasSize(1));
-		assertThat(users.get(0), is(firstUser));
+		assertThat(users).containsOnly(firstUser);
 	}
 
 	@Test // DATAJPA-218
@@ -1888,8 +1768,7 @@ public class UserRepositoryTests {
 				matching().withStringMatcher(StringMatcher.STARTING).withIgnorePaths("age", "createdAt"));
 		List<User> users = repository.findAll(example);
 
-		assertThat(users, hasSize(1));
-		assertThat(users.get(0), is(firstUser));
+		assertThat(users).containsOnly(firstUser);
 	}
 
 	@Test // DATAJPA-218
@@ -1904,8 +1783,7 @@ public class UserRepositoryTests {
 				matching().withStringMatcher(StringMatcher.ENDING).withIgnorePaths("age", "createdAt"));
 		List<User> users = repository.findAll(example);
 
-		assertThat(users, hasSize(1));
-		assertThat(users.get(0), is(firstUser));
+		assertThat(users).containsOnly(firstUser);
 	}
 
 	@Test(expected = InvalidDataAccessApiUsageException.class) // DATAJPA-218
@@ -1932,8 +1810,7 @@ public class UserRepositoryTests {
 
 		List<User> users = repository.findAll(example);
 
-		assertThat(users, hasSize(1));
-		assertThat(users.get(0), is(firstUser));
+		assertThat(users).containsOnly(firstUser);
 	}
 
 	@Test // DATAJPA-218
@@ -1949,15 +1826,14 @@ public class UserRepositoryTests {
 
 		List<User> users = repository.findAll(example);
 
-		assertThat(users, hasSize(1));
-		assertThat(users.get(0), is(firstUser));
+		assertThat(users).containsOnly(firstUser);
 	}
 
 	@Test // DATAJPA-218
 	public void findAllByExampleWithIncludeNull() {
 
 		// something is wrong with OpenJPA - I do not know what
-		Assume.assumeThat(PersistenceProvider.fromEntityManager(em), not(equalTo(PersistenceProvider.OPEN_JPA)));
+		Assume.assumeThat(PersistenceProvider.fromEntityManager(em), IsNot.not(equalTo(PersistenceProvider.OPEN_JPA)));
 
 		flushTestUsers();
 
@@ -1980,8 +1856,7 @@ public class UserRepositoryTests {
 
 		List<User> users = repository.findAll(example);
 
-		assertThat(users, hasSize(1));
-		assertThat(users.get(0), is(fifthUser));
+		assertThat(users).containsOnly(fifthUser);
 	}
 
 	@Test // DATAJPA-218
@@ -1997,8 +1872,7 @@ public class UserRepositoryTests {
 
 		List<User> users = repository.findAll(example);
 
-		assertThat(users, hasSize(1));
-		assertThat(users.get(0), is(firstUser));
+		assertThat(users).containsOnly(firstUser);
 	}
 
 	@Test // DATAJPA-218
@@ -2019,9 +1893,7 @@ public class UserRepositoryTests {
 
 		List<User> users = repository.findAll(example, Sort.by(DESC, "age"));
 
-		assertThat(users, hasSize(2));
-		assertThat(users.get(0), is(user1));
-		assertThat(users.get(1), is(firstUser));
+		assertThat(users).hasSize(2).containsExactly(user1, firstUser);
 	}
 
 	@Test // DATAJPA-218
@@ -2044,9 +1916,9 @@ public class UserRepositoryTests {
 
 		Page<User> users = repository.findAll(example, PageRequest.of(0, 10, Sort.by(DESC, "age")));
 
-		assertThat(users.getSize(), is(10));
-		assertThat(users.hasNext(), is(true));
-		assertThat(users.getTotalElements(), is(100L));
+		assertThat(users.getSize()).isEqualTo(10);
+		assertThat(users.hasNext()).isEqualTo(true);
+		assertThat(users.getTotalElements()).isEqualTo(100L);
 	}
 
 	@Test(expected = InvalidDataAccessApiUsageException.class) // DATAJPA-218
@@ -2095,7 +1967,7 @@ public class UserRepositoryTests {
 
 		Example<User> example = Example.of(prototype, matching().withIgnorePaths("createdAt"));
 
-		Assertions.assertThat(repository.findOne(example)).contains(firstUser);
+		assertThat(repository.findOne(example)).contains(firstUser);
 	}
 
 	@Test // DATAJPA-218
@@ -2109,7 +1981,7 @@ public class UserRepositoryTests {
 		Example<User> example = Example.of(prototype, matching().withIgnorePaths("createdAt"));
 		long count = repository.count(example);
 
-		assertThat(count, is(1L));
+		assertThat(count).isEqualTo(1L);
 	}
 
 	@Test // DATAJPA-218
@@ -2123,7 +1995,7 @@ public class UserRepositoryTests {
 		Example<User> example = Example.of(prototype, matching().withIgnorePaths("createdAt"));
 		boolean exists = repository.exists(example);
 
-		assertThat(exists, is(true));
+		assertThat(exists).isEqualTo(true);
 	}
 
 	@Test // DATAJPA-905
@@ -2133,9 +2005,9 @@ public class UserRepositoryTests {
 
 		Page<User> result = repository.findAll(where(userHasLastnameLikeWithSort("e")), PageRequest.of(0, 1));
 
-		assertThat(result.getTotalElements(), is(2L));
-		assertThat(result.getNumberOfElements(), is(1));
-		assertThat(result.getContent().get(0), is(thirdUser));
+		assertThat(result.getTotalElements()).isEqualTo(2L);
+		assertThat(result.getNumberOfElements()).isEqualTo(1);
+		assertThat(result.getContent().get(0)).isEqualTo(thirdUser);
 	}
 
 	private Page<User> executeSpecWithSort(Sort sort) {
@@ -2145,7 +2017,7 @@ public class UserRepositoryTests {
 		Specification<User> spec = where(userHasFirstname("Oliver")).or(userHasLastname("Matthews"));
 
 		Page<User> result = repository.findAll(spec, PageRequest.of(0, 1, sort));
-		assertThat(result.getTotalElements(), is(2L));
+		assertThat(result.getTotalElements()).isEqualTo(2L);
 		return result;
 	}
 }

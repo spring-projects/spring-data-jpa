@@ -61,7 +61,7 @@ import org.springframework.util.ObjectUtils;
 /**
  * Default implementation of the {@link org.springframework.data.repository.CrudRepository} interface. This will offer
  * you a more sophisticated interface than the plain {@link EntityManager} .
- * 
+ *
  * @author Oliver Gierke
  * @author Eberhard Wolff
  * @author Thomas Darimont
@@ -84,7 +84,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepository<T, ID>, JpaSpec
 
 	/**
 	 * Creates a new {@link SimpleJpaRepository} to manage objects of the given {@link JpaEntityInformation}.
-	 * 
+	 *
 	 * @param entityInformation must not be {@literal null}.
 	 * @param entityManager must not be {@literal null}.
 	 */
@@ -100,7 +100,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepository<T, ID>, JpaSpec
 
 	/**
 	 * Creates a new {@link SimpleJpaRepository} to manage objects of the given domain type.
-	 * 
+	 *
 	 * @param domainClass must not be {@literal null}.
 	 * @param em must not be {@literal null}.
 	 */
@@ -111,7 +111,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepository<T, ID>, JpaSpec
 	/**
 	 * Configures a custom {@link CrudMethodMetadata} to be used to detect {@link LockModeType}s and query hints to be
 	 * applied to queries.
-	 * 
+	 *
 	 * @param crudMethodMetadata
 	 */
 	public void setRepositoryMethodMetadata(CrudMethodMetadata crudMethodMetadata) {
@@ -203,7 +203,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepository<T, ID>, JpaSpec
 		}
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.JpaRepository#deleteAllInBatch()
 	 */
@@ -214,7 +214,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepository<T, ID>, JpaSpec
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.CrudRepository#findOne(java.io.Serializable)
+	 * @see org.springframework.data.repository.CrudRepository#findById(java.io.Serializable)
 	 */
 	public Optional<T> findById(ID id) {
 
@@ -236,14 +236,14 @@ public class SimpleJpaRepository<T, ID> implements JpaRepository<T, ID>, JpaSpec
 	/**
 	 * Returns {@link QueryHints} with the query hints based on the current {@link CrudMethodMetadata} and potential
 	 * {@link EntityGraph} information.
-	 * 
+	 *
 	 * @return
 	 */
 	protected QueryHints getQueryHints() {
 		return metadata == null ? NoHints.INSTANCE : DefaultQueryHints.of(entityInformation, metadata);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.JpaRepository#getOne(java.io.Serializable)
 	 */
@@ -256,7 +256,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepository<T, ID>, JpaSpec
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.CrudRepository#exists(java.io.Serializable)
+	 * @see org.springframework.data.repository.CrudRepository#existsById(java.io.Serializable)
 	 */
 	public boolean existsById(ID id) {
 
@@ -287,7 +287,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepository<T, ID>, JpaSpec
 
 			if (complexIdParameterValueDiscovered) {
 
-				// fall-back to findOne(id) which does the proper mapping for the parameter.
+				// fall-back to findById(id) which does the proper mapping for the parameter.
 				return findById(id) != null;
 			}
 
@@ -307,7 +307,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepository<T, ID>, JpaSpec
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.CrudRepository#findAll(ID[])
+	 * @see org.springframework.data.repository.CrudRepository#findAll(java.lang.Iterable)
 	 */
 	public List<T> findAllById(Iterable<ID> ids) {
 
@@ -393,7 +393,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepository<T, ID>, JpaSpec
 		return getQuery(spec, sort).getResultList();
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.query.QueryByExampleExecutor#findOne(org.springframework.data.domain.Example)
 	 */
@@ -408,7 +408,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepository<T, ID>, JpaSpec
 		}
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.query.QueryByExampleExecutor#count(org.springframework.data.domain.Example)
 	 */
@@ -417,7 +417,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepository<T, ID>, JpaSpec
 		return executeCountQuery(getCountQuery(new ExampleSpecification<S>(example), example.getProbeType()));
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.query.QueryByExampleExecutor#exists(org.springframework.data.domain.Example)
 	 */
@@ -599,7 +599,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepository<T, ID>, JpaSpec
 
 	/**
 	 * Creates a {@link TypedQuery} for the given {@link Specification} and {@link Sort}.
-	 * 
+	 *
 	 * @param spec can be {@literal null}.
 	 * @param sort can be {@literal null}.
 	 * @return
@@ -633,7 +633,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepository<T, ID>, JpaSpec
 
 	/**
 	 * Creates a new count query for the given {@link Specification}.
-	 * 
+	 *
 	 * @param spec can be {@literal null}.
 	 * @return
 	 * @deprecated override {@link #getCountQuery(Specification, Class)} instead
@@ -722,7 +722,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepository<T, ID>, JpaSpec
 
 	/**
 	 * Executes a count query and transparently sums up all values returned.
-	 * 
+	 *
 	 * @param query must not be {@literal null}.
 	 * @return
 	 */
@@ -744,7 +744,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepository<T, ID>, JpaSpec
 	 * Specification that gives access to the {@link Parameter} instance used to bind the ids for
 	 * {@link SimpleJpaRepository#findAllById(Iterable)}. Workaround for OpenJPA not binding collections to in-clauses
 	 * correctly when using by-name binding.
-	 * 
+	 *
 	 * @see <a href="https://issues.apache.org/jira/browse/OPENJPA-2018?focusedCommentId=13924055">OPENJPA-2018</a>
 	 * @author Oliver Gierke
 	 */
