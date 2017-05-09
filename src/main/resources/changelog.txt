@@ -1,6 +1,17 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 2.0.0.M3 (2017-05-09)
+----------------------------------------
+* DATAJPA-1104 - Adapt to API changes in repository interfaces.
+* DATAJPA-1102 - Upgrade to Eclipselink 2.6.4.
+* DATAJPA-1099 - Make sure Travis builds resolve dependencies only on repositories defined by our POM.
+* DATAJPA-1098 - Javadoc on Specification. toPredicate should state that it may return null.
+* DATAJPA-1090 - Release 2.0 M3 (Kay).
+* DATAJPA-1087 - Regression: query hints not applied to count queries for QueryDSL.
+* DATAJPA-1075 - Dynamic entity graphs may still omit subgraphs.
+
+
 Changes in version 1.10.10.RELEASE (2017-04-19)
 -----------------------------------------------
 * DATAJPA-1095 - Release 1.10.10 (Hopper SR10).
