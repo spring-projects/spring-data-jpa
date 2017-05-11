@@ -23,7 +23,6 @@ import java.util.Optional;
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 
-import com.querydsl.core.NonUniqueResultException;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -35,6 +34,7 @@ import org.springframework.data.querydsl.SimpleEntityPathResolver;
 import org.springframework.data.repository.support.PageableExecutionUtils;
 import org.springframework.util.Assert;
 
+import com.querydsl.core.NonUniqueResultException;
 import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Predicate;
@@ -45,7 +45,7 @@ import com.querydsl.jpa.impl.AbstractJPAQuery;
 /**
  * QueryDsl specific extension of {@link SimpleJpaRepository} which adds implementation for
  * {@link QuerydslPredicateExecutor}.
- * 
+ *
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Mark Paluch
@@ -65,7 +65,7 @@ public class QuerydslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 	/**
 	 * Creates a new {@link QuerydslJpaRepository} from the given domain class and {@link EntityManager}. This will use
 	 * the {@link SimpleEntityPathResolver} to translate the given domain class into an {@link EntityPath}.
-	 * 
+	 *
 	 * @param entityInformation must not be {@literal null}.
 	 * @param entityManager must not be {@literal null}.
 	 */
@@ -76,7 +76,7 @@ public class QuerydslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 	/**
 	 * Creates a new {@link QuerydslJpaRepository} from the given domain class and {@link EntityManager} and uses the
 	 * given {@link EntityPathResolver} to translate the domain class into an {@link EntityPath}.
-	 * 
+	 *
 	 * @param entityInformation must not be {@literal null}.
 	 * @param entityManager must not be {@literal null}.
 	 * @param resolver must not be {@literal null}.
@@ -183,7 +183,7 @@ public class QuerydslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 
 	/**
 	 * Creates a new {@link JPQLQuery} for the given {@link Predicate}.
-	 * 
+	 *
 	 * @param predicate
 	 * @return the Querydsl {@link JPQLQuery}.
 	 */
@@ -224,7 +224,7 @@ public class QuerydslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 
 	/**
 	 * Executes the given {@link JPQLQuery} after applying the given {@link OrderSpecifier}s.
-	 * 
+	 *
 	 * @param query must not be {@literal null}.
 	 * @param orders must not be {@literal null}.
 	 * @return
@@ -235,7 +235,7 @@ public class QuerydslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 
 	/**
 	 * Executes the given {@link JPQLQuery} after applying the given {@link Sort}.
-	 * 
+	 *
 	 * @param query must not be {@literal null}.
 	 * @param sort must not be {@literal null}.
 	 * @return
