@@ -15,15 +15,13 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.List;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
-import org.assertj.core.api.Assertions;
 import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
@@ -52,7 +50,7 @@ import com.querydsl.core.types.dsl.PathBuilderFactory;
 
 /**
  * Integration test for {@link QuerydslJpaRepository}.
- * 
+ *
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Mark Paluch
@@ -91,8 +89,7 @@ public class QuerydslJpaRepositoryTests {
 
 		List<User> result = repository.findAll(isCalledDave.or(isBeauford));
 
-		assertThat(result.size(), is(2));
-		assertThat(result, hasItems(carter, dave));
+		assertThat(result).containsExactlyInAnyOrder(carter, dave);
 	}
 
 	@Test
@@ -105,8 +102,7 @@ public class QuerydslJpaRepositoryTests {
 
 		List<User> result = repository.findAll(isCalledDave.or(isBeauford));
 
-		assertThat(result.size(), is(2));
-		assertThat(result, hasItems(carter, dave));
+		assertThat(result).containsExactlyInAnyOrder(carter, dave);
 	}
 
 	@Test // DATAJPA-243
@@ -116,14 +112,11 @@ public class QuerydslJpaRepositoryTests {
 
 		Page<User> result = repository.findAll(lastnameContainsE, PageRequest.of(0, 1, Direction.ASC, "lastname"));
 
-		assertThat(result.getContent(), hasSize(1));
-		assertThat(result.getContent().get(0), is(carter));
+		assertThat(result).containsExactly(carter);
 
 		result = repository.findAll(lastnameContainsE, PageRequest.of(0, 2, Direction.DESC, "lastname"));
 
-		assertThat(result.getContent(), hasSize(2));
-		assertThat(result.getContent().get(0), is(oliver));
-		assertThat(result.getContent().get(1), is(dave));
+		assertThat(result).containsExactly(oliver, dave);
 	}
 
 	@Test // DATAJPA-296
@@ -133,9 +126,7 @@ public class QuerydslJpaRepositoryTests {
 
 		Page<User> result = repository.findAll(user.lastname.contains("e"), PageRequest.of(0, 2, sort));
 
-		assertThat(result.getContent(), hasSize(2));
-		assertThat(result.getContent().get(0), is(dave));
-		assertThat(result.getContent().get(1), is(oliver));
+		assertThat(result.getContent()).containsExactly(dave, oliver);
 	}
 
 	@Test // DATAJPA-427
@@ -149,8 +140,7 @@ public class QuerydslJpaRepositoryTests {
 		Page<User> page = repository.findAll(user.firstname.isNotNull(),
 				PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "colleagues.firstname")));
 
-		assertThat(page.getContent(), hasSize(3));
-		assertThat(page.getContent(), hasItems(oliver, dave, carter));
+		assertThat(page.getContent()).hasSize(3).contains(oliver, dave, carter);
 	}
 
 	@Test // DATAJPA-427
@@ -164,8 +154,7 @@ public class QuerydslJpaRepositoryTests {
 		Page<User> page = repository.findAll(user.firstname.isNotNull(),
 				PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "manager.firstname")));
 
-		assertThat(page.getContent(), hasSize(3));
-		assertThat(page.getContent(), hasItems(dave, oliver, carter));
+		assertThat(page.getContent()).hasSize(3).contains(dave, oliver, carter);
 	}
 
 	@Test // DATAJPA-427
@@ -176,8 +165,7 @@ public class QuerydslJpaRepositoryTests {
 		Page<User> page = repository.findAll(user.firstname.isNotNull(),
 				PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "firstname")));
 
-		assertThat(page.getContent(), hasSize(3));
-		assertThat(page.getContent(), hasItems(carter, dave, oliver));
+		assertThat(page.getContent()).containsExactly(carter, dave, oliver);
 	}
 
 	@Test // DATAJPA-427
@@ -188,8 +176,7 @@ public class QuerydslJpaRepositoryTests {
 		Page<User> page = repository.findAll(user.firstname.isNotNull(),
 				PageRequest.of(0, 10, Sort.by(new Order(Sort.Direction.ASC, "firstname").ignoreCase())));
 
-		assertThat(page.getContent(), hasSize(3));
-		assertThat(page.getContent(), hasItems(carter, dave, oliver));
+		assertThat(page.getContent()).containsExactly(carter, dave, oliver);
 	}
 
 	@Test // DATAJPA-427
@@ -202,9 +189,7 @@ public class QuerydslJpaRepositoryTests {
 		Page<User> page = repository.findAll(user.firstname.isNotNull(),
 				PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "address.streetName")));
 
-		assertThat(page.getContent(), hasSize(3));
-		assertThat(page.getContent(), hasItems(dave, carter, oliver));
-		assertThat(page.getContent().get(2), is(oliver));
+		assertThat(page.getContent()).containsExactly(dave, carter, oliver);
 	}
 
 	@Test // DATAJPA-12
@@ -215,11 +200,7 @@ public class QuerydslJpaRepositoryTests {
 		Page<User> page = repository.findAll(user.firstname.isNotNull(),
 				new QPageRequest(0, 10, new QSort(user.firstname.asc())));
 
-		assertThat(page.getContent(), hasSize(3));
-		assertThat(page.getContent(), hasItems(carter, dave, oliver));
-		assertThat(page.getContent().get(0), is(carter));
-		assertThat(page.getContent().get(1), is(dave));
-		assertThat(page.getContent().get(2), is(oliver));
+		assertThat(page.getContent()).containsExactly(carter, dave, oliver);
 	}
 
 	@Test // DATAJPA-12
@@ -229,11 +210,7 @@ public class QuerydslJpaRepositoryTests {
 
 		Page<User> page = repository.findAll(user.firstname.isNotNull(), new QPageRequest(0, 10, user.firstname.asc()));
 
-		assertThat(page.getContent(), hasSize(3));
-		assertThat(page.getContent(), hasItems(carter, dave, oliver));
-		assertThat(page.getContent().get(0), is(carter));
-		assertThat(page.getContent().get(1), is(dave));
-		assertThat(page.getContent().get(2), is(oliver));
+		assertThat(page.getContent()).containsExactly(carter, dave, oliver);
 	}
 
 	@Test // DATAJPA-12
@@ -247,11 +224,7 @@ public class QuerydslJpaRepositoryTests {
 		Page<User> page = repository.findAll(user.firstname.isNotNull(),
 				new QPageRequest(0, 10, user.manager.firstname.asc()));
 
-		assertThat(page.getContent(), hasSize(3));
-		assertThat(page.getContent(), hasItems(carter, dave, oliver));
-		assertThat(page.getContent().get(0), is(carter));
-		assertThat(page.getContent().get(1), is(dave));
-		assertThat(page.getContent().get(2), is(oliver));
+		assertThat(page.getContent()).containsExactly(carter, dave, oliver);
 	}
 
 	@Test // DATAJPA-491
@@ -262,12 +235,12 @@ public class QuerydslJpaRepositoryTests {
 
 		Page<User> page = repository.findAll(PageRequest.of(0, 10, Sort.by(Direction.ASC, "manager.roles.name")));
 
-		assertThat(page.getContent(), hasSize(3));
-		assertThat(page.getContent().get(0), is(dave));
+		assertThat(page.getContent()).hasSize(3);
+		assertThat(page.getContent().get(0)).isEqualTo(dave);
 	}
 
 	@Test // DATAJPA-500, DATAJPA-635
-	public void sortByNestedEmbeddedAttribite() {
+	public void sortByNestedEmbeddedAttribute() {
 
 		carter.setAddress(new Address("U", "Z", "Y", "41"));
 		dave.setAddress(new Address("U", "A", "Y", "41"));
@@ -275,8 +248,7 @@ public class QuerydslJpaRepositoryTests {
 
 		List<User> users = repository.findAll(QUser.user.address.streetName.asc());
 
-		assertThat(users, hasSize(3));
-		assertThat(users, hasItems(dave, oliver, carter));
+		assertThat(users).hasSize(3).contains(dave, oliver, carter);
 	}
 
 	@Test // DATAJPA-566, DATAJPA-635
@@ -288,16 +260,15 @@ public class QuerydslJpaRepositoryTests {
 
 		List<User> users = repository.findAll(QUser.user.dateOfBirth.yearMonth().asc());
 
-		assertThat(users, hasSize(3));
-		assertThat(users, hasItems(dave, carter, oliver));
+		assertThat(users).containsExactly(dave, carter, oliver);
 	}
 
 	@Test // DATAJPA-665
 	public void shouldSupportExistsWithPredicate() throws Exception {
 
-		assertThat(repository.exists(user.firstname.eq("Dave")), is(true));
-		assertThat(repository.exists(user.firstname.eq("Unknown")), is(false));
-		assertThat(repository.exists((Predicate) null), is(true));
+		assertThat(repository.exists(user.firstname.eq("Dave"))).isEqualTo(true);
+		assertThat(repository.exists(user.firstname.eq("Unknown"))).isEqualTo(false);
+		assertThat(repository.exists((Predicate) null)).isEqualTo(true);
 	}
 
 	@Test // DATAJPA-679
@@ -305,49 +276,46 @@ public class QuerydslJpaRepositoryTests {
 
 		List<User> users = repository.findAll(user.dateOfBirth.isNull(), Sort.by(Direction.ASC, "firstname"));
 
-		assertThat(users, hasSize(3));
-		assertThat(users.get(0).getFirstname(), is(carter.getFirstname()));
-		assertThat(users.get(2).getFirstname(), is(oliver.getFirstname()));
-		assertThat(users, hasItems(carter, dave, oliver));
+		assertThat(users).contains(carter, dave, oliver);
 	}
 
 	@Test // DATAJPA-585
 	public void worksWithUnpagedPageable() {
-		assertThat(repository.findAll(user.dateOfBirth.isNull(), Pageable.unpaged()).getContent(), hasSize(3));
+		assertThat(repository.findAll(user.dateOfBirth.isNull(), Pageable.unpaged()).getContent()).hasSize(3);
 	}
 
 	@Test // DATAJPA-912
 	public void pageableQueryReportsTotalFromResult() {
 
 		Page<User> firstPage = repository.findAll(user.dateOfBirth.isNull(), PageRequest.of(0, 10));
-		assertThat(firstPage.getContent(), hasSize(3));
-		assertThat(firstPage.getTotalElements(), is(3L));
+		assertThat(firstPage.getContent()).hasSize(3);
+		assertThat(firstPage.getTotalElements()).isEqualTo(3L);
 
 		Page<User> secondPage = repository.findAll(user.dateOfBirth.isNull(), PageRequest.of(1, 2));
-		assertThat(secondPage.getContent(), hasSize(1));
-		assertThat(secondPage.getTotalElements(), is(3L));
+		assertThat(secondPage.getContent()).hasSize(1);
+		assertThat(secondPage.getTotalElements()).isEqualTo(3L);
 	}
 
 	@Test // DATAJPA-912
 	public void pageableQueryReportsTotalFromCount() {
 
 		Page<User> firstPage = repository.findAll(user.dateOfBirth.isNull(), PageRequest.of(0, 3));
-		assertThat(firstPage.getContent(), hasSize(3));
-		assertThat(firstPage.getTotalElements(), is(3L));
+		assertThat(firstPage.getContent()).hasSize(3);
+		assertThat(firstPage.getTotalElements()).isEqualTo(3L);
 
 		Page<User> secondPage = repository.findAll(user.dateOfBirth.isNull(), PageRequest.of(10, 10));
-		assertThat(secondPage.getContent(), hasSize(0));
-		assertThat(secondPage.getTotalElements(), is(3L));
+		assertThat(secondPage.getContent()).hasSize(0);
+		assertThat(secondPage.getTotalElements()).isEqualTo(3L);
 	}
 
 	@Test // DATAJPA-1115
 	public void findOneWithPredicateReturnsResultCorrectly() {
-		Assertions.assertThat(repository.findOne(user.eq(dave))).contains(dave);
+		assertThat(repository.findOne(user.eq(dave))).contains(dave);
 	}
 
 	@Test // DATAJPA-1115
 	public void findOneWithPredicateReturnsOptionalEmptyWhenNoDataFound() {
-		Assertions.assertThat(repository.findOne(user.firstname.eq("batman"))).isNotPresent();
+		assertThat(repository.findOne(user.firstname.eq("batman"))).isNotPresent();
 	}
 
 	@Test(expected = IncorrectResultSizeDataAccessException.class) // DATAJPA-1115
