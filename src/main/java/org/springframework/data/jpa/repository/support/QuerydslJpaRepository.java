@@ -18,10 +18,13 @@ package org.springframework.data.jpa.repository.support;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Optional;
 
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 
+import com.querydsl.core.NonUniqueResultException;
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -94,8 +97,13 @@ public class QuerydslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 	 * @see org.springframework.data.querydsl.QuerydslPredicateExecutor#findOne(com.mysema.query.types.Predicate)
 	 */
 	@Override
-	public T findOne(Predicate predicate) {
-		return createQuery(predicate).select(path).fetchOne();
+	public Optional<T> findOne(Predicate predicate) {
+
+		try {
+			return Optional.ofNullable(createQuery(predicate).select(path).fetchOne());
+		} catch (NonUniqueResultException ex) {
+			throw new IncorrectResultSizeDataAccessException(ex.getMessage(), 1, ex);
+		}
 	}
 
 	/*
