@@ -23,10 +23,12 @@ import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
+import org.assertj.core.api.Assertions;
 import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -54,6 +56,7 @@ import com.querydsl.core.types.dsl.PathBuilderFactory;
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({ "classpath:infrastructure.xml" })
@@ -335,5 +338,20 @@ public class QuerydslJpaRepositoryTests {
 		Page<User> secondPage = repository.findAll(user.dateOfBirth.isNull(), PageRequest.of(10, 10));
 		assertThat(secondPage.getContent(), hasSize(0));
 		assertThat(secondPage.getTotalElements(), is(3L));
+	}
+
+	@Test // DATAJPA-1115
+	public void findOneWithPredicateReturnsResultCorrectly() {
+		Assertions.assertThat(repository.findOne(user.eq(dave))).contains(dave);
+	}
+
+	@Test // DATAJPA-1115
+	public void findOneWithPredicateReturnsOptionalEmptyWhenNoDataFound() {
+		Assertions.assertThat(repository.findOne(user.firstname.eq("batman"))).isNotPresent();
+	}
+
+	@Test(expected = IncorrectResultSizeDataAccessException.class) // DATAJPA-1115
+	public void findOneWithPredicateThrowsExceptionForNonUniqueResults() {
+		repository.findOne(user.emailAddress.contains("com"));
 	}
 }

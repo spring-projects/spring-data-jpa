@@ -59,7 +59,7 @@ public interface RoleRepository extends CrudRepository<Role, Integer>, QuerydslP
 	@Override
 	@Lock(LockModeType.READ)
 	@QueryHints(@QueryHint(name = "foo", value = "bar"))
-	Role findOne(Predicate predicate);
+	Optional<Role> findOne(Predicate predicate);
 
 	// DATAJPA-509
 	long countByName(String name);
