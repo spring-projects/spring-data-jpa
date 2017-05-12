@@ -443,14 +443,14 @@ public class UserRepositoryTests {
 	public void executesSingleEntitySpecificationCorrectly() throws Exception {
 
 		flushTestUsers();
-		assertThat(repository.findOne(userHasFirstname("Oliver"))).isEqualTo(firstUser);
+		assertThat(repository.findOne(userHasFirstname("Oliver"))).contains(firstUser);
 	}
 
 	@Test
 	public void returnsNullIfNoEntityFoundForSingleEntitySpecification() throws Exception {
 
 		flushTestUsers();
-		assertThat(repository.findOne(userHasLastname("Beauford"))).isNull();
+		assertThat(repository.findOne(userHasLastname("Beauford"))).isNotPresent();
 	}
 
 	@Test(expected = IncorrectResultSizeDataAccessException.class)
