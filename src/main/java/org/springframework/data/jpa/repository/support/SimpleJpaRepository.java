@@ -357,12 +357,12 @@ public class SimpleJpaRepository<T, ID> implements JpaRepository<T, ID>, JpaSpec
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.JpaSpecificationExecutor#findOne(org.springframework.data.jpa.domain.Specification)
 	 */
-	public T findOne(Specification<T> spec) {
+	public Optional<T> findOne(Specification<T> spec) {
 
 		try {
-			return getQuery(spec, (Sort) null).getSingleResult();
+			return Optional.of(getQuery(spec, (Sort) null).getSingleResult());
 		} catch (NoResultException e) {
-			return null;
+			return Optional.empty();
 		}
 	}
 
