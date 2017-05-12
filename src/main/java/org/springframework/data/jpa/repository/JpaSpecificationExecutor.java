@@ -25,7 +25,7 @@ import org.springframework.data.jpa.domain.Specification;
 
 /**
  * Interface to allow execution of {@link Specification}s based on the JPA criteria API.
- * 
+ *
  * @author Oliver Gierke
  * @author Christoph Strobl
  */
@@ -33,7 +33,7 @@ public interface JpaSpecificationExecutor<T> {
 
 	/**
 	 * Returns a single entity matching the given {@link Specification} or {@link Optional#empty()} if none found.
-	 * 
+	 *
 	 * @param spec can be @literal {@null}.
 	 * @return
 	 * @throws org.springframework.dao.IncorrectResultSizeDataAccessException if more than one entity found.
@@ -42,35 +42,35 @@ public interface JpaSpecificationExecutor<T> {
 
 	/**
 	 * Returns all entities matching the given {@link Specification}.
-	 * 
-	 * @param spec
-	 * @return
+	 *
+	 * @param spec can be {@literal null}.
+	 * @return never {@literal null}.
 	 */
 	List<T> findAll(Specification<T> spec);
 
 	/**
 	 * Returns a {@link Page} of entities matching the given {@link Specification}.
-	 * 
-	 * @param spec
-	 * @param pageable
-	 * @return
+	 *
+	 * @param spec can be {@literal null}.
+	 * @param pageable can be {@literal null}.
+	 * @return never {@literal null}.
 	 */
 	Page<T> findAll(Specification<T> spec, Pageable pageable);
 
 	/**
 	 * Returns all entities matching the given {@link Specification} and {@link Sort}.
-	 * 
-	 * @param spec
-	 * @param sort
-	 * @return
+	 *
+	 * @param spec can be {@literal null}.
+	 * @param sort can be {@literal null}.
+	 * @return never {@literal null}.
 	 */
 	List<T> findAll(Specification<T> spec, Sort sort);
 
 	/**
 	 * Returns the number of instances that the given {@link Specification} will return.
-	 * 
-	 * @param spec the {@link Specification} to count instances for
-	 * @return the number of instances
+	 *
+	 * @param spec the {@link Specification} to count instances for. Can be {@literal null}.
+	 * @return the number of instances.
 	 */
 	long count(Specification<T> spec);
 }
