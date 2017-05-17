@@ -41,7 +41,7 @@ import org.springframework.util.StringUtils;
  */
 class StringQuery {
 
-	private static final String PARAMETER_NAME_MISSING = "Name for parameter binding must not be null or empty! For named parameters you need to use @Param for query method parameters on Java versions < 8.";
+	private static final String PARAMETER_NAME_MISSING = "Name for parameter binding must not be null or empty! On JDKs < 8, you need to use @Param for named parameters, on JDK 8 or better, be sure to compile with -parameters.";
 
 	private final String query;
 	private final List<ParameterBinding> bindings;
