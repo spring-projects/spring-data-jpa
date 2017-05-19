@@ -357,12 +357,12 @@ public class SimpleJpaRepository<T, ID> implements JpaRepository<T, ID>, JpaSpec
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.JpaSpecificationExecutor#findOne(org.springframework.data.jpa.domain.Specification)
 	 */
-	public T findOne(Specification<T> spec) {
+	public Optional<T> findOne(Specification<T> spec) {
 
 		try {
-			return getQuery(spec, (Sort) null).getSingleResult();
+			return Optional.of(getQuery(spec, (Sort) null).getSingleResult());
 		} catch (NoResultException e) {
-			return null;
+			return Optional.empty();
 		}
 	}
 
@@ -381,7 +381,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepository<T, ID>, JpaSpec
 	public Page<T> findAll(Specification<T> spec, Pageable pageable) {
 
 		TypedQuery<T> query = getQuery(spec, pageable);
-		return pageable == null ? new PageImpl<T>(query.getResultList())
+		return (pageable == null || pageable.isUnpaged()) ? new PageImpl<T>(query.getResultList())
 				: readPage(query, getDomainClass(), pageable, spec);
 	}
 
@@ -452,11 +452,11 @@ public class SimpleJpaRepository<T, ID> implements JpaRepository<T, ID>, JpaSpec
 	@Override
 	public <S extends T> Page<S> findAll(Example<S> example, Pageable pageable) {
 
-		ExampleSpecification<S> spec = new ExampleSpecification<S>(example);
+		ExampleSpecification<S> spec = new ExampleSpecification<>(example);
 		Class<S> probeType = example.getProbeType();
-		TypedQuery<S> query = getQuery(new ExampleSpecification<S>(example), probeType, pageable);
+		TypedQuery<S> query = getQuery(new ExampleSpecification<>(example), probeType, pageable);
 
-		return pageable == null ? new PageImpl<S>(query.getResultList()) : readPage(query, probeType, pageable, spec);
+		return pageable == null ? new PageImpl<>(query.getResultList()) : readPage(query, probeType, pageable, spec);
 	}
 
 	/*
@@ -624,7 +624,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepository<T, ID>, JpaSpec
 		Root<S> root = applySpecificationToCriteria(spec, domainClass, query);
 		query.select(root);
 
-		if (sort != null && !ObjectUtils.nullSafeEquals(sort, Sort.unsorted())) {
+		if (sort != null && !sort.isUnsorted()) {
 			query.orderBy(toOrders(sort, root, builder));
 		}
 
