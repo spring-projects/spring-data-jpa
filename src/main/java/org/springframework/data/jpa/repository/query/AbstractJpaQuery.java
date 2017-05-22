@@ -15,6 +15,7 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,11 +46,12 @@ import org.springframework.util.Assert;
 
 /**
  * Abstract base class to implement {@link RepositoryQuery}s.
- * 
+ *
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author MD Sayem Ahmed
  */
 public abstract class AbstractJpaQuery implements RepositoryQuery {
 
@@ -59,7 +61,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 
 	/**
 	 * Creates a new {@link AbstractJpaQuery} from the given {@link JpaQueryMethod}.
-	 * 
+	 *
 	 * @param method
 	 * @param em
 	 */
@@ -83,7 +85,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 
 	/**
 	 * Returns the {@link EntityManager}.
-	 * 
+	 *
 	 * @return will never be {@literal null}.
 	 */
 	protected EntityManager getEntityManager() {
@@ -92,7 +94,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 
 	/**
 	 * Returns the {@link JpaMetamodel}.
-	 * 
+	 *
 	 * @return
 	 */
 	protected JpaMetamodel getMetamodel() {
@@ -143,7 +145,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 
 	/**
 	 * Applies the declared query hints to the given query.
-	 * 
+	 *
 	 * @param query
 	 * @return
 	 */
@@ -158,7 +160,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 
 	/**
 	 * Protected to be able to customize in sub-classes.
-	 * 
+	 *
 	 * @param query must not be {@literal null}.
 	 * @param hint must not be {@literal null}.
 	 */
@@ -172,7 +174,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 
 	/**
 	 * Applies the {@link LockModeType} provided by the {@link JpaQueryMethod} to the given {@link Query}.
-	 * 
+	 *
 	 * @param query must not be {@literal null}.
 	 * @param method must not be {@literal null}.
 	 * @return
@@ -194,22 +196,18 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 	/**
 	 * Configures the {@link javax.persistence.EntityGraph} to use for the given {@link JpaQueryMethod} if the
 	 * {@link EntityGraph} annotation is present.
-	 * 
+	 *
 	 * @param query must not be {@literal null}.
 	 * @param method must not be {@literal null}.
 	 * @return
 	 */
 	private Query applyEntityGraphConfiguration(Query query, JpaQueryMethod method) {
-
 		Assert.notNull(query, "Query must not be null!");
 		Assert.notNull(method, "JpaQueryMethod must not be null!");
 
-		Map<String, Object> hints = Jpa21Utils.tryGetFetchGraphHints(em, method.getEntityGraph(),
-				getQueryMethod().getEntityInformation().getJavaType());
-
-		for (Map.Entry<String, Object> hint : hints.entrySet()) {
-			query.setHint(hint.getKey(), hint.getValue());
-		}
+		Class<?> entityType = getQueryMethod().getEntityInformation().getJavaType();
+		method.getEntityGraph().map(entityGraph -> Jpa21Utils.tryGetFetchGraphHints(em, entityGraph, entityType))
+				.orElse(Collections.emptyMap()).forEach(query::setHint);
 
 		return query;
 	}
@@ -221,7 +219,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 
 	/**
 	 * Creates a {@link Query} instance for the given values.
-	 * 
+	 *
 	 * @param values must not be {@literal null}.
 	 * @return
 	 */
@@ -229,7 +227,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 
 	/**
 	 * Creates a {@link TypedQuery} for counting using the given values.
-	 * 
+	 *
 	 * @param values must not be {@literal null}.
 	 * @return
 	 */
@@ -241,7 +239,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 
 		/**
 		 * Creates a new {@link TupleConverter} for the given {@link ReturnedType}.
-		 * 
+		 *
 		 * @param type must not be {@literal null}.
 		 */
 		public TupleConverter(ReturnedType type) {

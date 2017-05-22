@@ -62,6 +62,7 @@ import org.springframework.data.repository.query.QueryMethod;
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Christoph Strobl
+ * @author MD Sayem Ahmed
  */
 @RunWith(MockitoJUnitRunner.class)
 public class JpaQueryMethodUnitTests {
@@ -305,9 +306,9 @@ public class JpaQueryMethodUnitTests {
 
 		JpaQueryMethod method = new JpaQueryMethod(queryMethodWithCustomEntityFetchGraph, metadata, factory, extractor);
 
-		assertThat(method.getEntityGraph(), is(notNullValue()));
-		assertThat(method.getEntityGraph().getName(), is("User.propertyLoadPath"));
-		assertThat(method.getEntityGraph().getType(), is(EntityGraphType.LOAD));
+		assertThat(method.getEntityGraph().isPresent(), is(true));
+		assertThat(method.getEntityGraph().get().getName(), is("User.propertyLoadPath"));
+		assertThat(method.getEntityGraph().get().getType(), is(EntityGraphType.LOAD));
 	}
 
 	@Test // DATAJPA-612
@@ -319,9 +320,9 @@ public class JpaQueryMethodUnitTests {
 		JpaQueryMethod method = new JpaQueryMethod(JpaRepositoryOverride.class.getMethod("findAll"), metadata, factory,
 				extractor);
 
-		assertThat(method.getEntityGraph(), is(notNullValue()));
-		assertThat(method.getEntityGraph().getName(), is("User.detail"));
-		assertThat(method.getEntityGraph().getType(), is(EntityGraphType.FETCH));
+		assertThat(method.getEntityGraph().isPresent(), is(true));
+		assertThat(method.getEntityGraph().get().getName(), is("User.detail"));
+		assertThat(method.getEntityGraph().get().getType(), is(EntityGraphType.FETCH));
 	}
 
 	@Test // DATAJPA-689
@@ -333,9 +334,9 @@ public class JpaQueryMethodUnitTests {
 		JpaQueryMethod method = new JpaQueryMethod(JpaRepositoryOverride.class.getMethod("findOne", Long.class), metadata,
 				factory, extractor);
 
-		assertThat(method.getEntityGraph(), is(notNullValue()));
-		assertThat(method.getEntityGraph().getName(), is("User.detail"));
-		assertThat(method.getEntityGraph().getType(), is(EntityGraphType.FETCH));
+		assertThat(method.getEntityGraph().isPresent(), is(true));
+		assertThat(method.getEntityGraph().get().getName(), is("User.detail"));
+		assertThat(method.getEntityGraph().get().getType(), is(EntityGraphType.FETCH));
 	}
 
 	/**
@@ -350,9 +351,9 @@ public class JpaQueryMethodUnitTests {
 		JpaQueryMethod method = new JpaQueryMethod(JpaRepositoryOverride.class.getMethod("getOneById", Long.class),
 				metadata, factory, extractor);
 
-		assertThat(method.getEntityGraph(), is(notNullValue()));
-		assertThat(method.getEntityGraph().getName(), is("User.getOneById"));
-		assertThat(method.getEntityGraph().getType(), is(EntityGraphType.FETCH));
+		assertThat(method.getEntityGraph().isPresent(), is(true));
+		assertThat(method.getEntityGraph().get().getName(), is("User.getOneById"));
+		assertThat(method.getEntityGraph().get().getType(), is(EntityGraphType.FETCH));
 	}
 
 	@Test // DATAJPA-758
@@ -461,9 +462,9 @@ public class JpaQueryMethodUnitTests {
 		JpaQueryMethod method = new JpaQueryMethod(
 				JpaRepositoryOverride.class.getMethod("getOneWithCustomEntityGraphAnnotation"), metadata, factory, extractor);
 
-		assertThat(method.getEntityGraph(), is(notNullValue()));
-		assertThat(method.getEntityGraph().getName(), is("User.detail"));
-		assertThat(method.getEntityGraph().getType(), is(EntityGraphType.LOAD));
+		assertThat(method.getEntityGraph().isPresent(), is(true));
+		assertThat(method.getEntityGraph().get().getName(), is("User.detail"));
+		assertThat(method.getEntityGraph().get().getType(), is(EntityGraphType.LOAD));
 	}
 
 	/**

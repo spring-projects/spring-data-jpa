@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import javax.persistence.LockModeType;
@@ -49,6 +50,7 @@ import org.springframework.util.StringUtils;
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Christoph Strobl
+ * @author MD Sayem Ahmed
  */
 public class JpaQueryMethod extends QueryMethod {
 
@@ -177,10 +179,9 @@ public class JpaQueryMethod extends QueryMethod {
 	 * @return
 	 * @since 1.6
 	 */
-	JpaEntityGraph getEntityGraph() {
-
-		EntityGraph annotation = AnnotatedElementUtils.findMergedAnnotation(method, EntityGraph.class);
-		return annotation == null ? null : new JpaEntityGraph(annotation, getNamedQueryName());
+	Optional<JpaEntityGraph> getEntityGraph() {
+		return Optional.ofNullable(AnnotatedElementUtils.findMergedAnnotation(method, EntityGraph.class))
+				.map(annotation -> new JpaEntityGraph(annotation, getNamedQueryName()));
 	}
 
 	/**
