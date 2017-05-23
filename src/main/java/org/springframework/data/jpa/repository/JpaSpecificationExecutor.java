@@ -34,8 +34,8 @@ public interface JpaSpecificationExecutor<T> {
 	/**
 	 * Returns a single entity matching the given {@link Specification} or {@link Optional#empty()} if none found.
 	 *
-	 * @param spec can be @literal {@null}.
-	 * @return
+	 * @param spec can be {@literal null}.
+	 * @return never {@literal null}.
 	 * @throws org.springframework.dao.IncorrectResultSizeDataAccessException if more than one entity found.
 	 */
 	Optional<T> findOne(Specification<T> spec);
