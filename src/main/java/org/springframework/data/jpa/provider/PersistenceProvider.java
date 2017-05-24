@@ -105,7 +105,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 		 */
 		@Override
 		public <T> Collection<T> potentiallyConvertEmptyCollection(Collection<T> collection) {
-			return collection == null || collection.isEmpty() ? null : collection;
+			return collection;
 		}
 
 		/*
