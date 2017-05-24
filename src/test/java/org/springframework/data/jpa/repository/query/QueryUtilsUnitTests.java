@@ -216,6 +216,14 @@ public class QueryUtilsUnitTests {
 	public void createsCountQueryForNestedReferenceCorrectly() {
 		assertCountQuery("select a.b from A a", "select count(a.b) from A a");
 	}
+        
+	/**
+	 * @see DATAJPA-420
+	 */
+	@Test
+	public void createsCountQueryForScalarSelects() {
+		assertCountQuery("select p.lastname,p.firstname from Person p", "select count(p) from Person p");
+	}
 
 	@Test // DATAJPA-420
 	public void createsCountQueryForScalarSelects() {
