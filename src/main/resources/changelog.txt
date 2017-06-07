@@ -1,6 +1,15 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 1.10.11.RELEASE (2017-06-07)
+-----------------------------------------------
+* DATAJPA-1102 - Upgrade to Eclipselink 2.6.4.
+* DATAJPA-1099 - Make sure Travis builds resolve dependencies only on repositories defined by our POM.
+* DATAJPA-1098 - Javadoc on Specification. toPredicate should state that it may return null.
+* DATAJPA-1096 - Release 1.10.11 (Hopper SR11).
+* DATAJPA-1086 - Improve exception message for missing parameter names on JDK 8.
+
+
 Changes in version 2.0.0.M3 (2017-05-09)
 ----------------------------------------
 * DATAJPA-1104 - Adapt to API changes in repository interfaces.
