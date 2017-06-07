@@ -16,11 +16,11 @@
 package org.springframework.data.jpa.repository.query;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import java.util.Optional;
 import javax.persistence.AttributeNode;
 import javax.persistence.EntityGraph;
 import javax.persistence.EntityManager;
@@ -39,6 +39,7 @@ import org.springframework.util.StringUtils;
  * @author Thomas Darimont
  * @author Oliver Gierke
  * @author Christoph Strobl
+ * @author MD Sayem Ahmed
  * @since 1.6
  */
 public class Jpa21Utils {
@@ -72,17 +73,9 @@ public class Jpa21Utils {
 	public static Map<String, Object> tryGetFetchGraphHints(EntityManager em, JpaEntityGraph entityGraph,
 			Class<?> entityType) {
 
-		if (entityGraph == null) {
-			return Collections.emptyMap();
-		}
-
-		EntityGraph<?> graph = tryGetFetchGraph(em, entityGraph, entityType);
-
-		if (graph == null) {
-			return Collections.emptyMap();
-		}
-
-		return Collections.<String, Object> singletonMap(entityGraph.getType().getKey(), graph);
+		return Optional.ofNullable(entityGraph).map(jpaEntityGraph -> tryGetFetchGraph(em, jpaEntityGraph, entityType))
+				.map(fetchedGraph -> Collections.<String, Object> singletonMap(entityGraph.getType().getKey(), fetchedGraph))
+				.orElse(Collections.emptyMap());
 	}
 
 	/**
@@ -144,21 +137,11 @@ public class Jpa21Utils {
 	 * @param entityGraph
 	 */
 	static void configureFetchGraphFrom(JpaEntityGraph jpaEntityGraph, EntityGraph<?> entityGraph) {
-
-		List<String> attributePaths = new ArrayList<String>(jpaEntityGraph.getAttributePaths());
-
-		// Sort to ensure that the intermediate entity subgraphs are created accordingly.
-		Collections.sort(attributePaths);
-
-		for (String path : attributePaths) {
-
-			String[] pathComponents = StringUtils.delimitedListToStringArray(path, ".");
-			createGraph(pathComponents, 0, entityGraph, null);
-		}
+		jpaEntityGraph.getAttributePaths().stream().sorted().map(path -> StringUtils.delimitedListToStringArray(path, "."))
+				.forEach(pathComponents -> createGraph(pathComponents, 0, entityGraph, null));
 	}
 
 	private static void createGraph(String[] pathComponents, int offset, EntityGraph<?> root, Subgraph<?> parent) {
-
 		String attributeName = pathComponents[offset];
 
 		// we found our leaf property, now let's see if it already exists and add it if not
@@ -173,18 +156,11 @@ public class Jpa21Utils {
 			return;
 		}
 
-		AttributeNode<?> node = findAttributeNode(attributeName, root, parent);
-
-		if (node != null) {
-
-			Subgraph<?> subgraph = getSubgraph(node);
-
-			if (subgraph == null) {
-				subgraph = parent != null ? parent.addSubgraph(attributeName) : root.addSubgraph(attributeName);
-			}
-
+		Optional<AttributeNode<?>> possibleNode = findAttributeNode(attributeName, root, parent);
+		if (possibleNode.isPresent()) {
+			Subgraph<?> subgraph = possibleNode.flatMap(Jpa21Utils::getSubgraph)
+					.orElseGet(() -> parent != null ? parent.addSubgraph(attributeName) : root.addSubgraph(attributeName));
 			createGraph(pathComponents, offset + 1, root, subgraph);
-
 			return;
 		}
 
@@ -201,10 +177,10 @@ public class Jpa21Utils {
 	 *
 	 * @param attributeNodeName
 	 * @param nodes
-	 * @return
+	 * @return {@literal true} if the node exists, {@literal false} otherwise.
 	 */
 	private static boolean exists(String attributeNodeName, List<AttributeNode<?>> nodes) {
-		return findAttributeNode(attributeNodeName, nodes) != null;
+		return findAttributeNode(attributeNodeName, nodes).isPresent();
 	}
 
 	/**
@@ -214,9 +190,9 @@ public class Jpa21Utils {
 	 * @param attributeNodeName
 	 * @param entityGraph
 	 * @param parent
-	 * @return {@literal null} if not found.
+	 * @return {@link Optional#empty()} if not found.
 	 */
-	private static AttributeNode<?> findAttributeNode(String attributeNodeName, EntityGraph<?> entityGraph,
+	private static Optional<AttributeNode<?>> findAttributeNode(String attributeNodeName, EntityGraph<?> entityGraph,
 			Subgraph<?> parent) {
 		return findAttributeNode(attributeNodeName,
 				parent != null ? parent.getAttributeNodes() : entityGraph.getAttributeNodes());
@@ -228,28 +204,22 @@ public class Jpa21Utils {
 	 *
 	 * @param attributeNodeName
 	 * @param nodes
-	 * @return {@literal null} if not found.
+	 * @return {@link Optional#empty()} if not found.
 	 */
-	private static AttributeNode<?> findAttributeNode(String attributeNodeName, List<AttributeNode<?>> nodes) {
-
-		for (AttributeNode<?> node : nodes) {
-			if (ObjectUtils.nullSafeEquals(node.getAttributeName(), attributeNodeName)) {
-				return node;
-			}
-		}
-
-		return null;
+	private static Optional<AttributeNode<?>> findAttributeNode(String attributeNodeName, List<AttributeNode<?>> nodes) {
+		return nodes.stream().filter(node -> ObjectUtils.nullSafeEquals(node.getAttributeName(), attributeNodeName))
+				.findFirst();
 	}
 
 	/**
 	 * Extracts the first {@link Subgraph} from the given {@link AttributeNode}. Ignores any potential different
 	 * {@link Subgraph}s registered for more concrete {@link Class}es as the dynamically created graph does not
 	 * distinguish between those.
-	 *
+	 * 
 	 * @param node
-	 * @return
+	 * @return {@link Optional#empty()} if not found.
 	 */
-	private static Subgraph<?> getSubgraph(AttributeNode<?> node) {
-		return node.getSubgraphs().isEmpty() ? null : node.getSubgraphs().values().iterator().next();
+	private static Optional<Subgraph> getSubgraph(AttributeNode<?> node) {
+		return node.getSubgraphs().values().stream().findFirst();
 	}
 }

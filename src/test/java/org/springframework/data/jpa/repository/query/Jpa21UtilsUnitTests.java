@@ -15,13 +15,19 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.mockito.ArgumentMatchers.*;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
+import java.util.Map;
+
 import javax.persistence.EntityGraph;
+import javax.persistence.EntityManager;
 import javax.persistence.Subgraph;
 
 import org.junit.Test;
+
 import org.springframework.data.jpa.repository.EntityGraph.EntityGraphType;
 
 /**
@@ -29,10 +35,11 @@ import org.springframework.data.jpa.repository.EntityGraph.EntityGraphType;
  * 
  * @author Thomas Darimont
  * @author Oliver Gierke
+ * @author MD Sayem Ahmed
  */
 public class Jpa21UtilsUnitTests {
 
-	@Test // DATAJPA-696
+	@Test // DATAJPA-696, DATAJPA-1093
 	public void shouldBuildCorrectSubgraphForJpaEntityGraph() throws Exception {
 
 		EntityGraph<?> entityGraph = mock(EntityGraph.class);
@@ -47,5 +54,56 @@ public class Jpa21UtilsUnitTests {
 		verify(entityGraph, times(1)).addAttributeNodes("foo");
 		verify(entityGraph, times(1)).addSubgraph("gugu");
 		verify(subgraph, times(1)).addAttributeNodes("gaga");
+	}
+
+	@Test // DATAJPA-1093
+	public void givenNullEntityGraphWhenTryGetFetchGraphHintsThenReturnsEmptyMap() {
+		Map<String, Object> graphHints = Jpa21Utils.tryGetFetchGraphHints(mock(EntityManager.class), null, Object.class);
+
+		assertThat(graphHints).isEmpty();
+	}
+
+	@Test // DATAJPA-1093
+	public void givenCreatingDynamicGraphFailsWhenTryGetFetchGraphHintsThenReturnsEmptyMap() {
+		EntityManager entityManager = mock(EntityManager.class);
+		Class<Object> entityType = Object.class;
+		when(entityManager.createEntityGraph(entityType)).thenReturn(null);
+
+		Map<String, Object> graphHints = Jpa21Utils.tryGetFetchGraphHints(entityManager, mock(JpaEntityGraph.class),
+				entityType);
+
+		assertThat(graphHints).isEmpty();
+	}
+
+	@Test // DATAJPA-1093
+	public void givenGetEntityGraphReturnsNullWhenTryGetFetchGraphHintsThenReturnsEmptyMap() {
+		EntityManager entityManager = mock(EntityManager.class);
+		Class<Object> entityType = Object.class;
+		String graphName = "sample graph name";
+		JpaEntityGraph jpaEntityGraph = mock(JpaEntityGraph.class);
+		when(jpaEntityGraph.getName()).thenReturn(graphName);
+		when(entityManager.getEntityGraph(graphName)).thenReturn(null);
+
+		Map<String, Object> graphHints = Jpa21Utils.tryGetFetchGraphHints(entityManager, jpaEntityGraph, entityType);
+
+		assertThat(graphHints).isEmpty();
+	}
+
+	@Test // DATAJPA-1093
+	public void givenGetEntityGraphThrowsExceptionWhenTryGetFetchGraphHintsThenCreatesEntityGraph() {
+		EntityManager entityManager = mock(EntityManager.class);
+		Class<Object> entityType = Object.class;
+		JpaEntityGraph jpaEntityGraph = mock(JpaEntityGraph.class);
+		EntityGraphType entityGraphType = EntityGraphType.FETCH;
+		EntityGraph entityGraph = mock(EntityGraph.class);
+		when(jpaEntityGraph.getType()).thenReturn(entityGraphType);
+		when(jpaEntityGraph.isAdHocEntityGraph()).thenReturn(true);
+		when(entityManager.getEntityGraph(any())).thenThrow(Exception.class);
+		when(entityManager.createEntityGraph(entityType)).thenReturn(entityGraph);
+
+		Map<String, Object> graphHints = Jpa21Utils.tryGetFetchGraphHints(entityManager, jpaEntityGraph, entityType);
+
+		assertThat(graphHints).containsOnlyKeys(entityGraphType.getKey());
+		assertThat(graphHints).containsValue(entityGraph);
 	}
 }
