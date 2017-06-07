@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import javax.persistence.LockModeType;
@@ -45,10 +46,11 @@ import org.springframework.util.StringUtils;
 
 /**
  * JPA specific extension of {@link QueryMethod}.
- * 
+ *
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 public class JpaQueryMethod extends QueryMethod {
 
@@ -78,7 +80,7 @@ public class JpaQueryMethod extends QueryMethod {
 
 	/**
 	 * Creates a {@link JpaQueryMethod}.
-	 * 
+	 *
 	 * @param method must not be {@literal null}
 	 * @param extractor must not be {@literal null}
 	 * @param metadata must not be {@literal null}
@@ -122,7 +124,7 @@ public class JpaQueryMethod extends QueryMethod {
 		}
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.query.QueryMethod#getEntityInformation()
 	 */
@@ -134,7 +136,7 @@ public class JpaQueryMethod extends QueryMethod {
 
 	/**
 	 * Returns whether the finder is a modifying one.
-	 * 
+	 *
 	 * @return
 	 */
 	@Override
@@ -145,7 +147,7 @@ public class JpaQueryMethod extends QueryMethod {
 
 	/**
 	 * Returns all {@link QueryHint}s annotated at this class. Note, that {@link QueryHints}
-	 * 
+	 *
 	 * @return
 	 */
 	List<QueryHint> getHints() {
@@ -162,18 +164,19 @@ public class JpaQueryMethod extends QueryMethod {
 
 	/**
 	 * Returns the {@link LockModeType} to be used for the query.
-	 * 
+	 *
 	 * @return
 	 */
 	LockModeType getLockModeType() {
 
-		Lock annotation = AnnotatedElementUtils.findMergedAnnotation(method, Lock.class);
-		return (LockModeType) AnnotationUtils.getValue(annotation);
+		return (LockModeType) Optional.ofNullable(AnnotatedElementUtils.findMergedAnnotation(method, Lock.class)) //
+				.map(AnnotationUtils::getValue) //
+				.orElse(null);
 	}
 
 	/**
 	 * Returns the {@link EntityGraph} to be used for the query.
-	 * 
+	 *
 	 * @return
 	 * @since 1.6
 	 */
@@ -186,7 +189,7 @@ public class JpaQueryMethod extends QueryMethod {
 	/**
 	 * Returns whether the potentially configured {@link QueryHint}s shall be applied when triggering the count query for
 	 * pagination.
-	 * 
+	 *
 	 * @return
 	 */
 	boolean applyHintsToCountQuery() {
@@ -197,7 +200,7 @@ public class JpaQueryMethod extends QueryMethod {
 
 	/**
 	 * Returns the {@link QueryExtractor}.
-	 * 
+	 *
 	 * @return
 	 */
 	QueryExtractor getQueryExtractor() {
@@ -207,7 +210,7 @@ public class JpaQueryMethod extends QueryMethod {
 
 	/**
 	 * Returns the actual return type of the method.
-	 * 
+	 *
 	 * @return
 	 */
 	Class<?> getReturnType() {
@@ -218,7 +221,7 @@ public class JpaQueryMethod extends QueryMethod {
 	/**
 	 * Returns the query string declared in a {@link Query} annotation or {@literal null} if neither the annotation found
 	 * nor the attribute was specified.
-	 * 
+	 *
 	 * @return
 	 */
 	String getAnnotatedQuery() {
@@ -230,7 +233,7 @@ public class JpaQueryMethod extends QueryMethod {
 	/**
 	 * Returns the countQuery string declared in a {@link Query} annotation or {@literal null} if neither the annotation
 	 * found nor the attribute was specified.
-	 * 
+	 *
 	 * @return
 	 */
 	String getCountQuery() {
@@ -242,7 +245,7 @@ public class JpaQueryMethod extends QueryMethod {
 	/**
 	 * Returns the count query projection string declared in a {@link Query} annotation or {@literal null} if neither the
 	 * annotation found nor the attribute was specified.
-	 * 
+	 *
 	 * @return
 	 * @since 1.6
 	 */
@@ -254,14 +257,14 @@ public class JpaQueryMethod extends QueryMethod {
 
 	/**
 	 * Returns whether the backing query is a native one.
-	 * 
+	 *
 	 * @return
 	 */
 	boolean isNativeQuery() {
 		return getAnnotationValue("nativeQuery", Boolean.class).booleanValue();
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.query.QueryMethod#getNamedQueryName()
 	 */
@@ -274,7 +277,7 @@ public class JpaQueryMethod extends QueryMethod {
 
 	/**
 	 * Returns the name of the {@link NamedQuery} that shall be used for count queries.
-	 * 
+	 *
 	 * @return
 	 */
 	String getNamedCountQueryName() {
@@ -285,7 +288,7 @@ public class JpaQueryMethod extends QueryMethod {
 
 	/**
 	 * Returns whether we should clear automatically for modifying queries.
-	 * 
+	 *
 	 * @return
 	 */
 	boolean getClearAutomatically() {
@@ -295,10 +298,9 @@ public class JpaQueryMethod extends QueryMethod {
 	/**
 	 * Returns the {@link Query} annotation's attribute casted to the given type or default value if no annotation
 	 * available.
-	 * 
+	 *
 	 * @param attribute
 	 * @param type
-	 * @param defaultValue
 	 * @return
 	 */
 	private <T> T getAnnotationValue(String attribute, Class<T> type) {
@@ -316,7 +318,7 @@ public class JpaQueryMethod extends QueryMethod {
 		return targetType.cast(AnnotationUtils.getValue(annotation, attribute));
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.query.QueryMethod#createParameters(java.lang.reflect.Method)
 	 */
@@ -325,7 +327,7 @@ public class JpaQueryMethod extends QueryMethod {
 		return new JpaParameters(method);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.query.QueryMethod#getParameters()
 	 */
@@ -334,7 +336,7 @@ public class JpaQueryMethod extends QueryMethod {
 		return (JpaParameters) super.getParameters();
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.query.QueryMethod#isCollectionQuery()
 	 */
@@ -345,7 +347,7 @@ public class JpaQueryMethod extends QueryMethod {
 
 	/**
 	 * Return {@literal true} if the method contains a {@link Procedure} annotation.
-	 * 
+	 *
 	 * @return
 	 */
 	public boolean isProcedureQuery() {
@@ -355,7 +357,7 @@ public class JpaQueryMethod extends QueryMethod {
 	/**
 	 * Returns a new {@link StoredProcedureAttributes} representing the stored procedure meta-data for this
 	 * {@link JpaQueryMethod}.
-	 * 
+	 *
 	 * @return
 	 */
 	StoredProcedureAttributes getProcedureAttributes() {
