@@ -1,6 +1,18 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 2.0.0.M4 (2017-06-14)
+----------------------------------------
+* DATAJPA-1134 - Adopt tests to composable repositories.
+* DATAJPA-1131 - Adopt to changed AnnotationUtils.getValue(…) behavior.
+* DATAJPA-1116 - JpaSpecificationExecutor.findOne should return Optional.
+* DATAJPA-1115 - Adapt to QuerydslPredicateExecutor API changes.
+* DATAJPA-1114 - Release 2.0 M4 (Kay).
+* DATAJPA-1113 - Aggregate Root Domain Events and saveAndFlush.
+* DATAJPA-1110 - Adapt QueryByExampleExecutor API changes.
+* DATAJPA-1086 - Improve exception message for missing parameter names on JDK 8.
+
+
 Changes in version 1.11.4.RELEASE (2017-06-08)
 ----------------------------------------------
 * DATAJPA-1113 - Aggregate Root Domain Events and saveAndFlush.
