@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 the original author or authors.
+ * Copyright 2008-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,14 +42,16 @@ import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.core.EntityInformation;
 import org.springframework.data.repository.core.RepositoryInformation;
 import org.springframework.data.repository.core.RepositoryMetadata;
+import org.springframework.data.repository.core.support.RepositoryComposition.RepositoryFragments;
 import org.springframework.data.repository.core.support.RepositoryFactorySupport;
 
 /**
  * Unit test for {@code JpaRepositoryFactoryBean}.
  * <p>
  * TODO: Check if test methods double the ones in {@link JpaRepositoryFactoryUnitTests}.
- * 
+ *
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 @RunWith(MockitoJUnitRunner.Silent.class)
 public class JpaRepositoryFactoryBeanUnitTests {
@@ -81,7 +83,7 @@ public class JpaRepositoryFactoryBeanUnitTests {
 
 	/**
 	 * Assert that the instance created for the standard configuration is a valid {@code UserRepository}.
-	 * 
+	 *
 	 * @throws Exception
 	 */
 	@Test
@@ -131,7 +133,7 @@ public class JpaRepositoryFactoryBeanUnitTests {
 
 	/**
 	 * Helper class to make the factory use {@link Persistable} .
-	 * 
+	 *
 	 * @author Oliver Gierke
 	 */
 	@SuppressWarnings("serial")
@@ -152,7 +154,8 @@ public class JpaRepositoryFactoryBeanUnitTests {
 		}
 
 		@Override
-		protected <T> T getRepository(Class<T> repositoryInterface, Optional<Object> customImplementation) {
+		@SuppressWarnings("unchecked")
+		public <T> T getRepository(Class<T> repositoryInterface, RepositoryFragments fragments) {
 			return (T) repository;
 		}
 
