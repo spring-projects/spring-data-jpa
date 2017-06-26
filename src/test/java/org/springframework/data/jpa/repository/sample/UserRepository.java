@@ -437,7 +437,7 @@ public interface UserRepository
 	
 	// DATAJPA-1140
 	@Query("select u from User u where u.firstname =:firstname and u.lastname =:#{#user.lastname}")
-	List<User> findUsersByUserFirstnameAsStringAndLastnameAsSpELExpression(@Param("firstname") String firstname, @Param("user") User user);
+	List<User> findUsersByFirstnameAsStringAndUserLastnameAsSpELExpression(@Param("firstname") String firstname, @Param("user") User user);
 	
 	// DATAJPA-1140
 	@Query("select u from User u where u.firstname =:#{#user.firstname} and u.lastname =:#{#lastname}")
@@ -445,7 +445,7 @@ public interface UserRepository
 	
 	// DATAJPA-1140
 	@Query("select u from User u where u.firstname =:#{#firstname} and u.lastname =:#{#user.lastname}")
-	List<User> findUsersByUserFirstnameAsFakeSpELExpressionAndLastnameAsSpELExpression(@Param("firstname") String firstname, @Param("user") User user);
+	List<User> findUsersByFirstnameAsFakeSpELExpressionAndUserLastnameAsSpELExpression(@Param("firstname") String firstname, @Param("user") User user);
 
 	// DATAJPA-629
 	@Query("select u from #{#entityName} u where u.firstname = ?#{[0]} and u.lastname = ?#{[1]}")
