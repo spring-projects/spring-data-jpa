@@ -88,6 +88,7 @@ import com.google.common.base.Optional;
  * @author Thomas Darimont
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Kevin Peters
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("classpath:application-context.xml")
@@ -1539,6 +1540,47 @@ public class UserRepositoryTests {
 		users = repository.findUsersInNativeQueryWithPagination(PageRequest.of(1, 2));
 
 		assertThat(users.getContent()).hasSize(2).containsExactly(thirdUser, fourthUser);
+	}
+	
+	@Test // DATAJPA-1140
+	public void shouldFindUsersByUserFirstnameAsSpELExpressionAndLastnameAsStringInStringBasedQuery() {
+
+		flushTestUsers();
+		
+		List<User> users = repository.findUsersByUserFirstnameAsSpELExpressionAndLastnameAsString(firstUser, firstUser.getLastname());
+
+		assertThat(users).containsOnly(firstUser);
+	}
+	
+	@Test // DATAJPA-1140
+	public void shouldFindUsersByFirstnameAsStringAndUserLastnameAsSpELExpressionInStringBasedQuery() {
+
+		flushTestUsers();
+		
+		List<User> users = repository.findUsersByFirstnameAsStringAndUserLastnameAsSpELExpression(firstUser.getFirstname(), firstUser);
+
+		assertThat(users).containsOnly(firstUser);
+	}
+	
+	
+	@Test // DATAJPA-1140
+	public void shouldFindUsersByUserFirstnameAsSpELExpressionAndLastnameAsFakeSpELExpressionInStringBasedQuery() {
+
+		flushTestUsers();
+		
+		List<User> users = repository.findUsersByUserFirstnameAsSpELExpressionAndLastnameAsFakeSpELExpression(firstUser, firstUser.getLastname());
+
+		assertThat(users).containsOnly(firstUser);
+	}
+	
+	@Test // DATAJPA-1140
+	public void shouldFindUsersByFirstnameAsFakeSpELExpressionAndUserLastnameAsSpELExpressionInStringBasedQuery() {
+
+		flushTestUsers();
+		
+		List<User> users = repository.findUsersByFirstnameAsFakeSpELExpressionAndUserLastnameAsSpELExpression(firstUser.getFirstname(), firstUser);
+
+		assertThat(users).containsOnly(firstUser);
 	}
 
 	@Test // DATAJPA-629
