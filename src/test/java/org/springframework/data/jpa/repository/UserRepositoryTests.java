@@ -1540,6 +1540,46 @@ public class UserRepositoryTests {
 
 		assertThat(users.getContent()).hasSize(2).containsExactly(thirdUser, fourthUser);
 	}
+	
+	@Test // DATAJPA-1140
+	public void shouldFindUsersByUserFirstnameAsSpELExpressionAndLastnameAsStringInStringBasedQuery() {
+
+		flushTestUsers();
+		
+		List<User> users = repository.findUsersByUserFirstnameAsSpELExpressionAndLastnameAsString(firstUser, firstUser.getLastname());
+
+		assertThat(users).containsOnly(firstUser);
+	}
+	
+	@Test // DATAJPA-1140
+	public void shouldFindUsersByUserFirstnameAsStringAndLastnameAsSpELExpressionInStringBasedQuery() {
+
+		flushTestUsers();
+		
+		List<User> users = repository.findUsersByUserFirstnameAsStringAndLastnameAsSpELExpression(firstUser.getFirstname(), firstUser);
+
+		assertThat(users).containsOnly(firstUser);
+	}
+	
+	@Test // DATAJPA-1140
+	public void shouldFindUsersByUserFirstnameAsSpELExpressionAndLastnameAsFakeSpELExpressionInStringBasedQuery() {
+
+		flushTestUsers();
+		
+		List<User> users = repository.findUsersByUserFirstnameAsSpELExpressionAndLastnameAsFakeSpELExpression(firstUser, firstUser.getLastname());
+
+		assertThat(users).containsOnly(firstUser);
+	}
+	
+	@Test // DATAJPA-1140
+	public void shouldUsersByUserFirstnameAsFakeSpELExpressionAndLastnameAsSpELExpressionInStringBasedQuery() {
+
+		flushTestUsers();
+		
+		List<User> users = repository.findUsersByUserFirstnameAsFakeSpELExpressionAndLastnameAsSpELExpression(firstUser.getFirstname(), firstUser);
+
+		assertThat(users).containsOnly(firstUser);
+	}
 
 	@Test // DATAJPA-629
 	public void shouldfindUsersBySpELExpressionParametersWithSpelTemplateExpression() {
