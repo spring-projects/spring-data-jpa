@@ -391,6 +391,22 @@ public interface UserRepository
 	// DATAJPA-564
 	@Query("select u from User u where u.lastname like %:#{[0]}% and u.lastname like %:lastname%")
 	List<User> findByLastnameWithSpelExpression(@Param("lastname") String lastname);
+	
+	// DATAJPA-1140
+	@Query("select u from User u where u.firstname =:#{#user.firstname} and u.lastname =:lastname")
+	List<User> findUsersByUserFirstnameAsSpELExpressionAndLastnameAsString(@Param("user") User user, @Param("lastname") String lastname);
+	
+	// DATAJPA-1140
+	@Query("select u from User u where u.firstname =:firstname and u.lastname =:#{#user.lastname}")
+	List<User> findUsersByUserFirstnameAsStringAndLastnameAsSpELExpression(@Param("firstname") String firstname, @Param("user") User user);
+	
+	// DATAJPA-1140
+	@Query("select u from User u where u.firstname =:#{#user.firstname} and u.lastname =:#{#lastname}")
+	List<User> findUsersByUserFirstnameAsSpELExpressionAndLastnameAsFakeSpELExpression(@Param("user") User user, @Param("lastname") String lastname);
+	
+	// DATAJPA-1140
+	@Query("select u from User u where u.firstname =:#{#firstname} and u.lastname =:#{#user.lastname}")
+	List<User> findUsersByUserFirstnameAsFakeSpELExpressionAndLastnameAsSpELExpression(@Param("firstname") String firstname, @Param("user") User user);
 
 	// DATAJPA-564
 	@Query("select u from User u where u.firstname = ?#{'Oliver'}")
