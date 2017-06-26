@@ -1546,7 +1546,6 @@ public class UserRepositoryTests {
 	public void shouldFindUsersByUserFirstnameAsSpELExpressionAndLastnameAsStringInStringBasedQuery() {
 
 		flushTestUsers();
-		
 		List<User> users = repository.findUsersByUserFirstnameAsSpELExpressionAndLastnameAsString(firstUser, firstUser.getLastname());
 
 		assertThat(users).containsOnly(firstUser);
@@ -1556,7 +1555,6 @@ public class UserRepositoryTests {
 	public void shouldFindUsersByUserFirstnameAsStringAndLastnameAsSpELExpressionInStringBasedQuery() {
 
 		flushTestUsers();
-		
 		List<User> users = repository.findUsersByUserFirstnameAsStringAndLastnameAsSpELExpression(firstUser.getFirstname(), firstUser);
 
 		assertThat(users).containsOnly(firstUser);
@@ -1566,7 +1564,6 @@ public class UserRepositoryTests {
 	public void shouldFindUsersByUserFirstnameAsSpELExpressionAndLastnameAsFakeSpELExpressionInStringBasedQuery() {
 
 		flushTestUsers();
-		
 		List<User> users = repository.findUsersByUserFirstnameAsSpELExpressionAndLastnameAsFakeSpELExpression(firstUser, firstUser.getLastname());
 
 		assertThat(users).containsOnly(firstUser);
@@ -1576,7 +1573,6 @@ public class UserRepositoryTests {
 	public void shouldUsersByUserFirstnameAsFakeSpELExpressionAndLastnameAsSpELExpressionInStringBasedQuery() {
 
 		flushTestUsers();
-		
 		List<User> users = repository.findUsersByUserFirstnameAsFakeSpELExpressionAndLastnameAsSpELExpression(firstUser.getFirstname(), firstUser);
 
 		assertThat(users).containsOnly(firstUser);
