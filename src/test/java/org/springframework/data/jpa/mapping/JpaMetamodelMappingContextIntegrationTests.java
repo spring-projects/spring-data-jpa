@@ -19,7 +19,6 @@ import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
 import java.util.Collections;
-import java.util.Optional;
 
 import javax.persistence.EntityManager;
 
@@ -139,7 +138,7 @@ public class JpaMetamodelMappingContextIntegrationTests {
 			JpaPersistentEntity<?> entity = context.getRequiredPersistentEntity(Product.class);
 			IdentifierAccessor accessor = entity.getIdentifierAccessor(loadedProduct);
 
-			assertThat(accessor.getIdentifier(), is(Optional.of(category.getProduct().getId())));
+			assertThat(accessor.getIdentifier(), is(category.getProduct().getId()));
 			assertThat(loadedProduct, is(instanceOf(HibernateProxy.class)));
 			assertThat(((HibernateProxy) loadedProduct).getHibernateLazyInitializer().isUninitialized(), is(true));
 

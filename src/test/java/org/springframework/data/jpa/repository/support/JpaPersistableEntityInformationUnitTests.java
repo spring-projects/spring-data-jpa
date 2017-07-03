@@ -19,8 +19,6 @@ import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-import java.util.Optional;
-
 import javax.persistence.metamodel.EntityType;
 import javax.persistence.metamodel.Metamodel;
 import javax.persistence.metamodel.Type;
@@ -64,11 +62,11 @@ public class JpaPersistableEntityInformationUnitTests {
 
 		Foo foo = new Foo();
 		assertThat(entityInformation.isNew(foo), is(false));
-		assertThat(entityInformation.getId(foo), is(Optional.empty()));
+		assertThat(entityInformation.getId(foo), is(nullValue()));
 
 		foo.id = 1L;
 		assertThat(entityInformation.isNew(foo), is(true));
-		assertThat(entityInformation.getId(foo), is(Optional.of(1L)));
+		assertThat(entityInformation.getId(foo), is(1L));
 	}
 
 	@SuppressWarnings("serial")

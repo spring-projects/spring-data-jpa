@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 import javax.persistence.IdClass;
@@ -141,12 +140,12 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 	 * @see org.springframework.data.repository.core.EntityInformation#getId(java.lang.Object)
 	 */
 	@SuppressWarnings("unchecked")
-	public Optional<ID> getId(T entity) {
+	public ID getId(T entity) {
 
 		BeanWrapper entityWrapper = new DirectFieldAccessFallbackBeanWrapper(entity);
 
 		if (idMetadata.hasSimpleId()) {
-			return Optional.ofNullable((ID) entityWrapper.getPropertyValue(idMetadata.getSimpleIdAttribute().getName()));
+			return (ID) entityWrapper.getPropertyValue(idMetadata.getSimpleIdAttribute().getName());
 		}
 
 		BeanWrapper idWrapper = new IdentifierDerivingDirectFieldAccessFallbackBeanWrapper(idMetadata.getType(), metamodel);
@@ -162,7 +161,7 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 			idWrapper.setPropertyValue(attribute.getName(), propertyValue);
 		}
 
-		return partialIdValueFound ? Optional.ofNullable((ID) idWrapper.getWrappedInstance()) : Optional.empty();
+		return partialIdValueFound ? (ID) idWrapper.getWrappedInstance() : null;
 	}
 
 	/*

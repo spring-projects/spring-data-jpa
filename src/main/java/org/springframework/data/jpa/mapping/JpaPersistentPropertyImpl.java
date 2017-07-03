@@ -19,7 +19,6 @@ import java.lang.annotation.Annotation;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
 
 import javax.persistence.Access;
@@ -47,7 +46,6 @@ import org.springframework.data.mapping.model.AnnotationBasedPersistentProperty;
 import org.springframework.data.mapping.model.Property;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
 import org.springframework.data.util.ClassTypeInformation;
-import org.springframework.data.util.Optionals;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.util.Assert;
 
@@ -90,8 +88,8 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 		UPDATEABLE_ANNOTATIONS = Collections.unmodifiableSet(annotations);
 	}
 
-	private final Optional<Boolean> usePropertyAccess;
-	private final Optional<TypeInformation<?>> associationTargetType;
+	private final Boolean usePropertyAccess;
+	private final TypeInformation<?> associationTargetType;
 	private final boolean updateable;
 	private final JpaMetamodel metamodel;
 
@@ -122,7 +120,7 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 	 */
 	@Override
 	public Class<?> getActualType() {
-		return associationTargetType.isPresent() ? associationTargetType.get().getType() : super.getActualType();
+		return associationTargetType != null ? associationTargetType.getType() : super.getActualType();
 	}
 
 	/* 
@@ -131,7 +129,7 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 	 */
 	@Override
 	public Iterable<? extends TypeInformation<?>> getPersistentEntityType() {
-		return associationTargetType.isPresent() ? Collections.singleton(associationTargetType.get())
+		return associationTargetType != null ? Collections.singleton(associationTargetType)
 				: super.getPersistentEntityType();
 	}
 
@@ -160,8 +158,10 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 	@Override
 	public boolean isAssociation() {
 
-		if (ASSOCIATION_ANNOTATIONS.stream().anyMatch(it -> findAnnotation(it).isPresent())) {
-			return true;
+		for (Class<? extends Annotation> annotationType : ASSOCIATION_ANNOTATIONS) {
+			if (findAnnotation(annotationType) != null) {
+				return true;
+			}
 		}
 
 		return getType().isAnnotationPresent(Embeddable.class);
@@ -191,7 +191,7 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 	 */
 	@Override
 	public boolean usePropertyAccess() {
-		return usePropertyAccess.orElseGet(() -> super.usePropertyAccess());
+		return usePropertyAccess != null ? usePropertyAccess : super.usePropertyAccess();
 	}
 
 	/*
@@ -220,29 +220,34 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 	 * 
 	 * @return
 	 */
-	private Optional<Boolean> detectPropertyAccess() {
+	private Boolean detectPropertyAccess() {
 
-		Optional<org.springframework.data.annotation.AccessType> accessType = findAnnotation(
+		org.springframework.data.annotation.AccessType accessType = findAnnotation(
 				org.springframework.data.annotation.AccessType.class);
 
-		if (accessType.isPresent()) {
-			return accessType.map(it -> Type.PROPERTY.equals(it.value()));
+		if (accessType != null) {
+			return Type.PROPERTY.equals(accessType.value());
 		}
 
-		Optional<Access> access = findAnnotation(Access.class);
+		Access access = findAnnotation(Access.class);
 
-		if (access.isPresent()) {
-			return access.map(it -> AccessType.PROPERTY.equals(it.value()));
+		if (access != null) {
+			return AccessType.PROPERTY.equals(access.value());
 		}
 
 		accessType = findPropertyOrOwnerAnnotation(org.springframework.data.annotation.AccessType.class);
 
-		if (accessType.isPresent()) {
-			return accessType.map(it -> Type.PROPERTY.equals(it.value()));
+		if (accessType != null) {
+			return Type.PROPERTY.equals(accessType.value());
 		}
 
 		access = findPropertyOrOwnerAnnotation(Access.class);
-		return access.map(t -> AccessType.PROPERTY.equals(t.value()));
+
+		if (access != null) {
+			return AccessType.PROPERTY.equals(access.value());
+		}
+
+		return null;
 	}
 
 	/**
@@ -250,18 +255,30 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 	 * 
 	 * @return
 	 */
-	private Optional<TypeInformation<?>> detectAssociationTargetType() {
+	private TypeInformation<?> detectAssociationTargetType() {
 
 		if (!isAssociation()) {
-			return Optional.empty();
+			return null;
 		}
 
-		return ASSOCIATION_ANNOTATIONS.stream()//
-				.flatMap(it -> Optionals.toStream(findAnnotation(it)))//
-				.map(it -> AnnotationUtils.getValue(it, "targetEntity"))//
-				.filter(it -> it != null && !void.class.equals(it))//
-				.map(it -> (Class<?>) it)//
-				.findFirst().map(it -> (TypeInformation<?>) ClassTypeInformation.from(it));
+		for (Class<? extends Annotation> annotationType : ASSOCIATION_ANNOTATIONS) {
+
+			Annotation annotation = findAnnotation(annotationType);
+
+			if (annotation == null) {
+				continue;
+			}
+
+			Object entityValue = AnnotationUtils.getValue(annotation, "targetEntity");
+
+			if (entityValue == null || entityValue.equals(void.class)) {
+				continue;
+			}
+
+			return ClassTypeInformation.from((Class<?>) entityValue);
+		}
+
+		return null;
 	}
 
 	/**
@@ -272,9 +289,17 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 	 */
 	private final boolean detectUpdatability() {
 
-		return !UPDATEABLE_ANNOTATIONS.stream()//
-				.flatMap(it -> Optionals.toStream(findAnnotation(it)))//
-				.map(it -> AnnotationUtils.getValue(it, "updatable"))//
-				.anyMatch(it -> it.equals(Boolean.FALSE));
+		for (Class<? extends Annotation> annotationType : UPDATEABLE_ANNOTATIONS) {
+
+			Annotation annotation = findAnnotation(annotationType);
+
+			if (annotation == null) {
+				continue;
+			}
+
+			return (boolean) AnnotationUtils.getValue(annotation, "updatable");
+		}
+
+		return true;
 	}
 }

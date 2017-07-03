@@ -21,7 +21,6 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.*;
 
 import java.util.Collections;
-import java.util.Optional;
 
 import javax.persistence.Access;
 import javax.persistence.AccessType;
@@ -74,7 +73,7 @@ public class JpaPersistentPropertyImplUnitTests {
 
 	@Test // DATAJPA-376
 	public void considersJpaTransientFieldsAsTransient() {
-		assertThat(entity.getPersistentProperty("transientProp"), is(Optional.empty()));
+		assertThat(entity.getPersistentProperty("transientProp"), is(nullValue()));
 	}
 
 	@Test // DATAJPA-484

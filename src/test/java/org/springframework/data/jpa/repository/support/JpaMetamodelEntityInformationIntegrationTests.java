@@ -22,7 +22,6 @@ import static org.springframework.data.jpa.repository.support.JpaEntityInformati
 import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.Date;
-import java.util.Optional;
 
 import javax.persistence.Access;
 import javax.persistence.AccessType;
@@ -40,7 +39,6 @@ import org.hibernate.Version;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.data.jpa.domain.AbstractPersistable;
 import org.springframework.data.jpa.domain.sample.ConcreteType1;
 import org.springframework.data.jpa.domain.sample.Item;
@@ -112,7 +110,7 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 				em);
 		Object id = information.getId(entity);
 
-		assertThat(id, is(Optional.of(new PersistableWithIdClassPK(2L, 4L))));
+		assertThat(id, is(new PersistableWithIdClassPK(2L, 4L)));
 	}
 
 	@Test // DATAJPA-413
@@ -123,7 +121,7 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 		JpaEntityInformation<Item, ?> information = getEntityInformation(Item.class, em);
 		Object id = information.getId(item);
 
-		assertThat(id, is(Optional.of(new ItemId(2, 1))));
+		assertThat(id, is(new ItemId(2, 1)));
 	}
 
 	@Test // DATAJPA-413
@@ -137,7 +135,7 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 		JpaEntityInformation<ItemSite, ?> information = getEntityInformation(ItemSite.class, em);
 		Object id = information.getId(itemSite);
 
-		assertThat(id, is(Optional.of(new ItemSiteId(new ItemId(1, 2), 3))));
+		assertThat(id, is(new ItemSiteId(new ItemId(1, 2), 3)));
 	}
 
 	@Test // DATAJPA-413
@@ -151,7 +149,7 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 		JpaEntityInformation<ItemSite, ?> information = getEntityInformation(ItemSite.class, em);
 		Object id = information.getId(itemSite);
 
-		assertThat(id, is(Optional.of(new ItemSiteId(new ItemId(1, null), 3))));
+		assertThat(id, is(new ItemSiteId(new ItemId(1, null), 3)));
 	}
 
 	@Test // DATAJPA-119

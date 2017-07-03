@@ -15,8 +15,6 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import java.util.Optional;
-
 import javax.persistence.metamodel.Metamodel;
 
 import org.springframework.data.domain.Persistable;
@@ -54,7 +52,7 @@ public class JpaPersistableEntityInformation<T extends Persistable<ID>, ID>
 	 * @see org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformation#getId(java.lang.Object)
 	 */
 	@Override
-	public Optional<ID> getId(T entity) {
-		return Optional.ofNullable(entity.getId());
+	public ID getId(T entity) {
+		return entity.getId();
 	}
 }

@@ -16,7 +16,6 @@
 package org.springframework.data.jpa.mapping;
 
 import java.util.Comparator;
-import java.util.Optional;
 
 import org.springframework.data.annotation.Version;
 import org.springframework.data.jpa.provider.ProxyIdAccessor;
@@ -51,7 +50,7 @@ class JpaPersistentEntityImpl<T> extends BasicPersistentEntity<T, JpaPersistentP
 	 */
 	public JpaPersistentEntityImpl(TypeInformation<T> information, ProxyIdAccessor proxyIdAccessor) {
 
-		super(information, Optional.empty());
+		super(information, null);
 
 		Assert.notNull(proxyIdAccessor, "ProxyIdAccessor must not be null!");
 		this.proxyIdAccessor = proxyIdAccessor;
@@ -84,13 +83,11 @@ class JpaPersistentEntityImpl<T> extends BasicPersistentEntity<T, JpaPersistentP
 
 		super.verify();
 
-		Optional<JpaPersistentProperty> versionProperty = getVersionProperty();
+		getVersionProperty();
 
-		if (!versionProperty.isPresent()) {
-			return;
-		}
+		JpaPersistentProperty versionProperty = getVersionProperty();
 
-		if (versionProperty.get().isAnnotationPresent(Version.class)) {
+		if (versionProperty != null && versionProperty.isAnnotationPresent(Version.class)) {
 			throw new IllegalArgumentException(String.format(INVALID_VERSION_ANNOTATION, versionProperty));
 		}
 	}
@@ -131,10 +128,10 @@ class JpaPersistentEntityImpl<T> extends BasicPersistentEntity<T, JpaPersistentP
 		 * @see org.springframework.data.mapping.IdentifierAccessor#getIdentifier()
 		 */
 		@Override
-		public Optional<Object> getIdentifier() {
+		public Object getIdentifier() {
 
 			return proxyIdAccessor.shouldUseAccessorFor(bean) //
-					? Optional.ofNullable(proxyIdAccessor.getIdentifierFrom(bean))//
+					? proxyIdAccessor.getIdentifierFrom(bean)//
 					: super.getIdentifier();
 		}
 	}
