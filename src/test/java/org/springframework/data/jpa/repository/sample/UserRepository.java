@@ -48,6 +48,7 @@ import com.google.common.base.Optional;
  * 
  * @author Oliver Gierke
  * @author Thomas Darimont
+ * @author Kevin Peters
  */
 public interface UserRepository
 		extends JpaRepository<User, Integer>, JpaSpecificationExecutor<User>, UserRepositoryCustom {
@@ -429,6 +430,22 @@ public interface UserRepository
 			value = "select * from (select rownum() as RN, u.* from SD_User u) where RN between ?#{ #pageable.offset -1} and ?#{#pageable.offset + #pageable.pageSize}",
 			countQuery = "select count(u.id) from SD_User u", nativeQuery = true)
 	Page<User> findUsersInNativeQueryWithPagination(Pageable pageable);
+		
+	// DATAJPA-1140
+	@Query("select u from User u where u.firstname =:#{#user.firstname} and u.lastname =:lastname")
+	List<User> findUsersByUserFirstnameAsSpELExpressionAndLastnameAsString(@Param("user") User user, @Param("lastname") String lastname);
+	
+	// DATAJPA-1140
+	@Query("select u from User u where u.firstname =:firstname and u.lastname =:#{#user.lastname}")
+	List<User> findUsersByFirstnameAsStringAndUserLastnameAsSpELExpression(@Param("firstname") String firstname, @Param("user") User user);
+	
+	// DATAJPA-1140
+	@Query("select u from User u where u.firstname =:#{#user.firstname} and u.lastname =:#{#lastname}")
+	List<User> findUsersByUserFirstnameAsSpELExpressionAndLastnameAsFakeSpELExpression(@Param("user") User user, @Param("lastname") String lastname);
+	
+	// DATAJPA-1140
+	@Query("select u from User u where u.firstname =:#{#firstname} and u.lastname =:#{#user.lastname}")
+	List<User> findUsersByFirstnameAsFakeSpELExpressionAndUserLastnameAsSpELExpression(@Param("firstname") String firstname, @Param("user") User user);
 
 	// DATAJPA-629
 	@Query("select u from #{#entityName} u where u.firstname = ?#{[0]} and u.lastname = ?#{[1]}")
