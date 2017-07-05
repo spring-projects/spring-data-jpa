@@ -32,12 +32,19 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 /**
- * Encapsulation of a String JPA query.
+ * Encapsulation of a JPA query String.
+ *
+ * Offers access to parameters as bindings. The internal query String is cleaned from decorated parameters like {@literal %:lastname%} and the matching bindings take care of applying the decorations in the {@link ParameterBinding#prepare(Object)} method.
+ *
+ * Note that this class also handles replacing SpEL expressions with synthetic bind parameters
+ *
+ *
  * 
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Oliver Wehrens
  * @author Mark Paluch
+ * @author Jens Schauder
  */
 class StringQuery {
 

@@ -15,10 +15,12 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import static java.util.Collections.*;
 import static javax.persistence.TemporalType.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.anyObject;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import java.lang.reflect.Method;
@@ -27,6 +29,7 @@ import java.util.List;
 import java.util.Optional;
 
 import javax.persistence.Embeddable;
+import javax.persistence.Parameter;
 import javax.persistence.Query;
 import javax.persistence.TemporalType;
 
@@ -45,6 +48,7 @@ import org.springframework.data.repository.query.Param;
  * 
  * @author Oliver Gierke
  * @author Thomas Darimont
+ * @author Jens Schauder
  */
 @RunWith(MockitoJUnitRunner.class)
 public class ParameterBinderUnitTests {
@@ -150,14 +154,13 @@ public class ParameterBinderUnitTests {
 	public void usesParameterNameIfAnnotated() throws Exception {
 
 		when(query.setParameter(eq("username"), anyObject())).thenReturn(query);
-		new ParameterBinder(new JpaParameters(valid), new Object[] { "foo" }) {
 
-			@Override
-			boolean hasNamedParameter(Query query) {
+		Parameter parameter = mock(Parameter.class);
+		when(parameter.getName()).thenReturn("username");
+		when(query.getParameters()).thenReturn(singleton(parameter));
 
-				return true;
-			}
-		}.bind(query);
+		new ParameterBinder(new JpaParameters(valid), new Object[] { "foo" }).bind(query);
+
 		verify(query).setParameter(eq("username"), anyObject());
 	}
 

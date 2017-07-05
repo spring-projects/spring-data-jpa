@@ -15,15 +15,13 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import java.util.Date;
 import java.util.Iterator;
 
-import javax.persistence.Parameter;
-import javax.persistence.Query;
 import javax.persistence.criteria.CriteriaQuery;
 
 import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
 import org.springframework.data.jpa.repository.query.ParameterMetadataProvider.ParameterMetadata;
+import org.springframework.data.jpa.repository.query.QueryParameterSetter.ParameterExpressionQueryParameterSetter;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.util.Assert;
 
@@ -33,6 +31,7 @@ import org.springframework.util.Assert;
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Mark Paluch
+ * @author Jens Schauder
  */
 class CriteriaQueryParameterBinder extends ParameterBinder {
 
@@ -60,19 +59,18 @@ class CriteriaQueryParameterBinder extends ParameterBinder {
 	 */
 	@Override
 	@SuppressWarnings("unchecked")
-	protected void bind(Query query, JpaParameter parameter, Object value, int position) {
+	protected QueryParameterSetter bind(JpaParameter parameter, Object value, Integer position) {
 
 		ParameterMetadata<Object> metadata = (ParameterMetadata<Object>) expressions.next();
 
 		if (metadata.isIsNullParameter()) {
-			return;
+			return QueryParameterSetter.NOOP;
 		}
 
 		if (parameter.isTemporalParameter()) {
-			query.setParameter((Parameter<Date>) (Object) metadata.getExpression(), (Date) metadata.prepare(value),
-					parameter.getTemporalType());
-		} else {
-			query.setParameter(metadata.getExpression(), metadata.prepare(value));
+			return new ParameterExpressionQueryParameterSetter(metadata.getExpression(), parameter.getTemporalType(), metadata.prepare(value));
 		}
+
+		return new ParameterExpressionQueryParameterSetter(metadata.getExpression(), null, metadata.prepare(value));
 	}
 }

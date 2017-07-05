@@ -15,8 +15,6 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import java.util.Date;
-
 import javax.persistence.Query;
 
 import org.springframework.data.domain.Pageable;
@@ -35,18 +33,19 @@ import org.springframework.util.Assert;
  * @author Thomas Darimont
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Jens Schauder
  */
 public class ParameterBinder {
 
+	/** Meta information for the method parameters */
 	private final JpaParameters parameters;
-	private final ParameterAccessor accessor;
-	private final Object[] values;
+	protected final ParameterAccessor accessor;
 
 	/**
 	 * Creates a new {@link ParameterBinder}.
 	 * 
 	 * @param parameters must not be {@literal null}.
-	 * @param values must not be {@literal null}.
+	 * @param values values of the parameters passed to the method. Must not be {@literal null}.
 	 */
 	public ParameterBinder(JpaParameters parameters, Object[] values) {
 
@@ -56,8 +55,7 @@ public class ParameterBinder {
 		Assert.isTrue(parameters.getNumberOfParameters() == values.length, "Invalid number of parameters given!");
 
 		this.parameters = parameters;
-		this.values = values.clone();
-		this.accessor = new ParametersParameterAccessor(parameters, this.values);
+		this.accessor = new ParametersParameterAccessor(parameters, values.clone());
 	}
 
 	ParameterBinder(JpaParameters parameters) {
@@ -66,20 +64,16 @@ public class ParameterBinder {
 
 	/**
 	 * Returns the {@link Pageable} of the parameters, if available. Returns {@code null} otherwise.
-	 * 
-	 * @return
 	 */
-	public Pageable getPageable() {
+	Pageable getPageable() {
 		return accessor.getPageable();
 	}
 
 	/**
 	 * Returns the sort instance to be used for query creation. Will use a {@link Sort} parameter if available or the
 	 * {@link Sort} contained in a {@link Pageable} if available. Returns {@code null} if no {@link Sort} can be found.
-	 * 
-	 * @return
 	 */
-	public Sort getSort() {
+	Sort getSort() {
 		return accessor.getSort();
 	}
 
@@ -87,21 +81,21 @@ public class ParameterBinder {
 	 * Binds the parameters to the given {@link Query}.
 	 * 
 	 * @param query must not be {@literal null}.
-	 * @return
 	 */
-	public <T extends Query> T bind(T query) {
+	protected <T extends Query> T bind(T query) {
 
 		Assert.notNull(query, "Query must not be null!");
 
 		int bindableParameterIndex = 0;
-		int queryParameterPosition = 1;
 
 		for (JpaParameter parameter : parameters) {
 
-			if (canBindParameter(parameter)) {
+			if (parameter.isBindable()) {
 
 				Object value = accessor.getBindableValue(bindableParameterIndex);
-				bind(query, parameter, value, queryParameterPosition++);
+
+				bind(parameter, value, bindableParameterIndex + 1).setParameter(query);
+
 				bindableParameterIndex++;
 			}
 		}
@@ -110,60 +104,31 @@ public class ParameterBinder {
 	}
 
 	/**
-	 * Returns {@literal true} if the given parameter can be bound.
-	 * 
-	 * @param parameter
-	 * @return
+	 * Creates {@link QueryParameterSetter} for the given {@link JpaParameter}. This implementation uses the name or index
+	 * of the passed in parameter. This method is intended to be overwritten by subclasses in order to implement
+	 * alternative binding strategies.
+	 *
+	 * @param parameter Method parameter from which to create a {@link QueryParameterSetter}
+	 * @param value The value of the method parameter.
+	 * @param position the index of the query parameter. Note that there is no simple relationg between index of the
+	 *          method parameter and the position of the bind parameter due to unbindable parameters.
+	 * @return guaranteed not to be {@literal null}.
 	 */
-	protected boolean canBindParameter(JpaParameter parameter) {
-		return parameter.isBindable();
-	}
+	protected QueryParameterSetter bind(JpaParameter parameter, Object value, Integer position) {
 
-	/**
-	 * Perform the actual query parameter binding.
-	 * 
-	 * @param query
-	 * @param parameter
-	 * @param value
-	 * @param position
-	 */
-	protected void bind(Query query, JpaParameter parameter, Object value, int position) {
-
-		if (parameter.isTemporalParameter()) {
-			if (hasNamedParameter(query) && parameter.isNamedParameter()) {
-				query.setParameter(
-						parameter.getName().orElseThrow(() -> new IllegalArgumentException("o_O paraneter needs to have a name!")),
-						(Date) value, parameter.getTemporalType());
-			} else {
-				query.setParameter(position, (Date) value, parameter.getTemporalType());
-			}
-			return;
-		}
-
-		if (hasNamedParameter(query) && parameter.isNamedParameter()) {
-			query.setParameter(
-					parameter.getName().orElseThrow(() -> new IllegalArgumentException("o_O paraneter needs to have a name!")),
-					value);
-		} else {
-			query.setParameter(position, value);
-		}
+		return QueryParameterSetter.fromJpaParameter(parameter, position, value);
 	}
 
 	/**
 	 * Binds the parameters to the given query and applies special parameter types (e.g. pagination).
 	 * 
 	 * @param query must not be {@literal null}.
-	 * @return
 	 */
-	public Query bindAndPrepare(Query query) {
+	Query bindAndPrepare(Query query) {
 
 		Assert.notNull(query, "Query must not be null!");
 
 		return bindAndPrepare(query, parameters);
-	}
-
-	boolean hasNamedParameter(Query query) {
-		return QueryUtils.hasNamedParameter(query);
 	}
 
 	private Query bindAndPrepare(Query query, Parameters<?, ?> parameters) {
@@ -178,18 +143,5 @@ public class ParameterBinder {
 		result.setMaxResults(getPageable().getPageSize());
 
 		return result;
-	}
-
-	/**
-	 * Returns the parameters.
-	 * 
-	 * @return
-	 */
-	JpaParameters getParameters() {
-		return parameters;
-	}
-
-	protected Object[] getValues() {
-		return values;
 	}
 }
