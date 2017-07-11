@@ -715,14 +715,13 @@ public class UserRepositoryTests {
 	 * Ignored until the query declaration is supported by OpenJPA.
 	 */
 	@Test
-	@Ignore
 	public void executesAnnotatedCollectionMethodCorrectly() {
 
 		flushTestUsers();
 		firstUser.addColleague(thirdUser);
 		repository.save(firstUser);
 
-		List<User> result = null; // repository.findColleaguesFor(firstUser);
+		List<User> result = repository.findColleaguesFor(firstUser);
 		assertThat(result).containsOnly(thirdUser);
 	}
 
@@ -1579,6 +1578,15 @@ public class UserRepositoryTests {
 		flushTestUsers();
 		
 		List<User> users = repository.findUsersByFirstnameAsFakeSpELExpressionAndUserLastnameAsSpELExpression(firstUser.getFirstname(), firstUser);
+		assertThat(users).containsOnly(firstUser);
+	}
+
+	@Test // DATAJPA-1140
+	public void shouldFindUsersByFirstnameWithLeadingPageableParameter() {
+
+		flushTestUsers();
+
+		List<User> users = repository.findUsersByFirstnamePaginated(PageRequest.of(0, 2), firstUser.getFirstname());
 
 		assertThat(users).containsOnly(firstUser);
 	}

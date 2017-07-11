@@ -32,14 +32,11 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 /**
- * Encapsulation of a JPA query String.
+ * Encapsulation of a JPA query String. Offers access to parameters as bindings. The internal query String is cleaned
+ * from decorated parameters like {@literal %:lastname%} and the matching bindings take care of applying the decorations
+ * in the {@link ParameterBinding#prepare(Object)} method. Note that this class also handles replacing SpEL expressions
+ * with synthetic bind parameters
  *
- * Offers access to parameters as bindings. The internal query String is cleaned from decorated parameters like {@literal %:lastname%} and the matching bindings take care of applying the decorations in the {@link ParameterBinding#prepare(Object)} method.
- *
- * Note that this class also handles replacing SpEL expressions with synthetic bind parameters
- *
- *
- * 
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Oliver Wehrens
@@ -47,8 +44,6 @@ import org.springframework.util.StringUtils;
  * @author Jens Schauder
  */
 class StringQuery {
-
-	private static final String PARAMETER_NAME_MISSING = "Name for parameter binding must not be null or empty! On JDKs < 8, you need to use @Param for named parameters, on JDK 8 or better, be sure to compile with -parameters.";
 
 	private final String query;
 	private final List<ParameterBinding> bindings;
@@ -60,11 +55,11 @@ class StringQuery {
 	 * 
 	 * @param query must not be {@literal null} or empty.
 	 */
-	public StringQuery(String query) {
+	StringQuery(String query) {
 
 		Assert.hasText(query, "Query must not be null or empty!");
 
-		this.bindings = new ArrayList<StringQuery.ParameterBinding>();
+		this.bindings = new ArrayList<>();
 		this.query = ParameterBindingParser.INSTANCE.parseParameterBindingsOfQueryIntoBindingsAndReturnCleanedQuery(query,
 				this.bindings);
 		this.alias = QueryUtils.detectAlias(query);
@@ -167,7 +162,7 @@ class StringQuery {
 	 * 
 	 * @author Thomas Darimont
 	 */
-	public static enum ParameterBindingParser {
+	public enum ParameterBindingParser {
 
 		INSTANCE;
 

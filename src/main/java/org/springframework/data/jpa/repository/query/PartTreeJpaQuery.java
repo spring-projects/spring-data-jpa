@@ -40,10 +40,10 @@ import org.springframework.data.repository.query.parser.PartTree;
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Christoph Strobl
+ * @author Jens Schauder
  */
 public class PartTreeJpaQuery extends AbstractJpaQuery {
 
-	private final Class<?> domainClass;
 	private final PartTree tree;
 	private final JpaParameters parameters;
 
@@ -58,12 +58,12 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 	 * @param em must not be {@literal null}.
 	 * @param persistenceProvider must not be {@literal null}.
 	 */
-	public PartTreeJpaQuery(JpaQueryMethod method, EntityManager em, PersistenceProvider persistenceProvider) {
+	PartTreeJpaQuery(JpaQueryMethod method, EntityManager em, PersistenceProvider persistenceProvider) {
 
 		super(method, em);
 
 		this.em = em;
-		this.domainClass = method.getEntityInformation().getJavaType();
+		Class<?> domainClass = method.getEntityInformation().getJavaType();
 		this.tree = new PartTree(method.getName(), domainClass);
 		this.parameters = method.getParameters();
 
@@ -117,48 +117,51 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 	private class QueryPreparer {
 
 		private final CriteriaQuery<?> cachedCriteriaQuery;
+		private final ParameterBinder cachedParameterBinder;
 		private final List<ParameterMetadata<?>> expressions;
 		private final PersistenceProvider persistenceProvider;
 
-		public QueryPreparer(PersistenceProvider persistenceProvider, boolean recreateQueries) {
+		QueryPreparer(PersistenceProvider persistenceProvider, boolean recreateQueries) {
 
 			this.persistenceProvider = persistenceProvider;
 
 			JpaQueryCreator creator = createCreator(persistenceProvider, Optional.empty());
 
-			this.cachedCriteriaQuery = recreateQueries ? null : creator.createQuery();
-			this.expressions = recreateQueries ? null : creator.getParameterExpressions();
+			if (recreateQueries) {
+				this.cachedCriteriaQuery = null;
+				this.expressions = null;
+				this.cachedParameterBinder = null;
+			} else {
+				this.cachedCriteriaQuery = creator.createQuery();
+				this.expressions = creator.getParameterExpressions();
+				this.cachedParameterBinder = getBinder(expressions);
+			}
 		}
 
 		/**
 		 * Creates a new {@link Query} for the given parameter values.
-		 * 
-		 * @param values
-		 * @return
 		 */
 		public Query createQuery(Object[] values) {
 
 			CriteriaQuery<?> criteriaQuery = cachedCriteriaQuery;
-			List<ParameterMetadata<?>> expressions = this.expressions;
+			ParameterBinder parameterBinder = cachedParameterBinder;
 			ParametersParameterAccessor accessor = new ParametersParameterAccessor(parameters, values);
 
 			if (cachedCriteriaQuery == null || accessor.hasBindableNullValue()) {
 				JpaQueryCreator creator = createCreator(persistenceProvider, Optional.of(accessor));
 				criteriaQuery = creator.createQuery(getDynamicSort(values));
-				expressions = creator.getParameterExpressions();
+				List<ParameterMetadata<?>> expressions = creator.getParameterExpressions();
+				parameterBinder = getBinder(expressions);
 			}
 
 			TypedQuery<?> jpaQuery = createQuery(criteriaQuery);
 
-			return restrictMaxResultsIfNecessary(invokeBinding(getBinder(values, expressions), jpaQuery));
+			return restrictMaxResultsIfNecessary(invokeBinding(parameterBinder, jpaQuery, values));
 		}
 
 		/**
 		 * Restricts the max results of the given {@link Query} if the current {@code tree} marks this {@code query} as
 		 * limited.
-		 * 
-		 * @param query
-		 * @return
 		 */
 		private Query restrictMaxResultsIfNecessary(Query query) {
 
@@ -192,7 +195,6 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 		 * of some persistence providers (i.e. Hibernate in this case), see DATAJPA-396.
 		 * 
 		 * @param criteriaQuery must not be {@literal null}.
-		 * @return
 		 */
 		private TypedQuery<?> createQuery(CriteriaQuery<?> criteriaQuery) {
 
@@ -216,7 +218,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 					.orElseGet(() -> new ParameterMetadataProvider(builder, parameters, persistenceProvider));
 
 			ResultProcessor processor = getQueryMethod().getResultProcessor();
-			ReturnedType returnedType = accessor.map(it -> processor.withDynamicProjection(it))//
+			ReturnedType returnedType = accessor.map(processor::withDynamicProjection)//
 					.orElse(processor).getReturnedType();
 
 			return new JpaQueryCreator(tree, returnedType, builder, provider);
@@ -224,18 +226,14 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 
 		/**
 		 * Invokes parameter binding on the given {@link TypedQuery}.
-		 * 
-		 * @param binder
-		 * @param query
-		 * @return
 		 */
-		protected Query invokeBinding(ParameterBinder binder, TypedQuery<?> query) {
+		protected Query invokeBinding(ParameterBinder binder, TypedQuery<?> query, Object[] values) {
 
-			return binder.bindAndPrepare(query);
+			return binder.bindAndPrepare(query, values);
 		}
 
-		private ParameterBinder getBinder(Object[] values, List<ParameterMetadata<?>> expressions) {
-			return new CriteriaQueryParameterBinder(parameters, values, expressions);
+		private ParameterBinder getBinder(List<ParameterMetadata<?>> expressions) {
+			return ParameterBinderFactory.createCriteriaParameterBinder(parameters, expressions);
 		}
 
 		private Sort getDynamicSort(Object[] values) {
@@ -253,7 +251,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 	 */
 	private class CountQueryPreparer extends QueryPreparer {
 
-		public CountQueryPreparer(PersistenceProvider persistenceProvider, boolean recreateQueries) {
+		CountQueryPreparer(PersistenceProvider persistenceProvider, boolean recreateQueries) {
 			super(persistenceProvider, recreateQueries);
 		}
 
@@ -278,12 +276,11 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 		/**
 		 * Customizes binding by skipping the pagination.
 		 * 
-		 * @see org.springframework.data.jpa.repository.query.PartTreeJpaQuery.QueryPreparer#invokeBinding(org.springframework.data.jpa.repository.query.ParameterBinder,
-		 *      javax.persistence.TypedQuery)
+		 * @see QueryPreparer#invokeBinding(ParameterBinder, TypedQuery, Object[])
 		 */
 		@Override
-		protected Query invokeBinding(ParameterBinder binder, javax.persistence.TypedQuery<?> query) {
-			return binder.bind(query);
+		protected Query invokeBinding(ParameterBinder binder, TypedQuery<?> query, Object[] values) {
+			return binder.bind(query, values);
 		}
 	}
 }

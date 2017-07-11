@@ -34,6 +34,7 @@ import org.springframework.util.StringUtils;
  * @author Thomas Darimont
  * @author Oliver Gierke
  * @author Christoph Strobl
+ * @author Jens Schauder
  * @since 1.6
  */
 class StoredProcedureJpaQuery extends AbstractJpaQuery {
@@ -47,7 +48,7 @@ class StoredProcedureJpaQuery extends AbstractJpaQuery {
 	 * @param method must not be {@literal null}
 	 * @param em must not be {@literal null}
 	 */
-	public StoredProcedureJpaQuery(JpaQueryMethod method, EntityManager em) {
+	StoredProcedureJpaQuery(JpaQueryMethod method, EntityManager em) {
 
 		super(method, em);
 		this.procedureAttributes = method.getProcedureAttributes();
@@ -87,7 +88,7 @@ class StoredProcedureJpaQuery extends AbstractJpaQuery {
 	 */
 	@Override
 	protected StoredProcedureQuery doCreateQuery(Object[] values) {
-		return createBinder(values).bind(createStoredProcedure());
+		return parameterBinder.get().bind(createStoredProcedure(), values);
 	}
 
 	/* 
@@ -159,7 +160,9 @@ class StoredProcedureJpaQuery extends AbstractJpaQuery {
 			}
 
 			if (useNamedParameters) {
-				procedureQuery.registerStoredProcedureParameter(param.getName().orElseThrow(() -> new IllegalArgumentException("Parameter needs to be named!")), param.getType(), ParameterMode.IN);
+				procedureQuery.registerStoredProcedureParameter(
+						param.getName().orElseThrow(() -> new IllegalArgumentException("Parameter needs to be named!")),
+						param.getType(), ParameterMode.IN);
 			} else {
 				procedureQuery.registerStoredProcedureParameter(param.getIndex() + 1, param.getType(), ParameterMode.IN);
 			}

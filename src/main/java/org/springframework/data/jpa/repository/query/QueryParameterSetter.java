@@ -16,12 +16,18 @@
 package org.springframework.data.jpa.repository.query;
 
 import java.util.Date;
+import java.util.function.Function;
 
+import javax.persistence.Parameter;
 import javax.persistence.Query;
 import javax.persistence.TemporalType;
 import javax.persistence.criteria.ParameterExpression;
 
 import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
+import org.springframework.data.jpa.repository.query.StringQuery.ParameterBinding;
+
+import lombok.RequiredArgsConstructor;
+import lombok.Value;
 
 /**
  * The interface encapsulates the setting of query parameters which might use a significant number of variations of
@@ -32,126 +38,141 @@ import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
  */
 interface QueryParameterSetter {
 
-	void setParameter(Query query);
+	void setParameter(Query query, Object[] values);
 
 	/** Noop implementation */
-	QueryParameterSetter NOOP = query -> {};
-
-	/**
-	 * Creates a {@link QueryParameterSetter} from a {@link JpaParameter}. Handles named and indexed parameters and
-	 * TemporalType annotations.
-	 *
-	 * @param parameter the method parameter to bind
-	 * @param position position of the bind parameter, might be {@literal null} only if parameters are named.
-	 * @param value the value passed to the method parameter.
-	 */
-	static QueryParameterSetter fromJpaParameter(JpaParameter parameter, Integer position, Object value) {
-
-		TemporalType temporalType = parameter.isTemporalParameter() ? parameter.getTemporalType() : null;
-		String name = parameter.isNamedParameter()
-				? parameter.getName().orElseThrow(() -> new IllegalArgumentException("o_O parameter needs to have a name!"))
-				: null;
-		return new NamedOrIndexedQueryParameterSetter(name, position, temporalType, value);
-	}
+	QueryParameterSetter NOOP = (query, values) -> {};
 
 	/**
 	 * Creates a {@link QueryParameterSetter} which ignores {@link IllegalArgumentException}s when calling
 	 * {@literal setParameter}. Useful because certain JPA implementations do not correctly report the presence of
 	 * parameters in a query.
 	 *
-	 * @param name the name of the parameter to bind. Might be {@literal null}.
-	 * @param position position of the bind parameter, might be {@literal null} only if parameters are named.
-	 * @param value the value passed to the method parameter.
+	 * @param valueExtractor function that converts the list of all method parameters to the value used for setting the
+	 *          query parameter.
+	 * @param binding the binding of the query parameter to set.
+	 * @return QueryParameterSetter that can set the appropriate query parameter given a list of values for the method
+	 *         parameters.
 	 */
-	static QueryParameterSetter lenientQueryParameterSetter(String name, Integer position, Object value) {
+	static QueryParameterSetter createLenient(Function<Object[], Object> valueExtractor, ParameterBinding binding) {
+		return create(valueExtractor, binding, null, true);
+	}
 
-		return (Query q) -> {
-			try {
-				if (name != null) {
-					q.setParameter(name, value);
-				} else {
-					q.setParameter(position, value);
-				}
-			} catch (IllegalArgumentException iae) {
+	/**
+	 * Creates a {@link QueryParameterSetter} which uses information based on the {@link JpaParameter} passed as an
+	 * argument in order to fine tune the way the parameter is set.
+	 *
+	 * @param valueExtractor function that converts the list of all method parameters to the value used for setting the
+	 *          query parameter.
+	 * @param binding The binding of the query parameter to set.
+	 * @param parameter The name of this method parameter is used for setting the query parameter and also TemporalType
+	 *          annotations on that parameter is used when setting the query parameter.
+	 * @return QueryParameterSetter that can set the appropriate query parameter given a list of values for the method
+	 *         parameters.
+	 */
+	static QueryParameterSetter create(Function<Object[], Object> valueExtractor, ParameterBinding binding,
+			JpaParameter parameter) {
+		return create(valueExtractor, binding, parameter, false);
+	}
 
-				// Since Eclipse doesn't reliably report whether a query has parameters
-				// we simply try to set the parameters and ignore possible failures.
-			}
-		};
+	static String getName(JpaParameter parameter, ParameterBinding binding) {
+
+		if (parameter != null)
+			return parameter.isNamedParameter()
+					? parameter.getName().orElseThrow(() -> new IllegalArgumentException("o_O parameter needs to have a name!"))
+					: null;
+
+		return binding.getName();
+	}
+
+	/**
+	 * Creates a {@link QueryParameterSetter} from a {@link JpaParameter}. Handles named and indexed parameters,
+	 * TemporalType annotations and might ignore certain exception when requested to do so.
+	 *
+	 * @param valueExtractor extracts the relevant value from an array of method parameter values.
+	 * @param binding the binding of the query parameter to be set.
+	 * @param parameter the method parameter to bind.
+	 * @param lenient when true certain exceptions thrown when setting the query parameters get ignored.
+	 */
+	static QueryParameterSetter create(Function<Object[], Object> valueExtractor, ParameterBinding binding,
+			JpaParameter parameter, boolean lenient) {
+
+		TemporalType temporalType = parameter != null && parameter.isTemporalParameter() ? parameter.getTemporalType()
+				: null;
+
+		return new NamedOrIndexedQueryParameterSetter(valueExtractor.andThen(binding::prepare),
+				createParameter(binding, parameter), temporalType, lenient);
+	}
+
+	static Parameter createParameter(ParameterBinding binding, JpaParameter parameter) {
+		return new ParameterImpl(parameter, binding);
 	}
 
 	/**
 	 * {@link QueryParameterSetter} for named or indexed parameters that might have a {@link TemporalType} specified.
 	 */
+	@Value
 	class NamedOrIndexedQueryParameterSetter implements QueryParameterSetter {
 
-		private final boolean useParameterAccessByName;
-		private final String name;
-		private final Integer index;
+		private final Function<Object[], Object> valueExtractor;
+		private final Parameter parameter;
 		private final TemporalType temporalType;
-		private final Object value;
+		private final boolean lenient;
 
-		/**
-		 * @param name of the parameter, if {@literal null} index based parameter access will be used.
-		 * @param index index of the parameter. Only used when {@literal name) is {@literal null}
-		 * @param temporalType can be {@literal null}
-		 * @param value the value to be set, might be {@literal null}
-		 */
-		NamedOrIndexedQueryParameterSetter(String name, Integer index, TemporalType temporalType, Object value) {
+		@SuppressWarnings("unchecked")
+		public void setParameter(Query query, Object[] values) {
 
-			this.useParameterAccessByName = name != null;
-			this.name = name;
-			this.index = index;
-			this.temporalType = temporalType;
-			this.value = value;
-		}
+			Object value = valueExtractor.apply(values);
 
-		public void setParameter(Query query) {
-
-			if (temporalType != null) {
-
-				if (useParameterAccessByName && QueryUtils.hasNamedParameter(query)) {
-					query.setParameter(name, (Date) value, temporalType);
+			try {
+				if (temporalType != null) {
+					// one would think we can simply use parameter to identify the parameter we want to set.
+					// But that does not work with list valued parameters. At least Hibernate tries to bind them by name.
+					// TODO: move to using setParameter(Parameter, value) when https://hibernate.atlassian.net/browse/HHH-11870 is
+					// fixed.
+					if (parameter instanceof ParameterExpression) {
+						query.setParameter(parameter, (Date) value, temporalType);
+					} else if (parameter.getName() != null && QueryUtils.hasNamedParameter(query)) {
+						query.setParameter(parameter.getName(), (Date) value, temporalType);
+					} else {
+						query.setParameter(parameter.getPosition(), (Date) value, temporalType);
+					}
 				} else {
-					query.setParameter(index, (Date) value, temporalType);
-				}
-			} else {
 
-				if (useParameterAccessByName && QueryUtils.hasNamedParameter(query)) {
-					query.setParameter(name, value);
-				} else {
-					query.setParameter(index, value);
+					if (parameter instanceof ParameterExpression) {
+						query.setParameter(parameter, value);
+					} else if (parameter.getName() != null && QueryUtils.hasNamedParameter(query)) {
+						query.setParameter(parameter.getName(), value);
+					} else {
+						query.setParameter(parameter.getPosition(), value);
+					}
 				}
+			} catch (IllegalArgumentException iae) {
+				if (!lenient) {
+					throw iae;
+				}
+				// Since Eclipse doesn't reliably report whether a query has parameters
+				// we simply try to set the parameters and ignore possible failures.
+				// this is relevant for queries with SpEL expressions, where the method parameters don't have to match the
+				// parameters in the query.
 			}
 		}
 	}
 
-	/**
-	 * {@link QueryParameterSetter} identifying parameters by {@link ParameterExpression}
-	 */
-	class ParameterExpressionQueryParameterSetter implements QueryParameterSetter {
+	@Value
+	@RequiredArgsConstructor
+	class ParameterImpl implements Parameter {
 
-		private final ParameterExpression parameterExpression;
-		private final TemporalType temporalType;
-		private final Object value;
+		private final String name;
+		private final Integer position;
+		private final Class parameterType;
 
-		ParameterExpressionQueryParameterSetter(ParameterExpression parameterExpression, TemporalType temporalType,
-				Object value) {
+		ParameterImpl(JpaParameter parameter, ParameterBinding binding) {
 
-			this.temporalType = temporalType;
-			this.value = value;
-			this.parameterExpression = parameterExpression;
-		}
-
-		@SuppressWarnings("unchecked")
-		public void setParameter(Query query) {
-			if (temporalType != null) {
-
-				query.setParameter(parameterExpression, (Date) value, temporalType);
-			} else {
-
-				query.setParameter(parameterExpression, value);
-			}
+			this( //
+					QueryParameterSetter.getName(parameter, binding), //
+					binding.getPosition(), //
+					parameter == null ? Object.class : parameter.getType()); //
 		}
 	}
 }

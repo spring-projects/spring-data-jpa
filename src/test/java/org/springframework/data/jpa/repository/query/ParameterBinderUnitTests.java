@@ -17,8 +17,6 @@ package org.springframework.data.jpa.repository.query;
 
 import static java.util.Collections.*;
 import static javax.persistence.TemporalType.*;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.anyObject;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -95,42 +93,13 @@ public class ParameterBinderUnitTests {
 		User optionalParameter(Optional<String> name);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
-	public void rejectsToManyParameters() throws Exception {
-
-		new ParameterBinder(new JpaParameters(valid), new Object[] { "foo", "bar" });
-	}
-
-	@Test(expected = IllegalArgumentException.class)
-	public void rejectsNullParameters() throws Exception {
-
-		new ParameterBinder(new JpaParameters(valid), (Object[]) null);
-	}
-
-	@Test(expected = IllegalArgumentException.class)
-	public void rejectsToLittleParameters() throws SecurityException, NoSuchMethodException {
-
-		JpaParameters parameters = new JpaParameters(valid);
-		new ParameterBinder(parameters);
-	}
-
-	@Test
-	public void returnsPageableNoneIfNoPageableWasProvided() throws SecurityException, NoSuchMethodException {
-
-		Method method = SampleRepository.class.getMethod("validWithPageable", String.class, Pageable.class);
-
-		JpaParameters parameters = new JpaParameters(method);
-		ParameterBinder binder = new ParameterBinder(parameters, new Object[] { "foo", null });
-
-		assertThat(binder.getPageable(), is(Pageable.unpaged()));
-	}
-
 	@Test
 	public void bindWorksWithNullForSort() throws Exception {
 
 		Method validWithSort = SampleRepository.class.getMethod("validWithSort", String.class, Sort.class);
 
-		new ParameterBinder(new JpaParameters(validWithSort), new Object[] { "foo", null }).bind(query);
+		Object[] values = { "foo", null };
+		ParameterBinderFactory.createParameterBinder(new JpaParameters(validWithSort)).bind(query, values);
 		verify(query).setParameter(eq(1), eq("foo"));
 	}
 
@@ -139,18 +108,21 @@ public class ParameterBinderUnitTests {
 
 		Method validWithPageable = SampleRepository.class.getMethod("validWithPageable", String.class, Pageable.class);
 
-		new ParameterBinder(new JpaParameters(validWithPageable), new Object[] { "foo", null }).bind(query);
+		Object[] values = { "foo", null };
+		ParameterBinderFactory.createParameterBinder(new JpaParameters(validWithPageable)).bind(query, values);
 		verify(query).setParameter(eq(1), eq("foo"));
 	}
 
 	@Test
 	public void usesIndexedParametersIfNoParamAnnotationPresent() throws Exception {
 
-		new ParameterBinder(new JpaParameters(useIndexedParameters), new Object[] { "foo" }).bind(query);
+		Object[] values = { "foo" };
+		ParameterBinderFactory.createParameterBinder(new JpaParameters(useIndexedParameters)).bind(query, values);
 		verify(query).setParameter(eq(1), anyObject());
 	}
 
 	@Test
+
 	public void usesParameterNameIfAnnotated() throws Exception {
 
 		when(query.setParameter(eq("username"), anyObject())).thenReturn(query);
@@ -159,7 +131,8 @@ public class ParameterBinderUnitTests {
 		when(parameter.getName()).thenReturn("username");
 		when(query.getParameters()).thenReturn(singleton(parameter));
 
-		new ParameterBinder(new JpaParameters(valid), new Object[] { "foo" }).bind(query);
+		Object[] values = { "foo" };
+		ParameterBinderFactory.createParameterBinder(new JpaParameters(valid)).bind(query, values);
 
 		verify(query).setParameter(eq("username"), anyObject());
 	}
@@ -171,18 +144,10 @@ public class ParameterBinderUnitTests {
 		JpaParameters parameters = new JpaParameters(method);
 		SampleEmbeddable embeddable = new SampleEmbeddable();
 
-		new ParameterBinder(parameters, new Object[] { embeddable }).bind(query);
+		Object[] values = { embeddable };
+		ParameterBinderFactory.createParameterBinder(parameters).bind(query, values);
 
 		verify(query).setParameter(1, embeddable);
-	}
-
-	@Test
-	public void bindsSortForIndexedParameters() throws Exception {
-
-		Sort sort = Sort.by("name");
-		ParameterBinder binder = new ParameterBinder(new JpaParameters(indexedParametersWithSort),
-				new Object[] { "name", sort });
-		assertThat(binder.getSort(), is(sort));
 	}
 
 	@Test // DATAJPA-107
@@ -192,7 +157,8 @@ public class ParameterBinderUnitTests {
 		JpaParameters parameters = new JpaParameters(method);
 		Date date = new Date();
 
-		new ParameterBinder(parameters, new Object[] { date }).bind(query);
+		Object[] values = { date };
+		ParameterBinderFactory.createParameterBinder(parameters).bind(query, values);
 
 		verify(query).setParameter(eq(1), eq(date), eq(TemporalType.DATE));
 	}
@@ -204,7 +170,8 @@ public class ParameterBinderUnitTests {
 		JpaParameters parameters = new JpaParameters(method);
 		Date date = new Date();
 
-		new ParameterBinder(parameters, new Object[] { date }).bind(query);
+		Object[] values = { date };
+		ParameterBinderFactory.createParameterBinder(parameters).bind(query, values);
 
 		verify(query).setParameter(eq(1), eq(date), eq(TemporalType.TIMESTAMP));
 	}
@@ -215,7 +182,7 @@ public class ParameterBinderUnitTests {
 		Method method = SampleRepository.class.getMethod("invalidWithTemporalTypeParameter", String.class);
 
 		JpaParameters parameters = new JpaParameters(method);
-		new ParameterBinder(parameters, new Object[] { "foo", "" });
+		ParameterBinderFactory.createParameterBinder(parameters);
 	}
 
 	@Test // DATAJPA-461
@@ -224,7 +191,8 @@ public class ParameterBinderUnitTests {
 		Method method = SampleRepository.class.getMethod("validWithVarArgs", Integer[].class);
 		JpaParameters parameters = new JpaParameters(method);
 		Integer[] ids = new Integer[] { 1, 2, 3 };
-		new ParameterBinder(parameters, new Object[] { ids }).bind(query);
+		Object[] values = { ids };
+		ParameterBinderFactory.createParameterBinder(parameters).bind(query, values);
 
 		verify(query).setParameter(eq(1), eq(ids));
 	}
@@ -235,7 +203,8 @@ public class ParameterBinderUnitTests {
 		Method method = SampleRepository.class.getMethod("optionalParameter", Optional.class);
 		JpaParameters parameters = new JpaParameters(method);
 
-		new ParameterBinder(parameters, new Object[] { Optional.of("Foo") }).bind(query);
+		Object[] values = { Optional.of("Foo") };
+		ParameterBinderFactory.createParameterBinder(parameters).bind(query, values);
 
 		verify(query).setParameter(eq(1), eq("Foo"));
 	}

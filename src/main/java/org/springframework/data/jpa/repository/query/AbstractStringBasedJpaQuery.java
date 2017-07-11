@@ -79,7 +79,9 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 
 		Query query = createJpaQuery(sortedQueryString);
 
-		return createBinder(values).bindAndPrepare(query);
+		// it is ok to reuse the binding contained in the ParameterBinder although we create a new query String because the
+		// parameters in the query do not change.
+		return parameterBinder.get().bindAndPrepare(query, values);
 	}
 
 	/*
@@ -87,8 +89,9 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 	 * @see org.springframework.data.jpa.repository.query.AbstractJpaQuery#createBinder(java.lang.Object[])
 	 */
 	@Override
-	protected ParameterBinder createBinder(Object[] values) {
-		return new QueryAwareParameterBinder(getQueryMethod().getParameters(), values, query,
+	protected ParameterBinder createBinder() {
+
+		return ParameterBinderFactory.createQueryAwareParameterBinder(getQueryMethod().getParameters(), query,
 				evaluationContextProvider, parser);
 	}
 
@@ -102,8 +105,9 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 		String queryString = countQuery.getQueryString();
 		EntityManager em = getEntityManager();
 
-		return createBinder(values).bind(
-				getQueryMethod().isNativeQuery() ? em.createNativeQuery(queryString) : em.createQuery(queryString, Long.class));
+		return parameterBinder.get().bind(
+				getQueryMethod().isNativeQuery() ? em.createNativeQuery(queryString) : em.createQuery(queryString, Long.class),
+				values);
 	}
 
 	/**
@@ -123,9 +127,6 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 	/**
 	 * Creates an appropriate JPA query from an {@link EntityManager} according to the current {@link AbstractJpaQuery}
 	 * type.
-	 * 
-	 * @param queryString
-	 * @return
 	 */
 	protected Query createJpaQuery(String queryString) {
 
@@ -141,6 +142,7 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 		getMetamodel().isJpaManaged(returnedType.getReturnedType());
 
 		return returnedType.isProjecting() && !getMetamodel().isJpaManaged(returnedType.getReturnedType())
-				? em.createQuery(queryString, Tuple.class) : em.createQuery(queryString);
+				? em.createQuery(queryString, Tuple.class)
+				: em.createQuery(queryString);
 	}
 }
