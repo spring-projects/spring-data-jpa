@@ -41,6 +41,7 @@ import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
+import org.springframework.data.util.Lazy;
 import org.springframework.util.Assert;
 
 /**
@@ -50,12 +51,15 @@ import org.springframework.util.Assert;
  * @author Thomas Darimont
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Jens Schauder
  */
 public abstract class AbstractJpaQuery implements RepositoryQuery {
 
 	private final JpaQueryMethod method;
 	private final EntityManager em;
 	private final JpaMetamodel metamodel;
+
+	Lazy<ParameterBinder> parameterBinder = new Lazy<>(this::createBinder);
 
 	/**
 	 * Creates a new {@link AbstractJpaQuery} from the given {@link JpaQueryMethod}.
@@ -183,8 +187,8 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 		return lockModeType == null ? query : query.setLockMode(lockModeType);
 	}
 
-	protected ParameterBinder createBinder(Object[] values) {
-		return new ParameterBinder(getQueryMethod().getParameters(), values);
+	protected ParameterBinder createBinder() {
+		return ParameterBinderFactory.createParameterBinder(getQueryMethod().getParameters());
 	}
 
 	protected Query createQuery(Object[] values) {

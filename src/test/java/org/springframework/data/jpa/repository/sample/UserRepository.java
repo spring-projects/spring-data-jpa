@@ -228,11 +228,8 @@ public interface UserRepository
 	// DATAJPA-132
 	List<User> findByActiveFalse();
 
-	/**
-	 * Commented out until OpenJPA supports this.
-	 */
-	// @Query("select u.colleagues from User u where u = ?1")
-	// List<User> findColleaguesFor(User user);
+	@Query("select u.colleagues from User u where u = ?1")
+	List<User> findColleaguesFor(User user);
 
 	// DATAJPA-188
 	List<User> findByCreatedAtBefore(Date date);
@@ -430,22 +427,30 @@ public interface UserRepository
 			value = "select * from (select rownum() as RN, u.* from SD_User u) where RN between ?#{ #pageable.offset -1} and ?#{#pageable.offset + #pageable.pageSize}",
 			countQuery = "select count(u.id) from SD_User u", nativeQuery = true)
 	Page<User> findUsersInNativeQueryWithPagination(Pageable pageable);
-		
+
 	// DATAJPA-1140
 	@Query("select u from User u where u.firstname =:#{#user.firstname} and u.lastname =:lastname")
-	List<User> findUsersByUserFirstnameAsSpELExpressionAndLastnameAsString(@Param("user") User user, @Param("lastname") String lastname);
-	
+	List<User> findUsersByUserFirstnameAsSpELExpressionAndLastnameAsString(@Param("user") User user,
+			@Param("lastname") String lastname);
+
 	// DATAJPA-1140
 	@Query("select u from User u where u.firstname =:firstname and u.lastname =:#{#user.lastname}")
-	List<User> findUsersByFirstnameAsStringAndUserLastnameAsSpELExpression(@Param("firstname") String firstname, @Param("user") User user);
-	
+	List<User> findUsersByFirstnameAsStringAndUserLastnameAsSpELExpression(@Param("firstname") String firstname,
+			@Param("user") User user);
+
 	// DATAJPA-1140
 	@Query("select u from User u where u.firstname =:#{#user.firstname} and u.lastname =:#{#lastname}")
-	List<User> findUsersByUserFirstnameAsSpELExpressionAndLastnameAsFakeSpELExpression(@Param("user") User user, @Param("lastname") String lastname);
-	
+	List<User> findUsersByUserFirstnameAsSpELExpressionAndLastnameAsFakeSpELExpression(@Param("user") User user,
+			@Param("lastname") String lastname);
+
 	// DATAJPA-1140
 	@Query("select u from User u where u.firstname =:#{#firstname} and u.lastname =:#{#user.lastname}")
-	List<User> findUsersByFirstnameAsFakeSpELExpressionAndUserLastnameAsSpELExpression(@Param("firstname") String firstname, @Param("user") User user);
+	List<User> findUsersByFirstnameAsFakeSpELExpressionAndUserLastnameAsSpELExpression(
+			@Param("firstname") String firstname, @Param("user") User user);
+
+	// DATAJPA-1140
+	@Query("select u from User u where u.firstname =:firstname")
+	List<User> findUsersByFirstnamePaginated(Pageable page, @Param("firstname") String firstname);
 
 	// DATAJPA-629
 	@Query("select u from #{#entityName} u where u.firstname = ?#{[0]} and u.lastname = ?#{[1]}")
