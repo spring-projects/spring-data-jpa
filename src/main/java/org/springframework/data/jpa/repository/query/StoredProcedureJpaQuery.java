@@ -60,7 +60,6 @@ class StoredProcedureJpaQuery extends AbstractJpaQuery {
 	 * Determine whether to used named parameters for the given query method.
 	 * 
 	 * @param method must not be {@literal null}.
-	 * @return
 	 */
 	private static boolean useNamedParameters(QueryMethod method) {
 
@@ -104,7 +103,6 @@ class StoredProcedureJpaQuery extends AbstractJpaQuery {
 	 * Extracts the output value from the given {@link StoredProcedureQuery}.
 	 * 
 	 * @param storedProcedureQuery must not be {@literal null}.
-	 * @return
 	 */
 	Object extractOutputValue(StoredProcedureQuery storedProcedureQuery) {
 
@@ -124,8 +122,6 @@ class StoredProcedureJpaQuery extends AbstractJpaQuery {
 
 	/**
 	 * Creates a new JPA 2.1 {@link StoredProcedureQuery} from this {@link StoredProcedureJpaQuery}.
-	 * 
-	 * @return
 	 */
 	private StoredProcedureQuery createStoredProcedure() {
 		return procedureAttributes.isNamedStoredProcedure() ? newNamedStoredProcedureQuery()
@@ -134,8 +130,6 @@ class StoredProcedureJpaQuery extends AbstractJpaQuery {
 
 	/**
 	 * Creates a new named {@link StoredProcedureQuery} defined via an {@link NamedStoredProcedureQuery} on an entity.
-	 * 
-	 * @return
 	 */
 	private StoredProcedureQuery newNamedStoredProcedureQuery() {
 		return getEntityManager().createNamedStoredProcedureQuery(procedureAttributes.getProcedureName());
@@ -143,8 +137,6 @@ class StoredProcedureJpaQuery extends AbstractJpaQuery {
 
 	/**
 	 * Creates a new ad-hoc {@link StoredProcedureQuery} from the given {@link StoredProcedureAttributes}.
-	 * 
-	 * @return
 	 */
 	private StoredProcedureQuery newAdhocStoredProcedureQuery() {
 
