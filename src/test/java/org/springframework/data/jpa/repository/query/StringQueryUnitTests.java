@@ -205,17 +205,6 @@ public class StringQueryUnitTests {
 		assertNamedBinding(InParameterBinding.class, "statuses", bindings.get(0));
 	}
 
-	@Test // DATAJPA-513
-	public void rejectsNullParameterNameHintingTowardsAtParamForNullParameterName() {
-
-		StringQuery query = new StringQuery("select x from X");
-
-		exception.expect(IllegalArgumentException.class);
-		exception.expectMessage(Param.class.getSimpleName());
-
-		query.getBindingFor(null);
-	}
-
 	@Test // DATAJPA-545
 	public void detectsInBindingWithSpecialFrenchCharactersInParentheses() {
 
