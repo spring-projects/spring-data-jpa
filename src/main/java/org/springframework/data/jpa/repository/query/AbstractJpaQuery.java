@@ -188,7 +188,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 	}
 
 	protected ParameterBinder createBinder() {
-		return ParameterBinderFactory.createParameterBinder(getQueryMethod().getParameters());
+		return ParameterBinderFactory.createBinder(getQueryMethod().getParameters());
 	}
 
 	protected Query createQuery(Object[] values) {

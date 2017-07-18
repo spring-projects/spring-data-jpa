@@ -16,87 +16,94 @@
 package org.springframework.data.jpa.repository.query;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
 import org.springframework.data.jpa.repository.query.ParameterMetadataProvider.ParameterMetadata;
-import org.springframework.data.jpa.repository.query.QueryParameterSetterFactory.BasicQueryParameterSetterFactory;
-import org.springframework.data.jpa.repository.query.QueryParameterSetterFactory.CriteriaQueryParameterSetterFactory;
-import org.springframework.data.jpa.repository.query.QueryParameterSetterFactory.ExpressionBasedQueryParameterSetterFactory;
 import org.springframework.data.jpa.repository.query.StringQuery.ParameterBinding;
 import org.springframework.data.repository.query.EvaluationContextProvider;
+import org.springframework.data.util.StreamUtils;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.util.Assert;
 
 /**
  * Factory for differently configured {@link ParameterBinder}.
  * 
  * @author Jens Schauder
+ * @author Oliver Gierke
+ * @since 2.0
  */
 class ParameterBinderFactory {
 
 	/**
-	 * create a {@link ParameterBinder} that just matches parameter by name if those are available, or by index/position
+	 * Create a {@link ParameterBinder} that just matches parameter by name if those are available, or by index/position
 	 * otherwise.
 	 * 
-	 * @param parameters method parameters that are available for binding
+	 * @param parameters method parameters that are available for binding, must not be {@literal null}.
 	 * @return a {@link ParameterBinder} that can assign values for the method parameters to query parameters of a
 	 *         {@link javax.persistence.Query}
 	 */
-	static ParameterBinder createParameterBinder(JpaParameters parameters) {
+	static ParameterBinder createBinder(JpaParameters parameters) {
 
-		List<QueryParameterSetter> setters = createParameterSetters( //
-				getParameterBindings(parameters), //
-				null, //
-				new BasicQueryParameterSetterFactory(parameters) //
-		);
+		Assert.notNull(parameters, "JpaParameters must not be null!");
 
-		return new ParameterBinder(parameters, setters);
+		QueryParameterSetterFactory setterFactory = QueryParameterSetterFactory.basic(parameters);
+		List<ParameterBinding> bindings = getBindings(parameters);
+
+		return new ParameterBinder(parameters, createSetters(bindings, setterFactory));
 	}
 
 	/**
-	 * create a {@link ParameterBinder} that just matches method parameter to parameters of a
-	 * javax.{@link javax.persistence.criteria.CriteriaQuery}.
+	 * Creates a {@link ParameterBinder} that just matches method parameter to parameters of a
+	 * {@link javax.persistence.criteria.CriteriaQuery}.
 	 *
-	 * @param parameters method parameters that are available for binding
+	 * @param parameters method parameters that are available for binding, must not be {@literal null}.
+	 * @param metadata must not be {@literal null}.
 	 * @return a {@link ParameterBinder} that can assign values for the method parameters to query parameters of a
 	 *         {@link javax.persistence.criteria.CriteriaQuery}
 	 */
-	static ParameterBinder createCriteriaParameterBinder(JpaParameters parameters,
-			List<ParameterMetadata<?>> expressions) {
+	static ParameterBinder createCriteriaBinder(JpaParameters parameters, List<ParameterMetadata<?>> metadata) {
 
-		List<QueryParameterSetter> setters = createParameterSetters( //
-				getParameterBindings(parameters), //
-				null, //
-				new CriteriaQueryParameterSetterFactory(parameters, expressions) //
-		);
+		Assert.notNull(parameters, "JpaParameters must not be null!");
+		Assert.notNull(metadata, "Parameter metadata must not be null!");
 
-		return new ParameterBinder(parameters, setters);
+		QueryParameterSetterFactory setterFactory = QueryParameterSetterFactory.forCriteriaQuery(parameters, metadata);
+		List<ParameterBinding> bindings = getBindings(parameters);
+
+		return new ParameterBinder(parameters, createSetters(bindings, setterFactory));
 	}
 
 	/**
-	 * create a {@link ParameterBinder} that just matches parameter by name if those are available, or by index/position
+	 * Creates a {@link ParameterBinder} that just matches parameter by name if those are available, or by index/position
 	 * otherwise. The resulting {@link ParameterBinder} can also handle SpEL expressions in the query. Uses the supplied
 	 * query in order to ensure that all query parameters are bound.
 	 *
-	 * @param parameters method parameters that are available for binding
+	 * @param parameters method parameters that are available for binding, must not be {@literal null}.
+	 * @param query the {@link StringQuery} the binders shall be created for, must not be {@literal null}.
+	 * @param parser must not be {@literal null}.
+	 * @param evaluationContextProvider must not be {@literal null}.
 	 * @return a {@link ParameterBinder} that can assign values for the method parameters to query parameters of a
 	 *         {@link javax.persistence.Query} while processing SpEL expressions where applicable.
 	 */
-	static ParameterBinder createQueryAwareParameterBinder(JpaParameters parameters, StringQuery query,
-			EvaluationContextProvider evaluationContextProvider, SpelExpressionParser parser) {
+	static ParameterBinder createQueryAwareBinder(JpaParameters parameters, StringQuery query,
+			SpelExpressionParser parser, EvaluationContextProvider evaluationContextProvider) {
 
-		List<QueryParameterSetter> parameterSetters = createParameterSetters( //
-				query.getParameterBindings(), //
-				query.getQueryString(), //
-				new ExpressionBasedQueryParameterSetterFactory(evaluationContextProvider, parser, parameters), //
-				new BasicQueryParameterSetterFactory(parameters) //
-		);
+		Assert.notNull(parameters, "JpaParameters must not be null!");
+		Assert.notNull(query, "StringQuery must not be null!");
+		Assert.notNull(parser, "SpelExpressionParser must not be null!");
+		Assert.notNull(evaluationContextProvider, "EvaluationContextProvider must not be null!");
 
-		return new ParameterBinder(parameters, parameterSetters);
+		List<ParameterBinding> bindings = query.getParameterBindings();
+		QueryParameterSetterFactory expressionSetterFactory = QueryParameterSetterFactory.parsing(parser,
+				evaluationContextProvider, parameters);
+		QueryParameterSetterFactory basicSetterFactory = QueryParameterSetterFactory.basic(parameters);
+
+		return new ParameterBinder(parameters,
+				createSetters(query.getQueryString(), bindings, expressionSetterFactory, basicSetterFactory));
 	}
 
-	private static List<ParameterBinding> getParameterBindings(JpaParameters parameters) {
+	private static List<ParameterBinding> getBindings(JpaParameters parameters) {
 
 		List<ParameterBinding> result = new ArrayList<>();
 		int bindableParameterIndex = 0;
@@ -111,24 +118,26 @@ class ParameterBinderFactory {
 		return result;
 	}
 
-	private static List<QueryParameterSetter> createParameterSetters(List<ParameterBinding> parameterBindings,
-			String queryString, QueryParameterSetterFactory... strategies) {
+	private static Iterable<QueryParameterSetter> createSetters(List<ParameterBinding> parameterBindings,
+			QueryParameterSetterFactory... factories) {
+		return createSetters(null, parameterBindings, factories);
+	}
+
+	private static Iterable<QueryParameterSetter> createSetters(String queryString,
+			List<ParameterBinding> parameterBindings, QueryParameterSetterFactory... strategies) {
 
 		return parameterBindings.stream() //
-				.map((pb) -> createQueryParameterSetter(pb, strategies, queryString)) //
-				.collect(Collectors.toList());
+				.map(it -> createQueryParameterSetter(it, strategies, queryString)) //
+				.collect(StreamUtils.toUnmodifiableList());
 	}
 
 	private static QueryParameterSetter createQueryParameterSetter(ParameterBinding binding,
 			QueryParameterSetterFactory[] strategies, String queryString) {
 
-		for (QueryParameterSetterFactory strategy : strategies) {
-			QueryParameterSetter candidate = strategy.create(binding, queryString);
-			if (candidate != null)
-				return candidate;
-		}
-
-		return QueryParameterSetter.NOOP;
+		return Arrays.stream(strategies)//
+				.map(it -> it.create(binding, queryString))//
+				.filter(it -> it != null)//
+				.findFirst()//
+				.orElse(QueryParameterSetter.NOOP);
 	}
-
 }

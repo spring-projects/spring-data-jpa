@@ -233,7 +233,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 		}
 
 		private ParameterBinder getBinder(List<ParameterMetadata<?>> expressions) {
-			return ParameterBinderFactory.createCriteriaParameterBinder(parameters, expressions);
+			return ParameterBinderFactory.createCriteriaBinder(parameters, expressions);
 		}
 
 		private Sort getDynamicSort(Object[] values) {

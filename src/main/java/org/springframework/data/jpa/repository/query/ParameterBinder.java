@@ -15,14 +15,10 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import java.util.List;
-
 import javax.persistence.Query;
 
 import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.util.Assert;
-
-import lombok.RequiredArgsConstructor;
 
 /**
  * {@link ParameterBinder} is used to bind method parameters to a {@link Query}. This is usually done whenever an
@@ -34,17 +30,29 @@ import lombok.RequiredArgsConstructor;
  * @author Christoph Strobl
  * @author Jens Schauder
  */
-@RequiredArgsConstructor
 public class ParameterBinder {
 
 	private final JpaParameters parameters;
-	private final List<QueryParameterSetter> parameterSetters;
+	private final Iterable<QueryParameterSetter> parameterSetters;
+
+	/**
+	 * Creates a new {@link ParameterBinder} for the given {@link JpaParameters} and {@link QueryParameterSetter}s.
+	 * 
+	 * @param parameters must not be {@literal null}.
+	 * @param parameterSetters must not be {@literal null}.
+	 */
+	public ParameterBinder(JpaParameters parameters, Iterable<QueryParameterSetter> parameterSetters) {
+
+		Assert.notNull(parameters, "JpaParameters must not be null!");
+		Assert.notNull(parameterSetters, "Parameter setters must not be null!");
+
+		this.parameters = parameters;
+		this.parameterSetters = parameterSetters;
+	}
 
 	public <T extends Query> T bind(T jpaQuery, Object[] values) {
 
-		for (QueryParameterSetter setter : parameterSetters) {
-			setter.setParameter(jpaQuery, values);
-		}
+		parameterSetters.forEach(it -> it.setParameter(jpaQuery, values));
 
 		return jpaQuery;
 	}
@@ -72,5 +80,4 @@ public class ParameterBinder {
 
 		return result;
 	}
-
 }

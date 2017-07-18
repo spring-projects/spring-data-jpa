@@ -16,6 +16,7 @@
 package org.springframework.data.jpa.repository.query;
 
 import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
+import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
 
@@ -37,7 +38,7 @@ public class JpaParametersParameterAccessor extends ParametersParameterAccessor 
 		super(parameters, values);
 	}
 
-	public <T> T getValue(JpaParameter parameter) {
+	public <T> T getValue(Parameter parameter) {
 		return super.getValue(parameter.getIndex());
 	}
 }

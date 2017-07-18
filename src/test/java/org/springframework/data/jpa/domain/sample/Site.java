@@ -15,10 +15,6 @@
  */
 package org.springframework.data.jpa.domain.sample;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -26,17 +22,25 @@ import javax.persistence.Table;
 
 /**
  * @author Mark Paluch
+ * @author Oliver Gierke
  * @see <a href="download.oracle.com/otn-pub/jcp/persistence-2_1-fr-eval-spec/JavaPersistence.pdf">Final JPA 2.1
  *      Specification 2.4.1.3 Derived Identities Example 2</a>
  */
-@Data
 @Entity
 @Table
-@AllArgsConstructor
-@NoArgsConstructor
 public class Site implements java.io.Serializable {
 
 	private static final long serialVersionUID = 1L;
 
 	@Id @GeneratedValue Integer id;
+
+	public Site() {}
+
+	public Site(Integer id) {
+		this.id = id;
+	}
+
+	public Integer getId() {
+		return id;
+	}
 }
