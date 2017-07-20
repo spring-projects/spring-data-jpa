@@ -262,7 +262,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepository<T, ID>, JpaSpec
 		Assert.notNull(id, ID_MUST_NOT_BE_NULL);
 
 		if (entityInformation.getIdAttribute() == null) {
-			return findById(id) != null;
+			return findById(id).isPresent();
 		}
 
 		String placeholder = provider.getCountQueryPlaceholder();
@@ -287,7 +287,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepository<T, ID>, JpaSpec
 			if (complexIdParameterValueDiscovered) {
 
 				// fall-back to findById(id) which does the proper mapping for the parameter.
-				return findById(id) != null;
+				return findById(id).isPresent();
 			}
 
 			query.setParameter(idAttributeName, idAttributeValue);
@@ -455,8 +455,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepository<T, ID>, JpaSpec
 		Class<S> probeType = example.getProbeType();
 		TypedQuery<S> query = getQuery(new ExampleSpecification<>(example), probeType, pageable);
 
-		return isUnpaged(pageable) ? new PageImpl<>(query.getResultList())
-				: readPage(query, probeType, pageable, spec);
+		return isUnpaged(pageable) ? new PageImpl<>(query.getResultList()) : readPage(query, probeType, pageable, spec);
 	}
 
 	/*

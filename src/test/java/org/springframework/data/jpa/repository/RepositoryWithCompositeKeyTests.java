@@ -25,7 +25,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Page;
@@ -210,7 +209,7 @@ public class RepositoryWithCompositeKeyTests {
 		assertThat(result.get(1), is(emp1));
 	}
 
-	@Test // DATAJPA-527
+	@Test // DATAJPA-527, DATAJPA-1148
 	public void testExistsWithIdClass() {
 
 		IdClassExampleDepartment dep = new IdClassExampleDepartment();
@@ -227,6 +226,7 @@ public class RepositoryWithCompositeKeyTests {
 		key.setEmpId(emp.getEmpId());
 
 		assertThat(employeeRepositoryWithIdClass.existsById(key), is(true));
+		assertThat(employeeRepositoryWithIdClass.existsById(new IdClassExampleEmployeePK(0L, 0L)), is(false));
 	}
 
 	@Test // DATAJPA-527
