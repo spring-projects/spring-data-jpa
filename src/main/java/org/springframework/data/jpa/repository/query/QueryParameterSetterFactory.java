@@ -49,9 +49,9 @@ abstract class QueryParameterSetterFactory {
 	 * Creates a new {@link QueryParameterSetterFactory} for the given {@link JpaParameters}.
 	 * 
 	 * @param parameters must not be {@literal null}.
-	 * @return
+	 * @return A basic {@link QueryParameterSetterFactory} that can handle named and index parameters.
 	 */
-	public static QueryParameterSetterFactory basic(JpaParameters parameters) {
+	static QueryParameterSetterFactory basic(JpaParameters parameters) {
 
 		Assert.notNull(parameters, "JpaParameters must not be null!");
 
@@ -64,10 +64,10 @@ abstract class QueryParameterSetterFactory {
 	 * 
 	 * @param parameters must not be {@literal null}.
 	 * @param metadata must not be {@literal null}.
-	 * @return
+	 * @return A {@link QueryParameterSetterFactory} for criteria Queries.
 	 */
-	public static QueryParameterSetterFactory forCriteriaQuery(JpaParameters parameters,
-			List<ParameterMetadata<?>> metadata) {
+	static QueryParameterSetterFactory forCriteriaQuery(JpaParameters parameters,
+														List<ParameterMetadata<?>> metadata) {
 
 		Assert.notNull(parameters, "JpaParameters must not be null!");
 		Assert.notNull(metadata, "ParameterMetadata must not be null!");
@@ -82,10 +82,10 @@ abstract class QueryParameterSetterFactory {
 	 * @param parser must not be {@literal null}.
 	 * @param evaluationContextProvider must not be {@literal null}.
 	 * @param parameters must not be {@literal null}.
-	 * @return
+	 * @return A {@link QueryParameterSetterFactory} that can handle {@link org.springframework.expression.spel.standard.SpelExpression}s.
 	 */
-	public static QueryParameterSetterFactory parsing(SpelExpressionParser parser,
-			EvaluationContextProvider evaluationContextProvider, Parameters<?, ?> parameters) {
+	static QueryParameterSetterFactory parsing(SpelExpressionParser parser,
+											   EvaluationContextProvider evaluationContextProvider, Parameters<?, ?> parameters) {
 
 		Assert.notNull(parser, "SpelExpressionParser must not be null!");
 		Assert.notNull(evaluationContextProvider, "EvaluationContextProvider must not be null!");
@@ -165,7 +165,7 @@ abstract class QueryParameterSetterFactory {
 		 * 
 		 * @param expression must not be {@literal null}.
 		 * @param values must not be {@literal null}.
-		 * @return
+		 * @return the result of the evaluation.
 		 */
 		private Object evaluateExpression(Expression expression, Object[] values) {
 
@@ -295,7 +295,7 @@ abstract class QueryParameterSetterFactory {
 		 * 
 		 * @param parameter can be {@literal null}.
 		 * @param binding must not be {@literal null}.
-		 * @return
+		 * @return a {@link javax.persistence.Parameter} object based on the information from the arguments.
 		 */
 		static javax.persistence.Parameter<?> of(JpaParameter parameter, ParameterBinding binding) {
 
