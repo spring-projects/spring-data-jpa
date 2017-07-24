@@ -202,6 +202,8 @@ abstract class QueryParameterSetterFactory {
 		@Override
 		public QueryParameterSetter create(ParameterBinding binding, String queryString) {
 
+			Assert.notNull(binding, "Binding must not be null.");
+
 			JpaParameter parameter = QueryUtils.hasNamedParameter(queryString) //
 					? findParameterForBinding(binding) //
 					: parameters.getBindableParameter(binding.getPosition() - 1);
@@ -223,7 +225,7 @@ abstract class QueryParameterSetterFactory {
 		}
 
 		private static String getName(JpaParameter p) {
-			return p.getName().orElseThrow(() -> new IllegalArgumentException("Parameter needs to be named!"));
+			return p.getName().orElseThrow(() -> new IllegalStateException(ParameterBinder.PARAMETER_NEEDS_TO_BE_NAMED));
 		}
 	}
 

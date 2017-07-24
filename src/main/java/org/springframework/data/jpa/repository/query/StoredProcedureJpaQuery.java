@@ -153,7 +153,7 @@ class StoredProcedureJpaQuery extends AbstractJpaQuery {
 
 			if (useNamedParameters) {
 				procedureQuery.registerStoredProcedureParameter(
-						param.getName().orElseThrow(() -> new IllegalArgumentException("Parameter needs to be named!")),
+						param.getName().orElseThrow(() -> new IllegalArgumentException(ParameterBinder.PARAMETER_NEEDS_TO_BE_NAMED)),
 						param.getType(), ParameterMode.IN);
 			} else {
 				procedureQuery.registerStoredProcedureParameter(param.getIndex() + 1, param.getType(), ParameterMode.IN);
