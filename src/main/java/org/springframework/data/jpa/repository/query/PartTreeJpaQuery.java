@@ -238,8 +238,9 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 
 		private Sort getDynamicSort(Object[] values) {
 
-			return parameters.potentiallySortsDynamically() ? new ParametersParameterAccessor(parameters, values).getSort()
-					: null;
+			return parameters.potentiallySortsDynamically() //
+					? new ParametersParameterAccessor(parameters, values).getSort() //
+					: Sort.unsorted();
 		}
 	}
 
