@@ -1,6 +1,11 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 2.0.0.RC2 (2017-07-25)
+-----------------------------------------
+* DATAJPA-1153 - Release 2.0 RC2 (Kay).
+
+
 Changes in version 2.0.0.RC1 (2017-07-25)
 -----------------------------------------
 * DATAJPA-1150 - JpaQueryCreator.QueryPreparer.getDynamicSort(…) must not return null.
