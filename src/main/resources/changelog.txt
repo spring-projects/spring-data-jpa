@@ -1,6 +1,15 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 2.0.0.RC1 (2017-07-25)
+-----------------------------------------
+* DATAJPA-1150 - JpaQueryCreator.QueryPreparer.getDynamicSort(…) must not return null.
+* DATAJPA-1148 - Incorrect behavior of SimpleJpaRepository.existsById(…) due to changes with Optional.
+* DATAJPA-1143 - Adapt to API changes in mapping subsystem.
+* DATAJPA-1140 - Mixing SpEL and String @Param is not possible if not all parameters are used as SpEL expression in @Query on Repository.
+* DATAJPA-1135 - Release 2.0 RC1 (Kay).
+
+
 Changes in version 1.11.5.RELEASE (2017-07-24)
 ----------------------------------------------
 * DATAJPA-1132 - Release 1.11.5 (Ingalls SR5).
