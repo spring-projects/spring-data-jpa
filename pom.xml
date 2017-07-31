@@ -22,7 +22,7 @@
 		<dist.key>DATAJPA</dist.key>
 
 		<eclipselink>2.6.4</eclipselink>
-		<hibernate>5.2.9.Final</hibernate>
+		<hibernate>5.2.10.Final</hibernate>
 		<hsqldb1>1.8.0.10</hsqldb1>
 		<jpa>2.0.0</jpa>
 		<springdata.commons>2.0.0.BUILD-SNAPSHOT</springdata.commons>
@@ -35,7 +35,7 @@
 		<profile>
 			<id>hibernate-52-next</id>
 			<properties>
-				<hibernate>5.2.10-SNAPSHOT</hibernate>
+				<hibernate>5.2.11-SNAPSHOT</hibernate>
 			</properties>
 			<repositories>
 				<repository>
