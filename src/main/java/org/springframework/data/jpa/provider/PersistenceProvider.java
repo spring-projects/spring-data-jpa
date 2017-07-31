@@ -21,20 +21,11 @@ import static org.springframework.data.jpa.provider.PersistenceProvider.Constant
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.persistence.metamodel.Metamodel;
 
-import org.apache.openjpa.enhance.PersistenceCapable;
-import org.apache.openjpa.persistence.OpenJPAPersistence;
-import org.apache.openjpa.persistence.OpenJPAQuery;
-import org.apache.openjpa.persistence.jdbc.FetchDirection;
-import org.apache.openjpa.persistence.jdbc.JDBCFetchPlan;
-import org.apache.openjpa.persistence.jdbc.LRSSizeAlgorithm;
-import org.apache.openjpa.persistence.jdbc.ResultSetType;
 import org.eclipse.persistence.jpa.JpaQuery;
 import org.eclipse.persistence.queries.ScrollableCursor;
 import org.hibernate.ScrollMode;
@@ -121,7 +112,8 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 	/**
 	 * EclipseLink persistence provider.
 	 */
-	ECLIPSELINK(Collections.singleton(ECLIPSELINK_ENTITY_MANAGER_INTERFACE), Collections.singleton(ECLIPSELINK_JPA_METAMODEL_TYPE)) {
+	ECLIPSELINK(Collections.singleton(ECLIPSELINK_ENTITY_MANAGER_INTERFACE),
+			Collections.singleton(ECLIPSELINK_JPA_METAMODEL_TYPE)) {
 
 		public String extractQueryString(Query query) {
 			return ((JpaQuery<?>) query).getDatabaseQuery().getJPQLString();
@@ -160,48 +152,6 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 		@Override
 		public CloseableIterator<Object> executeQueryWithResultStream(Query jpaQuery) {
 			return new EclipseLinkScrollableResultsIterator<Object>(jpaQuery);
-		}
-	},
-
-	/**
-	 * OpenJpa persistence provider.
-	 */
-	OPEN_JPA(Collections.singleton(OPENJPA_ENTITY_MANAGER_INTERFACE), Collections.singleton(OPENJPA_JPA_METAMODEL_TYPE)) {
-
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.jpa.repository.query.QueryExtractor#extractQueryString(javax.persistence.Query)
-		 */
-		@Override
-		public String extractQueryString(Query query) {
-			return ((OpenJPAQuery<?>) query).getQueryString();
-		}
-
-		/* 
-		 * (non-Javadoc)
-		 * @see org.springframework.data.jpa.repository.support.ProxyIdAccessor#isProxy(java.lang.Object)
-		 */
-		@Override
-		public boolean shouldUseAccessorFor(Object entity) {
-			return entity instanceof PersistenceCapable;
-		}
-
-		/* 
-		 * (non-Javadoc)
-		 * @see org.springframework.data.jpa.repository.support.ProxyIdAccessor#getIdentifierFrom(java.lang.Object)
-		 */
-		@Override
-		public Object getIdentifierFrom(Object entity) {
-			return ((PersistenceCapable) entity).pcFetchObjectId();
-		}
-
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.jpa.provider.PersistenceProvider#executeQueryWithResultStream(javax.persistence.Query)
-		 */
-		@Override
-		public CloseableIterator<Object> executeQueryWithResultStream(Query jpaQuery) {
-			return new OpenJpaResultStreamingIterator<Object>(jpaQuery);
 		}
 	},
 
@@ -500,69 +450,6 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 
 			if (scrollableCursor != null) {
 				scrollableCursor.close();
-			}
-		}
-	}
-
-	/**
-	 * {@link CloseableIterator} for OpenJpa.
-	 * 
-	 * @author Thomas Darimont
-	 * @author Oliver Gierke
-	 * @param <T> the domain type to return
-	 * @since 1.8
-	 */
-	private static class OpenJpaResultStreamingIterator<T> implements CloseableIterator<T> {
-
-		private final Iterator<T> iterator;
-
-		/**
-		 * Createsa new {@link OpenJpaResultStreamingIterator} for the given JPA {@link Query}.
-		 * 
-		 * @param jpaQuery must not be {@literal null}.
-		 */
-		@SuppressWarnings({ "rawtypes", "unchecked" })
-		public OpenJpaResultStreamingIterator(Query jpaQuery) {
-
-			OpenJPAQuery kq = OpenJPAPersistence.cast(jpaQuery);
-
-			JDBCFetchPlan fetch = (JDBCFetchPlan) kq.getFetchPlan();
-			fetch.setFetchBatchSize(20);
-			fetch.setResultSetType(ResultSetType.SCROLL_SENSITIVE);
-			fetch.setFetchDirection(FetchDirection.FORWARD);
-			fetch.setLRSSizeAlgorithm(LRSSizeAlgorithm.LAST);
-
-			List<T> resultList = kq.getResultList();
-			iterator = resultList.iterator();
-		}
-
-		/*
-		 * (non-Javadoc)
-		 * @see java.util.Iterator#hasNext()
-		 */
-		@Override
-		public boolean hasNext() {
-			return iterator == null ? false : iterator.hasNext();
-		}
-
-		/*
-		 * (non-Javadoc)
-		 * @see java.util.Iterator#next()
-		 */
-		@Override
-		public T next() {
-			return iterator.next();
-		}
-
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.util.CloseableIterator#close()
-		 */
-		@Override
-		public void close() {
-
-			if (iterator != null) {
-				OpenJPAPersistence.close(iterator);
 			}
 		}
 	}

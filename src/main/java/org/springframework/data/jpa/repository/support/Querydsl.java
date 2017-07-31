@@ -37,7 +37,6 @@ import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.jpa.EclipseLinkTemplates;
 import com.querydsl.jpa.HQLTemplates;
 import com.querydsl.jpa.JPQLQuery;
-import com.querydsl.jpa.OpenJPATemplates;
 import com.querydsl.jpa.impl.AbstractJPAQuery;
 import com.querydsl.jpa.impl.JPAQuery;
 
@@ -83,8 +82,6 @@ public class Querydsl {
 				return new JPAQuery<T>(em, EclipseLinkTemplates.DEFAULT);
 			case HIBERNATE:
 				return new JPAQuery<T>(em, HQLTemplates.DEFAULT);
-			case OPEN_JPA:
-				return new JPAQuery<T>(em, OpenJPATemplates.DEFAULT);
 			case GENERIC_JPA:
 			default:
 				return new JPAQuery<T>(em);

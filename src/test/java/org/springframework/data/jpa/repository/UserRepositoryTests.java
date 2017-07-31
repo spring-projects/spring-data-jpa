@@ -16,7 +16,6 @@
 package org.springframework.data.jpa.repository;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.hamcrest.core.IsEqual.*;
 import static org.springframework.data.domain.Example.*;
 import static org.springframework.data.domain.ExampleMatcher.*;
 import static org.springframework.data.domain.Sort.Direction.*;
@@ -42,8 +41,6 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
-import org.hamcrest.core.IsNot;
-import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -69,7 +66,6 @@ import org.springframework.data.jpa.domain.sample.Address;
 import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.domain.sample.SpecialUser;
 import org.springframework.data.jpa.domain.sample.User;
-import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.repository.sample.SampleEvaluationContextExtension.SampleSecurityContextHolder;
 import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.test.context.ContextConfiguration;
@@ -1882,9 +1878,6 @@ public class UserRepositoryTests {
 
 	@Test // DATAJPA-218
 	public void findAllByExampleWithIncludeNull() {
-
-		// something is wrong with OpenJPA - I do not know what
-		Assume.assumeThat(PersistenceProvider.fromEntityManager(em), IsNot.not(equalTo(PersistenceProvider.OPEN_JPA)));
 
 		flushTestUsers();
 

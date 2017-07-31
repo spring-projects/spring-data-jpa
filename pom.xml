@@ -25,7 +25,6 @@
 		<hibernate>5.2.9.Final</hibernate>
 		<hsqldb1>1.8.0.10</hsqldb1>
 		<jpa>2.0.0</jpa>
-		<openjpa>2.4.1</openjpa>
 		<springdata.commons>2.0.0.BUILD-SNAPSHOT</springdata.commons>
 
 		<sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
@@ -189,25 +188,6 @@
 			<optional>true</optional>
 		</dependency>
 
-		<dependency>
-			<groupId>org.apache.openjpa</groupId>
-			<artifactId>openjpa-persistence-jdbc</artifactId>
-			<version>${openjpa}</version>
-			<optional>true</optional>
-			<exclusions>
-				<exclusion>
-					<groupId>commons-logging</groupId>
-					<artifactId>commons-logging</artifactId>
-				</exclusion>
-				<!-- Transitive dependency pulls in JUnit 3.8.1 -->
-				<!-- http://sourceforge.net/tracker/?func=detail&aid=2572567&group_id=31479&atid=402282 -->
-				<exclusion>
-					<groupId>junit</groupId>
-					<artifactId>junit</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-
 		<!-- QueryDsl -->
 		<dependency>
 			<groupId>com.querydsl</groupId>
@@ -298,12 +278,6 @@
 						<scope>runtime</scope>
 					</dependency>
 					<dependency>
-						<groupId>org.apache.openjpa</groupId>
-						<artifactId>openjpa</artifactId>
-						<version>${openjpa}</version>
-						<scope>runtime</scope>
-					</dependency>
-					<dependency>
 						<groupId>org.hsqldb</groupId>
 						<artifactId>hsqldb</artifactId>
 						<version>${hsqldb1}</version>
@@ -363,27 +337,6 @@
 							<argLine>-javaagent:${settings.localRepository}/org/jacoco/org.jacoco.agent/${jacoco}/org.jacoco.agent-${jacoco}-runtime.jar=destfile=${jacoco.destfile} -javaagent:${settings.localRepository}/org/eclipse/persistence/org.eclipse.persistence.jpa/${eclipselink}/org.eclipse.persistence.jpa-${eclipselink}.jar -javaagent:${settings.localRepository}/org/springframework/spring-instrument/${spring}/spring-instrument-${spring}.jar</argLine>
 						</configuration>
 					</execution>
-					<!--
-					<execution>
-						<id>openjpa-tests</id>
-						<goals>
-							<goal>test</goal>
-						</goals>
-						<phase>test</phase>
-						<configuration>
-							<includes>
-								<include>**/OpenJpa*Tests.java</include>
-							</includes>
-							<argLine>-javaagent:${settings.localRepository}/org/jacoco/org.jacoco.agent/${jacoco}/org.jacoco.agent-${jacoco}-runtime.jar=destfile=${jacoco.destfile} -javaagent:${settings.localRepository}/org/apache/openjpa/openjpa/${openjpa}/openjpa-${openjpa}.jar</argLine>
-							<classpathDependencyExcludes>
-								<classpathDepencyExclude>org.hsqldb:hsqldb</classpathDepencyExclude>
-							</classpathDependencyExcludes>
-							<additionalClasspathElements>
-								<additionalClasspathElement>${settings.localRepository}/org/hsqldb/hsqldb/${hsqldb1}/hsqldb-${hsqldb1}.jar</additionalClasspathElement>
-							</additionalClasspathElements>
-						</configuration>
-					</execution>
-					-->
 				</executions>
 			</plugin>
 
