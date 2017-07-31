@@ -115,9 +115,13 @@ class StoredProcedureJpaQuery extends AbstractJpaQuery {
 		String outputParameterName = procedureAttributes.getOutputParameterName();
 		JpaParameters parameters = getQueryMethod().getParameters();
 
-		return useNamedParameters && StringUtils.hasText(outputParameterName) ? //
+		try{
+			return useNamedParameters && StringUtils.hasText(outputParameterName) ? //
 				storedProcedureQuery.getOutputParameterValue(outputParameterName)
 				: storedProcedureQuery.getOutputParameterValue(parameters.getNumberOfParameters() + 1);
+		}catch(PersistenceException pe){
+			return storedProcedureQuery.getResultList();
+		}
 	}
 
 	/**
