@@ -15,11 +15,10 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static java.util.Collections.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -78,7 +77,7 @@ public class QueryUtilsIntegrationTests {
 		QueryUtils.toExpressionRecursively(from, managerLastname);
 		QueryUtils.toExpressionRecursively(from, managerFirstname);
 
-		assertThat(from.getJoins(), hasSize(1));
+		assertThat(from.getJoins()).hasSize(1);
 	}
 
 	@Test // DATAJPA-401
@@ -90,7 +89,7 @@ public class QueryUtilsIntegrationTests {
 
 		QueryUtils.toExpressionRecursively(root, PropertyPath.from("manager", User.class));
 
-		assertThat(root.getJoins(), hasSize(1));
+		assertThat(root.getJoins()).hasSize(1);
 	}
 
 	@Test // DATAJPA-401
@@ -112,7 +111,7 @@ public class QueryUtilsIntegrationTests {
 
 		QueryUtils.toExpressionRecursively(root, PropertyPath.from("colleaguesLastname", User.class));
 
-		assertThat(root.getJoins(), hasSize(1));
+		assertThat(root.getJoins()).hasSize(1);
 	}
 
 	@Test // DATAJPA-476
@@ -156,7 +155,8 @@ public class QueryUtilsIntegrationTests {
 	}
 
 	@Test // DATAJPA-1080
-	public void sortByJoinColumn() {
+	public void toOrdersCanSortByJoinColumn() {
+
 		CriteriaBuilder builder = em.getCriteriaBuilder();
 		CriteriaQuery<User> query = builder.createQuery(User.class);
 		Root<User> root = query.from(User.class);
@@ -166,10 +166,11 @@ public class QueryUtilsIntegrationTests {
 
 		List<javax.persistence.criteria.Order> orders = QueryUtils.toOrders(sort, join, builder);
 
-		assertThat(orders, hasSize(1));
+		assertThat(orders).hasSize(1);
 	}
 
 	@Entity
+	@SuppressWarnings("unused")
 	static class Merchant {
 
 		@Id String id;
@@ -177,6 +178,7 @@ public class QueryUtilsIntegrationTests {
 	}
 
 	@Entity
+	@SuppressWarnings("unused")
 	static class Employee {
 
 		@Id String id;
@@ -184,6 +186,7 @@ public class QueryUtilsIntegrationTests {
 	}
 
 	@Entity
+	@SuppressWarnings("unused")
 	static class Credential {
 
 		@Id String id;
@@ -200,7 +203,7 @@ public class QueryUtilsIntegrationTests {
 
 		@Override
 		public List<PersistenceProvider> getPersistenceProviders() {
-			return Arrays.asList(HibernateTestUtils.getPersistenceProvider());
+			return singletonList(HibernateTestUtils.getPersistenceProvider());
 		}
 
 		@Override

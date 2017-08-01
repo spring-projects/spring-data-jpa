@@ -45,7 +45,6 @@ import javax.persistence.criteria.From;
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Path;
-import javax.persistence.criteria.Root;
 import javax.persistence.metamodel.Attribute;
 import javax.persistence.metamodel.Attribute.PersistentAttributeType;
 import javax.persistence.metamodel.Bindable;
@@ -210,11 +209,11 @@ public abstract class QueryUtils {
 	}
 
 	/**
-	 * Adds {@literal order by} clause to the JPQL query. Uses the {@link #DEFAULT_ALIAS} to bind the sorting property to.
+	 * Adds {@literal order by} clause to the JPQL query. Uses the first alias to bind the sorting property to.
 	 * 
-	 * @param query
-	 * @param sort
-	 * @return
+	 * @param query the query string to which sorting is applied
+	 * @param sort the sort specification to apply.
+	 * @return the modified query string.
 	 */
 	public static String applySorting(String query, Sort sort) {
 		return applySorting(query, sort, detectAlias(query));
@@ -223,10 +222,10 @@ public abstract class QueryUtils {
 	/**
 	 * Adds {@literal order by} clause to the JPQL query.
 	 * 
-	 * @param query must not be {@literal null} or empty.
-	 * @param sort
-	 * @param alias
-	 * @return
+	 * @param query the query string to which sorting is applied. Must not be {@literal null} or empty.
+	 * @param sort the sort specification to apply.
+	 * @param alias the alias to be used in the order by clause. Must not be {@literal null} or empty.
+	 * @return the modified query string.
 	 */
 	public static String applySorting(String query, Sort sort, String alias) {
 
@@ -483,9 +482,9 @@ public abstract class QueryUtils {
 	 * @param sort the {@link Sort} instance to be transformed into JPA {@link javax.persistence.criteria.Order}s.
 	 * @param from must not be {@literal null}.
 	 * @param cb must not be {@literal null}.
-	 * @return
+	 * @return a {@link List} of {@link javax.persistence.criteria.Order}s.
 	 */
-	public static List<javax.persistence.criteria.Order> toOrders(Sort sort, From<?,?> from, CriteriaBuilder cb) {
+	public static List<javax.persistence.criteria.Order> toOrders(Sort sort, From<?, ?> from, CriteriaBuilder cb) {
 
 		List<javax.persistence.criteria.Order> orders = new ArrayList<javax.persistence.criteria.Order>();
 
@@ -541,7 +540,7 @@ public abstract class QueryUtils {
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
-	private static javax.persistence.criteria.Order toJpaOrder(Order order, From<?,?> from, CriteriaBuilder cb) {
+	private static javax.persistence.criteria.Order toJpaOrder(Order order, From<?, ?> from, CriteriaBuilder cb) {
 
 		PropertyPath property = PropertyPath.from(order.getProperty(), from.getJavaType());
 		Expression<?> expression = toExpressionRecursively(from, property);
@@ -586,7 +585,7 @@ public abstract class QueryUtils {
 	 * non-optional association.
 	 * 
 	 * @param propertyPathModel must not be {@literal null}.
-	 * @param for
+	 * @param forPluralAttribute
 	 * @return
 	 */
 	private static boolean requiresJoin(Bindable<?> propertyPathModel, boolean forPluralAttribute) {
