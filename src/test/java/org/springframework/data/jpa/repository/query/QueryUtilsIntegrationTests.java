@@ -17,6 +17,7 @@ package org.springframework.data.jpa.repository.query;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
+import static java.util.Collections.*;
 import static org.mockito.Mockito.*;
 
 import java.util.Arrays;
@@ -156,7 +157,8 @@ public class QueryUtilsIntegrationTests {
 	}
 
 	@Test // DATAJPA-1080
-	public void sortByJoinColumn() {
+	public void toOrdersCanSortByJoinColumn() {
+
 		CriteriaBuilder builder = em.getCriteriaBuilder();
 		CriteriaQuery<User> query = builder.createQuery(User.class);
 		Root<User> root = query.from(User.class);
@@ -170,6 +172,7 @@ public class QueryUtilsIntegrationTests {
 	}
 
 	@Entity
+	@SuppressWarnings("unused")
 	static class Merchant {
 
 		@Id String id;
@@ -177,6 +180,7 @@ public class QueryUtilsIntegrationTests {
 	}
 
 	@Entity
+	@SuppressWarnings("unused")
 	static class Employee {
 
 		@Id String id;
@@ -184,6 +188,7 @@ public class QueryUtilsIntegrationTests {
 	}
 
 	@Entity
+	@SuppressWarnings("unused")
 	static class Credential {
 
 		@Id String id;
@@ -200,7 +205,7 @@ public class QueryUtilsIntegrationTests {
 
 		@Override
 		public List<PersistenceProvider> getPersistenceProviders() {
-			return Arrays.asList(HibernateTestUtils.getPersistenceProvider());
+			return singletonList(HibernateTestUtils.getPersistenceProvider());
 		}
 
 		@Override
