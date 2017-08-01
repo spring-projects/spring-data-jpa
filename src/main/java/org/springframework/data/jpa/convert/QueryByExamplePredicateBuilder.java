@@ -17,10 +17,10 @@ package org.springframework.data.jpa.convert;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.From;
@@ -31,7 +31,6 @@ import javax.persistence.metamodel.Attribute;
 import javax.persistence.metamodel.Attribute.PersistentAttributeType;
 import javax.persistence.metamodel.ManagedType;
 import javax.persistence.metamodel.SingularAttribute;
-
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
@@ -176,7 +175,32 @@ public class QueryByExamplePredicateBuilder {
 						throw new IllegalArgumentException(
 								"Unsupported StringMatcher " + exampleAccessor.getStringMatcherForPath(currentPath));
 				}
-			} else {
+			} else if(attribute.getJavaType().equals(Date.class)) {
+                            Expression<Date> expression = from.get(attribute);
+                            
+                            switch (exampleAccessor.getDateMatcherForPath(currentPath)) {
+                                case DEFAULT:
+                                case EQUALS:
+                                    predicates.add(cb.equal(expression, attributeValue));
+                                    break;
+                                case GREATHERTHAN:
+                                    predicates.add(cb.greaterThan(expression, (Date) attributeValue));
+                                    break;
+                                case GREATHERTHANEQUAL:
+                                    predicates.add(cb.greaterThanOrEqualTo(expression, (Date) attributeValue));
+                                    break;
+                                case LESSTHAN:    
+                                    predicates.add(cb.lessThan(expression, (Date) attributeValue));
+                                    break;
+                                case LESSTHANEQUAL:    
+                                    predicates.add(cb.lessThanOrEqualTo(expression, (Date) attributeValue));
+                                    break;
+                                default:
+					throw new IllegalArgumentException(
+							"Unsupported StringMatcher " + exampleAccessor.getDateMatcherForPath(currentPath));            
+                                
+                            }
+                        } else {
 				predicates.add(cb.equal(from.get(attribute), attributeValue));
 			}
 		}

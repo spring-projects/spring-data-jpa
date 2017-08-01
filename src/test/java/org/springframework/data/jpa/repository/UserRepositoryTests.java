@@ -15,24 +15,19 @@
  */
 package org.springframework.data.jpa.repository;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.springframework.data.domain.Example.*;
-import static org.springframework.data.domain.ExampleMatcher.*;
-import static org.springframework.data.domain.Sort.Direction.*;
-import static org.springframework.data.jpa.domain.Specifications.*;
-import static org.springframework.data.jpa.domain.Specifications.not;
-import static org.springframework.data.jpa.domain.sample.UserSpecifications.*;
-
+import com.google.common.base.Optional;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.GregorianCalendar;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
-
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
@@ -40,7 +35,7 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-
+import static org.assertj.core.api.Assertions.*;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -50,7 +45,10 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Example;
+import static org.springframework.data.domain.Example.*;
 import org.springframework.data.domain.ExampleMatcher;
+import static org.springframework.data.domain.ExampleMatcher.*;
+import org.springframework.data.domain.ExampleMatcher.DateMatcher;
 import org.springframework.data.domain.ExampleMatcher.GenericPropertyMatcher;
 import org.springframework.data.domain.ExampleMatcher.StringMatcher;
 import org.springframework.data.domain.Page;
@@ -60,19 +58,20 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
+import static org.springframework.data.domain.Sort.Direction.*;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.jpa.domain.Specification;
+import static org.springframework.data.jpa.domain.Specifications.*;
 import org.springframework.data.jpa.domain.sample.Address;
 import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.domain.sample.SpecialUser;
 import org.springframework.data.jpa.domain.sample.User;
+import static org.springframework.data.jpa.domain.sample.UserSpecifications.*;
 import org.springframework.data.jpa.repository.sample.SampleEvaluationContextExtension.SampleSecurityContextHolder;
 import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
-
-import com.google.common.base.Optional;
 
 /**
  * Base integration test class for {@code UserRepository}. Loads a basic (non-namespace) Spring configuration file as
@@ -101,21 +100,29 @@ public class UserRepositoryTests {
 	User firstUser, secondUser, thirdUser, fourthUser;
 	Integer id;
 	Role adminRole;
+        LocalDate birthdate;
 
 	@Before
 	public void setUp() throws Exception {
 
 		firstUser = new User("Oliver", "Gierke", "gierke@synyx.de");
 		firstUser.setAge(28);
+                Calendar calendarFirst = new GregorianCalendar(1980, 7, 1);
+                firstUser.setDateOfBirth(calendarFirst.getTime());
 		secondUser = new User("Joachim", "Arrasz", "arrasz@synyx.de");
 		secondUser.setAge(35);
+                Calendar calendarSecond = new GregorianCalendar(1982, 7, 1);
+                secondUser.setDateOfBirth(calendarSecond.getTime());
 		Thread.sleep(10);
 		thirdUser = new User("Dave", "Matthews", "no@email.com");
 		thirdUser.setAge(43);
+                Calendar calendarthird = new GregorianCalendar(1974, 7, 1);
+                thirdUser.setDateOfBirth(calendarthird.getTime());
 		fourthUser = new User("kevin", "raymond", "no@gmail.com");
 		fourthUser.setAge(31);
+                 Calendar calendarfourth = new GregorianCalendar(1986, 7, 1);
+                fourthUser.setDateOfBirth(calendarfourth.getTime());
 		adminRole = new Role("admin");
-
 		SampleSecurityContextHolder.clear();
 	}
 
@@ -2054,6 +2061,23 @@ public class UserRepositoryTests {
 		assertThat(result.getContent().get(0)).isEqualTo(thirdUser);
 	}
 
+        @Test
+        public void findAllByExampleWithDateMatcher(){
+                flushTestUsers();
+
+		User prototype = new User();
+                
+                Calendar calendar = new GregorianCalendar(2017, 7, 1);
+                prototype.setDateOfBirth(calendar.getTime());
+                
+                Example<User> example = Example.of(prototype, matching().withIgnorePaths("active", "age", "createdAt").withDateMatcher(DateMatcher.LESSTHAN));
+                
+                List<User> users = repository.findAll(example);
+                
+                assertThat(users).hasSize(4);
+                
+        }
+        
 	private Page<User> executeSpecWithSort(Sort sort) {
 
 		flushTestUsers();
