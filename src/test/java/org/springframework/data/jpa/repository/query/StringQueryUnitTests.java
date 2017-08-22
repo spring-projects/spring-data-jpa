@@ -26,12 +26,11 @@ import org.junit.rules.ExpectedException;
 import org.springframework.data.jpa.repository.query.StringQuery.InParameterBinding;
 import org.springframework.data.jpa.repository.query.StringQuery.LikeParameterBinding;
 import org.springframework.data.jpa.repository.query.StringQuery.ParameterBinding;
-import org.springframework.data.repository.query.Param;
 import org.springframework.data.repository.query.parser.Part.Type;
 
 /**
  * Unit tests for {@link StringQuery}.
- * 
+ *
  * @author Oliver Gierke
  * @author Thomas Darimont
  */
@@ -281,7 +280,8 @@ public class StringQueryUnitTests {
 	}
 
 	/**
-	 * @see <a href="download.oracle.com/otn-pub/jcp/persistence-2_1-fr-eval-spec/JavaPersistence.pdf">JPA 2.1 specification, section 4.8</a>
+	 * @see <a href="download.oracle.com/otn-pub/jcp/persistence-2_1-fr-eval-spec/JavaPersistence.pdf">JPA 2.1
+	 *      specification, section 4.8</a>
 	 */
 	@Test // DATAJPA-886
 	public void detectsConstructorExpressionForDefaultConstructor() {

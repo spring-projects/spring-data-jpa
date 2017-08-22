@@ -22,7 +22,6 @@ import static org.mockito.Mockito.*;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 import javax.persistence.EntityManager;
 import javax.persistence.metamodel.Metamodel;

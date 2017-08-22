@@ -32,6 +32,7 @@ import org.springframework.data.querydsl.QSort;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import org.springframework.data.querydsl.SimpleEntityPathResolver;
 import org.springframework.data.repository.support.PageableExecutionUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 import com.querydsl.core.NonUniqueResultException;
@@ -160,7 +161,7 @@ public class QuerydslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 		final JPQLQuery<?> countQuery = createCountQuery(predicate);
 		JPQLQuery<T> query = querydsl.applyPagination(pageable, createQuery(predicate).select(path));
 
-		return PageableExecutionUtils.getPage(query.fetch(), pageable, () -> countQuery.fetchCount());
+		return PageableExecutionUtils.getPage(query.fetch(), pageable, countQuery::fetchCount);
 	}
 
 	/*
@@ -207,13 +208,17 @@ public class QuerydslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 	 * @param predicate, can be {@literal null}.
 	 * @return the Querydsl count {@link JPQLQuery}.
 	 */
-	protected JPQLQuery<?> createCountQuery(Predicate... predicate) {
+	protected JPQLQuery<?> createCountQuery(@Nullable Predicate... predicate) {
 		return doCreateQuery(getQueryHints(), predicate);
 	}
 
-	private AbstractJPAQuery<?, ?> doCreateQuery(QueryHints hints, Predicate... predicate) {
+	private AbstractJPAQuery<?, ?> doCreateQuery(QueryHints hints, @Nullable Predicate... predicate) {
 
-		AbstractJPAQuery<?, ?> query = querydsl.createQuery(path).where(predicate);
+		AbstractJPAQuery<?, ?> query = querydsl.createQuery(path);
+
+		if (predicate != null) {
+			query = query.where(predicate);
+		}
 
 		for (Entry<String, Object> hint : hints) {
 			query.setHint(hint.getKey(), hint.getValue());

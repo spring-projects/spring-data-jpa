@@ -24,12 +24,14 @@ import javax.persistence.criteria.Root;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.repository.query.parser.PartTree;
+import org.springframework.lang.Nullable;
 
 /**
  * Special {@link JpaQueryCreator} that creates a count projecting query.
  * 
  * @author Oliver Gierke
  * @author Marc Lefrançois
+ * @author Mark Paluch
  */
 public class JpaCountQueryCreator extends JpaQueryCreator {
 
@@ -61,7 +63,7 @@ public class JpaCountQueryCreator extends JpaQueryCreator {
 	 */
 	@Override
 	@SuppressWarnings("unchecked")
-	protected CriteriaQuery<? extends Object> complete(Predicate predicate, Sort sort,
+	protected CriteriaQuery<? extends Object> complete(@Nullable Predicate predicate, Sort sort,
 			CriteriaQuery<? extends Object> query, CriteriaBuilder builder, Root<?> root) {
 
 		CriteriaQuery<? extends Object> select = query.select(getCountQuery(query, builder, root));

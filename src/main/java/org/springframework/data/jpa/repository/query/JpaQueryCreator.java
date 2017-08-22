@@ -42,14 +42,16 @@ import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 import org.springframework.data.repository.query.parser.Part;
 import org.springframework.data.repository.query.parser.Part.Type;
 import org.springframework.data.repository.query.parser.PartTree;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
  * Query creator to create a {@link CriteriaQuery} from a {@link PartTree}.
- * 
+ *
  * @author Oliver Gierke
  * @author Mark Paluch
  * @author Michael Cramer
+ * @author Mark Paluch
  */
 public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extends Object>, Predicate> {
 
@@ -62,7 +64,7 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extend
 
 	/**
 	 * Create a new {@link JpaQueryCreator}.
-	 * 
+	 *
 	 * @param tree must not be {@literal null}.
 	 * @param type must not be {@literal null}.
 	 * @param builder must not be {@literal null}.
@@ -85,7 +87,7 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extend
 
 	/**
 	 * Creates the {@link CriteriaQuery} to apply predicates on.
-	 * 
+	 *
 	 * @param builder will never be {@literal null}.
 	 * @param type will never be {@literal null}.
 	 * @return must not be {@literal null}.
@@ -100,7 +102,7 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extend
 
 	/**
 	 * Returns all {@link javax.persistence.criteria.ParameterExpression} created when creating the query.
-	 * 
+	 *
 	 * @return the parameterExpressions
 	 */
 	public List<ParameterMetadata<?>> getParameterExpressions() {
@@ -148,7 +150,7 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extend
 	/**
 	 * Template method to finalize the given {@link Predicate} using the given {@link CriteriaQuery} and
 	 * {@link CriteriaBuilder}.
-	 * 
+	 *
 	 * @param predicate
 	 * @param sort
 	 * @param query
@@ -156,12 +158,12 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extend
 	 * @return
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	protected CriteriaQuery<? extends Object> complete(Predicate predicate, Sort sort,
+	protected CriteriaQuery<? extends Object> complete(@Nullable Predicate predicate, Sort sort,
 			CriteriaQuery<? extends Object> query, CriteriaBuilder builder, Root<?> root) {
 
 		if (returnedType.needsCustomConstruction()) {
 
-			List<Selection<?>> selections = new ArrayList<Selection<?>>();
+			List<Selection<?>> selections = new ArrayList<>();
 
 			for (String property : returnedType.getInputProperties()) {
 
@@ -207,7 +209,7 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extend
 
 	/**
 	 * Simple builder to contain logic to create JPA {@link Predicate}s from {@link Part}s.
-	 * 
+	 *
 	 * @author Phil Webb
 	 * @author Oliver Gierke
 	 */
@@ -219,7 +221,7 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extend
 
 		/**
 		 * Creates a new {@link PredicateBuilder} for the given {@link Part} and {@link Root}.
-		 * 
+		 *
 		 * @param part must not be {@literal null}.
 		 * @param root must not be {@literal null}.
 		 */
@@ -233,7 +235,7 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extend
 
 		/**
 		 * Builds a JPA {@link Predicate} from the underlying {@link Part}.
-		 * 
+		 *
 		 * @return
 		 */
 		public Predicate build() {
@@ -331,7 +333,7 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extend
 		/**
 		 * Applies an {@code UPPERCASE} conversion to the given {@link Expression} in case the underlying {@link Part}
 		 * requires ignoring case.
-		 * 
+		 *
 		 * @param expression must not be {@literal null}.
 		 * @return
 		 */
@@ -364,7 +366,7 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extend
 
 		/**
 		 * Returns a path to a {@link Comparable}.
-		 * 
+		 *
 		 * @param root
 		 * @param part
 		 * @return

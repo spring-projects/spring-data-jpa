@@ -19,9 +19,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import javax.persistence.IdClass;
+import javax.persistence.metamodel.Attribute;
 import javax.persistence.metamodel.EntityType;
 import javax.persistence.metamodel.IdentifiableType;
 import javax.persistence.metamodel.ManagedType;
@@ -34,6 +36,7 @@ import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.data.util.DirectFieldAccessFallbackBeanWrapper;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
@@ -49,9 +52,9 @@ import org.springframework.util.ClassUtils;
 public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSupport<T, ID> {
 
 	private final IdMetadata<T> idMetadata;
-	private final SingularAttribute<? super T, ?> versionAttribute;
+	private final Optional<SingularAttribute<? super T, ?>> versionAttribute;
 	private final Metamodel metamodel;
-	private final String entityName;
+	private final @Nullable String entityName;
 
 	/**
 	 * Creates a new {@link JpaMetamodelEntityInformation} for the given domain class and {@link Metamodel}.
@@ -101,11 +104,11 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
-	private static <T> SingularAttribute<? super T, ?> findVersionAttribute(IdentifiableType<T> type,
+	private static <T> Optional<SingularAttribute<? super T, ?>> findVersionAttribute(IdentifiableType<T> type,
 			Metamodel metamodel) {
 
 		try {
-			return type.getVersion(Object.class);
+			return Optional.ofNullable(type.getVersion(Object.class));
 		} catch (IllegalArgumentException o_O) {
 			// Needs workarounds as the method is implemented with a strict type check on e.g. Hibernate < 4.3
 		}
@@ -114,7 +117,7 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 
 		for (SingularAttribute<? super T, ?> attribute : attributes) {
 			if (attribute.isVersion()) {
-				return attribute;
+				return Optional.of(attribute);
 			}
 		}
 
@@ -125,13 +128,13 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 			ManagedType<?> managedSuperType = metamodel.managedType(superType);
 
 			if (!(managedSuperType instanceof IdentifiableType)) {
-				return null;
+				return Optional.empty();
 			}
 
-			return (SingularAttribute<? super T, ?>) findVersionAttribute((IdentifiableType<T>) managedSuperType, metamodel);
+			return findVersionAttribute((IdentifiableType<T>) managedSuperType, metamodel);
 
 		} catch (IllegalArgumentException o_O) {
-			return null;
+			return Optional.empty();
 		}
 	}
 
@@ -139,6 +142,7 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.core.EntityInformation#getId(java.lang.Object)
 	 */
+	@Nullable
 	@SuppressWarnings("unchecked")
 	public ID getId(T entity) {
 
@@ -222,14 +226,14 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 	@Override
 	public boolean isNew(T entity) {
 
-		if (versionAttribute == null || versionAttribute.getJavaType().isPrimitive()) {
+		if (!versionAttribute.isPresent()
+				|| versionAttribute.map(Attribute::getJavaType).map(Class::isPrimitive).orElse(false)) {
 			return super.isNew(entity);
 		}
 
 		BeanWrapper wrapper = new DirectFieldAccessFallbackBeanWrapper(entity);
-		Object versionValue = wrapper.getPropertyValue(versionAttribute.getName());
 
-		return versionValue == null;
+		return versionAttribute.map(it -> wrapper.getPropertyValue(it.getName()) == null).orElse(true);
 	}
 
 	/**
@@ -242,14 +246,15 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 
 		private final IdentifiableType<T> type;
 		private final Set<SingularAttribute<? super T, ?>> attributes;
-		private Class<?> idType;
+		private @Nullable Class<?> idType;
 
 		@SuppressWarnings("unchecked")
 		public IdMetadata(IdentifiableType<T> source) {
 
 			this.type = source;
 			this.attributes = (Set<SingularAttribute<? super T, ?>>) (source.hasSingleIdAttribute()
-					? Collections.singleton(source.getId(source.getIdType().getJavaType())) : source.getIdClassAttributes());
+					? Collections.singleton(source.getId(source.getIdType().getJavaType()))
+					: source.getIdClassAttributes());
 		}
 
 		public boolean hasSimpleId() {
@@ -265,9 +270,14 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 			// lazy initialization of idType field with tolerable benign data-race
 			this.idType = tryExtractIdTypeWithFallbackToIdTypeLookup();
 
+			if (this.idType == null) {
+				throw new IllegalStateException("Cannot resolve Id type from " + type);
+			}
+
 			return this.idType;
 		}
 
+		@Nullable
 		private Class<?> tryExtractIdTypeWithFallbackToIdTypeLookup() {
 
 			try {
@@ -279,6 +289,7 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 			}
 		}
 
+		@Nullable
 		private static Class<?> fallbackIdTypeLookup(IdentifiableType<?> type) {
 
 			IdClass annotation = AnnotationUtils.findAnnotation(type.getJavaType(), IdClass.class);
@@ -309,7 +320,7 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 
 		private final Metamodel metamodel;
 
-		public IdentifierDerivingDirectFieldAccessFallbackBeanWrapper(Class<?> type, Metamodel metamodel) {
+		IdentifierDerivingDirectFieldAccessFallbackBeanWrapper(Class<?> type, Metamodel metamodel) {
 			super(type);
 			this.metamodel = metamodel;
 		}
@@ -320,7 +331,7 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 		 */
 		@Override
 		@SuppressWarnings("unchecked")
-		public void setPropertyValue(String propertyName, Object value) {
+		public void setPropertyValue(String propertyName, @Nullable Object value) {
 
 			if (!isIdentifierDerivationNecessary(value)) {
 				super.setPropertyValue(propertyName, value);
@@ -335,7 +346,7 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 			if (!nestedEntityInformation.getJavaType().isAnnotationPresent(IdClass.class)) {
 
 				Object nestedIdPropertyValue = new DirectFieldAccessFallbackBeanWrapper(value)
-						.getPropertyValue(nestedEntityInformation.getIdAttribute().getName());
+						.getPropertyValue(nestedEntityInformation.getRequiredIdAttribute().getName());
 				super.setPropertyValue(propertyName, nestedIdPropertyValue);
 				return;
 			}
@@ -354,6 +365,7 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 			super.setPropertyValue(propertyName, targetIdClassTypeWrapper.getWrappedInstance());
 		}
 
+		@Nullable
 		private Object extractActualIdPropertyValue(BeanWrapper sourceIdValueWrapper, String idAttributeName) {
 
 			Object idPropertyValue = sourceIdValueWrapper.getPropertyValue(idAttributeName);
@@ -391,7 +403,7 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 		 * @return {@literal true} if the given value is not {@literal null} and a mapped persistable entity otherwise
 		 *         {@literal false}
 		 */
-		private boolean isIdentifierDerivationNecessary(Object value) {
+		private boolean isIdentifierDerivationNecessary(@Nullable Object value) {
 
 			if (value == null) {
 				return false;

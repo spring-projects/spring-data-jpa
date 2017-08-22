@@ -22,6 +22,7 @@ import java.util.Optional;
 import javax.persistence.LockModeType;
 
 import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.lang.Nullable;
 
 /**
  * Interface to abstract {@link CrudMethodMetadata} that provide the {@link LockModeType} to be used for query
@@ -30,6 +31,7 @@ import org.springframework.data.jpa.repository.EntityGraph;
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 public interface CrudMethodMetadata {
 
@@ -38,6 +40,7 @@ public interface CrudMethodMetadata {
 	 * 
 	 * @return
 	 */
+	@Nullable
 	LockModeType getLockModeType();
 
 	/**

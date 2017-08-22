@@ -63,7 +63,7 @@ public class ParameterBinder {
 	 * Binds the parameters to the given query and applies special parameter types (e.g. pagination).
 	 *
 	 * @param query must not be {@literal null}.
-	 * @param values values of method parameters to be assigned to the query parame
+	 * @param values values of method parameters to be assigned to the query parameters.
 	 */
 	Query bindAndPrepare(Query query, Object[] values) {
 

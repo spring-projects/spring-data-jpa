@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2016 the original author or authors.
+ * Copyright 2008-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,13 +28,15 @@ import org.springframework.data.repository.query.EvaluationContextProvider;
 import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.data.repository.query.QueryLookupStrategy.Key;
 import org.springframework.data.repository.query.RepositoryQuery;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
  * Query lookup strategy to execute finders.
- * 
+ *
  * @author Oliver Gierke
  * @author Thomas Darimont
+ * @author Mark Paluch
  */
 public final class JpaQueryLookupStrategy {
 
@@ -45,7 +47,7 @@ public final class JpaQueryLookupStrategy {
 
 	/**
 	 * Base class for {@link QueryLookupStrategy} implementations that need access to an {@link EntityManager}.
-	 * 
+	 *
 	 * @author Oliver Gierke
 	 * @author Thomas Darimont
 	 */
@@ -56,7 +58,7 @@ public final class JpaQueryLookupStrategy {
 
 		/**
 		 * Creates a new {@link AbstractQueryLookupStrategy}.
-		 * 
+		 *
 		 * @param em
 		 * @param extractor
 		 * @param evaluationContextProvider
@@ -67,7 +69,7 @@ public final class JpaQueryLookupStrategy {
 			this.provider = extractor;
 		}
 
-		/* 
+		/*
 		 * (non-Javadoc)
 		 * @see org.springframework.data.repository.query.QueryLookupStrategy#resolveQuery(java.lang.reflect.Method, org.springframework.data.repository.core.RepositoryMetadata, org.springframework.data.projection.ProjectionFactory, org.springframework.data.repository.core.NamedQueries)
 		 */
@@ -82,7 +84,7 @@ public final class JpaQueryLookupStrategy {
 
 	/**
 	 * {@link QueryLookupStrategy} to create a query from the method name.
-	 * 
+	 *
 	 * @author Oliver Gierke
 	 * @author Thomas Darimont
 	 */
@@ -112,7 +114,7 @@ public final class JpaQueryLookupStrategy {
 	/**
 	 * {@link QueryLookupStrategy} that tries to detect a declared query declared via {@link Query} annotation followed by
 	 * a JPA named query lookup.
-	 * 
+	 *
 	 * @author Oliver Gierke
 	 * @author Thomas Darimont
 	 */
@@ -122,7 +124,7 @@ public final class JpaQueryLookupStrategy {
 
 		/**
 		 * Creates a new {@link DeclaredQueryLookupStrategy}.
-		 * 
+		 *
 		 * @param em
 		 * @param extractor
 		 * @param evaluationContextProvider
@@ -174,7 +176,7 @@ public final class JpaQueryLookupStrategy {
 	 * {@link QueryLookupStrategy} to try to detect a declared query first (
 	 * {@link org.springframework.data.jpa.repository.Query}, JPA named query). In case none is found we fall back on
 	 * query creation.
-	 * 
+	 *
 	 * @author Oliver Gierke
 	 * @author Thomas Darimont
 	 */
@@ -185,7 +187,7 @@ public final class JpaQueryLookupStrategy {
 
 		/**
 		 * Creates a new {@link CreateIfNotFoundQueryLookupStrategy}.
-		 * 
+		 *
 		 * @param em
 		 * @param extractor
 		 * @param createStrategy
@@ -218,14 +220,14 @@ public final class JpaQueryLookupStrategy {
 
 	/**
 	 * Creates a {@link QueryLookupStrategy} for the given {@link EntityManager} and {@link Key}.
-	 * 
+	 *
 	 * @param em must not be {@literal null}.
 	 * @param key may be {@literal null}.
 	 * @param extractor must not be {@literal null}.
 	 * @param evaluationContextProvider must not be {@literal null}.
 	 * @return
 	 */
-	public static QueryLookupStrategy create(EntityManager em, Key key, QueryExtractor extractor,
+	public static QueryLookupStrategy create(EntityManager em, @Nullable Key key, QueryExtractor extractor,
 			EvaluationContextProvider evaluationContextProvider) {
 
 		Assert.notNull(em, "EntityManager must not be null!");

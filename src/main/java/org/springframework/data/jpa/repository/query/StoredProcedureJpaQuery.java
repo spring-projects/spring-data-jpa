@@ -24,6 +24,7 @@ import javax.persistence.TypedQuery;
 import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.QueryMethod;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -35,6 +36,7 @@ import org.springframework.util.StringUtils;
  * @author Oliver Gierke
  * @author Christoph Strobl
  * @author Jens Schauder
+ * @author Mark Paluch
  * @since 1.6
  */
 class StoredProcedureJpaQuery extends AbstractJpaQuery {
@@ -96,7 +98,7 @@ class StoredProcedureJpaQuery extends AbstractJpaQuery {
 	 */
 	@Override
 	protected TypedQuery<Long> doCreateCountQuery(Object[] values) {
-		return null;
+		throw new UnsupportedOperationException("StoredProcedureQuery does not support count queries!");
 	}
 
 	/**
@@ -104,6 +106,7 @@ class StoredProcedureJpaQuery extends AbstractJpaQuery {
 	 * 
 	 * @param storedProcedureQuery must not be {@literal null}.
 	 */
+	@Nullable
 	Object extractOutputValue(StoredProcedureQuery storedProcedureQuery) {
 
 		Assert.notNull(storedProcedureQuery, "StoredProcedureQuery must not be null!");

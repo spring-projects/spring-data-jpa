@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 the original author or authors.
+ * Copyright 2011-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,12 +19,14 @@ import javax.persistence.metamodel.SingularAttribute;
 
 import org.springframework.data.jpa.repository.query.JpaEntityMetadata;
 import org.springframework.data.repository.core.EntityInformation;
+import org.springframework.lang.Nullable;
 
 /**
  * Extension of {@link EntityInformation} to capture additional JPA specific information about entities.
  * 
  * @author Oliver Gierke
  * @author Thomas Darimont
+ * @author Mark Paluch
  */
 public interface JpaEntityInformation<T, ID> extends EntityInformation<T, ID>, JpaEntityMetadata<T> {
 
@@ -33,7 +35,27 @@ public interface JpaEntityInformation<T, ID> extends EntityInformation<T, ID>, J
 	 * 
 	 * @return
 	 */
+	@Nullable
 	SingularAttribute<? super T, ?> getIdAttribute();
+
+	/**
+	 * Returns the required identifier type.
+	 *
+	 * @return the identifier type.
+	 * @throws IllegalArgumentException in case no id type could be obtained.
+	 * @since 2.0
+	 */
+	default SingularAttribute<? super T, ?> getRequiredIdAttribute() throws IllegalArgumentException {
+
+		SingularAttribute<? super T, ?> id = getIdAttribute();
+
+		if (id != null) {
+			return id;
+		}
+
+		throw new IllegalArgumentException(
+				String.format("Could not obtain required identifier attribute for type %s!", getEntityName()));
+	}
 
 	/**
 	 * Returns {@literal true} if the entity has a composite id.
@@ -57,5 +79,6 @@ public interface JpaEntityInformation<T, ID> extends EntityInformation<T, ID>, J
 	 * @param idAttribute
 	 * @return
 	 */
+	@Nullable
 	Object getCompositeIdAttributeValue(Object id, String idAttribute);
 }

@@ -25,12 +25,14 @@ import org.springframework.data.jpa.provider.QueryExtractor;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.QueryCreationException;
 import org.springframework.data.repository.query.RepositoryQuery;
+import org.springframework.lang.Nullable;
 
 /**
  * Implementation of {@link RepositoryQuery} based on {@link javax.persistence.NamedQuery}s.
  * 
  * @author Oliver Gierke
  * @author Thomas Darimont
+ * @author Mark Paluch
  */
 final class NamedQuery extends AbstractJpaQuery {
 
@@ -43,7 +45,7 @@ final class NamedQuery extends AbstractJpaQuery {
 
 	private final String queryName;
 	private final String countQueryName;
-	private final String countProjection;
+	private final @Nullable String countProjection;
 	private final QueryExtractor extractor;
 	private final boolean namedCountQueryIsPresent;
 
@@ -112,6 +114,7 @@ final class NamedQuery extends AbstractJpaQuery {
 	 * @param method
 	 * @return
 	 */
+	@Nullable
 	public static RepositoryQuery lookupFrom(JpaQueryMethod method, EntityManager em) {
 
 		final String queryName = method.getNamedQueryName();
@@ -157,6 +160,11 @@ final class NamedQuery extends AbstractJpaQuery {
 		} else {
 			Query query = createQuery(values);
 			String queryString = extractor.extractQueryString(query);
+
+			if (queryString == null) {
+				throw new IllegalStateException(String.format("Cannot extract query string for query %s is null!", query));
+			}
+
 			countQuery = em.createQuery(QueryUtils.createCountQueryFor(queryString, countProjection), Long.class);
 		}
 

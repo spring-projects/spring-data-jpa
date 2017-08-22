@@ -27,6 +27,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.springframework.data.repository.query.parser.Part.Type;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
@@ -47,7 +48,7 @@ class StringQuery {
 
 	private final String query;
 	private final List<ParameterBinding> bindings;
-	private final String alias;
+	private final @Nullable String alias;
 	private final boolean hasConstructorExpression;
 
 	/**
@@ -83,7 +84,7 @@ class StringQuery {
 	/**
 	 * Returns the query string.
 	 */
-	public String getQueryString() {
+	String getQueryString() {
 		return query;
 	}
 
@@ -92,6 +93,7 @@ class StringQuery {
 	 * 
 	 * @return the alias
 	 */
+	@Nullable
 	String getAlias() {
 		return alias;
 	}
@@ -287,9 +289,9 @@ class StringQuery {
 			// character, while = does not.
 			LIKE("like "), IN("in "), AS_IS(null);
 
-			private final String keyword;
+			private final @Nullable String keyword;
 
-			ParameterBindingType(String keyword) {
+			ParameterBindingType(@Nullable String keyword) {
 				this.keyword = keyword;
 			}
 
@@ -299,6 +301,7 @@ class StringQuery {
 			 * 
 			 * @return the keyword
 			 */
+			@Nullable
 			public String getKeyword() {
 				return keyword;
 			}
@@ -331,9 +334,9 @@ class StringQuery {
 	 */
 	static class ParameterBinding {
 
-		private final String name;
-		private final String expression;
-		private final Integer position;
+		private final @Nullable String name;
+		private final @Nullable String expression;
+		private final @Nullable Integer position;
 
 		/**
 		 * Creates a new {@link ParameterBinding} for the parameter with the given position.
@@ -352,7 +355,7 @@ class StringQuery {
 		 * @param position of the parameter may be {@literal null}.
 		 * @param expression the expression to apply to any value for this parameter.
 		 */
-		ParameterBinding(String name, Integer position, String expression) {
+		ParameterBinding(@Nullable String name, @Nullable Integer position, @Nullable String expression) {
 
 			if (name == null) {
 				Assert.notNull(position, "Position must not be null!");
@@ -371,7 +374,7 @@ class StringQuery {
 		 * Returns whether the binding has the given name. Will always be {@literal false} in case the
 		 * {@link ParameterBinding} has been set up from a position.
 		 */
-		boolean hasName(String name) {
+		boolean hasName(@Nullable String name) {
 			return this.position == null && this.name != null && this.name.equals(name);
 		}
 
@@ -379,22 +382,56 @@ class StringQuery {
 		 * Returns whether the binding has the given position. Will always be {@literal false} in case the
 		 * {@link ParameterBinding} has been set up from a name.
 		 */
-		boolean hasPosition(Integer position) {
+		boolean hasPosition(@Nullable Integer position) {
 			return position != null && this.name == null && position.equals(this.position);
 		}
 
 		/**
 		 * @return the name
 		 */
+		@Nullable
 		public String getName() {
 			return name;
 		}
 
 		/**
+		 * @return the name
+		 * @throws IllegalStateException if the name is not available.
+		 * @since 2.0
+		 */
+		String getRequiredName() throws IllegalStateException {
+
+			String name = getName();
+
+			if (name != null) {
+				return name;
+			}
+
+			throw new IllegalStateException(String.format("Required name for %s not available!", this));
+		}
+
+		/**
 		 * @return the position
 		 */
+		@Nullable
 		Integer getPosition() {
 			return position;
+		}
+
+		/**
+		 * @return the position
+		 * @throws IllegalStateException if the position is not available.
+		 * @since 2.0
+		 */
+		int getRequiredPosition() throws IllegalStateException {
+
+			Integer position = getPosition();
+
+			if (position != null) {
+				return position;
+			}
+
+			throw new IllegalStateException(String.format("Required position for %s not available!", this));
 		}
 
 		/**
@@ -450,10 +487,12 @@ class StringQuery {
 		/**
 		 * @param valueToBind value to prepare
 		 */
-		public Object prepare(Object valueToBind) {
+		@Nullable
+		public Object prepare(@Nullable Object valueToBind) {
 			return valueToBind;
 		}
 
+		@Nullable
 		public String getExpression() {
 			return expression;
 		}
@@ -470,14 +509,14 @@ class StringQuery {
 		/**
 		 * Creates a new {@link InParameterBinding} for the parameter with the given name.
 		 */
-		InParameterBinding(String name, String expression) {
+		InParameterBinding(String name, @Nullable String expression) {
 			super(name, null, expression);
 		}
 
 		/**
 		 * Creates a new {@link InParameterBinding} for the parameter with the given position.
 		 */
-		InParameterBinding(int position, String expression) {
+		InParameterBinding(int position, @Nullable String expression) {
 			super(null, position, expression);
 		}
 
@@ -486,7 +525,7 @@ class StringQuery {
 		 * @see org.springframework.data.jpa.repository.query.StringQuery.ParameterBinding#prepare(java.lang.Object)
 		 */
 		@Override
-		public Object prepare(Object value) {
+		public Object prepare(@Nullable Object value) {
 
 			if (!ObjectUtils.isArray(value)) {
 				return value;
@@ -535,7 +574,7 @@ class StringQuery {
 		 * @param type must not be {@literal null}.
 		 * @param expression may be {@literal null}.
 		 */
-		LikeParameterBinding(String name, Type type, String expression) {
+		LikeParameterBinding(String name, Type type, @Nullable String expression) {
 
 			super(name, null, expression);
 
@@ -565,7 +604,7 @@ class StringQuery {
 		 * @param type must not be {@literal null}.
 		 * @param expression may be {@literal null}.
 		 */
-		LikeParameterBinding(int position, Type type, String expression) {
+		LikeParameterBinding(int position, Type type, @Nullable String expression) {
 
 			super(null, position, expression);
 
@@ -592,8 +631,9 @@ class StringQuery {
 		 * 
 		 * @param keyword
 		 */
+		@Nullable
 		@Override
-		public Object prepare(Object value) {
+		public Object prepare(@Nullable Object value) {
 
 			if (value == null) {
 				return null;

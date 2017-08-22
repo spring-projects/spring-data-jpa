@@ -26,6 +26,7 @@ import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mapping.model.Property;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
 import org.springframework.data.util.TypeInformation;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -33,6 +34,7 @@ import org.springframework.util.Assert;
  * 
  * @author Oliver Gierke
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 1.3
  */
 public class JpaMetamodelMappingContext
@@ -73,6 +75,11 @@ public class JpaMetamodelMappingContext
 			SimpleTypeHolder simpleTypeHolder) {
 
 		Metamodel metamodel = getMetamodelFor(owner.getType());
+
+		if (metamodel == null) {
+			throw new IllegalStateException(String.format("Metamodel for %s not available!", owner.getType()));
+		}
+
 		return new JpaPersistentPropertyImpl(metamodel, property, owner, simpleTypeHolder);
 	}
 
@@ -91,6 +98,7 @@ public class JpaMetamodelMappingContext
 	 * @param type
 	 * @return
 	 */
+	@Nullable
 	private Metamodel getMetamodelFor(Class<?> type) {
 
 		for (Metamodel model : models) {

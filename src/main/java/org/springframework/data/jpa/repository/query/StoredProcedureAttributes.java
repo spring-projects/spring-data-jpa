@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package org.springframework.data.jpa.repository.query;
 
 import javax.persistence.StoredProcedureQuery;
 
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -25,6 +26,7 @@ import org.springframework.util.StringUtils;
  * 
  * @author Thomas Darimont
  * @author Oliver Gierke
+ * @author Mark Paluch
  * @since 1.6
  */
 class StoredProcedureAttributes {
@@ -45,8 +47,8 @@ class StoredProcedureAttributes {
 	 * @param outputParameterIndex must not be {@literal null}
 	 * @param outputParameterType
 	 */
-	public StoredProcedureAttributes(String procedureName, String outputParameterName, Class<?> outputParameterType,
-			boolean namedStoredProcedure) {
+	public StoredProcedureAttributes(String procedureName, @Nullable String outputParameterName,
+			Class<?> outputParameterType, boolean namedStoredProcedure) {
 
 		Assert.notNull(procedureName, "ProcedureName must not be null!");
 		Assert.notNull(outputParameterType, "OutputParameterType must not be null!");

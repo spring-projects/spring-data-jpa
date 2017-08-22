@@ -42,11 +42,12 @@ import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.util.Lazy;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
  * Abstract base class to implement {@link RepositoryQuery}s.
- * 
+ *
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Mark Paluch
@@ -63,7 +64,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 
 	/**
 	 * Creates a new {@link AbstractJpaQuery} from the given {@link JpaQueryMethod}.
-	 * 
+	 *
 	 * @param method
 	 * @param em
 	 */
@@ -81,13 +82,14 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.query.RepositoryQuery#getQueryMethod()
 	 */
+	@Override
 	public JpaQueryMethod getQueryMethod() {
 		return method;
 	}
 
 	/**
 	 * Returns the {@link EntityManager}.
-	 * 
+	 *
 	 * @return will never be {@literal null}.
 	 */
 	protected EntityManager getEntityManager() {
@@ -96,7 +98,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 
 	/**
 	 * Returns the {@link JpaMetamodel}.
-	 * 
+	 *
 	 * @return
 	 */
 	protected JpaMetamodel getMetamodel() {
@@ -107,6 +109,8 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.query.RepositoryQuery#execute(java.lang.Object[])
 	 */
+	@Nullable
+	@Override
 	public Object execute(Object[] parameters) {
 		return doExecute(getExecution(), parameters);
 	}
@@ -116,6 +120,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 	 * @param values
 	 * @return
 	 */
+	@Nullable
 	private Object doExecute(JpaQueryExecution execution, Object[] values) {
 
 		Object result = execution.execute(this, values);
@@ -147,7 +152,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 
 	/**
 	 * Applies the declared query hints to the given query.
-	 * 
+	 *
 	 * @param query
 	 * @return
 	 */
@@ -162,7 +167,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 
 	/**
 	 * Protected to be able to customize in sub-classes.
-	 * 
+	 *
 	 * @param query must not be {@literal null}.
 	 * @param hint must not be {@literal null}.
 	 */
@@ -176,7 +181,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 
 	/**
 	 * Applies the {@link LockModeType} provided by the {@link JpaQueryMethod} to the given {@link Query}.
-	 * 
+	 *
 	 * @param query must not be {@literal null}.
 	 * @param method must not be {@literal null}.
 	 * @return
@@ -198,7 +203,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 	/**
 	 * Configures the {@link javax.persistence.EntityGraph} to use for the given {@link JpaQueryMethod} if the
 	 * {@link EntityGraph} annotation is present.
-	 * 
+	 *
 	 * @param query must not be {@literal null}.
 	 * @param method must not be {@literal null}.
 	 * @return
@@ -225,7 +230,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 
 	/**
 	 * Creates a {@link Query} instance for the given values.
-	 * 
+	 *
 	 * @param values must not be {@literal null}.
 	 * @return
 	 */
@@ -233,7 +238,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 
 	/**
 	 * Creates a {@link TypedQuery} for counting using the given values.
-	 * 
+	 *
 	 * @param values must not be {@literal null}.
 	 * @return
 	 */
@@ -245,7 +250,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 
 		/**
 		 * Creates a new {@link TupleConverter} for the given {@link ReturnedType}.
-		 * 
+		 *
 		 * @param type must not be {@literal null}.
 		 */
 		public TupleConverter(ReturnedType type) {
@@ -255,7 +260,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 			this.type = type;
 		}
 
-		/* 
+		/*
 		 * (non-Javadoc)
 		 * @see org.springframework.core.convert.converter.Converter#convert(java.lang.Object)
 		 */
@@ -267,7 +272,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 			}
 
 			Tuple tuple = (Tuple) source;
-			Map<String, Object> result = new HashMap<String, Object>();
+			Map<String, Object> result = new HashMap<>();
 			List<TupleElement<?>> elements = tuple.getElements();
 
 			if (elements.size() == 1) {

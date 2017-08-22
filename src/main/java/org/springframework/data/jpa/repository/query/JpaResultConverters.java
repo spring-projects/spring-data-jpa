@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,12 +24,14 @@ import java.sql.SQLException;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.dao.CleanupFailureDataAccessException;
 import org.springframework.dao.DataRetrievalFailureException;
+import org.springframework.lang.Nullable;
 import org.springframework.util.StreamUtils;
 
 /**
  * Container for additional JPA result {@link Converter}s.
  * 
  * @author Thomas Darimont
+ * @author Mark Paluch
  * @since 1.6
  */
 final class JpaResultConverters {
@@ -48,8 +50,9 @@ final class JpaResultConverters {
 
 		INSTANCE;
 
+		@Nullable
 		@Override
-		public byte[] convert(Blob source) {
+		public byte[] convert(@Nullable Blob source) {
 
 			if (source == null) {
 				return null;
@@ -67,9 +70,7 @@ final class JpaResultConverters {
 					return baos.toByteArray();
 				}
 
-			} catch (SQLException e) {
-				throw new DataRetrievalFailureException("Couldn't retrieve data from blob.", e);
-			} catch (IOException e) {
+			} catch (SQLException | IOException e) {
 				throw new DataRetrievalFailureException("Couldn't retrieve data from blob.", e);
 			} finally {
 				if (blobStream != null) {

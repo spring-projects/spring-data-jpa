@@ -27,6 +27,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.persistence.Subgraph;
 
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
@@ -39,11 +40,12 @@ import org.springframework.util.StringUtils;
  * @author Thomas Darimont
  * @author Oliver Gierke
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 1.6
  */
 public class Jpa21Utils {
 
-	private static final Method GET_ENTITY_GRAPH_METHOD;
+	private static final @Nullable Method GET_ENTITY_GRAPH_METHOD;
 	private static final boolean JPA21_AVAILABLE = ClassUtils.isPresent("javax.persistence.NamedEntityGraph",
 			Jpa21Utils.class.getClassLoader());
 
@@ -69,7 +71,7 @@ public class Jpa21Utils {
 	 * @return a {@code Map} with the hints or an empty {@code Map} if no hints were found.
 	 * @since 1.8
 	 */
-	public static Map<String, Object> tryGetFetchGraphHints(EntityManager em, JpaEntityGraph entityGraph,
+	public static Map<String, Object> tryGetFetchGraphHints(EntityManager em, @Nullable JpaEntityGraph entityGraph,
 			Class<?> entityType) {
 
 		if (entityGraph == null) {
@@ -95,6 +97,7 @@ public class Jpa21Utils {
 	 * @param entityType must not be {@literal null}.
 	 * @return the {@link EntityGraph} described by the given {@code entityGraph}.
 	 */
+	@Nullable
 	private static EntityGraph<?> tryGetFetchGraph(EntityManager em, JpaEntityGraph jpaEntityGraph, Class<?> entityType) {
 
 		Assert.notNull(em, "EntityManager must not be null!");
@@ -157,7 +160,8 @@ public class Jpa21Utils {
 		}
 	}
 
-	private static void createGraph(String[] pathComponents, int offset, EntityGraph<?> root, Subgraph<?> parent) {
+	private static void createGraph(String[] pathComponents, int offset, EntityGraph<?> root,
+			@Nullable Subgraph<?> parent) {
 
 		String attributeName = pathComponents[offset];
 
@@ -216,8 +220,9 @@ public class Jpa21Utils {
 	 * @param parent
 	 * @return {@literal null} if not found.
 	 */
+	@Nullable
 	private static AttributeNode<?> findAttributeNode(String attributeNodeName, EntityGraph<?> entityGraph,
-			Subgraph<?> parent) {
+			@Nullable Subgraph<?> parent) {
 		return findAttributeNode(attributeNodeName,
 				parent != null ? parent.getAttributeNodes() : entityGraph.getAttributeNodes());
 	}
@@ -230,6 +235,7 @@ public class Jpa21Utils {
 	 * @param nodes
 	 * @return {@literal null} if not found.
 	 */
+	@Nullable
 	private static AttributeNode<?> findAttributeNode(String attributeNodeName, List<AttributeNode<?>> nodes) {
 
 		for (AttributeNode<?> node : nodes) {
@@ -249,6 +255,7 @@ public class Jpa21Utils {
 	 * @param node
 	 * @return
 	 */
+	@Nullable
 	private static Subgraph<?> getSubgraph(AttributeNode<?> node) {
 		return node.getSubgraphs().isEmpty() ? null : node.getSubgraphs().values().iterator().next();
 	}

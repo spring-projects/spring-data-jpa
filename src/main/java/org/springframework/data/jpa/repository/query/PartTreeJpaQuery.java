@@ -33,6 +33,7 @@ import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.repository.query.parser.PartTree;
+import org.springframework.lang.Nullable;
 
 /**
  * A {@link AbstractJpaQuery} implementation based on a {@link PartTree}.
@@ -41,6 +42,7 @@ import org.springframework.data.repository.query.parser.PartTree;
  * @author Thomas Darimont
  * @author Christoph Strobl
  * @author Jens Schauder
+ * @author Mark Paluch
  */
 public class PartTreeJpaQuery extends AbstractJpaQuery {
 
@@ -116,9 +118,9 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 	 */
 	private class QueryPreparer {
 
-		private final CriteriaQuery<?> cachedCriteriaQuery;
-		private final ParameterBinder cachedParameterBinder;
-		private final List<ParameterMetadata<?>> expressions;
+		private final @Nullable CriteriaQuery<?> cachedCriteriaQuery;
+		private final @Nullable ParameterBinder cachedParameterBinder;
+		private final @Nullable List<ParameterMetadata<?>> expressions;
 		private final PersistenceProvider persistenceProvider;
 
 		QueryPreparer(PersistenceProvider persistenceProvider, boolean recreateQueries) {
@@ -155,6 +157,10 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 			}
 
 			TypedQuery<?> jpaQuery = createQuery(criteriaQuery);
+
+			if (parameterBinder == null) {
+				throw new IllegalStateException("ParameterBinder is null!");
+			}
 
 			return restrictMaxResultsIfNecessary(invokeBinding(parameterBinder, jpaQuery, values));
 		}

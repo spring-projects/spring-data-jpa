@@ -125,7 +125,7 @@ public class Querydsl {
 	 */
 	public <T> JPQLQuery<T> applySorting(Sort sort, JPQLQuery<T> query) {
 
-		if (sort == null) {
+		if (sort.isUnsorted()) {
 			return query;
 		}
 

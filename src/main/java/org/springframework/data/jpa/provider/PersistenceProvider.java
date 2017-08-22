@@ -21,6 +21,7 @@ import static org.springframework.data.jpa.provider.PersistenceProvider.Constant
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.NoSuchElementException;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
@@ -32,6 +33,7 @@ import org.hibernate.ScrollMode;
 import org.hibernate.ScrollableResults;
 import org.hibernate.proxy.HibernateProxy;
 import org.springframework.data.util.CloseableIterator;
+import org.springframework.lang.Nullable;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
 import org.springframework.util.ConcurrentReferenceHashMap;
@@ -41,6 +43,7 @@ import org.springframework.util.ConcurrentReferenceHashMap;
  * 
  * @author Oliver Gierke
  * @author Thomas Darimont
+ * @author Mark Paluch
  */
 public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 
@@ -94,8 +97,9 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 		 * (non-Javadoc)
 		 * @see org.springframework.data.jpa.provider.PersistenceProvider#potentiallyConvertEmptyCollection(java.util.Collection)
 		 */
+		@Nullable
 		@Override
-		public <T> Collection<T> potentiallyConvertEmptyCollection(Collection<T> collection) {
+		public <T> Collection<T> potentiallyConvertEmptyCollection(@Nullable Collection<T> collection) {
 			return collection == null || collection.isEmpty() ? null : collection;
 		}
 
@@ -132,6 +136,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 		 * (non-Javadoc)
 		 * @see org.springframework.data.jpa.repository.support.ProxyIdAccessor#getIdentifierFrom(java.lang.Object)
 		 */
+		@Nullable
 		@Override
 		public Object getIdentifierFrom(Object entity) {
 			return null;
@@ -140,8 +145,9 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 		/* (non-Javadoc)
 		 * @see org.springframework.data.jpa.provider.PersistenceProvider#potentiallyConvertEmptyCollection(java.util.Collection)
 		 */
+		@Nullable
 		@Override
-		public <T> Collection<T> potentiallyConvertEmptyCollection(Collection<T> collection) {
+		public <T> Collection<T> potentiallyConvertEmptyCollection(@Nullable Collection<T> collection) {
 			return collection == null || collection.isEmpty() ? null : collection;
 		}
 
@@ -164,6 +170,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 		 * (non-Javadoc)
 		 * @see org.springframework.data.jpa.repository.query.QueryExtractor#extractQueryString(javax.persistence.Query)
 		 */
+		@Nullable
 		@Override
 		public String extractQueryString(Query query) {
 			return null;
@@ -191,6 +198,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 		 * (non-Javadoc)
 		 * @see org.springframework.data.jpa.repository.support.ProxyIdAccessor#getIdentifierFrom(java.lang.Object)
 		 */
+		@Nullable
 		@Override
 		public Object getIdentifierFrom(Object entity) {
 			return null;
@@ -331,7 +339,8 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 	 * @param collection
 	 * @return
 	 */
-	public <T> Collection<T> potentiallyConvertEmptyCollection(Collection<T> collection) {
+	@Nullable
+	public <T> Collection<T> potentiallyConvertEmptyCollection(@Nullable Collection<T> collection) {
 		return collection;
 	}
 
@@ -350,7 +359,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 	 */
 	private static class HibernateScrollableResultsIterator implements CloseableIterator<Object> {
 
-		private final ScrollableResults scrollableResults;
+		private final @Nullable ScrollableResults scrollableResults;
 
 		/**
 		 * Creates a new {@link HibernateScrollableResultsIterator} for the given {@link Query}.
@@ -371,6 +380,10 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 		@Override
 		public Object next() {
 
+			if (scrollableResults == null) {
+				throw new NoSuchElementException("No ScrollableResults");
+			}
+
 			Object[] row = scrollableResults.get();
 
 			return row.length == 1 ? row[0] : row;
@@ -382,7 +395,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 		 */
 		@Override
 		public boolean hasNext() {
-			return scrollableResults == null ? false : scrollableResults.next();
+			return scrollableResults != null && scrollableResults.next();
 		}
 
 		/*
@@ -409,7 +422,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 	@SuppressWarnings("unchecked")
 	private static class EclipseLinkScrollableResultsIterator<T> implements CloseableIterator<T> {
 
-		private final ScrollableCursor scrollableCursor;
+		private final @Nullable ScrollableCursor scrollableCursor;
 
 		/**
 		 * Creates a new {@link EclipseLinkScrollableResultsIterator} for the given JPA {@link Query}.
@@ -429,7 +442,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 		 */
 		@Override
 		public boolean hasNext() {
-			return scrollableCursor == null ? false : scrollableCursor.hasNext();
+			return scrollableCursor != null && scrollableCursor.hasNext();
 		}
 
 		/*
@@ -438,6 +451,11 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 		 */
 		@Override
 		public T next() {
+
+			if (scrollableCursor == null) {
+				throw new NoSuchElementException("No ScrollableCursor");
+			}
+
 			return (T) scrollableCursor.next();
 		}
 

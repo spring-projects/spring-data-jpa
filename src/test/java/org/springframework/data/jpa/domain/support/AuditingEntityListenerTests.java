@@ -18,7 +18,6 @@ package org.springframework.data.jpa.domain.support;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -40,7 +39,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Integration test for {@link AuditingEntityListener}.
- * 
+ *
  * @author Oliver Gierke
  */
 @RunWith(SpringJUnit4ClassRunner.class)

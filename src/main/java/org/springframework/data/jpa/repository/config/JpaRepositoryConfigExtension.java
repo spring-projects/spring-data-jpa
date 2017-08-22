@@ -55,12 +55,13 @@ import org.springframework.util.StringUtils;
  * {@link PersistenceUnit} annotated properties and methods) as well as
  * {@link PersistenceExceptionTranslationPostProcessor} to enable exception translation of persistence specific
  * exceptions into Spring's {@link DataAccessException} hierarchy.
- * 
+ *
  * @author Oliver Gierke
  * @author Eberhard Wolff
  * @author Gil Markham
  * @author Thomas Darimont
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensionSupport {
 
@@ -68,7 +69,7 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 	private static final String DEFAULT_TRANSACTION_MANAGER_BEAN_NAME = "transactionManager";
 	private static final String ENABLE_DEFAULT_TRANSACTIONS_ATTRIBUTE = "enableDefaultTransactions";
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.config.RepositoryConfigurationExtensionSupport#getModuleName()
 	 */
@@ -86,7 +87,7 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 		return JpaRepositoryFactoryBean.class.getName();
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.config14.RepositoryConfigurationExtensionSupport#getModulePrefix()
 	 */
@@ -95,7 +96,7 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 		return getModuleName().toLowerCase(Locale.US);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.config.RepositoryConfigurationExtensionSupport#getIdentifyingAnnotations()
 	 */
@@ -104,7 +105,7 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 		return Arrays.asList(Entity.class, MappedSuperclass.class);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.config.RepositoryConfigurationExtensionSupport#getIdentifyingTypes()
 	 */
@@ -113,7 +114,7 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 		return Collections.<Class<?>> singleton(JpaRepository.class);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.config.RepositoryConfigurationExtensionSupport#postProcess(org.springframework.beans.factory.support.BeanDefinitionBuilder, org.springframework.data.repository.config.RepositoryConfigurationSource)
 	 */
@@ -126,7 +127,7 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 		builder.addPropertyReference("mappingContext", JPA_MAPPING_CONTEXT_BEAN_NAME);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.config.RepositoryConfigurationExtensionSupport#postProcess(org.springframework.beans.factory.support.BeanDefinitionBuilder, org.springframework.data.repository.config.AnnotationRepositoryConfigurationSource)
 	 */
@@ -139,7 +140,7 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 				attributes.getBoolean(ENABLE_DEFAULT_TRANSACTIONS_ATTRIBUTE));
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.config.RepositoryConfigurationExtensionSupport#postProcess(org.springframework.beans.factory.support.BeanDefinitionBuilder, org.springframework.data.repository.config.XmlRepositoryConfigurationSource)
 	 */
@@ -153,7 +154,7 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 		}
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.config.RepositoryConfigurationExtensionSupport#registerBeansForRoot(org.springframework.beans.factory.support.BeanDefinitionRegistry, org.springframework.data.repository.config.RepositoryConfigurationSource)
 	 */
@@ -184,7 +185,7 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 	/**
 	 * Creates an anonymous factory to extract the actual {@link javax.persistence.EntityManager} from the
 	 * {@link javax.persistence.EntityManagerFactory} bean name reference.
-	 * 
+	 *
 	 * @param config
 	 * @param source
 	 * @return
@@ -205,8 +206,7 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 
 	private static String getEntityManagerBeanRef(RepositoryConfigurationSource config) {
 
-		Optional<String> entityManagerFactoryRef = config == null ? Optional.empty()
-				: config.getAttribute("entityManagerFactoryRef");
+		Optional<String> entityManagerFactoryRef = config.getAttribute("entityManagerFactoryRef");
 		return entityManagerFactoryRef.orElse("entityManagerFactory");
 	}
 }

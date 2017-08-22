@@ -49,7 +49,7 @@ class JpaRepositoryBean<T> extends CdiRepositoryBean<T> {
 	 * @param entityManagerBean must not be {@literal null}.
 	 * @param qualifiers must not be {@literal null}.
 	 * @param repositoryType must not be {@literal null}.
-	 * @param detector can be {@literal null}.
+	 * @param detector can be {@link Optional#empty()}.
 	 */
 	JpaRepositoryBean(BeanManager beanManager, Bean<EntityManager> entityManagerBean, Set<Annotation> qualifiers,
 			Class<T> repositoryType, Optional<CustomRepositoryImplementationDetector> detector) {

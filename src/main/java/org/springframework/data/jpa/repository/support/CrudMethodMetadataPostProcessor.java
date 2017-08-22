@@ -39,6 +39,7 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.core.RepositoryInformation;
 import org.springframework.data.repository.core.support.RepositoryProxyPostProcessor;
+import org.springframework.lang.Nullable;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -51,10 +52,11 @@ import org.springframework.util.ClassUtils;
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, BeanClassLoaderAware {
 
-	private ClassLoader classLoader = ClassUtils.getDefaultClassLoader();
+	private @Nullable ClassLoader classLoader = ClassUtils.getDefaultClassLoader();
 
 	/* 
 	 * (non-Javadoc)
@@ -62,8 +64,7 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 	 */
 	@Override
 	public void setBeanClassLoader(ClassLoader classLoader) {
-		this.classLoader = classLoader == null ? ClassUtils.getDefaultClassLoader() : classLoader;
-
+		this.classLoader = classLoader;
 	}
 
 	/* 
@@ -97,7 +98,7 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 	 * @author Oliver Gierke
 	 * @author Thomas Darimont
 	 */
-	static enum CrudMethodMetadataPopulatingMethodInterceptor implements MethodInterceptor {
+	enum CrudMethodMetadataPopulatingMethodInterceptor implements MethodInterceptor {
 
 		INSTANCE;
 
@@ -146,7 +147,7 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 	 */
 	private static class DefaultCrudMethodMetadata implements CrudMethodMetadata {
 
-		private final LockModeType lockModeType;
+		private final @Nullable LockModeType lockModeType;
 		private final Map<String, Object> queryHints;
 		private final Optional<EntityGraph> entityGraph;
 		private final Method method;
@@ -156,7 +157,7 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 		 * 
 		 * @param method must not be {@literal null}.
 		 */
-		public DefaultCrudMethodMetadata(Method method) {
+		DefaultCrudMethodMetadata(Method method) {
 
 			Assert.notNull(method, "Method must not be null!");
 
@@ -170,6 +171,7 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 			return Optional.ofNullable(AnnotatedElementUtils.findMergedAnnotation(method, EntityGraph.class));
 		}
 
+		@Nullable
 		private static LockModeType findLockModeType(Method method) {
 
 			Lock annotation = AnnotatedElementUtils.findMergedAnnotation(method, Lock.class);
@@ -201,6 +203,7 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 		 * (non-Javadoc)
 		 * @see org.springframework.data.jpa.repository.support.CrudMethodMetadata#getLockModeType()
 		 */
+		@Nullable
 		@Override
 		public LockModeType getLockModeType() {
 			return lockModeType;

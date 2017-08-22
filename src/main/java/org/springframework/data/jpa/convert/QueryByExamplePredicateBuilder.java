@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import javax.persistence.criteria.CriteriaBuilder;
@@ -35,8 +36,10 @@ import javax.persistence.metamodel.SingularAttribute;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
+import org.springframework.data.domain.ExampleMatcher.PropertyValueTransformer;
 import org.springframework.data.repository.core.support.ExampleMatcherAccessor;
 import org.springframework.data.util.DirectFieldAccessFallbackBeanWrapper;
+import org.springframework.lang.Nullable;
 import org.springframework.orm.jpa.JpaSystemException;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -60,7 +63,7 @@ public class QueryByExamplePredicateBuilder {
 	private static final Set<PersistentAttributeType> ASSOCIATION_TYPES;
 
 	static {
-		ASSOCIATION_TYPES = new HashSet<PersistentAttributeType>(Arrays.asList(PersistentAttributeType.MANY_TO_MANY,
+		ASSOCIATION_TYPES = new HashSet<>(Arrays.asList(PersistentAttributeType.MANY_TO_MANY,
 				PersistentAttributeType.MANY_TO_ONE, PersistentAttributeType.ONE_TO_MANY, PersistentAttributeType.ONE_TO_ONE));
 	}
 
@@ -100,7 +103,7 @@ public class QueryByExamplePredicateBuilder {
 	static List<Predicate> getPredicates(String path, CriteriaBuilder cb, Path<?> from, ManagedType<?> type, Object value,
 			Class<?> probeType, ExampleMatcherAccessor exampleAccessor, PathNode currentNode) {
 
-		List<Predicate> predicates = new ArrayList<Predicate>();
+		List<Predicate> predicates = new ArrayList<>();
 		DirectFieldAccessFallbackBeanWrapper beanWrapper = new DirectFieldAccessFallbackBeanWrapper(value);
 
 		for (SingularAttribute attribute : type.getSingularAttributes()) {
@@ -111,16 +114,19 @@ public class QueryByExamplePredicateBuilder {
 				continue;
 			}
 
-			Object attributeValue = exampleAccessor.getValueTransformerForPath(currentPath)
-					.convert(beanWrapper.getPropertyValue(attribute.getName()));
+			PropertyValueTransformer transformer = exampleAccessor.getValueTransformerForPath(currentPath);
+			Optional<Object> optionalValue = transformer
+					.apply(Optional.ofNullable(beanWrapper.getPropertyValue(attribute.getName())));
 
-			if (attributeValue == null) {
+			if (!optionalValue.isPresent()) {
 
 				if (exampleAccessor.getNullHandler().equals(ExampleMatcher.NullHandler.INCLUDE)) {
 					predicates.add(cb.isNull(from.get(attribute)));
 				}
 				continue;
 			}
+
+			Object attributeValue = optionalValue.get();
 
 			if (attribute.getPersistentAttributeType().equals(PersistentAttributeType.EMBEDDED)) {
 
@@ -132,8 +138,8 @@ public class QueryByExamplePredicateBuilder {
 			if (isAssociation(attribute)) {
 
 				if (!(from instanceof From)) {
-					throw new JpaSystemException(new IllegalArgumentException(
-							String.format("Unexpected path type for %s. Found %s where From.class was expected.", currentPath, from)));
+					throw new JpaSystemException(new IllegalArgumentException(String
+							.format("Unexpected path type for %s. Found %s where From.class was expected.", currentPath, from)));
 				}
 
 				PathNode node = currentNode.add(attribute.getName(), attributeValue);
@@ -197,11 +203,11 @@ public class QueryByExamplePredicateBuilder {
 	private static class PathNode {
 
 		String name;
-		PathNode parent;
-		List<PathNode> siblings = new ArrayList<PathNode>();;
-		Object value;
+		@Nullable PathNode parent;
+		List<PathNode> siblings = new ArrayList<>();
+		@Nullable Object value;
 
-		public PathNode(String edge, PathNode parent, Object value) {
+		PathNode(String edge, @Nullable PathNode parent, @Nullable Object value) {
 
 			this.name = edge;
 			this.parent = parent;
@@ -222,14 +228,14 @@ public class QueryByExamplePredicateBuilder {
 			}
 
 			String identityHex = ObjectUtils.getIdentityHexString(value);
-			PathNode tmp = parent;
+			PathNode current = parent;
 
-			while (tmp != null) {
+			while (current != null) {
 
-				if (ObjectUtils.getIdentityHexString(tmp.value).equals(identityHex)) {
+				if (ObjectUtils.getIdentityHexString(current.value).equals(identityHex)) {
 					return true;
 				}
-				tmp = tmp.parent;
+				current = current.parent;
 			}
 
 			return false;

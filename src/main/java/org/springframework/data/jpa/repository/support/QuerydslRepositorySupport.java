@@ -15,6 +15,7 @@
  */
 package org.springframework.data.jpa.repository.support;
 
+import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -42,8 +43,8 @@ public abstract class QuerydslRepositorySupport {
 
 	private final PathBuilder<?> builder;
 
-	private EntityManager entityManager;
-	private Querydsl querydsl;
+	private @Nullable EntityManager entityManager;
+	private @Nullable Querydsl querydsl;
 
 	/**
 	 * Creates a new {@link QuerydslRepositorySupport} instance for the given domain type.
@@ -83,6 +84,7 @@ public abstract class QuerydslRepositorySupport {
 	 * 
 	 * @return the entityManager
 	 */
+	@Nullable
 	protected EntityManager getEntityManager() {
 		return entityManager;
 	}
@@ -94,7 +96,7 @@ public abstract class QuerydslRepositorySupport {
 	 * @return the Querydsl {@link JPQLQuery}.
 	 */
 	protected JPQLQuery<Object> from(EntityPath<?>... paths) {
-		return querydsl.createQuery(paths);
+		return getRequiredQuerydsl().createQuery(paths);
 	}
 
 	/**
@@ -104,7 +106,7 @@ public abstract class QuerydslRepositorySupport {
 	 * @return
 	 */
 	protected <T> JPQLQuery<T> from(EntityPath<T> path) {
-		return querydsl.createQuery(path).select(path);
+		return getRequiredQuerydsl().createQuery(path).select(path);
 	}
 
 	/**
@@ -114,7 +116,7 @@ public abstract class QuerydslRepositorySupport {
 	 * @return the Querydsl {@link DeleteClause}.
 	 */
 	protected DeleteClause<JPADeleteClause> delete(EntityPath<?> path) {
-		return new JPADeleteClause(entityManager, path);
+		return new JPADeleteClause(getRequiredEntityManager(), path);
 	}
 
 	/**
@@ -124,7 +126,7 @@ public abstract class QuerydslRepositorySupport {
 	 * @return the Querydsl {@link UpdateClause}.
 	 */
 	protected UpdateClause<JPAUpdateClause> update(EntityPath<?> path) {
-		return new JPAUpdateClause(entityManager, path);
+		return new JPAUpdateClause(getRequiredEntityManager(), path);
 	}
 
 	/**
@@ -143,7 +145,26 @@ public abstract class QuerydslRepositorySupport {
 	 * 
 	 * @return
 	 */
+	@Nullable
 	protected Querydsl getQuerydsl() {
 		return this.querydsl;
+	}
+
+	private Querydsl getRequiredQuerydsl() {
+
+		if (querydsl == null) {
+			throw new IllegalStateException("Querydsl is null!");
+		}
+
+		return querydsl;
+	}
+
+	private EntityManager getRequiredEntityManager() {
+
+		if (entityManager == null) {
+			throw new IllegalStateException("EntityManager is null!");
+		}
+
+		return entityManager;
 	}
 }

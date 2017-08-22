@@ -22,6 +22,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.lang.Nullable;
 
 /**
  * Interface to allow execution of {@link Specification}s based on the JPA criteria API.
@@ -38,7 +39,7 @@ public interface JpaSpecificationExecutor<T> {
 	 * @return never {@literal null}.
 	 * @throws org.springframework.dao.IncorrectResultSizeDataAccessException if more than one entity found.
 	 */
-	Optional<T> findOne(Specification<T> spec);
+	Optional<T> findOne(@Nullable Specification<T> spec);
 
 	/**
 	 * Returns all entities matching the given {@link Specification}.
@@ -46,25 +47,25 @@ public interface JpaSpecificationExecutor<T> {
 	 * @param spec can be {@literal null}.
 	 * @return never {@literal null}.
 	 */
-	List<T> findAll(Specification<T> spec);
+	List<T> findAll(@Nullable Specification<T> spec);
 
 	/**
 	 * Returns a {@link Page} of entities matching the given {@link Specification}.
 	 *
 	 * @param spec can be {@literal null}.
-	 * @param pageable can be {@literal null}.
+	 * @param pageable must not be {@literal null}.
 	 * @return never {@literal null}.
 	 */
-	Page<T> findAll(Specification<T> spec, Pageable pageable);
+	Page<T> findAll(@Nullable Specification<T> spec, Pageable pageable);
 
 	/**
 	 * Returns all entities matching the given {@link Specification} and {@link Sort}.
 	 *
 	 * @param spec can be {@literal null}.
-	 * @param sort can be {@literal null}.
+	 * @param sort must not be {@literal null}.
 	 * @return never {@literal null}.
 	 */
-	List<T> findAll(Specification<T> spec, Sort sort);
+	List<T> findAll(@Nullable Specification<T> spec, Sort sort);
 
 	/**
 	 * Returns the number of instances that the given {@link Specification} will return.
@@ -72,5 +73,5 @@ public interface JpaSpecificationExecutor<T> {
 	 * @param spec the {@link Specification} to count instances for. Can be {@literal null}.
 	 * @return the number of instances.
 	 */
-	long count(Specification<T> spec);
+	long count(@Nullable Specification<T> spec);
 }

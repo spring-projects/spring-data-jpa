@@ -22,6 +22,7 @@ import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.data.auditing.AuditingHandler;
 import org.springframework.data.domain.Auditable;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -55,11 +56,12 @@ import org.springframework.util.Assert;
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 @Configurable
 public class AuditingEntityListener {
 
-	private ObjectFactory<AuditingHandler> handler;
+	private @Nullable ObjectFactory<AuditingHandler> handler;
 
 	/**
 	 * Configures the {@link AuditingHandler} to be used to set the current auditor on the domain types touched.
@@ -84,7 +86,11 @@ public class AuditingEntityListener {
 		Assert.notNull(target, "Entity must not be null!");
 
 		if (handler != null) {
-			handler.getObject().markCreated(target);
+
+			AuditingHandler object = handler.getObject();
+			if (object != null) {
+				object.markCreated(target);
+			}
 		}
 	}
 
@@ -100,7 +106,11 @@ public class AuditingEntityListener {
 		Assert.notNull(target, "Entity must not be null!");
 
 		if (handler != null) {
-			handler.getObject().markModified(target);
+
+			AuditingHandler object = handler.getObject();
+			if (object != null) {
+				object.markModified(target);
+			}
 		}
 	}
 }

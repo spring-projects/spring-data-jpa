@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.util.List;
 
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.EntityGraph.EntityGraphType;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -27,6 +28,7 @@ import org.springframework.util.StringUtils;
  * EntityGraph configuration for JPA 2.1 {@link EntityGraph}s.
  * 
  * @author Thomas Darimont
+ * @author Mark Paluch
  * @since 1.6
  */
 public class JpaEntityGraph {
@@ -56,7 +58,7 @@ public class JpaEntityGraph {
 	 * @param attributePaths may be {@literal null}.
 	 * @since 1.9
 	 */
-	public JpaEntityGraph(String name, EntityGraphType type, String[] attributePaths) {
+	public JpaEntityGraph(String name, EntityGraphType type, @Nullable String[] attributePaths) {
 
 		Assert.hasText(name, "The name of an EntityGraph must not be null or empty!");
 		Assert.notNull(type, "FetchGraphType must not be null!");

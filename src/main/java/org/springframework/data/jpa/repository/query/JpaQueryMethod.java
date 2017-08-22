@@ -41,6 +41,7 @@ import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.QueryMethod;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -64,7 +65,7 @@ public class JpaQueryMethod extends QueryMethod {
 
 	static {
 
-		Set<Class<?>> types = new HashSet<Class<?>>();
+		Set<Class<?>> types = new HashSet<>();
 		types.add(byte[].class);
 		types.add(Byte[].class);
 		types.add(char[].class);
@@ -76,14 +77,15 @@ public class JpaQueryMethod extends QueryMethod {
 	private final QueryExtractor extractor;
 	private final Method method;
 
-	private StoredProcedureAttributes storedProcedureAttributes;
+	private @Nullable StoredProcedureAttributes storedProcedureAttributes;
 
 	/**
 	 * Creates a {@link JpaQueryMethod}.
 	 *
 	 * @param method must not be {@literal null}
-	 * @param extractor must not be {@literal null}
 	 * @param metadata must not be {@literal null}
+	 * @param factory must not be {@literal null}
+	 * @param extractor must not be {@literal null}
 	 */
 	public JpaQueryMethod(Method method, RepositoryMetadata metadata, ProjectionFactory factory,
 			QueryExtractor extractor) {
@@ -115,8 +117,9 @@ public class JpaQueryMethod extends QueryMethod {
 				continue;
 			}
 
-			if (!annotatedQuery.contains(String.format(":%s", parameter.getName().get()))
-					&& !annotatedQuery.contains(String.format("#%s", parameter.getName().get()))) {
+			if (StringUtils.isEmpty(annotatedQuery)
+					|| !annotatedQuery.contains(String.format(":%s", parameter.getName().get()))
+							&& !annotatedQuery.contains(String.format("#%s", parameter.getName().get()))) {
 				throw new IllegalStateException(
 						String.format("Using named parameters for method %s but parameter '%s' not found in annotated query '%s'!",
 								method, parameter.getName(), annotatedQuery));
@@ -152,7 +155,7 @@ public class JpaQueryMethod extends QueryMethod {
 	 */
 	List<QueryHint> getHints() {
 
-		List<QueryHint> result = new ArrayList<QueryHint>();
+		List<QueryHint> result = new ArrayList<>();
 
 		QueryHints hints = AnnotatedElementUtils.findMergedAnnotation(method, QueryHints.class);
 		if (hints != null) {
@@ -167,6 +170,7 @@ public class JpaQueryMethod extends QueryMethod {
 	 *
 	 * @return
 	 */
+	@Nullable
 	LockModeType getLockModeType() {
 
 		return (LockModeType) Optional.ofNullable(AnnotatedElementUtils.findMergedAnnotation(method, Lock.class)) //
@@ -180,6 +184,7 @@ public class JpaQueryMethod extends QueryMethod {
 	 * @return
 	 * @since 1.6
 	 */
+	@Nullable
 	JpaEntityGraph getEntityGraph() {
 
 		EntityGraph annotation = AnnotatedElementUtils.findMergedAnnotation(method, EntityGraph.class);
@@ -224,10 +229,30 @@ public class JpaQueryMethod extends QueryMethod {
 	 *
 	 * @return
 	 */
+	@Nullable
 	String getAnnotatedQuery() {
 
 		String query = getAnnotationValue("value", String.class);
 		return StringUtils.hasText(query) ? query : null;
+	}
+
+	/**
+	 * Returns the required query string declared in a {@link Query} annotation or throws {@link IllegalStateException} if
+	 * neither the annotation found nor the attribute was specified.
+	 *
+	 * @return
+	 * @throws IllegalStateException if no {@link Query} annotation is present or the query is empty.
+	 * @since 2.0
+	 */
+	String getRequiredAnnotatedQuery() throws IllegalStateException {
+
+		String query = getAnnotatedQuery();
+
+		if (query != null) {
+			return query;
+		}
+
+		throw new IllegalStateException(String.format("No annotated query found for query method %s!", getName()));
 	}
 
 	/**
@@ -236,6 +261,7 @@ public class JpaQueryMethod extends QueryMethod {
 	 *
 	 * @return
 	 */
+	@Nullable
 	String getCountQuery() {
 
 		String countQuery = getAnnotationValue("countQuery", String.class);
@@ -249,6 +275,7 @@ public class JpaQueryMethod extends QueryMethod {
 	 * @return
 	 * @since 1.6
 	 */
+	@Nullable
 	String getCountQueryProjection() {
 
 		String countProjection = getAnnotationValue("countProjection", String.class);

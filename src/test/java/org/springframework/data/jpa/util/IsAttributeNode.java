@@ -25,18 +25,20 @@ import javax.persistence.Subgraph;
 
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
+import org.springframework.lang.Nullable;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 public class IsAttributeNode<T> extends TypeSafeMatcher<AttributeNode<T>> {
 
 	private boolean terminatingNodeCheck = false;
 	private List<String> nodes;
 	private List<String> subgraphs;
-	private List<String> errors = new ArrayList<String>();
+	private final List<String> errors = new ArrayList<>();
 
 	@Override
 	protected boolean matchesSafely(AttributeNode<T> item) {
@@ -129,7 +131,7 @@ public class IsAttributeNode<T> extends TypeSafeMatcher<AttributeNode<T>> {
 	 * @param graph
 	 * @return
 	 */
-	public static AttributeNode<?> findNode(String nodeName, EntityGraph<?> graph) {
+	public static AttributeNode<?> findNode(String nodeName, @Nullable EntityGraph<?> graph) {
 
 		if (graph == null) {
 			return null;
@@ -145,6 +147,7 @@ public class IsAttributeNode<T> extends TypeSafeMatcher<AttributeNode<T>> {
 	 * @param nodes
 	 * @return
 	 */
+	@Nullable
 	public static AttributeNode<?> findNode(String nodeName, List<AttributeNode<?>> nodes) {
 
 		if (CollectionUtils.isEmpty(nodes)) {
@@ -168,6 +171,7 @@ public class IsAttributeNode<T> extends TypeSafeMatcher<AttributeNode<T>> {
 	 * @param node
 	 * @return
 	 */
+	@Nullable
 	public static AttributeNode<?> findNode(String attributeName, AttributeNode<?> node) {
 
 		if (CollectionUtils.isEmpty(node.getSubgraphs())) {
@@ -180,7 +184,7 @@ public class IsAttributeNode<T> extends TypeSafeMatcher<AttributeNode<T>> {
 
 	private List<String> extractExistingAttributeNames(Subgraph<?> graph) {
 
-		List<String> result = new ArrayList<String>(graph.getAttributeNodes().size());
+		List<String> result = new ArrayList<>(graph.getAttributeNodes().size());
 		for (AttributeNode<?> node : graph.getAttributeNodes()) {
 			result.add(node.getAttributeName());
 		}
@@ -193,9 +197,9 @@ public class IsAttributeNode<T> extends TypeSafeMatcher<AttributeNode<T>> {
 	 * @param nodeNames
 	 * @return
 	 */
-	public static IsAttributeNode terminatesGraphWith(String... nodeNames) {
+	public static <T> IsAttributeNode<T> terminatesGraphWith(String... nodeNames) {
 
-		IsAttributeNode matcher = new IsAttributeNode();
+		IsAttributeNode<T> matcher = new IsAttributeNode<>();
 		matcher.nodes = Arrays.asList(nodeNames);
 		return matcher;
 	}
@@ -206,9 +210,9 @@ public class IsAttributeNode<T> extends TypeSafeMatcher<AttributeNode<T>> {
 	 *
 	 * @return
 	 */
-	public static IsAttributeNode hasSubgraphs(String... subgraphNames) {
+	public static <T> IsAttributeNode<T> hasSubgraphs(String... subgraphNames) {
 
-		IsAttributeNode matcher = new IsAttributeNode();
+		IsAttributeNode<T> matcher = new IsAttributeNode<>();
 		matcher.subgraphs = Arrays.asList(subgraphNames);
 		return matcher;
 	}
@@ -219,9 +223,9 @@ public class IsAttributeNode<T> extends TypeSafeMatcher<AttributeNode<T>> {
 	 *
 	 * @return
 	 */
-	public static IsAttributeNode terminatesGraph() {
+	public static <T> IsAttributeNode<T> terminatesGraph() {
 
-		IsAttributeNode matcher = new IsAttributeNode();
+		IsAttributeNode<T> matcher = new IsAttributeNode<>();
 		matcher.terminatingNodeCheck = true;
 		return matcher;
 	}

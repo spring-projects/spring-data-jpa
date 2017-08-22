@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2013 the original author or authors.
+ * Copyright 2008-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
  * 
  * @author Oliver Gierke
  * @author Thomas Darimont
+ * @author Mark Paluch
  */
 final class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
 
@@ -42,7 +43,7 @@ final class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
 	 */
 	public SimpleJpaQuery(JpaQueryMethod method, EntityManager em, EvaluationContextProvider evaluationContextProvider,
 			SpelExpressionParser parser) {
-		this(method, em, method.getAnnotatedQuery(), evaluationContextProvider, parser);
+		this(method, em, method.getRequiredAnnotatedQuery(), evaluationContextProvider, parser);
 	}
 
 	/**
@@ -73,7 +74,7 @@ final class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
 	 * @param query
 	 * @param em
 	 */
-	private final void validateQuery(String query, String errorMessage) {
+	private void validateQuery(String query, String errorMessage) {
 
 		if (getQueryMethod().isProcedureQuery()) {
 			return;

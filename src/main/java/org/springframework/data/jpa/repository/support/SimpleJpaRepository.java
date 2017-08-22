@@ -53,6 +53,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.query.QueryUtils;
 import org.springframework.data.jpa.repository.support.QueryHints.NoHints;
 import org.springframework.data.repository.support.PageableExecutionUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -79,7 +80,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepository<T, ID>, JpaSpec
 	private final EntityManager em;
 	private final PersistenceProvider provider;
 
-	private CrudMethodMetadata metadata;
+	private @Nullable CrudMethodMetadata metadata;
 
 	/**
 	 * Creates a new {@link SimpleJpaRepository} to manage objects of the given {@link JpaEntityInformation}.
@@ -117,7 +118,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepository<T, ID>, JpaSpec
 		this.metadata = crudMethodMetadata;
 	}
 
-	protected CrudMethodMetadata getRepositoryMethodMetadata() {
+	protected @Nullable CrudMethodMetadata getRepositoryMethodMetadata() {
 		return metadata;
 	}
 
@@ -301,7 +302,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepository<T, ID>, JpaSpec
 	 * @see org.springframework.data.jpa.repository.JpaRepository#findAll()
 	 */
 	public List<T> findAll() {
-		return getQuery(null, (Sort) null).getResultList();
+		return getQuery(null, Sort.unsorted()).getResultList();
 	}
 
 	/*
@@ -310,7 +311,9 @@ public class SimpleJpaRepository<T, ID> implements JpaRepository<T, ID>, JpaSpec
 	 */
 	public List<T> findAllById(Iterable<ID> ids) {
 
-		if (ids == null || !ids.iterator().hasNext()) {
+		Assert.notNull(ids, "The given Iterable of Id's must not be null!");
+
+		if (!ids.iterator().hasNext()) {
 			return Collections.emptyList();
 		}
 
@@ -326,7 +329,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepository<T, ID>, JpaSpec
 		}
 
 		ByIdsSpecification<T> specification = new ByIdsSpecification<T>(entityInformation);
-		TypedQuery<T> query = getQuery(specification, (Sort) null);
+		TypedQuery<T> query = getQuery(specification, Sort.unsorted());
 
 		return query.setParameter(specification.parameter, ids).getResultList();
 	}
@@ -356,10 +359,10 @@ public class SimpleJpaRepository<T, ID> implements JpaRepository<T, ID>, JpaSpec
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.JpaSpecificationExecutor#findOne(org.springframework.data.jpa.domain.Specification)
 	 */
-	public Optional<T> findOne(Specification<T> spec) {
+	public Optional<T> findOne(@Nullable Specification<T> spec) {
 
 		try {
-			return Optional.of(getQuery(spec, (Sort) null).getSingleResult());
+			return Optional.of(getQuery(spec, Sort.unsorted()).getSingleResult());
 		} catch (NoResultException e) {
 			return Optional.empty();
 		}
@@ -369,15 +372,15 @@ public class SimpleJpaRepository<T, ID> implements JpaRepository<T, ID>, JpaSpec
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.JpaSpecificationExecutor#findAll(org.springframework.data.jpa.domain.Specification)
 	 */
-	public List<T> findAll(Specification<T> spec) {
-		return getQuery(spec, (Sort) null).getResultList();
+	public List<T> findAll(@Nullable Specification<T> spec) {
+		return getQuery(spec, Sort.unsorted()).getResultList();
 	}
 
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.JpaSpecificationExecutor#findAll(org.springframework.data.jpa.domain.Specification, org.springframework.data.domain.Pageable)
 	 */
-	public Page<T> findAll(Specification<T> spec, Pageable pageable) {
+	public Page<T> findAll(@Nullable Specification<T> spec, Pageable pageable) {
 
 		TypedQuery<T> query = getQuery(spec, pageable);
 		return isUnpaged(pageable) ? new PageImpl<T>(query.getResultList())
@@ -388,7 +391,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepository<T, ID>, JpaSpec
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.JpaSpecificationExecutor#findAll(org.springframework.data.jpa.domain.Specification, org.springframework.data.domain.Sort)
 	 */
-	public List<T> findAll(Specification<T> spec, Sort sort) {
+	public List<T> findAll(@Nullable Specification<T> spec, Sort sort) {
 		return getQuery(spec, sort).getResultList();
 	}
 
@@ -401,7 +404,8 @@ public class SimpleJpaRepository<T, ID> implements JpaRepository<T, ID>, JpaSpec
 
 		try {
 			return Optional
-					.of(getQuery(new ExampleSpecification<S>(example), example.getProbeType(), (Sort) null).getSingleResult());
+					.of(getQuery(new ExampleSpecification<S>(example), example.getProbeType(), Sort.unsorted())
+							.getSingleResult());
 		} catch (NoResultException e) {
 			return Optional.empty();
 		}
@@ -422,7 +426,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepository<T, ID>, JpaSpec
 	 */
 	@Override
 	public <S extends T> boolean exists(Example<S> example) {
-		return !getQuery(new ExampleSpecification<S>(example), example.getProbeType(), (Sort) null).getResultList()
+		return !getQuery(new ExampleSpecification<S>(example), example.getProbeType(), Sort.unsorted()).getResultList()
 				.isEmpty();
 	}
 
@@ -432,7 +436,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepository<T, ID>, JpaSpec
 	 */
 	@Override
 	public <S extends T> List<S> findAll(Example<S> example) {
-		return getQuery(new ExampleSpecification<S>(example), example.getProbeType(), (Sort) null).getResultList();
+		return getQuery(new ExampleSpecification<S>(example), example.getProbeType(), Sort.unsorted()).getResultList();
 	}
 
 	/*
@@ -470,7 +474,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepository<T, ID>, JpaSpec
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.JpaSpecificationExecutor#count(org.springframework.data.jpa.domain.Specification)
 	 */
-	public long count(Specification<T> spec) {
+	public long count(@Nullable Specification<T> spec) {
 		return executeCountQuery(getCountQuery(spec, getDomainClass()));
 	}
 
@@ -509,11 +513,9 @@ public class SimpleJpaRepository<T, ID> implements JpaRepository<T, ID>, JpaSpec
 	@Transactional
 	public <S extends T> List<S> saveAll(Iterable<S> entities) {
 
-		List<S> result = new ArrayList<S>();
+		Assert.notNull(entities, "The given Iterable of entities not be null!");
 
-		if (entities == null) {
-			return result;
-		}
+		List<S> result = new ArrayList<S>();
 
 		for (S entity : entities) {
 			result.add(save(entity));
@@ -537,12 +539,12 @@ public class SimpleJpaRepository<T, ID> implements JpaRepository<T, ID>, JpaSpec
 	 *
 	 * @param query must not be {@literal null}.
 	 * @param spec can be {@literal null}.
-	 * @param pageable can be {@literal null}.
+	 * @param pageable must not be {@literal null}.
 	 * @return
 	 * @deprecated use {@link #readPage(TypedQuery, Class, Pageable, Specification)} instead
 	 */
 	@Deprecated
-	protected Page<T> readPage(TypedQuery<T> query, Pageable pageable, Specification<T> spec) {
+	protected Page<T> readPage(TypedQuery<T> query, Pageable pageable, @Nullable Specification<T> spec) {
 		return readPage(query, getDomainClass(), pageable, spec);
 	}
 
@@ -557,7 +559,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepository<T, ID>, JpaSpec
 	 * @return
 	 */
 	protected <S extends T> Page<S> readPage(TypedQuery<S> query, final Class<S> domainClass, Pageable pageable,
-			final Specification<S> spec) {
+			@Nullable Specification<S> spec) {
 
 		if (pageable.isPaged()) {
 			query.setFirstResult((int) pageable.getOffset());
@@ -572,12 +574,12 @@ public class SimpleJpaRepository<T, ID> implements JpaRepository<T, ID>, JpaSpec
 	 * Creates a new {@link TypedQuery} from the given {@link Specification}.
 	 *
 	 * @param spec can be {@literal null}.
-	 * @param pageable can be {@literal null}.
+	 * @param pageable must not be {@literal null}.
 	 * @return
 	 */
-	protected TypedQuery<T> getQuery(Specification<T> spec, Pageable pageable) {
+	protected TypedQuery<T> getQuery(@Nullable Specification<T> spec, Pageable pageable) {
 
-		Sort sort = pageable == null ? null : pageable.getSort();
+		Sort sort = pageable.isPaged() ? pageable.getSort() : Sort.unsorted();
 		return getQuery(spec, getDomainClass(), sort);
 	}
 
@@ -586,12 +588,13 @@ public class SimpleJpaRepository<T, ID> implements JpaRepository<T, ID>, JpaSpec
 	 *
 	 * @param spec can be {@literal null}.
 	 * @param domainClass must not be {@literal null}.
-	 * @param pageable can be {@literal null}.
+	 * @param pageable must not be {@literal null}.
 	 * @return
 	 */
-	protected <S extends T> TypedQuery<S> getQuery(Specification<S> spec, Class<S> domainClass, Pageable pageable) {
+	protected <S extends T> TypedQuery<S> getQuery(@Nullable Specification<S> spec, Class<S> domainClass,
+			Pageable pageable) {
 
-		Sort sort = pageable == null ? null : pageable.getSort();
+		Sort sort = pageable.isPaged() ? pageable.getSort() : Sort.unsorted();
 		return getQuery(spec, domainClass, sort);
 	}
 
@@ -599,10 +602,10 @@ public class SimpleJpaRepository<T, ID> implements JpaRepository<T, ID>, JpaSpec
 	 * Creates a {@link TypedQuery} for the given {@link Specification} and {@link Sort}.
 	 *
 	 * @param spec can be {@literal null}.
-	 * @param sort can be {@literal null}.
+	 * @param sort must not be {@literal null}.
 	 * @return
 	 */
-	protected TypedQuery<T> getQuery(Specification<T> spec, Sort sort) {
+	protected TypedQuery<T> getQuery(@Nullable Specification<T> spec, Sort sort) {
 		return getQuery(spec, getDomainClass(), sort);
 	}
 
@@ -611,10 +614,10 @@ public class SimpleJpaRepository<T, ID> implements JpaRepository<T, ID>, JpaSpec
 	 *
 	 * @param spec can be {@literal null}.
 	 * @param domainClass must not be {@literal null}.
-	 * @param sort can be {@literal null}.
+	 * @param sort must not be {@literal null}.
 	 * @return
 	 */
-	protected <S extends T> TypedQuery<S> getQuery(Specification<S> spec, Class<S> domainClass, Sort sort) {
+	protected <S extends T> TypedQuery<S> getQuery(@Nullable Specification<S> spec, Class<S> domainClass, Sort sort) {
 
 		CriteriaBuilder builder = em.getCriteriaBuilder();
 		CriteriaQuery<S> query = builder.createQuery(domainClass);
@@ -622,7 +625,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepository<T, ID>, JpaSpec
 		Root<S> root = applySpecificationToCriteria(spec, domainClass, query);
 		query.select(root);
 
-		if (sort != null && !sort.isUnsorted()) {
+		if (sort.isSorted()) {
 			query.orderBy(toOrders(sort, root, builder));
 		}
 
@@ -637,7 +640,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepository<T, ID>, JpaSpec
 	 * @deprecated override {@link #getCountQuery(Specification, Class)} instead
 	 */
 	@Deprecated
-	protected TypedQuery<Long> getCountQuery(Specification<T> spec) {
+	protected TypedQuery<Long> getCountQuery(@Nullable Specification<T> spec) {
 		return getCountQuery(spec, getDomainClass());
 	}
 
@@ -648,7 +651,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepository<T, ID>, JpaSpec
 	 * @param domainClass must not be {@literal null}.
 	 * @return
 	 */
-	protected <S extends T> TypedQuery<Long> getCountQuery(Specification<S> spec, Class<S> domainClass) {
+	protected <S extends T> TypedQuery<Long> getCountQuery(@Nullable Specification<S> spec, Class<S> domainClass) {
 
 		CriteriaBuilder builder = em.getCriteriaBuilder();
 		CriteriaQuery<Long> query = builder.createQuery(Long.class);
@@ -675,7 +678,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepository<T, ID>, JpaSpec
 	 * @param query must not be {@literal null}.
 	 * @return
 	 */
-	private <S, U extends T> Root<U> applySpecificationToCriteria(Specification<U> spec, Class<U> domainClass,
+	private <S, U extends T> Root<U> applySpecificationToCriteria(@Nullable Specification<U> spec, Class<U> domainClass,
 			CriteriaQuery<S> query) {
 
 		Assert.notNull(domainClass, "Domain class must not be null!");
@@ -739,7 +742,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepository<T, ID>, JpaSpec
 	}
 
 	private static boolean isUnpaged(Pageable pageable) {
-		return pageable == null || pageable.isUnpaged();
+		return pageable.isUnpaged();
 	}
 
 	/**
@@ -755,9 +758,9 @@ public class SimpleJpaRepository<T, ID> implements JpaRepository<T, ID>, JpaSpec
 
 		private final JpaEntityInformation<T, ?> entityInformation;
 
-		ParameterExpression<Iterable> parameter;
+		@Nullable ParameterExpression<Iterable> parameter;
 
-		public ByIdsSpecification(JpaEntityInformation<T, ?> entityInformation) {
+		ByIdsSpecification(JpaEntityInformation<T, ?> entityInformation) {
 			this.entityInformation = entityInformation;
 		}
 
@@ -790,7 +793,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepository<T, ID>, JpaSpec
 		 *
 		 * @param example
 		 */
-		public ExampleSpecification(Example<T> example) {
+		ExampleSpecification(Example<T> example) {
 
 			Assert.notNull(example, "Example must not be null!");
 			this.example = example;

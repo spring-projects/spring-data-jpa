@@ -24,12 +24,16 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
+import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
+
 /**
  * Helper class to easily combine {@link Specification} instances.
  *
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Sebastian Staudt
+ * @author Mark Paluch
  * @deprecated since 2.0, use factory methods on {@link Specification} instead.
  */
 @Deprecated
@@ -37,14 +41,14 @@ public class Specifications<T> implements Specification<T>, Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	private final Specification<T> spec;
+	private final @Nullable Specification<T> spec;
 
 	/**
 	 * Creates a new {@link Specifications} wrapper for the given {@link Specification}.
 	 *
 	 * @param spec can be {@literal null}.
 	 */
-	Specifications(Specification<T> spec) {
+	Specifications(@Nullable Specification<T> spec) {
 		this.spec = spec;
 	}
 
@@ -57,7 +61,7 @@ public class Specifications<T> implements Specification<T>, Serializable {
 	 * @return
 	 */
 	@Deprecated
-	public static <T> Specifications<T> where(Specification<T> spec) {
+	public static <T> Specifications<T> where(@Nullable Specification<T> spec) {
 		return new Specifications<>(spec);
 	}
 
@@ -70,7 +74,7 @@ public class Specifications<T> implements Specification<T>, Serializable {
 	 * @return
 	 */
 	@Deprecated
-	public Specifications<T> and(Specification<T> other) {
+	public Specifications<T> and(@Nullable Specification<T> other) {
 		return new Specifications<>(composed(spec, other, AND));
 	}
 
@@ -83,7 +87,7 @@ public class Specifications<T> implements Specification<T>, Serializable {
 	 * @return
 	 */
 	@Deprecated
-	public Specifications<T> or(Specification<T> other) {
+	public Specifications<T> or(@Nullable Specification<T> other) {
 		return new Specifications<>(composed(spec, other, OR));
 	}
 
@@ -96,7 +100,7 @@ public class Specifications<T> implements Specification<T>, Serializable {
 	 * @return
 	 */
 	@Deprecated
-	public static <T> Specifications<T> not(Specification<T> spec) {
+	public static <T> Specifications<T> not(@Nullable Specification<T> spec) {
 		return new Specifications<>(negated(spec));
 	}
 
@@ -104,6 +108,7 @@ public class Specifications<T> implements Specification<T>, Serializable {
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.domain.Specification#toPredicate(javax.persistence.criteria.Root, javax.persistence.criteria.CriteriaQuery, javax.persistence.criteria.CriteriaBuilder)
 	 */
+	@Nullable
 	public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder builder) {
 		return spec == null ? null : spec.toPredicate(root, query, builder);
 	}
@@ -133,11 +138,11 @@ public class Specifications<T> implements Specification<T>, Serializable {
 		abstract Predicate combine(CriteriaBuilder builder, Predicate lhs, Predicate rhs);
 	}
 
-	static <T> Specification<T> negated(Specification<T> spec) {
+	static <T> Specification<T> negated(@Nullable Specification<T> spec) {
 		return (root, query, builder) -> spec == null ? null : builder.not(spec.toPredicate(root, query, builder));
 	}
 
-	static <T> Specification<T> composed(Specification<T> lhs, Specification<T> rhs, CompositionType compositionType) {
+	static <T> Specification<T> composed(@Nullable Specification<T> lhs, @Nullable Specification<T> rhs, CompositionType compositionType) {
 
 		return (root, query, builder) -> {
 

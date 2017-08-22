@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2014 the original author or authors.
+ * Copyright 2008-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.core.support.RepositoryFactorySupport;
 import org.springframework.data.repository.core.support.TransactionalRepositoryFactoryBeanSupport;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -30,12 +31,13 @@ import org.springframework.util.Assert;
  * 
  * @author Oliver Gierke
  * @author Eberhard Wolff
+ * @author Mark Paluch
  * @param <T> the type of the repository
  */
 public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 		extends TransactionalRepositoryFactoryBeanSupport<T, S, ID> {
 
-	private EntityManager entityManager;
+	private @Nullable EntityManager entityManager;
 
 	/**
 	 * Creates a new {@link JpaRepositoryFactoryBean} for the given repository interface.
@@ -73,6 +75,11 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 	 */
 	@Override
 	protected RepositoryFactorySupport doCreateRepositoryFactory() {
+
+		if (entityManager == null) {
+			throw new IllegalStateException("EntityManager must not be null!");
+		}
+
 		return createRepositoryFactory(entityManager);
 	}
 

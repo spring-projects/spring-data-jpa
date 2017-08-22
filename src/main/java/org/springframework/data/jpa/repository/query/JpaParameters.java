@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,11 +26,13 @@ import org.springframework.data.jpa.repository.Temporal;
 import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
+import org.springframework.lang.Nullable;
 
 /**
  * Custom extension of {@link Parameters} discovering additional query parameter annotations.
  * 
  * @author Thomas Darimont
+ * @author Mark Paluch
  */
 public class JpaParameters extends Parameters<JpaParameters, JpaParameter> {
 
@@ -73,8 +75,8 @@ public class JpaParameters extends Parameters<JpaParameters, JpaParameter> {
 	 */
 	static class JpaParameter extends Parameter {
 
-		private final Temporal annotation;
-		private TemporalType temporalType;
+		private final @Nullable Temporal annotation;
+		private @Nullable TemporalType temporalType;
 
 		/**
 		 * Creates a new {@link JpaParameter}.
@@ -89,8 +91,8 @@ public class JpaParameters extends Parameters<JpaParameters, JpaParameter> {
 			this.temporalType = null;
 
 			if (!isDateParameter() && hasTemporalParamAnnotation()) {
-				throw new IllegalArgumentException(Temporal.class.getSimpleName()
-						+ " annotation is only allowed on Date parameter!");
+				throw new IllegalArgumentException(
+						Temporal.class.getSimpleName() + " annotation is only allowed on Date parameter!");
 			}
 		}
 
@@ -106,20 +108,37 @@ public class JpaParameters extends Parameters<JpaParameters, JpaParameter> {
 		/**
 		 * @return {@literal true} if this parameter is of type {@link Date} and has an {@link Temporal} annotation.
 		 */
-		public boolean isTemporalParameter() {
+		boolean isTemporalParameter() {
 			return isDateParameter() && hasTemporalParamAnnotation();
 		}
 
 		/**
 		 * @return the {@link TemporalType} on the {@link Temporal} annotation of the given {@link Parameter}.
 		 */
-		public TemporalType getTemporalType() {
+		@Nullable
+		TemporalType getTemporalType() {
 
 			if (temporalType == null) {
 				this.temporalType = annotation == null ? null : annotation.value();
 			}
 
 			return this.temporalType;
+		}
+
+		/**
+		 * @return the required {@link TemporalType} on the {@link Temporal} annotation of the given {@link Parameter}.
+		 * @throws IllegalStateException if the parameter does not define a {@link TemporalType}.
+		 * @since 2.0
+		 */
+		TemporalType getRequiredTemporalType() throws IllegalStateException {
+
+			TemporalType temporalType = getTemporalType();
+
+			if (temporalType != null) {
+				return temporalType;
+			}
+
+			throw new IllegalStateException(String.format("Required temporal type not found for %s!", getType()));
 		}
 
 		private boolean hasTemporalParamAnnotation() {
