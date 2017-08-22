@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.hibernate.Query;
+import org.springframework.lang.Nullable;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
 
@@ -27,6 +28,8 @@ import org.springframework.util.ReflectionUtils;
  * Utility functions to work with Hibernate. Mostly using reflection to make sure common functionality can be executed
  * against all the Hibernate version we support.
  * 
+ * @author Oliver Gierke
+ * @author Mark Paluch
  * @since 1.10.2
  * @soundtrack Benny Greb - Soulfood (Live, https://www.youtube.com/watch?v=9_ErMa_CtSw)
  */
@@ -34,10 +37,9 @@ public abstract class HibernateUtils {
 
 	private static final List<String> TYPES = Arrays.asList("org.hibernate.jpa.HibernateQuery",
 			"org.hibernate.ejb.HibernateQuery");
-	private static final Method GET_HIBERNATE_QUERY;
-
-	private static final Class<?> HIBERNATE_QUERY_INTERFACE;
-	private static final Method QUERY_STRING_METHOD;
+	private static final @Nullable Method GET_HIBERNATE_QUERY;
+	private static final @Nullable Class<?> HIBERNATE_QUERY_INTERFACE;
+	private static final @Nullable Method QUERY_STRING_METHOD;
 
 	private HibernateUtils() {}
 
@@ -73,6 +75,7 @@ public abstract class HibernateUtils {
 	 * @param query
 	 * @return
 	 */
+	@Nullable
 	public static String getHibernateQuery(Object query) {
 
 		if (HIBERNATE_QUERY_INTERFACE != null && QUERY_STRING_METHOD != null
@@ -84,6 +87,12 @@ public abstract class HibernateUtils {
 			query = ((javax.persistence.Query) query).unwrap(HIBERNATE_QUERY_INTERFACE);
 		}
 
-		return ((Query) ReflectionUtils.invokeMethod(GET_HIBERNATE_QUERY, query)).getQueryString();
+		if (GET_HIBERNATE_QUERY == null) {
+			throw new IllegalStateException(
+					"Cannot invoke getHibernateQuery(…). No underlying method for a reflective call found.");
+		}
+
+		Query q = (Query) ReflectionUtils.invokeMethod(GET_HIBERNATE_QUERY, query);
+		return q == null ? "" : q.getQueryString();
 	}
 }

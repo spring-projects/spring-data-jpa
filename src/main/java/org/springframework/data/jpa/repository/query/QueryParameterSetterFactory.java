@@ -31,6 +31,7 @@ import org.springframework.data.repository.query.Parameters;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -39,15 +40,17 @@ import org.springframework.util.Assert;
  *
  * @author Jens Schauder
  * @author Oliver Gierke
+ * @author Mark Paluch
  * @since 2.0
  */
 abstract class QueryParameterSetterFactory {
 
-	abstract QueryParameterSetter create(ParameterBinding binding, String queryString);
+	@Nullable
+	abstract QueryParameterSetter create(ParameterBinding binding, @Nullable String queryString);
 
 	/**
 	 * Creates a new {@link QueryParameterSetterFactory} for the given {@link JpaParameters}.
-	 * 
+	 *
 	 * @param parameters must not be {@literal null}.
 	 * @return a basic {@link QueryParameterSetterFactory} that can handle named and index parameters.
 	 */
@@ -61,7 +64,7 @@ abstract class QueryParameterSetterFactory {
 	/**
 	 * Creates a new {@link QueryParameterSetterFactory} using the given {@link JpaParameters} and
 	 * {@link ParameterMetadata}.
-	 * 
+	 *
 	 * @param parameters must not be {@literal null}.
 	 * @param metadata must not be {@literal null}.
 	 * @return a {@link QueryParameterSetterFactory} for criteria Queries.
@@ -77,7 +80,7 @@ abstract class QueryParameterSetterFactory {
 	/**
 	 * Creates a new {@link QueryParameterSetterFactory} for the given {@link SpelExpressionParser},
 	 * {@link EvaluationContextProvider} and {@link Parameters}.
-	 * 
+	 *
 	 * @param parser must not be {@literal null}.
 	 * @param evaluationContextProvider must not be {@literal null}.
 	 * @param parameters must not be {@literal null}.
@@ -104,10 +107,10 @@ abstract class QueryParameterSetterFactory {
 	 * @param lenient when true certain exceptions thrown when setting the query parameters get ignored.
 	 */
 	private static QueryParameterSetter createSetter(Function<Object[], Object> valueExtractor, ParameterBinding binding,
-			JpaParameter parameter, boolean lenient) {
+			@Nullable JpaParameter parameter, boolean lenient) {
 
 		TemporalType temporalType = parameter != null && parameter.isTemporalParameter() //
-				? parameter.getTemporalType() //
+				? parameter.getRequiredTemporalType() //
 				: null;
 
 		return new NamedOrIndexedQueryParameterSetter(valueExtractor.andThen(binding::prepare),
@@ -148,8 +151,9 @@ abstract class QueryParameterSetterFactory {
 		 * (non-Javadoc)
 		 * @see org.springframework.data.jpa.repository.query.QueryParameterSetterFactory#create(org.springframework.data.jpa.repository.query.StringQuery.ParameterBinding, java.lang.String)
 		 */
+		@Nullable
 		@Override
-		public QueryParameterSetter create(ParameterBinding binding, String queryString) {
+		public QueryParameterSetter create(ParameterBinding binding, @Nullable String queryString) {
 
 			if (!binding.isExpression()) {
 				return null;
@@ -162,11 +166,12 @@ abstract class QueryParameterSetterFactory {
 
 		/**
 		 * Evaluates the given {@link Expression} against the given values.
-		 * 
+		 *
 		 * @param expression must not be {@literal null}.
 		 * @param values must not be {@literal null}.
 		 * @return the result of the evaluation.
 		 */
+		@Nullable
 		private Object evaluateExpression(Expression expression, Object[] values) {
 
 			EvaluationContext context = evaluationContextProvider.getEvaluationContext(parameters, values);
@@ -200,23 +205,24 @@ abstract class QueryParameterSetterFactory {
 		 * @see org.springframework.data.jpa.repository.query.QueryParameterSetterFactory#create(org.springframework.data.jpa.repository.query.StringQuery.ParameterBinding, java.lang.String)
 		 */
 		@Override
-		public QueryParameterSetter create(ParameterBinding binding, String queryString) {
+		public QueryParameterSetter create(ParameterBinding binding, @Nullable String queryString) {
 
 			Assert.notNull(binding, "Binding must not be null.");
 
 			JpaParameter parameter = QueryUtils.hasNamedParameter(queryString) //
 					? findParameterForBinding(binding) //
-					: parameters.getBindableParameter(binding.getPosition() - 1);
+					: parameters.getBindableParameter(binding.getRequiredPosition() - 1);
 
 			return parameter == null //
 					? QueryParameterSetter.NOOP //
 					: createSetter(values -> getValue(values, parameter), binding, parameter, false);
 		}
 
+		@Nullable
 		private JpaParameter findParameterForBinding(ParameterBinding binding) {
 
 			return parameters.getBindableParameters().stream() //
-					.filter(candidate -> binding.getName().equals(getName(candidate))) //
+					.filter(candidate -> binding.getRequiredName().equals(getName(candidate))) //
 					.findFirst().orElse(null);
 		}
 
@@ -231,7 +237,7 @@ abstract class QueryParameterSetterFactory {
 
 	/**
 	 * {@link QueryParameterSetterFactory}
-	 * 
+	 *
 	 * @author Jens Schauder
 	 * @author Oliver Gierke
 	 */
@@ -243,7 +249,7 @@ abstract class QueryParameterSetterFactory {
 		/**
 		 * Creates a new {@link QueryParameterSetterFactory} from the given {@link JpaParameters} and
 		 * {@link ParameterMetadata}.
-		 * 
+		 *
 		 * @param parameters must not be {@literal null}.
 		 * @param metadata must not be {@literal null}.
 		 */
@@ -261,21 +267,22 @@ abstract class QueryParameterSetterFactory {
 		 * @see org.springframework.data.jpa.repository.query.QueryParameterSetterFactory#create(org.springframework.data.jpa.repository.query.StringQuery.ParameterBinding, java.lang.String)
 		 */
 		@Override
-		public QueryParameterSetter create(ParameterBinding binding, String queryString) {
+		public QueryParameterSetter create(ParameterBinding binding, @Nullable String queryString) {
 
-			ParameterMetadata<?> metadata = expressions.get(binding.getPosition() - 1);
+			ParameterMetadata<?> metadata = expressions.get(binding.getRequiredPosition() - 1);
 
 			if (metadata.isIsNullParameter()) {
 				return QueryParameterSetter.NOOP;
 			}
 
-			JpaParameter parameter = parameters.getBindableParameter(binding.getPosition() - 1);
-			TemporalType temporalType = parameter.isTemporalParameter() ? parameter.getTemporalType() : null;
+			JpaParameter parameter = parameters.getBindableParameter(binding.getRequiredPosition() - 1);
+			TemporalType temporalType = parameter.isTemporalParameter() ? parameter.getRequiredTemporalType() : null;
 
 			return new NamedOrIndexedQueryParameterSetter(values -> getAndPrepare(parameter, metadata, values),
 					metadata.getExpression(), temporalType, false);
 		}
 
+		@Nullable
 		private Object getAndPrepare(JpaParameter parameter, ParameterMetadata<?> metadata, Object[] values) {
 
 			JpaParametersParameterAccessor accessor = new JpaParametersParameterAccessor(parameters, values);
@@ -287,17 +294,17 @@ abstract class QueryParameterSetterFactory {
 	private static class ParameterImpl<T> implements javax.persistence.Parameter<T> {
 
 		private final Class<T> parameterType;
-		private final String name;
-		private final Integer position;
+		private final @Nullable String name;
+		private final @Nullable Integer position;
 
 		/**
 		 * Creates a new {@link ParameterImpl} for the given {@link JpaParameter} and {@link ParameterBinding}.
-		 * 
+		 *
 		 * @param parameter can be {@literal null}.
 		 * @param binding must not be {@literal null}.
 		 * @return a {@link javax.persistence.Parameter} object based on the information from the arguments.
 		 */
-		static javax.persistence.Parameter<?> of(JpaParameter parameter, ParameterBinding binding) {
+		static javax.persistence.Parameter<?> of(@Nullable JpaParameter parameter, ParameterBinding binding) {
 
 			Class<?> type = parameter == null ? Object.class : parameter.getType();
 
@@ -306,37 +313,39 @@ abstract class QueryParameterSetterFactory {
 
 		/**
 		 * Creates a new {@link ParameterImpl} for the given name, position and parameter type.
-		 * 
+		 *
 		 * @param parameterType must not be {@literal null}.
 		 * @param name can be {@literal null}.
 		 * @param position can be {@literal null}.
 		 */
-		private ParameterImpl(Class<T> parameterType, String name, Integer position) {
+		private ParameterImpl(Class<T> parameterType, @Nullable String name, @Nullable Integer position) {
 
 			this.name = name;
 			this.position = position;
 			this.parameterType = parameterType;
 		}
 
-		/* 
+		/*
 		 * (non-Javadoc)
 		 * @see javax.persistence.Parameter#getName()
 		 */
+		@Nullable
 		@Override
 		public String getName() {
 			return name;
 		}
 
-		/* 
+		/*
 		 * (non-Javadoc)
 		 * @see javax.persistence.Parameter#getPosition()
 		 */
+		@Nullable
 		@Override
 		public Integer getPosition() {
 			return position;
 		}
 
-		/* 
+		/*
 		 * (non-Javadoc)
 		 * @see javax.persistence.Parameter#getParameterType()
 		 */
@@ -345,7 +354,8 @@ abstract class QueryParameterSetterFactory {
 			return parameterType;
 		}
 
-		private static String getName(JpaParameter parameter, ParameterBinding binding) {
+		@Nullable
+		private static String getName(@Nullable JpaParameter parameter, ParameterBinding binding) {
 
 			if (parameter == null) {
 				return binding.getName();

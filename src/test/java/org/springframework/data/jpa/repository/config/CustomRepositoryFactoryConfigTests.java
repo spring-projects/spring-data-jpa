@@ -26,7 +26,6 @@ import org.springframework.data.jpa.repository.custom.UserCustomExtendedReposito
 import org.springframework.data.jpa.repository.support.TransactionalRepositoryTests.DelegatingTransactionManager;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.util.Assert;
 
 /**
  * Annotation to exclude repository interfaces from being picked up and thus in consequence getting an instance being
@@ -36,7 +35,7 @@ import org.springframework.util.Assert;
  * custom repository base class to implement methods declared in that intermediate interface. In this case you typically
  * derive your concrete repository interfaces from the intermediate one but don't want to create a Spring bean for the
  * intermediate interface.
- * 
+ *
  * @author Oliver Gierke
  * @author Mark Paluch
  */
@@ -44,11 +43,9 @@ import org.springframework.util.Assert;
 @ContextConfiguration(locations = "classpath:config/namespace-customfactory-context.xml")
 public class CustomRepositoryFactoryConfigTests {
 
-	@Autowired(required = false)
-	UserCustomExtendedRepository userRepository;
+	@Autowired(required = false) UserCustomExtendedRepository userRepository;
 
-	@Autowired
-	DelegatingTransactionManager transactionManager;
+	@Autowired DelegatingTransactionManager transactionManager;
 
 	@Before
 	public void setup() {

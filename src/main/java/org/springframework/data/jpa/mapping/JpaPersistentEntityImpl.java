@@ -31,6 +31,7 @@ import org.springframework.util.Assert;
  * @author Oliver Gierke
  * @author Greg Turnquist
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 1.3
  */
 class JpaPersistentEntityImpl<T> extends BasicPersistentEntity<T, JpaPersistentProperty>
@@ -112,7 +113,7 @@ class JpaPersistentEntityImpl<T> extends BasicPersistentEntity<T, JpaPersistentP
 		 * @param bean must not be {@literal null}.
 		 * @param proxyIdAccessor must not be {@literal null}.
 		 */
-		public JpaProxyAwareIdentifierAccessor(JpaPersistentEntity<?> entity, Object bean,
+		JpaProxyAwareIdentifierAccessor(JpaPersistentEntity<?> entity, Object bean,
 				ProxyIdAccessor proxyIdAccessor) {
 
 			super(entity, bean);

@@ -27,12 +27,14 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
 import org.springframework.data.domain.Auditable;
+import org.springframework.lang.Nullable;
 
 /**
  * Abstract base class for auditable entities. Stores the audition values in persistent fields.
  * 
  * @author Oliver Gierke
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @param <U> the auditing type. Typically some kind of user.
  * @param <PK> the type of the auditing type's idenifier
  */
@@ -43,16 +45,16 @@ public abstract class AbstractAuditable<U, PK extends Serializable> extends Abst
 	private static final long serialVersionUID = 141481953116476081L;
 
 	@ManyToOne //
-	private U createdBy;
+	private @Nullable U createdBy;
 
 	@Temporal(TemporalType.TIMESTAMP) //
-	private Date createdDate;
+	private @Nullable Date createdDate;
 
 	@ManyToOne //
-	private U lastModifiedBy;
+	private @Nullable U lastModifiedBy;
 
 	@Temporal(TemporalType.TIMESTAMP) //
-	private Date lastModifiedDate;
+	private @Nullable Date lastModifiedDate;
 
 	/*
 	 * (non-Javadoc)

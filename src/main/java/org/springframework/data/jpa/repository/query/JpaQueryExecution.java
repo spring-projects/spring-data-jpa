@@ -39,6 +39,7 @@ import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.support.PageableExecutionUtils;
 import org.springframework.data.util.CloseableIterator;
 import org.springframework.data.util.StreamUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
@@ -74,6 +75,7 @@ public abstract class JpaQueryExecution {
 	 * @param values must not be {@literal null}.
 	 * @return
 	 */
+	@Nullable
 	public Object execute(AbstractJpaQuery query, Object[] values) {
 
 		Assert.notNull(query, "AbstractJpaQuery must not be null!");
@@ -109,6 +111,7 @@ public abstract class JpaQueryExecution {
 	 * @param values
 	 * @return
 	 */
+	@Nullable
 	protected abstract Object doExecute(AbstractJpaQuery query, Object[] values);
 
 	/**
@@ -212,7 +215,7 @@ public abstract class JpaQueryExecution {
 	 */
 	static class ModifyingExecution extends JpaQueryExecution {
 
-		private final EntityManager em;
+		private final @Nullable EntityManager em;
 
 		/**
 		 * Creates an execution that automatically clears the given {@link EntityManager} after execution if the given
@@ -220,7 +223,7 @@ public abstract class JpaQueryExecution {
 		 * 
 		 * @param em
 		 */
-		public ModifyingExecution(JpaQueryMethod method, EntityManager em) {
+		public ModifyingExecution(JpaQueryMethod method, @Nullable EntityManager em) {
 
 			Class<?> returnType = method.getReturnType();
 
@@ -363,10 +366,7 @@ public abstract class JpaQueryExecution {
 				Class<?> optionalType = ClassUtils.forName("java.util.Optional", classLoader);
 				conversionService.removeConvertible(Object.class, optionalType);
 
-			} catch (ClassNotFoundException e) {
-				return;
-			} catch (LinkageError e) {
-				return;
+			} catch (ClassNotFoundException | LinkageError o_O) {
 			}
 		}
 	}

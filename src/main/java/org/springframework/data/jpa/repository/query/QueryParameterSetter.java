@@ -23,6 +23,7 @@ import javax.persistence.Query;
 import javax.persistence.TemporalType;
 import javax.persistence.criteria.ParameterExpression;
 
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -30,6 +31,7 @@ import org.springframework.util.Assert;
  * {@literal Query.setParameter}.
  *
  * @author Jens Schauder
+ * @author Mark Paluch
  * @since 2.0
  */
 interface QueryParameterSetter {
@@ -46,17 +48,17 @@ interface QueryParameterSetter {
 
 		private final Function<Object[], Object> valueExtractor;
 		private final Parameter<?> parameter;
-		private final TemporalType temporalType;
+		private final @Nullable TemporalType temporalType;
 		private final boolean lenient;
 
 		/**
 		 * @param valueExtractor must not be {@literal null}.
 		 * @param parameter must not be {@literal null}.
-		 * @param temporalType must not be {@literal null}.
+		 * @param temporalType may be {@literal null}.
 		 * @param lenient must not be {@literal null}.
 		 */
 		NamedOrIndexedQueryParameterSetter(Function<Object[], Object> valueExtractor, Parameter<?> parameter,
-				TemporalType temporalType, boolean lenient) {
+				@Nullable TemporalType temporalType, boolean lenient) {
 
 			Assert.notNull(valueExtractor, "ValueExtractor must not be null!");
 

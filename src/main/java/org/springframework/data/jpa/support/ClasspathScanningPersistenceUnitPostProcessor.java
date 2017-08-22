@@ -39,6 +39,7 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternUtils;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
+import org.springframework.lang.Nullable;
 import org.springframework.orm.jpa.persistenceunit.MutablePersistenceUnitInfo;
 import org.springframework.orm.jpa.persistenceunit.PersistenceUnitPostProcessor;
 import org.springframework.util.Assert;
@@ -51,6 +52,7 @@ import org.springframework.util.StringUtils;
  * 
  * @author Oliver Gierke
  * @author Thomas Darimont
+ * @author Mark Paluch
  */
 public class ClasspathScanningPersistenceUnitPostProcessor
 		implements PersistenceUnitPostProcessor, ResourceLoaderAware, EnvironmentAware {
@@ -62,7 +64,7 @@ public class ClasspathScanningPersistenceUnitPostProcessor
 	private ResourcePatternResolver mappingFileResolver = new PathMatchingResourcePatternResolver();
 	private Environment environment = new StandardEnvironment();
 	private ResourceLoader resourceLoader = new DefaultResourceLoader();
-	private String mappingFileNamePattern;
+	private @Nullable String mappingFileNamePattern;
 
 	/**
 	 * Creates a new {@link ClasspathScanningPersistenceUnitPostProcessor} using the given base package as scan base.
@@ -125,7 +127,10 @@ public class ClasspathScanningPersistenceUnitPostProcessor
 		for (BeanDefinition definition : provider.findCandidateComponents(basePackage)) {
 
 			LOG.debug("Registering classpath-scanned entity {} in persistence unit info!", definition.getBeanClassName());
-			pui.addManagedClassName(definition.getBeanClassName());
+
+			if (definition.getBeanClassName() != null) {
+				pui.addManagedClassName(definition.getBeanClassName());
+			}
 		}
 
 		for (String location : scanForMappingFileLocations()) {

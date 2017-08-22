@@ -18,6 +18,7 @@ package org.springframework.data.jpa.util;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 import javax.persistence.metamodel.ManagedType;
@@ -29,12 +30,13 @@ import org.springframework.util.Assert;
  * Wrapper around the JPA {@link Metamodel} to be able to apply some fixes against bugs in provider implementations.
  * 
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 public class JpaMetamodel {
 
 	private final Metamodel metamodel;
 
-	private Collection<Class<?>> managedTypes;
+	private Optional<Collection<Class<?>>> managedTypes = Optional.empty();
 
 	/**
 	 * Creates a new {@link JpaMetamodel} for the given JPA {@link Metamodel}.
@@ -70,24 +72,23 @@ public class JpaMetamodel {
 	 */
 	private Collection<Class<?>> getManagedTypes() {
 
-		if (managedTypes != null) {
-			return managedTypes;
-		}
+		if (!managedTypes.isPresent()) {
 
-		Set<ManagedType<?>> managedTypes = metamodel.getManagedTypes();
-		Set<Class<?>> types = new HashSet<Class<?>>(managedTypes.size());
+			Set<ManagedType<?>> managedTypes = metamodel.getManagedTypes();
+			Set<Class<?>> types = new HashSet<Class<?>>(managedTypes.size());
 
-		for (ManagedType<?> managedType : metamodel.getManagedTypes()) {
+			for (ManagedType<?> managedType : metamodel.getManagedTypes()) {
 
-			Class<?> type = managedType.getJavaType();
+				Class<?> type = managedType.getJavaType();
 
-			if (type != null) {
-				types.add(type);
+				if (type != null) {
+					types.add(type);
+				}
 			}
+
+			this.managedTypes = Optional.of(Collections.unmodifiableSet(types));
 		}
 
-		this.managedTypes = Collections.unmodifiableSet(types);
-
-		return this.managedTypes;
+		return this.managedTypes.get();
 	}
 }

@@ -35,6 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("classpath:application-context.xml")
@@ -91,7 +92,7 @@ public class Jpa21UtilsTests {
 		assertThat(colleagues, terminatesGraphWith("roles"));
 		assertThat(colleagues, hasSubgraphs("colleagues"));
 
-		AttributeNode colleaguesOfColleagues = findNode("colleagues", colleagues);
+		AttributeNode<?> colleaguesOfColleagues = findNode("colleagues", colleagues);
 		assertThat(colleaguesOfColleagues, terminatesGraphWith("roles"));
 	}
 
@@ -111,7 +112,7 @@ public class Jpa21UtilsTests {
 		assertThat(colleagues, terminatesGraphWith("roles"));
 		assertThat(colleagues, hasSubgraphs("colleagues"));
 
-		AttributeNode colleaguesOfColleagues = findNode("colleagues", colleagues);
+		AttributeNode<?> colleaguesOfColleagues = findNode("colleagues", colleagues);
 		assertThat(colleaguesOfColleagues, terminatesGraphWith("roles"));
 	}
 
@@ -131,7 +132,7 @@ public class Jpa21UtilsTests {
 		assertThat(colleagues, terminatesGraphWith("roles"));
 		assertThat(colleagues, hasSubgraphs("colleagues"));
 
-		AttributeNode colleaguesOfColleagues = findNode("colleagues", colleagues);
+		AttributeNode<?> colleaguesOfColleagues = findNode("colleagues", colleagues);
 		assertThat(colleaguesOfColleagues, terminatesGraphWith("roles"));
 	}
 

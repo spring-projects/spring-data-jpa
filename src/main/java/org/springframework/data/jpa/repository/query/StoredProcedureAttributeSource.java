@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import javax.persistence.NamedStoredProcedureQuery;
 import javax.persistence.StoredProcedureParameter;
 
 import org.springframework.core.annotation.AnnotatedElementUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -34,6 +35,7 @@ import org.springframework.util.StringUtils;
  * @author Thomas Darimont
  * @author Oliver Gierke
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 1.6
  */
 enum StoredProcedureAttributeSource {
@@ -157,6 +159,7 @@ enum StoredProcedureAttributeSource {
 	 * @param procedure must not be {@literal null}.
 	 * @return
 	 */
+	@Nullable
 	private NamedStoredProcedureQuery tryFindAnnotatedNamedStoredProcedureQuery(Method method,
 			JpaEntityMetadata<?> entityMetadata, Procedure procedure) {
 

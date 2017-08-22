@@ -35,6 +35,7 @@ import org.springframework.data.jpa.domain.sample.Address_;
 import org.springframework.data.jpa.domain.sample.MailMessage_;
 import org.springframework.data.jpa.domain.sample.MailSender_;
 import org.springframework.data.jpa.domain.sample.User_;
+import org.springframework.lang.Nullable;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -52,10 +53,10 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration("classpath:infrastructure.xml")
 public class JpaSortTests {
 
-	private static final Attribute<?, ?> NULL_ATTRIBUTE = null;
+	private static final @Nullable Attribute<?, ?> NULL_ATTRIBUTE = null;
 	private static final Attribute<?, ?>[] EMPTY_ATTRIBUTES = new Attribute<?, ?>[0];
 
-	private static final PluralAttribute<?, ?, ?> NULL_PLURAL_ATTRIBUTE = null;
+	private static final @Nullable PluralAttribute<?, ?, ?> NULL_PLURAL_ATTRIBUTE = null;
 	private static final PluralAttribute<?, ?, ?>[] EMPTY_PLURAL_ATTRIBUTES = new PluralAttribute<?, ?, ?>[0];
 
 	@Test(expected = IllegalArgumentException.class) // DATAJPA-12

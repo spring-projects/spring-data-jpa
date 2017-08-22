@@ -24,6 +24,8 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
+import org.springframework.lang.Nullable;
+
 /**
  * Specification in the sense of Domain Driven Design.
  * 
@@ -31,6 +33,7 @@ import javax.persistence.criteria.Root;
  * @author Thomas Darimont
  * @author Krzysztof Rzymkowski
  * @author Sebastian Staudt
+ * @author Mark Paluch
  */
 @SuppressWarnings("deprecation")
 public interface Specification<T> extends Serializable {
@@ -91,5 +94,6 @@ public interface Specification<T> extends Serializable {
 	 * @param query
 	 * @return a {@link Predicate}, may be {@literal null}.
 	 */
+	@Nullable
 	Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder cb);
 }

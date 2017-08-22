@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ public class MergingPersistenceUnitManager extends DefaultPersistenceUnitManager
 		// Invoke normal post processing
 		super.postProcessPersistenceUnitInfo(pui);
 
-		PersistenceUnitInfo oldPui = getPersistenceUnitInfo(pui.getPersistenceUnitName());
+		PersistenceUnitInfo oldPui = getPersistenceUnitInfo(((PersistenceUnitInfo) pui).getPersistenceUnitName());
 
 		if (oldPui != null) {
 			postProcessPersistenceUnitInfo(pui, oldPui);

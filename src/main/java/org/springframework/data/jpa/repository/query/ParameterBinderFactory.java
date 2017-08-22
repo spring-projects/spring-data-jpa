@@ -18,6 +18,7 @@ package org.springframework.data.jpa.repository.query;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
 import org.springframework.data.jpa.repository.query.ParameterMetadataProvider.ParameterMetadata;
@@ -25,6 +26,7 @@ import org.springframework.data.jpa.repository.query.StringQuery.ParameterBindin
 import org.springframework.data.repository.query.EvaluationContextProvider;
 import org.springframework.data.util.StreamUtils;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -123,7 +125,7 @@ class ParameterBinderFactory {
 		return createSetters(null, parameterBindings, factories);
 	}
 
-	private static Iterable<QueryParameterSetter> createSetters(String queryString,
+	private static Iterable<QueryParameterSetter> createSetters(@Nullable String queryString,
 			List<ParameterBinding> parameterBindings, QueryParameterSetterFactory... strategies) {
 
 		return parameterBindings.stream() //
@@ -132,11 +134,11 @@ class ParameterBinderFactory {
 	}
 
 	private static QueryParameterSetter createQueryParameterSetter(ParameterBinding binding,
-			QueryParameterSetterFactory[] strategies, String queryString) {
+			QueryParameterSetterFactory[] strategies, @Nullable String queryString) {
 
 		return Arrays.stream(strategies)//
 				.map(it -> it.create(binding, queryString))//
-				.filter(it -> it != null)//
+				.filter(Objects::nonNull)//
 				.findFirst()//
 				.orElse(QueryParameterSetter.NOOP);
 	}

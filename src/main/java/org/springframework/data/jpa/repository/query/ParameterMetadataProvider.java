@@ -32,6 +32,7 @@ import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.parser.Part;
 import org.springframework.data.repository.query.parser.Part.Type;
 import org.springframework.expression.Expression;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
@@ -49,7 +50,7 @@ class ParameterMetadataProvider {
 	private final CriteriaBuilder builder;
 	private final Iterator<? extends Parameter> parameters;
 	private final List<ParameterMetadata<?>> expressions;
-	private final Iterator<Object> bindableParameterValues;
+	private final @Nullable Iterator<Object> bindableParameterValues;
 	private final PersistenceProvider persistenceProvider;
 
 	/**
@@ -88,7 +89,7 @@ class ParameterMetadataProvider {
 	 * @param parameters must not be {@literal null}.
 	 * @param provider must not be {@literal null}.
 	 */
-	private ParameterMetadataProvider(CriteriaBuilder builder, Iterator<Object> bindableParameterValues,
+	private ParameterMetadataProvider(CriteriaBuilder builder, @Nullable Iterator<Object> bindableParameterValues,
 			Parameters<?, ?> parameters, PersistenceProvider provider) {
 
 		Assert.notNull(builder, "CriteriaBuilder must not be null!");
@@ -190,7 +191,8 @@ class ParameterMetadataProvider {
 		 * @param value
 		 * @param provider
 		 */
-		public ParameterMetadata(ParameterExpression<T> expression, Type type, Object value, PersistenceProvider provider) {
+		public ParameterMetadata(ParameterExpression<T> expression, Type type, @Nullable Object value,
+				PersistenceProvider provider) {
 
 			this.expression = expression;
 			this.persistenceProvider = provider;
@@ -221,6 +223,7 @@ class ParameterMetadataProvider {
 		 * @param value must not be {@literal null}.
 		 * @return
 		 */
+		@Nullable
 		public Object prepare(Object value) {
 
 			Assert.notNull(value, "Value must not be null!");
@@ -254,7 +257,8 @@ class ParameterMetadataProvider {
 		 * @param value
 		 * @return
 		 */
-		private static Collection<?> toCollection(Object value) {
+		@Nullable
+		private static Collection<?> toCollection(@Nullable Object value) {
 
 			if (value == null) {
 				return null;

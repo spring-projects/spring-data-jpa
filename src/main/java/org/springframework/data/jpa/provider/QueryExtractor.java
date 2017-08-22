@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 the original author or authors.
+ * Copyright 2008-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,13 @@ package org.springframework.data.jpa.provider;
 
 import javax.persistence.Query;
 
+import org.springframework.lang.Nullable;
+
 /**
  * Interface to hide different implementations to extract the original JPA query string from a {@link Query}.
  * 
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 public interface QueryExtractor {
 
@@ -31,6 +34,7 @@ public interface QueryExtractor {
 	 * @param query
 	 * @return the query string representing the query or {@literal null} if resolving is not possible.
 	 */
+	@Nullable
 	String extractQueryString(Query query);
 
 	/**

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,11 +24,13 @@ import org.springframework.data.repository.query.EvaluationContextProvider;
 import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.lang.Nullable;
 
 /**
  * Factory to create the appropriate {@link RepositoryQuery} for a {@link JpaQueryMethod}.
  * 
  * @author Thomas Darimont
+ * @author Mark Paluch
  */
 enum JpaQueryFactory {
 
@@ -46,6 +48,7 @@ enum JpaQueryFactory {
 	 * @param evaluationContextProvider
 	 * @return the {@link RepositoryQuery} derived from the annotation or {@code null} if no annotation found.
 	 */
+	@Nullable
 	AbstractJpaQuery fromQueryAnnotation(JpaQueryMethod method, EntityManager em,
 			EvaluationContextProvider evaluationContextProvider) {
 
@@ -62,7 +65,8 @@ enum JpaQueryFactory {
 	 * @param evaluationContextProvider
 	 * @return
 	 */
-	AbstractJpaQuery fromMethodWithQueryString(JpaQueryMethod method, EntityManager em, String queryString,
+	@Nullable
+	AbstractJpaQuery fromMethodWithQueryString(JpaQueryMethod method, EntityManager em, @Nullable String queryString,
 			EvaluationContextProvider evaluationContextProvider) {
 
 		if (queryString == null) {
@@ -80,6 +84,7 @@ enum JpaQueryFactory {
 	 * @param em must not be {@literal null}.
 	 * @return
 	 */
+	@Nullable
 	public StoredProcedureJpaQuery fromProcedureAnnotation(JpaQueryMethod method, EntityManager em) {
 
 		if (!method.isProcedureQuery()) {

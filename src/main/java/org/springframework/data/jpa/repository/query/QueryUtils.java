@@ -57,6 +57,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.jpa.domain.JpaSort.JpaOrder;
 import org.springframework.data.mapping.PropertyPath;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -224,14 +225,14 @@ public abstract class QueryUtils {
 	 * 
 	 * @param query the query string to which sorting is applied. Must not be {@literal null} or empty.
 	 * @param sort the sort specification to apply.
-	 * @param alias the alias to be used in the order by clause. Must not be {@literal null} or empty.
+	 * @param alias the alias to be used in the order by clause. May be {@literal null} or empty.
 	 * @return the modified query string.
 	 */
-	public static String applySorting(String query, Sort sort, String alias) {
+	public static String applySorting(String query, Sort sort, @Nullable String alias) {
 
 		Assert.hasText(query, "Query must not be null or empty!");
 
-		if (null == sort || !sort.iterator().hasNext()) {
+		if (sort.isUnsorted()) {
 			return query;
 		}
 
@@ -264,7 +265,8 @@ public abstract class QueryUtils {
 	 * @param order the order object to build the clause for.
 	 * @return
 	 */
-	private static String getOrderClause(Set<String> joinAliases, Set<String> functionAlias, String alias, Order order) {
+	private static String getOrderClause(Set<String> joinAliases, Set<String> functionAlias, @Nullable String alias,
+			Order order) {
 
 		String property = order.getProperty();
 
@@ -345,6 +347,7 @@ public abstract class QueryUtils {
 	 * @param query
 	 * @return
 	 */
+	@Nullable
 	public static String detectAlias(String query) {
 
 		Matcher matcher = ALIAS_MATCH.matcher(query);
@@ -421,7 +424,7 @@ public abstract class QueryUtils {
 	 * @return
 	 * @since 1.6
 	 */
-	public static String createCountQueryFor(String originalQuery, String countProjection) {
+	public static String createCountQueryFor(String originalQuery, @Nullable String countProjection) {
 
 		Assert.hasText(originalQuery, "OriginalQuery must not be null or empty!");
 
@@ -472,7 +475,7 @@ public abstract class QueryUtils {
 	 * @param query can be {@literal null} or empty.
 	 * @return
 	 */
-	public static boolean hasNamedParameter(String query) {
+	public static boolean hasNamedParameter(@Nullable String query) {
 		return StringUtils.hasText(query) && NAMED_PARAMETER.matcher(query).find();
 	}
 
@@ -488,7 +491,7 @@ public abstract class QueryUtils {
 
 		List<javax.persistence.criteria.Order> orders = new ArrayList<javax.persistence.criteria.Order>();
 
-		if (sort == null) {
+		if (sort.isUnsorted()) {
 			return orders;
 		}
 
@@ -556,7 +559,7 @@ public abstract class QueryUtils {
 	@SuppressWarnings("unchecked")
 	static <T> Expression<T> toExpressionRecursively(From<?, ?> from, PropertyPath property) {
 
-		Bindable<?> propertyPathModel = null;
+		Bindable<?> propertyPathModel;
 		Bindable<?> model = from.getModel();
 		String segment = property.getSegment();
 
@@ -584,11 +587,11 @@ public abstract class QueryUtils {
 	 * Returns whether the given {@code propertyPathModel} requires the creation of a join. This is the case if we find a
 	 * non-optional association.
 	 * 
-	 * @param propertyPathModel must not be {@literal null}.
+	 * @param propertyPathModel may be {@literal null}.
 	 * @param forPluralAttribute
 	 * @return
 	 */
-	private static boolean requiresJoin(Bindable<?> propertyPathModel, boolean forPluralAttribute) {
+	private static boolean requiresJoin(@Nullable Bindable<?> propertyPathModel, boolean forPluralAttribute) {
 
 		if (propertyPathModel == null && forPluralAttribute) {
 			return true;

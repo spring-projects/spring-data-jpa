@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,13 @@
  */
 package org.springframework.data.jpa.provider;
 
+import org.springframework.lang.Nullable;
+
 /**
  * Interface for a persistence provider specific accessor of identifiers held in proxies.
  * 
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 public interface ProxyIdAccessor {
 
@@ -37,5 +40,6 @@ public interface ProxyIdAccessor {
 	 * @param entity must not be {@literal null}.
 	 * @return
 	 */
+	@Nullable
 	Object getIdentifierFrom(Object entity);
 }

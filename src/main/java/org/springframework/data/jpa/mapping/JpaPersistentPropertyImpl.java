@@ -47,6 +47,7 @@ import org.springframework.data.mapping.model.Property;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
 import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.data.util.TypeInformation;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -55,6 +56,7 @@ import org.springframework.util.Assert;
  * @author Oliver Gierke
  * @author Greg Turnquist
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 1.3
  */
 class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPersistentProperty>
@@ -88,8 +90,8 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 		UPDATEABLE_ANNOTATIONS = Collections.unmodifiableSet(annotations);
 	}
 
-	private final Boolean usePropertyAccess;
-	private final TypeInformation<?> associationTargetType;
+	private final @Nullable Boolean usePropertyAccess;
+	private final @Nullable TypeInformation<?> associationTargetType;
 	private final boolean updateable;
 	private final JpaMetamodel metamodel;
 
@@ -220,6 +222,7 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 	 * 
 	 * @return
 	 */
+	@Nullable
 	private Boolean detectPropertyAccess() {
 
 		org.springframework.data.annotation.AccessType accessType = findAnnotation(
@@ -255,6 +258,7 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 	 * 
 	 * @return
 	 */
+	@Nullable
 	private TypeInformation<?> detectAssociationTargetType() {
 
 		if (!isAssociation()) {
@@ -287,7 +291,7 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 	 * 
 	 * @return
 	 */
-	private final boolean detectUpdatability() {
+	private boolean detectUpdatability() {
 
 		for (Class<? extends Annotation> annotationType : UPDATEABLE_ANNOTATIONS) {
 

@@ -123,6 +123,6 @@ public class JpaRepositoryExtension extends CdiRepositoryExtensionSupport {
 
 		// Construct and return the repository bean.
 		return new JpaRepositoryBean<T>(beanManager, entityManagerBean, qualifiers, repositoryType,
-				Optional.ofNullable(getCustomImplementationDetector()));
+				Optional.of(getCustomImplementationDetector()));
 	}
 }
