@@ -27,9 +27,11 @@ import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
 import org.springframework.data.jpa.repository.query.StringQuery.ParameterBinding;
 
 /**
+ * Unit tests for {@link QueryParameterSetterFactory}.
+ * 
  * @author Jens Schauder
  */
-public class QueryParameterSetterFactoryTest {
+public class QueryParameterSetterFactoryUnitTests {
 
 	JpaParameters parameters = mock(JpaParameters.class, Mockito.RETURNS_DEEP_STUBS);
 	ParameterBinding binding = mock(ParameterBinding.class);
@@ -47,7 +49,6 @@ public class QueryParameterSetterFactoryTest {
 
 	@Test // DATAJPA-1058
 	public void noExceptionWhenQueryDoesNotContainNamedParameters() {
-
 		setterFactory.create(binding, "QueryStringWithOutNamedParameter");
 	}
 
@@ -60,5 +61,4 @@ public class QueryParameterSetterFactoryTest {
 				.withMessageContaining("@Param") //
 				.withMessageContaining("-parameters");
 	}
-
 }

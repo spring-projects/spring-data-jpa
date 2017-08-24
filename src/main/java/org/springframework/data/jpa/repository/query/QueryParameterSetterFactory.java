@@ -49,7 +49,7 @@ abstract class QueryParameterSetterFactory {
 	 * Creates a new {@link QueryParameterSetterFactory} for the given {@link JpaParameters}.
 	 * 
 	 * @param parameters must not be {@literal null}.
-	 * @return A basic {@link QueryParameterSetterFactory} that can handle named and index parameters.
+	 * @return a basic {@link QueryParameterSetterFactory} that can handle named and index parameters.
 	 */
 	static QueryParameterSetterFactory basic(JpaParameters parameters) {
 
@@ -64,10 +64,9 @@ abstract class QueryParameterSetterFactory {
 	 * 
 	 * @param parameters must not be {@literal null}.
 	 * @param metadata must not be {@literal null}.
-	 * @return A {@link QueryParameterSetterFactory} for criteria Queries.
+	 * @return a {@link QueryParameterSetterFactory} for criteria Queries.
 	 */
-	static QueryParameterSetterFactory forCriteriaQuery(JpaParameters parameters,
-														List<ParameterMetadata<?>> metadata) {
+	static QueryParameterSetterFactory forCriteriaQuery(JpaParameters parameters, List<ParameterMetadata<?>> metadata) {
 
 		Assert.notNull(parameters, "JpaParameters must not be null!");
 		Assert.notNull(metadata, "ParameterMetadata must not be null!");
@@ -82,10 +81,11 @@ abstract class QueryParameterSetterFactory {
 	 * @param parser must not be {@literal null}.
 	 * @param evaluationContextProvider must not be {@literal null}.
 	 * @param parameters must not be {@literal null}.
-	 * @return A {@link QueryParameterSetterFactory} that can handle {@link org.springframework.expression.spel.standard.SpelExpression}s.
+	 * @return a {@link QueryParameterSetterFactory} that can handle
+	 *         {@link org.springframework.expression.spel.standard.SpelExpression}s.
 	 */
 	static QueryParameterSetterFactory parsing(SpelExpressionParser parser,
-											   EvaluationContextProvider evaluationContextProvider, Parameters<?, ?> parameters) {
+			EvaluationContextProvider evaluationContextProvider, Parameters<?, ?> parameters) {
 
 		Assert.notNull(parser, "SpelExpressionParser must not be null!");
 		Assert.notNull(evaluationContextProvider, "EvaluationContextProvider must not be null!");
