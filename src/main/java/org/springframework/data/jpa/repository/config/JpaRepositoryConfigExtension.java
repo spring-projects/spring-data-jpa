@@ -45,6 +45,7 @@ import org.springframework.data.repository.config.AnnotationRepositoryConfigurat
 import org.springframework.data.repository.config.RepositoryConfigurationExtensionSupport;
 import org.springframework.data.repository.config.RepositoryConfigurationSource;
 import org.springframework.data.repository.config.XmlRepositoryConfigurationSource;
+import org.springframework.lang.Nullable;
 import org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor;
 import org.springframework.util.StringUtils;
 
@@ -191,7 +192,7 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 	 * @return
 	 */
 	private static AbstractBeanDefinition getEntityManagerBeanDefinitionFor(RepositoryConfigurationSource config,
-			Object source) {
+			@Nullable Object source) {
 
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder
 				.rootBeanDefinition("org.springframework.orm.jpa.SharedEntityManagerCreator");

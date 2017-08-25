@@ -1,7 +1,5 @@
 /**
  * JPA provider-specific utilities.
  */
-@NonNullApi
+@org.springframework.lang.NonNullApi
 package org.springframework.data.jpa.provider;
-
-import org.springframework.lang.NonNullApi;

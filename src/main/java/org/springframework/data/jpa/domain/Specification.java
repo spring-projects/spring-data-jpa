@@ -90,10 +90,11 @@ public interface Specification<T> extends Serializable {
 	 * Creates a WHERE clause for a query of the referenced entity in form of a {@link Predicate} for the given
 	 * {@link Root} and {@link CriteriaQuery}.
 	 * 
-	 * @param root
-	 * @param query
+	 * @param root must not be {@literal null}.
+	 * @param query must not be {@literal null}.
+	 * @param criteriaBuilder must not be {@literal null}.
 	 * @return a {@link Predicate}, may be {@literal null}.
 	 */
 	@Nullable
-	Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder cb);
+	Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder);
 }

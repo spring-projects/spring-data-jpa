@@ -1,7 +1,5 @@
 /**
  * Classes for JPA namespace configuration.
  */
-@NonNullApi
+@org.springframework.lang.NonNullApi
 package org.springframework.data.jpa.repository.config;
-
-import org.springframework.lang.NonNullApi;

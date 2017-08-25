@@ -1,7 +1,5 @@
 /**
  * Spring Data JPA specific converter infrastructure.
  */
-@NonNullApi
+@org.springframework.lang.NonNullApi
 package org.springframework.data.jpa.convert;
-
-import org.springframework.lang.NonNullApi;

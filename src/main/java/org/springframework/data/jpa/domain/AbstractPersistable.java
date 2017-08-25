@@ -46,7 +46,8 @@ public abstract class AbstractPersistable<PK extends Serializable> implements Pe
 	 * (non-Javadoc)
 	 * @see org.springframework.data.domain.Persistable#getId()
 	 */
-	public @Nullable PK getId() {
+	@Nullable
+	public PK getId() {
 		return id;
 	}
 

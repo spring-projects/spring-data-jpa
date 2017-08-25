@@ -35,7 +35,6 @@ class DefaultQueryHints implements QueryHints {
 	 * @param information must not be {@literal null}.
 	 * @param metadata must not be {@literal null}.
 	 * @param entityManager must not be {@literal null}.
-	 * @param includeFetchGraphs
 	 */
 	private DefaultQueryHints(JpaEntityInformation<?, ?> information, CrudMethodMetadata metadata,
 			Optional<EntityManager> entityManager) {
@@ -51,7 +50,6 @@ class DefaultQueryHints implements QueryHints {
 	 * 
 	 * @param information must not be {@literal null}.
 	 * @param metadata must not be {@literal null}.
-	 * @param entityManager must not be {@literal null}.
 	 * @return
 	 */
 	public static QueryHints of(JpaEntityInformation<?, ?> information, CrudMethodMetadata metadata) {

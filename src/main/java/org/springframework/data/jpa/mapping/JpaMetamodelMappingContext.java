@@ -95,8 +95,8 @@ public class JpaMetamodelMappingContext
 	/**
 	 * Returns the {@link Metamodel} aware of the given type.
 	 * 
-	 * @param type
-	 * @return
+	 * @param type must not be {@literal null}.
+	 * @return can be {@literal null}.
 	 */
 	@Nullable
 	private Metamodel getMetamodelFor(Class<?> type) {

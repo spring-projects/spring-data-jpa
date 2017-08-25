@@ -1,7 +1,5 @@
 /**
  * Spring Data JPA utilities.
  */
-@NonNullApi
+@org.springframework.lang.NonNullApi
 package org.springframework.data.jpa.util;
-
-import org.springframework.lang.NonNullApi;

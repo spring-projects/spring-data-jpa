@@ -18,6 +18,7 @@ package org.springframework.data.jpa.provider;
 import javax.persistence.EntityManager;
 import javax.persistence.metamodel.Metamodel;
 
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
@@ -25,6 +26,7 @@ import org.springframework.util.ClassUtils;
  * Utility class to work with classes.
  * 
  * @author Oliver Gierke
+ * @author Christoph Strobl
  */
 abstract class JpaClassUtils {
 
@@ -48,7 +50,7 @@ abstract class JpaClassUtils {
 		return isOfType(metamodel, type, metamodel.getClass().getClassLoader());
 	}
 
-	private static boolean isOfType(Object source, String typeName, ClassLoader classLoader) {
+	private static boolean isOfType(Object source, String typeName, @Nullable ClassLoader classLoader) {
 
 		Assert.notNull(source, "Source instance must not be null!");
 		Assert.hasText(typeName, "Target type name must not be null or empty!");

@@ -116,8 +116,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 	/**
 	 * EclipseLink persistence provider.
 	 */
-	ECLIPSELINK(Collections.singleton(ECLIPSELINK_ENTITY_MANAGER_INTERFACE),
-			Collections.singleton(ECLIPSELINK_JPA_METAMODEL_TYPE)) {
+	ECLIPSELINK(Collections.singleton(ECLIPSELINK_ENTITY_MANAGER_INTERFACE), Collections.singleton(ECLIPSELINK_JPA_METAMODEL_TYPE)) {
 
 		public String extractQueryString(Query query) {
 			return ((JpaQuery<?>) query).getDatabaseQuery().getJPQLString();
@@ -234,6 +233,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 	 * 
 	 * @param entityManagerClassNames the names of the provider specific {@link EntityManager} implementations. Must not
 	 *          be {@literal null} or empty.
+	 * @param metamodelClassNames must not be {@literal null}.
 	 */
 	private PersistenceProvider(Iterable<String> entityManagerClassNames, Iterable<String> metamodelClassNames) {
 

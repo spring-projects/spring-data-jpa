@@ -38,7 +38,7 @@ public interface ProxyIdAccessor {
 	 * Returns the identifier of the given entity by leniently inspecting it for the identifier value.
 	 * 
 	 * @param entity must not be {@literal null}.
-	 * @return
+	 * @return can be {@literal null}.
 	 */
 	@Nullable
 	Object getIdentifierFrom(Object entity);

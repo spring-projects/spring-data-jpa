@@ -44,8 +44,8 @@ class StoredProcedureAttributes {
 	 * 
 	 * @param procedureName must not be {@literal null}
 	 * @param outputParameterName may be {@literal null}
-	 * @param outputParameterIndex must not be {@literal null}
-	 * @param outputParameterType
+	 * @param outputParameterType must not be {@literal null}
+	 * @param namedStoredProcedure
 	 */
 	public StoredProcedureAttributes(String procedureName, @Nullable String outputParameterName,
 			Class<?> outputParameterType, boolean namedStoredProcedure) {

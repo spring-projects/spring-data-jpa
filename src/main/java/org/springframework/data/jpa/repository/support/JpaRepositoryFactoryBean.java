@@ -76,9 +76,7 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 	@Override
 	protected RepositoryFactorySupport doCreateRepositoryFactory() {
 
-		if (entityManager == null) {
-			throw new IllegalStateException("EntityManager must not be null!");
-		}
+		Assert.state(entityManager != null,"EntityManager must not be null!");
 
 		return createRepositoryFactory(entityManager);
 	}
@@ -102,7 +100,7 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 	@Override
 	public void afterPropertiesSet() {
 
-		Assert.notNull(entityManager, "EntityManager must not be null!");
+		Assert.state(entityManager != null,"EntityManager must not be null!");
 		super.afterPropertiesSet();
 	}
 }

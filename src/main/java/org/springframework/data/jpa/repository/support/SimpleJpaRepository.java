@@ -118,7 +118,8 @@ public class SimpleJpaRepository<T, ID> implements JpaRepository<T, ID>, JpaSpec
 		this.metadata = crudMethodMetadata;
 	}
 
-	protected @Nullable CrudMethodMetadata getRepositoryMethodMetadata() {
+	@Nullable
+	protected CrudMethodMetadata getRepositoryMethodMetadata() {
 		return metadata;
 	}
 
@@ -403,9 +404,8 @@ public class SimpleJpaRepository<T, ID> implements JpaRepository<T, ID>, JpaSpec
 	public <S extends T> Optional<S> findOne(Example<S> example) {
 
 		try {
-			return Optional
-					.of(getQuery(new ExampleSpecification<S>(example), example.getProbeType(), Sort.unsorted())
-							.getSingleResult());
+			return Optional.of(
+					getQuery(new ExampleSpecification<S>(example), example.getProbeType(), Sort.unsorted()).getSingleResult());
 		} catch (NoResultException e) {
 			return Optional.empty();
 		}
