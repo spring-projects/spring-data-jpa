@@ -31,11 +31,10 @@ class DefaultQueryHints implements QueryHints {
 	/**
 	 * Creates a new {@link DefaultQueryHints} instance for the given {@link JpaEntityInformation},
 	 * {@link CrudMethodMetadata}, {@link EntityManager} and whether to include fetch graphs.
-	 * 
+	 *
 	 * @param information must not be {@literal null}.
 	 * @param metadata must not be {@literal null}.
 	 * @param entityManager must not be {@literal null}.
-	 * @param includeFetchGraphs
 	 */
 	private DefaultQueryHints(JpaEntityInformation<?, ?> information, CrudMethodMetadata metadata,
 			Optional<EntityManager> entityManager) {
@@ -48,10 +47,9 @@ class DefaultQueryHints implements QueryHints {
 	/**
 	 * Creates a new {@link QueryHints} instance for the given {@link JpaEntityInformation}, {@link CrudMethodMetadata}
 	 * and {@link EntityManager}.
-	 * 
+	 *
 	 * @param information must not be {@literal null}.
 	 * @param metadata must not be {@literal null}.
-	 * @param entityManager must not be {@literal null}.
 	 * @return
 	 */
 	public static QueryHints of(JpaEntityInformation<?, ?> information, CrudMethodMetadata metadata) {

@@ -28,7 +28,7 @@ import org.springframework.util.Assert;
 /**
  * Special adapter for Springs {@link org.springframework.beans.factory.FactoryBean} interface to allow easy setup of
  * repository factories via Spring configuration.
- * 
+ *
  * @author Oliver Gierke
  * @author Eberhard Wolff
  * @author Mark Paluch
@@ -41,7 +41,7 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 
 	/**
 	 * Creates a new {@link JpaRepositoryFactoryBean} for the given repository interface.
-	 * 
+	 *
 	 * @param repositoryInterface must not be {@literal null}.
 	 */
 	public JpaRepositoryFactoryBean(Class<? extends T> repositoryInterface) {
@@ -50,7 +50,7 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 
 	/**
 	 * The {@link EntityManager} to be used.
-	 * 
+	 *
 	 * @param entityManager the entityManager to set
 	 */
 	@PersistenceContext
@@ -58,7 +58,7 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 		this.entityManager = entityManager;
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.core.support.RepositoryFactoryBeanSupport#setMappingContext(org.springframework.data.mapping.context.MappingContext)
 	 */
@@ -69,23 +69,21 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.springframework.data.repository.support.
 	 * TransactionalRepositoryFactoryBeanSupport#doCreateRepositoryFactory()
 	 */
 	@Override
 	protected RepositoryFactorySupport doCreateRepositoryFactory() {
 
-		if (entityManager == null) {
-			throw new IllegalStateException("EntityManager must not be null!");
-		}
+		Assert.state(entityManager != null,"EntityManager must not be null!");
 
 		return createRepositoryFactory(entityManager);
 	}
 
 	/**
 	 * Returns a {@link RepositoryFactorySupport}.
-	 * 
+	 *
 	 * @param entityManager
 	 * @return
 	 */
@@ -95,14 +93,12 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
+	 * @see org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
 	 */
 	@Override
 	public void afterPropertiesSet() {
 
-		Assert.notNull(entityManager, "EntityManager must not be null!");
+		Assert.state(entityManager != null,"EntityManager must not be null!");
 		super.afterPropertiesSet();
 	}
 }

@@ -1,7 +1,5 @@
 /**
- * JPA specific support classes for the Spring Data mapping subsystem. 
+ * JPA specific support classes for the Spring Data mapping subsystem.
  */
-@NonNullApi
+@org.springframework.lang.NonNullApi
 package org.springframework.data.jpa.mapping;
-
-import org.springframework.lang.NonNullApi;

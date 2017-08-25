@@ -1,7 +1,5 @@
 /**
  * Various helper classes useful when working with JPA.
  */
-@NonNullApi
+@org.springframework.lang.NonNullApi
 package org.springframework.data.jpa.support;
-
-import org.springframework.lang.NonNullApi;

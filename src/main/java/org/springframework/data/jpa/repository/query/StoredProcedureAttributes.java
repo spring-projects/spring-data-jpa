@@ -23,7 +23,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * Stored procedure configuration for JPA 2.1 {@link StoredProcedureQuery}s.
- * 
+ *
  * @author Thomas Darimont
  * @author Oliver Gierke
  * @author Mark Paluch
@@ -41,11 +41,11 @@ class StoredProcedureAttributes {
 
 	/**
 	 * Creates a new {@link StoredProcedureAttributes}.
-	 * 
+	 *
 	 * @param procedureName must not be {@literal null}
 	 * @param outputParameterName may be {@literal null}
-	 * @param outputParameterIndex must not be {@literal null}
-	 * @param outputParameterType
+	 * @param outputParameterType must not be {@literal null}
+	 * @param namedStoredProcedure
 	 */
 	public StoredProcedureAttributes(String procedureName, @Nullable String outputParameterName,
 			Class<?> outputParameterType, boolean namedStoredProcedure) {
@@ -62,7 +62,7 @@ class StoredProcedureAttributes {
 
 	/**
 	 * Returns the name of the stored procedure.
-	 * 
+	 *
 	 * @return
 	 */
 	public String getProcedureName() {
@@ -71,7 +71,7 @@ class StoredProcedureAttributes {
 
 	/**
 	 * Returns the name of the output parameter.
-	 * 
+	 *
 	 * @return
 	 */
 	public String getOutputParameterName() {
@@ -80,7 +80,7 @@ class StoredProcedureAttributes {
 
 	/**
 	 * Returns the type of the output parameter.
-	 * 
+	 *
 	 * @return
 	 */
 	public Class<?> getOutputParameterType() {
@@ -89,7 +89,7 @@ class StoredProcedureAttributes {
 
 	/**
 	 * Returns whether the stored procedure is a named one.
-	 * 
+	 *
 	 * @return
 	 */
 	public boolean isNamedStoredProcedure() {
@@ -98,7 +98,7 @@ class StoredProcedureAttributes {
 
 	/**
 	 * Returns whether the stored procedure will produce a result.
-	 * 
+	 *
 	 * @return
 	 */
 	public boolean hasReturnValue() {

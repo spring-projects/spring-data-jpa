@@ -214,7 +214,7 @@ public class QueryByExamplePredicateBuilder {
 			this.value = value;
 		}
 
-		PathNode add(String attribute, Object value) {
+		PathNode add(String attribute, @Nullable Object value) {
 
 			PathNode node = new PathNode(attribute, this, value);
 			siblings.add(node);
@@ -232,7 +232,7 @@ public class QueryByExamplePredicateBuilder {
 
 			while (current != null) {
 
-				if (ObjectUtils.getIdentityHexString(current.value).equals(identityHex)) {
+				if (current.value != null && ObjectUtils.getIdentityHexString(current.value).equals(identityHex)) {
 					return true;
 				}
 				current = current.parent;

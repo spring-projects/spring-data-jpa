@@ -19,7 +19,7 @@ import org.springframework.lang.Nullable;
 
 /**
  * Interface for a persistence provider specific accessor of identifiers held in proxies.
- * 
+ *
  * @author Oliver Gierke
  * @author Mark Paluch
  */
@@ -28,7 +28,7 @@ public interface ProxyIdAccessor {
 	/**
 	 * Returns whether the {@link ProxyIdAccessor} should be used for the given entity. Will inspect the entity to see
 	 * whether it is a proxy so that lenient id lookup can be used.
-	 * 
+	 *
 	 * @param entity must not be {@literal null}.
 	 * @return
 	 */
@@ -36,9 +36,9 @@ public interface ProxyIdAccessor {
 
 	/**
 	 * Returns the identifier of the given entity by leniently inspecting it for the identifier value.
-	 * 
+	 *
 	 * @param entity must not be {@literal null}.
-	 * @return
+	 * @return can be {@literal null}.
 	 */
 	@Nullable
 	Object getIdentifierFrom(Object entity);

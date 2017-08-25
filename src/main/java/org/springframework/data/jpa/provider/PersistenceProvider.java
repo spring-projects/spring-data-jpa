@@ -40,7 +40,7 @@ import org.springframework.util.ConcurrentReferenceHashMap;
 
 /**
  * Enumeration representing persistence providers to be used.
- * 
+ *
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Mark Paluch
@@ -52,7 +52,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 	 * <p>
 	 * Since Hibernate 4.3 the location of the HibernateEntityManager moved to the org.hibernate.jpa package. In order to
 	 * support both locations we interpret both classnames as a Hibernate {@code PersistenceProvider}.
-	 * 
+	 *
 	 * @see <a href="https://jira.spring.io/browse/DATAJPA-444">DATAJPA-444</a>
 	 */
 	HIBERNATE(//
@@ -66,7 +66,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 		/**
 		 * Return custom placeholder ({@code *}) as Hibernate does create invalid queries for count queries for objects with
 		 * compound keys.
-		 * 
+		 *
 		 * @see <a href="https://hibernate.atlassian.net/browse/HHH-4044">HHH-4044</a>
 		 * @see <a href="https://hibernate.atlassian.net/browse/HHH-3096">HHH-3096</a>
 		 */
@@ -75,7 +75,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 			return "*";
 		}
 
-		/* 
+		/*
 		 * (non-Javadoc)
 		 * @see org.springframework.data.jpa.repository.support.ProxyIdAccessor#isProxy(java.lang.Object)
 		 */
@@ -84,7 +84,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 			return entity instanceof HibernateProxy;
 		}
 
-		/* 
+		/*
 		 * (non-Javadoc)
 		 * @see org.springframework.data.jpa.repository.support.ProxyIdAccessor#getIdentifierFrom(java.lang.Object)
 		 */
@@ -93,7 +93,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 			return ((HibernateProxy) entity).getHibernateLazyInitializer().getIdentifier();
 		}
 
-		/* 
+		/*
 		 * (non-Javadoc)
 		 * @see org.springframework.data.jpa.provider.PersistenceProvider#potentiallyConvertEmptyCollection(java.util.Collection)
 		 */
@@ -116,14 +116,13 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 	/**
 	 * EclipseLink persistence provider.
 	 */
-	ECLIPSELINK(Collections.singleton(ECLIPSELINK_ENTITY_MANAGER_INTERFACE),
-			Collections.singleton(ECLIPSELINK_JPA_METAMODEL_TYPE)) {
+	ECLIPSELINK(Collections.singleton(ECLIPSELINK_ENTITY_MANAGER_INTERFACE), Collections.singleton(ECLIPSELINK_JPA_METAMODEL_TYPE)) {
 
 		public String extractQueryString(Query query) {
 			return ((JpaQuery<?>) query).getDatabaseQuery().getJPQLString();
 		}
 
-		/* 
+		/*
 		 * (non-Javadoc)
 		 * @see org.springframework.data.jpa.repository.support.ProxyIdAccessor#isProxy(java.lang.Object)
 		 */
@@ -132,7 +131,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 			return false;
 		}
 
-		/* 
+		/*
 		 * (non-Javadoc)
 		 * @see org.springframework.data.jpa.repository.support.ProxyIdAccessor#getIdentifierFrom(java.lang.Object)
 		 */
@@ -142,7 +141,8 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 			return null;
 		}
 
-		/* (non-Javadoc)
+		/*
+		 * (non-Javadoc)
 		 * @see org.springframework.data.jpa.provider.PersistenceProvider#potentiallyConvertEmptyCollection(java.util.Collection)
 		 */
 		@Nullable
@@ -185,7 +185,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 			return false;
 		}
 
-		/* 
+		/*
 		 * (non-Javadoc)
 		 * @see org.springframework.data.jpa.repository.support.ProxyIdAccessor#isProxy(java.lang.Object)
 		 */
@@ -194,7 +194,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 			return false;
 		}
 
-		/* 
+		/*
 		 * (non-Javadoc)
 		 * @see org.springframework.data.jpa.repository.support.ProxyIdAccessor#getIdentifierFrom(java.lang.Object)
 		 */
@@ -207,7 +207,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 
 	/**
 	 * Holds the PersistenceProvider specific interface names.
-	 * 
+	 *
 	 * @author Thomas Darimont
 	 */
 	static interface Constants {
@@ -231,9 +231,10 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 
 	/**
 	 * Creates a new {@link PersistenceProvider}.
-	 * 
+	 *
 	 * @param entityManagerClassNames the names of the provider specific {@link EntityManager} implementations. Must not
 	 *          be {@literal null} or empty.
+	 * @param metamodelClassNames must not be {@literal null}.
 	 */
 	private PersistenceProvider(Iterable<String> entityManagerClassNames, Iterable<String> metamodelClassNames) {
 
@@ -244,7 +245,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 	/**
 	 * Determines the {@link PersistenceProvider} from the given {@link EntityManager}. If no special one can be
 	 * determined {@link #GENERIC_JPA} will be returned.
-	 * 
+	 *
 	 * @param em must not be {@literal null}.
 	 * @return will never be {@literal null}.
 	 */
@@ -273,7 +274,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 	/**
 	 * Determines the {@link PersistenceProvider} from the given {@link Metamodel}. If no special one can be determined
 	 * {@link #GENERIC_JPA} will be returned.
-	 * 
+	 *
 	 * @param metamodel must not be {@literal null}.
 	 * @return will never be {@literal null}.
 	 */
@@ -301,7 +302,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 
 	/**
 	 * Caches the given {@link PersistenceProvider} for the given source type.
-	 * 
+	 *
 	 * @param type must not be {@literal null}.
 	 * @param provider must not be {@literal null}.
 	 * @return
@@ -313,10 +314,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.springframework.data.jpa.repository.query.QueryExtractor#canExtractQuery
-	 * ()
+	 * @see org.springframework.data.jpa.repository.query.QueryExtractor#canExtractQuery()
 	 */
 	public boolean canExtractQuery() {
 		return true;
@@ -324,7 +322,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 
 	/**
 	 * Returns the placeholder to be used for simple count queries. Default implementation returns {@code *}.
-	 * 
+	 *
 	 * @return
 	 */
 	public String getCountQueryPlaceholder() {
@@ -334,7 +332,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 	/**
 	 * Potentially converts an empty collection to the appropriate representation of this {@link PersistenceProvider},
 	 * since some JPA providers cannot correctly handle empty collections.
-	 * 
+	 *
 	 * @see <a href="https://jira.spring.io/browse/DATAJPA-606">DATAJPA-606</a>
 	 * @param collection
 	 * @return
@@ -351,7 +349,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 
 	/**
 	 * {@link CloseableIterator} for Hibernate.
-	 * 
+	 *
 	 * @author Thomas Darimont
 	 * @author Oliver Gierke
 	 * @param <T> the domain type to return≠
@@ -363,7 +361,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 
 		/**
 		 * Creates a new {@link HibernateScrollableResultsIterator} for the given {@link Query}.
-		 * 
+		 *
 		 * @param jpaQuery must not be {@literal null}.
 		 */
 		public HibernateScrollableResultsIterator(Query jpaQuery) {
@@ -413,7 +411,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 
 	/**
 	 * {@link CloseableIterator} for EclipseLink.
-	 * 
+	 *
 	 * @author Thomas Darimont
 	 * @author Oliver Gierke
 	 * @param <T>
@@ -426,7 +424,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 
 		/**
 		 * Creates a new {@link EclipseLinkScrollableResultsIterator} for the given JPA {@link Query}.
-		 * 
+		 *
 		 * @param jpaQuery must not be {@literal null}.
 		 */
 		public EclipseLinkScrollableResultsIterator(Query jpaQuery) {

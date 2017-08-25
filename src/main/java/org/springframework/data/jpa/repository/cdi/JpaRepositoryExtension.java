@@ -39,7 +39,7 @@ import org.springframework.data.repository.cdi.CdiRepositoryExtensionSupport;
 
 /**
  * A portable CDI extension which registers beans for Spring Data JPA repositories.
- * 
+ *
  * @author Dirk Mahler
  * @author Oliver Gierke
  * @author Mark Paluch
@@ -58,7 +58,7 @@ public class JpaRepositoryExtension extends CdiRepositoryExtensionSupport {
 	/**
 	 * Implementation of a an observer which checks for EntityManager beans and stores them in {@link #entityManagers} for
 	 * later association with corresponding repository beans.
-	 * 
+	 *
 	 * @param <X> The type.
 	 * @param processBean The annotated type as defined by CDI.
 	 */
@@ -82,7 +82,7 @@ public class JpaRepositoryExtension extends CdiRepositoryExtensionSupport {
 	 * repositories.
 	 * <p>
 	 * The repository beans are associated to the EntityManagers using their qualifiers.
-	 * 
+	 *
 	 * @param beanManager The BeanManager instance.
 	 */
 	void afterBeanDiscovery(@Observes AfterBeanDiscovery afterBeanDiscovery, BeanManager beanManager) {
@@ -104,7 +104,7 @@ public class JpaRepositoryExtension extends CdiRepositoryExtensionSupport {
 
 	/**
 	 * Creates a {@link Bean}.
-	 * 
+	 *
 	 * @param <T> The type of the repository.
 	 * @param repositoryType The class representing the repository.
 	 * @param beanManager The BeanManager instance.

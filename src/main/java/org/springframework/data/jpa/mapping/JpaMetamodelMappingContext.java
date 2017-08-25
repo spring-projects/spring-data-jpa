@@ -31,7 +31,7 @@ import org.springframework.util.Assert;
 
 /**
  * {@link MappingContext} implementation based on a Jpa {@link Metamodel}.
- * 
+ *
  * @author Oliver Gierke
  * @author Christoph Strobl
  * @author Mark Paluch
@@ -45,7 +45,7 @@ public class JpaMetamodelMappingContext
 
 	/**
 	 * Creates a new JPA {@link Metamodel} based {@link MappingContext}.
-	 * 
+	 *
 	 * @param models must not be {@literal null} or empty.
 	 */
 	public JpaMetamodelMappingContext(Set<Metamodel> models) {
@@ -57,7 +57,7 @@ public class JpaMetamodelMappingContext
 		this.persistenceProvider = PersistenceProvider.fromMetamodel(models.iterator().next());
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.mapping.context.AbstractMappingContext#createPersistentEntity(org.springframework.data.util.TypeInformation)
 	 */
@@ -66,7 +66,7 @@ public class JpaMetamodelMappingContext
 		return new JpaPersistentEntityImpl<T>(typeInformation, persistenceProvider);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.mapping.context.AbstractMappingContext#createPersistentProperty(java.lang.reflect.Field, java.beans.PropertyDescriptor, org.springframework.data.mapping.model.MutablePersistentEntity, org.springframework.data.mapping.model.SimpleTypeHolder)
 	 */
@@ -83,7 +83,7 @@ public class JpaMetamodelMappingContext
 		return new JpaPersistentPropertyImpl(metamodel, property, owner, simpleTypeHolder);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.mapping.context.AbstractMappingContext#shouldCreatePersistentEntityFor(org.springframework.data.util.TypeInformation)
 	 */
@@ -94,9 +94,9 @@ public class JpaMetamodelMappingContext
 
 	/**
 	 * Returns the {@link Metamodel} aware of the given type.
-	 * 
-	 * @param type
-	 * @return
+	 *
+	 * @param type must not be {@literal null}.
+	 * @return can be {@literal null}.
 	 */
 	@Nullable
 	private Metamodel getMetamodelFor(Class<?> type) {

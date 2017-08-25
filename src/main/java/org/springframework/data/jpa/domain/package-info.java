@@ -1,7 +1,5 @@
 /**
- * JPA specific support classes to implement domain classes. 
+ * JPA specific support classes to implement domain classes.
  */
-@NonNullApi
+@org.springframework.lang.NonNullApi
 package org.springframework.data.jpa.domain;
-
-import org.springframework.lang.NonNullApi;

@@ -29,7 +29,7 @@ import org.springframework.util.ClassUtils;
 /**
  * Abstract base class for entities. Allows parameterization of id type, chooses auto-generation and implements
  * {@link #equals(Object)} and {@link #hashCode()} based on that id.
- * 
+ *
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Mark Paluch
@@ -46,13 +46,14 @@ public abstract class AbstractPersistable<PK extends Serializable> implements Pe
 	 * (non-Javadoc)
 	 * @see org.springframework.data.domain.Persistable#getId()
 	 */
-	public @Nullable PK getId() {
+	@Nullable
+	public PK getId() {
 		return id;
 	}
 
 	/**
 	 * Sets the id of the entity.
-	 * 
+	 *
 	 * @param id the id to set
 	 */
 	protected void setId(@Nullable PK id) {
@@ -61,7 +62,7 @@ public abstract class AbstractPersistable<PK extends Serializable> implements Pe
 
 	/**
 	 * Must be {@link Transient} in order to ensure that no JPA provider complains because of a missing setter.
-	 * 
+	 *
 	 * @see org.springframework.data.domain.Persistable#isNew()
 	 */
 	@Transient // DATAJPA-622
@@ -71,7 +72,6 @@ public abstract class AbstractPersistable<PK extends Serializable> implements Pe
 
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
@@ -81,7 +81,6 @@ public abstract class AbstractPersistable<PK extends Serializable> implements Pe
 
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
 	@Override
@@ -106,7 +105,6 @@ public abstract class AbstractPersistable<PK extends Serializable> implements Pe
 
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see java.lang.Object#hashCode()
 	 */
 	@Override

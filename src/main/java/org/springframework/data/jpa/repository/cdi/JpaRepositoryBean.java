@@ -31,7 +31,7 @@ import org.springframework.util.Assert;
 
 /**
  * A bean which represents a JPA repository.
- * 
+ *
  * @author Dirk Mahler
  * @author Oliver Gierke
  * @author Mark Paluch
@@ -44,7 +44,7 @@ class JpaRepositoryBean<T> extends CdiRepositoryBean<T> {
 
 	/**
 	 * Constructs a {@link JpaRepositoryBean}.
-	 * 
+	 *
 	 * @param beanManager must not be {@literal null}.
 	 * @param entityManagerBean must not be {@literal null}.
 	 * @param qualifiers must not be {@literal null}.
@@ -60,9 +60,9 @@ class JpaRepositoryBean<T> extends CdiRepositoryBean<T> {
 		this.entityManagerBean = entityManagerBean;
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.cdi.CdiRepositoryBean#create(javax.enterprise.context.spi.CreationalContext, java.lang.Class, java.lang.Object)
+	 * @see org.springframework.data.repository.cdi.CdiRepositoryBean#create(javax.enterprise.context.spi.CreationalContext, java.lang.Class, java.util.Optional)
 	 */
 	@Override
 	public T create(CreationalContext<T> creationalContext, Class<T> repositoryType, Optional<Object> customImplementation) {

@@ -66,7 +66,7 @@ public interface JpaRepository<T, ID> extends PagingAndSortingRepository<T, ID>,
 
 	/**
 	 * Saves an entity and flushes changes instantly.
-	 * 
+	 *
 	 * @param entity
 	 * @return the saved entity
 	 */
@@ -75,7 +75,7 @@ public interface JpaRepository<T, ID> extends PagingAndSortingRepository<T, ID>,
 	/**
 	 * Deletes the given entities in a batch which means it will create a single {@link Query}. Assume that we will clear
 	 * the {@link javax.persistence.EntityManager} after the call.
-	 * 
+	 *
 	 * @param entities
 	 */
 	void deleteInBatch(Iterable<T> entities);
@@ -87,10 +87,11 @@ public interface JpaRepository<T, ID> extends PagingAndSortingRepository<T, ID>,
 
 	/**
 	 * Returns a reference to the entity with the given identifier.
-	 * 
+	 *
 	 * @param id must not be {@literal null}.
 	 * @return a reference to the entity with the given identifier.
 	 * @see EntityManager#getReference(Class, Object)
+	 * @throws javax.persistence.EntityNotFoundException if no entity exists for given {@code id}.
 	 */
 	T getOne(ID id);
 
