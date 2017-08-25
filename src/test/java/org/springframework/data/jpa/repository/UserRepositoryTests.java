@@ -19,8 +19,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.springframework.data.domain.Example.*;
 import static org.springframework.data.domain.ExampleMatcher.*;
 import static org.springframework.data.domain.Sort.Direction.*;
-import static org.springframework.data.jpa.domain.Specifications.*;
-import static org.springframework.data.jpa.domain.Specifications.not;
+import static org.springframework.data.jpa.domain.Specification.*;
 import static org.springframework.data.jpa.domain.sample.UserSpecifications.*;
 
 import java.util.ArrayList;
@@ -458,7 +457,7 @@ public class UserRepositoryTests {
 	public void executesCombinedSpecificationsCorrectly() {
 
 		flushTestUsers();
-		Specification<User> spec = where(userHasFirstname("Oliver")).or(userHasLastname("Arrasz"));
+		Specification<User> spec = userHasFirstname("Oliver").or(userHasLastname("Arrasz"));
 		assertThat(repository.findAll(spec)).hasSize(2);
 	}
 
@@ -475,7 +474,7 @@ public class UserRepositoryTests {
 	public void executesCombinedSpecificationsWithPageableCorrectly() {
 
 		flushTestUsers();
-		Specification<User> spec = where(userHasFirstname("Oliver")).or(userHasLastname("Arrasz"));
+		Specification<User> spec = userHasFirstname("Oliver").or(userHasLastname("Arrasz"));
 
 		Page<User> users = repository.findAll(spec, PageRequest.of(0, 1));
 		assertThat(users.getSize()).isEqualTo(1);
@@ -2047,7 +2046,7 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		Page<User> result = repository.findAll(where(userHasLastnameLikeWithSort("e")), PageRequest.of(0, 1));
+		Page<User> result = repository.findAll(userHasLastnameLikeWithSort("e"), PageRequest.of(0, 1));
 
 		assertThat(result.getTotalElements()).isEqualTo(2L);
 		assertThat(result.getNumberOfElements()).isEqualTo(1);
@@ -2058,7 +2057,7 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		Specification<User> spec = where(userHasFirstname("Oliver")).or(userHasLastname("Matthews"));
+		Specification<User> spec = userHasFirstname("Oliver").or(userHasLastname("Matthews"));
 
 		Page<User> result = repository.findAll(spec, PageRequest.of(0, 1, sort));
 		assertThat(result.getTotalElements()).isEqualTo(2L);
