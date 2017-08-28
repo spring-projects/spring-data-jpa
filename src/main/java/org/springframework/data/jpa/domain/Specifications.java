@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2014 the original author or authors.
+ * Copyright 2008-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 package org.springframework.data.jpa.domain;
 
+import static org.springframework.data.jpa.domain.Specifications.CompositionType.*;
+
 import java.io.Serializable;
 
 import javax.persistence.criteria.CriteriaBuilder;
@@ -22,15 +24,15 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
-import static org.springframework.data.jpa.domain.Specification.CompositionType.*;
-
 /**
  * Helper class to easily combine {@link Specification} instances.
  *
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Sebastian Staudt
+ * @deprecated since 2.0, use factory methods on {@link Specification} instead.
  */
+@Deprecated
 public class Specifications<T> implements Specification<T>, Serializable {
 
 	private static final long serialVersionUID = 1L;
@@ -49,49 +51,53 @@ public class Specifications<T> implements Specification<T>, Serializable {
 	/**
 	 * Simple static factory method to add some syntactic sugar around a {@link Specification}.
 	 *
-	 * @deprecated Use {@link Specification#where} instead
+	 * @deprecated since 2.0, use {@link Specification#where} instead
 	 * @param <T>
 	 * @param spec can be {@literal null}.
 	 * @return
 	 */
+	@Deprecated
 	public static <T> Specifications<T> where(Specification<T> spec) {
-		return new Specifications<T>(spec);
+		return new Specifications<>(spec);
 	}
 
 	/**
 	 * ANDs the given {@link Specification} to the current one.
 	 *
-	 * @deprecated Use {@link Specification#and} instead
+	 * @deprecated since 2.0, use {@link Specification#and} instead
 	 * @param <T>
 	 * @param other can be {@literal null}.
 	 * @return
 	 */
+	@Deprecated
 	public Specifications<T> and(Specification<T> other) {
-		return new Specifications<T>(new ComposedSpecification<T>(spec, other, AND));
+		return new Specifications<>(composed(spec, other, AND));
 	}
 
 	/**
 	 * ORs the given specification to the current one.
 	 *
-	 * @deprecated Use {@link Specification#or} instead
+	 * @deprecated since 2.0, use {@link Specification#or} instead
 	 * @param <T>
 	 * @param other can be {@literal null}.
 	 * @return
 	 */
+	@Deprecated
 	public Specifications<T> or(Specification<T> other) {
-		return new Specifications<T>(new ComposedSpecification<T>(spec, other, OR));
+		return new Specifications<>(composed(spec, other, OR));
 	}
 
 	/**
 	 * Negates the given {@link Specification}.
 	 *
-	 * @deprecated Use {@link Specification#not} instead
+	 * @deprecated since 2.0, use {@link Specification#not} instead
 	 * @param <T>
 	 * @param spec can be {@literal null}.
 	 * @return
 	 */
+	@Deprecated
 	public static <T> Specifications<T> not(Specification<T> spec) {
-		return new Specifications<T>(new NegatedSpecification<T>(spec));
+		return new Specifications<>(negated(spec));
 	}
 
 	/*
@@ -102,4 +108,44 @@ public class Specifications<T> implements Specification<T>, Serializable {
 		return spec == null ? null : spec.toPredicate(root, query, builder);
 	}
 
+	/**
+	 * Enum for the composition types for {@link Predicate}s. Can not be turned into lambdas as we need to be
+	 * serializable.
+	 *
+	 * @author Thomas Darimont
+	 */
+	enum CompositionType {
+
+		AND {
+			@Override
+			public Predicate combine(CriteriaBuilder builder, Predicate lhs, Predicate rhs) {
+				return builder.and(lhs, rhs);
+			}
+		},
+
+		OR {
+			@Override
+			public Predicate combine(CriteriaBuilder builder, Predicate lhs, Predicate rhs) {
+				return builder.or(lhs, rhs);
+			}
+		};
+
+		abstract Predicate combine(CriteriaBuilder builder, Predicate lhs, Predicate rhs);
+	}
+
+	static <T> Specification<T> negated(Specification<T> spec) {
+		return (root, query, builder) -> spec == null ? null : builder.not(spec.toPredicate(root, query, builder));
+	}
+
+	static <T> Specification<T> composed(Specification<T> lhs, Specification<T> rhs, CompositionType compositionType) {
+
+		return (root, query, builder) -> {
+
+			Predicate otherPredicate = rhs == null ? null : rhs.toPredicate(root, query, builder);
+			Predicate thisPredicate = lhs == null ? null : lhs.toPredicate(root, query, builder);
+
+			return thisPredicate == null ? otherPredicate
+					: otherPredicate == null ? thisPredicate : compositionType.combine(builder, thisPredicate, otherPredicate);
+		};
+	}
 }

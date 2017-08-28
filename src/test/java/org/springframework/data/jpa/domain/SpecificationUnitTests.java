@@ -17,8 +17,8 @@ package org.springframework.data.jpa.domain;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
+import static org.springframework.data.jpa.domain.Specification.*;
 import static org.springframework.data.jpa.domain.Specification.not;
-import static org.springframework.data.jpa.domain.Specification.where;
 import static org.springframework.util.SerializationUtils.*;
 
 import java.io.Serializable;
@@ -35,10 +35,13 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 /**
+ * Unit tests for {@link Specification}.
+ * 
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Sebastian Staudt
  */
+@SuppressWarnings("serial")
 @RunWith(MockitoJUnitRunner.class)
 public class SpecificationUnitTests implements Serializable {
 
@@ -50,13 +53,12 @@ public class SpecificationUnitTests implements Serializable {
 	@Mock(extraInterfaces = Serializable.class) Predicate predicate;
 
 	@Before
-	@SuppressWarnings("unchecked")
 	public void setUp() {
 
 		spec = (root, query, cb) -> predicate;
 	}
 
-	@Test // DATAJPA-300
+	@Test // DATAJPA-300, DATAJPA-1170
 	public void createsSpecificationsFromNull() {
 
 		Specification<Object> specification = where(null);
@@ -64,7 +66,7 @@ public class SpecificationUnitTests implements Serializable {
 		assertThat(specification.toPredicate(root, query, builder), is(nullValue()));
 	}
 
-	@Test // DATAJPA-300
+	@Test // DATAJPA-300, DATAJPA-1170
 	public void negatesNullSpecToNull() {
 
 		Specification<Object> specification = not(null);
@@ -73,7 +75,7 @@ public class SpecificationUnitTests implements Serializable {
 		assertThat(specification.toPredicate(root, query, builder), is(nullValue()));
 	}
 
-	@Test // DATAJPA-300
+	@Test // DATAJPA-300, DATAJPA-1170
 	public void andConcatenatesSpecToNullSpec() {
 
 		Specification<Object> specification = where(null);
@@ -83,7 +85,7 @@ public class SpecificationUnitTests implements Serializable {
 		assertThat(specification.toPredicate(root, query, builder), is(predicate));
 	}
 
-	@Test // DATAJPA-300
+	@Test // DATAJPA-300, DATAJPA-1170
 	public void andConcatenatesNullSpecToSpec() {
 
 		Specification<Object> specification = spec.and(null);
@@ -92,7 +94,7 @@ public class SpecificationUnitTests implements Serializable {
 		assertThat(specification.toPredicate(root, query, builder), is(predicate));
 	}
 
-	@Test // DATAJPA-300
+	@Test // DATAJPA-300, DATAJPA-1170
 	public void orConcatenatesSpecToNullSpec() {
 
 		Specification<Object> specification = where(null);
@@ -102,7 +104,7 @@ public class SpecificationUnitTests implements Serializable {
 		assertThat(specification.toPredicate(root, query, builder), is(predicate));
 	}
 
-	@Test // DATAJPA-300
+	@Test // DATAJPA-300, DATAJPA-1170
 	public void orConcatenatesNullSpecToSpec() {
 
 		Specification<Object> specification = spec.or(null);
@@ -129,7 +131,8 @@ public class SpecificationUnitTests implements Serializable {
 	public void complexSpecificationsShouldBeSerializable() {
 
 		SerializableSpecification serializableSpec = new SerializableSpecification();
-		Specification<Object> specification = Specification.not(serializableSpec.and(serializableSpec).or(serializableSpec));
+		Specification<Object> specification = Specification
+				.not(serializableSpec.and(serializableSpec).or(serializableSpec));
 
 		assertThat(specification, is(notNullValue()));
 
@@ -140,10 +143,10 @@ public class SpecificationUnitTests implements Serializable {
 	}
 
 	public class SerializableSpecification implements Serializable, Specification<Object> {
+
 		@Override
 		public Predicate toPredicate(Root<Object> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
 			return null;
 		}
 	}
-
 }
