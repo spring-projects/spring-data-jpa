@@ -70,6 +70,7 @@ import org.springframework.util.StringUtils;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Sébastien Péralta
+ * @author Jens Schauder
  */
 public abstract class QueryUtils {
 
@@ -183,14 +184,14 @@ public abstract class QueryUtils {
 			Iterable<String> idAttributes) {
 
 		StringBuilder sb = new StringBuilder(String.format(COUNT_QUERY_STRING, countQueryPlaceHolder, entityName));
-		sb.append(" WHERE ");
+		String append = " WHERE ";
 
 		for (String idAttribute : idAttributes) {
+			sb.append(append);
 			sb.append(String.format(EQUALS_CONDITION_STRING, "x", idAttribute, idAttribute));
-			sb.append(" AND ");
+			append = " AND ";
 		}
 
-		sb.append("1 = 1");
 		return sb.toString();
 	}
 
