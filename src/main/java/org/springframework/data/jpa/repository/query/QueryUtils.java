@@ -183,16 +183,18 @@ public abstract class QueryUtils {
 	public static String getExistsQueryString(String entityName, String countQueryPlaceHolder,
 			Iterable<String> idAttributes) {
 
-		StringBuilder sb = new StringBuilder(String.format(COUNT_QUERY_STRING, countQueryPlaceHolder, entityName));
+		StringBuilder builder = new StringBuilder(String.format(COUNT_QUERY_STRING, countQueryPlaceHolder, entityName));
 		String append = " WHERE ";
 
 		for (String idAttribute : idAttributes) {
-			sb.append(append);
-			sb.append(String.format(EQUALS_CONDITION_STRING, "x", idAttribute, idAttribute));
+
+			builder.append(append);
+			builder.append(String.format(EQUALS_CONDITION_STRING, "x", idAttribute, idAttribute));
+
 			append = " AND ";
 		}
 
-		return sb.toString();
+		return builder.toString();
 	}
 
 	/**

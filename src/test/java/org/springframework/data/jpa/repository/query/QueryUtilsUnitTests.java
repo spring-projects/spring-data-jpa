@@ -19,6 +19,7 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 import static org.springframework.data.jpa.repository.query.QueryUtils.*;
 
+import java.util.Collections;
 import java.util.Set;
 
 import org.hamcrest.Matcher;
@@ -511,6 +512,13 @@ public class QueryUtilsUnitTests {
 				.getOuterJoinAliases("SELECT DISTINCT user FROM User user LEFT JOIN FETCH user.authorities AS authority");
 
 		assertThat(aliases, contains("authority"));
+	}
+
+	@Test // DATAJPA-1171
+	public void doesNotContainStaticClauseInExistsQuery() {
+
+		assertThat(QueryUtils.getExistsQueryString("entity", "x", Collections.singleton("id")), //
+				endsWith("WHERE x.id = :id"));
 	}
 
 	private static void assertCountQuery(String originalQuery, String countQuery) {
