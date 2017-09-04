@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
 import javax.persistence.ManyToOne;
@@ -57,6 +58,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.jpa.domain.JpaSort.JpaOrder;
 import org.springframework.data.mapping.PropertyPath;
+import org.springframework.data.util.StreamUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -183,16 +185,13 @@ public abstract class QueryUtils {
 	public static String getExistsQueryString(String entityName, String countQueryPlaceHolder,
 			Iterable<String> idAttributes) {
 
-		StringBuilder sb = new StringBuilder(String.format(COUNT_QUERY_STRING, countQueryPlaceHolder, entityName));
-		sb.append(" WHERE ");
+		String baseQuery = String.format(COUNT_QUERY_STRING, countQueryPlaceHolder, entityName);
 
-		for (String idAttribute : idAttributes) {
-			sb.append(String.format(EQUALS_CONDITION_STRING, "x", idAttribute, idAttribute));
-			sb.append(" AND ");
-		}
+		String whereClause = StreamUtils.createStreamFromIterator(idAttributes.iterator())
+				.map(idAttribute -> String.format(EQUALS_CONDITION_STRING, "x", idAttribute, idAttribute))
+				.collect(Collectors.joining(" AND ", " WHERE ", ""));
 
-		sb.append("1 = 1");
-		return sb.toString();
+		return baseQuery + whereClause;
 	}
 
 	/**
