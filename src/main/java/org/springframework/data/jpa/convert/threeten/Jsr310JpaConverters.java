@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,12 +52,12 @@ public class Jsr310JpaConverters {
 
 		@Override
 		public Date convertToDatabaseColumn(LocalDate date) {
-			return LocalDateToDateConverter.INSTANCE.convert(date);
+			return date == null ? null : LocalDateToDateConverter.INSTANCE.convert(date);
 		}
 
 		@Override
 		public LocalDate convertToEntityAttribute(Date date) {
-			return DateToLocalDateConverter.INSTANCE.convert(date);
+			return date == null ? null : DateToLocalDateConverter.INSTANCE.convert(date);
 		}
 	}
 
@@ -66,12 +66,12 @@ public class Jsr310JpaConverters {
 
 		@Override
 		public Date convertToDatabaseColumn(LocalTime time) {
-			return LocalTimeToDateConverter.INSTANCE.convert(time);
+			return time == null ? null : LocalTimeToDateConverter.INSTANCE.convert(time);
 		}
 
 		@Override
 		public LocalTime convertToEntityAttribute(Date date) {
-			return DateToLocalTimeConverter.INSTANCE.convert(date);
+			return date == null ? null : DateToLocalTimeConverter.INSTANCE.convert(date);
 		}
 	}
 
@@ -80,12 +80,12 @@ public class Jsr310JpaConverters {
 
 		@Override
 		public Date convertToDatabaseColumn(LocalDateTime date) {
-			return LocalDateTimeToDateConverter.INSTANCE.convert(date);
+			return date == null ? null : LocalDateTimeToDateConverter.INSTANCE.convert(date);
 		}
 
 		@Override
 		public LocalDateTime convertToEntityAttribute(Date date) {
-			return DateToLocalDateTimeConverter.INSTANCE.convert(date);
+			return date == null ? null : DateToLocalDateTimeConverter.INSTANCE.convert(date);
 		}
 	}
 
@@ -94,12 +94,12 @@ public class Jsr310JpaConverters {
 
 		@Override
 		public Date convertToDatabaseColumn(Instant instant) {
-			return InstantToDateConverter.INSTANCE.convert(instant);
+			return instant == null ? null : InstantToDateConverter.INSTANCE.convert(instant);
 		}
 
 		@Override
 		public Instant convertToEntityAttribute(Date date) {
-			return DateToInstantConverter.INSTANCE.convert(date);
+			return date == null ? null : DateToInstantConverter.INSTANCE.convert(date);
 		}
 	}
 
@@ -107,12 +107,12 @@ public class Jsr310JpaConverters {
 	public static class ZoneIdConverter implements AttributeConverter<ZoneId, String> {
 
 		public String convertToDatabaseColumn(ZoneId zoneId) {
-			return ZoneIdToStringConverter.INSTANCE.convert(zoneId);
+			return zoneId == null ? null : ZoneIdToStringConverter.INSTANCE.convert(zoneId);
 		}
 
 		@Override
 		public ZoneId convertToEntityAttribute(String zoneId) {
-			return StringToZoneIdConverter.INSTANCE.convert(zoneId);
+			return zoneId == null ? null : StringToZoneIdConverter.INSTANCE.convert(zoneId);
 		}
 	}
 }
