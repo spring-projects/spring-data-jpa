@@ -58,7 +58,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.jpa.domain.JpaSort.JpaOrder;
 import org.springframework.data.mapping.PropertyPath;
-import org.springframework.data.util.StreamUtils;
+import org.springframework.data.util.Streamable;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -185,13 +185,11 @@ public abstract class QueryUtils {
 	public static String getExistsQueryString(String entityName, String countQueryPlaceHolder,
 			Iterable<String> idAttributes) {
 
-		String baseQuery = String.format(COUNT_QUERY_STRING, countQueryPlaceHolder, entityName);
-
-		String whereClause = StreamUtils.createStreamFromIterator(idAttributes.iterator())
-				.map(idAttribute -> String.format(EQUALS_CONDITION_STRING, "x", idAttribute, idAttribute))
+		String whereClause = Streamable.of(idAttributes).stream() //
+				.map(idAttribute -> String.format(EQUALS_CONDITION_STRING, "x", idAttribute, idAttribute)) //
 				.collect(Collectors.joining(" AND ", " WHERE ", ""));
 
-		return baseQuery + whereClause;
+		return String.format(COUNT_QUERY_STRING, countQueryPlaceHolder, entityName) + whereClause;
 	}
 
 	/**
