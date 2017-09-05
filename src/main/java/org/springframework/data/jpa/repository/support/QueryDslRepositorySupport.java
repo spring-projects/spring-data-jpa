@@ -17,7 +17,6 @@ package org.springframework.data.jpa.repository.support;
 
 import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 
 import org.springframework.stereotype.Repository;
 import org.springframework.util.Assert;
@@ -32,8 +31,8 @@ import com.querydsl.jpa.impl.JPADeleteClause;
 import com.querydsl.jpa.impl.JPAUpdateClause;
 
 /**
- * Base class for implementing repositories using QueryDsl library.
- * 
+ * Base class for implementing repositories using Querydsl library.
+ *
  * @author Oliver Gierke
  * @author Mark Paluch
  */
@@ -59,9 +58,8 @@ public abstract class QueryDslRepositorySupport {
 	/**
 	 * Setter to inject {@link EntityManager}.
 	 * 
-	 * @param entityManager must not be {@literal null}
+	 * @param entityManager must not be {@literal null}.
 	 */
-	@PersistenceContext
 	public void setEntityManager(EntityManager entityManager) {
 
 		Assert.notNull(entityManager, "EntityManager must not be null!");
