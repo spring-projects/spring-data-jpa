@@ -15,6 +15,11 @@
  */
 package org.springframework.data.jpa.repository;
 
+import static org.assertj.core.api.Assertions.*;
+
+import javax.persistence.Query;
+
+import org.junit.Test;
 import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.test.context.ContextConfiguration;
 
@@ -23,6 +28,7 @@ import org.springframework.test.context.ContextConfiguration;
  * 
  * @author Oliver Gierke
  * @author Thomas Darimont
+ * @author Jens Schauder
  */
 @ContextConfiguration(value = "classpath:eclipselink.xml")
 public class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserRepositoryTests {
@@ -66,4 +72,17 @@ public class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserReposi
 	 */
 	@Override
 	public void findByElementCollectionAttribute() {}
+
+	/**
+	 * This test will fail once https://bugs.eclipse.org/bugs/show_bug.cgi?id=521915 is fixed.
+	 */
+	@Override
+	@Test // DATAJPA-1172
+	public void queryProvidesCorrectNumberOfParametersForNativeQuery() {
+
+		Query query = em.createNativeQuery("select 1 from User where firstname=? and lastname=?");
+		assertThat(query.getParameters()).describedAs(
+				"Due to a bug eclipse has size 0. If this is no longer the case the special code path triggered in NamedOrIndexedQueryParameterSetter.registerExcessParameters can be removed")
+				.hasSize(0);
+	}
 }

@@ -20,6 +20,7 @@ import static org.springframework.data.domain.Example.*;
 import static org.springframework.data.domain.ExampleMatcher.*;
 import static org.springframework.data.domain.Sort.Direction.*;
 import static org.springframework.data.jpa.domain.Specification.*;
+import static org.springframework.data.jpa.domain.Specification.not;
 import static org.springframework.data.jpa.domain.sample.UserSpecifications.*;
 
 import java.util.ArrayList;
@@ -50,8 +51,6 @@ import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
-import org.springframework.data.domain.ExampleMatcher.GenericPropertyMatcher;
-import org.springframework.data.domain.ExampleMatcher.StringMatcher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -60,6 +59,7 @@ import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.domain.Sort.Order;
+import org.springframework.data.domain.ExampleMatcher.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.domain.sample.Address;
 import org.springframework.data.jpa.domain.sample.Role;
@@ -85,6 +85,7 @@ import com.google.common.base.Optional;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Kevin Peters
+ * @author Jens Schauder
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("classpath:application-context.xml")
@@ -2046,6 +2047,21 @@ public class UserRepositoryTests {
 		assertThat(result.getTotalElements()).isEqualTo(2L);
 		assertThat(result.getNumberOfElements()).isEqualTo(1);
 		assertThat(result.getContent().get(0)).isEqualTo(thirdUser);
+	}
+
+	@Test // DATAJPA-1172
+	public void exceptionsDuringParameterSettingGetThrown() {
+
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class) //
+				.isThrownBy(() -> repository.findByStringAge("twelve")) //
+				.matches(e -> !e.getMessage().contains("Named parameter [age] not set"));
+	}
+
+	@Test // DATAJPA-1172
+	public void queryProvidesCorrectNumberOfParametersForNativeQuery() {
+
+		Query query = em.createNativeQuery("select 1 from User where firstname=? and lastname=?");
+		assertThat(query.getParameters()).hasSize(2);
 	}
 
 	private Page<User> executeSpecWithSort(Sort sort) {
