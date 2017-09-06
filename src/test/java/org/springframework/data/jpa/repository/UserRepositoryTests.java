@@ -1241,8 +1241,9 @@ public class UserRepositoryTests {
 		flushTestUsers();
 
 		byte[] result = repository.findBinaryDataByIdNative(firstUser.getId());
-		assertThat(result.length).isEqualTo(data.length);
+
 		assertThat(result).isEqualTo(data);
+		assertThat(result.length).isEqualTo(data.length);
 	}
 
 	@Test // DATAJPA-456
@@ -1598,7 +1599,7 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		List<User> users = repository.findByAttributesIn(new HashSet<String>());
+		List<User> users = repository.findByAttributesIn(new HashSet<>());
 		assertThat(users).hasSize(0);
 	}
 
@@ -1607,7 +1608,7 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		List<User> users = repository.findByAgeIn(Arrays.<Integer> asList());
+		List<User> users = repository.findByAgeIn(Collections.emptyList());
 		assertThat(users).hasSize(0);
 	}
 
@@ -2038,7 +2039,7 @@ public class UserRepositoryTests {
 	}
 
 	@Test // DATAJPA-905
-	public void excutesPagedSpecificationSettingAnOrder() {
+	public void executesPagedSpecificationSettingAnOrder() {
 
 		flushTestUsers();
 
