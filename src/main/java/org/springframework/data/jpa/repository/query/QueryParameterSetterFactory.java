@@ -114,7 +114,7 @@ abstract class QueryParameterSetterFactory {
 				: null;
 
 		return new NamedOrIndexedQueryParameterSetter(valueExtractor.andThen(binding::prepare),
-				ParameterImpl.of(parameter, binding), temporalType, lenient);
+				ParameterImpl.of(parameter, binding), temporalType);
 	}
 
 	/**
@@ -279,7 +279,7 @@ abstract class QueryParameterSetterFactory {
 			TemporalType temporalType = parameter.isTemporalParameter() ? parameter.getRequiredTemporalType() : null;
 
 			return new NamedOrIndexedQueryParameterSetter(values -> getAndPrepare(parameter, metadata, values),
-					metadata.getExpression(), temporalType, false);
+					metadata.getExpression(), temporalType);
 		}
 
 		@Nullable

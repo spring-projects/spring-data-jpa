@@ -34,6 +34,7 @@ import javax.persistence.TemporalType;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.domain.Pageable;
@@ -51,9 +52,10 @@ import org.springframework.data.repository.query.Param;
 @RunWith(MockitoJUnitRunner.class)
 public class ParameterBinderUnitTests {
 
+	public static final int MAX_PARAMETERS = 1;
 	private Method valid;
 
-	@Mock private Query query;
+	@Mock(answer = Answers.RETURNS_DEEP_STUBS) private Query query;
 	private Method useIndexedParameters;
 	private Method indexedParametersWithSort;
 
@@ -64,6 +66,8 @@ public class ParameterBinderUnitTests {
 
 		useIndexedParameters = SampleRepository.class.getMethod("useIndexedParameters", String.class);
 		indexedParametersWithSort = SampleRepository.class.getMethod("indexedParameterWithSort", String.class, Sort.class);
+
+		when(query.getParameters().size()).thenReturn(MAX_PARAMETERS);
 	}
 
 	static class User {
@@ -91,6 +95,9 @@ public class ParameterBinderUnitTests {
 		List<User> validWithVarArgs(Integer... ids);
 
 		User optionalParameter(Optional<String> name);
+
+		@org.springframework.data.jpa.repository.Query("select x from User where name = :name")
+		User withQuery(String name, String other);
 	}
 
 	@Test
@@ -207,6 +214,18 @@ public class ParameterBinderUnitTests {
 		ParameterBinderFactory.createBinder(parameters).bind(query, values);
 
 		verify(query).setParameter(eq(1), eq("Foo"));
+	}
+
+	@Test // DATAJPA-1172
+	public void doesNotBindExcessParameters() throws Exception {
+
+		Method method = SampleRepository.class.getMethod("withQuery", String.class, String.class);
+
+		Object[] values = { "foo", "superfluous" };
+		ParameterBinderFactory.createBinder(new JpaParameters(method)).bind(query, values);
+
+		verify(query).setParameter(eq(1), any());
+		verify(query, never()).setParameter(eq(2), any());
 	}
 
 	public SampleEntity findByEmbeddable(SampleEmbeddable embeddable) {

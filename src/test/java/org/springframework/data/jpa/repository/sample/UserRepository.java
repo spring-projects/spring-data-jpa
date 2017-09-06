@@ -491,6 +491,10 @@ public interface UserRepository
 
 	List<RolesAndFirstname> findRolesAndFirstnameBy();
 
+	// DATAJPA-1172
+	@Query("select u from User u where u.age = :age")
+	List<User> findByStringAge(@Param("age") String age);
+
 	static interface RolesAndFirstname {
 
 		String getFirstname();
