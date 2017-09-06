@@ -57,7 +57,6 @@ public class ParameterBinderUnitTests {
 
 	@Mock(answer = Answers.RETURNS_DEEP_STUBS) private Query query;
 	private Method useIndexedParameters;
-	private Method indexedParametersWithSort;
 
 	@Before
 	public void setUp() throws SecurityException, NoSuchMethodException {
@@ -65,7 +64,6 @@ public class ParameterBinderUnitTests {
 		valid = SampleRepository.class.getMethod("valid", String.class);
 
 		useIndexedParameters = SampleRepository.class.getMethod("useIndexedParameters", String.class);
-		indexedParametersWithSort = SampleRepository.class.getMethod("indexedParameterWithSort", String.class, Sort.class);
 
 		when(query.getParameters().size()).thenReturn(MAX_PARAMETERS);
 	}
@@ -125,14 +123,14 @@ public class ParameterBinderUnitTests {
 
 		Object[] values = { "foo" };
 		ParameterBinderFactory.createBinder(new JpaParameters(useIndexedParameters)).bind(query, values);
-		verify(query).setParameter(eq(1), anyObject());
+		verify(query).setParameter(eq(1), any());
 	}
 
 	@Test
 
 	public void usesParameterNameIfAnnotated() throws Exception {
 
-		when(query.setParameter(eq("username"), anyObject())).thenReturn(query);
+		when(query.setParameter(eq("username"), any())).thenReturn(query);
 
 		Parameter parameter = mock(Parameter.class);
 		when(parameter.getName()).thenReturn("username");
@@ -141,7 +139,7 @@ public class ParameterBinderUnitTests {
 		Object[] values = { "foo" };
 		ParameterBinderFactory.createBinder(new JpaParameters(valid)).bind(query, values);
 
-		verify(query).setParameter(eq("username"), anyObject());
+		verify(query).setParameter(eq("username"), any());
 	}
 
 	@Test
