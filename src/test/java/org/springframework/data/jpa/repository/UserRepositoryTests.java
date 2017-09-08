@@ -89,6 +89,7 @@ import com.google.common.base.Optional;
  * @author Kevin Raymond
  * @author Thomas Darimont
  * @author Mark Paluch
+ * @author Jens Schauder
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("classpath:application-context.xml")
@@ -2395,6 +2396,13 @@ public class UserRepositoryTests {
 		assertThat(result.getTotalElements(), is(2L));
 		assertThat(result.getNumberOfElements(), is(1));
 		assertThat(result.getContent().get(0), is(thirdUser));
+	}
+
+	@Test // DATAJPA-1172
+	public void queryProvidesCorrectNumberOfParametersForNativeQuery() {
+
+		Query query = em.createNativeQuery("select 1 from User where firstname=? and lastname=?");
+		assertThat(query.getParameters(),hasSize(2));
 	}
 
 	private Page<User> executeSpecWithSort(Sort sort) {

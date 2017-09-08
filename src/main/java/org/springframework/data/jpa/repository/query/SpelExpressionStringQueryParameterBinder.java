@@ -19,6 +19,8 @@ import java.util.List;
 
 import javax.persistence.Query;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
 import org.springframework.data.jpa.repository.query.StringQuery.ParameterBinding;
 import org.springframework.data.repository.query.EvaluationContextProvider;
@@ -32,8 +34,11 @@ import org.springframework.util.Assert;
  * A {@link StringQueryParameterBinder} that is able to bind synthetic query parameters.
  * 
  * @author Thomas Darimont
+ * @author Jens Schauder
  */
 class SpelExpressionStringQueryParameterBinder extends StringQueryParameterBinder {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(SpelExpressionStringQueryParameterBinder.class);
 
 	private final StringQuery query;
 	private final EvaluationContextProvider evaluationContextProvider;
@@ -96,8 +101,15 @@ class SpelExpressionStringQueryParameterBinder extends StringQueryParameterBinde
 					}
 				} catch (IllegalArgumentException iae) {
 
-					// Since Eclipse doesn't reliably report whether a query has parameters
-					// we simply try to set the parameters and ignore possible failures.
+					// DATAJPA-1172 we don't expect this exception any more.
+					// But aren't sure enough to just stop catching it.
+					LOGGER.warn( //
+							String.format( //
+									"Setting the parameter with name '%s' and position '%s' lead to an exception.", //
+									binding.getName(), //
+									binding.getPosition() //
+							), //
+							iae);
 				}
 			}
 		}
