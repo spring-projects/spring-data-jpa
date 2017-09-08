@@ -15,6 +15,12 @@
  */
 package org.springframework.data.jpa.repository;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+
+import javax.persistence.Query;
+
+import org.junit.Test;
 import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.test.context.ContextConfiguration;
 
@@ -23,6 +29,7 @@ import org.springframework.test.context.ContextConfiguration;
  * 
  * @author Oliver Gierke
  * @author Thomas Darimont
+ * @author Jens Schauder
  */
 @ContextConfiguration(value = "classpath:eclipselink.xml")
 public class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserRepositoryTests {
@@ -74,4 +81,15 @@ public class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserReposi
 	 */
 	@Override
 	public void findByElementCollectionAttribute() {}
+
+	/**
+	 * This test will fail once https://bugs.eclipse.org/bugs/show_bug.cgi?id=521915 is fixed.
+	 */
+	@Override
+	@Test // DATAJPA-1172
+	public void queryProvidesCorrectNumberOfParametersForNativeQuery() {
+
+		Query query = em.createNativeQuery("select 1 from User where firstname=? and lastname=?");
+		assertThat(query.getParameters().size(), equalTo(0));
+	}
 }
