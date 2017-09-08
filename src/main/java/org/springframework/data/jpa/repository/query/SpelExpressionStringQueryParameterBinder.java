@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,10 +35,12 @@ import org.springframework.util.Assert;
  * 
  * @author Thomas Darimont
  * @author Jens Schauder
+ * @author Oliver Gierke
  */
 class SpelExpressionStringQueryParameterBinder extends StringQueryParameterBinder {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SpelExpressionStringQueryParameterBinder.class);
+	private static final String PARAMETER_BIND_FAILED = "Setting the parameter with name '%s' and position '%s' lead to an exception.";
 
 	private final StringQuery query;
 	private final EvaluationContextProvider evaluationContextProvider;
@@ -103,13 +105,7 @@ class SpelExpressionStringQueryParameterBinder extends StringQueryParameterBinde
 
 					// DATAJPA-1172 we don't expect this exception any more.
 					// But aren't sure enough to just stop catching it.
-					LOGGER.warn( //
-							String.format( //
-									"Setting the parameter with name '%s' and position '%s' lead to an exception.", //
-									binding.getName(), //
-									binding.getPosition() //
-							), //
-							iae);
+					LOGGER.warn(String.format(PARAMETER_BIND_FAILED, binding.getName(), binding.getPosition()), iae);
 				}
 			}
 		}
