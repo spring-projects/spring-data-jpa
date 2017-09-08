@@ -16,6 +16,8 @@
 package org.springframework.data.jpa.repository;
 
 import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.*;
 
 import java.util.Arrays;
@@ -24,6 +26,7 @@ import java.util.List;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -40,6 +43,7 @@ import org.springframework.test.context.ContextConfiguration;
  * Testcase to run {@link UserRepository} integration tests on top of OpenJPA.
  * 
  * @author Oliver Gierke
+ * @author Jens Schauder
  */
 @ContextConfiguration("classpath:openjpa.xml")
 public class OpenJpaNamespaceUserRepositoryTests extends NamespaceUserRepositoryTests {
@@ -93,4 +97,17 @@ public class OpenJpaNamespaceUserRepositoryTests extends NamespaceUserRepository
 	 */
 	@Override
 	public void shouldFindUsersInNativeQueryWithPagination() {}
+
+
+	/**
+	 * OpenJpa doesn't provide the correct values in the version referenced in this branch.
+	 * Since the problem is already gone in the version referenced in master no bug was created.
+	 */
+	@Override
+	@Test // DATAJPA-1172
+	public void queryProvidesCorrectNumberOfParametersForNativeQuery() {
+
+		Query query = em.createNativeQuery("select 1 from User where firstname=? and lastname=?");
+		assertThat(query.getParameters().size(), equalTo(0));
+	}
 }
