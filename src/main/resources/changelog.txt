@@ -1,6 +1,14 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 1.11.7.RELEASE (2017-09-11)
+----------------------------------------------
+* DATAJPA-1172 - Improve error reporting for invalid type being used for SpEL parameter binding.
+* DATAJPA-1171 - Query created for CrudRepository.existsById(…) shouldn't contain static '1 = 1'.
+* DATAJPA-1157 - Release 1.11.7 (Ingalls SR7).
+* DATAJPA-1080 - Use From instead of Root for order in QueryUtils.
+
+
 Changes in version 1.11.6.RELEASE (2017-07-26)
 ----------------------------------------------
 * DATAJPA-1152 - Release 1.11.6 (Ingalls SR6).
