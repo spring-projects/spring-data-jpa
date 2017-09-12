@@ -691,7 +691,7 @@ include::query-by-example.adoc[leveloffset=+1]
 
 [[transactions]]
 == Transactionality
-CRUD methods on repository instances are transactional by default. For reading operations the transaction configuration `readOnly` flag is set to true, all others are configured with a plain `@Transactional` so that default transaction configuration applies. For details see JavaDoc of `CrudRepository`. If you need to tweak transaction configuration for one of the methods declared in a repository simply redeclare the method in your repository interface as follows:
+CRUD methods on repository instances are transactional by default. For reading operations the transaction configuration `readOnly` flag is set to `true`, all others are configured with a plain `@Transactional` so that default transaction configuration applies. For details see JavaDoc of link:$$http://docs.spring.io/spring-data/data-jpa/docs/current/api/index.html?org/springframework/data/jpa/repository/support/SimpleJpaRepository.html$$[`SimpleJpaRepository`]. If you need to tweak transaction configuration for one of the methods declared in a repository simply redeclare the method in your repository interface as follows:
 
 .Custom transaction configuration for CRUD
 ====
