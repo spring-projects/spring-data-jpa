@@ -22,10 +22,14 @@ import java.util.Optional;
 
 import javax.persistence.EntityManager;
 
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.data.jpa.projection.CollectionAwareProjectionFactory;
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.provider.QueryExtractor;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.query.JpaQueryLookupStrategy;
+import org.springframework.data.projection.ProjectionFactory;
+import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import org.springframework.data.repository.core.RepositoryInformation;
 import org.springframework.data.repository.core.RepositoryMetadata;
@@ -42,6 +46,7 @@ import org.springframework.util.Assert;
  * @author Oliver Gierke
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Jens Schauder
  */
 public class JpaRepositoryFactory extends RepositoryFactorySupport {
 
@@ -116,6 +121,16 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 		} else {
 			return SimpleJpaRepository.class;
 		}
+	}
+
+	@Override
+	protected ProjectionFactory getProjectionFactory(ClassLoader classLoader, BeanFactory beanFactory) {
+
+		CollectionAwareProjectionFactory factory = new CollectionAwareProjectionFactory();
+		factory.setBeanClassLoader(classLoader);
+		factory.setBeanFactory(beanFactory);
+
+		return factory;
 	}
 
 	/**
