@@ -54,7 +54,7 @@ class StringQuery {
 	 * 
 	 * @param query must not be {@literal null} or empty.
 	 */
-	public StringQuery(String query) {
+	StringQuery(String query) {
 
 		Assert.hasText(query, "Query must not be null or empty!");
 
@@ -67,17 +67,13 @@ class StringQuery {
 
 	/**
 	 * Returns whether we have found some like bindings.
-	 * 
-	 * @return
 	 */
-	public boolean hasParameterBindings() {
+	boolean hasParameterBindings() {
 		return !bindings.isEmpty();
 	}
 
 	/**
 	 * Returns the {@link ParameterBinding}s registered.
-	 * 
-	 * @return
 	 */
 	List<ParameterBinding> getParameterBindings() {
 		return bindings;
@@ -85,10 +81,8 @@ class StringQuery {
 
 	/**
 	 * Returns the query string.
-	 * 
-	 * @return
 	 */
-	public String getQueryString() {
+	String getQueryString() {
 		return query;
 	}
 
@@ -97,7 +91,7 @@ class StringQuery {
 	 * 
 	 * @return the alias
 	 */
-	public String getAlias() {
+	String getAlias() {
 		return alias;
 	}
 
@@ -105,9 +99,8 @@ class StringQuery {
 	 * Returns the {@link ParameterBinding} for the given name.
 	 * 
 	 * @param name must not be {@literal null} or empty.
-	 * @return
 	 */
-	public ParameterBinding getBindingFor(String name) {
+	ParameterBinding getBindingFor(String name) {
 
 		Assert.hasText(name, PARAMETER_NAME_MISSING);
 
@@ -122,11 +115,8 @@ class StringQuery {
 
 	/**
 	 * Returns the {@link ParameterBinding} for the given position.
-	 * 
-	 * @param position
-	 * @return
 	 */
-	public ParameterBinding getBindingFor(int position) {
+	ParameterBinding getBindingFor(int position) {
 
 		for (ParameterBinding binding : bindings) {
 			if (binding.hasPosition(position)) {
@@ -139,20 +129,16 @@ class StringQuery {
 
 	/**
 	 * Returns whether the query is using a constructor expression.
-	 * 
-	 * @return
 	 * @since 1.10
 	 */
-	public boolean hasConstructorExpression() {
+	boolean hasConstructorExpression() {
 		return hasConstructorExpression;
 	}
 
 	/**
 	 * Returns whether the query uses the default projection, i.e. returns the main alias defined for the query.
-	 * 
-	 * @return
 	 */
-	public boolean isDefaultProjection() {
+	boolean isDefaultProjection() {
 		return QueryUtils.getProjection(query).equals(alias);
 	}
 
@@ -161,7 +147,7 @@ class StringQuery {
 	 * 
 	 * @author Thomas Darimont
 	 */
-	public static enum ParameterBindingParser {
+	public enum ParameterBindingParser {
 
 		INSTANCE;
 
@@ -202,12 +188,9 @@ class StringQuery {
 		/**
 		 * Parses {@link ParameterBinding} instances from the given query and adds them to the registered bindings. Returns
 		 * the cleaned up query.
-		 * 
-		 * @param query
-		 * @return
 		 */
-		private final String parseParameterBindingsOfQueryIntoBindingsAndReturnCleanedQuery(String query,
-				List<ParameterBinding> bindings) {
+		private String parseParameterBindingsOfQueryIntoBindingsAndReturnCleanedQuery(String query,
+																					  List<ParameterBinding> bindings) {
 
 			String result = query;
 			Matcher matcher = PARAMETER_BINDING_PATTERN.matcher(query);
@@ -338,7 +321,7 @@ class StringQuery {
 		 * @author Thomas Darimont
 		 * @author Oliver Gierke
 		 */
-		private static enum ParameterBindingType {
+		private enum ParameterBindingType {
 
 			// Trailing whitespace is intentional to reflect that the keywords must be used with at least one whitespace
 			// character, while = does not.
@@ -346,7 +329,7 @@ class StringQuery {
 
 			private final String keyword;
 
-			private ParameterBindingType(String keyword) {
+			ParameterBindingType(String keyword) {
 				this.keyword = keyword;
 			}
 
@@ -363,9 +346,6 @@ class StringQuery {
 			/**
 			 * Return the appropriate {@link ParameterBindingType} for the given {@link String}. Returns {@keyword #AS_IS} in
 			 * case no other {@link ParameterBindingType} could be found.
-			 * 
-			 * @param typeSource
-			 * @return
 			 */
 			static ParameterBindingType of(String typeSource) {
 
@@ -396,30 +376,17 @@ class StringQuery {
 		private final Integer position;
 
 		/**
-		 * Creates a new {@link ParameterBinding} for the parameter with the given name.
-		 * 
-		 * @param name must not be {@literal null}.
-		 */
-		public ParameterBinding(String name) {
-			this(name, null, null);
-		}
-
-		/**
 		 * Creates a new {@link ParameterBinding} for the parameter with the given position.
 		 * 
 		 * @param position must not be {@literal null}.
 		 */
-		public ParameterBinding(Integer position) {
+		ParameterBinding(Integer position) {
 			this(null, position, null);
 		}
 
 		/**
 		 * Creates a new {@link ParameterBinding} for the parameter with the given name, position and expression
 		 * information.
-		 * 
-		 * @param name
-		 * @param position
-		 * @param expression
 		 */
 		ParameterBinding(String name, Integer position, String expression) {
 
@@ -439,22 +406,16 @@ class StringQuery {
 		/**
 		 * Returns whether the binding has the given name. Will always be {@literal false} in case the
 		 * {@link ParameterBinding} has been set up from a position.
-		 * 
-		 * @param name
-		 * @return
 		 */
-		public boolean hasName(String name) {
+		boolean hasName(String name) {
 			return this.position == null && this.name != null && this.name.equals(name);
 		}
 
 		/**
 		 * Returns whether the binding has the given position. Will always be {@literal false} in case the
 		 * {@link ParameterBinding} has been set up from a name.
-		 * 
-		 * @param position
-		 * @return
 		 */
-		public boolean hasPosition(Integer position) {
+		boolean hasPosition(Integer position) {
 			return position != null && this.name == null && position.equals(this.position);
 		}
 
@@ -468,14 +429,14 @@ class StringQuery {
 		/**
 		 * @return the position
 		 */
-		public Integer getPosition() {
+		Integer getPosition() {
 			return position;
 		}
 
 		/**
 		 * @return {@literal true} if this parameter binding is a synthetic SpEL expression.
 		 */
-		public boolean isExpression() {
+		boolean isExpression() {
 			return this.expression != null;
 		}
 
@@ -522,15 +483,11 @@ class StringQuery {
 					getExpression());
 		}
 
-		/**
-		 * @param valueToBind
-		 * @return
-		 */
-		public Object prepare(Object valueToBind) {
+		Object prepare(Object valueToBind) {
 			return valueToBind;
 		}
 
-		public String getExpression() {
+		String getExpression() {
 			return expression;
 		}
 	}
@@ -545,21 +502,15 @@ class StringQuery {
 
 		/**
 		 * Creates a new {@link InParameterBinding} for the parameter with the given name.
-		 * 
-		 * @param name
-		 * @param expression
 		 */
-		public InParameterBinding(String name, String expression) {
+		InParameterBinding(String name, String expression) {
 			super(name, null, expression);
 		}
 
 		/**
 		 * Creates a new {@link InParameterBinding} for the parameter with the given position.
-		 * 
-		 * @param position
-		 * @param expression
 		 */
-		public InParameterBinding(int position, String expression) {
+		InParameterBinding(int position, String expression) {
 			super(null, position, expression);
 		}
 
@@ -568,7 +519,7 @@ class StringQuery {
 		 * @see org.springframework.data.jpa.repository.query.StringQuery.ParameterBinding#prepare(java.lang.Object)
 		 */
 		@Override
-		public Object prepare(Object value) {
+		Object prepare(Object value) {
 
 			if (!ObjectUtils.isArray(value)) {
 				return value;
@@ -605,7 +556,7 @@ class StringQuery {
 		 * @param name must not be {@literal null} or empty.
 		 * @param type must not be {@literal null}.
 		 */
-		public LikeParameterBinding(String name, Type type) {
+		LikeParameterBinding(String name, Type type) {
 			this(name, type, null);
 		}
 
@@ -617,7 +568,7 @@ class StringQuery {
 		 * @param type must not be {@literal null}.
 		 * @param expression may be {@literal null}.
 		 */
-		public LikeParameterBinding(String name, Type type, String expression) {
+		LikeParameterBinding(String name, Type type, String expression) {
 
 			super(name, null, expression);
 
@@ -636,7 +587,7 @@ class StringQuery {
 		 * @param position
 		 * @param type must not be {@literal null}.
 		 */
-		public LikeParameterBinding(int position, Type type) {
+		LikeParameterBinding(int position, Type type) {
 			this(position, type, null);
 		}
 
@@ -647,7 +598,7 @@ class StringQuery {
 		 * @param type must not be {@literal null}.
 		 * @param expression may be {@literal null}.
 		 */
-		public LikeParameterBinding(int position, Type type, String expression) {
+		LikeParameterBinding(int position, Type type, String expression) {
 
 			super(null, position, expression);
 
@@ -665,20 +616,18 @@ class StringQuery {
 		 * 
 		 * @return the type
 		 */
-		public Type getType() {
+		Type getType() {
 			return type;
 		}
 
 		/**
 		 * Prepares the given raw keyword according to the like type.
-		 * 
-		 * @param keyword
 		 */
 		@Override
-		public Object prepare(Object value) {
+		Object prepare(Object value) {
 
 			if (value == null) {
-				return value;
+				return null;
 			}
 
 			switch (type) {
@@ -737,7 +686,6 @@ class StringQuery {
 		 * Extracts the like {@link Type} from the given JPA like expression.
 		 * 
 		 * @param expression must not be {@literal null} or empty.
-		 * @return
 		 */
 		private static Type getLikeTypeFrom(String expression) {
 
