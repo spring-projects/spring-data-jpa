@@ -21,10 +21,10 @@ import static org.junit.Assert.*;
 import java.util.Set;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.se.SeContainer;
+import javax.enterprise.inject.se.SeContainerInitializer;
 import javax.enterprise.inject.spi.Bean;
 
-import org.apache.webbeans.cditest.CdiTestContainer;
-import org.apache.webbeans.cditest.CdiTestContainerLoader;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Integration tests for Spring Data JPA CDI extension.
- * 
+ *
  * @author Dirk Mahler
  * @author Oliver Gierke
  * @author Mark Paluch
@@ -41,18 +41,20 @@ public class CdiExtensionIntegrationTests {
 
 	private static Logger LOGGER = LoggerFactory.getLogger(CdiExtensionIntegrationTests.class);
 
-	static CdiTestContainer container;
+	static SeContainer container;
 
 	@BeforeClass
-	public static void setUp() throws Exception {
+	public static void setUp() {
 
-		container = CdiTestContainerLoader.getCdiContainer();
-		container.bootContainer();
+		container = SeContainerInitializer.newInstance() //
+				.disableDiscovery() //
+				.addPackages(PersonRepository.class) //
+				.initialize();
 
 		LOGGER.debug("CDI container bootstrapped!");
 	}
 
-	@Test // DATAJPA-319
+	@Test // DATAJPA-319, DATAJPA-1180
 	@SuppressWarnings("rawtypes")
 	public void foo() {
 
@@ -62,27 +64,27 @@ public class CdiExtensionIntegrationTests {
 		assertThat(beans.iterator().next().getScope(), is(equalTo((Class) ApplicationScoped.class)));
 	}
 
-	@Test
+	@Test // DATAJPA-136, DATAJPA-1180
 	public void saveAndFindAll() {
 
-		RepositoryConsumer repositoryConsumer = container.getInstance(RepositoryConsumer.class);
+		RepositoryConsumer repositoryConsumer = container.select(RepositoryConsumer.class).get();
 
 		Person person = new Person();
 		repositoryConsumer.save(person);
 		repositoryConsumer.findAll();
 	}
 
-	@Test // DATAJPA-584
+	@Test // DATAJPA-584, DATAJPA-1180
 	public void returnOneFromCustomImpl() {
 
-		RepositoryConsumer repositoryConsumer = container.getInstance(RepositoryConsumer.class);
+		RepositoryConsumer repositoryConsumer = container.select(RepositoryConsumer.class).get();
 		assertThat(repositoryConsumer.returnOne(), is(1));
 	}
 
-	@Test // DATAJPA-584
+	@Test // DATAJPA-584, DATAJPA-1180
 	public void useQualifiedCustomizedUserRepo() {
 
-		RepositoryConsumer repositoryConsumer = container.getInstance(RepositoryConsumer.class);
+		RepositoryConsumer repositoryConsumer = container.select(RepositoryConsumer.class).get();
 		repositoryConsumer.doSomethonOnUserDB();
 	}
 }
