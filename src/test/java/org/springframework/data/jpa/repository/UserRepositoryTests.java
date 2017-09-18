@@ -2142,7 +2142,7 @@ public class UserRepositoryTests {
 	public void queryProvidesCorrectNumberOfParametersForNativeQuery() {
 
 		Query query = em.createNativeQuery("select 1 from User where firstname=? and lastname=?");
-		assertThat(query.getParameters(),hasSize(2));
+		assertThat(query.getParameters(), hasSize(2));
 	}
 
 	@Test // DATAJPA-1179
