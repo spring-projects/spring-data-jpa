@@ -38,6 +38,7 @@ import org.springframework.util.StringUtils;
  * @author Thomas Darimont
  * @author Oliver Wehrens
  * @author Mark Paluch
+ * @author Jens Schauder
  */
 class StringQuery {
 
@@ -287,12 +288,22 @@ class StringQuery {
 				}
 
 				if (replacement != null) {
-					result = StringUtils.replace(result, matcher.group(2), replacement);
+					result = replaceFirst(result, matcher.group(2), replacement);
 				}
 
 			}
 
 			return result;
+		}
+
+		private static String replaceFirst(String text, String substring, String replacement) {
+
+			int index = text.indexOf(substring);
+			if (index < 0) {
+				return text;
+			}
+
+			return text.substring(0, index) + replacement + text.substring(index + substring.length());
 		}
 
 		private int tryFindGreatestParameterIndexIn(String query) {

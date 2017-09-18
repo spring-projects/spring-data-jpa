@@ -2145,6 +2145,16 @@ public class UserRepositoryTests {
 		assertThat(query.getParameters(),hasSize(2));
 	}
 
+	@Test // DATAJPA-1179
+	public void duplicateSpelsWorkAsIntended() {
+
+		flushTestUsers();
+
+		List<User> users = repository.findUsersByDuplicateSpel("Oliver");
+
+		assertThat(users, hasSize(1));
+	}
+
 	private Page<User> executeSpecWithSort(Sort sort) {
 
 		flushTestUsers();
