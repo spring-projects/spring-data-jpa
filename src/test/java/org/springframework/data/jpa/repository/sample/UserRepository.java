@@ -489,6 +489,10 @@ public interface UserRepository
 	// DATAJPA-858
 	List<User> findByRolesNameContaining(String name);
 
+	// DATAJPA-1179
+	@Query("select u from User u where u.firstname = :#{#firstname} and u.firstname = :#{#firstname}")
+	List<User> findUsersByDuplicateSpel(@Param("firstname") String firstname);
+
 	List<RolesAndFirstname> findRolesAndFirstnameBy();
 
 	// DATAJPA-1172
