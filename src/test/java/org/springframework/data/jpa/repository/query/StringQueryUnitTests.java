@@ -34,6 +34,7 @@ import org.springframework.data.repository.query.parser.Part.Type;
  * 
  * @author Oliver Gierke
  * @author Thomas Darimont
+ * @author Jens Schauder
  */
 public class StringQueryUnitTests {
 
@@ -300,6 +301,20 @@ public class StringQueryUnitTests {
 		// Parentheses required
 		assertThat(new StringQuery("select new Dto() from A a").hasConstructorExpression(), is(true));
 		assertThat(new StringQuery("select new Dto from A a").hasConstructorExpression(), is(false));
+	}
+
+	@Test // DATAJPA-1179
+	public void bindingsMatchQueryForIdenticalSpelExpressions() {
+
+		StringQuery query = new StringQuery("select a from A a where a.first = :#{#exp} or a.second = :#{#exp}");
+
+		List<ParameterBinding> bindings = query.getParameterBindings();
+		assertThat(bindings, not(empty()));
+
+		for (ParameterBinding binding : bindings) {
+			assertThat(binding.getName(), notNullValue());
+			assertThat(query.getQueryString(), containsString(binding.getName()));
+		}
 	}
 
 	private void assertPositionalBinding(Class<? extends ParameterBinding> bindingType, Integer position,
