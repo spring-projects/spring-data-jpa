@@ -27,6 +27,8 @@
 		<jpa>2.0.0</jpa>
 		<springdata.commons>2.0.0.BUILD-SNAPSHOT</springdata.commons>
 
+		<java-module-name>spring.data.jpa</java-module-name>
+
 		<sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
 
 	</properties>
