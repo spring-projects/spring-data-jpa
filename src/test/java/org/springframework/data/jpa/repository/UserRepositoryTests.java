@@ -33,6 +33,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.persistence.EntityManager;
@@ -2146,6 +2147,26 @@ public class UserRepositoryTests {
 
 		Query query = em.createNativeQuery("select 1 from User where firstname=? and lastname=?");
 		assertThat(query.getParameters(), hasSize(2));
+	}
+
+	@Test // DATAJPA-1185
+	public void dynamicProjectionReturningStream() {
+
+		flushTestUsers();
+
+		Stream<User> users = repository.findAsStreamByFirstnameLike("%O%", User.class);
+
+		assertThat(users.collect(Collectors.toList()), hasSize(1));
+	}
+
+	@Test // DATAJPA-1185
+	public void dynamicProjectionReturningList() {
+
+		flushTestUsers();
+
+		List<User> users = repository.findAsListByFirstnameLike("%O%", User.class);
+
+		assertThat(users, hasSize(1));
 	}
 
 	@Test // DATAJPA-1179
