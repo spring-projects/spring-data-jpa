@@ -71,7 +71,19 @@
 			<repositories>
 				<repository>
 					<id>jboss</id>
-					<url>https://repository.jboss.org/nexus/content/repositories/public</url>
+					<url>https://repository.jboss.org/nexus/content/repositories/snapshots</url>
+				</repository>
+			</repositories>
+		</profile>
+		<profile>
+			<id>hibernate-6-next</id>
+			<properties>
+				<hibernate>6.0.0-SNAPSHOT</hibernate>
+			</properties>
+			<repositories>
+				<repository>
+					<id>jboss</id>
+					<url>https://repository.jboss.org/nexus/content/repositories/snapshots</url>
 				</repository>
 			</repositories>
 		</profile>
