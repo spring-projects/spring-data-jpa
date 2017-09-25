@@ -499,6 +499,13 @@ public interface UserRepository
 	@Query("select u from User u where u.age = :age")
 	List<User> findByStringAge(@Param("age") String age);
 
+	// DATAJPA-1185
+	<T> Stream<T> findAsStreamByFirstnameLike(String name, Class<T> projectionType);
+
+	// DATAJPA-1185
+	<T> List<T> findAsListByFirstnameLike(String name, Class<T> projectionType);
+
+
 	static interface RolesAndFirstname {
 
 		String getFirstname();
