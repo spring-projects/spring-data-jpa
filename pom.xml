@@ -128,14 +128,14 @@
 		<profile>
 			<id>hibernate-52</id>
 			<properties>
-				<hibernate>5.2.7.Final</hibernate>
+				<hibernate>5.2.11.Final</hibernate>
 				<hibernate.artifact>hibernate-core</hibernate.artifact>
 			</properties>
 		</profile>
 		<profile>
 			<id>hibernate-52-next</id>
 			<properties>
-				<hibernate>5.2.8-SNAPSHOT</hibernate>
+				<hibernate>5.2.12-SNAPSHOT</hibernate>
 				<hibernate.artifact>hibernate-core</hibernate.artifact>
 			</properties>
 			<repositories>
