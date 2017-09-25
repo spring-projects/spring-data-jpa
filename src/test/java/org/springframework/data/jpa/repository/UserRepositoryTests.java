@@ -21,8 +21,8 @@ import static org.junit.Assert.*;
 import static org.springframework.data.domain.Example.*;
 import static org.springframework.data.domain.ExampleMatcher.*;
 import static org.springframework.data.domain.Sort.Direction.*;
-import static org.springframework.data.jpa.domain.Specifications.not;
 import static org.springframework.data.jpa.domain.Specifications.*;
+import static org.springframework.data.jpa.domain.Specifications.not;
 import static org.springframework.data.jpa.domain.sample.UserSpecifications.*;
 
 import java.util.ArrayList;
@@ -33,6 +33,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.persistence.EntityManager;
@@ -55,7 +56,6 @@ import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
-import org.springframework.data.domain.ExampleMatcher.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -64,6 +64,7 @@ import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.domain.Sort.Order;
+import org.springframework.data.domain.ExampleMatcher.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.domain.sample.Address;
 import org.springframework.data.jpa.domain.sample.Role;
@@ -2142,7 +2143,27 @@ public class UserRepositoryTests {
 	public void queryProvidesCorrectNumberOfParametersForNativeQuery() {
 
 		Query query = em.createNativeQuery("select 1 from User where firstname=? and lastname=?");
-		assertThat(query.getParameters(),hasSize(2));
+		assertThat(query.getParameters(), hasSize(2));
+	}
+
+	@Test // DATAJPA-1185
+	public void dynamicProjectionReturningStream() {
+
+		flushTestUsers();
+
+		Stream<User> users = repository.findAsStreamByFirstnameLike("%O%", User.class);
+
+		assertThat(users.collect(Collectors.toList()), hasSize(1));
+	}
+
+	@Test // DATAJPA-1185
+	public void dynamicProjectionReturningList() {
+
+		flushTestUsers();
+
+		List<User> users = repository.findAsListByFirstnameLike("%O%", User.class);
+
+		assertThat(users, hasSize(1));
 	}
 
 	private Page<User> executeSpecWithSort(Sort sort) {
