@@ -638,8 +638,6 @@ class StringQuery {
 
 		/**
 		 * Prepares the given raw keyword according to the like type.
-		 * 
-		 * @param keyword
 		 */
 		@Nullable
 		@Override
