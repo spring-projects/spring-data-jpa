@@ -161,7 +161,7 @@ We will create a query using the JPA criteria API from this but essentially this
 |`OrderBy`|`findByAgeOrderByLastnameDesc`|`… where x.age = ?1 order by x.lastname desc`
 |`Not`|`findByLastnameNot`|`… where x.lastname <> ?1`
 |`In`|`findByAgeIn(Collection<Age> ages)`|`… where x.age in ?1`
-|`NotIn`|`findByAgeNotIn(Collection<Age> age)`|`… where x.age not in ?1`
+|`NotIn`|`findByAgeNotIn(Collection<Age> ages)`|`… where x.age not in ?1`
 |`True`|`findByActiveTrue()`|`… where x.active = true`
 |`False`|`findByActiveFalse()`|`… where x.active = false`
 |`IgnoreCase`|`findByFirstnameIgnoreCase`|`… where UPPER(x.firstame) = UPPER(?1)`
