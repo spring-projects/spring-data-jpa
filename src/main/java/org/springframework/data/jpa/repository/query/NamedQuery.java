@@ -100,7 +100,7 @@ final class NamedQuery extends AbstractJpaQuery {
 		try {
 			lookupEm.createNamedQuery(queryName);
 			return true;
-		} catch (IllegalArgumentException e) {
+		} catch (IllegalArgumentException | IllegalStateException e) {
 			LOG.debug("Did not find named query {}", queryName);
 			return false;
 		} finally {

@@ -55,15 +55,21 @@ public class NamedQueryUnitTests {
 
 	ProjectionFactory projectionFactory = new SpelAwareProxyProjectionFactory();
 
-	Method method;
+	Method methodFoo;
+	Method methodBaa;
+
 
 	@Before
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void setUp() throws SecurityException, NoSuchMethodException {
 
-		method = SampleRepository.class.getMethod("foo", Pageable.class);
+		methodFoo = SampleRepository.class.getMethod("foo", Pageable.class);
 		when(metadata.getDomainType()).thenReturn((Class) String.class);
-		when(metadata.getReturnedDomainClass(method)).thenReturn((Class) String.class);
+		when(metadata.getReturnedDomainClass(methodFoo)).thenReturn((Class) String.class);
+
+		methodBaa = SampleRepository.class.getMethod("baa", String.class);
+		when(metadata.getDomainType()).thenReturn((Class) String.class);
+		when(metadata.getReturnedDomainClass(methodBaa)).thenReturn((Class) String.class);
 
 		when(em.getMetamodel()).thenReturn(metamodel);
 		when(em.getEntityManagerFactory()).thenReturn(emf);
@@ -74,7 +80,7 @@ public class NamedQueryUnitTests {
 	public void rejectsPersistenceProviderIfIncapableOfExtractingQueriesAndPagebleBeingUsed() {
 
 		when(extractor.canExtractQuery()).thenReturn(false);
-		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, projectionFactory, extractor);
+		JpaQueryMethod queryMethod = new JpaQueryMethod(methodFoo, metadata, projectionFactory, extractor);
 
 		when(em.createNamedQuery(queryMethod.getNamedCountQueryName())).thenThrow(new IllegalArgumentException());
 		NamedQuery.lookupFrom(queryMethod, em);
@@ -85,7 +91,7 @@ public class NamedQueryUnitTests {
 	public void doesNotRejectPersistenceProviderIfNamedCountQueryIsAvailable() {
 
 		when(extractor.canExtractQuery()).thenReturn(false);
-		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, projectionFactory, extractor);
+		JpaQueryMethod queryMethod = new JpaQueryMethod(methodFoo, metadata, projectionFactory, extractor);
 
 		TypedQuery<Long> countQuery = mock(TypedQuery.class);
 		when(em.createNamedQuery(eq(queryMethod.getNamedCountQueryName()), eq(Long.class))).thenReturn(countQuery);
@@ -96,8 +102,42 @@ public class NamedQueryUnitTests {
 		verify(em, never()).createQuery(any(String.class), eq(Long.class));
 	}
 
+	@Test // DATAJPA-1178
+	@SuppressWarnings("unchecked")
+	public void doesNotRejectPersistenceProviderIfNamedCountQueryIsNotAvailable() {
+
+		when(extractor.canExtractQuery()).thenReturn(false);
+		JpaQueryMethod queryMethod = new JpaQueryMethod(methodBaa, metadata, projectionFactory, extractor);
+
+		TypedQuery<Long> countQuery = mock(TypedQuery.class);
+		when(em.createNamedQuery(eq(queryMethod.getNamedCountQueryName()))).thenThrow(new IllegalArgumentException("Invalid Query"));
+		NamedQuery query = (NamedQuery) NamedQuery.lookupFrom(queryMethod, em);
+
+		verify(em, times(1)).createNamedQuery(queryMethod.getNamedQueryName());
+		verify(em, never()).createQuery(any(String.class), eq(Long.class));
+	}
+
+	@Test // DATAJPA-1178
+	@SuppressWarnings("unchecked")
+	public void doesNotRejectPersistenceProviderIfNamedCountQueryIsNotAvailableJta() {
+
+		when(extractor.canExtractQuery()).thenReturn(false);
+		JpaQueryMethod queryMethod = new JpaQueryMethod(methodBaa, metadata, projectionFactory, extractor);
+
+		TypedQuery<Long> countQuery = mock(TypedQuery.class);
+		when(em.createNamedQuery(eq(queryMethod.getNamedCountQueryName()))).thenThrow(new IllegalStateException("Invalid Transaction"));
+		NamedQuery query = (NamedQuery) NamedQuery.lookupFrom(queryMethod, em);
+		
+		verify(em, times(1)).createNamedQuery(queryMethod.getNamedCountQueryName());
+		verify(em, never()).createQuery(any(String.class), eq(Long.class));
+	}
+
+
+
 	interface SampleRepository {
 
 		Page<String> foo(Pageable pageable);
+		String baa(String id);
+
 	}
 }
