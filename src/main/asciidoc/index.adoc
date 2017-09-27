@@ -5,7 +5,7 @@ Oliver Gierke; Thomas Darimont; Christoph Strobl; Mark Paluch
 :toc:
 :toc-placement!:
 :spring-data-commons-docs: ../../../../spring-data-commons/src/main/asciidoc
-:spring-framework-docs: http://docs.spring.io/spring-framework/docs/current/spring-framework-reference/html
+:spring-framework-docs: http://docs.spring.io/spring-framework/docs/{springVersion}/spring-framework-reference/
 
 (C) 2008-2016 The original authors.
 
