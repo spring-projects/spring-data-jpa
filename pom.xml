@@ -21,7 +21,7 @@
 
 		<dist.key>DATAJPA</dist.key>
 
-		<eclipselink>2.6.4</eclipselink>
+		<eclipselink>2.6.5</eclipselink>
 		<hibernate>5.2.11.Final</hibernate>
 		<hsqldb1>1.8.0.10</hsqldb1>
 		<jpa>2.0.0</jpa>
@@ -49,7 +49,7 @@
 		<profile>
 			<id>eclipselink-next</id>
 			<properties>
-				<eclipselink>2.6.5-SNAPSHOT</eclipselink>
+				<eclipselink>2.6.6-SNAPSHOT</eclipselink>
 			</properties>
 			<repositories>
 				<repository>
