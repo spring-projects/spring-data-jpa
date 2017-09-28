@@ -472,10 +472,20 @@ public interface UserRepository
 
 	List<RolesAndFirstname> findRolesAndFirstnameBy();
 
-	static interface RolesAndFirstname {
+	@Query(value = "SELECT firstname, lastname from SD_User WHERE id = ?1", nativeQuery = true)
+	NameOnly findByNativeQuery(Integer id);
+
+	interface RolesAndFirstname {
 
 		String getFirstname();
 
 		Set<Role> getRoles();
+	}
+
+	interface NameOnly {
+
+		String getFirstname();
+
+		String getLastname();
 	}
 }

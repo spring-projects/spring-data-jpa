@@ -17,10 +17,13 @@ package org.springframework.data.jpa.repository.query;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
+import javax.persistence.Tuple;
 
 import org.springframework.data.repository.query.EvaluationContextProvider;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.RepositoryQuery;
+import org.springframework.data.repository.query.ResultProcessor;
+import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 
 /**
@@ -32,6 +35,8 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
  * @author Oliver Gierke
  */
 final class NativeJpaQuery extends AbstractStringBasedJpaQuery {
+
+	private final Class<?> resultType;
 
 	/**
 	 * Creates a new {@link NativeJpaQuery} encapsulating the query annotated on the given {@link JpaQueryMethod}.
@@ -55,6 +60,8 @@ final class NativeJpaQuery extends AbstractStringBasedJpaQuery {
 			throw new InvalidJpaQueryMethodException(
 					"Cannot use native queries with dynamic sorting and/or pagination in method " + method);
 		}
+
+		this.resultType = getTypeToQueryFor();
 	}
 
 	/*
@@ -63,8 +70,25 @@ final class NativeJpaQuery extends AbstractStringBasedJpaQuery {
 	 */
 	@Override
 	protected Query createJpaQuery(String queryString) {
-		return getQueryMethod().isQueryForEntity()
-				? getEntityManager().createNativeQuery(queryString, getQueryMethod().getReturnedObjectType())
-				: getEntityManager().createNativeQuery(queryString);
+
+		EntityManager em = getEntityManager();
+
+		return this.resultType == null ? em.createNativeQuery(queryString)
+				: em.createNativeQuery(queryString, this.resultType);
+	}
+
+	private Class<?> getTypeToQueryFor() {
+
+		ResultProcessor resultFactory = getQueryMethod().getResultProcessor();
+		ReturnedType returnedType = resultFactory.getReturnedType();
+
+		Class<?> result = getQueryMethod().isQueryForEntity() ? returnedType.getDomainType() : null;
+
+		if (this.getQuery().hasConstructorExpression() || this.getQuery().isDefaultProjection()) {
+			return result;
+		}
+
+		return returnedType.isProjecting() && !getMetamodel().isJpaManaged(returnedType.getReturnedType()) ? Tuple.class
+				: result;
 	}
 }

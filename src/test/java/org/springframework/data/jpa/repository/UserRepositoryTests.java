@@ -21,8 +21,8 @@ import static org.junit.Assert.*;
 import static org.springframework.data.domain.Example.*;
 import static org.springframework.data.domain.ExampleMatcher.*;
 import static org.springframework.data.domain.Sort.Direction.*;
-import static org.springframework.data.jpa.domain.Specifications.not;
 import static org.springframework.data.jpa.domain.Specifications.*;
+import static org.springframework.data.jpa.domain.Specifications.not;
 import static org.springframework.data.jpa.domain.sample.UserSpecifications.*;
 
 import java.util.ArrayList;
@@ -44,6 +44,7 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 import org.hamcrest.Matchers;
+import org.hibernate.Version;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -55,7 +56,8 @@ import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
-import org.springframework.data.domain.ExampleMatcher.*;
+import org.springframework.data.domain.ExampleMatcher.GenericPropertyMatcher;
+import org.springframework.data.domain.ExampleMatcher.StringMatcher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -72,6 +74,7 @@ import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.repository.sample.SampleEvaluationContextExtension.SampleSecurityContextHolder;
 import org.springframework.data.jpa.repository.sample.UserRepository;
+import org.springframework.data.jpa.repository.sample.UserRepository.NameOnly;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
@@ -2153,6 +2156,21 @@ public class UserRepositoryTests {
 		List<User> users = repository.findUsersByDuplicateSpel("Oliver");
 
 		assertThat(users, hasSize(1));
+	}
+
+	@Test // DATAJPA-980
+	public void supportsProjectionsWithNativeQueries() {
+
+		Assume.assumeTrue(Version.getVersionString().startsWith("5.2"));
+
+		flushTestUsers();
+
+		User user = repository.findAll().get(0);
+
+		NameOnly result = repository.findByNativeQuery(user.getId());
+
+		assertThat(result.getFirstname(), is(user.getFirstname()));
+		assertThat(result.getLastname(), is(user.getLastname()));
 	}
 
 	private Page<User> executeSpecWithSort(Sort sort) {
