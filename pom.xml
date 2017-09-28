@@ -59,9 +59,15 @@
 			</repositories>
 		</profile>
 		<profile>
+			<id>eclipselink-27</id>
+			<properties>
+				<eclipselink>2.7.0</eclipselink>
+			</properties>
+		</profile>
+		<profile>
 			<id>eclipselink-27-next</id>
 			<properties>
-				<eclipselink>2.7.0-SNAPSHOT</eclipselink>
+				<eclipselink>2.7.1-SNAPSHOT</eclipselink>
 			</properties>
 			<repositories>
 				<repository>
