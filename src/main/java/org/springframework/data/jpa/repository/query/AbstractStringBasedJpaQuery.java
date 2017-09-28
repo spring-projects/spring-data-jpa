@@ -137,9 +137,8 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 		ResultProcessor resultFactory = getQueryMethod().getResultProcessor();
 		ReturnedType returnedType = resultFactory.getReturnedType();
 
-		getMetamodel().isJpaManaged(returnedType.getReturnedType());
-
-		return returnedType.isProjecting() && !getMetamodel().isJpaManaged(returnedType.getReturnedType())
-				? em.createQuery(queryString, Tuple.class) : em.createQuery(queryString);
+		return returnedType.isProjecting() && !getMetamodel().isJpaManaged(returnedType.getReturnedType()) //
+				? em.createQuery(queryString, Tuple.class) //
+				: em.createQuery(queryString);
 	}
 }

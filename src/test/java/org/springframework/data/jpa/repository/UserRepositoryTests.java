@@ -44,6 +44,7 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 import org.hamcrest.Matchers;
+import org.hibernate.Version;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -73,6 +74,7 @@ import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.repository.sample.SampleEvaluationContextExtension.SampleSecurityContextHolder;
 import org.springframework.data.jpa.repository.sample.UserRepository;
+import org.springframework.data.jpa.repository.sample.UserRepository.NameOnly;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
@@ -2403,6 +2405,21 @@ public class UserRepositoryTests {
 
 		Query query = em.createNativeQuery("select 1 from User where firstname=? and lastname=?");
 		assertThat(query.getParameters(),hasSize(2));
+	}
+
+	@Test // DATAJPA-980
+	public void supportsProjectionsWithNativeQueries() {
+
+		Assume.assumeTrue(Version.getVersionString().startsWith("5.2"));
+
+		flushTestUsers();
+
+		User user = repository.findAll().get(0);
+
+		NameOnly result = repository.findByNativeQuery(user.getId());
+
+		assertThat(result.getFirstname(), is(user.getFirstname()));
+		assertThat(result.getLastname(), is(user.getLastname()));
 	}
 
 	private Page<User> executeSpecWithSort(Sort sort) {
