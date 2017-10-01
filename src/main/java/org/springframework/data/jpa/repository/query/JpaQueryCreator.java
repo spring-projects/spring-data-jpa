@@ -139,7 +139,7 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extend
 
 	/**
 	 * Finalizes the given {@link Predicate} and applies the given sort. Delegates to
-	 * {@link #complete(Predicate, Sort, CriteriaQuery, CriteriaBuilder)} and hands it the current {@link CriteriaQuery}
+	 * {@link #complete(Predicate, Sort, CriteriaQuery, CriteriaBuilder, Root)} and hands it the current {@link CriteriaQuery}
 	 * and {@link CriteriaBuilder}.
 	 */
 	@Override
@@ -200,7 +200,6 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extend
 	 *
 	 * @param part
 	 * @param root
-	 * @param iterator
 	 * @return
 	 */
 	private Predicate toPredicate(Part part, Root<?> root) {

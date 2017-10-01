@@ -72,7 +72,7 @@ final class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
 	 * Validates the given query for syntactical correctness.
 	 * 
 	 * @param query
-	 * @param em
+	 * @param errorMessage
 	 */
 	private void validateQuery(String query, String errorMessage) {
 
