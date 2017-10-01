@@ -1,7 +1,5 @@
 /**
  * Interfaces and annotations for JPA specific repositories.
  */
-@NonNullApi
+@org.springframework.lang.NonNullApi
 package org.springframework.data.jpa.repository;
-
-import org.springframework.lang.NonNullApi;
