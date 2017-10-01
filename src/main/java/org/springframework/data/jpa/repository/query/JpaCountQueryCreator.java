@@ -39,9 +39,9 @@ public class JpaCountQueryCreator extends JpaQueryCreator {
 	 * Creates a new {@link JpaCountQueryCreator}.
 	 * 
 	 * @param tree
-	 * @param domainClass
-	 * @param parameters
-	 * @param em
+	 * @param type
+	 * @param builder
+	 * @param provider
 	 */
 	public JpaCountQueryCreator(PartTree tree, ReturnedType type, CriteriaBuilder builder,
 			ParameterMetadataProvider provider) {
