@@ -21,6 +21,7 @@ import javax.persistence.EntityManager;
 
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.provider.QueryExtractor;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.core.NamedQueries;
 import org.springframework.data.repository.core.RepositoryMetadata;
@@ -59,7 +60,6 @@ public final class JpaQueryLookupStrategy {
 		 * 
 		 * @param em
 		 * @param extractor
-		 * @param evaluationContextProvider
 		 */
 		public AbstractQueryLookupStrategy(EntityManager em, QueryExtractor extractor) {
 
@@ -190,7 +190,6 @@ public final class JpaQueryLookupStrategy {
 		 * @param extractor
 		 * @param createStrategy
 		 * @param lookupStrategy
-		 * @param evaluationContextProvider
 		 */
 		public CreateIfNotFoundQueryLookupStrategy(EntityManager em, QueryExtractor extractor,
 				CreateQueryLookupStrategy createStrategy, DeclaredQueryLookupStrategy lookupStrategy) {
