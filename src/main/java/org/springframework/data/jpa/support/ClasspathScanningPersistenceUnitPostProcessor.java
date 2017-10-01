@@ -139,7 +139,7 @@ public class ClasspathScanningPersistenceUnitPostProcessor
 	 * an empty {@link Set} in case no {@link ResourceLoader} or mapping file name pattern was configured. Resulting paths
 	 * are resource-loadable from the application classpath according to the JPA spec.
 	 * 
-	 * @see javax.persistence.spi.PersistenceUnitInfo.PersistenceUnitInfo#getMappingFileNames()
+	 * @see javax.persistence.spi.PersistenceUnitInfo#getMappingFileNames()
 	 * @return
 	 */
 	private Set<String> scanForMappingFileLocations() {
