@@ -45,6 +45,7 @@ import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
  * to be scanned on e.g. the {@link LocalContainerEntityManagerFactoryBean}.
  * 
  * @author Oliver Gierke
+ * @author Kevin Peters
  */
 public class Jsr310JpaConverters {
 
