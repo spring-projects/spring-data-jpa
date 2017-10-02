@@ -106,6 +106,7 @@ public class Jsr310JpaConverters {
 	@Converter(autoApply = true)
 	public static class ZoneIdConverter implements AttributeConverter<ZoneId, String> {
 
+		@Override
 		public String convertToDatabaseColumn(ZoneId zoneId) {
 			return zoneId == null ? null : ZoneIdToStringConverter.INSTANCE.convert(zoneId);
 		}
