@@ -1,6 +1,24 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 2.0.0.RELEASE (2017-10-02)
+---------------------------------------------
+* DATAJPA-1194 - Add @Nullable annotation to methods in Jsr310JpaConverters which may return null.
+* DATAJPA-1192 - Some JavaDocs (@params) are not up-to-date.
+* DATAJPA-1191 - Upgrade to EclipseLink 2.6.5.
+* DATAJPA-1190 - Add build profile for EclipseLink 2.7.
+* DATAJPA-1188 - Adapt to changed Spring Framework 5 documentation structure.
+* DATAJPA-1183 - Add explicit automatic module name for Java 9.
+* DATAJPA-1181 - Upgrade to Hibernate 5.2.11.
+* DATAJPA-1180 - Upgrade to OpenWebBeans 2.0.1.
+* DATAJPA-1179 - Duplicate SpEL expressions create only one parameter name but multiple bindings.
+* DATAJPA-1177 - Release 2.0 GA (Kay).
+* DATAJPA-1175 - Unable to deploy a web application on Oracle WebLogic Server 12.2.1.1.0.
+* DATAJPA-1067 - Fix typo in JPQL keyword mapping.
+* DATAJPA-1057 - Fix reference to SimpleJpaRepository in reference docs.
+* DATAJPA-980 - Projections with native queries don't work as expected.
+
+
 Changes in version 2.0.0.RC3 (2017-09-11)
 -----------------------------------------
 * DATAJPA-1174 - Jsr310JpaConverters don't handle null values properly.
