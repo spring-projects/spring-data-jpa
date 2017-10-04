@@ -15,6 +15,7 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -42,6 +43,7 @@ import org.springframework.data.util.StreamUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.ReflectionUtils;
 
 /**
  * Set of classes to contain query execution strategies. Depending (mostly) on the return type of a
@@ -330,6 +332,9 @@ public abstract class JpaQueryExecution {
 
 		private static final String NO_SURROUNDING_TRANSACTION = "You're trying to execute a streaming query method without a surrounding transaction that keeps the connection open so that the Stream can actually be consumed. Make sure the code consuming the stream uses @Transactional or any other way of declaring a (read-only) transaction.";
 
+		private static Method streamMethod = ReflectionUtils.findMethod(Query.class, "getResultStream");
+		private static boolean dynamicCheck = streamMethod == null;
+
 		/*
 		 * (non-Javadoc)
 		 * @see org.springframework.data.jpa.repository.query.JpaQueryExecution#doExecute(org.springframework.data.jpa.repository.query.AbstractJpaQuery, java.lang.Object[])
@@ -342,6 +347,33 @@ public abstract class JpaQueryExecution {
 			}
 
 			Query jpaQuery = query.createQuery(values);
+
+			// JPA 2.2 on the classpath
+			if (streamMethod != null) {
+				return ReflectionUtils.invokeMethod(streamMethod, jpaQuery);
+			}
+
+			if (dynamicCheck) {
+
+				Method method = ReflectionUtils.findMethod(jpaQuery.getClass(), "getResultStream");
+
+				// Implementation available but on JPA 2.1
+				if (method != null) {
+
+					// Cache for subsequent reuse to prevent repeated reflection lookups
+					streamMethod = method;
+
+					return ReflectionUtils.invokeMethod(method, jpaQuery);
+
+				} else {
+
+					// Not available on implementation, skip further lookups
+					dynamicCheck = false;
+				}
+			}
+
+			// Fall back to legacy stream execution
+
 			PersistenceProvider persistenceProvider = PersistenceProvider.fromEntityManager(query.getEntityManager());
 			CloseableIterator<Object> iter = persistenceProvider.executeQueryWithResultStream(jpaQuery);
 
