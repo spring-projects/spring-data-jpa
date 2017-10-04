@@ -30,8 +30,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.persistence.EntityManager;
@@ -1638,25 +1636,9 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		Stream<User> stream = repository.findAllByCustomQueryAndStream();
-
-		final List<User> users = new ArrayList<>();
-
-		try {
-
-			stream.forEach(new Consumer<User>() {
-
-				@Override
-				public void accept(User user) {
-					users.add(user);
-				}
-			});
-
-		} finally {
-			stream.close();
+		try (Stream<User> stream = repository.findAllByCustomQueryAndStream()) {
+			assertThat(stream).hasSize(4);
 		}
-
-		assertThat(users).hasSize(4);
 	}
 
 	@Test // DATAJPA-677
@@ -1664,25 +1646,9 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		Stream<User> stream = repository.readAllByFirstnameNotNull();
-
-		final List<User> users = new ArrayList<>();
-
-		try {
-
-			stream.forEach(new Consumer<User>() {
-
-				@Override
-				public void accept(User user) {
-					users.add(user);
-				}
-			});
-
-		} finally {
-			stream.close();
+		try (Stream<User> stream = repository.readAllByFirstnameNotNull()) {
+			assertThat(stream).hasSize(4);
 		}
-
-		assertThat(users).hasSize(4);
 	}
 
 	@Test // DATAJPA-677
@@ -1690,25 +1656,9 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		Stream<User> stream = repository.streamAllPaged(PageRequest.of(0, 2));
-
-		final List<User> users = new ArrayList<>();
-
-		try {
-
-			stream.forEach(new Consumer<User>() {
-
-				@Override
-				public void accept(User user) {
-					users.add(user);
-				}
-			});
-
-		} finally {
-			stream.close();
+		try (Stream<User> stream = repository.streamAllPaged(PageRequest.of(0, 2));) {
+			assertThat(stream).hasSize(2);
 		}
-
-		assertThat(users).hasSize(2);
 	}
 
 	@Test // DATAJPA-218
@@ -2073,9 +2023,7 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		Stream<User> users = repository.findAsStreamByFirstnameLike("%O%", User.class);
-
-		assertThat(users.collect(Collectors.toList())).hasSize(1);
+		assertThat(repository.findAsStreamByFirstnameLike("%O%", User.class)).hasSize(1);
 	}
 
 	@Test // DATAJPA-1185

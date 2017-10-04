@@ -102,8 +102,9 @@ public abstract class JpaQueryExecution {
 			return result;
 		}
 
-		return CONVERSION_SERVICE.canConvert(result.getClass(), requiredType)
-				? CONVERSION_SERVICE.convert(result, requiredType) : result;
+		return CONVERSION_SERVICE.canConvert(result.getClass(), requiredType) //
+				? CONVERSION_SERVICE.convert(result, requiredType) //
+				: result;
 	}
 
 	/**
@@ -188,7 +189,8 @@ public abstract class JpaQueryExecution {
 			ParameterAccessor accessor = new ParametersParameterAccessor(parameters, values);
 			Query query = repositoryQuery.createQuery(values);
 
-			return PageableExecutionUtils.getPage(query.getResultList(), accessor.getPageable(), () -> count(repositoryQuery, values));
+			return PageableExecutionUtils.getPage(query.getResultList(), accessor.getPageable(),
+					() -> count(repositoryQuery, values));
 
 		}
 
@@ -198,7 +200,6 @@ public abstract class JpaQueryExecution {
 			return (totals.size() == 1 ? CONVERSION_SERVICE.convert(totals.get(0), Long.class) : totals.size());
 		}
 	}
-
 
 	/**
 	 * Executes a {@link AbstractStringBasedJpaQuery} to return a single entity.
@@ -398,8 +399,7 @@ public abstract class JpaQueryExecution {
 				Class<?> optionalType = ClassUtils.forName("java.util.Optional", classLoader);
 				conversionService.removeConvertible(Object.class, optionalType);
 
-			} catch (ClassNotFoundException | LinkageError o_O) {
-			}
+			} catch (ClassNotFoundException | LinkageError o_O) {}
 		}
 	}
 }
