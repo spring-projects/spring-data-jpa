@@ -41,6 +41,7 @@ import org.springframework.transaction.annotation.Transactional;
  * 
  * @author Oliver Gierke
  * @author Thomas Darimont
+ * @author Mark Paluch
  */
 @Transactional
 @ContextConfiguration
@@ -67,6 +68,11 @@ public class QueryDslRepositorySupportIntegrationTests {
 		}
 
 		@Bean
+		public CustomRepoUsingQueryDsl customRepo() {
+			return new CustomRepoUsingQueryDsl();
+		}
+
+		@Bean
 		public EntityManagerContainer entityManagerContainer() {
 			return new EntityManagerContainer();
 		}
@@ -82,6 +88,7 @@ public class QueryDslRepositorySupportIntegrationTests {
 	}
 
 	@Autowired UserRepository repository;
+	@Autowired CustomRepoUsingQueryDsl querydslCustom;
 	@Autowired ReconfiguringUserRepositoryImpl reconfiguredRepo;
 
 	@PersistenceContext(unitName = "querydsl") EntityManager em;
@@ -96,6 +103,13 @@ public class QueryDslRepositorySupportIntegrationTests {
 
 		assertThat(reconfiguredRepo, is(notNullValue()));
 		assertThat(reconfiguredRepo.getEntityManager().getEntityManagerFactory(), is(em.getEntityManagerFactory()));
+	}
+
+	@Test // DATAJPA-1205
+	public void createsRepositoryWithCustomImplementationUsingQueryDsl() {
+
+		assertThat(querydslCustom, is(notNullValue()));
+		assertThat(querydslCustom.getEntityManager().getEntityManagerFactory(), is(em.getEntityManagerFactory()));
 	}
 
 	static class ReconfiguringUserRepositoryImpl extends QueryDslRepositorySupport {
@@ -114,5 +128,12 @@ public class QueryDslRepositorySupportIntegrationTests {
 	static class EntityManagerContainer {
 
 		@PersistenceContext(unitName = "querydsl") EntityManager em;
+	}
+
+	static class CustomRepoUsingQueryDsl extends QueryDslRepositorySupport {
+
+		public CustomRepoUsingQueryDsl() {
+			super(User.class);
+		}
 	}
 }
