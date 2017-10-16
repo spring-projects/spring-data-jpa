@@ -19,6 +19,7 @@ import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.Assert;
 
@@ -61,6 +62,7 @@ public abstract class QuerydslRepositorySupport {
 	 * 
 	 * @param entityManager must not be {@literal null}.
 	 */
+	@Autowired
 	public void setEntityManager(EntityManager entityManager) {
 
 		Assert.notNull(entityManager, "EntityManager must not be null!");

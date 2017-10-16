@@ -40,6 +40,7 @@ import org.springframework.transaction.annotation.Transactional;
  * 
  * @author Oliver Gierke
  * @author Thomas Darimont
+ * @author Mark Paluch
  */
 @Transactional
 @ContextConfiguration
@@ -61,8 +62,18 @@ public class QuerydslRepositorySupportIntegrationTests {
 		}
 
 		@Bean
+		EntityManagerBeanDefinitionRegistrarPostProcessor entityManagerBeanDefinitionRegistrarPostProcessor() {
+			return new EntityManagerBeanDefinitionRegistrarPostProcessor();
+		}
+
+		@Bean
 		public ReconfiguringUserRepositoryImpl reconfiguringUserRepositoryImpl() {
 			return new ReconfiguringUserRepositoryImpl();
+		}
+
+		@Bean
+		public CustomRepoUsingQueryDsl customRepo() {
+			return new CustomRepoUsingQueryDsl();
 		}
 
 		@Bean
@@ -81,6 +92,7 @@ public class QuerydslRepositorySupportIntegrationTests {
 	}
 
 	@Autowired org.springframework.data.jpa.repository.support.QuerydslRepositorySupportTests.UserRepository repository;
+	@Autowired CustomRepoUsingQueryDsl querydslCustom;
 	@Autowired ReconfiguringUserRepositoryImpl reconfiguredRepo;
 
 	@PersistenceContext(unitName = "querydsl") EntityManager em;
@@ -95,6 +107,13 @@ public class QuerydslRepositorySupportIntegrationTests {
 
 		assertThat(reconfiguredRepo, is(notNullValue()));
 		assertThat(reconfiguredRepo.getEntityManager().getEntityManagerFactory(), is(em.getEntityManagerFactory()));
+	}
+
+	@Test // DATAJPA-1205
+	public void createsRepositoryWithCustomImplementationUsingQueryDsl() {
+
+		assertThat(querydslCustom, is(notNullValue()));
+		assertThat(querydslCustom.getEntityManager().getEntityManagerFactory(), is(em.getEntityManagerFactory()));
 	}
 
 	static class ReconfiguringUserRepositoryImpl extends QuerydslRepositorySupport {
@@ -113,5 +132,12 @@ public class QuerydslRepositorySupportIntegrationTests {
 	static class EntityManagerContainer {
 
 		@PersistenceContext(unitName = "querydsl") EntityManager em;
+	}
+
+	static class CustomRepoUsingQueryDsl extends QuerydslRepositorySupport {
+
+		public CustomRepoUsingQueryDsl() {
+			super(User.class);
+		}
 	}
 }
