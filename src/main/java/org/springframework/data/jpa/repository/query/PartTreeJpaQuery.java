@@ -43,6 +43,7 @@ import org.springframework.lang.Nullable;
  * @author Christoph Strobl
  * @author Jens Schauder
  * @author Mark Paluch
+ * @author Сергей Цыпанов
  */
 public class PartTreeJpaQuery extends AbstractJpaQuery {
 
@@ -156,13 +157,11 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 				parameterBinder = getBinder(expressions);
 			}
 
-			TypedQuery<?> jpaQuery = createQuery(criteriaQuery);
-
 			if (parameterBinder == null) {
 				throw new IllegalStateException("ParameterBinder is null!");
 			}
 
-			return restrictMaxResultsIfNecessary(invokeBinding(parameterBinder, jpaQuery, values));
+			return restrictMaxResultsIfNecessary(invokeBinding(parameterBinder, createQuery(criteriaQuery), values));
 		}
 
 		/**
