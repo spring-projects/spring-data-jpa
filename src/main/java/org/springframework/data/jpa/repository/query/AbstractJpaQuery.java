@@ -272,7 +272,6 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 			}
 
 			Tuple tuple = (Tuple) source;
-			Map<String, Object> result = new HashMap<>();
 			List<TupleElement<?>> elements = tuple.getElements();
 
 			if (elements.size() == 1) {
@@ -284,6 +283,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 				}
 			}
 
+			Map<String, Object> result = new HashMap<>();
 			for (TupleElement<?> element : elements) {
 
 				String alias = element.getAlias();
