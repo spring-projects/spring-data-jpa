@@ -156,12 +156,11 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 				parameterBinder = getBinder(expressions);
 			}
 
-			TypedQuery<?> jpaQuery = createQuery(criteriaQuery);
-
 			if (parameterBinder == null) {
 				throw new IllegalStateException("ParameterBinder is null!");
 			}
 
+			TypedQuery<?> jpaQuery = createQuery(criteriaQuery);
 			return restrictMaxResultsIfNecessary(invokeBinding(parameterBinder, jpaQuery, values));
 		}
 

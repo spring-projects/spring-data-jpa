@@ -155,11 +155,11 @@ public class JpaQueryMethod extends QueryMethod {
 	 */
 	List<QueryHint> getHints() {
 
-		List<QueryHint> result = new ArrayList<>();
+		List<QueryHint> result = Collections.emptyList();
 
 		QueryHints hints = AnnotatedElementUtils.findMergedAnnotation(method, QueryHints.class);
 		if (hints != null) {
-			result.addAll(Arrays.asList(hints.value()));
+			result = Arrays.asList(hints.value());
 		}
 
 		return result;
