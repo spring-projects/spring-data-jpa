@@ -63,7 +63,7 @@ public class QueryDslRepositorySupportIntegrationTests {
 		}
 
 		@Bean
-		EntityManagerBeanDefinitionRegistrarPostProcessor entityManagerBeanDefinitionRegistrarPostProcessor() {
+		static EntityManagerBeanDefinitionRegistrarPostProcessor entityManagerBeanDefinitionRegistrarPostProcessor() {
 			return new EntityManagerBeanDefinitionRegistrarPostProcessor();
 		}
 
