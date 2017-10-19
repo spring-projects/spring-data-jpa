@@ -53,6 +53,7 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @author Christoph Strobl
  * @author Jens Schauder
+ * @author Сергей Цыпанов
  */
 public abstract class AbstractJpaQuery implements RepositoryQuery {
 
@@ -272,7 +273,6 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 			}
 
 			Tuple tuple = (Tuple) source;
-			Map<String, Object> result = new HashMap<>();
 			List<TupleElement<?>> elements = tuple.getElements();
 
 			if (elements.size() == 1) {
@@ -284,6 +284,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 				}
 			}
 
+			Map<String, Object> result = new HashMap<>();
 			for (TupleElement<?> element : elements) {
 
 				String alias = element.getAlias();
