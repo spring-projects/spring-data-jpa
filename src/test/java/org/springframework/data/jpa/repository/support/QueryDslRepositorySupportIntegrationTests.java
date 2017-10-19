@@ -38,7 +38,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Integration test for the setup of beans extending {@link QueryDslRepositorySupport}.
- * 
+ *
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Mark Paluch
@@ -60,6 +60,11 @@ public class QueryDslRepositorySupportIntegrationTests {
 					super.setEntityManager(entityManager);
 				}
 			};
+		}
+
+		@Bean
+		EntityManagerBeanDefinitionRegistrarPostProcessor entityManagerBeanDefinitionRegistrarPostProcessor() {
+			return new EntityManagerBeanDefinitionRegistrarPostProcessor();
 		}
 
 		@Bean
