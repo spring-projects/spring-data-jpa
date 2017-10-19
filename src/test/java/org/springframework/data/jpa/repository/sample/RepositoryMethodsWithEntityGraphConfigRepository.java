@@ -19,9 +19,11 @@ import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.EntityGraph.EntityGraphType;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 import org.springframework.data.repository.CrudRepository;
 
@@ -34,9 +36,10 @@ import com.querydsl.core.types.Predicate;
  * @author Thomas Darimont
  * @author Jocelyn Ntakpe
  * @author Christoph Strobl
+ * @author Jens Schauder
  */
 public interface RepositoryMethodsWithEntityGraphConfigRepository
-		extends CrudRepository<User, Integer>, QueryDslPredicateExecutor<User> {
+		extends CrudRepository<User, Integer>, QueryDslPredicateExecutor<User>, JpaSpecificationExecutor {
 
 	/**
 	 * Should find all users.
@@ -61,6 +64,11 @@ public interface RepositoryMethodsWithEntityGraphConfigRepository
 	// DATAJPA-790
 	@EntityGraph("User.detail")
 	Page<User> findAll(Predicate predicate, Pageable pageable);
+
+	// DATAJPA-1207
+	@Override
+	@EntityGraph("User.detail")
+	Page<User> findAll(Specification spec, Pageable pageable);
 
 	// DATAJPA-1041
 	@EntityGraph(type = EntityGraphType.FETCH, value = "User.withSubGraph")
