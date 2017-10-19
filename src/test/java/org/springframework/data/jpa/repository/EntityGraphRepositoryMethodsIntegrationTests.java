@@ -24,6 +24,10 @@ import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.Persistence;
 import javax.persistence.PersistenceUtil;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 
 import org.junit.Assume;
 import org.junit.Before;
@@ -32,9 +36,11 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.domain.sample.QUser;
 import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.domain.sample.User;
+import org.springframework.data.jpa.domain.sample.User_;
 import org.springframework.data.jpa.repository.sample.RepositoryMethodsWithEntityGraphConfigRepository;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -47,6 +53,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Oliver Gierke
  * @author Jocelyn Ntakpe
  * @author Christoph Strobl
+ * @author Jens Schauder
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("classpath:config/namespace-autoconfig-context.xml")
@@ -162,6 +169,25 @@ public class EntityGraphRepositoryMethodsIntegrationTests {
 		assertThat(result.get(0), is(tom));
 	}
 
+	@Test // DATAJPA-1207
+	public void shouldRespectConfiguredJpaEntityGraphWithPaginationAndSpecification() {
+
+		Assume.assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
+		em.flush();
+		em.clear();
+
+		Page<User> page = repository.findAll( //
+				(Specification<User>) this::firstNameIsNotNull, //
+				PageRequest.of(0, 100) //
+		);
+
+		List<User> result = page.getContent();
+
+		assertThat(result.size(), is(3));
+		assertThat(util.isLoaded(result.get(0).getRoles()), is(true));
+		assertThat(result.get(0), is(tom));
+	}
+
 	@Test // DATAJPA-1041
 	public void shouldRespectNamedEntitySubGraph() {
 
@@ -229,4 +255,9 @@ public class EntityGraphRepositoryMethodsIntegrationTests {
 			}
 		}
 	}
+
+	private Predicate firstNameIsNotNull(Root<User> root, CriteriaQuery<?> __, CriteriaBuilder criteriaBuilder) {
+		return criteriaBuilder.isNotNull(root.get(User_.firstname));
+	}
+
 }
