@@ -15,8 +15,7 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -62,7 +61,7 @@ public class QuerydslRepositorySupportIntegrationTests {
 		}
 
 		@Bean
-		EntityManagerBeanDefinitionRegistrarPostProcessor entityManagerBeanDefinitionRegistrarPostProcessor() {
+		static EntityManagerBeanDefinitionRegistrarPostProcessor entityManagerBeanDefinitionRegistrarPostProcessor() {
 			return new EntityManagerBeanDefinitionRegistrarPostProcessor();
 		}
 
@@ -99,21 +98,23 @@ public class QuerydslRepositorySupportIntegrationTests {
 
 	@Test
 	public void createsRepoCorrectly() {
-		assertThat(repository, is(notNullValue()));
+		assertThat(repository).isNotNull();
 	}
 
 	@Test // DATAJPA-135
 	public void createsReconfiguredRepoAccordingly() {
 
-		assertThat(reconfiguredRepo, is(notNullValue()));
-		assertThat(reconfiguredRepo.getEntityManager().getEntityManagerFactory(), is(em.getEntityManagerFactory()));
+		assertThat(reconfiguredRepo).isNotNull();
+		assertThat(reconfiguredRepo.getEntityManager().getEntityManagerFactory()) //
+				.isEqualTo(em.getEntityManagerFactory());
 	}
 
 	@Test // DATAJPA-1205
 	public void createsRepositoryWithCustomImplementationUsingQueryDsl() {
 
-		assertThat(querydslCustom, is(notNullValue()));
-		assertThat(querydslCustom.getEntityManager().getEntityManagerFactory(), is(em.getEntityManagerFactory()));
+		assertThat(querydslCustom).isNotNull();
+		assertThat(querydslCustom.getEntityManager().getEntityManagerFactory()) //
+				.isEqualTo(em.getEntityManagerFactory());
 	}
 
 	static class ReconfiguringUserRepositoryImpl extends QuerydslRepositorySupport {
