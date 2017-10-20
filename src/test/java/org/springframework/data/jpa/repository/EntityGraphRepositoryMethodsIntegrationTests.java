@@ -96,6 +96,7 @@ public class EntityGraphRepositoryMethodsIntegrationTests {
 	public void shouldRespectConfiguredJpaEntityGraph() {
 
 		Assume.assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
+
 		em.flush();
 		em.clear();
 
@@ -110,6 +111,7 @@ public class EntityGraphRepositoryMethodsIntegrationTests {
 	public void shouldRespectConfiguredJpaEntityGraphInFindOne() {
 
 		Assume.assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
+
 		em.flush();
 		em.clear();
 
@@ -125,6 +127,7 @@ public class EntityGraphRepositoryMethodsIntegrationTests {
 	public void shouldRespectInferFetchGraphFromMethodName() {
 
 		Assume.assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
+
 		em.flush();
 		em.clear();
 
@@ -140,6 +143,7 @@ public class EntityGraphRepositoryMethodsIntegrationTests {
 	public void shouldRespectDynamicFetchGraphForGetOneWithAttributeNamesById() {
 
 		Assume.assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
+
 		em.flush();
 		em.clear();
 
@@ -165,6 +169,7 @@ public class EntityGraphRepositoryMethodsIntegrationTests {
 	public void shouldRespectConfiguredJpaEntityGraphWithPaginationAndQueryDslPredicates() {
 
 		Assume.assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
+
 		em.flush();
 		em.clear();
 
@@ -172,7 +177,7 @@ public class EntityGraphRepositoryMethodsIntegrationTests {
 		List<User> result = page.getContent();
 
 		assertThat(result.size()).isEqualTo(3);
-		assertThat(util.isLoaded(result.get(0).getRoles())).isTrue();
+		assertThat(util.isLoaded(result.get(0), "roles")).isTrue();
 		assertThat(result.get(0)).isEqualTo(tom);
 	}
 
@@ -180,6 +185,7 @@ public class EntityGraphRepositoryMethodsIntegrationTests {
 	public void shouldRespectConfiguredJpaEntityGraphWithPaginationAndSpecification() {
 
 		Assume.assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
+
 		em.flush();
 		em.clear();
 
@@ -191,7 +197,7 @@ public class EntityGraphRepositoryMethodsIntegrationTests {
 		List<User> result = page.getContent();
 
 		assertThat(result.size()).isEqualTo(3);
-		assertThat(util.isLoaded(result.get(0).getRoles())).isTrue();
+		assertThat(util.isLoaded(result.get(0), "roles")).isTrue();
 		assertThat(result.get(0)).isEqualTo(tom);
 	}
 
