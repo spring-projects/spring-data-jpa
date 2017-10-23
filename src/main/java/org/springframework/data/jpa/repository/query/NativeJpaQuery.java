@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +19,13 @@ import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.persistence.Tuple;
 
+import org.springframework.data.jpa.provider.HibernateUtils;
 import org.springframework.data.repository.query.EvaluationContextProvider;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
+import org.springframework.data.util.Version;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 
 /**
@@ -35,6 +37,8 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
  * @author Oliver Gierke
  */
 final class NativeJpaQuery extends AbstractStringBasedJpaQuery {
+
+	private static final Version HIBERNATE_VERSION_SUPPORTING_TUPLES = new Version(5, 2, 11);
 
 	private final Class<?> resultType;
 
@@ -88,7 +92,8 @@ final class NativeJpaQuery extends AbstractStringBasedJpaQuery {
 			return result;
 		}
 
-		return returnedType.isProjecting() && !getMetamodel().isJpaManaged(returnedType.getReturnedType()) ? Tuple.class
+		return returnedType.isProjecting() && !getMetamodel().isJpaManaged(returnedType.getReturnedType()) //
+				? HibernateUtils.isVersionOrBetter(HIBERNATE_VERSION_SUPPORTING_TUPLES) ? Tuple.class : null //
 				: result;
 	}
 }
