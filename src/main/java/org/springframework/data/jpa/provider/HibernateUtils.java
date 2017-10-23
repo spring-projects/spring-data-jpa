@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.hibernate.Query;
+import org.springframework.data.util.Version;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
 
@@ -39,6 +40,7 @@ public abstract class HibernateUtils {
 
 	private static final Class<?> HIBERNATE_QUERY_INTERFACE;
 	private static final Method QUERY_STRING_METHOD;
+	private static final Version HIBERNATE_VERSION;
 
 	private HibernateUtils() {}
 
@@ -66,6 +68,10 @@ public abstract class HibernateUtils {
 		HIBERNATE_QUERY_INTERFACE = queryInterface == null ? type : queryInterface;
 		QUERY_STRING_METHOD = HIBERNATE_QUERY_INTERFACE == null ? null
 				: ReflectionUtils.findMethod(HIBERNATE_QUERY_INTERFACE, "getQueryString");
+
+		String versionSource = org.hibernate.Version.getVersionString();
+
+		HIBERNATE_VERSION = Version.parse(versionSource.substring(0, versionSource.lastIndexOf('.')));
 	}
 
 	/**
@@ -86,5 +92,15 @@ public abstract class HibernateUtils {
 		}
 
 		return ((Query) ReflectionUtils.invokeMethod(GET_HIBERNATE_QUERY, query)).getQueryString();
+	}
+
+	/**
+	 * Returns whether the currently used version of Hibernate is equal to or newer than the given one.
+	 *
+	 * @param version must not be {@literal null}.
+	 * @return
+	 */
+	public static boolean isVersionOrBetter(Version version) {
+		return HIBERNATE_VERSION.isGreaterThanOrEqualTo(version);
 	}
 }
