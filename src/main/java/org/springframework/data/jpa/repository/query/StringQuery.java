@@ -128,6 +128,10 @@ class StringQuery {
 		private static final Pattern PARAMETER_BINDING_PATTERN;
 		private static final String MESSAGE = "Already found parameter binding with same index / parameter name but differing binding type! "
 				+ "Already have: %s, found %s! If you bind a parameter multiple times make sure they use the same binding.";
+		public static final int INDEXED_PARAMETER_GROUP = 4;
+		public static final int NAMED_PARAMETER_GROUP = 6;
+		public static final int COMPARISION_TYPE_GROUP = 1;
+		public static final int EXPRESSION_GROUP = 9;
 
 		static {
 
@@ -148,7 +152,7 @@ class StringQuery {
 			builder.append("(");
 			builder.append("%?(\\?(\\d+))%?"); // position parameter and parameter index
 			builder.append("|"); // or
-			builder.append("%?(:([\\p{L}\\w]+))%?"); // named parameter and the parameter name
+			builder.append("%?("+QueryUtils.COLON_NO_DOUBLE_COLON + "(" + QueryUtils.IDENTIFIER + "+))%?"); // named parameter and the parameter name
 			builder.append("|"); // or
 			builder.append("%?((:|\\?)#\\{([^}]+)\\})%?"); // expression parameter and expression
 			builder.append(")");
@@ -161,7 +165,7 @@ class StringQuery {
 		 * Parses {@link ParameterBinding} instances from the given query and adds them to the registered bindings. Returns
 		 * the cleaned up query.
 		 */
-		private String parseParameterBindingsOfQueryIntoBindingsAndReturnCleanedQuery(String query,
+		String parseParameterBindingsOfQueryIntoBindingsAndReturnCleanedQuery(String query,
 				List<ParameterBinding> bindings) {
 
 			String result = query;
@@ -187,10 +191,10 @@ class StringQuery {
 
 			while (matcher.find()) {
 
-				String parameterIndexString = matcher.group(4);
-				String parameterName = parameterIndexString != null ? null : matcher.group(6);
+				String parameterIndexString = matcher.group(INDEXED_PARAMETER_GROUP);
+				String parameterName = parameterIndexString != null ? null : matcher.group(NAMED_PARAMETER_GROUP);
 				Integer parameterIndex = parameterIndexString == null ? null : Integer.valueOf(parameterIndexString);
-				String typeSource = matcher.group(1);
+				String typeSource = matcher.group(COMPARISION_TYPE_GROUP);
 				String expression = null;
 				String replacement = null;
 
@@ -205,7 +209,7 @@ class StringQuery {
 						replacement = ":" + parameterName;
 					}
 
-					expression = matcher.group(9);
+					expression = matcher.group(EXPRESSION_GROUP);
 				}
 
 				switch (ParameterBindingType.of(typeSource)) {
