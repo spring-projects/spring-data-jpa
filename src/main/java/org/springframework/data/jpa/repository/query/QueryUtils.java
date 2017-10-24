@@ -79,6 +79,14 @@ public abstract class QueryUtils {
 	public static final String COUNT_QUERY_STRING = "select count(%s) from %s x";
 	public static final String DELETE_ALL_QUERY_STRING = "delete from %s x";
 
+	// Used Regex/Unicode categories (see http://www.unicode.org/reports/tr18/#General_Category_Property):
+	// Z Separator
+	// Cc Control
+	// Cf Format
+	// P Punctuation
+	static final String IDENTIFIER = "[._[\\P{Z}&&\\P{Cc}&&\\P{Cf}&&\\P{P}]]+";
+	static final String COLON_NO_DOUBLE_COLON = "(?<![:\\\\]):";
+
 	private static final String COUNT_REPLACEMENT_TEMPLATE = "select count(%s) $5$6$7";
 	private static final String SIMPLE_COUNT_VALUE = "$2";
 	private static final String COMPLEX_COUNT_VALUE = "$3$6";
@@ -89,7 +97,7 @@ public abstract class QueryUtils {
 	private static final Pattern PROJECTION_CLAUSE = Pattern.compile("select\\s+(.+)\\s+from");
 
 	private static final Pattern NO_DIGITS = Pattern.compile("\\D+");
-	private static final String IDENTIFIER = "[\\p{Lu}\\P{InBASIC_LATIN}\\p{Alnum}._$]+";
+
 	private static final String IDENTIFIER_GROUP = String.format("(%s)", IDENTIFIER);
 
 	private static final String JOIN = "join\\s+(fetch\\s+)?" + IDENTIFIER + "\\s+(as\\s+)?" + IDENTIFIER_GROUP;
@@ -98,8 +106,8 @@ public abstract class QueryUtils {
 	private static final String EQUALS_CONDITION_STRING = "%s.%s = :%s";
 	private static final Pattern ORDER_BY = Pattern.compile(".*order\\s+by\\s+.*", CASE_INSENSITIVE);
 
-	private static final Pattern NAMED_PARAMETER = Pattern.compile(":" + IDENTIFIER + "|\\#" + IDENTIFIER,
-			CASE_INSENSITIVE);
+	private static final Pattern NAMED_PARAMETER = Pattern
+			.compile(COLON_NO_DOUBLE_COLON + IDENTIFIER + "|\\#" + IDENTIFIER, CASE_INSENSITIVE);
 
 	private static final Pattern CONSTRUCTOR_EXPRESSION;
 
