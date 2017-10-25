@@ -152,7 +152,9 @@ class StringQuery {
 			builder.append("(");
 			builder.append("%?(\\?(\\d+))%?"); // position parameter and parameter index
 			builder.append("|"); // or
-			builder.append("%?("+QueryUtils.COLON_NO_DOUBLE_COLON + "(" + QueryUtils.IDENTIFIER + "+))%?"); // named parameter and the parameter name
+
+			// named parameter and the parameter name
+			builder.append("%?(" + QueryUtils.COLON_NO_DOUBLE_COLON + QueryUtils.IDENTIFIER_GROUP + ")%?");
 			builder.append("|"); // or
 			builder.append("%?((:|\\?)#\\{([^}]+)\\})%?"); // expression parameter and expression
 			builder.append(")");

@@ -86,6 +86,7 @@ public abstract class QueryUtils {
 	// P Punctuation
 	static final String IDENTIFIER = "[._[\\P{Z}&&\\P{Cc}&&\\P{Cf}&&\\P{P}]]+";
 	static final String COLON_NO_DOUBLE_COLON = "(?<![:\\\\]):";
+	static final String IDENTIFIER_GROUP = String.format("(%s)", IDENTIFIER);
 
 	private static final String COUNT_REPLACEMENT_TEMPLATE = "select count(%s) $5$6$7";
 	private static final String SIMPLE_COUNT_VALUE = "$2";
@@ -97,8 +98,6 @@ public abstract class QueryUtils {
 	private static final Pattern PROJECTION_CLAUSE = Pattern.compile("select\\s+(.+)\\s+from");
 
 	private static final Pattern NO_DIGITS = Pattern.compile("\\D+");
-
-	private static final String IDENTIFIER_GROUP = String.format("(%s)", IDENTIFIER);
 
 	private static final String JOIN = "join\\s+(fetch\\s+)?" + IDENTIFIER + "\\s+(as\\s+)?" + IDENTIFIER_GROUP;
 	private static final Pattern JOIN_PATTERN = Pattern.compile(JOIN, Pattern.CASE_INSENSITIVE);

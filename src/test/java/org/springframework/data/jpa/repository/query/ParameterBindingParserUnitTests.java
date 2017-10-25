@@ -15,8 +15,6 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,7 +31,7 @@ import org.springframework.data.jpa.repository.query.StringQuery.ParameterBindin
 public class ParameterBindingParserUnitTests {
 
 	@Test // DATAJPA-1200
-	public void idenficationOfParameters(){
+	public void idenficationOfParameters() {
 
 		SoftAssertions softly = new SoftAssertions();
 
@@ -46,17 +44,18 @@ public class ParameterBindingParserUnitTests {
 		checkHasParameter(softly, ":lowercase", true, "lowercase");
 		checkHasParameter(softly, ":2something", true, "beginning digit");
 		checkHasParameter(softly, ":2", true, "only digit");
-		checkHasParameter(softly, ":.something", true, "dot");  // <--
+		checkHasParameter(softly, ":.something", true, "dot"); // <--
 		checkHasParameter(softly, ":_something", true, "underscore");
 		checkHasParameter(softly, ":$something", true, "dollar"); // <--
-		checkHasParameter(softly, ":\uFE0F", true, "non basic latin emoji");  // <--
+		checkHasParameter(softly, ":\uFE0F", true, "non basic latin emoji"); // <--
 		checkHasParameter(softly, ":\u4E01", true, "chinese japanese korean");
 		checkHasParameter(softly, "select something from x where id = ?1", true, "indexed parameter");
 
-		checkHasParameter(softly, "select something from x where id = #something", false, "hash"); // <-- should we accept  hash as named parameter start?
+		// <-- should we accept hash as named parameter start?
+		checkHasParameter(softly, "select something from x where id = #something", false, "hash");
 
 		checkHasParameter(softly, "no bind variable", false, "no bind variable");
-		checkHasParameter(softly, ":\u2004whitespace", false, "non basic latin whitespace");  // <--
+		checkHasParameter(softly, ":\u2004whitespace", false, "non basic latin whitespace"); // <--
 		checkHasParameter(softly, "::", false, "double colon");
 		checkHasParameter(softly, ":", false, "end of query");
 		checkHasParameter(softly, ":\u0003", false, "non-printable");
@@ -70,7 +69,7 @@ public class ParameterBindingParserUnitTests {
 
 	public void checkHasParameter(SoftAssertions softly, String query, boolean containsParameter, String label) {
 
-		List<ParameterBinding> bindings = new ArrayList();
+		List<ParameterBinding> bindings = new ArrayList<>();
 		ParameterBindingParser.INSTANCE.parseParameterBindingsOfQueryIntoBindingsAndReturnCleanedQuery(query, bindings);
 		softly.assertThat(bindings.size()) //
 				.describedAs(String.format("<%s> (%s)", query, label)) //
