@@ -1,6 +1,17 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 2.0.1.RELEASE (2017-10-27)
+---------------------------------------------
+* DATAJPA-1208 - Improve code readability.
+* DATAJPA-1205 - BeanCreationException for custom repository after upgrading to Ingalls-SR8.
+* DATAJPA-1200 - Colon database table separator confused with named parameter.
+* DATAJPA-1196 - Release 2.0.1 (Kay SR1).
+* DATAJPA-1195 - Fix sporadic hanging test in build.
+* DATAJPA-1173 - Spring Data Projection with OneToMany returns too many results.
+* DATAJPA-949 - Add support for JPA 2.2 Query.getResultStream().
+
+
 Changes in version 1.11.8.RELEASE (2017-10-11)
 ----------------------------------------------
 * DATAJPA-1192 - Some JavaDocs (@params) are not up-to-date.
