@@ -44,6 +44,7 @@ import org.springframework.util.ObjectUtils;
  * @author Thomas Darimont
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Jens Schauder
  */
 class ParameterMetadataProvider {
 
@@ -121,6 +122,7 @@ class ParameterMetadataProvider {
 	@SuppressWarnings("unchecked")
 	public <T> ParameterMetadata<T> next(Part part) {
 
+	    Assert.isTrue(parameters.hasNext(), "No more parameters available.");
 		Parameter parameter = parameters.next();
 		return (ParameterMetadata<T>) next(part, parameter.getType(), parameter);
 	}
