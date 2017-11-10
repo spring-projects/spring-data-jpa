@@ -18,8 +18,8 @@ import org.springframework.aop.framework.Advised;
 package org.springframework.data.jpa.repository.query;
 
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
-import static org.springframework.test.util.ReflectionTestUtils.*;
+import static org.junit.Assert.assertThat;
+import static org.springframework.test.util.ReflectionTestUtils.getField;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -32,6 +32,7 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.TemporalType;
 
+import org.assertj.core.api.Assertions;
 import org.hibernate.Version;
 import org.junit.Before;
 import org.junit.Rule;
@@ -159,13 +160,36 @@ public class PartTreeJpaQueryIntegrationTests {
 		assertThat(HibernateUtils.getHibernateQuery(getValue(query, PROPERTY)), endsWith("roles is not empty"));
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAJPA-1074
+	@Test(expected = IllegalStateException.class) // DATAJPA-1074
 	public void rejectsIsEmptyOnNonCollectionProperty() throws Exception {
 
 		JpaQueryMethod method = getQueryMethod("findByFirstnameIsEmpty");
 		AbstractJpaQuery jpaQuery = new PartTreeJpaQuery(method, entityManager, provider);
 
 		jpaQuery.createQuery(new Object[] { "Oliver" });
+	}
+
+	@Test // DATAJPA-863
+	public void errorsDueToMismatchOfParametersContainNameOfMethodAndInterface() throws Exception {
+
+		JpaQueryMethod method = getQueryMethod("findByFirstname");
+
+		Assertions.assertThatExceptionOfType(IllegalStateException.class) //
+				.isThrownBy(() -> new PartTreeJpaQuery(method, entityManager, provider)) //
+				.withMessageContaining("findByFirstname") //
+				.withMessageContaining("UserRepository");
+	}
+
+	@Test // DATAJPA-863
+	public void errorsDueToMissingPropertyContainNameOfMethodAndInterface() throws Exception {
+
+		JpaQueryMethod method = getQueryMethod("findByNoSuchProperty", String.class);
+
+		Assertions.assertThatExceptionOfType(IllegalStateException.class) //
+				.isThrownBy(() -> new PartTreeJpaQuery(method, entityManager, provider)) //
+				.withMessageContaining("findByNoSuchProperty") // the method being analyzed
+				.withMessageContaining(" noSuchProperty ") // the property we are looking for
+				.withMessageContaining("UserRepository"); // the repository
 	}
 
 	private void testIgnoreCase(String methodName, Object... values) throws Exception {
@@ -230,5 +254,12 @@ public class PartTreeJpaQueryIntegrationTests {
 		List<User> findByRolesIsNotEmpty();
 
 		List<User> findByFirstnameIsEmpty();
+
+		// Wrong number of parameters
+		User findByFirstname();
+
+		// Wrong property name
+		User findByNoSuchProperty(String x);
 	}
+
 }
