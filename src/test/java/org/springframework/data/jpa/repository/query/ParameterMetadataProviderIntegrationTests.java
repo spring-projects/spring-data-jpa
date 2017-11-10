@@ -15,8 +15,7 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.lang.reflect.Method;
 import java.util.List;
@@ -40,6 +39,7 @@ import org.springframework.test.util.ReflectionTestUtils;
  * Integration tests for {@link ParameterMetadataProvider}.
  * 
  * @author Oliver Gierke
+ * @author Jens Schauder
  * @soundtrack Elephants Crossing - We are (Irrelephant)
  */
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -54,7 +54,7 @@ public class ParameterMetadataProviderIntegrationTests {
 		ParameterMetadataProvider provider = createProvider(Sample.class.getMethod("findByFirstname", String.class));
 		ParameterMetadata<Object> metadata = provider.next(new Part("firstname", User.class));
 
-		assertThat(metadata.getExpression().getName(), is("name"));
+		assertThat(metadata.getExpression().getName()).isEqualTo("name");
 	}
 
 	@Test // DATAJPA-758
@@ -63,7 +63,7 @@ public class ParameterMetadataProviderIntegrationTests {
 		ParameterMetadataProvider provider = createProvider(Sample.class.getMethod("findByLastname", String.class));
 		ParameterMetadata<Object> metadata = provider.next(new Part("lastname", User.class));
 
-		assertThat(metadata.getExpression().getName(), is(nullValue()));
+		assertThat(metadata.getExpression().getName()).isNull();
 	}
 
 	@Test // DATAJPA-772
@@ -72,24 +72,24 @@ public class ParameterMetadataProviderIntegrationTests {
 		ParameterMetadataProvider provider = createProvider(Sample.class.getMethod("findByAgeContaining", Integer.class));
 		ParameterMetadata<Object> metadata = provider.next(new Part("ageContaining", User.class));
 
-		assertThat(metadata.prepare(1), is((Object) 1));
+		assertThat(metadata.prepare(1)).isEqualTo(1);
 	}
 
 	private ParameterMetadataProvider createProvider(Method method) {
 
 		JpaParameters parameters = new JpaParameters(method);
-		simulateDiscoveredParametername(parameters, 0, "name");
+		simulateDiscoveredParametername(parameters);
 
 		return new ParameterMetadataProvider(em.getCriteriaBuilder(), parameters,
 				PersistenceProvider.fromEntityManager(em));
 	}
 
-	@SuppressWarnings("unchecked")
-	private static void simulateDiscoveredParametername(Parameters<?, ?> parameters, int index, String name) {
+	@SuppressWarnings({ "unchecked", "ConstantConditions" })
+	private static void simulateDiscoveredParametername(Parameters<?, ?> parameters) {
 
 		List<Object> list = (List<Object>) ReflectionTestUtils.getField(parameters, "parameters");
 		Object parameter = ReflectionTestUtils.getField(list.get(0), "parameter");
-		ReflectionTestUtils.setField(parameter, "parameterName", name);
+		ReflectionTestUtils.setField(parameter, "parameterName", "name");
 	}
 
 	interface Sample {

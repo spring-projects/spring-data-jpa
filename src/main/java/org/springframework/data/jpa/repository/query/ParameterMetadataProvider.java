@@ -99,7 +99,7 @@ class ParameterMetadataProvider {
 
 		this.builder = builder;
 		this.parameters = parameters.getBindableParameters().iterator();
-		this.expressions = new ArrayList<ParameterMetadata<?>>();
+		this.expressions = new ArrayList<>();
 		this.bindableParameterValues = bindableParameterValues;
 		this.persistenceProvider = provider;
 	}
@@ -115,9 +115,6 @@ class ParameterMetadataProvider {
 
 	/**
 	 * Builds a new {@link ParameterMetadata} for given {@link Part} and the next {@link Parameter}.
-	 * 
-	 * @param <T>
-	 * @return
 	 */
 	@SuppressWarnings("unchecked")
 	public <T> ParameterMetadata<T> next(Part part) {
@@ -131,9 +128,9 @@ class ParameterMetadataProvider {
 	 * Builds a new {@link ParameterMetadata} of the given {@link Part} and type. Forwards the underlying
 	 * {@link Parameters} as well.
 	 * 
-	 * @param <T>
+	 * @param <T> is the type parameter of the returend {@link ParameterMetadata}.
 	 * @param type must not be {@literal null}.
-	 * @return
+	 * @return ParameterMetadata for the next parameter.
 	 */
 	@SuppressWarnings("unchecked")
 	public <T> ParameterMetadata<? extends T> next(Part part, Class<T> type) {
@@ -146,11 +143,11 @@ class ParameterMetadataProvider {
 	/**
 	 * Builds a new {@link ParameterMetadata} for the given type and name.
 	 * 
-	 * @param <T>
+	 * @param <T> type parameter for the returned {@link ParameterMetadata}.
 	 * @param part must not be {@literal null}.
 	 * @param type must not be {@literal null}.
-	 * @param parameter
-	 * @return
+	 * @param parameter providing the name for the returned {@link ParameterMetadata}.
+	 * @return a new {@link ParameterMetadata} for the given type and name.
 	 */
 	private <T> ParameterMetadata<T> next(Part part, Class<T> type, Parameter parameter) {
 
@@ -164,9 +161,9 @@ class ParameterMetadataProvider {
 
 		ParameterExpression<T> expression = parameter.isExplicitlyNamed()
 				? builder.parameter(reifiedType, parameter.getName().orElseThrow(() -> new IllegalArgumentException("o_O Parameter needs to be named"))) : builder.parameter(reifiedType);
-		ParameterMetadata<T> value = new ParameterMetadata<T>(expression, part.getType(),
-				bindableParameterValues == null ? ParameterMetadata.PLACEHOLDER : bindableParameterValues.next(),
-				this.persistenceProvider);
+		ParameterMetadata<T> value = new ParameterMetadata<>(expression, part.getType(),
+                bindableParameterValues == null ? ParameterMetadata.PLACEHOLDER : bindableParameterValues.next(),
+                this.persistenceProvider);
 		expressions.add(value);
 
 		return value;
@@ -187,11 +184,6 @@ class ParameterMetadataProvider {
 
 		/**
 		 * Creates a new {@link ParameterMetadata}.
-		 * 
-		 * @param expression
-		 * @param type
-		 * @param value
-		 * @param provider
 		 */
 		public ParameterMetadata(ParameterExpression<T> expression, Type type, @Nullable Object value,
 				PersistenceProvider provider) {
@@ -212,8 +204,6 @@ class ParameterMetadataProvider {
 
 		/**
 		 * Returns whether the parameter shall be considered an {@literal IS NULL} parameter.
-		 * 
-		 * @return
 		 */
 		public boolean isIsNullParameter() {
 			return Type.IS_NULL.equals(type);
@@ -223,7 +213,6 @@ class ParameterMetadataProvider {
 		 * Prepares the object before it's actually bound to the {@link javax.persistence.Query;}.
 		 * 
 		 * @param value must not be {@literal null}.
-		 * @return
 		 */
 		@Nullable
 		public Object prepare(Object value) {
@@ -256,8 +245,8 @@ class ParameterMetadataProvider {
 		 * {@link Collections}, turn an array into an {@link ArrayList} or simply wrap any other value into a single element
 		 * {@link Collections}.
 		 * 
-		 * @param value
-		 * @return
+		 * @param value the value to be converted to a {@link Collection}.
+		 * @return the object itself as a {@link Collection} or a {@link Collection} constructed from the value.
 		 */
 		@Nullable
 		private static Collection<?> toCollection(@Nullable Object value) {
