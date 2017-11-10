@@ -17,8 +17,7 @@ import org.springframework.aop.framework.Advised;
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.util.ReflectionTestUtils.getField;
 
 import java.lang.reflect.Method;
@@ -52,6 +51,7 @@ import org.springframework.data.repository.core.support.DefaultRepositoryMetadat
 import org.springframework.data.repository.query.Param;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.util.Assert;
 
 /**
  * Integration tests for {@link PartTreeJpaQuery}.
@@ -59,6 +59,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Oliver Gierke
  * @author Mark Paluch
  * @author Michael Cramer
+ * @author Jens Schauder
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("classpath:infrastructure.xml")
@@ -109,11 +110,11 @@ public class PartTreeJpaQueryIntegrationTests {
 
 		Query query = jpaQuery.createQuery(new Object[] { "Matthews", PageRequest.of(0, 1) });
 
-		assertThat(HibernateUtils.getHibernateQuery(getValue(query, PROPERTY)), endsWith("firstname=:param0"));
+		assertThat(HibernateUtils.getHibernateQuery(getValue(query, PROPERTY))).endsWith("firstname=:param0");
 
 		query = jpaQuery.createQuery(new Object[] { null, PageRequest.of(0, 1) });
 
-		assertThat(HibernateUtils.getHibernateQuery(getValue(query, PROPERTY)), endsWith("firstname is null"));
+		assertThat(HibernateUtils.getHibernateQuery(getValue(query, PROPERTY))).endsWith("firstname is null");
 	}
 
 	@Test // DATAJPA-920
@@ -124,7 +125,7 @@ public class PartTreeJpaQueryIntegrationTests {
 
 		Query query = jpaQuery.createQuery(new Object[] { "Matthews" });
 
-		assertThat(query.getMaxResults(), is(1));
+		assertThat(query.getMaxResults()).isEqualTo(1);
 	}
 
 	@Test // DATAJPA-920
@@ -135,7 +136,7 @@ public class PartTreeJpaQueryIntegrationTests {
 
 		Query query = jpaQuery.createQuery(new Object[] { "Matthews" });
 
-		assertThat(HibernateUtils.getHibernateQuery(getValue(query, PROPERTY)), containsString(".id from User as"));
+		assertThat(HibernateUtils.getHibernateQuery(getValue(query, PROPERTY))).contains(".id from User as");
 	}
 
 	@Test // DATAJPA-1074
@@ -146,7 +147,7 @@ public class PartTreeJpaQueryIntegrationTests {
 
 		Query query = jpaQuery.createQuery(new Object[] {});
 
-		assertThat(HibernateUtils.getHibernateQuery(getValue(query, PROPERTY)), endsWith("roles is empty"));
+		assertThat(HibernateUtils.getHibernateQuery(getValue(query, PROPERTY))).endsWith("roles is empty");
 	}
 
 	@Test // DATAJPA-1074
@@ -157,7 +158,7 @@ public class PartTreeJpaQueryIntegrationTests {
 
 		Query query = jpaQuery.createQuery(new Object[] {});
 
-		assertThat(HibernateUtils.getHibernateQuery(getValue(query, PROPERTY)), endsWith("roles is not empty"));
+		assertThat(HibernateUtils.getHibernateQuery(getValue(query, PROPERTY))).endsWith("roles is not empty");
 	}
 
 	@Test(expected = IllegalStateException.class) // DATAJPA-1074
@@ -213,15 +214,18 @@ public class PartTreeJpaQueryIntegrationTests {
 	}
 
 	@SuppressWarnings("unchecked")
-	private static <T> T getValue(Object source, String path) {
+    private static <T> T getValue(Object source, String path) {
 
 		Iterator<String> split = Arrays.asList(path.split("\\.")).iterator();
 		Object result = source;
 
 		while (split.hasNext()) {
+
+			Assert.notNull(source, "result must not be null.");
 			result = getField(result, split.next());
 		}
 
+		Assert.notNull(result, "result must not be null.");
 		return (T) result;
 	}
 
@@ -237,7 +241,8 @@ public class PartTreeJpaQueryIntegrationTests {
 		return Version.getVersionString().startsWith("5.");
 	}
 
-	interface UserRepository extends Repository<User, Long> {
+	@SuppressWarnings("unused")
+    interface UserRepository extends Repository<User, Long> {
 
 		Page<User> findByFirstname(String firstname, Pageable pageable);
 
