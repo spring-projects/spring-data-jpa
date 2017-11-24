@@ -61,13 +61,20 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 
 		this.em = em;
 		this.domainClass = method.getEntityInformation().getJavaType();
-		this.tree = new PartTree(method.getName(), domainClass);
 		this.parameters = method.getParameters();
 
 		boolean recreationRequired = parameters.hasDynamicProjection() || parameters.potentiallySortsDynamically();
 
-		this.countQuery = new CountQueryPreparer(persistenceProvider, recreationRequired);
-		this.query = tree.isCountProjection() ? countQuery : new QueryPreparer(persistenceProvider, recreationRequired);
+		try {
+
+			this.tree = new PartTree(method.getName(), domainClass);
+			this.countQuery = new CountQueryPreparer(persistenceProvider, recreationRequired);
+			this.query = tree.isCountProjection() ? countQuery : new QueryPreparer(persistenceProvider, recreationRequired);
+
+		} catch (Exception o_O) {
+			throw new IllegalArgumentException(
+					String.format("Failed to create query method %s! %s", method, o_O.getMessage()), o_O);
+		}
 	}
 
 	/*
@@ -96,9 +103,9 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 	@Override
 	protected JpaQueryExecution getExecution() {
 
-		if(this.tree.isDelete()) {
+		if (this.tree.isDelete()) {
 			return new DeleteExecution(em);
-		} else if(this.tree.isExistsProjection()) {
+		} else if (this.tree.isExistsProjection()) {
 			return new ExistsExecution();
 		}
 
@@ -176,7 +183,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 				query.setMaxResults(tree.getMaxResults());
 			}
 
-			if(tree.isExistsProjection()) {
+			if (tree.isExistsProjection()) {
 				query.setMaxResults(1);
 			}
 

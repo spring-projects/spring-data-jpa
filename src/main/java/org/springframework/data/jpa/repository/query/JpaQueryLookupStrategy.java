@@ -98,13 +98,7 @@ public final class JpaQueryLookupStrategy {
 
 		@Override
 		protected RepositoryQuery resolveQuery(JpaQueryMethod method, EntityManager em, NamedQueries namedQueries) {
-
-			try {
-				return new PartTreeJpaQuery(method, em, persistenceProvider);
-			} catch (IllegalArgumentException e) {
-				throw new IllegalArgumentException(
-						String.format("Could not create query metamodel for method %s!", method.toString()), e);
-			}
+			return new PartTreeJpaQuery(method, em, persistenceProvider);
 		}
 
 	}

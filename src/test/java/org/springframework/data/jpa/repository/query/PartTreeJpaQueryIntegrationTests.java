@@ -88,7 +88,7 @@ public class PartTreeJpaQueryIntegrationTests {
 	@Test
 	public void cannotIgnoreCaseIfNotString() throws Exception {
 
-		thrown.expect(IllegalStateException.class);
+		thrown.expect(IllegalArgumentException.class);
 		thrown.expectMessage("Unable to ignore case of java.lang.Integer types, the property 'id' must reference a String");
 		testIgnoreCase("findByIdIgnoringCase", 3);
 	}
@@ -120,7 +120,7 @@ public class PartTreeJpaQueryIntegrationTests {
 		JpaQueryMethod queryMethod = getQueryMethod("existsByFirstname", String.class);
 		PartTreeJpaQuery jpaQuery = new PartTreeJpaQuery(queryMethod, entityManager, provider);
 
-		Query query = jpaQuery.createQuery(new Object[]{"Matthews"});
+		Query query = jpaQuery.createQuery(new Object[] { "Matthews" });
 
 		assertThat(query.getMaxResults(), is(1));
 	}
@@ -131,9 +131,35 @@ public class PartTreeJpaQueryIntegrationTests {
 		JpaQueryMethod queryMethod = getQueryMethod("existsByFirstname", String.class);
 		PartTreeJpaQuery jpaQuery = new PartTreeJpaQuery(queryMethod, entityManager, provider);
 
-		Query query = jpaQuery.createQuery(new Object[]{"Matthews"});
+		Query query = jpaQuery.createQuery(new Object[] { "Matthews" });
 
 		assertThat(HibernateUtils.getHibernateQuery(getValue(query, PROPERTY)), containsString(".id from User as"));
+	}
+
+	@Test // DATAJPA-863
+	public void errorsDueToMismatchOfParametersContainNameOfMethodAndInterface() throws Exception {
+
+		JpaQueryMethod method = getQueryMethod("findByFirstname");
+
+		thrown.expect(IllegalArgumentException.class);
+		thrown.expectMessage("UserRepository"); // the repository
+		thrown.expectMessage("findByFirstname"); // the method being analyzed
+		thrown.expectMessage(" firstname "); // the property we are looking for
+
+		new PartTreeJpaQuery(method, entityManager, provider);
+	}
+
+	@Test // DATAJPA-863
+	public void errorsDueToMissingPropertyContainNameOfMethodAndInterface() throws Exception {
+
+		JpaQueryMethod method = getQueryMethod("findByNoSuchProperty", String.class);
+
+		thrown.expect(IllegalArgumentException.class);
+		thrown.expectMessage("UserRepository"); // the repository
+		thrown.expectMessage("findByNoSuchProperty"); // the method being analyzed
+		thrown.expectMessage(" noSuchProperty "); // the property we are looking for
+
+		new PartTreeJpaQuery(method, entityManager, provider);
 	}
 
 	private void testIgnoreCase(String methodName, Object... values) throws Exception {
@@ -192,5 +218,11 @@ public class PartTreeJpaQueryIntegrationTests {
 		boolean existsByFirstname(String firstname);
 
 		List<User> findByCreatedAtAfter(@Temporal(TemporalType.TIMESTAMP) @Param("refDate") Date refDate);
+
+		// Wrong number of parameters
+		User findByFirstname();
+
+		// Wrong property name
+		User findByNoSuchProperty(String x);
 	}
 }

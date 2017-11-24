@@ -119,6 +119,8 @@ class ParameterMetadataProvider {
 	@SuppressWarnings("unchecked")
 	public <T> ParameterMetadata<T> next(Part part) {
 
+		Assert.isTrue(parameters.hasNext(), String.format("No parameter available for part %s.", part));
+
 		Parameter parameter = parameters.next();
 		return (ParameterMetadata<T>) next(part, parameter.getType(), parameter);
 	}
@@ -159,7 +161,8 @@ class ParameterMetadataProvider {
 		Class<T> reifiedType = Expression.class.equals(type) ? (Class<T>) Object.class : type;
 
 		ParameterExpression<T> expression = parameter.isExplicitlyNamed()
-				? builder.parameter(reifiedType, parameter.getName()) : builder.parameter(reifiedType);
+				? builder.parameter(reifiedType, parameter.getName())
+				: builder.parameter(reifiedType);
 		ParameterMetadata<T> value = new ParameterMetadata<T>(expression, part.getType(),
 				bindableParameterValues == null ? ParameterMetadata.PLACEHOLDER : bindableParameterValues.next(),
 				this.persistenceProvider);
@@ -242,7 +245,8 @@ class ParameterMetadataProvider {
 			}
 
 			return Collection.class.isAssignableFrom(expressionType)
-					? persistenceProvider.potentiallyConvertEmptyCollection(toCollection(value)) : value;
+					? persistenceProvider.potentiallyConvertEmptyCollection(toCollection(value))
+					: value;
 		}
 
 		/**
