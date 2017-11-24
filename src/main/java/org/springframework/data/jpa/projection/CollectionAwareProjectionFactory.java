@@ -27,20 +27,29 @@ import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
  * maps to be open.
  *
  * @author Jens Schauder
+ * @author Oliver Gierke
  */
 public class CollectionAwareProjectionFactory extends SpelAwareProxyProjectionFactory {
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.projection.SpelAwareProxyProjectionFactory#createProjectionInformation(java.lang.Class)
+	 */
 	@Override
 	protected ProjectionInformation createProjectionInformation(Class<?> projectionType) {
 		return new CollectionAwareProjectionInformation(projectionType);
 	}
 
-	private class CollectionAwareProjectionInformation extends SpelAwareProjectionInformation {
+	private static class CollectionAwareProjectionInformation extends SpelAwareProjectionInformation {
 
 		CollectionAwareProjectionInformation(Class<?> projectionType) {
 			super(projectionType);
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.projection.SpelAwareProxyProjectionFactory.SpelAwareProjectionInformation#isInputProperty(java.beans.PropertyDescriptor)
+		 */
 		@Override
 		protected boolean isInputProperty(PropertyDescriptor descriptor) {
 
@@ -48,11 +57,8 @@ public class CollectionAwareProjectionFactory extends SpelAwareProxyProjectionFa
 				return false;
 			}
 
-			boolean isMapOrCollection = //
-					Collection.class.isAssignableFrom(descriptor.getPropertyType()) //
-							|| Map.class.isAssignableFrom(descriptor.getPropertyType());
-
-			return !isMapOrCollection;
+			return !(Collection.class.isAssignableFrom(descriptor.getPropertyType()) //
+					|| Map.class.isAssignableFrom(descriptor.getPropertyType()));
 		}
 	}
 }
