@@ -17,8 +17,8 @@ import org.springframework.aop.framework.Advised;
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.util.ReflectionTestUtils.getField;
+import static org.assertj.core.api.Assertions.*;
+import static org.springframework.test.util.ReflectionTestUtils.*;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -31,7 +31,6 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.TemporalType;
 
-import org.assertj.core.api.Assertions;
 import org.hibernate.Version;
 import org.junit.Before;
 import org.junit.Rule;
@@ -91,7 +90,7 @@ public class PartTreeJpaQueryIntegrationTests {
 	@Test
 	public void cannotIgnoreCaseIfNotString() throws Exception {
 
-		thrown.expect(IllegalStateException.class);
+		thrown.expect(IllegalArgumentException.class);
 		thrown.expectMessage("Unable to ignore case of java.lang.Integer types, the property 'id' must reference a String");
 		testIgnoreCase("findByIdIgnoringCase", 3);
 	}
@@ -161,7 +160,7 @@ public class PartTreeJpaQueryIntegrationTests {
 		assertThat(HibernateUtils.getHibernateQuery(getValue(query, PROPERTY))).endsWith("roles is not empty");
 	}
 
-	@Test(expected = IllegalStateException.class) // DATAJPA-1074
+	@Test(expected = IllegalArgumentException.class) // DATAJPA-1074
 	public void rejectsIsEmptyOnNonCollectionProperty() throws Exception {
 
 		JpaQueryMethod method = getQueryMethod("findByFirstnameIsEmpty");
@@ -175,10 +174,11 @@ public class PartTreeJpaQueryIntegrationTests {
 
 		JpaQueryMethod method = getQueryMethod("findByFirstname");
 
-		Assertions.assertThatExceptionOfType(IllegalStateException.class) //
+		assertThatExceptionOfType(IllegalArgumentException.class) //
 				.isThrownBy(() -> new PartTreeJpaQuery(method, entityManager, provider)) //
-				.withMessageContaining("findByFirstname") //
-				.withMessageContaining("UserRepository");
+				.withMessageContaining("findByFirstname") // the method being analyzed
+				.withMessageContaining(" firstname ") // the property we are looking for
+				.withMessageContaining("UserRepository"); // the repository
 	}
 
 	@Test // DATAJPA-863
@@ -186,7 +186,7 @@ public class PartTreeJpaQueryIntegrationTests {
 
 		JpaQueryMethod method = getQueryMethod("findByNoSuchProperty", String.class);
 
-		Assertions.assertThatExceptionOfType(IllegalStateException.class) //
+		assertThatExceptionOfType(IllegalArgumentException.class) //
 				.isThrownBy(() -> new PartTreeJpaQuery(method, entityManager, provider)) //
 				.withMessageContaining("findByNoSuchProperty") // the method being analyzed
 				.withMessageContaining(" noSuchProperty ") // the property we are looking for
@@ -214,7 +214,7 @@ public class PartTreeJpaQueryIntegrationTests {
 	}
 
 	@SuppressWarnings("unchecked")
-    private static <T> T getValue(Object source, String path) {
+	private static <T> T getValue(Object source, String path) {
 
 		Iterator<String> split = Arrays.asList(path.split("\\.")).iterator();
 		Object result = source;
@@ -242,7 +242,7 @@ public class PartTreeJpaQueryIntegrationTests {
 	}
 
 	@SuppressWarnings("unused")
-    interface UserRepository extends Repository<User, Long> {
+	interface UserRepository extends Repository<User, Long> {
 
 		Page<User> findByFirstname(String firstname, Pageable pageable);
 
