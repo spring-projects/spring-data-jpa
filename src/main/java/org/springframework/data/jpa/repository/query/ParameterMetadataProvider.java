@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.Supplier;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.ParameterExpression;
@@ -119,7 +120,8 @@ class ParameterMetadataProvider {
 	@SuppressWarnings("unchecked")
 	public <T> ParameterMetadata<T> next(Part part) {
 
-	    Assert.isTrue(parameters.hasNext(), "No more parameters available.");
+		Assert.isTrue(parameters.hasNext(), String.format("No parameter available for part %s.", part));
+
 		Parameter parameter = parameters.next();
 		return (ParameterMetadata<T>) next(part, parameter.getType(), parameter);
 	}
@@ -159,14 +161,19 @@ class ParameterMetadataProvider {
 		@SuppressWarnings("unchecked")
 		Class<T> reifiedType = Expression.class.equals(type) ? (Class<T>) Object.class : type;
 
-		ParameterExpression<T> expression = parameter.isExplicitlyNamed()
-				? builder.parameter(reifiedType, parameter.getName().orElseThrow(() -> new IllegalArgumentException("o_O Parameter needs to be named"))) : builder.parameter(reifiedType);
-		ParameterMetadata<T> value = new ParameterMetadata<>(expression, part.getType(),
-                bindableParameterValues == null ? ParameterMetadata.PLACEHOLDER : bindableParameterValues.next(),
-                this.persistenceProvider);
-		expressions.add(value);
+		Supplier<String> name = () -> parameter.getName()
+				.orElseThrow(() -> new IllegalArgumentException("o_O Parameter needs to be named"));
 
-		return value;
+		ParameterExpression<T> expression = parameter.isExplicitlyNamed() //
+				? builder.parameter(reifiedType, name.get()) //
+				: builder.parameter(reifiedType);
+
+		Object value = bindableParameterValues == null ? ParameterMetadata.PLACEHOLDER : bindableParameterValues.next();
+
+		ParameterMetadata<T> metadata = new ParameterMetadata<>(expression, part.getType(), value, persistenceProvider);
+		expressions.add(metadata);
+
+		return metadata;
 	}
 
 	/**
@@ -236,8 +243,9 @@ class ParameterMetadataProvider {
 				}
 			}
 
-			return Collection.class.isAssignableFrom(expressionType)
-					? persistenceProvider.potentiallyConvertEmptyCollection(toCollection(value)) : value;
+			return Collection.class.isAssignableFrom(expressionType) //
+					? persistenceProvider.potentiallyConvertEmptyCollection(toCollection(value)) //
+					: value;
 		}
 
 		/**

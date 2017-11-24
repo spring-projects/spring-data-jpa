@@ -72,12 +72,14 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 		boolean recreationRequired = parameters.hasDynamicProjection() || parameters.potentiallySortsDynamically();
 
 		try {
+
 			this.tree = new PartTree(method.getName(), domainClass);
 			this.countQuery = new CountQueryPreparer(persistenceProvider, recreationRequired);
 			this.query = tree.isCountProjection() ? countQuery : new QueryPreparer(persistenceProvider, recreationRequired);
-		} catch (Exception e) {
-			throw new IllegalStateException(
-					String.format("Failed to create query for method <%s>: %s", method, e.getMessage()), e);
+
+		} catch (Exception o_O) {
+			throw new IllegalArgumentException(
+					String.format("Failed to create query for method %s! %s", method, o_O.getMessage()), o_O);
 		}
 	}
 
