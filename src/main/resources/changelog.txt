@@ -1,6 +1,16 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 1.11.9.RELEASE (2017-11-27)
+----------------------------------------------
+* DATAJPA-1209 - Compatibility with Hibernate < 5.2.11 broken for projections on native queries.
+* DATAJPA-1205 - BeanCreationException for custom repository after upgrading to Ingalls-SR8.
+* DATAJPA-1203 - Release 1.11.9 (Ingalls SR9).
+* DATAJPA-1185 - Query methods with dynamic projections which return Optional, Stream or Page throw NoSuchElementException.
+* DATAJPA-1173 - Spring Data Projection with OneToMany returns too many results.
+* DATAJPA-863 - Missing parameters in findAll* Repository method should throw a descriptive exception.
+
+
 Changes in version 2.0.1.RELEASE (2017-10-27)
 ---------------------------------------------
 * DATAJPA-1208 - Improve code readability.
