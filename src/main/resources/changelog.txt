@@ -1,6 +1,12 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 2.0.2.RELEASE (2017-11-27)
+---------------------------------------------
+* DATAJPA-1215 - Release 2.0.2 (Kay SR2).
+* DATAJPA-863 - Missing parameters in findAll* Repository method should throw a descriptive exception.
+
+
 Changes in version 1.11.9.RELEASE (2017-11-27)
 ----------------------------------------------
 * DATAJPA-1209 - Compatibility with Hibernate < 5.2.11 broken for projections on native queries.
