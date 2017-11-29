@@ -46,6 +46,7 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @author Christoph Strobl
  * @author Jens Schauder
+ * @author Stefan Fussenegger
  */
 public class JpaRepositoryFactory extends RepositoryFactorySupport {
 
@@ -87,8 +88,11 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	@Override
 	protected Object getTargetRepository(RepositoryInformation information) {
 
-		SimpleJpaRepository<?, ?> repository = getTargetRepository(information, entityManager);
-		repository.setRepositoryMethodMetadata(crudMethodMetadataPostProcessor.getCrudMethodMetadata());
+		Object repository = getTargetRepository(information, entityManager);
+		if (repository instanceof RepositoryMethodMetadataAware) {
+			((RepositoryMethodMetadataAware) repository)
+					.setRepositoryMethodMetadata(crudMethodMetadataPostProcessor.getCrudMethodMetadata());
+		}
 
 		return repository;
 	}
@@ -101,8 +105,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	 * @param entityManager
 	 * @return
 	 */
-	protected <T, ID extends Serializable> SimpleJpaRepository<?, ?> getTargetRepository(
-			RepositoryInformation information, EntityManager entityManager) {
+	protected Object getTargetRepository(RepositoryInformation information, EntityManager entityManager) {
 
 		JpaEntityInformation<?, Serializable> entityInformation = getEntityInformation(information.getDomainType());
 

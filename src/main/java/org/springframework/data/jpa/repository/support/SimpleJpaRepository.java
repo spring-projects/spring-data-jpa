@@ -67,12 +67,14 @@ import org.springframework.util.Assert;
  * @author Thomas Darimont
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Stefan Fussenegger
  * @param <T> the type of the entity to handle
  * @param <ID> the type of the entity's identifier
  */
 @Repository
 @Transactional(readOnly = true)
-public class SimpleJpaRepository<T, ID> implements JpaRepository<T, ID>, JpaSpecificationExecutor<T> {
+public class SimpleJpaRepository<T, ID>
+		implements JpaRepository<T, ID>, JpaSpecificationExecutor<T>, RepositoryMethodMetadataAware {
 
 	private static final String ID_MUST_NOT_BE_NULL = "The given id must not be null!";
 
