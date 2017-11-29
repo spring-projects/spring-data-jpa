@@ -86,13 +86,10 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	 * @see org.springframework.data.repository.core.support.RepositoryFactorySupport#getTargetRepository(org.springframework.data.repository.core.RepositoryMetadata)
 	 */
 	@Override
-	protected Object getTargetRepository(RepositoryInformation information) {
+	protected final JpaRepositoryImplementation<?, ?> getTargetRepository(RepositoryInformation information) {
 
-		Object repository = getTargetRepository(information, entityManager);
-		if (repository instanceof RepositoryMethodMetadataAware) {
-			((RepositoryMethodMetadataAware) repository)
-					.setRepositoryMethodMetadata(crudMethodMetadataPostProcessor.getCrudMethodMetadata());
-		}
+		JpaRepositoryImplementation<?, ?> repository = getTargetRepository(information, entityManager);
+		repository.setRepositoryMethodMetadata(crudMethodMetadataPostProcessor.getCrudMethodMetadata());
 
 		return repository;
 	}
@@ -100,16 +97,19 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	/**
 	 * Callback to create a {@link JpaRepository} instance with the given {@link EntityManager}
 	 * 
-	 * @param <T>
-	 * @param <ID>
-	 * @param entityManager
+	 * @param information will never be {@literal null}.
+	 * @param entityManager will never be {@literal null}.
 	 * @return
 	 */
-	protected Object getTargetRepository(RepositoryInformation information, EntityManager entityManager) {
+	protected JpaRepositoryImplementation<?, ?> getTargetRepository(RepositoryInformation information,
+			EntityManager entityManager) {
 
 		JpaEntityInformation<?, Serializable> entityInformation = getEntityInformation(information.getDomainType());
+		Object repository = getTargetRepositoryViaReflection(information, entityInformation, entityManager);
 
-		return getTargetRepositoryViaReflection(information, entityInformation, entityManager);
+		Assert.isInstanceOf(JpaRepositoryImplementation.class, repository);
+
+		return (JpaRepositoryImplementation<?, ?>) repository;
 	}
 
 	/*

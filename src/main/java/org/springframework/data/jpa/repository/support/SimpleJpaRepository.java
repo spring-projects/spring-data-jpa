@@ -48,8 +48,6 @@ import org.springframework.data.jpa.convert.QueryByExamplePredicateBuilder;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.repository.EntityGraph;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.query.QueryUtils;
 import org.springframework.data.jpa.repository.support.QueryHints.NoHints;
 import org.springframework.data.repository.support.PageableExecutionUtils;
@@ -73,8 +71,7 @@ import org.springframework.util.Assert;
  */
 @Repository
 @Transactional(readOnly = true)
-public class SimpleJpaRepository<T, ID>
-		implements JpaRepository<T, ID>, JpaSpecificationExecutor<T>, RepositoryMethodMetadataAware {
+public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T, ID> {
 
 	private static final String ID_MUST_NOT_BE_NULL = "The given id must not be null!";
 

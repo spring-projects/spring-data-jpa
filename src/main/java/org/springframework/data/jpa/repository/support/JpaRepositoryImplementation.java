@@ -15,16 +15,23 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import org.springframework.data.jpa.repository.support.CrudMethodMetadata;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.repository.NoRepositoryBean;
 
 /**
- * implemented by {@link org.springframework.data.jpa.repository.JpaRepository} implementations requiring
- * {@link CrudMethodMetadata}
+ * SPI interface to be implemented by {@link JpaRepository} implementations.
  * 
+ * @author Oliver Gierke
  * @author Stefan Fussenegger
  */
-public interface RepositoryMethodMetadataAware {
+@NoRepositoryBean
+public interface JpaRepositoryImplementation<T, ID> extends JpaRepository<T, ID>, JpaSpecificationExecutor<T> {
 
+	/**
+	 * Configures the {@link CrudMethodMetadata} to be used with the repository.
+	 * 
+	 * @param crudMethodMetadata must not be {@literal null}.
+	 */
 	void setRepositoryMethodMetadata(CrudMethodMetadata crudMethodMetadata);
-
 }
