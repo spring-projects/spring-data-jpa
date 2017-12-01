@@ -29,6 +29,7 @@ import org.springframework.context.annotation.ComponentScan.Filter;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean;
 import org.springframework.data.repository.config.DefaultRepositoryBaseClass;
+import org.springframework.data.repository.config.RepositoryBeanNameGenerator;
 import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.data.repository.query.QueryLookupStrategy.Key;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -39,6 +40,7 @@ import org.springframework.transaction.PlatformTransactionManager;
  * 
  * @author Oliver Gierke
  * @author Thomas Darimont
+ * @author Sascha Woo
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
@@ -150,4 +152,10 @@ public @interface EnableJpaRepositories {
 	 * @return whether to enable default transactions, defaults to {@literal true}.
 	 */
 	boolean enableDefaultTransactions() default true;
+
+	/**
+	 * The {@link RepositoryBeanNameGenerator} class to be used for naming detected repositories
+	 * within the Spring container.
+	 */
+	Class<? extends RepositoryBeanNameGenerator> nameGenerator() default RepositoryBeanNameGenerator.class;
 }
