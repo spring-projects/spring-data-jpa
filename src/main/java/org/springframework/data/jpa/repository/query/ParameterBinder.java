@@ -17,6 +17,7 @@ package org.springframework.data.jpa.repository.query;
 
 import javax.persistence.Query;
 
+import org.springframework.data.jpa.repository.query.QueryParameterSetter.ErrorHandling;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.util.Assert;
 
@@ -52,11 +53,15 @@ public class ParameterBinder {
 		this.parameterSetters = parameterSetters;
 	}
 
-	public <T extends Query> T bind(T jpaQuery, Object[] values) {
+	public <T extends Query> T bind(T jpaQuery, Object[] values, ErrorHandling errorHandling) {
 
-		parameterSetters.forEach(it -> it.setParameter(jpaQuery, values));
+		parameterSetters.forEach(it -> it.setParameter(jpaQuery, values, errorHandling));
 
 		return jpaQuery;
+	}
+
+	public <T extends Query> T bind(T jpaQuery, Object[] values) {
+		return bind(jpaQuery, values, ErrorHandling.STRICT);
 	}
 
 	/**

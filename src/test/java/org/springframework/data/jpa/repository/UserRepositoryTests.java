@@ -15,21 +15,17 @@
  */
 package org.springframework.data.jpa.repository;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.springframework.data.domain.Example.*;
-import static org.springframework.data.domain.ExampleMatcher.*;
-import static org.springframework.data.domain.Sort.Direction.*;
-import static org.springframework.data.jpa.domain.Specification.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.springframework.data.domain.Example.of;
+import static org.springframework.data.domain.ExampleMatcher.matching;
+import static org.springframework.data.domain.Sort.Direction.ASC;
+import static org.springframework.data.domain.Sort.Direction.DESC;
 import static org.springframework.data.jpa.domain.Specification.not;
+import static org.springframework.data.jpa.domain.Specification.where;
 import static org.springframework.data.jpa.domain.sample.UserSpecifications.*;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Stream;
 
 import javax.persistence.EntityManager;
@@ -48,16 +44,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
-import org.springframework.data.domain.Example;
-import org.springframework.data.domain.ExampleMatcher;
+import org.springframework.data.domain.*;
 import org.springframework.data.domain.ExampleMatcher.GenericPropertyMatcher;
 import org.springframework.data.domain.ExampleMatcher.StringMatcher;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.jpa.domain.Specification;
@@ -2057,6 +2046,21 @@ public class UserRepositoryTests {
 
 		assertThat(result.getFirstname()).isEqualTo(user.getFirstname());
 		assertThat(result.getLastname()).isEqualTo(user.getLastname());
+	}
+
+	@Test // DATAJPA-1233
+	public void handlesCountQueriesWithLessParametersSingleParam() {
+		repository.findAllOrderedBySpecialNameSingleParam("Oliver", PageRequest.of(2, 3));
+	}
+
+	@Test // DATAJPA-1233
+	public void handlesCountQueriesWithLessParametersMoreThanOne() {
+		repository.findAllOrderedBySpecialNameMultipleParams("Oliver", "x", PageRequest.of(2, 3));
+	}
+
+	@Test // DATAJPA-1233
+	public void handlesCountQueriesWithLessParametersMoreThanOneIndexed() {
+		repository.findAllOrderedBySpecialNameMultipleParamsIndexed("Oliver", "x", PageRequest.of(2, 3));
 	}
 
 	private Page<User> executeSpecWithSort(Sort sort) {
