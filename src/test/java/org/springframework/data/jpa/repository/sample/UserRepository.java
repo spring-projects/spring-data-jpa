@@ -517,6 +517,18 @@ public interface UserRepository
 	@Query("SELECT u FROM User u where u.firstname >= ?1 and u.lastname = '000:1'")
 	List<User> queryWithIndexedParameterAndColonFollowedByIntegerInString(String firstname);
 
+	// DATAJPA-1233
+	@Query(value = "SELECT u FROM User u ORDER BY CASE WHEN (u.firstname  >= :name) THEN 0 ELSE 1 END, u.firstname")
+	Page<User> findAllOrderedBySpecialNameSingleParam(@Param("name") String name, Pageable page);
+
+	// DATAJPA-1233
+	@Query(value = "SELECT u FROM User u WHERE :other = 'x' ORDER BY CASE WHEN (u.firstname  >= :name) THEN 0 ELSE 1 END, u.firstname")
+	Page<User> findAllOrderedBySpecialNameMultipleParams(@Param("name") String name, @Param("other") String other, Pageable page);
+
+	// DATAJPA-1233
+	@Query(value = "SELECT u FROM User u WHERE ?2 = 'x' ORDER BY CASE WHEN (u.firstname  >= ?1) THEN 0 ELSE 1 END, u.firstname")
+	Page<User> findAllOrderedBySpecialNameMultipleParamsIndexed(String name, String other, Pageable page);
+
 	interface RolesAndFirstname {
 
 		String getFirstname();

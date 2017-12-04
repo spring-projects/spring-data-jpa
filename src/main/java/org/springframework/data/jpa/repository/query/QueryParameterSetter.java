@@ -15,6 +15,8 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import static org.springframework.data.jpa.repository.query.QueryParameterSetter.ErrorHandling.LENIENT;
+
 import java.util.Date;
 import java.util.function.Function;
 
@@ -23,6 +25,8 @@ import javax.persistence.Query;
 import javax.persistence.TemporalType;
 import javax.persistence.criteria.ParameterExpression;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -36,10 +40,10 @@ import org.springframework.util.Assert;
  */
 interface QueryParameterSetter {
 
-	void setParameter(Query query, Object[] values);
+	void setParameter(Query query, Object[] values, ErrorHandling errorHandling);
 
 	/** Noop implementation */
-	QueryParameterSetter NOOP = (query, values) -> {};
+	QueryParameterSetter NOOP = (query, values, errorHandling) -> {};
 
 	/**
 	 * {@link QueryParameterSetter} for named or indexed parameters that might have a {@link TemporalType} specified.
@@ -70,7 +74,7 @@ interface QueryParameterSetter {
 		 * @see org.springframework.data.jpa.repository.query.QueryParameterSetter#setParameter(javax.persistence.Query, java.lang.Object[])
 		 */
 		@SuppressWarnings("unchecked")
-		public void setParameter(Query query, Object[] values) {
+		public void setParameter(Query query, Object[] values, ErrorHandling errorHandling) {
 
 			Object value = valueExtractor.apply(values);
 
@@ -82,24 +86,33 @@ interface QueryParameterSetter {
 				// fixed.
 
 				if (parameter instanceof ParameterExpression) {
-					query.setParameter((Parameter<Date>) parameter, (Date) value, temporalType);
+					errorHandling.execute(() -> query.setParameter((Parameter<Date>) parameter, (Date) value, temporalType));
 				} else if (parameter.getName() != null && QueryUtils.hasNamedParameter(query)) {
-					query.setParameter(parameter.getName(), (Date) value, temporalType);
+					errorHandling.execute(() -> query.setParameter(parameter.getName(), (Date) value, temporalType));
 				} else {
-					if (query.getParameters().size() >= parameter.getPosition() || registerExcessParameters(query)) {
-						query.setParameter(parameter.getPosition(), (Date) value, temporalType);
+
+					Integer position = parameter.getPosition();
+					if (position != null && (query.getParameters().size() >= parameter.getPosition()
+							|| registerExcessParameters(query) || errorHandling == LENIENT)) {
+
+						errorHandling.execute(() -> query.setParameter(parameter.getPosition(), (Date) value, temporalType));
 					}
 				}
 
 			} else {
 
 				if (parameter instanceof ParameterExpression) {
-					query.setParameter((Parameter<Object>) parameter, value);
+					errorHandling.execute(() -> query.setParameter((Parameter<Object>) parameter, value));
 				} else if (parameter.getName() != null && QueryUtils.hasNamedParameter(query)) {
-					query.setParameter(parameter.getName(), value);
+					errorHandling.execute(() -> query.setParameter(parameter.getName(), value));
+
 				} else {
-					if (query.getParameters().size() >= parameter.getPosition() || registerExcessParameters(query)) {
-						query.setParameter(parameter.getPosition(), value);
+
+					Integer position = parameter.getPosition();
+					if (position != null && (query.getParameters().size() >= position || errorHandling == LENIENT
+							|| registerExcessParameters(query))) {
+
+						errorHandling.execute(() -> query.setParameter(position, value));
 					}
 				}
 			}
@@ -116,5 +129,32 @@ interface QueryParameterSetter {
 
 			return query.getParameters().size() == 0 && query.getClass().getName().startsWith("org.eclipse");
 		}
+	}
+
+	enum ErrorHandling {
+
+		STRICT {
+
+			@Override
+			public void execute(Runnable block) {
+				block.run();
+			}
+		},
+
+		LENIENT {
+			@Override
+			public void execute(Runnable block) {
+
+				try {
+					block.run();
+				} catch (RuntimeException rex) {
+					LOG.info("Silently ignoring", rex);
+				}
+			}
+		};
+
+		private static final Logger LOG = LoggerFactory.getLogger(ErrorHandling.class);
+
+		abstract void execute(Runnable block);
 	}
 }

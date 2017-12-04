@@ -22,6 +22,7 @@ import javax.persistence.TypedQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.jpa.provider.QueryExtractor;
+import org.springframework.data.jpa.repository.query.QueryParameterSetter.ErrorHandling;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.QueryCreationException;
 import org.springframework.data.repository.query.RepositoryQuery;
@@ -168,6 +169,6 @@ final class NamedQuery extends AbstractJpaQuery {
 			countQuery = em.createQuery(QueryUtils.createCountQueryFor(queryString, countProjection), Long.class);
 		}
 
-		return parameterBinder.get().bind(countQuery, values);
+		return parameterBinder.get().bind(countQuery, values, ErrorHandling.LENIENT);
 	}
 }
