@@ -72,11 +72,9 @@ public class ParameterBinderUnitTests {
 
 	}
 
-	static interface SampleRepository {
+	interface SampleRepository {
 
 		User useIndexedParameters(String lastname);
-
-		User indexedParameterWithSort(String lastname, Sort sort);
 
 		User valid(@Param("username") String username);
 
