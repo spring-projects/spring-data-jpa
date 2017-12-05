@@ -86,9 +86,6 @@ final class NamedQuery extends AbstractJpaQuery {
 
 	/**
 	 * Returns whether the named query with the given name exists.
-	 * 
-	 * @param em
-	 * @return
 	 */
 	private static boolean hasNamedQuery(EntityManager em, String queryName) {
 
@@ -111,9 +108,6 @@ final class NamedQuery extends AbstractJpaQuery {
 
 	/**
 	 * Looks up a named query for the given {@link org.springframework.data.repository.query.QueryMethod}.
-	 * 
-	 * @param method
-	 * @return
 	 */
 	@Nullable
 	public static RepositoryQuery lookupFrom(JpaQueryMethod method, EntityManager em) {
@@ -154,7 +148,7 @@ final class NamedQuery extends AbstractJpaQuery {
 	protected TypedQuery<Long> doCreateCountQuery(Object[] values) {
 
 		EntityManager em = getEntityManager();
-		TypedQuery<Long> countQuery = null;
+		TypedQuery<Long> countQuery;
 
 		if (namedCountQueryIsPresent) {
 			countQuery = em.createNamedQuery(countQueryName, Long.class);

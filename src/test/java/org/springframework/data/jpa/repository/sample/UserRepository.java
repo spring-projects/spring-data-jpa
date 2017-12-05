@@ -509,7 +509,6 @@ public interface UserRepository
 	@Query(value = "SELECT firstname, lastname FROM SD_User WHERE id = ?1", nativeQuery = true)
 	NameOnly findByNativeQuery(Integer id);
 
-	static interface RolesAndFirstname {
 	// DATAJPA-1233
 	@Query(value = "SELECT u FROM User u ORDER BY CASE WHEN (u.firstname  >= :name) THEN 0 ELSE 1 END, u.firstname")
 	Page<User> findAllOrderedBySpecialNameSingleParam(@Param("name") String name, Pageable page);
@@ -522,13 +521,14 @@ public interface UserRepository
 	@Query(value = "SELECT u FROM User u WHERE ?2 = 'x' ORDER BY CASE WHEN (u.firstname  >= ?1) THEN 0 ELSE 1 END, u.firstname")
 	Page<User> findAllOrderedBySpecialNameMultipleParamsIndexed(String name, String other, Pageable page);
 
+	interface RolesAndFirstname {
 
 		String getFirstname();
 
 		Set<Role> getRoles();
 	}
 
-	static interface NameOnly {
+	interface NameOnly {
 
 		String getFirstname();
 
