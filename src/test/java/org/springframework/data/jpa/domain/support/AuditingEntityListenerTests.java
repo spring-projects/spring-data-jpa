@@ -41,6 +41,7 @@ import org.springframework.transaction.annotation.Transactional;
  * Integration test for {@link AuditingEntityListener}.
  *
  * @author Oliver Gierke
+ * @author Jens Schauder
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("classpath:auditing/auditing-entity-listener.xml")
@@ -89,7 +90,7 @@ public class AuditingEntityListenerTests {
 		role.setName("ADMIN");
 
 		user.addRole(role);
-		repository.save(user);
+		repository.flush();
 		role = user.getRoles().iterator().next();
 
 		assertDatesSet(user);
