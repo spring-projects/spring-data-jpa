@@ -44,6 +44,7 @@ import org.springframework.data.repository.CrudRepository;
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Mark Paluch
+ * @author Jens Schauder
  */
 @RunWith(MockitoJUnitRunner.Silent.class)
 public class SimpleJpaRepositoryUnitTests {
@@ -130,5 +131,29 @@ public class SimpleJpaRepositoryUnitTests {
 		repo.findById(id);
 
 		verify(em).find(User.class, id, singletonMap(EntityGraphType.LOAD.getKey(), (Object) entityGraph));
+	}
+
+	@Test // DATAJPA-931
+	public void mergeGetsCalledWhenDetached() {
+
+		User detachedUser = new User();
+
+		when(em.contains(detachedUser)).thenReturn(false);
+
+		repo.save(detachedUser);
+
+		verify(em).merge(detachedUser);
+	}
+
+	@Test // DATAJPA-931
+	public void mergeGetsNotCalledWhenAttached() {
+
+		User attachedUser = new User();
+
+		when(em.contains(attachedUser)).thenReturn(true);
+
+		repo.save(attachedUser);
+
+		verify(em, never()).merge(attachedUser);
 	}
 }
