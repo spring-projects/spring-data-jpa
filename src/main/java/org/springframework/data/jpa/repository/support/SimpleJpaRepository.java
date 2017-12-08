@@ -67,6 +67,7 @@ import org.springframework.util.Assert;
  * @author Thomas Darimont
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Jens Schauder
  * @param <T> the type of the entity to handle
  * @param <ID> the type of the entity's identifier
  */
@@ -488,9 +489,11 @@ public class SimpleJpaRepository<T, ID> implements JpaRepository<T, ID>, JpaSpec
 		if (entityInformation.isNew(entity)) {
 			em.persist(entity);
 			return entity;
-		} else {
+		} else if (!em.contains(entity)) {
 			return em.merge(entity);
 		}
+
+		return entity;
 	}
 
 	/*
