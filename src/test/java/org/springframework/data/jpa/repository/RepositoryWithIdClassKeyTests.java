@@ -26,6 +26,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.data.jpa.domain.sample.Item;
@@ -38,6 +39,8 @@ import org.springframework.data.jpa.repository.sample.ItemRepository;
 import org.springframework.data.jpa.repository.sample.ItemSiteRepository;
 import org.springframework.data.jpa.repository.sample.SampleConfig;
 import org.springframework.data.jpa.repository.sample.SiteRepository;
+import org.springframework.data.querydsl.EntityPathResolver;
+import org.springframework.data.querydsl.SimpleEntityPathResolver;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
@@ -67,9 +70,7 @@ public class RepositoryWithIdClassKeyTests {
 	}
 
 	@ImportResource("classpath:infrastructure.xml")
-	static class TestConfig extends Config {
-
-	}
+	static class TestConfig extends Config {}
 
 	/**
 	 * @see <a href="download.oracle.com/otn-pub/jcp/persistence-2_1-fr-eval-spec/JavaPersistence.pdf">Final JPA 2.1

@@ -60,8 +60,6 @@ import com.querydsl.jpa.impl.AbstractJPAQuery;
 public class QuerydslJpaRepository<T, ID extends Serializable> extends SimpleJpaRepository<T, ID>
 		implements QuerydslPredicateExecutor<T> {
 
-	private static final EntityPathResolver DEFAULT_ENTITY_PATH_RESOLVER = SimpleEntityPathResolver.INSTANCE;
-
 	private final EntityPath<T> path;
 	private final PathBuilder<T> builder;
 	private final Querydsl querydsl;
@@ -75,7 +73,7 @@ public class QuerydslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 	 * @param entityManager must not be {@literal null}.
 	 */
 	public QuerydslJpaRepository(JpaEntityInformation<T, ID> entityInformation, EntityManager entityManager) {
-		this(entityInformation, entityManager, DEFAULT_ENTITY_PATH_RESOLVER);
+		this(entityInformation, entityManager, SimpleEntityPathResolver.INSTANCE);
 	}
 
 	/**
