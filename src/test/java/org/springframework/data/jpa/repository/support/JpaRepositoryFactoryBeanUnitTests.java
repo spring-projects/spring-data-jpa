@@ -118,7 +118,7 @@ public class JpaRepositoryFactoryBeanUnitTests {
 
 		/*
 		 * (non-Javadoc)
-		 * @see org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean#doCreateRepositoryFactory()
+		 * @see org.springframework.data.jpa.predicateExecutor.support.JpaRepositoryFactoryBean#doCreateRepositoryFactory()
 		 */
 		@Override
 		protected RepositoryFactorySupport doCreateRepositoryFactory() {

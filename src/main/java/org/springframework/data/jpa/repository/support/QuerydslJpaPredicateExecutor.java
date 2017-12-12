@@ -15,7 +15,6 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import java.io.Serializable;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Optional;
@@ -27,6 +26,7 @@ import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.querydsl.EntityPathResolver;
 import org.springframework.data.querydsl.QSort;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
@@ -44,10 +44,8 @@ import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.AbstractJPAQuery;
 
 /**
- * QueryDsl specific extension of {@link SimpleJpaRepository} which adds implementation for
+ * QueryDsl specific fragment for extending {@link SimpleJpaRepository} with an implementation for implementation for
  * {@link QuerydslPredicateExecutor}.
- *
- * @deprecated Instead of this class use {@link QuerydslJpaPredicateExecutor}
  *
  * @author Oliver Gierke
  * @author Thomas Darimont
@@ -56,44 +54,31 @@ import com.querydsl.jpa.impl.AbstractJPAQuery;
  * @author Christoph Strobl
  * @author Jens Schauder
  */
-@Deprecated
-public class QuerydslJpaRepository<T, ID extends Serializable> extends SimpleJpaRepository<T, ID>
-		implements QuerydslPredicateExecutor<T> {
+public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecutor<T> {
 
 	private static final EntityPathResolver DEFAULT_ENTITY_PATH_RESOLVER = SimpleEntityPathResolver.INSTANCE;
 
+	private final JpaEntityInformation<T, ?> entityInformation;
 	private final EntityPath<T> path;
-	private final PathBuilder<T> builder;
 	private final Querydsl querydsl;
 	private final EntityManager entityManager;
+	private final CrudMethodMetadata metadata;
 
 	/**
-	 * Creates a new {@link QuerydslJpaRepository} from the given domain class and {@link EntityManager}. This will use
-	 * the {@link SimpleEntityPathResolver} to translate the given domain class into an {@link EntityPath}.
-	 *
-	 * @param entityInformation must not be {@literal null}.
-	 * @param entityManager must not be {@literal null}.
-	 */
-	public QuerydslJpaRepository(JpaEntityInformation<T, ID> entityInformation, EntityManager entityManager) {
-		this(entityInformation, entityManager, DEFAULT_ENTITY_PATH_RESOLVER);
-	}
-
-	/**
-	 * Creates a new {@link QuerydslJpaRepository} from the given domain class and {@link EntityManager} and uses the
+	 * Creates a new {@link QuerydslJpaPredicateExecutor} from the given domain class and {@link EntityManager} and uses the
 	 * given {@link EntityPathResolver} to translate the domain class into an {@link EntityPath}.
-	 *
-	 * @param entityInformation must not be {@literal null}.
+	 *  @param entityInformation must not be {@literal null}.
 	 * @param entityManager must not be {@literal null}.
 	 * @param resolver must not be {@literal null}.
+	 * @param metadata maybe {@literal null}.
 	 */
-	public QuerydslJpaRepository(JpaEntityInformation<T, ID> entityInformation, EntityManager entityManager,
-			EntityPathResolver resolver) {
+	public QuerydslJpaPredicateExecutor(JpaEntityInformation<T, ?> entityInformation, EntityManager entityManager,
+										EntityPathResolver resolver, @Nullable CrudMethodMetadata metadata) {
 
-		super(entityInformation, entityManager);
-
+		this.entityInformation = entityInformation;
+		this.metadata = metadata;
 		this.path = resolver.createPath(entityInformation.getJavaType());
-		this.builder = new PathBuilder<T>(path.getType(), path.getMetadata());
-		this.querydsl = new Querydsl(entityManager, builder);
+		this.querydsl = new Querydsl(entityManager, new PathBuilder<T>(path.getType(), path.getMetadata()));
 		this.entityManager = entityManager;
 	}
 
@@ -214,6 +199,21 @@ public class QuerydslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 	 */
 	protected JPQLQuery<?> createCountQuery(@Nullable Predicate... predicate) {
 		return doCreateQuery(getQueryHints(), predicate);
+	}
+
+	@Nullable
+	private CrudMethodMetadata getRepositoryMethodMetadata() {
+		return metadata;
+	}
+
+	/**
+	 * Returns {@link QueryHints} with the query hints based on the current {@link CrudMethodMetadata} and potential
+	 * {@link EntityGraph} information.
+	 *
+	 * @return
+	 */
+	private QueryHints getQueryHints() {
+		return metadata == null ? QueryHints.NoHints.INSTANCE : DefaultQueryHints.of(entityInformation, metadata);
 	}
 
 	private AbstractJPAQuery<?, ?> doCreateQuery(QueryHints hints, @Nullable Predicate... predicate) {

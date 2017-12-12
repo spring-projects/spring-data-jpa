@@ -32,7 +32,7 @@ import org.springframework.transaction.TransactionException;
 import org.springframework.transaction.TransactionStatus;
 
 /**
- * Integration test for transactional behaviour of repository operations.
+ * Integration test for transactional behaviour of predicateExecutor operations.
  * 
  * @author Oliver Gierke
  */

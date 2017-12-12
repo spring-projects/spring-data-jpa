@@ -50,6 +50,7 @@ import org.springframework.util.ClassUtils;
  * 
  * @author Oliver Gierke
  * @author Thomas Darimont
+ * @author Jens Schauder
  */
 @RunWith(MockitoJUnitRunner.Silent.class)
 public class JpaRepositoryFactoryUnitTests {
@@ -104,9 +105,9 @@ public class JpaRepositoryFactoryUnitTests {
 	}
 
 	/**
-	 * Asserts that the factory recognized configured repository classes that contain custom method but no custom
-	 * implementation could be found. Furthremore the exception has to contain the name of the repository interface as for
-	 * a large repository configuration it's hard to find out where this error occured.
+	 * Asserts that the factory recognized configured predicateExecutor classes that contain custom method but no custom
+	 * implementation could be found. Furthremore the exception has to contain the name of the predicateExecutor interface as for
+	 * a large predicateExecutor configuration it's hard to find out where this error occured.
 	 * 
 	 * @throws Exception
 	 */
@@ -142,21 +143,6 @@ public class JpaRepositoryFactoryUnitTests {
 		UserCustomExtendedRepository repository = factory.getRepository(UserCustomExtendedRepository.class);
 
 		repository.customMethod(1);
-	}
-
-	@Test
-	public void usesQueryDslRepositoryIfInterfaceImplementsExecutor() {
-
-		when(entityInformation.getJavaType()).thenReturn(User.class);
-		assertEquals(QuerydslJpaRepository.class,
-				factory.getRepositoryBaseClass(new DefaultRepositoryMetadata(QueryDslSampleRepository.class)));
-
-		try {
-			QueryDslSampleRepository repository = factory.getRepository(QueryDslSampleRepository.class);
-			assertEquals(QuerydslJpaRepository.class, ((Advised) repository).getTargetClass());
-		} catch (IllegalArgumentException e) {
-			assertThat(e.getStackTrace()[0].getClassName(), is("org.springframework.data.querydsl.SimpleEntityPathResolver"));
-		}
 	}
 
 	@Test // DATAJPA-710, DATACMNS-542
@@ -198,7 +184,7 @@ public class JpaRepositoryFactoryUnitTests {
 	}
 
 	/**
-	 * Implementation of the custom repository interface.
+	 * Implementation of the custom predicateExecutor interface.
 	 * 
 	 * @author Oliver Gierke
 	 */
