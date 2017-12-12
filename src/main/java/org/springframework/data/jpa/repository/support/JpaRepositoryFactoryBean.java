@@ -15,10 +15,17 @@
  */
 package org.springframework.data.jpa.repository.support;
 
+import java.util.Map;
+
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.ListableBeanFactory;
+import org.springframework.beans.factory.NoUniqueBeanDefinitionException;
 import org.springframework.data.mapping.context.MappingContext;
+import org.springframework.data.querydsl.EntityPathResolver;
+import org.springframework.data.querydsl.SimpleEntityPathResolver;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.core.support.RepositoryFactorySupport;
 import org.springframework.data.repository.core.support.TransactionalRepositoryFactoryBeanSupport;
@@ -32,12 +39,14 @@ import org.springframework.util.Assert;
  * @author Oliver Gierke
  * @author Eberhard Wolff
  * @author Mark Paluch
+ * @author Jens Schauder
  * @param <T> the type of the repository
  */
 public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 		extends TransactionalRepositoryFactoryBeanSupport<T, S, ID> {
 
 	private @Nullable EntityManager entityManager;
+	private EntityPathResolver entityPathResolver = SimpleEntityPathResolver.INSTANCE;
 
 	/**
 	 * Creates a new {@link JpaRepositoryFactoryBean} for the given repository interface.
@@ -76,19 +85,19 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 	@Override
 	protected RepositoryFactorySupport doCreateRepositoryFactory() {
 
-		Assert.state(entityManager != null,"EntityManager must not be null!");
+		Assert.state(entityManager != null, "EntityManager must not be null!");
 
 		return createRepositoryFactory(entityManager);
 	}
 
 	/**
 	 * Returns a {@link RepositoryFactorySupport}.
-	 *
-	 * @param entityManager
-	 * @return
 	 */
 	protected RepositoryFactorySupport createRepositoryFactory(EntityManager entityManager) {
-		return new JpaRepositoryFactory(entityManager);
+
+		JpaRepositoryFactory jpaRepositoryFactory = new JpaRepositoryFactory(entityManager);
+		jpaRepositoryFactory.setEntityPathResolver(entityPathResolver);
+		return jpaRepositoryFactory;
 	}
 
 	/*
@@ -98,7 +107,47 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 	@Override
 	public void afterPropertiesSet() {
 
-		Assert.state(entityManager != null,"EntityManager must not be null!");
+		Assert.state(entityManager != null, "EntityManager must not be null!");
+
 		super.afterPropertiesSet();
 	}
+
+	/*
+	* (non-Javadoc)
+	* @see org.springframework.beans.factory.BeanFactoryAware#setBeanFactory(org.springframework.beans.factory.BeanFactory)
+	*/
+	public void setBeanFactory(BeanFactory beanFactory) {
+
+		Assert.isInstanceOf(ListableBeanFactory.class, beanFactory);
+
+		super.setBeanFactory(beanFactory);
+
+		entityPathResolver = obtainEntityPathResolver((ListableBeanFactory) beanFactory);
+	}
+
+	private EntityPathResolver obtainEntityPathResolver(ListableBeanFactory listableBeanFactory) {
+
+		Map<String, EntityPathResolver> entityPathResolverMap = listableBeanFactory
+				.getBeansOfType(EntityPathResolver.class);
+
+		switch (entityPathResolverMap.size()) {
+
+			case 0:
+				return SimpleEntityPathResolver.INSTANCE;
+			case 1:
+				return entityPathResolverMap.values().iterator().next();
+			default:
+
+				return entityPathResolverMap.computeIfAbsent( //
+						"entityPathResolver", //
+						key -> { //
+							throw new NoUniqueBeanDefinitionException( //
+									EntityPathResolver.class, //
+									entityPathResolverMap.size(), //
+									"No unique EntityPathResolver found, nor one name 'entityPathResolver'" //
+							);
+						});
+		}
+	}
+
 }

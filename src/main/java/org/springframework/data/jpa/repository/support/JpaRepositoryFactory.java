@@ -30,6 +30,7 @@ import org.springframework.data.jpa.provider.QueryExtractor;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.query.JpaQueryLookupStrategy;
 import org.springframework.data.projection.ProjectionFactory;
+import org.springframework.data.querydsl.EntityPathResolver;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import org.springframework.data.querydsl.SimpleEntityPathResolver;
 import org.springframework.data.repository.core.RepositoryInformation;
@@ -57,6 +58,8 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	private final EntityManager entityManager;
 	private final QueryExtractor extractor;
 	private final CrudMethodMetadataPostProcessor crudMethodMetadataPostProcessor;
+
+	private EntityPathResolver entityPathResolver = SimpleEntityPathResolver.INSTANCE;
 
 	/**
 	 * Creates a new {@link JpaRepositoryFactory}.
@@ -189,11 +192,17 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 			JpaEntityInformation<?, Serializable> entityInformation = getEntityInformation(metadata.getDomainType());
 
 			Object querydslFragment = getTargetRepositoryViaReflection(QuerydslJpaPredicateExecutor.class, entityInformation, entityManager,
-					SimpleEntityPathResolver.INSTANCE, crudMethodMetadataPostProcessor.getCrudMethodMetadata());
+					entityPathResolver, crudMethodMetadataPostProcessor.getCrudMethodMetadata());
 
 			fragments = fragments.append(RepositoryFragment.implemented(querydslFragment));
 		}
 
 		return fragments;
+	}
+
+	public void setEntityPathResolver(EntityPathResolver entityPathResolver) {
+
+		Assert.notNull(entityPathResolver, "entityPathResolver must not be set to null.");
+		this.entityPathResolver = entityPathResolver;
 	}
 }
