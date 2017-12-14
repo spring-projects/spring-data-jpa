@@ -151,7 +151,7 @@ We will create a query using the JPA criteria API from this but essentially this
 |`GreaterThanEqual`|`findByAgeGreaterThanEqual`|`… where x.age >= ?1`
 |`After`|`findByStartDateAfter`|`… where x.startDate > ?1`
 |`Before`|`findByStartDateBefore`|`… where x.startDate < ?1`
-|`IsNull`|`findByAgeIsNull`|`… where x.age is null`
+|`IsNull`|`findByAge(Is)Null`|`… where x.age is null`
 |`IsNotNull,NotNull`|`findByAge(Is)NotNull`|`… where x.age not null`
 |`Like`|`findByFirstnameLike`|`… where x.firstname like ?1`
 |`NotLike`|`findByFirstnameNotLike`|`… where x.firstname not like ?1`
