@@ -493,15 +493,14 @@ public abstract class QueryUtils {
 	 */
 	public static List<javax.persistence.criteria.Order> toOrders(Sort sort, From<?, ?> from, CriteriaBuilder cb) {
 
-		List<javax.persistence.criteria.Order> orders = new ArrayList<javax.persistence.criteria.Order>();
-
 		if (sort.isUnsorted()) {
-			return orders;
+			return Collections.emptyList();
 		}
 
 		Assert.notNull(from, "From must not be null!");
 		Assert.notNull(cb, "CriteriaBuilder must not be null!");
 
+		List<javax.persistence.criteria.Order> orders = new ArrayList<>();
 		for (org.springframework.data.domain.Sort.Order order : sort) {
 			orders.add(toJpaOrder(order, from, cb));
 		}
@@ -646,7 +645,7 @@ public abstract class QueryUtils {
 
 			boolean sameName = join.getAttribute().getName().equals(attribute);
 
-			if (sameName && join.getJoinType().equals(JoinType.LEFT)) {
+			if (sameName && join.getJoinType() == JoinType.LEFT) {
 				return join;
 			}
 		}

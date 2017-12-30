@@ -163,7 +163,6 @@ public class ClasspathScanningPersistenceUnitPostProcessor
 		String basePackagePathComponent = basePackage.replace('.', slash);
 		String path = ResourcePatternResolver.CLASSPATH_ALL_URL_PREFIX + basePackagePathComponent + slash
 				+ mappingFileNamePattern;
-		Set<String> mappingFileUris = new HashSet<String>();
 		Resource[] scannedResources;
 
 		try {
@@ -172,6 +171,7 @@ public class ClasspathScanningPersistenceUnitPostProcessor
 			throw new IllegalStateException(String.format("Cannot load mapping files from path %s!", path), e);
 		}
 
+		Set<String> mappingFileUris = new HashSet<>();
 		for (Resource resource : scannedResources) {
 			try {
 				String resourcePath = getResourcePath(resource.getURI());
