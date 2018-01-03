@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 the original author or authors.
+ * Copyright 2008-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,14 +21,14 @@ import org.springframework.data.repository.config.RepositoryConfigurationExtensi
 
 /**
  * Simple namespace handler for {@literal repositories} namespace.
- * 
+ *
  * @author Oliver Gierke
  */
 public class JpaRepositoryNameSpaceHandler extends NamespaceHandlerSupport {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.springframework.beans.factory.xml.NamespaceHandler#init()
 	 */
 	public void init() {

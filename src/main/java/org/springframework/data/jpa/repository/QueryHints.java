@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2013 the original author or authors.
+ * Copyright 2008-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ import javax.persistence.QueryHint;
  * {@link Query} on a query method or if you derive the query from the method name. If you rely on named queries either
  * use the XML or annotation based way to declare {@link QueryHint}s in combination with the actual named query
  * declaration.
- * 
+ *
  * @author Oliver Gierke
  */
 @Target({ ElementType.METHOD, ElementType.ANNOTATION_TYPE })
@@ -38,7 +38,7 @@ public @interface QueryHints {
 
 	/**
 	 * The {@link QueryHint}s to apply when the query will be executed.
-	 * 
+	 *
 	 * @return
 	 */
 	QueryHint[] value() default {};
@@ -46,7 +46,7 @@ public @interface QueryHints {
 	/**
 	 * Defines whether the configured {@link QueryHint}s shall be applied for count queries during pagination as well.
 	 * Defaults to {@literal true}.
-	 * 
+	 *
 	 * @return
 	 */
 	boolean forCounting() default true;

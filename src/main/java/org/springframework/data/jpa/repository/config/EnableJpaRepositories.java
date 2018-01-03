@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2015 the original author or authors.
+ * Copyright 2012-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 /**
  * Annotation to enable JPA repositories. Will scan the package of the annotated configuration class for Spring Data
  * repositories by default.
- * 
+ *
  * @author Oliver Gierke
  * @author Thomas Darimont
  */
@@ -81,7 +81,7 @@ public @interface EnableJpaRepositories {
 	 * Returns the postfix to be used when looking up custom repository implementations. Defaults to {@literal Impl}. So
 	 * for a repository named {@code PersonRepository} the corresponding implementation class will be looked up scanning
 	 * for {@code PersonRepositoryImpl}.
-	 * 
+	 *
 	 * @return
 	 */
 	String repositoryImplementationPostfix() default "Impl";
@@ -89,7 +89,7 @@ public @interface EnableJpaRepositories {
 	/**
 	 * Configures the location of where to find the Spring Data named queries properties file. Will default to
 	 * {@code META-INF/jpa-named-queries.properties}.
-	 * 
+	 *
 	 * @return
 	 */
 	String namedQueriesLocation() default "";
@@ -97,7 +97,7 @@ public @interface EnableJpaRepositories {
 	/**
 	 * Returns the key of the {@link QueryLookupStrategy} to be used for lookup queries for query methods. Defaults to
 	 * {@link Key#CREATE_IF_NOT_FOUND}.
-	 * 
+	 *
 	 * @return
 	 */
 	Key queryLookupStrategy() default Key.CREATE_IF_NOT_FOUND;
@@ -105,14 +105,14 @@ public @interface EnableJpaRepositories {
 	/**
 	 * Returns the {@link FactoryBean} class to be used for each repository instance. Defaults to
 	 * {@link JpaRepositoryFactoryBean}.
-	 * 
+	 *
 	 * @return
 	 */
 	Class<?> repositoryFactoryBeanClass() default JpaRepositoryFactoryBean.class;
 
 	/**
 	 * Configure the repository base class to be used to create repository proxies for this particular configuration.
-	 * 
+	 *
 	 * @return
 	 * @since 1.9
 	 */
@@ -123,7 +123,7 @@ public @interface EnableJpaRepositories {
 	/**
 	 * Configures the name of the {@link EntityManagerFactory} bean definition to be used to create repositories
 	 * discovered through this annotation. Defaults to {@code entityManagerFactory}.
-	 * 
+	 *
 	 * @return
 	 */
 	String entityManagerFactoryRef() default "entityManagerFactory";
@@ -131,7 +131,7 @@ public @interface EnableJpaRepositories {
 	/**
 	 * Configures the name of the {@link PlatformTransactionManager} bean definition to be used to create repositories
 	 * discovered through this annotation. Defaults to {@code transactionManager}.
-	 * 
+	 *
 	 * @return
 	 */
 	String transactionManagerRef() default "transactionManager";
@@ -146,7 +146,7 @@ public @interface EnableJpaRepositories {
 	 * Configures whether to enable default transactions for Spring Data JPA repositories. Defaults to {@literal true}. If
 	 * disabled, repositories must be used behind a facade that's configuring transactions (e.g. using Spring's annotation
 	 * driven transaction facilities) or repository methods have to be used to demarcate transactions.
-	 * 
+	 *
 	 * @return whether to enable default transactions, defaults to {@literal true}.
 	 */
 	boolean enableDefaultTransactions() default true;

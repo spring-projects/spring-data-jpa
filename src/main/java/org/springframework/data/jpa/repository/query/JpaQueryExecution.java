@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2017 the original author or authors.
+ * Copyright 2008-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@ import org.springframework.util.ReflectionUtils;
  * Set of classes to contain query execution strategies. Depending (mostly) on the return type of a
  * {@link org.springframework.data.repository.query.QueryMethod} a {@link AbstractStringBasedJpaQuery} can be executed
  * in various flavors.
- * 
+ *
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Mark Paluch
@@ -72,7 +72,7 @@ public abstract class JpaQueryExecution {
 
 	/**
 	 * Executes the given {@link AbstractStringBasedJpaQuery} with the given {@link ParameterBinder}.
-	 * 
+	 *
 	 * @param query must not be {@literal null}.
 	 * @param values must not be {@literal null}.
 	 * @return
@@ -109,7 +109,7 @@ public abstract class JpaQueryExecution {
 
 	/**
 	 * Method to implement {@link AbstractStringBasedJpaQuery} executions by single enum values.
-	 * 
+	 *
 	 * @param query
 	 * @param values
 	 * @return
@@ -130,7 +130,7 @@ public abstract class JpaQueryExecution {
 
 	/**
 	 * Executes the query to return a {@link Slice} of entities.
-	 * 
+	 *
 	 * @author Oliver Gierke
 	 * @since 1.6
 	 */
@@ -140,14 +140,14 @@ public abstract class JpaQueryExecution {
 
 		/**
 		 * Creates a new {@link SlicedExecution} using the given {@link Parameters}.
-		 * 
+		 *
 		 * @param parameters must not be {@literal null}.
 		 */
 		public SlicedExecution(Parameters<?, ?> parameters) {
 			this.parameters = parameters;
 		}
 
-		/* 
+		/*
 		 * (non-Javadoc)
 		 * @see org.springframework.data.jpa.repository.query.JpaQueryExecution#doExecute(org.springframework.data.jpa.repository.query.AbstractJpaQuery, java.lang.Object[])
 		 */
@@ -223,7 +223,7 @@ public abstract class JpaQueryExecution {
 		/**
 		 * Creates an execution that automatically clears the given {@link EntityManager} after execution if the given
 		 * {@link EntityManager} is not {@literal null}.
-		 * 
+		 *
 		 * @param em
 		 */
 		public ModifyingExecution(JpaQueryMethod method, @Nullable EntityManager em) {
@@ -253,7 +253,7 @@ public abstract class JpaQueryExecution {
 
 	/**
 	 * {@link JpaQueryExecution} removing entities matching the query.
-	 * 
+	 *
 	 * @author Thomas Darimont
 	 * @author Oliver Gierke
 	 * @since 1.6
@@ -266,7 +266,7 @@ public abstract class JpaQueryExecution {
 			this.em = em;
 		}
 
-		/* 
+		/*
 		 * (non-Javadoc)
 		 * @see org.springframework.data.jpa.repository.query.JpaQueryExecution#doExecute(org.springframework.data.jpa.repository.query.AbstractJpaQuery, java.lang.Object[])
 		 */
@@ -300,13 +300,13 @@ public abstract class JpaQueryExecution {
 
 	/**
 	 * {@link JpaQueryExecution} executing a stored procedure.
-	 * 
+	 *
 	 * @author Thomas Darimont
 	 * @since 1.6
 	 */
 	static class ProcedureExecution extends JpaQueryExecution {
 
-		/* 
+		/*
 		 * (non-Javadoc)
 		 * @see org.springframework.data.jpa.repository.query.JpaQueryExecution#doExecute(org.springframework.data.jpa.repository.query.AbstractJpaQuery, java.lang.Object[])
 		 */
@@ -325,7 +325,7 @@ public abstract class JpaQueryExecution {
 
 	/**
 	 * {@link JpaQueryExecution} executing a Java 8 Stream.
-	 * 
+	 *
 	 * @author Thomas Darimont
 	 * @since 1.8
 	 */
@@ -385,7 +385,7 @@ public abstract class JpaQueryExecution {
 	/**
 	 * Removes the converter being able to convert any object into an {@link Optional} from the given
 	 * {@link ConversionService} in case we're running on Java 8.
-	 * 
+	 *
 	 * @param conversionService must not be {@literal null}.
 	 */
 	public static void potentiallyRemoveOptionalConverter(ConfigurableConversionService conversionService) {

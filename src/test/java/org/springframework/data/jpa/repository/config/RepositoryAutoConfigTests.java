@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 the original author or authors.
+ * Copyright 2008-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ import org.springframework.test.context.ContextConfiguration;
 
 /**
  * Integration test to test repository auto configuration.
- * 
+ *
  * @author Oliver Gierke
  */
 @ContextConfiguration(locations = "classpath:config/namespace-autoconfig-context.xml")

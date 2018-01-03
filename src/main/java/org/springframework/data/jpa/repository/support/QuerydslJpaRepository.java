@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2017 the original author or authors.
+ * Copyright 2008-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -125,7 +125,7 @@ public class QuerydslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 		return executeSorted(createQuery(predicate).select(path), orders);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.querydsl.QuerydslPredicateExecutor#findAll(com.mysema.query.types.Predicate, org.springframework.data.domain.Sort)
 	 */
@@ -137,7 +137,7 @@ public class QuerydslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 		return executeSorted(createQuery(predicate).select(path), sort);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.querydsl.QuerydslPredicateExecutor#findAll(com.mysema.query.types.OrderSpecifier[])
 	 */
@@ -173,7 +173,7 @@ public class QuerydslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 		return createQuery(predicate).fetchCount();
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.querydsl.QueryDslPredicateExecutor#exists(com.mysema.query.types.Predicate)
 	 */

@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2017 the original author or authors.
+ * Copyright 2008-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import org.springframework.util.Assert;
 /**
  * {@link ParameterBinder} is used to bind method parameters to a {@link Query}. This is usually done whenever an
  * {@link AbstractJpaQuery} is executed.
- * 
+ *
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Mark Paluch
@@ -39,7 +39,7 @@ public class ParameterBinder {
 
 	/**
 	 * Creates a new {@link ParameterBinder} for the given {@link JpaParameters} and {@link QueryParameterSetter}s.
-	 * 
+	 *
 	 * @param parameters must not be {@literal null}.
 	 * @param parameterSetters must not be {@literal null}.
 	 */

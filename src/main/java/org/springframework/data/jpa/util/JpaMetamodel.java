@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ import org.springframework.util.Assert;
 
 /**
  * Wrapper around the JPA {@link Metamodel} to be able to apply some fixes against bugs in provider implementations.
- * 
+ *
  * @author Oliver Gierke
  * @author Mark Paluch
  */
@@ -40,7 +40,7 @@ public class JpaMetamodel {
 
 	/**
 	 * Creates a new {@link JpaMetamodel} for the given JPA {@link Metamodel}.
-	 * 
+	 *
 	 * @param metamodel must not be {@literal null}.
 	 */
 	public JpaMetamodel(Metamodel metamodel) {
@@ -52,7 +52,7 @@ public class JpaMetamodel {
 
 	/**
 	 * Returns whether the given type is managed by the backing JPA {@link Metamodel}.
-	 * 
+	 *
 	 * @param type must not be {@literal null}.
 	 * @return
 	 */
@@ -66,7 +66,7 @@ public class JpaMetamodel {
 	/**
 	 * Returns all types managed by the backing {@link Metamodel}. Skips {@link ManagedType} instances that return
 	 * {@literal null} for calls to {@link ManagedType#getJavaType()}.
-	 * 
+	 *
 	 * @return all managed types.
 	 * @see <a href="https://hibernate.atlassian.net/browse/HHH-10968">HHH-10968</a>
 	 */

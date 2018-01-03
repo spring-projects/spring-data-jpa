@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ import org.springframework.data.domain.AuditorAware;
 
 /**
  * Annotation to enable auditing in JPA via annotation configuration.
- * 
+ *
  * @author Thomas Darimont
  * @author Oliver Gierke
  */
@@ -41,21 +41,21 @@ public @interface EnableJpaAuditing {
 
 	/**
 	 * Configures the {@link AuditorAware} bean to be used to lookup the current principal.
-	 * 
+	 *
 	 * @return
 	 */
 	String auditorAwareRef() default "";
 
 	/**
 	 * Configures whether the creation and modification dates are set. Defaults to {@literal true}.
-	 * 
+	 *
 	 * @return
 	 */
 	boolean setDates() default true;
 
 	/**
 	 * Configures whether the entity shall be marked as modified on creation. Defaults to {@literal true}.
-	 * 
+	 *
 	 * @return
 	 */
 	boolean modifyOnCreate() default true;
@@ -63,7 +63,7 @@ public @interface EnableJpaAuditing {
 	/**
 	 * Configures a {@link DateTimeProvider} bean name that allows customizing the {@link org.joda.time.DateTime} to be
 	 * used for setting creation and modification dates.
-	 * 
+	 *
 	 * @return
 	 */
 	String dateTimeProviderRef() default "";

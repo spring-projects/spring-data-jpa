@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2017 the original author or authors.
+ * Copyright 2011-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License
 import org.springframework.aop.framework.Advised;
@@ -54,7 +54,7 @@ import org.springframework.util.Assert;
 
 /**
  * Integration tests for {@link PartTreeJpaQuery}.
- * 
+ *
  * @author Oliver Gierke
  * @author Mark Paluch
  * @author Michael Cramer

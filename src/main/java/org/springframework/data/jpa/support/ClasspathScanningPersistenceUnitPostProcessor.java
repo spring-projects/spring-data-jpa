@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2017 the original author or authors.
+ * Copyright 2011-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@ import org.springframework.util.StringUtils;
  * {@link PersistenceUnitPostProcessor} that will scan for classes annotated with {@link Entity} or
  * {@link MappedSuperclass} and add them to the {@link javax.persistence.PersistenceUnit} post processed. Beyond that
  * JPA XML mapping files can be scanned as well by configuring a file name pattern.
- * 
+ *
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Mark Paluch
@@ -68,7 +68,7 @@ public class ClasspathScanningPersistenceUnitPostProcessor
 
 	/**
 	 * Creates a new {@link ClasspathScanningPersistenceUnitPostProcessor} using the given base package as scan base.
-	 * 
+	 *
 	 * @param basePackage must not be {@literal null} or empty.
 	 */
 	public ClasspathScanningPersistenceUnitPostProcessor(String basePackage) {
@@ -80,7 +80,7 @@ public class ClasspathScanningPersistenceUnitPostProcessor
 	/**
 	 * Configures the file name pattern JPA entity mapping files shall scanned from the classpath. Lookup will use the
 	 * configured base package as root.
-	 * 
+	 *
 	 * @param mappingFilePattern must not be {@literal null} or empty.
 	 */
 	public void setMappingFileNamePattern(String mappingFilePattern) {
@@ -89,7 +89,7 @@ public class ClasspathScanningPersistenceUnitPostProcessor
 		this.mappingFileNamePattern = mappingFilePattern;
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.context.ResourceLoaderAware#setResourceLoader(org.springframework.core.io.ResourceLoader)
 	 */
@@ -100,7 +100,7 @@ public class ClasspathScanningPersistenceUnitPostProcessor
 		this.resourceLoader = resourceLoader;
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.context.EnvironmentAware#setEnvironment(org.springframework.core.env.Environment)
 	 */
@@ -111,7 +111,7 @@ public class ClasspathScanningPersistenceUnitPostProcessor
 		this.environment = environment;
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.orm.jpa.persistenceunit.PersistenceUnitPostProcessor#postProcessPersistenceUnitInfo(org.springframework.orm.jpa.persistenceunit.MutablePersistenceUnitInfo)
 	 */
@@ -143,7 +143,7 @@ public class ClasspathScanningPersistenceUnitPostProcessor
 	 * Scans the configured base package for files matching the configured mapping file name pattern. Will simply return
 	 * an empty {@link Set} in case no {@link ResourceLoader} or mapping file name pattern was configured. Resulting paths
 	 * are resource-loadable from the application classpath according to the JPA spec.
-	 * 
+	 *
 	 * @see javax.persistence.spi.PersistenceUnitInfo#getMappingFileNames()
 	 * @return
 	 */
@@ -154,9 +154,9 @@ public class ClasspathScanningPersistenceUnitPostProcessor
 		}
 
 		/*
-		 * Note that we cannot use File.pathSeparator here since resourcePath uses a forward slash path ('/') separator 
-		 * being an URI, while basePackagePathComponent has system dependent separator (on windows it's the backslash separator). 
-		 * 
+		 * Note that we cannot use File.pathSeparator here since resourcePath uses a forward slash path ('/') separator
+		 * being an URI, while basePackagePathComponent has system dependent separator (on windows it's the backslash separator).
+		 *
 		 * See DATAJPA-407.
 		 */
 		char slash = '/';
@@ -188,7 +188,7 @@ public class ClasspathScanningPersistenceUnitPostProcessor
 	/**
 	 * Returns the path from the given {@link URI}. In case the given {@link URI} is opaque, e.g. beginning with jar:file,
 	 * the path is extracted from URI by leaving out the protocol prefix, see DATAJPA-519.
-	 * 
+	 *
 	 * @param uri
 	 * @return
 	 */

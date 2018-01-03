@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2017 the original author or authors.
+ * Copyright 2008-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ import javax.persistence.TemporalType;
 /**
  * Domain class representing a person emphasizing the use of {@code AbstractEntity}. No declaration of an id is
  * required. The id is typed by the parameterizable superclass.
- * 
+ *
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Christoph Strobl
@@ -119,7 +119,7 @@ public class User {
 
 	/**
 	 * Creates a new instance of {@code User} with preinitialized values for firstname, lastname, email address and roles.
-	 * 
+	 *
 	 * @param firstname
 	 * @param lastname
 	 * @param emailAddress
@@ -155,7 +155,7 @@ public class User {
 
 	/**
 	 * Returns the firstname.
-	 * 
+	 *
 	 * @return the firstname
 	 */
 	public String getFirstname() {
@@ -165,7 +165,7 @@ public class User {
 
 	/**
 	 * Sets the firstname.
-	 * 
+	 *
 	 * @param firstname the firstname to set
 	 */
 	public void setFirstname(final String firstname) {
@@ -175,7 +175,7 @@ public class User {
 
 	/**
 	 * Returns the lastname.
-	 * 
+	 *
 	 * @return the lastname
 	 */
 	public String getLastname() {
@@ -185,7 +185,7 @@ public class User {
 
 	/**
 	 * Sets the lastname.
-	 * 
+	 *
 	 * @param lastname the lastname to set
 	 */
 	public void setLastname(String lastname) {
@@ -209,7 +209,7 @@ public class User {
 
 	/**
 	 * Returns the email address.
-	 * 
+	 *
 	 * @return the emailAddress
 	 */
 	public String getEmailAddress() {
@@ -219,7 +219,7 @@ public class User {
 
 	/**
 	 * Sets the email address.
-	 * 
+	 *
 	 * @param emailAddress the emailAddress to set
 	 */
 	public void setEmailAddress(String emailAddress) {
@@ -243,7 +243,7 @@ public class User {
 
 	/**
 	 * Returns the user's roles.
-	 * 
+	 *
 	 * @return the roles
 	 */
 	public Set<Role> getRoles() {
@@ -261,7 +261,7 @@ public class User {
 
 	/**
 	 * Revokes a role from a user.
-	 * 
+	 *
 	 * @param role
 	 */
 	public void removeRole(Role role) {
@@ -271,7 +271,7 @@ public class User {
 
 	/**
 	 * Returns the colleagues of the user.
-	 * 
+	 *
 	 * @return the colleagues
 	 */
 	public Set<User> getColleagues() {
@@ -281,7 +281,7 @@ public class User {
 
 	/**
 	 * Adds a new colleague to the user. Adding the user himself as colleague is a no-op.
-	 * 
+	 *
 	 * @param collegue
 	 */
 	public void addColleague(User collegue) {
@@ -297,7 +297,7 @@ public class User {
 
 	/**
 	 * Removes a colleague from the list of colleagues.
-	 * 
+	 *
 	 * @param colleague
 	 */
 	public void removeColleague(User colleague) {
@@ -359,7 +359,7 @@ public class User {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
 	@Override
@@ -406,7 +406,7 @@ public class User {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see java.lang.Object#toString()
 	 */
 	@Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import org.springframework.lang.Nullable;
 
 /**
  * Custom extension of {@link Parameters} discovering additional query parameter annotations.
- * 
+ *
  * @author Thomas Darimont
  * @author Mark Paluch
  */
@@ -38,7 +38,7 @@ public class JpaParameters extends Parameters<JpaParameters, JpaParameter> {
 
 	/**
 	 * Creates a new {@link JpaParameters} instance from the given {@link Method}.
-	 * 
+	 *
 	 * @param method must not be {@literal null}.
 	 */
 	public JpaParameters(Method method) {
@@ -49,7 +49,7 @@ public class JpaParameters extends Parameters<JpaParameters, JpaParameter> {
 		super(parameters);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.query.Parameters#createParameter(org.springframework.core.MethodParameter)
 	 */
@@ -58,7 +58,7 @@ public class JpaParameters extends Parameters<JpaParameters, JpaParameter> {
 		return new JpaParameter(parameter);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.query.Parameters#createFrom(java.util.List)
 	 */
@@ -69,7 +69,7 @@ public class JpaParameters extends Parameters<JpaParameters, JpaParameter> {
 
 	/**
 	 * Custom {@link Parameter} implementation adding parameters of type {@link Temporal} to the special ones.
-	 * 
+	 *
 	 * @author Thomas Darimont
 	 * @author Oliver Gierke
 	 */
@@ -80,7 +80,7 @@ public class JpaParameters extends Parameters<JpaParameters, JpaParameter> {
 
 		/**
 		 * Creates a new {@link JpaParameter}.
-		 * 
+		 *
 		 * @param parameter must not be {@literal null}.
 		 */
 		JpaParameter(MethodParameter parameter) {
@@ -96,7 +96,7 @@ public class JpaParameters extends Parameters<JpaParameters, JpaParameter> {
 			}
 		}
 
-		/* 
+		/*
 		 * (non-Javadoc)
 		 * @see org.springframework.data.repository.query.Parameter#isBindable()
 		 */

@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2017 the original author or authors.
+ * Copyright 2008-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import org.springframework.lang.Nullable;
 
 /**
  * Interface to hide different implementations to extract the original JPA query string from a {@link Query}.
- * 
+ *
  * @author Oliver Gierke
  * @author Mark Paluch
  */
@@ -30,7 +30,7 @@ public interface QueryExtractor {
 	/**
 	 * Reverse engineers the query string from the {@link Query} object. This requires provider specific API as JPA does
 	 * not provide access to the underlying query string as soon as one has created a {@link Query} instance of it.
-	 * 
+	 *
 	 * @param query
 	 * @return the query string representing the query or {@literal null} if resolving is not possible.
 	 */
@@ -39,7 +39,7 @@ public interface QueryExtractor {
 
 	/**
 	 * Returns whether the extractor is able to extract the original query string from a given {@link Query}.
-	 * 
+	 *
 	 * @return
 	 */
 	boolean canExtractQuery();

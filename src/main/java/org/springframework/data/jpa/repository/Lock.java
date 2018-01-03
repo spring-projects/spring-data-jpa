@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import javax.persistence.LockModeType;
 /**
  * Annotation used to specify the {@link LockModeType} to be used when executing the query. It will be evaluated when
  * using {@link Query} on a query method or if you derive the query from the method name.
- * 
+ *
  * @author Aleksander Blomskøld
  * @author Oliver Gierke
  */
@@ -37,7 +37,7 @@ public @interface Lock {
 
 	/**
 	 * The {@link LockModeType} to be used when executing the annotated query or CRUD method.
-	 * 
+	 *
 	 * @return
 	 */
 	LockModeType value();

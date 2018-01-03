@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2017 the original author or authors.
+ * Copyright 2008-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ import org.springframework.util.ClassUtils;
 
 /**
  * Unit test for {@code JpaRepositoryFactory}.
- * 
+ *
  * @author Oliver Gierke
  * @author Thomas Darimont
  */
@@ -84,7 +84,7 @@ public class JpaRepositoryFactoryUnitTests {
 
 	/**
 	 * Assert that the instance created for the standard configuration is a valid {@code UserRepository}.
-	 * 
+	 *
 	 * @throws Exception
 	 */
 	@Test
@@ -107,7 +107,7 @@ public class JpaRepositoryFactoryUnitTests {
 	 * Asserts that the factory recognized configured repository classes that contain custom method but no custom
 	 * implementation could be found. Furthremore the exception has to contain the name of the repository interface as for
 	 * a large repository configuration it's hard to find out where this error occured.
-	 * 
+	 *
 	 * @throws Exception
 	 */
 	@Test
@@ -187,7 +187,7 @@ public class JpaRepositoryFactoryUnitTests {
 
 	/**
 	 * Sample interface to contain a custom method.
-	 * 
+	 *
 	 * @author Oliver Gierke
 	 */
 	public interface SampleCustomRepository {
@@ -199,7 +199,7 @@ public class JpaRepositoryFactoryUnitTests {
 
 	/**
 	 * Implementation of the custom repository interface.
-	 * 
+	 *
 	 * @author Oliver Gierke
 	 */
 	private class SampleCustomRepositoryImpl implements SampleCustomRepository {

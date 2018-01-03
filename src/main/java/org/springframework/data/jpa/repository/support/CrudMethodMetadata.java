@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2017 the original author or authors.
+ * Copyright 2011-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import org.springframework.lang.Nullable;
 /**
  * Interface to abstract {@link CrudMethodMetadata} that provide the {@link LockModeType} to be used for query
  * execution.
- * 
+ *
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Christoph Strobl
@@ -37,7 +37,7 @@ public interface CrudMethodMetadata {
 
 	/**
 	 * Returns the {@link LockModeType} to be used.
-	 * 
+	 *
 	 * @return
 	 */
 	@Nullable
@@ -45,14 +45,14 @@ public interface CrudMethodMetadata {
 
 	/**
 	 * Returns all query hints to be applied to queries executed for the CRUD method.
-	 * 
+	 *
 	 * @return
 	 */
 	Map<String, Object> getQueryHints();
 
 	/**
 	 * Returns the {@link EntityGraph} to be used.
-	 * 
+	 *
 	 * @return
 	 * @since 1.9
 	 */
@@ -60,7 +60,7 @@ public interface CrudMethodMetadata {
 
 	/**
 	 * Returns the {@link Method} to be used.
-	 * 
+	 *
 	 * @return
 	 * @since 1.9
 	 */

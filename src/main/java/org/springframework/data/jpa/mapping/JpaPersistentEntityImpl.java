@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2017 the original author or authors.
+ * Copyright 2012-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import org.springframework.util.Assert;
 
 /**
  * Implementation of {@link JpaPersistentEntity}.
- * 
+ *
  * @author Oliver Gierke
  * @author Greg Turnquist
  * @author Christoph Strobl
@@ -45,7 +45,7 @@ class JpaPersistentEntityImpl<T> extends BasicPersistentEntity<T, JpaPersistentP
 
 	/**
 	 * Creates a new {@link JpaPersistentEntityImpl} using the given {@link TypeInformation} and {@link Comparator}.
-	 * 
+	 *
 	 * @param information must not be {@literal null}.
 	 * @param proxyIdAccessor must not be {@literal null}.
 	 */
@@ -57,7 +57,7 @@ class JpaPersistentEntityImpl<T> extends BasicPersistentEntity<T, JpaPersistentP
 		this.proxyIdAccessor = proxyIdAccessor;
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.mapping.model.BasicPersistentEntity#returnPropertyIfBetterIdPropertyCandidateOrNull(org.springframework.data.mapping.PersistentProperty)
 	 */
@@ -66,7 +66,7 @@ class JpaPersistentEntityImpl<T> extends BasicPersistentEntity<T, JpaPersistentP
 		return property.isIdProperty() ? property : null;
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.mapping.model.BasicPersistentEntity#getIdentifierAccessor(java.lang.Object)
 	 */
@@ -75,7 +75,7 @@ class JpaPersistentEntityImpl<T> extends BasicPersistentEntity<T, JpaPersistentP
 		return new JpaProxyAwareIdentifierAccessor(this, bean, proxyIdAccessor);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.mapping.model.BasicPersistentEntity#verify()
 	 */
@@ -108,7 +108,7 @@ class JpaPersistentEntityImpl<T> extends BasicPersistentEntity<T, JpaPersistentP
 		/**
 		 * Creates a new {@link JpaProxyAwareIdentifierAccessor} for the given {@link JpaPersistentEntity}, target bean and
 		 * {@link ProxyIdAccessor}.
-		 * 
+		 *
 		 * @param entity must not be {@literal null}.
 		 * @param bean must not be {@literal null}.
 		 * @param proxyIdAccessor must not be {@literal null}.
@@ -124,7 +124,7 @@ class JpaPersistentEntityImpl<T> extends BasicPersistentEntity<T, JpaPersistentP
 			this.bean = bean;
 		}
 
-		/* 
+		/*
 		 * (non-Javadoc)
 		 * @see org.springframework.data.mapping.IdentifierAccessor#getIdentifier()
 		 */

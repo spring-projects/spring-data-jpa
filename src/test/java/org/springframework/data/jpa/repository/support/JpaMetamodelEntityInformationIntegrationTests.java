@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2017 the original author or authors.
+ * Copyright 2011-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,7 +62,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * Integration tests for {@link JpaMetamodelEntityInformation}.
- * 
+ *
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Christoph Strobl
@@ -83,7 +83,7 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 	/**
 	 * Ignored for Hibernate as it does not implement {@link Metamodel#managedType(Class)} correctly (does not consider
 	 * {@link MappedSuperclass}es correctly).
-	 * 
+	 *
 	 * @see <a href="https://hibernate.atlassian.net/browse/HHH-6896">HHH-6896</a>
 	 */
 	@Test // DATAJPA-141

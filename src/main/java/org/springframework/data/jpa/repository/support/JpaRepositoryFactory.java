@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2017 the original author or authors.
+ * Copyright 2008-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,7 @@ import org.springframework.util.Assert;
 
 /**
  * JPA specific generic repository factory.
- * 
+ *
  * @author Oliver Gierke
  * @author Mark Paluch
  * @author Christoph Strobl
@@ -56,7 +56,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 
 	/**
 	 * Creates a new {@link JpaRepositoryFactory}.
-	 * 
+	 *
 	 * @param entityManager must not be {@literal null}
 	 */
 	public JpaRepositoryFactory(EntityManager entityManager) {
@@ -70,7 +70,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 		addRepositoryProxyPostProcessor(crudMethodMetadataPostProcessor);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.core.support.RepositoryFactorySupport#setBeanClassLoader(java.lang.ClassLoader)
 	 */
@@ -96,7 +96,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 
 	/**
 	 * Callback to create a {@link JpaRepository} instance with the given {@link EntityManager}
-	 * 
+	 *
 	 * @param information will never be {@literal null}.
 	 * @param entityManager will never be {@literal null}.
 	 * @return
@@ -142,7 +142,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 
 	/**
 	 * Returns whether the given repository interface requires a QueryDsl specific implementation to be chosen.
-	 * 
+	 *
 	 * @param repositoryInterface
 	 * @return
 	 */
@@ -151,7 +151,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 		return QUERY_DSL_PRESENT && QuerydslPredicateExecutor.class.isAssignableFrom(repositoryInterface);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.core.support.RepositoryFactorySupport#getQueryLookupStrategy(org.springframework.data.repository.query.QueryLookupStrategy.Key, org.springframework.data.repository.query.EvaluationContextProvider)
 	 */

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2017 the original author or authors.
+ * Copyright 2011-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import org.springframework.lang.Nullable;
 
 /**
  * Extension of {@link JpaMetamodelEntityInformation} that consideres methods of {@link Persistable} to lookup the id.
- * 
+ *
  * @author Oliver Gierke
  * @author Christoph Strobl
  * @author Mark Paluch
@@ -32,7 +32,7 @@ public class JpaPersistableEntityInformation<T extends Persistable<ID>, ID>
 
 	/**
 	 * Creates a new {@link JpaPersistableEntityInformation} for the given domain class and {@link Metamodel}.
-	 * 
+	 *
 	 * @param domainClass must not be {@literal null}.
 	 * @param metamodel must not be {@literal null}.
 	 */

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ import org.springframework.util.Assert;
  * <ol>
  * <li>{@code #entityName} - the simple class name of the given entity</li>
  * <ol>
- * 
+ *
  * @author Thomas Darimont
  * @author Oliver Gierke
  */
@@ -50,7 +50,7 @@ class ExpressionBasedStringQuery extends StringQuery {
 
 	/**
 	 * Creates a new {@link ExpressionBasedStringQuery} for the given query and {@link EntityMetadata}.
-	 * 
+	 *
 	 * @param query must not be {@literal null} or empty.
 	 * @param metadata must not be {@literal null}.
 	 * @param parser must not be {@literal null}.

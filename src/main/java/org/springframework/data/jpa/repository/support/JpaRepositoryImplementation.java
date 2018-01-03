@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import org.springframework.data.repository.NoRepositoryBean;
 
 /**
  * SPI interface to be implemented by {@link JpaRepository} implementations.
- * 
+ *
  * @author Oliver Gierke
  * @author Stefan Fussenegger
  */
@@ -30,7 +30,7 @@ public interface JpaRepositoryImplementation<T, ID> extends JpaRepository<T, ID>
 
 	/**
 	 * Configures the {@link CrudMethodMetadata} to be used with the repository.
-	 * 
+	 *
 	 * @param crudMethodMetadata must not be {@literal null}.
 	 */
 	void setRepositoryMethodMetadata(CrudMethodMetadata crudMethodMetadata);

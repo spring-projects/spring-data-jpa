@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ import org.springframework.util.StringUtils;
 /**
  * {@link AbstractJpaQuery} implementation that inspects a {@link JpaQueryMethod} for the existence of an
  * {@link Procedure} annotation and creates a JPA 2.1 {@link StoredProcedureQuery} from it.
- * 
+ *
  * @author Thomas Darimont
  * @author Oliver Gierke
  * @author Christoph Strobl
@@ -46,7 +46,7 @@ class StoredProcedureJpaQuery extends AbstractJpaQuery {
 
 	/**
 	 * Creates a new {@link StoredProcedureJpaQuery}.
-	 * 
+	 *
 	 * @param method must not be {@literal null}
 	 * @param em must not be {@literal null}
 	 */
@@ -60,7 +60,7 @@ class StoredProcedureJpaQuery extends AbstractJpaQuery {
 
 	/**
 	 * Determine whether to used named parameters for the given query method.
-	 * 
+	 *
 	 * @param method must not be {@literal null}.
 	 */
 	private static boolean useNamedParameters(QueryMethod method) {
@@ -83,7 +83,7 @@ class StoredProcedureJpaQuery extends AbstractJpaQuery {
 		return applyHints(doCreateQuery(values), getQueryMethod());
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.query.AbstractJpaQuery#doCreateQuery(java.lang.Object[])
 	 */
@@ -92,7 +92,7 @@ class StoredProcedureJpaQuery extends AbstractJpaQuery {
 		return parameterBinder.get().bind(createStoredProcedure(), values);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.query.AbstractJpaQuery#doCreateCountQuery(java.lang.Object[])
 	 */
@@ -103,7 +103,7 @@ class StoredProcedureJpaQuery extends AbstractJpaQuery {
 
 	/**
 	 * Extracts the output value from the given {@link StoredProcedureQuery}.
-	 * 
+	 *
 	 * @param storedProcedureQuery must not be {@literal null}.
 	 */
 	@Nullable

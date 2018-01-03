@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * EntityGraph configuration for JPA 2.1 {@link EntityGraph}s.
- * 
+ *
  * @author Thomas Darimont
  * @author Mark Paluch
  * @since 1.6
@@ -41,7 +41,7 @@ public class JpaEntityGraph {
 
 	/**
 	 * Creates an {@link JpaEntityGraph}.
-	 * 
+	 *
 	 * @param entityGraph must not be {@literal null}.
 	 * @param nameFallback must not be {@literal null} or empty.
 	 */
@@ -52,7 +52,7 @@ public class JpaEntityGraph {
 
 	/**
 	 * Creates an {@link JpaEntityGraph} with the given name, {@link EntityGraphType} and attribute paths.
-	 * 
+	 *
 	 * @param name must not be {@literal null} or empty.
 	 * @param type must not be {@literal null}.
 	 * @param attributePaths may be {@literal null}.
@@ -70,7 +70,7 @@ public class JpaEntityGraph {
 
 	/**
 	 * Returns the name of the {@link EntityGraph} configuration to use.
-	 * 
+	 *
 	 * @return
 	 */
 	public String getName() {
@@ -79,7 +79,7 @@ public class JpaEntityGraph {
 
 	/**
 	 * Returns the {@link EntityGraphType} of the {@link EntityGraph} to use.
-	 * 
+	 *
 	 * @return
 	 */
 	public EntityGraphType getType() {
@@ -88,7 +88,7 @@ public class JpaEntityGraph {
 
 	/**
 	 * Returns the attribute node names to be used for this {@link JpaEntityGraph}.
-	 * 
+	 *
 	 * @return
 	 * @since 1.9
 	 */
@@ -98,7 +98,7 @@ public class JpaEntityGraph {
 
 	/**
 	 * Return {@literal true} if this {@link JpaEntityGraph} needs to be generated on-the-fly.
-	 * 
+	 *
 	 * @return
 	 * @since 1.9
 	 */
@@ -106,7 +106,7 @@ public class JpaEntityGraph {
 		return !attributePaths.isEmpty();
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */

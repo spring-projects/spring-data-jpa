@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2017 the original author or authors.
+ * Copyright 2008-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Custom Extended repository interface for a {@code User}. This relies on the custom intermediate repository interface
  * {@link CustomGenericRepository}.
- * 
+ *
  * @author Oliver Gierke
  */
 public interface UserCustomExtendedRepository extends CustomGenericRepository<User, Integer> {

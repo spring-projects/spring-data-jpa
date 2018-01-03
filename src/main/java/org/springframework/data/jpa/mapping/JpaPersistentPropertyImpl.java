@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2017 the original author or authors.
+ * Copyright 2012-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,7 +52,7 @@ import org.springframework.util.Assert;
 
 /**
  * {@link JpaPersistentProperty} implementation usind a JPA {@link Metamodel}.
- * 
+ *
  * @author Oliver Gierke
  * @author Greg Turnquist
  * @author Christoph Strobl
@@ -97,7 +97,7 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 
 	/**
 	 * Creates a new {@link JpaPersistentPropertyImpl}
-	 * 
+	 *
 	 * @param metamodel must not be {@literal null}.
 	 * @param property must not be {@literal null}.
 	 * @param owner must not be {@literal null}.
@@ -116,7 +116,7 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 		this.metamodel = new JpaMetamodel(metamodel);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.mapping.model.AbstractPersistentProperty#getActualType()
 	 */
@@ -125,7 +125,7 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 		return associationTargetType != null ? associationTargetType.getType() : super.getActualType();
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.mapping.model.AbstractPersistentProperty#getPersistentEntityType()
 	 */
@@ -135,7 +135,7 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 				: super.getPersistentEntityType();
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.mapping.model.AnnotationBasedPersistentProperty#isIdProperty()
 	 */
@@ -144,7 +144,7 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 		return ID_ANNOTATIONS.stream().anyMatch(it -> isAnnotationPresent(it));
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.mapping.model.AbstractPersistentProperty#isEntity()
 	 */
@@ -153,7 +153,7 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 		return metamodel.isJpaManaged(getActualType());
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.mapping.model.AnnotationBasedPersistentProperty#isAssociation()
 	 */
@@ -169,7 +169,7 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 		return getType().isAnnotationPresent(Embeddable.class);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.mapping.model.AnnotationBasedPersistentProperty#isTransient()
 	 */
@@ -178,7 +178,7 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 		return isAnnotationPresent(Transient.class) || super.isTransient();
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.mapping.model.AbstractPersistentProperty#createAssociation()
 	 */
@@ -187,7 +187,7 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 		return new Association<JpaPersistentProperty>(this, null);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.mapping.model.AnnotationBasedPersistentProperty#usePropertyAccess()
 	 */
@@ -205,7 +205,7 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 		return isAnnotationPresent(Version.class);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.mapping.model.AnnotationBasedPersistentProperty#isWritable()
 	 */
@@ -219,7 +219,7 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 	 * the access type to be used. Will consider property-level annotations over type-level ones, favoring the Spring Data
 	 * ones over the JPA ones if found on the same level. Returns {@literal null} if no explicit annotation can be found
 	 * falling back to the defaults implemented in the super class.
-	 * 
+	 *
 	 * @return
 	 */
 	@Nullable
@@ -255,7 +255,7 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 
 	/**
 	 * Inspects the association annotations on the property and returns the target entity type if specified.
-	 * 
+	 *
 	 * @return
 	 */
 	@Nullable
@@ -288,7 +288,7 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 	/**
 	 * Checks whether {@code updatable} attribute of any of the {@link #UPDATEABLE_ANNOTATIONS} is configured to
 	 * {@literal true}.
-	 * 
+	 *
 	 * @return
 	 */
 	private boolean detectUpdatability() {

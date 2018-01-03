@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import org.springframework.test.context.ContextConfiguration;
 /**
  * Test case to run {@link StoredProcedureIntegrationTests} integration tests on top of OpenJpa. This is currently not
  * supported since, the OpenJPA tests need to be executed with hsqldb1 which doesn't supported stored procedures.
- * 
+ *
  * @author Thomas Darimont
  * @author Oliver Gierke
  */

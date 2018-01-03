@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2017 the original author or authors.
+ * Copyright 2011-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ import org.springframework.orm.jpa.persistenceunit.MutablePersistenceUnitInfo;
 /**
  * Extends {@link DefaultPersistenceUnitManager} to merge configurations of one persistence unit residing in multiple
  * {@code persistence.xml} files into one. This is necessary to allow the declaration of entities in seperate modules.
- * 
+ *
  * @author Oliver Gierke
  * @link http://jira.springframework.org/browse/SPR-2598
  */

@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2017 the original author or authors.
+ * Copyright 2008-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ import org.springframework.lang.Nullable;
 
 /**
  * A {@link AbstractJpaQuery} implementation based on a {@link PartTree}.
- * 
+ *
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Christoph Strobl
@@ -56,7 +56,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 
 	/**
 	 * Creates a new {@link PartTreeJpaQuery}.
-	 * 
+	 *
 	 * @param method must not be {@literal null}.
 	 * @param em must not be {@literal null}.
 	 * @param persistenceProvider must not be {@literal null}.
@@ -102,7 +102,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 		return (TypedQuery<Long>) countQuery.createQuery(values);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.query.AbstractJpaQuery#getExecution()
 	 */
@@ -120,7 +120,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 
 	/**
 	 * Query preparer to create {@link CriteriaQuery} instances and potentially cache them.
-	 * 
+	 *
 	 * @author Oliver Gierke
 	 * @author Thomas Darimont
 	 */
@@ -182,7 +182,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 				if (query.getMaxResults() != Integer.MAX_VALUE) {
 					/*
 					 * In order to return the correct results, we have to adjust the first result offset to be returned if:
-					 * - a Pageable parameter is present 
+					 * - a Pageable parameter is present
 					 * - AND the requested page number > 0
 					 * - AND the requested page size was bigger than the derived result limitation via the First/Top keyword.
 					 */
@@ -205,7 +205,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 		 * Checks whether we are working with a cached {@link CriteriaQuery} and synchronizes the creation of a
 		 * {@link TypedQuery} instance from it. This is due to non-thread-safety in the {@link CriteriaQuery} implementation
 		 * of some persistence providers (i.e. Hibernate in this case), see DATAJPA-396.
-		 * 
+		 *
 		 * @param criteriaQuery must not be {@literal null}.
 		 */
 		private TypedQuery<?> createQuery(CriteriaQuery<?> criteriaQuery) {
@@ -258,7 +258,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 
 	/**
 	 * Special {@link QueryPreparer} to create count queries.
-	 * 
+	 *
 	 * @author Oliver Gierke
 	 * @author Thomas Darimont
 	 */
@@ -288,7 +288,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 
 		/**
 		 * Customizes binding by skipping the pagination.
-		 * 
+		 *
 		 * @see QueryPreparer#invokeBinding(ParameterBinder, TypedQuery, Object[])
 		 */
 		@Override

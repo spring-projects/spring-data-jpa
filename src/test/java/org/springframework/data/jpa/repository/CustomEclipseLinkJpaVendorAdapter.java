@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017 the original author or authors.
+ * Copyright 2015-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,13 +23,13 @@ import org.springframework.orm.jpa.vendor.EclipseLinkJpaVendorAdapter;
 /**
  * Custom {@link EclipseLinkJpaVendorAdapter} to customize the {@link DatabasePlatform} to be sued with EclipseLink to
  * work around a bug in stored procedure execution on HSQLDB.
- * 
+ *
  * @author Oliver Gierke
  * @see <a href="https://bugs.eclipse.org/bugs/show_bug.cgi?id=467072">https://bugs.eclipse.org/bugs/show_bug.cgi?id=467072</a>
  */
 public class CustomEclipseLinkJpaVendorAdapter extends EclipseLinkJpaVendorAdapter {
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.orm.jpa.vendor.EclipseLinkJpaVendorAdapter#determineTargetDatabaseName(org.springframework.orm.jpa.vendor.Database)
 	 */
@@ -45,14 +45,14 @@ public class CustomEclipseLinkJpaVendorAdapter extends EclipseLinkJpaVendorAdapt
 
 	/**
 	 * Workaround {@link HSQLPlatform} to make sure EclipseLink uses the right syntax to call stored procedures on HSQL.
-	 * 
+	 *
 	 * @author Oliver Gierke
 	 * @see <a href="https://bugs.eclipse.org/bugs/show_bug.cgi?id=467072">https://bugs.eclipse.org/bugs/show_bug.cgi?id=467072</a>
 	 */
 	@SuppressWarnings("serial")
 	public static class EclipseLinkHsqlPlatform extends HSQLPlatform {
 
-		/* 
+		/*
 		 * (non-Javadoc)
 		 * @see org.eclipse.persistence.internal.databaseaccess.DatabasePlatform#getProcedureCallHeader()
 		 */

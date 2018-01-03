@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2017 the original author or authors.
+ * Copyright 2011-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,7 @@ import org.springframework.util.ClassUtils;
 /**
  * Implementation of {@link org.springframework.data.repository.core.EntityInformation} that uses JPA {@link Metamodel}
  * to find the domain class' id field.
- * 
+ *
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Christoph Strobl
@@ -58,7 +58,7 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 
 	/**
 	 * Creates a new {@link JpaMetamodelEntityInformation} for the given domain class and {@link Metamodel}.
-	 * 
+	 *
 	 * @param domainClass must not be {@literal null}.
 	 * @param metamodel must not be {@literal null}.
 	 */
@@ -98,7 +98,7 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 
 	/**
 	 * Returns the version attribute of the given {@link ManagedType} or {@literal null} if none available.
-	 * 
+	 *
 	 * @param type must not be {@literal null}.
 	 * @param metamodel must not be {@literal null}.
 	 * @return
@@ -219,7 +219,7 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 		return new DirectFieldAccessFallbackBeanWrapper(id).getPropertyValue(idAttribute);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.core.support.AbstractEntityInformation#isNew(java.lang.Object)
 	 */
@@ -238,7 +238,7 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 
 	/**
 	 * Simple value object to encapsulate id specific metadata.
-	 * 
+	 *
 	 * @author Oliver Gierke
 	 * @author Thomas Darimont
 	 */
@@ -300,7 +300,7 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 			return attributes.iterator().next();
 		}
 
-		/* 
+		/*
 		 * (non-Javadoc)
 		 * @see java.lang.Iterable#iterator()
 		 */
@@ -312,7 +312,7 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 	/**
 	 * Custom extension of {@link DirectFieldAccessFallbackBeanWrapper} that allows to derive the identifier if composite
 	 * keys with complex key attribute types (e.g. types that are annotated with {@code @Entity} themselves) are used.
-	 * 
+	 *
 	 * @author Thomas Darimont
 	 */
 	private static class IdentifierDerivingDirectFieldAccessFallbackBeanWrapper

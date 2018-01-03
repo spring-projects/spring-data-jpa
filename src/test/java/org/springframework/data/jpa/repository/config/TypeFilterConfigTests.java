@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 the original author or authors.
+ * Copyright 2008-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import org.springframework.test.context.ContextConfiguration;
 
 /**
  * Integration test to test {@link org.springframework.core.type.filter.TypeFilter} integration into namespace.
- * 
+ *
  * @author Oliver Gierke
  */
 @ContextConfiguration(locations = "classpath:config/namespace-autoconfig-typefilter-context.xml")
@@ -29,7 +29,7 @@ public class TypeFilterConfigTests extends AbstractRepositoryConfigTests {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * org.springframework.data.jpa.repository.config.AbstractRepositoryConfigTests
 	 * #testContextCreation()

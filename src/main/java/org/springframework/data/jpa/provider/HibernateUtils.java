@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import org.springframework.util.ReflectionUtils;
 /**
  * Utility functions to work with Hibernate. Mostly using reflection to make sure common functionality can be executed
  * against all the Hibernate version we support.
- * 
+ *
  * @author Oliver Gierke
  * @author Mark Paluch
  * @since 1.10.2
@@ -71,7 +71,7 @@ public abstract class HibernateUtils {
 
 	/**
 	 * Return the query string of the underlying native Hibernate query.
-	 * 
+	 *
 	 * @param query
 	 * @return
 	 */

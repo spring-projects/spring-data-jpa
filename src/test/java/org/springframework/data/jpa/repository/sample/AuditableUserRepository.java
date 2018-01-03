@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2015 the original author or authors.
+ * Copyright 2008-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import org.springframework.data.jpa.repository.Query;
 
 /**
  * Repository interface for {@code AuditableUser}.
- * 
+ *
  * @author Oliver Gierke
  * @author Thomas Darimont
  */
@@ -32,7 +32,7 @@ public interface AuditableUserRepository extends JpaRepository<AuditableUser, Lo
 
 	/**
 	 * Returns all users with the given firstname.
-	 * 
+	 *
 	 * @param firstname
 	 * @return all users with the given firstname.
 	 */

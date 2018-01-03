@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2017 the original author or authors.
+ * Copyright 2008-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ import com.google.common.base.Optional;
 
 /**
  * Repository interface for {@code User}s.
- * 
+ *
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Kevin Peters
@@ -56,7 +56,7 @@ public interface UserRepository
 	/**
 	 * Retrieve users by their lastname. The finder {@literal User.findByLastname} is declared in
 	 * {@literal META-INF/orm.xml} .
-	 * 
+	 *
 	 * @param lastname
 	 * @return all users with the given lastname
 	 */
@@ -79,7 +79,7 @@ public interface UserRepository
 	/**
 	 * Retrieve users by their email address. The finder {@literal User.findByEmailAddress} is declared as annotation at
 	 * {@code User}.
-	 * 
+	 *
 	 * @param emailAddress
 	 * @return the user with the given email address
 	 */
@@ -90,7 +90,7 @@ public interface UserRepository
 
 	/**
 	 * Retrieves users by the given email and lastname. Acts as a dummy method declaration to test finder query creation.
-	 * 
+	 *
 	 * @param emailAddress
 	 * @param lastname
 	 * @return the user with the given email address and lastname
@@ -100,7 +100,7 @@ public interface UserRepository
 	/**
 	 * Retrieves users by email address and lastname or firstname. Acts as a dummy method declaration to test finder query
 	 * creation.
-	 * 
+	 *
 	 * @param emailAddress
 	 * @param lastname
 	 * @param username
@@ -110,7 +110,7 @@ public interface UserRepository
 
 	/**
 	 * Retrieves a user by its username using the query annotated to the method.
-	 * 
+	 *
 	 * @param emailAddress
 	 * @return
 	 */
@@ -120,7 +120,7 @@ public interface UserRepository
 
 	/**
 	 * Method to directly create query from and adding a {@link Pageable} parameter to be regarded on query execution.
-	 * 
+	 *
 	 * @param pageable
 	 * @param lastname
 	 * @return
@@ -130,7 +130,7 @@ public interface UserRepository
 	/**
 	 * Method to directly create query from and adding a {@link Pageable} parameter to be regarded on query execution.
 	 * Just returns the queried {@link Page}'s contents.
-	 * 
+	 *
 	 * @param firstname
 	 * @param pageable
 	 * @return
@@ -151,7 +151,7 @@ public interface UserRepository
 
 	/**
 	 * Manipulating query to set all {@link User}'s names to the given one.
-	 * 
+	 *
 	 * @param lastname
 	 */
 	@Modifying
@@ -163,7 +163,7 @@ public interface UserRepository
 
 	/**
 	 * Method where parameters will be applied by name. Note that the order of the parameters is then not crucial anymore.
-	 * 
+	 *
 	 * @param foo
 	 * @param bar
 	 * @return
@@ -176,7 +176,7 @@ public interface UserRepository
 
 	/**
 	 * Method to check query creation and named parameter usage go well hand in hand.
-	 * 
+	 *
 	 * @param lastname
 	 * @param firstname
 	 * @return

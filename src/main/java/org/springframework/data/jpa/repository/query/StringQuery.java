@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,7 +53,7 @@ class StringQuery {
 
 	/**
 	 * Creates a new {@link StringQuery} from the given JPQL query.
-	 * 
+	 *
 	 * @param query must not be {@literal null} or empty.
 	 */
 	StringQuery(String query) {
@@ -90,7 +90,7 @@ class StringQuery {
 
 	/**
 	 * Returns the main alias used in the query.
-	 * 
+	 *
 	 * @return the alias
 	 */
 	@Nullable
@@ -100,7 +100,7 @@ class StringQuery {
 
 	/**
 	 * Returns whether the query is using a constructor expression.
-	 * 
+	 *
 	 * @since 1.10
 	 */
 	boolean hasConstructorExpression() {
@@ -116,7 +116,7 @@ class StringQuery {
 
 	/**
 	 * A parser that extracts the parameter bindings from a given query string.
-	 * 
+	 *
 	 * @author Thomas Darimont
 	 */
 	public enum ParameterBindingParser {
@@ -187,7 +187,7 @@ class StringQuery {
 
 			/*
 			 * If parameters need to be bound by index, we bind the synthetic expression parameters starting from position of the greatest discovered index parameter in order to
-			 * not mix-up with the actual parameter indices.  
+			 * not mix-up with the actual parameter indices.
 			 */
 			int expressionParameterIndex = parametersShouldBeAccessedByIndex ? greatestParameterIndex : 0;
 
@@ -295,7 +295,7 @@ class StringQuery {
 
 		/**
 		 * An enum for the different types of bindings.
-		 * 
+		 *
 		 * @author Thomas Darimont
 		 * @author Oliver Gierke
 		 */
@@ -314,7 +314,7 @@ class StringQuery {
 			/**
 			 * Returns the keyword that will tirgger the binding type or {@literal null} if the type is not triggered by a
 			 * keyword.
-			 * 
+			 *
 			 * @return the keyword
 			 */
 			@Nullable
@@ -345,7 +345,7 @@ class StringQuery {
 
 	/**
 	 * A generic parameter binding with name or position information.
-	 * 
+	 *
 	 * @author Thomas Darimont
 	 */
 	static class ParameterBinding {
@@ -356,7 +356,7 @@ class StringQuery {
 
 		/**
 		 * Creates a new {@link ParameterBinding} for the parameter with the given position.
-		 * 
+		 *
 		 * @param position must not be {@literal null}.
 		 */
 		ParameterBinding(Integer position) {
@@ -366,7 +366,7 @@ class StringQuery {
 		/**
 		 * Creates a new {@link ParameterBinding} for the parameter with the given name, position and expression
 		 * information. Either {@literal name} or {@literal position} must be not {@literal null}.
-		 * 
+		 *
 		 * @param name of the parameter may be {@literal null}.
 		 * @param position of the parameter may be {@literal null}.
 		 * @param expression the expression to apply to any value for this parameter.
@@ -490,7 +490,7 @@ class StringQuery {
 					&& nullSafeEquals(this.expression, that.expression);
 		}
 
-		/* 
+		/*
 		 * (non-Javadoc)
 		 * @see java.lang.Object#toString()
 		 */
@@ -517,7 +517,7 @@ class StringQuery {
 	/**
 	 * Represents a {@link ParameterBinding} in a JPQL query augmented with instructions of how to apply a parameter as an
 	 * {@code IN} parameter.
-	 * 
+	 *
 	 * @author Thomas Darimont
 	 */
 	static class InParameterBinding extends ParameterBinding {
@@ -536,7 +536,7 @@ class StringQuery {
 			super(null, position, expression);
 		}
 
-		/* 
+		/*
 		 * (non-Javadoc)
 		 * @see org.springframework.data.jpa.repository.query.StringQuery.ParameterBinding#prepare(java.lang.Object)
 		 */
@@ -561,7 +561,7 @@ class StringQuery {
 	/**
 	 * Represents a parameter binding in a JPQL query augmented with instructions of how to apply a parameter as LIKE
 	 * parameter. This allows expressions like {@code …like %?1} in the JPQL query, which is not allowed by plain JPA.
-	 * 
+	 *
 	 * @author Oliver Gierke
 	 * @author Thomas Darimont
 	 */
@@ -574,7 +574,7 @@ class StringQuery {
 
 		/**
 		 * Creates a new {@link LikeParameterBinding} for the parameter with the given name and {@link Type}.
-		 * 
+		 *
 		 * @param name must not be {@literal null} or empty.
 		 * @param type must not be {@literal null}.
 		 */
@@ -585,7 +585,7 @@ class StringQuery {
 		/**
 		 * Creates a new {@link LikeParameterBinding} for the parameter with the given name and {@link Type} and parameter
 		 * binding input.
-		 * 
+		 *
 		 * @param name must not be {@literal null} or empty.
 		 * @param type must not be {@literal null}.
 		 * @param expression may be {@literal null}.
@@ -635,7 +635,7 @@ class StringQuery {
 
 		/**
 		 * Returns the {@link Type} of the binding.
-		 * 
+		 *
 		 * @return the type
 		 */
 		public Type getType() {
@@ -666,7 +666,7 @@ class StringQuery {
 			}
 		}
 
-		/* 
+		/*
 		 * (non-Javadoc)
 		 * @see java.lang.Object#equals(java.lang.Object)
 		 */
@@ -682,7 +682,7 @@ class StringQuery {
 			return super.equals(obj) && this.type.equals(that.type);
 		}
 
-		/* 
+		/*
 		 * (non-Javadoc)
 		 * @see java.lang.Object#hashCode()
 		 */
@@ -696,7 +696,7 @@ class StringQuery {
 			return result;
 		}
 
-		/* 
+		/*
 		 * (non-Javadoc)
 		 * @see java.lang.Object#toString()
 		 */
@@ -707,7 +707,7 @@ class StringQuery {
 
 		/**
 		 * Extracts the like {@link Type} from the given JPA like expression.
-		 * 
+		 *
 		 * @param expression must not be {@literal null} or empty.
 		 */
 		private static Type getLikeTypeFrom(String expression) {

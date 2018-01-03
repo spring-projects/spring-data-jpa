@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import org.springframework.util.Assert;
 
 /**
  * Sort option for queries that wraps JPA meta-model {@link Attribute}s for sorting.
- * 
+ *
  * @author Thomas Darimont
  * @author Oliver Gierke
  * @author Christoph Strobl
@@ -41,7 +41,7 @@ public class JpaSort extends Sort {
 
 	/**
 	 * Creates a new {@link JpaSort} for the given attributes with the default sort direction.
-	 * 
+	 *
 	 * @param attributes must not be {@literal null} or empty.
 	 */
 	public JpaSort(Attribute<?, ?>... attributes) {
@@ -50,7 +50,7 @@ public class JpaSort extends Sort {
 
 	/**
 	 * Creates a new {@link JpaSort} instance with the given {@link Path}s.
-	 * 
+	 *
 	 * @param paths must not be {@literal null} or empty.
 	 */
 	public JpaSort(JpaSort.Path<?, ?>... paths) {
@@ -59,7 +59,7 @@ public class JpaSort extends Sort {
 
 	/**
 	 * Creates a new {@link JpaSort} for the given direction and attributes.
-	 * 
+	 *
 	 * @param direction the sorting direction.
 	 * @param attributes must not be {@literal null} or empty.
 	 */
@@ -69,7 +69,7 @@ public class JpaSort extends Sort {
 
 	/**
 	 * Creates a new {@link JpaSort} for the given direction and {@link Path}s.
-	 * 
+	 *
 	 * @param direction the sorting direction.
 	 * @param paths must not be {@literal null} or empty.
 	 */
@@ -93,7 +93,7 @@ public class JpaSort extends Sort {
 
 	/**
 	 * Returns a new {@link JpaSort} with the given sorting criteria added to the current one.
-	 * 
+	 *
 	 * @param direction can be {@literal null}.
 	 * @param attributes must not be {@literal null}.
 	 * @return
@@ -107,7 +107,7 @@ public class JpaSort extends Sort {
 
 	/**
 	 * Returns a new {@link JpaSort} with the given sorting criteria added to the current one.
-	 * 
+	 *
 	 * @param direction can be {@literal null}.
 	 * @param paths must not be {@literal null}.
 	 * @return
@@ -151,7 +151,7 @@ public class JpaSort extends Sort {
 
 	/**
 	 * Turns the given {@link Attribute}s into {@link Path}s.
-	 * 
+	 *
 	 * @param attributes must not be {@literal null} or empty.
 	 * @return
 	 */
@@ -182,7 +182,7 @@ public class JpaSort extends Sort {
 
 	/**
 	 * Creates a new {@link Path} for the given {@link Attribute}.
-	 * 
+	 *
 	 * @param attribute must not be {@literal null}.
 	 * @return
 	 */
@@ -194,7 +194,7 @@ public class JpaSort extends Sort {
 
 	/**
 	 * Creates a new {@link Path} for the given {@link PluralAttribute}.
-	 * 
+	 *
 	 * @param attribute must not be {@literal null}.
 	 * @return
 	 */
@@ -252,7 +252,7 @@ public class JpaSort extends Sort {
 
 	/**
 	 * Value object to abstract a collection of {@link Attribute}s.
-	 * 
+	 *
 	 * @author Oliver Gierke
 	 */
 	public static class Path<T, S> {
@@ -265,7 +265,7 @@ public class JpaSort extends Sort {
 
 		/**
 		 * Collects the given {@link Attribute} and returning a new {@link Path} pointing to the attribute type.
-		 * 
+		 *
 		 * @param attribute must not be {@literal null}.
 		 * @return
 		 */
@@ -275,7 +275,7 @@ public class JpaSort extends Sort {
 
 		/**
 		 * Collects the given {@link PluralAttribute} and returning a new {@link Path} pointing to the attribute type.
-		 * 
+		 *
 		 * @param attribute must not be {@literal null}.
 		 * @return
 		 */
@@ -314,7 +314,7 @@ public class JpaSort extends Sort {
 	 * Custom {@link Order} that keeps a flag to indicate unsafe property handling, i.e. the String provided is not
 	 * necessarily a property but can be an arbitrary expression piped into the query execution. We also keep an
 	 * additional {@code ignoreCase} flag around as the constructor of the superclass is private currently.
-	 * 
+	 *
 	 * @author Christoph Strobl
 	 * @author Oliver Gierke
 	 */

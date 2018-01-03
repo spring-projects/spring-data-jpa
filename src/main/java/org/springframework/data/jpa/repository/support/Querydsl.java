@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2017 the original author or authors.
+ * Copyright 2012-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ import com.querydsl.jpa.impl.JPAQuery;
 
 /**
  * Helper instance to ease access to Querydsl JPA query API.
- * 
+ *
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Mark Paluch
@@ -56,7 +56,7 @@ public class Querydsl {
 
 	/**
 	 * Creates a new {@link Querydsl} for the given {@link EntityManager} and {@link PathBuilder}.
-	 * 
+	 *
 	 * @param em must not be {@literal null}.
 	 * @param builder must not be {@literal null}.
 	 */
@@ -72,7 +72,7 @@ public class Querydsl {
 
 	/**
 	 * Creates the {@link JPQLQuery} instance based on the configured {@link EntityManager}.
-	 * 
+	 *
 	 * @return
 	 */
 	public <T> AbstractJPAQuery<T, JPAQuery<T>> createQuery() {
@@ -90,7 +90,7 @@ public class Querydsl {
 
 	/**
 	 * Creates the {@link JPQLQuery} instance based on the configured {@link EntityManager}.
-	 * 
+	 *
 	 * @return
 	 */
 	public AbstractJPAQuery<Object, JPAQuery<Object>> createQuery(EntityPath<?>... paths) {
@@ -99,7 +99,7 @@ public class Querydsl {
 
 	/**
 	 * Applies the given {@link Pageable} to the given {@link JPQLQuery}.
-	 * 
+	 *
 	 * @param pageable
 	 * @param query must not be {@literal null}.
 	 * @return the Querydsl {@link JPQLQuery}.
@@ -118,7 +118,7 @@ public class Querydsl {
 
 	/**
 	 * Applies sorting to the given {@link JPQLQuery}.
-	 * 
+	 *
 	 * @param sort
 	 * @param query must not be {@literal null}.
 	 * @return the Querydsl {@link JPQLQuery}
@@ -139,7 +139,7 @@ public class Querydsl {
 	/**
 	 * Applies the given {@link OrderSpecifier}s to the given {@link JPQLQuery}. Potentially transforms the given
 	 * {@code OrderSpecifier}s to be able to injection potentially necessary left-joins.
-	 * 
+	 *
 	 * @param qsort must not be {@literal null}.
 	 * @param query must not be {@literal null}.
 	 */
@@ -152,7 +152,7 @@ public class Querydsl {
 	/**
 	 * Converts the {@link Order} items of the given {@link Sort} into {@link OrderSpecifier} and attaches those to the
 	 * given {@link JPQLQuery}.
-	 * 
+	 *
 	 * @param sort must not be {@literal null}.
 	 * @param query must not be {@literal null}.
 	 * @return
@@ -171,7 +171,7 @@ public class Querydsl {
 
 	/**
 	 * Transforms a plain {@link Order} into a QueryDsl specific {@link OrderSpecifier}.
-	 * 
+	 *
 	 * @param order must not be {@literal null}.
 	 * @return
 	 */
@@ -186,7 +186,7 @@ public class Querydsl {
 	/**
 	 * Converts the given {@link org.springframework.data.domain.Sort.NullHandling} to the appropriate Querydsl
 	 * {@link NullHandling}.
-	 * 
+	 *
 	 * @param nullHandling must not be {@literal null}.
 	 * @return
 	 * @since 1.6
@@ -211,7 +211,7 @@ public class Querydsl {
 
 	/**
 	 * Creates an {@link Expression} for the given {@link Order} property.
-	 * 
+	 *
 	 * @param order must not be {@literal null}.
 	 * @return
 	 */

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import org.springframework.data.repository.CrudRepository;
 /**
  * Custom repository interface that adjusts the querys of well known repository interface methods via {@link Query}
  * annotation.
- * 
+ *
  * @author Thomas Darimont
  */
 public interface RedeclaringRepositoryMethodsRepository extends CrudRepository<User, Long> {
@@ -39,7 +39,7 @@ public interface RedeclaringRepositoryMethodsRepository extends CrudRepository<U
 
 	/**
 	 * Should only find users with the firstname 'Oliver'.
-	 * 
+	 *
 	 * @param page
 	 * @return
 	 */

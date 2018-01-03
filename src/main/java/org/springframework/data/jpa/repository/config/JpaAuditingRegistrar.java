@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,14 +39,14 @@ import org.springframework.util.ClassUtils;
 
 /**
  * {@link ImportBeanDefinitionRegistrar} to enable {@link EnableJpaAuditing} annotation.
- * 
+ *
  * @author Thomas Darimont
  */
 class JpaAuditingRegistrar extends AuditingBeanDefinitionRegistrarSupport {
 
 	private static final String BEAN_CONFIGURER_ASPECT_CLASS_NAME = "org.springframework.beans.factory.aspectj.AnnotationBeanConfigurerAspect";
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.auditing.config.AuditingBeanDefinitionRegistrarSupport#getAnnotation()
 	 */
@@ -55,7 +55,7 @@ class JpaAuditingRegistrar extends AuditingBeanDefinitionRegistrarSupport {
 		return EnableJpaAuditing.class;
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.auditing.config.AuditingBeanDefinitionRegistrarSupport#getAuditingHandlerBeanName()
 	 */
@@ -64,7 +64,7 @@ class JpaAuditingRegistrar extends AuditingBeanDefinitionRegistrarSupport {
 		return "jpaAuditingHandler";
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.auditing.config.AuditingBeanDefinitionRegistrarSupport#getAuditHandlerBeanDefinitionBuilder(org.springframework.data.auditing.config.AuditingConfiguration)
 	 */
@@ -75,7 +75,7 @@ class JpaAuditingRegistrar extends AuditingBeanDefinitionRegistrarSupport {
 		return builder.addConstructorArgReference(JPA_MAPPING_CONTEXT_BEAN_NAME);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.auditing.config.AuditingBeanDefinitionRegistrarSupport#registerBeanDefinitions(org.springframework.core.type.AnnotationMetadata, org.springframework.beans.factory.support.BeanDefinitionRegistry)
 	 */
@@ -91,7 +91,7 @@ class JpaAuditingRegistrar extends AuditingBeanDefinitionRegistrarSupport {
 				.getRawBeanDefinition(), AuditingBeanFactoryPostProcessor.class.getName(), registry);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.auditing.config.AuditingBeanDefinitionRegistrarSupport#registerAuditListener(org.springframework.beans.factory.config.BeanDefinition, org.springframework.beans.factory.support.BeanDefinitionRegistry)
 	 */

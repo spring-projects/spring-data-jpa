@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2016 the original author or authors.
+ * Copyright 2008-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,14 +24,14 @@ import org.springframework.data.jpa.domain.Specification;
 
 /**
  * Collection of {@link Specification}s for a {@link User}.
- * 
+ *
  * @author Oliver Gierke
  */
 public class UserSpecifications {
 
 	/**
 	 * A {@link Specification} to match on a {@link User}'s firstname.
-	 * 
+	 *
 	 * @param firstname
 	 * @return
 	 */
@@ -42,7 +42,7 @@ public class UserSpecifications {
 
 	/**
 	 * A {@link Specification} to match on a {@link User}'s lastname.
-	 * 
+	 *
 	 * @param firstname
 	 * @return
 	 */
@@ -53,7 +53,7 @@ public class UserSpecifications {
 
 	/**
 	 * A {@link Specification} to do a like-match on a {@link User}'s firstname.
-	 * 
+	 *
 	 * @param firstname
 	 * @return
 	 */
@@ -71,7 +71,7 @@ public class UserSpecifications {
 	/**
 	 * A {@link Specification} to do a like-match on a {@link User}'s lastname but also adding a sort order on the
 	 * firstname.
-	 * 
+	 *
 	 * @param firstname
 	 * @return
 	 */

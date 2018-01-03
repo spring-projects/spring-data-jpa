@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import javax.persistence.EntityManager;
 /**
  * Interface for components to provide useful information about the current JPA setup within the current
  * {@link org.springframework.context.ApplicationContext}.
- * 
+ *
  * @author Oliver Gierke
  * @soundtrack Marcus Miller - Water Dancer (Afrodeezia)
  * @since 1.9
@@ -29,7 +29,7 @@ public interface JpaContext {
 
 	/**
 	 * Returns the {@link EntityManager} managing the given domain type.
-	 * 
+	 *
 	 * @param managedType must not be {@literal null}.
 	 * @return the {@link EntityManager} that manages the given type, will never be {@literal null}.
 	 * @throws IllegalArgumentException if the given type is not a JPA managed one no unique {@link EntityManager} managing this type can be resolved.

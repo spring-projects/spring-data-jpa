@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2017 the original author or authors.
+ * Copyright 2011-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import org.springframework.lang.Nullable;
 
 /**
  * Extension of {@link EntityInformation} to capture additional JPA specific information about entities.
- * 
+ *
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Mark Paluch
@@ -32,7 +32,7 @@ public interface JpaEntityInformation<T, ID> extends EntityInformation<T, ID>, J
 
 	/**
 	 * Returns the id attribute of the entity.
-	 * 
+	 *
 	 * @return
 	 */
 	@Nullable
@@ -59,7 +59,7 @@ public interface JpaEntityInformation<T, ID> extends EntityInformation<T, ID>, J
 
 	/**
 	 * Returns {@literal true} if the entity has a composite id.
-	 * 
+	 *
 	 * @return
 	 */
 	boolean hasCompositeId();
@@ -67,14 +67,14 @@ public interface JpaEntityInformation<T, ID> extends EntityInformation<T, ID>, J
 	/**
 	 * Returns the attribute names of the id attributes. If the entity has a composite id, then all id attribute names are
 	 * returned. If the entity has a single id attribute then this single attribute name is returned.
-	 * 
+	 *
 	 * @return
 	 */
 	Iterable<String> getIdAttributeNames();
 
 	/**
 	 * Extracts the value for the given id attribute from a composite id
-	 * 
+	 *
 	 * @param id
 	 * @param idAttribute
 	 * @return

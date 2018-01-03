@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ import org.springframework.util.Assert;
 
 /**
  * Factory for differently configured {@link ParameterBinder}.
- * 
+ *
  * @author Jens Schauder
  * @author Oliver Gierke
  * @since 2.0
@@ -41,7 +41,7 @@ class ParameterBinderFactory {
 	/**
 	 * Create a {@link ParameterBinder} that just matches parameter by name if those are available, or by index/position
 	 * otherwise.
-	 * 
+	 *
 	 * @param parameters method parameters that are available for binding, must not be {@literal null}.
 	 * @return a {@link ParameterBinder} that can assign values for the method parameters to query parameters of a
 	 *         {@link javax.persistence.Query}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017 the original author or authors.
+ * Copyright 2015-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ import org.threeten.bp.ZoneId;
  * your persistence provider detects them by including this class in the list of mapped classes. In Spring environments,
  * you can simply register the package of this class (i.e. {@code org.springframework.data.jpa.convert.threetenbp}) as
  * package to be scanned on e.g. the {@link LocalContainerEntityManagerFactoryBean}.
- * 
+ *
  * @author Oliver Gierke
  * @see <a href="http://www.threeten.org/threetenbp">http://www.threeten.org/threetenbp</a>
  * @since 1.8

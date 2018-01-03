@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ import org.springframework.lang.Nullable;
 
 /**
  * Factory to create the appropriate {@link RepositoryQuery} for a {@link JpaQueryMethod}.
- * 
+ *
  * @author Thomas Darimont
  * @author Mark Paluch
  */
@@ -42,7 +42,7 @@ enum JpaQueryFactory {
 	/**
 	 * Creates a {@link RepositoryQuery} from the given {@link QueryMethod} that is potentially annotated with
 	 * {@link Query}.
-	 * 
+	 *
 	 * @param method must not be {@literal null}.
 	 * @param em must not be {@literal null}.
 	 * @param evaluationContextProvider
@@ -58,7 +58,7 @@ enum JpaQueryFactory {
 
 	/**
 	 * Creates a {@link RepositoryQuery} from the given {@link String} query.
-	 * 
+	 *
 	 * @param method must not be {@literal null}.
 	 * @param em must not be {@literal null}.
 	 * @param queryString must not be {@literal null} or empty.
@@ -79,7 +79,7 @@ enum JpaQueryFactory {
 
 	/**
 	 * Creates a {@link StoredProcedureJpaQuery} from the given {@link JpaQueryMethod} query.
-	 * 
+	 *
 	 * @param method must not be {@literal null}.
 	 * @param em must not be {@literal null}.
 	 * @return

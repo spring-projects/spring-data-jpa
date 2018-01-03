@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 /**
  * Unit tests to check that the {@link AuditingBeanFactoryPostProcessor} does its job for annotation based
  * configuration.
- * 
+ *
  * @author Oliver Gierke
  */
 public class AnnotationAuditingBeanFactoryPostProcessorUnitTests extends AuditingBeanFactoryPostProcessorUnitTests {
@@ -50,7 +50,7 @@ public class AnnotationAuditingBeanFactoryPostProcessorUnitTests extends Auditin
 		}
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.domain.support.AuditingBeanFactoryPostProcessorUnitTests#getBeanFactory()
 	 */

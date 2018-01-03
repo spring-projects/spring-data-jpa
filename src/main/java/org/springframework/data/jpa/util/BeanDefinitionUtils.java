@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ import org.springframework.util.ClassUtils;
 
 /**
  * Utility methods to work with {@link BeanDefinition} instances from {@link BeanFactoryPostProcessor}s.
- * 
+ *
  * @author Oliver Gierke
  * @author Mark Paluch
  */
@@ -66,7 +66,7 @@ public class BeanDefinitionUtils {
 	 * checking for {@link EntityManagerFactory} and the well-known factory beans here to avoid eager initialization of
 	 * the factory beans. The double lookup is necessary especially for JavaConfig scenarios as people might declare an
 	 * {@link EntityManagerFactory} directly.
-	 * 
+	 *
 	 * @param beanFactory
 	 * @return
 	 */
@@ -86,7 +86,7 @@ public class BeanDefinitionUtils {
 	/**
 	 * Returns {@link EntityManagerFactoryBeanDefinition} instances for all {@link BeanDefinition} registered in the given
 	 * {@link ConfigurableListableBeanFactory} hierarchy.
-	 * 
+	 *
 	 * @param beanFactory must not be {@literal null}.
 	 * @return
 	 */
@@ -114,7 +114,7 @@ public class BeanDefinitionUtils {
 	/**
 	 * Registers an {@link EntityManagerFactoryBeanDefinition} for the bean with the given name. Drops
 	 * {@link JndiObjectFactoryBean} instances that don't point to an {@link EntityManagerFactory} bean as expected type.
-	 * 
+	 *
 	 * @param name
 	 * @param beanFactory
 	 * @param definitions
@@ -141,7 +141,7 @@ public class BeanDefinitionUtils {
 	/**
 	 * Returns the {@link BeanDefinition} with the given name, obtained from the given {@link BeanFactory} or one of its
 	 * parents.
-	 * 
+	 *
 	 * @param name
 	 * @param beanFactory
 	 * @return
@@ -164,7 +164,7 @@ public class BeanDefinitionUtils {
 
 	/**
 	 * Value object to represent a {@link BeanDefinition} for an {@link EntityManagerFactory} with a dedicated bean name.
-	 * 
+	 *
 	 * @author Oliver Gierke
 	 * @author Thomas Darimont
 	 */
@@ -175,7 +175,7 @@ public class BeanDefinitionUtils {
 
 		/**
 		 * Creates a new {@link EntityManagerFactoryBeanDefinition}.
-		 * 
+		 *
 		 * @param beanName
 		 * @param beanFactory
 		 */
@@ -187,7 +187,7 @@ public class BeanDefinitionUtils {
 
 		/**
 		 * Returns the bean name of the {@link BeanDefinition} for the {@link EntityManagerFactory}.
-		 * 
+		 *
 		 * @return
 		 */
 		public String getBeanName() {
@@ -196,7 +196,7 @@ public class BeanDefinitionUtils {
 
 		/**
 		 * Returns the underlying {@link BeanFactory}.
-		 * 
+		 *
 		 * @return
 		 */
 		public BeanFactory getBeanFactory() {
@@ -205,7 +205,7 @@ public class BeanDefinitionUtils {
 
 		/**
 		 * Returns the {@link BeanDefinition} for the {@link EntityManagerFactory}.
-		 * 
+		 *
 		 * @return
 		 */
 		public BeanDefinition getBeanDefinition() {

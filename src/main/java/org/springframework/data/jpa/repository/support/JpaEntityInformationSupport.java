@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2017 the original author or authors.
+ * Copyright 2011-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import org.springframework.util.Assert;
 
 /**
  * Base class for {@link JpaEntityInformation} implementations to share common method implementations.
- * 
+ *
  * @author Oliver Gierke
  * @author Mark Paluch
  */
@@ -37,7 +37,7 @@ public abstract class JpaEntityInformationSupport<T, ID> extends AbstractEntityI
 
 	/**
 	 * Creates a new {@link JpaEntityInformationSupport} with the given domain class.
-	 * 
+	 *
 	 * @param domainClass must not be {@literal null}.
 	 */
 	public JpaEntityInformationSupport(Class<T> domainClass) {
@@ -47,7 +47,7 @@ public abstract class JpaEntityInformationSupport<T, ID> extends AbstractEntityI
 
 	/**
 	 * Creates a {@link JpaEntityInformation} for the given domain class and {@link EntityManager}.
-	 * 
+	 *
 	 * @param domainClass must not be {@literal null}.
 	 * @param em must not be {@literal null}.
 	 * @return

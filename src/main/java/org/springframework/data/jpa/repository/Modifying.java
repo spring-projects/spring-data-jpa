@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2016 the original author or authors.
+ * Copyright 2008-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import java.lang.annotation.Target;
 
 /**
  * Indicates a method should be regarded as modifying query.
- * 
+ *
  * @author Oliver Gierke
  * @author Christoph Strobl
  */
@@ -34,7 +34,7 @@ public @interface Modifying {
 
 	/**
 	 * Defines whether we should clear the underlying persistence context after executing the modifying query.
-	 * 
+	 *
 	 * @return
 	 */
 	boolean clearAutomatically() default false;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2017 the original author or authors.
+ * Copyright 2011-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ public abstract class QuerydslRepositorySupport {
 
 	/**
 	 * Creates a new {@link QuerydslRepositorySupport} instance for the given domain type.
-	 * 
+	 *
 	 * @param domainClass must not be {@literal null}.
 	 */
 	public QuerydslRepositorySupport(Class<?> domainClass) {
@@ -59,7 +59,7 @@ public abstract class QuerydslRepositorySupport {
 
 	/**
 	 * Setter to inject {@link EntityManager}.
-	 * 
+	 *
 	 * @param entityManager must not be {@literal null}.
 	 */
 	@Autowired
@@ -81,7 +81,7 @@ public abstract class QuerydslRepositorySupport {
 
 	/**
 	 * Returns the {@link EntityManager}.
-	 * 
+	 *
 	 * @return the entityManager
 	 */
 	@Nullable
@@ -91,7 +91,7 @@ public abstract class QuerydslRepositorySupport {
 
 	/**
 	 * Returns a fresh {@link JPQLQuery}.
-	 * 
+	 *
 	 * @param paths must not be {@literal null}.
 	 * @return the Querydsl {@link JPQLQuery}.
 	 */
@@ -101,7 +101,7 @@ public abstract class QuerydslRepositorySupport {
 
 	/**
 	 * Returns a {@link JPQLQuery} for the given {@link EntityPath}.
-	 * 
+	 *
 	 * @param path must not be {@literal null}.
 	 * @return
 	 */
@@ -111,7 +111,7 @@ public abstract class QuerydslRepositorySupport {
 
 	/**
 	 * Returns a fresh {@link DeleteClause}.
-	 * 
+	 *
 	 * @param path
 	 * @return the Querydsl {@link DeleteClause}.
 	 */
@@ -121,7 +121,7 @@ public abstract class QuerydslRepositorySupport {
 
 	/**
 	 * Returns a fresh {@link UpdateClause}.
-	 * 
+	 *
 	 * @param path
 	 * @return the Querydsl {@link UpdateClause}.
 	 */
@@ -131,7 +131,7 @@ public abstract class QuerydslRepositorySupport {
 
 	/**
 	 * Returns a {@link PathBuilder} for the configured domain type.
-	 * 
+	 *
 	 * @param <T>
 	 * @return the Querdsl {@link PathBuilder}.
 	 */
@@ -142,7 +142,7 @@ public abstract class QuerydslRepositorySupport {
 
 	/**
 	 * Returns the underlying Querydsl helper instance.
-	 * 
+	 *
 	 * @return
 	 */
 	@Nullable

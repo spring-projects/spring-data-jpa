@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2017 the original author or authors.
+ * Copyright 2011-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ import org.springframework.util.ObjectUtils;
 
 /**
  * Helper class to allow easy creation of {@link ParameterMetadata}s.
- * 
+ *
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Mark Paluch
@@ -59,7 +59,7 @@ class ParameterMetadataProvider {
 	 * Creates a new {@link ParameterMetadataProvider} from the given {@link CriteriaBuilder} and
 	 * {@link ParametersParameterAccessor} with support for parameter value customizations via {@link PersistenceProvider}
 	 * .
-	 * 
+	 *
 	 * @param builder must not be {@literal null}.
 	 * @param accessor must not be {@literal null}.
 	 * @param provider must not be {@literal null}.
@@ -72,7 +72,7 @@ class ParameterMetadataProvider {
 	/**
 	 * Creates a new {@link ParameterMetadataProvider} from the given {@link CriteriaBuilder} and {@link Parameters} with
 	 * support for parameter value customizations via {@link PersistenceProvider}.
-	 * 
+	 *
 	 * @param builder must not be {@literal null}.
 	 * @param parameters must not be {@literal null}.
 	 * @param provider must not be {@literal null}.
@@ -85,7 +85,7 @@ class ParameterMetadataProvider {
 	 * Creates a new {@link ParameterMetadataProvider} from the given {@link CriteriaBuilder} an {@link Iterable} of all
 	 * bindable parameter values, and {@link Parameters} with support for parameter value customizations via
 	 * {@link PersistenceProvider}.
-	 * 
+	 *
 	 * @param builder must not be {@literal null}.
 	 * @param bindableParameterValues may be {@literal null}.
 	 * @param parameters must not be {@literal null}.
@@ -107,7 +107,7 @@ class ParameterMetadataProvider {
 
 	/**
 	 * Returns all {@link ParameterMetadata}s built.
-	 * 
+	 *
 	 * @return the expressions
 	 */
 	public List<ParameterMetadata<?>> getExpressions() {
@@ -129,7 +129,7 @@ class ParameterMetadataProvider {
 	/**
 	 * Builds a new {@link ParameterMetadata} of the given {@link Part} and type. Forwards the underlying
 	 * {@link Parameters} as well.
-	 * 
+	 *
 	 * @param <T> is the type parameter of the returend {@link ParameterMetadata}.
 	 * @param type must not be {@literal null}.
 	 * @return ParameterMetadata for the next parameter.
@@ -144,7 +144,7 @@ class ParameterMetadataProvider {
 
 	/**
 	 * Builds a new {@link ParameterMetadata} for the given type and name.
-	 * 
+	 *
 	 * @param <T> type parameter for the returned {@link ParameterMetadata}.
 	 * @param part must not be {@literal null}.
 	 * @param type must not be {@literal null}.
@@ -202,7 +202,7 @@ class ParameterMetadataProvider {
 
 		/**
 		 * Returns the {@link ParameterExpression}.
-		 * 
+		 *
 		 * @return the expression
 		 */
 		public ParameterExpression<T> getExpression() {
@@ -218,7 +218,7 @@ class ParameterMetadataProvider {
 
 		/**
 		 * Prepares the object before it's actually bound to the {@link javax.persistence.Query;}.
-		 * 
+		 *
 		 * @param value must not be {@literal null}.
 		 */
 		@Nullable
@@ -252,7 +252,7 @@ class ParameterMetadataProvider {
 		 * Returns the given argument as {@link Collection} which means it will return it as is if it's a
 		 * {@link Collections}, turn an array into an {@link ArrayList} or simply wrap any other value into a single element
 		 * {@link Collections}.
-		 * 
+		 *
 		 * @param value the value to be converted to a {@link Collection}.
 		 * @return the object itself as a {@link Collection} or a {@link Collection} constructed from the value.
 		 */

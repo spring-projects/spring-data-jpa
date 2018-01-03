@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2017 the original author or authors.
+ * Copyright 2011-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ import org.springframework.util.ClassUtils;
  * {@link RepositoryProxyPostProcessor} that sets up interceptors to read metadata information from the invoked method.
  * This is necessary to allow redeclaration of CRUD methods in repository interfaces and configure locking information
  * or query hints on them.
- * 
+ *
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Christoph Strobl
@@ -58,7 +58,7 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 
 	private @Nullable ClassLoader classLoader = ClassUtils.getDefaultClassLoader();
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.beans.factory.BeanClassLoaderAware#setBeanClassLoader(java.lang.ClassLoader)
 	 */
@@ -67,7 +67,7 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 		this.classLoader = classLoader;
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.core.support.RepositoryProxyPostProcessor#postProcess(org.springframework.aop.framework.ProxyFactory, org.springframework.data.repository.core.RepositoryInformation)
 	 */
@@ -93,7 +93,7 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 	/**
 	 * {@link MethodInterceptor} to build and cache {@link DefaultCrudMethodMetadata} instances for the invoked methods.
 	 * Will bind the found information to a {@link TransactionSynchronizationManager} for later lookup.
-	 * 
+	 *
 	 * @see DefaultCrudMethodMetadata
 	 * @author Oliver Gierke
 	 * @author Thomas Darimont
@@ -104,7 +104,7 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 
 		private final ConcurrentMap<Method, CrudMethodMetadata> metadataCache = new ConcurrentHashMap<Method, CrudMethodMetadata>();
 
-		/* 
+		/*
 		 * (non-Javadoc)
 		 * @see org.aopalliance.intercept.MethodInterceptor#invoke(org.aopalliance.intercept.MethodInvocation)
 		 */
@@ -141,7 +141,7 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 
 	/**
 	 * Default implementation of {@link CrudMethodMetadata} that will inspect the backing method for annotations.
-	 * 
+	 *
 	 * @author Oliver Gierke
 	 * @author Thomas Darimont
 	 */
@@ -154,7 +154,7 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 
 		/**
 		 * Creates a new {@link DefaultCrudMethodMetadata} for the given {@link Method}.
-		 * 
+		 *
 		 * @param method must not be {@literal null}.
 		 */
 		DefaultCrudMethodMetadata(Method method) {
@@ -199,7 +199,7 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 			return Collections.unmodifiableMap(queryHints);
 		}
 
-		/* 
+		/*
 		 * (non-Javadoc)
 		 * @see org.springframework.data.jpa.repository.support.CrudMethodMetadata#getLockModeType()
 		 */
@@ -209,7 +209,7 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 			return lockModeType;
 		}
 
-		/* 
+		/*
 		 * (non-Javadoc)
 		 * @see org.springframework.data.jpa.repository.support.CrudMethodMetadata#getQueryHints()
 		 */
@@ -218,7 +218,7 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 			return queryHints;
 		}
 
-		/* 
+		/*
 		 * (non-Javadoc)
 		 * @see org.springframework.data.jpa.repository.support.CrudMethodMetadata#getEntityGraph()
 		 */
@@ -227,7 +227,7 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 			return entityGraph;
 		}
 
-		/* 
+		/*
 		 * (non-Javadoc)
 		 * @see org.springframework.data.jpa.repository.support.CrudMethodMetadata#getMethod()
 		 */
@@ -239,7 +239,7 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 
 	private static class ThreadBoundTargetSource implements TargetSource {
 
-		/* 
+		/*
 		 * (non-Javadoc)
 		 * @see org.springframework.aop.TargetSource#getTargetClass()
 		 */
@@ -248,7 +248,7 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 			return CrudMethodMetadata.class;
 		}
 
-		/* 
+		/*
 		 * (non-Javadoc)
 		 * @see org.springframework.aop.TargetSource#isStatic()
 		 */
@@ -257,7 +257,7 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 			return false;
 		}
 
-		/* 
+		/*
 		 * (non-Javadoc)
 		 * @see org.springframework.aop.TargetSource#getTarget()
 		 */
@@ -268,7 +268,7 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 			return TransactionSynchronizationManager.getResource(invocation.getMethod());
 		}
 
-		/* 
+		/*
 		 * (non-Javadoc)
 		 * @see org.springframework.aop.TargetSource#releaseTarget(java.lang.Object)
 		 */
