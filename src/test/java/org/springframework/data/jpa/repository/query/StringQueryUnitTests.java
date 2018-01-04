@@ -40,6 +40,8 @@ public class StringQueryUnitTests {
 
 	public @Rule ExpectedException exception = ExpectedException.none();
 
+	SoftAssertions softly = new SoftAssertions();
+
 	@Test // DATAJPA-341
 	public void doesNotConsiderPlainLikeABinding() {
 
@@ -306,8 +308,6 @@ public class StringQueryUnitTests {
 			assertThat(query.getQueryString(), containsString(binding.getName()));
 		}
 	}
-
-	SoftAssertions softly = new SoftAssertions();
 
 	@Test // DATAJPA-1235
 	public void getProjection() {

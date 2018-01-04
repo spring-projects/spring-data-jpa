@@ -22,7 +22,7 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -68,7 +68,6 @@ class StringQuery implements QueryInformation {
 		this.alias = QueryUtils.detectAlias(query);
 		this.hasConstructorExpression = QueryUtils.hasConstructorExpression(query);
 	}
-
 
 	/**
 	 * Returns whether we have found some like bindings.
@@ -131,8 +130,9 @@ class StringQuery implements QueryInformation {
 	public boolean hasNamedParameter() {
 
 		for (ParameterBinding binding : bindings) {
-			if (binding.getName() != null)
+			if (binding.getName() != null) {
 				return true;
+			}
 		}
 		return false;
 	}
@@ -155,6 +155,7 @@ class StringQuery implements QueryInformation {
 		public static final int NAMED_PARAMETER_GROUP = 6;
 		public static final int COMPARISION_TYPE_GROUP = 1;
 		public static final int EXPRESSION_GROUP = 9;
+		public static final HashSet<Character> QUOTING_CHARACTERS = new HashSet<>(Arrays.asList('"', '\''));
 
 		static {
 
@@ -186,6 +187,13 @@ class StringQuery implements QueryInformation {
 			PARAMETER_BINDING_PATTERN = Pattern.compile(builder.toString(), CASE_INSENSITIVE);
 		}
 
+		static List<ParameterFinds> parseParameters(String query) {
+			return new ArrayList<>();
+
+		}
+
+		private static class ParameterFinds {}
+
 		/**
 		 * Parses {@link ParameterBinding} instances from the given query and adds them to the registered bindings. Returns
 		 * the cleaned up query.
@@ -214,7 +222,17 @@ class StringQuery implements QueryInformation {
 			 */
 			int expressionParameterIndex = parametersShouldBeAccessedByIndex ? greatestParameterIndex : 0;
 
-			while (matcher.find()) {
+			int end = 0;
+
+			while (matcher.find(end)) {
+
+				int endOfQuotation = findEndOfQuotation(query, end, matcher.start());
+				if (endOfQuotation > matcher.start()) {
+					end = endOfQuotation;
+					continue;
+				} else {
+					end = matcher.end();
+				}
 
 				String parameterIndexString = matcher.group(INDEXED_PARAMETER_GROUP);
 				String parameterName = parameterIndexString != null ? null : matcher.group(NAMED_PARAMETER_GROUP);
@@ -278,6 +296,29 @@ class StringQuery implements QueryInformation {
 			}
 
 			return result;
+		}
+
+		private int findEndOfQuotation(String query, int from, int limit) {
+
+			int current = from;
+
+			Character inQuotation = null;
+
+			while (current < query.length() && (current < limit || inQuotation != null)) {
+
+				char currentChar = query.charAt(current);
+				if (QUOTING_CHARACTERS.contains(currentChar)) {
+					if (inQuotation == null) {
+						inQuotation = currentChar;
+					} else if (currentChar == inQuotation.charValue()) {
+						inQuotation = null;
+					}
+				}
+
+				current++;
+			}
+
+			return current;
 		}
 
 		private static String replaceFirst(String text, String substring, String replacement) {
@@ -364,6 +405,7 @@ class StringQuery implements QueryInformation {
 				throw new IllegalArgumentException(String.format("Unsupported parameter binding type %s!", typeSource));
 			}
 		}
+
 	}
 
 	/**
