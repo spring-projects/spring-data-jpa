@@ -346,7 +346,6 @@ public abstract class JpaQueryExecution {
 		private static final String NO_SURROUNDING_TRANSACTION = "You're trying to execute a streaming query method without a surrounding transaction that keeps the connection open so that the Stream can actually be consumed. Make sure the code consuming the stream uses @Transactional or any other way of declaring a (read-only) transaction.";
 
 		private static Method streamMethod = ReflectionUtils.findMethod(Query.class, "getResultStream");
-		private static boolean dynamicCheck = streamMethod == null;
 
 		/*
 		 * (non-Javadoc)
@@ -366,27 +365,7 @@ public abstract class JpaQueryExecution {
 				return ReflectionUtils.invokeMethod(streamMethod, jpaQuery);
 			}
 
-			if (dynamicCheck) {
-
-				Method method = ReflectionUtils.findMethod(jpaQuery.getClass(), "getResultStream");
-
-				// Implementation available but on JPA 2.1
-				if (method != null) {
-
-					// Cache for subsequent reuse to prevent repeated reflection lookups
-					streamMethod = method;
-
-					return ReflectionUtils.invokeMethod(method, jpaQuery);
-
-				} else {
-
-					// Not available on implementation, skip further lookups
-					dynamicCheck = false;
-				}
-			}
-
 			// Fall back to legacy stream execution
-
 			PersistenceProvider persistenceProvider = PersistenceProvider.fromEntityManager(query.getEntityManager());
 			CloseableIterator<Object> iter = persistenceProvider.executeQueryWithResultStream(jpaQuery);
 
