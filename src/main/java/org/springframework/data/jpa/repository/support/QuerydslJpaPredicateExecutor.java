@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2017 the original author or authors.
+ * Copyright 2008-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,6 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.querydsl.EntityPathResolver;
 import org.springframework.data.querydsl.QSort;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
-import org.springframework.data.querydsl.SimpleEntityPathResolver;
 import org.springframework.data.repository.support.PageableExecutionUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -44,7 +43,7 @@ import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.AbstractJPAQuery;
 
 /**
- * QueryDsl specific fragment for extending {@link SimpleJpaRepository} with an implementation for implementation for
+ * Querydsl specific fragment for extending {@link SimpleJpaRepository} with an implementation for implementation for
  * {@link QuerydslPredicateExecutor}.
  *
  * @author Oliver Gierke
@@ -56,8 +55,6 @@ import com.querydsl.jpa.impl.AbstractJPAQuery;
  */
 public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecutor<T> {
 
-	private static final EntityPathResolver DEFAULT_ENTITY_PATH_RESOLVER = SimpleEntityPathResolver.INSTANCE;
-
 	private final JpaEntityInformation<T, ?> entityInformation;
 	private final EntityPath<T> path;
 	private final Querydsl querydsl;
@@ -65,15 +62,16 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 	private final CrudMethodMetadata metadata;
 
 	/**
-	 * Creates a new {@link QuerydslJpaPredicateExecutor} from the given domain class and {@link EntityManager} and uses the
-	 * given {@link EntityPathResolver} to translate the domain class into an {@link EntityPath}.
-	 *  @param entityInformation must not be {@literal null}.
+	 * Creates a new {@link QuerydslJpaPredicateExecutor} from the given domain class and {@link EntityManager} and uses
+	 * the given {@link EntityPathResolver} to translate the domain class into an {@link EntityPath}.
+	 * 
+	 * @param entityInformation must not be {@literal null}.
 	 * @param entityManager must not be {@literal null}.
 	 * @param resolver must not be {@literal null}.
 	 * @param metadata maybe {@literal null}.
 	 */
 	public QuerydslJpaPredicateExecutor(JpaEntityInformation<T, ?> entityInformation, EntityManager entityManager,
-										EntityPathResolver resolver, @Nullable CrudMethodMetadata metadata) {
+			EntityPathResolver resolver, @Nullable CrudMethodMetadata metadata) {
 
 		this.entityInformation = entityInformation;
 		this.metadata = metadata;

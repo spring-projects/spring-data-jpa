@@ -758,6 +758,8 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	@SuppressWarnings("rawtypes")
 	private static final class ByIdsSpecification<T> implements Specification<T> {
 
+		private static final long serialVersionUID = 1L;
+
 		private final JpaEntityInformation<T, ?> entityInformation;
 
 		@Nullable ParameterExpression<Iterable> parameter;
@@ -787,6 +789,8 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * @param <T>
 	 */
 	private static class ExampleSpecification<T> implements Specification<T> {
+
+		private static final long serialVersionUID = 1L;
 
 		private final Example<T> example;
 

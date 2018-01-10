@@ -59,7 +59,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	private final QueryExtractor extractor;
 	private final CrudMethodMetadataPostProcessor crudMethodMetadataPostProcessor;
 
-	private EntityPathResolver entityPathResolver = SimpleEntityPathResolver.INSTANCE;
+	private EntityPathResolver entityPathResolver;
 
 	/**
 	 * Creates a new {@link JpaRepositoryFactory}.
@@ -73,6 +73,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 		this.entityManager = entityManager;
 		this.extractor = PersistenceProvider.fromEntityManager(entityManager);
 		this.crudMethodMetadataPostProcessor = new CrudMethodMetadataPostProcessor();
+		this.entityPathResolver = SimpleEntityPathResolver.INSTANCE;
 
 		addRepositoryProxyPostProcessor(crudMethodMetadataPostProcessor);
 	}
@@ -86,6 +87,18 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 
 		super.setBeanClassLoader(classLoader);
 		this.crudMethodMetadataPostProcessor.setBeanClassLoader(classLoader);
+	}
+
+	/**
+	 * Configures the {@link EntityPathResolver} to be used. Defaults to {@link SimpleEntityPathResolver#INSTANCE}.
+	 * 
+	 * @param entityPathResolver must not be {@literal null}.
+	 */
+	public void setEntityPathResolver(EntityPathResolver entityPathResolver) {
+
+		Assert.notNull(entityPathResolver, "EntityPathResolver must not be null!");
+
+		this.entityPathResolver = entityPathResolver;
 	}
 
 	/*
@@ -142,17 +155,6 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 		return factory;
 	}
 
-	/**
-	 * Returns whether the given repository interface requires a QueryDsl specific implementation to be chosen.
-	 *
-	 * @param repositoryInterface
-	 * @return
-	 */
-	private boolean isQueryDslExecutor(Class<?> repositoryInterface) {
-
-		return QUERY_DSL_PRESENT && QuerydslPredicateExecutor.class.isAssignableFrom(repositoryInterface);
-	}
-
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.core.support.RepositoryFactorySupport#getQueryLookupStrategy(org.springframework.data.repository.query.QueryLookupStrategy.Key, org.springframework.data.repository.query.EvaluationContextProvider)
@@ -174,6 +176,10 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 		return (JpaEntityInformation<T, ID>) JpaEntityInformationSupport.getEntityInformation(domainClass, entityManager);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.core.support.RepositoryFactorySupport#getRepositoryFragments(org.springframework.data.repository.core.RepositoryMetadata)
+	 */
 	@Override
 	protected RepositoryComposition.RepositoryFragments getRepositoryFragments(RepositoryMetadata metadata) {
 
@@ -191,18 +197,12 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 
 			JpaEntityInformation<?, Serializable> entityInformation = getEntityInformation(metadata.getDomainType());
 
-			Object querydslFragment = getTargetRepositoryViaReflection(QuerydslJpaPredicateExecutor.class, entityInformation, entityManager,
-					entityPathResolver, crudMethodMetadataPostProcessor.getCrudMethodMetadata());
+			Object querydslFragment = getTargetRepositoryViaReflection(QuerydslJpaPredicateExecutor.class, entityInformation,
+					entityManager, entityPathResolver, crudMethodMetadataPostProcessor.getCrudMethodMetadata());
 
 			fragments = fragments.append(RepositoryFragment.implemented(querydslFragment));
 		}
 
 		return fragments;
-	}
-
-	public void setEntityPathResolver(EntityPathResolver entityPathResolver) {
-
-		Assert.notNull(entityPathResolver, "entityPathResolver must not be set to null.");
-		this.entityPathResolver = entityPathResolver;
 	}
 }
