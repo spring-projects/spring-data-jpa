@@ -15,20 +15,19 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import java.util.Map;
-
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.ListableBeanFactory;
-import org.springframework.beans.factory.NoUniqueBeanDefinitionException;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.querydsl.EntityPathResolver;
 import org.springframework.data.querydsl.SimpleEntityPathResolver;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.core.support.RepositoryFactorySupport;
 import org.springframework.data.repository.core.support.TransactionalRepositoryFactoryBeanSupport;
+import org.springframework.data.util.BeanLookup;
+import org.springframework.data.util.Lazy;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -46,7 +45,7 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 		extends TransactionalRepositoryFactoryBeanSupport<T, S, ID> {
 
 	private @Nullable EntityManager entityManager;
-	private EntityPathResolver entityPathResolver = SimpleEntityPathResolver.INSTANCE;
+	private Lazy<EntityPathResolver> entityPathResolver = Lazy.of(SimpleEntityPathResolver.INSTANCE);
 
 	/**
 	 * Creates a new {@link JpaRepositoryFactoryBean} for the given repository interface.
@@ -78,9 +77,7 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 
 	/*
 	 * (non-Javadoc)
-	 *
-	 * @see org.springframework.data.repository.support.
-	 * TransactionalRepositoryFactoryBeanSupport#doCreateRepositoryFactory()
+	 * @see org.springframework.data.repository.core.support.TransactionalRepositoryFactoryBeanSupport#doCreateRepositoryFactory()
 	 */
 	@Override
 	protected RepositoryFactorySupport doCreateRepositoryFactory() {
@@ -95,8 +92,11 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 	 */
 	protected RepositoryFactorySupport createRepositoryFactory(EntityManager entityManager) {
 
+		EntityPathResolver resolver = entityPathResolver.get();
+
 		JpaRepositoryFactory jpaRepositoryFactory = new JpaRepositoryFactory(entityManager);
-		jpaRepositoryFactory.setEntityPathResolver(entityPathResolver);
+		jpaRepositoryFactory.setEntityPathResolver(resolver);
+
 		return jpaRepositoryFactory;
 	}
 
@@ -113,41 +113,16 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 	}
 
 	/*
-	* (non-Javadoc)
-	* @see org.springframework.beans.factory.BeanFactoryAware#setBeanFactory(org.springframework.beans.factory.BeanFactory)
-	*/
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.core.support.TransactionalRepositoryFactoryBeanSupport#setBeanFactory(org.springframework.beans.factory.BeanFactory)
+	 */
 	public void setBeanFactory(BeanFactory beanFactory) {
 
 		Assert.isInstanceOf(ListableBeanFactory.class, beanFactory);
 
 		super.setBeanFactory(beanFactory);
 
-		entityPathResolver = obtainEntityPathResolver((ListableBeanFactory) beanFactory);
+		this.entityPathResolver = BeanLookup.lazyIfAvailable(EntityPathResolver.class, beanFactory) //
+				.or(SimpleEntityPathResolver.INSTANCE);
 	}
-
-	private EntityPathResolver obtainEntityPathResolver(ListableBeanFactory listableBeanFactory) {
-
-		Map<String, EntityPathResolver> entityPathResolverMap = listableBeanFactory
-				.getBeansOfType(EntityPathResolver.class);
-
-		switch (entityPathResolverMap.size()) {
-
-			case 0:
-				return SimpleEntityPathResolver.INSTANCE;
-			case 1:
-				return entityPathResolverMap.values().iterator().next();
-			default:
-
-				return entityPathResolverMap.computeIfAbsent( //
-						"entityPathResolver", //
-						key -> { //
-							throw new NoUniqueBeanDefinitionException( //
-									EntityPathResolver.class, //
-									entityPathResolverMap.size(), //
-									"No unique EntityPathResolver found, nor one name 'entityPathResolver'" //
-							);
-						});
-		}
-	}
-
 }
