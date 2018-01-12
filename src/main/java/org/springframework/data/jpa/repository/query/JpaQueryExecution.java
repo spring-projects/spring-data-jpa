@@ -15,16 +15,6 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import java.lang.reflect.Method;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-
-import javax.persistence.EntityManager;
-import javax.persistence.NoResultException;
-import javax.persistence.Query;
-import javax.persistence.StoredProcedureQuery;
-
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.ConfigurableConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
@@ -45,6 +35,16 @@ import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
 
+import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
+import javax.persistence.Query;
+import javax.persistence.StoredProcedureQuery;
+import java.lang.reflect.Method;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+
 /**
  * Set of classes to contain query execution strategies. Depending (mostly) on the return type of a
  * {@link org.springframework.data.repository.query.QueryMethod} a {@link AbstractStringBasedJpaQuery} can be executed
@@ -57,349 +57,357 @@ import org.springframework.util.ReflectionUtils;
  */
 public abstract class JpaQueryExecution {
 
-	private static final ConversionService CONVERSION_SERVICE;
-
-	static {
-
-		ConfigurableConversionService conversionService = new DefaultConversionService();
-
-		conversionService.addConverter(JpaResultConverters.BlobToByteArrayConverter.INSTANCE);
-		conversionService.removeConvertible(Collection.class, Object.class);
-		potentiallyRemoveOptionalConverter(conversionService);
-
-		CONVERSION_SERVICE = conversionService;
-	}
-
-	/**
-	 * Executes the given {@link AbstractStringBasedJpaQuery} with the given {@link ParameterBinder}.
-	 *
-	 * @param query must not be {@literal null}.
-	 * @param values must not be {@literal null}.
-	 * @return
-	 */
-	@Nullable
-	public Object execute(AbstractJpaQuery query, Object[] values) {
-
-		Assert.notNull(query, "AbstractJpaQuery must not be null!");
-		Assert.notNull(values, "Values must not be null!");
-
-		Object result;
-
-		try {
-			result = doExecute(query, values);
-		} catch (NoResultException e) {
-			return null;
-		}
-
-		if (result == null) {
-			return null;
-		}
-
-		JpaQueryMethod queryMethod = query.getQueryMethod();
-		Class<?> requiredType = queryMethod.getReturnType();
-
-		if (void.class.equals(requiredType) || requiredType.isAssignableFrom(result.getClass())) {
-			return result;
-		}
-
-		return CONVERSION_SERVICE.canConvert(result.getClass(), requiredType) //
-				? CONVERSION_SERVICE.convert(result, requiredType) //
-				: result;
-	}
-
-	/**
-	 * Method to implement {@link AbstractStringBasedJpaQuery} executions by single enum values.
-	 *
-	 * @param query
-	 * @param values
-	 * @return
-	 */
-	@Nullable
-	protected abstract Object doExecute(AbstractJpaQuery query, Object[] values);
-
-	/**
-	 * Executes the query to return a simple collection of entities.
-	 */
-	static class CollectionExecution extends JpaQueryExecution {
-
-		@Override
-		protected Object doExecute(AbstractJpaQuery query, Object[] values) {
-			return query.createQuery(values).getResultList();
-		}
-	}
-
-	/**
-	 * Executes the query to return a {@link Slice} of entities.
-	 *
-	 * @author Oliver Gierke
-	 * @since 1.6
-	 */
-	static class SlicedExecution extends JpaQueryExecution {
-
-		private final Parameters<?, ?> parameters;
-
-		/**
-		 * Creates a new {@link SlicedExecution} using the given {@link Parameters}.
-		 *
-		 * @param parameters must not be {@literal null}.
-		 */
-		public SlicedExecution(Parameters<?, ?> parameters) {
-			this.parameters = parameters;
-		}
-
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.jpa.repository.query.JpaQueryExecution#doExecute(org.springframework.data.jpa.repository.query.AbstractJpaQuery, java.lang.Object[])
-		 */
-		@Override
-		@SuppressWarnings("unchecked")
-		protected Object doExecute(AbstractJpaQuery query, Object[] values) {
-
-			ParametersParameterAccessor accessor = new ParametersParameterAccessor(parameters, values);
-			Pageable pageable = accessor.getPageable();
-
-			Query createQuery = query.createQuery(values);
-			int pageSize = pageable.getPageSize();
-			createQuery.setMaxResults(pageSize + 1);
+    private static final ConversionService CONVERSION_SERVICE;
+
+    static {
+
+        ConfigurableConversionService conversionService = new DefaultConversionService();
+
+        conversionService.addConverter(JpaResultConverters.BlobToByteArrayConverter.INSTANCE);
+        conversionService.removeConvertible(Collection.class, Object.class);
+        potentiallyRemoveOptionalConverter(conversionService);
+
+        CONVERSION_SERVICE = conversionService;
+    }
+
+    /**
+     * Executes the given {@link AbstractStringBasedJpaQuery} with the given {@link ParameterBinder}.
+     *
+     * @param query  must not be {@literal null}.
+     * @param values must not be {@literal null}.
+     * @return
+     */
+    @Nullable
+    public Object execute(AbstractJpaQuery query, Object[] values) {
+
+        Assert.notNull(query, "AbstractJpaQuery must not be null!");
+        Assert.notNull(values, "Values must not be null!");
+
+        Object result;
+
+        try {
+            result = doExecute(query, values);
+        } catch (NoResultException e) {
+            return null;
+        }
+
+        if (result == null) {
+            return null;
+        }
+
+        JpaQueryMethod queryMethod = query.getQueryMethod();
+        Class<?> requiredType = queryMethod.getReturnType();
+
+        if (void.class.equals(requiredType) || requiredType.isAssignableFrom(result.getClass())) {
+            return result;
+        }
+
+        return CONVERSION_SERVICE.canConvert(result.getClass(), requiredType) //
+                ? CONVERSION_SERVICE.convert(result, requiredType) //
+                : result;
+    }
+
+    /**
+     * Method to implement {@link AbstractStringBasedJpaQuery} executions by single enum values.
+     *
+     * @param query
+     * @param values
+     * @return
+     */
+    @Nullable
+    protected abstract Object doExecute(AbstractJpaQuery query, Object[] values);
+
+    /**
+     * Executes the query to return a simple collection of entities.
+     */
+    static class CollectionExecution extends JpaQueryExecution {
+
+        @Override
+        protected Object doExecute(AbstractJpaQuery query, Object[] values) {
+            return query.createQuery(values).getResultList();
+        }
+    }
+
+    /**
+     * Executes the query to return a {@link Slice} of entities.
+     *
+     * @author Oliver Gierke
+     * @since 1.6
+     */
+    static class SlicedExecution extends JpaQueryExecution {
+
+        private final Parameters<?, ?> parameters;
+
+        /**
+         * Creates a new {@link SlicedExecution} using the given {@link Parameters}.
+         *
+         * @param parameters must not be {@literal null}.
+         */
+        public SlicedExecution(Parameters<?, ?> parameters) {
+            this.parameters = parameters;
+        }
+
+        /*
+         * (non-Javadoc)
+         * @see org.springframework.data.jpa.repository.query.JpaQueryExecution#doExecute(org.springframework.data.jpa.repository.query.AbstractJpaQuery, java.lang.Object[])
+         */
+        @Override
+        @SuppressWarnings("unchecked")
+        protected Object doExecute(AbstractJpaQuery query, Object[] values) {
+
+            ParametersParameterAccessor accessor = new ParametersParameterAccessor(parameters, values);
+            Pageable pageable = accessor.getPageable();
+
+            Query createQuery = query.createQuery(values);
+            int pageSize = pageable.getPageSize();
+            createQuery.setMaxResults(pageSize + 1);
 
-			List<Object> resultList = createQuery.getResultList();
-			boolean hasNext = resultList.size() > pageSize;
+            List<Object> resultList = createQuery.getResultList();
+            boolean hasNext = resultList.size() > pageSize;
 
-			return new SliceImpl<Object>(hasNext ? resultList.subList(0, pageSize) : resultList, pageable, hasNext);
-		}
-	}
+            return new SliceImpl<Object>(hasNext ? resultList.subList(0, pageSize) : resultList, pageable, hasNext);
+        }
+    }
 
-	/**
-	 * Executes the {@link AbstractStringBasedJpaQuery} to return a {@link org.springframework.data.domain.Page} of
-	 * entities.
-	 */
-	static class PagedExecution extends JpaQueryExecution {
+    /**
+     * Executes the {@link AbstractStringBasedJpaQuery} to return a {@link org.springframework.data.domain.Page} of
+     * entities.
+     */
+    static class PagedExecution extends JpaQueryExecution {
 
-		private final Parameters<?, ?> parameters;
+        private final Parameters<?, ?> parameters;
 
-		public PagedExecution(Parameters<?, ?> parameters) {
+        public PagedExecution(Parameters<?, ?> parameters) {
 
-			this.parameters = parameters;
-		}
+            this.parameters = parameters;
+        }
 
-		@Override
-		@SuppressWarnings("unchecked")
-		protected Object doExecute(final AbstractJpaQuery repositoryQuery, final Object[] values) {
+        @Override
+        @SuppressWarnings("unchecked")
+        protected Object doExecute(final AbstractJpaQuery repositoryQuery, final Object[] values) {
 
-			ParameterAccessor accessor = new ParametersParameterAccessor(parameters, values);
-			Query query = repositoryQuery.createQuery(values);
+            ParameterAccessor accessor = new ParametersParameterAccessor(parameters, values);
+            Pageable pageable = accessor.getPageable();
 
-			return PageableExecutionUtils.getPage(query.getResultList(), accessor.getPageable(),
-					() -> count(repositoryQuery, values));
+            long count = count(repositoryQuery, values);
+            if (count == 0 || pageable.getOffset() > count - 1) {
+                return PageableExecutionUtils.getPage(Collections.emptyList(), pageable, () -> count);
+            }
 
-		}
+            Query query = repositoryQuery.createQuery(values);
+            return PageableExecutionUtils.getPage(query.getResultList(), accessor.getPageable(), () -> count);
 
-		private long count(AbstractJpaQuery repositoryQuery, Object[] values) {
+        }
+
+        private long count(AbstractJpaQuery repositoryQuery, Object[] values) {
+            List<?> totals = repositoryQuery.createCountQuery(values).getResultList();
+            Long count = (totals.size() == 1 ?
+                    CONVERSION_SERVICE.convert(totals.get(0), Long.class) : Long.valueOf(totals.size()));
+            return count == null ? 0 : count;
+        }
+    }
+
+    /**
+     * Executes a {@link AbstractStringBasedJpaQuery} to return a single entity.
+     */
+    static class SingleEntityExecution extends JpaQueryExecution {
+
+        @Override
+        protected Object doExecute(AbstractJpaQuery query, Object[] values) {
+
+            return query.createQuery(values).getSingleResult();
+        }
+    }
+
+    /**
+     * Executes a modifying query such as an update, insert or delete.
+     */
+    static class ModifyingExecution extends JpaQueryExecution {
+
+        private final @Nullable
+        EntityManager em;
+
+        /**
+         * Creates an execution that automatically clears the given {@link EntityManager} after execution if the given
+         * {@link EntityManager} is not {@literal null}.
+         *
+         * @param em
+         */
+        public ModifyingExecution(JpaQueryMethod method, @Nullable EntityManager em) {
+
+            Class<?> returnType = method.getReturnType();
+
+            boolean isVoid = void.class.equals(returnType) || Void.class.equals(returnType);
+            boolean isInt = int.class.equals(returnType) || Integer.class.equals(returnType);
+
+            Assert.isTrue(isInt || isVoid, "Modifying queries can only use void or int/Integer as return type!");
+
+            this.em = em;
+        }
+
+        @Override
+        protected Object doExecute(AbstractJpaQuery query, Object[] values) {
+
+            int result = query.createQuery(values).executeUpdate();
+
+            if (em != null) {
+                em.clear();
+            }
+
+            return result;
+        }
+    }
+
+    /**
+     * {@link JpaQueryExecution} removing entities matching the query.
+     *
+     * @author Thomas Darimont
+     * @author Oliver Gierke
+     * @since 1.6
+     */
+    static class DeleteExecution extends JpaQueryExecution {
+
+        private final EntityManager em;
+
+        public DeleteExecution(EntityManager em) {
+            this.em = em;
+        }
+
+        /*
+         * (non-Javadoc)
+         * @see org.springframework.data.jpa.repository.query.JpaQueryExecution#doExecute(org.springframework.data.jpa.repository.query.AbstractJpaQuery, java.lang.Object[])
+         */
+        @Override
+        protected Object doExecute(AbstractJpaQuery jpaQuery, Object[] values) {
+
+            Query query = jpaQuery.createQuery(values);
+            List<?> resultList = query.getResultList();
 
-			List<?> totals = repositoryQuery.createCountQuery(values).getResultList();
-			return (totals.size() == 1 ? CONVERSION_SERVICE.convert(totals.get(0), Long.class) : totals.size());
-		}
-	}
+            for (Object o : resultList) {
+                em.remove(o);
+            }
 
-	/**
-	 * Executes a {@link AbstractStringBasedJpaQuery} to return a single entity.
-	 */
-	static class SingleEntityExecution extends JpaQueryExecution {
+            return jpaQuery.getQueryMethod().isCollectionQuery() ? resultList : resultList.size();
+        }
+    }
 
-		@Override
-		protected Object doExecute(AbstractJpaQuery query, Object[] values) {
+    /**
+     * {@link JpaQueryExecution} performing an exists check on the query.
+     *
+     * @author Mark Paluch
+     * @since 1.11
+     */
+    static class ExistsExecution extends JpaQueryExecution {
+
+        @Override
+        protected Object doExecute(AbstractJpaQuery query, Object[] values) {
+            return !query.createQuery(values).getResultList().isEmpty();
+        }
+    }
 
-			return query.createQuery(values).getSingleResult();
-		}
-	}
-
-	/**
-	 * Executes a modifying query such as an update, insert or delete.
-	 */
-	static class ModifyingExecution extends JpaQueryExecution {
+    /**
+     * {@link JpaQueryExecution} executing a stored procedure.
+     *
+     * @author Thomas Darimont
+     * @since 1.6
+     */
+    static class ProcedureExecution extends JpaQueryExecution {
 
-		private final @Nullable EntityManager em;
+        /*
+         * (non-Javadoc)
+         * @see org.springframework.data.jpa.repository.query.JpaQueryExecution#doExecute(org.springframework.data.jpa.repository.query.AbstractJpaQuery, java.lang.Object[])
+         */
+        @Override
+        protected Object doExecute(AbstractJpaQuery jpaQuery, Object[] values) {
 
-		/**
-		 * Creates an execution that automatically clears the given {@link EntityManager} after execution if the given
-		 * {@link EntityManager} is not {@literal null}.
-		 *
-		 * @param em
-		 */
-		public ModifyingExecution(JpaQueryMethod method, @Nullable EntityManager em) {
-
-			Class<?> returnType = method.getReturnType();
-
-			boolean isVoid = void.class.equals(returnType) || Void.class.equals(returnType);
-			boolean isInt = int.class.equals(returnType) || Integer.class.equals(returnType);
-
-			Assert.isTrue(isInt || isVoid, "Modifying queries can only use void or int/Integer as return type!");
-
-			this.em = em;
-		}
+            Assert.isInstanceOf(StoredProcedureJpaQuery.class, jpaQuery);
 
-		@Override
-		protected Object doExecute(AbstractJpaQuery query, Object[] values) {
-
-			int result = query.createQuery(values).executeUpdate();
-
-			if (em != null) {
-				em.clear();
-			}
-
-			return result;
-		}
-	}
-
-	/**
-	 * {@link JpaQueryExecution} removing entities matching the query.
-	 *
-	 * @author Thomas Darimont
-	 * @author Oliver Gierke
-	 * @since 1.6
-	 */
-	static class DeleteExecution extends JpaQueryExecution {
+            StoredProcedureJpaQuery storedProcedureJpaQuery = (StoredProcedureJpaQuery) jpaQuery;
+            StoredProcedureQuery storedProcedure = storedProcedureJpaQuery.createQuery(values);
+            storedProcedure.execute();
 
-		private final EntityManager em;
+            return storedProcedureJpaQuery.extractOutputValue(storedProcedure);
+        }
+    }
 
-		public DeleteExecution(EntityManager em) {
-			this.em = em;
-		}
+    /**
+     * {@link JpaQueryExecution} executing a Java 8 Stream.
+     *
+     * @author Thomas Darimont
+     * @since 1.8
+     */
+    static class StreamExecution extends JpaQueryExecution {
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.jpa.repository.query.JpaQueryExecution#doExecute(org.springframework.data.jpa.repository.query.AbstractJpaQuery, java.lang.Object[])
-		 */
-		@Override
-		protected Object doExecute(AbstractJpaQuery jpaQuery, Object[] values) {
+        private static final String NO_SURROUNDING_TRANSACTION = "You're trying to execute a streaming query method without a surrounding transaction that keeps the connection open so that the Stream can actually be consumed. Make sure the code consuming the stream uses @Transactional or any other way of declaring a (read-only) transaction.";
 
-			Query query = jpaQuery.createQuery(values);
-			List<?> resultList = query.getResultList();
+        private static Method streamMethod = ReflectionUtils.findMethod(Query.class, "getResultStream");
+        private static boolean dynamicCheck = streamMethod == null;
 
-			for (Object o : resultList) {
-				em.remove(o);
-			}
+        /*
+         * (non-Javadoc)
+         * @see org.springframework.data.jpa.repository.query.JpaQueryExecution#doExecute(org.springframework.data.jpa.repository.query.AbstractJpaQuery, java.lang.Object[])
+         */
+        @Override
+        protected Object doExecute(final AbstractJpaQuery query, Object[] values) {
 
-			return jpaQuery.getQueryMethod().isCollectionQuery() ? resultList : resultList.size();
-		}
-	}
+            if (!SurroundingTransactionDetectorMethodInterceptor.INSTANCE.isSurroundingTransactionActive()) {
+                throw new InvalidDataAccessApiUsageException(NO_SURROUNDING_TRANSACTION);
+            }
 
-	/**
-	 * {@link JpaQueryExecution} performing an exists check on the query.
-	 *
-	 * @author Mark Paluch
-	 * @since 1.11
-	 */
-	static class ExistsExecution extends JpaQueryExecution {
+            Query jpaQuery = query.createQuery(values);
 
-		@Override
-		protected Object doExecute(AbstractJpaQuery query, Object[] values) {
-			return !query.createQuery(values).getResultList().isEmpty();
-		}
-	}
+            // JPA 2.2 on the classpath
+            if (streamMethod != null) {
+                return ReflectionUtils.invokeMethod(streamMethod, jpaQuery);
+            }
 
-	/**
-	 * {@link JpaQueryExecution} executing a stored procedure.
-	 *
-	 * @author Thomas Darimont
-	 * @since 1.6
-	 */
-	static class ProcedureExecution extends JpaQueryExecution {
+            if (dynamicCheck) {
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.jpa.repository.query.JpaQueryExecution#doExecute(org.springframework.data.jpa.repository.query.AbstractJpaQuery, java.lang.Object[])
-		 */
-		@Override
-		protected Object doExecute(AbstractJpaQuery jpaQuery, Object[] values) {
+                Method method = ReflectionUtils.findMethod(jpaQuery.getClass(), "getResultStream");
 
-			Assert.isInstanceOf(StoredProcedureJpaQuery.class, jpaQuery);
+                // Implementation available but on JPA 2.1
+                if (method != null) {
 
-			StoredProcedureJpaQuery storedProcedureJpaQuery = (StoredProcedureJpaQuery) jpaQuery;
-			StoredProcedureQuery storedProcedure = storedProcedureJpaQuery.createQuery(values);
-			storedProcedure.execute();
+                    // Cache for subsequent reuse to prevent repeated reflection lookups
+                    streamMethod = method;
 
-			return storedProcedureJpaQuery.extractOutputValue(storedProcedure);
-		}
-	}
+                    return ReflectionUtils.invokeMethod(method, jpaQuery);
 
-	/**
-	 * {@link JpaQueryExecution} executing a Java 8 Stream.
-	 *
-	 * @author Thomas Darimont
-	 * @since 1.8
-	 */
-	static class StreamExecution extends JpaQueryExecution {
+                } else {
 
-		private static final String NO_SURROUNDING_TRANSACTION = "You're trying to execute a streaming query method without a surrounding transaction that keeps the connection open so that the Stream can actually be consumed. Make sure the code consuming the stream uses @Transactional or any other way of declaring a (read-only) transaction.";
+                    // Not available on implementation, skip further lookups
+                    dynamicCheck = false;
+                }
+            }
 
-		private static Method streamMethod = ReflectionUtils.findMethod(Query.class, "getResultStream");
-		private static boolean dynamicCheck = streamMethod == null;
+            // Fall back to legacy stream execution
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.jpa.repository.query.JpaQueryExecution#doExecute(org.springframework.data.jpa.repository.query.AbstractJpaQuery, java.lang.Object[])
-		 */
-		@Override
-		protected Object doExecute(final AbstractJpaQuery query, Object[] values) {
+            PersistenceProvider persistenceProvider = PersistenceProvider.fromEntityManager(query.getEntityManager());
+            CloseableIterator<Object> iter = persistenceProvider.executeQueryWithResultStream(jpaQuery);
 
-			if (!SurroundingTransactionDetectorMethodInterceptor.INSTANCE.isSurroundingTransactionActive()) {
-				throw new InvalidDataAccessApiUsageException(NO_SURROUNDING_TRANSACTION);
-			}
+            return StreamUtils.createStreamFromIterator(iter);
+        }
+    }
 
-			Query jpaQuery = query.createQuery(values);
+    /**
+     * Removes the converter being able to convert any object into an {@link Optional} from the given
+     * {@link ConversionService} in case we're running on Java 8.
+     *
+     * @param conversionService must not be {@literal null}.
+     */
+    public static void potentiallyRemoveOptionalConverter(ConfigurableConversionService conversionService) {
 
-			// JPA 2.2 on the classpath
-			if (streamMethod != null) {
-				return ReflectionUtils.invokeMethod(streamMethod, jpaQuery);
-			}
+        ClassLoader classLoader = JpaQueryExecution.class.getClassLoader();
 
-			if (dynamicCheck) {
+        if (ClassUtils.isPresent("java.util.Optional", classLoader)) {
 
-				Method method = ReflectionUtils.findMethod(jpaQuery.getClass(), "getResultStream");
+            try {
 
-				// Implementation available but on JPA 2.1
-				if (method != null) {
+                Class<?> optionalType = ClassUtils.forName("java.util.Optional", classLoader);
+                conversionService.removeConvertible(Object.class, optionalType);
 
-					// Cache for subsequent reuse to prevent repeated reflection lookups
-					streamMethod = method;
-
-					return ReflectionUtils.invokeMethod(method, jpaQuery);
-
-				} else {
-
-					// Not available on implementation, skip further lookups
-					dynamicCheck = false;
-				}
-			}
-
-			// Fall back to legacy stream execution
-
-			PersistenceProvider persistenceProvider = PersistenceProvider.fromEntityManager(query.getEntityManager());
-			CloseableIterator<Object> iter = persistenceProvider.executeQueryWithResultStream(jpaQuery);
-
-			return StreamUtils.createStreamFromIterator(iter);
-		}
-	}
-
-	/**
-	 * Removes the converter being able to convert any object into an {@link Optional} from the given
-	 * {@link ConversionService} in case we're running on Java 8.
-	 *
-	 * @param conversionService must not be {@literal null}.
-	 */
-	public static void potentiallyRemoveOptionalConverter(ConfigurableConversionService conversionService) {
-
-		ClassLoader classLoader = JpaQueryExecution.class.getClassLoader();
-
-		if (ClassUtils.isPresent("java.util.Optional", classLoader)) {
-
-			try {
-
-				Class<?> optionalType = ClassUtils.forName("java.util.Optional", classLoader);
-				conversionService.removeConvertible(Object.class, optionalType);
-
-			} catch (ClassNotFoundException | LinkageError o_O) {}
-		}
-	}
+            } catch (ClassNotFoundException | LinkageError o_O) {
+            }
+        }
+    }
 }
