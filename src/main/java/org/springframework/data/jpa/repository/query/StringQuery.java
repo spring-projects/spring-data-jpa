@@ -22,6 +22,7 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -44,7 +45,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Paluch
  * @author Jens Schauder
  */
-class StringQuery {
+class StringQuery implements QueryInformation {
 
 	private final String query;
 	private final List<ParameterBinding> bindings;
@@ -63,9 +64,11 @@ class StringQuery {
 		this.bindings = new ArrayList<>();
 		this.query = ParameterBindingParser.INSTANCE.parseParameterBindingsOfQueryIntoBindingsAndReturnCleanedQuery(query,
 				this.bindings);
+
 		this.alias = QueryUtils.detectAlias(query);
 		this.hasConstructorExpression = QueryUtils.hasConstructorExpression(query);
 	}
+
 
 	/**
 	 * Returns whether we have found some like bindings.
@@ -77,14 +80,21 @@ class StringQuery {
 	/**
 	 * Returns the {@link ParameterBinding}s registered.
 	 */
-	List<ParameterBinding> getParameterBindings() {
+	public List<ParameterBinding> getParameterBindings() {
 		return bindings;
+	}
+
+	@Override
+	public QueryInformation deriveCountQuery(@Nullable String countQuery, @Nullable String countQueryProjection) {
+
+		return QueryInformation
+				.of(countQuery != null ? countQuery : QueryUtils.createCountQueryFor(query, countQueryProjection));
 	}
 
 	/**
 	 * Returns the query string.
 	 */
-	String getQueryString() {
+	public String getQueryString() {
 		return query;
 	}
 
@@ -94,7 +104,7 @@ class StringQuery {
 	 * @return the alias
 	 */
 	@Nullable
-	String getAlias() {
+	public String getAlias() {
 		return alias;
 	}
 
@@ -103,15 +113,28 @@ class StringQuery {
 	 *
 	 * @since 1.10
 	 */
-	boolean hasConstructorExpression() {
+	public boolean hasConstructorExpression() {
 		return hasConstructorExpression;
 	}
 
 	/**
 	 * Returns whether the query uses the default projection, i.e. returns the main alias defined for the query.
 	 */
-	boolean isDefaultProjection() {
-		return QueryUtils.getProjection(query).equals(alias);
+	public boolean isDefaultProjection() {
+		return getProjection().equals(alias);
+	}
+
+	public String getProjection() {
+		return QueryUtils.getProjection(query);
+	}
+
+	public boolean hasNamedParameter() {
+
+		for (ParameterBinding binding : bindings) {
+			if (binding.getName() != null)
+				return true;
+		}
+		return false;
 	}
 
 	/**

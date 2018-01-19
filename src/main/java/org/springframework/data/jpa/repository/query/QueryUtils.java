@@ -73,6 +73,7 @@ import org.springframework.util.StringUtils;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Sébastien Péralta
+ * @author Jens Schauder
  */
 public abstract class QueryUtils {
 
@@ -84,7 +85,7 @@ public abstract class QueryUtils {
 	// Cc Control
 	// Cf Format
 	// P Punctuation
-	static final String IDENTIFIER = "[._[\\P{Z}&&\\P{Cc}&&\\P{Cf}&&\\P{P}]]+";
+	private static final String IDENTIFIER = "[._[\\P{Z}&&\\P{Cc}&&\\P{Cf}&&\\P{P}]]+";
 	static final String COLON_NO_DOUBLE_COLON = "(?<![:\\\\]):";
 	static final String IDENTIFIER_GROUP = String.format("(%s)", IDENTIFIER);
 
@@ -187,7 +188,6 @@ public abstract class QueryUtils {
 	 * @param entityName the name of the entity to create the query for, must not be {@literal null}.
 	 * @param countQueryPlaceHolder the placeholder for the count clause, must not be {@literal null}.
 	 * @param idAttributes the id attributes for the entity, must not be {@literal null}.
-	 * @return
 	 */
 	public static String getExistsQueryString(String entityName, String countQueryPlaceHolder,
 			Iterable<String> idAttributes) {
@@ -201,10 +201,6 @@ public abstract class QueryUtils {
 
 	/**
 	 * Returns the query string for the given class name.
-	 *
-	 * @param template
-	 * @param entityName
-	 * @return
 	 */
 	public static String getQueryString(String template, String entityName) {
 
@@ -267,7 +263,6 @@ public abstract class QueryUtils {
 	 * @param joinAliases the join aliases of the original query.
 	 * @param alias the alias for the root entity.
 	 * @param order the order object to build the clause for.
-	 * @return
 	 */
 	private static String getOrderClause(Set<String> joinAliases, Set<String> functionAlias, @Nullable String alias,
 			Order order) {
@@ -298,9 +293,6 @@ public abstract class QueryUtils {
 
 	/**
 	 * Returns the aliases used for {@code left (outer) join}s.
-	 *
-	 * @param query
-	 * @return
 	 */
 	static Set<String> getOuterJoinAliases(String query) {
 
@@ -320,9 +312,6 @@ public abstract class QueryUtils {
 
 	/**
 	 * Returns the aliases used for aggregate functions like {@code SUM, COUNT, ...}.
-	 *
-	 * @param query
-	 * @return
 	 */
 	private static Set<String> getFunctionAliases(String query) {
 
@@ -348,10 +337,10 @@ public abstract class QueryUtils {
 	/**
 	 * Resolves the alias for the entity to be retrieved from the given JPA query.
 	 *
-	 * @param query
-	 * @return
+	 * @deprecated use {@link QueryInformation#getAlias()} instead.
 	 */
 	@Nullable
+	@Deprecated
 	public static String detectAlias(String query) {
 
 		Matcher matcher = ALIAS_MATCH.matcher(query);
@@ -363,11 +352,10 @@ public abstract class QueryUtils {
 	 * Creates a where-clause referencing the given entities and appends it to the given query string. Binds the given
 	 * entities to the query.
 	 *
-	 * @param <T>
+	 * @param <T> type of the entities.
 	 * @param queryString must not be {@literal null}.
 	 * @param entities must not be {@literal null}.
 	 * @param entityManager must not be {@literal null}.
-	 * @return
 	 */
 	public static <T> Query applyAndBind(String queryString, Iterable<T> entities, EntityManager entityManager) {
 
@@ -414,8 +402,9 @@ public abstract class QueryUtils {
 	 * Creates a count projected query from the given original query.
 	 *
 	 * @param originalQuery must not be {@literal null} or empty.
-	 * @return
+	 * @deprecated use {@link QueryInformation#deriveCountQuery(String, String)} instead.
 	 */
+	@Deprecated
 	public static String createCountQueryFor(String originalQuery) {
 		return createCountQueryFor(originalQuery, null);
 	}
@@ -425,9 +414,11 @@ public abstract class QueryUtils {
 	 *
 	 * @param originalQuery must not be {@literal null}.
 	 * @param countProjection may be {@literal null}.
-	 * @return
+	 * @return a query String to be used a count query for pagination.
 	 * @since 1.6
+	 * @deprecated use {@link QueryInformation#deriveCountQuery(String, String)} instead.
 	 */
+	@Deprecated
 	public static String createCountQueryFor(String originalQuery, @Nullable String countProjection) {
 
 		Assert.hasText(originalQuery, "OriginalQuery must not be null or empty!");
@@ -479,7 +470,8 @@ public abstract class QueryUtils {
 	 * @param query can be {@literal null} or empty.
 	 * @return
 	 */
-	public static boolean hasNamedParameter(@Nullable String query) {
+	@Deprecated
+	static boolean hasNamedParameter(@Nullable String query) {
 		return StringUtils.hasText(query) && NAMED_PARAMETER.matcher(query).find();
 	}
 

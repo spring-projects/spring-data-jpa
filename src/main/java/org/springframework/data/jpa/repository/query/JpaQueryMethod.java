@@ -107,7 +107,7 @@ public class JpaQueryMethod extends QueryMethod {
 
 		String annotatedQuery = getAnnotatedQuery();
 
-		if (!QueryUtils.hasNamedParameter(annotatedQuery)) {
+		if (!QueryInformation.of(annotatedQuery).hasNamedParameter()) {
 			return;
 		}
 

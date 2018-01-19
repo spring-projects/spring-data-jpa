@@ -36,8 +36,8 @@ import org.springframework.util.Assert;
  */
 abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 
-	private final StringQuery query;
-	private final StringQuery countQuery;
+	private final QueryInformation query;
+	private final QueryInformation countQuery;
 	private final EvaluationContextProvider evaluationContextProvider;
 	private final SpelExpressionParser parser;
 
@@ -62,8 +62,8 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 
 		this.evaluationContextProvider = evaluationContextProvider;
 		this.query = new ExpressionBasedStringQuery(queryString, method.getEntityInformation(), parser);
-		this.countQuery = new StringQuery(method.getCountQuery() != null ? method.getCountQuery()
-				: QueryUtils.createCountQueryFor(this.query.getQueryString(), method.getCountQueryProjection()));
+		this.countQuery = query.deriveCountQuery(method.getCountQuery(), method.getCountQueryProjection());
+
 		this.parser = parser;
 	}
 
@@ -91,8 +91,8 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 	@Override
 	protected ParameterBinder createBinder() {
 
-		return ParameterBinderFactory.createQueryAwareBinder(getQueryMethod().getParameters(), query,
-				parser, evaluationContextProvider);
+		return ParameterBinderFactory.createQueryAwareBinder(getQueryMethod().getParameters(), query, parser,
+				evaluationContextProvider);
 	}
 
 	/*
@@ -113,14 +113,14 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 	/**
 	 * @return the query
 	 */
-	public StringQuery getQuery() {
+	public QueryInformation getQuery() {
 		return query;
 	}
 
 	/**
 	 * @return the countQuery
 	 */
-	public StringQuery getCountQuery() {
+	public QueryInformation getCountQuery() {
 		return countQuery;
 	}
 
