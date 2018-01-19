@@ -8,6 +8,8 @@ env:
     - PROFILE=ci
     - PROFILE=spring5-next
     - PROFILE=hibernate-next
+    - PROFILE=hibernate-53
+    - PROFILE=hibernate-53-next
     - PROFILE=eclipselink-next
     - PROFILE=eclipselink-27-next
     - PROFILE=querydsl-next
