@@ -20,6 +20,7 @@ import static org.junit.Assert.*;
 
 import java.util.List;
 
+import org.assertj.core.api.SoftAssertions;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -38,6 +39,8 @@ import org.springframework.data.repository.query.parser.Part.Type;
 public class StringQueryUnitTests {
 
 	public @Rule ExpectedException exception = ExpectedException.none();
+
+	SoftAssertions softly = new SoftAssertions();
 
 	@Test // DATAJPA-341
 	public void doesNotConsiderPlainLikeABinding() {
@@ -304,6 +307,112 @@ public class StringQueryUnitTests {
 			assertThat(binding.getName(), notNullValue());
 			assertThat(query.getQueryString(), containsString(binding.getName()));
 		}
+	}
+
+	@Test // DATAJPA-1235
+	public void getProjection() {
+
+		checkProjection("SELECT something FROM", "", "only lowercase is supported (!?)");
+		checkProjection("select something from", "something", "single expression");
+		checkProjection("select x, y, z from", "x, y, z", "tuple");
+		checkProjection("sect x, y, z from", "", "missing select");
+		checkProjection("select x, y, z fron", "", "missing from");
+
+		softly.assertAll();
+	}
+
+	void checkProjection(String query, String expected, String description) {
+
+		softly.assertThat(new StringQuery(query).getProjection()) //
+				.as("%s (%s)", description, query) //
+				.isEqualTo(expected);
+	}
+
+	@Test // DATAJPA-1235
+	public void getAlias() {
+
+		checkAlias("from User u", "u", "simple query");
+		checkAlias("select count(u) from User u", "u", "count query");
+		checkAlias("select u from User as u where u.username = ?", "u", "with as");
+		checkAlias("SELECT FROM USER U", "U", "uppercase");
+		checkAlias("select u from  User u", "u", "simple query");
+		checkAlias("select u from  com.acme.User u", "u", "fully qualified package name");
+		checkAlias("select u from T05User u", "u", "intersting entity name");
+
+		softly.assertAll();
+	}
+
+	private void checkAlias(String query, String expected, String description) {
+
+		softly.assertThat(new StringQuery(query).getAlias()) //
+				.as("%s (%s)", description, query) //
+				.isEqualTo(expected);
+	}
+
+	@Test // DATAJPA-1200
+	public void testHasNamedParameter() {
+
+		SoftAssertions softly = new SoftAssertions();
+
+		checkHasNamedParameter("select something from x where id = :id", true, "named parameter");
+		checkHasNamedParameter("in the :id middle", true, "middle");
+		checkHasNamedParameter(":id start", true, "beginning");
+		checkHasNamedParameter(":id", true, "alone");
+		checkHasNamedParameter("select something from x where id = :id", true, "named parameter");
+		checkHasNamedParameter("select something from x where id = #something", true, "hash");
+		checkHasNamedParameter(":UPPERCASE", true, "uppercase");
+		checkHasNamedParameter(":lowercase", true, "lowercase");
+		checkHasNamedParameter(":2something", true, "beginning digit");
+		checkHasNamedParameter(":2", true, "only digit");
+		checkHasNamedParameter(":.something", true, "dot");
+		checkHasNamedParameter(":_something", true, "underscore");
+		checkHasNamedParameter(":$something", true, "dollar");
+		checkHasNamedParameter(":\uFE0F", true, "non basic latin emoji"); //
+		checkHasNamedParameter(":\u4E01", true, "chinese japanese korean");
+
+		checkHasNamedParameter("no bind variable", false, "no bind variable");
+		checkHasNamedParameter(":\u2004whitespace", false, "non basic latin whitespace");
+		checkHasNamedParameter("select something from x where id = ?1", false, "indexed parameter");
+		checkHasNamedParameter("::", false, "double colon");
+		checkHasNamedParameter(":", false, "end of query");
+		checkHasNamedParameter(":\u0003", false, "non-printable");
+		checkHasNamedParameter(":*", false, "basic latin emoji");
+		checkHasNamedParameter("\\:", false, "escaped colon");
+		checkHasNamedParameter("::id", false, "double colon with identifier");
+		checkHasNamedParameter("\\:id", false, "escaped colon with identifier");
+
+		softly.assertAll();
+	}
+
+	@Test // DATAJPA-1235
+	public void ignoresQuotedNamedParameterLookAlike() {
+
+		checkNumberOfNamedParameters("select something from blah where x = '0:name'", 0, "single quoted");
+		checkNumberOfNamedParameters("select something from blah where x = \"0:name\"", 0, "double quoted");
+		checkNumberOfNamedParameters("select something from blah where x = '\"0':name", 1, "double quote in single quotes");
+		checkNumberOfNamedParameters("select something from blah where x = \"'0\":name", 1,
+				"single quote in double quotes");
+
+		softly.assertAll();
+	}
+
+	public void checkNumberOfNamedParameters(String query, int expectedSize, String label) {
+
+		DeclaredQuery declaredQuery = DeclaredQuery.of(query);
+
+		softly.assertThat(declaredQuery.hasNamedParameter()) //
+				.describedAs("hasNamed Parameter " + label) //
+				.isEqualTo(expectedSize > 0);
+		softly.assertThat(declaredQuery.getParameterBindings()) //
+				.describedAs("parameterBindings " + label) //
+				.hasSize(expectedSize);
+	}
+
+	private void checkHasNamedParameter(String query, boolean expected, String label) {
+
+		softly.assertThat(new StringQuery(query).hasNamedParameter()) //
+				.describedAs(String.format("<%s> (%s)", query, label)) //
+				.isEqualTo(expected);
 	}
 
 	private void assertPositionalBinding(Class<? extends ParameterBinding> bindingType, Integer position,

@@ -26,7 +26,6 @@ import org.springframework.data.jpa.repository.query.StringQuery.ParameterBindin
 import org.springframework.data.repository.query.EvaluationContextProvider;
 import org.springframework.data.util.StreamUtils;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -88,7 +87,7 @@ class ParameterBinderFactory {
 	 * @return a {@link ParameterBinder} that can assign values for the method parameters to query parameters of a
 	 *         {@link javax.persistence.Query} while processing SpEL expressions where applicable.
 	 */
-	static ParameterBinder createQueryAwareBinder(JpaParameters parameters, StringQuery query,
+	static ParameterBinder createQueryAwareBinder(JpaParameters parameters, DeclaredQuery query,
 			SpelExpressionParser parser, EvaluationContextProvider evaluationContextProvider) {
 
 		Assert.notNull(parameters, "JpaParameters must not be null!");
@@ -101,8 +100,7 @@ class ParameterBinderFactory {
 				evaluationContextProvider, parameters);
 		QueryParameterSetterFactory basicSetterFactory = QueryParameterSetterFactory.basic(parameters);
 
-		return new ParameterBinder(parameters,
-				createSetters(query.getQueryString(), bindings, expressionSetterFactory, basicSetterFactory));
+		return new ParameterBinder(parameters, createSetters(bindings, query, expressionSetterFactory, basicSetterFactory));
 	}
 
 	private static List<ParameterBinding> getBindings(JpaParameters parameters) {
@@ -122,22 +120,22 @@ class ParameterBinderFactory {
 
 	private static Iterable<QueryParameterSetter> createSetters(List<ParameterBinding> parameterBindings,
 			QueryParameterSetterFactory... factories) {
-		return createSetters(null, parameterBindings, factories);
+		return createSetters(parameterBindings, EmptyDeclaredQuery.EMPTY_QUERY, factories);
 	}
 
-	private static Iterable<QueryParameterSetter> createSetters(@Nullable String queryString,
-			List<ParameterBinding> parameterBindings, QueryParameterSetterFactory... strategies) {
+	private static Iterable<QueryParameterSetter> createSetters(List<ParameterBinding> parameterBindings,
+																DeclaredQuery declaredQuery, QueryParameterSetterFactory... strategies) {
 
 		return parameterBindings.stream() //
-				.map(it -> createQueryParameterSetter(it, strategies, queryString)) //
+				.map(it -> createQueryParameterSetter(it, strategies, declaredQuery)) //
 				.collect(StreamUtils.toUnmodifiableList());
 	}
 
 	private static QueryParameterSetter createQueryParameterSetter(ParameterBinding binding,
-			QueryParameterSetterFactory[] strategies, @Nullable String queryString) {
+			QueryParameterSetterFactory[] strategies, DeclaredQuery declaredQuery) {
 
 		return Arrays.stream(strategies)//
-				.map(it -> it.create(binding, queryString))//
+				.map(it -> it.create(binding, declaredQuery))//
 				.filter(Objects::nonNull)//
 				.findFirst()//
 				.orElse(QueryParameterSetter.NOOP);
