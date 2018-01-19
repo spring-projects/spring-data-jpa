@@ -44,7 +44,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Paluch
  * @author Jens Schauder
  */
-class StringQuery {
+class StringQuery implements DeclaredQuery {
 
 	private final String query;
 	private final List<ParameterBinding> bindings;
@@ -63,6 +63,7 @@ class StringQuery {
 		this.bindings = new ArrayList<>();
 		this.query = ParameterBindingParser.INSTANCE.parseParameterBindingsOfQueryIntoBindingsAndReturnCleanedQuery(query,
 				this.bindings);
+
 		this.alias = QueryUtils.detectAlias(query);
 		this.hasConstructorExpression = QueryUtils.hasConstructorExpression(query);
 	}
@@ -77,14 +78,22 @@ class StringQuery {
 	/**
 	 * Returns the {@link ParameterBinding}s registered.
 	 */
-	List<ParameterBinding> getParameterBindings() {
+	public List<ParameterBinding> getParameterBindings() {
 		return bindings;
+	}
+
+	@Override
+	public DeclaredQuery deriveCountQuery(@Nullable String countQuery, @Nullable String countQueryProjection) {
+
+		return DeclaredQuery
+				.of(countQuery != null ? countQuery : QueryUtils.createCountQueryFor(query, countQueryProjection));
 	}
 
 	/**
 	 * Returns the query string.
 	 */
-	String getQueryString() {
+	@Override
+	public String getQueryString() {
 		return query;
 	}
 
@@ -93,8 +102,9 @@ class StringQuery {
 	 * 
 	 * @return the alias
 	 */
+	@Override
 	@Nullable
-	String getAlias() {
+	public String getAlias() {
 		return alias;
 	}
 
@@ -103,15 +113,28 @@ class StringQuery {
 	 * 
 	 * @since 1.10
 	 */
-	boolean hasConstructorExpression() {
+	@Override
+	public boolean hasConstructorExpression() {
 		return hasConstructorExpression;
 	}
 
 	/**
 	 * Returns whether the query uses the default projection, i.e. returns the main alias defined for the query.
 	 */
-	boolean isDefaultProjection() {
-		return QueryUtils.getProjection(query).equals(alias);
+	@Override
+	public boolean isDefaultProjection() {
+		return getProjection().equals(alias);
+	}
+
+	public String getProjection() {
+		return QueryUtils.getProjection(query);
+	}
+
+	@Override
+	public boolean hasNamedParameter() {
+
+		return bindings.stream() //
+				.anyMatch(b -> b.getName() != null);
 	}
 
 	/**
@@ -191,7 +214,13 @@ class StringQuery {
 			 */
 			int expressionParameterIndex = parametersShouldBeAccessedByIndex ? greatestParameterIndex : 0;
 
+			QuotationMap quotationMap = new QuotationMap(query);
+
 			while (matcher.find()) {
+
+				if (quotationMap.isQuoted(matcher.start())) {
+					continue;
+				}
 
 				String parameterIndexString = matcher.group(INDEXED_PARAMETER_GROUP);
 				String parameterName = parameterIndexString != null ? null : matcher.group(NAMED_PARAMETER_GROUP);
@@ -341,6 +370,7 @@ class StringQuery {
 				throw new IllegalArgumentException(String.format("Unsupported parameter binding type %s!", typeSource));
 			}
 		}
+
 	}
 
 	/**
@@ -729,4 +759,5 @@ class StringQuery {
 			return Type.LIKE;
 		}
 	}
+
 }

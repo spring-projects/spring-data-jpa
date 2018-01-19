@@ -2059,6 +2059,24 @@ public class UserRepositoryTests {
 		assertThat(result.getLastname()).isEqualTo(user.getLastname());
 	}
 
+	@Test //DATAJPA-1235
+	public void handlesColonsFollowedByIntegerInStringLiteral(){
+
+		String firstName = "aFirstName";
+
+		User expected = new User(firstName, "000:1", "something@something");
+		User notExpected = new User(firstName, "000\\:1", "something@something.else");
+
+		repository.save(expected);
+		repository.save(notExpected);
+
+		assertThat(repository.findAll()).hasSize(2);
+
+		List<User> users = repository.queryWithIndexedParameterAndColonFollowedByIntegerInString(firstName);
+
+		assertThat(users).extracting(User::getId).containsExactly(expected.getId());
+	}
+
 	private Page<User> executeSpecWithSort(Sort sort) {
 
 		flushTestUsers();

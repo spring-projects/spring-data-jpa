@@ -23,7 +23,6 @@ import static org.springframework.data.jpa.repository.query.QueryUtils.*;
 import java.util.Collections;
 import java.util.Set;
 
-import org.assertj.core.api.SoftAssertions;
 import org.hamcrest.Matcher;
 import org.junit.Test;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
@@ -38,6 +37,7 @@ import org.springframework.data.jpa.domain.JpaSort;
  * @author Thomas Darimont
  * @author Komi Innocent
  * @author Christoph Strobl
+ * @author Jens Schauder
  */
 public class QueryUtilsUnitTests {
 
@@ -393,48 +393,6 @@ public class QueryUtilsUnitTests {
 
 		assertThat(QueryUtils.getExistsQueryString("entity", "x", Collections.singleton("id"))) //
 				.endsWith("WHERE x.id = :id");
-	}
-
-	@Test // DATAJPA-1200
-	public void testHasNamedParameter() {
-
-		SoftAssertions softly = new SoftAssertions();
-
-		checkHasNamedParameter(softly, "select something from x where id = :id", true, "named parameter");
-		checkHasNamedParameter(softly, "in the :id middle", true, "middle");
-		checkHasNamedParameter(softly, ":id start", true, "beginning");
-		checkHasNamedParameter(softly, ":id", true, "alone");
-		checkHasNamedParameter(softly, "select something from x where id = :id", true, "named parameter");
-		checkHasNamedParameter(softly, "select something from x where id = #something", true, "hash");
-		checkHasNamedParameter(softly, ":UPPERCASE", true, "uppercase");
-		checkHasNamedParameter(softly, ":lowercase", true, "lowercase");
-		checkHasNamedParameter(softly, ":2something", true, "beginning digit");
-		checkHasNamedParameter(softly, ":2", true, "only digit");
-		checkHasNamedParameter(softly, ":.something", true, "dot");
-		checkHasNamedParameter(softly, ":_something", true, "underscore");
-		checkHasNamedParameter(softly, ":$something", true, "dollar");
-		checkHasNamedParameter(softly, ":\uFE0F", true, "non basic latin emoji"); //
-		checkHasNamedParameter(softly, ":\u4E01", true, "chinese japanese korean");
-
-		checkHasNamedParameter(softly, "no bind variable", false, "no bind variable");
-		checkHasNamedParameter(softly, ":\u2004whitespace", false, "non basic latin whitespace");
-		checkHasNamedParameter(softly, "select something from x where id = ?1", false, "indexed parameter");
-		checkHasNamedParameter(softly, "::", false, "double colon");
-		checkHasNamedParameter(softly, ":", false, "end of query");
-		checkHasNamedParameter(softly, ":\u0003", false, "non-printable");
-		checkHasNamedParameter(softly, ":*", false, "basic latin emoji");
-		checkHasNamedParameter(softly, "\\:", false, "escaped colon");
-		checkHasNamedParameter(softly, "::id", false, "double colon with identifier");
-		checkHasNamedParameter(softly, "\\:id", false, "escaped colon with identifier");
-
-		softly.assertAll();
-	}
-
-	private static void checkHasNamedParameter(SoftAssertions softly, String query, boolean expected, String label) {
-
-		softly.assertThat(QueryUtils.hasNamedParameter(query)) //
-				.describedAs(String.format("<%s> (%s)", query, label)) //
-				.isEqualTo(expected);
 	}
 
 	private static void assertCountQuery(String originalQuery, String countQuery) {

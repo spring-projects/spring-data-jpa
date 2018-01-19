@@ -509,6 +509,10 @@ public interface UserRepository
 	@Query(value = "SELECT firstname, lastname FROM SD_User WHERE id = ?1", nativeQuery = true)
 	NameOnly findByNativeQuery(Integer id);
 
+	// DATAJPA-1235
+	@Query("SELECT u FROM User u where u.firstname >= ?1 and u.lastname = '000:1'")
+	List<User> queryWithIndexedParameterAndColonFollowedByIntegerInString(String firstname);
+
 	static interface RolesAndFirstname {
 
 		String getFirstname();
