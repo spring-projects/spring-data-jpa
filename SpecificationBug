@@ -1,0 +1,29 @@
+
+When I use dynamic queries, totalElements the incredible thing.
+It's always not the total after grooup by, unless it's the last page. The same query condition, only the number of pages, the total number is different. Why?
+
+eg：
+Specification specification = new Specification<OpcOrderMasterEntity>() {
+            @Override
+            Predicate toPredicate(Root<OpcOrderMasterEntity> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+                List<Predicate> searchList = new ArrayList<>();
+                Join<OpcOrderMasterEntity, OpcOrderProductDetailEntity> oopd = root.join("opcOrderProductDetailEntities", JoinType.INNER)
+                if (opcOrderCriteria.skuIds) {
+                    searchList.add(oopd.get("skuId").in(opcOrderCriteria.skuIds))
+           
+                Predicate[] pd = new Predicate[searchList.size()];
+                query.where(searchList.toArray(pd))
+                if (opcOrderCriteria?.skuIds?.size() > 1) {
+                    query.groupBy(root.get("id"))
+                }
+                return query.getRestriction()
+            }
+        }
+   if: Page<OpcOrderMasterEntity> entitys = orderMasterRepository.findAll(specification, new PageRequst(0,50)) 
+   result entitys.totalElements = 140
+   if: Page<OpcOrderMasterEntity> entitys = orderMasterRepository.findAll(specification, new PageRequst(2,50)) 
+   result entitys.totalElements = 130
+   
+   
+   why?
+        
