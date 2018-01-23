@@ -87,7 +87,7 @@ class ParameterBinderFactory {
 	 * @return a {@link ParameterBinder} that can assign values for the method parameters to query parameters of a
 	 *         {@link javax.persistence.Query} while processing SpEL expressions where applicable.
 	 */
-	static ParameterBinder createQueryAwareBinder(JpaParameters parameters, QueryInformation query,
+	static ParameterBinder createQueryAwareBinder(JpaParameters parameters, DeclaredQuery query,
 			SpelExpressionParser parser, EvaluationContextProvider evaluationContextProvider) {
 
 		Assert.notNull(parameters, "JpaParameters must not be null!");
@@ -120,22 +120,22 @@ class ParameterBinderFactory {
 
 	private static Iterable<QueryParameterSetter> createSetters(List<ParameterBinding> parameterBindings,
 			QueryParameterSetterFactory... factories) {
-		return createSetters(parameterBindings, QueryInformation.EMPTY_QUERY, factories);
+		return createSetters(parameterBindings, EmptyDeclaredQuery.EMPTY_QUERY, factories);
 	}
 
 	private static Iterable<QueryParameterSetter> createSetters(List<ParameterBinding> parameterBindings,
-																QueryInformation queryInformation, QueryParameterSetterFactory... strategies) {
+																DeclaredQuery declaredQuery, QueryParameterSetterFactory... strategies) {
 
 		return parameterBindings.stream() //
-				.map(it -> createQueryParameterSetter(it, strategies, queryInformation)) //
+				.map(it -> createQueryParameterSetter(it, strategies, declaredQuery)) //
 				.collect(StreamUtils.toUnmodifiableList());
 	}
 
 	private static QueryParameterSetter createQueryParameterSetter(ParameterBinding binding,
-			QueryParameterSetterFactory[] strategies, QueryInformation queryInformation) {
+			QueryParameterSetterFactory[] strategies, DeclaredQuery declaredQuery) {
 
 		return Arrays.stream(strategies)//
-				.map(it -> it.create(binding, queryInformation))//
+				.map(it -> it.create(binding, declaredQuery))//
 				.filter(Objects::nonNull)//
 				.findFirst()//
 				.orElse(QueryParameterSetter.NOOP);

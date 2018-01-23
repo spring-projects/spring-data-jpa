@@ -15,11 +15,9 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import java.util.Collections;
 import java.util.List;
 
 import org.springframework.lang.Nullable;
-import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
@@ -27,19 +25,21 @@ import org.springframework.util.StringUtils;
  *
  * @author Jens Schauder
  */
-interface QueryInformation {
+interface DeclaredQuery {
 
 	/**
-	 * An implementation implementing the NULL-Object pattern for situations where there is no query.
+	 * Creates a {@literal DeclaredQuery} from a query {@literal String}.
+	 *
+	 * @param query might be {@literal null} or empty.
+	 *
+	 * @return a {@literal DeclaredQuery} instance even for a {@literal null} or empty argument.
 	 */
-	QueryInformation EMPTY_QUERY = new EmptyQueryInformation();
-
-	static QueryInformation of(String query) {
-		return StringUtils.isEmpty(query) ? EMPTY_QUERY : new StringQuery(query);
+	static DeclaredQuery of(@Nullable String query) {
+		return StringUtils.isEmpty(query) ? EmptyDeclaredQuery.EMPTY_QUERY : new StringQuery(query);
 	}
 
 	/**
-	 * @return {@literal true} iff the underlying query has at least one named parameter.
+	 * @return whether the underlying query has at least one named parameter.
 	 */
 	boolean hasNamedParameter();
 
@@ -74,59 +74,14 @@ interface QueryInformation {
 	List<StringQuery.ParameterBinding> getParameterBindings();
 
 	/**
-	 * Creates a new {@literal QueryInformation} representing a count query, i.e. a query returning the number of rows to
-	 * be expected from the original query, either derived from the query wrapped by this instance or from the information
+	 * Creates a new {@literal DeclaredQuery} representing a count query, i.e. a query returning the number of rows to be
+	 * expected from the original query, either derived from the query wrapped by this instance or from the information
 	 * passed as arguments.
 	 * 
 	 * @param countQuery an optional query string to be used if present.
 	 * @param countQueryProjection an optional return type for the query.
-	 * @return A new {@literal QueryInformation} instance.
+	 * @return A new {@literal DeclaredQuery} instance.
 	 */
-	QueryInformation deriveCountQuery(@Nullable String countQuery, @Nullable String countQueryProjection);
+	DeclaredQuery deriveCountQuery(@Nullable String countQuery, @Nullable String countQueryProjection);
 
-	/**
-	 * NULL-Object pattern implementation.
-	 *
-	 * @author Jens Schauder
-	 */
-	class EmptyQueryInformation implements QueryInformation {
-
-		@Override
-		public boolean hasNamedParameter() {
-			return false;
-		}
-
-		@Override
-		public String getQueryString() {
-			return "";
-		}
-
-		@Override
-		public String getAlias() {
-			return null;
-		}
-
-		@Override
-		public boolean hasConstructorExpression() {
-			return false;
-		}
-
-		@Override
-		public boolean isDefaultProjection() {
-			return false;
-		}
-
-		@Override
-		public List<StringQuery.ParameterBinding> getParameterBindings() {
-			return Collections.emptyList();
-		}
-
-		@Override
-		public QueryInformation deriveCountQuery(@Nullable String countQuery, @Nullable String countQueryProjection) {
-
-			Assert.hasText(countQuery, "CountQuery must not be empty!");
-
-			return QueryInformation.of(countQuery);
-		}
-	}
 }

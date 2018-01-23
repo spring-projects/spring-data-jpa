@@ -36,8 +36,8 @@ import org.springframework.util.Assert;
  */
 abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 
-	private final QueryInformation query;
-	private final QueryInformation countQuery;
+	private final DeclaredQuery query;
+	private final DeclaredQuery countQuery;
 	private final EvaluationContextProvider evaluationContextProvider;
 	private final SpelExpressionParser parser;
 
@@ -113,14 +113,14 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 	/**
 	 * @return the query
 	 */
-	public QueryInformation getQuery() {
+	public DeclaredQuery getQuery() {
 		return query;
 	}
 
 	/**
 	 * @return the countQuery
 	 */
-	public QueryInformation getCountQuery() {
+	public DeclaredQuery getCountQuery() {
 		return countQuery;
 	}
 

@@ -46,7 +46,7 @@ import org.springframework.util.Assert;
 abstract class QueryParameterSetterFactory {
 
 	@Nullable
-	abstract QueryParameterSetter create(ParameterBinding binding, QueryInformation queryInformation);
+	abstract QueryParameterSetter create(ParameterBinding binding, DeclaredQuery declaredQuery);
 
 	/**
 	 * Creates a new {@link QueryParameterSetterFactory} for the given {@link JpaParameters}.
@@ -152,7 +152,7 @@ abstract class QueryParameterSetterFactory {
 		 */
 		@Nullable
 		@Override
-		public QueryParameterSetter create(ParameterBinding binding, QueryInformation queryInformation) {
+		public QueryParameterSetter create(ParameterBinding binding, DeclaredQuery declaredQuery) {
 
 			if (!binding.isExpression()) {
 				return null;
@@ -204,11 +204,11 @@ abstract class QueryParameterSetterFactory {
 		 * @see org.springframework.data.jpa.repository.query.QueryParameterSetterFactory#create(org.springframework.data.jpa.repository.query.StringQuery.ParameterBinding, java.lang.String)
 		 */
 		@Override
-		public QueryParameterSetter create(ParameterBinding binding, QueryInformation queryInformation) {
+		public QueryParameterSetter create(ParameterBinding binding, DeclaredQuery declaredQuery) {
 
 			Assert.notNull(binding, "Binding must not be null.");
 
-			JpaParameter parameter = queryInformation.hasNamedParameter() //
+			JpaParameter parameter = declaredQuery.hasNamedParameter() //
 					? findParameterForBinding(binding) //
 					: parameters.getBindableParameter(binding.getRequiredPosition() - 1);
 
@@ -266,7 +266,7 @@ abstract class QueryParameterSetterFactory {
 		 * @see org.springframework.data.jpa.repository.query.QueryParameterSetterFactory#create(org.springframework.data.jpa.repository.query.StringQuery.ParameterBinding, java.lang.String)
 		 */
 		@Override
-		public QueryParameterSetter create(ParameterBinding binding, QueryInformation queryInformation) {
+		public QueryParameterSetter create(ParameterBinding binding, DeclaredQuery declaredQuery) {
 
 			ParameterMetadata<?> metadata = expressions.get(binding.getRequiredPosition() - 1);
 

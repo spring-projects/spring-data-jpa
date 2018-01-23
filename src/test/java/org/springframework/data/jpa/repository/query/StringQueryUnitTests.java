@@ -398,12 +398,12 @@ public class StringQueryUnitTests {
 
 	public void checkNumberOfNamedParameters(String query, int expectedSize, String label) {
 
-		QueryInformation queryInformation = QueryInformation.of(query);
+		DeclaredQuery declaredQuery = DeclaredQuery.of(query);
 
-		softly.assertThat(queryInformation.hasNamedParameter()) //
+		softly.assertThat(declaredQuery.hasNamedParameter()) //
 				.describedAs("hasNamed Parameter " + label) //
 				.isEqualTo(expectedSize > 0);
-		softly.assertThat(queryInformation.getParameterBindings()) //
+		softly.assertThat(declaredQuery.getParameterBindings()) //
 				.describedAs("parameterBindings " + label) //
 				.hasSize(expectedSize);
 	}

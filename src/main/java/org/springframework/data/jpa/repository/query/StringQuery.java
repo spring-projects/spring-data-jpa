@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -45,7 +46,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Paluch
  * @author Jens Schauder
  */
-class StringQuery implements QueryInformation {
+class StringQuery implements DeclaredQuery {
 
 	private final String query;
 	private final List<ParameterBinding> bindings;
@@ -84,15 +85,16 @@ class StringQuery implements QueryInformation {
 	}
 
 	@Override
-	public QueryInformation deriveCountQuery(@Nullable String countQuery, @Nullable String countQueryProjection) {
+	public DeclaredQuery deriveCountQuery(@Nullable String countQuery, @Nullable String countQueryProjection) {
 
-		return QueryInformation
+		return DeclaredQuery
 				.of(countQuery != null ? countQuery : QueryUtils.createCountQueryFor(query, countQueryProjection));
 	}
 
 	/**
 	 * Returns the query string.
 	 */
+	@Override
 	public String getQueryString() {
 		return query;
 	}
@@ -102,6 +104,7 @@ class StringQuery implements QueryInformation {
 	 *
 	 * @return the alias
 	 */
+	@Override
 	@Nullable
 	public String getAlias() {
 		return alias;
@@ -112,6 +115,7 @@ class StringQuery implements QueryInformation {
 	 *
 	 * @since 1.10
 	 */
+	@Override
 	public boolean hasConstructorExpression() {
 		return hasConstructorExpression;
 	}
@@ -119,6 +123,7 @@ class StringQuery implements QueryInformation {
 	/**
 	 * Returns whether the query uses the default projection, i.e. returns the main alias defined for the query.
 	 */
+	@Override
 	public boolean isDefaultProjection() {
 		return getProjection().equals(alias);
 	}
@@ -127,14 +132,11 @@ class StringQuery implements QueryInformation {
 		return QueryUtils.getProjection(query);
 	}
 
+	@Override
 	public boolean hasNamedParameter() {
 
-		for (ParameterBinding binding : bindings) {
-			if (binding.getName() != null) {
-				return true;
-			}
-		}
-		return false;
+		return bindings.stream() //
+				.anyMatch(b -> b.getName() != null);
 	}
 
 	/**
@@ -155,7 +157,7 @@ class StringQuery implements QueryInformation {
 		public static final int NAMED_PARAMETER_GROUP = 6;
 		public static final int COMPARISION_TYPE_GROUP = 1;
 		public static final int EXPRESSION_GROUP = 9;
-		public static final HashSet<Character> QUOTING_CHARACTERS = new HashSet<>(Arrays.asList('"', '\''));
+		public static final Set<Character> QUOTING_CHARACTERS = new HashSet<>(Arrays.asList('"', '\''));
 
 		static {
 
@@ -222,16 +224,12 @@ class StringQuery implements QueryInformation {
 			 */
 			int expressionParameterIndex = parametersShouldBeAccessedByIndex ? greatestParameterIndex : 0;
 
-			int end = 0;
+			QuotationMap quotationMap = new QuotationMap(query);
 
-			while (matcher.find(end)) {
+			while (matcher.find()) {
 
-				int endOfQuotation = findEndOfQuotation(query, end, matcher.start());
-				if (endOfQuotation > matcher.start()) {
-					end = endOfQuotation;
+				if (quotationMap.isQuoted(matcher.start())) {
 					continue;
-				} else {
-					end = matcher.end();
 				}
 
 				String parameterIndexString = matcher.group(INDEXED_PARAMETER_GROUP);
@@ -296,29 +294,6 @@ class StringQuery implements QueryInformation {
 			}
 
 			return result;
-		}
-
-		private int findEndOfQuotation(String query, int from, int limit) {
-
-			int current = from;
-
-			Character inQuotation = null;
-
-			while (current < query.length() && (current < limit || inQuotation != null)) {
-
-				char currentChar = query.charAt(current);
-				if (QUOTING_CHARACTERS.contains(currentChar)) {
-					if (inQuotation == null) {
-						inQuotation = currentChar;
-					} else if (currentChar == inQuotation.charValue()) {
-						inQuotation = null;
-					}
-				}
-
-				current++;
-			}
-
-			return current;
 		}
 
 		private static String replaceFirst(String text, String substring, String replacement) {
@@ -794,4 +769,5 @@ class StringQuery implements QueryInformation {
 			return Type.LIKE;
 		}
 	}
+
 }

@@ -49,14 +49,14 @@ public class QueryParameterSetterFactoryUnitTests {
 
 	@Test // DATAJPA-1058
 	public void noExceptionWhenQueryDoesNotContainNamedParameters() {
-		setterFactory.create(binding, QueryInformation.of("QueryStringWithOutNamedParameter"));
+		setterFactory.create(binding, DeclaredQuery.of("QueryStringWithOutNamedParameter"));
 	}
 
 	@Test // DATAJPA-1058
 	public void exceptionWhenQueryContainNamedParametersAndMethodParametersAreNotNamed() {
 
 		Assertions.assertThatExceptionOfType(IllegalStateException.class) //
-				.isThrownBy(() -> setterFactory.create(binding, QueryInformation.of("QueryStringWith :NamedParameter"))) //
+				.isThrownBy(() -> setterFactory.create(binding, DeclaredQuery.of("QueryStringWith :NamedParameter"))) //
 				.withMessageContaining("Java 8") //
 				.withMessageContaining("@Param") //
 				.withMessageContaining("-parameters");
