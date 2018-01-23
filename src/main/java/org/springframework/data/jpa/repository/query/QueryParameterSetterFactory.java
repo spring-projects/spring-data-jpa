@@ -104,10 +104,9 @@ abstract class QueryParameterSetterFactory {
 	 * @param valueExtractor extracts the relevant value from an array of method parameter values.
 	 * @param binding the binding of the query parameter to be set.
 	 * @param parameter the method parameter to bind.
-	 * @param lenient when true certain exceptions thrown when setting the query parameters get ignored.
 	 */
 	private static QueryParameterSetter createSetter(Function<Object[], Object> valueExtractor, ParameterBinding binding,
-			@Nullable JpaParameter parameter, boolean lenient) {
+			@Nullable JpaParameter parameter) {
 
 		TemporalType temporalType = parameter != null && parameter.isTemporalParameter() //
 				? parameter.getRequiredTemporalType() //
@@ -161,7 +160,7 @@ abstract class QueryParameterSetterFactory {
 
 			Expression expression = parser.parseExpression(binding.getExpression());
 
-			return createSetter(values -> evaluateExpression(expression, values), binding, null, true);
+			return createSetter(values -> evaluateExpression(expression, values), binding, null);
 		}
 
 		/**
@@ -215,7 +214,7 @@ abstract class QueryParameterSetterFactory {
 
 			return parameter == null //
 					? QueryParameterSetter.NOOP //
-					: createSetter(values -> getValue(values, parameter), binding, parameter, false);
+					: createSetter(values -> getValue(values, parameter), binding, parameter);
 		}
 
 		@Nullable
