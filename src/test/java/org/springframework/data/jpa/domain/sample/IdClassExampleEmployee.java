@@ -15,6 +15,7 @@
  */
 package org.springframework.data.jpa.domain.sample;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
@@ -29,7 +30,7 @@ import javax.persistence.ManyToOne;
 public class IdClassExampleEmployee {
 
 	@Id long empId;
-	@Id @ManyToOne IdClassExampleDepartment department;
+	@Id @ManyToOne(cascade = CascadeType.ALL) IdClassExampleDepartment department;
 
 	String name;
 
