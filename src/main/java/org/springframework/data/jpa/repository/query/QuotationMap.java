@@ -16,7 +16,10 @@
 package org.springframework.data.jpa.repository.query;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.data.domain.Range;
 import org.springframework.lang.Nullable;
@@ -29,6 +32,7 @@ import org.springframework.lang.Nullable;
  */
 class QuotationMap {
 
+	private static final Set<Character> QUOTING_CHARACTERS = new HashSet<>(Arrays.asList('"', '\''));
 	private List<Range<Integer>> quotedRanges = new ArrayList<>();
 
 	QuotationMap(@Nullable String query) {
@@ -42,7 +46,7 @@ class QuotationMap {
 		for (int i = 0; i < query.length(); i++) {
 
 			char currentChar = query.charAt(i);
-			if (StringQuery.ParameterBindingParser.QUOTING_CHARACTERS.contains(currentChar)) {
+			if (QUOTING_CHARACTERS.contains(currentChar)) {
 
 				if (inQuotation == null) {
 

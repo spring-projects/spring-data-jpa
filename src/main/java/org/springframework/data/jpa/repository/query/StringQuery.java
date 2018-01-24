@@ -22,9 +22,7 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -157,7 +155,6 @@ class StringQuery implements DeclaredQuery {
 		public static final int NAMED_PARAMETER_GROUP = 6;
 		public static final int COMPARISION_TYPE_GROUP = 1;
 		public static final int EXPRESSION_GROUP = 9;
-		public static final Set<Character> QUOTING_CHARACTERS = new HashSet<>(Arrays.asList('"', '\''));
 
 		static {
 
@@ -188,13 +185,6 @@ class StringQuery implements DeclaredQuery {
 
 			PARAMETER_BINDING_PATTERN = Pattern.compile(builder.toString(), CASE_INSENSITIVE);
 		}
-
-		static List<ParameterFinds> parseParameters(String query) {
-			return new ArrayList<>();
-
-		}
-
-		private static class ParameterFinds {}
 
 		/**
 		 * Parses {@link ParameterBinding} instances from the given query and adds them to the registered bindings. Returns

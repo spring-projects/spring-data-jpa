@@ -59,7 +59,6 @@ import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.jpa.domain.JpaSort.JpaOrder;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.util.Streamable;
-import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -207,8 +206,7 @@ public abstract class QueryUtils {
 	 * @param entityName must not be {@literal null}.
 	 * @return the template with placeholders replaced by the {@literal entityName}. Guaranteed to be not {@literal null}.
 	 */
-	@NonNull
-	public static String getQueryString(@NonNull String template, @NonNull String entityName) {
+	public static String getQueryString(String template, String entityName) {
 
 		Assert.hasText(entityName, "Entity name must not be null or empty!");
 
@@ -271,9 +269,8 @@ public abstract class QueryUtils {
 	 * @param order the order object to build the clause for. Must not be {@literal null}.
 	 * @return a String containing a order clause. Guaranteed to be not {@literal null}.
 	 */
-	@NonNull
-	private static String getOrderClause(@NonNull Set<String> joinAliases, @NonNull Set<String> functionAlias,
-			@Nullable String alias, Order order) {
+	private static String getOrderClause(Set<String> joinAliases, Set<String> functionAlias, @Nullable String alias,
+			Order order) {
 
 		String property = order.getProperty();
 
@@ -305,8 +302,7 @@ public abstract class QueryUtils {
 	 * @param query a query string to extract the aliases of joins from. Must not be {@literal null}.
 	 * @return a {@literal Set} of aliases used in the query. Guaranteed to be not {@literal null}.
 	 */
-	@NonNull
-	static Set<String> getOuterJoinAliases(@NonNull String query) {
+	static Set<String> getOuterJoinAliases(String query) {
 
 		Set<String> result = new HashSet<String>();
 		Matcher matcher = JOIN_PATTERN.matcher(query);
@@ -328,8 +324,7 @@ public abstract class QueryUtils {
 	 * @param query a {@literal String} containing a query. Must not be {@literal null}.
 	 * @return a {@literal Set} containing all found aliases. Guaranteed to be not {@literal null}.
 	 */
-	@NonNull
-	private static Set<String> getFunctionAliases(@NonNull String query) {
+	private static Set<String> getFunctionAliases(String query) {
 
 		Set<String> result = new HashSet<>();
 		Matcher matcher = FUNCTION_PATTERN.matcher(query);
@@ -359,7 +354,7 @@ public abstract class QueryUtils {
 	 */
 	@Nullable
 	@Deprecated
-	public static String detectAlias(@NonNull String query) {
+	public static String detectAlias(String query) {
 
 		Matcher matcher = ALIAS_MATCH.matcher(query);
 
@@ -376,9 +371,8 @@ public abstract class QueryUtils {
 	 * @param entityManager must not be {@literal null}.
 	 * @return Guaranteed to be not {@literal null}.
 	 */
-	@NonNull
-	public static <T> Query applyAndBind(@NonNull String queryString, @NonNull Iterable<T> entities,
-			@NonNull EntityManager entityManager) {
+
+	public static <T> Query applyAndBind(String queryString, Iterable<T> entities, EntityManager entityManager) {
 
 		Assert.notNull(queryString, "Querystring must not be null!");
 		Assert.notNull(entities, "Iterable of entities must not be null!");
@@ -441,8 +435,7 @@ public abstract class QueryUtils {
 	 * @deprecated use {@link DeclaredQuery#deriveCountQuery(String, String)} instead.
 	 */
 	@Deprecated
-	@NonNull
-	public static String createCountQueryFor(@NonNull String originalQuery, @Nullable String countProjection) {
+	public static String createCountQueryFor(String originalQuery, @Nullable String countProjection) {
 
 		Assert.hasText(originalQuery, "OriginalQuery must not be null or empty!");
 
@@ -470,7 +463,7 @@ public abstract class QueryUtils {
 	 * @param query Must not be {@literal null}.
 	 * @return whether the given {@link Query} contains named parameters.
 	 */
-	public static boolean hasNamedParameter(@NonNull Query query) {
+	public static boolean hasNamedParameter(Query query) {
 
 		Assert.notNull(query, "Query must not be null!");
 
@@ -508,7 +501,7 @@ public abstract class QueryUtils {
 	 */
 	public static List<javax.persistence.criteria.Order> toOrders(Sort sort, From<?, ?> from, CriteriaBuilder cb) {
 
-		List<javax.persistence.criteria.Order> orders = new ArrayList<javax.persistence.criteria.Order>();
+		List<javax.persistence.criteria.Order> orders = new ArrayList<>();
 
 		if (sort.isUnsorted()) {
 			return orders;
