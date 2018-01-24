@@ -50,8 +50,6 @@ import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
-import org.springframework.data.domain.ExampleMatcher.GenericPropertyMatcher;
-import org.springframework.data.domain.ExampleMatcher.StringMatcher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -60,6 +58,7 @@ import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.domain.Sort.Order;
+import org.springframework.data.domain.ExampleMatcher.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.domain.sample.Address;
 import org.springframework.data.jpa.domain.sample.Role;
@@ -2059,8 +2058,24 @@ public class UserRepositoryTests {
 		assertThat(result.getLastname()).isEqualTo(user.getLastname());
 	}
 
-	@Test //DATAJPA-1235
-	public void handlesColonsFollowedByIntegerInStringLiteral(){
+	@Test // DATAJPA-1248
+	public void supportsProjectionsWithNativeQueriesAndCamelCaseProperty() {
+
+		flushTestUsers();
+		User user = repository.findAll().get(0);
+
+		UserRepository.EmailOnly result = repository.findEmailOnlyByNativeQuery(user.getId());
+
+		String emailAddress = result.getEmailAddress();
+
+		assertThat(emailAddress) //
+				.isEqualTo(user.getEmailAddress()) //
+				.as("ensuring email is actually not null") //
+				.isNotNull();
+	}
+
+	@Test // DATAJPA-1235
+	public void handlesColonsFollowedByIntegerInStringLiteral() {
 
 		String firstName = "aFirstName";
 

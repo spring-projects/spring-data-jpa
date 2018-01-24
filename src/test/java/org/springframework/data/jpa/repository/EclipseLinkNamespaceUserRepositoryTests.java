@@ -94,4 +94,14 @@ public class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserReposi
 	@Override
 	@Test // DATAJPA-980
 	public void supportsProjectionsWithNativeQueries() {}
+
+	/**
+	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=525319 is fixed.
+	 */
+	@Ignore
+	@Override
+	@Test // DATAJPA-1248
+	public void supportsProjectionsWithNativeQueriesAndCamelCaseProperty() {
+		super.supportsProjectionsWithNativeQueriesAndCamelCaseProperty();
+	}
 }
