@@ -24,6 +24,7 @@ import org.springframework.util.StringUtils;
  * A wrapper for a String representation of a query offering information about the query.
  *
  * @author Jens Schauder
+ * @since 2.0.3
  */
 interface DeclaredQuery {
 
@@ -31,7 +32,6 @@ interface DeclaredQuery {
 	 * Creates a {@literal DeclaredQuery} from a query {@literal String}.
 	 *
 	 * @param query might be {@literal null} or empty.
-	 *
 	 * @return a {@literal DeclaredQuery} instance even for a {@literal null} or empty argument.
 	 */
 	static DeclaredQuery of(@Nullable String query) {
@@ -80,8 +80,7 @@ interface DeclaredQuery {
 	 * 
 	 * @param countQuery an optional query string to be used if present.
 	 * @param countQueryProjection an optional return type for the query.
-	 * @return A new {@literal DeclaredQuery} instance.
+	 * @return a new {@literal DeclaredQuery} instance.
 	 */
 	DeclaredQuery deriveCountQuery(@Nullable String countQuery, @Nullable String countQueryProjection);
-
 }

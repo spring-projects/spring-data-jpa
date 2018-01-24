@@ -22,10 +22,13 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.springframework.data.domain.Range;
 import org.springframework.data.repository.query.parser.Part.Type;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -75,13 +78,23 @@ class StringQuery implements DeclaredQuery {
 		return !bindings.isEmpty();
 	}
 
-	/**
-	 * Returns the {@link ParameterBinding}s registered.
+	String getProjection() {
+		return QueryUtils.getProjection(query);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.jpa.repository.query.DeclaredQuery#getParameterBindings()
 	 */
+	@Override
 	public List<ParameterBinding> getParameterBindings() {
 		return bindings;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.jpa.repository.query.DeclaredQuery#deriveCountQuery(java.lang.String, java.lang.String)
+	 */
 	@Override
 	public DeclaredQuery deriveCountQuery(@Nullable String countQuery, @Nullable String countQueryProjection) {
 
@@ -89,18 +102,18 @@ class StringQuery implements DeclaredQuery {
 				.of(countQuery != null ? countQuery : QueryUtils.createCountQueryFor(query, countQueryProjection));
 	}
 
-	/**
-	 * Returns the query string.
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.jpa.repository.query.DeclaredQuery#getQueryString()
 	 */
 	@Override
 	public String getQueryString() {
 		return query;
 	}
 
-	/**
-	 * Returns the main alias used in the query.
-	 *
-	 * @return the alias
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.jpa.repository.query.DeclaredQuery#getAlias()
 	 */
 	@Override
 	@Nullable
@@ -108,33 +121,31 @@ class StringQuery implements DeclaredQuery {
 		return alias;
 	}
 
-	/**
-	 * Returns whether the query is using a constructor expression.
-	 *
-	 * @since 1.10
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.jpa.repository.query.DeclaredQuery#hasConstructorExpression()
 	 */
 	@Override
 	public boolean hasConstructorExpression() {
 		return hasConstructorExpression;
 	}
 
-	/**
-	 * Returns whether the query uses the default projection, i.e. returns the main alias defined for the query.
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.jpa.repository.query.DeclaredQuery#isDefaultProjection()
 	 */
 	@Override
 	public boolean isDefaultProjection() {
 		return getProjection().equals(alias);
 	}
 
-	public String getProjection() {
-		return QueryUtils.getProjection(query);
-	}
-
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.jpa.repository.query.DeclaredQuery#hasNamedParameter()
+	 */
 	@Override
 	public boolean hasNamedParameter() {
-
-		return bindings.stream() //
-				.anyMatch(b -> b.getName() != null);
+		return bindings.stream().anyMatch(b -> b.getName() != null);
 	}
 
 	/**
@@ -760,4 +771,59 @@ class StringQuery implements DeclaredQuery {
 		}
 	}
 
+	/**
+	 * Value object to analyze a String to determine the parts of the String that are quoted and offers an API to query
+	 * that information.
+	 *
+	 * @author Jens Schauder
+	 * @since 3.0.3
+	 */
+	static class QuotationMap {
+
+		private static final Set<Character> QUOTING_CHARACTERS = new HashSet<>(Arrays.asList('"', '\''));
+
+		private List<Range<Integer>> quotedRanges = new ArrayList<>();
+
+		QuotationMap(@Nullable String query) {
+
+			if (query == null) {
+				return;
+			}
+
+			Character inQuotation = null;
+			int start = 0;
+
+			for (int i = 0; i < query.length(); i++) {
+
+				char currentChar = query.charAt(i);
+
+				if (QUOTING_CHARACTERS.contains(currentChar)) {
+
+					if (inQuotation == null) {
+
+						inQuotation = currentChar;
+						start = i;
+
+					} else if (currentChar == inQuotation) {
+
+						inQuotation = null;
+						quotedRanges.add(Range.of(Range.Bound.inclusive(start), Range.Bound.inclusive(i)));
+					}
+				}
+			}
+
+			if (inQuotation != null) {
+				throw new IllegalArgumentException(
+						String.format("The string <%s> starts a quoted range at %d, but never ends it.", query, start));
+			}
+		}
+
+		/**
+		 * @param index to check if it is part of a quoted range.
+		 * @return whether the query contains a quoted range at {@literal index}.
+		 */
+		public boolean isQuoted(int index) {
+			return quotedRanges.stream().anyMatch(r -> r.contains(index));
+		}
+	}
 }

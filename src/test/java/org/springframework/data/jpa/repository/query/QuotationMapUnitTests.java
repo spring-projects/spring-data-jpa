@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.*;
 
 import org.assertj.core.api.SoftAssertions;
 import org.junit.Test;
+import org.springframework.data.jpa.repository.query.StringQuery.QuotationMap;
 
 /**
  * Unit tests for {@link QuotationMap}.
