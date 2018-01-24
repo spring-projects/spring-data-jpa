@@ -124,7 +124,7 @@ class ParameterBinderFactory {
 	}
 
 	private static Iterable<QueryParameterSetter> createSetters(List<ParameterBinding> parameterBindings,
-																DeclaredQuery declaredQuery, QueryParameterSetterFactory... strategies) {
+			DeclaredQuery declaredQuery, QueryParameterSetterFactory... strategies) {
 
 		return parameterBindings.stream() //
 				.map(it -> createQueryParameterSetter(it, strategies, declaredQuery)) //
