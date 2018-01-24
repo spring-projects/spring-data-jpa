@@ -35,11 +35,9 @@ import javax.persistence.Persistence;
 import javax.persistence.PersistenceContext;
 import javax.persistence.metamodel.Metamodel;
 
-import org.hibernate.Version;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.data.jpa.domain.AbstractPersistable;
 import org.springframework.data.jpa.domain.sample.ConcreteType1;
 import org.springframework.data.jpa.domain.sample.Item;
@@ -288,7 +286,7 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 	}
 
 	protected String getMetadadataPersitenceUnitName() {
-		return Version.getVersionString().startsWith("5.2") ? "metadata-52" : "metadata";
+		return "metadata";
 	}
 
 	@SuppressWarnings("serial")

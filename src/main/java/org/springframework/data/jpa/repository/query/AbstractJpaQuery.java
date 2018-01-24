@@ -15,9 +15,13 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
@@ -263,7 +267,6 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 			}
 
 			Tuple tuple = (Tuple) source;
-			Map<String, Object> result = new HashMap<String, Object>();
 			List<TupleElement<?>> elements = tuple.getElements();
 
 			if (elements.size() == 1) {
@@ -275,18 +278,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 				}
 			}
 
-			for (TupleElement<?> element : elements) {
-
-				String alias = element.getAlias();
-
-				if (alias == null || isIndexAsString(alias)) {
-					throw new IllegalStateException("No aliases found in result tuple! Make sure your query defines aliases!");
-				}
-
-				result.put(element.getAlias(), tuple.get(element));
-			}
-
-			return result;
+			return new TupleBackedMap(tuple);
 		}
 
 		private static boolean isIndexAsString(String source) {
@@ -296,6 +288,98 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 				return true;
 			} catch (NumberFormatException o_O) {
 				return false;
+			}
+		}
+
+		/**
+		 * A {@link Map} implementation which delegates all calls to a {@link Tuple}. Depending on the provided
+		 * {@link Tuple} implementation it might return the same value for various keys of which only one will appear in the
+		 * key/entry set.
+		 *
+		 * @author Jens Schauder
+		 */
+		private static class TupleBackedMap implements Map<String, Object> {
+
+			private final Tuple tuple;
+
+			TupleBackedMap(Tuple tuple) {
+				this.tuple = tuple;
+			}
+
+			@Override
+			public int size() {
+				return tuple.getElements().size();
+			}
+
+			@Override
+			public boolean isEmpty() {
+				return tuple.getElements().isEmpty();
+			}
+
+			@Override
+			public boolean containsKey(Object key) {
+				return key instanceof String && tuple.get((String) key) != null;
+			}
+
+			@Override
+			public boolean containsValue(Object value) {
+				return Arrays.asList(tuple.toArray()).contains(value);
+			}
+
+			@Override
+			public Object get(Object key) {
+				return key instanceof String ? tuple.get((String) key) : null;
+			}
+
+			@Override
+			public Object put(String key, Object value) {
+				throw new UnsupportedOperationException("A TupleBackedMap cannot be modified");
+			}
+
+			@Override
+			public Object remove(Object key) {
+				throw new UnsupportedOperationException("A TupleBackedMap cannot be modified");
+			}
+
+			@Override
+			public void putAll(Map<? extends String, ?> m) {
+				throw new UnsupportedOperationException("A TupleBackedMap cannot be modified");
+			}
+
+			@Override
+			public void clear() {
+				throw new UnsupportedOperationException("A TupleBackedMap cannot be modified");
+			}
+
+			@Override
+			public Set<String> keySet() {
+
+				List<TupleElement<?>> elements = tuple.getElements();
+				Set<String> result = new HashSet<String>(elements.size());
+
+				for (TupleElement<?> element : elements) {
+					result.add(element.getAlias());
+				}
+
+				return result;
+			}
+
+			@Override
+			public Collection<Object> values() {
+				return Arrays.asList(tuple.toArray());
+			}
+
+			@Override
+			public Set<Entry<String, Object>> entrySet() {
+
+				List<TupleElement<?>> elements = tuple.getElements();
+				Set<Entry<String, Object>> result = new HashSet<Entry<String, Object>>(elements.size());
+
+				for (TupleElement<?> element : elements) {
+					result.add(new HashMap.SimpleEntry<String, Object>(element.getAlias(), tuple.get(element)));
+				}
+
+				return result;
 			}
 		}
 	}

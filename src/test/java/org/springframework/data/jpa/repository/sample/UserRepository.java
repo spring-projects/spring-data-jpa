@@ -481,6 +481,10 @@ public interface UserRepository
 	// DATAJPA-1185
 	<T> List<T> findAsListByFirstnameLike(String name, Class<T> projectionType);
 
+	// DATAJPA-1248
+	@Query(value = "SELECT emailaddress FROM SD_User WHERE id = ?1", nativeQuery = true)
+	EmailOnly findEmailOnlyByNativeQuery(Integer id);
+
 
 	interface RolesAndFirstname {
 
@@ -494,5 +498,9 @@ public interface UserRepository
 		String getFirstname();
 
 		String getLastname();
+	}
+
+	interface EmailOnly {
+		String getEmailAddress();
 	}
 }

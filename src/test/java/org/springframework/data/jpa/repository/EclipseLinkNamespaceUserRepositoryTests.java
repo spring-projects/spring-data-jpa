@@ -92,4 +92,14 @@ public class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserReposi
 		Query query = em.createNativeQuery("select 1 from User where firstname=? and lastname=?");
 		assertThat(query.getParameters().size(), equalTo(0));
 	}
+
+	/**
+	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=525319 is fixed.
+	 */
+	@Ignore
+	@Override
+	@Test // DATAJPA-1248
+	public void supportsProjectionsWithNativeQueriesAndCamelCaseProperty() {
+		super.supportsProjectionsWithNativeQueriesAndCamelCaseProperty();
+	}
 }

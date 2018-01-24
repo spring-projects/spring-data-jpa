@@ -21,16 +21,18 @@ import javax.enterprise.inject.Produces;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 
-import org.hibernate.Version;
-
+/**
+ * Produces and {@link EntityManagerFactory}.
+ *
+ * @author Dirk Mahler
+ * @author Jens Schauder
+ */
 class EntityManagerFactoryProducer {
 
 	@Produces
 	@ApplicationScoped
 	public EntityManagerFactory createEntityManagerFactory() {
-
-		String hibernateVersion = Version.getVersionString();
-		return Persistence.createEntityManagerFactory(hibernateVersion.startsWith("5.2") ? "cdi-52" : "cdi");
+		return Persistence.createEntityManagerFactory("cdi");
 	}
 
 	public void close(@Disposes EntityManagerFactory entityManagerFactory) {

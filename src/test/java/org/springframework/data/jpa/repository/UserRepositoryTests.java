@@ -45,7 +45,6 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 import org.hamcrest.Matchers;
-import org.hibernate.Version;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -57,8 +56,6 @@ import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
-import org.springframework.data.domain.ExampleMatcher.GenericPropertyMatcher;
-import org.springframework.data.domain.ExampleMatcher.StringMatcher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -67,6 +64,7 @@ import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.domain.Sort.Order;
+import org.springframework.data.domain.ExampleMatcher.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.domain.sample.Address;
 import org.springframework.data.jpa.domain.sample.Role;
@@ -76,6 +74,8 @@ import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.repository.sample.SampleEvaluationContextExtension.SampleSecurityContextHolder;
 import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.data.jpa.repository.sample.UserRepository.NameOnly;
+import org.springframework.data.projection.TargetAware;
+import org.springframework.data.util.Version;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
@@ -98,6 +98,8 @@ import com.google.common.base.Optional;
 @ContextConfiguration("classpath:application-context.xml")
 @Transactional
 public class UserRepositoryTests {
+
+	private static final Version HIBERNATE_VERSION_SUPPORTING_TUPLE_ON_NATIVE_QUERIES = new Version(5, 2, 11);
 
 	@PersistenceContext EntityManager em;
 
@@ -2182,7 +2184,8 @@ public class UserRepositoryTests {
 	@Test // DATAJPA-980
 	public void supportsProjectionsWithNativeQueries() {
 
-		Assume.assumeTrue(Version.getVersionString().startsWith("5.2"));
+		Assume
+				.assumeTrue(getHibernateVersion().isGreaterThanOrEqualTo(HIBERNATE_VERSION_SUPPORTING_TUPLE_ON_NATIVE_QUERIES));
 
 		flushTestUsers();
 
@@ -2194,6 +2197,27 @@ public class UserRepositoryTests {
 		assertThat(result.getLastname(), is(user.getLastname()));
 	}
 
+	@Test // DATAJPA-1248
+	public void supportsProjectionsWithNativeQueriesAndCamelCaseProperty() throws Exception {
+
+		Assume
+				.assumeTrue(getHibernateVersion().isGreaterThanOrEqualTo(HIBERNATE_VERSION_SUPPORTING_TUPLE_ON_NATIVE_QUERIES));
+
+		flushTestUsers();
+		User user = repository.findAll().get(0);
+
+		UserRepository.EmailOnly result = repository.findEmailOnlyByNativeQuery(user.getId());
+
+		System.out.println(((TargetAware) result).getTarget());
+
+		String emailAddress = result.getEmailAddress();
+
+		assertThat(emailAddress) //
+				.isEqualTo(user.getEmailAddress()) //
+				.as("ensuring email is actually not null") //
+				.isNotNull();
+	}
+
 	private Page<User> executeSpecWithSort(Sort sort) {
 
 		flushTestUsers();
@@ -2203,5 +2227,11 @@ public class UserRepositoryTests {
 		Page<User> result = repository.findAll(spec, new PageRequest(0, 1, sort));
 		assertThat(result.getTotalElements(), is(2L));
 		return result;
+	}
+
+	private static Version getHibernateVersion() {
+
+		String hibernateVersion = org.hibernate.Version.getVersionString();
+		return Version.parse(hibernateVersion.substring(0, hibernateVersion.lastIndexOf(".")));
 	}
 }
