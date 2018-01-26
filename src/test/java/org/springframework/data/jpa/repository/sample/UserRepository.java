@@ -517,14 +517,14 @@ public interface UserRepository
 	@Query("SELECT u FROM User u where u.firstname >= ?1 and u.lastname = '000:1'")
 	List<User> queryWithIndexedParameterAndColonFollowedByIntegerInString(String firstname);
 
-	static interface RolesAndFirstname {
+	interface RolesAndFirstname {
 
 		String getFirstname();
 
 		Set<Role> getRoles();
 	}
 
-	static interface NameOnly {
+	interface NameOnly {
 
 		String getFirstname();
 

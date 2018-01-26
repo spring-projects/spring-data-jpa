@@ -67,9 +67,9 @@ public class TupleConverterUnitTests {
 
 	@Test // DATAJPA-984
 	@SuppressWarnings("unchecked")
-	public void returnsSingleTupleElementIfItMatchesExpectedType() throws Exception {
+	public void returnsSingleTupleElementIfItMatchesExpectedType() {
 
-		doReturn(Arrays.asList(element)).when(tuple).getElements();
+		doReturn(Collections.singletonList(element)).when(tuple).getElements();
 		doReturn("Foo").when(tuple).get(element);
 
 		TupleConverter converter = new TupleConverter(type);
@@ -79,7 +79,7 @@ public class TupleConverterUnitTests {
 
 	@Test // DATAJPA-1024
 	@SuppressWarnings("unchecked")
-	public void returnsNullForSingleElementTupleWithNullValue() throws Exception {
+	public void returnsNullForSingleElementTupleWithNullValue() {
 
 		doReturn(Collections.singletonList(element)).when(tuple).getElements();
 		doReturn(null).when(tuple).get(element);
