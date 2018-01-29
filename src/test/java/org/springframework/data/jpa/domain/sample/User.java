@@ -22,6 +22,7 @@ import java.util.Set;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
+import javax.persistence.ColumnResult;
 import javax.persistence.ElementCollection;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
@@ -34,11 +35,15 @@ import javax.persistence.ManyToOne;
 import javax.persistence.NamedAttributeNode;
 import javax.persistence.NamedEntityGraph;
 import javax.persistence.NamedEntityGraphs;
+import javax.persistence.NamedNativeQueries;
+import javax.persistence.NamedNativeQuery;
 import javax.persistence.NamedQuery;
 import javax.persistence.NamedStoredProcedureQueries;
 import javax.persistence.NamedStoredProcedureQuery;
 import javax.persistence.NamedSubgraph;
 import javax.persistence.ParameterMode;
+import javax.persistence.SqlResultSetMapping;
+import javax.persistence.SqlResultSetMappings;
 import javax.persistence.StoredProcedureParameter;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
@@ -51,6 +56,7 @@ import javax.persistence.TemporalType;
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Christoph Strobl
+ * @author Jens Schauder
  */
 @Entity
 @NamedEntityGraphs({ @NamedEntityGraph(name = "User.overview", attributeNodes = { @NamedAttributeNode("roles") }),
@@ -61,11 +67,10 @@ import javax.persistence.TemporalType;
 				attributeNodes = { @NamedAttributeNode("roles"), @NamedAttributeNode("manager"),
 						@NamedAttributeNode("colleagues") }),
 		@NamedEntityGraph(name = "User.withSubGraph",
-				attributeNodes = { @NamedAttributeNode("roles"),
-						@NamedAttributeNode(value = "colleagues", subgraph = "User.colleagues") },
+				attributeNodes = { @NamedAttributeNode("roles"), @NamedAttributeNode(value = "colleagues",
+						subgraph = "User.colleagues") },
 				subgraphs = { @NamedSubgraph(name = "User.colleagues",
-						attributeNodes = { @NamedAttributeNode("colleagues"),
-								@NamedAttributeNode("roles") }) }),
+						attributeNodes = { @NamedAttributeNode("colleagues"), @NamedAttributeNode("roles") }) }),
 		@NamedEntityGraph(name = "User.deepGraph",
 				attributeNodes = { @NamedAttributeNode("roles"),
 						@NamedAttributeNode(value = "colleagues", subgraph = "User.colleagues") },
@@ -84,6 +89,15 @@ import javax.persistence.TemporalType;
 @NamedStoredProcedureQuery(name = "User.plus1IO", procedureName = "plus1inout",
 		parameters = { @StoredProcedureParameter(mode = ParameterMode.IN, name = "arg", type = Integer.class),
 				@StoredProcedureParameter(mode = ParameterMode.OUT, name = "res", type = Integer.class) })
+
+// Annotations for native Query with pageable
+@SqlResultSetMappings({
+		@SqlResultSetMapping(name = "SqlResultSetMapping.count", columns = @ColumnResult(name = "cnt")) })
+@NamedNativeQueries({
+		@NamedNativeQuery(name = "User.findByNativeNamedQueryWithPageable", resultClass = User.class,
+				query = "SELECT * FROM SD_USER ORDER BY UCASE(firstname)"),
+		@NamedNativeQuery(name = "User.findByNativeNamedQueryWithPageable.count",
+				resultSetMapping = "SqlResultSetMapping.count", query = "SELECT count(*) AS cnt FROM SD_USER") })
 @Table(name = "SD_User")
 public class User {
 

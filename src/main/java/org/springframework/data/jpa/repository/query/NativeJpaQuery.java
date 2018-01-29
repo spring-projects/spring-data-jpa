@@ -34,6 +34,7 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
  * 
  * @author Thomas Darimont
  * @author Oliver Gierke
+ * @author Jens Schauder
  */
 final class NativeJpaQuery extends AbstractStringBasedJpaQuery {
 
@@ -53,13 +54,10 @@ final class NativeJpaQuery extends AbstractStringBasedJpaQuery {
 		super(method, em, queryString, evaluationContextProvider, parser);
 
 		Parameters<?, ?> parameters = method.getParameters();
-		boolean hasPagingOrSortingParameter = parameters.hasPageableParameter() || parameters.hasSortParameter();
-		boolean containsPageableOrSortInQueryExpression = queryString.contains("#pageable")
-				|| queryString.contains("#sort");
 
-		if (hasPagingOrSortingParameter && !containsPageableOrSortInQueryExpression) {
+		if (parameters.hasSortParameter() && !queryString.contains("#sort")) {
 			throw new InvalidJpaQueryMethodException(
-					"Cannot use native queries with dynamic sorting and/or pagination in method " + method);
+					"Cannot use native queries with dynamic sorting in method " + method);
 		}
 
 		this.resultType = getTypeToQueryFor();
