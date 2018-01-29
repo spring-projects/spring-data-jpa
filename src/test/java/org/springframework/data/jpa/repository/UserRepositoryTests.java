@@ -40,6 +40,7 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
+import org.assertj.core.api.SoftAssertions;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -2107,6 +2108,56 @@ public class UserRepositoryTests {
 	@Test // DATAJPA-1233
 	public void handlesCountQueriesWithLessParametersMoreThanOneIndexed() {
 		repository.findAllOrderedBySpecialNameMultipleParamsIndexed("Oliver", "x", PageRequest.of(2, 3));
+	}
+
+	// DATAJPA-928
+	@Test
+	public void executeNativeQueryWithPage() {
+
+		flushTestUsers();
+
+		Page<User> firstPage = repository.findByNativeNamedQueryWithPageable(new PageRequest(0, 3));
+		Page<User> secondPage = repository.findByNativeNamedQueryWithPageable(new PageRequest(1, 3));
+
+		SoftAssertions softly = new SoftAssertions();
+
+		assertThat(firstPage.getTotalElements()).isEqualTo(4L);
+		assertThat(firstPage.getNumberOfElements()).isEqualTo(3);
+		assertThat(firstPage.getContent()) //
+				.extracting(User::getFirstname) //
+				.containsExactly("Dave", "Joachim", "kevin");
+
+		assertThat(secondPage.getTotalElements()).isEqualTo(4L);
+		assertThat(secondPage.getNumberOfElements()).isEqualTo(1);
+		assertThat(secondPage.getContent()) //
+				.extracting(User::getFirstname) //
+				.containsExactly("Oliver");
+
+		softly.assertAll();
+	}
+
+	// DATAJPA-928
+	@Test
+	public void executeNativeQueryWithPageWorkaround() {
+
+		flushTestUsers();
+
+		Page<String> firstPage = repository.findByNativeQueryWithPageable(new PageRequest(0, 3));
+		Page<String> secondPage = repository.findByNativeQueryWithPageable(new PageRequest(1, 3));
+
+		SoftAssertions softly = new SoftAssertions();
+
+		assertThat(firstPage.getTotalElements()).isEqualTo(4L);
+		assertThat(firstPage.getNumberOfElements()).isEqualTo(3);
+		assertThat(firstPage.getContent()) //
+				.containsExactly("Dave", "Joachim", "kevin");
+
+		assertThat(secondPage.getTotalElements()).isEqualTo(4L);
+		assertThat(secondPage.getNumberOfElements()).isEqualTo(1);
+		assertThat(secondPage.getContent()) //
+				.containsExactly("Oliver");
+
+		softly.assertAll();
 	}
 
 	private Page<User> executeSpecWithSort(Sort sort) {

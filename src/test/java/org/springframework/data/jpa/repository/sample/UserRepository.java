@@ -529,6 +529,13 @@ public interface UserRepository
 	@Query(value = "SELECT u FROM User u WHERE ?2 = 'x' ORDER BY CASE WHEN (u.firstname  >= ?1) THEN 0 ELSE 1 END, u.firstname")
 	Page<User> findAllOrderedBySpecialNameMultipleParamsIndexed(String name, String other, Pageable page);
 
+	// DATAJPA-928
+	Page<User> findByNativeNamedQueryWithPageable(Pageable pageable);
+
+	// DATAJPA-928
+	@Query(value = "SELECT firstname FROM SD_User ORDER BY UCASE(firstname)", countQuery = "SELECT count(*) FROM SD_User", nativeQuery = true)
+	Page<String> findByNativeQueryWithPageable(@Param("pageable") Pageable pageable);
+
 	interface RolesAndFirstname {
 
 		String getFirstname();

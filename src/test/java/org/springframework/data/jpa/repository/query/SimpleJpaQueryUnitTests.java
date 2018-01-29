@@ -59,6 +59,7 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
  *
  * @author Oliver Gierke
  * @author Thomas Darimont
+ * @author Jens Schauder
  */
 @RunWith(MockitoJUnitRunner.Silent.class)
 public class SimpleJpaQueryUnitTests {
@@ -150,13 +151,6 @@ public class SimpleJpaQueryUnitTests {
 	public void rejectsNativeQueryWithDynamicSort() throws Exception {
 
 		Method method = SampleRepository.class.getMethod("findNativeByLastname", String.class, Sort.class);
-		createJpaQuery(method);
-	}
-
-	@Test(expected = InvalidJpaQueryMethodException.class) // DATAJPA-554
-	public void rejectsNativeQueryWithPageable() throws Exception {
-
-		Method method = SampleRepository.class.getMethod("findNativeByLastname", String.class, Pageable.class);
 		createJpaQuery(method);
 	}
 
