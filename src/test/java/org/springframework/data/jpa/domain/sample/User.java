@@ -20,29 +20,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.ElementCollection;
-import javax.persistence.Embedded;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Lob;
-import javax.persistence.ManyToMany;
-import javax.persistence.ManyToOne;
-import javax.persistence.NamedAttributeNode;
-import javax.persistence.NamedEntityGraph;
-import javax.persistence.NamedEntityGraphs;
-import javax.persistence.NamedQuery;
-import javax.persistence.NamedStoredProcedureQueries;
-import javax.persistence.NamedStoredProcedureQuery;
-import javax.persistence.NamedSubgraph;
-import javax.persistence.ParameterMode;
-import javax.persistence.StoredProcedureParameter;
-import javax.persistence.Table;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
+import javax.persistence.*;
 
 /**
  * Domain class representing a person emphasizing the use of {@code AbstractEntity}. No declaration of an id is
@@ -51,6 +29,7 @@ import javax.persistence.TemporalType;
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Christoph Strobl
+ * @author Jens Schauder
  */
 @Entity
 @NamedEntityGraphs({ @NamedEntityGraph(name = "User.overview", attributeNodes = { @NamedAttributeNode("roles") }),
@@ -84,6 +63,23 @@ import javax.persistence.TemporalType;
 @NamedStoredProcedureQuery(name = "User.plus1IO", procedureName = "plus1inout",
 		parameters = { @StoredProcedureParameter(mode = ParameterMode.IN, name = "arg", type = Integer.class),
 				@StoredProcedureParameter(mode = ParameterMode.OUT, name = "res", type = Integer.class) })
+
+// Annotations for native Query with pageable
+@SqlResultSetMappings({
+		@SqlResultSetMapping(name = "SqlResultSetMapping.count", columns = @ColumnResult(name = "cnt"))
+})
+@NamedNativeQueries({
+		@NamedNativeQuery(
+				name = "User.findByNativeNamedQueryWithPageable",
+				resultClass = User.class,
+				query = "SELECT * FROM SD_USER ORDER BY UCASE(firstname)"
+		),
+		@NamedNativeQuery(
+				name = "User.findByNativeNamedQueryWithPageable.count",
+				resultSetMapping = "SqlResultSetMapping.count",
+				query = "SELECT count(*) AS cnt FROM SD_USER"
+		)
+})
 @Table(name = "SD_User")
 public class User {
 

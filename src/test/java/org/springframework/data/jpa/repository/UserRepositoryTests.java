@@ -40,6 +40,7 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
+import org.assertj.core.api.SoftAssertions;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -50,8 +51,6 @@ import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
-import org.springframework.data.domain.ExampleMatcher.GenericPropertyMatcher;
-import org.springframework.data.domain.ExampleMatcher.StringMatcher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -60,6 +59,7 @@ import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.domain.Sort.Order;
+import org.springframework.data.domain.ExampleMatcher.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.domain.sample.Address;
 import org.springframework.data.jpa.domain.sample.Role;
@@ -2059,8 +2059,8 @@ public class UserRepositoryTests {
 		assertThat(result.getLastname()).isEqualTo(user.getLastname());
 	}
 
-	@Test //DATAJPA-1235
-	public void handlesColonsFollowedByIntegerInStringLiteral(){
+	@Test // DATAJPA-1235
+	public void handlesColonsFollowedByIntegerInStringLiteral() {
 
 		String firstName = "aFirstName";
 
@@ -2075,6 +2075,56 @@ public class UserRepositoryTests {
 		List<User> users = repository.queryWithIndexedParameterAndColonFollowedByIntegerInString(firstName);
 
 		assertThat(users).extracting(User::getId).containsExactly(expected.getId());
+	}
+
+	// DATAJPA-928
+	@Test
+	public void executeNativeQueryWithPage() {
+
+		flushTestUsers();
+
+		Page<User> firstPage = repository.findByNativeNamedQueryWithPageable(new PageRequest(0, 3));
+		Page<User> secondPage = repository.findByNativeNamedQueryWithPageable(new PageRequest(1, 3));
+
+		SoftAssertions softly = new SoftAssertions();
+
+		assertThat(firstPage.getTotalElements()).isEqualTo(4L);
+		assertThat(firstPage.getNumberOfElements()).isEqualTo(3);
+		assertThat(firstPage.getContent()) //
+				.extracting(User::getFirstname) //
+				.containsExactly("Dave", "Joachim", "kevin");
+
+		assertThat(secondPage.getTotalElements()).isEqualTo(4L);
+		assertThat(secondPage.getNumberOfElements()).isEqualTo(1);
+		assertThat(secondPage.getContent()) //
+				.extracting(User::getFirstname) //
+				.containsExactly("Oliver");
+
+		softly.assertAll();
+	}
+
+	// DATAJPA-928
+	@Test
+	public void executeNativeQueryWithPageWorkaround() {
+
+		flushTestUsers();
+
+		Page<String> firstPage = repository.findByNativeQueryWithPageable(new PageRequest(0, 3));
+		Page<String> secondPage = repository.findByNativeQueryWithPageable(new PageRequest(1, 3));
+
+		SoftAssertions softly = new SoftAssertions();
+
+		assertThat(firstPage.getTotalElements()).isEqualTo(4L);
+		assertThat(firstPage.getNumberOfElements()).isEqualTo(3);
+		assertThat(firstPage.getContent()) //
+				.containsExactly("Dave", "Joachim", "kevin");
+
+		assertThat(secondPage.getTotalElements()).isEqualTo(4L);
+		assertThat(secondPage.getNumberOfElements()).isEqualTo(1);
+		assertThat(secondPage.getContent()) //
+				.containsExactly("Oliver");
+
+		softly.assertAll();
 	}
 
 	private Page<User> executeSpecWithSort(Sort sort) {
