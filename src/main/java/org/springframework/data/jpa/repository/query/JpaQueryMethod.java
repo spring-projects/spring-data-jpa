@@ -316,7 +316,7 @@ public class JpaQueryMethod extends QueryMethod {
 	/**
 	 * Returns whether we should flush automatically for modifying queries.
 	 * 
-	 * @return
+	 * @return whether we should flush automatically.
 	 */
 	boolean getFlushAutomatically() {
 		return getMergedOrDefaultAnnotationValue("flushAutomatically", Modifying.class, Boolean.class);
@@ -325,7 +325,7 @@ public class JpaQueryMethod extends QueryMethod {
 	/**
 	 * Returns whether we should clear automatically for modifying queries.
 	 *
-	 * @return
+	 * @return whether we should clear automatically.
 	 */
 	boolean getClearAutomatically() {
 		return getMergedOrDefaultAnnotationValue("clearAutomatically", Modifying.class, Boolean.class);

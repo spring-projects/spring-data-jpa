@@ -55,6 +55,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Mark Paluch
  * @author Christoph Strobl
  * @author Nicolas Cirigliano
+ * @author Jens Schauder
  */
 public abstract class JpaQueryExecution {
 
@@ -225,12 +226,13 @@ public abstract class JpaQueryExecution {
 
 		/**
 		 * Creates an execution that automatically flushes the given {@link EntityManager} before execution and/or
-		 * clears the given {@link EntityManager} after execution if the given {@link EntityManager} is not
-		 * {@literal null}.
+		 * clears the given {@link EntityManager} after execution.
 		 * 
-		 * @param em
+		 * @param em Must not be {@literal null}.
 		 */
-		public ModifyingExecution(JpaQueryMethod method, @Nullable EntityManager em) {
+		public ModifyingExecution(JpaQueryMethod method, EntityManager em) {
+
+			Assert.notNull(em, "The EntityManager must not be null.");
 
 			Class<?> returnType = method.getReturnType();
 
@@ -247,13 +249,13 @@ public abstract class JpaQueryExecution {
 		@Override
 		protected Object doExecute(AbstractJpaQuery query, Object[] values) {
 
-			if (em != null && flush) {
+			if (flush) {
 				em.flush();
 			}
 
 			int result = query.createQuery(values).executeUpdate();
 
-			if (em != null && clear) {
+			if (clear) {
 				em.clear();
 			}
 
