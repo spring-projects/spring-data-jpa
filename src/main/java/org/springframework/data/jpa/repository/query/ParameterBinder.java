@@ -37,20 +37,37 @@ public class ParameterBinder {
 
 	private final JpaParameters parameters;
 	private final Iterable<QueryParameterSetter> parameterSetters;
+	private final boolean useJpaForPaging;
 
 	/**
 	 * Creates a new {@link ParameterBinder} for the given {@link JpaParameters} and {@link QueryParameterSetter}s.
 	 *
 	 * @param parameters must not be {@literal null}.
 	 * @param parameterSetters must not be {@literal null}.
+	 * @param useJpaForPaging determines whether {@link Query#setFirstResult(int)} and {@link Query#setMaxResults(int)}
+	 *          shall be used for paging.
 	 */
-	public ParameterBinder(JpaParameters parameters, Iterable<QueryParameterSetter> parameterSetters) {
+	public ParameterBinder(JpaParameters parameters, Iterable<QueryParameterSetter> parameterSetters,
+			boolean useJpaForPaging) {
 
 		Assert.notNull(parameters, "JpaParameters must not be null!");
 		Assert.notNull(parameterSetters, "Parameter setters must not be null!");
 
 		this.parameters = parameters;
 		this.parameterSetters = parameterSetters;
+		this.useJpaForPaging = useJpaForPaging;
+	}
+
+	/**
+	 * Only for backward compatibility.
+	 *
+	 * @param parameters must not be {@literal null}.
+	 * @param parameterSetters must not be {@literal null}.
+	 * @deprecated use three argument constructor instead}
+	 */
+	@Deprecated
+	public ParameterBinder(JpaParameters parameters, Iterable<QueryParameterSetter> parameterSetters) {
+		this(parameters, parameterSetters, true);
 	}
 
 	public <T extends Query> T bind(T jpaQuery, Object[] values) {
@@ -78,7 +95,7 @@ public class ParameterBinder {
 
 		Query result = bind(query, values);
 
-		if (!parameters.hasPageableParameter() || accessor.getPageable().isUnpaged()) {
+		if (!useJpaForPaging || !parameters.hasPageableParameter() || accessor.getPageable().isUnpaged()) {
 			return result;
 		}
 

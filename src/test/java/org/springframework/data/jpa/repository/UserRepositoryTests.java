@@ -1524,13 +1524,17 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		Page<User> users = repository.findUsersInNativeQueryWithPagination(PageRequest.of(0, 2));
+		Page<User> users = repository.findUsersInNativeQueryWithPagination(PageRequest.of(0, 3));
 
-		assertThat(users.getContent()).hasSize(2).containsExactly(firstUser, secondUser);
+		SoftAssertions softly = new SoftAssertions();
 
-		users = repository.findUsersInNativeQueryWithPagination(PageRequest.of(1, 2));
+		softly.assertThat(users.getContent()).extracting(User::getFirstname).containsExactly("Dave", "Joachim", "kevin");
 
-		assertThat(users.getContent()).hasSize(2).containsExactly(thirdUser, fourthUser);
+		users = repository.findUsersInNativeQueryWithPagination(PageRequest.of(1, 3));
+
+		softly.assertThat(users.getContent()).extracting(User::getFirstname).containsExactly("Oliver");
+
+		softly.assertAll();
 	}
 
 	@Test // DATAJPA-1140

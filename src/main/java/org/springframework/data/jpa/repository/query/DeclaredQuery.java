@@ -83,4 +83,11 @@ interface DeclaredQuery {
 	 * @return a new {@literal DeclaredQuery} instance.
 	 */
 	DeclaredQuery deriveCountQuery(@Nullable String countQuery, @Nullable String countQueryProjection);
+
+	/**
+	 * @return whether paging is implemented in the query itself, e.g. using SpEL expressions.
+	 */
+	default boolean implementsPaging() {
+		return false;
+	}
 }
