@@ -425,7 +425,11 @@ public interface UserRepository
 
 	// DATAJPA-564
 	@Query(
-			value = "select * from (select rownum() as RN, u.* from SD_User u) where RN between ?#{ #pageable.offset -1} and ?#{#pageable.offset + #pageable.pageSize}",
+			value = "select * from (" +
+					"select u.*, rownum() as RN from (" +
+					"select * from SD_User ORDER BY ucase(firstname)" +
+					") u" +
+					") where RN between ?#{ #pageable.offset +1 } and ?#{#pageable.offset + #pageable.pageSize}",
 			countQuery = "select count(u.id) from SD_User u", nativeQuery = true)
 	Page<User> findUsersInNativeQueryWithPagination(Pageable pageable);
 
@@ -534,7 +538,8 @@ public interface UserRepository
 	Page<User> findByNativeNamedQueryWithPageable(Pageable pageable);
 
 	// DATAJPA-928
-	@Query(value = "SELECT firstname FROM SD_User ORDER BY UCASE(firstname)", countQuery = "SELECT count(*) FROM SD_User", nativeQuery = true)
+	@Query(value = "SELECT firstname FROM SD_User ORDER BY UCASE(firstname)", countQuery = "SELECT count(*) FROM SD_User",
+			nativeQuery = true)
 	Page<String> findByNativeQueryWithPageable(@Param("pageable") Pageable pageable);
 
 	// DATAJPA-1273

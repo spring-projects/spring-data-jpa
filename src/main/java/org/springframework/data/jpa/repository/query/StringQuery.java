@@ -53,6 +53,7 @@ class StringQuery implements DeclaredQuery {
 	private final List<ParameterBinding> bindings;
 	private final @Nullable String alias;
 	private final boolean hasConstructorExpression;
+	private final boolean containsPageableInSpel;
 
 	/**
 	 * Creates a new {@link StringQuery} from the given JPQL query.
@@ -64,6 +65,7 @@ class StringQuery implements DeclaredQuery {
 		Assert.hasText(query, "Query must not be null or empty!");
 
 		this.bindings = new ArrayList<>();
+		this.containsPageableInSpel = query.contains("#pageable");
 		this.query = ParameterBindingParser.INSTANCE.parseParameterBindingsOfQueryIntoBindingsAndReturnCleanedQuery(query,
 				this.bindings);
 
@@ -100,6 +102,11 @@ class StringQuery implements DeclaredQuery {
 
 		return DeclaredQuery
 				.of(countQuery != null ? countQuery : QueryUtils.createCountQueryFor(query, countQueryProjection));
+	}
+
+	@Override
+	public boolean implementsPaging() {
+		return containsPageableInSpel;
 	}
 
 	/*
