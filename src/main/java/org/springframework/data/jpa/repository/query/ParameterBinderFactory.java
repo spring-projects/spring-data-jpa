@@ -52,7 +52,7 @@ class ParameterBinderFactory {
 		QueryParameterSetterFactory setterFactory = QueryParameterSetterFactory.basic(parameters);
 		List<ParameterBinding> bindings = getBindings(parameters);
 
-		return new ParameterBinder(parameters, createSetters(bindings, setterFactory));
+		return new ParameterBinder(parameters, createSetters(bindings, setterFactory), true);
 	}
 
 	/**
@@ -72,7 +72,7 @@ class ParameterBinderFactory {
 		QueryParameterSetterFactory setterFactory = QueryParameterSetterFactory.forCriteriaQuery(parameters, metadata);
 		List<ParameterBinding> bindings = getBindings(parameters);
 
-		return new ParameterBinder(parameters, createSetters(bindings, setterFactory));
+		return new ParameterBinder(parameters, createSetters(bindings, setterFactory), true);
 	}
 
 	/**
@@ -100,7 +100,7 @@ class ParameterBinderFactory {
 				evaluationContextProvider, parameters);
 		QueryParameterSetterFactory basicSetterFactory = QueryParameterSetterFactory.basic(parameters);
 
-		return new ParameterBinder(parameters, createSetters(bindings, query, expressionSetterFactory, basicSetterFactory));
+		return new ParameterBinder(parameters, createSetters(bindings, query, expressionSetterFactory, basicSetterFactory), !query.implementsPaging());
 	}
 
 	private static List<ParameterBinding> getBindings(JpaParameters parameters) {
