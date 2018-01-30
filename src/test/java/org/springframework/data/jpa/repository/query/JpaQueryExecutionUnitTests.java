@@ -28,6 +28,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -47,6 +48,7 @@ import org.springframework.data.repository.query.Parameters;
  * @author Thomas Darimont
  * @author Mark Paluch
  * @author Nicolas Cirigliano
+ * @author Jens Schauder
  */
 @RunWith(MockitoJUnitRunner.Silent.class)
 public class JpaQueryExecutionUnitTests {
@@ -57,6 +59,14 @@ public class JpaQueryExecutionUnitTests {
 	@Mock JpaQueryMethod method;
 
 	@Mock TypedQuery<Long> countQuery;
+
+	@Before
+	public void setUp(){
+
+		when(query.executeUpdate()).thenReturn(0);
+		when(jpaQuery.createQuery(Mockito.any(Object[].class))).thenReturn(query);
+		when(jpaQuery.getQueryMethod()).thenReturn(method);
+	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void rejectsNullQuery() {
@@ -83,15 +93,12 @@ public class JpaQueryExecutionUnitTests {
 		}.execute(jpaQuery, new Object[] {}), is(nullValue()));
 	}
 
-	@Test
+	@Test // DATAJPA-806
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void modifyingExecutionFlushesEntityManagerIfSet() {
 
-		when(query.executeUpdate()).thenReturn(0);
 		when(method.getReturnType()).thenReturn((Class) void.class);
 		when(method.getFlushAutomatically()).thenReturn(true);
-		when(jpaQuery.createQuery(Mockito.any(Object[].class))).thenReturn(query);
-		when(jpaQuery.getQueryMethod()).thenReturn(method);
 
 		ModifyingExecution execution = new ModifyingExecution(method, em);
 		execution.execute(jpaQuery, new Object[] {});
@@ -104,11 +111,8 @@ public class JpaQueryExecutionUnitTests {
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void modifyingExecutionClearsEntityManagerIfSet() {
 
-		when(query.executeUpdate()).thenReturn(0);
 		when(method.getReturnType()).thenReturn((Class) void.class);
 		when(method.getClearAutomatically()).thenReturn(true);
-		when(jpaQuery.createQuery(Mockito.any(Object[].class))).thenReturn(query);
-		when(jpaQuery.getQueryMethod()).thenReturn(method);
 
 		ModifyingExecution execution = new ModifyingExecution(method, em);
 		execution.execute(jpaQuery, new Object[] {});
