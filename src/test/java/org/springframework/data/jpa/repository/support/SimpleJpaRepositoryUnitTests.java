@@ -145,8 +145,8 @@ public class SimpleJpaRepositoryUnitTests {
 		verify(em).merge(detachedUser);
 	}
 
-	@Test // DATAJPA-931
-	public void mergeGetsNotCalledWhenAttached() {
+	@Test // DATAJPA-931, DATAJPA-1261
+	public void mergeGetsCalledWhenAttached() {
 
 		User attachedUser = new User();
 
@@ -154,6 +154,6 @@ public class SimpleJpaRepositoryUnitTests {
 
 		repo.save(attachedUser);
 
-		verify(em, never()).merge(attachedUser);
+		verify(em).merge(attachedUser);
 	}
 }

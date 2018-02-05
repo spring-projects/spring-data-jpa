@@ -488,11 +488,9 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		if (entityInformation.isNew(entity)) {
 			em.persist(entity);
 			return entity;
-		} else if (!em.contains(entity)) {
+		} else {
 			return em.merge(entity);
 		}
-
-		return entity;
 	}
 
 	/*
