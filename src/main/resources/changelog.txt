@@ -1,6 +1,28 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 2.1.0.M1 (2018-02-06)
+----------------------------------------
+* DATAJPA-1261 - Revert optimizations made for existing entities in implementation of CrudRepository.save(…).
+* DATAJPA-1252 - Fix line endings.
+* DATAJPA-1243 - Update copyright years to 2018.
+* DATAJPA-1235 - CrudRepository Exception - Required name for ParameterBinding not available.
+* DATAJPA-1234 - querydsl.packageSuffix messes with QueryDslJpaRepository.
+* DATAJPA-1220 - Mention snapshot repository in readme.
+* DATAJPA-1213 - Upgrade to Hibernate 5.2.12.
+* DATAJPA-1212 - Temporarily add milestone repository to plugin repositories.
+* DATAJPA-1208 - Improve code readability.
+* DATAJPA-1205 - BeanCreationException for custom repository after upgrading to Ingalls-SR8.
+* DATAJPA-1200 - Colon database table separator confused with named parameter.
+* DATAJPA-1197 - Release 2.1 M1 (Lovelace).
+* DATAJPA-1195 - Fix sporadic hanging test in build.
+* DATAJPA-1173 - Spring Data Projection with OneToMany returns too many results.
+* DATAJPA-949 - Add support for JPA 2.2 Query.getResultStream().
+* DATAJPA-931 - Optimize calls to SimpleJpaRepository.save(…) if the entity is still attached.
+* DATAJPA-863 - Missing parameters in findAll* Repository method should throw a descriptive exception.
+* DATAJPA-806 - add flushAutomatically attribute to @Modifying annotation.
+
+
 Changes in version 2.0.3.RELEASE (2018-01-24)
 ---------------------------------------------
 * DATAJPA-1252 - Fix line endings.
