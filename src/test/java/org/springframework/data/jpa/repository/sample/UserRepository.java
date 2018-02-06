@@ -513,6 +513,15 @@ public interface UserRepository
 	@Query("SELECT u FROM User u where u.firstname >= ?1 and u.lastname = '000:1'")
 	List<User> queryWithIndexedParameterAndColonFollowedByIntegerInString(String firstname);
 
+
+	// DATAJPA-928
+	Page<User> findByNativeNamedQueryWithPageable(Pageable pageable);
+
+
+	// DATAJPA-928
+	@Query(value = "SELECT firstname FROM SD_User ORDER BY UCASE(firstname)", countQuery = "SELECT count(*) FROM SD_User", nativeQuery = true)
+	Page<String> findByNativeQueryWithPageable(@Param("pageable") Pageable pageable);
+
 	static interface RolesAndFirstname {
 
 		String getFirstname();

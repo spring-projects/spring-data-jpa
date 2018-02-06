@@ -17,7 +17,9 @@ package org.springframework.data.jpa.repository.query;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import java.lang.reflect.Method;
@@ -59,6 +61,7 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
  *
  * @author Oliver Gierke
  * @author Thomas Darimont
+ * @author Jens Schauder
  */
 @RunWith(MockitoJUnitRunner.Silent.class)
 public class SimpleJpaQueryUnitTests {
@@ -150,13 +153,6 @@ public class SimpleJpaQueryUnitTests {
 	public void rejectsNativeQueryWithDynamicSort() throws Exception {
 
 		Method method = SampleRepository.class.getMethod("findNativeByLastname", String.class, Sort.class);
-		createJpaQuery(method);
-	}
-
-	@Test(expected = InvalidJpaQueryMethodException.class) // DATAJPA-554
-	public void rejectsNativeQueryWithPageable() throws Exception {
-
-		Method method = SampleRepository.class.getMethod("findNativeByLastname", String.class, Pageable.class);
 		createJpaQuery(method);
 	}
 

@@ -15,26 +15,23 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.*;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 import java.lang.reflect.Method;
+import java.util.List;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.metamodel.Metamodel;
 
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.provider.QueryExtractor;
 import org.springframework.data.jpa.repository.Query;
@@ -53,6 +50,7 @@ import org.springframework.data.repository.query.QueryLookupStrategy.Key;
  *
  * @author Oliver Gierke
  * @author Thomas Darimont
+ * @author Jens Schauder
  */
 @RunWith(MockitoJUnitRunner.class)
 public class JpaQueryLookupStrategyUnitTests {
@@ -64,8 +62,6 @@ public class JpaQueryLookupStrategyUnitTests {
 	@Mock NamedQueries namedQueries;
 	@Mock Metamodel metamodel;
 	@Mock ProjectionFactory projectionFactory;
-
-	public @Rule ExpectedException exception = ExpectedException.none();
 
 	@Before
 	public void setUp() {
@@ -87,12 +83,9 @@ public class JpaQueryLookupStrategyUnitTests {
 		Throwable reference = new RuntimeException();
 		when(em.createQuery(anyString())).thenThrow(reference);
 
-		try {
-			strategy.resolveQuery(method, metadata, projectionFactory, namedQueries);
-		} catch (Exception e) {
-			assertThat(e, is(instanceOf(IllegalArgumentException.class)));
-			assertThat(e.getCause(), is(reference));
-		}
+		assertThatExceptionOfType(IllegalArgumentException.class)
+				.isThrownBy(() -> strategy.resolveQuery(method, metadata, projectionFactory, namedQueries))
+				.withCause(reference);
 	}
 
 	@Test // DATAJPA-554
@@ -100,14 +93,13 @@ public class JpaQueryLookupStrategyUnitTests {
 
 		QueryLookupStrategy strategy = JpaQueryLookupStrategy.create(em, Key.CREATE_IF_NOT_FOUND, extractor,
 				EVALUATION_CONTEXT_PROVIDER);
-		Method method = UserRepository.class.getMethod("findByInvalidNativeQuery", String.class, Pageable.class);
+		Method method = UserRepository.class.getMethod("findByInvalidNativeQuery", String.class, Sort.class);
 		RepositoryMetadata metadata = new DefaultRepositoryMetadata(UserRepository.class);
 
-		exception.expect(InvalidJpaQueryMethodException.class);
-		exception.expectMessage("Cannot use native queries with dynamic sorting and/or pagination in method");
-		exception.expectMessage(method.toString());
-
-		strategy.resolveQuery(method, metadata, projectionFactory, namedQueries);
+		assertThatExceptionOfType(InvalidJpaQueryMethodException.class)
+				.isThrownBy(() -> strategy.resolveQuery(method, metadata, projectionFactory, namedQueries))
+				.withMessageContaining("Cannot use native queries with dynamic sorting in method")
+				.withMessageContaining(method.toString());
 	}
 
 	interface UserRepository extends Repository<User, Long> {
@@ -116,6 +108,6 @@ public class JpaQueryLookupStrategyUnitTests {
 		User findByFoo(String foo);
 
 		@Query(value = "select u.* from User u", nativeQuery = true)
-		Page<User> findByInvalidNativeQuery(String param, Pageable page);
+		List<User> findByInvalidNativeQuery(String param, Sort sort);
 	}
 }
