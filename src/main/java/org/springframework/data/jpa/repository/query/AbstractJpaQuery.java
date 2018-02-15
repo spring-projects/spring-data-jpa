@@ -292,20 +292,10 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 			return new TupleBackedMap(tuple);
 		}
 
-		private static boolean isIndexAsString(String source) {
-
-			try {
-				Integer.parseInt(source);
-				return true;
-			} catch (NumberFormatException o_O) {
-				return false;
-			}
-		}
-
 		/**
-		 * A {@link Map} implementation which delegates all calls to a {@link Tuple}.
-		 *
-		 * Depending on the provided {@link Tuple} implementation it might return the same value for various keys of which only one will appear in the key/entry set.
+		 * A {@link Map} implementation which delegates all calls to a {@link Tuple}. Depending on the provided
+		 * {@link Tuple} implementation it might return the same value for various keys of which only one will appear in the
+		 * key/entry set.
 		 *
 		 * @author Jens Schauder
 		 */
@@ -314,7 +304,6 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 			private final Tuple tuple;
 
 			TupleBackedMap(Tuple tuple) {
-
 				this.tuple = tuple;
 			}
 
@@ -378,6 +367,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 
 			@Override
 			public Set<Entry<String, Object>> entrySet() {
+
 				return tuple.getElements().stream() //
 						.map(e -> new HashMap.SimpleEntry<String, Object>(e.getAlias(), tuple.get(e))) //
 						.collect(Collectors.toSet());
