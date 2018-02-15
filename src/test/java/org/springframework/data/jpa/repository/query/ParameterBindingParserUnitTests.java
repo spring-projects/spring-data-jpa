@@ -69,9 +69,9 @@ public class ParameterBindingParserUnitTests {
 
 	public void checkHasParameter(SoftAssertions softly, String query, boolean containsParameter, String label) {
 
-		List<ParameterBinding> bindings = new ArrayList<>();
-		ParameterBindingParser.INSTANCE.parseParameterBindingsOfQueryIntoBindingsAndReturnCleanedQuery(query, bindings);
-		softly.assertThat(bindings.size()) //
+		StringQuery stringQuery = new StringQuery(query);
+
+		softly.assertThat(stringQuery.getParameterBindings().size()) //
 				.describedAs(String.format("<%s> (%s)", query, label)) //
 				.isEqualTo(containsParameter ? 1 : 0);
 	}

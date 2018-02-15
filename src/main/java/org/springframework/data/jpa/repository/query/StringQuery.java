@@ -22,14 +22,14 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.function.BiFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.springframework.data.domain.Range;
 import org.springframework.data.repository.query.parser.Part.Type;
+import org.springframework.data.repository.query.parser.QuotationMap;
+import org.springframework.data.repository.query.parser.SpelQueryContext;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
@@ -187,7 +187,6 @@ class StringQuery implements DeclaredQuery {
 		public static final int INDEXED_PARAMETER_GROUP = 4;
 		public static final int NAMED_PARAMETER_GROUP = 6;
 		public static final int COMPARISION_TYPE_GROUP = 1;
-		public static final int EXPRESSION_GROUP = 9;
 
 		static {
 
@@ -211,8 +210,7 @@ class StringQuery implements DeclaredQuery {
 
 			// named parameter and the parameter name
 			builder.append("%?(" + QueryUtils.COLON_NO_DOUBLE_COLON + QueryUtils.IDENTIFIER_GROUP + ")%?");
-			builder.append("|"); // or
-			builder.append("%?((:|\\?)#\\{([^}]+)\\})%?"); // expression parameter and expression
+
 			builder.append(")");
 			builder.append("\\)?"); // optional braces around parameters
 
@@ -223,31 +221,16 @@ class StringQuery implements DeclaredQuery {
 		 * Parses {@link ParameterBinding} instances from the given query and adds them to the registered bindings. Returns
 		 * the cleaned up query.
 		 */
-		String parseParameterBindingsOfQueryIntoBindingsAndReturnCleanedQuery(String query,
+		private String parseParameterBindingsOfQueryIntoBindingsAndReturnCleanedQuery(String query,
 				List<ParameterBinding> bindings) {
 
-			String result = query;
-			Matcher matcher = PARAMETER_BINDING_PATTERN.matcher(query);
+			SpelQueryContext.SpelExtractor spelExtractor = createSpelExtractor(query);
 
-			int greatestParameterIndex = tryFindGreatestParameterIndexIn(query);
+			String resultingQuery = spelExtractor.query();
 
-			boolean parametersShouldBeAccessedByIndex = greatestParameterIndex != -1;
+			Matcher matcher = PARAMETER_BINDING_PATTERN.matcher(spelExtractor.query());
 
-			/*
-			 * Prefer indexed access over named parameters if only SpEL Expression parameters are present.
-			 */
-			if (!parametersShouldBeAccessedByIndex && query.contains("?#{")) {
-				parametersShouldBeAccessedByIndex = true;
-				greatestParameterIndex = 0;
-			}
-
-			/*
-			 * If parameters need to be bound by index, we bind the synthetic expression parameters starting from position of the greatest discovered index parameter in order to
-			 * not mix-up with the actual parameter indices.
-			 */
-			int expressionParameterIndex = parametersShouldBeAccessedByIndex ? greatestParameterIndex : 0;
-
-			QuotationMap quotationMap = new QuotationMap(query);
+			QuotationMap quotationMap = new QuotationMap(spelExtractor.query());
 
 			while (matcher.find()) {
 
@@ -259,22 +242,11 @@ class StringQuery implements DeclaredQuery {
 				String parameterName = parameterIndexString != null ? null : matcher.group(NAMED_PARAMETER_GROUP);
 				Integer parameterIndex = parameterIndexString == null ? null : Integer.valueOf(parameterIndexString);
 				String typeSource = matcher.group(COMPARISION_TYPE_GROUP);
-				String expression = null;
+				String expression = spelExtractor.parameterNameToSpelMap()
+						.get(parameterName == null ? parameterIndexString : parameterName);
 				String replacement = null;
 
-				if (parameterName == null && parameterIndex == null) {
-					expressionParameterIndex++;
-
-					if (parametersShouldBeAccessedByIndex) {
-						parameterIndex = expressionParameterIndex;
-						replacement = "?" + parameterIndex;
-					} else {
-						parameterName = EXPRESSION_PARAMETER_PREFIX + expressionParameterIndex;
-						replacement = ":" + parameterName;
-					}
-
-					expression = matcher.group(EXPRESSION_GROUP);
-				}
+				Assert.isTrue(parameterIndex != null || parameterName != null, "We need either a name or an index.");
 
 				switch (ParameterBindingType.of(typeSource)) {
 
@@ -311,15 +283,45 @@ class StringQuery implements DeclaredQuery {
 				}
 
 				if (replacement != null) {
-					result = replaceFirst(result, matcher.group(2), replacement);
+					resultingQuery = replaceFirst(resultingQuery, matcher.group(2), replacement);
 				}
 
 			}
 
-			return result;
+			return resultingQuery;
 		}
 
-		private static String replaceFirst(String text, String substring, String replacement) {
+		private SpelQueryContext.SpelExtractor createSpelExtractor(String queryWithSpel) {
+			int greatestParameterIndex = tryFindGreatestParameterIndexIn(queryWithSpel);
+
+			boolean parametersShouldBeAccessedByIndex = greatestParameterIndex != -1;
+
+			/*
+			 * Prefer indexed access over named parameters if only SpEL Expression parameters are present.
+			 */
+			if (!parametersShouldBeAccessedByIndex && queryWithSpel.contains("?#{")) {
+				parametersShouldBeAccessedByIndex = true;
+				greatestParameterIndex = 0;
+			}
+
+			/*
+			 * If parameters need to be bound by index, we bind the synthetic expression parameters starting from position of the greatest discovered index parameter in order to
+			 * not mix-up with the actual parameter indices.
+			 */
+			int expressionParameterIndex = parametersShouldBeAccessedByIndex ? greatestParameterIndex : 0;
+
+			BiFunction<Integer, String, String> indexToParameterName = parametersShouldBeAccessedByIndex
+					? (index, expression) -> String.valueOf(index + expressionParameterIndex + 1)
+					: (index, expression) -> EXPRESSION_PARAMETER_PREFIX + (index + 1);
+
+			String fixedPrefix = parametersShouldBeAccessedByIndex ? "?" : ":";
+
+			BiFunction<String, String, String> parameterNameToReplacement = (prefix, name) -> fixedPrefix + name;
+
+			return new SpelQueryContext(indexToParameterName, parameterNameToReplacement).parse(queryWithSpel);
+		}
+
+		private String replaceFirst(String text, String substring, String replacement) {
 
 			int index = text.indexOf(substring);
 			if (index < 0) {
@@ -793,59 +795,4 @@ class StringQuery implements DeclaredQuery {
 		}
 	}
 
-	/**
-	 * Value object to analyze a String to determine the parts of the String that are quoted and offers an API to query
-	 * that information.
-	 *
-	 * @author Jens Schauder
-	 * @since 3.0.3
-	 */
-	static class QuotationMap {
-
-		private static final Set<Character> QUOTING_CHARACTERS = new HashSet<>(Arrays.asList('"', '\''));
-
-		private List<Range<Integer>> quotedRanges = new ArrayList<>();
-
-		QuotationMap(@Nullable String query) {
-
-			if (query == null) {
-				return;
-			}
-
-			Character inQuotation = null;
-			int start = 0;
-
-			for (int i = 0; i < query.length(); i++) {
-
-				char currentChar = query.charAt(i);
-
-				if (QUOTING_CHARACTERS.contains(currentChar)) {
-
-					if (inQuotation == null) {
-
-						inQuotation = currentChar;
-						start = i;
-
-					} else if (currentChar == inQuotation) {
-
-						inQuotation = null;
-						quotedRanges.add(Range.of(Range.Bound.inclusive(start), Range.Bound.inclusive(i)));
-					}
-				}
-			}
-
-			if (inQuotation != null) {
-				throw new IllegalArgumentException(
-						String.format("The string <%s> starts a quoted range at %d, but never ends it.", query, start));
-			}
-		}
-
-		/**
-		 * @param index to check if it is part of a quoted range.
-		 * @return whether the query contains a quoted range at {@literal index}.
-		 */
-		public boolean isQuoted(int index) {
-			return quotedRanges.stream().anyMatch(r -> r.contains(index));
-		}
-	}
 }
