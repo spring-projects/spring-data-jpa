@@ -21,8 +21,10 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
+import javax.persistence.metamodel.EntityType;
 import javax.persistence.metamodel.ManagedType;
 import javax.persistence.metamodel.Metamodel;
+import javax.persistence.metamodel.SingularAttribute;
 
 import org.springframework.util.Assert;
 
@@ -64,6 +66,25 @@ public class JpaMetamodel {
 	}
 
 	/**
+	 * Returns whether the attribute of given name and type is the single identifier attribute of the given entity.
+	 * 
+	 * @param entity must not be {@literal null}.
+	 * @param name must not be {@literal null}.
+	 * @param attributeType must not be {@literal null}.
+	 * @return
+	 */
+	public boolean isSingleIdAttribute(Class<?> entity, String name, Class<?> attributeType) {
+
+		return metamodel.getEntities().stream() //
+				.filter(it -> it.getJavaType().equals(entity)) //
+				.findFirst() //
+				.flatMap(it -> getSingularIdAttribute(it)) //
+				.filter(it -> it.getJavaType().equals(attributeType)) //
+				.map(it -> it.getName().equals(name)) //
+				.orElse(false);
+	}
+
+	/**
 	 * Returns all types managed by the backing {@link Metamodel}. Skips {@link ManagedType} instances that return
 	 * {@literal null} for calls to {@link ManagedType#getJavaType()}.
 	 * 
@@ -90,5 +111,23 @@ public class JpaMetamodel {
 		}
 
 		return this.managedTypes.get();
+	}
+
+	/**
+	 * Returns the {@link SingularAttribute} representing the identifier of the given {@link EntityType} if it contains a
+	 * singular one.
+	 * 
+	 * @param entityType must not be {@literal null}.
+	 * @return
+	 */
+	private static Optional<? extends SingularAttribute<?, ?>> getSingularIdAttribute(EntityType<?> entityType) {
+
+		if (!entityType.hasSingleIdAttribute()) {
+			return Optional.empty();
+		}
+
+		return entityType.getSingularAttributes().stream() //
+				.filter(SingularAttribute::isId) //
+				.findFirst();
 	}
 }
