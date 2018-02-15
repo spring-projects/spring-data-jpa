@@ -49,8 +49,7 @@ import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.data.repository.core.RepositoryMetadata;
-import org.springframework.data.repository.query.EvaluationContextProvider;
-import org.springframework.data.repository.query.ExtensionAwareEvaluationContextProvider;
+import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 
@@ -65,7 +64,8 @@ public class SimpleJpaQueryUnitTests {
 
 	static final String USER_QUERY = "select u from User u";
 	static final SpelExpressionParser PARSER = new SpelExpressionParser();
-	private static final EvaluationContextProvider EVALUATION_CONTEXT_PROVIDER = new ExtensionAwareEvaluationContextProvider();
+
+	static final QueryMethodEvaluationContextProvider EVALUATION_CONTEXT_PROVIDER = QueryMethodEvaluationContextProvider.DEFAULT;
 
 	JpaQueryMethod method;
 

@@ -17,6 +17,8 @@ package org.springframework.data.jpa.repository.projections;
 
 import static org.assertj.core.api.Assertions.*;
 
+import lombok.Data;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -37,6 +39,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.data.jpa.repository.projections.ProjectionsIntegrationTests.Config;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
@@ -50,8 +53,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.annotation.Transactional;
-
-import lombok.Data;
 
 /**
  * Integration tests for the behavior of projections.
@@ -84,6 +85,11 @@ public class ProjectionsIntegrationTests {
 	@Test // DATAJPA-1173
 	public void findAllProjectedFindsTheSingleEntity() {
 		assertThat(repository.findAllProjectedBy()).hasSize(1);
+	}
+
+	@Test
+	public void findAllNativeQueryProjectedFindsTwoEntities() {
+		assertThat(repository.findAllNativeQueryProjectedBy()).hasSize(2);
 	}
 
 	private SubEntity createSubEntity(int index) {
@@ -121,6 +127,8 @@ public class ProjectionsIntegrationTests {
 
 		String getName();
 
+		String getOtherAttribute();
+
 		List<SubEntityProjection> getSubs();
 	}
 
@@ -130,6 +138,9 @@ public class ProjectionsIntegrationTests {
 
 	interface DummyEntityWithCollectionRepository extends JpaRepository<DummyEntityWithCollection, Long> {
 		List<DummyEntityProjection> findAllProjectedBy();
+
+		@Query(nativeQuery = true, value = "SELECT name, otherAttribute FROM SubEntity")
+		List<DummyEntityProjection> findAllNativeQueryProjectedBy();
 	}
 
 	@EnableJpaRepositories(considerNestedRepositories = true)

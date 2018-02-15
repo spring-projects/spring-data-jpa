@@ -43,7 +43,7 @@ import org.springframework.data.jpa.repository.sample.AuditableUserRepository;
 import org.springframework.data.jpa.repository.sample.SampleEvaluationContextExtension;
 import org.springframework.data.jpa.repository.sample.SampleEvaluationContextExtension.SampleSecurityContextHolder;
 import org.springframework.data.jpa.util.FixedDate;
-import org.springframework.data.repository.query.spi.EvaluationContextExtension;
+import org.springframework.data.spel.spi.EvaluationContextExtension;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
@@ -69,6 +69,7 @@ public abstract class AbstractAuditingViaJavaConfigRepositoriesTests {
 	@Import(InfrastructureConfig.class)
 	@EnableJpaRepositories(basePackageClasses = AuditableUserRepository.class)
 	static class TestConfig {
+
 		@Bean
 		EvaluationContextExtension sampleEvaluationContextExtension() {
 			return new SampleEvaluationContextExtension();

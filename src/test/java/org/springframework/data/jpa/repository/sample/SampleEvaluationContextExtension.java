@@ -18,15 +18,14 @@ package org.springframework.data.jpa.repository.sample;
 import java.util.Collections;
 import java.util.Map;
 
-import org.springframework.data.repository.query.spi.EvaluationContextExtension;
-import org.springframework.data.repository.query.spi.EvaluationContextExtensionSupport;
+import org.springframework.data.spel.spi.EvaluationContextExtension;
 
 /**
  * A sample implementation of a custom {@link EvaluationContextExtension}.
  *
  * @author Thomas Darimont
  */
-public class SampleEvaluationContextExtension extends EvaluationContextExtensionSupport {
+public class SampleEvaluationContextExtension implements EvaluationContextExtension {
 
 	@Override
 	public String getExtensionId() {

@@ -42,8 +42,8 @@ import org.springframework.data.jpa.repository.support.DefaultJpaContext;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean;
 import org.springframework.data.repository.core.NamedQueries;
 import org.springframework.data.repository.core.support.PropertiesBasedNamedQueries;
-import org.springframework.data.repository.query.ExtensionAwareEvaluationContextProvider;
-import org.springframework.data.repository.query.spi.EvaluationContextExtension;
+import org.springframework.data.repository.query.ExtensionAwareQueryMethodEvaluationContextProvider;
+import org.springframework.data.spel.spi.EvaluationContextExtension;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
 
@@ -72,9 +72,8 @@ public class JavaConfigUserRepositoryTests extends UserRepositoryTests {
 		@Bean
 		public UserRepository userRepository() throws Exception {
 
-			ExtensionAwareEvaluationContextProvider evaluationContextProvider = new ExtensionAwareEvaluationContextProvider(
+			ExtensionAwareQueryMethodEvaluationContextProvider evaluationContextProvider = new ExtensionAwareQueryMethodEvaluationContextProvider(
 					extensions);
-			evaluationContextProvider.setApplicationContext(applicationContext);
 
 			JpaRepositoryFactoryBean<UserRepository, User, Integer> factory = new JpaRepositoryFactoryBean<UserRepository, User, Integer>(
 					UserRepository.class);

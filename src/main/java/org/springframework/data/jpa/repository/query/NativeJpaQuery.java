@@ -20,7 +20,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.persistence.Tuple;
 
-import org.springframework.data.repository.query.EvaluationContextProvider;
+import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ResultProcessor;
@@ -48,7 +48,7 @@ final class NativeJpaQuery extends AbstractStringBasedJpaQuery {
 	 * @param evaluationContextProvider
 	 */
 	public NativeJpaQuery(JpaQueryMethod method, EntityManager em, String queryString,
-			EvaluationContextProvider evaluationContextProvider, SpelExpressionParser parser) {
+			QueryMethodEvaluationContextProvider evaluationContextProvider, SpelExpressionParser parser) {
 
 		super(method, em, queryString, evaluationContextProvider, parser);
 
