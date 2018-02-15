@@ -15,7 +15,8 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 import java.util.Arrays;
@@ -26,7 +27,6 @@ import java.util.Map;
 import javax.persistence.Tuple;
 import javax.persistence.TupleElement;
 
-import org.assertj.core.api.SoftAssertions;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -74,7 +74,7 @@ public class TupleConverterUnitTests {
 
 		TupleConverter converter = new TupleConverter(type);
 
-		assertThat(converter.convert(tuple)).isEqualTo("Foo");
+		assertThat(converter.convert(tuple), is((Object) "Foo"));
 	}
 
 	@Test // DATAJPA-1024
@@ -86,11 +86,11 @@ public class TupleConverterUnitTests {
 
 		TupleConverter converter = new TupleConverter(type);
 
-		assertThat(converter.convert(tuple)).isNull();
+		assertThat(converter.convert(tuple), is(nullValue()));
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test // DATAJPA-1048
+	@SuppressWarnings("unchecked")
 	public void findsValuesForAllVariantsSupportedByTheTuple() {
 
 		Tuple tuple = new MockTuple();
@@ -99,14 +99,10 @@ public class TupleConverterUnitTests {
 
 		Map<String, Object> map = (Map<String, Object>) converter.convert(tuple);
 
-		SoftAssertions softly = new SoftAssertions();
-
-		softly.assertThat(map.get("ONE")).isEqualTo("one");
-		softly.assertThat(map.get("one")).isEqualTo("one");
-		softly.assertThat(map.get("OnE")).isEqualTo("one");
-		softly.assertThat(map.get("oNe")).isEqualTo("one");
-
-		softly.assertAll();
+		assertThat(map.get("ONE"), is((Object) "one"));
+		assertThat(map.get("one"), is((Object) "one"));
+		assertThat(map.get("OnE"), is((Object) "one"));
+		assertThat(map.get("oNe"), is((Object) "one"));
 	}
 
 	interface SampleRepository extends CrudRepository<Object, Long> {
@@ -151,7 +147,7 @@ public class TupleConverterUnitTests {
 
 		@Override
 		public List<TupleElement<?>> getElements() {
-			return Arrays.asList(one, two);
+			return Arrays.<TupleElement<?>> asList(one, two);
 		}
 
 		private static class StringTupleElement implements TupleElement<String> {
