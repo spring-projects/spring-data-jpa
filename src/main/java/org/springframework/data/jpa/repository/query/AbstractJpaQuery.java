@@ -281,16 +281,6 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 			return new TupleBackedMap(tuple);
 		}
 
-		private static boolean isIndexAsString(String source) {
-
-			try {
-				Integer.parseInt(source);
-				return true;
-			} catch (NumberFormatException o_O) {
-				return false;
-			}
-		}
-
 		/**
 		 * A {@link Map} implementation which delegates all calls to a {@link Tuple}. Depending on the provided
 		 * {@link Tuple} implementation it might return the same value for various keys of which only one will appear in the
