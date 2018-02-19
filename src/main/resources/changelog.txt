@@ -1,6 +1,19 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 2.0.4.RELEASE (2018-02-19)
+---------------------------------------------
+* DATAJPA-1268 - Upgrade to Hibernate 5.2.13.
+* DATAJPA-1261 - Revert optimizations made for existing entities in implementation of CrudRepository.save(…).
+* DATAJPA-1253 - Release 2.0.4 (Kay SR4).
+* DATAJPA-1248 - Add build profiles for Hibernate 5.3.
+* DATAJPA-1241 - "object is not an instance of declaring class" in JpaQueryExecution.StreamExecution.
+* DATAJPA-1233 - Count query fails when missing any defined parameter.
+* DATAJPA-928 - NativeQuery with Pagination validation error at startup.
+* DATAJPA-806 - add flushAutomatically attribute to @Modifying annotation.
+* DATAJPA-658 - Improve identifier metadata detection for XML based entity mappings.
+
+
 Changes in version 2.1.0.M1 (2018-02-06)
 ----------------------------------------
 * DATAJPA-1261 - Revert optimizations made for existing entities in implementation of CrudRepository.save(…).
