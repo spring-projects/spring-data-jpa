@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,15 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static java.util.Arrays.asList;
-import static javax.persistence.TemporalType.TIME;
+import static java.util.Arrays.*;
+import static javax.persistence.TemporalType.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
-import static org.springframework.data.jpa.repository.query.QueryParameterSetter.ErrorHandling.LENIENT;
-import static org.springframework.data.jpa.repository.query.QueryParameterSetter.ErrorHandling.STRICT;
+import static org.springframework.data.jpa.repository.query.QueryParameterSetter.ErrorHandling.*;
 
-import lombok.RequiredArgsConstructor;
+import lombok.Value;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -38,7 +39,10 @@ import org.junit.Test;
 import org.springframework.data.jpa.repository.query.QueryParameterSetter.NamedOrIndexedQueryParameterSetter;
 
 /**
+ * Unit tests fir {@link NamedOrIndexedQueryParameterSetter}.
+ * 
  * @author Jens Schauder
+ * @author Oliver Gierke
  */
 public class NamedOrIndexedQueryParameterSetterUnitTests {
 
@@ -47,7 +51,7 @@ public class NamedOrIndexedQueryParameterSetterUnitTests {
 	Object[] methodArguments = { new Date() };
 
 	List<TemporalType> temporalTypes = asList(null, TIME);
-	List<Parameter> parameters = asList( //
+	List<Parameter<?>> parameters = Arrays.<Parameter<?>> asList( //
 			mock(ParameterExpression.class), //
 			new ParameterImpl("name", null), //
 			new ParameterImpl(null, 1) //
@@ -87,7 +91,7 @@ public class NamedOrIndexedQueryParameterSetterUnitTests {
 
 		Query query = mockExceptionThrowingQueryWithNamedParameters();
 
-		for (Parameter parameter : parameters) {
+		for (Parameter<?> parameter : parameters) {
 			for (TemporalType temporalType : temporalTypes) {
 
 				NamedOrIndexedQueryParameterSetter setter = new NamedOrIndexedQueryParameterSetter( //
@@ -111,9 +115,8 @@ public class NamedOrIndexedQueryParameterSetterUnitTests {
 
 	/**
 	 * setParameter should be called in the lenient case even if the number of parameters seems to suggest that it fails,
-	 * since the index might not be continuous due to missing parts of count queries compared to the main query.
-	 *
-	 * This happens when a parameter gets used in the ORDER BY clause which gets stripped of for the count query.
+	 * since the index might not be continuous due to missing parts of count queries compared to the main query. This
+	 * happens when a parameter gets used in the ORDER BY clause which gets stripped of for the count query.
 	 */
 	@Test // DATAJPA-1233
 	public void lenientSetsParameterWhenSuccessIsUnsure() {
@@ -130,10 +133,11 @@ public class NamedOrIndexedQueryParameterSetterUnitTests {
 
 			setter.setParameter(query, methodArguments, LENIENT);
 
-			if (temporalType == null)
+			if (temporalType == null) {
 				verify(query).setParameter(eq(11), any(Date.class));
-			else
+			} else {
 				verify(query).setParameter(eq(11), any(Date.class), eq(temporalType));
+			}
 		}
 
 		softly.assertAll();
@@ -141,9 +145,8 @@ public class NamedOrIndexedQueryParameterSetterUnitTests {
 	}
 
 	/**
-	 * This scenario happens when the only (name) parameter is part of an ORDER BY clause and gets stripped of for the count query.
-	 *
-	 * Then the count query has no named parameter but the parameter provided has a {@literal null} position.
+	 * This scenario happens when the only (name) parameter is part of an ORDER BY clause and gets stripped of for the
+	 * count query. Then the count query has no named parameter but the parameter provided has a {@literal null} position.
 	 */
 	@Test // DATAJPA-1233
 	public void parameterNotSetWhenSuccessImpossible() {
@@ -160,10 +163,11 @@ public class NamedOrIndexedQueryParameterSetterUnitTests {
 
 			setter.setParameter(query, methodArguments, LENIENT);
 
-			if (temporalType == null)
+			if (temporalType == null) {
 				verify(query, never()).setParameter(anyInt(), any(Date.class));
-			else
+			} else {
 				verify(query, never()).setParameter(anyInt(), any(Date.class), eq(temporalType));
+			}
 		}
 
 		softly.assertAll();
@@ -171,46 +175,38 @@ public class NamedOrIndexedQueryParameterSetterUnitTests {
 	}
 
 	@SuppressWarnings("unchecked")
-	public Query mockExceptionThrowingQueryWithNamedParameters() {
+	private static Query mockExceptionThrowingQueryWithNamedParameters() {
+
 		Query query = mock(Query.class);
 
 		// make it a query with named parameters
-		doReturn(Collections.singleton(new ParameterImpl("aName", 3))).when(query).getParameters();
-		doThrow(new RuntimeException(EXCEPTION_MESSAGE)).when(query) //
-				.setParameter(any(Parameter.class), any(Date.class), any(TemporalType.class));
-		doThrow(new RuntimeException(EXCEPTION_MESSAGE)).when(query) //
-				.setParameter(any(Parameter.class), any(Date.class));
-		doThrow(new RuntimeException(EXCEPTION_MESSAGE)).when(query) //
-				.setParameter(anyString(), any(Date.class), any(TemporalType.class));
-		doThrow(new RuntimeException(EXCEPTION_MESSAGE)).when(query) //
-				.setParameter(anyString(), any(Date.class));
-		doThrow(new RuntimeException(EXCEPTION_MESSAGE)).when(query) //
-				.setParameter(anyInt(), any(Date.class), any(TemporalType.class));
-		doThrow(new RuntimeException(EXCEPTION_MESSAGE)).when(query) //
-				.setParameter(anyInt(), any(Date.class));
+		doReturn(Collections.singleton(new ParameterImpl("aName", 3))) //
+				.when(query).getParameters();
+		doThrow(new RuntimeException(EXCEPTION_MESSAGE)) //
+				.when(query).setParameter(any(Parameter.class), any(Date.class), any(TemporalType.class));
+		doThrow(new RuntimeException(EXCEPTION_MESSAGE)) //
+				.when(query).setParameter(any(Parameter.class), any(Date.class));
+		doThrow(new RuntimeException(EXCEPTION_MESSAGE)) //
+				.when(query).setParameter(anyString(), any(Date.class), any(TemporalType.class));
+		doThrow(new RuntimeException(EXCEPTION_MESSAGE)) //
+				.when(query).setParameter(anyString(), any(Date.class));
+		doThrow(new RuntimeException(EXCEPTION_MESSAGE)) //
+				.when(query).setParameter(anyInt(), any(Date.class), any(TemporalType.class));
+		doThrow(new RuntimeException(EXCEPTION_MESSAGE)) //
+				.when(query).setParameter(anyInt(), any(Date.class));
+
 		return query;
 	}
 
-	@RequiredArgsConstructor
+	@Value
 	private static class ParameterImpl implements Parameter<Object> {
 
-		private final String name;
-		private final Integer position;
-
-		@Override
-		public String getName() {
-			return name;
-		}
-
-		@Override
-		public Integer getPosition() {
-			return position;
-		}
+		String name;
+		Integer position;
 
 		@Override
 		public Class<Object> getParameterType() {
 			return Object.class;
 		}
 	}
-
 }

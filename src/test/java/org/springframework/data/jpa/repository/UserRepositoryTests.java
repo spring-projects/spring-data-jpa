@@ -15,17 +15,21 @@
  */
 package org.springframework.data.jpa.repository;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.springframework.data.domain.Example.of;
-import static org.springframework.data.domain.ExampleMatcher.matching;
-import static org.springframework.data.domain.Sort.Direction.ASC;
-import static org.springframework.data.domain.Sort.Direction.DESC;
+import static org.assertj.core.api.Assertions.*;
+import static org.springframework.data.domain.Example.*;
+import static org.springframework.data.domain.ExampleMatcher.*;
+import static org.springframework.data.domain.Sort.Direction.*;
+import static org.springframework.data.jpa.domain.Specification.*;
 import static org.springframework.data.jpa.domain.Specification.not;
-import static org.springframework.data.jpa.domain.Specification.where;
 import static org.springframework.data.jpa.domain.sample.UserSpecifications.*;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import javax.persistence.EntityManager;
@@ -44,12 +48,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.ExampleMatcher.GenericPropertyMatcher;
 import org.springframework.data.domain.ExampleMatcher.StringMatcher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.domain.Sort.Order;
-import org.springframework.data.domain.ExampleMatcher.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.domain.sample.Address;
 import org.springframework.data.jpa.domain.sample.Role;
@@ -214,10 +224,10 @@ public class UserRepositoryTests {
 		flushTestUsers();
 
 		Order order = new Order(ASC, "firstname").ignoreCase();
-		List<User> result = repository.findAll(Sort.by(order));
 
-		assertThat(repository.findAll(Sort.by(order))).hasSize(4).containsExactly(thirdUser, secondUser, fourthUser,
-				firstUser);
+		assertThat(repository.findAll(Sort.by(order))) //
+				.hasSize(4)//
+				.containsExactly(thirdUser, secondUser, fourthUser, firstUser);
 	}
 
 	@Test
@@ -228,6 +238,7 @@ public class UserRepositoryTests {
 		long before = repository.count();
 
 		repository.deleteAll(Arrays.asList(firstUser, secondUser));
+
 		assertThat(repository.existsById(firstUser.getId())).isFalse();
 		assertThat(repository.existsById(secondUser.getId())).isFalse();
 		assertThat(repository.count()).isEqualTo(before - 2);
