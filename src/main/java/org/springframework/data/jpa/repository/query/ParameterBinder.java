@@ -53,15 +53,15 @@ public class ParameterBinder {
 		this.parameterSetters = parameterSetters;
 	}
 
+	public <T extends Query> T bind(T jpaQuery, Object[] values) {
+		return bind(jpaQuery, values, ErrorHandling.STRICT);
+	}
+
 	public <T extends Query> T bind(T jpaQuery, Object[] values, ErrorHandling errorHandling) {
 
 		parameterSetters.forEach(it -> it.setParameter(jpaQuery, values, errorHandling));
 
 		return jpaQuery;
-	}
-
-	public <T extends Query> T bind(T jpaQuery, Object[] values) {
-		return bind(jpaQuery, values, ErrorHandling.STRICT);
 	}
 
 	/**

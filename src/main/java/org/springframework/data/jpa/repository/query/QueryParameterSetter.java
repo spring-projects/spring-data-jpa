@@ -15,7 +15,7 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.springframework.data.jpa.repository.query.QueryParameterSetter.ErrorHandling.LENIENT;
+import static org.springframework.data.jpa.repository.query.QueryParameterSetter.ErrorHandling.*;
 
 import java.util.Date;
 import java.util.function.Function;
@@ -92,8 +92,11 @@ interface QueryParameterSetter {
 				} else {
 
 					Integer position = parameter.getPosition();
-					if (position != null && (query.getParameters().size() >= parameter.getPosition()
-							|| registerExcessParameters(query) || errorHandling == LENIENT)) {
+
+					if (position != null //
+							&& (query.getParameters().size() >= parameter.getPosition() //
+									|| registerExcessParameters(query) //
+									|| errorHandling == LENIENT)) {
 
 						errorHandling.execute(() -> query.setParameter(parameter.getPosition(), (Date) value, temporalType));
 					}
@@ -109,8 +112,11 @@ interface QueryParameterSetter {
 				} else {
 
 					Integer position = parameter.getPosition();
-					if (position != null && (query.getParameters().size() >= position || errorHandling == LENIENT
-							|| registerExcessParameters(query))) {
+
+					if (position != null //
+							&& (query.getParameters().size() >= position //
+									|| errorHandling == LENIENT //
+									|| registerExcessParameters(query))) {
 
 						errorHandling.execute(() -> query.setParameter(position, value));
 					}
@@ -142,6 +148,7 @@ interface QueryParameterSetter {
 		},
 
 		LENIENT {
+
 			@Override
 			public void execute(Runnable block) {
 

@@ -15,12 +15,17 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import static org.springframework.data.jpa.repository.query.QueryParameterSetter.ErrorHandling.*;
+
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.persistence.Tuple;
 
-import org.springframework.data.jpa.repository.query.QueryParameterSetter.ErrorHandling;
-import org.springframework.data.repository.query.*;
+import org.springframework.data.repository.query.EvaluationContextProvider;
+import org.springframework.data.repository.query.ParameterAccessor;
+import org.springframework.data.repository.query.ParametersParameterAccessor;
+import org.springframework.data.repository.query.ResultProcessor;
+import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.util.Assert;
 
@@ -106,7 +111,7 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 				? em.createNativeQuery(queryString) //
 				: em.createQuery(queryString, Long.class);
 
-		return parameterBinder.get().bind(query, values, ErrorHandling.LENIENT);
+		return parameterBinder.get().bind(query, values, LENIENT);
 	}
 
 	/**
