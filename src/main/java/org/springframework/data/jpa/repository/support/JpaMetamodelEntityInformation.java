@@ -35,10 +35,10 @@ import javax.persistence.metamodel.Type.PersistenceType;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.data.jpa.util.JpaMetamodel;
 import org.springframework.data.util.DirectFieldAccessFallbackBeanWrapper;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
 
 /**
  * Implementation of {@link org.springframework.data.repository.core.EntityInformation} that uses JPA {@link Metamodel}
@@ -48,6 +48,7 @@ import org.springframework.util.ClassUtils;
  * @author Thomas Darimont
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Jens Schauder
  */
 public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSupport<T, ID> {
 
@@ -319,10 +320,12 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 			extends DirectFieldAccessFallbackBeanWrapper {
 
 		private final Metamodel metamodel;
+		private final JpaMetamodel jpaMetamodel;
 
 		IdentifierDerivingDirectFieldAccessFallbackBeanWrapper(Class<?> type, Metamodel metamodel) {
 			super(type);
 			this.metamodel = metamodel;
+			this.jpaMetamodel = new JpaMetamodel(metamodel);
 		}
 
 		/**
@@ -374,7 +377,7 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 
 				Class<? extends Object> idPropertyValueType = idPropertyValue.getClass();
 
-				if (ClassUtils.isPrimitiveOrWrapper(idPropertyValueType)) {
+				if (!jpaMetamodel.isJpaManaged(idPropertyValueType)) {
 					return idPropertyValue;
 				}
 
