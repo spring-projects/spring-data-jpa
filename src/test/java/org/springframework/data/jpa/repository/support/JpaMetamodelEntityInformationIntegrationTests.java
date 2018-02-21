@@ -19,6 +19,8 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 import static org.springframework.data.jpa.repository.support.JpaEntityInformationSupport.*;
 
+import lombok.Data;
+
 import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.Date;
@@ -65,6 +67,7 @@ import org.springframework.test.util.ReflectionTestUtils;
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Christoph Strobl
+ * @author Jens Schauder
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({ "classpath:infrastructure.xml" })
@@ -285,6 +288,26 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 		assertThat(ReflectionTestUtils.getField(information, "versionAttribute"), is(notNullValue()));
 	}
 
+	@Test // DATAJPA-1105
+	public void correctlyDeterminesIdValueForNestedIdClassesWithNonPrimitiveNonManagedType() {
+
+		EntityManagerFactory emf = Persistence.createEntityManagerFactory(getMetadadataPersitenceUnitName());
+		EntityManager em = emf.createEntityManager();
+
+		JpaEntityInformation<EntityWithNestedIdClass, ?> information = getEntityInformation(EntityWithNestedIdClass.class,
+				em);
+
+		EntityWithNestedIdClass entity = new EntityWithNestedIdClass();
+		entity.id = 23L;
+		entity.reference = new EntityWithIdClass();
+		entity.reference.id1 = "one";
+		entity.reference.id2 = "two";
+
+		Object id = information.getId(entity);
+
+		assertThat(id, is(notNullValue()));
+	}
+
 	protected String getMetadadataPersitenceUnitName() {
 		return "metadata";
 	}
@@ -309,5 +332,37 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 	@Access(AccessType.FIELD)
 	public static class Sample extends Identifiable {
 
+	}
+
+	@Entity
+	@Access(AccessType.FIELD)
+	@IdClass(EntityWithNestedIdClassPK.class)
+	public static class EntityWithNestedIdClass {
+
+		@Id Long id;
+		@Id @ManyToOne private EntityWithIdClass reference;
+	}
+
+	@Entity
+	@Access(AccessType.FIELD)
+	@IdClass(EntityWithIdClassPK.class)
+	public static class EntityWithIdClass {
+
+		@Id String id1;
+		@Id String id2;
+	}
+
+	@Data
+	public static class EntityWithIdClassPK implements Serializable {
+
+		String id1;
+		String id2;
+	}
+
+	@Data
+	public static class EntityWithNestedIdClassPK implements Serializable {
+
+		Long id;
+		EntityWithIdClassPK reference;
 	}
 }
