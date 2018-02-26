@@ -19,13 +19,10 @@ import static org.springframework.data.jpa.repository.query.QueryParameterSetter
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
-import javax.persistence.Tuple;
 
 import org.springframework.data.repository.query.EvaluationContextProvider;
 import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
-import org.springframework.data.repository.query.ResultProcessor;
-import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.util.Assert;
 
@@ -140,11 +137,8 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 			return em.createQuery(queryString);
 		}
 
-		ResultProcessor resultFactory = getQueryMethod().getResultProcessor();
-		ReturnedType returnedType = resultFactory.getReturnedType();
-
-		return returnedType.isProjecting() && !getMetamodel().isJpaManaged(returnedType.getReturnedType())
-				? em.createQuery(queryString, Tuple.class)
-				: em.createQuery(queryString);
+		return getTypeToRead() //
+				.<Query> map(it -> em.createQuery(queryString, it)) //
+				.orElseGet(() -> em.createQuery(queryString));
 	}
 }

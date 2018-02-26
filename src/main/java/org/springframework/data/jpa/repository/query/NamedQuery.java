@@ -145,7 +145,12 @@ final class NamedQuery extends AbstractJpaQuery {
 	@Override
 	protected Query doCreateQuery(Object[] values) {
 
-		Query query = getEntityManager().createNamedQuery(queryName);
+		EntityManager em = getEntityManager();
+
+		Query query = getTypeToRead() //
+				.<Query> map(it -> em.createNamedQuery(queryName, it)) //
+				.orElseGet(() -> em.createNamedQuery(queryName));
+
 		return parameterBinder.get().bindAndPrepare(query, values);
 	}
 
