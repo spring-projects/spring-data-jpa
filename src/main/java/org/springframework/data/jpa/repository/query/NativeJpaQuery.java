@@ -25,7 +25,6 @@ import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
-import org.springframework.data.util.Version;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 
 /**
@@ -37,8 +36,6 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
  * @author Oliver Gierke
  */
 final class NativeJpaQuery extends AbstractStringBasedJpaQuery {
-
-	private static final Version HIBERNATE_VERSION_SUPPORTING_TUPLES = new Version(5, 2, 11);
 
 	private final Class<?> resultType;
 

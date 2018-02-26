@@ -486,6 +486,9 @@ public interface UserRepository
 	EmailOnly findEmailOnlyByNativeQuery(Integer id);
 
 
+	// DATAJPA-1273
+	List<NameOnly> findByNamedQueryWithAliasInInvertedOrder();
+
 	interface RolesAndFirstname {
 
 		String getFirstname();

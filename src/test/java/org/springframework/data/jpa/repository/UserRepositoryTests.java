@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2017 the original author or authors.
+ * Copyright 2008-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2215,6 +2215,24 @@ public class UserRepositoryTests {
 
 		assertThat(emailAddress, is(notNullValue()));
 		assertThat(emailAddress, is(user.getEmailAddress()));
+	}
+
+	@Test // DATAJPA-1273
+	public void bindsNativeQueryResultsToProjectionByName() {
+
+		Assume
+				.assumeTrue(getHibernateVersion().isGreaterThanOrEqualTo(HIBERNATE_VERSION_SUPPORTING_TUPLE_ON_NATIVE_QUERIES));
+
+		flushTestUsers();
+
+		List<NameOnly> result = repository.findByNamedQueryWithAliasInInvertedOrder();
+
+		assertThat(result, is(not(empty())));
+
+		NameOnly element = result.get(0);
+
+		assertThat(element.getFirstname(), is("Joachim"));
+		assertThat(element.getLastname(), is("Arrasz"));
 	}
 
 	private Page<User> executeSpecWithSort(Sort sort) {

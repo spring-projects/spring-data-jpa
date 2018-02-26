@@ -32,6 +32,7 @@ import javax.persistence.TupleElement;
 import javax.persistence.TypedQuery;
 
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.data.jpa.provider.HibernateUtils;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.CollectionExecution;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.ModifyingExecution;
@@ -45,6 +46,7 @@ import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
+import org.springframework.data.util.Version;
 import org.springframework.util.Assert;
 
 /**
@@ -56,6 +58,8 @@ import org.springframework.util.Assert;
  * @author Nicolas Cirigliano
  */
 public abstract class AbstractJpaQuery implements RepositoryQuery {
+
+	protected static final Version HIBERNATE_VERSION_SUPPORTING_TUPLES = new Version(5, 2, 11);
 
 	private final JpaQueryMethod method;
 	private final EntityManager em;
@@ -221,6 +225,22 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 	protected Query createCountQuery(Object[] values) {
 		Query countQuery = doCreateCountQuery(values);
 		return method.applyHintsToCountQuery() ? applyHints(countQuery, method) : countQuery;
+	}
+
+	/**
+	 * Returns the type to be used when creating the JPA query.
+	 * 
+	 * @return
+	 * @since 2.0.5
+	 */
+	protected Class<?> getTypeToRead() {
+
+		ResultProcessor resultFactory = getQueryMethod().getResultProcessor();
+		ReturnedType returnedType = resultFactory.getReturnedType();
+
+		return returnedType.isProjecting() && !getMetamodel().isJpaManaged(returnedType.getReturnedType()) //
+				? HibernateUtils.isVersionOrBetter(HIBERNATE_VERSION_SUPPORTING_TUPLES) ? Tuple.class : null //
+				: null;
 	}
 
 	/**

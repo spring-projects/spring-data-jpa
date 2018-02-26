@@ -21,7 +21,6 @@ import javax.persistence.TypedQuery;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import org.springframework.data.jpa.provider.QueryExtractor;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.QueryCreationException;
@@ -139,7 +138,11 @@ final class NamedQuery extends AbstractJpaQuery {
 	@Override
 	protected Query doCreateQuery(Object[] values) {
 
-		Query query = getEntityManager().createNamedQuery(queryName);
+		EntityManager em = getEntityManager();
+
+		Class<?> typeToRead = getTypeToRead();
+		Query query = typeToRead == null ? em.createNamedQuery(queryName) : em.createNamedQuery(queryName, typeToRead);
+
 		return createBinder(values).bindAndPrepare(query);
 	}
 

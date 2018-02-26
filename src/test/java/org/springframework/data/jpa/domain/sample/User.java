@@ -34,6 +34,9 @@ import javax.persistence.ManyToOne;
 import javax.persistence.NamedAttributeNode;
 import javax.persistence.NamedEntityGraph;
 import javax.persistence.NamedEntityGraphs;
+import javax.persistence.NamedNativeQueries;
+import javax.persistence.NamedNativeQuery;
+import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.NamedStoredProcedureQueries;
 import javax.persistence.NamedStoredProcedureQuery;
@@ -75,7 +78,11 @@ import javax.persistence.TemporalType;
 										@NamedAttributeNode(value = "colleagues", subgraph = "User.colleaguesOfColleagues") }),
 						@NamedSubgraph(name = "User.colleaguesOfColleagues",
 								attributeNodes = { @NamedAttributeNode("roles"), }) }) })
-@NamedQuery(name = "User.findByEmailAddress", query = "SELECT u FROM User u WHERE u.emailAddress = ?1")
+@NamedQueries({ //
+		@NamedQuery(name = "User.findByEmailAddress", //
+				query = "SELECT u FROM User u WHERE u.emailAddress = ?1"), //
+		@NamedQuery(name = "User.findByNamedQueryWithAliasInInvertedOrder", //
+				query = "SELECT u.lastname AS lastname, u.firstname AS firstname FROM User u ORDER BY u.lastname ASC") })
 @NamedStoredProcedureQueries({ //
 		@NamedStoredProcedureQuery(name = "User.plus1", procedureName = "plus1inout",
 				parameters = { @StoredProcedureParameter(mode = ParameterMode.IN, name = "arg", type = Integer.class),

@@ -98,4 +98,11 @@ public class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserReposi
 	 */
 	@Override
 	public void supportsProjectionsWithNativeQueriesAndCamelCaseProperty() {}
+
+	/**
+	 * TODO: Remove, once https://bugs.eclipse.org/bugs/show_bug.cgi?id=289141 is fixed.
+	 */
+	@Override
+	@Test
+	public void bindsNativeQueryResultsToProjectionByName() {}
 }
