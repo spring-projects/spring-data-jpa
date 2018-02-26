@@ -39,14 +39,17 @@ import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigUtils;
+import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.data.repository.config.RepositoryConfigurationExtension;
 import org.springframework.data.repository.config.RepositoryConfigurationSource;
+import org.springframework.instrument.classloading.ShadowingClassLoader;
 import org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor;
 
 /**
  * Unit tests for {@link JpaRepositoryConfigExtension}.
  *
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 @RunWith(MockitoJUnitRunner.class)
 public class JpaRepositoryConfigExtensionUnitTests {
@@ -108,6 +111,40 @@ public class JpaRepositoryConfigExtensionUnitTests {
 		factoryBean.setApplicationContext(context);
 
 		factoryBean.createInstance().afterPropertiesSet();
+	}
+
+	@Test // DATAJPA-1250
+	public void shouldUseInspectionClassLoader() {
+
+		JpaRepositoryConfigExtension extension = new JpaRepositoryConfigExtension();
+		ClassLoader classLoader = extension.getConfigurationInspectionClassLoader(new GenericApplicationContext());
+
+		assertThat(classLoader, is(instanceOf(InspectionClassLoader.class)));
+	}
+
+	@Test // DATAJPA-1250
+	public void shouldNotUseInspectionClassLoaderWithoutEclipseLink() {
+
+		ShadowingClassLoader shadowingClassLoader = new ShadowingClassLoader(getClass().getClassLoader(), false) {
+
+			@Override
+			public Class<?> loadClass(String name) throws ClassNotFoundException {
+
+				if (name.startsWith("org.springframework.instrument.") || name.startsWith("org.eclipse.")) {
+					throw new ClassNotFoundException("Excluded: " + name);
+				}
+
+				return getClass().getClassLoader().loadClass(name);
+			}
+		};
+
+		GenericApplicationContext context = new GenericApplicationContext();
+		context.setClassLoader(shadowingClassLoader);
+
+		JpaRepositoryConfigExtension extension = new JpaRepositoryConfigExtension();
+		ClassLoader classLoader = extension.getConfigurationInspectionClassLoader(context);
+
+		assertThat(classLoader, is(not(instanceOf(InspectionClassLoader.class))));
 	}
 
 	private void assertOnlyOnePersistenceAnnotationBeanPostProcessorRegistered(DefaultListableBeanFactory factory,

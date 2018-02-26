@@ -17,12 +17,16 @@ package org.springframework.data.jpa.repository.config;
 
 import static org.springframework.data.jpa.repository.config.BeanDefinitionNames.*;
 
+import lombok.experimental.UtilityClass;
+
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.Set;
 
 import javax.persistence.Entity;
 import javax.persistence.MappedSuperclass;
@@ -35,6 +39,7 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.annotation.AnnotationConfigUtils;
 import org.springframework.core.annotation.AnnotationAttributes;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -47,6 +52,7 @@ import org.springframework.data.repository.config.RepositoryConfigurationSource;
 import org.springframework.data.repository.config.XmlRepositoryConfigurationSource;
 import org.springframework.lang.Nullable;
 import org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -183,6 +189,19 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 		registerIfNotAlreadyRegistered(contextDefinition, registry, JPA_CONTEXT_BEAN_NAME, source);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.config.RepositoryConfigurationExtensionSupport#getConfigurationInspectionClassLoader(org.springframework.core.io.ResourceLoader)
+	 */
+	protected ClassLoader getConfigurationInspectionClassLoader(ResourceLoader loader) {
+
+		ClassLoader classLoader = loader.getClassLoader();
+
+		return classLoader != null && LazyJvmAgent.isActive(loader.getClassLoader())
+				? new InspectionClassLoader(loader.getClassLoader())
+				: loader.getClassLoader();
+	}
+
 	/**
 	 * Creates an anonymous factory to extract the actual {@link javax.persistence.EntityManager} from the
 	 * {@link javax.persistence.EntityManagerFactory} bean name reference.
@@ -209,5 +228,38 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 
 		Optional<String> entityManagerFactoryRef = config.getAttribute("entityManagerFactoryRef");
 		return entityManagerFactoryRef.orElse("entityManagerFactory");
+	}
+
+	/**
+	 * Utility to determine if a lazy Java agent is being used that might transform classes at a later time.
+	 *
+	 * @author Mark Paluch
+	 * @since 2.1
+	 */
+	@UtilityClass
+	static class LazyJvmAgent {
+
+		private static final Set<String> AGENT_CLASSES;
+
+		static {
+
+			Set<String> agentClasses = new LinkedHashSet<>();
+
+			agentClasses.add("org.springframework.instrument.InstrumentationSavingAgent");
+			agentClasses.add("org.eclipse.persistence.internal.jpa.deployment.JavaSECMPInitializerAgent");
+
+			AGENT_CLASSES = Collections.unmodifiableSet(agentClasses);
+		}
+
+		/**
+		 * Determine if any agent is active.
+		 *
+		 * @return {@literal true} if an agent is active.
+		 */
+		static boolean isActive(@Nullable ClassLoader classLoader) {
+
+			return AGENT_CLASSES.stream() //
+					.anyMatch(agentClass -> ClassUtils.isPresent(agentClass, classLoader));
+		}
 	}
 }
