@@ -15,8 +15,9 @@
  */
 package org.springframework.data.jpa.infrastructure;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 
 import java.util.List;
 
@@ -86,6 +87,7 @@ public abstract class MetamodelIntegrationTests {
 	public void doesNotExposeAliasForTupleIfNoneDefined() {
 
 		User user = new User();
+
 		user.setFirstname("Dave");
 		user.setEmailAddress("email");
 
@@ -98,5 +100,26 @@ public abstract class MetamodelIntegrationTests {
 
 		assertThat(elements, hasSize(1));
 		assertThat(elements.get(0).getAlias(), is(nullValue()));
+	}
+
+	@Test
+	@Transactional
+	public void returnsAliasesInTuple() {
+
+		User user = new User();
+		user.setFirstname("Dave");
+		user.setLastname("Matthews");
+		user.setEmailAddress("email");
+
+		em.persist(user);
+
+		TypedQuery<Tuple> query = em.createQuery(
+				"SELECT u.lastname AS lastname, u.firstname AS firstname FROM User u ORDER BY u.lastname ASC", Tuple.class);
+
+		List<Tuple> resultList = query.getResultList();
+		List<TupleElement<?>> elements = resultList.get(0).getElements();
+
+		assertThat(elements).hasSize(2);
+		assertThat(elements).extracting(TupleElement::getAlias).contains("firstname", "lastname");
 	}
 }

@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -232,6 +233,22 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 	protected Query createCountQuery(Object[] values) {
 		Query countQuery = doCreateCountQuery(values);
 		return method.applyHintsToCountQuery() ? applyHints(countQuery, method) : countQuery;
+	}
+
+	/**
+	 * Returns the type to be used when creating the JPA query.
+	 * 
+	 * @return
+	 * @since 2.0.5
+	 */
+	protected Optional<Class<?>> getTypeToRead() {
+
+		ResultProcessor resultFactory = getQueryMethod().getResultProcessor();
+		ReturnedType returnedType = resultFactory.getReturnedType();
+
+		return returnedType.isProjecting() && !getMetamodel().isJpaManaged(returnedType.getReturnedType())
+				? Optional.of(Tuple.class)
+				: Optional.empty();
 	}
 
 	/**

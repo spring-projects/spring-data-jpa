@@ -536,6 +536,9 @@ public interface UserRepository
 	@Query(value = "SELECT firstname FROM SD_User ORDER BY UCASE(firstname)", countQuery = "SELECT count(*) FROM SD_User", nativeQuery = true)
 	Page<String> findByNativeQueryWithPageable(@Param("pageable") Pageable pageable);
 
+	// DATAJPA-1273
+	List<NameOnly> findByNamedQueryWithAliasInInvertedOrder();
+
 	interface RolesAndFirstname {
 
 		String getFirstname();

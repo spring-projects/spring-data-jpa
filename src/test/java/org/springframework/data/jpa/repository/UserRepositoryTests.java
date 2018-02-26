@@ -2160,6 +2160,19 @@ public class UserRepositoryTests {
 		softly.assertAll();
 	}
 
+	@Test // DATAJPA-1273
+	public void bindsNativeQueryResultsToProjectionByName() {
+
+		flushTestUsers();
+
+		List<NameOnly> result = repository.findByNamedQueryWithAliasInInvertedOrder();
+
+		assertThat(result).element(0).satisfies(it -> {
+			assertThat(it.getFirstname()).isEqualTo("Joachim");
+			assertThat(it.getLastname()).isEqualTo("Arrasz");
+		});
+	}
+
 	private Page<User> executeSpecWithSort(Sort sort) {
 
 		flushTestUsers();
