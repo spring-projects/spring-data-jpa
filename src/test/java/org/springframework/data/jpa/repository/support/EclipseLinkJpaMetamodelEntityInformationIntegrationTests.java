@@ -74,8 +74,9 @@ public class EclipseLinkJpaMetamodelEntityInformationIntegrationTests
 	 * Ignored due to https://bugs.eclipse.org/bugs/show_bug.cgi?id=531528 EclipseLink doesn't support
 	 * {@link javax.persistence.IdClass} referencing inner classes.
 	 */
-	@Override
 	@Ignore
+	@Test
+	@Override
 	public void correctlyDeterminesIdValueForNestedIdClassesWithNonPrimitiveNonManagedType() {}
 
 	@Override

@@ -50,6 +50,15 @@ public class OpenJpaMetamodelEntityInformationIntegrationTests extends JpaMetamo
 		super.detectsVersionPropertyOnMappedSuperClass();
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests#correctlyDeterminesIdValueForNestedIdClassesWithNonPrimitiveNonManagedType()
+	 */
+	@Ignore
+	@Test
+	@Override
+	public void correctlyDeterminesIdValueForNestedIdClassesWithNonPrimitiveNonManagedType() {}
+
 	@Override
 	protected String getMetadadataPersitenceUnitName() {
 		return "metadata_oj";
