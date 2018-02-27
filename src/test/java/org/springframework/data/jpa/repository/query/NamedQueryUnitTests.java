@@ -67,6 +67,7 @@ public class NamedQueryUnitTests {
 
 		when(em.getMetamodel()).thenReturn(metamodel);
 		when(em.getEntityManagerFactory()).thenReturn(emf);
+		when(em.getDelegate()).thenReturn(em);
 		when(emf.createEntityManager()).thenReturn(em);
 	}
 

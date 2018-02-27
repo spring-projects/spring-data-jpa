@@ -54,6 +54,7 @@ public class AbstractStringBasedJpaQueryIntegrationTests {
 	public void createsNormalQueryForJpaManagedReturnTypes() throws Exception {
 
 		EntityManager mock = mock(EntityManager.class);
+		when(mock.getDelegate()).thenReturn(mock);
 		when(mock.getEntityManagerFactory()).thenReturn(em.getEntityManagerFactory());
 		when(mock.getMetamodel()).thenReturn(em.getMetamodel());
 

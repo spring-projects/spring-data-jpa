@@ -33,6 +33,7 @@ import javax.persistence.TupleElement;
 import javax.persistence.TypedQuery;
 
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.CollectionExecution;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.ModifyingExecution;
@@ -66,6 +67,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 	private final JpaQueryMethod method;
 	private final EntityManager em;
 	private final JpaMetamodel metamodel;
+	private final PersistenceProvider provider;
 
 	Lazy<ParameterBinder> parameterBinder = new Lazy<>(this::createBinder);
 
@@ -83,6 +85,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 		this.method = method;
 		this.em = em;
 		this.metamodel = new JpaMetamodel(em.getMetamodel());
+		this.provider = PersistenceProvider.fromEntityManager(em);
 	}
 
 	/*
@@ -242,6 +245,10 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 	 * @since 2.0.5
 	 */
 	protected Optional<Class<?>> getTypeToRead() {
+
+		if (PersistenceProvider.ECLIPSELINK.equals(provider)) {
+			return Optional.empty();
+		}
 
 		ResultProcessor resultFactory = getQueryMethod().getResultProcessor();
 		ReturnedType returnedType = resultFactory.getReturnedType();
