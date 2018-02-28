@@ -1,6 +1,14 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 2.0.5.RELEASE (2018-02-28)
+---------------------------------------------
+* DATAJPA-1274 - Upgrade to Hibernate 5.2.14.
+* DATAJPA-1273 - Named query execution doesn't use Tuple execution for projections.
+* DATAJPA-1270 - Release 2.0.5 (Kay SR5).
+* DATAJPA-1105 - @IdClass doesn't work when we use nested composit key with String element.
+
+
 Changes in version 2.0.4.RELEASE (2018-02-19)
 ---------------------------------------------
 * DATAJPA-1268 - Upgrade to Hibernate 5.2.13.
