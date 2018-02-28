@@ -15,6 +15,29 @@
  */
 package org.springframework.data.jpa.repository.support;
 
+import static org.springframework.data.jpa.repository.query.QueryUtils.*;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Optional;
+
+import javax.persistence.EntityManager;
+import javax.persistence.LockModeType;
+import javax.persistence.NoResultException;
+import javax.persistence.Parameter;
+import javax.persistence.Query;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Order;
+import javax.persistence.criteria.ParameterExpression;
+import javax.persistence.criteria.Path;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
@@ -33,28 +56,6 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
-import javax.persistence.EntityManager;
-import javax.persistence.LockModeType;
-import javax.persistence.NoResultException;
-import javax.persistence.Parameter;
-import javax.persistence.Query;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Order;
-import javax.persistence.criteria.ParameterExpression;
-import javax.persistence.criteria.Path;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Optional;
-
-import static org.springframework.data.jpa.repository.query.QueryUtils.*;
-
 /**
  * Default implementation of the {@link org.springframework.data.repository.CrudRepository} interface. This will offer
  * you a more sophisticated interface than the plain {@link EntityManager} .
@@ -66,7 +67,6 @@ import static org.springframework.data.jpa.repository.query.QueryUtils.*;
  * @author Christoph Strobl
  * @author Stefan Fussenegger
  * @author Jens Schauder
- * @author No Name
  * @param <T> the type of the entity to handle
  * @param <ID> the type of the entity's identifier
  */
@@ -109,35 +109,6 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	}
 
 	/**
-	 * Executes a count query and transparently sums up all values returned.
-	 *
-	 * @param query must not be {@literal null}.
-	 * @return
-	 */
-	private static Long executeCountQuery(TypedQuery<Long> query) {
-
-		Assert.notNull(query, "TypedQuery must not be null!");
-
-		List<Long> totals = query.getResultList();
-		Long total = 0L;
-
-		for (Long element : totals) {
-			total += element == null ? 0 : element;
-		}
-
-		return total;
-	}
-
-	private static boolean isUnpaged(Pageable pageable) {
-		return pageable.isUnpaged();
-	}
-
-	@Nullable
-	protected CrudMethodMetadata getRepositoryMethodMetadata() {
-		return metadata;
-	}
-
-	/**
 	 * Configures a custom {@link CrudMethodMetadata} to be used to detect {@link LockModeType}s and query hints to be
 	 * applied to queries.
 	 *
@@ -145,6 +116,11 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 */
 	public void setRepositoryMethodMetadata(CrudMethodMetadata crudMethodMetadata) {
 		this.metadata = crudMethodMetadata;
+	}
+
+	@Nullable
+	protected CrudMethodMetadata getRepositoryMethodMetadata() {
+		return metadata;
 	}
 
 	protected Class<T> getDomainClass() {
@@ -648,29 +624,6 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	}
 
 	/**
-	 * Build the CriteriaQuery for {@link #getQuery(Specification, Sort)}. Enable extensability for all queries created
-	 * through {@link #getQuery} method calls
-	 *
-	 * @param @param spec can be {@literal null}.
-	 * @param domainClass must not be {@literal null}.
-	 * @param sort must not be {@literal null}.
-	 * @return the CriteriaQuery to be used by {@link #getQuery(Specification, Sort)} calls
-	 */
-	protected <S extends T> CriteriaQuery<S> buildCriteriaQuery(@Nullable Specification<S> spec, Class<S> domainClass,
-			Sort sort) {
-		CriteriaBuilder builder = em.getCriteriaBuilder();
-		CriteriaQuery<S> query = builder.createQuery(domainClass);
-
-		Root<S> root = applySpecificationToCriteria(spec, domainClass, query);
-		query.select(root);
-
-		if (sort.isSorted()) {
-			query.orderBy(toOrders(sort, root, builder));
-		}
-		return query;
-	}
-
-	/**
 	 * Creates a new count query for the given {@link Specification}.
 	 *
 	 * @param spec can be {@literal null}.
@@ -696,15 +649,38 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	}
 
 	/**
-	 * Build the CriteriaQuery for {@link #getCountQuery(Specification, Class)}. Enable extensability for all queries
-	 * created through {@link #getCountQuery} method calls
+	 * Build the {@link CriteriaQuery} for the given {@link Specification} and {@link Sort}
 	 *
-	 * @param @param spec can be {@literal null}.
+	 * @param spec can be {@literal null}.
 	 * @param domainClass must not be {@literal null}.
-	 * @return the CriteriaQuery to be used by {@link #getQuery(Specification, Sort)} calls
+	 * @param sort must not be {@literal null}.
+	 * @return The {@link CriteriaQuery} build according to parameters.
+	 */
+	protected <S extends T> CriteriaQuery<S> buildCriteriaQuery(@Nullable Specification<S> spec, Class<S> domainClass,
+			Sort sort) {
+
+		CriteriaBuilder builder = em.getCriteriaBuilder();
+		CriteriaQuery<S> query = builder.createQuery(domainClass);
+
+		Root<S> root = applySpecificationToCriteria(spec, domainClass, query);
+		query.select(root);
+
+		if (sort.isSorted()) {
+			query.orderBy(toOrders(sort, root, builder));
+		}
+		return query;
+	}
+
+	/**
+	 * Creates a new count {@link CriteriaQuery} for the given {@link Specification}.
+	 *
+	 * @param spec can be {@literal null}.
+	 * @param domainClass must not be {@literal null}.
+	 * @return The {@link CriteriaQuery} built according to parameters.
 	 */
 	protected <S extends T> CriteriaQuery<Long> buildCountCriteriaQuery(@Nullable Specification<S> spec,
 			Class<S> domainClass) {
+
 		CriteriaBuilder builder = em.getCriteriaBuilder();
 		CriteriaQuery<Long> query = builder.createQuery(Long.class);
 
@@ -718,6 +694,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 		// Remove all Orders the Specifications might have applied
 		query.orderBy(Collections.<Order> emptyList());
+
 		return query;
 	}
 
@@ -770,6 +747,30 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		for (Entry<String, Object> hint : getQueryHints().withFetchGraphs(em)) {
 			query.setHint(hint.getKey(), hint.getValue());
 		}
+	}
+
+	/**
+	 * Executes a count query and transparently sums up all values returned.
+	 *
+	 * @param query must not be {@literal null}.
+	 * @return
+	 */
+	private static Long executeCountQuery(TypedQuery<Long> query) {
+
+		Assert.notNull(query, "TypedQuery must not be null!");
+
+		List<Long> totals = query.getResultList();
+		Long total = 0L;
+
+		for (Long element : totals) {
+			total += element == null ? 0 : element;
+		}
+
+		return total;
+	}
+
+	private static boolean isUnpaged(Pageable pageable) {
+		return pageable.isUnpaged();
 	}
 
 	/**
