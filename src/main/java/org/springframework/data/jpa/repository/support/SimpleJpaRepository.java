@@ -66,7 +66,7 @@ import static org.springframework.data.jpa.repository.query.QueryUtils.*;
  * @author Christoph Strobl
  * @author Stefan Fussenegger
  * @author Jens Schauder
- * @author Thomas Zirke
+ * @author No Name
  * @param <T> the type of the entity to handle
  * @param <ID> the type of the entity's identifier
  */
