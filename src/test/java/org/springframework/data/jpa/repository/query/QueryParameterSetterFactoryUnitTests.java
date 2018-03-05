@@ -17,6 +17,8 @@ package org.springframework.data.jpa.repository.query;
 
 import static org.mockito.Mockito.*;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.stream.Stream;
 
 import org.assertj.core.api.Assertions;
@@ -60,5 +62,21 @@ public class QueryParameterSetterFactoryUnitTests {
 				.withMessageContaining("Java 8") //
 				.withMessageContaining("@Param") //
 				.withMessageContaining("-parameters");
+	}
+
+	@Test // DATAJPA-1281
+	public void exceptionWhenQueryContainsInsufficientAmountOfParameters() {
+
+		// no parameter present in the criteria query
+		List<ParameterMetadataProvider.ParameterMetadata<?>> metadata = Collections.emptyList();
+		QueryParameterSetterFactory setterFactory = QueryParameterSetterFactory.forCriteriaQuery(parameters, metadata);
+
+		// one argument present in the method signature
+		when(binding.getRequiredPosition()).thenReturn(1);
+
+		Assertions.assertThatExceptionOfType(IllegalArgumentException.class) //
+				.isThrownBy(() -> setterFactory.create(binding, DeclaredQuery.of("QueryStringWith :NamedParameter"))) //
+				.withMessage("At least 1 parameter(s) provided but only 0 parameter(s) present in query.");
+
 	}
 }
