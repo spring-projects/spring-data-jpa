@@ -50,6 +50,7 @@ import org.springframework.util.ClassUtils;
  * Integration test for {@link JpaRepositoriesRegistrar}.
  * 
  * @author Oliver Gierke
+ * @author Jens Schauder
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
@@ -65,7 +66,7 @@ public class JpaRepositoriesRegistrarIntegrationTests {
 
 		@Bean
 		public DataSource dataSource() {
-			return new EmbeddedDatabaseBuilder().build();
+			return new EmbeddedDatabaseBuilder().generateUniqueName(true).build();
 		}
 
 		@Bean

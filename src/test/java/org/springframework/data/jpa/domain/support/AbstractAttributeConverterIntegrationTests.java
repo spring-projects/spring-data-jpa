@@ -35,6 +35,7 @@ import org.springframework.transaction.PlatformTransactionManager;
  * Base class for integration tests for JPA 2.1 {@link AttributeConverter} integration.
  *
  * @author Oliver Gierke
+ * @author Jens Schauder
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 public abstract class AbstractAttributeConverterIntegrationTests {
@@ -63,7 +64,7 @@ public abstract class AbstractAttributeConverterIntegrationTests {
 
 		@Bean
 		DataSource dataSource() {
-			return new EmbeddedDatabaseBuilder().setType(EmbeddedDatabaseType.HSQL).build();
+			return new EmbeddedDatabaseBuilder().setType(EmbeddedDatabaseType.HSQL).generateUniqueName(true).build();
 		}
 
 		protected abstract String getPackageName();
