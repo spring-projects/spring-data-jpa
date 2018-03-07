@@ -27,7 +27,7 @@
 	<bean id="entityManagerFactory-2" parent="abstractEntityManagerFactory">
 		<property name="persistenceUnitName" value="second" />
 		<property name="dataSource">
-			<jdbc:embedded-database type="HSQL" />
+			<jdbc:embedded-database type="HSQL" generate-name="true"/>
 		</property>
 	</bean>
 
