@@ -26,7 +26,7 @@
 
 	<bean name="sampleEvaluationContextExtension" class="org.springframework.data.jpa.repository.sample.SampleEvaluationContextExtension"/>
 	
-	<jdbc:embedded-database id="dataSource" type="HSQL">
+	<jdbc:embedded-database id="dataSource" type="HSQL" generate-name="true">
 		<jdbc:script execution="INIT" separator="/;" location="classpath:scripts/hsqldb-init.sql"/>
 		<jdbc:script execution="INIT" separator="/;" location="classpath:scripts/schema-stored-procedures.sql"/>
 	</jdbc:embedded-database>
