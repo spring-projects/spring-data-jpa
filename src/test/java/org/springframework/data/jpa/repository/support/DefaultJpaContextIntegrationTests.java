@@ -57,6 +57,7 @@ import org.springframework.stereotype.Component;
  * Integration tests for {@link DefaultJpaContext}.
  * 
  * @author Oliver Gierke
+ * @author Jens Schauder
  * @soundtrack Marcus Miller - Papa Was A Rolling Stone (Afrodeezia)
  */
 public class DefaultJpaContextIntegrationTests {
@@ -138,7 +139,8 @@ public class DefaultJpaContextIntegrationTests {
 
 		LocalContainerEntityManagerFactoryBean factoryBean = new LocalContainerEntityManagerFactoryBean();
 		factoryBean.setPersistenceProvider(HibernateTestUtils.getPersistenceProvider());
-		factoryBean.setDataSource(new EmbeddedDatabaseBuilder().setType(EmbeddedDatabaseType.HSQL).build());
+		factoryBean.setDataSource(
+				new EmbeddedDatabaseBuilder().setType(EmbeddedDatabaseType.HSQL).generateUniqueName(true).build());
 		factoryBean.setPersistenceUnitName(persistenceUnitName);
 
 		return factoryBean;
