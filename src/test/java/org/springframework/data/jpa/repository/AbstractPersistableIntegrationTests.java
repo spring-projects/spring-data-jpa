@@ -35,6 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author Thomas Darimont
  * @author Oliver Gierke
+ * @author Jens Schauder
  */
 @Transactional
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -64,5 +65,49 @@ public class AbstractPersistableIntegrationTests {
 		CustomAbstractPersistable proxy = repository.getOne(entity.getId());
 
 		assertThat(proxy, is(proxy));
+	}
+
+	@Test // DATAJPA-1285
+	public void equalsDistinguishesDifferentClasses() {
+
+		AbstractPersistable onePersistable = new OnePersistable(23L);
+		AbstractPersistable otherPersistable = new OtherPersistable(23L);
+
+		assertThat(onePersistable, is(not(otherPersistable)));
+		assertThat(onePersistable, is(onePersistable));
+	}
+
+	/**
+	 * This test does not test a desired behavior but just documents a limitation of the {@literal equals} implemenation:
+	 * Equality is broken for type hierarchies.
+	 */
+	@Test // DATAJPA-1285
+	public void equalsBreaksForTypeHierarchies() {
+
+		AbstractPersistable onePersistable = new OnePersistable(23L);
+		AbstractPersistable inheritedPersistable = new InheritedPersistable(23L);
+
+		assertFalse(onePersistable.equals(inheritedPersistable) == inheritedPersistable.equals(onePersistable));
+	}
+
+	static class OnePersistable extends AbstractPersistable<Long> {
+
+		public OnePersistable(long id) {
+			setId(id);
+		}
+	}
+
+	static class InheritedPersistable extends OnePersistable {
+
+		public InheritedPersistable(long id) {
+			super(id);
+		}
+	}
+
+	static class OtherPersistable extends AbstractPersistable<Long> {
+
+		public OtherPersistable(long id) {
+			setId(id);
+		}
 	}
 }

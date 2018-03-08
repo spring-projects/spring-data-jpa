@@ -24,7 +24,6 @@ import javax.persistence.Transient;
 
 import org.springframework.data.domain.Persistable;
 import org.springframework.lang.Nullable;
-import org.springframework.util.ClassUtils;
 
 /**
  * Abstract base class for entities. Allows parameterization of id type, chooses auto-generation and implements
@@ -33,6 +32,7 @@ import org.springframework.util.ClassUtils;
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Mark Paluch
+ * @author Jens Schauder
  * @param <PK> the type of the identifier.
  */
 @MappedSuperclass
@@ -94,7 +94,7 @@ public abstract class AbstractPersistable<PK extends Serializable> implements Pe
 			return true;
 		}
 
-		if (!getClass().equals(ClassUtils.getUserClass(obj))) {
+		if (!getClass().isAssignableFrom(obj.getClass())) {
 			return false;
 		}
 
