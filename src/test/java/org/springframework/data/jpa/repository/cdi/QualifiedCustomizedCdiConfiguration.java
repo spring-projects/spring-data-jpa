@@ -17,6 +17,7 @@
 package org.springframework.data.jpa.repository.cdi;
 
 import org.springframework.data.repository.cdi.CdiRepositoryConfiguration;
+import org.springframework.data.repository.query.QueryLookupStrategy;
 
 /**
  * @author Mark Paluch
@@ -28,4 +29,10 @@ public class QualifiedCustomizedCdiConfiguration implements CdiRepositoryConfigu
 	public String getRepositoryImplementationPostfix() {
 		return "Bean";
 	}
+
+	@Override
+	public QueryLookupStrategy.Key getQueryLookupStrategy() {
+		return QueryLookupStrategy.Key.CREATE_IF_NOT_FOUND;
+	}
+
 }

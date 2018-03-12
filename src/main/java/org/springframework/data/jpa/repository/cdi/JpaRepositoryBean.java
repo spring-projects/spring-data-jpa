@@ -26,6 +26,7 @@ import javax.persistence.EntityManager;
 
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactory;
 import org.springframework.data.repository.cdi.CdiRepositoryBean;
+import org.springframework.data.repository.cdi.CdiRepositoryConfiguration;
 import org.springframework.data.repository.config.CustomRepositoryImplementationDetector;
 import org.springframework.util.Assert;
 
@@ -41,6 +42,8 @@ import org.springframework.util.Assert;
 class JpaRepositoryBean<T> extends CdiRepositoryBean<T> {
 
 	private final Bean<EntityManager> entityManagerBean;
+	private final BeanManager beanManager;
+	private final Set<Annotation> qualifiers;
 
 	/**
 	 * Constructs a {@link JpaRepositoryBean}.
@@ -55,10 +58,11 @@ class JpaRepositoryBean<T> extends CdiRepositoryBean<T> {
 			Class<T> repositoryType, Optional<CustomRepositoryImplementationDetector> detector) {
 
 		super(qualifiers, repositoryType, beanManager, detector);
-
-		Assert.notNull(entityManagerBean, "EntityManager bean must not be null!");
-		this.entityManagerBean = entityManagerBean;
-	}
+        this.beanManager = beanManager;
+        this.qualifiers = qualifiers;
+        Assert.notNull(entityManagerBean, "EntityManager bean must not be null!");
+        this.entityManagerBean = entityManagerBean;
+    }
 
 	/*
 	 * (non-Javadoc)
@@ -70,8 +74,13 @@ class JpaRepositoryBean<T> extends CdiRepositoryBean<T> {
 		// Get an instance from the associated entity manager bean.
 		EntityManager entityManager = getDependencyInstance(entityManagerBean, EntityManager.class);
 
-		// Create the JPA repository instance and return it.
-		JpaRepositoryFactory factory = new JpaRepositoryFactory(entityManager);
-		return customImplementation.isPresent() ? factory.getRepository(repositoryType, customImplementation.get()) : factory.getRepository(repositoryType);
+        // Create the JPA repository instance and return it.
+        JpaRepositoryFactory factory = new JpaRepositoryFactory(entityManager);
+
+        // Configure factory
+        CdiRepositoryConfiguration configuration = lookupConfiguration(beanManager, qualifiers);
+        factory.setQueryLookupStrategyKey(configuration.getQueryLookupStrategy());
+
+        return customImplementation.isPresent() ? factory.getRepository(repositoryType, customImplementation.get()) : factory.getRepository(repositoryType);
 	}
 }
