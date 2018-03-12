@@ -62,16 +62,13 @@ class JpaRepositoryBean<T> extends CdiRepositoryBean<T> {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.cdi.CdiRepositoryBean#create(javax.enterprise.context.spi.CreationalContext, java.lang.Class, java.util.Optional)
+	 * @see org.springframework.data.repository.cdi.CdiRepositoryBean#create(javax.enterprise.context.spi.CreationalContext, java.lang.Class)
 	 */
 	@Override
-	public T create(CreationalContext<T> creationalContext, Class<T> repositoryType, Optional<Object> customImplementation) {
+	protected T create(CreationalContext<T> creationalContext, Class<T> repositoryType) {
 
-		// Get an instance from the associated entity manager bean.
 		EntityManager entityManager = getDependencyInstance(entityManagerBean, EntityManager.class);
 
-		// Create the JPA repository instance and return it.
-		JpaRepositoryFactory factory = new JpaRepositoryFactory(entityManager);
-		return customImplementation.isPresent() ? factory.getRepository(repositoryType, customImplementation.get()) : factory.getRepository(repositoryType);
+		return create(() -> new JpaRepositoryFactory(entityManager), repositoryType);
 	}
 }

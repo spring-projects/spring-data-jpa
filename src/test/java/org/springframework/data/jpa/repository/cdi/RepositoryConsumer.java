@@ -43,7 +43,11 @@ class RepositoryConsumer {
 		return samplePersonRepository.returnOne();
 	}
 
-	public void doSomethonOnUserDB() {
+	public void doSomethingOnUserDB() {
 		qualifiedCustomizedUserRepository.doSomething();
+	}
+
+	public int returnOneUserDB() {
+		return qualifiedCustomizedUserRepository.returnOne();
 	}
 }

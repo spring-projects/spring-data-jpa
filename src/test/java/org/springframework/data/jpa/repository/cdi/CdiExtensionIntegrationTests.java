@@ -85,6 +85,13 @@ public class CdiExtensionIntegrationTests {
 	public void useQualifiedCustomizedUserRepo() {
 
 		RepositoryConsumer repositoryConsumer = container.select(RepositoryConsumer.class).get();
-		repositoryConsumer.doSomethonOnUserDB();
+		repositoryConsumer.doSomethingOnUserDB();
+	}
+
+	@Test // DATAJPA-1287
+	public void useQualifiedFragmentUserRepo() {
+
+		RepositoryConsumer repositoryConsumer = container.select(RepositoryConsumer.class).get();
+		assertThat(repositoryConsumer.returnOneUserDB(), is(1));
 	}
 }
