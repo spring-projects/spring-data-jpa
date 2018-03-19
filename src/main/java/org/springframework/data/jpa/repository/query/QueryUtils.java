@@ -509,6 +509,7 @@ public abstract class QueryUtils {
 		Assert.notNull(cb, "CriteriaBuilder must not be null!");
 
 		List<javax.persistence.criteria.Order> orders = new ArrayList<>();
+
 		for (org.springframework.data.domain.Sort.Order order : sort) {
 			orders.add(toJpaOrder(order, from, cb));
 		}
@@ -653,7 +654,7 @@ public abstract class QueryUtils {
 
 			boolean sameName = join.getAttribute().getName().equals(attribute);
 
-			if (sameName && join.getJoinType() == JoinType.LEFT) {
+			if (sameName && join.getJoinType().equals(JoinType.LEFT)) {
 				return join;
 			}
 		}
@@ -670,11 +671,11 @@ public abstract class QueryUtils {
 	 */
 	private static boolean isAlreadyFetched(From<?, ?> from, String attribute) {
 
-		for (Fetch<?, ?> f : from.getFetches()) {
+		for (Fetch<?, ?> fetch : from.getFetches()) {
 
-			boolean sameName = f.getAttribute().getName().equals(attribute);
+			boolean sameName = fetch.getAttribute().getName().equals(attribute);
 
-			if (sameName && f.getJoinType().equals(JoinType.LEFT)) {
+			if (sameName && fetch.getJoinType().equals(JoinType.LEFT)) {
 				return true;
 			}
 		}

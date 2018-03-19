@@ -74,6 +74,7 @@ public class ClasspathScanningPersistenceUnitPostProcessor
 	public ClasspathScanningPersistenceUnitPostProcessor(String basePackage) {
 
 		Assert.hasText(basePackage, "Base package must not be null!");
+
 		this.basePackage = basePackage;
 	}
 
@@ -86,6 +87,7 @@ public class ClasspathScanningPersistenceUnitPostProcessor
 	public void setMappingFileNamePattern(String mappingFilePattern) {
 
 		Assert.hasText(mappingFilePattern, "Mapping file pattern must not be null or empty!");
+
 		this.mappingFileNamePattern = mappingFilePattern;
 	}
 
@@ -96,6 +98,7 @@ public class ClasspathScanningPersistenceUnitPostProcessor
 	public void setResourceLoader(ResourceLoader resourceLoader) {
 
 		Assert.notNull(resourceLoader, "ResourceLoader must not be null!");
+
 		this.mappingFileResolver = ResourcePatternUtils.getResourcePatternResolver(resourceLoader);
 		this.resourceLoader = resourceLoader;
 	}
@@ -108,6 +111,7 @@ public class ClasspathScanningPersistenceUnitPostProcessor
 	public void setEnvironment(Environment environment) {
 
 		Assert.notNull(environment, "Environment must not be null!");
+
 		this.environment = environment;
 	}
 
@@ -134,7 +138,9 @@ public class ClasspathScanningPersistenceUnitPostProcessor
 		}
 
 		for (String location : scanForMappingFileLocations()) {
+
 			LOG.debug("Registering classpath-scanned entity mapping file {} in persistence unit info!", location);
+
 			pui.addMappingFileName(location);
 		}
 	}
@@ -172,11 +178,15 @@ public class ClasspathScanningPersistenceUnitPostProcessor
 		}
 
 		Set<String> mappingFileUris = new HashSet<>();
+
 		for (Resource resource : scannedResources) {
+
 			try {
+
 				String resourcePath = getResourcePath(resource.getURI());
 				String resourcePathInClasspath = resourcePath.substring(resourcePath.indexOf(basePackagePathComponent));
 				mappingFileUris.add(resourcePathInClasspath);
+
 			} catch (IOException e) {
 				throw new IllegalStateException(String.format("Couldn't get URI for %s!", resource.toString()), e);
 			}
@@ -197,8 +207,11 @@ public class ClasspathScanningPersistenceUnitPostProcessor
 		if (uri.isOpaque()) {
 			// e.g. jar:file:/foo/lib/somelib.jar!/com/acme/orm.xml
 			String rawPath = uri.toString();
+
 			if (rawPath != null) {
+
 				int exclamationMarkIndex = rawPath.lastIndexOf('!');
+
 				if (exclamationMarkIndex > -1) {
 
 					// /com/acme/orm.xml
