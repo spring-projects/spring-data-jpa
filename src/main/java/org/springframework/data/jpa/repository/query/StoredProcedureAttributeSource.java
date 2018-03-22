@@ -36,6 +36,7 @@ import org.springframework.util.StringUtils;
  * @author Oliver Gierke
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Diego Diez
  * @since 1.6
  */
 enum StoredProcedureAttributeSource {
@@ -70,7 +71,7 @@ enum StoredProcedureAttributeSource {
 					+ method);
 		}
 
-		return new StoredProcedureAttributes(procedureName, null, method.getReturnType(), false);
+		return new StoredProcedureAttributes(procedureName, procedure.outputParameterName(), method.getReturnType(), false);
 	}
 
 	/**
