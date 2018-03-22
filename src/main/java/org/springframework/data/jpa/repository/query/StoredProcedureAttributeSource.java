@@ -30,10 +30,12 @@ import org.springframework.util.StringUtils;
 
 /**
  * A factory class for {@link StoredProcedureAttributes}.
- * 
+ *
  * @author Thomas Darimont
  * @author Oliver Gierke
  * @author Christoph Strobl
+ * @author Mark Paluch
+ * @author Diego Diez
  * @since 1.6
  */
 enum StoredProcedureAttributeSource {
@@ -42,7 +44,7 @@ enum StoredProcedureAttributeSource {
 
 	/**
 	 * Creates a new {@link StoredProcedureAttributes} from the given {@link Method} and {@link JpaEntityMetadata}.
-	 * 
+	 *
 	 * @param method must not be {@literal null}
 	 * @param entityMetadata must not be {@literal null}
 	 * @return
@@ -68,13 +70,13 @@ enum StoredProcedureAttributeSource {
 					+ method);
 		}
 
-		return new StoredProcedureAttributes(procedureName, null, method.getReturnType(), false);
+		return new StoredProcedureAttributes(procedureName, procedure.outputParameterName(), method.getReturnType(), false);
 	}
 
 	/**
 	 * Tries to derive the procedure name from the given {@link Procedure}, falls back to the name of the given
 	 * {@link Method}.
-	 * 
+	 *
 	 * @param method
 	 * @param procedure
 	 * @return

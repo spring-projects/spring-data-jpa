@@ -42,6 +42,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Thomas Darimont
  * @author Oliver Gierke
  * @author Christoph Strobl
+ * @author Diego Diez
  * @since 1.6
  */
 @RunWith(MockitoJUnitRunner.class)
@@ -100,6 +101,17 @@ public class StoredProcedureAttributeSourceUnitTests {
 		assertThat(attr.getProcedureName(), is("plus1inout"));
 		assertThat(attr.getOutputParameterType(), is(typeCompatibleWith(Integer.class)));
 		assertThat(attr.getOutputParameterName(), is(StoredProcedureAttributes.SYNTHETIC_OUTPUT_PARAMETER_NAME));
+	}
+        
+    @Test // DATAJPA-1297
+	public void shouldCreateStoredProcedureAttributesFromProcedureMethodWithExplictProcedureNameAliasAndOutputParameterName() {
+
+		StoredProcedureAttributes attr = creator
+				.createFrom(method("explicitPlus1inoutViaProcedureNameAliasAndOutputParameterName", Integer.class), entityMetadata);
+
+		assertThat(attr.getProcedureName(), is("plus1inout"));
+		assertThat(attr.getOutputParameterType(), is(typeCompatibleWith(Integer.class)));
+		assertThat(attr.getOutputParameterName(), is("res"));
 	}
 
 	@Test // DATAJPA-455
@@ -166,12 +178,18 @@ public class StoredProcedureAttributeSourceUnitTests {
 		@Procedure(procedureName = "plus1inout") // DATAJPA-455
 		Integer explicitPlus1inoutViaProcedureNameAlias(Integer arg);
 
+                /**
+		 * Explicitly mapped to a procedure with name "plus1inout" in database via alias and explicityly named ouput parameter.
+		 */
+		@Procedure(procedureName = "plus1inout", outputParameterName = "res") // DATAJPA-1297
+		Integer explicitPlus1inoutViaProcedureNameAliasAndOutputParameterName(Integer arg);
+                
 		/**
 		 * Implicitly mapped to a procedure with name "plus1inout" in database via alias.
 		 */
 		@Procedure // DATAJPA-455
 		Integer plus1inout(Integer arg);
-
+                
 		/**
 		 * Explicitly mapped to named stored procedure "User.plus1IO" in {@link EntityManager}.
 		 */
