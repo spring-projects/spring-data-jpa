@@ -291,6 +291,12 @@ public interface UserRepository
 	// DATAJPA-496
 	List<User> findByAttributesIn(Set<String> attributes);
 
+	List<User> findByAttributesIgnoreCaseIn(Collection<String> attributes);
+
+	List<User> findByAttributesIgnoreCaseNotIn(Collection<String> attributes);
+
+	Page<User> findByAttributesIgnoreCaseIn(Pageable pageable, String... attributes);
+
 	// DATAJPA-460
 	Long removeByLastname(String lastname);
 

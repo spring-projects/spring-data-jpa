@@ -1175,6 +1175,48 @@ public class UserRepositoryTests {
 		assertThat(result).containsOnly(firstUser, secondUser);
 	}
 
+	@Test
+	public void findByElementCollectionInAttributeIgnoreCase() {
+
+		firstUser.getAttributes().add("cOOl");
+		secondUser.getAttributes().add("hIp");
+		thirdUser.getAttributes().add("roCKsTar");
+
+		flushTestUsers();
+
+		List<User> result = repository.findByAttributesIgnoreCaseIn(new HashSet<>(Arrays.asList("cOOl", "hIP")));
+
+		assertThat(result).containsOnly(firstUser, secondUser);
+	}
+
+	@Test
+	public void findByElementCollectionNotInAttributeIgnoreCase() {
+
+		firstUser.getAttributes().add("cOOl");
+		secondUser.getAttributes().add("hIp");
+		thirdUser.getAttributes().add("rOckStAr");
+
+		flushTestUsers();
+
+		List<User> result = repository.findByAttributesIgnoreCaseNotIn(Arrays.asList("CooL", "HIp"));
+
+		assertThat(result).containsOnly(thirdUser);
+	}
+
+	@Test
+	public void findByElementVarargNotInAttributeIgnoreCase() {
+
+		firstUser.getAttributes().add("cOOl");
+		secondUser.getAttributes().add("hIp");
+		thirdUser.getAttributes().add("rOckStAr");
+
+		flushTestUsers();
+
+		Page<User> result = repository.findByAttributesIgnoreCaseIn(PageRequest.of(0, 20), "CooL", "HIp");
+
+		assertThat(result).containsOnly(firstUser, secondUser);
+	}
+
 	@Test // DATAJPA-460
 	public void deleteByShouldReturnListOfDeletedElementsWhenRetunTypeIsCollectionLike() {
 

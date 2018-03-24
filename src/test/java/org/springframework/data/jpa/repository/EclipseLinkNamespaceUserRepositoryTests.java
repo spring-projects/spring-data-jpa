@@ -77,6 +77,24 @@ public class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserReposi
 	public void findByElementCollectionAttribute() {}
 
 	/**
+	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=349477 is resolved.
+	 */
+	@Override
+	public void findByElementCollectionInAttributeIgnoreCase() {}
+
+	/**
+	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=349477 is resolved.
+	 */
+	@Override
+	public void findByElementCollectionNotInAttributeIgnoreCase() {}
+
+	/**
+	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=349477 is resolved.
+	 */
+	@Override
+	public void findByElementVarargNotInAttributeIgnoreCase() {}
+
+	/**
 	 * This test will fail once https://bugs.eclipse.org/bugs/show_bug.cgi?id=521915 is fixed.
 	 */
 	@Override

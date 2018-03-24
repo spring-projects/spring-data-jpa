@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.ParameterExpression;
@@ -31,11 +32,13 @@ import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.parser.Part;
+import org.springframework.data.repository.query.parser.Part.IgnoreCaseType;
 import org.springframework.data.repository.query.parser.Part.Type;
 import org.springframework.expression.Expression;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
 /**
@@ -170,7 +173,7 @@ class ParameterMetadataProvider {
 
 		Object value = bindableParameterValues == null ? ParameterMetadata.PLACEHOLDER : bindableParameterValues.next();
 
-		ParameterMetadata<T> metadata = new ParameterMetadata<>(expression, part.getType(), value, persistenceProvider);
+		ParameterMetadata<T> metadata = new ParameterMetadata<>(expression, part, value, persistenceProvider);
 		expressions.add(metadata);
 
 		return metadata;
@@ -185,6 +188,7 @@ class ParameterMetadataProvider {
 
 		static final Object PLACEHOLDER = new Object();
 
+		private final Part part;
 		private final Type type;
 		private final ParameterExpression<T> expression;
 		private final PersistenceProvider persistenceProvider;
@@ -192,12 +196,13 @@ class ParameterMetadataProvider {
 		/**
 		 * Creates a new {@link ParameterMetadata}.
 		 */
-		public ParameterMetadata(ParameterExpression<T> expression, Type type, @Nullable Object value,
+		public ParameterMetadata(ParameterExpression<T> expression, Part part, @Nullable Object value,
 				PersistenceProvider provider) {
 
 			this.expression = expression;
 			this.persistenceProvider = provider;
-			this.type = value == null && Type.SIMPLE_PROPERTY.equals(type) ? Type.IS_NULL : type;
+			this.part = part;
+			this.type = value == null && Type.SIMPLE_PROPERTY.equals(part.getType()) ? Type.IS_NULL : part.getType();
 		}
 
 		/**
@@ -232,19 +237,19 @@ class ParameterMetadataProvider {
 
 				switch (type) {
 					case STARTING_WITH:
-						return String.format("%s%%", value.toString());
+						return value + "%";
 					case ENDING_WITH:
-						return String.format("%%%s", value.toString());
+						return "%" + value;
 					case CONTAINING:
 					case NOT_CONTAINING:
-						return String.format("%%%s%%", value.toString());
+						return "%" + value + "%";
 					default:
 						return value;
 				}
 			}
 
-			return Collection.class.isAssignableFrom(expressionType) //
-					? persistenceProvider.potentiallyConvertEmptyCollection(toCollection(value)) //
+			return Collection.class.isAssignableFrom(expressionType)
+					? persistenceProvider.potentiallyConvertEmptyCollection(upperIfIgnoreCase(part, toCollection(value)))
 					: value;
 		}
 
@@ -272,6 +277,18 @@ class ParameterMetadataProvider {
 			}
 
 			return Collections.singleton(value);
+		}
+
+		@Nullable
+		@SuppressWarnings("unchecked")
+		private static Collection<?> upperIfIgnoreCase(Part part, @Nullable Collection<?> collection) {
+			if (IgnoreCaseType.ALWAYS.equals(part.shouldIgnoreCase())
+					&& !CollectionUtils.isEmpty(collection)) {
+				return ((Collection<String>) collection).stream()
+					.map(String::toUpperCase)
+					.collect(Collectors.toList());
+			}
+			return collection;
 		}
 	}
 }
