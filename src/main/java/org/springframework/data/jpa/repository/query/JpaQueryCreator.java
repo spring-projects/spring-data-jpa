@@ -54,6 +54,7 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @author Reda.Housni-Alaoui
  * @author Moritz Becker
+ * @author Andrey Kovalev
  */
 public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extends Object>, Predicate> {
 
@@ -270,10 +271,10 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extend
 					return getTypedPath(root, part).isNotNull();
 				case NOT_IN:
 					// cast required for eclipselink workaround, see DATAJPA-433
-					return getTypedPath(root, part).in((Expression<Collection<?>>) provider.next(part, Collection.class).getExpression()).not();
+					return upperIfIgnoreCase(getTypedPath(root, part)).in((Expression<Collection<?>>) provider.next(part, Collection.class).getExpression()).not();
 				case IN:
 					// cast required for eclipselink workaround, see DATAJPA-433
-					return getTypedPath(root, part).in((Expression<Collection<?>>) provider.next(part, Collection.class).getExpression());
+					return upperIfIgnoreCase(getTypedPath(root, part)).in((Expression<Collection<?>>) provider.next(part, Collection.class).getExpression());
 				case STARTING_WITH:
 				case ENDING_WITH:
 				case CONTAINING:

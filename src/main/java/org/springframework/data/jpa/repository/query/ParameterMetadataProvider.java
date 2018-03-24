@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.ParameterExpression;
@@ -31,11 +32,13 @@ import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.parser.Part;
+import org.springframework.data.repository.query.parser.Part.IgnoreCaseType;
 import org.springframework.data.repository.query.parser.Part.Type;
 import org.springframework.expression.Expression;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
 /**
@@ -46,6 +49,7 @@ import org.springframework.util.ObjectUtils;
  * @author Mark Paluch
  * @author Christoph Strobl
  * @author Jens Schauder
+ * @author Andrey Kovalev
  */
 class ParameterMetadataProvider {
 
@@ -173,7 +177,7 @@ class ParameterMetadataProvider {
 
 		Object value = bindableParameterValues == null ? ParameterMetadata.PLACEHOLDER : bindableParameterValues.next();
 
-		ParameterMetadata<T> metadata = new ParameterMetadata<>(expression, part.getType(), value, persistenceProvider, escape);
+		ParameterMetadata<T> metadata = new ParameterMetadata<>(expression, part, value, persistenceProvider, escape);
 		expressions.add(metadata);
 
 		return metadata;
@@ -186,6 +190,7 @@ class ParameterMetadataProvider {
 	/**
 	 * @author Oliver Gierke
 	 * @author Thomas Darimont
+	 * @author Andrey Kovalev
 	 * @param <T>
 	 */
 	static class ParameterMetadata<T> {
@@ -196,16 +201,18 @@ class ParameterMetadataProvider {
 		private final ParameterExpression<T> expression;
 		private final PersistenceProvider persistenceProvider;
 		private final EscapeCharacter escape;
+		private final boolean ignoreCase;
 
 		/**
 		 * Creates a new {@link ParameterMetadata}.
 		 */
-		public ParameterMetadata(ParameterExpression<T> expression, Type type, @Nullable Object value,
+		public ParameterMetadata(ParameterExpression<T> expression, Part part, @Nullable Object value,
 								 PersistenceProvider provider, EscapeCharacter escape) {
 
 			this.expression = expression;
 			this.persistenceProvider = provider;
-			this.type = value == null && Type.SIMPLE_PROPERTY.equals(type) ? Type.IS_NULL : type;
+			this.type = value == null && Type.SIMPLE_PROPERTY.equals(part.getType()) ? Type.IS_NULL : part.getType();
+			this.ignoreCase = IgnoreCaseType.ALWAYS.equals(part.shouldIgnoreCase());
 			this.escape = escape;
 		}
 
@@ -253,7 +260,7 @@ class ParameterMetadataProvider {
 			}
 
 			return Collection.class.isAssignableFrom(expressionType) //
-					? persistenceProvider.potentiallyConvertEmptyCollection(toCollection(value)) //
+					? persistenceProvider.potentiallyConvertEmptyCollection(upperIfIgnoreCase(ignoreCase, toCollection(value))) //
 					: value;
 		}
 
@@ -281,6 +288,25 @@ class ParameterMetadataProvider {
 			}
 
 			return Collections.singleton(value);
+		}
+
+		@Nullable
+		@SuppressWarnings("unchecked")
+		private static Collection<?> upperIfIgnoreCase(boolean ignoreCase, @Nullable Collection<?>
+				collection) {
+			if (ignoreCase
+					&& !CollectionUtils.isEmpty(collection)) {
+				return ((Collection<String>) collection).stream()
+					.map(it -> {
+						if (it == null) {
+							return null;
+						} else {
+							return it.toUpperCase();
+						}
+					})
+					.collect(Collectors.toList());
+			}
+			return collection;
 		}
 	}
 }

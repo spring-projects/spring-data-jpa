@@ -51,6 +51,7 @@ import com.google.common.base.Optional;
  * @author Thomas Darimont
  * @author Kevin Peters
  * @author Jeff Sheets
+ * @author Andrey Kovalev
  */
 public interface UserRepository
 		extends JpaRepository<User, Integer>, JpaSpecificationExecutor<User>, UserRepositoryCustom {
@@ -590,6 +591,15 @@ public interface UserRepository
 	// DATAJPA-1519
 	@Query("select u from User u where u.lastname like %?#{escape([0])}% escape ?#{escapeCharacter()}")
 	List<User> findContainingEscaped(String namePart);
+
+	// DATAJPA-1303
+	List<User> findByAttributesIgnoreCaseIn(Collection<String> attributes);
+
+	// DATAJPA-1303
+	List<User> findByAttributesIgnoreCaseNotIn(Collection<String> attributes);
+
+	// DATAJPA-1303
+	Page<User> findByAttributesIgnoreCaseIn(Pageable pageable, String... attributes);
 
 	interface RolesAndFirstname {
 

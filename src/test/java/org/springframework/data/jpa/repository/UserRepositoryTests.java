@@ -89,6 +89,7 @@ import com.google.common.base.Optional;
  * @author Mark Paluch
  * @author Kevin Peters
  * @author Jens Schauder
+ * @author Andrey Kovalev
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("classpath:application-context.xml")
@@ -2221,6 +2222,62 @@ public class UserRepositoryTests {
 	@Test // DATAJPA-1535
 	public void deleteNewInstanceSucceedsByDoingNothing() {
 		repository.delete(new User());
+	}
+
+	@Test // DATAJPA-1303
+	public void findByElementCollectionInAttributeIgnoreCase() {
+
+		firstUser.getAttributes().add("cOOl");
+		secondUser.getAttributes().add("hIp");
+		thirdUser.getAttributes().add("roCKsTar");
+
+		flushTestUsers();
+
+		List<User> result = repository.findByAttributesIgnoreCaseIn(new HashSet<>(Arrays.asList("cOOl", "hIP")));
+
+		assertThat(result).containsOnly(firstUser, secondUser);
+	}
+
+	@Test // DATAJPA-1303
+	public void findByElementCollectionNotInAttributeIgnoreCase() {
+
+		firstUser.getAttributes().add("cOOl");
+		secondUser.getAttributes().add("hIp");
+		thirdUser.getAttributes().add("rOckStAr");
+
+		flushTestUsers();
+
+		List<User> result = repository.findByAttributesIgnoreCaseNotIn(Arrays.asList("CooL", "HIp"));
+
+		assertThat(result).containsOnly(thirdUser);
+	}
+
+	@Test // DATAJPA-1303
+	public void findByElementVarargInAttributeIgnoreCase() {
+
+		firstUser.getAttributes().add("cOOl");
+		secondUser.getAttributes().add("hIp");
+		thirdUser.getAttributes().add("rOckStAr");
+
+		flushTestUsers();
+
+		Page<User> result = repository.findByAttributesIgnoreCaseIn(PageRequest.of(0, 20), "CooL", "HIp");
+
+		assertThat(result).containsOnly(firstUser, secondUser);
+	}
+
+	@Test // DATAJPA-1303
+	public void findByElementCollectionInAttributeIgnoreCaseWithNulls() {
+
+		firstUser.getAttributes().add("cOOl");
+		secondUser.getAttributes().add("hIp");
+		thirdUser.getAttributes().add("roCKsTar");
+
+		flushTestUsers();
+
+		List<User> result = repository.findByAttributesIgnoreCaseIn(Arrays.asList("cOOl", null));
+
+		assertThat(result).containsOnly(firstUser);
 	}
 
 	private Page<User> executeSpecWithSort(Sort sort) {

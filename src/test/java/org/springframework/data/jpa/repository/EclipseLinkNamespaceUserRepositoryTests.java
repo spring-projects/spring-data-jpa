@@ -34,6 +34,7 @@ import org.springframework.test.context.ContextConfiguration;
  * @author Thomas Darimont
  * @author Jens Schauder
  * @author Moritz Becker
+ * @author Andrey Kovalev
  */
 @ContextConfiguration(value = "classpath:eclipselink.xml")
 public class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserRepositoryTests {
@@ -134,4 +135,36 @@ public class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserReposi
 	@Test
 	@Ignore
 	public void savingUserThrowsAnException() {}
+
+	/**
+	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=349477 is resolved.
+	 */
+	@Ignore
+	@Override
+	@Test // DATAJPA-1303
+	public void findByElementCollectionInAttributeIgnoreCase() {}
+
+	/**
+	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=349477 is resolved.
+	 */
+	@Ignore
+	@Override
+	@Test // DATAJPA-1303
+	public void findByElementCollectionNotInAttributeIgnoreCase() {}
+
+	/**
+	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=349477 is resolved.
+	 */
+	@Ignore
+	@Override
+	@Test // DATAJPA-1303
+	public void findByElementVarargInAttributeIgnoreCase() {}
+
+	/**
+	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=349477 is resolved.
+	 */
+	@Ignore
+	@Override
+	@Test // DATAJPA-1303
+	public void findByElementCollectionInAttributeIgnoreCaseWithNulls() {}
 }
