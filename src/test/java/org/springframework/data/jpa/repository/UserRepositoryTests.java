@@ -31,6 +31,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -2233,6 +2234,27 @@ public class UserRepositoryTests {
 
 		assertThat(element.getFirstname(), is("Joachim"));
 		assertThat(element.getLastname(), is("Arrasz"));
+	}
+
+	@Test // DATAJPA-1301
+	public void returnsNullValueInMap() {
+
+		Assume
+				.assumeTrue(getHibernateVersion().isGreaterThanOrEqualTo(HIBERNATE_VERSION_SUPPORTING_TUPLE_ON_NATIVE_QUERIES));
+
+		firstUser.setLastname(null);
+		flushTestUsers();
+
+		Map<String, Object> map = repository.findMapWithNullValues();
+
+		assertThat(map.keySet(), contains("firstname", "lastname"));
+		assertThat(map.containsKey("firstname"), is(true));
+		assertThat(map.containsKey("lastname"), is(true));
+
+		assertThat(map.get("firstname"), is((Object) "Oliver"));
+		assertThat(map.get("lastname"), is(nullValue()));
+		assertThat(map.get("non-existent"), is(nullValue()));
+		assertThat(map.get(new Object()), is(nullValue()));
 	}
 
 	private Page<User> executeSpecWithSort(Sort sort) {
