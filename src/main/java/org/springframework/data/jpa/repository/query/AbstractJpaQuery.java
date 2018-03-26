@@ -325,6 +325,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 		 */
 		private static class TupleBackedMap implements Map<String, Object> {
 
+			public static final String UNMODIFIABLE_MESSAGE = "A TupleBackedMap cannot be modified.";
 			private final Tuple tuple;
 
 			TupleBackedMap(Tuple tuple) {
@@ -341,9 +342,22 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 				return tuple.getElements().isEmpty();
 			}
 
+			/**
+			 * If the key is not a {@code String} or not a key of the backing {@link Tuple} this returns {@code false}.
+			 * Otherwise this returns {@code true} even when the value from the backing {@code Tuple} is {@code null}.
+			 *
+			 * @param key the key for which to get the value from the map.
+			 * @return wether the key is an element of the backing tuple.
+			 */
 			@Override
 			public boolean containsKey(Object key) {
-				return key instanceof String && tuple.get((String) key) != null;
+
+				try {
+					tuple.get((String) key);
+					return true;
+				} catch (IllegalArgumentException e) {
+					return false;
+				}
 			}
 
 			@Override
@@ -351,29 +365,46 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 				return Arrays.stream(tuple.toArray()).anyMatch(v -> v.equals(value));
 			}
 
+			/**
+			 * If the key is not a {@code String} or not a key of the backing {@link Tuple} this returns {@code null}.
+			 * Otherwise the value from the backing {@code Tuple} is returned, which also might be {@code null}.
+			 *
+			 * @param key the key for which to get the value from the map.
+			 * @return the value of the backing {@link Tuple} for that key or {@code null}.
+			 */
 			@Override
+			@Nullable
 			public Object get(Object key) {
-				return key instanceof String ? tuple.get((String) key) : null;
+
+				if (!(key instanceof String)) {
+					return null;
+				}
+
+				try {
+					return tuple.get((String) key);
+				} catch (IllegalArgumentException e) {
+					return null;
+				}
 			}
 
 			@Override
 			public Object put(String key, Object value) {
-				throw new UnsupportedOperationException("A TupleBakcedMap cannot be modified");
+				throw new UnsupportedOperationException(UNMODIFIABLE_MESSAGE);
 			}
 
 			@Override
 			public Object remove(Object key) {
-				throw new UnsupportedOperationException("A TupleBakcedMap cannot be modified");
+				throw new UnsupportedOperationException(UNMODIFIABLE_MESSAGE);
 			}
 
 			@Override
 			public void putAll(Map<? extends String, ?> m) {
-				throw new UnsupportedOperationException("A TupleBakcedMap cannot be modified");
+				throw new UnsupportedOperationException(UNMODIFIABLE_MESSAGE);
 			}
 
 			@Override
 			public void clear() {
-				throw new UnsupportedOperationException("A TupleBakcedMap cannot be modified");
+				throw new UnsupportedOperationException(UNMODIFIABLE_MESSAGE);
 			}
 
 			@Override

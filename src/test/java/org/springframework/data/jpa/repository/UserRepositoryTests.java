@@ -29,6 +29,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -51,8 +52,6 @@ import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
-import org.springframework.data.domain.ExampleMatcher.GenericPropertyMatcher;
-import org.springframework.data.domain.ExampleMatcher.StringMatcher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -61,6 +60,7 @@ import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.domain.Sort.Order;
+import org.springframework.data.domain.ExampleMatcher.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.domain.sample.Address;
 import org.springframework.data.jpa.domain.sample.Role;
@@ -2171,6 +2171,31 @@ public class UserRepositoryTests {
 			assertThat(it.getFirstname()).isEqualTo("Joachim");
 			assertThat(it.getLastname()).isEqualTo("Arrasz");
 		});
+	}
+
+	@Test // DATAJPA-1301
+	public void returnsNullValueInMap() {
+
+		firstUser.setLastname(null);
+		flushTestUsers();
+
+		Map<String, Object> map = repository.findMapWithNullValues();
+
+		SoftAssertions softly = new SoftAssertions();
+
+		softly.assertThat(map.keySet()).containsExactlyInAnyOrder("firstname", "lastname");
+
+		softly.assertThat(map.containsKey("firstname")).isTrue();
+		softly.assertThat(map.containsKey("lastname")).isTrue();
+
+		softly.assertThat(map.get("firstname")).isEqualTo("Oliver");
+		softly.assertThat(map.get("lastname")).isNull();
+
+		softly.assertThat(map.get("non-existent")).isNull();
+
+		softly.assertThat(map.get(new Object())).isNull();
+
+		softly.assertAll();
 	}
 
 	private Page<User> executeSpecWithSort(Sort sort) {
