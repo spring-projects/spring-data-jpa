@@ -104,6 +104,14 @@ public class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserReposi
 	public void supportsProjectionsWithNativeQueriesAndCamelCaseProperty() {}
 
 	/**
+	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=525319 is fixed.
+	 */
+	@Ignore
+	@Override
+	@Test // DATAJPA-1301
+	public void returnsNullValueInMap() {}
+
+	/**
 	 * TODO: Remove, once https://bugs.eclipse.org/bugs/show_bug.cgi?id=289141 is fixed.
 	 */
 	@Ignore
