@@ -18,6 +18,7 @@ package org.springframework.data.jpa.repository.sample;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -538,6 +539,10 @@ public interface UserRepository
 
 	// DATAJPA-1273
 	List<NameOnly> findByNamedQueryWithAliasInInvertedOrder();
+
+	// DATAJPA-1301
+	@Query("select firstname as firstname, lastname as lastname from User u where u.firstname = 'Oliver'")
+	Map<String, Object> findMapWithNullValues();
 
 	interface RolesAndFirstname {
 
