@@ -32,6 +32,7 @@ import org.springframework.test.context.ContextConfiguration;
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Jens Schauder
+ * @author Andrey Kovalev
  */
 @ContextConfiguration(value = "classpath:eclipselink.xml")
 public class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserRepositoryTests {
@@ -75,24 +76,6 @@ public class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserReposi
 	 */
 	@Override
 	public void findByElementCollectionAttribute() {}
-
-	/**
-	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=349477 is resolved.
-	 */
-	@Override
-	public void findByElementCollectionInAttributeIgnoreCase() {}
-
-	/**
-	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=349477 is resolved.
-	 */
-	@Override
-	public void findByElementCollectionNotInAttributeIgnoreCase() {}
-
-	/**
-	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=349477 is resolved.
-	 */
-	@Override
-	public void findByElementVarargNotInAttributeIgnoreCase() {}
 
 	/**
 	 * This test will fail once https://bugs.eclipse.org/bugs/show_bug.cgi?id=521915 is fixed.
@@ -196,4 +179,36 @@ public class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserReposi
 		Assume.assumeFalse("Empty collections seem to be broken in EclipseLink 2.7.2",
 				Version.getVersion().equals("2.7.2"));
 	}
+
+	/**
+	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=349477 is resolved.
+	 */
+	@Ignore
+	@Override
+	@Test // DATAJPA-1303
+	public void findByElementCollectionInAttributeIgnoreCase() {}
+
+	/**
+	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=349477 is resolved.
+	 */
+	@Ignore
+	@Override
+	@Test // DATAJPA-1303
+	public void findByElementCollectionNotInAttributeIgnoreCase() {}
+
+	/**
+	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=349477 is resolved.
+	 */
+	@Ignore
+	@Override
+	@Test // DATAJPA-1303
+	public void findByElementVarargInAttributeIgnoreCase() {}
+
+	/**
+	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=349477 is resolved.
+	 */
+	@Ignore
+	@Override
+	@Test // DATAJPA-1303
+	public void findByElementCollectionInAttributeIgnoreCaseWithNulls() {}
 }

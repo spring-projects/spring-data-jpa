@@ -50,6 +50,7 @@ import com.google.common.base.Optional;
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Kevin Peters
+ * @author Andrey Kovalev
  */
 public interface UserRepository
 		extends JpaRepository<User, Integer>, JpaSpecificationExecutor<User>, UserRepositoryCustom {
@@ -290,12 +291,6 @@ public interface UserRepository
 
 	// DATAJPA-496
 	List<User> findByAttributesIn(Set<String> attributes);
-
-	List<User> findByAttributesIgnoreCaseIn(Collection<String> attributes);
-
-	List<User> findByAttributesIgnoreCaseNotIn(Collection<String> attributes);
-
-	Page<User> findByAttributesIgnoreCaseIn(Pageable pageable, String... attributes);
 
 	// DATAJPA-460
 	Long removeByLastname(String lastname);
@@ -558,6 +553,15 @@ public interface UserRepository
 	// DATAJPA-1307
 	@Query(value = "select * from SD_User u where u.emailAddress = ?", nativeQuery = true)
 	User findByEmailNativeAddressJdbcStyleParameter(String emailAddress);
+
+	// DATAJPA-1303
+	List<User> findByAttributesIgnoreCaseIn(Collection<String> attributes);
+
+	// DATAJPA-1303
+	List<User> findByAttributesIgnoreCaseNotIn(Collection<String> attributes);
+
+	// DATAJPA-1303
+	Page<User> findByAttributesIgnoreCaseIn(Pageable pageable, String... attributes);
 
 	interface RolesAndFirstname {
 

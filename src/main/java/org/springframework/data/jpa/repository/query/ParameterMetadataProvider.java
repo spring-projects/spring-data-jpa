@@ -49,6 +49,7 @@ import org.springframework.util.ObjectUtils;
  * @author Mark Paluch
  * @author Christoph Strobl
  * @author Jens Schauder
+ * @author Andrey Kovalev
  */
 class ParameterMetadataProvider {
 
@@ -182,16 +183,17 @@ class ParameterMetadataProvider {
 	/**
 	 * @author Oliver Gierke
 	 * @author Thomas Darimont
+	 * @author Andrey Kovalev
 	 * @param <T>
 	 */
 	static class ParameterMetadata<T> {
 
 		static final Object PLACEHOLDER = new Object();
 
-		private final Part part;
 		private final Type type;
 		private final ParameterExpression<T> expression;
 		private final PersistenceProvider persistenceProvider;
+		private final Part.IgnoreCaseType ignoreCaseType;
 
 		/**
 		 * Creates a new {@link ParameterMetadata}.
@@ -201,8 +203,8 @@ class ParameterMetadataProvider {
 
 			this.expression = expression;
 			this.persistenceProvider = provider;
-			this.part = part;
 			this.type = value == null && Type.SIMPLE_PROPERTY.equals(part.getType()) ? Type.IS_NULL : part.getType();
+			this.ignoreCaseType = part.shouldIgnoreCase();
 		}
 
 		/**
@@ -237,19 +239,19 @@ class ParameterMetadataProvider {
 
 				switch (type) {
 					case STARTING_WITH:
-						return value + "%";
+						return String.format("%s%%", value.toString());
 					case ENDING_WITH:
-						return "%" + value;
+						return String.format("%%%s", value.toString());
 					case CONTAINING:
 					case NOT_CONTAINING:
-						return "%" + value + "%";
+						return String.format("%%%s%%", value.toString());
 					default:
 						return value;
 				}
 			}
 
-			return Collection.class.isAssignableFrom(expressionType)
-					? persistenceProvider.potentiallyConvertEmptyCollection(upperIfIgnoreCase(part, toCollection(value)))
+			return Collection.class.isAssignableFrom(expressionType) //
+					? persistenceProvider.potentiallyConvertEmptyCollection(upperIfIgnoreCase(ignoreCaseType, toCollection(value))) //
 					: value;
 		}
 
@@ -281,11 +283,17 @@ class ParameterMetadataProvider {
 
 		@Nullable
 		@SuppressWarnings("unchecked")
-		private static Collection<?> upperIfIgnoreCase(Part part, @Nullable Collection<?> collection) {
-			if (IgnoreCaseType.ALWAYS.equals(part.shouldIgnoreCase())
+		private static Collection<?> upperIfIgnoreCase(Part.IgnoreCaseType ignoreCaseType, @Nullable Collection<?> collection) {
+			if (IgnoreCaseType.ALWAYS.equals(ignoreCaseType)
 					&& !CollectionUtils.isEmpty(collection)) {
 				return ((Collection<String>) collection).stream()
-					.map(String::toUpperCase)
+					.map(it -> {
+						if (it == null) {
+							return null;
+						} else {
+							return it.toUpperCase();
+						}
+					})
 					.collect(Collectors.toList());
 			}
 			return collection;
