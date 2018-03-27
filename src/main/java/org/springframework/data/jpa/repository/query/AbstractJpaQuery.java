@@ -317,7 +317,8 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 		 */
 		private static class TupleBackedMap implements Map<String, Object> {
 
-			public static final String UNMODIFIABLE_MESSAGE = "A TupleBackedMap cannot be modified.";
+			private static final String UNMODIFIABLE_MESSAGE = "A TupleBackedMap cannot be modified.";
+
 			private final Tuple tuple;
 
 			TupleBackedMap(Tuple tuple) {
