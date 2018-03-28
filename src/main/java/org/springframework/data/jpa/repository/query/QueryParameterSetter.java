@@ -17,6 +17,7 @@ package org.springframework.data.jpa.repository.query;
 
 import static org.springframework.data.jpa.repository.query.QueryParameterSetter.ErrorHandling.*;
 
+import java.lang.reflect.Proxy;
 import java.util.Date;
 import java.util.function.Function;
 
@@ -49,6 +50,8 @@ interface QueryParameterSetter {
 	 * {@link QueryParameterSetter} for named or indexed parameters that might have a {@link TemporalType} specified.
 	 */
 	class NamedOrIndexedQueryParameterSetter implements QueryParameterSetter {
+
+		private static final Logger LOGGER = LoggerFactory.getLogger(NamedOrIndexedQueryParameterSetter.class);
 
 		private final Function<Object[], Object> valueExtractor;
 		private final Parameter<?> parameter;
@@ -133,7 +136,28 @@ interface QueryParameterSetter {
 			// parameters in the query.
 			// https://bugs.eclipse.org/bugs/show_bug.cgi?id=521915
 
-			return query.getParameters().size() == 0 && query.getClass().getName().startsWith("org.eclipse");
+			return query.getParameters().size() == 0 && unwrapClass(query).getName().startsWith("org.eclipse");
+		}
+
+		/**
+		 * Returns the actual target Query instance, even if the provided query is a {@link Proxy} based on
+		 * {@link org.springframework.orm.jpa.SharedEntityManagerCreator.DeferredQueryInvocationHandler}.
+		 * 
+		 * @param query a Query instance, possibly a Proxy.
+		 * @return the class of the actual underlying class if it can be determined, the class of the passed in instance
+		 *         otherwise.
+		 */
+		private Class<?> unwrapClass(Query query) {
+
+			try {
+
+				return query instanceof Proxy ? query.unwrap(null).getClass() : query.getClass();
+			} catch (RuntimeException e) {
+
+				LOGGER.warn("Failed to unwrap actual class for Query proxy.", e);
+
+				return query.getClass();
+			}
 		}
 	}
 
