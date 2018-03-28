@@ -193,7 +193,7 @@ class ParameterMetadataProvider {
 		private final Type type;
 		private final ParameterExpression<T> expression;
 		private final PersistenceProvider persistenceProvider;
-		private final Part.IgnoreCaseType ignoreCaseType;
+		private final boolean ignoreCase;
 
 		/**
 		 * Creates a new {@link ParameterMetadata}.
@@ -204,7 +204,7 @@ class ParameterMetadataProvider {
 			this.expression = expression;
 			this.persistenceProvider = provider;
 			this.type = value == null && Type.SIMPLE_PROPERTY.equals(part.getType()) ? Type.IS_NULL : part.getType();
-			this.ignoreCaseType = part.shouldIgnoreCase();
+			this.ignoreCase = IgnoreCaseType.ALWAYS.equals(part.shouldIgnoreCase());
 		}
 
 		/**
@@ -251,7 +251,7 @@ class ParameterMetadataProvider {
 			}
 
 			return Collection.class.isAssignableFrom(expressionType) //
-					? persistenceProvider.potentiallyConvertEmptyCollection(upperIfIgnoreCase(ignoreCaseType, toCollection(value))) //
+					? persistenceProvider.potentiallyConvertEmptyCollection(upperIfIgnoreCase(ignoreCase, toCollection(value))) //
 					: value;
 		}
 
@@ -283,8 +283,9 @@ class ParameterMetadataProvider {
 
 		@Nullable
 		@SuppressWarnings("unchecked")
-		private static Collection<?> upperIfIgnoreCase(Part.IgnoreCaseType ignoreCaseType, @Nullable Collection<?> collection) {
-			if (IgnoreCaseType.ALWAYS.equals(ignoreCaseType)
+		private static Collection<?> upperIfIgnoreCase(boolean ignoreCase, @Nullable Collection<?>
+				collection) {
+			if (ignoreCase
 					&& !CollectionUtils.isEmpty(collection)) {
 				return ((Collection<String>) collection).stream()
 					.map(it -> {
