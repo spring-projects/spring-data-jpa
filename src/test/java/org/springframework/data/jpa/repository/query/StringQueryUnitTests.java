@@ -18,8 +18,10 @@ package org.springframework.data.jpa.repository.query;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
+import java.util.Arrays;
 import java.util.List;
 
+import org.assertj.core.api.Assertions;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.Rule;
 import org.junit.Test;
@@ -392,6 +394,77 @@ public class StringQueryUnitTests {
 		checkNumberOfNamedParameters("select something from blah where x = '\"0':name", 1, "double quote in single quotes");
 		checkNumberOfNamedParameters("select something from blah where x = \"'0\":name", 1,
 				"single quote in double quotes");
+
+		softly.assertAll();
+	}
+
+	@Test // DATAJPA-1307
+	public void detectsMultiplePositionalParameterBindingsWithoutIndex() {
+
+		SoftAssertions softly = new SoftAssertions();
+
+		String queryString = "select u from User u where u.id in ? and u.names in ? and foo = ?";
+		StringQuery query = new StringQuery(queryString);
+
+		softly.assertThat(query.getQueryString()).isEqualTo(queryString);
+		softly.assertThat(query.hasParameterBindings()).isTrue();
+		softly.assertThat(query.getParameterBindings()).hasSize(3);
+
+		softly.assertAll();
+	}
+
+	@Test // DATAJPA-1307
+	public void failOnMixedBindingsWithoutIndex() {
+
+		List<String> testQueries = Arrays.asList( //
+				"something = ? and something = ?1", //
+				"something = ?1 and something = ?", //
+				"something = :name and something = ?", //
+				"something = ?#{xx} and something = ?" //
+		);
+
+		for (String testQuery : testQueries) {
+
+			Assertions.assertThatExceptionOfType(IllegalArgumentException.class) //
+					.describedAs(testQuery).isThrownBy(() -> new StringQuery(testQuery));
+		}
+	}
+
+	@Test // DATAJPA
+	public void makesUsageOfJdbcStyleParameterAvailable() {
+
+		SoftAssertions softly = new SoftAssertions();
+
+		softly.assertThat(new StringQuery("something = ?").usesJdbcStyleParameters()).isTrue();
+
+		List<String> testQueries = Arrays.asList( //
+				"something = ?1", //
+				"something = :name", //
+				"something = ?#{xx}" //
+		);
+
+		for (String testQuery : testQueries) {
+
+			softly.assertThat(new StringQuery(testQuery) //
+					.usesJdbcStyleParameters()) //
+					.describedAs(testQuery) //
+					.isFalse();
+		}
+
+		softly.assertAll();
+	}
+
+	@Test // DATAJPA-1307
+	public void questionMarkInStringLiteral() {
+
+		SoftAssertions softly = new SoftAssertions();
+
+		String queryString = "select '? ' from dual";
+		StringQuery query = new StringQuery(queryString);
+
+		softly.assertThat(query.getQueryString()).isEqualTo(queryString);
+		softly.assertThat(query.hasParameterBindings()).isFalse();
+		softly.assertThat(query.getParameterBindings()).hasSize(0);
 
 		softly.assertAll();
 	}

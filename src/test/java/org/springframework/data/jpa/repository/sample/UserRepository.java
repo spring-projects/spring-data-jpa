@@ -544,6 +544,10 @@ public interface UserRepository
 	@Query("select firstname as firstname, lastname as lastname from User u where u.firstname = 'Oliver'")
 	Map<String, Object> findMapWithNullValues();
 
+	// DATAJPA-1307
+	@Query(value = "select * from SD_User u where u.emailAddress = ?", nativeQuery = true)
+	User findByEmailNativeAddressJdbcStyleParameter(String emailAddress);
+
 	interface RolesAndFirstname {
 
 		String getFirstname();
