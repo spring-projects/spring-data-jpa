@@ -54,6 +54,7 @@ class StringQuery implements DeclaredQuery {
 	private final @Nullable String alias;
 	private final boolean hasConstructorExpression;
 	private final boolean containsPageableInSpel;
+	private final boolean usesJdbcStyleParameters;
 
 	/**
 	 * Creates a new {@link StringQuery} from the given JPQL query.
@@ -67,9 +68,11 @@ class StringQuery implements DeclaredQuery {
 
 		this.bindings = new ArrayList<>();
 		this.containsPageableInSpel = query.contains("#pageable");
+		Metadata queryMeta = new Metadata();
 		this.query = ParameterBindingParser.INSTANCE.parseParameterBindingsOfQueryIntoBindingsAndReturnCleanedQuery(query,
-				this.bindings);
+				this.bindings, queryMeta);
 
+		this.usesJdbcStyleParameters = queryMeta.usesJdbcStyleParameters;
 		this.alias = QueryUtils.detectAlias(query);
 		this.hasConstructorExpression = QueryUtils.hasConstructorExpression(query);
 	}
@@ -104,6 +107,15 @@ class StringQuery implements DeclaredQuery {
 
 		return DeclaredQuery
 				.of(countQuery != null ? countQuery : QueryUtils.createCountQueryFor(query, countQueryProjection));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.jpa.repository.query.DeclaredQuery#usesJdbcStyleParameters()
+	 */
+	@Override
+	public boolean usesJdbcStyleParameters() {
+		return usesJdbcStyleParameters;
 	}
 
 	/*
@@ -171,7 +183,11 @@ class StringQuery implements DeclaredQuery {
 		INSTANCE;
 
 		static final String EXPRESSION_PARAMETER_PREFIX = "__$synthetic$__";
-		private static final Pattern PARAMETER_BINDING_BY_INDEX = Pattern.compile("\\?(\\d+)");
+		public static final String POSITIONAL_OR_INDEXED_PARAMETER = "\\?(\\d*+(?![#\\w]))";
+		// .....................................................................^ not followed by a hash or a letter.
+		// .................................................................^ zero or more digits.
+		// .............................................................^ start with a question mark.
+		private static final Pattern PARAMETER_BINDING_BY_INDEX = Pattern.compile(POSITIONAL_OR_INDEXED_PARAMETER);
 		private static final Pattern PARAMETER_BINDING_PATTERN;
 		private static final String MESSAGE = "Already found parameter binding with same index / parameter name but differing binding type! "
 				+ "Already have: %s, found %s! If you bind a parameter multiple times make sure they use the same binding.";
@@ -197,7 +213,7 @@ class StringQuery implements DeclaredQuery {
 			builder.append("(?: )?"); // some whitespace
 			builder.append("\\(?"); // optional braces around parameters
 			builder.append("(");
-			builder.append("%?(\\?(\\d+))%?"); // position parameter and parameter index
+			builder.append("%?(" + POSITIONAL_OR_INDEXED_PARAMETER + ")%?"); // position parameter and parameter index
 			builder.append("|"); // or
 
 			// named parameter and the parameter name
@@ -214,8 +230,8 @@ class StringQuery implements DeclaredQuery {
 		 * Parses {@link ParameterBinding} instances from the given query and adds them to the registered bindings. Returns
 		 * the cleaned up query.
 		 */
-		String parseParameterBindingsOfQueryIntoBindingsAndReturnCleanedQuery(String query,
-				List<ParameterBinding> bindings) {
+		String parseParameterBindingsOfQueryIntoBindingsAndReturnCleanedQuery(String query, List<ParameterBinding> bindings,
+				Metadata queryMeta) {
 
 			String result = query;
 			Matcher matcher = PARAMETER_BINDING_PATTERN.matcher(query);
@@ -240,6 +256,7 @@ class StringQuery implements DeclaredQuery {
 
 			QuotationMap quotationMap = new QuotationMap(query);
 
+			boolean usesJpaStyleParameters = false;
 			while (matcher.find()) {
 
 				if (quotationMap.isQuoted(matcher.start())) {
@@ -248,30 +265,50 @@ class StringQuery implements DeclaredQuery {
 
 				String parameterIndexString = matcher.group(INDEXED_PARAMETER_GROUP);
 				String parameterName = parameterIndexString != null ? null : matcher.group(NAMED_PARAMETER_GROUP);
-				Integer parameterIndex = parameterIndexString == null ? null : Integer.valueOf(parameterIndexString);
+				Integer parameterIndex = getParameterIndex(parameterIndexString);
+
 				String typeSource = matcher.group(COMPARISION_TYPE_GROUP);
 				String expression = null;
 				String replacement = null;
 
 				if (parameterName == null && parameterIndex == null) {
+
 					expressionParameterIndex++;
 
-					if (parametersShouldBeAccessedByIndex) {
+					if ("".equals(parameterIndexString)) {
+
 						parameterIndex = expressionParameterIndex;
-						replacement = "?" + parameterIndex;
+						queryMeta.usesJdbcStyleParameters = true;
 					} else {
-						parameterName = EXPRESSION_PARAMETER_PREFIX + expressionParameterIndex;
-						replacement = ":" + parameterName;
+
+						usesJpaStyleParameters = true;
+
+						if (parametersShouldBeAccessedByIndex) {
+
+							parameterIndex = expressionParameterIndex;
+							replacement = "?" + parameterIndex;
+						} else {
+
+							parameterName = EXPRESSION_PARAMETER_PREFIX + expressionParameterIndex;
+							replacement = ":" + parameterName;
+						}
 					}
 
 					expression = matcher.group(EXPRESSION_GROUP);
+				} else {
+					usesJpaStyleParameters = true;
 				}
 
+				if (usesJpaStyleParameters && queryMeta.usesJdbcStyleParameters) {
+					throw new IllegalArgumentException("Mixing of ? parameters and other forms like ?1 is not supported");
+				}
+
+				String replacementTarget = matcher.group(2);
 				switch (ParameterBindingType.of(typeSource)) {
 
 					case LIKE:
 
-						Type likeType = LikeParameterBinding.getLikeTypeFrom(matcher.group(2));
+						Type likeType = LikeParameterBinding.getLikeTypeFrom(replacementTarget);
 						replacement = replacement != null ? replacement : matcher.group(3);
 
 						if (parameterIndex != null) {
@@ -299,15 +336,25 @@ class StringQuery implements DeclaredQuery {
 
 						bindings.add(parameterIndex != null ? new ParameterBinding(null, parameterIndex, expression)
 								: new ParameterBinding(parameterName, null, expression));
+
 				}
 
 				if (replacement != null) {
-					result = replaceFirst(result, matcher.group(2), replacement);
+					result = replaceFirst(result, replacementTarget, replacement);
 				}
 
 			}
 
 			return result;
+		}
+
+		@Nullable
+		private Integer getParameterIndex(@Nullable String parameterIndexString) {
+
+			if (parameterIndexString == null || parameterIndexString.isEmpty()) {
+				return null;
+			}
+			return Integer.valueOf(parameterIndexString);
 		}
 
 		private static String replaceFirst(String text, String substring, String replacement) {
@@ -326,8 +373,12 @@ class StringQuery implements DeclaredQuery {
 
 			int greatestParameterIndex = -1;
 			while (parameterIndexMatcher.find()) {
+
 				String parameterIndexString = parameterIndexMatcher.group(1);
-				greatestParameterIndex = Math.max(greatestParameterIndex, Integer.parseInt(parameterIndexString));
+				Integer parameterIndex = getParameterIndex(parameterIndexString);
+				if (parameterIndex != null) {
+					greatestParameterIndex = Math.max(greatestParameterIndex, parameterIndex);
+				}
 			}
 
 			return greatestParameterIndex;
@@ -838,5 +889,9 @@ class StringQuery implements DeclaredQuery {
 		public boolean isQuoted(int index) {
 			return quotedRanges.stream().anyMatch(r -> r.contains(index));
 		}
+	}
+
+	static class Metadata {
+		private boolean usesJdbcStyleParameters = false;
 	}
 }

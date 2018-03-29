@@ -91,4 +91,11 @@ interface DeclaredQuery {
 	default boolean usesPaging() {
 		return false;
 	}
+
+	/**
+	 * Returns wether the query uses JDBC style parameters, i.e. parameters denoted by a simple ? without any index or name.
+	 *
+	 * @return Wether the query uses JDBC style parameters.
+	 */
+	boolean usesJdbcStyleParameters();
 }
