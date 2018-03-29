@@ -99,4 +99,13 @@ class EmptyDeclaredQuery implements DeclaredQuery {
 
 		return DeclaredQuery.of(countQuery);
 	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.jpa.repository.query.DeclaredQuery#usesJdbcStyleParameters()
+	 */
+	@Override
+	public boolean usesJdbcStyleParameters() {
+		return false;
+	}
 }

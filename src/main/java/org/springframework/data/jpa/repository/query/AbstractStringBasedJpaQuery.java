@@ -64,6 +64,9 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 		this.countQuery = query.deriveCountQuery(method.getCountQuery(), method.getCountQueryProjection());
 
 		this.parser = parser;
+
+		Assert.isTrue(method.isNativeQuery() || !query.usesJdbcStyleParameters(),
+				"JDBC style parameters (?) are not supported for JPA queries.");
 	}
 
 	/*

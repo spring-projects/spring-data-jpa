@@ -2202,6 +2202,14 @@ public class UserRepositoryTests {
 		softly.assertAll();
 	}
 
+	@Test // DATAJPA-1307
+	public void testFindByEmailAddressJdbcStyleParameter() throws Exception {
+
+		flushTestUsers();
+
+		assertThat(repository.findByEmailNativeAddressJdbcStyleParameter("gierke@synyx.de")).isEqualTo(firstUser);
+	}
+
 	private Page<User> executeSpecWithSort(Sort sort) {
 
 		flushTestUsers();

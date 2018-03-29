@@ -15,9 +15,12 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.*;
+import static org.junit.Assert.assertThat;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import java.lang.reflect.Method;
@@ -219,6 +222,20 @@ public class SimpleJpaQueryUnitTests {
 		verify(em, times(2)).createQuery(anyString());
 	}
 
+	@Test // DATAJPA-1307
+	public void jdbcStyleParametersOnlyAllowedInNativeQueries() throws Exception {
+
+		// just verifying that it doesn't throw an exception
+		createJpaQuery(SampleRepository.class.getMethod("legalUseOfJdbcStyleParameters", String.class));
+
+		assertThatExceptionOfType(IllegalArgumentException.class) //
+				.isThrownBy( //
+						() -> createJpaQuery( //
+								SampleRepository.class.getMethod("illegalUseOfJdbcStyleParameters", String.class) //
+						) //
+		);
+	}
+
 	private AbstractJpaQuery createJpaQuery(Method method) {
 
 		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, factory, extractor);
@@ -235,6 +252,12 @@ public class SimpleJpaQueryUnitTests {
 
 		@Query(value = "SELECT u FROM User u WHERE u.lastname = ?1", nativeQuery = true)
 		List<User> findNativeByLastname(String lastname, Pageable pageable);
+
+		@Query(value = "SELECT u FROM User u WHERE u.lastname = ?", nativeQuery = true)
+		List<User> legalUseOfJdbcStyleParameters(String lastname);
+
+		@Query(value = "SELECT u FROM User u WHERE u.lastname = ?")
+		List<User> illegalUseOfJdbcStyleParameters(String lastname);
 
 		@Query(USER_QUERY)
 		List<User> findByAnnotatedQuery();
