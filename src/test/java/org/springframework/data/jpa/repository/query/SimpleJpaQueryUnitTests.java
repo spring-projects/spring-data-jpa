@@ -16,8 +16,6 @@
 package org.springframework.data.jpa.repository.query;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -33,6 +31,7 @@ import javax.persistence.Tuple;
 import javax.persistence.TypedQuery;
 import javax.persistence.metamodel.Metamodel;
 
+import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -113,7 +112,7 @@ public class SimpleJpaQueryUnitTests {
 		SimpleJpaQuery jpaQuery = new SimpleJpaQuery(method, em, "select u from User u", EVALUATION_CONTEXT_PROVIDER,
 				PARSER);
 
-		assertThat(jpaQuery.createCountQuery(new Object[] {}), is((javax.persistence.Query) typedQuery));
+		assertThat(jpaQuery.createCountQuery(new Object[] {})).isEqualTo((javax.persistence.Query) typedQuery);
 	}
 
 	@Test // DATAJPA-77
@@ -141,7 +140,7 @@ public class SimpleJpaQueryUnitTests {
 		AbstractJpaQuery jpaQuery = JpaQueryFactory.INSTANCE.fromQueryAnnotation(queryMethod, em,
 				EVALUATION_CONTEXT_PROVIDER);
 
-		assertThat(jpaQuery instanceof NativeJpaQuery, is(true));
+		assertThat(jpaQuery instanceof NativeJpaQuery).isTrue();
 
 		when(em.createNativeQuery(anyString(), eq(User.class))).thenReturn(query);
 		when(metadata.getReturnedDomainClass(method)).thenReturn((Class) User.class);
@@ -186,14 +185,14 @@ public class SimpleJpaQueryUnitTests {
 	public void createsASimpleJpaQueryFromAnnotation() throws Exception {
 
 		RepositoryQuery query = createJpaQuery(SampleRepository.class.getMethod("findByAnnotatedQuery"));
-		assertThat(query instanceof SimpleJpaQuery, is(true));
+		assertThat(query instanceof SimpleJpaQuery).isTrue();
 	}
 
 	@Test
 	public void createsANativeJpaQueryFromAnnotation() throws Exception {
 
 		RepositoryQuery query = createJpaQuery(SampleRepository.class.getMethod("findNativeByLastname", String.class));
-		assertThat(query instanceof NativeJpaQuery, is(true));
+		assertThat(query instanceof NativeJpaQuery).isTrue();
 	}
 
 	@Test // DATAJPA-757
