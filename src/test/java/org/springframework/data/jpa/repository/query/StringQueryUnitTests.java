@@ -61,7 +61,7 @@ public class StringQueryUnitTests {
 		assertThat(binding.hasName("firstname"), is(true));
 	}
 
-	@Test
+	@Test // DATAJPA-292
 	public void detectsPositionalLikeBindings() {
 
 		StringQuery query = new StringQuery("select u from User u where u.firstname like %?1% or u.lastname like %?2");
@@ -83,7 +83,7 @@ public class StringQueryUnitTests {
 		assertThat(binding.getType(), is(Type.ENDING_WITH));
 	}
 
-	@Test
+	@Test // DATAJPA-292
 	public void detectsNamedLikeBindings() {
 
 		StringQuery query = new StringQuery("select u from User u where u.firstname like %:firstname");
