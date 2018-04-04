@@ -93,9 +93,11 @@ interface DeclaredQuery {
 	}
 
 	/**
-	 * Returns wether the query uses JDBC style parameters, i.e. parameters denoted by a simple ? without any index or name.
+	 * Returns whether the query uses JDBC style parameters, i.e. parameters denoted by a simple ? without any index or
+	 * name.
 	 *
-	 * @return Wether the query uses JDBC style parameters.
+	 * @return Whether the query uses JDBC style parameters.
+	 * @since 2.0.6
 	 */
 	boolean usesJdbcStyleParameters();
 }
