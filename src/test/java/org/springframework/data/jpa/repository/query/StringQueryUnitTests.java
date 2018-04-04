@@ -430,7 +430,7 @@ public class StringQueryUnitTests {
 		}
 	}
 
-	@Test // DATAJPA
+	@Test // DATAJPA-1307
 	public void makesUsageOfJdbcStyleParameterAvailable() {
 
 		SoftAssertions softly = new SoftAssertions();

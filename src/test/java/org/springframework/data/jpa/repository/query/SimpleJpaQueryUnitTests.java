@@ -227,12 +227,10 @@ public class SimpleJpaQueryUnitTests {
 		// just verifying that it doesn't throw an exception
 		createJpaQuery(SampleRepository.class.getMethod("legalUseOfJdbcStyleParameters", String.class));
 
+		Method illegalMethod = SampleRepository.class.getMethod("illegalUseOfJdbcStyleParameters", String.class);
+
 		assertThatExceptionOfType(IllegalArgumentException.class) //
-				.isThrownBy( //
-						() -> createJpaQuery( //
-								SampleRepository.class.getMethod("illegalUseOfJdbcStyleParameters", String.class) //
-						) //
-		);
+				.isThrownBy(() -> createJpaQuery(illegalMethod));
 	}
 
 	private AbstractJpaQuery createJpaQuery(Method method) {
