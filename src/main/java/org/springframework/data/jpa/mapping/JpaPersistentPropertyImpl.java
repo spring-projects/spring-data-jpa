@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2016 the original author or authors.
+ * Copyright 2012-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,6 +58,7 @@ import org.springframework.util.Assert;
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Greg Turnquist
+ * @author Mark Paluch
  * @since 1.3
  */
 class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPersistentProperty>
@@ -133,7 +134,7 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 		EntityType<?> ownerEntityType = null;
 
 		for (EntityType<?> entityType : metamodel.getEntities()) {
-			if (entityType.getJavaType().equals(type)) {
+			if (type.equals(entityType.getJavaType())) {
 				ownerEntityType = entityType;
 				break;
 			}
