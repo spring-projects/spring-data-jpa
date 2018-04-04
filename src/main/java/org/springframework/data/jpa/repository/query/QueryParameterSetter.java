@@ -140,23 +140,28 @@ interface QueryParameterSetter {
 		}
 
 		/**
-		 * Returns the actual target Query instance, even if the provided query is a {@link Proxy} based on
+		 * Returns the actual target {@link Query} instance, even if the provided query is a {@link Proxy} based on
 		 * {@link org.springframework.orm.jpa.SharedEntityManagerCreator.DeferredQueryInvocationHandler}.
 		 * 
-		 * @param query a Query instance, possibly a Proxy.
+		 * @param query a {@link Query} instance, possibly a Proxy.
 		 * @return the class of the actual underlying class if it can be determined, the class of the passed in instance
 		 *         otherwise.
 		 */
-		private Class<?> unwrapClass(Query query) {
+		private static Class<?> unwrapClass(Query query) {
+
+			Class<? extends Query> queryType = query.getClass();
 
 			try {
 
-				return query instanceof Proxy ? query.unwrap(null).getClass() : query.getClass();
+				return Proxy.isProxyClass(queryType) //
+						? query.unwrap(null).getClass() //
+						: queryType;
+
 			} catch (RuntimeException e) {
 
 				LOGGER.warn("Failed to unwrap actual class for Query proxy.", e);
 
-				return query.getClass();
+				return queryType;
 			}
 		}
 	}
