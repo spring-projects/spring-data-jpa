@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2017 the original author or authors.
+ * Copyright 2008-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,6 +41,18 @@ public class ParameterBinder {
 
 	/**
 	 * Creates a new {@link ParameterBinder} for the given {@link JpaParameters} and {@link QueryParameterSetter}s.
+	 * Defaults to use JPA API to apply pagination offsets.
+	 *
+	 * @param parameters must not be {@literal null}.
+	 * @param parameterSetters must not be {@literal null}.
+	 * @since 2.0.6
+	 */
+	ParameterBinder(JpaParameters parameters, Iterable<QueryParameterSetter> parameterSetters) {
+		this(parameters, parameterSetters, true);
+	}
+
+	/**
+	 * Creates a new {@link ParameterBinder} for the given {@link JpaParameters} and {@link QueryParameterSetter}s.
 	 * 
 	 * @param parameters must not be {@literal null}.
 	 * @param parameterSetters must not be {@literal null}.
@@ -56,18 +68,6 @@ public class ParameterBinder {
 		this.parameters = parameters;
 		this.parameterSetters = parameterSetters;
 		this.useJpaForPaging = useJpaForPaging;
-	}
-
-	/**
-	 * Only for backward compatibility.
-	 *
-	 * @param parameters must not be {@literal null}.
-	 * @param parameterSetters must not be {@literal null}.
-	 * @deprecated use three argument constructor instead}
-	 */
-	@Deprecated
-	public ParameterBinder(JpaParameters parameters, Iterable<QueryParameterSetter> parameterSetters) {
-		this(parameters, parameterSetters, true);
 	}
 
 	public <T extends Query> T bind(T jpaQuery, Object[] values) {

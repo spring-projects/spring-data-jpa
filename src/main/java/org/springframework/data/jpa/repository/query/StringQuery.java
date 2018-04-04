@@ -60,6 +60,7 @@ class StringQuery implements DeclaredQuery {
 	 * 
 	 * @param query must not be {@literal null} or empty.
 	 */
+	@SuppressWarnings("deprecation")
 	StringQuery(String query) {
 
 		Assert.hasText(query, "Query must not be null or empty!");
@@ -98,15 +99,11 @@ class StringQuery implements DeclaredQuery {
 	 * @see org.springframework.data.jpa.repository.query.DeclaredQuery#deriveCountQuery(java.lang.String, java.lang.String)
 	 */
 	@Override
+	@SuppressWarnings("deprecation")
 	public DeclaredQuery deriveCountQuery(@Nullable String countQuery, @Nullable String countQueryProjection) {
 
 		return DeclaredQuery
 				.of(countQuery != null ? countQuery : QueryUtils.createCountQueryFor(query, countQueryProjection));
-	}
-
-	@Override
-	public boolean implementsPaging() {
-		return containsPageableInSpel;
 	}
 
 	/*
@@ -153,6 +150,15 @@ class StringQuery implements DeclaredQuery {
 	@Override
 	public boolean hasNamedParameter() {
 		return bindings.stream().anyMatch(b -> b.getName() != null);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.jpa.repository.query.DeclaredQuery#usesPaging()
+	 */
+	@Override
+	public boolean usesPaging() {
+		return containsPageableInSpel;
 	}
 
 	/**
