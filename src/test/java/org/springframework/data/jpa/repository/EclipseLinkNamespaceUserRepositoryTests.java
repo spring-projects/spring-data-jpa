@@ -19,6 +19,8 @@ import static org.assertj.core.api.Assertions.*;
 
 import javax.persistence.Query;
 
+import org.eclipse.persistence.Version;
+import org.junit.Assume;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.data.jpa.repository.sample.UserRepository;
@@ -118,4 +120,62 @@ public class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserReposi
 	@Override
 	@Test
 	public void bindsNativeQueryResultsToProjectionByName() {}
+
+	/**
+	 * Ignores the test for EclipseLink 2.7.2. Reconsider once https://bugs.eclipse.org/bugs/show_bug.cgi?id=533240 is
+	 * fixed.
+	 */
+	@Override
+	@Test // DATAJPA-1314
+	public void findByEmptyArrayOfIntegers() throws Exception {
+
+		assumeNotEclipseLink2_7_2();
+
+		super.findByEmptyArrayOfIntegers();
+	}
+
+	/**
+	 * Ignores the test for EclipseLink 2.7.2. Reconsider once https://bugs.eclipse.org/bugs/show_bug.cgi?id=533240 is
+	 * fixed.
+	 */
+	@Override
+	@Test // DATAJPA-1314
+	public void findByAgeWithEmptyArrayOfIntegersOrFirstName() {
+
+		assumeNotEclipseLink2_7_2();
+
+		super.findByAgeWithEmptyArrayOfIntegersOrFirstName();
+	}
+
+	/**
+	 * Ignores the test for EclipseLink 2.7.2. Reconsider once https://bugs.eclipse.org/bugs/show_bug.cgi?id=533240 is
+	 * fixed.
+	 */
+	@Override
+	@Test // DATAJPA-1314
+	public void findByEmptyCollectionOfIntegers() throws Exception {
+
+		assumeNotEclipseLink2_7_2();
+
+		super.findByEmptyCollectionOfIntegers();
+	}
+
+	/**
+	 * Ignores the test for EclipseLink 2.7.2. Reconsider once https://bugs.eclipse.org/bugs/show_bug.cgi?id=533240 is
+	 * fixed.
+	 */
+	@Override
+	@Test // DATAJPA-1314
+	public void findByEmptyCollectionOfStrings() throws Exception {
+
+		assumeNotEclipseLink2_7_2();
+
+		super.findByEmptyCollectionOfStrings();
+	}
+
+	private void assumeNotEclipseLink2_7_2() {
+
+		Assume.assumeFalse("Empty collections seem to be broken in EclipseLink 2.7.2",
+				Version.getVersion().equals("2.7.2"));
+	}
 }
