@@ -1,6 +1,21 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 2.0.6.RELEASE (2018-04-04)
+---------------------------------------------
+* DATAJPA-1310 - Upgrade to Hibernate 5.2.16.
+* DATAJPA-1309 - Projection data is not mapped correctly on Hibernate 5.0.
+* DATAJPA-1307 - Parameters without index nor name don't get detected as such anymore.
+* DATAJPA-1301 - Map instances returned by JpaRepository queries do not handle null map values correctly.
+* DATAJPA-1300 - Parameters are not passed to proxied native Query instance on EclipseLink.
+* DATAJPA-1295 - Minor polishing in QueryUtils and ClasspathScanningPersistenceUnitPostProcessor.
+* DATAJPA-1284 - Use generated database names in tests.
+* DATAJPA-1276 - Release 2.0.6 (Kay SR6).
+* DATAJPA-1269 - Upgrade Eclipselink to 2.7.1.
+* DATAJPA-1255 - Native query with SpEL creates invalid SQL.
+* DATAJPA-1250 - Entity classes loaded before EclipseLink LTW is initialized.
+
+
 Changes in version 1.11.11.RELEASE (2018-04-04)
 -----------------------------------------------
 * DATAJPA-1313 - JpaPersistentPropertyImpl.tryResolveEntityType fails with NPE.
