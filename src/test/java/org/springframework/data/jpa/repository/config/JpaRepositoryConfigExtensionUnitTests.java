@@ -15,8 +15,9 @@
  */
 package org.springframework.data.jpa.repository.config;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.*;
 
 import java.util.Arrays;
@@ -119,7 +120,7 @@ public class JpaRepositoryConfigExtensionUnitTests {
 		JpaRepositoryConfigExtension extension = new JpaRepositoryConfigExtension();
 		ClassLoader classLoader = extension.getConfigurationInspectionClassLoader(new GenericApplicationContext());
 
-		assertThat(classLoader, is(instanceOf(InspectionClassLoader.class)));
+		assertThat(classLoader).isInstanceOf(InspectionClassLoader.class);
 	}
 
 	@Test // DATAJPA-1250
@@ -144,7 +145,7 @@ public class JpaRepositoryConfigExtensionUnitTests {
 		JpaRepositoryConfigExtension extension = new JpaRepositoryConfigExtension();
 		ClassLoader classLoader = extension.getConfigurationInspectionClassLoader(context);
 
-		assertThat(classLoader, is(not(instanceOf(InspectionClassLoader.class))));
+		assertThat(classLoader).isNotInstanceOf(InspectionClassLoader.class);
 	}
 
 	private void assertOnlyOnePersistenceAnnotationBeanPostProcessorRegistered(DefaultListableBeanFactory factory,

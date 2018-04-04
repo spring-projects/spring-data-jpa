@@ -34,7 +34,10 @@ public class InspectionClassLoaderUnitTests {
 		Class<?> isolated = classLoader.loadClass("org.hsqldb.Database");
 		Class<?> included = getClass().getClassLoader().loadClass("org.hsqldb.Database");
 
-		assertThat(isolated.getClassLoader()).isSameAs(classLoader).isNotSameAs(getClass().getClassLoader());
+		assertThat(isolated.getClassLoader()) //
+				.isSameAs(classLoader) //
+				.isNotSameAs(getClass().getClassLoader());
+
 		assertThat(isolated).isNotEqualTo(included);
 	}
 }
