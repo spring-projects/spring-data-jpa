@@ -86,8 +86,9 @@ interface DeclaredQuery {
 
 	/**
 	 * @return whether paging is implemented in the query itself, e.g. using SpEL expressions.
+	 * @since 2.0.6
 	 */
-	default boolean implementsPaging() {
+	default boolean usesPaging() {
 		return false;
 	}
 }
