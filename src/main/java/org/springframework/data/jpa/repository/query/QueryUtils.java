@@ -74,6 +74,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Paluch
  * @author Sébastien Péralta
  * @author Jens Schauder
+ * @author Nils Borrmann
  */
 public abstract class QueryUtils {
 
@@ -96,7 +97,7 @@ public abstract class QueryUtils {
 
 	private static final Pattern ALIAS_MATCH;
 	private static final Pattern COUNT_MATCH;
-	private static final Pattern PROJECTION_CLAUSE = Pattern.compile("select\\s+(.+)\\s+from");
+	private static final Pattern PROJECTION_CLAUSE = Pattern.compile("select\\s+(.+)\\s+from", Pattern.CASE_INSENSITIVE);
 
 	private static final Pattern NO_DIGITS = Pattern.compile("\\D+");
 
