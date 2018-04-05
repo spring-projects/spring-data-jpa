@@ -37,6 +37,7 @@ import org.springframework.data.repository.query.parser.Part.Type;
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Jens Schauder
+ * @author Nils Borrmann
  */
 public class StringQueryUnitTests {
 
@@ -314,7 +315,7 @@ public class StringQueryUnitTests {
 	@Test // DATAJPA-1235
 	public void getProjection() {
 
-		checkProjection("SELECT something FROM", "", "only lowercase is supported (!?)");
+		checkProjection("SELECT something FROM", "something", "uppercase is supported");
 		checkProjection("select something from", "something", "single expression");
 		checkProjection("select x, y, z from", "x, y, z", "tuple");
 		checkProjection("sect x, y, z from", "", "missing select");
