@@ -15,8 +15,7 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.Arrays;
 import java.util.List;
@@ -51,15 +50,15 @@ public class StringQueryUnitTests {
 		String source = "select from User u where u.firstname like :firstname";
 		StringQuery query = new StringQuery(source);
 
-		assertThat(query.hasParameterBindings(), is(true));
-		assertThat(query.getQueryString(), is(source));
+		assertThat(query.hasParameterBindings()).isTrue();
+		assertThat(query.getQueryString()).isEqualTo(source);
 
 		List<ParameterBinding> bindings = query.getParameterBindings();
-		assertThat(bindings, hasSize(1));
+		assertThat(bindings).hasSize(1);
 
 		LikeParameterBinding binding = (LikeParameterBinding) bindings.get(0);
-		assertThat(binding.getType(), is(Type.LIKE));
-		assertThat(binding.hasName("firstname"), is(true));
+		assertThat(binding.getType()).isEqualTo(Type.LIKE);
+		assertThat(binding.hasName("firstname")).isEqualTo(true);
 	}
 
 	@Test // DATAJPA-292
@@ -67,21 +66,22 @@ public class StringQueryUnitTests {
 
 		StringQuery query = new StringQuery("select u from User u where u.firstname like %?1% or u.lastname like %?2");
 
-		assertThat(query.hasParameterBindings(), is(true));
-		assertThat(query.getQueryString(), is("select u from User u where u.firstname like ?1 or u.lastname like ?2"));
+		assertThat(query.hasParameterBindings()).isTrue();
+		assertThat(query.getQueryString())
+				.isEqualTo("select u from User u where u.firstname like ?1 or u.lastname like ?2");
 
 		List<ParameterBinding> bindings = query.getParameterBindings();
-		assertThat(bindings, hasSize(2));
+		assertThat(bindings).hasSize(2);
 
 		LikeParameterBinding binding = (LikeParameterBinding) bindings.get(0);
-		assertThat(binding, is(notNullValue()));
-		assertThat(binding.hasPosition(1), is(true));
-		assertThat(binding.getType(), is(Type.CONTAINING));
+		assertThat(binding).isNotNull();
+		assertThat(binding.hasPosition(1)).isTrue();
+		assertThat(binding.getType()).isEqualTo(Type.CONTAINING);
 
 		binding = (LikeParameterBinding) bindings.get(1);
-		assertThat(binding, is(notNullValue()));
-		assertThat(binding.hasPosition(2), is(true));
-		assertThat(binding.getType(), is(Type.ENDING_WITH));
+		assertThat(binding).isNotNull();
+		assertThat(binding.hasPosition(2)).isTrue();
+		assertThat(binding.getType()).isEqualTo(Type.ENDING_WITH);
 	}
 
 	@Test // DATAJPA-292
@@ -89,16 +89,16 @@ public class StringQueryUnitTests {
 
 		StringQuery query = new StringQuery("select u from User u where u.firstname like %:firstname");
 
-		assertThat(query.hasParameterBindings(), is(true));
-		assertThat(query.getQueryString(), is("select u from User u where u.firstname like :firstname"));
+		assertThat(query.hasParameterBindings()).isTrue();
+		assertThat(query.getQueryString()).isEqualTo("select u from User u where u.firstname like :firstname");
 
 		List<ParameterBinding> bindings = query.getParameterBindings();
-		assertThat(bindings, hasSize(1));
+		assertThat(bindings).hasSize(1);
 
 		LikeParameterBinding binding = (LikeParameterBinding) bindings.get(0);
-		assertThat(binding, is(notNullValue()));
-		assertThat(binding.hasName("firstname"), is(true));
-		assertThat(binding.getType(), is(Type.ENDING_WITH));
+		assertThat(binding).isNotNull();
+		assertThat(binding.hasName("firstname")).isTrue();
+		assertThat(binding.getType()).isEqualTo(Type.ENDING_WITH);
 	}
 
 	@Test // DATAJPA-461
@@ -107,11 +107,11 @@ public class StringQueryUnitTests {
 		String queryString = "select u from User u where u.id in :ids";
 		StringQuery query = new StringQuery(queryString);
 
-		assertThat(query.hasParameterBindings(), is(true));
-		assertThat(query.getQueryString(), is(queryString));
+		assertThat(query.hasParameterBindings()).isTrue();
+		assertThat(query.getQueryString()).isEqualTo(queryString);
 
 		List<ParameterBinding> bindings = query.getParameterBindings();
-		assertThat(bindings, hasSize(1));
+		assertThat(bindings).hasSize(1);
 
 		assertNamedBinding(InParameterBinding.class, "ids", bindings.get(0));
 	}
@@ -122,11 +122,11 @@ public class StringQueryUnitTests {
 		String queryString = "select u from User u where u.id in :ids and u.name in :names and foo = :bar";
 		StringQuery query = new StringQuery(queryString);
 
-		assertThat(query.hasParameterBindings(), is(true));
-		assertThat(query.getQueryString(), is(queryString));
+		assertThat(query.hasParameterBindings()).isTrue();
+		assertThat(query.getQueryString()).isEqualTo(queryString);
 
 		List<ParameterBinding> bindings = query.getParameterBindings();
-		assertThat(bindings, hasSize(3));
+		assertThat(bindings).hasSize(3);
 
 		assertNamedBinding(InParameterBinding.class, "ids", bindings.get(0));
 		assertNamedBinding(InParameterBinding.class, "names", bindings.get(1));
@@ -139,11 +139,11 @@ public class StringQueryUnitTests {
 		String queryString = "select u from User u where u.id in ?1";
 		StringQuery query = new StringQuery(queryString);
 
-		assertThat(query.hasParameterBindings(), is(true));
-		assertThat(query.getQueryString(), is(queryString));
+		assertThat(query.hasParameterBindings()).isTrue();
+		assertThat(query.getQueryString()).isEqualTo(queryString);
 
 		List<ParameterBinding> bindings = query.getParameterBindings();
-		assertThat(bindings, hasSize(1));
+		assertThat(bindings).hasSize(1);
 
 		assertPositionalBinding(InParameterBinding.class, 1, bindings.get(0));
 	}
@@ -154,11 +154,11 @@ public class StringQueryUnitTests {
 		String queryString = "select u from User u where u.id in ?1 and u.names in ?2 and foo = ?3";
 		StringQuery query = new StringQuery(queryString);
 
-		assertThat(query.hasParameterBindings(), is(true));
-		assertThat(query.getQueryString(), is(queryString));
+		assertThat(query.hasParameterBindings()).isTrue();
+		assertThat(query.getQueryString()).isEqualTo(queryString);
 
 		List<ParameterBinding> bindings = query.getParameterBindings();
-		assertThat(bindings, hasSize(3));
+		assertThat(bindings).hasSize(3);
 
 		assertPositionalBinding(InParameterBinding.class, 1, bindings.get(0));
 		assertPositionalBinding(InParameterBinding.class, 2, bindings.get(1));
@@ -181,7 +181,7 @@ public class StringQueryUnitTests {
 		StringQuery query = new StringQuery("select u from User u where u.createdDate > ?1");
 		List<ParameterBinding> bindings = query.getParameterBindings();
 
-		assertThat(bindings, hasSize(1));
+		assertThat(bindings).hasSize(1);
 		assertPositionalBinding(ParameterBinding.class, 1, bindings.get(0));
 	}
 
@@ -193,11 +193,11 @@ public class StringQueryUnitTests {
 
 		List<ParameterBinding> bindings = query.getParameterBindings();
 
-		assertThat(bindings, hasSize(2));
+		assertThat(bindings).hasSize(2);
 		assertNamedBinding(LikeParameterBinding.class, "escapedWord", bindings.get(0));
 		assertNamedBinding(ParameterBinding.class, "word", bindings.get(1));
-		assertThat(query.getQueryString(), is("SELECT a FROM Article a WHERE a.overview LIKE :escapedWord ESCAPE '~'"
-				+ " OR a.content LIKE :escapedWord ESCAPE '~' OR a.title = :word ORDER BY a.articleId DESC"));
+		assertThat(query.getQueryString()).isEqualTo("SELECT a FROM Article a WHERE a.overview LIKE :escapedWord ESCAPE '~'"
+				+ " OR a.content LIKE :escapedWord ESCAPE '~' OR a.title = :word ORDER BY a.articleId DESC");
 	}
 
 	@Test // DATAJPA-483
@@ -207,7 +207,7 @@ public class StringQueryUnitTests {
 
 		List<ParameterBinding> bindings = query.getParameterBindings();
 
-		assertThat(bindings, hasSize(1));
+		assertThat(bindings).hasSize(1);
 		assertNamedBinding(InParameterBinding.class, "statuses", bindings.get(0));
 	}
 
@@ -218,7 +218,7 @@ public class StringQueryUnitTests {
 
 		List<ParameterBinding> bindings = query.getParameterBindings();
 
-		assertThat(bindings, hasSize(1));
+		assertThat(bindings).hasSize(1);
 		assertNamedBinding(InParameterBinding.class, "abonnés", bindings.get(0));
 	}
 
@@ -229,7 +229,7 @@ public class StringQueryUnitTests {
 
 		List<ParameterBinding> bindings = query.getParameterBindings();
 
-		assertThat(bindings, hasSize(1));
+		assertThat(bindings).hasSize(1);
 		assertNamedBinding(InParameterBinding.class, "øre", bindings.get(0));
 	}
 
@@ -240,7 +240,7 @@ public class StringQueryUnitTests {
 
 		List<ParameterBinding> bindings = query.getParameterBindings();
 
-		assertThat(bindings, hasSize(1));
+		assertThat(bindings).hasSize(1);
 		assertNamedBinding(InParameterBinding.class, "생일", bindings.get(0));
 	}
 
@@ -251,7 +251,7 @@ public class StringQueryUnitTests {
 
 		List<ParameterBinding> bindings = query.getParameterBindings();
 
-		assertThat(bindings, hasSize(1));
+		assertThat(bindings).hasSize(1);
 		assertNamedBinding(InParameterBinding.class, "ab1babc생일233", bindings.get(0));
 	}
 
@@ -266,7 +266,7 @@ public class StringQueryUnitTests {
 		StringQuery query = new StringQuery("select a from A a where a.b in :#{#bs} and a.c in :#{#cs}");
 		String queryString = query.getQueryString();
 
-		assertThat(queryString, is("select a from A a where a.b in :__$synthetic$__1 and a.c in :__$synthetic$__2"));
+		assertThat(queryString).isEqualTo("select a from A a where a.b in :__$synthetic$__1 and a.c in :__$synthetic$__2");
 	}
 
 	@Test // DATAJPA-712
@@ -275,15 +275,15 @@ public class StringQueryUnitTests {
 		StringQuery query = new StringQuery("select a from A a where a.b in ?#{#bs} and a.c in ?#{#cs}");
 		String queryString = query.getQueryString();
 
-		assertThat(queryString, is("select a from A a where a.b in ?1 and a.c in ?2"));
+		assertThat(queryString).isEqualTo("select a from A a where a.b in ?1 and a.c in ?2");
 	}
 
 	@Test // DATAJPA-864
 	public void detectsConstructorExpressions() {
 
-		assertThat(new StringQuery("select  new  Dto(a.foo, a.bar)  from A a").hasConstructorExpression(), is(true));
-		assertThat(new StringQuery("select new Dto (a.foo, a.bar) from A a").hasConstructorExpression(), is(true));
-		assertThat(new StringQuery("select a from A a").hasConstructorExpression(), is(false));
+		assertThat(new StringQuery("select  new  Dto(a.foo, a.bar)  from A a").hasConstructorExpression()).isTrue();
+		assertThat(new StringQuery("select new Dto (a.foo, a.bar) from A a").hasConstructorExpression()).isTrue();
+		assertThat(new StringQuery("select a from A a").hasConstructorExpression()).isFalse();
 	}
 
 	/**
@@ -294,8 +294,8 @@ public class StringQueryUnitTests {
 	public void detectsConstructorExpressionForDefaultConstructor() {
 
 		// Parentheses required
-		assertThat(new StringQuery("select new Dto() from A a").hasConstructorExpression(), is(true));
-		assertThat(new StringQuery("select new Dto from A a").hasConstructorExpression(), is(false));
+		assertThat(new StringQuery("select new Dto() from A a").hasConstructorExpression()).isTrue();
+		assertThat(new StringQuery("select new Dto from A a").hasConstructorExpression()).isFalse();
 	}
 
 	@Test // DATAJPA-1179
@@ -304,11 +304,11 @@ public class StringQueryUnitTests {
 		StringQuery query = new StringQuery("select a from A a where a.first = :#{#exp} or a.second = :#{#exp}");
 
 		List<ParameterBinding> bindings = query.getParameterBindings();
-		assertThat(bindings, not(empty()));
+		assertThat(bindings).isNotEmpty();
 
 		for (ParameterBinding binding : bindings) {
-			assertThat(binding.getName(), notNullValue());
-			assertThat(query.getQueryString(), containsString(binding.getName()));
+			assertThat(binding.getName()).isNotNull();
+			assertThat(query.getQueryString()).containsSequence(binding.getName());
 		}
 	}
 
@@ -360,14 +360,11 @@ public class StringQueryUnitTests {
 	@Test // DATAJPA-1200
 	public void testHasNamedParameter() {
 
-		SoftAssertions softly = new SoftAssertions();
-
 		checkHasNamedParameter("select something from x where id = :id", true, "named parameter");
 		checkHasNamedParameter("in the :id middle", true, "middle");
 		checkHasNamedParameter(":id start", true, "beginning");
 		checkHasNamedParameter(":id", true, "alone");
 		checkHasNamedParameter("select something from x where id = :id", true, "named parameter");
-		checkHasNamedParameter("select something from x where id = #something", true, "hash");
 		checkHasNamedParameter(":UPPERCASE", true, "uppercase");
 		checkHasNamedParameter(":lowercase", true, "lowercase");
 		checkHasNamedParameter(":2something", true, "beginning digit");
@@ -388,6 +385,7 @@ public class StringQueryUnitTests {
 		checkHasNamedParameter("\\:", false, "escaped colon");
 		checkHasNamedParameter("::id", false, "double colon with identifier");
 		checkHasNamedParameter("\\:id", false, "escaped colon with identifier");
+		checkHasNamedParameter("select something from x where id = #something", false, "hash");
 
 		softly.assertAll();
 	}
@@ -406,8 +404,6 @@ public class StringQueryUnitTests {
 
 	@Test // DATAJPA-1307
 	public void detectsMultiplePositionalParameterBindingsWithoutIndex() {
-
-		SoftAssertions softly = new SoftAssertions();
 
 		String queryString = "select u from User u where u.id in ? and u.names in ? and foo = ?";
 		StringQuery query = new StringQuery(queryString);
@@ -439,8 +435,6 @@ public class StringQueryUnitTests {
 	@Test // DATAJPA-1307
 	public void makesUsageOfJdbcStyleParameterAvailable() {
 
-		SoftAssertions softly = new SoftAssertions();
-
 		softly.assertThat(new StringQuery("something = ?").usesJdbcStyleParameters()).isTrue();
 
 		List<String> testQueries = Arrays.asList( //
@@ -462,8 +456,6 @@ public class StringQueryUnitTests {
 
 	@Test // DATAJPA-1307
 	public void questionMarkInStringLiteral() {
-
-		SoftAssertions softly = new SoftAssertions();
 
 		String queryString = "select '? ' from dual";
 		StringQuery query = new StringQuery(queryString);
@@ -534,16 +526,16 @@ public class StringQueryUnitTests {
 	private void assertPositionalBinding(Class<? extends ParameterBinding> bindingType, Integer position,
 			ParameterBinding expectedBinding) {
 
-		assertThat(bindingType.isInstance(expectedBinding), is(true));
-		assertThat(expectedBinding, is(notNullValue()));
-		assertThat(expectedBinding.hasPosition(position), is(true));
+		assertThat(bindingType.isInstance(expectedBinding)).isTrue();
+		assertThat(expectedBinding).isNotNull();
+		assertThat(expectedBinding.hasPosition(position)).isTrue();
 	}
 
 	private void assertNamedBinding(Class<? extends ParameterBinding> bindingType, String parameterName,
 			ParameterBinding expectedBinding) {
 
-		assertThat(bindingType.isInstance(expectedBinding), is(true));
-		assertThat(expectedBinding, is(notNullValue()));
-		assertThat(expectedBinding.hasName(parameterName), is(true));
+		assertThat(bindingType.isInstance(expectedBinding)).isTrue();
+		assertThat(expectedBinding).isNotNull();
+		assertThat(expectedBinding.hasName(parameterName)).isTrue();
 	}
 }
