@@ -340,7 +340,12 @@ public class StringQueryUnitTests {
 		checkAlias("SELECT FROM USER U", "U", "uppercase");
 		checkAlias("select u from  User u", "u", "simple query");
 		checkAlias("select u from  com.acme.User u", "u", "fully qualified package name");
-		checkAlias("select u from T05User u", "u", "intersting entity name");
+		checkAlias("select u from T05User u", "u", "interesting entity name");
+		checkAlias("from User ", null, "trailing space");
+		checkAlias("from User", null, "no trailing space");
+		checkAlias("from User as bs", "bs", "ignored as");
+		checkAlias("from User as AS", "AS", "ignored as using the second");
+		checkAlias("from User asas", "asas", "asas is weird but legal");
 
 		softly.assertAll();
 	}
@@ -466,6 +471,43 @@ public class StringQueryUnitTests {
 		softly.assertThat(query.getQueryString()).isEqualTo(queryString);
 		softly.assertThat(query.hasParameterBindings()).isFalse();
 		softly.assertThat(query.getParameterBindings()).hasSize(0);
+
+		softly.assertAll();
+	}
+
+	@Test // DATAJPA-1318
+	public void isNotDefaultProjection() {
+
+		List<String> queriesWithoutDefaultProjection = Arrays.asList( //
+				"select a, b from C as c", //
+				"SELECT a, b FROM C as c", //
+				"SELECT a, b FROM C", //
+				"SELECT a, b FROM C ", //
+				"select a, b from C ", //
+				"select a, b from C");
+
+		for (String queryString : queriesWithoutDefaultProjection) {
+			softly.assertThat(new StringQuery(queryString).isDefaultProjection()) //
+					.describedAs(queryString) //
+					.isFalse();
+		}
+
+		List<String> queriesWithDefaultProjection = Arrays.asList( //
+				"select c from C as c", //
+				"SELECT c FROM C as c", //
+				"SELECT c FROM C as c ", //
+				"SELECT c  FROM C as c", //
+				"SELECT  c FROM C as c", //
+				"SELECT  c FROM C as C", //
+				"SELECT  C FROM C as c", //
+				"SELECT  C FROM C as C" //
+		);
+
+		for (String queryString : queriesWithDefaultProjection) {
+			softly.assertThat(new StringQuery(queryString).isDefaultProjection()) //
+					.describedAs(queryString) //
+					.isTrue();
+		}
 
 		softly.assertAll();
 	}
