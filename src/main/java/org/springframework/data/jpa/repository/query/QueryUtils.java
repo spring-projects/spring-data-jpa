@@ -132,7 +132,7 @@ public abstract class QueryUtils {
 		builder.append(IDENTIFIER_GROUP); // Entity name, can be qualified (any
 		builder.append("(?:\\sas)*"); // exclude possible "as" keyword
 		builder.append("(?:\\s)+"); // at least one space separating
-		builder.append("(?!(?:where))(\\w*)"); // the actual alias
+		builder.append("(?!(?:where))(\\w+)"); // the actual alias
 
 		ALIAS_MATCH = compile(builder.toString(), CASE_INSENSITIVE);
 
@@ -544,7 +544,8 @@ public abstract class QueryUtils {
 		Assert.hasText(query, "Query must not be null or empty!");
 
 		Matcher matcher = PROJECTION_CLAUSE.matcher(query);
-		return matcher.find() ? matcher.group(1) : "";
+		String projection = matcher.find() ? matcher.group(1) : "";
+		return projection.trim();
 	}
 
 	/**

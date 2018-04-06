@@ -152,7 +152,7 @@ class StringQuery implements DeclaredQuery {
 	 */
 	@Override
 	public boolean isDefaultProjection() {
-		return getProjection().equals(alias);
+		return getProjection().equalsIgnoreCase(alias);
 	}
 
 	/*
