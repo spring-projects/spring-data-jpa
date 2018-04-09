@@ -15,8 +15,9 @@
  */
 package org.springframework.data.jpa.mapping;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 
 import java.util.Collections;
 
@@ -39,6 +40,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.data.jpa.repository.sample.CategoryRepository;
 import org.springframework.data.jpa.repository.sample.ProductRepository;
 import org.springframework.data.mapping.IdentifierAccessor;
+import org.springframework.data.mapping.PersistentPropertyPaths;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -159,5 +161,27 @@ public class JpaMetamodelMappingContextIntegrationTests {
 		JpaPersistentEntity<?> entity = context.getPersistentEntity(OrmXmlEntity.class);
 
 		assertThat(entity.getIdProperty(), is(notNullValue()));
+	}
+
+	@Test // DATAJPA-1320
+	public void detectsEmbeddableProperty() {
+
+		JpaPersistentEntity<?> persistentEntity = context.getPersistentEntity(User.class);
+		JpaPersistentProperty property = persistentEntity.getPersistentProperty("address");
+
+		assertThat(property.isEmbeddable()).isTrue();
+	}
+
+	@Test // DATAJPA-1320
+	public void traversesEmbeddablesButNoOtherMappingAnnotations() {
+
+		PersistentPropertyPaths<User, JpaPersistentProperty> paths = //
+				context.findPersistentPropertyPaths(User.class, __ -> true);
+
+		assertThat(paths.contains("address.city")).isTrue();
+
+		// Exists but is not selected
+		assertThat(context.getPersistentPropertyPath("colleagues.firstname", User.class)).isNotNull();
+		assertThat(paths.contains("colleagues.firstname")).isFalse();
 	}
 }

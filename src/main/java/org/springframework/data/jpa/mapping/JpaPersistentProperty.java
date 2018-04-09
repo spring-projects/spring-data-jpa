@@ -25,4 +25,11 @@ import org.springframework.data.mapping.PersistentProperty;
  */
 public interface JpaPersistentProperty extends PersistentProperty<JpaPersistentProperty> {
 
+	/**
+	 * Return whether the property is considered embeddable.
+	 * 
+	 * @return
+	 * @since 2.1
+	 */
+	boolean isEmbeddable();
 }

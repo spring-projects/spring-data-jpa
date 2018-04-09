@@ -16,11 +16,13 @@
 package org.springframework.data.jpa.mapping;
 
 import java.util.Set;
+import java.util.function.Predicate;
 
 import javax.persistence.metamodel.ManagedType;
 import javax.persistence.metamodel.Metamodel;
 
 import org.springframework.data.jpa.provider.PersistenceProvider;
+import org.springframework.data.mapping.PersistentPropertyPaths;
 import org.springframework.data.mapping.context.AbstractMappingContext;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mapping.model.Property;
@@ -90,6 +92,18 @@ public class JpaMetamodelMappingContext
 	@Override
 	protected boolean shouldCreatePersistentEntityFor(TypeInformation<?> type) {
 		return getMetamodelFor(type.getType()) != null;
+	}
+
+	/**
+	 * We customize the lookup of {@link PersistentPropertyPaths} by also traversing properties that are embeddables.
+	 * 
+	 * @see org.springframework.data.mapping.context.AbstractMappingContext#findPersistentPropertyPaths(java.lang.Class,
+	 *      java.util.function.Predicate)
+	 */
+	@Override
+	public <T> PersistentPropertyPaths<T, JpaPersistentProperty> findPersistentPropertyPaths(Class<T> type,
+			Predicate<? super JpaPersistentProperty> predicate) {
+		return doFindPersistentPropertyPaths(type, predicate, it -> it.isEmbeddable());
 	}
 
 	/**

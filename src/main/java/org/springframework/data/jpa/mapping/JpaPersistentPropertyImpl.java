@@ -75,7 +75,6 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 		annotations.add(OneToOne.class);
 		annotations.add(ManyToMany.class);
 		annotations.add(ManyToOne.class);
-		annotations.add(Embedded.class);
 
 		ASSOCIATION_ANNOTATIONS = Collections.unmodifiableSet(annotations);
 
@@ -98,6 +97,7 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 	private final JpaMetamodel metamodel;
 
 	private final Lazy<Boolean> isIdProperty;
+	private final Lazy<Boolean> isAssociation;
 
 	/**
 	 * Creates a new {@link JpaPersistentPropertyImpl}
@@ -114,6 +114,7 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 
 		Assert.notNull(metamodel, "Metamodel must not be null!");
 
+		this.isAssociation = Lazy.of(() -> ASSOCIATION_ANNOTATIONS.stream().anyMatch(this::isAnnotationPresent));
 		this.usePropertyAccess = detectPropertyAccess();
 		this.associationTargetType = detectAssociationTargetType();
 		this.updateable = detectUpdatability();
@@ -132,14 +133,16 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 		return associationTargetType != null ? associationTargetType.getType() : super.getActualType();
 	}
 
-	/*
+	/* 
 	 * (non-Javadoc)
-	 * @see org.springframework.data.mapping.model.AbstractPersistentProperty#getPersistentEntityType()
+	 * @see org.springframework.data.mapping.PersistentProperty#getPersistentEntityTypes()
 	 */
 	@Override
-	public Iterable<? extends TypeInformation<?>> getPersistentEntityType() {
-		return associationTargetType != null ? Collections.singleton(associationTargetType)
-				: super.getPersistentEntityType();
+	public Iterable<? extends TypeInformation<?>> getPersistentEntityTypes() {
+
+		return associationTargetType != null //
+				? Collections.singleton(associationTargetType) //
+				: super.getPersistentEntityTypes();
 	}
 
 	/*
@@ -166,14 +169,7 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 	 */
 	@Override
 	public boolean isAssociation() {
-
-		for (Class<? extends Annotation> annotationType : ASSOCIATION_ANNOTATIONS) {
-			if (findAnnotation(annotationType) != null) {
-				return true;
-			}
-		}
-
-		return getType().isAnnotationPresent(Embeddable.class);
+		return isAssociation.get();
 	}
 
 	/*
@@ -219,6 +215,15 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 	@Override
 	public boolean isWritable() {
 		return updateable && super.isWritable();
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.jpa.mapping.JpaPersistentProperty#isEmbeddable()
+	 */
+	@Override
+	public boolean isEmbeddable() {
+		return isAnnotationPresent(Embedded.class) || hasActualTypeAnnotation(Embeddable.class);
 	}
 
 	/**

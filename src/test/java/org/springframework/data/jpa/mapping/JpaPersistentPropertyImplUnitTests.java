@@ -82,13 +82,13 @@ public class JpaPersistentPropertyImplUnitTests {
 	}
 
 	@Test // DATAJPA-484
-	public void considersEmbeddablePropertyAnAssociation() {
-		assertThat(entity.getRequiredPersistentProperty("embeddable").isAssociation(), is(true));
+	public void doesNotConsiderAnEmbeddablePropertyAnAssociation() {
+		assertThat(entity.getRequiredPersistentProperty("embeddable").isAssociation(), is(false));
 	}
 
 	@Test // DATAJPA-484
-	public void considersEmbeddedPropertyAnAssociation() {
-		assertThat(entity.getRequiredPersistentProperty("embedded").isAssociation(), is(true));
+	public void doesNotConsiderAnEmbeddedPropertyAnAssociation() {
+		assertThat(entity.getRequiredPersistentProperty("embedded").isAssociation(), is(false));
 	}
 
 	@Test // DATAJPA-619
@@ -137,7 +137,7 @@ public class JpaPersistentPropertyImplUnitTests {
 		assertThat(property.getType(), is(typeCompatibleWith(Api.class)));
 		assertThat(property.getActualType(), is(typeCompatibleWith(Implementation.class)));
 
-		Iterable<? extends TypeInformation<?>> entityType = property.getPersistentEntityType();
+		Iterable<? extends TypeInformation<?>> entityType = property.getPersistentEntityTypes();
 		assertThat(entityType.iterator().hasNext(), is(true));
 		assertThat(entityType.iterator().next(), is((TypeInformation) ClassTypeInformation.from(Implementation.class)));
 	}
