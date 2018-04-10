@@ -2,19 +2,23 @@
 = New & Noteworthy
 
 [[new-features.1-11-0]]
-== What's new in Spring Data JPA 1.11
+== What's New in Spring Data JPA 1.11
+
+Spring Data JPA 1.11 added the following features:
+
 * Improved compatibility with Hibernate 5.2.
 * Support any-match mode for <<query-by-example>>.
 * Paged query execution optimizations.
-* Support for `exists` projection in repository query derivation.
+* Support for the `exists` projection in repository query derivation.
 
 [[new-features.1-10-0]]
-== What's new in Spring Data JPA 1.10
+== What's New in Spring Data JPA 1.10
+
+Spring Data JPA 1.10 added the following features:
 
 * Support for <<projections>> in repository query methods.
 * Support for <<query-by-example>>.
-* The following annotations have been enabled to build own, composed annotations: `@EntityGraph`, `@Lock`, `@Modifying`, `@Query`, `@QueryHints` and `@Procedure`.
-* Support for `Contains` keyword on collection expressions.
-* AttributeConverters for `ZoneId` of JSR-310 and ThreeTenBP.
-* Upgrade to Querydsl 4, Hibernate 5, OpenJPA 2.4 and EclipseLink 2.6.1.
-
+* The following annotations have been enabled to build on composed annotations: `@EntityGraph`, `@Lock`, `@Modifying`, `@Query`, `@QueryHints`, and `@Procedure`.
+* Support for the `Contains` keyword on collection expressions.
+* `AttributeConverter` implementations for `ZoneId` of JSR-310 and ThreeTenBP.
+* Upgrade to Querydsl 4, Hibernate 5, OpenJPA 2.4, and EclipseLink 2.6.1.

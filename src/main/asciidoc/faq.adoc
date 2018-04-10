@@ -1,12 +1,11 @@
 [[faq]]
 [appendix]
-= Frequently asked questions
+= Frequently Asked Questions
 
 == Common
 
 [qanda]
-I'd like to get more detailed logging information on what methods are called inside `JpaRepository`, e.g. How can I gain them?::
-  You can make use of `CustomizableTraceInterceptor` provided by Spring:
+I'd like to get more detailed logging information on what methods are called inside `JpaRepository` (for exmaple). How can I gain them? :: You can make use of `CustomizableTraceInterceptor` provided by Spring, as shown in the following example:
 +
 [source, xml]
 ----
@@ -25,10 +24,9 @@ I'd like to get more detailed logging information on what methods are called ins
 == Infrastructure
 
 [qanda]
-Currently I have implemented a repository layer based on `HibernateDaoSupport`. I create a `SessionFactory` by using Spring's `AnnotationSessionFactoryBean`. How do I get Spring Data repositories working in this environment?::
-  You have to replace `AnnotationSessionFactoryBean` with the `HibernateJpaSessionFactoryBean` as follows:
+Currently I have implemented a repository layer based on `HibernateDaoSupport`. I create a `SessionFactory` by using Spring's `AnnotationSessionFactoryBean`. How do I get Spring Data repositories working in this environment? :: You have to replace `AnnotationSessionFactoryBean` with the `HibernateJpaSessionFactoryBean`, as follows:
 +
-.Looking up a SessionFactory from a HibernateEntityManagerFactory
+.Looking up a `SessionFactory` from a `HibernateEntityManagerFactory`
 ====
 [source, xml]
 ----
@@ -41,6 +39,4 @@ Currently I have implemented a repository layer based on `HibernateDaoSupport`. 
 == Auditing
 
 [qanda]
-I want to use Spring Data JPA auditing capabilities but have my database already set up to set modification and creation date on entities. How to prevent Spring Data from setting the date programmatically.::
-  Just use the `set-dates` attribute of the `auditing` namespace element to false.
-
+I want to use Spring Data JPA auditing capabilities but have my database already configured to set modification and creation date on entities. How can I prevent Spring Data from setting the date programmatically. :: Set the `set-dates` attribute of the `auditing` namespace element to `false`.
