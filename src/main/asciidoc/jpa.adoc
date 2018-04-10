@@ -1,17 +1,22 @@
 [[jpa.repositories]]
 = JPA Repositories
 
-This chapter will point out the specialties for repository support for JPA. This builds on the core repository support explained in <<repositories>>. So make sure you've got a sound understanding of the basic concepts explained there.
+This chapter points out the specialties for repository support for JPA. This builds on the core repository support explained in "`<<repositories>>`". Make sure you have a sound understanding of the basic concepts explained there.
 
 [[jpa.introduction]]
 == Introduction
 
+This section describes the basics of configuring Spring Data JPA through either:
+
+* "`<<jpa.namespace>>`" (XML configuration)
+* "`<<jpa.java-config>>`" (Java configuration)
+
 [[jpa.namespace]]
-=== Spring namespace
+=== Spring Namespace
 
-The JPA module of Spring Data contains a custom namespace that allows defining repository beans. It also contains certain features and element attributes that are special to JPA. Generally the JPA repositories can be set up using the `repositories` element:
+The JPA module of Spring Data contains a custom namespace that allows defining repository beans. It also contains certain features and element attributes that are special to JPA. Generally, the JPA repositories can be set up by   using the `repositories` element, as shown in the following example:
 
-.Setting up JPA repositories using the namespace
+.Setting up JPA repositories by using the namespace
 ====
 [source, xml]
 ----
@@ -30,23 +35,23 @@ The JPA module of Spring Data contains a custom namespace that allows defining r
 ----
 ====
 
-Using this element looks up Spring Data repositories as described in <<repositories.create-instances>>. Beyond that it activates persistence exception translation for all beans annotated with `@Repository` to let exceptions being thrown by the JPA persistence providers be converted into Spring's `DataAccessException` hierarchy.
+Using the `repositories` element looks up Spring Data repositories as described in "`<<repositories.create-instances>>`". Beyond that, it activates persistence exception translation for all beans annotated with `@Repository`, to let exceptions being thrown by the JPA persistence providers be converted into Spring's `DataAccessException` hierarchy.
 
-==== Custom namespace attributes
-Beyond the default attributes of the `repositories` element the JPA namespace offers additional attributes to gain more detailed control over the setup of the repositories:
+==== Custom Namespace Attributes
+Beyond the default attributes of the `repositories` element, the JPA namespace offers additional attributes to let you gain more detailed control over the setup of the repositories:
 
-.Custom JPA-specific attributes of the repositories element
+.Custom JPA-specific attributes of the `repositories` element
 [options = "autowidth"]
 |===============
-|`entity-manager-factory-ref`|Explicitly wire the `EntityManagerFactory` to be used with the repositories being detected by the `repositories` element. Usually used if multiple `EntityManagerFactory` beans are used within the application. If not configured we will automatically lookup the `EntityManagerFactory` bean with the name `entityManagerFactory` in the `ApplicationContext`.
-|`transaction-manager-ref`|Explicitly wire the `PlatformTransactionManager` to be used with the repositories being detected by the `repositories` element. Usually only necessary if multiple transaction managers and/or `EntityManagerFactory` beans have been configured. Default to a single defined `PlatformTransactionManager` inside the current `ApplicationContext`.
+|`entity-manager-factory-ref`|Explicitly wire the `EntityManagerFactory` to be used with the repositories being detected by the `repositories` element. Usually used if multiple `EntityManagerFactory` beans are used within the application. If not configured, Spring Data automatically looks up the `EntityManagerFactory` bean with the name `entityManagerFactory` in the `ApplicationContext`.
+|`transaction-manager-ref`|Explicitly wire the `PlatformTransactionManager` to be used with the repositories being detected by the `repositories` element. Usually only necessary if multiple transaction managers or `EntityManagerFactory` beans have been configured. Default to a single defined `PlatformTransactionManager` inside the current `ApplicationContext`.
 |===============
 
-Note that we require a `PlatformTransactionManager` bean named `transactionManager` to be present if no explicit `transaction-manager-ref` is defined.
+NOTE: Spring Data JPA requires a `PlatformTransactionManager` bean named `transactionManager` to be present if no explicit `transaction-manager-ref` is defined.
 
 [[jpa.java-config]]
-=== Annotation based configuration
-The Spring Data JPA repositories support cannot only be activated through an XML namespace but also using an annotation through JavaConfig.
+=== Annotation-based Configuration
+The Spring Data JPA repositories support can be activated not only through an XML namespace but also by using an annotation through JavaConfig, as shown in the following example:
 
 .Spring Data JPA repositories using JavaConfig
 ====
@@ -87,44 +92,44 @@ class ApplicationConfig {
 }
 ----
 ====
-NOTE: It's important to create `LocalContainerEntityManagerFactoryBean` and not `EntityManagerFactory` directly since the former also participates in exception translation mechanisms besides simply creating `EntityManagerFactory`.
+NOTE: You must create `LocalContainerEntityManagerFactoryBean` and not `EntityManagerFactory` directly, since the former also participates in exception translation mechanisms in addition to creating `EntityManagerFactory`.
 
-The just shown configuration class sets up an embedded HSQL database using the `EmbeddedDatabaseBuilder` API of spring-jdbc. We then set up a `EntityManagerFactory` and use Hibernate as sample persistence provider. The last infrastructure component declared here is the `JpaTransactionManager`. We finally activate Spring Data JPA repositories using the `@EnableJpaRepositories` annotation which essentially carries the same attributes as the XML namespace does. If no base package is configured it will use the one the configuration class resides in.
+The preceding configuration class sets up an embedded HSQL database by using the `EmbeddedDatabaseBuilder` API of `spring-jdbc`. Spring Data then sets up an `EntityManagerFactory` and uses Hibernate as the sample persistence provider. The last infrastructure component declared here is the `JpaTransactionManager`. Finally, the example activates Spring Data JPA repositories by using the `@EnableJpaRepositories` annotation, which essentially carries the same attributes as the XML namespace. If no base package is configured, it uses the one in which the configuration class resides.
 
 [[jpa.entity-persistence]]
-== Persisting entities
+== Persisting Entities
+
+This section describes how to persist (save) entities with Spring Data JPA.
 
 [[jpa.entity-persistence.saving-entites]]
-=== Saving entities
+=== Saving Entities
 
-Saving an entity can be performed via the `CrudRepository.save(…)`-Method. It will persist or merge the given entity using the underlying JPA `EntityManager`. If the entity has not been persisted yet Spring Data JPA will save the entity via a call to the `entityManager.persist(…)` method, otherwise the `entityManager.merge(…)` method will be called.
+Saving an entity can be performed with the `CrudRepository.save(…)` method. It persists or merges the given entity by using the underlying JPA `EntityManager`. If the entity has not yet been persisted, Spring Data JPA saves the entity with a call to the `entityManager.persist(…)` method. Otherwise, it calls the `entityManager.merge(…)` method.
 
-==== Entity state detection strategies
+==== Entity State-detection Strategies
 Spring Data JPA offers the following strategies to detect whether an entity is new or not:
 
-.Options for detection whether an entity is new in Spring Data JPA
-[options = "autowidth"]
-|===============
-|Id-Property inspection (*default*)|By default Spring Data JPA inspects the identifier property of the given entity. If the identifier property is `null`, then the entity will be assumed as new, otherwise as not new.
-|Implementing `Persistable`|If an entity implements `Persistable`, Spring Data JPA will delegate the new detection to the `isNew(…)` method of the entity. See the link:$$http://docs.spring.io/spring-data/data-commons/docs/current/api/index.html?org/springframework/data/domain/Persistable.html$$[JavaDoc] for details.
-|Implementing `EntityInformation`|You can customize the `EntityInformation` abstraction used in the `SimpleJpaRepository` implementation by creating a subclass of `JpaRepositoryFactory` and overriding the `getEntityInformation(…)` method accordingly. You then have to register the custom implementation of `JpaRepositoryFactory` as a Spring bean. Note that this should be rarely necessary. See the link:$$http://docs.spring.io/spring-data/data-jpa/docs/current/api/index.html?org/springframework/data/jpa/repository/support/JpaRepositoryFactory.html$$[JavaDoc] for details.
-|===============
+* Id-Property inspection (*default*): By default Spring Data JPA inspects the identifier property of the given entity. If the identifier property is `null`, then the entity is assumed to be new. Otherwise, it is assumed to be not new.
+* Implementing `Persistable`: If an entity implements `Persistable`, Spring Data JPA delegates the new detection to the `isNew(…)` method of the entity. See the link:$$http://docs.spring.io/spring-data/data-commons/docs/current/api/index.html?org/springframework/data/domain/Persistable.html$$[JavaDoc] for details.
+* Implementing `EntityInformation`: You can customize the `EntityInformation` abstraction used in the `SimpleJpaRepository` implementation by creating a subclass of `JpaRepositoryFactory` and overriding the `getEntityInformation(…)` method accordingly. You then have to register the custom implementation of `JpaRepositoryFactory` as a Spring bean. Note that this should be rarely necessary. See the link:$$http://docs.spring.io/spring-data/data-jpa/docs/current/api/index.html?org/springframework/data/jpa/repository/support/JpaRepositoryFactory.html$$[JavaDoc] for details.
 
 [[jpa.query-methods]]
-== Query methods
+== Query Methods
+
+This section describes the various ways to create a query with Spring Data JPA.
 
 [[jpa.sample-app.finders.strategies]]
-=== Query lookup strategies
+=== Query Lookup Strategies
 
-The JPA module supports defining a query manually as String or have it being derived from the method name.
+The JPA module supports defining a query manually as a String or having it being derived from the method name.
 
-==== Declared queries
+==== Declared Queries
 Although getting a query derived from the method name is quite convenient, one might face the situation in which either the method name parser does not support the keyword one wants to use or the method name would get unnecessarily ugly. So you can either use JPA named queries through a naming convention (see <<jpa.query-methods.named-queries>> for more information) or rather annotate your query method with `@Query` (see <<jpa.query-methods.at-query>> for details).
 
 [[jpa.query-methods.query-creation]]
-=== Query creation
+=== Query Creation
 
-Generally the query creation mechanism for JPA works as described in <<repositories.query-methods>>. Here's a short example of what a JPA query method translates into:
+Generally, the query creation mechanism for JPA works as described in "`<<repositories.query-methods>>`". The following example shows what a JPA query method translates into:
 
 .Query creation from method names
 ====
@@ -134,8 +139,10 @@ public interface UserRepository extends Repository<User, Long> {
   List<User> findByEmailAddressAndLastname(String emailAddress, String lastname);
 }
 ----
-We will create a query using the JPA criteria API from this but essentially this translates into the following query: `select u from User u where u.emailAddress = ?1 and u.lastname = ?2`. Spring Data JPA will do a property check and traverse nested properties as described in <<repositories.query-methods.query-property-expressions>>. Here's an overview of the keywords supported for JPA and what a method containing that keyword essentially translates to.
+We create a query using the JPA criteria API from this, but, essentially, this translates into the following query: `select u from User u where u.emailAddress = ?1 and u.lastname = ?2`. Spring Data JPA does a property check and traverses nested properties, as described in "`<<repositories.query-methods.query-property-expressions>>`".
 ====
+
+The following table describes the keywords supported for JPA and what a method containing that keyword translates to:
 
 .Supported keywords inside method names
 [options = "header, autowidth"]
@@ -167,21 +174,15 @@ We will create a query using the JPA criteria API from this but essentially this
 |`IgnoreCase`|`findByFirstnameIgnoreCase`|`… where UPPER(x.firstame) = UPPER(?1)`
 |===============
 
-[NOTE]
-====
-`In` and `NotIn` also take any subclass of `Collection` as parameter as well as arrays or varargs. For other syntactical versions of the very same logical operator check <<repository-query-keywords>>.
-====
+NOTE: `In` and `NotIn` also take any subclass of `Collection` as aparameter as well as arrays or varargs. For other syntactical versions of the same logical operator, check "`<<repository-query-keywords>>`".
 
 [[jpa.query-methods.named-queries]]
-=== Using JPA NamedQueries
+=== Using JPA Named Queries
 
-[NOTE]
-====
-The examples use simple `<named-query />` element and `@NamedQuery` annotation. The queries for these configuration elements have to be defined in JPA query language. Of course you can use `<named-native-query />` or `@NamedNativeQuery` too. These elements allow you to define the query in native SQL by losing the database platform independence.
-====
+NOTE: The examples use the `<named-query />` element and `@NamedQuery` annotation. The queries for these configuration elements have to be defined in the JPA query language. Of course, you can use `<named-native-query />` or `@NamedNativeQuery` too. These elements let you define the query in native SQL by losing the database platform independence.
 
-==== XML named query definition
-To use XML configuration simply add the necessary `<named-query />` element to the `orm.xml` JPA configuration file located in `META-INF` folder of your classpath. Automatic invocation of named queries is enabled by using some defined naming convention. For more details see below.
+==== XML Named Query Definition
+To use XML configuration, add the necessary `<named-query />` element to the `orm.xml` JPA configuration file located in the `META-INF` folder of your classpath. Automatic invocation of named queries is enabled by using some defined naming convention. For more details, see below.
 
 .XML named query configuration
 ====
@@ -193,12 +194,12 @@ To use XML configuration simply add the necessary `<named-query />` element to t
 ----
 ====
 
-As you can see the query has a special name which will be used to resolve it at runtime.
+The query has a special name that is used to resolve it at runtime.
 
-==== Annotation configuration
-Annotation configuration has the advantage of not needing another configuration file to be edited, probably lowering maintenance costs. You pay for that benefit by the need to recompile your domain class for every new query declaration.
+==== Annotation-based Configuration
+Annotation-based configuration has the advantage of not needing another configuration file to be edited, lowering maintenance effort. You pay for that benefit by the need to recompile your domain class for every new query declaration.
 
-.Annotation based named query configuration
+.Annotation-based named query configuration
 ====
 [source, java]
 ----
@@ -211,8 +212,8 @@ public class User {
 ----
 ====
 
-==== Declaring interfaces
-To allow execution of these named queries all you need to do is to specify the `UserRepository` as follows:
+==== Declaring Interfaces
+To allow execution of these named queries, specify the `UserRepository` as follows:
 
 .Query method declaration in UserRepository
 ====
@@ -227,16 +228,18 @@ public interface UserRepository extends JpaRepository<User, Long> {
 ----
 ====
 
-Spring Data will try to resolve a call to these methods to a named query, starting with the simple name of the configured domain class, followed by the method name separated by a dot. So the example here would use the named queries defined above instead of trying to create a query from the method name.
+Spring Data tries to resolve a call to these methods to a named query, starting with the simple name of the configured domain class, followed by the method name separated by a dot. So the preceding example would use the named queries defined in the examlpe instead of trying to create a query from the method name.
 
 [[jpa.query-methods.at-query]]
-=== Using @Query
+=== Using `@Query`
 
-Using named queries to declare queries for entities is a valid approach and works fine for a small number of queries. As the queries themselves are tied to the Java method that executes them you actually can bind them directly using the Spring Data JPA `@Query` annotation rather than annotating them to the domain class. This will free the domain class from persistence specific information and co-locate the query to the repository interface.
+Using named queries to declare queries for entities is a valid approach and works fine for a small number of queries. As the queries themselves are tied to the Java method that executes them, you can actually bind them directly by using the Spring Data JPA `@Query` annotation rather than annotating them to the domain class. This frees the domain class from persistence specific information and co-locates the query to the repository interface.
 
-Queries annotated to the query method will take precedence over queries defined using `@NamedQuery` or named queries declared in `orm.xml`.
+Queries annotated to the query method take precedence over queries defined using `@NamedQuery` or named queries declared in `orm.xml`.
 
-.Declare query at the query method using @Query
+The following example shows a query created with the `@Query` annotation:
+
+.Declare query at the query method using `@Query`
 ====
 [source, java]
 ----
@@ -248,11 +251,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
 ----
 ====
 
-==== Using advanced `LIKE` expressions
+==== Using Advanced `LIKE` Expressions
 
-The query execution mechanism for manually defined queries using @Query allows the definition of advanced `LIKE` expressions inside the query definition.
+The query execution mechanism for manually defined queries created with `@Query` allows the definition of advanced `LIKE` expressions inside the query definition, as shown in the following example:
 
-.Advanced like-expressions in @Query
+.Advanced `like` expressions in @Query
 ====
 [source, java]
 ----
@@ -264,11 +267,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
 ----
 ====
 
-In the just shown sample `LIKE` delimiter character `%` is recognized and the query transformed into a valid JPQL query (removing the `%`). Upon query execution the parameter handed into the method call gets augmented with the previously recognized `LIKE` pattern.
+In the preceding example, the `LIKE` delimiter character (`%`) is recognized, and the query is transformed into a valid JPQL query (removing the `%`). Upon query execution, the parameter passed to the method call gets augmented with the previously recognized `LIKE` pattern.
 
-==== Native queries
+==== Native Queries
 
-The `@Query` annotation allows to execute native queries by setting the `nativeQuery` flag to true.
+The `@Query` annotation allows for running native queries by setting the `nativeQuery` flag to true, as shown in the following example:
 
 .Declare a native query at the query method using @Query
 ====
@@ -283,9 +286,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
 ====
 
-Note, that we currently don't support execution of dynamic sorting for native queries as we'd have to manipulate the actual query declared and we cannot do this reliably for native SQL. You can however use native queries for pagination by specifying the count query yourself:
+NOTE: Spring Data JPA does not currently support dynamic sorting for native queries, because it would have to manipulate the actual query declared, which it cannot do reliably for native SQL. You can, however, use native queries for pagination by specifying the count query yourself, as shown in the following example:
 
-.Declare native count queries for pagination at the query method using @Query
+.Declare native count queries for pagination at the query method by using `@Query`
 ====
 [source, java]
 ----
@@ -300,21 +303,20 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
 ====
 
-This also works with named native queries by adding the suffix `.count` to a copy of your query. Be aware that you probably must register a result set mapping for your count query, though.
+A similar approach also works with named native queries, by adding the `.count` suffix to a copy of your query. You probably need to register a result set mapping for your count query, though.
 
 [[jpa.query-methods.sorting]]
 === Using Sort
 
-Sorting can be done be either providing a `PageRequest` or using `Sort` directly. The properties actually used within the `Order` instances of `Sort` need to match to your domain model, which means they need to resolve to either a property or an alias used within the query. The JPQL defines this as a _state_field_path_expression_.
+Sorting can be done be either providing a `PageRequest` or by using `Sort` directly. The properties actually used within the `Order` instances of `Sort` need to match your domain model, which means they need to resolve to either a property or an alias used within the query. The JPQL defines this as a state field path expression.
 
-[NOTE]
-====
-Using any non referenceable path expression leads to an Exception.
-====
+NOTE: Using any non-referenceable path expression leads to an `Exception`.
 
-Using `Sort` together with <<jpa.query-methods.at-query, @Query>> however allows you to sneak in non path checked `Order` instances containing _functions_ within the `ORDER BY` clause. This is possible because the `Order` is just appended to the given query string. By default we will reject any `Order` instance containing function calls, but you can use `JpaSort.unsafe` to add potentially unsafe ordering.
+However, using `Sort` together with <<jpa.query-methods.at-query, `@Query`>> lets you sneak in non-path-checked `Order` instances containing functions within the `ORDER BY` clause. This is possible because the `Order` is appended to the given query string. By default, Spring Data JPA rejects any `Order` instance containing function calls, but you can use `JpaSort.unsafe` to add potentially unsafe ordering.
 
-.Using Sort and JpaSort
+The following example uses `Sort` and `JpaSort`, including an unsafe option on `JpaSort`:
+
+.Using `Sort` and `JpaSort`
 ====
 [source, java]
 ----
@@ -339,9 +341,9 @@ repo.findByAsArrayAndSort("bolton", new Sort("fn_len"));              <4>
 ====
 
 [[jpa.named-parameters]]
-=== Using named parameters
+=== Using Named Parameters
 
-By default Spring Data JPA will use position based parameter binding as described in all the samples above. This makes query methods a little error prone to refactoring regarding the parameter position. To solve this issue you can use `@Param` annotation to give a method parameter a concrete name and bind the name in the query.
+By default, Spring Data JPA uses position-based parameter binding, as described in all the preceding examples. This makes query methods a little error-prone when refactoring regarding the parameter position. To solve this issue, you can use `@Param` annotation to give a method parameter a concrete name and bind the name in the query, as shown in the following example:
 
 .Using named parameters
 ====
@@ -355,31 +357,17 @@ public interface UserRepository extends JpaRepository<User, Long> {
 }
 ----
 ====
-Note that the method parameters are switched according to the occurrence in the query defined.
 
-[NOTE]
-====
-Spring 4 fully supports Java 8’s parameter name discovery based on the `-parameters` compiler flag. Using this flag in your build as an alternative to debug information, you can omit the `@Param` annotation for named parameters.
-====
+NOTE: The method parameters are switched according to their order in the defined query.
+
+NOTE: As of version 4, Spring fully supports Java 8’s parameter name discovery based on the `-parameters` compiler flag. By using this flag in your build as an alternative to debug information, you can omit the `@Param` annotation for named parameters.
 
 [[jpa.query.spel-expressions]]
-=== Using SpEL expressions
+=== Using SpEL Expressions
 
-As of Spring Data JPA release 1.4 we support the usage of restricted SpEL template expressions in manually defined queries via `@Query`. Upon query execution these expressions are evaluated against a predefined set of variables. We support the following list of variables to be used in a manual query.
+As of Spring Data JPA release 1.4, we support the usage of restricted SpEL template expressions in manually defined queries that are defined with `@Query`. Upon query execution, these expressions are evaluated against a predefined set of variables. Spring Data JPA supports a variable called `entityName`. Its usage is `select x from #{#entityName} x`. It inserts the `entityName` of the domain type associated with the given repository. The `entityName` is resolved as follows: If the domain type has set the name property on the `@Entity` annotation, it is used. Otherwise, the simple class-name of the domain type is used.
 
-.Supported variables inside SpEL based query templates
-[options="header, autowidth"]
-|===============
-|Variable|Usage|Description
-|`entityName`|`select x from #{#entityName} x`|Inserts the `entityName` of the domain type associated with the given Repository. The `entityName` is resolved as follows: If the domain type has set the name property on the `@Entity` annotation then it will be used. Otherwise the simple class-name of the domain type will be used.
-|===============
-
-The following example demonstrates one use case for the `+#{#entityName}+` expression in a query string where you want to define a repository interface with a query method with a manually defined query. In order not to have to state the actual entity name in the query string of a `@Query` annotation one can use the `+#{#entityName}+` Variable.
-
-[NOTE]
-====
-The `entityName` can be customized via the `@Entity` annotation. Customizations via `orm.xml` are not supported for the SpEL expressions.
-====
+The following example demonstrates one use case for the `+#{#entityName}+` expression in a query string where you want to define a repository interface with a query method and a manually defined query:
 
 .Using SpEL expressions in repository query methods - entityName
 ====
@@ -403,9 +391,13 @@ public interface UserRepository extends JpaRepository<User,Long> {
 ----
 ====
 
-Of course you could have just used User in the query declaration directly but that would require you to change the query as well. The reference to `#entityName` will pick up potential future remappings of the User class to a different entity name (e.g. by using `@Entity(name = "MyUser")`.
+To avoid stating the actual entity name in the query string of a `@Query` annotation, you can use the `+#{#entityName}+` variable.
 
-Another use case for the `#{#entityName}` expression in a query string is if you want to define a generic repository interface with specialized repository interfaces for a concrete domain type. In order not to have to repeat the definition of custom query methods on the concrete interfaces you can use the entity name expression in the query string of the `@Query` annotation in the generic repository interface.
+NOTE: The `entityName` can be customized by using the `@Entity` annotation. Customizations in `orm.xml` are not supported for the SpEL expressions.
+
+Of course, you could have just used `User` in the query declaration directly, but that would require you to change the query as well. The reference to `#entityName` picks up potential future remappings of the `User` class to a different entity name (for example, by using `@Entity(name = "MyUser")`.
+
+Another use case for the `#{#entityName}` expression in a query string is if you want to define a generic repository interface with specialized repository interfaces for a concrete domain type. To not repeat the definition of custom query methods on the concrete interfaces, you can use the entity name expression in the query string of the `@Query` annotation in the generic repository interface, as shown in the following example:
 
 .Using SpEL expressions in repository query methods - entityName with inheritance
 ====
@@ -433,12 +425,12 @@ public interface ConcreteRepository
 ----
 ====
 
-In the example the interface `MappedTypeRepository` is the common parent interface for a few domain types extending `AbstractMappedType`. It also defines the generic method `findAllByAttribute(…)` which can be used on instances of the specialized repository interfaces. If you now invoke `findByAllAttribute(…)` on `ConcreteRepository` the query being executed will be `select t from ConcreteType t where t.attribute = ?1`.
+In the preceding example, the `MappedTypeRepository` interface is the common parent interface for a few domain types extending `AbstractMappedType`. It also defines the generic `findAllByAttribute(…)` method, which can be used on instances of the specialized repository interfaces. If you now invoke `findByAllAttribute(…)` on `ConcreteRepository`, the query becomes `select t from ConcreteType t where t.attribute = ?1`.
 
 [[jpa.modifying-queries]]
-=== Modifying queries
+=== Modifying Queries
 
-All the sections above describe how to declare queries to access a given entity or collection of entities. Of course you can add custom modifying behaviour by using facilities described in <<repositories.custom-implementations>>. As this approach is feasible for comprehensive custom functionality, you can achieve the execution of modifying queries that actually only need parameter binding by annotating the query method with `@Modifying`:
+All the previous sections describe how to declare queries to access a given entity or collection of entities. You can add custom modifying behavior by using the facilities described in "`<<repositories.custom-implementations>>`". As this approach is feasible for comprehensive custom functionality, you can modify queries that only need parameter binding by annotating the query method with `@Modifying`, as shown in the following example:
 
 .Declaring manipulating queries
 ====
@@ -450,11 +442,11 @@ int setFixedFirstnameFor(String firstname, String lastname);
 ----
 ====
 
-This will trigger the query annotated to the method as updating query instead of a selecting one. As the `EntityManager` might contain outdated entities after the execution of the modifying query, we do not automatically clear it (see JavaDoc of `EntityManager.clear()` for details) since this will effectively drop all non-flushed changes still pending in the `EntityManager`. If you wish the `EntityManager` to be cleared automatically you can set `@Modifying` annotation's `clearAutomatically` attribute to `true`.
+Doing so triggers the query annotated to the method as an updating query instead of a selecting one. As the `EntityManager` might contain outdated entities after the execution of the modifying query, we do not automatically clear it (see the https://docs.oracle.com/javaee/7/api/javax/persistence/EntityManager.html[JavaDoc] of `EntityManager.clear()` for details), since this effectively drops all non-flushed changes still pending in the `EntityManager`. If you wish the `EntityManager` to be cleared automatically, you can set the `@Modifying` annotation's `clearAutomatically` attribute to `true`.
 
 [[jpa.modifying-queries.derived-delete]]
-==== Derived delete queries
-Spring Data JPA also supports derived delete queries that allow you to avoid having to declare the JPQL query explicitly.
+==== Derived Delete Queries
+Spring Data JPA also supports derived delete queries that let you avoid having to declare the JPQL query explicitly, as shown in the following example:
 
 .Using a derived delete query
 ====
@@ -471,17 +463,17 @@ interface UserRepository extends Repository<User, Long> {
 ----
 ====
 
-Although the `deleteByRoleId(…)` method looks like it's basically producing the same result as the `deleteInBulkByRoleId(…)`, there is an important difference between the two method declarations in terms of the way they get executed.
-As the name suggests, the latter method will issue a single JPQL query (i.e. the one defined in the annotation) against the database.
-This means, even currently loaded instances of `User` won't see lifecycle callbacks invoked.
+Although the `deleteByRoleId(…)` method looks like it basically produces the same result as the `deleteInBulkByRoleId(…)`, there is an important difference between the two method declarations in terms of the way they get executed.
+As the name suggests, the latter method issues a single JPQL query (the one defined in the annotation) against the database.
+This means even currently loaded instances of `User` do not see lifecycle callbacks invoked.
 
-To make sure lifecycle queries are actually invoked, an invocation of `deleteByRoleId(…)` will actually execute a query and then deleting the returned instances one by one, so that the persistence provider can actually invoke `@PreRemove` callbacks on those entities.
+To make sure lifecycle queries are actually invoked, an invocation of `deleteByRoleId(…)` executes a query and then deletes the returned instances one by one, so that the persistence provider can actually invoke `@PreRemove` callbacks on those entities.
 
-In fact, a derived delete query is a shortcut for executing the query and then calling `CrudRepository.delete(Iterable<User> users)` on the result and keep behavior in sync with the implementations of other `delete(…)` methods in `CrudRepository`.
+In fact, a derived delete query is a shortcut for executing the query and then calling `CrudRepository.delete(Iterable<User> users)` on the result and keeping behavior in sync with the implementations of other `delete(…)` methods in `CrudRepository`.
 
 [[jpa.query-hints]]
-=== Applying query hints
-To apply JPA query hints to the queries declared in your repository interface you can use the `@QueryHints` annotation. It takes an array of JPA `@QueryHint` annotations plus a boolean flag to potentially disable the hints applied to the addtional count query triggered when applying pagination.
+=== Applying Query Hints
+To apply JPA query hints to the queries declared in your repository interface, you can use the `@QueryHints` annotation. It takes an array of JPA `@QueryHint` annotations plus a boolean flag to potentially disable the hints applied to the additional count query triggered when applying pagination, as shown in the following example:
 
 .Using QueryHints with a repository method
 ====
@@ -495,12 +487,14 @@ public interface UserRepository extends Repository<User, Long> {
 }
 ----
 ====
-The just shown declaration would apply the configured `@QueryHint` for that actually query but omit applying it to the count query triggered to calculate the total number of pages.
+The preceding declaration would apply the configured `@QueryHint` for that actually query but omit applying it to the count query triggered to calculate the total number of pages.
 
 [[jpa.entity-graph]]
 === Configuring Fetch- and LoadGraphs
 
-The JPA 2.1 specification introduced support for specifiying Fetch- and LoadGraphs that we also support via the `@EntityGraph` annotation which allows to reference a `@NamedEntityGraph` definition, that can be annotated on an entity, to be used to configure the fetch plan of the resulting query. The type (Fetch / Load) of the fetching can be configured via the `type` attribute on the `@EntityGraph` annotation. Please have a look at the JPA 2.1 Spec 3.7.4 for further reference.
+The JPA 2.1 specification introduced support for specifying Fetch- and LoadGraphs that we also support with the `@EntityGraph` annotation, which lets you reference a `@NamedEntityGraph` definition. You can use that annotation on an entity to configure the fetch plan of the resulting query. The type (`Fetch` or `Load`) of the fetching can be configured by using the `type` attribute on the `@EntityGraph` annotation. See the JPA 2.1 Spec 3.7.4 for further reference.
+
+The following example shows how to define a named entity graph on an entity:
 
 .Defining a named entity graph on an entity.
 ====
@@ -520,7 +514,9 @@ public class GroupInfo {
 ----
 ====
 
-.Referencing a named entity graph definition on an repository query method.
+The following example shows how to reference a named entity graph on a repository query method:
+
+.Referencing a named entity graph definition on a repository query method.
 ====
 [source, java]
 ----
@@ -534,7 +530,7 @@ public interface GroupRepository extends CrudRepository<GroupInfo, String> {
 ----
 ====
 
-It is also possible to define _ad-hoc_ entity graphs via `@EntityGraph`. The provided `attributePaths` will be translated into the according `EntityGraph` without the need of having to explicitly add `@NamedEntityGraph` to your domain types.
+It is also possible to define ad hoc entity graphs by using `@EntityGraph`. The provided `attributePaths` are translated into the according `EntityGraph` without needing to explicitly add `@NamedEntityGraph` to your domain types, as shown in the following example:
 
 .Using AD-HOC entity graph definition on an repository query method.
 ====
@@ -554,10 +550,12 @@ public interface GroupRepository extends CrudRepository<GroupInfo, String> {
 include::{spring-data-commons-docs}/repository-projections.adoc[leveloffset=+2]
 
 [[jpa.stored-procedures]]
-== Stored procedures
-The JPA 2.1 specification introduced support for calling stored procedures via the JPA criteria query API. We Introduced the `@Procedure` annotation for declaring stored procedure metadata on a repository method.
+== Stored Procedures
+The JPA 2.1 specification introduced support for calling stored procedures by using the JPA criteria query API. We Introduced the `@Procedure` annotation for declaring stored procedure metadata on a repository method.
 
-.The definition of the pus1inout procedure in HSQL DB.
+The examples to follow use the following procedure:
+
+.The definition of the `plus1inout` procedure in HSQL DB.
 ====
 [source, sql]
 ----
@@ -572,7 +570,7 @@ END
 ----
 ====
 
-Metadata for stored procedures can be configured via the `NamedStoredProcedureQuery` annotation on an entity type.
+Metadata for stored procedures can be configured by using the `NamedStoredProcedureQuery` annotation on an entity type.
 
 [[jpa.stored-procedure-entity-metadata]]
 .StoredProcedure metadata definitions on an entity.
@@ -587,7 +585,9 @@ public class User {}
 ----
 ====
 
-Stored procedures can be referenced from a repository method in multiple ways. The stored procedure to be called can either be defined directly via the `value` or `procedureName` attribute of the `@Procedure` annotation or indirectly via the `name` attribute. If no name is configured the name of the repository method is used as a fallback.
+You can reference stored procedures from a repository method in multiple ways. The stored procedure to be called can either be defined directly by using the `value` or `procedureName` attribute of the `@Procedure` annotation or indirectly by using the `name` attribute. If no name is configured, the name of the repository method is used as a fallback.
+
+The following example shows how to reference an explicitly mapped procedure:
 
 [[jpa.stored-procedure-reference]]
 .Referencing explicitly mapped procedure with name "plus1inout" in database.
@@ -599,6 +599,8 @@ Integer explicitlyNamedPlus1inout(Integer arg);
 ----
 ====
 
+The following example shows how to reference an implicitly mapped procedure by using a `procedureName` alias:
+
 .Referencing implicitly mapped procedure with name "plus1inout" in database via `procedureName` alias.
 ====
 [source, java]
@@ -608,7 +610,9 @@ Integer plus1inout(Integer arg);
 ----
 ====
 
-.Referencing explicitly mapped named stored procedure "User.plus1IO" in EntityManager.
+The following example shows how to reference an explicitly mapped named procedure in `EntityManager`:
+
+.Referencing explicitly mapped named stored procedure "User.plus1IO" in `EntityManager`.
 ====
 [source, java]
 ----
@@ -617,7 +621,9 @@ Integer entityAnnotatedCustomNamedProcedurePlus1IO(@Param("arg") Integer arg);
 ----
 ====
 
-.Referencing implicitly mapped named stored procedure "User.plus1" in EntityManager via method-name.
+The following example shows how to reference an implicitly named stored procedure in `EntityManager` by using the method name:
+
+.Referencing implicitly mapped named stored procedure "User.plus1" in `EntityManager` by using the method name.
 ====
 [source, java]
 ----
@@ -629,9 +635,9 @@ Integer plus1(@Param("arg") Integer arg);
 [[specifications]]
 == Specifications
 
-JPA 2 introduces a criteria API that can be used to build queries programmatically. Writing a `criteria` you actually define the where-clause of a query for a domain class. Taking another step back these criteria can be regarded as predicate over the entity that is described by the JPA criteria API constraints.
+JPA 2 introduces a criteria API that you can use to build queries programmatically. By writing a `criteria`, you define the where clause of a query for a domain class. Taking another step back, these criteria can be regarded as a predicate over the entity that is described by the JPA criteria API constraints.
 
-Spring Data JPA takes the concept of a specification from Eric Evans' book "Domain Driven Design", following the same semantics and providing an API to define such specifications using the JPA criteria API. To support specifications you can extend your repository interface with the `JpaSpecificationExecutor` interface:
+Spring Data JPA takes the concept of a specification from Eric Evans' book, "`Domain Driven Design`", following the same semantics and providing an API to define such specifications with the JPA criteria API. To support specifications, you can extend your repository interface with the `JpaSpecificationExecutor` interface, as follows:
 
 [source, java]
 ----
@@ -640,7 +646,7 @@ public interface CustomerRepository extends CrudRepository<Customer, Long>, JpaS
 }
 ----
 
-The additional interface carries methods that allow you to execute specifications in a variety of ways. For example, the `findAll` method will return all entities that match the specification:
+The additional interface has methods that let you execute specifications in a variety of ways. For example, the `findAll` method returns all entities that match the specification, as shown in the following example:
 
 [source, java]
 ----
@@ -657,7 +663,7 @@ public interface Specification<T> {
 }
 ----
 
-Okay, so what is the typical use case? Specifications can easily be used to build an extensible set of predicates on top of an entity that then can be combined and used with `JpaRepository` without the need to declare a query (method) for every needed combination. Here's an example:
+Specifications can easily be used to build an extensible set of predicates on top of an entity that then can be combined and used with `JpaRepository` without the need to declare a query (method) for every needed combination, as shown in the following example:
 
 .Specifications for a Customer
 ====
@@ -689,7 +695,7 @@ public class CustomerSpecs {
 ----
 ====
 
-Admittedly the amount of boilerplate leaves room for improvement (that will hopefully be reduced by Java 8 closures) but the client side becomes much nicer as you will see below. The `_Customer` type is a metamodel type generated using the JPA Metamodel generator (see the link:$$http://docs.jboss.org/hibernate/jpamodelgen/1.0/reference/en-US/html_single/#whatisit$$[Hibernate implementation's documentation for example]). So the expression `_Customer.createdAt` is asuming the `Customer` having a `createdAt` attribute of type `Date`. Besides that we have expressed some criteria on a business requirement abstraction level and created executable `Specifications`. So a client might use a `Specification` as follows:
+Admittedly, the amount of boilerplate leaves room for improvement (that may eventually be reduced by Java 8 closures), but the client side becomes much nicer, as you will see later in this section. The `_Customer` type is a metamodel type generated using the JPA Metamodel generator (see the link:$$http://docs.jboss.org/hibernate/jpamodelgen/1.0/reference/en-US/html_single/#whatisit$$[Hibernate implementation's documentation for an example]). So the expression, `_Customer.createdAt`, assumes the `Customer` has a `createdAt` attribute of type `Date`. Besides that, we have expressed some criteria on a business requirement abstraction level and created executable `Specifications`. So a client might use a `Specification` as follows:
 
 .Using a simple Specification
 ====
@@ -699,7 +705,7 @@ List<Customer> customers = customerRepository.findAll(isLongTermCustomer());
 ----
 ====
 
-Okay, why not simply create a query for this kind of data access? You're right. Using a single `Specification` does not gain a lot of benefit over a plain query declaration. The power of specifications really shines when you combine them to create new `Specification` objects. You can achieve this through the `Specifications` helper class we provide to build expressions like this:
+Why not create a query for this kind of data access? Using a single `Specification` does not gain a lot of benefit over a plain query declaration. The power of specifications really shines when you combine them to create new `Specification` objects. You can achieve this through the `Specifications` helper class we provide to build expressions similar to the following:
 
 .Combined Specifications
 ====
@@ -709,7 +715,8 @@ MonetaryAmount amount = new MonetaryAmount(200.0, Currencies.DOLLAR);
 List<Customer> customers = customerRepository.findAll(
   where(isLongTermCustomer()).or(hasSalesOfMoreThan(amount)));
 ----
-As you can see, `Specifications` offers some glue-code methods to chain and combine `Specification` instances. Thus extending your data access layer is just a matter of creating new `Specification` implementations and combining them with ones already existing.
+
+`Specifications` offers some "`glue-code`" methods to chain and combine `Specification` instances. These methods let you extend your data access layer by creating new `Specification` implementations and combining them with already existing implementations.
 ====
 
 include::{spring-data-commons-docs}/query-by-example.adoc[leveloffset=+1]
@@ -717,7 +724,8 @@ include::query-by-example.adoc[leveloffset=+1]
 
 [[transactions]]
 == Transactionality
-CRUD methods on repository instances are transactional by default. For reading operations the transaction configuration `readOnly` flag is set to `true`, all others are configured with a plain `@Transactional` so that default transaction configuration applies. For details see JavaDoc of link:$$http://docs.spring.io/spring-data/data-jpa/docs/current/api/index.html?org/springframework/data/jpa/repository/support/SimpleJpaRepository.html$$[`SimpleJpaRepository`]. If you need to tweak transaction configuration for one of the methods declared in a repository simply redeclare the method in your repository interface as follows:
+
+By default, CRUD methods on repository instances are transactional. For read operations, the transaction configuration `readOnly` flag is set to `true`.  All others are configured with a plain `@Transactional` so that default transaction configuration applies. For details, see JavaDoc of link:$$http://docs.spring.io/spring-data/data-jpa/docs/current/api/index.html?org/springframework/data/jpa/repository/support/SimpleJpaRepository.html$$[`SimpleJpaRepository`]. If you need to tweak transaction configuration for one of the methods declared in a repository, redeclare the method in your repository interface, as follows:
 
 .Custom transaction configuration for CRUD
 ====
@@ -732,10 +740,10 @@ public interface UserRepository extends CrudRepository<User, Long> {
   // Further query method declarations
 }
 ----
-This will cause the `findAll()` method to be executed with a timeout of 10 seconds and without the `readOnly` flag.
+Doing so causes the `findAll()` method to run with a timeout of 10 seconds and without the `readOnly` flag.
 ====
 
-Another possibility to alter transactional behaviour is using a facade or service implementation that typically covers more than one repository. Its purpose is to define transactional boundaries for non-CRUD operations:
+Another way to alter transactional behaviour is to use a facade or service implementation that (typically) covers more than one repository. Its purpose is to define transactional boundaries for non-CRUD operations. The following example shows how to use such a facade for more than one repository:
 
 .Using a facade to define transactions for multiple repository calls
 ====
@@ -765,12 +773,12 @@ class UserManagementImpl implements UserManagement {
     }
 }
 ----
-This will cause call to `addRoleToAllUsers(…)` to run inside a transaction (participating in an existing one or create a new one if none already running). The transaction configuration at the repositories will be neglected then as the outer transaction configuration determines the actual one used. Note that you will have to activate `<tx:annotation-driven />` or use `@EnableTransactionManagement` explicitly to get annotation based configuration at facades working. The example above assumes you are using component scanning.
+This example causes call to `addRoleToAllUsers(…)` to run inside a transaction (participating in an existing one or creating a new one if none are already running). The transaction configuration at the repositories is then neglected, as the outer transaction configuration determines the actual one used. Note that you must activate `<tx:annotation-driven />` or use `@EnableTransactionManagement` explicitly to get annotation-based configuration of facades to work. This example assumes you use component scanning.
 ====
 
 [[transactional-query-methods]]
 === Transactional query methods
-To allow your query methods to be transactional simply use `@Transactional` at the repository interface you define.
+To let your query methods be transactional, use `@Transactional` at the repository interface you define, as shown in the following example:
 
 .Using @Transactional at query methods
 ====
@@ -787,17 +795,17 @@ public interface UserRepository extends JpaRepository<User, Long> {
   void deleteInactiveUsers();
 }
 ----
-Typically you will want the readOnly flag set to true as most of the query methods will only read data. In contrast to that `deleteInactiveUsers()` makes use of the `@Modifying` annotation and overrides the transaction configuration. Thus the method will be executed with `readOnly` flag set to `false`.
+Typically, you want the `readOnly` flag to be set to `true`, as most of the query methods only read data. In contrast to that, `deleteInactiveUsers()` makes use of the `@Modifying` annotation and overrides the transaction configuration. Thus, the method runs with the `readOnly` flag set to `false`.
 ====
 
 [NOTE]
 ====
-It's definitely reasonable to use transactions for read only queries and we can mark them as such by setting the `readOnly` flag. This will not, however, act as check that you do not trigger a manipulating query (although some databases reject `INSERT` and `UPDATE` statements inside a read only transaction). The `readOnly` flag instead is propagated as hint to the underlying JDBC driver for performance optimizations. Furthermore, Spring will perform some optimizations on the underlying JPA provider. E.g. when used with Hibernate the flush mode is set to `NEVER` when you configure a transaction as `readOnly` which causes Hibernate to skip dirty checks (a noticeable improvement on large object trees).
+You can use transactions for read-only queries and mark them as such by setting the `readOnly` flag. Doing so does not, however, act as a check that you do not trigger a manipulating query (although some databases reject `INSERT` and `UPDATE` statements inside a read-only transaction). The `readOnly` flag is instead propagated as a hint to the underlying JDBC driver for performance optimizations. Furthermore, Spring performs some optimizations on the underlying JPA provider. For example, when used with Hibernate, the flush mode is set to `NEVER` when you configure a transaction as `readOnly`, which causes Hibernate to skip dirty checks (a noticeable improvement on large object trees).
 ====
 
 [[locking]]
 == Locking
-To specify the lock mode to be used the `@Lock` annotation can be used on query methods:
+To specify the lock mode to be used, you can use the `@Lock` annotation on query methods, as shown in the following example:
 
 .Defining lock metadata on query methods
 ====
@@ -812,7 +820,7 @@ interface UserRepository extends Repository<User, Long> {
 ----
 ====
 
-This method declaration will cause the query being triggered to be equipped with the `LockModeType` `READ`. You can also define locking for CRUD methods by redeclaring them in your repository interface and adding the `@Lock` annotation:
+This method declaration causes the query being triggered to be equipped with a `LockModeType` of `READ`. You can also define locking for CRUD methods by redeclaring them in your repository interface and adding the `@Lock` annotation, as shown in the following example:
 
 .Defining lock metadata on CRUD methods
 ====
@@ -835,9 +843,9 @@ include::{spring-data-commons-docs}/auditing.adoc[]
 == JPA Auditing
 
 [[jpa.auditing.configuration]]
-=== General auditing configuration
+=== General Auditing Configuration
 
-Spring Data JPA ships with an entity listener that can be used to trigger capturing auditing information. So first you have to register the `AuditingEntityListener` inside your `orm.xml` to be used for all entities in your persistence contexts:
+Spring Data JPA ships with an entity listener that can be used to trigger the capturing of auditing information. First, you must register the `AuditingEntityListener` to be used for all entities in your persistence contexts inside your `orm.xml` file, as shown in the following example:
 
 .Auditing configuration orm.xml
 ====
@@ -853,7 +861,7 @@ Spring Data JPA ships with an entity listener that can be used to trigger captur
 ----
 ====
 
-You can also enable the `AuditingEntityListener` per entity using the `@EntityListeners` annotation:
+You can also enable the `AuditingEntityListener` on a per-entity basis by using the `@EntityListeners` annotation, as follows:
 
 ====
 [source, java]
@@ -866,9 +874,9 @@ public class MyEntity {
 ----
 ====
 
-Note that the auditing feature requires `spring-aspects.jar` to be on the classpath.
+NOTE: The auditing feature requires `spring-aspects.jar` to be on the classpath.
 
-With that in place, activating auditing functionality is just a matter of adding the Spring Data JPA `auditing` namespace element to your configuration:
+With `orm.xml` suitably modified and `spring-aspects.jar` on the classpath, activating auditing functionality is a matter of adding the Spring Data JPA `auditing` namespace element to your configuration, as follows:
 
 .Activating auditing using XML configuration
 ====
@@ -878,9 +886,9 @@ With that in place, activating auditing functionality is just a matter of adding
 ----
 ====
 
-As of Spring Data JPA 1.5, auditing can be enabled by annotating a configuration class with the @EnableJpaAuditing annotation.
+As of Spring Data JPA 1.5, you can enable auditing by annotating a configuration class with the `@EnableJpaAuditing` annotation. You must still modify the `orm.xml` file and have `spring-aspects.jar` on the classpath. The following example shows how to use the `@EnableJpaAuditing` annotation:
 
-.Activating auditing via Java configuration
+.Activating auditing with Java configuration
 ====
 [source, java]
 ----
@@ -896,19 +904,19 @@ class Config {
 ----
 ====
 
-If you expose a bean of type `AuditorAware` to the `ApplicationContext`, the auditing infrastructure will pick it up automatically and use it to determine the current user to be set on domain types. If you have multiple implementations registered in the `ApplicationContext`, you can select the one to be used by explicitly setting the `auditorAwareRef` attribute of `@EnableJpaAuditing`.
+If you expose a bean of type `AuditorAware` to the `ApplicationContext`, the auditing infrastructure automatically picks it up and uses it to determine the current user to be set on domain types. If you have multiple implementations registered in the `ApplicationContext`, you can select the one to be used by explicitly setting the `auditorAwareRef` attribute of `@EnableJpaAuditing`.
 
 [[jpa.misc]]
-= Miscellaneous
+= Miscellaneous Considerations
 
 [[jpa.misc.jpa-context]]
-== Using JpaContext in custom implementations
+== Using `JpaContext` in Custom Implementations
 
-When working with multiple `EntityManager` instances and <<repositories.custom-implementations,custom repository implementations>> you'll need to make sure you wire the correct `EntityManager` into the repository implementation class. This could be solved by explicitly naming the `EntityManager` in the `@PersistenceContext` annotation or using `@Qualifier` in case the `EntityManager` is injected via `@Autowired`.
+When working with multiple `EntityManager` instances and <<repositories.custom-implementations,custom repository implementations>>, you need to wire the correct `EntityManager` into the repository implementation class. You can do so by explicitly naming the `EntityManager` in the `@PersistenceContext` annotation or, if the `EntityManager` is `@Autowired`, by using `@Qualifier`.
 
-As of Spring Data JPA 1.9, we ship a class `JpaContext` that allows to obtain the `EntityManager` by managed domain class assuming it's only managed by one of the `EntityManager` instances in the application.
+As of Spring Data JPA 1.9, Spring Data JPA includes a class called `JpaContext` that lets you obtain the `EntityManager` by managed domain class, assuming it is managed by only one of the `EntityManager` instances in the application. The following example shows how to use `JpaContext` in a custom repository:
 
-.Using JpaContext in a custom repository implementation
+.Using `JpaContext` in a custom repository implementation
 ====
 [source, java]
 ----
@@ -926,12 +934,12 @@ class UserRepositoryImpl implements UserRepositoryCustom {
 ----
 ====
 
-This approach has the advantage that the repository does not have to be touched to alter the reference to the persistence unit in case the domain type gets assigned to a different persistence unit.
+The advantage of this approach is that, if the domain type gets assigned to a different persistence unit, the repository does not have to be touched to alter the reference to the persistence unit.
 
 [[jpa.misc.merging-persistence-units]]
 == Merging persistence units
 
-Spring supports having multiple persistence units out of the box. Sometimes, however, you might want to modularize your application but still make sure that all these modules run inside a single persistence unit at runtime. To do so Spring Data JPA offers a `PersistenceUnitManager` implementation that automatically merges persistence units based on their name.
+Spring supports having multiple persistence units. Sometimes, however, you might want to modularize your application but still make sure that all these modules run inside a single persistence unit. To enable that behavior, Spring Data JPA offers a `PersistenceUnitManager` implementation that automatically merges persistence units based on their name, as shown in the following example:
 
 .Using MergingPersistenceUnitmanager
 ====
@@ -946,9 +954,9 @@ Spring supports having multiple persistence units out of the box. Sometimes, how
 ====
 
 [[jpa.misc.entity-scanning]]
-=== Classpath scanning for @Entity classes and JPA mapping files
+=== Classpath Scanning for @Entity Classes and JPA Mapping Files
 
-A plain JPA setup requires all annotation mapped entity classes listed in `orm.xml`. Same applies to XML mapping files. Spring Data JPA provides a ClasspathScanningPersistenceUnitPostProcessor that gets a base package configured and optionally takes a mapping filename pattern. It will then scan the given package for classes annotated with @Entity or @MappedSuperclass and also loads the configuration files matching the filename pattern and hands them to the JPA configuration. The PostProcessor has to be configured like this:
+A plain JPA setup requires all annotation-mapped entity classes to be listed in `orm.xml`. The same applies to XML mapping files. Spring Data JPA provides a `ClasspathScanningPersistenceUnitPostProcessor` that gets a base package configured and optionally takes a mapping filename pattern. It then scans the given package for classes annotated with `@Entity` or `@MappedSuperclass`, loads the configuration files that match the filename pattern, and hands them to the JPA configuration. The post-processor must be configured as follows:
 
 .Using ClasspathScanningPersistenceUnitPostProcessor
 ====
@@ -967,17 +975,14 @@ A plain JPA setup requires all annotation mapped entity classes listed in `orm.x
 ----
 ====
 
-[NOTE]
-====
-As of Spring 3.1 a package to scan can be configured on the LocalContainerEntityManagerFactoryBean directly to enable classpath scanning for entity classes. See the link:$$http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/orm/jpa/LocalContainerEntityManagerFactoryBean.html#setPackagesToScan(java.lang.String...)$$[JavaDoc] for details.
-====
+NOTE: As of Spring 3.1, a package to scan can be configured on the `LocalContainerEntityManagerFactoryBean` directly to enable classpath scanning for entity classes. See the link:$$http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/orm/jpa/LocalContainerEntityManagerFactoryBean.html#setPackagesToScan(java.lang.String...)$$[JavaDoc] for details.
 
 [[jpd.misc.cdi-integration]]
-== CDI integration
+== CDI Integration
 
-Instances of the repository interfaces are usually created by a container, which Spring is the most natural choice when working with Spring Data. There's sophisticated support to easily set up Spring to create bean instances documented in <<repositories.create-instances>>. As of version 1.1.0 Spring Data JPA ships with a custom CDI extension that allows using the repository abstraction in CDI environments. The extension is part of the JAR so all you need to do to activate it is dropping the Spring Data JPA JAR into your classpath.
+Instances of the repository interfaces are usually created by a container, for which Spring is the most natural choice when working with Spring Data. Spring offers sophisticated support for creating bean instances, as documented in <<repositories.create-instances>>. As of version 1.1.0, Spring Data JPA ships with a custom CDI extension that allows using the repository abstraction in CDI environments. The extension is part of the JAR. To activate it, include the Spring Data JPA JAR on your classpath.
 
-You can now set up the infrastructure by implementing a CDI Producer for the `EntityManagerFactory` and `EntityManager`:
+You can now set up the infrastructure by implementing a CDI Producer for the `EntityManagerFactory` and `EntityManager`, as shown in the following example:
 
 [source, java]
 ----
@@ -1005,7 +1010,7 @@ class EntityManagerFactoryProducer {
 }
 ----
 
-The necessary setup can vary depending on the JavaEE environment you run in. It might also just be enough to redeclare a `EntityManager` as CDI bean as follows:
+The necessary setup can vary depending on the JavaEE environment. You may need to do nothing more than redeclare a `EntityManager` as a CDI bean, as follows:
 
 [source, java]
 ----
@@ -1018,9 +1023,9 @@ class CdiConfig {
 }
 ----
 
-In this example, the container has to be capable of creating JPA `EntityManagers` itself. All the configuration does is re-exporting the JPA `EntityManager` as CDI bean.
+In the preceding example, the container has to be capable of creating JPA `EntityManagers` itself. All the configuration does is re-export the JPA `EntityManager` as a CDI bean.
 
-The Spring Data JPA CDI extension will pick up all EntityManagers availables as CDI beans and create a proxy for a Spring Data repository whenever an bean of a repository type is requested by the container. Thus obtaining an instance of a Spring Data repository is a matter of declaring an `@Injected` property:
+The Spring Data JPA CDI extension picks up all available `EntityManager` instances as CDI beans and creates a proxy for a Spring Data repository whenever a bean of a repository type is requested by the container. Thus, obtaining an instance of a Spring Data repository is a matter of declaring an `@Injected` property, as shown in the following example:
 
 [source, java]
 ----

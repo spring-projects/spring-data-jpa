@@ -1,7 +1,7 @@
 [[query-by-example.execution]]
 == Executing an example
 
-In Spring Data JPA you can use Query by Example with Repositories.
+In Spring Data JPA, you can use Query by Example with Repositories, as shown in the following example:
 
 .Query by Example using a Repository
 ====
@@ -20,9 +20,11 @@ public class PersonService {
 ----
 ====
 
-NOTE: Only `SingularAttribute` properties can currently be used for property matching.
+NOTE: Currently, only `SingularAttribute` properties can be used for property matching.
 
-Property specifier accepts property names (e.g. "firstname" and "lastname"). You can navigate by chaining properties together with dots ("address.city"). You can tune it with matching options and case sensitivity.
+The property specifier accepts property names (such as `firstname` and `lastname`). You can navigate by chaining properties together with dots (`address.city`). You can also tune it with matching options and case sensitivity.
+
+The following table shows the various `StringMatcher` options that you can use and the result of using them on a field named `firstname`:
 
 [cols="1,2", options="header"]
 .`StringMatcher` options
