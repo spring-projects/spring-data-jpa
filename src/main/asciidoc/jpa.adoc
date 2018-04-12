@@ -14,7 +14,7 @@ This section describes the basics of configuring Spring Data JPA through either:
 [[jpa.namespace]]
 === Spring Namespace
 
-The JPA module of Spring Data contains a custom namespace that allows defining repository beans. It also contains certain features and element attributes that are special to JPA. Generally, the JPA repositories can be set up byusing the `repositories` element, as shown in the following example:
+The JPA module of Spring Data contains a custom namespace that allows defining repository beans. It also contains certain features and element attributes that are special to JPA. Generally, the JPA repositories can be set up by   using the `repositories` element, as shown in the following example:
 
 .Setting up JPA repositories by using the namespace
 ====
@@ -94,7 +94,7 @@ class ApplicationConfig {
 ====
 NOTE: You must create `LocalContainerEntityManagerFactoryBean` and not `EntityManagerFactory` directly, since the former also participates in exception translation mechanisms in addition to creating `EntityManagerFactory`.
 
-The preceding configuration class sets up an embedded HSQL database by using the `EmbeddedDatabaseBuilder` API of spring-jdbc. Spring Data then sets up an `EntityManagerFactory` and uses Hibernate as the sample persistence provider. The last infrastructure component declared here is the `JpaTransactionManager`. Finally, the example activates Spring Data JPA repositories by using the `@EnableJpaRepositories` annotation, which essentially carries the same attributes as the XML namespace. If no base package is configured, it uses the one in which the configuration class resides.
+The preceding configuration class sets up an embedded HSQL database by using the `EmbeddedDatabaseBuilder` API of `spring-jdbc`. Spring Data then sets up an `EntityManagerFactory` and uses Hibernate as the sample persistence provider. The last infrastructure component declared here is the `JpaTransactionManager`. Finally, the example activates Spring Data JPA repositories by using the `@EnableJpaRepositories` annotation, which essentially carries the same attributes as the XML namespace. If no base package is configured, it uses the one in which the configuration class resides.
 
 [[jpa.entity-persistence]]
 == Persisting Entities
@@ -197,7 +197,7 @@ To use XML configuration, add the necessary `<named-query />` element to the `or
 The query has a special name that is used to resolve it at runtime.
 
 ==== Annotation-based Configuration
-Annotation-based configuration has the advantage of not needing another configuration file to be edited, lowering maintenance costs. You pay for that benefit by the need to recompile your domain class for every new query declaration.
+Annotation-based configuration has the advantage of not needing another configuration file to be edited, lowering maintenance effort. You pay for that benefit by the need to recompile your domain class for every new query declaration.
 
 .Annotation-based named query configuration
 ====
@@ -599,7 +599,7 @@ Integer explicitlyNamedPlus1inout(Integer arg);
 ----
 ====
 
-The following example shows how to reference an implicitly mapped procedure by using a `procedureName alias`:
+The following example shows how to reference an implicitly mapped procedure by using a `procedureName` alias:
 
 .Referencing implicitly mapped procedure with name "plus1inout" in database via `procedureName` alias.
 ====
@@ -610,9 +610,9 @@ Integer plus1inout(Integer arg);
 ----
 ====
 
-The following example shows how to reference an explicitly mapped named procedure in EntityManager:
+The following example shows how to reference an explicitly mapped named procedure in `EntityManager`:
 
-.Referencing explicitly mapped named stored procedure "User.plus1IO" in EntityManager.
+.Referencing explicitly mapped named stored procedure "User.plus1IO" in `EntityManager`.
 ====
 [source, java]
 ----
@@ -621,9 +621,9 @@ Integer entityAnnotatedCustomNamedProcedurePlus1IO(@Param("arg") Integer arg);
 ----
 ====
 
-The following example shows how to reference an implicitly named stored procedure in EntityManager by using the method name:
+The following example shows how to reference an implicitly named stored procedure in `EntityManager` by using the method name:
 
-.Referencing implicitly mapped named stored procedure "User.plus1" in EntityManager by using the method name.
+.Referencing implicitly mapped named stored procedure "User.plus1" in `EntityManager` by using the method name.
 ====
 [source, java]
 ----
@@ -907,7 +907,7 @@ class Config {
 If you expose a bean of type `AuditorAware` to the `ApplicationContext`, the auditing infrastructure automatically picks it up and uses it to determine the current user to be set on domain types. If you have multiple implementations registered in the `ApplicationContext`, you can select the one to be used by explicitly setting the `auditorAwareRef` attribute of `@EnableJpaAuditing`.
 
 [[jpa.misc]]
-= Miscellaneous Considertations
+= Miscellaneous Considerations
 
 [[jpa.misc.jpa-context]]
 == Using `JpaContext` in Custom Implementations
