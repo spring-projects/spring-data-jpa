@@ -1,6 +1,34 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 2.1.0.M2 (2018-04-13)
+----------------------------------------
+* DATAJPA-1323 - Documentation seems to be wrong about construction of the transaction manager.
+* DATAJPA-1322 - Editing pass on documentation.
+* DATAJPA-1320 - Adapt to API changes in Spring Data Commons.
+* DATAJPA-1318 - Native Query Projection is case sensitive.
+* DATAJPA-1310 - Upgrade to Hibernate 5.2.16.
+* DATAJPA-1307 - Parameters without index nor name don't get detected as such anymore.
+* DATAJPA-1301 - Map instances returned by JpaRepository queries do not handle null map values correctly.
+* DATAJPA-1300 - Parameters are not passed to proxied native Query instance on EclipseLink.
+* DATAJPA-1295 - Minor polishing in QueryUtils and ClasspathScanningPersistenceUnitPostProcessor.
+* DATAJPA-1287 - Export composable repositories via CDI.
+* DATAJPA-1284 - Use generated database names in tests.
+* DATAJPA-1274 - Upgrade to Hibernate 5.2.14.
+* DATAJPA-1273 - Named query execution doesn't use Tuple execution for projections.
+* DATAJPA-1269 - Upgrade Eclipselink to 2.7.1.
+* DATAJPA-1268 - Upgrade to Hibernate 5.2.13.
+* DATAJPA-1263 - Release 2.1 M2 (Lovelace).
+* DATAJPA-1255 - Native query with SpEL creates invalid SQL.
+* DATAJPA-1250 - Entity classes loaded before EclipseLink LTW is initialized.
+* DATAJPA-1248 - Add build profiles for Hibernate 5.3.
+* DATAJPA-1241 - "object is not an instance of declaring class" in JpaQueryExecution.StreamExecution.
+* DATAJPA-1233 - Count query fails when missing any defined parameter.
+* DATAJPA-1105 - @IdClass doesn't work when we use nested composit key with String element.
+* DATAJPA-928 - NativeQuery with Pagination validation error at startup.
+* DATAJPA-658 - Improve identifier metadata detection for XML based entity mappings.
+
+
 Changes in version 2.0.6.RELEASE (2018-04-04)
 ---------------------------------------------
 * DATAJPA-1310 - Upgrade to Hibernate 5.2.16.
