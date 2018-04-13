@@ -83,10 +83,10 @@ class ApplicationConfig {
   }
 
   @Bean
-  public PlatformTransactionManager transactionManager() {
+  public PlatformTransactionManager transactionManager(EntityManagerFactory entityManagerFactory) {
 
     JpaTransactionManager txManager = new JpaTransactionManager();
-    txManager.setEntityManagerFactory(entityManagerFactory());
+    txManager.setEntityManagerFactory(entityManagerFactory);
     return txManager;
   }
 }
