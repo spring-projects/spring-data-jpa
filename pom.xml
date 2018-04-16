@@ -213,11 +213,19 @@
 			<optional>true</optional>
 		</dependency>
 
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-jpamodelgen</artifactId>
+			<version>${hibernate}</version>
+			<scope>provided</scope>
+		</dependency>
+
 		<!-- QueryDsl -->
 		<dependency>
 			<groupId>com.querydsl</groupId>
 			<artifactId>querydsl-apt</artifactId>
 			<version>${querydsl}</version>
+			<classifier>jpa</classifier>
 			<scope>provided</scope>
 		</dependency>
 
@@ -263,13 +271,6 @@
 			<groupId>org.apache.openwebbeans</groupId>
 			<artifactId>openwebbeans-se</artifactId>
 			<version>${webbeans}</version>
-			<scope>test</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>com.google.guava</groupId>
-			<artifactId>guava</artifactId>
-			<version>17.0</version>
 			<scope>test</scope>
 		</dependency>
 
@@ -417,57 +418,6 @@
 				</configuration>
 			</plugin>
 
-			<plugin>
-				<groupId>com.mysema.maven</groupId>
-				<artifactId>apt-maven-plugin</artifactId>
-				<version>${apt}</version>
-				<configuration>
-					<logOnlyOnError>true</logOnlyOnError>
-					<processors>
-						<processor>com.querydsl.apt.jpa.JPAAnnotationProcessor</processor>
-						<processor>org.hibernate.jpamodelgen.JPAMetaModelEntityProcessor</processor>
-					</processors>
-				</configuration>
-				<executions>
-					<execution>
-						<id>sources</id>
-						<phase>generate-sources</phase>
-						<goals>
-							<goal>process</goal>
-						</goals>
-						<configuration>
-							<outputDirectory>target/generated-sources/annotations</outputDirectory>
-						</configuration>
-					</execution>
-					<execution>
-						<id>test-sources</id>
-						<phase>generate-test-sources</phase>
-						<goals>
-							<goal>test-process</goal>
-						</goals>
-						<configuration>
-							<testOutputDirectory>target/generated-test-sources/test-annotations</testOutputDirectory>
-							<options>
-								<querydsl.excludedClasses>
-									org.springframework.data.jpa.repository.util.JpaClassUtilsUnitTests.NamedUser,org.springframework.data.jpa.repository.query.ParameterBinderUnitTests.SampleEmbeddable
-								</querydsl.excludedClasses>
-							</options>
-						</configuration>
-					</execution>
-				</executions>
-				<dependencies>
-					<dependency>
-						<groupId>org.hibernate</groupId>
-						<artifactId>hibernate-jpamodelgen</artifactId>
-						<version>1.3.0.Final</version>
-					</dependency>
-					<dependency>
-						<groupId>com.google.guava</groupId>
-						<artifactId>guava</artifactId>
-						<version>17.0</version>
-					</dependency>
-				</dependencies>
-			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-assembly-plugin</artifactId>
