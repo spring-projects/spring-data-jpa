@@ -751,12 +751,12 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	 * @param query must not be {@literal null}.
 	 * @return
 	 */
-	private static Long executeCountQuery(TypedQuery<Long> query) {
+	private static long executeCountQuery(TypedQuery<Long> query) {
 
 		Assert.notNull(query, "TypedQuery must not be null!");
 
 		List<Long> totals = query.getResultList();
-		Long total = 0L;
+		long total = 0L;
 
 		for (Long element : totals) {
 			total += element == null ? 0 : element;
