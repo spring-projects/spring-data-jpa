@@ -120,7 +120,7 @@ class ParameterMetadataProvider {
 	@SuppressWarnings("unchecked")
 	public <T> ParameterMetadata<T> next(Part part) {
 
-		Assert.isTrue(parameters.hasNext(), String.format("No parameter available for part %s.", part));
+		Assert.isTrue(parameters.hasNext(), () -> String.format("No parameter available for part %s.", part));
 
 		Parameter parameter = parameters.next();
 		return (ParameterMetadata<T>) next(part, parameter.getType(), parameter);

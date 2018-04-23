@@ -360,7 +360,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 
 			@Override
 			public boolean containsValue(Object value) {
-				return Arrays.stream(tuple.toArray()).anyMatch(v -> v.equals(value));
+				return Arrays.asList(tuple.toArray()).contains(value);
 			}
 
 			/**

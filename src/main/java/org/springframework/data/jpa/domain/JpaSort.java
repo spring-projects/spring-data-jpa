@@ -189,7 +189,7 @@ public class JpaSort extends Sort {
 	public static <A extends Attribute<T, S>, T, S> Path<T, S> path(A attribute) {
 
 		Assert.notNull(attribute, "Attribute must not be null!");
-		return new Path<T, S>(Arrays.asList(attribute));
+		return new Path<>(Collections.singletonList(attribute));
 	}
 
 	/**
@@ -201,7 +201,7 @@ public class JpaSort extends Sort {
 	public static <P extends PluralAttribute<T, ?, S>, T, S> Path<T, S> path(P attribute) {
 
 		Assert.notNull(attribute, "Attribute must not be null!");
-		return new Path<T, S>(Arrays.asList(attribute));
+		return new Path<>(Collections.singletonList(attribute));
 	}
 
 	/**
@@ -241,7 +241,7 @@ public class JpaSort extends Sort {
 
 		Assert.notEmpty(properties, "Properties must not be empty!");
 
-		List<Order> orders = new ArrayList<Order>();
+		List<Order> orders = new ArrayList<>(properties.size());
 
 		for (String property : properties) {
 			orders.add(new JpaOrder(direction, property));
@@ -385,7 +385,7 @@ public class JpaSort extends Sort {
 			Assert.notEmpty(properties, "Properties must not be empty!");
 			Assert.noNullElements(properties, "Properties must not contain null values!");
 
-			List<Order> orders = new ArrayList<Order>();
+			List<Order> orders = new ArrayList<>(properties.length);
 
 			for (String property : properties) {
 				orders.add(new JpaOrder(getDirection(), property, getNullHandling(), isIgnoreCase(), this.unsafe));
