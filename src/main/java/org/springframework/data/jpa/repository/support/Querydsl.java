@@ -146,7 +146,7 @@ public class Querydsl {
 	private <T> JPQLQuery<T> addOrderByFrom(QSort qsort, JPQLQuery<T> query) {
 
 		List<OrderSpecifier<?>> orderSpecifiers = qsort.getOrderSpecifiers();
-		return query.orderBy(orderSpecifiers.toArray(new OrderSpecifier[orderSpecifiers.size()]));
+		return query.orderBy(orderSpecifiers.toArray(new OrderSpecifier[0]));
 	}
 
 	/**

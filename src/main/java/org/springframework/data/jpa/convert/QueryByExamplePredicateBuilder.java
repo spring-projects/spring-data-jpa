@@ -16,8 +16,7 @@
 package org.springframework.data.jpa.convert;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -63,8 +62,12 @@ public class QueryByExamplePredicateBuilder {
 	private static final Set<PersistentAttributeType> ASSOCIATION_TYPES;
 
 	static {
-		ASSOCIATION_TYPES = new HashSet<>(Arrays.asList(PersistentAttributeType.MANY_TO_MANY,
-				PersistentAttributeType.MANY_TO_ONE, PersistentAttributeType.ONE_TO_MANY, PersistentAttributeType.ONE_TO_ONE));
+		ASSOCIATION_TYPES = EnumSet.of(
+				PersistentAttributeType.MANY_TO_MANY,
+				PersistentAttributeType.MANY_TO_ONE,
+				PersistentAttributeType.ONE_TO_MANY,
+				PersistentAttributeType.ONE_TO_ONE
+		);
 	}
 
 	/**
@@ -94,7 +97,7 @@ public class QueryByExamplePredicateBuilder {
 			return predicates.iterator().next();
 		}
 
-		Predicate[] array = predicates.toArray(new Predicate[predicates.size()]);
+		Predicate[] array = predicates.toArray(new Predicate[0]);
 
 		return matcher.isAllMatching() ? cb.and(array) : cb.or(array);
 	}

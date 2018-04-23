@@ -72,8 +72,8 @@ public class BeanDefinitionUtils {
 	 */
 	public static Iterable<String> getEntityManagerFactoryBeanNames(ListableBeanFactory beanFactory) {
 
-		Set<String> names = new HashSet<String>();
-		names.addAll(asList(beanNamesForTypeIncludingAncestors(beanFactory, EntityManagerFactory.class, true, false)));
+		String[] beanNames = beanNamesForTypeIncludingAncestors(beanFactory, EntityManagerFactory.class, true, false);
+		Set<String> names = new HashSet<>(asList(beanNames));
 
 		for (String factoryBeanName : beanNamesForTypeIncludingAncestors(beanFactory,
 				AbstractEntityManagerFactoryBean.class, true, false)) {
