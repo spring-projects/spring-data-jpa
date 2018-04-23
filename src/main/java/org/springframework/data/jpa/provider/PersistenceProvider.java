@@ -56,8 +56,8 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 	 * @see <a href="https://jira.spring.io/browse/DATAJPA-444">DATAJPA-444</a>
 	 */
 	HIBERNATE(//
-			Arrays.asList(HIBERNATE_ENTITY_MANAGER_INTERFACE), //
-			Arrays.asList(HIBERNATE_JPA_METAMODEL_TYPE)) {
+			Collections.singletonList(HIBERNATE_ENTITY_MANAGER_INTERFACE), //
+			Collections.singletonList(HIBERNATE_JPA_METAMODEL_TYPE)) {
 
 		public String extractQueryString(Query query) {
 			return HibernateUtils.getHibernateQuery(query);
