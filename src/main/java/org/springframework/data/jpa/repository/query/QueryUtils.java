@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2017 the original author or authors.
+ * Copyright 2008-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -572,7 +572,7 @@ public abstract class QueryUtils {
 			propertyPathModel = from.get(segment).getModel();
 		}
 
-		if (requiresJoin(propertyPathModel, model instanceof PluralAttribute) && !isAlreadyFetched(from, segment)) {
+		if (requiresJoin(propertyPathModel, model instanceof PluralAttribute, !property.hasNext()) && !isAlreadyFetched(from, segment)) {
 			Join<?, ?> join = getOrCreateJoin(from, segment);
 			return (Expression<T>) (property.hasNext() ? toExpressionRecursively(join, property.next()) : join);
 		} else {
@@ -587,9 +587,10 @@ public abstract class QueryUtils {
 	 * 
 	 * @param propertyPathModel must not be {@literal null}.
 	 * @param forPluralAttribute
+	 * @param forLeafProperty
 	 * @return
 	 */
-	private static boolean requiresJoin(Bindable<?> propertyPathModel, boolean forPluralAttribute) {
+	private static boolean requiresJoin(Bindable<?> propertyPathModel, boolean forPluralAttribute, boolean forLeafProperty) {
 
 		if (propertyPathModel == null && forPluralAttribute) {
 			return true;
@@ -602,6 +603,9 @@ public abstract class QueryUtils {
 		Attribute<?, ?> attribute = (Attribute<?, ?>) propertyPathModel;
 
 		if (!ASSOCIATION_TYPES.containsKey(attribute.getPersistentAttributeType())) {
+			return false;
+		}
+		if (forLeafProperty && !attribute.isCollection()) {
 			return false;
 		}
 
