@@ -40,3 +40,37 @@ Currently I have implemented a repository layer based on `HibernateDaoSupport`. 
 
 [qanda]
 I want to use Spring Data JPA auditing capabilities but have my database already configured to set modification and creation date on entities. How can I prevent Spring Data from setting the date programmatically. :: Set the `set-dates` attribute of the `auditing` namespace element to `false`.
+
+== Querydsl
+
+Since version 2.0.x the querydsl classes `QAbstractPersistable` and `QAbstractAuditable` are not included in the *spring-data-jpa* jar anymore.
+
+This will probably lead to compile errors in the generated Q-classes, stating that a class `QAbstractPersistable` is missing.
+
+====
+[source, bash]
+----
+... cannot find symbol
+    public final org.springframework.data.jpa.domain.QAbstractPersistable _super = new org.springframework.data.jpa.domain.QAbstractPersistable(this);
+                                                    ^
+  symbol:   class QAbstractPersistable
+  location: package org.springframework.data.jpa.domain
+
+----
+====
+
+This problem can be fixed by providing a `package-info.java` in your domain package with the following content.
+
+====
+[source, java]
+----
+@QueryEntities(value = {AbstractPersistable.class, AbstractAuditable.class})
+package <your-domain-package>;
+
+import com.querydsl.core.annotations.QueryEntities;
+import org.springframework.data.jpa.domain.AbstractAuditable;
+import org.springframework.data.jpa.domain.AbstractPersistable;
+----
+====
+
+This will instruct the *querydsl/mysema apt-maven-plugin* to include the stated classes in the generation step.
