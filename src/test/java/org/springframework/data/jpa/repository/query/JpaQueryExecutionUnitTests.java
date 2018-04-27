@@ -234,6 +234,7 @@ public class JpaQueryExecutionUnitTests {
 		doReturn(Optional.class).when(method).getReturnType();
 
 		StubQueryExecution execution = new StubQueryExecution() {
+			@Override
 			protected Object doExecute(AbstractJpaQuery query, Object[] values) {
 				return "result";
 			}

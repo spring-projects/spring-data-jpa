@@ -61,6 +61,7 @@ public class UserSpecifications {
 
 		return new Specification<User>() {
 
+			@Override
 			public Predicate toPredicate(Root<User> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
 
 				return cb.like(root.get("firstname").as(String.class), String.format("%%%s%%", expression));
@@ -79,6 +80,7 @@ public class UserSpecifications {
 
 		return new Specification<User>() {
 
+			@Override
 			public Predicate toPredicate(Root<User> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
 
 				query.orderBy(cb.asc(root.get("firstname")));
@@ -92,6 +94,7 @@ public class UserSpecifications {
 
 		return new Specification<T>() {
 
+			@Override
 			public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder builder) {
 
 				return builder.equal(root.get(property), value);

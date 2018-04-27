@@ -37,6 +37,7 @@ public interface EmployeeRepositoryWithEmbeddedId
 		extends JpaRepository<EmbeddedIdExampleEmployee, EmbeddedIdExampleEmployeePK>,
 		QuerydslPredicateExecutor<EmbeddedIdExampleEmployee> {
 
+	@Override
 	List<EmbeddedIdExampleEmployee> findAll(Predicate predicate, OrderSpecifier<?>... orders);
 
 	// DATAJPA-920

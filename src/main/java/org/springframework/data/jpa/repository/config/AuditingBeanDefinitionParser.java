@@ -48,6 +48,7 @@ public class AuditingBeanDefinitionParser implements BeanDefinitionParser {
 	 * (non-Javadoc)
 	 * @see org.springframework.beans.factory.xml.BeanDefinitionParser#parse(org.w3c.dom.Element, org.springframework.beans.factory.xml.ParserContext)
 	 */
+	@Override
 	public BeanDefinition parse(Element element, ParserContext parser) {
 
 		springConfiguredParser.parse(element, parser);
@@ -92,6 +93,7 @@ public class AuditingBeanDefinitionParser implements BeanDefinitionParser {
 
 		private static final String BEAN_CONFIGURER_ASPECT_CLASS_NAME = "org.springframework.beans.factory.aspectj.AnnotationBeanConfigurerAspect";
 
+		@Override
 		public BeanDefinition parse(Element element, ParserContext parserContext) {
 
 			if (!parserContext.getRegistry().containsBeanDefinition(BEAN_CONFIGURER_ASPECT_BEAN_NAME)) {

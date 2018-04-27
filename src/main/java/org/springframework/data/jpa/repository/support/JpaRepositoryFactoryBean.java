@@ -116,6 +116,7 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.core.support.TransactionalRepositoryFactoryBeanSupport#setBeanFactory(org.springframework.beans.factory.BeanFactory)
 	 */
+	@Override
 	public void setBeanFactory(BeanFactory beanFactory) {
 
 		Assert.isInstanceOf(ListableBeanFactory.class, beanFactory);

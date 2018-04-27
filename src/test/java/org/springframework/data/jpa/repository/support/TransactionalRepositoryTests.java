@@ -102,11 +102,13 @@ public class TransactionalRepositoryTests extends AbstractJUnit4SpringContextTes
 			this.txManager = txManager;
 		}
 
+		@Override
 		public void commit(TransactionStatus status) throws TransactionException {
 
 			txManager.commit(status);
 		}
 
+		@Override
 		public TransactionStatus getTransaction(TransactionDefinition definition) throws TransactionException {
 
 			this.transactionRequests++;
@@ -131,6 +133,7 @@ public class TransactionalRepositoryTests extends AbstractJUnit4SpringContextTes
 			this.definition = null;
 		}
 
+		@Override
 		public void rollback(TransactionStatus status) throws TransactionException {
 
 			txManager.rollback(status);

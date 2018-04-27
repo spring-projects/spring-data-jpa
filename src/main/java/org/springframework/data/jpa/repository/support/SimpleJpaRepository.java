@@ -114,6 +114,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 *
 	 * @param crudMethodMetadata
 	 */
+	@Override
 	public void setRepositoryMethodMetadata(CrudMethodMetadata crudMethodMetadata) {
 		this.metadata = crudMethodMetadata;
 	}
@@ -142,6 +143,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * @see org.springframework.data.repository.CrudRepository#delete(java.io.Serializable)
 	 */
 	@Transactional
+	@Override
 	public void deleteById(ID id) {
 
 		Assert.notNull(id, ID_MUST_NOT_BE_NULL);
@@ -155,6 +157,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * @see org.springframework.data.repository.CrudRepository#delete(java.lang.Object)
 	 */
 	@Transactional
+	@Override
 	public void delete(T entity) {
 
 		Assert.notNull(entity, "The entity must not be null!");
@@ -166,6 +169,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * @see org.springframework.data.repository.CrudRepository#delete(java.lang.Iterable)
 	 */
 	@Transactional
+	@Override
 	public void deleteAll(Iterable<? extends T> entities) {
 
 		Assert.notNull(entities, "The given Iterable of entities not be null!");
@@ -180,6 +184,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * @see org.springframework.data.jpa.repository.JpaRepository#deleteInBatch(java.lang.Iterable)
 	 */
 	@Transactional
+	@Override
 	public void deleteInBatch(Iterable<T> entities) {
 
 		Assert.notNull(entities, "The given Iterable of entities not be null!");
@@ -197,6 +202,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * @see org.springframework.data.repository.Repository#deleteAll()
 	 */
 	@Transactional
+	@Override
 	public void deleteAll() {
 
 		for (T element : findAll()) {
@@ -209,6 +215,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * @see org.springframework.data.jpa.repository.JpaRepository#deleteAllInBatch()
 	 */
 	@Transactional
+	@Override
 	public void deleteAllInBatch() {
 		em.createQuery(getDeleteAllQueryString()).executeUpdate();
 	}
@@ -217,6 +224,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.CrudRepository#findById(java.io.Serializable)
 	 */
+	@Override
 	public Optional<T> findById(ID id) {
 
 		Assert.notNull(id, ID_MUST_NOT_BE_NULL);
@@ -259,6 +267,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.CrudRepository#existsById(java.io.Serializable)
 	 */
+	@Override
 	public boolean existsById(ID id) {
 
 		Assert.notNull(id, ID_MUST_NOT_BE_NULL);
@@ -302,6 +311,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.JpaRepository#findAll()
 	 */
+	@Override
 	public List<T> findAll() {
 		return getQuery(null, Sort.unsorted()).getResultList();
 	}
@@ -310,6 +320,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.CrudRepository#findAll(java.lang.Iterable)
 	 */
+	@Override
 	public List<T> findAllById(Iterable<ID> ids) {
 
 		Assert.notNull(ids, "The given Iterable of Id's must not be null!");
@@ -339,6 +350,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.JpaRepository#findAll(org.springframework.data.domain.Sort)
 	 */
+	@Override
 	public List<T> findAll(Sort sort) {
 		return getQuery(null, sort).getResultList();
 	}
@@ -347,6 +359,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.PagingAndSortingRepository#findAll(org.springframework.data.domain.Pageable)
 	 */
+	@Override
 	public Page<T> findAll(Pageable pageable) {
 
 		if (isUnpaged(pageable)) {
@@ -360,6 +373,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.JpaSpecificationExecutor#findOne(org.springframework.data.jpa.domain.Specification)
 	 */
+	@Override
 	public Optional<T> findOne(@Nullable Specification<T> spec) {
 
 		try {
@@ -373,6 +387,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.JpaSpecificationExecutor#findAll(org.springframework.data.jpa.domain.Specification)
 	 */
+	@Override
 	public List<T> findAll(@Nullable Specification<T> spec) {
 		return getQuery(spec, Sort.unsorted()).getResultList();
 	}
@@ -381,6 +396,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.JpaSpecificationExecutor#findAll(org.springframework.data.jpa.domain.Specification, org.springframework.data.domain.Pageable)
 	 */
+	@Override
 	public Page<T> findAll(@Nullable Specification<T> spec, Pageable pageable) {
 
 		TypedQuery<T> query = getQuery(spec, pageable);
@@ -392,6 +408,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.JpaSpecificationExecutor#findAll(org.springframework.data.jpa.domain.Specification, org.springframework.data.domain.Sort)
 	 */
+	@Override
 	public List<T> findAll(@Nullable Specification<T> spec, Sort sort) {
 		return getQuery(spec, sort).getResultList();
 	}
@@ -466,6 +483,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.CrudRepository#count()
 	 */
+	@Override
 	public long count() {
 		return em.createQuery(getCountQueryString(), Long.class).getSingleResult();
 	}
@@ -474,6 +492,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.JpaSpecificationExecutor#count(org.springframework.data.jpa.domain.Specification)
 	 */
+	@Override
 	public long count(@Nullable Specification<T> spec) {
 		return executeCountQuery(getCountQuery(spec, getDomainClass()));
 	}
@@ -483,6 +502,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * @see org.springframework.data.repository.CrudRepository#save(java.lang.Object)
 	 */
 	@Transactional
+	@Override
 	public <S extends T> S save(S entity) {
 
 		if (entityInformation.isNew(entity)) {
@@ -498,6 +518,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * @see org.springframework.data.jpa.repository.JpaRepository#saveAndFlush(java.lang.Object)
 	 */
 	@Transactional
+	@Override
 	public <S extends T> S saveAndFlush(S entity) {
 
 		S result = save(entity);
@@ -511,6 +532,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * @see org.springframework.data.jpa.repository.JpaRepository#save(java.lang.Iterable)
 	 */
 	@Transactional
+	@Override
 	public <S extends T> List<S> saveAll(Iterable<S> entities) {
 
 		Assert.notNull(entities, "The given Iterable of entities not be null!");
@@ -529,6 +551,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * @see org.springframework.data.jpa.repository.JpaRepository#flush()
 	 */
 	@Transactional
+	@Override
 	public void flush() {
 		em.flush();
 	}
@@ -770,6 +793,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		 * (non-Javadoc)
 		 * @see org.springframework.data.jpa.domain.Specification#toPredicate(javax.persistence.criteria.Root, javax.persistence.criteria.CriteriaQuery, javax.persistence.criteria.CriteriaBuilder)
 		 */
+		@Override
 		public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
 
 			Path<?> path = root.get(entityInformation.getIdAttribute());

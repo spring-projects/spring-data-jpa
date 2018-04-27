@@ -71,6 +71,7 @@ public abstract class JpaEntityInformationSupport<T, ID> extends AbstractEntityI
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.support.JpaEntityMetadata#getEntityName()
 	 */
+	@Override
 	public String getEntityName() {
 		return metadata.getEntityName();
 	}

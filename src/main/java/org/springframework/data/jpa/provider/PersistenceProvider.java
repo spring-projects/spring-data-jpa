@@ -59,6 +59,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 			Arrays.asList(HIBERNATE_ENTITY_MANAGER_INTERFACE), //
 			Arrays.asList(HIBERNATE_JPA_METAMODEL_TYPE)) {
 
+		@Override
 		public String extractQueryString(Query query) {
 			return HibernateUtils.getHibernateQuery(query);
 		}
@@ -118,6 +119,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 	 */
 	ECLIPSELINK(Collections.singleton(ECLIPSELINK_ENTITY_MANAGER_INTERFACE), Collections.singleton(ECLIPSELINK_JPA_METAMODEL_TYPE)) {
 
+		@Override
 		public String extractQueryString(Query query) {
 			return ((JpaQuery<?>) query).getDatabaseQuery().getJPQLString();
 		}
@@ -316,6 +318,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.query.QueryExtractor#canExtractQuery()
 	 */
+	@Override
 	public boolean canExtractQuery() {
 		return true;
 	}

@@ -74,6 +74,7 @@ public class Specifications<T> implements Specification<T>, Serializable {
 	 * @return
 	 */
 	@Deprecated
+	@Override
 	public Specifications<T> and(@Nullable Specification<T> other) {
 		return new Specifications<>(composed(spec, other, AND));
 	}
@@ -87,6 +88,7 @@ public class Specifications<T> implements Specification<T>, Serializable {
 	 * @return
 	 */
 	@Deprecated
+	@Override
 	public Specifications<T> or(@Nullable Specification<T> other) {
 		return new Specifications<>(composed(spec, other, OR));
 	}
@@ -109,6 +111,7 @@ public class Specifications<T> implements Specification<T>, Serializable {
 	 * @see org.springframework.data.jpa.domain.Specification#toPredicate(javax.persistence.criteria.Root, javax.persistence.criteria.CriteriaQuery, javax.persistence.criteria.CriteriaBuilder)
 	 */
 	@Nullable
+	@Override
 	public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder builder) {
 		return spec == null ? null : spec.toPredicate(root, query, builder);
 	}
