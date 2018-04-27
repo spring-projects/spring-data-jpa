@@ -17,7 +17,6 @@ package org.springframework.data.jpa.repository.query;
 
 import static java.util.Collections.*;
 import static javax.persistence.TemporalType.*;
-import static org.mockito.ArgumentMatchers.anyObject;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
