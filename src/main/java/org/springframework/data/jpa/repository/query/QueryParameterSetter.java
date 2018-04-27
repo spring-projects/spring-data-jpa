@@ -77,6 +77,7 @@ interface QueryParameterSetter {
 		 * @see org.springframework.data.jpa.repository.query.QueryParameterSetter#setParameter(javax.persistence.Query, java.lang.Object[])
 		 */
 		@SuppressWarnings("unchecked")
+		@Override
 		public void setParameter(Query query, Object[] values, ErrorHandling errorHandling) {
 
 			Object value = valueExtractor.apply(values);

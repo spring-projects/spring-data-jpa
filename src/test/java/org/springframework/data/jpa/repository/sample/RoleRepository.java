@@ -40,6 +40,7 @@ public interface RoleRepository extends CrudRepository<Role, Integer>, QuerydslP
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.CrudRepository#findAll()
 	 */
+	@Override
 	@Lock(LockModeType.READ)
 	@QueryHints(@QueryHint(name = "foo", value = "bar"))
 	Iterable<Role> findAll();
@@ -48,6 +49,7 @@ public interface RoleRepository extends CrudRepository<Role, Integer>, QuerydslP
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.CrudRepository#findOne(java.io.Serializable)
 	 */
+	@Override
 	@Lock(LockModeType.READ)
 	@QueryHints(@QueryHint(name = "foo", value = "bar"))
 	Optional<Role> findById(Integer id);

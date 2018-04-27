@@ -74,26 +74,32 @@ public class JpaEntityInformationSupportUnitTests {
 			super(domainClass);
 		}
 
+		@Override
 		public SingularAttribute<? super T, ?> getIdAttribute() {
 			return null;
 		}
 
+		@Override
 		public ID getId(T entity) {
 			return null;
 		}
 
+		@Override
 		public Class<ID> getIdType() {
 			return null;
 		}
 
+		@Override
 		public Iterable<String> getIdAttributeNames() {
 			return Collections.emptySet();
 		}
 
+		@Override
 		public boolean hasCompositeId() {
 			return false;
 		}
 
+		@Override
 		public Object getCompositeIdAttributeValue(Object id, String idAttribute) {
 			return null;
 		}

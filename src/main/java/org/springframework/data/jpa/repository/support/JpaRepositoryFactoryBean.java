@@ -76,7 +76,7 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 	/**
 	 * Configures the {@link EntityPathResolver} to be used. Will expect a canonical bean to be present but fallback to
 	 * {@link SimpleEntityPathResolver#INSTANCE} in case none is available.
-	 * 
+	 *
 	 * @param resolver must not be {@literal null}.
 	 */
 	@Autowired

@@ -63,6 +63,7 @@ public class ParentRepositoryIntegrationTests {
 	public void testWithoutJoin() throws Exception {
 
 		Page<Parent> page = repository.findAll(new Specification<Parent>() {
+			@Override
 			public Predicate toPredicate(Root<Parent> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
 				Path<Set<Child>> childrenPath = root.get("children");
 				query.distinct(true);
@@ -82,6 +83,7 @@ public class ParentRepositoryIntegrationTests {
 	@Test // DATAJPA-287
 	public void testWithJoin() throws Exception {
 		Page<Parent> page = repository.findAll(new Specification<Parent>() {
+			@Override
 			public Predicate toPredicate(Root<Parent> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
 				root.join("children");
 				// we are interesting in distinct items, especially when join presents in query

@@ -36,6 +36,7 @@ import com.querydsl.core.types.Predicate;
 public interface EmployeeRepositoryWithIdClass extends JpaRepository<IdClassExampleEmployee, IdClassExampleEmployeePK>,
 		QuerydslPredicateExecutor<IdClassExampleEmployee> {
 
+	@Override
 	List<IdClassExampleEmployee> findAll(Predicate predicate, OrderSpecifier<?>... orders);
 
 	// DATAJPA-920

@@ -167,6 +167,7 @@ public class JpaRepositoryFactoryUnitTests {
 	private interface SimpleSampleRepository extends JpaRepository<User, Integer> {
 
 		@Transactional
+		@Override
 		Optional<User> findById(Integer id);
 	}
 
@@ -189,11 +190,13 @@ public class JpaRepositoryFactoryUnitTests {
 	 */
 	private class SampleCustomRepositoryImpl implements SampleCustomRepository {
 
+		@Override
 		public void throwingRuntimeException() {
 
 			throw new IllegalArgumentException("You lose!");
 		}
 
+		@Override
 		public void throwingCheckedException() throws IOException {
 
 			throw new IOException("You lose!");

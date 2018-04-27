@@ -46,12 +46,14 @@ public interface RepositoryMethodsWithEntityGraphConfigRepository
 	/**
 	 * Should find all users.
 	 */
+	@Override
 	@EntityGraph(type = EntityGraphType.LOAD, value = "User.overview")
 	List<User> findAll();
 
 	/**
 	 * Should fetch all user details
 	 */
+	@Override
 	@EntityGraph(type = EntityGraphType.FETCH, value = "User.detail")
 	Optional<User> findById(Integer id);
 
@@ -64,6 +66,7 @@ public interface RepositoryMethodsWithEntityGraphConfigRepository
 	User getOneWithAttributeNamesById(Integer id);
 
 	// DATAJPA-790
+	@Override
 	@EntityGraph("User.detail")
 	Page<User> findAll(Predicate predicate, Pageable pageable);
 

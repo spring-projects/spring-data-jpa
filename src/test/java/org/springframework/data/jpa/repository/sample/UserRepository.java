@@ -68,6 +68,7 @@ public interface UserRepository
 	 * Redeclaration of {@link CrudRepository#findById(java.io.Serializable)} to change transaction configuration.
 	 */
 	@Transactional
+	@Override
 	java.util.Optional<User> findById(Integer primaryKey);
 
 	/**
@@ -75,6 +76,7 @@ public interface UserRepository
 	 * configuration of the original method is considered if the redeclaration does not carry a {@link Transactional}
 	 * annotation.
 	 */
+	@Override
 	void deleteById(Integer id); // DATACMNS-649
 
 	/**

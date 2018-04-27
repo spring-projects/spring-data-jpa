@@ -137,14 +137,17 @@ public class QuerydslRepositorySupportTests {
 			super.setEntityManager(entityManager);
 		}
 
+		@Override
 		public List<User> findUsersByLastname(String lastname) {
 			return from(user).where(user.lastname.eq(lastname)).fetch();
 		}
 
+		@Override
 		public long updateLastnamesTo(String lastname) {
 			return update(user).set(user.lastname, lastname).execute();
 		}
 
+		@Override
 		public long deleteAllWithLastname(String lastname) {
 			return delete(user).where(user.lastname.eq(lastname)).execute();
 		}

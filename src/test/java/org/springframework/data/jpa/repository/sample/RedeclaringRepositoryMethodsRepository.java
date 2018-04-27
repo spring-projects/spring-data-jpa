@@ -34,6 +34,7 @@ public interface RedeclaringRepositoryMethodsRepository extends CrudRepository<U
 	/**
 	 * Should not find any users at all.
 	 */
+	@Override
 	@Query("SELECT u FROM User u where u.id = -1")
 	List<User> findAll();
 

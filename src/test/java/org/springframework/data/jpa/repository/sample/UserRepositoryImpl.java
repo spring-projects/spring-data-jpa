@@ -40,6 +40,7 @@ public class UserRepositoryImpl implements UserRepositoryCustom {
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.sample.UserRepositoryCustom#someCustomMethod(org.springframework.data.jpa.domain.sample.User)
 	 */
+	@Override
 	public void someCustomMethod(User u) {
 		LOG.debug("Some custom method was invoked!");
 	}
@@ -48,6 +49,7 @@ public class UserRepositoryImpl implements UserRepositoryCustom {
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.sample.UserRepositoryCustom#findByOverrridingMethod()
 	 */
+	@Override
 	public void findByOverrridingMethod() {
 		LOG.debug("A method overriding a finder was invoked!");
 	}

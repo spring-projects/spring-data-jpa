@@ -74,11 +74,13 @@ public class JpaPersistableEntityInformationUnitTests {
 
 		Long id;
 
+		@Override
 		public Long getId() {
 
 			return id;
 		}
 
+		@Override
 		public boolean isNew() {
 
 			return id != null;

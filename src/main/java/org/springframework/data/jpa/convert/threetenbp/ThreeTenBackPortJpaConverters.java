@@ -108,6 +108,7 @@ public class ThreeTenBackPortJpaConverters {
 	@Converter(autoApply = true)
 	public static class ZoneIdConverter implements AttributeConverter<ZoneId, String> {
 
+		@Override
 		public String convertToDatabaseColumn(ZoneId zoneId) {
 			return ZoneIdToStringConverter.INSTANCE.convert(zoneId);
 		}

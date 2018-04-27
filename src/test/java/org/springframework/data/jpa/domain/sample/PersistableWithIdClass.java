@@ -67,6 +67,7 @@ public class PersistableWithIdClass implements Persistable<PersistableWithIdClas
 	/* (non-Javadoc)
 	 * @see org.springframework.data.domain.Persistable#getId()
 	 */
+	@Override
 	public PersistableWithIdClassPK getId() {
 		return new PersistableWithIdClassPK(first, second);
 	}
@@ -74,6 +75,7 @@ public class PersistableWithIdClass implements Persistable<PersistableWithIdClas
 	/* (non-Javadoc)
 	 * @see org.springframework.data.domain.Persistable#isNew()
 	 */
+	@Override
 	public boolean isNew() {
 		return this.isNew;
 	}

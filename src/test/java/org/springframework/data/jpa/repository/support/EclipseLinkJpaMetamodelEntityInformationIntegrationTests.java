@@ -66,6 +66,7 @@ public class EclipseLinkJpaMetamodelEntityInformationIntegrationTests
 	 * Re-activate test for DATAJPA-820.
 	 */
 	@Test
+	@Override
 	public void detectsVersionPropertyOnMappedSuperClass() {
 		super.detectsVersionPropertyOnMappedSuperClass();
 	}

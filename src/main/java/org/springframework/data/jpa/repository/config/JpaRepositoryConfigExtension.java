@@ -202,6 +202,7 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.config.RepositoryConfigurationExtensionSupport#getConfigurationInspectionClassLoader(org.springframework.core.io.ResourceLoader)
 	 */
+	@Override
 	protected ClassLoader getConfigurationInspectionClassLoader(ResourceLoader loader) {
 
 		ClassLoader classLoader = loader.getClassLoader();
