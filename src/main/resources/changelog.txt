@@ -1,6 +1,16 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 2.0.7.RELEASE (2018-05-08)
+---------------------------------------------
+* DATAJPA-1323 - Documentation seems to be wrong about construction of the transaction manager.
+* DATAJPA-1322 - Editing pass on documentation.
+* DATAJPA-1318 - Native Query Projection is case sensitive.
+* DATAJPA-1316 - Release 2.0.7 (Kay SR7).
+* DATAJPA-1314 - Build Failure on Travis with profile eclipselink-27-next.
+* DATAJPA-1282 - Meta-model classes no longer contained in binaries.
+
+
 Changes in version 1.11.12.RELEASE (2018-05-08)
 -----------------------------------------------
 * DATAJPA-1323 - Documentation seems to be wrong about construction of the transaction manager.
