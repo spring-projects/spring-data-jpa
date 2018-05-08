@@ -31,7 +31,7 @@ import org.springframework.data.domain.Auditable;
  * 
  * @author Oliver Gierke
  * @param <U> the auditing type. Typically some kind of user.
- * @param <PK> the type of the auditing type's idenifier
+ * @param <PK> the type of the auditing type's identifier.
  */
 @MappedSuperclass
 public abstract class AbstractAuditable<U, PK extends Serializable> extends AbstractPersistable<PK> implements
