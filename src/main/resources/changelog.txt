@@ -1,6 +1,15 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 1.11.12.RELEASE (2018-05-08)
+-----------------------------------------------
+* DATAJPA-1323 - Documentation seems to be wrong about construction of the transaction manager.
+* DATAJPA-1322 - Editing pass on documentation.
+* DATAJPA-1315 - Release 1.11.12 (Ingalls SR12).
+* DATAJPA-1314 - Build Failure on Travis with profile eclipselink-27-next.
+* DATAJPA-1282 - Meta-model classes no longer contained in binaries.
+
+
 Changes in version 2.1.0.M2 (2018-04-13)
 ----------------------------------------
 * DATAJPA-1323 - Documentation seems to be wrong about construction of the transaction manager.
