@@ -236,14 +236,11 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 	 * @return
 	 * @since 2.0.5
 	 */
-	protected Class<?> getTypeToRead() {
+	protected Class<?> getTypeToRead(ReturnedType returnedType) {
 
 		if (PersistenceProvider.ECLIPSELINK.equals(provider)) {
 			return null;
 		}
-
-		ResultProcessor resultFactory = getQueryMethod().getResultProcessor();
-		ReturnedType returnedType = resultFactory.getReturnedType();
 
 		return returnedType.isProjecting() && !getMetamodel().isJpaManaged(returnedType.getReturnedType()) //
 				? HibernateUtils.isVersionOrBetter(HIBERNATE_VERSION_SUPPORTING_TUPLES) ? Tuple.class : null //

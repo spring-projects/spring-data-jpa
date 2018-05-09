@@ -21,6 +21,8 @@ import javax.persistence.Query;
 import org.springframework.data.repository.query.EvaluationContextProvider;
 import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
+import org.springframework.data.repository.query.ResultProcessor;
+import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.util.Assert;
 
@@ -72,8 +74,9 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 
 		ParameterAccessor accessor = new ParametersParameterAccessor(getQueryMethod().getParameters(), values);
 		String sortedQueryString = QueryUtils.applySorting(query.getQueryString(), accessor.getSort(), query.getAlias());
+		ResultProcessor processor = getQueryMethod().getResultProcessor().withDynamicProjection(accessor);
 
-		Query query = createJpaQuery(sortedQueryString);
+		Query query = createJpaQuery(sortedQueryString, processor.getReturnedType());
 
 		return createBinder(values).bindAndPrepare(query);
 	}
@@ -98,8 +101,11 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 		String queryString = countQuery.getQueryString();
 		EntityManager em = getEntityManager();
 
-		return createBinder(values).bind(
-				getQueryMethod().isNativeQuery() ? em.createNativeQuery(queryString) : em.createQuery(queryString, Long.class));
+		Query query = getQueryMethod().isNativeQuery() //
+				? em.createNativeQuery(queryString) //
+				: em.createQuery(queryString, Long.class);
+
+		return createBinder(values).bind(query);
 	}
 
 	/**
@@ -123,7 +129,7 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 	 * @param queryString
 	 * @return
 	 */
-	protected Query createJpaQuery(String queryString) {
+	protected Query createJpaQuery(String queryString, ReturnedType returnedType) {
 
 		EntityManager em = getEntityManager();
 
@@ -131,7 +137,7 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 			return em.createQuery(queryString);
 		}
 
-		Class<?> typeToRead = getTypeToRead();
+		Class<?> typeToRead = getTypeToRead(returnedType);
 
 		return typeToRead == null ? em.createQuery(queryString) : em.createQuery(queryString, typeToRead);
 	}
