@@ -23,6 +23,8 @@ import javax.persistence.Query;
 import org.springframework.data.repository.query.EvaluationContextProvider;
 import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
+import org.springframework.data.repository.query.ResultProcessor;
+import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.util.Assert;
 
@@ -78,8 +80,9 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 
 		ParameterAccessor accessor = new ParametersParameterAccessor(getQueryMethod().getParameters(), values);
 		String sortedQueryString = QueryUtils.applySorting(query.getQueryString(), accessor.getSort(), query.getAlias());
+		ResultProcessor processor = getQueryMethod().getResultProcessor().withDynamicProjection(accessor);
 
-		Query query = createJpaQuery(sortedQueryString);
+		Query query = createJpaQuery(sortedQueryString, processor.getReturnedType());
 
 		// it is ok to reuse the binding contained in the ParameterBinder although we create a new query String because the
 		// parameters in the query do not change.
@@ -132,7 +135,7 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 	 * Creates an appropriate JPA query from an {@link EntityManager} according to the current {@link AbstractJpaQuery}
 	 * type.
 	 */
-	protected Query createJpaQuery(String queryString) {
+	protected Query createJpaQuery(String queryString, ReturnedType returnedType) {
 
 		EntityManager em = getEntityManager();
 
@@ -140,7 +143,7 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 			return em.createQuery(queryString);
 		}
 
-		return getTypeToRead() //
+		return getTypeToRead(returnedType) //
 				.<Query> map(it -> em.createQuery(queryString, it)) //
 				.orElseGet(() -> em.createQuery(queryString));
 	}

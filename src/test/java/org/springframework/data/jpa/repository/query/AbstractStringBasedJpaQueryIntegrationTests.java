@@ -62,7 +62,7 @@ public class AbstractStringBasedJpaQueryIntegrationTests {
 		AbstractStringBasedJpaQuery jpaQuery = new SimpleJpaQuery(method, mock, DefaultEvaluationContextProvider.INSTANCE,
 				new SpelExpressionParser());
 
-		jpaQuery.createJpaQuery(method.getAnnotatedQuery());
+		jpaQuery.createJpaQuery(method.getAnnotatedQuery(), method.getResultProcessor().getReturnedType());
 
 		verify(mock, times(1)).createQuery(anyString());
 		verify(mock, times(0)).createQuery(anyString(), eq(Tuple.class));

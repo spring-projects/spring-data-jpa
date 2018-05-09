@@ -23,7 +23,6 @@ import javax.persistence.Tuple;
 import org.springframework.data.repository.query.EvaluationContextProvider;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.RepositoryQuery;
-import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 
@@ -37,8 +36,6 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
  * @author Jens Schauder
  */
 final class NativeJpaQuery extends AbstractStringBasedJpaQuery {
-
-	private final Class<?> resultType;
 
 	/**
 	 * Creates a new {@link NativeJpaQuery} encapsulating the query annotated on the given {@link JpaQueryMethod}.
@@ -56,11 +53,8 @@ final class NativeJpaQuery extends AbstractStringBasedJpaQuery {
 		Parameters<?, ?> parameters = method.getParameters();
 
 		if (parameters.hasSortParameter() && !queryString.contains("#sort")) {
-			throw new InvalidJpaQueryMethodException(
-					"Cannot use native queries with dynamic sorting in method " + method);
+			throw new InvalidJpaQueryMethodException("Cannot use native queries with dynamic sorting in method " + method);
 		}
-
-		this.resultType = getTypeToQueryFor();
 	}
 
 	/*
@@ -68,19 +62,16 @@ final class NativeJpaQuery extends AbstractStringBasedJpaQuery {
 	 * @see org.springframework.data.jpa.repository.query.AbstractStringBasedJpaQuery#createJpaQuery(java.lang.String)
 	 */
 	@Override
-	protected Query createJpaQuery(String queryString) {
+	protected Query createJpaQuery(String queryString, ReturnedType returnedType) {
 
 		EntityManager em = getEntityManager();
+		Class<?> type = getTypeToQueryFor(returnedType);
 
-		return this.resultType == null ? em.createNativeQuery(queryString)
-				: em.createNativeQuery(queryString, this.resultType);
+		return type == null ? em.createNativeQuery(queryString) : em.createNativeQuery(queryString, type);
 	}
 
 	@Nullable
-	private Class<?> getTypeToQueryFor() {
-
-		ResultProcessor resultFactory = getQueryMethod().getResultProcessor();
-		ReturnedType returnedType = resultFactory.getReturnedType();
+	private Class<?> getTypeToQueryFor(ReturnedType returnedType) {
 
 		Class<?> result = getQueryMethod().isQueryForEntity() ? returnedType.getDomainType() : null;
 
