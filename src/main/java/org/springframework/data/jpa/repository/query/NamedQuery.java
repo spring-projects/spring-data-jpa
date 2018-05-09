@@ -21,14 +21,18 @@ import java.util.Optional;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
+import javax.persistence.Tuple;
 import javax.persistence.TypedQuery;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.jpa.provider.QueryExtractor;
 import org.springframework.data.repository.query.Parameters;
+import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.QueryCreationException;
 import org.springframework.data.repository.query.RepositoryQuery;
+import org.springframework.data.repository.query.ResultProcessor;
+import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.lang.Nullable;
 
 /**
@@ -155,7 +159,11 @@ final class NamedQuery extends AbstractJpaQuery {
 
 		EntityManager em = getEntityManager();
 
-		Query query = getTypeToRead() //
+		JpaQueryMethod queryMethod = getQueryMethod();
+		ResultProcessor processor = queryMethod.getResultProcessor()
+				.withDynamicProjection(new ParametersParameterAccessor(queryMethod.getParameters(), values));
+
+		Query query = getTypeToRead(processor.getReturnedType()) //
 				.<Query> map(it -> em.createNamedQuery(queryName, it)) //
 				.orElseGet(() -> em.createNamedQuery(queryName));
 
@@ -191,7 +199,29 @@ final class NamedQuery extends AbstractJpaQuery {
 	 * @see org.springframework.data.jpa.repository.query.AbstractJpaQuery#getTypeToRead()
 	 */
 	@Override
-	protected Optional<Class<?>> getTypeToRead() {
-		return declaredQuery.hasConstructorExpression() ? Optional.empty() : super.getTypeToRead();
+	protected Optional<Class<?>> getTypeToRead(ReturnedType returnedType) {
+
+		if (getQueryMethod().isNativeQuery()) {
+
+			Class<?> type = returnedType.getReturnedType();
+			Class<?> domainType = returnedType.getDomainType();
+
+			// Domain or subtype -> use return type
+			if (domainType.isAssignableFrom(type)) {
+				return Optional.of(type);
+			}
+
+			// Domain type supertype -> use domain type
+			if (type.isAssignableFrom(domainType)) {
+				return Optional.of(domainType);
+			}
+
+			// Tuples for projection interfaces or explicit SQL mappings for everything else
+			return type.isInterface() ? Optional.of(Tuple.class) : Optional.empty();
+		}
+
+		return declaredQuery.hasConstructorExpression() //
+				? Optional.empty() //
+				: super.getTypeToRead(returnedType);
 	}
 }

@@ -244,14 +244,11 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 	 * @return
 	 * @since 2.0.5
 	 */
-	protected Optional<Class<?>> getTypeToRead() {
+	protected Optional<Class<?>> getTypeToRead(ReturnedType returnedType) {
 
 		if (PersistenceProvider.ECLIPSELINK.equals(provider)) {
 			return Optional.empty();
 		}
-
-		ResultProcessor resultFactory = getQueryMethod().getResultProcessor();
-		ReturnedType returnedType = resultFactory.getReturnedType();
 
 		return returnedType.isProjecting() && !getMetamodel().isJpaManaged(returnedType.getReturnedType())
 				? Optional.of(Tuple.class)
