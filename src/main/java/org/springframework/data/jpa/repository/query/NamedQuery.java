@@ -25,6 +25,7 @@ import org.springframework.data.jpa.provider.QueryExtractor;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.QueryCreationException;
 import org.springframework.data.repository.query.RepositoryQuery;
+import org.springframework.util.StringUtils;
 
 /**
  * Implementation of {@link RepositoryQuery} based on {@link javax.persistence.NamedQuery}s.
@@ -46,6 +47,7 @@ final class NamedQuery extends AbstractJpaQuery {
 	private final String countProjection;
 	private final QueryExtractor extractor;
 	private final boolean namedCountQueryIsPresent;
+	private final StringQuery declaredQuery;
 
 	/**
 	 * Creates a new {@link NamedQuery}.
@@ -79,6 +81,11 @@ final class NamedQuery extends AbstractJpaQuery {
 			LOG.warn("Finder method {} is backed by a NamedQuery" + " but contains a Pageable parameter! Sorting delivered "
 					+ "via this Pageable will not be applied!", method);
 		}
+
+		Query query = em.createNamedQuery(queryName);
+		String queryString = extractor.extractQueryString(query);
+
+		this.declaredQuery = StringUtils.hasText(queryString) ? new StringQuery(queryString) : null;
 	}
 
 	/**
@@ -157,13 +164,29 @@ final class NamedQuery extends AbstractJpaQuery {
 		TypedQuery<Long> countQuery = null;
 
 		if (namedCountQueryIsPresent) {
+
 			countQuery = em.createNamedQuery(countQueryName, Long.class);
+
 		} else {
-			Query query = createQuery(values);
-			String queryString = extractor.extractQueryString(query);
-			countQuery = em.createQuery(QueryUtils.createCountQueryFor(queryString, countProjection), Long.class);
+
+			if (declaredQuery == null) {
+				throw new IllegalStateException("Cannot derive count query without an extracted source query!");
+			}
+
+			String countQueryString = QueryUtils.createCountQueryFor(declaredQuery.getQueryString(), countProjection);
+
+			countQuery = em.createQuery(countQueryString, Long.class);
 		}
 
 		return createBinder(values).bind(countQuery);
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.jpa.repository.query.AbstractJpaQuery#getTypeToRead()
+	 */
+	@Override
+	protected Class<?> getTypeToRead() {
+		return declaredQuery != null && !declaredQuery.hasConstructorExpression() ? super.getTypeToRead() : null;
 	}
 }

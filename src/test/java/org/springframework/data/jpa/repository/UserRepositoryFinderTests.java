@@ -223,4 +223,9 @@ public class UserRepositoryFinderTests {
 	public void rejectsStreamExecutionIfNoSurroundingTransactionActive() {
 		userRepository.findAllByCustomQueryAndStream();
 	}
+
+	@Test // DATAJPA-1334
+	public void executesNamedQueryWithConstructorExpression() {
+		userRepository.findByNamedQueryWithConstructorExpression();
+	}
 }

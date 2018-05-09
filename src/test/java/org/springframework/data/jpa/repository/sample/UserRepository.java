@@ -494,6 +494,9 @@ public interface UserRepository
 	@Query("select firstname as firstname, lastname as lastname from User u where u.firstname = 'Oliver'")
 	Map<String, Object> findMapWithNullValues();
 
+	// DATAJPA-1334
+	List<NameOnlyDto> findByNamedQueryWithConstructorExpression();
+
 	interface RolesAndFirstname {
 
 		String getFirstname();
