@@ -553,6 +553,9 @@ public interface UserRepository
 	@Query(value = "select * from SD_User u where u.emailAddress = ?", nativeQuery = true)
 	User findByEmailNativeAddressJdbcStyleParameter(String emailAddress);
 
+	// DATAJPA-1334
+	List<NameOnlyDto> findByNamedQueryWithConstructorExpression();
+
 	interface RolesAndFirstname {
 
 		String getFirstname();

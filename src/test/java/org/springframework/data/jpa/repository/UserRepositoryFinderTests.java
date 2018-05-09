@@ -172,8 +172,8 @@ public class UserRepositoryFinderTests {
 	public void respectsPageableOrderOnQueryGenerateFromMethodName() throws Exception {
 		Page<User> ascending = userRepository.findByLastnameIgnoringCase(PageRequest.of(0, 10, Sort.by(ASC, "firstname")),
 				"Matthews");
-		Page<User> descending = userRepository
-				.findByLastnameIgnoringCase(PageRequest.of(0, 10, Sort.by(DESC, "firstname")), "Matthews");
+		Page<User> descending = userRepository.findByLastnameIgnoringCase(PageRequest.of(0, 10, Sort.by(DESC, "firstname")),
+				"Matthews");
 		assertThat(ascending.getTotalElements(), is(2L));
 		assertThat(descending.getTotalElements(), is(2L));
 		assertThat(ascending.getContent().get(0).getFirstname(),
@@ -222,5 +222,10 @@ public class UserRepositoryFinderTests {
 	@Transactional(propagation = Propagation.NOT_SUPPORTED)
 	public void rejectsStreamExecutionIfNoSurroundingTransactionActive() {
 		userRepository.findAllByCustomQueryAndStream();
+	}
+
+	@Test // DATAJPA-1334
+	public void executesNamedQueryWithConstructorExpression() {
+		userRepository.findByNamedQueryWithConstructorExpression();
 	}
 }

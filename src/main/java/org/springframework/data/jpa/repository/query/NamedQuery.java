@@ -17,6 +17,8 @@ package org.springframework.data.jpa.repository.query;
 
 import static org.springframework.data.jpa.repository.query.QueryParameterSetter.ErrorHandling.*;
 
+import java.util.Optional;
+
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
@@ -50,6 +52,7 @@ final class NamedQuery extends AbstractJpaQuery {
 	private final @Nullable String countProjection;
 	private final QueryExtractor extractor;
 	private final boolean namedCountQueryIsPresent;
+	private final DeclaredQuery declaredQuery;
 
 	/**
 	 * Creates a new {@link NamedQuery}.
@@ -71,6 +74,11 @@ final class NamedQuery extends AbstractJpaQuery {
 		}
 
 		this.namedCountQueryIsPresent = hasNamedQuery(em, countQueryName);
+
+		Query query = em.createNamedQuery(queryName);
+		String queryString = extractor.extractQueryString(query);
+
+		this.declaredQuery = DeclaredQuery.of(queryString);
 
 		boolean weNeedToCreateCountQuery = !namedCountQueryIsPresent && method.getParameters().hasPageableParameter();
 		boolean cantExtractQuery = !this.extractor.canExtractQuery();
@@ -165,18 +173,25 @@ final class NamedQuery extends AbstractJpaQuery {
 		TypedQuery<Long> countQuery;
 
 		if (namedCountQueryIsPresent) {
+
 			countQuery = em.createNamedQuery(countQueryName, Long.class);
+
 		} else {
-			Query query = createQuery(values);
-			String queryString = extractor.extractQueryString(query);
 
-			if (queryString == null) {
-				throw new IllegalStateException(String.format("Cannot extract query string for query %s is null!", query));
-			}
+			String countQueryString = declaredQuery.deriveCountQuery(null, countProjection).getQueryString();
 
-			countQuery = em.createQuery(QueryUtils.createCountQueryFor(queryString, countProjection), Long.class);
+			countQuery = em.createQuery(countQueryString, Long.class);
 		}
 
 		return parameterBinder.get().bind(countQuery, values, LENIENT);
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.jpa.repository.query.AbstractJpaQuery#getTypeToRead()
+	 */
+	@Override
+	protected Optional<Class<?>> getTypeToRead() {
+		return declaredQuery.hasConstructorExpression() ? Optional.empty() : super.getTypeToRead();
 	}
 }

@@ -85,7 +85,10 @@ import javax.persistence.TemporalType;
 		@NamedQuery(name = "User.findByEmailAddress", //
 				query = "SELECT u FROM User u WHERE u.emailAddress = ?1"), //
 		@NamedQuery(name = "User.findByNamedQueryWithAliasInInvertedOrder", //
-				query = "SELECT u.lastname AS lastname, u.firstname AS firstname FROM User u ORDER BY u.lastname ASC") })
+				query = "SELECT u.lastname AS lastname, u.firstname AS firstname FROM User u ORDER BY u.lastname ASC"),
+		@NamedQuery(name = "User.findByNamedQueryWithConstructorExpression",
+				query = "SELECT new org.springframework.data.jpa.repository.sample.NameOnlyDto(u.firstname, u.lastname) from User u") })
+
 @NamedStoredProcedureQueries({ //
 		@NamedStoredProcedureQuery(name = "User.plus1", procedureName = "plus1inout",
 				parameters = { @StoredProcedureParameter(mode = ParameterMode.IN, name = "arg", type = Integer.class),
