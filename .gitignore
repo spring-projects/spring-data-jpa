@@ -7,3 +7,4 @@ target/
 .springBeans
 .sonar4clipse
 *.sonar4clipseExternals
+.DS_Store
