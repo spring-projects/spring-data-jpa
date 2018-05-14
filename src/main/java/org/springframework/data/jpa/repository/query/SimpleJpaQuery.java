@@ -18,7 +18,7 @@ package org.springframework.data.jpa.repository.query;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 
-import org.springframework.data.repository.query.EvaluationContextProvider;
+import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 
@@ -41,8 +41,8 @@ final class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
 	 * @param evaluationContextProvider must not be {@literal null}
 	 * @param parser must not be {@literal null}
 	 */
-	public SimpleJpaQuery(JpaQueryMethod method, EntityManager em, EvaluationContextProvider evaluationContextProvider,
-			SpelExpressionParser parser) {
+	public SimpleJpaQuery(JpaQueryMethod method, EntityManager em,
+			QueryMethodEvaluationContextProvider evaluationContextProvider, SpelExpressionParser parser) {
 		this(method, em, method.getRequiredAnnotatedQuery(), evaluationContextProvider, parser);
 	}
 
@@ -56,7 +56,7 @@ final class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
 	 * @param parser must not be {@literal null}
 	 */
 	public SimpleJpaQuery(JpaQueryMethod method, EntityManager em, String queryString,
-			EvaluationContextProvider evaluationContextProvider, SpelExpressionParser parser) {
+			QueryMethodEvaluationContextProvider evaluationContextProvider, SpelExpressionParser parser) {
 
 		super(method, em, queryString, evaluationContextProvider, parser);
 

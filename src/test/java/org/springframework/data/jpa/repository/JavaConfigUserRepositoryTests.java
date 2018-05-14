@@ -17,7 +17,6 @@ package org.springframework.data.jpa.repository;
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.List;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -42,8 +41,9 @@ import org.springframework.data.jpa.repository.support.DefaultJpaContext;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean;
 import org.springframework.data.repository.core.NamedQueries;
 import org.springframework.data.repository.core.support.PropertiesBasedNamedQueries;
-import org.springframework.data.repository.query.ExtensionAwareEvaluationContextProvider;
-import org.springframework.data.repository.query.spi.EvaluationContextExtension;
+import org.springframework.data.repository.query.ExtensionAwareQueryMethodEvaluationContextProvider;
+import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
+import org.springframework.data.spel.spi.EvaluationContextExtension;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
 
@@ -62,7 +62,6 @@ public class JavaConfigUserRepositoryTests extends UserRepositoryTests {
 
 		@PersistenceContext EntityManager entityManager;
 		@Autowired ApplicationContext applicationContext;
-		@Autowired List<EvaluationContextExtension> extensions;
 
 		@Bean
 		public EvaluationContextExtension sampleEvaluationContextExtension() {
@@ -72,9 +71,8 @@ public class JavaConfigUserRepositoryTests extends UserRepositoryTests {
 		@Bean
 		public UserRepository userRepository() throws Exception {
 
-			ExtensionAwareEvaluationContextProvider evaluationContextProvider = new ExtensionAwareEvaluationContextProvider(
-					extensions);
-			evaluationContextProvider.setApplicationContext(applicationContext);
+			QueryMethodEvaluationContextProvider evaluationContextProvider = new ExtensionAwareQueryMethodEvaluationContextProvider(
+					applicationContext);
 
 			JpaRepositoryFactoryBean<UserRepository, User, Integer> factory = new JpaRepositoryFactoryBean<UserRepository, User, Integer>(
 					UserRepository.class);
@@ -110,7 +108,5 @@ public class JavaConfigUserRepositoryTests extends UserRepositoryTests {
 	@Configuration
 	@EnableJpaRepositories(basePackageClasses = UserRepository.class)
 	@ImportResource("classpath:infrastructure.xml")
-	static class JpaRepositoryConfig {
-
-	}
+	static class JpaRepositoryConfig {}
 }

@@ -25,9 +25,10 @@ import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
 import org.springframework.data.jpa.repository.query.ParameterMetadataProvider.ParameterMetadata;
 import org.springframework.data.jpa.repository.query.QueryParameterSetter.NamedOrIndexedQueryParameterSetter;
 import org.springframework.data.jpa.repository.query.StringQuery.ParameterBinding;
-import org.springframework.data.repository.query.EvaluationContextProvider;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
+import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
+import org.springframework.data.spel.EvaluationContextProvider;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
@@ -88,7 +89,7 @@ abstract class QueryParameterSetterFactory {
 	 *         {@link org.springframework.expression.spel.standard.SpelExpression}s.
 	 */
 	static QueryParameterSetterFactory parsing(SpelExpressionParser parser,
-			EvaluationContextProvider evaluationContextProvider, Parameters<?, ?> parameters) {
+			QueryMethodEvaluationContextProvider evaluationContextProvider, Parameters<?, ?> parameters) {
 
 		Assert.notNull(parser, "SpelExpressionParser must not be null!");
 		Assert.notNull(evaluationContextProvider, "EvaluationContextProvider must not be null!");
@@ -126,7 +127,7 @@ abstract class QueryParameterSetterFactory {
 	private static class ExpressionBasedQueryParameterSetterFactory extends QueryParameterSetterFactory {
 
 		private final SpelExpressionParser parser;
-		private final EvaluationContextProvider evaluationContextProvider;
+		private final QueryMethodEvaluationContextProvider evaluationContextProvider;
 		private final Parameters<?, ?> parameters;
 
 		/**
@@ -135,7 +136,7 @@ abstract class QueryParameterSetterFactory {
 		 * @param parameters must not be {@literal null}.
 		 */
 		ExpressionBasedQueryParameterSetterFactory(SpelExpressionParser parser,
-				EvaluationContextProvider evaluationContextProvider, Parameters<?, ?> parameters) {
+				QueryMethodEvaluationContextProvider evaluationContextProvider, Parameters<?, ?> parameters) {
 
 			Assert.notNull(evaluationContextProvider, "EvaluationContextProvider must not be null!");
 			Assert.notNull(parser, "SpelExpressionParser must not be null!");

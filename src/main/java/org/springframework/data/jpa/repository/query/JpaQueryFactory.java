@@ -20,8 +20,8 @@ import javax.persistence.EntityManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.EvaluationContextProvider;
 import org.springframework.data.repository.query.QueryMethod;
+import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.lang.Nullable;
@@ -50,7 +50,7 @@ enum JpaQueryFactory {
 	 */
 	@Nullable
 	AbstractJpaQuery fromQueryAnnotation(JpaQueryMethod method, EntityManager em,
-			EvaluationContextProvider evaluationContextProvider) {
+			QueryMethodEvaluationContextProvider evaluationContextProvider) {
 
 		LOG.debug("Looking up query for method {}", method.getName());
 		return fromMethodWithQueryString(method, em, method.getAnnotatedQuery(), evaluationContextProvider);
@@ -67,7 +67,7 @@ enum JpaQueryFactory {
 	 */
 	@Nullable
 	AbstractJpaQuery fromMethodWithQueryString(JpaQueryMethod method, EntityManager em, @Nullable String queryString,
-			EvaluationContextProvider evaluationContextProvider) {
+			QueryMethodEvaluationContextProvider evaluationContextProvider) {
 
 		if (queryString == null) {
 			return null;

@@ -23,7 +23,7 @@ import java.util.Objects;
 import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
 import org.springframework.data.jpa.repository.query.ParameterMetadataProvider.ParameterMetadata;
 import org.springframework.data.jpa.repository.query.StringQuery.ParameterBinding;
-import org.springframework.data.repository.query.EvaluationContextProvider;
+import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.util.StreamUtils;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.util.Assert;
@@ -88,7 +88,7 @@ class ParameterBinderFactory {
 	 *         {@link javax.persistence.Query} while processing SpEL expressions where applicable.
 	 */
 	static ParameterBinder createQueryAwareBinder(JpaParameters parameters, DeclaredQuery query,
-			SpelExpressionParser parser, EvaluationContextProvider evaluationContextProvider) {
+			SpelExpressionParser parser, QueryMethodEvaluationContextProvider evaluationContextProvider) {
 
 		Assert.notNull(parameters, "JpaParameters must not be null!");
 		Assert.notNull(query, "StringQuery must not be null!");
