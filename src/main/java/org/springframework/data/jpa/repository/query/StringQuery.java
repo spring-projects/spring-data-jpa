@@ -27,9 +27,9 @@ import java.util.function.BiFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.springframework.data.repository.query.SpelQueryContext;
+import org.springframework.data.repository.query.SpelQueryContext.SpelExtractor;
 import org.springframework.data.repository.query.parser.Part.Type;
-import org.springframework.data.repository.query.parser.QuotationMap;
-import org.springframework.data.repository.query.parser.SpelQueryContext;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
@@ -224,17 +224,14 @@ class StringQuery implements DeclaredQuery {
 		private String parseParameterBindingsOfQueryIntoBindingsAndReturnCleanedQuery(String query,
 				List<ParameterBinding> bindings) {
 
-			SpelQueryContext.SpelExtractor spelExtractor = createSpelExtractor(query);
+			SpelExtractor spelExtractor = createSpelExtractor(query);
 
-			String resultingQuery = spelExtractor.query();
-
-			Matcher matcher = PARAMETER_BINDING_PATTERN.matcher(spelExtractor.query());
-
-			QuotationMap quotationMap = new QuotationMap(spelExtractor.query());
+			String resultingQuery = spelExtractor.getQueryString();
+			Matcher matcher = PARAMETER_BINDING_PATTERN.matcher(resultingQuery);
 
 			while (matcher.find()) {
 
-				if (quotationMap.isQuoted(matcher.start())) {
+				if (spelExtractor.isQuoted(matcher.start())) {
 					continue;
 				}
 
@@ -242,8 +239,7 @@ class StringQuery implements DeclaredQuery {
 				String parameterName = parameterIndexString != null ? null : matcher.group(NAMED_PARAMETER_GROUP);
 				Integer parameterIndex = parameterIndexString == null ? null : Integer.valueOf(parameterIndexString);
 				String typeSource = matcher.group(COMPARISION_TYPE_GROUP);
-				String expression = spelExtractor.parameterNameToSpelMap()
-						.get(parameterName == null ? parameterIndexString : parameterName);
+				String expression = spelExtractor.getParameter(parameterName == null ? parameterIndexString : parameterName);
 				String replacement = null;
 
 				Assert.isTrue(parameterIndex != null || parameterName != null, "We need either a name or an index.");
@@ -291,7 +287,8 @@ class StringQuery implements DeclaredQuery {
 			return resultingQuery;
 		}
 
-		private SpelQueryContext.SpelExtractor createSpelExtractor(String queryWithSpel) {
+		private SpelExtractor createSpelExtractor(String queryWithSpel) {
+
 			int greatestParameterIndex = tryFindGreatestParameterIndexIn(queryWithSpel);
 
 			boolean parametersShouldBeAccessedByIndex = greatestParameterIndex != -1;
@@ -318,7 +315,7 @@ class StringQuery implements DeclaredQuery {
 
 			BiFunction<String, String, String> parameterNameToReplacement = (prefix, name) -> fixedPrefix + name;
 
-			return new SpelQueryContext(indexToParameterName, parameterNameToReplacement).parse(queryWithSpel);
+			return SpelQueryContext.of(indexToParameterName, parameterNameToReplacement).parse(queryWithSpel);
 		}
 
 		private String replaceFirst(String text, String substring, String replacement) {
@@ -344,13 +341,11 @@ class StringQuery implements DeclaredQuery {
 			return greatestParameterIndex;
 		}
 
-		private void checkAndRegister(ParameterBinding binding, List<ParameterBinding> bindings) {
+		private static void checkAndRegister(ParameterBinding binding, List<ParameterBinding> bindings) {
 
-			for (ParameterBinding existing : bindings) {
-				if (existing.hasName(binding.getName()) || existing.hasPosition(binding.getPosition())) {
-					Assert.isTrue(existing.equals(binding), String.format(MESSAGE, existing, binding));
-				}
-			}
+			bindings.stream() //
+					.filter(it -> it.hasName(binding.getName()) || it.hasPosition(binding.getPosition())) //
+					.forEach(it -> Assert.isTrue(it.equals(binding), String.format(MESSAGE, it, binding)));
 
 			if (!bindings.contains(binding)) {
 				bindings.add(binding);

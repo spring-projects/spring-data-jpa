@@ -15,12 +15,8 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.assertj.core.api.SoftAssertions;
 import org.junit.Test;
-import org.springframework.data.jpa.repository.query.StringQuery.ParameterBinding;
 import org.springframework.data.jpa.repository.query.StringQuery.ParameterBindingParser;
 
 /**
