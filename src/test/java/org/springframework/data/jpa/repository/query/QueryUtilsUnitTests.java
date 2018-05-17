@@ -38,6 +38,7 @@ import org.springframework.data.jpa.domain.JpaSort;
  * @author Komi Innocent
  * @author Christoph Strobl
  * @author Jens Schauder
+ * @author Grégoire Druant
  */
 public class QueryUtilsUnitTests {
 
@@ -393,6 +394,30 @@ public class QueryUtilsUnitTests {
 
 		assertThat(QueryUtils.getExistsQueryString("entity", "x", Collections.singleton("id"))) //
 				.endsWith("WHERE x.id = :id");
+	}
+
+	@Test // DATAJPA-1061
+	public void appliesSortCorrectlyForFieldAliases() {
+		String query = "SELECT  m.price, lower(m.title) AS title, a.name as authorName   FROM Magazine   m INNER JOIN m.author a";
+		Sort sort = Sort.by("authorName");
+		String fullQuery = applySorting(query, sort);
+		assertThat(fullQuery, endsWith("order by authorName asc"));
+	}
+
+	@Test // DATAJPA-1061
+	public void appliesSortCorrectlyForFunctionAliases() {
+		String query = "SELECT  m.price, lower(m.title) AS title, a.name as authorName   FROM Magazine   m INNER JOIN m.author a";
+		Sort sort = Sort.by("title");
+		String fullQuery = applySorting(query, sort);
+		assertThat(fullQuery, endsWith("order by title asc"));
+	}
+
+	@Test // DATAJPA-1061
+	public void appliesSortCorrectlyForSimpleField() {
+		String query = "SELECT  m.price, lower(m.title) AS title, a.name as authorName   FROM Magazine   m INNER JOIN m.author a";
+		Sort sort = Sort.by("price");
+		String fullQuery = applySorting(query, sort);
+		assertThat(fullQuery, endsWith("order by m.price asc"));
 	}
 
 	private static void assertCountQuery(String originalQuery, String countQuery) {
