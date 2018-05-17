@@ -48,13 +48,13 @@
 		<profile>
 			<id>hibernate-53</id>
 			<properties>
-				<hibernate>5.3.0.CR1</hibernate>
+				<hibernate>5.3.0.Final</hibernate>
 			</properties>
 		</profile>
 		<profile>
 			<id>hibernate-53-next</id>
 			<properties>
-				<hibernate>5.3.0-SNAPSHOT</hibernate>
+				<hibernate>5.3.1-SNAPSHOT</hibernate>
 			</properties>
 			<repositories>
 				<repository>
