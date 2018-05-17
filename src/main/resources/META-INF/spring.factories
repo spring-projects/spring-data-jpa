@@ -1,1 +1,2 @@
 org.springframework.data.repository.core.support.RepositoryFactorySupport=org.springframework.data.jpa.repository.support.JpaRepositoryFactory
+org.springframework.data.util.ProxyUtils$ProxyDetector=org.springframework.data.jpa.util.HibernateProxyDetector
