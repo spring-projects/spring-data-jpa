@@ -23,8 +23,8 @@ import javax.persistence.MappedSuperclass;
 import javax.persistence.Transient;
 
 import org.springframework.data.domain.Persistable;
+import org.springframework.data.util.ProxyUtils;
 import org.springframework.lang.Nullable;
-import org.springframework.util.ClassUtils;
 
 /**
  * Abstract base class for entities. Allows parameterization of id type, chooses auto-generation and implements
@@ -94,7 +94,7 @@ public abstract class AbstractPersistable<PK extends Serializable> implements Pe
 			return true;
 		}
 
-		if (!getClass().equals(ClassUtils.getUserClass(obj))) {
+		if (!getClass().equals(ProxyUtils.getUserClass(obj))) {
 			return false;
 		}
 
