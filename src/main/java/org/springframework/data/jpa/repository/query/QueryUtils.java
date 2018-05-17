@@ -77,6 +77,7 @@ import org.springframework.util.StringUtils;
  * @author Nils Borrmann
  * @author Reda.Housni-Alaoui
  * @author Florian Lüdiger
+ * @author Grégoire Druant
  */
 public abstract class QueryUtils {
 
@@ -121,6 +122,7 @@ public abstract class QueryUtils {
 
 	private static final Pattern PUNCTATION_PATTERN = Pattern.compile(".*((?![\\._])[\\p{Punct}|\\s])");
 	private static final Pattern FUNCTION_PATTERN;
+	private static final Pattern FIELD_ALIAS_PATTERN;
 
 	private static final String UNSAFE_PROPERTY_REFERENCE = "Sort expression '%s' must only contain property references or "
 			+ "aliases used in the select clause. If you really want to use something other than that for sorting, please use "
@@ -177,6 +179,14 @@ public abstract class QueryUtils {
 		builder.append("\\s+[as|AS]+\\s+(([\\w\\.]+))");
 
 		FUNCTION_PATTERN = compile(builder.toString());
+
+		builder = new StringBuilder();
+		builder.append("\\s+"); // at least one space
+		builder.append("[^\\s\\(\\)]+"); // No white char no bracket
+		builder.append("\\s+[as|AS]+\\s+(([\\w\\.]+))"); // the potential alias
+
+		FIELD_ALIAS_PATTERN = compile(builder.toString());
+
 	}
 
 	/**
@@ -253,10 +263,11 @@ public abstract class QueryUtils {
 		}
 
 		Set<String> aliases = getOuterJoinAliases(query);
-		Set<String> functionAliases = getFunctionAliases(query);
+		Set<String> fieldAliases = getFunctionAliases(query);
+		fieldAliases.addAll(getFieldAliases(query));
 
 		for (Order order : sort) {
-			builder.append(getOrderClause(aliases, functionAliases, alias, order)).append(", ");
+			builder.append(getOrderClause(aliases, fieldAliases, alias, order)).append(", ");
 		}
 
 		builder.delete(builder.length() - 2, builder.length());
@@ -273,14 +284,14 @@ public abstract class QueryUtils {
 	 * @param order the order object to build the clause for. Must not be {@literal null}.
 	 * @return a String containing a order clause. Guaranteed to be not {@literal null}.
 	 */
-	private static String getOrderClause(Set<String> joinAliases, Set<String> functionAlias, @Nullable String alias,
+	private static String getOrderClause(Set<String> joinAliases, Set<String> fieldAlias, @Nullable String alias,
 			Order order) {
 
 		String property = order.getProperty();
 
 		checkSortExpression(order);
 
-		if (functionAlias.contains(property)) {
+		if (fieldAlias.contains(property)) {
 			return String.format("%s %s", property, toJpaDirection(order));
 		}
 
@@ -319,6 +330,26 @@ public abstract class QueryUtils {
 			}
 		}
 
+		return result;
+	}
+
+	/**
+	 * Returns the aliases used for fields in the query.
+	 *
+	 * @param query a {@literal String} containing a query. Must not be {@literal null}.
+	 * @return a {@literal Set} containing all found aliases. Guaranteed to be not {@literal null}.
+	 */
+	private static Set<String> getFieldAliases(String query) {
+		Set<String> result = new HashSet<>();
+		Matcher matcher = FIELD_ALIAS_PATTERN.matcher(query);
+
+		while (matcher.find()) {
+			String alias = matcher.group(1);
+
+			if (StringUtils.hasText(alias)) {
+				result.add(alias);
+			}
+		}
 		return result;
 	}
 
