@@ -175,18 +175,18 @@ class StringQuery implements DeclaredQuery {
 	 *
 	 * @author Thomas Darimont
 	 */
-	public enum ParameterBindingParser {
+	enum ParameterBindingParser {
 
 		INSTANCE;
 
-		static final String EXPRESSION_PARAMETER_PREFIX = "__$synthetic$__";
+		private static final String EXPRESSION_PARAMETER_PREFIX = "__$synthetic$__";
 		private static final Pattern PARAMETER_BINDING_BY_INDEX = Pattern.compile("\\?(\\d+)");
 		private static final Pattern PARAMETER_BINDING_PATTERN;
 		private static final String MESSAGE = "Already found parameter binding with same index / parameter name but differing binding type! "
 				+ "Already have: %s, found %s! If you bind a parameter multiple times make sure they use the same binding.";
-		public static final int INDEXED_PARAMETER_GROUP = 4;
-		public static final int NAMED_PARAMETER_GROUP = 6;
-		public static final int COMPARISION_TYPE_GROUP = 1;
+		private static final int INDEXED_PARAMETER_GROUP = 4;
+		private static final int NAMED_PARAMETER_GROUP = 6;
+		private static final int COMPARISION_TYPE_GROUP = 1;
 
 		static {
 
@@ -253,7 +253,7 @@ class StringQuery implements DeclaredQuery {
 					case LIKE:
 
 						Type likeType = LikeParameterBinding.getLikeTypeFrom(matcher.group(2));
-						replacement = replacement != null ? replacement : matcher.group(3);
+						replacement = matcher.group(3);
 
 						if (parameterIndex != null) {
 							checkAndRegister(new LikeParameterBinding(parameterIndex, likeType, expression), bindings);
@@ -344,7 +344,7 @@ class StringQuery implements DeclaredQuery {
 			return greatestParameterIndex;
 		}
 
-		private static void checkAndRegister(ParameterBinding binding, List<ParameterBinding> bindings) {
+		private void checkAndRegister(ParameterBinding binding, List<ParameterBinding> bindings) {
 
 			for (ParameterBinding existing : bindings) {
 				if (existing.hasName(binding.getName()) || existing.hasPosition(binding.getPosition())) {
