@@ -54,6 +54,7 @@ class StringQuery implements DeclaredQuery {
 	private final @Nullable String alias;
 	private final boolean hasConstructorExpression;
 	private final boolean containsPageableInSpel;
+	private final boolean usesJdbcStyleParameters;
 
 	/**
 	 * Creates a new {@link StringQuery} from the given JPQL query.
@@ -67,9 +68,12 @@ class StringQuery implements DeclaredQuery {
 
 		this.bindings = new ArrayList<>();
 		this.containsPageableInSpel = query.contains("#pageable");
-		this.query = ParameterBindingParser.INSTANCE.parseParameterBindingsOfQueryIntoBindingsAndReturnCleanedQuery(query,
-				this.bindings);
 
+		Metadata queryMeta = new Metadata();
+		this.query = ParameterBindingParser.INSTANCE.parseParameterBindingsOfQueryIntoBindingsAndReturnCleanedQuery(query,
+				this.bindings, queryMeta);
+
+		this.usesJdbcStyleParameters = queryMeta.usesJdbcStyleParameters;
 		this.alias = QueryUtils.detectAlias(query);
 		this.hasConstructorExpression = QueryUtils.hasConstructorExpression(query);
 	}
@@ -112,7 +116,7 @@ class StringQuery implements DeclaredQuery {
 	 */
 	@Override
 	public boolean usesJdbcStyleParameters() {
-		return false;
+		return usesJdbcStyleParameters;
 	}
 
 	/*
@@ -180,7 +184,11 @@ class StringQuery implements DeclaredQuery {
 		INSTANCE;
 
 		private static final String EXPRESSION_PARAMETER_PREFIX = "__$synthetic$__";
-		private static final Pattern PARAMETER_BINDING_BY_INDEX = Pattern.compile("\\?(\\d+)");
+		public static final String POSITIONAL_OR_INDEXED_PARAMETER = "\\?(\\d*+(?![#\\w]))";
+		// .....................................................................^ not followed by a hash or a letter.
+		// .................................................................^ zero or more digits.
+		// .............................................................^ start with a question mark.
+		private static final Pattern PARAMETER_BINDING_BY_INDEX = Pattern.compile(POSITIONAL_OR_INDEXED_PARAMETER);
 		private static final Pattern PARAMETER_BINDING_PATTERN;
 		private static final String MESSAGE = "Already found parameter binding with same index / parameter name but differing binding type! "
 				+ "Already have: %s, found %s! If you bind a parameter multiple times make sure they use the same binding.";
@@ -205,7 +213,7 @@ class StringQuery implements DeclaredQuery {
 			builder.append("(?: )?"); // some whitespace
 			builder.append("\\(?"); // optional braces around parameters
 			builder.append("(");
-			builder.append("%?(\\?(\\d+))%?"); // position parameter and parameter index
+			builder.append("%?(" + POSITIONAL_OR_INDEXED_PARAMETER + ")%?"); // position parameter and parameter index
 			builder.append("|"); // or
 
 			// named parameter and the parameter name
@@ -222,13 +230,29 @@ class StringQuery implements DeclaredQuery {
 		 * the cleaned up query.
 		 */
 		private String parseParameterBindingsOfQueryIntoBindingsAndReturnCleanedQuery(String query,
-				List<ParameterBinding> bindings) {
+				List<ParameterBinding> bindings, Metadata queryMeta) {
 
-			SpelExtractor spelExtractor = createSpelExtractor(query);
+			int greatestParameterIndex = tryFindGreatestParameterIndexIn(query);
+
+			boolean parametersShouldBeAccessedByIndex = greatestParameterIndex != -1;
+
+			/*
+			 * Prefer indexed access over named parameters if only SpEL Expression parameters are present.
+			 */
+			if (!parametersShouldBeAccessedByIndex && query.contains("?#{")) {
+				parametersShouldBeAccessedByIndex = true;
+				greatestParameterIndex = 0;
+			}
+
+			SpelExtractor spelExtractor = createSpelExtractor(query, parametersShouldBeAccessedByIndex,
+					greatestParameterIndex);
 
 			String resultingQuery = spelExtractor.getQueryString();
 			Matcher matcher = PARAMETER_BINDING_PATTERN.matcher(resultingQuery);
 
+			int expressionParameterIndex = parametersShouldBeAccessedByIndex ? greatestParameterIndex : 0;
+
+			boolean usesJpaStyleParameters = false;
 			while (matcher.find()) {
 
 				if (spelExtractor.isQuoted(matcher.start())) {
@@ -237,12 +261,26 @@ class StringQuery implements DeclaredQuery {
 
 				String parameterIndexString = matcher.group(INDEXED_PARAMETER_GROUP);
 				String parameterName = parameterIndexString != null ? null : matcher.group(NAMED_PARAMETER_GROUP);
-				Integer parameterIndex = parameterIndexString == null ? null : Integer.valueOf(parameterIndexString);
+				Integer parameterIndex = getParameterIndex(parameterIndexString);
+
 				String typeSource = matcher.group(COMPARISION_TYPE_GROUP);
 				String expression = spelExtractor.getParameter(parameterName == null ? parameterIndexString : parameterName);
 				String replacement = null;
 
-				Assert.isTrue(parameterIndex != null || parameterName != null, "We need either a name or an index.");
+				Assert.isTrue(parameterIndexString != null || parameterName != null, "We need either a name or an index.");
+
+				expressionParameterIndex++;
+				if ("".equals(parameterIndexString)) {
+
+					queryMeta.usesJdbcStyleParameters = true;
+					parameterIndex = expressionParameterIndex;
+				} else {
+					usesJpaStyleParameters = true;
+				}
+
+				if (usesJpaStyleParameters && queryMeta.usesJdbcStyleParameters) {
+					throw new IllegalArgumentException("Mixing of ? parameters and other forms like ?1 is not supported");
+				}
 
 				switch (ParameterBindingType.of(typeSource)) {
 
@@ -287,19 +325,8 @@ class StringQuery implements DeclaredQuery {
 			return resultingQuery;
 		}
 
-		private SpelExtractor createSpelExtractor(String queryWithSpel) {
-
-			int greatestParameterIndex = tryFindGreatestParameterIndexIn(queryWithSpel);
-
-			boolean parametersShouldBeAccessedByIndex = greatestParameterIndex != -1;
-
-			/*
-			 * Prefer indexed access over named parameters if only SpEL Expression parameters are present.
-			 */
-			if (!parametersShouldBeAccessedByIndex && queryWithSpel.contains("?#{")) {
-				parametersShouldBeAccessedByIndex = true;
-				greatestParameterIndex = 0;
-			}
+		private SpelExtractor createSpelExtractor(String queryWithSpel, boolean parametersShouldBeAccessedByIndex,
+				int greatestParameterIndex) {
 
 			/*
 			 * If parameters need to be bound by index, we bind the synthetic expression parameters starting from position of the greatest discovered index parameter in order to
@@ -328,14 +355,27 @@ class StringQuery implements DeclaredQuery {
 			return text.substring(0, index) + replacement + text.substring(index + substring.length());
 		}
 
+		@Nullable
+		private Integer getParameterIndex(@Nullable String parameterIndexString) {
+
+			if (parameterIndexString == null || parameterIndexString.isEmpty()) {
+				return null;
+			}
+			return Integer.valueOf(parameterIndexString);
+		}
+
 		private int tryFindGreatestParameterIndexIn(String query) {
 
 			Matcher parameterIndexMatcher = PARAMETER_BINDING_BY_INDEX.matcher(query);
 
 			int greatestParameterIndex = -1;
 			while (parameterIndexMatcher.find()) {
+
 				String parameterIndexString = parameterIndexMatcher.group(1);
-				greatestParameterIndex = Math.max(greatestParameterIndex, Integer.parseInt(parameterIndexString));
+				Integer parameterIndex = getParameterIndex(parameterIndexString);
+				if (parameterIndex != null) {
+					greatestParameterIndex = Math.max(greatestParameterIndex, parameterIndex);
+				}
 			}
 
 			return greatestParameterIndex;
@@ -790,4 +830,7 @@ class StringQuery implements DeclaredQuery {
 		}
 	}
 
+	static class Metadata {
+		private boolean usesJdbcStyleParameters = false;
+	}
 }
