@@ -87,7 +87,7 @@ public class QueryUtilsIntegrationTests {
 		CriteriaQuery<User> query = builder.createQuery(User.class);
 		Root<User> root = query.from(User.class);
 
-		QueryUtils.toExpressionRecursively(root, PropertyPath.from("manager", User.class));
+		QueryUtils.toExpressionRecursively(root, PropertyPath.from("manager.firstname", User.class));
 
 		assertThat(root.getJoins()).hasSize(1);
 	}
