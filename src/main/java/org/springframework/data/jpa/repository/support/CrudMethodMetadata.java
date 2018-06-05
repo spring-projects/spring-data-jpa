@@ -32,6 +32,7 @@ import org.springframework.lang.Nullable;
  * @author Thomas Darimont
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Jens Schauder
  */
 public interface CrudMethodMetadata {
 
@@ -49,6 +50,15 @@ public interface CrudMethodMetadata {
 	 * @return
 	 */
 	Map<String, Object> getQueryHints();
+
+	/**
+	 * Returns all query hints to be applied to count queries executed for the CRUD method.
+	 *
+	 * The default implementation just delegates to {@link #getQueryHints()}.
+	 */
+	default Map<String, Object> getQueryHintsForCount() {
+		return getQueryHints();
+	}
 
 	/**
 	 * Returns the {@link EntityGraph} to be used.

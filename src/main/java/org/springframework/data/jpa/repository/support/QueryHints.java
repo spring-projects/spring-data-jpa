@@ -25,6 +25,14 @@ interface QueryHints extends Iterable<Entry<String, Object>> {
 	 */
 	QueryHints withFetchGraphs(EntityManager em);
 
+
+	/**
+	 * Creates and returns a new {@link QueryHints} instance that will contain only those hints applicable for count queries.
+	 *
+	 * @return new instance of {@link QueryHints}.
+	 */
+	QueryHints forCounts();
+
 	/**
 	 * Get the query hints as a {@link Map}.
 	 *
@@ -66,6 +74,15 @@ interface QueryHints extends Iterable<Entry<String, Object>> {
 		 */
 		@Override
 		public QueryHints withFetchGraphs(EntityManager em) {
+			return this;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.jpa.repository.support.QueryHints#forCounts(javax.persistence.EntityManager)
+		 */
+		@Override
+		public QueryHints forCounts() {
 			return this;
 		}
 	}
