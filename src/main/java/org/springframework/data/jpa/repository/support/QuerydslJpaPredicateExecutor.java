@@ -196,7 +196,7 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 	 * @return the Querydsl count {@link JPQLQuery}.
 	 */
 	protected JPQLQuery<?> createCountQuery(@Nullable Predicate... predicate) {
-		return doCreateQuery(getQueryHints(), predicate);
+		return doCreateQuery(getQueryHintsForCount(), predicate);
 	}
 
 	@Nullable
@@ -212,6 +212,16 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 	 */
 	private QueryHints getQueryHints() {
 		return metadata == null ? QueryHints.NoHints.INSTANCE : DefaultQueryHints.of(entityInformation, metadata);
+	}
+
+	/**
+	 * Returns {@link QueryHints} with the query hints based on the current {@link CrudMethodMetadata} and potential
+	 * {@link EntityGraph} information and filtered for those hints that are to be applied to count queries.
+	 *
+	 * @return
+	 */
+	private QueryHints getQueryHintsForCount() {
+		return metadata == null ? QueryHints.NoHints.INSTANCE : DefaultQueryHints.of(entityInformation, metadata).forCounts();
 	}
 
 	private AbstractJPAQuery<?, ?> doCreateQuery(QueryHints hints, @Nullable Predicate... predicate) {

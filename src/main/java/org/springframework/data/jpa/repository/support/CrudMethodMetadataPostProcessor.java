@@ -53,6 +53,7 @@ import org.springframework.util.ClassUtils;
  * @author Thomas Darimont
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Jens Schauder
  */
 class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, BeanClassLoaderAware {
 
@@ -150,6 +151,7 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 
 		private final @Nullable LockModeType lockModeType;
 		private final Map<String, Object> queryHints;
+		private final Map<String, Object> getQueryHintsForCount;
 		private final Optional<EntityGraph> entityGraph;
 		private final Method method;
 
@@ -163,7 +165,8 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 			Assert.notNull(method, "Method must not be null!");
 
 			this.lockModeType = findLockModeType(method);
-			this.queryHints = findQueryHints(method);
+			this.queryHints = findQueryHints(method, false);
+			this.getQueryHintsForCount = findQueryHints(method, true);
 			this.entityGraph = findEntityGraph(method);
 			this.method = method;
 		}
@@ -179,12 +182,14 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 			return annotation == null ? null : (LockModeType) AnnotationUtils.getValue(annotation);
 		}
 
-		private static Map<String, Object> findQueryHints(Method method) {
+		private static Map<String, Object> findQueryHints(Method method, boolean forCount) {
 
 			Map<String, Object> queryHints = new HashMap<String, Object>();
 			QueryHints queryHintsAnnotation = AnnotatedElementUtils.findMergedAnnotation(method, QueryHints.class);
 
-			if (queryHintsAnnotation != null) {
+			if (queryHintsAnnotation != null
+					&& (!forCount || queryHintsAnnotation.forCounting())
+					) {
 
 				for (QueryHint hint : queryHintsAnnotation.value()) {
 					queryHints.put(hint.name(), hint.value());
@@ -217,6 +222,15 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 		@Override
 		public Map<String, Object> getQueryHints() {
 			return queryHints;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.jpa.repository.support.CrudMethodMetadata#getQueryHintsForCount()
+		 */
+		@Override
+		public Map<String, Object> getQueryHintsForCount() {
+			return getQueryHintsForCount;
 		}
 
 		/*

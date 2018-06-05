@@ -20,6 +20,7 @@ import org.springframework.util.Assert;
  *
  * @author Christoph Strobl
  * @author Oliver Gierke
+ * @author Jens Schauder
  * @since 2.0
  */
 class DefaultQueryHints implements QueryHints {
@@ -27,6 +28,7 @@ class DefaultQueryHints implements QueryHints {
 	private final JpaEntityInformation<?, ?> information;
 	private final CrudMethodMetadata metadata;
 	private final Optional<EntityManager> entityManager;
+	private final boolean forCounts;
 
 	/**
 	 * Creates a new {@link DefaultQueryHints} instance for the given {@link JpaEntityInformation},
@@ -35,13 +37,15 @@ class DefaultQueryHints implements QueryHints {
 	 * @param information must not be {@literal null}.
 	 * @param metadata must not be {@literal null}.
 	 * @param entityManager must not be {@literal null}.
+	 * @param forCounts
 	 */
 	private DefaultQueryHints(JpaEntityInformation<?, ?> information, CrudMethodMetadata metadata,
-			Optional<EntityManager> entityManager) {
+							  Optional<EntityManager> entityManager, boolean forCounts) {
 
 		this.information = information;
 		this.metadata = metadata;
 		this.entityManager = entityManager;
+		this.forCounts = forCounts;
 	}
 
 	/**
@@ -57,7 +61,7 @@ class DefaultQueryHints implements QueryHints {
 		Assert.notNull(information, "JpaEntityInformation must not be null!");
 		Assert.notNull(metadata, "CrudMethodMetadata must not be null!");
 
-		return new DefaultQueryHints(information, metadata, Optional.empty());
+		return new DefaultQueryHints(information, metadata, Optional.empty(), false);
 	}
 
 	/*
@@ -66,7 +70,12 @@ class DefaultQueryHints implements QueryHints {
 	 */
 	@Override
 	public QueryHints withFetchGraphs(EntityManager em) {
-		return new DefaultQueryHints(this.information, this.metadata, Optional.of(em));
+		return new DefaultQueryHints(this.information, this.metadata, Optional.of(em), forCounts);
+	}
+
+	@Override
+	public QueryHints forCounts() {
+		return new DefaultQueryHints(this.information, this.metadata, entityManager, true);
 	}
 
 	/*
@@ -87,7 +96,12 @@ class DefaultQueryHints implements QueryHints {
 
 		Map<String, Object> hints = new HashMap<>();
 
-		hints.putAll(metadata.getQueryHints());
+		if (forCounts) {
+			hints.putAll(metadata.getQueryHintsForCount());
+		} else {
+			hints.putAll(metadata.getQueryHints());
+		}
+
 		hints.putAll(getFetchGraphs());
 
 		return hints;
