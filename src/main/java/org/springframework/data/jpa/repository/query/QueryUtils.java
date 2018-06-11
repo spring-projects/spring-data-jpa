@@ -583,16 +583,17 @@ public abstract class QueryUtils {
 
 	/**
 	 * Returns whether the given {@code propertyPathModel} requires the creation of a join. This is the case if we find a
-	 * non-optional association.
+	 * optional association.
 	 * 
 	 * @param propertyPathModel must not be {@literal null}.
-	 * @param forPluralAttribute
-	 * @param forLeafProperty
-	 * @return
+	 * @param isPluralAttribute is the attribute of Collection type?
+	 * @param isLeafProperty is this the final property navigated by a {@link PropertyPath}?
+	 * @return wether an outer join is to be used for integrating this attribute in a query.
 	 */
-	private static boolean requiresJoin(Bindable<?> propertyPathModel, boolean forPluralAttribute, boolean forLeafProperty) {
+	private static boolean requiresJoin(Bindable<?> propertyPathModel, boolean isPluralAttribute,
+			boolean isLeafProperty) {
 
-		if (propertyPathModel == null && forPluralAttribute) {
+		if (propertyPathModel == null && isPluralAttribute) {
 			return true;
 		}
 
@@ -605,7 +606,8 @@ public abstract class QueryUtils {
 		if (!ASSOCIATION_TYPES.containsKey(attribute.getPersistentAttributeType())) {
 			return false;
 		}
-		if (forLeafProperty && !attribute.isCollection()) {
+
+		if (isLeafProperty && !attribute.isCollection()) {
 			return false;
 		}
 
