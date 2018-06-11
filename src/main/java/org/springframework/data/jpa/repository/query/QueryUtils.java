@@ -599,16 +599,17 @@ public abstract class QueryUtils {
 
 	/**
 	 * Returns whether the given {@code propertyPathModel} requires the creation of a join. This is the case if we find a
-	 * non-optional association.
+	 * optional association.
 	 *
 	 * @param propertyPathModel may be {@literal null}.
-	 * @param forPluralAttribute
-	 * @param forLeafProperty
-	 * @return
+	 * @param isPluralAttribute is the attribute of Collection type?
+	 * @param isLeafProperty is this the final property navigated by a {@link PropertyPath}?
+	 * @return wether an outer join is to be used for integrating this attribute in a query.
 	 */
-	private static boolean requiresJoin(@Nullable Bindable<?> propertyPathModel, boolean forPluralAttribute, boolean forLeafProperty) {
+	private static boolean requiresJoin(@Nullable Bindable<?> propertyPathModel, boolean isPluralAttribute,
+			boolean isLeafProperty) {
 
-		if (propertyPathModel == null && forPluralAttribute) {
+		if (propertyPathModel == null && isPluralAttribute) {
 			return true;
 		}
 
@@ -621,7 +622,8 @@ public abstract class QueryUtils {
 		if (!ASSOCIATION_TYPES.containsKey(attribute.getPersistentAttributeType())) {
 			return false;
 		}
-		if (forLeafProperty && !attribute.isCollection()) {
+
+		if (isLeafProperty && !attribute.isCollection()) {
 			return false;
 		}
 
@@ -638,7 +640,7 @@ public abstract class QueryUtils {
 		}
 
 		Annotation annotation = AnnotationUtils.getAnnotation((AnnotatedElement) member, associationAnnotation);
-		return annotation == null ? true : (Boolean) AnnotationUtils.getValue(annotation, "optional");
+		return annotation == null ? true : (boolean) AnnotationUtils.getValue(annotation, "optional");
 	}
 
 	static Expression<Object> toExpressionRecursively(Path<Object> path, PropertyPath property) {
