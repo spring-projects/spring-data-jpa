@@ -22,6 +22,7 @@ import static org.mockito.Mockito.*;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
@@ -80,8 +81,8 @@ public class QueryUtilsIntegrationTests {
 		assertThat(from.getJoins()).hasSize(1);
 	}
 
-	@Test // DATAJPA-401
-	public void createsJoinForOptionalAssociation() {
+	@Test // DATAJPA-401, DATAJPA-1238
+	public void createsJoinForNavigationAcrossOptionalAssociation() {
 
 		CriteriaBuilder builder = em.getCriteriaBuilder();
 		CriteriaQuery<User> query = builder.createQuery(User.class);
@@ -89,7 +90,19 @@ public class QueryUtilsIntegrationTests {
 
 		QueryUtils.toExpressionRecursively(root, PropertyPath.from("manager.firstname", User.class));
 
-		assertThat(root.getJoins()).hasSize(1);
+		assertThat(getNonInnerJoins(root)).hasSize(1);
+	}
+
+	@Test // DATAJPA-401, DATAJPA-1238
+	public void doesNotCreateJoinForOptionalAssociationWithoutFurtherNavigation() {
+
+		CriteriaBuilder builder = em.getCriteriaBuilder();
+		CriteriaQuery<User> query = builder.createQuery(User.class);
+		Root<User> root = query.from(User.class);
+
+		QueryUtils.toExpressionRecursively(root, PropertyPath.from("manager", User.class));
+
+		assertThat(getNonInnerJoins(root)).hasSize(0);
 	}
 
 	@Test // DATAJPA-401
@@ -169,12 +182,41 @@ public class QueryUtilsIntegrationTests {
 		assertThat(orders).hasSize(1);
 	}
 
+	/**
+	 * This test documents an ambiguity in the JPA spec (or it's implementation in Hibernate vs EclipseLink) that we have
+	 * to work around in the test {@link #doesNotCreateJoinForOptionalAssociationWithoutFurtherNavigation()}. See also:
+	 * https://github.com/javaee/jpa-spec/issues/169 Compare to: {@link EclipseLinkQueryUtilsIntegrationTests}
+	 */
+	@Test // DATAJPA-1238
+	public void demonstrateDifferentBehavorOfGetJoin() {
+
+		CriteriaBuilder builder = em.getCriteriaBuilder();
+		CriteriaQuery<User> query = builder.createQuery(User.class);
+		Root<User> root = query.from(User.class);
+
+		root.get("manager");
+
+		assertThat(root.getJoins()).hasSize(getNumberOfJoinsAfterCreatingAPath());
+	}
+
+	int getNumberOfJoinsAfterCreatingAPath() {
+		return 0;
+	}
+
 	@Entity
 	@SuppressWarnings("unused")
 	static class Merchant {
 
 		@Id String id;
 		@OneToMany Set<Employee> employees;
+	}
+
+	private Set<Join<User, ?>> getNonInnerJoins(Root<User> root) {
+
+		return root.getJoins() //
+				.stream() //
+				.filter(j -> j.getJoinType() != JoinType.INNER) //
+				.collect(Collectors.toSet());
 	}
 
 	@Entity
