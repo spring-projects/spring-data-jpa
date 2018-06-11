@@ -21,4 +21,10 @@ import org.springframework.test.context.ContextConfiguration;
  * @author Oliver Gierke
  */
 @ContextConfiguration("classpath:eclipselink.xml")
-public class EclipseLinkQueryUtilsIntegrationTests extends QueryUtilsIntegrationTests {}
+public class EclipseLinkQueryUtilsIntegrationTests extends QueryUtilsIntegrationTests {
+
+	int getNumberOfJoinsAfterCreatingAPath() {
+		return 1;
+	}
+
+}
