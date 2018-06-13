@@ -1,6 +1,20 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 2.0.8.RELEASE (2018-06-13)
+---------------------------------------------
+* DATAJPA-1359 - Move to org.hibernate.query.Query to avoid reflection overhead in HibernateUtils.
+* DATAJPA-1348 - Upgrade build to Hibernate 5.3 GA.
+* DATAJPA-1347 - Improve proxy detection to properly detect Hibernate 5.3 proxies.
+* DATAJPA-1343 - Add coverpage for epub documentation output.
+* DATAJPA-1341 - Fix typo in AbstractAuditable.
+* DATAJPA-1340 - Release 2.0.8 (Kay SR8).
+* DATAJPA-1336 - remove unused imports.
+* DATAJPA-1334 - Named queries using a constructor expression not working properly.
+* DATAJPA-1280 - Using manual SqlResultSetMapping with named native queries fails.
+* DATAJPA-1238 - Unnecessary LEFT OUTER JOIN when a WHERE could have been used.
+
+
 Changes in version 1.11.13.RELEASE (2018-06-13)
 -----------------------------------------------
 * DATAJPA-1348 - Upgrade build to Hibernate 5.3 GA.
