@@ -158,9 +158,10 @@ public abstract class QueryUtils {
 		CONSTRUCTOR_EXPRESSION = compile(builder.toString(), CASE_INSENSITIVE + DOTALL);
 
 		builder = new StringBuilder();
-		builder.append("\\s+"); // at least one space
-		builder.append("\\w+\\([0-9a-zA-z\\._,\\s']+\\)"); // any function call including parameters within the brackets
-		builder.append("\\s+[as|AS]+\\s+(([\\w\\.]+))"); // the potential alias
+		// any function call including parameters within the brackets
+		builder.append("\\w+\\s*\\([\\w\\.,\\s'=]+\\)");
+		// the potential alias
+		builder.append("\\s+[as|AS]+\\s+(([\\w\\.]+))");
 
 		FUNCTION_PATTERN = compile(builder.toString());
 	}
@@ -321,7 +322,7 @@ public abstract class QueryUtils {
 	 * @param query
 	 * @return
 	 */
-	private static Set<String> getFunctionAliases(String query) {
+	static Set<String> getFunctionAliases(String query) {
 
 		Set<String> result = new HashSet<String>();
 		Matcher matcher = FUNCTION_PATTERN.matcher(query);
@@ -572,7 +573,8 @@ public abstract class QueryUtils {
 			propertyPathModel = from.get(segment).getModel();
 		}
 
-		if (requiresJoin(propertyPathModel, model instanceof PluralAttribute, !property.hasNext()) && !isAlreadyFetched(from, segment)) {
+		if (requiresJoin(propertyPathModel, model instanceof PluralAttribute, !property.hasNext())
+				&& !isAlreadyFetched(from, segment)) {
 			Join<?, ?> join = getOrCreateJoin(from, segment);
 			return (Expression<T>) (property.hasNext() ? toExpressionRecursively(join, property.next()) : join);
 		} else {
