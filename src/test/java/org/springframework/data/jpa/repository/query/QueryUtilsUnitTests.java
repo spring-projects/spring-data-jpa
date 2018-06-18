@@ -395,6 +395,14 @@ public class QueryUtilsUnitTests {
 				.endsWith("WHERE x.id = :id");
 	}
 
+	@Test // DATAJPA-1363
+	public void discoversAliasWithComplexFunction() {
+
+		assertThat(
+				QueryUtils.getFunctionAliases("select new MyDto(sum(case when myEntity.prop3=0 then 1 else 0 end) as myAlias")) //
+						.contains("myAlias");
+	}
+
 	private static void assertCountQuery(String originalQuery, String countQuery) {
 		assertThat(createCountQueryFor(originalQuery), is(countQuery));
 	}
