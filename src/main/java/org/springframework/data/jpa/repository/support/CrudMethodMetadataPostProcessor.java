@@ -15,6 +15,7 @@
  */
 package org.springframework.data.jpa.repository.support;
 
+import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.HashMap;
@@ -30,10 +31,14 @@ import javax.persistence.QueryHint;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 
+import org.springframework.aop.Advisor;
 import org.springframework.aop.TargetSource;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.interceptor.ExposeInvocationInterceptor;
+import org.springframework.aop.support.DefaultPointcutAdvisor;
 import org.springframework.beans.factory.BeanClassLoaderAware;
+import org.springframework.core.NamedThreadLocal;
+import org.springframework.core.PriorityOrdered;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -76,6 +81,8 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 	 */
 	@Override
 	public void postProcess(ProxyFactory factory, RepositoryInformation repositoryInformation) {
+
+		factory.addAdvisor(ExposeRepositoryInvocationInterceptor.ADVISOR);
 		factory.addAdvice(CrudMethodMetadataPopulatingMethodInterceptor.INSTANCE);
 	}
 
@@ -279,7 +286,7 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 		@Override
 		public Object getTarget() throws Exception {
 
-			MethodInvocation invocation = ExposeInvocationInterceptor.currentInvocation();
+			MethodInvocation invocation = ExposeRepositoryInvocationInterceptor.currentInvocation();
 			return TransactionSynchronizationManager.getResource(invocation.getMethod());
 		}
 
@@ -289,5 +296,96 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 		 */
 		@Override
 		public void releaseTarget(Object target) throws Exception {}
+	}
+
+	/**
+	 * Own copy of {@link ExposeInvocationInterceptor} scoped to repository proxy method usage to not conflict with
+	 * {@link ExposeInvocationInterceptor} that might expose nested proxy calls to e.g. proxied transaction managers.
+	 *
+	 * @author Mark Paluch
+	 * @since 1.11.13
+	 * @see ExposeInvocationInterceptor
+	 */
+	@SuppressWarnings("serial")
+	static class ExposeRepositoryInvocationInterceptor implements MethodInterceptor, PriorityOrdered, Serializable {
+
+		/**
+		 * Singleton instance of this class
+		 */
+		static final ExposeRepositoryInvocationInterceptor INSTANCE = new ExposeRepositoryInvocationInterceptor();
+
+		private static final ThreadLocal<MethodInvocation> invocation = new NamedThreadLocal<>(
+				"Current AOP method invocation");
+
+		/**
+		 * Singleton advisor for this class. Use in preference to {@code INSTANCE} when using Spring AOP, as it prevents the
+		 * need to create a new Advisor to wrap the instance.
+		 */
+		static final Advisor ADVISOR = new DefaultPointcutAdvisor(INSTANCE) {
+			@Override
+			public String toString() {
+				return ExposeRepositoryInvocationInterceptor.class.getName() + ".ADVISOR";
+			}
+		};
+
+		/**
+		 * Ensures that only the canonical instance can be created.
+		 */
+		private ExposeRepositoryInvocationInterceptor() {}
+
+		/**
+		 * Return the AOP Alliance {@link MethodInvocation} object associated with the current invocation.
+		 *
+		 * @return the invocation object associated with the current invocation.
+		 * @throws IllegalStateException if there is no AOP invocation in progress, or if the
+		 *           {@link ExposeRepositoryInvocationInterceptor} was not added to this interceptor chain.
+		 */
+		static MethodInvocation currentInvocation() throws IllegalStateException {
+
+			MethodInvocation mi = invocation.get();
+
+			if (mi == null)
+				throw new IllegalStateException(
+						"No MethodInvocation found: Check that an AOP invocation is in progress, and that the "
+								+ "ExposeRepositoryInvocationInterceptor is upfront in the interceptor chain. Specifically, note that "
+								+ "advices with order HIGHEST_PRECEDENCE will execute before ExposeRepositoryMethodInvocationInterceptor!");
+			return mi;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.aopalliance.intercept.MethodInterceptor#invoke(org.aopalliance.intercept.MethodInvocation)
+		 */
+		@Override
+		public Object invoke(MethodInvocation mi) throws Throwable {
+
+			MethodInvocation oldInvocation = invocation.get();
+			invocation.set(mi);
+
+			try {
+				return mi.proceed();
+			} finally {
+				invocation.set(oldInvocation);
+			}
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.core.Ordered#getOrder()
+		 */
+		@Override
+		public int getOrder() {
+			return PriorityOrdered.HIGHEST_PRECEDENCE + 1;
+		}
+
+		/**
+		 * Required to support serialization. Replaces with canonical instance on deserialization, protecting Singleton
+		 * pattern.
+		 * <p>
+		 * Alternative to overriding the {@code equals} method.
+		 */
+		private Object readResolve() {
+			return INSTANCE;
+		}
 	}
 }
