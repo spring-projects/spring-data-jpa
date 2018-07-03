@@ -30,15 +30,16 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.aop.framework.ProxyFactory;
-import org.springframework.aop.interceptor.ExposeInvocationInterceptor;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.support.CrudMethodMetadataPostProcessor.CrudMethodMetadataPopulatingMethodInterceptor;
+import org.springframework.data.jpa.repository.support.CrudMethodMetadataPostProcessor.ExposeRepositoryInvocationInterceptor;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 /**
  * Unit tests for {@link CrudMethodMetadataPopulatingMethodInterceptor}.
  *
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 @RunWith(MockitoJUnitRunner.class)
 public class CrudMethodMetadataPopulatingMethodInterceptorUnitTests {
@@ -56,8 +57,8 @@ public class CrudMethodMetadataPopulatingMethodInterceptorUnitTests {
 		assertThat(TransactionSynchronizationManager.getResource(method), is(nullValue()));
 	}
 
-	@Test // DATAJPA-839
-	public void looksUpCrudMethodMetadataForEveryInvocation() throws Throwable {
+	@Test // DATAJPA-839, DATAJPA-1368
+	public void looksUpCrudMethodMetadataForEveryInvocation() {
 
 		CrudMethodMetadata metadata = new CrudMethodMetadataPostProcessor().getCrudMethodMetadata();
 
@@ -68,7 +69,7 @@ public class CrudMethodMetadataPopulatingMethodInterceptorUnitTests {
 	private Method prepareMethodInvocation(String name) throws Throwable {
 
 		Method method = Sample.class.getMethod(name);
-		ExposeInvocationInterceptor.INSTANCE.invoke(invocation);
+		ExposeRepositoryInvocationInterceptor.INSTANCE.invoke(invocation);
 		when(invocation.getMethod()).thenReturn(method);
 
 		return method;
@@ -78,7 +79,7 @@ public class CrudMethodMetadataPopulatingMethodInterceptorUnitTests {
 
 		ProxyFactory factory = new ProxyFactory(new Object());
 		factory.addInterface(Sample.class);
-		factory.addAdvice(ExposeInvocationInterceptor.INSTANCE);
+		factory.addAdvice(ExposeRepositoryInvocationInterceptor.INSTANCE);
 		factory.addAdvice(CrudMethodMetadataPopulatingMethodInterceptor.INSTANCE);
 		factory.addAdvice(new MethodInterceptor() {
 
