@@ -60,7 +60,7 @@ final class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
 
 		super(method, em, queryString, evaluationContextProvider, parser);
 
-		validateQuery(getQuery().getQueryString(), String.format("Validation failed for query for method %s!", method));
+		validateQuery(getQuery().getQueryString(), "Validation failed for query for method %s!", method);
 
 		if (method.isPageQuery()) {
 			validateQuery(getCountQuery().getQueryString(),
@@ -74,7 +74,7 @@ final class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
 	 * @param query
 	 * @param errorMessage
 	 */
-	private void validateQuery(String query, String errorMessage) {
+	private void validateQuery(String query, String errorMessage, Object... arguments) {
 
 		if (getQueryMethod().isProcedureQuery()) {
 			return;
@@ -90,7 +90,7 @@ final class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
 
 			// Needed as there's ambiguities in how an invalid query string shall be expressed by the persistence provider
 			// http://java.net/projects/jpa-spec/lists/jsr338-experts/archive/2012-07/message/17
-			throw new IllegalArgumentException(errorMessage, e);
+			throw new IllegalArgumentException(String.format(errorMessage, arguments), e);
 
 		} finally {
 
