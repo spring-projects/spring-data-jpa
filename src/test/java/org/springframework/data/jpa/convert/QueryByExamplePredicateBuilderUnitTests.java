@@ -100,7 +100,7 @@ public class QueryByExamplePredicateBuilderUnitTests {
 				Skill.class, skillEntityType);
 		personAddressAttribute = new SingluarAttributeStub<>("address", PersistentAttributeType.EMBEDDED,
 				Address.class);
-		skillNameAttribute = new SingluarAttributeStub<Skill, String>("name", PersistentAttributeType.BASIC,
+		skillNameAttribute = new SingluarAttributeStub<>("name", PersistentAttributeType.BASIC,
 				String.class);
 		skillNestedAttribute = new SingluarAttributeStub<>("nested", PersistentAttributeType.MANY_TO_ONE,
 				Skill.class, skillEntityType);
