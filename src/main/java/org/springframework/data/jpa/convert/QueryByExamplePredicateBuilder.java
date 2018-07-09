@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -128,7 +128,8 @@ public class QueryByExamplePredicateBuilder {
 
 			Object attributeValue = optionalValue.get();
 
-			if (attribute.getPersistentAttributeType().equals(PersistentAttributeType.EMBEDDED)) {
+			if (attribute.getPersistentAttributeType().equals(PersistentAttributeType.EMBEDDED)
+					|| (isAssociation(attribute) && !(from instanceof From))) {
 
 				predicates.addAll(getPredicates(currentPath, cb, from.get(attribute.getName()),
 						(ManagedType<?>) attribute.getType(), attributeValue, probeType, exampleAccessor, currentNode));
@@ -136,11 +137,6 @@ public class QueryByExamplePredicateBuilder {
 			}
 
 			if (isAssociation(attribute)) {
-
-				if (!(from instanceof From)) {
-					throw new JpaSystemException(new IllegalArgumentException(String
-							.format("Unexpected path type for %s. Found %s where From.class was expected.", currentPath, from)));
-				}
 
 				PathNode node = currentNode.add(attribute.getName(), attributeValue);
 				if (node.spansCycle()) {
