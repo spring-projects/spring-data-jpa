@@ -90,22 +90,22 @@ public class QueryByExamplePredicateBuilderUnitTests {
 	@Before
 	public void setUp() {
 
-		personIdAttribute = new SingluarAttributeStub<Person, Long>("id", PersistentAttributeType.BASIC, Long.class);
-		personFirstnameAttribute = new SingluarAttributeStub<Person, String>("firstname", PersistentAttributeType.BASIC,
+		personIdAttribute = new SingluarAttributeStub<>("id", PersistentAttributeType.BASIC, Long.class);
+		personFirstnameAttribute = new SingluarAttributeStub<>("firstname", PersistentAttributeType.BASIC,
 				String.class);
-		personAgeAttribute = new SingluarAttributeStub<Person, Long>("age", PersistentAttributeType.BASIC, Long.class);
-		personFatherAttribute = new SingluarAttributeStub<Person, Person>("father", PersistentAttributeType.MANY_TO_ONE,
+		personAgeAttribute = new SingluarAttributeStub<>("age", PersistentAttributeType.BASIC, Long.class);
+		personFatherAttribute = new SingluarAttributeStub<>("father", PersistentAttributeType.MANY_TO_ONE,
 				Person.class, personEntityType);
-		personSkillAttribute = new SingluarAttributeStub<Person, Skill>("skill", PersistentAttributeType.EMBEDDED,
+		personSkillAttribute = new SingluarAttributeStub<>("skill", PersistentAttributeType.EMBEDDED,
 				Skill.class, skillEntityType);
-		personAddressAttribute = new SingluarAttributeStub<Person, Address>("address", PersistentAttributeType.EMBEDDED,
+		personAddressAttribute = new SingluarAttributeStub<>("address", PersistentAttributeType.EMBEDDED,
 				Address.class);
-		skillNameAttribute = new SingluarAttributeStub<Skill, String>("name", PersistentAttributeType.BASIC,
+		skillNameAttribute = new SingluarAttributeStub<>("name", PersistentAttributeType.BASIC,
 				String.class);
 		skillNestedAttribute = new SingluarAttributeStub<>("nested", PersistentAttributeType.MANY_TO_ONE,
 				Skill.class, skillEntityType);
 
-		personEntityAttribtues = new LinkedHashSet<SingularAttribute<? super Person, ?>>();
+		personEntityAttribtues = new LinkedHashSet<>();
 		personEntityAttribtues.add(personIdAttribute);
 		personEntityAttribtues.add(personFirstnameAttribute);
 		personEntityAttribtues.add(personAgeAttribute);
