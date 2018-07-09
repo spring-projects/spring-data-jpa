@@ -546,6 +546,27 @@ public interface GroupRepository extends CrudRepository<GroupInfo, String> {
 ----
 ====
 
+To reuse `@EntityGraph` definitions over multiple query methods a custom annotation can be created, as shown in the following example:
+
+.Using custom annotation with entity graph definition on an repository query method.
+====
+[source, java]
+----
+@EntityGraph(attributePaths = { "members" })
+@Retention(RetentionPolicy.RUNTIME)
+public @interface GroupInfoWithMembersEntityGraph {
+}
+
+@Repository
+public interface GroupRepository extends CrudRepository<GroupInfo, String> {
+
+  @GroupInfoWithMembersEntityGraph
+  GroupInfo getByGroupName(String name);
+
+}
+----
+====
+
 
 include::{spring-data-commons-docs}/repository-projections.adoc[leveloffset=+2]
 
