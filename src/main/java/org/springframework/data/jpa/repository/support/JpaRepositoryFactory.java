@@ -19,7 +19,6 @@ import static org.springframework.data.querydsl.QuerydslUtils.*;
 
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.Serializable;
 import java.util.Optional;
 
 import javax.persistence.EntityManager;
@@ -116,7 +115,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	protected SimpleJpaRepository<?, ?> getTargetRepository(RepositoryInformation information,
 			EntityManager entityManager) {
 
-		JpaEntityInformation<?, Serializable> entityInformation = getEntityInformation(information.getDomainType());
+		JpaEntityInformation<?, ?> entityInformation = getEntityInformation(information.getDomainType());
 
 		return getTargetRepositoryViaReflection(information, entityInformation, entityManager);
 	}
