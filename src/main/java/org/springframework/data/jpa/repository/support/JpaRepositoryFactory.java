@@ -113,8 +113,8 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	 * @param entityManager
 	 * @return
 	 */
-	protected <T, ID extends Serializable> SimpleJpaRepository<?, ?> getTargetRepository(
-			RepositoryInformation information, EntityManager entityManager) {
+	protected SimpleJpaRepository<?, ?> getTargetRepository(RepositoryInformation information,
+			EntityManager entityManager) {
 
 		JpaEntityInformation<?, Serializable> entityInformation = getEntityInformation(information.getDomainType());
 
