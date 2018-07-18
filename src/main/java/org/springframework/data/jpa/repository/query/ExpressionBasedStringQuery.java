@@ -34,6 +34,7 @@ import org.springframework.util.Assert;
  *
  * @author Thomas Darimont
  * @author Oliver Gierke
+ * @author Tom Hombergs
  */
 class ExpressionBasedStringQuery extends StringQuery {
 
@@ -57,6 +58,19 @@ class ExpressionBasedStringQuery extends StringQuery {
 	 */
 	public ExpressionBasedStringQuery(String query, JpaEntityMetadata<?> metadata, SpelExpressionParser parser) {
 		super(renderQueryIfExpressionOrReturnQuery(query, metadata, parser));
+	}
+
+	/**
+	 * Creates an {@link ExpressionBasedStringQuery} from a given {@link DeclaredQuery}.
+	 * 
+	 * @param query the original query. Must not be {@literal null}.
+	 * @param metadata the {@link JpaEntityMetadata} for the given entity. Must not be {@literal null}.
+	 * @param parser Parser for resolving SpEL expressions. Must not be {@literal null}.
+	 * @return A query supporting SpEL expressions.
+	 */
+	public static ExpressionBasedStringQuery from(DeclaredQuery query, JpaEntityMetadata metadata,
+			SpelExpressionParser parser) {
+		return new ExpressionBasedStringQuery(query.getQueryString(), metadata, parser);
 	}
 
 	/**

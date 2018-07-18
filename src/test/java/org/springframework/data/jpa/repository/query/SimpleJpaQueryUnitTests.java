@@ -58,6 +58,7 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Jens Schauder
+ * @author Tom Hombergs
  */
 @RunWith(MockitoJUnitRunner.Silent.class)
 public class SimpleJpaQueryUnitTests {
@@ -227,6 +228,22 @@ public class SimpleJpaQueryUnitTests {
 
 		assertThatExceptionOfType(IllegalArgumentException.class) //
 				.isThrownBy(() -> createJpaQuery(illegalMethod));
+	}
+
+	@Test // DATAJPA-1163
+	public void resolvesExpressionInCountQuery() throws Exception {
+
+		when(em.createQuery(Mockito.anyString())).thenReturn(query);
+
+		Method method = UserRepository.class.getMethod("findAllWithExpressionInCountQuery", Pageable.class);
+		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, factory, extractor);
+
+		AbstractJpaQuery jpaQuery = new SimpleJpaQuery(queryMethod, em, "select u from User u", EVALUATION_CONTEXT_PROVIDER,
+				PARSER);
+		jpaQuery.createCountQuery(new Object[] { PageRequest.of(1, 10) });
+
+		verify(em).createQuery(eq("select u from User u"));
+		verify(em).createQuery(eq("select count(u.id) from User u"), eq(Long.class));
 	}
 
 	private AbstractJpaQuery createJpaQuery(Method method) {
