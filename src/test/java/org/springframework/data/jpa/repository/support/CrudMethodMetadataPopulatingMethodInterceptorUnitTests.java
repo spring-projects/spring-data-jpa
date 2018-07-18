@@ -30,7 +30,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.aop.framework.ProxyFactory;
-import org.springframework.aop.interceptor.ExposeInvocationInterceptor;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.support.CrudMethodMetadataPostProcessor.CrudMethodMetadataPopulatingMethodInterceptor;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -74,7 +73,7 @@ public class CrudMethodMetadataPopulatingMethodInterceptorUnitTests {
 	private Method prepareMethodInvocation(String name) throws Throwable {
 
 		Method method = Sample.class.getMethod(name);
-		ExposeInvocationInterceptor.INSTANCE.invoke(invocation);
+		CrudMethodMetadataPostProcessor.ExposeRepositoryInvocationInterceptor.INSTANCE.invoke(invocation);
 		when(invocation.getMethod()).thenReturn(method);
 
 		return method;
@@ -84,7 +83,7 @@ public class CrudMethodMetadataPopulatingMethodInterceptorUnitTests {
 
 		ProxyFactory factory = new ProxyFactory(new Object());
 		factory.addInterface(Sample.class);
-		factory.addAdvice(ExposeInvocationInterceptor.INSTANCE);
+		factory.addAdvice(CrudMethodMetadataPostProcessor.ExposeRepositoryInvocationInterceptor.INSTANCE);
 		factory.addAdvice(CrudMethodMetadataPopulatingMethodInterceptor.INSTANCE);
 		factory.addAdvice(new MethodInterceptor() {
 
