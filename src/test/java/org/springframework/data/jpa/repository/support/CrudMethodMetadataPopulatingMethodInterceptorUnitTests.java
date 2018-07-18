@@ -38,6 +38,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
  * Unit tests for {@link CrudMethodMetadataPopulatingMethodInterceptor}.
  * 
  * @author Oliver Gierke
+ * @author Corneil du Plessis
  */
 @RunWith(MockitoJUnitRunner.class)
 public class CrudMethodMetadataPopulatingMethodInterceptorUnitTests {
