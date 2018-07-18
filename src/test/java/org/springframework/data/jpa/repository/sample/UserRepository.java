@@ -556,6 +556,10 @@ public interface UserRepository
 	// DATAJPA-1334
 	List<NameOnlyDto> findByNamedQueryWithConstructorExpression();
 
+	// DATAJPA-1163
+	@Query(value = "select u from #{#entityName} u", countQuery = "select count(u.id) from #{#entityName} u")
+	List<User> findAllWithExpressionInCountQuery(Pageable pageable);
+
 	interface RolesAndFirstname {
 
 		String getFirstname();

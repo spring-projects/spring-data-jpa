@@ -34,6 +34,7 @@ import org.springframework.util.Assert;
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Jens Schauder
+ * @author Tom Hombergs
  */
 abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 
@@ -63,7 +64,9 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 
 		this.evaluationContextProvider = evaluationContextProvider;
 		this.query = new ExpressionBasedStringQuery(queryString, method.getEntityInformation(), parser);
-		this.countQuery = query.deriveCountQuery(method.getCountQuery(), method.getCountQueryProjection());
+
+		DeclaredQuery countQuery = query.deriveCountQuery(method.getCountQuery(), method.getCountQueryProjection());
+		this.countQuery = ExpressionBasedStringQuery.from(countQuery, method.getEntityInformation(), parser);
 
 		this.parser = parser;
 
