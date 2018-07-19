@@ -16,7 +16,9 @@
 package org.springframework.data.jpa.repository.query;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import java.lang.reflect.Method;
@@ -235,7 +237,7 @@ public class SimpleJpaQueryUnitTests {
 
 		when(em.createQuery(Mockito.anyString())).thenReturn(query);
 
-		Method method = UserRepository.class.getMethod("findAllWithExpressionInCountQuery", Pageable.class);
+		Method method = SampleRepository.class.getMethod("findAllWithExpressionInCountQuery", Pageable.class);
 		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, factory, extractor);
 
 		AbstractJpaQuery jpaQuery = new SimpleJpaQuery(queryMethod, em, "select u from User u", EVALUATION_CONTEXT_PROVIDER,
@@ -277,6 +279,10 @@ public class SimpleJpaQueryUnitTests {
 
 		@Query("select u from User u")
 		Collection<UserProjection> projectWithExplicitQuery();
+
+		@Query(value = "select u from #{#entityName} u", countQuery = "select count(u.id) from #{#entityName} u")
+		List<User> findAllWithExpressionInCountQuery(Pageable pageable);
+
 	}
 
 	interface UserProjection {}
