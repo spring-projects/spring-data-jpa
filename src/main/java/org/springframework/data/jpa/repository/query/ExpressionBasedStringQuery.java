@@ -68,7 +68,7 @@ class ExpressionBasedStringQuery extends StringQuery {
 	 * @param parser Parser for resolving SpEL expressions. Must not be {@literal null}.
 	 * @return A query supporting SpEL expressions.
 	 */
-	public static ExpressionBasedStringQuery from(DeclaredQuery query, JpaEntityMetadata metadata,
+	static ExpressionBasedStringQuery from(DeclaredQuery query, JpaEntityMetadata metadata,
 			SpelExpressionParser parser) {
 		return new ExpressionBasedStringQuery(query.getQueryString(), metadata, parser);
 	}
