@@ -5,7 +5,7 @@
 
 	<groupId>org.springframework.data</groupId>
 	<artifactId>spring-data-jpa</artifactId>
-	<version>1.9.7.BUILD-SNAPSHOT</version>
+	<version>1.9.7.PATCH</version>
 
 	<name>Spring Data JPA</name>
 	<description>Spring Data module for JPA repositories.</description>
@@ -14,7 +14,7 @@
 	<parent>
 		<groupId>org.springframework.data.build</groupId>
 		<artifactId>spring-data-parent</artifactId>
-		<version>1.7.7.BUILD-SNAPSHOT</version>
+		<version>1.7.6.RELEASE</version>
 	</parent>
 
 	<properties>
@@ -28,7 +28,7 @@
 		<jpa>2.0.0</jpa>
 		<openjpa>2.3.0</openjpa>
 		<querydsl>3.6.3</querydsl>
-		<springdata.commons>1.11.7.BUILD-SNAPSHOT</springdata.commons>
+		<springdata.commons>1.11.6.RELEASE</springdata.commons>
 
 		<sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
 
