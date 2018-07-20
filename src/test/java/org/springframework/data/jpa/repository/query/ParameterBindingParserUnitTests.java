@@ -15,12 +15,8 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.assertj.core.api.SoftAssertions;
 import org.junit.Test;
-import org.springframework.data.jpa.repository.query.StringQuery.ParameterBinding;
 import org.springframework.data.jpa.repository.query.StringQuery.ParameterBindingParser;
 
 /**
@@ -69,10 +65,9 @@ public class ParameterBindingParserUnitTests {
 
 	public void checkHasParameter(SoftAssertions softly, String query, boolean containsParameter, String label) {
 
-		List<ParameterBinding> bindings = new ArrayList<>();
-		ParameterBindingParser.INSTANCE.parseParameterBindingsOfQueryIntoBindingsAndReturnCleanedQuery(query, bindings,
-				new StringQuery.Metadata());
-		softly.assertThat(bindings.size()) //
+		StringQuery stringQuery = new StringQuery(query);
+
+		softly.assertThat(stringQuery.getParameterBindings().size()) //
 				.describedAs(String.format("<%s> (%s)", query, label)) //
 				.isEqualTo(containsParameter ? 1 : 0);
 	}

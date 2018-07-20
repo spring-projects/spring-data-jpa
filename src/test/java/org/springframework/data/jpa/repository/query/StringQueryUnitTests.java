@@ -58,7 +58,8 @@ public class StringQueryUnitTests {
 
 		LikeParameterBinding binding = (LikeParameterBinding) bindings.get(0);
 		assertThat(binding.getType()).isEqualTo(Type.LIKE);
-		assertThat(binding.hasName("firstname")).isEqualTo(true);
+
+		assertThat(binding.hasName("firstname")).isTrue();
 	}
 
 	@Test // DATAJPA-292
@@ -114,6 +115,8 @@ public class StringQueryUnitTests {
 		assertThat(bindings).hasSize(1);
 
 		assertNamedBinding(InParameterBinding.class, "ids", bindings.get(0));
+
+		softly.assertAll();
 	}
 
 	@Test // DATAJPA-461
@@ -131,6 +134,8 @@ public class StringQueryUnitTests {
 		assertNamedBinding(InParameterBinding.class, "ids", bindings.get(0));
 		assertNamedBinding(InParameterBinding.class, "names", bindings.get(1));
 		assertNamedBinding(ParameterBinding.class, "bar", bindings.get(2));
+
+		softly.assertAll();
 	}
 
 	@Test // DATAJPA-461
@@ -146,6 +151,8 @@ public class StringQueryUnitTests {
 		assertThat(bindings).hasSize(1);
 
 		assertPositionalBinding(InParameterBinding.class, 1, bindings.get(0));
+
+		softly.assertAll();
 	}
 
 	@Test // DATAJPA-461
@@ -163,6 +170,8 @@ public class StringQueryUnitTests {
 		assertPositionalBinding(InParameterBinding.class, 1, bindings.get(0));
 		assertPositionalBinding(InParameterBinding.class, 2, bindings.get(1));
 		assertPositionalBinding(ParameterBinding.class, 3, bindings.get(2));
+
+		softly.assertAll();
 	}
 
 	@Test // DATAJPA-373
@@ -183,6 +192,8 @@ public class StringQueryUnitTests {
 
 		assertThat(bindings).hasSize(1);
 		assertPositionalBinding(ParameterBinding.class, 1, bindings.get(0));
+
+		softly.assertAll();
 	}
 
 	@Test // DATAJPA-473
@@ -196,8 +207,12 @@ public class StringQueryUnitTests {
 		assertThat(bindings).hasSize(2);
 		assertNamedBinding(LikeParameterBinding.class, "escapedWord", bindings.get(0));
 		assertNamedBinding(ParameterBinding.class, "word", bindings.get(1));
-		assertThat(query.getQueryString()).isEqualTo("SELECT a FROM Article a WHERE a.overview LIKE :escapedWord ESCAPE '~'"
-				+ " OR a.content LIKE :escapedWord ESCAPE '~' OR a.title = :word ORDER BY a.articleId DESC");
+
+		softly.assertThat(query.getQueryString())
+				.isEqualTo("SELECT a FROM Article a WHERE a.overview LIKE :escapedWord ESCAPE '~'"
+						+ " OR a.content LIKE :escapedWord ESCAPE '~' OR a.title = :word ORDER BY a.articleId DESC");
+
+		softly.assertAll();
 	}
 
 	@Test // DATAJPA-483
@@ -209,6 +224,8 @@ public class StringQueryUnitTests {
 
 		assertThat(bindings).hasSize(1);
 		assertNamedBinding(InParameterBinding.class, "statuses", bindings.get(0));
+
+		softly.assertAll();
 	}
 
 	@Test // DATAJPA-545
@@ -220,6 +237,8 @@ public class StringQueryUnitTests {
 
 		assertThat(bindings).hasSize(1);
 		assertNamedBinding(InParameterBinding.class, "abonnés", bindings.get(0));
+
+		softly.assertAll();
 	}
 
 	@Test // DATAJPA-545
@@ -231,6 +250,8 @@ public class StringQueryUnitTests {
 
 		assertThat(bindings).hasSize(1);
 		assertNamedBinding(InParameterBinding.class, "øre", bindings.get(0));
+
+		softly.assertAll();
 	}
 
 	@Test // DATAJPA-545
@@ -242,6 +263,8 @@ public class StringQueryUnitTests {
 
 		assertThat(bindings).hasSize(1);
 		assertNamedBinding(InParameterBinding.class, "생일", bindings.get(0));
+
+		softly.assertAll();
 	}
 
 	@Test // DATAJPA-545
@@ -253,6 +276,8 @@ public class StringQueryUnitTests {
 
 		assertThat(bindings).hasSize(1);
 		assertNamedBinding(InParameterBinding.class, "ab1babc생일233", bindings.get(0));
+
+		softly.assertAll();
 	}
 
 	@Test(expected = IllegalArgumentException.class) // DATAJPA-362
@@ -275,15 +300,21 @@ public class StringQueryUnitTests {
 		StringQuery query = new StringQuery("select a from A a where a.b in ?#{#bs} and a.c in ?#{#cs}");
 		String queryString = query.getQueryString();
 
-		assertThat(queryString).isEqualTo("select a from A a where a.b in ?1 and a.c in ?2");
+		softly.assertThat(queryString).isEqualTo("select a from A a where a.b in ?1 and a.c in ?2");
+		softly.assertThat(query.getParameterBindings().get(0).getExpression()).isEqualTo("#bs");
+		softly.assertThat(query.getParameterBindings().get(1).getExpression()).isEqualTo("#cs");
+
+		softly.assertAll();
 	}
 
 	@Test // DATAJPA-864
 	public void detectsConstructorExpressions() {
 
-		assertThat(new StringQuery("select  new  Dto(a.foo, a.bar)  from A a").hasConstructorExpression()).isTrue();
-		assertThat(new StringQuery("select new Dto (a.foo, a.bar) from A a").hasConstructorExpression()).isTrue();
-		assertThat(new StringQuery("select a from A a").hasConstructorExpression()).isFalse();
+		softly.assertThat(new StringQuery("select  new  Dto(a.foo, a.bar)  from A a").hasConstructorExpression()).isTrue();
+		softly.assertThat(new StringQuery("select new Dto (a.foo, a.bar) from A a").hasConstructorExpression()).isTrue();
+		softly.assertThat(new StringQuery("select a from A a").hasConstructorExpression()).isFalse();
+
+		softly.assertAll();
 	}
 
 	/**
@@ -294,8 +325,10 @@ public class StringQueryUnitTests {
 	public void detectsConstructorExpressionForDefaultConstructor() {
 
 		// Parentheses required
-		assertThat(new StringQuery("select new Dto() from A a").hasConstructorExpression()).isTrue();
-		assertThat(new StringQuery("select new Dto from A a").hasConstructorExpression()).isFalse();
+		softly.assertThat(new StringQuery("select new Dto() from A a").hasConstructorExpression()).isTrue();
+		softly.assertThat(new StringQuery("select new Dto from A a").hasConstructorExpression()).isFalse();
+
+		softly.assertAll();
 	}
 
 	@Test // DATAJPA-1179
@@ -304,12 +337,15 @@ public class StringQueryUnitTests {
 		StringQuery query = new StringQuery("select a from A a where a.first = :#{#exp} or a.second = :#{#exp}");
 
 		List<ParameterBinding> bindings = query.getParameterBindings();
-		assertThat(bindings).isNotEmpty();
+		softly.assertThat(bindings).isNotEmpty();
 
 		for (ParameterBinding binding : bindings) {
-			assertThat(binding.getName()).isNotNull();
-			assertThat(query.getQueryString()).containsSequence(binding.getName());
+			softly.assertThat(binding.getName()).isNotNull();
+			softly.assertThat(query.getQueryString()).contains(binding.getName());
+			softly.assertThat(binding.getExpression()).isEqualTo("#exp");
 		}
+
+		softly.assertAll();
 	}
 
 	@Test // DATAJPA-1235
@@ -526,16 +562,16 @@ public class StringQueryUnitTests {
 	private void assertPositionalBinding(Class<? extends ParameterBinding> bindingType, Integer position,
 			ParameterBinding expectedBinding) {
 
-		assertThat(bindingType.isInstance(expectedBinding)).isTrue();
-		assertThat(expectedBinding).isNotNull();
-		assertThat(expectedBinding.hasPosition(position)).isTrue();
+		softly.assertThat(bindingType.isInstance(expectedBinding)).isTrue();
+		softly.assertThat(expectedBinding).isNotNull();
+		softly.assertThat(expectedBinding.hasPosition(position)).isTrue();
 	}
 
 	private void assertNamedBinding(Class<? extends ParameterBinding> bindingType, String parameterName,
 			ParameterBinding expectedBinding) {
 
-		assertThat(bindingType.isInstance(expectedBinding)).isTrue();
-		assertThat(expectedBinding).isNotNull();
-		assertThat(expectedBinding.hasName(parameterName)).isTrue();
+		softly.assertThat(bindingType.isInstance(expectedBinding)).isTrue();
+		softly.assertThat(expectedBinding).isNotNull();
+		softly.assertThat(expectedBinding.hasName(parameterName)).isTrue();
 	}
 }
