@@ -32,6 +32,7 @@ import org.springframework.data.jpa.repository.query.StringQuery.ParameterBindin
  * Unit tests for {@link QueryParameterSetterFactory}.
  *
  * @author Jens Schauder
+ * @author Mark Paluch
  */
 public class QueryParameterSetterFactoryUnitTests {
 
@@ -65,7 +66,7 @@ public class QueryParameterSetterFactoryUnitTests {
 	}
 
 	@Test // DATAJPA-1281
-	public void exceptionWhenQueryContainsInsufficientAmountOfParameters() {
+	public void exceptionWhenCriteriaQueryContainsInsufficientAmountOfParameters() {
 
 		// no parameter present in the criteria query
 		List<ParameterMetadataProvider.ParameterMetadata<?>> metadata = Collections.emptyList();
@@ -77,6 +78,19 @@ public class QueryParameterSetterFactoryUnitTests {
 		Assertions.assertThatExceptionOfType(IllegalArgumentException.class) //
 				.isThrownBy(() -> setterFactory.create(binding, DeclaredQuery.of("QueryStringWith :NamedParameter"))) //
 				.withMessage("At least 1 parameter(s) provided but only 0 parameter(s) present in query.");
+	}
 
+	@Test // DATAJPA-1281
+	public void exceptionWhenBasicQueryContainsInsufficientAmountOfParameters() {
+
+		// no parameter present in the criteria query
+		QueryParameterSetterFactory setterFactory = QueryParameterSetterFactory.basic(parameters);
+
+		// one argument present in the method signature
+		when(binding.getRequiredPosition()).thenReturn(1);
+
+		Assertions.assertThatExceptionOfType(IllegalArgumentException.class) //
+				.isThrownBy(() -> setterFactory.create(binding, DeclaredQuery.of("QueryStringWith ?1"))) //
+				.withMessage("At least 1 parameter(s) provided but only 0 parameter(s) present in query.");
 	}
 }

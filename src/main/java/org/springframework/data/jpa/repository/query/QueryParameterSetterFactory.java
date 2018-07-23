@@ -209,9 +209,26 @@ abstract class QueryParameterSetterFactory {
 
 			Assert.notNull(binding, "Binding must not be null.");
 
-			JpaParameter parameter = declaredQuery.hasNamedParameter() //
-					? findParameterForBinding(binding) //
-					: parameters.getBindableParameter(binding.getRequiredPosition() - 1);
+			JpaParameter parameter;
+
+			if (declaredQuery.hasNamedParameter()) {
+				parameter = findParameterForBinding(binding);
+			} else {
+
+				int parameterIndex = binding.getRequiredPosition() - 1;
+				JpaParameters bindableParameters = parameters.getBindableParameters();
+
+				Assert.isTrue( //
+						parameterIndex < bindableParameters.getNumberOfParameters(), //
+						() -> String.format( //
+								"At least %s parameter(s) provided but only %s parameter(s) present in query.", //
+								binding.getRequiredPosition(), //
+								bindableParameters.getNumberOfParameters() //
+						) //
+				);
+
+				parameter = bindableParameters.getParameter(binding.getRequiredPosition() - 1);
+			}
 
 			return parameter == null //
 					? QueryParameterSetter.NOOP //
@@ -236,10 +253,9 @@ abstract class QueryParameterSetterFactory {
 	}
 
 	/**
-	 * {@link QueryParameterSetterFactory}
-	 *
 	 * @author Jens Schauder
 	 * @author Oliver Gierke
+	 * @see QueryParameterSetterFactory
 	 */
 	private static class CriteriaQueryParameterSetterFactory extends QueryParameterSetterFactory {
 
