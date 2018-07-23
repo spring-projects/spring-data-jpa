@@ -269,13 +269,24 @@ abstract class QueryParameterSetterFactory {
 		@Override
 		public QueryParameterSetter create(ParameterBinding binding, DeclaredQuery declaredQuery) {
 
-			ParameterMetadata<?> metadata = expressions.get(binding.getRequiredPosition() - 1);
+			int parameterIndex = binding.getRequiredPosition() - 1;
+
+			Assert.isTrue( //
+					parameterIndex < expressions.size(), //
+					() -> String.format( //
+							"At least %s parameter(s) provided but only %s parameter(s) present in query.", //
+							binding.getRequiredPosition(), //
+							expressions.size() //
+					) //
+			);
+
+			ParameterMetadata<?> metadata = expressions.get(parameterIndex);
 
 			if (metadata.isIsNullParameter()) {
 				return QueryParameterSetter.NOOP;
 			}
 
-			JpaParameter parameter = parameters.getBindableParameter(binding.getRequiredPosition() - 1);
+			JpaParameter parameter = parameters.getBindableParameter(parameterIndex);
 			TemporalType temporalType = parameter.isTemporalParameter() ? parameter.getRequiredTemporalType() : null;
 
 			return new NamedOrIndexedQueryParameterSetter(values -> getAndPrepare(parameter, metadata, values),
