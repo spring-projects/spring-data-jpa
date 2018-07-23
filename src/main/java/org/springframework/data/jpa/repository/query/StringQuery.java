@@ -233,7 +233,6 @@ class StringQuery implements DeclaredQuery {
 				List<ParameterBinding> bindings, Metadata queryMeta) {
 
 			int greatestParameterIndex = tryFindGreatestParameterIndexIn(query);
-
 			boolean parametersShouldBeAccessedByIndex = greatestParameterIndex != -1;
 
 			/*
@@ -267,7 +266,7 @@ class StringQuery implements DeclaredQuery {
 				String expression = spelExtractor.getParameter(parameterName == null ? parameterIndexString : parameterName);
 				String replacement = null;
 
-				Assert.isTrue(parameterIndexString != null || parameterName != null, "We need either a name or an index.");
+				Assert.isTrue(parameterIndexString != null || parameterName != null, () -> String.format("We need either a name or an index! Offending query string: %s", query));
 
 				expressionParameterIndex++;
 				if ("".equals(parameterIndexString)) {
@@ -279,7 +278,7 @@ class StringQuery implements DeclaredQuery {
 				}
 
 				if (usesJpaStyleParameters && queryMeta.usesJdbcStyleParameters) {
-					throw new IllegalArgumentException("Mixing of ? parameters and other forms like ?1 is not supported");
+					throw new IllegalArgumentException("Mixing of ? parameters and other forms like ?1 is not supported!");
 				}
 
 				switch (ParameterBindingType.of(typeSource)) {
@@ -325,7 +324,7 @@ class StringQuery implements DeclaredQuery {
 			return resultingQuery;
 		}
 
-		private SpelExtractor createSpelExtractor(String queryWithSpel, boolean parametersShouldBeAccessedByIndex,
+		private static SpelExtractor createSpelExtractor(String queryWithSpel, boolean parametersShouldBeAccessedByIndex,
 				int greatestParameterIndex) {
 
 			/*
@@ -345,7 +344,7 @@ class StringQuery implements DeclaredQuery {
 			return SpelQueryContext.of(indexToParameterName, parameterNameToReplacement).parse(queryWithSpel);
 		}
 
-		private String replaceFirst(String text, String substring, String replacement) {
+		private static String replaceFirst(String text, String substring, String replacement) {
 
 			int index = text.indexOf(substring);
 			if (index < 0) {
@@ -356,7 +355,7 @@ class StringQuery implements DeclaredQuery {
 		}
 
 		@Nullable
-		private Integer getParameterIndex(@Nullable String parameterIndexString) {
+		private static Integer getParameterIndex(@Nullable String parameterIndexString) {
 
 			if (parameterIndexString == null || parameterIndexString.isEmpty()) {
 				return null;
@@ -364,7 +363,7 @@ class StringQuery implements DeclaredQuery {
 			return Integer.valueOf(parameterIndexString);
 		}
 
-		private int tryFindGreatestParameterIndexIn(String query) {
+		private static int tryFindGreatestParameterIndexIn(String query) {
 
 			Matcher parameterIndexMatcher = PARAMETER_BINDING_BY_INDEX.matcher(query);
 
@@ -440,7 +439,6 @@ class StringQuery implements DeclaredQuery {
 				throw new IllegalArgumentException(String.format("Unsupported parameter binding type %s!", typeSource));
 			}
 		}
-
 	}
 
 	/**

@@ -27,7 +27,7 @@ import org.springframework.data.jpa.repository.query.StringQuery.ParameterBindin
 public class ParameterBindingParserUnitTests {
 
 	@Test // DATAJPA-1200
-	public void idenficationOfParameters() {
+	public void identificationOfParameters() {
 
 		SoftAssertions softly = new SoftAssertions();
 
@@ -63,7 +63,7 @@ public class ParameterBindingParserUnitTests {
 		softly.assertAll();
 	}
 
-	public void checkHasParameter(SoftAssertions softly, String query, boolean containsParameter, String label) {
+	private void checkHasParameter(SoftAssertions softly, String query, boolean containsParameter, String label) {
 
 		StringQuery stringQuery = new StringQuery(query);
 
