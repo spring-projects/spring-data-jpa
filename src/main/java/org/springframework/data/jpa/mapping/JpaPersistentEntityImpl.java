@@ -32,6 +32,7 @@ import org.springframework.util.Assert;
  * @author Greg Turnquist
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Michael J. Simons
  * @since 1.3
  */
 class JpaPersistentEntityImpl<T> extends BasicPersistentEntity<T, JpaPersistentProperty>
@@ -83,8 +84,6 @@ class JpaPersistentEntityImpl<T> extends BasicPersistentEntity<T, JpaPersistentP
 	public void verify() {
 
 		super.verify();
-
-		getVersionProperty();
 
 		JpaPersistentProperty versionProperty = getVersionProperty();
 
