@@ -1,6 +1,17 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 2.0.9.RELEASE (2018-07-26)
+---------------------------------------------
+* DATAJPA-1382 - Remove superfluous call to getVersionProperty in JpaPersistentEntityImpl.
+* DATAJPA-1375 - JpaRepositoryFactory.getTargetRepository(…) still requires ID to extend Serializable.
+* DATAJPA-1374 - Upgrade Hibernate 5.3 build profile to 5.3.2.
+* DATAJPA-1363 - Alias for complex Function.
+* DATAJPA-1362 - Release 2.0.9 (Kay SR9).
+* DATAJPA-1281 - Improve exception messages for invalid parameter definitions in repository query methods.
+* DATAJPA-1163 - spring-data fails when #{#entityName} SpEL is using in countQuery definition.
+
+
 Changes in version 2.1.0.RC1 (2018-07-26)
 -----------------------------------------
 * DATAJPA-1382 - Remove superfluous call to getVersionProperty in JpaPersistentEntityImpl.
