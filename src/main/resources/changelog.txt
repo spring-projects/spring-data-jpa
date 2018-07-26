@@ -1,6 +1,22 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 2.1.0.RC1 (2018-07-26)
+-----------------------------------------
+* DATAJPA-1382 - Remove superfluous call to getVersionProperty in JpaPersistentEntityImpl.
+* DATAJPA-1374 - Upgrade Hibernate 5.3 build profile to 5.3.2.
+* DATAJPA-1363 - Alias for complex Function.
+* DATAJPA-1359 - Move to org.hibernate.query.Query to avoid reflection overhead in HibernateUtils.
+* DATAJPA-1348 - Upgrade build to Hibernate 5.3 GA.
+* DATAJPA-1347 - Improve proxy detection to properly detect Hibernate 5.3 proxies.
+* DATAJPA-1346 - Release 2.1 RC1 (Lovelace).
+* DATAJPA-1336 - remove unused imports.
+* DATAJPA-1281 - Improve exception messages for invalid parameter definitions in repository query methods.
+* DATAJPA-1267 - Integrate newly created API to detect SpEL expressions in repository queries.
+* DATAJPA-1238 - Unnecessary LEFT OUTER JOIN when a WHERE could have been used.
+* DATAJPA-1163 - spring-data fails when #{#entityName} SpEL is using in countQuery definition.
+
+
 Changes in version 2.0.8.RELEASE (2018-06-13)
 ---------------------------------------------
 * DATAJPA-1359 - Move to org.hibernate.query.Query to avoid reflection overhead in HibernateUtils.
