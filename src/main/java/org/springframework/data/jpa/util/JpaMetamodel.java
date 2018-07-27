@@ -59,10 +59,29 @@ public class JpaMetamodel {
 	}
 
 	/**
-	 * Returns whether the given type is managed by the backing JPA {@link Metamodel}.
+	 * Returns the {@link SingularAttribute} representing the identifier of the given {@link EntityType} if it contains a
+	 * singular one.
+	 *
+	 * @param entityType must not be {@literal null}.
+	 * @return an {@code Optional} containing the singular id or {@code Optional.empty}.
+	 */
+	private static Optional<? extends SingularAttribute<?, ?>> getSingularIdAttribute(EntityType<?> entityType) {
+
+		if (!entityType.hasSingleIdAttribute()) {
+			return Optional.empty();
+		}
+
+		return entityType.getSingularAttributes().stream() //
+				.filter(SingularAttribute::isId) //
+				.findFirst();
+	}
+
+	/**
+	 * Returns whether the given type is managed by the backing JPA {@link Metamodel}. Only entities and embeddables are
+	 * considered managed.
 	 *
 	 * @param type must not be {@literal null}.
-	 * @return
+	 * @return whether the given type is managed by the backing JPA {@link Metamodel}.
 	 */
 	public boolean isJpaManaged(Class<?> type) {
 
@@ -73,18 +92,18 @@ public class JpaMetamodel {
 
 	/**
 	 * Returns whether the attribute of given name and type is the single identifier attribute of the given entity.
-	 * 
+	 *
 	 * @param entity must not be {@literal null}.
 	 * @param name must not be {@literal null}.
 	 * @param attributeType must not be {@literal null}.
-	 * @return
+	 * @return whether the attribute of given name and type is the single identifier attribute of the given entity.
 	 */
 	public boolean isSingleIdAttribute(Class<?> entity, String name, Class<?> attributeType) {
 
 		return metamodel.getEntities().stream() //
 				.filter(it -> entity.equals(it.getJavaType())) //
 				.findFirst() //
-				.flatMap(it -> getSingularIdAttribute(it)) //
+				.flatMap(JpaMetamodel::getSingularIdAttribute) //
 				.filter(it -> it.getJavaType().equals(attributeType)) //
 				.map(it -> it.getName().equals(name)) //
 				.orElse(false);
@@ -102,7 +121,7 @@ public class JpaMetamodel {
 		if (!managedTypes.isPresent()) {
 
 			Set<ManagedType<?>> managedTypes = metamodel.getManagedTypes();
-			Set<Class<?>> types = new HashSet<Class<?>>(managedTypes.size());
+			Set<Class<?>> types = new HashSet<>(managedTypes.size());
 
 			for (ManagedType<?> managedType : metamodel.getManagedTypes()) {
 
@@ -117,23 +136,5 @@ public class JpaMetamodel {
 		}
 
 		return this.managedTypes.get();
-	}
-
-	/**
-	 * Returns the {@link SingularAttribute} representing the identifier of the given {@link EntityType} if it contains a
-	 * singular one.
-	 * 
-	 * @param entityType must not be {@literal null}.
-	 * @return
-	 */
-	private static Optional<? extends SingularAttribute<?, ?>> getSingularIdAttribute(EntityType<?> entityType) {
-
-		if (!entityType.hasSingleIdAttribute()) {
-			return Optional.empty();
-		}
-
-		return entityType.getSingularAttributes().stream() //
-				.filter(SingularAttribute::isId) //
-				.findFirst();
 	}
 }
