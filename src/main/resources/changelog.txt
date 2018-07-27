@@ -1,6 +1,13 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 1.11.14.RELEASE (2018-07-27)
+-----------------------------------------------
+* DATAJPA-1374 - Upgrade Hibernate 5.3 build profile to 5.3.2.
+* DATAJPA-1363 - Alias for complex Function.
+* DATAJPA-1361 - Release 1.11.14 (Ingalls SR14).
+
+
 Changes in version 2.0.9.RELEASE (2018-07-26)
 ---------------------------------------------
 * DATAJPA-1382 - Remove superfluous call to getVersionProperty in JpaPersistentEntityImpl.
