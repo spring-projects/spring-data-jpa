@@ -15,14 +15,21 @@
  */
 package org.springframework.data.jpa.util;
 
+import static java.util.Arrays.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Map;
 
 import javax.persistence.metamodel.EntityType;
+import javax.persistence.metamodel.ManagedType;
 import javax.persistence.metamodel.Metamodel;
+import javax.persistence.metamodel.Type.PersistenceType;
 
+import org.assertj.core.api.SoftAssertions;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -32,6 +39,7 @@ import org.mockito.junit.MockitoJUnitRunner;
  * Unit tests for {@link JpaMetamodel}.
  * 
  * @author Oliver Gierke
+ * @author Jens Schauder
  */
 @RunWith(MockitoJUnitRunner.class)
 public class JpaMetamodelUnitTests {
@@ -47,4 +55,37 @@ public class JpaMetamodelUnitTests {
 
 		assertThat(new JpaMetamodel(metamodel).isSingleIdAttribute(Object.class, "id", Object.class)).isFalse();
 	}
+
+	@Test // DATAJPA-1384
+	public void ignoresManagedTypesThatArentEntityTypes() {
+
+		HashSet<ManagedType<?>> managedTypes = new HashSet<>(asList(mockManagedType(String.class, PersistenceType.ENTITY),
+				mockManagedType(Integer.class, PersistenceType.BASIC),
+				mockManagedType(null, PersistenceType.BASIC),
+				mockManagedType(Number.class, PersistenceType.EMBEDDABLE),
+				mockManagedType(Date.class, PersistenceType.MAPPED_SUPERCLASS), mockManagedType(Map.class, null)));
+
+		when(metamodel.getManagedTypes()).thenReturn(managedTypes);
+
+		SoftAssertions softly = new SoftAssertions();
+
+		softly.assertThat(new JpaMetamodel(metamodel).isJpaManaged(String.class)).describedAs("String - Entity").isTrue();
+		softly.assertThat(new JpaMetamodel(metamodel).isJpaManaged(Integer.class)).describedAs("Integer - Basic").isFalse();
+		softly.assertThat(new JpaMetamodel(metamodel).isJpaManaged(Number.class)).describedAs("Number - Embeddable")
+				.isTrue();
+		softly.assertThat(new JpaMetamodel(metamodel).isJpaManaged(Date.class)).describedAs("Date - MappedSuperclass")
+				.isFalse();
+		softly.assertThat(new JpaMetamodel(metamodel).isJpaManaged(Map.class)).describedAs("Map - Null").isFalse();
+
+		softly.assertAll();
+	}
+
+	private <T> ManagedType<T> mockManagedType(Class<T> type, PersistenceType entity) {
+
+		ManagedType<T> entityManagedType = mock(ManagedType.class);
+		when(entityManagedType.getPersistenceType()).thenReturn(entity);
+		when(entityManagedType.getJavaType()).thenReturn(type);
+		return entityManagedType;
+	}
+
 }

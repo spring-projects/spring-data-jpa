@@ -17,6 +17,7 @@ package org.springframework.data.jpa.util;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -25,6 +26,7 @@ import javax.persistence.metamodel.EntityType;
 import javax.persistence.metamodel.ManagedType;
 import javax.persistence.metamodel.Metamodel;
 import javax.persistence.metamodel.SingularAttribute;
+import javax.persistence.metamodel.Type.PersistenceType;
 
 import org.springframework.util.Assert;
 
@@ -33,8 +35,12 @@ import org.springframework.util.Assert;
  *
  * @author Oliver Gierke
  * @author Mark Paluch
+ * @author Jens Schauder
  */
 public class JpaMetamodel {
+
+	private static final Set<PersistenceType> RELEVANT_MANAGED_PERSISTENCE_TYPES = EnumSet.of(PersistenceType.ENTITY,
+			PersistenceType.EMBEDDABLE);
 
 	private final Metamodel metamodel;
 
@@ -102,7 +108,7 @@ public class JpaMetamodel {
 
 				Class<?> type = managedType.getJavaType();
 
-				if (type != null) {
+				if (type != null && RELEVANT_MANAGED_PERSISTENCE_TYPES.contains(managedType.getPersistenceType())) {
 					types.add(type);
 				}
 			}
