@@ -44,6 +44,7 @@ import org.springframework.util.ConcurrentReferenceHashMap;
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Mark Paluch
+ * @author Jens Schauder
  */
 public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 
@@ -224,7 +225,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 		String OPENJPA_JPA_METAMODEL_TYPE = "org.apache.openjpa.persistence.meta.MetamodelImpl";
 	}
 
-	private static ConcurrentReferenceHashMap<Class<?>, PersistenceProvider> CACHE = new ConcurrentReferenceHashMap<Class<?>, PersistenceProvider>();
+	static ConcurrentReferenceHashMap<Class<?>, PersistenceProvider> CACHE = new ConcurrentReferenceHashMap<Class<?>, PersistenceProvider>();
 
 	private final Iterable<String> entityManagerClassNames;
 	private final Iterable<String> metamodelClassNames;
