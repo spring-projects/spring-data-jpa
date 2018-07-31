@@ -152,12 +152,12 @@ public class PersistenceProviderUnitTests {
 
 		private static String[] toResourcePaths(Class<?>... interfacesToImplement) {
 
-			List<String> interfaceResourcePaths = new ArrayList<String>(interfacesToImplement.length);
+			List<String> interfaceResourcePaths = new ArrayList<>(interfacesToImplement.length);
 			for (Class<?> iface : interfacesToImplement) {
 				interfaceResourcePaths.add(ClassUtils.convertClassNameToResourcePath(iface.getName()));
 			}
 
-			return interfaceResourcePaths.toArray(new String[interfaceResourcePaths.size()]);
+			return interfaceResourcePaths.toArray(new String[0]);
 		}
 	}
 }
