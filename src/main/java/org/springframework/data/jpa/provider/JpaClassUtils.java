@@ -27,6 +27,7 @@ import org.springframework.util.ClassUtils;
  *
  * @author Oliver Gierke
  * @author Christoph Strobl
+ * @author Jens Schauder
  */
 abstract class JpaClassUtils {
 
@@ -40,9 +41,10 @@ abstract class JpaClassUtils {
 	 *
 	 * @param em must not be {@literal null}.
 	 * @param type the fully qualified expected {@link EntityManager} type, must not be {@literal null} or empty.
-	 * @return
+	 * @return wether the given {@code EntityManager} is of the given type.
 	 */
 	public static boolean isEntityManagerOfType(EntityManager em, String type) {
+
 		Object delegate = em.getDelegate();
 		if (delegate instanceof EntityManager) {
 			em = (EntityManager) delegate;
