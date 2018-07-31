@@ -43,7 +43,11 @@ abstract class JpaClassUtils {
 	 * @return
 	 */
 	public static boolean isEntityManagerOfType(EntityManager em, String type) {
-		return isOfType(em, type, em.getDelegate().getClass().getClassLoader());
+		Object delegate = em.getDelegate();
+		if (delegate instanceof EntityManager) {
+			em = (EntityManager) delegate;
+		}
+		return isOfType(em, type, delegate.getClass().getClassLoader());
 	}
 
 	public static boolean isMetamodelOfType(Metamodel metamodel, String type) {
