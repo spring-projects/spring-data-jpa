@@ -40,6 +40,8 @@ import org.springframework.util.ClassUtils;
  *
  * @author Thomas Darimont
  * @author Oliver Gierke
+ * @author Jens Schauder
+ * @author Mark Paluch
  */
 public class PersistenceProviderUnitTests {
 
@@ -47,6 +49,9 @@ public class PersistenceProviderUnitTests {
 
 	@Before
 	public void setup() {
+
+		PersistenceProvider.CACHE.clear();
+
 		this.shadowingClassLoader = new ShadowingClassLoader(getClass().getClassLoader());
 	}
 
@@ -80,12 +85,26 @@ public class PersistenceProviderUnitTests {
 		assertThat(fromEntityManager(em), is(HIBERNATE));
 	}
 
+	@Test // DATAJPA-1379
+	public void detectsProviderFromProxiedEntityManager() throws Exception {
+
+		shadowingClassLoader.excludePackage("org.eclipse.persistence.jpa");
+
+		EntityManager em = mockProviderSpecificEntityManagerInterface(ECLIPSELINK_ENTITY_MANAGER_INTERFACE);
+
+		EntityManager emProxy = Mockito.mock(EntityManager.class);
+		Mockito.when(emProxy.isOpen()).thenReturn(true);
+		Mockito.when(emProxy.getDelegate()).thenReturn(em);
+
+		assertThat(fromEntityManager(emProxy), is(ECLIPSELINK));
+	}
+
 	private EntityManager mockProviderSpecificEntityManagerInterface(String interfaceName) throws ClassNotFoundException {
 
 		Class<?> providerSpecificEntityManagerInterface = InterfaceGenerator.generate(interfaceName, shadowingClassLoader,
 				EntityManager.class);
 
-		EntityManager em = EntityManager.class.cast(Mockito.mock(providerSpecificEntityManagerInterface));
+		EntityManager em = (EntityManager) Mockito.mock(providerSpecificEntityManagerInterface);
 		Mockito.when(em.getDelegate()).thenReturn(em); // delegate is used to determine the classloader of the provider
 																										// specific interface, therefore we return the proxied
 																										// EntityManager.
@@ -135,12 +154,12 @@ public class PersistenceProviderUnitTests {
 
 		private static String[] toResourcePaths(Class<?>... interfacesToImplement) {
 
-			List<String> interfaceResourcePaths = new ArrayList<String>(interfacesToImplement.length);
+			List<String> interfaceResourcePaths = new ArrayList<>(interfacesToImplement.length);
 			for (Class<?> iface : interfacesToImplement) {
 				interfaceResourcePaths.add(ClassUtils.convertClassNameToResourcePath(iface.getName()));
 			}
 
-			return interfaceResourcePaths.toArray(new String[interfaceResourcePaths.size()]);
+			return interfaceResourcePaths.toArray(new String[0]);
 		}
 	}
 }
