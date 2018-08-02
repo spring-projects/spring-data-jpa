@@ -41,15 +41,18 @@ abstract class JpaClassUtils {
 	 *
 	 * @param em must not be {@literal null}.
 	 * @param type the fully qualified expected {@link EntityManager} type, must not be {@literal null} or empty.
-	 * @return wether the given {@code EntityManager} is of the given type.
+	 * @return whether the given {@code EntityManager} is of the given type.
 	 */
 	public static boolean isEntityManagerOfType(EntityManager em, String type) {
 
+		EntityManager entityManagerToUse = em;
 		Object delegate = em.getDelegate();
+
 		if (delegate instanceof EntityManager) {
-			em = (EntityManager) delegate;
+			entityManagerToUse = (EntityManager) delegate;
 		}
-		return isOfType(em, type, delegate.getClass().getClassLoader());
+
+		return isOfType(entityManagerToUse, type, entityManagerToUse.getClass().getClassLoader());
 	}
 
 	public static boolean isMetamodelOfType(Metamodel metamodel, String type) {
