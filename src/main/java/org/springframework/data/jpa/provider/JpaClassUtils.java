@@ -28,6 +28,7 @@ import org.springframework.util.ClassUtils;
  * @author Oliver Gierke
  * @author Christoph Strobl
  * @author Jens Schauder
+ * @author Mark Paluch
  */
 abstract class JpaClassUtils {
 
@@ -41,15 +42,13 @@ abstract class JpaClassUtils {
 	 *
 	 * @param em must not be {@literal null}.
 	 * @param type the fully qualified expected {@link EntityManager} type, must not be {@literal null} or empty.
-	 * @return wether the given {@code EntityManager} is of the given type.
+	 * @return whether the given {@code EntityManager} is of the given type.
 	 */
 	public static boolean isEntityManagerOfType(EntityManager em, String type) {
 
-		Object delegate = em.getDelegate();
-		if (delegate instanceof EntityManager) {
-			em = (EntityManager) delegate;
-		}
-		return isOfType(em, type, delegate.getClass().getClassLoader());
+		EntityManager entityManagerToUse = unwrapEntityManager(em);
+
+		return isOfType(entityManagerToUse, type, entityManagerToUse.getClass().getClassLoader());
 	}
 
 	public static boolean isMetamodelOfType(Metamodel metamodel, String type) {
@@ -66,5 +65,27 @@ abstract class JpaClassUtils {
 		} catch (Exception e) {
 			return false;
 		}
+	}
+
+	private static EntityManager unwrapEntityManager(EntityManager em) {
+
+		EntityManager entityManagerToUse = em;
+
+		while (isWrappedEntityManager(entityManagerToUse)) {
+			entityManagerToUse = (EntityManager) entityManagerToUse.getDelegate();
+		}
+
+		return entityManagerToUse;
+	}
+
+	private static boolean isWrappedEntityManager(EntityManager em) {
+
+		if (!em.isOpen()) {
+			// Required for EclipseLink. em.getDelegate() throws exception and
+			// rolls back the tx if the EntityManager is not open.
+			return false;
+		}
+
+		return em.getDelegate() instanceof EntityManager && em.getDelegate() != em;
 	}
 }

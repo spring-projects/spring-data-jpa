@@ -41,6 +41,7 @@ import org.springframework.util.ClassUtils;
  * @author Thomas Darimont
  * @author Oliver Gierke
  * @author Jens Schauder
+ * @author Mark Paluch
  */
 public class PersistenceProviderUnitTests {
 
@@ -92,6 +93,7 @@ public class PersistenceProviderUnitTests {
 		EntityManager em = mockProviderSpecificEntityManagerInterface(ECLIPSELINK_ENTITY_MANAGER_INTERFACE);
 
 		EntityManager emProxy = Mockito.mock(EntityManager.class);
+		Mockito.when(emProxy.isOpen()).thenReturn(true);
 		Mockito.when(emProxy.getDelegate()).thenReturn(em);
 
 		assertThat(fromEntityManager(emProxy), is(ECLIPSELINK));
