@@ -21,6 +21,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
@@ -30,6 +31,7 @@ import org.springframework.beans.factory.support.AutowireCandidateQualifier;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.core.Ordered;
 import org.springframework.data.jpa.util.BeanDefinitionUtils.EntityManagerFactoryBeanDefinition;
 import org.springframework.orm.jpa.SharedEntityManagerCreator;
 
@@ -42,20 +44,39 @@ import org.springframework.orm.jpa.SharedEntityManagerCreator;
  *
  * @author Oliver Gierke
  */
-public class EntityManagerBeanDefinitionRegistrarPostProcessor implements BeanFactoryPostProcessor {
+public class EntityManagerBeanDefinitionRegistrarPostProcessor implements BeanFactoryPostProcessor, Ordered {
 
-	/*
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.core.Ordered#getOrder()
+	 */
+	@Override
+	public int getOrder() {
+		return Ordered.HIGHEST_PRECEDENCE + 10;
+	}
+
+	/* 
 	 * (non-Javadoc)
 	 * @see org.springframework.beans.factory.config.BeanFactoryPostProcessor#postProcessBeanFactory(org.springframework.beans.factory.config.ConfigurableListableBeanFactory)
 	 */
 	@Override
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
 
-		for (EntityManagerFactoryBeanDefinition definition : getEntityManagerFactoryBeanDefinitions(beanFactory)) {
+		if (!ConfigurableListableBeanFactory.class.isInstance(beanFactory)) {
+			return;
+		}
 
-			if (!(definition.getBeanFactory() instanceof BeanDefinitionRegistry)) {
+		ConfigurableListableBeanFactory factory = (ConfigurableListableBeanFactory) beanFactory;
+
+		for (EntityManagerFactoryBeanDefinition definition : getEntityManagerFactoryBeanDefinitions(factory)) {
+
+			BeanFactory definitionFactory = definition.getBeanFactory();
+
+			if (!(definitionFactory instanceof BeanDefinitionRegistry)) {
 				continue;
 			}
+
+			BeanDefinitionRegistry definitionRegistry = (BeanDefinitionRegistry) definitionFactory;
 
 			BeanDefinitionBuilder builder = BeanDefinitionBuilder
 					.rootBeanDefinition("org.springframework.orm.jpa.SharedEntityManagerCreator");
@@ -68,8 +89,7 @@ public class EntityManagerBeanDefinitionRegistrarPostProcessor implements BeanFa
 			emBeanDefinition.setScope(definition.getBeanDefinition().getScope());
 			emBeanDefinition.setSource(definition.getBeanDefinition().getSource());
 
-			BeanDefinitionReaderUtils.registerWithGeneratedName(emBeanDefinition,
-					(BeanDefinitionRegistry) definition.getBeanFactory());
+			BeanDefinitionReaderUtils.registerWithGeneratedName(emBeanDefinition, definitionRegistry);
 		}
 	}
 }

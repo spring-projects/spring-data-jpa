@@ -34,7 +34,7 @@ import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
  *
  * @author Oliver Gierke
  */
-public class EntityManagerBeanDefinitionRegistratPostProcessorUnitTests {
+public class EntityManagerBeanDefinitionRegistrarPostProcessorUnitTests {
 
 	@Test // DATAJPA-453
 	public void findsBeanDefinitionInParentBeanFactory() {
