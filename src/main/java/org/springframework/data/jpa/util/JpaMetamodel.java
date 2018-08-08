@@ -16,16 +16,15 @@
 package org.springframework.data.jpa.util;
 
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Optional;
-import java.util.Set;
 
 import javax.persistence.metamodel.EntityType;
 import javax.persistence.metamodel.ManagedType;
 import javax.persistence.metamodel.Metamodel;
 import javax.persistence.metamodel.SingularAttribute;
 
+import org.springframework.data.util.Lazy;
+import org.springframework.data.util.StreamUtils;
 import org.springframework.util.Assert;
 
 /**
@@ -38,7 +37,7 @@ public class JpaMetamodel {
 
 	private final Metamodel metamodel;
 
-	private Optional<Collection<Class<?>>> managedTypes = Optional.empty();
+	private Lazy<Collection<Class<?>>> managedTypes;
 
 	/**
 	 * Creates a new {@link JpaMetamodel} for the given JPA {@link Metamodel}.
@@ -50,6 +49,10 @@ public class JpaMetamodel {
 		Assert.notNull(metamodel, "Metamodel must not be null!");
 
 		this.metamodel = metamodel;
+		this.managedTypes = Lazy.of(() -> metamodel.getManagedTypes().stream() //
+				.map(ManagedType::getJavaType) //
+				.filter(it -> it != null) //
+				.collect(StreamUtils.toUnmodifiableSet()));
 	}
 
 	/**
@@ -62,7 +65,7 @@ public class JpaMetamodel {
 
 		Assert.notNull(type, "Type must not be null!");
 
-		return getManagedTypes().contains(type);
+		return managedTypes.get().contains(type);
 	}
 
 	/**
@@ -82,35 +85,6 @@ public class JpaMetamodel {
 				.filter(it -> it.getJavaType().equals(attributeType)) //
 				.map(it -> it.getName().equals(name)) //
 				.orElse(false);
-	}
-
-	/**
-	 * Returns all types managed by the backing {@link Metamodel}. Skips {@link ManagedType} instances that return
-	 * {@literal null} for calls to {@link ManagedType#getJavaType()}.
-	 *
-	 * @return all managed types.
-	 * @see <a href="https://hibernate.atlassian.net/browse/HHH-10968">HHH-10968</a>
-	 */
-	private Collection<Class<?>> getManagedTypes() {
-
-		if (!managedTypes.isPresent()) {
-
-			Set<ManagedType<?>> managedTypes = metamodel.getManagedTypes();
-			Set<Class<?>> types = new HashSet<Class<?>>(managedTypes.size());
-
-			for (ManagedType<?> managedType : metamodel.getManagedTypes()) {
-
-				Class<?> type = managedType.getJavaType();
-
-				if (type != null) {
-					types.add(type);
-				}
-			}
-
-			this.managedTypes = Optional.of(Collections.unmodifiableSet(types));
-		}
-
-		return this.managedTypes.get();
 	}
 
 	/**

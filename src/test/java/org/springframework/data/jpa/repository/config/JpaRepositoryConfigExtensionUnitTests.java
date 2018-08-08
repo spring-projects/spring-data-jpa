@@ -22,10 +22,8 @@ import static org.mockito.Mockito.*;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Set;
 
 import javax.persistence.EntityManagerFactory;
-import javax.persistence.metamodel.ManagedType;
 import javax.persistence.metamodel.Metamodel;
 
 import org.junit.Rule;
@@ -100,13 +98,9 @@ public class JpaRepositoryConfigExtensionUnitTests {
 		ApplicationContext context = mock(ApplicationContext.class);
 		EntityManagerFactory emf = mock(EntityManagerFactory.class);
 		Metamodel metamodel = mock(Metamodel.class);
-		ManagedType<?> managedType = mock(ManagedType.class);
-
-		Set<ManagedType<?>> managedTypes = Collections.<ManagedType<?>> singleton(managedType);
 
 		when(context.getBeansOfType(EntityManagerFactory.class)).thenReturn(Collections.singletonMap("emf", emf));
 		when(emf.getMetamodel()).thenReturn(metamodel);
-		when(metamodel.getManagedTypes()).thenReturn(managedTypes);
 
 		JpaMetamodelMappingContextFactoryBean factoryBean = new JpaMetamodelMappingContextFactoryBean();
 		factoryBean.setApplicationContext(context);

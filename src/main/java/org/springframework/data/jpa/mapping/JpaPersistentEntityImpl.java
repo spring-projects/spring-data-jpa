@@ -17,6 +17,8 @@ package org.springframework.data.jpa.mapping;
 
 import java.util.Comparator;
 
+import javax.persistence.metamodel.Metamodel;
+
 import org.springframework.data.annotation.Version;
 import org.springframework.data.jpa.provider.ProxyIdAccessor;
 import org.springframework.data.mapping.IdentifierAccessor;
@@ -43,6 +45,7 @@ class JpaPersistentEntityImpl<T> extends BasicPersistentEntity<T, JpaPersistentP
 			+ javax.persistence.Version.class.getName() + " to trigger optimistic locking correctly!";
 
 	private final ProxyIdAccessor proxyIdAccessor;
+	private final Metamodel metamodel;
 
 	/**
 	 * Creates a new {@link JpaPersistentEntityImpl} using the given {@link TypeInformation} and {@link Comparator}.
@@ -50,12 +53,13 @@ class JpaPersistentEntityImpl<T> extends BasicPersistentEntity<T, JpaPersistentP
 	 * @param information must not be {@literal null}.
 	 * @param proxyIdAccessor must not be {@literal null}.
 	 */
-	public JpaPersistentEntityImpl(TypeInformation<T> information, ProxyIdAccessor proxyIdAccessor) {
+	public JpaPersistentEntityImpl(TypeInformation<T> information, ProxyIdAccessor proxyIdAccessor, Metamodel metamodel) {
 
 		super(information, null);
 
 		Assert.notNull(proxyIdAccessor, "ProxyIdAccessor must not be null!");
 		this.proxyIdAccessor = proxyIdAccessor;
+		this.metamodel = metamodel;
 	}
 
 	/*
@@ -92,6 +96,10 @@ class JpaPersistentEntityImpl<T> extends BasicPersistentEntity<T, JpaPersistentP
 		}
 	}
 
+	Metamodel getMetamodel() {
+		return metamodel;
+	}
+
 	/**
 	 * {@link IdentifierAccessor} that tries to use a {@link ProxyIdAccessor} for id access to potentially avoid the
 	 * initialization of JPA proxies. We're falling back to the default behavior of {@link IdPropertyIdentifierAccessor}
@@ -112,8 +120,7 @@ class JpaPersistentEntityImpl<T> extends BasicPersistentEntity<T, JpaPersistentP
 		 * @param bean must not be {@literal null}.
 		 * @param proxyIdAccessor must not be {@literal null}.
 		 */
-		JpaProxyAwareIdentifierAccessor(JpaPersistentEntity<?> entity, Object bean,
-				ProxyIdAccessor proxyIdAccessor) {
+		JpaProxyAwareIdentifierAccessor(JpaPersistentEntity<?> entity, Object bean, ProxyIdAccessor proxyIdAccessor) {
 
 			super(entity, bean);
 

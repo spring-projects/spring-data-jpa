@@ -16,13 +16,13 @@
 package org.springframework.data.jpa.repository.config;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Set;
 
 import javax.persistence.EntityManagerFactory;
-import javax.persistence.metamodel.ManagedType;
 import javax.persistence.metamodel.Metamodel;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.FactoryBean;
@@ -31,6 +31,7 @@ import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
+import org.springframework.data.util.StreamUtils;
 import org.springframework.lang.Nullable;
 
 /**
@@ -42,6 +43,8 @@ import org.springframework.lang.Nullable;
  */
 class JpaMetamodelMappingContextFactoryBean extends AbstractFactoryBean<JpaMetamodelMappingContext>
 		implements ApplicationContextAware {
+
+	private static final Logger LOG = LoggerFactory.getLogger(JpaMetamodelMappingContextFactoryBean.class);
 
 	private @Nullable ListableBeanFactory beanFactory;
 
@@ -70,24 +73,16 @@ class JpaMetamodelMappingContextFactoryBean extends AbstractFactoryBean<JpaMetam
 	@Override
 	protected JpaMetamodelMappingContext createInstance() throws Exception {
 
-		Set<Metamodel> models = getMetamodels();
-		Set<Class<?>> entitySources = new HashSet<Class<?>>();
-
-		for (Metamodel metamodel : models) {
-
-			for (ManagedType<?> type : metamodel.getManagedTypes()) {
-
-				Class<?> javaType = type.getJavaType();
-
-				if (javaType != null) {
-					entitySources.add(javaType);
-				}
-			}
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("Initializing JpaMetamodelMappingContext…");
 		}
 
-		JpaMetamodelMappingContext context = new JpaMetamodelMappingContext(models);
-		context.setInitialEntitySet(entitySources);
+		JpaMetamodelMappingContext context = new JpaMetamodelMappingContext(getMetamodels());
 		context.initialize();
+
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("Finished initializing JpaMetamodelMappingContext!");
+		}
 
 		return context;
 	}
@@ -105,12 +100,9 @@ class JpaMetamodelMappingContextFactoryBean extends AbstractFactoryBean<JpaMetam
 
 		Collection<EntityManagerFactory> factories = BeanFactoryUtils
 				.beansOfTypeIncludingAncestors(beanFactory, EntityManagerFactory.class).values();
-		Set<Metamodel> metamodels = new HashSet<Metamodel>(factories.size());
 
-		for (EntityManagerFactory emf : factories) {
-			metamodels.add(emf.getMetamodel());
-		}
-
-		return metamodels;
+		return factories.stream() //
+				.map(EntityManagerFactory::getMetamodel) //
+				.collect(StreamUtils.toUnmodifiableSet());
 	}
 }

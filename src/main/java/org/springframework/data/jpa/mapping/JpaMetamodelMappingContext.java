@@ -65,7 +65,10 @@ public class JpaMetamodelMappingContext
 	 */
 	@Override
 	protected <T> JpaPersistentEntityImpl<?> createPersistentEntity(TypeInformation<T> typeInformation) {
-		return new JpaPersistentEntityImpl<T>(typeInformation, persistenceProvider);
+
+		Metamodel metamodel = getMetamodelFor(typeInformation.getType());
+
+		return new JpaPersistentEntityImpl<T>(typeInformation, persistenceProvider, metamodel);
 	}
 
 	/*
@@ -75,14 +78,7 @@ public class JpaMetamodelMappingContext
 	@Override
 	protected JpaPersistentProperty createPersistentProperty(Property property, JpaPersistentEntityImpl<?> owner,
 			SimpleTypeHolder simpleTypeHolder) {
-
-		Metamodel metamodel = getMetamodelFor(owner.getType());
-
-		if (metamodel == null) {
-			throw new IllegalStateException(String.format("Metamodel for %s not available!", owner.getType()));
-		}
-
-		return new JpaPersistentPropertyImpl(metamodel, property, owner, simpleTypeHolder);
+		return new JpaPersistentPropertyImpl(owner.getMetamodel(), property, owner, simpleTypeHolder);
 	}
 
 	/*
