@@ -17,10 +17,9 @@ package org.springframework.data.jpa.mapping;
 
 import java.util.Comparator;
 
-import javax.persistence.metamodel.Metamodel;
-
 import org.springframework.data.annotation.Version;
 import org.springframework.data.jpa.provider.ProxyIdAccessor;
+import org.springframework.data.jpa.util.JpaMetamodel;
 import org.springframework.data.mapping.IdentifierAccessor;
 import org.springframework.data.mapping.model.BasicPersistentEntity;
 import org.springframework.data.mapping.model.IdPropertyIdentifierAccessor;
@@ -45,15 +44,17 @@ class JpaPersistentEntityImpl<T> extends BasicPersistentEntity<T, JpaPersistentP
 			+ javax.persistence.Version.class.getName() + " to trigger optimistic locking correctly!";
 
 	private final ProxyIdAccessor proxyIdAccessor;
-	private final Metamodel metamodel;
+	private final JpaMetamodel metamodel;
 
 	/**
 	 * Creates a new {@link JpaPersistentEntityImpl} using the given {@link TypeInformation} and {@link Comparator}.
 	 *
 	 * @param information must not be {@literal null}.
 	 * @param proxyIdAccessor must not be {@literal null}.
+	 * @param metamodel must not be {@literal null}.
 	 */
-	public JpaPersistentEntityImpl(TypeInformation<T> information, ProxyIdAccessor proxyIdAccessor, Metamodel metamodel) {
+	public JpaPersistentEntityImpl(TypeInformation<T> information, ProxyIdAccessor proxyIdAccessor,
+			JpaMetamodel metamodel) {
 
 		super(information, null);
 
@@ -96,7 +97,7 @@ class JpaPersistentEntityImpl<T> extends BasicPersistentEntity<T, JpaPersistentP
 		}
 	}
 
-	Metamodel getMetamodel() {
+	JpaMetamodel getMetamodel() {
 		return metamodel;
 	}
 

@@ -246,7 +246,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 
 			Assert.notNull(em, "EntityManager must not be null!");
 
-			this.metamodel = new JpaMetamodel(em.getMetamodel());
+			this.metamodel = JpaMetamodel.of(em.getMetamodel());
 		}
 
 		/* 

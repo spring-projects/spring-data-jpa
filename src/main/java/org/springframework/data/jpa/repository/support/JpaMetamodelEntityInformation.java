@@ -325,7 +325,7 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 		IdentifierDerivingDirectFieldAccessFallbackBeanWrapper(Class<?> type, Metamodel metamodel) {
 			super(type);
 			this.metamodel = metamodel;
-			this.jpaMetamodel = new JpaMetamodel(metamodel);
+			this.jpaMetamodel = JpaMetamodel.of(metamodel);
 		}
 
 		/**

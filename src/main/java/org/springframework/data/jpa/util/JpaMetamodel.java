@@ -16,6 +16,8 @@
 package org.springframework.data.jpa.util;
 
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 import javax.persistence.metamodel.EntityType;
@@ -35,6 +37,8 @@ import org.springframework.util.Assert;
  */
 public class JpaMetamodel {
 
+	private static final Map<Metamodel, JpaMetamodel> CACHE = new HashMap<>(4);
+
 	private final Metamodel metamodel;
 
 	private Lazy<Collection<Class<?>>> managedTypes;
@@ -44,7 +48,7 @@ public class JpaMetamodel {
 	 *
 	 * @param metamodel must not be {@literal null}.
 	 */
-	public JpaMetamodel(Metamodel metamodel) {
+	private JpaMetamodel(Metamodel metamodel) {
 
 		Assert.notNull(metamodel, "Metamodel must not be null!");
 
@@ -53,6 +57,10 @@ public class JpaMetamodel {
 				.map(ManagedType::getJavaType) //
 				.filter(it -> it != null) //
 				.collect(StreamUtils.toUnmodifiableSet()));
+	}
+
+	public static JpaMetamodel of(Metamodel metamodel) {
+		return CACHE.computeIfAbsent(metamodel, JpaMetamodel::new);
 	}
 
 	/**

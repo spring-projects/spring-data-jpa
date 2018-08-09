@@ -21,20 +21,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.persistence.Access;
-import javax.persistence.AccessType;
-import javax.persistence.Column;
-import javax.persistence.Embeddable;
-import javax.persistence.Embedded;
-import javax.persistence.EmbeddedId;
-import javax.persistence.Id;
-import javax.persistence.ManyToMany;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
-import javax.persistence.OrderColumn;
-import javax.persistence.Transient;
-import javax.persistence.Version;
+import javax.persistence.*;
 import javax.persistence.metamodel.Metamodel;
 
 import org.springframework.core.annotation.AnnotationUtils;
@@ -94,10 +81,10 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 	private final @Nullable Boolean usePropertyAccess;
 	private final @Nullable TypeInformation<?> associationTargetType;
 	private final boolean updateable;
-	private final JpaMetamodel metamodel;
 
 	private final Lazy<Boolean> isIdProperty;
 	private final Lazy<Boolean> isAssociation;
+	private final Lazy<Boolean> isEntity;
 
 	/**
 	 * Creates a new {@link JpaPersistentPropertyImpl}
@@ -107,7 +94,7 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 	 * @param owner must not be {@literal null}.
 	 * @param simpleTypeHolder must not be {@literal null}.
 	 */
-	public JpaPersistentPropertyImpl(Metamodel metamodel, Property property,
+	public JpaPersistentPropertyImpl(JpaMetamodel metamodel, Property property,
 			PersistentEntity<?, JpaPersistentProperty> owner, SimpleTypeHolder simpleTypeHolder) {
 
 		super(property, owner, simpleTypeHolder);
@@ -118,10 +105,10 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 		this.usePropertyAccess = detectPropertyAccess();
 		this.associationTargetType = detectAssociationTargetType();
 		this.updateable = detectUpdatability();
-		this.metamodel = new JpaMetamodel(metamodel);
 
 		this.isIdProperty = Lazy.of(() -> ID_ANNOTATIONS.stream().anyMatch(it -> isAnnotationPresent(it)) //
-				|| this.metamodel.isSingleIdAttribute(getOwner().getType(), getName(), getType()));
+				|| metamodel.isSingleIdAttribute(getOwner().getType(), getName(), getType()));
+		this.isEntity = Lazy.of(() -> metamodel.isJpaManaged(getActualType()));
 	}
 
 	/*
@@ -160,7 +147,7 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 	 */
 	@Override
 	public boolean isEntity() {
-		return metamodel.isJpaManaged(getActualType());
+		return isEntity.get();
 	}
 
 	/*

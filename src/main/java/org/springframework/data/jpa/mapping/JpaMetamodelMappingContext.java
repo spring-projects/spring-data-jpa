@@ -22,6 +22,7 @@ import javax.persistence.metamodel.ManagedType;
 import javax.persistence.metamodel.Metamodel;
 
 import org.springframework.data.jpa.provider.PersistenceProvider;
+import org.springframework.data.jpa.util.JpaMetamodel;
 import org.springframework.data.mapping.PersistentPropertyPaths;
 import org.springframework.data.mapping.context.AbstractMappingContext;
 import org.springframework.data.mapping.context.MappingContext;
@@ -42,7 +43,7 @@ import org.springframework.util.Assert;
 public class JpaMetamodelMappingContext
 		extends AbstractMappingContext<JpaPersistentEntityImpl<?>, JpaPersistentProperty> {
 
-	private final Set<Metamodel> models;
+	private final Metamodels models;
 	private final PersistenceProvider persistenceProvider;
 
 	/**
@@ -55,7 +56,7 @@ public class JpaMetamodelMappingContext
 		Assert.notNull(models, "JPA metamodel must not be null!");
 		Assert.notEmpty(models, "At least one JPA metamodel must be present!");
 
-		this.models = models;
+		this.models = new Metamodels(models);
 		this.persistenceProvider = PersistenceProvider.fromMetamodel(models.iterator().next());
 	}
 
@@ -65,10 +66,7 @@ public class JpaMetamodelMappingContext
 	 */
 	@Override
 	protected <T> JpaPersistentEntityImpl<?> createPersistentEntity(TypeInformation<T> typeInformation) {
-
-		Metamodel metamodel = getMetamodelFor(typeInformation.getType());
-
-		return new JpaPersistentEntityImpl<T>(typeInformation, persistenceProvider, metamodel);
+		return new JpaPersistentEntityImpl<T>(typeInformation, persistenceProvider, models.getMetamodel(typeInformation));
 	}
 
 	/*
@@ -87,7 +85,7 @@ public class JpaMetamodelMappingContext
 	 */
 	@Override
 	protected boolean shouldCreatePersistentEntityFor(TypeInformation<?> type) {
-		return getMetamodelFor(type.getType()) != null;
+		return models.isMetamodelManagedType(type);
 	}
 
 	/**
@@ -103,32 +101,71 @@ public class JpaMetamodelMappingContext
 	}
 
 	/**
-	 * Returns the {@link Metamodel} aware of the given type.
+	 * A wrapper for a set of JPA {@link Metamodel} instances to simplify lookups of {@link JpaMetamodel} instances and
+	 * managed type checks.
 	 *
-	 * @param type must not be {@literal null}.
-	 * @return can be {@literal null}.
+	 * @author Oliver Gierke
 	 */
-	@Nullable
-	private Metamodel getMetamodelFor(Class<?> type) {
+	private static class Metamodels {
 
-		for (Metamodel model : models) {
+		private final Set<Metamodel> metamodels;
 
-			try {
-				model.managedType(type);
-				return model;
-			} catch (IllegalArgumentException o_O) {
+		private Metamodels(Set<Metamodel> metamodels) {
+			this.metamodels = metamodels;
+		}
 
-				// Fall back to inspect *all* managed types manually as Metamodel.managedType(…) only
-				// returns for entities, embeddables and managed supperclasses.
+		/**
+		 * Returns the {@link JpaMetamodel} for the given type.
+		 * 
+		 * @param type must not be {@literal null}.
+		 * @return
+		 */
+		@Nullable
+		public JpaMetamodel getMetamodel(TypeInformation<?> type) {
 
-				for (ManagedType<?> managedType : model.getManagedTypes()) {
-					if (type.equals(managedType.getJavaType())) {
-						return model;
+			Metamodel metamodel = getMetamodelFor(type.getType());
+
+			return metamodel == null ? null : JpaMetamodel.of(metamodel);
+		}
+
+		/**
+		 * Retruns whether the given type is managed by one of the underlying {@link Metamodel} instances.
+		 * 
+		 * @param type must not be {@literal null}.
+		 * @return
+		 */
+		public boolean isMetamodelManagedType(TypeInformation<?> type) {
+			return getMetamodelFor(type.getType()) != null;
+		}
+
+		/**
+		 * Returns the {@link Metamodel} aware of the given type.
+		 *
+		 * @param type must not be {@literal null}.
+		 * @return can be {@literal null}.
+		 */
+		@Nullable
+		private Metamodel getMetamodelFor(Class<?> type) {
+
+			for (Metamodel model : metamodels) {
+
+				try {
+					model.managedType(type);
+					return model;
+				} catch (IllegalArgumentException o_O) {
+
+					// Fall back to inspect *all* managed types manually as Metamodel.managedType(…) only
+					// returns for entities, embeddables and managed supperclasses.
+
+					for (ManagedType<?> managedType : model.getManagedTypes()) {
+						if (type.equals(managedType.getJavaType())) {
+							return model;
+						}
 					}
 				}
 			}
-		}
 
-		return null;
+			return null;
+		}
 	}
 }
