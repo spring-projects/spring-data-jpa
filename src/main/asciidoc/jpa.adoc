@@ -494,6 +494,8 @@ The preceding declaration would apply the configured `@QueryHint` for that actua
 
 The JPA 2.1 specification introduced support for specifying Fetch- and LoadGraphs that we also support with the `@EntityGraph` annotation, which lets you reference a `@NamedEntityGraph` definition. You can use that annotation on an entity to configure the fetch plan of the resulting query. The type (`Fetch` or `Load`) of the fetching can be configured by using the `type` attribute on the `@EntityGraph` annotation. See the JPA 2.1 Spec 3.7.4 for further reference.
 
+WARNING: If the default persistence provider Hibernate is used, beware that in `Fetch` mode all attributes marked with `@FetchType.EAGER` are loaded although they are not listed in the `@EntityGraph.attributePaths` or `@NamedEntityGraph.attributeNodes` lists (see the according hint in the http://docs.jboss.org/hibernate/orm/current/userguide/html_single/Hibernate_User_Guide.html#fetching-strategies-dynamic-fetching-entity-graph[Hibernate manual]).
+
 The following example shows how to define a named entity graph on an entity:
 
 .Defining a named entity graph on an entity.
