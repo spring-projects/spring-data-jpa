@@ -49,7 +49,7 @@ import org.springframework.data.util.TypeInformation;
  * @author Oliver Gierke
  * @author Greg Turnquist
  */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class JpaPersistentPropertyImplUnitTests {
 
 	@Mock Metamodel model;

@@ -45,6 +45,6 @@ public class JpaMetamodelUnitTests {
 
 		doReturn(Collections.singleton(type)).when(metamodel).getEntities();
 
-		assertThat(new JpaMetamodel(metamodel).isSingleIdAttribute(Object.class, "id", Object.class)).isFalse();
+		assertThat(JpaMetamodel.of(metamodel).isSingleIdAttribute(Object.class, "id", Object.class)).isFalse();
 	}
 }

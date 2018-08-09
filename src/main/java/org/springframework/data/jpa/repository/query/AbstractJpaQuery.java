@@ -84,7 +84,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 
 		this.method = method;
 		this.em = em;
-		this.metamodel = new JpaMetamodel(em.getMetamodel());
+		this.metamodel = JpaMetamodel.of(em.getMetamodel());
 		this.provider = PersistenceProvider.fromEntityManager(em);
 	}
 
