@@ -88,6 +88,7 @@ public class EntityManagerBeanDefinitionRegistrarPostProcessor implements BeanFa
 			emBeanDefinition.addQualifier(new AutowireCandidateQualifier(Qualifier.class, definition.getBeanName()));
 			emBeanDefinition.setScope(definition.getBeanDefinition().getScope());
 			emBeanDefinition.setSource(definition.getBeanDefinition().getSource());
+			emBeanDefinition.setLazyInit(true);
 
 			BeanDefinitionReaderUtils.registerWithGeneratedName(emBeanDefinition, definitionRegistry);
 		}

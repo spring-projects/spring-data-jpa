@@ -96,6 +96,35 @@ NOTE: You must create `LocalContainerEntityManagerFactoryBean` and not `EntityMa
 
 The preceding configuration class sets up an embedded HSQL database by using the `EmbeddedDatabaseBuilder` API of `spring-jdbc`. Spring Data then sets up an `EntityManagerFactory` and uses Hibernate as the sample persistence provider. The last infrastructure component declared here is the `JpaTransactionManager`. Finally, the example activates Spring Data JPA repositories by using the `@EnableJpaRepositories` annotation, which essentially carries the same attributes as the XML namespace. If no base package is configured, it uses the one in which the configuration class resides.
 
+[[jpa.bootstrap-mode]]
+=== Bootstrap Mode
+
+By default, Spring Data JPA repositories are default Spring beans.
+They are singleton scoped and eagerly initialized.
+During startup, they already interact with the JPA `EntityManager` for verification and metadata analysis purposes.
+Spring Framework supports the initialization of the JPA `EntityManagerFactory` in a background thread because that process usually takes up a significant amount of startup time in a Spring application.
+To make use of that background initialization effectively, we need to make sure that JPA repositories are initialized as late as possible.
+
+As of Spring Data JPA 2.1 you can now configure a `BootstrapMode` (either via the `@EnableJpaRepositories` annotation or the XML namespace) that takes the following values:
+
+* `DEFAULT` (default) -- Repositories are instantiated eagerly unless explicitly annotated with `@Lazy`.
+The lazification only has effect if no client bean needs an instance of the repository as that will require the initialization of the repository bean.
+* `LAZY` -- Implicitly declares all repository beans lazy and also causes lazy initialization proxies to be created to be injected into client beans.
+That means, that repositories will not get instantiated if the client bean is simply storing the instance in a field and not making use of the repository during initialization.
+Repository instances will be initialized and verified upon first interaction with the repository.
+* `DEFERRED` -- Fundamentally the same mode of operation as `LAZY`, but triggering repository initialization in response to an `ContextRefreshedEvent` so that repositories are verified before the application has completely started.
+
+==== Recommendations
+
+If you're not using asynchronous JPA bootstrap stick with the default bootstrap mode.
+
+In case you bootstrap JPA asynchronously, `DEFERRED` is a reasonable default as it will make sure the Spring Data JPA bootstrap only waits for the `EntityManagerFactory` setup if that itself takes longer than initializing all other application components.
+Still, it makes sure that repositories are properly initialized and validated before the application signals it's up.
+
+`LAZY` is a decent choice for testing scenarios and local development.
+Once you're pretty sure that repositories will properly bootstrap, or in cases where you're testing other parts of the application, executing verification for all repositories might just unnecessarily increase the startup time.
+The same applies to local development in which you only access parts of the application which might just need a single repository initialized.
+
 [[jpa.entity-persistence]]
 == Persisting Entities
 

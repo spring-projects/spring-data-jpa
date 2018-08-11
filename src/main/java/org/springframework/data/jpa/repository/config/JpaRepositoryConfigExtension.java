@@ -172,21 +172,26 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 
 		Object source = config.getSource();
 
-		registerIfNotAlreadyRegistered(new RootBeanDefinition(EntityManagerBeanDefinitionRegistrarPostProcessor.class),
-				registry, EM_BEAN_DEFINITION_REGISTRAR_POST_PROCESSOR_BEAN_NAME, source);
+		registerLazyIfNotAlreadyRegistered(
+				() -> new RootBeanDefinition(EntityManagerBeanDefinitionRegistrarPostProcessor.class), registry,
+				EM_BEAN_DEFINITION_REGISTRAR_POST_PROCESSOR_BEAN_NAME, source);
 
-		registerIfNotAlreadyRegistered(new RootBeanDefinition(JpaMetamodelMappingContextFactoryBean.class), registry,
-				JPA_MAPPING_CONTEXT_BEAN_NAME, source);
+		registerLazyIfNotAlreadyRegistered(() -> new RootBeanDefinition(JpaMetamodelMappingContextFactoryBean.class),
+				registry, JPA_MAPPING_CONTEXT_BEAN_NAME, source);
 
-		registerIfNotAlreadyRegistered(new RootBeanDefinition(PAB_POST_PROCESSOR), registry,
+		registerLazyIfNotAlreadyRegistered(() -> new RootBeanDefinition(PAB_POST_PROCESSOR), registry,
 				AnnotationConfigUtils.PERSISTENCE_ANNOTATION_PROCESSOR_BEAN_NAME, source);
 
 		// Register bean definition for DefaultJpaContext
 
-		RootBeanDefinition contextDefinition = new RootBeanDefinition(DefaultJpaContext.class);
-		contextDefinition.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_CONSTRUCTOR);
+		registerLazyIfNotAlreadyRegistered(() -> {
 
-		registerIfNotAlreadyRegistered(contextDefinition, registry, JPA_CONTEXT_BEAN_NAME, source);
+			RootBeanDefinition contextDefinition = new RootBeanDefinition(DefaultJpaContext.class);
+			contextDefinition.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_CONSTRUCTOR);
+
+			return contextDefinition;
+
+		}, registry, JPA_CONTEXT_BEAN_NAME, source);
 	}
 
 	/*
