@@ -90,13 +90,13 @@
 		<profile>
 			<id>eclipselink-27</id>
 			<properties>
-				<eclipselink>2.7.1</eclipselink>
+				<eclipselink>2.7.3</eclipselink>
 			</properties>
 		</profile>
 		<profile>
 			<id>eclipselink-27-next</id>
 			<properties>
-				<eclipselink>2.7.2-SNAPSHOT</eclipselink>
+				<eclipselink>2.7.4-SNAPSHOT</eclipselink>
 			</properties>
 			<repositories>
 				<repository>
