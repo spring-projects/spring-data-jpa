@@ -128,14 +128,14 @@
 		<profile>
 			<id>hibernate-52</id>
 			<properties>
-				<hibernate>5.2.16.Final</hibernate>
+				<hibernate>5.2.17.Final</hibernate>
 				<hibernate.artifact>hibernate-core</hibernate.artifact>
 			</properties>
 		</profile>
 		<profile>
 			<id>hibernate-52-next</id>
 			<properties>
-				<hibernate>5.2.17-SNAPSHOT</hibernate>
+				<hibernate>5.2.18-SNAPSHOT</hibernate>
 				<hibernate.artifact>hibernate-core</hibernate.artifact>
 			</properties>
 			<repositories>
@@ -148,13 +148,25 @@
 		<profile>
 			<id>hibernate-53</id>
 			<properties>
-				<hibernate>5.3.2.Final</hibernate>
+				<hibernate>5.3.4.Final</hibernate>
 			</properties>
 		</profile>
 		<profile>
 			<id>hibernate-53-next</id>
 			<properties>
-				<hibernate>5.3.3-SNAPSHOT</hibernate>
+				<hibernate>5.3.4-SNAPSHOT</hibernate>
+			</properties>
+			<repositories>
+				<repository>
+					<id>jboss</id>
+					<url>https://repository.jboss.org/nexus/content/repositories/public</url>
+				</repository>
+			</repositories>
+		</profile>
+		<profile>
+			<id>hibernate-54-next</id>
+			<properties>
+				<hibernate>5.4.0-SNAPSHOT</hibernate>
 			</properties>
 			<repositories>
 				<repository>

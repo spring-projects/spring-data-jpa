@@ -21,6 +21,7 @@ env:
     - PROFILE=hibernate-52-next
     - PROFILE=hibernate-53
     - PROFILE=hibernate-53-next
+    - PROFILE=hibernate-54-next
     - PROFILE=eclipselink-next
     - PROFILE=eclipselink-27-next
     - PROFILE=querydsl-next
