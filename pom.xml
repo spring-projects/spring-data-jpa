@@ -48,6 +48,12 @@
 			</properties>
 		</profile>
 		<profile>
+			<id>spring51-next</id>
+			<properties>
+				<skip-openjpa>true</skip-openjpa>
+			</properties>
+		</profile>
+		<profile>
 			<id>hibernate-41</id>
 			<properties>
 				<hibernate>4.1.12.Final</hibernate>

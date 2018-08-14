@@ -22,7 +22,6 @@ import javax.persistence.Query;
 
 import org.eclipse.persistence.Version;
 import org.junit.Assume;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.test.context.ContextConfiguration;
@@ -101,6 +100,12 @@ public class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserReposi
 	 */
 	@Override
 	public void supportsProjectionsWithNativeQueriesAndCamelCaseProperty() {}
+
+	/**
+	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=525319 is fixed.
+	 */
+	@Override
+	public void supportsProjectionsWithNativeQueries() {}
 
 	/**
 	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=525319 is fixed.
