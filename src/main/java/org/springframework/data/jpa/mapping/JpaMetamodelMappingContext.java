@@ -86,6 +86,15 @@ public class JpaMetamodelMappingContext
 		return models.isMetamodelManagedType(type);
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.mapping.context.AbstractMappingContext#hasPersistentEntityFor(java.lang.Class)
+	 */
+	@Override
+	public boolean hasPersistentEntityFor(Class<?> type) {
+		return super.hasPersistentEntityFor(type) || models.isMetamodelManagedType(type);
+	}
+
 	/**
 	 * A wrapper for a set of JPA {@link Metamodel} instances to simplify lookups of {@link JpaMetamodel} instances and
 	 * managed type checks.
@@ -115,13 +124,23 @@ public class JpaMetamodelMappingContext
 		}
 
 		/**
-		 * Retruns whether the given type is managed by one of the underlying {@link Metamodel} instances.
+		 * Returns whether the given type is managed by one of the underlying {@link Metamodel} instances.
 		 * 
 		 * @param type must not be {@literal null}.
 		 * @return
 		 */
 		public boolean isMetamodelManagedType(TypeInformation<?> type) {
-			return getMetamodelFor(type.getType()) != null;
+			return isMetamodelManagedType(type.getType());
+		}
+
+		/**
+		 * Returns whether the given type is managed by one of the underlying {@link Metamodel} instances.
+		 * 
+		 * @param type must not be {@literal null}.
+		 * @return
+		 */
+		public boolean isMetamodelManagedType(Class<?> type) {
+			return getMetamodelFor(type) != null;
 		}
 
 		/**
