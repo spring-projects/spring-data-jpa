@@ -7,6 +7,7 @@ env:
   matrix:
     - PROFILE=ci
     - PROFILE=spring5-next
+    - PROFILE=spring51-next
     - PROFILE=hibernate-next
     - PROFILE=hibernate-53
     - PROFILE=hibernate-53-next
