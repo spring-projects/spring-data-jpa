@@ -25,38 +25,15 @@ import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.Date;
 
-import javax.persistence.Access;
-import javax.persistence.AccessType;
-import javax.persistence.Entity;
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Id;
-import javax.persistence.IdClass;
-import javax.persistence.ManyToOne;
-import javax.persistence.MappedSuperclass;
-import javax.persistence.Persistence;
-import javax.persistence.PersistenceContext;
+import javax.persistence.*;
 import javax.persistence.metamodel.Metamodel;
 
+import org.hibernate.Version;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.data.jpa.domain.AbstractPersistable;
-import org.springframework.data.jpa.domain.sample.ConcreteType1;
-import org.springframework.data.jpa.domain.sample.Item;
-import org.springframework.data.jpa.domain.sample.ItemId;
-import org.springframework.data.jpa.domain.sample.ItemSite;
-import org.springframework.data.jpa.domain.sample.ItemSiteId;
-import org.springframework.data.jpa.domain.sample.PersistableWithIdClass;
-import org.springframework.data.jpa.domain.sample.PersistableWithIdClassPK;
-import org.springframework.data.jpa.domain.sample.PrimitiveVersionProperty;
-import org.springframework.data.jpa.domain.sample.Role;
-import org.springframework.data.jpa.domain.sample.SampleWithIdClass;
-import org.springframework.data.jpa.domain.sample.SampleWithPrimitiveId;
-import org.springframework.data.jpa.domain.sample.SampleWithTimestampVersion;
-import org.springframework.data.jpa.domain.sample.Site;
-import org.springframework.data.jpa.domain.sample.User;
-import org.springframework.data.jpa.domain.sample.VersionedUser;
+import org.springframework.data.jpa.domain.sample.*;
 import org.springframework.data.repository.core.EntityInformation;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -310,7 +287,7 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 	}
 
 	protected String getMetadadataPersitenceUnitName() {
-		return "metadata";
+		return Version.getVersionString().startsWith("5.") ? "metadata-5x": "metadata";
 	}
 
 	@SuppressWarnings("serial")

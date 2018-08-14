@@ -72,7 +72,7 @@
 		</properties>
 	</persistence-unit>
 
-	<persistence-unit name="cdi-52">
+	<persistence-unit name="cdi-5x">
 		<provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
 		<class>org.springframework.data.jpa.domain.sample.MailMessage</class>
 		<class>org.springframework.data.jpa.domain.sample.MailSender</class>
@@ -120,7 +120,7 @@
 			<property name="hibernate.dialect" value="org.hibernate.dialect.HSQLDialect" />
 		</properties>
 	</persistence-unit>
-	<persistence-unit name="metadata-52">
+	<persistence-unit name="metadata-5x">
 		<provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
 		<class>org.springframework.data.jpa.domain.sample.CustomAbstractPersistable</class>
 		<class>org.springframework.data.jpa.domain.sample.MailMessage</class>

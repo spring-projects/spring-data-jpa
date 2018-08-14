@@ -21,6 +21,8 @@ import javax.enterprise.inject.Produces;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 
+import org.hibernate.Version;
+
 /**
  * Produces and {@link EntityManagerFactory}.
  *
@@ -32,7 +34,7 @@ class EntityManagerFactoryProducer {
 	@Produces
 	@ApplicationScoped
 	public EntityManagerFactory createEntityManagerFactory() {
-		return Persistence.createEntityManagerFactory("cdi");
+		return Persistence.createEntityManagerFactory(Version.getVersionString().startsWith("5.") ? "cdi-5x" : "cdi");
 	}
 
 	public void close(@Disposes EntityManagerFactory entityManagerFactory) {

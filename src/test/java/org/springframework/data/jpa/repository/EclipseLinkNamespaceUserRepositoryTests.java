@@ -106,6 +106,12 @@ public class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserReposi
 	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=525319 is fixed.
 	 */
 	@Override
+	public void supportsProjectionsWithNativeQueries() {}
+
+	/**
+	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=525319 is fixed.
+	 */
+	@Override
 	@Test // DATAJPA-1301
 	public void returnsNullValueInMap() {}
 
