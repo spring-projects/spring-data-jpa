@@ -15,15 +15,20 @@
  */
 package org.springframework.data.jpa.repository;
 
+import static java.util.Arrays.*;
 import static org.assertj.core.api.Assertions.*;
+import static org.eclipse.persistence.Version.*;
+
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.persistence.Query;
 
-import org.eclipse.persistence.Version;
 import org.junit.Assume;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.data.jpa.repository.sample.UserRepository;
+import org.springframework.data.util.Version;
 import org.springframework.test.context.ContextConfiguration;
 
 /**
@@ -35,6 +40,8 @@ import org.springframework.test.context.ContextConfiguration;
  */
 @ContextConfiguration(value = "classpath:eclipselink.xml")
 public class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserRepositoryTests {
+
+	public static final Set<String> BROKEN_ECLIPSE_VERSIONS = new HashSet<String>(asList("2.7.2", "2.7.3", "2.7.4"));
 
 	/**
 	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=349477 is resolved.
@@ -129,7 +136,7 @@ public class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserReposi
 	@Test // DATAJPA-1314
 	public void findByEmptyArrayOfIntegers() throws Exception {
 
-		assumeNotEclipseLink2_7_2();
+		assumeNotEclipseLink2_7_2plus();
 
 		super.findByEmptyArrayOfIntegers();
 	}
@@ -142,7 +149,7 @@ public class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserReposi
 	@Test // DATAJPA-1314
 	public void findByAgeWithEmptyArrayOfIntegersOrFirstName() {
 
-		assumeNotEclipseLink2_7_2();
+		assumeNotEclipseLink2_7_2plus();
 
 		super.findByAgeWithEmptyArrayOfIntegersOrFirstName();
 	}
@@ -155,7 +162,7 @@ public class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserReposi
 	@Test // DATAJPA-1314
 	public void findByEmptyCollectionOfIntegers() throws Exception {
 
-		assumeNotEclipseLink2_7_2();
+		assumeNotEclipseLink2_7_2plus();
 
 		super.findByEmptyCollectionOfIntegers();
 	}
@@ -168,14 +175,14 @@ public class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserReposi
 	@Test // DATAJPA-1314
 	public void findByEmptyCollectionOfStrings() throws Exception {
 
-		assumeNotEclipseLink2_7_2();
+		assumeNotEclipseLink2_7_2plus();
 
 		super.findByEmptyCollectionOfStrings();
 	}
 
-	private void assumeNotEclipseLink2_7_2() {
+	private void assumeNotEclipseLink2_7_2plus() {
 
-		Assume.assumeFalse("Empty collections seem to be broken in EclipseLink 2.7.2",
-				Version.getVersion().equals("2.7.2"));
+		Assume.assumeFalse("Empty collections seem to be broken in EclipseLink 2.7.2+",
+				Version.parse(getVersion()).isGreaterThanOrEqualTo(new Version(2, 7, 2)));
 	}
 }
