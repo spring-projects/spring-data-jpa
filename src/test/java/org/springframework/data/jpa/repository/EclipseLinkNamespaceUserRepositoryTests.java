@@ -15,12 +15,8 @@
  */
 package org.springframework.data.jpa.repository;
 
-import static java.util.Arrays.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.eclipse.persistence.Version.*;
-
-import java.util.HashSet;
-import java.util.Set;
 
 import javax.persistence.Query;
 
@@ -40,8 +36,6 @@ import org.springframework.test.context.ContextConfiguration;
  */
 @ContextConfiguration(value = "classpath:eclipselink.xml")
 public class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserRepositoryTests {
-
-	public static final Set<String> BROKEN_ECLIPSE_VERSIONS = new HashSet<String>(asList("2.7.2", "2.7.3", "2.7.4"));
 
 	/**
 	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=349477 is resolved.
