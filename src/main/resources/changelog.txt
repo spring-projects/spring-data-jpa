@@ -1,6 +1,18 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 2.1.0.RC2 (2018-08-20)
+-----------------------------------------
+* DATAJPA-1405 - Assumption in EclipsLinkNamespaceUserRepositoryTests need to include 2.7.3.
+* DATAJPA-1402 - Ubgrade Hibernate 5.3 build profile to 5.3.5.
+* DATAJPA-1400 - Upgrade Eclipselink 2.7 build profiles.
+* DATAJPA-1398 - Upgrade to Hibernate 5.2.17.
+* DATAJPA-1397 - Add support for deferred repository initialization.
+* DATAJPA-1394 - Avoid repeated lookups of EntityPathResolver from JpaRepositoryFactory.
+* DATAJPA-1386 - Release 2.1 RC2 (Lovelace).
+* DATAJPA-1379 - NamedQueries with "SELECT NEW" constructor expression cause QueryException.
+
+
 Changes in version 1.11.14.RELEASE (2018-07-27)
 -----------------------------------------------
 * DATAJPA-1374 - Upgrade Hibernate 5.3 build profile to 5.3.2.
