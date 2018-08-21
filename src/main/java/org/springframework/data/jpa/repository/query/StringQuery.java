@@ -23,10 +23,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.StringJoiner;
 import java.util.function.BiFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.query.SpelQueryContext;
 import org.springframework.data.repository.query.SpelQueryContext.SpelExtractor;
 import org.springframework.data.repository.query.parser.Part.Type;
@@ -51,10 +53,10 @@ class StringQuery implements DeclaredQuery {
 
 	private final String query;
 	private final List<ParameterBinding> bindings;
-	private final @Nullable String alias;
 	private final boolean hasConstructorExpression;
 	private final boolean containsPageableInSpel;
 	private final boolean usesJdbcStyleParameters;
+	private final QlParser.SqlInfo sqlInfo;
 
 	/**
 	 * Creates a new {@link StringQuery} from the given JPQL query.
@@ -74,8 +76,10 @@ class StringQuery implements DeclaredQuery {
 				this.bindings, queryMeta);
 
 		this.usesJdbcStyleParameters = queryMeta.usesJdbcStyleParameters;
-		this.alias = QueryUtils.detectAlias(query);
 		this.hasConstructorExpression = QueryUtils.hasConstructorExpression(query);
+
+		sqlInfo = QlParser.parseSql(query);
+
 	}
 
 	/**
@@ -110,6 +114,68 @@ class StringQuery implements DeclaredQuery {
 				.of(countQuery != null ? countQuery : QueryUtils.createCountQueryFor(query, countQueryProjection));
 	}
 
+	@Override
+	public DeclaredQuery deriveQueryWithSort(Sort sort) {
+
+		Assert.notNull(sort, "Sort must not be null.");
+
+		if (sort.isUnsorted()) {
+			return this;
+		}
+
+		StringBuilder builder = new StringBuilder(query);
+
+		appendOrderByOrComma(builder);
+
+		StringJoiner joiner = new StringJoiner(", ", builder, "");
+		sort.forEach(order -> joiner.add(getOrderClause(order)));
+
+		return DeclaredQuery.of(joiner.toString());
+	}
+
+	private void appendOrderByOrComma(StringBuilder builder) {
+
+		if (!sqlInfo.orderBy) {
+			builder.append(" order by ");
+		} else {
+			builder.append(", ");
+		}
+	}
+
+	/**
+	 * Returns the order clause for the given {@link Sort.Order}. Will prefix the clause with the given alias if the
+	 * referenced property refers to a join alias, i.e. starts with {@code $alias.}.
+	 *
+	 * @param order the order object to build the clause for. Must not be {@literal null}.
+	 * @return a String containing a order clause. Guaranteed to be not {@literal null}.
+	 */
+	private String getOrderClause(Sort.Order order) {
+
+		String property = order.getProperty();
+
+		QueryUtils.checkSortExpression(order);
+
+		if (sqlInfo.functionAliases.contains(property)) {
+			return String.format("%s %s", property, QueryUtils.toJpaDirection(order));
+		}
+
+		boolean qualifyReference = !property.contains("("); // ( indicates a function
+
+		for (String joinAlias : sqlInfo.joinAliases) {
+			if (property.startsWith(joinAlias.concat("."))) {
+				qualifyReference = false;
+				break;
+			}
+		}
+
+		String reference = qualifyReference && StringUtils.hasText(sqlInfo.tableAlias)
+				? String.format("%s.%s", sqlInfo.tableAlias, property)
+				: property;
+		String wrapped = order.isIgnoreCase() ? String.format("lower(%s)", reference) : reference;
+
+		return String.format("%s %s", wrapped, QueryUtils.toJpaDirection(order));
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.query.DeclaredQuery#usesJdbcStyleParameters()
@@ -135,7 +201,7 @@ class StringQuery implements DeclaredQuery {
 	@Override
 	@Nullable
 	public String getAlias() {
-		return alias;
+		return sqlInfo.tableAlias;
 	}
 
 	/*
@@ -153,7 +219,7 @@ class StringQuery implements DeclaredQuery {
 	 */
 	@Override
 	public boolean isDefaultProjection() {
-		return getProjection().equalsIgnoreCase(alias);
+		return getProjection().equalsIgnoreCase(sqlInfo.tableAlias);
 	}
 
 	/*
@@ -266,7 +332,8 @@ class StringQuery implements DeclaredQuery {
 				String expression = spelExtractor.getParameter(parameterName == null ? parameterIndexString : parameterName);
 				String replacement = null;
 
-				Assert.isTrue(parameterIndexString != null || parameterName != null, () -> String.format("We need either a name or an index! Offending query string: %s", query));
+				Assert.isTrue(parameterIndexString != null || parameterName != null,
+						() -> String.format("We need either a name or an index! Offending query string: %s", query));
 
 				expressionParameterIndex++;
 				if ("".equals(parameterIndexString)) {

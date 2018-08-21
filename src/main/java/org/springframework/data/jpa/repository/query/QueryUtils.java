@@ -221,7 +221,9 @@ public abstract class QueryUtils {
 	 * @param query the query string to which sorting is applied
 	 * @param sort the sort specification to apply.
 	 * @return the modified query string.
+	 * @deprecated Use {@link StringQuery#deriveQueryWithSort(Sort)}.
 	 */
+	@Deprecated
 	public static String applySorting(String query, Sort sort) {
 		return applySorting(query, sort, detectAlias(query));
 	}
@@ -233,7 +235,9 @@ public abstract class QueryUtils {
 	 * @param sort the sort specification to apply.
 	 * @param alias the alias to be used in the order by clause. May be {@literal null} or empty.
 	 * @return the modified query string.
+	 * @deprecated Use {@link StringQuery#deriveQueryWithSort(Sort)}.
 	 */
+	@Deprecated
 	public static String applySorting(String query, Sort sort, @Nullable String alias) {
 
 		Assert.hasText(query, "Query must not be null or empty!");
@@ -343,7 +347,7 @@ public abstract class QueryUtils {
 		return result;
 	}
 
-	private static String toJpaDirection(Order order) {
+	static String toJpaDirection(Order order) {
 		return order.getDirection().name().toLowerCase(Locale.US);
 	}
 
@@ -699,7 +703,7 @@ public abstract class QueryUtils {
 	 *
 	 * @param order
 	 */
-	private static void checkSortExpression(Order order) {
+	static void checkSortExpression(Order order) {
 
 		if (order instanceof JpaOrder && ((JpaOrder) order).isUnsafe()) {
 			return;

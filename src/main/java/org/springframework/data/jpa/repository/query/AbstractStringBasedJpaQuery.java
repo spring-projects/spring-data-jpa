@@ -82,7 +82,7 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 	public Query doCreateQuery(Object[] values) {
 
 		ParameterAccessor accessor = new ParametersParameterAccessor(getQueryMethod().getParameters(), values);
-		String sortedQueryString = QueryUtils.applySorting(query.getQueryString(), accessor.getSort(), query.getAlias());
+		String sortedQueryString = query.deriveQueryWithSort(accessor.getSort()).getQueryString();
 		ResultProcessor processor = getQueryMethod().getResultProcessor().withDynamicProjection(accessor);
 
 		Query query = createJpaQuery(sortedQueryString, processor.getReturnedType());

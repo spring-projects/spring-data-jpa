@@ -15,9 +15,9 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import static java.util.Arrays.*;
 import static org.assertj.core.api.Assertions.*;
 
-import java.util.Arrays;
 import java.util.List;
 
 import org.assertj.core.api.Assertions;
@@ -25,6 +25,9 @@ import org.assertj.core.api.SoftAssertions;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.JpaSort;
 import org.springframework.data.jpa.repository.query.StringQuery.InParameterBinding;
 import org.springframework.data.jpa.repository.query.StringQuery.LikeParameterBinding;
 import org.springframework.data.jpa.repository.query.StringQuery.ParameterBinding;
@@ -367,7 +370,7 @@ public class StringQueryUnitTests {
 				.isEqualTo(expected);
 	}
 
-	@Test // DATAJPA-1235
+	@Test // DATAJPA-1235, DATAJPA-1406
 	public void getAlias() {
 
 		checkAlias("from User u", "u", "simple query");
@@ -382,6 +385,11 @@ public class StringQueryUnitTests {
 		checkAlias("from User as bs", "bs", "ignored as");
 		checkAlias("from User as AS", "AS", "ignored as using the second");
 		checkAlias("from User asas", "asas", "asas is weird but legal");
+		checkAlias("select s1.* from (select x from t as s2) as s1", "s1", "inline view");
+		checkAlias("select (select 1 from x as y) from T as s1", "s1", "subselect");
+		checkAlias("select (select 1 from x as y) from (select x from t as s2)  as s1", "s1", "subselect and inline view");
+		checkAlias("from User, Adress", null, "cross join no alias");
+		checkAlias("from (select something from dual)", null, "subselect no alias");
 
 		softly.assertAll();
 	}
@@ -454,7 +462,7 @@ public class StringQueryUnitTests {
 	@Test // DATAJPA-1307
 	public void failOnMixedBindingsWithoutIndex() {
 
-		List<String> testQueries = Arrays.asList( //
+		List<String> testQueries = asList( //
 				"something = ? and something = ?1", //
 				"something = ?1 and something = ?", //
 				"something = :name and something = ?", //
@@ -473,7 +481,7 @@ public class StringQueryUnitTests {
 
 		softly.assertThat(new StringQuery("something = ?").usesJdbcStyleParameters()).isTrue();
 
-		List<String> testQueries = Arrays.asList( //
+		List<String> testQueries = asList( //
 				"something = ?1", //
 				"something = :name", //
 				"something = ?#{xx}" //
@@ -506,7 +514,7 @@ public class StringQueryUnitTests {
 	@Test // DATAJPA-1318
 	public void isNotDefaultProjection() {
 
-		List<String> queriesWithoutDefaultProjection = Arrays.asList( //
+		List<String> queriesWithoutDefaultProjection = asList( //
 				"select a, b from C as c", //
 				"SELECT a, b FROM C as c", //
 				"SELECT a, b FROM C", //
@@ -520,7 +528,7 @@ public class StringQueryUnitTests {
 					.isFalse();
 		}
 
-		List<String> queriesWithDefaultProjection = Arrays.asList( //
+		List<String> queriesWithDefaultProjection = asList( //
 				"select c from C as c", //
 				"SELECT c FROM C as c", //
 				"SELECT c FROM C as c ", //
@@ -540,7 +548,174 @@ public class StringQueryUnitTests {
 		softly.assertAll();
 	}
 
-	public void checkNumberOfNamedParameters(String query, int expectedSize, String label) {
+	@Test // DATAJPA-252
+	public void doesNotPrefixOrderReferenceIfOuterJoinAliasDetected() {
+
+		String query = "select p from Person p left join p.address address";
+		assertThat(applySorting(query, Sort.by("address.city"))).endsWith("order by address.city asc");
+		assertThat(applySorting(query, Sort.by("address.city", "lastname")))
+				.endsWith("order by address.city asc, p.lastname asc");
+	}
+
+	@Test // DATAJPA-252
+	public void extendsExistingOrderByClausesCorrectly() {
+
+		String query = "select p from Person p order by p.lastname asc";
+		assertThat(applySorting(query, Sort.by("firstname"))).endsWith("order by p.lastname asc, p.firstname asc");
+	}
+
+	@Test // DATAJPA-296
+	public void appliesIgnoreCaseOrderingCorrectly() {
+
+		Sort sort = Sort.by(Sort.Order.by("firstname").ignoreCase());
+
+		String query = "select p from Person p";
+		assertThat(applySorting(query, sort)).endsWith("order by lower(p.firstname) asc");
+	}
+
+	@Test // DATAJPA-296
+	public void appendsIgnoreCaseOrderingCorrectly() {
+
+		Sort sort = Sort.by(Sort.Order.by("firstname").ignoreCase());
+
+		String query = "select p from Person p order by p.lastname asc";
+		assertThat(applySorting(query, sort)).endsWith("order by p.lastname asc, lower(p.firstname) asc");
+	}
+
+	@Test(expected = InvalidDataAccessApiUsageException.class) // DATAJPA-148
+	public void doesNotPrefixSortsIfFunction() {
+
+		Sort sort = Sort.by("sum(foo)");
+		assertThat(applySorting("select p from Person p", sort)).endsWith("order by sum(foo) asc");
+	}
+
+	@Test // DATAJPA-375
+	public void findsExistingOrderByIndependentOfCase() {
+
+		Sort sort = Sort.by("lastname");
+		String query = applySorting("select p from Person p ORDER BY p.firstname", sort);
+		assertThat(query).endsWith("ORDER BY p.firstname, p.lastname asc");
+	}
+
+	@Test // DATAJPA-726
+	public void detectsAliasesInPlainJoins() {
+
+		String query = "select p from Customer c join c.productOrder p where p.delayed = true";
+		Sort sort = Sort.by("p.lineItems");
+
+		assertThat(applySorting(query, sort)).endsWith("order by p.lineItems asc");
+	}
+
+	@Test // DATAJPA-815
+	public void doesPrefixPropertyWith() {
+
+		String query = "from Cat c join Dog d";
+		Sort sort = Sort.by("dPropertyStartingWithJoinAlias");
+
+		assertThat(applySorting(query, sort)).endsWith("order by c.dPropertyStartingWithJoinAlias asc");
+	}
+
+	@Test // DATAJPA-960
+	public void doesNotQualifySortIfNoAliasDetected() {
+		assertThat(applySorting("from mytable where ?1 is null", Sort.by("firstname"))).endsWith("order by firstname asc");
+	}
+
+	@Test(expected = InvalidDataAccessApiUsageException.class) // DATAJPA-965, DATAJPA-970
+	public void doesNotAllowWhitespaceInSort() {
+
+		Sort sort = Sort.by("case when foo then bar");
+		applySorting("select p from Person p", sort);
+	}
+
+	@Test // DATAJPA-965, DATAJPA-970
+	public void doesNotPrefixUnsageJpaSortFunctionCalls() {
+
+		JpaSort sort = JpaSort.unsafe("sum(foo)");
+		assertThat(applySorting("select p from Person p", sort)).endsWith("order by sum(foo) asc");
+	}
+
+	@Test // DATAJPA-965, DATAJPA-970
+	public void doesNotPrefixMultipleAliasedFunctionCalls() {
+
+		String query = "SELECT AVG(m.price) AS avgPrice, SUM(m.stocks) AS sumStocks FROM Magazine m";
+		Sort sort = Sort.by("avgPrice", "sumStocks");
+
+		assertThat(applySorting(query, sort)).endsWith("order by avgPrice asc, sumStocks asc");
+	}
+
+	@Test // DATAJPA-965, DATAJPA-970
+	public void doesNotPrefixSingleAliasedFunctionCalls() {
+
+		String query = "SELECT AVG(m.price) AS avgPrice FROM Magazine m";
+		Sort sort = Sort.by("avgPrice");
+
+		assertThat(applySorting(query, sort)).endsWith("order by avgPrice asc");
+	}
+
+	@Test // DATAJPA-965, DATAJPA-970
+	public void prefixesSingleNonAliasedFunctionCallRelatedSortProperty() {
+
+		String query = "SELECT AVG(m.price) AS avgPrice FROM Magazine m";
+		Sort sort = Sort.by("someOtherProperty");
+
+		assertThat(applySorting(query, sort)).endsWith("order by m.someOtherProperty asc");
+	}
+
+	@Test // DATAJPA-965, DATAJPA-970
+	public void prefixesNonAliasedFunctionCallRelatedSortPropertyWhenSelectClauseContainesAliasedFunctionForDifferentProperty() {
+
+		String query = "SELECT m.name, AVG(m.price) AS avgPrice FROM Magazine m";
+		Sort sort = Sort.by("name", "avgPrice");
+
+		assertThat(applySorting(query, sort)).endsWith("order by m.name asc, avgPrice asc");
+	}
+
+	@Test // DATAJPA-965, DATAJPA-970
+	public void doesNotPrefixAliasedFunctionCallNameWithMultipleNumericParameters() {
+
+		String query = "SELECT SUBSTRING(m.name, 2, 5) AS trimmedName FROM Magazine m";
+		Sort sort = Sort.by("trimmedName");
+
+		assertThat(applySorting(query, sort)).endsWith("order by trimmedName asc");
+	}
+
+	@Test // DATAJPA-965, DATAJPA-970
+	public void doesNotPrefixAliasedFunctionCallNameWithMultipleStringParameters() {
+
+		String query = "SELECT CONCAT(m.name, 'foo') AS extendedName FROM Magazine m";
+		Sort sort = Sort.by("extendedName");
+
+		assertThat(applySorting(query, sort)).endsWith("order by extendedName asc");
+	}
+
+	@Test // DATAJPA-965, DATAJPA-970
+	public void doesNotPrefixAliasedFunctionCallNameWithUnderscores() {
+
+		String query = "SELECT AVG(m.price) AS avg_price FROM Magazine m";
+		Sort sort = Sort.by("avg_price");
+
+		assertThat(applySorting(query, sort)).endsWith("order by avg_price asc");
+	}
+
+	@Test // DATAJPA-965, DATAJPA-970
+	public void doesNotPrefixAliasedFunctionCallNameWithDots() {
+
+		String query = "SELECT AVG(m.price) AS m.avg FROM Magazine m";
+		Sort sort = Sort.by("m.avg");
+
+		assertThat(applySorting(query, sort)).endsWith("order by m.avg asc");
+	}
+
+	@Test // DATAJPA-965, DATAJPA-970
+	public void doesNotPrefixAliasedFunctionCallNameWhenQueryStringContainsMultipleWhiteSpaces() {
+
+		String query = "SELECT  AVG(  m.price  )   AS   avgPrice   FROM Magazine   m";
+		Sort sort = Sort.by("avgPrice");
+
+		assertThat(applySorting(query, sort)).endsWith("order by avgPrice asc");
+	}
+
+	void checkNumberOfNamedParameters(String query, int expectedSize, String label) {
 
 		DeclaredQuery declaredQuery = DeclaredQuery.of(query);
 
@@ -573,5 +748,9 @@ public class StringQueryUnitTests {
 		softly.assertThat(bindingType.isInstance(expectedBinding)).isTrue();
 		softly.assertThat(expectedBinding).isNotNull();
 		softly.assertThat(expectedBinding.hasName(parameterName)).isTrue();
+	}
+
+	private String applySorting(String query, Sort sort) {
+		return new StringQuery(query).deriveQueryWithSort(sort).getQueryString();
 	}
 }
