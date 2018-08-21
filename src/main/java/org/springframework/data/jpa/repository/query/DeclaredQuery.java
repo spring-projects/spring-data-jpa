@@ -17,6 +17,7 @@ package org.springframework.data.jpa.repository.query;
 
 import java.util.List;
 
+import org.springframework.data.domain.Sort;
 import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
 
@@ -83,6 +84,16 @@ interface DeclaredQuery {
 	 * @return a new {@literal DeclaredQuery} instance.
 	 */
 	DeclaredQuery deriveCountQuery(@Nullable String countQuery, @Nullable String countQueryProjection);
+
+	/**
+	 * Creates a new {@link DeclaredQuery} derived from the original query but with an added order by. The sort criteria
+	 * come on top (after) any already existing order by clauses.
+	 *
+	 * @param sort a specification of the order by clause to be added. Must not be {@code null}.
+	 * @return a new {@link DeclaredQuery} instance. Guaranteed to be not {@code null}.
+	 * @since 2.2.0
+	 */
+	DeclaredQuery deriveQueryWithSort(Sort sort);
 
 	/**
 	 * @return whether paging is implemented in the query itself, e.g. using SpEL expressions.

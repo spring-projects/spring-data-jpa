@@ -18,6 +18,7 @@ package org.springframework.data.jpa.repository.query;
 import java.util.Collections;
 import java.util.List;
 
+import org.springframework.data.domain.Sort;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -98,6 +99,15 @@ class EmptyDeclaredQuery implements DeclaredQuery {
 		Assert.hasText(countQuery, "CountQuery must not be empty!");
 
 		return DeclaredQuery.of(countQuery);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.jpa.repository.query.DeclaredQuery#deriveQueryWithAdditionalSort(org.springframework.data.domain.Sort)
+	 */
+	@Override
+	public DeclaredQuery deriveQueryWithSort(Sort sort) {
+		return this;
 	}
 
 	/*
