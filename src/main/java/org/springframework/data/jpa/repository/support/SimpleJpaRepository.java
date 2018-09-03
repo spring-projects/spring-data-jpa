@@ -67,6 +67,7 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @author Stefan Fussenegger
  * @author Jens Schauder
+ * @author yangshaocong
  * @param <T> the type of the entity to handle
  * @param <ID> the type of the entity's identifier
  */
