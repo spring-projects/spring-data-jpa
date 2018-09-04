@@ -281,6 +281,28 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 		assertThat(id, is(notNullValue()));
 	}
 
+	@Test // DATAJPA-1416
+	public void proxiedIdClassElement() {
+
+		JpaEntityInformation<SampleWithIdClassIncludingEntity, ?> information = getEntityInformation(
+				SampleWithIdClassIncludingEntity.class, em);
+
+		SampleWithIdClassIncludingEntity entity = new SampleWithIdClassIncludingEntity();
+		entity.setFirst(23L);
+		SampleWithIdClassIncludingEntity.OtherEntity$$PsudoProxy inner = new SampleWithIdClassIncludingEntity.OtherEntity$$PsudoProxy();
+		inner.setOtherId(42L);
+		entity.setSecond(inner);
+
+		Object id = information.getId(entity);
+
+		assertTrue(id instanceof SampleWithIdClassIncludingEntity.SampleWithIdClassPK);
+
+		SampleWithIdClassIncludingEntity.SampleWithIdClassPK pk = (SampleWithIdClassIncludingEntity.SampleWithIdClassPK) id;
+
+		assertThat(pk.getFirst(), equalTo(23L));
+		assertThat(pk.getSecond(), equalTo(42L));
+	}
+
 	protected String getMetadadataPersitenceUnitName() {
 		return "metadata";
 	}
