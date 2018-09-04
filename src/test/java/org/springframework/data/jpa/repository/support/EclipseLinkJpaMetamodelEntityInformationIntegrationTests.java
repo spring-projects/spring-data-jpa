@@ -71,13 +71,28 @@ public class EclipseLinkJpaMetamodelEntityInformationIntegrationTests
 	}
 
 	/**
-	 * Ignored due to https://bugs.eclipse.org/bugs/show_bug.cgi?id=531528 EclipseLink doesn't support
-	 * {@link javax.persistence.IdClass} referencing inner classes.
+	 * This test fails due to https://bugs.eclipse.org/bugs/show_bug.cgi?id=531528 IdentifiableType.hasSingleIdAttribute()
+	 * returns true when IdClass references an inner class. This bug is supposedly fixed, but the test still fails.
 	 */
 	@Ignore
 	@Test
 	@Override
-	public void correctlyDeterminesIdValueForNestedIdClassesWithNonPrimitiveNonManagedType() {}
+	public void correctlyDeterminesIdValueForNestedIdClassesWithNonPrimitiveNonManagedType() {
+		super.correctlyDeterminesIdValueForNestedIdClassesWithNonPrimitiveNonManagedType();
+	}
+
+	/**
+	 * This test fails due to https://bugs.eclipse.org/bugs/show_bug.cgi?id=531528 IdentifiableType.hasSingleIdAttribute()
+	 * returns true when IdClass references an inner class. This bug is supposedly fixed, but the test still fails.
+	 */
+	@Ignore
+	@Test
+	@Override
+	public void proxiedIdClassElement() {
+		super.proxiedIdClassElement();
+	}
+
+
 
 	@Override
 	protected String getMetadadataPersitenceUnitName() {
