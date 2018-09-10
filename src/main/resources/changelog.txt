@@ -1,6 +1,18 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 1.11.15.RELEASE (2018-09-10)
+-----------------------------------------------
+* DATAJPA-1405 - Assumption in EclipsLinkNamespaceUserRepositoryTests need to include 2.7.3.
+* DATAJPA-1403 - 1.11.x Builds are broken for Hibernate 5.x.
+* DATAJPA-1402 - Ubgrade Hibernate 5.3 build profile to 5.3.5.
+* DATAJPA-1400 - Upgrade Eclipselink 2.7 build profiles.
+* DATAJPA-1399 - Add Travis build executions for Spring 5.1.
+* DATAJPA-1398 - Upgrade to Hibernate 5.2.17.
+* DATAJPA-1388 - Release 1.11.15 (Ingalls SR15).
+* DATAJPA-1333 - Minor performance improvements.
+
+
 Changes in version 2.1.0.RC2 (2018-08-20)
 -----------------------------------------
 * DATAJPA-1405 - Assumption in EclipsLinkNamespaceUserRepositoryTests need to include 2.7.3.
