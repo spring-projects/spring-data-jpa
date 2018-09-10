@@ -1,6 +1,19 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 2.0.10.RELEASE (2018-09-10)
+----------------------------------------------
+* DATAJPA-1416 - Saving lazy-loaded entity with IdClass throws TypeMismatchException.
+* DATAJPA-1405 - Assumption in EclipsLinkNamespaceUserRepositoryTests need to include 2.7.3.
+* DATAJPA-1402 - Ubgrade Hibernate 5.3 build profile to 5.3.5.
+* DATAJPA-1400 - Upgrade Eclipselink 2.7 build profiles.
+* DATAJPA-1399 - Add Travis build executions for Spring 5.1.
+* DATAJPA-1398 - Upgrade to Hibernate 5.2.17.
+* DATAJPA-1387 - Release 2.0.10 (Kay SR10).
+* DATAJPA-1379 - NamedQueries with "SELECT NEW" constructor expression cause QueryException.
+* DATAJPA-1333 - Minor performance improvements.
+
+
 Changes in version 1.11.15.RELEASE (2018-09-10)
 -----------------------------------------------
 * DATAJPA-1405 - Assumption in EclipsLinkNamespaceUserRepositoryTests need to include 2.7.3.
