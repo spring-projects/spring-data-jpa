@@ -75,6 +75,7 @@ import org.springframework.util.StringUtils;
  * @author Sébastien Péralta
  * @author Jens Schauder
  * @author Nils Borrmann
+ * @author Reda.Housni-Alaoui
  */
 public abstract class QueryUtils {
 
@@ -573,6 +574,11 @@ public abstract class QueryUtils {
 
 	@SuppressWarnings("unchecked")
 	static <T> Expression<T> toExpressionRecursively(From<?, ?> from, PropertyPath property) {
+		return toExpressionRecursively(from, property, false);
+	}
+
+	@SuppressWarnings("unchecked")
+	static <T> Expression<T> toExpressionRecursively(From<?, ?> from, PropertyPath property, boolean isForSelection) {
 
 		Bindable<?> propertyPathModel;
 		Bindable<?> model = from.getModel();
@@ -589,10 +595,11 @@ public abstract class QueryUtils {
 			propertyPathModel = from.get(segment).getModel();
 		}
 
-		if (requiresJoin(propertyPathModel, model instanceof PluralAttribute, !property.hasNext())
+		if (requiresJoin(propertyPathModel, model instanceof PluralAttribute, !property.hasNext(), isForSelection)
 				&& !isAlreadyFetched(from, segment)) {
 			Join<?, ?> join = getOrCreateJoin(from, segment);
-			return (Expression<T>) (property.hasNext() ? toExpressionRecursively(join, property.next()) : join);
+			return (Expression<T>) (property.hasNext() ? toExpressionRecursively(join, property.next(), isForSelection)
+					: join);
 		} else {
 			Path<Object> path = from.get(segment);
 			return (Expression<T>) (property.hasNext() ? toExpressionRecursively(path, property.next()) : path);
@@ -606,10 +613,11 @@ public abstract class QueryUtils {
 	 * @param propertyPathModel may be {@literal null}.
 	 * @param isPluralAttribute is the attribute of Collection type?
 	 * @param isLeafProperty is this the final property navigated by a {@link PropertyPath}?
+	 * @param isForSelection is the property navigated for the selection part of the query?
 	 * @return wether an outer join is to be used for integrating this attribute in a query.
 	 */
 	private static boolean requiresJoin(@Nullable Bindable<?> propertyPathModel, boolean isPluralAttribute,
-			boolean isLeafProperty) {
+			boolean isLeafProperty, boolean isForSelection) {
 
 		if (propertyPathModel == null && isPluralAttribute) {
 			return true;
@@ -625,7 +633,7 @@ public abstract class QueryUtils {
 			return false;
 		}
 
-		if (isLeafProperty && !attribute.isCollection()) {
+		if (isLeafProperty && !isForSelection && !attribute.isCollection()) {
 			return false;
 		}
 
