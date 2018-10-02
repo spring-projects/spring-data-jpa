@@ -52,6 +52,7 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @author Michael Cramer
  * @author Mark Paluch
+ * @author Reda.Housni-Alaoui
  */
 public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extends Object>, Predicate> {
 
@@ -168,7 +169,7 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extend
 			for (String property : returnedType.getInputProperties()) {
 
 				PropertyPath path = PropertyPath.from(property, returnedType.getDomainType());
-				selections.add(toExpressionRecursively(root, path).alias(property));
+				selections.add(toExpressionRecursively(root, path, true).alias(property));
 			}
 
 			query = query.multiselect(selections);
