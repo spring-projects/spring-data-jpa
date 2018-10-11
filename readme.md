@@ -1,7 +1,9 @@
 [![Spring Data JPA](https://spring.io/badges/spring-data-jpa/ga.svg)](http://projects.spring.io/spring-data-jpa/#quick-start)
 [![Spring Data JPA](https://spring.io/badges/spring-data-jpa/snapshot.svg)](http://projects.spring.io/spring-data-jpa/#quick-start)
+[![Build Status](https://travis-ci.org/spring-projects/spring-data-jpa.svg?branch=master)](https://travis-ci.org/spring-projects/spring-data-jpa) 
 
-# Spring Data JPA [![Build Status](https://travis-ci.org/spring-projects/spring-data-jpa.svg?branch=master)](https://travis-ci.org/spring-projects/spring-data-jpa) [![Build status](https://build.spring.io/plugins/servlet/buildStatusImage//SPRINGDATAJPA-DATAJPA)](https://build.spring.io/browse//SPRINGDATAJPA-DATAJPA)
+
+# Spring Data JPA 
 
 The primary goal of the [Spring Data](http://projects.spring.io/spring-data) project is to make it easier to build Spring-powered applications that use data access technologies. This module deals with enhanced support for JPA based data access layers.
 
@@ -139,7 +141,7 @@ public class UserRepositoryIntegrationTest {
 }
 ```
 
-## Contributing to Spring Data JPA##
+## Contributing to Spring Data JPA
 
 Here are some ways for you to get involved in the community:
 
