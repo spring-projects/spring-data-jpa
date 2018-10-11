@@ -138,7 +138,12 @@ Saving an entity can be performed with the `CrudRepository.save(…)` method. It
 ==== Entity State-detection Strategies
 Spring Data JPA offers the following strategies to detect whether an entity is new or not:
 
-* Id-Property inspection (*default*): By default Spring Data JPA inspects the identifier property of the given entity. If the identifier property is `null`, then the entity is assumed to be new. Otherwise, it is assumed to be not new.
+* Version-Property and Id-Property inspection (*default*):
+  By default Spring Data JPA inspects first if there is a Version-property of non-primitive type.
+  If there is the entity is considered new if the value is `null`.
+  Without such a Version-property Spring Data JPA inspects the identifier property of the given entity.
+  If the identifier property is `null`, then the entity is assumed to be new.
+  Otherwise, it is assumed to be not new.
 * Implementing `Persistable`: If an entity implements `Persistable`, Spring Data JPA delegates the new detection to the `isNew(…)` method of the entity. See the link:$$http://docs.spring.io/spring-data/data-commons/docs/current/api/index.html?org/springframework/data/domain/Persistable.html$$[JavaDoc] for details.
 * Implementing `EntityInformation`: You can customize the `EntityInformation` abstraction used in the `SimpleJpaRepository` implementation by creating a subclass of `JpaRepositoryFactory` and overriding the `getEntityInformation(…)` method accordingly. You then have to register the custom implementation of `JpaRepositoryFactory` as a Spring bean. Note that this should be rarely necessary. See the link:$$http://docs.spring.io/spring-data/data-jpa/docs/current/api/index.html?org/springframework/data/jpa/repository/support/JpaRepositoryFactory.html$$[JavaDoc] for details.
 
