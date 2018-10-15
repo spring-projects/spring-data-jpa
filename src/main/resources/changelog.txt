@@ -1,6 +1,11 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 2.1.1.RELEASE (2018-10-15)
+---------------------------------------------
+* DATAJPA-1424 - Release 2.1.1 (Lovelace SR1).
+
+
 Changes in version 2.1.0.RELEASE (2018-09-21)
 ---------------------------------------------
 * DATAJPA-1416 - Saving lazy-loaded entity with IdClass throws TypeMismatchException.
