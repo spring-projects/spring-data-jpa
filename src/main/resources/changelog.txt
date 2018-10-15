@@ -1,6 +1,16 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 1.11.16.RELEASE (2018-10-15)
+-----------------------------------------------
+* DATAJPA-1419 - Release 1.11.16 (Ingalls SR16).
+
+
+Changes in version 2.0.11.RELEASE (2018-10-15)
+----------------------------------------------
+* DATAJPA-1420 - Release 2.0.11 (Kay SR11).
+
+
 Changes in version 2.1.1.RELEASE (2018-10-15)
 ---------------------------------------------
 * DATAJPA-1424 - Release 2.1.1 (Lovelace SR1).
