@@ -633,6 +633,9 @@ public abstract class QueryUtils {
 			return false;
 		}
 
+		// if this path is part of the select list we need to generate an explicit outer join in order to prevent Hibernate
+		// to use an inner join instead.
+		// see https://hibernate.atlassian.net/browse/HHH-12999.
 		if (isLeafProperty && !isForSelection && !attribute.isCollection()) {
 			return false;
 		}
