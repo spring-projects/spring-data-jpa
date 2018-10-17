@@ -68,7 +68,6 @@ public class Specifications<T> implements Specification<T>, Serializable {
 	 * ANDs the given {@link Specification} to the current one.
 	 *
 	 * @deprecated since 2.0, use {@link Specification#and} instead
-	 * @param <T>
 	 * @param other can be {@literal null}.
 	 * @return
 	 */
@@ -81,7 +80,6 @@ public class Specifications<T> implements Specification<T>, Serializable {
 	 * ORs the given specification to the current one.
 	 *
 	 * @deprecated since 2.0, use {@link Specification#or} instead
-	 * @param <T>
 	 * @param other can be {@literal null}.
 	 * @return
 	 */
