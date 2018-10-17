@@ -47,7 +47,7 @@ public class ProjectionJoinIntegrationTests {
 
 	@Autowired private UserRepository userRepository;
 
-	@Test
+	@Test // DATAJPA-1418
 	public void findByIdPerformsAnOuterJoin() {
 		User user = userRepository.save(new User());
 
