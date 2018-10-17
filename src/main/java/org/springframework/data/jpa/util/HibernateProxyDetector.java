@@ -22,7 +22,7 @@ import org.springframework.data.util.ProxyUtils.ProxyDetector;
 import org.springframework.util.ClassUtils;
 
 /**
- * {@link org.springframework.data.util.ProxyDetector} to explicitly check for Hibernate's {@link HibernateProxy}.
+ * {@link ProxyDetector} to explicitly check for Hibernate's {@link HibernateProxy}.
  * 
  * @author Oliver Gierke
  */
