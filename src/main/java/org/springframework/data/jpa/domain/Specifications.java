@@ -55,9 +55,9 @@ public class Specifications<T> implements Specification<T>, Serializable {
 	 * Simple static factory method to add some syntactic sugar around a {@link Specification}.
 	 *
 	 * @deprecated since 2.0, use {@link Specification#where} instead
-	 * @param <T>
+	 * @param <T> type parameter for the specification parameter.
 	 * @param spec can be {@literal null}.
-	 * @return
+	 * @return a new Specifcations instance. Guaranteed to be not {@code null}.
 	 */
 	@Deprecated
 	public static <T> Specifications<T> where(@Nullable Specification<T> spec) {
@@ -69,7 +69,7 @@ public class Specifications<T> implements Specification<T>, Serializable {
 	 *
 	 * @deprecated since 2.0, use {@link Specification#and} instead
 	 * @param other can be {@literal null}.
-	 * @return
+	 * @return a new Specifications instance combining this and the parameter instance. Guaranteed to be not {@code null}.
 	 */
 	@Deprecated
 	public Specifications<T> and(@Nullable Specification<T> other) {
@@ -81,7 +81,7 @@ public class Specifications<T> implements Specification<T>, Serializable {
 	 *
 	 * @deprecated since 2.0, use {@link Specification#or} instead
 	 * @param other can be {@literal null}.
-	 * @return
+	 * @return a new Specifications instance combining this and the parameter instance. Guaranteed to be not {@code null}.
 	 */
 	@Deprecated
 	public Specifications<T> or(@Nullable Specification<T> other) {
@@ -92,9 +92,9 @@ public class Specifications<T> implements Specification<T>, Serializable {
 	 * Negates the given {@link Specification}.
 	 *
 	 * @deprecated since 2.0, use {@link Specification#not} instead
-	 * @param <T>
+	 * @param <T> type parameter for the specification parameter.
 	 * @param spec can be {@literal null}.
-	 * @return
+	 * @return a new Specifications instance combining this and the parameter instance. Guaranteed to be not {@code null}.
 	 */
 	@Deprecated
 	public static <T> Specifications<T> not(@Nullable Specification<T> spec) {

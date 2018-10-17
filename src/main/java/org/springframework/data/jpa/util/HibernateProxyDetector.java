@@ -19,6 +19,7 @@ import java.util.Optional;
 
 import org.hibernate.proxy.HibernateProxy;
 import org.springframework.data.util.ProxyUtils.ProxyDetector;
+import org.springframework.lang.Nullable;
 import org.springframework.util.ClassUtils;
 
 /**
@@ -43,7 +44,8 @@ class HibernateProxyDetector implements ProxyDetector {
 				.orElse(type);
 	}
 
-	private static final Class<?> loadHibernateProxyType() {
+	@Nullable
+	private static Class<?> loadHibernateProxyType() {
 
 		try {
 			return ClassUtils.forName("org.hibernate.proxy.HibernateProxy", HibernateProxyDetector.class.getClassLoader());
