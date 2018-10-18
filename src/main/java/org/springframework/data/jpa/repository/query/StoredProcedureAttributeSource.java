@@ -36,6 +36,7 @@ import org.springframework.util.StringUtils;
  * @author Oliver Gierke
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Jeff Sheets
  * @since 1.6
  */
 enum StoredProcedureAttributeSource {
@@ -100,36 +101,28 @@ enum StoredProcedureAttributeSource {
 	private StoredProcedureAttributes newProcedureAttributesFrom(Method method,
 			NamedStoredProcedureQuery namedStoredProc, Procedure procedure) {
 
-		String outputParameterName = null;
-		Class<?> outputParameterType = null;
+		List<String> outputParameterNames = new ArrayList<>();
+		List<Class<?>> outputParameterTypes = new ArrayList<>();
 
 		if (!procedure.outputParameterName().isEmpty()) {
-
 			// we give the output parameter definition from the @Procedure annotation precedence
-			outputParameterName = procedure.outputParameterName();
+			outputParameterNames.add(procedure.outputParameterName());
 		} else {
 
 			// try to discover the output parameter
 			List<StoredProcedureParameter> outputParameters = extractOutputParametersFrom(namedStoredProc);
 
-			if (outputParameters.size() != 1 && !void.class.equals(method.getReturnType())) {
-				throw new IllegalStateException(String.format(
-						"Could not create ProcedureAttributes from %s. We currently support exactly one output parameter!", method));
-			}
-
-			if (!outputParameters.isEmpty()) {
-				StoredProcedureParameter outputParameter = outputParameters.get(0);
-				outputParameterName = outputParameter.name();
-				outputParameterType = outputParameter.type();
+			for (StoredProcedureParameter outputParameter : outputParameters) {
+				outputParameterNames.add(outputParameter.name());
+				outputParameterTypes.add(outputParameter.type());
 			}
 		}
 
-		if (outputParameterType == null || Object.class.equals(outputParameterType)
-				|| void.class.equals(outputParameterType)) {
-			outputParameterType = method.getReturnType();
+		if (outputParameterTypes.isEmpty()) {
+			outputParameterTypes.add(method.getReturnType());
 		}
 
-		return new StoredProcedureAttributes(namedStoredProc.name(), outputParameterName, outputParameterType, true);
+		return new StoredProcedureAttributes(namedStoredProc.name(), outputParameterNames, outputParameterTypes, true);
 	}
 
 	private List<StoredProcedureParameter> extractOutputParametersFrom(NamedStoredProcedureQuery namedStoredProc) {

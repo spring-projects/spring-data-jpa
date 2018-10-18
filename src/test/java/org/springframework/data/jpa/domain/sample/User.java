@@ -58,6 +58,7 @@ import javax.persistence.TemporalType;
  * @author Thomas Darimont
  * @author Christoph Strobl
  * @author Jens Schauder
+ * @author Jeff Sheets
  */
 @Entity
 @NamedEntityGraphs({ @NamedEntityGraph(name = "User.overview", attributeNodes = { @NamedAttributeNode("roles") }),
@@ -92,7 +93,11 @@ import javax.persistence.TemporalType;
 @NamedStoredProcedureQueries({ //
 		@NamedStoredProcedureQuery(name = "User.plus1", procedureName = "plus1inout",
 				parameters = { @StoredProcedureParameter(mode = ParameterMode.IN, name = "arg", type = Integer.class),
-						@StoredProcedureParameter(mode = ParameterMode.OUT, name = "res", type = Integer.class) }) //
+						@StoredProcedureParameter(mode = ParameterMode.OUT, name = "res", type = Integer.class) }), //
+		@NamedStoredProcedureQuery(name = "User.plus1IO2", procedureName = "plus1inout2",
+				parameters = { @StoredProcedureParameter(mode = ParameterMode.IN, name = "arg", type = Integer.class),
+						@StoredProcedureParameter(mode = ParameterMode.OUT, name = "res", type = Integer.class),
+						@StoredProcedureParameter(mode = ParameterMode.OUT, name = "res2", type = Integer.class) }) //
 })
 @NamedStoredProcedureQuery(name = "User.plus1IO", procedureName = "plus1inout",
 		parameters = { @StoredProcedureParameter(mode = ParameterMode.IN, name = "arg", type = Integer.class),

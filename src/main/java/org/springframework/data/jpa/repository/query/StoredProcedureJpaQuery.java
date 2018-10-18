@@ -28,6 +28,10 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
 /**
  * {@link AbstractJpaQuery} implementation that inspects a {@link JpaQueryMethod} for the existence of an
  * {@link Procedure} annotation and creates a JPA 2.1 {@link StoredProcedureQuery} from it.
@@ -37,6 +41,7 @@ import org.springframework.util.StringUtils;
  * @author Christoph Strobl
  * @author Jens Schauder
  * @author Mark Paluch
+ * @author Jeff Sheets
  * @since 1.6
  */
 class StoredProcedureJpaQuery extends AbstractJpaQuery {
@@ -115,12 +120,16 @@ class StoredProcedureJpaQuery extends AbstractJpaQuery {
 			return null;
 		}
 
-		String outputParameterName = procedureAttributes.getOutputParameterName();
-		JpaParameters parameters = getQueryMethod().getParameters();
+		List<Object> outputValues = IntStream.range(0, procedureAttributes.getOutputParameterNames().size()).mapToObj(i -> {
+			String outputParameterName = procedureAttributes.getOutputParameterNames().get(i);
+			JpaParameters parameters = getQueryMethod().getParameters();
 
-		return useNamedParameters && StringUtils.hasText(outputParameterName) ? //
-				storedProcedureQuery.getOutputParameterValue(outputParameterName)
-				: storedProcedureQuery.getOutputParameterValue(parameters.getNumberOfParameters() + 1);
+			return useNamedParameters && StringUtils.hasText(outputParameterName) ? //
+					storedProcedureQuery.getOutputParameterValue(outputParameterName)
+					: storedProcedureQuery.getOutputParameterValue(parameters.getNumberOfParameters() + i + 1);
+		}).collect(Collectors.toList());
+
+		return outputValues.size() == 1 ? outputValues.get(0) : outputValues;
 	}
 
 	/**
@@ -165,17 +174,20 @@ class StoredProcedureJpaQuery extends AbstractJpaQuery {
 
 		if (procedureAttributes.hasReturnValue()) {
 
-			Class<?> outputParameterType = procedureAttributes.getOutputParameterType();
 			ParameterMode mode = ParameterMode.OUT;
 
-			if (useNamedParameters) {
+			IntStream.range(0, procedureAttributes.getOutputParameterTypes().size()).forEach(i -> {
+				Class<?> outputParameterType = procedureAttributes.getOutputParameterTypes().get(i);
 
-				String outputParameterName = procedureAttributes.getOutputParameterName();
-				procedureQuery.registerStoredProcedureParameter(outputParameterName, outputParameterType, mode);
+				if (useNamedParameters) {
 
-			} else {
-				procedureQuery.registerStoredProcedureParameter(params.getNumberOfParameters() + 1, outputParameterType, mode);
-			}
+					String outputParameterName = procedureAttributes.getOutputParameterNames().get(i);
+					procedureQuery.registerStoredProcedureParameter(outputParameterName, outputParameterType, mode);
+
+				} else {
+					procedureQuery.registerStoredProcedureParameter(params.getNumberOfParameters() + i + 1, outputParameterType, mode);
+				}
+			});
 		}
 
 		return procedureQuery;

@@ -6,6 +6,14 @@ BEGIN ATOMIC
 	set res = arg + 1; 
 END
 /;
+DROP procedure IF EXISTS plus1inout2
+/;
+CREATE procedure plus1inout2 (IN arg int, OUT res int, OUT res2 int)
+BEGIN ATOMIC
+	set res = arg + 1;
+	set res2 = arg + 2;
+END
+/;
 DROP procedure IF EXISTS procedure_in1_out1
 /;
 DROP procedure IF EXISTS procedure_in1_out0
