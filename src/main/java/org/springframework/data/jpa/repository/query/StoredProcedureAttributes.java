@@ -21,12 +21,18 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
 /**
  * Stored procedure configuration for JPA 2.1 {@link StoredProcedureQuery}s.
  *
  * @author Thomas Darimont
  * @author Oliver Gierke
  * @author Mark Paluch
+ * @author Jeff Sheets
  * @since 1.6
  */
 class StoredProcedureAttributes {
@@ -36,8 +42,8 @@ class StoredProcedureAttributes {
 
 	private final boolean namedStoredProcedure;
 	private final String procedureName;
-	private final String outputParameterName;
-	private final Class<?> outputParameterType;
+	private final List<String> outputParameterNames;
+	private final List<Class<?>> outputParameterTypes;
 
 	/**
 	 * Creates a new {@link StoredProcedureAttributes}.
@@ -49,14 +55,31 @@ class StoredProcedureAttributes {
 	 */
 	public StoredProcedureAttributes(String procedureName, @Nullable String outputParameterName,
 			Class<?> outputParameterType, boolean namedStoredProcedure) {
+		this(procedureName, Arrays.asList(outputParameterName), Arrays.asList(outputParameterType), namedStoredProcedure);
+	}
+
+	/**
+	 * Creates a new {@link StoredProcedureAttributes}.
+	 *
+	 * @param procedureName must not be {@literal null}
+	 * @param outputParameterNames may be empty, but not null
+	 * @param outputParameterTypes must not be empty, and cannot be a single element of null
+	 * @param namedStoredProcedure
+	 */
+	public StoredProcedureAttributes(String procedureName, List<String> outputParameterNames,
+			List<Class<?>> outputParameterTypes, boolean namedStoredProcedure) {
 
 		Assert.notNull(procedureName, "ProcedureName must not be null!");
-		Assert.notNull(outputParameterType, "OutputParameterType must not be null!");
+		Assert.notNull(outputParameterNames, "OutputParameterNames must not be null!");
+		Assert.notEmpty(outputParameterTypes, "OutputParameterTypes must not be empty!");
+		Assert.isTrue(outputParameterTypes.size() != 1 || outputParameterTypes.get(0) != null, "OutputParameterTypes must not have size 1 with a null value");
 
 		this.procedureName = procedureName;
-		this.outputParameterName = !namedStoredProcedure && !StringUtils.hasText(outputParameterName) ? SYNTHETIC_OUTPUT_PARAMETER_NAME
-				: outputParameterName;
-		this.outputParameterType = outputParameterType;
+		this.outputParameterNames = namedStoredProcedure ? outputParameterNames : IntStream.range(0, outputParameterNames.size()).mapToObj(i -> {
+			String paramName = outputParameterNames.get(i);
+			return !StringUtils.hasText(paramName) ? SYNTHETIC_OUTPUT_PARAMETER_NAME + (i == 0 ? "" : i) : paramName;
+		}).collect(Collectors.toList());
+		this.outputParameterTypes = outputParameterTypes;
 		this.namedStoredProcedure = namedStoredProcedure;
 	}
 
@@ -70,21 +93,21 @@ class StoredProcedureAttributes {
 	}
 
 	/**
-	 * Returns the name of the output parameter.
+	 * Returns the names of the output parameters.
 	 *
 	 * @return
 	 */
-	public String getOutputParameterName() {
-		return outputParameterName;
+	public List<String> getOutputParameterNames() {
+		return outputParameterNames;
 	}
 
 	/**
-	 * Returns the type of the output parameter.
+	 * Returns the types of the output parameters.
 	 *
 	 * @return
 	 */
-	public Class<?> getOutputParameterType() {
-		return outputParameterType;
+	public List<Class<?>> getOutputParameterTypes() {
+		return outputParameterTypes;
 	}
 
 	/**
@@ -102,6 +125,6 @@ class StoredProcedureAttributes {
 	 * @return
 	 */
 	public boolean hasReturnValue() {
-		return !(void.class.equals(outputParameterType) || Void.class.equals(outputParameterType));
+		return !(outputParameterTypes.size() == 1 && (void.class.equals(outputParameterTypes.get(0)) || Void.class.equals(outputParameterTypes.get(0))));
 	}
 }

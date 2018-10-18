@@ -50,6 +50,7 @@ import com.google.common.base.Optional;
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Kevin Peters
+ * @author Jeff Sheets
  */
 public interface UserRepository
 		extends JpaRepository<User, Integer>, JpaSpecificationExecutor<User>, UserRepositoryCustom {
@@ -319,10 +320,38 @@ public interface UserRepository
 	Integer plus1inout(Integer arg);
 
 	/**
+	 * Implicitly mapped to a procedure with name "plus1inout" in database via alias.
+	 * Showing that outputParameterName is ignored when not a NamedStoredProcedure
+	 */
+	@Procedure(procedureName = "plus1inout", outputParameterName = "fakeName") // DATAJPA-707
+	Integer plus1inoutInvalidOutParamName(Integer arg);
+
+	/**
 	 * Explicitly mapped to named stored procedure "User.plus1IO" in {@link EntityManager}.
 	 */
 	@Procedure(name = "User.plus1IO") // DATAJPA-455
 	Integer entityAnnotatedCustomNamedProcedurePlus1IO(@Param("arg") Integer arg);
+
+	/**
+	 * Explicitly mapped to named stored procedure "User.plus1IO" in {@link EntityManager}.
+	 * with an invalid outputParameterName - test will fail
+	 */
+	@Procedure(name = "User.plus1IO", outputParameterName = "fakeName") // DATAJPA-707
+	Integer entityAnnotatedCustomNamedProcedurePlus1IOInvalidOutParamName(@Param("arg") Integer arg);
+
+	/**
+	 * Explicitly mapped to named stored procedure "User.plus1IO2" in {@link EntityManager}.
+	 * Stored Proc has 2 out params, but naming one out param here so it only returns one
+	 */
+	@Procedure(name = "User.plus1IO2", outputParameterName = "res2") // DATAJPA-707
+	Integer entityAnnotatedCustomNamedProcedurePlus1IO2TwoOutParamsButNamingOne(@Param("arg") Integer arg);
+
+	/**
+	 * Explicitly mapped to named stored procedure "User.plus1IO2" in {@link EntityManager}.
+	 * Returns 2 out params as a List
+	 */
+	@Procedure(name = "User.plus1IO2") // DATAJPA-707
+	Map<String, Integer> entityAnnotatedCustomNamedProcedurePlus1IO2(@Param("arg") Integer arg);
 
 	/**
 	 * Implicitly mapped to named stored procedure "User.plus1" in {@link EntityManager}.

@@ -32,6 +32,6 @@ public class StoredProcedureAttributesUnitTests {
 	public void usesSyntheticOutputParameterNameForAdhocProcedureWithoutOutputName() {
 
 		StoredProcedureAttributes attributes = new StoredProcedureAttributes("procedure", null, Long.class, false);
-		assertThat(attributes.getOutputParameterName(), is(SYNTHETIC_OUTPUT_PARAMETER_NAME));
+		assertThat(attributes.getOutputParameterNames().get(0), is(SYNTHETIC_OUTPUT_PARAMETER_NAME));
 	}
 }
