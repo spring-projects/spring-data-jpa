@@ -739,7 +739,7 @@ List<Customer> customers = customerRepository.findAll(isLongTermCustomer());
 ----
 ====
 
-Why not create a query for this kind of data access? Using a single `Specification` does not gain a lot of benefit over a plain query declaration. The power of specifications really shines when you combine them to create new `Specification` objects. You can achieve this through the `Specifications` helper class we provide to build expressions similar to the following:
+Why not create a query for this kind of data access? Using a single `Specification` does not gain a lot of benefit over a plain query declaration. The power of specifications really shines when you combine them to create new `Specification` objects. You can achieve this through the default methods of `Specification` we provide to build expressions similar to the following:
 
 .Combined Specifications
 ====
@@ -747,10 +747,10 @@ Why not create a query for this kind of data access? Using a single `Specificati
 ----
 MonetaryAmount amount = new MonetaryAmount(200.0, Currencies.DOLLAR);
 List<Customer> customers = customerRepository.findAll(
-  where(isLongTermCustomer()).or(hasSalesOfMoreThan(amount)));
+  isLongTermCustomer().or(hasSalesOfMoreThan(amount)));
 ----
 
-`Specifications` offers some "`glue-code`" methods to chain and combine `Specification` instances. These methods let you extend your data access layer by creating new `Specification` implementations and combining them with already existing implementations.
+`Specification` offers some "`glue-code`" default methods to chain and combine `Specification` instances. These methods let you extend your data access layer by creating new `Specification` implementations and combining them with already existing implementations.
 ====
 
 include::{spring-data-commons-docs}/query-by-example.adoc[leveloffset=+1]
