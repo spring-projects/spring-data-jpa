@@ -15,8 +15,6 @@
  */
 package org.springframework.data.jpa.domain;
 
-import static org.springframework.data.jpa.domain.Specifications.CompositionType.*;
-
 import java.io.Serializable;
 
 import javax.persistence.criteria.CriteriaBuilder;
@@ -61,7 +59,7 @@ public class Specifications<T> implements Specification<T>, Serializable {
 	 */
 	@Deprecated
 	public static <T> Specifications<T> where(@Nullable Specification<T> spec) {
-		return new Specifications<>(spec);
+		return new Specifications<>(Specification.where(spec));
 	}
 
 	/**
@@ -73,7 +71,7 @@ public class Specifications<T> implements Specification<T>, Serializable {
 	 */
 	@Deprecated
 	public Specifications<T> and(@Nullable Specification<T> other) {
-		return new Specifications<>(composed(spec, other, AND));
+		return new Specifications<>(spec.and(other));
 	}
 
 	/**
@@ -85,7 +83,7 @@ public class Specifications<T> implements Specification<T>, Serializable {
 	 */
 	@Deprecated
 	public Specifications<T> or(@Nullable Specification<T> other) {
-		return new Specifications<>(composed(spec, other, OR));
+		return new Specifications<>(spec.or(other));
 	}
 
 	/**
@@ -98,7 +96,7 @@ public class Specifications<T> implements Specification<T>, Serializable {
 	 */
 	@Deprecated
 	public static <T> Specifications<T> not(@Nullable Specification<T> spec) {
-		return new Specifications<>(negated(spec));
+		return new Specifications<>(Specification.not(spec));
 	}
 
 	/*
@@ -108,46 +106,5 @@ public class Specifications<T> implements Specification<T>, Serializable {
 	@Nullable
 	public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder builder) {
 		return spec == null ? null : spec.toPredicate(root, query, builder);
-	}
-
-	/**
-	 * Enum for the composition types for {@link Predicate}s. Can not be turned into lambdas as we need to be
-	 * serializable.
-	 *
-	 * @author Thomas Darimont
-	 */
-	enum CompositionType {
-
-		AND {
-			@Override
-			public Predicate combine(CriteriaBuilder builder, Predicate lhs, Predicate rhs) {
-				return builder.and(lhs, rhs);
-			}
-		},
-
-		OR {
-			@Override
-			public Predicate combine(CriteriaBuilder builder, Predicate lhs, Predicate rhs) {
-				return builder.or(lhs, rhs);
-			}
-		};
-
-		abstract Predicate combine(CriteriaBuilder builder, Predicate lhs, Predicate rhs);
-	}
-
-	static <T> Specification<T> negated(@Nullable Specification<T> spec) {
-		return (root, query, builder) -> spec == null ? null : builder.not(spec.toPredicate(root, query, builder));
-	}
-
-	static <T> Specification<T> composed(@Nullable Specification<T> lhs, @Nullable Specification<T> rhs, CompositionType compositionType) {
-
-		return (root, query, builder) -> {
-
-			Predicate otherPredicate = rhs == null ? null : rhs.toPredicate(root, query, builder);
-			Predicate thisPredicate = lhs == null ? null : lhs.toPredicate(root, query, builder);
-
-			return thisPredicate == null ? otherPredicate
-					: otherPredicate == null ? thisPredicate : compositionType.combine(builder, thisPredicate, otherPredicate);
-		};
 	}
 }

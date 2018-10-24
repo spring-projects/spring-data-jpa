@@ -39,7 +39,7 @@ import org.mockito.junit.MockitoJUnitRunner;
  * @author Thomas Darimont
  */
 @RunWith(MockitoJUnitRunner.class)
-public class SpecificationsUnitTests {
+public class SpecificationsUnitTests implements Serializable {
 
 	Specification<Object> mockSpec;
 	@Mock(extraInterfaces = Serializable.class) Root<Object> root;
@@ -52,9 +52,7 @@ public class SpecificationsUnitTests {
 	@SuppressWarnings("unchecked")
 	public void setUp() {
 
-		mockSpec = (Specification<Object>) mock(Specification.class, withSettings().serializable());
-
-		when(mockSpec.toPredicate(root, query, builder)).thenReturn(predicate);
+		mockSpec = new MockSpecification();
 	}
 
 	@Test // DATAJPA-300
@@ -140,6 +138,14 @@ public class SpecificationsUnitTests {
 		Specifications<Object> transferedSpecification = (Specifications<Object>) deserialize(serialize(specification));
 
 		assertThat(transferedSpecification, is(notNullValue()));
+	}
+
+	public class MockSpecification implements Specification<Object>, Serializable {
+
+		@Override
+		public Predicate toPredicate(Root<Object> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
+			return predicate;
+		}
 	}
 
 }
