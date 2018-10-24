@@ -15,7 +15,8 @@
  */
 package org.springframework.data.jpa.domain;
 
-import static org.springframework.data.jpa.domain.Specifications.CompositionType.*;
+import static org.springframework.data.jpa.domain.SpecificationComposition.*;
+import static org.springframework.data.jpa.domain.SpecificationComposition.CompositionType.*;
 
 import java.io.Serializable;
 
@@ -35,10 +36,11 @@ import org.springframework.lang.Nullable;
  * @author Sebastian Staudt
  * @author Mark Paluch
  */
-@SuppressWarnings("deprecation")
 public interface Specification<T> extends Serializable {
 
 	long serialVersionUID = 1L;
+
+	Specification EMPTY_SPEC = (root, query, criteriaBuilder) -> null;
 
 	/**
 	 * Negates the given {@link Specification}.
@@ -49,7 +51,7 @@ public interface Specification<T> extends Serializable {
 	 * @since 2.0
 	 */
 	static <T> Specification<T> not(Specification<T> spec) {
-		return Specifications.negated(spec);
+		return negated(spec);
 	}
 
 	/**
@@ -61,7 +63,7 @@ public interface Specification<T> extends Serializable {
 	 * @since 2.0
 	 */
 	static <T> Specification<T> where(Specification<T> spec) {
-		return Specifications.where(spec);
+		return spec == null ? EMPTY_SPEC : spec;
 	}
 
 	/**
@@ -72,7 +74,7 @@ public interface Specification<T> extends Serializable {
 	 * @since 2.0
 	 */
 	default Specification<T> and(Specification<T> other) {
-		return Specifications.composed(this, other, AND);
+		return composed(this, other, AND);
 	}
 
 	/**
@@ -83,7 +85,7 @@ public interface Specification<T> extends Serializable {
 	 * @since 2.0
 	 */
 	default Specification<T> or(Specification<T> other) {
-		return Specifications.composed(this, other, OR);
+		return composed(this, other, OR);
 	}
 
 	/**
