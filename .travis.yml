@@ -21,8 +21,6 @@ addons:
     packages:
     - oracle-java8-installer
 
-sudo: false
-
 cache:
   directories:
     - $HOME/.m2
