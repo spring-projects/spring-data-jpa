@@ -75,6 +75,7 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 	private static final Class<?> PAB_POST_PROCESSOR = PersistenceAnnotationBeanPostProcessor.class;
 	private static final String DEFAULT_TRANSACTION_MANAGER_BEAN_NAME = "transactionManager";
 	private static final String ENABLE_DEFAULT_TRANSACTIONS_ATTRIBUTE = "enableDefaultTransactions";
+	private static final String JPA_METAMODEL_CACHE_CLEANUP_CLASSNAME = "org.springframework.data.jpa.util.JpaMetamodelCacheCleanup";
 
 	/*
 	 * (non-Javadoc)
@@ -192,6 +193,9 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 			return contextDefinition;
 
 		}, registry, JPA_CONTEXT_BEAN_NAME, source);
+
+		registerLazyIfNotAlreadyRegistered(() -> new RootBeanDefinition(JPA_METAMODEL_CACHE_CLEANUP_CLASSNAME), registry,
+				JPA_METAMODEL_CACHE_CLEANUP_CLASSNAME, source);
 	}
 
 	/*

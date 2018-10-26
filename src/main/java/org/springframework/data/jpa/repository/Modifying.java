@@ -22,11 +22,15 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Indicates a method should be regarded as modifying query.
- *
+ * Indicates a query method should be considered as modifying query as that changes the way it needs to be executed.
+ * This annotation is only considered if used on actual query methods (either derived or manually defined through a
+ * {@link Query} annotation). It's not applied on custom implementation methods as they already have control over the
+ * underlying data access APIs.
+ * 
  * @author Oliver Gierke
  * @author Christoph Strobl
  * @author Nicolas Cirigliano
+ * @see Query
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.METHOD, ElementType.ANNOTATION_TYPE })
