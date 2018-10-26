@@ -16,9 +16,9 @@
 package org.springframework.data.jpa.util;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.persistence.metamodel.EntityType;
 import javax.persistence.metamodel.ManagedType;
@@ -34,10 +34,11 @@ import org.springframework.util.Assert;
  *
  * @author Oliver Gierke
  * @author Mark Paluch
+ * @author Sylvère Richard
  */
 public class JpaMetamodel {
 
-	private static final Map<Metamodel, JpaMetamodel> CACHE = new HashMap<>(4);
+	private static final Map<Metamodel, JpaMetamodel> CACHE = new ConcurrentHashMap<>(4);
 
 	private final Metamodel metamodel;
 
@@ -93,6 +94,13 @@ public class JpaMetamodel {
 				.filter(it -> it.getJavaType().equals(attributeType)) //
 				.map(it -> it.getName().equals(name)) //
 				.orElse(false);
+	}
+
+	/**
+	 * Wipes the static cache of {@link Metamodel} to {@link JpaMetamodel}.
+	 */
+	static void clear() {
+		CACHE.clear();
 	}
 
 	/**
