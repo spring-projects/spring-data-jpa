@@ -16,45 +16,38 @@
 package org.springframework.data.jpa.util;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
-import java.util.Collections;
-
-import javax.persistence.metamodel.EntityType;
 import javax.persistence.metamodel.Metamodel;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.context.support.GenericApplicationContext;
 
 /**
- * Unit tests for {@link JpaMetamodel}.
+ * Integration tests for {@link JpaMetamodelCacheCleanup}.
  * 
  * @author Oliver Gierke
  */
 @RunWith(MockitoJUnitRunner.class)
-public class JpaMetamodelUnitTests {
+public class JpaMetamodelCacheCleanupIntegrationTests {
 
 	@Mock Metamodel metamodel;
 
-	@Mock EntityType<?> type;
-
-	@Test
-	public void skipsEntityTypesWithoutJavaTypeForIdentifierLookup() {
-
-		doReturn(Collections.singleton(type)).when(metamodel).getEntities();
-
-		assertThat(JpaMetamodel.of(metamodel).isSingleIdAttribute(Object.class, "id", Object.class)).isFalse();
-	}
-
 	@Test // DATAJPA-1446
-	public void cacheIsEffectiveUnlessCleared() {
+	public void wipesJpaMetamodelCacheOnApplicationContextClose() {
 
 		JpaMetamodel model = JpaMetamodel.of(metamodel);
-		assertThat(model).isEqualTo(JpaMetamodel.of(metamodel));
 
-		JpaMetamodel.clear();
-		assertThat(model).isNotEqualTo(JpaMetamodel.of(metamodel));
+		try (GenericApplicationContext context = new GenericApplicationContext()) {
+
+			context.registerBean(JpaMetamodelCacheCleanup.class);
+			context.refresh();
+
+			assertThat(model).isSameAs(JpaMetamodel.of(metamodel));
+		}
+
+		assertThat(model).isNotSameAs(JpaMetamodel.of(metamodel));
 	}
 }
