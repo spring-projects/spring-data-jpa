@@ -30,8 +30,9 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 /**
  * Unit tests for {@link JpaMetamodel}.
- * 
+ *
  * @author Oliver Gierke
+ * @author Sylvère Richard
  */
 @RunWith(MockitoJUnitRunner.class)
 public class JpaMetamodelUnitTests {
@@ -46,5 +47,14 @@ public class JpaMetamodelUnitTests {
 		doReturn(Collections.singleton(type)).when(metamodel).getEntities();
 
 		assertThat(JpaMetamodel.of(metamodel).isSingleIdAttribute(Object.class, "id", Object.class)).isFalse();
+	}
+
+	@Test //DATAJPA-1446
+	public void cacheIsEffectiveUnlessCleared() {
+		JpaMetamodel model1 = JpaMetamodel.of(metamodel);
+		assertThat(model1).isEqualTo(JpaMetamodel.of(metamodel));
+
+		JpaMetamodel.clearCache();
+		assertThat(model1).isNotEqualTo(JpaMetamodel.of(metamodel));
 	}
 }

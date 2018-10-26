@@ -16,9 +16,9 @@
 package org.springframework.data.jpa.util;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.persistence.metamodel.EntityType;
 import javax.persistence.metamodel.ManagedType;
@@ -34,10 +34,11 @@ import org.springframework.util.Assert;
  *
  * @author Oliver Gierke
  * @author Mark Paluch
+ * @author Sylvère Richard
  */
 public class JpaMetamodel {
 
-	private static final Map<Metamodel, JpaMetamodel> CACHE = new HashMap<>(4);
+	private static final Map<Metamodel, JpaMetamodel> CACHE = new ConcurrentHashMap<>(4);
 
 	private final Metamodel metamodel;
 
@@ -63,6 +64,10 @@ public class JpaMetamodel {
 		return CACHE.computeIfAbsent(metamodel, JpaMetamodel::new);
 	}
 
+	public static void clearCache() {
+		CACHE.clear();
+	}
+
 	/**
 	 * Returns whether the given type is managed by the backing JPA {@link Metamodel}.
 	 *
@@ -78,7 +83,7 @@ public class JpaMetamodel {
 
 	/**
 	 * Returns whether the attribute of given name and type is the single identifier attribute of the given entity.
-	 * 
+	 *
 	 * @param entity must not be {@literal null}.
 	 * @param name must not be {@literal null}.
 	 * @param attributeType must not be {@literal null}.
@@ -98,7 +103,7 @@ public class JpaMetamodel {
 	/**
 	 * Returns the {@link SingularAttribute} representing the identifier of the given {@link EntityType} if it contains a
 	 * singular one.
-	 * 
+	 *
 	 * @param entityType must not be {@literal null}.
 	 * @return
 	 */

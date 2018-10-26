@@ -31,6 +31,7 @@ import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
+import org.springframework.data.jpa.util.JpaMetamodel;
 import org.springframework.data.util.StreamUtils;
 import org.springframework.lang.Nullable;
 
@@ -39,6 +40,7 @@ import org.springframework.lang.Nullable;
  *
  * @author Oliver Gierke
  * @author Mark Paluch
+ * @author Sylvère Richard
  * @since 1.6
  */
 class JpaMetamodelMappingContextFactoryBean extends AbstractFactoryBean<JpaMetamodelMappingContext>
@@ -64,6 +66,11 @@ class JpaMetamodelMappingContextFactoryBean extends AbstractFactoryBean<JpaMetam
 	@Override
 	public Class<?> getObjectType() {
 		return JpaMetamodelMappingContext.class;
+	}
+
+	@Override
+	protected void destroyInstance(JpaMetamodelMappingContext instance) throws Exception {
+		JpaMetamodel.clearCache();
 	}
 
 	/*
