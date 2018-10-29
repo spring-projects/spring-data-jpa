@@ -1,6 +1,14 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 2.1.2.RELEASE (2018-10-29)
+---------------------------------------------
+* DATAJPA-1446 - Memory leak in class JpaMetamodel.
+* DATAJPA-1443 - Small corrections in JavaDoc.
+* DATAJPA-1439 - Release 2.1.2 (Lovelace SR2).
+* DATAJPA-1418 - Interface-based Projections - Generate inner join instead of left join.
+
+
 Changes in version 1.11.16.RELEASE (2018-10-15)
 -----------------------------------------------
 * DATAJPA-1419 - Release 1.11.16 (Ingalls SR16).
