@@ -116,7 +116,7 @@ class JpaAuditingRegistrar extends AuditingBeanDefinitionRegistrarSupport {
 	 */
 	private void registerBeanConfigurerAspectIfNecessary(BeanDefinitionRegistry registry) {
 
-		if (registry.containsBeanDefinition(BEAN_CONFIGURER_ASPECT_CLASS_NAME)) {
+		if (registry.containsBeanDefinition(BEAN_CONFIGURER_ASPECT_BEAN_NAME)) {
 			return;
 		}
 
