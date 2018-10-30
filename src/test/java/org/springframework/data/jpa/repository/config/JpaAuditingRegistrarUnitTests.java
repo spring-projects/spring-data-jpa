@@ -15,13 +15,15 @@
  */
 package org.springframework.data.jpa.repository.config;
 
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.core.type.classreading.MetadataReader;
@@ -66,7 +68,7 @@ public class JpaAuditingRegistrarUnitTests {
 		registrar.registerBeanDefinitions(annotationMetadata, registry);
 
 		// Then the bean is not registered again
-		verify(registry, times(0)).registerBeanDefinition(eq(beanName), any());
+		verify(registry, times(0)).registerBeanDefinition(eq(beanName), Mockito.<BeanDefinition> any());
 
 		registrar.registerBeanDefinitions(annotationMetadata, registry);
 	}
