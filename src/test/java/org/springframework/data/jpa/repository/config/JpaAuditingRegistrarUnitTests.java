@@ -15,6 +15,7 @@
  */
 package org.springframework.data.jpa.repository.config;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
@@ -41,14 +42,18 @@ public class JpaAuditingRegistrarUnitTests {
 	@Mock AnnotationMetadata metadata;
 	@Mock BeanDefinitionRegistry registry;
 
-	@Test(expected = IllegalArgumentException.class) // DATAJPA-265
+	@Test // DATAJPA-265
 	public void rejectsNullAnnotationMetadata() {
-		registrar.registerBeanDefinitions(null, registry);
+
+		assertThatExceptionOfType(IllegalArgumentException.class) //
+				.isThrownBy(() -> registrar.registerBeanDefinitions(null, registry));
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAJPA-265
+	@Test // DATAJPA-265
 	public void rejectsNullBeanDefinitionRegistry() {
-		registrar.registerBeanDefinitions(metadata, null);
+
+		assertThatExceptionOfType(IllegalArgumentException.class) //
+				.isThrownBy(() -> registrar.registerBeanDefinitions(metadata, null));
 	}
 
 	@Test // DATAJPA-1448

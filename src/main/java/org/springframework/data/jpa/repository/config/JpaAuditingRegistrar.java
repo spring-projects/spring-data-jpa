@@ -87,8 +87,9 @@ class JpaAuditingRegistrar extends AuditingBeanDefinitionRegistrarSupport {
 
 		registerBeanConfigurerAspectIfNecessary(registry);
 		super.registerBeanDefinitions(annotationMetadata, registry);
-		registerInfrastructureBeanWithId(BeanDefinitionBuilder.rootBeanDefinition(AuditingBeanFactoryPostProcessor.class)
-				.getRawBeanDefinition(), AuditingBeanFactoryPostProcessor.class.getName(), registry);
+		registerInfrastructureBeanWithId(
+				BeanDefinitionBuilder.rootBeanDefinition(AuditingBeanFactoryPostProcessor.class).getRawBeanDefinition(),
+				AuditingBeanFactoryPostProcessor.class.getName(), registry);
 	}
 
 	/*
@@ -132,7 +133,7 @@ class JpaAuditingRegistrar extends AuditingBeanDefinitionRegistrarSupport {
 		def.setFactoryMethodName("aspectOf");
 		def.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 
-		registry.registerBeanDefinition(BEAN_CONFIGURER_ASPECT_BEAN_NAME, new BeanComponentDefinition(def,
-				BEAN_CONFIGURER_ASPECT_BEAN_NAME).getBeanDefinition());
+		registry.registerBeanDefinition(BEAN_CONFIGURER_ASPECT_BEAN_NAME,
+				new BeanComponentDefinition(def, BEAN_CONFIGURER_ASPECT_BEAN_NAME).getBeanDefinition());
 	}
 }
