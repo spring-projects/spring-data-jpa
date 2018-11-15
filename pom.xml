@@ -64,6 +64,12 @@
 			</repositories>
 		</profile>
 		<profile>
+			<id>hibernate-54</id>
+			<properties>
+				<hibernate>5.4.0.CR2</hibernate>
+			</properties>
+		</profile>
+		<profile>
 			<id>hibernate-54-next</id>
 			<properties>
 				<hibernate>5.4.0-SNAPSHOT</hibernate>

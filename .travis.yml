@@ -10,6 +10,7 @@ env:
     - PROFILE=hibernate-next
     - PROFILE=hibernate-53
     - PROFILE=hibernate-53-next
+    - PROFILE=hibernate-54
     - PROFILE=hibernate-54-next
     - PROFILE=eclipselink-next
     - PROFILE=eclipselink-27
