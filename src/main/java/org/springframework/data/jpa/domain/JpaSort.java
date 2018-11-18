@@ -135,7 +135,7 @@ public class JpaSort extends Sort {
 	 */
 	public JpaSort andUnsafe(@Nullable Direction direction, String... properties) {
 
-		Assert.notEmpty(properties, "Properties must not be null!");
+		Assert.notEmpty(properties, "Properties must not be empty!");
 
 		List<Order> orders = new ArrayList<Order>();
 

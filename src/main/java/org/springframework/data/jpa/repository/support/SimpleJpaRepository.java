@@ -67,6 +67,7 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @author Stefan Fussenegger
  * @author Jens Schauder
+ * @author David Madden
  * @param <T> the type of the entity to handle
  * @param <ID> the type of the entity's identifier
  */
@@ -160,7 +161,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	@Override
 	public void delete(T entity) {
 
-		Assert.notNull(entity, "The entity must not be null!");
+		Assert.notNull(entity, "Entity must not be null!");
 		em.remove(em.contains(entity) ? entity : em.merge(entity));
 	}
 
@@ -172,7 +173,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	@Override
 	public void deleteAll(Iterable<? extends T> entities) {
 
-		Assert.notNull(entities, "The given Iterable of entities not be null!");
+		Assert.notNull(entities, "Entities must not be null!");
 
 		for (T entity : entities) {
 			delete(entity);
@@ -187,7 +188,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	@Override
 	public void deleteInBatch(Iterable<T> entities) {
 
-		Assert.notNull(entities, "The given Iterable of entities not be null!");
+		Assert.notNull(entities, "Entities must not be null!");
 
 		if (!entities.iterator().hasNext()) {
 			return;
@@ -323,7 +324,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	@Override
 	public List<T> findAllById(Iterable<ID> ids) {
 
-		Assert.notNull(ids, "The given Iterable of Id's must not be null!");
+		Assert.notNull(ids, "Ids must not be null!");
 
 		if (!ids.iterator().hasNext()) {
 			return Collections.emptyList();
@@ -535,7 +536,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	@Override
 	public <S extends T> List<S> saveAll(Iterable<S> entities) {
 
-		Assert.notNull(entities, "The given Iterable of entities not be null!");
+		Assert.notNull(entities, "Entities must not be null!");
 
 		List<S> result = new ArrayList<S>();
 
