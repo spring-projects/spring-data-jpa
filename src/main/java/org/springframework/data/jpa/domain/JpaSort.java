@@ -34,6 +34,7 @@ import org.springframework.util.Assert;
  * @author Thomas Darimont
  * @author Oliver Gierke
  * @author Christoph Strobl
+ * @author David Madden
  */
 public class JpaSort extends Sort {
 
@@ -158,7 +159,7 @@ public class JpaSort extends Sort {
 	private static Path<?, ?>[] paths(Attribute<?, ?>[] attributes) {
 
 		Assert.notNull(attributes, "Attributes must not be null!");
-		Assert.isTrue(attributes.length > 0, "Attributes must not be empty");
+		Assert.notEmpty(attributes, "Attributes must not be empty!");
 
 		Path<?, ?>[] paths = new Path[attributes.length];
 
