@@ -38,6 +38,7 @@ import org.springframework.util.Assert;
  * @author Oliver Gierke
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author David Madden
  * @since 1.3
  */
 public class JpaMetamodelMappingContext
@@ -54,7 +55,7 @@ public class JpaMetamodelMappingContext
 	public JpaMetamodelMappingContext(Set<Metamodel> models) {
 
 		Assert.notNull(models, "JPA metamodel must not be null!");
-		Assert.notEmpty(models, "At least one JPA metamodel must be present!");
+		Assert.notEmpty(models, "JPA metamodel must not be empty!");
 
 		this.models = new Metamodels(models);
 		this.persistenceProvider = PersistenceProvider.fromMetamodel(models.iterator().next());
