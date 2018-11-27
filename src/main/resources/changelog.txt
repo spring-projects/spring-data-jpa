@@ -1,6 +1,16 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 2.0.12.RELEASE (2018-11-27)
+----------------------------------------------
+* DATAJPA-1450 - Remove `sudo` from .travis.yml.
+* DATAJPA-1448 - JpaAuditing duplicate bean definitions.
+* DATAJPA-1446 - Memory leak in class JpaMetamodel.
+* DATAJPA-1443 - Small corrections in JavaDoc.
+* DATAJPA-1440 - Release 2.0.12 (Kay SR12).
+* DATAJPA-1418 - Interface-based Projections - Generate inner join instead of left join.
+
+
 Changes in version 1.11.17.RELEASE (2018-11-27)
 -----------------------------------------------
 * DATAJPA-1450 - Remove `sudo` from .travis.yml.
