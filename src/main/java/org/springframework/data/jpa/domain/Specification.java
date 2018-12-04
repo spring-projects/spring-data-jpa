@@ -16,7 +16,6 @@
 package org.springframework.data.jpa.domain;
 
 import static org.springframework.data.jpa.domain.SpecificationComposition.*;
-import static org.springframework.data.jpa.domain.SpecificationComposition.CompositionType.*;
 
 import java.io.Serializable;
 
@@ -40,8 +39,6 @@ public interface Specification<T> extends Serializable {
 
 	long serialVersionUID = 1L;
 
-	Specification EMPTY_SPEC = (root, query, criteriaBuilder) -> null;
-
 	/**
 	 * Negates the given {@link Specification}.
 	 *
@@ -50,8 +47,11 @@ public interface Specification<T> extends Serializable {
 	 * @return
 	 * @since 2.0
 	 */
-	static <T> Specification<T> not(Specification<T> spec) {
-		return negated(spec);
+	static <T> Specification<T> not(@Nullable Specification<T> spec) {
+
+		return spec == null //
+				? (root, query, builder) -> null//
+				: (root, query, builder) -> builder.not(spec.toPredicate(root, query, builder));
 	}
 
 	/**
@@ -62,8 +62,9 @@ public interface Specification<T> extends Serializable {
 	 * @return
 	 * @since 2.0
 	 */
-	static <T> Specification<T> where(Specification<T> spec) {
-		return spec == null ? EMPTY_SPEC : spec;
+	@Nullable
+	static <T> Specification<T> where(@Nullable Specification<T> spec) {
+		return spec == null ? (root, query, builder) -> null : spec;
 	}
 
 	/**
@@ -73,8 +74,9 @@ public interface Specification<T> extends Serializable {
 	 * @return The conjunction of the specifications
 	 * @since 2.0
 	 */
-	default Specification<T> and(Specification<T> other) {
-		return composed(this, other, AND);
+	@Nullable
+	default Specification<T> and(@Nullable Specification<T> other) {
+		return composed(this, other, (builder, left, rhs) -> builder.and(left, rhs));
 	}
 
 	/**
@@ -84,8 +86,9 @@ public interface Specification<T> extends Serializable {
 	 * @return The disjunction of the specifications
 	 * @since 2.0
 	 */
-	default Specification<T> or(Specification<T> other) {
-		return composed(this, other, OR);
+	@Nullable
+	default Specification<T> or(@Nullable Specification<T> other) {
+		return composed(this, other, (builder, left, rhs) -> builder.or(left, rhs));
 	}
 
 	/**

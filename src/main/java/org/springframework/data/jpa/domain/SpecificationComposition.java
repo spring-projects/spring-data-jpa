@@ -1,56 +1,62 @@
+/*
+ * Copyright 2018 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.springframework.data.jpa.domain;
+
+import java.io.Serializable;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 
 import org.springframework.lang.Nullable;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Predicate;
-
 /**
- * Helper class to support specification compositions
+ * Helper class to support specification compositions.
  *
  * @author Sebastian Staudt
+ * @author Oliver Gierke
  * @see Specification
+ * @since 2.2
  */
 class SpecificationComposition {
 
-    /**
-     * Enum for the composition types for {@link Predicate}s. Can not be turned into lambdas as we need to be
-     * serializable.
-     *
-     * @author Thomas Darimont
-     */
-    enum CompositionType {
+	interface Combiner extends Serializable {
+		Predicate combine(CriteriaBuilder builder, @Nullable Predicate lhs, @Nullable Predicate rhs);
+	}
 
-        AND {
-            @Override
-            public Predicate combine(CriteriaBuilder builder, Predicate lhs, Predicate rhs) {
-                return builder.and(lhs, rhs);
-            }
-        },
+	@Nullable
+	static <T> Specification<T> composed(@Nullable Specification<T> lhs, @Nullable Specification<T> rhs,
+			Combiner combiner) {
 
-        OR {
-            @Override
-            public Predicate combine(CriteriaBuilder builder, Predicate lhs, Predicate rhs) {
-                return builder.or(lhs, rhs);
-            }
-        };
+		return (root, query, builder) -> {
 
-        abstract Predicate combine(CriteriaBuilder builder, Predicate lhs, Predicate rhs);
-    }
+			Predicate otherPredicate = toPredicate(lhs, root, query, builder);
+			Predicate thisPredicate = toPredicate(rhs, root, query, builder);
 
-    static <T> Specification<T> negated(@Nullable Specification<T> spec) {
-        return (root, query, builder) -> spec == null ? null : builder.not(spec.toPredicate(root, query, builder));
-    }
+			if (thisPredicate == null) {
+				return otherPredicate;
+			}
 
-    static <T> Specification<T> composed(@Nullable Specification<T> lhs, @Nullable Specification<T> rhs, CompositionType compositionType) {
+			return otherPredicate == null ? thisPredicate : combiner.combine(builder, thisPredicate, otherPredicate);
+		};
+	}
 
-        return (root, query, builder) -> {
-
-            Predicate otherPredicate = rhs == null ? null : rhs.toPredicate(root, query, builder);
-            Predicate thisPredicate = lhs == null ? null : lhs.toPredicate(root, query, builder);
-
-            return thisPredicate == null ? otherPredicate
-                    : otherPredicate == null ? thisPredicate : compositionType.combine(builder, thisPredicate, otherPredicate);
-        };
-    }
+	private static <T> Predicate toPredicate(Specification<T> specification, Root<T> root, CriteriaQuery<?> query,
+			CriteriaBuilder builder) {
+		return specification == null ? null : specification.toPredicate(root, query, builder);
+	}
 }
