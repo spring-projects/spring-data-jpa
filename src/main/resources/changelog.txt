@@ -1,6 +1,23 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 2.2.0.M1 (2018-12-11)
+----------------------------------------
+* DATAJPA-1479 - Simplify reference documentation setup.
+* DATAJPA-1478 - Release 2.2 M1 (Moore).
+* DATAJPA-1473 - Add build profile for released Hibernate 5.4.
+* DATAJPA-1472 - Fix Travis build failing due to moved JDK8.
+* DATAJPA-1455 - Build fails with a ClassNotFoundException.
+* DATAJPA-1450 - Remove `sudo` from .travis.yml.
+* DATAJPA-1449 - Remove Specifications from code and documentation.
+* DATAJPA-1448 - JpaAuditing duplicate bean definitions.
+* DATAJPA-1446 - Memory leak in class JpaMetamodel.
+* DATAJPA-1443 - Small corrections in JavaDoc.
+* DATAJPA-1418 - Interface-based Projections - Generate inner join instead of left join.
+* DATAJPA-1335 - add missing @override annotations.
+* DATAJPA-767 - Interoperation between @Version and entity state detection strategies is not documented.
+
+
 Changes in version 2.1.3.RELEASE (2018-11-27)
 ---------------------------------------------
 * DATAJPA-1450 - Remove `sudo` from .travis.yml.
