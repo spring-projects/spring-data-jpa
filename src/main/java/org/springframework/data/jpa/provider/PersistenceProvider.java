@@ -383,7 +383,8 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 				throw new NoSuchElementException("No ScrollableResults");
 			}
 
-			Object[] row = scrollableResults.get();
+			// Cast needed for Hibernate 6 compatibility
+			Object[] row = (Object[]) scrollableResults.get();
 
 			return row.length == 1 ? row[0] : row;
 		}

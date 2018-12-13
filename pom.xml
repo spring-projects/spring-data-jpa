@@ -23,6 +23,7 @@
 
 		<eclipselink>2.6.5</eclipselink>
 		<hibernate>5.2.17.Final</hibernate>
+		<hibernate.groupId>org.hibernate</hibernate.groupId>
 		<jpa>2.0.0</jpa>
 		<springdata.commons>2.2.0.BUILD-SNAPSHOT</springdata.commons>
 
@@ -73,6 +74,19 @@
 			<id>hibernate-54-next</id>
 			<properties>
 				<hibernate>5.4.1-SNAPSHOT</hibernate>
+			</properties>
+			<repositories>
+				<repository>
+					<id>jboss</id>
+					<url>https://repository.jboss.org/nexus/content/repositories/public</url>
+				</repository>
+			</repositories>
+		</profile>
+		<profile>
+			<id>hibernate-6-next</id>
+			<properties>
+				<hibernate>6.0.0-SNAPSHOT</hibernate>
+				<hibernate.groupId>org.hibernate.orm</hibernate.groupId>
 			</properties>
 			<repositories>
 				<repository>
@@ -225,14 +239,14 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.hibernate</groupId>
+			<groupId>${hibernate.groupId}</groupId>
 			<artifactId>hibernate-core</artifactId>
 			<version>${hibernate}</version>
 			<optional>true</optional>
 		</dependency>
 
 		<dependency>
-			<groupId>org.hibernate</groupId>
+			<groupId>${hibernate.groupId}</groupId>
 			<artifactId>hibernate-jpamodelgen</artifactId>
 			<version>${hibernate}</version>
 			<scope>provided</scope>
