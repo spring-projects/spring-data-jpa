@@ -464,7 +464,9 @@ In the preceding example, the `MappedTypeRepository` interface is the common par
 [[jpa.modifying-queries]]
 === Modifying Queries
 
-All the previous sections describe how to declare queries to access a given entity or collection of entities. You can add custom modifying behavior by using the facilities described in "`<<repositories.custom-implementations>>`". As this approach is feasible for comprehensive custom functionality, you can modify queries that only need parameter binding by annotating the query method with `@Modifying`, as shown in the following example:
+All the previous sections describe how to declare queries to access a given entity or collection of entities.
+You can add custom modifying behavior by using the facilities described in "`<<repositories.custom-implementations>>`".
+As this approach is feasible for comprehensive custom functionality, you can modify queries that only need parameter binding by annotating the query method with `@Modifying`, as shown in the following example:
 
 .Declaring manipulating queries
 ====
@@ -476,7 +478,11 @@ int setFixedFirstnameFor(String firstname, String lastname);
 ----
 ====
 
-Doing so triggers the query annotated to the method as an updating query instead of a selecting one. As the `EntityManager` might contain outdated entities after the execution of the modifying query, we do not automatically clear it (see the https://docs.oracle.com/javaee/7/api/javax/persistence/EntityManager.html[JavaDoc] of `EntityManager.clear()` for details), since this effectively drops all non-flushed changes still pending in the `EntityManager`. If you wish the `EntityManager` to be cleared automatically, you can set the `@Modifying` annotation's `clearAutomatically` attribute to `true`.
+Doing so triggers the query annotated to the method as an updating query instead of a selecting one. As the `EntityManager` might contain outdated entities after the execution of the modifying query, we do not automatically clear it (see the https://docs.oracle.com/javaee/7/api/javax/persistence/EntityManager.html[JavaDoc] of `EntityManager.clear()` for details), since this effectively drops all non-flushed changes still pending in the `EntityManager`.
+If you wish the `EntityManager` to be cleared automatically, you can set the `@Modifying` annotation's `clearAutomatically` attribute to `true`.
+
+The `@Modifying` annotation is only relevant in combination with the `@Query` annotation.
+Derived query methods or custom methods do not require this Annotation.
 
 [[jpa.modifying-queries.derived-delete]]
 ==== Derived Delete Queries
