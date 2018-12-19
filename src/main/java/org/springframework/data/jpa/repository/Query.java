@@ -29,6 +29,8 @@ import org.springframework.data.annotation.QueryAnnotation;
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Christoph Strobl
+ *
+ * @see Modifying
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.METHOD, ElementType.ANNOTATION_TYPE })
