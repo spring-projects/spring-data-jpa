@@ -78,6 +78,7 @@
 	<persistence-unit name="merchant">
 		<class>org.springframework.data.jpa.domain.sample.User</class>
 		<class>org.springframework.data.jpa.repository.query.QueryUtilsIntegrationTests$Merchant</class>
+		<class>org.springframework.data.jpa.repository.query.QueryUtilsIntegrationTests$Address</class>
 		<class>org.springframework.data.jpa.repository.query.QueryUtilsIntegrationTests$Employee</class>
 		<class>org.springframework.data.jpa.repository.query.QueryUtilsIntegrationTests$Credential</class>
 		<exclude-unlisted-classes>true</exclude-unlisted-classes>
