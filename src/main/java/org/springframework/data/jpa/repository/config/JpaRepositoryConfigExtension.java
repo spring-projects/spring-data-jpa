@@ -194,7 +194,7 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 
 		}, registry, JPA_CONTEXT_BEAN_NAME, source);
 
-		registerLazyIfNotAlreadyRegistered(() -> new RootBeanDefinition(JPA_METAMODEL_CACHE_CLEANUP_CLASSNAME), registry,
+		registerIfNotAlreadyRegistered(() -> new RootBeanDefinition(JPA_METAMODEL_CACHE_CLEANUP_CLASSNAME), registry,
 				JPA_METAMODEL_CACHE_CLEANUP_CLASSNAME, source);
 	}
 
