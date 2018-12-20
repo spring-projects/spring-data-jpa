@@ -16,6 +16,7 @@
 package org.springframework.data.jpa.util;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 import javax.persistence.metamodel.Metamodel;
 
@@ -23,7 +24,11 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.support.GenericApplicationContext;
+import org.springframework.data.jpa.repository.config.JpaRepositoryConfigExtension;
+import org.springframework.data.repository.config.RepositoryConfigurationExtension;
+import org.springframework.data.repository.config.RepositoryConfigurationSource;
 
 /**
  * Integration tests for {@link JpaMetamodelCacheCleanup}.
@@ -49,5 +54,20 @@ public class JpaMetamodelCacheCleanupIntegrationTests {
 		}
 
 		assertThat(model).isNotSameAs(JpaMetamodel.of(metamodel));
+	}
+
+	@Test // DATAJPA-1487, DATAJPA-1446
+	public void registersCleanupBeanAsNonLazy() {
+
+		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
+		RepositoryConfigurationSource configurationSource = mock(RepositoryConfigurationSource.class);
+
+		RepositoryConfigurationExtension extension = new JpaRepositoryConfigExtension();
+		extension.registerBeansForRoot(beanFactory, configurationSource);
+
+		String[] cleanupBeanNames = beanFactory.getBeanNamesForType(JpaMetamodelCacheCleanup.class);
+
+		assertThat(cleanupBeanNames.length).isEqualTo(1);
+		assertThat(beanFactory.getBeanDefinition(cleanupBeanNames[0]).isLazyInit()).isFalse();
 	}
 }
