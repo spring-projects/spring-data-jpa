@@ -22,8 +22,6 @@ import lombok.Data;
 import javax.persistence.*;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Join;
-import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Root;
 
 import org.junit.Test;
@@ -44,8 +42,7 @@ public class ProjectionJoinIntegrationTests {
 
 	@Autowired private UserRepository userRepository;
 
-	@Autowired
-	EntityManager em;
+	@Autowired EntityManager em;
 
 	@Test // DATAJPA-1418
 	public void findByIdPerformsAnOuterJoin() {
@@ -62,13 +59,12 @@ public class ProjectionJoinIntegrationTests {
 	public void reproduceHibernateBug() {
 
 		CriteriaBuilder cb = em.getCriteriaBuilder();
-		CriteriaQuery<UserProjection> criteriaQuery = cb.createQuery(UserProjection.class);
+		CriteriaQuery<Object> criteriaQuery = cb.createQuery();
 		Root<User> root = criteriaQuery.from(User.class);
-		Join<Object, Object> address = root.join("address", JoinType.LEFT);
 		criteriaQuery.where(cb.equal(root.get("id"), cb.parameter(Integer.class, "id")));
-		criteriaQuery.select(cb.construct(UserProjection.class, root.get("id").alias("id"), address));
+		criteriaQuery.select(root.get("id").alias("x"));
 
-		em.createQuery(criteriaQuery).setParameter("id", 1).getResultList();
+		em.createQuery(criteriaQuery);
 	}
 
 	@Data
