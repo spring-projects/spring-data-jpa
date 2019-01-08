@@ -19,15 +19,12 @@ import static org.assertj.core.api.Assertions.*;
 
 import lombok.Data;
 
-import javax.persistence.Access;
-import javax.persistence.AccessType;
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.OneToOne;
-import javax.persistence.Table;
+import javax.persistence.*;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.JoinType;
+import javax.persistence.criteria.Root;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -47,6 +44,9 @@ public class ProjectionJoinIntegrationTests {
 
 	@Autowired private UserRepository userRepository;
 
+	@Autowired
+	EntityManager em;
+
 	@Test // DATAJPA-1418
 	public void findByIdPerformsAnOuterJoin() {
 		User user = userRepository.save(new User());
@@ -56,6 +56,19 @@ public class ProjectionJoinIntegrationTests {
 		assertThat(projection).isNotNull();
 		assertThat(projection.getId()).isEqualTo(user.getId());
 		assertThat(projection.getAddress()).isNull();
+	}
+
+	@Test // DATAJPA-1491
+	public void reproduceHibernateBug() {
+
+		CriteriaBuilder cb = em.getCriteriaBuilder();
+		CriteriaQuery<UserProjection> criteriaQuery = cb.createQuery(UserProjection.class);
+		Root<User> root = criteriaQuery.from(User.class);
+		Join<Object, Object> address = root.join("address", JoinType.LEFT);
+		criteriaQuery.where(cb.equal(root.get("id"), cb.parameter(Integer.class, "id")));
+		criteriaQuery.select(cb.construct(UserProjection.class, root.get("id").alias("id"), address));
+
+		em.createQuery(criteriaQuery).setParameter("id", 1).getResultList();
 	}
 
 	@Data

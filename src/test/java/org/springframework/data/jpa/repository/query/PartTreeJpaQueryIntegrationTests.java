@@ -135,7 +135,7 @@ public class PartTreeJpaQueryIntegrationTests {
 
 		Query query = jpaQuery.createQuery(new Object[] { "Matthews" });
 
-		assertThat(HibernateUtils.getHibernateQuery(getValue(query, PROPERTY))).contains(".id from User as");
+		assertThat(HibernateUtils.getHibernateQuery(getValue(query, PROPERTY))).contains(".id ", "from User as");
 	}
 
 	@Test // DATAJPA-1074
