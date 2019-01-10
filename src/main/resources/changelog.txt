@@ -1,6 +1,17 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 2.0.13.RELEASE (2019-01-10)
+----------------------------------------------
+* DATAJPA-1490 - Update copyright years to 2019.
+* DATAJPA-1485 - Ambiguity around @Modifying within documentation.
+* DATAJPA-1484 - Add build profile for Hibernate 6 snapshots.
+* DATAJPA-1483 - Upgrade Hibernate 5.4 build profile after GA release.
+* DATAJPA-1473 - Add build profile for released Hibernate 5.4.
+* DATAJPA-1472 - Fix Travis build failing due to moved JDK8.
+* DATAJPA-1467 - Release 2.0.13 (Kay SR13).
+
+
 Changes in version 1.11.18.RELEASE (2019-01-10)
 -----------------------------------------------
 * DATAJPA-1490 - Update copyright years to 2019.
