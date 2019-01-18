@@ -54,6 +54,7 @@ import org.springframework.util.StringUtils;
  * @author Nicolas Cirigliano
  * @author Mark Paluch
  * @author Сергей Цыпанов
+ * @author Réda Housni Alaoui
  */
 public class JpaQueryMethod extends QueryMethod {
 
@@ -97,7 +98,7 @@ public class JpaQueryMethod extends QueryMethod {
 	 * @param factory must not be {@literal null}
 	 * @param extractor must not be {@literal null}
 	 */
-	public JpaQueryMethod(Method method, RepositoryMetadata metadata, ProjectionFactory factory,
+	protected JpaQueryMethod(Method method, RepositoryMetadata metadata, ProjectionFactory factory,
 			QueryExtractor extractor) {
 
 		super(method, metadata, factory);
@@ -425,5 +426,20 @@ public class JpaQueryMethod extends QueryMethod {
 		}
 
 		return storedProcedureAttributes;
+	}
+
+	public static class Factory implements JpaQueryMethodFactory {
+
+		public static final Factory INSTANCE = new Factory();
+
+		private Factory() {
+
+		}
+
+		@Override
+		public JpaQueryMethod build(Method method, RepositoryMetadata metadata, ProjectionFactory factory,
+				QueryExtractor extractor) {
+			return new JpaQueryMethod(method, metadata, factory, extractor);
+		}
 	}
 }

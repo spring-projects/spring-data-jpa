@@ -15,9 +15,9 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 
 import java.lang.reflect.Method;
 import java.util.List;
@@ -50,11 +50,13 @@ import org.springframework.data.repository.query.QueryMethodEvaluationContextPro
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Jens Schauder
+ * @author Réda Housni Alaoui
  */
 @RunWith(MockitoJUnitRunner.class)
 public class JpaQueryLookupStrategyUnitTests {
 
 	private static final QueryMethodEvaluationContextProvider EVALUATION_CONTEXT_PROVIDER = QueryMethodEvaluationContextProvider.DEFAULT;
+	private static final JpaQueryMethodFactory QUERY_METHOD_FACTORY = JpaQueryMethod.Factory.INSTANCE;
 
 	@Mock EntityManager em;
 	@Mock EntityManagerFactory emf;
@@ -76,7 +78,7 @@ public class JpaQueryLookupStrategyUnitTests {
 	public void invalidAnnotatedQueryCausesException() throws Exception {
 
 		QueryLookupStrategy strategy = JpaQueryLookupStrategy.create(em, Key.CREATE_IF_NOT_FOUND, extractor,
-				EVALUATION_CONTEXT_PROVIDER, EscapeCharacter.DEFAULT);
+				QUERY_METHOD_FACTORY, EVALUATION_CONTEXT_PROVIDER, EscapeCharacter.DEFAULT);
 		Method method = UserRepository.class.getMethod("findByFoo", String.class);
 		RepositoryMetadata metadata = new DefaultRepositoryMetadata(UserRepository.class);
 
@@ -92,7 +94,7 @@ public class JpaQueryLookupStrategyUnitTests {
 	public void sholdThrowMorePreciseExceptionIfTryingToUsePaginationInNativeQueries() throws Exception {
 
 		QueryLookupStrategy strategy = JpaQueryLookupStrategy.create(em, Key.CREATE_IF_NOT_FOUND, extractor,
-				EVALUATION_CONTEXT_PROVIDER, EscapeCharacter.DEFAULT);
+				QUERY_METHOD_FACTORY, EVALUATION_CONTEXT_PROVIDER, EscapeCharacter.DEFAULT);
 		Method method = UserRepository.class.getMethod("findByInvalidNativeQuery", String.class, Sort.class);
 		RepositoryMetadata metadata = new DefaultRepositoryMetadata(UserRepository.class);
 

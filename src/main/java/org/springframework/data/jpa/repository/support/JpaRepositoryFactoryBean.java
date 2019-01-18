@@ -21,6 +21,8 @@ import javax.persistence.PersistenceContext;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.query.EscapeCharacter;
+import org.springframework.data.jpa.repository.query.JpaQueryMethod;
+import org.springframework.data.jpa.repository.query.JpaQueryMethodFactory;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.querydsl.EntityPathResolver;
 import org.springframework.data.querydsl.SimpleEntityPathResolver;
@@ -38,6 +40,7 @@ import org.springframework.util.Assert;
  * @author Eberhard Wolff
  * @author Mark Paluch
  * @author Jens Schauder
+ * @author Réda Housni Alaoui
  * @param <T> the type of the repository
  */
 public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
@@ -46,6 +49,7 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 	private @Nullable EntityManager entityManager;
 	private EntityPathResolver entityPathResolver;
 	private EscapeCharacter escapeCharacter = EscapeCharacter.DEFAULT;
+	private JpaQueryMethodFactory queryMethodFactory;
 
 	/**
 	 * Creates a new {@link JpaRepositoryFactoryBean} for the given repository interface.
@@ -86,6 +90,17 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 		this.entityPathResolver = resolver.getIfAvailable(() -> SimpleEntityPathResolver.INSTANCE);
 	}
 
+	/**
+	 * Configures the {@link JpaQueryMethodFactory} to be used. Will expect a canonical bean to be present but fallback to
+	 * {@link JpaQueryMethod.Factory#INSTANCE} in case none is available.
+	 *
+	 * @param resolver must not be {@literal null}.
+	 */
+	@Autowired
+	public void setQueryMethodFactory(ObjectProvider<JpaQueryMethodFactory> resolver) {
+		this.queryMethodFactory = resolver.getIfAvailable(() -> JpaQueryMethod.Factory.INSTANCE);
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.core.support.TransactionalRepositoryFactoryBeanSupport#doCreateRepositoryFactory()
@@ -106,6 +121,8 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 		JpaRepositoryFactory jpaRepositoryFactory = new JpaRepositoryFactory(entityManager);
 		jpaRepositoryFactory.setEntityPathResolver(entityPathResolver);
 		jpaRepositoryFactory.setEscapeCharacter(escapeCharacter);
+		jpaRepositoryFactory.setQueryMethodFactory(queryMethodFactory);
+
 		return jpaRepositoryFactory;
 	}
 
