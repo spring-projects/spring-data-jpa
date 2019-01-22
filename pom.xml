@@ -67,13 +67,13 @@
 		<profile>
 			<id>hibernate-54</id>
 			<properties>
-				<hibernate>5.4.0.Final</hibernate>
+				<hibernate>5.4.1.Final</hibernate>
 			</properties>
 		</profile>
 		<profile>
 			<id>hibernate-54-next</id>
 			<properties>
-				<hibernate>5.4.1-SNAPSHOT</hibernate>
+				<hibernate>5.4.2-SNAPSHOT</hibernate>
 			</properties>
 			<repositories>
 				<repository>
