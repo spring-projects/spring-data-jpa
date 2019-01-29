@@ -90,12 +90,14 @@ public interface JpaRepository<T, ID> extends PagingAndSortingRepository<T, ID>,
 	void deleteAllInBatch();
 
 	/**
-	 * Returns a reference to the entity with the given identifier.
+	 * Returns a reference to the entity with the given identifier. Depending on how the JPA persistence provider is
+	 * implemented this is very likely to always return an instance and throw an
+	 * {@link javax.persistence.EntityNotFoundException} on first access. Some of them will reject invalid identifiers
+	 * immediately.
 	 *
 	 * @param id must not be {@literal null}.
 	 * @return a reference to the entity with the given identifier.
-	 * @see EntityManager#getReference(Class, Object)
-	 * @throws javax.persistence.EntityNotFoundException if no entity exists for given {@code id}.
+	 * @see EntityManager#getReference(Class, Object) for details on when an exception is thrown.
 	 */
 	T getOne(ID id);
 
