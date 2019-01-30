@@ -722,7 +722,7 @@ public class CustomerSpecs {
     };
   }
 
-  public static Specification<Customer> hasSalesOfMoreThan(MontaryAmount value) {
+  public static Specification<Customer> hasSalesOfMoreThan(MonetaryAmount value) {
     return new Specification<Customer>() {
       public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query,
             CriteriaBuilder builder) {
