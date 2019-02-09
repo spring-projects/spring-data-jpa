@@ -27,7 +27,7 @@ import org.springframework.util.ClassUtils;
  * 
  * @author Oliver Gierke
  */
-class HibernateProxyDetector implements ProxyDetector {
+public class HibernateProxyDetector implements ProxyDetector {
 
 	private static final Optional<Class<?>> HIBERNATE_PROXY = Optional.ofNullable(loadHibernateProxyType());
 
