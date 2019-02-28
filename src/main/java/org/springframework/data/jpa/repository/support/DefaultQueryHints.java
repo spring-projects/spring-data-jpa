@@ -1,3 +1,18 @@
+/*
+ * Copyright 2017-2019 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.springframework.data.jpa.repository.support;
 
 import java.util.Collections;
@@ -40,7 +55,7 @@ class DefaultQueryHints implements QueryHints {
 	 * @param forCounts
 	 */
 	private DefaultQueryHints(JpaEntityInformation<?, ?> information, CrudMethodMetadata metadata,
-							  Optional<EntityManager> entityManager, boolean forCounts) {
+			Optional<EntityManager> entityManager, boolean forCounts) {
 
 		this.information = information;
 		this.metadata = metadata;
@@ -70,12 +85,16 @@ class DefaultQueryHints implements QueryHints {
 	 */
 	@Override
 	public QueryHints withFetchGraphs(EntityManager em) {
-		return new DefaultQueryHints(this.information, this.metadata, Optional.of(em), forCounts);
+		return new DefaultQueryHints(this.information, this.metadata, Optional.of(em), this.forCounts);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.jpa.repository.support.QueryHints#forCounts()
+	 */
 	@Override
 	public QueryHints forCounts() {
-		return new DefaultQueryHints(this.information, this.metadata, entityManager, true);
+		return new DefaultQueryHints(this.information, this.metadata, this.entityManager, true);
 	}
 
 	/*
