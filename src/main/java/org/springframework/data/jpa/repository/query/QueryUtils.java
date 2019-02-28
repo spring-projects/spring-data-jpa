@@ -614,7 +614,7 @@ public abstract class QueryUtils {
 	 * @param isPluralAttribute is the attribute of Collection type?
 	 * @param isLeafProperty is this the final property navigated by a {@link PropertyPath}?
 	 * @param isForSelection is the property navigated for the selection part of the query?
-	 * @return wether an outer join is to be used for integrating this attribute in a query.
+	 * @return whether an outer join is to be used for integrating this attribute in a query.
 	 */
 	private static boolean requiresOuterJoin(@Nullable Bindable<?> propertyPathModel, boolean isPluralAttribute,
 			boolean isLeafProperty, boolean isForSelection) {
@@ -637,7 +637,7 @@ public abstract class QueryUtils {
 		// outer join to avoid https://hibernate.atlassian.net/browse/HHH-12712 and
 		// https://github.com/eclipse-ee4j/jpa-api/issues/170
 		boolean isInverseOptionalOneToOne = PersistentAttributeType.ONE_TO_ONE == attribute.getPersistentAttributeType()
-				&& !getAnnotationProperty(attribute, "mappedBy", "").isEmpty();
+				&& StringUtils.hasText(getAnnotationProperty(attribute, "mappedBy", ""));
 
 		// if this path is part of the select list we need to generate an explicit outer join in order to prevent Hibernate
 		// to use an inner join instead.
@@ -650,6 +650,7 @@ public abstract class QueryUtils {
 	}
 
 	private static <T> T getAnnotationProperty(Attribute<?, ?> attribute, String propertyName, T defaultValue) {
+
 		Class<? extends Annotation> associationAnnotation = ASSOCIATION_TYPES.get(attribute.getPersistentAttributeType());
 
 		if (associationAnnotation == null) {

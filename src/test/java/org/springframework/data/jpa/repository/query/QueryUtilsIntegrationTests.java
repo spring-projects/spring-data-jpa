@@ -95,7 +95,7 @@ public class QueryUtilsIntegrationTests {
 		assertThat(getNonInnerJoins(root)).hasSize(1);
 	}
 
-	@Test // DATAJPA-1238
+	@Test // DATAJPA-1404
 	public void createsJoinForOptionalOneToOneInReverseDirection() {
 
 		doInMerchantContext(emf -> {
@@ -110,7 +110,7 @@ public class QueryUtilsIntegrationTests {
 		});
 	}
 
-	@Test // DATAJPA-1238
+	@Test // DATAJPA-1404
 	public void createsNoJoinForOptionalOneToOneInNormalDirection() {
 
 		doInMerchantContext(emf -> {
