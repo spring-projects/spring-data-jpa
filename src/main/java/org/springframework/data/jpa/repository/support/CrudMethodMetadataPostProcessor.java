@@ -22,12 +22,14 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.function.Predicate;
 
 import javax.persistence.LockModeType;
 import javax.persistence.QueryHint;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
+
 import org.springframework.aop.TargetSource;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.interceptor.ExposeInvocationInterceptor;
@@ -165,8 +167,8 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 			Assert.notNull(method, "Method must not be null!");
 
 			this.lockModeType = findLockModeType(method);
-			this.queryHints = findQueryHints(method, false);
-			this.getQueryHintsForCount = findQueryHints(method, true);
+			this.queryHints = findQueryHints(method, it -> true);
+			this.getQueryHintsForCount = findQueryHints(method, QueryHints::forCounting);
 			this.entityGraph = findEntityGraph(method);
 			this.method = method;
 		}
@@ -182,14 +184,12 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 			return annotation == null ? null : (LockModeType) AnnotationUtils.getValue(annotation);
 		}
 
-		private static Map<String, Object> findQueryHints(Method method, boolean forCount) {
+		private static Map<String, Object> findQueryHints(Method method, Predicate<QueryHints> annotationFilter) {
 
 			Map<String, Object> queryHints = new HashMap<String, Object>();
 			QueryHints queryHintsAnnotation = AnnotatedElementUtils.findMergedAnnotation(method, QueryHints.class);
 
-			if (queryHintsAnnotation != null
-					&& (!forCount || queryHintsAnnotation.forCounting())
-					) {
+			if (queryHintsAnnotation != null && annotationFilter.test(queryHintsAnnotation)) {
 
 				for (QueryHint hint : queryHintsAnnotation.value()) {
 					queryHints.put(hint.name(), hint.value());

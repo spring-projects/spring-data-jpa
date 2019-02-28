@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2018-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,13 @@ public class DefaultQueryHintsTest {
 	JpaEntityInformation<?, ?> information = mock(JpaEntityInformation.class);
 	CrudMethodMetadata metadata = mock(CrudMethodMetadata.class);
 
+	@Before
+	public void before() {
+
+		setupMainHints();
+		setUpCountHints();
+	}
+
 	@Test // DATAJPA-1156
 	public void mainHints() {
 
@@ -54,26 +61,21 @@ public class DefaultQueryHintsTest {
 				.containsExactly(null, null, "1", "2");
 	}
 
-
-	@Before
-	public void before() {
-
-		setupMainHints();
-		setUpCountHints();
-	}
-
 	private void setupMainHints() {
+
 		Map<String, Object> mainHintMap = new HashMap<>();
 		mainHintMap.put("name1", "value1");
 		mainHintMap.put("name2", "value2");
+
 		when(metadata.getQueryHints()).thenReturn(mainHintMap);
 	}
 
 	private void setUpCountHints() {
+
 		Map<String, Object> countHintMap = new HashMap<>();
 		countHintMap.put("n1", "1");
 		countHintMap.put("n2", "2");
+
 		when(metadata.getQueryHintsForCount()).thenReturn(countHintMap);
 	}
-
 }

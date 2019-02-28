@@ -52,9 +52,11 @@ public interface CrudMethodMetadata {
 	Map<String, Object> getQueryHints();
 
 	/**
-	 * Returns all query hints to be applied to count queries executed for the CRUD method.
+	 * Returns all query hints to be applied to count queries executed for the CRUD method. The default implementation
+	 * just delegates to {@link #getQueryHints()}.
 	 *
-	 * The default implementation just delegates to {@link #getQueryHints()}.
+	 * @return
+	 * @since 2.2
 	 */
 	default Map<String, Object> getQueryHintsForCount() {
 		return getQueryHints();
