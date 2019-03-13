@@ -162,14 +162,14 @@ public class QueryUtilsIntegrationTests {
 	@Test // DATAJPA-476
 	public void traversesPluralAttributeCorrectly() {
 
-		doInMerchantContext(((emf) -> {
+		doInMerchantContext((emf) -> {
 
 			CriteriaBuilder builder = emf.createEntityManager().getCriteriaBuilder();
 			CriteriaQuery<Merchant> query = builder.createQuery(Merchant.class);
 			Root<Merchant> root = query.from(Merchant.class);
 
 			QueryUtils.toExpressionRecursively(root, PropertyPath.from("employeesCredentialsUid", Merchant.class));
-		}));
+		});
 	}
 
 	public void doInMerchantContext(Consumer<EntityManagerFactory> emfConsumer) {
@@ -217,7 +217,7 @@ public class QueryUtilsIntegrationTests {
 		Root<User> root = query.from(User.class);
 		Join<User, User> join = root.join("manager", JoinType.LEFT);
 
-		Sort sort = new Sort(Direction.ASC, "age");
+		Sort sort = Sort.by(Direction.ASC, "age");
 
 		List<javax.persistence.criteria.Order> orders = QueryUtils.toOrders(sort, join, builder);
 

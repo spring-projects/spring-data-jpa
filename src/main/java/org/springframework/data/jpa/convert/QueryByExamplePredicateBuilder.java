@@ -36,7 +36,7 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.ExampleMatcher.PropertyValueTransformer;
-import org.springframework.data.repository.core.support.ExampleMatcherAccessor;
+import org.springframework.data.support.ExampleMatcherAccessor;
 import org.springframework.data.util.DirectFieldAccessFallbackBeanWrapper;
 import org.springframework.lang.Nullable;
 import org.springframework.orm.jpa.JpaSystemException;
@@ -62,12 +62,10 @@ public class QueryByExamplePredicateBuilder {
 	private static final Set<PersistentAttributeType> ASSOCIATION_TYPES;
 
 	static {
-		ASSOCIATION_TYPES = EnumSet.of(
-				PersistentAttributeType.MANY_TO_MANY,
-				PersistentAttributeType.MANY_TO_ONE,
-				PersistentAttributeType.ONE_TO_MANY,
-				PersistentAttributeType.ONE_TO_ONE
-		);
+		ASSOCIATION_TYPES = EnumSet.of(PersistentAttributeType.MANY_TO_MANY, //
+				PersistentAttributeType.MANY_TO_ONE, //
+				PersistentAttributeType.ONE_TO_MANY, //
+				PersistentAttributeType.ONE_TO_ONE);
 	}
 
 	/**

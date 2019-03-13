@@ -81,12 +81,10 @@ public class JpaSort extends Sort {
 		this(Collections.<Order> emptyList(), direction, paths);
 	}
 
-	@SuppressWarnings("deprecation")
 	private JpaSort(List<Order> orders, @Nullable Direction direction, List<Path<?, ?>> paths) {
 		super(combine(orders, direction, paths));
 	}
 
-	@SuppressWarnings("deprecation")
 	private JpaSort(List<Order> orders) {
 		super(orders);
 	}

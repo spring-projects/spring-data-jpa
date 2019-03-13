@@ -26,8 +26,6 @@ import javax.persistence.metamodel.PluralAttribute;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.jpa.domain.JpaSort.JpaOrder;
 import org.springframework.data.jpa.domain.JpaSort.Path;
@@ -81,66 +79,66 @@ public class JpaSortTests {
 
 	@Test // DATAJPA-12
 	public void sortBySinglePropertyWithDefaultSortDirection() {
-		assertThat(new JpaSort(path(User_.firstname)), hasItems(new Sort.Order("firstname")));
+		assertThat(new JpaSort(path(User_.firstname)), hasItems(Order.asc("firstname")));
 	}
 
 	@Test // DATAJPA-12
 	public void sortByMultiplePropertiesWithDefaultSortDirection() {
-		assertThat(new JpaSort(User_.firstname, User_.lastname), hasItems(new Order("firstname"), new Order("lastname")));
+		assertThat(new JpaSort(User_.firstname, User_.lastname), hasItems(Order.asc("firstname"), Order.asc("lastname")));
 	}
 
 	@Test // DATAJPA-12
 	public void sortByMultiplePropertiesWithDescSortDirection() {
 
 		assertThat(new JpaSort(DESC, User_.firstname, User_.lastname),
-				hasItems(new Order(DESC, "firstname"), new Order(Direction.DESC, "lastname")));
+				hasItems(new Order(DESC, "firstname"), Order.desc("lastname")));
 	}
 
 	@Test // DATAJPA-12
 	public void combiningSortByMultipleProperties() {
 
 		assertThat(new JpaSort(User_.firstname).and(new JpaSort(User_.lastname)),
-				hasItems(new Order("firstname"), new Order("lastname")));
+				hasItems(Order.asc("firstname"), Order.asc("lastname")));
 	}
 
 	@Test // DATAJPA-12
 	public void combiningSortByMultiplePropertiesWithDifferentSort() {
 
 		assertThat(new JpaSort(User_.firstname).and(new JpaSort(DESC, User_.lastname)),
-				hasItems(new Order("firstname"), new Order(DESC, "lastname")));
+				hasItems(Order.asc("firstname"), Order.desc("lastname")));
 	}
 
 	@Test // DATAJPA-12
 	public void combiningSortByNestedEmbeddedProperty() {
-		assertThat(new JpaSort(path(User_.address).dot(Address_.streetName)), hasItems(new Order("address.streetName")));
+		assertThat(new JpaSort(path(User_.address).dot(Address_.streetName)), hasItems(Order.asc("address.streetName")));
 	}
 
 	@Test // DATAJPA-12
 	public void buildJpaSortFromJpaMetaModelSingleAttribute() {
 
 		assertThat(new JpaSort(ASC, path(User_.firstname)), //
-				hasItems(new Order("firstname")));
+				hasItems(Order.asc("firstname")));
 	}
 
 	@Test // DATAJPA-12
 	public void buildJpaSortFromJpaMetaModelNestedAttribute() {
 
 		assertThat(new JpaSort(ASC, path(MailMessage_.mailSender).dot(MailSender_.name)), //
-				hasItems(new Order("mailSender.name")));
+				hasItems(Order.asc("mailSender.name")));
 	}
 
 	@Test // DATAJPA-702
 	public void combiningSortByMultiplePropertiesWithDifferentSortUsingSimpleAnd() {
 
 		assertThat(new JpaSort(User_.firstname).and(DESC, User_.lastname),
-				contains(new Order("firstname"), new Order(DESC, "lastname")));
+				contains(Order.asc("firstname"), Order.desc("lastname")));
 	}
 
 	@Test // DATAJPA-702
 	public void combiningSortByMultiplePathsWithDifferentSortUsingSimpleAnd() {
 
 		assertThat(new JpaSort(User_.firstname).and(DESC, path(MailMessage_.mailSender).dot(MailSender_.name)),
-				contains(new Order("firstname"), new Order(DESC, "mailSender.name")));
+				contains(Order.asc("firstname"), Order.desc("mailSender.name")));
 	}
 
 	@Test(expected = IllegalArgumentException.class) // DATAJPA-702
@@ -165,7 +163,7 @@ public class JpaSortTests {
 
 		JpaSort sort = JpaSort.unsafe(DESC, "foo.bar");
 
-		assertThat(sort, hasItem(new Order(DESC, "foo.bar")));
+		assertThat(sort, hasItem(Order.desc("foo.bar")));
 		assertThat(sort.getOrderFor("foo.bar"), is(instanceOf(JpaOrder.class)));
 	}
 
@@ -174,7 +172,7 @@ public class JpaSortTests {
 
 		JpaSort sort = JpaSort.unsafe(DESC, "foo.bar", "spring.data");
 
-		assertThat(sort, hasItems(new Order(DESC, "foo.bar"), new Order(DESC, "spring.data")));
+		assertThat(sort, hasItems(Order.desc("foo.bar"), Order.desc("spring.data")));
 		assertThat(sort.getOrderFor("foo.bar"), is(instanceOf(JpaOrder.class)));
 		assertThat(sort.getOrderFor("spring.data"), is(instanceOf(JpaOrder.class)));
 	}
