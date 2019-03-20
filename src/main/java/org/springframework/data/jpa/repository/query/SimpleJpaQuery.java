@@ -89,7 +89,7 @@ final class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
 		} catch (RuntimeException e) {
 
 			// Needed as there's ambiguities in how an invalid query string shall be expressed by the persistence provider
-			// http://java.net/projects/jpa-spec/lists/jsr338-experts/archive/2012-07/message/17
+			// https://java.net/projects/jpa-spec/lists/jsr338-experts/archive/2012-07/message/17
 			throw new IllegalArgumentException(String.format(errorMessage, arguments), e);
 
 		} finally {

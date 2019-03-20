@@ -58,7 +58,7 @@ public class JpaQueryMethod extends QueryMethod {
 
 	/**
 	 * @see <a href=
-	 *      "http://download.oracle.com/otn-pub/jcp/persistence-2.0-fr-eval-oth-JSpec/persistence-2_0-final-spec.pdf">JPA
+	 *      "https://download.oracle.com/otn-pub/jcp/persistence-2.0-fr-eval-oth-JSpec/persistence-2_0-final-spec.pdf">JPA
 	 *      2.0 Specification 2.2 Persistent Fields and Properties Page 23 - Top paragraph.</a>
 	 */
 	private static final Set<Class<?>> NATIVE_ARRAY_TYPES;

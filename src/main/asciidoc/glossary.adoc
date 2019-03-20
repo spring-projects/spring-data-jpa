@@ -10,12 +10,12 @@ CRUD :: Create, Read, Update, Delete - Basic persistence operations.
 
 DAO :: Data Access Object - Pattern to separate persisting logic from the object to be persisted
 
-Dependency Injection :: Pattern to hand a component's dependency to the component from outside, freeing the component to lookup the dependent itself. For more information, see link:$$http://en.wikipedia.org/wiki/Dependency_Injection$$[http://en.wikipedia.org/wiki/Dependency_Injection].
+Dependency Injection :: Pattern to hand a component's dependency to the component from outside, freeing the component to lookup the dependent itself. For more information, see link:$$https://en.wikipedia.org/wiki/Dependency_Injection$$[https://en.wikipedia.org/wiki/Dependency_Injection].
 
-EclipseLink :: Object relational mapper implementing JPA - link:$$http://www.eclipselink.org$$[http://www.eclipselink.org]
+EclipseLink :: Object relational mapper implementing JPA - link:$$https://www.eclipse.org/eclipselink/$$[https://www.eclipse.org/eclipselink/]
 
-Hibernate :: Object relational mapper implementing JPA - link:$$http://www.hibernate.org$$[http://www.hibernate.org]
+Hibernate :: Object relational mapper implementing JPA - link:$$https://hibernate.org/$$[https://hibernate.org/]
 
 JPA :: Java Persistence API
 
-Spring :: Java application framework - link:$$http://projects.spring.io/spring-framework$$[http://projects.spring.io/spring-framework]
+Spring :: Java application framework - link:$$https://projects.spring.io/spring-framework$$[https://projects.spring.io/spring-framework]

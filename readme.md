@@ -1,11 +1,11 @@
-[![Spring Data JPA](https://spring.io/badges/spring-data-jpa/ga.svg)](http://projects.spring.io/spring-data-jpa/#quick-start)
-[![Spring Data JPA](https://spring.io/badges/spring-data-jpa/snapshot.svg)](http://projects.spring.io/spring-data-jpa/#quick-start)
+[![Spring Data JPA](https://spring.io/badges/spring-data-jpa/ga.svg)](https://projects.spring.io/spring-data-jpa/#quick-start)
+[![Spring Data JPA](https://spring.io/badges/spring-data-jpa/snapshot.svg)](https://projects.spring.io/spring-data-jpa/#quick-start)
 [![Build Status](https://travis-ci.org/spring-projects/spring-data-jpa.svg?branch=master)](https://travis-ci.org/spring-projects/spring-data-jpa) 
 
 
 # Spring Data JPA 
 
-The primary goal of the [Spring Data](http://projects.spring.io/spring-data) project is to make it easier to build Spring-powered applications that use data access technologies. This module deals with enhanced support for JPA based data access layers.
+The primary goal of the [Spring Data](https://projects.spring.io/spring-data) project is to make it easier to build Spring-powered applications that use data access technologies. This module deals with enhanced support for JPA based data access layers.
 
 ## Features ##
 
@@ -19,12 +19,12 @@ The primary goal of the [Spring Data](http://projects.spring.io/spring-data) pro
 
 ## Getting Help ##
 
-This README as well as the [reference documentation](http://docs.spring.io/spring-data/data-jpa/docs/current/reference/html) are the best places to start learning about Spring Data JPA.  There are also [two sample applications](https://github.com/spring-projects/spring-data-examples) available to look at.
+This README as well as the [reference documentation](https://docs.spring.io/spring-data/data-jpa/docs/current/reference/html) are the best places to start learning about Spring Data JPA.  There are also [two sample applications](https://github.com/spring-projects/spring-data-examples) available to look at.
 
-The main project [website](http://projects.spring.io/spring-data) contains links to basic project information such as source code, JavaDocs, Issue tracking, etc.
+The main project [website](https://projects.spring.io/spring-data) contains links to basic project information such as source code, JavaDocs, Issue tracking, etc.
 
-For more detailed questions, use [stackoverflow](http://stackoverflow.com/questions/tagged/spring-data-jpa). If you are new to Spring as well as to Spring Data, look for information about [Spring projects](http://projects.spring.io). You should also have a look at our new Spring Guides
-[Accessing Data with JPA](http://spring.io/guides/gs/accessing-data-jpa/) that leverages the simplified configuration provided by [Spring Boot](http://projects.spring.io/spring-boot/) as well as [Accessing JPA Data with REST](http://spring.io/guides/gs/accessing-data-rest/)..
+For more detailed questions, use [stackoverflow](https://stackoverflow.com/questions/tagged/spring-data-jpa). If you are new to Spring as well as to Spring Data, look for information about [Spring projects](https://projects.spring.io). You should also have a look at our new Spring Guides
+[Accessing Data with JPA](https://spring.io/guides/gs/accessing-data-jpa/) that leverages the simplified configuration provided by [Spring Boot](https://projects.spring.io/spring-boot/) as well as [Accessing JPA Data with REST](https://spring.io/guides/gs/accessing-data-rest/)..
 
 
 ## Quick Start ##
@@ -50,7 +50,7 @@ If you'd rather like the latest snapshots of the upcoming major version, use our
 <repository>
   <id>spring-libs-snapshot</id>
   <name>Spring Snapshot Repository</name>
-  <url>http://repo.spring.io/libs-snapshot</url>
+  <url>https://repo.spring.io/libs-snapshot</url>
 </repository>
 ```
 
@@ -145,9 +145,9 @@ public class UserRepositoryIntegrationTest {
 
 Here are some ways for you to get involved in the community:
 
-* Get involved with the Spring community by helping out on [stackoverflow](http://stackoverflow.com/questions/tagged/spring-data-jpa) by responding to questions and joining the debate.
+* Get involved with the Spring community by helping out on [stackoverflow](https://stackoverflow.com/questions/tagged/spring-data-jpa) by responding to questions and joining the debate.
 * Create [JIRA](https://jira.spring.io/browse/DATAJPA) tickets for bugs and new features and comment and vote on the ones that you are interested in.  
-* Github is for social coding: if you want to write code, we encourage contributions through pull requests from [forks of this repository](http://help.github.com/forking/). If you want to contribute code this way, please reference a JIRA ticket as well covering the specific issue you are addressing.
-* Watch for upcoming articles on Spring by [subscribing](http://spring.io/blog) to spring.io.
+* Github is for social coding: if you want to write code, we encourage contributions through pull requests from [forks of this repository](https://help.github.com/forking/). If you want to contribute code this way, please reference a JIRA ticket as well covering the specific issue you are addressing.
+* Watch for upcoming articles on Spring by [subscribing](https://spring.io/blog) to spring.io.
 
 Before we accept a non-trivial patch or pull request we will need you to [sign the Contributor License Agreement](https://cla.pivotal.io/sign/spring). Signing the contributor’s agreement does not grant anyone commit rights to the main repository, but it does mean that we can accept your contributions, and you will get an author credit if we do. If you forget to do so, you'll be reminded when you submit a pull request. Active contributors might be asked to join the core team, and given the ability to merge pull requests.

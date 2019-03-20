@@ -44,7 +44,7 @@ import org.threeten.bp.ZoneId;
  * package to be scanned on e.g. the {@link LocalContainerEntityManagerFactoryBean}.
  *
  * @author Oliver Gierke
- * @see <a href="http://www.threeten.org/threetenbp">http://www.threeten.org/threetenbp</a>
+ * @see <a href="https://www.threeten.org/threetenbp">https://www.threeten.org/threetenbp</a>
  * @since 1.8
  */
 public class ThreeTenBackPortJpaConverters {
