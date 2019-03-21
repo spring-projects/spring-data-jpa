@@ -29,6 +29,7 @@ import org.junit.runner.RunWith;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.repository.query.ParameterMetadataProvider.ParameterMetadata;
+import org.springframework.data.jpa.repository.support.EscapeCharacter;
 import org.springframework.data.repository.query.Param;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.parser.Part;
@@ -81,7 +82,7 @@ public class ParameterMetadataProviderIntegrationTests {
 		simulateDiscoveredParametername(parameters, 0, "name");
 
 		return new ParameterMetadataProvider(em.getCriteriaBuilder(), parameters,
-				PersistenceProvider.fromEntityManager(em));
+				PersistenceProvider.fromEntityManager(em), EscapeCharacter.of('\\'));
 	}
 
 	@SuppressWarnings("unchecked")

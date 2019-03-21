@@ -23,6 +23,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.data.jpa.provider.PersistenceProvider;
+import org.springframework.data.jpa.repository.support.EscapeCharacter;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.parser.Part;
 
@@ -44,7 +45,7 @@ public class ParameterMetadataProviderUnitTests {
 
 		Parameters<?, ?> parameters = mock(Parameters.class, RETURNS_DEEP_STUBS);
 		ParameterMetadataProvider metadataProvider = new ParameterMetadataProvider(builder, parameters,
-				persistenceProvider);
+				persistenceProvider, EscapeCharacter.of('\\'));
 
 		exception.expect(IllegalArgumentException.class);
 		exception.expectMessage("parameter");

@@ -47,7 +47,7 @@ import org.springframework.util.Assert;
 
 /**
  * JPA specific generic repository factory.
- * 
+ *
  * @author Oliver Gierke
  * @author Mark Paluch
  * @author Jens Schauder
@@ -58,9 +58,11 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	private final QueryExtractor extractor;
 	private final CrudMethodMetadataPostProcessor crudMethodMetadataPostProcessor;
 
+	private EscapeCharacter escapeCharacter = EscapeCharacter.of('\\');
+
 	/**
 	 * Creates a new {@link JpaRepositoryFactory}.
-	 * 
+	 *
 	 * @param entityManager must not be {@literal null}
 	 */
 	public JpaRepositoryFactory(EntityManager entityManager) {
@@ -78,7 +80,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 		}
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.core.support.RepositoryFactorySupport#setBeanClassLoader(java.lang.ClassLoader)
 	 */
@@ -87,6 +89,15 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 
 		super.setBeanClassLoader(classLoader);
 		this.crudMethodMetadataPostProcessor.setBeanClassLoader(classLoader);
+	}
+
+	/**
+	 * Configures the escape character to be used for like-expressions created for derived queries.
+	 *
+	 * @param escapeCharacter a character used for escaping in certain like expressions.
+	 */
+	public void setEscapeCharacter(EscapeCharacter escapeCharacter) {
+		this.escapeCharacter = escapeCharacter;
 	}
 
 	/*
@@ -104,7 +115,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 
 	/**
 	 * Callback to create a {@link JpaRepository} instance with the given {@link EntityManager}
-	 * 
+	 *
 	 * @param <T>
 	 * @param <ID>
 	 * @param entityManager
@@ -121,7 +132,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * org.springframework.data.repository.support.RepositoryFactorySupport#
 	 * getRepositoryBaseClass()
@@ -152,7 +163,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 
 	/**
 	 * Returns whether the given repository interface requires a QueryDsl specific implementation to be chosen.
-	 * 
+	 *
 	 * @param repositoryInterface
 	 * @return
 	 */
@@ -161,18 +172,18 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 		return QUERY_DSL_PRESENT && QueryDslPredicateExecutor.class.isAssignableFrom(repositoryInterface);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.core.support.RepositoryFactorySupport#getQueryLookupStrategy(org.springframework.data.repository.query.QueryLookupStrategy.Key, org.springframework.data.repository.query.EvaluationContextProvider)
 	 */
 	@Override
 	protected QueryLookupStrategy getQueryLookupStrategy(Key key, EvaluationContextProvider evaluationContextProvider) {
-		return JpaQueryLookupStrategy.create(entityManager, key, extractor, evaluationContextProvider);
+		return JpaQueryLookupStrategy.create(entityManager, key, extractor, evaluationContextProvider, escapeCharacter);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * org.springframework.data.repository.support.RepositoryFactorySupport#
 	 * getEntityInformation(java.lang.Class)
@@ -205,7 +216,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 
 		/**
 		 * Creates a new {@link EclipseLinkProjectionQueryCreationListener} for the given {@link EntityManager}.
-		 * 
+		 *
 		 * @param em must not be {@literal null}.
 		 */
 		public EclipseLinkProjectionQueryCreationListener(EntityManager em) {
@@ -215,7 +226,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 			this.metamodel = new JpaMetamodel(em.getMetamodel());
 		}
 
-		/* 
+		/*
 		 * (non-Javadoc)
 		 * @see org.springframework.data.repository.core.support.QueryCreationListener#onCreation(org.springframework.data.repository.query.RepositoryQuery)
 		 */

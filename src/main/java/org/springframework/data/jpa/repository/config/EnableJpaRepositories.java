@@ -150,4 +150,12 @@ public @interface EnableJpaRepositories {
 	 * @return whether to enable default transactions, defaults to {@literal true}.
 	 */
 	boolean enableDefaultTransactions() default true;
+
+	/**
+	 * Configures what character is used to escape the wildcards {@literal _} and {@literal %} in derived queries with
+	 * {@literal contains}, {@literal startsWith} or {@literal endsWith} clauses.
+	 * 
+	 * @return a single character used for escaping.
+	 */
+	char escapeCharacter() default '\\';
 }

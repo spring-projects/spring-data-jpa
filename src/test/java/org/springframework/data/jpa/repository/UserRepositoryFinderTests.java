@@ -44,7 +44,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Integration test for executing finders, thus testing various query lookup strategies.
- * 
+ *
  * @see QueryLookupStrategy
  * @author Oliver Gierke
  */
@@ -196,6 +196,16 @@ public class UserRepositoryFinderTests {
 	@Test // DATAJPA-830
 	public void executesMethodWithNotContainingOnStringCorrectly() {
 		assertThat(userRepository.findByLastnameNotContaining("u"), containsInAnyOrder(dave, oliver));
+	}
+
+	@Test // DATAJPA-1519
+	public void parametersForContainsGetProperlyEscaped() {
+		assertThat(userRepository.findByFirstnameContaining("liv%"), hasSize(0));
+	}
+
+	@Test // DATAJPA-1519
+	public void escapingInLikeSpels() {
+		assertThat(userRepository.findContainingEscaped("att_"), hasSize(0));
 	}
 
 	@Test // DATAJPA-829

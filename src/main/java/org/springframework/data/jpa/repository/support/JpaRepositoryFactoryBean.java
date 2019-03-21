@@ -29,7 +29,7 @@ import org.springframework.util.Assert;
 /**
  * Special adapter for Springs {@link org.springframework.beans.factory.FactoryBean} interface to allow easy setup of
  * repository factories via Spring configuration.
- * 
+ *
  * @author Oliver Gierke
  * @author Eberhard Wolff
  * @param <T> the type of the repository
@@ -38,10 +38,11 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID extends
 		extends TransactionalRepositoryFactoryBeanSupport<T, S, ID> {
 
 	private EntityManager entityManager;
+	private EscapeCharacter escapeCharacter = EscapeCharacter.of('\\');
 
 	/**
 	 * Creates a new {@link JpaRepositoryFactoryBean} for the given repository interface.
-	 * 
+	 *
 	 * @param repositoryInterface must not be {@literal null}.
 	 */
 	public JpaRepositoryFactoryBean(Class<? extends T> repositoryInterface) {
@@ -49,8 +50,17 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID extends
 	}
 
 	/**
+	 * Configures the escape character to be used to escape reserved characters for LIKE expressions.
+	 *
+	 * @param escapeCharacter
+	 */
+	public void setEscapeCharacter(char escapeCharacter) {
+		this.escapeCharacter = EscapeCharacter.of(escapeCharacter);
+	}
+
+	/**
 	 * The {@link EntityManager} to be used.
-	 * 
+	 *
 	 * @param entityManager the entityManager to set
 	 */
 	@PersistenceContext
@@ -58,7 +68,7 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID extends
 		this.entityManager = entityManager;
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.core.support.RepositoryFactoryBeanSupport#setMappingContext(org.springframework.data.mapping.context.MappingContext)
 	 */
@@ -69,7 +79,7 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID extends
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.springframework.data.repository.support.
 	 * TransactionalRepositoryFactoryBeanSupport#doCreateRepositoryFactory()
 	 */
@@ -80,17 +90,21 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID extends
 
 	/**
 	 * Returns a {@link RepositoryFactorySupport}.
-	 * 
+	 *
 	 * @param entityManager
 	 * @return
 	 */
 	protected RepositoryFactorySupport createRepositoryFactory(EntityManager entityManager) {
-		return new JpaRepositoryFactory(entityManager);
+
+		JpaRepositoryFactory jpaRepositoryFactory = new JpaRepositoryFactory(entityManager);
+		jpaRepositoryFactory.setEscapeCharacter(escapeCharacter);
+
+		return jpaRepositoryFactory;
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
 	 */
