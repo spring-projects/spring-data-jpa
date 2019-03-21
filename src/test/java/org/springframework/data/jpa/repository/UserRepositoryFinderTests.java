@@ -198,6 +198,16 @@ public class UserRepositoryFinderTests {
 		assertThat(userRepository.findByLastnameNotContaining("u"), containsInAnyOrder(dave, oliver));
 	}
 
+	@Test // DATAJPA-1519
+	public void parametersForContainsGetProperlyEscaped() {
+		assertThat(userRepository.findByFirstnameContaining("liv%"), iterableWithSize(0));
+	}
+
+	@Test // DATAJPA-1519
+	public void escapingInLikeSpels() {
+		assertThat(userRepository.findContainingEscaped("att_"), iterableWithSize(0));
+	}
+
 	@Test // DATAJPA-829
 	public void translatesContainsToMemberOf() {
 

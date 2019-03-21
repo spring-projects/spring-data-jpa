@@ -36,6 +36,7 @@ import javax.persistence.metamodel.SingularAttribute;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.query.ParameterMetadataProvider.ParameterMetadata;
+import org.springframework.data.jpa.repository.support.EscapeCharacter;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
@@ -62,6 +63,7 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extend
 	private final ParameterMetadataProvider provider;
 	private final ReturnedType returnedType;
 	private final PartTree tree;
+	private final EscapeCharacter escape;
 
 	/**
 	 * Create a new {@link JpaQueryCreator}.
@@ -77,13 +79,14 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extend
 		super(tree);
 		this.tree = tree;
 
-		CriteriaQuery<? extends Object> criteriaQuery = createCriteriaQuery(builder, type);
+		CriteriaQuery<?> criteriaQuery = createCriteriaQuery(builder, type);
 
 		this.builder = builder;
 		this.query = criteriaQuery.distinct(tree.isDistinct());
 		this.root = query.from(type.getDomainType());
 		this.provider = provider;
 		this.returnedType = type;
+		this.escape = provider.getEscape();
 	}
 
 	/**
@@ -289,7 +292,7 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extend
 					Expression<String> stringPath = getTypedPath(root, part);
 					Expression<String> propertyExpression = upperIfIgnoreCase(stringPath);
 					Expression<String> parameterExpression = upperIfIgnoreCase(provider.next(part, String.class).getExpression());
-					Predicate like = builder.like(propertyExpression, parameterExpression);
+					Predicate like = builder.like(propertyExpression, parameterExpression, escape.getValue());
 					return type.equals(NOT_LIKE) || type.equals(NOT_CONTAINING) ? like.not() : like;
 				case TRUE:
 					Expression<Boolean> truePath = getTypedPath(root, part);

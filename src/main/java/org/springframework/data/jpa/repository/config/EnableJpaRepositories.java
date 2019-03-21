@@ -166,4 +166,12 @@ public @interface EnableJpaRepositories {
 	 * @since 2.1
 	 */
 	BootstrapMode bootstrapMode() default BootstrapMode.DEFAULT;
+
+	/**
+	 * Configures what character is used to escape the wildcards {@literal _} and {@literal %} in derived queries with
+	 * {@literal contains}, {@literal startsWith} or {@literal endsWith} clauses.
+	 * 
+	 * @return a single character used for escaping.
+	 */
+	char escapeCharacter() default '\\';
 }
