@@ -29,6 +29,7 @@ import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.DeleteExecution;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.ExistsExecution;
 import org.springframework.data.jpa.repository.query.ParameterMetadataProvider.ParameterMetadata;
+import org.springframework.data.jpa.repository.support.EscapeCharacter;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
@@ -53,19 +54,21 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 	private final QueryPreparer query;
 	private final QueryPreparer countQuery;
 	private final EntityManager em;
+	private final EscapeCharacter escape;
 
 	/**
 	 * Creates a new {@link PartTreeJpaQuery}.
-	 *
 	 * @param method must not be {@literal null}.
 	 * @param em must not be {@literal null}.
 	 * @param persistenceProvider must not be {@literal null}.
+	 * @param escape
 	 */
-	PartTreeJpaQuery(JpaQueryMethod method, EntityManager em, PersistenceProvider persistenceProvider) {
+	PartTreeJpaQuery(JpaQueryMethod method, EntityManager em, PersistenceProvider persistenceProvider, EscapeCharacter escape) {
 
 		super(method, em);
 
 		this.em = em;
+		this.escape = escape;
 		Class<?> domainClass = method.getEntityInformation().getJavaType();
 		this.parameters = method.getParameters();
 
@@ -226,8 +229,8 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 			CriteriaBuilder builder = entityManager.getCriteriaBuilder();
 
 			ParameterMetadataProvider provider = accessor
-					.map(it -> new ParameterMetadataProvider(builder, it, persistenceProvider))//
-					.orElseGet(() -> new ParameterMetadataProvider(builder, parameters, persistenceProvider));
+					.map(it -> new ParameterMetadataProvider(builder, it, persistenceProvider, escape))//
+					.orElseGet(() -> new ParameterMetadataProvider(builder, parameters, persistenceProvider, escape));
 
 			ResultProcessor processor = getQueryMethod().getResultProcessor();
 			ReturnedType returnedType = accessor.map(processor::withDynamicProjection)//
@@ -280,8 +283,8 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 			CriteriaBuilder builder = entityManager.getCriteriaBuilder();
 
 			ParameterMetadataProvider provider = accessor
-					.map(it -> new ParameterMetadataProvider(builder, it, persistenceProvider))//
-					.orElseGet(() -> new ParameterMetadataProvider(builder, parameters, persistenceProvider));
+					.map(it -> new ParameterMetadataProvider(builder, it, persistenceProvider, escape))//
+					.orElseGet(() -> new ParameterMetadataProvider(builder, parameters, persistenceProvider, escape));
 
 			return new JpaCountQueryCreator(tree, getQueryMethod().getResultProcessor().getReturnedType(), builder, provider);
 		}

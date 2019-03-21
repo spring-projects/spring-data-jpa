@@ -44,6 +44,7 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 
 	private @Nullable EntityManager entityManager;
 	private EntityPathResolver entityPathResolver;
+	private EscapeCharacter escapeCharacter = EscapeCharacter.of('\\');
 
 	/**
 	 * Creates a new {@link JpaRepositoryFactoryBean} for the given repository interface.
@@ -103,7 +104,7 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 
 		JpaRepositoryFactory jpaRepositoryFactory = new JpaRepositoryFactory(entityManager);
 		jpaRepositoryFactory.setEntityPathResolver(entityPathResolver);
-
+		jpaRepositoryFactory.setEscapeCharacter(escapeCharacter);
 		return jpaRepositoryFactory;
 	}
 
@@ -117,5 +118,10 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 		Assert.state(entityManager != null, "EntityManager must not be null!");
 
 		super.afterPropertiesSet();
+	}
+
+	public void setEscapeCharacter(char escapeCharacter) {
+
+		this.escapeCharacter = EscapeCharacter.of(escapeCharacter);
 	}
 }

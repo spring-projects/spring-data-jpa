@@ -558,6 +558,10 @@ public interface UserRepository
 	// DATAJPA-1334
 	List<NameOnlyDto> findByNamedQueryWithConstructorExpression();
 
+	// DATAJPA-1519
+	@Query("select u from User u where u.firstname like %?#{#escape([0],'#')}% escape '#'")
+	List<User> findContainingEscaped(String namePart);
+
 	interface RolesAndFirstname {
 
 		String getFirstname();

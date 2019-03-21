@@ -132,7 +132,20 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 		Optional<String> transactionManagerRef = source.getAttribute("transactionManagerRef");
 		builder.addPropertyValue("transactionManager", transactionManagerRef.orElse(DEFAULT_TRANSACTION_MANAGER_BEAN_NAME));
 		builder.addPropertyValue("entityManager", getEntityManagerBeanDefinitionFor(source, source.getSource()));
+		builder.addPropertyValue("escapeCharacter", getEscapeCharacter(source).orElse('\\'));
 		builder.addPropertyReference("mappingContext", JPA_MAPPING_CONTEXT_BEAN_NAME);
+	}
+
+	/**
+	 * XML configurations do not support {@link Character} values. This method catches the exception thrown and returns an {@link Optional#empty()} instead.
+	 */
+	private static Optional<Character> getEscapeCharacter(RepositoryConfigurationSource source) {
+
+		try {
+			return source.getAttribute("escapeCharacter", Character.class);
+		} catch (IllegalArgumentException ___) {
+			return Optional.empty();
+		}
 	}
 
 	/*

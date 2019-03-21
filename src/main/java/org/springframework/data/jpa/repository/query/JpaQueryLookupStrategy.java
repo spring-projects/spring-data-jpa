@@ -22,6 +22,7 @@ import javax.persistence.EntityManager;
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.provider.QueryExtractor;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.support.EscapeCharacter;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.core.NamedQueries;
 import org.springframework.data.repository.core.RepositoryMetadata;
@@ -91,16 +92,19 @@ public final class JpaQueryLookupStrategy {
 	private static class CreateQueryLookupStrategy extends AbstractQueryLookupStrategy {
 
 		private final PersistenceProvider persistenceProvider;
+		private final EscapeCharacter escape;
 
-		public CreateQueryLookupStrategy(EntityManager em, QueryExtractor extractor) {
+		public CreateQueryLookupStrategy(EntityManager em, QueryExtractor extractor, EscapeCharacter escape) {
 
 			super(em, extractor);
+
 			this.persistenceProvider = PersistenceProvider.fromEntityManager(em);
+			this.escape = escape;
 		}
 
 		@Override
 		protected RepositoryQuery resolveQuery(JpaQueryMethod method, EntityManager em, NamedQueries namedQueries) {
-			return new PartTreeJpaQuery(method, em, persistenceProvider);
+			return new PartTreeJpaQuery(method, em, persistenceProvider, escape);
 		}
 	}
 
@@ -217,10 +221,11 @@ public final class JpaQueryLookupStrategy {
 	 * @param key may be {@literal null}.
 	 * @param extractor must not be {@literal null}.
 	 * @param evaluationContextProvider must not be {@literal null}.
+	 * @param escape
 	 * @return
 	 */
 	public static QueryLookupStrategy create(EntityManager em, @Nullable Key key, QueryExtractor extractor,
-			QueryMethodEvaluationContextProvider evaluationContextProvider) {
+			QueryMethodEvaluationContextProvider evaluationContextProvider, EscapeCharacter escape) {
 
 		Assert.notNull(em, "EntityManager must not be null!");
 		Assert.notNull(extractor, "QueryExtractor must not be null!");
@@ -228,11 +233,12 @@ public final class JpaQueryLookupStrategy {
 
 		switch (key != null ? key : Key.CREATE_IF_NOT_FOUND) {
 			case CREATE:
-				return new CreateQueryLookupStrategy(em, extractor);
+				return new CreateQueryLookupStrategy(em, extractor, escape);
 			case USE_DECLARED_QUERY:
 				return new DeclaredQueryLookupStrategy(em, extractor, evaluationContextProvider);
 			case CREATE_IF_NOT_FOUND:
-				return new CreateIfNotFoundQueryLookupStrategy(em, extractor, new CreateQueryLookupStrategy(em, extractor),
+				return new CreateIfNotFoundQueryLookupStrategy(em, extractor,
+						new CreateQueryLookupStrategy(em, extractor, escape),
 						new DeclaredQueryLookupStrategy(em, extractor, evaluationContextProvider));
 			default:
 				throw new IllegalArgumentException(String.format("Unsupported query lookup strategy %s!", key));
