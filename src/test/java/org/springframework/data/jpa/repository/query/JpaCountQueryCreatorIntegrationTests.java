@@ -31,6 +31,7 @@ import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.provider.HibernateUtils;
 import org.springframework.data.jpa.provider.PersistenceProvider;
+import org.springframework.data.jpa.repository.support.EscapeCharacter;
 import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.core.support.AbstractRepositoryMetadata;
@@ -60,7 +61,7 @@ public class JpaCountQueryCreatorIntegrationTests {
 
 		PartTree tree = new PartTree("findDistinctByRolesIn", User.class);
 		ParameterMetadataProvider metadataProvider = new ParameterMetadataProvider(entityManager.getCriteriaBuilder(),
-				queryMethod.getParameters(), provider);
+				queryMethod.getParameters(), provider, EscapeCharacter.of('\\'));
 
 		JpaCountQueryCreator creator = new JpaCountQueryCreator(tree, queryMethod.getResultProcessor().getReturnedType(),
 				entityManager.getCriteriaBuilder(), metadataProvider);

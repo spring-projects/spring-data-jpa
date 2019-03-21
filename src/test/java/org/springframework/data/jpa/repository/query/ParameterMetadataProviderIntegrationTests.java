@@ -15,7 +15,7 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 
 import java.lang.reflect.Method;
 import java.util.List;
@@ -28,6 +28,7 @@ import org.junit.runner.RunWith;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.repository.query.ParameterMetadataProvider.ParameterMetadata;
+import org.springframework.data.jpa.repository.support.EscapeCharacter;
 import org.springframework.data.repository.query.Param;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.parser.Part;
@@ -81,7 +82,7 @@ public class ParameterMetadataProviderIntegrationTests {
 		simulateDiscoveredParametername(parameters);
 
 		return new ParameterMetadataProvider(em.getCriteriaBuilder(), parameters,
-				PersistenceProvider.fromEntityManager(em));
+				PersistenceProvider.fromEntityManager(em), EscapeCharacter.of('\\'));
 	}
 
 	@SuppressWarnings({ "unchecked", "ConstantConditions" })

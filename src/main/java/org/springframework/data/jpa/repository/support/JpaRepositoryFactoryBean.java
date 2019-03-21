@@ -38,7 +38,6 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 		extends TransactionalRepositoryFactoryBeanSupport<T, S, ID> {
 
 	private @Nullable EntityManager entityManager;
-
 	/**
 	 * Creates a new {@link JpaRepositoryFactoryBean} for the given repository interface.
 	 *
@@ -88,7 +87,11 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 	 * @return
 	 */
 	protected RepositoryFactorySupport createRepositoryFactory(EntityManager entityManager) {
-		return new JpaRepositoryFactory(entityManager);
+
+		JpaRepositoryFactory jpaRepositoryFactory = new JpaRepositoryFactory(entityManager);
+		jpaRepositoryFactory.setEscapeCharacter(escapeCharacter);
+
+		return jpaRepositoryFactory;
 	}
 
 	/*
@@ -100,5 +103,10 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 
 		Assert.state(entityManager != null,"EntityManager must not be null!");
 		super.afterPropertiesSet();
+	}
+
+	public void setEscapeCharacter(char escapeCharacter) {
+
+		this.escapeCharacter = EscapeCharacter.of(escapeCharacter);
 	}
 }
