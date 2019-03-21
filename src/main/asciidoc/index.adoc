@@ -4,7 +4,7 @@ Oliver Gierke; Thomas Darimont; Christoph Strobl; Mark Paluch; Jay Bryant
 :revdate: {localdate}
 ifdef::backend-epub3[:front-cover-image: image:epub-cover.png[Front Cover,1050,1600]]
 :spring-data-commons-docs: ../../../../spring-data-commons/src/main/asciidoc
-:spring-framework-docs: http://docs.spring.io/spring-framework/docs/{springVersion}/spring-framework-reference/
+:spring-framework-docs: https://docs.spring.io/spring-framework/docs/{springVersion}/spring-framework-reference/
 
 (C) 2008-2019 The original authors.
 

@@ -207,7 +207,7 @@ similar licenses that require the source code and/or modifications to
 source code to be made available (as would be noted above), you may obtain a 
 copy of the source code corresponding to the binaries for such open source 
 components and modifications thereto, if any, (the "Source Files"), by 
-downloading the Source Files from http://www.springsource.org/download, 
+downloading the Source Files from https://www.springsource.org/download, 
 or by sending a request, with your name and address to: VMware, Inc., 3401 Hillview 
 Avenue, Palo Alto, CA 94304, United States of America or email info@vmware.com.  All 
 such requests should clearly specify:  OPEN SOURCE FILES REQUEST, Attention General 

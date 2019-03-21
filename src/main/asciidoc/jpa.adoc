@@ -25,9 +25,9 @@ The JPA module of Spring Data contains a custom namespace that allows defining r
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:jpa="http://www.springframework.org/schema/data/jpa"
   xsi:schemaLocation="http://www.springframework.org/schema/beans
-    http://www.springframework.org/schema/beans/spring-beans.xsd
+    https://www.springframework.org/schema/beans/spring-beans.xsd
     http://www.springframework.org/schema/data/jpa
-    http://www.springframework.org/schema/data/jpa/spring-jpa.xsd">
+    https://www.springframework.org/schema/data/jpa/spring-jpa.xsd">
 
   <jpa:repositories base-package="com.acme.repositories" />
 
@@ -144,8 +144,8 @@ Spring Data JPA offers the following strategies to detect whether an entity is n
   Without such a Version-property Spring Data JPA inspects the identifier property of the given entity.
   If the identifier property is `null`, then the entity is assumed to be new.
   Otherwise, it is assumed to be not new.
-* Implementing `Persistable`: If an entity implements `Persistable`, Spring Data JPA delegates the new detection to the `isNew(…)` method of the entity. See the link:$$http://docs.spring.io/spring-data/data-commons/docs/current/api/index.html?org/springframework/data/domain/Persistable.html$$[JavaDoc] for details.
-* Implementing `EntityInformation`: You can customize the `EntityInformation` abstraction used in the `SimpleJpaRepository` implementation by creating a subclass of `JpaRepositoryFactory` and overriding the `getEntityInformation(…)` method accordingly. You then have to register the custom implementation of `JpaRepositoryFactory` as a Spring bean. Note that this should be rarely necessary. See the link:$$http://docs.spring.io/spring-data/data-jpa/docs/current/api/index.html?org/springframework/data/jpa/repository/support/JpaRepositoryFactory.html$$[JavaDoc] for details.
+* Implementing `Persistable`: If an entity implements `Persistable`, Spring Data JPA delegates the new detection to the `isNew(…)` method of the entity. See the link:$$https://docs.spring.io/spring-data/data-commons/docs/current/api/index.html?org/springframework/data/domain/Persistable.html$$[JavaDoc] for details.
+* Implementing `EntityInformation`: You can customize the `EntityInformation` abstraction used in the `SimpleJpaRepository` implementation by creating a subclass of `JpaRepositoryFactory` and overriding the `getEntityInformation(…)` method accordingly. You then have to register the custom implementation of `JpaRepositoryFactory` as a Spring bean. Note that this should be rarely necessary. See the link:$$https://docs.spring.io/spring-data/data-jpa/docs/current/api/index.html?org/springframework/data/jpa/repository/support/JpaRepositoryFactory.html$$[JavaDoc] for details.
 
 [[jpa.query-methods]]
 == Query Methods
@@ -735,7 +735,7 @@ public class CustomerSpecs {
 ----
 ====
 
-Admittedly, the amount of boilerplate leaves room for improvement (that may eventually be reduced by Java 8 closures), but the client side becomes much nicer, as you will see later in this section. The `_Customer` type is a metamodel type generated using the JPA Metamodel generator (see the link:$$http://docs.jboss.org/hibernate/jpamodelgen/1.0/reference/en-US/html_single/#whatisit$$[Hibernate implementation's documentation for an example]). So the expression, `_Customer.createdAt`, assumes the `Customer` has a `createdAt` attribute of type `Date`. Besides that, we have expressed some criteria on a business requirement abstraction level and created executable `Specifications`. So a client might use a `Specification` as follows:
+Admittedly, the amount of boilerplate leaves room for improvement (that may eventually be reduced by Java 8 closures), but the client side becomes much nicer, as you will see later in this section. The `_Customer` type is a metamodel type generated using the JPA Metamodel generator (see the link:$$https://docs.jboss.org/hibernate/jpamodelgen/1.0/reference/en-US/html_single/#whatisit$$[Hibernate implementation's documentation for an example]). So the expression, `_Customer.createdAt`, assumes the `Customer` has a `createdAt` attribute of type `Date`. Besides that, we have expressed some criteria on a business requirement abstraction level and created executable `Specifications`. So a client might use a `Specification` as follows:
 
 .Using a simple Specification
 ====
@@ -765,7 +765,7 @@ include::query-by-example.adoc[leveloffset=+1]
 [[transactions]]
 == Transactionality
 
-By default, CRUD methods on repository instances are transactional. For read operations, the transaction configuration `readOnly` flag is set to `true`.  All others are configured with a plain `@Transactional` so that default transaction configuration applies. For details, see JavaDoc of link:$$http://docs.spring.io/spring-data/data-jpa/docs/current/api/index.html?org/springframework/data/jpa/repository/support/SimpleJpaRepository.html$$[`SimpleJpaRepository`]. If you need to tweak transaction configuration for one of the methods declared in a repository, redeclare the method in your repository interface, as follows:
+By default, CRUD methods on repository instances are transactional. For read operations, the transaction configuration `readOnly` flag is set to `true`.  All others are configured with a plain `@Transactional` so that default transaction configuration applies. For details, see JavaDoc of link:$$https://docs.spring.io/spring-data/data-jpa/docs/current/api/index.html?org/springframework/data/jpa/repository/support/SimpleJpaRepository.html$$[`SimpleJpaRepository`]. If you need to tweak transaction configuration for one of the methods declared in a repository, redeclare the method in your repository interface, as follows:
 
 .Custom transaction configuration for CRUD
 ====
@@ -1015,7 +1015,7 @@ A plain JPA setup requires all annotation-mapped entity classes to be listed in 
 ----
 ====
 
-NOTE: As of Spring 3.1, a package to scan can be configured on the `LocalContainerEntityManagerFactoryBean` directly to enable classpath scanning for entity classes. See the link:$$http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/orm/jpa/LocalContainerEntityManagerFactoryBean.html#setPackagesToScan(java.lang.String...)$$[JavaDoc] for details.
+NOTE: As of Spring 3.1, a package to scan can be configured on the `LocalContainerEntityManagerFactoryBean` directly to enable classpath scanning for entity classes. See the link:$$https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/orm/jpa/LocalContainerEntityManagerFactoryBean.html#setPackagesToScan(java.lang.String...)$$[JavaDoc] for details.
 
 [[jpd.misc.cdi-integration]]
 == CDI Integration

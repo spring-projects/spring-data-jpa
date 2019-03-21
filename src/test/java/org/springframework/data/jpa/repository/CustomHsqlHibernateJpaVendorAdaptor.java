@@ -24,7 +24,7 @@ import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 /**
  * Fix for missing type declarations for HSQL.
  *
- * @see <a href="http://www.codesmell.org/blog/2008/12/hibernate-hsql-native-queries-and-booleans/">http://www.codesmell.org/blog/2008/12/hibernate-hsql-native-queries-and-booleans/</a>
+ * @see <a href="https://www.codesmell.org/blog/2008/12/hibernate-hsql-native-queries-and-booleans/">https://www.codesmell.org/blog/2008/12/hibernate-hsql-native-queries-and-booleans/</a>
  * @author Oliver Gierke
  */
 public class CustomHsqlHibernateJpaVendorAdaptor extends HibernateJpaVendorAdapter {
