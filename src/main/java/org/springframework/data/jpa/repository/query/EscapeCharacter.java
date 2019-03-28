@@ -20,8 +20,6 @@ import lombok.Value;
 import java.util.Arrays;
 import java.util.List;
 
-import org.springframework.util.Assert;
-
 /**
  * A value type encapsulating an escape character for LIKE queries and the actually usage of it in escaping
  * {@link String}s.
@@ -39,12 +37,14 @@ public class EscapeCharacter {
 	/**
 	 * Escapes all special like characters ({@code _}, {@code %}) using the configured escape character.
 	 *
-	 * @param value must not be {@literal null}.
+	 * @param value May be {@literal null}.
 	 * @return
 	 */
 	public String escape(String value) {
 
-		Assert.notNull(value, "Value must be not null.");
+		if (value == null) {
+			return null;
+		}
 
 		String result = value;
 
@@ -53,5 +53,14 @@ public class EscapeCharacter {
 		}
 
 		return result;
+	}
+
+	/**
+	 * Makes the underlying character available.
+	 *
+	 * @return the value
+	 */
+	public char escapeCharacter() {
+		return value;
 	}
 }
