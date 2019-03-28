@@ -36,7 +36,6 @@ import javax.persistence.metamodel.SingularAttribute;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.query.ParameterMetadataProvider.ParameterMetadata;
-import org.springframework.data.jpa.repository.support.EscapeCharacter;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
