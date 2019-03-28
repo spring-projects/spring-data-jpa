@@ -45,6 +45,7 @@ import org.springframework.dao.annotation.PersistenceExceptionTranslationPostPro
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.support.DefaultJpaContext;
 import org.springframework.data.jpa.repository.support.EntityManagerBeanDefinitionRegistrarPostProcessor;
+import org.springframework.data.jpa.repository.support.JpaEvaluationContextExtension;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean;
 import org.springframework.data.repository.config.AnnotationRepositoryConfigurationSource;
 import org.springframework.data.repository.config.RepositoryConfigurationExtensionSupport;
@@ -76,6 +77,7 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 	private static final String DEFAULT_TRANSACTION_MANAGER_BEAN_NAME = "transactionManager";
 	private static final String ENABLE_DEFAULT_TRANSACTIONS_ATTRIBUTE = "enableDefaultTransactions";
 	private static final String JPA_METAMODEL_CACHE_CLEANUP_CLASSNAME = "org.springframework.data.jpa.util.JpaMetamodelCacheCleanup";
+	private static final String ESCAPE_CHARACTER_PROPERTY = "escapeCharacter";
 
 	/*
 	 * (non-Javadoc)
@@ -132,17 +134,18 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 		Optional<String> transactionManagerRef = source.getAttribute("transactionManagerRef");
 		builder.addPropertyValue("transactionManager", transactionManagerRef.orElse(DEFAULT_TRANSACTION_MANAGER_BEAN_NAME));
 		builder.addPropertyValue("entityManager", getEntityManagerBeanDefinitionFor(source, source.getSource()));
-		builder.addPropertyValue("escapeCharacter", getEscapeCharacter(source).orElse('\\'));
+		builder.addPropertyValue(ESCAPE_CHARACTER_PROPERTY, getEscapeCharacter(source).orElse('\\'));
 		builder.addPropertyReference("mappingContext", JPA_MAPPING_CONTEXT_BEAN_NAME);
 	}
 
 	/**
-	 * XML configurations do not support {@link Character} values. This method catches the exception thrown and returns an {@link Optional#empty()} instead.
+	 * XML configurations do not support {@link Character} values. This method catches the exception thrown and returns an
+	 * {@link Optional#empty()} instead.
 	 */
 	private static Optional<Character> getEscapeCharacter(RepositoryConfigurationSource source) {
 
 		try {
-			return source.getAttribute("escapeCharacter", Character.class);
+			return source.getAttribute(ESCAPE_CHARACTER_PROPERTY, Character.class);
 		} catch (IllegalArgumentException ___) {
 			return Optional.empty();
 		}
@@ -209,6 +212,21 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 
 		registerIfNotAlreadyRegistered(() -> new RootBeanDefinition(JPA_METAMODEL_CACHE_CLEANUP_CLASSNAME), registry,
 				JPA_METAMODEL_CACHE_CLEANUP_CLASSNAME, source);
+
+		// EvaluationContextExtension for JPA specific SpEL functions
+
+		registerIfNotAlreadyRegistered(() -> {
+
+			Object value = AnnotationRepositoryConfigurationSource.class.isInstance(config) //
+					? config.getRequiredAttribute(ESCAPE_CHARACTER_PROPERTY, Character.class) //
+					: config.getAttribute(ESCAPE_CHARACTER_PROPERTY).orElse("\\");
+
+			BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(JpaEvaluationContextExtension.class);
+			builder.addConstructorArgValue(value);
+
+			return builder.getBeanDefinition();
+
+		}, registry, JpaEvaluationContextExtension.class.getName(), source);
 	}
 
 	/*
