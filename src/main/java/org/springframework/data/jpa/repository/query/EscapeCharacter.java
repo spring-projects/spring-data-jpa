@@ -20,7 +20,7 @@ import lombok.Value;
 import java.util.Arrays;
 import java.util.List;
 
-import org.springframework.util.Assert;
+import org.springframework.lang.Nullable;
 
 /**
  * A value type encapsulating an escape character for LIKE queries and the actually usage of it in escaping
@@ -39,14 +39,25 @@ public class EscapeCharacter {
 	/**
 	 * Escapes all special like characters ({@code _}, {@code %}) using the configured escape character.
 	 *
-	 * @param value must not be {@literal null}.
+	 * @param value May be {@literal null}.
 	 * @return
 	 */
+	@Nullable
 	public String escape(String value) {
 
-		Assert.notNull(value, "Value must be not null.");
-
+		if (value == null) {
+			return null;
+		}
 		return TO_REPLACE.stream() //
 				.reduce(value, (it, character) -> it.replace(character, this.value + character));
+	}
+
+	/**
+	 * Makes the underlying character available.
+	 *
+	 * @return the value
+	 */
+	public char escapeCharacter() {
+		return value;
 	}
 }
