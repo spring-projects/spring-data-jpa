@@ -160,6 +160,7 @@ The JPA module supports defining a query manually as a String or having it being
 Derived queries with the predicates `IsStartingWith`, `StartingWith`, `StartsWith`, IsEndingWith", `EndingWith`, `EndsWith`,
 `IsNotContaining`, `NotContaining`, `NotContains`, `IsContaining`, `Containing`, `Contains` the respective arguments for these queries will get sanitized.
 This means if the arguments actually contain characters recognized by `LIKE` as wildcards these will get escaped so they match only as literals.
+The escape character used can be configured by setting the `escapeCharacter` of the `@EnableJpaRepositories` annotation.
 Compare with <<jpa.query.spel-expressions>>.
 
 ==== Declared Queries
@@ -493,7 +494,7 @@ List<User> findByLastnameWithSpelExpression(@Param("lastname") String lastname);
 ====
 
 When using `like`-conditions with values that are coming from a not secure source the values should be sanitized so they can't contain any wildcards and thereby allow attackers to select more data than they should be able to.
-For this purpose the the `escape(String, String)` method is made available in the SpEL context.
+For this purpose the the `escape(String)` method is made available in the SpEL context.
 It prefixes all instances of `_` and `%` in the first argument with the single character from the second argument.
 In combination with the `escape` clause of the `like` expression available in JPQL and standard SQL this allows easy cleaning of bind parameters.
 
@@ -502,13 +503,14 @@ In combination with the `escape` clause of the `like` expression available in JP
 ====
 [source, java]
 ----
-@Query("select u from User u where u.firstname like %?#{#escape([0],'#')}% escape '#'")
+@Query("select u from User u where u.firstname like %?#{escape([0])}% escape ?#{escapeCharacter()}")
 List<User> findContainingEscaped(String namePart);
 ----
 ====
 
 Given this method declaration in an repository interface `findContainingEscaped("Peter_")" will find `Peter_Parker` but not `Peter Parker`.
-Note that the method `escape(String, String)` available in the SpEL context will only escape the SQL and JPQL standard wildcards `_` and `%`.
+The escape character used can be configured by setting the `escapeCharacter` of the `@EnableJpaRepositories` annotation.
+Note that the method `escape(String)` available in the SpEL context will only escape the SQL and JPQL standard wildcards `_` and `%`.
 If the underlying database or the JPA implementation supports additional wildcards these will not get escaped.
 
 [[jpa.modifying-queries]]
