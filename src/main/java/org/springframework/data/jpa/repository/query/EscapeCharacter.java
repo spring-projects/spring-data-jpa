@@ -13,35 +13,45 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.jpa.repository.support;
+package org.springframework.data.jpa.repository.query;
 
 import lombok.Value;
+
+import java.util.Arrays;
+import java.util.List;
 
 import org.springframework.util.Assert;
 
 /**
- * A Value-class encapsulating an escape character for LIKE queries and the actually usage of it in escaping Strings.
+ * A value type encapsulating an escape character for LIKE queries and the actually usage of it in escaping
+ * {@link String}s.
  *
  * @author Jens Schauder
+ * @author Oliver Drotbohm
  */
 @Value(staticConstructor = "of")
 public class EscapeCharacter {
+
+	private static final List<String> TO_REPLACE = Arrays.asList("_", "%");
+
 	char value;
 
+	/**
+	 * Escapes all special like characters ({@code _}, {@code %}) using the configured escape character.
+	 *
+	 * @param value must not be {@literal null}.
+	 * @return
+	 */
 	public String escape(String value) {
 
 		Assert.notNull(value, "Value must be not null.");
 
-		return value.replace("_", value + "_").replace("%", value + "%");
-	}
+		String result = value;
 
-	// used for SpEL expressions
-	static String escape(String value, String escape) {
+		for (String toReplace : TO_REPLACE) {
+			result = result.replace(toReplace, value + toReplace);
+		}
 
-		Assert.hasText(escape, "escape must be a sinlge character String.");
-		char[] chars = escape.toCharArray();
-		Assert.isTrue(chars.length == 1, "escape must be a single character String.");
-
-		return EscapeCharacter.of(chars[0]).escape(value);
+		return result;
 	}
 }

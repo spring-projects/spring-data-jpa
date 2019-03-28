@@ -39,6 +39,7 @@ import org.springframework.dao.annotation.PersistenceExceptionTranslationPostPro
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.support.DefaultJpaContext;
 import org.springframework.data.jpa.repository.support.EntityManagerBeanDefinitionRegistrarPostProcessor;
+import org.springframework.data.jpa.repository.support.JpaEvaluationContextExtension;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean;
 import org.springframework.data.repository.config.AnnotationRepositoryConfigurationSource;
 import org.springframework.data.repository.config.RepositoryConfigurationExtensionSupport;
@@ -65,6 +66,7 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 	private static final Class<?> PAB_POST_PROCESSOR = PersistenceAnnotationBeanPostProcessor.class;
 	private static final String DEFAULT_TRANSACTION_MANAGER_BEAN_NAME = "transactionManager";
 	private static final String ENABLE_DEFAULT_TRANSACTIONS_ATTRIBUTE = "enableDefaultTransactions";
+	private static final String ESCAPE_CHARACTER_PROPERTY = "escapeCharacter";
 
 	/*
 	 * (non-Javadoc)
@@ -134,16 +136,17 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 	 */
 	private static Character getEscapeCharacter(RepositoryConfigurationSource source) {
 
-		try {
+		if (AnnotationRepositoryConfigurationSource.class.isInstance(source)) {
 
-			return AnnotationRepositoryConfigurationSource.class.isInstance(source) //
-					? (Character) AnnotationRepositoryConfigurationSource.class.cast(source).getAttributes()
-							.get("escapeCharacter") //
-					: source.getAttribute("escapeCharacter").toCharArray()[0];
-
-		} catch (IllegalArgumentException ___) {
-			return null;
+			return (Character) AnnotationRepositoryConfigurationSource.class//
+					.cast(source) //
+					.getAttributes() //
+					.get(ESCAPE_CHARACTER_PROPERTY);
 		}
+
+		String attribute = source.getAttribute(ESCAPE_CHARACTER_PROPERTY);
+
+		return attribute == null ? null : attribute.toCharArray()[0];
 	}
 
 	/*
@@ -199,6 +202,16 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 		contextDefinition.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_CONSTRUCTOR);
 
 		registerIfNotAlreadyRegistered(contextDefinition, registry, JPA_CONTEXT_BEAN_NAME, source);
+
+		// EvaluationContextExtension for JPA specific SpEL functions
+
+		Character escapeCharacter = getEscapeCharacter(config);
+
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(JpaEvaluationContextExtension.class);
+		builder.addConstructorArgValue(escapeCharacter == null ? '\\' : escapeCharacter);
+
+		registerIfNotAlreadyRegistered(builder.getBeanDefinition(), registry, JpaEvaluationContextExtension.class.getName(),
+				source);
 	}
 
 	/**
