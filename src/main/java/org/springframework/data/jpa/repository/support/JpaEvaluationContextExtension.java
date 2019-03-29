@@ -15,6 +15,8 @@
  */
 package org.springframework.data.jpa.repository.support;
 
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.data.jpa.repository.query.EscapeCharacter;
 import org.springframework.data.spel.spi.EvaluationContextExtension;
 
@@ -26,7 +28,7 @@ import org.springframework.data.spel.spi.EvaluationContextExtension;
  */
 public class JpaEvaluationContextExtension implements EvaluationContextExtension {
 
-	private final EscapeCharacter character;
+	private final JpaRootObject root;
 
 	/**
 	 * Creates a new {@link JpaEvaluationContextExtension} for the given escape character.
@@ -34,7 +36,7 @@ public class JpaEvaluationContextExtension implements EvaluationContextExtension
 	 * @param escapeCharacter the character to be used to escape parameters for LIKE expression.
 	 */
 	public JpaEvaluationContextExtension(char escapeCharacter) {
-		this.character = EscapeCharacter.of(escapeCharacter);
+		this.root = JpaRootObject.of(EscapeCharacter.of(escapeCharacter));
 	}
 
 	/*
@@ -52,6 +54,32 @@ public class JpaEvaluationContextExtension implements EvaluationContextExtension
 	 */
 	@Override
 	public Object getRootObject() {
-		return character;
+		return root;
+	}
+
+	@RequiredArgsConstructor(staticName = "of")
+	public static class JpaRootObject {
+
+		private final EscapeCharacter character;
+
+		/**
+		 * Escapes the given source {@link String} for LIKE expressions.
+		 *
+		 * @param source can be {@literal null}.
+		 * @return
+		 * @see EscapeCharacter#escape(String)
+		 */
+		public String escape(String source) {
+			return character.escape(source);
+		}
+
+		/**
+		 * Returns the escape character being used to escape special characters for LIKE expressions.
+		 *
+		 * @return
+		 */
+		public char escapeCharacter() {
+			return character.getEscapeCharacter();
+		}
 	}
 }
