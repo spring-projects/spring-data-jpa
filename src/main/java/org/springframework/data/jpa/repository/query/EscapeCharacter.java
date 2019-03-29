@@ -34,30 +34,20 @@ public class EscapeCharacter {
 
 	private static final List<String> TO_REPLACE = Arrays.asList("_", "%");
 
-	char value;
+	char escapeCharacter;
 
 	/**
 	 * Escapes all special like characters ({@code _}, {@code %}) using the configured escape character.
 	 *
-	 * @param value May be {@literal null}.
+	 * @param value may be {@literal null}.
 	 * @return
 	 */
 	@Nullable
 	public String escape(String value) {
 
-		if (value == null) {
-			return null;
-		}
-		return TO_REPLACE.stream() //
-				.reduce(value, (it, character) -> it.replace(character, this.value + character));
-	}
-
-	/**
-	 * Makes the underlying character available.
-	 *
-	 * @return the value
-	 */
-	public char escapeCharacter() {
-		return value;
+		return value == null //
+				? null //
+				: TO_REPLACE.stream() //
+						.reduce(value, (it, character) -> it.replace(character, this.escapeCharacter + character));
 	}
 }
