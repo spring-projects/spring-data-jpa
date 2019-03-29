@@ -291,7 +291,7 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extend
 					Expression<String> stringPath = getTypedPath(root, part);
 					Expression<String> propertyExpression = upperIfIgnoreCase(stringPath);
 					Expression<String> parameterExpression = upperIfIgnoreCase(provider.next(part, String.class).getExpression());
-					Predicate like = builder.like(propertyExpression, parameterExpression, escape.getValue());
+					Predicate like = builder.like(propertyExpression, parameterExpression, escape.getEscapeCharacter());
 					return type.equals(NOT_LIKE) || type.equals(NOT_CONTAINING) ? like.not() : like;
 				case TRUE:
 					Expression<Boolean> truePath = getTypedPath(root, part);

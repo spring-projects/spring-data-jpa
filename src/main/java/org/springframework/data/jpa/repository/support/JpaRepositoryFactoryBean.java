@@ -18,11 +18,11 @@ package org.springframework.data.jpa.repository.support;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
+import org.springframework.data.jpa.repository.query.EscapeCharacter;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.core.support.RepositoryFactorySupport;
 import org.springframework.data.repository.core.support.TransactionalRepositoryFactoryBeanSupport;
-import org.springframework.data.jpa.repository.query.EscapeCharacter;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -39,6 +39,8 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 		extends TransactionalRepositoryFactoryBeanSupport<T, S, ID> {
 
 	private @Nullable EntityManager entityManager;
+	private EscapeCharacter escapeCharacter = EscapeCharacter.of('\\');
+
 	/**
 	 * Creates a new {@link JpaRepositoryFactoryBean} for the given repository interface.
 	 *
@@ -46,6 +48,15 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 	 */
 	public JpaRepositoryFactoryBean(Class<? extends T> repositoryInterface) {
 		super(repositoryInterface);
+	}
+
+	/**
+	 * Configures the escape character to be used to escape reserved characters in LIKE expressions.
+	 *
+	 * @param escapeCharacter
+	 */
+	public void setEscapeCharacter(char escapeCharacter) {
+		this.escapeCharacter = EscapeCharacter.of(escapeCharacter);
 	}
 
 	/**
@@ -76,7 +87,7 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 	@Override
 	protected RepositoryFactorySupport doCreateRepositoryFactory() {
 
-		Assert.state(entityManager != null,"EntityManager must not be null!");
+		Assert.state(entityManager != null, "EntityManager must not be null!");
 
 		return createRepositoryFactory(entityManager);
 	}
@@ -102,12 +113,7 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 	@Override
 	public void afterPropertiesSet() {
 
-		Assert.state(entityManager != null,"EntityManager must not be null!");
+		Assert.state(entityManager != null, "EntityManager must not be null!");
 		super.afterPropertiesSet();
-	}
-
-	public void setEscapeCharacter(char escapeCharacter) {
-
-		this.escapeCharacter = EscapeCharacter.of(escapeCharacter);
 	}
 }

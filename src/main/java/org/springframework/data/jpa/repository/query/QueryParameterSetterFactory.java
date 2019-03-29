@@ -28,7 +28,6 @@ import org.springframework.data.jpa.repository.query.StringQuery.ParameterBindin
 import org.springframework.data.repository.query.EvaluationContextProvider;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
-import org.springframework.data.jpa.repository.support.EscapeCharacter;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;

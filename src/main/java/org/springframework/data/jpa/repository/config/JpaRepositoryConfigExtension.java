@@ -214,16 +214,13 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 
 		// EvaluationContextExtension for JPA specific SpEL functions
 
-		registerIfNotAlreadyRegistered(() -> {
+		Object value = getEscapeCharacter(config).orElse('\\');
 
-			Object value = getEscapeCharacter(config).orElse('\\');
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(JpaEvaluationContextExtension.class);
+		builder.addConstructorArgValue(value);
 
-			BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(JpaEvaluationContextExtension.class);
-			builder.addConstructorArgValue(value);
-
-			return builder.getBeanDefinition();
-
-		}, registry, JpaEvaluationContextExtension.class.getName(), source);
+		registerIfNotAlreadyRegistered(builder.getBeanDefinition(), registry, JpaEvaluationContextExtension.class.getName(),
+				source);
 	}
 
 	/*
