@@ -51,7 +51,7 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID extends
 	}
 
 	/**
-	 * Configures the escape character to be used to escape reserved characters for LIKE expressions.
+	 * Configures the escape character to be used to escape reserved characters in LIKE expressions.
 	 *
 	 * @param escapeCharacter
 	 */

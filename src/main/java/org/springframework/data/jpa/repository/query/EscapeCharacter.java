@@ -32,12 +32,12 @@ public class EscapeCharacter {
 
 	private static final List<String> TO_REPLACE = Arrays.asList("_", "%");
 
-	char value;
+	char escapeCharacter;
 
 	/**
 	 * Escapes all special like characters ({@code _}, {@code %}) using the configured escape character.
 	 *
-	 * @param value May be {@literal null}.
+	 * @param value may be {@literal null}.
 	 * @return
 	 */
 	public String escape(String value) {
@@ -49,18 +49,9 @@ public class EscapeCharacter {
 		String result = value;
 
 		for (String toReplace : TO_REPLACE) {
-			result = result.replace(toReplace, value + toReplace);
+			result = result.replace(toReplace, escapeCharacter + toReplace);
 		}
 
 		return result;
-	}
-
-	/**
-	 * Makes the underlying character available.
-	 *
-	 * @return the value
-	 */
-	public char escapeCharacter() {
-		return value;
 	}
 }
