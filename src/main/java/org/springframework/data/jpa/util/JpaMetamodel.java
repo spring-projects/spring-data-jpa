@@ -1,11 +1,11 @@
 /*
- * Copyright 2016-2018 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,9 +16,9 @@
 package org.springframework.data.jpa.util;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.persistence.metamodel.EntityType;
 import javax.persistence.metamodel.ManagedType;
@@ -34,10 +34,11 @@ import org.springframework.util.Assert;
  *
  * @author Oliver Gierke
  * @author Mark Paluch
+ * @author Sylvère Richard
  */
 public class JpaMetamodel {
 
-	private static final Map<Metamodel, JpaMetamodel> CACHE = new HashMap<>(4);
+	private static final Map<Metamodel, JpaMetamodel> CACHE = new ConcurrentHashMap<>(4);
 
 	private final Metamodel metamodel;
 
@@ -93,6 +94,13 @@ public class JpaMetamodel {
 				.filter(it -> it.getJavaType().equals(attributeType)) //
 				.map(it -> it.getName().equals(name)) //
 				.orElse(false);
+	}
+
+	/**
+	 * Wipes the static cache of {@link Metamodel} to {@link JpaMetamodel}.
+	 */
+	static void clear() {
+		CACHE.clear();
 	}
 
 	/**

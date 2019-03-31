@@ -1,11 +1,11 @@
 /*
- * Copyright 2015-2018 the original author or authors.
+ * Copyright 2015-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -44,7 +44,7 @@ import org.threeten.bp.ZoneId;
  * package to be scanned on e.g. the {@link LocalContainerEntityManagerFactoryBean}.
  *
  * @author Oliver Gierke
- * @see <a href="http://www.threeten.org/threetenbp">http://www.threeten.org/threetenbp</a>
+ * @see <a href="https://www.threeten.org/threetenbp">https://www.threeten.org/threetenbp</a>
  * @since 1.8
  */
 public class ThreeTenBackPortJpaConverters {
@@ -108,6 +108,7 @@ public class ThreeTenBackPortJpaConverters {
 	@Converter(autoApply = true)
 	public static class ZoneIdConverter implements AttributeConverter<ZoneId, String> {
 
+		@Override
 		public String convertToDatabaseColumn(ZoneId zoneId) {
 			return ZoneIdToStringConverter.INSTANCE.convert(zoneId);
 		}

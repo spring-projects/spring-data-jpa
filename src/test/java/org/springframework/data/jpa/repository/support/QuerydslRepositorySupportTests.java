@@ -1,11 +1,11 @@
 /*
- * Copyright 2011-2018 the original author or authors.
+ * Copyright 2011-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -137,14 +137,17 @@ public class QuerydslRepositorySupportTests {
 			super.setEntityManager(entityManager);
 		}
 
+		@Override
 		public List<User> findUsersByLastname(String lastname) {
 			return from(user).where(user.lastname.eq(lastname)).fetch();
 		}
 
+		@Override
 		public long updateLastnamesTo(String lastname) {
 			return update(user).set(user.lastname, lastname).execute();
 		}
 
+		@Override
 		public long deleteAllWithLastname(String lastname) {
 			return delete(user).where(user.lastname.eq(lastname)).execute();
 		}

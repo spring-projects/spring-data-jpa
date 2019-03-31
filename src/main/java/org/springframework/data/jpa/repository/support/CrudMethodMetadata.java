@@ -1,11 +1,11 @@
 /*
- * Copyright 2011-2018 the original author or authors.
+ * Copyright 2011-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,6 +32,7 @@ import org.springframework.lang.Nullable;
  * @author Thomas Darimont
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Jens Schauder
  */
 public interface CrudMethodMetadata {
 
@@ -49,6 +50,17 @@ public interface CrudMethodMetadata {
 	 * @return
 	 */
 	Map<String, Object> getQueryHints();
+
+	/**
+	 * Returns all query hints to be applied to count queries executed for the CRUD method. The default implementation
+	 * just delegates to {@link #getQueryHints()}.
+	 *
+	 * @return
+	 * @since 2.2
+	 */
+	default Map<String, Object> getQueryHintsForCount() {
+		return getQueryHints();
+	}
 
 	/**
 	 * Returns the {@link EntityGraph} to be used.

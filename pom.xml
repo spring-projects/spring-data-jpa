@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
 
@@ -9,7 +9,7 @@
 
 	<name>Spring Data JPA</name>
 	<description>Spring Data module for JPA repositories.</description>
-	<url>http://projects.spring.io/spring-data-jpa</url>
+	<url>https://projects.spring.io/spring-data-jpa</url>
 
 	<parent>
 		<groupId>org.springframework.data.build</groupId>
@@ -23,6 +23,7 @@
 
 		<eclipselink>2.6.5</eclipselink>
 		<hibernate>5.2.17.Final</hibernate>
+		<hibernate.groupId>org.hibernate</hibernate.groupId>
 		<jpa>2.0.0</jpa>
 		<springdata.commons>2.2.0.BUILD-SNAPSHOT</springdata.commons>
 
@@ -64,9 +65,28 @@
 			</repositories>
 		</profile>
 		<profile>
+			<id>hibernate-54</id>
+			<properties>
+				<hibernate>5.4.1.Final</hibernate>
+			</properties>
+		</profile>
+		<profile>
 			<id>hibernate-54-next</id>
 			<properties>
-				<hibernate>5.4.0-SNAPSHOT</hibernate>
+				<hibernate>5.4.2-SNAPSHOT</hibernate>
+			</properties>
+			<repositories>
+				<repository>
+					<id>jboss</id>
+					<url>https://repository.jboss.org/nexus/content/repositories/public</url>
+				</repository>
+			</repositories>
+		</profile>
+		<profile>
+			<id>hibernate-6-next</id>
+			<properties>
+				<hibernate>6.0.0-SNAPSHOT</hibernate>
+				<hibernate.groupId>org.hibernate.orm</hibernate.groupId>
 			</properties>
 			<repositories>
 				<repository>
@@ -219,14 +239,14 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.hibernate</groupId>
+			<groupId>${hibernate.groupId}</groupId>
 			<artifactId>hibernate-core</artifactId>
 			<version>${hibernate}</version>
 			<optional>true</optional>
 		</dependency>
 
 		<dependency>
-			<groupId>org.hibernate</groupId>
+			<groupId>${hibernate.groupId}</groupId>
 			<artifactId>hibernate-jpamodelgen</artifactId>
 			<version>${hibernate}</version>
 			<scope>provided</scope>
@@ -315,7 +335,6 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
-				<version>2.12</version>
 				<dependencies>
 					<dependency>
 						<groupId>org.springframework</groupId>

@@ -10,7 +10,7 @@
 	<xsd:import namespace="http://www.springframework.org/schema/tool" />
 	<xsd:import namespace="http://www.springframework.org/schema/context" />
 	<xsd:import namespace="http://www.springframework.org/schema/data/repository"
-		schemaLocation="http://www.springframework.org/schema/data/repository/spring-repository.xsd" />
+		schemaLocation="https://www.springframework.org/schema/data/repository/spring-repository.xsd" />
 
 	<xsd:element name="repositories">
 		<xsd:complexType>

@@ -1,11 +1,11 @@
 /*
- * Copyright 2011-2018 the original author or authors.
+ * Copyright 2011-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,12 +22,14 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.function.Predicate;
 
 import javax.persistence.LockModeType;
 import javax.persistence.QueryHint;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
+
 import org.springframework.aop.TargetSource;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.interceptor.ExposeInvocationInterceptor;
@@ -53,6 +55,7 @@ import org.springframework.util.ClassUtils;
  * @author Thomas Darimont
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Jens Schauder
  */
 class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, BeanClassLoaderAware {
 
@@ -108,6 +111,7 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 		 * (non-Javadoc)
 		 * @see org.aopalliance.intercept.MethodInterceptor#invoke(org.aopalliance.intercept.MethodInvocation)
 		 */
+		@Override
 		public Object invoke(MethodInvocation invocation) throws Throwable {
 
 			Method method = invocation.getMethod();
@@ -149,6 +153,7 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 
 		private final @Nullable LockModeType lockModeType;
 		private final Map<String, Object> queryHints;
+		private final Map<String, Object> getQueryHintsForCount;
 		private final Optional<EntityGraph> entityGraph;
 		private final Method method;
 
@@ -162,7 +167,8 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 			Assert.notNull(method, "Method must not be null!");
 
 			this.lockModeType = findLockModeType(method);
-			this.queryHints = findQueryHints(method);
+			this.queryHints = findQueryHints(method, it -> true);
+			this.getQueryHintsForCount = findQueryHints(method, QueryHints::forCounting);
 			this.entityGraph = findEntityGraph(method);
 			this.method = method;
 		}
@@ -178,12 +184,12 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 			return annotation == null ? null : (LockModeType) AnnotationUtils.getValue(annotation);
 		}
 
-		private static Map<String, Object> findQueryHints(Method method) {
+		private static Map<String, Object> findQueryHints(Method method, Predicate<QueryHints> annotationFilter) {
 
 			Map<String, Object> queryHints = new HashMap<String, Object>();
 			QueryHints queryHintsAnnotation = AnnotatedElementUtils.findMergedAnnotation(method, QueryHints.class);
 
-			if (queryHintsAnnotation != null) {
+			if (queryHintsAnnotation != null && annotationFilter.test(queryHintsAnnotation)) {
 
 				for (QueryHint hint : queryHintsAnnotation.value()) {
 					queryHints.put(hint.name(), hint.value());
@@ -216,6 +222,15 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 		@Override
 		public Map<String, Object> getQueryHints() {
 			return queryHints;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.jpa.repository.support.CrudMethodMetadata#getQueryHintsForCount()
+		 */
+		@Override
+		public Map<String, Object> getQueryHintsForCount() {
+			return getQueryHintsForCount;
 		}
 
 		/*

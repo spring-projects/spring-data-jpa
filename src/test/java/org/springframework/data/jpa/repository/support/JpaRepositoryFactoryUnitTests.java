@@ -1,11 +1,11 @@
 /*
- * Copyright 2008-2018 the original author or authors.
+ * Copyright 2008-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -167,6 +167,7 @@ public class JpaRepositoryFactoryUnitTests {
 	private interface SimpleSampleRepository extends JpaRepository<User, Integer> {
 
 		@Transactional
+		@Override
 		Optional<User> findById(Integer id);
 	}
 
@@ -189,11 +190,13 @@ public class JpaRepositoryFactoryUnitTests {
 	 */
 	private class SampleCustomRepositoryImpl implements SampleCustomRepository {
 
+		@Override
 		public void throwingRuntimeException() {
 
 			throw new IllegalArgumentException("You lose!");
 		}
 
+		@Override
 		public void throwingCheckedException() throws IOException {
 
 			throw new IOException("You lose!");

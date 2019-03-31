@@ -10,18 +10,15 @@ env:
     - PROFILE=hibernate-next
     - PROFILE=hibernate-53
     - PROFILE=hibernate-53-next
+    - PROFILE=hibernate-54
     - PROFILE=hibernate-54-next
+    - PROFILE=hibernate-6
     - PROFILE=eclipselink-next
     - PROFILE=eclipselink-27
     - PROFILE=eclipselink-27-next
     - PROFILE=querydsl-next
 
-addons:
-  apt:
-    packages:
-    - oracle-java8-installer
 
-sudo: false
 
 cache:
   directories:

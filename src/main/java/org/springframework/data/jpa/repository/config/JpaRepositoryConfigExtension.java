@@ -1,11 +1,11 @@
 /*
- * Copyright 2012-2018 the original author or authors.
+ * Copyright 2012-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -75,6 +75,7 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 	private static final Class<?> PAB_POST_PROCESSOR = PersistenceAnnotationBeanPostProcessor.class;
 	private static final String DEFAULT_TRANSACTION_MANAGER_BEAN_NAME = "transactionManager";
 	private static final String ENABLE_DEFAULT_TRANSACTIONS_ATTRIBUTE = "enableDefaultTransactions";
+	private static final String JPA_METAMODEL_CACHE_CLEANUP_CLASSNAME = "org.springframework.data.jpa.util.JpaMetamodelCacheCleanup";
 
 	/*
 	 * (non-Javadoc)
@@ -192,12 +193,16 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 			return contextDefinition;
 
 		}, registry, JPA_CONTEXT_BEAN_NAME, source);
+
+		registerIfNotAlreadyRegistered(() -> new RootBeanDefinition(JPA_METAMODEL_CACHE_CLEANUP_CLASSNAME), registry,
+				JPA_METAMODEL_CACHE_CLEANUP_CLASSNAME, source);
 	}
 
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.config.RepositoryConfigurationExtensionSupport#getConfigurationInspectionClassLoader(org.springframework.core.io.ResourceLoader)
 	 */
+	@Override
 	protected ClassLoader getConfigurationInspectionClassLoader(ResourceLoader loader) {
 
 		ClassLoader classLoader = loader.getClassLoader();

@@ -1,11 +1,11 @@
 /*
- * Copyright 2008-2018 the original author or authors.
+ * Copyright 2008-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -48,6 +48,7 @@ public class AuditingBeanDefinitionParser implements BeanDefinitionParser {
 	 * (non-Javadoc)
 	 * @see org.springframework.beans.factory.xml.BeanDefinitionParser#parse(org.w3c.dom.Element, org.springframework.beans.factory.xml.ParserContext)
 	 */
+	@Override
 	public BeanDefinition parse(Element element, ParserContext parser) {
 
 		springConfiguredParser.parse(element, parser);
@@ -80,7 +81,7 @@ public class AuditingBeanDefinitionParser implements BeanDefinitionParser {
 	/**
 	 * Copied code of SpringConfiguredBeanDefinitionParser until this class gets public.
 	 *
-	 * @see <a href="http://jira.springframework.org/browse/SPR-7340">SPR-7340</a>
+	 * @see <a href="https://jira.springframework.org/browse/SPR-7340">SPR-7340</a>
 	 * @author Juergen Hoeller
 	 */
 	private static class SpringConfiguredBeanDefinitionParser implements BeanDefinitionParser {
@@ -92,6 +93,7 @@ public class AuditingBeanDefinitionParser implements BeanDefinitionParser {
 
 		private static final String BEAN_CONFIGURER_ASPECT_CLASS_NAME = "org.springframework.beans.factory.aspectj.AnnotationBeanConfigurerAspect";
 
+		@Override
 		public BeanDefinition parse(Element element, ParserContext parserContext) {
 
 			if (!parserContext.getRegistry().containsBeanDefinition(BEAN_CONFIGURER_ASPECT_BEAN_NAME)) {

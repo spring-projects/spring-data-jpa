@@ -1,11 +1,11 @@
 /*
- * Copyright 2008-2018 the original author or authors.
+ * Copyright 2008-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -39,24 +39,28 @@ public interface JpaRepository<T, ID> extends PagingAndSortingRepository<T, ID>,
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.CrudRepository#findAll()
 	 */
+	@Override
 	List<T> findAll();
 
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.PagingAndSortingRepository#findAll(org.springframework.data.domain.Sort)
 	 */
+	@Override
 	List<T> findAll(Sort sort);
 
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.CrudRepository#findAll(java.lang.Iterable)
 	 */
+	@Override
 	List<T> findAllById(Iterable<ID> ids);
 
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.CrudRepository#save(java.lang.Iterable)
 	 */
+	@Override
 	<S extends T> List<S> saveAll(Iterable<S> entities);
 
 	/**
@@ -86,12 +90,14 @@ public interface JpaRepository<T, ID> extends PagingAndSortingRepository<T, ID>,
 	void deleteAllInBatch();
 
 	/**
-	 * Returns a reference to the entity with the given identifier.
+	 * Returns a reference to the entity with the given identifier. Depending on how the JPA persistence provider is
+	 * implemented this is very likely to always return an instance and throw an
+	 * {@link javax.persistence.EntityNotFoundException} on first access. Some of them will reject invalid identifiers
+	 * immediately.
 	 *
 	 * @param id must not be {@literal null}.
 	 * @return a reference to the entity with the given identifier.
-	 * @see EntityManager#getReference(Class, Object)
-	 * @throws javax.persistence.EntityNotFoundException if no entity exists for given {@code id}.
+	 * @see EntityManager#getReference(Class, Object) for details on when an exception is thrown.
 	 */
 	T getOne(ID id);
 

@@ -1,11 +1,11 @@
 /*
- * Copyright 2011-2018 the original author or authors.
+ * Copyright 2011-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -144,6 +144,7 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.core.EntityInformation#getId(java.lang.Object)
 	 */
+	@Override
 	@Nullable
 	@SuppressWarnings("unchecked")
 	public ID getId(T entity) {
@@ -174,6 +175,7 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.core.EntityInformation#getIdType()
 	 */
+	@Override
 	@SuppressWarnings("unchecked")
 	public Class<ID> getIdType() {
 		return (Class<ID>) idMetadata.getType();
@@ -183,6 +185,7 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.support.JpaEntityInformation#getIdAttribute()
 	 */
+	@Override
 	public SingularAttribute<? super T, ?> getIdAttribute() {
 		return idMetadata.getSimpleIdAttribute();
 	}
@@ -191,6 +194,7 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.support.JpaEntityInformation#hasCompositeId()
 	 */
+	@Override
 	public boolean hasCompositeId() {
 		return !idMetadata.hasSimpleId();
 	}
@@ -199,6 +203,7 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.support.JpaEntityInformation#getIdAttributeNames()
 	 */
+	@Override
 	public Iterable<String> getIdAttributeNames() {
 
 		List<String> attributeNames = new ArrayList<String>(idMetadata.attributes.size());
@@ -214,6 +219,7 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.support.JpaEntityInformation#getCompositeIdAttributeValue(java.lang.Object, java.lang.String)
 	 */
+	@Override
 	public Object getCompositeIdAttributeValue(Object id, String idAttribute) {
 
 		Assert.isTrue(hasCompositeId(), "Model must have a composite Id!");
@@ -306,6 +312,7 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 		 * (non-Javadoc)
 		 * @see java.lang.Iterable#iterator()
 		 */
+		@Override
 		public Iterator<SingularAttribute<? super T, ?>> iterator() {
 			return attributes.iterator();
 		}

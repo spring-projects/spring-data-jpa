@@ -1,11 +1,11 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -87,8 +87,9 @@ class JpaAuditingRegistrar extends AuditingBeanDefinitionRegistrarSupport {
 
 		registerBeanConfigurerAspectIfNecessary(registry);
 		super.registerBeanDefinitions(annotationMetadata, registry);
-		registerInfrastructureBeanWithId(BeanDefinitionBuilder.rootBeanDefinition(AuditingBeanFactoryPostProcessor.class)
-				.getRawBeanDefinition(), AuditingBeanFactoryPostProcessor.class.getName(), registry);
+		registerInfrastructureBeanWithId(
+				BeanDefinitionBuilder.rootBeanDefinition(AuditingBeanFactoryPostProcessor.class).getRawBeanDefinition(),
+				AuditingBeanFactoryPostProcessor.class.getName(), registry);
 	}
 
 	/*
@@ -116,7 +117,7 @@ class JpaAuditingRegistrar extends AuditingBeanDefinitionRegistrarSupport {
 	 */
 	private void registerBeanConfigurerAspectIfNecessary(BeanDefinitionRegistry registry) {
 
-		if (registry.containsBeanDefinition(BEAN_CONFIGURER_ASPECT_CLASS_NAME)) {
+		if (registry.containsBeanDefinition(BEAN_CONFIGURER_ASPECT_BEAN_NAME)) {
 			return;
 		}
 
@@ -132,7 +133,7 @@ class JpaAuditingRegistrar extends AuditingBeanDefinitionRegistrarSupport {
 		def.setFactoryMethodName("aspectOf");
 		def.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 
-		registry.registerBeanDefinition(BEAN_CONFIGURER_ASPECT_BEAN_NAME, new BeanComponentDefinition(def,
-				BEAN_CONFIGURER_ASPECT_BEAN_NAME).getBeanDefinition());
+		registry.registerBeanDefinition(BEAN_CONFIGURER_ASPECT_BEAN_NAME,
+				new BeanComponentDefinition(def, BEAN_CONFIGURER_ASPECT_BEAN_NAME).getBeanDefinition());
 	}
 }

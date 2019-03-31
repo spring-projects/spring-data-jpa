@@ -1,11 +1,11 @@
 /*
- * Copyright 2014-2018 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -75,7 +75,7 @@ public @interface EntityGraph {
 		 * by attribute nodes of the entity graph are treated as FetchType.EAGER and attributes that are not specified are
 		 * treated according to their specified or default FetchType.
 		 *
-		 * @see <a href="http://download.oracle.com/otn-pub/jcp/persistence-2_1-fr-eval-spec/JavaPersistence.pdf">JPA 2.1
+		 * @see <a href="https://download.oracle.com/otn-pub/jcp/persistence-2_1-fr-eval-spec/JavaPersistence.pdf">JPA 2.1
 		 *      Specification: 3.7.4.2 Load Graph Semantics</a>
 		 */
 		LOAD("javax.persistence.loadgraph"),
@@ -85,7 +85,7 @@ public @interface EntityGraph {
 		 * by attribute nodes of the entity graph are treated as FetchType.EAGER and attributes that are not specified are
 		 * treated as FetchType.LAZY
 		 *
-		 * @see <a href="http://download.oracle.com/otn-pub/jcp/persistence-2_1-fr-eval-spec/JavaPersistence.pdf">JPA 2.1
+		 * @see <a href="https://download.oracle.com/otn-pub/jcp/persistence-2_1-fr-eval-spec/JavaPersistence.pdf">JPA 2.1
 		 *      Specification: 3.7.4.1 Fetch Graph Semantics</a>
 		 */
 		FETCH("javax.persistence.fetchgraph");

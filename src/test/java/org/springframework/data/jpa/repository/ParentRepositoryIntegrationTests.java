@@ -1,11 +1,11 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -63,6 +63,7 @@ public class ParentRepositoryIntegrationTests {
 	public void testWithoutJoin() throws Exception {
 
 		Page<Parent> page = repository.findAll(new Specification<Parent>() {
+			@Override
 			public Predicate toPredicate(Root<Parent> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
 				Path<Set<Child>> childrenPath = root.get("children");
 				query.distinct(true);
@@ -82,6 +83,7 @@ public class ParentRepositoryIntegrationTests {
 	@Test // DATAJPA-287
 	public void testWithJoin() throws Exception {
 		Page<Parent> page = repository.findAll(new Specification<Parent>() {
+			@Override
 			public Predicate toPredicate(Root<Parent> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
 				root.join("children");
 				// we are interesting in distinct items, especially when join presents in query

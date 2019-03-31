@@ -1,11 +1,11 @@
 /*
- * Copyright 2008-2018 the original author or authors.
+ * Copyright 2008-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -595,7 +595,7 @@ public abstract class QueryUtils {
 			propertyPathModel = from.get(segment).getModel();
 		}
 
-		if (requiresJoin(propertyPathModel, model instanceof PluralAttribute, !property.hasNext(), isForSelection)
+		if (requiresOuterJoin(propertyPathModel, model instanceof PluralAttribute, !property.hasNext(), isForSelection)
 				&& !isAlreadyFetched(from, segment)) {
 			Join<?, ?> join = getOrCreateJoin(from, segment);
 			return (Expression<T>) (property.hasNext() ? toExpressionRecursively(join, property.next(), isForSelection)
@@ -614,9 +614,9 @@ public abstract class QueryUtils {
 	 * @param isPluralAttribute is the attribute of Collection type?
 	 * @param isLeafProperty is this the final property navigated by a {@link PropertyPath}?
 	 * @param isForSelection is the property navigated for the selection part of the query?
-	 * @return wether an outer join is to be used for integrating this attribute in a query.
+	 * @return whether an outer join is to be used for integrating this attribute in a query.
 	 */
-	private static boolean requiresJoin(@Nullable Bindable<?> propertyPathModel, boolean isPluralAttribute,
+	private static boolean requiresOuterJoin(@Nullable Bindable<?> propertyPathModel, boolean isPluralAttribute,
 			boolean isLeafProperty, boolean isForSelection) {
 
 		if (propertyPathModel == null && isPluralAttribute) {
@@ -633,27 +633,38 @@ public abstract class QueryUtils {
 			return false;
 		}
 
+		// if this path is an optional one to one attribute navigated from the not owning side we also need an explicit
+		// outer join to avoid https://hibernate.atlassian.net/browse/HHH-12712 and
+		// https://github.com/eclipse-ee4j/jpa-api/issues/170
+		boolean isInverseOptionalOneToOne = PersistentAttributeType.ONE_TO_ONE == attribute.getPersistentAttributeType()
+				&& StringUtils.hasText(getAnnotationProperty(attribute, "mappedBy", ""));
+
 		// if this path is part of the select list we need to generate an explicit outer join in order to prevent Hibernate
 		// to use an inner join instead.
 		// see https://hibernate.atlassian.net/browse/HHH-12999.
-		if (isLeafProperty && !isForSelection && !attribute.isCollection()) {
+		if (isLeafProperty && !isForSelection && !attribute.isCollection() && !isInverseOptionalOneToOne) {
 			return false;
 		}
+
+		return getAnnotationProperty(attribute, "optional", true);
+	}
+
+	private static <T> T getAnnotationProperty(Attribute<?, ?> attribute, String propertyName, T defaultValue) {
 
 		Class<? extends Annotation> associationAnnotation = ASSOCIATION_TYPES.get(attribute.getPersistentAttributeType());
 
 		if (associationAnnotation == null) {
-			return true;
+			return defaultValue;
 		}
 
 		Member member = attribute.getJavaMember();
 
 		if (!(member instanceof AnnotatedElement)) {
-			return true;
+			return defaultValue;
 		}
 
 		Annotation annotation = AnnotationUtils.getAnnotation((AnnotatedElement) member, associationAnnotation);
-		return annotation == null ? true : (boolean) AnnotationUtils.getValue(annotation, "optional");
+		return annotation == null ? defaultValue : (T) AnnotationUtils.getValue(annotation, propertyName);
 	}
 
 	static Expression<Object> toExpressionRecursively(Path<Object> path, PropertyPath property) {

@@ -1,11 +1,11 @@
 /*
- * Copyright 2014-2018 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -43,6 +43,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Thomas Darimont
  * @author Oliver Gierke
  * @author Christoph Strobl
+ * @author Diego Diez
  * @author Jeff Sheets
  * @since 1.6
  */
@@ -102,6 +103,17 @@ public class StoredProcedureAttributeSourceUnitTests {
 		assertThat(attr.getProcedureName(), is("plus1inout"));
 		assertThat(attr.getOutputParameterTypes().get(0), is(typeCompatibleWith(Integer.class)));
 		assertThat(attr.getOutputParameterNames().get(0), is(StoredProcedureAttributes.SYNTHETIC_OUTPUT_PARAMETER_NAME));
+	}
+
+    @Test // DATAJPA-1297
+	public void shouldCreateStoredProcedureAttributesFromProcedureMethodWithExplictProcedureNameAliasAndOutputParameterName() {
+
+		StoredProcedureAttributes attr = creator
+				.createFrom(method("explicitPlus1inoutViaProcedureNameAliasAndOutputParameterName", Integer.class), entityMetadata);
+
+		assertThat(attr.getProcedureName(), is("plus1inout"));
+		assertThat(attr.getOutputParameterType(), is(typeCompatibleWith(Integer.class)));
+		assertThat(attr.getOutputParameterName(), is("res"));
 	}
 
 	@Test // DATAJPA-455
@@ -191,6 +203,12 @@ public class StoredProcedureAttributeSourceUnitTests {
 		 */
 		@Procedure(procedureName = "plus1inout") // DATAJPA-455
 		Integer explicitPlus1inoutViaProcedureNameAlias(Integer arg);
+
+                /**
+		 * Explicitly mapped to a procedure with name "plus1inout" in database via alias and explicityly named ouput parameter.
+		 */
+		@Procedure(procedureName = "plus1inout", outputParameterName = "res") // DATAJPA-1297
+		Integer explicitPlus1inoutViaProcedureNameAliasAndOutputParameterName(Integer arg);
 
 		/**
 		 * Implicitly mapped to a procedure with name "plus1inout" in database via alias.

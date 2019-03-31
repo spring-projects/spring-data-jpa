@@ -1,11 +1,11 @@
 /*
- * Copyright 2008-2018 the original author or authors.
+ * Copyright 2008-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -59,6 +59,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 			Collections.singletonList(HIBERNATE_ENTITY_MANAGER_INTERFACE), //
 			Collections.singletonList(HIBERNATE_JPA_METAMODEL_TYPE)) {
 
+		@Override
 		public String extractQueryString(Query query) {
 			return HibernateUtils.getHibernateQuery(query);
 		}
@@ -119,6 +120,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 	ECLIPSELINK(Collections.singleton(ECLIPSELINK_ENTITY_MANAGER_INTERFACE),
 			Collections.singleton(ECLIPSELINK_JPA_METAMODEL_TYPE)) {
 
+		@Override
 		public String extractQueryString(Query query) {
 			return ((JpaQuery<?>) query).getDatabaseQuery().getJPQLString();
 		}
@@ -307,6 +309,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.query.QueryExtractor#canExtractQuery()
 	 */
+	@Override
 	public boolean canExtractQuery() {
 		return true;
 	}
@@ -380,7 +383,8 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 				throw new NoSuchElementException("No ScrollableResults");
 			}
 
-			Object[] row = scrollableResults.get();
+			// Cast needed for Hibernate 6 compatibility
+			Object[] row = (Object[]) scrollableResults.get();
 
 			return row.length == 1 ? row[0] : row;
 		}
