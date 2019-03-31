@@ -112,8 +112,8 @@ public class StoredProcedureAttributeSourceUnitTests {
 				.createFrom(method("explicitPlus1inoutViaProcedureNameAliasAndOutputParameterName", Integer.class), entityMetadata);
 
 		assertThat(attr.getProcedureName(), is("plus1inout"));
-		assertThat(attr.getOutputParameterType(), is(typeCompatibleWith(Integer.class)));
-		assertThat(attr.getOutputParameterName(), is("res"));
+		assertThat(attr.getOutputParameterTypes().get(0), is(typeCompatibleWith(Integer.class)));
+		assertThat(attr.getOutputParameterNames().get(0), is("res"));
 	}
 
 	@Test // DATAJPA-455
