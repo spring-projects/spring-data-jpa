@@ -205,7 +205,12 @@ public class UserRepositoryFinderTests {
 
 	@Test // DATAJPA-1519
 	public void escapingInLikeSpels() {
-		assertThat(userRepository.findContainingEscaped("att_"), iterableWithSize(0));
+
+		User extra = new User("extra", "Matt_ew", "extra");
+		userRepository.save(extra);
+
+		List<User> result = userRepository.findContainingEscaped("att_");
+		assertThat(result, containsInAnyOrder(extra));
 	}
 
 	@Test // DATAJPA-829
