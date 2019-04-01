@@ -1,6 +1,16 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 2.1.6.RELEASE (2019-04-01)
+---------------------------------------------
+* DATAJPA-1522 - LIKE escape character needs to be escaped ins source value to be handled.
+* DATAJPA-1519 - Query derivation keywords implemented using like expressions do not properly escape underscores and percentages.
+* DATAJPA-1504 - Release 2.1.6 (Lovelace SR6).
+* DATAJPA-1498 - Upgrade Hibernate 5.4 build profile to 5.4.1.
+* DATAJPA-1404 - Is Null query does not return entities.
+* DATAJPA-1156 - Query hints are applied to count queries for QueryDSL even though forCounting is set to false.
+
+
 Changes in version 2.0.14.RELEASE (2019-04-01)
 ----------------------------------------------
 * DATAJPA-1522 - LIKE escape character needs to be escaped ins source value to be handled.
