@@ -18,7 +18,6 @@ package org.springframework.data.jpa.repository.query;
 import lombok.Value;
 
 import java.util.Arrays;
-import java.util.List;
 
 /**
  * A value type encapsulating an escape character for LIKE queries and the actually usage of it in escaping
@@ -29,8 +28,6 @@ import java.util.List;
  */
 @Value(staticConstructor = "of")
 public class EscapeCharacter {
-
-	private static final List<String> TO_REPLACE = Arrays.asList("_", "%");
 
 	char escapeCharacter;
 
@@ -48,7 +45,7 @@ public class EscapeCharacter {
 
 		String result = value;
 
-		for (String toReplace : TO_REPLACE) {
+		for (String toReplace : Arrays.asList(String.valueOf(escapeCharacter), "_", "%")) {
 			result = result.replace(toReplace, escapeCharacter + toReplace);
 		}
 
