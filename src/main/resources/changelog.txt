@@ -1,6 +1,14 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 1.11.19.RELEASE (2019-04-01)
+-----------------------------------------------
+* DATAJPA-1519 - Query derivation keywords implemented using like expressions do not properly escape underscores and percentages.
+* DATAJPA-1502 - Typo in reference docs on Specification.
+* DATAJPA-1493 - Release 1.11.19 (Ingalls SR19).
+* DATAJPA-1297 - outputParameterName in @Procedure is not being used to create the StoredProcedureAttributes.
+
+
 Changes in version 2.2.0.M2 (2019-03-07)
 ----------------------------------------
 * DATAJPA-1502 - Typo in reference docs on Specification.
