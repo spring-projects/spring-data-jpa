@@ -19,6 +19,7 @@ import lombok.Value;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.springframework.lang.Nullable;
 
@@ -43,11 +44,11 @@ public class EscapeCharacter {
 	 * @return
 	 */
 	@Nullable
-	public String escape(String value) {
+	public String escape(@Nullable String value) {
 
 		return value == null //
 				? null //
-				: TO_REPLACE.stream() //
+				: Stream.concat(Stream.of(String.valueOf(escapeCharacter)), TO_REPLACE.stream()) //
 						.reduce(value, (it, character) -> it.replace(character, this.escapeCharacter + character));
 	}
 }
