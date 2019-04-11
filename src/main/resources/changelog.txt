@@ -1,6 +1,14 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 2.2.0.M3 (2019-04-11)
+----------------------------------------
+* DATAJPA-1522 - LIKE escape character needs to be escaped ins source value to be handled.
+* DATAJPA-1519 - Query derivation keywords implemented using like expressions do not properly escape underscores and percentages.
+* DATAJPA-1515 - Move off deprecations in Spring Data Commons.
+* DATAJPA-1513 - Release 2.2 M3 (Moore).
+
+
 Changes in version 2.1.6.RELEASE (2019-04-01)
 ---------------------------------------------
 * DATAJPA-1522 - LIKE escape character needs to be escaped ins source value to be handled.
