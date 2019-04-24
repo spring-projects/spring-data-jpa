@@ -21,6 +21,7 @@
 
 		<dist.key>DATAJPA</dist.key>
 
+		<byte.buddy>1.9.12</byte.buddy>
 		<eclipselink>2.6.5</eclipselink>
 		<hibernate>5.2.17.Final</hibernate>
 		<hibernate.groupId>org.hibernate</hibernate.groupId>
@@ -139,6 +140,21 @@
 		</profile>
 	</profiles>
 
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>net.bytebuddy</groupId>
+				<artifactId>byte-buddy</artifactId>
+				<version>${byte.buddy}</version>
+			</dependency>
+			<dependency>
+				<groupId>net.bytebuddy</groupId>
+				<artifactId>byte-buddy-agent</artifactId>
+				<version>${byte.buddy}</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+	
 	<dependencies>
 
 		<dependency>
