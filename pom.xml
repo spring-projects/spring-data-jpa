@@ -23,6 +23,7 @@
 
 		<eclipselink>2.6.5</eclipselink>
 		<hibernate>5.2.17.Final</hibernate>
+		<mockito>2.19.1</mockito>
 		<hibernate.groupId>org.hibernate</hibernate.groupId>
 		<jpa>2.0.0</jpa>
 		<springdata.commons>2.2.0.BUILD-SNAPSHOT</springdata.commons>
@@ -50,12 +51,14 @@
 			<id>hibernate-53</id>
 			<properties>
 				<hibernate>5.3.5.Final</hibernate>
+				<mockito>2.19.1</mockito>
 			</properties>
 		</profile>
 		<profile>
 			<id>hibernate-53-next</id>
 			<properties>
 				<hibernate>5.3.6-SNAPSHOT</hibernate>
+				<mockito>2.19.1</mockito>
 			</properties>
 			<repositories>
 				<repository>
@@ -68,12 +71,14 @@
 			<id>hibernate-54</id>
 			<properties>
 				<hibernate>5.4.1.Final</hibernate>
+				<mockito>2.19.1</mockito>
 			</properties>
 		</profile>
 		<profile>
 			<id>hibernate-54-next</id>
 			<properties>
 				<hibernate>5.4.2-SNAPSHOT</hibernate>
+				<mockito>2.19.1</mockito>
 			</properties>
 			<repositories>
 				<repository>
@@ -87,6 +92,7 @@
 			<properties>
 				<hibernate>6.0.0-SNAPSHOT</hibernate>
 				<hibernate.groupId>org.hibernate.orm</hibernate.groupId>
+				<mockito>2.19.1</mockito>
 			</properties>
 			<repositories>
 				<repository>
