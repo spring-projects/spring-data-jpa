@@ -37,9 +37,9 @@ import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.data.jpa.util.JpaMetamodel;
 import org.springframework.data.util.DirectFieldAccessFallbackBeanWrapper;
+import org.springframework.data.util.ProxyUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
 
 /**
  * Implementation of {@link org.springframework.data.repository.core.EntityInformation} that uses JPA {@link Metamodel}
@@ -345,7 +345,7 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 			// Derive the identifier from the nested entity that is part of the composite key.
 			@SuppressWarnings("rawtypes")
 			JpaMetamodelEntityInformation nestedEntityInformation = new JpaMetamodelEntityInformation(
-					ClassUtils.getUserClass(value), this.metamodel);
+					ProxyUtils.getUserClass(value), this.metamodel);
 
 			if (!nestedEntityInformation.getJavaType().isAnnotationPresent(IdClass.class)) {
 
@@ -414,7 +414,7 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 			}
 
 			try {
-				ManagedType<? extends Object> managedType = this.metamodel.managedType(ClassUtils.getUserClass(value));
+				ManagedType<? extends Object> managedType = this.metamodel.managedType(ProxyUtils.getUserClass(value));
 				return managedType != null && managedType.getPersistenceType() == PersistenceType.ENTITY;
 			} catch (IllegalArgumentException iae) {
 				// no mapped type
