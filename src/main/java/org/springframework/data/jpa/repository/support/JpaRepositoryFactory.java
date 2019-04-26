@@ -133,6 +133,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 
 		JpaRepositoryImplementation<?, ?> repository = getTargetRepository(information, entityManager);
 		repository.setRepositoryMethodMetadata(crudMethodMetadataPostProcessor.getCrudMethodMetadata());
+		repository.setEscapeCharacter(escapeCharacter);
 
 		return repository;
 	}

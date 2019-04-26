@@ -17,6 +17,7 @@ package org.springframework.data.jpa.repository.support;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.query.EscapeCharacter;
 import org.springframework.data.repository.NoRepositoryBean;
 
 /**
@@ -24,6 +25,7 @@ import org.springframework.data.repository.NoRepositoryBean;
  *
  * @author Oliver Gierke
  * @author Stefan Fussenegger
+ * @author Jens Schauder
  */
 @NoRepositoryBean
 public interface JpaRepositoryImplementation<T, ID> extends JpaRepository<T, ID>, JpaSpecificationExecutor<T> {
@@ -34,4 +36,11 @@ public interface JpaRepositoryImplementation<T, ID> extends JpaRepository<T, ID>
 	 * @param crudMethodMetadata must not be {@literal null}.
 	 */
 	void setRepositoryMethodMetadata(CrudMethodMetadata crudMethodMetadata);
+
+	/**
+	 * Configures the {@link EscapeCharacter} to be used with the repository.
+	 *
+	 * @param escapeCharacter Must not be {@literal null}.
+	 */
+	void setEscapeCharacter(EscapeCharacter escapeCharacter);
 }
