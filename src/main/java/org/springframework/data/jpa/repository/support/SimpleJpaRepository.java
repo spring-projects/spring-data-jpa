@@ -48,6 +48,7 @@ import org.springframework.data.jpa.convert.QueryByExamplePredicateBuilder;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.query.EscapeCharacter;
 import org.springframework.data.jpa.repository.query.QueryUtils;
 import org.springframework.data.jpa.repository.support.QueryHints.NoHints;
 import org.springframework.data.repository.support.PageableExecutionUtils;
@@ -81,6 +82,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	private final PersistenceProvider provider;
 
 	private @Nullable CrudMethodMetadata metadata;
+	private EscapeCharacter escapeCharacter;
 
 	/**
 	 * Creates a new {@link SimpleJpaRepository} to manage objects of the given {@link JpaEntityInformation}.
@@ -117,6 +119,11 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	@Override
 	public void setRepositoryMethodMetadata(CrudMethodMetadata crudMethodMetadata) {
 		this.metadata = crudMethodMetadata;
+	}
+
+	@Override
+	public void setEscapeCharacter(EscapeCharacter escapeCharacter) {
+		this.escapeCharacter = escapeCharacter;
 	}
 
 	@Nullable
@@ -422,7 +429,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 		try {
 			return Optional.of(
-					getQuery(new ExampleSpecification<S>(example), example.getProbeType(), Sort.unsorted()).getSingleResult());
+					getQuery(new ExampleSpecification<S>(example, escapeCharacter), example.getProbeType(), Sort.unsorted()).getSingleResult());
 		} catch (NoResultException e) {
 			return Optional.empty();
 		}
@@ -434,7 +441,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 */
 	@Override
 	public <S extends T> long count(Example<S> example) {
-		return executeCountQuery(getCountQuery(new ExampleSpecification<S>(example), example.getProbeType()));
+		return executeCountQuery(getCountQuery(new ExampleSpecification<S>(example, escapeCharacter), example.getProbeType()));
 	}
 
 	/*
@@ -443,7 +450,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 */
 	@Override
 	public <S extends T> boolean exists(Example<S> example) {
-		return !getQuery(new ExampleSpecification<S>(example), example.getProbeType(), Sort.unsorted()).getResultList()
+		return !getQuery(new ExampleSpecification<S>(example, escapeCharacter), example.getProbeType(), Sort.unsorted()).getResultList()
 				.isEmpty();
 	}
 
@@ -453,7 +460,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 */
 	@Override
 	public <S extends T> List<S> findAll(Example<S> example) {
-		return getQuery(new ExampleSpecification<S>(example), example.getProbeType(), Sort.unsorted()).getResultList();
+		return getQuery(new ExampleSpecification<S>(example, escapeCharacter), example.getProbeType(), Sort.unsorted()).getResultList();
 	}
 
 	/*
@@ -462,7 +469,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 */
 	@Override
 	public <S extends T> List<S> findAll(Example<S> example, Sort sort) {
-		return getQuery(new ExampleSpecification<S>(example), example.getProbeType(), sort).getResultList();
+		return getQuery(new ExampleSpecification<S>(example, escapeCharacter), example.getProbeType(), sort).getResultList();
 	}
 
 	/*
@@ -472,9 +479,9 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	@Override
 	public <S extends T> Page<S> findAll(Example<S> example, Pageable pageable) {
 
-		ExampleSpecification<S> spec = new ExampleSpecification<>(example);
+		ExampleSpecification<S> spec = new ExampleSpecification<>(example, escapeCharacter);
 		Class<S> probeType = example.getProbeType();
-		TypedQuery<S> query = getQuery(new ExampleSpecification<>(example), probeType, pageable);
+		TypedQuery<S> query = getQuery(new ExampleSpecification<>(example, escapeCharacter), probeType, pageable);
 
 		return isUnpaged(pageable) ? new PageImpl<>(query.getResultList()) : readPage(query, probeType, pageable, spec);
 	}
@@ -815,16 +822,21 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		private static final long serialVersionUID = 1L;
 
 		private final Example<T> example;
+		private final EscapeCharacter escapeCharacter;
 
 		/**
 		 * Creates new {@link ExampleSpecification}.
 		 *
 		 * @param example
+		 * @param escapeCharacter
 		 */
-		ExampleSpecification(Example<T> example) {
+		ExampleSpecification(Example<T> example, EscapeCharacter escapeCharacter) {
 
 			Assert.notNull(example, "Example must not be null!");
+			Assert.notNull(escapeCharacter, "EscapeCharacter must not be null!");
+
 			this.example = example;
+			this.escapeCharacter = escapeCharacter;
 		}
 
 		/*
@@ -833,7 +845,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		 */
 		@Override
 		public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
-			return QueryByExamplePredicateBuilder.getPredicate(root, cb, example);
+			return QueryByExamplePredicateBuilder.getPredicate(root, cb, example, escapeCharacter);
 		}
 	}
 }
