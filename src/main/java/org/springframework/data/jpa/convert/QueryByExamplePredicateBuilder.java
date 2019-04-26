@@ -18,7 +18,6 @@ package org.springframework.data.jpa.convert;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
@@ -36,6 +35,7 @@ import javax.persistence.metamodel.SingularAttribute;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
+import org.springframework.data.jpa.repository.query.EscapeCharacter;
 import org.springframework.data.repository.core.support.ExampleMatcherAccessor;
 import org.springframework.data.util.DirectFieldAccessFallbackBeanWrapper;
 import org.springframework.orm.jpa.JpaSystemException;
@@ -54,6 +54,7 @@ import org.springframework.util.StringUtils;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Oliver Gierke
+ * @author Jens Schauder
  * @since 1.10
  */
 public class QueryByExamplePredicateBuilder {
@@ -71,9 +72,11 @@ public class QueryByExamplePredicateBuilder {
 	 * @param root must not be {@literal null}.
 	 * @param cb must not be {@literal null}.
 	 * @param example must not be {@literal null}.
+	 * @param escapeCharacter
 	 * @return never {@literal null}.
 	 */
-	public static <T> Predicate getPredicate(Root<T> root, CriteriaBuilder cb, Example<T> example) {
+	public static <T> Predicate getPredicate(Root<T> root, CriteriaBuilder cb, Example<T> example,
+			EscapeCharacter escapeCharacter) {
 
 		Assert.notNull(root, "Root must not be null!");
 		Assert.notNull(cb, "CriteriaBuilder must not be null!");
@@ -82,7 +85,8 @@ public class QueryByExamplePredicateBuilder {
 		ExampleMatcher matcher = example.getMatcher();
 
 		List<Predicate> predicates = getPredicates("", cb, root, root.getModel(), example.getProbe(),
-				example.getProbeType(), new ExampleMatcherAccessor(matcher), new PathNode("root", null, example.getProbe()));
+				example.getProbeType(), new ExampleMatcherAccessor(matcher), new PathNode("root", null, example.getProbe()),
+				escapeCharacter);
 
 		if (predicates.isEmpty()) {
 			return cb.isTrue(cb.literal(true));
@@ -99,7 +103,8 @@ public class QueryByExamplePredicateBuilder {
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	static List<Predicate> getPredicates(String path, CriteriaBuilder cb, Path<?> from, ManagedType<?> type, Object value,
-			Class<?> probeType, ExampleMatcherAccessor exampleAccessor, PathNode currentNode) {
+			Class<?> probeType, ExampleMatcherAccessor exampleAccessor, PathNode currentNode,
+			EscapeCharacter escapeCharacter) {
 
 		List<Predicate> predicates = new ArrayList<Predicate>();
 		DirectFieldAccessFallbackBeanWrapper beanWrapper = new DirectFieldAccessFallbackBeanWrapper(value);
@@ -125,16 +130,17 @@ public class QueryByExamplePredicateBuilder {
 
 			if (attribute.getPersistentAttributeType().equals(PersistentAttributeType.EMBEDDED)) {
 
-				predicates.addAll(getPredicates(currentPath, cb, from.get(attribute.getName()),
-						(ManagedType<?>) attribute.getType(), attributeValue, probeType, exampleAccessor, currentNode));
+				predicates
+						.addAll(getPredicates(currentPath, cb, from.get(attribute.getName()), (ManagedType<?>) attribute.getType(),
+								attributeValue, probeType, exampleAccessor, currentNode, escapeCharacter));
 				continue;
 			}
 
 			if (isAssociation(attribute)) {
 
 				if (!(from instanceof From)) {
-					throw new JpaSystemException(new IllegalArgumentException(
-							String.format("Unexpected path type for %s. Found %s where From.class was expected.", currentPath, from)));
+					throw new JpaSystemException(new IllegalArgumentException(String
+							.format("Unexpected path type for %s. Found %s where From.class was expected.", currentPath, from)));
 				}
 
 				PathNode node = currentNode.add(attribute.getName(), attributeValue);
@@ -145,7 +151,7 @@ public class QueryByExamplePredicateBuilder {
 				}
 
 				predicates.addAll(getPredicates(currentPath, cb, ((From<?, ?>) from).join(attribute.getName()),
-						(ManagedType<?>) attribute.getType(), attributeValue, probeType, exampleAccessor, node));
+						(ManagedType<?>) attribute.getType(), attributeValue, probeType, exampleAccessor, node, escapeCharacter));
 
 				continue;
 			}
@@ -165,13 +171,25 @@ public class QueryByExamplePredicateBuilder {
 						predicates.add(cb.equal(expression, attributeValue));
 						break;
 					case CONTAINING:
-						predicates.add(cb.like(expression, "%" + attributeValue + "%"));
+						predicates.add(cb.like( //
+								expression, //
+								"%" + escapeCharacter.escape(attributeValue.toString()) + "%", //
+								escapeCharacter.getEscapeCharacter() //
+						));
 						break;
 					case STARTING:
-						predicates.add(cb.like(expression, attributeValue + "%"));
+						predicates.add(cb.like(//
+								expression, //
+								escapeCharacter.escape(attributeValue.toString()) + "%", //
+								escapeCharacter.getEscapeCharacter()) //
+						);
 						break;
 					case ENDING:
-						predicates.add(cb.like(expression, "%" + attributeValue));
+						predicates.add(cb.like( //
+								expression, //
+								"%" + escapeCharacter.escape(attributeValue.toString()), //
+								escapeCharacter.getEscapeCharacter()) //
+						);
 						break;
 					default:
 						throw new IllegalArgumentException(

@@ -51,6 +51,7 @@ import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.query.EscapeCharacter;
 import org.springframework.data.jpa.repository.query.Jpa21Utils;
 import org.springframework.data.jpa.repository.query.JpaEntityGraph;
 import org.springframework.data.jpa.repository.query.QueryUtils;
@@ -63,7 +64,7 @@ import org.springframework.util.Assert;
 /**
  * Default implementation of the {@link org.springframework.data.repository.CrudRepository} interface. This will offer
  * you a more sophisticated interface than the plain {@link EntityManager} .
- * 
+ *
  * @author Oliver Gierke
  * @author Eberhard Wolff
  * @author Thomas Darimont
@@ -83,10 +84,11 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	private final PersistenceProvider provider;
 
 	private CrudMethodMetadata metadata;
+	private EscapeCharacter escapeCharacter;
 
 	/**
 	 * Creates a new {@link SimpleJpaRepository} to manage objects of the given {@link JpaEntityInformation}.
-	 * 
+	 *
 	 * @param entityInformation must not be {@literal null}.
 	 * @param entityManager must not be {@literal null}.
 	 */
@@ -102,7 +104,7 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 
 	/**
 	 * Creates a new {@link SimpleJpaRepository} to manage objects of the given domain type.
-	 * 
+	 *
 	 * @param domainClass must not be {@literal null}.
 	 * @param em must not be {@literal null}.
 	 */
@@ -113,11 +115,15 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	/**
 	 * Configures a custom {@link CrudMethodMetadata} to be used to detect {@link LockModeType}s and query hints to be
 	 * applied to queries.
-	 * 
+	 *
 	 * @param crudMethodMetadata
 	 */
 	public void setRepositoryMethodMetadata(CrudMethodMetadata crudMethodMetadata) {
 		this.metadata = crudMethodMetadata;
+	}
+
+	public void setEscapeCharacter(EscapeCharacter escapeCharacter) {
+		this.escapeCharacter = escapeCharacter;
 	}
 
 	protected CrudMethodMetadata getRepositoryMethodMetadata() {
@@ -211,7 +217,7 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 		}
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.JpaRepository#deleteAllInBatch()
 	 */
@@ -244,7 +250,7 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	/**
 	 * Returns a {@link Map} with the query hints based on the current {@link CrudMethodMetadata} and potential
 	 * {@link EntityGraph} information.
-	 * 
+	 *
 	 * @return
 	 */
 	protected Map<String, Object> getQueryHints() {
@@ -267,7 +273,7 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 		return new JpaEntityGraph(metadata.getEntityGraph(), fallbackName);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.JpaRepository#getOne(java.io.Serializable)
 	 */
@@ -417,35 +423,35 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 		return getQuery(spec, sort).getResultList();
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.query.QueryByExampleExecutor#findOne(org.springframework.data.domain.Example)
 	 */
 	@Override
 	public <S extends T> S findOne(Example<S> example) {
 		try {
-			return getQuery(new ExampleSpecification<S>(example), example.getProbeType(), (Sort) null).getSingleResult();
+			return getQuery(new ExampleSpecification<S>(example, escapeCharacter), example.getProbeType(), (Sort) null).getSingleResult();
 		} catch (NoResultException e) {
 			return null;
 		}
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.query.QueryByExampleExecutor#count(org.springframework.data.domain.Example)
 	 */
 	@Override
 	public <S extends T> long count(Example<S> example) {
-		return executeCountQuery(getCountQuery(new ExampleSpecification<S>(example), example.getProbeType()));
+		return executeCountQuery(getCountQuery(new ExampleSpecification<S>(example, escapeCharacter), example.getProbeType()));
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.query.QueryByExampleExecutor#exists(org.springframework.data.domain.Example)
 	 */
 	@Override
 	public <S extends T> boolean exists(Example<S> example) {
-		return !getQuery(new ExampleSpecification<S>(example), example.getProbeType(), (Sort) null).getResultList()
+		return !getQuery(new ExampleSpecification<S>(example, escapeCharacter), example.getProbeType(), (Sort) null).getResultList()
 				.isEmpty();
 	}
 
@@ -455,7 +461,7 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	 */
 	@Override
 	public <S extends T> List<S> findAll(Example<S> example) {
-		return getQuery(new ExampleSpecification<S>(example), example.getProbeType(), (Sort) null).getResultList();
+		return getQuery(new ExampleSpecification<S>(example, escapeCharacter), example.getProbeType(), (Sort) null).getResultList();
 	}
 
 	/*
@@ -464,7 +470,7 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	 */
 	@Override
 	public <S extends T> List<S> findAll(Example<S> example, Sort sort) {
-		return getQuery(new ExampleSpecification<S>(example), example.getProbeType(), sort).getResultList();
+		return getQuery(new ExampleSpecification<S>(example, escapeCharacter), example.getProbeType(), sort).getResultList();
 	}
 
 	/*
@@ -474,9 +480,9 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	@Override
 	public <S extends T> Page<S> findAll(Example<S> example, Pageable pageable) {
 
-		ExampleSpecification<S> spec = new ExampleSpecification<S>(example);
+		ExampleSpecification<S> spec = new ExampleSpecification<S>(example, escapeCharacter);
 		Class<S> probeType = example.getProbeType();
-		TypedQuery<S> query = getQuery(new ExampleSpecification<S>(example), probeType, pageable);
+		TypedQuery<S> query = getQuery(new ExampleSpecification<S>(example, escapeCharacter), probeType, pageable);
 
 		return pageable == null ? new PageImpl<S>(query.getResultList()) : readPage(query, probeType, pageable, spec);
 	}
@@ -624,7 +630,7 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 
 	/**
 	 * Creates a {@link TypedQuery} for the given {@link Specification} and {@link Sort}.
-	 * 
+	 *
 	 * @param spec can be {@literal null}.
 	 * @param sort can be {@literal null}.
 	 * @return
@@ -658,7 +664,7 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 
 	/**
 	 * Creates a new count query for the given {@link Specification}.
-	 * 
+	 *
 	 * @param spec can be {@literal null}.
 	 * @return
 	 * @deprecated override {@link #getCountQuery(Specification, Class)} instead
@@ -747,7 +753,7 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 
 	/**
 	 * Executes a count query and transparently sums up all values returned.
-	 * 
+	 *
 	 * @param query must not be {@literal null}.
 	 * @return
 	 */
@@ -769,7 +775,7 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	 * Specification that gives access to the {@link Parameter} instance used to bind the ids for
 	 * {@link SimpleJpaRepository#findAll(Iterable)}. Workaround for OpenJPA not binding collections to in-clauses
 	 * correctly when using by-name binding.
-	 * 
+	 *
 	 * @see <a href="https://issues.apache.org/jira/browse/OPENJPA-2018?focusedCommentId=13924055">OPENJPA-2018</a>
 	 * @author Oliver Gierke
 	 */
@@ -807,16 +813,21 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	private static class ExampleSpecification<T> implements Specification<T> {
 
 		private final Example<T> example;
+		private final EscapeCharacter escapeCharacter;
 
 		/**
 		 * Creates new {@link ExampleSpecification}.
 		 *
 		 * @param example
+		 * @param escapeCharacter
 		 */
-		public ExampleSpecification(Example<T> example) {
+		public ExampleSpecification(Example<T> example, EscapeCharacter escapeCharacter) {
 
 			Assert.notNull(example, "Example must not be null!");
+			Assert.notNull(escapeCharacter, "EscapeCharacter must not be null!");
+
 			this.example = example;
+			this.escapeCharacter = escapeCharacter;
 		}
 
 		/*
@@ -825,7 +836,7 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 		 */
 		@Override
 		public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
-			return QueryByExamplePredicateBuilder.getPredicate(root, cb, example);
+			return QueryByExamplePredicateBuilder.getPredicate(root, cb, example, escapeCharacter);
 		}
 	}
 }
