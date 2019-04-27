@@ -36,6 +36,7 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.ExampleMatcher.PropertyValueTransformer;
+import org.springframework.data.jpa.repository.query.EscapeCharacter;
 import org.springframework.data.support.ExampleMatcherAccessor;
 import org.springframework.data.util.DirectFieldAccessFallbackBeanWrapper;
 import org.springframework.lang.Nullable;
@@ -60,6 +61,8 @@ import org.springframework.util.StringUtils;
 public class QueryByExamplePredicateBuilder {
 
 	private static final Set<PersistentAttributeType> ASSOCIATION_TYPES;
+	
+	private static EscapeCharacter escapeCharacter = EscapeCharacter.of('\\');
 
 	static {
 		ASSOCIATION_TYPES = EnumSet.of(PersistentAttributeType.MANY_TO_MANY, //
@@ -163,7 +166,7 @@ public class QueryByExamplePredicateBuilder {
 					expression = cb.lower(expression);
 					attributeValue = attributeValue.toString().toLowerCase();
 				}
-
+				String escapedAttributeValue = null;
 				switch (exampleAccessor.getStringMatcherForPath(currentPath)) {
 
 					case DEFAULT:
@@ -171,13 +174,16 @@ public class QueryByExamplePredicateBuilder {
 						predicates.add(cb.equal(expression, attributeValue));
 						break;
 					case CONTAINING:
-						predicates.add(cb.like(expression, "%" + attributeValue + "%"));
+						escapedAttributeValue = String.format("%%%s%%", escapeCharacter.escape(attributeValue.toString()));
+						predicates.add(cb.like(expression, escapedAttributeValue,escapeCharacter.getEscapeCharacter()));
 						break;
 					case STARTING:
-						predicates.add(cb.like(expression, attributeValue + "%"));
+						escapedAttributeValue = String.format("%s%%", escapeCharacter.escape(attributeValue.toString()));
+						predicates.add(cb.like(expression, escapedAttributeValue,escapeCharacter.getEscapeCharacter()));
 						break;
 					case ENDING:
-						predicates.add(cb.like(expression, "%" + attributeValue));
+						escapedAttributeValue = String.format("%%%s", escapeCharacter.escape(attributeValue.toString()));
+						predicates.add(cb.like(expression, escapedAttributeValue,escapeCharacter.getEscapeCharacter()));
 						break;
 					default:
 						throw new IllegalArgumentException(
