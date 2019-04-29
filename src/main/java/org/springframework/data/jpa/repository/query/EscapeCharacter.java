@@ -33,6 +33,7 @@ import org.springframework.lang.Nullable;
 @Value(staticConstructor = "of")
 public class EscapeCharacter {
 
+	public static final EscapeCharacter DEFAULT = EscapeCharacter.of('\\');
 	private static final List<String> TO_REPLACE = Arrays.asList("_", "%");
 
 	char escapeCharacter;

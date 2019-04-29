@@ -44,7 +44,7 @@ public class ParameterMetadataProviderUnitTests {
 		when(parameters.getBindableParameters().iterator()).thenReturn(Collections.emptyListIterator());
 
 		ParameterMetadataProvider metadataProvider = new ParameterMetadataProvider(builder, parameters,
-				persistenceProvider, EscapeCharacter.of('\\'));
+				persistenceProvider, EscapeCharacter.DEFAULT);
 
 		assertThatExceptionOfType(RuntimeException.class) //
 				.isThrownBy(() -> metadataProvider.next(mock(Part.class))) //

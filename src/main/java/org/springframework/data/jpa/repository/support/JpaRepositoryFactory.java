@@ -69,7 +69,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	private final CrudMethodMetadataPostProcessor crudMethodMetadataPostProcessor;
 
 	private EntityPathResolver entityPathResolver;
-	private EscapeCharacter escapeCharacter = EscapeCharacter.of('\\');
+	private EscapeCharacter escapeCharacter = EscapeCharacter.DEFAULT;
 
 	/**
 	 * Creates a new {@link JpaRepositoryFactory}.

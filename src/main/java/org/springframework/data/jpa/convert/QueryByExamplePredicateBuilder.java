@@ -76,11 +76,23 @@ public class QueryByExamplePredicateBuilder {
 	 * @param root must not be {@literal null}.
 	 * @param cb must not be {@literal null}.
 	 * @param example must not be {@literal null}.
-	 * @param escapeCharacter
+	 * @return never {@literal null}.
+	 */
+	public static <T> Predicate getPredicate(Root<T> root, CriteriaBuilder cb, Example<T> example) {
+		return getPredicate(root, cb, example, EscapeCharacter.DEFAULT);
+	}
+
+	/**
+	 * Extract the {@link Predicate} representing the {@link Example}.
+	 *
+	 * @param root must not be {@literal null}.
+	 * @param cb must not be {@literal null}.
+	 * @param example must not be {@literal null}.
+	 * @param escapeCharacter Must not be {@literal null}.
 	 * @return never {@literal null}.
 	 */
 	public static <T> Predicate getPredicate(Root<T> root, CriteriaBuilder cb, Example<T> example,
-			EscapeCharacter escapeCharacter) {
+											 EscapeCharacter escapeCharacter) {
 
 		Assert.notNull(root, "Root must not be null!");
 		Assert.notNull(cb, "CriteriaBuilder must not be null!");

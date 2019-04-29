@@ -81,7 +81,7 @@ public class ParameterMetadataProviderIntegrationTests {
 		simulateDiscoveredParametername(parameters);
 
 		return new ParameterMetadataProvider(em.getCriteriaBuilder(), parameters,
-				PersistenceProvider.fromEntityManager(em), EscapeCharacter.of('\\'));
+				PersistenceProvider.fromEntityManager(em), EscapeCharacter.DEFAULT);
 	}
 
 	@SuppressWarnings({ "unchecked", "ConstantConditions" })
