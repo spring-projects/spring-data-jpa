@@ -39,7 +39,7 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID extends
 		extends TransactionalRepositoryFactoryBeanSupport<T, S, ID> {
 
 	private EntityManager entityManager;
-	private EscapeCharacter escapeCharacter = EscapeCharacter.of('\\');
+	private EscapeCharacter escapeCharacter = EscapeCharacter.DEFAULT;
 
 	/**
 	 * Creates a new {@link JpaRepositoryFactoryBean} for the given repository interface.

@@ -44,7 +44,7 @@ public class ParameterMetadataProviderUnitTests {
 
 		Parameters<?, ?> parameters = mock(Parameters.class, RETURNS_DEEP_STUBS);
 		ParameterMetadataProvider metadataProvider = new ParameterMetadataProvider(builder, parameters,
-				persistenceProvider, EscapeCharacter.of('\\'));
+				persistenceProvider, EscapeCharacter.DEFAULT);
 
 		exception.expect(IllegalArgumentException.class);
 		exception.expectMessage("parameter");

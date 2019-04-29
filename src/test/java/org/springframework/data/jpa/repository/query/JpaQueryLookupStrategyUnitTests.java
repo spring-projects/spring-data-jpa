@@ -50,7 +50,7 @@ import org.springframework.data.repository.query.QueryLookupStrategy.Key;
 
 /**
  * Unit tests for {@link JpaQueryLookupStrategy}.
- * 
+ *
  * @author Oliver Gierke
  * @author Thomas Darimont
  */
@@ -80,7 +80,7 @@ public class JpaQueryLookupStrategyUnitTests {
 	public void invalidAnnotatedQueryCausesException() throws Exception {
 
 		QueryLookupStrategy strategy = JpaQueryLookupStrategy.create(em, Key.CREATE_IF_NOT_FOUND, extractor,
-				EVALUATION_CONTEXT_PROVIDER, EscapeCharacter.of('\\'));
+				EVALUATION_CONTEXT_PROVIDER, EscapeCharacter.DEFAULT);
 		Method method = UserRepository.class.getMethod("findByFoo", String.class);
 		RepositoryMetadata metadata = new DefaultRepositoryMetadata(UserRepository.class);
 
@@ -99,7 +99,7 @@ public class JpaQueryLookupStrategyUnitTests {
 	public void sholdThrowMorePreciseExceptionIfTryingToUsePaginationInNativeQueries() throws Exception {
 
 		QueryLookupStrategy strategy = JpaQueryLookupStrategy.create(em, Key.CREATE_IF_NOT_FOUND, extractor,
-				EVALUATION_CONTEXT_PROVIDER, EscapeCharacter.of('\\'));
+				EVALUATION_CONTEXT_PROVIDER, EscapeCharacter.DEFAULT);
 		Method method = UserRepository.class.getMethod("findByInvalidNativeQuery", String.class, Pageable.class);
 		RepositoryMetadata metadata = new DefaultRepositoryMetadata(UserRepository.class);
 

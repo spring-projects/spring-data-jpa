@@ -60,7 +60,7 @@ public class JpaCountQueryCreatorIntegrationTests {
 
 		PartTree tree = new PartTree("findDistinctByRolesIn", User.class);
 		ParameterMetadataProvider metadataProvider = new ParameterMetadataProvider(entityManager.getCriteriaBuilder(),
-				queryMethod.getParameters(), provider, EscapeCharacter.of('\\'));
+				queryMethod.getParameters(), provider, EscapeCharacter.DEFAULT);
 
 		JpaCountQueryCreator creator = new JpaCountQueryCreator(tree, queryMethod.getResultProcessor().getReturnedType(),
 				entityManager.getCriteriaBuilder(), metadataProvider);

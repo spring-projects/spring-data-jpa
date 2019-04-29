@@ -18,6 +18,7 @@ package org.springframework.data.jpa.repository.query;
 import lombok.Value;
 
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * A value type encapsulating an escape character for LIKE queries and the actually usage of it in escaping
@@ -28,6 +29,9 @@ import java.util.Arrays;
  */
 @Value(staticConstructor = "of")
 public class EscapeCharacter {
+
+	public static final EscapeCharacter DEFAULT = EscapeCharacter.of('\\');
+	private static final List<String> TO_REPLACE = Arrays.asList("_", "%");
 
 	char escapeCharacter;
 

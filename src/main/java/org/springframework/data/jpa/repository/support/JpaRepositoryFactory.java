@@ -59,7 +59,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	private final QueryExtractor extractor;
 	private final CrudMethodMetadataPostProcessor crudMethodMetadataPostProcessor;
 
-	private EscapeCharacter escapeCharacter = EscapeCharacter.of('\\');
+	private EscapeCharacter escapeCharacter = EscapeCharacter.DEFAULT;
 
 	/**
 	 * Creates a new {@link JpaRepositoryFactory}.

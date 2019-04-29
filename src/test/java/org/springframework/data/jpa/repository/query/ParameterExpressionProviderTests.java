@@ -58,7 +58,7 @@ public class ParameterExpressionProviderTests {
 
 		CriteriaBuilder builder = em.getCriteriaBuilder();
 		PersistenceProvider persistenceProvider = PersistenceProvider.fromEntityManager(em);
-		ParameterMetadataProvider provider = new ParameterMetadataProvider(builder, accessor, persistenceProvider, EscapeCharacter.of('\\'));
+		ParameterMetadataProvider provider = new ParameterMetadataProvider(builder, accessor, persistenceProvider, EscapeCharacter.DEFAULT);
 		ParameterExpression<? extends Comparable> expression = provider.next(part, Comparable.class).getExpression();
 		assertThat(expression.getParameterType(), is(typeCompatibleWith(int.class)));
 	}

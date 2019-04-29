@@ -84,7 +84,7 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	private final PersistenceProvider provider;
 
 	private CrudMethodMetadata metadata;
-	private EscapeCharacter escapeCharacter;
+	private EscapeCharacter escapeCharacter = EscapeCharacter.DEFAULT;
 
 	/**
 	 * Creates a new {@link SimpleJpaRepository} to manage objects of the given {@link JpaEntityInformation}.

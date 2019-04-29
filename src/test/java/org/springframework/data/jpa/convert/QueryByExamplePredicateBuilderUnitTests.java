@@ -120,22 +120,22 @@ public class QueryByExamplePredicateBuilderUnitTests {
 
 	@Test(expected = IllegalArgumentException.class) // DATAJPA-218
 	public void getPredicateShouldThrowExceptionOnNullRoot() {
-		QueryByExamplePredicateBuilder.getPredicate(null, cb, of(new Person()), EscapeCharacter.of('\\'));
+		QueryByExamplePredicateBuilder.getPredicate(null, cb, of(new Person()), EscapeCharacter.DEFAULT);
 	}
 
 	@Test(expected = IllegalArgumentException.class) // DATAJPA-218
 	public void getPredicateShouldThrowExceptionOnNullCriteriaBuilder() {
-		QueryByExamplePredicateBuilder.getPredicate(root, null, of(new Person()), EscapeCharacter.of('\\'));
+		QueryByExamplePredicateBuilder.getPredicate(root, null, of(new Person()), EscapeCharacter.DEFAULT);
 	}
 
 	@Test(expected = IllegalArgumentException.class) // DATAJPA-218
 	public void getPredicateShouldThrowExceptionOnNullExample() {
-		QueryByExamplePredicateBuilder.getPredicate(root, null, null, EscapeCharacter.of('\\'));
+		QueryByExamplePredicateBuilder.getPredicate(root, null, null, EscapeCharacter.DEFAULT);
 	}
 
 	@Test // DATAJPA-218
 	public void emptyCriteriaListShouldResultTruePredicate() {
-		assertThat(QueryByExamplePredicateBuilder.getPredicate(root, cb, of(new Person()), EscapeCharacter.of('\\')),
+		assertThat(QueryByExamplePredicateBuilder.getPredicate(root, cb, of(new Person()), EscapeCharacter.DEFAULT),
 				equalTo(truePredicate));
 	}
 
@@ -145,7 +145,7 @@ public class QueryByExamplePredicateBuilderUnitTests {
 		Person p = new Person();
 		p.firstname = "foo";
 
-		assertThat(QueryByExamplePredicateBuilder.getPredicate(root, cb, of(p), EscapeCharacter.of('\\')),
+		assertThat(QueryByExamplePredicateBuilder.getPredicate(root, cb, of(p), EscapeCharacter.DEFAULT),
 				equalTo(dummyPredicate));
 		verify(cb, times(1)).equal(any(Expression.class), eq("foo"));
 	}
@@ -161,7 +161,7 @@ public class QueryByExamplePredicateBuilderUnitTests {
 		exception.expectCause(IsInstanceOf.<Throwable> instanceOf(IllegalArgumentException.class));
 		exception.expectMessage("Unexpected path type");
 
-		QueryByExamplePredicateBuilder.getPredicate(root, cb, of(p), EscapeCharacter.of('\\'));
+		QueryByExamplePredicateBuilder.getPredicate(root, cb, of(p), EscapeCharacter.DEFAULT);
 	}
 
 	@Test // DATAJPA-218
@@ -171,7 +171,7 @@ public class QueryByExamplePredicateBuilderUnitTests {
 		p.firstname = "foo";
 		p.age = 2L;
 
-		assertThat(QueryByExamplePredicateBuilder.getPredicate(root, cb, of(p), EscapeCharacter.of('\\')),
+		assertThat(QueryByExamplePredicateBuilder.getPredicate(root, cb, of(p), EscapeCharacter.DEFAULT),
 				equalTo(andPredicate));
 
 		verify(cb, times(1)).equal(any(Expression.class), eq("foo"));
@@ -187,7 +187,7 @@ public class QueryByExamplePredicateBuilderUnitTests {
 
 		Example<Person> example = of(person, ExampleMatcher.matchingAny());
 
-		assertThat(QueryByExamplePredicateBuilder.getPredicate(root, cb, example, EscapeCharacter.of('\\')),
+		assertThat(QueryByExamplePredicateBuilder.getPredicate(root, cb, example, EscapeCharacter.DEFAULT),
 				equalTo(orPredicate));
 
 		verify(cb, times(1)).or(Matchers.<Predicate>anyVararg());
@@ -206,7 +206,7 @@ public class QueryByExamplePredicateBuilderUnitTests {
 						.withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING) //
 		);
 
-		QueryByExamplePredicateBuilder.getPredicate(root, cb, example, EscapeCharacter.of('\\'));
+		QueryByExamplePredicateBuilder.getPredicate(root, cb, example, EscapeCharacter.DEFAULT);
 
 		verify(cb, times(1)).like(any(Expression.class), eq("%f\\\\o\\_o%"), eq('\\'));
 	}
@@ -225,7 +225,7 @@ public class QueryByExamplePredicateBuilderUnitTests {
 						.withStringMatcher(ExampleMatcher.StringMatcher.STARTING) //
 		);
 
-		QueryByExamplePredicateBuilder.getPredicate(root, cb, example, EscapeCharacter.of('\\'));
+		QueryByExamplePredicateBuilder.getPredicate(root, cb, example, EscapeCharacter.DEFAULT);
 
 		verify(cb, times(1)).like(any(Expression.class), eq("f\\\\o\\_o%"), eq('\\'));
 	}
@@ -243,7 +243,7 @@ public class QueryByExamplePredicateBuilderUnitTests {
 						.withStringMatcher(ExampleMatcher.StringMatcher.ENDING) //
 		);
 
-		QueryByExamplePredicateBuilder.getPredicate(root, cb, example, EscapeCharacter.of('\\'));
+		QueryByExamplePredicateBuilder.getPredicate(root, cb, example, EscapeCharacter.DEFAULT);
 
 		verify(cb, times(1)).like(any(Expression.class), eq("%f\\\\o\\_o"), eq('\\'));
 	}
