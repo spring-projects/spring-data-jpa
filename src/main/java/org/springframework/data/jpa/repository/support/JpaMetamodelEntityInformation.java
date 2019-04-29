@@ -289,8 +289,8 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 		private Class<?> tryExtractIdTypeWithFallbackToIdTypeLookup() {
 
 			try {
-				Type<?> idType2 = type.getIdType();
-				return idType2 == null ? fallbackIdTypeLookup(type) : idType2.getJavaType();
+				Type<?> idType = type.getIdType();
+				return idType == null ? fallbackIdTypeLookup(type) : idType.getJavaType();
 			} catch (IllegalStateException e) {
 				// see https://hibernate.onjira.com/browse/HHH-6951
 				return fallbackIdTypeLookup(type);
@@ -341,7 +341,7 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 		 * entity that is part of the id key. If this is the case, we need to derive the identifier of the nested entity.
 		 */
 		@Override
-		@SuppressWarnings("unchecked")
+		@SuppressWarnings({ "unchecked", "rawtypes" })
 		public void setPropertyValue(String propertyName, @Nullable Object value) {
 
 			if (!isIdentifierDerivationNecessary(value)) {
@@ -350,7 +350,6 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 			}
 
 			// Derive the identifier from the nested entity that is part of the composite key.
-			@SuppressWarnings("rawtypes")
 			JpaMetamodelEntityInformation nestedEntityInformation = new JpaMetamodelEntityInformation(
 					ProxyUtils.getUserClass(value), this.metamodel);
 
