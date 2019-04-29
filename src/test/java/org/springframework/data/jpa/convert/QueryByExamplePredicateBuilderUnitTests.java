@@ -15,8 +15,7 @@
  */
 package org.springframework.data.jpa.convert;
 
-import static org.hamcrest.core.IsEqual.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.AssertionsForInterfaceTypes.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.data.domain.Example.*;
@@ -37,7 +36,6 @@ import javax.persistence.metamodel.ManagedType;
 import javax.persistence.metamodel.SingularAttribute;
 import javax.persistence.metamodel.Type;
 
-import org.hamcrest.core.IsInstanceOf;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -84,18 +82,18 @@ public class QueryByExamplePredicateBuilderUnitTests {
 	@Before
 	public void setUp() {
 
-		personIdAttribute = new SingluarAttributeStub<Person, Long>("id", PersistentAttributeType.BASIC, Long.class);
-		personFirstnameAttribute = new SingluarAttributeStub<Person, String>("firstname", PersistentAttributeType.BASIC,
+		personIdAttribute = new SingluarAttributeStub<>("id", PersistentAttributeType.BASIC, Long.class);
+		personFirstnameAttribute = new SingluarAttributeStub<>("firstname", PersistentAttributeType.BASIC,
 				String.class);
-		personAgeAttribute = new SingluarAttributeStub<Person, Long>("age", PersistentAttributeType.BASIC, Long.class);
-		personFatherAttribute = new SingluarAttributeStub<Person, Person>("father", PersistentAttributeType.MANY_TO_ONE,
+		personAgeAttribute = new SingluarAttributeStub<>("age", PersistentAttributeType.BASIC, Long.class);
+		personFatherAttribute = new SingluarAttributeStub<>("father", PersistentAttributeType.MANY_TO_ONE,
 				Person.class, personEntityType);
-		personSkillAttribute = new SingluarAttributeStub<Person, Skill>("skill", PersistentAttributeType.MANY_TO_ONE,
+		personSkillAttribute = new SingluarAttributeStub<>("skill", PersistentAttributeType.MANY_TO_ONE,
 				Skill.class);
-		personAddressAttribute = new SingluarAttributeStub<Person, Address>("address", PersistentAttributeType.EMBEDDED,
+		personAddressAttribute = new SingluarAttributeStub<>("address", PersistentAttributeType.EMBEDDED,
 				Address.class);
 
-		personEntityAttribtues = new LinkedHashSet<SingularAttribute<? super Person, ?>>();
+		personEntityAttribtues = new LinkedHashSet<>();
 		personEntityAttribtues.add(personIdAttribute);
 		personEntityAttribtues.add(personFirstnameAttribute);
 		personEntityAttribtues.add(personAgeAttribute);
@@ -135,8 +133,8 @@ public class QueryByExamplePredicateBuilderUnitTests {
 
 	@Test // DATAJPA-218
 	public void emptyCriteriaListShouldResultTruePredicate() {
-		assertThat(QueryByExamplePredicateBuilder.getPredicate(root, cb, of(new Person()), EscapeCharacter.of('\\')),
-				equalTo(truePredicate));
+		assertThat(QueryByExamplePredicateBuilder.getPredicate(root, cb, of(new Person()), EscapeCharacter.of('\\')))
+				.isEqualTo(truePredicate);
 	}
 
 	@Test // DATAJPA-218
@@ -145,8 +143,8 @@ public class QueryByExamplePredicateBuilderUnitTests {
 		Person p = new Person();
 		p.firstname = "foo";
 
-		assertThat(QueryByExamplePredicateBuilder.getPredicate(root, cb, of(p), EscapeCharacter.of('\\')),
-				equalTo(dummyPredicate));
+		assertThat(QueryByExamplePredicateBuilder.getPredicate(root, cb, of(p), EscapeCharacter.of('\\')))
+				.isEqualTo(dummyPredicate);
 		verify(cb, times(1)).equal(any(Expression.class), eq("foo"));
 	}
 
@@ -158,10 +156,10 @@ public class QueryByExamplePredicateBuilderUnitTests {
 		father.father = new Person();
 		p.father = father;
 
-		exception.expectCause(IsInstanceOf.<Throwable> instanceOf(IllegalArgumentException.class));
-		exception.expectMessage("Unexpected path type");
-
-		QueryByExamplePredicateBuilder.getPredicate(root, cb, of(p), EscapeCharacter.of('\\'));
+		assertThatExceptionOfType(RuntimeException.class)
+				.isThrownBy(() -> QueryByExamplePredicateBuilder.getPredicate(root, cb, of(p), EscapeCharacter.of('\\')))
+				.withCauseInstanceOf(IllegalArgumentException.class)
+				.withMessageContaining("Unexpected path type");
 	}
 
 	@Test // DATAJPA-218
@@ -171,8 +169,8 @@ public class QueryByExamplePredicateBuilderUnitTests {
 		p.firstname = "foo";
 		p.age = 2L;
 
-		assertThat(QueryByExamplePredicateBuilder.getPredicate(root, cb, of(p), EscapeCharacter.of('\\')),
-				equalTo(andPredicate));
+		assertThat(QueryByExamplePredicateBuilder.getPredicate(root, cb, of(p), EscapeCharacter.of('\\')))
+				.isEqualTo(andPredicate);
 
 		verify(cb, times(1)).equal(any(Expression.class), eq("foo"));
 		verify(cb, times(1)).equal(any(Expression.class), eq(2L));
@@ -187,8 +185,8 @@ public class QueryByExamplePredicateBuilderUnitTests {
 
 		Example<Person> example = of(person, ExampleMatcher.matchingAny());
 
-		assertThat(QueryByExamplePredicateBuilder.getPredicate(root, cb, example, EscapeCharacter.of('\\')),
-				equalTo(orPredicate));
+		assertThat(QueryByExamplePredicateBuilder.getPredicate(root, cb, example, EscapeCharacter.of('\\')))
+				.isEqualTo(orPredicate);
 
 		verify(cb, times(1)).or(ArgumentMatchers.any());
 	}
@@ -248,6 +246,7 @@ public class QueryByExamplePredicateBuilderUnitTests {
 		verify(cb, times(1)).like(any(Expression.class), eq("%f\\\\o\\_o"), eq('\\'));
 	}
 
+	@SuppressWarnings("unused")
 	static class Person {
 
 		@Id Long id;
@@ -259,12 +258,14 @@ public class QueryByExamplePredicateBuilderUnitTests {
 		Skill skill;
 	}
 
+	@SuppressWarnings("unused")
 	static class Address {
 
 		String city;
 		String country;
 	}
 
+	@SuppressWarnings("unused")
 	static class Skill {
 
 		@Id Long id;
