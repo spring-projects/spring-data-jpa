@@ -82,7 +82,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	private final PersistenceProvider provider;
 
 	private @Nullable CrudMethodMetadata metadata;
-	private EscapeCharacter escapeCharacter;
+	private EscapeCharacter escapeCharacter = EscapeCharacter.DEFAULT;
 
 	/**
 	 * Creates a new {@link SimpleJpaRepository} to manage objects of the given {@link JpaEntityInformation}.

@@ -42,5 +42,7 @@ public interface JpaRepositoryImplementation<T, ID> extends JpaRepository<T, ID>
 	 *
 	 * @param escapeCharacter Must not be {@literal null}.
 	 */
-	void setEscapeCharacter(EscapeCharacter escapeCharacter);
+	default void setEscapeCharacter(EscapeCharacter escapeCharacter) {
+
+	}
 }
