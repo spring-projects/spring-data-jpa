@@ -5,7 +5,7 @@
 
 	<groupId>org.springframework.data</groupId>
 	<artifactId>spring-data-jpa</artifactId>
-	<version>2.2.0.BUILD-SNAPSHOT</version>
+	<version>2.2.0.JENKINS-SNAPSHOT</version>
 
 	<name>Spring Data JPA</name>
 	<description>Spring Data module for JPA repositories.</description>
@@ -132,12 +132,118 @@
 			</repositories>
 		</profile>
 		<profile>
+			<id>snapshot</id>
+
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.jfrog.buildinfo</groupId>
+						<artifactId>artifactory-maven-plugin</artifactId>
+						<version>2.6.1</version>
+						<inherited>false</inherited>
+						<executions>
+							<execution>
+								<id>build-info</id>
+								<goals>
+									<goal>publish</goal>
+								</goals>
+								<configuration>
+									<buildInfo>
+										<buildUrl>{{BUILD_URL}}</buildUrl>
+									</buildInfo>
+									<deployProperties>
+										<zip.name>spring-data-jpa</zip.name>
+										<zip.displayname>spring-data-jpa</zip.displayname>
+										<zip.deployed>false</zip.deployed>
+										<archives>*:*:*:*@zip</archives>
+									</deployProperties>
+									<publisher>
+										<contextUrl>https://repo.spring.io</contextUrl>
+										<username>{{USERNAME}}</username>
+										<password>{{PASSWORD}}</password>
+										<repoKey>libs-snapshot-local</repoKey>
+										<snapshotRepoKey>libs-snapshot-local</snapshotRepoKey>
+									</publisher>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+			<id>docs</id>
+
+			<build>
+				<plugins>
+					<plugin>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<version>1.8</version>
+						<executions>
+							<execution>
+								<id>copy-schemas</id>
+								<phase>prepare-package</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target>
+										<copy todir="${project.build.directory}/site/schemas">
+											<fileset dir="${project.build.directory}/schemas"/>
+										</copy>
+									</target>
+								</configuration>
+							</execution>
+							<execution>
+								<id>package-and-attach-docs-zip</id>
+								<phase>package</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<tasks>
+										<zip destfile="${project.build.directory}/${project.artifactId}-${project.version}.zip">
+											<fileset dir="${project.build.directory}/site"/>
+										</zip>
+									</tasks>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>build-helper-maven-plugin</artifactId>
+						<version>1.10</version>
+						<executions>
+							<execution>
+								<id>attach-zip</id>
+								<goals>
+									<goal>attach-artifact</goal>
+								</goals>
+								<phase>package</phase>
+								<configuration>
+									<artifacts>
+										<artifact>
+											<file>${project.build.directory}/${project.artifactId}-${project.version}.zip</file>
+											<type>zip</type>
+										</artifact>
+									</artifacts>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
 			<id>release</id>
 			<build>
 				<plugins>
 					<plugin>
 						<groupId>org.jfrog.buildinfo</groupId>
 						<artifactId>artifactory-maven-plugin</artifactId>
+						<version>2.6.1</version>
 						<inherited>false</inherited>
 					</plugin>
 				</plugins>
@@ -458,10 +564,6 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-assembly-plugin</artifactId>
-			</plugin>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>wagon-maven-plugin</artifactId>
 			</plugin>
 			<plugin>
 				<groupId>org.asciidoctor</groupId>
