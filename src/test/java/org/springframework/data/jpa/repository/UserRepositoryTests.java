@@ -48,12 +48,11 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
-import org.springframework.data.domain.ExampleMatcher.GenericPropertyMatcher;
-import org.springframework.data.domain.ExampleMatcher.StringMatcher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -62,6 +61,7 @@ import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.domain.Sort.Order;
+import org.springframework.data.domain.ExampleMatcher.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.domain.sample.Address;
 import org.springframework.data.jpa.domain.sample.Role;
@@ -2209,6 +2209,17 @@ public class UserRepositoryTests {
 		flushTestUsers();
 
 		assertThat(repository.findByEmailNativeAddressJdbcStyleParameter("gierke@synyx.de")).isEqualTo(firstUser);
+	}
+
+	@Test() // DATAJPA-1535
+	public void savingUserThrowsAnException() {
+		// if this test fails this means deleteNewInstanceSucceedsByDoingNothing() might actually save the user without the test failing, which would be a bad thing.
+		assertThatThrownBy(() -> repository.save(new User())).isInstanceOf(DataIntegrityViolationException.class);
+	}
+
+	@Test // DATAJPA-1535
+	public void deleteNewInstanceSucceedsByDoingNothing() {
+		repository.delete(new User());
 	}
 
 	private Page<User> executeSpecWithSort(Sort sort) {

@@ -168,6 +168,19 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	public void delete(T entity) {
 
 		Assert.notNull(entity, "The entity must not be null!");
+
+		Object id = entityInformation.getId(entity);
+		if (id == null) {
+			return;
+		}
+
+		T existing = em.find(entityInformation.getJavaType(), id);
+
+		// if the entity to be deleted doesn't exist, delete is a NOOP
+		if (existing == null) {
+			return;
+		}
+
 		em.remove(em.contains(entity) ? entity : em.merge(entity));
 	}
 
