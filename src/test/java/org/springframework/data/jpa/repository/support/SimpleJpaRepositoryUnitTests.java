@@ -156,4 +156,33 @@ public class SimpleJpaRepositoryUnitTests {
 
 		verify(em).merge(attachedUser);
 	}
+
+	@Test // DATAJPA-1535
+	public void doNothingWhenNewInstanceGetsDeleted() {
+
+		User newUser = new User();
+		newUser.setId(null);
+
+		repo.delete(newUser);
+
+		verify(em, never()).find(any(Class.class), any(Object.class));
+		verify(em, never()).remove(newUser);
+		verify(em, never()).merge(newUser);
+	}
+
+	@Test // DATAJPA-1535
+	public void doNothingWhenNonExistantInstanceGetsDeleted() {
+
+		User newUser = new User();
+		newUser.setId(23);
+
+		when(information.isNew(newUser)).thenReturn(false);
+		when(em.find(User.class,23)).thenReturn(null);
+
+		repo.delete(newUser);
+
+		verify(em, never()).remove(newUser);
+		verify(em, never()).merge(newUser);
+	}
+
 }
