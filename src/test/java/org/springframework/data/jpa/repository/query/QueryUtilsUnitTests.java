@@ -115,11 +115,6 @@ public class QueryUtilsUnitTests {
 		assertThat(detectAlias("select u from  User u"), IS_U);
 		assertThat(detectAlias("select u from  com.acme.User u"), IS_U);
 		assertThat(detectAlias("select u from T05User u"), IS_U);
-		assertThat(detectAlias("select * from User group by name"), isEmptyOrNullString());
-		assertThat(detectAlias("select * from User order by name"), isEmptyOrNullString());
-		assertThat(detectAlias("select * from User u group by name"), IS_U);
-		assertThat(detectAlias("select * from User u order by name"), IS_U);
-
 	}
 
 	@Test
@@ -407,6 +402,15 @@ public class QueryUtilsUnitTests {
 		assertThat(
 				QueryUtils.getFunctionAliases("select new MyDto(sum(case when myEntity.prop3=0 then 1 else 0 end) as myAlias")) //
 						.contains("myAlias");
+	}
+
+	@Test // DATAJPA-1506
+	public void detectsAliasWithGroupAndOrderBy() {
+
+		assertThat(detectAlias("select * from User group by name")).isNull();
+		assertThat(detectAlias("select * from User order by name")).isNull();
+		assertThat(detectAlias("select * from User u group by name")).isEqualTo("u");
+		assertThat(detectAlias("select * from User u order by name")).isEqualTo("u");
 	}
 
 	private static void assertCountQuery(String originalQuery, String countQuery) {
