@@ -71,6 +71,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Paluch
  * @author Sébastien Péralta
  * @author Jens Schauder
+ * @author Florian Lüdiger
  */
 public abstract class QueryUtils {
 
@@ -121,7 +122,7 @@ public abstract class QueryUtils {
 		builder.append(IDENTIFIER_GROUP); // Entity name, can be qualified (any
 		builder.append("(?:\\sas)*"); // exclude possible "as" keyword
 		builder.append("(?:\\s)+"); // at least one space separating
-		builder.append("(?!(?:where))(\\w*)"); // the actual alias
+		builder.append("(?!(?:where|group by|order by))(\\w+)"); // the actual alias
 
 		ALIAS_MATCH = compile(builder.toString(), CASE_INSENSITIVE);
 
