@@ -38,6 +38,7 @@ import org.springframework.data.jpa.domain.JpaSort;
  * @author Komi Innocent
  * @author Christoph Strobl
  * @author Jens Schauder
+ * @author Florian Lüdiger
  */
 public class QueryUtilsUnitTests {
 
@@ -114,6 +115,11 @@ public class QueryUtilsUnitTests {
 		assertThat(detectAlias("select u from  User u"), IS_U);
 		assertThat(detectAlias("select u from  com.acme.User u"), IS_U);
 		assertThat(detectAlias("select u from T05User u"), IS_U);
+		assertThat(detectAlias("select * from User group by name"), isEmptyOrNullString());
+		assertThat(detectAlias("select * from User order by name"), isEmptyOrNullString());
+		assertThat(detectAlias("select * from User u group by name"), IS_U);
+		assertThat(detectAlias("select * from User u order by name"), IS_U);
+
 	}
 
 	@Test
