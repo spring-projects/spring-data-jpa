@@ -1,6 +1,14 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 2.1.7.RELEASE (2019-05-10)
+---------------------------------------------
+* DATAJPA-1533 - Builds are broken due to an outdated Mockito version.
+* DATAJPA-1530 - JpaMetamodelEntityInformation does not unwrap ByteBuddy proxies.
+* DATAJPA-1525 - Release 2.1.7 (Lovelace SR7).
+* DATAJPA-1506 - Wrong alias detection for native query.
+
+
 Changes in version 2.2.0.M3 (2019-04-11)
 ----------------------------------------
 * DATAJPA-1522 - LIKE escape character needs to be escaped ins source value to be handled.
