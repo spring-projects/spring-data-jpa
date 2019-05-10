@@ -1,6 +1,12 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 1.11.21.RELEASE (2019-05-10)
+-----------------------------------------------
+* DATAJPA-1523 - Release 1.11.21 (Ingalls SR21).
+* DATAJPA-1506 - Wrong alias detection for native query.
+
+
 Changes in version 2.1.7.RELEASE (2019-05-10)
 ---------------------------------------------
 * DATAJPA-1533 - Builds are broken due to an outdated Mockito version.
