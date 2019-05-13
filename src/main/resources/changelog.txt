@@ -1,6 +1,12 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 1.11.22.RELEASE (2019-05-13)
+-----------------------------------------------
+* DATAJPA-1539 - Release 1.11.22 (Ingalls SR22).
+* DATAJPA-1534 - Wildcard character needs to be escaped in Spring data JPA.
+
+
 Changes in version 2.1.8.RELEASE (2019-05-13)
 ---------------------------------------------
 * DATAJPA-1538 - Release 2.1.8 (Lovelace SR8).
