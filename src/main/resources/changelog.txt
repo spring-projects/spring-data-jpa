@@ -1,6 +1,15 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 2.2.0.M4 (2019-05-13)
+----------------------------------------
+* DATAJPA-1534 - Wildcard character needs to be escaped in Spring data JPA.
+* DATAJPA-1533 - Builds are broken due to an outdated Mockito version.
+* DATAJPA-1531 - Release 2.2 M4 (Moore).
+* DATAJPA-1530 - JpaMetamodelEntityInformation does not unwrap ByteBuddy proxies.
+* DATAJPA-1506 - Wrong alias detection for native query.
+
+
 Changes in version 1.11.21.RELEASE (2019-05-10)
 -----------------------------------------------
 * DATAJPA-1523 - Release 1.11.21 (Ingalls SR21).
