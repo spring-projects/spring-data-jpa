@@ -413,6 +413,15 @@ public class QueryUtilsUnitTests {
 		assertThat(detectAlias("select * from User u order by name")).isEqualTo("u");
 	}
 
+	@Test // DATAJPA-1500
+	public void createCountQuerySupportsWhitespaceCharacters() {
+		assertThat(createCountQueryFor("select * from User user\n" +
+						"  where user.age = 18\n" +
+						"  order by user.name\n "),
+				is("select count(user) from User user\n" +
+						"  where user.age = 18\n "));
+	}
+
 	private static void assertCountQuery(String originalQuery, String countQuery) {
 		assertThat(createCountQueryFor(originalQuery), is(countQuery));
 	}
