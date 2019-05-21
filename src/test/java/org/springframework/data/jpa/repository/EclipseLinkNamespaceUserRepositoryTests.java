@@ -22,14 +22,16 @@ import static org.hamcrest.Matchers.*;
 import javax.persistence.Query;
 
 import org.junit.Assume;
+import org.junit.Ignore;
 import org.junit.Test;
+
 import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.data.util.Version;
 import org.springframework.test.context.ContextConfiguration;
 
 /**
  * Testcase to run {@link UserRepository} integration tests on top of EclipseLink.
- * 
+ *
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Jens Schauder
@@ -174,12 +176,13 @@ public class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserReposi
 		super.findByEmptyCollectionOfStrings();
 	}
 
+	/**
+	 * Ignores the test for EclipseLink.
+	 */
 	@Override
 	@Test
 	@Ignore
-	public void savingUserThrowsAnException() {
-		super.savingUserThrowsAnException();
-	}
+	public void savingUserThrowsAnException() {}
 
 	private void assumeNotEclipseLink2_7_2plus() {
 

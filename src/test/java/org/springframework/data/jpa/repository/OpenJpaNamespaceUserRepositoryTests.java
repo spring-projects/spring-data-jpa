@@ -41,7 +41,7 @@ import org.springframework.test.context.ContextConfiguration;
 
 /**
  * Testcase to run {@link UserRepository} integration tests on top of OpenJPA.
- * 
+ *
  * @author Oliver Gierke
  * @author Jens Schauder
  */
@@ -133,4 +133,12 @@ public class OpenJpaNamespaceUserRepositoryTests extends NamespaceUserRepository
 	 */
 	@Override
 	public void supportsProjectionsWithNativeQueries() {}
+
+	/**
+	 * Ignores the test for OpenJPA.
+	 */
+	@Override
+	@Test
+	@Ignore
+	public void savingUserThrowsAnException() {}
 }

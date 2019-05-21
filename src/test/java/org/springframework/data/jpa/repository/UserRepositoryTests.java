@@ -89,7 +89,7 @@ import com.google.common.base.Optional;
  * well as Hibernate configuration to execute tests.
  * <p>
  * To test further persistence providers subclass this class and provide a custom provider configuration.
- * 
+ *
  * @author Oliver Gierke
  * @author Kevin Raymond
  * @author Thomas Darimont
@@ -324,7 +324,7 @@ public class UserRepositoryTests {
 
 	/**
 	 * Tests, that searching by the email address of the reference user returns exactly that instance.
-	 * 
+	 *
 	 * @throws Exception
 	 */
 	@Test
@@ -352,7 +352,7 @@ public class UserRepositoryTests {
 
 	/**
 	 * Tests that all users get deleted by triggering {@link UserRepository#deleteAll()}.
-	 * 
+	 *
 	 * @throws Exception
 	 */
 	@Test
@@ -2257,10 +2257,11 @@ public class UserRepositoryTests {
 		assertThat(map.get(new Object()), is(nullValue()));
 	}
 
-	@Test() // DATAJPA-1535
+	@Test(expected = DataIntegrityViolationException.class) // DATAJPA-1535
 	public void savingUserThrowsAnException() {
-		// if this test fails this means deleteNewInstanceSucceedsByDoingNothing() might actually save the user without the test failing, which would be a bad thing.
-		assertThatThrownBy(() -> repository.save(new User())).isInstanceOf(DataIntegrityViolationException.class);
+		// if this test fails this means deleteNewInstanceSucceedsByDoingNothing() might actually save the user without the
+		// test failing, which would be a bad thing.
+		repository.save(new User());
 	}
 
 	@Test // DATAJPA-1535

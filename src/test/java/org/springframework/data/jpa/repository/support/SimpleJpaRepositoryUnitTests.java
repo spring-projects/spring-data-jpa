@@ -138,6 +138,8 @@ public class SimpleJpaRepositoryUnitTests {
 		User newUser = new User();
 		newUser.setId(null);
 
+		when(information.isNew(newUser)).thenReturn(true);
+
 		repo.delete(newUser);
 
 		verify(em, never()).find(any(Class.class), any(Object.class));
@@ -146,7 +148,7 @@ public class SimpleJpaRepositoryUnitTests {
 	}
 
 	@Test // DATAJPA-1535
-	public void doNothingWhenNonExistantInstanceGetsDeleted() {
+	public void doNothingWhenNonExistentInstanceGetsDeleted() {
 
 		User newUser = new User();
 		newUser.setId(23);
