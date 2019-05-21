@@ -75,17 +75,6 @@ pipeline {
                         sh "PROFILE=hibernate-54-next ci/test.sh"
                     }
                 }
-                stage("test: hibernate-6-next") {
-                    agent {
-                        docker {
-                            image 'adoptopenjdk/openjdk8:alpine'
-                            args '-v $HOME/.m2:/root/.m2'
-                        }
-                    }
-                    steps {
-                        sh "PROFILE=hibernate-6-next ci/test.sh"
-                    }
-                }
                 stage("test: eclipselink-next") {
                     agent {
                         docker {
@@ -142,7 +131,7 @@ pipeline {
         }
         stage('Release to artifactory with docs') {
             when {
-                branch 'test'
+                branch 'master'
             }
             agent {
                 docker {
