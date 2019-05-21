@@ -171,7 +171,7 @@ public class SimpleJpaRepositoryUnitTests {
 	}
 
 	@Test // DATAJPA-1535
-	public void doNothingWhenNonExistantInstanceGetsDeleted() {
+	public void doNothingWhenNonExistentInstanceGetsDeleted() {
 
 		User newUser = new User();
 		newUser.setId(23);

@@ -174,12 +174,13 @@ public class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserReposi
 		super.findByEmptyCollectionOfStrings();
 	}
 
+	/**
+	 * Ignores the test for EclipseLink.
+	 */
 	@Override
 	@Test
 	@Ignore
-	public void savingUserThrowsAnException() {
-		super.savingUserThrowsAnException();
-	}
+	public void savingUserThrowsAnException() {}
 
 	private void assumeNotEclipseLink2_7_2plus() {
 

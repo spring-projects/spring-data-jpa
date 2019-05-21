@@ -2211,9 +2211,10 @@ public class UserRepositoryTests {
 		assertThat(repository.findByEmailNativeAddressJdbcStyleParameter("gierke@synyx.de")).isEqualTo(firstUser);
 	}
 
-	@Test() // DATAJPA-1535
+	@Test // DATAJPA-1535
 	public void savingUserThrowsAnException() {
-		// if this test fails this means deleteNewInstanceSucceedsByDoingNothing() might actually save the user without the test failing, which would be a bad thing.
+		// if this test fails this means deleteNewInstanceSucceedsByDoingNothing() might actually save the user without the
+		// test failing, which would be a bad thing.
 		assertThatThrownBy(() -> repository.save(new User())).isInstanceOf(DataIntegrityViolationException.class);
 	}
 
