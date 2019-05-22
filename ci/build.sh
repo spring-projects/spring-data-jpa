@@ -2,4 +2,4 @@
 
 set -euo pipefail
 
-./mvnw -P${PROFILE} -Dmaven.test.skip=true clean deploy -B
+./mvnw -P${PROFILE} -DskipTests=true clean deploy -B
