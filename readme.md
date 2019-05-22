@@ -1,7 +1,9 @@
 [![Spring Data JPA](https://spring.io/badges/spring-data-jpa/ga.svg)](https://projects.spring.io/spring-data-jpa/#quick-start)
 [![Spring Data JPA](https://spring.io/badges/spring-data-jpa/snapshot.svg)](https://projects.spring.io/spring-data-jpa/#quick-start)
-[![Build Status](https://travis-ci.org/spring-projects/spring-data-jpa.svg?branch=master)](https://travis-ci.org/spring-projects/spring-data-jpa) 
 
+[![Build Status](https://jenkins.spring.io/buildStatus/icon?job=spring-data-jpa%2Fmaster&subject=Moore%20(master))](https://jenkins.spring.io/view/SpringData/job/spring-data-jpa/)
+[![Build Status](https://jenkins.spring.io/buildStatus/icon?job=spring-data-jpa%2F2.1.x&subject=Lovelace%20(2.1.x))](https://jenkins.spring.io/view/SpringData/job/spring-data-jpa/)
+[![Build Status](https://jenkins.spring.io/buildStatus/icon?job=spring-data-jpa%2F1.11.x&subject=Ingalls%20(1.11.x))](https://jenkins.spring.io/view/SpringData/job/spring-data-jpa/)
 
 # Spring Data JPA 
 
