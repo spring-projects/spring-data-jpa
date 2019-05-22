@@ -57,7 +57,7 @@
 		<profile>
 			<id>hibernate-53-next</id>
 			<properties>
-				<hibernate>5.3.6-SNAPSHOT</hibernate>
+				<hibernate>5.3.7-SNAPSHOT</hibernate>
 				<mockito>2.19.1</mockito>
 			</properties>
 			<repositories>
