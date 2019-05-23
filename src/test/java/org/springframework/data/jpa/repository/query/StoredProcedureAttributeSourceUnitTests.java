@@ -102,12 +102,12 @@ public class StoredProcedureAttributeSourceUnitTests {
 		assertThat(attr.getOutputParameterType(), is(typeCompatibleWith(Integer.class)));
 		assertThat(attr.getOutputParameterName(), is(StoredProcedureAttributes.SYNTHETIC_OUTPUT_PARAMETER_NAME));
 	}
-        
+
 	@Test // DATAJPA-1297
 	public void shouldCreateStoredProcedureAttributesFromProcedureMethodWithExplictProcedureNameAliasAndOutputParameterName() {
 
-		StoredProcedureAttributes attr = creator
-				.createFrom(method("explicitPlus1inoutViaProcedureNameAliasAndOutputParameterName", Integer.class), entityMetadata);
+		StoredProcedureAttributes attr = creator.createFrom(
+				method("explicitPlus1inoutViaProcedureNameAliasAndOutputParameterName", Integer.class), entityMetadata);
 
 		assertThat(attr.getProcedureName(), is("plus1inout"));
 		assertThat(attr.getOutputParameterType(), is(typeCompatibleWith(Integer.class)));
@@ -164,7 +164,8 @@ public class StoredProcedureAttributeSourceUnitTests {
 	/**
 	 * @author Thomas Darimont
 	 */
-	static interface DummyRepository {
+	@SuppressWarnings("unused")
+	interface DummyRepository {
 
 		/**
 		 * Explicitly mapped to a procedure with name "plus1inout" in database.
@@ -178,18 +179,19 @@ public class StoredProcedureAttributeSourceUnitTests {
 		@Procedure(procedureName = "plus1inout") // DATAJPA-455
 		Integer explicitPlus1inoutViaProcedureNameAlias(Integer arg);
 
-                /**
-		 * Explicitly mapped to a procedure with name "plus1inout" in database via alias and explicitly named ouput parameter.
+		/**
+		 * Explicitly mapped to a procedure with name "plus1inout" in database via alias and explicitly named ouput
+		 * parameter.
 		 */
 		@Procedure(procedureName = "plus1inout", outputParameterName = "res") // DATAJPA-1297
 		Integer explicitPlus1inoutViaProcedureNameAliasAndOutputParameterName(Integer arg);
-                
+
 		/**
 		 * Implicitly mapped to a procedure with name "plus1inout" in database via alias.
 		 */
 		@Procedure // DATAJPA-455
 		Integer plus1inout(Integer arg);
-                
+
 		/**
 		 * Explicitly mapped to named stored procedure "User.plus1IO" in {@link EntityManager}.
 		 */
@@ -209,9 +211,10 @@ public class StoredProcedureAttributeSourceUnitTests {
 		Integer plus1inoutWithComposedAnnotationOverridingName(Integer arg);
 	}
 
+	@SuppressWarnings("unused")
 	@Procedure
 	@Retention(RetentionPolicy.RUNTIME)
-	static @interface ComposedProcedureUsingAliasFor {
+	@interface ComposedProcedureUsingAliasFor {
 
 		@AliasFor(annotation = Procedure.class, attribute = "value")
 		String dbProcedureName() default "";
