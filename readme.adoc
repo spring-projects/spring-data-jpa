@@ -1,6 +1,9 @@
 image:https://spring.io/badges/spring-data-jpa/ga.svg[Spring Data JPA,link=https://projects.spring.io/spring-data-jpa/#quick-start]
 image:https://spring.io/badges/spring-data-jpa/snapshot.svg[Spring Data JPA,link=https://projects.spring.io/spring-data-jpa/#quick-start]
 
+image:https://jenkins.spring.io/buildStatus/icon?job=spring-data-jpa%2Fmaster&subject=Moore%20(master)[link=https://jenkins.spring.io/view/SpringData/job/spring-data-jpa/]
+image:https://jenkins.spring.io/buildStatus/icon?job=spring-data-jpa%2F2.1.x&subject=Lovelace%20(2.1.x)[link=https://jenkins.spring.io/view/SpringData/job/spring-data-jpa/]
+image:https://jenkins.spring.io/buildStatus/icon?job=spring-data-jpa%2F1.11.x&subject=Ingalls%20(1.11.x)[link=https://jenkins.spring.io/view/SpringData/job/spring-data-jpa/]
 
 = Spring Data JPA
 
