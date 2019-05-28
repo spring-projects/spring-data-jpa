@@ -16,100 +16,100 @@ pipeline {
                 stage("test: baseline") {
                     agent {
                         docker {
-                            image 'adoptopenjdk/openjdk8:alpine'
+                            image 'adoptopenjdk/openjdk8:latest'
                             args '-v $HOME/.m2:/root/.m2'
                         }
                     }
                     steps {
-                        sh "PROFILE=none ci/test.sh"
+                        sh "./mvnw clean dependency:list test -Dsort -Dbundlor.enabled=false -B"
                     }
                 }
                 stage("test: hibernate-next") {
                     agent {
                         docker {
-                            image 'adoptopenjdk/openjdk8:alpine'
+                            image 'adoptopenjdk/openjdk8:latest'
                             args '-v $HOME/.m2:/root/.m2'
                         }
                     }
                     steps {
-                        sh "PROFILE=hibernate-next ci/test.sh"
+                        sh "./mvnw -Phibernate-next clean dependency:list test -Dsort -Dbundlor.enabled=false -B"
                     }
                 }
                 stage("test: hibernate-53") {
                     agent {
                         docker {
-                            image 'adoptopenjdk/openjdk8:alpine'
+                            image 'adoptopenjdk/openjdk8:latest'
                             args '-v $HOME/.m2:/root/.m2'
                         }
                     }
                     steps {
-                        sh "PROFILE=hibernate-53 ci/test.sh"
+                        sh "./mvnw -Phibernate-53 clean dependency:list test -Dsort -Dbundlor.enabled=false -B"
                     }
                 }
                 stage("test: hibernate-53-next") {
                     agent {
                         docker {
-                            image 'adoptopenjdk/openjdk8:alpine'
+                            image 'adoptopenjdk/openjdk8:latest'
                             args '-v $HOME/.m2:/root/.m2'
                         }
                     }
                     steps {
-                        sh "PROFILE=hibernate-53-next ci/test.sh"
+                        sh "./mvnw -Phibernate-53-next clean dependency:list test -Dsort -Dbundlor.enabled=false -B"
                     }
                 }
                 stage("test: hibernate-54") {
                     agent {
                         docker {
-                            image 'adoptopenjdk/openjdk8:alpine'
+                            image 'adoptopenjdk/openjdk8:latest'
                             args '-v $HOME/.m2:/root/.m2'
                         }
                     }
                     steps {
-                        sh "PROFILE=hibernate-54 ci/test.sh"
+                        sh "./mvnw -Phibernate-54 clean dependency:list test -Dsort -Dbundlor.enabled=false -B"
                     }
                 }
                 stage("test: hibernate-54-next") {
                     agent {
                         docker {
-                            image 'adoptopenjdk/openjdk8:alpine'
+                            image 'adoptopenjdk/openjdk8:latest'
                             args '-v $HOME/.m2:/root/.m2'
                         }
                     }
                     steps {
-                        sh "PROFILE=hibernate-54-next ci/test.sh"
+                        sh "./mvnw -Phibernate-54-next clean dependency:list test -Dsort -Dbundlor.enabled=false -B"
                     }
                 }
                 stage("test: eclipselink-next") {
                     agent {
                         docker {
-                            image 'adoptopenjdk/openjdk8:alpine'
+                            image 'adoptopenjdk/openjdk8:latest'
                             args '-v $HOME/.m2:/root/.m2'
                         }
                     }
                     steps {
-                        sh "PROFILE=eclipselink-next ci/test.sh"
+                        sh "./mvnw -Peclipselink-next clean dependency:list test -Dsort -Dbundlor.enabled=false -B"
                     }
                 }
                 stage("test: eclipselink-27") {
                     agent {
                         docker {
-                            image 'adoptopenjdk/openjdk8:alpine'
+                            image 'adoptopenjdk/openjdk8:latest'
                             args '-v $HOME/.m2:/root/.m2'
                         }
                     }
                     steps {
-                        sh "PROFILE=eclipselink-27 ci/test.sh"
+                        sh "./mvnw -eclipselink-27 clean dependency:list test -Dsort -Dbundlor.enabled=false -B"
                     }
                 }
                 stage("test: eclipselink-27-next") {
                     agent {
                         docker {
-                            image 'adoptopenjdk/openjdk8:alpine'
+                            image 'adoptopenjdk/openjdk8:latest'
                             args '-v $HOME/.m2:/root/.m2'
                         }
                     }
                     steps {
-                        sh "PROFILE=eclipselink-27-next ci/test.sh"
+                        sh "./mvnw -eclipselink-27-next clean dependency:list test -Dsort -Dbundlor.enabled=false -B"
                     }
                 }
             }
@@ -120,7 +120,7 @@ pipeline {
             }
             agent {
                 docker {
-                    image 'adoptopenjdk/openjdk8:alpine'
+                    image 'adoptopenjdk/openjdk8:latest'
                     args '-v $HOME/.m2:/root/.m2'
                 }
             }
@@ -139,7 +139,7 @@ pipeline {
             }
             agent {
                 docker {
-                    image 'adoptopenjdk/openjdk8:alpine'
+                    image 'adoptopenjdk/openjdk8:latest'
                     args '-v $HOME/.m2:/root/.m2'
                 }
             }
