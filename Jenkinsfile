@@ -6,6 +6,10 @@ pipeline {
         upstream(upstreamProjects: "spring-data-commons/master", threshold: hudson.model.Result.SUCCESS)
     }
 
+    options {
+        disableConcurrentBuilds()
+    }
+    
     stages {
         stage("Test") {
             parallel {
