@@ -197,8 +197,7 @@ pipeline {
                         }
                     }
                     steps {
-                        sh "./mvnw -Phibernate-next clean dependency:list test -Dsort -Dbundlor.enabled=false -B"
-                        sh "PROFILE=eclipselink-next ci/test.sh"
+                        sh "./mvnw -Peclipselink-next clean dependency:list test -Dsort -Dbundlor.enabled=false -B"
                     }
                 }
                 stage("test: eclipselink-27") {
