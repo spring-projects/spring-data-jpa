@@ -130,7 +130,7 @@ pipeline {
             }
 
             steps {
-                sh "USERNAME=${ARTIFACTORY_USR} PASSWORD=${ARTIFACTORY_PSW} PROFILE=ci,snapshot ci/build.sh"
+                sh "USERNAME=${ARTIFACTORY_USR} PASSWORD=${ARTIFACTORY_PSW} ./mvnw -Pci,snapshot -DskipTests=true clean deploy -B"
             }
         }
         stage('Release to artifactory with docs') {
@@ -149,7 +149,7 @@ pipeline {
             }
 
             steps {
-                sh "USERNAME=${ARTIFACTORY_USR} PASSWORD=${ARTIFACTORY_PSW} PROFILE=ci,snapshot ci/build.sh"
+                sh "USERNAME=${ARTIFACTORY_USR} PASSWORD=${ARTIFACTORY_PSW} ./mvnw -Pci,snapshot -DskipTests=true clean deploy -B"
             }
         }
     }
