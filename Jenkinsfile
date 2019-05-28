@@ -98,7 +98,7 @@ pipeline {
                         }
                     }
                     steps {
-                        sh "./mvnw -eclipselink-27 clean dependency:list test -Dsort -Dbundlor.enabled=false -B"
+                        sh "./mvnw -Peclipselink-27 clean dependency:list test -Dsort -Dbundlor.enabled=false -B"
                     }
                 }
                 stage("test: eclipselink-27-next") {
@@ -109,7 +109,7 @@ pipeline {
                         }
                     }
                     steps {
-                        sh "./mvnw -eclipselink-27-next clean dependency:list test -Dsort -Dbundlor.enabled=false -B"
+                        sh "./mvnw -Peclipselink-27-next clean dependency:list test -Dsort -Dbundlor.enabled=false -B"
                     }
                 }
             }
