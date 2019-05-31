@@ -39,6 +39,7 @@ import org.springframework.data.jpa.domain.JpaSort;
  * @author Christoph Strobl
  * @author Jens Schauder
  * @author Florian Lüdiger
+ * @author Chao Jiang
  */
 public class QueryUtilsUnitTests {
 
@@ -230,6 +231,12 @@ public class QueryUtilsUnitTests {
 	public void createCountQueryFromTheGivenCountProjection() {
 		assertThat(createCountQueryFor("select p.lastname,p.firstname from Person p", "p.lastname"),
 				is("select count(p.lastname) from Person p"));
+	}
+	
+	@Test // DATAJPA-1435
+	public void createCountQueryFromTheGivenComplexCountProjection() {
+		assertThat(createCountQueryFor("select p.lastname,p.firstname from Person p", null),
+				is("select count(1) from Person p"));
 	}
 
 	@Test // DATAJPA-726
