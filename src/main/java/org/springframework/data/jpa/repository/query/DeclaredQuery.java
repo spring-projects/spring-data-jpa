@@ -24,6 +24,7 @@ import org.springframework.util.StringUtils;
  * A wrapper for a String representation of a query offering information about the query.
  *
  * @author Jens Schauder
+ * @author Chao Jiang
  * @since 2.0.3
  */
 interface DeclaredQuery {
@@ -80,9 +81,10 @@ interface DeclaredQuery {
 	 * 
 	 * @param countQuery an optional query string to be used if present.
 	 * @param countQueryProjection an optional return type for the query.
+	 * @param isNativeQuery true if query is native query.
 	 * @return a new {@literal DeclaredQuery} instance.
 	 */
-	DeclaredQuery deriveCountQuery(@Nullable String countQuery, @Nullable String countQueryProjection);
+	DeclaredQuery deriveCountQuery(@Nullable String countQuery, @Nullable String countQueryProjection, Boolean isNativeQuery);
 
 	/**
 	 * @return whether paging is implemented in the query itself, e.g. using SpEL expressions.

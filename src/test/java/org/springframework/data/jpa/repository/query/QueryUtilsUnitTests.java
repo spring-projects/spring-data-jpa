@@ -39,6 +39,7 @@ import org.springframework.data.jpa.domain.JpaSort;
  * @author Christoph Strobl
  * @author Jens Schauder
  * @author Florian Lüdiger
+ * @author Chao Jiang
  */
 public class QueryUtilsUnitTests {
 
@@ -228,8 +229,32 @@ public class QueryUtilsUnitTests {
 
 	@Test // DATAJPA-456
 	public void createCountQueryFromTheGivenCountProjection() {
-		assertThat(createCountQueryFor("select p.lastname,p.firstname from Person p", "p.lastname"),
+		assertThat(createCountQueryFor("select p.lastname,p.firstname from Person p", "p.lastname", null),
 				is("select count(p.lastname) from Person p"));
+	}
+	
+	@Test // DATAJPA-1435
+	public void createCountQueryFromTheGivenComplexCountProjection() {
+		String nativeQuery = "select p.lastname,p.firstname from Person_table p";
+		String jpqlQuery = "select p.lastname,p.firstname from Person p";
+		Boolean isNativeQuery = true;
+		Boolean isJpqlQuery = false;
+		
+		//parse native sql, get correct query(use count(1) in select clause with subquery in from clause)
+		assertThat(createCountQueryFor(nativeQuery, null, isNativeQuery),
+				is("select count(1) from (select p.lastname,p.firstname from Person_table p) as total"));
+		
+		//parse jpql, get correct query(use count(entity name) in select clause)
+		assertThat(createCountQueryFor(jpqlQuery, null, isJpqlQuery),
+				is("select count(p) from Person p"));
+
+		//parse native sql as jpql, count(entity name) not work
+		assertThat(createCountQueryFor(nativeQuery, null, isJpqlQuery),
+				is("select count(p) from Person_table p"));
+		
+		//parse jpql as native sql, subquery not work
+		assertThat(createCountQueryFor(jpqlQuery, null, isNativeQuery),
+				is("select count(1) from (select p.lastname,p.firstname from Person p) as total"));
 	}
 
 	@Test // DATAJPA-726

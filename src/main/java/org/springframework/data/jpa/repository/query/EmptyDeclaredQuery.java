@@ -25,6 +25,7 @@ import org.springframework.util.Assert;
  * NULL-Object pattern implementation for {@link DeclaredQuery}.
  *
  * @author Jens Schauder
+ * @author Chao Jiang
  * @since 2.0.3
  */
 class EmptyDeclaredQuery implements DeclaredQuery {
@@ -93,7 +94,7 @@ class EmptyDeclaredQuery implements DeclaredQuery {
 	 * @see org.springframework.data.jpa.repository.query.DeclaredQuery#deriveCountQuery(java.lang.String, java.lang.String)
 	 */
 	@Override
-	public DeclaredQuery deriveCountQuery(@Nullable String countQuery, @Nullable String countQueryProjection) {
+	public DeclaredQuery deriveCountQuery(@Nullable String countQuery, @Nullable String countQueryProjection, @Nullable Boolean isNativeQuery) {
 
 		Assert.hasText(countQuery, "CountQuery must not be empty!");
 

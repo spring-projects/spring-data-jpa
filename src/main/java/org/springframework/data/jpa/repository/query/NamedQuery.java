@@ -41,6 +41,7 @@ import org.springframework.lang.Nullable;
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Mark Paluch
+ * @author Chao Jiang
  */
 final class NamedQuery extends AbstractJpaQuery {
 
@@ -186,7 +187,7 @@ final class NamedQuery extends AbstractJpaQuery {
 
 		} else {
 
-			String countQueryString = declaredQuery.deriveCountQuery(null, countProjection).getQueryString();
+			String countQueryString = declaredQuery.deriveCountQuery(null, countProjection, false).getQueryString();
 
 			countQuery = em.createQuery(countQueryString, Long.class);
 		}
