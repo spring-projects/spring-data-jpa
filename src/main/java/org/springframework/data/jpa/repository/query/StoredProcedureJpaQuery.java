@@ -28,7 +28,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -110,6 +110,8 @@ class StoredProcedureJpaQuery extends AbstractJpaQuery {
 	 * Extracts the output value from the given {@link StoredProcedureQuery}.
 	 *
 	 * @param storedProcedureQuery must not be {@literal null}.
+	 *
+	 * Result is either a single value, or a Map<String, Object> of output parameter names to values
 	 */
 	@Nullable
 	Object extractOutputValue(StoredProcedureQuery storedProcedureQuery) {
@@ -120,16 +122,17 @@ class StoredProcedureJpaQuery extends AbstractJpaQuery {
 			return null;
 		}
 
-		List<Object> outputValues = IntStream.range(0, procedureAttributes.getOutputParameterNames().size()).mapToObj(i -> {
+		Map<String, Object> outputValues = IntStream.range(0, procedureAttributes.getOutputParameterNames().size())
+				.boxed().collect(Collectors.toMap(procedureAttributes.getOutputParameterNames()::get, i -> {
 			String outputParameterName = procedureAttributes.getOutputParameterNames().get(i);
 			JpaParameters parameters = getQueryMethod().getParameters();
 
 			return useNamedParameters && StringUtils.hasText(outputParameterName) ? //
 					storedProcedureQuery.getOutputParameterValue(outputParameterName)
 					: storedProcedureQuery.getOutputParameterValue(parameters.getNumberOfParameters() + i + 1);
-		}).collect(Collectors.toList());
+		}));
 
-		return outputValues.size() == 1 ? outputValues.get(0) : outputValues;
+		return outputValues.size() == 1 ? outputValues.values().iterator().next() : outputValues;
 	}
 
 	/**

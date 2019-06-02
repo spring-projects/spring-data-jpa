@@ -16,7 +16,7 @@
 package org.springframework.data.jpa.repository;
 
 import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.hasEntry;
 import static org.junit.Assert.*;
 import static org.junit.Assume.*;
 import static org.springframework.data.jpa.support.EntityManagerTestUtils.*;
@@ -35,6 +35,8 @@ import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Map;
 
 /**
  * Integration tests for JPA 2.1 stored procedure support.
@@ -110,7 +112,10 @@ public class UserRepositoryStoredProcedureTests {
 
 		assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
 
-		assertThat(repository.entityAnnotatedCustomNamedProcedurePlus1IO2(1), contains(2, 3));
+		Map<String, Integer> result = repository.entityAnnotatedCustomNamedProcedurePlus1IO2(1);
+		assertThat(result, hasEntry("res", 2));
+		assertThat(result, hasEntry("res2", 3));
+		assertThat(result.size(), is(2));
 	}
 
 	@Test // DATAJPA-455

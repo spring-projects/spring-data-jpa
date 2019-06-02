@@ -23,7 +23,7 @@ import static org.mockito.Mockito.*;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Method;
-import java.util.List;
+import java.util.Map;
 
 import javax.persistence.EntityManager;
 
@@ -235,7 +235,7 @@ public class StoredProcedureAttributeSourceUnitTests {
 		 * Explicitly mapped to named stored procedure "User.plus1IO2" in {@link EntityManager}.
 		 */
 		@Procedure(name = "User.plus1IO2") // DATAJPA-707
-		List<Integer> entityAnnotatedCustomNamedProcedurePlus1IO2(@Param("arg") Integer arg);
+		Map<String, Integer> entityAnnotatedCustomNamedProcedurePlus1IO2(@Param("arg") Integer arg);
 
 		/**
 		 * Implicitly mapped to named stored procedure "User.plus1" in {@link EntityManager}.
