@@ -232,7 +232,7 @@ public class StoredProcedureAttributeSourceUnitTests {
 		Integer entityAnnotatedCustomNamedProcedureOutputParamNamePlus1IO(@Param("arg") Integer arg);
 
 		/**
-		 * Explicitly mapped to named stored procedure "User.plus1IO" in {@link EntityManager}.
+		 * Explicitly mapped to named stored procedure "User.plus1IO2" in {@link EntityManager}.
 		 */
 		@Procedure(name = "User.plus1IO2") // DATAJPA-707
 		List<Integer> entityAnnotatedCustomNamedProcedurePlus1IO2(@Param("arg") Integer arg);
