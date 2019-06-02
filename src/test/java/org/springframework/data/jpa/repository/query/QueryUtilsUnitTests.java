@@ -236,7 +236,16 @@ public class QueryUtilsUnitTests {
 	@Test // DATAJPA-1435
 	public void createCountQueryFromTheGivenComplexCountProjection() {
 		assertThat(createCountQueryFor("select p.lastname,p.firstname from Person p", null),
-				is("select count(1) from Person p"));
+				is("select count(1) FROM (select p.lastname,p.firstname from Person p) AS total"));
+		
+		assertThat(createCountQueryFor("select distinct p.lastname,p.firstname from Person p", null),
+				is("select count(1) FROM (select distinct p.lastname,p.firstname from Person p) AS total"));
+		
+		assertThat(createCountQueryFor("select p.lastname,p.firstname,SUM(age) from Person p", null),
+				is("select count(1) FROM (select p.lastname,p.firstname,SUM(age) from Person p) AS total"));
+		
+		assertThat(createCountQueryFor("select SUM(age) from Person p", null),
+				is("select count(1) FROM (select SUM(age) from Person p) AS total"));
 	}
 
 	@Test // DATAJPA-726

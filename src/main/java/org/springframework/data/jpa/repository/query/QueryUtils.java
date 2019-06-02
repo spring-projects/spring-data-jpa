@@ -93,7 +93,7 @@ public abstract class QueryUtils {
 	static final String COLON_NO_DOUBLE_COLON = "(?<![:\\\\]):";
 	static final String IDENTIFIER_GROUP = String.format("(%s)", IDENTIFIER);
 
-	private static final String COUNT_REPLACEMENT_TEMPLATE = "select count(1) FROM (select count(%s) $5$6$7) AS total";
+	private static final String COUNT_REPLACEMENT_TEMPLATE = "select count(1) FROM (select %s $5$6$7) AS total";
 	private static final String SIMPLE_COUNT_VALUE = "$2";
 	private static final String COMPLEX_COUNT_VALUE = "$3$4";
 	private static final String ORDER_BY_PART = "(?iu)\\s+order\\s+by\\s+.*$";
