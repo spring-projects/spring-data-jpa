@@ -1,0 +1,198 @@
+image:https://spring.io/badges/spring-data-jpa/ga.svg[Spring Data JPA,link=https://projects.spring.io/spring-data-jpa/#quick-start]
+image:https://spring.io/badges/spring-data-jpa/snapshot.svg[Spring Data JPA,link=https://projects.spring.io/spring-data-jpa/#quick-start]
+
+image:https://jenkins.spring.io/buildStatus/icon?job=spring-data-jpa%2Fmaster&subject=Moore%20(master)[link=https://jenkins.spring.io/view/SpringData/job/spring-data-jpa/]
+image:https://jenkins.spring.io/buildStatus/icon?job=spring-data-jpa%2F2.1.x&subject=Lovelace%20(2.1.x)[link=https://jenkins.spring.io/view/SpringData/job/spring-data-jpa/]
+image:https://jenkins.spring.io/buildStatus/icon?job=spring-data-jpa%2F1.11.x&subject=Ingalls%20(1.11.x)[link=https://jenkins.spring.io/view/SpringData/job/spring-data-jpa/]
+
+= Spring Data JPA
+
+The primary goal of the https://projects.spring.io/spring-data[Spring Data] project is to make it easier to build Spring-powered applications that use data access technologies. This module deals with enhanced support for JPA based data access layers.
+
+== Features
+
+* Implementation of CRUD methods for JPA Entities
+* Dynamic query generation from query method names
+* Transparent triggering of JPA NamedQueries by query methods
+* Implementation domain base classes providing basic properties
+* Support for transparent auditing (created, last changed)
+* Possibility to integrate custom repository code
+* Easy Spring integration with custom namespace
+
+== Getting Help
+
+This README as well as the https://docs.spring.io/spring-data/data-jpa/docs/current/reference/html[reference documentation] are the best places to start learning about Spring Data JPA. There are also https://github.com/spring-projects/spring-data-examples[two sample applications] available to look at.
+
+The main project https://projects.spring.io/spring-data[website] contains links to basic project information such as source code, JavaDocs, Issue tracking, etc.
+
+For more detailed questions, use https://stackoverflow.com/questions/tagged/spring-data-jpa[stackoverflow]. If you are new to Spring as well as to Spring Data, look for information about https://projects.spring.io[Spring projects]. You should also have a look at our new Spring Guides
+https://spring.io/guides/gs/accessing-data-jpa/[Accessing Data with JPA] that leverages the simplified configuration provided by https://projects.spring.io/spring-boot/[Spring Boot] as well as https://spring.io/guides/gs/accessing-data-rest/[Accessing JPA Data with REST]..
+
+== Quick Start
+
+Download the jar through Maven:
+
+[source,xml]
+----
+<dependency>
+  <groupId>org.springframework.data</groupId>
+  <artifactId>spring-data-jpa</artifactId>
+  <version>${version}.RELEASE</version>
+</dependency>
+----
+
+If you'd rather like the latest snapshots of the upcoming major version, use our Maven snapshot repository and declare the appropriate dependency version.
+
+[source,xml]
+----
+<dependency>
+  <groupId>org.springframework.data</groupId>
+  <artifactId>spring-data-jpa</artifactId>
+  <version>${version}.BUILD-SNAPSHOT</version>
+</dependency>
+
+<repository>
+  <id>spring-libs-snapshot</id>
+  <name>Spring Snapshot Repository</name>
+  <url>https://repo.spring.io/libs-snapshot</url>
+</repository>
+----
+
+Also include your JPA persistence provider of choice (Hibernate, EclipseLink, OpenJpa). Setup basic Spring JPA configuration as well as Spring Data JPA repository support.
+
+The simple Spring Data JPA configuration with Java-Config looks like this:
+```java
+@Configuration
+@EnableJpaRepositories("com.acme.repositories")
+class AppConfig {
+
+@Bean
+ public DataSource dataSource() {
+ return new EmbeddedDatabaseBuilder().setType(EmbeddedDatabaseType.H2).build();
+ }
+
+@Bean
+ public JpaTransactionManager transactionManager(EntityManagerFactory emf) {
+ return new JpaTransactionManager(emf);
+ }
+
+@Bean
+ public JpaVendorAdapter jpaVendorAdapter() {
+ HibernateJpaVendorAdapter jpaVendorAdapter = new HibernateJpaVendorAdapter();
+ jpaVendorAdapter.setDatabase(Database.H2);
+ jpaVendorAdapter.setGenerateDdl(true);
+ return jpaVendorAdapter;
+ }
+
+@Bean
+ public LocalContainerEntityManagerFactoryBean entityManagerFactory() {
+ LocalContainerEntityManagerFactoryBean lemfb = new LocalContainerEntityManagerFactoryBean();
+ lemfb.setDataSource(dataSource());
+ lemfb.setJpaVendorAdapter(jpaVendorAdapter());
+ lemfb.setPackagesToScan("com.acme");
+ return lemfb;
+ }
+}
+```
+
+Create an entity:
+
+[source,java]
+----
+@Entity
+public class User {
+
+  @Id
+  @GeneratedValue
+  private Integer id;
+  private String firstname;
+  private String lastname;
+       
+  // Getters and setters
+  // (Firstname, Lastname)-constructor and noargs-constructor
+  // equals / hashcode
+}
+----
+
+Create a repository interface in `com.acme.repositories`:
+
+[source,java]
+----
+public interface UserRepository extends CrudRepository<User, Long> {
+  List<User> findByLastname(String lastname);
+}
+----
+
+Write a test client
+
+[source,java]
+----
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(classes = AppConfig.class)
+public class UserRepositoryIntegrationTest {
+     
+  @Autowired UserRepository repository;
+     
+  @Test
+  public void sampleTestCase() {
+    User dave = new User("Dave", "Matthews");
+    dave = repository.save(dave);
+         
+    User carter = new User("Carter", "Beauford");
+    carter = repository.save(carter);
+         
+    List<User> result = repository.findByLastname("Matthews");
+    assertThat(result.size(), is(1));
+    assertThat(result, hasItem(dave));
+  }
+}
+----
+
+== Contributing to Spring Data JPA
+
+Here are some ways for you to get involved in the community:
+
+* Get involved with the Spring community by helping out on https://stackoverflow.com/questions/tagged/spring-data-jpa[stackoverflow] by responding to questions and joining the debate.
+* Create https://jira.spring.io/browse/DATAJPA[JIRA] tickets for bugs and new features and comment and vote on the ones that you are interested in.
+* Github is for social coding: if you want to write code, we encourage contributions through pull requests from https://help.github.com/forking/[forks of this repository]. If you want to contribute code this way, please reference a JIRA ticket as well covering the specific issue you are addressing.
+* Watch for upcoming articles on Spring by https://spring.io/blog[subscribing] to spring.io.
+
+Before we accept a non-trivial patch or pull request we will need you to https://cla.pivotal.io/sign/spring[sign the Contributor License Agreement]. Signing the contributor’s agreement does not grant anyone commit rights to the main repository, but it does mean that we can accept your contributions, and you will get an author credit if we do. If you forget to do so, you'll be reminded when you submit a pull request. Active contributors might be asked to join the core team, and given the ability to merge pull requests.
+
+== Running CI tasks locally
+
+Since this pipeline is purely Docker-based, it's easy to:
+
+* Debug what went wrong on your local machine.
+* Test out a a tweak to your test routine before sending it out.
+* Experiment against a new image before submitting your pull request.
+
+All of these use cases are great reasons to essentially run what the CI server does on your local machine.
+
+IMPORTANT: To do this you must have Docker installed on your machine.
+
+1. `docker run -it --mount type=bind,source="$(pwd)",target=/spring-data-jpa-github adoptopenjdk/openjdk8:latest /bin/sh`
++
+This will launch the Docker image and mount your source code at `spring-data-jpa-github`.
++
+2. `cd spring-data-jpa-github`
++
+Next, run the tests from inside the container:
++
+3. `./mvnw clean dependency:list test -Dsort -Dbundlor.enabled=false -B` (or with whatever profile you need to test out)
+
+Since the container is binding to your source, you can make edits from your IDE and continue to run build jobs.
+
+If you need to package things up, do this:
+
+1. `docker run -it --mount type=bind,source="$(pwd)",target=/spring-data-jpa-github adoptopenjdk/openjdk8:latest /bin/sh`
++
+This will launch the Docker image and mount your source code at `spring-data-jpa-github`.
++
+2. `cd spring-data-jpa-github`
++
+Next, package things from inside the container doing this:
++
+3. `./mvnw clean dependency:list package -Dsort -Dbundlor.enabled=false -B`
+
+NOTE: Docker containers can eat up disk space fast! From time to time, run `docker system prune` to clean out old images.

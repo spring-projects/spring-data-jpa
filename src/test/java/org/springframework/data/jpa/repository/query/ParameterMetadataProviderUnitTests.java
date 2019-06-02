@@ -15,7 +15,7 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.util.Collections;
@@ -44,7 +44,7 @@ public class ParameterMetadataProviderUnitTests {
 		when(parameters.getBindableParameters().iterator()).thenReturn(Collections.emptyListIterator());
 
 		ParameterMetadataProvider metadataProvider = new ParameterMetadataProvider(builder, parameters,
-				persistenceProvider);
+				persistenceProvider, EscapeCharacter.DEFAULT);
 
 		assertThatExceptionOfType(RuntimeException.class) //
 				.isThrownBy(() -> metadataProvider.next(mock(Part.class))) //

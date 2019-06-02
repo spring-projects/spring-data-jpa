@@ -175,6 +175,7 @@ abstract class QueryParameterSetterFactory {
 		private Object evaluateExpression(Expression expression, Object[] values) {
 
 			EvaluationContext context = evaluationContextProvider.getEvaluationContext(parameters, values);
+
 			return expression.getValue(context, Object.class);
 		}
 	}

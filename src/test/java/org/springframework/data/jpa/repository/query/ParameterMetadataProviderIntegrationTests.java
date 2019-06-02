@@ -15,7 +15,7 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 
 import java.lang.reflect.Method;
 import java.util.List;
@@ -81,7 +81,7 @@ public class ParameterMetadataProviderIntegrationTests {
 		simulateDiscoveredParametername(parameters);
 
 		return new ParameterMetadataProvider(em.getCriteriaBuilder(), parameters,
-				PersistenceProvider.fromEntityManager(em));
+				PersistenceProvider.fromEntityManager(em), EscapeCharacter.DEFAULT);
 	}
 
 	@SuppressWarnings({ "unchecked", "ConstantConditions" })

@@ -32,6 +32,7 @@ import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.provider.QueryExtractor;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.query.AbstractJpaQuery;
+import org.springframework.data.jpa.repository.query.EscapeCharacter;
 import org.springframework.data.jpa.repository.query.JpaQueryLookupStrategy;
 import org.springframework.data.jpa.repository.query.JpaQueryMethod;
 import org.springframework.data.jpa.util.JpaMetamodel;
@@ -68,6 +69,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	private final CrudMethodMetadataPostProcessor crudMethodMetadataPostProcessor;
 
 	private EntityPathResolver entityPathResolver;
+	private EscapeCharacter escapeCharacter = EscapeCharacter.DEFAULT;
 
 	/**
 	 * Creates a new {@link JpaRepositoryFactory}.
@@ -113,6 +115,15 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 		this.entityPathResolver = entityPathResolver;
 	}
 
+	/**
+	 * Configures the escape character to be used for like-expressions created for derived queries.
+	 *
+	 * @param escapeCharacter a character used for escaping in certain like expressions.
+	 */
+	public void setEscapeCharacter(EscapeCharacter escapeCharacter) {
+		this.escapeCharacter = escapeCharacter;
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.core.support.RepositoryFactorySupport#getTargetRepository(org.springframework.data.repository.core.RepositoryMetadata)
@@ -122,6 +133,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 
 		JpaRepositoryImplementation<?, ?> repository = getTargetRepository(information, entityManager);
 		repository.setRepositoryMethodMetadata(crudMethodMetadataPostProcessor.getCrudMethodMetadata());
+		repository.setEscapeCharacter(escapeCharacter);
 
 		return repository;
 	}
@@ -174,7 +186,8 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	@Override
 	protected Optional<QueryLookupStrategy> getQueryLookupStrategy(@Nullable Key key,
 			QueryMethodEvaluationContextProvider evaluationContextProvider) {
-		return Optional.of(JpaQueryLookupStrategy.create(entityManager, key, extractor, evaluationContextProvider));
+		return Optional
+				.of(JpaQueryLookupStrategy.create(entityManager, key, extractor, evaluationContextProvider, escapeCharacter));
 	}
 
 	/*

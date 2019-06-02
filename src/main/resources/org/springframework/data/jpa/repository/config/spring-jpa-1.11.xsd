@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<xsd:schema xmlns="http://www.springframework.org/schema/data/jpa"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+	xmlns:tool="http://www.springframework.org/schema/tool"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:repository="http://www.springframework.org/schema/data/repository"
+	targetNamespace="http://www.springframework.org/schema/data/jpa"
+	elementFormDefault="qualified" attributeFormDefault="unqualified">
+
+	<xsd:import namespace="http://www.springframework.org/schema/tool" />
+	<xsd:import namespace="http://www.springframework.org/schema/context" />
+	<xsd:import namespace="http://www.springframework.org/schema/data/repository"
+		schemaLocation="https://www.springframework.org/schema/data/repository/spring-repository.xsd" />
+
+	<xsd:element name="repositories">
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="repository:repositories">
+					<xsd:attributeGroup ref="repository:transactional-repository-attributes" />
+					<xsd:attribute name="entity-manager-factory-ref" type="entityManagerFactoryRef" />
+					<xsd:attribute name="enable-default-transactions" type="xsd:boolean">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+   							Controls whether repositories get transactions enabled by default. 
+							]]></xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="escape-character" type="xsd:string" default="\">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+							Configures what character is used to escape the LIKE wildcards _ and % in derived queries with contains, startsWith or endsWith clauses. Defaults to \. 
+							]]></xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="auditing">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<tool:annotation>
+					<tool:exports type="org.springframework.data.jpa.domain.support.AuditingEntityListener" />
+					<tool:exports type="org.springframework.data.auditing.AuditingHandler" />
+				</tool:annotation>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:attributeGroup ref="repository:auditing-attributes" />
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:simpleType name="entityManagerFactoryRef">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<tool:annotation kind="ref">
+					<tool:assignable-to type="org.springframework.orm.jpa.AbstractEntityManagerFactoryBean" />
+				</tool:annotation>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:union memberTypes="xsd:string" />
+	</xsd:simpleType>
+
+</xsd:schema>

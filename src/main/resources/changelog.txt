@@ -1,6 +1,85 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 1.11.22.RELEASE (2019-05-13)
+-----------------------------------------------
+* DATAJPA-1539 - Release 1.11.22 (Ingalls SR22).
+* DATAJPA-1534 - Wildcard character needs to be escaped in Spring data JPA.
+
+
+Changes in version 2.1.8.RELEASE (2019-05-13)
+---------------------------------------------
+* DATAJPA-1538 - Release 2.1.8 (Lovelace SR8).
+* DATAJPA-1534 - Wildcard character needs to be escaped in Spring data JPA.
+
+
+Changes in version 2.2.0.M4 (2019-05-13)
+----------------------------------------
+* DATAJPA-1534 - Wildcard character needs to be escaped in Spring data JPA.
+* DATAJPA-1533 - Builds are broken due to an outdated Mockito version.
+* DATAJPA-1531 - Release 2.2 M4 (Moore).
+* DATAJPA-1530 - JpaMetamodelEntityInformation does not unwrap ByteBuddy proxies.
+* DATAJPA-1506 - Wrong alias detection for native query.
+
+
+Changes in version 1.11.21.RELEASE (2019-05-10)
+-----------------------------------------------
+* DATAJPA-1523 - Release 1.11.21 (Ingalls SR21).
+* DATAJPA-1506 - Wrong alias detection for native query.
+
+
+Changes in version 2.1.7.RELEASE (2019-05-10)
+---------------------------------------------
+* DATAJPA-1533 - Builds are broken due to an outdated Mockito version.
+* DATAJPA-1530 - JpaMetamodelEntityInformation does not unwrap ByteBuddy proxies.
+* DATAJPA-1525 - Release 2.1.7 (Lovelace SR7).
+* DATAJPA-1506 - Wrong alias detection for native query.
+
+
+Changes in version 2.2.0.M3 (2019-04-11)
+----------------------------------------
+* DATAJPA-1522 - LIKE escape character needs to be escaped ins source value to be handled.
+* DATAJPA-1519 - Query derivation keywords implemented using like expressions do not properly escape underscores and percentages.
+* DATAJPA-1515 - Move off deprecations in Spring Data Commons.
+* DATAJPA-1513 - Release 2.2 M3 (Moore).
+
+
+Changes in version 2.1.6.RELEASE (2019-04-01)
+---------------------------------------------
+* DATAJPA-1522 - LIKE escape character needs to be escaped ins source value to be handled.
+* DATAJPA-1519 - Query derivation keywords implemented using like expressions do not properly escape underscores and percentages.
+* DATAJPA-1504 - Release 2.1.6 (Lovelace SR6).
+* DATAJPA-1498 - Upgrade Hibernate 5.4 build profile to 5.4.1.
+* DATAJPA-1404 - Is Null query does not return entities.
+* DATAJPA-1156 - Query hints are applied to count queries for QueryDSL even though forCounting is set to false.
+
+
+Changes in version 2.0.14.RELEASE (2019-04-01)
+----------------------------------------------
+* DATAJPA-1522 - LIKE escape character needs to be escaped ins source value to be handled.
+* DATAJPA-1519 - Query derivation keywords implemented using like expressions do not properly escape underscores and percentages.
+* DATAJPA-1502 - Typo in reference docs on Specification.
+* DATAJPA-1498 - Upgrade Hibernate 5.4 build profile to 5.4.1.
+* DATAJPA-1494 - Release 2.0.14 (Kay SR14).
+* DATAJPA-1404 - Is Null query does not return entities.
+* DATAJPA-1321 - JpaRepository.getOne(…) JavaDoc is misleading.
+* DATAJPA-1297 - outputParameterName in @Procedure is not being used to create the StoredProcedureAttributes.
+
+
+Changes in version 1.11.20.RELEASE (2019-04-01)
+-----------------------------------------------
+* DATAJPA-1522 - LIKE escape character needs to be escaped ins source value to be handled.
+* DATAJPA-1521 - Release 1.11.20 (Ingalls SR20).
+
+
+Changes in version 1.11.19.RELEASE (2019-04-01)
+-----------------------------------------------
+* DATAJPA-1519 - Query derivation keywords implemented using like expressions do not properly escape underscores and percentages.
+* DATAJPA-1502 - Typo in reference docs on Specification.
+* DATAJPA-1493 - Release 1.11.19 (Ingalls SR19).
+* DATAJPA-1297 - outputParameterName in @Procedure is not being used to create the StoredProcedureAttributes.
+
+
 Changes in version 2.2.0.M2 (2019-03-07)
 ----------------------------------------
 * DATAJPA-1502 - Typo in reference docs on Specification.

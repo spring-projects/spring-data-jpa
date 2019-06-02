@@ -174,6 +174,14 @@ public class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserReposi
 		super.findByEmptyCollectionOfStrings();
 	}
 
+	/**
+	 * Ignores the test for EclipseLink.
+	 */
+	@Override
+	@Test
+	@Ignore
+	public void savingUserThrowsAnException() {}
+
 	private void assumeNotEclipseLink2_7_2plus() {
 
 		Assume.assumeFalse("Empty collections seem to be broken in EclipseLink 2.7.2+",

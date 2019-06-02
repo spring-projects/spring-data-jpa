@@ -1,0 +1,9 @@
+# Security Policy
+
+## Supported Versions
+
+Please see the https://spring.io/projects/spring-data-jpa[Spring Data JPA] project page for supported versions.
+
+## Reporting a Vulnerability
+
+Please don't raise security vulnerabilities here. Head over to https://pivotal.io/security to learn how to disclose them responsibly.

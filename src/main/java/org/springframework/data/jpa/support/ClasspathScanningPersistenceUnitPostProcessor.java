@@ -53,6 +53,7 @@ import org.springframework.util.StringUtils;
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Mark Paluch
+ * @author David Madden
  */
 public class ClasspathScanningPersistenceUnitPostProcessor
 		implements PersistenceUnitPostProcessor, ResourceLoaderAware, EnvironmentAware {
@@ -73,7 +74,7 @@ public class ClasspathScanningPersistenceUnitPostProcessor
 	 */
 	public ClasspathScanningPersistenceUnitPostProcessor(String basePackage) {
 
-		Assert.hasText(basePackage, "Base package must not be null!");
+		Assert.hasText(basePackage, "Base package must not be null or empty!");
 
 		this.basePackage = basePackage;
 	}
