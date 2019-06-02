@@ -19,6 +19,7 @@ import javax.persistence.StoredProcedureQuery;
 
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 import java.util.Arrays;
 import java.util.List;
@@ -76,7 +77,7 @@ class StoredProcedureAttributes {
 		this.procedureName = procedureName;
 		this.outputParameterNames = namedStoredProcedure ? outputParameterNames : IntStream.range(0, outputParameterNames.size()).mapToObj(i -> {
 			String paramName = outputParameterNames.get(i);
-			return paramName == null ? SYNTHETIC_OUTPUT_PARAMETER_NAME + (i == 0 ? "" : i) : paramName;
+			return !StringUtils.hasText(paramName) ? SYNTHETIC_OUTPUT_PARAMETER_NAME + (i == 0 ? "" : i) : paramName;
 		}).collect(Collectors.toList());
 		this.outputParameterTypes = outputParameterTypes;
 		this.namedStoredProcedure = namedStoredProcedure;
