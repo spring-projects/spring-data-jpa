@@ -415,10 +415,11 @@ public class QueryUtilsUnitTests {
 
 	@Test // DATAJPA-1500
 	public void createCountQuerySupportsWhitespaceCharacters() {
-		assertThat(createCountQueryFor("select * from User user\n" +
-						"  where user.age = 18\n" +
-						"  order by user.name\n "),
-				is("select count(user) from User user\n" +
+
+		assertThat(createCountQueryFor("select * from User user\n" + //
+						"  where user.age = 18\n" + //
+						"  order by user.name\n "), //
+				is("select count(user) from User user\n" + //
 						"  where user.age = 18\n "));
 	}
 
