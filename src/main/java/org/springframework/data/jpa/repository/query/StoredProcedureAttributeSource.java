@@ -72,7 +72,7 @@ enum StoredProcedureAttributeSource {
 					+ method);
 		}
 
-		return new StoredProcedureAttributes(procedureName, procedure.outputParameterName(), method.getReturnType(), false);
+		return new StoredProcedureAttributes(procedureName, procedure.outputParameterName(), method.getReturnType());
 	}
 
 	/**

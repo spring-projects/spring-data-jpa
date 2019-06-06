@@ -348,7 +348,7 @@ public interface UserRepository
 
 	/**
 	 * Explicitly mapped to named stored procedure "User.plus1IO2" in {@link EntityManager}.
-	 * Returns 2 out params as a List
+	 * Returns 2 out params as a Map.
 	 */
 	@Procedure(name = "User.plus1IO2") // DATAJPA-707
 	Map<String, Integer> entityAnnotatedCustomNamedProcedurePlus1IO2(@Param("arg") Integer arg);

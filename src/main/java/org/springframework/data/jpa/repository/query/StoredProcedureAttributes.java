@@ -15,13 +15,12 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import javax.persistence.StoredProcedureQuery;
-
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-import java.util.Arrays;
+import javax.persistence.StoredProcedureQuery;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -33,11 +32,12 @@ import java.util.stream.IntStream;
  * @author Oliver Gierke
  * @author Mark Paluch
  * @author Jeff Sheets
+ * @author Jens Schauder
  * @since 1.6
  */
 class StoredProcedureAttributes {
 
-	// A syntheic output parameter name to be used in case of derived stored procedures and named parameters
+	// A synthetic output parameter name to be used in case of derived stored procedures and named parameters
 	static final String SYNTHETIC_OUTPUT_PARAMETER_NAME = "out";
 
 	private final boolean namedStoredProcedure;
@@ -48,26 +48,25 @@ class StoredProcedureAttributes {
 	/**
 	 * Creates a new {@link StoredProcedureAttributes}.
 	 *
-	 * @param procedureName must not be {@literal null}
-	 * @param outputParameterName may be {@literal null}
-	 * @param outputParameterType must not be {@literal null}
-	 * @param namedStoredProcedure
+	 * @param procedureName        must not be {@literal null}.
+	 * @param outputParameterName  may be {@literal null}.
+	 * @param outputParameterType  must not be {@literal null}.
 	 */
-	public StoredProcedureAttributes(String procedureName, @Nullable String outputParameterName,
-			Class<?> outputParameterType, boolean namedStoredProcedure) {
-		this(procedureName, Arrays.asList(outputParameterName), Arrays.asList(outputParameterType), namedStoredProcedure);
+	StoredProcedureAttributes(String procedureName, @Nullable String outputParameterName,
+							  Class<?> outputParameterType) {
+		this(procedureName, Collections.singletonList(outputParameterName), Collections.singletonList(outputParameterType), false);
 	}
 
 	/**
 	 * Creates a new {@link StoredProcedureAttributes}.
 	 *
-	 * @param procedureName must not be {@literal null}
-	 * @param outputParameterNames may be empty, but not null
-	 * @param outputParameterTypes must not be empty, and cannot be a single element of null
-	 * @param namedStoredProcedure
+	 * @param procedureName        must not be {@literal null}.
+	 * @param outputParameterNames may be empty, but not {@literal null}.
+	 * @param outputParameterTypes must not be empty, and cannot be a single element of {@literal null}.
+	 * @param namedStoredProcedure flag signaling if the stored procedure has a name.
 	 */
-	public StoredProcedureAttributes(String procedureName, List<String> outputParameterNames,
-			List<Class<?>> outputParameterTypes, boolean namedStoredProcedure) {
+	StoredProcedureAttributes(String procedureName, List<String> outputParameterNames,
+							  List<Class<?>> outputParameterTypes, boolean namedStoredProcedure) {
 
 		Assert.notNull(procedureName, "ProcedureName must not be null!");
 		Assert.notNull(outputParameterNames, "OutputParameterNames must not be null!");
@@ -75,12 +74,29 @@ class StoredProcedureAttributes {
 		Assert.isTrue(outputParameterTypes.size() != 1 || outputParameterTypes.get(0) != null, "OutputParameterTypes must not have size 1 with a null value");
 
 		this.procedureName = procedureName;
-		this.outputParameterNames = namedStoredProcedure ? outputParameterNames : IntStream.range(0, outputParameterNames.size()).mapToObj(i -> {
-			String paramName = outputParameterNames.get(i);
-			return !StringUtils.hasText(paramName) ? SYNTHETIC_OUTPUT_PARAMETER_NAME + (i == 0 ? "" : i) : paramName;
-		}).collect(Collectors.toList());
+		this.outputParameterNames = namedStoredProcedure
+				? outputParameterNames
+				: completeOutputParameterNames(outputParameterNames);
 		this.outputParameterTypes = outputParameterTypes;
 		this.namedStoredProcedure = namedStoredProcedure;
+	}
+
+	private List<String> completeOutputParameterNames(List<String> outputParameterNames) {
+
+		return IntStream.range(0, outputParameterNames.size()) //
+				.mapToObj(i -> completeOutputParameterName(i, outputParameterNames.get(i))) //
+				.collect(Collectors.toList());
+	}
+
+	private String completeOutputParameterName(int i, String paramName) {
+
+		return StringUtils.hasText(paramName) //
+				? paramName //
+				: createSyntheticParameterName(i);
+	}
+
+	private String createSyntheticParameterName(int i) {
+		return SYNTHETIC_OUTPUT_PARAMETER_NAME + (i == 0 ? "" : i);
 	}
 
 	/**

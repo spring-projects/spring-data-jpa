@@ -26,7 +26,7 @@ import javax.persistence.StoredProcedureParameter;
 import org.springframework.util.ObjectUtils;
 
 /**
- * Sample domain class representing used for Stored Procedure tests.
+ * Sample domain class used for Stored Procedure tests.
  *
  * @author Thomas Darimont
  */

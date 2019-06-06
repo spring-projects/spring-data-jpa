@@ -15,19 +15,7 @@
  */
 package org.springframework.data.jpa.repository;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.Matchers.hasEntry;
-import static org.junit.Assert.*;
-import static org.junit.Assume.*;
-import static org.springframework.data.jpa.support.EntityManagerTestUtils.*;
-
-import javax.persistence.*;
-
-import org.junit.Assume;
-import org.junit.Ignore;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
@@ -36,7 +24,13 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityManager;
+import javax.persistence.ParameterMode;
+import javax.persistence.PersistenceContext;
+import javax.persistence.StoredProcedureQuery;
 import java.util.Map;
+
+import static org.assertj.core.api.Assertions.*;
 
 /**
  * Integration tests for JPA 2.1 stored procedure support.
@@ -44,85 +38,68 @@ import java.util.Map;
  * @author Thomas Darimont
  * @author Oliver Gierke
  * @author Jeff Sheets
+ * @author Jens Schauder
  * @since 1.6
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("classpath:application-context.xml")
 @Transactional
-public class UserRepositoryStoredProcedureTests {
+public class UserRepositoryStoredProcedureIntegrationTests {
 
-	@Autowired UserRepository repository;
-	@PersistenceContext EntityManager em;
-
-	@Rule public ExpectedException exception = ExpectedException.none();
+	@Autowired
+	UserRepository repository;
+	@PersistenceContext
+	EntityManager em;
 
 	@Test // DATAJPA-455
 	public void callProcedureWithInAndOutParameters() {
 
-		assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
-
-		assertThat(repository.plus1inout(1), is(2));
+		assertThat(repository.plus1inout(1)).isEqualTo(2);
 	}
 
 	@Test // DATAJPA-707
 	public void callProcedureWithInAndOutParametersInvalidOutParamName() {
 
-		assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
-
-		assertThat(repository.plus1inoutInvalidOutParamName(1), is(2));
+		assertThat(repository.plus1inoutInvalidOutParamName(1)).isEqualTo(2);
 	}
 
 	@Test // DATAJPA-455
 	public void callProcedureExplicitNameWithInAndOutParameters() {
 
-		assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
-
-		assertThat(repository.explicitlyNamedPlus1inout(1), is(2));
+		assertThat(repository.explicitlyNamedPlus1inout(1)).isEqualTo(2);
 	}
 
 	@Test // DATAJPA-455
 	public void entityAnnotatedCustomNamedProcedurePlus1IO() {
 
-		assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
-
-		assertThat(repository.entityAnnotatedCustomNamedProcedurePlus1IO(1), is(2));
+		assertThat(repository.entityAnnotatedCustomNamedProcedurePlus1IO(1)).isEqualTo(2);
 	}
 
 	@Test // DATAJPA-707
 	public void entityAnnotatedCustomNamedProcedurePlus1IOInvalidOutParamName() {
 
-		assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
-
-		exception.expect(InvalidDataAccessApiUsageException.class);
-		exception.expectMessage(containsString("Could not locate parameter registered under that name"));
-
-		repository.entityAnnotatedCustomNamedProcedurePlus1IOInvalidOutParamName(1);
+		assertThatThrownBy( //
+				() -> repository.entityAnnotatedCustomNamedProcedurePlus1IOInvalidOutParamName(1)) //
+				.isInstanceOf(InvalidDataAccessApiUsageException.class) //
+				.hasMessageContaining("Could not locate parameter registered under that name");
 	}
 
 	@Test // DATAJPA-707
 	public void entityAnnotatedCustomNamedProcedurePlus1IO2TwoOutParamsButNamingOne() {
 
-		assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
-
-		assertThat(repository.entityAnnotatedCustomNamedProcedurePlus1IO2TwoOutParamsButNamingOne(1), is(3));
+		assertThat(repository.entityAnnotatedCustomNamedProcedurePlus1IO2TwoOutParamsButNamingOne(1)).isEqualTo(3);
 	}
 
 	@Test // DATAJPA-707
 	public void entityAnnotatedCustomNamedProcedurePlus1IO2() {
 
-		assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
-
 		Map<String, Integer> result = repository.entityAnnotatedCustomNamedProcedurePlus1IO2(1);
-		assertThat(result, hasEntry("res", 2));
-		assertThat(result, hasEntry("res2", 3));
-		assertThat(result.size(), is(2));
+
+		assertThat(result).containsExactly(entry("res", 2), entry("res2", 3));
 	}
 
 	@Test // DATAJPA-455
-	@Ignore
 	public void plainJpa21() {
-
-		assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
 
 		StoredProcedureQuery proc = em.createStoredProcedureQuery("plus1inout");
 		proc.registerStoredProcedureParameter(1, Integer.class, ParameterMode.IN);
@@ -131,28 +108,22 @@ public class UserRepositoryStoredProcedureTests {
 		proc.setParameter(1, 1);
 		proc.execute();
 
-		assertThat(proc.getOutputParameterValue(2), is((Object) 2));
+		assertThat(proc.getOutputParameterValue(2)).isEqualTo(2);
 	}
 
 	@Test // DATAJPA-455
-	@Ignore
 	public void plainJpa21_entityAnnotatedCustomNamedProcedurePlus1IO() {
-
-		Assume.assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
 
 		StoredProcedureQuery proc = em.createNamedStoredProcedureQuery("User.plus1IO");
 
 		proc.setParameter("arg", 1);
 		proc.execute();
 
-		assertThat(proc.getOutputParameterValue("res"), is((Object) 2));
+		assertThat(proc.getOutputParameterValue("res")).isEqualTo(2);
 	}
 
 	@Test // DATAJPA-707
-	@Ignore
 	public void plainJpa21_twoOutParams() {
-
-		assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
 
 		StoredProcedureQuery proc = em.createStoredProcedureQuery("plus1inout2");
 		proc.registerStoredProcedureParameter(1, Integer.class, ParameterMode.IN);
@@ -162,22 +133,19 @@ public class UserRepositoryStoredProcedureTests {
 		proc.setParameter(1, 1);
 		proc.execute();
 
-		assertThat(proc.getOutputParameterValue(2), is((Object) 2));
-		assertThat(proc.getOutputParameterValue(3), is((Object) 3));
+		assertThat(proc.getOutputParameterValue(2)).isEqualTo(2);
+		assertThat(proc.getOutputParameterValue(3)).isEqualTo(3);
 	}
 
 	@Test // DATAJPA-707
-	@Ignore
 	public void plainJpa21_entityAnnotatedCustomNamedProcedurePlus1IO2() {
-
-		Assume.assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
 
 		StoredProcedureQuery proc = em.createNamedStoredProcedureQuery("User.plus1IO2");
 
 		proc.setParameter("arg", 1);
 		proc.execute();
 
-		assertThat(proc.getOutputParameterValue("res"), is((Object) 2));
-		assertThat(proc.getOutputParameterValue("res2"), is((Object) 3));
+		assertThat(proc.getOutputParameterValue("res")).isEqualTo(2);
+		assertThat(proc.getOutputParameterValue("res2")).isEqualTo(3);
 	}
 }
