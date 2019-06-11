@@ -30,6 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.sample.Role;
@@ -191,6 +192,16 @@ public class UserRepositoryFinderTests {
 
 		assertThat(slice.getContent(), hasItem(dave));
 		assertThat(slice.hasNext(), is(true));
+	}
+
+	@Test // DATAJPA-1554
+	public void executesQueryToSliceWithUnpaged() {
+
+		Slice<User> slice = userRepository.findSliceByLastname("Matthews", Pageable.unpaged());
+
+		assertThat(slice, containsInAnyOrder(dave, oliver));
+		assertThat(slice.getNumberOfElements(), is(2));
+		assertThat(slice.hasNext(), is(false));
 	}
 
 	@Test // DATAJPA-830
