@@ -5,7 +5,7 @@
 == Common
 
 [qanda]
-I'd like to get more detailed logging information on what methods are called inside `JpaRepository` (for example). How can I gain them? :: You can make use of `CustomizableTraceInterceptor` provided by Spring, as shown in the following example:
+I'd like to get more detailed logging information on what methods are called inside `JpaRepository` for example. How can I gain them? :: You can make use of `CustomizableTraceInterceptor` provided by Spring, as shown in the following example:
 +
 [source, xml]
 ----
