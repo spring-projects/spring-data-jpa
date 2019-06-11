@@ -161,13 +161,20 @@ public abstract class JpaQueryExecution {
 			Pageable pageable = accessor.getPageable();
 
 			Query createQuery = query.createQuery(values);
-			int pageSize = pageable.getPageSize();
-			createQuery.setMaxResults(pageSize + 1);
+
+			int pageSize = 0;
+			if (pageable.isPaged()) {
+
+				pageSize = pageable.getPageSize();
+				createQuery.setMaxResults(pageSize + 1);
+			}
 
 			List<Object> resultList = createQuery.getResultList();
-			boolean hasNext = resultList.size() > pageSize;
 
-			return new SliceImpl<Object>(hasNext ? resultList.subList(0, pageSize) : resultList, pageable, hasNext);
+			boolean hasNext = pageable.isPaged() && resultList.size() > pageSize;
+
+			return new SliceImpl<>(hasNext ? resultList.subList(0, pageSize) : resultList, pageable, hasNext);
+
 		}
 	}
 
@@ -225,8 +232,8 @@ public abstract class JpaQueryExecution {
 		private final boolean clear;
 
 		/**
-		 * Creates an execution that automatically flushes the given {@link EntityManager} before execution and/or
-		 * clears the given {@link EntityManager} after execution.
+		 * Creates an execution that automatically flushes the given {@link EntityManager} before execution and/or clears
+		 * the given {@link EntityManager} after execution.
 		 *
 		 * @param em Must not be {@literal null}.
 		 */
