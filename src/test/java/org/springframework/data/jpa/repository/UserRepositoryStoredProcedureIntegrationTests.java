@@ -81,7 +81,7 @@ public class UserRepositoryStoredProcedureIntegrationTests {
 		assertThatThrownBy( //
 				() -> repository.entityAnnotatedCustomNamedProcedurePlus1IOInvalidOutParamName(1)) //
 				.isInstanceOf(InvalidDataAccessApiUsageException.class) //
-				.hasMessageContaining("Could not locate parameter registered under that name");
+				.hasMessageContaining("parameter");
 	}
 
 	@Test // DATAJPA-707
