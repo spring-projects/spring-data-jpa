@@ -1,6 +1,16 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 2.1.9.RELEASE (2019-06-14)
+---------------------------------------------
+* DATAJPA-1556 - Update faq.adoc: typo fix.
+* DATAJPA-1554 - JpaQueryExecution.SlicedExecution fails on Unpaged pageabled.
+* DATAJPA-1542 - Release 2.1.9 (Lovelace SR9).
+* DATAJPA-1535 - Simple Repository delete of unexisting entity generates insert + delete SQL.
+* DATAJPA-1500 - order by clause is not removed from derived count query when newline after the order by clause.
+* DATAJPA-1451 - Inconsistent Assert messages.
+
+
 Changes in version 1.11.22.RELEASE (2019-05-13)
 -----------------------------------------------
 * DATAJPA-1539 - Release 1.11.22 (Ingalls SR22).
