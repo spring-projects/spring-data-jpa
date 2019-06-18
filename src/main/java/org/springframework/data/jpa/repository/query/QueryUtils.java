@@ -93,9 +93,11 @@ public abstract class QueryUtils {
 	static final String COLON_NO_DOUBLE_COLON = "(?<![:\\\\]):";
 	static final String IDENTIFIER_GROUP = String.format("(%s)", IDENTIFIER);
 
-	private static final String COUNT_REPLACEMENT_TEMPLATE = "select count(1) FROM (select %s $5$6$7) AS total";
+	private static final String COUNT_REPLACEMENT_TEMPLATE = "select count(%s) $5$6$7";
+	private static final String COUNT_REPLACEMENT_TEMPLATE_NATIVE = "select count(1) from (select %s $5$6$7) as total";
 	private static final String SIMPLE_COUNT_VALUE = "$2";
-	private static final String COMPLEX_COUNT_VALUE = "$3$4";
+	private static final String COMPLEX_COUNT_VALUE = "$3$6";
+	private static final String COMPLEX_COUNT_VALUE_NATIVE = "$3$4";
 	private static final String ORDER_BY_PART = "(?iu)\\s+order\\s+by\\s+.*$";
 
 	private static final Pattern ALIAS_MATCH;
@@ -427,7 +429,7 @@ public abstract class QueryUtils {
 	 */
 	@Deprecated
 	public static String createCountQueryFor(String originalQuery) {
-		return createCountQueryFor(originalQuery, null);
+		return createCountQueryFor(originalQuery, null, null);
 	}
 
 	/**
@@ -435,12 +437,13 @@ public abstract class QueryUtils {
 	 *
 	 * @param originalQuery must not be {@literal null}.
 	 * @param countProjection may be {@literal null}.
+	 * @param isNativeQuery may be {@literal null}.
 	 * @return a query String to be used a count query for pagination. Guaranteed to be not {@literal null}.
 	 * @since 1.6
 	 * @deprecated use {@link DeclaredQuery#deriveCountQuery(String, String)} instead.
 	 */
 	@Deprecated
-	public static String createCountQueryFor(String originalQuery, @Nullable String countProjection) {
+	public static String createCountQueryFor(String originalQuery, @Nullable String countProjection, @Nullable Boolean isNativeQuery) {
 
 		Assert.hasText(originalQuery, "OriginalQuery must not be null or empty!");
 
@@ -453,8 +456,16 @@ public abstract class QueryUtils {
 			boolean useVariable = variable != null && StringUtils.hasText(variable) && !variable.startsWith("new")
 					&& !variable.startsWith("count(") && !variable.contains(",");
 
-			String replacement = useVariable ? SIMPLE_COUNT_VALUE : COMPLEX_COUNT_VALUE;
-			countQuery = matcher.replaceFirst(String.format(COUNT_REPLACEMENT_TEMPLATE, replacement));
+			
+			if(isNativeQuery == null || !isNativeQuery) {
+				
+				String replacement = useVariable ? SIMPLE_COUNT_VALUE : COMPLEX_COUNT_VALUE;
+				countQuery = matcher.replaceFirst(String.format(COUNT_REPLACEMENT_TEMPLATE, replacement));
+			} else {
+				
+				String replacement = useVariable ? SIMPLE_COUNT_VALUE : COMPLEX_COUNT_VALUE_NATIVE;
+				countQuery = matcher.replaceFirst(String.format(COUNT_REPLACEMENT_TEMPLATE_NATIVE, replacement));
+			}
 		} else {
 			countQuery = matcher.replaceFirst(String.format(COUNT_REPLACEMENT_TEMPLATE, countProjection));
 		}

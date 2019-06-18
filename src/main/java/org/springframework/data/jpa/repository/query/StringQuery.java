@@ -46,6 +46,7 @@ import org.springframework.util.StringUtils;
  * @author Oliver Wehrens
  * @author Mark Paluch
  * @author Jens Schauder
+ * @author Chao Jiang
  */
 class StringQuery implements DeclaredQuery {
 
@@ -104,10 +105,10 @@ class StringQuery implements DeclaredQuery {
 	 */
 	@Override
 	@SuppressWarnings("deprecation")
-	public DeclaredQuery deriveCountQuery(@Nullable String countQuery, @Nullable String countQueryProjection) {
+	public DeclaredQuery deriveCountQuery(@Nullable String countQuery, @Nullable String countQueryProjection, @Nullable Boolean isNativeQuery) {
 
 		return DeclaredQuery
-				.of(countQuery != null ? countQuery : QueryUtils.createCountQueryFor(query, countQueryProjection));
+				.of(countQuery != null ? countQuery : QueryUtils.createCountQueryFor(query, countQueryProjection, isNativeQuery));
 	}
 
 	/*
