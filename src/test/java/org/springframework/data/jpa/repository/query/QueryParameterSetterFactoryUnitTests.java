@@ -52,14 +52,14 @@ public class QueryParameterSetterFactoryUnitTests {
 
 	@Test // DATAJPA-1058
 	public void noExceptionWhenQueryDoesNotContainNamedParameters() {
-		setterFactory.create(binding, DeclaredQuery.of("QueryStringWithOutNamedParameter"));
+		setterFactory.create(binding, DeclaredQuery.of("QueryStringWithOutNamedParameter", false));
 	}
 
 	@Test // DATAJPA-1058
 	public void exceptionWhenQueryContainNamedParametersAndMethodParametersAreNotNamed() {
 
 		Assertions.assertThatExceptionOfType(IllegalStateException.class) //
-				.isThrownBy(() -> setterFactory.create(binding, DeclaredQuery.of("QueryStringWith :NamedParameter"))) //
+				.isThrownBy(() -> setterFactory.create(binding, DeclaredQuery.of("QueryStringWith :NamedParameter", false))) //
 				.withMessageContaining("Java 8") //
 				.withMessageContaining("@Param") //
 				.withMessageContaining("-parameters");
@@ -76,7 +76,7 @@ public class QueryParameterSetterFactoryUnitTests {
 		when(binding.getRequiredPosition()).thenReturn(1);
 
 		Assertions.assertThatExceptionOfType(IllegalArgumentException.class) //
-				.isThrownBy(() -> setterFactory.create(binding, DeclaredQuery.of("QueryStringWith :NamedParameter"))) //
+				.isThrownBy(() -> setterFactory.create(binding, DeclaredQuery.of("QueryStringWith :NamedParameter", false))) //
 				.withMessage("At least 1 parameter(s) provided but only 0 parameter(s) present in query.");
 	}
 
@@ -90,7 +90,7 @@ public class QueryParameterSetterFactoryUnitTests {
 		when(binding.getRequiredPosition()).thenReturn(1);
 
 		Assertions.assertThatExceptionOfType(IllegalArgumentException.class) //
-				.isThrownBy(() -> setterFactory.create(binding, DeclaredQuery.of("QueryStringWith ?1"))) //
+				.isThrownBy(() -> setterFactory.create(binding, DeclaredQuery.of("QueryStringWith ?1", false))) //
 				.withMessage("At least 1 parameter(s) provided but only 0 parameter(s) present in query.");
 	}
 }

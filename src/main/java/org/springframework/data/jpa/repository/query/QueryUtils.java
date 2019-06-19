@@ -429,7 +429,21 @@ public abstract class QueryUtils {
 	 */
 	@Deprecated
 	public static String createCountQueryFor(String originalQuery) {
-		return createCountQueryFor(originalQuery, null, null);
+		return createCountQueryFor(originalQuery, null);
+	}
+
+	/**
+	 * Creates a count projected query from the given original query.
+	 *
+	 * @param originalQuery must not be {@literal null}.
+	 * @param countProjection may be {@literal null}.
+	 * @return a query String to be used a count query for pagination. Guaranteed to be not {@literal null}.
+	 * @since 1.6
+	 * @deprecated use {@link DeclaredQuery#deriveCountQuery(String, String)} instead.
+	 */
+	@Deprecated
+	public static String createCountQueryFor(String originalQuery, @Nullable String countProjection) {
+		return createCountQueryFor(originalQuery, countProjection, false);
 	}
 
 	/**
@@ -439,11 +453,8 @@ public abstract class QueryUtils {
 	 * @param countProjection may be {@literal null}.
 	 * @param isNativeQuery may be {@literal null}.
 	 * @return a query String to be used a count query for pagination. Guaranteed to be not {@literal null}.
-	 * @since 1.6
-	 * @deprecated use {@link DeclaredQuery#deriveCountQuery(String, String)} instead.
 	 */
-	@Deprecated
-	public static String createCountQueryFor(String originalQuery, @Nullable String countProjection, @Nullable Boolean isNativeQuery) {
+	static String createCountQueryFor(String originalQuery, @Nullable String countProjection, boolean isNativeQuery) {
 
 		Assert.hasText(originalQuery, "OriginalQuery must not be null or empty!");
 
@@ -453,11 +464,11 @@ public abstract class QueryUtils {
 		if (countProjection == null) {
 
 			String variable = matcher.matches() ? matcher.group(VARIABLE_NAME_GROUP_INDEX) : null;
-			boolean useVariable = variable != null && StringUtils.hasText(variable) && !variable.startsWith("new")
+			boolean useVariable = StringUtils.hasText(variable) && !variable.startsWith("new")
 					&& !variable.startsWith("count(") && !variable.contains(",");
 
 
-			if(isNativeQuery == null || !isNativeQuery) {
+			if(!isNativeQuery) {
 
 				String replacement = useVariable ? SIMPLE_COUNT_VALUE : COMPLEX_COUNT_VALUE;
 				countQuery = matcher.replaceFirst(String.format(COUNT_REPLACEMENT_TEMPLATE, replacement));

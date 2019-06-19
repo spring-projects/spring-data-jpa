@@ -33,10 +33,11 @@ interface DeclaredQuery {
 	 * Creates a {@literal DeclaredQuery} from a query {@literal String}.
 	 *
 	 * @param query might be {@literal null} or empty.
+	 * @param isNative Is the query a native SQL statement? Or a JPQL statement?
 	 * @return a {@literal DeclaredQuery} instance even for a {@literal null} or empty argument.
 	 */
-	static DeclaredQuery of(@Nullable String query) {
-		return StringUtils.isEmpty(query) ? EmptyDeclaredQuery.EMPTY_QUERY : new StringQuery(query);
+	static DeclaredQuery of(@Nullable String query, boolean isNative) {
+		return StringUtils.isEmpty(query) ? EmptyDeclaredQuery.EMPTY_QUERY : new StringQuery(query, isNative);
 	}
 
 	/**
@@ -81,10 +82,9 @@ interface DeclaredQuery {
 	 * 
 	 * @param countQuery an optional query string to be used if present.
 	 * @param countQueryProjection an optional return type for the query.
-	 * @param isNativeQuery true if query is native query.
 	 * @return a new {@literal DeclaredQuery} instance.
 	 */
-	DeclaredQuery deriveCountQuery(@Nullable String countQuery, @Nullable String countQueryProjection, Boolean isNativeQuery);
+	DeclaredQuery deriveCountQuery(@Nullable String countQuery, @Nullable String countQueryProjection);
 
 	/**
 	 * @return whether paging is implemented in the query itself, e.g. using SpEL expressions.
@@ -102,4 +102,15 @@ interface DeclaredQuery {
 	 * @since 2.0.6
 	 */
 	boolean usesJdbcStyleParameters();
+
+
+	/**
+	 * Returns whether the query is a native SQL query.
+	 *
+	 * @return Whether the query is a native SQL query.
+	 * @since 2.1.9
+	 */
+	default boolean isNative(){
+		return false;
+	};
 }

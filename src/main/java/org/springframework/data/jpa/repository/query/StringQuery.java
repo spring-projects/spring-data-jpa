@@ -56,14 +56,16 @@ class StringQuery implements DeclaredQuery {
 	private final boolean hasConstructorExpression;
 	private final boolean containsPageableInSpel;
 	private final boolean usesJdbcStyleParameters;
+	private final boolean isNative;
 
 	/**
 	 * Creates a new {@link StringQuery} from the given JPQL query.
 	 *
 	 * @param query must not be {@literal null} or empty.
+	 * @param isNative
 	 */
 	@SuppressWarnings("deprecation")
-	StringQuery(String query) {
+	StringQuery(String query, boolean isNative) {
 
 		Assert.hasText(query, "Query must not be null or empty!");
 
@@ -77,6 +79,7 @@ class StringQuery implements DeclaredQuery {
 		this.usesJdbcStyleParameters = queryMeta.usesJdbcStyleParameters;
 		this.alias = QueryUtils.detectAlias(query);
 		this.hasConstructorExpression = QueryUtils.hasConstructorExpression(query);
+		this.isNative = isNative;
 	}
 
 	/**
@@ -104,11 +107,11 @@ class StringQuery implements DeclaredQuery {
 	 * @see org.springframework.data.jpa.repository.query.DeclaredQuery#deriveCountQuery(java.lang.String, java.lang.String)
 	 */
 	@Override
-	@SuppressWarnings("deprecation")
-	public DeclaredQuery deriveCountQuery(@Nullable String countQuery, @Nullable String countQueryProjection, @Nullable Boolean isNativeQuery) {
+	public DeclaredQuery deriveCountQuery(@Nullable String countQuery, @Nullable String countQueryProjection) {
 
-		return DeclaredQuery
-				.of(countQuery != null ? countQuery : QueryUtils.createCountQueryFor(query, countQueryProjection, isNativeQuery));
+		return DeclaredQuery.of(
+				countQuery != null ? countQuery : QueryUtils.createCountQueryFor(query, countQueryProjection, isNative),
+				isNative);
 	}
 
 	/*
@@ -173,6 +176,15 @@ class StringQuery implements DeclaredQuery {
 	@Override
 	public boolean usesPaging() {
 		return containsPageableInSpel;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.jpa.repository.query.DeclaredQuery#isNative()
+	 */
+	@Override
+	public boolean isNative() {
+		return isNative;
 	}
 
 	/**
@@ -267,7 +279,8 @@ class StringQuery implements DeclaredQuery {
 				String expression = spelExtractor.getParameter(parameterName == null ? parameterIndexString : parameterName);
 				String replacement = null;
 
-				Assert.isTrue(parameterIndexString != null || parameterName != null, () -> String.format("We need either a name or an index! Offending query string: %s", query));
+				Assert.isTrue(parameterIndexString != null || parameterName != null,
+						() -> String.format("We need either a name or an index! Offending query string: %s", query));
 
 				expressionParameterIndex++;
 				if ("".equals(parameterIndexString)) {

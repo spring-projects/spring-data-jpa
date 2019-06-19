@@ -83,7 +83,7 @@ final class NamedQuery extends AbstractJpaQuery {
 		Query query = em.createNamedQuery(queryName);
 		String queryString = extractor.extractQueryString(query);
 
-		this.declaredQuery = DeclaredQuery.of(queryString);
+		this.declaredQuery = DeclaredQuery.of(queryString, false);
 
 		boolean weNeedToCreateCountQuery = !namedCountQueryIsPresent && method.getParameters().hasPageableParameter();
 		boolean cantExtractQuery = !this.extractor.canExtractQuery();
@@ -187,7 +187,7 @@ final class NamedQuery extends AbstractJpaQuery {
 
 		} else {
 
-			String countQueryString = declaredQuery.deriveCountQuery(null, countProjection, false).getQueryString();
+			String countQueryString = declaredQuery.deriveCountQuery(null, countProjection).getQueryString();
 
 			countQuery = em.createQuery(countQueryString, Long.class);
 		}

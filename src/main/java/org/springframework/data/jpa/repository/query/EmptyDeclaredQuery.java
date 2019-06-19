@@ -94,11 +94,11 @@ class EmptyDeclaredQuery implements DeclaredQuery {
 	 * @see org.springframework.data.jpa.repository.query.DeclaredQuery#deriveCountQuery(java.lang.String, java.lang.String)
 	 */
 	@Override
-	public DeclaredQuery deriveCountQuery(@Nullable String countQuery, @Nullable String countQueryProjection, @Nullable Boolean isNativeQuery) {
+	public DeclaredQuery deriveCountQuery(@Nullable String countQuery, @Nullable String countQueryProjection) {
 
 		Assert.hasText(countQuery, "CountQuery must not be empty!");
 
-		return DeclaredQuery.of(countQuery);
+		return DeclaredQuery.of(countQuery, isNative());
 	}
 
 	/*
@@ -107,6 +107,15 @@ class EmptyDeclaredQuery implements DeclaredQuery {
 	 */
 	@Override
 	public boolean usesJdbcStyleParameters() {
+		return false;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.jpa.repository.query.DeclaredQuery#isNative()
+	 */
+	@Override
+	public boolean isNative() {
 		return false;
 	}
 }
