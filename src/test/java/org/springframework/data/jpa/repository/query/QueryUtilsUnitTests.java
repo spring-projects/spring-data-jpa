@@ -256,6 +256,29 @@ public class QueryUtilsUnitTests {
 				is("select count(1) from (select p.lastname,p.firstname from Person p) as total"));
 	}
 
+	@Test // DATAJPA-1435
+	public void countUsesAliasForJpqlWithOrderBy() {
+
+		String jpqlQuery = "select p.lastname,p.firstname from Person p order by p.name";
+		boolean isJpqlQuery = false;
+
+		//parse jpql, get correct query(use count(entity name) in select clause)
+		assertThat(createCountQueryFor(jpqlQuery, null, isJpqlQuery),
+				is("select count(p) from Person p"));
+
+	}
+
+	@Test // DATAJPA-1435
+	public void countUsesSubqueryForNativeQueryWithOrderBy() {
+
+		String jpqlQuery = "select p.lastname,p.firstname from Person p Order by p.name";
+		boolean isNativeQuery = true;
+
+		//parse jpql as native sql, subquery not work
+		assertThat(createCountQueryFor(jpqlQuery, null, isNativeQuery),
+				is("select count(1) from (select p.lastname,p.firstname from Person p) as total"));
+	}
+
 	@Test // DATAJPA-726
 	public void detectsAliassesInPlainJoins() {
 
