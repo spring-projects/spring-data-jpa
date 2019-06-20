@@ -72,6 +72,7 @@ import org.springframework.data.jpa.domain.sample.Address;
 import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.domain.sample.SpecialUser;
 import org.springframework.data.jpa.domain.sample.User;
+import org.springframework.data.jpa.provider.HibernateUtils;
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.repository.sample.SampleEvaluationContextExtension.SampleSecurityContextHolder;
 import org.springframework.data.jpa.repository.sample.UserRepository;
@@ -100,8 +101,6 @@ import com.google.common.base.Optional;
 @ContextConfiguration("classpath:application-context.xml")
 @Transactional
 public class UserRepositoryTests {
-
-	private static final Version HIBERNATE_VERSION_SUPPORTING_TUPLE_ON_NATIVE_QUERIES = new Version(5, 2, 11);
 
 	@PersistenceContext EntityManager em;
 
@@ -2186,8 +2185,7 @@ public class UserRepositoryTests {
 	@Test // DATAJPA-980
 	public void supportsProjectionsWithNativeQueries() {
 
-		Assume
-				.assumeTrue(getHibernateVersion().isGreaterThanOrEqualTo(HIBERNATE_VERSION_SUPPORTING_TUPLE_ON_NATIVE_QUERIES));
+		Assume.assumeTrue(HibernateUtils.supportsTuplesForNativeQueries());
 
 		flushTestUsers();
 
@@ -2202,8 +2200,7 @@ public class UserRepositoryTests {
 	@Test // DATAJPA-1248
 	public void supportsProjectionsWithNativeQueriesAndCamelCaseProperty() throws Exception {
 
-		Assume
-				.assumeTrue(getHibernateVersion().isGreaterThanOrEqualTo(HIBERNATE_VERSION_SUPPORTING_TUPLE_ON_NATIVE_QUERIES));
+		Assume.assumeTrue(HibernateUtils.supportsTuplesForNativeQueries());
 
 		flushTestUsers();
 		User user = repository.findAll().get(0);
@@ -2221,8 +2218,7 @@ public class UserRepositoryTests {
 	@Test // DATAJPA-1273
 	public void bindsNativeQueryResultsToProjectionByName() {
 
-		Assume
-				.assumeTrue(getHibernateVersion().isGreaterThanOrEqualTo(HIBERNATE_VERSION_SUPPORTING_TUPLE_ON_NATIVE_QUERIES));
+		Assume.assumeTrue(HibernateUtils.supportsTuples());
 
 		flushTestUsers();
 
@@ -2239,8 +2235,7 @@ public class UserRepositoryTests {
 	@Test // DATAJPA-1301
 	public void returnsNullValueInMap() {
 
-		Assume
-				.assumeTrue(getHibernateVersion().isGreaterThanOrEqualTo(HIBERNATE_VERSION_SUPPORTING_TUPLE_ON_NATIVE_QUERIES));
+		Assume.assumeTrue(HibernateUtils.supportsTuples());
 
 		firstUser.setLastname(null);
 		flushTestUsers();
@@ -2255,6 +2250,22 @@ public class UserRepositoryTests {
 		assertThat(map.get("lastname"), is(nullValue()));
 		assertThat(map.get("non-existent"), is(nullValue()));
 		assertThat(map.get(new Object()), is(nullValue()));
+	}
+
+	@Test // DATAJPA-1562
+	public void findListOfMap() {
+
+		Assume.assumeTrue(HibernateUtils.supportsTuples());
+
+		flushTestUsers();
+
+		List<Map<String, Object>> listOfMaps = repository.findListOfMaps();
+
+		assertThat(listOfMaps, Matchers.<Map<String, Object>> hasSize(4));
+		for (Map<String, Object> map : listOfMaps) {
+			assertThat(map.entrySet(), Matchers.hasSize(2));
+		}
+
 	}
 
 	@Test(expected = DataIntegrityViolationException.class) // DATAJPA-1535
@@ -2278,11 +2289,5 @@ public class UserRepositoryTests {
 		Page<User> result = repository.findAll(spec, new PageRequest(0, 1, sort));
 		assertThat(result.getTotalElements(), is(2L));
 		return result;
-	}
-
-	private static Version getHibernateVersion() {
-
-		String hibernateVersion = org.hibernate.Version.getVersionString();
-		return Version.parse(hibernateVersion.substring(0, hibernateVersion.lastIndexOf(".")));
 	}
 }

@@ -102,7 +102,7 @@ public abstract class MetamodelIntegrationTests {
 		assertThat(elements.get(0).getAlias(), is(nullValue()));
 	}
 
-	@Test
+	@Test // DATAJPA-1273
 	@Transactional
 	public void returnsAliasesInTuple() {
 

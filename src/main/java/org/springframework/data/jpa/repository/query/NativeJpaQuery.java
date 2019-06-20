@@ -81,8 +81,10 @@ final class NativeJpaQuery extends AbstractStringBasedJpaQuery {
 			return result;
 		}
 
-		return returnedType.isProjecting() && !getMetamodel().isJpaManaged(returnedType.getReturnedType()) //
-				? HibernateUtils.isVersionOrBetter(HIBERNATE_VERSION_SUPPORTING_TUPLES) ? Tuple.class : null //
-				: result;
+		return returnedType.isProjecting() //
+				&& !getMetamodel().isJpaManaged(returnedType.getReturnedType()) //
+				&& HibernateUtils.supportsTuplesForNativeQueries() //
+						? Tuple.class //
+						: result;
 	}
 }

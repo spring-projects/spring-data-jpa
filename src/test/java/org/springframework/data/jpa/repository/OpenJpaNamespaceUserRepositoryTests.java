@@ -132,6 +132,12 @@ public class OpenJpaNamespaceUserRepositoryTests extends NamespaceUserRepository
 	 * ignored since OpenJPA doesn't support tuples
 	 */
 	@Override
+	public void findListOfMap() {}
+
+	/**
+	 * ignored since OpenJPA doesn't support tuples
+	 */
+	@Override
 	public void supportsProjectionsWithNativeQueries() {}
 
 	/**
