@@ -99,7 +99,8 @@ public abstract class QueryUtils {
 	private static final String COMPLEX_COUNT_VALUE = "$3$6";
 	private static final String COMPLEX_COUNT_VALUE_NATIVE = "$3$4";
 	private static final String ORDER_BY_PART = "(?iu)\\s+order\\s+by\\s+.*";
-
+	private static final String ORDER_BY_PART_END = ") as total";
+	
 	private static final Pattern ALIAS_MATCH;
 	private static final Pattern COUNT_MATCH;
 	private static final Pattern PROJECTION_CLAUSE = Pattern.compile("select\\s+(.+)\\s+from", Pattern.CASE_INSENSITIVE);
@@ -476,6 +477,7 @@ public abstract class QueryUtils {
 
 				String replacement = useVariable ? SIMPLE_COUNT_VALUE : COMPLEX_COUNT_VALUE_NATIVE;
 				countQuery = matcher.replaceFirst(String.format(COUNT_REPLACEMENT_TEMPLATE_NATIVE, replacement));
+				return countQuery.replaceFirst(ORDER_BY_PART, ORDER_BY_PART_END);
 			}
 		} else {
 			countQuery = matcher.replaceFirst(String.format(COUNT_REPLACEMENT_TEMPLATE, countProjection));
