@@ -47,7 +47,6 @@ import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
-import org.springframework.data.util.Version;
 import org.springframework.util.Assert;
 
 /**
@@ -57,10 +56,9 @@ import org.springframework.util.Assert;
  * @author Thomas Darimont
  * @author Mark Paluch
  * @author Nicolas Cirigliano
+ * @author Jens Schauder
  */
 public abstract class AbstractJpaQuery implements RepositoryQuery {
-
-	protected static final Version HIBERNATE_VERSION_SUPPORTING_TUPLES = new Version(5, 2, 11);
 
 	private final JpaQueryMethod method;
 	private final EntityManager em;
@@ -242,9 +240,11 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 			return null;
 		}
 
-		return returnedType.isProjecting() && !getMetamodel().isJpaManaged(returnedType.getReturnedType()) //
-				? HibernateUtils.isVersionOrBetter(HIBERNATE_VERSION_SUPPORTING_TUPLES) ? Tuple.class : null //
-				: null;
+		return returnedType.isProjecting() //
+				&& !getMetamodel().isJpaManaged(returnedType.getReturnedType()) //
+				&& HibernateUtils.supportsTuples() //
+						? Tuple.class //
+						: null;
 	}
 
 	/**

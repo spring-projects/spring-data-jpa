@@ -24,7 +24,6 @@ import javax.persistence.Query;
 import org.junit.Assume;
 import org.junit.Ignore;
 import org.junit.Test;
-
 import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.data.util.Version;
 import org.springframework.test.context.ContextConfiguration;
@@ -123,6 +122,12 @@ public class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserReposi
 	@Override
 	@Test
 	public void bindsNativeQueryResultsToProjectionByName() {}
+
+	/**
+	 * TODO: Remove, once https://bugs.eclipse.org/bugs/show_bug.cgi?id=289141 is fixed.
+	 */
+	@Override
+	public void findListOfMap() {}
 
 	/**
 	 * Ignores the test for EclipseLink 2.7.2. Reconsider once https://bugs.eclipse.org/bugs/show_bug.cgi?id=533240 is
