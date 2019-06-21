@@ -39,6 +39,7 @@ import org.springframework.data.jpa.domain.JpaSort;
  * @author Christoph Strobl
  * @author Jens Schauder
  * @author Florian Lüdiger
+ * @author Mohammad Hewedy
  */
 public class QueryUtilsUnitTests {
 
@@ -417,6 +418,18 @@ public class QueryUtilsUnitTests {
 	public void createCountQuerySupportsWhitespaceCharacters() {
 
 		assertThat(createCountQueryFor("select * from User user\n" + //
+						"  where user.age = 18\n" + //
+						"  order by user.name\n "), //
+				is("select count(user) from User user\n" + //
+						"  where user.age = 18\n "));
+	}
+
+	@Test
+	public void createCountQuerySupportsNewLinesInSelectClause() {
+
+		assertThat(createCountQueryFor("select user.age,\n" + //
+						"  user.name\n" + //
+						"  from User user\n" + //
 						"  where user.age = 18\n" + //
 						"  order by user.name\n "), //
 				is("select count(user) from User user\n" + //
