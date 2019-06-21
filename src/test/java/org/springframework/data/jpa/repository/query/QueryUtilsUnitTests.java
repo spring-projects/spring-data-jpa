@@ -40,6 +40,7 @@ import org.springframework.data.jpa.domain.JpaSort;
  * @author Jens Schauder
  * @author Florian Lüdiger
  * @author Grégoire Druant
+ * @author Mohammad Hewedy
  */
 public class QueryUtilsUnitTests {
 
@@ -424,6 +425,18 @@ public class QueryUtilsUnitTests {
 						"  where user.age = 18\n "));
 	}
 
+	@Test
+	public void createCountQuerySupportsLineBreaksInSelectClause() {
+
+		assertThat(createCountQueryFor("select user.age,\n" + //
+						"  user.name\n" + //
+						"  from User user\n" + //
+						"  where user.age = 18\n" + //
+						"  order\nby\nuser.name\n "), //
+				is("select count(user) from User user\n" + //
+						"  where user.age = 18\n "));
+	}
+
 	@Test // DATAJPA-1061
 	public void appliesSortCorrectlyForFieldAliases() {
 
@@ -455,6 +468,26 @@ public class QueryUtilsUnitTests {
 		String fullQuery = applySorting(query, sort);
 
 		assertThat(fullQuery, endsWith("order by m.price asc"));
+	}
+
+	@Test
+	public void createCountQuerySupportsLineBreakRightAfterDistinct() {
+
+		assertThat(createCountQueryFor("select\ndistinct\nuser.age,\n" + //
+						"user.name\n" + //
+						"from\nUser\nuser"), //
+				is(createCountQueryFor("select\ndistinct user.age,\n" + //
+						"user.name\n" + //
+						"from\nUser\nuser")));
+	}
+
+	@Test
+	public void detectsAliasWithGroupAndOrderByWithLineBreaks() {
+
+		assertThat(detectAlias("select * from User group\nby name")).isNull();
+		assertThat(detectAlias("select * from User order\nby name")).isNull();
+		assertThat(detectAlias("select * from User u group\nby name")).isEqualTo("u");
+		assertThat(detectAlias("select * from User u order\nby name")).isEqualTo("u");
 	}
 
 	private static void assertCountQuery(String originalQuery, String countQuery) {
