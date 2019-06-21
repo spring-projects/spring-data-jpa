@@ -37,6 +37,7 @@ import org.springframework.data.jpa.domain.JpaSort;
  * @author Christoph Strobl
  * @author Florian Lüdiger
  * @author Grégoire Druant
+ * @author Mohammad Hewedy
  */
 public class QueryUtilsUnitTests {
 
@@ -416,8 +417,20 @@ public class QueryUtilsUnitTests {
 	public void createCountQuerySupportsWhitespaceCharacters() {
 
 		assertThat(createCountQueryFor("select * from User user\n" + //
-						"  where user.age = 18\n" + //
-						"  order by user.name\n "), //
+				"  where user.age = 18\n" + //
+				"  order by user.name\n "), //
+				is("select count(user) from User user\n" + //
+						"  where user.age = 18\n "));
+	}
+
+	@Test
+	public void createCountQuerySupportsLineBreaksInSelectClause() {
+
+		assertThat(createCountQueryFor("select user.age,\n" + //
+				"  user.name\n" + //
+				"  from User user\n" + //
+				"  where user.age = 18\n" + //
+				"  order\nby\nuser.name\n "), //
 				is("select count(user) from User user\n" + //
 						"  where user.age = 18\n "));
 	}
@@ -450,6 +463,26 @@ public class QueryUtilsUnitTests {
 		String fullQuery = applySorting(query, sort);
 
 		assertThat(fullQuery, endsWith("order by m.price asc"));
+	}
+
+	@Test
+	public void createCountQuerySupportsLineBreakRightAfterDistinct() {
+
+		assertThat(createCountQueryFor("select\ndistinct\nuser.age,\n" + //
+				"user.name\n" + //
+				"from\nUser\nuser"), //
+				is(createCountQueryFor("select\ndistinct user.age,\n" + //
+						"user.name\n" + //
+						"from\nUser\nuser")));
+	}
+
+	@Test
+	public void detectsAliasWithGroupAndOrderByWithLineBreaks() {
+
+		assertThat(detectAlias("select * from User group\nby name"), is(nullValue()));
+		assertThat(detectAlias("select * from User order\nby name"), is(nullValue()));
+		assertThat(detectAlias("select * from User u group\nby name"), is("u"));
+		assertThat(detectAlias("select * from User u order\nby name"), is("u"));
 	}
 
 	private static void assertCountQuery(String originalQuery, String countQuery) {
