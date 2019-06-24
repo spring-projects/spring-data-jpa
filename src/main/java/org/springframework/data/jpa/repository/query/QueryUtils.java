@@ -258,12 +258,12 @@ public abstract class QueryUtils {
 			builder.append(", ");
 		}
 
-		Set<String> aliases = getOuterJoinAliases(query);
-		Set<String> fieldAliases = getFunctionAliases(query);
-		fieldAliases.addAll(getFieldAliases(query));
+		Set<String> joinAliases = getOuterJoinAliases(query);
+		Set<String> selectionAliases = getFunctionAliases(query);
+		selectionAliases.addAll(getFieldAliases(query));
 
 		for (Order order : sort) {
-			builder.append(getOrderClause(aliases, fieldAliases, alias, order)).append(", ");
+			builder.append(getOrderClause(joinAliases, selectionAliases, alias, order)).append(", ");
 		}
 
 		builder.delete(builder.length() - 2, builder.length());
@@ -280,13 +280,13 @@ public abstract class QueryUtils {
 	 * @param order the order object to build the clause for.
 	 * @return
 	 */
-	private static String getOrderClause(Set<String> joinAliases, Set<String> fieldAlias, String alias, Order order) {
+	private static String getOrderClause(Set<String> joinAliases, Set<String> selectionAlias, String alias, Order order) {
 
 		String property = order.getProperty();
 
 		checkSortExpression(order);
 
-		if (fieldAlias.contains(property)) {
+		if (selectionAlias.contains(property)) {
 			return String.format("%s %s", property, toJpaDirection(order));
 		}
 

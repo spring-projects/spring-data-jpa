@@ -427,7 +427,6 @@ public class QueryUtilsUnitTests {
 
 		String query = "SELECT  m.price, lower(m.title) AS title, a.name as authorName   FROM Magazine   m INNER JOIN m.author a";
 		Sort sort = new Sort("authorName");
-
 		String fullQuery = applySorting(query, sort);
 
 		assertThat(fullQuery, endsWith("order by authorName asc"));
@@ -438,7 +437,6 @@ public class QueryUtilsUnitTests {
 
 		String query = "SELECT  m.price, lower(m.title) AS title, a.name as authorName   FROM Magazine   m INNER JOIN m.author a";
 		Sort sort = new Sort("title");
-
 		String fullQuery = applySorting(query, sort);
 
 		assertThat(fullQuery, endsWith("order by title asc"));
@@ -449,7 +447,6 @@ public class QueryUtilsUnitTests {
 
 		String query = "SELECT  m.price, lower(m.title) AS title, a.name as authorName   FROM Magazine   m INNER JOIN m.author a";
 		Sort sort = new Sort("price");
-
 		String fullQuery = applySorting(query, sort);
 
 		assertThat(fullQuery, endsWith("order by m.price asc"));
