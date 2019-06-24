@@ -95,7 +95,8 @@ public abstract class QueryUtils {
 
 	private static final String COUNT_REPLACEMENT_TEMPLATE = "select count(%s) $5$6$7";
 	private static final String SIMPLE_COUNT_VALUE = "$2";
-	private static final String COMPLEX_COUNT_VALUE = "$3$6";
+	private static final String COMPLEX_COUNT_VALUE = "$3 $6";
+	private static final String COMPLEX_COUNT_LAST_VALUE = "$6";
 	private static final String ORDER_BY_PART = "(?iu)\\s+order\\s+by\\s+.*";
 
 	private static final Pattern ALIAS_MATCH;
@@ -119,6 +120,7 @@ public abstract class QueryUtils {
 
 	private static final int QUERY_JOIN_ALIAS_GROUP_INDEX = 3;
 	private static final int VARIABLE_NAME_GROUP_INDEX = 4;
+	private static final int COMPLEX_COUNT_FIRST_INDEX = 3;
 
 	private static final Pattern PUNCTATION_PATTERN = Pattern.compile(".*((?![\\._])[\\p{Punct}|\\s])");
 	private static final Pattern FUNCTION_PATTERN;
@@ -140,7 +142,7 @@ public abstract class QueryUtils {
 		ALIAS_MATCH = compile(builder.toString(), CASE_INSENSITIVE);
 
 		builder = new StringBuilder();
-		builder.append("(select\\s+((distinct )?((?s).+?)?)\\s+)?(from\\s+");
+		builder.append("(select\\s+((distinct)?((?s).+?)?)\\s+)?(from\\s+");
 		builder.append(IDENTIFIER);
 		builder.append("(?:\\s+as)?\\s+)");
 		builder.append(IDENTIFIER_GROUP);
@@ -450,10 +452,14 @@ public abstract class QueryUtils {
 		if (countProjection == null) {
 
 			String variable = matcher.matches() ? matcher.group(VARIABLE_NAME_GROUP_INDEX) : null;
-			boolean useVariable = variable != null && StringUtils.hasText(variable) && !variable.startsWith("new")
+			boolean useVariable = StringUtils.hasText(variable) && !variable.startsWith(" new")
 					&& !variable.startsWith("count(") && !variable.contains(",");
 
-			String replacement = useVariable ? SIMPLE_COUNT_VALUE : COMPLEX_COUNT_VALUE;
+			String complexCountValue = matcher.matches() &&
+					StringUtils.hasText(matcher.group(COMPLEX_COUNT_FIRST_INDEX)) ?
+					COMPLEX_COUNT_VALUE : COMPLEX_COUNT_LAST_VALUE;
+
+			String replacement = useVariable ? SIMPLE_COUNT_VALUE : complexCountValue;
 			countQuery = matcher.replaceFirst(String.format(COUNT_REPLACEMENT_TEMPLATE, replacement));
 		} else {
 			countQuery = matcher.replaceFirst(String.format(COUNT_REPLACEMENT_TEMPLATE, countProjection));

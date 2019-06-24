@@ -425,7 +425,7 @@ public class QueryUtilsUnitTests {
 	}
 
 	@Test
-	public void createCountQuerySupportsNewLinesInSelectClause() {
+	public void createCountQuerySupportsLineBreaksInSelectClause() {
 
 		assertThat(createCountQueryFor("select user.age,\n" + //
 						"  user.name\n" + //
@@ -434,6 +434,17 @@ public class QueryUtilsUnitTests {
 						"  order by user.name\n "), //
 				is("select count(user) from User user\n" + //
 						"  where user.age = 18\n "));
+	}
+
+	@Test
+	public void createCountQuerySupportsLineBreakRightAfterDistinct() {
+
+		assertThat(createCountQueryFor("select\ndistinct\nuser.age,\n" + //
+						"user.name\n" + //
+						"from\nUser\nuser"), //
+				is(createCountQueryFor("select\ndistinct user.age,\n" + //
+						"user.name\n" + //
+						"from\nUser\nuser")));
 	}
 
 	private static void assertCountQuery(String originalQuery, String countQuery) {
