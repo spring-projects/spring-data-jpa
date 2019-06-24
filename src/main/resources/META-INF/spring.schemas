@@ -1,7 +1,7 @@
-http\://www.springframework.org/schema/data/jpa/spring-jpa-1.0.xsd=org/springframework/data/jpa/repository/config/spring-jpa-1.0.xsd
-http\://www.springframework.org/schema/data/jpa/spring-jpa-1.1.xsd=org/springframework/data/jpa/repository/config/spring-jpa-1.1.xsd
-http\://www.springframework.org/schema/data/jpa/spring-jpa-1.2.xsd=org/springframework/data/jpa/repository/config/spring-jpa-1.2.xsd
-http\://www.springframework.org/schema/data/jpa/spring-jpa-1.3.xsd=org/springframework/data/jpa/repository/config/spring-jpa-1.3.xsd
-http\://www.springframework.org/schema/data/jpa/spring-jpa-1.8.xsd=org/springframework/data/jpa/repository/config/spring-jpa-1.8.xsd
-http\://www.springframework.org/schema/data/jpa/spring-jpa-1.11.xsd=org/springframework/data/jpa/repository/config/spring-jpa-1.11.xsd
-http\://www.springframework.org/schema/data/jpa/spring-jpa.xsd=org/springframework/data/jpa/repository/config/spring-jpa-1.11.xsd
+https\://www.springframework.org/schema/data/jpa/spring-jpa-1.0.xsd=org/springframework/data/jpa/repository/config/spring-jpa-1.0.xsd
+https\://www.springframework.org/schema/data/jpa/spring-jpa-1.1.xsd=org/springframework/data/jpa/repository/config/spring-jpa-1.1.xsd
+https\://www.springframework.org/schema/data/jpa/spring-jpa-1.2.xsd=org/springframework/data/jpa/repository/config/spring-jpa-1.2.xsd
+https\://www.springframework.org/schema/data/jpa/spring-jpa-1.3.xsd=org/springframework/data/jpa/repository/config/spring-jpa-1.3.xsd
+https\://www.springframework.org/schema/data/jpa/spring-jpa-1.8.xsd=org/springframework/data/jpa/repository/config/spring-jpa-1.8.xsd
+https\://www.springframework.org/schema/data/jpa/spring-jpa-1.11.xsd=org/springframework/data/jpa/repository/config/spring-jpa-1.11.xsd
+https\://www.springframework.org/schema/data/jpa/spring-jpa.xsd=org/springframework/data/jpa/repository/config/spring-jpa-1.11.xsd

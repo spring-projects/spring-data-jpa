@@ -30,7 +30,7 @@ import org.springframework.orm.jpa.persistenceunit.MutablePersistenceUnitInfo;
  * {@code persistence.xml} files into one. This is necessary to allow the declaration of entities in seperate modules.
  *
  * @author Oliver Gierke
- * @link http://jira.springframework.org/browse/SPR-2598
+ * @link https://jira.springframework.org/browse/SPR-2598
  */
 public class MergingPersistenceUnitManager extends DefaultPersistenceUnitManager {
 
