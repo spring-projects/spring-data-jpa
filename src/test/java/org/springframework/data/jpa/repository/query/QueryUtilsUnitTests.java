@@ -431,7 +431,7 @@ public class QueryUtilsUnitTests {
 						"  user.name\n" + //
 						"  from User user\n" + //
 						"  where user.age = 18\n" + //
-						"  order by user.name\n "), //
+						"  order\nby\nuser.name\n "), //
 				is("select count(user) from User user\n" + //
 						"  where user.age = 18\n "));
 	}
@@ -445,6 +445,15 @@ public class QueryUtilsUnitTests {
 				is(createCountQueryFor("select\ndistinct user.age,\n" + //
 						"user.name\n" + //
 						"from\nUser\nuser")));
+	}
+
+	@Test
+	public void detectsAliasWithGroupAndOrderByWithLineBreaks() {
+
+		assertThat(detectAlias("select * from User group\nby name")).isNull();
+		assertThat(detectAlias("select * from User order\nby name")).isNull();
+		assertThat(detectAlias("select * from User u group\nby name")).isEqualTo("u");
+		assertThat(detectAlias("select * from User u order\nby name")).isEqualTo("u");
 	}
 
 	private static void assertCountQuery(String originalQuery, String countQuery) {

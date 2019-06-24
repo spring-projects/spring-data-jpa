@@ -137,7 +137,7 @@ public abstract class QueryUtils {
 		builder.append(IDENTIFIER_GROUP); // Entity name, can be qualified (any
 		builder.append("(?:\\sas)*"); // exclude possible "as" keyword
 		builder.append("(?:\\s)+"); // at least one space separating
-		builder.append("(?!(?:where|group by|order by))(\\w+)"); // the actual alias
+		builder.append("(?!(?:where|group\\s*by|order\\s*by))(\\w+)"); // the actual alias
 
 		ALIAS_MATCH = compile(builder.toString(), CASE_INSENSITIVE);
 
