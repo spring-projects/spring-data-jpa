@@ -159,8 +159,8 @@
 									</deployProperties>
 									<publisher>
 										<contextUrl>https://repo.spring.io</contextUrl>
-										<username>{{USERNAME}}</username>
-										<password>{{PASSWORD}}</password>
+										<username>{{ARTIFACTORY_USR}}</username>
+										<password>{{ARTIFACTORY_PSW}}</password>
 										<repoKey>libs-snapshot-local</repoKey>
 										<snapshotRepoKey>libs-snapshot-local</snapshotRepoKey>
 									</publisher>
