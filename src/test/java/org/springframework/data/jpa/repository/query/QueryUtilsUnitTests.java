@@ -40,6 +40,7 @@ import org.springframework.data.jpa.domain.JpaSort;
  * @author Jens Schauder
  * @author Florian Lüdiger
  * @author Mohammad Hewedy
+ * @author Grégoire Druant
  */
 public class QueryUtilsUnitTests {
 
@@ -424,7 +425,7 @@ public class QueryUtilsUnitTests {
 						"  where user.age = 18\n "));
 	}
 
-	@Test
+	@Test // DATAJPA-1564
 	public void createCountQuerySupportsLineBreaksInSelectClause() {
 
 		assertThat(createCountQueryFor("select user.age,\n" + //
@@ -436,7 +437,7 @@ public class QueryUtilsUnitTests {
 						"  where user.age = 18\n "));
 	}
 
-	@Test
+	@Test // DATAJPA-1564
 	public void createCountQuerySupportsLineBreakRightAfterDistinct() {
 
 		assertThat(createCountQueryFor("select\ndistinct\nuser.age,\n" + //
@@ -447,13 +448,46 @@ public class QueryUtilsUnitTests {
 						"from\nUser\nuser")));
 	}
 
-	@Test
+	@Test // DATAJPA-1564
 	public void detectsAliasWithGroupAndOrderByWithLineBreaks() {
 
 		assertThat(detectAlias("select * from User group\nby name")).isNull();
 		assertThat(detectAlias("select * from User order\nby name")).isNull();
 		assertThat(detectAlias("select * from User u group\nby name")).isEqualTo("u");
 		assertThat(detectAlias("select * from User u order\nby name")).isEqualTo("u");
+  }
+  
+	@Test // DATAJPA-1061
+	public void appliesSortCorrectlyForFieldAliases() {
+
+		String query = "SELECT  m.price, lower(m.title) AS title, a.name as authorName   FROM Magazine   m INNER JOIN m.author a";
+		Sort sort = Sort.by("authorName");
+
+		String fullQuery = applySorting(query, sort);
+
+		assertThat(fullQuery, endsWith("order by authorName asc"));
+	}
+
+	@Test // DATAJPA-1061
+	public void appliesSortCorrectlyForFunctionAliases() {
+
+		String query = "SELECT  m.price, lower(m.title) AS title, a.name as authorName   FROM Magazine   m INNER JOIN m.author a";
+		Sort sort = Sort.by("title");
+
+		String fullQuery = applySorting(query, sort);
+
+		assertThat(fullQuery, endsWith("order by title asc"));
+	}
+
+	@Test // DATAJPA-1061
+	public void appliesSortCorrectlyForSimpleField() {
+
+		String query = "SELECT  m.price, lower(m.title) AS title, a.name as authorName   FROM Magazine   m INNER JOIN m.author a";
+		Sort sort = Sort.by("price");
+
+		String fullQuery = applySorting(query, sort);
+
+		assertThat(fullQuery, endsWith("order by m.price asc"));
 	}
 
 	private static void assertCountQuery(String originalQuery, String countQuery) {
