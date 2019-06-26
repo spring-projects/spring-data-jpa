@@ -113,7 +113,7 @@ public abstract class QueryUtils {
 	private static final Pattern ORDER_BY = Pattern.compile(".*order\\s+by\\s+.*", CASE_INSENSITIVE);
 
 	private static final Pattern NAMED_PARAMETER = Pattern
-			.compile(COLON_NO_DOUBLE_COLON + IDENTIFIER + "|\\#" + IDENTIFIER, CASE_INSENSITIVE);
+			.compile(COLON_NO_DOUBLE_COLON + IDENTIFIER + "|#" + IDENTIFIER, CASE_INSENSITIVE);
 
 	private static final Pattern CONSTRUCTOR_EXPRESSION;
 
@@ -123,7 +123,7 @@ public abstract class QueryUtils {
 	private static final int VARIABLE_NAME_GROUP_INDEX = 4;
 	private static final int COMPLEX_COUNT_FIRST_INDEX = 3;
 
-	private static final Pattern PUNCTATION_PATTERN = Pattern.compile(".*((?![\\._])[\\p{Punct}|\\s])");
+	private static final Pattern PUNCTATION_PATTERN = Pattern.compile(".*((?![._])[\\p{Punct}|\\s])");
 	private static final Pattern FUNCTION_PATTERN;
 	private static final Pattern FIELD_ALIAS_PATTERN;
 
@@ -152,7 +152,7 @@ public abstract class QueryUtils {
 
 		COUNT_MATCH = compile(builder.toString(), CASE_INSENSITIVE);
 
-		Map<PersistentAttributeType, Class<? extends Annotation>> persistentAttributeTypes = new HashMap<PersistentAttributeType, Class<? extends Annotation>>();
+		Map<PersistentAttributeType, Class<? extends Annotation>> persistentAttributeTypes = new HashMap<>();
 		persistentAttributeTypes.put(ONE_TO_ONE, OneToOne.class);
 		persistentAttributeTypes.put(ONE_TO_MANY, null);
 		persistentAttributeTypes.put(MANY_TO_ONE, ManyToOne.class);
@@ -322,7 +322,7 @@ public abstract class QueryUtils {
 	 */
 	static Set<String> getOuterJoinAliases(String query) {
 
-		Set<String> result = new HashSet<String>();
+		Set<String> result = new HashSet<>();
 		Matcher matcher = JOIN_PATTERN.matcher(query);
 
 		while (matcher.find()) {
@@ -478,13 +478,15 @@ public abstract class QueryUtils {
 		Assert.hasText(originalQuery, "OriginalQuery must not be null or empty!");
 
 		Matcher matcher = COUNT_MATCH.matcher(originalQuery);
-		String countQuery = null;
+		String countQuery;
 
 		if (countProjection == null) {
 
 			String variable = matcher.matches() ? matcher.group(VARIABLE_NAME_GROUP_INDEX) : null;
-			boolean useVariable = StringUtils.hasText(variable) && !variable.startsWith(" new")
-					&& !variable.startsWith("count(") && !variable.contains(",");
+			boolean useVariable = StringUtils.hasText(variable) //
+					&& !variable.startsWith(" new") //
+					&& !variable.startsWith("count(") //
+					&& !variable.contains(","); //
 
 			String complexCountValue = matcher.matches() &&
 					StringUtils.hasText(matcher.group(COMPLEX_COUNT_FIRST_INDEX)) ?
@@ -563,7 +565,7 @@ public abstract class QueryUtils {
 	 * Returns whether the given JPQL query contains a constructor expression.
 	 *
 	 * @param query must not be {@literal null} or empty.
-	 * @return
+	 * @return whether the given JPQL query contains a constructor expression.
 	 * @since 1.10
 	 */
 	public static boolean hasConstructorExpression(String query) {
@@ -577,7 +579,7 @@ public abstract class QueryUtils {
 	 * Returns the projection part of the query, i.e. everything between {@code select} and {@code from}.
 	 *
 	 * @param query must not be {@literal null} or empty.
-	 * @return
+	 * @return the projection part of the query.
 	 * @since 1.10.2
 	 */
 	public static String getProjection(String query) {
@@ -595,7 +597,7 @@ public abstract class QueryUtils {
 	 * @param order the order to transform into a JPA {@link javax.persistence.criteria.Order}
 	 * @param from the {@link From} the {@link Order} expression is based on
 	 * @param cb the {@link CriteriaBuilder} to build the {@link javax.persistence.criteria.Order} with
-	 * @return
+	 * @return Guaranteed to be not {@literal null}.
 	 */
 	@SuppressWarnings("unchecked")
 	private static javax.persistence.criteria.Order toJpaOrder(Order order, From<?, ?> from, CriteriaBuilder cb) {
@@ -611,7 +613,6 @@ public abstract class QueryUtils {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	static <T> Expression<T> toExpressionRecursively(From<?, ?> from, PropertyPath property) {
 		return toExpressionRecursively(from, property, false);
 	}

@@ -488,6 +488,7 @@ public class QueryUtilsUnitTests {
 		assertThat(detectAlias("select * from User order\nby name")).isNull();
 		assertThat(detectAlias("select * from User u group\nby name")).isEqualTo("u");
 		assertThat(detectAlias("select * from User u order\nby name")).isEqualTo("u");
+		assertThat(detectAlias("select * from User\nu\norder \n by name")).isEqualTo("u");
 	}
 
 	private static void assertCountQuery(String originalQuery, String countQuery) {
