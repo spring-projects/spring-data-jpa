@@ -56,6 +56,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Christoph Strobl
  * @author Nicolas Cirigliano
  * @author Jens Schauder
+ * @author Chao Jiang
  */
 public abstract class JpaQueryExecution {
 
@@ -206,7 +207,7 @@ public abstract class JpaQueryExecution {
 		private long count(AbstractJpaQuery repositoryQuery, Object[] values) {
 
 			List<?> totals = repositoryQuery.createCountQuery(values).getResultList();
-			return (totals.size() == 1 ? CONVERSION_SERVICE.convert(totals.get(0), Long.class) : totals.size());
+			return totals.size();
 		}
 	}
 
