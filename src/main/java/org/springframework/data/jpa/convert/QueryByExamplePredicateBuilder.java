@@ -88,7 +88,7 @@ public class QueryByExamplePredicateBuilder {
 	 * @return never {@literal null}.
 	 */
 	public static <T> Predicate getPredicate(Root<T> root, CriteriaBuilder cb, Example<T> example,
-											 EscapeCharacter escapeCharacter) {
+			EscapeCharacter escapeCharacter) {
 
 		Assert.notNull(root, "Root must not be null!");
 		Assert.notNull(cb, "CriteriaBuilder must not be null!");
