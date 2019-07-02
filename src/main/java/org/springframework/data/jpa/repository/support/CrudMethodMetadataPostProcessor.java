@@ -30,7 +30,6 @@ import javax.persistence.QueryHint;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
-
 import org.springframework.aop.Advisor;
 import org.springframework.aop.TargetSource;
 import org.springframework.aop.framework.ProxyFactory;
@@ -90,7 +89,7 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 	 * Returns a {@link CrudMethodMetadata} proxy that will lookup the actual target object by obtaining a thread bound
 	 * instance from the {@link TransactionSynchronizationManager} later.
 	 */
-	public CrudMethodMetadata getCrudMethodMetadata() {
+	CrudMethodMetadata getCrudMethodMetadata() {
 
 		ProxyFactory factory = new ProxyFactory();
 
@@ -112,7 +111,7 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 
 		INSTANCE;
 
-		private final ConcurrentMap<Method, CrudMethodMetadata> metadataCache = new ConcurrentHashMap<Method, CrudMethodMetadata>();
+		private final ConcurrentMap<Method, CrudMethodMetadata> metadataCache = new ConcurrentHashMap<>();
 
 		/*
 		 * (non-Javadoc)
@@ -193,7 +192,7 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 
 		private static Map<String, Object> findQueryHints(Method method, Predicate<QueryHints> annotationFilter) {
 
-			Map<String, Object> queryHints = new HashMap<String, Object>();
+			Map<String, Object> queryHints = new HashMap<>();
 			QueryHints queryHintsAnnotation = AnnotatedElementUtils.findMergedAnnotation(method, QueryHints.class);
 
 			if (queryHintsAnnotation != null && annotationFilter.test(queryHintsAnnotation)) {
@@ -284,7 +283,7 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 		 * @see org.springframework.aop.TargetSource#getTarget()
 		 */
 		@Override
-		public Object getTarget() throws Exception {
+		public Object getTarget() {
 
 			MethodInvocation invocation = ExposeRepositoryInvocationInterceptor.currentInvocation();
 			return TransactionSynchronizationManager.getResource(invocation.getMethod());
@@ -295,7 +294,7 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 		 * @see org.springframework.aop.TargetSource#releaseTarget(java.lang.Object)
 		 */
 		@Override
-		public void releaseTarget(Object target) throws Exception {}
+		public void releaseTarget(Object target) {}
 	}
 
 	/**
@@ -303,7 +302,7 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 	 * {@link ExposeInvocationInterceptor} that might expose nested proxy calls to e.g. proxied transaction managers.
 	 *
 	 * @author Mark Paluch
-	 * @since 1.11.13
+	 * @since 2.2.0
 	 * @see ExposeInvocationInterceptor
 	 */
 	@SuppressWarnings("serial")

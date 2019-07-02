@@ -40,7 +40,6 @@ import org.springframework.data.jpa.repository.query.EscapeCharacter;
 import org.springframework.data.support.ExampleMatcherAccessor;
 import org.springframework.data.util.DirectFieldAccessFallbackBeanWrapper;
 import org.springframework.lang.Nullable;
-import org.springframework.orm.jpa.JpaSystemException;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
@@ -92,7 +91,7 @@ public class QueryByExamplePredicateBuilder {
 	 * @return never {@literal null}.
 	 */
 	public static <T> Predicate getPredicate(Root<T> root, CriteriaBuilder cb, Example<T> example,
-											 EscapeCharacter escapeCharacter) {
+			EscapeCharacter escapeCharacter) {
 
 		Assert.notNull(root, "Root must not be null!");
 		Assert.notNull(cb, "CriteriaBuilder must not be null!");
