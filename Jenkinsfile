@@ -8,6 +8,7 @@ pipeline {
 
     options {
         disableConcurrentBuilds()
+        buildDiscarder(logRotator(numToKeepStr: '14'))
     }
     
     stages {
@@ -23,117 +24,126 @@ pipeline {
                     agent {
                         docker {
                             image 'adoptopenjdk/openjdk8:latest'
-                            args '-v $HOME/.m2:/tmp/spring-data-maven-repository'
+                            label 'data'
+                            args '-v $HOME:/tmp/jenkins-home'
                         }
                     }
                     options { timeout(time: 30, unit: 'MINUTES') }
                     steps {
                         sh 'rm -rf ?'
-                        sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/spring-data-maven-repository" ./mvnw clean dependency:list test -Dsort -Dbundlor.enabled=false -B'
+                        sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw clean dependency:list test -Dsort -Dbundlor.enabled=false -B'
                     }
                 }
                 stage("test: hibernate-next") {
                     agent {
                         docker {
                             image 'adoptopenjdk/openjdk8:latest'
-                            args '-v $HOME/.m2:/tmp/spring-data-maven-repository'
+                            label 'data'
+                            args '-v $HOME:/tmp/jenkins-home'
                         }
                     }
                     options { timeout(time: 30, unit: 'MINUTES') }
                     steps {
                         sh 'rm -rf ?'
-                        sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/spring-data-maven-repository" ./mvnw -Phibernate-next clean dependency:list test -Dsort -Dbundlor.enabled=false -B'
+                        sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -Phibernate-next clean dependency:list test -Dsort -Dbundlor.enabled=false -B'
                     }
                 }
                 stage("test: hibernate-53") {
                     agent {
                         docker {
                             image 'adoptopenjdk/openjdk8:latest'
-                            args '-v $HOME/.m2:/tmp/spring-data-maven-repository'
+                            label 'data'
+                            args '-v $HOME:/tmp/jenkins-home'
                         }
                     }
                     options { timeout(time: 30, unit: 'MINUTES') }
                     steps {
                         sh 'rm -rf ?'
-                        sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/spring-data-maven-repository" ./mvnw -Phibernate-53 clean dependency:list test -Dsort -Dbundlor.enabled=false -B'
+                        sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -Phibernate-53 clean dependency:list test -Dsort -Dbundlor.enabled=false -B'
                     }
                 }
                 stage("test: hibernate-53-next") {
                     agent {
                         docker {
                             image 'adoptopenjdk/openjdk8:latest'
-                            args '-v $HOME/.m2:/tmp/spring-data-maven-repository'
+                            label 'data'
+                            args '-v $HOME:/tmp/jenkins-home'
                         }
                     }
                     options { timeout(time: 30, unit: 'MINUTES') }
                     steps {
                         sh 'rm -rf ?'
-                        sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/spring-data-maven-repository" ./mvnw -Phibernate-53-next clean dependency:list test -Dsort -Dbundlor.enabled=false -B'
+                        sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -Phibernate-53-next clean dependency:list test -Dsort -Dbundlor.enabled=false -B'
                     }
                 }
                 stage("test: hibernate-54") {
                     agent {
                         docker {
                             image 'adoptopenjdk/openjdk8:latest'
-                            args '-v $HOME/.m2:/tmp/spring-data-maven-repository'
+                            label 'data'
+                            args '-v $HOME:/tmp/jenkins-home'
                         }
                     }
                     options { timeout(time: 30, unit: 'MINUTES') }
                     steps {
                         sh 'rm -rf ?'
-                        sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/spring-data-maven-repository" ./mvnw -Phibernate-54 clean dependency:list test -Dsort -Dbundlor.enabled=false -B'
+                        sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -Phibernate-54 clean dependency:list test -Dsort -Dbundlor.enabled=false -B'
                     }
                 }
                 stage("test: hibernate-54-next") {
                     agent {
                         docker {
                             image 'adoptopenjdk/openjdk8:latest'
-                            args '-v $HOME/.m2:/tmp/spring-data-maven-repository'
+                            label 'data'
+                            args '-v $HOME:/tmp/jenkins-home'
                         }
                     }
                     options { timeout(time: 30, unit: 'MINUTES') }
                     steps {
                         sh 'rm -rf ?'
-                        sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/spring-data-maven-repository" ./mvnw -Phibernate-54-next clean dependency:list test -Dsort -Dbundlor.enabled=false -B'
+                        sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -Phibernate-54-next clean dependency:list test -Dsort -Dbundlor.enabled=false -B'
                     }
                 }
                 stage("test: eclipselink-next") {
                     agent {
                         docker {
                             image 'adoptopenjdk/openjdk8:latest'
-                            args '-v $HOME/.m2:/tmp/spring-data-maven-repository'
+                            label 'data'
+                            args '-v $HOME:/tmp/jenkins-home'
                         }
                     }
                     options { timeout(time: 30, unit: 'MINUTES') }
                     steps {
                         sh 'rm -rf ?'
-                        sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/spring-data-maven-repository" ./mvnw -Peclipselink-next clean dependency:list test -Dsort -Dbundlor.enabled=false -B'
+                        sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -Peclipselink-next clean dependency:list test -Dsort -Dbundlor.enabled=false -B'
                     }
                 }
                 stage("test: eclipselink-27") {
                     agent {
                         docker {
                             image 'adoptopenjdk/openjdk8:latest'
-                            args '-v $HOME/.m2:/tmp/spring-data-maven-repository'
+                            label 'data'
+                            args '-v $HOME:/tmp/jenkins-home'
                         }
                     }
                     options { timeout(time: 30, unit: 'MINUTES') }
                     steps {
                         sh 'rm -rf ?'
-                        sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/spring-data-maven-repository" ./mvnw -Peclipselink-27 clean dependency:list test -Dsort -Dbundlor.enabled=false -B'
+                        sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -Peclipselink-27 clean dependency:list test -Dsort -Dbundlor.enabled=false -B'
                     }
                 }
                 stage("test: eclipselink-27-next") {
                     agent {
                         docker {
                             image 'adoptopenjdk/openjdk8:latest'
-                            args '-v $HOME/.m2:/tmp/spring-data-maven-repository'
+                            label 'data'
+                            args '-v $HOME:/tmp/jenkins-home'
                         }
                     }
                     options { timeout(time: 30, unit: 'MINUTES') }
                     steps {
                         sh 'rm -rf ?'
-                        sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/spring-data-maven-repository" ./mvnw -Peclipselink-27-next clean dependency:list test -Dsort -Dbundlor.enabled=false -B'
+                        sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -Peclipselink-27-next clean dependency:list test -Dsort -Dbundlor.enabled=false -B'
                     }
                 }
             }
@@ -146,7 +156,8 @@ pipeline {
             agent {
                 docker {
                     image 'adoptopenjdk/openjdk8:latest'
-                    args '-v $HOME/.m2:/tmp/spring-data-maven-repository'
+                    label 'data'
+                    args '-v $HOME:/tmp/jenkins-home'
                 }
             }
             options { timeout(time: 20, unit: 'MINUTES') }
@@ -157,7 +168,14 @@ pipeline {
 
             steps {
                 sh 'rm -rf ?'
-                sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/spring-data-maven-repository" ./mvnw -Pci,snapshot -DskipTests=true clean deploy -B'
+                sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -Pci,artifactory ' +
+                        '-Dartifactory.server=https://repo.spring.io ' +
+                        "-Dartifactory.username=${ARTIFACTORY_USR} " +
+                        "-Dartifactory.password=${ARTIFACTORY_PSW} " +
+                        "-Dartifactory.staging-repository=libs-snapshot-local " +
+                        "-Dartifactory.build-name=spring-data-jpa " +
+                        "-Dartifactory.build-number=${BUILD_NUMBER} " +
+                        '-Dmaven.test.skip=true clean deploy -B'
             }
         }
         stage('Release to artifactory with docs') {
@@ -167,7 +185,8 @@ pipeline {
             agent {
                 docker {
                     image 'adoptopenjdk/openjdk8:latest'
-                    args '-v $HOME/.m2:/tmp/spring-data-maven-repository'
+                    label 'data'
+                    args '-v $HOME:/tmp/jenkins-home'
                 }
             }
             options { timeout(time: 20, unit: 'MINUTES') }
@@ -178,7 +197,14 @@ pipeline {
 
             steps {
                 sh 'rm -rf ?'
-                sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/spring-data-maven-repository" ./mvnw -Pci,snapshot -DskipTests=true clean deploy -B'
+                sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -Pci,artifactory ' +
+                        '-Dartifactory.server=https://repo.spring.io ' +
+                        "-Dartifactory.username=${ARTIFACTORY_USR} " +
+                        "-Dartifactory.password=${ARTIFACTORY_PSW} " +
+                        "-Dartifactory.staging-repository=libs-snapshot-local " +
+                        "-Dartifactory.build-name=spring-data-jpa " +
+                        "-Dartifactory.build-number=${BUILD_NUMBER} " +
+                        '-Dmaven.test.skip=true clean deploy -B'
             }
         }
     }
