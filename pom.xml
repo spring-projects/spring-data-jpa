@@ -132,46 +132,6 @@
 			</repositories>
 		</profile>
 		<profile>
-			<id>snapshot</id>
-
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>org.jfrog.buildinfo</groupId>
-						<artifactId>artifactory-maven-plugin</artifactId>
-						<version>2.6.1</version>
-						<inherited>false</inherited>
-						<executions>
-							<execution>
-								<id>build-info</id>
-								<goals>
-									<goal>publish</goal>
-								</goals>
-								<configuration>
-									<buildInfo>
-										<buildUrl>{{BUILD_URL}}</buildUrl>
-									</buildInfo>
-									<deployProperties>
-										<zip.name>spring-data-jpa</zip.name>
-										<zip.displayname>spring-data-jpa</zip.displayname>
-										<zip.deployed>false</zip.deployed>
-										<archives>*:*:*:*@zip</archives>
-									</deployProperties>
-									<publisher>
-										<contextUrl>https://repo.spring.io</contextUrl>
-										<username>{{ARTIFACTORY_USR}}</username>
-										<password>{{ARTIFACTORY_PSW}}</password>
-										<repoKey>libs-snapshot-local</repoKey>
-										<snapshotRepoKey>libs-snapshot-local</snapshotRepoKey>
-									</publisher>
-								</configuration>
-							</execution>
-						</executions>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-		<profile>
 			<id>docs</id>
 
 			<build>
