@@ -125,19 +125,17 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 
 		Class<?> superType = type.getJavaType().getSuperclass();
 
-		try {
-
-			ManagedType<?> managedSuperType = metamodel.managedType(superType);
-
-			if (!(managedSuperType instanceof IdentifiableType)) {
-				return Optional.empty();
-			}
-
-			return findVersionAttribute((IdentifiableType<T>) managedSuperType, metamodel);
-
-		} catch (IllegalArgumentException o_O) {
+		if (!JpaMetamodel.of(metamodel).isJpaManaged(superType)) {
 			return Optional.empty();
 		}
+
+		ManagedType<?> managedSuperType = metamodel.managedType(superType);
+
+		if (!(managedSuperType instanceof IdentifiableType)) {
+			return Optional.empty();
+		}
+
+		return findVersionAttribute((IdentifiableType<T>) managedSuperType, metamodel);
 	}
 
 	/*
