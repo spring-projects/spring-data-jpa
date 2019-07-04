@@ -87,6 +87,19 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	private @Nullable CrudMethodMetadata metadata;
 	private EscapeCharacter escapeCharacter = EscapeCharacter.DEFAULT;
 
+	private static <T> Collection<T> toCollection(Iterable<T> ts) {
+
+		if (ts instanceof Collection) {
+			return (Collection<T>) ts;
+		}
+
+		List<T> tCollection = new ArrayList<T>();
+		for (T t : ts) {
+			tCollection.add(t);
+		}
+		return tCollection;
+	}
+
 	/**
 	 * Creates a new {@link SimpleJpaRepository} to manage objects of the given {@link JpaEntityInformation}.
 	 *
@@ -349,11 +362,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 			return results;
 		}
 
-		// required for eclipselink workaround, see DATAJPA-433
-		List<ID> idCollection = new ArrayList<ID>();
-		for (ID id : ids) {
-			idCollection.add(id);
-		}
+		Collection<ID> idCollection = toCollection(ids);
 
 		ByIdsSpecification<T> specification = new ByIdsSpecification<T>(entityInformation);
 		TypedQuery<T> query = getQuery(specification, Sort.unsorted());
@@ -430,8 +439,9 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	public <S extends T> Optional<S> findOne(Example<S> example) {
 
 		try {
-			return Optional.of(
-					getQuery(new ExampleSpecification<S>(example, escapeCharacter), example.getProbeType(), Sort.unsorted()).getSingleResult());
+			return Optional
+					.of(getQuery(new ExampleSpecification<S>(example, escapeCharacter), example.getProbeType(), Sort.unsorted())
+							.getSingleResult());
 		} catch (NoResultException e) {
 			return Optional.empty();
 		}
@@ -443,7 +453,8 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 */
 	@Override
 	public <S extends T> long count(Example<S> example) {
-		return executeCountQuery(getCountQuery(new ExampleSpecification<S>(example, escapeCharacter), example.getProbeType()));
+		return executeCountQuery(
+				getCountQuery(new ExampleSpecification<S>(example, escapeCharacter), example.getProbeType()));
 	}
 
 	/*
@@ -452,8 +463,8 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 */
 	@Override
 	public <S extends T> boolean exists(Example<S> example) {
-		return !getQuery(new ExampleSpecification<S>(example, escapeCharacter), example.getProbeType(), Sort.unsorted()).getResultList()
-				.isEmpty();
+		return !getQuery(new ExampleSpecification<S>(example, escapeCharacter), example.getProbeType(), Sort.unsorted())
+				.getResultList().isEmpty();
 	}
 
 	/*
@@ -462,7 +473,8 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 */
 	@Override
 	public <S extends T> List<S> findAll(Example<S> example) {
-		return getQuery(new ExampleSpecification<S>(example, escapeCharacter), example.getProbeType(), Sort.unsorted()).getResultList();
+		return getQuery(new ExampleSpecification<S>(example, escapeCharacter), example.getProbeType(), Sort.unsorted())
+				.getResultList();
 	}
 
 	/*
@@ -471,7 +483,8 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 */
 	@Override
 	public <S extends T> List<S> findAll(Example<S> example, Sort sort) {
-		return getQuery(new ExampleSpecification<S>(example, escapeCharacter), example.getProbeType(), sort).getResultList();
+		return getQuery(new ExampleSpecification<S>(example, escapeCharacter), example.getProbeType(), sort)
+				.getResultList();
 	}
 
 	/*
