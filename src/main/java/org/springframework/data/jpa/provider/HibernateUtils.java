@@ -33,7 +33,7 @@ import org.springframework.util.ReflectionUtils;
  * @since 1.10.2
  * @soundtrack Benny Greb - Soulfood (Live, https://www.youtube.com/watch?v=9_ErMa_CtSw)
  */
-@SuppressWarnings({ "deprecation", "rawtypes" })
+@SuppressWarnings("rawtypes")
 public abstract class HibernateUtils {
 
 	private static final List<String> TYPES = Arrays.asList("org.hibernate.jpa.HibernateQuery",
@@ -83,7 +83,7 @@ public abstract class HibernateUtils {
 
 	/**
 	 * Return the query string of the underlying native Hibernate query.
-	 * 
+	 *
 	 * @param query
 	 * @return
 	 */
@@ -91,7 +91,7 @@ public abstract class HibernateUtils {
 
 		if (HIBERNATE_QUERY_INTERFACE != null && QUERY_STRING_METHOD != null
 				&& HIBERNATE_QUERY_INTERFACE.isInstance(query)) {
-			return String.class.cast(ReflectionUtils.invokeMethod(QUERY_STRING_METHOD, query));
+			return (String) ReflectionUtils.invokeMethod(QUERY_STRING_METHOD, query);
 		}
 
 		if (HIBERNATE_QUERY_INTERFACE != null && !HIBERNATE_QUERY_INTERFACE.isInstance(query)) {
@@ -112,6 +112,28 @@ public abstract class HibernateUtils {
 	}
 
 	/**
+	 * Returns whether the current version of Hibernate supports {@link javax.persistence.Tuple} as a return type for
+	 * native queries.
+	 *
+	 * @since 1.11.23
+	 */
+	public static boolean supportsTuples() {
+
+		return isVersionInInterval(HIBERNATE4_VERSION_SUPPORTING_TUPLES, HIBERNATE5_VERSION)
+				|| isVersionOrBetter(HIBERNATE5_VERSION_SUPPORTING_TUPLES);
+	}
+
+	/**
+	 * Returns whether the current version of Hibernate supports {@link javax.persistence.Tuple} as a return type for
+	 * native queries.
+	 *
+	 * @since 1.11.23
+	 */
+	public static boolean supportsTuplesForNativeQueries() {
+		return isVersionOrBetter(HIBERNATE5_VERSION_SUPPORTING_TUPLES);
+	}
+
+	/**
 	 * Returns whether the currently used version of Hibernate is in the given interval of versions.
 	 *
 	 * @param lowerIncluding lower version bound to compare to. The lower version bound is inclusive. Must not be
@@ -119,27 +141,9 @@ public abstract class HibernateUtils {
 	 * @param upperExcluding upper version bound to compare to. The upper version bound is exclusive. Must not be
 	 *          {@literal null}.
 	 * @return whence lowerIncluding <= Hibernate version < upperExcluding.
+	 * @since 1.11.23
 	 */
 	private static boolean isVersionInInterval(Version lowerIncluding, Version upperExcluding) {
 		return HIBERNATE_VERSION.isGreaterThanOrEqualTo(lowerIncluding) && HIBERNATE_VERSION.isLessThan(upperExcluding);
-	}
-
-	/**
-	 * Returns wether the current version of Hibernate supports {@link javax.persistence.Tuple} as a return type for
-	 * native queries.
-	 */
-	public static boolean supportsTuples() {
-
-		return HibernateUtils.isVersionInInterval(HIBERNATE4_VERSION_SUPPORTING_TUPLES, HIBERNATE5_VERSION)
-				|| HibernateUtils.isVersionOrBetter(HIBERNATE5_VERSION_SUPPORTING_TUPLES);
-	}
-
-	/**
-	 * Returns wether the current version of Hibernate supports {@link javax.persistence.Tuple} as a return type for
-	 * native queries.
-	 */
-	public static boolean supportsTuplesForNativeQueries() {
-
-		return HibernateUtils.isVersionOrBetter(HIBERNATE5_VERSION_SUPPORTING_TUPLES);
 	}
 }

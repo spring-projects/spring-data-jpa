@@ -2261,11 +2261,10 @@ public class UserRepositoryTests {
 
 		List<Map<String, Object>> listOfMaps = repository.findListOfMaps();
 
-		assertThat(listOfMaps, Matchers.<Map<String, Object>> hasSize(4));
+		assertThat(listOfMaps, hasSize(4));
 		for (Map<String, Object> map : listOfMaps) {
-			assertThat(map.entrySet(), Matchers.hasSize(2));
+			assertThat(map.entrySet(), hasSize(2));
 		}
-
 	}
 
 	@Test(expected = DataIntegrityViolationException.class) // DATAJPA-1535
