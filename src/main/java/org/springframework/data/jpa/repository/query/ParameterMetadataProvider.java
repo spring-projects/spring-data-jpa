@@ -64,25 +64,28 @@ class ParameterMetadataProvider {
 	 * Creates a new {@link ParameterMetadataProvider} from the given {@link CriteriaBuilder} and
 	 * {@link ParametersParameterAccessor} with support for parameter value customizations via {@link PersistenceProvider}
 	 * .
-	 *  @param builder must not be {@literal null}.
+	 * 
+	 * @param builder must not be {@literal null}.
 	 * @param accessor must not be {@literal null}.
 	 * @param provider must not be {@literal null}.
 	 * @param escape
 	 */
 	public ParameterMetadataProvider(CriteriaBuilder builder, ParametersParameterAccessor accessor,
-									 PersistenceProvider provider, EscapeCharacter escape) {
+			PersistenceProvider provider, EscapeCharacter escape) {
 		this(builder, accessor.iterator(), accessor.getParameters(), provider, escape);
 	}
 
 	/**
 	 * Creates a new {@link ParameterMetadataProvider} from the given {@link CriteriaBuilder} and {@link Parameters} with
 	 * support for parameter value customizations via {@link PersistenceProvider}.
-	 *  @param builder must not be {@literal null}.
+	 * 
+	 * @param builder must not be {@literal null}.
 	 * @param parameters must not be {@literal null}.
 	 * @param provider must not be {@literal null}.
 	 * @param escape
 	 */
-	public ParameterMetadataProvider(CriteriaBuilder builder, Parameters<?, ?> parameters, PersistenceProvider provider, EscapeCharacter escape) {
+	public ParameterMetadataProvider(CriteriaBuilder builder, Parameters<?, ?> parameters, PersistenceProvider provider,
+			EscapeCharacter escape) {
 		this(builder, null, parameters, provider, escape);
 	}
 
@@ -98,7 +101,7 @@ class ParameterMetadataProvider {
 	 * @param escape
 	 */
 	private ParameterMetadataProvider(CriteriaBuilder builder, @Nullable Iterator<Object> bindableParameterValues,
-									  Parameters<?, ?> parameters, PersistenceProvider provider, EscapeCharacter escape) {
+			Parameters<?, ?> parameters, PersistenceProvider provider, EscapeCharacter escape) {
 
 		Assert.notNull(builder, "CriteriaBuilder must not be null!");
 		Assert.notNull(parameters, "Parameters must not be null!");
@@ -207,7 +210,7 @@ class ParameterMetadataProvider {
 		 * Creates a new {@link ParameterMetadata}.
 		 */
 		public ParameterMetadata(ParameterExpression<T> expression, Part part, @Nullable Object value,
-								 PersistenceProvider provider, EscapeCharacter escape) {
+				PersistenceProvider provider, EscapeCharacter escape) {
 
 			this.expression = expression;
 			this.persistenceProvider = provider;
@@ -292,21 +295,17 @@ class ParameterMetadataProvider {
 
 		@Nullable
 		@SuppressWarnings("unchecked")
-		private static Collection<?> upperIfIgnoreCase(boolean ignoreCase, @Nullable Collection<?>
-				collection) {
-			if (ignoreCase
-					&& !CollectionUtils.isEmpty(collection)) {
-				return ((Collection<String>) collection).stream()
-					.map(it -> {
-						if (it == null) {
-							return null;
-						} else {
-							return it.toUpperCase();
-						}
-					})
-					.collect(Collectors.toList());
+		private static Collection<?> upperIfIgnoreCase(boolean ignoreCase, @Nullable Collection<?> collection) {
+
+			if (!ignoreCase || CollectionUtils.isEmpty(collection)) {
+				return collection;
 			}
-			return collection;
+
+			return ((Collection<String>) collection).stream() //
+					.map(it -> it == null //
+							? null //
+							: it.toUpperCase()) //
+					.collect(Collectors.toList());
 		}
 	}
 }
