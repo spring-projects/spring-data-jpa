@@ -1,0 +1,43 @@
+= Continuous Integration
+
+image:https://jenkins.spring.io/buildStatus/icon?job=spring-data-jpa%2Fmaster&subject=Moore%20(master)[link=https://jenkins.spring.io/view/SpringData/job/spring-data-jpa/]
+image:https://jenkins.spring.io/buildStatus/icon?job=spring-data-jpa%2F2.1.x&subject=Lovelace%20(2.1.x)[link=https://jenkins.spring.io/view/SpringData/job/spring-data-jpa/]
+image:https://jenkins.spring.io/buildStatus/icon?job=spring-data-jpa%2F1.11.x&subject=Ingalls%20(1.11.x)[link=https://jenkins.spring.io/view/SpringData/job/spring-data-jpa/]
+
+== Running CI tasks locally
+
+Since this pipeline is purely Docker-based, it's easy to:
+
+* Debug what went wrong on your local machine.
+* Test out a a tweak to your test routine before sending it out.
+* Experiment against a new image before submitting your pull request.
+
+All of these use cases are great reasons to essentially run what the CI server does on your local machine.
+
+IMPORTANT: To do this you must have Docker installed on your machine.
+
+1. `docker run -it --mount type=bind,source="$(pwd)",target=/spring-data-jpa-github adoptopenjdk/openjdk8:latest /bin/sh`
++
+This will launch the Docker image and mount your source code at `spring-data-jpa-github`.
++
+2. `cd spring-data-jpa-github`
++
+Next, run the tests from inside the container:
++
+3. `./mvnw clean dependency:list test -Dsort -Dbundlor.enabled=false -B` (or with whatever profile you need to test out)
+
+Since the container is binding to your source, you can make edits from your IDE and continue to run build jobs.
+
+If you need to package things up, do this:
+
+1. `docker run -it --mount type=bind,source="$(pwd)",target=/spring-data-jpa-github adoptopenjdk/openjdk8:latest /bin/sh`
++
+This will launch the Docker image and mount your source code at `spring-data-jpa-github`.
++
+2. `cd spring-data-jpa-github`
++
+Next, package things from inside the container doing this:
++
+3. `./mvnw clean dependency:list package -Dsort -Dbundlor.enabled=false -B`
+
+NOTE: Docker containers can eat up disk space fast! From time to time, run `docker system prune` to clean out old images.
