@@ -16,8 +16,7 @@
 package org.springframework.data.jpa.repository.support;
 
 import static java.util.Arrays.*;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.io.Serializable;
@@ -41,6 +40,7 @@ import org.springframework.data.jpa.domain.sample.PersistableWithIdClassPK;
  * Unit tests for {@link JpaMetamodelEntityInformation}.
  *
  * @author Oliver Gierke
+ * @author Jens Schauder
  */
 @RunWith(MockitoJUnitRunner.Silent.class)
 public class JpaMetamodelEntityInformationUnitTests {
@@ -77,9 +77,9 @@ public class JpaMetamodelEntityInformationUnitTests {
 				PersistableWithIdClass.class, metamodel);
 
 		PersistableWithIdClass entity = new PersistableWithIdClass(null, null);
-		assertThat(information.getId(entity), is(nullValue()));
+		assertThat(information.getId(entity)).isNull();
 
 		entity = new PersistableWithIdClass(2L, null);
-		assertThat(information.getId(entity), is(notNullValue()));
+		assertThat(information.getId(entity)).isNotNull();
 	}
 }

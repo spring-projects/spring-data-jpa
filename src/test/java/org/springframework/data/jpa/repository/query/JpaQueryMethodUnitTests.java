@@ -15,8 +15,7 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
@@ -62,6 +61,7 @@ import org.springframework.data.repository.query.QueryMethod;
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Christoph Strobl
+ * @author Jens Schauder
  */
 @RunWith(MockitoJUnitRunner.class)
 public class JpaQueryMethodUnitTests {
@@ -102,10 +102,10 @@ public class JpaQueryMethodUnitTests {
 
 		JpaQueryMethod method = getQueryMethod(UserRepository.class, "findByLastname", String.class);
 
-		assertEquals("User.findByLastname", method.getNamedQueryName());
-		assertThat(method.isCollectionQuery(), is(true));
-		assertThat(method.getAnnotatedQuery(), is(nullValue()));
-		assertThat(method.isNativeQuery(), is(false));
+		assertThat(method.getNamedQueryName()).isEqualTo("User.findByLastname");
+		assertThat(method.isCollectionQuery()).isTrue();
+		assertThat(method.getAnnotatedQuery()).isNull();
+		assertThat(method.isNativeQuery()).isFalse();
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -125,17 +125,17 @@ public class JpaQueryMethodUnitTests {
 	public void returnsCorrectName() throws Exception {
 
 		JpaQueryMethod method = getQueryMethod(UserRepository.class, "findByLastname", String.class);
-		assertThat(method.getName(), is("findByLastname"));
+		assertThat(method.getName()).isEqualTo("findByLastname");
 	}
 
 	@Test
 	public void returnsQueryIfAvailable() throws Exception {
 
 		JpaQueryMethod method = getQueryMethod(UserRepository.class, "findByLastname", String.class);
-		assertThat(method.getAnnotatedQuery(), is(nullValue()));
+		assertThat(method.getAnnotatedQuery()).isNull();
 
 		method = getQueryMethod(UserRepository.class, "findByAnnotatedQuery", String.class);
-		assertThat(method.getAnnotatedQuery(), is(notNullValue()));
+		assertThat(method.getAnnotatedQuery()).isNotNull();
 	}
 
 	@Test(expected = IllegalStateException.class)
@@ -166,7 +166,7 @@ public class JpaQueryMethodUnitTests {
 	public void recognizesModifyingMethod() throws Exception {
 
 		JpaQueryMethod method = getQueryMethod(UserRepository.class, "renameAllUsersTo", String.class);
-		assertTrue(method.isModifyingQuery());
+		assertThat(method.isModifyingQuery()).isTrue();
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -191,9 +191,9 @@ public class JpaQueryMethodUnitTests {
 		JpaQueryMethod method = getQueryMethod(UserRepository.class, "findByLastname", String.class);
 		List<QueryHint> hints = method.getHints();
 
-		assertNotNull(hints);
-		assertThat(hints.get(0).name(), is("foo"));
-		assertThat(hints.get(0).value(), is("bar"));
+		assertThat(hints).isNotNull();
+		assertThat(hints.get(0).name()).isEqualTo("foo");
+		assertThat(hints.get(0).value()).isEqualTo("bar");
 	}
 
 	private JpaQueryMethod getQueryMethod(Class<?> repositoryInterface, String methodName, Class<?>... parameterTypes)
@@ -210,29 +210,29 @@ public class JpaQueryMethodUnitTests {
 		RepositoryMetadata metadata = new DefaultRepositoryMetadata(UserRepository.class);
 
 		JpaQueryMethod queryMethod = getQueryMethod(UserRepository.class, "findByLastname", String.class);
-		assertThat(queryMethod.getNamedQueryName(), is("User.findByLastname"));
+		assertThat(queryMethod.getNamedQueryName()).isEqualTo("User.findByLastname");
 
 		Method method = UserRepository.class.getMethod("renameAllUsersTo", String.class);
 		queryMethod = new JpaQueryMethod(method, metadata, factory, extractor);
-		assertThat(queryMethod.getNamedQueryName(), is("User.renameAllUsersTo"));
+		assertThat(queryMethod.getNamedQueryName()).isEqualTo("User.renameAllUsersTo");
 
 		method = UserRepository.class.getMethod("findSpecialUsersByLastname", String.class);
 		queryMethod = new JpaQueryMethod(method, metadata, factory, extractor);
-		assertThat(queryMethod.getNamedQueryName(), is("SpecialUser.findSpecialUsersByLastname"));
+		assertThat(queryMethod.getNamedQueryName()).isEqualTo("SpecialUser.findSpecialUsersByLastname");
 	}
 
 	@Test // DATAJPA-117
 	public void discoversNativeQuery() throws Exception {
 
 		JpaQueryMethod method = getQueryMethod(ValidRepository.class, "findByLastname", String.class);
-		assertThat(method.isNativeQuery(), is(true));
+		assertThat(method.isNativeQuery()).isTrue();
 	}
 
 	@Test // DATAJPA-129
 	public void considersAnnotatedNamedQueryName() throws Exception {
 
 		JpaQueryMethod queryMethod = getQueryMethod(ValidRepository.class, "findByNamedQuery");
-		assertThat(queryMethod.getNamedQueryName(), is("HateoasAwareSpringDataWebConfiguration.bar"));
+		assertThat(queryMethod.getNamedQueryName()).isEqualTo("HateoasAwareSpringDataWebConfiguration.bar");
 	}
 
 	@Test // DATAJPA-73
@@ -241,37 +241,35 @@ public class JpaQueryMethodUnitTests {
 		JpaQueryMethod method = getQueryMethod(ValidRepository.class, "findOneLocked", Integer.class);
 		LockModeType lockMode = method.getLockModeType();
 
-		assertEquals(LockModeType.PESSIMISTIC_WRITE, lockMode);
+		assertThat(lockMode).isEqualTo(LockModeType.PESSIMISTIC_WRITE);
 	}
 
 	@Test // DATAJPA-142
 	public void returnsDefaultCountQueryName() throws Exception {
 
 		JpaQueryMethod method = getQueryMethod(UserRepository.class, "findByLastname", String.class);
-		assertThat(method.getNamedCountQueryName(), is("User.findByLastname.count"));
+		assertThat(method.getNamedCountQueryName()).isEqualTo("User.findByLastname.count");
 	}
 
 	@Test // DATAJPA-142
 	public void returnsDefaultCountQueryNameBasedOnConfiguredNamedQueryName() throws Exception {
 
 		JpaQueryMethod method = getQueryMethod(ValidRepository.class, "findByNamedQuery");
-		assertThat(method.getNamedCountQueryName(), is("HateoasAwareSpringDataWebConfiguration.bar.count"));
+		assertThat(method.getNamedCountQueryName()).isEqualTo("HateoasAwareSpringDataWebConfiguration.bar.count");
 	}
 
 	@Test // DATAJPA-185
 	public void rejectsInvalidNamedParameter() throws Exception {
 
-		try {
-			getQueryMethod(InvalidRepository.class, "findByAnnotatedQuery", String.class);
-			fail();
-		} catch (IllegalStateException e) {
-			// Parameter from query
-			assertThat(e.getMessage(), containsString("foo"));
-			// Parameter name from annotation
-			assertThat(e.getMessage(), containsString("param"));
-			// Method name
-			assertThat(e.getMessage(), containsString("findByAnnotatedQuery"));
-		}
+		assertThatThrownBy(() -> getQueryMethod(InvalidRepository.class, "findByAnnotatedQuery", String.class))
+				.isInstanceOf(IllegalStateException.class)
+				// Parameter from query
+				.hasMessageContaining("foo")
+				// Parameter name from annotation
+				.hasMessageContaining("param")
+				// Method name
+				.hasMessageContaining("findByAnnotatedQuery");
+
 	}
 
 	@Test // DATAJPA-207
@@ -282,8 +280,8 @@ public class JpaQueryMethodUnitTests {
 		when(metadata.getReturnedDomainClass(findsProjections)).thenReturn((Class) Integer.class);
 		when(metadata.getReturnedDomainClass(findsProjection)).thenReturn((Class) Integer.class);
 
-		assertThat(new JpaQueryMethod(findsProjections, metadata, factory, extractor).isQueryForEntity(), is(false));
-		assertThat(new JpaQueryMethod(findsProjection, metadata, factory, extractor).isQueryForEntity(), is(false));
+		assertThat(new JpaQueryMethod(findsProjections, metadata, factory, extractor).isQueryForEntity()).isFalse();
+		assertThat(new JpaQueryMethod(findsProjection, metadata, factory, extractor).isQueryForEntity()).isFalse();
 	}
 
 	@Test // DATAJPA-345
@@ -291,10 +289,10 @@ public class JpaQueryMethodUnitTests {
 
 		JpaQueryMethod method = getQueryMethod(ValidRepository.class, "withMetaAnnotation");
 
-		assertThat(method.getLockModeType(), is(LockModeType.OPTIMISTIC_FORCE_INCREMENT));
-		assertThat(method.getHints(), hasSize(1));
-		assertThat(method.getHints().get(0).name(), is("foo"));
-		assertThat(method.getHints().get(0).value(), is("bar"));
+		assertThat(method.getLockModeType()).isEqualTo(LockModeType.OPTIMISTIC_FORCE_INCREMENT);
+		assertThat(method.getHints()).hasSize(1);
+		assertThat(method.getHints().get(0).name()).isEqualTo("foo");
+		assertThat(method.getHints().get(0).value()).isEqualTo("bar");
 	}
 
 	@Test // DATAJPA-466
@@ -305,9 +303,9 @@ public class JpaQueryMethodUnitTests {
 
 		JpaQueryMethod method = new JpaQueryMethod(queryMethodWithCustomEntityFetchGraph, metadata, factory, extractor);
 
-		assertThat(method.getEntityGraph(), is(notNullValue()));
-		assertThat(method.getEntityGraph().getName(), is("User.propertyLoadPath"));
-		assertThat(method.getEntityGraph().getType(), is(EntityGraphType.LOAD));
+		assertThat(method.getEntityGraph()).isNotNull();
+		assertThat(method.getEntityGraph().getName()).isEqualTo("User.propertyLoadPath");
+		assertThat(method.getEntityGraph().getType()).isEqualTo(EntityGraphType.LOAD);
 	}
 
 	@Test // DATAJPA-612
@@ -319,9 +317,9 @@ public class JpaQueryMethodUnitTests {
 		JpaQueryMethod method = new JpaQueryMethod(JpaRepositoryOverride.class.getMethod("findAll"), metadata, factory,
 				extractor);
 
-		assertThat(method.getEntityGraph(), is(notNullValue()));
-		assertThat(method.getEntityGraph().getName(), is("User.detail"));
-		assertThat(method.getEntityGraph().getType(), is(EntityGraphType.FETCH));
+		assertThat(method.getEntityGraph()).isNotNull();
+		assertThat(method.getEntityGraph().getName()).isEqualTo("User.detail");
+		assertThat(method.getEntityGraph().getType()).isEqualTo(EntityGraphType.FETCH);
 	}
 
 	@Test // DATAJPA-689
@@ -333,9 +331,9 @@ public class JpaQueryMethodUnitTests {
 		JpaQueryMethod method = new JpaQueryMethod(JpaRepositoryOverride.class.getMethod("findOne", Long.class), metadata,
 				factory, extractor);
 
-		assertThat(method.getEntityGraph(), is(notNullValue()));
-		assertThat(method.getEntityGraph().getName(), is("User.detail"));
-		assertThat(method.getEntityGraph().getType(), is(EntityGraphType.FETCH));
+		assertThat(method.getEntityGraph()).isNotNull();
+		assertThat(method.getEntityGraph().getName()).isEqualTo("User.detail");
+		assertThat(method.getEntityGraph().getType()).isEqualTo(EntityGraphType.FETCH);
 	}
 
 	/**
@@ -350,9 +348,9 @@ public class JpaQueryMethodUnitTests {
 		JpaQueryMethod method = new JpaQueryMethod(JpaRepositoryOverride.class.getMethod("getOneById", Long.class),
 				metadata, factory, extractor);
 
-		assertThat(method.getEntityGraph(), is(notNullValue()));
-		assertThat(method.getEntityGraph().getName(), is("User.getOneById"));
-		assertThat(method.getEntityGraph().getType(), is(EntityGraphType.FETCH));
+		assertThat(method.getEntityGraph()).isNotNull();
+		assertThat(method.getEntityGraph().getName()).isEqualTo("User.getOneById");
+		assertThat(method.getEntityGraph().getType()).isEqualTo(EntityGraphType.FETCH);
 	}
 
 	@Test // DATAJPA-758
@@ -365,7 +363,7 @@ public class JpaQueryMethodUnitTests {
 
 		JpaQueryMethod method = getQueryMethod(ValidRepository.class, "withMetaAnnotationUsingAliasFor");
 
-		assertThat(method.getLockModeType(), is(LockModeType.PESSIMISTIC_FORCE_INCREMENT));
+		assertThat(method.getLockModeType()).isEqualTo(LockModeType.PESSIMISTIC_FORCE_INCREMENT);
 	}
 
 	@Test // DATAJPA-871
@@ -373,9 +371,9 @@ public class JpaQueryMethodUnitTests {
 
 		JpaQueryMethod method = getQueryMethod(ValidRepository.class, "withMetaAnnotationUsingAliasFor");
 
-		assertThat(method.getHints(), hasSize(1));
-		assertThat(method.getHints().get(0).name(), is("foo"));
-		assertThat(method.getHints().get(0).value(), is("bar"));
+		assertThat(method.getHints()).hasSize(1);
+		assertThat(method.getHints().get(0).name()).isEqualTo("foo");
+		assertThat(method.getHints().get(0).value()).isEqualTo("bar");
 
 	}
 
@@ -384,7 +382,7 @@ public class JpaQueryMethodUnitTests {
 
 		JpaQueryMethod method = getQueryMethod(ValidRepository.class, "withMetaAnnotationUsingAliasFor");
 
-		assertThat(method.applyHintsToCountQuery(), is(true));
+		assertThat(method.applyHintsToCountQuery()).isTrue();
 	}
 
 	@Test // DATAJPA-871
@@ -392,8 +390,8 @@ public class JpaQueryMethodUnitTests {
 
 		JpaQueryMethod method = getQueryMethod(ValidRepository.class, "withMetaAnnotationUsingAliasFor");
 
-		assertThat(method.isModifyingQuery(), is(true));
-		assertThat(method.getClearAutomatically(), is(true));
+		assertThat(method.isModifyingQuery()).isTrue();
+		assertThat(method.getClearAutomatically()).isTrue();
 	}
 
 	@Test // DATAJPA-871
@@ -401,7 +399,7 @@ public class JpaQueryMethodUnitTests {
 
 		JpaQueryMethod method = getQueryMethod(ValidRepository.class, "withMetaAnnotationUsingAliasFor");
 
-		assertThat(method.applyHintsToCountQuery(), is(true));
+		assertThat(method.applyHintsToCountQuery()).isTrue();
 	}
 
 	@Test // DATAJPA-871
@@ -409,7 +407,7 @@ public class JpaQueryMethodUnitTests {
 
 		JpaQueryMethod method = getQueryMethod(ValidRepository.class, "withMetaAnnotationUsingAliasFor");
 
-		assertThat(method.getAnnotatedQuery(), is(equalTo("select u from User u where u.firstname = ?1")));
+		assertThat(method.getAnnotatedQuery()).isEqualTo("select u from User u where u.firstname = ?1");
 	}
 
 	@Test // DATAJPA-871
@@ -417,7 +415,7 @@ public class JpaQueryMethodUnitTests {
 
 		JpaQueryMethod method = getQueryMethod(ValidRepository.class, "withMetaAnnotationUsingAliasFor");
 
-		assertThat(method.getCountQuery(), is(equalTo("select u from User u where u.lastname = ?1")));
+		assertThat(method.getCountQuery()).isEqualTo("select u from User u where u.lastname = ?1");
 	}
 
 	@Test // DATAJPA-871
@@ -425,7 +423,7 @@ public class JpaQueryMethodUnitTests {
 
 		JpaQueryMethod method = getQueryMethod(ValidRepository.class, "withMetaAnnotationUsingAliasFor");
 
-		assertThat(method.getCountQueryProjection(), is(equalTo("foo-bar")));
+		assertThat(method.getCountQueryProjection()).isEqualTo("foo-bar");
 	}
 
 	@Test // DATAJPA-871
@@ -433,7 +431,7 @@ public class JpaQueryMethodUnitTests {
 
 		JpaQueryMethod method = getQueryMethod(ValidRepository.class, "withMetaAnnotationUsingAliasFor");
 
-		assertThat(method.getNamedQueryName(), is(equalTo("namedQueryName")));
+		assertThat(method.getNamedQueryName()).isEqualTo("namedQueryName");
 	}
 
 	@Test // DATAJPA-871
@@ -441,7 +439,7 @@ public class JpaQueryMethodUnitTests {
 
 		JpaQueryMethod method = getQueryMethod(ValidRepository.class, "withMetaAnnotationUsingAliasFor");
 
-		assertThat(method.getNamedCountQueryName(), is(equalTo("namedCountQueryName")));
+		assertThat(method.getNamedCountQueryName()).isEqualTo("namedCountQueryName");
 	}
 
 	@Test // DATAJPA-871
@@ -449,7 +447,7 @@ public class JpaQueryMethodUnitTests {
 
 		JpaQueryMethod method = getQueryMethod(ValidRepository.class, "withMetaAnnotationUsingAliasFor");
 
-		assertThat(method.isNativeQuery(), is(true));
+		assertThat(method.isNativeQuery()).isTrue();
 	}
 
 	@Test // DATAJPA-871
@@ -461,9 +459,9 @@ public class JpaQueryMethodUnitTests {
 		JpaQueryMethod method = new JpaQueryMethod(
 				JpaRepositoryOverride.class.getMethod("getOneWithCustomEntityGraphAnnotation"), metadata, factory, extractor);
 
-		assertThat(method.getEntityGraph(), is(notNullValue()));
-		assertThat(method.getEntityGraph().getName(), is("User.detail"));
-		assertThat(method.getEntityGraph().getType(), is(EntityGraphType.LOAD));
+		assertThat(method.getEntityGraph()).isNotNull();
+		assertThat(method.getEntityGraph().getName()).isEqualTo("User.detail");
+		assertThat(method.getEntityGraph().getType()).isEqualTo(EntityGraphType.LOAD);
 	}
 
 	/**
@@ -597,8 +595,7 @@ public class JpaQueryMethodUnitTests {
 		LockModeType lock() default LockModeType.PESSIMISTIC_FORCE_INCREMENT;
 
 		@AliasFor(annotation = QueryHints.class, attribute = "value")
-		QueryHint[] hints() default @QueryHint(name = "foo", value = "bar")
-		;
+		QueryHint[] hints() default @QueryHint(name = "foo", value = "bar");
 
 		@AliasFor(annotation = QueryHints.class, attribute = "forCounting")
 		boolean doCount() default true;

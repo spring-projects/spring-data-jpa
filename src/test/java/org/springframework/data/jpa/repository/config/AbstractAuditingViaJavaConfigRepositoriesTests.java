@@ -15,8 +15,7 @@
  */
 package org.springframework.data.jpa.repository.config;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.time.LocalDateTime;
@@ -53,6 +52,7 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author Thomas Darimont
  * @author Oliver Gierke
+ * @author Jens Schauder
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @Transactional
@@ -64,17 +64,6 @@ public abstract class AbstractAuditingViaJavaConfigRepositoriesTests {
 	AuditableUser auditor;
 
 	@Autowired EntityManager em;
-
-	@Configuration
-	@Import(InfrastructureConfig.class)
-	@EnableJpaRepositories(basePackageClasses = AuditableUserRepository.class)
-	static class TestConfig {
-
-		@Bean
-		EvaluationContextExtension sampleEvaluationContextExtension() {
-			return new SampleEvaluationContextExtension();
-		}
-	}
 
 	@Before
 	public void setup() {
@@ -101,12 +90,12 @@ public abstract class AbstractAuditingViaJavaConfigRepositoriesTests {
 		AuditableUser savedUser = auditableUserRepository.save(user);
 		TimeUnit.MILLISECONDS.sleep(10);
 
-		assertThat(savedUser.getCreatedDate(), is(notNullValue()));
-		assertThat(savedUser.getCreatedDate().get().isBefore(LocalDateTime.now()), is(true));
+		assertThat(savedUser.getCreatedDate()).isNotNull();
+		assertThat(savedUser.getCreatedDate().get().isBefore(LocalDateTime.now())).isTrue();
 
 		AuditableUser createdBy = savedUser.getCreatedBy().get();
-		assertThat(createdBy, is(notNullValue()));
-		assertThat(createdBy.getFirstname(), is(this.auditor.getFirstname()));
+		assertThat(createdBy).isNotNull();
+		assertThat(createdBy.getFirstname()).isEqualTo(this.auditor.getFirstname());
 	}
 
 	@Test // DATAJPA-382
@@ -132,9 +121,20 @@ public abstract class AbstractAuditingViaJavaConfigRepositoriesTests {
 
 		for (AuditableUser user : users) {
 
-			assertThat(user.getFirstname(), is(user.getFirstname().toUpperCase()));
-			assertThat(user.getLastModifiedBy(), is(Optional.of(thomas)));
-			assertThat(user.getLastModifiedDate(), is(Optional.of(now)));
+			assertThat(user.getFirstname()).isEqualTo(user.getFirstname().toUpperCase());
+			assertThat(user.getLastModifiedBy()).isEqualTo(Optional.of(thomas));
+			assertThat(user.getLastModifiedDate()).isEqualTo(Optional.of(now));
+		}
+	}
+
+	@Configuration
+	@Import(InfrastructureConfig.class)
+	@EnableJpaRepositories(basePackageClasses = AuditableUserRepository.class)
+	static class TestConfig {
+
+		@Bean
+		EvaluationContextExtension sampleEvaluationContextExtension() {
+			return new SampleEvaluationContextExtension();
 		}
 	}
 }

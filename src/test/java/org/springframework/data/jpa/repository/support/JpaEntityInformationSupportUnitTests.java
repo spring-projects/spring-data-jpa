@@ -15,7 +15,7 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.io.Serializable;
@@ -35,6 +35,7 @@ import org.mockito.junit.MockitoJUnitRunner;
  * Unit tests for {@link AbstractJpaEntityInformation}.
  *
  * @author Oliver Gierke
+ * @author Jens Schauder
  */
 @RunWith(MockitoJUnitRunner.class)
 public class JpaEntityInformationSupportUnitTests {
@@ -46,10 +47,10 @@ public class JpaEntityInformationSupportUnitTests {
 	public void usesSimpleClassNameIfNoEntityNameGiven() throws Exception {
 
 		JpaEntityInformation<User, Long> information = new DummyJpaEntityInformation<User, Long>(User.class);
-		assertEquals("User", information.getEntityName());
+		assertThat(information.getEntityName()).isEqualTo("User");
 
 		JpaEntityInformation<NamedUser, ?> second = new DummyJpaEntityInformation<NamedUser, Serializable>(NamedUser.class);
-		assertEquals("AnotherNamedUser", second.getEntityName());
+		assertThat(second.getEntityName()).isEqualTo("AnotherNamedUser");
 	}
 
 	@Test(expected = IllegalArgumentException.class) // DATAJPA-93
@@ -60,11 +61,6 @@ public class JpaEntityInformationSupportUnitTests {
 	}
 
 	static class User {
-
-	}
-
-	@Entity(name = "AnotherNamedUser")
-	public class NamedUser {
 
 	}
 
@@ -103,5 +99,10 @@ public class JpaEntityInformationSupportUnitTests {
 		public Object getCompositeIdAttributeValue(Object id, String idAttribute) {
 			return null;
 		}
+	}
+
+	@Entity(name = "AnotherNamedUser")
+	public class NamedUser {
+
 	}
 }

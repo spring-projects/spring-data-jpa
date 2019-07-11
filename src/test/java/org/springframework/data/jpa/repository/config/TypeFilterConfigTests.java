@@ -15,7 +15,7 @@
  */
 package org.springframework.data.jpa.repository.config;
 
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import org.springframework.test.context.ContextConfiguration;
 
@@ -23,6 +23,7 @@ import org.springframework.test.context.ContextConfiguration;
  * Integration test to test {@link org.springframework.core.type.filter.TypeFilter} integration into namespace.
  *
  * @author Oliver Gierke
+ * @author Jens Schauder
  */
 @ContextConfiguration(locations = "classpath:config/namespace-autoconfig-typefilter-context.xml")
 public class TypeFilterConfigTests extends AbstractRepositoryConfigTests {
@@ -37,8 +38,8 @@ public class TypeFilterConfigTests extends AbstractRepositoryConfigTests {
 	@Override
 	public void testContextCreation() {
 
-		assertNotNull(userRepository);
-		assertNotNull(roleRepository);
-		assertNull(auditableUserRepository);
+		assertThat(userRepository).isNotNull();
+		assertThat(roleRepository).isNotNull();
+		assertThat(auditableUserRepository).isNull();
 	}
 }

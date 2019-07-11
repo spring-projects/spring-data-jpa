@@ -15,8 +15,7 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.io.IOException;
@@ -90,7 +89,7 @@ public class JpaRepositoryFactoryUnitTests {
 	@Test
 	public void setsUpBasicInstanceCorrectly() throws Exception {
 
-		assertNotNull(factory.getRepository(SimpleSampleRepository.class));
+		assertThat(factory.getRepository(SimpleSampleRepository.class)).isNotNull();
 	}
 
 	@Test
@@ -105,8 +104,8 @@ public class JpaRepositoryFactoryUnitTests {
 
 	/**
 	 * Asserts that the factory recognized configured predicateExecutor classes that contain custom method but no custom
-	 * implementation could be found. Furthremore the exception has to contain the name of the predicateExecutor interface as for
-	 * a large predicateExecutor configuration it's hard to find out where this error occured.
+	 * implementation could be found. Furthremore the exception has to contain the name of the predicateExecutor interface
+	 * as for a large predicateExecutor configuration it's hard to find out where this error occured.
 	 *
 	 * @throws Exception
 	 */
@@ -116,7 +115,7 @@ public class JpaRepositoryFactoryUnitTests {
 		try {
 			factory.getRepository(SampleRepository.class);
 		} catch (IllegalArgumentException e) {
-			assertTrue(e.getMessage().contains(SampleRepository.class.getName()));
+			assertThat(e.getMessage().contains(SampleRepository.class.getName())).isTrue();
 		}
 	}
 
@@ -150,7 +149,7 @@ public class JpaRepositoryFactoryUnitTests {
 		factory.setRepositoryBaseClass(CustomJpaRepository.class);
 
 		SampleRepository repository = factory.getRepository(SampleRepository.class);
-		assertEquals(CustomJpaRepository.class, ((Advised) repository).getTargetClass());
+		assertThat(((Advised) repository).getTargetClass()).isEqualTo(CustomJpaRepository.class);
 	}
 
 	@Test // DATAJPA-819
@@ -161,7 +160,7 @@ public class JpaRepositoryFactoryUnitTests {
 		factory.setBeanClassLoader(classLoader);
 
 		Object processor = ReflectionTestUtils.getField(factory, "crudMethodMetadataPostProcessor");
-		assertThat(ReflectionTestUtils.getField(processor, "classLoader"), is((Object) classLoader));
+		assertThat(ReflectionTestUtils.getField(processor, "classLoader")).isEqualTo((Object) classLoader);
 	}
 
 	private interface SimpleSampleRepository extends JpaRepository<User, Integer> {
@@ -183,7 +182,22 @@ public class JpaRepositoryFactoryUnitTests {
 		void throwingCheckedException() throws IOException;
 	}
 
-	/**
+	private interface SampleRepository extends JpaRepository<User, Integer>, SampleCustomRepository {
+
+	}
+
+	private interface QueryDslSampleRepository extends SimpleSampleRepository, QuerydslPredicateExecutor<User> {
+
+	}
+
+static class CustomJpaRepository<T, ID extends Serializable> extends SimpleJpaRepository<T, ID> {
+
+		public CustomJpaRepository(JpaEntityInformation<T, ?> entityInformation, EntityManager entityManager) {
+			super(entityInformation, entityManager);
+		}
+	}
+
+		/**
 	 * Implementation of the custom predicateExecutor interface.
 	 *
 	 * @author Oliver Gierke
@@ -200,21 +214,6 @@ public class JpaRepositoryFactoryUnitTests {
 		public void throwingCheckedException() throws IOException {
 
 			throw new IOException("You lose!");
-		}
-	}
-
-	private interface SampleRepository extends JpaRepository<User, Integer>, SampleCustomRepository {
-
-	}
-
-	private interface QueryDslSampleRepository extends SimpleSampleRepository, QuerydslPredicateExecutor<User> {
-
-	}
-
-	static class CustomJpaRepository<T, ID extends Serializable> extends SimpleJpaRepository<T, ID> {
-
-		public CustomJpaRepository(JpaEntityInformation<T, ?> entityInformation, EntityManager entityManager) {
-			super(entityInformation, entityManager);
 		}
 	};
 }

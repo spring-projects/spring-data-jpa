@@ -15,9 +15,7 @@
  */
 package org.springframework.data.jpa.mapping;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.Collections;
 
@@ -51,23 +49,14 @@ import org.springframework.transaction.support.TransactionTemplate;
  *
  * @author Oliver Gierke
  * @author Thomas Darimont
+ * @author Jens Schauder
  * @since 1.3
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
 public class JpaMetamodelMappingContextIntegrationTests {
 
-	@Configuration
-	@ImportResource("classpath:infrastructure.xml")
-	@EnableJpaRepositories(basePackageClasses = CategoryRepository.class, //
-			includeFilters = @Filter(value = { CategoryRepository.class, ProductRepository.class },
-					type = FilterType.ASSIGNABLE_TYPE))
-	static class Config {
-
-	}
-
 	JpaMetamodelMappingContext context;
-
 	@Autowired ProductRepository products;
 	@Autowired CategoryRepository categories;
 	@Autowired EntityManager em;
@@ -82,46 +71,46 @@ public class JpaMetamodelMappingContextIntegrationTests {
 	public void setsUpMappingContextCorrectly() {
 
 		JpaPersistentEntityImpl<?> entity = context.getRequiredPersistentEntity(User.class);
-		assertThat(entity, is(notNullValue()));
+		assertThat(entity).isNotNull();
 	}
 
 	@Test
 	public void detectsIdProperty() {
 
 		JpaPersistentEntityImpl<?> entity = context.getRequiredPersistentEntity(User.class);
-		assertThat(entity.getIdProperty(), is(notNullValue()));
+		assertThat(entity.getIdProperty()).isNotNull();
 	}
 
 	@Test
 	public void detectsAssociation() {
 
 		JpaPersistentEntityImpl<?> entity = context.getRequiredPersistentEntity(User.class);
-		assertThat(entity, is(notNullValue()));
+		assertThat(entity).isNotNull();
 
 		JpaPersistentProperty property = entity.getRequiredPersistentProperty("manager");
-		assertThat(property.isAssociation(), is(true));
+		assertThat(property.isAssociation()).isTrue();
 	}
 
 	@Test
 	public void detectsPropertyIsEntity() {
 
 		JpaPersistentEntityImpl<?> entity = context.getRequiredPersistentEntity(User.class);
-		assertThat(entity, is(notNullValue()));
+		assertThat(entity).isNotNull();
 
 		JpaPersistentProperty property = entity.getRequiredPersistentProperty("manager");
-		assertThat(property.isEntity(), is(true));
+		assertThat(property.isEntity()).isTrue();
 
 		property = entity.getRequiredPersistentProperty("lastname");
-		assertThat(property.isEntity(), is(false));
+		assertThat(property.isEntity()).isFalse();
 	}
 
 	@Test // DATAJPA-608
 	public void detectsEntityPropertyForCollections() {
 
 		JpaPersistentEntityImpl<?> entity = context.getRequiredPersistentEntity(User.class);
-		assertThat(entity, is(notNullValue()));
+		assertThat(entity).isNotNull();
 
-		assertThat(entity.getRequiredPersistentProperty("colleagues").isEntity(), is(true));
+		assertThat(entity.getRequiredPersistentProperty("colleagues").isEntity()).isTrue();
 	}
 
 	@Test // DATAJPA-630
@@ -142,9 +131,9 @@ public class JpaMetamodelMappingContextIntegrationTests {
 			JpaPersistentEntity<?> entity = context.getRequiredPersistentEntity(Product.class);
 			IdentifierAccessor accessor = entity.getIdentifierAccessor(loadedProduct);
 
-			assertThat(accessor.getIdentifier(), is(category.getProduct().getId()));
-			assertThat(loadedProduct, is(instanceOf(HibernateProxy.class)));
-			assertThat(((HibernateProxy) loadedProduct).getHibernateLazyInitializer().isUninitialized(), is(true));
+			assertThat(accessor.getIdentifier()).isEqualTo(category.getProduct().getId());
+			assertThat(loadedProduct).isInstanceOf(HibernateProxy.class);
+			assertThat(((HibernateProxy) loadedProduct).getHibernateLazyInitializer().isUninitialized()).isTrue();
 
 			status.setRollbackOnly();
 
@@ -160,7 +149,7 @@ public class JpaMetamodelMappingContextIntegrationTests {
 
 		JpaPersistentEntity<?> entity = context.getPersistentEntity(OrmXmlEntity.class);
 
-		assertThat(entity.getIdProperty(), is(notNullValue()));
+		assertThat(entity.getIdProperty()).isNotNull();
 	}
 
 	@Test // DATAJPA-1320
@@ -183,5 +172,14 @@ public class JpaMetamodelMappingContextIntegrationTests {
 		// Exists but is not selected
 		assertThat(context.getPersistentPropertyPath("colleagues.firstname", User.class)).isNotNull();
 		assertThat(paths.contains("colleagues.firstname")).isFalse();
+	}
+
+	@Configuration
+	@ImportResource("classpath:infrastructure.xml")
+	@EnableJpaRepositories(basePackageClasses = CategoryRepository.class, //
+			includeFilters = @Filter(value = { CategoryRepository.class, ProductRepository.class },
+					type = FilterType.ASSIGNABLE_TYPE))
+	static class Config {
+
 	}
 }

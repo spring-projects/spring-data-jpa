@@ -15,8 +15,7 @@
  */
 package org.springframework.data.jpa.repository.cdi;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.Set;
 
@@ -36,12 +35,12 @@ import org.slf4j.LoggerFactory;
  * @author Dirk Mahler
  * @author Oliver Gierke
  * @author Mark Paluch
+ * @author Jens Schauder
  */
 public class CdiExtensionIntegrationTests {
 
-	private static Logger LOGGER = LoggerFactory.getLogger(CdiExtensionIntegrationTests.class);
-
 	static SeContainer container;
+	private static Logger LOGGER = LoggerFactory.getLogger(CdiExtensionIntegrationTests.class);
 
 	@BeforeClass
 	public static void setUp() {
@@ -60,8 +59,8 @@ public class CdiExtensionIntegrationTests {
 
 		Set<Bean<?>> beans = container.getBeanManager().getBeans(PersonRepository.class);
 
-		assertThat(beans, hasSize(1));
-		assertThat(beans.iterator().next().getScope(), is(equalTo((Class) ApplicationScoped.class)));
+		assertThat(beans).hasSize(1);
+		assertThat(beans.iterator().next().getScope()).isEqualTo((Class) ApplicationScoped.class);
 	}
 
 	@Test // DATAJPA-136, DATAJPA-1180
@@ -78,7 +77,7 @@ public class CdiExtensionIntegrationTests {
 	public void returnOneFromCustomImpl() {
 
 		RepositoryConsumer repositoryConsumer = container.select(RepositoryConsumer.class).get();
-		assertThat(repositoryConsumer.returnOne(), is(1));
+		assertThat(repositoryConsumer.returnOne()).isEqualTo(1);
 	}
 
 	@Test // DATAJPA-584, DATAJPA-1180
@@ -92,6 +91,6 @@ public class CdiExtensionIntegrationTests {
 	public void useQualifiedFragmentUserRepo() {
 
 		RepositoryConsumer repositoryConsumer = container.select(RepositoryConsumer.class).get();
-		assertThat(repositoryConsumer.returnOneUserDB(), is(1));
+		assertThat(repositoryConsumer.returnOneUserDB()).isEqualTo(1);
 	}
 }

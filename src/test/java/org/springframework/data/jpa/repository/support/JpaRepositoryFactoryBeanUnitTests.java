@@ -15,7 +15,7 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
@@ -51,6 +51,7 @@ import org.springframework.data.repository.core.support.RepositoryFactorySupport
  *
  * @author Oliver Gierke
  * @author Mark Paluch
+ * @author Jens Schauder
  */
 @RunWith(MockitoJUnitRunner.Silent.class)
 public class JpaRepositoryFactoryBeanUnitTests {
@@ -91,7 +92,7 @@ public class JpaRepositoryFactoryBeanUnitTests {
 		factoryBean.setBeanFactory(beanFactory);
 		factoryBean.afterPropertiesSet();
 
-		assertNotNull(factoryBean.getObject());
+		assertThat(factoryBean.getObject()).isNotNull();
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -107,23 +108,6 @@ public class JpaRepositoryFactoryBeanUnitTests {
 	@Test(expected = IllegalArgumentException.class)
 	public void preventsNullRepositoryInterface() {
 		new JpaRepositoryFactoryBean<Repository<Object, Long>, Object, Long>(null);
-	}
-
-	private class DummyJpaRepositoryFactoryBean<T extends JpaRepository<S, ID>, S, ID extends Serializable>
-			extends JpaRepositoryFactoryBean<T, S, ID> {
-
-		public DummyJpaRepositoryFactoryBean(Class<? extends T> repositoryInterface) {
-			super(repositoryInterface);
-		}
-
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.jpa.predicateExecutor.support.JpaRepositoryFactoryBean#doCreateRepositoryFactory()
-		 */
-		@Override
-		protected RepositoryFactorySupport doCreateRepositoryFactory() {
-			return factory;
-		}
 	}
 
 	private interface SimpleSampleRepository extends JpaRepository<User, Integer> {
@@ -171,6 +155,23 @@ public class JpaRepositoryFactoryBeanUnitTests {
 		@Override
 		protected Class<?> getRepositoryBaseClass(RepositoryMetadata metadata) {
 			return null;
+		}
+	}
+
+	private class DummyJpaRepositoryFactoryBean<T extends JpaRepository<S, ID>, S, ID extends Serializable>
+			extends JpaRepositoryFactoryBean<T, S, ID> {
+
+		public DummyJpaRepositoryFactoryBean(Class<? extends T> repositoryInterface) {
+			super(repositoryInterface);
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.jpa.predicateExecutor.support.JpaRepositoryFactoryBean#doCreateRepositoryFactory()
+		 */
+		@Override
+		protected RepositoryFactorySupport doCreateRepositoryFactory() {
+			return factory;
 		}
 	}
 }

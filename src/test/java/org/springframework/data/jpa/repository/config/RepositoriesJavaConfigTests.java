@@ -15,8 +15,7 @@
  */
 package org.springframework.data.jpa.repository.config;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,30 +34,29 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * Integration test for the combination of JavaConfig and an {@link Repositories} wrapper.
  *
  * @author Oliver Gierke
+ * @author Jens Schauder
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
 public class RepositoriesJavaConfigTests {
+
+	@Autowired Repositories repositories;
+
+	@Test // DATAJPA-323
+	public void foo() {
+		assertThat(repositories.hasRepositoryFor(User.class)).isTrue();
+	}
 
 	@Configuration
 	@EnableJpaRepositories(basePackageClasses = UserRepository.class)
 	@ImportResource("classpath:infrastructure.xml")
 	static class Config {
 
-		@Autowired
-		ApplicationContext context;
+		@Autowired ApplicationContext context;
 
 		@Bean
 		public Repositories repositories() {
 			return new Repositories(context);
 		}
-	}
-
-	@Autowired
-	Repositories repositories;
-
-	@Test // DATAJPA-323
-	public void foo() {
-		assertThat(repositories.hasRepositoryFor(User.class), is(true));
 	}
 }

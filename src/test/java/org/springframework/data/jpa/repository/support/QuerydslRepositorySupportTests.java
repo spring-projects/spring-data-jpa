@@ -15,8 +15,7 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.List;
 
@@ -37,6 +36,7 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author Oliver Gierke
  * @author Thomas Darimont
+ * @author Jens Schauder
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({ "classpath:infrastructure.xml" })
@@ -68,43 +68,43 @@ public class QuerydslRepositorySupportTests {
 	public void readsUsersCorrectly() throws Exception {
 
 		List<User> result = repository.findUsersByLastname("Matthews");
-		assertThat(result.size(), is(1));
-		assertThat(result.get(0), is(dave));
+		assertThat(result.size()).isEqualTo(1);
+		assertThat(result.get(0)).isEqualTo(dave);
 
 		result = repository.findUsersByLastname("Beauford");
-		assertThat(result.size(), is(1));
-		assertThat(result.get(0), is(carter));
+		assertThat(result.size()).isEqualTo(1);
+		assertThat(result.get(0)).isEqualTo(carter);
 	}
 
 	@Test
 	public void updatesUsersCorrectly() throws Exception {
 
 		long updates = repository.updateLastnamesTo("Foo");
-		assertThat(updates, is(2L));
+		assertThat(updates).isEqualTo(2L);
 
 		List<User> result = repository.findUsersByLastname("Matthews");
-		assertThat(result.size(), is(0));
+		assertThat(result.size()).isEqualTo(0);
 
 		result = repository.findUsersByLastname("Beauford");
-		assertThat(result.size(), is(0));
+		assertThat(result.size()).isEqualTo(0);
 
 		result = repository.findUsersByLastname("Foo");
-		assertThat(result.size(), is(2));
-		assertThat(result, hasItems(dave, carter));
+		assertThat(result.size()).isEqualTo(2);
+		assertThat(result).contains(dave, carter);
 	}
 
 	@Test
 	public void deletesAllWithLastnameCorrectly() throws Exception {
 
 		long updates = repository.deleteAllWithLastname("Matthews");
-		assertThat(updates, is(1L));
+		assertThat(updates).isEqualTo(1L);
 
 		List<User> result = repository.findUsersByLastname("Matthews");
-		assertThat(result.size(), is(0));
+		assertThat(result.size()).isEqualTo(0);
 
 		result = repository.findUsersByLastname("Beauford");
-		assertThat(result.size(), is(1));
-		assertThat(result.get(0), is(carter));
+		assertThat(result.size()).isEqualTo(1);
+		assertThat(result.get(0)).isEqualTo(carter);
 	}
 
 	@Test(expected = IllegalArgumentException.class)

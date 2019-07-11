@@ -15,8 +15,7 @@
  */
 package org.springframework.data.jpa.repository;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.List;
 
@@ -35,6 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Thomas Darimont
+ * @author Jens Schauder
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = SampleConfig.class)
@@ -60,8 +60,8 @@ public class RedeclaringRepositoryMethodsTests {
 
 		Page<User> page = repository.findAll(PageRequest.of(0, 2));
 
-		assertThat(page.getNumberOfElements(), is(1));
-		assertThat(page.getContent().get(0).getFirstname(), is("Oliver"));
+		assertThat(page.getNumberOfElements()).isEqualTo(1);
+		assertThat(page.getContent().get(0).getFirstname()).isEqualTo("Oliver");
 	}
 
 	@Test // DATAJPA-398
@@ -72,6 +72,6 @@ public class RedeclaringRepositoryMethodsTests {
 
 		List<User> result = repository.findAll();
 
-		assertThat(result.isEmpty(), is(true));
+		assertThat(result.isEmpty()).isTrue();
 	}
 }

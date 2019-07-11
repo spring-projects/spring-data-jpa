@@ -15,15 +15,13 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 
 /**
@@ -31,13 +29,13 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
  *
  * @author Thomas Darimont
  * @author Oliver Gierke
+ * @author Jens Schauder
  */
 @RunWith(MockitoJUnitRunner.class)
 public class ExpressionBasedStringQueryUnitTests {
 
-	@Mock JpaEntityMetadata<?> metadata;
-
 	static final SpelExpressionParser SPEL_PARSER = new SpelExpressionParser();
+	@Mock JpaEntityMetadata<?> metadata;
 
 	@Test // DATAJPA-170
 	public void shouldReturnQueryWithDomainTypeExpressionReplacedWithSimpleDomainTypeName() {
@@ -46,7 +44,7 @@ public class ExpressionBasedStringQueryUnitTests {
 
 		String source = "select from #{#entityName} u where u.firstname like :firstname";
 		StringQuery query = new ExpressionBasedStringQuery(source, metadata, SPEL_PARSER);
-		assertThat(query.getQueryString(), is("select from User u where u.firstname like :firstname"));
+		assertThat(query.getQueryString()).isEqualTo("select from User u where u.firstname like :firstname");
 	}
 
 	@Test // DATAJPA-424
@@ -55,8 +53,8 @@ public class ExpressionBasedStringQueryUnitTests {
 		when(metadata.getEntityName()).thenReturn("User");
 
 		StringQuery query = new ExpressionBasedStringQuery("select u from #{#entityName} u", metadata, SPEL_PARSER);
-		assertThat(query.getAlias(), is("u"));
-		assertThat(query.getQueryString(), is("select u from User u"));
+		assertThat(query.getAlias()).isEqualTo("u");
+		assertThat(query.getQueryString()).isEqualTo("select u from User u");
 	}
 
 }

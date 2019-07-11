@@ -15,9 +15,6 @@
  */
 package org.springframework.data.jpa.repository;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
-
 import java.util.List;
 import java.util.Set;
 
@@ -42,6 +39,11 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+/**
+ * @author Jens Schauder
+ */
 @Transactional
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("classpath:config/namespace-application-context.xml")
@@ -60,7 +62,7 @@ public class ParentRepositoryIntegrationTests {
 	}
 
 	@Test // DATAJPA-287
-	public void testWithoutJoin() throws Exception {
+	public void testWithoutJoin() {
 
 		Page<Parent> page = repository.findAll(new Specification<Parent>() {
 			@Override
@@ -73,11 +75,11 @@ public class ParentRepositoryIntegrationTests {
 
 		List<Parent> content = page.getContent();
 
-		assertThat(content.size(), is(3));
-		assertThat(page.getSize(), is(5));
-		assertThat(page.getNumber(), is(0));
-		assertThat(page.getTotalElements(), is(3L));
-		assertThat(page.getTotalPages(), is(1));
+		assertThat(content.size()).isEqualTo(3);
+		assertThat(page.getSize()).isEqualTo(5);
+		assertThat(page.getNumber()).isEqualTo(0);
+		assertThat(page.getTotalElements()).isEqualTo(3L);
+		assertThat(page.getTotalPages()).isEqualTo(1);
 	}
 
 	@Test // DATAJPA-287
@@ -96,13 +98,13 @@ public class ParentRepositoryIntegrationTests {
 
 		// according to the initial setup there should be
 		// 3 parents which children collection is not empty
-		assertThat(content.size(), is(3));
-		assertThat(page.getSize(), is(5));
-		assertThat(page.getNumber(), is(0));
+		assertThat(content.size()).isEqualTo(3);
+		assertThat(page.getSize()).isEqualTo(5);
+		assertThat(page.getNumber()).isEqualTo(0);
 
 		// we get here wrong total elements number since
 		// count query doesn't take into account the distinct marker of query
-		assertThat(page.getTotalElements(), is(3L));
-		assertThat(page.getTotalPages(), is(1));
+		assertThat(page.getTotalElements()).isEqualTo(3L);
+		assertThat(page.getTotalPages()).isEqualTo(1);
 	}
 }

@@ -15,8 +15,7 @@
  */
 package org.springframework.data.jpa.repository.config;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import org.junit.Test;
 import org.springframework.beans.PropertyValue;
@@ -29,6 +28,7 @@ import org.springframework.core.io.ClassPathResource;
  * Integration test for {@link JpaRepositoryConfigDefinitionParser}.
  *
  * @author Oliver Gierke
+ * @author Jens Schauder
  */
 public class JpaRepositoryConfigDefinitionParserTests {
 
@@ -40,10 +40,10 @@ public class JpaRepositoryConfigDefinitionParserTests {
 		reader.loadBeanDefinitions(new ClassPathResource("multiple-entity-manager-integration-context.xml"));
 
 		BeanDefinition definition = factory.getBeanDefinition("auditableUserRepository");
-		assertThat(definition, is(notNullValue()));
+		assertThat(definition).isNotNull();
 
 		PropertyValue transactionManager = definition.getPropertyValues().getPropertyValue("transactionManager");
-		assertThat(transactionManager, is(notNullValue()));
-		assertThat(transactionManager.getValue().toString(), is("transactionManager-2"));
+		assertThat(transactionManager).isNotNull();
+		assertThat(transactionManager.getValue().toString()).isEqualTo("transactionManager-2");
 	}
 }

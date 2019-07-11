@@ -15,8 +15,7 @@
  */
 package org.springframework.data.jpa.repository;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.Optional;
 
@@ -24,7 +23,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
@@ -46,6 +44,7 @@ import org.springframework.transaction.annotation.Transactional;
  * Integration tests for Repositories using {@link javax.persistence.IdClass} identifiers.
  *
  * @author Mark Paluch
+ * @author Jens Schauder
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = RepositoryWithIdClassKeyTests.TestConfig.class)
@@ -59,15 +58,6 @@ public class RepositoryWithIdClassKeyTests {
 	@Autowired private ItemRepository itemRepository;
 
 	@Autowired private ItemSiteRepository itemSiteRepository;
-
-	@Configuration
-	@EnableJpaRepositories(basePackageClasses = SampleConfig.class)
-	static abstract class Config {
-
-	}
-
-	@ImportResource("classpath:infrastructure.xml")
-	static class TestConfig extends Config {}
 
 	/**
 	 * @see <a href="download.oracle.com/otn-pub/jcp/persistence-2_1-fr-eval-spec/JavaPersistence.pdf">Final JPA 2.1
@@ -84,7 +74,16 @@ public class RepositoryWithIdClassKeyTests {
 		Optional<ItemSite> loaded = itemSiteRepository
 				.findById(new ItemSiteId(new ItemId(item.getId(), item.getManufacturerId()), site.getId()));
 
-		assertThat(loaded, is(notNullValue()));
-		assertThat(loaded.isPresent(), is(true));
+		assertThat(loaded).isNotNull();
+		assertThat(loaded.isPresent()).isTrue();
 	}
+
+	@Configuration
+	@EnableJpaRepositories(basePackageClasses = SampleConfig.class)
+	static abstract class Config {
+
+	}
+
+	@ImportResource("classpath:infrastructure.xml")
+	static class TestConfig extends Config {}
 }

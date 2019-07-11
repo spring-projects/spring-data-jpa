@@ -15,8 +15,7 @@
  */
 package org.springframework.data.jpa.repository.config;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.Arrays;
 
@@ -34,6 +33,7 @@ import org.springframework.data.jpa.repository.sample.UserRepository;
  * Unit test for {@link JpaRepositoriesRegistrar}.
  *
  * @author Oliver Gierke
+ * @author Jens Schauder
  */
 public class JpaRepositoriesRegistrarUnitTests {
 
@@ -56,7 +56,7 @@ public class JpaRepositoriesRegistrarUnitTests {
 		registrar.registerBeanDefinitions(metadata, registry);
 
 		Iterable<String> names = Arrays.asList(registry.getBeanDefinitionNames());
-		assertThat(names, hasItems("userRepository", "auditableUserRepository", "roleRepository"));
+		assertThat(names).contains("userRepository", "auditableUserRepository", "roleRepository");
 	}
 
 	@EnableJpaRepositories(basePackageClasses = UserRepository.class)

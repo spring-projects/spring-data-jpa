@@ -15,8 +15,7 @@
  */
 package org.springframework.data.jpa.domain;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.springframework.data.jpa.domain.Specification.*;
 import static org.springframework.data.jpa.domain.Specification.not;
 import static org.springframework.util.SerializationUtils.*;
@@ -40,6 +39,7 @@ import org.mockito.junit.MockitoJUnitRunner;
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Sebastian Staudt
+ * @author Jens Schauder
  */
 @SuppressWarnings("serial")
 @RunWith(MockitoJUnitRunner.class)
@@ -62,8 +62,8 @@ public class SpecificationUnitTests implements Serializable {
 	public void createsSpecificationsFromNull() {
 
 		Specification<Object> specification = where(null);
-		assertThat(specification, is(notNullValue()));
-		assertThat(specification.toPredicate(root, query, builder), is(nullValue()));
+		assertThat(specification).isNotNull();
+		assertThat(specification.toPredicate(root, query, builder)).isNull();
 	}
 
 	@Test // DATAJPA-300, DATAJPA-1170
@@ -71,8 +71,8 @@ public class SpecificationUnitTests implements Serializable {
 
 		Specification<Object> specification = not(null);
 
-		assertThat(specification, is(notNullValue()));
-		assertThat(specification.toPredicate(root, query, builder), is(nullValue()));
+		assertThat(specification).isNotNull();
+		assertThat(specification.toPredicate(root, query, builder)).isNull();
 	}
 
 	@Test // DATAJPA-300, DATAJPA-1170
@@ -81,8 +81,8 @@ public class SpecificationUnitTests implements Serializable {
 		Specification<Object> specification = where(null);
 		specification = specification.and(spec);
 
-		assertThat(specification, is(notNullValue()));
-		assertThat(specification.toPredicate(root, query, builder), is(predicate));
+		assertThat(specification).isNotNull();
+		assertThat(specification.toPredicate(root, query, builder)).isEqualTo(predicate);
 	}
 
 	@Test // DATAJPA-300, DATAJPA-1170
@@ -90,8 +90,8 @@ public class SpecificationUnitTests implements Serializable {
 
 		Specification<Object> specification = spec.and(null);
 
-		assertThat(specification, is(notNullValue()));
-		assertThat(specification.toPredicate(root, query, builder), is(predicate));
+		assertThat(specification).isNotNull();
+		assertThat(specification.toPredicate(root, query, builder)).isEqualTo(predicate);
 	}
 
 	@Test // DATAJPA-300, DATAJPA-1170
@@ -100,8 +100,8 @@ public class SpecificationUnitTests implements Serializable {
 		Specification<Object> specification = where(null);
 		specification = specification.or(spec);
 
-		assertThat(specification, is(notNullValue()));
-		assertThat(specification.toPredicate(root, query, builder), is(predicate));
+		assertThat(specification).isNotNull();
+		assertThat(specification.toPredicate(root, query, builder)).isEqualTo(predicate);
 	}
 
 	@Test // DATAJPA-300, DATAJPA-1170
@@ -109,8 +109,8 @@ public class SpecificationUnitTests implements Serializable {
 
 		Specification<Object> specification = spec.or(null);
 
-		assertThat(specification, is(notNullValue()));
-		assertThat(specification.toPredicate(root, query, builder), is(predicate));
+		assertThat(specification).isNotNull();
+		assertThat(specification.toPredicate(root, query, builder)).isEqualTo(predicate);
 	}
 
 	@Test // DATAJPA-523
@@ -119,12 +119,12 @@ public class SpecificationUnitTests implements Serializable {
 		Specification<Object> serializableSpec = new SerializableSpecification();
 		Specification<Object> specification = serializableSpec.and(serializableSpec);
 
-		assertThat(specification, is(notNullValue()));
+		assertThat(specification).isNotNull();
 
 		@SuppressWarnings("unchecked")
 		Specification<Object> transferredSpecification = (Specification<Object>) deserialize(serialize(specification));
 
-		assertThat(transferredSpecification, is(notNullValue()));
+		assertThat(transferredSpecification).isNotNull();
 	}
 
 	@Test // DATAJPA-523
@@ -134,12 +134,12 @@ public class SpecificationUnitTests implements Serializable {
 		Specification<Object> specification = Specification
 				.not(serializableSpec.and(serializableSpec).or(serializableSpec));
 
-		assertThat(specification, is(notNullValue()));
+		assertThat(specification).isNotNull();
 
 		@SuppressWarnings("unchecked")
 		Specification<Object> transferredSpecification = (Specification<Object>) deserialize(serialize(specification));
 
-		assertThat(transferredSpecification, is(notNullValue()));
+		assertThat(transferredSpecification).isNotNull();
 	}
 
 	public class SerializableSpecification implements Serializable, Specification<Object> {

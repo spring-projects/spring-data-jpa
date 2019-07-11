@@ -15,8 +15,7 @@
  */
 package org.springframework.data.jpa.repository;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -30,13 +29,14 @@ import org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean;
 import org.springframework.data.repository.core.support.RepositoryFactoryInformation;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
+/**
+ * @author Jens Schauder
+ */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("classpath:config/namespace-application-context.xml")
 public class SPR8954Tests {
 
-	@Autowired
-	ApplicationContext context;
+	@Autowired ApplicationContext context;
 
 	@Test
 	@SuppressWarnings("rawtypes")
@@ -45,9 +45,9 @@ public class SPR8954Tests {
 		Map<String, RepositoryFactoryInformation> repoFactories = context
 				.getBeansOfType(RepositoryFactoryInformation.class);
 
-		assertThat(repoFactories.size(), is(greaterThan(0)));
-		assertThat(repoFactories.keySet(), hasItem("&userRepository"));
-		assertThat(repoFactories.get("&userRepository"), is(instanceOf(JpaRepositoryFactoryBean.class)));
-		assertThat(Arrays.asList(context.getBeanNamesForType(UserRepository.class)), hasItem("userRepository"));
+		assertThat(repoFactories.size()).isGreaterThan(0);
+		assertThat(repoFactories.keySet()).contains("&userRepository");
+		assertThat(repoFactories.get("&userRepository")).isInstanceOf(JpaRepositoryFactoryBean.class);
+		assertThat(Arrays.asList(context.getBeanNamesForType(UserRepository.class))).contains("userRepository");
 	}
 }

@@ -15,8 +15,7 @@
  */
 package org.springframework.data.jpa.repository.cdi;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.lang.annotation.Annotation;
@@ -37,10 +36,29 @@ import org.springframework.test.util.ReflectionTestUtils;
  * Unit tests for {@link JpaRepositoryExtension}.
  *
  * @author Oliver Gierke
+ * @author Jens Schauder
  */
 public class JpaRepositoryExtensionUnitTests {
 
 	Bean<EntityManager> em, alternativeEm;
+
+	@SuppressWarnings("unchecked")
+	private static void assertEntityManagerRegistered(JpaRepositoryExtension extension, Bean<EntityManager> em) {
+
+		Map<Set<Annotation>, Bean<EntityManager>> entityManagers = (Map<Set<Annotation>, Bean<EntityManager>>) ReflectionTestUtils
+				.getField(extension, "entityManagers");
+		assertThat(entityManagers.size()).isEqualTo(1);
+		assertThat(entityManagers.values()).contains(em);
+	}
+
+	@SuppressWarnings("unchecked")
+	private static ProcessBean<EntityManager> createEntityManagerBeanMock(Bean<EntityManager> bean) {
+
+		ProcessBean<EntityManager> mock = mock(ProcessBean.class);
+		when(mock.getBean()).thenReturn(bean);
+
+		return mock;
+	}
 
 	@Before
 	@SuppressWarnings("unchecked")
@@ -84,23 +102,5 @@ public class JpaRepositoryExtensionUnitTests {
 		extension.processBean(createEntityManagerBeanMock(em));
 
 		assertEntityManagerRegistered(extension, alternativeEm);
-	}
-
-	@SuppressWarnings("unchecked")
-	private static void assertEntityManagerRegistered(JpaRepositoryExtension extension, Bean<EntityManager> em) {
-
-		Map<Set<Annotation>, Bean<EntityManager>> entityManagers = (Map<Set<Annotation>, Bean<EntityManager>>) ReflectionTestUtils
-				.getField(extension, "entityManagers");
-		assertThat(entityManagers.size(), is(1));
-		assertThat(entityManagers.values(), hasItem(em));
-	}
-
-	@SuppressWarnings("unchecked")
-	private static ProcessBean<EntityManager> createEntityManagerBeanMock(Bean<EntityManager> bean) {
-
-		ProcessBean<EntityManager> mock = mock(ProcessBean.class);
-		when(mock.getBean()).thenReturn(bean);
-
-		return mock;
 	}
 }

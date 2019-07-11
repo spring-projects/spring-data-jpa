@@ -15,8 +15,7 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import org.junit.Test;
 import org.springframework.data.jpa.repository.query.StringQuery.LikeParameterBinding;
@@ -27,8 +26,15 @@ import org.springframework.data.repository.query.parser.Part.Type;
  *
  * @author Oliver Gierke
  * @author Thomas Darimont
+ * @author Jens Schauder
  */
 public class LikeBindingUnitTests {
+
+	private static void assertAugmentedValue(Type type, Object value) {
+
+		LikeParameterBinding binding = new LikeParameterBinding("foo", type);
+		assertThat(binding.prepare("value")).isEqualTo(value);
+	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void rejectsNullName() {
@@ -60,11 +66,11 @@ public class LikeBindingUnitTests {
 
 		LikeParameterBinding binding = new LikeParameterBinding("foo", Type.CONTAINING);
 
-		assertThat(binding.hasName("foo"), is(true));
-		assertThat(binding.hasName("bar"), is(false));
-		assertThat(binding.hasName(null), is(false));
-		assertThat(binding.hasPosition(0), is(false));
-		assertThat(binding.getType(), is(Type.CONTAINING));
+		assertThat(binding.hasName("foo")).isTrue();
+		assertThat(binding.hasName("bar")).isFalse();
+		assertThat(binding.hasName(null)).isFalse();
+		assertThat(binding.hasPosition(0)).isFalse();
+		assertThat(binding.getType()).isEqualTo(Type.CONTAINING);
 	}
 
 	@Test
@@ -72,11 +78,11 @@ public class LikeBindingUnitTests {
 
 		LikeParameterBinding binding = new LikeParameterBinding(1, Type.CONTAINING);
 
-		assertThat(binding.hasName("foo"), is(false));
-		assertThat(binding.hasName(null), is(false));
-		assertThat(binding.hasPosition(0), is(false));
-		assertThat(binding.hasPosition(1), is(true));
-		assertThat(binding.getType(), is(Type.CONTAINING));
+		assertThat(binding.hasName("foo")).isFalse();
+		assertThat(binding.hasName(null)).isFalse();
+		assertThat(binding.hasPosition(0)).isFalse();
+		assertThat(binding.hasPosition(1)).isTrue();
+		assertThat(binding.getType()).isEqualTo(Type.CONTAINING);
 	}
 
 	@Test
@@ -86,12 +92,6 @@ public class LikeBindingUnitTests {
 		assertAugmentedValue(Type.ENDING_WITH, "%value");
 		assertAugmentedValue(Type.STARTING_WITH, "value%");
 
-		assertThat(new LikeParameterBinding(1, Type.CONTAINING).prepare(null), is(nullValue()));
-	}
-
-	private static void assertAugmentedValue(Type type, Object value) {
-
-		LikeParameterBinding binding = new LikeParameterBinding("foo", type);
-		assertThat(binding.prepare("value"), is(value));
+		assertThat(new LikeParameterBinding(1, Type.CONTAINING).prepare(null)).isNull();
 	}
 }

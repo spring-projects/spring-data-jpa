@@ -15,8 +15,7 @@
  */
 package org.springframework.data.jpa.domain.support;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -56,6 +55,18 @@ public class AuditingEntityListenerTests {
 
 	AuditableUser user;
 
+	private static void assertDatesSet(Auditable<?, ?, LocalDateTime> auditable) {
+
+		assertThat(auditable.getCreatedDate().isPresent()).isTrue();
+		assertThat(auditable.getLastModifiedDate().isPresent()).isTrue();
+	}
+
+	private static void assertUserIsAuditor(AuditableUser user, Auditable<AuditableUser, ?, LocalDateTime> auditable) {
+
+		assertThat(auditable.getCreatedBy()).isEqualTo(Optional.of(user));
+		assertThat(auditable.getLastModifiedBy()).isEqualTo(Optional.of(user));
+	}
+
 	@Before
 	public void setUp() {
 
@@ -80,7 +91,7 @@ public class AuditingEntityListenerTests {
 
 		user = repository.saveAndFlush(user);
 
-		assertThat(user.getCreatedDate().get().isBefore(user.getLastModifiedDate().get()), is(true));
+		assertThat(user.getCreatedDate().get().isBefore(user.getLastModifiedDate().get())).isTrue();
 	}
 
 	@Test
@@ -106,19 +117,7 @@ public class AuditingEntityListenerTests {
 
 		AnnotatedAuditableUser auditableUser = annotatedUserRepository.save(new AnnotatedAuditableUser());
 
-		assertThat(auditableUser.getCreateAt(), is(notNullValue()));
-		assertThat(auditableUser.getLastModifiedBy(), is(notNullValue()));
-	}
-
-	private static void assertDatesSet(Auditable<?, ?, LocalDateTime> auditable) {
-
-		assertThat(auditable.getCreatedDate().isPresent(), is(true));
-		assertThat(auditable.getLastModifiedDate().isPresent(), is(true));
-	}
-
-	private static void assertUserIsAuditor(AuditableUser user, Auditable<AuditableUser, ?, LocalDateTime> auditable) {
-
-		assertThat(auditable.getCreatedBy(), is(Optional.of(user)));
-		assertThat(auditable.getLastModifiedBy(), is(Optional.of(user)));
+		assertThat(auditableUser.getCreateAt()).isNotNull();
+		assertThat(auditableUser.getLastModifiedBy()).isNotNull();
 	}
 }

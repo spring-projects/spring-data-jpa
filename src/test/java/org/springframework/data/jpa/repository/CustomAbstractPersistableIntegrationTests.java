@@ -15,8 +15,7 @@
  */
 package org.springframework.data.jpa.repository;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Thomas Darimont
  * @author Oliver Gierke
+ * @author Jens Schauder
  */
 @Transactional
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -45,6 +45,6 @@ public class CustomAbstractPersistableIntegrationTests {
 		CustomAbstractPersistable saved = repository.save(entity);
 		CustomAbstractPersistable found = repository.findById(saved.getId()).get();
 
-		assertThat(found, is(saved));
+		assertThat(found).isEqualTo(saved);
 	}
 }

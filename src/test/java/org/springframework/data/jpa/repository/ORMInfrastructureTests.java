@@ -15,7 +15,7 @@
  */
 package org.springframework.data.jpa.repository;
 
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,13 +28,13 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * Simple test case launching an {@code ApplicationContext} to test infrastructure configuration.
  *
  * @author Oliver Gierke
+ * @author Jens Schauder
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = "classpath:infrastructure.xml")
 public class ORMInfrastructureTests {
 
-	@Autowired
-	ApplicationContext context;
+	@Autowired ApplicationContext context;
 
 	/**
 	 * Tests, that the context got initialized and injected correctly.
@@ -44,6 +44,6 @@ public class ORMInfrastructureTests {
 	@Test
 	public void contextInitialized() throws Exception {
 
-		assertNotNull(context);
+		assertThat(context).isNotNull();
 	}
 }

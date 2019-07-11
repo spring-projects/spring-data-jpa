@@ -15,8 +15,7 @@
  */
 package org.springframework.data.jpa.repository.config;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -34,20 +33,21 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  *
  * @author Thomas Darimont
  * @author Oliver Gierke
+ * @author Jens Schauder
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
 public class NestedRepositoriesJavaConfigTests {
 
-	@Configuration
-	@EnableJpaRepositories(basePackageClasses = UserRepository.class, considerNestedRepositories = true)
-	@ImportResource("classpath:infrastructure.xml")
-	static class Config {}
-
 	@Autowired NestedUserRepository nestedUserRepository;
 
 	@Test // DATAJPA-416
 	public void shouldSupportNestedRepositories() {
-		assertThat(nestedUserRepository, is(notNullValue()));
+		assertThat(nestedUserRepository).isNotNull();
 	}
+
+	@Configuration
+	@EnableJpaRepositories(basePackageClasses = UserRepository.class, considerNestedRepositories = true)
+	@ImportResource("classpath:infrastructure.xml")
+	static class Config {}
 }

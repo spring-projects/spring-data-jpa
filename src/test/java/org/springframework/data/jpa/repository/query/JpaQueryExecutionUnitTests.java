@@ -15,9 +15,8 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.any;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import java.util.Arrays;
@@ -60,8 +59,10 @@ public class JpaQueryExecutionUnitTests {
 
 	@Mock TypedQuery<Long> countQuery;
 
+	public static void sampleMethod(Pageable pageable) {}
+
 	@Before
-	public void setUp(){
+	public void setUp() {
 
 		when(query.executeUpdate()).thenReturn(0);
 		when(jpaQuery.createQuery(Mockito.any(Object[].class))).thenReturn(query);
@@ -90,7 +91,7 @@ public class JpaQueryExecutionUnitTests {
 
 				return null;
 			}
-		}.execute(jpaQuery, new Object[] {}), is(nullValue()));
+		}.execute(jpaQuery, new Object[] {})).isNull();
 	}
 
 	@Test // DATAJPA-806
@@ -242,10 +243,8 @@ public class JpaQueryExecutionUnitTests {
 
 		Object result = execution.execute(jpaQuery, new Object[0]);
 
-		assertThat(result, is(instanceOf(String.class)));
+		assertThat(result).isInstanceOf(String.class);
 	}
-
-	public static void sampleMethod(Pageable pageable) {}
 
 	static class StubQueryExecution extends JpaQueryExecution {
 

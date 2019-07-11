@@ -15,8 +15,7 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.springframework.data.jpa.domain.JpaSort.*;
 
 import java.util.List;
@@ -50,6 +49,7 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author Thomas Darimont
  * @author Oliver Gierke
+ * @author Jens Schauder
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = SampleConfig.class)
@@ -81,9 +81,9 @@ public class MailMessageRepositoryIntegrationTests {
 				new JpaSort(Direction.ASC, path(MailMessage_.mailSender).dot(MailSender_.name))));
 		List<MailMessage> messages = results.getContent();
 
-		assertThat(messages, hasSize(2));
-		assertThat(messages.get(0).getMailSender(), is(nullValue()));
-		assertThat(messages.get(1).getMailSender(), is(sender1));
+		assertThat(messages).hasSize(2);
+		assertThat(messages.get(0).getMailSender()).isNull();
+		assertThat(messages.get(1).getMailSender()).isEqualTo(sender1);
 	}
 
 	@Test // DATAJPA-12
@@ -103,9 +103,9 @@ public class MailMessageRepositoryIntegrationTests {
 		List<MailMessage> messages = mailMessageRepository.findAll(message.content.eq("abc"),
 				message.mailSender.name.asc());
 
-		assertThat(messages, hasSize(2));
-		assertThat(messages.get(0).getMailSender(), is(nullValue()));
-		assertThat(messages.get(1).getMailSender(), is(sender1));
+		assertThat(messages).hasSize(2);
+		assertThat(messages.get(0).getMailSender()).isNull();
+		assertThat(messages.get(1).getMailSender()).isEqualTo(sender1);
 	}
 
 	@Test // DATAJPA-491
@@ -129,9 +129,9 @@ public class MailMessageRepositoryIntegrationTests {
 		List<MailMessage> messages = mailMessageRepository.findAll(message.content.eq("abc"),
 				message.mailSender.mailUser.name.asc());
 
-		assertThat(messages, hasSize(2));
-		assertThat(messages.get(0).getMailSender(), is(nullValue()));
-		assertThat(messages.get(1).getMailSender(), is(sender1));
+		assertThat(messages).hasSize(2);
+		assertThat(messages.get(0).getMailSender()).isNull();
+		assertThat(messages.get(1).getMailSender()).isEqualTo(sender1);
 	}
 
 	@Test // DATAJPA-491
@@ -157,8 +157,8 @@ public class MailMessageRepositoryIntegrationTests {
 
 		List<MailMessage> messages = page.getContent();
 
-		assertThat(messages, hasSize(2));
-		assertThat(messages.get(0).getMailSender(), is(nullValue()));
-		assertThat(messages.get(1).getMailSender(), is(sender1));
+		assertThat(messages).hasSize(2);
+		assertThat(messages.get(0).getMailSender()).isNull();
+		assertThat(messages.get(1).getMailSender()).isEqualTo(sender1);
 	}
 }

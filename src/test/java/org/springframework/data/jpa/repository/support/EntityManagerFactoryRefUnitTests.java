@@ -15,8 +15,7 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import javax.persistence.EntityManagerFactory;
 
@@ -31,6 +30,7 @@ import org.springframework.core.io.ClassPathResource;
  * Assures the injected repository instances are wired to the customly configured {@link EntityManagerFactory}.
  *
  * @author Oliver Gierke
+ * @author Jens Schauder
  */
 public class EntityManagerFactoryRefUnitTests {
 
@@ -43,11 +43,11 @@ public class EntityManagerFactoryRefUnitTests {
 
 		BeanDefinition bean = factory.getBeanDefinition("userRepository");
 		Object value = getPropertyValue(bean, "entityManager");
-		assertTrue(value instanceof BeanDefinition);
+		assertThat(value instanceof BeanDefinition).isTrue();
 		BeanDefinition emCreator = (BeanDefinition) value;
 
 		BeanReference reference = getConstructorBeanReference(emCreator, 0);
-		assertThat(reference.getBeanName(), is("secondEntityManagerFactory"));
+		assertThat(reference.getBeanName()).isEqualTo("secondEntityManagerFactory");
 	}
 
 	private Object getPropertyValue(BeanDefinition definition, String propertyName) {
@@ -58,7 +58,7 @@ public class EntityManagerFactoryRefUnitTests {
 	private BeanReference getConstructorBeanReference(BeanDefinition definition, int index) {
 
 		Object value = definition.getConstructorArgumentValues().getIndexedArgumentValues().get(index).getValue();
-		assertTrue(value instanceof BeanReference);
+		assertThat(value instanceof BeanReference).isTrue();
 		return (BeanReference) value;
 	}
 }

@@ -15,8 +15,7 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -32,6 +31,7 @@ import org.springframework.data.jpa.repository.query.DefaultJpaEntityMetadata;
  *
  * @author Oliver Gierke
  * @author Christoph Strobl
+ * @author Jens Schauder
  */
 public class DefaultJpaEntityMetadataUnitTest {
 
@@ -45,21 +45,21 @@ public class DefaultJpaEntityMetadataUnitTest {
 	public void returnsConfiguredType() {
 
 		DefaultJpaEntityMetadata<Foo> metadata = new DefaultJpaEntityMetadata<Foo>(Foo.class);
-		assertThat(metadata.getJavaType(), is(equalTo(Foo.class)));
+		assertThat(metadata.getJavaType()).isEqualTo(Foo.class);
 	}
 
 	@Test
 	public void returnsSimpleClassNameAsEntityNameByDefault() {
 
 		DefaultJpaEntityMetadata<Foo> metadata = new DefaultJpaEntityMetadata<Foo>(Foo.class);
-		assertThat(metadata.getEntityName(), is(Foo.class.getSimpleName()));
+		assertThat(metadata.getEntityName()).isEqualTo(Foo.class.getSimpleName());
 	}
 
 	@Test
 	public void returnsCustomizedEntityNameIfConfigured() {
 
 		DefaultJpaEntityMetadata<Bar> metadata = new DefaultJpaEntityMetadata<Bar>(Bar.class);
-		assertThat(metadata.getEntityName(), is("Entity"));
+		assertThat(metadata.getEntityName()).isEqualTo("Entity");
 	}
 
 	@Test // DATAJPA-871
@@ -67,7 +67,15 @@ public class DefaultJpaEntityMetadataUnitTest {
 
 		DefaultJpaEntityMetadata<BarWithComposedAnnotation> metadata = new DefaultJpaEntityMetadata<BarWithComposedAnnotation>(
 				BarWithComposedAnnotation.class);
-		assertThat(metadata.getEntityName(), is("Entity"));
+		assertThat(metadata.getEntityName()).isEqualTo("Entity");
+	}
+
+	@Entity
+	@Retention(RetentionPolicy.RUNTIME)
+	static @interface CustomEntityAnnotationUsingAliasFor {
+
+		@AliasFor(annotation = Entity.class, attribute = "name")
+		String entityName();
 	}
 
 	static class Foo {}
@@ -77,12 +85,4 @@ public class DefaultJpaEntityMetadataUnitTest {
 
 	@CustomEntityAnnotationUsingAliasFor(entityName = "Entity")
 	static class BarWithComposedAnnotation {}
-
-	@Entity
-	@Retention(RetentionPolicy.RUNTIME)
-	static @interface CustomEntityAnnotationUsingAliasFor {
-
-		@AliasFor(annotation = Entity.class, attribute = "name")
-		String entityName();
-	}
 }

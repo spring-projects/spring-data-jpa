@@ -15,8 +15,7 @@
  */
 package org.springframework.data.jpa.repository;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.List;
 
@@ -40,6 +39,7 @@ import org.springframework.transaction.annotation.Transactional;
  * Integration tests for {@link MappedTypeRepository}.
  *
  * @author Thomas Darimont
+ * @author Jens Schauder
  */
 @Transactional
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -58,8 +58,8 @@ public class MappedTypeRepositoryIntegrationTests {
 		List<ConcreteType1> concretes1 = concreteRepository1.findAllByAttribute1("foo");
 		List<ConcreteType2> concretes2 = concreteRepository2.findAllByAttribute1("foo");
 
-		assertThat(concretes1.size(), is(1));
-		assertThat(concretes2.size(), is(1));
+		assertThat(concretes1.size()).isEqualTo(1);
+		assertThat(concretes2.size()).isEqualTo(1);
 	}
 
 	@Test // DATAJPA-424
@@ -68,9 +68,9 @@ public class MappedTypeRepositoryIntegrationTests {
 		concreteRepository1.save(new ConcreteType1("foo"));
 		concreteRepository2.save(new ConcreteType2("foo"));
 
-		Page<ConcreteType2> page = concreteRepository2.findByAttribute1Custom("foo", PageRequest.of(0, 10,
-				Sort.Direction.DESC, "attribute1"));
+		Page<ConcreteType2> page = concreteRepository2.findByAttribute1Custom("foo",
+				PageRequest.of(0, 10, Sort.Direction.DESC, "attribute1"));
 
-		assertThat(page.getNumberOfElements(), is(1));
+		assertThat(page.getNumberOfElements()).isEqualTo(1);
 	}
 }

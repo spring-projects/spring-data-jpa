@@ -15,9 +15,7 @@
  */
 package org.springframework.data.jpa.repository.config;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.util.Arrays;
@@ -49,13 +47,13 @@ import org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcesso
  *
  * @author Oliver Gierke
  * @author Mark Paluch
+ * @author Jens Schauder
  */
 @RunWith(MockitoJUnitRunner.class)
 public class JpaRepositoryConfigExtensionUnitTests {
 
-	@Mock RepositoryConfigurationSource configSource;
-
 	public @Rule ExpectedException exception = ExpectedException.none();
+	@Mock RepositoryConfigurationSource configSource;
 
 	@Test
 	public void registersDefaultBeanPostProcessorsByDefault() {
@@ -67,7 +65,7 @@ public class JpaRepositoryConfigExtensionUnitTests {
 
 		Iterable<String> names = Arrays.asList(factory.getBeanDefinitionNames());
 
-		assertThat(names, hasItems(AnnotationConfigUtils.PERSISTENCE_ANNOTATION_PROCESSOR_BEAN_NAME));
+		assertThat(names).contains(AnnotationConfigUtils.PERSISTENCE_ANNOTATION_PROCESSOR_BEAN_NAME);
 	}
 
 	@Test
@@ -148,7 +146,7 @@ public class JpaRepositoryConfigExtensionUnitTests {
 		RepositoryConfigurationExtension extension = new JpaRepositoryConfigExtension();
 		extension.registerBeansForRoot(factory, configSource);
 
-		assertThat(factory.getBean(expectedBeanName), is(notNullValue()));
+		assertThat(factory.getBean(expectedBeanName)).isNotNull();
 		exception.expect(NoSuchBeanDefinitionException.class);
 		factory.getBeanDefinition("org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor#1");
 	}

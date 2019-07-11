@@ -15,8 +15,7 @@
  */
 package org.springframework.data.jpa.repository;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.Arrays;
 import java.util.List;
@@ -49,6 +48,7 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author Thomas Darimont
  * @author Mark Paluch
+ * @author Jens Schauder
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = SampleConfig.class)
@@ -81,9 +81,9 @@ public class RepositoryWithCompositeKeyTests {
 		key.setEmpId(emp.getEmpId());
 		IdClassExampleEmployee persistedEmp = employeeRepositoryWithIdClass.findById(key).get();
 
-		assertThat(persistedEmp, is(notNullValue()));
-		assertThat(persistedEmp.getDepartment(), is(notNullValue()));
-		assertThat(persistedEmp.getDepartment().getName(), is(dep.getName()));
+		assertThat(persistedEmp).isNotNull();
+		assertThat(persistedEmp.getDepartment()).isNotNull();
+		assertThat(persistedEmp.getDepartment().getName()).isEqualTo(dep.getName());
 	}
 
 	/**
@@ -108,9 +108,9 @@ public class RepositoryWithCompositeKeyTests {
 		key.setEmployeeId(emp.getEmployeePk().getEmployeeId());
 		EmbeddedIdExampleEmployee persistedEmp = employeeRepositoryWithEmbeddedId.findById(key).get();
 
-		assertThat(persistedEmp, is(notNullValue()));
-		assertThat(persistedEmp.getDepartment(), is(notNullValue()));
-		assertThat(persistedEmp.getDepartment().getName(), is(dep.getName()));
+		assertThat(persistedEmp).isNotNull();
+		assertThat(persistedEmp.getDepartment()).isNotNull();
+		assertThat(persistedEmp.getDepartment().getName()).isEqualTo(dep.getName());
 	}
 
 	@Test // DATAJPA-472, DATAJPA-912
@@ -133,8 +133,8 @@ public class RepositoryWithCompositeKeyTests {
 
 		Page<IdClassExampleEmployee> page = employeeRepositoryWithIdClass.findAll(PageRequest.of(0, 1));
 
-		assertThat(page, is(notNullValue()));
-		assertThat(page.getTotalElements(), is(1L));
+		assertThat(page).isNotNull();
+		assertThat(page.getTotalElements()).isEqualTo(1L);
 	}
 
 	@Test // DATAJPA-497
@@ -167,10 +167,10 @@ public class RepositoryWithCompositeKeyTests {
 		List<EmbeddedIdExampleEmployee> result = employeeRepositoryWithEmbeddedId
 				.findAll(emp.employeePk.departmentId.eq(dep2.getDepartmentId()), emp.employeePk.employeeId.asc());
 
-		assertThat(result, is(notNullValue()));
-		assertThat(result, hasSize(2));
-		assertThat(result.get(0), is(emp3));
-		assertThat(result.get(1), is(emp1));
+		assertThat(result).isNotNull();
+		assertThat(result).hasSize(2);
+		assertThat(result.get(0)).isEqualTo(emp3);
+		assertThat(result.get(1)).isEqualTo(emp1);
 	}
 
 	@Test // DATAJPA-497
@@ -203,10 +203,10 @@ public class RepositoryWithCompositeKeyTests {
 		List<IdClassExampleEmployee> result = employeeRepositoryWithIdClass
 				.findAll(emp.department.departmentId.eq(dep2.getDepartmentId()), emp.empId.asc());
 
-		assertThat(result, is(notNullValue()));
-		assertThat(result, hasSize(2));
-		assertThat(result.get(0), is(emp3));
-		assertThat(result.get(1), is(emp1));
+		assertThat(result).isNotNull();
+		assertThat(result).hasSize(2);
+		assertThat(result.get(0)).isEqualTo(emp3);
+		assertThat(result.get(1)).isEqualTo(emp1);
 	}
 
 	@Test // DATAJPA-527, DATAJPA-1148
@@ -225,8 +225,8 @@ public class RepositoryWithCompositeKeyTests {
 		key.setDepartment(dep.getDepartmentId());
 		key.setEmpId(emp.getEmpId());
 
-		assertThat(employeeRepositoryWithIdClass.existsById(key), is(true));
-		assertThat(employeeRepositoryWithIdClass.existsById(new IdClassExampleEmployeePK(0L, 0L)), is(false));
+		assertThat(employeeRepositoryWithIdClass.existsById(key)).isTrue();
+		assertThat(employeeRepositoryWithIdClass.existsById(new IdClassExampleEmployeePK(0L, 0L))).isFalse();
 	}
 
 	@Test // DATAJPA-527
@@ -249,7 +249,7 @@ public class RepositoryWithCompositeKeyTests {
 		key.setDepartmentId(emp.getDepartment().getDepartmentId());
 		key.setEmployeeId(emp.getEmployeePk().getEmployeeId());
 
-		assertThat(employeeRepositoryWithEmbeddedId.existsById(key), is(true));
+		assertThat(employeeRepositoryWithEmbeddedId.existsById(key)).isTrue();
 	}
 
 	@Test // DATAJPA-611
@@ -283,7 +283,7 @@ public class RepositoryWithCompositeKeyTests {
 
 		List<IdClassExampleEmployee> result = employeeRepositoryWithIdClass.findAllById(Arrays.asList(emp1PK, emp2PK));
 
-		assertThat(result, hasSize(2));
+		assertThat(result).hasSize(2);
 	}
 
 	@Test // DATAJPA-920
@@ -304,7 +304,7 @@ public class RepositoryWithCompositeKeyTests {
 
 		employeeRepositoryWithEmbeddedId.save(emp);
 
-		assertThat(employeeRepositoryWithEmbeddedId.existsByName(emp.getName()), is(true));
+		assertThat(employeeRepositoryWithEmbeddedId.existsByName(emp.getName())).isTrue();
 	}
 
 	@Test // DATAJPA-920
@@ -321,7 +321,7 @@ public class RepositoryWithCompositeKeyTests {
 
 		employeeRepositoryWithIdClass.save(emp1);
 
-		assertThat(employeeRepositoryWithIdClass.existsByName(emp1.getName()), is(true));
-		assertThat(employeeRepositoryWithIdClass.existsByName("Walter"), is(false));
+		assertThat(employeeRepositoryWithIdClass.existsByName(emp1.getName())).isTrue();
+		assertThat(employeeRepositoryWithIdClass.existsByName("Walter")).isFalse();
 	}
 }

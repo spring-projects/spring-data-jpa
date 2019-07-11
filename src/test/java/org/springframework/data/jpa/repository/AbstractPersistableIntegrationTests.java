@@ -15,8 +15,7 @@
  */
 package org.springframework.data.jpa.repository;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import javax.persistence.EntityManager;
 
@@ -35,6 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author Thomas Darimont
  * @author Oliver Gierke
+ * @author Jens Schauder
  */
 @Transactional
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -51,7 +51,7 @@ public class AbstractPersistableIntegrationTests {
 		CustomAbstractPersistable saved = repository.save(entity);
 		CustomAbstractPersistable found = repository.findById(saved.getId()).get();
 
-		assertThat(found, is(saved));
+		assertThat(found).isEqualTo(saved);
 	}
 
 	@Test // DATAJPA-848
@@ -63,6 +63,6 @@ public class AbstractPersistableIntegrationTests {
 
 		CustomAbstractPersistable proxy = repository.getOne(entity.getId());
 
-		assertThat(proxy, is(proxy));
+		assertThat(proxy).isEqualTo(proxy);
 	}
 }

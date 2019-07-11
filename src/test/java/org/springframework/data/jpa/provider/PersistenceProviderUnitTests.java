@@ -15,8 +15,7 @@
  */
 package org.springframework.data.jpa.provider;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.springframework.data.jpa.provider.PersistenceProvider.*;
 import static org.springframework.data.jpa.provider.PersistenceProvider.Constants.*;
 
@@ -25,8 +24,8 @@ import java.util.List;
 
 import javax.persistence.EntityManager;
 
+import org.assertj.core.api.Assumptions;
 import org.hibernate.Version;
-import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -61,7 +60,7 @@ public class PersistenceProviderUnitTests {
 
 		EntityManager em = mockProviderSpecificEntityManagerInterface(ECLIPSELINK_ENTITY_MANAGER_INTERFACE);
 
-		assertThat(fromEntityManager(em), is(ECLIPSELINK));
+		assertThat(fromEntityManager(em)).isEqualTo(ECLIPSELINK);
 	}
 
 	@Test
@@ -69,19 +68,19 @@ public class PersistenceProviderUnitTests {
 
 		EntityManager em = mockProviderSpecificEntityManagerInterface("foo.bar.unknown.jpa.JpaEntityManager");
 
-		assertThat(fromEntityManager(em), is(GENERIC_JPA));
+		assertThat(fromEntityManager(em)).isEqualTo(GENERIC_JPA);
 	}
 
 	@Test // DATAJPA-1019
 	public void detectsHibernatePersistenceProviderForHibernateVersion52() throws Exception {
 
-		Assume.assumeThat(Version.getVersionString(), startsWith("5.2"));
+		Assumptions.assumeThat(Version.getVersionString()).startsWith("5.2");
 
 		shadowingClassLoader.excludePackage("org.hibernate");
 
 		EntityManager em = mockProviderSpecificEntityManagerInterface(HIBERNATE_ENTITY_MANAGER_INTERFACE);
 
-		assertThat(fromEntityManager(em), is(HIBERNATE));
+		assertThat(fromEntityManager(em)).isEqualTo(HIBERNATE);
 	}
 
 	@Test // DATAJPA-1379
@@ -94,7 +93,7 @@ public class PersistenceProviderUnitTests {
 		EntityManager emProxy = Mockito.mock(EntityManager.class);
 		Mockito.when(emProxy.getDelegate()).thenReturn(em);
 
-		assertThat(fromEntityManager(emProxy), is(ECLIPSELINK));
+		assertThat(fromEntityManager(emProxy)).isEqualTo(ECLIPSELINK);
 	}
 
 	private EntityManager mockProviderSpecificEntityManagerInterface(String interfaceName) throws ClassNotFoundException {

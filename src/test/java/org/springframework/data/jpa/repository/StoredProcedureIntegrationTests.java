@@ -15,8 +15,7 @@
  */
 package org.springframework.data.jpa.repository;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assume.*;
 import static org.springframework.data.jpa.support.EntityManagerTestUtils.*;
 
@@ -46,6 +45,7 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author Thomas Darimont
  * @author Oliver Gierke
+ * @author Jens Schauder
  * @see scripts/schema-stored-procedures.sql for procedure definitions.
  */
 @Transactional
@@ -58,14 +58,6 @@ public class StoredProcedureIntegrationTests {
 	@PersistenceContext EntityManager em;
 	@Autowired DummyRepository repository;
 
-	@Configuration
-	@EnableJpaRepositories(basePackageClasses = DummyRepository.class, includeFilters = { @Filter(
-			pattern = ".*DummyRepository", type = FilterType.REGEX) })
-	static abstract class Config {}
-
-	@ImportResource("classpath:infrastructure.xml")
-	static class TestConfig extends Config {}
-
 	@Before
 	public void setup() {
 		assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
@@ -73,12 +65,12 @@ public class StoredProcedureIntegrationTests {
 
 	@Test // DATAJPA-652
 	public void shouldExecuteAdHocProcedureWithNoInputAnd1OutputParameter() {
-		assertThat(repository.adHocProcedureWithNoInputAnd1OutputParameter(), is(42));
+		assertThat(repository.adHocProcedureWithNoInputAnd1OutputParameter()).isEqualTo(42);
 	}
 
 	@Test // DATAJPA-652
 	public void shouldExecuteAdHocProcedureWith1InputAnd1OutputParameter() {
-		assertThat(repository.adHocProcedureWith1InputAnd1OutputParameter(23), is(24));
+		assertThat(repository.adHocProcedureWith1InputAnd1OutputParameter(23)).isEqualTo(24);
 	}
 
 	@Test // DATAJPA-652
@@ -92,8 +84,8 @@ public class StoredProcedureIntegrationTests {
 
 		List<Dummy> dummies = repository.adHocProcedureWith1InputAnd1OutputParameterWithResultSet("FOO");
 
-		assertThat(dummies, is(notNullValue()));
-		assertThat(dummies.size(), is(equalTo(3)));
+		assertThat(dummies).isNotNull();
+		assertThat(dummies.size()).isEqualTo(3);
 	}
 
 	@Test // DATAJPA-652
@@ -102,8 +94,8 @@ public class StoredProcedureIntegrationTests {
 
 		List<Dummy> dummies = repository.adHocProcedureWith1InputAnd1OutputParameterWithResultSetWithUpdate("FOO");
 
-		assertThat(dummies, is(notNullValue()));
-		assertThat(dummies.size(), is(equalTo(3)));
+		assertThat(dummies).isNotNull();
+		assertThat(dummies.size()).isEqualTo(3);
 	}
 
 	@Test // DATAJPA-652
@@ -113,12 +105,12 @@ public class StoredProcedureIntegrationTests {
 
 	@Test // DATAJPA-652
 	public void shouldExecuteProcedureWithNoInputAnd1OutputParameter() {
-		assertThat(repository.procedureWithNoInputAnd1OutputParameter(), is(42));
+		assertThat(repository.procedureWithNoInputAnd1OutputParameter()).isEqualTo(42);
 	}
 
 	@Test // DATAJPA-652
 	public void shouldExecuteProcedureWith1InputAnd1OutputParameter() {
-		assertThat(repository.procedureWith1InputAnd1OutputParameter(23), is(24));
+		assertThat(repository.procedureWith1InputAnd1OutputParameter(23)).isEqualTo(24);
 	}
 
 	@Test // DATAJPA-652
@@ -132,8 +124,8 @@ public class StoredProcedureIntegrationTests {
 
 		List<Dummy> dummies = repository.procedureWith1InputAnd1OutputParameterWithResultSet("FOO");
 
-		assertThat(dummies, is(notNullValue()));
-		assertThat(dummies.size(), is(equalTo(3)));
+		assertThat(dummies).isNotNull();
+		assertThat(dummies.size()).isEqualTo(3);
 	}
 
 	@Test // DATAJPA-652
@@ -142,12 +134,20 @@ public class StoredProcedureIntegrationTests {
 
 		List<Dummy> dummies = repository.procedureWith1InputAnd1OutputParameterWithResultSetWithUpdate("FOO");
 
-		assertThat(dummies, is(notNullValue()));
-		assertThat(dummies.size(), is(equalTo(3)));
+		assertThat(dummies).isNotNull();
+		assertThat(dummies.size()).isEqualTo(3);
 	}
 
 	@Test // DATAJPA-652
 	public void shouldExecuteProcedureWith1InputAnd1OutputParameterWithUpdate() {
 		repository.procedureWith1InputAndNoOutputParameterWithUpdate("FOO");
 	}
+
+	@Configuration
+	@EnableJpaRepositories(basePackageClasses = DummyRepository.class,
+			includeFilters = { @Filter(pattern = ".*DummyRepository", type = FilterType.REGEX) })
+	static abstract class Config {}
+
+	@ImportResource("classpath:infrastructure.xml")
+	static class TestConfig extends Config {}
 }
