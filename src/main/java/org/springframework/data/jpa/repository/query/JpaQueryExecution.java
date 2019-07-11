@@ -211,18 +211,28 @@ public abstract class JpaQueryExecution {
 
 		private long count(AbstractJpaQuery repositoryQuery, Object[] values) {
 			StringBuilder builder = new StringBuilder();
-			builder.append("(.*)?(group\\s+by\\s+).*");
-			Pattern GROUP_MATCH = compile(builder.toString(), CASE_INSENSITIVE);
+			String queryString;
 			
 			List<?> totals = repositoryQuery.createCountQuery(values).getResultList();
 			
-			Matcher matcher = GROUP_MATCH.matcher(repositoryQuery.getQueryMethod().getCountQuery());
+			if(repositoryQuery instanceof AbstractStringBasedJpaQuery) {
+				queryString = ((AbstractStringBasedJpaQuery)repositoryQuery).getQuery().getQueryString();
+			} else if(repositoryQuery instanceof NamedQuery) {
+				queryString = ((NamedQuery)repositoryQuery).getQuery().getQueryString();
+			} else {
+				//OartTreeJpaQuery, StoredProcedureJpaQuery, etc.
+				queryString = "";
+			}
+			
+			builder.append("(.*)?(group\\s+by\\s+).*");
+			Pattern GROUP_MATCH = compile(builder.toString(), CASE_INSENSITIVE);
+			Matcher matcher = GROUP_MATCH.matcher(queryString);
+			
 			if(matcher.matches()) {
 				return totals.size();
 			} else {
 				return (totals.size() == 1 ? CONVERSION_SERVICE.convert(totals.get(0), Long.class) : totals.size());
 			}
-
 		}
 	}
 
