@@ -191,13 +191,13 @@ public class JpaQueryExecutionUnitTests {
 		PagedExecution execution = new PagedExecution(parameters);
 		Page<Object> page = (Page<Object>) execution.doExecute(jpaQuery, new Object[] { PageRequest.of(0, 1) });
 
-    assertEquals(page.getTotalElements(), 20);
+		assertEquals(page.getTotalElements(), 20);
 
 		when(declaredQuery.getQueryString()).thenReturn("select count(1) from User u group by u.id");
 				
 		page = (Page<Object>) execution.doExecute(jpaQuery, new Object[] { PageRequest.of(0, 1) });
 		
-    assertEquals(page.getTotalElements(), 1);
+		assertEquals(page.getTotalElements(), 1);
 
 	}
 
