@@ -15,10 +15,15 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import static java.util.regex.Pattern.CASE_INSENSITIVE;
+import static java.util.regex.Pattern.compile;
+
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
@@ -205,13 +210,23 @@ public abstract class JpaQueryExecution {
 		}
 
 		private long count(AbstractJpaQuery repositoryQuery, Object[] values) {
-
+			StringBuilder builder = new StringBuilder();
+			builder.append("(.*)?(group\\s+by\\s+).*");
+			Pattern GROUP_MATCH = compile(builder.toString(), CASE_INSENSITIVE);
+			
 			List<?> totals = repositoryQuery.createCountQuery(values).getResultList();
-			return totals.size();
+			
+			Matcher matcher = GROUP_MATCH.matcher(repositoryQuery.getQueryMethod().getCountQuery());
+			if(matcher.matches()) {
+				return totals.size();
+			} else {
+				return (totals.size() == 1 ? CONVERSION_SERVICE.convert(totals.get(0), Long.class) : totals.size());
+			}
+
 		}
 	}
 
-	/**
+	/**	
 	 * Executes a {@link AbstractStringBasedJpaQuery} to return a single entity.
 	 */
 	static class SingleEntityExecution extends JpaQueryExecution {

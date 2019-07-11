@@ -68,6 +68,7 @@ public class JpaQueryExecutionUnitTests {
 		when(query.executeUpdate()).thenReturn(0);
 		when(jpaQuery.createQuery(Mockito.any(Object[].class))).thenReturn(query);
 		when(jpaQuery.getQueryMethod()).thenReturn(method);
+		when(method.getCountQuery()).thenReturn("select count(1) from User u");
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -179,20 +180,19 @@ public class JpaQueryExecutionUnitTests {
 		when(jpaQuery.createQuery(Mockito.any(Object[].class))).thenReturn(query);
 		when(countQuery.getResultList()).thenReturn(Arrays.asList(20L));
 		when(query.getResultList()).thenReturn(Arrays.asList(20L));
-		
+		when(method.getCountQuery()).thenReturn("select count(1) from User u");
+
 		PagedExecution execution = new PagedExecution(parameters);
-		Page<Object> largePage = (Page<Object>) execution.doExecute(jpaQuery, new Object[] { PageRequest.of(0, 10) });
-		Page<Object> equalPage = (Page<Object>) execution.doExecute(jpaQuery, new Object[] { PageRequest.of(0, 1) });
+		Page<Object> page = (Page<Object>) execution.doExecute(jpaQuery, new Object[] { PageRequest.of(0, 1) });
 
-    assertEquals(largePage.getTotalElements(), 1);
-    assertEquals(equalPage.getTotalElements(), 1);
-    
-		when(countQuery.getResultList()).thenReturn(Arrays.asList(20L, 20L));
-		when(query.getResultList()).thenReturn(Arrays.asList(20L, 20L));
+    assertEquals(page.getTotalElements(), 20);
+
+		when(method.getCountQuery()).thenReturn("select count(1) from User u group by u.id");
 		
-		Page<Object> smallPage = (Page<Object>) execution.doExecute(jpaQuery, new Object[] { PageRequest.of(0, 1) });
+		page = (Page<Object>) execution.doExecute(jpaQuery, new Object[] { PageRequest.of(0, 1) });
+		
+    assertEquals(page.getTotalElements(), 1);
 
-    assertEquals(smallPage.getTotalElements(), 2);
 	}
 
 	@Test // DATAJPA-912
