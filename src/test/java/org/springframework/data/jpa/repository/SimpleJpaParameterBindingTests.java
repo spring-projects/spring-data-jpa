@@ -15,8 +15,7 @@
  */
 package org.springframework.data.jpa.repository;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -40,17 +39,17 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Oliver Gierke
+ * @author Jens Schauder
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({ "classpath:application-context.xml"
-// , "classpath:eclipselink.xml"
-// , "classpath:openjpa.xml"
+		// , "classpath:eclipselink.xml"
+		// , "classpath:openjpa.xml"
 })
 @Transactional
 public class SimpleJpaParameterBindingTests {
 
-	@PersistenceContext
-	EntityManager em;
+	@PersistenceContext EntityManager em;
 
 	@Test
 	@Ignore
@@ -71,7 +70,7 @@ public class SimpleJpaParameterBindingTests {
 		query.setParameter(parameter, new String[] { "Dave", "Carter" });
 
 		List<User> result = query.getResultList();
-		assertThat(result.isEmpty(), is(false));
+		assertThat(result.isEmpty()).isFalse();
 	}
 
 	@Test
@@ -94,7 +93,7 @@ public class SimpleJpaParameterBindingTests {
 		query.setParameter(parameter, Arrays.asList("Dave"));
 
 		List<User> result = query.getResultList();
-		assertThat(result.isEmpty(), is(false));
-		assertThat(result.get(0), is(user));
+		assertThat(result.isEmpty()).isFalse();
+		assertThat(result.get(0)).isEqualTo(user);
 	}
 }

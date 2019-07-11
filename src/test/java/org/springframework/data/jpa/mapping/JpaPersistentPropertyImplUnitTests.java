@@ -15,9 +15,7 @@
  */
 package org.springframework.data.jpa.mapping;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.util.Collections;
@@ -48,6 +46,7 @@ import org.springframework.data.util.TypeInformation;
  *
  * @author Oliver Gierke
  * @author Greg Turnquist
+ * @author Jens Schauder
  */
 @RunWith(MockitoJUnitRunner.Silent.class)
 public class JpaPersistentPropertyImplUnitTests {
@@ -68,64 +67,64 @@ public class JpaPersistentPropertyImplUnitTests {
 	public void considersOneToOneMappedPropertyAnAssociation() {
 
 		JpaPersistentProperty property = entity.getRequiredPersistentProperty("other");
-		assertThat(property.isAssociation(), is(true));
+		assertThat(property.isAssociation()).isTrue();
 	}
 
 	@Test // DATAJPA-376
 	public void considersJpaTransientFieldsAsTransient() {
-		assertThat(entity.getPersistentProperty("transientProp"), is(nullValue()));
+		assertThat(entity.getPersistentProperty("transientProp")).isNull();
 	}
 
 	@Test // DATAJPA-484
 	public void considersEmbeddableAnEntity() {
-		assertThat(context.getPersistentEntity(SampleEmbeddable.class), is(notNullValue()));
+		assertThat(context.getPersistentEntity(SampleEmbeddable.class)).isNotNull();
 	}
 
 	@Test // DATAJPA-484
 	public void doesNotConsiderAnEmbeddablePropertyAnAssociation() {
-		assertThat(entity.getRequiredPersistentProperty("embeddable").isAssociation(), is(false));
+		assertThat(entity.getRequiredPersistentProperty("embeddable").isAssociation()).isFalse();
 	}
 
 	@Test // DATAJPA-484
 	public void doesNotConsiderAnEmbeddedPropertyAnAssociation() {
-		assertThat(entity.getRequiredPersistentProperty("embedded").isAssociation(), is(false));
+		assertThat(entity.getRequiredPersistentProperty("embedded").isAssociation()).isFalse();
 	}
 
 	@Test // DATAJPA-619
 	public void considersPropertyLevelAccessTypeDefinitions() {
 
-		assertThat(getProperty(PropertyLevelPropertyAccess.class, "field").usePropertyAccess(), is(false));
-		assertThat(getProperty(PropertyLevelPropertyAccess.class, "property").usePropertyAccess(), is(true));
+		assertThat(getProperty(PropertyLevelPropertyAccess.class, "field").usePropertyAccess()).isFalse();
+		assertThat(getProperty(PropertyLevelPropertyAccess.class, "property").usePropertyAccess()).isTrue();
 	}
 
 	@Test // DATAJPA-619
 	public void propertyLevelAccessTypeTrumpsTypeLevelDefinition() {
 
-		assertThat(getProperty(PropertyLevelDefinitionTrumpsTypeLevelOne.class, "field").usePropertyAccess(), is(false));
-		assertThat(getProperty(PropertyLevelDefinitionTrumpsTypeLevelOne.class, "property").usePropertyAccess(), is(true));
+		assertThat(getProperty(PropertyLevelDefinitionTrumpsTypeLevelOne.class, "field").usePropertyAccess()).isFalse();
+		assertThat(getProperty(PropertyLevelDefinitionTrumpsTypeLevelOne.class, "property").usePropertyAccess()).isTrue();
 
-		assertThat(getProperty(PropertyLevelDefinitionTrumpsTypeLevelOne2.class, "field").usePropertyAccess(), is(false));
-		assertThat(getProperty(PropertyLevelDefinitionTrumpsTypeLevelOne2.class, "property").usePropertyAccess(), is(true));
+		assertThat(getProperty(PropertyLevelDefinitionTrumpsTypeLevelOne2.class, "field").usePropertyAccess()).isFalse();
+		assertThat(getProperty(PropertyLevelDefinitionTrumpsTypeLevelOne2.class, "property").usePropertyAccess()).isTrue();
 	}
 
 	@Test // DATAJPA-619
 	public void considersJpaAccessDefinitionAnnotations() {
-		assertThat(getProperty(TypeLevelPropertyAccess.class, "id").usePropertyAccess(), is(true));
+		assertThat(getProperty(TypeLevelPropertyAccess.class, "id").usePropertyAccess()).isTrue();
 	}
 
 	@Test // DATAJPA-619
 	public void springDataAnnotationTrumpsJpaIfBothOnTypeLevel() {
-		assertThat(getProperty(CompetingTypeLevelAnnotations.class, "id").usePropertyAccess(), is(false));
+		assertThat(getProperty(CompetingTypeLevelAnnotations.class, "id").usePropertyAccess()).isFalse();
 	}
 
 	@Test // DATAJPA-619
 	public void springDataAnnotationTrumpsJpaIfBothOnPropertyLevel() {
-		assertThat(getProperty(CompetingPropertyLevelAnnotations.class, "id").usePropertyAccess(), is(false));
+		assertThat(getProperty(CompetingPropertyLevelAnnotations.class, "id").usePropertyAccess()).isFalse();
 	}
 
 	@Test // DATAJPA-605
 	public void detectsJpaVersionAnnotation() {
-		assertThat(getProperty(JpaVersioned.class, "version").isVersionProperty(), is(true));
+		assertThat(getProperty(JpaVersioned.class, "version").isVersionProperty()).isTrue();
 	}
 
 	@Test // DATAJPA-664
@@ -134,18 +133,19 @@ public class JpaPersistentPropertyImplUnitTests {
 
 		JpaPersistentProperty property = getProperty(SpecializedAssociation.class, "api");
 
-		assertThat(property.getType(), is(typeCompatibleWith(Api.class)));
-		assertThat(property.getActualType(), is(typeCompatibleWith(Implementation.class)));
+		assertThat(property.getType()).isEqualTo(Api.class);
+		assertThat(property.getActualType()).isEqualTo(Implementation.class);
 
 		Iterable<? extends TypeInformation<?>> entityType = property.getPersistentEntityTypes();
-		assertThat(entityType.iterator().hasNext(), is(true));
-		assertThat(entityType.iterator().next(), is((TypeInformation) ClassTypeInformation.from(Implementation.class)));
+		assertThat(entityType.iterator().hasNext()).isTrue();
+		assertThat(entityType.iterator().next())
+				.isEqualTo((TypeInformation) ClassTypeInformation.from(Implementation.class));
 	}
 
 	@Test // DATAJPA-716
 	public void considersNonUpdateablePropertyNotWriteable() {
-		assertThat(getProperty(WithReadOnly.class, "name").isWritable(), is(false));
-		assertThat(getProperty(WithReadOnly.class, "updatable").isWritable(), is(true));
+		assertThat(getProperty(WithReadOnly.class, "name").isWritable()).isFalse();
+		assertThat(getProperty(WithReadOnly.class, "updatable").isWritable()).isTrue();
 	}
 
 	@Test // DATAJPA-904
@@ -154,7 +154,7 @@ public class JpaPersistentPropertyImplUnitTests {
 		ManagedType<?> managedType = mock(ManagedType.class);
 		doReturn(Collections.singleton(managedType)).when(model).getManagedTypes();
 
-		assertThat(getProperty(Sample.class, "other").isEntity(), is(false));
+		assertThat(getProperty(Sample.class, "other").isEntity()).isFalse();
 	}
 
 	@Test // DATAJPA-1064
@@ -171,6 +171,8 @@ public class JpaPersistentPropertyImplUnitTests {
 		JpaPersistentEntity<?> entity = context.getRequiredPersistentEntity(ownerType);
 		return entity.getRequiredPersistentProperty(propertyName);
 	}
+
+	static interface Api {}
 
 	static class Sample {
 
@@ -280,8 +282,6 @@ public class JpaPersistentPropertyImplUnitTests {
 
 		@ManyToOne(targetEntity = Implementation.class) Api api;
 	}
-
-	static interface Api {}
 
 	static class Implementation {}
 

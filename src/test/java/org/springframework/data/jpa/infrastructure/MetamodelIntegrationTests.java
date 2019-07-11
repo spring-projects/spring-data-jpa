@@ -15,9 +15,7 @@
  */
 package org.springframework.data.jpa.infrastructure;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.List;
 
@@ -45,6 +43,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Oliver Gierke
+ * @author Jens Schauder
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({ "classpath:infrastructure.xml" })
@@ -59,7 +58,7 @@ public abstract class MetamodelIntegrationTests {
 		ManagedType<User> type = metamodel.managedType(User.class);
 
 		Attribute<? super User, ?> attribute = type.getSingularAttribute("manager");
-		assertThat(attribute.isAssociation(), is(true));
+		assertThat(attribute.isAssociation()).isTrue();
 	}
 
 	@Test
@@ -71,7 +70,7 @@ public abstract class MetamodelIntegrationTests {
 		Root<User> root = query.from(User.class);
 		Path<Object> path = root.get("manager");
 
-		assertThat(path.getModel().getBindableType(), is(BindableType.ENTITY_TYPE));
+		assertThat(path.getModel().getBindableType()).isEqualTo(BindableType.ENTITY_TYPE);
 	}
 
 	@Test
@@ -79,7 +78,7 @@ public abstract class MetamodelIntegrationTests {
 
 		Query query = em.createNativeQuery("SELECT u from User u where u.lastname = ?1");
 
-		assertThat(query.getParameter(1), is(notNullValue()));
+		assertThat(query.getParameter(1)).isNotNull();
 	}
 
 	@Test
@@ -98,8 +97,8 @@ public abstract class MetamodelIntegrationTests {
 		List<Tuple> result = query.getResultList();
 		List<TupleElement<?>> elements = result.get(0).getElements();
 
-		assertThat(elements, hasSize(1));
-		assertThat(elements.get(0).getAlias(), is(nullValue()));
+		assertThat(elements).hasSize(1);
+		assertThat(elements.get(0).getAlias()).isNull();
 	}
 
 	@Test

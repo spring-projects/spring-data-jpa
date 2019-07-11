@@ -15,12 +15,10 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import javax.persistence.TransactionRequiredException;
 
-import org.hamcrest.Matchers;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -37,6 +35,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * Integration tests for disabling default transactions using JavaConfig.
  *
  * @author Oliver Gierke
+ * @author Jens Schauder
  * @soundtrack The Intersphere - Live in Mannheim
  */
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -52,7 +51,7 @@ public abstract class DefaultTransactionDisablingIntegrationTests {
 
 		repository.findById(1);
 
-		assertThat(txManager.getDefinition().isReadOnly(), is(false));
+		assertThat(txManager.getDefinition().isReadOnly()).isFalse();
 	}
 
 	@Test // DATAJPA-685
@@ -60,15 +59,14 @@ public abstract class DefaultTransactionDisablingIntegrationTests {
 
 		repository.findAll(PageRequest.of(0, 10));
 
-		assertThat(txManager.getDefinition(), is(nullValue()));
+		assertThat(txManager.getDefinition()).isNull();
 	}
 
 	@Test // DATAJPA-685
 	public void persistingAnEntityShouldThrowExceptionDueToMissingTransaction() {
 
-		exception.expect(InvalidDataAccessApiUsageException.class);
-		exception.expectCause(is(Matchers.<Throwable> instanceOf(TransactionRequiredException.class)));
-
-		repository.saveAndFlush(new User());
+		assertThatThrownBy(() -> repository.saveAndFlush(new User())) //
+				.isInstanceOf(InvalidDataAccessApiUsageException.class) //
+				.hasCauseExactlyInstanceOf(TransactionRequiredException.class);
 	}
 }

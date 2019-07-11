@@ -15,8 +15,7 @@
  */
 package org.springframework.data.jpa.repository;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.Optional;
 
@@ -35,6 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author Oliver Gierke
  * @author Thomas Darimont
+ * @author Jens Schauder
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:application-context.xml" })
@@ -48,7 +48,7 @@ public class RoleRepositoryIntegrationTests {
 
 		Role reference = new Role("ADMIN");
 		Role result = repository.save(reference);
-		assertThat(result, is(reference));
+		assertThat(result).isEqualTo(reference);
 	}
 
 	@Test
@@ -56,13 +56,13 @@ public class RoleRepositoryIntegrationTests {
 
 		Role reference = new Role("ADMIN");
 		Role result = repository.save(reference);
-		assertThat(result, is(reference));
+		assertThat(result).isEqualTo(reference);
 
 		// Change role name
 		ReflectionTestUtils.setField(reference, "name", "USER");
 		repository.save(reference);
 
-		assertThat(repository.findById(result.getId()), is(Optional.of(reference)));
+		assertThat(repository.findById(result.getId())).isEqualTo(Optional.of(reference));
 	}
 
 	@Test // DATAJPA-509
@@ -71,7 +71,7 @@ public class RoleRepositoryIntegrationTests {
 		Role reference = new Role("ADMIN");
 		repository.save(reference);
 
-		assertThat(repository.count(), is(1L));
+		assertThat(repository.count()).isEqualTo(1L);
 	}
 
 	@Test // DATAJPA-509
@@ -80,7 +80,7 @@ public class RoleRepositoryIntegrationTests {
 		Role reference = new Role("ADMIN");
 		reference = repository.save(reference);
 
-		assertThat(repository.existsById(reference.getId()), is(true));
+		assertThat(repository.existsById(reference.getId())).isTrue();
 	}
 
 	@Test // DATAJPA-509
@@ -89,6 +89,6 @@ public class RoleRepositoryIntegrationTests {
 		Role reference = new Role("ADMIN");
 		reference = repository.save(reference);
 
-		assertThat(repository.countByName(reference.getName()), is(1L));
+		assertThat(repository.countByName(reference.getName())).isEqualTo(1L);
 	}
 }

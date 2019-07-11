@@ -15,15 +15,12 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.*;
 import static org.springframework.data.jpa.repository.query.QueryUtils.*;
 
 import java.util.Collections;
 import java.util.Set;
 
-import org.hamcrest.Matcher;
 import org.junit.Test;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Sort;
@@ -50,8 +47,6 @@ public class QueryUtilsUnitTests {
 	static final String COUNT_QUERY = "select count(u) from User u";
 
 	static final String QUERY_WITH_AS = "select u from User as u where u.username = ?";
-
-	static final Matcher<String> IS_U = is("u");
 
 	@Test
 	public void createsCountQueryCorrectly() throws Exception {
@@ -109,20 +104,20 @@ public class QueryUtilsUnitTests {
 	@Test
 	public void detectsAliasCorrectly() throws Exception {
 
-		assertThat(detectAlias(QUERY), IS_U);
-		assertThat(detectAlias(SIMPLE_QUERY), IS_U);
-		assertThat(detectAlias(COUNT_QUERY), IS_U);
-		assertThat(detectAlias(QUERY_WITH_AS), IS_U);
-		assertThat(detectAlias("SELECT FROM USER U"), is("U"));
-		assertThat(detectAlias("select u from  User u"), IS_U);
-		assertThat(detectAlias("select u from  com.acme.User u"), IS_U);
-		assertThat(detectAlias("select u from T05User u"), IS_U);
+		assertThat(detectAlias(QUERY)).isEqualTo("u");
+		assertThat(detectAlias(SIMPLE_QUERY)).isEqualTo("u");
+		assertThat(detectAlias(COUNT_QUERY)).isEqualTo("u");
+		assertThat(detectAlias(QUERY_WITH_AS)).isEqualTo("u");
+		assertThat(detectAlias("SELECT FROM USER U")).isEqualTo("U");
+		assertThat(detectAlias("select u from  User u")).isEqualTo("u");
+		assertThat(detectAlias("select u from  com.acme.User u")).isEqualTo("u");
+		assertThat(detectAlias("select u from T05User u")).isEqualTo("u");
 	}
 
 	@Test
 	public void allowsFullyQualifiedEntityNamesInQuery() {
 
-		assertThat(detectAlias(FQ_QUERY), IS_U);
+		assertThat(detectAlias(FQ_QUERY)).isEqualTo("u");
 		assertCountQuery(FQ_QUERY, "select count(u) from org.acme.domain.User$Foo_Bar u");
 	}
 
@@ -130,38 +125,38 @@ public class QueryUtilsUnitTests {
 	public void detectsJoinAliasesCorrectly() {
 
 		Set<String> aliases = getOuterJoinAliases("select p from Person p left outer join x.foo b2_$ar where …");
-		assertThat(aliases, hasSize(1));
-		assertThat(aliases, hasItems("b2_$ar"));
+		assertThat(aliases).hasSize(1);
+		assertThat(aliases).contains("b2_$ar");
 
 		aliases = getOuterJoinAliases("select p from Person p left join x.foo b2_$ar where …");
-		assertThat(aliases, hasSize(1));
-		assertThat(aliases, hasItems("b2_$ar"));
+		assertThat(aliases).hasSize(1);
+		assertThat(aliases).contains("b2_$ar");
 
 		aliases = getOuterJoinAliases(
 				"select p from Person p left outer join x.foo as b2_$ar, left join x.bar as foo where …");
-		assertThat(aliases, hasSize(2));
-		assertThat(aliases, hasItems("b2_$ar", "foo"));
+		assertThat(aliases).hasSize(2);
+		assertThat(aliases).contains("b2_$ar", "foo");
 
 		aliases = getOuterJoinAliases(
 				"select p from Person p left join x.foo as b2_$ar, left outer join x.bar foo where …");
-		assertThat(aliases, hasSize(2));
-		assertThat(aliases, hasItems("b2_$ar", "foo"));
+		assertThat(aliases).hasSize(2);
+		assertThat(aliases).contains("b2_$ar", "foo");
 	}
 
 	@Test // DATAJPA-252
 	public void doesNotPrefixOrderReferenceIfOuterJoinAliasDetected() {
 
 		String query = "select p from Person p left join p.address address";
-		assertThat(applySorting(query, Sort.by("address.city")), endsWith("order by address.city asc"));
-		assertThat(applySorting(query, Sort.by("address.city", "lastname"), "p"),
-				endsWith("order by address.city asc, p.lastname asc"));
+		assertThat(applySorting(query, Sort.by("address.city"))).endsWith("order by address.city asc");
+		assertThat(applySorting(query, Sort.by("address.city", "lastname"), "p"))
+				.endsWith("order by address.city asc, p.lastname asc");
 	}
 
 	@Test // DATAJPA-252
 	public void extendsExistingOrderByClausesCorrectly() {
 
 		String query = "select p from Person p order by p.lastname asc";
-		assertThat(applySorting(query, Sort.by("firstname"), "p"), endsWith("order by p.lastname asc, p.firstname asc"));
+		assertThat(applySorting(query, Sort.by("firstname"), "p")).endsWith("order by p.lastname asc, p.firstname asc");
 	}
 
 	@Test // DATAJPA-296
@@ -170,7 +165,7 @@ public class QueryUtilsUnitTests {
 		Sort sort = Sort.by(Order.by("firstname").ignoreCase());
 
 		String query = "select p from Person p";
-		assertThat(applySorting(query, sort, "p"), endsWith("order by lower(p.firstname) asc"));
+		assertThat(applySorting(query, sort, "p")).endsWith("order by lower(p.firstname) asc");
 	}
 
 	@Test // DATAJPA-296
@@ -179,7 +174,7 @@ public class QueryUtilsUnitTests {
 		Sort sort = Sort.by(Order.by("firstname").ignoreCase());
 
 		String query = "select p from Person p order by p.lastname asc";
-		assertThat(applySorting(query, sort, "p"), endsWith("order by p.lastname asc, lower(p.firstname) asc"));
+		assertThat(applySorting(query, sort, "p")).endsWith("order by p.lastname asc, lower(p.firstname) asc");
 	}
 
 	@Test // DATAJPA-342
@@ -200,7 +195,7 @@ public class QueryUtilsUnitTests {
 	public void doesNotPrefixSortsIfFunction() {
 
 		Sort sort = Sort.by("sum(foo)");
-		assertThat(applySorting("select p from Person p", sort, "p"), endsWith("order by sum(foo) asc"));
+		assertThat(applySorting("select p from Person p", sort, "p")).endsWith("order by sum(foo) asc");
 	}
 
 	@Test // DATAJPA-377
@@ -215,7 +210,7 @@ public class QueryUtilsUnitTests {
 
 		Sort sort = Sort.by("lastname");
 		String query = applySorting("select p from Person p ORDER BY p.firstname", sort, "p");
-		assertThat(query, endsWith("ORDER BY p.firstname, p.lastname asc"));
+		assertThat(query).endsWith("ORDER BY p.firstname, p.lastname asc");
 	}
 
 	@Test // DATAJPA-409
@@ -230,8 +225,8 @@ public class QueryUtilsUnitTests {
 
 	@Test // DATAJPA-456
 	public void createCountQueryFromTheGivenCountProjection() {
-		assertThat(createCountQueryFor("select p.lastname,p.firstname from Person p", "p.lastname"),
-				is("select count(p.lastname) from Person p"));
+		assertThat(createCountQueryFor("select p.lastname,p.firstname from Person p", "p.lastname"))
+				.isEqualTo("select count(p.lastname) from Person p");
 	}
 
 	@Test // DATAJPA-726
@@ -240,17 +235,17 @@ public class QueryUtilsUnitTests {
 		String query = "select p from Customer c join c.productOrder p where p.delayed = true";
 		Sort sort = Sort.by("p.lineItems");
 
-		assertThat(applySorting(query, sort, "c"), endsWith("order by p.lineItems asc"));
+		assertThat(applySorting(query, sort, "c")).endsWith("order by p.lineItems asc");
 	}
 
 	@Test // DATAJPA-736
 	public void supportsNonAsciiCharactersInEntityNames() {
-		assertThat(createCountQueryFor("select u from Usèr u"), is("select count(u) from Usèr u"));
+		assertThat(createCountQueryFor("select u from Usèr u")).isEqualTo("select count(u) from Usèr u");
 	}
 
 	@Test // DATAJPA-798
 	public void detectsAliasInQueryContainingLineBreaks() {
-		assertThat(detectAlias("select \n u \n from \n User \nu"), is("u"));
+		assertThat(detectAlias("select \n u \n from \n User \nu")).isEqualTo("u");
 	}
 
 	@Test // DATAJPA-815
@@ -259,12 +254,12 @@ public class QueryUtilsUnitTests {
 		String query = "from Cat c join Dog d";
 		Sort sort = Sort.by("dPropertyStartingWithJoinAlias");
 
-		assertThat(applySorting(query, sort, "c"), endsWith("order by c.dPropertyStartingWithJoinAlias asc"));
+		assertThat(applySorting(query, sort, "c")).endsWith("order by c.dPropertyStartingWithJoinAlias asc");
 	}
 
 	@Test // DATAJPA-938
 	public void detectsConstructorExpressionInDistinctQuery() {
-		assertThat(hasConstructorExpression("select distinct new Foo() from Bar b"), is(true));
+		assertThat(hasConstructorExpression("select distinct new Foo() from Bar b")).isTrue();
 	}
 
 	@Test // DATAJPA-938
@@ -274,17 +269,17 @@ public class QueryUtilsUnitTests {
 				+ "from Bar lp join lp.investmentProduct ip " //
 				+ "where (lp.toDate is null and lp.fromDate <= :now and lp.fromDate is not null) and lp.accountId = :accountId " //
 				+ "group by ip.id, ip.name, lp.accountId " //
-				+ "order by ip.name ASC"), is(true));
+				+ "order by ip.name ASC")).isTrue();
 	}
 
 	@Test // DATAJPA-938
 	public void detectsConstructorExpressionWithLineBreaks() {
-		assertThat(hasConstructorExpression("select new foo.bar.FooBar(\na.id) from DtoA a "), is(true));
+		assertThat(hasConstructorExpression("select new foo.bar.FooBar(\na.id) from DtoA a ")).isTrue();
 	}
 
 	@Test // DATAJPA-960
 	public void doesNotQualifySortIfNoAliasDetected() {
-		assertThat(applySorting("from mytable where ?1 is null", Sort.by("firstname")), endsWith("order by firstname asc"));
+		assertThat(applySorting("from mytable where ?1 is null", Sort.by("firstname"))).endsWith("order by firstname asc");
 	}
 
 	@Test(expected = InvalidDataAccessApiUsageException.class) // DATAJPA-965, DATAJPA-970
@@ -298,7 +293,7 @@ public class QueryUtilsUnitTests {
 	public void doesNotPrefixUnsageJpaSortFunctionCalls() {
 
 		JpaSort sort = JpaSort.unsafe("sum(foo)");
-		assertThat(applySorting("select p from Person p", sort, "p"), endsWith("order by sum(foo) asc"));
+		assertThat(applySorting("select p from Person p", sort, "p")).endsWith("order by sum(foo) asc");
 	}
 
 	@Test // DATAJPA-965, DATAJPA-970
@@ -307,7 +302,7 @@ public class QueryUtilsUnitTests {
 		String query = "SELECT AVG(m.price) AS avgPrice, SUM(m.stocks) AS sumStocks FROM Magazine m";
 		Sort sort = Sort.by("avgPrice", "sumStocks");
 
-		assertThat(applySorting(query, sort, "m"), endsWith("order by avgPrice asc, sumStocks asc"));
+		assertThat(applySorting(query, sort, "m")).endsWith("order by avgPrice asc, sumStocks asc");
 	}
 
 	@Test // DATAJPA-965, DATAJPA-970
@@ -316,7 +311,7 @@ public class QueryUtilsUnitTests {
 		String query = "SELECT AVG(m.price) AS avgPrice FROM Magazine m";
 		Sort sort = Sort.by("avgPrice");
 
-		assertThat(applySorting(query, sort, "m"), endsWith("order by avgPrice asc"));
+		assertThat(applySorting(query, sort, "m")).endsWith("order by avgPrice asc");
 	}
 
 	@Test // DATAJPA-965, DATAJPA-970
@@ -325,7 +320,7 @@ public class QueryUtilsUnitTests {
 		String query = "SELECT AVG(m.price) AS avgPrice FROM Magazine m";
 		Sort sort = Sort.by("someOtherProperty");
 
-		assertThat(applySorting(query, sort, "m"), endsWith("order by m.someOtherProperty asc"));
+		assertThat(applySorting(query, sort, "m")).endsWith("order by m.someOtherProperty asc");
 	}
 
 	@Test // DATAJPA-965, DATAJPA-970
@@ -334,7 +329,7 @@ public class QueryUtilsUnitTests {
 		String query = "SELECT m.name, AVG(m.price) AS avgPrice FROM Magazine m";
 		Sort sort = Sort.by("name", "avgPrice");
 
-		assertThat(applySorting(query, sort, "m"), endsWith("order by m.name asc, avgPrice asc"));
+		assertThat(applySorting(query, sort, "m")).endsWith("order by m.name asc, avgPrice asc");
 	}
 
 	@Test // DATAJPA-965, DATAJPA-970
@@ -343,7 +338,7 @@ public class QueryUtilsUnitTests {
 		String query = "SELECT SUBSTRING(m.name, 2, 5) AS trimmedName FROM Magazine m";
 		Sort sort = Sort.by("trimmedName");
 
-		assertThat(applySorting(query, sort, "m"), endsWith("order by trimmedName asc"));
+		assertThat(applySorting(query, sort, "m")).endsWith("order by trimmedName asc");
 	}
 
 	@Test // DATAJPA-965, DATAJPA-970
@@ -352,7 +347,7 @@ public class QueryUtilsUnitTests {
 		String query = "SELECT CONCAT(m.name, 'foo') AS extendedName FROM Magazine m";
 		Sort sort = Sort.by("extendedName");
 
-		assertThat(applySorting(query, sort, "m"), endsWith("order by extendedName asc"));
+		assertThat(applySorting(query, sort, "m")).endsWith("order by extendedName asc");
 	}
 
 	@Test // DATAJPA-965, DATAJPA-970
@@ -361,7 +356,7 @@ public class QueryUtilsUnitTests {
 		String query = "SELECT AVG(m.price) AS avg_price FROM Magazine m";
 		Sort sort = Sort.by("avg_price");
 
-		assertThat(applySorting(query, sort, "m"), endsWith("order by avg_price asc"));
+		assertThat(applySorting(query, sort, "m")).endsWith("order by avg_price asc");
 	}
 
 	@Test // DATAJPA-965, DATAJPA-970
@@ -370,7 +365,7 @@ public class QueryUtilsUnitTests {
 		String query = "SELECT AVG(m.price) AS m.avg FROM Magazine m";
 		Sort sort = Sort.by("m.avg");
 
-		assertThat(applySorting(query, sort, "m"), endsWith("order by m.avg asc"));
+		assertThat(applySorting(query, sort, "m")).endsWith("order by m.avg asc");
 	}
 
 	@Test // DATAJPA-965, DATAJPA-970
@@ -379,7 +374,7 @@ public class QueryUtilsUnitTests {
 		String query = "SELECT  AVG(  m.price  )   AS   avgPrice   FROM Magazine   m";
 		Sort sort = Sort.by("avgPrice");
 
-		assertThat(applySorting(query, sort, "m"), endsWith("order by avgPrice asc"));
+		assertThat(applySorting(query, sort, "m")).endsWith("order by avgPrice asc");
 	}
 
 	@Test // DATAJPA-1000
@@ -388,7 +383,7 @@ public class QueryUtilsUnitTests {
 		Set<String> aliases = QueryUtils
 				.getOuterJoinAliases("SELECT DISTINCT user FROM User user LEFT JOIN FETCH user.authorities AS authority");
 
-		assertThat(aliases, contains("authority"));
+		assertThat(aliases).containsExactly("authority");
 	}
 
 	@Test // DATAJPA-1171
@@ -419,22 +414,20 @@ public class QueryUtilsUnitTests {
 	public void createCountQuerySupportsWhitespaceCharacters() {
 
 		assertThat(createCountQueryFor("select * from User user\n" + //
-						"  where user.age = 18\n" + //
-						"  order by user.name\n "), //
-				is("select count(user) from User user\n" + //
-						"  where user.age = 18\n "));
+				"  where user.age = 18\n" + //
+				"  order by user.name\n ")).isEqualTo("select count(user) from User user\n" + //
+						"  where user.age = 18\n ");
 	}
 
 	@Test
 	public void createCountQuerySupportsLineBreaksInSelectClause() {
 
 		assertThat(createCountQueryFor("select user.age,\n" + //
-						"  user.name\n" + //
-						"  from User user\n" + //
-						"  where user.age = 18\n" + //
-						"  order\nby\nuser.name\n "), //
-				is("select count(user) from User user\n" + //
-						"  where user.age = 18\n "));
+				"  user.name\n" + //
+				"  from User user\n" + //
+				"  where user.age = 18\n" + //
+				"  order\nby\nuser.name\n ")).isEqualTo("select count(user) from User user\n" + //
+						"  where user.age = 18\n ");
 	}
 
 	@Test // DATAJPA-1061
@@ -445,7 +438,7 @@ public class QueryUtilsUnitTests {
 
 		String fullQuery = applySorting(query, sort);
 
-		assertThat(fullQuery, endsWith("order by authorName asc"));
+		assertThat(fullQuery).endsWith("order by authorName asc");
 	}
 
 	@Test // DATAJPA-1061
@@ -456,7 +449,7 @@ public class QueryUtilsUnitTests {
 
 		String fullQuery = applySorting(query, sort);
 
-		assertThat(fullQuery, endsWith("order by title asc"));
+		assertThat(fullQuery).endsWith("order by title asc");
 	}
 
 	@Test // DATAJPA-1061
@@ -467,18 +460,17 @@ public class QueryUtilsUnitTests {
 
 		String fullQuery = applySorting(query, sort);
 
-		assertThat(fullQuery, endsWith("order by m.price asc"));
+		assertThat(fullQuery).endsWith("order by m.price asc");
 	}
 
 	@Test
 	public void createCountQuerySupportsLineBreakRightAfterDistinct() {
 
 		assertThat(createCountQueryFor("select\ndistinct\nuser.age,\n" + //
+				"user.name\n" + //
+				"from\nUser\nuser")).isEqualTo(createCountQueryFor("select\ndistinct user.age,\n" + //
 						"user.name\n" + //
-						"from\nUser\nuser"), //
-				is(createCountQueryFor("select\ndistinct user.age,\n" + //
-						"user.name\n" + //
-						"from\nUser\nuser")));
+						"from\nUser\nuser"));
 	}
 
 	@Test
@@ -492,6 +484,6 @@ public class QueryUtilsUnitTests {
 	}
 
 	private static void assertCountQuery(String originalQuery, String countQuery) {
-		assertThat(createCountQueryFor(originalQuery), is(countQuery));
+		assertThat(createCountQueryFor(originalQuery)).isEqualTo(countQuery);
 	}
 }

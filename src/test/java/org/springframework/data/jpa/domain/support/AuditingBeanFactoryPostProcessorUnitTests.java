@@ -15,8 +15,7 @@
  */
 package org.springframework.data.jpa.domain.support;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import javax.persistence.EntityManagerFactory;
 
@@ -32,6 +31,7 @@ import org.springframework.core.io.ClassPathResource;
  *
  * @author Oliver Gierke
  * @author Thomas Darimont
+ * @author Jens Schauder
  */
 public class AuditingBeanFactoryPostProcessorUnitTests {
 
@@ -63,7 +63,7 @@ public class AuditingBeanFactoryPostProcessorUnitTests {
 
 		processor.postProcessBeanFactory(beanFactory);
 
-		assertThat(beanFactory.isBeanNameInUse(AuditingBeanFactoryPostProcessor.BEAN_CONFIGURER_ASPECT_BEAN_NAME), is(true));
+		assertThat(beanFactory.isBeanNameInUse(AuditingBeanFactoryPostProcessor.BEAN_CONFIGURER_ASPECT_BEAN_NAME)).isTrue();
 	}
 
 	@Test(expected = IllegalStateException.class) // DATAJPA-265
@@ -80,9 +80,9 @@ public class AuditingBeanFactoryPostProcessorUnitTests {
 
 		for (String emfDefinitionName : emfDefinitionNames) {
 			BeanDefinition emfDefinition = beanFactory.getBeanDefinition(emfDefinitionName);
-			assertThat(emfDefinition, is(notNullValue()));
-			assertThat(emfDefinition.getDependsOn(),
-					is(arrayContaining(AuditingBeanFactoryPostProcessor.BEAN_CONFIGURER_ASPECT_BEAN_NAME)));
+			assertThat(emfDefinition).isNotNull();
+			assertThat(emfDefinition.getDependsOn())
+					.containsExactly(AuditingBeanFactoryPostProcessor.BEAN_CONFIGURER_ASPECT_BEAN_NAME);
 		}
 	}
 

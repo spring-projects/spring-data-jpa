@@ -15,8 +15,7 @@
  */
 package org.springframework.data.jpa.provider;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import javax.persistence.EntityManager;
 
@@ -30,8 +29,6 @@ import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.data.jpa.domain.sample.Category;
 import org.springframework.data.jpa.domain.sample.Product;
-import org.springframework.data.jpa.provider.PersistenceProvider;
-import org.springframework.data.jpa.provider.ProxyIdAccessor;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.data.jpa.repository.sample.CategoryRepository;
 import org.springframework.data.jpa.repository.sample.ProductRepository;
@@ -46,25 +43,16 @@ import org.springframework.transaction.support.TransactionTemplate;
  * Integration tests for {@link PersistenceProvider}.
  *
  * @author Oliver Gierke
+ * @author Jens Schauder
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
 public class PersistenceProviderIntegrationTests {
 
-	@Configuration
-	@ImportResource("classpath:infrastructure.xml")
-	@EnableJpaRepositories(basePackageClasses = CategoryRepository.class,//
-			includeFilters = @Filter(value = { CategoryRepository.class, ProductRepository.class },
-					type = FilterType.ASSIGNABLE_TYPE))
-	static class Config {
-
-	}
-
 	@Autowired CategoryRepository categories;
 	@Autowired ProductRepository products;
 	@Autowired PlatformTransactionManager transactionManager;
 	@Autowired EntityManager em;
-
 	Product product;
 	Category category;
 
@@ -85,11 +73,20 @@ public class PersistenceProviderIntegrationTests {
 				Product product = categories.findById(category.getId()).get().getProduct();
 				ProxyIdAccessor accessor = PersistenceProvider.fromEntityManager(em);
 
-				assertThat(accessor.shouldUseAccessorFor(product), is(true));
-				assertThat(accessor.getIdentifierFrom(product).toString(), is((Object) product.getId().toString()));
+				assertThat(accessor.shouldUseAccessorFor(product)).isTrue();
+				assertThat(accessor.getIdentifierFrom(product).toString()).isEqualTo((Object) product.getId().toString());
 
 				return null;
 			}
 		});
+	}
+
+	@Configuration
+	@ImportResource("classpath:infrastructure.xml")
+	@EnableJpaRepositories(basePackageClasses = CategoryRepository.class, //
+			includeFilters = @Filter(value = { CategoryRepository.class, ProductRepository.class },
+					type = FilterType.ASSIGNABLE_TYPE))
+	static class Config {
+
 	}
 }

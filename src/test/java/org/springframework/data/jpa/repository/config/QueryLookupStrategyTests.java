@@ -15,7 +15,7 @@
  */
 package org.springframework.data.jpa.repository.config;
 
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.springframework.test.util.ReflectionTestUtils.*;
 
 import org.junit.Test;
@@ -33,6 +33,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  *
  * @author Oliver Gierke
  * @author Thomas Darimont
+ * @author Jens Schauder
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = "classpath:config/lookup-strategies-context.xml")
@@ -48,6 +49,6 @@ public class QueryLookupStrategyTests {
 
 		JpaRepositoryFactoryBean<?, ?, ?> factory = context.getBean("&roleRepository", JpaRepositoryFactoryBean.class);
 
-		assertEquals(Key.CREATE_IF_NOT_FOUND, getField(factory, "queryLookupStrategyKey"));
+		assertThat(getField(factory, "queryLookupStrategyKey")).isEqualTo(Key.CREATE_IF_NOT_FOUND);
 	}
 }

@@ -15,8 +15,7 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -37,6 +36,7 @@ import com.querydsl.jpa.JPQLQuery;
  * Integration tests for {@link Querydsl}.
  *
  * @author Thomas Darimont
+ * @author Jens Schauder
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({ "classpath:infrastructure.xml" })
@@ -62,7 +62,9 @@ public class QuerydslIntegrationTests {
 
 		JPQLQuery<User> result = querydsl.applySorting(Sort.by("firstname"), userQuery);
 
-		assertThat(result, is(notNullValue()));
-		assertThat(result.toString(), is(not(anyOf(containsString("nulls first"), containsString("nulls last")))));
+		assertThat(result).isNotNull();
+		assertThat(result.toString()) //
+				.doesNotContain("nulls first") //
+				.doesNotContain("nulls last");
 	}
 }

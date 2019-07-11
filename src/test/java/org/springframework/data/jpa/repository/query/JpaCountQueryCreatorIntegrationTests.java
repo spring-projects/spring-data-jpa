@@ -15,8 +15,7 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.lang.reflect.Method;
 import java.util.List;
@@ -42,6 +41,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * Integration tests for {@link JpaCountQueryCreator}.
  *
  * @author Oliver Gierke
+ * @author Jens Schauder
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("classpath:infrastructure.xml")
@@ -67,7 +67,7 @@ public class JpaCountQueryCreatorIntegrationTests {
 
 		TypedQuery<? extends Object> query = entityManager.createQuery(creator.createQuery());
 
-		assertThat(HibernateUtils.getHibernateQuery(query), startsWith("select distinct count(distinct"));
+		assertThat(HibernateUtils.getHibernateQuery(query)).startsWith("select distinct count(distinct");
 	}
 
 	interface SomeRepository extends Repository<User, Long> {

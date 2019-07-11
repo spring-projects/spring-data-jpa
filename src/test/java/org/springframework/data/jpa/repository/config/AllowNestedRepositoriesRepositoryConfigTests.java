@@ -15,8 +15,7 @@
  */
 package org.springframework.data.jpa.repository.config;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +27,7 @@ import org.springframework.test.context.ContextConfiguration;
  *
  * @author Thomas Darimont
  * @author Oliver Gierke
+ * @author Jens Schauder
  */
 @ContextConfiguration(locations = "classpath:config/namespace-nested-repositories-application-context.xml")
 public class AllowNestedRepositoriesRepositoryConfigTests extends AbstractRepositoryConfigTests {
@@ -36,6 +36,6 @@ public class AllowNestedRepositoriesRepositoryConfigTests extends AbstractReposi
 
 	@Test // DATAJPA-416
 	public void shouldFindNestedRepository() {
-		assertThat(fooRepository, is(notNullValue()));
+		assertThat(fooRepository).isNotNull();
 	}
 }

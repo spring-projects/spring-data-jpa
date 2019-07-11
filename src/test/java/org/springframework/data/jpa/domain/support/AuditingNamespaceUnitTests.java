@@ -15,8 +15,7 @@
  */
 package org.springframework.data.jpa.domain.support;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import org.junit.Test;
 import org.springframework.beans.PropertyValue;
@@ -26,6 +25,7 @@ import org.springframework.beans.factory.config.BeanDefinition;
  * Unit test for the JPA {@code auditing} namespace element.
  *
  * @author Oliver Gierke
+ * @author Jens Schauder
  */
 public class AuditingNamespaceUnitTests extends AuditingBeanFactoryPostProcessorUnitTests {
 
@@ -43,6 +43,6 @@ public class AuditingNamespaceUnitTests extends AuditingBeanFactoryPostProcessor
 
 		BeanDefinition definition = beanFactory.getBeanDefinition(AuditingEntityListener.class.getName());
 		PropertyValue propertyValue = definition.getPropertyValues().getPropertyValue("auditingHandler");
-		assertThat(propertyValue, is(notNullValue()));
+		assertThat(propertyValue).isNotNull();
 	}
 }

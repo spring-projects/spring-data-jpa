@@ -15,8 +15,7 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.util.Arrays;
@@ -62,10 +61,8 @@ import org.springframework.stereotype.Component;
  */
 public class DefaultJpaContextIntegrationTests {
 
-	public @Rule ExpectedException exception = ExpectedException.none();
-
 	static EntityManagerFactory firstEmf, secondEmf;
-
+	public @Rule ExpectedException exception = ExpectedException.none();
 	EntityManager firstEm, secondEm;
 	JpaContext jpaContext;
 
@@ -74,6 +71,26 @@ public class DefaultJpaContextIntegrationTests {
 
 		firstEmf = createEntityManagerFactory("spring-data-jpa");
 		secondEmf = createEntityManagerFactory("querydsl");
+	}
+
+	private static final LocalContainerEntityManagerFactoryBean createEntityManagerFactoryBean(
+			String persistenceUnitName) {
+
+		LocalContainerEntityManagerFactoryBean factoryBean = new LocalContainerEntityManagerFactoryBean();
+		factoryBean.setPersistenceProvider(HibernateTestUtils.getPersistenceProvider());
+		factoryBean.setDataSource(
+				new EmbeddedDatabaseBuilder().setType(EmbeddedDatabaseType.HSQL).generateUniqueName(true).build());
+		factoryBean.setPersistenceUnitName(persistenceUnitName);
+
+		return factoryBean;
+	}
+
+	private static final EntityManagerFactory createEntityManagerFactory(String persistenceUnitName) {
+
+		LocalContainerEntityManagerFactoryBean factoryBean = createEntityManagerFactoryBean(persistenceUnitName);
+		factoryBean.afterPropertiesSet();
+
+		return factoryBean.getObject();
 	}
 
 	@Before
@@ -96,7 +113,7 @@ public class DefaultJpaContextIntegrationTests {
 
 	@Test // DATAJPA-669
 	public void returnsEntitymanagerForUniqueType() {
-		assertThat(jpaContext.getEntityManagerByManagedType(Category.class), is(firstEm));
+		assertThat(jpaContext.getEntityManagerByManagedType(Category.class)).isEqualTo(firstEm);
 	}
 
 	@Test // DATAJPA-669
@@ -114,7 +131,7 @@ public class DefaultJpaContextIntegrationTests {
 		ConfigurableApplicationContext context = new AnnotationConfigApplicationContext(Config.class);
 		ApplicationComponent component = context.getBean(ApplicationComponent.class);
 
-		assertThat(component.context, is(notNullValue()));
+		assertThat(component.context).isNotNull();
 
 		context.close();
 	}
@@ -129,29 +146,9 @@ public class DefaultJpaContextIntegrationTests {
 		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext("config/jpa-context-with-jndi.xml");
 		ApplicationComponent component = context.getBean(ApplicationComponent.class);
 
-		assertThat(component.context, is(notNullValue()));
+		assertThat(component.context).isNotNull();
 
 		context.close();
-	}
-
-	private static final LocalContainerEntityManagerFactoryBean createEntityManagerFactoryBean(
-			String persistenceUnitName) {
-
-		LocalContainerEntityManagerFactoryBean factoryBean = new LocalContainerEntityManagerFactoryBean();
-		factoryBean.setPersistenceProvider(HibernateTestUtils.getPersistenceProvider());
-		factoryBean.setDataSource(
-				new EmbeddedDatabaseBuilder().setType(EmbeddedDatabaseType.HSQL).generateUniqueName(true).build());
-		factoryBean.setPersistenceUnitName(persistenceUnitName);
-
-		return factoryBean;
-	}
-
-	private static final EntityManagerFactory createEntityManagerFactory(String persistenceUnitName) {
-
-		LocalContainerEntityManagerFactoryBean factoryBean = createEntityManagerFactoryBean(persistenceUnitName);
-		factoryBean.afterPropertiesSet();
-
-		return factoryBean.getObject();
 	}
 
 	@EnableJpaRepositories

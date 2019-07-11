@@ -15,8 +15,7 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import javax.persistence.EntityManagerFactory;
@@ -33,6 +32,7 @@ import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
  * Unit tests for {@link EntityManagerBeanDefinitionRegistrarPostProcessor}.
  *
  * @author Oliver Gierke
+ * @author Jens Schauder
  */
 public class EntityManagerBeanDefinitionRegistrarPostProcessorUnitTests {
 
@@ -47,7 +47,7 @@ public class EntityManagerBeanDefinitionRegistrarPostProcessorUnitTests {
 		BeanFactoryPostProcessor processor = new EntityManagerBeanDefinitionRegistrarPostProcessor();
 		processor.postProcessBeanFactory(childFactory);
 
-		assertThat(beanFactory.getBeanDefinitionCount(), is(2));
+		assertThat(beanFactory.getBeanDefinitionCount()).isEqualTo(2);
 	}
 
 	@Test // DATAJPA-1005, DATAJPA-1045
@@ -62,7 +62,7 @@ public class EntityManagerBeanDefinitionRegistrarPostProcessorUnitTests {
 		BeanFactoryPostProcessor processor = new EntityManagerBeanDefinitionRegistrarPostProcessor();
 		processor.postProcessBeanFactory(beanFactory);
 
-		assertThat(beanFactory.getBeanDefinitionCount(), is(2));
+		assertThat(beanFactory.getBeanDefinitionCount()).isEqualTo(2);
 	}
 
 	interface SpecialEntityManagerFactory extends EntityManagerFactory {}

@@ -15,8 +15,7 @@
  */
 package org.springframework.data.jpa.repository.config;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -38,6 +37,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  *
  * @author Oliver Gierke
  * @author Mark Paluch
+ * @author Jens Schauder
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = "classpath:config/namespace-customfactory-context.xml")
@@ -63,8 +63,8 @@ public class CustomRepositoryFactoryConfigTests {
 
 		userRepository.findAll();
 
-		assertFalse(transactionManager.getDefinition().isReadOnly());
-		assertThat(transactionManager.getDefinition().getTimeout(), is(10));
+		assertThat(transactionManager.getDefinition().isReadOnly()).isFalse();
+		assertThat(transactionManager.getDefinition().getTimeout()).isEqualTo(10);
 	}
 
 	@Test
@@ -72,7 +72,7 @@ public class CustomRepositoryFactoryConfigTests {
 
 		userRepository.findById(1);
 
-		assertFalse(transactionManager.getDefinition().isReadOnly());
-		assertThat(transactionManager.getDefinition().getTimeout(), is(10));
+		assertThat(transactionManager.getDefinition().isReadOnly()).isFalse();
+		assertThat(transactionManager.getDefinition().getTimeout()).isEqualTo(10);
 	}
 }

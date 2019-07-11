@@ -15,8 +15,7 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import org.junit.After;
 import org.junit.Before;
@@ -35,6 +34,7 @@ import org.springframework.transaction.TransactionStatus;
  * Integration test for transactional behaviour of predicateExecutor operations.
  *
  * @author Oliver Gierke
+ * @author Jens Schauder
  */
 @ContextConfiguration({ "classpath:config/namespace-autoconfig-context.xml", "classpath:tx-manager.xml" })
 public class TransactionalRepositoryTests extends AbstractJUnit4SpringContextTests {
@@ -58,28 +58,28 @@ public class TransactionalRepositoryTests extends AbstractJUnit4SpringContextTes
 	public void simpleManipulatingOperation() throws Exception {
 
 		repository.saveAndFlush(new User("foo", "bar", "foo@bar.de"));
-		assertThat(transactionManager.getTransactionRequests(), is(1));
+		assertThat(transactionManager.getTransactionRequests()).isEqualTo(1);
 	}
 
 	@Test
 	public void unannotatedFinder() throws Exception {
 
 		repository.findByEmailAddress("foo@bar.de");
-		assertThat(transactionManager.getTransactionRequests(), is(0));
+		assertThat(transactionManager.getTransactionRequests()).isEqualTo(0);
 	}
 
 	@Test
 	public void invokeTransactionalFinder() throws Exception {
 
 		repository.findByAnnotatedQuery("foo@bar.de");
-		assertThat(transactionManager.getTransactionRequests(), is(1));
+		assertThat(transactionManager.getTransactionRequests()).isEqualTo(1);
 	}
 
 	@Test
 	public void invokeRedeclaredMethod() throws Exception {
 
 		repository.findById(1);
-		assertFalse(transactionManager.getDefinition().isReadOnly());
+		assertThat(transactionManager.getDefinition().isReadOnly()).isFalse();
 	}
 
 	@Test // DATACMNS-649
@@ -88,7 +88,7 @@ public class TransactionalRepositoryTests extends AbstractJUnit4SpringContextTes
 		User user = repository.saveAndFlush(new User("foo", "bar", "foo@bar.de"));
 		repository.deleteById(user.getId());
 
-		assertFalse(transactionManager.getDefinition().isReadOnly());
+		assertThat(transactionManager.getDefinition().isReadOnly()).isFalse();
 	}
 
 	public static class DelegatingTransactionManager implements PlatformTransactionManager {

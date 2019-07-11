@@ -15,8 +15,7 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.lang.reflect.Method;
@@ -40,11 +39,30 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
  *
  * @author Oliver Gierke
  * @author Mark Paluch
+ * @author Jens Schauder
  */
 @RunWith(MockitoJUnitRunner.class)
 public class CrudMethodMetadataPopulatingMethodInterceptorUnitTests {
 
 	@Mock MethodInvocation invocation;
+
+	private static Sample expectLockModeType(final CrudMethodMetadata metadata, final LockModeType type) {
+
+		ProxyFactory factory = new ProxyFactory(new Object());
+		factory.addInterface(Sample.class);
+		factory.addAdvice(ExposeRepositoryInvocationInterceptor.INSTANCE);
+		factory.addAdvice(CrudMethodMetadataPopulatingMethodInterceptor.INSTANCE);
+		factory.addAdvice(new MethodInterceptor() {
+
+			@Override
+			public Object invoke(MethodInvocation invocation) {
+				assertThat(metadata.getLockModeType()).isEqualTo(type);
+				return null;
+			}
+		});
+
+		return (Sample) factory.getProxy();
+	}
 
 	@Test // DATAJPA-268
 	public void cleansUpBoundResources() throws Throwable {
@@ -54,7 +72,7 @@ public class CrudMethodMetadataPopulatingMethodInterceptorUnitTests {
 		CrudMethodMetadataPopulatingMethodInterceptor interceptor = CrudMethodMetadataPopulatingMethodInterceptor.INSTANCE;
 		interceptor.invoke(invocation);
 
-		assertThat(TransactionSynchronizationManager.getResource(method), is(nullValue()));
+		assertThat(TransactionSynchronizationManager.getResource(method)).isNull();
 	}
 
 	@Test // DATAJPA-839, DATAJPA-1368
@@ -73,24 +91,6 @@ public class CrudMethodMetadataPopulatingMethodInterceptorUnitTests {
 		when(invocation.getMethod()).thenReturn(method);
 
 		return method;
-	}
-
-	private static Sample expectLockModeType(final CrudMethodMetadata metadata, final LockModeType type) {
-
-		ProxyFactory factory = new ProxyFactory(new Object());
-		factory.addInterface(Sample.class);
-		factory.addAdvice(ExposeRepositoryInvocationInterceptor.INSTANCE);
-		factory.addAdvice(CrudMethodMetadataPopulatingMethodInterceptor.INSTANCE);
-		factory.addAdvice(new MethodInterceptor() {
-
-			@Override
-			public Object invoke(MethodInvocation invocation) {
-				assertThat(metadata.getLockModeType(), is(type));
-				return null;
-			}
-		});
-
-		return (Sample) factory.getProxy();
 	}
 
 	interface Sample {

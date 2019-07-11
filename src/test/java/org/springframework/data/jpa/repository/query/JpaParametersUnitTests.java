@@ -16,8 +16,7 @@
 package org.springframework.data.jpa.repository.query;
 
 import static javax.persistence.TemporalType.*;
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.lang.reflect.Method;
 import java.util.Date;
@@ -32,6 +31,7 @@ import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
  * Unit tests for {@link JpaParameters}.
  *
  * @author Oliver Gierke
+ * @author Jens Schauder
  */
 public class JpaParametersUnitTests {
 
@@ -43,12 +43,12 @@ public class JpaParametersUnitTests {
 		JpaParameters parameters = new JpaParameters(method);
 
 		JpaParameter parameter = parameters.getBindableParameter(0);
-		assertThat(parameter.isSpecialParameter(), is(false));
-		assertThat(parameter.isTemporalParameter(), is(true));
-		assertThat(parameter.getTemporalType(), is(TemporalType.TIMESTAMP));
+		assertThat(parameter.isSpecialParameter()).isFalse();
+		assertThat(parameter.isTemporalParameter()).isTrue();
+		assertThat(parameter.getTemporalType()).isEqualTo(TemporalType.TIMESTAMP);
 
 		parameter = parameters.getBindableParameter(1);
-		assertThat(parameter.isTemporalParameter(), is(false));
+		assertThat(parameter.isTemporalParameter()).isFalse();
 	}
 
 	interface SampleRepository {
