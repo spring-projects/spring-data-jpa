@@ -16,6 +16,7 @@
 		<class>org.springframework.data.jpa.domain.sample.ConcreteType2</class>
 		<class>org.springframework.data.jpa.domain.sample.CustomAbstractPersistable</class>
 		<class>org.springframework.data.jpa.domain.sample.Customer</class>
+		<class>org.springframework.data.jpa.domain.sample.EntityWithAssignedId</class>
 		<class>org.springframework.data.jpa.domain.sample.EmbeddedIdExampleEmployeePK</class>
 		<class>org.springframework.data.jpa.domain.sample.EmbeddedIdExampleEmployee</class>
 		<class>org.springframework.data.jpa.domain.sample.EmbeddedIdExampleDepartment</class>
