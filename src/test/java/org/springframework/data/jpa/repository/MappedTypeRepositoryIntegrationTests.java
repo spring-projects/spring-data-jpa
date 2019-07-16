@@ -20,25 +20,30 @@ import static org.junit.Assert.*;
 
 import java.util.List;
 
+import javax.persistence.EntityManager;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.sample.AbstractMappedType;
 import org.springframework.data.jpa.domain.sample.ConcreteType1;
 import org.springframework.data.jpa.domain.sample.ConcreteType2;
 import org.springframework.data.jpa.repository.sample.ConcreteRepository1;
 import org.springframework.data.jpa.repository.sample.ConcreteRepository2;
 import org.springframework.data.jpa.repository.sample.MappedTypeRepository;
 import org.springframework.data.jpa.repository.sample.SampleConfig;
+import org.springframework.data.jpa.repository.support.JpaRepositoryFactory;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Integration tests for {@link MappedTypeRepository}.
- * 
+ *
  * @author Thomas Darimont
  */
 @Transactional
@@ -48,6 +53,8 @@ public class MappedTypeRepositoryIntegrationTests {
 
 	@Autowired ConcreteRepository1 concreteRepository1;
 	@Autowired ConcreteRepository2 concreteRepository2;
+
+	@Autowired EntityManager entityManager;
 
 	@Test // DATAJPA-170
 	public void supportForExpressionBasedQueryMethods() {
@@ -73,4 +80,19 @@ public class MappedTypeRepositoryIntegrationTests {
 
 		assertThat(page.getNumberOfElements(), is(1));
 	}
+
+	@Test // DATAJPA-1535
+	@SuppressWarnings("unchecked")
+	public void deletesConcreteInstancesForRepositoryBoundToMappedSuperclass() {
+
+		JpaRepositoryFactory factory = new JpaRepositoryFactory(entityManager);
+		CustomMappedTypeRepository<AbstractMappedType> repository = factory.getRepository(CustomMappedTypeRepository.class);
+
+		ConcreteType1 entity = repository.save(new ConcreteType1());
+
+		repository.delete(entity);
+		assertThat(concreteRepository1.findOne(entity.getId()), is(nullValue()));
+	}
+
+	private interface CustomMappedTypeRepository<T extends AbstractMappedType> extends CrudRepository<T, Long> {}
 }

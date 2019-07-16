@@ -167,7 +167,9 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.CrudRepository#delete(java.lang.Object)
 	 */
+	@Override
 	@Transactional
+	@SuppressWarnings("unchecked")
 	public void delete(T entity) {
 
 		Assert.notNull(entity, "The entity must not be null!");
@@ -176,7 +178,8 @@ public class SimpleJpaRepository<T, ID extends Serializable>
 			return;
 		}
 
-		T existing = em.find(entityInformation.getJavaType(), entityInformation.getId(entity));
+		T existing = (T) em.find(entity.getClass(), entityInformation.getId(entity));
+
 		// if the entity to be deleted doesn't exist, delete is a NOOP
 		if (existing == null) {
 			return;

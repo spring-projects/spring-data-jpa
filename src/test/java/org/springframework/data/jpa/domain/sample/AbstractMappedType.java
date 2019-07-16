@@ -15,6 +15,8 @@
  */
 package org.springframework.data.jpa.domain.sample;
 
+import lombok.Getter;
+
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
@@ -27,7 +29,7 @@ import javax.persistence.Version;
 @MappedSuperclass
 public abstract class AbstractMappedType {
 
-	@Id @GeneratedValue Long id;
+	@Id @GeneratedValue @Getter Long id;
 	@Version Long version;
 	String attribute1;
 
