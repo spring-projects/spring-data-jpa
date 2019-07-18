@@ -53,6 +53,7 @@ import org.springframework.data.jpa.repository.query.EscapeCharacter;
 import org.springframework.data.jpa.repository.query.QueryUtils;
 import org.springframework.data.jpa.repository.support.QueryHints.NoHints;
 import org.springframework.data.repository.support.PageableExecutionUtils;
+import org.springframework.data.util.ProxyUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -190,7 +191,9 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 			return;
 		}
 
-		T existing = (T) em.find(entity.getClass(), entityInformation.getId(entity));
+		Class<?> type = ProxyUtils.getUserClass(entity);
+
+		T existing = (T) em.find(type, entityInformation.getId(entity));
 
 		// if the entity to be deleted doesn't exist, delete is a NOOP
 		if (existing == null) {
