@@ -75,7 +75,9 @@ public class ParameterBinder {
 
 	public <T extends Query> T bind(T jpaQuery, JpaParametersParameterAccessor accessor, ErrorHandling errorHandling) {
 
-		parameterSetters.forEach(it -> it.setParameter(jpaQuery, accessor, errorHandling));
+		for (QueryParameterSetter setter : parameterSetters) {
+			setter.setParameter(jpaQuery, accessor, errorHandling);
+		}
 
 		return jpaQuery;
 	}

@@ -40,6 +40,7 @@ import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.QueryMethod;
+import org.springframework.data.util.Lazy;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -79,6 +80,14 @@ public class JpaQueryMethod extends QueryMethod {
 	private final Method method;
 
 	private @Nullable StoredProcedureAttributes storedProcedureAttributes;
+	private final Lazy<LockModeType> lockModeType;
+	private final Lazy<QueryHints> queryHints;
+	private final Lazy<JpaEntityGraph> jpaEntityGraph;
+	private final Lazy<Modifying> modifying;
+	private final Lazy<Boolean> isNativeQuery;
+	private final Lazy<Boolean> isCollectionQuery;
+	private final Lazy<Boolean> isProcedureQuery;
+	private final Lazy<JpaEntityMetadata<?>> entityMetadata;
 
 	/**
 	 * Creates a {@link JpaQueryMethod}.
@@ -98,6 +107,28 @@ public class JpaQueryMethod extends QueryMethod {
 
 		this.method = method;
 		this.extractor = extractor;
+		this.lockModeType = Lazy
+				.of(() -> (LockModeType) Optional.ofNullable(AnnotatedElementUtils.findMergedAnnotation(method, Lock.class)) //
+						.map(AnnotationUtils::getValue) //
+						.orElse(null));
+
+		this.queryHints = Lazy.of(() -> AnnotatedElementUtils.findMergedAnnotation(method, QueryHints.class));
+		this.modifying = Lazy.of(() -> AnnotatedElementUtils.findMergedAnnotation(method, Modifying.class));
+		this.jpaEntityGraph = Lazy.of(() -> {
+
+			EntityGraph entityGraph = AnnotatedElementUtils.findMergedAnnotation(method, EntityGraph.class);
+
+			if (entityGraph == null) {
+				return null;
+			}
+
+			return new JpaEntityGraph(entityGraph, getNamedQueryName());
+		});
+		this.isNativeQuery = Lazy.of(() -> getAnnotationValue("nativeQuery", Boolean.class));
+		this.isCollectionQuery = Lazy
+				.of(() -> super.isCollectionQuery() && !NATIVE_ARRAY_TYPES.contains(method.getReturnType()));
+		this.isProcedureQuery = Lazy.of(() -> AnnotationUtils.findAnnotation(method, Procedure.class) != null);
+		this.entityMetadata = Lazy.of(() -> new DefaultJpaEntityMetadata<>(getDomainClass()));
 
 		Assert.isTrue(!(isModifyingQuery() && getParameters().hasSpecialParameter()),
 				String.format("Modifying method must not contain %s!", Parameters.TYPES));
@@ -135,7 +166,7 @@ public class JpaQueryMethod extends QueryMethod {
 	@Override
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public JpaEntityMetadata<?> getEntityInformation() {
-		return new DefaultJpaEntityMetadata(getDomainClass());
+		return this.entityMetadata.get();
 	}
 
 	/**
@@ -145,8 +176,7 @@ public class JpaQueryMethod extends QueryMethod {
 	 */
 	@Override
 	public boolean isModifyingQuery() {
-
-		return null != AnnotationUtils.findAnnotation(method, Modifying.class);
+		return modifying.getNullable() != null;
 	}
 
 	/**
@@ -156,7 +186,7 @@ public class JpaQueryMethod extends QueryMethod {
 	 */
 	List<QueryHint> getHints() {
 
-		QueryHints hints = AnnotatedElementUtils.findMergedAnnotation(method, QueryHints.class);
+		QueryHints hints = this.queryHints.getNullable();
 		if (hints != null) {
 			return Arrays.asList(hints.value());
 		}
@@ -171,10 +201,7 @@ public class JpaQueryMethod extends QueryMethod {
 	 */
 	@Nullable
 	LockModeType getLockModeType() {
-
-		return (LockModeType) Optional.ofNullable(AnnotatedElementUtils.findMergedAnnotation(method, Lock.class)) //
-				.map(AnnotationUtils::getValue) //
-				.orElse(null);
+		return lockModeType.getNullable();
 	}
 
 	/**
@@ -185,9 +212,7 @@ public class JpaQueryMethod extends QueryMethod {
 	 */
 	@Nullable
 	JpaEntityGraph getEntityGraph() {
-
-		EntityGraph annotation = AnnotatedElementUtils.findMergedAnnotation(method, EntityGraph.class);
-		return annotation == null ? null : new JpaEntityGraph(annotation, getNamedQueryName());
+		return jpaEntityGraph.getNullable();
 	}
 
 	/**
@@ -198,7 +223,7 @@ public class JpaQueryMethod extends QueryMethod {
 	 */
 	boolean applyHintsToCountQuery() {
 
-		QueryHints hints = AnnotatedElementUtils.findMergedAnnotation(method, QueryHints.class);
+		QueryHints hints = this.queryHints.getNullable();
 		return hints != null ? hints.forCounting() : false;
 	}
 
@@ -208,7 +233,6 @@ public class JpaQueryMethod extends QueryMethod {
 	 * @return
 	 */
 	QueryExtractor getQueryExtractor() {
-
 		return extractor;
 	}
 
@@ -218,7 +242,6 @@ public class JpaQueryMethod extends QueryMethod {
 	 * @return
 	 */
 	Class<?> getReturnType() {
-
 		return method.getReturnType();
 	}
 
@@ -287,7 +310,7 @@ public class JpaQueryMethod extends QueryMethod {
 	 * @return
 	 */
 	boolean isNativeQuery() {
-		return getAnnotationValue("nativeQuery", Boolean.class).booleanValue();
+		return this.isNativeQuery.get();
 	}
 
 	/*
@@ -314,7 +337,7 @@ public class JpaQueryMethod extends QueryMethod {
 
 	/**
 	 * Returns whether we should flush automatically for modifying queries.
-	 * 
+	 *
 	 * @return whether we should flush automatically.
 	 */
 	boolean getFlushAutomatically() {
@@ -377,7 +400,7 @@ public class JpaQueryMethod extends QueryMethod {
 	 */
 	@Override
 	public boolean isCollectionQuery() {
-		return super.isCollectionQuery() && !NATIVE_ARRAY_TYPES.contains(method.getReturnType());
+		return this.isCollectionQuery.get();
 	}
 
 	/**
@@ -386,7 +409,7 @@ public class JpaQueryMethod extends QueryMethod {
 	 * @return
 	 */
 	public boolean isProcedureQuery() {
-		return AnnotationUtils.findAnnotation(method, Procedure.class) != null;
+		return this.isProcedureQuery.get();
 	}
 
 	/**

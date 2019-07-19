@@ -107,8 +107,7 @@ abstract class QueryParameterSetterFactory {
 	 * @param parameter the method parameter to bind.
 	 */
 	private static QueryParameterSetter createSetter(Function<JpaParametersParameterAccessor, Object> valueExtractor,
-			ParameterBinding binding,
-			@Nullable JpaParameter parameter) {
+			ParameterBinding binding, @Nullable JpaParameter parameter) {
 
 		TemporalType temporalType = parameter != null && parameter.isTemporalParameter() //
 				? parameter.getRequiredTemporalType() //
@@ -240,9 +239,15 @@ abstract class QueryParameterSetterFactory {
 		@Nullable
 		private JpaParameter findParameterForBinding(ParameterBinding binding) {
 
-			return parameters.getBindableParameters().stream() //
-					.filter(candidate -> binding.getRequiredName().equals(getName(candidate))) //
-					.findFirst().orElse(null);
+			JpaParameters bindableParameters = parameters.getBindableParameters();
+
+			for (JpaParameter bindableParameter : bindableParameters) {
+				if (binding.getRequiredName().equals(getName(bindableParameter))) {
+					return bindableParameter;
+				}
+			}
+
+			return null;
 		}
 
 		private Object getValue(JpaParametersParameterAccessor accessor, Parameter parameter) {
@@ -309,8 +314,7 @@ abstract class QueryParameterSetterFactory {
 
 			return new NamedOrIndexedQueryParameterSetter(values -> {
 				return getAndPrepare(parameter, metadata, values);
-			},
-					metadata.getExpression(), temporalType);
+			}, metadata.getExpression(), temporalType);
 		}
 
 		@Nullable

@@ -15,16 +15,17 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 
-import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+
 import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
 import org.springframework.data.jpa.repository.query.StringQuery.ParameterBinding;
 
@@ -45,7 +46,7 @@ public class QueryParameterSetterFactoryUnitTests {
 	public void before() {
 
 		// we have one bindable parameter
-		when(parameters.getBindableParameters().stream()).thenReturn(Stream.of(mock(JpaParameter.class)));
+		when(parameters.getBindableParameters().iterator()).thenReturn(Stream.of(mock(JpaParameter.class)).iterator());
 
 		setterFactory = QueryParameterSetterFactory.basic(parameters);
 	}
@@ -58,7 +59,7 @@ public class QueryParameterSetterFactoryUnitTests {
 	@Test // DATAJPA-1058
 	public void exceptionWhenQueryContainNamedParametersAndMethodParametersAreNotNamed() {
 
-		Assertions.assertThatExceptionOfType(IllegalStateException.class) //
+		assertThatExceptionOfType(IllegalStateException.class) //
 				.isThrownBy(() -> setterFactory.create(binding, DeclaredQuery.of("QueryStringWith :NamedParameter"))) //
 				.withMessageContaining("Java 8") //
 				.withMessageContaining("@Param") //
@@ -75,7 +76,7 @@ public class QueryParameterSetterFactoryUnitTests {
 		// one argument present in the method signature
 		when(binding.getRequiredPosition()).thenReturn(1);
 
-		Assertions.assertThatExceptionOfType(IllegalArgumentException.class) //
+		assertThatExceptionOfType(IllegalArgumentException.class) //
 				.isThrownBy(() -> setterFactory.create(binding, DeclaredQuery.of("QueryStringWith :NamedParameter"))) //
 				.withMessage("At least 1 parameter(s) provided but only 0 parameter(s) present in query.");
 	}
@@ -89,7 +90,7 @@ public class QueryParameterSetterFactoryUnitTests {
 		// one argument present in the method signature
 		when(binding.getRequiredPosition()).thenReturn(1);
 
-		Assertions.assertThatExceptionOfType(IllegalArgumentException.class) //
+		assertThatExceptionOfType(IllegalArgumentException.class) //
 				.isThrownBy(() -> setterFactory.create(binding, DeclaredQuery.of("QueryStringWith ?1"))) //
 				.withMessage("At least 1 parameter(s) provided but only 0 parameter(s) present in query.");
 	}

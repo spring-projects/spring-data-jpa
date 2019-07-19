@@ -16,15 +16,12 @@
 package org.springframework.data.jpa.repository.query;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 
 import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
 import org.springframework.data.jpa.repository.query.ParameterMetadataProvider.ParameterMetadata;
 import org.springframework.data.jpa.repository.query.StringQuery.ParameterBinding;
 import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
-import org.springframework.data.util.StreamUtils;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.util.Assert;
 
@@ -127,18 +124,26 @@ class ParameterBinderFactory {
 	private static Iterable<QueryParameterSetter> createSetters(List<ParameterBinding> parameterBindings,
 			DeclaredQuery declaredQuery, QueryParameterSetterFactory... strategies) {
 
-		return parameterBindings.stream() //
-				.map(it -> createQueryParameterSetter(it, strategies, declaredQuery)) //
-				.collect(StreamUtils.toUnmodifiableList());
+		List<QueryParameterSetter> setters = new ArrayList<>(parameterBindings.size());
+		for (ParameterBinding parameterBinding : parameterBindings) {
+			setters.add(createQueryParameterSetter(parameterBinding, strategies, declaredQuery));
+		}
+
+		return setters;
 	}
 
 	private static QueryParameterSetter createQueryParameterSetter(ParameterBinding binding,
 			QueryParameterSetterFactory[] strategies, DeclaredQuery declaredQuery) {
 
-		return Arrays.stream(strategies)//
-				.map(it -> it.create(binding, declaredQuery))//
-				.filter(Objects::nonNull)//
-				.findFirst()//
-				.orElse(QueryParameterSetter.NOOP);
+		for (QueryParameterSetterFactory strategy : strategies) {
+
+			QueryParameterSetter setter = strategy.create(binding, declaredQuery);
+
+			if (setter != null) {
+				return setter;
+			}
+		}
+
+		return QueryParameterSetter.NOOP;
 	}
 }

@@ -43,7 +43,6 @@ import org.springframework.data.jpa.repository.query.JpaQueryExecution.SingleEnt
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.SlicedExecution;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.StreamExecution;
 import org.springframework.data.jpa.util.JpaMetamodel;
-import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
@@ -68,6 +67,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 	private final EntityManager em;
 	private final JpaMetamodel metamodel;
 	private final PersistenceProvider provider;
+	private final Lazy<JpaQueryExecution> execution;
 
 	final Lazy<ParameterBinder> parameterBinder = new Lazy<>(this::createBinder);
 
@@ -86,6 +86,24 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 		this.em = em;
 		this.metamodel = JpaMetamodel.of(em.getMetamodel());
 		this.provider = PersistenceProvider.fromEntityManager(em);
+		this.execution = Lazy.of(() -> {
+
+			if (method.isStreamQuery()) {
+				return new StreamExecution();
+			} else if (method.isProcedureQuery()) {
+				return new ProcedureExecution();
+			} else if (method.isCollectionQuery()) {
+				return new CollectionExecution();
+			} else if (method.isSliceQuery()) {
+				return new SlicedExecution();
+			} else if (method.isPageQuery()) {
+				return new PagedExecution();
+			} else if (method.isModifyingQuery()) {
+				return null;
+			} else {
+				return new SingleEntityExecution();
+			}
+		});
 	}
 
 	/*
@@ -142,17 +160,13 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 
 	protected JpaQueryExecution getExecution() {
 
-		if (method.isStreamQuery()) {
-			return new StreamExecution();
-		} else if (method.isProcedureQuery()) {
-			return new ProcedureExecution();
-		} else if (method.isCollectionQuery()) {
-			return new CollectionExecution();
-		} else if (method.isSliceQuery()) {
-			return new SlicedExecution();
-		} else if (method.isPageQuery()) {
-			return new PagedExecution();
-		} else if (method.isModifyingQuery()) {
+		JpaQueryExecution execution = this.execution.getNullable();
+
+		if (execution != null) {
+			return execution;
+		}
+
+		if (method.isModifyingQuery()) {
 			return new ModifyingExecution(method, em);
 		} else {
 			return new SingleEntityExecution();
@@ -167,8 +181,12 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 	 */
 	protected <T extends Query> T applyHints(T query, JpaQueryMethod method) {
 
-		for (QueryHint hint : method.getHints()) {
-			applyQueryHint(query, hint);
+		List<QueryHint> hints = method.getHints();
+
+		if (!hints.isEmpty()) {
+			for (QueryHint hint : hints) {
+				applyQueryHint(query, hint);
+			}
 		}
 
 		return query;
@@ -219,14 +237,15 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 	 */
 	private Query applyEntityGraphConfiguration(Query query, JpaQueryMethod method) {
 
-		Assert.notNull(query, "Query must not be null!");
-		Assert.notNull(method, "JpaQueryMethod must not be null!");
+		JpaEntityGraph entityGraph = method.getEntityGraph();
 
-		Map<String, Object> hints = Jpa21Utils.tryGetFetchGraphHints(em, method.getEntityGraph(),
-				getQueryMethod().getEntityInformation().getJavaType());
+		if (entityGraph != null) {
+			Map<String, Object> hints = Jpa21Utils.tryGetFetchGraphHints(em, method.getEntityGraph(),
+					getQueryMethod().getEntityInformation().getJavaType());
 
-		for (Map.Entry<String, Object> hint : hints.entrySet()) {
-			query.setHint(hint.getKey(), hint.getValue());
+			for (Map.Entry<String, Object> hint : hints.entrySet()) {
+				query.setHint(hint.getKey(), hint.getValue());
+			}
 		}
 
 		return query;

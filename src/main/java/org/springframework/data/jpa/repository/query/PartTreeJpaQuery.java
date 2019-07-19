@@ -17,6 +17,8 @@ package org.springframework.data.jpa.repository.query;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
@@ -30,7 +32,6 @@ import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.DeleteExecution;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.ExistsExecution;
 import org.springframework.data.jpa.repository.query.ParameterMetadataProvider.ParameterMetadata;
-import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.repository.query.parser.Part;
@@ -212,6 +213,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 		private final @Nullable ParameterBinder cachedParameterBinder;
 		private final @Nullable List<ParameterMetadata<?>> expressions;
 		private final PersistenceProvider persistenceProvider;
+		private final Map<List<ParameterMetadata<?>>, ParameterBinder> binderCache = new ConcurrentHashMap<>();
 
 		QueryPreparer(PersistenceProvider persistenceProvider, boolean recreateQueries) {
 
@@ -304,6 +306,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 				@Nullable JpaParametersParameterAccessor accessor) {
 
 			EntityManager entityManager = getEntityManager();
+
 			CriteriaBuilder builder = entityManager.getCriteriaBuilder();
 			ResultProcessor processor = getQueryMethod().getResultProcessor();
 
@@ -331,7 +334,8 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 		}
 
 		private ParameterBinder getBinder(List<ParameterMetadata<?>> expressions) {
-			return ParameterBinderFactory.createCriteriaBinder(parameters, expressions);
+			return this.binderCache.computeIfAbsent(expressions,
+					key -> ParameterBinderFactory.createCriteriaBinder(parameters, key));
 		}
 
 		private Sort getDynamicSort(JpaParametersParameterAccessor accessor) {
