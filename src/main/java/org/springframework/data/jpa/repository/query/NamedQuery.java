@@ -26,9 +26,9 @@ import javax.persistence.TypedQuery;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import org.springframework.data.jpa.provider.QueryExtractor;
 import org.springframework.data.repository.query.Parameters;
-import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.QueryCreationException;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ResultProcessor;
@@ -152,30 +152,29 @@ final class NamedQuery extends AbstractJpaQuery {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.query.AbstractJpaQuery#doCreateQuery(java.lang.Object[])
+	 * @see org.springframework.data.jpa.repository.query.AbstractJpaQuery#doCreateQuery(JpaParametersParameterAccessor)
 	 */
 	@Override
-	protected Query doCreateQuery(Object[] values) {
+	protected Query doCreateQuery(JpaParametersParameterAccessor accessor) {
 
 		EntityManager em = getEntityManager();
 
 		JpaQueryMethod queryMethod = getQueryMethod();
-		ResultProcessor processor = queryMethod.getResultProcessor()
-				.withDynamicProjection(new ParametersParameterAccessor(queryMethod.getParameters(), values));
+		ResultProcessor processor = queryMethod.getResultProcessor().withDynamicProjection(accessor);
 
 		Query query = getTypeToRead(processor.getReturnedType()) //
 				.<Query> map(it -> em.createNamedQuery(queryName, it)) //
 				.orElseGet(() -> em.createNamedQuery(queryName));
 
-		return parameterBinder.get().bindAndPrepare(query, values);
+		return parameterBinder.get().bindAndPrepare(query, accessor);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.query.AbstractJpaQuery#doCreateCountQuery(java.lang.Object[])
+	 * @see org.springframework.data.jpa.repository.query.AbstractJpaQuery#doCreateCountQuery(JpaParametersParameterAccessor)
 	 */
 	@Override
-	protected TypedQuery<Long> doCreateCountQuery(Object[] values) {
+	protected TypedQuery<Long> doCreateCountQuery(JpaParametersParameterAccessor accessor) {
 
 		EntityManager em = getEntityManager();
 		TypedQuery<Long> countQuery;
@@ -191,10 +190,10 @@ final class NamedQuery extends AbstractJpaQuery {
 			countQuery = em.createQuery(countQueryString, Long.class);
 		}
 
-		return parameterBinder.get().bind(countQuery, values, LENIENT);
+		return parameterBinder.get().bind(countQuery, accessor, LENIENT);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.query.AbstractJpaQuery#getTypeToRead()
 	 */

@@ -20,8 +20,6 @@ import static org.springframework.data.jpa.repository.query.QueryParameterSetter
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 
-import org.springframework.data.repository.query.ParameterAccessor;
-import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
@@ -36,6 +34,7 @@ import org.springframework.util.Assert;
  * @author Jens Schauder
  * @author Tom Hombergs
  * @author David Madden
+ * @author Mark Paluch
  */
 abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 
@@ -77,12 +76,11 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.query.AbstractJpaQuery#doCreateQuery(java.lang.Object[])
+	 * @see org.springframework.data.jpa.repository.query.AbstractJpaQuery#doCreateQuery(JpaParametersParameterAccessor)
 	 */
 	@Override
-	public Query doCreateQuery(Object[] values) {
+	public Query doCreateQuery(JpaParametersParameterAccessor accessor) {
 
-		ParameterAccessor accessor = new ParametersParameterAccessor(getQueryMethod().getParameters(), values);
 		String sortedQueryString = QueryUtils.applySorting(query.getQueryString(), accessor.getSort(), query.getAlias());
 		ResultProcessor processor = getQueryMethod().getResultProcessor().withDynamicProjection(accessor);
 
@@ -90,12 +88,12 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 
 		// it is ok to reuse the binding contained in the ParameterBinder although we create a new query String because the
 		// parameters in the query do not change.
-		return parameterBinder.get().bindAndPrepare(query, values);
+		return parameterBinder.get().bindAndPrepare(query, accessor);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.query.AbstractJpaQuery#createBinder(java.lang.Object[])
+	 * @see org.springframework.data.jpa.repository.query.AbstractJpaQuery#createBinder(JpaParametersParameterAccessor)
 	 */
 	@Override
 	protected ParameterBinder createBinder() {
@@ -106,10 +104,10 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.query.AbstractJpaQuery#doCreateCountQuery(java.lang.Object[])
+	 * @see org.springframework.data.jpa.repository.query.AbstractJpaQuery#doCreateCountQuery(JpaParametersParameterAccessor)
 	 */
 	@Override
-	protected Query doCreateCountQuery(Object[] values) {
+	protected Query doCreateCountQuery(JpaParametersParameterAccessor accessor) {
 
 		String queryString = countQuery.getQueryString();
 		EntityManager em = getEntityManager();
@@ -118,7 +116,7 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 				? em.createNativeQuery(queryString) //
 				: em.createQuery(queryString, Long.class);
 
-		return parameterBinder.get().bind(query, values, LENIENT);
+		return parameterBinder.get().bind(query, accessor, LENIENT);
 	}
 
 	/**

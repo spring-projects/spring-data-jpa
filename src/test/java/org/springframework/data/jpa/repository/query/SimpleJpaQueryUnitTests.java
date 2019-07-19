@@ -111,7 +111,8 @@ public class SimpleJpaQueryUnitTests {
 		SimpleJpaQuery jpaQuery = new SimpleJpaQuery(method, em, "select u from User u", EVALUATION_CONTEXT_PROVIDER,
 				PARSER);
 
-		assertThat(jpaQuery.createCountQuery(new Object[] {})).isEqualTo((javax.persistence.Query) typedQuery);
+		assertThat(jpaQuery.createCountQuery(new JpaParametersParameterAccessor(method.getParameters(), new Object[] {})))
+				.isEqualTo(typedQuery);
 	}
 
 	@Test // DATAJPA-77
@@ -124,7 +125,8 @@ public class SimpleJpaQueryUnitTests {
 
 		AbstractJpaQuery jpaQuery = new SimpleJpaQuery(queryMethod, em, "select u from User u", EVALUATION_CONTEXT_PROVIDER,
 				PARSER);
-		jpaQuery.createCountQuery(new Object[] { PageRequest.of(1, 10) });
+		jpaQuery.createCountQuery(
+				new JpaParametersParameterAccessor(queryMethod.getParameters(), new Object[] { PageRequest.of(1, 10) }));
 
 		verify(query, times(0)).setFirstResult(anyInt());
 		verify(query, times(0)).setMaxResults(anyInt());
@@ -144,7 +146,7 @@ public class SimpleJpaQueryUnitTests {
 		when(em.createNativeQuery(anyString(), eq(User.class))).thenReturn(query);
 		when(metadata.getReturnedDomainClass(method)).thenReturn((Class) User.class);
 
-		jpaQuery.createQuery(new Object[] { "Matthews" });
+		jpaQuery.createQuery(new JpaParametersParameterAccessor(queryMethod.getParameters(), new Object[] { "Matthews" }));
 
 		verify(em).createNativeQuery("SELECT u FROM User u WHERE u.lastname = ?1", User.class);
 	}
@@ -202,7 +204,8 @@ public class SimpleJpaQueryUnitTests {
 		AbstractJpaQuery jpaQuery = createJpaQuery(
 				UserRepository.class.getMethod("findUsersInNativeQueryWithPagination", Pageable.class));
 
-		jpaQuery.doCreateCountQuery(new Object[] { PageRequest.of(0, 10) });
+		jpaQuery.doCreateCountQuery(new JpaParametersParameterAccessor(jpaQuery.getQueryMethod().getParameters(),
+				new Object[] { PageRequest.of(0, 10) }));
 
 		verify(em).createNativeQuery(anyString());
 	}
@@ -212,7 +215,7 @@ public class SimpleJpaQueryUnitTests {
 
 		AbstractJpaQuery jpaQuery = createJpaQuery(SampleRepository.class.getMethod("projectWithExplicitQuery"));
 
-		jpaQuery.createQuery(new Object[0]);
+		jpaQuery.createQuery(new JpaParametersParameterAccessor(jpaQuery.getQueryMethod().getParameters(), new Object[0]));
 
 		verify(em, times(0)).createQuery(anyString(), eq(Tuple.class));
 
@@ -242,7 +245,8 @@ public class SimpleJpaQueryUnitTests {
 
 		AbstractJpaQuery jpaQuery = new SimpleJpaQuery(queryMethod, em, "select u from User u", EVALUATION_CONTEXT_PROVIDER,
 				PARSER);
-		jpaQuery.createCountQuery(new Object[] { PageRequest.of(1, 10) });
+		jpaQuery.createCountQuery(
+				new JpaParametersParameterAccessor(queryMethod.getParameters(), new Object[] { PageRequest.of(1, 10) }));
 
 		verify(em).createQuery(eq("select u from User u"));
 		verify(em).createQuery(eq("select count(u.id) from User u"), eq(Long.class));

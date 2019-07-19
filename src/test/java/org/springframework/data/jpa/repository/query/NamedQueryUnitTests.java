@@ -43,6 +43,7 @@ import org.springframework.data.repository.query.QueryCreationException;
  *
  * @author Oliver Gierke
  * @author Thomas Darimont
+ * @author Mark Paluch
  */
 @RunWith(MockitoJUnitRunner.class)
 public class NamedQueryUnitTests {
@@ -92,7 +93,7 @@ public class NamedQueryUnitTests {
 		when(em.createNamedQuery(eq(queryMethod.getNamedCountQueryName()), eq(Long.class))).thenReturn(countQuery);
 		NamedQuery query = (NamedQuery) NamedQuery.lookupFrom(queryMethod, em);
 
-		query.doCreateCountQuery(new Object[1]);
+		query.doCreateCountQuery(new JpaParametersParameterAccessor(queryMethod.getParameters(), new Object[1]));
 		verify(em, times(1)).createNamedQuery(queryMethod.getNamedCountQueryName(), Long.class);
 		verify(em, never()).createQuery(any(String.class), eq(Long.class));
 	}

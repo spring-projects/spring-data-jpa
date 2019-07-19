@@ -69,7 +69,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 	private final JpaMetamodel metamodel;
 	private final PersistenceProvider provider;
 
-	Lazy<ParameterBinder> parameterBinder = new Lazy<>(this::createBinder);
+	final Lazy<ParameterBinder> parameterBinder = new Lazy<>(this::createBinder);
 
 	/**
 	 * Creates a new {@link AbstractJpaQuery} from the given {@link JpaQueryMethod}.
@@ -133,11 +133,10 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 	@Nullable
 	private Object doExecute(JpaQueryExecution execution, Object[] values) {
 
-		Object result = execution.execute(this, values);
+		JpaParametersParameterAccessor accessor = new JpaParametersParameterAccessor(method.getParameters(), values);
+		Object result = execution.execute(this, accessor);
 
-		ParametersParameterAccessor accessor = new ParametersParameterAccessor(method.getParameters(), values);
 		ResultProcessor withDynamicProjection = method.getResultProcessor().withDynamicProjection(accessor);
-
 		return withDynamicProjection.processResult(result, new TupleConverter(withDynamicProjection.getReturnedType()));
 	}
 
@@ -150,9 +149,9 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 		} else if (method.isCollectionQuery()) {
 			return new CollectionExecution();
 		} else if (method.isSliceQuery()) {
-			return new SlicedExecution(method.getParameters());
+			return new SlicedExecution();
 		} else if (method.isPageQuery()) {
-			return new PagedExecution(method.getParameters());
+			return new PagedExecution();
 		} else if (method.isModifyingQuery()) {
 			return new ModifyingExecution(method, em);
 		} else {
@@ -206,8 +205,8 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 		return ParameterBinderFactory.createBinder(getQueryMethod().getParameters());
 	}
 
-	protected Query createQuery(Object[] values) {
-		return applyLockMode(applyEntityGraphConfiguration(applyHints(doCreateQuery(values), method), method), method);
+	protected Query createQuery(JpaParametersParameterAccessor parameters) {
+		return applyLockMode(applyEntityGraphConfiguration(applyHints(doCreateQuery(parameters), method), method), method);
 	}
 
 	/**
@@ -233,14 +232,14 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 		return query;
 	}
 
-	protected Query createCountQuery(Object[] values) {
+	protected Query createCountQuery(JpaParametersParameterAccessor values) {
 		Query countQuery = doCreateCountQuery(values);
 		return method.applyHintsToCountQuery() ? applyHints(countQuery, method) : countQuery;
 	}
 
 	/**
 	 * Returns the type to be used when creating the JPA query.
-	 * 
+	 *
 	 * @return
 	 * @since 2.0.5
 	 */
@@ -258,18 +257,18 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 	/**
 	 * Creates a {@link Query} instance for the given values.
 	 *
-	 * @param values must not be {@literal null}.
+	 * @param accessor must not be {@literal null}.
 	 * @return
 	 */
-	protected abstract Query doCreateQuery(Object[] values);
+	protected abstract Query doCreateQuery(JpaParametersParameterAccessor accessor);
 
 	/**
 	 * Creates a {@link TypedQuery} for counting using the given values.
 	 *
-	 * @param values must not be {@literal null}.
+	 * @param accessor must not be {@literal null}.
 	 * @return
 	 */
-	protected abstract Query doCreateCountQuery(Object[] values);
+	protected abstract Query doCreateCountQuery(JpaParametersParameterAccessor accessor);
 
 	static class TupleConverter implements Converter<Object, Object> {
 

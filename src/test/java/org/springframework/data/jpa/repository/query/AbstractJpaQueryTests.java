@@ -51,6 +51,7 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author Oliver Gierke
  * @author Thomas Darimont
+ * @author Mark Paluch
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("classpath:infrastructure.xml")
@@ -75,10 +76,12 @@ public class AbstractJpaQueryTests {
 
 		AbstractJpaQuery jpaQuery = new DummyJpaQuery(queryMethod, em);
 
-		Query result = jpaQuery.createQuery(new Object[] { "Matthews" });
+		Query result = jpaQuery
+				.createQuery(new JpaParametersParameterAccessor(queryMethod.getParameters(), new Object[] { "Matthews" }));
 		verify(result).setHint("foo", "bar");
 
-		result = jpaQuery.createCountQuery(new Object[] { "Matthews" });
+		result = jpaQuery
+				.createCountQuery(new JpaParametersParameterAccessor(queryMethod.getParameters(), new Object[] { "Matthews" }));
 		verify(result).setHint("foo", "bar");
 	}
 
@@ -88,10 +91,12 @@ public class AbstractJpaQueryTests {
 		JpaQueryMethod queryMethod = getMethod("findByFirstname", String.class);
 		AbstractJpaQuery jpaQuery = new DummyJpaQuery(queryMethod, em);
 
-		Query result = jpaQuery.createQuery(new Object[] { "Dave" });
+		Query result = jpaQuery
+				.createQuery(new JpaParametersParameterAccessor(queryMethod.getParameters(), new Object[] { "Dave" }));
 		verify(result).setHint("bar", "foo");
 
-		result = jpaQuery.createCountQuery(new Object[] { "Dave" });
+		result = jpaQuery
+				.createCountQuery(new JpaParametersParameterAccessor(queryMethod.getParameters(), new Object[] { "Dave" }));
 		verify(result, never()).setHint("bar", "foo");
 	}
 
@@ -103,7 +108,8 @@ public class AbstractJpaQueryTests {
 		JpaQueryMethod queryMethod = getMethod("findOneLocked", Integer.class);
 
 		AbstractJpaQuery jpaQuery = new DummyJpaQuery(queryMethod, em);
-		Query result = jpaQuery.createQuery(new Object[] { Integer.valueOf(1) });
+		Query result = jpaQuery.createQuery(
+				new JpaParametersParameterAccessor(queryMethod.getParameters(), new Object[] { Integer.valueOf(1) }));
 		verify(result).setLockMode(LockModeType.PESSIMISTIC_WRITE);
 	}
 
@@ -118,7 +124,7 @@ public class AbstractJpaQueryTests {
 		javax.persistence.EntityGraph<?> entityGraph = em.getEntityGraph("User.overview");
 
 		AbstractJpaQuery jpaQuery = new DummyJpaQuery(queryMethod, em);
-		Query result = jpaQuery.createQuery(new Object[0]);
+		Query result = jpaQuery.createQuery(new JpaParametersParameterAccessor(queryMethod.getParameters(), new Object[0]));
 
 		verify(result).setHint("javax.persistence.fetchgraph", entityGraph);
 	}
@@ -134,7 +140,8 @@ public class AbstractJpaQueryTests {
 		javax.persistence.EntityGraph<?> entityGraph = em.getEntityGraph("User.detail");
 
 		AbstractJpaQuery jpaQuery = new DummyJpaQuery(queryMethod, em);
-		Query result = jpaQuery.createQuery(new Object[] { 1 });
+		Query result = jpaQuery
+				.createQuery(new JpaParametersParameterAccessor(queryMethod.getParameters(), new Object[] { 1 }));
 
 		verify(result).setHint("javax.persistence.loadgraph", entityGraph);
 	}
@@ -176,12 +183,12 @@ public class AbstractJpaQueryTests {
 		}
 
 		@Override
-		protected Query doCreateQuery(Object[] values) {
+		protected Query doCreateQuery(JpaParametersParameterAccessor accessor) {
 			return query;
 		}
 
 		@Override
-		protected TypedQuery<Long> doCreateCountQuery(Object[] values) {
+		protected TypedQuery<Long> doCreateCountQuery(JpaParametersParameterAccessor accessor) {
 			return (TypedQuery<Long>) countQuery;
 		}
 	}

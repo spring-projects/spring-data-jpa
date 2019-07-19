@@ -25,6 +25,7 @@ import org.springframework.data.repository.query.ParametersParameterAccessor;
  * offers access to all the values, not just the bindable ones based on a {@link JpaParameter} instance.
  *
  * @author Jens Schauder
+ * @author Mark Paluch
  */
 public class JpaParametersParameterAccessor extends ParametersParameterAccessor {
 
@@ -40,5 +41,10 @@ public class JpaParametersParameterAccessor extends ParametersParameterAccessor 
 
 	public <T> T getValue(Parameter parameter) {
 		return super.getValue(parameter.getIndex());
+	}
+
+	@Override
+	public Object[] getValues() {
+		return super.getValues();
 	}
 }

@@ -64,7 +64,7 @@ class ParameterMetadataProvider {
 	 * Creates a new {@link ParameterMetadataProvider} from the given {@link CriteriaBuilder} and
 	 * {@link ParametersParameterAccessor} with support for parameter value customizations via {@link PersistenceProvider}
 	 * .
-	 * 
+	 *
 	 * @param builder must not be {@literal null}.
 	 * @param accessor must not be {@literal null}.
 	 * @param provider must not be {@literal null}.
@@ -78,7 +78,7 @@ class ParameterMetadataProvider {
 	/**
 	 * Creates a new {@link ParameterMetadataProvider} from the given {@link CriteriaBuilder} and {@link Parameters} with
 	 * support for parameter value customizations via {@link PersistenceProvider}.
-	 * 
+	 *
 	 * @param builder must not be {@literal null}.
 	 * @param parameters must not be {@literal null}.
 	 * @param provider must not be {@literal null}.
@@ -121,7 +121,7 @@ class ParameterMetadataProvider {
 	 * @return the expressions
 	 */
 	public List<ParameterMetadata<?>> getExpressions() {
-		return Collections.unmodifiableList(expressions);
+		return expressions;
 	}
 
 	/**

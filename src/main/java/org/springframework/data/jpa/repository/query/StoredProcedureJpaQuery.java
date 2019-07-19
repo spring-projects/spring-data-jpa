@@ -28,6 +28,7 @@ import javax.persistence.TypedQuery;
 
 import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
 import org.springframework.data.repository.query.Parameter;
+import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -83,28 +84,28 @@ class StoredProcedureJpaQuery extends AbstractJpaQuery {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.query.AbstractJpaQuery#createQuery(java.lang.Object[])
+	 * @see org.springframework.data.jpa.repository.query.AbstractJpaQuery#createQuery(JpaParametersParameterAccessor)
 	 */
 	@Override
-	protected StoredProcedureQuery createQuery(Object[] values) {
-		return applyHints(doCreateQuery(values), getQueryMethod());
+	protected StoredProcedureQuery createQuery(JpaParametersParameterAccessor accessor) {
+		return applyHints(doCreateQuery(accessor), getQueryMethod());
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.query.AbstractJpaQuery#doCreateQuery(java.lang.Object[])
+	 * @see org.springframework.data.jpa.repository.query.AbstractJpaQuery#doCreateQuery(JpaParametersParameterAccessor)
 	 */
 	@Override
-	protected StoredProcedureQuery doCreateQuery(Object[] values) {
-		return parameterBinder.get().bind(createStoredProcedure(), values);
+	protected StoredProcedureQuery doCreateQuery(JpaParametersParameterAccessor accessor) {
+		return parameterBinder.get().bind(createStoredProcedure(), accessor);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.query.AbstractJpaQuery#doCreateCountQuery(java.lang.Object[])
+	 * @see org.springframework.data.jpa.repository.query.AbstractJpaQuery#doCreateCountQuery(JpaParametersParameterAccessor)
 	 */
 	@Override
-	protected TypedQuery<Long> doCreateCountQuery(Object[] values) {
+	protected TypedQuery<Long> doCreateCountQuery(JpaParametersParameterAccessor accessor) {
 		throw new UnsupportedOperationException("StoredProcedureQuery does not support count queries!");
 	}
 

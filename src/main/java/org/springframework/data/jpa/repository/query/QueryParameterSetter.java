@@ -28,6 +28,7 @@ import javax.persistence.criteria.ParameterExpression;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -41,7 +42,7 @@ import org.springframework.util.Assert;
  */
 interface QueryParameterSetter {
 
-	void setParameter(Query query, Object[] values, ErrorHandling errorHandling);
+	void setParameter(Query query, JpaParametersParameterAccessor accessor, ErrorHandling errorHandling);
 
 	/** Noop implementation */
 	QueryParameterSetter NOOP = (query, values, errorHandling) -> {};
@@ -53,7 +54,7 @@ interface QueryParameterSetter {
 
 		private static final Logger LOGGER = LoggerFactory.getLogger(NamedOrIndexedQueryParameterSetter.class);
 
-		private final Function<Object[], Object> valueExtractor;
+		private final Function<JpaParametersParameterAccessor, Object> valueExtractor;
 		private final Parameter<?> parameter;
 		private final @Nullable TemporalType temporalType;
 
@@ -62,8 +63,8 @@ interface QueryParameterSetter {
 		 * @param parameter must not be {@literal null}.
 		 * @param temporalType may be {@literal null}.
 		 */
-		NamedOrIndexedQueryParameterSetter(Function<Object[], Object> valueExtractor, Parameter<?> parameter,
-				@Nullable TemporalType temporalType) {
+		NamedOrIndexedQueryParameterSetter(Function<JpaParametersParameterAccessor, Object> valueExtractor,
+				Parameter<?> parameter, @Nullable TemporalType temporalType) {
 
 			Assert.notNull(valueExtractor, "ValueExtractor must not be null!");
 
@@ -78,9 +79,9 @@ interface QueryParameterSetter {
 		 */
 		@SuppressWarnings("unchecked")
 		@Override
-		public void setParameter(Query query, Object[] values, ErrorHandling errorHandling) {
+		public void setParameter(Query query, JpaParametersParameterAccessor accessor, ErrorHandling errorHandling) {
 
-			Object value = valueExtractor.apply(values);
+			Object value = valueExtractor.apply(accessor);
 
 			if (temporalType != null) {
 
@@ -143,7 +144,7 @@ interface QueryParameterSetter {
 		/**
 		 * Returns the actual target {@link Query} instance, even if the provided query is a {@link Proxy} based on
 		 * {@link org.springframework.orm.jpa.SharedEntityManagerCreator.DeferredQueryInvocationHandler}.
-		 * 
+		 *
 		 * @param query a {@link Query} instance, possibly a Proxy.
 		 * @return the class of the actual underlying class if it can be determined, the class of the passed in instance
 		 *         otherwise.

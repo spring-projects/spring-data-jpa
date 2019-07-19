@@ -18,7 +18,6 @@ package org.springframework.data.jpa.repository.query;
 import javax.persistence.Query;
 
 import org.springframework.data.jpa.repository.query.QueryParameterSetter.ErrorHandling;
-import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.util.Assert;
 
 /**
@@ -70,13 +69,13 @@ public class ParameterBinder {
 		this.useJpaForPaging = useJpaForPaging;
 	}
 
-	public <T extends Query> T bind(T jpaQuery, Object[] values) {
-		return bind(jpaQuery, values, ErrorHandling.STRICT);
+	public <T extends Query> T bind(T jpaQuery, JpaParametersParameterAccessor accessor) {
+		return bind(jpaQuery, accessor, ErrorHandling.STRICT);
 	}
 
-	public <T extends Query> T bind(T jpaQuery, Object[] values, ErrorHandling errorHandling) {
+	public <T extends Query> T bind(T jpaQuery, JpaParametersParameterAccessor accessor, ErrorHandling errorHandling) {
 
-		parameterSetters.forEach(it -> it.setParameter(jpaQuery, values, errorHandling));
+		parameterSetters.forEach(it -> it.setParameter(jpaQuery, accessor, errorHandling));
 
 		return jpaQuery;
 	}
@@ -87,13 +86,11 @@ public class ParameterBinder {
 	 * @param query must not be {@literal null}.
 	 * @param values values of method parameters to be assigned to the query parameters.
 	 */
-	Query bindAndPrepare(Query query, Object[] values) {
+	Query bindAndPrepare(Query query, JpaParametersParameterAccessor accessor) {
 
 		Assert.notNull(query, "Query must not be null!");
 
-		ParametersParameterAccessor accessor = new ParametersParameterAccessor(parameters, values);
-
-		Query result = bind(query, values);
+		Query result = bind(query, accessor);
 
 		if (!useJpaForPaging || !parameters.hasPageableParameter() || accessor.getPageable().isUnpaged()) {
 			return result;
