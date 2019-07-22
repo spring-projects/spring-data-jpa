@@ -17,8 +17,6 @@ package org.springframework.data.jpa.repository.query;
 
 import static org.springframework.data.jpa.repository.query.QueryParameterSetter.ErrorHandling.*;
 
-import java.util.Optional;
-
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.persistence.Tuple;
@@ -162,9 +160,11 @@ final class NamedQuery extends AbstractJpaQuery {
 		JpaQueryMethod queryMethod = getQueryMethod();
 		ResultProcessor processor = queryMethod.getResultProcessor().withDynamicProjection(accessor);
 
-		Query query = getTypeToRead(processor.getReturnedType()) //
-				.<Query> map(it -> em.createNamedQuery(queryName, it)) //
-				.orElseGet(() -> em.createNamedQuery(queryName));
+		Class<?> typeToRead = getTypeToRead(processor.getReturnedType());
+
+		Query query = typeToRead == null //
+				? em.createNamedQuery(queryName) //
+				: em.createNamedQuery(queryName, typeToRead);
 
 		return parameterBinder.get().bindAndPrepare(query, accessor);
 	}
@@ -198,7 +198,7 @@ final class NamedQuery extends AbstractJpaQuery {
 	 * @see org.springframework.data.jpa.repository.query.AbstractJpaQuery#getTypeToRead()
 	 */
 	@Override
-	protected Optional<Class<?>> getTypeToRead(ReturnedType returnedType) {
+	protected Class<?> getTypeToRead(ReturnedType returnedType) {
 
 		if (getQueryMethod().isNativeQuery()) {
 
@@ -207,20 +207,20 @@ final class NamedQuery extends AbstractJpaQuery {
 
 			// Domain or subtype -> use return type
 			if (domainType.isAssignableFrom(type)) {
-				return Optional.of(type);
+				return type;
 			}
 
 			// Domain type supertype -> use domain type
 			if (type.isAssignableFrom(domainType)) {
-				return Optional.of(domainType);
+				return domainType;
 			}
 
 			// Tuples for projection interfaces or explicit SQL mappings for everything else
-			return type.isInterface() ? Optional.of(Tuple.class) : Optional.empty();
+			return type.isInterface() ? Tuple.class : null;
 		}
 
 		return declaredQuery.hasConstructorExpression() //
-				? Optional.empty() //
+				? null //
 				: super.getTypeToRead(returnedType);
 	}
 }

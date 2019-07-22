@@ -20,7 +20,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -262,15 +261,16 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 	 * @return
 	 * @since 2.0.5
 	 */
-	protected Optional<Class<?>> getTypeToRead(ReturnedType returnedType) {
+	@Nullable
+	protected Class<?> getTypeToRead(ReturnedType returnedType) {
 
 		if (PersistenceProvider.ECLIPSELINK.equals(provider)) {
-			return Optional.empty();
+			return null;
 		}
 
-		return returnedType.isProjecting() && !getMetamodel().isJpaManaged(returnedType.getReturnedType())
-				? Optional.of(Tuple.class)
-				: Optional.empty();
+		return returnedType.isProjecting() && !getMetamodel().isJpaManaged(returnedType.getReturnedType()) //
+				? Tuple.class //
+				: null;
 	}
 
 	/**

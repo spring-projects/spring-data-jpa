@@ -145,8 +145,10 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 			return em.createQuery(queryString);
 		}
 
-		return getTypeToRead(returnedType) //
-				.<Query> map(it -> em.createQuery(queryString, it)) //
-				.orElseGet(() -> em.createQuery(queryString));
+		Class<?> typeToRead = getTypeToRead(returnedType);
+
+		return typeToRead == null //
+				? em.createQuery(queryString) //
+				: em.createQuery(queryString, typeToRead);
 	}
 }
