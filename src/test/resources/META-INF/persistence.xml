@@ -100,6 +100,7 @@
 		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$Sample</class>
 		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$EntityWithNestedIdClass</class>
 		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$EntityWithIdClass</class>
+		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$EntityWithPrivateIdGetter</class>
 		<exclude-unlisted-classes>true</exclude-unlisted-classes>
 		<properties>
 			<property name="hibernate.dialect" value="org.hibernate.dialect.HSQLDialect" />
