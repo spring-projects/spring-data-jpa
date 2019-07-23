@@ -14,6 +14,13 @@ BEGIN ATOMIC
 	set res2 = arg + 2;
 END
 /;
+DROP procedure IF EXISTS plus1inoutoptional
+/;
+CREATE procedure plus1inoutoptional (IN arg int, OUT res int, OUT res2 int)
+BEGIN ATOMIC
+	set res = arg + 1;	
+END
+/;
 DROP procedure IF EXISTS procedure_in1_out1
 /;
 DROP procedure IF EXISTS procedure_in1_out0

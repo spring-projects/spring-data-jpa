@@ -28,6 +28,7 @@ import javax.persistence.ParameterMode;
 import javax.persistence.StoredProcedureQuery;
 import javax.persistence.TypedQuery;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -41,6 +42,7 @@ import java.util.stream.IntStream;
  * @author Jens Schauder
  * @author Mark Paluch
  * @author Jeff Sheets
+ * @author JyotirmoyVS
  * @since 1.6
  */
 class StoredProcedureJpaQuery extends AbstractJpaQuery {
@@ -110,7 +112,7 @@ class StoredProcedureJpaQuery extends AbstractJpaQuery {
 	 *
 	 * @param storedProcedureQuery must not be {@literal null}.
 	 *                             <p>
-	 *                             Result is either a single value, or a Map<String, Object> of output parameter names to values
+	 *                             Result is either a single value, or a Map<String, Optional<Object>> of output parameter names to nullable values
 	 */
 	@Nullable
 	Object extractOutputValue(StoredProcedureQuery storedProcedureQuery) {
@@ -121,21 +123,21 @@ class StoredProcedureJpaQuery extends AbstractJpaQuery {
 			return null;
 		}
 
-		Map<String, Object> outputValues = IntStream.range(0, procedureAttributes.getOutputParameterNames().size()) //
+		Map<String, Optional<Object>> outputValues = IntStream.range(0, procedureAttributes.getOutputParameterNames().size()) //
 				.boxed() //
 				.collect(Collectors.toMap( //
 						procedureAttributes.getOutputParameterNames()::get, //
 						i -> extractOutputParameter(storedProcedureQuery, i)));
 
-		return outputValues.size() == 1 ? outputValues.values().iterator().next() : outputValues;
+		return outputValues.size() == 1 ? outputValues.values().iterator().next().orElse(null) : outputValues;
 	}
 
-	private Object extractOutputParameter(StoredProcedureQuery storedProcedureQuery, Integer index) {
+	private Optional<Object> extractOutputParameter(StoredProcedureQuery storedProcedureQuery, Integer index) {
 
 		String outputParameterName = procedureAttributes.getOutputParameterNames().get(index);
 		JpaParameters parameters = getQueryMethod().getParameters();
 
-		return extractOutputParameterValue(storedProcedureQuery, outputParameterName, index, parameters.getNumberOfParameters());
+		return Optional.ofNullable(extractOutputParameterValue(storedProcedureQuery, outputParameterName, index, parameters.getNumberOfParameters()));
 	}
 
 	/**
