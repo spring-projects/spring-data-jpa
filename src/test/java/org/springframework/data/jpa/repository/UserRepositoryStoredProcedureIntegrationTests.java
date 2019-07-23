@@ -95,17 +95,17 @@ public class UserRepositoryStoredProcedureIntegrationTests {
 	@Test // DATAJPA-707 DATAJPA-1579
 	public void entityAnnotatedCustomNamedProcedurePlus1IO2() {
 
-		Map<String, Optional<Integer>> result = repository.entityAnnotatedCustomNamedProcedurePlus1IO2(1);
+		Map<String, Integer> result = repository.entityAnnotatedCustomNamedProcedurePlus1IO2(1);
 
-		assertThat(result).containsExactly(entry("res", Optional.of(2)), entry("res2", Optional.of(3)));
+		assertThat(result).containsExactly(entry("res", 2), entry("res2", 3));
 	}
-	
+
 	@Test // DATAJPA-1579
 	public void entityAnnotatedCustomNamedProcedurePlus1IOoptional() {
 
-		Map<String, java.util.Optional<Integer>> result = repository.entityAnnotatedCustomNamedProcedurePlus1IOoptional(1);
+		Map<String, Integer> result = repository.entityAnnotatedCustomNamedProcedurePlus1IOoptional(1);
 
-		assertThat(result).containsExactly(entry("res", Optional.of(2)), entry("res2", Optional.empty()));
+		assertThat(result).containsExactly(entry("res", 2), entry("res2", null));
 	}
 
 	@Test // DATAJPA-455

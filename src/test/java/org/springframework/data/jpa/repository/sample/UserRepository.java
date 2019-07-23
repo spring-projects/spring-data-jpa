@@ -353,14 +353,14 @@ public interface UserRepository
 	 * Returns 2 out params as a Map.
 	 */
 	@Procedure(name = "User.plus1IO2") // DATAJPA-707 DATAJPA-1579
-	Map<String, java.util.Optional<Integer>> entityAnnotatedCustomNamedProcedurePlus1IO2(@Param("arg") Integer arg);
-	
+	Map<String, Integer> entityAnnotatedCustomNamedProcedurePlus1IO2(@Param("arg") Integer arg);
+
 	/**
 	 * Explicitly mapped to named stored procedure "User.plus1IOoptional" in {@link EntityManager}.
 	 * Returns 2 out params as a Map, second one amoung which is null.
 	 */
 	@Procedure(name = "User.plus1IOoptional") // DATAJPA-1579
-	Map<String, java.util.Optional<Integer>> entityAnnotatedCustomNamedProcedurePlus1IOoptional(@Param("arg") Integer arg);	
+	Map<String, Integer> entityAnnotatedCustomNamedProcedurePlus1IOoptional(@Param("arg") Integer arg);
 
 	/**
 	 * Implicitly mapped to named stored procedure "User.plus1" in {@link EntityManager}.
