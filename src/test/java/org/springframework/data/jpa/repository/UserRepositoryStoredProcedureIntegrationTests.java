@@ -29,6 +29,7 @@ import javax.persistence.ParameterMode;
 import javax.persistence.PersistenceContext;
 import javax.persistence.StoredProcedureQuery;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -39,6 +40,7 @@ import static org.assertj.core.api.Assertions.*;
  * @author Oliver Gierke
  * @author Jeff Sheets
  * @author Jens Schauder
+ * @author JyotirmoyVS
  * @since 1.6
  */
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -90,12 +92,20 @@ public class UserRepositoryStoredProcedureIntegrationTests {
 		assertThat(repository.entityAnnotatedCustomNamedProcedurePlus1IO2TwoOutParamsButNamingOne(1)).isEqualTo(3);
 	}
 
-	@Test // DATAJPA-707
+	@Test // DATAJPA-707 DATAJPA-1579
 	public void entityAnnotatedCustomNamedProcedurePlus1IO2() {
 
-		Map<String, Integer> result = repository.entityAnnotatedCustomNamedProcedurePlus1IO2(1);
+		Map<String, Optional<Integer>> result = repository.entityAnnotatedCustomNamedProcedurePlus1IO2(1);
 
-		assertThat(result).containsExactly(entry("res", 2), entry("res2", 3));
+		assertThat(result).containsExactly(entry("res", Optional.of(2)), entry("res2", Optional.of(3)));
+	}
+	
+	@Test // DATAJPA-1579
+	public void entityAnnotatedCustomNamedProcedurePlus1IOoptional() {
+
+		Map<String, java.util.Optional<Integer>> result = repository.entityAnnotatedCustomNamedProcedurePlus1IOoptional(1);
+
+		assertThat(result).containsExactly(entry("res", Optional.of(2)), entry("res2", Optional.empty()));
 	}
 
 	@Test // DATAJPA-455
