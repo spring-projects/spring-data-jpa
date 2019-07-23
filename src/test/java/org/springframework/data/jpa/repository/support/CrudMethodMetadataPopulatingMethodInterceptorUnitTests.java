@@ -31,7 +31,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.support.CrudMethodMetadataPostProcessor.CrudMethodMetadataPopulatingMethodInterceptor;
-import org.springframework.data.jpa.repository.support.CrudMethodMetadataPostProcessor.ExposeRepositoryInvocationInterceptor;
+import org.springframework.data.repository.core.RepositoryInformation;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 /**
@@ -45,13 +45,14 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 public class CrudMethodMetadataPopulatingMethodInterceptorUnitTests {
 
 	@Mock MethodInvocation invocation;
+	@Mock RepositoryInformation information;
 
-	private static Sample expectLockModeType(final CrudMethodMetadata metadata, final LockModeType type) {
+	private static Sample expectLockModeType(CrudMethodMetadata metadata, RepositoryInformation information,
+			LockModeType type) {
 
 		ProxyFactory factory = new ProxyFactory(new Object());
 		factory.addInterface(Sample.class);
-		factory.addAdvice(ExposeRepositoryInvocationInterceptor.INSTANCE);
-		factory.addAdvice(CrudMethodMetadataPopulatingMethodInterceptor.INSTANCE);
+		factory.addAdvice(new CrudMethodMetadataPopulatingMethodInterceptor(information));
 		factory.addAdvice(new MethodInterceptor() {
 
 			@Override
@@ -65,29 +66,35 @@ public class CrudMethodMetadataPopulatingMethodInterceptorUnitTests {
 	}
 
 	@Test // DATAJPA-268
+	@SuppressWarnings("unchecked")
 	public void cleansUpBoundResources() throws Throwable {
 
 		Method method = prepareMethodInvocation("someMethod");
+		when(information.isQueryMethod(method)).thenReturn(false);
+		when(information.getRepositoryInterface()).thenReturn((Class) Sample.class);
 
-		CrudMethodMetadataPopulatingMethodInterceptor interceptor = CrudMethodMetadataPopulatingMethodInterceptor.INSTANCE;
+		CrudMethodMetadataPopulatingMethodInterceptor interceptor = new CrudMethodMetadataPopulatingMethodInterceptor(
+				information);
 		interceptor.invoke(invocation);
 
 		assertThat(TransactionSynchronizationManager.getResource(method)).isNull();
 	}
 
 	@Test // DATAJPA-839, DATAJPA-1368
+	@SuppressWarnings("unchecked")
 	public void looksUpCrudMethodMetadataForEveryInvocation() {
 
 		CrudMethodMetadata metadata = new CrudMethodMetadataPostProcessor().getCrudMethodMetadata();
+		when(information.isQueryMethod(any())).thenReturn(false);
+		when(information.getRepositoryInterface()).thenReturn((Class) Sample.class);
 
-		expectLockModeType(metadata, LockModeType.OPTIMISTIC).someMethod();
-		expectLockModeType(metadata, LockModeType.PESSIMISTIC_READ).someOtherMethod();
+		expectLockModeType(metadata, information, LockModeType.OPTIMISTIC).someMethod();
+		expectLockModeType(metadata, information, LockModeType.PESSIMISTIC_READ).someOtherMethod();
 	}
 
 	private Method prepareMethodInvocation(String name) throws Throwable {
 
 		Method method = Sample.class.getMethod(name);
-		ExposeRepositoryInvocationInterceptor.INSTANCE.invoke(invocation);
 		when(invocation.getMethod()).thenReturn(method);
 
 		return method;
