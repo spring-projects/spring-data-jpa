@@ -55,6 +55,7 @@ final class NamedQuery extends AbstractJpaQuery {
 	private final QueryExtractor extractor;
 	private final boolean namedCountQueryIsPresent;
 	private final DeclaredQuery declaredQuery;
+	private final QueryParameterSetter.QueryMetadataCache metadataCache;
 
 	/**
 	 * Creates a new {@link NamedQuery}.
@@ -93,6 +94,8 @@ final class NamedQuery extends AbstractJpaQuery {
 			LOG.warn("Finder method {} is backed by a NamedQuery" + " but contains a Pageable parameter! Sorting delivered "
 					+ "via this Pageable will not be applied!", method);
 		}
+
+		this.metadataCache = new QueryParameterSetter.QueryMetadataCache();
 	}
 
 	/**
@@ -166,7 +169,9 @@ final class NamedQuery extends AbstractJpaQuery {
 				? em.createNamedQuery(queryName) //
 				: em.createNamedQuery(queryName, typeToRead);
 
-		return parameterBinder.get().bindAndPrepare(query, accessor);
+		QueryParameterSetter.QueryMetadata metadata = metadataCache.getMetadata(queryName, query);
+
+		return parameterBinder.get().bindAndPrepare(query, metadata, accessor);
 	}
 
 	/*
@@ -179,18 +184,21 @@ final class NamedQuery extends AbstractJpaQuery {
 		EntityManager em = getEntityManager();
 		TypedQuery<Long> countQuery;
 
+		String cacheKey;
 		if (namedCountQueryIsPresent) {
-
+			cacheKey = countQueryName;
 			countQuery = em.createNamedQuery(countQueryName, Long.class);
 
 		} else {
 
 			String countQueryString = declaredQuery.deriveCountQuery(null, countProjection).getQueryString();
-
+			cacheKey = countQueryString;
 			countQuery = em.createQuery(countQueryString, Long.class);
 		}
 
-		return parameterBinder.get().bind(countQuery, accessor, LENIENT);
+		QueryParameterSetter.QueryMetadata metadata = metadataCache.getMetadata(cacheKey, countQuery);
+
+		return parameterBinder.get().bind(countQuery, metadata, accessor);
 	}
 
 	/*

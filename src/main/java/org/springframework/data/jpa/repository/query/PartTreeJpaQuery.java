@@ -214,6 +214,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 		private final @Nullable List<ParameterMetadata<?>> expressions;
 		private final PersistenceProvider persistenceProvider;
 		private final Map<List<ParameterMetadata<?>>, ParameterBinder> binderCache = new ConcurrentHashMap<>();
+		private final QueryParameterSetter.QueryMetadataCache metadataCache = new QueryParameterSetter.QueryMetadataCache();
 
 		QueryPreparer(PersistenceProvider persistenceProvider, boolean recreateQueries) {
 
@@ -251,7 +252,9 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 				throw new IllegalStateException("ParameterBinder is null!");
 			}
 
-			return restrictMaxResultsIfNecessary(invokeBinding(parameterBinder, createQuery(criteriaQuery), accessor));
+			TypedQuery<?> query = createQuery(criteriaQuery);
+
+			return restrictMaxResultsIfNecessary(invokeBinding(parameterBinder, query, accessor, this.metadataCache));
 		}
 
 		/**
@@ -327,10 +330,12 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 		/**
 		 * Invokes parameter binding on the given {@link TypedQuery}.
 		 */
-		protected Query invokeBinding(ParameterBinder binder, TypedQuery<?> query,
-				JpaParametersParameterAccessor accessor) {
+		protected Query invokeBinding(ParameterBinder binder, TypedQuery<?> query, JpaParametersParameterAccessor accessor,
+				QueryParameterSetter.QueryMetadataCache metadataCache) {
 
-			return binder.bindAndPrepare(query, accessor);
+			QueryParameterSetter.QueryMetadata metadata = metadataCache.getMetadata("query", query);
+
+			return binder.bindAndPrepare(query, metadata, accessor);
 		}
 
 		private ParameterBinder getBinder(List<ParameterMetadata<?>> expressions) {
@@ -382,9 +387,12 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 		 * @see QueryPreparer#invokeBinding(ParameterBinder, TypedQuery, JpaParametersParameterAccessor)
 		 */
 		@Override
-		protected Query invokeBinding(ParameterBinder binder, TypedQuery<?> query,
-				JpaParametersParameterAccessor accessor) {
-			return binder.bind(query, accessor);
+		protected Query invokeBinding(ParameterBinder binder, TypedQuery<?> query, JpaParametersParameterAccessor accessor,
+				QueryParameterSetter.QueryMetadataCache metadataCache) {
+
+			QueryParameterSetter.QueryMetadata metadata = metadataCache.getMetadata("countquery", query);
+
+			return binder.bind(query, metadata, accessor);
 		}
 	}
 }

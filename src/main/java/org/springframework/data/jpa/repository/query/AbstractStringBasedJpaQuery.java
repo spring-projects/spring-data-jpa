@@ -15,8 +15,6 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.springframework.data.jpa.repository.query.QueryParameterSetter.ErrorHandling.*;
-
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 
@@ -42,6 +40,7 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 	private final DeclaredQuery countQuery;
 	private final QueryMethodEvaluationContextProvider evaluationContextProvider;
 	private final SpelExpressionParser parser;
+	private final QueryParameterSetter.QueryMetadataCache metadataCache = new QueryParameterSetter.QueryMetadataCache();
 
 	/**
 	 * Creates a new {@link AbstractStringBasedJpaQuery} from the given {@link JpaQueryMethod}, {@link EntityManager} and
@@ -86,9 +85,11 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 
 		Query query = createJpaQuery(sortedQueryString, processor.getReturnedType());
 
+		QueryParameterSetter.QueryMetadata metadata = metadataCache.getMetadata(sortedQueryString, query);
+
 		// it is ok to reuse the binding contained in the ParameterBinder although we create a new query String because the
 		// parameters in the query do not change.
-		return parameterBinder.get().bindAndPrepare(query, accessor);
+		return parameterBinder.get().bindAndPrepare(query, metadata, accessor);
 	}
 
 	/*
@@ -116,7 +117,11 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 				? em.createNativeQuery(queryString) //
 				: em.createQuery(queryString, Long.class);
 
-		return parameterBinder.get().bind(query, accessor, LENIENT);
+		QueryParameterSetter.QueryMetadata metadata = metadataCache.getMetadata(queryString, query);
+
+		parameterBinder.get().bind(metadata.withQuery(query), accessor, QueryParameterSetter.ErrorHandling.LENIENT);
+
+		return query;
 	}
 
 	/**

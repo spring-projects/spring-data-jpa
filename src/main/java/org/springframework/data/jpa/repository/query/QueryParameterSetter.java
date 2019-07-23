@@ -18,7 +18,11 @@ package org.springframework.data.jpa.repository.query;
 import static org.springframework.data.jpa.repository.query.QueryParameterSetter.ErrorHandling.*;
 
 import java.lang.reflect.Proxy;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 
 import javax.persistence.Parameter;
@@ -42,7 +46,7 @@ import org.springframework.util.Assert;
  */
 interface QueryParameterSetter {
 
-	void setParameter(Query query, JpaParametersParameterAccessor accessor, ErrorHandling errorHandling);
+	void setParameter(BindableQuery query, JpaParametersParameterAccessor accessor, ErrorHandling errorHandling);
 
 	/** Noop implementation */
 	QueryParameterSetter NOOP = (query, values, errorHandling) -> {};
@@ -51,8 +55,6 @@ interface QueryParameterSetter {
 	 * {@link QueryParameterSetter} for named or indexed parameters that might have a {@link TemporalType} specified.
 	 */
 	class NamedOrIndexedQueryParameterSetter implements QueryParameterSetter {
-
-		private static final Logger LOGGER = LoggerFactory.getLogger(NamedOrIndexedQueryParameterSetter.class);
 
 		private final Function<JpaParametersParameterAccessor, Object> valueExtractor;
 		private final Parameter<?> parameter;
@@ -79,7 +81,8 @@ interface QueryParameterSetter {
 		 */
 		@SuppressWarnings("unchecked")
 		@Override
-		public void setParameter(Query query, JpaParametersParameterAccessor accessor, ErrorHandling errorHandling) {
+		public void setParameter(BindableQuery query, JpaParametersParameterAccessor accessor,
+				ErrorHandling errorHandling) {
 
 			Object value = valueExtractor.apply(accessor);
 
@@ -92,7 +95,7 @@ interface QueryParameterSetter {
 
 				if (parameter instanceof ParameterExpression) {
 					errorHandling.execute(() -> query.setParameter((Parameter<Date>) parameter, (Date) value, temporalType));
-				} else if (parameter.getName() != null && QueryUtils.hasNamedParameter(query)) {
+				} else if (query.hasNamedParameters() && parameter.getName() != null) {
 					errorHandling.execute(() -> query.setParameter(parameter.getName(), (Date) value, temporalType));
 				} else {
 
@@ -100,7 +103,7 @@ interface QueryParameterSetter {
 
 					if (position != null //
 							&& (query.getParameters().size() >= parameter.getPosition() //
-									|| registerExcessParameters(query) //
+									|| query.registerExcessParameters() //
 									|| errorHandling == LENIENT)) {
 
 						errorHandling.execute(() -> query.setParameter(parameter.getPosition(), (Date) value, temporalType));
@@ -111,7 +114,7 @@ interface QueryParameterSetter {
 
 				if (parameter instanceof ParameterExpression) {
 					errorHandling.execute(() -> query.setParameter((Parameter<Object>) parameter, value));
-				} else if (parameter.getName() != null && QueryUtils.hasNamedParameter(query)) {
+				} else if (query.hasNamedParameters() && parameter.getName() != null) {
 					errorHandling.execute(() -> query.setParameter(parameter.getName(), value));
 
 				} else {
@@ -121,49 +124,10 @@ interface QueryParameterSetter {
 					if (position != null //
 							&& (query.getParameters().size() >= position //
 									|| errorHandling == LENIENT //
-									|| registerExcessParameters(query))) {
-
+									|| query.registerExcessParameters())) {
 						errorHandling.execute(() -> query.setParameter(position, value));
 					}
 				}
-			}
-		}
-
-		private boolean registerExcessParameters(Query query) {
-
-			// DATAJPA-1172
-			// Since EclipseLink doesn't reliably report whether a query has parameters
-			// we simply try to set the parameters and ignore possible failures.
-			// this is relevant for native queries with SpEL expressions, where the method parameters don't have to match the
-			// parameters in the query.
-			// https://bugs.eclipse.org/bugs/show_bug.cgi?id=521915
-
-			return query.getParameters().size() == 0 && unwrapClass(query).getName().startsWith("org.eclipse");
-		}
-
-		/**
-		 * Returns the actual target {@link Query} instance, even if the provided query is a {@link Proxy} based on
-		 * {@link org.springframework.orm.jpa.SharedEntityManagerCreator.DeferredQueryInvocationHandler}.
-		 *
-		 * @param query a {@link Query} instance, possibly a Proxy.
-		 * @return the class of the actual underlying class if it can be determined, the class of the passed in instance
-		 *         otherwise.
-		 */
-		private static Class<?> unwrapClass(Query query) {
-
-			Class<? extends Query> queryType = query.getClass();
-
-			try {
-
-				return Proxy.isProxyClass(queryType) //
-						? query.unwrap(null).getClass() //
-						: queryType;
-
-			} catch (RuntimeException e) {
-
-				LOGGER.warn("Failed to unwrap actual class for Query proxy.", e);
-
-				return queryType;
 			}
 		}
 	}
@@ -194,5 +158,185 @@ interface QueryParameterSetter {
 		private static final Logger LOG = LoggerFactory.getLogger(ErrorHandling.class);
 
 		abstract void execute(Runnable block);
+	}
+
+	/**
+	 * Cache for {@link QueryMetadata}. Optimizes for small cache sizes on a best-effort basis.
+	 */
+	class QueryMetadataCache {
+
+		private Map<String, QueryMetadata> cache = Collections.emptyMap();
+
+		/**
+		 * Retrieve the {@link QueryMetadata} for a given {@code cacheKey}.
+		 *
+		 * @param cacheKey
+		 * @param query
+		 * @return
+		 */
+		public QueryMetadata getMetadata(String cacheKey, Query query) {
+
+			QueryMetadata queryMetadata = cache.get(cacheKey);
+
+			if (queryMetadata == null) {
+
+				queryMetadata = new QueryMetadata(query);
+
+				Map<String, QueryMetadata> cache;
+
+				if (this.cache.isEmpty()) {
+					cache = Collections.singletonMap(cacheKey, queryMetadata);
+				} else {
+					cache = new HashMap<>(this.cache);
+					cache.put(cacheKey, queryMetadata);
+				}
+
+				synchronized (this) {
+					this.cache = cache;
+				}
+			}
+
+			return queryMetadata;
+		}
+	}
+
+	/**
+	 * Metadata for a JPA {@link Query}.
+	 */
+	class QueryMetadata {
+
+		private final boolean namedParameters;
+		private final Set<Parameter<?>> parameters;
+		private final boolean registerExcessParameters;
+
+		QueryMetadata(Query query) {
+
+			this.namedParameters = QueryUtils.hasNamedParameter(query);
+			this.parameters = query.getParameters();
+
+			// DATAJPA-1172
+			// Since EclipseLink doesn't reliably report whether a query has parameters
+			// we simply try to set the parameters and ignore possible failures.
+			// this is relevant for native queries with SpEL expressions, where the method parameters don't have to match the
+			// parameters in the query.
+			// https://bugs.eclipse.org/bugs/show_bug.cgi?id=521915
+
+			this.registerExcessParameters = query.getParameters().size() == 0
+					&& unwrapClass(query).getName().startsWith("org.eclipse");
+		}
+
+		QueryMetadata(QueryMetadata metadata) {
+
+			this.namedParameters = metadata.namedParameters;
+			this.parameters = metadata.parameters;
+			this.registerExcessParameters = metadata.registerExcessParameters;
+		}
+
+		/**
+		 * Create a {@link BindableQuery} for a {@link Query}.
+		 *
+		 * @param query
+		 * @return
+		 */
+		public BindableQuery withQuery(Query query) {
+			return new BindableQuery(this, query);
+		}
+
+		/**
+		 * @return
+		 */
+		public Set<Parameter<?>> getParameters() {
+			return parameters;
+		}
+
+		/**
+		 * @return {@literal true} if the underlying query uses named parameters.
+		 */
+		public boolean hasNamedParameters() {
+			return this.namedParameters;
+		}
+
+		public boolean registerExcessParameters() {
+			return this.registerExcessParameters;
+		}
+
+		/**
+		 * Returns the actual target {@link Query} instance, even if the provided query is a {@link Proxy} based on
+		 * {@link org.springframework.orm.jpa.SharedEntityManagerCreator.DeferredQueryInvocationHandler}.
+		 *
+		 * @param query a {@link Query} instance, possibly a Proxy.
+		 * @return the class of the actual underlying class if it can be determined, the class of the passed in instance
+		 *         otherwise.
+		 */
+		private static Class<?> unwrapClass(Query query) {
+
+			Class<? extends Query> queryType = query.getClass();
+
+			try {
+
+				return Proxy.isProxyClass(queryType) //
+						? query.unwrap(null).getClass() //
+						: queryType;
+
+			} catch (RuntimeException e) {
+
+				LoggerFactory.getLogger(QueryMetadata.class).warn("Failed to unwrap actual class for Query proxy.", e);
+
+				return queryType;
+			}
+		}
+	}
+
+	/**
+	 * A bindable {@link Query}.
+	 */
+	class BindableQuery extends QueryMetadata {
+
+		private final Query query;
+		private final Query unwrapped;
+
+		BindableQuery(QueryMetadata metadata, Query query) {
+			super(metadata);
+			this.query = query;
+			this.unwrapped = Proxy.isProxyClass(query.getClass()) ? query.unwrap(null) : query;
+		}
+
+		private BindableQuery(Query query) {
+			super(query);
+			this.query = query;
+			this.unwrapped = Proxy.isProxyClass(query.getClass()) ? query.unwrap(null) : query;
+		}
+
+		public static BindableQuery from(Query query) {
+			return new BindableQuery(query);
+		}
+
+		public Query getQuery() {
+			return query;
+		}
+
+		public <T> Query setParameter(Parameter<T> param, T value) {
+			return unwrapped.setParameter(param, value);
+		}
+
+		public Query setParameter(Parameter<Date> param, Date value, TemporalType temporalType) {
+			return unwrapped.setParameter(param, value, temporalType);
+		}
+
+		public Query setParameter(String name, Object value) {
+			return unwrapped.setParameter(name, value);
+		}
+
+		public Query setParameter(String name, Date value, TemporalType temporalType) {
+			return query.setParameter(name, value, temporalType);
+		}
+
+		public Query setParameter(int position, Object value) {
+			return unwrapped.setParameter(position, value);
+		}
+
+		public Query setParameter(int position, Date value, TemporalType temporalType) {
+			return unwrapped.setParameter(position, value, temporalType);
+		}
 	}
 }

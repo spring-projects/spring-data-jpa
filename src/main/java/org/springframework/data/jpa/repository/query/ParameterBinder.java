@@ -69,17 +69,18 @@ public class ParameterBinder {
 		this.useJpaForPaging = useJpaForPaging;
 	}
 
-	public <T extends Query> T bind(T jpaQuery, JpaParametersParameterAccessor accessor) {
-		return bind(jpaQuery, accessor, ErrorHandling.STRICT);
+	public <T extends Query> T bind(T jpaQuery, QueryParameterSetter.QueryMetadata metadata,
+			JpaParametersParameterAccessor accessor) {
+		bind(metadata.withQuery(jpaQuery), accessor, ErrorHandling.STRICT);
+		return jpaQuery;
 	}
 
-	public <T extends Query> T bind(T jpaQuery, JpaParametersParameterAccessor accessor, ErrorHandling errorHandling) {
+	public void bind(QueryParameterSetter.BindableQuery query, JpaParametersParameterAccessor accessor,
+			ErrorHandling errorHandling) {
 
 		for (QueryParameterSetter setter : parameterSetters) {
-			setter.setParameter(jpaQuery, accessor, errorHandling);
+			setter.setParameter(query, accessor, errorHandling);
 		}
-
-		return jpaQuery;
 	}
 
 	/**
@@ -88,19 +89,18 @@ public class ParameterBinder {
 	 * @param query must not be {@literal null}.
 	 * @param values values of method parameters to be assigned to the query parameters.
 	 */
-	Query bindAndPrepare(Query query, JpaParametersParameterAccessor accessor) {
+	Query bindAndPrepare(Query query, QueryParameterSetter.QueryMetadata metadata,
+			JpaParametersParameterAccessor accessor) {
 
-		Assert.notNull(query, "Query must not be null!");
-
-		Query result = bind(query, accessor);
+		bind(query, metadata, accessor);
 
 		if (!useJpaForPaging || !parameters.hasPageableParameter() || accessor.getPageable().isUnpaged()) {
-			return result;
+			return query;
 		}
 
-		result.setFirstResult((int) accessor.getPageable().getOffset());
-		result.setMaxResults(accessor.getPageable().getPageSize());
+		query.setFirstResult((int) accessor.getPageable().getOffset());
+		query.setMaxResults(accessor.getPageable().getPageSize());
 
-		return result;
+		return query;
 	}
 }

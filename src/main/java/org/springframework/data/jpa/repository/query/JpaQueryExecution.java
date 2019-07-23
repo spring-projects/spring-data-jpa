@@ -176,7 +176,6 @@ public abstract class JpaQueryExecution {
 
 			return PageableExecutionUtils.getPage(query.getResultList(), accessor.getPageable(),
 					() -> count(repositoryQuery, accessor));
-
 		}
 
 		private long count(AbstractJpaQuery repositoryQuery, JpaParametersParameterAccessor accessor) {

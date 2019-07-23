@@ -17,8 +17,9 @@ package org.springframework.data.jpa.repository.query;
 
 import static java.util.Collections.*;
 import static javax.persistence.TemporalType.*;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
 
 import java.lang.reflect.Method;
 import java.util.Date;
@@ -36,6 +37,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.Temporal;
@@ -102,8 +104,7 @@ public class ParameterBinderUnitTests {
 		Method validWithSort = SampleRepository.class.getMethod("validWithSort", String.class, Sort.class);
 
 		Object[] values = { "foo", null };
-		ParameterBinderFactory.createBinder(new JpaParameters(validWithSort)).bind(query,
-				new JpaParametersParameterAccessor(new JpaParameters(validWithSort), values));
+		bind(validWithSort, values);
 		verify(query).setParameter(eq(1), eq("foo"));
 	}
 
@@ -113,8 +114,7 @@ public class ParameterBinderUnitTests {
 		Method validWithPageable = SampleRepository.class.getMethod("validWithPageable", String.class, Pageable.class);
 
 		Object[] values = { "foo", null };
-		ParameterBinderFactory.createBinder(new JpaParameters(validWithPageable)).bind(query,
-				new JpaParametersParameterAccessor(new JpaParameters(validWithPageable), values));
+		bind(validWithPageable, values);
 		verify(query).setParameter(eq(1), eq("foo"));
 	}
 
@@ -122,8 +122,7 @@ public class ParameterBinderUnitTests {
 	public void usesIndexedParametersIfNoParamAnnotationPresent() throws Exception {
 
 		Object[] values = { "foo" };
-		ParameterBinderFactory.createBinder(new JpaParameters(useIndexedParameters)).bind(query,
-				new JpaParametersParameterAccessor(new JpaParameters(useIndexedParameters), values));
+		bind(useIndexedParameters, values);
 		verify(query).setParameter(eq(1), any());
 	}
 
@@ -138,8 +137,7 @@ public class ParameterBinderUnitTests {
 		when(query.getParameters()).thenReturn(singleton(parameter));
 
 		Object[] values = { "foo" };
-		ParameterBinderFactory.createBinder(new JpaParameters(valid)).bind(query,
-				new JpaParametersParameterAccessor(new JpaParameters(valid), values));
+		bind(valid, values);
 
 		verify(query).setParameter(eq("username"), any());
 	}
@@ -152,7 +150,7 @@ public class ParameterBinderUnitTests {
 		SampleEmbeddable embeddable = new SampleEmbeddable();
 
 		Object[] values = { embeddable };
-		ParameterBinderFactory.createBinder(parameters).bind(query, getAccessor(method, values));
+		bind(method, parameters, values);
 
 		verify(query).setParameter(1, embeddable);
 	}
@@ -165,7 +163,7 @@ public class ParameterBinderUnitTests {
 		Date date = new Date();
 
 		Object[] values = { date };
-		ParameterBinderFactory.createBinder(parameters).bind(query, getAccessor(method, values));
+		bind(method, parameters, values);
 
 		verify(query).setParameter(eq(1), eq(date), eq(TemporalType.DATE));
 	}
@@ -178,7 +176,7 @@ public class ParameterBinderUnitTests {
 		Date date = new Date();
 
 		Object[] values = { date };
-		ParameterBinderFactory.createBinder(parameters).bind(query, getAccessor(method, values));
+		bind(method, parameters, values);
 
 		verify(query).setParameter(eq(1), eq(date), eq(TemporalType.TIMESTAMP));
 	}
@@ -199,7 +197,7 @@ public class ParameterBinderUnitTests {
 		JpaParameters parameters = new JpaParameters(method);
 		Integer[] ids = new Integer[] { 1, 2, 3 };
 		Object[] values = { ids };
-		ParameterBinderFactory.createBinder(parameters).bind(query, getAccessor(method, values));
+		bind(method, parameters, values);
 
 		verify(query).setParameter(eq(1), eq(ids));
 	}
@@ -211,7 +209,7 @@ public class ParameterBinderUnitTests {
 		JpaParameters parameters = new JpaParameters(method);
 
 		Object[] values = { Optional.of("Foo") };
-		ParameterBinderFactory.createBinder(parameters).bind(query, getAccessor(method, values));
+		bind(method, parameters, values);
 
 		verify(query).setParameter(eq(1), eq("Foo"));
 	}
@@ -222,10 +220,19 @@ public class ParameterBinderUnitTests {
 		Method method = SampleRepository.class.getMethod("withQuery", String.class, String.class);
 
 		Object[] values = { "foo", "superfluous" };
-		ParameterBinderFactory.createBinder(new JpaParameters(method)).bind(query, getAccessor(method, values));
+		bind(method, new JpaParameters(method), values);
 
 		verify(query).setParameter(eq(1), any());
 		verify(query, never()).setParameter(eq(2), any());
+	}
+
+	private void bind(Method method, Object[] values) {
+		bind(method, new JpaParameters(method), values);
+	}
+
+	private void bind(Method method, JpaParameters parameters, Object[] values) {
+		ParameterBinderFactory.createBinder(parameters).bind(QueryParameterSetter.BindableQuery.from(query),
+				getAccessor(method, values), QueryParameterSetter.ErrorHandling.STRICT);
 	}
 
 	private JpaParametersParameterAccessor getAccessor(Method method, Object... values) {

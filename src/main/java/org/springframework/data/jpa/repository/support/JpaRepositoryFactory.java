@@ -105,7 +105,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 
 	/**
 	 * Configures the {@link EntityPathResolver} to be used. Defaults to {@link SimpleEntityPathResolver#INSTANCE}.
-	 * 
+	 *
 	 * @param entityPathResolver must not be {@literal null}.
 	 */
 	public void setEntityPathResolver(EntityPathResolver entityPathResolver) {
@@ -252,7 +252,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 
 		/**
 		 * Creates a new {@link EclipseLinkProjectionQueryCreationListener} for the given {@link EntityManager}.
-		 * 
+		 *
 		 * @param em must not be {@literal null}.
 		 */
 		public EclipseLinkProjectionQueryCreationListener(EntityManager em) {
@@ -262,7 +262,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 			this.metamodel = JpaMetamodel.of(em.getMetamodel());
 		}
 
-		/* 
+		/*
 		 * (non-Javadoc)
 		 * @see org.springframework.data.repository.core.support.QueryCreationListener#onCreation(org.springframework.data.repository.query.RepositoryQuery)
 		 */

@@ -30,6 +30,7 @@ import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.QueryMethod;
+import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -51,6 +52,7 @@ class StoredProcedureJpaQuery extends AbstractJpaQuery {
 
 	private final StoredProcedureAttributes procedureAttributes;
 	private final boolean useNamedParameters;
+	private final QueryParameterSetter.QueryMetadataCache metadataCache = new QueryParameterSetter.QueryMetadataCache();
 
 	/**
 	 * Creates a new {@link StoredProcedureJpaQuery}.
@@ -97,7 +99,11 @@ class StoredProcedureJpaQuery extends AbstractJpaQuery {
 	 */
 	@Override
 	protected StoredProcedureQuery doCreateQuery(JpaParametersParameterAccessor accessor) {
-		return parameterBinder.get().bind(createStoredProcedure(), accessor);
+
+		StoredProcedureQuery storedProcedure = createStoredProcedure();
+		QueryParameterSetter.QueryMetadata metadata = metadataCache.getMetadata("singleton", storedProcedure);
+
+		return parameterBinder.get().bind(storedProcedure, metadata, accessor);
 	}
 
 	/*
