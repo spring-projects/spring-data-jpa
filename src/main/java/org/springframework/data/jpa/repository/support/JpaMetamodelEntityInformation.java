@@ -35,6 +35,7 @@ import javax.persistence.metamodel.Type.PersistenceType;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.util.JpaMetamodel;
 import org.springframework.data.util.DirectFieldAccessFallbackBeanWrapper;
 import org.springframework.data.util.ProxyUtils;
@@ -146,6 +147,14 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 	@SuppressWarnings("unchecked")
 	public ID getId(T entity) {
 
+		// check if this is a proxy. If so use Proxy mechanics to access the id.
+		PersistenceProvider persistenceProvider = PersistenceProvider.fromMetamodel(metamodel);
+
+		if (persistenceProvider.shouldUseAccessorFor(entity)) {
+			return (ID) persistenceProvider.getIdentifierFrom(entity);
+		}
+
+		// if not a proxy use Spring mechanics to access the id.
 		BeanWrapper entityWrapper = new DirectFieldAccessFallbackBeanWrapper(entity);
 
 		if (idMetadata.hasSimpleId()) {
