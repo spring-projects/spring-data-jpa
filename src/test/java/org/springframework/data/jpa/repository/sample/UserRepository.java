@@ -322,8 +322,8 @@ public interface UserRepository
 	Integer plus1inout(Integer arg);
 
 	/**
-	 * Implicitly mapped to a procedure with name "plus1inout" in database via alias.
-	 * Showing that outputParameterName is ignored when not a NamedStoredProcedure
+	 * Implicitly mapped to a procedure with name "plus1inout" in database via alias. Showing that outputParameterName is
+	 * ignored when not a NamedStoredProcedure
 	 */
 	@Procedure(procedureName = "plus1inout", outputParameterName = "fakeName") // DATAJPA-707
 	Integer plus1inoutInvalidOutParamName(Integer arg);
@@ -335,29 +335,29 @@ public interface UserRepository
 	Integer entityAnnotatedCustomNamedProcedurePlus1IO(@Param("arg") Integer arg);
 
 	/**
-	 * Explicitly mapped to named stored procedure "User.plus1IO" in {@link EntityManager}.
-	 * with an invalid outputParameterName - test will fail
+	 * Explicitly mapped to named stored procedure "User.plus1IO" in {@link EntityManager}. with an invalid
+	 * outputParameterName - test will fail
 	 */
 	@Procedure(name = "User.plus1IO", outputParameterName = "fakeName") // DATAJPA-707
 	Integer entityAnnotatedCustomNamedProcedurePlus1IOInvalidOutParamName(@Param("arg") Integer arg);
 
 	/**
-	 * Explicitly mapped to named stored procedure "User.plus1IO2" in {@link EntityManager}.
-	 * Stored Proc has 2 out params, but naming one out param here so it only returns one
+	 * Explicitly mapped to named stored procedure "User.plus1IO2" in {@link EntityManager}. Stored Proc has 2 out params,
+	 * but naming one out param here so it only returns one
 	 */
 	@Procedure(name = "User.plus1IO2", outputParameterName = "res2") // DATAJPA-707
 	Integer entityAnnotatedCustomNamedProcedurePlus1IO2TwoOutParamsButNamingOne(@Param("arg") Integer arg);
 
 	/**
-	 * Explicitly mapped to named stored procedure "User.plus1IO2" in {@link EntityManager}.
-	 * Returns 2 out params as a Map.
+	 * Explicitly mapped to named stored procedure "User.plus1IO2" in {@link EntityManager}. Returns 2 out params as a
+	 * Map.
 	 */
 	@Procedure(name = "User.plus1IO2") // DATAJPA-707 DATAJPA-1579
 	Map<String, Integer> entityAnnotatedCustomNamedProcedurePlus1IO2(@Param("arg") Integer arg);
 
 	/**
-	 * Explicitly mapped to named stored procedure "User.plus1IOoptional" in {@link EntityManager}.
-	 * Returns 2 out params as a Map, second one amoung which is null.
+	 * Explicitly mapped to named stored procedure "User.plus1IOoptional" in {@link EntityManager}. Returns 2 out params
+	 * as a Map, second one amoung which is null.
 	 */
 	@Procedure(name = "User.plus1IOoptional") // DATAJPA-1579
 	Map<String, Integer> entityAnnotatedCustomNamedProcedurePlus1IOoptional(@Param("arg") Integer arg);
@@ -464,13 +464,13 @@ public interface UserRepository
 	List<User> findUsersByFirstnameForSpELExpressionWithParameterIndexOnly(String firstname);
 
 	// DATAJPA-564
-	@Query(
-			value = "select * from (" +
-					"select u.*, rownum() as RN from (" +
-					"select * from SD_User ORDER BY ucase(firstname)" +
-					") u" +
-					") where RN between ?#{ #pageable.offset +1 } and ?#{#pageable.offset + #pageable.pageSize}",
-			countQuery = "select count(u.id) from SD_User u", nativeQuery = true)
+	@Query(value = "select * from (" //
+			+ "select u.*, rownum() as RN from (" //
+			+ "select * from SD_User ORDER BY ucase(firstname)" //
+			+ ") u" //
+			+ ") where RN between ?#{ #pageable.offset +1 } and ?#{#pageable.offset + #pageable.pageSize}", //
+			countQuery = "select count(u.id) from SD_User u", //
+			nativeQuery = true)
 	Page<User> findUsersInNativeQueryWithPagination(Pageable pageable);
 
 	// DATAJPA-1140
@@ -567,11 +567,14 @@ public interface UserRepository
 	Page<User> findAllOrderedBySpecialNameSingleParam(@Param("name") String name, Pageable page);
 
 	// DATAJPA-1233
-	@Query(value = "SELECT u FROM User u WHERE :other = 'x' ORDER BY CASE WHEN (u.firstname  >= :name) THEN 0 ELSE 1 END, u.firstname")
-	Page<User> findAllOrderedBySpecialNameMultipleParams(@Param("name") String name, @Param("other") String other, Pageable page);
+	@Query(
+			value = "SELECT u FROM User u WHERE :other = 'x' ORDER BY CASE WHEN (u.firstname  >= :name) THEN 0 ELSE 1 END, u.firstname")
+	Page<User> findAllOrderedBySpecialNameMultipleParams(@Param("name") String name, @Param("other") String other,
+			Pageable page);
 
 	// DATAJPA-1233
-	@Query(value = "SELECT u FROM User u WHERE ?2 = 'x' ORDER BY CASE WHEN (u.firstname  >= ?1) THEN 0 ELSE 1 END, u.firstname")
+	@Query(
+			value = "SELECT u FROM User u WHERE ?2 = 'x' ORDER BY CASE WHEN (u.firstname  >= ?1) THEN 0 ELSE 1 END, u.firstname")
 	Page<User> findAllOrderedBySpecialNameMultipleParamsIndexed(String name, String other, Pageable page);
 
 	// DATAJPA-928

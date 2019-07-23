@@ -15,6 +15,15 @@
  */
 package org.springframework.data.jpa.repository;
 
+import static org.assertj.core.api.Assertions.*;
+
+import java.util.Map;
+
+import javax.persistence.EntityManager;
+import javax.persistence.ParameterMode;
+import javax.persistence.PersistenceContext;
+import javax.persistence.StoredProcedureQuery;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,15 +32,6 @@ import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
-
-import javax.persistence.EntityManager;
-import javax.persistence.ParameterMode;
-import javax.persistence.PersistenceContext;
-import javax.persistence.StoredProcedureQuery;
-import java.util.Map;
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.*;
 
 /**
  * Integration tests for JPA 2.1 stored procedure support.
@@ -48,10 +48,8 @@ import static org.assertj.core.api.Assertions.*;
 @Transactional
 public class UserRepositoryStoredProcedureIntegrationTests {
 
-	@Autowired
-	UserRepository repository;
-	@PersistenceContext
-	EntityManager em;
+	@Autowired UserRepository repository;
+	@PersistenceContext EntityManager em;
 
 	@Test // DATAJPA-455
 	public void callProcedureWithInAndOutParameters() {
@@ -82,8 +80,8 @@ public class UserRepositoryStoredProcedureIntegrationTests {
 
 		assertThatThrownBy( //
 				() -> repository.entityAnnotatedCustomNamedProcedurePlus1IOInvalidOutParamName(1)) //
-				.isInstanceOf(InvalidDataAccessApiUsageException.class) //
-				.hasMessageContaining("parameter");
+						.isInstanceOf(InvalidDataAccessApiUsageException.class) //
+						.hasMessageContaining("parameter");
 	}
 
 	@Test // DATAJPA-707
