@@ -79,6 +79,7 @@ import org.springframework.util.StringUtils;
  * @author Florian Lüdiger
  * @author Grégoire Druant
  * @author Mohammad Hewedy
+ * @author Sviataslau Apanasionak
  */
 public abstract class QueryUtils {
 
@@ -614,11 +615,12 @@ public abstract class QueryUtils {
 	}
 
 	static <T> Expression<T> toExpressionRecursively(From<?, ?> from, PropertyPath property) {
-		return toExpressionRecursively(from, property, false);
+		return toExpressionRecursively(from, property, false, false);
 	}
 
 	@SuppressWarnings("unchecked")
-	static <T> Expression<T> toExpressionRecursively(From<?, ?> from, PropertyPath property, boolean isForSelection) {
+	static <T> Expression<T> toExpressionRecursively(From<?, ?> from, PropertyPath property, boolean isForSelection,
+													 boolean hasOptionalAttributeInPath) {
 
 		Bindable<?> propertyPathModel;
 		Bindable<?> model = from.getModel();
@@ -635,14 +637,46 @@ public abstract class QueryUtils {
 			propertyPathModel = from.get(segment).getModel();
 		}
 
-		if (requiresOuterJoin(propertyPathModel, model instanceof PluralAttribute, !property.hasNext(), isForSelection)
+		boolean isPluralAttribute = model instanceof PluralAttribute;
+
+		//DATAJPA-1572
+		if(!hasOptionalAttributeInPath &&
+				propertyPathModel != null &&
+				propertyPathModel instanceof Attribute) {
+
+			Attribute<?, ?> attribute = (Attribute<?, ?>) propertyPathModel;
+
+			if (ASSOCIATION_TYPES.containsKey(attribute.getPersistentAttributeType())) {
+
+				boolean optionalValue = getAnnotationProperty(attribute, "optional", true);
+
+				if(optionalValue){
+					hasOptionalAttributeInPath = true;
+				}
+			}
+		}
+
+
+		if (requiresOuterJoin(propertyPathModel,
+				isPluralAttribute,
+				!property.hasNext(),
+				isForSelection, hasOptionalAttributeInPath)
 				&& !isAlreadyFetched(from, segment)) {
-			Join<?, ?> join = getOrCreateJoin(from, segment);
-			return (Expression<T>) (property.hasNext() ? toExpressionRecursively(join, property.next(), isForSelection)
+			Join<?, ?> join = getOrCreateJoin(from, segment, JoinType.LEFT);
+			return (Expression<T>) (property.hasNext() ? toExpressionRecursively(join, property.next(), isForSelection,
+					hasOptionalAttributeInPath)
 					: join);
 		} else {
+
 			Path<Object> path = from.get(segment);
-			return (Expression<T>) (property.hasNext() ? toExpressionRecursively(path, property.next()) : path);
+
+			if(property.hasNext()){
+				Join join = getOrCreateJoin(from, property.getSegment(), JoinType.INNER);
+				return toExpressionRecursively(join, property.next(), isForSelection, hasOptionalAttributeInPath);
+			}else {
+				return (Expression<T>) path;
+			}
+
 		}
 	}
 
@@ -654,10 +688,11 @@ public abstract class QueryUtils {
 	 * @param isPluralAttribute is the attribute of Collection type?
 	 * @param isLeafProperty is this the final property navigated by a {@link PropertyPath}?
 	 * @param isForSelection is the property navigated for the selection part of the query?
+	 * @param hasOptionalAttributeInPath
 	 * @return whether an outer join is to be used for integrating this attribute in a query.
 	 */
 	private static boolean requiresOuterJoin(@Nullable Bindable<?> propertyPathModel, boolean isPluralAttribute,
-			boolean isLeafProperty, boolean isForSelection) {
+			boolean isLeafProperty, boolean isForSelection, boolean hasOptionalAttributeInPath) {
 
 		if (propertyPathModel == null && isPluralAttribute) {
 			return true;
@@ -686,7 +721,10 @@ public abstract class QueryUtils {
 			return false;
 		}
 
-		return getAnnotationProperty(attribute, "optional", true);
+		boolean optionalValue = getAnnotationProperty(attribute, "optional", true);
+
+		//DATAJPA-1572
+		return hasOptionalAttributeInPath || optionalValue;
 	}
 
 	private static <T> T getAnnotationProperty(Attribute<?, ?> attribute, String propertyName, T defaultValue) {
@@ -707,31 +745,27 @@ public abstract class QueryUtils {
 		return annotation == null ? defaultValue : (T) AnnotationUtils.getValue(annotation, propertyName);
 	}
 
-	static Expression<Object> toExpressionRecursively(Path<Object> path, PropertyPath property) {
-
-		Path<Object> result = path.get(property.getSegment());
-		return property.hasNext() ? toExpressionRecursively(result, property.next()) : result;
-	}
 
 	/**
 	 * Returns an existing join for the given attribute if one already exists or creates a new one if not.
 	 *
 	 * @param from the {@link From} to get the current joins from.
 	 * @param attribute the {@link Attribute} to look for in the current joins.
+	 * @param joinType the {@link JoinType} to specify join type
 	 * @return will never be {@literal null}.
 	 */
-	private static Join<?, ?> getOrCreateJoin(From<?, ?> from, String attribute) {
+	private static Join<?, ?> getOrCreateJoin(From<?, ?> from, String attribute, JoinType joinType) {
 
 		for (Join<?, ?> join : from.getJoins()) {
 
 			boolean sameName = join.getAttribute().getName().equals(attribute);
 
-			if (sameName && join.getJoinType().equals(JoinType.LEFT)) {
+			if (sameName && join.getJoinType().equals(joinType)) {
 				return join;
 			}
 		}
 
-		return from.join(attribute, JoinType.LEFT);
+		return from.join(attribute, joinType);
 	}
 
 	/**

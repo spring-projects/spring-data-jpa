@@ -173,7 +173,7 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extend
 			for (String property : returnedType.getInputProperties()) {
 
 				PropertyPath path = PropertyPath.from(property, returnedType.getDomainType());
-				selections.add(toExpressionRecursively(root, path, true).alias(property));
+				selections.add(toExpressionRecursively(root, path, true, false).alias(property));
 			}
 
 			query = query.multiselect(selections);
