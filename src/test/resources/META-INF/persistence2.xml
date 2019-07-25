@@ -20,6 +20,12 @@
 		<class>org.springframework.data.jpa.domain.sample.SpecialUser</class>
 		<class>org.springframework.data.jpa.domain.sample.User</class>
 		<class>org.springframework.data.jpa.domain.sample.Dummy</class>
+		<class>org.springframework.data.jpa.domain.sample.Person</class>
+		<class>org.springframework.data.jpa.domain.sample.Phone</class>
+		<class>org.springframework.data.jpa.domain.sample.Computer</class>
+		<class>org.springframework.data.jpa.domain.sample.Laptop</class>
+		<class>org.springframework.data.jpa.domain.sample.Room</class>
+		<class>org.springframework.data.jpa.domain.sample.Floor</class>
 		<exclude-unlisted-classes>true</exclude-unlisted-classes>
 	</persistence-unit>
 	<persistence-unit name="second">
@@ -40,6 +46,12 @@
 		<class>org.springframework.data.jpa.domain.sample.SpecialUser</class>
 		<class>org.springframework.data.jpa.domain.sample.User</class>
 		<class>org.springframework.data.jpa.domain.sample.Dummy</class>
+		<class>org.springframework.data.jpa.domain.sample.Person</class>
+		<class>org.springframework.data.jpa.domain.sample.Phone</class>
+		<class>org.springframework.data.jpa.domain.sample.Computer</class>
+		<class>org.springframework.data.jpa.domain.sample.Laptop</class>
+		<class>org.springframework.data.jpa.domain.sample.Room</class>
+		<class>org.springframework.data.jpa.domain.sample.Floor</class>
 		<exclude-unlisted-classes>true</exclude-unlisted-classes>
 	</persistence-unit>
 </persistence>

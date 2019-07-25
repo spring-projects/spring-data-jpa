@@ -12,11 +12,13 @@
 		<class>org.springframework.data.jpa.domain.sample.AuditableUser</class>
 		<class>org.springframework.data.jpa.domain.sample.Category</class>
 		<class>org.springframework.data.jpa.domain.sample.Child</class>
+		<class>org.springframework.data.jpa.domain.sample.Computer</class>
 		<class>org.springframework.data.jpa.domain.sample.ConcreteType1</class>
 		<class>org.springframework.data.jpa.domain.sample.ConcreteType2</class>
 		<class>org.springframework.data.jpa.domain.sample.CustomAbstractPersistable</class>
 		<class>org.springframework.data.jpa.domain.sample.Customer</class>
 		<class>org.springframework.data.jpa.domain.sample.EntityWithAssignedId</class>
+		<class>org.springframework.data.jpa.domain.sample.Floor</class>
 		<class>org.springframework.data.jpa.domain.sample.EmbeddedIdExampleEmployeePK</class>
 		<class>org.springframework.data.jpa.domain.sample.EmbeddedIdExampleEmployee</class>
 		<class>org.springframework.data.jpa.domain.sample.EmbeddedIdExampleDepartment</class>
@@ -24,15 +26,19 @@
 		<class>org.springframework.data.jpa.domain.sample.IdClassExampleDepartment</class>
 		<class>org.springframework.data.jpa.domain.sample.Item</class>
 		<class>org.springframework.data.jpa.domain.sample.ItemSite</class>
+		<class>org.springframework.data.jpa.domain.sample.Laptop</class>
 		<class>org.springframework.data.jpa.domain.sample.MailMessage</class>
 		<class>org.springframework.data.jpa.domain.sample.MailSender</class>
 		<class>org.springframework.data.jpa.domain.sample.MailUser</class>
 		<class>org.springframework.data.jpa.domain.sample.Order</class>
 		<class>org.springframework.data.jpa.domain.sample.Parent</class>
 		<class>org.springframework.data.jpa.domain.sample.PersistableWithIdClass</class>
+		<class>org.springframework.data.jpa.domain.sample.Person</class>
+		<class>org.springframework.data.jpa.domain.sample.Phone</class>
 		<class>org.springframework.data.jpa.domain.sample.PrimitiveVersionProperty</class>
 		<class>org.springframework.data.jpa.domain.sample.Product</class>
 		<class>org.springframework.data.jpa.domain.sample.Role</class>
+		<class>org.springframework.data.jpa.domain.sample.Room</class>
 		<class>org.springframework.data.jpa.domain.sample.SampleEntity</class>
 		<class>org.springframework.data.jpa.domain.sample.SampleEntityPK</class>
 		<class>org.springframework.data.jpa.domain.sample.SampleWithIdClass</class>
