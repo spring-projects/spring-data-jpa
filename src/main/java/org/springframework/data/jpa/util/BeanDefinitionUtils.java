@@ -18,6 +18,8 @@ package org.springframework.data.jpa.util;
 import static java.util.Arrays.*;
 import static org.springframework.beans.factory.BeanFactoryUtils.*;
 
+import lombok.EqualsAndHashCode;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -92,7 +94,7 @@ public class BeanDefinitionUtils {
 	public static Collection<EntityManagerFactoryBeanDefinition> getEntityManagerFactoryBeanDefinitions(
 			ConfigurableListableBeanFactory beanFactory) {
 
-		List<EntityManagerFactoryBeanDefinition> definitions = new ArrayList<EntityManagerFactoryBeanDefinition>();
+		Set<EntityManagerFactoryBeanDefinition> definitions = new HashSet<EntityManagerFactoryBeanDefinition>();
 
 		for (Class<?> type : EMF_TYPES) {
 
@@ -119,7 +121,7 @@ public class BeanDefinitionUtils {
 	 * @param definitions
 	 */
 	private static void registerEntityManagerFactoryBeanDefinition(String name,
-			ConfigurableListableBeanFactory beanFactory, List<EntityManagerFactoryBeanDefinition> definitions) {
+			ConfigurableListableBeanFactory beanFactory, Collection<EntityManagerFactoryBeanDefinition> definitions) {
 
 		BeanDefinition definition = beanFactory.getBeanDefinition(name);
 
@@ -165,6 +167,7 @@ public class BeanDefinitionUtils {
 	 * @author Oliver Gierke
 	 * @author Thomas Darimont
 	 */
+	@EqualsAndHashCode
 	public static class EntityManagerFactoryBeanDefinition {
 
 		private final String beanName;
