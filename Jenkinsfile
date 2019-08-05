@@ -31,7 +31,7 @@ pipeline {
                     options { timeout(time: 30, unit: 'MINUTES') }
                     steps {
                         sh 'rm -rf ?'
-                        sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw clean dependency:list test -Dsort -Dbundlor.enabled=false -B'
+                        sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw clean dependency:list test -Dsort -Dbundlor.enabled=false -U -B'
                     }
                 }
                 stage("test: hibernate-next") {
@@ -45,7 +45,7 @@ pipeline {
                     options { timeout(time: 30, unit: 'MINUTES') }
                     steps {
                         sh 'rm -rf ?'
-                        sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -Phibernate-next clean dependency:list test -Dsort -Dbundlor.enabled=false -B'
+                        sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -Phibernate-next clean dependency:list test -Dsort -Dbundlor.enabled=false -U -B'
                     }
                 }
                 stage("test: hibernate-41") {
@@ -58,7 +58,7 @@ pipeline {
                     options { timeout(time: 30, unit: 'MINUTES') }
                     steps {
                         sh 'rm -rf ?'
-                        sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/spring-data-maven-repository" ./mvnw -Phibernate-41 clean dependency:list test -Dsort -Dbundlor.enabled=false -B'
+                        sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/spring-data-maven-repository" ./mvnw -Phibernate-41 clean dependency:list test -Dsort -Dbundlor.enabled=false -U -B'
                     }
                 }
                 stage("test: hibernate-42") {
@@ -71,7 +71,7 @@ pipeline {
                     options { timeout(time: 30, unit: 'MINUTES') }
                     steps {
                         sh 'rm -rf ?'
-                        sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/spring-data-maven-repository" ./mvnw -Phibernate-42 clean dependency:list test -Dsort -Dbundlor.enabled=false -B'
+                        sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/spring-data-maven-repository" ./mvnw -Phibernate-42 clean dependency:list test -Dsort -Dbundlor.enabled=false -U -B'
                     }
                 }
                 stage("test: hibernate-42-next") {
@@ -84,7 +84,7 @@ pipeline {
                     options { timeout(time: 30, unit: 'MINUTES') }
                     steps {
                         sh 'rm -rf ?'
-                        sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/spring-data-maven-repository" ./mvnw -Phibernate-42-next clean dependency:list test -Dsort -Dbundlor.enabled=false -B'
+                        sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/spring-data-maven-repository" ./mvnw -Phibernate-42-next clean dependency:list test -Dsort -Dbundlor.enabled=false -U -B'
                     }
                 }
                 stage("test: hibernate-43") {
@@ -97,7 +97,7 @@ pipeline {
                     options { timeout(time: 30, unit: 'MINUTES') }
                     steps {
                         sh 'rm -rf ?'
-                        sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/spring-data-maven-repository" ./mvnw -Phibernate-43 clean dependency:list test -Dsort -Dbundlor.enabled=false -B'
+                        sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/spring-data-maven-repository" ./mvnw -Phibernate-43 clean dependency:list test -Dsort -Dbundlor.enabled=false -U -B'
                     }
                 }
                 stage("test: hibernate-43-next") {
@@ -110,7 +110,7 @@ pipeline {
                     options { timeout(time: 30, unit: 'MINUTES') }
                     steps {
                         sh 'rm -rf ?'
-                        sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/spring-data-maven-repository" ./mvnw -Phibernate-43-next clean dependency:list test -Dsort -Dbundlor.enabled=false -B'
+                        sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/spring-data-maven-repository" ./mvnw -Phibernate-43-next clean dependency:list test -Dsort -Dbundlor.enabled=false -U -B'
                     }
                 }
                 stage("test: hibernate-5") {
@@ -123,7 +123,7 @@ pipeline {
                     options { timeout(time: 30, unit: 'MINUTES') }
                     steps {
                         sh 'rm -rf ?'
-                        sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/spring-data-maven-repository" ./mvnw -Phibernate-5 clean dependency:list test -Dsort -Dbundlor.enabled=false -B'
+                        sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/spring-data-maven-repository" ./mvnw -Phibernate-5 clean dependency:list test -Dsort -Dbundlor.enabled=false -U -B'
                     }
                 }
                 stage("test: hibernate-51") {
@@ -136,7 +136,7 @@ pipeline {
                     options { timeout(time: 30, unit: 'MINUTES') }
                     steps {
                         sh 'rm -rf ?'
-                        sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/spring-data-maven-repository" ./mvnw -Phibernate-51 clean dependency:list test -Dsort -Dbundlor.enabled=false -B'
+                        sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/spring-data-maven-repository" ./mvnw -Phibernate-51 clean dependency:list test -Dsort -Dbundlor.enabled=false -U -B'
                     }
                 }
                 stage("test: hibernate-51-next") {
@@ -149,7 +149,7 @@ pipeline {
                     options { timeout(time: 30, unit: 'MINUTES') }
                     steps {
                         sh 'rm -rf ?'
-                        sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/spring-data-maven-repository" ./mvnw -Phibernate-51-next clean dependency:list test -Dsort -Dbundlor.enabled=false -B'
+                        sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/spring-data-maven-repository" ./mvnw -Phibernate-51-next clean dependency:list test -Dsort -Dbundlor.enabled=false -U -B'
                     }
                 }
                 stage("test: hibernate-52") {
@@ -162,7 +162,7 @@ pipeline {
                     options { timeout(time: 30, unit: 'MINUTES') }
                     steps {
                         sh 'rm -rf ?'
-                        sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/spring-data-maven-repository" ./mvnw -Phibernate-52 clean dependency:list test -Dsort -Dbundlor.enabled=false -B'
+                        sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/spring-data-maven-repository" ./mvnw -Phibernate-52 clean dependency:list test -Dsort -Dbundlor.enabled=false -U -B'
                     }
                 }
                 stage("test: hibernate-52-next") {
@@ -175,7 +175,7 @@ pipeline {
                     options { timeout(time: 30, unit: 'MINUTES') }
                     steps {
                         sh 'rm -rf ?'
-                        sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/spring-data-maven-repository" ./mvnw -Phibernate-52-next clean dependency:list test -Dsort -Dbundlor.enabled=false -B'
+                        sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/spring-data-maven-repository" ./mvnw -Phibernate-52-next clean dependency:list test -Dsort -Dbundlor.enabled=false -U -B'
                     }
                 }
                 stage("test: hibernate-53") {
@@ -189,7 +189,7 @@ pipeline {
                     options { timeout(time: 30, unit: 'MINUTES') }
                     steps {
                         sh 'rm -rf ?'
-                        sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -Phibernate-53 clean dependency:list test -Dsort -Dbundlor.enabled=false -B'
+                        sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -Phibernate-53 clean dependency:list test -Dsort -Dbundlor.enabled=false -U -B'
                     }
                 }
                 stage("test: hibernate-53-next") {
@@ -203,7 +203,7 @@ pipeline {
                     options { timeout(time: 30, unit: 'MINUTES') }
                     steps {
                         sh 'rm -rf ?'
-                        sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -Phibernate-53-next clean dependency:list test -Dsort -Dbundlor.enabled=false -B'
+                        sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -Phibernate-53-next clean dependency:list test -Dsort -Dbundlor.enabled=false -U -B'
                     }
                 }
                 stage("test: hibernate-54") {
@@ -217,7 +217,7 @@ pipeline {
                     options { timeout(time: 30, unit: 'MINUTES') }
                     steps {
                         sh 'rm -rf ?'
-                        sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -Phibernate-54 clean dependency:list test -Dsort -Dbundlor.enabled=false -B'
+                        sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -Phibernate-54 clean dependency:list test -Dsort -Dbundlor.enabled=false -U -B'
                     }
                 }
                 stage("test: hibernate-54-next") {
@@ -231,7 +231,7 @@ pipeline {
                     options { timeout(time: 30, unit: 'MINUTES') }
                     steps {
                         sh 'rm -rf ?'
-                        sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -Phibernate-54-next clean dependency:list test -Dsort -Dbundlor.enabled=false -B'
+                        sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -Phibernate-54-next clean dependency:list test -Dsort -Dbundlor.enabled=false -U -B'
                     }
                 }
                 stage("test: eclipselink-next") {
@@ -245,7 +245,7 @@ pipeline {
                     options { timeout(time: 30, unit: 'MINUTES') }
                     steps {
                         sh 'rm -rf ?'
-                        sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -Peclipselink-next clean dependency:list test -Dsort -Dbundlor.enabled=false -B'
+                        sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -Peclipselink-next clean dependency:list test -Dsort -Dbundlor.enabled=false -U -B'
                     }
                 }
                 stage("test: eclipselink-27") {
@@ -259,7 +259,7 @@ pipeline {
                     options { timeout(time: 30, unit: 'MINUTES') }
                     steps {
                         sh 'rm -rf ?'
-                        sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -Peclipselink-27 clean dependency:list test -Dsort -Dbundlor.enabled=false -B'
+                        sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -Peclipselink-27 clean dependency:list test -Dsort -Dbundlor.enabled=false -U -B'
                     }
                 }
                 stage("test: eclipselink-27-next") {
@@ -273,7 +273,7 @@ pipeline {
                     options { timeout(time: 30, unit: 'MINUTES') }
                     steps {
                         sh 'rm -rf ?'
-                        sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -Peclipselink-27-next clean dependency:list test -Dsort -Dbundlor.enabled=false -B'
+                        sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -Peclipselink-27-next clean dependency:list test -Dsort -Dbundlor.enabled=false -U -B'
                     }
                 }
             }
@@ -305,7 +305,7 @@ pipeline {
                         "-Dartifactory.staging-repository=libs-snapshot-local " +
                         "-Dartifactory.build-name=spring-data-jpa-1.11 " +
                         "-Dartifactory.build-number=${BUILD_NUMBER} " +
-                        '-Dmaven.test.skip=true clean deploy -B'
+                        '-Dmaven.test.skip=true clean deploy -U -B'
             }
         }
         stage('Release to artifactory with docs') {
@@ -334,7 +334,7 @@ pipeline {
                         "-Dartifactory.staging-repository=libs-snapshot-local " +
                         "-Dartifactory.build-name=spring-data-jpa-1.11 " +
                         "-Dartifactory.build-number=${BUILD_NUMBER} " +
-                        '-Dmaven.test.skip=true clean deploy -B'
+                        '-Dmaven.test.skip=true clean deploy -U -B'
             }
         }
     }
