@@ -1,6 +1,22 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 2.1.10.RELEASE (2019-08-05)
+----------------------------------------------
+* DATAJPA-1580 - Adapt EntityManagerBeanDefinitionRegistrarPostProcessor to latest changes in Spring Framework 5.2.
+* DATAJPA-1571 - Migrate from Hamcrest to AssertJ.
+* DATAJPA-1564 - Count query is faulty created when query have multiline select clause.
+* DATAJPA-1563 - Fix NoHTTP errors.
+* DATAJPA-1560 - CPU consumption of IllegalArgumentException during id derivation for entities with composite keys.
+* DATAJPA-1558 - Release 2.1.10 (Lovelace SR10).
+* DATAJPA-1545 - Introduce Jenkins CI.
+* DATAJPA-1372 - Error while using ExampleMatcher with @embeded entity in spring data jpa.
+* DATAJPA-1368 - QueryDslJpaRepository.createQuery() throws NPE on WebSphere.
+* DATAJPA-1230 - Make JpaRepositoryFactory agnostic of JpaRepository implementation.
+* DATAJPA-1061 - Sorting doesn't work for field alias.
+* DATAJPA-433 - findAll(Iterable<ID> ids) not working on EclipseLink and Oracle.
+
+
 Changes in version 1.11.23.RELEASE (2019-08-05)
 -----------------------------------------------
 * DATAJPA-1564 - Count query is faulty created when query have multiline select clause.
