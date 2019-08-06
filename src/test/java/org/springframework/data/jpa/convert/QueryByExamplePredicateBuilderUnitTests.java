@@ -27,7 +27,6 @@ import java.util.Set;
 import javax.persistence.Id;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.From;
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
@@ -90,19 +89,19 @@ public class QueryByExamplePredicateBuilderUnitTests {
 	@Before
 	public void setUp() {
 
-		personIdAttribute = new SingluarAttributeStub<>("id", PersistentAttributeType.BASIC, Long.class);
-		personFirstnameAttribute = new SingluarAttributeStub<>("firstname", PersistentAttributeType.BASIC,
+		personIdAttribute = new SingularAttributeStub<>("id", PersistentAttributeType.BASIC, Long.class);
+		personFirstnameAttribute = new SingularAttributeStub<>("firstname", PersistentAttributeType.BASIC,
 				String.class);
-		personAgeAttribute = new SingluarAttributeStub<>("age", PersistentAttributeType.BASIC, Long.class);
-		personFatherAttribute = new SingluarAttributeStub<>("father", PersistentAttributeType.MANY_TO_ONE,
+		personAgeAttribute = new SingularAttributeStub<>("age", PersistentAttributeType.BASIC, Long.class);
+		personFatherAttribute = new SingularAttributeStub<>("father", PersistentAttributeType.MANY_TO_ONE,
 				Person.class, personEntityType);
-		personSkillAttribute = new SingluarAttributeStub<>("skill", PersistentAttributeType.EMBEDDED,
+		personSkillAttribute = new SingularAttributeStub<>("skill", PersistentAttributeType.EMBEDDED,
 				Skill.class, skillEntityType);
-		personAddressAttribute = new SingluarAttributeStub<>("address", PersistentAttributeType.EMBEDDED,
+		personAddressAttribute = new SingularAttributeStub<>("address", PersistentAttributeType.EMBEDDED,
 				Address.class);
-		skillNameAttribute = new SingluarAttributeStub<>("name", PersistentAttributeType.BASIC,
+		skillNameAttribute = new SingularAttributeStub<>("name", PersistentAttributeType.BASIC,
 				String.class);
-		skillNestedAttribute = new SingluarAttributeStub<>("nested", PersistentAttributeType.MANY_TO_ONE,
+		skillNestedAttribute = new SingularAttributeStub<>("nested", PersistentAttributeType.MANY_TO_ONE,
 				Skill.class, skillEntityType);
 
 		personEntityAttribtues = new LinkedHashSet<>();
@@ -298,19 +297,19 @@ public class QueryByExamplePredicateBuilderUnitTests {
 		Skill nested;
 	}
 
-	static class SingluarAttributeStub<X, T> implements SingularAttribute<X, T> {
+	static class SingularAttributeStub<X, T> implements SingularAttribute<X, T> {
 
 		private String name;
 		private PersistentAttributeType attributeType;
 		private Class<T> javaType;
 		private Type<T> type;
 
-		public SingluarAttributeStub(String name,
+		public SingularAttributeStub(String name,
 				javax.persistence.metamodel.Attribute.PersistentAttributeType attributeType, Class<T> javaType) {
 			this(name, attributeType, javaType, null);
 		}
 
-		public SingluarAttributeStub(String name,
+		public SingularAttributeStub(String name,
 				javax.persistence.metamodel.Attribute.PersistentAttributeType attributeType, Class<T> javaType, Type<T> type) {
 			this.name = name;
 			this.attributeType = attributeType;
