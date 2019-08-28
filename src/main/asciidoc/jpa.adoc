@@ -135,17 +135,50 @@ This section describes how to persist (save) entities with Spring Data JPA.
 
 Saving an entity can be performed with the `CrudRepository.save(…)` method. It persists or merges the given entity by using the underlying JPA `EntityManager`. If the entity has not yet been persisted, Spring Data JPA saves the entity with a call to the `entityManager.persist(…)` method. Otherwise, it calls the `entityManager.merge(…)` method.
 
+[[jpa.entity-persistence.saving-entites.strategies]]
 ==== Entity State-detection Strategies
 Spring Data JPA offers the following strategies to detect whether an entity is new or not:
 
-* Version-Property and Id-Property inspection (*default*):
-  By default Spring Data JPA inspects first if there is a Version-property of non-primitive type.
-  If there is the entity is considered new if the value is `null`.
-  Without such a Version-property Spring Data JPA inspects the identifier property of the given entity.
-  If the identifier property is `null`, then the entity is assumed to be new.
-  Otherwise, it is assumed to be not new.
-* Implementing `Persistable`: If an entity implements `Persistable`, Spring Data JPA delegates the new detection to the `isNew(…)` method of the entity. See the link:$$https://docs.spring.io/spring-data/data-commons/docs/current/api/index.html?org/springframework/data/domain/Persistable.html$$[JavaDoc] for details.
-* Implementing `EntityInformation`: You can customize the `EntityInformation` abstraction used in the `SimpleJpaRepository` implementation by creating a subclass of `JpaRepositoryFactory` and overriding the `getEntityInformation(…)` method accordingly. You then have to register the custom implementation of `JpaRepositoryFactory` as a Spring bean. Note that this should be rarely necessary. See the link:$$https://docs.spring.io/spring-data/data-jpa/docs/current/api/index.html?org/springframework/data/jpa/repository/support/JpaRepositoryFactory.html$$[JavaDoc] for details.
+1. Version-Property and Id-Property inspection (*default*):
+   By default Spring Data JPA inspects first if there is a Version-property of non-primitive type.
+   If there is the entity is considered new if the value is `null`.
+   Without such a Version-property Spring Data JPA inspects the identifier property of the given entity.
+   If the identifier property is `null`, then the entity is assumed to be new.
+   Otherwise, it is assumed to be not new.
+2. Implementing `Persistable`: If an entity implements `Persistable`, Spring Data JPA delegates the new detection to the `isNew(…)` method of the entity. See the link:$$https://docs.spring.io/spring-data/data-commons/docs/current/api/index.html?org/springframework/data/domain/Persistable.html$$[JavaDoc] for details.
+3. Implementing `EntityInformation`: You can customize the `EntityInformation` abstraction used in the `SimpleJpaRepository` implementation by creating a subclass of `JpaRepositoryFactory` and overriding the `getEntityInformation(…)` method accordingly. You then have to register the custom implementation of `JpaRepositoryFactory` as a Spring bean. Note that this should be rarely necessary. See the link:$$https://docs.spring.io/spring-data/data-jpa/docs/current/api/index.html?org/springframework/data/jpa/repository/support/JpaRepositoryFactory.html$$[JavaDoc] for details.
+
+Option 1 is not an option for entities that use manually assigned identifiers as with those the identifier will always be non-`null`.
+A common pattern in that scenario is to use a common base class with a transient flag defaulting to indicate a new instance and using JPA lifecycle callbacks to flip that flag on persistence operations:
+
+.A base class for entities with manually assigned identifiers
+====
+[source, java]
+----
+@MappedSuperclass
+public abstract class AbstractEntity<ID> implements Persistable<ID> {
+
+  @Transient
+  private boolean isNew = true; <1>
+
+  @Override
+  public boolean isNew() {
+    return isNew; <2>
+  }
+
+  @PrePersist <3>
+  @PostLoad
+  void markNotNew() {
+    this.isNew = false;
+  }
+
+  // More code…
+}
+----
+<1> Declare a flag to hold the new state. Transient so that it's not persisted to the database.
+<2> Return the flag in the implementation of `Persistable.isNew()` so that Spring Data repositories know whether to call `EntityManager.persist()` or `….merge()`.
+<3> Declare a method using JPA entity callbacks so that the flag is switched to indicate an existing entity after a repository call to `save(…)` or an instance creation by the persistence provider.
+====
 
 [[jpa.query-methods]]
 == Query Methods
