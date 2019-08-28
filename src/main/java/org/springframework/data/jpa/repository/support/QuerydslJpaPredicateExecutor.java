@@ -87,6 +87,8 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 	@Override
 	public Optional<T> findOne(Predicate predicate) {
 
+		Assert.notNull(predicate, "Predicate must not be null!");
+
 		try {
 			return Optional.ofNullable(createQuery(predicate).select(path).fetchOne());
 		} catch (NonUniqueResultException ex) {
@@ -100,6 +102,9 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 	 */
 	@Override
 	public List<T> findAll(Predicate predicate) {
+
+		Assert.notNull(predicate, "Predicate must not be null!");
+
 		return createQuery(predicate).select(path).fetch();
 	}
 
@@ -109,6 +114,10 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 	 */
 	@Override
 	public List<T> findAll(Predicate predicate, OrderSpecifier<?>... orders) {
+
+		Assert.notNull(predicate, "Predicate must not be null!");
+		Assert.notNull(orders, "Order specifiers must not be null!");
+
 		return executeSorted(createQuery(predicate).select(path), orders);
 	}
 
@@ -119,6 +128,7 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 	@Override
 	public List<T> findAll(Predicate predicate, Sort sort) {
 
+		Assert.notNull(predicate, "Predicate must not be null!");
 		Assert.notNull(sort, "Sort must not be null!");
 
 		return executeSorted(createQuery(predicate).select(path), sort);
@@ -143,6 +153,7 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 	@Override
 	public Page<T> findAll(Predicate predicate, Pageable pageable) {
 
+		Assert.notNull(predicate, "Predicate must not be null!");
 		Assert.notNull(pageable, "Pageable must not be null!");
 
 		final JPQLQuery<?> countQuery = createCountQuery(predicate);
@@ -177,8 +188,9 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 	 */
 	protected JPQLQuery<?> createQuery(Predicate... predicate) {
 
-		AbstractJPAQuery<?, ?> query = doCreateQuery(getQueryHints().withFetchGraphs(entityManager), predicate);
+		Assert.notNull(predicate, "Predicate must not be null!");
 
+		AbstractJPAQuery<?, ?> query = doCreateQuery(getQueryHints().withFetchGraphs(entityManager), predicate);
 		CrudMethodMetadata metadata = getRepositoryMethodMetadata();
 
 		if (metadata == null) {
@@ -221,7 +233,8 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 	 * @return
 	 */
 	private QueryHints getQueryHintsForCount() {
-		return metadata == null ? QueryHints.NoHints.INSTANCE : DefaultQueryHints.of(entityInformation, metadata).forCounts();
+		return metadata == null ? QueryHints.NoHints.INSTANCE
+				: DefaultQueryHints.of(entityInformation, metadata).forCounts();
 	}
 
 	private AbstractJPAQuery<?, ?> doCreateQuery(QueryHints hints, @Nullable Predicate... predicate) {

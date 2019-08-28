@@ -91,20 +91,27 @@ public class Querydsl {
 	/**
 	 * Creates the {@link JPQLQuery} instance based on the configured {@link EntityManager}.
 	 *
+	 * @param paths must not be {@literal null}.
 	 * @return
 	 */
 	public AbstractJPAQuery<Object, JPAQuery<Object>> createQuery(EntityPath<?>... paths) {
+
+		Assert.notNull(paths, "Paths must not be null!");
+
 		return createQuery().from(paths);
 	}
 
 	/**
 	 * Applies the given {@link Pageable} to the given {@link JPQLQuery}.
 	 *
-	 * @param pageable
+	 * @param pageable must not be {@literal null}.
 	 * @param query must not be {@literal null}.
 	 * @return the Querydsl {@link JPQLQuery}.
 	 */
 	public <T> JPQLQuery<T> applyPagination(Pageable pageable, JPQLQuery<T> query) {
+
+		Assert.notNull(pageable, "Pageable must not be null!");
+		Assert.notNull(query, "JPQLQuery must not be null!");
 
 		if (pageable.isUnpaged()) {
 			return query;
@@ -119,11 +126,14 @@ public class Querydsl {
 	/**
 	 * Applies sorting to the given {@link JPQLQuery}.
 	 *
-	 * @param sort
+	 * @param sort must not be {@literal null}.
 	 * @param query must not be {@literal null}.
 	 * @return the Querydsl {@link JPQLQuery}
 	 */
 	public <T> JPQLQuery<T> applySorting(Sort sort, JPQLQuery<T> query) {
+
+		Assert.notNull(sort, "Sort must not be null!");
+		Assert.notNull(query, "Query must not be null!");
 
 		if (sort.isUnsorted()) {
 			return query;
