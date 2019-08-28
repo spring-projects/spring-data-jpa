@@ -156,6 +156,7 @@ public class Querydsl {
 	private <T> JPQLQuery<T> addOrderByFrom(QSort qsort, JPQLQuery<T> query) {
 
 		List<OrderSpecifier<?>> orderSpecifiers = qsort.getOrderSpecifiers();
+
 		return query.orderBy(orderSpecifiers.toArray(new OrderSpecifier[0]));
 	}
 
@@ -234,12 +235,9 @@ public class Querydsl {
 
 		while (path != null) {
 
-			if (!path.hasNext() && order.isIgnoreCase()) {
-				// if order is ignore-case we have to treat the last path segment as a String.
-				sortPropertyExpression = Expressions.stringPath((Path<?>) sortPropertyExpression, path.getSegment()).lower();
-			} else {
-				sortPropertyExpression = Expressions.path(path.getType(), (Path<?>) sortPropertyExpression, path.getSegment());
-			}
+			sortPropertyExpression = !path.hasNext() && order.isIgnoreCase() //
+					? Expressions.stringPath((Path<?>) sortPropertyExpression, path.getSegment()).lower() //
+					: Expressions.path(path.getType(), (Path<?>) sortPropertyExpression, path.getSegment());
 
 			path = path.next();
 		}
