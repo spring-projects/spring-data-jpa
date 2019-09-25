@@ -198,7 +198,7 @@ public class QuerydslJpaRepositoryTests {
 		QUser user = QUser.user;
 
 		Page<User> page = repository.findAll(user.firstname.isNotNull(),
-				new QPageRequest(0, 10, new QSort(user.firstname.asc())));
+				QPageRequest.of(0, 10, new QSort(user.firstname.asc())));
 
 		assertThat(page.getContent()).containsExactly(carter, dave, oliver);
 	}
@@ -208,7 +208,7 @@ public class QuerydslJpaRepositoryTests {
 
 		QUser user = QUser.user;
 
-		Page<User> page = repository.findAll(user.firstname.isNotNull(), new QPageRequest(0, 10, user.firstname.asc()));
+		Page<User> page = repository.findAll(user.firstname.isNotNull(), QPageRequest.of(0, 10, user.firstname.asc()));
 
 		assertThat(page.getContent()).containsExactly(carter, dave, oliver);
 	}
@@ -222,7 +222,7 @@ public class QuerydslJpaRepositoryTests {
 		QUser user = QUser.user;
 
 		Page<User> page = repository.findAll(user.firstname.isNotNull(),
-				new QPageRequest(0, 10, user.manager.firstname.asc()));
+				QPageRequest.of(0, 10, user.manager.firstname.asc()));
 
 		assertThat(page.getContent()).containsExactly(carter, dave, oliver);
 	}
