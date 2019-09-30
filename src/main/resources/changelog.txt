@@ -1,6 +1,12 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 2.2.0.RELEASE (2019-09-30)
+---------------------------------------------
+* DATAJPA-1604 - Move off deprecated QPageRequest constructors.
+* DATAJPA-1583 - Release 2.2 GA (Moore).
+
+
 Changes in version 2.1.11.RELEASE (2019-09-30)
 ----------------------------------------------
 * DATAJPA-1600 - Document recommended way to work with entities with manually assigned identifiers.
