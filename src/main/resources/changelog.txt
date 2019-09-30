@@ -1,6 +1,14 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 2.1.11.RELEASE (2019-09-30)
+----------------------------------------------
+* DATAJPA-1600 - Document recommended way to work with entities with manually assigned identifiers.
+* DATAJPA-1594 - Tighten nullability constraints in Querydsl implementation.
+* DATAJPA-1582 - Local schema resolution fails for spring-repository.xsd.
+* DATAJPA-1581 - Release 2.1.11 (Lovelace SR11).
+
+
 Changes in version 2.2.0.RC3 (2019-09-06)
 -----------------------------------------
 * DATAJPA-1600 - Document recommended way to work with entities with manually assigned identifiers.
