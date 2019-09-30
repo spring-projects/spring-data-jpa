@@ -1,4 +1,4 @@
-Spring Data JPA 2.2 RC3
+Spring Data JPA 2.2 GA
 Copyright (c) [2011-2019] Pivotal Software, Inc.
 
 This product is licensed to you under the Apache License, Version 2.0 (the "License").
