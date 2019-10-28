@@ -190,7 +190,7 @@ This section describes the various ways to create a query with Spring Data JPA.
 
 The JPA module supports defining a query manually as a String or having it being derived from the method name.
 
-Derived queries with the predicates `IsStartingWith`, `StartingWith`, `StartsWith`, IsEndingWith", `EndingWith`, `EndsWith`,
+Derived queries with the predicates `IsStartingWith`, `StartingWith`, `StartsWith`, `IsEndingWith`, `EndingWith`, `EndsWith`,
 `IsNotContaining`, `NotContaining`, `NotContains`, `IsContaining`, `Containing`, `Contains` the respective arguments for these queries will get sanitized.
 This means if the arguments actually contain characters recognized by `LIKE` as wildcards these will get escaped so they match only as literals.
 The escape character used can be configured by setting the `escapeCharacter` of the `@EnableJpaRepositories` annotation.
