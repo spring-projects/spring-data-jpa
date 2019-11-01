@@ -109,7 +109,7 @@
 			<repositories>
 				<repository>
 					<id>oss-sonatype</id>
-					<url>https://oss.sonatype.org/content/groups/staging</url>
+					<url>https://oss.sonatype.org/content/repositories/snapshots</url>
 				</repository>
 			</repositories>
 		</profile>
@@ -127,7 +127,7 @@
 			<repositories>
 				<repository>
 					<id>oss-sonatype</id>
-					<url>https://oss.sonatype.org/content/groups/staging</url>
+					<url>https://oss.sonatype.org/content/repositories/snapshots</url>
 				</repository>
 			</repositories>
 		</profile>
