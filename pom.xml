@@ -25,7 +25,6 @@
 		<hibernate>5.4.8.Final</hibernate>
 		<mockito>2.19.1</mockito>
 		<hibernate.groupId>org.hibernate</hibernate.groupId>
-		<jpa>2.0.0</jpa>
 		<springdata.commons>2.3.0.BUILD-SNAPSHOT</springdata.commons>
 
 		<java-module-name>spring.data.jpa</java-module-name>
