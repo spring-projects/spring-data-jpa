@@ -21,8 +21,8 @@
 
 		<dist.key>DATAJPA</dist.key>
 
-		<eclipselink>2.6.5</eclipselink>
-		<hibernate>5.2.17.Final</hibernate>
+		<eclipselink>2.7.5</eclipselink>
+		<hibernate>5.4.8.Final</hibernate>
 		<mockito>2.19.1</mockito>
 		<hibernate.groupId>org.hibernate</hibernate.groupId>
 		<jpa>2.0.0</jpa>
@@ -38,61 +38,7 @@
 		<profile>
 			<id>hibernate-next</id>
 			<properties>
-				<hibernate>5.2.18-SNAPSHOT</hibernate>
-			</properties>
-			<repositories>
-				<repository>
-					<id>jboss</id>
-					<url>https://repository.jboss.org/nexus/content/repositories/public</url>
-				</repository>
-			</repositories>
-		</profile>
-		<profile>
-			<id>hibernate-53</id>
-			<properties>
-				<hibernate>5.3.5.Final</hibernate>
-				<mockito>2.19.1</mockito>
-			</properties>
-		</profile>
-		<profile>
-			<id>hibernate-53-next</id>
-			<properties>
-				<hibernate>5.3.8-SNAPSHOT</hibernate>
-				<mockito>2.19.1</mockito>
-			</properties>
-			<repositories>
-				<repository>
-					<id>jboss</id>
-					<url>https://repository.jboss.org/nexus/content/repositories/public</url>
-				</repository>
-			</repositories>
-		</profile>
-		<profile>
-			<id>hibernate-54</id>
-			<properties>
-				<hibernate>5.4.1.Final</hibernate>
-				<mockito>2.19.1</mockito>
-			</properties>
-		</profile>
-		<profile>
-			<id>hibernate-54-next</id>
-			<properties>
-				<hibernate>5.4.2-SNAPSHOT</hibernate>
-				<mockito>2.19.1</mockito>
-			</properties>
-			<repositories>
-				<repository>
-					<id>jboss</id>
-					<url>https://repository.jboss.org/nexus/content/repositories/public</url>
-				</repository>
-			</repositories>
-		</profile>
-		<profile>
-			<id>hibernate-6-next</id>
-			<properties>
 				<hibernate>6.0.0-SNAPSHOT</hibernate>
-				<hibernate.groupId>org.hibernate.orm</hibernate.groupId>
-				<mockito>2.19.1</mockito>
 			</properties>
 			<repositories>
 				<repository>
@@ -101,36 +47,7 @@
 				</repository>
 			</repositories>
 		</profile>
-		<profile>
-			<id>eclipselink-next</id>
-			<properties>
-				<eclipselink>2.6.6-SNAPSHOT</eclipselink>
-			</properties>
-			<repositories>
-				<repository>
-					<id>oss-sonatype</id>
-					<url>https://oss.sonatype.org/content/repositories/snapshots</url>
-				</repository>
-			</repositories>
-		</profile>
-		<profile>
-			<id>eclipselink-27</id>
-			<properties>
-				<eclipselink>2.7.3</eclipselink>
-			</properties>
-		</profile>
-		<profile>
-			<id>eclipselink-27-next</id>
-			<properties>
-				<eclipselink>2.7.4-SNAPSHOT</eclipselink>
-			</properties>
-			<repositories>
-				<repository>
-					<id>oss-sonatype</id>
-					<url>https://oss.sonatype.org/content/repositories/snapshots</url>
-				</repository>
-			</repositories>
-		</profile>
+
 		<profile>
 			<id>docs</id>
 
