@@ -1,6 +1,14 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 2.1.12.RELEASE (2019-11-04)
+----------------------------------------------
+* DATAJPA-1620 - Update versions of Hibernate and Eclipselink.
+* DATAJPA-1618 - Fix repository for EclipseLink.
+* DATAJPA-1617 - Fix quotation marks in documentation.
+* DATAJPA-1605 - Release 2.1.12 (Lovelace SR12).
+
+
 Changes in version 2.2.0.RELEASE (2019-09-30)
 ---------------------------------------------
 * DATAJPA-1604 - Move off deprecated QPageRequest constructors.
