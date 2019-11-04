@@ -1,6 +1,14 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 2.2.1.RELEASE (2019-11-04)
+---------------------------------------------
+* DATAJPA-1620 - Update versions of Hibernate and Eclipselink.
+* DATAJPA-1618 - Fix repository for EclipseLink.
+* DATAJPA-1617 - Fix quotation marks in documentation.
+* DATAJPA-1606 - Release 2.2.1 (Moore SR1).
+
+
 Changes in version 2.1.12.RELEASE (2019-11-04)
 ----------------------------------------------
 * DATAJPA-1620 - Update versions of Hibernate and Eclipselink.
