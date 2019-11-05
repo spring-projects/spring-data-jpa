@@ -15,7 +15,6 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -187,14 +186,14 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 	}
 
 	private static boolean parameterIsCollectionLike(JpaParameter parameter) {
-		return Collection.class.isAssignableFrom(parameter.getType()) || parameter.getType().isArray();
+		return Iterable.class.isAssignableFrom(parameter.getType()) || parameter.getType().isArray();
 	}
 
 	/**
 	 * Arrays are may be treated as collection like or in the case of binary data as scalar
 	 */
 	private static boolean parameterIsScalarLike(JpaParameter parameter) {
-		return !Collection.class.isAssignableFrom(parameter.getType());
+		return !Iterable.class.isAssignableFrom(parameter.getType());
 	}
 
 	private static boolean expectsCollection(Type type) {

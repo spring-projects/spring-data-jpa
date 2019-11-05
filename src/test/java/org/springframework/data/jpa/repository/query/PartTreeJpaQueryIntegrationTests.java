@@ -197,6 +197,16 @@ public class PartTreeJpaQueryIntegrationTests {
 				.withMessageContaining("Collection");
 	}
 
+	@Test // DATAJPA-1619
+	public void acceptsInPredicateWithIterableParameter() throws Exception {
+
+		JpaQueryMethod method = getQueryMethod("findByFirstnameIn", Iterable.class);
+
+		new PartTreeJpaQuery(method, entityManager, provider);
+
+		assertThat(method).isNotNull();
+	}
+
 	@Test // DATAJPA-863
 	public void errorsDueToMismatchOfParametersContainNameOfMethodInterfaceAndPropertyPath() throws Exception {
 
@@ -298,6 +308,9 @@ public class PartTreeJpaQueryIntegrationTests {
 
 		// should fail, since we can't do an IN on a scalar
 		List<User> findByIdIn(Long id);
+
+		// should succeed
+		List<User> findByFirstnameIn(Iterable<String> id);
 
 		// Wrong number of parameters
 		User findByFirstname();
