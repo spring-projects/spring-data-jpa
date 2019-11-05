@@ -38,7 +38,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -260,7 +259,7 @@ public class PartTreeJpaQueryIntegrationTests {
 
 		while (split.hasNext()) {
 
-			Assert.notNull(source, "result must not be null.");
+			Assert.notNull(result, "result must not be null.");
 			result = getField(result, split.next());
 		}
 

@@ -76,7 +76,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 	 * @param method must not be {@literal null}.
 	 * @param em must not be {@literal null}.
 	 * @param persistenceProvider must not be {@literal null}.
-	 * @param escape
+	 * @param escape character used for escaping characters used as patterns in LIKE-expressions.
 	 */
 	PartTreeJpaQuery(JpaQueryMethod method, EntityManager em, PersistenceProvider persistenceProvider,
 			EscapeCharacter escape) {
@@ -210,7 +210,6 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 
 		private final @Nullable CriteriaQuery<?> cachedCriteriaQuery;
 		private final @Nullable ParameterBinder cachedParameterBinder;
-		private final @Nullable List<ParameterMetadata<?>> expressions;
 		private final PersistenceProvider persistenceProvider;
 		private final Map<List<ParameterMetadata<?>>, ParameterBinder> binderCache = new ConcurrentHashMap<>();
 		private final QueryParameterSetter.QueryMetadataCache metadataCache = new QueryParameterSetter.QueryMetadataCache();
@@ -223,12 +222,10 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 
 			if (recreateQueries) {
 				this.cachedCriteriaQuery = null;
-				this.expressions = null;
 				this.cachedParameterBinder = null;
 			} else {
 				this.cachedCriteriaQuery = creator.createQuery();
-				this.expressions = creator.getParameterExpressions();
-				this.cachedParameterBinder = getBinder(expressions);
+				this.cachedParameterBinder = getBinder(creator.getParameterExpressions());
 			}
 		}
 
@@ -364,7 +361,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 
 		@Override
 		protected JpaQueryCreator createCreator(PersistenceProvider persistenceProvider,
-				JpaParametersParameterAccessor accessor) {
+				@Nullable JpaParametersParameterAccessor accessor) {
 
 			EntityManager entityManager = getEntityManager();
 			CriteriaBuilder builder = entityManager.getCriteriaBuilder();
@@ -382,8 +379,6 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 
 		/**
 		 * Customizes binding by skipping the pagination.
-		 *
-		 * @see QueryPreparer#invokeBinding(ParameterBinder, TypedQuery, JpaParametersParameterAccessor)
 		 */
 		@Override
 		protected Query invokeBinding(ParameterBinder binder, TypedQuery<?> query, JpaParametersParameterAccessor accessor,
