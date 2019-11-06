@@ -29,6 +29,7 @@ import org.springframework.lang.Nullable;
  *
  * @author Sebastian Staudt
  * @author Oliver Gierke
+ * @author Jens Schauder
  * @see Specification
  * @since 2.2
  */
@@ -38,7 +39,6 @@ class SpecificationComposition {
 		Predicate combine(CriteriaBuilder builder, @Nullable Predicate lhs, @Nullable Predicate rhs);
 	}
 
-	@Nullable
 	static <T> Specification<T> composed(@Nullable Specification<T> lhs, @Nullable Specification<T> rhs,
 			Combiner combiner) {
 
@@ -55,7 +55,8 @@ class SpecificationComposition {
 		};
 	}
 
-	private static <T> Predicate toPredicate(Specification<T> specification, Root<T> root, CriteriaQuery<?> query,
+	@Nullable
+	private static <T> Predicate toPredicate(@Nullable Specification<T> specification, Root<T> root, CriteriaQuery<?> query,
 			CriteriaBuilder builder) {
 		return specification == null ? null : specification.toPredicate(root, query, builder);
 	}
