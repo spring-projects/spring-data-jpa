@@ -43,9 +43,9 @@ public interface Specification<T> extends Serializable {
 	/**
 	 * Negates the given {@link Specification}.
 	 *
-	 * @param <T>
+	 * @param <T> the type of the {@link Root} the resulting {@literal Specification} operates on.
 	 * @param spec can be {@literal null}.
-	 * @return
+	 * @return guaranteed to be not {@literal null}.
 	 * @since 2.0
 	 */
 	static <T> Specification<T> not(@Nullable Specification<T> spec) {
@@ -58,9 +58,9 @@ public interface Specification<T> extends Serializable {
 	/**
 	 * Simple static factory method to add some syntactic sugar around a {@link Specification}.
 	 *
-	 * @param <T>
+	 * @param <T> the type of the {@link Root} the resulting {@literal Specification} operates on.
 	 * @param spec can be {@literal null}.
-	 * @return
+	 * @return guaranteed to be not {@literal null}.
 	 * @since 2.0
 	 */
 	static <T> Specification<T> where(@Nullable Specification<T> spec) {
@@ -76,7 +76,7 @@ public interface Specification<T> extends Serializable {
 	 */
 
 	default Specification<T> and(@Nullable Specification<T> other) {
-		return composed(this, other, (builder, left, rhs) -> builder.and(left, rhs));
+		return composed(this, other, CriteriaBuilder::and);
 	}
 
 	/**
@@ -87,7 +87,7 @@ public interface Specification<T> extends Serializable {
 	 * @since 2.0
 	 */
 	default Specification<T> or(@Nullable Specification<T> other) {
-		return composed(this, other, (builder, left, rhs) -> builder.or(left, rhs));
+		return composed(this, other, CriteriaBuilder::or);
 	}
 
 	/**
