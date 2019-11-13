@@ -375,9 +375,9 @@
 			</plugin>
 
 			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
+				<groupId>io.starter</groupId>
 				<artifactId>aspectj-maven-plugin</artifactId>
-				<version>1.8</version>
+				<version>1.12.9</version>
 				<dependencies>
 					<dependency>
 						<groupId>org.aspectj</groupId>

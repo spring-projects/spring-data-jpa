@@ -1,35 +1,13 @@
 language: java
 
-jdk:
-  - oraclejdk8
-
-env:
-  matrix:
-    - PROFILE=ci
-    - PROFILE=spring5-next
-    - PROFILE=hibernate-next
-    - PROFILE=hibernate-53
-    - PROFILE=hibernate-53-next
-    - PROFILE=hibernate-54
-    - PROFILE=hibernate-54-next
-    - PROFILE=hibernate-6
-    - PROFILE=eclipselink-next
-    - PROFILE=eclipselink-27
-    - PROFILE=eclipselink-27-next
-    - PROFILE=querydsl-next
-
-
+jobs:
+  allow_failures:
+    - env: PROFILE=hibernate-next
 
 cache:
   directories:
     - $HOME/.m2
 
-before_install:
-  - test ! -f ~/.m2/settings.xml || rm ~/.m2/settings.xml
-
 install: true
 
-script: "mvn clean dependency:list test -P${PROFILE} -Dsort -Dbundlor.enabled=false -B"
-notifications:
-  slack:
-    secure: VYoJ2D6BM3etTNHJArJ47rVvj49PRZ+eIg12itOzlQSCnsPPob9X2OJVZ8Umatfx6TyP+rOrJAz+pqA1geumEzx+dIWTtBf6og703XKS9feLpM7sa1DupdstlGu506Wwevmb7nUq/Ct0ziCZykD3Cqu9tOhnai5wWlULBYDQ4WE=
+script: "./mvnw -Pjava11 clean dependency:list test -Pjava11,${PROFILE} -Dsort -B"

@@ -62,7 +62,7 @@ public class JpaRepositoryFactoryBeanUnitTests {
 	StubRepositoryFactorySupport factory;
 	@Mock ListableBeanFactory beanFactory;
 	@Mock PersistenceExceptionTranslator translator;
-	@Mock Repository<?, ?> repository;
+	@Mock(extraInterfaces = SimpleSampleRepository.class) Repository<?, ?> repository;
 	@Mock Metamodel metamodel;
 
 	@Before
@@ -110,7 +110,7 @@ public class JpaRepositoryFactoryBeanUnitTests {
 		new JpaRepositoryFactoryBean<Repository<Object, Long>, Object, Long>(null);
 	}
 
-	private interface SimpleSampleRepository extends JpaRepository<User, Integer> {
+	public interface SimpleSampleRepository extends JpaRepository<User, Integer> {
 
 	}
 
