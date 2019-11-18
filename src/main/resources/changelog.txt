@@ -1,6 +1,12 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 2.1.13.RELEASE (2019-11-18)
+----------------------------------------------
+* DATAJPA-1632 - Fix documentation for countQuery.
+* DATAJPA-1621 - Release 2.1.13 (Lovelace SR13).
+
+
 Changes in version 2.2.1.RELEASE (2019-11-04)
 ---------------------------------------------
 * DATAJPA-1620 - Update versions of Hibernate and Eclipselink.
