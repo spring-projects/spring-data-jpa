@@ -1,6 +1,13 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 2.2.2.RELEASE (2019-11-18)
+---------------------------------------------
+* DATAJPA-1632 - Fix documentation for countQuery.
+* DATAJPA-1623 - Release 2.2.2 (Moore SR2).
+* DATAJPA-1619 - Allow repository method parameters of type Iterable for derived IN-queries.
+
+
 Changes in version 2.1.13.RELEASE (2019-11-18)
 ----------------------------------------------
 * DATAJPA-1632 - Fix documentation for countQuery.
