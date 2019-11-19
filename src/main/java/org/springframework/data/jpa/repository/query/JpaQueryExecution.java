@@ -180,8 +180,8 @@ public abstract class JpaQueryExecution {
 
 		private long count(AbstractJpaQuery repositoryQuery, JpaParametersParameterAccessor accessor) {
 
-			List<?> totals = repositoryQuery.createCountQuery(accessor).getResultList();
-			return (totals.size() == 1 ? CONVERSION_SERVICE.convert(totals.get(0), Long.class) : totals.size());
+			return CONVERSION_SERVICE.convert(repositoryQuery.createCountQuery(accessor).getSingleResult(), Long.class);
+
 		}
 	}
 
