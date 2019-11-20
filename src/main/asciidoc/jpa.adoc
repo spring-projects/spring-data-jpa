@@ -815,7 +815,7 @@ public class CustomerSpecs {
             CriteriaBuilder builder) {
 
          LocalDate date = new LocalDate().minusYears(2);
-         return builder.lessThan(root.get(_Customer.createdAt), date);
+         return builder.lessThan(root.get(Customer_.createdAt), date);
       }
     };
   }
@@ -833,7 +833,7 @@ public class CustomerSpecs {
 ----
 ====
 
-Admittedly, the amount of boilerplate leaves room for improvement (that may eventually be reduced by Java 8 closures), but the client side becomes much nicer, as you will see later in this section. The `_Customer` type is a metamodel type generated using the JPA Metamodel generator (see the link:$$https://docs.jboss.org/hibernate/jpamodelgen/1.0/reference/en-US/html_single/#whatisit$$[Hibernate implementation's documentation for an example]). So the expression, `_Customer.createdAt`, assumes the `Customer` has a `createdAt` attribute of type `Date`. Besides that, we have expressed some criteria on a business requirement abstraction level and created executable `Specifications`. So a client might use a `Specification` as follows:
+Admittedly, the amount of boilerplate leaves room for improvement (that may eventually be reduced by Java 8 closures), but the client side becomes much nicer, as you will see later in this section. The `Customer_` type is a metamodel type generated using the JPA Metamodel generator (see the link:$$https://docs.jboss.org/hibernate/jpamodelgen/1.0/reference/en-US/html_single/#whatisit$$[Hibernate implementation's documentation for an example]). So the expression, `_Customer.createdAt`, assumes the `Customer` has a `createdAt` attribute of type `Date`. Besides that, we have expressed some criteria on a business requirement abstraction level and created executable `Specifications`. So a client might use a `Specification` as follows:
 
 .Using a simple Specification
 ====
