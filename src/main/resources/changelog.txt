@@ -1,6 +1,12 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 2.1.14.RELEASE (2019-12-04)
+----------------------------------------------
+* DATAJPA-1639 - Fix position of _ in MetaModel classes in the documentation.
+* DATAJPA-1633 - Release 2.1.14 (Lovelace SR14).
+
+
 Changes in version 2.2.2.RELEASE (2019-11-18)
 ---------------------------------------------
 * DATAJPA-1632 - Fix documentation for countQuery.
@@ -1824,3 +1830,4 @@ Changes in version 1.0.0.M2 (2011-03-24) - https://jira.springsource.org/browse/
 Changes in version 1.0.0.M1 (2011-02-10) - https://jira.springsource.org/browse/DATAJPA/fixforversion/11786
 ----------------------------------------
 * Moved JPA sepcific code from Hades into Spring Data JPA (functional equivalent of Hades 2.0.2) building on common functionality in Spring Data Commons
+
