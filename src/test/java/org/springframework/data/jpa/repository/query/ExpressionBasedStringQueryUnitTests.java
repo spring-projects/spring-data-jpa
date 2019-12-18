@@ -43,7 +43,8 @@ public class ExpressionBasedStringQueryUnitTests {
 		when(metadata.getEntityName()).thenReturn("User");
 
 		String source = "select from #{#entityName} u where u.firstname like :firstname";
-		StringQuery query = new ExpressionBasedStringQuery(source, metadata, SPEL_PARSER);
+
+		StringQuery query = new ExpressionBasedStringQuery(source, metadata, SPEL_PARSER, false);
 		assertThat(query.getQueryString()).isEqualTo("select from User u where u.firstname like :firstname");
 	}
 
@@ -52,7 +53,7 @@ public class ExpressionBasedStringQueryUnitTests {
 
 		when(metadata.getEntityName()).thenReturn("User");
 
-		StringQuery query = new ExpressionBasedStringQuery("select u from #{#entityName} u", metadata, SPEL_PARSER);
+		StringQuery query = new ExpressionBasedStringQuery("select u from #{#entityName} u", metadata, SPEL_PARSER, false);
 		assertThat(query.getAlias()).isEqualTo("u");
 		assertThat(query.getQueryString()).isEqualTo("select u from User u");
 	}

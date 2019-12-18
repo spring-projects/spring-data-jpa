@@ -79,6 +79,7 @@ import org.springframework.util.StringUtils;
  * @author Florian Lüdiger
  * @author Grégoire Druant
  * @author Mohammad Hewedy
+ * @author Chao Jiang
  */
 public abstract class QueryUtils {
 
@@ -95,11 +96,16 @@ public abstract class QueryUtils {
 	static final String IDENTIFIER_GROUP = String.format("(%s)", IDENTIFIER);
 
 	private static final String COUNT_REPLACEMENT_TEMPLATE = "select count(%s) $5$6$7";
+	private static final String COUNT_REPLACEMENT_TEMPLATE_NATIVE = "select count(1) from (select %s $5$6$7) as total";
 	private static final String SIMPLE_COUNT_VALUE = "$2";
+
 	private static final String COMPLEX_COUNT_VALUE = "$3 $6";
 	private static final String COMPLEX_COUNT_LAST_VALUE = "$6";
-	private static final String ORDER_BY_PART = "(?iu)\\s+order\\s+by\\s+.*";
+	private static final String COMPLEX_COUNT_VALUE_NATIVE = "$3$4";
 
+	private static final String ORDER_BY_PART = "(?iu)\\s+order\\s+by\\s+.*";
+	private static final String ORDER_BY_PART_END = ") as total";
+	
 	private static final Pattern ALIAS_MATCH;
 	private static final Pattern COUNT_MATCH;
 	private static final Pattern PROJECTION_CLAUSE = Pattern.compile("select\\s+(.+)\\s+from", Pattern.CASE_INSENSITIVE);
@@ -474,6 +480,18 @@ public abstract class QueryUtils {
 	 */
 	@Deprecated
 	public static String createCountQueryFor(String originalQuery, @Nullable String countProjection) {
+		return createCountQueryFor(originalQuery, countProjection, false);
+	}
+
+	/**
+	 * Creates a count projected query from the given original query.
+	 *
+	 * @param originalQuery must not be {@literal null}.
+	 * @param countProjection may be {@literal null}.
+	 * @param isNativeQuery may be {@literal null}.
+	 * @return a query String to be used a count query for pagination. Guaranteed to be not {@literal null}.
+	 */
+	static String createCountQueryFor(String originalQuery, @Nullable String countProjection, boolean isNativeQuery) {
 
 		Assert.hasText(originalQuery, "OriginalQuery must not be null or empty!");
 
@@ -483,17 +501,29 @@ public abstract class QueryUtils {
 		if (countProjection == null) {
 
 			String variable = matcher.matches() ? matcher.group(VARIABLE_NAME_GROUP_INDEX) : null;
-			boolean useVariable = StringUtils.hasText(variable) //
-					&& !variable.startsWith(" new") //
-					&& !variable.startsWith("count(") //
-					&& !variable.contains(","); //
+
+			if(StringUtils.hasText(variable)) {
+				variable = variable.trim();
+			}
+			
+			boolean useVariable = StringUtils.hasText(variable) && !variable.startsWith("new")
+					&& !variable.startsWith("count(") && !variable.contains(",");
+
 
 			String complexCountValue = matcher.matches() &&
 					StringUtils.hasText(matcher.group(COMPLEX_COUNT_FIRST_INDEX)) ?
 					COMPLEX_COUNT_VALUE : COMPLEX_COUNT_LAST_VALUE;
+			
+			if(!isNativeQuery) {
 
-			String replacement = useVariable ? SIMPLE_COUNT_VALUE : complexCountValue;
-			countQuery = matcher.replaceFirst(String.format(COUNT_REPLACEMENT_TEMPLATE, replacement));
+				String replacement = useVariable ? SIMPLE_COUNT_VALUE : complexCountValue;
+				countQuery = matcher.replaceFirst(String.format(COUNT_REPLACEMENT_TEMPLATE, replacement));
+			} else {
+
+				String replacement = useVariable ? SIMPLE_COUNT_VALUE : COMPLEX_COUNT_VALUE_NATIVE;
+				countQuery = matcher.replaceFirst(String.format(COUNT_REPLACEMENT_TEMPLATE_NATIVE, replacement));
+				return countQuery.replaceFirst(ORDER_BY_PART, ORDER_BY_PART_END);
+			}
 		} else {
 			countQuery = matcher.replaceFirst(String.format(COUNT_REPLACEMENT_TEMPLATE, countProjection));
 		}

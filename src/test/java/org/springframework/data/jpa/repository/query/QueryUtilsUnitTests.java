@@ -38,6 +38,7 @@ import org.springframework.data.jpa.domain.JpaSort;
  * @author Florian Lüdiger
  * @author Grégoire Druant
  * @author Mohammad Hewedy
+ * @author Chao Jiang
  */
 public class QueryUtilsUnitTests {
 
@@ -78,7 +79,7 @@ public class QueryUtilsUnitTests {
 	@Test
 	public void createsCountQueryForJoins() throws Exception {
 
-		assertCountQuery("select distinct new User(u.name) from User u left outer join u.roles r WHERE r = ?",
+		assertCountQuery("select distinct  new User(u.name) from User u left outer join u.roles r WHERE r = ?",
 				"select count(distinct u) from User u left outer join u.roles r WHERE r = ?");
 	}
 
@@ -227,6 +228,48 @@ public class QueryUtilsUnitTests {
 	public void createCountQueryFromTheGivenCountProjection() {
 		assertThat(createCountQueryFor("select p.lastname,p.firstname from Person p", "p.lastname"))
 				.isEqualTo("select count(p.lastname) from Person p");
+	}
+
+	@Test // DATAJPA-1435
+	public void countUsesAliasForJpql() {
+
+		String jpqlQuery = "select p.lastname,p.firstname from Person p";
+		boolean isJpqlQuery = false;
+
+		//parse jpql, get correct query(use count(entity name) in select clause)
+		assertThat(createCountQueryFor(jpqlQuery, null, isJpqlQuery)).isEqualTo("select count(p) from Person p");
+
+	}
+
+	@Test // DATAJPA-1435
+	public void countUsesSubqueryForNativeQuery() {
+
+		String jpqlQuery = "select p.lastname,p.firstname from Person p";
+		boolean isNativeQuery = true;
+
+		//parse jpql as native sql, subquery not work
+		assertThat(createCountQueryFor(jpqlQuery, null, isNativeQuery)).isEqualTo("select count(1) from (select p.lastname,p.firstname from Person p) as total");
+	}
+
+	@Test // DATAJPA-1435
+	public void countUsesAliasForJpqlWithOrderBy() {
+
+		String jpqlQuery = "select p.lastname,p.firstname from Person p order by p.name";
+		boolean isJpqlQuery = false;
+
+		//parse jpql, get correct query(use count(entity name) in select clause)
+		assertThat(createCountQueryFor(jpqlQuery, null, isJpqlQuery)).isEqualTo("select count(p) from Person p");
+
+	}
+
+	@Test // DATAJPA-1435
+	public void countUsesSubqueryForNativeQueryWithOrderBy() {
+
+		String jpqlQuery = "select p.lastname,p.firstname from Person p Order by p.name";
+		boolean isNativeQuery = true;
+
+		//parse jpql as native sql, subquery not work
+		assertThat(createCountQueryFor(jpqlQuery, null, isNativeQuery)).isEqualTo("select count(1) from (select p.lastname,p.firstname from Person p) as total");
 	}
 
 	@Test // DATAJPA-726

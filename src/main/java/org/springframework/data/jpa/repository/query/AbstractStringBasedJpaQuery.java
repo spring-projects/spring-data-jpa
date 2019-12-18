@@ -33,6 +33,7 @@ import org.springframework.util.Assert;
  * @author Tom Hombergs
  * @author David Madden
  * @author Mark Paluch
+ * @author Chao Jiang
  */
 abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 

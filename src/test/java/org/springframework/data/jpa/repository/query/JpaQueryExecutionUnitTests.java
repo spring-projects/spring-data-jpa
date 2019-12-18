@@ -46,6 +46,7 @@ import org.springframework.data.jpa.repository.query.JpaQueryExecution.PagedExec
  * @author Mark Paluch
  * @author Nicolas Cirigliano
  * @author Jens Schauder
+ * @author Chao Jiang
  */
 @RunWith(MockitoJUnitRunner.Silent.class)
 public class JpaQueryExecutionUnitTests {

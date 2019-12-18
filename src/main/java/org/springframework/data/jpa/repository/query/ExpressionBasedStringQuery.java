@@ -42,8 +42,8 @@ class ExpressionBasedStringQuery extends StringQuery {
 	private static final String QUOTED_EXPRESSION_PARAMETER = "?__HASH__{";
 
 	private static final Pattern EXPRESSION_PARAMETER_QUOTING = Pattern.compile(Pattern.quote(EXPRESSION_PARAMETER));
-	private static final Pattern EXPRESSION_PARAMETER_UNQUOTING = Pattern.compile(Pattern
-			.quote(QUOTED_EXPRESSION_PARAMETER));
+	private static final Pattern EXPRESSION_PARAMETER_UNQUOTING = Pattern
+			.compile(Pattern.quote(QUOTED_EXPRESSION_PARAMETER));
 
 	private static final String ENTITY_NAME = "entityName";
 	private static final String ENTITY_NAME_VARIABLE = "#" + ENTITY_NAME;
@@ -55,9 +55,11 @@ class ExpressionBasedStringQuery extends StringQuery {
 	 * @param query must not be {@literal null} or empty.
 	 * @param metadata must not be {@literal null}.
 	 * @param parser must not be {@literal null}.
+	 * @param isNative {@literal true} if the statement is a native SQL statement.
 	 */
-	public ExpressionBasedStringQuery(String query, JpaEntityMetadata<?> metadata, SpelExpressionParser parser) {
-		super(renderQueryIfExpressionOrReturnQuery(query, metadata, parser));
+	ExpressionBasedStringQuery(String query, JpaEntityMetadata<?> metadata, SpelExpressionParser parser,
+							   boolean isNative) {
+		super(renderQueryIfExpressionOrReturnQuery(query, metadata, parser), isNative);
 	}
 
 	/**
@@ -68,16 +70,15 @@ class ExpressionBasedStringQuery extends StringQuery {
 	 * @param parser Parser for resolving SpEL expressions. Must not be {@literal null}.
 	 * @return A query supporting SpEL expressions.
 	 */
-	static ExpressionBasedStringQuery from(DeclaredQuery query, JpaEntityMetadata metadata,
-			SpelExpressionParser parser) {
-		return new ExpressionBasedStringQuery(query.getQueryString(), metadata, parser);
+	static ExpressionBasedStringQuery from(DeclaredQuery query, JpaEntityMetadata metadata, SpelExpressionParser parser) {
+		return new ExpressionBasedStringQuery(query.getQueryString(), metadata, parser, query.isNative());
 	}
 
 	/**
 	 * @param query, the query expression potentially containing a SpEL expression. Must not be {@literal null}.}
 	 * @param metadata the {@link JpaEntityMetadata} for the given entity. Must not be {@literal null}.
 	 * @param parser Must not be {@literal null}.
-	 * @return
+	 * @return a transformed query without SpEL expressions.
 	 */
 	private static String renderQueryIfExpressionOrReturnQuery(String query, JpaEntityMetadata<?> metadata,
 			SpelExpressionParser parser) {
