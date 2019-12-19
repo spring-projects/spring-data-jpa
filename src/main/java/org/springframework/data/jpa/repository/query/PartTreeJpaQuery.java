@@ -16,8 +16,6 @@
 package org.springframework.data.jpa.repository.query;
 
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
@@ -211,7 +209,6 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 		private final @Nullable CriteriaQuery<?> cachedCriteriaQuery;
 		private final @Nullable ParameterBinder cachedParameterBinder;
 		private final PersistenceProvider persistenceProvider;
-		private final Map<List<ParameterMetadata<?>>, ParameterBinder> binderCache = new ConcurrentHashMap<>();
 		private final QueryParameterSetter.QueryMetadataCache metadataCache = new QueryParameterSetter.QueryMetadataCache();
 
 		QueryPreparer(PersistenceProvider persistenceProvider, boolean recreateQueries) {
@@ -335,8 +332,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 		}
 
 		private ParameterBinder getBinder(List<ParameterMetadata<?>> expressions) {
-			return this.binderCache.computeIfAbsent(expressions,
-					key -> ParameterBinderFactory.createCriteriaBinder(parameters, key));
+			return ParameterBinderFactory.createCriteriaBinder(parameters, expressions);
 		}
 
 		private Sort getDynamicSort(JpaParametersParameterAccessor accessor) {
