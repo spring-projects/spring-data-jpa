@@ -250,6 +250,34 @@ public class QueryUtilsUnitTests {
 		//parse jpql as native sql, subquery not work
 		assertThat(createCountQueryFor(jpqlQuery, null, isNativeQuery)).isEqualTo("select count(1) from (select p.lastname,p.firstname from Person p) as total");
 	}
+	
+	@Test // DATAJPA-1435
+	public void countUsesSubqueryForNativeQueryWithGroupBy() {
+
+		String jpqlQuery = "select p.lastname,p.firstname from Person p group by p.lastname";
+		boolean isNativeQuery = true;
+
+		//parse jpql as native sql, subquery not work
+		assertThat(createCountQueryFor(jpqlQuery, null, isNativeQuery)).isEqualTo("select count(1) from (select p.lastname,p.firstname from Person p group by p.lastname) as total");
+	}
+	
+	@Test // DATAJPA-1435
+	public void countUsesSubqueryForJpqlQueryWithGroupBy() {
+
+		String jpqlQuery = "select p.lastname, p.firstname  from Person p group by p.lastname";
+		boolean isNativeQuery = false;
+
+		assertThat(createCountQueryFor(jpqlQuery, null, isNativeQuery)).isEqualTo("select count(distinct p.lastname) from Person p");
+		
+		jpqlQuery = "select p.firstname from Person p group by p.lastname ";
+		assertThat(createCountQueryFor(jpqlQuery, null, isNativeQuery)).isEqualTo("select count(distinct p.lastname) from Person p");
+		
+		jpqlQuery = "select p.firstname from Person p group by p.lastname order by p.firstname";
+		assertThat(createCountQueryFor(jpqlQuery, null, isNativeQuery)).isEqualTo("select count(distinct p.lastname) from Person p");
+		
+		jpqlQuery = "select distinct p.firstname from Person p group by p.lastname";
+		assertThat(createCountQueryFor(jpqlQuery, null, isNativeQuery)).isEqualTo("select count(distinct p.lastname) from Person p");
+	}
 
 	@Test // DATAJPA-1435
 	public void countUsesAliasForJpqlWithOrderBy() {

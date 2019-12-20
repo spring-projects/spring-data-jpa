@@ -96,12 +96,14 @@ public abstract class QueryUtils {
 	static final String IDENTIFIER_GROUP = String.format("(%s)", IDENTIFIER);
 
 	private static final String COUNT_REPLACEMENT_TEMPLATE = "select count(%s) $5$6$7";
+	private static final String COUNT_REPLACEMENT_TEMPLATE_WITH_GROUP = "select count(distinct %s) $5$6";
 	private static final String COUNT_REPLACEMENT_TEMPLATE_NATIVE = "select count(1) from (select %s $5$6$7) as total";
 	private static final String SIMPLE_COUNT_VALUE = "$2";
 
 	private static final String COMPLEX_COUNT_VALUE = "$3 $6";
 	private static final String COMPLEX_COUNT_LAST_VALUE = "$6";
 	private static final String COMPLEX_COUNT_VALUE_NATIVE = "$3$4";
+	private static final String GROUP_COUNT_VALUE = "$10";
 
 	private static final String ORDER_BY_PART = "(?iu)\\s+order\\s+by\\s+.*";
 	private static final String ORDER_BY_PART_END = ") as total";
@@ -128,6 +130,7 @@ public abstract class QueryUtils {
 	private static final int QUERY_JOIN_ALIAS_GROUP_INDEX = 3;
 	private static final int VARIABLE_NAME_GROUP_INDEX = 4;
 	private static final int COMPLEX_COUNT_FIRST_INDEX = 3;
+	private static final int GROUP_BY_GROUP_INDEX = 9;
 
 	private static final Pattern PUNCTATION_PATTERN = Pattern.compile(".*((?![._])[\\p{Punct}|\\s])");
 	private static final Pattern FUNCTION_PATTERN;
@@ -154,9 +157,14 @@ public abstract class QueryUtils {
 		builder.append(IDENTIFIER);
 		builder.append("(?:\\s+as)?\\s+)");
 		builder.append(IDENTIFIER_GROUP);
-		builder.append("(.*)");
+		builder.append("(\\s?((group\\s+by\\s+)((?s).+?)(\\s+|$))?(.*))");
 
 		COUNT_MATCH = compile(builder.toString(), CASE_INSENSITIVE);
+		
+//		builder = new StringBuilder();
+//		builder.append("(.*)?(group\\s+by\\s+)(.*)");
+//
+//		GROUP_MATCH = compile(builder.toString(), CASE_INSENSITIVE);
 
 		Map<PersistentAttributeType, Class<? extends Annotation>> persistentAttributeTypes = new HashMap<>();
 		persistentAttributeTypes.put(ONE_TO_ONE, OneToOne.class);
@@ -502,22 +510,28 @@ public abstract class QueryUtils {
 
 			String variable = matcher.matches() ? matcher.group(VARIABLE_NAME_GROUP_INDEX) : null;
 
-			if(StringUtils.hasText(variable)) {
-				variable = variable.trim();
-			}
+			variable = StringUtils.hasText(variable) ? variable.trim() : variable;
 			
 			boolean useVariable = StringUtils.hasText(variable) && !variable.startsWith("new")
 					&& !variable.startsWith("count(") && !variable.contains(",");
-
 
 			String complexCountValue = matcher.matches() &&
 					StringUtils.hasText(matcher.group(COMPLEX_COUNT_FIRST_INDEX)) ?
 					COMPLEX_COUNT_VALUE : COMPLEX_COUNT_LAST_VALUE;
 			
 			if(!isNativeQuery) {
+				
+				boolean useGroupByVariable = matcher.matches() && StringUtils.hasText(matcher.group(GROUP_BY_GROUP_INDEX)) ? true : false;
+				
+				if(!useGroupByVariable) {
+					
+					String replacement = useVariable ? SIMPLE_COUNT_VALUE : complexCountValue;
+					countQuery = matcher.replaceFirst(String.format(COUNT_REPLACEMENT_TEMPLATE, replacement));
+				} else {
+					
+					countQuery = matcher.replaceFirst(String.format(COUNT_REPLACEMENT_TEMPLATE_WITH_GROUP, GROUP_COUNT_VALUE));
+				}
 
-				String replacement = useVariable ? SIMPLE_COUNT_VALUE : complexCountValue;
-				countQuery = matcher.replaceFirst(String.format(COUNT_REPLACEMENT_TEMPLATE, replacement));
 			} else {
 
 				String replacement = useVariable ? SIMPLE_COUNT_VALUE : COMPLEX_COUNT_VALUE_NATIVE;
