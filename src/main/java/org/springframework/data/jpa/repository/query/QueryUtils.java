@@ -157,14 +157,9 @@ public abstract class QueryUtils {
 		builder.append(IDENTIFIER);
 		builder.append("(?:\\s+as)?\\s+)");
 		builder.append(IDENTIFIER_GROUP);
-		builder.append("(\\s?((group\\s+by\\s+)((?s).+?)(\\s+|$))?(.*))");
+		builder.append("(\\s?((group\\s+by\\s+)((?s).+?)(?:\\s+|$))?(.*))");
 
 		COUNT_MATCH = compile(builder.toString(), CASE_INSENSITIVE);
-		
-//		builder = new StringBuilder();
-//		builder.append("(.*)?(group\\s+by\\s+)(.*)");
-//
-//		GROUP_MATCH = compile(builder.toString(), CASE_INSENSITIVE);
 
 		Map<PersistentAttributeType, Class<? extends Annotation>> persistentAttributeTypes = new HashMap<>();
 		persistentAttributeTypes.put(ONE_TO_ONE, OneToOne.class);
