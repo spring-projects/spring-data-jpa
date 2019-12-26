@@ -22,7 +22,7 @@ import org.springframework.data.repository.Repository;
  * @author Mark Paluch
  */
 @UserDB
-public interface QualifiedCustomizedUserRepository extends Repository<User, Long>,
+public interface QualifiedCustomizedUserRepository extends Repository<User, Integer>,
 		QualifiedCustomizedUserRepositoryCustom, QualifiedFragment {
 
 }
