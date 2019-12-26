@@ -28,7 +28,7 @@ import org.springframework.data.jpa.repository.Query;
  * @author Oliver Gierke
  * @author Thomas Darimont
  */
-public interface AuditableUserRepository extends JpaRepository<AuditableUser, Long> {
+public interface AuditableUserRepository extends JpaRepository<AuditableUser, Integer> {
 
 	/**
 	 * Returns all users with the given firstname.

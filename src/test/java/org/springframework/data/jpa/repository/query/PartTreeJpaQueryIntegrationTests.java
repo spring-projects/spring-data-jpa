@@ -173,14 +173,14 @@ public class PartTreeJpaQueryIntegrationTests {
 	@Test // DATAJPA-1182
 	public void rejectsInPredicateWithNonIterableParameter() throws Exception {
 
-		JpaQueryMethod method = getQueryMethod("findByIdIn", Long.class);
+		JpaQueryMethod method = getQueryMethod("findByIdIn", Integer.class);
 
 		assertThatExceptionOfType(RuntimeException.class) //
 				.isThrownBy(() -> new PartTreeJpaQuery(method, entityManager, provider)) //
 				.withMessageContaining("findByIdIn") //
 				.withMessageContaining(" IN ") //
 				.withMessageContaining("Collection") //
-				.withMessageContaining("Long");
+				.withMessageContaining("Integer");
 	}
 
 	@Test // DATAJPA-1182
@@ -284,7 +284,7 @@ public class PartTreeJpaQueryIntegrationTests {
 	}
 
 	@SuppressWarnings("unused")
-	interface UserRepository extends Repository<User, Long> {
+	interface UserRepository extends Repository<User, Integer> {
 
 		Page<User> findByFirstname(String firstname, Pageable pageable);
 
@@ -303,10 +303,10 @@ public class PartTreeJpaQueryIntegrationTests {
 		List<User> findByFirstnameIsEmpty();
 
 		// should fail, since we can't compare scalar values to collections
-		List<User> findById(Collection<Long> ids);
+		List<User> findById(Collection<Integer> ids);
 
 		// should fail, since we can't do an IN on a scalar
-		List<User> findByIdIn(Long id);
+		List<User> findByIdIn(Integer id);
 
 		// should succeed
 		List<User> findByFirstnameIn(Iterable<String> id);

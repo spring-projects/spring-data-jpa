@@ -29,7 +29,7 @@ import org.springframework.data.repository.CrudRepository;
  *
  * @author Thomas Darimont
  */
-public interface RedeclaringRepositoryMethodsRepository extends CrudRepository<User, Long> {
+public interface RedeclaringRepositoryMethodsRepository extends CrudRepository<User, Integer> {
 
 	/**
 	 * Should not find any users at all.

@@ -70,7 +70,7 @@ public class JpaCountQueryCreatorIntegrationTests {
 		assertThat(HibernateUtils.getHibernateQuery(query)).startsWith("select distinct count(distinct");
 	}
 
-	interface SomeRepository extends Repository<User, Long> {
+	interface SomeRepository extends Repository<User, Integer> {
 		void findDistinctByRolesIn(List<Role> roles);
 	}
 }

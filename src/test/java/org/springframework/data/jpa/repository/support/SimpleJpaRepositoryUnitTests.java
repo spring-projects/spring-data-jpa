@@ -57,7 +57,7 @@ public class SimpleJpaRepositoryUnitTests {
 	@Mock CriteriaQuery<Long> countCriteriaQuery;
 	@Mock TypedQuery<User> query;
 	@Mock TypedQuery<Long> countQuery;
-	@Mock JpaEntityInformation<User, Long> information;
+	@Mock JpaEntityInformation<User, Integer> information;
 	@Mock CrudMethodMetadata metadata;
 	@Mock EntityGraph<User> entityGraph;
 	@Mock org.springframework.data.jpa.repository.EntityGraph entityGraphAnnotation;

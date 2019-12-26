@@ -66,7 +66,6 @@ import org.springframework.data.repository.query.QueryMethod;
 @RunWith(MockitoJUnitRunner.class)
 public class JpaQueryMethodUnitTests {
 
-	static final Class<?> DOMAIN_CLASS = User.class;
 	static final String METHOD_NAME = "findByFirstname";
 
 	@Mock QueryExtractor extractor;
@@ -328,7 +327,7 @@ public class JpaQueryMethodUnitTests {
 		doReturn(User.class).when(metadata).getDomainType();
 		doReturn(User.class).when(metadata).getReturnedDomainClass((Method) any());
 
-		JpaQueryMethod method = new JpaQueryMethod(JpaRepositoryOverride.class.getMethod("findOne", Long.class), metadata,
+		JpaQueryMethod method = new JpaQueryMethod(JpaRepositoryOverride.class.getMethod("findOne", Integer.class), metadata,
 				factory, extractor);
 
 		assertThat(method.getEntityGraph()).isNotNull();
@@ -345,7 +344,7 @@ public class JpaQueryMethodUnitTests {
 		doReturn(User.class).when(metadata).getDomainType();
 		doReturn(User.class).when(metadata).getReturnedDomainClass((Method) any());
 
-		JpaQueryMethod method = new JpaQueryMethod(JpaRepositoryOverride.class.getMethod("getOneById", Long.class),
+		JpaQueryMethod method = new JpaQueryMethod(JpaRepositoryOverride.class.getMethod("getOneById", Integer.class),
 				metadata, factory, extractor);
 
 		assertThat(method.getEntityGraph()).isNotNull();
@@ -469,7 +468,7 @@ public class JpaQueryMethodUnitTests {
 	 *
 	 * @author Oliver Gierke
 	 */
-	static interface InvalidRepository extends Repository<User, Long> {
+	interface InvalidRepository extends Repository<User, Integer> {
 
 		// Invalid return type
 		User findByFirstname(String firstname, Pageable pageable);
@@ -500,7 +499,7 @@ public class JpaQueryMethodUnitTests {
 		List<User> findByAnnotatedQuery(@Param("param") String param);
 	}
 
-	static interface ValidRepository extends Repository<User, Long> {
+	interface ValidRepository extends Repository<User, Integer> {
 
 		@Query(value = "query", nativeQuery = true)
 		List<User> findByLastname(String lastname);
@@ -530,7 +529,7 @@ public class JpaQueryMethodUnitTests {
 		void withMetaAnnotationUsingAliasFor();
 	}
 
-	static interface JpaRepositoryOverride extends JpaRepository<User, Long> {
+	interface JpaRepositoryOverride extends JpaRepository<User, Integer> {
 
 		/**
 		 * DATAJPA-612
@@ -543,13 +542,13 @@ public class JpaQueryMethodUnitTests {
 		 * DATAJPA-689
 		 */
 		@EntityGraph("User.detail")
-		Optional<User> findOne(Long id);
+		Optional<User> findOne(Integer id);
 
 		/**
 		 * DATAJPA-696
 		 */
 		@EntityGraph
-		User getOneById(Long id);
+		User getOneById(Integer id);
 
 		@CustomComposedEntityGraphAnnotationWithAliasFor
 		User getOneWithCustomEntityGraphAnnotation();
