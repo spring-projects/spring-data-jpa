@@ -46,7 +46,7 @@ public class JpaEntityInformationSupportUnitTests {
 	@Test
 	public void usesSimpleClassNameIfNoEntityNameGiven() throws Exception {
 
-		JpaEntityInformation<User, Long> information = new DummyJpaEntityInformation<User, Long>(User.class);
+		JpaEntityInformation<User, Integer> information = new DummyJpaEntityInformation<>(User.class);
 		assertThat(information.getEntityName()).isEqualTo("User");
 
 		JpaEntityInformation<NamedUser, ?> second = new DummyJpaEntityInformation<NamedUser, Serializable>(NamedUser.class);

@@ -22,6 +22,7 @@ import static org.springframework.test.util.ReflectionTestUtils.*;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -242,7 +243,7 @@ public class PartTreeJpaQueryIntegrationTests {
 	}
 
 	@SuppressWarnings("unused")
-	interface UserRepository extends Repository<User, Long> {
+	interface UserRepository extends Repository<User, Integer> {
 
 		Page<User> findByFirstname(String firstname, Pageable pageable);
 
@@ -259,6 +260,15 @@ public class PartTreeJpaQueryIntegrationTests {
 		List<User> findByRolesIsNotEmpty();
 
 		List<User> findByFirstnameIsEmpty();
+
+		// should fail, since we can't compare scalar values to collections
+		List<User> findById(Collection<Long> ids);
+
+		// should fail, since we can't do an IN on a scalar
+		List<User> findByIdIn(Long id);
+
+		// should succeed
+		List<User> findByFirstnameIn(Iterable<String> id);
 
 		// Wrong number of parameters
 		User findByFirstname();
