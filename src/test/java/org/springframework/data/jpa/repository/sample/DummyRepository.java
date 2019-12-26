@@ -23,7 +23,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
-public interface DummyRepository extends CrudRepository<Dummy, Long> {
+public interface DummyRepository extends CrudRepository<Dummy, Integer> {
 
 	@Procedure("procedure_in1_out1")
 	Integer adHocProcedureWith1InputAnd1OutputParameter(Integer in);

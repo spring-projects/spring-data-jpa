@@ -102,7 +102,7 @@ public class JpaQueryLookupStrategyUnitTests {
 				.withMessageContaining(method.toString());
 	}
 
-	interface UserRepository extends Repository<User, Long> {
+	interface UserRepository extends Repository<User, Integer> {
 
 		@Query("something absurd")
 		User findByFoo(String foo);
