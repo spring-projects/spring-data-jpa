@@ -94,6 +94,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Jesse Wouters
  * @author Greg Turnquist
  * @author Diego Krupitza
+ * @author Daniel Shuy
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:application-context.xml")
@@ -489,12 +490,21 @@ public class UserRepositoryTests {
 				.isThrownBy(() -> repository.findOne(userHasFirstnameLike("e")));
 	}
 
-	@Test
+	@Test // DATAJPA-1651
 	void executesCombinedSpecificationsCorrectly() {
 
 		flushTestUsers();
-		Specification<User> spec = userHasFirstname("Oliver").or(userHasLastname("Arrasz"));
-		assertThat(repository.findAll(spec)).hasSize(2);
+		Specification<User> spec1 = userHasFirstname("Oliver").or(userHasLastname("Arrasz"));
+		List<User> users1 = repository.findAll(spec1);
+		assertThat(users1).hasSize(2);
+
+		Specification<User> spec2 = Specification.anyOf( //
+				userHasFirstname("Oliver"), //
+				userHasLastname("Arrasz"));
+		List<User> users2 = repository.findAll(spec2);
+		assertThat(users2).hasSize(2);
+
+		assertThat(users1).containsExactlyInAnyOrderElementsOf(users2);
 	}
 
 	@Test // DATAJPA-253
@@ -506,16 +516,27 @@ public class UserRepositoryTests {
 		assertThat(repository.findAll(spec)).containsOnly(secondUser);
 	}
 
-	@Test
+	@Test // DATAJPA-1651
 	void executesCombinedSpecificationsWithPageableCorrectly() {
 
 		flushTestUsers();
-		Specification<User> spec = userHasFirstname("Oliver").or(userHasLastname("Arrasz"));
+		Specification<User> spec1 = userHasFirstname("Oliver").or(userHasLastname("Arrasz"));
 
-		Page<User> users = repository.findAll(spec, PageRequest.of(0, 1));
-		assertThat(users.getSize()).isEqualTo(1);
-		assertThat(users.hasPrevious()).isFalse();
-		assertThat(users.getTotalElements()).isEqualTo(2L);
+		Page<User> users1 = repository.findAll(spec1, PageRequest.of(0, 1));
+		assertThat(users1.getSize()).isEqualTo(1);
+		assertThat(users1.hasPrevious()).isFalse();
+		assertThat(users1.getTotalElements()).isEqualTo(2L);
+
+		Specification<User> spec2 = Specification.anyOf( //
+				userHasFirstname("Oliver"), //
+				userHasLastname("Arrasz"));
+
+		Page<User> users2 = repository.findAll(spec2, PageRequest.of(0, 1));
+		assertThat(users2.getSize()).isEqualTo(1);
+		assertThat(users2.hasPrevious()).isFalse();
+		assertThat(users2.getTotalElements()).isEqualTo(2L);
+
+		assertThat(users1).containsExactlyInAnyOrderElementsOf(users2);
 	}
 
 	@Test
@@ -602,14 +623,14 @@ public class UserRepositoryTests {
 		assertThat(repository.count()).isEqualTo(3L);
 	}
 
-	@Test
+	@Test // DATAJPA-1651
 	void executesPagedSpecificationsCorrectly() {
 
 		Page<User> result = executeSpecWithSort(Sort.unsorted());
 		assertThat(result.getContent()).isSubsetOf(firstUser, thirdUser);
 	}
 
-	@Test
+	@Test // DATAJPA-1651
 	void executesPagedSpecificationsWithSortCorrectly() {
 
 		Page<User> result = executeSpecWithSort(Sort.by(Direction.ASC, "lastname"));
@@ -617,7 +638,7 @@ public class UserRepositoryTests {
 		assertThat(result.getContent()).contains(firstUser).doesNotContain(secondUser, thirdUser);
 	}
 
-	@Test
+	@Test // DATAJPA-1651
 	void executesPagedSpecificationWithSortCorrectly2() {
 
 		Page<User> result = executeSpecWithSort(Sort.by(Direction.DESC, "lastname"));
@@ -2821,11 +2842,21 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		Specification<User> spec = userHasFirstname("Oliver").or(userHasLastname("Matthews"));
+		Specification<User> spec1 = userHasFirstname("Oliver").or(userHasLastname("Matthews"));
 
-		Page<User> result = repository.findAll(spec, PageRequest.of(0, 1, sort));
-		assertThat(result.getTotalElements()).isEqualTo(2L);
-		return result;
+		Page<User> result1 = repository.findAll(spec1, PageRequest.of(0, 1, sort));
+		assertThat(result1.getTotalElements()).isEqualTo(2L);
+
+		Specification<User> spec2 = Specification.anyOf( //
+				userHasFirstname("Oliver"), //
+				userHasLastname("Matthews"));
+
+		Page<User> result2 = repository.findAll(spec2, PageRequest.of(0, 1, sort));
+		assertThat(result2.getTotalElements()).isEqualTo(2L);
+
+		assertThat(result1).containsExactlyElementsOf(result2);
+
+		return result2;
 	}
 
 	private interface UserProjectionInterfaceBased {

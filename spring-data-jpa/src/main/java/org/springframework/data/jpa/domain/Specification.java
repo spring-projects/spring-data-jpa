@@ -21,6 +21,8 @@ import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 
 import java.io.Serializable;
+import java.util.Arrays;
+import java.util.stream.StreamSupport;
 
 import org.springframework.lang.Nullable;
 
@@ -33,6 +35,7 @@ import org.springframework.lang.Nullable;
  * @author Sebastian Staudt
  * @author Mark Paluch
  * @author Jens Schauder
+ * @author Daniel Shuy
  */
 public interface Specification<T> extends Serializable {
 
@@ -98,4 +101,46 @@ public interface Specification<T> extends Serializable {
 	 */
 	@Nullable
 	Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder);
+
+	/**
+	 * Applies an AND operation to all the given {@link Specification}s.
+	 *
+	 * @param specifications The {@link Specification}s to compose. Can contain {@code null}s.
+	 * @return The conjunction of the specifications
+	 * @see #and(Specification)
+	 */
+	static <T> Specification<T> allOf(Iterable<Specification<T>> specifications) {
+
+		return StreamSupport.stream(specifications.spliterator(), false) //
+				.reduce(Specification.where(null), Specification::and);
+	}
+
+	/**
+	 * @see #allOf(Iterable)
+	 */
+	@SafeVarargs
+	static <T> Specification<T> allOf(Specification<T>... specifications) {
+		return allOf(Arrays.asList(specifications));
+	}
+
+	/**
+	 * Applies an OR operation to all the given {@link Specification}s.
+	 *
+	 * @param specifications The {@link Specification}s to compose. Can contain {@code null}s.
+	 * @return The disjunction of the specifications
+	 * @see #or(Specification)
+	 */
+	static <T> Specification<T> anyOf(Iterable<Specification<T>> specifications) {
+
+		return StreamSupport.stream(specifications.spliterator(), false) //
+				.reduce(Specification.where(null), Specification::or);
+	}
+
+	/**
+	 * @see #anyOf(Iterable)
+	 */
+	@SafeVarargs
+	static <T> Specification<T> anyOf(Specification<T>... specifications) {
+		return anyOf(Arrays.asList(specifications));
+	}
 }
