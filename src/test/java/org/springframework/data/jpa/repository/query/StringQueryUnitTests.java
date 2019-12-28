@@ -37,6 +37,7 @@ import org.springframework.data.repository.query.parser.Part.Type;
  * @author Thomas Darimont
  * @author Jens Schauder
  * @author Nils Borrmann
+ * @author Andriy Redko
  */
 public class StringQueryUnitTests {
 
@@ -536,6 +537,34 @@ public class StringQueryUnitTests {
 					.describedAs(queryString) //
 					.isTrue();
 		}
+
+		softly.assertAll();
+	}
+
+	@Test // DATAJPA-1652
+	public void usingPipesWithNamedParameter() {
+
+		String queryString = "SELECT u FROM User u WHERE u.lastname LIKE '%'||:name||'%'";
+		StringQuery query = new StringQuery(queryString);
+
+		softly.assertThat(query.getQueryString()).isEqualTo(queryString);
+		softly.assertThat(query.hasParameterBindings()).isTrue();
+		softly.assertThat(query.getParameterBindings()).hasSize(1);
+		softly.assertThat(query.getParameterBindings().get(0).getName()).isEqualTo("name");
+
+		softly.assertAll();
+	}
+
+	@Test // DATAJPA-1652
+	public void usingGreaterThanWithNamedParameter() {
+
+		String queryString = "SELECT u FROM User u WHERE :age>u.age";
+		StringQuery query = new StringQuery(queryString);
+
+		softly.assertThat(query.getQueryString()).isEqualTo(queryString);
+		softly.assertThat(query.hasParameterBindings()).isTrue();
+		softly.assertThat(query.getParameterBindings()).hasSize(1);
+		softly.assertThat(query.getParameterBindings().get(0).getName()).isEqualTo("age");
 
 		softly.assertAll();
 	}
