@@ -79,6 +79,7 @@ import org.springframework.util.StringUtils;
  * @author Florian Lüdiger
  * @author Grégoire Druant
  * @author Mohammad Hewedy
+ * @author Andriy Redko
  */
 public abstract class QueryUtils {
 
@@ -89,8 +90,8 @@ public abstract class QueryUtils {
 	// Z Separator
 	// Cc Control
 	// Cf Format
-	// P Punctuation
-	private static final String IDENTIFIER = "[._[\\P{Z}&&\\P{Cc}&&\\P{Cf}&&\\P{P}]]+";
+	// Punct Punctuation
+	private static final String IDENTIFIER = "[._$[\\P{Z}&&\\P{Cc}&&\\P{Cf}&&\\P{Punct}]]+";
 	static final String COLON_NO_DOUBLE_COLON = "(?<![:\\\\]):";
 	static final String IDENTIFIER_GROUP = String.format("(%s)", IDENTIFIER);
 
