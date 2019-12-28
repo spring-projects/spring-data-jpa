@@ -40,6 +40,7 @@ import org.mockito.junit.MockitoJUnitRunner;
  * @author Thomas Darimont
  * @author Sebastian Staudt
  * @author Jens Schauder
+ * @author Daniel Shuy
  */
 @SuppressWarnings("serial")
 @RunWith(MockitoJUnitRunner.class)
@@ -111,6 +112,42 @@ public class SpecificationUnitTests implements Serializable {
 
 		assertThat(specification).isNotNull();
 		assertThat(specification.toPredicate(root, query, builder)).isEqualTo(predicate);
+	}
+
+	@Test // DATAJPA-1651
+	public void allOfConcatenatesNull() {
+
+		Specification<Object> specification = Specification.allOf(null, spec, null);
+
+		assertThat(specification).isNotNull();
+		assertThat(specification.toPredicate(root, query, builder)).isEqualTo(predicate);
+	}
+
+	@Test // DATAJPA-1651
+	public void anyOfConcatenatesNull() {
+
+		Specification<Object> specification = Specification.anyOf(null, spec, null);
+
+		assertThat(specification).isNotNull();
+		assertThat(specification.toPredicate(root, query, builder)).isEqualTo(predicate);
+	}
+
+	@Test // DATAJPA-1651
+	public void emptyAllOfReturnsEmptySpecification() {
+
+		Specification<Object> specification = Specification.allOf();
+
+		assertThat(specification).isNotNull();
+		assertThat(specification.toPredicate(root, query, builder)).isNull();
+	}
+
+	@Test // DATAJPA-1651
+	public void emptyAnyOfReturnsEmptySpecification() {
+
+		Specification<Object> specification = Specification.anyOf();
+
+		assertThat(specification).isNotNull();
+		assertThat(specification.toPredicate(root, query, builder)).isNull();
 	}
 
 	@Test // DATAJPA-523
