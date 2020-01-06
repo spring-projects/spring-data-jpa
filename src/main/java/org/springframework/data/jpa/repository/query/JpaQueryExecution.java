@@ -320,7 +320,9 @@ public abstract class JpaQueryExecution {
 				if(!SurroundingTransactionDetectorMethodInterceptor.INSTANCE.isSurroundingTransactionActive())
 					throw new InvalidDataAccessApiUsageException(NO_SURROUNDING_TRANSACTION);
 
-				return storedProcedure.getResultList();
+				List result = storedProcedure.getResultList();
+				return result.size() == 1
+						&& !storedProcedureJpaQuery.getQueryMethod().isCollectionQuery() ? result.get(0) : result;
 			}
 
 			return storedProcedureJpaQuery.extractOutputValue(storedProcedure);
