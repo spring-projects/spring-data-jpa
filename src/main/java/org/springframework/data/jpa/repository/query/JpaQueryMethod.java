@@ -54,6 +54,7 @@ import org.springframework.util.StringUtils;
  * @author Nicolas Cirigliano
  * @author Mark Paluch
  * @author Сергей Цыпанов
+ * @author Gabriel Basilio
  */
 public class JpaQueryMethod extends QueryMethod {
 
@@ -87,6 +88,7 @@ public class JpaQueryMethod extends QueryMethod {
 	private final Lazy<Boolean> isNativeQuery;
 	private final Lazy<Boolean> isCollectionQuery;
 	private final Lazy<Boolean> isProcedureQuery;
+    private final Lazy<Boolean> isResultSetProcedureQuery;
 	private final Lazy<JpaEntityMetadata<?>> entityMetadata;
 
 	/**
@@ -129,6 +131,7 @@ public class JpaQueryMethod extends QueryMethod {
 				.of(() -> super.isCollectionQuery() && !NATIVE_ARRAY_TYPES.contains(method.getReturnType()));
 		this.isProcedureQuery = Lazy.of(() -> AnnotationUtils.findAnnotation(method, Procedure.class) != null);
 		this.entityMetadata = Lazy.of(() -> new DefaultJpaEntityMetadata<>(getDomainClass()));
+        this.isResultSetProcedureQuery = Lazy.of(() -> this.isProcedureQuery() && (this.isCollectionQuery() || super.isQueryForEntity()));
 
 		Assert.isTrue(!(isModifyingQuery() && getParameters().hasSpecialParameter()),
 				String.format("Modifying method must not contain %s!", Parameters.TYPES));
@@ -411,6 +414,13 @@ public class JpaQueryMethod extends QueryMethod {
 	public boolean isProcedureQuery() {
 		return this.isProcedureQuery.get();
 	}
+
+    /**
+     * @return {@literal true} if the method contains a {@link Procedure} annotation and it's output is a ResultSet
+     */
+    public boolean isResultSetProcedureQuery() {
+        return this.isResultSetProcedureQuery.get();
+    }
 
 	/**
 	 * Returns a new {@link StoredProcedureAttributes} representing the stored procedure meta-data for this

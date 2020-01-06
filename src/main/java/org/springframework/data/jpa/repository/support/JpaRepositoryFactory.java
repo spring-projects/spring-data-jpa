@@ -33,10 +33,7 @@ import org.springframework.data.jpa.projection.CollectionAwareProjectionFactory;
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.provider.QueryExtractor;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.query.AbstractJpaQuery;
-import org.springframework.data.jpa.repository.query.EscapeCharacter;
-import org.springframework.data.jpa.repository.query.JpaQueryLookupStrategy;
-import org.springframework.data.jpa.repository.query.JpaQueryMethod;
+import org.springframework.data.jpa.repository.query.*;
 import org.springframework.data.jpa.util.JpaMetamodel;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.querydsl.EntityPathResolver;
@@ -92,7 +89,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 		addRepositoryProxyPostProcessor(crudMethodMetadataPostProcessor);
 		addRepositoryProxyPostProcessor((factory, repositoryInformation) -> {
 
-			if (hasMethodReturningStream(repositoryInformation.getRepositoryInterface())) {
+			if (isTransactionNeeded(repositoryInformation.getRepositoryInterface())) {
 				factory.addAdvice(SurroundingTransactionDetectorMethodInterceptor.INSTANCE);
 			}
 		});
@@ -241,12 +238,13 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 		return fragments;
 	}
 
-	private static boolean hasMethodReturningStream(Class<?> repositoryClass) {
+	private static boolean isTransactionNeeded(Class<?> repositoryClass) {
 
 		Method[] methods = ReflectionUtils.getAllDeclaredMethods(repositoryClass);
 
 		for (Method method : methods) {
-			if (Stream.class.isAssignableFrom(method.getReturnType())) {
+			if (Stream.class.isAssignableFrom(method.getReturnType()) ||
+					method.isAnnotationPresent(Procedure.class)) {
 				return true;
 			}
 		}

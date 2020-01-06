@@ -46,6 +46,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Paluch
  * @author Jeff Sheets
  * @author JyotirmoyVS
+ * @author Gabriel Basilio
  * @since 1.6
  */
 class StoredProcedureJpaQuery extends AbstractJpaQuery {
@@ -132,16 +133,20 @@ class StoredProcedureJpaQuery extends AbstractJpaQuery {
 			return null;
 		}
 
-		Map<String, Object> outputValues = new HashMap<>();
 		List<String> parameterNames = procedureAttributes.getOutputParameterNames();
 
-		for (int i = 0; i < parameterNames.size(); i++) {
+		if (parameterNames.size() == 1) {
+			return extractOutputParameter(storedProcedureQuery, 0);
+		}
 
+		Map<String, Object> outputValues = new HashMap<>();
+
+		for (int i = 0; i < parameterNames.size(); i++) {
 			String name = parameterNames.get(i);
 			outputValues.put(name, extractOutputParameter(storedProcedureQuery, i));
 		}
 
-		return outputValues.size() == 1 ? outputValues.values().iterator().next() : outputValues;
+		return outputValues;
 	}
 
 	private Object extractOutputParameter(StoredProcedureQuery storedProcedureQuery, Integer index) {
@@ -192,9 +197,7 @@ class StoredProcedureJpaQuery extends AbstractJpaQuery {
 	private StoredProcedureQuery newAdhocStoredProcedureQuery() {
 
 		JpaParameters params = getQueryMethod().getParameters();
-		String procedureName = procedureAttributes.getProcedureName();
-
-		StoredProcedureQuery procedureQuery = getEntityManager().createStoredProcedureQuery(procedureName);
+        StoredProcedureQuery procedureQuery = createAdHocStoredProcedureQueryInstance();
 
 		for (JpaParameter param : params) {
 
@@ -214,7 +217,7 @@ class StoredProcedureJpaQuery extends AbstractJpaQuery {
 
 		if (procedureAttributes.hasReturnValue()) {
 
-			ParameterMode mode = ParameterMode.OUT;
+            ParameterMode mode = getQueryMethod().isResultSetProcedureQuery() ? ParameterMode.REF_CURSOR : ParameterMode.OUT;
 
 			IntStream.range(0, procedureAttributes.getOutputParameterTypes().size()).forEach(i -> {
 				Class<?> outputParameterType = procedureAttributes.getOutputParameterTypes().get(i);
@@ -233,4 +236,16 @@ class StoredProcedureJpaQuery extends AbstractJpaQuery {
 
 		return procedureQuery;
 	}
+
+    private StoredProcedureQuery createAdHocStoredProcedureQueryInstance() {
+        String procedureName = procedureAttributes.getProcedureName();
+
+        if (getQueryMethod().isResultSetProcedureQuery() && getQueryMethod().isQueryForEntity()) {
+
+            return getEntityManager().createStoredProcedureQuery(procedureName,
+                    getQueryMethod().getEntityInformation().getJavaType());
+        }
+
+        return getEntityManager().createStoredProcedureQuery(procedureName);
+    }
 }

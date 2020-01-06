@@ -53,7 +53,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RunWith(SpringJUnit4ClassRunner.class)
 public class StoredProcedureIntegrationTests {
 
-	private static final String NOT_SUPPORTED = "Stored procedures with ResultSets are currently not supported for any JPA provider";
+	private static final String NOT_SUPPORTED = "Stored procedures with ResultSets are currently not supported by HSQL";
 
 	@PersistenceContext EntityManager em;
 	@Autowired DummyRepository repository;

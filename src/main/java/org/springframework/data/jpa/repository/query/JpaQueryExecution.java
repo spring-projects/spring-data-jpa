@@ -53,6 +53,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Christoph Strobl
  * @author Nicolas Cirigliano
  * @author Jens Schauder
+ * @author Gabriel Basilio
  */
 public abstract class JpaQueryExecution {
 
@@ -300,6 +301,7 @@ public abstract class JpaQueryExecution {
 	 */
 	static class ProcedureExecution extends JpaQueryExecution {
 
+		private static final String NO_SURROUNDING_TRANSACTION = "You're trying to execute a @Procedure method without a surrounding transaction that keeps the connection open so that the ResultSet can actually be consumed. Make sure the consumer code uses @Transactional or any other way of declaring a (read-only) transaction.";
 		/*
 		 * (non-Javadoc)
 		 * @see org.springframework.data.jpa.repository.query.JpaQueryExecution#doExecute(org.springframework.data.jpa.repository.query.AbstractJpaQuery, java.lang.Object[])
@@ -311,7 +313,15 @@ public abstract class JpaQueryExecution {
 
 			StoredProcedureJpaQuery storedProcedureJpaQuery = (StoredProcedureJpaQuery) jpaQuery;
 			StoredProcedureQuery storedProcedure = storedProcedureJpaQuery.createQuery(accessor);
-			storedProcedure.execute();
+
+			boolean returnsResultSet = storedProcedure.execute();
+
+			if(returnsResultSet) {
+				if(!SurroundingTransactionDetectorMethodInterceptor.INSTANCE.isSurroundingTransactionActive())
+					throw new InvalidDataAccessApiUsageException(NO_SURROUNDING_TRANSACTION);
+
+				return storedProcedure.getResultList();
+			}
 
 			return storedProcedureJpaQuery.extractOutputValue(storedProcedure);
 		}
