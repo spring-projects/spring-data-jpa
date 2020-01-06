@@ -46,12 +46,12 @@ import org.springframework.util.ObjectUtils;
 						type = Integer.class) }) //
 		,
 		@NamedStoredProcedureQuery(name = "Dummy.procedureWith1InputAnd1OutputParameterWithResultSet",
-				procedureName = "procedure_in1_out0_return_rs_no_update", parameters = {
+				procedureName = "procedure_in1_out0_return_ref_cursor_no_update", parameters = {
 						@StoredProcedureParameter(mode = ParameterMode.IN, type = String.class),
 						@StoredProcedureParameter(mode = ParameterMode.REF_CURSOR, type = void.class) }) //
 		,
 		@NamedStoredProcedureQuery(name = "Dummy.procedureWith1InputAnd1OutputParameterWithResultSetWithUpdate",
-				procedureName = "procedure_in1_out0_return_rs_with_update", parameters = {
+				procedureName = "procedure_in1_out0_return_ref_cursor_with_update", parameters = {
 						@StoredProcedureParameter(mode = ParameterMode.IN, type = String.class),
 						@StoredProcedureParameter(mode = ParameterMode.REF_CURSOR, type = void.class) }) //
 		,

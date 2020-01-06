@@ -325,7 +325,7 @@ public abstract class JpaQueryExecution {
 						&& !storedProcedureJpaQuery.getQueryMethod().isCollectionQuery() ? result.get(0) : result;
 			}
 
-			return storedProcedureJpaQuery.extractOutputValue(storedProcedure);
+			return storedProcedureJpaQuery.extractOutputParametersValues(storedProcedure);
 		}
 	}
 

@@ -46,6 +46,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Thomas Darimont
  * @author Oliver Gierke
  * @author Jens Schauder
+ * @author Gabriel Basilio
  * @see scripts/schema-stored-procedures.sql for procedure definitions.
  */
 @Transactional
@@ -53,7 +54,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RunWith(SpringJUnit4ClassRunner.class)
 public class StoredProcedureIntegrationTests {
 
-	private static final String NOT_SUPPORTED = "Stored procedures with ResultSets are currently not supported by HSQL";
+	private static final String NOT_SUPPORTED = "Stored procedures with REF_CURSOR are currently not supported by HSQL";
 
 	@PersistenceContext EntityManager em;
 	@Autowired DummyRepository repository;
@@ -80,9 +81,9 @@ public class StoredProcedureIntegrationTests {
 
 	@Test // DATAJPA-652
 	@Ignore(NOT_SUPPORTED)
-	public void shouldExecuteAdHocProcedureWith1InputAnd1OutputParameterWithResultSet() {
+	public void shouldExecuteAdHocProcedureWith1InputAnd1OutputParameterWithRefCursor() {
 
-		List<Dummy> dummies = repository.adHocProcedureWith1InputAnd1OutputParameterWithResultSet("FOO");
+		List<Dummy> dummies = repository.adHocProcedureWith1InputAnd1OutputParameterWithRefCursor("FOO");
 
 		assertThat(dummies).isNotNull();
 		assertThat(dummies.size()).isEqualTo(3);
@@ -90,9 +91,9 @@ public class StoredProcedureIntegrationTests {
 
 	@Test // DATAJPA-652
 	@Ignore(NOT_SUPPORTED)
-	public void shouldExecuteAdHocProcedureWith1InputAnd1OutputParameterWithResultSetWithUpdate() {
+	public void shouldExecuteAdHocProcedureWith1InputAnd1OutputParameterWithRefCursorWithUpdate() {
 
-		List<Dummy> dummies = repository.adHocProcedureWith1InputAnd1OutputParameterWithResultSetWithUpdate("FOO");
+		List<Dummy> dummies = repository.adHocProcedureWith1InputAnd1OutputParameterWithRefCursorWithUpdate("FOO");
 
 		assertThat(dummies).isNotNull();
 		assertThat(dummies.size()).isEqualTo(3);

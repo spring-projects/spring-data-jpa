@@ -27,9 +27,9 @@ DROP procedure IF EXISTS procedure_in1_out0
 /;
 DROP procedure IF EXISTS procedure_in0_out1
 /;
-DROP procedure IF EXISTS procedure_in1_out0_return_rs_no_update
+DROP procedure IF EXISTS procedure_in1_out0_return_ref_cursor_no_update
 /;
-DROP procedure IF EXISTS procedure_in1_out0_return_rs_with_update
+DROP procedure IF EXISTS procedure_in1_out0_return_ref_cursor_with_update
 /;
 DROP procedure IF EXISTS procedure_in1_out0_no_return_with_update
 /;
@@ -65,7 +65,7 @@ set res = 42;
 END
 /;
 
-CREATE procedure procedure_in1_out0_return_rs_no_update (IN arg varchar(32))
+CREATE procedure procedure_in1_out0_return_ref_cursor_no_update (IN arg varchar(32))
 READS SQL DATA DYNAMIC RESULT SETS 1
 BEGIN ATOMIC
 DECLARE result CURSOR WITH RETURN FOR SELECT * FROM public.dummy FOR READ ONLY;
@@ -73,7 +73,7 @@ open result;
 END
 /;
 
-CREATE procedure procedure_in1_out0_return_rs_with_update (IN arg varchar(32))
+CREATE procedure procedure_in1_out0_return_ref_cursor_with_update (IN arg varchar(32))
 MODIFIES SQL DATA DYNAMIC RESULT SETS 1
 BEGIN ATOMIC
 DECLARE result CURSOR WITH RETURN FOR SELECT * FROM public.dummy FOR READ ONLY;

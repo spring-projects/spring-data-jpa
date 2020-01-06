@@ -34,11 +34,11 @@ public interface DummyRepository extends CrudRepository<Dummy, Integer> {
 	@Procedure("procedure_in0_out1")
 	Integer adHocProcedureWithNoInputAnd1OutputParameter();
 
-	@Procedure("procedure_in1_out0_return_rs_no_update")
-	List<Dummy> adHocProcedureWith1InputAnd1OutputParameterWithResultSet(String in);
+	@Procedure("procedure_in1_out0_return_ref_cursor_no_update")
+	List<Dummy> adHocProcedureWith1InputAnd1OutputParameterWithRefCursor(String in);
 
-	@Procedure("procedure_in1_out0_return_rs_with_update")
-	List<Dummy> adHocProcedureWith1InputAnd1OutputParameterWithResultSetWithUpdate(String in);
+	@Procedure("procedure_in1_out0_return_ref_cursor_with_update")
+	List<Dummy> adHocProcedureWith1InputAnd1OutputParameterWithRefCursorWithUpdate(String in);
 
 	@Procedure("procedure_in1_out0_no_return_with_update")
 	void adHocProcedureWith1InputAndNoOutputParameterWithUpdate(String in);
