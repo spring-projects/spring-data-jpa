@@ -547,12 +547,9 @@ public class StringQueryUnitTests {
 		String queryString = "SELECT u FROM User u WHERE u.lastname LIKE '%'||:name||'%'";
 		StringQuery query = new StringQuery(queryString);
 
-		softly.assertThat(query.getQueryString()).isEqualTo(queryString);
-		softly.assertThat(query.hasParameterBindings()).isTrue();
-		softly.assertThat(query.getParameterBindings()).hasSize(1);
-		softly.assertThat(query.getParameterBindings().get(0).getName()).isEqualTo("name");
-
-		softly.assertAll();
+		assertThat(query.getParameterBindings()) //
+				.extracting(ParameterBinding::getName) //
+				.containsExactly("name");
 	}
 
 	@Test // DATAJPA-1652
@@ -561,15 +558,12 @@ public class StringQueryUnitTests {
 		String queryString = "SELECT u FROM User u WHERE :age>u.age";
 		StringQuery query = new StringQuery(queryString);
 
-		softly.assertThat(query.getQueryString()).isEqualTo(queryString);
-		softly.assertThat(query.hasParameterBindings()).isTrue();
-		softly.assertThat(query.getParameterBindings()).hasSize(1);
-		softly.assertThat(query.getParameterBindings().get(0).getName()).isEqualTo("age");
-
-		softly.assertAll();
+		assertThat(query.getParameterBindings()) //
+				.extracting(ParameterBinding::getName) //
+				.containsExactly("age");
 	}
 
-	public void checkNumberOfNamedParameters(String query, int expectedSize, String label) {
+	void checkNumberOfNamedParameters(String query, int expectedSize, String label) {
 
 		DeclaredQuery declaredQuery = DeclaredQuery.of(query);
 
