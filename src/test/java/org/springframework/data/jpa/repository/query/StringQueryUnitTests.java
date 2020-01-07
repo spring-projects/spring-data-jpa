@@ -37,6 +37,7 @@ import org.springframework.data.repository.query.parser.Part.Type;
  * @author Thomas Darimont
  * @author Jens Schauder
  * @author Nils Borrmann
+ * @author Andriy Redko
  */
 public class StringQueryUnitTests {
 
@@ -557,7 +558,7 @@ public class StringQueryUnitTests {
 	@Test // DATAJPA-1652
 	public void usingGreaterThanWithNamedParameter() {
 
-		String queryString = "SELECT u FROM User u WHERE :age<u.age";
+		String queryString = "SELECT u FROM User u WHERE :age>u.age";
 		StringQuery query = new StringQuery(queryString);
 
 		softly.assertThat(query.getQueryString()).isEqualTo(queryString);
