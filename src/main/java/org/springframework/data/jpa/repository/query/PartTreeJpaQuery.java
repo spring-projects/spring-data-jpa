@@ -24,7 +24,6 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 
 import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.DeleteExecution;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.ExistsExecution;
@@ -62,10 +61,9 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 	 *
 	 * @param method must not be {@literal null}.
 	 * @param em must not be {@literal null}.
-	 * @param persistenceProvider must not be {@literal null}.
 	 */
-	PartTreeJpaQuery(JpaQueryMethod method, EntityManager em, PersistenceProvider persistenceProvider) {
-		this(method, em, persistenceProvider, EscapeCharacter.DEFAULT);
+	PartTreeJpaQuery(JpaQueryMethod method, EntityManager em) {
+		this(method, em, EscapeCharacter.DEFAULT);
 	}
 
 	/**
@@ -73,11 +71,9 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 	 *
 	 * @param method must not be {@literal null}.
 	 * @param em must not be {@literal null}.
-	 * @param persistenceProvider must not be {@literal null}.
 	 * @param escape character used for escaping characters used as patterns in LIKE-expressions.
 	 */
-	PartTreeJpaQuery(JpaQueryMethod method, EntityManager em, PersistenceProvider persistenceProvider,
-			EscapeCharacter escape) {
+	PartTreeJpaQuery(JpaQueryMethod method, EntityManager em, EscapeCharacter escape) {
 
 		super(method, em);
 
@@ -92,8 +88,8 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 
 			this.tree = new PartTree(method.getName(), domainClass);
 			validate(tree, parameters, method.toString());
-			this.countQuery = new CountQueryPreparer(persistenceProvider, recreationRequired);
-			this.query = tree.isCountProjection() ? countQuery : new QueryPreparer(persistenceProvider, recreationRequired);
+			this.countQuery = new CountQueryPreparer(recreationRequired);
+			this.query = tree.isCountProjection() ? countQuery : new QueryPreparer(recreationRequired);
 
 		} catch (Exception o_O) {
 			throw new IllegalArgumentException(
@@ -208,14 +204,11 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 
 		private final @Nullable CriteriaQuery<?> cachedCriteriaQuery;
 		private final @Nullable ParameterBinder cachedParameterBinder;
-		private final PersistenceProvider persistenceProvider;
 		private final QueryParameterSetter.QueryMetadataCache metadataCache = new QueryParameterSetter.QueryMetadataCache();
 
-		QueryPreparer(PersistenceProvider persistenceProvider, boolean recreateQueries) {
+		QueryPreparer(boolean recreateQueries) {
 
-			this.persistenceProvider = persistenceProvider;
-
-			JpaQueryCreator creator = createCreator(persistenceProvider, null);
+			JpaQueryCreator creator = createCreator(null);
 
 			if (recreateQueries) {
 				this.cachedCriteriaQuery = null;
@@ -235,7 +228,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 			ParameterBinder parameterBinder = cachedParameterBinder;
 
 			if (cachedCriteriaQuery == null || accessor.hasBindableNullValue()) {
-				JpaQueryCreator creator = createCreator(persistenceProvider, accessor);
+				JpaQueryCreator creator = createCreator(accessor);
 				criteriaQuery = creator.createQuery(getDynamicSort(accessor));
 				List<ParameterMetadata<?>> expressions = creator.getParameterExpressions();
 				parameterBinder = getBinder(expressions);
@@ -254,6 +247,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 		 * Restricts the max results of the given {@link Query} if the current {@code tree} marks this {@code query} as
 		 * limited.
 		 */
+		@SuppressWarnings("ConstantConditions")
 		private Query restrictMaxResultsIfNecessary(Query query) {
 
 			if (tree.isLimiting()) {
@@ -298,8 +292,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 			return getEntityManager().createQuery(criteriaQuery);
 		}
 
-		protected JpaQueryCreator createCreator(PersistenceProvider persistenceProvider,
-				@Nullable JpaParametersParameterAccessor accessor) {
+		protected JpaQueryCreator createCreator(@Nullable JpaParametersParameterAccessor accessor) {
 
 			EntityManager entityManager = getEntityManager();
 
@@ -310,10 +303,10 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 			ReturnedType returnedType;
 
 			if (accessor != null) {
-				provider = new ParameterMetadataProvider(builder, accessor, persistenceProvider, escape);
+				provider = new ParameterMetadataProvider(builder, accessor, escape);
 				returnedType = processor.withDynamicProjection(accessor).getReturnedType();
 			} else {
-				provider = new ParameterMetadataProvider(builder, parameters, persistenceProvider, escape);
+				provider = new ParameterMetadataProvider(builder, parameters, escape);
 				returnedType = processor.getReturnedType();
 			}
 
@@ -351,13 +344,12 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 	 */
 	private class CountQueryPreparer extends QueryPreparer {
 
-		CountQueryPreparer(PersistenceProvider persistenceProvider, boolean recreateQueries) {
-			super(persistenceProvider, recreateQueries);
+		CountQueryPreparer(boolean recreateQueries) {
+			super(recreateQueries);
 		}
 
 		@Override
-		protected JpaQueryCreator createCreator(PersistenceProvider persistenceProvider,
-				@Nullable JpaParametersParameterAccessor accessor) {
+		protected JpaQueryCreator createCreator(@Nullable JpaParametersParameterAccessor accessor) {
 
 			EntityManager entityManager = getEntityManager();
 			CriteriaBuilder builder = entityManager.getCriteriaBuilder();
@@ -365,9 +357,9 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 			ParameterMetadataProvider provider;
 
 			if (accessor != null) {
-				provider = new ParameterMetadataProvider(builder, accessor, persistenceProvider, escape);
+				provider = new ParameterMetadataProvider(builder, accessor, escape);
 			} else {
-				provider = new ParameterMetadataProvider(builder, parameters, persistenceProvider, escape);
+				provider = new ParameterMetadataProvider(builder, parameters, escape);
 			}
 
 			return new JpaCountQueryCreator(tree, getQueryMethod().getResultProcessor().getReturnedType(), builder, provider);

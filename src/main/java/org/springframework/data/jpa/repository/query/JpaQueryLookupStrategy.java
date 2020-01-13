@@ -19,7 +19,6 @@ import java.lang.reflect.Method;
 
 import javax.persistence.EntityManager;
 
-import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.provider.QueryExtractor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.projection.ProjectionFactory;
@@ -95,20 +94,19 @@ public final class JpaQueryLookupStrategy {
 	 */
 	private static class CreateQueryLookupStrategy extends AbstractQueryLookupStrategy {
 
-		private final PersistenceProvider persistenceProvider;
 		private final EscapeCharacter escape;
 
 		public CreateQueryLookupStrategy(EntityManager em, QueryExtractor extractor, EscapeCharacter escape,
 				JpaQueryMethodFactory queryMethodFactory) {
 
 			super(em, extractor, queryMethodFactory);
-			this.persistenceProvider = PersistenceProvider.fromEntityManager(em);
+
 			this.escape = escape;
 		}
 
 		@Override
 		protected RepositoryQuery resolveQuery(JpaQueryMethod method, EntityManager em, NamedQueries namedQueries) {
-			return new PartTreeJpaQuery(method, em, persistenceProvider, escape);
+			return new PartTreeJpaQuery(method, em, escape);
 		}
 	}
 
@@ -118,6 +116,7 @@ public final class JpaQueryLookupStrategy {
 	 *
 	 * @author Oliver Gierke
 	 * @author Thomas Darimont
+	 * @author Jens Schauder
 	 */
 	private static class DeclaredQueryLookupStrategy extends AbstractQueryLookupStrategy {
 
