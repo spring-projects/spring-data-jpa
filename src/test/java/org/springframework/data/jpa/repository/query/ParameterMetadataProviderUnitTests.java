@@ -23,7 +23,6 @@ import java.util.Collections;
 import javax.persistence.criteria.CriteriaBuilder;
 
 import org.junit.Test;
-import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.parser.Part;
 
@@ -37,18 +36,17 @@ public class ParameterMetadataProviderUnitTests {
 	@Test // DATAJPA-863
 	public void errorMessageMentionesParametersWhenParametersAreExhausted() {
 
-		PersistenceProvider persistenceProvider = mock(PersistenceProvider.class);
 		CriteriaBuilder builder = mock(CriteriaBuilder.class);
 
 		Parameters<?, ?> parameters = mock(Parameters.class, RETURNS_DEEP_STUBS);
 		when(parameters.getBindableParameters().iterator()).thenReturn(Collections.emptyListIterator());
 
 		ParameterMetadataProvider metadataProvider = new ParameterMetadataProvider(builder, parameters,
-				persistenceProvider, EscapeCharacter.DEFAULT);
+				EscapeCharacter.DEFAULT);
 
 		assertThatExceptionOfType(RuntimeException.class) //
 				.isThrownBy(() -> metadataProvider.next(mock(Part.class))) //
-                .withMessageContaining("parameter");
+				.withMessageContaining("parameter");
 	}
 
 }
