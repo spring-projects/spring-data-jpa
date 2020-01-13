@@ -91,7 +91,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 		this.extractor = PersistenceProvider.fromEntityManager(entityManager);
 		this.crudMethodMetadataPostProcessor = new CrudMethodMetadataPostProcessor();
 		this.entityPathResolver = SimpleEntityPathResolver.INSTANCE;
-		this.queryMethodFactory = JpaQueryMethod.Factory.INSTANCE;
+		this.queryMethodFactory = JpaQueryMethod.createMethodFactory(extractor);
 
 		addRepositoryProxyPostProcessor(crudMethodMetadataPostProcessor);
 		addRepositoryProxyPostProcessor((factory, repositoryInformation) -> {
@@ -139,11 +139,12 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	}
 
 	/**
-	 * Configures the {@link JpaQueryMethodFactory} to be used. Defaults to {@link JpaQueryMethod.Factory#INSTANCE}.
+	 * Configures the {@link JpaQueryMethodFactory} to be used. Defaults to {@link JpaQueryMethod.DefaultJpaQueryMethodFactory#INSTANCE}.
 	 * 
 	 * @param queryMethodFactory must not be {@literal null}.
 	 */
 	public void setQueryMethodFactory(JpaQueryMethodFactory queryMethodFactory) {
+
 		Assert.notNull(queryMethodFactory, "QueryMethodFactory must not be null!");
 
 		this.queryMethodFactory = queryMethodFactory;

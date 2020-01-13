@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2019-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 
 import java.lang.reflect.Method;
 import java.util.Optional;
@@ -30,6 +30,7 @@ import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.core.MethodParameter;
 import org.springframework.data.jpa.domain.sample.Product;
+import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.provider.QueryExtractor;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
@@ -39,25 +40,28 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
+ * Tests that the requirement of binding an argument to a query can get controlled by a module extending Spring Data
+ * JPA.
+ * 
  * @author Réda Housni Alaoui
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
-public class CustomNonBindableJpaParametersTests {
+public class CustomNonBindableJpaParametersIntegrationTests {
 
 	@Autowired ProductRepository products;
 
-	@Test
-	public void test() {
+	@Test // DATAJPA-1497
+	public void methodWithNonBindableParameterCanBeCalled() {
+
 		Product product = products.save(new Product());
+
 		assertThat(products.findById(product.getId(), new NonBindable())).isNotEmpty();
 	}
 
-	private static class NonBindable {
+	private static class NonBindable {}
 
-	}
-
-	public interface ProductRepository extends JpaRepository<Product, Long> {
+	interface ProductRepository extends JpaRepository<Product, Long> {
 		Optional<Product> findById(long id, NonBindable nonBindable);
 	}
 
@@ -103,9 +107,14 @@ public class CustomNonBindableJpaParametersTests {
 
 	private static class NonBindableAwareJpaQueryMethodFactory implements JpaQueryMethodFactory {
 
+		private final QueryExtractor extractor;
+
+		private NonBindableAwareJpaQueryMethodFactory(QueryExtractor extractor) {
+			this.extractor = extractor;
+		}
+
 		@Override
-		public JpaQueryMethod build(Method method, RepositoryMetadata metadata, ProjectionFactory factory,
-				QueryExtractor extractor) {
+		public JpaQueryMethod build(Method method, RepositoryMetadata metadata, ProjectionFactory factory) {
 			return new NonBindableAwareJpaQueryMethod(method, metadata, factory, extractor);
 		}
 	}
@@ -118,9 +127,7 @@ public class CustomNonBindableJpaParametersTests {
 
 		@Bean
 		JpaQueryMethodFactory jpaQueryMethodFactory() {
-			return new NonBindableAwareJpaQueryMethodFactory();
+			return new NonBindableAwareJpaQueryMethodFactory(PersistenceProvider.HIBERNATE);
 		}
-
 	}
-
 }

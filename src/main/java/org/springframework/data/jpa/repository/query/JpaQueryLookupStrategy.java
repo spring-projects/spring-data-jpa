@@ -81,7 +81,7 @@ public final class JpaQueryLookupStrategy {
 		@Override
 		public final RepositoryQuery resolveQuery(Method method, RepositoryMetadata metadata, ProjectionFactory factory,
 				NamedQueries namedQueries) {
-			return resolveQuery(queryMethodFactory.build(method, metadata, factory, provider), em, namedQueries);
+			return resolveQuery(queryMethodFactory.build(method, metadata, factory), em, namedQueries);
 		}
 
 		protected abstract RepositoryQuery resolveQuery(JpaQueryMethod method, EntityManager em, NamedQueries namedQueries);
@@ -98,7 +98,8 @@ public final class JpaQueryLookupStrategy {
 		private final PersistenceProvider persistenceProvider;
 		private final EscapeCharacter escape;
 
-		public CreateQueryLookupStrategy(EntityManager em, QueryExtractor extractor, EscapeCharacter escape, JpaQueryMethodFactory queryMethodFactory) {
+		public CreateQueryLookupStrategy(EntityManager em, QueryExtractor extractor, EscapeCharacter escape,
+				JpaQueryMethodFactory queryMethodFactory) {
 
 			super(em, extractor, queryMethodFactory);
 			this.persistenceProvider = PersistenceProvider.fromEntityManager(em);
@@ -134,6 +135,7 @@ public final class JpaQueryLookupStrategy {
 				JpaQueryMethodFactory queryMethodFactory, QueryMethodEvaluationContextProvider evaluationContextProvider) {
 
 			super(em, extractor, queryMethodFactory);
+
 			this.evaluationContextProvider = evaluationContextProvider;
 		}
 
@@ -232,7 +234,8 @@ public final class JpaQueryLookupStrategy {
 	 * @return
 	 */
 	public static QueryLookupStrategy create(EntityManager em, @Nullable Key key, QueryExtractor extractor,
-			JpaQueryMethodFactory queryMethodFactory, QueryMethodEvaluationContextProvider evaluationContextProvider, EscapeCharacter escape) {
+			JpaQueryMethodFactory queryMethodFactory, QueryMethodEvaluationContextProvider evaluationContextProvider,
+			EscapeCharacter escape) {
 
 		Assert.notNull(em, "EntityManager must not be null!");
 		Assert.notNull(extractor, "QueryExtractor must not be null!");
@@ -244,7 +247,7 @@ public final class JpaQueryLookupStrategy {
 			case USE_DECLARED_QUERY:
 				return new DeclaredQueryLookupStrategy(em, extractor, queryMethodFactory, evaluationContextProvider);
 			case CREATE_IF_NOT_FOUND:
-				return new CreateIfNotFoundQueryLookupStrategy(em, extractor,queryMethodFactory,
+				return new CreateIfNotFoundQueryLookupStrategy(em, extractor, queryMethodFactory,
 						new CreateQueryLookupStrategy(em, extractor, escape, queryMethodFactory),
 						new DeclaredQueryLookupStrategy(em, extractor, queryMethodFactory, evaluationContextProvider));
 			default:

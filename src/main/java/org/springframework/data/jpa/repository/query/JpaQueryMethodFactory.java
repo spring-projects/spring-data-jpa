@@ -22,7 +22,12 @@ import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.core.RepositoryMetadata;
 
 /**
+ * A factory interface for creating {@link JpaQueryMethodFactory} instances.
+ *
+ * This may be implemented by extensions to Spring Data JPA in order create instances of custom subclasses.
+ *
  * @author Réda Housni Alaoui
+ * @since 2.3
  */
 public interface JpaQueryMethodFactory {
 
@@ -32,8 +37,7 @@ public interface JpaQueryMethodFactory {
 	 * @param method must not be {@literal null}
 	 * @param metadata must not be {@literal null}
 	 * @param factory must not be {@literal null}
-	 * @param extractor must not be {@literal null}
 	 */
-	JpaQueryMethod build(Method method, RepositoryMetadata metadata, ProjectionFactory factory, QueryExtractor extractor);
+	JpaQueryMethod build(Method method, RepositoryMetadata metadata, ProjectionFactory factory);
 
 }

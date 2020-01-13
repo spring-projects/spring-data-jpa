@@ -56,7 +56,6 @@ import org.springframework.data.repository.query.QueryMethodEvaluationContextPro
 public class JpaQueryLookupStrategyUnitTests {
 
 	private static final QueryMethodEvaluationContextProvider EVALUATION_CONTEXT_PROVIDER = QueryMethodEvaluationContextProvider.DEFAULT;
-	private static final JpaQueryMethodFactory QUERY_METHOD_FACTORY = JpaQueryMethod.Factory.INSTANCE;
 
 	@Mock EntityManager em;
 	@Mock EntityManagerFactory emf;
@@ -65,6 +64,8 @@ public class JpaQueryLookupStrategyUnitTests {
 	@Mock Metamodel metamodel;
 	@Mock ProjectionFactory projectionFactory;
 
+	JpaQueryMethodFactory queryMethodFactory;
+
 	@Before
 	public void setUp() {
 
@@ -72,13 +73,14 @@ public class JpaQueryLookupStrategyUnitTests {
 		when(em.getEntityManagerFactory()).thenReturn(emf);
 		when(emf.createEntityManager()).thenReturn(em);
 		when(em.getDelegate()).thenReturn(em);
+		queryMethodFactory = JpaQueryMethod.createMethodFactory(extractor);
 	}
 
 	@Test // DATAJPA-226
 	public void invalidAnnotatedQueryCausesException() throws Exception {
 
 		QueryLookupStrategy strategy = JpaQueryLookupStrategy.create(em, Key.CREATE_IF_NOT_FOUND, extractor,
-				QUERY_METHOD_FACTORY, EVALUATION_CONTEXT_PROVIDER, EscapeCharacter.DEFAULT);
+				queryMethodFactory, EVALUATION_CONTEXT_PROVIDER, EscapeCharacter.DEFAULT);
 		Method method = UserRepository.class.getMethod("findByFoo", String.class);
 		RepositoryMetadata metadata = new DefaultRepositoryMetadata(UserRepository.class);
 
@@ -94,7 +96,7 @@ public class JpaQueryLookupStrategyUnitTests {
 	public void sholdThrowMorePreciseExceptionIfTryingToUsePaginationInNativeQueries() throws Exception {
 
 		QueryLookupStrategy strategy = JpaQueryLookupStrategy.create(em, Key.CREATE_IF_NOT_FOUND, extractor,
-				QUERY_METHOD_FACTORY, EVALUATION_CONTEXT_PROVIDER, EscapeCharacter.DEFAULT);
+				queryMethodFactory, EVALUATION_CONTEXT_PROVIDER, EscapeCharacter.DEFAULT);
 		Method method = UserRepository.class.getMethod("findByInvalidNativeQuery", String.class, Sort.class);
 		RepositoryMetadata metadata = new DefaultRepositoryMetadata(UserRepository.class);
 

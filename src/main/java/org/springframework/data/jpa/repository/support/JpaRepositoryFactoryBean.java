@@ -20,6 +20,7 @@ import javax.persistence.PersistenceContext;
 
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.provider.QueryExtractor;
 import org.springframework.data.jpa.repository.query.EscapeCharacter;
 import org.springframework.data.jpa.repository.query.JpaQueryMethod;
 import org.springframework.data.jpa.repository.query.JpaQueryMethodFactory;
@@ -91,14 +92,14 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 	}
 
 	/**
-	 * Configures the {@link JpaQueryMethodFactory} to be used. Will expect a canonical bean to be present but fallback to
-	 * {@link JpaQueryMethod.Factory#INSTANCE} in case none is available.
+	 * Configures the {@link JpaQueryMethodFactory} to be used. Will expect a canonical bean to be present but will fallback to
+	 * {@link JpaQueryMethod#createMethodFactory(QueryExtractor)} in case none is available.
 	 *
 	 * @param resolver must not be {@literal null}.
 	 */
 	@Autowired
 	public void setQueryMethodFactory(ObjectProvider<JpaQueryMethodFactory> resolver) {
-		this.queryMethodFactory = resolver.getIfAvailable(() -> JpaQueryMethod.Factory.INSTANCE);
+		this.queryMethodFactory = resolver.getIfAvailable(() -> null);
 	}
 
 	/*
@@ -121,7 +122,10 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 		JpaRepositoryFactory jpaRepositoryFactory = new JpaRepositoryFactory(entityManager);
 		jpaRepositoryFactory.setEntityPathResolver(entityPathResolver);
 		jpaRepositoryFactory.setEscapeCharacter(escapeCharacter);
-		jpaRepositoryFactory.setQueryMethodFactory(queryMethodFactory);
+
+		if (queryMethodFactory != null) {
+			jpaRepositoryFactory.setQueryMethodFactory(queryMethodFactory);
+		}
 
 		return jpaRepositoryFactory;
 	}
