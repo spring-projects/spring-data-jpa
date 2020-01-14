@@ -26,6 +26,7 @@ import java.lang.annotation.Target;
  * @author Thomas Darimont
  * @author Oliver Gierke
  * @author Christoph Strobl
+ * @author Gabriel Basilio
  * @since 1.6
  */
 @Target({ ElementType.METHOD, ElementType.ANNOTATION_TYPE })
@@ -51,4 +52,9 @@ public @interface Procedure {
 	 * The name of the outputParameter, defaults to {@code ""}.
 	 */
 	String outputParameterName() default "";
+
+	/**
+	 * Whether the procedure returns a Ref Cursor from the database {@code false}.
+	 */
+	boolean refCursor() default false;
 }
