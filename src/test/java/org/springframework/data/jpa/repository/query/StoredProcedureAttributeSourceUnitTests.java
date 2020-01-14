@@ -21,14 +21,17 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.core.annotation.AliasFor;
+import org.springframework.data.jpa.domain.sample.Dummy;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.repository.query.Param;
 import org.springframework.util.ReflectionUtils;
 
 import javax.persistence.EntityManager;
+import javax.persistence.ParameterMode;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Method;
+import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.*;
@@ -43,6 +46,7 @@ import static org.mockito.Mockito.*;
  * @author Diego Diez
  * @author Jeff Sheets
  * @author Jens Schauder
+ * @author Gabriel Basilio
  * @since 1.6
  */
 @RunWith(MockitoJUnitRunner.class)
@@ -65,10 +69,11 @@ public class StoredProcedureAttributeSourceUnitTests {
 	public void shouldCreateStoredProcedureAttributesFromProcedureMethodWithImplicitProcedureName() {
 
 		StoredProcedureAttributes attr = creator.createFrom(method("plus1inout", Integer.class), entityMetadata);
-
+		ProcedureParameter outputParameter = attr.getOutputProcedureParameters().get(0);
 		assertThat(attr.getProcedureName()).isEqualTo("plus1inout");
-		assertThat(attr.getOutputParameterTypes().get(0)).isEqualTo(Integer.class);
-		assertThat(attr.getOutputParameterNames().get(0)).isEqualTo(StoredProcedureAttributes.SYNTHETIC_OUTPUT_PARAMETER_NAME);
+		assertThat(outputParameter.getMode()).isEqualTo(ParameterMode.OUT);
+		assertThat(outputParameter.getType()).isEqualTo(Integer.class);
+		assertThat(outputParameter.getName()).isEqualTo(StoredProcedureAttributes.SYNTHETIC_OUTPUT_PARAMETER_NAME);
 	}
 
 	@Test // DATAJPA-455
@@ -77,9 +82,11 @@ public class StoredProcedureAttributeSourceUnitTests {
 		StoredProcedureAttributes attr = creator.createFrom(method("explicitlyNamedPlus1inout", Integer.class),
 				entityMetadata);
 
+		ProcedureParameter outputParameter = attr.getOutputProcedureParameters().get(0);
 		assertThat(attr.getProcedureName()).isEqualTo("plus1inout");
-		assertThat(attr.getOutputParameterTypes().get(0)).isEqualTo(Integer.class);
-		assertThat(attr.getOutputParameterNames().get(0)).isEqualTo(StoredProcedureAttributes.SYNTHETIC_OUTPUT_PARAMETER_NAME);
+		assertThat(outputParameter.getMode()).isEqualTo(ParameterMode.OUT);
+		assertThat(outputParameter.getType()).isEqualTo(Integer.class);
+		assertThat(outputParameter.getName()).isEqualTo(StoredProcedureAttributes.SYNTHETIC_OUTPUT_PARAMETER_NAME);
 	}
 
 	@Test // DATAJPA-455
@@ -88,9 +95,11 @@ public class StoredProcedureAttributeSourceUnitTests {
 		StoredProcedureAttributes attr = creator.createFrom(method("explicitlyNamedPlus1inout", Integer.class),
 				entityMetadata);
 
+		ProcedureParameter outputParameter = attr.getOutputProcedureParameters().get(0);
 		assertThat(attr.getProcedureName()).isEqualTo("plus1inout");
-		assertThat(attr.getOutputParameterTypes().get(0)).isEqualTo(Integer.class);
-		assertThat(attr.getOutputParameterNames().get(0)).isEqualTo(StoredProcedureAttributes.SYNTHETIC_OUTPUT_PARAMETER_NAME);
+		assertThat(outputParameter.getMode()).isEqualTo(ParameterMode.OUT);
+		assertThat(outputParameter.getType()).isEqualTo(Integer.class);
+		assertThat(outputParameter.getName()).isEqualTo(StoredProcedureAttributes.SYNTHETIC_OUTPUT_PARAMETER_NAME);
 	}
 
 	@Test // DATAJPA-455
@@ -99,9 +108,11 @@ public class StoredProcedureAttributeSourceUnitTests {
 		StoredProcedureAttributes attr = creator
 				.createFrom(method("explicitPlus1inoutViaProcedureNameAlias", Integer.class), entityMetadata);
 
+		ProcedureParameter outputParameter = attr.getOutputProcedureParameters().get(0);
 		assertThat(attr.getProcedureName()).isEqualTo("plus1inout");
-		assertThat(attr.getOutputParameterTypes().get(0)).isEqualTo(Integer.class);
-		assertThat(attr.getOutputParameterNames().get(0)).isEqualTo(StoredProcedureAttributes.SYNTHETIC_OUTPUT_PARAMETER_NAME);
+		assertThat(outputParameter.getMode()).isEqualTo(ParameterMode.OUT);
+		assertThat(outputParameter.getType()).isEqualTo(Integer.class);
+		assertThat(outputParameter.getName()).isEqualTo(StoredProcedureAttributes.SYNTHETIC_OUTPUT_PARAMETER_NAME);
 	}
 
 	@Test // DATAJPA-1297
@@ -110,9 +121,11 @@ public class StoredProcedureAttributeSourceUnitTests {
 		StoredProcedureAttributes attr = creator.createFrom(
 				method("explicitPlus1inoutViaProcedureNameAliasAndOutputParameterName", Integer.class), entityMetadata);
 
+		ProcedureParameter outputParameter = attr.getOutputProcedureParameters().get(0);
 		assertThat(attr.getProcedureName()).isEqualTo("plus1inout");
-		assertThat(attr.getOutputParameterTypes().get(0)).isEqualTo(Integer.class);
-		assertThat(attr.getOutputParameterNames().get(0)).isEqualTo("res");
+		assertThat(outputParameter.getMode()).isEqualTo(ParameterMode.OUT);
+		assertThat(outputParameter.getType()).isEqualTo(Integer.class);
+		assertThat(outputParameter.getName()).isEqualTo("res");
 	}
 
 	@Test // DATAJPA-455
@@ -121,9 +134,11 @@ public class StoredProcedureAttributeSourceUnitTests {
 		StoredProcedureAttributes attr = creator
 				.createFrom(method("entityAnnotatedCustomNamedProcedurePlus1IO", Integer.class), entityMetadata);
 
+		ProcedureParameter outputParameter = attr.getOutputProcedureParameters().get(0);
 		assertThat(attr.getProcedureName()).isEqualTo("User.plus1IO");
-		assertThat(attr.getOutputParameterTypes().get(0)).isEqualTo(Integer.class);
-		assertThat(attr.getOutputParameterNames().get(0)).isEqualTo("res");
+		assertThat(outputParameter.getMode()).isEqualTo(ParameterMode.OUT);
+		assertThat(outputParameter.getType()).isEqualTo(Integer.class);
+		assertThat(outputParameter.getName()).isEqualTo("res");
 	}
 
 	@Test // DATAJPA-707
@@ -132,9 +147,11 @@ public class StoredProcedureAttributeSourceUnitTests {
 		StoredProcedureAttributes attr = creator
 				.createFrom(method("entityAnnotatedCustomNamedProcedureOutputParamNamePlus1IO", Integer.class), entityMetadata);
 
+		ProcedureParameter outputParameter = attr.getOutputProcedureParameters().get(0);
 		assertThat(attr.getProcedureName()).isEqualTo("User.plus1IO");
-		assertThat(attr.getOutputParameterTypes().get(0)).isEqualTo(Integer.class);
-		assertThat(attr.getOutputParameterNames().get(0)).isEqualTo("override");
+		assertThat(outputParameter.getMode()).isEqualTo(ParameterMode.OUT);
+		assertThat(outputParameter.getType()).isEqualTo(Integer.class);
+		assertThat(outputParameter.getName()).isEqualTo("override");
 	}
 
 	@Test // DATAJPA-707
@@ -143,11 +160,18 @@ public class StoredProcedureAttributeSourceUnitTests {
 		StoredProcedureAttributes attr = creator
 				.createFrom(method("entityAnnotatedCustomNamedProcedurePlus1IO2", Integer.class), entityMetadata);
 
+		ProcedureParameter firstOutputParameter = attr.getOutputProcedureParameters().get(0);
+		ProcedureParameter secondOutputParameter = attr.getOutputProcedureParameters().get(1);
+
 		assertThat(attr.getProcedureName()).isEqualTo("User.plus1IO2");
-		assertThat(attr.getOutputParameterTypes().get(0)).isEqualTo(Integer.class);
-		assertThat(attr.getOutputParameterNames().get(0)).isEqualTo("res");
-		assertThat(attr.getOutputParameterTypes().get(1)).isEqualTo(Integer.class);
-		assertThat(attr.getOutputParameterNames().get(1)).isEqualTo("res2");
+
+		assertThat(firstOutputParameter.getMode()).isEqualTo(ParameterMode.OUT);
+		assertThat(firstOutputParameter.getType()).isEqualTo(Integer.class);
+		assertThat(firstOutputParameter.getName()).isEqualTo("res");
+
+		assertThat(secondOutputParameter.getMode()).isEqualTo(ParameterMode.OUT);
+		assertThat(secondOutputParameter.getType()).isEqualTo(Integer.class);
+		assertThat(secondOutputParameter.getName()).isEqualTo("res2");
 	}
 
 	@Test // DATAJPA-455
@@ -155,9 +179,11 @@ public class StoredProcedureAttributeSourceUnitTests {
 
 		StoredProcedureAttributes attr = creator.createFrom(method("plus1", Integer.class), entityMetadata);
 
+		ProcedureParameter outputParameter = attr.getOutputProcedureParameters().get(0);
 		assertThat(attr.getProcedureName()).isEqualTo("User.plus1");
-		assertThat(attr.getOutputParameterTypes().get(0)).isEqualTo(Integer.class);
-		assertThat(attr.getOutputParameterNames().get(0)).isEqualTo("res");
+		assertThat(outputParameter.getMode()).isEqualTo(ParameterMode.OUT);
+		assertThat(outputParameter.getType()).isEqualTo(Integer.class);
+		assertThat(outputParameter.getName()).isEqualTo("res");
 	}
 
 	@Test // DATAJPA-871
@@ -166,9 +192,11 @@ public class StoredProcedureAttributeSourceUnitTests {
 		StoredProcedureAttributes attr = creator
 				.createFrom(method("plus1inoutWithComposedAnnotationOverridingProcedureName", Integer.class), entityMetadata);
 
+		ProcedureParameter outputParameter = attr.getOutputProcedureParameters().get(0);
 		assertThat(attr.getProcedureName()).isEqualTo("plus1inout");
-		assertThat(attr.getOutputParameterTypes().get(0)).isEqualTo(Integer.class);
-		assertThat(attr.getOutputParameterNames().get(0)).isEqualTo(StoredProcedureAttributes.SYNTHETIC_OUTPUT_PARAMETER_NAME);
+		assertThat(outputParameter.getMode()).isEqualTo(ParameterMode.OUT);
+		assertThat(outputParameter.getType()).isEqualTo(Integer.class);
+		assertThat(outputParameter.getName()).isEqualTo(StoredProcedureAttributes.SYNTHETIC_OUTPUT_PARAMETER_NAME);
 	}
 
 	@Test // DATAJPA-871
@@ -177,9 +205,104 @@ public class StoredProcedureAttributeSourceUnitTests {
 		StoredProcedureAttributes attr = creator
 				.createFrom(method("plus1inoutWithComposedAnnotationOverridingName", Integer.class), entityMetadata);
 
+		ProcedureParameter outputParameter = attr.getOutputProcedureParameters().get(0);
 		assertThat(attr.getProcedureName()).isEqualTo("User.plus1");
-		assertThat(attr.getOutputParameterTypes().get(0)).isEqualTo(Integer.class);
-		assertThat(attr.getOutputParameterNames().get(0)).isEqualTo("res");
+		assertThat(outputParameter.getMode()).isEqualTo(ParameterMode.OUT);
+		assertThat(outputParameter.getType()).isEqualTo(Integer.class);
+		assertThat(outputParameter.getName()).isEqualTo("res");
+	}
+
+	@Test // DATAJPA-1657
+	public void testSingleEntityFrom1RowResultSetAndNoInput() {
+
+		StoredProcedureAttributes attr = creator
+				.createFrom(method("singleEntityFrom1RowResultSetAndNoInput"), entityMetadata);
+
+		ProcedureParameter outputParameter = attr.getOutputProcedureParameters().get(0);
+		assertThat(attr.getProcedureName()).isEqualTo("0_input_1_row_resultset");
+		assertThat(outputParameter.getMode()).isEqualTo(ParameterMode.OUT);
+		assertThat(outputParameter.getType()).isEqualTo(Dummy.class);
+		assertThat(outputParameter.getName()).isEqualTo(StoredProcedureAttributes.SYNTHETIC_OUTPUT_PARAMETER_NAME);
+	}
+
+	@Test // DATAJPA-1657
+	public void testSingleEntityFrom1RowResultSetWithInput() {
+
+		StoredProcedureAttributes attr = creator
+				.createFrom(method("singleEntityFrom1RowResultSetWithInput", Integer.class), entityMetadata);
+
+		ProcedureParameter outputParameter = attr.getOutputProcedureParameters().get(0);
+		assertThat(attr.getProcedureName()).isEqualTo("1_input_1_row_resultset");
+		assertThat(outputParameter.getMode()).isEqualTo(ParameterMode.OUT);
+		assertThat(outputParameter.getType()).isEqualTo(Dummy.class);
+		assertThat(outputParameter.getName()).isEqualTo(StoredProcedureAttributes.SYNTHETIC_OUTPUT_PARAMETER_NAME);
+	}
+
+
+	@Test // DATAJPA-1657
+	public void testEntityListFromResultSetWithNoInput() {
+
+		StoredProcedureAttributes attr = creator
+				.createFrom(method("entityListFromResultSetWithNoInput"), entityMetadata);
+
+		ProcedureParameter outputParameter = attr.getOutputProcedureParameters().get(0);
+		assertThat(attr.getProcedureName()).isEqualTo("0_input_1_resultset");
+		assertThat(outputParameter.getMode()).isEqualTo(ParameterMode.OUT);
+		assertThat(outputParameter.getType()).isEqualTo(List.class);
+		assertThat(outputParameter.getName()).isEqualTo(StoredProcedureAttributes.SYNTHETIC_OUTPUT_PARAMETER_NAME);
+	}
+
+	//
+	@Test // DATAJPA-1657
+	public void testEntityListFromResultSetWithInput() {
+
+		StoredProcedureAttributes attr = creator
+				.createFrom(method("entityListFromResultSetWithInput", Integer.class), entityMetadata);
+
+		ProcedureParameter outputParameter = attr.getOutputProcedureParameters().get(0);
+		assertThat(attr.getProcedureName()).isEqualTo("1_input_1_resultset");
+		assertThat(outputParameter.getMode()).isEqualTo(ParameterMode.OUT);
+		assertThat(outputParameter.getType()).isEqualTo(List.class);
+		assertThat(outputParameter.getName()).isEqualTo(StoredProcedureAttributes.SYNTHETIC_OUTPUT_PARAMETER_NAME);
+	}
+
+	@Test // DATAJPA-1657
+	public void testGenericObjectListFromResultSetWithInput() {
+
+		StoredProcedureAttributes attr = creator
+				.createFrom(method("genericObjectListFromResultSetWithInput", Integer.class), entityMetadata);
+
+		ProcedureParameter outputParameter = attr.getOutputProcedureParameters().get(0);
+		assertThat(attr.getProcedureName()).isEqualTo("1_input_1_resultset");
+		assertThat(outputParameter.getMode()).isEqualTo(ParameterMode.OUT);
+		assertThat(outputParameter.getType()).isEqualTo(List.class);
+		assertThat(outputParameter.getName()).isEqualTo(StoredProcedureAttributes.SYNTHETIC_OUTPUT_PARAMETER_NAME);
+	}
+
+	@Test // DATAJPA-1657
+	public void testEntityListFromResultSetWithInputAndNamedOutput() {
+
+		StoredProcedureAttributes attr = creator
+				.createFrom(method("entityListFromResultSetWithInputAndNamedOutput", Integer.class), entityMetadata);
+
+		ProcedureParameter outputParameter = attr.getOutputProcedureParameters().get(0);
+		assertThat(attr.getProcedureName()).isEqualTo("1_input_1_resultset");
+		assertThat(outputParameter.getMode()).isEqualTo(ParameterMode.OUT);
+		assertThat(outputParameter.getType()).isEqualTo(List.class);
+		assertThat(outputParameter.getName()).isEqualTo("dummies");
+	}
+
+	@Test // DATAJPA-1657
+	public void testEntityListFromResultSetWithInputAndNamedOutputAndCursor() {
+
+		StoredProcedureAttributes attr = creator
+				.createFrom(method("entityListFromResultSetWithInputAndNamedOutputAndCursor", Integer.class), entityMetadata);
+
+		ProcedureParameter outputParameter = attr.getOutputProcedureParameters().get(0);
+		assertThat(attr.getProcedureName()).isEqualTo("1_input_1_resultset");
+		assertThat(outputParameter.getMode()).isEqualTo(ParameterMode.REF_CURSOR);
+		assertThat(outputParameter.getType()).isEqualTo(List.class);
+		assertThat(outputParameter.getName()).isEqualTo("dummies");
 	}
 
 	private static Method method(String name, Class<?>... paramTypes) {
@@ -255,6 +378,34 @@ public class StoredProcedureAttributeSourceUnitTests {
 
 		@ComposedProcedureUsingAliasFor(emProcedureName = "User.plus1")
 		Integer plus1inoutWithComposedAnnotationOverridingName(Integer arg);
+
+		@Procedure("0_input_1_row_resultset")
+			// DATAJPA-1657
+		Dummy singleEntityFrom1RowResultSetAndNoInput();
+
+		@Procedure("1_input_1_row_resultset")
+			// DATAJPA-1657
+		Dummy singleEntityFrom1RowResultSetWithInput(Integer arg);
+
+		@Procedure("0_input_1_resultset")
+			// DATAJPA-1657
+		List<Dummy> entityListFromResultSetWithNoInput();
+
+		@Procedure("1_input_1_resultset")
+			// DATAJPA-1657
+		List<Dummy> entityListFromResultSetWithInput(Integer arg);
+
+		@Procedure("1_input_1_resultset")
+			// DATAJPA-1657
+		List<Object[]> genericObjectListFromResultSetWithInput(Integer arg);
+
+		@Procedure(value = "1_input_1_resultset", outputParameterName = "dummies")
+			// DATAJPA-1657
+		List<Dummy> entityListFromResultSetWithInputAndNamedOutput(Integer arg);
+
+		@Procedure(value = "1_input_1_resultset", outputParameterName = "dummies", refCursor = true)
+			// DATAJPA-1657
+		List<Dummy> entityListFromResultSetWithInputAndNamedOutputAndCursor(Integer arg);
 	}
 
 	@SuppressWarnings("unused")
