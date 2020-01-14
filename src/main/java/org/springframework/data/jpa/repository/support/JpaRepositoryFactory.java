@@ -15,7 +15,7 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import static org.springframework.data.querydsl.QuerydslUtils.QUERY_DSL_PRESENT;
+import static org.springframework.data.querydsl.QuerydslUtils.*;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -140,8 +140,9 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	}
 
 	/**
-	 * Configures the {@link JpaQueryMethodFactory} to be used. Defaults to {@link JpaQueryMethod.DefaultJpaQueryMethodFactory#INSTANCE}.
-	 * 
+	 * Configures the {@link JpaQueryMethodFactory} to be used. Defaults to
+	 * {@link JpaQueryMethod.DefaultJpaQueryMethodFactory#INSTANCE}.
+	 *
 	 * @param queryMethodFactory must not be {@literal null}.
 	 */
 	public void setQueryMethodFactory(JpaQueryMethodFactory queryMethodFactory) {
@@ -213,9 +214,8 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	@Override
 	protected Optional<QueryLookupStrategy> getQueryLookupStrategy(@Nullable Key key,
 			QueryMethodEvaluationContextProvider evaluationContextProvider) {
-		return Optional
-				.of(
-				JpaQueryLookupStrategy.create(entityManager, key, extractor, queryMethodFactory, evaluationContextProvider, escapeCharacter));
+		return Optional.of(JpaQueryLookupStrategy.create(entityManager, queryMethodFactory, key, evaluationContextProvider,
+				escapeCharacter));
 	}
 
 	/*

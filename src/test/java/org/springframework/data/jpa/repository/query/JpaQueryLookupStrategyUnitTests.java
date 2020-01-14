@@ -79,8 +79,8 @@ public class JpaQueryLookupStrategyUnitTests {
 	@Test // DATAJPA-226
 	public void invalidAnnotatedQueryCausesException() throws Exception {
 
-		QueryLookupStrategy strategy = JpaQueryLookupStrategy.create(em, Key.CREATE_IF_NOT_FOUND, extractor,
-				queryMethodFactory, EVALUATION_CONTEXT_PROVIDER, EscapeCharacter.DEFAULT);
+		QueryLookupStrategy strategy = JpaQueryLookupStrategy.create(em, queryMethodFactory, Key.CREATE_IF_NOT_FOUND,
+				EVALUATION_CONTEXT_PROVIDER, EscapeCharacter.DEFAULT);
 		Method method = UserRepository.class.getMethod("findByFoo", String.class);
 		RepositoryMetadata metadata = new DefaultRepositoryMetadata(UserRepository.class);
 
@@ -95,8 +95,8 @@ public class JpaQueryLookupStrategyUnitTests {
 	@Test // DATAJPA-554
 	public void sholdThrowMorePreciseExceptionIfTryingToUsePaginationInNativeQueries() throws Exception {
 
-		QueryLookupStrategy strategy = JpaQueryLookupStrategy.create(em, Key.CREATE_IF_NOT_FOUND, extractor,
-				queryMethodFactory, EVALUATION_CONTEXT_PROVIDER, EscapeCharacter.DEFAULT);
+		QueryLookupStrategy strategy = JpaQueryLookupStrategy.create(em, queryMethodFactory, Key.CREATE_IF_NOT_FOUND,
+				EVALUATION_CONTEXT_PROVIDER, EscapeCharacter.DEFAULT);
 		Method method = UserRepository.class.getMethod("findByInvalidNativeQuery", String.class, Sort.class);
 		RepositoryMetadata metadata = new DefaultRepositoryMetadata(UserRepository.class);
 

@@ -425,7 +425,9 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 
 			ManagedType<?> managedType = this.metamodel.managedType(userClass);
 
-			Assert.state(managedType != null, "ManagedType must not be null. We checked that it exists before.");
+			if (managedType == null) {
+				throw new IllegalStateException("ManagedType must not be null. We checked that it exists before.");
+			}
 
 			return managedType.getPersistenceType() == PersistenceType.ENTITY;
 		}
