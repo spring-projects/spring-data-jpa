@@ -91,20 +91,6 @@ public class JpaQueryMethod extends QueryMethod {
 	private final Lazy<JpaEntityMetadata<?>> entityMetadata;
 
 	/**
-	 * Creates a {@link JpaQueryMethodFactory} which will create instances of this class.
-	 * 
-	 * @param extractor must not be {@literal null}.
-	 * @return a {@link JpaQueryMethodFactory} guaranteed to be not {@literal null}.
-	 * @since 2.3
-	 */
-	public static JpaQueryMethodFactory createMethodFactory(QueryExtractor extractor) {
-
-		Assert.notNull(extractor, "QueryExtractor must not be null");
-
-		return (method, metadata, factory) -> new JpaQueryMethod(method, metadata, factory, extractor);
-	}
-
-	/**
 	 * Creates a {@link JpaQueryMethod}.
 	 *
 	 * @param method must not be {@literal null}

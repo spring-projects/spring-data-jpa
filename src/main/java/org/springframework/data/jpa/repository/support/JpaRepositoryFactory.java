@@ -34,6 +34,7 @@ import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.provider.QueryExtractor;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.query.AbstractJpaQuery;
+import org.springframework.data.jpa.repository.query.DefaultJpaQueryMethodFactory;
 import org.springframework.data.jpa.repository.query.EscapeCharacter;
 import org.springframework.data.jpa.repository.query.JpaQueryLookupStrategy;
 import org.springframework.data.jpa.repository.query.JpaQueryMethod;
@@ -91,7 +92,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 		this.extractor = PersistenceProvider.fromEntityManager(entityManager);
 		this.crudMethodMetadataPostProcessor = new CrudMethodMetadataPostProcessor();
 		this.entityPathResolver = SimpleEntityPathResolver.INSTANCE;
-		this.queryMethodFactory = JpaQueryMethod.createMethodFactory(extractor);
+		this.queryMethodFactory = new DefaultJpaQueryMethodFactory(extractor);
 
 		addRepositoryProxyPostProcessor(crudMethodMetadataPostProcessor);
 		addRepositoryProxyPostProcessor((factory, repositoryInformation) -> {

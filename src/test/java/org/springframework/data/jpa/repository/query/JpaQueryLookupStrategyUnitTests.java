@@ -15,9 +15,9 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 import java.lang.reflect.Method;
 import java.util.List;
@@ -73,7 +73,7 @@ public class JpaQueryLookupStrategyUnitTests {
 		when(em.getEntityManagerFactory()).thenReturn(emf);
 		when(emf.createEntityManager()).thenReturn(em);
 		when(em.getDelegate()).thenReturn(em);
-		queryMethodFactory = JpaQueryMethod.createMethodFactory(extractor);
+		queryMethodFactory = new DefaultJpaQueryMethodFactory(extractor);
 	}
 
 	@Test // DATAJPA-226

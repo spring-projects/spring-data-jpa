@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2020 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,25 +17,30 @@ package org.springframework.data.jpa.repository.query;
 
 import java.lang.reflect.Method;
 
+import org.springframework.data.jpa.provider.QueryExtractor;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.core.RepositoryMetadata;
+import org.springframework.util.Assert;
 
 /**
- * A factory interface for creating {@link JpaQueryMethodFactory} instances. This may be implemented by extensions to
- * Spring Data JPA in order create instances of custom subclasses.
- *
- * @author Réda Housni Alaoui
+ * A factory for creating {@link JpaQueryMethod} instances.
+ * 
+ * @author Jens Schauder
  * @since 2.3
  */
-public interface JpaQueryMethodFactory {
+public class DefaultJpaQueryMethodFactory implements JpaQueryMethodFactory {
 
-	/**
-	 * Creates a {@link JpaQueryMethod}.
-	 *
-	 * @param method must not be {@literal null}
-	 * @param metadata must not be {@literal null}
-	 * @param factory must not be {@literal null}
-	 */
-	JpaQueryMethod build(Method method, RepositoryMetadata metadata, ProjectionFactory factory);
+	private final QueryExtractor extractor;
 
+	public DefaultJpaQueryMethodFactory(QueryExtractor extractor) {
+
+		Assert.notNull(extractor, "QueryExtractor must not be null");
+
+		this.extractor = extractor;
+	}
+
+	@Override
+	public JpaQueryMethod build(Method method, RepositoryMetadata metadata, ProjectionFactory factory) {
+		return new JpaQueryMethod(method, metadata, factory, extractor);
+	}
 }
