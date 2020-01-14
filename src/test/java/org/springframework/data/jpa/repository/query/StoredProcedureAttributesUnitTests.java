@@ -20,6 +20,8 @@ import static org.springframework.data.jpa.repository.query.StoredProcedureAttri
 
 import org.junit.jupiter.api.Test;
 
+import javax.persistence.ParameterMode;
+
 /**
  * Unit tests for {@link StoredProcedureAttributes}.
  *
@@ -31,7 +33,8 @@ class StoredProcedureAttributesUnitTests {
 	@Test // DATAJPA-681
 	void usesSyntheticOutputParameterNameForAdhocProcedureWithoutOutputName() {
 
-		StoredProcedureAttributes attributes = new StoredProcedureAttributes("procedure", null, Long.class);
-		assertThat(attributes.getOutputParameterNames().get(0)).isEqualTo(SYNTHETIC_OUTPUT_PARAMETER_NAME);
+		ProcedureParameter outputParameter = new ProcedureParameter(null, ParameterMode.OUT, Long.class);
+		StoredProcedureAttributes attributes = new StoredProcedureAttributes("procedure", outputParameter);
+		assertThat(attributes.getOutputProcedureParameters().get(0).getName()).isEqualTo(SYNTHETIC_OUTPUT_PARAMETER_NAME);
 	}
 }

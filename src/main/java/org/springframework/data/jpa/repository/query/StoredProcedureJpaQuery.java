@@ -23,6 +23,7 @@ import java.util.stream.IntStream;
 import javax.persistence.EntityManager;
 import javax.persistence.NamedStoredProcedureQuery;
 import javax.persistence.ParameterMode;
+import javax.persistence.StoredProcedureParameter;
 import javax.persistence.StoredProcedureQuery;
 import javax.persistence.TypedQuery;
 
@@ -132,42 +133,32 @@ class StoredProcedureJpaQuery extends AbstractJpaQuery {
 			return null;
 		}
 
-		Map<String, Object> outputValues = new HashMap<>();
-		List<String> parameterNames = procedureAttributes.getOutputParameterNames();
+		List<ProcedureParameter> outputParameters = procedureAttributes.getOutputProcedureParameters();
 
-		for (int i = 0; i < parameterNames.size(); i++) {
-
-			String name = parameterNames.get(i);
-			outputValues.put(name, extractOutputParameter(storedProcedureQuery, i));
+		if (outputParameters.size() == 1) {
+			return extractOutputParameterValue(outputParameters.get(0), 0, storedProcedureQuery);
 		}
 
-		return outputValues.size() == 1 ? outputValues.values().iterator().next() : outputValues;
-	}
+		Map<String, Object> outputValues = new HashMap<>();
 
-	private Object extractOutputParameter(StoredProcedureQuery storedProcedureQuery, Integer index) {
+		for (int i = 0; i < outputParameters.size(); i++) {
+			ProcedureParameter outputParameter = outputParameters.get(i);
+			outputValues.put(outputParameter.getName(), extractOutputParameterValue(outputParameter, i, storedProcedureQuery));
+		}
 
-		String outputParameterName = procedureAttributes.getOutputParameterNames().get(index);
-		JpaParameters parameters = getQueryMethod().getParameters();
-
-		return extractOutputParameterValue(storedProcedureQuery, outputParameterName, index,
-				parameters.getNumberOfParameters());
+		return outputValues;
 	}
 
 	/**
-	 * extract the value of an output parameter either by name or by index.
-	 *
-	 * @param storedProcedureQuery the query object of the stored procedure.
-	 * @param name the name of the output parameter
-	 * @param index index of the output parameter
-	 * @param offset for index based access the index after which to find the output parameter values
-	 * @return the value
+	 * @return The value of an output parameter either by name or by index.
 	 */
-	private Object extractOutputParameterValue(StoredProcedureQuery storedProcedureQuery, String name, Integer index,
-			int offset) {
+	private Object extractOutputParameterValue(ProcedureParameter outputParameter, Integer index, StoredProcedureQuery storedProcedureQuery) {
 
-		return useNamedParameters && StringUtils.hasText(name) ? //
-				storedProcedureQuery.getOutputParameterValue(name)
-				: storedProcedureQuery.getOutputParameterValue(offset + index + 1);
+		JpaParameters methodParameters = getQueryMethod().getParameters();
+
+		return useNamedParameters && StringUtils.hasText(outputParameter.getName()) ?
+				storedProcedureQuery.getOutputParameterValue(outputParameter.getName())
+				: storedProcedureQuery.getOutputParameterValue(methodParameters.getNumberOfParameters() + index + 1);
 	}
 
 	/**
@@ -192,9 +183,7 @@ class StoredProcedureJpaQuery extends AbstractJpaQuery {
 	private StoredProcedureQuery newAdhocStoredProcedureQuery() {
 
 		JpaParameters params = getQueryMethod().getParameters();
-		String procedureName = procedureAttributes.getProcedureName();
-
-		StoredProcedureQuery procedureQuery = getEntityManager().createStoredProcedureQuery(procedureName);
+		StoredProcedureQuery procedureQuery = createAdhocStoredProcedureQuery();
 
 		for (JpaParameter param : params) {
 
@@ -214,23 +203,41 @@ class StoredProcedureJpaQuery extends AbstractJpaQuery {
 
 		if (procedureAttributes.hasReturnValue()) {
 
-			ParameterMode mode = ParameterMode.OUT;
+			ProcedureParameter procedureOutput = procedureAttributes.getOutputProcedureParameters().get(0);
 
-			IntStream.range(0, procedureAttributes.getOutputParameterTypes().size()).forEach(i -> {
-				Class<?> outputParameterType = procedureAttributes.getOutputParameterTypes().get(i);
+			/* If the stored procedure returns a ResultSet without using REF_CURSOR,
+				it is not necessary to declare an output parameter */
+			if ((isResultSetProcedure() && procedureOutput.getMode() == ParameterMode.REF_CURSOR) || !isResultSetProcedure()) {
 
 				if (useNamedParameters) {
-
-					String outputParameterName = procedureAttributes.getOutputParameterNames().get(i);
-					procedureQuery.registerStoredProcedureParameter(outputParameterName, outputParameterType, mode);
-
+					procedureQuery.registerStoredProcedureParameter(procedureOutput.getName(), procedureOutput.getType(), procedureOutput.getMode());
 				} else {
-					procedureQuery.registerStoredProcedureParameter(params.getNumberOfParameters() + i + 1, outputParameterType,
-							mode);
+					// Output parameter should be after the input parameters
+					int outputParameterIndex = params.getNumberOfParameters() + 1;
+					procedureQuery.registerStoredProcedureParameter(outputParameterIndex, procedureOutput.getType(),
+							procedureOutput.getMode());
 				}
-			});
+			}
 		}
 
 		return procedureQuery;
+	}
+
+	private StoredProcedureQuery createAdhocStoredProcedureQuery() {
+		String procedureName = procedureAttributes.getProcedureName();
+
+		if (getQueryMethod().isQueryForEntity()) {
+			return getEntityManager().createStoredProcedureQuery(procedureName,
+					getQueryMethod().getEntityInformation().getJavaType());
+		}
+
+		return getEntityManager().createStoredProcedureQuery(procedureName);
+	}
+
+	/**
+	 * @return true if the stored procedure will use a ResultSet to return data and not output parameters
+	 */
+	private boolean isResultSetProcedure() {
+		return getQueryMethod().isCollectionQuery() || getQueryMethod().isQueryForEntity();
 	}
 }

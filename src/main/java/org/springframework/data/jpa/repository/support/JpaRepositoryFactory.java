@@ -25,9 +25,7 @@ import java.util.stream.Stream;
 import javax.persistence.EntityManager;
 import javax.persistence.Tuple;
 
-import com.querydsl.core.types.EntityPath;
 import org.slf4j.Logger;
-
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.jpa.projection.CollectionAwareProjectionFactory;
@@ -40,6 +38,7 @@ import org.springframework.data.jpa.repository.query.EscapeCharacter;
 import org.springframework.data.jpa.repository.query.JpaQueryLookupStrategy;
 import org.springframework.data.jpa.repository.query.JpaQueryMethod;
 import org.springframework.data.jpa.repository.query.JpaQueryMethodFactory;
+import org.springframework.data.jpa.repository.query.Procedure;
 import org.springframework.data.jpa.util.JpaMetamodel;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.querydsl.EntityPathResolver;
@@ -58,6 +57,8 @@ import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
+
+import com.querydsl.core.types.EntityPath;
 
 /**
  * JPA specific generic repository factory.
@@ -97,7 +98,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 		addRepositoryProxyPostProcessor(crudMethodMetadataPostProcessor);
 		addRepositoryProxyPostProcessor((factory, repositoryInformation) -> {
 
-			if (hasMethodReturningStream(repositoryInformation.getRepositoryInterface())) {
+			if (isTransactionNeeded(repositoryInformation.getRepositoryInterface())) {
 				factory.addAdvice(SurroundingTransactionDetectorMethodInterceptor.INSTANCE);
 			}
 		});
@@ -272,12 +273,12 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 		return RepositoryFragments.empty();
 	}
 
-	private static boolean hasMethodReturningStream(Class<?> repositoryClass) {
+	private static boolean isTransactionNeeded(Class<?> repositoryClass) {
 
 		Method[] methods = ReflectionUtils.getAllDeclaredMethods(repositoryClass);
 
 		for (Method method : methods) {
-			if (Stream.class.isAssignableFrom(method.getReturnType())) {
+			if (Stream.class.isAssignableFrom(method.getReturnType()) || method.isAnnotationPresent(Procedure.class)) {
 				return true;
 			}
 		}
@@ -293,7 +294,8 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	 *
 	 * @author Oliver Gierke
 	 * @since 2.0.5
-	 * @see <a href="https://bugs.eclipse.org/bugs/show_bug.cgi?id=289141">https://bugs.eclipse.org/bugs/show_bug.cgi?id=289141</a>
+	 * @see <a href=
+	 *      "https://bugs.eclipse.org/bugs/show_bug.cgi?id=289141">https://bugs.eclipse.org/bugs/show_bug.cgi?id=289141</a>
 	 */
 	private static class EclipseLinkProjectionQueryCreationListener implements QueryCreationListener<AbstractJpaQuery> {
 

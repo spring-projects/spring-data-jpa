@@ -47,6 +47,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Thomas Darimont
  * @author Oliver Gierke
  * @author Jens Schauder
+ * @author Gabriel Basilio
  * @see scripts/schema-stored-procedures.sql for procedure definitions.
  */
 @Transactional
@@ -54,7 +55,7 @@ import org.springframework.transaction.annotation.Transactional;
 @ExtendWith(SpringExtension.class)
 public class StoredProcedureIntegrationTests {
 
-	private static final String NOT_SUPPORTED = "Stored procedures with ResultSets are currently not supported for any JPA provider";
+	private static final String NOT_SUPPORTED = "Stored procedures with REF_CURSOR are currently not supported by HSQL dialect";
 
 	@PersistenceContext EntityManager em;
 	@Autowired DummyRepository repository;
