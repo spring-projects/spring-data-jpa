@@ -300,6 +300,8 @@ public abstract class JpaQueryExecution {
 	 */
 	static class ProcedureExecution extends JpaQueryExecution {
 
+		private static final String NO_SURROUNDING_TRANSACTION = "You're trying to execute a @Procedure method without a surrounding transaction that keeps the connection open so that the ResultSet can actually be consumed. Make sure the consumer code uses @Transactional or any other way of declaring a (read-only) transaction.";
+
 		/*
 		 * (non-Javadoc)
 		 * @see org.springframework.data.jpa.repository.query.JpaQueryExecution#doExecute(org.springframework.data.jpa.repository.query.AbstractJpaQuery, java.lang.Object[])
