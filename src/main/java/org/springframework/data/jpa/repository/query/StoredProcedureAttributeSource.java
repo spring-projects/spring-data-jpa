@@ -22,6 +22,7 @@ import java.util.List;
 
 import javax.persistence.NamedStoredProcedureQueries;
 import javax.persistence.NamedStoredProcedureQuery;
+import javax.persistence.ParameterMode;
 import javax.persistence.StoredProcedureParameter;
 
 import org.springframework.core.annotation.AnnotatedElementUtils;
@@ -38,6 +39,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Paluch
  * @author Diego Diez
  * @author Jeff Sheets
+ * @author Gabriel Basilio
  * @since 1.6
  */
 enum StoredProcedureAttributeSource {
@@ -72,7 +74,7 @@ enum StoredProcedureAttributeSource {
 					+ method);
 		}
 
-		return new StoredProcedureAttributes(procedureName, procedure.outputParameterName(), method.getReturnType());
+		return new StoredProcedureAttributes(procedureName, createOutputProcedureParameterFrom(method, procedure));
 	}
 
 	/**
@@ -102,28 +104,29 @@ enum StoredProcedureAttributeSource {
 	private StoredProcedureAttributes newProcedureAttributesFrom(Method method,
 			NamedStoredProcedureQuery namedStoredProc, Procedure procedure) {
 
-		List<String> outputParameterNames = new ArrayList<>();
-		List<Class<?>> outputParameterTypes = new ArrayList<>();
+		List<ProcedureParameter> outputParameters = new ArrayList<>();
 
 		if (!procedure.outputParameterName().isEmpty()) {
 			// we give the output parameter definition from the @Procedure annotation precedence
-			outputParameterNames.add(procedure.outputParameterName());
+			outputParameters.add(createOutputProcedureParameterFrom(method, procedure));
 		} else {
 
 			// try to discover the output parameter
-			List<StoredProcedureParameter> outputParameters = extractOutputParametersFrom(namedStoredProc);
+			List<StoredProcedureParameter> namedProcedureOutputParameters = extractOutputParametersFrom(namedStoredProc);
 
-			for (StoredProcedureParameter outputParameter : outputParameters) {
-				outputParameterNames.add(outputParameter.name());
-				outputParameterTypes.add(outputParameter.type());
+			for (StoredProcedureParameter outputParameter : namedProcedureOutputParameters) {
+				outputParameters.add(new ProcedureParameter(
+						outputParameter.name(), outputParameter.mode(), outputParameter.type()));
 			}
 		}
 
-		if (outputParameterTypes.isEmpty()) {
-			outputParameterTypes.add(method.getReturnType());
-		}
+		return new StoredProcedureAttributes(namedStoredProc.name(), outputParameters, true);
+	}
 
-		return new StoredProcedureAttributes(namedStoredProc.name(), outputParameterNames, outputParameterTypes, true);
+	private ProcedureParameter createOutputProcedureParameterFrom(Method method, Procedure procedure) {
+		return new ProcedureParameter(procedure.outputParameterName(),
+				procedure.refCursor() ? ParameterMode.REF_CURSOR : ParameterMode.OUT,
+				method.getReturnType());
 	}
 
 	private List<StoredProcedureParameter> extractOutputParametersFrom(NamedStoredProcedureQuery namedStoredProc) {

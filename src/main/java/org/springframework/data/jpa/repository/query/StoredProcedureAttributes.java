@@ -33,6 +33,7 @@ import java.util.stream.IntStream;
  * @author Mark Paluch
  * @author Jeff Sheets
  * @author Jens Schauder
+ * @author Gabriel Basilio
  * @since 1.6
  */
 class StoredProcedureAttributes {
@@ -42,50 +43,49 @@ class StoredProcedureAttributes {
 
 	private final boolean namedStoredProcedure;
 	private final String procedureName;
-	private final List<String> outputParameterNames;
-	private final List<Class<?>> outputParameterTypes;
+	private final List<ProcedureParameter> outputProcedureParameters;
 
 	/**
 	 * Creates a new {@link StoredProcedureAttributes}.
 	 *
 	 * @param procedureName        must not be {@literal null}.
-	 * @param outputParameterName  may be {@literal null}.
-	 * @param outputParameterType  must not be {@literal null}.
 	 */
-	StoredProcedureAttributes(String procedureName, @Nullable String outputParameterName,
-							  Class<?> outputParameterType) {
-		this(procedureName, Collections.singletonList(outputParameterName), Collections.singletonList(outputParameterType), false);
+	StoredProcedureAttributes(String procedureName, ProcedureParameter parameter) {
+		this(procedureName, Collections.singletonList(parameter), false);
 	}
 
 	/**
 	 * Creates a new {@link StoredProcedureAttributes}.
 	 *
 	 * @param procedureName        must not be {@literal null}.
-	 * @param outputParameterNames may be empty, but not {@literal null}.
-	 * @param outputParameterTypes must not be empty, and cannot be a single element of {@literal null}.
 	 * @param namedStoredProcedure flag signaling if the stored procedure has a name.
 	 */
-	StoredProcedureAttributes(String procedureName, List<String> outputParameterNames,
-							  List<Class<?>> outputParameterTypes, boolean namedStoredProcedure) {
+	StoredProcedureAttributes(String procedureName, List<ProcedureParameter> outputProcedureParameters, boolean namedStoredProcedure) {
 
 		Assert.notNull(procedureName, "ProcedureName must not be null!");
-		Assert.notNull(outputParameterNames, "OutputParameterNames must not be null!");
-		Assert.notEmpty(outputParameterTypes, "OutputParameterTypes must not be empty!");
-		Assert.isTrue(outputParameterTypes.size() != 1 || outputParameterTypes.get(0) != null, "OutputParameterTypes must not have size 1 with a null value");
+		Assert.notNull(outputProcedureParameters, "OutputProcedureParameters must not be null!");
+		Assert.isTrue(outputProcedureParameters.size() != 1 || outputProcedureParameters.get(0) != null, "ProcedureParameters must not have size 1 with a null value");
 
 		this.procedureName = procedureName;
-		this.outputParameterNames = namedStoredProcedure
-				? outputParameterNames
-				: completeOutputParameterNames(outputParameterNames);
-		this.outputParameterTypes = outputParameterTypes;
 		this.namedStoredProcedure = namedStoredProcedure;
+
+		if (namedStoredProcedure) {
+			this.outputProcedureParameters = outputProcedureParameters;
+		} else {
+			this.outputProcedureParameters = getParametersWithCompletedNames(outputProcedureParameters);
+		}
 	}
 
-	private List<String> completeOutputParameterNames(List<String> outputParameterNames) {
-
-		return IntStream.range(0, outputParameterNames.size()) //
-				.mapToObj(i -> completeOutputParameterName(i, outputParameterNames.get(i))) //
+	private List<ProcedureParameter> getParametersWithCompletedNames(List<ProcedureParameter> procedureParameters) {
+		return IntStream.range(0, procedureParameters.size())
+				.mapToObj(i -> getParameterWithCompletedName(procedureParameters.get(i), i))
 				.collect(Collectors.toList());
+	}
+
+	private ProcedureParameter getParameterWithCompletedName(ProcedureParameter parameter, int i) {
+		return new ProcedureParameter(
+				completeOutputParameterName(i, parameter.getName()),
+				parameter.getMode(), parameter.getType());
 	}
 
 	private String completeOutputParameterName(int i, String paramName) {
@@ -113,26 +113,15 @@ class StoredProcedureAttributes {
 	 *
 	 * @return
 	 */
-	public List<String> getOutputParameterNames() {
-		return outputParameterNames;
-	}
-
-	/**
-	 * Returns the types of the output parameters.
-	 *
-	 * @return
-	 */
-	public List<Class<?>> getOutputParameterTypes() {
-		return outputParameterTypes;
-	}
-
-	/**
-	 * Returns whether the stored procedure is a named one.
-	 *
-	 * @return
-	 */
 	public boolean isNamedStoredProcedure() {
 		return namedStoredProcedure;
+	}
+
+	/**
+	 * @return Returns the stored procedure output parameter list
+	 */
+	public List<ProcedureParameter> getOutputProcedureParameters() {
+		return outputProcedureParameters;
 	}
 
 	/**
@@ -141,6 +130,10 @@ class StoredProcedureAttributes {
 	 * @return
 	 */
 	public boolean hasReturnValue() {
-		return !(outputParameterTypes.size() == 1 && (void.class.equals(outputParameterTypes.get(0)) || Void.class.equals(outputParameterTypes.get(0))));
+		if (getOutputProcedureParameters().isEmpty())
+			return false;
+
+		Class<?> outputType = getOutputProcedureParameters().get(0).getType();
+		return !(void.class.equals(outputType) || Void.class.equals(outputType));
 	}
 }
