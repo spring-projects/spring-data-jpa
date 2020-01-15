@@ -1,6 +1,15 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 2.2.4.RELEASE (2020-01-15)
+---------------------------------------------
+* DATAJPA-1663 - Remove PersistenceProvider.potentiallyConvertEmptyCollection(…).
+* DATAJPA-1656 - Update copyright years to 2020.
+* DATAJPA-1652 - Using || (pipes) along with named parameters in custom queries raises an exception.
+* DATAJPA-1647 - JpaRepository memory leak with Pageable argument.
+* DATAJPA-1641 - Release 2.2.4 (Moore SR4).
+
+
 Changes in version 2.1.15.RELEASE (2020-01-15)
 ----------------------------------------------
 * DATAJPA-1656 - Update copyright years to 2020.
@@ -1843,6 +1852,7 @@ Changes in version 1.0.0.M2 (2011-03-24) - https://jira.springsource.org/browse/
 Changes in version 1.0.0.M1 (2011-02-10) - https://jira.springsource.org/browse/DATAJPA/fixforversion/11786
 ----------------------------------------
 * Moved JPA sepcific code from Hades into Spring Data JPA (functional equivalent of Hades 2.0.2) building on common functionality in Spring Data Commons
+
 
 
 
