@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,12 +25,15 @@ import org.springframework.data.jpa.repository.query.JpaQueryMethod;
 
 /**
  * Annotation to configure the JPA 2.1 {@link javax.persistence.EntityGraph}s that should be used on repository methods.
- * Since 1.9 we support the definition of dynamic {@link EntityGraph}s by allowing to customize the fetch-graph via via
+ * Since 1.9 we support the definition of dynamic {@link EntityGraph}s by allowing to customize the fetch-graph via
  * {@link #attributePaths()} ad-hoc fetch-graph configuration.
+ * 
+ * If {@link #attributePaths()} are specified then we ignore the entity-graph name {@link #value()} and treat this 
+ * {@link EntityGraph} as dynamic.
  *
- * @author Christoph Strobl If {@link #attributePaths()} are specified then we ignore the entity-graph name
- *         {@link #value()} and treat this {@link EntityGraph} as dynamic.
+ * @author Christoph Strobl
  * @author Thomas Darimont
+ * @author Oerd Cukalla
  * @since 1.6
  */
 @Retention(RetentionPolicy.RUNTIME)

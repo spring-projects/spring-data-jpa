@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2019 the original author or authors.
+ * Copyright 2012-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,6 +50,7 @@ import org.springframework.data.repository.query.QueryMethodEvaluationContextPro
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Jens Schauder
+ * @author Réda Housni Alaoui
  */
 @RunWith(MockitoJUnitRunner.class)
 public class JpaQueryLookupStrategyUnitTests {
@@ -63,6 +64,8 @@ public class JpaQueryLookupStrategyUnitTests {
 	@Mock Metamodel metamodel;
 	@Mock ProjectionFactory projectionFactory;
 
+	JpaQueryMethodFactory queryMethodFactory;
+
 	@Before
 	public void setUp() {
 
@@ -70,12 +73,13 @@ public class JpaQueryLookupStrategyUnitTests {
 		when(em.getEntityManagerFactory()).thenReturn(emf);
 		when(emf.createEntityManager()).thenReturn(em);
 		when(em.getDelegate()).thenReturn(em);
+		queryMethodFactory = new DefaultJpaQueryMethodFactory(extractor);
 	}
 
 	@Test // DATAJPA-226
 	public void invalidAnnotatedQueryCausesException() throws Exception {
 
-		QueryLookupStrategy strategy = JpaQueryLookupStrategy.create(em, Key.CREATE_IF_NOT_FOUND, extractor,
+		QueryLookupStrategy strategy = JpaQueryLookupStrategy.create(em, queryMethodFactory, Key.CREATE_IF_NOT_FOUND,
 				EVALUATION_CONTEXT_PROVIDER, EscapeCharacter.DEFAULT);
 		Method method = UserRepository.class.getMethod("findByFoo", String.class);
 		RepositoryMetadata metadata = new DefaultRepositoryMetadata(UserRepository.class);
@@ -91,7 +95,7 @@ public class JpaQueryLookupStrategyUnitTests {
 	@Test // DATAJPA-554
 	public void sholdThrowMorePreciseExceptionIfTryingToUsePaginationInNativeQueries() throws Exception {
 
-		QueryLookupStrategy strategy = JpaQueryLookupStrategy.create(em, Key.CREATE_IF_NOT_FOUND, extractor,
+		QueryLookupStrategy strategy = JpaQueryLookupStrategy.create(em, queryMethodFactory, Key.CREATE_IF_NOT_FOUND,
 				EVALUATION_CONTEXT_PROVIDER, EscapeCharacter.DEFAULT);
 		Method method = UserRepository.class.getMethod("findByInvalidNativeQuery", String.class, Sort.class);
 		RepositoryMetadata metadata = new DefaultRepositoryMetadata(UserRepository.class);

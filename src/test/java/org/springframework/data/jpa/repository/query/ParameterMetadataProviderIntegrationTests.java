@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,6 @@ import javax.persistence.PersistenceContext;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.data.jpa.domain.sample.User;
-import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.repository.query.ParameterMetadataProvider.ParameterMetadata;
 import org.springframework.data.repository.query.Param;
 import org.springframework.data.repository.query.Parameters;
@@ -80,8 +79,7 @@ public class ParameterMetadataProviderIntegrationTests {
 		JpaParameters parameters = new JpaParameters(method);
 		simulateDiscoveredParametername(parameters);
 
-		return new ParameterMetadataProvider(em.getCriteriaBuilder(), parameters,
-				PersistenceProvider.fromEntityManager(em), EscapeCharacter.DEFAULT);
+		return new ParameterMetadataProvider(em.getCriteriaBuilder(), parameters, EscapeCharacter.DEFAULT);
 	}
 
 	@SuppressWarnings({ "unchecked", "ConstantConditions" })

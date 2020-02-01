@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2019 the original author or authors.
+ * Copyright 2008-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,6 +54,7 @@ import org.springframework.util.StringUtils;
  * @author Nicolas Cirigliano
  * @author Mark Paluch
  * @author Сергей Цыпанов
+ * @author Réda Housni Alaoui
  */
 public class JpaQueryMethod extends QueryMethod {
 
@@ -97,7 +98,7 @@ public class JpaQueryMethod extends QueryMethod {
 	 * @param factory must not be {@literal null}
 	 * @param extractor must not be {@literal null}
 	 */
-	public JpaQueryMethod(Method method, RepositoryMetadata metadata, ProjectionFactory factory,
+	protected JpaQueryMethod(Method method, RepositoryMetadata metadata, ProjectionFactory factory,
 			QueryExtractor extractor) {
 
 		super(method, metadata, factory);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ import org.springframework.data.repository.query.parser.Part.Type;
  * @author Thomas Darimont
  * @author Jens Schauder
  * @author Nils Borrmann
+ * @author Andriy Redko
  */
 public class StringQueryUnitTests {
 
@@ -540,7 +541,29 @@ public class StringQueryUnitTests {
 		softly.assertAll();
 	}
 
-	public void checkNumberOfNamedParameters(String query, int expectedSize, String label) {
+	@Test // DATAJPA-1652
+	public void usingPipesWithNamedParameter() {
+
+		String queryString = "SELECT u FROM User u WHERE u.lastname LIKE '%'||:name||'%'";
+		StringQuery query = new StringQuery(queryString);
+
+		assertThat(query.getParameterBindings()) //
+				.extracting(ParameterBinding::getName) //
+				.containsExactly("name");
+	}
+
+	@Test // DATAJPA-1652
+	public void usingGreaterThanWithNamedParameter() {
+
+		String queryString = "SELECT u FROM User u WHERE :age>u.age";
+		StringQuery query = new StringQuery(queryString);
+
+		assertThat(query.getParameterBindings()) //
+				.extracting(ParameterBinding::getName) //
+				.containsExactly("age");
+	}
+
+	void checkNumberOfNamedParameters(String query, int expectedSize, String label) {
 
 		DeclaredQuery declaredQuery = DeclaredQuery.of(query);
 

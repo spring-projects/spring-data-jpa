@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2019 the original author or authors.
+ * Copyright 2011-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,22 +57,19 @@ class ParameterMetadataProvider {
 	private final Iterator<? extends Parameter> parameters;
 	private final List<ParameterMetadata<?>> expressions;
 	private final @Nullable Iterator<Object> bindableParameterValues;
-	private final PersistenceProvider persistenceProvider;
 	private final EscapeCharacter escape;
 
 	/**
 	 * Creates a new {@link ParameterMetadataProvider} from the given {@link CriteriaBuilder} and
-	 * {@link ParametersParameterAccessor} with support for parameter value customizations via {@link PersistenceProvider}
-	 * .
+	 * {@link ParametersParameterAccessor}.
 	 *
 	 * @param builder must not be {@literal null}.
 	 * @param accessor must not be {@literal null}.
-	 * @param provider must not be {@literal null}.
-	 * @param escape
+	 * @param escape must not be {@literal null}.
 	 */
 	public ParameterMetadataProvider(CriteriaBuilder builder, ParametersParameterAccessor accessor,
-			PersistenceProvider provider, EscapeCharacter escape) {
-		this(builder, accessor.iterator(), accessor.getParameters(), provider, escape);
+			EscapeCharacter escape) {
+		this(builder, accessor.iterator(), accessor.getParameters(), escape);
 	}
 
 	/**
@@ -81,37 +78,32 @@ class ParameterMetadataProvider {
 	 *
 	 * @param builder must not be {@literal null}.
 	 * @param parameters must not be {@literal null}.
-	 * @param provider must not be {@literal null}.
-	 * @param escape
+	 * @param escape must not be {@literal null}.
 	 */
-	public ParameterMetadataProvider(CriteriaBuilder builder, Parameters<?, ?> parameters, PersistenceProvider provider,
-			EscapeCharacter escape) {
-		this(builder, null, parameters, provider, escape);
+	public ParameterMetadataProvider(CriteriaBuilder builder, Parameters<?, ?> parameters, EscapeCharacter escape) {
+		this(builder, null, parameters, escape);
 	}
 
 	/**
 	 * Creates a new {@link ParameterMetadataProvider} from the given {@link CriteriaBuilder} an {@link Iterable} of all
-	 * bindable parameter values, and {@link Parameters} with support for parameter value customizations via
-	 * {@link PersistenceProvider}.
+	 * bindable parameter values, and {@link Parameters}.
 	 *
 	 * @param builder must not be {@literal null}.
 	 * @param bindableParameterValues may be {@literal null}.
 	 * @param parameters must not be {@literal null}.
-	 * @param provider must not be {@literal null}.
-	 * @param escape
+	 * @param escape must not be {@literal null}.
 	 */
 	private ParameterMetadataProvider(CriteriaBuilder builder, @Nullable Iterator<Object> bindableParameterValues,
-			Parameters<?, ?> parameters, PersistenceProvider provider, EscapeCharacter escape) {
+			Parameters<?, ?> parameters, EscapeCharacter escape) {
 
 		Assert.notNull(builder, "CriteriaBuilder must not be null!");
 		Assert.notNull(parameters, "Parameters must not be null!");
-		Assert.notNull(provider, "PesistenceProvider must not be null!");
+		Assert.notNull(escape, "EscapeCharacter must not be null!");
 
 		this.builder = builder;
 		this.parameters = parameters.getBindableParameters().iterator();
 		this.expressions = new ArrayList<>();
 		this.bindableParameterValues = bindableParameterValues;
-		this.persistenceProvider = provider;
 		this.escape = escape;
 	}
 
@@ -140,7 +132,7 @@ class ParameterMetadataProvider {
 	 * Builds a new {@link ParameterMetadata} of the given {@link Part} and type. Forwards the underlying
 	 * {@link Parameters} as well.
 	 *
-	 * @param <T> is the type parameter of the returend {@link ParameterMetadata}.
+	 * @param <T> is the type parameter of the returned {@link ParameterMetadata}.
 	 * @param type must not be {@literal null}.
 	 * @return ParameterMetadata for the next parameter.
 	 */
@@ -180,7 +172,7 @@ class ParameterMetadataProvider {
 
 		Object value = bindableParameterValues == null ? ParameterMetadata.PLACEHOLDER : bindableParameterValues.next();
 
-		ParameterMetadata<T> metadata = new ParameterMetadata<>(expression, part, value, persistenceProvider, escape);
+		ParameterMetadata<T> metadata = new ParameterMetadata<>(expression, part, value, escape);
 		expressions.add(metadata);
 
 		return metadata;
@@ -202,7 +194,6 @@ class ParameterMetadataProvider {
 
 		private final Type type;
 		private final ParameterExpression<T> expression;
-		private final PersistenceProvider persistenceProvider;
 		private final EscapeCharacter escape;
 		private final boolean ignoreCase;
 
@@ -210,10 +201,9 @@ class ParameterMetadataProvider {
 		 * Creates a new {@link ParameterMetadata}.
 		 */
 		public ParameterMetadata(ParameterExpression<T> expression, Part part, @Nullable Object value,
-				PersistenceProvider provider, EscapeCharacter escape) {
+				EscapeCharacter escape) {
 
 			this.expression = expression;
-			this.persistenceProvider = provider;
 			this.type = value == null && Type.SIMPLE_PROPERTY.equals(part.getType()) ? Type.IS_NULL : part.getType();
 			this.ignoreCase = IgnoreCaseType.ALWAYS.equals(part.shouldIgnoreCase());
 			this.escape = escape;
@@ -263,7 +253,7 @@ class ParameterMetadataProvider {
 			}
 
 			return Collection.class.isAssignableFrom(expressionType) //
-					? persistenceProvider.potentiallyConvertEmptyCollection(upperIfIgnoreCase(ignoreCase, toCollection(value))) //
+					? upperIfIgnoreCase(ignoreCase, toCollection(value)) //
 					: value;
 		}
 
@@ -283,11 +273,15 @@ class ParameterMetadataProvider {
 			}
 
 			if (value instanceof Collection) {
-				return (Collection<?>) value;
+
+				Collection<?> collection = (Collection<?>) value;
+				return collection.isEmpty() ? null : collection;
 			}
 
 			if (ObjectUtils.isArray(value)) {
-				return Arrays.asList(ObjectUtils.toObjectArray(value));
+
+				List<Object> collection = Arrays.asList(ObjectUtils.toObjectArray(value));
+				return collection.isEmpty() ? null : collection;
 			}
 
 			return Collections.singleton(value);

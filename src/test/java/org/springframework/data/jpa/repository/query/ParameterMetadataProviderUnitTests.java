@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ import java.util.Collections;
 import javax.persistence.criteria.CriteriaBuilder;
 
 import org.junit.Test;
-import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.parser.Part;
 
@@ -37,18 +36,17 @@ public class ParameterMetadataProviderUnitTests {
 	@Test // DATAJPA-863
 	public void errorMessageMentionesParametersWhenParametersAreExhausted() {
 
-		PersistenceProvider persistenceProvider = mock(PersistenceProvider.class);
 		CriteriaBuilder builder = mock(CriteriaBuilder.class);
 
 		Parameters<?, ?> parameters = mock(Parameters.class, RETURNS_DEEP_STUBS);
 		when(parameters.getBindableParameters().iterator()).thenReturn(Collections.emptyListIterator());
 
 		ParameterMetadataProvider metadataProvider = new ParameterMetadataProvider(builder, parameters,
-				persistenceProvider, EscapeCharacter.DEFAULT);
+				EscapeCharacter.DEFAULT);
 
 		assertThatExceptionOfType(RuntimeException.class) //
 				.isThrownBy(() -> metadataProvider.next(mock(Part.class))) //
-                .withMessageContaining("parameter");
+				.withMessageContaining("parameter");
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -39,6 +40,7 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author Oliver Gierke
  * @author Jens Schauder
+ * @author Mark Paluch
  */
 @ContextConfiguration
 @Transactional
@@ -46,17 +48,17 @@ public class Jsr310JpaConvertersIntegrationTests extends AbstractAttributeConver
 
 	@PersistenceContext EntityManager em;
 
-	@Test // DATAJPA-650
+	@Test // DATAJPA-650, DATAJPA-1631
 	public void usesJsr310JpaConverters() {
 
 		assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
 
 		DateTimeSample sample = new DateTimeSample();
 
-		sample.instant = Instant.now();
+		sample.instant = Instant.now().truncatedTo(ChronoUnit.MILLIS);
 		sample.localDate = LocalDate.now();
-		sample.localTime = LocalTime.now();
-		sample.localDateTime = LocalDateTime.now();
+		sample.localTime = LocalTime.now().truncatedTo(ChronoUnit.MILLIS);
+		sample.localDateTime = LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS);
 		sample.zoneId = ZoneId.of("Europe/Berlin");
 
 		em.persist(sample);

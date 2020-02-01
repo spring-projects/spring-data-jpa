@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2019 the original author or authors.
+ * Copyright 2008-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package org.springframework.data.jpa.provider;
 import static org.springframework.data.jpa.provider.JpaClassUtils.*;
 import static org.springframework.data.jpa.provider.PersistenceProvider.Constants.*;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.NoSuchElementException;
 
@@ -96,16 +95,6 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 
 		/*
 		 * (non-Javadoc)
-		 * @see org.springframework.data.jpa.provider.PersistenceProvider#potentiallyConvertEmptyCollection(java.util.Collection)
-		 */
-		@Nullable
-		@Override
-		public <T> Collection<T> potentiallyConvertEmptyCollection(@Nullable Collection<T> collection) {
-			return collection == null || collection.isEmpty() ? null : collection;
-		}
-
-		/*
-		 * (non-Javadoc)
 		 * @see org.springframework.data.jpa.provider.PersistenceProvider#executeQueryWithResultStream(javax.persistence.Query)
 		 */
 		@Override
@@ -142,16 +131,6 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 		@Override
 		public Object getIdentifierFrom(Object entity) {
 			return null;
-		}
-
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.jpa.provider.PersistenceProvider#potentiallyConvertEmptyCollection(java.util.Collection)
-		 */
-		@Nullable
-		@Override
-		public <T> Collection<T> potentiallyConvertEmptyCollection(@Nullable Collection<T> collection) {
-			return collection == null || collection.isEmpty() ? null : collection;
 		}
 
 		/*
@@ -209,7 +188,8 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 	};
 
 	static ConcurrentReferenceHashMap<Class<?>, PersistenceProvider> CACHE = new ConcurrentReferenceHashMap<>();
-
+	private final Iterable<String> entityManagerClassNames;
+	private final Iterable<String> metamodelClassNames;
 	/**
 	 * Creates a new {@link PersistenceProvider}.
 	 *
@@ -222,9 +202,6 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 		this.entityManagerClassNames = entityManagerClassNames;
 		this.metamodelClassNames = metamodelClassNames;
 	}
-
-	private final Iterable<String> entityManagerClassNames;
-	private final Iterable<String> metamodelClassNames;
 
 	/**
 	 * Caches the given {@link PersistenceProvider} for the given source type.
@@ -312,19 +289,6 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 	@Override
 	public boolean canExtractQuery() {
 		return true;
-	}
-
-	/**
-	 * Potentially converts an empty collection to the appropriate representation of this {@link PersistenceProvider},
-	 * since some JPA providers cannot correctly handle empty collections.
-	 *
-	 * @see <a href="https://jira.spring.io/browse/DATAJPA-606">DATAJPA-606</a>
-	 * @param collection The collection to be converted. May be {@code null}.
-	 * @return a potentially converted collection. May be {@code null}.
-	 */
-	@Nullable
-	public <T> Collection<T> potentiallyConvertEmptyCollection(@Nullable Collection<T> collection) {
-		return collection;
 	}
 
 	/**

@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2019 the original author or authors.
+ * Copyright 2008-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,10 +34,12 @@ import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.provider.QueryExtractor;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.query.AbstractJpaQuery;
+import org.springframework.data.jpa.repository.query.DefaultJpaQueryMethodFactory;
 import org.springframework.data.jpa.repository.query.EscapeCharacter;
 import org.springframework.data.jpa.repository.query.JpaQueryLookupStrategy;
 import org.springframework.data.jpa.repository.query.JpaQueryMethod;
 import org.springframework.data.jpa.repository.query.Procedure;
+import org.springframework.data.jpa.repository.query.JpaQueryMethodFactory;
 import org.springframework.data.jpa.util.JpaMetamodel;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.querydsl.EntityPathResolver;
@@ -66,6 +68,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Christoph Strobl
  * @author Jens Schauder
  * @author Stefan Fussenegger
+ * @author Réda Housni Alaoui
  */
 public class JpaRepositoryFactory extends RepositoryFactorySupport {
 
@@ -75,6 +78,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 
 	private EntityPathResolver entityPathResolver;
 	private EscapeCharacter escapeCharacter = EscapeCharacter.DEFAULT;
+	private JpaQueryMethodFactory queryMethodFactory;
 
 	/**
 	 * Creates a new {@link JpaRepositoryFactory}.
@@ -89,6 +93,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 		this.extractor = PersistenceProvider.fromEntityManager(entityManager);
 		this.crudMethodMetadataPostProcessor = new CrudMethodMetadataPostProcessor();
 		this.entityPathResolver = SimpleEntityPathResolver.INSTANCE;
+		this.queryMethodFactory = new DefaultJpaQueryMethodFactory(extractor);
 
 		addRepositoryProxyPostProcessor(crudMethodMetadataPostProcessor);
 		addRepositoryProxyPostProcessor((factory, repositoryInformation) -> {
@@ -133,6 +138,19 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	 */
 	public void setEscapeCharacter(EscapeCharacter escapeCharacter) {
 		this.escapeCharacter = escapeCharacter;
+	}
+
+	/**
+	 * Configures the {@link JpaQueryMethodFactory} to be used. Defaults to
+	 * {@link JpaQueryMethod.DefaultJpaQueryMethodFactory#INSTANCE}.
+	 *
+	 * @param queryMethodFactory must not be {@literal null}.
+	 */
+	public void setQueryMethodFactory(JpaQueryMethodFactory queryMethodFactory) {
+
+		Assert.notNull(queryMethodFactory, "QueryMethodFactory must not be null!");
+
+		this.queryMethodFactory = queryMethodFactory;
 	}
 
 	/*
@@ -197,8 +215,8 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	@Override
 	protected Optional<QueryLookupStrategy> getQueryLookupStrategy(@Nullable Key key,
 			QueryMethodEvaluationContextProvider evaluationContextProvider) {
-		return Optional
-				.of(JpaQueryLookupStrategy.create(entityManager, key, extractor, evaluationContextProvider, escapeCharacter));
+		return Optional.of(JpaQueryLookupStrategy.create(entityManager, queryMethodFactory, key, evaluationContextProvider,
+				escapeCharacter));
 	}
 
 	/*

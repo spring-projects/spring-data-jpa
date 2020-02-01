@@ -582,7 +582,7 @@ interface UserRepository extends Repository<User, Long> {
   void deleteByRoleId(long roleId);
 
   @Modifying
-  @Query("delete from User u where user.role.id = ?1")
+  @Query("delete from User u where u.role.id = ?1")
   void deleteInBulkByRoleId(long roleId);
 }
 ----
