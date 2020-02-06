@@ -345,7 +345,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 			 * Otherwise this returns {@code true} even when the value from the backing {@code Tuple} is {@code null}.
 			 *
 			 * @param key the key for which to get the value from the map.
-			 * @return wether the key is an element of the backing tuple.
+			 * @return whether the key is an element of the backing tuple.
 			 */
 			@Override
 			public boolean containsKey(Object key) {
