@@ -410,7 +410,7 @@ class StringQuery implements DeclaredQuery {
 			}
 
 			/**
-			 * Returns the keyword that will tirgger the binding type or {@literal null} if the type is not triggered by a
+			 * Returns the keyword that will trigger the binding type or {@literal null} if the type is not triggered by a
 			 * keyword.
 			 *
 			 * @return the keyword
