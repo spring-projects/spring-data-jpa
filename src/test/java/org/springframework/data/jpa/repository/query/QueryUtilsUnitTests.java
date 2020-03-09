@@ -21,6 +21,7 @@ import static org.springframework.data.jpa.repository.query.QueryUtils.*;
 import java.util.Collections;
 import java.util.Set;
 
+import org.assertj.core.api.SoftAssertions;
 import org.junit.Test;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Sort;
@@ -481,6 +482,22 @@ public class QueryUtilsUnitTests {
 		assertThat(detectAlias("select * from User u group\nby name")).isEqualTo("u");
 		assertThat(detectAlias("select * from User u order\nby name")).isEqualTo("u");
 		assertThat(detectAlias("select * from User\nu\norder \n by name")).isEqualTo("u");
+	}
+
+	@Test // DATAJPA-1679
+	public void findProjectionClauseWithDistinct() {
+
+		SoftAssertions.assertSoftly(sofly -> {
+			sofly.assertThat(QueryUtils.getProjection("select * from x")).isEqualTo("*");
+			sofly.assertThat(QueryUtils.getProjection("select a, b, c from x")).isEqualTo("a, b, c");
+			sofly.assertThat(QueryUtils.getProjection("select distinct a, b, c from x")).isEqualTo("a, b, c");
+			sofly.assertThat(QueryUtils.getProjection("select DISTINCT a, b, c from x")).isEqualTo("a, b, c");
+		});
+	}
+
+	@Test // DATAJPA-1679
+	public void findProjectionClauseWithSubselect() {
+		assertThat(QueryUtils.getProjection("select * from (select x from y)")).isEqualTo("*");
 	}
 
 	private static void assertCountQuery(String originalQuery, String countQuery) {
