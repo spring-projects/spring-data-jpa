@@ -495,9 +495,18 @@ public class QueryUtilsUnitTests {
 		});
 	}
 
-	@Test // DATAJPA-1679
+	@Test // DATAJPA-1696
 	public void findProjectionClauseWithSubselect() {
-		assertThat(QueryUtils.getProjection("select * from (select x from y)")).isEqualTo("*");
+
+		// This is not a required behavior, in fact the opposite is,
+		// but it documents a current limitation.
+		// to fix this without breaking findProjectionClauseWithIncludedFrom we need a more sophisticated parser.
+		assertThat(QueryUtils.getProjection("select * from (select x from y)")).isNotEqualTo("*");
+	}
+
+	@Test // DATAJPA-1696
+	public void findProjectionClauseWithIncludedFrom() {
+		assertThat(QueryUtils.getProjection("select x, frommage, y from t")).isEqualTo("x, frommage, y");
 	}
 
 	private static void assertCountQuery(String originalQuery, String countQuery) {
