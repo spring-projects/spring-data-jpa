@@ -30,6 +30,7 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
  * @author Thomas Darimont
  * @author Oliver Gierke
  * @author Jens Schauder
+ * @author Mark Paluch
  */
 @RunWith(MockitoJUnitRunner.class)
 public class ExpressionBasedStringQueryUnitTests {
@@ -55,6 +56,19 @@ public class ExpressionBasedStringQueryUnitTests {
 		StringQuery query = new ExpressionBasedStringQuery("select u from #{#entityName} u", metadata, SPEL_PARSER);
 		assertThat(query.getAlias()).isEqualTo("u");
 		assertThat(query.getQueryString()).isEqualTo("select u from User u");
+	}
+
+	@Test // DATAJPA-1695
+	public void shouldDetectBindParameterCountCorrectly() {
+
+		StringQuery query = new ExpressionBasedStringQuery(
+				"select n from NetworkServer n where (LOWER(n.name) LIKE LOWER(NULLIF(text(concat('%',:#{#networkRequest.name},'%')), '')) OR :#{#networkRequest.name} IS NULL )\"\n"
+						+ "+ \"AND (LOWER(n.server) LIKE LOWER(NULLIF(text(concat('%',:#{#networkRequest.server},'%')), '')) OR :#{#networkRequest.server} IS NULL)\"\n"
+						+ "+ \"AND (n.createdAt >= :#{#networkRequest.createdTime.startDateTime}) AND (n.createdAt <=:#{#networkRequest.createdTime.endDateTime})\"\n"
+						+ "+ \"AND (n.updatedAt >= :#{#networkRequest.updatedTime.startDateTime}) AND (n.updatedAt <=:#{#networkRequest.updatedTime.endDateTime})",
+				metadata, SPEL_PARSER);
+
+		assertThat(query.getParameterBindings()).hasSize(8);
 	}
 
 }
