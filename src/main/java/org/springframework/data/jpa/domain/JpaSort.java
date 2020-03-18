@@ -44,7 +44,9 @@ public class JpaSort extends Sort {
 	 * Creates a new {@link JpaSort} for the given attributes with the default sort direction.
 	 *
 	 * @param attributes must not be {@literal null} or empty.
+	 * @deprecated since 2.3, use {@link JpaSort#of(Attribute...)} instead.
 	 */
+	@Deprecated
 	public JpaSort(Attribute<?, ?>... attributes) {
 		this(DEFAULT_DIRECTION, attributes);
 	}
@@ -53,8 +55,10 @@ public class JpaSort extends Sort {
 	 * Creates a new {@link JpaSort} instance with the given {@link Path}s.
 	 *
 	 * @param paths must not be {@literal null} or empty.
+	 * @deprecated since 2.3, use {@link JpaSort#of(Path...))} instead.
 	 */
-	public JpaSort(JpaSort.Path<?, ?>... paths) {
+	@Deprecated
+	public JpaSort(Path<?, ?>... paths) {
 		this(DEFAULT_DIRECTION, paths);
 	}
 
@@ -63,7 +67,9 @@ public class JpaSort extends Sort {
 	 *
 	 * @param direction the sorting direction.
 	 * @param attributes must not be {@literal null} or empty.
+	 * @deprecated since 2.3, use {@link JpaSort#of(Direction, Attribute...)} instead.
 	 */
+	@Deprecated
 	public JpaSort(Direction direction, Attribute<?, ?>... attributes) {
 		this(direction, paths(attributes));
 	}
@@ -73,7 +79,9 @@ public class JpaSort extends Sort {
 	 *
 	 * @param direction the sorting direction.
 	 * @param paths must not be {@literal null} or empty.
+	 * @deprecated since 2.3, use {@link JpaSort#of(Direction, Path...)} instead.
 	 */
+	@Deprecated
 	public JpaSort(Direction direction, Path<?, ?>... paths) {
 		this(direction, Arrays.asList(paths));
 	}
@@ -88,6 +96,44 @@ public class JpaSort extends Sort {
 
 	private JpaSort(List<Order> orders) {
 		super(orders);
+	}
+
+	/**
+	 * Creates a new {@link JpaSort} for the given attributes with the default sort direction.
+	 *
+	 * @param attributes must not be {@literal null} or empty.
+	 */
+	public static JpaSort of(Attribute<?, ?>... attributes) {
+		return new JpaSort(attributes);
+	}
+
+	/**
+	 * Creates a new {@link JpaSort} instance with the given {@link Path}s.
+	 *
+	 * @param paths must not be {@literal null} or empty.
+	 */
+	public static JpaSort of(JpaSort.Path<?, ?>... paths) {
+		return new JpaSort(paths);
+	}
+
+	/**
+	 * Creates a new {@link JpaSort} for the given direction and attributes.
+	 *
+	 * @param direction the sorting direction.
+	 * @param attributes must not be {@literal null} or empty.
+	 */
+	public static JpaSort of(Direction direction, Attribute<?, ?>... attributes) {
+		return new JpaSort(direction, attributes);
+	}
+
+	/**
+	 * Creates a new {@link JpaSort} for the given direction and {@link Path}s.
+	 *
+	 * @param direction the sorting direction.
+	 * @param paths must not be {@literal null} or empty.
+	 */
+	public static JpaSort of(Direction direction, Path<?, ?>... paths) {
+		return new JpaSort(direction, paths);
 	}
 
 	/**
