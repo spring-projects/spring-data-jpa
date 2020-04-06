@@ -542,6 +542,37 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		return executeCountQuery(getCountQuery(spec, getDomainClass()));
 	}
 
+	private EntityGraph.EntityGraphType getDefaultType(EntityGraph.EntityGraphType type){
+		return type==null? EntityGraph.EntityGraphType.FETCH:type;
+	}
+	@Override
+	public List<T> findAll(Specification<T> spec, EntityGraph.EntityGraphType entityGraphType, String entityGraphName) {
+		TypedQuery<T> query = getQuery(spec, (Sort) null);
+		query.setHint(getDefaultType(entityGraphType).getKey(), em.getEntityGraph(entityGraphName));
+		return query.getResultList();
+	}
+
+	@Override
+	public Page<T> findAll(Specification<T> spec, Pageable pageable, EntityGraph.EntityGraphType entityGraphType, String entityGraphName) {
+		TypedQuery<T> query = getQuery(spec, pageable.getSort());
+		query.setHint(getDefaultType(entityGraphType).getKey(), em.getEntityGraph(entityGraphName));
+		return readPage(query, pageable, spec);
+	}
+
+	@Override
+	public List<T> findAll(Specification<T> spec, Sort sort, EntityGraph.EntityGraphType entityGraphType, String entityGraphName) {
+		TypedQuery<T> query = getQuery(spec, sort);
+		query.setHint(getDefaultType(entityGraphType).getKey(), em.getEntityGraph(entityGraphName));
+		return query.getResultList();
+	}
+
+	@Override
+	public T findOne(Specification<T> spec, EntityGraph.EntityGraphType entityGraphType, String entityGraphName) {
+		TypedQuery<T> query = getQuery(spec, (Sort) null);
+		query.setHint(getDefaultType(entityGraphType).getKey(), em.getEntityGraph(entityGraphName));
+		return query.getSingleResult();
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.CrudRepository#save(java.lang.Object)

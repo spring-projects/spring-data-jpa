@@ -74,4 +74,45 @@ public interface JpaSpecificationExecutor<T> {
 	 * @return the number of instances.
 	 */
 	long count(@Nullable Specification<T> spec);
+
+	/**
+	 *
+	 * @param spec spec can be {@literal null}.
+	 *  @param entityGraphType an be {@literal null}. default FETCH {@link EntityGraph.EntityGraphType}
+	 * 	@param entityGraphName never null . is entityGraphName
+	 * @return never {@literal null}
+	 */
+	List<T> findAll(Specification<T> spec, EntityGraph.EntityGraphType entityGraphType, String entityGraphName);
+
+	/**
+	 * Returns a {@link Page} of entities matching the given {@link Specification}.
+	 *
+	 * @param spec can be {@literal null}.
+	 * @param pageable must not be {@literal null}.
+	 * @param entityGraphType an be {@literal null}. default FETCH {@link EntityGraph.EntityGraphType}
+	 * @param entityGraphName never null . is entityGraphName
+	 * @return never {@literal null}.
+	 */
+	Page<T> findAll(Specification<T> spec, Pageable pageable, EntityGraph.EntityGraphType entityGraphType, String entityGraphName);
+
+	/**
+	 * Returns all entities matching the given {@link Specification} and {@link Sort}.
+	 *
+	 * @param spec can be {@literal null}.
+	 * @param sort must not be {@literal null}.
+	 * @param entityGraphType an be {@literal null}. default FETCH {@link EntityGraph.EntityGraphType}
+	 * @param entityGraphName never null . is entityGraphName
+	 * @return never {@literal null}.
+	 */
+	List<T> findAll(Specification<T> spec, Sort sort, EntityGraph.EntityGraphType entityGraphType, String entityGraphName);
+
+	/**
+	 * Returns a single entity matching the given {@link Specification} or {@link Optional#empty()} if none found.
+	 *  @param spec can be {@literal null}.
+	 *  @param entityGraphType an be {@literal null}. default FETCH {@link EntityGraph.EntityGraphType}
+	 * 	@param entityGraphName never null . is entityGraphName
+	 * 	@return never {@literal null}.
+	 * 	@throws org.springframework.dao.IncorrectResultSizeDataAccessException if more than one entity found.
+	 */
+	T findOne(Specification<T> spec, EntityGraph.EntityGraphType entityGraphType, String entityGraphName);
 }
