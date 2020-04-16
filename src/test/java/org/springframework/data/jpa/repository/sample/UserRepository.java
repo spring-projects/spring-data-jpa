@@ -612,6 +612,10 @@ public interface UserRepository
 	// DATAJPA-1303
 	Page<User> findByAttributesIgnoreCaseIn(Pageable pageable, String... attributes);
 
+	// DATAJPA-1714
+	@Query(value = "select firstname, lastname from SD_User", nativeQuery = true)
+	List<NameOnlyDto> findDtoByNativeQuery();
+
 	interface RolesAndFirstname {
 
 		String getFirstname();

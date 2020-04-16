@@ -281,4 +281,9 @@ public class UserRepositoryFinderTests {
 	public void executesNamedQueryWithConstructorExpression() {
 		userRepository.findByNamedQueryWithConstructorExpression();
 	}
+
+	@Test // DATAJPA-1714
+	public void returnsDtoForNativeQuery() {
+		userRepository.findDtoByNativeQuery();
+	}
 }
