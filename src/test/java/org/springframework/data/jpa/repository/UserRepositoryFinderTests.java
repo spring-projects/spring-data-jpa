@@ -281,4 +281,17 @@ public class UserRepositoryFinderTests {
 	public void executesNamedQueryWithConstructorExpression() {
 		userRepository.findByNamedQueryWithConstructorExpression();
 	}
+
+	@Test // DATAJPA-1713
+	public void selectProjectionWithSubselect() {
+
+		List<UserRepository.NameOnly> list = userRepository.findProjectionBySubselect();
+		assertThat(list).isNotEmpty() //
+				.allSatisfy(no -> {
+
+					assertThat(no.getFirstname()).describedAs("firstname").isNotNull();
+					assertThat(no.getLastname()).describedAs("lastname").isNotNull();
+				});
+
+	}
 }

@@ -612,6 +612,10 @@ public interface UserRepository
 	// DATAJPA-1303
 	Page<User> findByAttributesIgnoreCaseIn(Pageable pageable, String... attributes);
 
+	// DATAJPA-1713
+	@Query("select u from User u where firstname >= (select Min(u0.firstname) from User u0 )")
+	List<NameOnly> findProjectionBySubselect();
+
 	interface RolesAndFirstname {
 
 		String getFirstname();
