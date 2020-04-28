@@ -1,6 +1,16 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 2.1.17.RELEASE (2020-04-28)
+----------------------------------------------
+* DATAJPA-1712 - Fix minor documentation typo.
+* DATAJPA-1696 - Reluctant parsing introduced in DATAJPA-1679 causes problems.
+* DATAJPA-1691 - Javadoc spelling errors.
+* DATAJPA-1688 - Release 2.1.17 (Lovelace SR17).
+* DATAJPA-1679 - QueryUtils.getProjection dies not treat DISTINCT queries well.
+* DATAJPA-1664 - Typo errors in documentation of @EntityGraph.
+
+
 Changes in version 2.3.0.RC1 (2020-03-31)
 -----------------------------------------
 * DATAJPA-1696 - Reluctant parsing introduced in DATAJPA-1679 causes problems.
@@ -1921,6 +1931,7 @@ Changes in version 1.0.0.M2 (2011-03-24) - https://jira.springsource.org/browse/
 Changes in version 1.0.0.M1 (2011-02-10) - https://jira.springsource.org/browse/DATAJPA/fixforversion/11786
 ----------------------------------------
 * Moved JPA sepcific code from Hades into Spring Data JPA (functional equivalent of Hades 2.0.2) building on common functionality in Spring Data Commons
+
 
 
 
