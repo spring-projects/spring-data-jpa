@@ -24,7 +24,7 @@ import java.lang.annotation.Target;
 /**
  * <p>
  * Indicates a query method should be considered as modifying query as that changes the way it needs to be executed.
- * This annotation is only considered if used on query methods defined through a {@link Query} annotation). It's not
+ * This annotation is only considered if used on query methods defined through a {@link Query} annotation. It's not
  * applied on custom implementation methods or queries derived from the method name as they already have control over
  * the underlying data access APIs or specify if they are modifying by their name.
  * </p>
