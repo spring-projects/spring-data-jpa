@@ -1,6 +1,14 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 2.3.0.RELEASE (2020-05-12)
+---------------------------------------------
+* DATAJPA-1724 - Remove superfluous parenthesis from Javadoc.
+* DATAJPA-1720 - Remove Travis CI.
+* DATAJPA-1717 - Release 2.3 GA (Neumann).
+* DATAJPA-1576 - JpaMetamodelEntityInformation.getId(…) uses field access for proxied entities.
+
+
 Changes in version 2.3.0.RC2 (2020-04-28)
 -----------------------------------------
 * DATAJPA-1712 - Fix minor documentation typo.
@@ -1944,6 +1952,7 @@ Changes in version 1.0.0.M2 (2011-03-24) - https://jira.springsource.org/browse/
 Changes in version 1.0.0.M1 (2011-02-10) - https://jira.springsource.org/browse/DATAJPA/fixforversion/11786
 ----------------------------------------
 * Moved JPA sepcific code from Hades into Spring Data JPA (functional equivalent of Hades 2.0.2) building on common functionality in Spring Data Commons
+
 
 
 
