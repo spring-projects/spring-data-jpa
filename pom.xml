@@ -17,6 +17,30 @@
 		<version>2.4.0-SNAPSHOT</version>
 	</parent>
 
+	<issueManagement>
+		<system>GitHub</system>
+		<url>https://github.com/spring-projects/spring-data-jpa/issues</url>
+	</issueManagement>
+
+	<licenses>
+		<license>
+			<name>Apache License, Version 2.0</name>
+			<url>https://www.apache.org/licenses/LICENSE-2.0</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+
+	<organization>
+		<name>Pivotal Software, Inc.</name>
+		<url>https://www.spring.io</url>
+	</organization>
+
+	<scm>
+		<connection>scm:git:git://github.com/spring-projects/spring-data-jpa</connection>
+		<developerConnection>scm:git:git://github.com/spring-projects/spring-data-jpa</developerConnection>
+		<url>https://github.com/spring-projects/spring-data-jpa</url>
+	</scm>
+
 	<properties>
 
 		<dist.key>DATAJPA</dist.key>
