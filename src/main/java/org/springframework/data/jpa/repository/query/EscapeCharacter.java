@@ -15,8 +15,6 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import lombok.Value;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
@@ -30,13 +28,20 @@ import org.springframework.lang.Nullable;
  * @author Jens Schauder
  * @author Oliver Drotbohm
  */
-@Value(staticConstructor = "of")
-public class EscapeCharacter {
+public final class EscapeCharacter {
 
 	public static final EscapeCharacter DEFAULT = EscapeCharacter.of('\\');
 	private static final List<String> TO_REPLACE = Arrays.asList("_", "%");
 
-	char escapeCharacter;
+	private final char escapeCharacter;
+
+	private EscapeCharacter(char escapeCharacter) {
+		this.escapeCharacter = escapeCharacter;
+	}
+
+	public static EscapeCharacter of(char escapeCharacter) {
+		return new EscapeCharacter(escapeCharacter);
+	}
 
 	/**
 	 * Escapes all special like characters ({@code _}, {@code %}) using the configured escape character.
@@ -51,5 +56,46 @@ public class EscapeCharacter {
 				? null //
 				: Stream.concat(Stream.of(String.valueOf(escapeCharacter)), TO_REPLACE.stream()) //
 						.reduce(value, (it, character) -> it.replace(character, this.escapeCharacter + character));
+	}
+
+	public char getEscapeCharacter() {
+		return this.escapeCharacter;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object o) {
+
+		if (this == o) {
+			return true;
+		}
+
+		if (!(o instanceof EscapeCharacter)) {
+			return false;
+		}
+
+		EscapeCharacter that = (EscapeCharacter) o;
+		return escapeCharacter == that.escapeCharacter;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		return escapeCharacter;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "EscapeCharacter(escapeCharacter=" + this.getEscapeCharacter() + ")";
 	}
 }

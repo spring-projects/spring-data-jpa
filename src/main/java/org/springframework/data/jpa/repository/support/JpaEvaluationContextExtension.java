@@ -15,8 +15,6 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import lombok.RequiredArgsConstructor;
-
 import org.springframework.data.jpa.repository.query.EscapeCharacter;
 import org.springframework.data.spel.spi.EvaluationContextExtension;
 
@@ -57,10 +55,17 @@ public class JpaEvaluationContextExtension implements EvaluationContextExtension
 		return root;
 	}
 
-	@RequiredArgsConstructor(staticName = "of")
 	public static class JpaRootObject {
 
 		private final EscapeCharacter character;
+
+		private JpaRootObject(EscapeCharacter character) {
+			this.character = character;
+		}
+
+		public static JpaRootObject of(EscapeCharacter character) {
+			return new JpaRootObject(character);
+		}
 
 		/**
 		 * Escapes the given source {@link String} for LIKE expressions.

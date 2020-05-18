@@ -15,10 +15,6 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import static org.springframework.data.querydsl.QuerydslUtils.*;
-
-import lombok.extern.slf4j.Slf4j;
-
 import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.Optional;
@@ -26,6 +22,8 @@ import java.util.stream.Stream;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Tuple;
+
+import org.slf4j.Logger;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
@@ -58,6 +56,8 @@ import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
+
+import static org.springframework.data.querydsl.QuerydslUtils.*;
 
 /**
  * JPA specific generic repository factory.
@@ -282,10 +282,12 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	 * @since 2.0.5
 	 * @see https://bugs.eclipse.org/bugs/show_bug.cgi?id=289141
 	 */
-	@Slf4j
 	private static class EclipseLinkProjectionQueryCreationListener implements QueryCreationListener<AbstractJpaQuery> {
 
 		private static final String ECLIPSELINK_PROJECTIONS = "Usage of Spring Data projections detected on persistence provider EclipseLink. Make sure the following query methods declare result columns in exactly the order the accessors are declared in the projecting interface or the order of parameters for DTOs:";
+
+		private static final Logger log = org.slf4j.LoggerFactory
+				.getLogger(EclipseLinkProjectionQueryCreationListener.class);
 
 		private final JpaMetamodel metamodel;
 

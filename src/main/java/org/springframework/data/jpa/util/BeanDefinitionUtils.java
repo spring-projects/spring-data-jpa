@@ -18,8 +18,6 @@ package org.springframework.data.jpa.util;
 import static java.util.Arrays.*;
 import static org.springframework.beans.factory.BeanFactoryUtils.*;
 
-import lombok.EqualsAndHashCode;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -38,6 +36,7 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.jndi.JndiObjectFactoryBean;
 import org.springframework.orm.jpa.AbstractEntityManagerFactoryBean;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.ObjectUtils;
 
 /**
  * Utility methods to work with {@link BeanDefinition} instances from {@link BeanFactoryPostProcessor}s.
@@ -170,7 +169,6 @@ public class BeanDefinitionUtils {
 	 * @author Oliver Gierke
 	 * @author Thomas Darimont
 	 */
-	@EqualsAndHashCode
 	public static class EntityManagerFactoryBeanDefinition {
 
 		private final String beanName;
@@ -213,6 +211,41 @@ public class BeanDefinitionUtils {
 		 */
 		public BeanDefinition getBeanDefinition() {
 			return beanFactory.getBeanDefinition(beanName);
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see java.lang.Object#equals(java.lang.Object)
+		 */
+		@Override
+		public boolean equals(Object o) {
+
+			if (this == o) {
+				return true;
+			}
+
+			if (!(o instanceof EntityManagerFactoryBeanDefinition)) {
+				return false;
+			}
+
+			EntityManagerFactoryBeanDefinition that = (EntityManagerFactoryBeanDefinition) o;
+
+			if (!ObjectUtils.nullSafeEquals(beanName, that.beanName)) {
+				return false;
+			}
+
+			return ObjectUtils.nullSafeEquals(beanFactory, that.beanFactory);
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see java.lang.Object#hashCode()
+		 */
+		@Override
+		public int hashCode() {
+			int result = ObjectUtils.nullSafeHashCode(beanName);
+			result = 31 * result + ObjectUtils.nullSafeHashCode(beanFactory);
+			return result;
 		}
 	}
 }
