@@ -1,6 +1,14 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 2.1.18.RELEASE (2020-06-10)
+----------------------------------------------
+* DATAJPA-1724 - Remove superfluous parenthesis from Javadoc.
+* DATAJPA-1720 - Remove Travis CI.
+* DATAJPA-1715 - Release 2.1.18 (Lovelace SR18).
+* DATAJPA-1576 - JpaMetamodelEntityInformation.getId(…) uses field access for proxied entities.
+
+
 Changes in version 2.3.0.RELEASE (2020-05-12)
 ---------------------------------------------
 * DATAJPA-1724 - Remove superfluous parenthesis from Javadoc.
