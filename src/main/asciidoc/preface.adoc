@@ -1,10 +1,10 @@
 [[preface]]
-= Preface
+== Preface
 
 Spring Data JPA provides repository support for the Java Persistence API (JPA). It eases development of applications that need to access JPA data sources.
 
 [[project]]
-== Project Metadata
+=== Project Metadata
 
 * Version control - https://github.com/spring-projects/spring-data-jpa
 * Bugtracker - https://jira.spring.io/browse/DATAJPA

@@ -122,8 +122,8 @@ In case you bootstrap JPA asynchronously, `DEFERRED` is a reasonable default as 
 Still, it makes sure that repositories are properly initialized and validated before the application signals it's up.
 
 `LAZY` is a decent choice for testing scenarios and local development.
-Once you're pretty sure that repositories will properly bootstrap, or in cases where you're testing other parts of the application, executing verification for all repositories might just unnecessarily increase the startup time.
-The same applies to local development in which you only access parts of the application which might just need a single repository initialized.
+Once you are pretty sure that repositories can properly bootstrap, or in cases where you are testing other parts of the application, running verification for all repositories might unnecessarily increase the startup time.
+The same applies to local development in which you only access parts of the application that might need to have a single repository initialized.
 
 [[jpa.entity-persistence]]
 == Persisting Entities
@@ -286,7 +286,7 @@ public class User {
 ====
 
 ==== Declaring Interfaces
-To allow execution of these named queries, specify the `UserRepository` as follows:
+To allow these named queries, specify the `UserRepository` as follows:
 
 .Query method declaration in UserRepository
 ====
@@ -306,7 +306,7 @@ Spring Data tries to resolve a call to these methods to a named query, starting 
 [[jpa.query-methods.at-query]]
 === Using `@Query`
 
-Using named queries to declare queries for entities is a valid approach and works fine for a small number of queries. As the queries themselves are tied to the Java method that executes them, you can actually bind them directly by using the Spring Data JPA `@Query` annotation rather than annotating them to the domain class. This frees the domain class from persistence specific information and co-locates the query to the repository interface.
+Using named queries to declare queries for entities is a valid approach and works fine for a small number of queries. As the queries themselves are tied to the Java method that runs them, you can actually bind them directly by using the Spring Data JPA `@Query` annotation rather than annotating them to the domain class. This frees the domain class from persistence specific information and co-locates the query to the repository interface.
 
 Queries annotated to the query method take precedence over queries defined using `@NamedQuery` or named queries declared in `orm.xml`.
 
@@ -326,7 +326,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
 ==== Using Advanced `LIKE` Expressions
 
-The query execution mechanism for manually defined queries created with `@Query` allows the definition of advanced `LIKE` expressions inside the query definition, as shown in the following example:
+The query running mechanism for manually defined queries created with `@Query` allows the definition of advanced `LIKE` expressions inside the query definition, as shown in the following example:
 
 .Advanced `like` expressions in @Query
 ====
@@ -340,7 +340,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 ----
 ====
 
-In the preceding example, the `LIKE` delimiter character (`%`) is recognized, and the query is transformed into a valid JPQL query (removing the `%`). Upon query execution, the parameter passed to the method call gets augmented with the previously recognized `LIKE` pattern.
+In the preceding example, the `LIKE` delimiter character (`%`) is recognized, and the query is transformed into a valid JPQL query (removing the `%`). Upon running the query, the parameter passed to the method call gets augmented with the previously recognized `LIKE` pattern.
 
 ==== Native Queries
 
@@ -438,7 +438,7 @@ NOTE: As of version 4, Spring fully supports Java 8’s parameter name discovery
 [[jpa.query.spel-expressions]]
 === Using SpEL Expressions
 
-As of Spring Data JPA release 1.4, we support the usage of restricted SpEL template expressions in manually defined queries that are defined with `@Query`. Upon query execution, these expressions are evaluated against a predefined set of variables. Spring Data JPA supports a variable called `entityName`. Its usage is `select x from #{#entityName} x`. It inserts the `entityName` of the domain type associated with the given repository. The `entityName` is resolved as follows: If the domain type has set the name property on the `@Entity` annotation, it is used. Otherwise, the simple class-name of the domain type is used.
+As of Spring Data JPA release 1.4, we support the usage of restricted SpEL template expressions in manually defined queries that are defined with `@Query`. Upon the query being run, these expressions are evaluated against a predefined set of variables. Spring Data JPA supports a variable called `entityName`. Its usage is `select x from #{#entityName} x`. It inserts the `entityName` of the domain type associated with the given repository. The `entityName` is resolved as follows: If the domain type has set the name property on the `@Entity` annotation, it is used. Otherwise, the simple class-name of the domain type is used.
 
 The following example demonstrates one use case for the `+#{#entityName}+` expression in a query string where you want to define a repository interface with a query method and a manually defined query:
 
@@ -588,13 +588,13 @@ interface UserRepository extends Repository<User, Long> {
 ----
 ====
 
-Although the `deleteByRoleId(…)` method looks like it basically produces the same result as the `deleteInBulkByRoleId(…)`, there is an important difference between the two method declarations in terms of the way they get executed.
+Although the `deleteByRoleId(…)` method looks like it basically produces the same result as the `deleteInBulkByRoleId(…)`, there is an important difference between the two method declarations in terms of the way they are run.
 As the name suggests, the latter method issues a single JPQL query (the one defined in the annotation) against the database.
 This means even currently loaded instances of `User` do not see lifecycle callbacks invoked.
 
-To make sure lifecycle queries are actually invoked, an invocation of `deleteByRoleId(…)` executes a query and then deletes the returned instances one by one, so that the persistence provider can actually invoke `@PreRemove` callbacks on those entities.
+To make sure lifecycle queries are actually invoked, an invocation of `deleteByRoleId(…)` runs a query and then deletes the returned instances one by one, so that the persistence provider can actually invoke `@PreRemove` callbacks on those entities.
 
-In fact, a derived delete query is a shortcut for executing the query and then calling `CrudRepository.delete(Iterable<User> users)` on the result and keeping behavior in sync with the implementations of other `delete(…)` methods in `CrudRepository`.
+In fact, a derived delete query is a shortcut for running the query and then calling `CrudRepository.delete(Iterable<User> users)` on the result and keeping behavior in sync with the implementations of other `delete(…)` methods in `CrudRepository`.
 
 [[jpa.query-hints]]
 === Applying Query Hints
@@ -784,7 +784,7 @@ public interface CustomerRepository extends CrudRepository<Customer, Long>, JpaS
 }
 ----
 
-The additional interface has methods that let you execute specifications in a variety of ways. For example, the `findAll` method returns all entities that match the specification, as shown in the following example:
+The additional interface has methods that let you run specifications in a variety of ways. For example, the `findAll` method returns all entities that match the specification, as shown in the following example:
 
 [source, java]
 ----
