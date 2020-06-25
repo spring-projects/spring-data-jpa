@@ -8,7 +8,7 @@ Spring Data JPA 1.11 added the following features:
 
 * Improved compatibility with Hibernate 5.2.
 * Support any-match mode for <<query-by-example>>.
-* Paged query execution optimizations.
+* Paged query optimizations.
 * Support for the `exists` projection in repository query derivation.
 
 [[new-features.1-10-0]]

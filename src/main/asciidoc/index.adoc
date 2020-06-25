@@ -10,8 +10,6 @@ ifdef::backend-epub3[:front-cover-image: image:epub-cover.png[Front Cover,1050,1
 
 NOTE: Copies of this document may be made for your own use and for distribution to others, provided that you do not charge any fee for such copies and further provided that each copy contains this Copyright Notice, whether distributed in print or electronically.
 
-toc::[]
-
 include::preface.adoc[]
 
 include::new-features.adoc[leveloffset=+1]
@@ -21,12 +19,12 @@ include::{spring-data-commons-docs}/dependencies.adoc[leveloffset=+1]
 include::{spring-data-commons-docs}/repositories.adoc[leveloffset=+1]
 
 [[reference]]
-= Reference Documentation
+== Reference Documentation
 
 include::jpa.adoc[leveloffset=+1]
 
 [[appendix]]
-= Appendix
+== Appendix
 
 :numbered!:
 include::{spring-data-commons-docs}/repository-namespace-reference.adoc[leveloffset=+1]
