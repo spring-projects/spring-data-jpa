@@ -53,6 +53,7 @@ import com.google.common.base.Optional;
  * @author Jeff Sheets
  * @author Andrey Kovalev
  * @author JyotirmoyVS
+ * @author Simon Paradies
  */
 public interface UserRepository
 		extends JpaRepository<User, Integer>, JpaSpecificationExecutor<User>, UserRepositoryCustom {
@@ -576,6 +577,17 @@ public interface UserRepository
 	@Query(
 			value = "SELECT u FROM User u WHERE ?2 = 'x' ORDER BY CASE WHEN (u.firstname  >= ?1) THEN 0 ELSE 1 END, u.firstname")
 	Page<User> findAllOrderedBySpecialNameMultipleParamsIndexed(String name, String other, Pageable page);
+
+	// DATAJPA-1750
+	@Query("select concat(?1,u.id,?2) as idWithPrefixAndSuffix from #{#entityName} u")
+	List<String> findAllAndSortByFunctionResultPositionalParameter(
+			@Param("positionalParameter1") String positionalParameter1,
+			@Param("positionalParameter2") String positionalParameter2, Sort sort);
+
+	// DATAJPA-1750
+	@Query("select concat(:namedParameter1,u.id,:namedParameter2) as idWithPrefixAndSuffix from #{#entityName} u")
+	List<String> findAllAndSortByFunctionResultNamedParameter(@Param("namedParameter1") String namedParameter1,
+			@Param("namedParameter2") String namedParameter2, Sort sort);
 
 	// DATAJPA-928
 	Page<User> findByNativeNamedQueryWithPageable(Pageable pageable);

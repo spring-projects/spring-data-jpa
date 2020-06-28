@@ -81,6 +81,7 @@ import org.springframework.util.StringUtils;
  * @author Mohammad Hewedy
  * @author Andriy Redko
  * @author Peter Großmann
+ * @author Simon Paradies
  */
 public abstract class QueryUtils {
 
@@ -179,7 +180,7 @@ public abstract class QueryUtils {
 
 		builder = new StringBuilder();
 		// any function call including parameters within the brackets
-		builder.append("\\w+\\s*\\([\\w\\.,\\s'=]+\\)");
+		builder.append("\\w+\\s*\\([\\w\\.,\\s'=:\\?]+\\)");
 		// the potential alias
 		builder.append("\\s+[as|AS]+\\s+(([\\w\\.]+))");
 
