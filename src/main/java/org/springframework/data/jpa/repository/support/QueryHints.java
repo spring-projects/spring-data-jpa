@@ -17,21 +17,20 @@ package org.springframework.data.jpa.repository.support;
 
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.Map;
-import java.util.Map.Entry;
+import java.util.List;
 
 import javax.persistence.EntityManager;
 
 /**
- * QueryHints provides access to query hints defined via {@link CrudMethodMetadata#getQueryHints()} by default excluding
- * JPA {@link javax.persistence.EntityGraph}.
+ * QueryHints provides access to query hints defined via {@link CrudMethodMetadata#getQueryHintList()} by default
+ * excluding JPA {@link javax.persistence.EntityGraph}.
  *
  * @author Christoph Strobl
  * @author Oliver Gierke
  * @author Jens Schauder
  * @since 2.0
  */
-interface QueryHints extends Iterable<Entry<String, Object>> {
+interface QueryHints extends Iterable<QueryHintValue> {
 
 	/**
 	 * Creates and returns a new {@link QueryHints} instance including {@link javax.persistence.EntityGraph}.
@@ -51,11 +50,12 @@ interface QueryHints extends Iterable<Entry<String, Object>> {
 	QueryHints forCounts();
 
 	/**
-	 * Get the query hints as a {@link Map}.
+	 * Get the query hints as a {@link List}.
 	 *
 	 * @return never {@literal null}.
+	 * @since 2.4
 	 */
-	Map<String, Object> asMap();
+	List<QueryHintValue> asList();
 
 	/**
 	 * Null object implementation of {@link QueryHints}.
@@ -72,8 +72,8 @@ interface QueryHints extends Iterable<Entry<String, Object>> {
 		 * @see org.springframework.data.jpa.repository.support.QueryHints#asMap()
 		 */
 		@Override
-		public Map<String, Object> asMap() {
-			return Collections.emptyMap();
+		public List<QueryHintValue> asList() {
+			return Collections.emptyList();
 		}
 
 		/*
@@ -81,7 +81,7 @@ interface QueryHints extends Iterable<Entry<String, Object>> {
 		 * @see java.lang.Iterable#iterator()
 		 */
 		@Override
-		public Iterator<Entry<String, Object>> iterator() {
+		public Iterator<QueryHintValue> iterator() {
 			return Collections.emptyIterator();
 		}
 

@@ -16,6 +16,9 @@
 package org.springframework.data.jpa.repository.support;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -48,8 +51,26 @@ public interface CrudMethodMetadata {
 	 * Returns all query hints to be applied to queries executed for the CRUD method.
 	 *
 	 * @return
+	 * @deprecated use {@link #getQueryHintList()} instead.
 	 */
+	@Deprecated
 	Map<String, Object> getQueryHints();
+
+	/**
+	 * Returns all query hints in a list to be applied to queries executed for the CRUD method.
+	 * 
+	 * @return
+	 * @since 2.4
+	 */
+	default List<QueryHintValue> getQueryHintList() {
+
+		List<QueryHintValue> queryHints = new ArrayList<>();
+		for (Map.Entry<String, Object> hint : getQueryHints().entrySet()) {
+			queryHints.add(new QueryHintValue(hint.getKey(), hint.getValue()));
+		}
+
+		return Collections.unmodifiableList(queryHints);
+	}
 
 	/**
 	 * Returns all query hints to be applied to count queries executed for the CRUD method. The default implementation
@@ -57,9 +78,27 @@ public interface CrudMethodMetadata {
 	 *
 	 * @return
 	 * @since 2.2
+	 * @Deprecated use {@link #getQueryHintListForCount()} instead.
 	 */
+	@Deprecated
 	default Map<String, Object> getQueryHintsForCount() {
 		return getQueryHints();
+	}
+
+	/**
+	 * Returns all query hints in a list to be applied to queries executed for the CRUD method.
+	 * 
+	 * @return
+	 * @since 2.4
+	 */
+	default List<QueryHintValue> getQueryHintListForCount() {
+
+		List<QueryHintValue> queryHints = new ArrayList<>();
+		for (Map.Entry<String, Object> hint : getQueryHintsForCount().entrySet()) {
+			queryHints.add(new QueryHintValue(hint.getKey(), hint.getValue()));
+		}
+
+		return Collections.unmodifiableList(queryHints);
 	}
 
 	/**

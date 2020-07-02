@@ -27,6 +27,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.persistence.Subgraph;
 
+import org.springframework.data.jpa.repository.support.QueryHintValue;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -41,6 +42,7 @@ import org.springframework.util.StringUtils;
  * @author Oliver Gierke
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Jens Schauder
  * @since 1.6
  */
 public class Jpa21Utils {
@@ -71,20 +73,20 @@ public class Jpa21Utils {
 	 * @return a {@code Map} with the hints or an empty {@code Map} if no hints were found.
 	 * @since 1.8
 	 */
-	public static Map<String, Object> tryGetFetchGraphHints(EntityManager em, @Nullable JpaEntityGraph entityGraph,
+	public static List<QueryHintValue> tryGetFetchGraphHints(EntityManager em, @Nullable JpaEntityGraph entityGraph,
 			Class<?> entityType) {
 
 		if (entityGraph == null) {
-			return Collections.emptyMap();
+			return Collections.emptyList();
 		}
 
 		EntityGraph<?> graph = tryGetFetchGraph(em, entityGraph, entityType);
 
 		if (graph == null) {
-			return Collections.emptyMap();
+			return Collections.emptyList();
 		}
 
-		return Collections.<String, Object> singletonMap(entityGraph.getType().getKey(), graph);
+		return Collections.singletonList(new QueryHintValue(entityGraph.getType().getKey(), graph));
 	}
 
 	/**

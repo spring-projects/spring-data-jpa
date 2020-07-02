@@ -15,11 +15,10 @@
  */
 package org.springframework.data.jpa.repository.support;
 
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
-import java.util.Map.Entry;
+import java.util.List;
 import java.util.Optional;
 
 import javax.persistence.EntityManager;
@@ -102,8 +101,8 @@ class DefaultQueryHints implements QueryHints {
 	 * @see java.lang.Iterable#iterator()
 	 */
 	@Override
-	public Iterator<Entry<String, Object>> iterator() {
-		return asMap().entrySet().iterator();
+	public Iterator<QueryHintValue> iterator() {
+		return asList().iterator();
 	}
 
 	/*
@@ -111,27 +110,27 @@ class DefaultQueryHints implements QueryHints {
 	 * @see org.springframework.data.jpa.repository.support.QueryHints#asMap()
 	 */
 	@Override
-	public Map<String, Object> asMap() {
+	public List<QueryHintValue> asList() {
 
-		Map<String, Object> hints = new HashMap<>();
+		List<QueryHintValue> hints = new ArrayList<>();
 
 		if (forCounts) {
-			hints.putAll(metadata.getQueryHintsForCount());
+			hints.addAll(metadata.getQueryHintListForCount());
 		} else {
-			hints.putAll(metadata.getQueryHints());
+			hints.addAll(metadata.getQueryHintList());
 		}
 
-		hints.putAll(getFetchGraphs());
+		hints.addAll(getFetchGraphs());
 
 		return hints;
 	}
 
-	private Map<String, Object> getFetchGraphs() {
+	private List<QueryHintValue> getFetchGraphs() {
 
 		return Optionals
 				.mapIfAllPresent(entityManager, metadata.getEntityGraph(),
 						(em, graph) -> Jpa21Utils.tryGetFetchGraphHints(em, getEntityGraph(graph), information.getJavaType()))
-				.orElse(Collections.emptyMap());
+				.orElse(Collections.emptyList());
 	}
 
 	private JpaEntityGraph getEntityGraph(EntityGraph entityGraph) {

@@ -18,8 +18,8 @@ package org.springframework.data.jpa.repository.support;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -46,9 +46,11 @@ public class DefaultQueryHintsTest {
 
 		QueryHints hints = DefaultQueryHints.of(information, metadata);
 
-		assertThat(hints.asMap()) //
-				.extracting("name1", "name2", "n1", "n2") //
-				.containsExactly("value1", "value2", null, null);
+		assertThat(hints.asList()) //
+				.containsExactly( //
+						new QueryHintValue("name1", "value1"), //
+						new QueryHintValue("name2", "value2") //
+				);
 	}
 
 	@Test // DATAJPA-1156
@@ -56,26 +58,28 @@ public class DefaultQueryHintsTest {
 
 		QueryHints hints = DefaultQueryHints.of(information, metadata).forCounts();
 
-		assertThat(hints.asMap()) //
-				.extracting("name1", "name2", "n1", "n2") //
-				.containsExactly(null, null, "1", "2");
+		assertThat(hints.asList()) //
+				.containsExactly( //
+						new QueryHintValue("n1", "1"), //
+						new QueryHintValue("n2", "2") //
+				);
 	}
 
 	private void setupMainHints() {
 
-		Map<String, Object> mainHintMap = new HashMap<>();
-		mainHintMap.put("name1", "value1");
-		mainHintMap.put("name2", "value2");
+		List<QueryHintValue> mainHints = new ArrayList<>();
+		mainHints.add(new QueryHintValue("name1", "value1"));
+		mainHints.add(new QueryHintValue("name2", "value2"));
 
-		when(metadata.getQueryHints()).thenReturn(mainHintMap);
+		when(metadata.getQueryHintList()).thenReturn(mainHints);
 	}
 
 	private void setUpCountHints() {
 
-		Map<String, Object> countHintMap = new HashMap<>();
-		countHintMap.put("n1", "1");
-		countHintMap.put("n2", "2");
+		List<QueryHintValue> countHints = new ArrayList<>();
+		countHints.add(new QueryHintValue("n1", "1"));
+		countHints.add(new QueryHintValue("n2", "2"));
 
-		when(metadata.getQueryHintsForCount()).thenReturn(countHintMap);
+		when(metadata.getQueryHintListForCount()).thenReturn(countHints);
 	}
 }

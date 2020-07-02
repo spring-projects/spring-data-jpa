@@ -17,7 +17,6 @@ package org.springframework.data.jpa.repository.support;
 
 import java.io.Serializable;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.Optional;
 
 import javax.persistence.EntityManager;
@@ -48,7 +47,6 @@ import com.querydsl.jpa.impl.AbstractJPAQuery;
  * {@link QuerydslPredicateExecutor}.
  *
  * @deprecated Instead of this class use {@link QuerydslJpaPredicateExecutor}
- *
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Mark Paluch
@@ -222,8 +220,8 @@ public class QuerydslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 			query = query.where(predicate);
 		}
 
-		for (Entry<String, Object> hint : hints) {
-			query.setHint(hint.getKey(), hint.getValue());
+		for (QueryHintValue hint : hints) {
+			query.setHint(hint.name, hint.value);
 		}
 
 		return query;
