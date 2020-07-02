@@ -20,9 +20,9 @@ import static org.springframework.data.jpa.repository.query.QueryUtils.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Optional;
 
 import javax.persistence.EntityManager;
@@ -276,7 +276,8 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 		LockModeType type = metadata.getLockModeType();
 
-		Map<String, Object> hints = getQueryHints().withFetchGraphs(em).asMap();
+		Map<String, Object> hints = new HashMap<>();
+		getQueryHints().withFetchGraphs(em).forEach(hints::put);
 
 		return Optional.ofNullable(type == null ? em.find(domainType, id, hints) : em.find(domainType, id, type, hints));
 	}
@@ -785,10 +786,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	}
 
 	private void applyQueryHints(Query query) {
-
-		for (Entry<String, Object> hint : getQueryHints().withFetchGraphs(em)) {
-			query.setHint(hint.getKey(), hint.getValue());
-		}
+		getQueryHints().withFetchGraphs(em).forEach(query::setHint);
 	}
 
 	/**

@@ -16,7 +16,6 @@
 package org.springframework.data.jpa.repository.support;
 
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.Optional;
 
 import javax.persistence.EntityManager;
@@ -245,9 +244,7 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 			query = query.where(predicate);
 		}
 
-		for (Entry<String, Object> hint : hints) {
-			query.setHint(hint.getKey(), hint.getValue());
-		}
+		hints.forEach(query::setHint);
 
 		return query;
 	}
