@@ -550,6 +550,8 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	@Override
 	public <S extends T> S save(S entity) {
 
+		Assert.notNull(entity, "Entity must not be null.");
+
 		if (entityInformation.isNew(entity)) {
 			em.persist(entity);
 			return entity;
