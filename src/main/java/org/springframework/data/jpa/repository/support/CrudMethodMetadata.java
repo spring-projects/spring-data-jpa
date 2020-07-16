@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 
 import javax.persistence.LockModeType;
 
@@ -48,13 +49,12 @@ public interface CrudMethodMetadata {
 	LockModeType getLockModeType();
 
 	/**
-	 * Returns all query hints to be applied to queries executed for the CRUD method.
-	 *
+	 * Returns all query hints in a list to be applied to queries executed for the CRUD method.
+	 * 
 	 * @return
-	 * @deprecated use {@link #getQueryHintList()} instead.
+	 * @since 2.4
 	 */
-	@Deprecated
-	Map<String, Object> getQueryHints();
+	SimpleQueryHints getQueryHints();
 
 	/**
 	 * Returns all query hints in a list to be applied to queries executed for the CRUD method.
@@ -62,44 +62,7 @@ public interface CrudMethodMetadata {
 	 * @return
 	 * @since 2.4
 	 */
-	default List<QueryHintValue> getQueryHintList() {
-
-		List<QueryHintValue> queryHints = new ArrayList<>();
-		for (Map.Entry<String, Object> hint : getQueryHints().entrySet()) {
-			queryHints.add(new QueryHintValue(hint.getKey(), hint.getValue()));
-		}
-
-		return Collections.unmodifiableList(queryHints);
-	}
-
-	/**
-	 * Returns all query hints to be applied to count queries executed for the CRUD method. The default implementation
-	 * just delegates to {@link #getQueryHints()}.
-	 *
-	 * @return
-	 * @since 2.2
-	 * @Deprecated use {@link #getQueryHintListForCount()} instead.
-	 */
-	@Deprecated
-	default Map<String, Object> getQueryHintsForCount() {
-		return getQueryHints();
-	}
-
-	/**
-	 * Returns all query hints in a list to be applied to queries executed for the CRUD method.
-	 * 
-	 * @return
-	 * @since 2.4
-	 */
-	default List<QueryHintValue> getQueryHintListForCount() {
-
-		List<QueryHintValue> queryHints = new ArrayList<>();
-		for (Map.Entry<String, Object> hint : getQueryHintsForCount().entrySet()) {
-			queryHints.add(new QueryHintValue(hint.getKey(), hint.getValue()));
-		}
-
-		return Collections.unmodifiableList(queryHints);
-	}
+	SimpleQueryHints getQueryHintsForCount();
 
 	/**
 	 * Returns the {@link EntityGraph} to be used.

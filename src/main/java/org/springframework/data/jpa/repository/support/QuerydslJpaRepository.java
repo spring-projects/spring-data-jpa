@@ -220,9 +220,7 @@ public class QuerydslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 			query = query.where(predicate);
 		}
 
-		for (QueryHintValue hint : hints) {
-			query.setHint(hint.name, hint.value);
-		}
+		hints.forEach(query::setHint);
 
 		return query;
 	}

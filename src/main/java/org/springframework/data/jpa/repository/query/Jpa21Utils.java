@@ -28,6 +28,7 @@ import javax.persistence.Query;
 import javax.persistence.Subgraph;
 
 import org.springframework.data.jpa.repository.support.QueryHintValue;
+import org.springframework.data.jpa.repository.support.SimpleQueryHints;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -64,29 +65,23 @@ public class Jpa21Utils {
 		// prevent instantiation
 	}
 
-	/**
-	 * Returns a {@link Map} with hints for a JPA 2.1 fetch-graph or load-graph if running under JPA 2.1.
-	 *
-	 * @param em must not be {@literal null}.
-	 * @param entityGraph can be {@literal null}.
-	 * @param entityType must not be {@literal null}.
-	 * @return a {@code Map} with the hints or an empty {@code Map} if no hints were found.
-	 * @since 1.8
-	 */
-	public static List<QueryHintValue> tryGetFetchGraphHints(EntityManager em, @Nullable JpaEntityGraph entityGraph,
+	public static SimpleQueryHints getFetchGraphHint(EntityManager em, @Nullable JpaEntityGraph entityGraph,
 			Class<?> entityType) {
 
+		SimpleQueryHints result = new SimpleQueryHints();
+
 		if (entityGraph == null) {
-			return Collections.emptyList();
+			return result;
 		}
 
 		EntityGraph<?> graph = tryGetFetchGraph(em, entityGraph, entityType);
 
 		if (graph == null) {
-			return Collections.emptyList();
+			return result;
 		}
 
-		return Collections.singletonList(new QueryHintValue(entityGraph.getType().getKey(), graph));
+		result.add(entityGraph.getType().getKey(), graph);
+		return result;
 	}
 
 	/**

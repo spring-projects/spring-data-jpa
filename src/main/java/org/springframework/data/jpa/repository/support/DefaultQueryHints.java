@@ -15,11 +15,8 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 
 import javax.persistence.EntityManager;
 
@@ -96,41 +93,26 @@ class DefaultQueryHints implements QueryHints {
 		return new DefaultQueryHints(this.information, this.metadata, this.entityManager, true);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.lang.Iterable#iterator()
-	 */
 	@Override
-	public Iterator<QueryHintValue> iterator() {
-		return asList().iterator();
+	public void forEach(BiConsumer<String, Object> consumer) {
+		combineHints().forEach(consumer);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.support.QueryHints#asMap()
-	 */
-	@Override
-	public List<QueryHintValue> asList() {
+	private SimpleQueryHints combineHints() {
 
-		List<QueryHintValue> hints = new ArrayList<>();
-
-		if (forCounts) {
-			hints.addAll(metadata.getQueryHintListForCount());
-		} else {
-			hints.addAll(metadata.getQueryHintList());
-		}
+		SimpleQueryHints hints = forCounts ? metadata.getQueryHintsForCount() : metadata.getQueryHints();
 
 		hints.addAll(getFetchGraphs());
 
 		return hints;
 	}
 
-	private List<QueryHintValue> getFetchGraphs() {
+	private SimpleQueryHints getFetchGraphs() {
 
 		return Optionals
 				.mapIfAllPresent(entityManager, metadata.getEntityGraph(),
-						(em, graph) -> Jpa21Utils.tryGetFetchGraphHints(em, getEntityGraph(graph), information.getJavaType()))
-				.orElse(Collections.emptyList());
+						(em, graph) -> Jpa21Utils.getFetchGraphHint(em, getEntityGraph(graph), information.getJavaType()))
+				.orElse(new SimpleQueryHints());
 	}
 
 	private JpaEntityGraph getEntityGraph(EntityGraph entityGraph) {

@@ -244,9 +244,7 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 			query = query.where(predicate);
 		}
 
-		for (QueryHintValue hint : hints) {
-			query.setHint(hint.name, hint.value);
-		}
+		hints.forEach(query::setHint);
 
 		return query;
 	}

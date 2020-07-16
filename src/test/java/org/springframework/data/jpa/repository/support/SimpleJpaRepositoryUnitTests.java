@@ -76,6 +76,10 @@ public class SimpleJpaRepositoryUnitTests {
 		when(em.createQuery(criteriaQuery)).thenReturn(query);
 		when(em.createQuery(countCriteriaQuery)).thenReturn(countQuery);
 
+		SimpleQueryHints hints = new SimpleQueryHints();
+		when(metadata.getQueryHints()).thenReturn(hints);
+		when(metadata.getQueryHintsForCount()).thenReturn(hints);
+
 		repo = new SimpleJpaRepository<User, Integer>(information, em);
 		repo.setRepositoryMethodMetadata(metadata);
 	}

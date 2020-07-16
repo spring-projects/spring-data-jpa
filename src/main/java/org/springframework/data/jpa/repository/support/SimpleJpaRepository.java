@@ -277,9 +277,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		LockModeType type = metadata.getLockModeType();
 
 		Map<String, Object> hints = new HashMap<>();
-		for (QueryHintValue hint : getQueryHints().withFetchGraphs(em)) {
-			hints.put(hint.name, hint.value);
-		}
+		getQueryHints().withFetchGraphs(em).forEach(hints::put);
 
 		return Optional.ofNullable(type == null ? em.find(domainType, id, hints) : em.find(domainType, id, type, hints));
 	}
@@ -788,10 +786,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	}
 
 	private void applyQueryHints(Query query) {
-
-		for (QueryHintValue hint : getQueryHints().withFetchGraphs(em)) {
-			query.setHint(hint.name, hint.value);
-		}
+		getQueryHints().withFetchGraphs(em).forEach(query::setHint);
 	}
 
 	/**

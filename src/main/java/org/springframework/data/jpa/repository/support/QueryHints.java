@@ -15,22 +15,21 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
+import java.util.function.BiConsumer;
 
 import javax.persistence.EntityManager;
 
 /**
- * QueryHints provides access to query hints defined via {@link CrudMethodMetadata#getQueryHintList()} by default
- * excluding JPA {@link javax.persistence.EntityGraph}.
+ * QueryHints provides access to query hints defined via {@link CrudMethodMetadata#getQueryHints()} QueryHintList()} by
+ * default excluding JPA {@link javax.persistence.EntityGraph}. The object allows to switch between query hints for
+ * count queries with or without fetch graph hints.
  *
  * @author Christoph Strobl
  * @author Oliver Gierke
  * @author Jens Schauder
  * @since 2.0
  */
-interface QueryHints extends Iterable<QueryHintValue> {
+interface QueryHints {
 
 	/**
 	 * Creates and returns a new {@link QueryHints} instance including {@link javax.persistence.EntityGraph}.
@@ -50,12 +49,12 @@ interface QueryHints extends Iterable<QueryHintValue> {
 	QueryHints forCounts();
 
 	/**
-	 * Get the query hints as a {@link List}.
+	 * Passes each query hint to the consumer. Query hint keys might appear more than once.
 	 *
-	 * @return never {@literal null}.
+	 * @param consumer to process query hints consisting of a key and a value.
 	 * @since 2.4
 	 */
-	List<QueryHintValue> asList();
+	void forEach(BiConsumer<String, Object> consumer);
 
 	/**
 	 * Null object implementation of {@link QueryHints}.
@@ -63,27 +62,9 @@ interface QueryHints extends Iterable<QueryHintValue> {
 	 * @author Oliver Gierke
 	 * @since 2.0
 	 */
-	static enum NoHints implements QueryHints {
+	enum NoHints implements QueryHints {
 
 		INSTANCE;
-
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.jpa.repository.support.QueryHints#asMap()
-		 */
-		@Override
-		public List<QueryHintValue> asList() {
-			return Collections.emptyList();
-		}
-
-		/*
-		 * (non-Javadoc)
-		 * @see java.lang.Iterable#iterator()
-		 */
-		@Override
-		public Iterator<QueryHintValue> iterator() {
-			return Collections.emptyIterator();
-		}
 
 		/*
 		 * (non-Javadoc)
@@ -102,5 +83,8 @@ interface QueryHints extends Iterable<QueryHintValue> {
 		public QueryHints forCounts() {
 			return this;
 		}
+
+		@Override
+		public void forEach(BiConsumer<String, Object> consumer) {}
 	}
 }
