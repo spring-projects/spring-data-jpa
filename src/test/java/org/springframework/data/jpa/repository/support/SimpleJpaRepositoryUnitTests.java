@@ -32,6 +32,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.sample.User;
@@ -76,7 +77,7 @@ public class SimpleJpaRepositoryUnitTests {
 		when(em.createQuery(criteriaQuery)).thenReturn(query);
 		when(em.createQuery(countCriteriaQuery)).thenReturn(countQuery);
 
-		SimpleQueryHints hints = new SimpleQueryHints();
+		MutableQueryHints hints = new MutableQueryHints();
 		when(metadata.getQueryHints()).thenReturn(hints);
 		when(metadata.getQueryHintsForCount()).thenReturn(hints);
 

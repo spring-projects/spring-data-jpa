@@ -93,26 +93,25 @@ class DefaultQueryHints implements QueryHints {
 		return new DefaultQueryHints(this.information, this.metadata, this.entityManager, true);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.jpa.repository.support.QueryHints#forEach(java.util.function.BiConsumer)
+	 */
 	@Override
-	public void forEach(BiConsumer<String, Object> consumer) {
-		combineHints().forEach(consumer);
+	public void forEach(BiConsumer<String, Object> action) {
+		combineHints().forEach(action);
 	}
 
-	private SimpleQueryHints combineHints() {
-
-		SimpleQueryHints hints = forCounts ? metadata.getQueryHintsForCount() : metadata.getQueryHints();
-
-		hints.addAll(getFetchGraphs());
-
-		return hints;
+	private QueryHints combineHints() {
+		return QueryHints.from(forCounts ? metadata.getQueryHintsForCount() : metadata.getQueryHints(), getFetchGraphs());
 	}
 
-	private SimpleQueryHints getFetchGraphs() {
+	private QueryHints getFetchGraphs() {
 
 		return Optionals
 				.mapIfAllPresent(entityManager, metadata.getEntityGraph(),
 						(em, graph) -> Jpa21Utils.getFetchGraphHint(em, getEntityGraph(graph), information.getJavaType()))
-				.orElse(new SimpleQueryHints());
+				.orElse(new MutableQueryHints());
 	}
 
 	private JpaEntityGraph getEntityGraph(EntityGraph entityGraph) {

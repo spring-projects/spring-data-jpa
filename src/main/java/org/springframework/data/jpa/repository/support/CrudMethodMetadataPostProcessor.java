@@ -17,7 +17,6 @@ package org.springframework.data.jpa.repository.support;
 
 import java.lang.reflect.Method;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -191,8 +190,8 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 	private static class DefaultCrudMethodMetadata implements CrudMethodMetadata {
 
 		private final @Nullable LockModeType lockModeType;
-		private final SimpleQueryHints queryHints;
-		private final SimpleQueryHints queryHintsForCount;
+		private final org.springframework.data.jpa.repository.support.QueryHints queryHints;
+		private final org.springframework.data.jpa.repository.support.QueryHints queryHintsForCount;
 		private final Optional<EntityGraph> entityGraph;
 		private final Method method;
 
@@ -223,9 +222,10 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 			return annotation == null ? null : (LockModeType) AnnotationUtils.getValue(annotation);
 		}
 
-		private static SimpleQueryHints findQueryHints(Method method, Predicate<QueryHints> annotationFilter) {
+		private static org.springframework.data.jpa.repository.support.QueryHints findQueryHints(Method method,
+				Predicate<QueryHints> annotationFilter) {
 
-			SimpleQueryHints queryHints = new SimpleQueryHints();
+			MutableQueryHints queryHints = new MutableQueryHints();
 
 			QueryHints queryHintsAnnotation = AnnotatedElementUtils.findMergedAnnotation(method, QueryHints.class);
 
@@ -255,13 +255,21 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 			return lockModeType;
 		}
 
+		/* 
+		 * (non-Javadoc)
+		 * @see org.springframework.data.jpa.repository.support.CrudMethodMetadata#getQueryHints()
+		 */
 		@Override
-		public SimpleQueryHints getQueryHints() {
+		public org.springframework.data.jpa.repository.support.QueryHints getQueryHints() {
 			return queryHints;
 		}
 
+		/* 
+		 * (non-Javadoc)
+		 * @see org.springframework.data.jpa.repository.support.CrudMethodMetadata#getQueryHintsForCount()
+		 */
 		@Override
-		public SimpleQueryHints getQueryHintsForCount() {
+		public org.springframework.data.jpa.repository.support.QueryHints getQueryHintsForCount() {
 			return queryHintsForCount;
 		}
 

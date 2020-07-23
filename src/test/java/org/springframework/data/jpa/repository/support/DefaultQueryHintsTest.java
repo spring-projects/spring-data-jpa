@@ -18,9 +18,7 @@ package org.springframework.data.jpa.repository.support;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.junit.Before;
@@ -75,7 +73,7 @@ public class DefaultQueryHintsTest {
 
 	private void setupMainHints() {
 
-		SimpleQueryHints mainHints = new SimpleQueryHints();
+		MutableQueryHints mainHints = new MutableQueryHints();
 		mainHints.add("name1", "value1");
 		mainHints.add("name2", "value2");
 
@@ -84,7 +82,7 @@ public class DefaultQueryHintsTest {
 
 	private void setUpCountHints() {
 
-		SimpleQueryHints countHints = new SimpleQueryHints();
+		MutableQueryHints countHints = new MutableQueryHints();
 		countHints.add("n1", "1");
 		countHints.add("n2", "2");
 

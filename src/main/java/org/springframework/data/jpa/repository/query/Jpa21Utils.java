@@ -19,7 +19,6 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import javax.persistence.AttributeNode;
 import javax.persistence.EntityGraph;
@@ -27,8 +26,8 @@ import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.persistence.Subgraph;
 
-import org.springframework.data.jpa.repository.support.QueryHintValue;
-import org.springframework.data.jpa.repository.support.SimpleQueryHints;
+import org.springframework.data.jpa.repository.support.MutableQueryHints;
+import org.springframework.data.jpa.repository.support.QueryHints;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -65,10 +64,10 @@ public class Jpa21Utils {
 		// prevent instantiation
 	}
 
-	public static SimpleQueryHints getFetchGraphHint(EntityManager em, @Nullable JpaEntityGraph entityGraph,
+	public static QueryHints getFetchGraphHint(EntityManager em, @Nullable JpaEntityGraph entityGraph,
 			Class<?> entityType) {
 
-		SimpleQueryHints result = new SimpleQueryHints();
+		MutableQueryHints result = new MutableQueryHints();
 
 		if (entityGraph == null) {
 			return result;

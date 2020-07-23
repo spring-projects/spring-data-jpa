@@ -16,12 +16,7 @@
 package org.springframework.data.jpa.repository.support;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.function.BiConsumer;
 
 import javax.persistence.LockModeType;
 
@@ -50,19 +45,19 @@ public interface CrudMethodMetadata {
 
 	/**
 	 * Returns all query hints in a list to be applied to queries executed for the CRUD method.
-	 * 
+	 *
 	 * @return
 	 * @since 2.4
 	 */
-	SimpleQueryHints getQueryHints();
+	QueryHints getQueryHints();
 
 	/**
 	 * Returns all query hints in a list to be applied to queries executed for the CRUD method.
-	 * 
+	 *
 	 * @return
 	 * @since 2.4
 	 */
-	SimpleQueryHints getQueryHintsForCount();
+	QueryHints getQueryHintsForCount();
 
 	/**
 	 * Returns the {@link EntityGraph} to be used.

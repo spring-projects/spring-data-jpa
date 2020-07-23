@@ -41,8 +41,7 @@ import org.springframework.data.jpa.repository.query.JpaQueryExecution.Procedure
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.SingleEntityExecution;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.SlicedExecution;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.StreamExecution;
-import org.springframework.data.jpa.repository.support.QueryHintValue;
-import org.springframework.data.jpa.repository.support.SimpleQueryHints;
+import org.springframework.data.jpa.repository.support.QueryHints;
 import org.springframework.data.jpa.util.JpaMetamodel;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ResultProcessor;
@@ -241,7 +240,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 		JpaEntityGraph entityGraph = method.getEntityGraph();
 
 		if (entityGraph != null) {
-			SimpleQueryHints hints = Jpa21Utils.getFetchGraphHint(em, method.getEntityGraph(),
+			QueryHints hints = Jpa21Utils.getFetchGraphHint(em, method.getEntityGraph(),
 					getQueryMethod().getEntityInformation().getJavaType());
 
 			hints.forEach(query::setHint);
