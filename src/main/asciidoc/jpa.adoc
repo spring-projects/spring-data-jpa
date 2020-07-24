@@ -911,7 +911,7 @@ class UserManagementImpl implements UserManagement {
 
     for (User user : userRepository.findAll()) {
       user.addRole(role);
-      userRepository.save(user);
+      // note that no call to "save" is necessary since the entities are attached to the EntityManager
     }
 }
 ----
