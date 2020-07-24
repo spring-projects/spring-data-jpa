@@ -911,11 +911,14 @@ class UserManagementImpl implements UserManagement {
 
     for (User user : userRepository.findAll()) {
       user.addRole(role);
-      // note that no call to "save" is necessary since the entities are attached to the EntityManager
+      userRepository.save(user);
     }
 }
 ----
-This example causes call to `addRoleToAllUsers(…)` to run inside a transaction (participating in an existing one or creating a new one if none are already running). The transaction configuration at the repositories is then neglected, as the outer transaction configuration determines the actual one used. Note that you must activate `<tx:annotation-driven />` or use `@EnableTransactionManagement` explicitly to get annotation-based configuration of facades to work. This example assumes you use component scanning.
+This example causes call to `addRoleToAllUsers(…)` to run inside a transaction (participating in an existing one or creating a new one if none are already running). The transaction configuration at the repositories is then neglected, as the outer transaction configuration determines the actual one used. Note that you must activate `<tx:annotation-driven />` or use `@EnableTransactionManagement` explicitly to get annotation-based configuration of facades to work.
+This example assumes you use component scanning.
+
+Note that the call to `save` is not strictly necessary from a JPA point of view, but should still be there in order to stay consistent to the repository abstraction offered by Spring Data.
 ====
 
 [[transactional-query-methods]]
