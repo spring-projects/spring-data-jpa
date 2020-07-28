@@ -24,7 +24,7 @@ As a developer you write your repository interfaces, including custom finder met
 
 == Code of Conduct
 
-This project is governed by the link:CODE_OF_CONDUCT.adoc[Spring Code of Conduct]. By participating, you are expected to uphold this code of conduct. Please report unacceptable behavior to spring-code-of-conduct@pivotal.io.
+This project is governed by the https://github.com/spring-projects/.github/blob/e3cc2ff230d8f1dca06535aa6b5a4a23815861d4/CODE_OF_CONDUCT.md[Spring Code of Conduct]. By participating, you are expected to uphold this code of conduct. Please report unacceptable behavior to spring-code-of-conduct@pivotal.io.
 
 == Getting Started
 
