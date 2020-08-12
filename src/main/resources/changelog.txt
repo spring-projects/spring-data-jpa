@@ -1,6 +1,14 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 2.4.0-M2 (2020-08-12)
+----------------------------------------
+* DATAJPA-1761 - Sample transactional code having unnecessary save operation.
+* DATAJPA-1754 - assert the entity is null in SimpleJpaRepository.save.
+* DATAJPA-1749 - Release 2.4 M2 (2020.0.0).
+* DATAJPA-872 - Query hints on repository methods do not support hints that allow duplicate values for the same name.
+
+
 Changes in version 2.3.2.RELEASE (2020-07-22)
 ---------------------------------------------
 * DATAJPA-1743 - Release 2.3.2 (Neumann SR2).
@@ -1995,6 +2003,7 @@ Changes in version 1.0.0.M2 (2011-03-24) - https://jira.springsource.org/browse/
 Changes in version 1.0.0.M1 (2011-02-10) - https://jira.springsource.org/browse/DATAJPA/fixforversion/11786
 ----------------------------------------
 * Moved JPA sepcific code from Hades into Spring Data JPA (functional equivalent of Hades 2.0.2) building on common functionality in Spring Data Commons
+
 
 
 
