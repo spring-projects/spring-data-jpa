@@ -32,11 +32,14 @@ import org.springframework.transaction.annotation.Transactional;
 import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.jpa.JPQLQuery;
 
+import java.util.stream.Stream;
+
 /**
  * Integration tests for {@link Querydsl}.
  *
  * @author Thomas Darimont
  * @author Jens Schauder
+ * @author Marcus Voltolim
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({ "classpath:infrastructure.xml" })
@@ -52,7 +55,7 @@ public class QuerydslIntegrationTests {
 	@Before
 	public void setup() {
 
-		userPath = new PathBuilder<User>(User.class, "user");
+		userPath = new PathBuilder<>(User.class, "user");
 		querydsl = new Querydsl(em, userPath);
 		userQuery = querydsl.createQuery().select(userPath);
 	}
@@ -67,4 +70,17 @@ public class QuerydslIntegrationTests {
 				.doesNotContain("nulls first") //
 				.doesNotContain("nulls last");
 	}
+
+	@Test // DATAJPA-1198; DATAJPA-1779
+	public void orderWithIgnoreCaseAddLowerOnlyStringType() {
+		// firstname (String); id (Integer); dateOfBirth (Date)
+		Sort.Order[] orders = Stream.of("firstname", "id", "dateOfBirth").map(name -> Sort.Order.asc(name).ignoreCase()).toArray(Sort.Order[]::new);
+		JPQLQuery<User> result = querydsl.applySorting(Sort.by(orders), userQuery);
+
+		assertThat(result).isNotNull();
+		assertThat(result.toString()) //
+				.startsWith("select user") //
+				.endsWith("order by lower(user.firstname) asc, user.id asc, user.dateOfBirth asc");
+	}
+
 }
