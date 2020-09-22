@@ -16,9 +16,7 @@
 package org.springframework.data.jpa.repository.query;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import java.lang.reflect.Method;
@@ -39,6 +37,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -52,6 +51,7 @@ import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.RepositoryQuery;
+import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 
 /**
@@ -61,6 +61,7 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
  * @author Thomas Darimont
  * @author Jens Schauder
  * @author Tom Hombergs
+ * @author Mark Paluch
  */
 @RunWith(MockitoJUnitRunner.Silent.class)
 public class SimpleJpaQueryUnitTests {
@@ -96,6 +97,8 @@ public class SimpleJpaQueryUnitTests {
 		when(emf.createEntityManager()).thenReturn(em);
 		when(metadata.getDomainType()).thenReturn((Class) User.class);
 		when(metadata.getReturnedDomainClass(Mockito.any(Method.class))).thenReturn((Class) User.class);
+		when(metadata.getReturnType(Mockito.any(Method.class)))
+				.thenAnswer(invocation -> ClassTypeInformation.fromReturnTypeOf(invocation.getArgument(0)));
 
 		Method setUp = UserRepository.class.getMethod("findByLastname", String.class);
 		method = new JpaQueryMethod(setUp, metadata, factory, extractor);

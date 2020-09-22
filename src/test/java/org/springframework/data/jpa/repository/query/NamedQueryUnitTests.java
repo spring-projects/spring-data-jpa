@@ -37,6 +37,7 @@ import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.QueryCreationException;
+import org.springframework.data.util.ClassTypeInformation;
 
 /**
  * Unit tests for {@link NamedQuery}.
@@ -65,6 +66,8 @@ public class NamedQueryUnitTests {
 		method = SampleRepository.class.getMethod("foo", Pageable.class);
 		when(metadata.getDomainType()).thenReturn((Class) String.class);
 		when(metadata.getReturnedDomainClass(method)).thenReturn((Class) String.class);
+		when(metadata.getReturnType(any(Method.class)))
+				.thenAnswer(invocation -> ClassTypeInformation.fromReturnTypeOf(invocation.getArgument(0)));
 
 		when(em.getMetamodel()).thenReturn(metamodel);
 		when(em.getEntityManagerFactory()).thenReturn(emf);

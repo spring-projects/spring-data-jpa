@@ -32,6 +32,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.core.annotation.AliasFor;
 import org.springframework.data.domain.Page;
@@ -54,6 +55,7 @@ import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.core.support.DefaultRepositoryMetadata;
 import org.springframework.data.repository.query.Param;
 import org.springframework.data.repository.query.QueryMethod;
+import org.springframework.data.util.ClassTypeInformation;
 
 /**
  * Unit test for {@link QueryMethod}.
@@ -62,6 +64,7 @@ import org.springframework.data.repository.query.QueryMethod;
  * @author Thomas Darimont
  * @author Christoph Strobl
  * @author Jens Schauder
+ * @author Mark Paluch
  */
 @RunWith(MockitoJUnitRunner.class)
 public class JpaQueryMethodUnitTests {
@@ -94,6 +97,9 @@ public class JpaQueryMethodUnitTests {
 
 		queryMethodWithCustomEntityFetchGraph = ValidRepository.class.getMethod("queryMethodWithCustomEntityFetchGraph",
 				Integer.class);
+
+		when(metadata.getReturnType(any(Method.class)))
+				.thenAnswer(invocation -> ClassTypeInformation.fromReturnTypeOf(invocation.getArgument(0)));
 	}
 
 	@Test
