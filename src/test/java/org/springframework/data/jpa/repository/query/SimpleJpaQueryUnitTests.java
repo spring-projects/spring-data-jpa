@@ -30,9 +30,7 @@ import javax.persistence.TypedQuery;
 import javax.persistence.metamodel.Metamodel;
 
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -82,8 +80,6 @@ public class SimpleJpaQueryUnitTests {
 	@Mock Metamodel metamodel;
 
 	ProjectionFactory factory = new SpelAwareProxyProjectionFactory();
-
-	public @Rule ExpectedException exception = ExpectedException.none();
 
 	@Before
 	@SuppressWarnings({ "rawtypes", "unchecked" })
@@ -154,11 +150,11 @@ public class SimpleJpaQueryUnitTests {
 		verify(em).createNativeQuery("SELECT u FROM User u WHERE u.lastname = ?1", User.class);
 	}
 
-	@Test(expected = InvalidJpaQueryMethodException.class) // DATAJPA-554
+	@Test // DATAJPA-554
 	public void rejectsNativeQueryWithDynamicSort() throws Exception {
 
 		Method method = SampleRepository.class.getMethod("findNativeByLastname", String.class, Sort.class);
-		createJpaQuery(method);
+		assertThatExceptionOfType(InvalidJpaQueryMethodException.class).isThrownBy(() -> createJpaQuery(method));
 	}
 
 	@Test // DATAJPA-352
@@ -178,11 +174,9 @@ public class SimpleJpaQueryUnitTests {
 		Method method = SampleRepository.class.getMethod("pageByAnnotatedQuery", Pageable.class);
 
 		when(em.createQuery(Mockito.contains("count"))).thenThrow(IllegalArgumentException.class);
-		exception.expect(IllegalArgumentException.class);
-		exception.expectMessage("Count");
-		exception.expectMessage(method.getName());
 
-		createJpaQuery(method);
+		assertThatIllegalArgumentException().isThrownBy(() -> createJpaQuery(method)).withMessageContaining("Count")
+				.withMessageContaining(method.getName());
 	}
 
 	@Test

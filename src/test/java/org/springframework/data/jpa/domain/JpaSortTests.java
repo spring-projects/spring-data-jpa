@@ -25,9 +25,9 @@ import javax.persistence.metamodel.PluralAttribute;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.data.domain.Sort.Order;
-import org.springframework.data.jpa.domain.JpaSort.JpaOrder;
-import org.springframework.data.jpa.domain.JpaSort.Path;
+import org.springframework.data.jpa.domain.JpaSort.*;
 import org.springframework.data.jpa.domain.sample.Address_;
 import org.springframework.data.jpa.domain.sample.MailMessage_;
 import org.springframework.data.jpa.domain.sample.MailSender_;
@@ -57,24 +57,24 @@ public class JpaSortTests {
 	private static final @Nullable PluralAttribute<?, ?, ?> NULL_PLURAL_ATTRIBUTE = null;
 	private static final PluralAttribute<?, ?, ?>[] EMPTY_PLURAL_ATTRIBUTES = new PluralAttribute<?, ?, ?>[0];
 
-	@Test(expected = IllegalArgumentException.class) // DATAJPA-12
+	@Test // DATAJPA-12
 	public void rejectsNullAttribute() {
-		JpaSort.of(NULL_ATTRIBUTE);
+		assertThatIllegalArgumentException().isThrownBy(() -> of(NULL_ATTRIBUTE));
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAJPA-12
+	@Test // DATAJPA-12
 	public void rejectsEmptyAttributes() {
-		JpaSort.of(EMPTY_ATTRIBUTES);
+		assertThatIllegalArgumentException().isThrownBy(() -> of(EMPTY_ATTRIBUTES));
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAJPA-12
+	@Test // DATAJPA-12
 	public void rejectsNullPluralAttribute() {
-		JpaSort.of(NULL_PLURAL_ATTRIBUTE);
+		assertThatIllegalArgumentException().isThrownBy(() -> of(NULL_PLURAL_ATTRIBUTE));
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAJPA-12
+	@Test // DATAJPA-12
 	public void rejectsEmptyPluralAttributes() {
-		JpaSort.of(EMPTY_PLURAL_ATTRIBUTES);
+		assertThatIllegalArgumentException().isThrownBy(() -> of(EMPTY_PLURAL_ATTRIBUTES));
 	}
 
 	@Test // DATAJPA-12
@@ -140,14 +140,14 @@ public class JpaSortTests {
 				.containsExactly(Order.asc("firstname"), Order.desc("mailSender.name"));
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAJPA-702
+	@Test // DATAJPA-702
 	public void rejectsNullAttributesForCombiningCriterias() {
-		JpaSort.of(User_.firstname).and(DESC, (Attribute<?, ?>[]) null);
+		assertThatIllegalArgumentException().isThrownBy(() -> of(User_.firstname).and(DESC, (Attribute<?, ?>[]) null));
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAJPA-702
+	@Test // DATAJPA-702
 	public void rejectsNullPathsForCombiningCriterias() {
-		JpaSort.of(User_.firstname).and(DESC, (Path<?, ?>[]) null);
+		assertThatIllegalArgumentException().isThrownBy(() -> of(User_.firstname).and(DESC, (Path<?, ?>[]) null));
 	}
 
 	@Test // DATAJPA-702

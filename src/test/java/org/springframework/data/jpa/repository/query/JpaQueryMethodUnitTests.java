@@ -32,8 +32,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
+
 import org.springframework.core.annotation.AliasFor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -113,17 +113,17 @@ public class JpaQueryMethodUnitTests {
 		assertThat(method.isNativeQuery()).isFalse();
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void preventsNullRepositoryMethod() {
 
-		new JpaQueryMethod(null, metadata, factory, extractor);
+		assertThatIllegalArgumentException().isThrownBy(() -> new JpaQueryMethod(null, metadata, factory, extractor));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void preventsNullQueryExtractor() throws Exception {
 
 		Method method = UserRepository.class.getMethod("findByLastname", String.class);
-		new JpaQueryMethod(method, metadata, factory, null);
+		assertThatIllegalArgumentException().isThrownBy(() -> new JpaQueryMethod(method, metadata, factory, null));
 	}
 
 	@Test
@@ -143,28 +143,30 @@ public class JpaQueryMethodUnitTests {
 		assertThat(method.getAnnotatedQuery()).isNotNull();
 	}
 
-	@Test(expected = IllegalStateException.class)
+	@Test
 	public void rejectsInvalidReturntypeOnPagebleFinder() {
 
-		new JpaQueryMethod(invalidReturnType, metadata, factory, extractor);
+		assertThatIllegalStateException()
+				.isThrownBy(() -> new JpaQueryMethod(invalidReturnType, metadata, factory, extractor));
 	}
 
-	@Test(expected = IllegalStateException.class)
+	@Test
 	public void rejectsPageableAndSortInFinderMethod() {
 
-		new JpaQueryMethod(pageableAndSort, metadata, factory, extractor);
+		assertThatIllegalStateException()
+				.isThrownBy(() -> new JpaQueryMethod(pageableAndSort, metadata, factory, extractor));
 	}
 
-	@Test(expected = IllegalStateException.class)
+	@Test
 	public void rejectsTwoPageableParameters() {
 
-		new JpaQueryMethod(pageableTwice, metadata, factory, extractor);
+		assertThatIllegalStateException().isThrownBy(() -> new JpaQueryMethod(pageableTwice, metadata, factory, extractor));
 	}
 
-	@Test(expected = IllegalStateException.class)
+	@Test
 	public void rejectsTwoSortableParameters() {
 
-		new JpaQueryMethod(sortableTwice, metadata, factory, extractor);
+		assertThatIllegalStateException().isThrownBy(() -> new JpaQueryMethod(sortableTwice, metadata, factory, extractor));
 	}
 
 	@Test
@@ -174,20 +176,20 @@ public class JpaQueryMethodUnitTests {
 		assertThat(method.isModifyingQuery()).isTrue();
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void rejectsModifyingMethodWithPageable() throws Exception {
 
 		Method method = InvalidRepository.class.getMethod("updateMethod", String.class, Pageable.class);
 
-		new JpaQueryMethod(method, metadata, factory, extractor);
+		assertThatIllegalArgumentException().isThrownBy(() -> new JpaQueryMethod(method, metadata, factory, extractor));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void rejectsModifyingMethodWithSort() throws Exception {
 
 		Method method = InvalidRepository.class.getMethod("updateMethod", String.class, Sort.class);
 
-		new JpaQueryMethod(method, metadata, factory, extractor);
+		assertThatIllegalArgumentException().isThrownBy(() -> new JpaQueryMethod(method, metadata, factory, extractor));
 	}
 
 	@Test

@@ -15,6 +15,8 @@
  */
 package org.springframework.data.jpa.repository.support;
 
+import static org.assertj.core.api.Assertions.*;
+
 import java.util.Collections;
 
 import javax.persistence.EntityManager;
@@ -30,13 +32,14 @@ import org.junit.Test;
  */
 public class DefaultJpaContextUnitTests {
 
-	@Test(expected = IllegalArgumentException.class) // DATAJPA-669
+	@Test // DATAJPA-669
 	public void rejectsNullEntityManagers() {
-		new DefaultJpaContext(null);
+		assertThatIllegalArgumentException().isThrownBy(() -> new DefaultJpaContext(null));
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAJPA-669
+	@Test // DATAJPA-669
 	public void rejectsEmptyEntityManagers() {
-		new DefaultJpaContext(Collections.<EntityManager> emptySet());
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> new DefaultJpaContext(Collections.<EntityManager> emptySet()));
 	}
 }

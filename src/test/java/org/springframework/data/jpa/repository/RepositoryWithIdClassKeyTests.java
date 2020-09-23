@@ -19,10 +19,9 @@ import static org.assertj.core.api.Assertions.*;
 
 import java.util.Optional;
 
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
@@ -50,8 +49,6 @@ import org.springframework.transaction.annotation.Transactional;
 @ContextConfiguration(classes = RepositoryWithIdClassKeyTests.TestConfig.class)
 @Transactional
 public class RepositoryWithIdClassKeyTests {
-
-	@Rule public ExpectedException expectedException = ExpectedException.none();
 
 	@Autowired private SiteRepository siteRepository;
 

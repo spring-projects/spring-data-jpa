@@ -36,29 +36,29 @@ public class LikeBindingUnitTests {
 		assertThat(binding.prepare("value")).isEqualTo(value);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void rejectsNullName() {
-		new LikeParameterBinding(null, Type.CONTAINING);
+		assertThatIllegalArgumentException().isThrownBy(() -> new LikeParameterBinding(null, Type.CONTAINING));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void rejectsEmptyName() {
-		new LikeParameterBinding("", Type.CONTAINING);
+		assertThatIllegalArgumentException().isThrownBy(() -> new LikeParameterBinding("", Type.CONTAINING));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void rejectsNullType() {
-		new LikeParameterBinding("foo", null);
+		assertThatIllegalArgumentException().isThrownBy(() -> new LikeParameterBinding("foo", null));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void rejectsInvalidType() {
-		new LikeParameterBinding("foo", Type.SIMPLE_PROPERTY);
+		assertThatIllegalArgumentException().isThrownBy(() -> new LikeParameterBinding("foo", Type.SIMPLE_PROPERTY));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void rejectsInvalidPosition() {
-		new LikeParameterBinding(0, Type.CONTAINING);
+		assertThatIllegalArgumentException().isThrownBy(() -> new LikeParameterBinding(0, Type.CONTAINING));
 	}
 
 	@Test

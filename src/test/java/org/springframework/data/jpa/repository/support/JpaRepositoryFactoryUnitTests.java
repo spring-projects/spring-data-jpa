@@ -119,28 +119,28 @@ public class JpaRepositoryFactoryUnitTests {
 		}
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void handlesRuntimeExceptionsCorrectly() {
 
 		SampleRepository repository = factory.getRepository(SampleRepository.class, new SampleCustomRepositoryImpl());
-		repository.throwingRuntimeException();
+		assertThatIllegalArgumentException().isThrownBy(repository::throwingRuntimeException);
 	}
 
-	@Test(expected = IOException.class)
-	public void handlesCheckedExceptionsCorrectly() throws Exception {
+	@Test
+	public void handlesCheckedExceptionsCorrectly() {
 
 		SampleRepository repository = factory.getRepository(SampleRepository.class, new SampleCustomRepositoryImpl());
-		repository.throwingCheckedException();
+		assertThatExceptionOfType(IOException.class).isThrownBy(repository::throwingCheckedException);
 	}
 
-	@Test(expected = UnsupportedOperationException.class)
+	@Test
 	public void createsProxyWithCustomBaseClass() {
 
 		JpaRepositoryFactory factory = new CustomGenericJpaRepositoryFactory(entityManager);
 		factory.setQueryLookupStrategyKey(Key.CREATE_IF_NOT_FOUND);
 		UserCustomExtendedRepository repository = factory.getRepository(UserCustomExtendedRepository.class);
 
-		repository.customMethod(1);
+		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> repository.customMethod(1));
 	}
 
 	@Test // DATAJPA-710, DATACMNS-542

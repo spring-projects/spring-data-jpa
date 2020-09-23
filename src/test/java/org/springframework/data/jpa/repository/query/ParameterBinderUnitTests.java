@@ -17,6 +17,7 @@ package org.springframework.data.jpa.repository.query;
 
 import static java.util.Collections.*;
 import static javax.persistence.TemporalType.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.any;
@@ -181,13 +182,12 @@ public class ParameterBinderUnitTests {
 		verify(query).setParameter(eq(1), eq(date), eq(TemporalType.TIMESTAMP));
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAJPA-107
+	@Test // DATAJPA-107
 	public void shouldThrowIllegalArgumentExceptionIfIsAnnotatedWithTemporalParamAndParameterTypeIsNotDate()
 			throws Exception {
 		Method method = SampleRepository.class.getMethod("invalidWithTemporalTypeParameter", String.class);
 
-		JpaParameters parameters = new JpaParameters(method);
-		ParameterBinderFactory.createBinder(parameters);
+		assertThatIllegalArgumentException().isThrownBy(() -> new JpaParameters(method));
 	}
 
 	@Test // DATAJPA-461

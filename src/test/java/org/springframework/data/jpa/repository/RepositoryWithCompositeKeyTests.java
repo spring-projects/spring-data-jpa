@@ -20,12 +20,10 @@ import static org.assertj.core.api.Assertions.*;
 import java.util.Arrays;
 import java.util.List;
 
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.sample.EmbeddedIdExampleDepartment;
@@ -54,8 +52,6 @@ import org.springframework.transaction.annotation.Transactional;
 @ContextConfiguration(classes = SampleConfig.class)
 @Transactional
 public class RepositoryWithCompositeKeyTests {
-
-	@Rule public ExpectedException expectedException = ExpectedException.none();
 
 	@Autowired EmployeeRepositoryWithIdClass employeeRepositoryWithIdClass;
 	@Autowired EmployeeRepositoryWithEmbeddedId employeeRepositoryWithEmbeddedId;
@@ -115,13 +111,6 @@ public class RepositoryWithCompositeKeyTests {
 
 	@Test // DATAJPA-472, DATAJPA-912
 	public void shouldSupportFindAllWithPageableAndEntityWithIdClass() throws Exception {
-
-		if (Package.getPackage("org.hibernate.cfg").getImplementationVersion().startsWith("4.1.")) {
-
-			// we expect this test to fail on 4.1.x - due to a bug in hibernate - remove as soon as 4.1.x fixes the issue.
-			expectedException.expect(InvalidDataAccessApiUsageException.class);
-			expectedException.expectMessage("No supertype found");
-		}
 
 		IdClassExampleDepartment dep = new IdClassExampleDepartment();
 		dep.setName("TestDepartment");

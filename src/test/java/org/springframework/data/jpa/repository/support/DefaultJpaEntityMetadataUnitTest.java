@@ -35,10 +35,10 @@ import org.springframework.data.jpa.repository.query.DefaultJpaEntityMetadata;
  */
 public class DefaultJpaEntityMetadataUnitTest {
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void rejectsNullDomainType() {
-		new DefaultJpaEntityMetadata(null);
+		assertThatIllegalArgumentException().isThrownBy(() -> new DefaultJpaEntityMetadata(null));
 	}
 
 	@Test

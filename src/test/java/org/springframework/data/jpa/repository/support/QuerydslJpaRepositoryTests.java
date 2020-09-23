@@ -318,8 +318,9 @@ public class QuerydslJpaRepositoryTests {
 		assertThat(repository.findOne(user.firstname.eq("batman"))).isNotPresent();
 	}
 
-	@Test(expected = IncorrectResultSizeDataAccessException.class) // DATAJPA-1115
+	@Test // DATAJPA-1115
 	public void findOneWithPredicateThrowsExceptionForNonUniqueResults() {
-		repository.findOne(user.emailAddress.contains("com"));
+		assertThatExceptionOfType(IncorrectResultSizeDataAccessException.class)
+				.isThrownBy(() -> repository.findOne(user.emailAddress.contains("com")));
 	}
 }

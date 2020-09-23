@@ -53,11 +53,12 @@ public class JpaEntityInformationSupportUnitTests {
 		assertThat(second.getEntityName()).isEqualTo("AnotherNamedUser");
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAJPA-93
+	@Test // DATAJPA-93
 	public void rejectsClassNotBeingFoundInMetamodel() {
 
 		when(em.getMetamodel()).thenReturn(metaModel);
-		JpaEntityInformationSupport.getEntityInformation(User.class, em);
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> JpaEntityInformationSupport.getEntityInformation(User.class, em));
 	}
 
 	static class User {

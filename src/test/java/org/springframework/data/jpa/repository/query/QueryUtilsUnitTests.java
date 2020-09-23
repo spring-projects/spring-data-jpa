@@ -192,11 +192,12 @@ public class QueryUtilsUnitTests {
 				"select count(o) from Foo o where cb.id in (select b from Bar b)");
 	}
 
-	@Test(expected = InvalidDataAccessApiUsageException.class) // DATAJPA-148
+	@Test // DATAJPA-148
 	public void doesNotPrefixSortsIfFunction() {
 
 		Sort sort = Sort.by("sum(foo)");
-		assertThat(applySorting("select p from Person p", sort, "p")).endsWith("order by sum(foo) asc");
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
+				.isThrownBy(() -> applySorting("select p from Person p", sort, "p"));
 	}
 
 	@Test // DATAJPA-377
@@ -283,11 +284,12 @@ public class QueryUtilsUnitTests {
 		assertThat(applySorting("from mytable where ?1 is null", Sort.by("firstname"))).endsWith("order by firstname asc");
 	}
 
-	@Test(expected = InvalidDataAccessApiUsageException.class) // DATAJPA-965, DATAJPA-970
+	@Test // DATAJPA-965, DATAJPA-970
 	public void doesNotAllowWhitespaceInSort() {
 
 		Sort sort = Sort.by("case when foo then bar");
-		applySorting("select p from Person p", sort, "p");
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
+				.isThrownBy(() -> applySorting("select p from Person p", sort, "p"));
 	}
 
 	@Test // DATAJPA-965, DATAJPA-970

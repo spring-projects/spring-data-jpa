@@ -21,6 +21,7 @@ import java.util.Collections;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
+import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -97,12 +98,14 @@ public class JavaConfigUserRepositoryTests extends UserRepositoryTests {
 		}
 	}
 
-	@Test(expected = NoSuchBeanDefinitionException.class) // DATAJPA-317
+	@Test // DATAJPA-317
 	public void doesNotPickUpJpaRepository() {
 
-		ConfigurableApplicationContext context = new AnnotationConfigApplicationContext(JpaRepositoryConfig.class);
-		context.getBean("jpaRepository");
-		context.close();
+		try (ConfigurableApplicationContext context = new AnnotationConfigApplicationContext(JpaRepositoryConfig.class)) {
+			Assertions.assertThatExceptionOfType(NoSuchBeanDefinitionException.class)
+					.isThrownBy(() -> context.getBean("jpaRepository"));
+			context.close();
+		}
 	}
 
 	@Configuration

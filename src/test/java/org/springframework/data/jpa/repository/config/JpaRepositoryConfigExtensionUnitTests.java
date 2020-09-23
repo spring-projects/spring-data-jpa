@@ -24,12 +24,11 @@ import java.util.Collections;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.metamodel.Metamodel;
 
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
@@ -52,7 +51,6 @@ import org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcesso
 @RunWith(MockitoJUnitRunner.class)
 public class JpaRepositoryConfigExtensionUnitTests {
 
-	public @Rule ExpectedException exception = ExpectedException.none();
 	@Mock RepositoryConfigurationSource configSource;
 
 	@Test
@@ -147,7 +145,8 @@ public class JpaRepositoryConfigExtensionUnitTests {
 		extension.registerBeansForRoot(factory, configSource);
 
 		assertThat(factory.getBean(expectedBeanName)).isNotNull();
-		exception.expect(NoSuchBeanDefinitionException.class);
-		factory.getBeanDefinition("org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor#1");
+
+		assertThatExceptionOfType(NoSuchBeanDefinitionException.class).isThrownBy(() -> factory
+				.getBeanDefinition("org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor#1"));
 	}
 }

@@ -34,10 +34,9 @@ import javax.persistence.TemporalType;
 
 import org.hibernate.Version;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -67,8 +66,6 @@ public class PartTreeJpaQueryIntegrationTests {
 
 	private static String PROPERTY = "h.target." + getQueryProperty();
 
-	@Rule public ExpectedException thrown = ExpectedException.none();
-
 	@PersistenceContext EntityManager entityManager;
 
 	PersistenceProvider provider;
@@ -89,11 +86,11 @@ public class PartTreeJpaQueryIntegrationTests {
 	}
 
 	@Test
-	public void cannotIgnoreCaseIfNotString() throws Exception {
+	public void cannotIgnoreCaseIfNotString() {
 
-		thrown.expect(IllegalArgumentException.class);
-		thrown.expectMessage("Unable to ignore case of java.lang.Integer types, the property 'id' must reference a String");
-		testIgnoreCase("findByIdIgnoringCase", 3);
+		assertThatIllegalArgumentException().isThrownBy(() -> testIgnoreCase("findByIdIgnoringCase", 3))
+				.withMessageContaining(
+						"Unable to ignore case of java.lang.Integer types, the property 'id' must reference a String");
 	}
 
 	@Test
@@ -161,13 +158,12 @@ public class PartTreeJpaQueryIntegrationTests {
 		assertThat(HibernateUtils.getHibernateQuery(getValue(query, PROPERTY))).endsWith("roles is not empty");
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAJPA-1074
+	@Test // DATAJPA-1074
 	public void rejectsIsEmptyOnNonCollectionProperty() throws Exception {
 
 		JpaQueryMethod method = getQueryMethod("findByFirstnameIsEmpty");
-		AbstractJpaQuery jpaQuery = new PartTreeJpaQuery(method, entityManager);
 
-		jpaQuery.createQuery((getAccessor(method, new Object[] { "Oliver" })));
+		assertThatIllegalArgumentException().isThrownBy(() -> new PartTreeJpaQuery(method, entityManager));
 	}
 
 	@Test // DATAJPA-1182

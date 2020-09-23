@@ -15,6 +15,7 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assume.*;
 import static org.springframework.data.jpa.support.EntityManagerTestUtils.*;
 
@@ -154,13 +155,14 @@ public class Jpa21UtilsTests {
 		assertThat(colleaguesOfColleagues).terminatesGraphWith("roles");
 	}
 
-	@Test(expected = Exception.class) // DATAJPA-1041, DATAJPA-1075
+	@Test // DATAJPA-1041, DATAJPA-1075
 	public void errorsOnUnknownProperties() {
 
 		assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
 
-		Jpa21Utils.configureFetchGraphFrom(new JpaEntityGraph("name", EntityGraphType.FETCH, new String[] { "¯\\_(ツ)_/¯" }),
-				em.createEntityGraph(User.class));
+		assertThatExceptionOfType(Exception.class).isThrownBy(() -> Jpa21Utils.configureFetchGraphFrom(
+				new JpaEntityGraph("name", EntityGraphType.FETCH, new String[] { "¯\\_(ツ)_/¯" }),
+				em.createEntityGraph(User.class)));
 	}
 
 	/**

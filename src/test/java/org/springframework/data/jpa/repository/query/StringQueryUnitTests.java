@@ -22,9 +22,8 @@ import java.util.List;
 
 import org.assertj.core.api.Assertions;
 import org.assertj.core.api.SoftAssertions;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
+
 import org.springframework.data.jpa.repository.query.StringQuery.InParameterBinding;
 import org.springframework.data.jpa.repository.query.StringQuery.LikeParameterBinding;
 import org.springframework.data.jpa.repository.query.StringQuery.ParameterBinding;
@@ -40,8 +39,6 @@ import org.springframework.data.repository.query.parser.Part.Type;
  * @author Andriy Redko
  */
 public class StringQueryUnitTests {
-
-	public @Rule ExpectedException exception = ExpectedException.none();
 
 	SoftAssertions softly = new SoftAssertions();
 
@@ -180,9 +177,10 @@ public class StringQueryUnitTests {
 		new StringQuery("select u from User u where u.firstname like %:firstname or foo like :bar");
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAJPA-292, DATAJPA-362
+	@Test // DATAJPA-292, DATAJPA-362
 	public void rejectsDifferentBindingsForRepeatedParameter() {
-		new StringQuery("select u from User u where u.firstname like %?1 and u.lastname like ?1%");
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> new StringQuery("select u from User u where u.firstname like %?1 and u.lastname like ?1%"));
 	}
 
 	@Test // DATAJPA-461
@@ -281,9 +279,10 @@ public class StringQueryUnitTests {
 		softly.assertAll();
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAJPA-362
+	@Test // DATAJPA-362
 	public void rejectsDifferentBindingsForRepeatedParameter2() {
-		new StringQuery("select u from User u where u.firstname like ?1 and u.lastname like %?1");
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> new StringQuery("select u from User u where u.firstname like ?1 and u.lastname like %?1"));
 	}
 
 	@Test // DATAJPA-712

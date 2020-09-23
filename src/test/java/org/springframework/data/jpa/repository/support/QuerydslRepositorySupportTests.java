@@ -94,7 +94,7 @@ public class QuerydslRepositorySupportTests {
 	}
 
 	@Test
-	public void deletesAllWithLastnameCorrectly() throws Exception {
+	public void deletesAllWithLastnameCorrectly() {
 
 		long updates = repository.deleteAllWithLastname("Matthews");
 		assertThat(updates).isEqualTo(1L);
@@ -107,11 +107,11 @@ public class QuerydslRepositorySupportTests {
 		assertThat(result.get(0)).isEqualTo(carter);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
-	public void rejectsUnsetEntityManager() throws Exception {
+	@Test
+	public void rejectsUnsetEntityManager() {
 
 		UserRepositoryImpl repositoryImpl = new UserRepositoryImpl();
-		repositoryImpl.validate();
+		assertThatIllegalArgumentException().isThrownBy(repositoryImpl::validate);
 	}
 
 	interface UserRepository {

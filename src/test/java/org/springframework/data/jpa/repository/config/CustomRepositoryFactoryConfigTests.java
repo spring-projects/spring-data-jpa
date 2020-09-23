@@ -53,9 +53,9 @@ public class CustomRepositoryFactoryConfigTests {
 		transactionManager.resetCount();
 	}
 
-	@Test(expected = UnsupportedOperationException.class)
+	@Test
 	public void testCustomFactoryUsed() {
-		userRepository.customMethod(1);
+		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> userRepository.customMethod(1));
 	}
 
 	@Test

@@ -15,6 +15,7 @@
  */
 package org.springframework.data.jpa.support;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.io.IOException;
@@ -50,28 +51,28 @@ public class ClasspathScanningPersistenceUnitPostProcessorUnitTests {
 	@Mock MutablePersistenceUnitInfo pui;
 	String basePackage = getClass().getPackage().getName();
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void rejectsNullBasePackage() {
-		new ClasspathScanningPersistenceUnitPostProcessor(null);
+		assertThatIllegalArgumentException().isThrownBy(() -> new ClasspathScanningPersistenceUnitPostProcessor(null));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void rejectsEmptyBasePackage() {
-		new ClasspathScanningPersistenceUnitPostProcessor("");
+		assertThatIllegalArgumentException().isThrownBy(() -> new ClasspathScanningPersistenceUnitPostProcessor(""));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void rejectsNullMappingFileNamePattern() {
 		ClasspathScanningPersistenceUnitPostProcessor processor = new ClasspathScanningPersistenceUnitPostProcessor(
 				basePackage);
-		processor.setMappingFileNamePattern(null);
+		assertThatIllegalArgumentException().isThrownBy(() -> processor.setMappingFileNamePattern(null));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void rejectsEmptyMappingFileNamePattern() {
 		ClasspathScanningPersistenceUnitPostProcessor processor = new ClasspathScanningPersistenceUnitPostProcessor(
 				basePackage);
-		processor.setMappingFileNamePattern("");
+		assertThatIllegalArgumentException().isThrownBy(() -> processor.setMappingFileNamePattern(""));
 	}
 
 	@Test

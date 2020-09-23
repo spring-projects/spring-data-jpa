@@ -69,16 +69,16 @@ public class JpaQueryExecutionUnitTests {
 		when(jpaQuery.getQueryMethod()).thenReturn(method);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void rejectsNullQuery() {
 
-		new StubQueryExecution().execute(null, accessor);
+		assertThatIllegalArgumentException().isThrownBy(() -> new StubQueryExecution().execute(null, accessor));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
-	public void rejectsNullBinder() throws Exception {
+	@Test
+	public void rejectsNullBinder() {
 
-		new StubQueryExecution().execute(jpaQuery, null);
+		assertThatIllegalArgumentException().isThrownBy(() -> new StubQueryExecution().execute(jpaQuery, null));
 	}
 
 	@Test
@@ -124,7 +124,7 @@ public class JpaQueryExecutionUnitTests {
 
 	@Test
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public void allowsMethodReturnTypesForModifyingQuery() throws Exception {
+	public void allowsMethodReturnTypesForModifyingQuery() {
 
 		when(method.getReturnType()).thenReturn((Class) void.class, (Class) int.class, (Class) Integer.class);
 
@@ -134,11 +134,11 @@ public class JpaQueryExecutionUnitTests {
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	@Test(expected = IllegalArgumentException.class)
-	public void modifyingExecutionRejectsNonIntegerOrVoidReturnType() throws Exception {
+	@Test
+	public void modifyingExecutionRejectsNonIntegerOrVoidReturnType() {
 
 		when(method.getReturnType()).thenReturn((Class) Long.class);
-		new ModifyingExecution(method, em);
+		assertThatIllegalArgumentException().isThrownBy(() -> new ModifyingExecution(method, em));
 	}
 
 	@Test // DATAJPA-124, DATAJPA-912

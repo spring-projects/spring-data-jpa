@@ -15,7 +15,7 @@
  */
 package org.springframework.data.jpa.convert;
 
-import static org.assertj.core.api.AssertionsForInterfaceTypes.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.data.domain.Example.*;
@@ -38,13 +38,12 @@ import javax.persistence.metamodel.SingularAttribute;
 import javax.persistence.metamodel.Type;
 
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.ExampleMatcher.GenericPropertyMatcher;
@@ -83,8 +82,6 @@ public class QueryByExamplePredicateBuilderUnitTests {
 	SingularAttribute<? super Person, Address> personAddressAttribute;
 	SingularAttribute<? super Skill, String> skillNameAttribute;
 	SingularAttribute<? super Skill, Skill> skillNestedAttribute;
-
-	public @Rule ExpectedException exception = ExpectedException.none();
 
 	@Before
 	public void setUp() {
@@ -134,19 +131,22 @@ public class QueryByExamplePredicateBuilderUnitTests {
 		doReturn(orPredicate).when(cb).or(ArgumentMatchers.any());
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAJPA-218
+	@Test // DATAJPA-218
 	public void getPredicateShouldThrowExceptionOnNullRoot() {
-		QueryByExamplePredicateBuilder.getPredicate(null, cb, of(new Person()), EscapeCharacter.DEFAULT);
+		assertThatIllegalArgumentException().isThrownBy(
+				() -> QueryByExamplePredicateBuilder.getPredicate(null, cb, of(new Person()), EscapeCharacter.DEFAULT));
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAJPA-218
+	@Test // DATAJPA-218
 	public void getPredicateShouldThrowExceptionOnNullCriteriaBuilder() {
-		QueryByExamplePredicateBuilder.getPredicate(root, null, of(new Person()), EscapeCharacter.DEFAULT);
+		assertThatIllegalArgumentException().isThrownBy(
+				() -> QueryByExamplePredicateBuilder.getPredicate(root, null, of(new Person()), EscapeCharacter.DEFAULT));
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAJPA-218
+	@Test // DATAJPA-218
 	public void getPredicateShouldThrowExceptionOnNullExample() {
-		QueryByExamplePredicateBuilder.getPredicate(root, null, null, EscapeCharacter.DEFAULT);
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> QueryByExamplePredicateBuilder.getPredicate(root, null, null, EscapeCharacter.DEFAULT));
 	}
 
 	@Test // DATAJPA-218

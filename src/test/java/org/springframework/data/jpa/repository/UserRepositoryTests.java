@@ -363,12 +363,12 @@ public class UserRepositoryTests {
 	/**
 	 * Tests, that persisting a relationsship without cascade attributes throws a {@code DataAccessException}.
 	 */
-	@Test(expected = DataAccessException.class)
+	@Test
 	public void testPreventsCascadingRolePersisting() {
 
 		firstUser.addRole(new Role("USER"));
 
-		flushTestUsers();
+		assertThatExceptionOfType(DataAccessException.class).isThrownBy(this::flushTestUsers);
 	}
 
 	/**
@@ -447,11 +447,13 @@ public class UserRepositoryTests {
 		assertThat(repository.findOne(userHasLastname("Beauford"))).isNotPresent();
 	}
 
-	@Test(expected = IncorrectResultSizeDataAccessException.class)
+	@Test
 	public void throwsExceptionForUnderSpecifiedSingleEntitySpecification() {
 
 		flushTestUsers();
-		repository.findOne(userHasFirstnameLike("e"));
+
+		assertThatExceptionOfType(IncorrectResultSizeDataAccessException.class)
+				.isThrownBy(() -> repository.findOne(userHasFirstnameLike("e")));
 	}
 
 	@Test
@@ -1698,9 +1700,10 @@ public class UserRepositoryTests {
 		assertThat(users).hasSize(4);
 	}
 
-	@Test(expected = InvalidDataAccessApiUsageException.class) // DATAJPA-218
+	@Test // DATAJPA-218
 	public void findAllByNullExample() {
-		repository.findAll((Example<User>) null);
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
+				.isThrownBy(() -> repository.findAll((Example<User>) null));
 	}
 
 	@Test // DATAJPA-218
@@ -1790,7 +1793,7 @@ public class UserRepositoryTests {
 		assertThat(users).containsOnly(firstUser);
 	}
 
-	@Test(expected = InvalidDataAccessApiUsageException.class) // DATAJPA-218
+	@Test // DATAJPA-218
 	public void findAllByExampleWithRegexStringMatcher() {
 
 		flushTestUsers();
@@ -1799,7 +1802,7 @@ public class UserRepositoryTests {
 		prototype.setFirstname("^Oliver$");
 
 		Example<User> example = Example.of(prototype, matching().withStringMatcher(StringMatcher.REGEX));
-		repository.findAll(example);
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(() -> repository.findAll(example));
 	}
 
 	@Test // DATAJPA-218
@@ -1922,7 +1925,7 @@ public class UserRepositoryTests {
 		assertThat(users.getTotalElements()).isEqualTo(100L);
 	}
 
-	@Test(expected = InvalidDataAccessApiUsageException.class) // DATAJPA-218
+	@Test // DATAJPA-218
 	public void findAllByExampleShouldNotAllowCycles() {
 
 		flushTestUsers();
@@ -1935,10 +1938,11 @@ public class UserRepositoryTests {
 		Example<User> example = Example.of(user1, matching().withIgnoreCase().withIgnorePaths("age", "createdAt")
 				.withStringMatcher(StringMatcher.STARTING).withIgnoreCase());
 
-		repository.findAll(example, PageRequest.of(0, 10, Sort.by(DESC, "age")));
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
+				.isThrownBy(() -> repository.findAll(example, PageRequest.of(0, 10, Sort.by(DESC, "age"))));
 	}
 
-	@Test(expected = InvalidDataAccessApiUsageException.class) // DATAJPA-218
+	@Test // DATAJPA-218
 	public void findAllByExampleShouldNotAllowCyclesOverSeveralInstances() {
 
 		flushTestUsers();
@@ -1955,7 +1959,8 @@ public class UserRepositoryTests {
 		Example<User> example = Example.of(user1, matching().withIgnoreCase().withIgnorePaths("age", "createdAt")
 				.withStringMatcher(StringMatcher.STARTING).withIgnoreCase());
 
-		repository.findAll(example, PageRequest.of(0, 10, Sort.by(DESC, "age")));
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
+				.isThrownBy(() -> repository.findAll(example, PageRequest.of(0, 10, Sort.by(DESC, "age"))));
 	}
 
 	@Test // DATAJPA-218

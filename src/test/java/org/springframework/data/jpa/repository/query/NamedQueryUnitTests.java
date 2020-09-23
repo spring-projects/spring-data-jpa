@@ -15,6 +15,7 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
@@ -30,6 +31,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.provider.QueryExtractor;
@@ -75,14 +77,14 @@ public class NamedQueryUnitTests {
 		when(emf.createEntityManager()).thenReturn(em);
 	}
 
-	@Test(expected = QueryCreationException.class)
+	@Test
 	public void rejectsPersistenceProviderIfIncapableOfExtractingQueriesAndPagebleBeingUsed() {
 
 		when(extractor.canExtractQuery()).thenReturn(false);
 		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, projectionFactory, extractor);
 
 		when(em.createNamedQuery(queryMethod.getNamedCountQueryName())).thenThrow(new IllegalArgumentException());
-		NamedQuery.lookupFrom(queryMethod, em);
+		assertThatExceptionOfType(QueryCreationException.class).isThrownBy(() -> NamedQuery.lookupFrom(queryMethod, em));
 	}
 
 	@Test // DATAJPA-142

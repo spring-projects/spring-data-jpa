@@ -271,10 +271,12 @@ public class UserRepositoryFinderTests {
 				.isNotNull();
 	}
 
-	@Test(expected = InvalidDataAccessApiUsageException.class) // DATAJPA-1023, DATACMNS-959
+	@Test // DATAJPA-1023, DATACMNS-959
 	@Transactional(propagation = Propagation.NOT_SUPPORTED)
 	public void rejectsStreamExecutionIfNoSurroundingTransactionActive() {
-		userRepository.findAllByCustomQueryAndStream();
+
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
+				.isThrownBy(() -> userRepository.findAllByCustomQueryAndStream());
 	}
 
 	@Test // DATAJPA-1334

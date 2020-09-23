@@ -62,12 +62,13 @@ public class AuditingBeanDefinitionParserTests {
 		assertThat(bean).isNotNull();
 	}
 
-	@Test(expected = BeanDefinitionParsingException.class) // DATAJPA-367
+	@Test // DATAJPA-367
 	public void shouldThrowBeanDefinitionParsingExceptionIfClassFromSpringAspectsJarCannotBeFound() {
 
 		ShadowingClassLoader scl = new ShadowingClassLoader(getClass().getClassLoader());
 		scl.excludeClass(AuditingBeanDefinitionParser.AUDITING_ENTITY_LISTENER_CLASS_NAME);
-		loadFactoryFrom("auditing/auditing-namespace-context.xml", scl);
+		assertThatExceptionOfType(BeanDefinitionParsingException.class)
+				.isThrownBy(() -> loadFactoryFrom("auditing/auditing-namespace-context.xml", scl));
 	}
 
 	private void assertSetDatesIsSetTo(String configFile, String value) {

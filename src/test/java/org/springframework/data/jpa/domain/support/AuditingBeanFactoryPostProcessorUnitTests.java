@@ -66,9 +66,10 @@ public class AuditingBeanFactoryPostProcessorUnitTests {
 		assertThat(beanFactory.isBeanNameInUse(AuditingBeanFactoryPostProcessor.BEAN_CONFIGURER_ASPECT_BEAN_NAME)).isTrue();
 	}
 
-	@Test(expected = IllegalStateException.class) // DATAJPA-265
+	@Test // DATAJPA-265
 	public void rejectsConfigurationWithoutSpringConfigured() {
-		processor.postProcessBeanFactory(new DefaultListableBeanFactory());
+		assertThatIllegalStateException()
+				.isThrownBy(() -> processor.postProcessBeanFactory(new DefaultListableBeanFactory()));
 	}
 
 	@Test // DATAJPA-265

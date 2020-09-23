@@ -16,6 +16,7 @@
 package org.springframework.data.jpa.repository.support;
 
 import static java.util.Collections.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.util.Arrays;
@@ -114,10 +115,10 @@ public class SimpleJpaRepositoryUnitTests {
 		verify(countQuery, never()).getSingleResult();
 	}
 
-	@Test(expected = EmptyResultDataAccessException.class) // DATAJPA-177
+	@Test // DATAJPA-177
 	public void throwsExceptionIfEntityToDeleteDoesNotExist() {
 
-		repo.deleteById(4711);
+		assertThatExceptionOfType(EmptyResultDataAccessException.class).isThrownBy(() -> repo.deleteById(4711));
 	}
 
 	@Test // DATAJPA-689, DATAJPA-696

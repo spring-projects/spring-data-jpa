@@ -28,9 +28,8 @@ import javax.sql.DataSource;
 
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -62,7 +61,6 @@ import org.springframework.stereotype.Component;
 public class DefaultJpaContextIntegrationTests {
 
 	static EntityManagerFactory firstEmf, secondEmf;
-	public @Rule ExpectedException exception = ExpectedException.none();
 	EntityManager firstEm, secondEm;
 	JpaContext jpaContext;
 
@@ -105,10 +103,8 @@ public class DefaultJpaContextIntegrationTests {
 	@Test // DATAJPA-669
 	public void rejectsUnmanagedType() {
 
-		exception.expect(IllegalArgumentException.class);
-		exception.expectMessage(Object.class.getSimpleName());
-
-		jpaContext.getEntityManagerByManagedType(Object.class);
+		assertThatIllegalArgumentException().isThrownBy(() -> jpaContext.getEntityManagerByManagedType(Object.class))
+				.withMessageContaining(Object.class.getSimpleName());
 	}
 
 	@Test // DATAJPA-669
@@ -119,10 +115,8 @@ public class DefaultJpaContextIntegrationTests {
 	@Test // DATAJPA-669
 	public void rejectsRequestForTypeManagedByMultipleEntityManagers() {
 
-		exception.expect(IllegalArgumentException.class);
-		exception.expectMessage(User.class.getSimpleName());
-
-		jpaContext.getEntityManagerByManagedType(User.class);
+		assertThatIllegalArgumentException().isThrownBy(() -> jpaContext.getEntityManagerByManagedType(User.class))
+				.withMessageContaining(User.class.getSimpleName());
 	}
 
 	@Test // DATAJPA-813, DATAJPA-956

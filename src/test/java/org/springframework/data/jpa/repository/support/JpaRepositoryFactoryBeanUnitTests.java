@@ -87,7 +87,7 @@ public class JpaRepositoryFactoryBeanUnitTests {
 	 * @throws Exception
 	 */
 	@Test
-	public void setsUpBasicInstanceCorrectly() throws Exception {
+	public void setsUpBasicInstanceCorrectly() {
 
 		factoryBean.setBeanFactory(beanFactory);
 		factoryBean.afterPropertiesSet();
@@ -95,19 +95,20 @@ public class JpaRepositoryFactoryBeanUnitTests {
 		assertThat(factoryBean.getObject()).isNotNull();
 	}
 
-	@Test(expected = IllegalArgumentException.class)
-	public void requiresListableBeanFactory() throws Exception {
+	@Test
+	public void requiresListableBeanFactory() {
 
-		factoryBean.setBeanFactory(mock(BeanFactory.class));
+		assertThatIllegalArgumentException().isThrownBy(() -> factoryBean.setBeanFactory(mock(BeanFactory.class)));
 	}
 
 	/**
 	 * Assert that the factory rejects calls to {@code JpaRepositoryFactoryBean#setRepositoryInterface(Class)} with
 	 * {@literal null} or any other parameter instance not implementing {@code Repository}.
 	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void preventsNullRepositoryInterface() {
-		new JpaRepositoryFactoryBean<Repository<Object, Long>, Object, Long>(null);
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> new JpaRepositoryFactoryBean<Repository<Object, Long>, Object, Long>(null));
 	}
 
 	public interface SimpleSampleRepository extends JpaRepository<User, Integer> {

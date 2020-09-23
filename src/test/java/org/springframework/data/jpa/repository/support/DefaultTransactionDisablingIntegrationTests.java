@@ -19,10 +19,9 @@ import static org.assertj.core.api.Assertions.*;
 
 import javax.persistence.TransactionRequiredException;
 
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.PageRequest;
@@ -40,8 +39,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 public abstract class DefaultTransactionDisablingIntegrationTests {
-
-	public @Rule ExpectedException exception = ExpectedException.none();
 
 	@Autowired UserRepository repository;
 	@Autowired DelegatingTransactionManager txManager;
