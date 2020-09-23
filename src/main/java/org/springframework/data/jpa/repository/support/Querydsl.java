@@ -236,7 +236,7 @@ public class Querydsl {
 
 		while (path != null) {
 
-			sortPropertyExpression = !path.hasNext() && order.isIgnoreCase() && String.class == path.getType() //
+			sortPropertyExpression = !path.hasNext() && order.isIgnoreCase() && String.class.equals(path.getType()) //
 					? Expressions.stringPath((Path<?>) sortPropertyExpression, path.getSegment()).lower() //
 					: Expressions.path(path.getType(), (Path<?>) sortPropertyExpression, path.getSegment());
 

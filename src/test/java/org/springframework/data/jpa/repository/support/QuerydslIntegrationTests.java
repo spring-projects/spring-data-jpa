@@ -17,12 +17,15 @@ package org.springframework.data.jpa.repository.support;
 
 import static org.assertj.core.api.Assertions.*;
 
+import java.util.stream.Stream;
+
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.test.context.ContextConfiguration;
@@ -31,8 +34,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.jpa.JPQLQuery;
-
-import java.util.stream.Stream;
 
 /**
  * Integration tests for {@link Querydsl}.
@@ -71,8 +72,9 @@ public class QuerydslIntegrationTests {
 				.doesNotContain("nulls last");
 	}
 
-	@Test // DATAJPA-1198; DATAJPA-1779
+	@Test // DATAJPA-1779
 	public void orderWithIgnoreCaseAddLowerOnlyStringType() {
+
 		// firstname (String); id (Integer); dateOfBirth (Date)
 		Sort.Order[] orders = Stream.of("firstname", "id", "dateOfBirth").map(name -> Sort.Order.asc(name).ignoreCase()).toArray(Sort.Order[]::new);
 		JPQLQuery<User> result = querydsl.applySorting(Sort.by(orders), userQuery);
