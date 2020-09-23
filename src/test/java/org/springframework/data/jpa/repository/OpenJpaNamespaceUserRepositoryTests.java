@@ -29,8 +29,8 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.ParameterExpression;
 import javax.persistence.criteria.Root;
 
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.test.context.ContextConfiguration;
@@ -62,7 +62,7 @@ public class OpenJpaNamespaceUserRepositoryTests extends NamespaceUserRepository
 	 */
 	@SuppressWarnings({ "rawtypes" })
 	@Test
-	@Ignore
+	@Disabled
 	public void queryUsingIn() {
 
 		flushTestUsers();

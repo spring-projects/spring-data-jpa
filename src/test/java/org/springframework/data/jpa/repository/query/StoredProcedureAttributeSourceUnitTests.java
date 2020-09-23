@@ -15,24 +15,28 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.core.annotation.AliasFor;
-import org.springframework.data.jpa.domain.sample.User;
-import org.springframework.data.repository.query.Param;
-import org.springframework.util.ReflectionUtils;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
-import javax.persistence.EntityManager;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Method;
 import java.util.Map;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import javax.persistence.EntityManager;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+
+import org.springframework.core.annotation.AliasFor;
+import org.springframework.data.jpa.domain.sample.User;
+import org.springframework.data.repository.query.Param;
+import org.springframework.util.ReflectionUtils;
 
 /**
  * Unit tests for {@link StoredProcedureAttributeSource}.
@@ -45,14 +49,15 @@ import static org.mockito.Mockito.*;
  * @author Jens Schauder
  * @since 1.6
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class StoredProcedureAttributeSourceUnitTests {
 
 	StoredProcedureAttributeSource creator;
 	@Mock
 	JpaEntityMetadata<User> entityMetadata;
 
-	@Before
+	@BeforeEach
 	public void setup() {
 
 		creator = StoredProcedureAttributeSource.INSTANCE;

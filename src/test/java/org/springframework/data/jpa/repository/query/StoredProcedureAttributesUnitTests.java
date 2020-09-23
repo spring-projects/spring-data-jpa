@@ -18,7 +18,7 @@ package org.springframework.data.jpa.repository.query;
 import static org.assertj.core.api.Assertions.*;
 import static org.springframework.data.jpa.repository.query.StoredProcedureAttributes.*;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for {@link StoredProcedureAttributes}.

@@ -21,7 +21,7 @@ import java.util.Collections;
 
 import javax.persistence.metamodel.Metamodel;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.data.annotation.Version;
 
 /**

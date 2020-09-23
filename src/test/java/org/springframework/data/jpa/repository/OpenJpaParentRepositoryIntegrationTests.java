@@ -15,13 +15,13 @@
  */
 package org.springframework.data.jpa.repository;
 
-import org.junit.Ignore;
+import org.junit.jupiter.api.Disabled;
 import org.springframework.test.context.ContextConfiguration;
 
 @ContextConfiguration("classpath:openjpa.xml")
 public class OpenJpaParentRepositoryIntegrationTests extends ParentRepositoryIntegrationTests {
 
 	@Override
-	@Ignore
+	@Disabled
 	public void testWithJoin() throws Exception {}
 }

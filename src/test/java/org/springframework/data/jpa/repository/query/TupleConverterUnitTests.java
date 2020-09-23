@@ -27,11 +27,14 @@ import javax.persistence.Tuple;
 import javax.persistence.TupleElement;
 
 import org.assertj.core.api.SoftAssertions;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+
 import org.springframework.data.jpa.repository.query.AbstractJpaQuery.TupleConverter;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.CrudRepository;
@@ -47,7 +50,8 @@ import org.springframework.data.repository.query.ReturnedType;
  * @author Jens Schauder
  * @soundtrack James Bay - Let it go (Chaos and the Calm)
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class TupleConverterUnitTests {
 
 	@Mock Tuple tuple;
@@ -56,7 +60,7 @@ public class TupleConverterUnitTests {
 
 	ReturnedType type;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 
 		RepositoryMetadata metadata = new DefaultRepositoryMetadata(SampleRepository.class);

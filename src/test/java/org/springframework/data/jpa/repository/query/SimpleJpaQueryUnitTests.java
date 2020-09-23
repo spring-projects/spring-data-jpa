@@ -29,12 +29,14 @@ import javax.persistence.Tuple;
 import javax.persistence.TypedQuery;
 import javax.persistence.metamodel.Metamodel;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -61,7 +63,8 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
  * @author Tom Hombergs
  * @author Mark Paluch
  */
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class SimpleJpaQueryUnitTests {
 
 	static final String USER_QUERY = "select u from User u";
@@ -81,7 +84,7 @@ public class SimpleJpaQueryUnitTests {
 
 	ProjectionFactory factory = new SpelAwareProxyProjectionFactory();
 
-	@Before
+	@BeforeEach
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void setUp() throws SecurityException, NoSuchMethodException {
 

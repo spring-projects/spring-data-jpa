@@ -21,22 +21,17 @@ import java.util.Arrays;
 
 import javax.persistence.AttributeConverter;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameter;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * Unit tests for {@link Jsr310JpaConverters}.
  *
  * @author Oliver Gierke
  */
-@RunWith(Parameterized.class)
-public class Jsr310JpaConvertersUnitTests {
+class Jsr310JpaConvertersUnitTests {
 
-	@Parameters
-	public static Iterable<? extends Object> data() {
+	static Iterable<? extends Object> data() {
 
 		return Arrays.asList(new Jsr310JpaConverters.InstantConverter(), //
 				new Jsr310JpaConverters.LocalDateConverter(), //
@@ -45,10 +40,10 @@ public class Jsr310JpaConvertersUnitTests {
 				new Jsr310JpaConverters.ZoneIdConverter());
 	}
 
-	public @Parameter AttributeConverter<?, ?> converter;
 
-	@Test // DATAJPA-
-	public void convertersHandleNullValuesCorrectly() {
+	@ParameterizedTest
+	@MethodSource("data")
+	void convertersHandleNullValuesCorrectly(AttributeConverter<?, ?> converter) {
 
 		assertThat(converter.convertToDatabaseColumn(null)).isNull();
 		assertThat(converter.convertToEntityAttribute(null)).isNull();

@@ -27,11 +27,13 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * Unit tests for {@link Specification}.
@@ -42,17 +44,18 @@ import org.mockito.junit.MockitoJUnitRunner;
  * @author Jens Schauder
  */
 @SuppressWarnings("serial")
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class SpecificationUnitTests implements Serializable {
 
 	Specification<Object> spec;
-	@Mock(extraInterfaces = Serializable.class) Root<Object> root;
-	@Mock(extraInterfaces = Serializable.class) CriteriaQuery<?> query;
-	@Mock(extraInterfaces = Serializable.class) CriteriaBuilder builder;
+	@Mock(serializable = true) Root<Object> root;
+	@Mock(serializable = true) CriteriaQuery<?> query;
+	@Mock(serializable = true) CriteriaBuilder builder;
 
-	@Mock(extraInterfaces = Serializable.class) Predicate predicate;
+	@Mock(serializable = true) Predicate predicate;
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 
 		spec = (root, query, cb) -> predicate;
@@ -142,7 +145,7 @@ public class SpecificationUnitTests implements Serializable {
 		assertThat(transferredSpecification).isNotNull();
 	}
 
-	public class SerializableSpecification implements Serializable, Specification<Object> {
+	public static class SerializableSpecification implements Serializable, Specification<Object> {
 
 		@Override
 		public Predicate toPredicate(Root<Object> root, CriteriaQuery<?> query, CriteriaBuilder cb) {

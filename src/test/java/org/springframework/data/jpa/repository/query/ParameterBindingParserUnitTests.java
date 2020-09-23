@@ -16,7 +16,7 @@
 package org.springframework.data.jpa.repository.query;
 
 import org.assertj.core.api.SoftAssertions;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.data.jpa.repository.query.StringQuery.ParameterBindingParser;
 
 /**

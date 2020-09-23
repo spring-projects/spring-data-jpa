@@ -22,14 +22,14 @@ import java.util.stream.Stream;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.querydsl.core.types.dsl.PathBuilder;
@@ -42,7 +42,7 @@ import com.querydsl.jpa.JPQLQuery;
  * @author Jens Schauder
  * @author Marcus Voltolim
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration({ "classpath:infrastructure.xml" })
 @Transactional
 public class QuerydslIntegrationTests {
@@ -53,7 +53,7 @@ public class QuerydslIntegrationTests {
 	PathBuilder<User> userPath;
 	JPQLQuery<User> userQuery;
 
-	@Before
+	@BeforeEach
 	public void setup() {
 
 		userPath = new PathBuilder<>(User.class, "user");

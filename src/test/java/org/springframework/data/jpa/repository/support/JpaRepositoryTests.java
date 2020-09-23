@@ -23,9 +23,10 @@ import java.util.Optional;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
 import org.springframework.data.jpa.domain.sample.PersistableWithIdClass;
 import org.springframework.data.jpa.domain.sample.PersistableWithIdClassPK;
 import org.springframework.data.jpa.domain.sample.SampleEntity;
@@ -33,7 +34,7 @@ import org.springframework.data.jpa.domain.sample.SampleEntityPK;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -43,7 +44,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Thomas Darimont
  * @author Jens Schauder
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration({ "classpath:infrastructure.xml" })
 @Transactional
 public class JpaRepositoryTests {
@@ -53,7 +54,7 @@ public class JpaRepositoryTests {
 	JpaRepository<SampleEntity, SampleEntityPK> repository;
 	CrudRepository<PersistableWithIdClass, PersistableWithIdClassPK> idClassRepository;
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 
 		repository = new JpaRepositoryFactory(em).getRepository(SampleEntityRepository.class);

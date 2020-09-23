@@ -21,7 +21,7 @@ import static org.mockito.Mockito.*;
 import javax.persistence.EntityGraph;
 import javax.persistence.Subgraph;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.data.jpa.repository.EntityGraph.EntityGraphType;
 
 /**

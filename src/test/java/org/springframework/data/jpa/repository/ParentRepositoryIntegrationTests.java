@@ -15,6 +15,8 @@
  */
 package org.springframework.data.jpa.repository;
 
+import static org.assertj.core.api.Assertions.*;
+
 import java.util.List;
 import java.util.Set;
 
@@ -24,9 +26,10 @@ import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -36,22 +39,20 @@ import org.springframework.data.jpa.domain.sample.Child;
 import org.springframework.data.jpa.domain.sample.Parent;
 import org.springframework.data.jpa.repository.sample.ParentRepository;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Jens Schauder
  */
 @Transactional
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:config/namespace-application-context.xml")
 public class ParentRepositoryIntegrationTests {
 
 	@Autowired ParentRepository repository;
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 
 		repository.save(new Parent().add(new Child()));

@@ -24,10 +24,11 @@ import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan.Filter;
 import org.springframework.context.annotation.Configuration;
@@ -37,7 +38,7 @@ import org.springframework.data.jpa.domain.sample.Dummy;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.data.jpa.repository.sample.DummyRepository;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -50,7 +51,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Transactional
 @ContextConfiguration(classes = StoredProcedureIntegrationTests.TestConfig.class)
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 public class StoredProcedureIntegrationTests {
 
 	private static final String NOT_SUPPORTED = "Stored procedures with ResultSets are currently not supported for any JPA provider";
@@ -58,7 +59,7 @@ public class StoredProcedureIntegrationTests {
 	@PersistenceContext EntityManager em;
 	@Autowired DummyRepository repository;
 
-	@Before
+	@BeforeEach
 	public void setup() {
 		assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
 	}
@@ -79,7 +80,7 @@ public class StoredProcedureIntegrationTests {
 	}
 
 	@Test // DATAJPA-652
-	@Ignore(NOT_SUPPORTED)
+	@Disabled(NOT_SUPPORTED)
 	public void shouldExecuteAdHocProcedureWith1InputAnd1OutputParameterWithResultSet() {
 
 		List<Dummy> dummies = repository.adHocProcedureWith1InputAnd1OutputParameterWithResultSet("FOO");
@@ -89,7 +90,7 @@ public class StoredProcedureIntegrationTests {
 	}
 
 	@Test // DATAJPA-652
-	@Ignore(NOT_SUPPORTED)
+	@Disabled(NOT_SUPPORTED)
 	public void shouldExecuteAdHocProcedureWith1InputAnd1OutputParameterWithResultSetWithUpdate() {
 
 		List<Dummy> dummies = repository.adHocProcedureWith1InputAnd1OutputParameterWithResultSetWithUpdate("FOO");
@@ -119,7 +120,7 @@ public class StoredProcedureIntegrationTests {
 	}
 
 	@Test // DATAJPA-652
-	@Ignore(NOT_SUPPORTED)
+	@Disabled(NOT_SUPPORTED)
 	public void shouldExecuteProcedureWith1InputAnd1OutputParameterWithResultSet() {
 
 		List<Dummy> dummies = repository.procedureWith1InputAnd1OutputParameterWithResultSet("FOO");
@@ -129,7 +130,7 @@ public class StoredProcedureIntegrationTests {
 	}
 
 	@Test // DATAJPA-652
-	@Ignore(NOT_SUPPORTED)
+	@Disabled(NOT_SUPPORTED)
 	public void shouldExecuteProcedureWith1InputAnd1OutputParameterWithResultSetWithUpdate() {
 
 		List<Dummy> dummies = repository.procedureWith1InputAnd1OutputParameterWithResultSetWithUpdate("FOO");

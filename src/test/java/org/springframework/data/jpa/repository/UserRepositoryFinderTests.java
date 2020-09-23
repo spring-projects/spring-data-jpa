@@ -21,10 +21,11 @@ import static org.springframework.data.domain.Sort.Direction.*;
 import java.util.Arrays;
 import java.util.List;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Page;
@@ -38,7 +39,7 @@ import org.springframework.data.jpa.repository.sample.RoleRepository;
 import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,7 +49,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Oliver Gierke
  * @see QueryLookupStrategy
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration(locations = "classpath:config/namespace-application-context.xml")
 @Transactional
 public class UserRepositoryFinderTests {
@@ -59,7 +60,7 @@ public class UserRepositoryFinderTests {
 	User dave, carter, oliver;
 	Role drummer, guitarist, singer;
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 
 		drummer = roleRepository.save(new Role("DRUMMER"));
@@ -71,7 +72,7 @@ public class UserRepositoryFinderTests {
 		oliver = userRepository.save(new User("Oliver August", "Matthews", "oliver@dmband.com"));
 	}
 
-	@After
+	@AfterEach
 	public void clearUp() {
 
 		userRepository.deleteAll();

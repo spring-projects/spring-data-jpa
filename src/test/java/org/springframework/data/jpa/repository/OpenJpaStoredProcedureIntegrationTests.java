@@ -15,7 +15,7 @@
  */
 package org.springframework.data.jpa.repository;
 
-import org.junit.Ignore;
+import org.junit.jupiter.api.Disabled;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.test.context.ContextConfiguration;
 
@@ -26,7 +26,7 @@ import org.springframework.test.context.ContextConfiguration;
  * @author Thomas Darimont
  * @author Oliver Gierke
  */
-@Ignore
+@Disabled
 @ContextConfiguration(classes = { StoredProcedureIntegrationTests.Config.class })
 public class OpenJpaStoredProcedureIntegrationTests extends StoredProcedureIntegrationTests {
 

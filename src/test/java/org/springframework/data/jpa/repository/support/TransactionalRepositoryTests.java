@@ -17,14 +17,16 @@ package org.springframework.data.jpa.repository.support;
 
 import static org.assertj.core.api.Assertions.*;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionException;
@@ -36,19 +38,20 @@ import org.springframework.transaction.TransactionStatus;
  * @author Oliver Gierke
  * @author Jens Schauder
  */
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration({ "classpath:config/namespace-autoconfig-context.xml", "classpath:tx-manager.xml" })
-public class TransactionalRepositoryTests extends AbstractJUnit4SpringContextTests {
+public class TransactionalRepositoryTests {
 
 	@Autowired UserRepository repository;
 	@Autowired DelegatingTransactionManager transactionManager;
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 
 		transactionManager.resetCount();
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() {
 
 		repository.deleteAll();

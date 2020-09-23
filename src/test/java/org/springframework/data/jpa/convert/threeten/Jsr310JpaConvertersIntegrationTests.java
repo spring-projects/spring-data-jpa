@@ -29,7 +29,7 @@ import java.time.temporal.ChronoUnit;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.domain.support.AbstractAttributeConverterIntegrationTests;
 import org.springframework.test.context.ContextConfiguration;

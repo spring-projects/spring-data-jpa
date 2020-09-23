@@ -15,8 +15,8 @@
  */
 package org.springframework.data.jpa.infrastructure;
 
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ContextConfiguration;
 
 /**
@@ -28,7 +28,7 @@ import org.springframework.test.context.ContextConfiguration;
 public class OpenJpaMetamodelIntegrationTests extends MetamodelIntegrationTests {
 
 	@Test
-	@Ignore
+	@Disabled
 	@Override
 	public void canAccessParametersByIndexForNativeQueries() {}
 
@@ -36,7 +36,7 @@ public class OpenJpaMetamodelIntegrationTests extends MetamodelIntegrationTests 
 	 * TODO: Remove once https://issues.apache.org/jira/browse/OPENJPA-2618 is fixed.
 	 */
 	@Test
-	@Ignore
+	@Disabled
 	@Override
 	public void doesNotExposeAliasForTupleIfNoneDefined() {}
 }

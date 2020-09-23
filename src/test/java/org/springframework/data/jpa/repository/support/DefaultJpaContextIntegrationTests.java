@@ -26,9 +26,9 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -64,7 +64,7 @@ public class DefaultJpaContextIntegrationTests {
 	EntityManager firstEm, secondEm;
 	JpaContext jpaContext;
 
-	@BeforeClass
+	@BeforeAll
 	public static void bootstrapJpa() {
 
 		firstEmf = createEntityManagerFactory("spring-data-jpa");
@@ -91,7 +91,7 @@ public class DefaultJpaContextIntegrationTests {
 		return factoryBean.getObject();
 	}
 
-	@Before
+	@BeforeEach
 	public void createEntityManagers() {
 
 		this.firstEm = firstEmf.createEntityManager();

@@ -22,11 +22,14 @@ import javax.persistence.metamodel.EntityType;
 import javax.persistence.metamodel.Metamodel;
 import javax.persistence.metamodel.Type;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+
 import org.springframework.data.domain.Persistable;
 import org.springframework.data.repository.core.EntityInformation;
 
@@ -36,7 +39,8 @@ import org.springframework.data.repository.core.EntityInformation;
  * @author Oliver Gierke
  * @author Jens Schauder
  */
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class JpaPersistableEntityInformationUnitTests {
 
 	@Mock Metamodel metamodel;
@@ -45,7 +49,7 @@ public class JpaPersistableEntityInformationUnitTests {
 
 	@Mock @SuppressWarnings("rawtypes") Type idType;
 
-	@Before
+	@BeforeEach
 	@SuppressWarnings("unchecked")
 	public void setUp() {
 

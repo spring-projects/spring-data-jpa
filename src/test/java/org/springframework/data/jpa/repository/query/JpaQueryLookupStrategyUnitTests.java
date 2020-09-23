@@ -26,11 +26,14 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.metamodel.Metamodel;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.provider.QueryExtractor;
@@ -52,7 +55,8 @@ import org.springframework.data.repository.query.QueryMethodEvaluationContextPro
  * @author Jens Schauder
  * @author Réda Housni Alaoui
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class JpaQueryLookupStrategyUnitTests {
 
 	private static final QueryMethodEvaluationContextProvider EVALUATION_CONTEXT_PROVIDER = QueryMethodEvaluationContextProvider.DEFAULT;
@@ -66,7 +70,7 @@ public class JpaQueryLookupStrategyUnitTests {
 
 	JpaQueryMethodFactory queryMethodFactory;
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 
 		when(em.getMetamodel()).thenReturn(metamodel);

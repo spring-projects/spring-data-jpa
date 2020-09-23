@@ -29,11 +29,14 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.metamodel.Metamodel;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+
 import org.springframework.data.jpa.domain.sample.QRole;
 import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.repository.sample.RoleRepository;
@@ -46,7 +49,8 @@ import org.springframework.data.jpa.repository.support.JpaRepositoryFactory;
  * @author Oliver Gierke
  * @author Thomas Darimont
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class CrudMethodMetadataUnitTests {
 
 	@Mock EntityManager em;
@@ -60,7 +64,7 @@ public class CrudMethodMetadataUnitTests {
 
 	RoleRepository repository;
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 
 		when(information.getJavaType()).thenReturn(Role.class);

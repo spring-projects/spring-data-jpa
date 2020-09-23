@@ -19,8 +19,8 @@ import static org.assertj.core.api.Assertions.*;
 
 import javax.persistence.EntityManagerFactory;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
@@ -38,7 +38,7 @@ public class AuditingBeanFactoryPostProcessorUnitTests {
 	DefaultListableBeanFactory beanFactory;
 	AuditingBeanFactoryPostProcessor processor;
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 
 		this.beanFactory = getBeanFactory();

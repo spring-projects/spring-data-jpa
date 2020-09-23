@@ -22,8 +22,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
@@ -42,7 +42,7 @@ public class QueryParameterSetterFactoryUnitTests {
 
 	QueryParameterSetterFactory setterFactory;
 
-	@Before
+	@BeforeEach
 	public void before() {
 
 		// we have one bindable parameter

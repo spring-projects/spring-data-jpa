@@ -18,7 +18,8 @@ package org.springframework.data.jpa.domain.support;
 import javax.persistence.AttributeConverter;
 import javax.sql.DataSource;
 
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.extension.ExtendWith;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
@@ -28,7 +29,7 @@ import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.AbstractJpaVendorAdapter;
 import org.springframework.orm.jpa.vendor.Database;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.PlatformTransactionManager;
 
 /**
@@ -37,7 +38,7 @@ import org.springframework.transaction.PlatformTransactionManager;
  * @author Oliver Gierke
  * @author Jens Schauder
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 public abstract class AbstractAttributeConverterIntegrationTests {
 
 	protected abstract static class InfrastructureConfig {

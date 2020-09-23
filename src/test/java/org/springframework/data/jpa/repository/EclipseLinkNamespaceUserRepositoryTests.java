@@ -16,15 +16,13 @@
 package org.springframework.data.jpa.repository;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.eclipse.persistence.Version.*;
 
 import javax.persistence.Query;
 
-import org.junit.Assume;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+
 import org.springframework.data.jpa.repository.sample.UserRepository;
-import org.springframework.data.util.Version;
 import org.springframework.test.context.ContextConfiguration;
 
 /**
@@ -74,7 +72,7 @@ public class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserReposi
 	/**
 	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=525319 is fixed.
 	 */
-	@Ignore
+	@Disabled
 	@Override
 	@Test // DATAJPA-980
 	public void supportsProjectionsWithNativeQueries() {}
@@ -82,7 +80,7 @@ public class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserReposi
 	/**
 	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=525319 is fixed.
 	 */
-	@Ignore
+	@Disabled
 	@Override
 	@Test // DATAJPA-1248
 	public void supportsProjectionsWithNativeQueriesAndCamelCaseProperty() {}
@@ -90,7 +88,7 @@ public class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserReposi
 	/**
 	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=525319 is fixed.
 	 */
-	@Ignore
+	@Disabled
 	@Override
 	@Test // DATAJPA-1301
 	public void returnsNullValueInMap() {}
@@ -98,7 +96,7 @@ public class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserReposi
 	/**
 	 * TODO: Remove, once https://bugs.eclipse.org/bugs/show_bug.cgi?id=289141 is fixed.
 	 */
-	@Ignore
+	@Disabled
 	@Override
 	@Test
 	public void bindsNativeQueryResultsToProjectionByName() {}
@@ -133,13 +131,13 @@ public class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserReposi
 	 */
 	@Override
 	@Test
-	@Ignore
+	@Disabled
 	public void savingUserThrowsAnException() {}
 
 	/**
 	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=349477 is resolved.
 	 */
-	@Ignore
+	@Disabled
 	@Override
 	@Test // DATAJPA-1303
 	public void findByElementCollectionInAttributeIgnoreCase() {}
@@ -147,7 +145,7 @@ public class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserReposi
 	/**
 	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=349477 is resolved.
 	 */
-	@Ignore
+	@Disabled
 	@Override
 	@Test // DATAJPA-1303
 	public void findByElementCollectionNotInAttributeIgnoreCase() {}
@@ -155,7 +153,7 @@ public class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserReposi
 	/**
 	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=349477 is resolved.
 	 */
-	@Ignore
+	@Disabled
 	@Override
 	@Test // DATAJPA-1303
 	public void findByElementVarargInAttributeIgnoreCase() {}
@@ -163,7 +161,7 @@ public class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserReposi
 	/**
 	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=349477 is resolved.
 	 */
-	@Ignore
+	@Disabled
 	@Override
 	@Test // DATAJPA-1303
 	public void findByElementCollectionInAttributeIgnoreCaseWithNulls() {}

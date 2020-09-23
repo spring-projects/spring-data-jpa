@@ -15,7 +15,7 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import org.junit.Ignore;
+import org.junit.jupiter.api.Disabled;
 import org.springframework.test.context.ContextConfiguration;
 
 /**
@@ -31,7 +31,7 @@ public class OpenJpaJpaRepositoryTests extends JpaRepositoryTests {
 	 * @see org.springframework.data.jpa.repository.support.JpaRepositoryTests#testCrudOperationsForCompoundKeyEntity()
 	 */
 	@Override
-	@Ignore
+	@Disabled
 	public void testCrudOperationsForCompoundKeyEntity() throws Exception {
 	}
 }

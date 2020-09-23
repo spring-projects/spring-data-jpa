@@ -27,11 +27,12 @@ import java.util.concurrent.TimeUnit;
 
 import javax.persistence.EntityManager;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -44,7 +45,7 @@ import org.springframework.data.jpa.repository.sample.SampleEvaluationContextExt
 import org.springframework.data.jpa.util.FixedDate;
 import org.springframework.data.spel.spi.EvaluationContextExtension;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -54,7 +55,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Oliver Gierke
  * @author Jens Schauder
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @Transactional
 @DirtiesContext
 public abstract class AbstractAuditingViaJavaConfigRepositoriesTests {
@@ -65,7 +66,7 @@ public abstract class AbstractAuditingViaJavaConfigRepositoriesTests {
 
 	@Autowired EntityManager em;
 
-	@Before
+	@BeforeEach
 	public void setup() {
 
 		AuditableUser auditor = new AuditableUser(null);
@@ -76,7 +77,7 @@ public abstract class AbstractAuditingViaJavaConfigRepositoriesTests {
 		when(this.auditorAware.getCurrentAuditor()).thenReturn(Optional.of(this.auditor));
 	}
 
-	@After
+	@AfterEach
 	public void teardown() {
 		Mockito.reset(this.auditorAware);
 	}

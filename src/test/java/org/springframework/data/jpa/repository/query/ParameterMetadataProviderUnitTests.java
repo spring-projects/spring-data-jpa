@@ -22,7 +22,7 @@ import java.util.Collections;
 
 import javax.persistence.criteria.CriteriaBuilder;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.parser.Part;
 

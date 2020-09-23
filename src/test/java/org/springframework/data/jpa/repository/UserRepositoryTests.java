@@ -42,10 +42,11 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 import org.assertj.core.api.SoftAssertions;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -71,7 +72,7 @@ import org.springframework.data.jpa.repository.sample.SampleEvaluationContextExt
 import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.data.jpa.repository.sample.UserRepository.NameOnly;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.base.Optional;
@@ -91,7 +92,7 @@ import com.google.common.base.Optional;
  * @author Jens Schauder
  * @author Andrey Kovalev
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:application-context.xml")
 @Transactional
 public class UserRepositoryTests {
@@ -106,7 +107,7 @@ public class UserRepositoryTests {
 	Integer id;
 	Role adminRole;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 
 		firstUser = new User("Oliver", "Gierke", "gierke@synyx.de");
@@ -1225,7 +1226,7 @@ public class UserRepositoryTests {
 	 * @see <a href="https://issues.apache.org/jira/browse/OPENJPA-2484">OPENJPA-2484</a>
 	 */
 	@Test // DATAJPA-505
-	@Ignore
+	@Disabled
 	public void findBinaryDataByIdJpaQl() throws Exception {
 
 		byte[] data = "Woho!!".getBytes("UTF-8");

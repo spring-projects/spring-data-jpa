@@ -15,8 +15,8 @@
  */
 package org.springframework.data.jpa.repository;
 
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ContextConfiguration;
 
 /**
@@ -27,42 +27,42 @@ import org.springframework.test.context.ContextConfiguration;
 public class EclipseLinkEntityGraphRepositoryMethodsIntegrationTests
 		extends EntityGraphRepositoryMethodsIntegrationTests {
 
-	@Ignore("Bug 510627 - https://bugs.eclipse.org/bugs/show_bug.cgi?id=510627")
+	@Disabled("Bug 510627 - https://bugs.eclipse.org/bugs/show_bug.cgi?id=510627")
 	@Test
 	@Override
 	public void shouldRespectNamedEntitySubGraph() {}
 
-	@Ignore("Bug 510627 - https://bugs.eclipse.org/bugs/show_bug.cgi?id=510627")
+	@Disabled("Bug 510627 - https://bugs.eclipse.org/bugs/show_bug.cgi?id=510627")
 	@Test
 	@Override
 	public void shouldRespectMultipleSubGraphForSameAttributeWithDynamicFetchGraph() {}
 
-	@Ignore("Bug 510627 - https://bugs.eclipse.org/bugs/show_bug.cgi?id=510627")
+	@Disabled("Bug 510627 - https://bugs.eclipse.org/bugs/show_bug.cgi?id=510627")
 	@Test
 	@Override
 	public void shouldRespectDynamicFetchGraphForGetOneWithAttributeNamesById() {}
 
-	@Ignore("Bug 510627 - https://bugs.eclipse.org/bugs/show_bug.cgi?id=510627")
+	@Disabled("Bug 510627 - https://bugs.eclipse.org/bugs/show_bug.cgi?id=510627")
 	@Test
 	@Override
 	public void shouldRespectConfiguredJpaEntityGraphWithPaginationAndQueryDslPredicates() {}
 
-	@Ignore("Bug 510627 - https://bugs.eclipse.org/bugs/show_bug.cgi?id=510627")
+	@Disabled("Bug 510627 - https://bugs.eclipse.org/bugs/show_bug.cgi?id=510627")
 	@Test
 	@Override
 	public void shouldRespectConfiguredJpaEntityGraphWithPaginationAndSpecification() {}
 
-	@Ignore("Bug 510627 - https://bugs.eclipse.org/bugs/show_bug.cgi?id=510627")
+	@Disabled("Bug 510627 - https://bugs.eclipse.org/bugs/show_bug.cgi?id=510627")
 	@Test
 	@Override
 	public void shouldCreateDynamicGraphWithMultipleLevelsOfSubgraphs() {}
 
-	@Ignore("Bug 510627 - https://bugs.eclipse.org/bugs/show_bug.cgi?id=510627")
+	@Disabled("Bug 510627 - https://bugs.eclipse.org/bugs/show_bug.cgi?id=510627")
 	@Test
 	@Override
 	public void shouldRespectConfiguredJpaEntityGraphInFindOne() {}
 
-	@Ignore("Bug 510627 - https://bugs.eclipse.org/bugs/show_bug.cgi?id=510627")
+	@Disabled("Bug 510627 - https://bugs.eclipse.org/bugs/show_bug.cgi?id=510627")
 	@Test
 	@Override
 	public void shouldRespectInferFetchGraphFromMethodName() {}

@@ -21,8 +21,8 @@ import static org.mockito.Mockito.*;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for {@link DefaultQueryHints}.
@@ -34,7 +34,7 @@ public class DefaultQueryHintsTest {
 	JpaEntityInformation<?, ?> information = mock(JpaEntityInformation.class);
 	CrudMethodMetadata metadata = mock(CrudMethodMetadata.class);
 
-	@Before
+	@BeforeEach
 	public void before() {
 
 		setupMainHints();

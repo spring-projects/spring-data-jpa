@@ -17,6 +17,8 @@ package org.springframework.data.jpa.repository.projections;
 
 import static org.assertj.core.api.Assertions.*;
 
+import lombok.Data;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -31,9 +33,10 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.sql.DataSource;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -46,12 +49,10 @@ import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.annotation.Transactional;
-
-import lombok.Data;
 
 /**
  * Integration tests for the behavior of projections.
@@ -59,13 +60,13 @@ import lombok.Data;
  * @author Jens Schauder
  */
 @Transactional
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = Config.class)
 public class ProjectionsIntegrationTests {
 
 	@Autowired DummyEntityWithCollectionRepository repository;
 
-	@Before
+	@BeforeEach
 	public void setup() {
 
 		DummyEntityWithCollection entity = new DummyEntityWithCollection();

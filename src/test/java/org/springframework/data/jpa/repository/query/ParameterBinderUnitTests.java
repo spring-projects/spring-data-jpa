@@ -32,12 +32,14 @@ import javax.persistence.Parameter;
 import javax.persistence.Query;
 import javax.persistence.TemporalType;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Answers;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -52,7 +54,8 @@ import org.springframework.data.repository.query.Param;
  * @author Jens Schauder
  * @author Mark Paluch
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class ParameterBinderUnitTests {
 
 	public static final int MAX_PARAMETERS = 1;
@@ -61,7 +64,7 @@ public class ParameterBinderUnitTests {
 	@Mock(answer = Answers.RETURNS_DEEP_STUBS) private Query query;
 	private Method useIndexedParameters;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws SecurityException, NoSuchMethodException {
 
 		valid = SampleRepository.class.getMethod("valid", String.class);

@@ -19,8 +19,8 @@ import static org.assertj.core.api.Assertions.*;
 
 import java.io.Serializable;
 
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.springframework.data.jpa.domain.AbstractPersistable;
 import org.springframework.test.context.ContextConfiguration;
 
@@ -48,18 +48,18 @@ public class EclipseLinkJpaMetamodelEntityInformationIntegrationTests
 	 * Ignored due to https://bugs.eclipse.org/bugs/show_bug.cgi?id=411231.
 	 */
 	@Override
-	@Ignore
+	@Disabled
 	public void findsIdClassOnMappedSuperclass() {}
 
 	/**
 	 * Ignored due to https://bugs.eclipse.org/bugs/show_bug.cgi?id=415027
 	 */
 	@Override
-	@Ignore
+	@Disabled
 	public void detectsNewStateForEntityWithPrimitiveId() {}
 
 	@Override
-	@Ignore
+	@Disabled
 	public void considersEntityWithUnsetCompundIdNew() {}
 
 	/**
@@ -75,7 +75,7 @@ public class EclipseLinkJpaMetamodelEntityInformationIntegrationTests
 	 * This test fails due to https://bugs.eclipse.org/bugs/show_bug.cgi?id=531528 IdentifiableType.hasSingleIdAttribute()
 	 * returns true when IdClass references an inner class. This bug is supposedly fixed, but the test still fails.
 	 */
-	@Ignore
+	@Disabled
 	@Test
 	@Override
 	public void correctlyDeterminesIdValueForNestedIdClassesWithNonPrimitiveNonManagedType() {
@@ -86,7 +86,7 @@ public class EclipseLinkJpaMetamodelEntityInformationIntegrationTests
 	 * This test fails due to https://bugs.eclipse.org/bugs/show_bug.cgi?id=531528 IdentifiableType.hasSingleIdAttribute()
 	 * returns true when IdClass references an inner class. This bug is supposedly fixed, but the test still fails.
 	 */
-	@Ignore
+	@Disabled
 	@Test
 	@Override
 	public void proxiedIdClassElement() {

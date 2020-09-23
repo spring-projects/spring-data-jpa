@@ -20,10 +20,13 @@ import static org.mockito.Mockito.*;
 
 import javax.persistence.metamodel.Metamodel;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.data.jpa.repository.config.JpaRepositoryConfigExtension;
@@ -32,10 +35,11 @@ import org.springframework.data.repository.config.RepositoryConfigurationSource;
 
 /**
  * Integration tests for {@link JpaMetamodelCacheCleanup}.
- * 
+ *
  * @author Oliver Gierke
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class JpaMetamodelCacheCleanupIntegrationTests {
 
 	@Mock Metamodel metamodel;

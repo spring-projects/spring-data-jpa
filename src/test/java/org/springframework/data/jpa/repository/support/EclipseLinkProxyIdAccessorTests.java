@@ -15,7 +15,7 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import org.junit.Ignore;
+import org.junit.jupiter.api.Disabled;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.data.jpa.provider.PersistenceProviderIntegrationTests;
@@ -35,6 +35,6 @@ public class EclipseLinkProxyIdAccessorTests extends PersistenceProviderIntegrat
 	 * Do not execute the test as EclipseLink does not create a lazy-loading proxy as expected.
 	 */
 	@Override
-	@Ignore
+	@Disabled
 	public void testname() {}
 }

@@ -29,19 +29,20 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.ParameterExpression;
 import javax.persistence.criteria.Root;
 
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Oliver Gierke
  * @author Jens Schauder
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration({ "classpath:application-context.xml"
 		// , "classpath:eclipselink.xml"
 		// , "classpath:openjpa.xml"
@@ -52,7 +53,7 @@ public class SimpleJpaParameterBindingTests {
 	@PersistenceContext EntityManager em;
 
 	@Test
-	@Ignore
+	@Disabled
 	public void bindArray() {
 
 		User user = new User("Dave", "Matthews", "foo@bar.de");

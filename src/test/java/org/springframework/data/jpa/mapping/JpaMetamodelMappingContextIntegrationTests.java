@@ -22,9 +22,10 @@ import java.util.Collections;
 import javax.persistence.EntityManager;
 
 import org.hibernate.proxy.HibernateProxy;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan.Filter;
 import org.springframework.context.annotation.Configuration;
@@ -40,7 +41,7 @@ import org.springframework.data.jpa.repository.sample.ProductRepository;
 import org.springframework.data.mapping.IdentifierAccessor;
 import org.springframework.data.mapping.PersistentPropertyPaths;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -52,7 +53,7 @@ import org.springframework.transaction.support.TransactionTemplate;
  * @author Jens Schauder
  * @since 1.3
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration
 public class JpaMetamodelMappingContextIntegrationTests {
 
@@ -62,7 +63,7 @@ public class JpaMetamodelMappingContextIntegrationTests {
 	@Autowired EntityManager em;
 	@Autowired PlatformTransactionManager transactionManager;
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 		context = new JpaMetamodelMappingContext(Collections.singleton(em.getMetamodel()));
 	}

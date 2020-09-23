@@ -15,7 +15,7 @@
  */
 package org.springframework.data.jpa.repository;
 
-import org.junit.Ignore;
+import org.junit.jupiter.api.Disabled;
 import org.springframework.test.context.ContextConfiguration;
 
 /**
@@ -27,7 +27,7 @@ import org.springframework.test.context.ContextConfiguration;
 @ContextConfiguration("classpath:openjpa.xml")
 public class OpenJpaUserRepositoryFinderTests extends UserRepositoryFinderTests {
 
-	@Ignore
+	@Disabled
 	@Override
 	public void findsByLastnameIgnoringCaseLike() throws Exception {}
 }

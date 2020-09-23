@@ -19,8 +19,8 @@ import static org.assertj.core.api.Assertions.*;
 
 import java.util.Arrays;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.core.env.StandardEnvironment;
@@ -40,7 +40,7 @@ public class JpaRepositoriesRegistrarUnitTests {
 	BeanDefinitionRegistry registry;
 	AnnotationMetadata metadata;
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 
 		metadata = new StandardAnnotationMetadata(Config.class, true);

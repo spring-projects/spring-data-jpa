@@ -26,8 +26,8 @@ import javax.persistence.EntityManager;
 
 import org.assertj.core.api.Assumptions;
 import org.hibernate.Version;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.asm.ClassWriter;
 import org.springframework.asm.Opcodes;
@@ -45,7 +45,7 @@ public class PersistenceProviderUnitTests {
 
 	ShadowingClassLoader shadowingClassLoader;
 
-	@Before
+	@BeforeEach
 	public void setup() {
 
 		PersistenceProvider.CACHE.clear();

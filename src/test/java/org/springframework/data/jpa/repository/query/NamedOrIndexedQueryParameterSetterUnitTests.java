@@ -35,8 +35,8 @@ import javax.persistence.TemporalType;
 import javax.persistence.criteria.ParameterExpression;
 
 import org.assertj.core.api.SoftAssertions;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.data.jpa.repository.query.QueryParameterSetter.NamedOrIndexedQueryParameterSetter;
 
 /**
@@ -61,7 +61,7 @@ public class NamedOrIndexedQueryParameterSetterUnitTests {
 
 	SoftAssertions softly = new SoftAssertions();
 
-	@Before
+	@BeforeEach
 	public void before() {
 
 		JpaParametersParameterAccessor accessor = mock(JpaParametersParameterAccessor.class);

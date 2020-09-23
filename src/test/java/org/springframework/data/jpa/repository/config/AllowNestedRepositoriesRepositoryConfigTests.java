@@ -17,7 +17,7 @@ package org.springframework.data.jpa.repository.config;
 
 import static org.assertj.core.api.Assertions.*;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.sample.ClassWithNestedRepository.NestedUserRepository;
 import org.springframework.test.context.ContextConfiguration;

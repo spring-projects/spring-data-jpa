@@ -15,8 +15,8 @@
  */
 package org.springframework.data.jpa.infrastructure;
 
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 /**
  * Hibernate-specific integration test using the JPA metamodel.
@@ -27,12 +27,12 @@ import org.junit.Test;
 public class HibernateMetamodelIntegrationTests extends MetamodelIntegrationTests {
 
 	@Test
-	@Ignore
+	@Disabled
 	@Override
 	public void pathToEntityIsOfBindableTypeEntityType() {}
 
 	@Test
-	@Ignore
+	@Disabled
 	@Override
 	public void considersOneToOneAttributeAnAssociation() {}
 
@@ -40,7 +40,7 @@ public class HibernateMetamodelIntegrationTests extends MetamodelIntegrationTest
 	 * @see <a href="https://hibernate.atlassian.net/browse/HHH-10341">HHH-10341</a>
 	 */
 	@Test
-	@Ignore
+	@Disabled
 	@Override
 	public void doesNotExposeAliasForTupleIfNoneDefined() {}
 }

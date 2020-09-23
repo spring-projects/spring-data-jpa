@@ -15,8 +15,8 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ContextConfiguration;
 
 /**
@@ -39,7 +39,7 @@ public class OpenJpaMetamodelEntityInformationIntegrationTests extends JpaMetamo
 	 * Ignore as it fails with weird {@link NoClassDefFoundError}.
 	 */
 	@Override
-	@Ignore
+	@Disabled
 	public void findsIdClassOnMappedSuperclass() {}
 
 	/**

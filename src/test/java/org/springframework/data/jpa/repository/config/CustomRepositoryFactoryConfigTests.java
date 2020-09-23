@@ -17,14 +17,15 @@ package org.springframework.data.jpa.repository.config;
 
 import static org.assertj.core.api.Assertions.*;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.custom.UserCustomExtendedRepository;
 import org.springframework.data.jpa.repository.support.TransactionalRepositoryTests.DelegatingTransactionManager;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 /**
  * Annotation to exclude repository interfaces from being picked up and thus in consequence getting an instance being
@@ -39,7 +40,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Mark Paluch
  * @author Jens Schauder
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration(locations = "classpath:config/namespace-customfactory-context.xml")
 public class CustomRepositoryFactoryConfigTests {
 
@@ -47,7 +48,7 @@ public class CustomRepositoryFactoryConfigTests {
 
 	@Autowired DelegatingTransactionManager transactionManager;
 
-	@Before
+	@BeforeEach
 	public void setup() {
 
 		transactionManager.resetCount();

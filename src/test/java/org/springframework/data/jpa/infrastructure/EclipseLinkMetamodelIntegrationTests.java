@@ -15,8 +15,8 @@
  */
 package org.springframework.data.jpa.infrastructure;
 
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ContextConfiguration;
 
 /**
@@ -31,7 +31,7 @@ public class EclipseLinkMetamodelIntegrationTests extends MetamodelIntegrationTe
 	 * TODO: Remove, once https://bugs.eclipse.org/bugs/show_bug.cgi?id=427892 is fixed.
 	 */
 	@Test
-	@Ignore
+	@Disabled
 	@Override
 	public void canAccessParametersByIndexForNativeQueries() {}
 
@@ -39,7 +39,7 @@ public class EclipseLinkMetamodelIntegrationTests extends MetamodelIntegrationTe
 	 * TODO: Remove, once https://bugs.eclipse.org/bugs/show_bug.cgi?id=463663 is fixed.
 	 */
 	@Test
-	@Ignore
+	@Disabled
 	@Override
 	public void pathToEntityIsOfBindableTypeEntityType() {}
 
@@ -47,7 +47,7 @@ public class EclipseLinkMetamodelIntegrationTests extends MetamodelIntegrationTe
 	 * TODO: Remove, once https://bugs.eclipse.org/bugs/show_bug.cgi?id=289141 is fixed.
 	 */
 	@Test
-	@Ignore
+	@Disabled
 	@Override
 	public void doesNotExposeAliasForTupleIfNoneDefined() {}
 
@@ -55,7 +55,7 @@ public class EclipseLinkMetamodelIntegrationTests extends MetamodelIntegrationTe
 	 * TODO: Remove, once https://bugs.eclipse.org/bugs/show_bug.cgi?id=289141 is fixed.
 	 */
 	@Test
-	@Ignore
+	@Disabled
 	@Override
 	public void returnsAliasesInTuple() {}
 }

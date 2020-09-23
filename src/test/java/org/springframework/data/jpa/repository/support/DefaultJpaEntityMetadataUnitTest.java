@@ -22,7 +22,7 @@ import java.lang.annotation.RetentionPolicy;
 
 import javax.persistence.Entity;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.core.annotation.AliasFor;
 import org.springframework.data.jpa.repository.query.DefaultJpaEntityMetadata;
 

@@ -28,11 +28,13 @@ import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.PageRequest;
@@ -48,7 +50,8 @@ import org.springframework.data.repository.CrudRepository;
  * @author Mark Paluch
  * @author Jens Schauder
  */
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class SimpleJpaRepositoryUnitTests {
 
 	SimpleJpaRepository<User, Integer> repo;
@@ -64,7 +67,7 @@ public class SimpleJpaRepositoryUnitTests {
 	@Mock EntityGraph<User> entityGraph;
 	@Mock org.springframework.data.jpa.repository.EntityGraph entityGraphAnnotation;
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 
 		when(em.getDelegate()).thenReturn(em);

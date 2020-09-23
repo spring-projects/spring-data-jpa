@@ -21,7 +21,7 @@ import java.util.Collections;
 
 import javax.persistence.EntityManager;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for {@link DefaultJpaContext}.

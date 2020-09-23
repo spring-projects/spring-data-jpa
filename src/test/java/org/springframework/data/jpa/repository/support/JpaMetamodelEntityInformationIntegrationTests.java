@@ -27,14 +27,15 @@ import java.util.Date;
 import javax.persistence.*;
 import javax.persistence.metamodel.Metamodel;
 
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
 import org.springframework.data.jpa.domain.AbstractPersistable;
 import org.springframework.data.jpa.domain.sample.*;
 import org.springframework.data.repository.core.EntityInformation;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /**
@@ -45,7 +46,7 @@ import org.springframework.test.util.ReflectionTestUtils;
  * @author Christoph Strobl
  * @author Jens Schauder
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration({ "classpath:infrastructure.xml" })
 public class JpaMetamodelEntityInformationIntegrationTests {
 
@@ -65,7 +66,7 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 	 * @see <a href="https://hibernate.atlassian.net/browse/HHH-6896">HHH-6896</a>
 	 */
 	@Test // DATAJPA-141
-	@Ignore
+	@Disabled
 	public void detectsIdTypeForMappedSuperclass() {
 
 		JpaEntityInformation<?, ?> information = getEntityInformation(AbstractPersistable.class, em);
@@ -251,7 +252,7 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 	 * Ignored as Hibernate < 4.3 doesn't expose the version property properly if it's declared on the superclass.
 	 */
 	@Test // DATAJPA-820
-	@Ignore
+	@Disabled
 	public void detectsVersionPropertyOnMappedSuperClass() {
 
 		EntityInformation<ConcreteType1, ?> information = getEntityInformation(ConcreteType1.class, em);
@@ -302,7 +303,7 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 	}
 
 	@Test // DATAJPA-1576
-	@Ignore
+	@Disabled
 	public void prefersPrivateGetterOverFieldAccess() {
 
 		EntityManagerFactory emf = Persistence.createEntityManagerFactory(getMetadadataPersitenceUnitName());

@@ -20,9 +20,10 @@ import static org.assertj.core.api.Assertions.*;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Auditable;
 import org.springframework.data.jpa.domain.sample.AnnotatedAuditableUser;
@@ -33,7 +34,7 @@ import org.springframework.data.jpa.repository.sample.AnnotatedAuditableUserRepo
 import org.springframework.data.jpa.repository.sample.AuditableUserRepository;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -42,7 +43,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Oliver Gierke
  * @author Jens Schauder
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:auditing/auditing-entity-listener.xml")
 @Transactional
 @DirtiesContext
@@ -67,7 +68,7 @@ public class AuditingEntityListenerTests {
 		assertThat(auditable.getLastModifiedBy()).isEqualTo(Optional.of(user));
 	}
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 
 		user = new AuditableUser();
