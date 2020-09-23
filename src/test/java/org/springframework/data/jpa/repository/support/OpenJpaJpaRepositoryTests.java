@@ -24,7 +24,7 @@ import org.springframework.test.context.ContextConfiguration;
  * @author Oliver Gierke
  */
 @ContextConfiguration("classpath:openjpa.xml")
-public class OpenJpaJpaRepositoryTests extends JpaRepositoryTests {
+class OpenJpaJpaRepositoryTests extends JpaRepositoryTests {
 
 	/*
 	 * (non-Javadoc)
@@ -32,6 +32,6 @@ public class OpenJpaJpaRepositoryTests extends JpaRepositoryTests {
 	 */
 	@Override
 	@Disabled
-	public void testCrudOperationsForCompoundKeyEntity() throws Exception {
+	void testCrudOperationsForCompoundKeyEntity() throws Exception {
 	}
 }

@@ -21,4 +21,4 @@ import org.springframework.test.context.ContextConfiguration;
  * @author Oliver Gierke
  */
 @ContextConfiguration("classpath:openjpa.xml")
-public class OpenJpaEntityGraphRepositoryMethodsIntegrationTests extends EntityGraphRepositoryMethodsIntegrationTests {}
+class OpenJpaEntityGraphRepositoryMethodsIntegrationTests extends EntityGraphRepositoryMethodsIntegrationTests {}

@@ -21,6 +21,6 @@ import org.springframework.test.context.ContextConfiguration;
  * @author Christoph Strobl
  */
 @ContextConfiguration("classpath:openjpa.xml")
-public class OpenJpaJpa21UtilsTests extends Jpa21UtilsTests {
+class OpenJpaJpa21UtilsTests extends Jpa21UtilsTests {
 
 }

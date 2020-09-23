@@ -33,9 +33,11 @@ public class PersistableWithIdClass implements Persistable<PersistableWithIdClas
 	private static final long serialVersionUID = 1L;
 
 	@Id
+	private
 	Long first;
 
 	@Id
+	private
 	Long second;
 
 	private boolean isNew;

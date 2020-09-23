@@ -57,33 +57,33 @@ import org.springframework.transaction.support.TransactionTemplate;
 @ContextConfiguration
 public class JpaMetamodelMappingContextIntegrationTests {
 
-	JpaMetamodelMappingContext context;
+	private JpaMetamodelMappingContext context;
 	@Autowired ProductRepository products;
 	@Autowired CategoryRepository categories;
 	@Autowired EntityManager em;
 	@Autowired PlatformTransactionManager transactionManager;
 
 	@BeforeEach
-	public void setUp() {
+	void setUp() {
 		context = new JpaMetamodelMappingContext(Collections.singleton(em.getMetamodel()));
 	}
 
 	@Test
-	public void setsUpMappingContextCorrectly() {
+	void setsUpMappingContextCorrectly() {
 
 		JpaPersistentEntityImpl<?> entity = context.getRequiredPersistentEntity(User.class);
 		assertThat(entity).isNotNull();
 	}
 
 	@Test
-	public void detectsIdProperty() {
+	void detectsIdProperty() {
 
 		JpaPersistentEntityImpl<?> entity = context.getRequiredPersistentEntity(User.class);
 		assertThat(entity.getIdProperty()).isNotNull();
 	}
 
 	@Test
-	public void detectsAssociation() {
+	void detectsAssociation() {
 
 		JpaPersistentEntityImpl<?> entity = context.getRequiredPersistentEntity(User.class);
 		assertThat(entity).isNotNull();
@@ -93,7 +93,7 @@ public class JpaMetamodelMappingContextIntegrationTests {
 	}
 
 	@Test
-	public void detectsPropertyIsEntity() {
+	void detectsPropertyIsEntity() {
 
 		JpaPersistentEntityImpl<?> entity = context.getRequiredPersistentEntity(User.class);
 		assertThat(entity).isNotNull();
@@ -106,7 +106,7 @@ public class JpaMetamodelMappingContextIntegrationTests {
 	}
 
 	@Test // DATAJPA-608
-	public void detectsEntityPropertyForCollections() {
+	void detectsEntityPropertyForCollections() {
 
 		JpaPersistentEntityImpl<?> entity = context.getRequiredPersistentEntity(User.class);
 		assertThat(entity).isNotNull();
@@ -115,7 +115,7 @@ public class JpaMetamodelMappingContextIntegrationTests {
 	}
 
 	@Test // DATAJPA-630
-	public void lookingUpIdentifierOfProxyDoesNotInitializeProxy() {
+	void lookingUpIdentifierOfProxyDoesNotInitializeProxy() {
 
 		TransactionTemplate template = new TransactionTemplate(transactionManager);
 		final Category category = template.execute(status -> {
@@ -146,7 +146,7 @@ public class JpaMetamodelMappingContextIntegrationTests {
 	 * @see DATAJPA-658
 	 */
 	@Test
-	public void shouldDetectIdPropertyForEntityConfiguredViaOrmXmlWithoutAnyAnnotations() {
+	void shouldDetectIdPropertyForEntityConfiguredViaOrmXmlWithoutAnyAnnotations() {
 
 		JpaPersistentEntity<?> entity = context.getPersistentEntity(OrmXmlEntity.class);
 
@@ -154,7 +154,7 @@ public class JpaMetamodelMappingContextIntegrationTests {
 	}
 
 	@Test // DATAJPA-1320
-	public void detectsEmbeddableProperty() {
+	void detectsEmbeddableProperty() {
 
 		JpaPersistentEntity<?> persistentEntity = context.getPersistentEntity(User.class);
 		JpaPersistentProperty property = persistentEntity.getPersistentProperty("address");
@@ -163,7 +163,7 @@ public class JpaMetamodelMappingContextIntegrationTests {
 	}
 
 	@Test // DATAJPA-1320
-	public void traversesEmbeddablesButNoOtherMappingAnnotations() {
+	void traversesEmbeddablesButNoOtherMappingAnnotations() {
 
 		PersistentPropertyPaths<User, JpaPersistentProperty> paths = //
 				context.findPersistentPropertyPaths(User.class, __ -> true);

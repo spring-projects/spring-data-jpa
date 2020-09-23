@@ -44,7 +44,7 @@ public abstract class DefaultTransactionDisablingIntegrationTests {
 	@Autowired DelegatingTransactionManager txManager;
 
 	@Test // DATAJPA-685
-	public void considersExplicitConfigurationOnRepositoryInterface() {
+	void considersExplicitConfigurationOnRepositoryInterface() {
 
 		repository.findById(1);
 
@@ -52,7 +52,7 @@ public abstract class DefaultTransactionDisablingIntegrationTests {
 	}
 
 	@Test // DATAJPA-685
-	public void doesNotUseDefaultTransactionsOnNonRedeclaredMethod() {
+	void doesNotUseDefaultTransactionsOnNonRedeclaredMethod() {
 
 		repository.findAll(PageRequest.of(0, 10));
 
@@ -60,7 +60,7 @@ public abstract class DefaultTransactionDisablingIntegrationTests {
 	}
 
 	@Test // DATAJPA-685
-	public void persistingAnEntityShouldThrowExceptionDueToMissingTransaction() {
+	void persistingAnEntityShouldThrowExceptionDueToMissingTransaction() {
 
 		assertThatThrownBy(() -> repository.saveAndFlush(new User())) //
 				.isInstanceOf(InvalidDataAccessApiUsageException.class) //

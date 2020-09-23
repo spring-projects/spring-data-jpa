@@ -47,22 +47,22 @@ import org.springframework.transaction.annotation.Transactional;
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration({ "classpath:infrastructure.xml" })
 @Transactional
-public class JpaRepositoryTests {
+class JpaRepositoryTests {
 
 	@PersistenceContext EntityManager em;
 
-	JpaRepository<SampleEntity, SampleEntityPK> repository;
-	CrudRepository<PersistableWithIdClass, PersistableWithIdClassPK> idClassRepository;
+	private JpaRepository<SampleEntity, SampleEntityPK> repository;
+	private CrudRepository<PersistableWithIdClass, PersistableWithIdClassPK> idClassRepository;
 
 	@BeforeEach
-	public void setUp() {
+	void setUp() {
 
 		repository = new JpaRepositoryFactory(em).getRepository(SampleEntityRepository.class);
 		idClassRepository = new JpaRepositoryFactory(em).getRepository(SampleWithIdClassRepository.class);
 	}
 
 	@Test
-	public void testCrudOperationsForCompoundKeyEntity() throws Exception {
+	void testCrudOperationsForCompoundKeyEntity() throws Exception {
 
 		SampleEntity entity = new SampleEntity("foo", "bar");
 		repository.saveAndFlush(entity);
@@ -76,7 +76,7 @@ public class JpaRepositoryTests {
 	}
 
 	@Test // DATAJPA-50
-	public void executesCrudOperationsForEntityWithIdClass() {
+	void executesCrudOperationsForEntityWithIdClass() {
 
 		PersistableWithIdClass entity = new PersistableWithIdClass(1L, 1L);
 		idClassRepository.save(entity);
@@ -90,7 +90,7 @@ public class JpaRepositoryTests {
 	}
 
 	@Test // DATAJPA-266
-	public void testExistsForDomainObjectsWithCompositeKeys() throws Exception {
+	void testExistsForDomainObjectsWithCompositeKeys() throws Exception {
 
 		PersistableWithIdClass s1 = idClassRepository.save(new PersistableWithIdClass(1L, 1L));
 		PersistableWithIdClass s2 = idClassRepository.save(new PersistableWithIdClass(2L, 2L));
@@ -101,7 +101,7 @@ public class JpaRepositoryTests {
 	}
 
 	@Test // DATAJPA-527
-	public void executesExistsForEntityWithIdClass() {
+	void executesExistsForEntityWithIdClass() {
 
 		PersistableWithIdClass entity = new PersistableWithIdClass(1L, 1L);
 		idClassRepository.save(entity);

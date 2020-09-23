@@ -31,11 +31,11 @@ public abstract class AbstractMappedType {
 
 	@Id @GeneratedValue @Getter Long id;
 	@Version Long version;
-	String attribute1;
+	private String attribute1;
 
-	public AbstractMappedType() {}
+	AbstractMappedType() {}
 
-	public AbstractMappedType(String attribute1) {
+	AbstractMappedType(String attribute1) {
 		this.attribute1 = attribute1;
 	}
 }

@@ -25,12 +25,12 @@ import org.springframework.test.context.ContextConfiguration;
  * @author Oliver Gierke
  */
 @ContextConfiguration("classpath:openjpa.xml")
-public class OpenJpaMetamodelIntegrationTests extends MetamodelIntegrationTests {
+class OpenJpaMetamodelIntegrationTests extends MetamodelIntegrationTests {
 
 	@Test
 	@Disabled
 	@Override
-	public void canAccessParametersByIndexForNativeQueries() {}
+	void canAccessParametersByIndexForNativeQueries() {}
 
 	/**
 	 * TODO: Remove once https://issues.apache.org/jira/browse/OPENJPA-2618 is fixed.
@@ -38,5 +38,5 @@ public class OpenJpaMetamodelIntegrationTests extends MetamodelIntegrationTests 
 	@Test
 	@Disabled
 	@Override
-	public void doesNotExposeAliasForTupleIfNoneDefined() {}
+	void doesNotExposeAliasForTupleIfNoneDefined() {}
 }

@@ -38,7 +38,7 @@ public class EntityWithAssignedIdIntegrationTests {
 	@Autowired EntityWithAssignedIdRepository repository;
 
 	@Test // DATAJPA-1535
-	public void deletesEntityJustCreated() {
+	void deletesEntityJustCreated() {
 
 		EntityWithAssignedId entityWithAssignedId = repository.save(new EntityWithAssignedId());
 

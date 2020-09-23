@@ -23,6 +23,6 @@ import org.springframework.test.context.ContextConfiguration;
  * @author Oliver Gierke
  */
 @ContextConfiguration("classpath:eclipselink.xml")
-public class EclipseLinkJpaRepositoryTests extends JpaRepositoryTests {
+class EclipseLinkJpaRepositoryTests extends JpaRepositoryTests {
 
 }

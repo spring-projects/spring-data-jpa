@@ -46,7 +46,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-public class CrudMethodMetadataPopulatingMethodInterceptorUnitTests {
+class CrudMethodMetadataPopulatingMethodInterceptorUnitTests {
 
 	@Mock MethodInvocation invocation;
 	@Mock RepositoryInformation information;
@@ -71,7 +71,7 @@ public class CrudMethodMetadataPopulatingMethodInterceptorUnitTests {
 
 	@Test // DATAJPA-268
 	@SuppressWarnings("unchecked")
-	public void cleansUpBoundResources() throws Throwable {
+	void cleansUpBoundResources() throws Throwable {
 
 		Method method = prepareMethodInvocation("someMethod");
 		when(information.isQueryMethod(method)).thenReturn(false);
@@ -86,7 +86,7 @@ public class CrudMethodMetadataPopulatingMethodInterceptorUnitTests {
 
 	@Test // DATAJPA-839, DATAJPA-1368
 	@SuppressWarnings("unchecked")
-	public void looksUpCrudMethodMetadataForEveryInvocation() {
+	void looksUpCrudMethodMetadataForEveryInvocation() {
 
 		CrudMethodMetadata metadata = new CrudMethodMetadataPostProcessor().getCrudMethodMetadata();
 		when(information.isQueryMethod(any())).thenReturn(false);

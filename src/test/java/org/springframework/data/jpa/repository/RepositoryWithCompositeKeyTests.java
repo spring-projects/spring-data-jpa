@@ -61,7 +61,7 @@ public class RepositoryWithCompositeKeyTests {
 	 *      Specification 2.4.1.3 Derived Identities Example 2</a>
 	 */
 	@Test // DATAJPA-269
-	public void shouldSupportSavingEntitiesWithCompositeKeyClassesWithIdClassAndDerivedIdentities() {
+	void shouldSupportSavingEntitiesWithCompositeKeyClassesWithIdClassAndDerivedIdentities() {
 
 		IdClassExampleDepartment dep = new IdClassExampleDepartment();
 		dep.setName("TestDepartment");
@@ -87,7 +87,7 @@ public class RepositoryWithCompositeKeyTests {
 	 *      Specification 2.4.1.3 Derived Identities Example 3</a>
 	 */
 	@Test // DATAJPA-269
-	public void shouldSupportSavingEntitiesWithCompositeKeyClassesWithEmbeddedIdsAndDerivedIdentities() {
+	void shouldSupportSavingEntitiesWithCompositeKeyClassesWithEmbeddedIdsAndDerivedIdentities() {
 
 		EmbeddedIdExampleDepartment dep = new EmbeddedIdExampleDepartment();
 		dep.setName("TestDepartment");
@@ -110,7 +110,7 @@ public class RepositoryWithCompositeKeyTests {
 	}
 
 	@Test // DATAJPA-472, DATAJPA-912
-	public void shouldSupportFindAllWithPageableAndEntityWithIdClass() throws Exception {
+	void shouldSupportFindAllWithPageableAndEntityWithIdClass() throws Exception {
 
 		IdClassExampleDepartment dep = new IdClassExampleDepartment();
 		dep.setName("TestDepartment");
@@ -127,7 +127,7 @@ public class RepositoryWithCompositeKeyTests {
 	}
 
 	@Test // DATAJPA-497
-	public void sortByEmbeddedPkFieldInCompositePkWithEmbeddedIdInQueryDsl() {
+	void sortByEmbeddedPkFieldInCompositePkWithEmbeddedIdInQueryDsl() {
 
 		EmbeddedIdExampleDepartment dep1 = new EmbeddedIdExampleDepartment();
 		dep1.setDepartmentId(1L);
@@ -163,7 +163,7 @@ public class RepositoryWithCompositeKeyTests {
 	}
 
 	@Test // DATAJPA-497
-	public void sortByEmbeddedPkFieldInCompositePkWithIdClassInQueryDsl() {
+	void sortByEmbeddedPkFieldInCompositePkWithIdClassInQueryDsl() {
 
 		IdClassExampleDepartment dep1 = new IdClassExampleDepartment();
 		dep1.setDepartmentId(1L);
@@ -199,7 +199,7 @@ public class RepositoryWithCompositeKeyTests {
 	}
 
 	@Test // DATAJPA-527, DATAJPA-1148
-	public void testExistsWithIdClass() {
+	void testExistsWithIdClass() {
 
 		IdClassExampleDepartment dep = new IdClassExampleDepartment();
 		dep.setName("TestDepartment");
@@ -219,7 +219,7 @@ public class RepositoryWithCompositeKeyTests {
 	}
 
 	@Test // DATAJPA-527
-	public void testExistsWithEmbeddedId() {
+	void testExistsWithEmbeddedId() {
 
 		EmbeddedIdExampleDepartment dep1 = new EmbeddedIdExampleDepartment();
 		dep1.setDepartmentId(1L);
@@ -242,7 +242,7 @@ public class RepositoryWithCompositeKeyTests {
 	}
 
 	@Test // DATAJPA-611
-	public void shouldAllowFindAllWithIdsForEntitiesWithCompoundIdClassKeys() {
+	void shouldAllowFindAllWithIdsForEntitiesWithCompoundIdClassKeys() {
 
 		IdClassExampleDepartment dep2 = new IdClassExampleDepartment();
 		dep2.setDepartmentId(2L);
@@ -276,7 +276,7 @@ public class RepositoryWithCompositeKeyTests {
 	}
 
 	@Test // DATAJPA-920
-	public void shouldExecuteExistsQueryForEntitiesWithEmbeddedId() {
+	void shouldExecuteExistsQueryForEntitiesWithEmbeddedId() {
 
 		EmbeddedIdExampleDepartment dep1 = new EmbeddedIdExampleDepartment();
 		dep1.setDepartmentId(1L);
@@ -297,7 +297,7 @@ public class RepositoryWithCompositeKeyTests {
 	}
 
 	@Test // DATAJPA-920
-	public void shouldExecuteExistsQueryForEntitiesWithCompoundIdClassKeys() {
+	void shouldExecuteExistsQueryForEntitiesWithCompoundIdClassKeys() {
 
 		IdClassExampleDepartment dep2 = new IdClassExampleDepartment();
 		dep2.setDepartmentId(2L);

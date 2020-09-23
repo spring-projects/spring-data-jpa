@@ -40,12 +40,12 @@ import org.springframework.data.repository.config.RepositoryConfigurationSource;
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-public class JpaMetamodelCacheCleanupIntegrationTests {
+class JpaMetamodelCacheCleanupIntegrationTests {
 
 	@Mock Metamodel metamodel;
 
 	@Test // DATAJPA-1446
-	public void wipesJpaMetamodelCacheOnApplicationContextClose() {
+	void wipesJpaMetamodelCacheOnApplicationContextClose() {
 
 		JpaMetamodel model = JpaMetamodel.of(metamodel);
 
@@ -61,7 +61,7 @@ public class JpaMetamodelCacheCleanupIntegrationTests {
 	}
 
 	@Test // DATAJPA-1487, DATAJPA-1446
-	public void registersCleanupBeanAsNonLazy() {
+	void registersCleanupBeanAsNonLazy() {
 
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 		RepositoryConfigurationSource configurationSource = mock(RepositoryConfigurationSource.class);

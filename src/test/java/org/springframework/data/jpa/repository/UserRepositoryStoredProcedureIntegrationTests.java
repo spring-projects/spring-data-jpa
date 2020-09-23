@@ -53,31 +53,31 @@ public class UserRepositoryStoredProcedureIntegrationTests {
 	@PersistenceContext EntityManager em;
 
 	@Test // DATAJPA-455
-	public void callProcedureWithInAndOutParameters() {
+	void callProcedureWithInAndOutParameters() {
 
 		assertThat(repository.plus1inout(1)).isEqualTo(2);
 	}
 
 	@Test // DATAJPA-707
-	public void callProcedureWithInAndOutParametersInvalidOutParamName() {
+	void callProcedureWithInAndOutParametersInvalidOutParamName() {
 
 		assertThat(repository.plus1inoutInvalidOutParamName(1)).isEqualTo(2);
 	}
 
 	@Test // DATAJPA-455
-	public void callProcedureExplicitNameWithInAndOutParameters() {
+	void callProcedureExplicitNameWithInAndOutParameters() {
 
 		assertThat(repository.explicitlyNamedPlus1inout(1)).isEqualTo(2);
 	}
 
 	@Test // DATAJPA-455
-	public void entityAnnotatedCustomNamedProcedurePlus1IO() {
+	void entityAnnotatedCustomNamedProcedurePlus1IO() {
 
 		assertThat(repository.entityAnnotatedCustomNamedProcedurePlus1IO(1)).isEqualTo(2);
 	}
 
 	@Test // DATAJPA-707
-	public void entityAnnotatedCustomNamedProcedurePlus1IOInvalidOutParamName() {
+	void entityAnnotatedCustomNamedProcedurePlus1IOInvalidOutParamName() {
 
 		assertThatThrownBy( //
 				() -> repository.entityAnnotatedCustomNamedProcedurePlus1IOInvalidOutParamName(1)) //
@@ -86,13 +86,13 @@ public class UserRepositoryStoredProcedureIntegrationTests {
 	}
 
 	@Test // DATAJPA-707
-	public void entityAnnotatedCustomNamedProcedurePlus1IO2TwoOutParamsButNamingOne() {
+	void entityAnnotatedCustomNamedProcedurePlus1IO2TwoOutParamsButNamingOne() {
 
 		assertThat(repository.entityAnnotatedCustomNamedProcedurePlus1IO2TwoOutParamsButNamingOne(1)).isEqualTo(3);
 	}
 
 	@Test // DATAJPA-707 DATAJPA-1579
-	public void entityAnnotatedCustomNamedProcedurePlus1IO2() {
+	void entityAnnotatedCustomNamedProcedurePlus1IO2() {
 
 		Map<String, Integer> result = repository.entityAnnotatedCustomNamedProcedurePlus1IO2(1);
 
@@ -100,7 +100,7 @@ public class UserRepositoryStoredProcedureIntegrationTests {
 	}
 
 	@Test // DATAJPA-1579
-	public void entityAnnotatedCustomNamedProcedurePlus1IOoptional() {
+	void entityAnnotatedCustomNamedProcedurePlus1IOoptional() {
 
 		Map<String, Integer> result = repository.entityAnnotatedCustomNamedProcedurePlus1IOoptional(1);
 
@@ -108,7 +108,7 @@ public class UserRepositoryStoredProcedureIntegrationTests {
 	}
 
 	@Test // DATAJPA-455
-	public void plainJpa21() {
+	void plainJpa21() {
 
 		StoredProcedureQuery proc = em.createStoredProcedureQuery("plus1inout");
 		proc.registerStoredProcedureParameter(1, Integer.class, ParameterMode.IN);
@@ -121,7 +121,7 @@ public class UserRepositoryStoredProcedureIntegrationTests {
 	}
 
 	@Test // DATAJPA-455
-	public void plainJpa21_entityAnnotatedCustomNamedProcedurePlus1IO() {
+	void plainJpa21_entityAnnotatedCustomNamedProcedurePlus1IO() {
 
 		StoredProcedureQuery proc = em.createNamedStoredProcedureQuery("User.plus1IO");
 
@@ -132,7 +132,7 @@ public class UserRepositoryStoredProcedureIntegrationTests {
 	}
 
 	@Test // DATAJPA-707
-	public void plainJpa21_twoOutParams() {
+	void plainJpa21_twoOutParams() {
 
 		StoredProcedureQuery proc = em.createStoredProcedureQuery("plus1inout2");
 		proc.registerStoredProcedureParameter(1, Integer.class, ParameterMode.IN);
@@ -147,7 +147,7 @@ public class UserRepositoryStoredProcedureIntegrationTests {
 	}
 
 	@Test // DATAJPA-707
-	public void plainJpa21_entityAnnotatedCustomNamedProcedurePlus1IO2() {
+	void plainJpa21_entityAnnotatedCustomNamedProcedurePlus1IO2() {
 
 		StoredProcedureQuery proc = em.createNamedStoredProcedureQuery("User.plus1IO2");
 

@@ -45,7 +45,7 @@ public class RoleRepositoryIntegrationTests {
 	@Autowired RoleRepository repository;
 
 	@Test
-	public void createsRole() throws Exception {
+	void createsRole() throws Exception {
 
 		Role reference = new Role("ADMIN");
 		Role result = repository.save(reference);
@@ -53,7 +53,7 @@ public class RoleRepositoryIntegrationTests {
 	}
 
 	@Test
-	public void updatesRole() throws Exception {
+	void updatesRole() throws Exception {
 
 		Role reference = new Role("ADMIN");
 		Role result = repository.save(reference);
@@ -67,7 +67,7 @@ public class RoleRepositoryIntegrationTests {
 	}
 
 	@Test // DATAJPA-509
-	public void shouldUseExplicitlyConfiguredEntityNameInOrmXmlInCountQueries() {
+	void shouldUseExplicitlyConfiguredEntityNameInOrmXmlInCountQueries() {
 
 		Role reference = new Role("ADMIN");
 		repository.save(reference);
@@ -76,7 +76,7 @@ public class RoleRepositoryIntegrationTests {
 	}
 
 	@Test // DATAJPA-509
-	public void shouldUseExplicitlyConfiguredEntityNameInOrmXmlInExistsQueries() {
+	void shouldUseExplicitlyConfiguredEntityNameInOrmXmlInExistsQueries() {
 
 		Role reference = new Role("ADMIN");
 		reference = repository.save(reference);
@@ -85,7 +85,7 @@ public class RoleRepositoryIntegrationTests {
 	}
 
 	@Test // DATAJPA-509
-	public void shouldUseExplicitlyConfiguredEntityNameInDerivedCountQueries() {
+	void shouldUseExplicitlyConfiguredEntityNameInDerivedCountQueries() {
 
 		Role reference = new Role("ADMIN");
 		reference = repository.save(reference);

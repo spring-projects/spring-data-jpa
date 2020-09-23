@@ -43,7 +43,7 @@ public class NestedRepositoriesJavaConfigTests {
 	@Autowired NestedUserRepository nestedUserRepository;
 
 	@Test // DATAJPA-416
-	public void shouldSupportNestedRepositories() {
+	void shouldSupportNestedRepositories() {
 		assertThat(nestedUserRepository).isNotNull();
 	}
 

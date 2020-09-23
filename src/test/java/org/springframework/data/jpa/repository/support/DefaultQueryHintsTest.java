@@ -29,20 +29,20 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jens Schauder
  */
-public class DefaultQueryHintsTest {
+class DefaultQueryHintsTest {
 
-	JpaEntityInformation<?, ?> information = mock(JpaEntityInformation.class);
-	CrudMethodMetadata metadata = mock(CrudMethodMetadata.class);
+	private JpaEntityInformation<?, ?> information = mock(JpaEntityInformation.class);
+	private CrudMethodMetadata metadata = mock(CrudMethodMetadata.class);
 
 	@BeforeEach
-	public void before() {
+	void before() {
 
 		setupMainHints();
 		setUpCountHints();
 	}
 
 	@Test // DATAJPA-1156
-	public void mainHints() {
+	void mainHints() {
 
 		QueryHints hints = DefaultQueryHints.of(information, metadata);
 
@@ -57,7 +57,7 @@ public class DefaultQueryHintsTest {
 	}
 
 	@Test // DATAJPA-1156
-	public void countHints() {
+	void countHints() {
 
 		QueryHints hints = DefaultQueryHints.of(information, metadata).forCounts();
 

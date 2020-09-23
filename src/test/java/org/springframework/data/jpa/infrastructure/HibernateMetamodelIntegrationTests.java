@@ -24,17 +24,17 @@ import org.junit.jupiter.api.Test;
  * @author Oliver Gierke
  * @soundtrack Umphrey's McGee - Intentions Clear (Safety In Numbers)
  */
-public class HibernateMetamodelIntegrationTests extends MetamodelIntegrationTests {
+class HibernateMetamodelIntegrationTests extends MetamodelIntegrationTests {
 
 	@Test
 	@Disabled
 	@Override
-	public void pathToEntityIsOfBindableTypeEntityType() {}
+	void pathToEntityIsOfBindableTypeEntityType() {}
 
 	@Test
 	@Disabled
 	@Override
-	public void considersOneToOneAttributeAnAssociation() {}
+	void considersOneToOneAttributeAnAssociation() {}
 
 	/**
 	 * @see <a href="https://hibernate.atlassian.net/browse/HHH-10341">HHH-10341</a>
@@ -42,5 +42,5 @@ public class HibernateMetamodelIntegrationTests extends MetamodelIntegrationTest
 	@Test
 	@Disabled
 	@Override
-	public void doesNotExposeAliasForTupleIfNoneDefined() {}
+	void doesNotExposeAliasForTupleIfNoneDefined() {}
 }

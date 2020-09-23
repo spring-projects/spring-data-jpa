@@ -52,7 +52,7 @@ import org.springframework.data.util.ClassTypeInformation;
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-public class NamedQueryUnitTests {
+class NamedQueryUnitTests {
 
 	@Mock RepositoryMetadata metadata;
 	@Mock QueryExtractor extractor;
@@ -60,13 +60,13 @@ public class NamedQueryUnitTests {
 	@Mock EntityManagerFactory emf;
 	@Mock Metamodel metamodel;
 
-	ProjectionFactory projectionFactory = new SpelAwareProxyProjectionFactory();
+	private ProjectionFactory projectionFactory = new SpelAwareProxyProjectionFactory();
 
-	Method method;
+	private Method method;
 
 	@BeforeEach
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public void setUp() throws SecurityException, NoSuchMethodException {
+	void setUp() throws SecurityException, NoSuchMethodException {
 
 		method = SampleRepository.class.getMethod("foo", Pageable.class);
 		when(metadata.getDomainType()).thenReturn((Class) String.class);
@@ -81,7 +81,7 @@ public class NamedQueryUnitTests {
 	}
 
 	@Test
-	public void rejectsPersistenceProviderIfIncapableOfExtractingQueriesAndPagebleBeingUsed() {
+	void rejectsPersistenceProviderIfIncapableOfExtractingQueriesAndPagebleBeingUsed() {
 
 		when(extractor.canExtractQuery()).thenReturn(false);
 		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, projectionFactory, extractor);
@@ -92,7 +92,7 @@ public class NamedQueryUnitTests {
 
 	@Test // DATAJPA-142
 	@SuppressWarnings("unchecked")
-	public void doesNotRejectPersistenceProviderIfNamedCountQueryIsAvailable() {
+	void doesNotRejectPersistenceProviderIfNamedCountQueryIsAvailable() {
 
 		when(extractor.canExtractQuery()).thenReturn(false);
 		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, projectionFactory, extractor);

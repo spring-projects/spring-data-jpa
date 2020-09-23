@@ -24,4 +24,4 @@ import org.springframework.test.context.ContextConfiguration;
  * @soundtrack Elephants Crossing - We are (Irrelephant)
  */
 @ContextConfiguration("classpath:openjpa.xml")
-public class OpenJpaParameterMetadataProviderIntegrationTests extends ParameterMetadataProviderIntegrationTests {}
+class OpenJpaParameterMetadataProviderIntegrationTests extends ParameterMetadataProviderIntegrationTests {}

@@ -51,7 +51,7 @@ public class JpaCountQueryCreatorIntegrationTests {
 	@PersistenceContext EntityManager entityManager;
 
 	@Test // DATAJPA-1044
-	public void distinctFlagOnCountQueryIssuesCountDistinct() throws Exception {
+	void distinctFlagOnCountQueryIssuesCountDistinct() throws Exception {
 
 		Method method = SomeRepository.class.getMethod("findDistinctByRolesIn", List.class);
 

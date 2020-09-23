@@ -25,13 +25,13 @@ import org.springframework.test.context.ContextConfiguration;
  * @author Oliver Gierke
  */
 @ContextConfiguration("classpath:openjpa.xml")
-public class OpenJpaMetamodelEntityInformationIntegrationTests extends JpaMetamodelEntityInformationIntegrationTests {
+class OpenJpaMetamodelEntityInformationIntegrationTests extends JpaMetamodelEntityInformationIntegrationTests {
 
 	/**
 	 * Re-activate test.
 	 */
 	@Test
-	public void reactivatedDetectsIdTypeForMappedSuperclass() {
+	void reactivatedDetectsIdTypeForMappedSuperclass() {
 		super.detectsIdTypeForMappedSuperclass();
 	}
 
@@ -40,19 +40,19 @@ public class OpenJpaMetamodelEntityInformationIntegrationTests extends JpaMetamo
 	 */
 	@Override
 	@Disabled
-	public void findsIdClassOnMappedSuperclass() {}
+	void findsIdClassOnMappedSuperclass() {}
 
 	/**
 	 * Re-activate test for DATAJPA-820.
 	 */
 	@Test
 	@Override
-	public void detectsVersionPropertyOnMappedSuperClass() {
+	void detectsVersionPropertyOnMappedSuperClass() {
 		super.detectsVersionPropertyOnMappedSuperClass();
 	}
 
 	@Override
-	protected String getMetadadataPersitenceUnitName() {
+	String getMetadadataPersitenceUnitName() {
 		return "metadata_oj";
 	}
 }

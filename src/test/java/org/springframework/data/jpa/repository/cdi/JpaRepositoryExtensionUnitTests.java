@@ -38,9 +38,10 @@ import org.springframework.test.util.ReflectionTestUtils;
  * @author Oliver Gierke
  * @author Jens Schauder
  */
-public class JpaRepositoryExtensionUnitTests {
+class JpaRepositoryExtensionUnitTests {
 
-	Bean<EntityManager> em, alternativeEm;
+	private Bean<EntityManager> em;
+	private Bean<EntityManager> alternativeEm;
 
 	@SuppressWarnings("unchecked")
 	private static void assertEntityManagerRegistered(JpaRepositoryExtension extension, Bean<EntityManager> em) {
@@ -62,7 +63,7 @@ public class JpaRepositoryExtensionUnitTests {
 
 	@BeforeEach
 	@SuppressWarnings("unchecked")
-	public void setUp() {
+	void setUp() {
 
 		Set<Type> types = Collections.singleton((Type) EntityManager.class);
 
@@ -76,7 +77,7 @@ public class JpaRepositoryExtensionUnitTests {
 	}
 
 	@Test
-	public void registersEntityManager() {
+	void registersEntityManager() {
 
 		JpaRepositoryExtension extension = new JpaRepositoryExtension();
 		extension.processBean(createEntityManagerBeanMock(em));
@@ -85,7 +86,7 @@ public class JpaRepositoryExtensionUnitTests {
 	}
 
 	@Test // DATAJPA-388
-	public void alternativeEntityManagerOverridesDefault() {
+	void alternativeEntityManagerOverridesDefault() {
 
 		JpaRepositoryExtension extension = new JpaRepositoryExtension();
 		extension.processBean(createEntityManagerBeanMock(em));
@@ -95,7 +96,7 @@ public class JpaRepositoryExtensionUnitTests {
 	}
 
 	@Test // DATAJPA-388
-	public void alternativeEntityManagerDoesNotGetOverridden() {
+	void alternativeEntityManagerDoesNotGetOverridden() {
 
 		JpaRepositoryExtension extension = new JpaRepositoryExtension();
 		extension.processBean(createEntityManagerBeanMock(alternativeEm));

@@ -25,7 +25,7 @@ import org.springframework.test.context.ContextConfiguration;
  * @author Oliver Gierke
  */
 @ContextConfiguration
-public class EclipseLinkStoredProcedureIntegrationTests extends StoredProcedureIntegrationTests {
+class EclipseLinkStoredProcedureIntegrationTests extends StoredProcedureIntegrationTests {
 
 	@ImportResource({ "classpath:infrastructure.xml", "classpath:eclipselink.xml" })
 	static class TestConfig extends Config {}

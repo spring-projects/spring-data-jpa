@@ -62,17 +62,19 @@ import com.querydsl.core.types.dsl.PathBuilderFactory;
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration({ "classpath:infrastructure.xml" })
 @Transactional
-public class QuerydslJpaPredicateExecutorUnitTests {
+class QuerydslJpaPredicateExecutorUnitTests {
 
 	@PersistenceContext EntityManager em;
 
-	QuerydslJpaPredicateExecutor<User> predicateExecutor;
-	QUser user = new QUser("user");
-	User dave, carter, oliver;
-	Role adminRole;
+	private QuerydslJpaPredicateExecutor<User> predicateExecutor;
+	private QUser user = new QUser("user");
+	private User dave;
+	private User carter;
+	private User oliver;
+	private Role adminRole;
 
 	@BeforeEach
-	public void setUp() {
+	void setUp() {
 
 		JpaEntityInformation<User, Integer> information = new JpaMetamodelEntityInformation<>(User.class,
 				em.getMetamodel());
@@ -87,7 +89,7 @@ public class QuerydslJpaPredicateExecutorUnitTests {
 	}
 
 	@Test
-	public void executesPredicatesCorrectly() throws Exception {
+	void executesPredicatesCorrectly() throws Exception {
 
 		BooleanExpression isCalledDave = user.firstname.eq("Dave");
 		BooleanExpression isBeauford = user.lastname.eq("Beauford");
@@ -98,7 +100,7 @@ public class QuerydslJpaPredicateExecutorUnitTests {
 	}
 
 	@Test
-	public void executesStringBasedPredicatesCorrectly() throws Exception {
+	void executesStringBasedPredicatesCorrectly() throws Exception {
 
 		PathBuilder<User> builder = new PathBuilderFactory().create(User.class);
 
@@ -111,7 +113,7 @@ public class QuerydslJpaPredicateExecutorUnitTests {
 	}
 
 	@Test // DATAJPA-243
-	public void considersSortingProvidedThroughPageable() {
+	void considersSortingProvidedThroughPageable() {
 
 		Predicate lastnameContainsE = user.lastname.contains("e");
 
@@ -125,7 +127,7 @@ public class QuerydslJpaPredicateExecutorUnitTests {
 	}
 
 	@Test // DATAJPA-296
-	public void appliesIgnoreCaseOrdering() {
+	void appliesIgnoreCaseOrdering() {
 
 		Sort sort = Sort.by(new Order(Direction.DESC, "lastname").ignoreCase(), new Order(Direction.ASC, "firstname"));
 
@@ -135,7 +137,7 @@ public class QuerydslJpaPredicateExecutorUnitTests {
 	}
 
 	@Test // DATAJPA-427
-	public void findBySpecificationWithSortByPluralAssociationPropertyInPageableShouldUseSortNullValuesLast() {
+	void findBySpecificationWithSortByPluralAssociationPropertyInPageableShouldUseSortNullValuesLast() {
 
 		oliver.getColleagues().add(dave);
 		dave.getColleagues().add(oliver);
@@ -149,7 +151,7 @@ public class QuerydslJpaPredicateExecutorUnitTests {
 	}
 
 	@Test // DATAJPA-427
-	public void findBySpecificationWithSortBySingularAssociationPropertyInPageableShouldUseSortNullValuesLast() {
+	void findBySpecificationWithSortBySingularAssociationPropertyInPageableShouldUseSortNullValuesLast() {
 
 		oliver.setManager(dave);
 		dave.setManager(carter);
@@ -163,7 +165,7 @@ public class QuerydslJpaPredicateExecutorUnitTests {
 	}
 
 	@Test // DATAJPA-427
-	public void findBySpecificationWithSortBySingularPropertyInPageableShouldUseSortNullValuesFirst() {
+	void findBySpecificationWithSortBySingularPropertyInPageableShouldUseSortNullValuesFirst() {
 
 		QUser user = QUser.user;
 
@@ -174,7 +176,7 @@ public class QuerydslJpaPredicateExecutorUnitTests {
 	}
 
 	@Test // DATAJPA-427
-	public void findBySpecificationWithSortByOrderIgnoreCaseBySingularPropertyInPageableShouldUseSortNullValuesFirst() {
+	void findBySpecificationWithSortByOrderIgnoreCaseBySingularPropertyInPageableShouldUseSortNullValuesFirst() {
 
 		QUser user = QUser.user;
 
@@ -185,7 +187,7 @@ public class QuerydslJpaPredicateExecutorUnitTests {
 	}
 
 	@Test // DATAJPA-427
-	public void findBySpecificationWithSortByNestedEmbeddedPropertyInPageableShouldUseSortNullValuesFirst() {
+	void findBySpecificationWithSortByNestedEmbeddedPropertyInPageableShouldUseSortNullValuesFirst() {
 
 		oliver.setAddress(new Address("Germany", "Saarbrücken", "HaveItYourWay", "123"));
 
@@ -198,7 +200,7 @@ public class QuerydslJpaPredicateExecutorUnitTests {
 	}
 
 	@Test // DATAJPA-12
-	public void findBySpecificationWithSortByQueryDslOrderSpecifierWithQPageRequestAndQSort() {
+	void findBySpecificationWithSortByQueryDslOrderSpecifierWithQPageRequestAndQSort() {
 
 		QUser user = QUser.user;
 
@@ -209,7 +211,7 @@ public class QuerydslJpaPredicateExecutorUnitTests {
 	}
 
 	@Test // DATAJPA-12
-	public void findBySpecificationWithSortByQueryDslOrderSpecifierWithQPageRequest() {
+	void findBySpecificationWithSortByQueryDslOrderSpecifierWithQPageRequest() {
 
 		QUser user = QUser.user;
 
@@ -219,7 +221,7 @@ public class QuerydslJpaPredicateExecutorUnitTests {
 	}
 
 	@Test // DATAJPA-12
-	public void findBySpecificationWithSortByQueryDslOrderSpecifierForAssociationShouldGenerateLeftJoinWithQPageRequest() {
+	void findBySpecificationWithSortByQueryDslOrderSpecifierForAssociationShouldGenerateLeftJoinWithQPageRequest() {
 
 		oliver.setManager(dave);
 		dave.setManager(carter);
@@ -233,7 +235,7 @@ public class QuerydslJpaPredicateExecutorUnitTests {
 	}
 
 	@Test // DATAJPA-500, DATAJPA-635
-	public void sortByNestedEmbeddedAttribute() {
+	void sortByNestedEmbeddedAttribute() {
 
 		carter.setAddress(new Address("U", "Z", "Y", "41"));
 		dave.setAddress(new Address("U", "A", "Y", "41"));
@@ -245,7 +247,7 @@ public class QuerydslJpaPredicateExecutorUnitTests {
 	}
 
 	@Test // DATAJPA-566, DATAJPA-635
-	public void shouldSupportSortByOperatorWithDateExpressions() {
+	void shouldSupportSortByOperatorWithDateExpressions() {
 
 		carter.setDateOfBirth(new LocalDate(2000, 2, 1).toDate());
 		dave.setDateOfBirth(new LocalDate(2000, 1, 1).toDate());
@@ -257,7 +259,7 @@ public class QuerydslJpaPredicateExecutorUnitTests {
 	}
 
 	@Test // DATAJPA-665
-	public void shouldSupportExistsWithPredicate() throws Exception {
+	void shouldSupportExistsWithPredicate() throws Exception {
 
 		assertThat(predicateExecutor.exists(user.firstname.eq("Dave"))).isEqualTo(true);
 		assertThat(predicateExecutor.exists(user.firstname.eq("Unknown"))).isEqualTo(false);
@@ -265,7 +267,7 @@ public class QuerydslJpaPredicateExecutorUnitTests {
 	}
 
 	@Test // DATAJPA-679
-	public void shouldSupportFindAllWithPredicateAndSort() {
+	void shouldSupportFindAllWithPredicateAndSort() {
 
 		List<User> users = predicateExecutor.findAll(user.dateOfBirth.isNull(), Sort.by(Direction.ASC, "firstname"));
 
@@ -273,12 +275,12 @@ public class QuerydslJpaPredicateExecutorUnitTests {
 	}
 
 	@Test // DATAJPA-585
-	public void worksWithUnpagedPageable() {
+	void worksWithUnpagedPageable() {
 		assertThat(predicateExecutor.findAll(user.dateOfBirth.isNull(), Pageable.unpaged()).getContent()).hasSize(3);
 	}
 
 	@Test // DATAJPA-912
-	public void pageableQueryReportsTotalFromResult() {
+	void pageableQueryReportsTotalFromResult() {
 
 		Page<User> firstPage = predicateExecutor.findAll(user.dateOfBirth.isNull(), PageRequest.of(0, 10));
 		assertThat(firstPage.getContent()).hasSize(3);
@@ -290,7 +292,7 @@ public class QuerydslJpaPredicateExecutorUnitTests {
 	}
 
 	@Test // DATAJPA-912
-	public void pageableQueryReportsTotalFromCount() {
+	void pageableQueryReportsTotalFromCount() {
 
 		Page<User> firstPage = predicateExecutor.findAll(user.dateOfBirth.isNull(), PageRequest.of(0, 3));
 		assertThat(firstPage.getContent()).hasSize(3);
@@ -302,17 +304,17 @@ public class QuerydslJpaPredicateExecutorUnitTests {
 	}
 
 	@Test // DATAJPA-1115
-	public void findOneWithPredicateReturnsResultCorrectly() {
+	void findOneWithPredicateReturnsResultCorrectly() {
 		assertThat(predicateExecutor.findOne(user.eq(dave))).contains(dave);
 	}
 
 	@Test // DATAJPA-1115
-	public void findOneWithPredicateReturnsOptionalEmptyWhenNoDataFound() {
+	void findOneWithPredicateReturnsOptionalEmptyWhenNoDataFound() {
 		assertThat(predicateExecutor.findOne(user.firstname.eq("batman"))).isNotPresent();
 	}
 
 	@Test // DATAJPA-1115
-	public void findOneWithPredicateThrowsExceptionForNonUniqueResults() {
+	void findOneWithPredicateThrowsExceptionForNonUniqueResults() {
 		assertThatExceptionOfType(IncorrectResultSizeDataAccessException.class)
 				.isThrownBy(() -> predicateExecutor.findOne(user.emailAddress.contains("com")));
 	}

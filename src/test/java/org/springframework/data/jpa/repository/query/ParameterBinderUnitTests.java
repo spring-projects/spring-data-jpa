@@ -58,14 +58,14 @@ import org.springframework.data.repository.query.Param;
 @MockitoSettings(strictness = Strictness.LENIENT)
 public class ParameterBinderUnitTests {
 
-	public static final int MAX_PARAMETERS = 1;
+	private static final int MAX_PARAMETERS = 1;
 	private Method valid;
 
 	@Mock(answer = Answers.RETURNS_DEEP_STUBS) private Query query;
 	private Method useIndexedParameters;
 
 	@BeforeEach
-	public void setUp() throws SecurityException, NoSuchMethodException {
+	void setUp() throws SecurityException, NoSuchMethodException {
 
 		valid = SampleRepository.class.getMethod("valid", String.class);
 
@@ -103,7 +103,7 @@ public class ParameterBinderUnitTests {
 	}
 
 	@Test
-	public void bindWorksWithNullForSort() throws Exception {
+	void bindWorksWithNullForSort() throws Exception {
 
 		Method validWithSort = SampleRepository.class.getMethod("validWithSort", String.class, Sort.class);
 
@@ -113,7 +113,7 @@ public class ParameterBinderUnitTests {
 	}
 
 	@Test
-	public void bindWorksWithNullForPageable() throws Exception {
+	void bindWorksWithNullForPageable() throws Exception {
 
 		Method validWithPageable = SampleRepository.class.getMethod("validWithPageable", String.class, Pageable.class);
 
@@ -123,7 +123,7 @@ public class ParameterBinderUnitTests {
 	}
 
 	@Test
-	public void usesIndexedParametersIfNoParamAnnotationPresent() throws Exception {
+	void usesIndexedParametersIfNoParamAnnotationPresent() throws Exception {
 
 		Object[] values = { "foo" };
 		bind(useIndexedParameters, values);
@@ -131,8 +131,7 @@ public class ParameterBinderUnitTests {
 	}
 
 	@Test
-
-	public void usesParameterNameIfAnnotated() throws Exception {
+	void usesParameterNameIfAnnotated() throws Exception {
 
 		when(query.setParameter(eq("username"), any())).thenReturn(query);
 
@@ -147,7 +146,7 @@ public class ParameterBinderUnitTests {
 	}
 
 	@Test
-	public void bindsEmbeddableCorrectly() throws Exception {
+	void bindsEmbeddableCorrectly() throws Exception {
 
 		Method method = getClass().getMethod("findByEmbeddable", SampleEmbeddable.class);
 		JpaParameters parameters = new JpaParameters(method);
@@ -160,7 +159,7 @@ public class ParameterBinderUnitTests {
 	}
 
 	@Test // DATAJPA-107
-	public void shouldSetTemporalQueryParameterToDate() throws Exception {
+	void shouldSetTemporalQueryParameterToDate() throws Exception {
 
 		Method method = SampleRepository.class.getMethod("validWithDefaultTemporalTypeParameter", Date.class);
 		JpaParameters parameters = new JpaParameters(method);
@@ -173,7 +172,7 @@ public class ParameterBinderUnitTests {
 	}
 
 	@Test // DATAJPA-107
-	public void shouldSetTemporalQueryParameterToTimestamp() throws Exception {
+	void shouldSetTemporalQueryParameterToTimestamp() throws Exception {
 
 		Method method = SampleRepository.class.getMethod("validWithCustomTemporalTypeParameter", Date.class);
 		JpaParameters parameters = new JpaParameters(method);
@@ -186,7 +185,7 @@ public class ParameterBinderUnitTests {
 	}
 
 	@Test // DATAJPA-107
-	public void shouldThrowIllegalArgumentExceptionIfIsAnnotatedWithTemporalParamAndParameterTypeIsNotDate()
+	void shouldThrowIllegalArgumentExceptionIfIsAnnotatedWithTemporalParamAndParameterTypeIsNotDate()
 			throws Exception {
 		Method method = SampleRepository.class.getMethod("invalidWithTemporalTypeParameter", String.class);
 
@@ -194,7 +193,7 @@ public class ParameterBinderUnitTests {
 	}
 
 	@Test // DATAJPA-461
-	public void shouldAllowBindingOfVarArgsAsIs() throws Exception {
+	void shouldAllowBindingOfVarArgsAsIs() throws Exception {
 
 		Method method = SampleRepository.class.getMethod("validWithVarArgs", Integer[].class);
 		JpaParameters parameters = new JpaParameters(method);
@@ -206,7 +205,7 @@ public class ParameterBinderUnitTests {
 	}
 
 	@Test // DATAJPA-809
-	public void unwrapsOptionalParameter() throws Exception {
+	void unwrapsOptionalParameter() throws Exception {
 
 		Method method = SampleRepository.class.getMethod("optionalParameter", Optional.class);
 		JpaParameters parameters = new JpaParameters(method);
@@ -218,7 +217,7 @@ public class ParameterBinderUnitTests {
 	}
 
 	@Test // DATAJPA-1172
-	public void doesNotBindExcessParameters() throws Exception {
+	void doesNotBindExcessParameters() throws Exception {
 
 		Method method = SampleRepository.class.getMethod("withQuery", String.class, String.class);
 
@@ -242,6 +241,7 @@ public class ParameterBinderUnitTests {
 		return new JpaParametersParameterAccessor(new JpaParameters(method), values);
 	}
 
+	// needs to be public
 	public SampleEntity findByEmbeddable(SampleEmbeddable embeddable) {
 
 		return null;

@@ -40,7 +40,7 @@ import com.querydsl.core.types.EntityPath;
  * @author Jens Schauder
  * @author Oliver Gierke
  */
-public class JpaRepositoryFactoryBeanEntityPathResolverIntegrationTests {
+class JpaRepositoryFactoryBeanEntityPathResolverIntegrationTests {
 
 	@Configuration
 	@ImportResource("classpath:infrastructure.xml")
@@ -76,17 +76,17 @@ public class JpaRepositoryFactoryBeanEntityPathResolverIntegrationTests {
 	}
 
 	@Test // DATAJPA-1234, DATAJPA-1394
-	public void usesSimpleEntityPathResolverByDefault() {
+	void usesSimpleEntityPathResolverByDefault() {
 		assertEntityPathResolver(SimpleEntityPathResolver.INSTANCE, BaseConfig.class);
 	}
 
 	@Test // DATAJPA-1234, DATAJPA-1394
-	public void usesExplicitlyRegisteredEntityPathResolver() {
+	void usesExplicitlyRegisteredEntityPathResolver() {
 		assertEntityPathResolver(BaseConfig.RESOLVER, BaseConfig.class, FirstEntityPathResolver.class);
 	}
 
 	@Test // DATAJPA-1234, DATAJPA-1394
-	public void rejectsMulitpleEntityPathResolvers() {
+	void rejectsMulitpleEntityPathResolvers() {
 
 		assertThatExceptionOfType(BeanCreationException.class).isThrownBy(() -> {
 

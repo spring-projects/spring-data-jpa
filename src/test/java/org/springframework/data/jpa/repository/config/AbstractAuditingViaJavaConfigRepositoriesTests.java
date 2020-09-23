@@ -62,12 +62,12 @@ public abstract class AbstractAuditingViaJavaConfigRepositoriesTests {
 
 	@Autowired AuditableUserRepository auditableUserRepository;
 	@Autowired AuditorAware<AuditableUser> auditorAware;
-	AuditableUser auditor;
+	private AuditableUser auditor;
 
 	@Autowired EntityManager em;
 
 	@BeforeEach
-	public void setup() {
+	void setup() {
 
 		AuditableUser auditor = new AuditableUser(null);
 		auditor.setFirstname("auditor");
@@ -78,12 +78,12 @@ public abstract class AbstractAuditingViaJavaConfigRepositoriesTests {
 	}
 
 	@AfterEach
-	public void teardown() {
+	void teardown() {
 		Mockito.reset(this.auditorAware);
 	}
 
 	@Test
-	public void basicAuditing() throws Exception {
+	void basicAuditing() throws Exception {
 
 		AuditableUser user = new AuditableUser(null);
 		user.setFirstname("user");
@@ -100,7 +100,7 @@ public abstract class AbstractAuditingViaJavaConfigRepositoriesTests {
 	}
 
 	@Test // DATAJPA-382
-	public void shouldAllowUseOfDynamicSpelParametersInUpdateQueries() {
+	void shouldAllowUseOfDynamicSpelParametersInUpdateQueries() {
 
 		AuditableUser oliver = auditableUserRepository.save(new AuditableUser(null, "oliver"));
 		AuditableUser christoph = auditableUserRepository.save(new AuditableUser(null, "christoph"));

@@ -26,8 +26,8 @@ public class ItemId implements Serializable {
 
 	private static final long serialVersionUID = -2986871112875450036L;
 
-	Integer id;
-	Integer manufacturerId;
+	private Integer id;
+	private Integer manufacturerId;
 
 	public ItemId() {}
 

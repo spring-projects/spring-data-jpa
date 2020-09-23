@@ -37,13 +37,13 @@ import org.slf4j.LoggerFactory;
  * @author Mark Paluch
  * @author Jens Schauder
  */
-public class CdiExtensionIntegrationTests {
+class CdiExtensionIntegrationTests {
 
-	static SeContainer container;
+	private static SeContainer container;
 	private static Logger LOGGER = LoggerFactory.getLogger(CdiExtensionIntegrationTests.class);
 
 	@BeforeAll
-	public static void setUp() {
+	static void setUp() {
 
 		container = SeContainerInitializer.newInstance() //
 				.disableDiscovery() //
@@ -55,7 +55,7 @@ public class CdiExtensionIntegrationTests {
 
 	@Test // DATAJPA-319, DATAJPA-1180
 	@SuppressWarnings("rawtypes")
-	public void foo() {
+	void foo() {
 
 		Set<Bean<?>> beans = container.getBeanManager().getBeans(PersonRepository.class);
 
@@ -64,7 +64,7 @@ public class CdiExtensionIntegrationTests {
 	}
 
 	@Test // DATAJPA-136, DATAJPA-1180
-	public void saveAndFindAll() {
+	void saveAndFindAll() {
 
 		RepositoryConsumer repositoryConsumer = container.select(RepositoryConsumer.class).get();
 
@@ -74,21 +74,21 @@ public class CdiExtensionIntegrationTests {
 	}
 
 	@Test // DATAJPA-584, DATAJPA-1180
-	public void returnOneFromCustomImpl() {
+	void returnOneFromCustomImpl() {
 
 		RepositoryConsumer repositoryConsumer = container.select(RepositoryConsumer.class).get();
 		assertThat(repositoryConsumer.returnOne()).isEqualTo(1);
 	}
 
 	@Test // DATAJPA-584, DATAJPA-1180
-	public void useQualifiedCustomizedUserRepo() {
+	void useQualifiedCustomizedUserRepo() {
 
 		RepositoryConsumer repositoryConsumer = container.select(RepositoryConsumer.class).get();
 		repositoryConsumer.doSomethingOnUserDB();
 	}
 
 	@Test // DATAJPA-1287
-	public void useQualifiedFragmentUserRepo() {
+	void useQualifiedFragmentUserRepo() {
 
 		RepositoryConsumer repositoryConsumer = container.select(RepositoryConsumer.class).get();
 		assertThat(repositoryConsumer.returnOneUserDB()).isEqualTo(1);

@@ -37,13 +37,13 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-public class ExpressionBasedStringQueryUnitTests {
+class ExpressionBasedStringQueryUnitTests {
 
-	static final SpelExpressionParser SPEL_PARSER = new SpelExpressionParser();
+	private static final SpelExpressionParser SPEL_PARSER = new SpelExpressionParser();
 	@Mock JpaEntityMetadata<?> metadata;
 
 	@Test // DATAJPA-170
-	public void shouldReturnQueryWithDomainTypeExpressionReplacedWithSimpleDomainTypeName() {
+	void shouldReturnQueryWithDomainTypeExpressionReplacedWithSimpleDomainTypeName() {
 
 		when(metadata.getEntityName()).thenReturn("User");
 
@@ -53,7 +53,7 @@ public class ExpressionBasedStringQueryUnitTests {
 	}
 
 	@Test // DATAJPA-424
-	public void renderAliasInExpressionQueryCorrectly() {
+	void renderAliasInExpressionQueryCorrectly() {
 
 		when(metadata.getEntityName()).thenReturn("User");
 
@@ -63,7 +63,7 @@ public class ExpressionBasedStringQueryUnitTests {
 	}
 
 	@Test // DATAJPA-1695
-	public void shouldDetectBindParameterCountCorrectly() {
+	void shouldDetectBindParameterCountCorrectly() {
 
 		StringQuery query = new ExpressionBasedStringQuery(
 				"select n from NetworkServer n where (LOWER(n.name) LIKE LOWER(NULLIF(text(concat('%',:#{#networkRequest.name},'%')), '')) OR :#{#networkRequest.name} IS NULL )\"\n"

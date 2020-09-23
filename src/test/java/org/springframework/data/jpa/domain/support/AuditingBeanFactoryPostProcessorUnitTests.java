@@ -33,23 +33,23 @@ import org.springframework.core.io.ClassPathResource;
  * @author Thomas Darimont
  * @author Jens Schauder
  */
-public class AuditingBeanFactoryPostProcessorUnitTests {
+class AuditingBeanFactoryPostProcessorUnitTests {
 
 	DefaultListableBeanFactory beanFactory;
-	AuditingBeanFactoryPostProcessor processor;
+	private AuditingBeanFactoryPostProcessor processor;
 
 	@BeforeEach
-	public void setUp() {
+	void setUp() {
 
 		this.beanFactory = getBeanFactory();
 		this.processor = new AuditingBeanFactoryPostProcessor();
 	}
 
-	protected String getConfigFile() {
+	String getConfigFile() {
 		return "auditing-bfpp-context.xml";
 	}
 
-	protected DefaultListableBeanFactory getBeanFactory() {
+	DefaultListableBeanFactory getBeanFactory() {
 
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(beanFactory);
@@ -59,7 +59,7 @@ public class AuditingBeanFactoryPostProcessorUnitTests {
 	}
 
 	@Test
-	public void beanConfigurerAspectShouldBeConfiguredAfterPostProcessing() throws Exception {
+	void beanConfigurerAspectShouldBeConfiguredAfterPostProcessing() throws Exception {
 
 		processor.postProcessBeanFactory(beanFactory);
 
@@ -67,13 +67,13 @@ public class AuditingBeanFactoryPostProcessorUnitTests {
 	}
 
 	@Test // DATAJPA-265
-	public void rejectsConfigurationWithoutSpringConfigured() {
+	void rejectsConfigurationWithoutSpringConfigured() {
 		assertThatIllegalStateException()
 				.isThrownBy(() -> processor.postProcessBeanFactory(new DefaultListableBeanFactory()));
 	}
 
 	@Test // DATAJPA-265
-	public void setsDependsOnOnEntityManagerFactory() {
+	void setsDependsOnOnEntityManagerFactory() {
 
 		processor.postProcessBeanFactory(beanFactory);
 
@@ -88,7 +88,7 @@ public class AuditingBeanFactoryPostProcessorUnitTests {
 	}
 
 	@Test // DATAJPA-453
-	public void findsEntityManagerFactoryInParentBeanFactory() {
+	void findsEntityManagerFactoryInParentBeanFactory() {
 
 		DefaultListableBeanFactory childFactory = new DefaultListableBeanFactory(getBeanFactory());
 		processor.postProcessBeanFactory(childFactory);

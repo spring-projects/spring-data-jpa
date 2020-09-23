@@ -43,13 +43,13 @@ public class EntityManagerFactoryRefTests {
 
 	@Test
 	@Transactional
-	public void useUserRepository() throws Exception {
+	void useUserRepository() throws Exception {
 		userRepository.saveAndFlush(new User("firstname", "lastname", "foo@bar.de"));
 	}
 
 	@Test
 	@Transactional("transactionManager-2")
-	public void useAuditableUserRepository() throws Exception {
+	void useAuditableUserRepository() throws Exception {
 		auditableUserRepository.saveAndFlush(new AuditableUser());
 	}
 }

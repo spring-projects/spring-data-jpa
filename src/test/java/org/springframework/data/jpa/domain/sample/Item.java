@@ -32,9 +32,9 @@ import javax.persistence.Table;
 @IdClass(ItemId.class)
 public class Item {
 
-	@Id @Column(columnDefinition = "INT") Integer id;
+	@Id @Column(columnDefinition = "INT") private Integer id;
 
-	@Id @JoinColumn(name = "manufacturer_id", columnDefinition = "INT") Integer manufacturerId;
+	@Id @JoinColumn(name = "manufacturer_id", columnDefinition = "INT") private Integer manufacturerId;
 
 	public Item() {}
 

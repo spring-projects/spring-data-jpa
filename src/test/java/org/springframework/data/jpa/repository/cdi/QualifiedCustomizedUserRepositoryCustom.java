@@ -19,7 +19,7 @@ package org.springframework.data.jpa.repository.cdi;
 /**
  * @author Mark Paluch
  */
-public interface QualifiedCustomizedUserRepositoryCustom {
+interface QualifiedCustomizedUserRepositoryCustom {
 
 	void doSomething();
 }

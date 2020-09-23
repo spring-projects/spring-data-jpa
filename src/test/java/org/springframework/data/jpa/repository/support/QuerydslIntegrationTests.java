@@ -45,16 +45,16 @@ import com.querydsl.jpa.JPQLQuery;
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration({ "classpath:infrastructure.xml" })
 @Transactional
-public class QuerydslIntegrationTests {
+class QuerydslIntegrationTests {
 
 	@PersistenceContext EntityManager em;
 
-	Querydsl querydsl;
-	PathBuilder<User> userPath;
-	JPQLQuery<User> userQuery;
+	private Querydsl querydsl;
+	private PathBuilder<User> userPath;
+	private JPQLQuery<User> userQuery;
 
 	@BeforeEach
-	public void setup() {
+	void setup() {
 
 		userPath = new PathBuilder<>(User.class, "user");
 		querydsl = new Querydsl(em, userPath);
@@ -62,7 +62,7 @@ public class QuerydslIntegrationTests {
 	}
 
 	@Test // DATAJPA-499
-	public void defaultOrderingShouldNotGenerateAnNullOrderingHint() {
+	void defaultOrderingShouldNotGenerateAnNullOrderingHint() {
 
 		JPQLQuery<User> result = querydsl.applySorting(Sort.by("firstname"), userQuery);
 
@@ -73,7 +73,7 @@ public class QuerydslIntegrationTests {
 	}
 
 	@Test // DATAJPA-1779
-	public void orderWithIgnoreCaseAddLowerOnlyStringType() {
+	void orderWithIgnoreCaseAddLowerOnlyStringType() {
 
 		// firstname (String); id (Integer); dateOfBirth (Date)
 		Sort.Order[] orders = Stream.of("firstname", "id", "dateOfBirth").map(name -> Sort.Order.asc(name).ignoreCase()).toArray(Sort.Order[]::new);

@@ -60,12 +60,14 @@ import org.springframework.stereotype.Component;
  */
 public class DefaultJpaContextIntegrationTests {
 
-	static EntityManagerFactory firstEmf, secondEmf;
-	EntityManager firstEm, secondEm;
-	JpaContext jpaContext;
+	private static EntityManagerFactory firstEmf;
+	private static EntityManagerFactory secondEmf;
+	private EntityManager firstEm;
+	private EntityManager secondEm;
+	private JpaContext jpaContext;
 
 	@BeforeAll
-	public static void bootstrapJpa() {
+	static void bootstrapJpa() {
 
 		firstEmf = createEntityManagerFactory("spring-data-jpa");
 		secondEmf = createEntityManagerFactory("querydsl");
@@ -92,7 +94,7 @@ public class DefaultJpaContextIntegrationTests {
 	}
 
 	@BeforeEach
-	public void createEntityManagers() {
+	void createEntityManagers() {
 
 		this.firstEm = firstEmf.createEntityManager();
 		this.secondEm = secondEmf.createEntityManager();
@@ -101,26 +103,26 @@ public class DefaultJpaContextIntegrationTests {
 	}
 
 	@Test // DATAJPA-669
-	public void rejectsUnmanagedType() {
+	void rejectsUnmanagedType() {
 
 		assertThatIllegalArgumentException().isThrownBy(() -> jpaContext.getEntityManagerByManagedType(Object.class))
 				.withMessageContaining(Object.class.getSimpleName());
 	}
 
 	@Test // DATAJPA-669
-	public void returnsEntitymanagerForUniqueType() {
+	void returnsEntitymanagerForUniqueType() {
 		assertThat(jpaContext.getEntityManagerByManagedType(Category.class)).isEqualTo(firstEm);
 	}
 
 	@Test // DATAJPA-669
-	public void rejectsRequestForTypeManagedByMultipleEntityManagers() {
+	void rejectsRequestForTypeManagedByMultipleEntityManagers() {
 
 		assertThatIllegalArgumentException().isThrownBy(() -> jpaContext.getEntityManagerByManagedType(User.class))
 				.withMessageContaining(User.class.getSimpleName());
 	}
 
 	@Test // DATAJPA-813, DATAJPA-956
-	public void bootstrapsDefaultJpaContextInSpringContainer() {
+	void bootstrapsDefaultJpaContextInSpringContainer() {
 
 		ConfigurableApplicationContext context = new AnnotationConfigApplicationContext(Config.class);
 		ApplicationComponent component = context.getBean(ApplicationComponent.class);
@@ -131,7 +133,7 @@ public class DefaultJpaContextIntegrationTests {
 	}
 
 	@Test // DATAJPA-813
-	public void bootstrapsDefaultJpaContextInSpringContainerWithEntityManagerFromJndi() throws Exception {
+	void bootstrapsDefaultJpaContextInSpringContainerWithEntityManagerFromJndi() throws Exception {
 
 		SimpleNamingContextBuilder builder = SimpleNamingContextBuilder.emptyActivatedContextBuilder();
 		builder.bind("some/EMF", createEntityManagerFactory("spring-data-jpa"));

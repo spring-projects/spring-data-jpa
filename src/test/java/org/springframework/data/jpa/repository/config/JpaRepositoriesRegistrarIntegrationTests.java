@@ -95,12 +95,12 @@ public class JpaRepositoriesRegistrarIntegrationTests {
 	}
 
 	@Test
-	public void foo() {
+	void foo() {
 		assertThat(repository).isNotNull();
 	}
 
 	@Test // DATAJPA-330
-	public void doesNotProxyPlainAtRepositoryBeans() {
+	void doesNotProxyPlainAtRepositoryBeans() {
 
 		assertThat(sampleRepository).isNotNull();
 		assertThat(ClassUtils.isCglibProxy(sampleRepository)).isFalse();

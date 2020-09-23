@@ -57,7 +57,7 @@ import org.springframework.util.ClassUtils;
 @MockitoSettings(strictness = Strictness.LENIENT)
 public class JpaRepositoryFactoryUnitTests {
 
-	JpaRepositoryFactory factory;
+	private JpaRepositoryFactory factory;
 
 	@Mock EntityManager entityManager;
 	@Mock Metamodel metamodel;
@@ -65,7 +65,7 @@ public class JpaRepositoryFactoryUnitTests {
 	@Mock EntityManagerFactory emf;
 
 	@BeforeEach
-	public void setUp() {
+	void setUp() {
 
 		when(entityManager.getMetamodel()).thenReturn(metamodel);
 		when(entityManager.getEntityManagerFactory()).thenReturn(emf);
@@ -91,13 +91,13 @@ public class JpaRepositoryFactoryUnitTests {
 	 * @throws Exception
 	 */
 	@Test
-	public void setsUpBasicInstanceCorrectly() throws Exception {
+	void setsUpBasicInstanceCorrectly() throws Exception {
 
 		assertThat(factory.getRepository(SimpleSampleRepository.class)).isNotNull();
 	}
 
 	@Test
-	public void allowsCallingOfObjectMethods() {
+	void allowsCallingOfObjectMethods() {
 
 		SimpleSampleRepository repository = factory.getRepository(SimpleSampleRepository.class);
 
@@ -114,7 +114,7 @@ public class JpaRepositoryFactoryUnitTests {
 	 * @throws Exception
 	 */
 	@Test
-	public void capturesMissingCustomImplementationAndProvidesInterfacename() throws Exception {
+	void capturesMissingCustomImplementationAndProvidesInterfacename() throws Exception {
 
 		try {
 			factory.getRepository(SampleRepository.class);
@@ -124,21 +124,21 @@ public class JpaRepositoryFactoryUnitTests {
 	}
 
 	@Test
-	public void handlesRuntimeExceptionsCorrectly() {
+	void handlesRuntimeExceptionsCorrectly() {
 
 		SampleRepository repository = factory.getRepository(SampleRepository.class, new SampleCustomRepositoryImpl());
 		assertThatIllegalArgumentException().isThrownBy(repository::throwingRuntimeException);
 	}
 
 	@Test
-	public void handlesCheckedExceptionsCorrectly() {
+	void handlesCheckedExceptionsCorrectly() {
 
 		SampleRepository repository = factory.getRepository(SampleRepository.class, new SampleCustomRepositoryImpl());
 		assertThatExceptionOfType(IOException.class).isThrownBy(repository::throwingCheckedException);
 	}
 
 	@Test
-	public void createsProxyWithCustomBaseClass() {
+	void createsProxyWithCustomBaseClass() {
 
 		JpaRepositoryFactory factory = new CustomGenericJpaRepositoryFactory(entityManager);
 		factory.setQueryLookupStrategyKey(Key.CREATE_IF_NOT_FOUND);
@@ -148,7 +148,7 @@ public class JpaRepositoryFactoryUnitTests {
 	}
 
 	@Test // DATAJPA-710, DATACMNS-542
-	public void usesConfiguredRepositoryBaseClass() {
+	void usesConfiguredRepositoryBaseClass() {
 
 		factory.setRepositoryBaseClass(CustomJpaRepository.class);
 
@@ -157,7 +157,7 @@ public class JpaRepositoryFactoryUnitTests {
 	}
 
 	@Test // DATAJPA-819
-	public void crudMethodMetadataPostProcessorUsesBeanClassLoader() {
+	void crudMethodMetadataPostProcessorUsesBeanClassLoader() {
 
 		ClassLoader classLoader = new OverridingClassLoader(ClassUtils.getDefaultClassLoader());
 
@@ -179,7 +179,7 @@ public class JpaRepositoryFactoryUnitTests {
 	 *
 	 * @author Oliver Gierke
 	 */
-	public interface SampleCustomRepository {
+	interface SampleCustomRepository {
 
 		void throwingRuntimeException();
 
@@ -196,7 +196,7 @@ public class JpaRepositoryFactoryUnitTests {
 
 static class CustomJpaRepository<T, ID extends Serializable> extends SimpleJpaRepository<T, ID> {
 
-		public CustomJpaRepository(JpaEntityInformation<T, ?> entityInformation, EntityManager entityManager) {
+	CustomJpaRepository(JpaEntityInformation<T, ?> entityInformation, EntityManager entityManager) {
 			super(entityInformation, entityManager);
 		}
 	}

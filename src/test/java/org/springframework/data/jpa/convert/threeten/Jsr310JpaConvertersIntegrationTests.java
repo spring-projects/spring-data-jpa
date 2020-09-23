@@ -49,7 +49,7 @@ public class Jsr310JpaConvertersIntegrationTests extends AbstractAttributeConver
 	@PersistenceContext EntityManager em;
 
 	@Test // DATAJPA-650, DATAJPA-1631
-	public void usesJsr310JpaConverters() {
+	void usesJsr310JpaConverters() {
 
 		assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
 

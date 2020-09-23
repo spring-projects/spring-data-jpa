@@ -43,7 +43,7 @@ public class ORMInfrastructureTests {
 	 * @throws Exception
 	 */
 	@Test
-	public void contextInitialized() throws Exception {
+	void contextInitialized() throws Exception {
 
 		assertThat(context).isNotNull();
 	}

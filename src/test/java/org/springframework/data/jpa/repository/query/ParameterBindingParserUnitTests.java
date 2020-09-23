@@ -24,10 +24,10 @@ import org.springframework.data.jpa.repository.query.StringQuery.ParameterBindin
  *
  * @author Jens Schauder
  */
-public class ParameterBindingParserUnitTests {
+class ParameterBindingParserUnitTests {
 
 	@Test // DATAJPA-1200
-	public void identificationOfParameters() {
+	void identificationOfParameters() {
 
 		SoftAssertions softly = new SoftAssertions();
 

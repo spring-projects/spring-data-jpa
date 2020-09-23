@@ -37,14 +37,14 @@ import org.mockito.quality.Strictness;
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-public class JpaMetamodelUnitTests {
+class JpaMetamodelUnitTests {
 
 	@Mock Metamodel metamodel;
 
 	@Mock EntityType<?> type;
 
 	@Test
-	public void skipsEntityTypesWithoutJavaTypeForIdentifierLookup() {
+	void skipsEntityTypesWithoutJavaTypeForIdentifierLookup() {
 
 		doReturn(Collections.singleton(type)).when(metamodel).getEntities();
 
@@ -52,7 +52,7 @@ public class JpaMetamodelUnitTests {
 	}
 
 	@Test // DATAJPA-1446
-	public void cacheIsEffectiveUnlessCleared() {
+	void cacheIsEffectiveUnlessCleared() {
 
 		JpaMetamodel model = JpaMetamodel.of(metamodel);
 		assertThat(model).isEqualTo(JpaMetamodel.of(metamodel));

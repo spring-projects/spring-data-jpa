@@ -29,7 +29,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  * @soundtrack The Intersphere - Live in Mannheim
  */
 @ContextConfiguration
-public class JavaConfigDefaultTransactionDisablingIntegrationTests extends DefaultTransactionDisablingIntegrationTests {
+class JavaConfigDefaultTransactionDisablingIntegrationTests extends DefaultTransactionDisablingIntegrationTests {
 
 	@Configuration
 	@EnableJpaRepositories(basePackageClasses = UserRepository.class, enableDefaultTransactions = false)

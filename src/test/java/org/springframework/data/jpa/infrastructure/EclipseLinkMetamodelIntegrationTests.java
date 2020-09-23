@@ -25,7 +25,7 @@ import org.springframework.test.context.ContextConfiguration;
  * @author Oliver Gierke
  */
 @ContextConfiguration("classpath:eclipselink.xml")
-public class EclipseLinkMetamodelIntegrationTests extends MetamodelIntegrationTests {
+class EclipseLinkMetamodelIntegrationTests extends MetamodelIntegrationTests {
 
 	/**
 	 * TODO: Remove, once https://bugs.eclipse.org/bugs/show_bug.cgi?id=427892 is fixed.
@@ -33,7 +33,7 @@ public class EclipseLinkMetamodelIntegrationTests extends MetamodelIntegrationTe
 	@Test
 	@Disabled
 	@Override
-	public void canAccessParametersByIndexForNativeQueries() {}
+	void canAccessParametersByIndexForNativeQueries() {}
 
 	/**
 	 * TODO: Remove, once https://bugs.eclipse.org/bugs/show_bug.cgi?id=463663 is fixed.
@@ -41,7 +41,7 @@ public class EclipseLinkMetamodelIntegrationTests extends MetamodelIntegrationTe
 	@Test
 	@Disabled
 	@Override
-	public void pathToEntityIsOfBindableTypeEntityType() {}
+	void pathToEntityIsOfBindableTypeEntityType() {}
 
 	/**
 	 * TODO: Remove, once https://bugs.eclipse.org/bugs/show_bug.cgi?id=289141 is fixed.
@@ -49,7 +49,7 @@ public class EclipseLinkMetamodelIntegrationTests extends MetamodelIntegrationTe
 	@Test
 	@Disabled
 	@Override
-	public void doesNotExposeAliasForTupleIfNoneDefined() {}
+	void doesNotExposeAliasForTupleIfNoneDefined() {}
 
 	/**
 	 * TODO: Remove, once https://bugs.eclipse.org/bugs/show_bug.cgi?id=289141 is fixed.
@@ -57,5 +57,5 @@ public class EclipseLinkMetamodelIntegrationTests extends MetamodelIntegrationTe
 	@Test
 	@Disabled
 	@Override
-	public void returnsAliasesInTuple() {}
+	void returnsAliasesInTuple() {}
 }

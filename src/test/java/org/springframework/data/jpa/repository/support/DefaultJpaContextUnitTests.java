@@ -30,15 +30,15 @@ import org.junit.jupiter.api.Test;
  * @soundtrack Marcus Miller - B's River (Afrodeezia)
  * @since 1.9
  */
-public class DefaultJpaContextUnitTests {
+class DefaultJpaContextUnitTests {
 
 	@Test // DATAJPA-669
-	public void rejectsNullEntityManagers() {
+	void rejectsNullEntityManagers() {
 		assertThatIllegalArgumentException().isThrownBy(() -> new DefaultJpaContext(null));
 	}
 
 	@Test // DATAJPA-669
-	public void rejectsEmptyEntityManagers() {
+	void rejectsEmptyEntityManagers() {
 		assertThatIllegalArgumentException()
 				.isThrownBy(() -> new DefaultJpaContext(Collections.<EntityManager> emptySet()));
 	}

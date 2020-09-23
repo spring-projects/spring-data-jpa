@@ -40,7 +40,7 @@ public class CustomAbstractPersistableIntegrationTests {
 	@Autowired CustomAbstractPersistableRepository repository;
 
 	@Test // DATAJPA-622
-	public void shouldBeAbleToSaveAndLoadCustomPersistableWithUuidId() {
+	void shouldBeAbleToSaveAndLoadCustomPersistableWithUuidId() {
 
 		CustomAbstractPersistable entity = new CustomAbstractPersistable();
 		CustomAbstractPersistable saved = repository.save(entity);

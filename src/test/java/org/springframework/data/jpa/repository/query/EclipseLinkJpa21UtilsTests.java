@@ -21,4 +21,4 @@ import org.springframework.test.context.ContextConfiguration;
  * @author Christoph Strobl
  */
 @ContextConfiguration("classpath:eclipselink.xml")
-public class EclipseLinkJpa21UtilsTests extends Jpa21UtilsTests {}
+class EclipseLinkJpa21UtilsTests extends Jpa21UtilsTests {}

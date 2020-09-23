@@ -43,13 +43,13 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:infrastructure.xml")
-public class ParameterExpressionProviderTests {
+class ParameterExpressionProviderTests {
 
 	@PersistenceContext EntityManager em;
 
 	@Test // DATADOC-99
 	@SuppressWarnings("rawtypes")
-	public void createsParameterExpressionWithMostConcreteType() throws Exception {
+	void createsParameterExpressionWithMostConcreteType() throws Exception {
 
 		Method method = SampleRepository.class.getMethod("findByIdGreaterThan", int.class);
 		Parameters<?, ?> parameters = new DefaultParameters(method);

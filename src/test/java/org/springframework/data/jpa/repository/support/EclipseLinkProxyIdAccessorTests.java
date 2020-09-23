@@ -25,7 +25,7 @@ import org.springframework.test.context.ContextConfiguration;
  * @author Oliver Gierke
  */
 @ContextConfiguration(classes = EclipseLinkProxyIdAccessorTests.EclipseLinkConfig.class)
-public class EclipseLinkProxyIdAccessorTests extends PersistenceProviderIntegrationTests {
+class EclipseLinkProxyIdAccessorTests extends PersistenceProviderIntegrationTests {
 
 	@Configuration
 	@ImportResource("classpath:eclipselink.xml")

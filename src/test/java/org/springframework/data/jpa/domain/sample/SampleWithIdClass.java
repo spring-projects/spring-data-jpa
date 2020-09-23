@@ -17,12 +17,12 @@ public class SampleWithIdClass {
 	@Id Long second;
 
 	@SuppressWarnings("serial")
-	public static class SampleWithIdClassPK implements Serializable {
+	static class SampleWithIdClassPK implements Serializable {
 
 		Long first;
 		Long second;
 
-		/* 
+		/*
 		 * (non-Javadoc)
 		 * @see java.lang.Object#equals(java.lang.Object)
 		 */
@@ -42,7 +42,7 @@ public class SampleWithIdClass {
 			return this.first.equals(that.first) && this.second.equals(that.second);
 		}
 
-		/* 
+		/*
 		 * (non-Javadoc)
 		 * @see java.lang.Object#hashCode()
 		 */

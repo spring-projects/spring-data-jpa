@@ -38,12 +38,12 @@ import org.springframework.data.repository.query.parser.Part.Type;
  * @author Nils Borrmann
  * @author Andriy Redko
  */
-public class StringQueryUnitTests {
+class StringQueryUnitTests {
 
-	SoftAssertions softly = new SoftAssertions();
+	private SoftAssertions softly = new SoftAssertions();
 
 	@Test // DATAJPA-341
-	public void doesNotConsiderPlainLikeABinding() {
+	void doesNotConsiderPlainLikeABinding() {
 
 		String source = "select from User u where u.firstname like :firstname";
 		StringQuery query = new StringQuery(source);
@@ -61,7 +61,7 @@ public class StringQueryUnitTests {
 	}
 
 	@Test // DATAJPA-292
-	public void detectsPositionalLikeBindings() {
+	void detectsPositionalLikeBindings() {
 
 		StringQuery query = new StringQuery("select u from User u where u.firstname like %?1% or u.lastname like %?2");
 
@@ -84,7 +84,7 @@ public class StringQueryUnitTests {
 	}
 
 	@Test // DATAJPA-292
-	public void detectsNamedLikeBindings() {
+	void detectsNamedLikeBindings() {
 
 		StringQuery query = new StringQuery("select u from User u where u.firstname like %:firstname");
 
@@ -101,7 +101,7 @@ public class StringQueryUnitTests {
 	}
 
 	@Test // DATAJPA-461
-	public void detectsNamedInParameterBindings() {
+	void detectsNamedInParameterBindings() {
 
 		String queryString = "select u from User u where u.id in :ids";
 		StringQuery query = new StringQuery(queryString);
@@ -118,7 +118,7 @@ public class StringQueryUnitTests {
 	}
 
 	@Test // DATAJPA-461
-	public void detectsMultipleNamedInParameterBindings() {
+	void detectsMultipleNamedInParameterBindings() {
 
 		String queryString = "select u from User u where u.id in :ids and u.name in :names and foo = :bar";
 		StringQuery query = new StringQuery(queryString);
@@ -137,7 +137,7 @@ public class StringQueryUnitTests {
 	}
 
 	@Test // DATAJPA-461
-	public void detectsPositionalInParameterBindings() {
+	void detectsPositionalInParameterBindings() {
 
 		String queryString = "select u from User u where u.id in ?1";
 		StringQuery query = new StringQuery(queryString);
@@ -154,7 +154,7 @@ public class StringQueryUnitTests {
 	}
 
 	@Test // DATAJPA-461
-	public void detectsMultiplePositionalInParameterBindings() {
+	void detectsMultiplePositionalInParameterBindings() {
 
 		String queryString = "select u from User u where u.id in ?1 and u.names in ?2 and foo = ?3";
 		StringQuery query = new StringQuery(queryString);
@@ -173,18 +173,18 @@ public class StringQueryUnitTests {
 	}
 
 	@Test // DATAJPA-373
-	public void handlesMultipleNamedLikeBindingsCorrectly() {
+	void handlesMultipleNamedLikeBindingsCorrectly() {
 		new StringQuery("select u from User u where u.firstname like %:firstname or foo like :bar");
 	}
 
 	@Test // DATAJPA-292, DATAJPA-362
-	public void rejectsDifferentBindingsForRepeatedParameter() {
+	void rejectsDifferentBindingsForRepeatedParameter() {
 		assertThatIllegalArgumentException()
 				.isThrownBy(() -> new StringQuery("select u from User u where u.firstname like %?1 and u.lastname like ?1%"));
 	}
 
 	@Test // DATAJPA-461
-	public void treatsGreaterThanBindingAsSimpleBinding() {
+	void treatsGreaterThanBindingAsSimpleBinding() {
 
 		StringQuery query = new StringQuery("select u from User u where u.createdDate > ?1");
 		List<ParameterBinding> bindings = query.getParameterBindings();
@@ -196,7 +196,7 @@ public class StringQueryUnitTests {
 	}
 
 	@Test // DATAJPA-473
-	public void removesLikeBindingsFromQueryIfQueryContainsSimpleBinding() {
+	void removesLikeBindingsFromQueryIfQueryContainsSimpleBinding() {
 
 		StringQuery query = new StringQuery("SELECT a FROM Article a WHERE a.overview LIKE %:escapedWord% ESCAPE '~'"
 				+ " OR a.content LIKE %:escapedWord% ESCAPE '~' OR a.title = :word ORDER BY a.articleId DESC");
@@ -215,7 +215,7 @@ public class StringQueryUnitTests {
 	}
 
 	@Test // DATAJPA-483
-	public void detectsInBindingWithParentheses() {
+	void detectsInBindingWithParentheses() {
 
 		StringQuery query = new StringQuery("select count(we) from MyEntity we where we.status in (:statuses)");
 
@@ -228,7 +228,7 @@ public class StringQueryUnitTests {
 	}
 
 	@Test // DATAJPA-545
-	public void detectsInBindingWithSpecialFrenchCharactersInParentheses() {
+	void detectsInBindingWithSpecialFrenchCharactersInParentheses() {
 
 		StringQuery query = new StringQuery("select * from MyEntity where abonnés in (:abonnés)");
 
@@ -241,7 +241,7 @@ public class StringQueryUnitTests {
 	}
 
 	@Test // DATAJPA-545
-	public void detectsInBindingWithSpecialCharactersInParentheses() {
+	void detectsInBindingWithSpecialCharactersInParentheses() {
 
 		StringQuery query = new StringQuery("select * from MyEntity where øre in (:øre)");
 
@@ -254,7 +254,7 @@ public class StringQueryUnitTests {
 	}
 
 	@Test // DATAJPA-545
-	public void detectsInBindingWithSpecialAsianCharactersInParentheses() {
+	void detectsInBindingWithSpecialAsianCharactersInParentheses() {
 
 		StringQuery query = new StringQuery("select * from MyEntity where 생일 in (:생일)");
 
@@ -267,7 +267,7 @@ public class StringQueryUnitTests {
 	}
 
 	@Test // DATAJPA-545
-	public void detectsInBindingWithSpecialCharactersAndWordCharactersMixedInParentheses() {
+	void detectsInBindingWithSpecialCharactersAndWordCharactersMixedInParentheses() {
 
 		StringQuery query = new StringQuery("select * from MyEntity where foo in (:ab1babc생일233)");
 
@@ -280,13 +280,13 @@ public class StringQueryUnitTests {
 	}
 
 	@Test // DATAJPA-362
-	public void rejectsDifferentBindingsForRepeatedParameter2() {
+	void rejectsDifferentBindingsForRepeatedParameter2() {
 		assertThatIllegalArgumentException()
 				.isThrownBy(() -> new StringQuery("select u from User u where u.firstname like ?1 and u.lastname like %?1"));
 	}
 
 	@Test // DATAJPA-712
-	public void shouldReplaceAllNamedExpressionParametersWithInClause() {
+	void shouldReplaceAllNamedExpressionParametersWithInClause() {
 
 		StringQuery query = new StringQuery("select a from A a where a.b in :#{#bs} and a.c in :#{#cs}");
 		String queryString = query.getQueryString();
@@ -295,7 +295,7 @@ public class StringQueryUnitTests {
 	}
 
 	@Test // DATAJPA-712
-	public void shouldReplaceAllPositionExpressionParametersWithInClause() {
+	void shouldReplaceAllPositionExpressionParametersWithInClause() {
 
 		StringQuery query = new StringQuery("select a from A a where a.b in ?#{#bs} and a.c in ?#{#cs}");
 		String queryString = query.getQueryString();
@@ -308,7 +308,7 @@ public class StringQueryUnitTests {
 	}
 
 	@Test // DATAJPA-864
-	public void detectsConstructorExpressions() {
+	void detectsConstructorExpressions() {
 
 		softly.assertThat(new StringQuery("select  new  Dto(a.foo, a.bar)  from A a").hasConstructorExpression()).isTrue();
 		softly.assertThat(new StringQuery("select new Dto (a.foo, a.bar) from A a").hasConstructorExpression()).isTrue();
@@ -322,7 +322,7 @@ public class StringQueryUnitTests {
 	 *      specification, section 4.8</a>
 	 */
 	@Test // DATAJPA-886
-	public void detectsConstructorExpressionForDefaultConstructor() {
+	void detectsConstructorExpressionForDefaultConstructor() {
 
 		// Parentheses required
 		softly.assertThat(new StringQuery("select new Dto() from A a").hasConstructorExpression()).isTrue();
@@ -332,7 +332,7 @@ public class StringQueryUnitTests {
 	}
 
 	@Test // DATAJPA-1179
-	public void bindingsMatchQueryForIdenticalSpelExpressions() {
+	void bindingsMatchQueryForIdenticalSpelExpressions() {
 
 		StringQuery query = new StringQuery("select a from A a where a.first = :#{#exp} or a.second = :#{#exp}");
 
@@ -349,7 +349,7 @@ public class StringQueryUnitTests {
 	}
 
 	@Test // DATAJPA-1235
-	public void getProjection() {
+	void getProjection() {
 
 		checkProjection("SELECT something FROM", "something", "uppercase is supported");
 		checkProjection("select something from", "something", "single expression");
@@ -368,7 +368,7 @@ public class StringQueryUnitTests {
 	}
 
 	@Test // DATAJPA-1235
-	public void getAlias() {
+	void getAlias() {
 
 		checkAlias("from User u", "u", "simple query");
 		checkAlias("select count(u) from User u", "u", "count query");
@@ -394,7 +394,7 @@ public class StringQueryUnitTests {
 	}
 
 	@Test // DATAJPA-1200
-	public void testHasNamedParameter() {
+	void testHasNamedParameter() {
 
 		checkHasNamedParameter("select something from x where id = :id", true, "named parameter");
 		checkHasNamedParameter("in the :id middle", true, "middle");
@@ -427,7 +427,7 @@ public class StringQueryUnitTests {
 	}
 
 	@Test // DATAJPA-1235
-	public void ignoresQuotedNamedParameterLookAlike() {
+	void ignoresQuotedNamedParameterLookAlike() {
 
 		checkNumberOfNamedParameters("select something from blah where x = '0:name'", 0, "single quoted");
 		checkNumberOfNamedParameters("select something from blah where x = \"0:name\"", 0, "double quoted");
@@ -439,7 +439,7 @@ public class StringQueryUnitTests {
 	}
 
 	@Test // DATAJPA-1307
-	public void detectsMultiplePositionalParameterBindingsWithoutIndex() {
+	void detectsMultiplePositionalParameterBindingsWithoutIndex() {
 
 		String queryString = "select u from User u where u.id in ? and u.names in ? and foo = ?";
 		StringQuery query = new StringQuery(queryString);
@@ -452,7 +452,7 @@ public class StringQueryUnitTests {
 	}
 
 	@Test // DATAJPA-1307
-	public void failOnMixedBindingsWithoutIndex() {
+	void failOnMixedBindingsWithoutIndex() {
 
 		List<String> testQueries = Arrays.asList( //
 				"something = ? and something = ?1", //
@@ -469,7 +469,7 @@ public class StringQueryUnitTests {
 	}
 
 	@Test // DATAJPA-1307
-	public void makesUsageOfJdbcStyleParameterAvailable() {
+	void makesUsageOfJdbcStyleParameterAvailable() {
 
 		softly.assertThat(new StringQuery("something = ?").usesJdbcStyleParameters()).isTrue();
 
@@ -491,7 +491,7 @@ public class StringQueryUnitTests {
 	}
 
 	@Test // DATAJPA-1307
-	public void questionMarkInStringLiteral() {
+	void questionMarkInStringLiteral() {
 
 		String queryString = "select '? ' from dual";
 		StringQuery query = new StringQuery(queryString);
@@ -504,7 +504,7 @@ public class StringQueryUnitTests {
 	}
 
 	@Test // DATAJPA-1318
-	public void isNotDefaultProjection() {
+	void isNotDefaultProjection() {
 
 		List<String> queriesWithoutDefaultProjection = Arrays.asList( //
 				"select a, b from C as c", //
@@ -541,7 +541,7 @@ public class StringQueryUnitTests {
 	}
 
 	@Test // DATAJPA-1652
-	public void usingPipesWithNamedParameter() {
+	void usingPipesWithNamedParameter() {
 
 		String queryString = "SELECT u FROM User u WHERE u.lastname LIKE '%'||:name||'%'";
 		StringQuery query = new StringQuery(queryString);
@@ -552,7 +552,7 @@ public class StringQueryUnitTests {
 	}
 
 	@Test // DATAJPA-1652
-	public void usingGreaterThanWithNamedParameter() {
+	void usingGreaterThanWithNamedParameter() {
 
 		String queryString = "SELECT u FROM User u WHERE :age>u.age";
 		StringQuery query = new StringQuery(queryString);

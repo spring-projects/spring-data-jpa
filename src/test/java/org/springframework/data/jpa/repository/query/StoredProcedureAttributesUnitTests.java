@@ -26,10 +26,10 @@ import org.junit.jupiter.api.Test;
  * @author Oliver Gierke
  * @author Jens Schauder
  */
-public class StoredProcedureAttributesUnitTests {
+class StoredProcedureAttributesUnitTests {
 
 	@Test // DATAJPA-681
-	public void usesSyntheticOutputParameterNameForAdhocProcedureWithoutOutputName() {
+	void usesSyntheticOutputParameterNameForAdhocProcedureWithoutOutputName() {
 
 		StoredProcedureAttributes attributes = new StoredProcedureAttributes("procedure", null, Long.class);
 		assertThat(attributes.getOutputParameterNames().get(0)).isEqualTo(SYNTHETIC_OUTPUT_PARAMETER_NAME);

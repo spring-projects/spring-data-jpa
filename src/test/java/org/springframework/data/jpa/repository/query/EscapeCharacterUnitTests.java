@@ -24,20 +24,20 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jens Schauder
  */
-public class EscapeCharacterUnitTests {
+class EscapeCharacterUnitTests {
 
 	@Test // DATAJPA-1522
-	public void nothingToEscape() {
+	void nothingToEscape() {
 		assertThat(EscapeCharacter.of('x').escape("alpha")).isEqualTo("alpha");
 	}
 
 	@Test // DATAJPA-1522
-	public void wildcardGetsEscaped() {
+	void wildcardGetsEscaped() {
 		assertThat(EscapeCharacter.of('x').escape("alp_ha")).isEqualTo("alpx_ha");
 	}
 
 	@Test // DATAJPA-1522
-	public void escapeCharacterGetsEscaped() {
+	void escapeCharacterGetsEscaped() {
 		assertThat(EscapeCharacter.of('x').escape("axlpx_ha")).isEqualTo("axxlpxxx_ha");
 	}
 }

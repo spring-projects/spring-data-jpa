@@ -28,7 +28,7 @@ import org.springframework.test.context.ContextConfiguration;
  */
 @Disabled
 @ContextConfiguration(classes = { StoredProcedureIntegrationTests.Config.class })
-public class OpenJpaStoredProcedureIntegrationTests extends StoredProcedureIntegrationTests {
+class OpenJpaStoredProcedureIntegrationTests extends StoredProcedureIntegrationTests {
 
 	@ImportResource({ "classpath:infrastructure.xml", "classpath:openjpa.xml" })
 	static class TestConfig extends Config {}

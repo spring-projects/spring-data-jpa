@@ -35,7 +35,7 @@ public class AllowNestedRepositoriesRepositoryConfigTests extends AbstractReposi
 	@Autowired NestedUserRepository fooRepository;
 
 	@Test // DATAJPA-416
-	public void shouldFindNestedRepository() {
+	void shouldFindNestedRepository() {
 		assertThat(fooRepository).isNotNull();
 	}
 }

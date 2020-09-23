@@ -46,9 +46,9 @@ import org.mockito.quality.Strictness;
 @SuppressWarnings("serial")
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-public class SpecificationUnitTests implements Serializable {
+class SpecificationUnitTests implements Serializable {
 
-	Specification<Object> spec;
+	private Specification<Object> spec;
 	@Mock(serializable = true) Root<Object> root;
 	@Mock(serializable = true) CriteriaQuery<?> query;
 	@Mock(serializable = true) CriteriaBuilder builder;
@@ -56,13 +56,13 @@ public class SpecificationUnitTests implements Serializable {
 	@Mock(serializable = true) Predicate predicate;
 
 	@BeforeEach
-	public void setUp() {
+	void setUp() {
 
 		spec = (root, query, cb) -> predicate;
 	}
 
 	@Test // DATAJPA-300, DATAJPA-1170
-	public void createsSpecificationsFromNull() {
+	void createsSpecificationsFromNull() {
 
 		Specification<Object> specification = where(null);
 		assertThat(specification).isNotNull();
@@ -70,7 +70,7 @@ public class SpecificationUnitTests implements Serializable {
 	}
 
 	@Test // DATAJPA-300, DATAJPA-1170
-	public void negatesNullSpecToNull() {
+	void negatesNullSpecToNull() {
 
 		Specification<Object> specification = not(null);
 
@@ -79,7 +79,7 @@ public class SpecificationUnitTests implements Serializable {
 	}
 
 	@Test // DATAJPA-300, DATAJPA-1170
-	public void andConcatenatesSpecToNullSpec() {
+	void andConcatenatesSpecToNullSpec() {
 
 		Specification<Object> specification = where(null);
 		specification = specification.and(spec);
@@ -89,7 +89,7 @@ public class SpecificationUnitTests implements Serializable {
 	}
 
 	@Test // DATAJPA-300, DATAJPA-1170
-	public void andConcatenatesNullSpecToSpec() {
+	void andConcatenatesNullSpecToSpec() {
 
 		Specification<Object> specification = spec.and(null);
 
@@ -98,7 +98,7 @@ public class SpecificationUnitTests implements Serializable {
 	}
 
 	@Test // DATAJPA-300, DATAJPA-1170
-	public void orConcatenatesSpecToNullSpec() {
+	void orConcatenatesSpecToNullSpec() {
 
 		Specification<Object> specification = where(null);
 		specification = specification.or(spec);
@@ -108,7 +108,7 @@ public class SpecificationUnitTests implements Serializable {
 	}
 
 	@Test // DATAJPA-300, DATAJPA-1170
-	public void orConcatenatesNullSpecToSpec() {
+	void orConcatenatesNullSpecToSpec() {
 
 		Specification<Object> specification = spec.or(null);
 
@@ -117,7 +117,7 @@ public class SpecificationUnitTests implements Serializable {
 	}
 
 	@Test // DATAJPA-523
-	public void specificationsShouldBeSerializable() {
+	void specificationsShouldBeSerializable() {
 
 		Specification<Object> serializableSpec = new SerializableSpecification();
 		Specification<Object> specification = serializableSpec.and(serializableSpec);
@@ -131,7 +131,7 @@ public class SpecificationUnitTests implements Serializable {
 	}
 
 	@Test // DATAJPA-523
-	public void complexSpecificationsShouldBeSerializable() {
+	void complexSpecificationsShouldBeSerializable() {
 
 		SerializableSpecification serializableSpec = new SerializableSpecification();
 		Specification<Object> specification = Specification
@@ -145,7 +145,7 @@ public class SpecificationUnitTests implements Serializable {
 		assertThat(transferredSpecification).isNotNull();
 	}
 
-	public static class SerializableSpecification implements Serializable, Specification<Object> {
+	static class SerializableSpecification implements Serializable, Specification<Object> {
 
 		@Override
 		public Predicate toPredicate(Root<Object> root, CriteriaQuery<?> query, CriteriaBuilder cb) {

@@ -26,8 +26,8 @@ public class ItemSiteId implements Serializable {
 
 	private static final long serialVersionUID = 1822540289216799357L;
 
-	ItemId item;
-	Integer site;
+	private ItemId item;
+	private Integer site;
 
 	public ItemSiteId() {}
 

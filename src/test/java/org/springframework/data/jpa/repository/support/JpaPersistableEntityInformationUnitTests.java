@@ -41,7 +41,7 @@ import org.springframework.data.repository.core.EntityInformation;
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-public class JpaPersistableEntityInformationUnitTests {
+class JpaPersistableEntityInformationUnitTests {
 
 	@Mock Metamodel metamodel;
 
@@ -51,7 +51,7 @@ public class JpaPersistableEntityInformationUnitTests {
 
 	@BeforeEach
 	@SuppressWarnings("unchecked")
-	public void setUp() {
+	void setUp() {
 
 		when(metamodel.managedType(Object.class)).thenThrow(IllegalArgumentException.class);
 		when(metamodel.managedType(Foo.class)).thenReturn(type);
@@ -59,7 +59,7 @@ public class JpaPersistableEntityInformationUnitTests {
 	}
 
 	@Test
-	public void usesPersistableMethodsForIsNewAndGetId() {
+	void usesPersistableMethodsForIsNewAndGetId() {
 
 		EntityInformation<Foo, Long> entityInformation = new JpaPersistableEntityInformation<Foo, Long>(Foo.class,
 				metamodel);

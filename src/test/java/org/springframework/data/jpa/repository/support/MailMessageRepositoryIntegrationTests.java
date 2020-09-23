@@ -57,7 +57,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class MailMessageRepositoryIntegrationTests {
 
-	static final QMailMessage message = QMailMessage.mailMessage;
+	private static final QMailMessage message = QMailMessage.mailMessage;
 	static final QMailSender sender = QMailSender.mailSender;
 
 	@PersistenceContext EntityManager em;
@@ -65,7 +65,7 @@ public class MailMessageRepositoryIntegrationTests {
 	@Autowired MailMessageRepository mailMessageRepository;
 
 	@Test // DATAJPA-12
-	public void shouldSortMailWithPageRequestAndJpaSortCriteriaNullsFirst() {
+	void shouldSortMailWithPageRequestAndJpaSortCriteriaNullsFirst() {
 
 		MailMessage message1 = new MailMessage();
 		message1.setContent("abc");
@@ -88,7 +88,7 @@ public class MailMessageRepositoryIntegrationTests {
 	}
 
 	@Test // DATAJPA-12
-	public void shouldSortMailWithQueryDslRepositoryAndDslSortCriteriaNullsFirst() {
+	void shouldSortMailWithQueryDslRepositoryAndDslSortCriteriaNullsFirst() {
 
 		MailMessage message1 = new MailMessage();
 		message1.setContent("abc");
@@ -110,7 +110,7 @@ public class MailMessageRepositoryIntegrationTests {
 	}
 
 	@Test // DATAJPA-491
-	public void shouldSortMailWithNestedQueryDslSortCriteriaNullsFirst() {
+	void shouldSortMailWithNestedQueryDslSortCriteriaNullsFirst() {
 
 		MailUser fooMailUser = new MailUser("foo");
 		em.persist(fooMailUser);
@@ -136,7 +136,7 @@ public class MailMessageRepositoryIntegrationTests {
 	}
 
 	@Test // DATAJPA-491
-	public void shouldSortMailWithNestedStringBasedSortCriteriaNullsFirst() {
+	void shouldSortMailWithNestedStringBasedSortCriteriaNullsFirst() {
 
 		MailUser fooMailUser = new MailUser("foo");
 		em.persist(fooMailUser);

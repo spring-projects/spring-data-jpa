@@ -37,7 +37,7 @@ import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 public class EntityManagerBeanDefinitionRegistrarPostProcessorUnitTests {
 
 	@Test // DATAJPA-453
-	public void findsBeanDefinitionInParentBeanFactory() {
+	void findsBeanDefinitionInParentBeanFactory() {
 
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 		beanFactory.registerBeanDefinition("factory", new RootBeanDefinition(LocalContainerEntityManagerFactoryBean.class));
@@ -51,7 +51,7 @@ public class EntityManagerBeanDefinitionRegistrarPostProcessorUnitTests {
 	}
 
 	@Test // DATAJPA-1005, DATAJPA-1045
-	public void discoversFactoryBeanReturningConcreteEntityManagerFactoryType() {
+	void discoversFactoryBeanReturningConcreteEntityManagerFactoryType() {
 
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(StubEntityManagerFactoryBean.class);
 		builder.addConstructorArgValue(SpecialEntityManagerFactory.class);
@@ -71,7 +71,7 @@ public class EntityManagerBeanDefinitionRegistrarPostProcessorUnitTests {
 
 		private final Class<? extends EntityManagerFactory> emfType;
 
-		public StubEntityManagerFactoryBean(Class<? extends EntityManagerFactory> emfType) {
+		StubEntityManagerFactoryBean(Class<? extends EntityManagerFactory> emfType) {
 			this.emfType = emfType;
 		}
 

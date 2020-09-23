@@ -52,9 +52,9 @@ import org.springframework.data.repository.CrudRepository;
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-public class SimpleJpaRepositoryUnitTests {
+class SimpleJpaRepositoryUnitTests {
 
-	SimpleJpaRepository<User, Integer> repo;
+	private SimpleJpaRepository<User, Integer> repo;
 
 	@Mock EntityManager em;
 	@Mock CriteriaBuilder builder;
@@ -68,7 +68,7 @@ public class SimpleJpaRepositoryUnitTests {
 	@Mock org.springframework.data.jpa.repository.EntityGraph entityGraphAnnotation;
 
 	@BeforeEach
-	public void setUp() {
+	void setUp() {
 
 		when(em.getDelegate()).thenReturn(em);
 
@@ -90,7 +90,7 @@ public class SimpleJpaRepositoryUnitTests {
 	}
 
 	@Test // DATAJPA-124, DATAJPA-912
-	public void retrieveObjectsForPageableOutOfRange() {
+	void retrieveObjectsForPageableOutOfRange() {
 
 		when(countQuery.getSingleResult()).thenReturn(20L);
 		repo.findAll(PageRequest.of(2, 10));
@@ -99,7 +99,7 @@ public class SimpleJpaRepositoryUnitTests {
 	}
 
 	@Test // DATAJPA-912
-	public void doesNotRetrieveCountWithoutOffsetAndResultsWithinPageSize() {
+	void doesNotRetrieveCountWithoutOffsetAndResultsWithinPageSize() {
 
 		when(query.getResultList()).thenReturn(Arrays.asList(new User(), new User()));
 
@@ -109,7 +109,7 @@ public class SimpleJpaRepositoryUnitTests {
 	}
 
 	@Test // DATAJPA-912
-	public void doesNotRetrieveCountWithOffsetAndResultsWithinPageSize() {
+	void doesNotRetrieveCountWithOffsetAndResultsWithinPageSize() {
 
 		when(query.getResultList()).thenReturn(Arrays.asList(new User(), new User()));
 
@@ -119,14 +119,14 @@ public class SimpleJpaRepositoryUnitTests {
 	}
 
 	@Test // DATAJPA-177
-	public void throwsExceptionIfEntityToDeleteDoesNotExist() {
+	void throwsExceptionIfEntityToDeleteDoesNotExist() {
 
 		assertThatExceptionOfType(EmptyResultDataAccessException.class).isThrownBy(() -> repo.deleteById(4711));
 	}
 
 	@Test // DATAJPA-689, DATAJPA-696
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public void shouldPropagateConfiguredEntityGraphToFindOne() throws Exception {
+	void shouldPropagateConfiguredEntityGraphToFindOne() throws Exception {
 
 		String entityGraphName = "User.detail";
 		when(entityGraphAnnotation.value()).thenReturn(entityGraphName);
@@ -143,7 +143,7 @@ public class SimpleJpaRepositoryUnitTests {
 	}
 
 	@Test // DATAJPA-931
-	public void mergeGetsCalledWhenDetached() {
+	void mergeGetsCalledWhenDetached() {
 
 		User detachedUser = new User();
 
@@ -155,7 +155,7 @@ public class SimpleJpaRepositoryUnitTests {
 	}
 
 	@Test // DATAJPA-931, DATAJPA-1261
-	public void mergeGetsCalledWhenAttached() {
+	void mergeGetsCalledWhenAttached() {
 
 		User attachedUser = new User();
 
@@ -167,7 +167,7 @@ public class SimpleJpaRepositoryUnitTests {
 	}
 
 	@Test // DATAJPA-1535
-	public void doNothingWhenNewInstanceGetsDeleted() {
+	void doNothingWhenNewInstanceGetsDeleted() {
 
 		User newUser = new User();
 		newUser.setId(null);
@@ -180,7 +180,7 @@ public class SimpleJpaRepositoryUnitTests {
 	}
 
 	@Test // DATAJPA-1535
-	public void doNothingWhenNonExistentInstanceGetsDeleted() {
+	void doNothingWhenNonExistentInstanceGetsDeleted() {
 
 		User newUser = new User();
 		newUser.setId(23);

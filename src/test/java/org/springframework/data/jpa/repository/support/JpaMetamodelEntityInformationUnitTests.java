@@ -47,7 +47,7 @@ import org.springframework.data.jpa.domain.sample.PersistableWithIdClassPK;
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-public class JpaMetamodelEntityInformationUnitTests {
+class JpaMetamodelEntityInformationUnitTests {
 
 	@Mock Metamodel metamodel;
 
@@ -58,7 +58,7 @@ public class JpaMetamodelEntityInformationUnitTests {
 
 	@BeforeEach
 	@SuppressWarnings("unchecked")
-	public void setUp() {
+	void setUp() {
 
 		when(first.getName()).thenReturn("first");
 		when(second.getName()).thenReturn("second");
@@ -75,7 +75,7 @@ public class JpaMetamodelEntityInformationUnitTests {
 	}
 
 	@Test // DATAJPA-50
-	public void doesNotCreateIdIfAllPartialAttributesAreNull() {
+	void doesNotCreateIdIfAllPartialAttributesAreNull() {
 
 		JpaMetamodelEntityInformation<PersistableWithIdClass, Serializable> information = new JpaMetamodelEntityInformation<PersistableWithIdClass, Serializable>(
 				PersistableWithIdClass.class, metamodel);

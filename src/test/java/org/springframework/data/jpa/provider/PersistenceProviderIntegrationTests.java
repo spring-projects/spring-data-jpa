@@ -54,11 +54,11 @@ public class PersistenceProviderIntegrationTests {
 	@Autowired ProductRepository products;
 	@Autowired PlatformTransactionManager transactionManager;
 	@Autowired EntityManager em;
-	Product product;
-	Category category;
+	private Product product;
+	private Category category;
 
 	@BeforeEach
-	public void setUp() {
+	void setUp() {
 		this.product = products.save(new Product());
 		this.category = categories.save(new Category(product));
 	}

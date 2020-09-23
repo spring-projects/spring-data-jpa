@@ -51,7 +51,7 @@ import org.springframework.data.jpa.repository.support.JpaRepositoryFactory;
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-public class CrudMethodMetadataUnitTests {
+class CrudMethodMetadataUnitTests {
 
 	@Mock EntityManager em;
 	@Mock EntityManagerFactory emf;
@@ -62,10 +62,10 @@ public class CrudMethodMetadataUnitTests {
 	@Mock javax.persistence.Query query;
 	@Mock Metamodel metamodel;
 
-	RoleRepository repository;
+	private RoleRepository repository;
 
 	@BeforeEach
-	public void setUp() {
+	void setUp() {
 
 		when(information.getJavaType()).thenReturn(Role.class);
 
@@ -86,7 +86,7 @@ public class CrudMethodMetadataUnitTests {
 	}
 
 	@Test // DATAJPA-73, DATAJPA-173
-	public void usesLockInformationAnnotatedAtRedeclaredMethod() {
+	void usesLockInformationAnnotatedAtRedeclaredMethod() {
 
 		when(em.getCriteriaBuilder()).thenReturn(builder);
 		when(builder.createQuery(Role.class)).thenReturn(criteriaQuery);
@@ -100,7 +100,7 @@ public class CrudMethodMetadataUnitTests {
 	}
 
 	@Test // DATAJPA-359, DATAJPA-173
-	public void usesMetadataAnnotatedAtRedeclaredFindOne() {
+	void usesMetadataAnnotatedAtRedeclaredFindOne() {
 
 		repository.findById(1);
 
@@ -111,7 +111,7 @@ public class CrudMethodMetadataUnitTests {
 	}
 
 	@Test // DATAJPA-574
-	public void appliesLockModeAndQueryHintsToQuerydslQuery() {
+	void appliesLockModeAndQueryHintsToQuerydslQuery() {
 
 		when(em.getDelegate()).thenReturn(mock(EntityManager.class));
 		when(em.createQuery(anyString())).thenReturn(query);

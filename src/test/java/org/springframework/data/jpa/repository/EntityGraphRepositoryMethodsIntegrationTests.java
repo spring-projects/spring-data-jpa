@@ -64,15 +64,15 @@ public class EntityGraphRepositoryMethodsIntegrationTests {
 	@Autowired EntityManager em;
 	@Autowired RepositoryMethodsWithEntityGraphConfigRepository repository;
 
-	User tom;
-	User ollie;
-	User christoph;
-	Role role;
+	private User tom;
+	private User ollie;
+	private User christoph;
+	private Role role;
 
-	PersistenceUtil util = Persistence.getPersistenceUtil();
+	private PersistenceUtil util = Persistence.getPersistenceUtil();
 
 	@BeforeEach
-	public void setup() {
+	void setup() {
 
 		tom = new User("Thomas", "Darimont", "tdarimont@example.org");
 		ollie = new User("Oliver", "Gierke", "ogierke@example.org");
@@ -94,7 +94,7 @@ public class EntityGraphRepositoryMethodsIntegrationTests {
 	}
 
 	@Test // DATAJPA-612
-	public void shouldRespectConfiguredJpaEntityGraph() {
+	void shouldRespectConfiguredJpaEntityGraph() {
 
 		Assume.assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
 
@@ -109,7 +109,7 @@ public class EntityGraphRepositoryMethodsIntegrationTests {
 	}
 
 	@Test // DATAJPA-689
-	public void shouldRespectConfiguredJpaEntityGraphInFindOne() {
+	void shouldRespectConfiguredJpaEntityGraphInFindOne() {
 
 		Assume.assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
 
@@ -125,7 +125,7 @@ public class EntityGraphRepositoryMethodsIntegrationTests {
 	}
 
 	@Test // DATAJPA-696
-	public void shouldRespectInferFetchGraphFromMethodName() {
+	void shouldRespectInferFetchGraphFromMethodName() {
 
 		Assume.assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
 
@@ -141,7 +141,7 @@ public class EntityGraphRepositoryMethodsIntegrationTests {
 	}
 
 	@Test // DATAJPA-696
-	public void shouldRespectDynamicFetchGraphForGetOneWithAttributeNamesById() {
+	void shouldRespectDynamicFetchGraphForGetOneWithAttributeNamesById() {
 
 		Assume.assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
 
@@ -167,7 +167,7 @@ public class EntityGraphRepositoryMethodsIntegrationTests {
 	}
 
 	@Test // DATAJPA-790, DATAJPA-1087
-	public void shouldRespectConfiguredJpaEntityGraphWithPaginationAndQueryDslPredicates() {
+	void shouldRespectConfiguredJpaEntityGraphWithPaginationAndQueryDslPredicates() {
 
 		Assume.assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
 
@@ -183,7 +183,7 @@ public class EntityGraphRepositoryMethodsIntegrationTests {
 	}
 
 	@Test // DATAJPA-1207
-	public void shouldRespectConfiguredJpaEntityGraphWithPaginationAndSpecification() {
+	void shouldRespectConfiguredJpaEntityGraphWithPaginationAndSpecification() {
 
 		Assume.assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
 
@@ -203,7 +203,7 @@ public class EntityGraphRepositoryMethodsIntegrationTests {
 	}
 
 	@Test // DATAJPA-1041
-	public void shouldRespectNamedEntitySubGraph() {
+	void shouldRespectNamedEntitySubGraph() {
 
 		Assume.assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
 
@@ -228,7 +228,7 @@ public class EntityGraphRepositoryMethodsIntegrationTests {
 	}
 
 	@Test // DATAJPA-1041
-	public void shouldRespectMultipleSubGraphForSameAttributeWithDynamicFetchGraph() {
+	void shouldRespectMultipleSubGraphForSameAttributeWithDynamicFetchGraph() {
 
 		Assume.assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
 
@@ -253,7 +253,7 @@ public class EntityGraphRepositoryMethodsIntegrationTests {
 	}
 
 	@Test // DATAJPA-1041, DATAJPA-1075
-	public void shouldCreateDynamicGraphWithMultipleLevelsOfSubgraphs() {
+	void shouldCreateDynamicGraphWithMultipleLevelsOfSubgraphs() {
 
 		Assume.assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
 		em.flush();

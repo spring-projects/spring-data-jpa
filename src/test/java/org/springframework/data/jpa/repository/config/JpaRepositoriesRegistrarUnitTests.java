@@ -35,20 +35,20 @@ import org.springframework.data.jpa.repository.sample.UserRepository;
  * @author Oliver Gierke
  * @author Jens Schauder
  */
-public class JpaRepositoriesRegistrarUnitTests {
+class JpaRepositoriesRegistrarUnitTests {
 
-	BeanDefinitionRegistry registry;
-	AnnotationMetadata metadata;
+	private BeanDefinitionRegistry registry;
+	private AnnotationMetadata metadata;
 
 	@BeforeEach
-	public void setUp() {
+	void setUp() {
 
 		metadata = new StandardAnnotationMetadata(Config.class, true);
 		registry = new DefaultListableBeanFactory();
 	}
 
 	@Test
-	public void configuresRepositoriesCorrectly() {
+	void configuresRepositoriesCorrectly() {
 
 		JpaRepositoriesRegistrar registrar = new JpaRepositoriesRegistrar();
 		registrar.setResourceLoader(new DefaultResourceLoader());
@@ -60,6 +60,7 @@ public class JpaRepositoriesRegistrarUnitTests {
 	}
 
 	@EnableJpaRepositories(basePackageClasses = UserRepository.class)
+	private
 	class Config {
 
 	}

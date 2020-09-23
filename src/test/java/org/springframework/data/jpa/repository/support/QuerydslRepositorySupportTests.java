@@ -46,11 +46,12 @@ public class QuerydslRepositorySupportTests {
 
 	@PersistenceContext EntityManager em;
 
-	UserRepository repository;
-	User dave, carter;
+	private UserRepository repository;
+	private User dave;
+	private User carter;
 
 	@BeforeEach
-	public void setup() {
+	void setup() {
 
 		dave = new User("Dave", "Matthews", "dave@matthews.com");
 		em.persist(dave);
@@ -66,7 +67,7 @@ public class QuerydslRepositorySupportTests {
 	}
 
 	@Test
-	public void readsUsersCorrectly() throws Exception {
+	void readsUsersCorrectly() throws Exception {
 
 		List<User> result = repository.findUsersByLastname("Matthews");
 		assertThat(result.size()).isEqualTo(1);
@@ -78,7 +79,7 @@ public class QuerydslRepositorySupportTests {
 	}
 
 	@Test
-	public void updatesUsersCorrectly() throws Exception {
+	void updatesUsersCorrectly() throws Exception {
 
 		long updates = repository.updateLastnamesTo("Foo");
 		assertThat(updates).isEqualTo(2L);
@@ -95,7 +96,7 @@ public class QuerydslRepositorySupportTests {
 	}
 
 	@Test
-	public void deletesAllWithLastnameCorrectly() {
+	void deletesAllWithLastnameCorrectly() {
 
 		long updates = repository.deleteAllWithLastname("Matthews");
 		assertThat(updates).isEqualTo(1L);
@@ -109,7 +110,7 @@ public class QuerydslRepositorySupportTests {
 	}
 
 	@Test
-	public void rejectsUnsetEntityManager() {
+	void rejectsUnsetEntityManager() {
 
 		UserRepositoryImpl repositoryImpl = new UserRepositoryImpl();
 		assertThatIllegalArgumentException().isThrownBy(repositoryImpl::validate);

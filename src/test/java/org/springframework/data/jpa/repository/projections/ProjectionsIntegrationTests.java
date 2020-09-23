@@ -67,7 +67,7 @@ public class ProjectionsIntegrationTests {
 	@Autowired DummyEntityWithCollectionRepository repository;
 
 	@BeforeEach
-	public void setup() {
+	void setup() {
 
 		DummyEntityWithCollection entity = new DummyEntityWithCollection();
 		entity.setName("A Name");
@@ -78,12 +78,12 @@ public class ProjectionsIntegrationTests {
 	}
 
 	@Test // DATAJPA-1173
-	public void findAllFindsTheSingleEntity() {
+	void findAllFindsTheSingleEntity() {
 		assertThat(repository.findAll()).hasSize(1);
 	}
 
 	@Test // DATAJPA-1173
-	public void findAllProjectedFindsTheSingleEntity() {
+	void findAllProjectedFindsTheSingleEntity() {
 		assertThat(repository.findAllProjectedBy()).hasSize(1);
 	}
 

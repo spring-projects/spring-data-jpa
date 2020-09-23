@@ -49,18 +49,18 @@ public class CustomRepositoryFactoryConfigTests {
 	@Autowired DelegatingTransactionManager transactionManager;
 
 	@BeforeEach
-	public void setup() {
+	void setup() {
 
 		transactionManager.resetCount();
 	}
 
 	@Test
-	public void testCustomFactoryUsed() {
+	void testCustomFactoryUsed() {
 		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> userRepository.customMethod(1));
 	}
 
 	@Test
-	public void reconfiguresTransactionalMethodWithoutGenericParameter() {
+	void reconfiguresTransactionalMethodWithoutGenericParameter() {
 
 		userRepository.findAll();
 
@@ -69,7 +69,7 @@ public class CustomRepositoryFactoryConfigTests {
 	}
 
 	@Test
-	public void reconfiguresTransactionalMethodWithGenericParameter() {
+	void reconfiguresTransactionalMethodWithGenericParameter() {
 
 		userRepository.findById(1);
 

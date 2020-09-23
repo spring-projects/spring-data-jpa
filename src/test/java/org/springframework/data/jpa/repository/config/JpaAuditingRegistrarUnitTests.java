@@ -39,29 +39,29 @@ import org.springframework.data.jpa.domain.support.AuditingBeanFactoryPostProces
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-public class JpaAuditingRegistrarUnitTests {
+class JpaAuditingRegistrarUnitTests {
 
-	JpaAuditingRegistrar registrar = new JpaAuditingRegistrar();
+	private JpaAuditingRegistrar registrar = new JpaAuditingRegistrar();
 
 	@Mock AnnotationMetadata metadata;
 	@Mock BeanDefinitionRegistry registry;
 
 	@Test // DATAJPA-265
-	public void rejectsNullAnnotationMetadata() {
+	void rejectsNullAnnotationMetadata() {
 
 		assertThatExceptionOfType(IllegalArgumentException.class) //
 				.isThrownBy(() -> registrar.registerBeanDefinitions(null, registry));
 	}
 
 	@Test // DATAJPA-265
-	public void rejectsNullBeanDefinitionRegistry() {
+	void rejectsNullBeanDefinitionRegistry() {
 
 		assertThatExceptionOfType(IllegalArgumentException.class) //
 				.isThrownBy(() -> registrar.registerBeanDefinitions(metadata, null));
 	}
 
 	@Test // DATAJPA-1448
-	public void doesNotRegisterBeanConfigurerTwice() throws Exception {
+	void doesNotRegisterBeanConfigurerTwice() throws Exception {
 
 		SimpleMetadataReaderFactory factory = new SimpleMetadataReaderFactory();
 		MetadataReader reader = factory.getMetadataReader(Sample.class.getName());
@@ -81,5 +81,5 @@ public class JpaAuditingRegistrarUnitTests {
 	}
 
 	@EnableJpaAuditing
-	static class Sample {}
+	private static class Sample {}
 }

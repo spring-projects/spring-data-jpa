@@ -24,7 +24,7 @@ import javax.persistence.Id;
 @Entity
 public class SampleWithPrimitiveId {
 
-	@Id long id;
+	@Id private long id;
 
 	/**
 	 * @param id the id to set

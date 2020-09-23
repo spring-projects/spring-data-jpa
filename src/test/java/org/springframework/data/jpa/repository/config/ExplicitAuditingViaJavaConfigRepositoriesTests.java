@@ -31,7 +31,7 @@ import org.springframework.test.context.ContextConfiguration;
  * @author Oliver Gierke
  */
 @ContextConfiguration
-public class ExplicitAuditingViaJavaConfigRepositoriesTests extends AbstractAuditingViaJavaConfigRepositoriesTests {
+class ExplicitAuditingViaJavaConfigRepositoriesTests extends AbstractAuditingViaJavaConfigRepositoriesTests {
 
 	@Configuration
 	@EnableJpaAuditing(auditorAwareRef = "auditorProvider")

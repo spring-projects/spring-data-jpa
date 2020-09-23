@@ -54,7 +54,7 @@ public class AuditingEntityListenerTests {
 
 	@Autowired AuditorAwareStub auditorAware;
 
-	AuditableUser user;
+	private AuditableUser user;
 
 	private static void assertDatesSet(Auditable<?, ?, LocalDateTime> auditable) {
 
@@ -69,7 +69,7 @@ public class AuditingEntityListenerTests {
 	}
 
 	@BeforeEach
-	public void setUp() {
+	void setUp() {
 
 		user = new AuditableUser();
 		auditorAware.setAuditor(user);
@@ -78,14 +78,14 @@ public class AuditingEntityListenerTests {
 	}
 
 	@Test
-	public void auditsRootEntityCorrectly() {
+	void auditsRootEntityCorrectly() {
 
 		assertDatesSet(user);
 		assertUserIsAuditor(user, user);
 	}
 
 	@Test // DATAJPA-303
-	public void updatesLastModifiedDates() throws Exception {
+	void updatesLastModifiedDates() throws Exception {
 
 		Thread.sleep(200);
 		user.setFirstname("Oliver");
@@ -96,7 +96,7 @@ public class AuditingEntityListenerTests {
 	}
 
 	@Test
-	public void auditsTransitiveEntitiesCorrectly() {
+	void auditsTransitiveEntitiesCorrectly() {
 
 		AuditableRole role = new AuditableRole();
 		role.setName("ADMIN");
@@ -114,7 +114,7 @@ public class AuditingEntityListenerTests {
 	}
 
 	@Test // DATAJPA-501
-	public void usesAnnotationMetadata() {
+	void usesAnnotationMetadata() {
 
 		AnnotatedAuditableUser auditableUser = annotatedUserRepository.save(new AnnotatedAuditableUser());
 

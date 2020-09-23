@@ -31,14 +31,14 @@ import org.springframework.test.context.ContextConfiguration;
  * @author Jens Schauder
  */
 @ContextConfiguration("classpath:eclipselink.xml")
-public class EclipseLinkJpaMetamodelEntityInformationIntegrationTests
+class EclipseLinkJpaMetamodelEntityInformationIntegrationTests
 		extends JpaMetamodelEntityInformationIntegrationTests {
 
 	/**
 	 * Re-activate test. Change to check for {@link String} as OpenJpa defaults {@link Serializable}s to {@link String}.
 	 */
 	@Test
-	public void reactivatedDetectsIdTypeForMappedSuperclass() {
+	void reactivatedDetectsIdTypeForMappedSuperclass() {
 		JpaEntityInformation<?, ?> information = JpaEntityInformationSupport.getEntityInformation(AbstractPersistable.class,
 				em);
 		assertThat(information.getIdType()).isEqualTo(String.class);
@@ -49,25 +49,25 @@ public class EclipseLinkJpaMetamodelEntityInformationIntegrationTests
 	 */
 	@Override
 	@Disabled
-	public void findsIdClassOnMappedSuperclass() {}
+	void findsIdClassOnMappedSuperclass() {}
 
 	/**
 	 * Ignored due to https://bugs.eclipse.org/bugs/show_bug.cgi?id=415027
 	 */
 	@Override
 	@Disabled
-	public void detectsNewStateForEntityWithPrimitiveId() {}
+	void detectsNewStateForEntityWithPrimitiveId() {}
 
 	@Override
 	@Disabled
-	public void considersEntityWithUnsetCompundIdNew() {}
+	void considersEntityWithUnsetCompundIdNew() {}
 
 	/**
 	 * Re-activate test for DATAJPA-820.
 	 */
 	@Test
 	@Override
-	public void detectsVersionPropertyOnMappedSuperClass() {
+	void detectsVersionPropertyOnMappedSuperClass() {
 		super.detectsVersionPropertyOnMappedSuperClass();
 	}
 
@@ -78,7 +78,7 @@ public class EclipseLinkJpaMetamodelEntityInformationIntegrationTests
 	@Disabled
 	@Test
 	@Override
-	public void correctlyDeterminesIdValueForNestedIdClassesWithNonPrimitiveNonManagedType() {
+	void correctlyDeterminesIdValueForNestedIdClassesWithNonPrimitiveNonManagedType() {
 		super.correctlyDeterminesIdValueForNestedIdClassesWithNonPrimitiveNonManagedType();
 	}
 
@@ -89,12 +89,12 @@ public class EclipseLinkJpaMetamodelEntityInformationIntegrationTests
 	@Disabled
 	@Test
 	@Override
-	public void proxiedIdClassElement() {
+	void proxiedIdClassElement() {
 		super.proxiedIdClassElement();
 	}
 
 	@Override
-	protected String getMetadadataPersitenceUnitName() {
+	String getMetadadataPersitenceUnitName() {
 		return "metadata_el";
 	}
 }

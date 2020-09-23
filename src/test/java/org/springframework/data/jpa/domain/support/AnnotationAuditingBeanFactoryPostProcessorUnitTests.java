@@ -33,7 +33,7 @@ import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
  *
  * @author Oliver Gierke
  */
-public class AnnotationAuditingBeanFactoryPostProcessorUnitTests extends AuditingBeanFactoryPostProcessorUnitTests {
+class AnnotationAuditingBeanFactoryPostProcessorUnitTests extends AuditingBeanFactoryPostProcessorUnitTests {
 
 	@Configuration
 	@EnableJpaAuditing
@@ -55,7 +55,7 @@ public class AnnotationAuditingBeanFactoryPostProcessorUnitTests extends Auditin
 	 * @see org.springframework.data.jpa.domain.support.AuditingBeanFactoryPostProcessorUnitTests#getBeanFactory()
 	 */
 	@Override
-	protected DefaultListableBeanFactory getBeanFactory() {
+	DefaultListableBeanFactory getBeanFactory() {
 
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 		beanFactory.registerBeanDefinition("testConfig", new RootBeanDefinition(TestConfig.class));

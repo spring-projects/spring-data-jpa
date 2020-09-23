@@ -32,10 +32,10 @@ import org.springframework.core.io.ClassPathResource;
  * @author Oliver Gierke
  * @author Jens Schauder
  */
-public class EntityManagerFactoryRefUnitTests {
+class EntityManagerFactoryRefUnitTests {
 
 	@Test
-	public void repositoriesGetTheSecondEntityManagerFactoryInjected2() {
+	void repositoriesGetTheSecondEntityManagerFactoryInjected2() {
 
 		DefaultListableBeanFactory factory = new DefaultListableBeanFactory();
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(factory);

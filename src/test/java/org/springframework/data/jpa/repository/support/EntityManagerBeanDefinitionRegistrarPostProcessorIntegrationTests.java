@@ -54,7 +54,7 @@ public class EntityManagerBeanDefinitionRegistrarPostProcessorIntegrationTests {
 	@Autowired EntityManagerInjectionTarget target;
 
 	@Test // DATAJPA-445
-	public void injectsEntityManagerIntoConstructors() {
+	void injectsEntityManagerIntoConstructors() {
 
 		assertThat(target).isNotNull();
 		assertThat(target.em).isNotNull();
@@ -68,7 +68,7 @@ public class EntityManagerBeanDefinitionRegistrarPostProcessorIntegrationTests {
 	@Component
 	@Retention(RetentionPolicy.RUNTIME)
 	@Target(ElementType.TYPE)
-	static @interface TestComponent {
+	private static @interface TestComponent {
 
 	}
 

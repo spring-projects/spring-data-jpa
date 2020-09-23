@@ -68,10 +68,10 @@ public class JpaQueryLookupStrategyUnitTests {
 	@Mock Metamodel metamodel;
 	@Mock ProjectionFactory projectionFactory;
 
-	JpaQueryMethodFactory queryMethodFactory;
+	private JpaQueryMethodFactory queryMethodFactory;
 
 	@BeforeEach
-	public void setUp() {
+	void setUp() {
 
 		when(em.getMetamodel()).thenReturn(metamodel);
 		when(em.getEntityManagerFactory()).thenReturn(emf);
@@ -81,7 +81,7 @@ public class JpaQueryLookupStrategyUnitTests {
 	}
 
 	@Test // DATAJPA-226
-	public void invalidAnnotatedQueryCausesException() throws Exception {
+	void invalidAnnotatedQueryCausesException() throws Exception {
 
 		QueryLookupStrategy strategy = JpaQueryLookupStrategy.create(em, queryMethodFactory, Key.CREATE_IF_NOT_FOUND,
 				EVALUATION_CONTEXT_PROVIDER, EscapeCharacter.DEFAULT);
@@ -97,7 +97,7 @@ public class JpaQueryLookupStrategyUnitTests {
 	}
 
 	@Test // DATAJPA-554
-	public void sholdThrowMorePreciseExceptionIfTryingToUsePaginationInNativeQueries() throws Exception {
+	void sholdThrowMorePreciseExceptionIfTryingToUsePaginationInNativeQueries() throws Exception {
 
 		QueryLookupStrategy strategy = JpaQueryLookupStrategy.create(em, queryMethodFactory, Key.CREATE_IF_NOT_FOUND,
 				EVALUATION_CONTEXT_PROVIDER, EscapeCharacter.DEFAULT);

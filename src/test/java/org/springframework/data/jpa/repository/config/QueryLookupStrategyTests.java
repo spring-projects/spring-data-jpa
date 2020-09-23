@@ -46,7 +46,7 @@ public class QueryLookupStrategyTests {
 	 * Assert that {@link Key#CREATE_IF_NOT_FOUND} is being set on the factory if configured.
 	 */
 	@Test
-	public void shouldUseExplicitlyConfiguredQueryLookUpStrategy() {
+	void shouldUseExplicitlyConfiguredQueryLookUpStrategy() {
 
 		JpaRepositoryFactoryBean<?, ?, ?> factory = context.getBean("&roleRepository", JpaRepositoryFactoryBean.class);
 

@@ -33,10 +33,10 @@ import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
  * @author Oliver Gierke
  * @author Jens Schauder
  */
-public class JpaParametersUnitTests {
+class JpaParametersUnitTests {
 
 	@Test
-	public void findsTemporalParameterConfiguration() throws Exception {
+	void findsTemporalParameterConfiguration() throws Exception {
 
 		Method method = SampleRepository.class.getMethod("foo", Date.class, String.class);
 

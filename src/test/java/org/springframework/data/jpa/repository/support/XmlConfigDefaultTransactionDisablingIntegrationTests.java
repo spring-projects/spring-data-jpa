@@ -24,4 +24,4 @@ import org.springframework.test.context.ContextConfiguration;
  * @soundtrack The Intersphere - Live in Mannheim
  */
 @ContextConfiguration("disable-default-transactions.xml")
-public class XmlConfigDefaultTransactionDisablingIntegrationTests extends DefaultTransactionDisablingIntegrationTests {}
+class XmlConfigDefaultTransactionDisablingIntegrationTests extends DefaultTransactionDisablingIntegrationTests {}

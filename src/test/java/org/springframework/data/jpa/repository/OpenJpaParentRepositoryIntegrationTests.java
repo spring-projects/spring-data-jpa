@@ -19,9 +19,9 @@ import org.junit.jupiter.api.Disabled;
 import org.springframework.test.context.ContextConfiguration;
 
 @ContextConfiguration("classpath:openjpa.xml")
-public class OpenJpaParentRepositoryIntegrationTests extends ParentRepositoryIntegrationTests {
+class OpenJpaParentRepositoryIntegrationTests extends ParentRepositoryIntegrationTests {
 
 	@Override
 	@Disabled
-	public void testWithJoin() throws Exception {}
+	void testWithJoin() throws Exception {}
 }

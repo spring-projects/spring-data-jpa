@@ -28,13 +28,13 @@ import javax.persistence.MapsId;
 @Entity
 public class EmbeddedIdExampleEmployee {
 
-	@EmbeddedId EmbeddedIdExampleEmployeePK employeePk;
+	@EmbeddedId private EmbeddedIdExampleEmployeePK employeePk;
 
 	@MapsId("departmentId")//
-	@ManyToOne(cascade = CascadeType.ALL)//
+	@ManyToOne(cascade = CascadeType.ALL) private//
 	EmbeddedIdExampleDepartment department;
 
-	String name;
+	private String name;
 
 	public EmbeddedIdExampleEmployeePK getEmployeePk() {
 		return employeePk;

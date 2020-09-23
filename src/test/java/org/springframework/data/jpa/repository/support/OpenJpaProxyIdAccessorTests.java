@@ -24,7 +24,7 @@ import org.springframework.test.context.ContextConfiguration;
  * @author Oliver Gierke
  */
 @ContextConfiguration
-public class OpenJpaProxyIdAccessorTests extends PersistenceProviderIntegrationTests {
+class OpenJpaProxyIdAccessorTests extends PersistenceProviderIntegrationTests {
 
 	@Configuration
 	@ImportResource("classpath:openjpa.xml")

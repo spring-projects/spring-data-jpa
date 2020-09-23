@@ -58,19 +58,19 @@ import org.springframework.data.repository.core.support.RepositoryFactorySupport
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-public class JpaRepositoryFactoryBeanUnitTests {
+class JpaRepositoryFactoryBeanUnitTests {
 
-	JpaRepositoryFactoryBean<SimpleSampleRepository, User, Integer> factoryBean;
+	private JpaRepositoryFactoryBean<SimpleSampleRepository, User, Integer> factoryBean;
 
 	@Mock EntityManager entityManager;
-	StubRepositoryFactorySupport factory;
+	private StubRepositoryFactorySupport factory;
 	@Mock ListableBeanFactory beanFactory;
 	@Mock PersistenceExceptionTranslator translator;
 	@Mock(extraInterfaces = SimpleSampleRepository.class) Repository<?, ?> repository;
 	@Mock Metamodel metamodel;
 
 	@BeforeEach
-	public void setUp() {
+	void setUp() {
 
 		Map<String, PersistenceExceptionTranslator> beans = new HashMap<>();
 		beans.put("foo", translator);
@@ -91,7 +91,7 @@ public class JpaRepositoryFactoryBeanUnitTests {
 	 * @throws Exception
 	 */
 	@Test
-	public void setsUpBasicInstanceCorrectly() {
+	void setsUpBasicInstanceCorrectly() {
 
 		factoryBean.setBeanFactory(beanFactory);
 		factoryBean.afterPropertiesSet();
@@ -100,7 +100,7 @@ public class JpaRepositoryFactoryBeanUnitTests {
 	}
 
 	@Test
-	public void requiresListableBeanFactory() {
+	void requiresListableBeanFactory() {
 
 		assertThatIllegalArgumentException().isThrownBy(() -> factoryBean.setBeanFactory(mock(BeanFactory.class)));
 	}
@@ -110,7 +110,7 @@ public class JpaRepositoryFactoryBeanUnitTests {
 	 * {@literal null} or any other parameter instance not implementing {@code Repository}.
 	 */
 	@Test
-	public void preventsNullRepositoryInterface() {
+	void preventsNullRepositoryInterface() {
 		assertThatIllegalArgumentException()
 				.isThrownBy(() -> new JpaRepositoryFactoryBean<Repository<Object, Long>, Object, Long>(null));
 	}

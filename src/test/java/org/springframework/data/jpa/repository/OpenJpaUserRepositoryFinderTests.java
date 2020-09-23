@@ -25,9 +25,9 @@ import org.springframework.test.context.ContextConfiguration;
  * @author Oliver Gierke
  */
 @ContextConfiguration("classpath:openjpa.xml")
-public class OpenJpaUserRepositoryFinderTests extends UserRepositoryFinderTests {
+class OpenJpaUserRepositoryFinderTests extends UserRepositoryFinderTests {
 
 	@Disabled
 	@Override
-	public void findsByLastnameIgnoringCaseLike() throws Exception {}
+	void findsByLastnameIgnoringCaseLike() throws Exception {}
 }

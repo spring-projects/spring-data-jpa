@@ -45,7 +45,7 @@ public abstract class AbstractRepositoryConfigTests {
 	 * Asserts that context creation detects 3 repository beans.
 	 */
 	@Test
-	public void testContextCreation() {
+	void testContextCreation() {
 
 		assertNotNull(userRepository);
 		assertNotNull(roleRepository);
@@ -53,7 +53,7 @@ public abstract class AbstractRepositoryConfigTests {
 	}
 
 	@Test // DATAJPA-330
-	public void repositoriesHaveExceptionTranslationApplied() {
+	void repositoriesHaveExceptionTranslationApplied() {
 
 		JpaRepositoriesRegistrarIntegrationTests.assertExceptionTranslationActive(userRepository);
 		JpaRepositoriesRegistrarIntegrationTests.assertExceptionTranslationActive(roleRepository);
@@ -61,7 +61,7 @@ public abstract class AbstractRepositoryConfigTests {
 	}
 
 	@Test // DATAJPA-484
-	public void exposesJpaMappingContext() {
+	void exposesJpaMappingContext() {
 		assertNotNull(mappingContext);
 	}
 }

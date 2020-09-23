@@ -44,12 +44,12 @@ import org.springframework.test.util.ReflectionTestUtils;
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:infrastructure.xml")
-public class ParameterMetadataProviderIntegrationTests {
+class ParameterMetadataProviderIntegrationTests {
 
 	@PersistenceContext EntityManager em;
 
 	@Test // DATAJPA-758
-	public void forwardsParameterNameIfTransparentlyNamed() throws Exception {
+	void forwardsParameterNameIfTransparentlyNamed() throws Exception {
 
 		ParameterMetadataProvider provider = createProvider(Sample.class.getMethod("findByFirstname", String.class));
 		ParameterMetadata<Object> metadata = provider.next(new Part("firstname", User.class));
@@ -58,7 +58,7 @@ public class ParameterMetadataProviderIntegrationTests {
 	}
 
 	@Test // DATAJPA-758
-	public void forwardsParameterNameIfExplicitlyAnnotated() throws Exception {
+	void forwardsParameterNameIfExplicitlyAnnotated() throws Exception {
 
 		ParameterMetadataProvider provider = createProvider(Sample.class.getMethod("findByLastname", String.class));
 		ParameterMetadata<Object> metadata = provider.next(new Part("lastname", User.class));
@@ -67,7 +67,7 @@ public class ParameterMetadataProviderIntegrationTests {
 	}
 
 	@Test // DATAJPA-772
-	public void doesNotApplyLikeExpansionOnNonStringProperties() throws Exception {
+	void doesNotApplyLikeExpansionOnNonStringProperties() throws Exception {
 
 		ParameterMetadataProvider provider = createProvider(Sample.class.getMethod("findByAgeContaining", Integer.class));
 		ParameterMetadata<Object> metadata = provider.next(new Part("ageContaining", User.class));

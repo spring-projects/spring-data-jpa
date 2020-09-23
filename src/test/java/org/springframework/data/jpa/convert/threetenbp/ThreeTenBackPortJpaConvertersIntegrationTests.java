@@ -47,7 +47,7 @@ public class ThreeTenBackPortJpaConvertersIntegrationTests extends AbstractAttri
 	@PersistenceContext EntityManager em;
 
 	@Test // DATAJPA-650
-	public void usesThreeTenBackPortJpaConverters() {
+	void usesThreeTenBackPortJpaConverters() {
 
 		assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
 

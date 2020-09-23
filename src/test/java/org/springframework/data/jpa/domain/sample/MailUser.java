@@ -29,7 +29,7 @@ public class MailUser {
 
 	@Id @GeneratedValue Long id;
 
-	String name;
+	private String name;
 
 	public MailUser() {}
 

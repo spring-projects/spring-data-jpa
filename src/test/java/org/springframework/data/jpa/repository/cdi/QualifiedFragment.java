@@ -18,6 +18,6 @@ package org.springframework.data.jpa.repository.cdi;
 /**
  * @author Mark Paluch
  */
-public interface QualifiedFragment {
+interface QualifiedFragment {
 	int returnOne();
 }

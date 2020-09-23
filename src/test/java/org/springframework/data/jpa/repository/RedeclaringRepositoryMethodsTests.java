@@ -44,17 +44,18 @@ public class RedeclaringRepositoryMethodsTests {
 
 	@Autowired RedeclaringRepositoryMethodsRepository repository;
 
-	User ollie, tom;
+	private User ollie;
+	private User tom;
 
 	@BeforeEach
-	public void setup() {
+	void setup() {
 
 		ollie = new User("Oliver", "Gierke", "ogierke@gopivotal.com");
 		tom = new User("Thomas", "Darimont", "tdarimont@gopivotal.com");
 	}
 
 	@Test // DATAJPA-398
-	public void adjustedWellKnownPagedFindAllMethodShouldReturnOnlyTheUserWithFirstnameOliver() {
+	void adjustedWellKnownPagedFindAllMethodShouldReturnOnlyTheUserWithFirstnameOliver() {
 
 		ollie = repository.save(ollie);
 		tom = repository.save(tom);
@@ -66,7 +67,7 @@ public class RedeclaringRepositoryMethodsTests {
 	}
 
 	@Test // DATAJPA-398
-	public void adjustedWllKnownFindAllMethodShouldReturnAnEmptyList() {
+	void adjustedWllKnownFindAllMethodShouldReturnAnEmptyList() {
 
 		ollie = repository.save(ollie);
 		tom = repository.save(tom);

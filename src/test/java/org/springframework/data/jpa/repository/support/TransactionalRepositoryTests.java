@@ -46,47 +46,47 @@ public class TransactionalRepositoryTests {
 	@Autowired DelegatingTransactionManager transactionManager;
 
 	@BeforeEach
-	public void setUp() {
+	void setUp() {
 
 		transactionManager.resetCount();
 	}
 
 	@AfterEach
-	public void tearDown() {
+	void tearDown() {
 
 		repository.deleteAll();
 	}
 
 	@Test
-	public void simpleManipulatingOperation() throws Exception {
+	void simpleManipulatingOperation() throws Exception {
 
 		repository.saveAndFlush(new User("foo", "bar", "foo@bar.de"));
 		assertThat(transactionManager.getTransactionRequests()).isEqualTo(1);
 	}
 
 	@Test
-	public void unannotatedFinder() throws Exception {
+	void unannotatedFinder() throws Exception {
 
 		repository.findByEmailAddress("foo@bar.de");
 		assertThat(transactionManager.getTransactionRequests()).isEqualTo(0);
 	}
 
 	@Test
-	public void invokeTransactionalFinder() throws Exception {
+	void invokeTransactionalFinder() throws Exception {
 
 		repository.findByAnnotatedQuery("foo@bar.de");
 		assertThat(transactionManager.getTransactionRequests()).isEqualTo(1);
 	}
 
 	@Test
-	public void invokeRedeclaredMethod() throws Exception {
+	void invokeRedeclaredMethod() throws Exception {
 
 		repository.findById(1);
 		assertThat(transactionManager.getDefinition().isReadOnly()).isFalse();
 	}
 
 	@Test // DATACMNS-649
-	public void invokeRedeclaredDeleteMethodWithoutTransactionDeclaration() throws Exception {
+	void invokeRedeclaredDeleteMethodWithoutTransactionDeclaration() throws Exception {
 
 		User user = repository.saveAndFlush(new User("foo", "bar", "foo@bar.de"));
 		repository.deleteById(user.getId());
@@ -120,7 +120,7 @@ public class TransactionalRepositoryTests {
 			return txManager.getTransaction(definition);
 		}
 
-		public int getTransactionRequests() {
+		int getTransactionRequests() {
 
 			return transactionRequests;
 		}

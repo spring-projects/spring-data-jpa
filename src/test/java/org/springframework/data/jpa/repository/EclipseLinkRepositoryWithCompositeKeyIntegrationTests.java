@@ -24,7 +24,7 @@ import org.springframework.test.context.ContextConfiguration;
  * @author Mark Paluch
  */
 @ContextConfiguration
-public class EclipseLinkRepositoryWithCompositeKeyIntegrationTests extends RepositoryWithIdClassKeyTests {
+class EclipseLinkRepositoryWithCompositeKeyIntegrationTests extends RepositoryWithIdClassKeyTests {
 
 	@ImportResource({ "classpath:infrastructure.xml", "classpath:eclipselink.xml" })
 	static class TestConfig extends Config {}

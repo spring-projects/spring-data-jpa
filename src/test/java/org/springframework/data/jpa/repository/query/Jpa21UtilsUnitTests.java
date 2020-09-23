@@ -30,10 +30,10 @@ import org.springframework.data.jpa.repository.EntityGraph.EntityGraphType;
  * @author Thomas Darimont
  * @author Oliver Gierke
  */
-public class Jpa21UtilsUnitTests {
+class Jpa21UtilsUnitTests {
 
 	@Test // DATAJPA-696
-	public void shouldBuildCorrectSubgraphForJpaEntityGraph() throws Exception {
+	void shouldBuildCorrectSubgraphForJpaEntityGraph() throws Exception {
 
 		EntityGraph<?> entityGraph = mock(EntityGraph.class);
 		Subgraph<?> subgraph = mock(Subgraph.class);

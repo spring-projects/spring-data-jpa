@@ -53,7 +53,7 @@ public class CustomNonBindableJpaParametersIntegrationTests {
 	@Autowired ProductRepository products;
 
 	@Test // DATAJPA-1497
-	public void methodWithNonBindableParameterCanBeCalled() {
+	void methodWithNonBindableParameterCanBeCalled() {
 
 		Product product = products.save(new Product());
 
@@ -83,7 +83,7 @@ public class CustomNonBindableJpaParametersIntegrationTests {
 
 	private static class NonBindableAwareJpaParameters extends JpaParameters {
 
-		public NonBindableAwareJpaParameters(Method method) {
+		NonBindableAwareJpaParameters(Method method) {
 			super(method);
 		}
 

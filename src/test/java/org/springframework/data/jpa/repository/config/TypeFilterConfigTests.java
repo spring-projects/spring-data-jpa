@@ -26,7 +26,7 @@ import org.springframework.test.context.ContextConfiguration;
  * @author Jens Schauder
  */
 @ContextConfiguration(locations = "classpath:config/namespace-autoconfig-typefilter-context.xml")
-public class TypeFilterConfigTests extends AbstractRepositoryConfigTests {
+class TypeFilterConfigTests extends AbstractRepositoryConfigTests {
 
 	/*
 	 * (non-Javadoc)
@@ -36,7 +36,7 @@ public class TypeFilterConfigTests extends AbstractRepositoryConfigTests {
 	 * #testContextCreation()
 	 */
 	@Override
-	public void testContextCreation() {
+	void testContextCreation() {
 
 		assertThat(userRepository).isNotNull();
 		assertThat(roleRepository).isNotNull();

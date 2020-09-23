@@ -61,7 +61,7 @@ public class RepositoryWithIdClassKeyTests {
 	 *      Specification 2.4.1.3 Derived Identities Example 2</a>
 	 */
 	@Test // DATAJPA-413
-	public void shouldSaveAndLoadEntitiesWithDerivedIdentities() throws Exception {
+	void shouldSaveAndLoadEntitiesWithDerivedIdentities() throws Exception {
 
 		Site site = siteRepository.save(new Site());
 		Item item = itemRepository.save(new Item(123, 456));

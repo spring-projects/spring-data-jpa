@@ -31,15 +31,15 @@ import org.springframework.data.util.Pair;
  * @author Jens Schauder
  * @author Mark Paluch
  */
-public class MutableQueryHintsUnitTests {
+class MutableQueryHintsUnitTests {
 
 	@Test // DATAJPA-872
-	public void emptyQueryHint() {
+	void emptyQueryHint() {
 		new MutableQueryHints().forEach((k, v) -> Assertions.fail("Empty SimpleQueryHints shouldn't contain a value"));
 	}
 
 	@Test // DATAJPA-872
-	public void queryHint() {
+	void queryHint() {
 
 		MutableQueryHints hints = new MutableQueryHints();
 		hints.add("key", "value");
@@ -54,7 +54,7 @@ public class MutableQueryHintsUnitTests {
 	}
 
 	@Test // DATAJPA-872
-	public void shouldMergeQueryHints() {
+	void shouldMergeQueryHints() {
 
 		MutableQueryHints hints = new MutableQueryHints();
 		hints.add("key", "value");

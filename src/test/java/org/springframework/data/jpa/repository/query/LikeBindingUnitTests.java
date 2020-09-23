@@ -28,7 +28,7 @@ import org.springframework.data.repository.query.parser.Part.Type;
  * @author Thomas Darimont
  * @author Jens Schauder
  */
-public class LikeBindingUnitTests {
+class LikeBindingUnitTests {
 
 	private static void assertAugmentedValue(Type type, Object value) {
 
@@ -37,32 +37,32 @@ public class LikeBindingUnitTests {
 	}
 
 	@Test
-	public void rejectsNullName() {
+	void rejectsNullName() {
 		assertThatIllegalArgumentException().isThrownBy(() -> new LikeParameterBinding(null, Type.CONTAINING));
 	}
 
 	@Test
-	public void rejectsEmptyName() {
+	void rejectsEmptyName() {
 		assertThatIllegalArgumentException().isThrownBy(() -> new LikeParameterBinding("", Type.CONTAINING));
 	}
 
 	@Test
-	public void rejectsNullType() {
+	void rejectsNullType() {
 		assertThatIllegalArgumentException().isThrownBy(() -> new LikeParameterBinding("foo", null));
 	}
 
 	@Test
-	public void rejectsInvalidType() {
+	void rejectsInvalidType() {
 		assertThatIllegalArgumentException().isThrownBy(() -> new LikeParameterBinding("foo", Type.SIMPLE_PROPERTY));
 	}
 
 	@Test
-	public void rejectsInvalidPosition() {
+	void rejectsInvalidPosition() {
 		assertThatIllegalArgumentException().isThrownBy(() -> new LikeParameterBinding(0, Type.CONTAINING));
 	}
 
 	@Test
-	public void setsUpInstanceForName() {
+	void setsUpInstanceForName() {
 
 		LikeParameterBinding binding = new LikeParameterBinding("foo", Type.CONTAINING);
 
@@ -74,7 +74,7 @@ public class LikeBindingUnitTests {
 	}
 
 	@Test
-	public void setsUpInstanceForIndex() {
+	void setsUpInstanceForIndex() {
 
 		LikeParameterBinding binding = new LikeParameterBinding(1, Type.CONTAINING);
 
@@ -86,7 +86,7 @@ public class LikeBindingUnitTests {
 	}
 
 	@Test
-	public void augmentsValueCorrectly() {
+	void augmentsValueCorrectly() {
 
 		assertAugmentedValue(Type.CONTAINING, "%value%");
 		assertAugmentedValue(Type.ENDING_WITH, "%value");

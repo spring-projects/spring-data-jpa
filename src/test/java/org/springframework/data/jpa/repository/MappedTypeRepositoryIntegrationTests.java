@@ -58,7 +58,7 @@ public class MappedTypeRepositoryIntegrationTests {
 	@Autowired EntityManager entityManager;
 
 	@Test // DATAJPA-170
-	public void supportForExpressionBasedQueryMethods() {
+	void supportForExpressionBasedQueryMethods() {
 
 		concreteRepository1.save(new ConcreteType1("foo"));
 		concreteRepository2.save(new ConcreteType2("foo"));
@@ -71,7 +71,7 @@ public class MappedTypeRepositoryIntegrationTests {
 	}
 
 	@Test // DATAJPA-424
-	public void supportForPaginationCustomQueryMethodsWithEntityExpression() {
+	void supportForPaginationCustomQueryMethodsWithEntityExpression() {
 
 		concreteRepository1.save(new ConcreteType1("foo"));
 		concreteRepository2.save(new ConcreteType2("foo"));
@@ -84,7 +84,7 @@ public class MappedTypeRepositoryIntegrationTests {
 
 	@Test // DATAJPA-1535
 	@SuppressWarnings("unchecked")
-	public void deletesConcreteInstancesForRepositoryBoundToMappedSuperclass() {
+	void deletesConcreteInstancesForRepositoryBoundToMappedSuperclass() {
 
 		JpaRepositoryFactory factory = new JpaRepositoryFactory(entityManager);
 		CustomMappedTypeRepository<AbstractMappedType> repository = factory.getRepository(CustomMappedTypeRepository.class);

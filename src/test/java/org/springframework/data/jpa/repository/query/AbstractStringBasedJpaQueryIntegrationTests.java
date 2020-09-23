@@ -52,7 +52,7 @@ public class AbstractStringBasedJpaQueryIntegrationTests {
 	@PersistenceContext EntityManager em;
 
 	@Test // DATAJPA-885
-	public void createsNormalQueryForJpaManagedReturnTypes() throws Exception {
+	void createsNormalQueryForJpaManagedReturnTypes() throws Exception {
 
 		EntityManager mock = mock(EntityManager.class);
 		when(mock.getDelegate()).thenReturn(mock);

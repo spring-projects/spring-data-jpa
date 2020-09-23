@@ -48,12 +48,12 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration({ "classpath:infrastructure.xml" })
-public abstract class MetamodelIntegrationTests {
+abstract class MetamodelIntegrationTests {
 
 	@PersistenceContext EntityManager em;
 
 	@Test
-	public void considersOneToOneAttributeAnAssociation() {
+	void considersOneToOneAttributeAnAssociation() {
 
 		Metamodel metamodel = em.getMetamodel();
 		ManagedType<User> type = metamodel.managedType(User.class);
@@ -63,7 +63,7 @@ public abstract class MetamodelIntegrationTests {
 	}
 
 	@Test
-	public void pathToEntityIsOfBindableTypeEntityType() {
+	void pathToEntityIsOfBindableTypeEntityType() {
 
 		CriteriaBuilder builder = em.getCriteriaBuilder();
 		CriteriaQuery<User> query = builder.createQuery(User.class);
@@ -75,7 +75,7 @@ public abstract class MetamodelIntegrationTests {
 	}
 
 	@Test
-	public void canAccessParametersByIndexForNativeQueries() {
+	void canAccessParametersByIndexForNativeQueries() {
 
 		Query query = em.createNativeQuery("SELECT u from User u where u.lastname = ?1");
 
@@ -84,7 +84,7 @@ public abstract class MetamodelIntegrationTests {
 
 	@Test
 	@Transactional
-	public void doesNotExposeAliasForTupleIfNoneDefined() {
+	void doesNotExposeAliasForTupleIfNoneDefined() {
 
 		User user = new User();
 
@@ -104,7 +104,7 @@ public abstract class MetamodelIntegrationTests {
 
 	@Test
 	@Transactional
-	public void returnsAliasesInTuple() {
+	void returnsAliasesInTuple() {
 
 		User user = new User();
 		user.setFirstname("Dave");

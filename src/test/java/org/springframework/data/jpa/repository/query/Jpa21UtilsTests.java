@@ -59,7 +59,7 @@ public class Jpa21UtilsTests {
 	@Autowired EntityManager em;
 
 	@Test // DATAJPA-1041, DATAJPA-1075
-	public void shouldCreateGraphWithoutSubGraphCorrectly() {
+	void shouldCreateGraphWithoutSubGraphCorrectly() {
 
 		assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
 
@@ -75,7 +75,7 @@ public class Jpa21UtilsTests {
 	}
 
 	@Test // DATAJPA-1041, DATAJPA-1075
-	public void shouldCreateGraphWithMultipleSubGraphCorrectly() {
+	void shouldCreateGraphWithMultipleSubGraphCorrectly() {
 
 		assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
 
@@ -92,7 +92,7 @@ public class Jpa21UtilsTests {
 	}
 
 	@Test // DATAJPA-1041, DATAJPA-1075
-	public void shouldCreateGraphWithDeepSubGraphCorrectly() {
+	void shouldCreateGraphWithDeepSubGraphCorrectly() {
 
 		assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
 
@@ -114,7 +114,7 @@ public class Jpa21UtilsTests {
 	}
 
 	@Test // DATAJPA-1041, DATAJPA-1075
-	public void shouldIgnoreIntermedeateSubGraphNodesThatAreNotNeeded() {
+	void shouldIgnoreIntermedeateSubGraphNodesThatAreNotNeeded() {
 
 		assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
 
@@ -136,7 +136,7 @@ public class Jpa21UtilsTests {
 	}
 
 	@Test // DATAJPA-1041, DATAJPA-1075
-	public void orderOfSubGraphsShouldNotMatter() {
+	void orderOfSubGraphsShouldNotMatter() {
 
 		assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
 
@@ -157,7 +157,7 @@ public class Jpa21UtilsTests {
 	}
 
 	@Test // DATAJPA-1041, DATAJPA-1075
-	public void errorsOnUnknownProperties() {
+	void errorsOnUnknownProperties() {
 
 		assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
 
@@ -173,7 +173,7 @@ public class Jpa21UtilsTests {
 	 * @param graph
 	 * @return
 	 */
-	public static @Nullable AttributeNode<?> findNode(String nodeName, @Nullable EntityGraph<?> graph) {
+	static @Nullable AttributeNode<?> findNode(String nodeName, @Nullable EntityGraph<?> graph) {
 
 		if (graph == null) {
 			return null;
@@ -190,7 +190,7 @@ public class Jpa21UtilsTests {
 	 * @return
 	 */
 	@Nullable
-	public static AttributeNode<?> findNode(String nodeName, List<AttributeNode<?>> nodes) {
+	static AttributeNode<?> findNode(String nodeName, List<AttributeNode<?>> nodes) {
 
 		if (CollectionUtils.isEmpty(nodes)) {
 			return null;
@@ -214,7 +214,7 @@ public class Jpa21UtilsTests {
 	 * @return
 	 */
 	@Nullable
-	public static AttributeNode<?> findNode(String attributeName, AttributeNode<?> node) {
+	static AttributeNode<?> findNode(String attributeName, AttributeNode<?> node) {
 
 		if (CollectionUtils.isEmpty(node.getSubgraphs())) {
 			return null;

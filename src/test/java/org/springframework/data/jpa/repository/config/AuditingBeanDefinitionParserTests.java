@@ -35,20 +35,20 @@ import org.springframework.instrument.classloading.ShadowingClassLoader;
  * @author Thomas Darimont
  * @author Jens Schauder
  */
-public class AuditingBeanDefinitionParserTests {
+class AuditingBeanDefinitionParserTests {
 
 	@Test
-	public void settingDatesIsConfigured() {
+	void settingDatesIsConfigured() {
 		assertSetDatesIsSetTo("auditing/auditing-namespace-context.xml", "true");
 	}
 
 	@Test
-	public void notSettingDatesIsConfigured() {
+	void notSettingDatesIsConfigured() {
 		assertSetDatesIsSetTo("auditing/auditing-namespace-context2.xml", "false");
 	}
 
 	@Test // DATAJPA-9
-	public void wiresDateTimeProviderIfConfigured() {
+	void wiresDateTimeProviderIfConfigured() {
 
 		BeanDefinition definition = getBeanDefinition("auditing/auditing-namespace-context3.xml");
 		PropertyValue value = definition.getPropertyValues().getPropertyValue("dateTimeProvider");
@@ -63,7 +63,7 @@ public class AuditingBeanDefinitionParserTests {
 	}
 
 	@Test // DATAJPA-367
-	public void shouldThrowBeanDefinitionParsingExceptionIfClassFromSpringAspectsJarCannotBeFound() {
+	void shouldThrowBeanDefinitionParsingExceptionIfClassFromSpringAspectsJarCannotBeFound() {
 
 		ShadowingClassLoader scl = new ShadowingClassLoader(getClass().getClassLoader());
 		scl.excludeClass(AuditingBeanDefinitionParser.AUDITING_ENTITY_LISTENER_CLASS_NAME);

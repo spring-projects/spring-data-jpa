@@ -24,7 +24,7 @@ import org.springframework.test.context.ContextConfiguration;
  * @author Mark Paluch
  */
 @ContextConfiguration
-public class OpenJpaRepositoryWithCompositeKeyIntegrationTests extends RepositoryWithIdClassKeyTests {
+class OpenJpaRepositoryWithCompositeKeyIntegrationTests extends RepositoryWithIdClassKeyTests {
 
 	@ImportResource({ "classpath:infrastructure.xml", "classpath:openjpa.xml" })
 	static class TestConfig extends Config {

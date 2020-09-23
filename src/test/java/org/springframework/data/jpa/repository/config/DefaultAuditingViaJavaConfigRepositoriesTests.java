@@ -31,7 +31,7 @@ import org.springframework.test.context.ContextConfiguration;
  * @author Oliver Gierke
  */
 @ContextConfiguration
-public class DefaultAuditingViaJavaConfigRepositoriesTests extends AbstractAuditingViaJavaConfigRepositoriesTests {
+class DefaultAuditingViaJavaConfigRepositoriesTests extends AbstractAuditingViaJavaConfigRepositoriesTests {
 
 	@Configuration
 	@EnableJpaAuditing

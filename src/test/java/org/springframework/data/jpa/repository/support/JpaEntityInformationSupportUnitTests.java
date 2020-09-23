@@ -47,7 +47,7 @@ public class JpaEntityInformationSupportUnitTests {
 	@Mock Metamodel metaModel;
 
 	@Test
-	public void usesSimpleClassNameIfNoEntityNameGiven() throws Exception {
+	void usesSimpleClassNameIfNoEntityNameGiven() throws Exception {
 
 		JpaEntityInformation<User, Integer> information = new DummyJpaEntityInformation<>(User.class);
 		assertThat(information.getEntityName()).isEqualTo("User");
@@ -57,7 +57,7 @@ public class JpaEntityInformationSupportUnitTests {
 	}
 
 	@Test // DATAJPA-93
-	public void rejectsClassNotBeingFoundInMetamodel() {
+	void rejectsClassNotBeingFoundInMetamodel() {
 
 		when(em.getMetamodel()).thenReturn(metaModel);
 		assertThatIllegalArgumentException()
@@ -70,7 +70,7 @@ public class JpaEntityInformationSupportUnitTests {
 
 	static class DummyJpaEntityInformation<T, ID> extends JpaEntityInformationSupport<T, ID> {
 
-		public DummyJpaEntityInformation(Class<T> domainClass) {
+		DummyJpaEntityInformation(Class<T> domainClass) {
 			super(domainClass);
 		}
 

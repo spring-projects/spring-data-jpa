@@ -72,20 +72,26 @@ import org.springframework.data.util.ClassTypeInformation;
 @MockitoSettings(strictness = Strictness.LENIENT)
 public class JpaQueryMethodUnitTests {
 
-	static final String METHOD_NAME = "findByFirstname";
+	private static final String METHOD_NAME = "findByFirstname";
 
 	@Mock QueryExtractor extractor;
 	@Mock RepositoryMetadata metadata;
-	ProjectionFactory factory = new SpelAwareProxyProjectionFactory();
+	private ProjectionFactory factory = new SpelAwareProxyProjectionFactory();
 
-	Method invalidReturnType, pageableAndSort, pageableTwice, sortableTwice, findWithLockMethod, findsProjections,
-			findsProjection, queryMethodWithCustomEntityFetchGraph;
+	private Method invalidReturnType;
+	private Method pageableAndSort;
+	private Method pageableTwice;
+	private Method sortableTwice;
+	private Method findWithLockMethod;
+	private Method findsProjections;
+	private Method findsProjection;
+	private Method queryMethodWithCustomEntityFetchGraph;
 
 	/**
 	 * @throws Exception
 	 */
 	@BeforeEach
-	public void setUp() throws Exception {
+	void setUp() throws Exception {
 
 		invalidReturnType = InvalidRepository.class.getMethod(METHOD_NAME, String.class, Pageable.class);
 		pageableAndSort = InvalidRepository.class.getMethod(METHOD_NAME, String.class, Pageable.class, Sort.class);
@@ -106,7 +112,7 @@ public class JpaQueryMethodUnitTests {
 	}
 
 	@Test
-	public void testname() throws Exception {
+	void testname() throws Exception {
 
 		JpaQueryMethod method = getQueryMethod(UserRepository.class, "findByLastname", String.class);
 
@@ -117,27 +123,27 @@ public class JpaQueryMethodUnitTests {
 	}
 
 	@Test
-	public void preventsNullRepositoryMethod() {
+	void preventsNullRepositoryMethod() {
 
 		assertThatIllegalArgumentException().isThrownBy(() -> new JpaQueryMethod(null, metadata, factory, extractor));
 	}
 
 	@Test
-	public void preventsNullQueryExtractor() throws Exception {
+	void preventsNullQueryExtractor() throws Exception {
 
 		Method method = UserRepository.class.getMethod("findByLastname", String.class);
 		assertThatIllegalArgumentException().isThrownBy(() -> new JpaQueryMethod(method, metadata, factory, null));
 	}
 
 	@Test
-	public void returnsCorrectName() throws Exception {
+	void returnsCorrectName() throws Exception {
 
 		JpaQueryMethod method = getQueryMethod(UserRepository.class, "findByLastname", String.class);
 		assertThat(method.getName()).isEqualTo("findByLastname");
 	}
 
 	@Test
-	public void returnsQueryIfAvailable() throws Exception {
+	void returnsQueryIfAvailable() throws Exception {
 
 		JpaQueryMethod method = getQueryMethod(UserRepository.class, "findByLastname", String.class);
 		assertThat(method.getAnnotatedQuery()).isNull();
@@ -147,40 +153,40 @@ public class JpaQueryMethodUnitTests {
 	}
 
 	@Test
-	public void rejectsInvalidReturntypeOnPagebleFinder() {
+	void rejectsInvalidReturntypeOnPagebleFinder() {
 
 		assertThatIllegalStateException()
 				.isThrownBy(() -> new JpaQueryMethod(invalidReturnType, metadata, factory, extractor));
 	}
 
 	@Test
-	public void rejectsPageableAndSortInFinderMethod() {
+	void rejectsPageableAndSortInFinderMethod() {
 
 		assertThatIllegalStateException()
 				.isThrownBy(() -> new JpaQueryMethod(pageableAndSort, metadata, factory, extractor));
 	}
 
 	@Test
-	public void rejectsTwoPageableParameters() {
+	void rejectsTwoPageableParameters() {
 
 		assertThatIllegalStateException().isThrownBy(() -> new JpaQueryMethod(pageableTwice, metadata, factory, extractor));
 	}
 
 	@Test
-	public void rejectsTwoSortableParameters() {
+	void rejectsTwoSortableParameters() {
 
 		assertThatIllegalStateException().isThrownBy(() -> new JpaQueryMethod(sortableTwice, metadata, factory, extractor));
 	}
 
 	@Test
-	public void recognizesModifyingMethod() throws Exception {
+	void recognizesModifyingMethod() throws Exception {
 
 		JpaQueryMethod method = getQueryMethod(UserRepository.class, "renameAllUsersTo", String.class);
 		assertThat(method.isModifyingQuery()).isTrue();
 	}
 
 	@Test
-	public void rejectsModifyingMethodWithPageable() throws Exception {
+	void rejectsModifyingMethodWithPageable() throws Exception {
 
 		Method method = InvalidRepository.class.getMethod("updateMethod", String.class, Pageable.class);
 
@@ -188,7 +194,7 @@ public class JpaQueryMethodUnitTests {
 	}
 
 	@Test
-	public void rejectsModifyingMethodWithSort() throws Exception {
+	void rejectsModifyingMethodWithSort() throws Exception {
 
 		Method method = InvalidRepository.class.getMethod("updateMethod", String.class, Sort.class);
 
@@ -196,7 +202,7 @@ public class JpaQueryMethodUnitTests {
 	}
 
 	@Test
-	public void discoversHintsCorrectly() throws Exception {
+	void discoversHintsCorrectly() throws Exception {
 
 		JpaQueryMethod method = getQueryMethod(UserRepository.class, "findByLastname", String.class);
 		List<QueryHint> hints = method.getHints();
@@ -215,7 +221,7 @@ public class JpaQueryMethodUnitTests {
 	}
 
 	@Test
-	public void calculatesNamedQueryNamesCorrectly() throws Exception {
+	void calculatesNamedQueryNamesCorrectly() throws Exception {
 
 		RepositoryMetadata metadata = new DefaultRepositoryMetadata(UserRepository.class);
 
@@ -232,21 +238,21 @@ public class JpaQueryMethodUnitTests {
 	}
 
 	@Test // DATAJPA-117
-	public void discoversNativeQuery() throws Exception {
+	void discoversNativeQuery() throws Exception {
 
 		JpaQueryMethod method = getQueryMethod(ValidRepository.class, "findByLastname", String.class);
 		assertThat(method.isNativeQuery()).isTrue();
 	}
 
 	@Test // DATAJPA-129
-	public void considersAnnotatedNamedQueryName() throws Exception {
+	void considersAnnotatedNamedQueryName() throws Exception {
 
 		JpaQueryMethod queryMethod = getQueryMethod(ValidRepository.class, "findByNamedQuery");
 		assertThat(queryMethod.getNamedQueryName()).isEqualTo("HateoasAwareSpringDataWebConfiguration.bar");
 	}
 
 	@Test // DATAJPA-73
-	public void discoversLockModeCorrectly() throws Exception {
+	void discoversLockModeCorrectly() throws Exception {
 
 		JpaQueryMethod method = getQueryMethod(ValidRepository.class, "findOneLocked", Integer.class);
 		LockModeType lockMode = method.getLockModeType();
@@ -255,21 +261,21 @@ public class JpaQueryMethodUnitTests {
 	}
 
 	@Test // DATAJPA-142
-	public void returnsDefaultCountQueryName() throws Exception {
+	void returnsDefaultCountQueryName() throws Exception {
 
 		JpaQueryMethod method = getQueryMethod(UserRepository.class, "findByLastname", String.class);
 		assertThat(method.getNamedCountQueryName()).isEqualTo("User.findByLastname.count");
 	}
 
 	@Test // DATAJPA-142
-	public void returnsDefaultCountQueryNameBasedOnConfiguredNamedQueryName() throws Exception {
+	void returnsDefaultCountQueryNameBasedOnConfiguredNamedQueryName() throws Exception {
 
 		JpaQueryMethod method = getQueryMethod(ValidRepository.class, "findByNamedQuery");
 		assertThat(method.getNamedCountQueryName()).isEqualTo("HateoasAwareSpringDataWebConfiguration.bar.count");
 	}
 
 	@Test // DATAJPA-185
-	public void rejectsInvalidNamedParameter() throws Exception {
+	void rejectsInvalidNamedParameter() throws Exception {
 
 		assertThatThrownBy(() -> getQueryMethod(InvalidRepository.class, "findByAnnotatedQuery", String.class))
 				.isInstanceOf(IllegalStateException.class)
@@ -284,7 +290,7 @@ public class JpaQueryMethodUnitTests {
 
 	@Test // DATAJPA-207
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public void returnsTrueIfReturnTypeIsEntity() {
+	void returnsTrueIfReturnTypeIsEntity() {
 
 		when(metadata.getDomainType()).thenReturn((Class) User.class);
 		when(metadata.getReturnedDomainClass(findsProjections)).thenReturn((Class) Integer.class);
@@ -295,7 +301,7 @@ public class JpaQueryMethodUnitTests {
 	}
 
 	@Test // DATAJPA-345
-	public void detectsLockAndQueryHintsOnIfUsedAsMetaAnnotation() throws Exception {
+	void detectsLockAndQueryHintsOnIfUsedAsMetaAnnotation() throws Exception {
 
 		JpaQueryMethod method = getQueryMethod(ValidRepository.class, "withMetaAnnotation");
 
@@ -306,7 +312,7 @@ public class JpaQueryMethodUnitTests {
 	}
 
 	@Test // DATAJPA-466
-	public void shouldStoreJpa21FetchGraphInformationAsHint() {
+	void shouldStoreJpa21FetchGraphInformationAsHint() {
 
 		doReturn(User.class).when(metadata).getDomainType();
 		doReturn(User.class).when(metadata).getReturnedDomainClass(queryMethodWithCustomEntityFetchGraph);
@@ -319,7 +325,7 @@ public class JpaQueryMethodUnitTests {
 	}
 
 	@Test // DATAJPA-612
-	public void shouldFindEntityGraphAnnotationOnOverriddenSimpleJpaRepositoryMethod() throws Exception {
+	void shouldFindEntityGraphAnnotationOnOverriddenSimpleJpaRepositoryMethod() throws Exception {
 
 		doReturn(User.class).when(metadata).getDomainType();
 		doReturn(User.class).when(metadata).getReturnedDomainClass((Method) any());
@@ -333,7 +339,7 @@ public class JpaQueryMethodUnitTests {
 	}
 
 	@Test // DATAJPA-689
-	public void shouldFindEntityGraphAnnotationOnOverriddenSimpleJpaRepositoryMethodFindOne() throws Exception {
+	void shouldFindEntityGraphAnnotationOnOverriddenSimpleJpaRepositoryMethodFindOne() throws Exception {
 
 		doReturn(User.class).when(metadata).getDomainType();
 		doReturn(User.class).when(metadata).getReturnedDomainClass((Method) any());
@@ -350,7 +356,7 @@ public class JpaQueryMethodUnitTests {
 	 * DATAJPA-696
 	 */
 	@Test
-	public void shouldFindEntityGraphAnnotationOnQueryMethodGetOneByWithDerivedName() throws Exception {
+	void shouldFindEntityGraphAnnotationOnQueryMethodGetOneByWithDerivedName() throws Exception {
 
 		doReturn(User.class).when(metadata).getDomainType();
 		doReturn(User.class).when(metadata).getReturnedDomainClass((Method) any());
@@ -364,12 +370,12 @@ public class JpaQueryMethodUnitTests {
 	}
 
 	@Test // DATAJPA-758
-	public void allowsPositionalBindingEvenIfParametersAreNamed() throws Exception {
+	void allowsPositionalBindingEvenIfParametersAreNamed() throws Exception {
 		getQueryMethod(ValidRepository.class, "queryWithPositionalBinding", String.class);
 	}
 
 	@Test // DATAJPA-871
-	public void usesAliasedValueForLockLockMode() throws Exception {
+	void usesAliasedValueForLockLockMode() throws Exception {
 
 		JpaQueryMethod method = getQueryMethod(ValidRepository.class, "withMetaAnnotationUsingAliasFor");
 
@@ -377,7 +383,7 @@ public class JpaQueryMethodUnitTests {
 	}
 
 	@Test // DATAJPA-871
-	public void usesAliasedValueForQueryHints() throws Exception {
+	void usesAliasedValueForQueryHints() throws Exception {
 
 		JpaQueryMethod method = getQueryMethod(ValidRepository.class, "withMetaAnnotationUsingAliasFor");
 
@@ -388,7 +394,7 @@ public class JpaQueryMethodUnitTests {
 	}
 
 	@Test // DATAJPA-871
-	public void usesAliasedValueForQueryHintsCounting() throws Exception {
+	void usesAliasedValueForQueryHintsCounting() throws Exception {
 
 		JpaQueryMethod method = getQueryMethod(ValidRepository.class, "withMetaAnnotationUsingAliasFor");
 
@@ -396,7 +402,7 @@ public class JpaQueryMethodUnitTests {
 	}
 
 	@Test // DATAJPA-871
-	public void usesAliasedValueForModifyingClearAutomatically() throws Exception {
+	void usesAliasedValueForModifyingClearAutomatically() throws Exception {
 
 		JpaQueryMethod method = getQueryMethod(ValidRepository.class, "withMetaAnnotationUsingAliasFor");
 
@@ -405,7 +411,7 @@ public class JpaQueryMethodUnitTests {
 	}
 
 	@Test // DATAJPA-871
-	public void usesAliasedValueForHintsApplyToCountQuery() throws Exception {
+	void usesAliasedValueForHintsApplyToCountQuery() throws Exception {
 
 		JpaQueryMethod method = getQueryMethod(ValidRepository.class, "withMetaAnnotationUsingAliasFor");
 
@@ -413,7 +419,7 @@ public class JpaQueryMethodUnitTests {
 	}
 
 	@Test // DATAJPA-871
-	public void usesAliasedValueForQueryValue() throws Exception {
+	void usesAliasedValueForQueryValue() throws Exception {
 
 		JpaQueryMethod method = getQueryMethod(ValidRepository.class, "withMetaAnnotationUsingAliasFor");
 
@@ -421,7 +427,7 @@ public class JpaQueryMethodUnitTests {
 	}
 
 	@Test // DATAJPA-871
-	public void usesAliasedValueForQueryCountQuery() throws Exception {
+	void usesAliasedValueForQueryCountQuery() throws Exception {
 
 		JpaQueryMethod method = getQueryMethod(ValidRepository.class, "withMetaAnnotationUsingAliasFor");
 
@@ -429,7 +435,7 @@ public class JpaQueryMethodUnitTests {
 	}
 
 	@Test // DATAJPA-871
-	public void usesAliasedValueForQueryCountQueryProjection() throws Exception {
+	void usesAliasedValueForQueryCountQueryProjection() throws Exception {
 
 		JpaQueryMethod method = getQueryMethod(ValidRepository.class, "withMetaAnnotationUsingAliasFor");
 
@@ -437,7 +443,7 @@ public class JpaQueryMethodUnitTests {
 	}
 
 	@Test // DATAJPA-871
-	public void usesAliasedValueForQueryNamedQueryName() throws Exception {
+	void usesAliasedValueForQueryNamedQueryName() throws Exception {
 
 		JpaQueryMethod method = getQueryMethod(ValidRepository.class, "withMetaAnnotationUsingAliasFor");
 
@@ -445,7 +451,7 @@ public class JpaQueryMethodUnitTests {
 	}
 
 	@Test // DATAJPA-871
-	public void usesAliasedValueForQueryNamedCountQueryName() throws Exception {
+	void usesAliasedValueForQueryNamedCountQueryName() throws Exception {
 
 		JpaQueryMethod method = getQueryMethod(ValidRepository.class, "withMetaAnnotationUsingAliasFor");
 
@@ -453,7 +459,7 @@ public class JpaQueryMethodUnitTests {
 	}
 
 	@Test // DATAJPA-871
-	public void usesAliasedValueForQueryNativeQuery() throws Exception {
+	void usesAliasedValueForQueryNativeQuery() throws Exception {
 
 		JpaQueryMethod method = getQueryMethod(ValidRepository.class, "withMetaAnnotationUsingAliasFor");
 
@@ -461,7 +467,7 @@ public class JpaQueryMethodUnitTests {
 	}
 
 	@Test // DATAJPA-871
-	public void usesAliasedValueForEntityGraph() throws Exception {
+	void usesAliasedValueForEntityGraph() throws Exception {
 
 		doReturn(User.class).when(metadata).getDomainType();
 		doReturn(User.class).when(metadata).getReturnedDomainClass((Method) any());
@@ -569,7 +575,7 @@ public class JpaQueryMethodUnitTests {
 	@Lock(LockModeType.OPTIMISTIC_FORCE_INCREMENT)
 	@QueryHints(@QueryHint(name = "foo", value = "bar"))
 	@Retention(RetentionPolicy.RUNTIME)
-	static @interface CustomAnnotation {
+	private static @interface CustomAnnotation {
 
 	}
 
@@ -578,7 +584,7 @@ public class JpaQueryMethodUnitTests {
 	@Lock(LockModeType.OPTIMISTIC_FORCE_INCREMENT)
 	@QueryHints(@QueryHint(name = "foo", value = "bar"))
 	@Retention(RetentionPolicy.RUNTIME)
-	static @interface CustomComposedAnnotationWithAliasFor {
+	private static @interface CustomComposedAnnotationWithAliasFor {
 
 		@AliasFor(annotation = Modifying.class, attribute = "clearAutomatically")
 		boolean doClear() default true;
@@ -613,7 +619,7 @@ public class JpaQueryMethodUnitTests {
 
 	@EntityGraph
 	@Retention(RetentionPolicy.RUNTIME)
-	static @interface CustomComposedEntityGraphAnnotationWithAliasFor {
+	private static @interface CustomComposedEntityGraphAnnotationWithAliasFor {
 
 		@AliasFor(annotation = EntityGraph.class, attribute = "value")
 		String graphName() default "User.detail";

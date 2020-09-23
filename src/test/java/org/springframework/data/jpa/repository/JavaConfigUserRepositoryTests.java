@@ -55,7 +55,7 @@ import org.springframework.test.context.support.AnnotationConfigContextLoader;
  * @author Thomas Darimont
  */
 @ContextConfiguration(inheritLocations = false, loader = AnnotationConfigContextLoader.class)
-public class JavaConfigUserRepositoryTests extends UserRepositoryTests {
+class JavaConfigUserRepositoryTests extends UserRepositoryTests {
 
 	@Configuration
 	@ImportResource("classpath:infrastructure.xml")
@@ -99,7 +99,7 @@ public class JavaConfigUserRepositoryTests extends UserRepositoryTests {
 	}
 
 	@Test // DATAJPA-317
-	public void doesNotPickUpJpaRepository() {
+	void doesNotPickUpJpaRepository() {
 
 		try (ConfigurableApplicationContext context = new AnnotationConfigApplicationContext(JpaRepositoryConfig.class)) {
 			Assertions.assertThatExceptionOfType(NoSuchBeanDefinitionException.class)

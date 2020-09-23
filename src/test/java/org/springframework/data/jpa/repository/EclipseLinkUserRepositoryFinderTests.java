@@ -25,13 +25,13 @@ import org.springframework.test.context.ContextConfiguration;
  * @author Oliver Gierke
  */
 @ContextConfiguration("classpath:eclipselink.xml")
-public class EclipseLinkUserRepositoryFinderTests extends UserRepositoryFinderTests {
+class EclipseLinkUserRepositoryFinderTests extends UserRepositoryFinderTests {
 
 	@Disabled
 	@Override
-	public void executesNotInQueryCorrectly() throws Exception {}
+	void executesNotInQueryCorrectly() throws Exception {}
 
 	@Disabled
 	@Override
-	public void executesInKeywordForPageCorrectly() {}
+	void executesInKeywordForPageCorrectly() {}
 }

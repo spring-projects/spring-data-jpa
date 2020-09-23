@@ -44,7 +44,7 @@ public class RepositoriesJavaConfigTests {
 	@Autowired Repositories repositories;
 
 	@Test // DATAJPA-323
-	public void foo() {
+	void foo() {
 		assertThat(repositories.hasRepositoryFor(User.class)).isTrue();
 	}
 

@@ -53,7 +53,7 @@ public class ParentRepositoryIntegrationTests {
 	@Autowired ParentRepository repository;
 
 	@BeforeEach
-	public void setUp() {
+	void setUp() {
 
 		repository.save(new Parent().add(new Child()));
 		repository.save(new Parent().add(new Child()).add(new Child()));
@@ -63,7 +63,7 @@ public class ParentRepositoryIntegrationTests {
 	}
 
 	@Test // DATAJPA-287
-	public void testWithoutJoin() {
+	void testWithoutJoin() {
 
 		Page<Parent> page = repository.findAll(new Specification<Parent>() {
 			@Override
@@ -84,7 +84,7 @@ public class ParentRepositoryIntegrationTests {
 	}
 
 	@Test // DATAJPA-287
-	public void testWithJoin() throws Exception {
+	void testWithJoin() throws Exception {
 		Page<Parent> page = repository.findAll(new Specification<Parent>() {
 			@Override
 			public Predicate toPredicate(Root<Parent> root, CriteriaQuery<?> query, CriteriaBuilder cb) {

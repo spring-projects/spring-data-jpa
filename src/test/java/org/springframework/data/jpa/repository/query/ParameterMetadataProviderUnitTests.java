@@ -31,10 +31,10 @@ import org.springframework.data.repository.query.parser.Part;
  *
  * @author Jens Schauder
  */
-public class ParameterMetadataProviderUnitTests {
+class ParameterMetadataProviderUnitTests {
 
 	@Test // DATAJPA-863
-	public void errorMessageMentionesParametersWhenParametersAreExhausted() {
+	void errorMessageMentionesParametersWhenParametersAreExhausted() {
 
 		CriteriaBuilder builder = mock(CriteriaBuilder.class);
 

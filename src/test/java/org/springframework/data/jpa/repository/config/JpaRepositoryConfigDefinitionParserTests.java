@@ -30,10 +30,10 @@ import org.springframework.core.io.ClassPathResource;
  * @author Oliver Gierke
  * @author Jens Schauder
  */
-public class JpaRepositoryConfigDefinitionParserTests {
+class JpaRepositoryConfigDefinitionParserTests {
 
 	@Test
-	public void getsTransactionManagerSet() throws Exception {
+	void getsTransactionManagerSet() throws Exception {
 
 		DefaultListableBeanFactory factory = new DefaultListableBeanFactory();
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(factory);

@@ -25,7 +25,7 @@ import javax.persistence.Entity;
 public class SampleEntity {
 
 	@EmbeddedId
-	protected SampleEntityPK id;
+	private SampleEntityPK id;
 
 	protected SampleEntity() {
 

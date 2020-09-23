@@ -53,7 +53,7 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 	@PersistenceContext EntityManager em;
 
 	@Test
-	public void detectsIdTypeForEntity() {
+	void detectsIdTypeForEntity() {
 
 		JpaEntityInformation<User, ?> information = getEntityInformation(User.class, em);
 		assertThat(information.getIdType()).isAssignableFrom(Integer.class);
@@ -67,21 +67,21 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 	 */
 	@Test // DATAJPA-141
 	@Disabled
-	public void detectsIdTypeForMappedSuperclass() {
+	void detectsIdTypeForMappedSuperclass() {
 
 		JpaEntityInformation<?, ?> information = getEntityInformation(AbstractPersistable.class, em);
 		assertThat(information.getIdType()).isEqualTo(Serializable.class);
 	}
 
 	@Test // DATAJPA-50
-	public void detectsIdClass() {
+	void detectsIdClass() {
 
 		EntityInformation<PersistableWithIdClass, ?> information = getEntityInformation(PersistableWithIdClass.class, em);
 		assertThat(information.getIdType()).isAssignableFrom(PersistableWithIdClassPK.class);
 	}
 
 	@Test // DATAJPA-50
-	public void returnsIdOfPersistableInstanceCorrectly() {
+	void returnsIdOfPersistableInstanceCorrectly() {
 
 		PersistableWithIdClass entity = new PersistableWithIdClass(2L, 4L);
 
@@ -93,7 +93,7 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 	}
 
 	@Test // DATAJPA-413
-	public void returnsIdOfEntityWithIdClassCorrectly() {
+	void returnsIdOfEntityWithIdClassCorrectly() {
 
 		Item item = new Item(2, 1);
 
@@ -104,7 +104,7 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 	}
 
 	@Test // DATAJPA-413
-	public void returnsDerivedIdOfEntityWithIdClassCorrectly() {
+	void returnsDerivedIdOfEntityWithIdClassCorrectly() {
 
 		Item item = new Item(1, 2);
 		Site site = new Site(3);
@@ -118,7 +118,7 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 	}
 
 	@Test // DATAJPA-413
-	public void returnsPartialEmptyDerivedIdOfEntityWithIdClassCorrectly() {
+	void returnsPartialEmptyDerivedIdOfEntityWithIdClassCorrectly() {
 
 		Item item = new Item(1, null);
 		Site site = new Site(3);
@@ -132,7 +132,7 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 	}
 
 	@Test // DATAJPA-119
-	public void favoursVersionAnnotationIfPresent() {
+	void favoursVersionAnnotationIfPresent() {
 
 		EntityInformation<VersionedUser, Long> information = new JpaMetamodelEntityInformation<>(VersionedUser.class,
 				em.getMetamodel());
@@ -148,7 +148,7 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 	}
 
 	@Test // DATAJPA-348
-	public void findsIdClassOnMappedSuperclass() {
+	void findsIdClassOnMappedSuperclass() {
 
 		EntityManagerFactory emf = Persistence.createEntityManagerFactory(getMetadadataPersitenceUnitName());
 		EntityManager em = emf.createEntityManager();
@@ -160,7 +160,7 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 	}
 
 	@Test // DATACMNS-357
-	public void detectsNewStateForEntityWithPrimitiveId() {
+	void detectsNewStateForEntityWithPrimitiveId() {
 
 		EntityInformation<SampleWithPrimitiveId, Long> information = new JpaMetamodelEntityInformation<>(
 				SampleWithPrimitiveId.class, em.getMetamodel());
@@ -173,7 +173,7 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 	}
 
 	@Test // DATAJPA-509
-	public void jpaMetamodelEntityInformationShouldRespectExplicitlyConfiguredEntityNameFromOrmXml() {
+	void jpaMetamodelEntityInformationShouldRespectExplicitlyConfiguredEntityNameFromOrmXml() {
 
 		JpaEntityInformation<Role, Integer> info = new JpaMetamodelEntityInformation<>(Role.class, em.getMetamodel());
 
@@ -181,7 +181,7 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 	}
 
 	@Test // DATAJPA-561
-	public void considersEntityWithPrimitiveVersionPropertySetToDefaultNew() {
+	void considersEntityWithPrimitiveVersionPropertySetToDefaultNew() {
 
 		EntityInformation<PrimitiveVersionProperty, Serializable> information = new JpaMetamodelEntityInformation<>(
 				PrimitiveVersionProperty.class, em.getMetamodel());
@@ -190,7 +190,7 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 	}
 
 	@Test // DATAJPA-568
-	public void considersEntityAsNotNewWhenHavingIdSetAndUsingPrimitiveTypeForVersionProperty() {
+	void considersEntityAsNotNewWhenHavingIdSetAndUsingPrimitiveTypeForVersionProperty() {
 
 		EntityInformation<PrimitiveVersionProperty, Serializable> information = new JpaMetamodelEntityInformation<>(
 				PrimitiveVersionProperty.class, em.getMetamodel());
@@ -202,7 +202,7 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 	}
 
 	@Test // DATAJPA-568
-	public void fallsBackToIdInspectionForAPrimitiveVersionProperty() {
+	void fallsBackToIdInspectionForAPrimitiveVersionProperty() {
 
 		EntityInformation<PrimitiveVersionProperty, Serializable> information = new JpaMetamodelEntityInformation<>(
 				PrimitiveVersionProperty.class, em.getMetamodel());
@@ -217,7 +217,7 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 	}
 
 	@Test // DATAJPA-582
-	public void considersEntityWithUnsetCompundIdNew() {
+	void considersEntityWithUnsetCompundIdNew() {
 
 		EntityInformation<SampleWithIdClass, ?> information = getEntityInformation(SampleWithIdClass.class, em);
 
@@ -225,7 +225,7 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 	}
 
 	@Test // DATAJPA-582
-	public void considersEntityWithSetTimestampVersionNotNew() {
+	void considersEntityWithSetTimestampVersionNotNew() {
 
 		EntityInformation<SampleWithTimestampVersion, ?> information = getEntityInformation(
 				SampleWithTimestampVersion.class, em);
@@ -237,7 +237,7 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 	}
 
 	@Test // DATAJPA-582, DATAJPA-581
-	public void considersEntityWithNonPrimitiveNonNullIdTypeNotNew() {
+	void considersEntityWithNonPrimitiveNonNullIdTypeNotNew() {
 
 		EntityInformation<User, ?> information = getEntityInformation(User.class, em);
 
@@ -253,7 +253,7 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 	 */
 	@Test // DATAJPA-820
 	@Disabled
-	public void detectsVersionPropertyOnMappedSuperClass() {
+	void detectsVersionPropertyOnMappedSuperClass() {
 
 		EntityInformation<ConcreteType1, ?> information = getEntityInformation(ConcreteType1.class, em);
 
@@ -261,7 +261,7 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 	}
 
 	@Test // DATAJPA-1105
-	public void correctlyDeterminesIdValueForNestedIdClassesWithNonPrimitiveNonManagedType() {
+	void correctlyDeterminesIdValueForNestedIdClassesWithNonPrimitiveNonManagedType() {
 
 		EntityManagerFactory emf = Persistence.createEntityManagerFactory(getMetadadataPersitenceUnitName());
 		EntityManager em = emf.createEntityManager();
@@ -281,7 +281,7 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 	}
 
 	@Test // DATAJPA-1416
-	public void proxiedIdClassElement() {
+	void proxiedIdClassElement() {
 
 		JpaEntityInformation<SampleWithIdClassIncludingEntity, ?> information = getEntityInformation(
 				SampleWithIdClassIncludingEntity.class, em);
@@ -304,7 +304,7 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 
 	@Test // DATAJPA-1576
 	@Disabled
-	public void prefersPrivateGetterOverFieldAccess() {
+	void prefersPrivateGetterOverFieldAccess() {
 
 		EntityManagerFactory emf = Persistence.createEntityManagerFactory(getMetadadataPersitenceUnitName());
 		EntityManager em = emf.createEntityManager();
@@ -318,12 +318,12 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 		assertThat(id).isEqualTo(42L);
 	}
 
-	protected String getMetadadataPersitenceUnitName() {
+	String getMetadadataPersitenceUnitName() {
 		return "metadata";
 	}
 
 	@SuppressWarnings("serial")
-	public static class BaseIdClass implements Serializable {
+	private static class BaseIdClass implements Serializable {
 
 		Long id;
 		Long feedRunId;

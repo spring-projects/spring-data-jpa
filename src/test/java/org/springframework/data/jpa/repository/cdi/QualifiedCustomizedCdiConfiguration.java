@@ -22,7 +22,7 @@ import org.springframework.data.repository.cdi.CdiRepositoryConfiguration;
  * @author Mark Paluch
  */
 @UserDB
-public class QualifiedCustomizedCdiConfiguration implements CdiRepositoryConfiguration {
+class QualifiedCustomizedCdiConfiguration implements CdiRepositoryConfiguration {
 
 	@Override
 	public String getRepositoryImplementationPostfix() {

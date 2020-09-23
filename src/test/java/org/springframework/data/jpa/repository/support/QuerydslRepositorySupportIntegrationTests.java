@@ -98,12 +98,12 @@ public class QuerydslRepositorySupportIntegrationTests {
 	@PersistenceContext(unitName = "querydsl") EntityManager em;
 
 	@Test
-	public void createsRepoCorrectly() {
+	void createsRepoCorrectly() {
 		assertThat(repository).isNotNull();
 	}
 
 	@Test // DATAJPA-135
-	public void createsReconfiguredRepoAccordingly() {
+	void createsReconfiguredRepoAccordingly() {
 
 		assertThat(reconfiguredRepo).isNotNull();
 		assertThat(reconfiguredRepo.getEntityManager().getEntityManagerFactory()) //
@@ -111,7 +111,7 @@ public class QuerydslRepositorySupportIntegrationTests {
 	}
 
 	@Test // DATAJPA-1205
-	public void createsRepositoryWithCustomImplementationUsingQueryDsl() {
+	void createsRepositoryWithCustomImplementationUsingQueryDsl() {
 
 		assertThat(querydslCustom).isNotNull();
 		assertThat(querydslCustom.getEntityManager().getEntityManagerFactory()) //

@@ -38,7 +38,7 @@ public class NamespaceUserRepositoryTests extends UserRepositoryTests {
 	ListableBeanFactory beanFactory;
 
 	@Test
-	public void registersPostProcessors() {
+	void registersPostProcessors() {
 		hasAtLeastOneBeanOfType(PersistenceAnnotationBeanPostProcessor.class);
 	}
 

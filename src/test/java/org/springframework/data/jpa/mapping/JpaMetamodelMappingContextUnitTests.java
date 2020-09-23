@@ -29,10 +29,10 @@ import org.springframework.data.annotation.Version;
  *
  * @author Oliver Gierke
  */
-public class JpaMetamodelMappingContextUnitTests {
+class JpaMetamodelMappingContextUnitTests {
 
 	@Test // DATAJPA-775
-	public void jpaPersistentEntityRejectsSprignDataAtVersionAnnotation() {
+	void jpaPersistentEntityRejectsSprignDataAtVersionAnnotation() {
 
 		Metamodel metamodel = mock(Metamodel.class);
 
@@ -40,7 +40,7 @@ public class JpaMetamodelMappingContextUnitTests {
 		context.getPersistentEntity(Sample.class);
 	}
 
-	static class Sample {
+	private static class Sample {
 		@Version Long version;
 	}
 }

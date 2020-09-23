@@ -49,7 +49,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:infrastructure.xml")
-public class JpaSortTests {
+class JpaSortTests {
 
 	private static final @Nullable Attribute<?, ?> NULL_ATTRIBUTE = null;
 	private static final Attribute<?, ?>[] EMPTY_ATTRIBUTES = new Attribute<?, ?>[0];
@@ -58,107 +58,107 @@ public class JpaSortTests {
 	private static final PluralAttribute<?, ?, ?>[] EMPTY_PLURAL_ATTRIBUTES = new PluralAttribute<?, ?, ?>[0];
 
 	@Test // DATAJPA-12
-	public void rejectsNullAttribute() {
+	void rejectsNullAttribute() {
 		assertThatIllegalArgumentException().isThrownBy(() -> of(NULL_ATTRIBUTE));
 	}
 
 	@Test // DATAJPA-12
-	public void rejectsEmptyAttributes() {
+	void rejectsEmptyAttributes() {
 		assertThatIllegalArgumentException().isThrownBy(() -> of(EMPTY_ATTRIBUTES));
 	}
 
 	@Test // DATAJPA-12
-	public void rejectsNullPluralAttribute() {
+	void rejectsNullPluralAttribute() {
 		assertThatIllegalArgumentException().isThrownBy(() -> of(NULL_PLURAL_ATTRIBUTE));
 	}
 
 	@Test // DATAJPA-12
-	public void rejectsEmptyPluralAttributes() {
+	void rejectsEmptyPluralAttributes() {
 		assertThatIllegalArgumentException().isThrownBy(() -> of(EMPTY_PLURAL_ATTRIBUTES));
 	}
 
 	@Test // DATAJPA-12
-	public void sortBySinglePropertyWithDefaultSortDirection() {
+	void sortBySinglePropertyWithDefaultSortDirection() {
 		assertThat(JpaSort.of(path(User_.firstname))).contains(Order.asc("firstname"));
 	}
 
 	@Test // DATAJPA-12
-	public void sortByMultiplePropertiesWithDefaultSortDirection() {
+	void sortByMultiplePropertiesWithDefaultSortDirection() {
 		assertThat(JpaSort.of(User_.firstname, User_.lastname)).contains(Order.asc("firstname"), Order.asc("lastname"));
 	}
 
 	@Test // DATAJPA-12
-	public void sortByMultiplePropertiesWithDescSortDirection() {
+	void sortByMultiplePropertiesWithDescSortDirection() {
 
 		assertThat(JpaSort.of(DESC, User_.firstname, User_.lastname)).contains(new Order(DESC, "firstname"),
 				Order.desc("lastname"));
 	}
 
 	@Test // DATAJPA-12
-	public void combiningSortByMultipleProperties() {
+	void combiningSortByMultipleProperties() {
 
 		assertThat(JpaSort.of(User_.firstname).and(JpaSort.of(User_.lastname))).contains(Order.asc("firstname"),
 				Order.asc("lastname"));
 	}
 
 	@Test // DATAJPA-12
-	public void combiningSortByMultiplePropertiesWithDifferentSort() {
+	void combiningSortByMultiplePropertiesWithDifferentSort() {
 
 		assertThat(JpaSort.of(User_.firstname).and(JpaSort.of(DESC, User_.lastname))).contains(Order.asc("firstname"),
 				Order.desc("lastname"));
 	}
 
 	@Test // DATAJPA-12
-	public void combiningSortByNestedEmbeddedProperty() {
+	void combiningSortByNestedEmbeddedProperty() {
 		assertThat(JpaSort.of(path(User_.address).dot(Address_.streetName))).contains(Order.asc("address.streetName"));
 	}
 
 	@Test // DATAJPA-12
-	public void buildJpaSortFromJpaMetaModelSingleAttribute() {
+	void buildJpaSortFromJpaMetaModelSingleAttribute() {
 
 		assertThat(JpaSort.of(ASC, path(User_.firstname))).contains(Order.asc("firstname"));
 	}
 
 	@Test // DATAJPA-12
-	public void buildJpaSortFromJpaMetaModelNestedAttribute() {
+	void buildJpaSortFromJpaMetaModelNestedAttribute() {
 
 		assertThat(JpaSort.of(ASC, path(MailMessage_.mailSender).dot(MailSender_.name)))
 				.contains(Order.asc("mailSender.name"));
 	}
 
 	@Test // DATAJPA-702
-	public void combiningSortByMultiplePropertiesWithDifferentSortUsingSimpleAnd() {
+	void combiningSortByMultiplePropertiesWithDifferentSortUsingSimpleAnd() {
 
 		assertThat(JpaSort.of(User_.firstname).and(DESC, User_.lastname)).containsExactly(Order.asc("firstname"),
 				Order.desc("lastname"));
 	}
 
 	@Test // DATAJPA-702
-	public void combiningSortByMultiplePathsWithDifferentSortUsingSimpleAnd() {
+	void combiningSortByMultiplePathsWithDifferentSortUsingSimpleAnd() {
 
 		assertThat(JpaSort.of(User_.firstname).and(DESC, path(MailMessage_.mailSender).dot(MailSender_.name)))
 				.containsExactly(Order.asc("firstname"), Order.desc("mailSender.name"));
 	}
 
 	@Test // DATAJPA-702
-	public void rejectsNullAttributesForCombiningCriterias() {
+	void rejectsNullAttributesForCombiningCriterias() {
 		assertThatIllegalArgumentException().isThrownBy(() -> of(User_.firstname).and(DESC, (Attribute<?, ?>[]) null));
 	}
 
 	@Test // DATAJPA-702
-	public void rejectsNullPathsForCombiningCriterias() {
+	void rejectsNullPathsForCombiningCriterias() {
 		assertThatIllegalArgumentException().isThrownBy(() -> of(User_.firstname).and(DESC, (Path<?, ?>[]) null));
 	}
 
 	@Test // DATAJPA-702
-	public void buildsUpPathForPluralAttributesCorrectly() {
+	void buildsUpPathForPluralAttributesCorrectly() {
 
 		// assertThat(JpaSort.of(JpaSort.path(User_.colleagues).dot(User_.roles).dot(Role_.name)), //
 		// hasItem(new Order(ASC, "colleagues.roles.name")));
 	}
 
 	@Test // DATAJPA-965
-	public void createsUnsafeSortCorrectly() {
+	void createsUnsafeSortCorrectly() {
 
 		JpaSort sort = JpaSort.unsafe(DESC, "foo.bar");
 
@@ -167,7 +167,7 @@ public class JpaSortTests {
 	}
 
 	@Test // DATAJPA-965
-	public void createsUnsafeSortWithMultiplePropertiesCorrectly() {
+	void createsUnsafeSortWithMultiplePropertiesCorrectly() {
 
 		JpaSort sort = JpaSort.unsafe(DESC, "foo.bar", "spring.data");
 
@@ -177,7 +177,7 @@ public class JpaSortTests {
 	}
 
 	@Test // DATAJPA-965
-	public void combinesSafeAndUnsafeSortCorrectly() {
+	void combinesSafeAndUnsafeSortCorrectly() {
 
 		// JpaSort sort = JpaSort.of(path(User_.colleagues).dot(User_.roles).dot(Role_.name)).andUnsafe(DESC, "foo.bar");
 		//
@@ -187,7 +187,7 @@ public class JpaSortTests {
 	}
 
 	@Test // DATAJPA-965
-	public void combinesUnsafeAndSafeSortCorrectly() {
+	void combinesUnsafeAndSafeSortCorrectly() {
 
 		// Sort sort = JpaSort.unsafe(DESC, "foo.bar").and(ASC, path(User_.colleagues).dot(User_.roles).dot(Role_.name));
 		//

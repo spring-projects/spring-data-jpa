@@ -29,7 +29,7 @@ import org.springframework.data.repository.core.support.RepositoryFactorySupport
  * @author Gil Markham
  * @author Oliver Gierke
  */
-public class CustomGenericJpaRepositoryFactoryBean<T extends JpaRepository<Object, Serializable>>
+class CustomGenericJpaRepositoryFactoryBean<T extends JpaRepository<Object, Serializable>>
 		extends JpaRepositoryFactoryBean<T, Object, Serializable> {
 
 	public CustomGenericJpaRepositoryFactoryBean(Class<? extends T> repositoryInterface) {

@@ -37,33 +37,33 @@ public class DefaultJpaEntityMetadataUnitTest {
 
 	@Test
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public void rejectsNullDomainType() {
+	void rejectsNullDomainType() {
 		assertThatIllegalArgumentException().isThrownBy(() -> new DefaultJpaEntityMetadata(null));
 	}
 
 	@Test
-	public void returnsConfiguredType() {
+	void returnsConfiguredType() {
 
 		DefaultJpaEntityMetadata<Foo> metadata = new DefaultJpaEntityMetadata<Foo>(Foo.class);
 		assertThat(metadata.getJavaType()).isEqualTo(Foo.class);
 	}
 
 	@Test
-	public void returnsSimpleClassNameAsEntityNameByDefault() {
+	void returnsSimpleClassNameAsEntityNameByDefault() {
 
 		DefaultJpaEntityMetadata<Foo> metadata = new DefaultJpaEntityMetadata<Foo>(Foo.class);
 		assertThat(metadata.getEntityName()).isEqualTo(Foo.class.getSimpleName());
 	}
 
 	@Test
-	public void returnsCustomizedEntityNameIfConfigured() {
+	void returnsCustomizedEntityNameIfConfigured() {
 
 		DefaultJpaEntityMetadata<Bar> metadata = new DefaultJpaEntityMetadata<Bar>(Bar.class);
 		assertThat(metadata.getEntityName()).isEqualTo("Entity");
 	}
 
 	@Test // DATAJPA-871
-	public void returnsCustomizedEntityNameIfConfiguredViaComposedAnnotation() {
+	void returnsCustomizedEntityNameIfConfiguredViaComposedAnnotation() {
 
 		DefaultJpaEntityMetadata<BarWithComposedAnnotation> metadata = new DefaultJpaEntityMetadata<BarWithComposedAnnotation>(
 				BarWithComposedAnnotation.class);
@@ -78,11 +78,11 @@ public class DefaultJpaEntityMetadataUnitTest {
 		String entityName();
 	}
 
-	static class Foo {}
+	private static class Foo {}
 
 	@Entity(name = "Entity")
 	static class Bar {}
 
 	@CustomEntityAnnotationUsingAliasFor(entityName = "Entity")
-	static class BarWithComposedAnnotation {}
+	private static class BarWithComposedAnnotation {}
 }

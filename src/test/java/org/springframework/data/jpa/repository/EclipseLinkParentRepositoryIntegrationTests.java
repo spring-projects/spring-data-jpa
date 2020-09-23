@@ -18,6 +18,6 @@ package org.springframework.data.jpa.repository;
 import org.springframework.test.context.ContextConfiguration;
 
 @ContextConfiguration("classpath:eclipselink.xml")
-public class EclipseLinkParentRepositoryIntegrationTests extends ParentRepositoryIntegrationTests {
+class EclipseLinkParentRepositoryIntegrationTests extends ParentRepositoryIntegrationTests {
 
 }

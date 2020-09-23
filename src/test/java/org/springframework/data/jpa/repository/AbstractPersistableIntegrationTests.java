@@ -46,7 +46,7 @@ public class AbstractPersistableIntegrationTests {
 	@Autowired EntityManager em;
 
 	@Test // DATAJPA-622
-	public void shouldBeAbleToSaveAndLoadCustomPersistableWithUuidId() {
+	void shouldBeAbleToSaveAndLoadCustomPersistableWithUuidId() {
 
 		CustomAbstractPersistable entity = new CustomAbstractPersistable();
 		CustomAbstractPersistable saved = repository.save(entity);
@@ -56,7 +56,7 @@ public class AbstractPersistableIntegrationTests {
 	}
 
 	@Test // DATAJPA-848
-	public void equalsWorksForProxiedEntities() {
+	void equalsWorksForProxiedEntities() {
 
 		CustomAbstractPersistable entity = repository.saveAndFlush(new CustomAbstractPersistable());
 

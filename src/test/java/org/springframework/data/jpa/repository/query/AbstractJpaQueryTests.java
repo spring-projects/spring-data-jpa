@@ -60,18 +60,18 @@ public class AbstractJpaQueryTests {
 
 	@PersistenceContext EntityManager em;
 
-	Query query;
-	TypedQuery<Long> countQuery;
+	private Query query;
+	private TypedQuery<Long> countQuery;
 
 	@BeforeEach
 	@SuppressWarnings("unchecked")
-	public void setUp() {
+	void setUp() {
 		query = mock(Query.class);
 		countQuery = mock(TypedQuery.class);
 	}
 
 	@Test // DATADOC-97
-	public void addsHintsToQueryObject() throws Exception {
+	void addsHintsToQueryObject() throws Exception {
 
 		JpaQueryMethod queryMethod = getMethod("findByLastname", String.class);
 
@@ -87,7 +87,7 @@ public class AbstractJpaQueryTests {
 	}
 
 	@Test // DATAJPA-54
-	public void skipsHintsForCountQueryIfConfigured() throws Exception {
+	void skipsHintsForCountQueryIfConfigured() throws Exception {
 
 		JpaQueryMethod queryMethod = getMethod("findByFirstname", String.class);
 		AbstractJpaQuery jpaQuery = new DummyJpaQuery(queryMethod, em);
@@ -102,7 +102,7 @@ public class AbstractJpaQueryTests {
 	}
 
 	@Test // DATAJPA-73
-	public void addsLockingModeToQueryObject() throws Exception {
+	void addsLockingModeToQueryObject() throws Exception {
 
 		when(query.setLockMode(any(LockModeType.class))).thenReturn(query);
 
@@ -116,7 +116,7 @@ public class AbstractJpaQueryTests {
 
 	@Test // DATAJPA-466
 	@Transactional
-	public void shouldAddEntityGraphHintForFetch() throws Exception {
+	void shouldAddEntityGraphHintForFetch() throws Exception {
 
 		Assume.assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
 
@@ -132,7 +132,7 @@ public class AbstractJpaQueryTests {
 
 	@Test // DATAJPA-466
 	@Transactional
-	public void shouldAddEntityGraphHintForLoad() throws Exception {
+	void shouldAddEntityGraphHintForLoad() throws Exception {
 
 		Assume.assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
 
@@ -179,7 +179,7 @@ public class AbstractJpaQueryTests {
 
 	class DummyJpaQuery extends AbstractJpaQuery {
 
-		public DummyJpaQuery(JpaQueryMethod method, EntityManager em) {
+		DummyJpaQuery(JpaQueryMethod method, EntityManager em) {
 			super(method, em);
 		}
 

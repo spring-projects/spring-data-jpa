@@ -52,12 +52,12 @@ import org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcesso
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-public class JpaRepositoryConfigExtensionUnitTests {
+class JpaRepositoryConfigExtensionUnitTests {
 
 	@Mock RepositoryConfigurationSource configSource;
 
 	@Test
-	public void registersDefaultBeanPostProcessorsByDefault() {
+	void registersDefaultBeanPostProcessorsByDefault() {
 
 		DefaultListableBeanFactory factory = new DefaultListableBeanFactory();
 
@@ -70,7 +70,7 @@ public class JpaRepositoryConfigExtensionUnitTests {
 	}
 
 	@Test
-	public void doesNotRegisterProcessorIfAlreadyPresent() {
+	void doesNotRegisterProcessorIfAlreadyPresent() {
 
 		DefaultListableBeanFactory factory = new DefaultListableBeanFactory();
 		RootBeanDefinition pabppDefinition = new RootBeanDefinition(PersistenceAnnotationBeanPostProcessor.class);
@@ -81,7 +81,7 @@ public class JpaRepositoryConfigExtensionUnitTests {
 	}
 
 	@Test
-	public void doesNotRegisterProcessorIfAutoRegistered() {
+	void doesNotRegisterProcessorIfAutoRegistered() {
 
 		DefaultListableBeanFactory factory = new DefaultListableBeanFactory();
 		RootBeanDefinition pabppDefinition = new RootBeanDefinition(PersistenceAnnotationBeanPostProcessor.class);
@@ -92,7 +92,7 @@ public class JpaRepositoryConfigExtensionUnitTests {
 	}
 
 	@Test // DATAJPA-525
-	public void guardsAgainstNullJavaTypesReturnedFromJpaMetamodel() throws Exception {
+	void guardsAgainstNullJavaTypesReturnedFromJpaMetamodel() throws Exception {
 
 		ApplicationContext context = mock(ApplicationContext.class);
 		EntityManagerFactory emf = mock(EntityManagerFactory.class);
@@ -108,7 +108,7 @@ public class JpaRepositoryConfigExtensionUnitTests {
 	}
 
 	@Test // DATAJPA-1250
-	public void shouldUseInspectionClassLoader() {
+	void shouldUseInspectionClassLoader() {
 
 		JpaRepositoryConfigExtension extension = new JpaRepositoryConfigExtension();
 		ClassLoader classLoader = extension.getConfigurationInspectionClassLoader(new GenericApplicationContext());
@@ -117,7 +117,7 @@ public class JpaRepositoryConfigExtensionUnitTests {
 	}
 
 	@Test // DATAJPA-1250
-	public void shouldNotUseInspectionClassLoaderWithoutEclipseLink() {
+	void shouldNotUseInspectionClassLoaderWithoutEclipseLink() {
 
 		ShadowingClassLoader shadowingClassLoader = new ShadowingClassLoader(getClass().getClassLoader(), false) {
 

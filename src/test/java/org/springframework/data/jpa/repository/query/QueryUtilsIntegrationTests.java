@@ -69,7 +69,7 @@ public class QueryUtilsIntegrationTests {
 	@PersistenceContext EntityManager em;
 
 	@Test // DATAJPA-403
-	public void reusesExistingJoinForExpression() {
+	void reusesExistingJoinForExpression() {
 
 		CriteriaBuilder builder = em.getCriteriaBuilder();
 		CriteriaQuery<User> query = builder.createQuery(User.class);
@@ -85,7 +85,7 @@ public class QueryUtilsIntegrationTests {
 	}
 
 	@Test // DATAJPA-401, DATAJPA-1238
-	public void createsJoinForNavigationAcrossOptionalAssociation() {
+	void createsJoinForNavigationAcrossOptionalAssociation() {
 
 		CriteriaBuilder builder = em.getCriteriaBuilder();
 		CriteriaQuery<User> query = builder.createQuery(User.class);
@@ -97,7 +97,7 @@ public class QueryUtilsIntegrationTests {
 	}
 
 	@Test // DATAJPA-1404
-	public void createsJoinForOptionalOneToOneInReverseDirection() {
+	void createsJoinForOptionalOneToOneInReverseDirection() {
 
 		doInMerchantContext(emf -> {
 
@@ -112,7 +112,7 @@ public class QueryUtilsIntegrationTests {
 	}
 
 	@Test // DATAJPA-1404
-	public void createsNoJoinForOptionalOneToOneInNormalDirection() {
+	void createsNoJoinForOptionalOneToOneInNormalDirection() {
 
 		doInMerchantContext(emf -> {
 
@@ -127,7 +127,7 @@ public class QueryUtilsIntegrationTests {
 	}
 
 	@Test // DATAJPA-401, DATAJPA-1238
-	public void doesNotCreateJoinForOptionalAssociationWithoutFurtherNavigation() {
+	void doesNotCreateJoinForOptionalAssociationWithoutFurtherNavigation() {
 
 		CriteriaBuilder builder = em.getCriteriaBuilder();
 		CriteriaQuery<User> query = builder.createQuery(User.class);
@@ -139,7 +139,7 @@ public class QueryUtilsIntegrationTests {
 	}
 
 	@Test // DATAJPA-401
-	public void doesNotCreateAJoinForNonOptionalAssociation() {
+	void doesNotCreateAJoinForNonOptionalAssociation() {
 
 		CriteriaBuilder builder = em.getCriteriaBuilder();
 		CriteriaQuery<Order> query = builder.createQuery(Order.class);
@@ -149,7 +149,7 @@ public class QueryUtilsIntegrationTests {
 	}
 
 	@Test // DATAJPA-454
-	public void createsJoingToTraverseCollectionPath() {
+	void createsJoingToTraverseCollectionPath() {
 
 		CriteriaBuilder builder = em.getCriteriaBuilder();
 		CriteriaQuery<User> query = builder.createQuery(User.class);
@@ -161,7 +161,7 @@ public class QueryUtilsIntegrationTests {
 	}
 
 	@Test // DATAJPA-476
-	public void traversesPluralAttributeCorrectly() {
+	void traversesPluralAttributeCorrectly() {
 
 		doInMerchantContext((emf) -> {
 
@@ -173,7 +173,7 @@ public class QueryUtilsIntegrationTests {
 		});
 	}
 
-	public void doInMerchantContext(Consumer<EntityManagerFactory> emfConsumer) {
+	void doInMerchantContext(Consumer<EntityManagerFactory> emfConsumer) {
 		PersistenceProviderResolver originalPersistenceProviderResolver = PersistenceProviderResolverHolder
 				.getPersistenceProviderResolver();
 
@@ -193,7 +193,7 @@ public class QueryUtilsIntegrationTests {
 
 	@Test // DATAJPA-763
 	@SuppressWarnings("unchecked")
-	public void doesNotCreateAJoinForAlreadyFetchedAssociation() {
+	void doesNotCreateAJoinForAlreadyFetchedAssociation() {
 
 		CriteriaBuilder builder = em.getCriteriaBuilder();
 		CriteriaQuery<Category> query = builder.createQuery(Category.class);
@@ -211,7 +211,7 @@ public class QueryUtilsIntegrationTests {
 	}
 
 	@Test // DATAJPA-1080
-	public void toOrdersCanSortByJoinColumn() {
+	void toOrdersCanSortByJoinColumn() {
 
 		CriteriaBuilder builder = em.getCriteriaBuilder();
 		CriteriaQuery<User> query = builder.createQuery(User.class);
@@ -231,7 +231,7 @@ public class QueryUtilsIntegrationTests {
 	 * https://github.com/javaee/jpa-spec/issues/169 Compare to: {@link EclipseLinkQueryUtilsIntegrationTests}
 	 */
 	@Test // DATAJPA-1238
-	public void demonstrateDifferentBehavorOfGetJoin() {
+	void demonstrateDifferentBehavorOfGetJoin() {
 
 		CriteriaBuilder builder = em.getCriteriaBuilder();
 		CriteriaQuery<User> query = builder.createQuery(User.class);

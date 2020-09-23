@@ -41,7 +41,7 @@ public class SPR8954Tests {
 
 	@Test
 	@SuppressWarnings("rawtypes")
-	public void canAccessRepositoryFactoryInformationFactoryBeans() {
+	void canAccessRepositoryFactoryInformationFactoryBeans() {
 
 		Map<String, RepositoryFactoryInformation> repoFactories = context
 				.getBeansOfType(RepositoryFactoryInformation.class);

@@ -58,10 +58,10 @@ public class TupleConverterUnitTests {
 	@Mock TupleElement<String> element;
 	@Mock ProjectionFactory factory;
 
-	ReturnedType type;
+	private ReturnedType type;
 
 	@BeforeEach
-	public void setUp() throws Exception {
+	void setUp() throws Exception {
 
 		RepositoryMetadata metadata = new DefaultRepositoryMetadata(SampleRepository.class);
 		QueryMethod method = new QueryMethod(SampleRepository.class.getMethod("someMethod"), metadata, factory);
@@ -71,7 +71,7 @@ public class TupleConverterUnitTests {
 
 	@Test // DATAJPA-984
 	@SuppressWarnings("unchecked")
-	public void returnsSingleTupleElementIfItMatchesExpectedType() {
+	void returnsSingleTupleElementIfItMatchesExpectedType() {
 
 		doReturn(Collections.singletonList(element)).when(tuple).getElements();
 		doReturn("Foo").when(tuple).get(element);
@@ -83,7 +83,7 @@ public class TupleConverterUnitTests {
 
 	@Test // DATAJPA-1024
 	@SuppressWarnings("unchecked")
-	public void returnsNullForSingleElementTupleWithNullValue() {
+	void returnsNullForSingleElementTupleWithNullValue() {
 
 		doReturn(Collections.singletonList(element)).when(tuple).getElements();
 		doReturn(null).when(tuple).get(element);
@@ -95,7 +95,7 @@ public class TupleConverterUnitTests {
 
 	@SuppressWarnings("unchecked")
 	@Test // DATAJPA-1048
-	public void findsValuesForAllVariantsSupportedByTheTuple() {
+	void findsValuesForAllVariantsSupportedByTheTuple() {
 
 		Tuple tuple = new MockTuple();
 

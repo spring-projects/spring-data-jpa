@@ -31,8 +31,8 @@ import javax.persistence.Table;
 @IdClass(ItemSiteId.class)
 public class ItemSite {
 
-	@Id @ManyToOne Item item;
-	@Id @ManyToOne Site site;
+	@Id @ManyToOne private Item item;
+	@Id @ManyToOne private Site site;
 
 	public ItemSite() {}
 

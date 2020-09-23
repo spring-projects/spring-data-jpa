@@ -43,14 +43,14 @@ import org.springframework.orm.jpa.persistenceunit.MutablePersistenceUnitInfo;
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-public class MergingPersistenceUnitManagerUnitTests {
+class MergingPersistenceUnitManagerUnitTests {
 
 	@Mock PersistenceUnitInfo oldInfo;
 
 	@Mock MutablePersistenceUnitInfo newInfo;
 
 	@Test
-	public void addsUrlFromOldPUItoNewOne() throws MalformedURLException {
+	void addsUrlFromOldPUItoNewOne() throws MalformedURLException {
 
 		MergingPersistenceUnitManager manager = new MergingPersistenceUnitManager();
 		URL jarFileUrl = new URL("file:foo/bar");
@@ -61,7 +61,7 @@ public class MergingPersistenceUnitManagerUnitTests {
 	}
 
 	@Test
-	public void mergesManagedClassesCorrectly() {
+	void mergesManagedClassesCorrectly() {
 
 		MergingPersistenceUnitManager manager = new MergingPersistenceUnitManager();
 		manager.setPersistenceXmlLocations(new String[] { "classpath:org/springframework/data/jpa/support/persistence.xml",
@@ -77,7 +77,7 @@ public class MergingPersistenceUnitManagerUnitTests {
 	}
 
 	@Test
-	public void addsOldPersistenceUnitRootUrlIfDifferentFromNewOne() throws MalformedURLException {
+	void addsOldPersistenceUnitRootUrlIfDifferentFromNewOne() throws MalformedURLException {
 
 		MutablePersistenceUnitInfo newInfo = new MutablePersistenceUnitInfo();
 		newInfo.setPersistenceUnitRootUrl(new URL("file:bar"));
@@ -92,7 +92,7 @@ public class MergingPersistenceUnitManagerUnitTests {
 	}
 
 	@Test
-	public void doesNotAddNewPuRootUrlIfNull() throws MalformedURLException {
+	void doesNotAddNewPuRootUrlIfNull() throws MalformedURLException {
 
 		MutablePersistenceUnitInfo newInfo = new MutablePersistenceUnitInfo();
 
@@ -105,7 +105,7 @@ public class MergingPersistenceUnitManagerUnitTests {
 	}
 
 	@Test
-	public void doesNotAddNewPuRootUrlIfAlreadyOnTheListOfJarFileUrls() throws MalformedURLException {
+	void doesNotAddNewPuRootUrlIfAlreadyOnTheListOfJarFileUrls() throws MalformedURLException {
 
 		when(oldInfo.getPersistenceUnitRootUrl()).thenReturn(new URL("file:foo"));
 

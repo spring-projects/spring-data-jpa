@@ -49,7 +49,7 @@ public class ProjectionJoinIntegrationTests {
 	@Autowired private UserRepository userRepository;
 
 	@Test // DATAJPA-1418
-	public void findByIdPerformsAnOuterJoin() {
+	void findByIdPerformsAnOuterJoin() {
 		User user = userRepository.save(new User());
 
 		UserProjection projection = userRepository.findById(user.getId(), UserProjection.class);
@@ -60,7 +60,7 @@ public class ProjectionJoinIntegrationTests {
 	}
 
 	@Data
-	private static class UserProjection {
+	public static class UserProjection {
 
 		private final int id;
 		private final Address address;

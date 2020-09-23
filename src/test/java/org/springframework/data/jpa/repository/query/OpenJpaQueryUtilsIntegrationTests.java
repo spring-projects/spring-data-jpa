@@ -21,6 +21,6 @@ import org.springframework.test.context.ContextConfiguration;
  * @author Oliver Gierke
  */
 @ContextConfiguration("classpath:openjpa.xml")
-public class OpenJpaQueryUtilsIntegrationTests extends QueryUtilsIntegrationTests {
+class OpenJpaQueryUtilsIntegrationTests extends QueryUtilsIntegrationTests {
 
 }

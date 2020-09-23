@@ -24,10 +24,10 @@ import org.junit.jupiter.api.Test;
  *
  * @author Mark Paluch
  */
-public class InspectionClassLoaderUnitTests {
+class InspectionClassLoaderUnitTests {
 
 	@Test // DATAJPA-1250
-	public void shouldLoadExternalClass() throws ClassNotFoundException {
+	void shouldLoadExternalClass() throws ClassNotFoundException {
 
 		InspectionClassLoader classLoader = new InspectionClassLoader(getClass().getClassLoader());
 

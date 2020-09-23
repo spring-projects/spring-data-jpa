@@ -24,4 +24,4 @@ import org.springframework.test.context.ContextConfiguration;
  * @soundtrack Elephants Crossing - We are (Irrelephant)
  */
 @ContextConfiguration("classpath:eclipselink.xml")
-public class EclipseLinkParameterMetadataProviderIntegrationTests extends ParameterMetadataProviderIntegrationTests {}
+class EclipseLinkParameterMetadataProviderIntegrationTests extends ParameterMetadataProviderIntegrationTests {}

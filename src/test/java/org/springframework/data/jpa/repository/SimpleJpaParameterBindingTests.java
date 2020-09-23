@@ -48,13 +48,13 @@ import org.springframework.transaction.annotation.Transactional;
 		// , "classpath:openjpa.xml"
 })
 @Transactional
-public class SimpleJpaParameterBindingTests {
+class SimpleJpaParameterBindingTests {
 
 	@PersistenceContext EntityManager em;
 
 	@Test
 	@Disabled
-	public void bindArray() {
+	void bindArray() {
 
 		User user = new User("Dave", "Matthews", "foo@bar.de");
 		em.persist(user);
@@ -76,7 +76,7 @@ public class SimpleJpaParameterBindingTests {
 
 	@Test
 	@SuppressWarnings("rawtypes")
-	public void bindCollection() {
+	void bindCollection() {
 
 		User user = new User("Dave", "Matthews", "foo@bar.de");
 		em.persist(user);

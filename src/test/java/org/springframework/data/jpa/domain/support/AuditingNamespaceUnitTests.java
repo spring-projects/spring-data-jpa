@@ -27,19 +27,19 @@ import org.springframework.beans.factory.config.BeanDefinition;
  * @author Oliver Gierke
  * @author Jens Schauder
  */
-public class AuditingNamespaceUnitTests extends AuditingBeanFactoryPostProcessorUnitTests {
+class AuditingNamespaceUnitTests extends AuditingBeanFactoryPostProcessorUnitTests {
 
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.domain.support.AuditingBeanFactoryPostProcessorUnitTests#getConfigFile()
 	 */
 	@Override
-	protected String getConfigFile() {
+	String getConfigFile() {
 		return "auditing-namespace-context.xml";
 	}
 
 	@Test
-	public void registersBeanDefinitions() throws Exception {
+	void registersBeanDefinitions() throws Exception {
 
 		BeanDefinition definition = beanFactory.getBeanDefinition(AuditingEntityListener.class.getName());
 		PropertyValue propertyValue = definition.getPropertyValues().getPropertyValue("auditingHandler");
