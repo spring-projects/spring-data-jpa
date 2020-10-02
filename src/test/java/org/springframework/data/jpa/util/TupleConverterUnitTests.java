@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.jpa.repository.query;
+package org.springframework.data.jpa.util;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -32,13 +32,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.data.jpa.repository.query.AbstractJpaQuery.TupleConverter;
-import org.springframework.data.projection.ProjectionFactory;
-import org.springframework.data.repository.CrudRepository;
-import org.springframework.data.repository.core.RepositoryMetadata;
-import org.springframework.data.repository.core.support.DefaultRepositoryMetadata;
-import org.springframework.data.repository.query.QueryMethod;
-import org.springframework.data.repository.query.ReturnedType;
 
 /**
  * Unit tests for {@link TupleConverter}.
@@ -52,21 +45,15 @@ public class TupleConverterUnitTests {
 
 	@Mock Tuple tuple;
 	@Mock TupleElement<String> element;
-	@Mock ProjectionFactory factory;
 
-	ReturnedType type;
+	Class<?> type;
 
 	@Before
 	public void setUp() throws Exception {
-
-		RepositoryMetadata metadata = new DefaultRepositoryMetadata(SampleRepository.class);
-		QueryMethod method = new QueryMethod(SampleRepository.class.getMethod("someMethod"), metadata, factory);
-
-		this.type = method.getResultProcessor().getReturnedType();
+		this.type = String.class;
 	}
 
 	@Test // DATAJPA-984
-	@SuppressWarnings("unchecked")
 	public void returnsSingleTupleElementIfItMatchesExpectedType() {
 
 		doReturn(Collections.singletonList(element)).when(tuple).getElements();
@@ -78,7 +65,6 @@ public class TupleConverterUnitTests {
 	}
 
 	@Test // DATAJPA-1024
-	@SuppressWarnings("unchecked")
 	public void returnsNullForSingleElementTupleWithNullValue() {
 
 		doReturn(Collections.singletonList(element)).when(tuple).getElements();
@@ -107,10 +93,6 @@ public class TupleConverterUnitTests {
 		softly.assertThat(map.get("oNe")).isEqualTo("one");
 
 		softly.assertAll();
-	}
-
-	interface SampleRepository extends CrudRepository<Object, Long> {
-		String someMethod();
 	}
 
 	@SuppressWarnings("unchecked")
