@@ -29,6 +29,7 @@ import org.springframework.lang.Nullable;
  *
  * @author Oliver Gierke
  * @author Christoph Strobl
+ * @author Lorenzo Dee
  */
 public interface JpaSpecificationExecutor<T> {
 
@@ -42,12 +43,32 @@ public interface JpaSpecificationExecutor<T> {
 	Optional<T> findOne(@Nullable Specification<T> spec);
 
 	/**
+	 * Returns a projection of a single entity matching the given {@link Specification}, or
+	 * {@link Optional#empty()} if none found.
+	 *
+	 * @param spec can be {@literal null}.
+	 * @param projectionType must not be {@literal null}.
+	 * @return never {@literal null}.
+	 * @throws org.springframework.dao.IncorrectResultSizeDataAccessException if more than one entity found.
+	 */
+	<P> Optional<P> findOne(@Nullable Specification<T> spec, Class<P> projectionType);
+
+	/**
 	 * Returns all entities matching the given {@link Specification}.
 	 *
 	 * @param spec can be {@literal null}.
 	 * @return never {@literal null}.
 	 */
 	List<T> findAll(@Nullable Specification<T> spec);
+
+	/**
+	 * Returns projections of all entities matching the given {@link Specification}.
+	 *
+	 * @param spec can be {@literal null}.
+	 * @param projectionType must not be {@literal null}.
+	 * @return never {@literal null}.
+	 */
+	<P> List<P> findAll(@Nullable Specification<T> spec, Class<P> projectionType);
 
 	/**
 	 * Returns a {@link Page} of entities matching the given {@link Specification}.
@@ -59,6 +80,16 @@ public interface JpaSpecificationExecutor<T> {
 	Page<T> findAll(@Nullable Specification<T> spec, Pageable pageable);
 
 	/**
+	 * Returns a {@link Page} of projections matching the given {@link Specification}.
+	 *
+	 * @param spec can be {@literal null}.
+	 * @param pageable must not be {@literal null}.
+	 * @param projectionType must not be {@literal null}.
+	 * @return never {@literal null}.
+	 */
+	<P> Page<P> findAll(@Nullable Specification<T> spec, Pageable pageable, Class<P> projectionType);
+
+	/**
 	 * Returns all entities matching the given {@link Specification} and {@link Sort}.
 	 *
 	 * @param spec can be {@literal null}.
@@ -66,6 +97,16 @@ public interface JpaSpecificationExecutor<T> {
 	 * @return never {@literal null}.
 	 */
 	List<T> findAll(@Nullable Specification<T> spec, Sort sort);
+
+	/**
+	 * Returns projections of all entities matching the given {@link Specification} and {@link Sort}.
+	 *
+	 * @param spec can be {@literal null}.
+	 * @param sort must not be {@literal null}.
+	 * @param projectionType must not be {@literal null}.
+	 * @return never {@literal null}.
+	 */
+	<P> List<P> findAll(@Nullable Specification<T> spec, Sort sort, Class<P> projectionType);
 
 	/**
 	 * Returns the number of instances that the given {@link Specification} will return.

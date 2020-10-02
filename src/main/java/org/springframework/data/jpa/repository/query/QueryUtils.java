@@ -615,12 +615,12 @@ public abstract class QueryUtils {
 		}
 	}
 
-	static <T> Expression<T> toExpressionRecursively(From<?, ?> from, PropertyPath property) {
+	public static <T> Expression<T> toExpressionRecursively(From<?, ?> from, PropertyPath property) {
 		return toExpressionRecursively(from, property, false);
 	}
 
 	@SuppressWarnings("unchecked")
-	static <T> Expression<T> toExpressionRecursively(From<?, ?> from, PropertyPath property, boolean isForSelection) {
+	public static <T> Expression<T> toExpressionRecursively(From<?, ?> from, PropertyPath property, boolean isForSelection) {
 
 		Bindable<?> propertyPathModel;
 		Bindable<?> model = from.getModel();

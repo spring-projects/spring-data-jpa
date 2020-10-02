@@ -27,12 +27,14 @@ import java.util.stream.Stream;
 import javax.persistence.EntityManager;
 import javax.persistence.Tuple;
 
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.jpa.projection.CollectionAwareProjectionFactory;
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.provider.QueryExtractor;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.query.AbstractJpaQuery;
 import org.springframework.data.jpa.repository.query.EscapeCharacter;
 import org.springframework.data.jpa.repository.query.JpaQueryLookupStrategy;
@@ -75,6 +77,9 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	private EntityPathResolver entityPathResolver;
 	private EscapeCharacter escapeCharacter = EscapeCharacter.DEFAULT;
 
+	private ClassLoader classLoader;
+	private BeanFactory beanFactory;
+
 	/**
 	 * Creates a new {@link JpaRepositoryFactory}.
 	 *
@@ -110,7 +115,18 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	public void setBeanClassLoader(ClassLoader classLoader) {
 
 		super.setBeanClassLoader(classLoader);
+		this.classLoader = classLoader == null ? org.springframework.util.ClassUtils.getDefaultClassLoader() : classLoader;
 		this.crudMethodMetadataPostProcessor.setBeanClassLoader(classLoader);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.core.support.RepositoryFactorySupport#setBeanFactory(org.springframework.beans.factory.BeanFactory)
+	 */
+	@Override
+	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+		super.setBeanFactory(beanFactory);
+		this.beanFactory = beanFactory;
 	}
 
 	/**
@@ -144,6 +160,11 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 		JpaRepositoryImplementation<?, ?> repository = getTargetRepository(information, entityManager);
 		repository.setRepositoryMethodMetadata(crudMethodMetadataPostProcessor.getCrudMethodMetadata());
 		repository.setEscapeCharacter(escapeCharacter);
+
+		if (repository instanceof JpaSpecificationExecutor) {
+			repository.setProjectionFactory(getProjectionFactory(classLoader, beanFactory));
+			repository.setRepositoryInformation(information);
+		}
 
 		return repository;
 	}

@@ -90,6 +90,7 @@ import com.google.common.base.Optional;
  * @author Kevin Peters
  * @author Jens Schauder
  * @author Andrey Kovalev
+ * @author Lorenzo Dee
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("classpath:application-context.xml")
@@ -2278,6 +2279,63 @@ public class UserRepositoryTests {
 		List<User> result = repository.findByAttributesIgnoreCaseIn(Arrays.asList("cOOl", null));
 
 		assertThat(result).containsOnly(firstUser);
+	}
+
+	@Test // DATAJPA-1033
+	public void executesSingleEntitySpecificationAndReturnsProjection() throws Exception {
+
+		flushTestUsers();
+
+		NameOnly result = repository.findOne(userHasFirstname("Oliver"), NameOnly.class).get();
+
+		assertThat(result.getFirstname()).isEqualTo(firstUser.getFirstname());
+		assertThat(result.getLastname()).isEqualTo(firstUser.getLastname());
+	}
+
+	@Test // DATAJPA-1033
+	public void executesSpecificationAndReturnsProjection() {
+
+		flushTestUsers();
+		assertThat(repository.findAll(where(userHasFirstname("Oliver")), NameOnly.class)).hasSize(1);
+	}
+
+	@Test(expected = IncorrectResultSizeDataAccessException.class) // DATAJPA-1033
+	public void throwsExceptionForUnderSpecifiedSingleEntitySpecificationAndProjection() {
+
+		flushTestUsers();
+		repository.findOne(userHasFirstnameLike("e"), NameOnly.class);
+	}
+
+	@Test // DATAJPA-1033
+	public void executesCombinedSpecificationsAndReturnsProjection() {
+
+		flushTestUsers();
+		Specification<User> spec = userHasFirstname("Oliver").or(userHasLastname("Arrasz"));
+		assertThat(repository.findAll(spec, NameOnly.class)).hasSize(2);
+	}
+
+	@Test // DATAJPA-1033
+	public void executesNegatingSpecificationAndReturnsProjection() {
+
+		flushTestUsers();
+		Specification<User> spec = not(userHasFirstname("Oliver")).and(userHasLastname("Arrasz"));
+
+		List<NameOnly> result = repository.findAll(spec, NameOnly.class);
+		assertThat(result).hasSize(1);
+		assertThat(result.get(0).getFirstname()).isEqualTo(secondUser.getFirstname());
+		assertThat(result.get(0).getLastname()).isEqualTo(secondUser.getLastname());
+	}
+
+	@Test // DATAJPA-1033
+	public void executesCombinedSpecificationsWithPageableAndReturnsProjection() {
+
+		flushTestUsers();
+		Specification<User> spec = userHasFirstname("Oliver").or(userHasLastname("Arrasz"));
+
+		Page<NameOnly> users = repository.findAll(spec, PageRequest.of(0, 1), NameOnly.class);
+		assertThat(users.getSize()).isEqualTo(1);
+		assertThat(users.hasPrevious()).isFalse();
+		assertThat(users.getTotalElements()).isEqualTo(2L);
 	}
 
 	private Page<User> executeSpecWithSort(Sort sort) {

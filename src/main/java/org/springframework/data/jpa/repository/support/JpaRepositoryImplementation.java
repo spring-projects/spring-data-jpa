@@ -18,7 +18,9 @@ package org.springframework.data.jpa.repository.support;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.query.EscapeCharacter;
+import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.NoRepositoryBean;
+import org.springframework.data.repository.core.RepositoryInformation;
 
 /**
  * SPI interface to be implemented by {@link JpaRepository} implementations.
@@ -26,6 +28,7 @@ import org.springframework.data.repository.NoRepositoryBean;
  * @author Oliver Gierke
  * @author Stefan Fussenegger
  * @author Jens Schauder
+ * @author Lorenzo Dee
  */
 @NoRepositoryBean
 public interface JpaRepositoryImplementation<T, ID> extends JpaRepository<T, ID>, JpaSpecificationExecutor<T> {
@@ -45,4 +48,18 @@ public interface JpaRepositoryImplementation<T, ID> extends JpaRepository<T, ID>
 	default void setEscapeCharacter(EscapeCharacter escapeCharacter) {
 
 	}
+
+	/**
+	 * Configures the {@link ProjectionFactory} to be used with the repository.
+	 *
+	 * @param projectionFactory must not be {@literal null}.
+	 */
+	void setProjectionFactory(ProjectionFactory projectionFactory);
+
+	/**
+	 * Configures the {@link RepositoryInformation} to be used with the repository.
+	 *
+	 * @param information must not be {@literal null}.
+	 */
+	void setRepositoryInformation(RepositoryInformation information);
 }
