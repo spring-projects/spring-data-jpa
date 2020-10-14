@@ -6,7 +6,7 @@ ifdef::backend-epub3[:front-cover-image: image:epub-cover.png[Front Cover,1050,1
 :spring-data-commons-docs: ../../../../spring-data-commons/src/main/asciidoc
 :spring-framework-docs: https://docs.spring.io/spring-framework/docs/{springVersion}/spring-framework-reference/
 
-(C) 2008-2019 The original authors.
+(C) 2008-2020 The original authors.
 
 NOTE: Copies of this document may be made for your own use and for distribution to others, provided that you do not charge any fee for such copies and further provided that each copy contains this Copyright Notice, whether distributed in print or electronically.
 
@@ -15,7 +15,9 @@ toc::[]
 include::preface.adoc[]
 
 include::new-features.adoc[leveloffset=+1]
+
 include::{spring-data-commons-docs}/dependencies.adoc[leveloffset=+1]
+
 include::{spring-data-commons-docs}/repositories.adoc[leveloffset=+1]
 
 [[reference]]
@@ -28,8 +30,13 @@ include::jpa.adoc[leveloffset=+1]
 
 :numbered!:
 include::{spring-data-commons-docs}/repository-namespace-reference.adoc[leveloffset=+1]
+
 include::{spring-data-commons-docs}/repository-populator-namespace-reference.adoc[leveloffset=+1]
+
 include::{spring-data-commons-docs}/repository-query-keywords-reference.adoc[leveloffset=+1]
+
 include::{spring-data-commons-docs}/repository-query-return-types-reference.adoc[leveloffset=+1]
+
 include::faq.adoc[leveloffset=+1]
+
 include::glossary.adoc[leveloffset=+1]
