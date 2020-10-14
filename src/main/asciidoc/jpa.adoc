@@ -381,7 +381,7 @@ A similar approach also works with named native queries, by adding the `.count` 
 [[jpa.query-methods.sorting]]
 === Using Sort
 
-Sorting can be done be either providing a `PageRequest` or by using `Sort` directly. The properties actually used within the `Order` instances of `Sort` need to match your domain model, which means they need to resolve to either a property or an alias used within the query. The JPQL defines this as a state field path expression.
+Sorting can be done by either providing a `PageRequest` or by using `Sort` directly. The properties actually used within the `Order` instances of `Sort` need to match your domain model, which means they need to resolve to either a property or an alias used within the query. The JPQL defines this as a state field path expression.
 
 NOTE: Using any non-referenceable path expression leads to an `Exception`.
 
