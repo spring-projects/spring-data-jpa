@@ -221,6 +221,7 @@ The following table describes the keywords supported for JPA and what a method c
 [options = "header, autowidth"]
 |===============
 |Keyword|Sample|JPQL snippet
+|`Distinct`|`findDistinctByLastnameAndFirstname`|`select distinct ... where x.lastname = ?1 and x.firstname = ?2`
 |`And`|`findByLastnameAndFirstname`|`… where x.lastname = ?1 and x.firstname = ?2`
 |`Or`|`findByLastnameOrFirstname`|`… where x.lastname = ?1 or x.firstname = ?2`
 |`Is`, `Equals`|`findByFirstname`,`findByFirstnameIs`,`findByFirstnameEquals`|`… where x.firstname = ?1`
