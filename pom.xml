@@ -122,7 +122,7 @@
 		<profile>
 			<id>eclipselink-27-next</id>
 			<properties>
-				<eclipselink>2.7.4-SNAPSHOT</eclipselink>
+				<eclipselink>2.7.7</eclipselink>
 			</properties>
 			<repositories>
 				<repository>
