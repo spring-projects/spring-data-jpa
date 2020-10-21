@@ -61,7 +61,7 @@ public @interface EnableJpaAuditing {
 	boolean modifyOnCreate() default true;
 
 	/**
-	 * Configures a {@link DateTimeProvider} bean name that allows customizing the {@link org.joda.time.DateTime} to be
+	 * Configures a {@link DateTimeProvider} bean name that allows customizing the {@link java.time.temporal.TemporalAccessor} to be
 	 * used for setting creation and modification dates.
 	 *
 	 * @return
