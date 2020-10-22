@@ -104,7 +104,7 @@
 		<profile>
 			<id>eclipselink-next</id>
 			<properties>
-				<eclipselink>2.6.6-SNAPSHOT</eclipselink>
+				<eclipselink>2.6.9</eclipselink>
 			</properties>
 			<repositories>
 				<repository>
