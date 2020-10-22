@@ -132,20 +132,6 @@ pipeline {
                         sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -Peclipselink-27 clean dependency:list test -Dsort -Dbundlor.enabled=false -U -B'
                     }
                 }
-                stage("test: eclipselink-27-next") {
-                    agent {
-                        docker {
-                            image 'adoptopenjdk/openjdk8:latest'
-                            label 'data'
-                            args '-v $HOME:/tmp/jenkins-home'
-                        }
-                    }
-                    options { timeout(time: 30, unit: 'MINUTES') }
-                    steps {
-                        sh 'rm -rf ?'
-                        sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -Peclipselink-27-next clean dependency:list test -Dsort -Dbundlor.enabled=false -U -B'
-                    }
-                }
             }
         }
         stage('Release to artifactory') {
