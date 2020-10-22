@@ -70,51 +70,6 @@ pipeline {
 						sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -Pjava11 clean dependency:list test -Dsort -Dbundlor.enabled=false -U -B'
 					}
 				}
-
-				stage("test: eclipselink-next (jdk8)") {
-					agent {
-						docker {
-							image 'adoptopenjdk/openjdk8:latest'
-							label 'data'
-							args '-v $HOME:/tmp/jenkins-home'
-						}
-					}
-					options { timeout(time: 30, unit: 'MINUTES') }
-					steps {
-						sh 'rm -rf ?'
-						sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -Peclipselink-next clean dependency:list test -Dsort -Dbundlor.enabled=false -U -B'
-					}
-				}
-
-				stage("test: eclipselink-next (jdk11)") {
-					agent {
-						docker {
-							image 'adoptopenjdk/openjdk11:latest'
-							label 'data'
-							args '-v $HOME:/tmp/jenkins-home'
-						}
-					}
-					options { timeout(time: 30, unit: 'MINUTES') }
-					steps {
-						sh 'rm -rf ?'
-						sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -Peclipselink-next,java11 clean dependency:list test -Dsort -Dbundlor.enabled=false -U -B'
-					}
-				}
-
-				stage("test: eclipselink-next (jdk14)") {
-					agent {
-						docker {
-							image 'adoptopenjdk/openjdk14:latest'
-							label 'data'
-							args '-v $HOME:/tmp/jenkins-home'
-						}
-					}
-					options { timeout(time: 30, unit: 'MINUTES') }
-					steps {
-						sh 'rm -rf ?'
-						sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -Peclipselink-next,java11 clean dependency:list test -Dsort -Dbundlor.enabled=false -U -B'
-					}
-				}
 			}
 		}
 
