@@ -15,8 +15,6 @@
  */
 package org.springframework.data.jpa.domain;
 
-import static org.springframework.data.jpa.domain.SpecificationComposition.*;
-
 import java.io.Serializable;
 
 import javax.persistence.criteria.CriteriaBuilder;
@@ -51,7 +49,7 @@ public interface Specification<T> extends Serializable {
 	static <T> Specification<T> not(@Nullable Specification<T> spec) {
 
 		return spec == null //
-				? (root, query, builder) -> null//
+				? (root, query, builder) -> null //
 				: (root, query, builder) -> builder.not(spec.toPredicate(root, query, builder));
 	}
 
@@ -74,9 +72,8 @@ public interface Specification<T> extends Serializable {
 	 * @return The conjunction of the specifications
 	 * @since 2.0
 	 */
-
 	default Specification<T> and(@Nullable Specification<T> other) {
-		return composed(this, other, CriteriaBuilder::and);
+		return SpecificationComposition.composed(this, other, CriteriaBuilder::and);
 	}
 
 	/**
@@ -87,7 +84,7 @@ public interface Specification<T> extends Serializable {
 	 * @since 2.0
 	 */
 	default Specification<T> or(@Nullable Specification<T> other) {
-		return composed(this, other, CriteriaBuilder::or);
+		return SpecificationComposition.composed(this, other, CriteriaBuilder::or);
 	}
 
 	/**
