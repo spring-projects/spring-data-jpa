@@ -141,7 +141,7 @@ Spring Data JPA offers the following strategies to detect whether an entity is n
 
 1. Version-Property and Id-Property inspection (*default*):
    By default Spring Data JPA inspects first if there is a Version-property of non-primitive type.
-   If there is the entity is considered new if the value is `null`.
+   If there is, the entity is considered new if the value is `null`.
    Without such a Version-property Spring Data JPA inspects the identifier property of the given entity.
    If the identifier property is `null`, then the entity is assumed to be new.
    Otherwise, it is assumed to be not new.
@@ -245,10 +245,10 @@ The following table describes the keywords supported for JPA and what a method c
 |`NotIn`|`findByAgeNotIn(Collection<Age> ages)`|`… where x.age not in ?1`
 |`True`|`findByActiveTrue()`|`… where x.active = true`
 |`False`|`findByActiveFalse()`|`… where x.active = false`
-|`IgnoreCase`|`findByFirstnameIgnoreCase`|`… where UPPER(x.firstame) = UPPER(?1)`
+|`IgnoreCase`|`findByFirstnameIgnoreCase`|`… where UPPER(x.firstname) = UPPER(?1)`
 |===============
 
-NOTE: `In` and `NotIn` also take any subclass of `Collection` as aparameter as well as arrays or varargs. For other syntactical versions of the same logical operator, check "`<<repository-query-keywords>>`".
+NOTE: `In` and `NotIn` also take any subclass of `Collection` as a parameter as well as arrays or varargs. For other syntactical versions of the same logical operator, check "`<<repository-query-keywords>>`".
 
 [[jpa.query-methods.named-queries]]
 === Using JPA Named Queries
@@ -302,7 +302,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 ----
 ====
 
-Spring Data tries to resolve a call to these methods to a named query, starting with the simple name of the configured domain class, followed by the method name separated by a dot. So the preceding example would use the named queries defined in the examlpe instead of trying to create a query from the method name.
+Spring Data tries to resolve a call to these methods to a named query, starting with the simple name of the configured domain class, followed by the method name separated by a dot. So the preceding example would use the named queries defined earlier instead of trying to create a query from the method name.
 
 [[jpa.query-methods.at-query]]
 === Using `@Query`
@@ -403,13 +403,13 @@ public interface UserRepository extends JpaRepository<User, Long> {
   List<Object[]> findByAsArrayAndSort(String lastname, Sort sort);
 }
 
-repo.findByAndSort("lannister", new Sort("firstname"));               <1>
-repo.findByAndSort("stark", new Sort("LENGTH(firstname)"));           <2>
+repo.findByAndSort("lannister", Sort.by("firstname"));                <1>
+repo.findByAndSort("stark", Sort.by("LENGTH(firstname)"));            <2>
 repo.findByAndSort("targaryen", JpaSort.unsafe("LENGTH(firstname)")); <3>
-repo.findByAsArrayAndSort("bolton", new Sort("fn_len"));              <4>
+repo.findByAsArrayAndSort("bolton", Sort.by("fn_len"));               <4>
 ----
 <1> Valid `Sort` expression pointing to property in domain model.
-<2> Invalid `Sort` containing function call. Thows Exception.
+<2> Invalid `Sort` containing function call. Throws Exception.
 <3> Valid `Sort` containing explicitly _unsafe_ `Order`.
 <4> Valid `Sort` expression pointing to aliased function.
 ====
@@ -514,7 +514,7 @@ List<User> findByFirstnameAndCurrentUserWithCustomQuery(String firstname);
 ----
 ====
 
-For `like`-conditions one often wants to appen `%` to the beginning or the end of a String valued parameter.
+For `like`-conditions one often wants to append `%` to the beginning or the end of a String valued parameter.
 This can be done by appending or prefixing a bind parameter marker or a SpEL expression with `%`.
 Again the following example demonstrates this.
 
@@ -528,7 +528,7 @@ List<User> findByLastnameWithSpelExpression(@Param("lastname") String lastname);
 ====
 
 When using `like`-conditions with values that are coming from a not secure source the values should be sanitized so they can't contain any wildcards and thereby allow attackers to select more data than they should be able to.
-For this purpose the the `escape(String)` method is made available in the SpEL context.
+For this purpose the `escape(String)` method is made available in the SpEL context.
 It prefixes all instances of `_` and `%` in the first argument with the single character from the second argument.
 In combination with the `escape` clause of the `like` expression available in JPQL and standard SQL this allows easy cleaning of bind parameters.
 
@@ -542,7 +542,7 @@ List<User> findContainingEscaped(String namePart);
 ----
 ====
 
-Given this method declaration in an repository interface `findContainingEscaped("Peter_")" will find `Peter_Parker` but not `Peter Parker`.
+Given this method declaration in a repository interface `findContainingEscaped("Peter_")` will find `Peter_Parker` but not `Peter Parker`.
 The escape character used can be configured by setting the `escapeCharacter` of the `@EnableJpaRepositories` annotation.
 Note that the method `escape(String)` available in the SpEL context will only escape the SQL and JPQL standard wildcards `_` and `%`.
 If the underlying database or the JPA implementation supports additional wildcards these will not get escaped.
@@ -717,7 +717,7 @@ Note that `@NamedStoredProcedureQuery` has two different names for the stored pr
 
 You can reference stored procedures from a repository method in multiple ways.
 The stored procedure to be called can either be defined directly by using the `value` or `procedureName` attribute of the `@Procedure` annotation.
-This referes directly to the stored procedure in the database and ignores any configuration via `@NamedStoredProcedureQuery`.
+This refers directly to the stored procedure in the database and ignores any configuration via `@NamedStoredProcedureQuery`.
 
 Alternatively you may specify the `@NamedStoredProcedureQuery.name` attribute as the `@Procedure.name` attribute.
 If neither `value`, `procedureName` nor `name` is configured, the name of the repository method is used as the `name` attribute.
@@ -967,7 +967,7 @@ This method declaration causes the query being triggered to be equipped with a `
 interface UserRepository extends Repository<User, Long> {
 
   // Redeclaration of a CRUD method
-  @Lock(LockModeType.READ);
+  @Lock(LockModeType.READ)
   List<User> findAll();
 }
 ----
@@ -1129,7 +1129,7 @@ class EntityManagerFactoryProducer {
   @Produces
   @ApplicationScoped
   public EntityManagerFactory createEntityManagerFactory() {
-    return Persistence.createEntityManagerFactory("my-presistence-unit");
+    return Persistence.createEntityManagerFactory("my-persistence-unit");
   }
 
   public void close(@Disposes EntityManagerFactory entityManagerFactory) {
