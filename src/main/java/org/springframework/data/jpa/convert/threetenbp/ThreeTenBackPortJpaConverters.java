@@ -46,10 +46,12 @@ import org.threeten.bp.ZoneId;
  * @author Oliver Gierke
  * @see <a href="https://www.threeten.org/threetenbp">https://www.threeten.org/threetenbp</a>
  * @since 1.8
+ * @deprecated since 2.4, use JSR-310 types as replacement for ThreeTenBackport.
  */
 public class ThreeTenBackPortJpaConverters {
 
 	@Converter(autoApply = true)
+	@Deprecated
 	public static class LocalDateConverter implements AttributeConverter<LocalDate, Date> {
 
 		@Override
@@ -64,6 +66,7 @@ public class ThreeTenBackPortJpaConverters {
 	}
 
 	@Converter(autoApply = true)
+	@Deprecated
 	public static class LocalTimeConverter implements AttributeConverter<LocalTime, Date> {
 
 		@Override
@@ -78,6 +81,7 @@ public class ThreeTenBackPortJpaConverters {
 	}
 
 	@Converter(autoApply = true)
+	@Deprecated
 	public static class LocalDateTimeConverter implements AttributeConverter<LocalDateTime, Date> {
 
 		@Override
@@ -92,6 +96,7 @@ public class ThreeTenBackPortJpaConverters {
 	}
 
 	@Converter(autoApply = true)
+	@Deprecated
 	public static class InstantConverter implements AttributeConverter<Instant, Date> {
 
 		@Override
@@ -106,6 +111,7 @@ public class ThreeTenBackPortJpaConverters {
 	}
 
 	@Converter(autoApply = true)
+	@Deprecated
 	public static class ZoneIdConverter implements AttributeConverter<ZoneId, String> {
 
 		@Override
