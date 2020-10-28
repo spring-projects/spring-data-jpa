@@ -1,6 +1,21 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 2.3.5.RELEASE (2020-10-28)
+---------------------------------------------
+* DATAJPA-1807 - Small edit of reference doc.
+* DATAJPA-1803 - EnableJpaAuditing: JavaDoc references joda.time instead of java.time.
+* DATAJPA-1800 - Avoid language in documentation that might be considered insensitive.
+* DATAJPA-1798 - Editing pass for the documentation.
+* DATAJPA-1793 - 5.3.8. Modifying Queries: unclear reference to "custom methods".
+* DATAJPA-1792 - 5.3.5. Using Sort: typo "be either".
+* DATAJPA-1789 - "Distinct" not listed in supported query keywords.
+* DATAJPA-1787 - Update documentation to use Java 8 lambdas.
+* DATAJPA-1776 - Release 2.3.5 (Neumann SR5).
+* DATAJPA-1622 - Nullable annotations used for non-null returning Specification methods.
+* DATAJPA-1198 - Querydsl Creates toLowerCase Expression for all Types.
+
+
 Changes in version 2.2.11.RELEASE (2020-10-28)
 ----------------------------------------------
 * DATAJPA-1807 - Small edit of reference doc.
@@ -2058,6 +2073,7 @@ Changes in version 1.0.0.M2 (2011-03-24) - https://jira.springsource.org/browse/
 Changes in version 1.0.0.M1 (2011-02-10) - https://jira.springsource.org/browse/DATAJPA/fixforversion/11786
 ----------------------------------------
 * Moved JPA sepcific code from Hades into Spring Data JPA (functional equivalent of Hades 2.0.2) building on common functionality in Spring Data Commons
+
 
 
 
