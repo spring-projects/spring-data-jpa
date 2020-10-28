@@ -1,6 +1,11 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 2.1.21.RELEASE (2020-10-28)
+----------------------------------------------
+* DATAJPA-1806 - Release 2.1.21 (Lovelace SR21).
+
+
 Changes in version 2.4.0-RC2 (2020-10-14)
 -----------------------------------------
 * DATAJPA-1783 - Migrate tests to JUnit 5.
@@ -2039,6 +2044,7 @@ Changes in version 1.0.0.M2 (2011-03-24) - https://jira.springsource.org/browse/
 Changes in version 1.0.0.M1 (2011-02-10) - https://jira.springsource.org/browse/DATAJPA/fixforversion/11786
 ----------------------------------------
 * Moved JPA sepcific code from Hades into Spring Data JPA (functional equivalent of Hades 2.0.2) building on common functionality in Spring Data Commons
+
 
 
 
