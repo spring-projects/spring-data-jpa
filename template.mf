@@ -16,7 +16,6 @@ Import-Template:
  org.aspectj.*;version="${aspectj:[=.=.=,+1.0.0)}";resolution:=optional,
  org.eclipse.persistence.*;version="${eclipselink:[=.=.=,+1.0.0)}";resolution:=optional,
  org.hibernate.*;version="[3.6.10,4.4.0)";resolution:=optional,
- org.joda.time.*;version="${jodatime:[=.=.=,+1.0.0)}";resolution:=optional,
  org.slf4j.*;version="${slf4j:[=.=.=,+1.0.0)}",
  org.springframework.*;version="${spring:[=.=.=.=,+1.1.0)}",
  org.springframework.beans.factory.aspectj;version="${spring:[=.=.=.=,+1.1.0)}";resolution:=optional,
