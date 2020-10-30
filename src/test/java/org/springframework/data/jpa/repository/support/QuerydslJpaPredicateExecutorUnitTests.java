@@ -17,12 +17,13 @@ package org.springframework.data.jpa.repository.support;
 
 import static org.assertj.core.api.Assertions.*;
 
+import java.sql.Date;
 import java.util.List;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
-import org.joda.time.LocalDate;
+import java.time.LocalDate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -249,9 +250,9 @@ class QuerydslJpaPredicateExecutorUnitTests {
 	@Test // DATAJPA-566, DATAJPA-635
 	void shouldSupportSortByOperatorWithDateExpressions() {
 
-		carter.setDateOfBirth(new LocalDate(2000, 2, 1).toDate());
-		dave.setDateOfBirth(new LocalDate(2000, 1, 1).toDate());
-		oliver.setDateOfBirth(new LocalDate(2003, 5, 1).toDate());
+		carter.setDateOfBirth(Date.valueOf(LocalDate.of(2000, 2, 1)));
+		dave.setDateOfBirth(Date.valueOf(LocalDate.of(2000, 1, 1)));
+		oliver.setDateOfBirth(Date.valueOf(LocalDate.of(2003, 5, 1)));
 
 		List<User> users = predicateExecutor.findAll(QUser.user.dateOfBirth.yearMonth().asc());
 
