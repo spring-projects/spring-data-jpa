@@ -59,6 +59,7 @@ import com.querydsl.core.types.dsl.PathBuilderFactory;
  * @author Thomas Darimont
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Malte Mauelshagen
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration({ "classpath:infrastructure.xml" })
