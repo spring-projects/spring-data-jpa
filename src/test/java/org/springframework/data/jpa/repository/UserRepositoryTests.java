@@ -15,6 +15,7 @@
  */
 package org.springframework.data.jpa.repository;
 
+import static java.util.Arrays.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.springframework.data.domain.Example.*;
 import static org.springframework.data.domain.ExampleMatcher.*;
@@ -151,7 +152,7 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		assertThat(repository.findAllById(Arrays.asList(firstUser.getId(), secondUser.getId()))).contains(firstUser,
+		assertThat(repository.findAllById(asList(firstUser.getId(), secondUser.getId()))).contains(firstUser,
 				secondUser);
 	}
 
@@ -166,7 +167,7 @@ public class UserRepositoryTests {
 	@Test
 	void savesCollectionCorrectly() throws Exception {
 
-		assertThat(repository.saveAll(Arrays.asList(firstUser, secondUser, thirdUser))).hasSize(3).contains(firstUser,
+		assertThat(repository.saveAll(asList(firstUser, secondUser, thirdUser))).hasSize(3).contains(firstUser,
 				secondUser, thirdUser);
 	}
 
@@ -238,13 +239,13 @@ public class UserRepositoryTests {
 	}
 
 	@Test
-	void deleteColletionOfEntities() {
+	void deleteCollectionOfEntities() {
 
 		flushTestUsers();
 
 		long before = repository.count();
 
-		repository.deleteAll(Arrays.asList(firstUser, secondUser));
+		repository.deleteAll(asList(firstUser, secondUser));
 
 		assertThat(repository.existsById(firstUser.getId())).isFalse();
 		assertThat(repository.existsById(secondUser.getId())).isFalse();
@@ -252,13 +253,27 @@ public class UserRepositoryTests {
 	}
 
 	@Test
-	void batchDeleteColletionOfEntities() {
+	void batchDeleteCollectionOfEntities() {
 
 		flushTestUsers();
 
 		long before = repository.count();
 
-		repository.deleteInBatch(Arrays.asList(firstUser, secondUser));
+		repository.deleteInBatch(asList(firstUser, secondUser));
+
+		assertThat(repository.existsById(firstUser.getId())).isFalse();
+		assertThat(repository.existsById(secondUser.getId())).isFalse();
+		assertThat(repository.count()).isEqualTo(before - 2);
+	}
+
+	@Test // DATAJPA-1818
+	void deleteCollectionOfEntitiesById() {
+
+		flushTestUsers();
+
+		long before = repository.count();
+
+		repository.deleteAllById(asList(firstUser.getId(), secondUser.getId()));
 
 		assertThat(repository.existsById(firstUser.getId())).isFalse();
 		assertThat(repository.existsById(secondUser.getId())).isFalse();
@@ -603,7 +618,7 @@ public class UserRepositoryTests {
 
 		firstUser.setManager(secondUser);
 		thirdUser.setManager(firstUser);
-		repository.saveAll(Arrays.asList(firstUser, thirdUser));
+		repository.saveAll(asList(firstUser, thirdUser));
 
 		assertThat(repository.findByManagerLastname("Arrasz")).containsOnly(firstUser);
 		assertThat(repository.findByManagerLastname("Gierke")).containsOnly(thirdUser);
@@ -616,7 +631,7 @@ public class UserRepositoryTests {
 
 		firstUser.addColleague(secondUser);
 		thirdUser.addColleague(firstUser);
-		repository.saveAll(Arrays.asList(firstUser, thirdUser));
+		repository.saveAll(asList(firstUser, thirdUser));
 
 		assertThat(repository.findByColleaguesLastname(secondUser.getLastname())).containsOnly(firstUser);
 
@@ -1178,7 +1193,7 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		List<User> result = repository.findByAttributesIn(new HashSet<>(Arrays.asList("cool", "hip")));
+		List<User> result = repository.findByAttributesIn(new HashSet<>(asList("cool", "hip")));
 
 		assertThat(result).containsOnly(firstUser, secondUser);
 	}
@@ -1731,7 +1746,7 @@ public class UserRepositoryTests {
 
 		firstUser.setManager(secondUser);
 		thirdUser.setManager(firstUser);
-		repository.saveAll(Arrays.asList(firstUser, thirdUser));
+		repository.saveAll(asList(firstUser, thirdUser));
 
 		User manager = new User();
 		manager.setLastname("Arrasz");
@@ -1854,7 +1869,7 @@ public class UserRepositoryTests {
 		fifthUser.setFirstname(firstUser.getFirstname());
 		fifthUser.setLastname(firstUser.getLastname());
 
-		repository.saveAll(Arrays.asList(firstUser, fifthUser));
+		repository.saveAll(asList(firstUser, fifthUser));
 
 		User prototype = new User();
 		prototype.setFirstname(firstUser.getFirstname());
@@ -2242,7 +2257,7 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		List<User> result = repository.findByAttributesIgnoreCaseIn(new HashSet<>(Arrays.asList("cOOl", "hIP")));
+		List<User> result = repository.findByAttributesIgnoreCaseIn(new HashSet<>(asList("cOOl", "hIP")));
 
 		assertThat(result).containsOnly(firstUser, secondUser);
 	}
@@ -2256,7 +2271,7 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		List<User> result = repository.findByAttributesIgnoreCaseNotIn(Arrays.asList("CooL", "HIp"));
+		List<User> result = repository.findByAttributesIgnoreCaseNotIn(asList("CooL", "HIp"));
 
 		assertThat(result).containsOnly(thirdUser);
 	}
@@ -2284,7 +2299,7 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		List<User> result = repository.findByAttributesIgnoreCaseIn(Arrays.asList("cOOl", null));
+		List<User> result = repository.findByAttributesIgnoreCaseIn(asList("cOOl", null));
 
 		assertThat(result).containsOnly(firstUser);
 	}

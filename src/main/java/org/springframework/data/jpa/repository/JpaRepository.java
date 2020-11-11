@@ -84,6 +84,19 @@ public interface JpaRepository<T, ID> extends PagingAndSortingRepository<T, ID>,
 	 */
 	void deleteInBatch(Iterable<T> entities);
 
+
+	/**
+	 * Deletes the entities identified by the given ids using a single {@link Query}.
+	 *
+	 * This kind of operation leaves JPAs first level cache and the database out of sync.
+	 * Consider flushing the `EntityManager` before calling this method.
+	 *
+	 * @param ids
+	 *
+	 * @since 3.0
+	 */
+	void deleteAllByIdInBatch(Iterable<ID> ids);
+
 	/**
 	 * Deletes all entities in a batch call.
 	 */

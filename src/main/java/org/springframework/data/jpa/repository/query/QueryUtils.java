@@ -86,6 +86,7 @@ public abstract class QueryUtils {
 
 	public static final String COUNT_QUERY_STRING = "select count(%s) from %s x";
 	public static final String DELETE_ALL_QUERY_STRING = "delete from %s x";
+	public static final String DELETE_ALL_QUERY_BY_ID_STRING = "delete from %s x where %s in :ids";
 
 	// Used Regex/Unicode categories (see https://www.unicode.org/reports/tr18/#General_Category_Property):
 	// Z Separator

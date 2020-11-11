@@ -218,6 +218,16 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		}
 	}
 
+	@Override
+	public void deleteAllById(Iterable<? extends ID> ids) {
+
+		Assert.notNull(ids, "Ids must not be null!");
+
+		for (ID id : ids) {
+			deleteById(id);
+		}
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.JpaRepository#deleteInBatch(java.lang.Iterable)
@@ -234,6 +244,24 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 		applyAndBind(getQueryString(DELETE_ALL_QUERY_STRING, entityInformation.getEntityName()), entities, em)
 				.executeUpdate();
+	}
+
+	@Override
+	public void deleteAllByIdInBatch(Iterable<ID> ids) {
+
+		Assert.notNull(ids, "Ids must not be null!");
+
+		if (!ids.iterator().hasNext()) {
+			return;
+		}
+
+		String queryTemplate = DELETE_ALL_QUERY_BY_ID_STRING;
+		String queryString = String.format(queryTemplate, entityInformation.getEntityName(), entityInformation.getIdAttribute().getName());
+
+		Query query = em.createQuery(queryString);
+		query.setParameter("ids", ids);
+
+		query.executeUpdate();
 	}
 
 	/*
