@@ -218,6 +218,16 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		}
 	}
 
+	@Override
+	public void deleteAllById(Iterable<? extends ID> ids) {
+
+		Assert.notNull(ids, "Ids must not be null!");
+
+		for (ID id : ids) {
+			deleteById(id);
+		}
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.JpaRepository#deleteInBatch(java.lang.Iterable)
