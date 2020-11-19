@@ -28,11 +28,12 @@ import org.springframework.lang.Nullable;
 
 /**
  * Abstract base class for entities. Allows parameterization of id type, chooses auto-generation and implements
- * {@link #equals(Object)} and {@link #hashCode()} based on that id.
+ * {@link #equals(Object)} based on that id while using a constant {@link #hashCode()}.
  *
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Mark Paluch
+ * @author Patrice Blanchardie
  * @param <PK> the type of the identifier.
  */
 @MappedSuperclass
@@ -111,11 +112,6 @@ public abstract class AbstractPersistable<PK extends Serializable> implements Pe
 	 */
 	@Override
 	public int hashCode() {
-
-		int hashCode = 17;
-
-		hashCode += null == getId() ? 0 : getId().hashCode() * 31;
-
-		return hashCode;
+		return getClass().hashCode();
 	}
 }
