@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2021 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,15 +17,19 @@ package org.springframework.data.jpa.domain.sample;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 
 /**
- * @author Oliver Gierke
  * @author Patrice Blanchardie
  */
 @Entity
-public class Customer {
+@Table(name = "INVOICES")
+public class Invoice {
 
-    @Id Long id;
+	@Id Long id;
 
-    String name;
+	@ManyToOne(optional = false) Customer customer;
+
+	@ManyToOne Order order;
 }

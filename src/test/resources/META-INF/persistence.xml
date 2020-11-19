@@ -22,6 +22,8 @@
 		<class>org.springframework.data.jpa.domain.sample.EmbeddedIdExampleDepartment</class>
 		<class>org.springframework.data.jpa.domain.sample.IdClassExampleEmployee</class>
 		<class>org.springframework.data.jpa.domain.sample.IdClassExampleDepartment</class>
+		<class>org.springframework.data.jpa.domain.sample.Invoice</class>
+		<class>org.springframework.data.jpa.domain.sample.InvoiceItem</class>
 		<class>org.springframework.data.jpa.domain.sample.Item</class>
 		<class>org.springframework.data.jpa.domain.sample.ItemSite</class>
 		<class>org.springframework.data.jpa.domain.sample.MailMessage</class>
