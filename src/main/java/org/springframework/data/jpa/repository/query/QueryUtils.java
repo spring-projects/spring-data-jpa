@@ -29,6 +29,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -41,16 +42,15 @@ import javax.persistence.Parameter;
 import javax.persistence.Query;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.Fetch;
 import javax.persistence.criteria.From;
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.JoinType;
-import javax.persistence.criteria.Path;
 import javax.persistence.metamodel.Attribute;
 import javax.persistence.metamodel.Attribute.PersistentAttributeType;
 import javax.persistence.metamodel.Bindable;
 import javax.persistence.metamodel.ManagedType;
 import javax.persistence.metamodel.PluralAttribute;
+import javax.persistence.metamodel.SingularAttribute;
 
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
@@ -619,47 +619,96 @@ public abstract class QueryUtils {
 		return toExpressionRecursively(from, property, false);
 	}
 
-	@SuppressWarnings("unchecked")
 	static <T> Expression<T> toExpressionRecursively(From<?, ?> from, PropertyPath property, boolean isForSelection) {
+		return toExpressionRecursively(from, property, isForSelection, false);
+	}
+
+	/**
+	 * Creates an expression with proper inner and left joins by recursively navigating the path
+	 *
+	 * @param from                 the {@link From}
+	 * @param property             the property path
+	 * @param isForSelection       is the property navigated for the selection or ordering part of the query?
+	 * @param hasRequiredOuterJoin has a parent already required an outer join?
+	 * @param <T>                  the type of the expression
+	 * @return the expression
+	 */
+	@SuppressWarnings("unchecked") static <T> Expression<T> toExpressionRecursively(From<?, ?> from,
+			PropertyPath property, boolean isForSelection, boolean hasRequiredOuterJoin) {
+
+		String segment = property.getSegment();
+
+		boolean isLeafProperty = !property.hasNext();
+
+		boolean requiresOuterJoin = requiresOuterJoin(from, property, isForSelection, hasRequiredOuterJoin);
+
+		// if it does not require an outer join and is a leaf, simply get the segment
+		if (!requiresOuterJoin && isLeafProperty) {
+			return from.get(segment);
+		}
+
+		// get or create the join
+		JoinType joinType = requiresOuterJoin ? JoinType.LEFT : JoinType.INNER;
+		Join<?, ?> join = getOrCreateJoin(from, segment, joinType);
+
+		// if it's a leaf, return the join
+		if (isLeafProperty) {
+			return (Expression<T>) join;
+		}
+
+		PropertyPath nextProperty = Objects.requireNonNull(property.next(), "An element of the property path is null!");
+
+		// recurse with the next property
+		return toExpressionRecursively(join, nextProperty, isForSelection, requiresOuterJoin);
+	}
+
+	/**
+	 * Checks if this attribute requires an outer join.
+	 * This is the case eg. if it hadn't already been fetched with an inner join and if it's an a optional association,
+	 * and if previous paths has already required outer joins.
+	 * It also ensures outer joins are used even when Hibernate defaults to inner joins (HHH-12712 and HHH-12999).
+	 *
+	 * @param from                 the {@link From} to check for fetches.
+	 * @param property             the property path
+	 * @param isForSelection       is the property navigated for the selection or ordering part of the query? if true,
+	 *                             we need to generate an explicit outer join in order to prevent Hibernate to use an
+	 *                             inner join instead. see https://hibernate.atlassian.net/browse/HHH-12999
+	 * @param hasRequiredOuterJoin has a parent already required an outer join?
+	 * @return whether an outer join is to be used for integrating this attribute in a query.
+	 */
+	private static boolean requiresOuterJoin(From<?, ?> from, PropertyPath property, boolean isForSelection,
+			boolean hasRequiredOuterJoin) {
+
+		String segment = property.getSegment();
+
+		// already inner joined so outer join is useless
+		if (isAlreadyInnerJoined(from, segment))
+			return false;
 
 		Bindable<?> propertyPathModel;
 		Bindable<?> model = from.getModel();
-		String segment = property.getSegment();
 
+		// required for EclipseLink: we try to avoid using from.get as EclipseLink produces an inner join
+		// regardless of which join operation is specified next
+		// see: https://bugs.eclipse.org/bugs/show_bug.cgi?id=413892
+		// still occurs as of 2.7
+		ManagedType<?> managedType = null;
 		if (model instanceof ManagedType) {
-
-			/*
-			 *  Required to keep support for EclipseLink 2.4.x. TODO: Remove once we drop that (probably Dijkstra M1)
-			 *  See: https://bugs.eclipse.org/bugs/show_bug.cgi?id=413892
-			 */
-			propertyPathModel = (Bindable<?>) ((ManagedType<?>) model).getAttribute(segment);
+			managedType = (ManagedType<?>) model;
+		} else if (model instanceof SingularAttribute
+				       && ((SingularAttribute<?, ?>) model).getType() instanceof ManagedType) {
+			managedType = (ManagedType<?>) ((SingularAttribute<?, ?>) model).getType();
+		}
+		if (managedType != null) {
+			propertyPathModel = (Bindable<?>) managedType.getAttribute(segment);
 		} else {
 			propertyPathModel = from.get(segment).getModel();
 		}
 
-		if (requiresOuterJoin(propertyPathModel, model instanceof PluralAttribute, !property.hasNext(), isForSelection)
-				&& !isAlreadyFetched(from, segment)) {
-			Join<?, ?> join = getOrCreateJoin(from, segment);
-			return (Expression<T>) (property.hasNext() ? toExpressionRecursively(join, property.next(), isForSelection)
-					: join);
-		} else {
-			Path<Object> path = from.get(segment);
-			return (Expression<T>) (property.hasNext() ? toExpressionRecursively(path, property.next()) : path);
-		}
-	}
+		// is the attribute of Collection type?
+		boolean isPluralAttribute = model instanceof PluralAttribute;
 
-	/**
-	 * Returns whether the given {@code propertyPathModel} requires the creation of a join. This is the case if we find a
-	 * optional association.
-	 *
-	 * @param propertyPathModel may be {@literal null}.
-	 * @param isPluralAttribute is the attribute of Collection type?
-	 * @param isLeafProperty is this the final property navigated by a {@link PropertyPath}?
-	 * @param isForSelection is the property navigated for the selection part of the query?
-	 * @return whether an outer join is to be used for integrating this attribute in a query.
-	 */
-	private static boolean requiresOuterJoin(@Nullable Bindable<?> propertyPathModel, boolean isPluralAttribute,
-			boolean isLeafProperty, boolean isForSelection) {
+		boolean isLeafProperty = !property.hasNext();
 
 		if (propertyPathModel == null && isPluralAttribute) {
 			return true;
@@ -671,24 +720,23 @@ public abstract class QueryUtils {
 
 		Attribute<?, ?> attribute = (Attribute<?, ?>) propertyPathModel;
 
+		// not a persistent attribute type association (@OneToOne, @ManyToOne)
 		if (!ASSOCIATION_TYPES.containsKey(attribute.getPersistentAttributeType())) {
 			return false;
 		}
 
-		// if this path is an optional one to one attribute navigated from the not owning side we also need an explicit
-		// outer join to avoid https://hibernate.atlassian.net/browse/HHH-12712 and
-		// https://github.com/eclipse-ee4j/jpa-api/issues/170
+		boolean isCollection = attribute.isCollection();
+		// if this path is an optional one to one attribute navigated from the not owning side we also need an
+		// explicit outer join to avoid https://hibernate.atlassian.net/browse/HHH-12712
+		// and https://github.com/eclipse-ee4j/jpa-api/issues/170
 		boolean isInverseOptionalOneToOne = PersistentAttributeType.ONE_TO_ONE == attribute.getPersistentAttributeType()
 				&& StringUtils.hasText(getAnnotationProperty(attribute, "mappedBy", ""));
 
-		// if this path is part of the select list we need to generate an explicit outer join in order to prevent Hibernate
-		// to use an inner join instead.
-		// see https://hibernate.atlassian.net/browse/HHH-12999.
-		if (isLeafProperty && !isForSelection && !attribute.isCollection() && !isInverseOptionalOneToOne) {
+		if (isLeafProperty && !isForSelection && !isCollection && !isInverseOptionalOneToOne && !hasRequiredOuterJoin) {
 			return false;
 		}
 
-		return getAnnotationProperty(attribute, "optional", true);
+		return hasRequiredOuterJoin || getAnnotationProperty(attribute, "optional", true);
 	}
 
 	private static <T> T getAnnotationProperty(Attribute<?, ?> attribute, String propertyName, T defaultValue) {
@@ -709,52 +757,37 @@ public abstract class QueryUtils {
 		return annotation == null ? defaultValue : (T) AnnotationUtils.getValue(annotation, propertyName);
 	}
 
-	static Expression<Object> toExpressionRecursively(Path<Object> path, PropertyPath property) {
-
-		Path<Object> result = path.get(property.getSegment());
-		return property.hasNext() ? toExpressionRecursively(result, property.next()) : result;
-	}
-
 	/**
 	 * Returns an existing join for the given attribute if one already exists or creates a new one if not.
 	 *
-	 * @param from the {@link From} to get the current joins from.
+	 * @param from      the {@link From} to get the current joins from.
 	 * @param attribute the {@link Attribute} to look for in the current joins.
+	 * @param joinType  the join type to create if none was found
 	 * @return will never be {@literal null}.
 	 */
-	private static Join<?, ?> getOrCreateJoin(From<?, ?> from, String attribute) {
-
-		for (Join<?, ?> join : from.getJoins()) {
-
-			boolean sameName = join.getAttribute().getName().equals(attribute);
-
-			if (sameName && join.getJoinType().equals(JoinType.LEFT)) {
-				return join;
-			}
-		}
-
-		return from.join(attribute, JoinType.LEFT);
+	private static Join<?, ?> getOrCreateJoin(From<?, ?> from, String attribute, JoinType joinType) {
+		return from.getJoins().stream()
+				.filter(join -> join.getAttribute().getName().equals(attribute))
+				.findFirst()
+				.orElseGet(() -> from.join(attribute, joinType));
 	}
 
 	/**
-	 * Return whether the given {@link From} contains a fetch declaration for the attribute with the given name.
+	 * Return whether the given {@link From} contains an inner join for the attribute with the given name.
 	 *
-	 * @param from the {@link From} to check for fetches.
+	 * @param from      the {@link From} to check for joins.
 	 * @param attribute the attribute name to check.
-	 * @return
+	 * @return true if the attribute has already been inner joined
 	 */
-	private static boolean isAlreadyFetched(From<?, ?> from, String attribute) {
+	private static boolean isAlreadyInnerJoined(From<?, ?> from, String attribute) {
 
-		for (Fetch<?, ?> fetch : from.getFetches()) {
+		boolean isInnerJoinFetched = from.getFetches().stream().anyMatch(
+				fetch -> fetch.getAttribute().getName().equals(attribute) && fetch.getJoinType().equals(JoinType.INNER));
 
-			boolean sameName = fetch.getAttribute().getName().equals(attribute);
+		boolean isSimplyInnerJoined = from.getJoins().stream()
+				.anyMatch(join -> join.getAttribute().getName().equals(attribute) && join.getJoinType().equals(JoinType.INNER));
 
-			if (sameName && fetch.getJoinType().equals(JoinType.LEFT)) {
-				return true;
-			}
-		}
-
-		return false;
+		return isInnerJoinFetched || isSimplyInnerJoined;
 	}
 
 	/**
