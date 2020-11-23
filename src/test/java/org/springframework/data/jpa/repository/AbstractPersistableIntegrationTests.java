@@ -30,12 +30,16 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * Integration tests for {@link AbstractPersistable}.
  *
  * @author Thomas Darimont
  * @author Oliver Gierke
  * @author Jens Schauder
+ * @author Patrice Blanchardie
  */
 @Transactional
 @ExtendWith(SpringExtension.class)
@@ -65,5 +69,21 @@ public class AbstractPersistableIntegrationTests {
 		CustomAbstractPersistable proxy = repository.getOne(entity.getId());
 
 		assertThat(proxy).isEqualTo(proxy);
+	}
+
+	@Test // DATAJPA-1823
+	void consistencyAfterPersist() {
+
+		CustomAbstractPersistable entity = new CustomAbstractPersistable();
+
+		Set<CustomAbstractPersistable> set = new HashSet<>();
+		set.add(entity);
+
+		repository.saveAndFlush(entity);
+
+		em.clear();
+
+		assertThat(set.contains(entity)).isTrue();
+
 	}
 }
