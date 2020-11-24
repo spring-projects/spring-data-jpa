@@ -25,7 +25,6 @@ import static org.springframework.data.jpa.domain.Specification.not;
 import static org.springframework.data.jpa.domain.sample.UserSpecifications.*;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -259,7 +258,7 @@ public class UserRepositoryTests {
 
 		long before = repository.count();
 
-		repository.deleteInBatch(asList(firstUser, secondUser));
+		repository.deleteAllInBatch(asList(firstUser, secondUser));
 
 		assertThat(repository.existsById(firstUser.getId())).isFalse();
 		assertThat(repository.existsById(secondUser.getId())).isFalse();

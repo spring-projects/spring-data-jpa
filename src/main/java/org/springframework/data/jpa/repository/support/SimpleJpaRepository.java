@@ -234,7 +234,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 */
 	@Transactional
 	@Override
-	public void deleteInBatch(Iterable<T> entities) {
+	public void deleteAllInBatch(Iterable<T> entities) {
 
 		Assert.notNull(entities, "Entities must not be null!");
 
