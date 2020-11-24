@@ -77,12 +77,28 @@ public interface JpaRepository<T, ID> extends PagingAndSortingRepository<T, ID>,
 	<S extends T> S saveAndFlush(S entity);
 
 	/**
-	 * Deletes the given entities in a batch which means it will create a single {@link Query}. Assume that we will clear
-	 * the {@link javax.persistence.EntityManager} after the call.
+	 * Deletes the given entities in a batch which means it will create a single {@link Query}.
+	 *
+	 * This kind of operation leaves JPAs first level cache and the database out of sync.
+	 * Consider flushing the `EntityManager` before calling this method.
 	 *
 	 * @param entities
+	 * @deprecated Use {@link #deleteAllInBatch(Iterable)} instead.
 	 */
-	void deleteInBatch(Iterable<T> entities);
+	@Deprecated
+	default void deleteInBatch(Iterable<T> entities){deleteAllInBatch(entities);}
+
+	/**
+	 * Deletes the given entities in a batch which means it will create a single {@link Query}.
+	 *
+	 * This kind of operation leaves JPAs first level cache and the database out of sync.
+	 * Consider flushing the `EntityManager` before calling this method.
+	 *
+	 * @param entities
+	 *
+	 * @since 3.0
+	 */
+	void deleteAllInBatch(Iterable<T> entities);
 
 
 	/**
