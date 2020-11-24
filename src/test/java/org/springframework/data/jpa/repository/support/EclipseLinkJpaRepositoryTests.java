@@ -15,6 +15,7 @@
  */
 package org.springframework.data.jpa.repository.support;
 
+import org.junit.jupiter.api.Disabled;
 import org.springframework.test.context.ContextConfiguration;
 
 /**
@@ -25,4 +26,11 @@ import org.springframework.test.context.ContextConfiguration;
 @ContextConfiguration("classpath:eclipselink.xml")
 class EclipseLinkJpaRepositoryTests extends JpaRepositoryTests {
 
+	@Override
+	/**
+	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=349477 is resolved.
+	 */
+	void deleteAllByIdInBatch() {
+		super.deleteAllByIdInBatch();
+	}
 }

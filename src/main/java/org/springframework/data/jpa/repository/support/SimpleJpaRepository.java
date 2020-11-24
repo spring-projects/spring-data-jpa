@@ -255,7 +255,8 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 			return;
 		}
 
-		String queryString = String.format(DELETE_ALL_QUERY_BY_ID_STRING, entityInformation.getEntityName(), entityInformation.getIdAttribute().getName());
+		String queryTemplate = DELETE_ALL_QUERY_BY_ID_STRING;
+		String queryString = String.format(queryTemplate, entityInformation.getEntityName(), entityInformation.getIdAttribute().getName());
 
 		Query query = em.createQuery(queryString);
 		query.setParameter("ids", ids);
