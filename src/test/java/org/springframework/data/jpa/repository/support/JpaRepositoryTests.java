@@ -114,11 +114,24 @@ class JpaRepositoryTests {
 		assertThat(idClassRepository.existsById(id)).isTrue();
 	}
 
-	private static interface SampleEntityRepository extends JpaRepository<SampleEntity, SampleEntityPK> {
+	@Test // DATAJPA-1818
+	void deleteAllByIdInBatch() {
+
+		SampleEntity one = new SampleEntity("one", "eins");
+		SampleEntity two = new SampleEntity("two", "zwei");
+		SampleEntity three = new SampleEntity("three", "drei");
+		repository.saveAll(Arrays.asList(one, two, three));
+		repository.flush();
+
+		repository.deleteAllByIdInBatch(Arrays.asList(new SampleEntityPK("one", "eins"),new SampleEntityPK("three", "drei")));
+		assertThat(repository.findAll()).containsExactly(two);
+	}
+
+	private interface SampleEntityRepository extends JpaRepository<SampleEntity, SampleEntityPK> {
 
 	}
 
-	private static interface SampleWithIdClassRepository
+	private interface SampleWithIdClassRepository
 			extends CrudRepository<PersistableWithIdClass, PersistableWithIdClassPK> {
 
 	}

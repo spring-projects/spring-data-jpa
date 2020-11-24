@@ -246,6 +246,23 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 				.executeUpdate();
 	}
 
+	@Override
+	public void deleteAllByIdInBatch(Iterable<ID> ids) {
+
+		Assert.notNull(ids, "Ids must not be null!");
+
+		if (!ids.iterator().hasNext()) {
+			return;
+		}
+
+		String queryString = String.format(DELETE_ALL_QUERY_BY_ID_STRING, entityInformation.getEntityName(), entityInformation.getIdAttribute().getName());
+
+		Query query = em.createQuery(queryString);
+		query.setParameter("ids", ids);
+
+		query.executeUpdate();
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.Repository#deleteAll()
