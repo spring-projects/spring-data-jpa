@@ -196,6 +196,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * @see org.springframework.data.repository.CrudRepository#deleteAllById(java.lang.Iterable)
 	 */
 	@Override
+	@Transactional
 	public void deleteAllById(Iterable<? extends ID> ids) {
 
 		Assert.notNull(ids, "Ids must not be null!");
@@ -210,6 +211,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * @see org.springframework.data.repository.CrudRepository#deleteAllByIdInBatch(java.lang.Iterable)
 	 */
 	@Override
+	@Transactional
 	public void deleteAllByIdInBatch(Iterable<ID> ids) {
 
 		Assert.notNull(ids, "Ids must not be null!");
@@ -231,8 +233,8 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.CrudRepository#delete(java.lang.Iterable)
 	 */
-	@Transactional
 	@Override
+	@Transactional
 	public void deleteAll(Iterable<? extends T> entities) {
 
 		Assert.notNull(entities, "Entities must not be null!");
@@ -246,8 +248,8 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.JpaRepository#deleteInBatch(java.lang.Iterable)
 	 */
-	@Transactional
 	@Override
+	@Transactional
 	public void deleteAllInBatch(Iterable<T> entities) {
 
 		Assert.notNull(entities, "Entities must not be null!");
@@ -264,8 +266,8 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.Repository#deleteAll()
 	 */
-	@Transactional
 	@Override
+	@Transactional
 	public void deleteAll() {
 
 		for (T element : findAll()) {
@@ -277,8 +279,8 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.JpaRepository#deleteAllInBatch()
 	 */
-	@Transactional
 	@Override
+	@Transactional
 	public void deleteAllInBatch() {
 		em.createQuery(getDeleteAllQueryString()).executeUpdate();
 	}
