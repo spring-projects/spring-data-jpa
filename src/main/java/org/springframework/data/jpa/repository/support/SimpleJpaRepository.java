@@ -54,6 +54,7 @@ import org.springframework.data.jpa.repository.query.QueryUtils;
 import org.springframework.data.jpa.repository.support.QueryHints.NoHints;
 import org.springframework.data.repository.support.PageableExecutionUtils;
 import org.springframework.data.util.ProxyUtils;
+import org.springframework.data.util.Streamable;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -87,19 +88,6 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 	private @Nullable CrudMethodMetadata metadata;
 	private EscapeCharacter escapeCharacter = EscapeCharacter.DEFAULT;
-
-	private static <T> Collection<T> toCollection(Iterable<T> ts) {
-
-		if (ts instanceof Collection) {
-			return (Collection<T>) ts;
-		}
-
-		List<T> tCollection = new ArrayList<T>();
-		for (T t : ts) {
-			tCollection.add(t);
-		}
-		return tCollection;
-	}
 
 	/**
 	 * Creates a new {@link SimpleJpaRepository} to manage objects of the given {@link JpaEntityInformation}.
@@ -205,6 +193,42 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.CrudRepository#deleteAllById(java.lang.Iterable)
+	 */
+	@Override
+	public void deleteAllById(Iterable<? extends ID> ids) {
+
+		Assert.notNull(ids, "Ids must not be null!");
+
+		for (ID id : ids) {
+			deleteById(id);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.CrudRepository#deleteAllByIdInBatch(java.lang.Iterable)
+	 */
+	@Override
+	public void deleteAllByIdInBatch(Iterable<ID> ids) {
+
+		Assert.notNull(ids, "Ids must not be null!");
+
+		if (!ids.iterator().hasNext()) {
+			return;
+		}
+
+		String queryString = String.format(DELETE_ALL_QUERY_BY_ID_STRING, entityInformation.getEntityName(),
+				entityInformation.getIdAttribute().getName());
+
+		Query query = em.createQuery(queryString);
+		query.setParameter("ids", ids);
+
+		query.executeUpdate();
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.CrudRepository#delete(java.lang.Iterable)
 	 */
 	@Transactional
@@ -215,16 +239,6 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 		for (T entity : entities) {
 			delete(entity);
-		}
-	}
-
-	@Override
-	public void deleteAllById(Iterable<? extends ID> ids) {
-
-		Assert.notNull(ids, "Ids must not be null!");
-
-		for (ID id : ids) {
-			deleteById(id);
 		}
 	}
 
@@ -244,24 +258,6 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 		applyAndBind(getQueryString(DELETE_ALL_QUERY_STRING, entityInformation.getEntityName()), entities, em)
 				.executeUpdate();
-	}
-
-	@Override
-	public void deleteAllByIdInBatch(Iterable<ID> ids) {
-
-		Assert.notNull(ids, "Ids must not be null!");
-
-		if (!ids.iterator().hasNext()) {
-			return;
-		}
-
-		String queryTemplate = DELETE_ALL_QUERY_BY_ID_STRING;
-		String queryString = String.format(queryTemplate, entityInformation.getEntityName(), entityInformation.getIdAttribute().getName());
-
-		Query query = em.createQuery(queryString);
-		query.setParameter("ids", ids);
-
-		query.executeUpdate();
 	}
 
 	/*
@@ -408,7 +404,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 			return results;
 		}
 
-		Collection<ID> idCollection = toCollection(ids);
+		Collection<ID> idCollection = Streamable.of(ids).toList();
 
 		ByIdsSpecification<T> specification = new ByIdsSpecification<T>(entityInformation);
 		TypedQuery<T> query = getQuery(specification, Sort.unsorted());

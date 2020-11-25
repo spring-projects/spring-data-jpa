@@ -77,10 +77,9 @@ public interface JpaRepository<T, ID> extends PagingAndSortingRepository<T, ID>,
 	<S extends T> S saveAndFlush(S entity);
 
 	/**
-	 * Deletes the given entities in a batch which means it will create a single {@link Query}.
-	 *
-	 * This kind of operation leaves JPAs first level cache and the database out of sync.
-	 * Consider flushing the `EntityManager` before calling this method.
+	 * Deletes the given entities in a batch which means it will create a single query. This kind of operation leaves JPAs
+	 * first level cache and the database out of sync. Consider flushing the {@link EntityManager} before calling this
+	 * method.
 	 *
 	 * @param entities
 	 * @deprecated Use {@link #deleteAllInBatch(Iterable)} instead.
@@ -89,26 +88,21 @@ public interface JpaRepository<T, ID> extends PagingAndSortingRepository<T, ID>,
 	default void deleteInBatch(Iterable<T> entities){deleteAllInBatch(entities);}
 
 	/**
-	 * Deletes the given entities in a batch which means it will create a single {@link Query}.
-	 *
-	 * This kind of operation leaves JPAs first level cache and the database out of sync.
-	 * Consider flushing the `EntityManager` before calling this method.
+	 * Deletes the given entities in a batch which means it will create a single query. This kind of operation leaves JPAs
+	 * first level cache and the database out of sync. Consider flushing the {@link EntityManager} before calling this
+	 * method.
 	 *
 	 * @param entities
-	 *
 	 * @since 3.0
 	 */
 	void deleteAllInBatch(Iterable<T> entities);
 
 
 	/**
-	 * Deletes the entities identified by the given ids using a single {@link Query}.
-	 *
-	 * This kind of operation leaves JPAs first level cache and the database out of sync.
-	 * Consider flushing the `EntityManager` before calling this method.
+	 * Deletes the entities identified by the given ids using a single query. This kind of operation leaves JPAs first
+	 * level cache and the database out of sync. Consider flushing the {@link EntityManager} before calling this method.
 	 *
 	 * @param ids
-	 *
 	 * @since 3.0
 	 */
 	void deleteAllByIdInBatch(Iterable<ID> ids);
