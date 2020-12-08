@@ -19,6 +19,9 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+import io.vavr.control.Try;
+
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
@@ -36,8 +39,13 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.provider.QueryExtractor;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.ModifyingExecution;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.PagedExecution;
+import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
+import org.springframework.data.repository.Repository;
+import org.springframework.data.repository.core.support.DefaultRepositoryMetadata;
 
 /**
  * Unit test for {@link JpaQueryExecution}.
@@ -79,6 +87,27 @@ public class JpaQueryExecutionUnitTests {
 	public void rejectsNullBinder() throws Exception {
 
 		new StubQueryExecution().execute(jpaQuery, null);
+	}
+
+	@Test // DATAJPA-1827
+	void supportsModifyingResultsUsingWrappers() throws Exception {
+
+		Method method = VavrRepository.class.getMethod("updateUsingVavrMethod");
+		DefaultRepositoryMetadata repositoryMetadata = new DefaultRepositoryMetadata(VavrRepository.class);
+		JpaQueryMethod queryMethod = new JpaQueryMethod(method, repositoryMetadata, new SpelAwareProxyProjectionFactory(),
+				mock(QueryExtractor.class));
+
+		new JpaQueryExecution.ModifyingExecution(queryMethod, mock(EntityManager.class));
+
+		assertThat(queryMethod.isModifyingQuery()).isTrue();
+	}
+
+	interface VavrRepository extends Repository<String, String> {
+
+		// Wrapped outcome allowed
+		@org.springframework.data.jpa.repository.Query("update Credential d set d.enabled = false where d.enabled = true")
+		@Modifying
+		Try<Integer> updateUsingVavrMethod();
 	}
 
 	@Test

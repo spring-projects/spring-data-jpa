@@ -40,7 +40,9 @@ import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.QueryMethod;
+import org.springframework.data.repository.util.QueryExecutionConverters;
 import org.springframework.data.util.Lazy;
+import org.springframework.data.util.TypeInformation;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -79,6 +81,7 @@ public class JpaQueryMethod extends QueryMethod {
 
 	private final QueryExtractor extractor;
 	private final Method method;
+	private final Class<?> returnType;
 
 	private @Nullable StoredProcedureAttributes storedProcedureAttributes;
 	private final Lazy<LockModeType> lockModeType;
@@ -107,6 +110,7 @@ public class JpaQueryMethod extends QueryMethod {
 		Assert.notNull(extractor, "Query extractor must not be null!");
 
 		this.method = method;
+		this.returnType = potentiallyUnwrapReturnTypeFor(metadata, method);
 		this.extractor = extractor;
 		this.lockModeType = Lazy
 				.of(() -> (LockModeType) Optional.ofNullable(AnnotatedElementUtils.findMergedAnnotation(method, Lock.class)) //
@@ -126,14 +130,25 @@ public class JpaQueryMethod extends QueryMethod {
 			return new JpaEntityGraph(entityGraph, getNamedQueryName());
 		});
 		this.isNativeQuery = Lazy.of(() -> getAnnotationValue("nativeQuery", Boolean.class));
-		this.isCollectionQuery = Lazy
-				.of(() -> super.isCollectionQuery() && !NATIVE_ARRAY_TYPES.contains(method.getReturnType()));
+		this.isCollectionQuery = Lazy.of(() -> super.isCollectionQuery() && !NATIVE_ARRAY_TYPES.contains(this.returnType));
 		this.isProcedureQuery = Lazy.of(() -> AnnotationUtils.findAnnotation(method, Procedure.class) != null);
 		this.entityMetadata = Lazy.of(() -> new DefaultJpaEntityMetadata<>(getDomainClass()));
 
 		Assert.isTrue(!(isModifyingQuery() && getParameters().hasSpecialParameter()),
 				String.format("Modifying method must not contain %s!", Parameters.TYPES));
 		assertParameterNamesInAnnotatedQuery();
+	}
+
+	private static Class<?> potentiallyUnwrapReturnTypeFor(RepositoryMetadata metadata, Method method) {
+
+		TypeInformation<?> returnType = metadata.getReturnType(method);
+
+		while (QueryExecutionConverters.supports(returnType.getType())
+				|| QueryExecutionConverters.supportsUnwrapping(returnType.getType())) {
+			returnType = returnType.getRequiredComponentType();
+		}
+
+		return returnType.getType();
 	}
 
 	private void assertParameterNamesInAnnotatedQuery() {
@@ -243,7 +258,7 @@ public class JpaQueryMethod extends QueryMethod {
 	 * @return
 	 */
 	Class<?> getReturnType() {
-		return method.getReturnType();
+		return returnType;
 	}
 
 	/**

@@ -24,6 +24,7 @@
 		<eclipselink>2.7.5</eclipselink>
 		<hibernate>5.4.8.Final</hibernate>
 		<mockito>2.19.1</mockito>
+		<vavr>0.10.3</vavr>
 		<hibernate.groupId>org.hibernate</hibernate.groupId>
 		<springdata.commons>2.3.7.BUILD-SNAPSHOT</springdata.commons>
 
@@ -202,6 +203,13 @@
 			<artifactId>threetenbp</artifactId>
 			<version>${threetenbp}</version>
 			<optional>true</optional>
+		</dependency>
+
+		<dependency>
+			<groupId>io.vavr</groupId>
+			<artifactId>vavr</artifactId>
+			<version>${vavr}</version>
+			<scope>test</scope>
 		</dependency>
 
 		<!-- Persistence providers -->
