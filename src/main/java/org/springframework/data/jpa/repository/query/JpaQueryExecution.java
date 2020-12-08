@@ -97,7 +97,7 @@ public abstract class JpaQueryExecution {
 		JpaQueryMethod queryMethod = query.getQueryMethod();
 		Class<?> requiredType = queryMethod.getReturnType();
 
-		if (void.class.equals(requiredType) || requiredType.isAssignableFrom(result.getClass())) {
+		if (ClassUtils.isAssignable(requiredType, void.class) || ClassUtils.isAssignableValue(requiredType, result)) {
 			return result;
 		}
 
@@ -218,10 +218,11 @@ public abstract class JpaQueryExecution {
 
 			Class<?> returnType = method.getReturnType();
 
-			boolean isVoid = void.class.equals(returnType) || Void.class.equals(returnType);
-			boolean isInt = int.class.equals(returnType) || Integer.class.equals(returnType);
+			boolean isVoid = ClassUtils.isAssignable(returnType, Void.class);
+			boolean isInt = ClassUtils.isAssignable(returnType, Integer.class);
 
-			Assert.isTrue(isInt || isVoid, "Modifying queries can only use void or int/Integer as return type!");
+			Assert.isTrue(isInt || isVoid,
+					"Modifying queries can only use void or int/Integer as return type! Offending method: " + method);
 
 			this.em = em;
 			this.flush = method.getFlushAutomatically();
