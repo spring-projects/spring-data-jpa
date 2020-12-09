@@ -1,6 +1,11 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 2.3.6.RELEASE (2020-12-09)
+---------------------------------------------
+* DATAJPA-1810 - Release 2.3.6 (Neumann SR6).
+
+
 Changes in version 2.2.12.RELEASE (2020-12-09)
 ----------------------------------------------
 * DATAJPA-1809 - Release 2.2.12 (Moore SR12).
@@ -2090,6 +2095,7 @@ Changes in version 1.0.0.M2 (2011-03-24) - https://jira.springsource.org/browse/
 Changes in version 1.0.0.M1 (2011-02-10) - https://jira.springsource.org/browse/DATAJPA/fixforversion/11786
 ----------------------------------------
 * Moved JPA sepcific code from Hades into Spring Data JPA (functional equivalent of Hades 2.0.2) building on common functionality in Spring Data Commons
+
 
 
 
