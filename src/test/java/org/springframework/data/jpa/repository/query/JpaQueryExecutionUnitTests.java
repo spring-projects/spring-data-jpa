@@ -90,7 +90,7 @@ public class JpaQueryExecutionUnitTests {
 	}
 
 	@Test // DATAJPA-1827
-	void supportsModifyingResultsUsingWrappers() throws Exception {
+	public void supportsModifyingResultsUsingWrappers() throws Exception {
 
 		Method method = VavrRepository.class.getMethod("updateUsingVavrMethod");
 		DefaultRepositoryMetadata repositoryMetadata = new DefaultRepositoryMetadata(VavrRepository.class);
