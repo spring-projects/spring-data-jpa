@@ -7,7 +7,7 @@ Spring Data JPA provides repository support for the Java Persistence API (JPA). 
 === Project Metadata
 
 * Version control: https://github.com/spring-projects/spring-data-jpa
-* Bugtracker: https://jira.spring.io/browse/DATAJPA
+* Bugtracker: https://github.com/spring-projects/spring-data-jpa/issues
 * Release repository: https://repo.spring.io/libs-release
 * Milestone repository: https://repo.spring.io/libs-milestone
 * Snapshot repository: https://repo.spring.io/libs-snapshot
