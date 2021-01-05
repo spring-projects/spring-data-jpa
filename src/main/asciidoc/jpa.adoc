@@ -37,6 +37,7 @@ The JPA module of Spring Data contains a custom namespace that allows defining r
 
 Using the `repositories` element looks up Spring Data repositories as described in "`<<repositories.create-instances>>`". Beyond that, it activates persistence exception translation for all beans annotated with `@Repository`, to let exceptions being thrown by the JPA persistence providers be converted into Spring's `DataAccessException` hierarchy.
 
+[[jpa.namespace.custom-namespace-attributes]]
 ==== Custom Namespace Attributes
 Beyond the default attributes of the `repositories` element, the JPA namespace offers additional attributes to let you gain more detailed control over the setup of the repositories:
 
@@ -114,6 +115,7 @@ That means, that repositories will not get instantiated if the client bean is si
 Repository instances will be initialized and verified upon first interaction with the repository.
 * `DEFERRED` -- Fundamentally the same mode of operation as `LAZY`, but triggering repository initialization in response to an `ContextRefreshedEvent` so that repositories are verified before the application has completely started.
 
+[[jpa.bootstrap-mode.recommendations]]
 ==== Recommendations
 
 If you're not using asynchronous JPA bootstrap stick with the default bootstrap mode.
@@ -196,6 +198,7 @@ This means if the arguments actually contain characters recognized by `LIKE` as 
 The escape character used can be configured by setting the `escapeCharacter` of the `@EnableJpaRepositories` annotation.
 Compare with <<jpa.query.spel-expressions>>.
 
+[[jpa.query-methods.declared-queries]]
 ==== Declared Queries
 Although getting a query derived from the method name is quite convenient, one might face the situation in which either the method name parser does not support the keyword one wants to use or the method name would get unnecessarily ugly. So you can either use JPA named queries through a naming convention (see <<jpa.query-methods.named-queries>> for more information) or rather annotate your query method with `@Query` (see <<jpa.query-methods.at-query>> for details).
 
@@ -255,6 +258,7 @@ NOTE: `In` and `NotIn` also take any subclass of `Collection` as a parameter as 
 
 NOTE: The examples use the `<named-query />` element and `@NamedQuery` annotation. The queries for these configuration elements have to be defined in the JPA query language. Of course, you can use `<named-native-query />` or `@NamedNativeQuery` too. These elements let you define the query in native SQL by losing the database platform independence.
 
+[[jpa.query-methods.named-queries.xml-named-query-definition]]
 ==== XML Named Query Definition
 To use XML configuration, add the necessary `<named-query />` element to the `orm.xml` JPA configuration file located in the `META-INF` folder of your classpath. Automatic invocation of named queries is enabled by using some defined naming convention. For more details, see below.
 
@@ -270,6 +274,7 @@ To use XML configuration, add the necessary `<named-query />` element to the `or
 
 The query has a special name that is used to resolve it at runtime.
 
+[[jpa.query-methods.named-queries.annotation-based-configuration]]
 ==== Annotation-based Configuration
 Annotation-based configuration has the advantage of not needing another configuration file to be edited, lowering maintenance effort. You pay for that benefit by the need to recompile your domain class for every new query declaration.
 
@@ -286,6 +291,7 @@ public class User {
 ----
 ====
 
+[[jpa.query-methods.named-queries.declaring-interfaces]]
 ==== Declaring Interfaces
 To allow these named queries, specify the `UserRepository` as follows:
 
@@ -326,6 +332,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 ----
 ====
 
+[[jpa.query-methods.at-query.advanced-like]]
 ==== Using Advanced `LIKE` Expressions
 
 The query running mechanism for manually defined queries created with `@Query` allows the definition of advanced `LIKE` expressions inside the query definition, as shown in the following example:
@@ -344,6 +351,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
 In the preceding example, the `LIKE` delimiter character (`%`) is recognized, and the query is transformed into a valid JPQL query (removing the `%`). Upon running the query, the parameter passed to the method call gets augmented with the previously recognized `LIKE` pattern.
 
+[[jpa.query-methods.at-query.native]]
 ==== Native Queries
 
 The `@Query` annotation allows for running native queries by setting the `nativeQuery` flag to true, as shown in the following example:
