@@ -52,7 +52,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 	 * Since Hibernate 4.3 the location of the HibernateEntityManager moved to the org.hibernate.jpa package. In order to
 	 * support both locations we interpret both classnames as a Hibernate {@code PersistenceProvider}.
 	 *
-	 * @see <a href="https://jira.spring.io/browse/DATAJPA-444">DATAJPA-444</a>
+	 * @see <a href="https://github.com/spring-projects/spring-data-jpa/issues/846">DATAJPA-444</a>
 	 */
 	HIBERNATE(//
 			Collections.singletonList(HIBERNATE_ENTITY_MANAGER_INTERFACE), //
