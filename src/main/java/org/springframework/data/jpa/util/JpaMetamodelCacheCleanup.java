@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2018-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import org.springframework.context.ApplicationContext;
 /**
  * Simple component to be registered as Spring bean to clear the {@link JpaMetamodel} cache to avoid a memory leak in
  * applications bootstrapping multiple {@link ApplicationContext}s.
- * 
+ *
  * @author Oliver Gierke
  * @author Sylvère Richard
  * @see org.springframework.data.jpa.repository.config.JpaRepositoryConfigExtension#registerBeansForRoot(org.springframework.beans.factory.support.BeanDefinitionRegistry,
@@ -29,7 +29,7 @@ import org.springframework.context.ApplicationContext;
  */
 class JpaMetamodelCacheCleanup implements DisposableBean {
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.beans.factory.DisposableBean#destroy()
 	 */

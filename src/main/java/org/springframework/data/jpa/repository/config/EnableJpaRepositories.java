@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2020 the original author or authors.
+ * Copyright 2012-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -161,7 +161,7 @@ public @interface EnableJpaRepositories {
 	 * method invocation on it). This means repositories can still be uninitialized when the application context has
 	 * completed its bootstrap. {@link BootstrapMode#DEFERRED} is fundamentally the same as {@link BootstrapMode#LAZY},
 	 * but triggers repository initialization when the application context finishes its bootstrap.
-	 * 
+	 *
 	 * @return
 	 * @since 2.1
 	 */
@@ -170,7 +170,7 @@ public @interface EnableJpaRepositories {
 	/**
 	 * Configures what character is used to escape the wildcards {@literal _} and {@literal %} in derived queries with
 	 * {@literal contains}, {@literal startsWith} or {@literal endsWith} clauses.
-	 * 
+	 *
 	 * @return a single character used for escaping.
 	 */
 	char escapeCharacter() default '\\';
