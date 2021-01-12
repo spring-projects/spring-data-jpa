@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 the original author or authors.
+ * Copyright 2016-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,7 +79,7 @@ public class JpaMetamodel {
 
 	/**
 	 * Returns whether the attribute of given name and type is the single identifier attribute of the given entity.
-	 * 
+	 *
 	 * @param entity must not be {@literal null}.
 	 * @param name must not be {@literal null}.
 	 * @param attributeType must not be {@literal null}.
@@ -106,7 +106,7 @@ public class JpaMetamodel {
 	/**
 	 * Returns the {@link SingularAttribute} representing the identifier of the given {@link EntityType} if it contains a
 	 * singular one.
-	 * 
+	 *
 	 * @param entityType must not be {@literal null}.
 	 * @return
 	 */

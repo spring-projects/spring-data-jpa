@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2020 the original author or authors.
+ * Copyright 2011-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -255,7 +255,7 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 			return lockModeType;
 		}
 
-		/* 
+		/*
 		 * (non-Javadoc)
 		 * @see org.springframework.data.jpa.repository.support.CrudMethodMetadata#getQueryHints()
 		 */
@@ -264,7 +264,7 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 			return queryHints;
 		}
 
-		/* 
+		/*
 		 * (non-Javadoc)
 		 * @see org.springframework.data.jpa.repository.support.CrudMethodMetadata#getQueryHintsForCount()
 		 */
