@@ -30,6 +30,7 @@ import org.springframework.lang.Nullable;
  * @author Sebastian Staudt
  * @author Oliver Gierke
  * @author Jens Schauder
+ * @author Mark Paluch
  * @see Specification
  * @since 2.2
  */
@@ -44,8 +45,8 @@ class SpecificationComposition {
 
 		return (root, query, builder) -> {
 
-			Predicate otherPredicate = toPredicate(lhs, root, query, builder);
-			Predicate thisPredicate = toPredicate(rhs, root, query, builder);
+			Predicate thisPredicate = toPredicate(lhs, root, query, builder);
+			Predicate otherPredicate = toPredicate(rhs, root, query, builder);
 
 			if (thisPredicate == null) {
 				return otherPredicate;
