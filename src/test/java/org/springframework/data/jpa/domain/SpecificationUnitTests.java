@@ -16,6 +16,7 @@
 package org.springframework.data.jpa.domain;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
 import static org.springframework.data.jpa.domain.Specification.*;
 import static org.springframework.data.jpa.domain.Specification.not;
 import static org.springframework.util.SerializationUtils.*;
@@ -40,6 +41,7 @@ import org.mockito.junit.MockitoJUnitRunner;
  * @author Thomas Darimont
  * @author Sebastian Staudt
  * @author Jens Schauder
+ * @author Mark Paluch
  */
 @SuppressWarnings("serial")
 @RunWith(MockitoJUnitRunner.class)
@@ -140,6 +142,36 @@ public class SpecificationUnitTests implements Serializable {
 		Specification<Object> transferredSpecification = (Specification<Object>) deserialize(serialize(specification));
 
 		assertThat(transferredSpecification).isNotNull();
+	}
+
+	@Test // #2146
+	public void andCombinesSpecificationsInOrder() {
+
+		Predicate firstPredicate = mock(Predicate.class);
+		Predicate secondPredicate = mock(Predicate.class);
+
+		Specification<Object> first = ((root1, query1, criteriaBuilder) -> firstPredicate);
+
+		Specification<Object> second = ((root1, query1, criteriaBuilder) -> secondPredicate);
+
+		first.and(second).toPredicate(root, query, builder);
+
+		verify(builder).and(firstPredicate, secondPredicate);
+	}
+
+	@Test // #2146
+	void orCombinesSpecificationsInOrder() {
+
+		Predicate firstPredicate = mock(Predicate.class);
+		Predicate secondPredicate = mock(Predicate.class);
+
+		Specification<Object> first = ((root1, query1, criteriaBuilder) -> firstPredicate);
+
+		Specification<Object> second = ((root1, query1, criteriaBuilder) -> secondPredicate);
+
+		first.or(second).toPredicate(root, query, builder);
+
+		verify(builder).or(firstPredicate, secondPredicate);
 	}
 
 	public class SerializableSpecification implements Serializable, Specification<Object> {
