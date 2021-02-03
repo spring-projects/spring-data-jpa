@@ -91,6 +91,7 @@ import com.google.common.base.Optional;
  * @author Kevin Peters
  * @author Jens Schauder
  * @author Andrey Kovalev
+ * @author Sander Krabbenborg
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:application-context.xml")
@@ -170,9 +171,21 @@ public class UserRepositoryTests {
 				secondUser, thirdUser);
 	}
 
+	@Test // DATAJPA-1574
+	void savesAndFlushesCollectionCorrectly() {
+
+		assertThat(repository.saveAllAndFlush(asList(firstUser, secondUser, thirdUser))).hasSize(3).contains(firstUser,
+				secondUser, thirdUser);
+	}
+
 	@Test
 	void savingEmptyCollectionIsNoOp() throws Exception {
 		assertThat(repository.saveAll(new ArrayList<>())).isEmpty();
+	}
+
+	@Test // DATAJPA-1574
+	void savingAndFlushingEmptyCollectionIsNoOp() {
+		assertThat(repository.saveAllAndFlush(new ArrayList<>())).isEmpty();
 	}
 
 	@Test
@@ -1099,6 +1112,20 @@ public class UserRepositoryTests {
 
 		assertThat(user.getFirstname()).isEqualTo(savedUser.getFirstname());
 		assertThat(user.getEmailAddress()).isEqualTo(savedUser.getEmailAddress());
+	}
+
+	@Test // DATAJPA-1574
+	void saveAllAndFlushShouldSupportReturningSubTypesOfRepositoryEntity() {
+
+		repository.deleteAll();
+		SpecialUser user = new SpecialUser();
+		user.setFirstname("Thomas");
+		user.setEmailAddress("thomas@example.org");
+
+		List<SpecialUser> savedUsers = repository.saveAllAndFlush(Collections.singletonList(user));
+
+		assertThat(user.getFirstname()).isEqualTo(savedUsers.get(0).getFirstname());
+		assertThat(user.getEmailAddress()).isEqualTo(savedUsers.get(0).getEmailAddress());
 	}
 
 	@Test // DATAJPA-218

@@ -31,6 +31,7 @@ import org.springframework.data.repository.query.QueryByExampleExecutor;
  * @author Oliver Gierke
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Sander Krabbenborg
  */
 @NoRepositoryBean
 public interface JpaRepository<T, ID> extends PagingAndSortingRepository<T, ID>, QueryByExampleExecutor<T> {
@@ -75,6 +76,14 @@ public interface JpaRepository<T, ID> extends PagingAndSortingRepository<T, ID>,
 	 * @return the saved entity
 	 */
 	<S extends T> S saveAndFlush(S entity);
+
+	/**
+	 * Saves all entities and flushes changes instantly.
+	 *
+	 * @param entities
+	 * @return the saved entities
+	 */
+	<S extends T> List<S> saveAllAndFlush(Iterable<S> entities);
 
 	/**
 	 * Deletes the given entities in a batch which means it will create a single query. This kind of operation leaves JPAs
