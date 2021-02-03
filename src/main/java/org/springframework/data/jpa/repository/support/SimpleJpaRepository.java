@@ -73,6 +73,7 @@ import org.springframework.util.Assert;
  * @author Jens Schauder
  * @author David Madden
  * @author Moritz Becker
+ * @author Sander Krabbenborg
  * @param <T> the type of the entity to handle
  * @param <ID> the type of the entity's identifier
  */
@@ -616,6 +617,20 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		for (S entity : entities) {
 			result.add(save(entity));
 		}
+
+		return result;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.jpa.repository.JpaRepository#saveAllAndFlush(java.lang.Iterable)
+	 */
+	@Transactional
+	@Override
+	public <S extends T> List<S> saveAllAndFlush(Iterable<S> entities) {
+
+		List<S> result = saveAll(entities);
+		flush();
 
 		return result;
 	}
