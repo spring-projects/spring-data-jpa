@@ -43,7 +43,6 @@ import org.mockito.junit.MockitoJUnitRunner;
  * @author Jens Schauder
  * @author Mark Paluch
  */
-@SuppressWarnings("serial")
 @RunWith(MockitoJUnitRunner.class)
 public class SpecificationUnitTests implements Serializable {
 
@@ -160,7 +159,7 @@ public class SpecificationUnitTests implements Serializable {
 	}
 
 	@Test // #2146
-	void orCombinesSpecificationsInOrder() {
+	public void orCombinesSpecificationsInOrder() {
 
 		Predicate firstPredicate = mock(Predicate.class);
 		Predicate secondPredicate = mock(Predicate.class);
@@ -174,7 +173,7 @@ public class SpecificationUnitTests implements Serializable {
 		verify(builder).or(firstPredicate, secondPredicate);
 	}
 
-	public class SerializableSpecification implements Serializable, Specification<Object> {
+	public static class SerializableSpecification implements Serializable, Specification<Object> {
 
 		@Override
 		public Predicate toPredicate(Root<Object> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
