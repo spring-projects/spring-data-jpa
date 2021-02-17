@@ -1,6 +1,17 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 2.3.7.RELEASE (2021-02-17)
+---------------------------------------------
+* DATAJPA-1828 - Update CI jobs with Docker Login.
+* DATAJPA-1827 - @Modifing not supported by vavr integration.
+* #2149 - The 2.3.x build is broken.
+* #2146 - SpecificationComposition reversed predicates.
+* #2133 - Update copyright year to 2021.
+* #2129 - Missing anchor on "Custom Namespace Attributes" causes TOC to break.
+* #2127 - Update repository after GitHub issues migration.
+
+
 Changes in version 2.2.13.RELEASE (2021-02-17)
 ----------------------------------------------
 * #2133 - Update copyright year to 2021.
@@ -2132,6 +2143,7 @@ Changes in version 1.0.0.M2 (2011-03-24) - https://jira.springsource.org/browse/
 Changes in version 1.0.0.M1 (2011-02-10) - https://jira.springsource.org/browse/DATAJPA/fixforversion/11786
 ----------------------------------------
 * Moved JPA sepcific code from Hades into Spring Data JPA (functional equivalent of Hades 2.0.2) building on common functionality in Spring Data Commons
+
 
 
 
