@@ -1,0 +1,24 @@
+[[new-features]]
+= 新的和值得注意的特性
+
+[[new-features.1-11-0]]
+== Spring Data JPA 1.11 有什么新的特性
+
+Spring Data JPA 1.11 加入了一些下面新的特性：
+
+* 针对 Hibernate 5.2 增加兼容性。
+* 针对 <<query-by-example>> 支持 any-match 模式
+* 优化分页查询。
+* 支持在 repository 查询推导中为 `exists` 设置投影（projection）。
+
+[[new-features.1-10-0]]
+== Spring Data JPA 1.10 有什么新的特性
+
+Spring Data JPA 1.10 加入了一些下面新的特性：
+
+* 在仓库查询方法中支持 <<projections>> 。
+* 支持 按示例查询（<<query-by-example>>)。
+* 可以使用下面的注解来构建自己的组合注解： `@EntityGraph`, `@Lock`, `@Modifying`, `@Query`, `@QueryHints`, 和 `@Procedure`。
+* 在集合表达式中支持 `Contains` 关键字。
+* 针对 JSR-310 和 ThreeTenBP 针对 `ZoneId` 实现的 `属性转换器（AttributeConverter）`。
+* 升级到下面的版本：Querydsl 4, Hibernate 5, OpenJPA 2.4, 和 EclipseLink 2.6.1。
