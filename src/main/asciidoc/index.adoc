@@ -12,7 +12,7 @@ NOTE: 只要您不对这些副本收取任何费用，并且进一步规定，�
 
 include::zh/preface.adoc[]
 
-include::new-features.adoc[leveloffset=+1]
+include::zh/new-features.adoc[leveloffset=+1]
 
 include::{spring-data-commons-docs}/dependencies.adoc[leveloffset=+1]
 
