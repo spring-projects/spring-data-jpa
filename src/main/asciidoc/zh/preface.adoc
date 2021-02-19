@@ -1,0 +1,13 @@
+[[preface]]
+== 前言
+
+Spring Data JPA 提供了一个仓库（repository）来支持 Java Persistence API (JPA)。这个设计被用来简化在应用程序开发的时候访问 JPA 数据源。
+
+[[project]]
+=== 项目元数据
+
+* 版本控制（Version control）: https://github.com/spring-projects/spring-data-jpa
+* 缺陷和问题（Bugtracker）: https://github.com/spring-projects/spring-data-jpa/issues
+* 发行版本库（Release repository）: https://repo.spring.io/libs-release
+* 里程碑版本库（Milestone repository）: https://repo.spring.io/libs-milestone
+* 快照版本库（Snapshot repository）: https://repo.spring.io/libs-snapshot

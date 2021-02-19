@@ -1,4 +1,4 @@
-= Spring Data JPA - Reference Documentation
+= Spring Data JPA - 参考文档（Reference Documentation）
 Oliver Gierke; Thomas Darimont; Christoph Strobl; Mark Paluch; Jay Bryant
 :revnumber: {version}
 :revdate: {localdate}
@@ -6,11 +6,11 @@ ifdef::backend-epub3[:front-cover-image: image:epub-cover.png[Front Cover,1050,1
 :spring-data-commons-docs: ../../../../spring-data-commons/src/main/asciidoc
 :spring-framework-docs: https://docs.spring.io/spring-framework/docs/{springVersion}/spring-framework-reference/
 
-(C) 2008-2021 The original authors.
+(C) 2008-2021 所有原作者（The original authors）.
 
-NOTE: Copies of this document may be made for your own use and for distribution to others, provided that you do not charge any fee for such copies and further provided that each copy contains this Copyright Notice, whether distributed in print or electronically.
+NOTE: 只要您不对这些副本收取任何费用，并且进一步规定，每个副本都包含本版权声明，无论是以印刷版还是电子版形式分发，本文档的副本可免费供您自己使用并分发给他人。
 
-include::preface.adoc[]
+include::zh/preface.adoc[]
 
 include::new-features.adoc[leveloffset=+1]
 
