@@ -789,7 +789,7 @@ Spring Data JPA takes the concept of a specification from Eric Evans' book, "`Do
 
 [source, java]
 ----
-public interface CustomerRepository extends CrudRepository<Customer, Long>, JpaSpecificationExecutor {
+public interface CustomerRepository extends CrudRepository<Customer, Long>, JpaSpecificationExecutor<Customer> {
  …
 }
 ----
