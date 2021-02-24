@@ -46,7 +46,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -60,16 +59,16 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.ExampleMatcher.*;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.domain.Sort.Order;
-import org.springframework.data.domain.ExampleMatcher.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.domain.sample.Address;
 import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.domain.sample.SpecialUser;
 import org.springframework.data.jpa.domain.sample.User;
-import org.springframework.data.jpa.repository.sample.SampleEvaluationContextExtension.SampleSecurityContextHolder;
 import org.springframework.data.jpa.repository.sample.UserRepository;
+import org.springframework.data.jpa.repository.sample.SampleEvaluationContextExtension.SampleSecurityContextHolder;
 import org.springframework.data.jpa.repository.sample.UserRepository.NameOnly;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -152,8 +151,8 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		assertThat(repository.findAllById(asList(firstUser.getId(), secondUser.getId()))).contains(firstUser,
-				secondUser);
+		assertThat(repository.findAllById(asList(firstUser.getId(), secondUser.getId()))) //
+				.containsExactlyInAnyOrder(firstUser, secondUser);
 	}
 
 	@Test
@@ -167,15 +166,15 @@ public class UserRepositoryTests {
 	@Test
 	void savesCollectionCorrectly() throws Exception {
 
-		assertThat(repository.saveAll(asList(firstUser, secondUser, thirdUser))).hasSize(3).contains(firstUser,
-				secondUser, thirdUser);
+		assertThat(repository.saveAll(asList(firstUser, secondUser, thirdUser))) //
+				.containsExactlyInAnyOrder(firstUser, secondUser, thirdUser);
 	}
 
-	@Test // DATAJPA-1574
+	@Test // gh-2148
 	void savesAndFlushesCollectionCorrectly() {
 
-		assertThat(repository.saveAllAndFlush(asList(firstUser, secondUser, thirdUser))).hasSize(3).contains(firstUser,
-				secondUser, thirdUser);
+		assertThat(repository.saveAllAndFlush(asList(firstUser, secondUser, thirdUser))) //
+				.containsExactlyInAnyOrder(firstUser, secondUser, thirdUser);
 	}
 
 	@Test
@@ -183,7 +182,7 @@ public class UserRepositoryTests {
 		assertThat(repository.saveAll(new ArrayList<>())).isEmpty();
 	}
 
-	@Test // DATAJPA-1574
+	@Test // gh-2148
 	void savingAndFlushingEmptyCollectionIsNoOp() {
 		assertThat(repository.saveAllAndFlush(new ArrayList<>())).isEmpty();
 	}
@@ -1114,7 +1113,7 @@ public class UserRepositoryTests {
 		assertThat(user.getEmailAddress()).isEqualTo(savedUser.getEmailAddress());
 	}
 
-	@Test // DATAJPA-1574
+	@Test // gh-2148
 	void saveAllAndFlushShouldSupportReturningSubTypesOfRepositoryEntity() {
 
 		repository.deleteAll();

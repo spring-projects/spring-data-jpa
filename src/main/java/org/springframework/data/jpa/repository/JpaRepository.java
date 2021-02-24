@@ -72,7 +72,7 @@ public interface JpaRepository<T, ID> extends PagingAndSortingRepository<T, ID>,
 	/**
 	 * Saves an entity and flushes changes instantly.
 	 *
-	 * @param entity
+	 * @param entity entity to be saved. Must not be {@literal null}.
 	 * @return the saved entity
 	 */
 	<S extends T> S saveAndFlush(S entity);
@@ -80,8 +80,9 @@ public interface JpaRepository<T, ID> extends PagingAndSortingRepository<T, ID>,
 	/**
 	 * Saves all entities and flushes changes instantly.
 	 *
-	 * @param entities
+	 * @param entities entities to be deleted. Must not be {@literal null}.
 	 * @return the saved entities
+	 * @since 2.5
 	 */
 	<S extends T> List<S> saveAllAndFlush(Iterable<S> entities);
 
@@ -90,7 +91,7 @@ public interface JpaRepository<T, ID> extends PagingAndSortingRepository<T, ID>,
 	 * first level cache and the database out of sync. Consider flushing the {@link EntityManager} before calling this
 	 * method.
 	 *
-	 * @param entities
+	 * @param entities entities to be deleted. Must not be {@literal null}.
 	 * @deprecated Use {@link #deleteAllInBatch(Iterable)} instead.
 	 */
 	@Deprecated
@@ -101,8 +102,8 @@ public interface JpaRepository<T, ID> extends PagingAndSortingRepository<T, ID>,
 	 * first level cache and the database out of sync. Consider flushing the {@link EntityManager} before calling this
 	 * method.
 	 *
-	 * @param entities
-	 * @since 3.0
+	 * @param entities entities to be deleted. Must not be {@literal null}.
+	 * @since 2.5
 	 */
 	void deleteAllInBatch(Iterable<T> entities);
 
@@ -111,8 +112,8 @@ public interface JpaRepository<T, ID> extends PagingAndSortingRepository<T, ID>,
 	 * Deletes the entities identified by the given ids using a single query. This kind of operation leaves JPAs first
 	 * level cache and the database out of sync. Consider flushing the {@link EntityManager} before calling this method.
 	 *
-	 * @param ids
-	 * @since 3.0
+	 * @param ids the ids of the entities to be deleted. Must not be {@literal null}.
+	 * @since 2.5
 	 */
 	void deleteAllByIdInBatch(Iterable<ID> ids);
 
