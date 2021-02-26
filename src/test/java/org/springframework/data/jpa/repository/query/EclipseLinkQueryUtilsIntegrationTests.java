@@ -27,4 +27,8 @@ class EclipseLinkQueryUtilsIntegrationTests extends QueryUtilsIntegrationTests {
 		return 1;
 	}
 
+	boolean isSkipOptionalDetection() {
+		return true;
+	}
+
 }

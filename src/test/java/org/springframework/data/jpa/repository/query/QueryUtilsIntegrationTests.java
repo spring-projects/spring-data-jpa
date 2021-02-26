@@ -118,6 +118,9 @@ public class QueryUtilsIntegrationTests {
 	@Test // DATAJPA-1822
 	void createsLeftJoinForOptionalToOneWithNestedNonOptional() {
 
+		if(isSkipOptionalDetection())
+			return;
+
 		CriteriaBuilder builder = em.getCriteriaBuilder();
 		CriteriaQuery<Invoice> query = builder.createQuery(Invoice.class);
 		Root<Invoice> root = query.from(Invoice.class);
@@ -133,6 +136,9 @@ public class QueryUtilsIntegrationTests {
 
 	@Test // DATAJPA-1822
 	void createsLeftJoinForNonOptionalToOneWithNestedOptional() {
+
+		if(isSkipOptionalDetection())
+			return;
 
 		CriteriaBuilder builder = em.getCriteriaBuilder();
 		CriteriaQuery<InvoiceItem> query = builder.createQuery(InvoiceItem.class);
@@ -152,6 +158,9 @@ public class QueryUtilsIntegrationTests {
 
 	@Test // DATAJPA-1822
 	void reusesLeftJoinForNonOptionalToOneWithNestedOptional() {
+
+		if(isSkipOptionalDetection())
+			return;
 
 		CriteriaBuilder builder = em.getCriteriaBuilder();
 		CriteriaQuery<InvoiceItem> query = builder.createQuery(InvoiceItem.class);
@@ -176,6 +185,9 @@ public class QueryUtilsIntegrationTests {
 
 	@Test // DATAJPA-1822
 	void reusesInnerJoinForNonOptionalToOneWithNestedOptional() {
+
+		if(isSkipOptionalDetection())
+			return;
 
 		CriteriaBuilder builder = em.getCriteriaBuilder();
 		CriteriaQuery<InvoiceItem> query = builder.createQuery(InvoiceItem.class);
@@ -330,6 +342,10 @@ public class QueryUtilsIntegrationTests {
 
 	int getNumberOfJoinsAfterCreatingAPath() {
 		return 0;
+	}
+
+	boolean isSkipOptionalDetection() {
+		return false;
 	}
 
 	private Set<Join<?, ?>> getNonInnerJoins(Root<?> root) {
