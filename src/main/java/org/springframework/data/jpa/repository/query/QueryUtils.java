@@ -50,6 +50,7 @@ import javax.persistence.metamodel.Attribute.PersistentAttributeType;
 import javax.persistence.metamodel.Bindable;
 import javax.persistence.metamodel.ManagedType;
 import javax.persistence.metamodel.PluralAttribute;
+import javax.persistence.metamodel.SingularAttribute;
 
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
@@ -688,13 +689,19 @@ public abstract class QueryUtils {
 		Bindable<?> propertyPathModel;
 		Bindable<?> model = from.getModel();
 
+		// required for EclipseLink: we try to avoid using from.get as EclipseLink produces an inner join
+		// regardless of which join operation is specified next
+		// see: https://bugs.eclipse.org/bugs/show_bug.cgi?id=413892
+		// still occurs as of 2.7
+		ManagedType<?> managedType = null;
 		if (model instanceof ManagedType) {
-
-			/*
-			 *  Required to keep support for EclipseLink 2.4.x. TODO: Remove once we drop that (probably Dijkstra M1)
-			 *  See: https://bugs.eclipse.org/bugs/show_bug.cgi?id=413892
-			 */
-			propertyPathModel = (Bindable<?>) ((ManagedType<?>) model).getAttribute(segment);
+			managedType = (ManagedType<?>) model;
+		} else if (model instanceof SingularAttribute
+				       && ((SingularAttribute<?, ?>) model).getType() instanceof ManagedType) {
+			managedType = (ManagedType<?>) ((SingularAttribute<?, ?>) model).getType();
+		}
+		if (managedType != null) {
+			propertyPathModel = (Bindable<?>) managedType.getAttribute(segment);
 		} else {
 			propertyPathModel = from.get(segment).getModel();
 		}
