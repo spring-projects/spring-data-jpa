@@ -21,16 +21,7 @@ import static javax.persistence.metamodel.Attribute.PersistentAttributeType.*;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Member;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -42,15 +33,16 @@ import javax.persistence.Parameter;
 import javax.persistence.Query;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Fetch;
 import javax.persistence.criteria.From;
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.JoinType;
 import javax.persistence.metamodel.Attribute;
-import javax.persistence.metamodel.Attribute.PersistentAttributeType;
 import javax.persistence.metamodel.Bindable;
 import javax.persistence.metamodel.ManagedType;
 import javax.persistence.metamodel.PluralAttribute;
 import javax.persistence.metamodel.SingularAttribute;
+import javax.persistence.metamodel.Attribute.PersistentAttributeType;
 
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
@@ -105,7 +97,8 @@ public abstract class QueryUtils {
 
 	private static final Pattern ALIAS_MATCH;
 	private static final Pattern COUNT_MATCH;
-	private static final Pattern PROJECTION_CLAUSE = Pattern.compile("select\\s+(?:distinct\\s+)?(.+)\\s+from", Pattern.CASE_INSENSITIVE);
+	private static final Pattern PROJECTION_CLAUSE = Pattern.compile("select\\s+(?:distinct\\s+)?(.+)\\s+from",
+			Pattern.CASE_INSENSITIVE);
 
 	private static final Pattern NO_DIGITS = Pattern.compile("\\D+");
 
@@ -115,8 +108,8 @@ public abstract class QueryUtils {
 	private static final String EQUALS_CONDITION_STRING = "%s.%s = :%s";
 	private static final Pattern ORDER_BY = Pattern.compile(".*order\\s+by\\s+.*", CASE_INSENSITIVE);
 
-	private static final Pattern NAMED_PARAMETER = Pattern
-			.compile(COLON_NO_DOUBLE_COLON + IDENTIFIER + "|#" + IDENTIFIER, CASE_INSENSITIVE);
+	private static final Pattern NAMED_PARAMETER = Pattern.compile(COLON_NO_DOUBLE_COLON + IDENTIFIER + "|#" + IDENTIFIER,
+			CASE_INSENSITIVE);
 
 	private static final Pattern CONSTRUCTOR_EXPRESSION;
 
@@ -491,9 +484,9 @@ public abstract class QueryUtils {
 					&& !variable.startsWith("count(") //
 					&& !variable.contains(","); //
 
-			String complexCountValue = matcher.matches() &&
-					StringUtils.hasText(matcher.group(COMPLEX_COUNT_FIRST_INDEX)) ?
-					COMPLEX_COUNT_VALUE : COMPLEX_COUNT_LAST_VALUE;
+			String complexCountValue = matcher.matches() && StringUtils.hasText(matcher.group(COMPLEX_COUNT_FIRST_INDEX))
+					? COMPLEX_COUNT_VALUE
+					: COMPLEX_COUNT_LAST_VALUE;
 
 			String replacement = useVariable ? SIMPLE_COUNT_VALUE : complexCountValue;
 			countQuery = matcher.replaceFirst(String.format(COUNT_REPLACEMENT_TEMPLATE, replacement));
@@ -627,15 +620,16 @@ public abstract class QueryUtils {
 	/**
 	 * Creates an expression with proper inner and left joins by recursively navigating the path
 	 *
-	 * @param from                 the {@link From}
-	 * @param property             the property path
-	 * @param isForSelection       is the property navigated for the selection or ordering part of the query?
+	 * @param from the {@link From}
+	 * @param property the property path
+	 * @param isForSelection is the property navigated for the selection or ordering part of the query?
 	 * @param hasRequiredOuterJoin has a parent already required an outer join?
-	 * @param <T>                  the type of the expression
+	 * @param <T> the type of the expression
 	 * @return the expression
 	 */
-	@SuppressWarnings("unchecked") static <T> Expression<T> toExpressionRecursively(From<?, ?> from,
-			PropertyPath property, boolean isForSelection, boolean hasRequiredOuterJoin) {
+	@SuppressWarnings("unchecked")
+	static <T> Expression<T> toExpressionRecursively(From<?, ?> from, PropertyPath property, boolean isForSelection,
+			boolean hasRequiredOuterJoin) {
 
 		String segment = property.getSegment();
 
@@ -664,16 +658,15 @@ public abstract class QueryUtils {
 	}
 
 	/**
-	 * Checks if this attribute requires an outer join.
-	 * This is the case eg. if it hadn't already been fetched with an inner join and if it's an a optional association,
-	 * and if previous paths has already required outer joins.
-	 * It also ensures outer joins are used even when Hibernate defaults to inner joins (HHH-12712 and HHH-12999).
+	 * Checks if this attribute requires an outer join. This is the case eg. if it hadn't already been fetched with an
+	 * inner join and if it's an a optional association, and if previous paths has already required outer joins. It also
+	 * ensures outer joins are used even when Hibernate defaults to inner joins (HHH-12712 and HHH-12999).
 	 *
-	 * @param from                 the {@link From} to check for fetches.
-	 * @param property             the property path
-	 * @param isForSelection       is the property navigated for the selection or ordering part of the query? if true,
-	 *                             we need to generate an explicit outer join in order to prevent Hibernate to use an
-	 *                             inner join instead. see https://hibernate.atlassian.net/browse/HHH-12999
+	 * @param from the {@link From} to check for fetches.
+	 * @param property the property path
+	 * @param isForSelection is the property navigated for the selection or ordering part of the query? if true, we need
+	 *          to generate an explicit outer join in order to prevent Hibernate to use an inner join instead. see
+	 *          https://hibernate.atlassian.net/browse/HHH-12999
 	 * @param hasRequiredOuterJoin has a parent already required an outer join?
 	 * @return whether an outer join is to be used for integrating this attribute in a query.
 	 */
@@ -697,7 +690,7 @@ public abstract class QueryUtils {
 		if (model instanceof ManagedType) {
 			managedType = (ManagedType<?>) model;
 		} else if (model instanceof SingularAttribute
-				       && ((SingularAttribute<?, ?>) model).getType() instanceof ManagedType) {
+				&& ((SingularAttribute<?, ?>) model).getType() instanceof ManagedType) {
 			managedType = (ManagedType<?>) ((SingularAttribute<?, ?>) model).getType();
 		}
 		if (managedType != null) {
@@ -761,34 +754,48 @@ public abstract class QueryUtils {
 	/**
 	 * Returns an existing join for the given attribute if one already exists or creates a new one if not.
 	 *
-	 * @param from      the {@link From} to get the current joins from.
+	 * @param from the {@link From} to get the current joins from.
 	 * @param attribute the {@link Attribute} to look for in the current joins.
-	 * @param joinType  the join type to create if none was found
+	 * @param joinType the join type to create if none was found
 	 * @return will never be {@literal null}.
 	 */
 	private static Join<?, ?> getOrCreateJoin(From<?, ?> from, String attribute, JoinType joinType) {
-		return from.getJoins().stream()
-				.filter(join -> join.getAttribute().getName().equals(attribute))
-				.findFirst()
-				.orElseGet(() -> from.join(attribute, joinType));
+
+		for (Join<?, ?> join : from.getJoins()) {
+
+			if (join.getAttribute().getName().equals(attribute)) {
+				return join;
+			}
+		}
+		return from.join(attribute, joinType);
 	}
 
 	/**
 	 * Return whether the given {@link From} contains an inner join for the attribute with the given name.
 	 *
-	 * @param from      the {@link From} to check for joins.
+	 * @param from the {@link From} to check for joins.
 	 * @param attribute the attribute name to check.
 	 * @return true if the attribute has already been inner joined
 	 */
 	private static boolean isAlreadyInnerJoined(From<?, ?> from, String attribute) {
 
-		boolean isInnerJoinFetched = from.getFetches().stream().anyMatch(
-				fetch -> fetch.getAttribute().getName().equals(attribute) && fetch.getJoinType().equals(JoinType.INNER));
+		for (Fetch<?, ?> fetch : from.getFetches()) {
 
-		boolean isSimplyInnerJoined = from.getJoins().stream()
-				.anyMatch(join -> join.getAttribute().getName().equals(attribute) && join.getJoinType().equals(JoinType.INNER));
+			if (fetch.getAttribute().getName().equals(attribute) //
+					&& fetch.getJoinType().equals(JoinType.INNER)) {
+				return true;
+			}
+		}
 
-		return isInnerJoinFetched || isSimplyInnerJoined;
+		for (Join<?, ?> join : from.getJoins()) {
+
+			if (join.getAttribute().getName().equals(attribute) //
+					&& join.getJoinType().equals(JoinType.INNER)) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**
