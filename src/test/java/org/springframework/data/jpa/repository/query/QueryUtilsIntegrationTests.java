@@ -63,6 +63,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  *
  * @author Oliver Gierke
  * @author Sébastien Péralta
+ * @author Jens Schauder
  * @author Patrice Blanchardie
  */
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -114,7 +115,7 @@ public class QueryUtilsIntegrationTests {
 		});
 	}
 
-	@Test // DATAJPA-1822
+	@Test // gh-2111
 	void createsLeftJoinForOptionalToOneWithNestedNonOptional() {
 
 		CriteriaBuilder builder = em.getCriteriaBuilder();
@@ -130,7 +131,7 @@ public class QueryUtilsIntegrationTests {
 		assertThat(getInnerJoins(leftJoin)).isEmpty(); // no inner join customer
 	}
 
-	@Test // DATAJPA-1822
+	@Test // gh-2111
 	void createsLeftJoinForNonOptionalToOneWithNestedOptional() {
 
 		CriteriaBuilder builder = em.getCriteriaBuilder();
@@ -149,7 +150,7 @@ public class QueryUtilsIntegrationTests {
 		assertThat(getInnerJoins(leftJoin)).isEmpty(); // no inner join customer
 	}
 
-	@Test // DATAJPA-1822
+	@Test // gh-2111
 	void reusesLeftJoinForNonOptionalToOneWithNestedOptional() {
 
 		CriteriaBuilder builder = em.getCriteriaBuilder();
@@ -173,7 +174,7 @@ public class QueryUtilsIntegrationTests {
 		assertThat(getNonInnerJoins(leftJoin)).hasSize(1); // left join customer
 	}
 
-	@Test // DATAJPA-1822
+	@Test // gh-2111
 	void reusesInnerJoinForNonOptionalToOneWithNestedOptional() {
 
 		CriteriaBuilder builder = em.getCriteriaBuilder();
@@ -329,11 +330,6 @@ public class QueryUtilsIntegrationTests {
 
 	int getNumberOfJoinsAfterCreatingAPath() {
 		return 0;
-	}
-
-	private Set<Join<?, ?>> getNonInnerJoins(Root<?> root) {
-
-		return getNonInnerJoins((From<?, ?>) root);
 	}
 
 	private Set<Join<?, ?>> getNonInnerJoins(From<?, ?> root) {

@@ -19,6 +19,7 @@ import org.springframework.test.context.ContextConfiguration;
 
 /**
  * @author Oliver Gierke
+ * @author Jens Schauder
  */
 @ContextConfiguration("classpath:eclipselink.xml")
 public class EclipseLinkQueryUtilsIntegrationTests extends QueryUtilsIntegrationTests {
