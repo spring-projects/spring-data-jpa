@@ -91,6 +91,7 @@ import com.google.common.base.Optional;
  * @author Kevin Peters
  * @author Jens Schauder
  * @author Andrey Kovalev
+ * @author Jesse Wouters
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:application-context.xml")
@@ -984,6 +985,15 @@ public class UserRepositoryTests {
 		flushTestUsers();
 
 		User result = repository.getOne(firstUser.getId());
+		assertThat(result).isEqualTo(firstUser);
+	}
+
+	@Test // DATAJPA-1377
+	void looksUpEntityReferenceUsingGetById() {
+
+		flushTestUsers();
+
+		User result = repository.getById(firstUser.getId());
 		assertThat(result).isEqualTo(firstUser);
 	}
 
