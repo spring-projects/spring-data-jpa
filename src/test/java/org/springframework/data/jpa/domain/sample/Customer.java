@@ -20,9 +20,12 @@ import javax.persistence.Id;
 
 /**
  * @author Oliver Gierke
+ * @author Patrice Blanchardie
  */
 @Entity
 public class Customer {
 
-	@Id Long id;
+    @Id Long id;
+
+    String name;
 }

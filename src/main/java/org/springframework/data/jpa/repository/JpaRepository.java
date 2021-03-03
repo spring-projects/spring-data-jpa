@@ -31,6 +31,8 @@ import org.springframework.data.repository.query.QueryByExampleExecutor;
  * @author Oliver Gierke
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Sander Krabbenborg
+ * @author Jesse Wouters
  */
 @NoRepositoryBean
 public interface JpaRepository<T, ID> extends PagingAndSortingRepository<T, ID>, QueryByExampleExecutor<T> {
@@ -71,17 +73,26 @@ public interface JpaRepository<T, ID> extends PagingAndSortingRepository<T, ID>,
 	/**
 	 * Saves an entity and flushes changes instantly.
 	 *
-	 * @param entity
+	 * @param entity entity to be saved. Must not be {@literal null}.
 	 * @return the saved entity
 	 */
 	<S extends T> S saveAndFlush(S entity);
+
+	/**
+	 * Saves all entities and flushes changes instantly.
+	 *
+	 * @param entities entities to be deleted. Must not be {@literal null}.
+	 * @return the saved entities
+	 * @since 2.5
+	 */
+	<S extends T> List<S> saveAllAndFlush(Iterable<S> entities);
 
 	/**
 	 * Deletes the given entities in a batch which means it will create a single query. This kind of operation leaves JPAs
 	 * first level cache and the database out of sync. Consider flushing the {@link EntityManager} before calling this
 	 * method.
 	 *
-	 * @param entities
+	 * @param entities entities to be deleted. Must not be {@literal null}.
 	 * @deprecated Use {@link #deleteAllInBatch(Iterable)} instead.
 	 */
 	@Deprecated
@@ -92,8 +103,8 @@ public interface JpaRepository<T, ID> extends PagingAndSortingRepository<T, ID>,
 	 * first level cache and the database out of sync. Consider flushing the {@link EntityManager} before calling this
 	 * method.
 	 *
-	 * @param entities
-	 * @since 3.0
+	 * @param entities entities to be deleted. Must not be {@literal null}.
+	 * @since 2.5
 	 */
 	void deleteAllInBatch(Iterable<T> entities);
 
@@ -102,8 +113,8 @@ public interface JpaRepository<T, ID> extends PagingAndSortingRepository<T, ID>,
 	 * Deletes the entities identified by the given ids using a single query. This kind of operation leaves JPAs first
 	 * level cache and the database out of sync. Consider flushing the {@link EntityManager} before calling this method.
 	 *
-	 * @param ids
-	 * @since 3.0
+	 * @param ids the ids of the entities to be deleted. Must not be {@literal null}.
+	 * @since 2.5
 	 */
 	void deleteAllByIdInBatch(Iterable<ID> ids);
 
@@ -121,8 +132,22 @@ public interface JpaRepository<T, ID> extends PagingAndSortingRepository<T, ID>,
 	 * @param id must not be {@literal null}.
 	 * @return a reference to the entity with the given identifier.
 	 * @see EntityManager#getReference(Class, Object) for details on when an exception is thrown.
+	 * @deprecated use {@link JpaRepository#getById(ID)} instead.
 	 */
+	@Deprecated
 	T getOne(ID id);
+
+	/**
+	 * Returns a reference to the entity with the given identifier. Depending on how the JPA persistence provider is
+	 * implemented this is very likely to always return an instance and throw an
+	 * {@link javax.persistence.EntityNotFoundException} on first access. Some of them will reject invalid identifiers
+	 * immediately.
+	 *
+	 * @param id must not be {@literal null}.
+	 * @return a reference to the entity with the given identifier.
+	 * @see EntityManager#getReference(Class, Object) for details on when an exception is thrown.
+	 */
+	T getById(ID id);
 
 	/*
 	 * (non-Javadoc)

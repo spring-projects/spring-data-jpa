@@ -35,6 +35,7 @@ import javax.persistence.Persistence;
 import javax.persistence.PersistenceContext;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.From;
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Root;
@@ -49,6 +50,8 @@ import org.mockito.Mockito;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.jpa.domain.sample.Category;
+import org.springframework.data.jpa.domain.sample.Invoice;
+import org.springframework.data.jpa.domain.sample.InvoiceItem;
 import org.springframework.data.jpa.domain.sample.Order;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.infrastructure.HibernateTestUtils;
@@ -61,6 +64,8 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  *
  * @author Oliver Gierke
  * @author Sébastien Péralta
+ * @author Jens Schauder
+ * @author Patrice Blanchardie
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:infrastructure.xml")
@@ -109,6 +114,88 @@ public class QueryUtilsIntegrationTests {
 
 			assertThat(getNonInnerJoins(root)).hasSize(1);
 		});
+	}
+
+	@Test // gh-2111
+	void createsLeftJoinForOptionalToOneWithNestedNonOptional() {
+
+		CriteriaBuilder builder = em.getCriteriaBuilder();
+		CriteriaQuery<Invoice> query = builder.createQuery(Invoice.class);
+		Root<Invoice> root = query.from(Invoice.class);
+
+		QueryUtils.toExpressionRecursively(root, PropertyPath.from("order.customer.name", Invoice.class), false);
+
+		assertThat(getNonInnerJoins(root)).hasSize(1); // left join order
+		assertThat(getInnerJoins(root)).isEmpty(); // no inner join order
+		Join<Invoice, ?> leftJoin = root.getJoins().iterator().next();
+		assertThat(getNonInnerJoins(leftJoin)).hasSize(1); // left join customer
+		assertThat(getInnerJoins(leftJoin)).isEmpty(); // no inner join customer
+	}
+
+	@Test // gh-2111
+	void createsLeftJoinForNonOptionalToOneWithNestedOptional() {
+
+		CriteriaBuilder builder = em.getCriteriaBuilder();
+		CriteriaQuery<InvoiceItem> query = builder.createQuery(InvoiceItem.class);
+		Root<InvoiceItem> root = query.from(InvoiceItem.class);
+
+		QueryUtils
+				.toExpressionRecursively(root, PropertyPath.from("invoice.order.customer.name", InvoiceItem.class), false);
+
+		assertThat(getInnerJoins(root)).hasSize(1); // join invoice
+		Join<?, ?> rootInnerJoin = getInnerJoins(root).iterator().next();
+		assertThat(getNonInnerJoins(rootInnerJoin)).hasSize(1); // left join order
+		assertThat(getInnerJoins(rootInnerJoin)).isEmpty(); // no inner join order
+		Join<?, ?> leftJoin = getNonInnerJoins(rootInnerJoin).iterator().next();
+		assertThat(getNonInnerJoins(leftJoin)).hasSize(1); // left join customer
+		assertThat(getInnerJoins(leftJoin)).isEmpty(); // no inner join customer
+	}
+
+	@Test // gh-2111
+	void reusesLeftJoinForNonOptionalToOneWithNestedOptional() {
+
+		CriteriaBuilder builder = em.getCriteriaBuilder();
+		CriteriaQuery<InvoiceItem> query = builder.createQuery(InvoiceItem.class);
+		Root<InvoiceItem> root = query.from(InvoiceItem.class);
+
+		// given existing left joins
+		root.join("invoice", JoinType.LEFT).join("order", JoinType.LEFT);
+
+		// when navigating through a path with nested optionals
+		QueryUtils
+				.toExpressionRecursively(root, PropertyPath.from("invoice.order.customer.name", InvoiceItem.class), false);
+
+		// assert that existing joins are reused and no additional joins are created
+		assertThat(getInnerJoins(root)).isEmpty(); // no inner join invoice
+		assertThat(getNonInnerJoins(root)).hasSize(1); // reused left join invoice
+		Join<?, ?> rootInnerJoin = getNonInnerJoins(root).iterator().next();
+		assertThat(getInnerJoins(rootInnerJoin)).isEmpty(); // no inner join order
+		assertThat(getNonInnerJoins(rootInnerJoin)).hasSize(1); // reused left join order
+		Join<?, ?> leftJoin = getNonInnerJoins(rootInnerJoin).iterator().next();
+		assertThat(getNonInnerJoins(leftJoin)).hasSize(1); // left join customer
+	}
+
+	@Test // gh-2111
+	void reusesInnerJoinForNonOptionalToOneWithNestedOptional() {
+
+		CriteriaBuilder builder = em.getCriteriaBuilder();
+		CriteriaQuery<InvoiceItem> query = builder.createQuery(InvoiceItem.class);
+		Root<InvoiceItem> root = query.from(InvoiceItem.class);
+
+		// given an existing inner join an nested optional
+		root.join("invoice").join("order");
+
+		QueryUtils
+				.toExpressionRecursively(root, PropertyPath.from("invoice.order.customer.name", InvoiceItem.class), false);
+
+		// assert that no useless left joins are created
+		assertThat(getInnerJoins(root)).hasSize(1); // join invoice
+		Join<?, ?> rootInnerJoin = getInnerJoins(root).iterator().next();
+		assertThat(getNonInnerJoins(rootInnerJoin)).isEmpty(); // no left join order
+		assertThat(getInnerJoins(rootInnerJoin)).hasSize(1); // inner join order
+		Join<?, ?> innerJoin = getInnerJoins(rootInnerJoin).iterator().next();
+		assertThat(getNonInnerJoins(innerJoin)).isEmpty(); // no left join customer
+		assertThat(getInnerJoins(innerJoin)).hasSize(1); // inner join customer
 	}
 
 	@Test // DATAJPA-1404
@@ -246,12 +333,14 @@ public class QueryUtilsIntegrationTests {
 		return 0;
 	}
 
-	private Set<Join<?, ?>> getNonInnerJoins(Root<?> root) {
+	private Set<Join<?, ?>> getNonInnerJoins(From<?, ?> root) {
 
-		return root.getJoins() //
-				.stream() //
-				.filter(j -> j.getJoinType() != JoinType.INNER) //
-				.collect(Collectors.toSet());
+		return root.getJoins().stream().filter(j -> j.getJoinType() != JoinType.INNER).collect(Collectors.toSet());
+	}
+
+	private Set<Join<?, ?>> getInnerJoins(From<?, ?> root) {
+
+		return root.getJoins().stream().filter(j -> j.getJoinType() == JoinType.INNER).collect(Collectors.toSet());
 	}
 
 	@Entity

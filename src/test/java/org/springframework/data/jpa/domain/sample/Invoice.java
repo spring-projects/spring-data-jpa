@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2021 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.jpa.repository.query;
+package org.springframework.data.jpa.domain.sample;
 
-import org.springframework.test.context.ContextConfiguration;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 
 /**
- * @author Oliver Gierke
- * @author Jens Schauder
+ * @author Patrice Blanchardie
  */
-@ContextConfiguration("classpath:eclipselink.xml")
-class EclipseLinkQueryUtilsIntegrationTests extends QueryUtilsIntegrationTests {
+@Entity
+@Table(name = "INVOICES")
+public class Invoice {
 
-	int getNumberOfJoinsAfterCreatingAPath() {
-		return 1;
-	}
+	@Id Long id;
 
+	@ManyToOne(optional = false) Customer customer;
+
+	@ManyToOne Order order;
 }
