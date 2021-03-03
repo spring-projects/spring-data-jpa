@@ -44,10 +44,12 @@ import org.springframework.util.ObjectUtils;
  * @author Oliver Gierke
  * @author Mark Paluch
  */
-public class BeanDefinitionUtils {
+public final class BeanDefinitionUtils {
 
 	private static final String JNDI_OBJECT_FACTORY_BEAN = "org.springframework.jndi.JndiObjectFactoryBean";
 	private static final List<Class<?>> EMF_TYPES;
+
+	private BeanDefinitionUtils() {}
 
 	static {
 
