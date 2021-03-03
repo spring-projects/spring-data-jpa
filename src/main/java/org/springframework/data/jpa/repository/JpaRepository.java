@@ -32,6 +32,7 @@ import org.springframework.data.repository.query.QueryByExampleExecutor;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Sander Krabbenborg
+ * @author Jesse Wouters
  */
 @NoRepositoryBean
 public interface JpaRepository<T, ID> extends PagingAndSortingRepository<T, ID>, QueryByExampleExecutor<T> {
@@ -131,8 +132,22 @@ public interface JpaRepository<T, ID> extends PagingAndSortingRepository<T, ID>,
 	 * @param id must not be {@literal null}.
 	 * @return a reference to the entity with the given identifier.
 	 * @see EntityManager#getReference(Class, Object) for details on when an exception is thrown.
+	 * @deprecated use {@link JpaRepository#getById(ID)} instead.
 	 */
+	@Deprecated
 	T getOne(ID id);
+
+	/**
+	 * Returns a reference to the entity with the given identifier. Depending on how the JPA persistence provider is
+	 * implemented this is very likely to always return an instance and throw an
+	 * {@link javax.persistence.EntityNotFoundException} on first access. Some of them will reject invalid identifiers
+	 * immediately.
+	 *
+	 * @param id must not be {@literal null}.
+	 * @return a reference to the entity with the given identifier.
+	 * @see EntityManager#getReference(Class, Object) for details on when an exception is thrown.
+	 */
+	T getById(ID id);
 
 	/*
 	 * (non-Javadoc)
