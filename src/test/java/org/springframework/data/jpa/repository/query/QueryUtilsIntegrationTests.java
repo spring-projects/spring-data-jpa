@@ -116,7 +116,7 @@ public class QueryUtilsIntegrationTests {
 	}
 
 	@Test // gh-2111
-	void createsLeftJoinForOptionalToOneWithNestedNonOptional() {
+	public void createsLeftJoinForOptionalToOneWithNestedNonOptional() {
 
 		CriteriaBuilder builder = em.getCriteriaBuilder();
 		CriteriaQuery<Invoice> query = builder.createQuery(Invoice.class);
@@ -132,7 +132,7 @@ public class QueryUtilsIntegrationTests {
 	}
 
 	@Test // gh-2111
-	void createsLeftJoinForNonOptionalToOneWithNestedOptional() {
+	public void createsLeftJoinForNonOptionalToOneWithNestedOptional() {
 
 		CriteriaBuilder builder = em.getCriteriaBuilder();
 		CriteriaQuery<InvoiceItem> query = builder.createQuery(InvoiceItem.class);
@@ -151,7 +151,7 @@ public class QueryUtilsIntegrationTests {
 	}
 
 	@Test // gh-2111
-	void reusesLeftJoinForNonOptionalToOneWithNestedOptional() {
+	public void reusesLeftJoinForNonOptionalToOneWithNestedOptional() {
 
 		CriteriaBuilder builder = em.getCriteriaBuilder();
 		CriteriaQuery<InvoiceItem> query = builder.createQuery(InvoiceItem.class);
@@ -175,7 +175,7 @@ public class QueryUtilsIntegrationTests {
 	}
 
 	@Test // gh-2111
-	void reusesInnerJoinForNonOptionalToOneWithNestedOptional() {
+	public void reusesInnerJoinForNonOptionalToOneWithNestedOptional() {
 
 		CriteriaBuilder builder = em.getCriteriaBuilder();
 		CriteriaQuery<InvoiceItem> query = builder.createQuery(InvoiceItem.class);
