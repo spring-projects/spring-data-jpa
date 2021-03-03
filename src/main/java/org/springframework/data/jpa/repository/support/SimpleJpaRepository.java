@@ -74,6 +74,7 @@ import org.springframework.util.Assert;
  * @author David Madden
  * @author Moritz Becker
  * @author Sander Krabbenborg
+ * @author Jesse Wouters
  * @param <T> the type of the entity to handle
  * @param <ID> the type of the entity's identifier
  */
@@ -323,8 +324,20 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.JpaRepository#getOne(java.io.Serializable)
 	 */
+	@Deprecated
 	@Override
 	public T getOne(ID id) {
+
+		Assert.notNull(id, ID_MUST_NOT_BE_NULL);
+		return em.getReference(getDomainClass(), id);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.jpa.repository.JpaRepository#getById(java.io.Serializable)
+	 */
+	@Override
+	public T getById(ID id) {
 
 		Assert.notNull(id, ID_MUST_NOT_BE_NULL);
 		return em.getReference(getDomainClass(), id);

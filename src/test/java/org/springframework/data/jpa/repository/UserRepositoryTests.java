@@ -91,6 +91,7 @@ import com.google.common.base.Optional;
  * @author Jens Schauder
  * @author Andrey Kovalev
  * @author Sander Krabbenborg
+ * @author Jesse Wouters
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:application-context.xml")
@@ -996,6 +997,15 @@ public class UserRepositoryTests {
 		flushTestUsers();
 
 		User result = repository.getOne(firstUser.getId());
+		assertThat(result).isEqualTo(firstUser);
+	}
+
+	@Test // gh-1697
+	void looksUpEntityReferenceUsingGetById() {
+
+		flushTestUsers();
+
+		User result = repository.getById(firstUser.getId());
 		assertThat(result).isEqualTo(firstUser);
 	}
 

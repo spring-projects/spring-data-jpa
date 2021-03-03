@@ -36,6 +36,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Thomas Darimont
  * @author Oliver Gierke
  * @author Jens Schauder
+ * @author Jesse Wouters
  */
 @Transactional
 @ExtendWith(SpringExtension.class)
@@ -63,6 +64,18 @@ public class AbstractPersistableIntegrationTests {
 		em.clear();
 
 		CustomAbstractPersistable proxy = repository.getOne(entity.getId());
+
+		assertThat(proxy).isEqualTo(proxy);
+	}
+
+	@Test // gh-1697
+	void equalsWorksForProxiedEntitiesUsingGetById() {
+
+		CustomAbstractPersistable entity = repository.saveAndFlush(new CustomAbstractPersistable());
+
+		em.clear();
+
+		CustomAbstractPersistable proxy = repository.getById(entity.getId());
 
 		assertThat(proxy).isEqualTo(proxy);
 	}
