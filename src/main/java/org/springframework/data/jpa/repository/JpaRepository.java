@@ -146,6 +146,7 @@ public interface JpaRepository<T, ID> extends PagingAndSortingRepository<T, ID>,
 	 * @param id must not be {@literal null}.
 	 * @return a reference to the entity with the given identifier.
 	 * @see EntityManager#getReference(Class, Object) for details on when an exception is thrown.
+	 * @since 2.5
 	 */
 	T getById(ID id);
 
