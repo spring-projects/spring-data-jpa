@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.0.xsd">
+
+	<bean id="transactionManager" class="org.springframework.data.jpa.repository.support.NestedTransactionalRepositoryTests.DelegatingTransactionManager">
+		<constructor-arg>
+			<bean class="org.springframework.orm.jpa.JpaTransactionManager">
+				<property name="entityManagerFactory" ref="entityManagerFactory" />
+			</bean>
+		</constructor-arg>
+	</bean>
+
+	<bean id="nestingService" class="org.springframework.data.jpa.repository.support.NestedTransactionalRepositoryTests.NestingServiceImpl"/>
+
+	<tx:annotation-driven proxy-target-class="true" transaction-manager="transactionManager" />
+</beans>
