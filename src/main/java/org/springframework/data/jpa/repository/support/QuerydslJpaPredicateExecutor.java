@@ -43,7 +43,7 @@ import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.AbstractJPAQuery;
 
 /**
- * Querydsl specific fragment for extending {@link SimpleJpaRepository} with an implementation for implementation for
+ * Querydsl specific fragment for extending {@link SimpleJpaRepository} with an implementation of
  * {@link QuerydslPredicateExecutor}.
  *
  * @author Oliver Gierke
