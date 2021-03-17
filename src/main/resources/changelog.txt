@@ -1,6 +1,19 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 2.5.0-M5 (2021-03-17)
+----------------------------------------
+* #2173 - Improve JavaDoc.
+* #2169 - DATAJPA-1377 added JpaRepository.getById, deprecated JpaRepository.ge….
+* #2159 - Fix raw use of JpaSpecificationExecutor in docs.
+* #2148 - DATAJPA-1574 - Add support for saveAllAndFlush.
+* #2111 - Sorting on nested optional relations produces inner joins instead of outer joins [DATAJPA-1822].
+* #1883 - saveAndFlush could accept iterable as well [DATAJPA-1574].
+* #1850 - Seems BeanDefinitionUtils class should be abstract [DATAJPA-1540].
+* #1697 - JpaRepository.getOne(ID id) method name is inconsistent with other xById(ID id) method names [DATAJPA-1377].
+* #436 - DATAJPA-1822 - Ensure left outer join for nested optional attributes.
+
+
 Changes in version 2.4.6 (2021-03-17)
 -------------------------------------
 * #2173 - Improve JavaDoc.
@@ -2178,6 +2191,7 @@ Changes in version 1.0.0.M2 (2011-03-24) - https://jira.springsource.org/browse/
 Changes in version 1.0.0.M1 (2011-02-10) - https://jira.springsource.org/browse/DATAJPA/fixforversion/11786
 ----------------------------------------
 * Moved JPA sepcific code from Hades into Spring Data JPA (functional equivalent of Hades 2.0.2) building on common functionality in Spring Data Commons
+
 
 
 
