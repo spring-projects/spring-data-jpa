@@ -1,6 +1,14 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 2.3.8.RELEASE (2021-03-17)
+---------------------------------------------
+* #2173 - Improve JavaDoc.
+* #2159 - Fix raw use of JpaSpecificationExecutor in docs.
+* #2111 - Sorting on nested optional relations produces inner joins instead of outer joins [DATAJPA-1822].
+* #436 - DATAJPA-1822 - Ensure left outer join for nested optional attributes.
+
+
 Changes in version 2.5.0-M4 (2021-02-18)
 ----------------------------------------
 
@@ -2162,6 +2170,7 @@ Changes in version 1.0.0.M2 (2011-03-24) - https://jira.springsource.org/browse/
 Changes in version 1.0.0.M1 (2011-02-10) - https://jira.springsource.org/browse/DATAJPA/fixforversion/11786
 ----------------------------------------
 * Moved JPA sepcific code from Hades into Spring Data JPA (functional equivalent of Hades 2.0.2) building on common functionality in Spring Data Commons
+
 
 
 
