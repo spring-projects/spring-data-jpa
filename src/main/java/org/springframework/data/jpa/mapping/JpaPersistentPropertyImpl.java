@@ -101,7 +101,8 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 
 		Assert.notNull(metamodel, "Metamodel must not be null!");
 
-		this.isAssociation = Lazy.of(() -> ASSOCIATION_ANNOTATIONS.stream().anyMatch(this::isAnnotationPresent));
+		this.isAssociation = Lazy.of(() -> super.isAssociation() //
+				|| ASSOCIATION_ANNOTATIONS.stream().anyMatch(this::isAnnotationPresent));
 		this.usePropertyAccess = detectPropertyAccess();
 		this.associationTargetType = detectAssociationTargetType();
 		this.updateable = detectUpdatability();
@@ -117,7 +118,10 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 	 */
 	@Override
 	public Class<?> getActualType() {
-		return associationTargetType != null ? associationTargetType.getType() : super.getActualType();
+
+		return associationTargetType != null //
+				? associationTargetType.getType() //
+				: super.getActualType();
 	}
 
 	/* 
@@ -211,6 +215,18 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 	@Override
 	public boolean isEmbeddable() {
 		return isAnnotationPresent(Embedded.class) || hasActualTypeAnnotation(Embeddable.class);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.mapping.model.AnnotationBasedPersistentProperty#getAssociationTargetType()
+	 */
+	@Override
+	public Class<?> getAssociationTargetType() {
+
+		return associationTargetType != null //
+				? associationTargetType.getType() //
+				: super.getAssociationTargetType();
 	}
 
 	/**

@@ -243,6 +243,14 @@
 			<version>${querydsl}</version>
 			<optional>true</optional>
 		</dependency>
+		
+		<!-- jMolecules -->
+		<dependency>
+			<groupId>org.jmolecules.integrations</groupId>
+			<artifactId>jmolecules-spring</artifactId>
+			<version>${jmolecules-integration}</version>
+			<scope>test</scope>
+		</dependency>
 
 		<!-- CDI -->
 		<!-- Dependency order required to build against CDI 1.0 and test with CDI 2.0 -->
