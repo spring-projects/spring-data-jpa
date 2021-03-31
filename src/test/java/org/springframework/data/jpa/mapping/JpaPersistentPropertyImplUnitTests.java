@@ -170,6 +170,16 @@ public class JpaPersistentPropertyImplUnitTests {
 		assertThat(property.isAssociation()).isFalse();
 	}
 
+	@Test
+	void detectsJMoleculesAssociation() {
+
+		JpaPersistentEntityImpl<?> entity = context.getRequiredPersistentEntity(JMoleculesSample.class);
+		JpaPersistentProperty property = entity.getRequiredPersistentProperty("association");
+
+		assertThat(property.isAssociation()).isTrue();
+		assertThat(property.getAssociationTargetType()).isEqualTo(JMoleculesAggregate.class);
+	}
+
 	private JpaPersistentProperty getProperty(Class<?> ownerType, String propertyName) {
 
 		JpaPersistentEntity<?> entity = context.getRequiredPersistentEntity(ownerType);
@@ -293,4 +303,12 @@ public class JpaPersistentPropertyImplUnitTests {
 		@Column(updatable = false) String name;
 		String updatable;
 	}
+
+	// jMolecules
+
+	private static class JMoleculesSample {
+		Association<JMoleculesAggregate, Identifier> association;
+	}
+
+	private static interface JMoleculesAggregate extends AggregateRoot<JMoleculesAggregate, Identifier> {}
 }
