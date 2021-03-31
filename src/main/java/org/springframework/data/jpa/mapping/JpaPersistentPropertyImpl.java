@@ -124,7 +124,7 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 				: super.getActualType();
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.mapping.PersistentProperty#getPersistentEntityTypes()
 	 */
@@ -208,7 +208,7 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 		return updateable && super.isWritable();
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.mapping.JpaPersistentProperty#isEmbeddable()
 	 */
