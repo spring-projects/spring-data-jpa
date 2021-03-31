@@ -31,6 +31,9 @@ import javax.persistence.Transient;
 import javax.persistence.metamodel.ManagedType;
 import javax.persistence.metamodel.Metamodel;
 
+import org.jmolecules.ddd.types.AggregateRoot;
+import org.jmolecules.ddd.types.Association;
+import org.jmolecules.ddd.types.Identifier;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -310,5 +313,5 @@ public class JpaPersistentPropertyImplUnitTests {
 		Association<JMoleculesAggregate, Identifier> association;
 	}
 
-	private static interface JMoleculesAggregate extends AggregateRoot<JMoleculesAggregate, Identifier> {}
+	private interface JMoleculesAggregate extends AggregateRoot<JMoleculesAggregate, Identifier> {}
 }
