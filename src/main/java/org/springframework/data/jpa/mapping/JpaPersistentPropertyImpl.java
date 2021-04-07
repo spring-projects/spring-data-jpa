@@ -224,9 +224,17 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 	@Override
 	public Class<?> getAssociationTargetType() {
 
-		return associationTargetType != null //
-				? associationTargetType.getType() //
-				: super.getAssociationTargetType();
+		if (!isAssociation()) {
+			return null;
+		}
+
+		if (associationTargetType != null) {
+			return associationTargetType.getType();
+		}
+
+		Class<?> targetType = super.getAssociationTargetType();
+
+		return targetType != null ? targetType : getActualType();
 	}
 
 	/**

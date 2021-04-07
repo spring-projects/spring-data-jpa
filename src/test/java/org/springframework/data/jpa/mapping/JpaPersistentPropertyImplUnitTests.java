@@ -41,7 +41,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-
 import org.springframework.data.annotation.AccessType.Type;
 import org.springframework.data.annotation.Version;
 import org.springframework.data.util.ClassTypeInformation;
@@ -74,7 +73,9 @@ public class JpaPersistentPropertyImplUnitTests {
 	void considersOneToOneMappedPropertyAnAssociation() {
 
 		JpaPersistentProperty property = entity.getRequiredPersistentProperty("other");
+
 		assertThat(property.isAssociation()).isTrue();
+		assertThat(property.getAssociationTargetType()).isEqualTo(Sample.class);
 	}
 
 	@Test // DATAJPA-376
@@ -146,7 +147,7 @@ public class JpaPersistentPropertyImplUnitTests {
 		Iterable<? extends TypeInformation<?>> entityType = property.getPersistentEntityTypes();
 		assertThat(entityType.iterator().hasNext()).isTrue();
 		assertThat(entityType.iterator().next())
-				.isEqualTo((TypeInformation) ClassTypeInformation.from(Implementation.class));
+				.isEqualTo(ClassTypeInformation.from(Implementation.class));
 	}
 
 	@Test // DATAJPA-716
