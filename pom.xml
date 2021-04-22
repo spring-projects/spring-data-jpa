@@ -460,11 +460,6 @@
 			<id>spring-libs-milestone</id>
 			<url>https://repo.spring.io/libs-milestone</url>
 		</pluginRepository>
-		<pluginRepository>
-			<id>bintray-plugins</id>
-			<name>bintray-plugins</name>
-			<url>https://jcenter.bintray.com</url>
-		</pluginRepository>
 	</pluginRepositories>
 
 </project>
