@@ -1,0 +1,29 @@
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
+                      https://maven.apache.org/xsd/settings-1.0.0.xsd">
+
+	<servers>
+		<server>
+			<id>spring-plugins-release</id>
+			<username>${env.ARTIFACTORY_USR}</username>
+			<password>${env.ARTIFACTORY_PSW}</password>
+		</server>
+		<server>
+			<id>spring-libs-snapshot</id>
+			<username>${env.ARTIFACTORY_USR}</username>
+			<password>${env.ARTIFACTORY_PSW}</password>
+		</server>
+		<server>
+			<id>spring-libs-milestone</id>
+			<username>${env.ARTIFACTORY_USR}</username>
+			<password>${env.ARTIFACTORY_PSW}</password>
+		</server>
+		<server>
+			<id>spring-libs-release</id>
+			<username>${env.ARTIFACTORY_USR}</username>
+			<password>${env.ARTIFACTORY_PSW}</password>
+		</server>
+	</servers>
+
+</settings>

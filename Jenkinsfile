@@ -23,11 +23,14 @@ pipeline {
 				label 'data'
 			}
 			options { timeout(time: 30, unit: 'MINUTES') }
+			environment {
+				ARTIFACTORY = credentials('02bd1690-b54f-4c9f-819d-a77cb7a9822c')
+			}
 			steps {
 				script {
 					docker.withRegistry('', 'hub.docker.com-springbuildmaster') {
 						docker.image('adoptopenjdk/openjdk8:latest').inside('-v $HOME:/tmp/jenkins-home') {
-							sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw clean dependency:list test -Dsort -Dbundlor.enabled=false -U -B'
+							sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -s settings.xml clean dependency:list test -Dsort -Dbundlor.enabled=false -U -B'
 						}
 					}
 				}
@@ -47,11 +50,14 @@ pipeline {
 						label 'data'
 					}
 					options { timeout(time: 30, unit: 'MINUTES') }
+					environment {
+						ARTIFACTORY = credentials('02bd1690-b54f-4c9f-819d-a77cb7a9822c')
+					}
 					steps {
 						script {
 							docker.withRegistry('', 'hub.docker.com-springbuildmaster') {
 								docker.image('adoptopenjdk/openjdk11:latest').inside('-v $HOME:/tmp/jenkins-home') {
-									sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -Pjava11 clean dependency:list test -Dsort -Dbundlor.enabled=false -U -B'
+									sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -s settings.xml -Pjava11 clean dependency:list test -Dsort -Dbundlor.enabled=false -U -B'
 								}
 							}
 						}
@@ -63,11 +69,14 @@ pipeline {
 						label 'data'
 					}
 					options { timeout(time: 30, unit: 'MINUTES') }
+					environment {
+						ARTIFACTORY = credentials('02bd1690-b54f-4c9f-819d-a77cb7a9822c')
+					}
 					steps {
 						script {
 							docker.withRegistry('', 'hub.docker.com-springbuildmaster') {
 								docker.image('adoptopenjdk/openjdk15:latest').inside('-v $HOME:/tmp/jenkins-home') {
-									sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -Pjava11 clean dependency:list test -Dsort -Dbundlor.enabled=false -U -B'
+									sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -s settings.xml -Pjava11 clean dependency:list test -Dsort -Dbundlor.enabled=false -U -B'
 								}
 							}
 						}
@@ -144,7 +153,7 @@ pipeline {
 				script {
 					docker.withRegistry('', 'hub.docker.com-springbuildmaster') {
 						docker.image('adoptopenjdk/openjdk8:latest').inside('-v $HOME:/tmp/jenkins-home') {
-							sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -Pci,artifactory ' +
+							sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -s settings.xml -Pci,artifactory ' +
 									'-Dartifactory.server=https://repo.spring.io ' +
 									"-Dartifactory.username=${ARTIFACTORY_USR} " +
 									"-Dartifactory.password=${ARTIFACTORY_PSW} " +
@@ -174,7 +183,7 @@ pipeline {
 				script {
 					docker.withRegistry('', 'hub.docker.com-springbuildmaster') {
 						docker.image('adoptopenjdk/openjdk8:latest').inside('-v $HOME:/tmp/jenkins-home') {
-							sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -Pci,distribute ' +
+							sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -s settings.xml -Pci,distribute ' +
 									'-Dartifactory.server=https://repo.spring.io ' +
 									"-Dartifactory.username=${ARTIFACTORY_USR} " +
 									"-Dartifactory.password=${ARTIFACTORY_PSW} " +
