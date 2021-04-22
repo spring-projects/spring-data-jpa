@@ -140,8 +140,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	}
 
 	/**
-	 * Configures the {@link JpaQueryMethodFactory} to be used. Defaults to
-	 * {@link JpaQueryMethod.DefaultJpaQueryMethodFactory#INSTANCE}.
+	 * Configures the {@link JpaQueryMethodFactory} to be used. Defaults to {@link DefaultJpaQueryMethodFactory}.
 	 *
 	 * @param queryMethodFactory must not be {@literal null}.
 	 */
@@ -294,7 +293,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	 *
 	 * @author Oliver Gierke
 	 * @since 2.0.5
-	 * @see https://bugs.eclipse.org/bugs/show_bug.cgi?id=289141
+	 * @see <a href="https://bugs.eclipse.org/bugs/show_bug.cgi?id=289141">https://bugs.eclipse.org/bugs/show_bug.cgi?id=289141</a>
 	 */
 	private static class EclipseLinkProjectionQueryCreationListener implements QueryCreationListener<AbstractJpaQuery> {
 
