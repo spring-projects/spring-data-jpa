@@ -15,6 +15,8 @@
  */
 package org.springframework.data.jpa.repository.support;
 
+import static org.springframework.data.querydsl.QuerydslUtils.*;
+
 import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.Optional;
@@ -23,6 +25,7 @@ import java.util.stream.Stream;
 import javax.persistence.EntityManager;
 import javax.persistence.Tuple;
 
+import com.querydsl.core.types.EntityPath;
 import org.slf4j.Logger;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -45,9 +48,8 @@ import org.springframework.data.querydsl.SimpleEntityPathResolver;
 import org.springframework.data.repository.core.RepositoryInformation;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.core.support.QueryCreationListener;
-import org.springframework.data.repository.core.support.RepositoryComposition;
+import org.springframework.data.repository.core.support.RepositoryComposition.RepositoryFragments;
 import org.springframework.data.repository.core.support.RepositoryFactorySupport;
-import org.springframework.data.repository.core.support.RepositoryFragment;
 import org.springframework.data.repository.core.support.SurroundingTransactionDetectorMethodInterceptor;
 import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.data.repository.query.QueryLookupStrategy.Key;
@@ -56,8 +58,6 @@ import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
-
-import static org.springframework.data.querydsl.QuerydslUtils.*;
 
 /**
  * JPA specific generic repository factory.
@@ -234,9 +234,27 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	 * @see org.springframework.data.repository.core.support.RepositoryFactorySupport#getRepositoryFragments(org.springframework.data.repository.core.RepositoryMetadata)
 	 */
 	@Override
-	protected RepositoryComposition.RepositoryFragments getRepositoryFragments(RepositoryMetadata metadata) {
+	protected RepositoryFragments getRepositoryFragments(RepositoryMetadata metadata) {
 
-		RepositoryComposition.RepositoryFragments fragments = RepositoryComposition.RepositoryFragments.empty();
+		return getRepositoryFragments(metadata, entityManager, entityPathResolver,
+				crudMethodMetadataPostProcessor.getCrudMethodMetadata());
+	}
+
+	/**
+	 * Creates {@link RepositoryFragments} based on {@link RepositoryMetadata} to add JPA-specific extensions. Typically
+	 * adds a {@link QuerydslJpaPredicateExecutor} if the repository interface uses Querydsl.
+	 * <p>
+	 * Can be overridden by subclasses to customize {@link RepositoryFragments}.
+	 *
+	 * @param metadata repository metadata.
+	 * @param entityManager the entity manager.
+	 * @param resolver resolver to translate an plain domain class into a {@link EntityPath}.
+	 * @param crudMethodMetadata metadata about the invoked CRUD methods.
+	 * @return
+	 * @since 2.5.1
+	 */
+	protected RepositoryFragments getRepositoryFragments(RepositoryMetadata metadata, EntityManager entityManager,
+			EntityPathResolver resolver, CrudMethodMetadata crudMethodMetadata) {
 
 		boolean isQueryDslRepository = QUERY_DSL_PRESENT
 				&& QuerydslPredicateExecutor.class.isAssignableFrom(metadata.getRepositoryInterface());
@@ -248,15 +266,11 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 						"Cannot combine Querydsl and reactive repository support in a single interface");
 			}
 
-			JpaEntityInformation<?, Serializable> entityInformation = getEntityInformation(metadata.getDomainType());
-
-			Object querydslFragment = getTargetRepositoryViaReflection(QuerydslJpaPredicateExecutor.class, entityInformation,
-					entityManager, entityPathResolver, crudMethodMetadataPostProcessor.getCrudMethodMetadata());
-
-			fragments = fragments.append(RepositoryFragment.implemented(querydslFragment));
+			return RepositoryFragments.just(new QuerydslJpaPredicateExecutor<>(getEntityInformation(metadata.getDomainType()),
+					entityManager, resolver, crudMethodMetadata));
 		}
 
-		return fragments;
+		return RepositoryFragments.empty();
 	}
 
 	private static boolean hasMethodReturningStream(Class<?> repositoryClass) {
