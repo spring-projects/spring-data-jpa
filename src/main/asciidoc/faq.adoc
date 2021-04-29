@@ -2,6 +2,7 @@
 [appendix]
 = Frequently Asked Questions
 
+[[faq.common]]
 == Common
 
 [qanda]
@@ -21,6 +22,7 @@ I'd like to get more detailed logging information on what methods are called ins
 </aop:config>
 ----
 
+[[faq.infrastructure]]
 == Infrastructure
 
 [qanda]
@@ -36,6 +38,7 @@ Currently I have implemented a repository layer based on `HibernateDaoSupport`. 
 ----
 ====
 
+[[faq.auditing]]
 == Auditing
 
 [qanda]
