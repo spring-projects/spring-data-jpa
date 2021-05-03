@@ -869,7 +869,12 @@ include::query-by-example.adoc[leveloffset=+1]
 [[transactions]]
 == Transactionality
 
-By default, CRUD methods on repository instances are transactional. For read operations, the transaction configuration `readOnly` flag is set to `true`.  All others are configured with a plain `@Transactional` so that default transaction configuration applies. For details, see JavaDoc of link:$$https://docs.spring.io/spring-data/data-jpa/docs/current/api/index.html?org/springframework/data/jpa/repository/support/SimpleJpaRepository.html$$[`SimpleJpaRepository`]. If you need to tweak transaction configuration for one of the methods declared in a repository, redeclare the method in your repository interface, as follows:
+By default, CRUD methods on repository instances inherited from link:$$https://docs.spring.io/spring-data/data-jpa/docs/current/api/org/springframework/data/jpa/repository/support/SimpleJpaRepository.html$$[`SimpleJpaRepository`] are transactional.
+For read operations, the transaction configuration `readOnly` flag is set to `true`.
+All others are configured with a plain `@Transactional` so that default transaction configuration applies.
+Repository methods that are backed by transactional repository fragments inherit the transactional attributes from the actual fragment method.
+
+If you need to tweak transaction configuration for one of the methods declared in a repository, redeclare the method in your repository interface, as follows:
 
 .Custom transaction configuration for CRUD
 ====
@@ -894,12 +899,11 @@ Another way to alter transactional behaviour is to use a facade or service imple
 [source, java]
 ----
 @Service
-class UserManagementImpl implements UserManagement {
+public class UserManagementImpl implements UserManagement {
 
   private final UserRepository userRepository;
   private final RoleRepository roleRepository;
 
-  @Autowired
   public UserManagementImpl(UserRepository userRepository,
     RoleRepository roleRepository) {
     this.userRepository = userRepository;
@@ -915,6 +919,7 @@ class UserManagementImpl implements UserManagement {
       user.addRole(role);
       userRepository.save(user);
     }
+  }
 }
 ----
 This example causes call to `addRoleToAllUsers(…)` to run inside a transaction (participating in an existing one or creating a new one if none are already running). The transaction configuration at the repositories is then neglected, as the outer transaction configuration determines the actual one used. Note that you must activate `<tx:annotation-driven />` or use `@EnableTransactionManagement` explicitly to get annotation-based configuration of facades to work.
@@ -925,6 +930,7 @@ Note that the call to `save` is not strictly necessary from a JPA point of view,
 
 [[transactional-query-methods]]
 === Transactional query methods
+
 To let your query methods be transactional, use `@Transactional` at the repository interface you define, as shown in the following example:
 
 .Using @Transactional at query methods
@@ -932,7 +938,7 @@ To let your query methods be transactional, use `@Transactional` at the reposito
 [source, java]
 ----
 @Transactional(readOnly = true)
-public interface UserRepository extends JpaRepository<User, Long> {
+interface UserRepository extends JpaRepository<User, Long> {
 
   List<User> findByLastname(String lastname);
 
