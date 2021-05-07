@@ -21,7 +21,7 @@ include::{spring-data-commons-docs}/repositories.adoc[leveloffset=+1]
 [[reference]]
 == Reference Documentation
 
-include::jpa.adoc[leveloffset=+1]
+include::jpa.adoc[leveloffset=+2]
 
 [[appendix]]
 == Appendix
