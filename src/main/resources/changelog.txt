@@ -1,6 +1,13 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 2.5.1 (2021-05-14)
+-------------------------------------
+* #2207 - Improve wording on transactional methods inherited from `SimpleJpaRepository` and repository fragments.
+* #2202 - Introduce template method for easier customization of fragments.
+* #2129 - Missing anchor on "Custom Namespace Attributes" causes TOC to break.
+
+
 Changes in version 2.4.9 (2021-05-14)
 -------------------------------------
 * #2207 - Improve wording on transactional methods inherited from `SimpleJpaRepository` and repository fragments.
@@ -2228,6 +2235,7 @@ Changes in version 1.0.0.M2 (2011-03-24) - https://jira.springsource.org/browse/
 Changes in version 1.0.0.M1 (2011-02-10) - https://jira.springsource.org/browse/DATAJPA/fixforversion/11786
 ----------------------------------------
 * Moved JPA sepcific code from Hades into Spring Data JPA (functional equivalent of Hades 2.0.2) building on common functionality in Spring Data Commons
+
 
 
 
