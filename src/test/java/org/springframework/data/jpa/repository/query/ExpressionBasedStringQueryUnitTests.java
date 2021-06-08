@@ -31,6 +31,7 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
  * @author Oliver Gierke
  * @author Jens Schauder
  * @author Mark Paluch
+ * @author Michael J. Simons
  */
 @RunWith(MockitoJUnitRunner.class)
 public class ExpressionBasedStringQueryUnitTests {
@@ -62,11 +63,24 @@ public class ExpressionBasedStringQueryUnitTests {
 	public void shouldDetectBindParameterCountCorrectly() {
 
 		StringQuery query = new ExpressionBasedStringQuery(
-				"select n from NetworkServer n where (LOWER(n.name) LIKE LOWER(NULLIF(text(concat('%',:#{#networkRequest.name},'%')), '')) OR :#{#networkRequest.name} IS NULL )\"\n"
+				"select n from #{#entityName} n where (LOWER(n.name) LIKE LOWER(NULLIF(text(concat('%',:#{#networkRequest.name},'%')), '')) OR :#{#networkRequest.name} IS NULL )\"\n"
 						+ "+ \"AND (LOWER(n.server) LIKE LOWER(NULLIF(text(concat('%',:#{#networkRequest.server},'%')), '')) OR :#{#networkRequest.server} IS NULL)\"\n"
 						+ "+ \"AND (n.createdAt >= :#{#networkRequest.createdTime.startDateTime}) AND (n.createdAt <=:#{#networkRequest.createdTime.endDateTime})\"\n"
 						+ "+ \"AND (n.updatedAt >= :#{#networkRequest.updatedTime.startDateTime}) AND (n.updatedAt <=:#{#networkRequest.updatedTime.endDateTime})",
 				metadata, SPEL_PARSER);
+
+		assertThat(query.getParameterBindings()).hasSize(8);
+	}
+
+	@Test // GH-2228
+	void shouldDetectBindParameterCountCorrectlyWithJDBCStyleParameters() {
+
+		StringQuery query = new ExpressionBasedStringQuery(
+			"select n from #{#entityName} n where (LOWER(n.name) LIKE LOWER(NULLIF(text(concat('%',?#{#networkRequest.name},'%')), '')) OR ?#{#networkRequest.name} IS NULL )\"\n"
+			+ "+ \"AND (LOWER(n.server) LIKE LOWER(NULLIF(text(concat('%',?#{#networkRequest.server},'%')), '')) OR ?#{#networkRequest.server} IS NULL)\"\n"
+			+ "+ \"AND (n.createdAt >= ?#{#networkRequest.createdTime.startDateTime}) AND (n.createdAt <=?#{#networkRequest.createdTime.endDateTime})\"\n"
+			+ "+ \"AND (n.updatedAt >= ?#{#networkRequest.updatedTime.startDateTime}) AND (n.updatedAt <=?#{#networkRequest.updatedTime.endDateTime})",
+			metadata, SPEL_PARSER);
 
 		assertThat(query.getParameterBindings()).hasSize(8);
 	}
