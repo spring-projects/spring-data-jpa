@@ -47,6 +47,7 @@
 		<class>org.springframework.data.jpa.domain.sample.Dummy</class>
 		<class>org.springframework.data.jpa.domain.sample.SampleWithIdClassIncludingEntity</class>
 		<class>org.springframework.data.jpa.domain.sample.SampleWithIdClassIncludingEntity$OtherEntity</class>
+		<class>org.springframework.data.jpa.domain.sample.Loop</class>
 		<exclude-unlisted-classes>true</exclude-unlisted-classes>
 	</persistence-unit>
 	<persistence-unit name="querydsl">
