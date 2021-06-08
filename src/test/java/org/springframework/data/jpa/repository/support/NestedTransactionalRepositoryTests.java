@@ -15,7 +15,7 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
@@ -27,10 +27,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.domain.sample.Site;
-import org.springframework.data.jpa.domain.sample.User;
-import org.springframework.data.jpa.repository.sample.SiteRepository;
-import org.springframework.data.jpa.repository.support.TransactionalRepositoryTests.DelegatingTransactionManager;
+import org.springframework.data.jpa.domain.sample.Loop;
+import org.springframework.data.jpa.repository.sample.LoopRepository;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -44,8 +42,8 @@ import org.springframework.transaction.annotation.Transactional;
  * Integration test for transactional behaviour with nested transactions.<br>
  * Based on the {@link TransactionalRepositoryTests}.
  *
- * @author Oliver Gierke
- * @author Jens Schauder
+ * @author Oliver Gierke (TransactionalRepositoryTests)
+ * @author Jens Schauder (TransactionalRepositoryTests)
  * @author Lachezar Dobrev
  */
 @ExtendWith(SpringExtension.class)
@@ -56,11 +54,11 @@ public class NestedTransactionalRepositoryTests {
 
 	@Autowired NestingService service;
 
-	private Integer siteId;
+	private Integer loopId;
 
 	@BeforeEach
 	void setUp() {
-		siteId = service.init();
+		loopId = service.init();
 		// Reset counter
 		transactionManager.resetCount();
 	}
@@ -138,11 +136,13 @@ public class NestedTransactionalRepositoryTests {
 		public int[] readEntityMultipleTimesSupports(Integer id);
 		@Transactional(propagation = Propagation.REQUIRED, readOnly = true)
 		public int[] readEntityMultipleTimesRequired(Integer id);
+		@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+		public int countLoopChildren(Integer id);
 	}
 
 	@Test
 	public void testRequired() {
-		int[] ints = service.readEntityMultipleTimesRequired(siteId);
+		int[] ints = service.readEntityMultipleTimesRequired(loopId);
 		// All Identity Hash Codes must be the same object
 		assertThat(ints[1]).isEqualTo(ints[0]);
 		assertThat(ints[2]).isEqualTo(ints[0]);
@@ -155,7 +155,7 @@ public class NestedTransactionalRepositoryTests {
 
 	@Test
 	public void testSupports() {
-		int[] ints = service.readEntityMultipleTimesSupports(siteId);
+		int[] ints = service.readEntityMultipleTimesSupports(loopId);
 		// All Identity Hash Codes must be the same object
 		assertThat(ints[1]).isEqualTo(ints[0]);
 		assertThat(ints[2]).isEqualTo(ints[0]);
@@ -166,21 +166,37 @@ public class NestedTransactionalRepositoryTests {
 		assertThat(transactionManager.getTransactionsCreated()).isEqualTo(0);
 	}
 
+	@Test
+	public void testSupportLazyLoad() {
+		int count = service.countLoopChildren(loopId);
+		// Transaction Manager should have been called 1 time for service + 1 time repository
+		assertThat(transactionManager.getTransactionRequests()).isEqualTo(2);
+		// No transactions must have been created
+		assertThat(transactionManager.getTransactionsCreated()).isEqualTo(0);
+		// The lazy collection must have 1 element
+		assertThat(count).isEqualTo(1);
+	}
+
 	public static class NestingServiceImpl implements NestingService {
 		@PersistenceContext
 		private EntityManager entityManager;
 
 		@Autowired
-		private SiteRepository repository;
+		private LoopRepository repository;
 
 		@PostConstruct
 		void create() {
-			//repository = new JpaRepositoryFactory(entityManager).getRepository(SiteRepository.class);
+			//repository = new JpaRepositoryFactory(entityManager).getRepository(LoopRepository.class);
 		}
 
 		@Override
 		public Integer init() {
-			return repository.saveAndFlush(new Site()).getId();
+			Loop loop = new Loop();
+			// Needs initialised identifier
+			loop = repository.saveAndFlush(loop);
+			loop.setParent(loop);
+			repository.save(loop);
+			return loop.getId();
 		}
 
 		@Override
@@ -200,11 +216,16 @@ public class NestedTransactionalRepositoryTests {
 
 		int[] readEntityMultipleTimes(Integer id) {
 			int[] ints = new int[4];
-			ints[0] = System.identityHashCode(entityManager.find(Site.class, id));
-			ints[1] = System.identityHashCode(entityManager.find(Site.class, id));
+			ints[0] = System.identityHashCode(entityManager.find(Loop.class, id));
+			ints[1] = System.identityHashCode(entityManager.find(Loop.class, id));
 			ints[2] = System.identityHashCode(repository.findById(id).get());
 			ints[3] = System.identityHashCode(repository.findById(id).get());
 			return ints;
+		}
+
+		@Override
+		public int countLoopChildren(Integer id) {
+			return repository.findById(id).get().getChildren().size();
 		}
 
 	}
