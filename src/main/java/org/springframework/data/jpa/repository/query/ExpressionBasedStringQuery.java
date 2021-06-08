@@ -42,8 +42,8 @@ class ExpressionBasedStringQuery extends StringQuery {
 	private static final String EXPRESSION_PARAMETER = "$1#{";
 	private static final String QUOTED_EXPRESSION_PARAMETER = "$1__HASH__{";
 
-	private static final Pattern EXPRESSION_PARAMETER_QUOTING = Pattern.compile("([:\\?])#\\{");
-	private static final Pattern EXPRESSION_PARAMETER_UNQUOTING = Pattern.compile("([:\\?])__HASH__\\{");
+	private static final Pattern EXPRESSION_PARAMETER_QUOTING = Pattern.compile("([:?])#\\{");
+	private static final Pattern EXPRESSION_PARAMETER_UNQUOTING = Pattern.compile("([:?])__HASH__\\{");
 
 	private static final String ENTITY_NAME = "entityName";
 	private static final String ENTITY_NAME_VARIABLE = "#" + ENTITY_NAME;
