@@ -73,7 +73,7 @@ public class ExpressionBasedStringQueryUnitTests {
 	}
 
 	@Test // GH-2228
-	void shouldDetectBindParameterCountCorrectlyWithJDBCStyleParameters() {
+	public void shouldDetectBindParameterCountCorrectlyWithJDBCStyleParameters() {
 
 		StringQuery query = new ExpressionBasedStringQuery(
 			"select n from #{#entityName} n where (LOWER(n.name) LIKE LOWER(NULLIF(text(concat('%',?#{#networkRequest.name},'%')), '')) OR ?#{#networkRequest.name} IS NULL )\"\n"
