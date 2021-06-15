@@ -655,7 +655,6 @@ The following example shows how to reference a named entity graph on a repositor
 ====
 [source, java]
 ----
-@Repository
 public interface GroupRepository extends CrudRepository<GroupInfo, String> {
 
   @EntityGraph(value = "GroupInfo.detail", type = EntityGraphType.LOAD)
@@ -671,7 +670,6 @@ It is also possible to define ad hoc entity graphs by using `@EntityGraph`. The 
 ====
 [source, java]
 ----
-@Repository
 public interface GroupRepository extends CrudRepository<GroupInfo, String> {
 
   @EntityGraph(attributePaths = { "members" })
