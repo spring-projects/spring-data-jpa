@@ -1,0 +1,1 @@
+NOTE: Class based projections do not work with native queries. As a workaround you may use named queries with `ResultSetMapping` or the Hibernate specific https://docs.jboss.org/hibernate/orm/6.0/javadocs/org/hibernate/transform/ResultTransformer.html[`ResultTransformer`]
