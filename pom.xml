@@ -23,7 +23,7 @@
 
 		<eclipselink>2.7.8</eclipselink>
 		<hibernate>5.4.29.Final</hibernate>
-		<mockito>3.8.0</mockito>
+		<mockito>3.11.1</mockito>
 		<vavr>0.10.3</vavr>
 		<hibernate.groupId>org.hibernate</hibernate.groupId>
 		<springdata.commons>2.4.10-SNAPSHOT</springdata.commons>
