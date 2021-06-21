@@ -22,7 +22,7 @@
 		<dist.key>DATAJPA</dist.key>
 
 		<eclipselink>2.7.9</eclipselink>
-		<hibernate>5.4.29.Final</hibernate>
+		<hibernate>5.5.2.Final</hibernate>
 		<mockito>3.11.1</mockito>
 		<vavr>0.10.3</vavr>
 		<hibernate.groupId>org.hibernate</hibernate.groupId>
