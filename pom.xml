@@ -21,7 +21,7 @@
 
 		<dist.key>DATAJPA</dist.key>
 
-		<eclipselink>2.7.8</eclipselink>
+		<eclipselink>2.7.9</eclipselink>
 		<hibernate>5.4.32.Final</hibernate>
 		<mockito>3.11.1</mockito>
 		<vavr>0.10.3</vavr>
