@@ -23,7 +23,6 @@
 
 		<eclipselink>2.7.9</eclipselink>
 		<hibernate>5.5.2.Final</hibernate>
-		<mockito>3.11.1</mockito>
 		<vavr>0.10.3</vavr>
 		<hibernate.groupId>org.hibernate</hibernate.groupId>
 		<springdata.commons>2.6.0-SNAPSHOT</springdata.commons>
@@ -238,7 +237,7 @@
 			<version>${querydsl}</version>
 			<optional>true</optional>
 		</dependency>
-		
+
 		<!-- jMolecules -->
 		<dependency>
 			<groupId>org.jmolecules.integrations</groupId>
