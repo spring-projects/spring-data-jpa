@@ -81,7 +81,7 @@ public interface JpaRepository<T, ID> extends PagingAndSortingRepository<T, ID>,
 	/**
 	 * Saves all entities and flushes changes instantly.
 	 *
-	 * @param entities entities to be deleted. Must not be {@literal null}.
+	 * @param entities entities to be saved. Must not be {@literal null}.
 	 * @return the saved entities
 	 * @since 2.5
 	 */
