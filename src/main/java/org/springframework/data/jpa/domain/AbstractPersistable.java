@@ -33,12 +33,11 @@ import org.springframework.lang.Nullable;
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Mark Paluch
+ * @author Greg Turnquist
  * @param <PK> the type of the identifier.
  */
 @MappedSuperclass
 public abstract class AbstractPersistable<PK extends Serializable> implements Persistable<PK> {
-
-	private static final long serialVersionUID = -5554308939380869754L;
 
 	@Id @GeneratedValue private @Nullable PK id;
 
