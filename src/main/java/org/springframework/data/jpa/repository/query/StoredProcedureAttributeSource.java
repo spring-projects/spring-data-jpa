@@ -18,7 +18,9 @@ package org.springframework.data.jpa.repository.query;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.persistence.NamedStoredProcedureQueries;
 import javax.persistence.NamedStoredProcedureQuery;
@@ -28,6 +30,7 @@ import javax.persistence.StoredProcedureParameter;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -40,6 +43,7 @@ import org.springframework.util.StringUtils;
  * @author Diego Diez
  * @author Jeff Sheets
  * @author Gabriel Basilio
+ * @author Greg Turnquist
  * @since 1.6
  */
 enum StoredProcedureAttributeSource {
@@ -69,9 +73,9 @@ enum StoredProcedureAttributeSource {
 		}
 
 		String procedureName = deriveProcedureNameFrom(method, procedure);
-		if (StringUtils.isEmpty(procedureName)) {
-			throw new IllegalArgumentException("Could not determine name of procedure for @Procedure annotated method: "
-					+ method);
+		if (ObjectUtils.isEmpty(procedureName)) {
+			throw new IllegalArgumentException(
+					"Could not determine name of procedure for @Procedure annotated method: " + method);
 		}
 
 		return new StoredProcedureAttributes(procedureName, createOutputProcedureParameterFrom(method, procedure));
@@ -96,42 +100,57 @@ enum StoredProcedureAttributeSource {
 	}
 
 	/**
+	 * Extract procedure attributes from method and procedure.
+	 *
 	 * @param method
 	 * @param namedStoredProc
 	 * @param procedure
 	 * @return
 	 */
-	private StoredProcedureAttributes newProcedureAttributesFrom(Method method,
-			NamedStoredProcedureQuery namedStoredProc, Procedure procedure) {
+	private StoredProcedureAttributes newProcedureAttributesFrom(Method method, NamedStoredProcedureQuery namedStoredProc,
+			Procedure procedure) {
 
-		List<ProcedureParameter> outputParameters = new ArrayList<>();
+		List<ProcedureParameter> outputParameters;
 
 		if (!procedure.outputParameterName().isEmpty()) {
+
 			// we give the output parameter definition from the @Procedure annotation precedence
-			outputParameters.add(createOutputProcedureParameterFrom(method, procedure));
+			outputParameters = Collections.singletonList(createOutputProcedureParameterFrom(method, procedure));
 		} else {
 
 			// try to discover the output parameter
-			List<StoredProcedureParameter> namedProcedureOutputParameters = extractOutputParametersFrom(namedStoredProc);
-
-			for (StoredProcedureParameter outputParameter : namedProcedureOutputParameters) {
-				outputParameters.add(new ProcedureParameter(
-						outputParameter.name(), outputParameter.mode(), outputParameter.type()));
-			}
+			outputParameters = extractOutputParametersFrom(namedStoredProc).stream() //
+					.map(namedParameter -> new ProcedureParameter(namedParameter.name(), namedParameter.mode(),
+							namedParameter.type())) //
+					.collect(Collectors.toList());
 		}
 
 		return new StoredProcedureAttributes(namedStoredProc.name(), outputParameters, true);
 	}
 
+	/**
+	 * Create a {@link ProcedureParameter} from relevant {@link Method} and {@link Procedure}.
+	 *
+	 * @param method
+	 * @param procedure
+	 * @return
+	 */
 	private ProcedureParameter createOutputProcedureParameterFrom(Method method, Procedure procedure) {
+
 		return new ProcedureParameter(procedure.outputParameterName(),
-				procedure.refCursor() ? ParameterMode.REF_CURSOR : ParameterMode.OUT,
-				method.getReturnType());
+				procedure.refCursor() ? ParameterMode.REF_CURSOR : ParameterMode.OUT, method.getReturnType());
 	}
 
+	/**
+	 * Translate all the {@Link NamedStoredProcedureQuery} parameters into a {@link List} of
+	 * {@link StoredProcedureParameter}s.
+	 *
+	 * @param namedStoredProc
+	 * @return
+	 */
 	private List<StoredProcedureParameter> extractOutputParametersFrom(NamedStoredProcedureQuery namedStoredProc) {
 
-		List<StoredProcedureParameter> outputParameters = new ArrayList<StoredProcedureParameter>();
+		List<StoredProcedureParameter> outputParameters = new ArrayList<>();
 
 		for (StoredProcedureParameter param : namedStoredProc.parameters()) {
 
@@ -190,9 +209,12 @@ enum StoredProcedureAttributeSource {
 	 * @param procedure
 	 * @return
 	 */
-	private String derivedNamedProcedureNameFrom(Method method, JpaEntityMetadata<?> entityMetadata, Procedure procedure) {
-		return StringUtils.hasText(procedure.name()) ? procedure.name() : entityMetadata.getEntityName() + "."
-				+ method.getName();
+	private String derivedNamedProcedureNameFrom(Method method, JpaEntityMetadata<?> entityMetadata,
+			Procedure procedure) {
+
+		return StringUtils.hasText(procedure.name()) //
+				? procedure.name() //
+				: entityMetadata.getEntityName() + "." + method.getName();
 	}
 
 	/**
@@ -201,7 +223,7 @@ enum StoredProcedureAttributeSource {
 	 */
 	private List<NamedStoredProcedureQuery> collectNamedStoredProcedureQueriesFrom(Class<?> entityType) {
 
-		List<NamedStoredProcedureQuery> queries = new ArrayList<NamedStoredProcedureQuery>();
+		List<NamedStoredProcedureQuery> queries = new ArrayList<>();
 
 		NamedStoredProcedureQueries namedQueriesAnnotation = AnnotatedElementUtils.findMergedAnnotation(entityType,
 				NamedStoredProcedureQueries.class);

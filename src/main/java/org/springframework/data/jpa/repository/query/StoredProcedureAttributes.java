@@ -15,15 +15,15 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import org.springframework.lang.Nullable;
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
-
-import javax.persistence.StoredProcedureQuery;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
+import javax.persistence.StoredProcedureQuery;
+
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * Stored procedure configuration for JPA 2.1 {@link StoredProcedureQuery}s.
@@ -48,7 +48,7 @@ class StoredProcedureAttributes {
 	/**
 	 * Creates a new {@link StoredProcedureAttributes}.
 	 *
-	 * @param procedureName        must not be {@literal null}.
+	 * @param procedureName must not be {@literal null}.
 	 */
 	StoredProcedureAttributes(String procedureName, ProcedureParameter parameter) {
 		this(procedureName, Collections.singletonList(parameter), false);
@@ -57,14 +57,16 @@ class StoredProcedureAttributes {
 	/**
 	 * Creates a new {@link StoredProcedureAttributes}.
 	 *
-	 * @param procedureName        must not be {@literal null}.
+	 * @param procedureName must not be {@literal null}.
 	 * @param namedStoredProcedure flag signaling if the stored procedure has a name.
 	 */
-	StoredProcedureAttributes(String procedureName, List<ProcedureParameter> outputProcedureParameters, boolean namedStoredProcedure) {
+	StoredProcedureAttributes(String procedureName, List<ProcedureParameter> outputProcedureParameters,
+			boolean namedStoredProcedure) {
 
 		Assert.notNull(procedureName, "ProcedureName must not be null!");
 		Assert.notNull(outputProcedureParameters, "OutputProcedureParameters must not be null!");
-		Assert.isTrue(outputProcedureParameters.size() != 1 || outputProcedureParameters.get(0) != null, "ProcedureParameters must not have size 1 with a null value");
+		Assert.isTrue(outputProcedureParameters.size() != 1 || outputProcedureParameters.get(0) != null,
+				"ProcedureParameters must not have size 1 with a null value");
 
 		this.procedureName = procedureName;
 		this.namedStoredProcedure = namedStoredProcedure;
@@ -77,15 +79,16 @@ class StoredProcedureAttributes {
 	}
 
 	private List<ProcedureParameter> getParametersWithCompletedNames(List<ProcedureParameter> procedureParameters) {
-		return IntStream.range(0, procedureParameters.size())
-				.mapToObj(i -> getParameterWithCompletedName(procedureParameters.get(i), i))
+
+		return IntStream.range(0, procedureParameters.size()) //
+				.mapToObj(i -> getParameterWithCompletedName(procedureParameters.get(i), i)) //
 				.collect(Collectors.toList());
 	}
 
 	private ProcedureParameter getParameterWithCompletedName(ProcedureParameter parameter, int i) {
-		return new ProcedureParameter(
-				completeOutputParameterName(i, parameter.getName()),
-				parameter.getMode(), parameter.getType());
+
+		return new ProcedureParameter(completeOutputParameterName(i, parameter.getName()), parameter.getMode(),
+				parameter.getType());
 	}
 
 	private String completeOutputParameterName(int i, String paramName) {
@@ -130,6 +133,7 @@ class StoredProcedureAttributes {
 	 * @return
 	 */
 	public boolean hasReturnValue() {
+
 		if (getOutputProcedureParameters().isEmpty())
 			return false;
 

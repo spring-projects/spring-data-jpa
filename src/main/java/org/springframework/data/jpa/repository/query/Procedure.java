@@ -54,7 +54,7 @@ public @interface Procedure {
 	String outputParameterName() default "";
 
 	/**
-	 * Whether the procedure returns a Ref Cursor from the database {@code false}.
+	 * Whether the procedure returns a Ref Cursor from the database - defaults to {@code false}.
 	 */
 	boolean refCursor() default false;
 }

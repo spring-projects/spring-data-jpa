@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,23 +16,27 @@
 
 package org.springframework.data.jpa.repository.query;
 
-import org.springframework.lang.Nullable;
+import java.util.Objects;
 
 import javax.persistence.ParameterMode;
 
+import org.springframework.lang.Nullable;
+
 /**
- * This class represents a Stored Procedure Parameter
- * and an instance of the annotation {@link javax.persistence.StoredProcedureParameter}.
+ * This class represents a Stored Procedure Parameter and an instance of the annotation
+ * {@link javax.persistence.StoredProcedureParameter}.
  *
  * @author Gabriel Basilio
+ * @author Greg Turnquist
  */
-public class ProcedureParameter {
+class ProcedureParameter {
 
 	private final String name;
 	private final ParameterMode mode;
 	private final Class<?> type;
 
-	public ProcedureParameter(@Nullable String name, ParameterMode mode, Class<?> type) {
+	ProcedureParameter(@Nullable String name, ParameterMode mode, Class<?> type) {
+
 		this.name = name;
 		this.mode = mode;
 		this.type = type;
@@ -48,5 +52,30 @@ public class ProcedureParameter {
 
 	public Class<?> getType() {
 		return type;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+
+		if (this == o) {
+			return true;
+		}
+
+		if (!(o instanceof ProcedureParameter)) {
+			return false;
+		}
+
+		ProcedureParameter that = (ProcedureParameter) o;
+		return Objects.equals(name, that.name) && mode == that.mode && Objects.equals(type, that.type);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(name, mode, type);
+	}
+
+	@Override
+	public String toString() {
+		return "ProcedureParameter{" + "name='" + name + '\'' + ", mode=" + mode + ", type=" + type + '}';
 	}
 }

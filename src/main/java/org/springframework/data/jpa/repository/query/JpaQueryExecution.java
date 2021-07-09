@@ -54,6 +54,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Nicolas Cirigliano
  * @author Jens Schauder
  * @author Gabriel Basilio
+ * @author Greg Turnquist
  */
 public abstract class JpaQueryExecution {
 
@@ -319,19 +320,16 @@ public abstract class JpaQueryExecution {
 			boolean returnsResultSet = storedProcedure.execute();
 
 			if (returnsResultSet) {
-				if (!SurroundingTransactionDetectorMethodInterceptor.INSTANCE.isSurroundingTransactionActive())
+
+				if (!SurroundingTransactionDetectorMethodInterceptor.INSTANCE.isSurroundingTransactionActive()) {
 					throw new InvalidDataAccessApiUsageException(NO_SURROUNDING_TRANSACTION);
-
-				List<?> result = storedProcedure.getResultList();
-
-				if (!storedProcedureJpaQuery.getQueryMethod().isCollectionQuery()) {
-					if (result.isEmpty())
-						return null;
-					if (result.size() == 1)
-						return result.get(0);
 				}
 
-				return result;
+				if (storedProcedureJpaQuery.getQueryMethod().isCollectionQuery()) {
+					return storedProcedure.getResultList();
+				} else {
+					return storedProcedure.getSingleResult();
+				}
 			}
 
 			return storedProcedureJpaQuery.extractOutputValue(storedProcedure);

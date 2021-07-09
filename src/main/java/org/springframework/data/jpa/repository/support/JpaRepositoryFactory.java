@@ -69,6 +69,8 @@ import com.querydsl.core.types.EntityPath;
  * @author Jens Schauder
  * @author Stefan Fussenegger
  * @author Réda Housni Alaoui
+ * @author Gabriel Basilio
+ * @author Greg Turnquist
  */
 public class JpaRepositoryFactory extends RepositoryFactorySupport {
 
@@ -214,6 +216,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	@Override
 	protected Optional<QueryLookupStrategy> getQueryLookupStrategy(@Nullable Key key,
 			QueryMethodEvaluationContextProvider evaluationContextProvider) {
+
 		return Optional.of(JpaQueryLookupStrategy.create(entityManager, queryMethodFactory, key, evaluationContextProvider,
 				escapeCharacter));
 	}
