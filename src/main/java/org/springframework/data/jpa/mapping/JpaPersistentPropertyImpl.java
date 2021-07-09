@@ -39,7 +39,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
- * {@link JpaPersistentProperty} implementation usind a JPA {@link Metamodel}.
+ * {@link JpaPersistentProperty} implementation using a JPA {@link Metamodel}.
  *
  * @author Oliver Gierke
  * @author Thomas Darimont
@@ -130,10 +130,19 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 	 */
 	@Override
 	public Iterable<? extends TypeInformation<?>> getPersistentEntityTypes() {
+		return getPersistentEntityTypeInformation();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.mapping.model.AbstractPersistentProperty#getPersistentEntityTypeInformation()
+	 */
+	@Override
+	public Iterable<? extends TypeInformation<?>> getPersistentEntityTypeInformation() {
 
 		return associationTargetType != null //
 				? Collections.singleton(associationTargetType) //
-				: super.getPersistentEntityTypes();
+				: super.getPersistentEntityTypeInformation();
 	}
 
 	/*
@@ -219,22 +228,22 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.mapping.model.AnnotationBasedPersistentProperty#getAssociationTargetType()
+	 * @see org.springframework.data.mapping.model.AnnotationBasedPersistentProperty#getAssociationTargetTypeInformation()
 	 */
 	@Override
-	public Class<?> getAssociationTargetType() {
+	public TypeInformation<?> getAssociationTargetTypeInformation() {
 
 		if (!isAssociation()) {
 			return null;
 		}
 
 		if (associationTargetType != null) {
-			return associationTargetType.getType();
+			return associationTargetType;
 		}
 
-		Class<?> targetType = super.getAssociationTargetType();
+		TypeInformation<?> targetType = super.getAssociationTargetTypeInformation();
 
-		return targetType != null ? targetType : getActualType();
+		return targetType != null ? targetType : getActualTypeInformation();
 	}
 
 	/**

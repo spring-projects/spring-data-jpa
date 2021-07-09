@@ -144,7 +144,7 @@ public class JpaPersistentPropertyImplUnitTests {
 		assertThat(property.getType()).isEqualTo(Api.class);
 		assertThat(property.getActualType()).isEqualTo(Implementation.class);
 
-		Iterable<? extends TypeInformation<?>> entityType = property.getPersistentEntityTypes();
+		Iterable<? extends TypeInformation<?>> entityType = property.getPersistentEntityTypeInformation();
 		assertThat(entityType.iterator().hasNext()).isTrue();
 		assertThat(entityType.iterator().next())
 				.isEqualTo(ClassTypeInformation.from(Implementation.class));
