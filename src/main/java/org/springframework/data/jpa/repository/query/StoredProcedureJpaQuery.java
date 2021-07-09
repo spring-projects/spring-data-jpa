@@ -228,7 +228,7 @@ class StoredProcedureJpaQuery extends AbstractJpaQuery {
 	}
 
 	/**
-	 * Does this stored procedure has a {@link java.sql.ResultSet} using {@link ParameterMode#REF_CURSOR}?
+	 * Does this stored procedure have a {@link java.sql.ResultSet} using {@link ParameterMode#REF_CURSOR}?
 	 * 
 	 * @param procedureOutput
 	 * @return
