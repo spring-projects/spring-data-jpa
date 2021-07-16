@@ -1,6 +1,27 @@
 Spring Data JPA Changelog
 =========================
 
+Changes in version 2.6.0-M1 (2021-07-16)
+----------------------------------------
+* #2257 - Upgrade to Hibernate 5.5.3.Final.
+* #2254 - Adapt to consolidated PersistentEntity API.
+* #2251 - Small mistake in Documentation.
+* #2247 - Remove explicit version for Mockito, so we use the one of Spring Data Build.
+* #2245 - Drop serialVersionUID from AbstractPersistable.
+* #2239 - Use Spring nullability annotations instead of JSR305.
+* #2234 - Spring Data documentation examples have wrong annotations.
+* #2231 - Fix build failures with Java 16.
+* #2230 - Error in documentation regarding manually assigned identifiers in "Entity State-detection Strategies" when there is a Version property.
+* #2228 - ExpressionBasedStringQuery does not quote all parameter expressions.
+* #2218 - Unused org.aspectj:aspectjrt compile time dependency.
+* #2207 - Improve wording on transactional methods inherited from `SimpleJpaRepository` and repository fragments.
+* #2202 - Introduce template method for easier customization of fragments.
+* #2184 - Update CI to Java 16.
+* #2129 - Missing anchor on "Custom Namespace Attributes" causes TOC to break.
+* #2009 - Document that DTOs don't work with native queries [DATAJPA-1714].
+* #1959 - @Procedure annotation doesn't work with cursors (NULL when using REF_CURSOR) and ResultSets that don't come from cursors [DATAJPA-1657].
+
+
 Changes in version 2.4.11 (2021-07-16)
 --------------------------------------
 * #2245 - Drop serialVersionUID from AbstractPersistable.
@@ -2256,6 +2277,7 @@ Changes in version 1.0.0.M2 (2011-03-24) - https://jira.springsource.org/browse/
 Changes in version 1.0.0.M1 (2011-02-10) - https://jira.springsource.org/browse/DATAJPA/fixforversion/11786
 ----------------------------------------
 * Moved JPA sepcific code from Hades into Spring Data JPA (functional equivalent of Hades 2.0.2) building on common functionality in Spring Data Commons
+
 
 
 
