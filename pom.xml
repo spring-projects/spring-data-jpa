@@ -23,9 +23,12 @@
 
 		<eclipselink>2.7.9</eclipselink>
 		<hibernate>5.5.3.Final</hibernate>
-		<vavr>0.10.3</vavr>
-		<hibernate.groupId>org.hibernate</hibernate.groupId>
+		<mysql-connector-java>8.0.23</mysql-connector-java>
+		<postgresql>42.2.19</postgresql>
 		<springdata.commons>2.6.0-SNAPSHOT</springdata.commons>
+		<vavr>0.10.3</vavr>
+
+		<hibernate.groupId>org.hibernate</hibernate.groupId>
 
 		<java-module-name>spring.data.jpa</java-module-name>
 
@@ -34,6 +37,43 @@
 	</properties>
 
 	<profiles>
+		<profile>
+			<id>all-dbs</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-surefire-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>mysql-test</id>
+								<phase>test</phase>
+								<goals>
+									<goal>test</goal>
+								</goals>
+								<configuration>
+									<includes>
+										<include>**/MySql*IntegrationTests.java</include>
+									</includes>
+								</configuration>
+							</execution>
+							<execution>
+								<id>postgres-test</id>
+								<phase>test</phase>
+								<goals>
+									<goal>test</goal>
+								</goals>
+								<configuration>
+									<includes>
+										<include>**/Postgres*IntegrationTests.java</include>
+									</includes>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
 		<profile>
 			<id>hibernate-next</id>
 			<properties>
@@ -116,6 +156,18 @@
 		</profile>
 	</profiles>
 
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.testcontainers</groupId>
+				<artifactId>testcontainers-bom</artifactId>
+				<version>${testcontainers}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
 	<dependencies>
 
 		<dependency>
@@ -184,6 +236,40 @@
 			<groupId>org.hsqldb</groupId>
 			<artifactId>hsqldb</artifactId>
 			<version>2.5.1</version>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- MySQL testing support -->
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<version>${mysql-connector-java}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>mysql</artifactId>
+			<scope>test</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>jcl-over-slf4j</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<!-- Postgres testing support -->
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<version>${postgresql}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>postgresql</artifactId>
 			<scope>test</scope>
 		</dependency>
 
@@ -325,6 +411,7 @@
 				</dependencies>
 				<executions>
 					<execution>
+						<!-- override the default-test execution and exclude everything -->
 						<id>default-test</id>
 						<configuration>
 							<excludes>
@@ -333,7 +420,7 @@
 						</configuration>
 					</execution>
 					<execution>
-						<id>unit-tests</id>
+						<id>unit-test</id>
 						<goals>
 							<goal>test</goal>
 						</goals>
@@ -345,7 +432,7 @@
 						</configuration>
 					</execution>
 					<execution>
-						<id>integration-tests</id>
+						<id>integration-test</id>
 						<goals>
 							<goal>test</goal>
 						</goals>
@@ -359,6 +446,8 @@
 								<exclude>**/*UnitTests.java</exclude>
 								<exclude>**/OpenJpa*</exclude>
 								<exclude>**/EclipseLink*</exclude>
+								<exclude>**/MySql*</exclude>
+								<exclude>**/Postgres*</exclude>
 							</excludes>
 							<argLine>
 								-javaagent:${settings.localRepository}/org/springframework/spring-instrument/${spring}/spring-instrument-${spring}.jar
@@ -367,7 +456,7 @@
 						</configuration>
 					</execution>
 					<execution>
-						<id>eclipselink-tests</id>
+						<id>eclipselink-test</id>
 						<goals>
 							<goal>test</goal>
 						</goals>

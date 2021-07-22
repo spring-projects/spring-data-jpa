@@ -24,13 +24,16 @@ pipeline {
 			}
 			options { timeout(time: 30, unit: 'MINUTES') }
 			environment {
+				DOCKER_HUB = credentials('hub.docker.com-springbuildmaster')
 				ARTIFACTORY = credentials('02bd1690-b54f-4c9f-819d-a77cb7a9822c')
 			}
 			steps {
 				script {
 					docker.withRegistry('', 'hub.docker.com-springbuildmaster') {
-						docker.image('adoptopenjdk/openjdk8:latest').inside('-v $HOME:/tmp/jenkins-home') {
-							sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -s settings.xml clean dependency:list test -Dsort -Dbundlor.enabled=false -U -B'
+						docker.image('adoptopenjdk/openjdk8:latest').inside('-u root -v /var/run/docker.sock:/var/run/docker.sock -v /usr/bin/docker:/usr/bin/docker -v $HOME:/tmp/jenkins-home') {
+							sh "docker login --username ${DOCKER_HUB_USR} --password ${DOCKER_HUB_PSW}"
+							sh 'PROFILE=all-dbs ci/test.sh'
+							sh "ci/clean.sh"
 						}
 					}
 				}
