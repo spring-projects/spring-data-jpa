@@ -59,6 +59,7 @@ import org.springframework.util.ObjectUtils;
  * @author Mark Paluch
  * @author Oliver Gierke
  * @author Jens Schauder
+ * @author Yanming Zhou
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -272,7 +273,15 @@ class QueryByExamplePredicateBuilderUnitTests {
 		verify(cb, times(1)).like(any(Expression.class), eq("%f\\\\o\\_o"), eq('\\'));
 	}
 
-	@SuppressWarnings("unused")
+	@Test // GH-2282
+	void returnNullIfNotMatched() {
+
+		Person p = new Person();
+
+		assertThat(QueryByExamplePredicateBuilder.getPredicate(root, cb, of(p), EscapeCharacter.DEFAULT, true))
+				.isNull();
+	}
+
 	static class Person {
 
 		@Id Long id;
@@ -284,14 +293,12 @@ class QueryByExamplePredicateBuilderUnitTests {
 		Skill skill;
 	}
 
-	@SuppressWarnings("unused")
 	static class Address {
 
 		String city;
 		String country;
 	}
 
-	@SuppressWarnings("unused")
 	static class Skill {
 
 		@Id Long id;

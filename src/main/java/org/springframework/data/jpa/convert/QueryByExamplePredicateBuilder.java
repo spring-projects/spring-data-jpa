@@ -56,6 +56,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Paluch
  * @author Oliver Gierke
  * @author Jens Schauder
+ * @author Yanming Zhou
  * @since 1.10
  */
 public class QueryByExamplePredicateBuilder {
@@ -92,6 +93,22 @@ public class QueryByExamplePredicateBuilder {
 	 */
 	public static <T> Predicate getPredicate(Root<T> root, CriteriaBuilder cb, Example<T> example,
 			EscapeCharacter escapeCharacter) {
+		return getPredicate(root, cb, example, escapeCharacter, false);
+	}
+
+	/**
+	 * Extract the {@link Predicate} representing the {@link Example}.
+	 *
+	 * @param root must not be {@literal null}.
+	 * @param cb must not be {@literal null}.
+	 * @param example must not be {@literal null}.
+	 * @param escapeCharacter Must not be {@literal null}.
+	 * @param returnNullIfNotMatched Pass {@literal true} to return null instead of constant true predicate.
+	 * @return {@literal null} if returnNullIfNotMatched is {@literal true}.
+	 */
+	@Nullable
+	public static <T> Predicate getPredicate(Root<T> root, CriteriaBuilder cb, Example<T> example,
+				EscapeCharacter escapeCharacter, boolean returnNullIfNotMatched) {
 
 		Assert.notNull(root, "Root must not be null!");
 		Assert.notNull(cb, "CriteriaBuilder must not be null!");
@@ -104,7 +121,7 @@ public class QueryByExamplePredicateBuilder {
 				escapeCharacter);
 
 		if (predicates.isEmpty()) {
-			return cb.isTrue(cb.literal(true));
+			return returnNullIfNotMatched ? null : cb.isTrue(cb.literal(true));
 		}
 
 		if (predicates.size() == 1) {

@@ -75,6 +75,7 @@ import org.springframework.util.Assert;
  * @author Moritz Becker
  * @author Sander Krabbenborg
  * @author Jesse Wouters
+ * @author Yanming Zhou
  * @param <T> the type of the entity to handle
  * @param <ID> the type of the entity's identifier
  */
@@ -935,9 +936,10 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		 * (non-Javadoc)
 		 * @see org.springframework.data.jpa.domain.Specification#toPredicate(javax.persistence.criteria.Root, javax.persistence.criteria.CriteriaQuery, javax.persistence.criteria.CriteriaBuilder)
 		 */
+		@Nullable
 		@Override
 		public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
-			return QueryByExamplePredicateBuilder.getPredicate(root, cb, example, escapeCharacter);
+			return QueryByExamplePredicateBuilder.getPredicate(root, cb, example, escapeCharacter, true);
 		}
 	}
 }
