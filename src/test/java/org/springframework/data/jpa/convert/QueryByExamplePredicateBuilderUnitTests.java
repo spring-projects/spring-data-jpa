@@ -59,6 +59,7 @@ import org.springframework.util.ObjectUtils;
  * @author Mark Paluch
  * @author Oliver Gierke
  * @author Jens Schauder
+ * @author Jhonatan Serafim
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -70,7 +71,7 @@ class QueryByExamplePredicateBuilderUnitTests {
 	@Mock EntityType<Person> personEntityType;
 	@Mock EntityType<Skill> skillEntityType;
 	@Mock Expression expressionMock;
-	@Mock Predicate truePredicate, dummyPredicate, andPredicate, orPredicate;
+	@Mock Predicate truePredicate, dummyPredicate, andPredicate, orPredicate, nullPredicate;
 	@Mock Path dummyPath;
 	@Mock Join from;
 
@@ -79,6 +80,7 @@ class QueryByExamplePredicateBuilderUnitTests {
 
 	private SingularAttribute<? super Person, Long> personIdAttribute;
 	private SingularAttribute<? super Person, String> personFirstnameAttribute;
+	private SingularAttribute<? super Person, String> personLastnameAttribute;
 	private SingularAttribute<? super Person, Long> personAgeAttribute;
 	private SingularAttribute<? super Person, Person> personFatherAttribute;
 	private SingularAttribute<? super Person, Skill> personSkillAttribute;
@@ -91,6 +93,8 @@ class QueryByExamplePredicateBuilderUnitTests {
 
 		personIdAttribute = new SingularAttributeStub<>("id", PersistentAttributeType.BASIC, Long.class);
 		personFirstnameAttribute = new SingularAttributeStub<>("firstname", PersistentAttributeType.BASIC,
+				String.class);
+		personLastnameAttribute = new SingularAttributeStub<>("lastname", PersistentAttributeType.BASIC,
 				String.class);
 		personAgeAttribute = new SingularAttributeStub<>("age", PersistentAttributeType.BASIC, Long.class);
 		personFatherAttribute = new SingularAttributeStub<>("father", PersistentAttributeType.MANY_TO_ONE,
@@ -107,6 +111,7 @@ class QueryByExamplePredicateBuilderUnitTests {
 		personEntityAttribtues = new LinkedHashSet<>();
 		personEntityAttribtues.add(personIdAttribute);
 		personEntityAttribtues.add(personFirstnameAttribute);
+		personEntityAttribtues.add(personLastnameAttribute);
 		personEntityAttribtues.add(personAgeAttribute);
 		personEntityAttribtues.add(personFatherAttribute);
 		personEntityAttribtues.add(personAddressAttribute);
@@ -129,9 +134,11 @@ class QueryByExamplePredicateBuilderUnitTests {
 		doReturn(dummyPredicate).when(cb).like(any(Expression.class), any(String.class), anyChar());
 
 		doReturn(expressionMock).when(cb).literal(any(Boolean.class));
-		doReturn(truePredicate).when(cb).isTrue(eq(expressionMock));
+		doReturn(truePredicate).when(cb).isTrue(expressionMock);
 		doReturn(andPredicate).when(cb).and(ArgumentMatchers.any());
 		doReturn(orPredicate).when(cb).or(ArgumentMatchers.any());
+		doReturn(nullPredicate).when(cb).isNull(ArgumentMatchers.any());
+		doReturn(expressionMock).when(cb).lower(ArgumentMatchers.any());
 	}
 
 	@Test // DATAJPA-218
@@ -272,11 +279,105 @@ class QueryByExamplePredicateBuilderUnitTests {
 		verify(cb, times(1)).like(any(Expression.class), eq("%f\\\\o\\_o"), eq('\\'));
 	}
 
+	@Test // DATAJPA-2291
+	void multiPredicateCriteriaShouldReturnCombinedOnesUsingOrOperatorAndAndOperator() {
+
+		// ((firstname = 'foo' or lastname = 'oof') and age = 2)
+		Person p = new Person();
+		p.firstname = "foo";
+		p.lastname = "oof";
+		p.age = 2L;
+
+		Example<Person> example = of(
+				p,
+				ExampleMatcher
+						.matchingAll()
+						.withMatcher("firstname", GenericPropertyMatcher::exact)
+						.withGroupSpecifier("firstname", "grouped", ExampleMatcher.MatchMode.ANY)
+						.withMatcher("lastname", GenericPropertyMatcher::exact)
+						.withGroupSpecifier("lastname", "grouped", ExampleMatcher.MatchMode.ANY)
+						.withMatcher("age", GenericPropertyMatcher::exact)
+		);
+
+		assertThat(QueryByExamplePredicateBuilder.getPredicate(root, cb, example, EscapeCharacter.DEFAULT))
+				.isEqualTo(andPredicate);
+
+		verify(cb, times(1)).equal(any(Expression.class), eq("foo"));
+		verify(cb, times(1)).equal(any(Expression.class), eq("oof"));
+		verify(cb, times(1)).equal(any(Expression.class), eq(2L));
+		verify(cb, times(1)).or(new Predicate[]{any(Predicate.class), any(Predicate.class)});
+		verify(cb, times(1)).and(new Predicate[]{any(Predicate.class), any(Predicate.class)});
+	}
+
+	@Test // DATAJPA-2291
+	void multiPredicateCriteriaShouldReturnCombinedOnesUsingAndOperatorAndOrOperator() {
+
+		// ((firstname = 'foo' and lastname = 'oof') or age = 2)
+		Person p = new Person();
+		p.firstname = "foo";
+		p.lastname = "oof";
+		p.age = 2L;
+
+		Example<Person> example = of(
+				p,
+				ExampleMatcher
+						.matchingAny()
+						.withMatcher("firstname", matcher -> matcher.exact().groupSpecifier("grouped",
+								ExampleMatcher.MatchMode.ALL))
+						.withMatcher("lastname", matcher -> matcher.exact().groupSpecifier("grouped",
+								ExampleMatcher.MatchMode.ALL))
+						.withMatcher("age", GenericPropertyMatcher::exact)
+		);
+
+		assertThat(QueryByExamplePredicateBuilder.getPredicate(root, cb, example, EscapeCharacter.DEFAULT))
+				.isEqualTo(orPredicate);
+
+		verify(cb, times(1)).equal(any(Expression.class), eq("foo"));
+		verify(cb, times(1)).equal(any(Expression.class), eq("oof"));
+		verify(cb, times(1)).equal(any(Expression.class), eq(2L));
+		verify(cb, times(1)).and(new Predicate[]{any(Predicate.class), any(Predicate.class)});
+		verify(cb, times(1)).or(new Predicate[]{any(Predicate.class), any(Predicate.class)});
+	}
+
+	@Test // DATAJPA-2291
+	void singleElementCriteriaShouldUseNullHandler() {
+
+		Person p = new Person();
+
+		Example<Person> example = of(
+				p,
+				ExampleMatcher.matching().withIncludeNullValues()
+						.withIgnorePaths("id", "lastname", "age", "father", "address", "skill")
+		);
+
+		assertThat(QueryByExamplePredicateBuilder.getPredicate(root, cb, example, EscapeCharacter.DEFAULT))
+				.isEqualTo(nullPredicate);
+		verify(cb, times(1)).isNull(any(Expression.class));
+	}
+
+	@Test // DATAJPA-2291
+	void singleElementCriteriaShouldUseIgnoreCase() {
+
+		Person p = new Person();
+		p.firstname = "foo";
+
+		Example<Person> example = of(
+				p,
+				ExampleMatcher.matching().withMatcher("firstname", matcher -> matcher.ignoreCase().exact())
+		);
+
+		assertThat(QueryByExamplePredicateBuilder.getPredicate(root, cb, example, EscapeCharacter.DEFAULT))
+				.isEqualTo(dummyPredicate);
+		verify(cb, times(1)).lower(any(Expression.class));
+		verify(cb, times(1)).equal(any(Expression.class), eq("foo"));
+	}
+
 	@SuppressWarnings("unused")
 	static class Person {
 
 		@Id Long id;
 		String firstname;
+		String lastname;
 		Long age;
 
 		Person father;

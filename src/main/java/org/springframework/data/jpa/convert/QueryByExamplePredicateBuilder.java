@@ -17,7 +17,9 @@ package org.springframework.data.jpa.convert;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -35,6 +37,7 @@ import javax.persistence.metamodel.SingularAttribute;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
+import org.springframework.data.domain.ExampleMatcher.GroupSpecifier;
 import org.springframework.data.domain.ExampleMatcher.PropertyValueTransformer;
 import org.springframework.data.jpa.repository.query.EscapeCharacter;
 import org.springframework.data.support.ExampleMatcherAccessor;
@@ -56,6 +59,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Paluch
  * @author Oliver Gierke
  * @author Jens Schauder
+ * @author Jhonatan Serafim
  * @since 1.10
  */
 public class QueryByExamplePredicateBuilder {
@@ -99,9 +103,29 @@ public class QueryByExamplePredicateBuilder {
 
 		ExampleMatcher matcher = example.getMatcher();
 
-		List<Predicate> predicates = getPredicates("", cb, root, root.getModel(), example.getProbe(),
-				example.getProbeType(), new ExampleMatcherAccessor(matcher), new PathNode("root", null, example.getProbe()),
-				escapeCharacter);
+		Map<GroupSpecifier, List<Predicate>> groupedPredicates = new HashMap<>();
+
+		populateGroupedPredicates(groupedPredicates, "", cb, root, root.getModel(), example.getProbe(),
+				example.getProbeType(), new ExampleMatcherAccessor(matcher),
+				new PathNode("root", null, example.getProbe()), escapeCharacter);
+
+		List<Predicate> predicates = new ArrayList<>();
+
+		for (Map.Entry<GroupSpecifier, List<Predicate>> entry : groupedPredicates.entrySet()) {
+
+			List<Predicate> value = entry.getValue();
+
+			if (value.isEmpty()) {
+				continue;
+			}
+
+			if (value.size() == 1) {
+				predicates.addAll(value);
+			} else {
+				Predicate[] array = value.toArray(new Predicate[0]);
+				predicates.add(entry.getKey().isAllMatching() ? cb.and(array) : cb.or(array));
+			}
+		}
 
 		if (predicates.isEmpty()) {
 			return cb.isTrue(cb.literal(true));
@@ -117,11 +141,11 @@ public class QueryByExamplePredicateBuilder {
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	static List<Predicate> getPredicates(String path, CriteriaBuilder cb, Path<?> from, ManagedType<?> type, Object value,
-			Class<?> probeType, ExampleMatcherAccessor exampleAccessor, PathNode currentNode,
-			EscapeCharacter escapeCharacter) {
+	static void populateGroupedPredicates(Map<GroupSpecifier, List<Predicate>> groupedPredicates, String path,
+										  CriteriaBuilder cb, Path<?> from, ManagedType<?> type, Object value,
+										  Class<?> probeType, ExampleMatcherAccessor exampleAccessor,
+										  PathNode currentNode, EscapeCharacter escapeCharacter) {
 
-		List<Predicate> predicates = new ArrayList<>();
 		DirectFieldAccessFallbackBeanWrapper beanWrapper = new DirectFieldAccessFallbackBeanWrapper(value);
 
 		for (SingularAttribute attribute : type.getSingularAttributes()) {
@@ -131,6 +155,9 @@ public class QueryByExamplePredicateBuilder {
 			if (exampleAccessor.isIgnoredPath(currentPath)) {
 				continue;
 			}
+
+			GroupSpecifier groupSpecifier = exampleAccessor.getGroupSpecifierForPath(currentPath);
+ 			List<Predicate> predicates = groupedPredicates.computeIfAbsent(groupSpecifier, k -> new ArrayList<>());
 
 			PropertyValueTransformer transformer = exampleAccessor.getValueTransformerForPath(currentPath);
 			Optional<Object> optionalValue = transformer
@@ -149,9 +176,9 @@ public class QueryByExamplePredicateBuilder {
 			if (attribute.getPersistentAttributeType().equals(PersistentAttributeType.EMBEDDED)
 					|| (isAssociation(attribute) && !(from instanceof From))) {
 
-				predicates
-						.addAll(getPredicates(currentPath, cb, from.get(attribute.getName()), (ManagedType<?>) attribute.getType(),
-								attributeValue, probeType, exampleAccessor, currentNode, escapeCharacter));
+				populateGroupedPredicates(groupedPredicates, currentPath, cb, from.get(attribute.getName()),
+						(ManagedType<?>) attribute.getType(), attributeValue, probeType, exampleAccessor, currentNode,
+						escapeCharacter);
 				continue;
 			}
 
@@ -164,8 +191,9 @@ public class QueryByExamplePredicateBuilder {
 									ClassUtils.getShortName(probeType), node));
 				}
 
-				predicates.addAll(getPredicates(currentPath, cb, ((From<?, ?>) from).join(attribute.getName()),
-						(ManagedType<?>) attribute.getType(), attributeValue, probeType, exampleAccessor, node, escapeCharacter));
+				populateGroupedPredicates(groupedPredicates, currentPath, cb, ((From<?, ?>) from).join(attribute.getName()),
+						(ManagedType<?>) attribute.getType(), attributeValue, probeType, exampleAccessor, node,
+						escapeCharacter);
 
 				continue;
 			}
@@ -213,8 +241,6 @@ public class QueryByExamplePredicateBuilder {
 				predicates.add(cb.equal(from.get(attribute), attributeValue));
 			}
 		}
-
-		return predicates;
 	}
 
 	private static boolean isAssociation(Attribute<?, ?> attribute) {
