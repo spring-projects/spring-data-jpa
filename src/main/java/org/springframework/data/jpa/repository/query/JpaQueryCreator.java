@@ -322,7 +322,7 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extend
 					return type.equals(IS_NOT_EMPTY) ? builder.isNotEmpty(collectionPath) : builder.isEmpty(collectionPath);
 
 				default:
-					throw new IllegalArgumentException("Unsupported keyword " + type);
+					throw new IllegalArgumentException("Unsupported keyword " + type.name() + " by JPA");
 			}
 		}
 
