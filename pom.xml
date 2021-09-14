@@ -384,6 +384,22 @@
 			</plugin>
 
 			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>java-test-compile</id>
+						<phase>test-compile</phase>
+						<goals>
+							<goal>testCompile</goal>
+						</goals>
+						<configuration>
+							<parameters>false</parameters>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
 				<groupId>io.starter</groupId>
 				<artifactId>aspectj-maven-plugin</artifactId>
 				<version>1.12.9</version>
@@ -404,6 +420,7 @@
 						<goals>
 							<goal>compile</goal>
 						</goals>
+						<phase>process-classes</phase>
 					</execution>
 				</executions>
 				<configuration>
