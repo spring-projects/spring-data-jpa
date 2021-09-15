@@ -41,7 +41,7 @@ import org.springframework.lang.Nullable;
  * @author Mark Paluch
  * @since 1.6
  */
-class JpaMetamodelMappingContextFactoryBean extends AbstractFactoryBean<JpaMetamodelMappingContext>
+public class JpaMetamodelMappingContextFactoryBean extends AbstractFactoryBean<JpaMetamodelMappingContext>
 		implements ApplicationContextAware {
 
 	private static final Logger LOG = LoggerFactory.getLogger(JpaMetamodelMappingContextFactoryBean.class);
