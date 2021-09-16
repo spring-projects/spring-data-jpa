@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
@@ -47,11 +48,16 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.convert.QueryByExamplePredicateBuilder;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.query.EscapeCharacter;
 import org.springframework.data.jpa.repository.query.QueryUtils;
 import org.springframework.data.jpa.repository.support.QueryHints.NoHints;
+import org.springframework.data.mapping.PersistentEntity;
+import org.springframework.data.mapping.PersistentProperty;
+import org.springframework.data.mapping.context.MappingContext;
+import org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery;
 import org.springframework.data.repository.support.PageableExecutionUtils;
 import org.springframework.data.util.ProxyUtils;
 import org.springframework.data.util.Streamable;
@@ -64,6 +70,8 @@ import org.springframework.util.Assert;
  * Default implementation of the {@link org.springframework.data.repository.CrudRepository} interface. This will offer
  * you a more sophisticated interface than the plain {@link EntityManager} .
  *
+ * @param <T> the type of the entity to handle
+ * @param <ID> the type of the entity's identifier
  * @author Oliver Gierke
  * @author Eberhard Wolff
  * @author Thomas Darimont
@@ -75,8 +83,7 @@ import org.springframework.util.Assert;
  * @author Moritz Becker
  * @author Sander Krabbenborg
  * @author Jesse Wouters
- * @param <T> the type of the entity to handle
- * @param <ID> the type of the entity's identifier
+ * @author Greg Turnquist
  */
 @Repository
 @Transactional(readOnly = true)
@@ -87,6 +94,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	private final JpaEntityInformation<T, ?> entityInformation;
 	private final EntityManager em;
 	private final PersistenceProvider provider;
+	private final MappingContext<? extends PersistentEntity<?, ?>, ? extends PersistentProperty<?>> context;
 
 	private @Nullable CrudMethodMetadata metadata;
 	private EscapeCharacter escapeCharacter = EscapeCharacter.DEFAULT;
@@ -105,6 +113,9 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		this.entityInformation = entityInformation;
 		this.em = entityManager;
 		this.provider = PersistenceProvider.fromEntityManager(entityManager);
+		this.context = em.getMetamodel() != null //
+				? new JpaMetamodelMappingContext(Collections.singleton(em.getMetamodel())) //
+				: null;
 	}
 
 	/**
@@ -567,8 +578,29 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.CrudRepository#count()
+	 * @see org.springframework.data.repository.query.QueryByExampleExecutor#findBy(org.springframework.data.domain.Example, java.util.function.Function)
 	 */
+	@Override
+	public <S extends T, R> R findBy(Example<S> example, Function<FetchableFluentQuery<S>, R> queryFunction) {
+
+		Function<Sort, TypedQuery<S>> finder = sort -> {
+
+			ExampleSpecification<S> spec = new ExampleSpecification<>(example, escapeCharacter);
+			Class<S> probeType = example.getProbeType();
+
+			return getQuery(spec, probeType, sort);
+		};
+
+		FetchableFluentQuery<S> fluentQuery = new FetchableFluentQueryByExample<>(example, finder, this::count,
+				this::exists, this.context, this.em, this.escapeCharacter);
+
+		return queryFunction.apply(fluentQuery);
+	}
+
+	/*
+	* (non-Javadoc)
+	* @see org.springframework.data.repository.CrudRepository#count()
+	*/
 	@Override
 	public long count() {
 		return em.createQuery(getCountQueryString(), Long.class).getSingleResult();
@@ -872,8 +904,8 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * {@link SimpleJpaRepository#findAllById(Iterable)}. Workaround for OpenJPA not binding collections to in-clauses
 	 * correctly when using by-name binding.
 	 *
-	 * @see <a href="https://issues.apache.org/jira/browse/OPENJPA-2018?focusedCommentId=13924055">OPENJPA-2018</a>
 	 * @author Oliver Gierke
+	 * @see <a href="https://issues.apache.org/jira/browse/OPENJPA-2018?focusedCommentId=13924055">OPENJPA-2018</a>
 	 */
 	@SuppressWarnings("rawtypes")
 	private static final class ByIdsSpecification<T> implements Specification<T> {
@@ -905,9 +937,9 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * {@link Specification} that gives access to the {@link Predicate} instance representing the values contained in the
 	 * {@link Example}.
 	 *
+	 * @param <T>
 	 * @author Christoph Strobl
 	 * @since 1.10
-	 * @param <T>
 	 */
 	private static class ExampleSpecification<T> implements Specification<T> {
 

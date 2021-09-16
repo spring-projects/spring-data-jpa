@@ -16,18 +16,21 @@
 package org.springframework.data.jpa.repository.support;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.springframework.data.domain.Example.*;
+import static org.springframework.data.domain.ExampleMatcher.*;
+
+import lombok.Data;
 
 import java.sql.Date;
+import java.time.LocalDate;
 import java.util.List;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
-import java.time.LocalDate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -58,6 +61,7 @@ import com.querydsl.core.types.dsl.PathBuilderFactory;
  * @author Mark Paluch
  * @author Christoph Strobl
  * @author Malte Mauelshagen
+ * @author Greg Turnquist
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration({ "classpath:infrastructure.xml" })
@@ -325,7 +329,15 @@ class QuerydslJpaRepositoryTests {
 
 	@Test // DATAJPA-1115
 	void findOneWithPredicateThrowsExceptionForNonUniqueResults() {
+
 		assertThatExceptionOfType(IncorrectResultSizeDataAccessException.class)
 				.isThrownBy(() -> repository.findOne(user.emailAddress.contains("com")));
+	}
+
+	@Test // GH-2294
+	void findByFluentQuery() {
+
+		assertThatExceptionOfType(UnsupportedOperationException.class)
+				.isThrownBy(() -> repository.findBy(user.firstname.eq("Dave"), q -> q.sortBy(Sort.by("firstname")).all()));
 	}
 }

@@ -18,6 +18,7 @@ package org.springframework.data.jpa.repository.support;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
@@ -30,6 +31,7 @@ import org.springframework.data.querydsl.EntityPathResolver;
 import org.springframework.data.querydsl.QSort;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import org.springframework.data.querydsl.SimpleEntityPathResolver;
+import org.springframework.data.repository.query.FluentQuery;
 import org.springframework.data.repository.support.PageableExecutionUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -46,13 +48,14 @@ import com.querydsl.jpa.impl.AbstractJPAQuery;
  * QueryDsl specific extension of {@link SimpleJpaRepository} which adds implementation for
  * {@link QuerydslPredicateExecutor}.
  *
- * @deprecated Instead of this class use {@link QuerydslJpaPredicateExecutor}
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Mark Paluch
  * @author Jocelyn Ntakpe
  * @author Christoph Strobl
  * @author Jens Schauder
+ * @author Greg Turnquist
+ * @deprecated Instead of this class use {@link QuerydslJpaPredicateExecutor}
  */
 @Deprecated
 public class QuerydslJpaRepository<T, ID extends Serializable> extends SimpleJpaRepository<T, ID>
@@ -162,6 +165,13 @@ public class QuerydslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 		JPQLQuery<T> query = querydsl.applyPagination(pageable, createQuery(predicate).select(path));
 
 		return PageableExecutionUtils.getPage(query.fetch(), pageable, countQuery::fetchCount);
+	}
+
+	@Override
+	public <S extends T, R> R findBy(Predicate predicate,
+			Function<FluentQuery.FetchableFluentQuery<S>, R> queryFunction) {
+		throw new UnsupportedOperationException(
+				"Fluent Query API support for Querydsl is only found in QuerydslJpaPredicateExecutor.");
 	}
 
 	/*

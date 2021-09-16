@@ -15,8 +15,11 @@
  */
 package org.springframework.data.jpa.repository.support;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
@@ -25,10 +28,12 @@ import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.querydsl.EntityPathResolver;
 import org.springframework.data.querydsl.QSort;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
+import org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery;
 import org.springframework.data.repository.support.PageableExecutionUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -51,6 +56,7 @@ import com.querydsl.jpa.impl.AbstractJPAQuery;
  * @author Jocelyn Ntakpe
  * @author Christoph Strobl
  * @author Jens Schauder
+ * @author Greg Turnquist
  */
 public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecutor<T> {
 
@@ -80,9 +86,9 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 	}
 
 	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.querydsl.QuerydslPredicateExecutor#findOne(com.mysema.query.types.Predicate)
-	 */
+	* (non-Javadoc)
+	* @see org.springframework.data.querydsl.QuerydslPredicateExecutor#findOne(com.mysema.query.types.Predicate)
+	*/
 	@Override
 	public Optional<T> findOne(Predicate predicate) {
 
@@ -161,10 +167,45 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 		return PageableExecutionUtils.getPage(query.fetch(), pageable, countQuery::fetchCount);
 	}
 
+	@Override
+	public <S extends T, R> R findBy(Predicate predicate, Function<FetchableFluentQuery<S>, R> queryFunction) {
+
+		Assert.notNull(predicate, "Predicate must not be null!");
+		Assert.notNull(queryFunction, "Function must not be null!");
+
+		Function<Sort, JPQLQuery<T>> finder = sort -> {
+			JPQLQuery<T> select = createQuery(predicate).select(path);
+
+			if (sort != null) {
+				select = querydsl.applySorting(sort, select);
+			}
+
+			return select;
+		};
+
+		BiFunction<Sort, Pageable, JPQLQuery<T>> pagedFinder = (sort, pageable) -> {
+
+			JPQLQuery<T> select = finder.apply(sort);
+
+			if (pageable.isPaged()) {
+				select = querydsl.applyPagination(pageable, select);
+			}
+
+			return select;
+		};
+
+		FetchableFluentQuery<S> fluentQuery = (FetchableFluentQuery<S>) new FetchableFluentQueryByPredicate<>(predicate,
+				entityInformation.getJavaType(), finder, pagedFinder, this::count, this::exists,
+				this.entityInformation.getJavaType(),
+				new JpaMetamodelMappingContext(Collections.singleton(this.entityManager.getMetamodel())));
+
+		return queryFunction.apply(fluentQuery);
+	}
+
 	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.querydsl.QueryDslPredicateExecutor#count(com.mysema.query.types.Predicate)
-	 */
+	* (non-Javadoc)
+	* @see org.springframework.data.querydsl.QueryDslPredicateExecutor#count(com.mysema.query.types.Predicate)
+	*/
 	@Override
 	public long count(Predicate predicate) {
 		return createQuery(predicate).fetchCount();

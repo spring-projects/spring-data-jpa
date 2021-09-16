@@ -35,7 +35,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.sample.User;
@@ -186,12 +185,11 @@ class SimpleJpaRepositoryUnitTests {
 		newUser.setId(23);
 
 		when(information.isNew(newUser)).thenReturn(false);
-		when(em.find(User.class,23)).thenReturn(null);
+		when(em.find(User.class, 23)).thenReturn(null);
 
 		repo.delete(newUser);
 
 		verify(em, never()).remove(newUser);
 		verify(em, never()).merge(newUser);
 	}
-
 }
