@@ -144,8 +144,8 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extend
 
 	/**
 	 * Finalizes the given {@link Predicate} and applies the given sort. Delegates to
-	 * {@link #complete(Predicate, Sort, CriteriaQuery, CriteriaBuilder, Root)} and hands it the current {@link CriteriaQuery}
-	 * and {@link CriteriaBuilder}.
+	 * {@link #complete(Predicate, Sort, CriteriaQuery, CriteriaBuilder, Root)} and hands it the current
+	 * {@link CriteriaQuery} and {@link CriteriaBuilder}.
 	 */
 	@Override
 	protected final CriteriaQuery<? extends Object> complete(Predicate predicate, Sort sort) {
@@ -271,10 +271,12 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extend
 					return getTypedPath(root, part).isNotNull();
 				case NOT_IN:
 					// cast required for eclipselink workaround, see DATAJPA-433
-					return upperIfIgnoreCase(getTypedPath(root, part)).in((Expression<Collection<?>>) provider.next(part, Collection.class).getExpression()).not();
+					return upperIfIgnoreCase(getTypedPath(root, part))
+							.in((Expression<Collection<?>>) provider.next(part, Collection.class).getExpression()).not();
 				case IN:
 					// cast required for eclipselink workaround, see DATAJPA-433
-					return upperIfIgnoreCase(getTypedPath(root, part)).in((Expression<Collection<?>>) provider.next(part, Collection.class).getExpression());
+					return upperIfIgnoreCase(getTypedPath(root, part))
+							.in((Expression<Collection<?>>) provider.next(part, Collection.class).getExpression());
 				case STARTING_WITH:
 				case ENDING_WITH:
 				case CONTAINING:

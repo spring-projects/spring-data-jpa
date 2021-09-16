@@ -17,17 +17,19 @@ package org.springframework.data.jpa.repository.support;
 
 import static org.assertj.core.api.Assertions.*;
 
+import lombok.Data;
+
 import java.sql.Date;
+import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Stream;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
-import java.time.LocalDate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -60,6 +62,7 @@ import com.querydsl.core.types.dsl.PathBuilderFactory;
  * @author Mark Paluch
  * @author Christoph Strobl
  * @author Malte Mauelshagen
+ * @author Greg Turnquist
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration({ "classpath:infrastructure.xml" })
@@ -87,7 +90,8 @@ class QuerydslJpaPredicateExecutorUnitTests {
 		oliver = repository.save(new User("Oliver", "matthews", "oliver@matthews.com"));
 		adminRole = em.merge(new Role("admin"));
 
-		this.predicateExecutor = new QuerydslJpaPredicateExecutor<>(information, em, SimpleEntityPathResolver.INSTANCE, null);
+		this.predicateExecutor = new QuerydslJpaPredicateExecutor<>(information, em, SimpleEntityPathResolver.INSTANCE,
+				null);
 	}
 
 	@Test
@@ -217,7 +221,8 @@ class QuerydslJpaPredicateExecutorUnitTests {
 
 		QUser user = QUser.user;
 
-		Page<User> page = predicateExecutor.findAll(user.firstname.isNotNull(), new QPageRequest(0, 10, user.firstname.asc()));
+		Page<User> page = predicateExecutor.findAll(user.firstname.isNotNull(),
+				new QPageRequest(0, 10, user.firstname.asc()));
 
 		assertThat(page.getContent()).containsExactly(carter, dave, oliver);
 	}
@@ -317,7 +322,127 @@ class QuerydslJpaPredicateExecutorUnitTests {
 
 	@Test // DATAJPA-1115
 	void findOneWithPredicateThrowsExceptionForNonUniqueResults() {
+
 		assertThatExceptionOfType(IncorrectResultSizeDataAccessException.class)
 				.isThrownBy(() -> predicateExecutor.findOne(user.emailAddress.contains("com")));
+	}
+
+	@Test // GH-2294
+	void findByFluentPredicate() {
+
+		List<User> users = predicateExecutor.findBy(user.firstname.eq("Dave"), q -> q.sortBy(Sort.by("firstname")).all());
+
+		assertThat(users).containsExactly(dave);
+	}
+
+	@Test // GH-2294
+	void findByFluentPredicateWithSorting() {
+
+		List<User> users = predicateExecutor.findBy(user.firstname.isNotNull(), q -> q.sortBy(Sort.by("firstname")).all());
+
+		assertThat(users).containsExactly(carter, dave, oliver);
+	}
+
+	@Test // GH-2294
+	void findByFluentPredicateWithEqualsAndSorting() {
+
+		List<User> users = predicateExecutor.findBy(user.firstname.contains("v"),
+				q -> q.sortBy(Sort.by("firstname")).all());
+
+		assertThat(users).containsExactly(dave, oliver);
+	}
+
+	@Test // GH-2294
+	void findByFluentPredicateFirstValue() {
+
+		User firstUser = predicateExecutor.findBy(user.firstname.contains("v"),
+				q -> q.sortBy(Sort.by("firstname")).firstValue());
+
+		assertThat(firstUser).isEqualTo(dave);
+	}
+
+	@Test // GH-2294
+	void findByFluentPredicateOneValue() {
+
+		assertThatExceptionOfType(IncorrectResultSizeDataAccessException.class).isThrownBy(
+				() -> predicateExecutor.findBy(user.firstname.contains("v"), q -> q.sortBy(Sort.by("firstname")).oneValue()));
+	}
+
+	@Test // GH-2294
+	void findByFluentPredicateStream() {
+
+		Stream<User> userStream = predicateExecutor.findBy(user.firstname.contains("v"),
+				q -> q.sortBy(Sort.by("firstname")).stream());
+
+		assertThat(userStream).containsExactly(dave, oliver);
+	}
+
+	@Test // GH-2294
+	void findByFluentPredicatePage() {
+
+		Predicate predicate = user.firstname.contains("v");
+
+		Page<User> page0 = predicateExecutor.findBy(predicate,
+				q -> q.sortBy(Sort.by("firstname")).page(PageRequest.of(0, 1)));
+
+		Page<User> page1 = predicateExecutor.findBy(predicate,
+				q -> q.sortBy(Sort.by("firstname")).page(PageRequest.of(1, 1)));
+
+		assertThat(page0.getContent()).containsExactly(dave);
+		assertThat(page1.getContent()).containsExactly(oliver);
+	}
+
+	@Test // GH-2294
+	void findByFluentPredicateWithInterfaceBasedProjection() {
+
+		List<UserProjectionInterfaceBased> users = predicateExecutor.findBy(user.firstname.contains("v"),
+				q -> q.as(UserProjectionInterfaceBased.class).all());
+
+		assertThat(users).extracting(UserProjectionInterfaceBased::getFirstname)
+				.containsExactlyInAnyOrder(dave.getFirstname(), oliver.getFirstname());
+	}
+
+	@Test // GH-2294
+	void findByFluentPredicateWithSortedInterfaceBasedProjection() {
+
+		List<UserProjectionInterfaceBased> userProjections = predicateExecutor.findBy(user.firstname.contains("v"),
+				q -> q.as(UserProjectionInterfaceBased.class).sortBy(Sort.by("firstname")).all());
+
+		assertThat(userProjections).extracting(UserProjectionInterfaceBased::getFirstname)
+				.containsExactly(dave.getFirstname(), oliver.getFirstname());
+	}
+
+	@Test // GH-2294
+	void countByFluentPredicate() {
+
+		long userCount = predicateExecutor.findBy(user.firstname.contains("v"),
+				q -> q.sortBy(Sort.by("firstname")).count());
+
+		assertThat(userCount).isEqualTo(2);
+	}
+
+	@Test // GH-2294
+	void existsByFluentPredicate() {
+
+		boolean exists = predicateExecutor.findBy(user.firstname.contains("v"),
+				q -> q.sortBy(Sort.by("firstname")).exists());
+
+		assertThat(exists).isTrue();
+	}
+
+	@Test // GH-2294
+	void fluentExamplesWithClassBasedDtosNotYetSupported() {
+
+		@Data
+		class UserDto {
+			String firstname;
+		}
+
+		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> predicateExecutor
+				.findBy(user.firstname.contains("v"), q -> q.as(UserDto.class).sortBy(Sort.by("firstname")).all()));
+	}
+
+	private interface UserProjectionInterfaceBased {
+		String getFirstname();
 	}
 }
