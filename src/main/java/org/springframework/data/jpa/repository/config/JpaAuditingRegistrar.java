@@ -34,6 +34,7 @@ import org.springframework.data.auditing.config.AuditingConfiguration;
 import org.springframework.data.config.ParsingUtils;
 import org.springframework.data.jpa.domain.support.AuditingBeanFactoryPostProcessor;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import org.springframework.data.repository.config.PersistentEntitiesFactoryBean;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
@@ -71,8 +72,11 @@ class JpaAuditingRegistrar extends AuditingBeanDefinitionRegistrarSupport {
 	@Override
 	protected BeanDefinitionBuilder getAuditHandlerBeanDefinitionBuilder(AuditingConfiguration configuration) {
 
+		BeanDefinitionBuilder definition = BeanDefinitionBuilder.genericBeanDefinition(PersistentEntitiesFactoryBean.class);
+		definition.addConstructorArgReference(JPA_MAPPING_CONTEXT_BEAN_NAME);
+
 		BeanDefinitionBuilder builder = super.getAuditHandlerBeanDefinitionBuilder(configuration);
-		return builder.addConstructorArgReference(JPA_MAPPING_CONTEXT_BEAN_NAME);
+		return builder.addConstructorArgValue(definition.getBeanDefinition());
 	}
 
 	/*
