@@ -6,7 +6,7 @@
 
 	<groupId>org.springframework.data</groupId>
 	<artifactId>spring-data-jpa</artifactId>
-	<version>2.7.0-SNAPSHOT</version>
+	<version>3.0.0-SNAPSHOT</version>
 
 	<name>Spring Data JPA</name>
 	<description>Spring Data module for JPA repositories.</description>
@@ -15,10 +15,11 @@
 	<parent>
 		<groupId>org.springframework.data.build</groupId>
 		<artifactId>spring-data-parent</artifactId>
-		<version>2.7.0-SNAPSHOT</version>
+		<version>3.0.0-SNAPSHOT</version>
 	</parent>
 
 	<properties>
+		<source.level>16</source.level><!-- AspectJ maven plugin can't handle 17 yet -->
 
 		<dist.key>DATAJPA</dist.key>
 
@@ -26,7 +27,7 @@
 		<hibernate>5.6.0.Final</hibernate>
 		<mysql-connector-java>8.0.23</mysql-connector-java>
 		<postgresql>42.2.19</postgresql>
-		<springdata.commons>2.7.0-SNAPSHOT</springdata.commons>
+		<springdata.commons>3.0.0-SNAPSHOT</springdata.commons>
 		<vavr>0.10.3</vavr>
 
 		<hibernate.groupId>org.hibernate</hibernate.groupId>
@@ -272,13 +273,6 @@
 			<groupId>org.testcontainers</groupId>
 			<artifactId>postgresql</artifactId>
 			<scope>test</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>org.threeten</groupId>
-			<artifactId>threetenbp</artifactId>
-			<version>${threetenbp}</version>
-			<optional>true</optional>
 		</dependency>
 
 		<dependency>
