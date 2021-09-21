@@ -126,15 +126,6 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.mapping.PersistentProperty#getPersistentEntityTypes()
-	 */
-	@Override
-	public Iterable<? extends TypeInformation<?>> getPersistentEntityTypes() {
-		return getPersistentEntityTypeInformation();
-	}
-
-	/*
-	 * (non-Javadoc)
 	 * @see org.springframework.data.mapping.model.AbstractPersistentProperty#getPersistentEntityTypeInformation()
 	 */
 	@Override
