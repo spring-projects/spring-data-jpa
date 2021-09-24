@@ -129,10 +129,9 @@ public final class JpaQueryLookupStrategy {
 		/**
 		 * Creates a new {@link DeclaredQueryLookupStrategy}.
 		 *
-		 * @param em
-		 * @param extractor
-		 * @param queryMethodFactory
-		 * @param evaluationContextProvider
+		 * @param em must not be {@literal null}.
+		 * @param queryMethodFactory must not be {@literal null}.
+		 * @param evaluationContextProvider must not be {@literal null}.
 		 */
 		public DeclaredQueryLookupStrategy(EntityManager em, JpaQueryMethodFactory queryMethodFactory,
 				QueryMethodEvaluationContextProvider evaluationContextProvider) {
@@ -263,9 +262,7 @@ public final class JpaQueryLookupStrategy {
 	 * @param queryMethodFactory must not be {@literal null}.
 	 * @param key may be {@literal null}.
 	 * @param evaluationContextProvider must not be {@literal null}.
-	 * @param escape
-	 * @param extractor must not be {@literal null}.
-	 * @return
+	 * @param escape must not be {@literal null}.
 	 */
 	public static QueryLookupStrategy create(EntityManager em, JpaQueryMethodFactory queryMethodFactory,
 			@Nullable Key key, QueryMethodEvaluationContextProvider evaluationContextProvider, EscapeCharacter escape) {

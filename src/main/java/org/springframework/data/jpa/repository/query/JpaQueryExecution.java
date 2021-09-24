@@ -111,9 +111,8 @@ public abstract class JpaQueryExecution {
 	/**
 	 * Method to implement {@link AbstractStringBasedJpaQuery} executions by single enum values.
 	 *
-	 * @param query
-	 * @param accessor
-	 * @return
+	 * @param query must not be {@literal null}.
+	 * @param accessor must not be {@literal null}.
 	 */
 	@Nullable
 	protected abstract Object doExecute(AbstractJpaQuery query, JpaParametersParameterAccessor accessor);
