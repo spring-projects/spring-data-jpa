@@ -335,7 +335,7 @@
 			<groupId>org.apache.geronimo.specs</groupId>
 			<artifactId>geronimo-jcdi_2.0_spec</artifactId>
 			<version>1.0.1</version>
-			<scope>test</scope>
+			<scope>optional</scope>
 		</dependency>
 
 		<dependency>
