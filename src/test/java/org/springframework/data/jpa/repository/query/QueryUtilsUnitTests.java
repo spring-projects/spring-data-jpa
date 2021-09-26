@@ -514,4 +514,15 @@ class QueryUtilsUnitTests {
 	private static void assertCountQuery(String originalQuery, String countQuery) {
 		assertThat(createCountQueryFor(originalQuery)).isEqualTo(countQuery);
 	}
+
+	@Test // DATAJPA-2260
+	void applySortingAccountsForNativeWindowFunctionOrderBy() {
+		String query = "select dense_rank() over (order by username) from user u";
+		Sort sort = Sort.by(Order.desc("username"));
+
+		String sortedQuery = QueryUtils.applySorting(query, sort);
+
+		assertThat(sortedQuery).isEqualTo("select dense_rank() over (order by username) from user u order by u.username desc");
+	}
+
 }
