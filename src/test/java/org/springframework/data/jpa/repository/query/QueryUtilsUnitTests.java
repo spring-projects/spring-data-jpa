@@ -515,14 +515,24 @@ class QueryUtilsUnitTests {
 		assertThat(createCountQueryFor(originalQuery)).isEqualTo(countQuery);
 	}
 
-	@Test // DATAJPA-2260
-	void applySortingAccountsForNativeWindowFunctionOrderBy() {
+	@Test
+	void applySortingAccountsForNativeWindowFunction() {
 		String query = "select dense_rank() over (order by username) from user u";
 		Sort sort = Sort.by(Order.desc("username"));
 
 		String sortedQuery = QueryUtils.applySorting(query, sort);
 
 		assertThat(sortedQuery).isEqualTo("select dense_rank() over (order by username) from user u order by u.username desc");
+	}
+
+	@Test
+	void applySortingAccountsForNativeWindowFunctionAndOrderBy() {
+		String query = "select dense_rank() over (order by username) from user u order by u.id";
+		Sort sort = Sort.by(Order.desc("username"));
+
+		String sortedQuery = QueryUtils.applySorting(query, sort);
+
+		assertThat(sortedQuery).isEqualTo("select dense_rank() over (order by username) from user u order by u.id, u.username desc");
 	}
 
 }

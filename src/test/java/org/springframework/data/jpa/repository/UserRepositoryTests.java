@@ -693,7 +693,7 @@ public class UserRepositoryTests {
 		assertThat(result.getTotalPages()).isEqualTo(1);
 	}
 
-	@Test // DATAJPA-2260
+	@Test
 	void readsPageWithDenseRankClauseCorrectly() {
 
 		flushTestUsers();
