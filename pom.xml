@@ -5,11 +5,12 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>org.springframework.data</groupId>
-	<artifactId>spring-data-jpa</artifactId>
+	<artifactId>spring-data-jpa-parent</artifactId>
 	<version>3.0.0-SNAPSHOT</version>
+	<packaging>pom</packaging>
 
-	<name>Spring Data JPA</name>
-	<description>Spring Data module for JPA repositories.</description>
+	<name>Spring Data JPA Parent</name>
+	<description>Parent module for Spring Data JPA repositories.</description>
 	<url>https://projects.spring.io/spring-data-jpa</url>
 
 	<parent>
@@ -21,8 +22,6 @@
 	<properties>
 		<source.level>16</source.level><!-- AspectJ maven plugin can't handle 17 yet -->
 
-		<dist.key>DATAJPA</dist.key>
-
 		<eclipselink>3.0.2</eclipselink>
 		<hibernate>5.6.0.Final</hibernate>
 		<mysql-connector-java>8.0.23</mysql-connector-java>
@@ -32,11 +31,16 @@
 
 		<hibernate.groupId>org.hibernate</hibernate.groupId>
 
-		<java-module-name>spring.data.jpa</java-module-name>
-
 		<sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
 
 	</properties>
+
+  <modules>
+		<module>spring-data-envers</module>
+		<module>spring-data-jpa</module>
+		<module>spring-data-jpa-distribution</module>
+	</modules>
+
 
 	<profiles>
 		<profile>
@@ -89,73 +93,6 @@
 			</repositories>
 		</profile>
 
-		<profile>
-			<id>docs</id>
-
-			<build>
-				<plugins>
-					<plugin>
-						<artifactId>maven-antrun-plugin</artifactId>
-						<version>1.8</version>
-						<executions>
-							<execution>
-								<id>copy-schemas</id>
-								<phase>prepare-package</phase>
-								<goals>
-									<goal>run</goal>
-								</goals>
-								<configuration>
-									<target>
-										<copy todir="${project.build.directory}/site/schemas">
-											<fileset dir="${project.build.directory}/schemas"/>
-										</copy>
-									</target>
-								</configuration>
-							</execution>
-							<execution>
-								<id>package-and-attach-docs-zip</id>
-								<phase>package</phase>
-								<goals>
-									<goal>run</goal>
-								</goals>
-								<configuration>
-									<tasks>
-										<zip destfile="${project.build.directory}/${project.artifactId}-${project.version}.zip">
-											<fileset dir="${project.build.directory}/site"/>
-										</zip>
-									</tasks>
-								</configuration>
-							</execution>
-						</executions>
-					</plugin>
-
-					<plugin>
-						<groupId>org.codehaus.mojo</groupId>
-						<artifactId>build-helper-maven-plugin</artifactId>
-						<version>1.10</version>
-						<executions>
-							<execution>
-								<id>attach-zip</id>
-								<goals>
-									<goal>attach-artifact</goal>
-								</goals>
-								<phase>package</phase>
-								<configuration>
-									<artifacts>
-										<artifact>
-											<file>
-												${project.build.directory}/${project.artifactId}-${project.version}.zip
-											</file>
-											<type>zip</type>
-										</artifact>
-									</artifacts>
-								</configuration>
-							</execution>
-						</executions>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
 	</profiles>
 
 	<dependencyManagement>
@@ -170,262 +107,9 @@
 		</dependencies>
 	</dependencyManagement>
 
-	<dependencies>
-
-		<dependency>
-			<groupId>${project.groupId}</groupId>
-			<artifactId>spring-data-commons</artifactId>
-			<version>${springdata.commons}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-orm</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-context</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-aop</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-tx</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-beans</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-instrument</artifactId>
-			<scope>provided</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-core</artifactId>
-			<exclusions>
-				<exclusion>
-					<groupId>commons-logging</groupId>
-					<artifactId>commons-logging</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-
-		<dependency>
-			<groupId>org.aspectj</groupId>
-			<artifactId>aspectjweaver</artifactId>
-			<version>${aspectj}</version>
-			<scope>test</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-aspects</artifactId>
-			<scope>compile</scope>
-			<optional>true</optional>
-		</dependency>
-
-		<dependency>
-			<groupId>org.hsqldb</groupId>
-			<artifactId>hsqldb</artifactId>
-			<version>2.5.1</version>
-			<scope>test</scope>
-		</dependency>
-
-		<!-- MySQL testing support -->
-		<dependency>
-			<groupId>mysql</groupId>
-			<artifactId>mysql-connector-java</artifactId>
-			<version>${mysql-connector-java}</version>
-			<scope>test</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>org.testcontainers</groupId>
-			<artifactId>mysql</artifactId>
-			<scope>test</scope>
-			<exclusions>
-				<exclusion>
-					<groupId>org.slf4j</groupId>
-					<artifactId>jcl-over-slf4j</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-
-		<!-- Postgres testing support -->
-		<dependency>
-			<groupId>org.postgresql</groupId>
-			<artifactId>postgresql</artifactId>
-			<version>${postgresql}</version>
-			<scope>test</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>org.testcontainers</groupId>
-			<artifactId>postgresql</artifactId>
-			<scope>test</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>io.vavr</groupId>
-			<artifactId>vavr</artifactId>
-			<version>${vavr}</version>
-			<scope>test</scope>
-		</dependency>
-
-		<!-- Persistence providers -->
-
-		<dependency>
-			<groupId>org.eclipse.persistence</groupId>
-			<artifactId>org.eclipse.persistence.jpa</artifactId>
-			<version>${eclipselink}</version>
-			<optional>true</optional>
-		</dependency>
-
-		<dependency>
-			<groupId>${hibernate.groupId}</groupId>
-			<artifactId>hibernate-core-jakarta</artifactId>
-			<version>${hibernate}</version>
-			<optional>true</optional>
-		</dependency>
-
-		<dependency>
-			<groupId>${hibernate.groupId}</groupId>
-			<artifactId>hibernate-jpamodelgen-jakarta</artifactId>
-			<version>${hibernate}</version>
-			<scope>provided</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>jakarta.annotation</groupId>
-			<artifactId>jakarta.annotation-api</artifactId>
-			<version>${jakarta-annotation-api}</version>
-		</dependency>
-
-		<!-- QueryDsl -->
-		<dependency>
-			<groupId>com.querydsl</groupId>
-			<artifactId>querydsl-apt</artifactId>
-			<version>${querydsl}</version>
-			<classifier>jakarta</classifier>
-			<scope>provided</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>com.querydsl</groupId>
-			<artifactId>querydsl-jpa</artifactId>
-			<classifier>jakarta</classifier>
-			<version>${querydsl}</version>
-			<optional>true</optional>
-		</dependency>
-
-		<!-- jMolecules -->
-		<dependency>
-			<groupId>org.jmolecules.integrations</groupId>
-			<artifactId>jmolecules-spring</artifactId>
-			<version>${jmolecules-integration}</version>
-			<scope>test</scope>
-		</dependency>
-
-		<!-- CDI -->
-		<!-- Dependency order required to build against CDI 1.0 and test with CDI 2.0 -->
-		<dependency>
-			<groupId>org.apache.geronimo.specs</groupId>
-			<artifactId>geronimo-jcdi_2.0_spec</artifactId>
-			<version>1.0.1</version>
-			<scope>optional</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>jakarta.interceptor</groupId>
-			<artifactId>jakarta.interceptor-api</artifactId>
-			<version>2.0.0</version>
-			<scope>test</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>jakarta.enterprise</groupId>
-			<artifactId>jakarta.enterprise.cdi-api</artifactId>
-			<version>${cdi}</version>
-			<scope>provided</scope>
-			<optional>true</optional>
-		</dependency>
-
-		<!--
-		Apache Open Web beans offers a jakarta based version using maven classifiers.
-		Unfortunately the dependencies are broken, so one has to exclude the broken ones and add the proper ones
-		explicitly.
-
-		This can be simpliefied once https://issues.apache.org/jira/browse/OWB-1368 is fixed.
-
-		See: https://stackoverflow.com/questions/66610586/openwebbeans-gives-error-java-lang-noclassdeffounderror-when-using-with-tomcat-1
-		-->
-		<dependency>
-			<groupId>org.apache.openwebbeans</groupId>
-			<artifactId>openwebbeans-se</artifactId>
-			<version>${webbeans}</version>
-			<classifier>jakarta</classifier>
-			<scope>test</scope>
-			<exclusions>
-				<exclusion>
-					<groupId>org.apache.openwebbeans</groupId>
-					<artifactId>openwebbeans-impl</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.apache.openwebbeans</groupId>
-					<artifactId>openwebbeans-spi</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.openwebbeans</groupId>
-			<artifactId>openwebbeans-impl</artifactId>
-			<version>${webbeans}</version>
-			<classifier>jakarta</classifier>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.openwebbeans</groupId>
-			<artifactId>openwebbeans-spi</artifactId>
-			<version>${webbeans}</version>
-			<classifier>jakarta</classifier>
-			<scope>test</scope>
-		</dependency>
-
-	</dependencies>
 
 	<build>
 		<plugins>
-
-			<!--
-			     Jacoco plugin redeclared to make sure it's downloaded and
-			     the agents can be explicitly added to the test executions.
-			-->
-			<plugin>
-				<groupId>org.jacoco</groupId>
-				<artifactId>jacoco-maven-plugin</artifactId>
-				<version>${jacoco}</version>
-				<configuration>
-					<destFile>${jacoco.destfile}</destFile>
-				</configuration>
-				<executions>
-					<execution>
-						<id>jacoco-initialize</id>
-						<goals>
-							<goal>prepare-agent</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
 
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -520,65 +204,6 @@
 				</executions>
 			</plugin>
 
-			<plugin>
-				<groupId>io.starter</groupId>
-				<artifactId>aspectj-maven-plugin</artifactId>
-				<version>1.12.9</version>
-				<dependencies>
-					<dependency>
-						<groupId>org.aspectj</groupId>
-						<artifactId>aspectjrt</artifactId>
-						<version>${aspectj}</version>
-					</dependency>
-					<dependency>
-						<groupId>org.aspectj</groupId>
-						<artifactId>aspectjtools</artifactId>
-						<version>${aspectj}</version>
-					</dependency>
-				</dependencies>
-				<executions>
-					<execution>
-						<goals>
-							<goal>compile</goal>
-						</goals>
-						<phase>process-classes</phase>
-					</execution>
-				</executions>
-				<configuration>
-					<verbose>true</verbose>
-					<!--
-						To workaround:
-
-						- https://issues.apache.org/jira/browse/MCOMPILER-205
-						- https://issues.apache.org/jira/browse/MCOMPILER-209
-						- https://github.com/mojohaus/aspectj-maven-plugin/issues/15
-
-					-->
-					<forceAjcCompile>true</forceAjcCompile>
-					<aspectLibraries>
-						<aspectLibrary>
-							<groupId>org.springframework</groupId>
-							<artifactId>spring-aspects</artifactId>
-						</aspectLibrary>
-					</aspectLibraries>
-					<includes>
-						<include>**/domain/support/AuditingEntityListener.java</include>
-					</includes>
-					<complianceLevel>${source.level}</complianceLevel>
-					<source>${source.level}</source>
-					<target>${source.level}</target>
-					<xmlConfigured>aop.xml</xmlConfigured>
-				</configuration>
-			</plugin>
-
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-assembly-plugin</artifactId>
-			</plugin>
-			<plugin>
-				<groupId>org.asciidoctor</groupId>
-				<artifactId>asciidoctor-maven-plugin</artifactId>
-			</plugin>
 		</plugins>
 	</build>
 
@@ -597,6 +222,10 @@
 		<pluginRepository>
 			<id>spring-libs-milestone</id>
 			<url>https://repo.spring.io/libs-milestone</url>
+		</pluginRepository>
+		<pluginRepository>
+			<id>spring-libs-snapshot</id>
+			<url>https://repo.spring.io/libs-snapshot</url>
 		</pluginRepository>
 	</pluginRepositories>
 

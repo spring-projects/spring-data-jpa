@@ -23,6 +23,8 @@ include::{spring-data-commons-docs}/repositories.adoc[leveloffset=+1]
 
 include::jpa.adoc[leveloffset=+2]
 
+include::envers.adoc[leveloffset=+2]
+
 [[appendix]]
 == Appendix
 
