@@ -1,0 +1,260 @@
+Spring Data Envers Changelog
+==========================
+
+Changes in version 2.6.0-M1 (2021-07-16)
+----------------------------------------
+* #305 - Upgrade to Envers 5.5.3.Final.
+* #288 - Update CI to Java 16.
+
+
+Changes in version 2.4.11 (2021-07-16)
+--------------------------------------
+
+
+Changes in version 2.5.2 (2021-06-22)
+-------------------------------------
+
+
+Changes in version 2.4.10 (2021-06-22)
+--------------------------------------
+
+
+Changes in version 2.5.1 (2021-05-14)
+-------------------------------------
+
+
+Changes in version 2.4.9 (2021-05-14)
+-------------------------------------
+
+
+Changes in version 2.5.0 (2021-04-14)
+-------------------------------------
+
+
+Changes in version 2.4.8 (2021-04-14)
+-------------------------------------
+
+
+Changes in version 2.3.9.RELEASE (2021-04-14)
+---------------------------------------------
+
+
+Changes in version 2.4.7 (2021-03-31)
+-------------------------------------
+
+
+Changes in version 2.5.0-RC1 (2021-03-31)
+-----------------------------------------
+* #289 - Investigate `@EnableEnversRepositories` meta-annotation.
+
+
+Changes in version 2.5.0-M5 (2021-03-17)
+----------------------------------------
+* #283 - Editing pass.
+* #282 - Add Java config example, fix StackOverflow tag URL.
+* #61 - Spring Data Envers Documentation Only Contains General Spring Data Information.
+
+
+Changes in version 2.4.6 (2021-03-17)
+-------------------------------------
+* #283 - Editing pass.
+* #282 - Add Java config example, fix StackOverflow tag URL.
+* #61 - Spring Data Envers Documentation Only Contains General Spring Data Information.
+
+
+Changes in version 2.3.8.RELEASE (2021-03-17)
+---------------------------------------------
+* #283 - Editing pass.
+* #282 - Add Java config example, fix StackOverflow tag URL.
+* #61 - Spring Data Envers Documentation Only Contains General Spring Data Information.
+
+
+Changes in version 2.5.0-M4 (2021-02-18)
+----------------------------------------
+
+
+Changes in version 2.4.5 (2021-02-18)
+-------------------------------------
+
+
+Changes in version 2.5.0-M3 (2021-02-17)
+----------------------------------------
+* #265 - Enable Project automation through GitHub Actions.
+
+
+Changes in version 2.4.4 (2021-02-17)
+-------------------------------------
+
+
+Changes in version 2.3.7.RELEASE (2021-02-17)
+---------------------------------------------
+* #271 - Update copyright year to 2021.
+* #266 - Update CI jobs with Docker Login.
+
+
+Changes in version 2.5.0-M2 (2021-01-13)
+----------------------------------------
+* #271 - Update copyright year to 2021.
+* #266 - Update CI jobs with Docker Login.
+
+
+Changes in version 2.4.3 (2021-01-13)
+-------------------------------------
+* #271 - Update copyright year to 2021.
+* #266 - Update CI jobs with Docker Login.
+
+
+Changes in version 2.4.2 (2020-12-09)
+-------------------------------------
+* #263 - Release 2.4.2 (2020.0.2).
+
+
+Changes in version 2.5.0-M1 (2020-12-09)
+----------------------------------------
+* #265 - Enable Project automation through GitHub Actions.
+* #262 - Release 2.5 M1 (2021.0.0).
+
+
+Changes in version 2.3.6.RELEASE (2020-12-09)
+---------------------------------------------
+* #260 - Release 2.3.6 (Neumann SR6).
+
+
+Changes in version 2.4.1 (2020-11-11)
+-------------------------------------
+* #261 - Release 2.4.1 (2020.0.1).
+
+
+Changes in version 2.4.0 (2020-10-28)
+-------------------------------------
+* #257 - Release 2.4 GA (2020.0.0).
+
+
+Changes in version 2.3.5.RELEASE (2020-10-28)
+---------------------------------------------
+* #254 - Release 2.3.5 (Neumann SR5).
+
+
+Changes in version 2.4.0-RC2 (2020-10-14)
+-----------------------------------------
+* #256 - Update CI jobs for Java 15.
+* #255 - Release 2.4 RC2 (2020.0.0).
+
+
+Changes in version 2.4.0-RC1 (2020-09-16)
+-----------------------------------------
+* #251 - Release 2.4 RC1 (2020.0.0).
+
+
+Changes in version 2.3.4.RELEASE (2020-09-16)
+---------------------------------------------
+* #252 - Release 2.3.4 (Neumann SR4).
+
+
+Changes in version 2.3.3.RELEASE (2020-08-12)
+---------------------------------------------
+* #247 - Release 2.3.3 (Neumann SR3).
+
+
+Changes in version 2.4.0-M2 (2020-08-12)
+----------------------------------------
+* #244 - Release 2.4 M2 (2020.0.0).
+
+
+Changes in version 2.3.2.RELEASE (2020-07-22)
+---------------------------------------------
+* #242 - Release 2.3.2 (Neumann SR2).
+
+
+Changes in version 2.4.0-M1 (2020-06-25)
+----------------------------------------
+* #239 - Use standard Spring code of conduct.
+* #238 - Delombok source files.
+* #237 - Release 2.4 M1 (2020.0.0).
+
+
+Changes in version 2.3.1.RELEASE (2020-06-10)
+---------------------------------------------
+* #236 - Release 2.3.1 (Neumann SR1).
+
+
+Changes in version 2.3.0.RELEASE (2020-05-12)
+---------------------------------------------
+* #234 - Release 2.3 GA (Neumann).
+
+
+Changes in version 2.3.0.RC2 (2020-04-28)
+-----------------------------------------
+* #230 - Use JDK 14 for Java.NEXT CI testing.
+* #229 - Release 2.3 RC2 (Neumann).
+* #215 - RevisionType always Unknown in RevisionMetadata.
+
+
+Changes in version 2.3.0.RC1 (2020-03-31)
+-----------------------------------------
+* #224 - Release 2.3 RC1 (Neumann).
+
+
+Changes in version 2.3.0.M4 (2020-03-11)
+----------------------------------------
+* #221 - Release 2.3 M4 (Neumann).
+
+
+Changes in version 2.3.0.M3 (2020-02-12)
+----------------------------------------
+* #220 - Release 2.3 M3 (Neumann).
+
+
+Changes in version 2.3.0.M2 (2020-01-17)
+----------------------------------------
+* #219 - Release 2.3 M2 (Neumann).
+
+
+Changes in version 2.3.0.M1 (2020-01-16)
+----------------------------------------
+* #210 - Upgrade to Envers 5.4.8.
+* #205 - Release 2.3 M1 (Neumann).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

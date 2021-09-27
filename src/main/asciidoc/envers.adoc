@@ -1,0 +1,204 @@
+[[envers]]
+= Spring Data Envers
+
+[[envers.what.is.spring.data]]
+== What is Spring Data Envers?
+
+Spring Data Envers makes typical Envers queries available in repositories for Spring Data JPA.
+It differs from other Spring Data modules in that it is always used in combination with another Spring Data Module: Spring Data JPA.
+
+[[envers.what]]
+== What is Envers?
+
+Envers is a https://hibernate.org/orm/envers/[Hibernate module] that adds auditing capabilities to JPA entities.
+This documentation assumes you are familiar with Envers, just as Spring Data Envers relies on Envers being properly configured.
+
+[[envers.configuration]]
+== Configuration
+
+As a starting point for using Spring Data Envers, you need a project with Spring Data JPA on the classpath and an additional `spring-data-envers` dependency:
+
+====
+[source,xml,subs="+attributes"]
+----
+<dependencies>
+
+  <!-- other dependency elements omitted -->
+
+  <dependency>
+    <groupId>org.springframework.data</groupId>
+    <artifactId>spring-data-envers</artifactId>
+    <version>{version}</version>
+  </dependency>
+
+</dependencies>
+----
+====
+
+This also brings `hibernate-envers` into the project as a transient dependency.
+
+To enable Spring Data Envers and Spring Data JPA, we need to configure two beans and a special `repositoryFactoryBeanClass`:
+
+====
+[source,java]
+----
+@Configuration
+@EnableEnversRepositories
+@EnableTransactionManagement
+public class EnversDemoConfiguration {
+
+	@Bean
+	public DataSource dataSource() {
+
+		EmbeddedDatabaseBuilder builder = new EmbeddedDatabaseBuilder();
+		return builder.setType(EmbeddedDatabaseType.HSQL).build();
+	}
+
+	@Bean
+	public LocalContainerEntityManagerFactoryBean entityManagerFactory() {
+
+		HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
+		vendorAdapter.setGenerateDdl(true);
+
+		LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();
+		factory.setJpaVendorAdapter(vendorAdapter);
+		factory.setPackagesToScan("example.springdata.jpa.envers");
+		factory.setDataSource(dataSource());
+		return factory;
+	}
+
+	@Bean
+	public PlatformTransactionManager transactionManager(EntityManagerFactory entityManagerFactory) {
+
+		JpaTransactionManager txManager = new JpaTransactionManager();
+		txManager.setEntityManagerFactory(entityManagerFactory);
+		return txManager;
+	}
+}
+----
+====
+
+To actually use Spring Data Envers, make one or more repositories into a {spring-data-commons-javadoc-base}/org/springframework/data/repository/history/RevisionRepository.html[`RevisionRepository`] by adding it as an extended interface:
+
+====
+[source,java]
+----
+interface PersonRepository
+    extends CrudRepository<Person, Long>,
+    RevisionRepository<Person, Long, Long> // <1>
+{}
+----
+<1> The first type parameter (`Person`) denotes the entity type, the second (`Long`) denotes the type of the id property, and the last one (`Long`) is the type of the revision number.
+For Envers in default configuration, the revision number parameter should be `Integer` or `Long`.
+====
+
+The entity for that repository must be an entity with Envers auditing enabled (that is, it must have an `@Audited` annotation):
+
+====
+[source,java]
+----
+@Entity
+@Audited
+class Person {
+
+	@Id @GeneratedValue
+	Long id;
+	String name;
+	@Version Long version;
+}
+----
+====
+
+[[envers.usage]]
+== Usage
+
+You can now use the methods from `RevisionRepository` to query the revisions of the entity, as the following test case shows:
+
+====
+[source,java]
+----
+@ExtendWith(SpringExtension.class)
+@Import(EnversDemoConfiguration.class) // <1>
+class EnversIntegrationTests {
+
+	final PersonRepository repository;
+	final TransactionTemplate tx;
+
+	EnversIntegrationTests(@Autowired PersonRepository repository, @Autowired PlatformTransactionManager tm) {
+		this.repository = repository;
+		this.tx = new TransactionTemplate(tm);
+	}
+
+	@Test
+	void testRepository() {
+
+		Person updated = preparePersonHistory();
+
+		Revisions<Long, Person> revisions = repository.findRevisions(updated.id);
+
+		Iterator<Revision<Long, Person>> revisionIterator = revisions.iterator();
+
+		checkNextRevision(revisionIterator, "John", RevisionType.INSERT);
+		checkNextRevision(revisionIterator, "Jonny", RevisionType.UPDATE);
+		checkNextRevision(revisionIterator, null, RevisionType.DELETE);
+		assertThat(revisionIterator.hasNext()).isFalse();
+
+	}
+
+	/**
+    * Checks that the next element in the iterator is a Revision entry referencing a Person
+    * with the given name after whatever change brought that Revision into existence.
+    * <p>
+    * As a side effect the Iterator gets advanced by one element.
+    *
+    * @param revisionIterator the iterator to be tested.
+    * @param name the expected name of the Person referenced by the Revision.
+    * @param revisionType the type of the revision denoting if it represents an insert, update or delete.
+    */
+	private void checkNextRevision(Iterator<Revision<Long, Person>> revisionIterator, String name,
+			RevisionType revisionType) {
+
+		assertThat(revisionIterator.hasNext()).isTrue();
+		Revision<Long, Person> revision = revisionIterator.next();
+		assertThat(revision.getEntity().name).isEqualTo(name);
+		assertThat(revision.getMetadata().getRevisionType()).isEqualTo(revisionType);
+	}
+
+	/**
+    * Creates a Person with a couple of changes so it has a non-trivial revision history.
+    * @return the created Person.
+    */
+	private Person preparePersonHistory() {
+
+		Person john = new Person();
+		john.setName("John");
+
+		// create
+		Person saved = tx.execute(__ -> repository.save(john));
+		assertThat(saved).isNotNull();
+
+		saved.setName("Jonny");
+
+		// update
+		Person updated = tx.execute(__ -> repository.save(saved));
+		assertThat(updated).isNotNull();
+
+		// delete
+		tx.executeWithoutResult(__ -> repository.delete(updated));
+		return updated;
+	}
+}
+----
+<1> This references the application context configuration presented earlier (in the <<envers.configuration>> section).
+====
+
+[[envers.resources]]
+== Further Resources
+
+You can download the https://github.com/spring-projects/spring-data-examples[Spring Data Envers example in the Spring Data Examples repository] and play around with to get a feel for how the library works.
+
+You should also check out the {spring-data-commons-javadoc-base}/org/springframework/data/repository/history/RevisionRepository.html[Javadoc for `RevisionRepository`] and related classes.
+
+You can ask questions at https://stackoverflow.com/questions/tagged/spring-data-envers[Stackoverflow by using the `spring-data-envers` tag].
+
+The https://github.com/spring-projects/spring-data-envers[source code and issue tracker for Spring Data Envers is hosted at GitHub].
