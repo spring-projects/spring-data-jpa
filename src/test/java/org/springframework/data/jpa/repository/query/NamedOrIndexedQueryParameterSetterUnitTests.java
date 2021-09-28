@@ -16,7 +16,7 @@
 package org.springframework.data.jpa.repository.query;
 
 import static java.util.Arrays.*;
-import static javax.persistence.TemporalType.*;
+import static jakarta.persistence.TemporalType.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.data.jpa.repository.query.QueryParameterSetter.ErrorHandling.*;
@@ -29,10 +29,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.function.Function;
 
-import javax.persistence.Parameter;
-import javax.persistence.Query;
-import javax.persistence.TemporalType;
-import javax.persistence.criteria.ParameterExpression;
+import jakarta.persistence.Parameter;
+import jakarta.persistence.Query;
+import jakarta.persistence.TemporalType;
+import jakarta.persistence.criteria.ParameterExpression;
 
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;

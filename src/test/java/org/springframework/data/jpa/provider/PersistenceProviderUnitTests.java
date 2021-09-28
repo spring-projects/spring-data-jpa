@@ -22,7 +22,7 @@ import static org.springframework.data.jpa.provider.PersistenceProvider.Constant
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 
 import org.assertj.core.api.Assumptions;
 import org.hibernate.Version;

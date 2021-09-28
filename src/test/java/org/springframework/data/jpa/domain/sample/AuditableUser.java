@@ -18,10 +18,10 @@ package org.springframework.data.jpa.domain.sample;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.ManyToMany;
-import javax.persistence.NamedQuery;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.NamedQuery;
 
 import org.springframework.data.jpa.domain.AbstractAuditable;
 import org.springframework.lang.Nullable;

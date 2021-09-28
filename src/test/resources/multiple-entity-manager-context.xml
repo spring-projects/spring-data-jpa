@@ -10,11 +10,11 @@
 		http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd">
 
     <bean id="entityManagerFactory" class="org.mockito.Mockito" factory-method="mock">
-        <constructor-arg value="javax.persistence.EntityManagerFactory" />
+        <constructor-arg value="jakarta.persistence.EntityManagerFactory" />
     </bean>
     
     <bean id="secondEntityManagerFactory" class="org.mockito.Mockito" factory-method="mock">
-        <constructor-arg value="javax.persistence.EntityManagerFactory" />
+        <constructor-arg value="jakarta.persistence.EntityManagerFactory" />
     </bean>
     
     <jpa:repositories base-package="org.springframework.data.jpa.repository.sample" entity-manager-factory-ref="secondEntityManagerFactory">

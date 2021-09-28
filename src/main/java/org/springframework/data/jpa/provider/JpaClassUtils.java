@@ -15,8 +15,8 @@
  */
 package org.springframework.data.jpa.provider;
 
-import javax.persistence.EntityManager;
-import javax.persistence.metamodel.Metamodel;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.metamodel.Metamodel;
 
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;

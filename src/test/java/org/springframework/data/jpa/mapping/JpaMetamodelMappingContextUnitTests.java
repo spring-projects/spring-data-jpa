@@ -19,7 +19,7 @@ import static org.mockito.Mockito.*;
 
 import java.util.Collections;
 
-import javax.persistence.metamodel.Metamodel;
+import jakarta.persistence.metamodel.Metamodel;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.data.annotation.Version;

@@ -17,8 +17,8 @@ package org.springframework.data.jpa.repository.support;
 
 import static org.springframework.data.jpa.util.BeanDefinitionUtils.*;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;

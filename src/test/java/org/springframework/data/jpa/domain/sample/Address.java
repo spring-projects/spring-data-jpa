@@ -15,7 +15,7 @@
  */
 package org.springframework.data.jpa.domain.sample;
 
-import javax.persistence.Embeddable;
+import jakarta.persistence.Embeddable;
 
 /**
  * @author Thomas Darimont

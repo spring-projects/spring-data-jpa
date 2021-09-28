@@ -24,8 +24,8 @@ import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
 
-import javax.persistence.EntityManager;
-import javax.persistence.ParameterMode;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.ParameterMode;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

@@ -21,8 +21,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.persistence.Entity;
-import javax.persistence.MappedSuperclass;
+import jakarta.persistence.Entity;
+import jakarta.persistence.MappedSuperclass;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -47,7 +47,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * {@link PersistenceUnitPostProcessor} that will scan for classes annotated with {@link Entity} or
- * {@link MappedSuperclass} and add them to the {@link javax.persistence.PersistenceUnit} post processed. Beyond that
+ * {@link MappedSuperclass} and add them to the {@link jakarta.persistence.PersistenceUnit} post processed. Beyond that
  * JPA XML mapping files can be scanned as well by configuring a file name pattern.
  *
  * @author Oliver Gierke
@@ -153,7 +153,7 @@ public class ClasspathScanningPersistenceUnitPostProcessor
 	 * an empty {@link Set} in case no {@link ResourceLoader} or mapping file name pattern was configured. Resulting paths
 	 * are resource-loadable from the application classpath according to the JPA spec.
 	 *
-	 * @see javax.persistence.spi.PersistenceUnitInfo#getMappingFileNames()
+	 * @see jakarta.persistence.spi.PersistenceUnitInfo#getMappingFileNames()
 	 * @return
 	 */
 	private Set<String> scanForMappingFileLocations() {

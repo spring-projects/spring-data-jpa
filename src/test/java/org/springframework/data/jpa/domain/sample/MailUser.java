@@ -15,9 +15,9 @@
  */
 package org.springframework.data.jpa.domain.sample;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
 
 /**
  * Represents a user in a Mail-System.

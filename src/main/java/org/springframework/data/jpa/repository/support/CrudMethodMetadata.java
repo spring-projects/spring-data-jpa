@@ -18,7 +18,7 @@ package org.springframework.data.jpa.repository.support;
 import java.lang.reflect.Method;
 import java.util.Optional;
 
-import javax.persistence.LockModeType;
+import jakarta.persistence.LockModeType;
 
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.lang.Nullable;

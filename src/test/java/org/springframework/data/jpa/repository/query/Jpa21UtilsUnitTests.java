@@ -18,8 +18,8 @@ package org.springframework.data.jpa.repository.query;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import javax.persistence.EntityGraph;
-import javax.persistence.Subgraph;
+import jakarta.persistence.EntityGraph;
+import jakarta.persistence.Subgraph;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.data.jpa.repository.EntityGraph.EntityGraphType;

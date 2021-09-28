@@ -23,7 +23,7 @@
 
 		<dist.key>DATAJPA</dist.key>
 
-		<eclipselink>2.7.9</eclipselink>
+		<eclipselink>3.0.2</eclipselink>
 		<hibernate>5.6.0.Final</hibernate>
 		<mysql-connector-java>8.0.23</mysql-connector-java>
 		<postgresql>42.2.19</postgresql>
@@ -293,16 +293,22 @@
 
 		<dependency>
 			<groupId>${hibernate.groupId}</groupId>
-			<artifactId>hibernate-core</artifactId>
+			<artifactId>hibernate-core-jakarta</artifactId>
 			<version>${hibernate}</version>
 			<optional>true</optional>
 		</dependency>
 
 		<dependency>
 			<groupId>${hibernate.groupId}</groupId>
-			<artifactId>hibernate-jpamodelgen</artifactId>
+			<artifactId>hibernate-jpamodelgen-jakarta</artifactId>
 			<version>${hibernate}</version>
 			<scope>provided</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>jakarta.annotation</groupId>
+			<artifactId>jakarta.annotation-api</artifactId>
+			<version>${jakarta-annotation-api}</version>
 		</dependency>
 
 		<!-- QueryDsl -->
@@ -310,13 +316,14 @@
 			<groupId>com.querydsl</groupId>
 			<artifactId>querydsl-apt</artifactId>
 			<version>${querydsl}</version>
-			<classifier>jpa</classifier>
+			<classifier>jakarta</classifier>
 			<scope>provided</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>com.querydsl</groupId>
 			<artifactId>querydsl-jpa</artifactId>
+			<classifier>jakarta</classifier>
 			<version>${querydsl}</version>
 			<optional>true</optional>
 		</dependency>
@@ -339,31 +346,58 @@
 		</dependency>
 
 		<dependency>
-			<groupId>javax.interceptor</groupId>
-			<artifactId>javax.interceptor-api</artifactId>
-			<version>1.2.1</version>
+			<groupId>jakarta.interceptor</groupId>
+			<artifactId>jakarta.interceptor-api</artifactId>
+			<version>2.0.0</version>
 			<scope>test</scope>
 		</dependency>
 
 		<dependency>
-			<groupId>javax.enterprise</groupId>
-			<artifactId>cdi-api</artifactId>
+			<groupId>jakarta.enterprise</groupId>
+			<artifactId>jakarta.enterprise.cdi-api</artifactId>
 			<version>${cdi}</version>
 			<scope>provided</scope>
 			<optional>true</optional>
 		</dependency>
 
-		<dependency>
-			<groupId>javax.annotation</groupId>
-			<artifactId>javax.annotation-api</artifactId>
-			<version>${javax-annotation-api}</version>
-			<scope>test</scope>
-		</dependency>
+		<!--
+		Apache Open Web beans offers a jakarta based version using maven classifiers.
+		Unfortunately the dependencies are broken, so one has to exclude the broken ones and add the proper ones
+		explicitly.
 
+		This can be simpliefied once https://issues.apache.org/jira/browse/OWB-1368 is fixed.
+
+		See: https://stackoverflow.com/questions/66610586/openwebbeans-gives-error-java-lang-noclassdeffounderror-when-using-with-tomcat-1
+		-->
 		<dependency>
 			<groupId>org.apache.openwebbeans</groupId>
 			<artifactId>openwebbeans-se</artifactId>
 			<version>${webbeans}</version>
+			<classifier>jakarta</classifier>
+			<scope>test</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>org.apache.openwebbeans</groupId>
+					<artifactId>openwebbeans-impl</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.openwebbeans</groupId>
+					<artifactId>openwebbeans-spi</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.openwebbeans</groupId>
+			<artifactId>openwebbeans-impl</artifactId>
+			<version>${webbeans}</version>
+			<classifier>jakarta</classifier>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.openwebbeans</groupId>
+			<artifactId>openwebbeans-spi</artifactId>
+			<version>${webbeans}</version>
+			<classifier>jakarta</classifier>
 			<scope>test</scope>
 		</dependency>
 

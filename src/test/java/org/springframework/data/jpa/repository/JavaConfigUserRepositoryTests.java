@@ -18,8 +18,8 @@ package org.springframework.data.jpa.repository;
 import java.io.IOException;
 import java.util.Collections;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;

@@ -22,11 +22,11 @@ import java.util.Collections;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
-import javax.persistence.metamodel.IdentifiableType;
-import javax.persistence.metamodel.Metamodel;
-import javax.persistence.metamodel.SingularAttribute;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
+import jakarta.persistence.metamodel.IdentifiableType;
+import jakarta.persistence.metamodel.Metamodel;
+import jakarta.persistence.metamodel.SingularAttribute;
 
 import org.eclipse.persistence.jpa.JpaQuery;
 import org.eclipse.persistence.queries.ScrollableCursor;
@@ -110,7 +110,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 
 		/*
 		 * (non-Javadoc)
-		 * @see org.springframework.data.jpa.provider.PersistenceProvider#executeQueryWithResultStream(javax.persistence.Query)
+		 * @see org.springframework.data.jpa.provider.PersistenceProvider#executeQueryWithResultStream(jakarta.persistence.Query)
 		 */
 		@Override
 		public CloseableIterator<Object> executeQueryWithResultStream(Query jpaQuery) {
@@ -150,7 +150,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 
 		/*
 		 * (non-Javadoc)
-		 * @see org.springframework.data.jpa.provider.PersistenceProvider#executeQueryWithResultStream(javax.persistence.Query)
+		 * @see org.springframework.data.jpa.provider.PersistenceProvider#executeQueryWithResultStream(jakarta.persistence.Query)
 		 */
 		@Override
 		public CloseableIterator<Object> executeQueryWithResultStream(Query jpaQuery) {
@@ -165,7 +165,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 
 		/*
 		 * (non-Javadoc)
-		 * @see org.springframework.data.jpa.repository.query.QueryExtractor#extractQueryString(javax.persistence.Query)
+		 * @see org.springframework.data.jpa.repository.query.QueryExtractor#extractQueryString(jakarta.persistence.Query)
 		 */
 		@Nullable
 		@Override
@@ -328,7 +328,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 	 */
 	interface Constants {
 
-		String GENERIC_JPA_ENTITY_MANAGER_INTERFACE = "javax.persistence.EntityManager";
+		String GENERIC_JPA_ENTITY_MANAGER_INTERFACE = "jakarta.persistence.EntityManager";
 		String ECLIPSELINK_ENTITY_MANAGER_INTERFACE = "org.eclipse.persistence.jpa.JpaEntityManager";
 		// needed as Spring only exposes that interface via the EM proxy
 		String HIBERNATE_ENTITY_MANAGER_INTERFACE = "org.hibernate.jpa.HibernateEntityManager";

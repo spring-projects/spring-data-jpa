@@ -8,9 +8,9 @@ Export-Template:
  org.springframework.data.jpa.*;version="${project.version}"
 Import-Template:
  com.querydsl.*;version="${querydsl:[=.=.=,+1.0.0)}";resolution:=optional,
- javax.persistence.*;version="${jpa:[=.=.=,+1.0.0)}",
- javax.annotation.*;version="0.0.0",
- javax.enterprise.*;version="${cdi:[=.=.=,+1.0.0)}";resolution:=optional,
+ jakarta.persistence.*;version="${jpa:[=.=.=,+1.0.0)}",
+ jakarta.annotation.*;version="0.0.0",
+ jakarta.enterprise.*;version="${cdi:[=.=.=,+1.0.0)}";resolution:=optional,
  org.aopalliance.*;version="[1.0.0,2.0.0)", 
  org.apache.openjpa.*;version="${openjpa:[=.=.=,+1.0.0)}";resolution:=optional,
  org.aspectj.*;version="${aspectj:[=.=.=,+1.0.0)}";resolution:=optional,

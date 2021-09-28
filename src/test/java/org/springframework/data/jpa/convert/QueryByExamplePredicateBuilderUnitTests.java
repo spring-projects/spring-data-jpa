@@ -24,18 +24,18 @@ import java.lang.reflect.Member;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import javax.persistence.Id;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.Join;
-import javax.persistence.criteria.Path;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-import javax.persistence.metamodel.Attribute.PersistentAttributeType;
-import javax.persistence.metamodel.EntityType;
-import javax.persistence.metamodel.ManagedType;
-import javax.persistence.metamodel.SingularAttribute;
-import javax.persistence.metamodel.Type;
+import jakarta.persistence.Id;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.Path;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+import jakarta.persistence.metamodel.Attribute.PersistentAttributeType;
+import jakarta.persistence.metamodel.EntityType;
+import jakarta.persistence.metamodel.ManagedType;
+import jakarta.persistence.metamodel.SingularAttribute;
+import jakarta.persistence.metamodel.Type;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -307,12 +307,12 @@ class QueryByExamplePredicateBuilderUnitTests {
 		private Type<T> type;
 
 		SingularAttributeStub(String name,
-				javax.persistence.metamodel.Attribute.PersistentAttributeType attributeType, Class<T> javaType) {
+				jakarta.persistence.metamodel.Attribute.PersistentAttributeType attributeType, Class<T> javaType) {
 			this(name, attributeType, javaType, null);
 		}
 
 		SingularAttributeStub(String name,
-				javax.persistence.metamodel.Attribute.PersistentAttributeType attributeType, Class<T> javaType, Type<T> type) {
+				jakarta.persistence.metamodel.Attribute.PersistentAttributeType attributeType, Class<T> javaType, Type<T> type) {
 			this.name = name;
 			this.attributeType = attributeType;
 			this.javaType = javaType;
@@ -325,7 +325,7 @@ class QueryByExamplePredicateBuilderUnitTests {
 		}
 
 		@Override
-		public javax.persistence.metamodel.Attribute.PersistentAttributeType getPersistentAttributeType() {
+		public jakarta.persistence.metamodel.Attribute.PersistentAttributeType getPersistentAttributeType() {
 			return attributeType;
 		}
 
@@ -356,7 +356,7 @@ class QueryByExamplePredicateBuilderUnitTests {
 		}
 
 		@Override
-		public javax.persistence.metamodel.Bindable.BindableType getBindableType() {
+		public jakarta.persistence.metamodel.Bindable.BindableType getBindableType() {
 			return BindableType.SINGULAR_ATTRIBUTE;
 		}
 

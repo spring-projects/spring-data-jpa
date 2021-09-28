@@ -26,10 +26,10 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 
-import javax.persistence.Entity;
-import javax.persistence.MappedSuperclass;
-import javax.persistence.PersistenceContext;
-import javax.persistence.PersistenceUnit;
+import jakarta.persistence.Entity;
+import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.PersistenceUnit;
 
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -242,8 +242,8 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 	}
 
 	/**
-	 * Creates an anonymous factory to extract the actual {@link javax.persistence.EntityManager} from the
-	 * {@link javax.persistence.EntityManagerFactory} bean name reference.
+	 * Creates an anonymous factory to extract the actual {@link jakarta.persistence.EntityManager} from the
+	 * {@link jakarta.persistence.EntityManagerFactory} bean name reference.
 	 *
 	 * @param config
 	 * @param source

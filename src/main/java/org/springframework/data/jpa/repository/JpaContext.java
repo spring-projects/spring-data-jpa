@@ -15,7 +15,7 @@
  */
 package org.springframework.data.jpa.repository;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 
 /**
  * Interface for components to provide useful information about the current JPA setup within the current

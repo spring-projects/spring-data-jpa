@@ -15,8 +15,8 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import javax.persistence.EntityManager;
-import javax.persistence.metamodel.Metamodel;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.metamodel.Metamodel;
 
 import org.springframework.data.domain.Persistable;
 import org.springframework.data.jpa.repository.query.DefaultJpaEntityMetadata;

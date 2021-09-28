@@ -21,10 +21,10 @@ import java.time.ZoneId;
 import java.util.Date;
 import java.util.Optional;
 
-import javax.persistence.ManyToOne;
-import javax.persistence.MappedSuperclass;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 
 import org.springframework.data.domain.Auditable;
 import org.springframework.lang.Nullable;

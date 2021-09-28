@@ -15,8 +15,8 @@
  */
 package org.springframework.data.jpa.domain.sample;
 
-import javax.persistence.EmbeddedId;
-import javax.persistence.Entity;
+import jakarta.persistence.EmbeddedId;
+import jakarta.persistence.Entity;
 
 /**
  * @author Oliver Gierke

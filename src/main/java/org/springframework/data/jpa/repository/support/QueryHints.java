@@ -17,13 +17,13 @@ package org.springframework.data.jpa.repository.support;
 
 import java.util.function.BiConsumer;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 
 import org.springframework.util.Assert;
 
 /**
  * QueryHints provides access to query hints defined via {@link CrudMethodMetadata#getQueryHints()} QueryHintList()} by
- * default excluding JPA {@link javax.persistence.EntityGraph}. The object allows to switch between query hints for
+ * default excluding JPA {@link jakarta.persistence.EntityGraph}. The object allows to switch between query hints for
  * count queries with or without fetch graph hints.
  *
  * @author Christoph Strobl
@@ -54,7 +54,7 @@ public interface QueryHints {
 	}
 
 	/**
-	 * Creates and returns a new {@link QueryHints} instance including {@link javax.persistence.EntityGraph}.
+	 * Creates and returns a new {@link QueryHints} instance including {@link jakarta.persistence.EntityGraph}.
 	 *
 	 * @param em must not be {@literal null}.
 	 * @return new instance of {@link QueryHints}.
@@ -94,7 +94,7 @@ public interface QueryHints {
 
 		/*
 		 * (non-Javadoc)
-		 * @see org.springframework.data.jpa.repository.support.QueryHints#withFetchGraphs(javax.persistence.EntityManager)
+		 * @see org.springframework.data.jpa.repository.support.QueryHints#withFetchGraphs(jakarta.persistence.EntityManager)
 		 */
 		@Override
 		public QueryHints withFetchGraphs(EntityManager em) {
@@ -103,7 +103,7 @@ public interface QueryHints {
 
 		/*
 		 * (non-Javadoc)
-		 * @see org.springframework.data.jpa.repository.support.QueryHints#forCounts(javax.persistence.EntityManager)
+		 * @see org.springframework.data.jpa.repository.support.QueryHints#forCounts(jakarta.persistence.EntityManager)
 		 */
 		@Override
 		public QueryHints forCounts() {

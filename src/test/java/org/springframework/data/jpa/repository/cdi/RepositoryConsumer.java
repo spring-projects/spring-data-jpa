@@ -15,7 +15,7 @@
  */
 package org.springframework.data.jpa.repository.cdi;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 /**
  * @author Oliver Gierke

@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import javax.persistence.StoredProcedureQuery;
+import jakarta.persistence.StoredProcedureQuery;
 
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;

@@ -573,7 +573,7 @@ int setFixedFirstnameFor(String firstname, String lastname);
 ----
 ====
 
-Doing so triggers the query annotated to the method as an updating query instead of a selecting one. As the `EntityManager` might contain outdated entities after the execution of the modifying query, we do not automatically clear it (see the https://docs.oracle.com/javaee/7/api/javax/persistence/EntityManager.html[JavaDoc] of `EntityManager.clear()` for details), since this effectively drops all non-flushed changes still pending in the `EntityManager`.
+Doing so triggers the query annotated to the method as an updating query instead of a selecting one. As the `EntityManager` might contain outdated entities after the execution of the modifying query, we do not automatically clear it (see the https://jakarta.ee/specifications/persistence/2.2/apidocs/javax/persistence/entitymanager[JavaDoc] of `EntityManager.clear()` for details), since this effectively drops all non-flushed changes still pending in the `EntityManager`.
 If you wish the `EntityManager` to be cleared automatically, you can set the `@Modifying` annotation's `clearAutomatically` attribute to `true`.
 
 The `@Modifying` annotation is only relevant in combination with the `@Query` annotation.

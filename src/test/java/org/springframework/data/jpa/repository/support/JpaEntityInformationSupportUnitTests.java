@@ -21,10 +21,10 @@ import static org.mockito.Mockito.*;
 import java.io.Serializable;
 import java.util.Collections;
 
-import javax.persistence.Entity;
-import javax.persistence.EntityManager;
-import javax.persistence.metamodel.Metamodel;
-import javax.persistence.metamodel.SingularAttribute;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.metamodel.Metamodel;
+import jakarta.persistence.metamodel.SingularAttribute;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

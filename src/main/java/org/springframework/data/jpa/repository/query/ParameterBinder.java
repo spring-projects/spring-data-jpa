@@ -15,7 +15,7 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import javax.persistence.Query;
+import jakarta.persistence.Query;
 
 import org.springframework.data.jpa.repository.query.QueryParameterSetter.ErrorHandling;
 import org.springframework.util.Assert;

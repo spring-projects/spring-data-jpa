@@ -17,7 +17,7 @@ package org.springframework.data.jpa.domain.support;
 
 import static org.assertj.core.api.Assertions.*;
 
-import javax.persistence.EntityManagerFactory;
+import jakarta.persistence.EntityManagerFactory;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

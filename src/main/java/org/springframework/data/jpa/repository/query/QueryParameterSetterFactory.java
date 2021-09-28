@@ -18,8 +18,8 @@ package org.springframework.data.jpa.repository.query;
 import java.util.List;
 import java.util.function.Function;
 
-import javax.persistence.Query;
-import javax.persistence.TemporalType;
+import jakarta.persistence.Query;
+import jakarta.persistence.TemporalType;
 
 import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
 import org.springframework.data.jpa.repository.query.ParameterMetadataProvider.ParameterMetadata;
@@ -325,7 +325,7 @@ abstract class QueryParameterSetterFactory {
 		}
 	}
 
-	private static class ParameterImpl<T> implements javax.persistence.Parameter<T> {
+	private static class ParameterImpl<T> implements jakarta.persistence.Parameter<T> {
 
 		private final Class<T> parameterType;
 		private final @Nullable String name;
@@ -336,9 +336,9 @@ abstract class QueryParameterSetterFactory {
 		 *
 		 * @param parameter can be {@literal null}.
 		 * @param binding must not be {@literal null}.
-		 * @return a {@link javax.persistence.Parameter} object based on the information from the arguments.
+		 * @return a {@link jakarta.persistence.Parameter} object based on the information from the arguments.
 		 */
-		static javax.persistence.Parameter<?> of(@Nullable JpaParameter parameter, ParameterBinding binding) {
+		static jakarta.persistence.Parameter<?> of(@Nullable JpaParameter parameter, ParameterBinding binding) {
 
 			Class<?> type = parameter == null ? Object.class : parameter.getType();
 
@@ -361,7 +361,7 @@ abstract class QueryParameterSetterFactory {
 
 		/*
 		 * (non-Javadoc)
-		 * @see javax.persistence.Parameter#getName()
+		 * @see jakarta.persistence.Parameter#getName()
 		 */
 		@Nullable
 		@Override
@@ -371,7 +371,7 @@ abstract class QueryParameterSetterFactory {
 
 		/*
 		 * (non-Javadoc)
-		 * @see javax.persistence.Parameter#getPosition()
+		 * @see jakarta.persistence.Parameter#getPosition()
 		 */
 		@Nullable
 		@Override
@@ -381,7 +381,7 @@ abstract class QueryParameterSetterFactory {
 
 		/*
 		 * (non-Javadoc)
-		 * @see javax.persistence.Parameter#getParameterType()
+		 * @see jakarta.persistence.Parameter#getParameterType()
 		 */
 		@Override
 		public Class<T> getParameterType() {

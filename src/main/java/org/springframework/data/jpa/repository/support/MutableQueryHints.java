@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -39,7 +39,7 @@ public class MutableQueryHints implements QueryHints {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.support.QueryHints#withFetchGraphs(javax.persistence.EntityManager)
+	 * @see org.springframework.data.jpa.repository.support.QueryHints#withFetchGraphs(jakarta.persistence.EntityManager)
 	 */
 	@Override
 	public QueryHints withFetchGraphs(EntityManager em) {

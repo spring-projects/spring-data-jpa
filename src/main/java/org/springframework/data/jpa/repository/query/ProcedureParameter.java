@@ -18,13 +18,13 @@ package org.springframework.data.jpa.repository.query;
 
 import java.util.Objects;
 
-import javax.persistence.ParameterMode;
+import jakarta.persistence.ParameterMode;
 
 import org.springframework.lang.Nullable;
 
 /**
  * This class represents a Stored Procedure Parameter and an instance of the annotation
- * {@link javax.persistence.StoredProcedureParameter}.
+ * {@link jakarta.persistence.StoredProcedureParameter}.
  *
  * @author Gabriel Basilio
  * @author Greg Turnquist

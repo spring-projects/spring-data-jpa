@@ -40,7 +40,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Integration tests for Repositories using {@link javax.persistence.IdClass} identifiers.
+ * Integration tests for Repositories using {@link jakarta.persistence.IdClass} identifiers.
  *
  * @author Mark Paluch
  * @author Jens Schauder

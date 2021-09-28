@@ -40,7 +40,7 @@ class ParameterBinderFactory {
 	 *
 	 * @param parameters method parameters that are available for binding, must not be {@literal null}.
 	 * @return a {@link ParameterBinder} that can assign values for the method parameters to query parameters of a
-	 *         {@link javax.persistence.Query}
+	 *         {@link jakarta.persistence.Query}
 	 */
 	static ParameterBinder createBinder(JpaParameters parameters) {
 
@@ -54,12 +54,12 @@ class ParameterBinderFactory {
 
 	/**
 	 * Creates a {@link ParameterBinder} that just matches method parameter to parameters of a
-	 * {@link javax.persistence.criteria.CriteriaQuery}.
+	 * {@link jakarta.persistence.criteria.CriteriaQuery}.
 	 *
 	 * @param parameters method parameters that are available for binding, must not be {@literal null}.
 	 * @param metadata must not be {@literal null}.
 	 * @return a {@link ParameterBinder} that can assign values for the method parameters to query parameters of a
-	 *         {@link javax.persistence.criteria.CriteriaQuery}
+	 *         {@link jakarta.persistence.criteria.CriteriaQuery}
 	 */
 	static ParameterBinder createCriteriaBinder(JpaParameters parameters, List<ParameterMetadata<?>> metadata) {
 
@@ -82,7 +82,7 @@ class ParameterBinderFactory {
 	 * @param parser must not be {@literal null}.
 	 * @param evaluationContextProvider must not be {@literal null}.
 	 * @return a {@link ParameterBinder} that can assign values for the method parameters to query parameters of a
-	 *         {@link javax.persistence.Query} while processing SpEL expressions where applicable.
+	 *         {@link jakarta.persistence.Query} while processing SpEL expressions where applicable.
 	 */
 	static ParameterBinder createQueryAwareBinder(JpaParameters parameters, DeclaredQuery query,
 			SpelExpressionParser parser, QueryMethodEvaluationContextProvider evaluationContextProvider) {
