@@ -39,6 +39,7 @@ import org.springframework.data.jpa.domain.JpaSort;
  * @author Florian Lüdiger
  * @author Grégoire Druant
  * @author Mohammad Hewedy
+ * @author Jędrzej Biedrzycki
  */
 class QueryUtilsUnitTests {
 

@@ -90,7 +90,7 @@ public interface UserRepository
 	 */
 	User findByEmailAddress(String emailAddress);
 
-	@Query("select u from User u left outer join u.manager as manager") // TODO: reuse
+	@Query("select u from User u left outer join u.manager as manager")
 	Page<User> findAllPaged(Pageable pageable);
 
 	/**
@@ -222,9 +222,6 @@ public interface UserRepository
 
 	@Query("select u.lastname from User u group by u.lastname")
 	Page<String> findByLastnameGrouped(Pageable pageable);
-
-	@Query(value = "select row_number() over (order by u.lastname) from user u", nativeQuery = true)
-	Page<Integer> findDenseRankByLastnameGrouped(Pageable pageable);
 
 	// DATAJPA-117
 	@Query(value = "SELECT * FROM SD_User WHERE lastname = ?1", nativeQuery = true)

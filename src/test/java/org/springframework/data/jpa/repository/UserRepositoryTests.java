@@ -694,15 +694,6 @@ public class UserRepositoryTests {
 	}
 
 	@Test
-	void readsPageWithDenseRankClauseCorrectly() {
-
-		flushTestUsers();
-
-		Page<Integer> result = repository.findDenseRankByLastnameGrouped(PageRequest.of(0, 10, Sort.by(Order.desc("username"))));
-		assertThat(result.getTotalPages()).isEqualTo(1);
-	}
-
-	@Test
 	void executesLessThatOrEqualQueriesCorrectly() {
 
 		flushTestUsers();
