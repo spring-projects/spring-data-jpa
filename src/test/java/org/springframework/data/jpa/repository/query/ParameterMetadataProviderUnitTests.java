@@ -20,7 +20,7 @@ import static org.mockito.Mockito.*;
 
 import java.util.Collections;
 
-import javax.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaBuilder;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.data.repository.query.Parameters;

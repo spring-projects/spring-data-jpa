@@ -17,7 +17,7 @@ package org.springframework.data.jpa.repository;
 
 import static org.assertj.core.api.Assertions.*;
 
-import javax.persistence.Query;
+import jakarta.persistence.Query;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;

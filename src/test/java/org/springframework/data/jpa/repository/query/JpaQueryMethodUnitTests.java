@@ -25,8 +25,8 @@ import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Optional;
 
-import javax.persistence.LockModeType;
-import javax.persistence.QueryHint;
+import jakarta.persistence.LockModeType;
+import jakarta.persistence.QueryHint;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

@@ -18,8 +18,8 @@ package org.springframework.data.jpa.repository.config;
 import java.util.Collection;
 import java.util.Set;
 
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.metamodel.Metamodel;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.metamodel.Metamodel;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

@@ -15,7 +15,7 @@
  */
 package org.springframework.data.jpa.domain.support;
 
-import javax.persistence.AttributeConverter;
+import jakarta.persistence.AttributeConverter;
 import javax.sql.DataSource;
 
 import org.junit.jupiter.api.extension.ExtendWith;

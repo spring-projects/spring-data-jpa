@@ -18,8 +18,8 @@ package org.springframework.data.jpa.repository.support;
 import java.util.List;
 import java.util.Set;
 
-import javax.persistence.EntityManager;
-import javax.persistence.metamodel.ManagedType;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.metamodel.ManagedType;
 
 import org.springframework.data.jpa.repository.JpaContext;
 import org.springframework.util.Assert;

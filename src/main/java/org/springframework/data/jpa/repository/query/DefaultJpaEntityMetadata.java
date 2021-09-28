@@ -15,7 +15,7 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import javax.persistence.Entity;
+import jakarta.persistence.Entity;
 
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.util.Assert;

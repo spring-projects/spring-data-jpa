@@ -19,7 +19,7 @@ import java.lang.reflect.Method;
 import java.util.Date;
 import java.util.List;
 
-import javax.persistence.TemporalType;
+import jakarta.persistence.TemporalType;
 
 import org.springframework.core.MethodParameter;
 import org.springframework.data.jpa.repository.Temporal;

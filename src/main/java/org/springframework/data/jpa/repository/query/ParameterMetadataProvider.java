@@ -24,8 +24,8 @@ import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.ParameterExpression;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.ParameterExpression;
 
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.repository.query.Parameter;
@@ -226,7 +226,7 @@ class ParameterMetadataProvider {
 		}
 
 		/**
-		 * Prepares the object before it's actually bound to the {@link javax.persistence.Query;}.
+		 * Prepares the object before it's actually bound to the {@link jakarta.persistence.Query;}.
 		 *
 		 * @param value must not be {@literal null}.
 		 */

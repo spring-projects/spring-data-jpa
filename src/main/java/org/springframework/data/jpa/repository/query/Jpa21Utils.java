@@ -20,11 +20,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import javax.persistence.AttributeNode;
-import javax.persistence.EntityGraph;
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
-import javax.persistence.Subgraph;
+import jakarta.persistence.AttributeNode;
+import jakarta.persistence.EntityGraph;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
+import jakarta.persistence.Subgraph;
 
 import org.springframework.data.jpa.repository.support.MutableQueryHints;
 import org.springframework.data.jpa.repository.support.QueryHints;
@@ -48,7 +48,7 @@ import org.springframework.util.StringUtils;
 public class Jpa21Utils {
 
 	private static final @Nullable Method GET_ENTITY_GRAPH_METHOD;
-	private static final boolean JPA21_AVAILABLE = ClassUtils.isPresent("javax.persistence.NamedEntityGraph",
+	private static final boolean JPA21_AVAILABLE = ClassUtils.isPresent("jakarta.persistence.NamedEntityGraph",
 			Jpa21Utils.class.getClassLoader());
 
 	static {

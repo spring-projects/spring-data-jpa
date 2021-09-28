@@ -23,13 +23,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import javax.persistence.EntityManager;
-import javax.persistence.LockModeType;
-import javax.persistence.Query;
-import javax.persistence.QueryHint;
-import javax.persistence.Tuple;
-import javax.persistence.TupleElement;
-import javax.persistence.TypedQuery;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
+import jakarta.persistence.Query;
+import jakarta.persistence.QueryHint;
+import jakarta.persistence.Tuple;
+import jakarta.persistence.TupleElement;
+import jakarta.persistence.TypedQuery;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.jpa.provider.PersistenceProvider;
@@ -228,7 +228,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 	}
 
 	/**
-	 * Configures the {@link javax.persistence.EntityGraph} to use for the given {@link JpaQueryMethod} if the
+	 * Configures the {@link jakarta.persistence.EntityGraph} to use for the given {@link JpaQueryMethod} if the
 	 * {@link EntityGraph} annotation is present.
 	 *
 	 * @param query must not be {@literal null}.

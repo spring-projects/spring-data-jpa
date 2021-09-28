@@ -18,7 +18,7 @@ package org.springframework.data.jpa.support;
 import java.net.URISyntaxException;
 import java.net.URL;
 
-import javax.persistence.spi.PersistenceUnitInfo;
+import jakarta.persistence.spi.PersistenceUnitInfo;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

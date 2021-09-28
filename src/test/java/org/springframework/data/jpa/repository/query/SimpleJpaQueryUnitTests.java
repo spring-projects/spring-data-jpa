@@ -23,11 +23,11 @@ import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.List;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Tuple;
-import javax.persistence.TypedQuery;
-import javax.persistence.metamodel.Metamodel;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.Tuple;
+import jakarta.persistence.TypedQuery;
+import jakarta.persistence.metamodel.Metamodel;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -76,7 +76,7 @@ class SimpleJpaQueryUnitTests {
 	@Mock EntityManager em;
 	@Mock EntityManagerFactory emf;
 	@Mock QueryExtractor extractor;
-	@Mock javax.persistence.Query query;
+	@Mock jakarta.persistence.Query query;
 	@Mock TypedQuery<Long> typedQuery;
 	@Mock RepositoryMetadata metadata;
 	@Mock ParameterBinder binder;

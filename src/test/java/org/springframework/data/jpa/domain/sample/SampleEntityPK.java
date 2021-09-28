@@ -17,8 +17,8 @@ package org.springframework.data.jpa.domain.sample;
 
 import java.io.Serializable;
 
-import javax.persistence.Column;
-import javax.persistence.Embeddable;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
 
 import org.springframework.util.Assert;
 

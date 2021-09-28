@@ -15,7 +15,7 @@
  */
 package org.springframework.data.jpa.support;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 
 import org.springframework.util.ReflectionUtils;
 

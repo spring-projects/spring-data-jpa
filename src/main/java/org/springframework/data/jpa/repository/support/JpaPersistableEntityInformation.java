@@ -15,7 +15,7 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import javax.persistence.metamodel.Metamodel;
+import jakarta.persistence.metamodel.Metamodel;
 
 import org.springframework.data.domain.Persistable;
 import org.springframework.lang.Nullable;

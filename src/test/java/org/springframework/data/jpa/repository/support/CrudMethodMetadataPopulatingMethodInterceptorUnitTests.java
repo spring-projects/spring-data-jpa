@@ -20,7 +20,7 @@ import static org.mockito.Mockito.*;
 
 import java.lang.reflect.Method;
 
-import javax.persistence.LockModeType;
+import jakarta.persistence.LockModeType;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;

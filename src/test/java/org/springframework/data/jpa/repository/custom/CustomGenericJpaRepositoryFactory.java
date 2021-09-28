@@ -19,7 +19,7 @@ import static org.mockito.Mockito.*;
 
 import java.io.Serializable;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 
 import org.springframework.data.jpa.repository.support.JpaEntityInformation;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactory;
@@ -44,7 +44,7 @@ public class CustomGenericJpaRepositoryFactory extends JpaRepositoryFactory {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.support.JpaRepositoryFactory#getTargetRepository(org.springframework.data.repository.core.RepositoryMetadata, javax.persistence.EntityManager)
+	 * @see org.springframework.data.jpa.repository.support.JpaRepositoryFactory#getTargetRepository(org.springframework.data.repository.core.RepositoryMetadata, jakarta.persistence.EntityManager)
 	 */
 	@Override
 	@SuppressWarnings("unchecked")

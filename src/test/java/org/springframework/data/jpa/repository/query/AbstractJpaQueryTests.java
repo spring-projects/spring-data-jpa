@@ -22,12 +22,12 @@ import static org.springframework.data.jpa.support.EntityManagerTestUtils.*;
 import java.lang.reflect.Method;
 import java.util.List;
 
-import javax.persistence.EntityManager;
-import javax.persistence.LockModeType;
-import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
-import javax.persistence.QueryHint;
-import javax.persistence.TypedQuery;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.Query;
+import jakarta.persistence.QueryHint;
+import jakarta.persistence.TypedQuery;
 
 import org.junit.Assume;
 import org.junit.jupiter.api.BeforeEach;
@@ -122,12 +122,12 @@ public class AbstractJpaQueryTests {
 
 		JpaQueryMethod queryMethod = getMethod("findAll");
 
-		javax.persistence.EntityGraph<?> entityGraph = em.getEntityGraph("User.overview");
+		jakarta.persistence.EntityGraph<?> entityGraph = em.getEntityGraph("User.overview");
 
 		AbstractJpaQuery jpaQuery = new DummyJpaQuery(queryMethod, em);
 		Query result = jpaQuery.createQuery(new JpaParametersParameterAccessor(queryMethod.getParameters(), new Object[0]));
 
-		verify(result).setHint("javax.persistence.fetchgraph", entityGraph);
+		verify(result).setHint("jakarta.persistence.fetchgraph", entityGraph);
 	}
 
 	@Test // DATAJPA-466
@@ -138,13 +138,13 @@ public class AbstractJpaQueryTests {
 
 		JpaQueryMethod queryMethod = getMethod("getById", Integer.class);
 
-		javax.persistence.EntityGraph<?> entityGraph = em.getEntityGraph("User.detail");
+		jakarta.persistence.EntityGraph<?> entityGraph = em.getEntityGraph("User.detail");
 
 		AbstractJpaQuery jpaQuery = new DummyJpaQuery(queryMethod, em);
 		Query result = jpaQuery
 				.createQuery(new JpaParametersParameterAccessor(queryMethod.getParameters(), new Object[] { 1 }));
 
-		verify(result).setHint("javax.persistence.loadgraph", entityGraph);
+		verify(result).setHint("jakarta.persistence.loadgraph", entityGraph);
 	}
 
 	private JpaQueryMethod getMethod(String name, Class<?>... parameterTypes) throws Exception {

@@ -17,7 +17,7 @@ package org.springframework.data.jpa.repository.support;
 
 import static org.assertj.core.api.Assertions.*;
 
-import javax.persistence.TransactionRequiredException;
+import jakarta.persistence.TransactionRequiredException;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

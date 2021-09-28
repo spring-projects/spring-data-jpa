@@ -25,13 +25,13 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 import java.util.Properties;
 
-import javax.persistence.Entity;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.NamedStoredProcedureQuery;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.NamedStoredProcedureQuery;
 import javax.sql.DataSource;
-import javax.transaction.Transactional;
+import jakarta.transaction.Transactional;
 
 import org.hibernate.dialect.MySQL8Dialect;
 import org.junit.jupiter.api.Test;

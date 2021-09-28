@@ -24,8 +24,8 @@ import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.Date;
 
-import javax.persistence.*;
-import javax.persistence.metamodel.Metamodel;
+import jakarta.persistence.*;
+import jakarta.persistence.metamodel.Metamodel;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;

@@ -15,11 +15,11 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.query.ReturnedType;
@@ -50,7 +50,7 @@ public class JpaCountQueryCreator extends JpaQueryCreator {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.query.JpaQueryCreator#createCriteriaQuery(javax.persistence.criteria.CriteriaBuilder, org.springframework.data.repository.query.ReturnedType)
+	 * @see org.springframework.data.jpa.repository.query.JpaQueryCreator#createCriteriaQuery(jakarta.persistence.criteria.CriteriaBuilder, org.springframework.data.repository.query.ReturnedType)
 	 */
 	@Override
 	protected CriteriaQuery<? extends Object> createCriteriaQuery(CriteriaBuilder builder, ReturnedType type) {
@@ -59,7 +59,7 @@ public class JpaCountQueryCreator extends JpaQueryCreator {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.query.JpaQueryCreator#complete(javax.persistence.criteria.Predicate, org.springframework.data.domain.Sort, javax.persistence.criteria.CriteriaQuery, javax.persistence.criteria.CriteriaBuilder, javax.persistence.criteria.Root)
+	 * @see org.springframework.data.jpa.repository.query.JpaQueryCreator#complete(jakarta.persistence.criteria.Predicate, org.springframework.data.domain.Sort, jakarta.persistence.criteria.CriteriaQuery, jakarta.persistence.criteria.CriteriaBuilder, jakarta.persistence.criteria.Root)
 	 */
 	@Override
 	@SuppressWarnings("unchecked")

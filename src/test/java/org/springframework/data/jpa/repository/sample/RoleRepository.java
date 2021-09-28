@@ -15,8 +15,8 @@
  */
 package org.springframework.data.jpa.repository.sample;
 
-import javax.persistence.LockModeType;
-import javax.persistence.QueryHint;
+import jakarta.persistence.LockModeType;
+import jakarta.persistence.QueryHint;
 
 import java.util.Optional;
 

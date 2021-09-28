@@ -41,7 +41,7 @@ class JpaPersistentEntityImpl<T> extends BasicPersistentEntity<T, JpaPersistentP
 
 	private static final String INVALID_VERSION_ANNOTATION = "%s is annotated with "
 			+ org.springframework.data.annotation.Version.class.getName() + " but needs to use "
-			+ javax.persistence.Version.class.getName() + " to trigger optimistic locking correctly!";
+			+ jakarta.persistence.Version.class.getName() + " to trigger optimistic locking correctly!";
 
 	private final ProxyIdAccessor proxyIdAccessor;
 	private final JpaMetamodel metamodel;

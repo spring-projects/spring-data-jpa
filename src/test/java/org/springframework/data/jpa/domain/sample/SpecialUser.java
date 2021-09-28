@@ -1,6 +1,6 @@
 package org.springframework.data.jpa.domain.sample;
 
-import javax.persistence.Entity;
+import jakarta.persistence.Entity;
 
 /**
  * @author Oliver Gierke

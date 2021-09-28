@@ -15,8 +15,8 @@
  */
 package org.springframework.data.jpa.domain.sample;
 
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 
 import org.springframework.data.jpa.domain.AbstractPersistable;
 

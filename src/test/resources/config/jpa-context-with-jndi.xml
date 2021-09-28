@@ -13,7 +13,7 @@
 
 	<jee:jndi-lookup id="entityManagerFactory" 
 		jndi-name="some/EMF" 
-		expected-type="javax.persistence.EntityManagerFactory" />
+		expected-type="jakarta.persistence.EntityManagerFactory" />
 
 	<jee:jndi-lookup id="someOtherJndiBean"
 		jndi-name="some/other/Component" />

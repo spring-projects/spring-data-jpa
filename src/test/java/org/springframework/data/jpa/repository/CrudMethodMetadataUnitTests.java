@@ -21,13 +21,13 @@ import static org.mockito.Mockito.*;
 import java.util.Collections;
 import java.util.Map;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.LockModeType;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.metamodel.Metamodel;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.LockModeType;
+import jakarta.persistence.TypedQuery;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.metamodel.Metamodel;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -59,7 +59,7 @@ class CrudMethodMetadataUnitTests {
 	@Mock CriteriaQuery<Role> criteriaQuery;
 	@Mock JpaEntityInformation<Role, Integer> information;
 	@Mock TypedQuery<Role> typedQuery;
-	@Mock javax.persistence.Query query;
+	@Mock jakarta.persistence.Query query;
 	@Mock Metamodel metamodel;
 
 	private RoleRepository repository;

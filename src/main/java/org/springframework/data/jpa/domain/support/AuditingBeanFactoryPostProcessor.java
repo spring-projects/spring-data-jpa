@@ -26,7 +26,7 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 
 /**
  * {@link BeanFactoryPostProcessor} that ensures that the {@link AnnotationBeanConfigurerAspect} aspect is up and
- * running <em>before</em> the {@link javax.persistence.EntityManagerFactory} gets created as this already instantiates
+ * running <em>before</em> the {@link jakarta.persistence.EntityManagerFactory} gets created as this already instantiates
  * entity listeners and we need to get injection into {@link org.springframework.beans.factory.annotation.Configurable}
  * to work in them.
  *

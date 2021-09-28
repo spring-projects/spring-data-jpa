@@ -18,7 +18,7 @@ package org.springframework.data.jpa.repository.support;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.query.Jpa21Utils;

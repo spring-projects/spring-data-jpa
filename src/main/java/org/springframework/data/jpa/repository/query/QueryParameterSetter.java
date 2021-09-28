@@ -25,10 +25,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
-import javax.persistence.Parameter;
-import javax.persistence.Query;
-import javax.persistence.TemporalType;
-import javax.persistence.criteria.ParameterExpression;
+import jakarta.persistence.Parameter;
+import jakarta.persistence.Query;
+import jakarta.persistence.TemporalType;
+import jakarta.persistence.criteria.ParameterExpression;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -77,7 +77,7 @@ interface QueryParameterSetter {
 
 		/*
 		 * (non-Javadoc)
-		 * @see org.springframework.data.jpa.repository.query.QueryParameterSetter#setParameter(javax.persistence.Query, java.lang.Object[])
+		 * @see org.springframework.data.jpa.repository.query.QueryParameterSetter#setParameter(jakarta.persistence.Query, java.lang.Object[])
 		 */
 		@SuppressWarnings("unchecked")
 		@Override

@@ -17,7 +17,7 @@ package org.springframework.data.jpa.repository.support;
 
 import java.util.List;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;

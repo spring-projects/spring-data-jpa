@@ -18,7 +18,7 @@ package org.springframework.data.jpa.infrastructure;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.persistence.spi.PersistenceProvider;
+import jakarta.persistence.spi.PersistenceProvider;
 
 import org.springframework.util.ClassUtils;
 

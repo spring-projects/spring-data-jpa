@@ -20,7 +20,7 @@ import static org.assertj.core.api.Assertions.*;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
-import javax.persistence.Entity;
+import jakarta.persistence.Entity;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.core.annotation.AliasFor;

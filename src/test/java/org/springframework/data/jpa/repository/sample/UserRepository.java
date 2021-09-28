@@ -23,8 +23,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import javax.persistence.EntityManager;
-import javax.persistence.QueryHint;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.QueryHint;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

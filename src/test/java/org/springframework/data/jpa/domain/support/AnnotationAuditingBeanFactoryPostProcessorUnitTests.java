@@ -17,7 +17,7 @@ package org.springframework.data.jpa.domain.support;
 
 import static org.mockito.Mockito.*;
 
-import javax.persistence.EntityManagerFactory;
+import jakarta.persistence.EntityManagerFactory;
 
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.support.RootBeanDefinition;

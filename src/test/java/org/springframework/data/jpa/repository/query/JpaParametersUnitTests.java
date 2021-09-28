@@ -15,13 +15,13 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static javax.persistence.TemporalType.*;
+import static jakarta.persistence.TemporalType.*;
 import static org.assertj.core.api.Assertions.*;
 
 import java.lang.reflect.Method;
 import java.util.Date;
 
-import javax.persistence.TemporalType;
+import jakarta.persistence.TemporalType;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.data.jpa.repository.Temporal;

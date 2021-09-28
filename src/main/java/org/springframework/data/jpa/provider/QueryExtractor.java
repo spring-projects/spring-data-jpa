@@ -15,7 +15,7 @@
  */
 package org.springframework.data.jpa.provider;
 
-import javax.persistence.Query;
+import jakarta.persistence.Query;
 
 import org.springframework.lang.Nullable;
 
