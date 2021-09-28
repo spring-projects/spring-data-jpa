@@ -106,7 +106,8 @@ public abstract class QueryUtils {
 	private static final Pattern JOIN_PATTERN = Pattern.compile(JOIN, Pattern.CASE_INSENSITIVE);
 
 	private static final String EQUALS_CONDITION_STRING = "%s.%s = :%s";
-	private static final Pattern ORDER_BY = Pattern.compile(".*order\\s+by\\s+.*", CASE_INSENSITIVE);
+	private static final Pattern ORDER_BY = Pattern.compile("(order\\s+by\\s+)", CASE_INSENSITIVE);
+	private static final Pattern ORDER_BY_IN_WINDOW_CLAUSE = Pattern.compile("(over\\s*\\(\\s*[a-z ,]*order\\s+by\\s+[a-z ,]*\\s*\\))", CASE_INSENSITIVE);
 
 	private static final Pattern NAMED_PARAMETER = Pattern.compile(COLON_NO_DOUBLE_COLON + IDENTIFIER + "|#" + IDENTIFIER,
 			CASE_INSENSITIVE);
@@ -255,10 +256,10 @@ public abstract class QueryUtils {
 
 		StringBuilder builder = new StringBuilder(query);
 
-		if (!ORDER_BY.matcher(query).matches()) {
-			builder.append(" order by ");
-		} else {
+		if (hasOrderByClause(query)) {
 			builder.append(", ");
+		} else {
+			builder.append(" order by ");
 		}
 
 		Set<String> joinAliases = getOuterJoinAliases(query);
@@ -272,6 +273,31 @@ public abstract class QueryUtils {
 		builder.delete(builder.length() - 2, builder.length());
 
 		return builder.toString();
+	}
+
+	/**
+	 * Returns {@code true} if the query has {@code order by} clause.
+	 * The query has {@code order by} clause if there is an {@code order by} which is not part of window clause.
+	 *
+	 * @param query the analysed query string
+	 * @return {@code true} if the query has {@code order by} clause, {@code false} otherwise
+	 */
+	private static boolean hasOrderByClause(String query) {
+		return countOccurences(ORDER_BY, query) > countOccurences(ORDER_BY_IN_WINDOW_CLAUSE, query);
+	}
+
+	/**
+	 * Counts the number of occurrences of the pattern in the string
+	 *
+	 * @param pattern regex with a group to match
+	 * @param string analysed string
+	 * @return the number of occurences of the pattern in the string
+	 */
+	private static int countOccurences(Pattern pattern, String string) {
+		Matcher matcher = pattern.matcher(string);
+		int occurences = 0;
+		while (matcher.find()) occurences++;
+		return occurences;
 	}
 
 	/**
