@@ -517,22 +517,28 @@ class QueryUtilsUnitTests {
 
 	@Test
 	void applySortingAccountsForNativeWindowFunction() {
-		String query = "select dense_rank() over (order by username) from user u";
-		Sort sort = Sort.by(Order.desc("username"));
+		Sort sort = Sort.by(Order.desc("age"));
 
-		String sortedQuery = QueryUtils.applySorting(query, sort);
-
-		assertThat(sortedQuery).isEqualTo("select dense_rank() over (order by username) from user u order by u.username desc");
-	}
-
-	@Test
-	void applySortingAccountsForNativeWindowFunctionAndOrderBy() {
-		String query = "select dense_rank() over (order by username) from user u order by u.id";
-		Sort sort = Sort.by(Order.desc("username"));
-
-		String sortedQuery = QueryUtils.applySorting(query, sort);
-
-		assertThat(sortedQuery).isEqualTo("select dense_rank() over (order by username) from user u order by u.id, u.username desc");
+		assertThat(QueryUtils.applySorting("select * from user u", sort))
+				.isEqualTo("select * from user u order by u.age desc");
+		assertThat(QueryUtils.applySorting("select * from user u order by u.lastname", sort))
+				.isEqualTo("select * from user u order by u.lastname, u.age desc");
+		assertThat(QueryUtils.applySorting("select dense_rank() over (partition by age) from user u", sort))
+				.isEqualTo("select dense_rank() over (partition by age) from user u order by u.age desc");
+		assertThat(QueryUtils.applySorting("select dense_rank() over (order by lastname) from user u", sort))
+				.isEqualTo("select dense_rank() over (order by lastname) from user u order by u.age desc");
+		assertThat(QueryUtils.applySorting("select dense_rank() over ( order by lastname ) from user u", sort))
+				.isEqualTo("select dense_rank() over ( order by lastname ) from user u order by u.age desc");
+		assertThat(QueryUtils.applySorting("select dense_rank() over (order by lastname) from user u order by u.lastname", sort))
+				.isEqualTo("select dense_rank() over (order by lastname) from user u order by u.lastname, u.age desc");
+		assertThat(QueryUtils.applySorting("select dense_rank() over (partition by active, age order by lastname) from user u", sort))
+				.isEqualTo("select dense_rank() over (partition by active, age order by lastname) from user u order by u.age desc");
+		assertThat(QueryUtils.applySorting("select dense_rank() over (partition by active, age order by lastname) from user u order by active", sort))
+				.isEqualTo("select dense_rank() over (partition by active, age order by lastname) from user u order by active, u.age desc");
+		assertThat(QueryUtils.applySorting("select dense_rank() over ( partition by active, age order by username rows between current row and unbounded following ) from user u", sort))
+				.isEqualTo("select dense_rank() over ( partition by active, age order by username rows between current row and unbounded following ) from user u order by u.age desc");
+		assertThat(QueryUtils.applySorting("select dense_rank() over ( partition by active, age order by username rows between current row and unbounded following ) from user u order by active", sort))
+				.isEqualTo("select dense_rank() over ( partition by active, age order by username rows between current row and unbounded following ) from user u order by active, u.age desc");
 	}
 
 }
