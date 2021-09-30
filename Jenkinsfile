@@ -1,4 +1,7 @@
+def props = null // Load this in the first stage
+
 pipeline {
+
 	agent none
 
 	triggers {
@@ -12,7 +15,20 @@ pipeline {
 	}
 
 	stages {
-		stage("test: baseline (jdk8)") {
+
+	    stage("Initialize") {
+	        agent {
+	            label 'data'
+	        }
+	        options { timeout(time: 30, unit: 'MINUTES') }
+	        steps {
+	            script {
+	                props = readProperties interpolate: true, file: 'ci/configuration.properties'
+	            }
+	        }
+	    }
+
+		stage("test: baseline (java.baseline)") {
 			when {
 				beforeAgent(true)
 				anyOf {
@@ -25,16 +41,19 @@ pipeline {
 			}
 			options { timeout(time: 30, unit: 'MINUTES') }
 			environment {
-				DOCKER_HUB = credentials('hub.docker.com-springbuildmaster')
-				ARTIFACTORY = credentials('02bd1690-b54f-4c9f-819d-a77cb7a9822c')
+				DOCKER_HUB = credentials("${props['docker.credentials.ref']}")
+				ARTIFACTORY = credentials("${props['artifactory.credentials.ref']}")
 			}
 			steps {
 				script {
-					docker.withRegistry('', 'hub.docker.com-springbuildmaster') {
-						docker.image('adoptopenjdk/openjdk8:latest').inside('-u root -v /var/run/docker.sock:/var/run/docker.sock -v /usr/bin/docker:/usr/bin/docker -v $HOME:/tmp/jenkins-home') {
-							sh "docker login --username ${DOCKER_HUB_USR} --password ${DOCKER_HUB_PSW}"
-							sh 'PROFILE=all-dbs ci/test.sh'
-							sh "ci/clean.sh"
+					docker.withRegistry('', props['docker.credentials.ref']) {
+						docker.image(props['docker.java.baseline.image']).inside(props['docker.java.inside.root']) {
+                            sh "docker login --username ${DOCKER_HUB_USR} --password ${DOCKER_HUB_PSW}"
+                            sh "mkdir -p ${props['maven.repo.base']}/spring-data-jpa"
+                            sh "chown -R 1001:1001 ."
+                            sh "${props['docker.java.env']} ./mvnw -s settings.xml " +
+                                  "-Pall-dbs clean dependency:list test -Dsort -U -B -Dmaven.repo.local=${props['maven.repo.base']}/spring-data-jpa"
+                            sh "${props['docker.java.env']} ./mvnw -s settings.xml clean -Dmaven.repo.local=${props['maven.repo.base']}/spring-data-jpa"
 						}
 					}
 				}
@@ -50,38 +69,38 @@ pipeline {
 				}
 			}
 			parallel {
-				stage("test: baseline (jdk11)") {
+				stage("test: baseline (java.next)") {
 					agent {
 						label 'data'
 					}
 					options { timeout(time: 30, unit: 'MINUTES') }
 					environment {
-						ARTIFACTORY = credentials('02bd1690-b54f-4c9f-819d-a77cb7a9822c')
+			        	ARTIFACTORY = credentials("${props['artifactory.credentials.ref']}")
 					}
 					steps {
 						script {
-							docker.withRegistry('', 'hub.docker.com-springbuildmaster') {
-								docker.image('adoptopenjdk/openjdk11:latest').inside('-v $HOME:/tmp/jenkins-home') {
-									sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -s settings.xml -Pjava11 clean dependency:list test -Dsort -Dbundlor.enabled=false -U -B'
+							docker.withRegistry('', props['docker.credentials.ref']) {
+								docker.image(props['docker.java.next.image']).inside(props['docker.java.inside']) {
+                                    sh "${props['docker.java.env']} ./mvnw -s settings.xml -Pjava11 clean dependency:list test -Dsort -Dbundlor.enabled=false -U -B"
 								}
 							}
 						}
 					}
 				}
 
-				stage("test: baseline (jdk17)") {
+				stage("test: baseline (java.lts)") {
 					agent {
 						label 'data'
 					}
 					options { timeout(time: 30, unit: 'MINUTES') }
 					environment {
-						ARTIFACTORY = credentials('02bd1690-b54f-4c9f-819d-a77cb7a9822c')
+			        	ARTIFACTORY = credentials("${props['artifactory.credentials.ref']}")
 					}
 					steps {
 						script {
-							docker.withRegistry('', 'hub.docker.com-springbuildmaster') {
-								docker.image('openjdk:17-bullseye').inside('-v $HOME:/tmp/jenkins-home') {
-									sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -s settings.xml -Pjava11 clean dependency:list test -Dsort -Dbundlor.enabled=false -U -B'
+							docker.withRegistry('', props['docker.credentials.ref']) {
+								docker.image(props['docker.java.lts.image']).inside(props['docker.java.inside']) {
+                                    sh "${props['docker.java.env']} ./mvnw -s settings.xml -Pjava11 clean dependency:list test -Dsort -Dbundlor.enabled=false -U -B"
 								}
 							}
 						}
@@ -104,21 +123,21 @@ pipeline {
 			options { timeout(time: 20, unit: 'MINUTES') }
 
 			environment {
-				ARTIFACTORY = credentials('02bd1690-b54f-4c9f-819d-a77cb7a9822c')
+                ARTIFACTORY = credentials("${props['artifactory.credentials.ref']}")
 			}
 
 			steps {
 				script {
-					docker.withRegistry('', 'hub.docker.com-springbuildmaster') {
-						docker.image('adoptopenjdk/openjdk8:latest').inside('-v $HOME:/tmp/jenkins-home') {
-							sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -s settings.xml -Pci,artifactory ' +
-									'-Dartifactory.server=https://repo.spring.io ' +
-									"-Dartifactory.username=${ARTIFACTORY_USR} " +
-									"-Dartifactory.password=${ARTIFACTORY_PSW} " +
-									"-Dartifactory.staging-repository=libs-snapshot-local " +
-									"-Dartifactory.build-name=spring-data-jpa " +
-									"-Dartifactory.build-number=${BUILD_NUMBER} " +
-									'-Dmaven.test.skip=true clean deploy -U -B'
+					docker.withRegistry('', props['docker.credentials.ref']) {
+						docker.image(props['docker.java.baseline.image']).inside(props['docker.java.inside']) {
+                            sh "${props['docker.java.env']} ./mvnw -s settings.xml -Pci,artifactory " +
+                                    '-Dartifactory.server=https://repo.spring.io ' +
+                                    "-Dartifactory.username=${ARTIFACTORY_USR} " +
+                                    "-Dartifactory.password=${ARTIFACTORY_PSW} " +
+                                    "-Dartifactory.staging-repository=libs-snapshot-local " +
+                                    "-Dartifactory.build-name=spring-data-jpa " +
+                                    "-Dartifactory.build-number=${BUILD_NUMBER} " +
+                                    '-Dmaven.test.skip=true clean deploy -U -B'
 						}
 					}
 				}
