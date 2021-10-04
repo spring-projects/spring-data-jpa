@@ -264,7 +264,7 @@ class StringQuery implements DeclaredQuery {
 
 				String typeSource = matcher.group(COMPARISION_TYPE_GROUP);
 				String expression = spelExtractor.getParameter(parameterName == null ? parameterIndexString : parameterName);
-				String replacement =  null;
+				String replacement = null;
 
 				expressionParameterIndex++;
 				if ("".equals(parameterIndexString)) {
