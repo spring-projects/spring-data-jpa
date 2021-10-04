@@ -333,6 +333,7 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 				continue;
 			}
 
+			// may cause NullPointerException if the returned value is null
 			return (boolean) AnnotationUtils.getValue(annotation, "updatable");
 		}
 
