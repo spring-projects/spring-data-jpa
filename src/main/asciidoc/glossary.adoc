@@ -16,6 +16,6 @@ EclipseLink :: Object relational mapper implementing JPA - link:$$https://www.ec
 
 Hibernate :: Object relational mapper implementing JPA - link:$$https://hibernate.org/$$[https://hibernate.org/]
 
-JPA :: Java Persistence API
+JPA :: Jakarta Persistence API
 
 Spring :: Java application framework - link:$$https://projects.spring.io/spring-framework$$[https://projects.spring.io/spring-framework]
