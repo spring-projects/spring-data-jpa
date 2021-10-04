@@ -160,7 +160,7 @@ public class QueryByExamplePredicateBuilder {
 				PathNode node = currentNode.add(attribute.getName(), attributeValue);
 				if (node.spansCycle()) {
 					throw new InvalidDataAccessApiUsageException(
-							String.format("Path '%s' from root %s must not span a cyclic property reference!\r\n%s", currentPath,
+							String.format("Path '%s' from root %s must not span a cyclic property reference!%n%s", currentPath,
 									ClassUtils.getShortName(probeType), node));
 				}
 

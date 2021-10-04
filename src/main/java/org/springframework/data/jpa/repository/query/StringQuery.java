@@ -266,8 +266,6 @@ class StringQuery implements DeclaredQuery {
 				String expression = spelExtractor.getParameter(parameterName == null ? parameterIndexString : parameterName);
 				String replacement = null;
 
-				Assert.isTrue(parameterIndexString != null || parameterName != null, () -> String.format("We need either a name or an index! Offending query string: %s", query));
-
 				expressionParameterIndex++;
 				if ("".equals(parameterIndexString)) {
 
@@ -293,7 +291,7 @@ class StringQuery implements DeclaredQuery {
 						} else {
 							checkAndRegister(new LikeParameterBinding(parameterName, likeType, expression), bindings);
 
-							replacement = expression != null ? ":" + parameterName : matcher.group(5);
+							replacement = ":" + parameterName;
 						}
 
 						break;
