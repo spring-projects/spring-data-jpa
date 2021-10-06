@@ -46,6 +46,7 @@ import org.springframework.data.repository.core.support.DefaultRepositoryMetadat
 import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.data.repository.query.QueryLookupStrategy.Key;
 import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
+import org.springframework.data.repository.query.RepositoryQuery;
 
 /**
  * Unit tests for {@link JpaQueryLookupStrategy}.
@@ -110,6 +111,19 @@ public class JpaQueryLookupStrategyUnitTests {
 				.withMessageContaining(method.toString());
 	}
 
+	@Test // GH-2319
+	void prefersDeclaredQuery() throws Exception {
+
+		QueryLookupStrategy strategy = JpaQueryLookupStrategy.create(em, queryMethodFactory, Key.CREATE_IF_NOT_FOUND,
+				EVALUATION_CONTEXT_PROVIDER, EscapeCharacter.DEFAULT);
+		Method method = UserRepository.class.getMethod("annotatedQueryWithQueryAndQueryName");
+		RepositoryMetadata metadata = new DefaultRepositoryMetadata(UserRepository.class);
+
+		RepositoryQuery repositoryQuery = strategy.resolveQuery(method, metadata, projectionFactory, namedQueries);
+
+		assertThat(repositoryQuery).isInstanceOf(AbstractStringBasedJpaQuery.class);
+	}
+
 	interface UserRepository extends Repository<User, Integer> {
 
 		@Query("something absurd")
@@ -117,5 +131,8 @@ public class JpaQueryLookupStrategyUnitTests {
 
 		@Query(value = "select u.* from User u", nativeQuery = true)
 		List<User> findByInvalidNativeQuery(String param, Sort sort);
+
+		@Query(value = "something absurd", name = "my-query-name")
+		User annotatedQueryWithQueryAndQueryName();
 	}
 }
