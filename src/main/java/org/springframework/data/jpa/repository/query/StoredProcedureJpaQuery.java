@@ -65,7 +65,6 @@ class StoredProcedureJpaQuery extends AbstractJpaQuery {
 		super(method, em);
 		this.procedureAttributes = method.getProcedureAttributes();
 		this.useNamedParameters = useNamedParameters(method);
-
 	}
 
 	/**
