@@ -16,8 +16,6 @@
 package org.springframework.data.jpa.repository.config;
 
 import java.lang.annotation.Annotation;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -25,7 +23,6 @@ import java.util.LinkedHashSet;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicReference;
 
 import javax.persistence.Entity;
 import javax.persistence.MappedSuperclass;
@@ -237,17 +234,9 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 	@Override
 	protected ClassLoader getConfigurationInspectionClassLoader(ResourceLoader loader) {
 
-        AtomicReference<ClassLoader> classLoaderRef = new AtomicReference<>();
-        AccessController.doPrivileged(new PrivilegedAction() {
-            @Override
-            public Object run() {
-                // Classloaders should only be created inside doPrivileged block
-                classLoaderRef.set(loader.getClassLoader());
-                return null; // nothing to return
-            }
-        });
+		ClassLoader classLoader = loader.getClassLoader();
 
-		return classLoaderRef.get() != null && LazyJvmAgent.isActive(loader.getClassLoader())
+		return classLoader != null && LazyJvmAgent.isActive(loader.getClassLoader())
 				? new InspectionClassLoader(loader.getClassLoader())
 				: loader.getClassLoader();
 	}
@@ -261,7 +250,7 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 	 * @return
 	 */
 	private static AbstractBeanDefinition getEntityManagerBeanDefinitionFor(RepositoryConfigurationSource config,
-			@Nullable Object source) {
+																			@Nullable Object source) {
 
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder
 				.rootBeanDefinition("org.springframework.orm.jpa.SharedEntityManagerCreator");
