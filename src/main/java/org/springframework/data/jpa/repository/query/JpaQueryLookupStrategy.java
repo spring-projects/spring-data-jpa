@@ -19,6 +19,9 @@ import java.lang.reflect.Method;
 
 import javax.persistence.EntityManager;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.core.NamedQueries;
@@ -39,6 +42,8 @@ import org.springframework.util.Assert;
  * @author Réda Housni Alaoui
  */
 public final class JpaQueryLookupStrategy {
+
+	private static final Logger LOG = LoggerFactory.getLogger(JpaQueryLookupStrategy.class);
 
 	/**
 	 * Private constructor to prevent instantiation.
@@ -144,6 +149,11 @@ public final class JpaQueryLookupStrategy {
 		protected RepositoryQuery resolveQuery(JpaQueryMethod method, EntityManager em, NamedQueries namedQueries) {
 
 			RepositoryQuery query = JpaQueryFactory.INSTANCE.fromQueryAnnotation(method, em, evaluationContextProvider);
+
+			if (query != null && method.hasAnnotatedQueryName()) {
+				LOG.warn(String.format(
+						"Query method %s is annotated with both, a query and a query name. Using the declared query.", method));
+			}
 
 			if (null != query) {
 				return query;
