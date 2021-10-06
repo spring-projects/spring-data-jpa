@@ -18,7 +18,7 @@ package org.springframework.data.jpa.repository.query;
 import java.util.List;
 
 import org.springframework.lang.Nullable;
-import org.springframework.util.StringUtils;
+import org.springframework.util.ObjectUtils;
 
 /**
  * A wrapper for a String representation of a query offering information about the query.
@@ -35,7 +35,7 @@ interface DeclaredQuery {
 	 * @return a {@literal DeclaredQuery} instance even for a {@literal null} or empty argument.
 	 */
 	static DeclaredQuery of(@Nullable String query) {
-		return StringUtils.isEmpty(query) ? EmptyDeclaredQuery.EMPTY_QUERY : new StringQuery(query);
+		return ObjectUtils.isEmpty(query) ? EmptyDeclaredQuery.EMPTY_QUERY : new StringQuery(query);
 	}
 
 	/**
@@ -77,7 +77,7 @@ interface DeclaredQuery {
 	 * Creates a new {@literal DeclaredQuery} representing a count query, i.e. a query returning the number of rows to be
 	 * expected from the original query, either derived from the query wrapped by this instance or from the information
 	 * passed as arguments.
-	 * 
+	 *
 	 * @param countQuery an optional query string to be used if present.
 	 * @param countQueryProjection an optional return type for the query.
 	 * @return a new {@literal DeclaredQuery} instance.
