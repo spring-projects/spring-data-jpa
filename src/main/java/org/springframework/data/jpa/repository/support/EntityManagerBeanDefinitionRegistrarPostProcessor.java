@@ -32,7 +32,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.core.Ordered;
-import org.springframework.data.jpa.util.BeanDefinitionUtils.EntityManagerFactoryBeanDefinition;
+import org.springframework.data.jpa.util.BeanDefinitionUtils.*;
 import org.springframework.orm.jpa.SharedEntityManagerCreator;
 
 /**
