@@ -520,26 +520,48 @@ class QueryUtilsUnitTests {
 	void applySortingAccountsForNativeWindowFunction() {
 		Sort sort = Sort.by(Order.desc("age"));
 
+		// order by absent
 		assertThat(QueryUtils.applySorting("select * from user u", sort))
 				.isEqualTo("select * from user u order by u.age desc");
+		// order by present
 		assertThat(QueryUtils.applySorting("select * from user u order by u.lastname", sort))
 				.isEqualTo("select * from user u order by u.lastname, u.age desc");
+		// partition by
 		assertThat(QueryUtils.applySorting("select dense_rank() over (partition by age) from user u", sort))
 				.isEqualTo("select dense_rank() over (partition by age) from user u order by u.age desc");
+		// order by in over clause
 		assertThat(QueryUtils.applySorting("select dense_rank() over (order by lastname) from user u", sort))
 				.isEqualTo("select dense_rank() over (order by lastname) from user u order by u.age desc");
+		// order by in over clause (additional spaces)
 		assertThat(QueryUtils.applySorting("select dense_rank() over ( order by lastname ) from user u", sort))
 				.isEqualTo("select dense_rank() over ( order by lastname ) from user u order by u.age desc");
+		// order by in over clause + at the end
 		assertThat(QueryUtils.applySorting("select dense_rank() over (order by lastname) from user u order by u.lastname", sort))
 				.isEqualTo("select dense_rank() over (order by lastname) from user u order by u.lastname, u.age desc");
+		// partition by + order by in over clause
 		assertThat(QueryUtils.applySorting("select dense_rank() over (partition by active, age order by lastname) from user u", sort))
 				.isEqualTo("select dense_rank() over (partition by active, age order by lastname) from user u order by u.age desc");
+		// partition by + order by in over clause + order by at the end
 		assertThat(QueryUtils.applySorting("select dense_rank() over (partition by active, age order by lastname) from user u order by active", sort))
 				.isEqualTo("select dense_rank() over (partition by active, age order by lastname) from user u order by active, u.age desc");
+		// partition by + order by in over clause + frame clause
 		assertThat(QueryUtils.applySorting("select dense_rank() over ( partition by active, age order by username rows between current row and unbounded following ) from user u", sort))
 				.isEqualTo("select dense_rank() over ( partition by active, age order by username rows between current row and unbounded following ) from user u order by u.age desc");
+		// partition by + order by in over clause + frame clause + order by at the end
 		assertThat(QueryUtils.applySorting("select dense_rank() over ( partition by active, age order by username rows between current row and unbounded following ) from user u order by active", sort))
 				.isEqualTo("select dense_rank() over ( partition by active, age order by username rows between current row and unbounded following ) from user u order by active, u.age desc");
+		// order by in subselect (select expression)
+		assertThat(QueryUtils.applySorting("select lastname, (select i.id from item i order by i.id limit 1) from user u", sort))
+				.isEqualTo("select lastname, (select i.id from item i order by i.id limit 1) from user u order by u.age desc");
+		// order by in subselect (select expression) + at the end
+		assertThat(QueryUtils.applySorting("select lastname, (select i.id from item i order by 1 limit 1) from user u order by active", sort))
+				.isEqualTo("select lastname, (select i.id from item i order by 1 limit 1) from user u order by active, u.age desc");
+		// order by in subselect (from expression)
+		assertThat(QueryUtils.applySorting("select * from (select * from user order by age desc limit 10) u", sort))
+				.isEqualTo("select * from (select * from user order by age desc limit 10) u order by age desc");
+		// order by in subselect (from expression) + at the end
+		assertThat(QueryUtils.applySorting("select * from (select * from user order by 1, 2, 3 desc limit 10) u order by u.active asc", sort))
+				.isEqualTo("select * from (select * from user order by 1, 2, 3 desc limit 10) u order by u.active asc, age desc");
 	}
 
 }

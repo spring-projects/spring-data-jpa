@@ -108,7 +108,7 @@ public abstract class QueryUtils {
 
 	private static final String EQUALS_CONDITION_STRING = "%s.%s = :%s";
 	private static final Pattern ORDER_BY = Pattern.compile("(order\\s+by\\s+)", CASE_INSENSITIVE);
-	private static final Pattern ORDER_BY_IN_WINDOW_CLAUSE = Pattern.compile("(over\\s*\\(\\s*[a-z ,]*order\\s+by\\s+[a-z ,]*\\s*\\))", CASE_INSENSITIVE);
+	private static final Pattern ORDER_BY_IN_WINDOW_OR_SUBSELECT = Pattern.compile("(\\(\\s*[a-z0-9 ,.*]*order\\s+by\\s+[a-z0-9 ,.]*\\s*\\))", CASE_INSENSITIVE);
 
 	private static final Pattern NAMED_PARAMETER = Pattern.compile(COLON_NO_DOUBLE_COLON + IDENTIFIER + "|#" + IDENTIFIER,
 			CASE_INSENSITIVE);
@@ -284,7 +284,7 @@ public abstract class QueryUtils {
 	 * @return {@code true} if the query has {@code order by} clause, {@code false} otherwise
 	 */
 	private static boolean hasOrderByClause(String query) {
-		return countOccurences(ORDER_BY, query) > countOccurences(ORDER_BY_IN_WINDOW_CLAUSE, query);
+		return countOccurences(ORDER_BY, query) > countOccurences(ORDER_BY_IN_WINDOW_OR_SUBSELECT, query);
 	}
 
 	/**
@@ -416,10 +416,12 @@ public abstract class QueryUtils {
 	@Nullable
 	@Deprecated
 	public static String detectAlias(String query) {
-
+		String alias = null;
 		Matcher matcher = ALIAS_MATCH.matcher(query);
-
-		return matcher.find() ? matcher.group(2) : null;
+		while (matcher.find()) {
+			alias = matcher.group(2);
+		}
+		return alias;
 	}
 
 	/**
