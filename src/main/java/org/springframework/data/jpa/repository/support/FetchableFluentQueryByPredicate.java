@@ -15,11 +15,11 @@
  */
 package org.springframework.data.jpa.repository.support;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
@@ -33,6 +33,7 @@ import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 
 import com.querydsl.core.types.Predicate;
 import com.querydsl.jpa.JPQLQuery;
@@ -44,6 +45,7 @@ import com.querydsl.jpa.JPQLQuery;
  * @param <S> Domain type
  * @param <R> Result type
  * @author Greg Turnquist
+ * @author Mark Paluch
  * @since 2.6
  */
 class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<R> implements FetchableFluentQuery<R> {
@@ -78,16 +80,27 @@ class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<R> implem
 		this.entityType = entityType;
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#sortBy(org.springframework.data.domain.Sort)
+	 */
 	@Override
 	public FetchableFluentQuery<R> sortBy(Sort sort) {
+
+		Assert.notNull(sort, "Sort must not be null!");
 
 		return new FetchableFluentQueryByPredicate<>(this.predicate, this.resultType, this.sort.and(sort), this.properties,
 				this.finder, this.pagedFinder, this.countOperation, this.existsOperation, this.entityType, this.context);
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#as(java.lang.Class)
+	 */
 	@Override
 	public <NR> FetchableFluentQuery<NR> as(Class<NR> resultType) {
 
+		Assert.notNull(resultType, "Projection target type must not be null!");
 		if (!resultType.isInterface()) {
 			throw new UnsupportedOperationException("Class-based DTOs are not yet supported.");
 		}
@@ -96,6 +109,10 @@ class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<R> implem
 				this.pagedFinder, this.countOperation, this.existsOperation, this.entityType, this.context);
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#project(java.util.Collection)
+	 */
 	@Override
 	public FetchableFluentQuery<R> project(Collection<String> properties) {
 
@@ -104,57 +121,83 @@ class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<R> implem
 				this.entityType, this.context);
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#oneValue()
+	 */
 	@Override
 	public R oneValue() {
 
-		List<R> results = this.finder.apply(this.sort) //
+		List<S> results = this.finder.apply(this.sort) //
 				.limit(2) // Never need more than 2 values
-				.stream() //
-				.map(getConversionFunction(this.entityType, this.resultType)) //
-				.collect(Collectors.toList());
+				.fetch();
 
 		if (results.size() > 1) {
 			throw new IncorrectResultSizeDataAccessException(1);
 		}
 
-		return results.isEmpty() ? null : results.get(0);
+		return results.isEmpty() ? null : getConversionFunction().apply(results.get(0));
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#firstValue()
+	 */
 	@Override
 	public R firstValue() {
 
-		List<R> results = this.finder.apply(this.sort) //
+		List<S> results = this.finder.apply(this.sort) //
 				.limit(1) // Never need more than 1 value
-				.stream() //
-				.map(getConversionFunction(this.entityType, this.resultType)) //
-				.collect(Collectors.toList());
+				.fetch();
 
-		return results.isEmpty() ? null : results.get(0);
+		return results.isEmpty() ? null : getConversionFunction().apply(results.get(0));
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#all()
+	 */
 	@Override
 	public List<R> all() {
-		return stream().collect(Collectors.toList());
+
+		JPQLQuery<S> query = this.finder.apply(this.sort);
+		return convert(query.fetch());
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#page(org.springframework.data.domain.Pageable)
+	 */
 	@Override
 	public Page<R> page(Pageable pageable) {
 		return pageable.isUnpaged() ? new PageImpl<>(all()) : readPage(pageable);
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#stream()
+	 */
 	@Override
 	public Stream<R> stream() {
 
 		return this.finder.apply(this.sort) //
 				.stream() //
-				.map(getConversionFunction(this.entityType, this.resultType));
+				.map(getConversionFunction());
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#count()
+	 */
 	@Override
 	public long count() {
 		return this.countOperation.apply(this.predicate);
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#exists()
+	 */
 	@Override
 	public boolean exists() {
 		return this.existsOperation.apply(this.predicate);
@@ -163,11 +206,25 @@ class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<R> implem
 	private Page<R> readPage(Pageable pageable) {
 
 		JPQLQuery<S> pagedQuery = this.pagedFinder.apply(this.sort, pageable);
-
-		List<R> paginatedResults = pagedQuery.stream() //
-				.map(getConversionFunction(this.entityType, this.resultType)) //
-				.collect(Collectors.toList());
+		List<R> paginatedResults = convert(pagedQuery.fetch());
 
 		return PageableExecutionUtils.getPage(paginatedResults, pageable, () -> this.countOperation.apply(this.predicate));
 	}
+
+	private List<R> convert(List<S> resultList) {
+
+		Function<Object, R> conversionFunction = getConversionFunction();
+		List<R> mapped = new ArrayList<>(resultList.size());
+
+		for (S s : resultList) {
+			mapped.add(conversionFunction.apply(s));
+		}
+
+		return mapped;
+	}
+
+	private Function<Object, R> getConversionFunction() {
+		return getConversionFunction(this.entityType, this.resultType);
+	}
+
 }

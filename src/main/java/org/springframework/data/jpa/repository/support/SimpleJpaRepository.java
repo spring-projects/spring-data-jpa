@@ -58,7 +58,7 @@ import org.springframework.data.mapping.PersistentEntity;
 import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery;
-import org.springframework.data.repository.support.PageableExecutionUtils;
+import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.data.util.ProxyUtils;
 import org.springframework.data.util.Streamable;
 import org.springframework.lang.Nullable;
@@ -582,6 +582,9 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 */
 	@Override
 	public <S extends T, R> R findBy(Example<S> example, Function<FetchableFluentQuery<S>, R> queryFunction) {
+
+		Assert.notNull(example, "Sample must not be null!");
+		Assert.notNull(queryFunction, "Query function must not be null!");
 
 		Function<Sort, TypedQuery<S>> finder = sort -> {
 

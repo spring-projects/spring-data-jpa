@@ -34,7 +34,7 @@ import org.springframework.data.querydsl.EntityPathResolver;
 import org.springframework.data.querydsl.QSort;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery;
-import org.springframework.data.repository.support.PageableExecutionUtils;
+import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -167,11 +167,16 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 		return PageableExecutionUtils.getPage(query.fetch(), pageable, countQuery::fetchCount);
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.querydsl.QuerydslPredicateExecutor#findBy(com.querydsl.core.types.Predicate, java.util.function.Function)
+	 */
+	@SuppressWarnings("unchecked")
 	@Override
 	public <S extends T, R> R findBy(Predicate predicate, Function<FetchableFluentQuery<S>, R> queryFunction) {
 
 		Assert.notNull(predicate, "Predicate must not be null!");
-		Assert.notNull(queryFunction, "Function must not be null!");
+		Assert.notNull(queryFunction, "Query function must not be null!");
 
 		Function<Sort, JPQLQuery<T>> finder = sort -> {
 			JPQLQuery<T> select = createQuery(predicate).select(path);
@@ -194,12 +199,12 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 			return select;
 		};
 
-		FetchableFluentQuery<S> fluentQuery = (FetchableFluentQuery<S>) new FetchableFluentQueryByPredicate<>(predicate,
+		FetchableFluentQueryByPredicate<T, T> fluentQuery = new FetchableFluentQueryByPredicate<>(predicate,
 				entityInformation.getJavaType(), finder, pagedFinder, this::count, this::exists,
 				this.entityInformation.getJavaType(),
 				new JpaMetamodelMappingContext(Collections.singleton(this.entityManager.getMetamodel())));
 
-		return queryFunction.apply(fluentQuery);
+		return queryFunction.apply((FetchableFluentQuery<S>) fluentQuery);
 	}
 
 	/*

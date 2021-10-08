@@ -15,10 +15,10 @@
  */
 package org.springframework.data.jpa.repository.support;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.persistence.EntityManager;
@@ -37,6 +37,7 @@ import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 
 /**
  * Immutable implementation of {@link FetchableFluentQuery} based on Query by {@link Example}. All methods that return a
@@ -45,6 +46,7 @@ import org.springframework.lang.Nullable;
  * @param <S> Domain type
  * @param <R> Result type
  * @author Greg Turnquist
+ * @author Mark Paluch
  * @since 2.6
  */
 class FetchableFluentQueryByExample<S, R> extends FluentQuerySupport<R> implements FetchableFluentQuery<R> {
@@ -79,24 +81,39 @@ class FetchableFluentQueryByExample<S, R> extends FluentQuerySupport<R> implemen
 		this.escapeCharacter = escapeCharacter;
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#sortBy(org.springframework.data.domain.Sort)
+	 */
 	@Override
 	public FetchableFluentQuery<R> sortBy(Sort sort) {
 
-		return new FetchableFluentQueryByExample<S, R>(this.example, this.resultType, this.sort.and(sort), this.properties,
+		Assert.notNull(sort, "Sort must not be null!");
+
+		return new FetchableFluentQueryByExample<>(this.example, this.resultType, this.sort.and(sort), this.properties,
 				this.finder, this.countOperation, this.existsOperation, this.context, this.entityManager, this.escapeCharacter);
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#as(java.lang.Class)
+	 */
 	@Override
 	public <NR> FetchableFluentQuery<NR> as(Class<NR> resultType) {
 
+		Assert.notNull(resultType, "Projection target type must not be null!");
 		if (!resultType.isInterface()) {
 			throw new UnsupportedOperationException("Class-based DTOs are not yet supported.");
 		}
 
-		return new FetchableFluentQueryByExample<S, NR>(this.example, resultType, this.sort, this.properties, this.finder,
+		return new FetchableFluentQueryByExample<>(this.example, resultType, this.sort, this.properties, this.finder,
 				this.countOperation, this.existsOperation, this.context, this.entityManager, this.escapeCharacter);
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#project(java.util.Collection)
+	 */
 	@Override
 	public FetchableFluentQuery<R> project(Collection<String> properties) {
 
@@ -104,62 +121,86 @@ class FetchableFluentQueryByExample<S, R> extends FluentQuerySupport<R> implemen
 				this.finder, this.countOperation, this.existsOperation, this.context, this.entityManager, this.escapeCharacter);
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#oneValue()
+	 */
 	@Override
 	public R oneValue() {
 
 		TypedQuery<S> limitedQuery = this.finder.apply(this.sort);
 		limitedQuery.setMaxResults(2); // Never need more than 2 values
 
-		List<R> results = limitedQuery //
-				.getResultStream() //
-				.map(getConversionFunction(this.example.getProbeType(), this.resultType)) //
-				.collect(Collectors.toList());
-		;
+		List<S> results = limitedQuery.getResultList();
 
 		if (results.size() > 1) {
 			throw new IncorrectResultSizeDataAccessException(1);
 		}
 
-		return results.isEmpty() ? null : results.get(0);
+		return results.isEmpty() ? null : getConversionFunction().apply(results.get(0));
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#firstValue()
+	 */
 	@Override
 	public R firstValue() {
 
 		TypedQuery<S> limitedQuery = this.finder.apply(this.sort);
 		limitedQuery.setMaxResults(1); // Never need more than 1 value
 
-		List<R> results = limitedQuery //
-				.getResultStream() //
-				.map(getConversionFunction(this.example.getProbeType(), this.resultType)) //
-				.collect(Collectors.toList());
+		List<S> results = limitedQuery.getResultList();
 
-		return results.isEmpty() ? null : results.get(0);
+		return results.isEmpty() ? null : getConversionFunction().apply(results.get(0));
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#all()
+	 */
 	@Override
 	public List<R> all() {
-		return stream().collect(Collectors.toList());
+
+		List<S> resultList = this.finder.apply(this.sort).getResultList();
+
+		return convert(resultList);
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#page(org.springframework.data.domain.Pageable)
+	 */
 	@Override
 	public Page<R> page(Pageable pageable) {
 		return pageable.isUnpaged() ? new PageImpl<>(all()) : readPage(pageable);
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#stream()
+	 */
 	@Override
 	public Stream<R> stream() {
 
 		return this.finder.apply(this.sort) //
 				.getResultStream() //
-				.map(getConversionFunction(this.example.getProbeType(), this.resultType));
+				.map(getConversionFunction());
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#count()
+	 */
 	@Override
 	public long count() {
 		return this.countOperation.apply(example);
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#exists()
+	 */
 	@Override
 	public boolean exists() {
 		return this.existsOperation.apply(example);
@@ -174,10 +215,24 @@ class FetchableFluentQueryByExample<S, R> extends FluentQuerySupport<R> implemen
 			pagedQuery.setMaxResults(pageable.getPageSize());
 		}
 
-		List<R> paginatedResults = pagedQuery.getResultStream() //
-				.map(getConversionFunction(this.example.getProbeType(), this.resultType)) //
-				.collect(Collectors.toList());
+		List<R> paginatedResults = convert(pagedQuery.getResultList());
 
 		return PageableExecutionUtils.getPage(paginatedResults, pageable, () -> this.countOperation.apply(this.example));
 	}
+
+	private List<R> convert(List<S> resultList) {
+
+		Function<Object, R> conversionFunction = getConversionFunction();
+		List<R> mapped = new ArrayList<>(resultList.size());
+
+		for (S s : resultList) {
+			mapped.add(conversionFunction.apply(s));
+		}
+		return mapped;
+	}
+
+	private Function<Object, R> getConversionFunction() {
+		return getConversionFunction(this.example.getProbeType(), this.resultType);
+	}
+
 }
