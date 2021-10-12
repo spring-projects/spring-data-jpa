@@ -32,6 +32,8 @@
 		<class>org.springframework.data.jpa.domain.sample.Order</class>
 		<class>org.springframework.data.jpa.domain.sample.Parent</class>
 		<class>org.springframework.data.jpa.domain.sample.PersistableWithIdClass</class>
+		<class>org.springframework.data.jpa.domain.sample.PersistableWithSingleIdClass
+		</class>
 		<class>org.springframework.data.jpa.domain.sample.PrimitiveVersionProperty</class>
 		<class>org.springframework.data.jpa.domain.sample.Product</class>
 		<class>org.springframework.data.jpa.domain.sample.Role</class>
@@ -89,9 +91,9 @@
 			<property name="hibernate.dialect" value="org.hibernate.dialect.HSQLDialect" />
 		</properties>
 	</persistence-unit>
-	
+
 	<!--  Custom PUs for metadata tests -->
-	
+
 	<persistence-unit name="metadata">
 		<provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
 		<class>org.springframework.data.jpa.domain.sample.CustomAbstractPersistable</class>

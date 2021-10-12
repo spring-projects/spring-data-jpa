@@ -92,6 +92,18 @@ public class JpaMetamodelEntityInformationIntegrationTests {
 		assertThat(id).isEqualTo(new PersistableWithIdClassPK(2L, 4L));
 	}
 
+	@Test // GH-2330
+	void returnsIdOfSingleAttributeIdClassCorrectly() {
+
+		PersistableWithSingleIdClass entity = new PersistableWithSingleIdClass(2L);
+
+		JpaEntityInformation<PersistableWithSingleIdClass, ?> information = getEntityInformation(
+				PersistableWithSingleIdClass.class, em);
+		Object id = information.getId(entity);
+
+		assertThat(id).isEqualTo(new PersistableWithSingleIdClassPK(2L));
+	}
+
 	@Test // DATAJPA-413
 	void returnsIdOfEntityWithIdClassCorrectly() {
 

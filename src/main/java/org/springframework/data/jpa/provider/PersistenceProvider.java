@@ -20,15 +20,19 @@ import static org.springframework.data.jpa.provider.PersistenceProvider.Constant
 
 import java.util.Collections;
 import java.util.NoSuchElementException;
+import java.util.Set;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
+import javax.persistence.metamodel.IdentifiableType;
 import javax.persistence.metamodel.Metamodel;
+import javax.persistence.metamodel.SingularAttribute;
 
 import org.eclipse.persistence.jpa.JpaQuery;
 import org.eclipse.persistence.queries.ScrollableCursor;
 import org.hibernate.ScrollMode;
 import org.hibernate.ScrollableResults;
+import org.hibernate.metamodel.model.domain.spi.IdentifiableTypeDescriptor;
 import org.hibernate.proxy.HibernateProxy;
 import org.springframework.data.util.CloseableIterator;
 import org.springframework.lang.Nullable;
@@ -91,6 +95,17 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 		@Override
 		public Object getIdentifierFrom(Object entity) {
 			return ((HibernateProxy) entity).getHibernateLazyInitializer().getIdentifier();
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.jpa.provider.PersistenceProvider#getIdClassAttributes(javax.persistence.metamodel.IdentifiableType)
+		 */
+		@Override
+		public <T> Set<SingularAttribute<? super T, ?>> getIdClassAttributes(IdentifiableType<T> type) {
+			return type instanceof IdentifiableTypeDescriptor && ((IdentifiableTypeDescriptor<T>) type).hasIdClass()
+					? super.getIdClassAttributes(type)
+					: Collections.emptySet();
 		}
 
 		/*
@@ -289,6 +304,20 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 	@Override
 	public boolean canExtractQuery() {
 		return true;
+	}
+
+	/**
+	 * @param type the entity type.
+	 * @return the set of identifier attributes used in a {@code @IdClass} for {@code type}. Empty when {@code type} does
+	 *         not use {@code @IdClass}.
+	 * @since 2.4.14
+	 */
+	public <T> Set<SingularAttribute<? super T, ?>> getIdClassAttributes(IdentifiableType<T> type) {
+		try {
+			return type.getIdClassAttributes();
+		} catch (IllegalArgumentException e) {
+			return Collections.emptySet();
+		}
 	}
 
 	/**
