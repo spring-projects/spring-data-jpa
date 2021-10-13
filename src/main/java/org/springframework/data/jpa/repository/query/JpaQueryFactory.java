@@ -17,9 +17,6 @@ package org.springframework.data.jpa.repository.query;
 
 import javax.persistence.EntityManager;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
@@ -36,7 +33,6 @@ enum JpaQueryFactory {
 	INSTANCE;
 
 	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
-	private static final Logger LOG = LoggerFactory.getLogger(JpaQueryFactory.class);
 
 	/**
 	 * Creates a {@link RepositoryQuery} from the given {@link String} query.
@@ -48,14 +44,9 @@ enum JpaQueryFactory {
 	 * @param evaluationContextProvider
 	 * @return
 	 */
-	@Nullable
-	AbstractJpaQuery fromMethodWithQueryString(JpaQueryMethod method, EntityManager em, @Nullable String queryString,
+	AbstractJpaQuery fromMethodWithQueryString(JpaQueryMethod method, EntityManager em, String queryString,
 			@Nullable String countQueryString,
 			QueryMethodEvaluationContextProvider evaluationContextProvider) {
-
-		if (queryString == null) {
-			return null;
-		}
 
 		return method.isNativeQuery()
 				? new NativeJpaQuery(method, em, queryString, countQueryString, evaluationContextProvider, PARSER)
@@ -69,13 +60,7 @@ enum JpaQueryFactory {
 	 * @param em must not be {@literal null}.
 	 * @return
 	 */
-	@Nullable
 	public StoredProcedureJpaQuery fromProcedureAnnotation(JpaQueryMethod method, EntityManager em) {
-
-		if (!method.isProcedureQuery()) {
-			return null;
-		}
-
 		return new StoredProcedureJpaQuery(method, em);
 	}
 }

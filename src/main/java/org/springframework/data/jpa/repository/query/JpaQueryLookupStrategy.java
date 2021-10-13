@@ -149,7 +149,9 @@ public final class JpaQueryLookupStrategy {
 		@Override
 		protected RepositoryQuery resolveQuery(JpaQueryMethod method, EntityManager em, NamedQueries namedQueries) {
 
-			String countQuery = getCountQuery(method, namedQueries, em);
+			if (method.isProcedureQuery()) {
+				return JpaQueryFactory.INSTANCE.fromProcedureAnnotation(method, em);
+			}
 
 			if (StringUtils.hasText(method.getAnnotatedQuery())) {
 
@@ -158,23 +160,18 @@ public final class JpaQueryLookupStrategy {
 							"Query method %s is annotated with both, a query and a query name. Using the declared query.", method));
 				}
 
-				return JpaQueryFactory.INSTANCE.fromMethodWithQueryString(method, em, method.getAnnotatedQuery(), countQuery,
+				return JpaQueryFactory.INSTANCE.fromMethodWithQueryString(method, em, method.getRequiredAnnotatedQuery(),
+						getCountQuery(method, namedQueries, em),
 						evaluationContextProvider);
-			}
-
-			RepositoryQuery query = JpaQueryFactory.INSTANCE.fromProcedureAnnotation(method, em);
-
-			if (null != query) {
-				return query;
 			}
 
 			String name = method.getNamedQueryName();
 			if (namedQueries.hasQuery(name)) {
-				return JpaQueryFactory.INSTANCE.fromMethodWithQueryString(method, em, namedQueries.getQuery(name), countQuery,
+				return JpaQueryFactory.INSTANCE.fromMethodWithQueryString(method, em, namedQueries.getQuery(name), getCountQuery(method, namedQueries, em),
 						evaluationContextProvider);
 			}
 
-			query = NamedQuery.lookupFrom(method, em);
+			RepositoryQuery query = NamedQuery.lookupFrom(method, em);
 
 			if (null != query) {
 				return query;
