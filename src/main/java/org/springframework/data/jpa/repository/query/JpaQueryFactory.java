@@ -19,8 +19,7 @@ import javax.persistence.EntityManager;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.QueryMethod;
+
 import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
@@ -40,41 +39,27 @@ enum JpaQueryFactory {
 	private static final Logger LOG = LoggerFactory.getLogger(JpaQueryFactory.class);
 
 	/**
-	 * Creates a {@link RepositoryQuery} from the given {@link QueryMethod} that is potentially annotated with
-	 * {@link Query}.
-	 *
-	 * @param method must not be {@literal null}.
-	 * @param em must not be {@literal null}.
-	 * @param evaluationContextProvider
-	 * @return the {@link RepositoryQuery} derived from the annotation or {@code null} if no annotation found.
-	 */
-	@Nullable
-	AbstractJpaQuery fromQueryAnnotation(JpaQueryMethod method, EntityManager em,
-			QueryMethodEvaluationContextProvider evaluationContextProvider) {
-
-		LOG.debug("Looking up query for method {}", method.getName());
-		return fromMethodWithQueryString(method, em, method.getAnnotatedQuery(), evaluationContextProvider);
-	}
-
-	/**
 	 * Creates a {@link RepositoryQuery} from the given {@link String} query.
 	 *
 	 * @param method must not be {@literal null}.
 	 * @param em must not be {@literal null}.
 	 * @param queryString must not be {@literal null} or empty.
+	 * @param countQueryString
 	 * @param evaluationContextProvider
 	 * @return
 	 */
 	@Nullable
 	AbstractJpaQuery fromMethodWithQueryString(JpaQueryMethod method, EntityManager em, @Nullable String queryString,
+			@Nullable String countQueryString,
 			QueryMethodEvaluationContextProvider evaluationContextProvider) {
 
 		if (queryString == null) {
 			return null;
 		}
 
-		return method.isNativeQuery() ? new NativeJpaQuery(method, em, queryString, evaluationContextProvider, PARSER)
-				: new SimpleJpaQuery(method, em, queryString, evaluationContextProvider, PARSER);
+		return method.isNativeQuery()
+				? new NativeJpaQuery(method, em, queryString, countQueryString, evaluationContextProvider, PARSER)
+				: new SimpleJpaQuery(method, em, queryString, countQueryString, evaluationContextProvider, PARSER);
 	}
 
 	/**

@@ -22,6 +22,7 @@ import org.springframework.data.repository.query.QueryMethodEvaluationContextPro
 import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -49,10 +50,12 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 	 * @param method must not be {@literal null}.
 	 * @param em must not be {@literal null}.
 	 * @param queryString must not be {@literal null}.
+	 * @param countQueryString must not be {@literal null}.
 	 * @param evaluationContextProvider must not be {@literal null}.
 	 * @param parser must not be {@literal null}.
 	 */
 	public AbstractStringBasedJpaQuery(JpaQueryMethod method, EntityManager em, String queryString,
+			@Nullable String countQueryString,
 			QueryMethodEvaluationContextProvider evaluationContextProvider, SpelExpressionParser parser) {
 
 		super(method, em);
@@ -64,7 +67,7 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 		this.evaluationContextProvider = evaluationContextProvider;
 		this.query = new ExpressionBasedStringQuery(queryString, method.getEntityInformation(), parser);
 
-		DeclaredQuery countQuery = query.deriveCountQuery(method.getCountQuery(), method.getCountQueryProjection());
+		DeclaredQuery countQuery = query.deriveCountQuery(countQueryString, method.getCountQueryProjection());
 		this.countQuery = ExpressionBasedStringQuery.from(countQuery, method.getEntityInformation(), parser);
 
 		this.parser = parser;

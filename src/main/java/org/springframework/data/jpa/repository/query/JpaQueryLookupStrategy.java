@@ -32,6 +32,7 @@ import org.springframework.data.repository.query.QueryMethodEvaluationContextPro
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * Query lookup strategy to execute finders.
@@ -148,18 +149,20 @@ public final class JpaQueryLookupStrategy {
 		@Override
 		protected RepositoryQuery resolveQuery(JpaQueryMethod method, EntityManager em, NamedQueries namedQueries) {
 
-			RepositoryQuery query = JpaQueryFactory.INSTANCE.fromQueryAnnotation(method, em, evaluationContextProvider);
+			String countQuery = getCountQuery(method, namedQueries, em);
 
-			if (query != null && method.hasAnnotatedQueryName()) {
-				LOG.warn(String.format(
-						"Query method %s is annotated with both, a query and a query name. Using the declared query.", method));
+			if (StringUtils.hasText(method.getAnnotatedQuery())) {
+
+				if (method.hasAnnotatedQueryName()) {
+					LOG.warn(String.format(
+							"Query method %s is annotated with both, a query and a query name. Using the declared query.", method));
+				}
+
+				return JpaQueryFactory.INSTANCE.fromMethodWithQueryString(method, em, method.getAnnotatedQuery(), countQuery,
+						evaluationContextProvider);
 			}
 
-			if (null != query) {
-				return query;
-			}
-
-			query = JpaQueryFactory.INSTANCE.fromProcedureAnnotation(method, em);
+			RepositoryQuery query = JpaQueryFactory.INSTANCE.fromProcedureAnnotation(method, em);
 
 			if (null != query) {
 				return query;
@@ -167,7 +170,7 @@ public final class JpaQueryLookupStrategy {
 
 			String name = method.getNamedQueryName();
 			if (namedQueries.hasQuery(name)) {
-				return JpaQueryFactory.INSTANCE.fromMethodWithQueryString(method, em, namedQueries.getQuery(name),
+				return JpaQueryFactory.INSTANCE.fromMethodWithQueryString(method, em, namedQueries.getQuery(name), countQuery,
 						evaluationContextProvider);
 			}
 
@@ -179,6 +182,32 @@ public final class JpaQueryLookupStrategy {
 
 			throw new IllegalStateException(
 					String.format("Did neither find a NamedQuery nor an annotated query for method %s!", method));
+		}
+
+		@Nullable
+		private String getCountQuery(JpaQueryMethod method, NamedQueries namedQueries, EntityManager em) {
+
+			if (StringUtils.hasText(method.getCountQuery())) {
+				return method.getCountQuery();
+			}
+
+			String queryName = method.getNamedCountQueryName();
+
+			if (!StringUtils.hasText(queryName)) {
+				return method.getCountQuery();
+			}
+
+			if (namedQueries.hasQuery(queryName)) {
+				return namedQueries.getQuery(queryName);
+			}
+
+			boolean namedQuery = NamedQuery.hasNamedQuery(em, queryName);
+
+			if (namedQuery) {
+				return method.getQueryExtractor().extractQueryString(em.createNamedQuery(queryName));
+			}
+
+			return null;
 		}
 	}
 
