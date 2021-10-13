@@ -34,6 +34,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.provider.QueryExtractor;
@@ -111,6 +113,47 @@ public class JpaQueryLookupStrategyUnitTests {
 				.withMessageContaining(method.toString());
 	}
 
+	@Test // GH-2217
+	void considersNamedCountQuery() throws Exception {
+
+		QueryLookupStrategy strategy = JpaQueryLookupStrategy.create(em, queryMethodFactory, Key.CREATE_IF_NOT_FOUND,
+				EVALUATION_CONTEXT_PROVIDER, EscapeCharacter.DEFAULT);
+
+		when(namedQueries.hasQuery("foo.count")).thenReturn(true);
+		when(namedQueries.getQuery("foo.count")).thenReturn("foo count");
+
+		when(namedQueries.hasQuery("User.findByNamedQuery")).thenReturn(true);
+		when(namedQueries.getQuery("User.findByNamedQuery")).thenReturn("select foo");
+
+		Method method = UserRepository.class.getMethod("findByNamedQuery", String.class, Pageable.class);
+		RepositoryMetadata metadata = new DefaultRepositoryMetadata(UserRepository.class);
+
+		RepositoryQuery repositoryQuery = strategy.resolveQuery(method, metadata, projectionFactory, namedQueries);
+		assertThat(repositoryQuery).isInstanceOf(SimpleJpaQuery.class);
+		SimpleJpaQuery query = (SimpleJpaQuery) repositoryQuery;
+		assertThat(query.getQuery().getQueryString()).isEqualTo("select foo");
+		assertThat(query.getCountQuery().getQueryString()).isEqualTo("foo count");
+	}
+
+	@Test // GH-2217
+	void considersNamedCountOnStringQueryQuery() throws Exception {
+
+		QueryLookupStrategy strategy = JpaQueryLookupStrategy.create(em, queryMethodFactory, Key.CREATE_IF_NOT_FOUND,
+				EVALUATION_CONTEXT_PROVIDER, EscapeCharacter.DEFAULT);
+
+		when(namedQueries.hasQuery("foo.count")).thenReturn(true);
+		when(namedQueries.getQuery("foo.count")).thenReturn("foo count");
+
+		Method method = UserRepository.class.getMethod("findByStringQueryWithNamedCountQuery", String.class,
+				Pageable.class);
+		RepositoryMetadata metadata = new DefaultRepositoryMetadata(UserRepository.class);
+
+		RepositoryQuery repositoryQuery = strategy.resolveQuery(method, metadata, projectionFactory, namedQueries);
+		assertThat(repositoryQuery).isInstanceOf(SimpleJpaQuery.class);
+		SimpleJpaQuery query = (SimpleJpaQuery) repositoryQuery;
+		assertThat(query.getCountQuery().getQueryString()).isEqualTo("foo count");
+	}
+
 	@Test // GH-2319
 	void prefersDeclaredQuery() throws Exception {
 
@@ -131,6 +174,12 @@ public class JpaQueryLookupStrategyUnitTests {
 
 		@Query(value = "select u.* from User u", nativeQuery = true)
 		List<User> findByInvalidNativeQuery(String param, Sort sort);
+
+		@Query(countName = "foo.count")
+		Page<User> findByNamedQuery(String foo, Pageable pageable);
+
+		@Query(value = "foo.query", countName = "foo.count")
+		Page<User> findByStringQueryWithNamedCountQuery(String foo, Pageable pageable);
 
 		@Query(value = "something absurd", name = "my-query-name")
 		User annotatedQueryWithQueryAndQueryName();

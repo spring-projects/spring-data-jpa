@@ -21,6 +21,7 @@ import javax.persistence.Query;
 import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.lang.Nullable;
 
 /**
  * {@link RepositoryQuery} implementation that inspects a {@link org.springframework.data.repository.query.QueryMethod}
@@ -38,12 +39,13 @@ final class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
 	 *
 	 * @param method must not be {@literal null}
 	 * @param em must not be {@literal null}
+	 * @param countQueryString
 	 * @param evaluationContextProvider must not be {@literal null}
 	 * @param parser must not be {@literal null}
 	 */
-	public SimpleJpaQuery(JpaQueryMethod method, EntityManager em,
+	public SimpleJpaQuery(JpaQueryMethod method, EntityManager em, @Nullable String countQueryString,
 			QueryMethodEvaluationContextProvider evaluationContextProvider, SpelExpressionParser parser) {
-		this(method, em, method.getRequiredAnnotatedQuery(), evaluationContextProvider, parser);
+		this(method, em, method.getRequiredAnnotatedQuery(), countQueryString, evaluationContextProvider, parser);
 	}
 
 	/**
@@ -52,13 +54,14 @@ final class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
 	 * @param method must not be {@literal null}
 	 * @param em must not be {@literal null}
 	 * @param queryString must not be {@literal null} or empty
+	 * @param countQueryString
 	 * @param evaluationContextProvider must not be {@literal null}
 	 * @param parser must not be {@literal null}
 	 */
-	public SimpleJpaQuery(JpaQueryMethod method, EntityManager em, String queryString,
+	public SimpleJpaQuery(JpaQueryMethod method, EntityManager em, String queryString, @Nullable String countQueryString,
 			QueryMethodEvaluationContextProvider evaluationContextProvider, SpelExpressionParser parser) {
 
-		super(method, em, queryString, evaluationContextProvider, parser);
+		super(method, em, queryString, countQueryString, evaluationContextProvider, parser);
 
 		validateQuery(getQuery().getQueryString(), "Validation failed for query for method %s!", method);
 
