@@ -111,7 +111,7 @@ class SimpleJpaQueryUnitTests {
 				metadata, factory, extractor);
 		when(em.createQuery("foo", Long.class)).thenReturn(typedQuery);
 
-		SimpleJpaQuery jpaQuery = new SimpleJpaQuery(method, em, "select u from User u", EVALUATION_CONTEXT_PROVIDER,
+		SimpleJpaQuery jpaQuery = new SimpleJpaQuery(method, em, "select u from User u", null, EVALUATION_CONTEXT_PROVIDER,
 				PARSER);
 
 		assertThat(jpaQuery.createCountQuery(new JpaParametersParameterAccessor(method.getParameters(), new Object[] {})))
@@ -126,7 +126,8 @@ class SimpleJpaQueryUnitTests {
 		Method method = UserRepository.class.getMethod("findAllPaged", Pageable.class);
 		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, factory, extractor);
 
-		AbstractJpaQuery jpaQuery = new SimpleJpaQuery(queryMethod, em, "select u from User u", EVALUATION_CONTEXT_PROVIDER,
+		AbstractJpaQuery jpaQuery = new SimpleJpaQuery(queryMethod, em, "select u from User u", null,
+				EVALUATION_CONTEXT_PROVIDER,
 				PARSER);
 		jpaQuery.createCountQuery(
 				new JpaParametersParameterAccessor(queryMethod.getParameters(), new Object[] { PageRequest.of(1, 10) }));
@@ -141,8 +142,8 @@ class SimpleJpaQueryUnitTests {
 
 		Method method = SampleRepository.class.getMethod("findNativeByLastname", String.class);
 		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, factory, extractor);
-		AbstractJpaQuery jpaQuery = JpaQueryFactory.INSTANCE.fromQueryAnnotation(queryMethod, em,
-				EVALUATION_CONTEXT_PROVIDER);
+		AbstractJpaQuery jpaQuery = JpaQueryFactory.INSTANCE.fromMethodWithQueryString(queryMethod, em,
+				queryMethod.getAnnotatedQuery(), null, EVALUATION_CONTEXT_PROVIDER);
 
 		assertThat(jpaQuery instanceof NativeJpaQuery).isTrue();
 
@@ -244,7 +245,8 @@ class SimpleJpaQueryUnitTests {
 		Method method = SampleRepository.class.getMethod("findAllWithExpressionInCountQuery", Pageable.class);
 		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, factory, extractor);
 
-		AbstractJpaQuery jpaQuery = new SimpleJpaQuery(queryMethod, em, "select u from User u", EVALUATION_CONTEXT_PROVIDER,
+		AbstractJpaQuery jpaQuery = new SimpleJpaQuery(queryMethod, em, "select u from User u",
+				"select count(u.id) from #{#entityName} u", EVALUATION_CONTEXT_PROVIDER,
 				PARSER);
 		jpaQuery.createCountQuery(
 				new JpaParametersParameterAccessor(queryMethod.getParameters(), new Object[] { PageRequest.of(1, 10) }));
@@ -256,7 +258,8 @@ class SimpleJpaQueryUnitTests {
 	private AbstractJpaQuery createJpaQuery(Method method) {
 
 		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, factory, extractor);
-		return JpaQueryFactory.INSTANCE.fromQueryAnnotation(queryMethod, em, EVALUATION_CONTEXT_PROVIDER);
+		return JpaQueryFactory.INSTANCE.fromMethodWithQueryString(queryMethod, em, queryMethod.getAnnotatedQuery(), null,
+				EVALUATION_CONTEXT_PROVIDER);
 	}
 
 	interface SampleRepository {

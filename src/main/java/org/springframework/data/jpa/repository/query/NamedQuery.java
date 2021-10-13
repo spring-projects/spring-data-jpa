@@ -15,8 +15,6 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.springframework.data.jpa.repository.query.QueryParameterSetter.ErrorHandling.*;
-
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.persistence.Tuple;
@@ -105,7 +103,7 @@ final class NamedQuery extends AbstractJpaQuery {
 	 * @param queryName must not be {@literal null}.
 	 * @return
 	 */
-	private static boolean hasNamedQuery(EntityManager em, String queryName) {
+	static boolean hasNamedQuery(EntityManager em, String queryName) {
 
 		/*
 		 * See DATAJPA-617, we have to use a dedicated em for the lookups to avoid a
