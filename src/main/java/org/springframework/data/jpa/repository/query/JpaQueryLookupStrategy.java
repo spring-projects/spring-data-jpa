@@ -144,27 +144,24 @@ public final class JpaQueryLookupStrategy {
 		@Override
 		protected RepositoryQuery resolveQuery(JpaQueryMethod method, EntityManager em, NamedQueries namedQueries) {
 
-			String countQuery = getCountQuery(method, namedQueries, em);
-
-			if (StringUtils.hasText(method.getAnnotatedQuery())) {
-				return JpaQueryFactory.INSTANCE.fromMethodWithQueryString(method, em, method.getAnnotatedQuery(), countQuery,
-						evaluationContextProvider);
+			if (method.isProcedureQuery()) {
+				return JpaQueryFactory.INSTANCE.fromProcedureAnnotation(method, em);
 			}
 
-			RepositoryQuery query = JpaQueryFactory.INSTANCE.fromProcedureAnnotation(method, em);
-
-			if (null != query) {
-				return query;
+			if (StringUtils.hasText(method.getAnnotatedQuery())) {
+				return JpaQueryFactory.INSTANCE.fromMethodWithQueryString(method, em, method.getRequiredAnnotatedQuery(),
+						getCountQuery(method, namedQueries, em),
+						evaluationContextProvider);
 			}
 
 			String name = method.getNamedQueryName();
 			if (namedQueries.hasQuery(name)) {
 				return JpaQueryFactory.INSTANCE.fromMethodWithQueryString(method, em, namedQueries.getQuery(name),
-						countQuery,
+						getCountQuery(method, namedQueries, em),
 						evaluationContextProvider);
 			}
 
-			query = NamedQuery.lookupFrom(method, em);
+			RepositoryQuery query = NamedQuery.lookupFrom(method, em);
 
 			if (null != query) {
 				return query;
