@@ -33,6 +33,7 @@ import org.springframework.data.repository.query.QueryByExampleExecutor;
  * @author Mark Paluch
  * @author Sander Krabbenborg
  * @author Jesse Wouters
+ * @author Evgeny Bokshitsky
  */
 @NoRepositoryBean
 public interface JpaRepository<T, ID> extends PagingAndSortingRepository<T, ID>, QueryByExampleExecutor<T> {
@@ -163,4 +164,11 @@ public interface JpaRepository<T, ID> extends PagingAndSortingRepository<T, ID>,
 	 */
 	@Override
 	<S extends T> List<S> findAll(Example<S> example, Sort sort);
+
+	/**
+	 * Method should not be called outside of repository.
+	 * Allows implement custom query logic using EntityManager without additional ${RepositoryName}Custom interface and ${RepositoryName}Impl class
+	 */
+	EntityManager protectedGetEntityManager();
+
 }

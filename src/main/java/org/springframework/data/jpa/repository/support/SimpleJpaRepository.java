@@ -562,6 +562,11 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 				.getResultList();
 	}
 
+	@Override
+	public EntityManager protectedGetEntityManager() {
+		return em;
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.query.QueryByExampleExecutor#findAll(org.springframework.data.domain.Example, org.springframework.data.domain.Pageable)

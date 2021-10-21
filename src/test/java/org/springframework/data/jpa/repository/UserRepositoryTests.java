@@ -459,6 +459,13 @@ public class UserRepositoryTests {
 	}
 
 	@Test
+	void testExecutionOfMethodWithDefaultImplementation() {
+
+		flushTestUsers();
+		assertThat(repository.countWithLastname("Arrasz")).isEqualTo(1L);
+	}
+
+	@Test
 	void executesSpecificationCorrectly() {
 
 		flushTestUsers();

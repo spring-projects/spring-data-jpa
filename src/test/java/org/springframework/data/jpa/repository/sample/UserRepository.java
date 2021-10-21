@@ -166,6 +166,13 @@ public interface UserRepository
 	@Query("select count(u) from User u where u.firstname = ?1")
 	Long countWithFirstname(String firstname);
 
+	default Long countWithLastname(String lastname) {
+		return protectedGetEntityManager()
+				.createQuery("select count(u) from User u where u.lastname = :lastname", Long.class)
+				.setParameter("lastname", lastname)
+				.getSingleResult();
+	}
+
 	/**
 	 * Method where parameters will be applied by name. Note that the order of the parameters is then not crucial anymore.
 	 *
