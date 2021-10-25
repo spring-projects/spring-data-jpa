@@ -17,6 +17,7 @@ package org.springframework.data.jpa.repository.support;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -32,11 +33,10 @@ import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery;
 import org.springframework.data.support.PageableExecutionUtils;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 import com.querydsl.core.types.Predicate;
-import com.querydsl.jpa.JPQLQuery;
+import com.querydsl.jpa.impl.AbstractJPAQuery;
 
 /**
  * Immutable implementation of {@link FetchableFluentQuery} based on a Querydsl {@link Predicate}. All methods that
@@ -46,38 +46,41 @@ import com.querydsl.jpa.JPQLQuery;
  * @param <R> Result type
  * @author Greg Turnquist
  * @author Mark Paluch
+ * @author Jens Schauder
  * @since 2.6
  */
-class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<R> implements FetchableFluentQuery<R> {
+class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<S, R> implements FetchableFluentQuery<R> {
 
 	private final Predicate predicate;
-	private final Function<Sort, JPQLQuery<S>> finder;
-	private final BiFunction<Sort, Pageable, JPQLQuery<S>> pagedFinder;
+	private final Function<Sort, AbstractJPAQuery<?, ?>> finder;
+	private final BiFunction<Sort, Pageable, AbstractJPAQuery<?, ?>> pagedFinder;
 	private final Function<Predicate, Long> countOperation;
 	private final Function<Predicate, Boolean> existsOperation;
-	private final Class<S> entityType;
+	private final Projector<AbstractJPAQuery<?, ?>> projector;
 
-	public FetchableFluentQueryByPredicate(Predicate predicate, Class<R> resultType, Function<Sort, JPQLQuery<S>> finder,
-			BiFunction<Sort, Pageable, JPQLQuery<S>> pagedFinder, Function<Predicate, Long> countOperation,
-			Function<Predicate, Boolean> existsOperation, Class<S> entityType,
-			MappingContext<? extends PersistentEntity<?, ?>, ? extends PersistentProperty<?>> context) {
-		this(predicate, resultType, Sort.unsorted(), null, finder, pagedFinder, countOperation, existsOperation, entityType,
-				context);
+	public FetchableFluentQueryByPredicate(Predicate predicate, Class<S> entityType,
+			Function<Sort, AbstractJPAQuery<?, ?>> finder, BiFunction<Sort, Pageable, AbstractJPAQuery<?, ?>> pagedFinder,
+			Function<Predicate, Long> countOperation, Function<Predicate, Boolean> existsOperation,
+			MappingContext<? extends PersistentEntity<?, ?>, ? extends PersistentProperty<?>> context,
+			Projector<AbstractJPAQuery<?, ?>> projector) {
+		this(predicate, entityType, (Class<R>) entityType, Sort.unsorted(), Collections.emptySet(), finder, pagedFinder,
+				countOperation, existsOperation, context, projector);
 	}
 
-	private FetchableFluentQueryByPredicate(Predicate predicate, Class<R> resultType, Sort sort,
-			@Nullable Collection<String> properties, Function<Sort, JPQLQuery<S>> finder,
-			BiFunction<Sort, Pageable, JPQLQuery<S>> pagedFinder, Function<Predicate, Long> countOperation,
-			Function<Predicate, Boolean> existsOperation, Class<S> entityType,
-			MappingContext<? extends PersistentEntity<?, ?>, ? extends PersistentProperty<?>> context) {
+	private FetchableFluentQueryByPredicate(Predicate predicate, Class<S> entityType, Class<R> resultType, Sort sort,
+			Collection<String> properties, Function<Sort, AbstractJPAQuery<?, ?>> finder,
+			BiFunction<Sort, Pageable, AbstractJPAQuery<?, ?>> pagedFinder, Function<Predicate, Long> countOperation,
+			Function<Predicate, Boolean> existsOperation,
+			MappingContext<? extends PersistentEntity<?, ?>, ? extends PersistentProperty<?>> context,
+			Projector<AbstractJPAQuery<?, ?>> projector) {
 
-		super(resultType, sort, properties, context);
+		super(resultType, sort, properties, context, entityType);
 		this.predicate = predicate;
 		this.finder = finder;
 		this.pagedFinder = pagedFinder;
 		this.countOperation = countOperation;
 		this.existsOperation = existsOperation;
-		this.entityType = entityType;
+		this.projector = projector;
 	}
 
 	/* 
@@ -89,8 +92,8 @@ class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<R> implem
 
 		Assert.notNull(sort, "Sort must not be null!");
 
-		return new FetchableFluentQueryByPredicate<>(this.predicate, this.resultType, this.sort.and(sort), this.properties,
-				this.finder, this.pagedFinder, this.countOperation, this.existsOperation, this.entityType, this.context);
+		return new FetchableFluentQueryByPredicate<>(predicate, entityType, resultType, sort.and(sort), properties, finder,
+				pagedFinder, countOperation, existsOperation, context, projector);
 	}
 
 	/* 
@@ -101,12 +104,13 @@ class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<R> implem
 	public <NR> FetchableFluentQuery<NR> as(Class<NR> resultType) {
 
 		Assert.notNull(resultType, "Projection target type must not be null!");
+
 		if (!resultType.isInterface()) {
 			throw new UnsupportedOperationException("Class-based DTOs are not yet supported.");
 		}
 
-		return new FetchableFluentQueryByPredicate<>(this.predicate, resultType, this.sort, this.properties, this.finder,
-				this.pagedFinder, this.countOperation, this.existsOperation, this.entityType, this.context);
+		return new FetchableFluentQueryByPredicate<>(predicate, entityType, resultType, sort, properties, finder,
+				pagedFinder, countOperation, existsOperation, context, projector);
 	}
 
 	/* 
@@ -116,9 +120,8 @@ class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<R> implem
 	@Override
 	public FetchableFluentQuery<R> project(Collection<String> properties) {
 
-		return new FetchableFluentQueryByPredicate<>(this.predicate, this.resultType, this.sort,
-				mergeProperties(properties), this.finder, this.pagedFinder, this.countOperation, this.existsOperation,
-				this.entityType, this.context);
+		return new FetchableFluentQueryByPredicate<>(predicate, entityType, resultType, sort, mergeProperties(properties),
+				finder, pagedFinder, countOperation, existsOperation, context, projector);
 	}
 
 	/* 
@@ -128,7 +131,7 @@ class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<R> implem
 	@Override
 	public R oneValue() {
 
-		List<S> results = this.finder.apply(this.sort) //
+		List<?> results = createSortedAndProjectedQuery() //
 				.limit(2) // Never need more than 2 values
 				.fetch();
 
@@ -146,7 +149,7 @@ class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<R> implem
 	@Override
 	public R firstValue() {
 
-		List<S> results = this.finder.apply(this.sort) //
+		List<?> results = createSortedAndProjectedQuery() //
 				.limit(1) // Never need more than 1 value
 				.fetch();
 
@@ -159,9 +162,7 @@ class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<R> implem
 	 */
 	@Override
 	public List<R> all() {
-
-		JPQLQuery<S> query = this.finder.apply(this.sort);
-		return convert(query.fetch());
+		return convert(createSortedAndProjectedQuery().fetch());
 	}
 
 	/* 
@@ -180,7 +181,7 @@ class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<R> implem
 	@Override
 	public Stream<R> stream() {
 
-		return this.finder.apply(this.sort) //
+		return createSortedAndProjectedQuery() //
 				.stream() //
 				.map(getConversionFunction());
 	}
@@ -191,7 +192,7 @@ class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<R> implem
 	 */
 	@Override
 	public long count() {
-		return this.countOperation.apply(this.predicate);
+		return countOperation.apply(predicate);
 	}
 
 	/* 
@@ -200,31 +201,38 @@ class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<R> implem
 	 */
 	@Override
 	public boolean exists() {
-		return this.existsOperation.apply(this.predicate);
+		return existsOperation.apply(predicate);
+	}
+
+	private AbstractJPAQuery<?, ?> createSortedAndProjectedQuery() {
+
+		final AbstractJPAQuery<?, ?> query = finder.apply(sort);
+		projector.apply(entityType, query, properties);
+		return query;
 	}
 
 	private Page<R> readPage(Pageable pageable) {
 
-		JPQLQuery<S> pagedQuery = this.pagedFinder.apply(this.sort, pageable);
+		AbstractJPAQuery<?, ?> pagedQuery = pagedFinder.apply(sort, pageable);
 		List<R> paginatedResults = convert(pagedQuery.fetch());
 
-		return PageableExecutionUtils.getPage(paginatedResults, pageable, () -> this.countOperation.apply(this.predicate));
+		return PageableExecutionUtils.getPage(paginatedResults, pageable, () -> countOperation.apply(predicate));
 	}
 
-	private List<R> convert(List<S> resultList) {
+	private List<R> convert(List<?> resultList) {
 
 		Function<Object, R> conversionFunction = getConversionFunction();
 		List<R> mapped = new ArrayList<>(resultList.size());
 
-		for (S s : resultList) {
-			mapped.add(conversionFunction.apply(s));
+		for (Object o : resultList) {
+			mapped.add(conversionFunction.apply(o));
 		}
 
 		return mapped;
 	}
 
 	private Function<Object, R> getConversionFunction() {
-		return getConversionFunction(this.entityType, this.resultType);
+		return getConversionFunction(entityType, resultType);
 	}
 
 }

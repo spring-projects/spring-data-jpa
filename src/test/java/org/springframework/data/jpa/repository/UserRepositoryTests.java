@@ -45,6 +45,7 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 import org.assertj.core.api.SoftAssertions;
+import org.hibernate.LazyInitializationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -2136,6 +2137,84 @@ public class UserRepositoryTests {
 
 		assertThat(users).extracting(UserProjectionInterfaceBased::getFirstname)
 				.containsExactlyInAnyOrder(firstUser.getFirstname(), thirdUser.getFirstname(), fourthUser.getFirstname());
+	}
+
+	@Test // GH-2294
+	void findByFluentExampleWithSimplePropertyPathsDoesntLoadUnrequestedPaths() {
+
+		flushTestUsers();
+		// make sure we don't get preinitialized entities back:
+		em.clear();
+
+		User prototype = new User();
+		prototype.setFirstname("v");
+
+		List<User> users = repository.findBy(
+				of(prototype,
+						matching().withIgnorePaths("age", "createdAt", "active").withMatcher("firstname",
+								GenericPropertyMatcher::contains)), //
+				q -> q.project("firstname").all());
+
+		// remove the entities, so lazy loading throws an exception
+		em.clear();
+
+		assertThat(users).extracting(User::getFirstname).containsExactlyInAnyOrder(firstUser.getFirstname(),
+				thirdUser.getFirstname(), fourthUser.getFirstname());
+
+		assertThatExceptionOfType(LazyInitializationException.class) //
+				.isThrownBy( //
+						() -> users.forEach(u -> u.getRoles().size()) // forces loading of roles
+				);
+	}
+
+	@Test // GH-2294
+	void findByFluentExampleWithCollectionPropertyPathsDoesntLoadUnrequestedPaths() {
+
+		flushTestUsers();
+		// make sure we don't get preinitialized entities back:
+		em.clear();
+
+		User prototype = new User();
+		prototype.setFirstname("v");
+
+		List<User> users = repository.findBy(
+				of(prototype,
+						matching().withIgnorePaths("age", "createdAt", "active").withMatcher("firstname",
+								GenericPropertyMatcher::contains)), //
+				q -> q.project("firstname", "roles").all());
+
+		// remove the entities, so lazy loading throws an exception
+		em.clear();
+
+		assertThat(users).extracting(User::getFirstname).containsExactlyInAnyOrder(firstUser.getFirstname(),
+				thirdUser.getFirstname(), fourthUser.getFirstname());
+
+		assertThat(users).allMatch(u -> u.getRoles().isEmpty());
+	}
+
+	@Test // GH-2294
+	void findByFluentExampleWithComplexPropertyPathsDoesntLoadUnrequestedPaths() {
+
+		flushTestUsers();
+		// make sure we don't get preinitialized entities back:
+		em.clear();
+
+		User prototype = new User();
+		prototype.setFirstname("v");
+
+		List<User> users = repository.findBy(
+				of(prototype,
+						matching().withIgnorePaths("age", "createdAt", "active").withMatcher("firstname",
+								GenericPropertyMatcher::contains)), //
+				q -> q.project("roles.name").all());
+
+		// remove the entities, so lazy loading throws an exception
+		em.clear();
+
+		assertThat(users).extracting(User::getFirstname).containsExactlyInAnyOrder(firstUser.getFirstname(),
+				thirdUser.getFirstname(), fourthUser.getFirstname());
+
+		assertThat(users).allMatch(u -> u.getRoles().isEmpty());
 	}
 
 	@Test // GH-2294
