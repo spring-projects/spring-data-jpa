@@ -199,10 +199,16 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 			return select;
 		};
 
-		FetchableFluentQueryByPredicate<T, T> fluentQuery = new FetchableFluentQueryByPredicate<>(predicate,
-				entityInformation.getJavaType(), finder, pagedFinder, this::count, this::exists,
-				this.entityInformation.getJavaType(),
-				new JpaMetamodelMappingContext(Collections.singleton(this.entityManager.getMetamodel())));
+		FetchableFluentQueryByPredicate<T, T> fluentQuery = new FetchableFluentQueryByPredicate<>( //
+				predicate, //
+				entityInformation.getJavaType(), //
+				finder, //
+				pagedFinder, //
+				this::count, //
+				this::exists, //
+				this.entityInformation.getJavaType(), //
+				new JpaMetamodelMappingContext(Collections.singleton(this.entityManager.getMetamodel())) //
+		);
 
 		return queryFunction.apply((FetchableFluentQuery<S>) fluentQuery);
 	}
