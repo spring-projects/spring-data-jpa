@@ -40,6 +40,7 @@ abstract class FluentQuerySupport<R> {
 
 	protected final Class<R> resultType;
 	protected final Sort sort;
+	/** Properties on which the query projects. {@literal null} stands for no special projection. */
 	protected final @Nullable Set<String> properties;
 	protected final MappingContext<? extends PersistentEntity<?, ?>, ? extends PersistentProperty<?>> context;
 
