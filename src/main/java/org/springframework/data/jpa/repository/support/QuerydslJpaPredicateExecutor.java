@@ -69,7 +69,7 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 	/**
 	 * Creates a new {@link QuerydslJpaPredicateExecutor} from the given domain class and {@link EntityManager} and uses
 	 * the given {@link EntityPathResolver} to translate the domain class into an {@link EntityPath}.
-	 *
+	 * 
 	 * @param entityInformation must not be {@literal null}.
 	 * @param entityManager must not be {@literal null}.
 	 * @param resolver must not be {@literal null}.
@@ -178,22 +178,22 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 		Assert.notNull(predicate, "Predicate must not be null!");
 		Assert.notNull(queryFunction, "Query function must not be null!");
 
-		Function<Sort, JPQLQuery<T>> finder = sort -> {
-			JPQLQuery<T> select = createQuery(predicate).select(path);
+		Function<Sort, AbstractJPAQuery<?, ?>> finder = sort -> {
+			AbstractJPAQuery<?, ?> select = (AbstractJPAQuery<?, ?>) createQuery(predicate).select(path);
 
 			if (sort != null) {
-				select = querydsl.applySorting(sort, select);
+				select = (AbstractJPAQuery<?, ?>) querydsl.applySorting(sort, select);
 			}
 
 			return select;
 		};
 
-		BiFunction<Sort, Pageable, JPQLQuery<T>> pagedFinder = (sort, pageable) -> {
+		BiFunction<Sort, Pageable, AbstractJPAQuery<?, ?>> pagedFinder = (sort, pageable) -> {
 
-			JPQLQuery<T> select = finder.apply(sort);
+			AbstractJPAQuery<?, ?> select = finder.apply(sort);
 
 			if (pageable.isPaged()) {
-				select = querydsl.applyPagination(pageable, select);
+				select = (AbstractJPAQuery<?, ?>) querydsl.applyPagination(pageable, select);
 			}
 
 			return select;
@@ -201,13 +201,13 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 
 		FetchableFluentQueryByPredicate<T, T> fluentQuery = new FetchableFluentQueryByPredicate<>( //
 				predicate, //
-				entityInformation.getJavaType(), //
+				this.entityInformation.getJavaType(), //
 				finder, //
 				pagedFinder, //
 				this::count, //
 				this::exists, //
-				this.entityInformation.getJavaType(), //
-				new JpaMetamodelMappingContext(Collections.singleton(this.entityManager.getMetamodel())) //
+				new JpaMetamodelMappingContext(Collections.singleton(this.entityManager.getMetamodel())), //
+				new QuerydslProjector(entityManager) //
 		);
 
 		return queryFunction.apply((FetchableFluentQuery<S>) fluentQuery);
@@ -237,7 +237,7 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 	 * @param predicate
 	 * @return the Querydsl {@link JPQLQuery}.
 	 */
-	protected JPQLQuery<?> createQuery(Predicate... predicate) {
+	protected AbstractJPAQuery<?, ?> createQuery(Predicate... predicate) {
 
 		Assert.notNull(predicate, "Predicate must not be null!");
 

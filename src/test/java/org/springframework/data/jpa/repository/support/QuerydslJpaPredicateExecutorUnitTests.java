@@ -22,11 +22,13 @@ import lombok.Data;
 import java.sql.Date;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
+import org.hibernate.LazyInitializationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -405,8 +407,12 @@ class QuerydslJpaPredicateExecutorUnitTests {
 	@Test // GH-2294
 	void findByFluentPredicateWithSortedInterfaceBasedProjection() {
 
-		List<UserProjectionInterfaceBased> userProjections = predicateExecutor.findBy(user.firstname.contains("v"),
-				q -> q.as(UserProjectionInterfaceBased.class).sortBy(Sort.by("firstname")).all());
+		List<UserProjectionInterfaceBased> userProjections = predicateExecutor.findBy( //
+				user.firstname.contains("v"), //
+				q -> q.as(UserProjectionInterfaceBased.class) //
+						.sortBy(Sort.by("firstname")) //
+						.all() //
+		);
 
 		assertThat(userProjections).extracting(UserProjectionInterfaceBased::getFirstname)
 				.containsExactly(dave.getFirstname(), oliver.getFirstname());
@@ -442,7 +448,79 @@ class QuerydslJpaPredicateExecutorUnitTests {
 				.findBy(user.firstname.contains("v"), q -> q.as(UserDto.class).sortBy(Sort.by("firstname")).all()));
 	}
 
+	@Test // GH-2329
+	void findByFluentPredicateWithSimplePropertyPathsDoesntLoadUnrequestedPaths() {
+
+		// make sure the entities are actually written to the database:
+		em.flush();
+		// make sure we don't get preinitialized entities back:
+		em.clear();
+
+		List<User> users = predicateExecutor.findBy(user.firstname.contains("v"),
+				q -> q.project("firstname", "lastname").all());
+
+		// remove the entities, so lazy loading throws an exception
+		em.clear();
+
+		assertThat(users).extracting(User::getFirstname) //
+				.containsExactlyInAnyOrder( //
+						dave.getFirstname(), //
+						oliver.getFirstname() //
+				);
+
+		assertThatExceptionOfType(LazyInitializationException.class) //
+				.isThrownBy( //
+						() -> users.forEach(u -> u.getRoles().size()) // forces loading of roles
+				);
+	}
+
+	@Test // GH-2329
+	void findByFluentPredicateWithCollectionPropertyPathsLoadsRequestedPaths() {
+
+		// make sure the entities are actually written to the database:
+		em.flush();
+		// make sure we don't get preinitialized entities back:
+		em.clear();
+
+		List<User> users = predicateExecutor.findBy(user.firstname.contains("v"),
+				q -> q.project("firstname", "roles").all());
+
+		// remove the entities, so lazy loading throws an exception
+		em.clear();
+
+		assertThat(users).extracting(User::getFirstname).containsExactlyInAnyOrder( //
+				dave.getFirstname(), //
+				oliver.getFirstname() //
+		);
+
+		assertThat(users).allMatch(u -> u.getRoles().isEmpty());
+
+	}
+
+	@Test // GH-2329
+	void findByFluentPredicateWithComplexPropertyPathsDoesntLoadsRequestedPaths() {
+
+		// make sure the entities are actually written to the database:
+		em.flush();
+		// make sure we don't get preinitialized entities back:
+		em.clear();
+
+		List<User> users = predicateExecutor.findBy(user.firstname.contains("v"), q -> q.project("roles.name").all());
+
+		// remove the entities, so lazy loading throws an exception
+		em.clear();
+
+		assertThat(users).extracting(User::getFirstname).containsExactlyInAnyOrder( //
+						dave.getFirstname(), //
+						oliver.getFirstname() //
+				);
+
+		assertThat(users).allMatch(u -> u.getRoles().isEmpty());
+	}
+
 	private interface UserProjectionInterfaceBased {
 		String getFirstname();
+
+		Set<Role> getRoles();
 	}
 }

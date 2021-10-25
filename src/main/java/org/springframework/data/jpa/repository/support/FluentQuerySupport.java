@@ -34,20 +34,22 @@ import org.springframework.lang.Nullable;
  *
  * @param <R> The resulting type of the query.
  * @author Greg Turnquist
+ * @author Jens Schauder
  * @since 2.6
  */
-abstract class FluentQuerySupport<R> {
+abstract class FluentQuerySupport<S, R> {
 
 	protected final Class<R> resultType;
 	protected final Sort sort;
 	/** Properties on which the query projects. {@literal null} stands for no special projection. */
-	protected final @Nullable Set<String> properties;
+	protected final Set<String> properties;
 	protected final MappingContext<? extends PersistentEntity<?, ?>, ? extends PersistentProperty<?>> context;
+	protected final Class<S> entityType;
 
 	private final SpelAwareProxyProjectionFactory projectionFactory = new SpelAwareProxyProjectionFactory();
 
 	FluentQuerySupport(Class<R> resultType, Sort sort, @Nullable Collection<String> properties,
-			MappingContext<? extends PersistentEntity<?, ?>, ? extends PersistentProperty<?>> context) {
+			MappingContext<? extends PersistentEntity<?, ?>, ? extends PersistentProperty<?>> context, Class<S> entityType) {
 
 		this.resultType = resultType;
 		this.sort = sort;
@@ -55,24 +57,23 @@ abstract class FluentQuerySupport<R> {
 		if (properties != null) {
 			this.properties = new HashSet<>(properties);
 		} else {
-			this.properties = null;
+			this.properties = new HashSet<>();
 		}
 
 		this.context = context;
+		this.entityType = entityType;
 	}
 
 	final Collection<String> mergeProperties(Collection<String> additionalProperties) {
 
 		Set<String> newProperties = new HashSet<>();
-		if (this.properties != null) {
-			newProperties.addAll(this.properties);
-		}
+		newProperties.addAll(properties);
 		newProperties.addAll(additionalProperties);
 		return Collections.unmodifiableCollection(newProperties);
 	}
 
 	@SuppressWarnings("unchecked")
-	final <S> Function<Object, R> getConversionFunction(Class<S> inputType, Class<R> targetType) {
+	final Function<Object, R> getConversionFunction(Class<S> inputType, Class<R> targetType) {
 
 		if (targetType.isAssignableFrom(inputType)) {
 			return (Function<Object, R>) Function.identity();
