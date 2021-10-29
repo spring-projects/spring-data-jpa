@@ -32,9 +32,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.query.EscapeCharacter;
-import org.springframework.data.mapping.PersistentEntity;
-import org.springframework.data.mapping.PersistentProperty;
-import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.util.Assert;
@@ -58,34 +55,29 @@ class FetchableFluentQueryByExample<S, R> extends FluentQuerySupport<S, R> imple
 	private final Function<Example<S>, Boolean> existsOperation;
 	private final EntityManager entityManager;
 	private final EscapeCharacter escapeCharacter;
-	private final Projector<TypedQuery<?>> projector;
 
 	public FetchableFluentQueryByExample(Example<S> example, Function<Sort, TypedQuery<S>> finder,
 			Function<Example<S>, Long> countOperation, Function<Example<S>, Boolean> existsOperation,
-			MappingContext<? extends PersistentEntity<?, ?>, ? extends PersistentProperty<?>> context,
 			EntityManager entityManager, EscapeCharacter escapeCharacter) {
 		this(example, example.getProbeType(), (Class<R>) example.getProbeType(), Sort.unsorted(), Collections.emptySet(),
-				finder, countOperation, existsOperation, context, entityManager, escapeCharacter,
-				new TypedQueryProjector(entityManager));
+				finder, countOperation, existsOperation, entityManager, escapeCharacter);
 	}
 
 	private FetchableFluentQueryByExample(Example<S> example, Class<S> entityType, Class<R> returnType, Sort sort,
 			Collection<String> properties, Function<Sort, TypedQuery<S>> finder, Function<Example<S>, Long> countOperation,
 			Function<Example<S>, Boolean> existsOperation,
-			MappingContext<? extends PersistentEntity<?, ?>, ? extends PersistentProperty<?>> context,
-			EntityManager entityManager, EscapeCharacter escapeCharacter, Projector<TypedQuery<?>> projector) {
+			EntityManager entityManager, EscapeCharacter escapeCharacter) {
 
-		super(returnType, sort, properties, context, entityType);
+		super(returnType, sort, properties, entityType);
 		this.example = example;
 		this.finder = finder;
 		this.countOperation = countOperation;
 		this.existsOperation = existsOperation;
 		this.entityManager = entityManager;
 		this.escapeCharacter = escapeCharacter;
-		this.projector = projector;
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#sortBy(org.springframework.data.domain.Sort)
 	 */
@@ -95,11 +87,10 @@ class FetchableFluentQueryByExample<S, R> extends FluentQuerySupport<S, R> imple
 		Assert.notNull(sort, "Sort must not be null!");
 
 		return new FetchableFluentQueryByExample<>(example, entityType, resultType, sort.and(sort), properties, finder,
-				countOperation, existsOperation, context, entityManager, escapeCharacter,
-				new TypedQueryProjector(entityManager));
+				countOperation, existsOperation, entityManager, escapeCharacter);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#as(java.lang.Class)
 	 */
@@ -112,11 +103,10 @@ class FetchableFluentQueryByExample<S, R> extends FluentQuerySupport<S, R> imple
 		}
 
 		return new FetchableFluentQueryByExample<>(example, entityType, resultType, sort, properties, finder,
-				countOperation, existsOperation, context, entityManager, escapeCharacter,
-				new TypedQueryProjector(entityManager));
+				countOperation, existsOperation, entityManager, escapeCharacter);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#project(java.util.Collection)
 	 */
@@ -124,11 +114,10 @@ class FetchableFluentQueryByExample<S, R> extends FluentQuerySupport<S, R> imple
 	public FetchableFluentQuery<R> project(Collection<String> properties) {
 
 		return new FetchableFluentQueryByExample<>(example, entityType, resultType, sort, mergeProperties(properties),
-				finder, countOperation, existsOperation, context, entityManager, escapeCharacter,
-				new TypedQueryProjector(entityManager));
+				finder, countOperation, existsOperation, entityManager, escapeCharacter);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#oneValue()
 	 */
@@ -147,7 +136,7 @@ class FetchableFluentQueryByExample<S, R> extends FluentQuerySupport<S, R> imple
 		return results.isEmpty() ? null : getConversionFunction().apply(results.get(0));
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#firstValue()
 	 */
@@ -162,7 +151,7 @@ class FetchableFluentQueryByExample<S, R> extends FluentQuerySupport<S, R> imple
 		return results.isEmpty() ? null : getConversionFunction().apply(results.get(0));
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#all()
 	 */
@@ -174,7 +163,7 @@ class FetchableFluentQueryByExample<S, R> extends FluentQuerySupport<S, R> imple
 		return convert(resultList);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#page(org.springframework.data.domain.Pageable)
 	 */
@@ -183,7 +172,7 @@ class FetchableFluentQueryByExample<S, R> extends FluentQuerySupport<S, R> imple
 		return pageable.isUnpaged() ? new PageImpl<>(all()) : readPage(pageable);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#stream()
 	 */
@@ -195,7 +184,7 @@ class FetchableFluentQueryByExample<S, R> extends FluentQuerySupport<S, R> imple
 				.map(getConversionFunction());
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#count()
 	 */
@@ -204,7 +193,7 @@ class FetchableFluentQueryByExample<S, R> extends FluentQuerySupport<S, R> imple
 		return countOperation.apply(example);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#exists()
 	 */
@@ -230,7 +219,10 @@ class FetchableFluentQueryByExample<S, R> extends FluentQuerySupport<S, R> imple
 	private TypedQuery<S> createSortedAndProjectedQuery() {
 
 		TypedQuery<S> query = finder.apply(sort);
-		projector.apply(entityType, query, properties);
+
+		if (!properties.isEmpty()) {
+			query.setHint(EntityGraphFactory.HINT, EntityGraphFactory.create(entityManager, entityType, properties));
+		}
 
 		return query;
 	}

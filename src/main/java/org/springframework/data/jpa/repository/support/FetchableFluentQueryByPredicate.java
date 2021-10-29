@@ -23,14 +23,13 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
+import javax.persistence.EntityManager;
+
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.mapping.PersistentEntity;
-import org.springframework.data.mapping.PersistentProperty;
-import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.util.Assert;
@@ -56,34 +55,32 @@ class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<S, R> imp
 	private final BiFunction<Sort, Pageable, AbstractJPAQuery<?, ?>> pagedFinder;
 	private final Function<Predicate, Long> countOperation;
 	private final Function<Predicate, Boolean> existsOperation;
-	private final Projector<AbstractJPAQuery<?, ?>> projector;
+	private final EntityManager entityManager;
 
 	public FetchableFluentQueryByPredicate(Predicate predicate, Class<S> entityType,
 			Function<Sort, AbstractJPAQuery<?, ?>> finder, BiFunction<Sort, Pageable, AbstractJPAQuery<?, ?>> pagedFinder,
 			Function<Predicate, Long> countOperation, Function<Predicate, Boolean> existsOperation,
-			MappingContext<? extends PersistentEntity<?, ?>, ? extends PersistentProperty<?>> context,
-			Projector<AbstractJPAQuery<?, ?>> projector) {
+			EntityManager entityManager) {
 		this(predicate, entityType, (Class<R>) entityType, Sort.unsorted(), Collections.emptySet(), finder, pagedFinder,
-				countOperation, existsOperation, context, projector);
+				countOperation, existsOperation, entityManager);
 	}
 
 	private FetchableFluentQueryByPredicate(Predicate predicate, Class<S> entityType, Class<R> resultType, Sort sort,
 			Collection<String> properties, Function<Sort, AbstractJPAQuery<?, ?>> finder,
 			BiFunction<Sort, Pageable, AbstractJPAQuery<?, ?>> pagedFinder, Function<Predicate, Long> countOperation,
 			Function<Predicate, Boolean> existsOperation,
-			MappingContext<? extends PersistentEntity<?, ?>, ? extends PersistentProperty<?>> context,
-			Projector<AbstractJPAQuery<?, ?>> projector) {
+			EntityManager entityManager) {
 
-		super(resultType, sort, properties, context, entityType);
+		super(resultType, sort, properties, entityType);
 		this.predicate = predicate;
 		this.finder = finder;
 		this.pagedFinder = pagedFinder;
 		this.countOperation = countOperation;
 		this.existsOperation = existsOperation;
-		this.projector = projector;
+		this.entityManager = entityManager;
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#sortBy(org.springframework.data.domain.Sort)
 	 */
@@ -93,10 +90,10 @@ class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<S, R> imp
 		Assert.notNull(sort, "Sort must not be null!");
 
 		return new FetchableFluentQueryByPredicate<>(predicate, entityType, resultType, sort.and(sort), properties, finder,
-				pagedFinder, countOperation, existsOperation, context, projector);
+				pagedFinder, countOperation, existsOperation, entityManager);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#as(java.lang.Class)
 	 */
@@ -110,10 +107,10 @@ class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<S, R> imp
 		}
 
 		return new FetchableFluentQueryByPredicate<>(predicate, entityType, resultType, sort, properties, finder,
-				pagedFinder, countOperation, existsOperation, context, projector);
+				pagedFinder, countOperation, existsOperation, entityManager);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#project(java.util.Collection)
 	 */
@@ -121,10 +118,10 @@ class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<S, R> imp
 	public FetchableFluentQuery<R> project(Collection<String> properties) {
 
 		return new FetchableFluentQueryByPredicate<>(predicate, entityType, resultType, sort, mergeProperties(properties),
-				finder, pagedFinder, countOperation, existsOperation, context, projector);
+				finder, pagedFinder, countOperation, existsOperation, entityManager);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#oneValue()
 	 */
@@ -142,7 +139,7 @@ class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<S, R> imp
 		return results.isEmpty() ? null : getConversionFunction().apply(results.get(0));
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#firstValue()
 	 */
@@ -156,7 +153,7 @@ class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<S, R> imp
 		return results.isEmpty() ? null : getConversionFunction().apply(results.get(0));
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#all()
 	 */
@@ -165,7 +162,7 @@ class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<S, R> imp
 		return convert(createSortedAndProjectedQuery().fetch());
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#page(org.springframework.data.domain.Pageable)
 	 */
@@ -174,7 +171,7 @@ class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<S, R> imp
 		return pageable.isUnpaged() ? new PageImpl<>(all()) : readPage(pageable);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#stream()
 	 */
@@ -186,7 +183,7 @@ class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<S, R> imp
 				.map(getConversionFunction());
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#count()
 	 */
@@ -195,7 +192,7 @@ class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<S, R> imp
 		return countOperation.apply(predicate);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#exists()
 	 */
@@ -206,8 +203,12 @@ class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<S, R> imp
 
 	private AbstractJPAQuery<?, ?> createSortedAndProjectedQuery() {
 
-		final AbstractJPAQuery<?, ?> query = finder.apply(sort);
-		projector.apply(entityType, query, properties);
+		AbstractJPAQuery<?, ?> query = finder.apply(sort);
+
+		if (!properties.isEmpty()) {
+			query.setHint(EntityGraphFactory.HINT, EntityGraphFactory.create(entityManager, entityType, properties));
+		}
+
 		return query;
 	}
 

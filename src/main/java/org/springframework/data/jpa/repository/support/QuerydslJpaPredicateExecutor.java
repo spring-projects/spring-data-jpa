@@ -15,7 +15,6 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.BiFunction;
@@ -28,7 +27,6 @@ import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.querydsl.EntityPathResolver;
 import org.springframework.data.querydsl.QSort;
@@ -69,7 +67,7 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 	/**
 	 * Creates a new {@link QuerydslJpaPredicateExecutor} from the given domain class and {@link EntityManager} and uses
 	 * the given {@link EntityPathResolver} to translate the domain class into an {@link EntityPath}.
-	 * 
+	 *
 	 * @param entityInformation must not be {@literal null}.
 	 * @param entityManager must not be {@literal null}.
 	 * @param resolver must not be {@literal null}.
@@ -167,7 +165,7 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 		return PageableExecutionUtils.getPage(query.fetch(), pageable, countQuery::fetchCount);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.querydsl.QuerydslPredicateExecutor#findBy(com.querydsl.core.types.Predicate, java.util.function.Function)
 	 */
@@ -206,8 +204,7 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 				pagedFinder, //
 				this::count, //
 				this::exists, //
-				new JpaMetamodelMappingContext(Collections.singleton(this.entityManager.getMetamodel())), //
-				new QuerydslProjector(entityManager) //
+				entityManager //
 		);
 
 		return queryFunction.apply((FetchableFluentQuery<S>) fluentQuery);
