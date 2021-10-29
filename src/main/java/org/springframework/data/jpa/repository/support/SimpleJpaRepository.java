@@ -48,15 +48,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.convert.QueryByExamplePredicateBuilder;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.query.EscapeCharacter;
 import org.springframework.data.jpa.repository.query.QueryUtils;
 import org.springframework.data.jpa.repository.support.QueryHints.NoHints;
-import org.springframework.data.mapping.PersistentEntity;
-import org.springframework.data.mapping.PersistentProperty;
-import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.data.util.ProxyUtils;
@@ -94,7 +90,6 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	private final JpaEntityInformation<T, ?> entityInformation;
 	private final EntityManager em;
 	private final PersistenceProvider provider;
-	private final MappingContext<? extends PersistentEntity<?, ?>, ? extends PersistentProperty<?>> context;
 
 	private @Nullable CrudMethodMetadata metadata;
 	private EscapeCharacter escapeCharacter = EscapeCharacter.DEFAULT;
@@ -113,9 +108,6 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		this.entityInformation = entityInformation;
 		this.em = entityManager;
 		this.provider = PersistenceProvider.fromEntityManager(entityManager);
-		this.context = em.getMetamodel() != null //
-				? new JpaMetamodelMappingContext(Collections.singleton(em.getMetamodel())) //
-				: null;
 	}
 
 	/**
@@ -595,7 +587,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		};
 
 		FetchableFluentQuery<S> fluentQuery = new FetchableFluentQueryByExample<>(example, finder, this::count,
-				this::exists, this.context, this.em, this.escapeCharacter);
+				this::exists, this.em, this.escapeCharacter);
 
 		return queryFunction.apply(fluentQuery);
 	}

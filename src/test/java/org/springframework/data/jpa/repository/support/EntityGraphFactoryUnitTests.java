@@ -16,7 +16,6 @@
 package org.springframework.data.jpa.repository.support;
 
 import static java.util.Arrays.*;
-import static java.util.Collections.*;
 import static org.mockito.Mockito.*;
 
 import java.util.HashSet;
@@ -28,18 +27,16 @@ import javax.persistence.Subgraph;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.querydsl.jpa.impl.AbstractJPAQuery;
-
 /**
- * Unit tests for {@link QuerydslProjector}.
+ * Unit tests for {@link EntityGraphFactory}.
  *
  * @author Jens Schauder
  */
-public class QuerydslProjectorUnitTests {
+@SuppressWarnings("rawtypes")
+class EntityGraphFactoryUnitTests {
 
 	EntityManager em = mock(EntityManager.class);
-	private EntityGraph entityGraph;
-	private AbstractJPAQuery jpaQuery = mock(AbstractJPAQuery.class);
+	EntityGraph entityGraph;
 
 	@BeforeEach
 	void beforeEach() {
@@ -50,19 +47,12 @@ public class QuerydslProjectorUnitTests {
 
 	// GH-2329
 	@Test
-	void emptySetOfPropertiesDoesNotCreateEntityGraph() {
-		new QuerydslProjector(em).apply(DummyEntity.class, jpaQuery, emptySet());
-	}
-
-	// GH-2329
-	@Test
 	void simpleSetOfPropertiesGetRegistered() {
 
-		final HashSet<String> properties = new HashSet<>(asList("one", "two"));
+		HashSet<String> properties = new HashSet<>(asList("one", "two"));
 
-		new QuerydslProjector(em).apply(DummyEntity.class, jpaQuery, properties);
+		entityGraph = EntityGraphFactory.create(em, DummyEntity.class, properties);
 
-		verify(jpaQuery).setHint("javax.persistence.fetchgraph", entityGraph);
 		verify(entityGraph).addAttributeNodes("one");
 		verify(entityGraph).addAttributeNodes("two");
 	}
@@ -71,20 +61,18 @@ public class QuerydslProjectorUnitTests {
 	@Test
 	void setOfCompositePropertiesGetRegisteredPiecewise() {
 
-		final HashSet<String> properties = new HashSet<>(asList("one.two", "eins.zwei.drei"));
+		HashSet<String> properties = new HashSet<>(asList("one.two", "eins.zwei.drei"));
 
-		new QuerydslProjector(em).apply(DummyEntity.class, jpaQuery, properties);
-
-		verify(jpaQuery).setHint("javax.persistence.fetchgraph", entityGraph);
+		entityGraph = EntityGraphFactory.create(em, DummyEntity.class, properties);
 
 		verify(entityGraph).addSubgraph("one");
-		Subgraph one = entityGraph.addSubgraph("one");
+		Subgraph<?> one = entityGraph.addSubgraph("one");
 		verify(one).addAttributeNodes("two");
 
 		verify(entityGraph).addSubgraph("eins");
-		Subgraph eins = entityGraph.addSubgraph("eins");
+		Subgraph<?> eins = entityGraph.addSubgraph("eins");
 		verify(eins).addSubgraph("zwei");
-		Subgraph zwei = eins.addSubgraph("zwei");
+		Subgraph<?> zwei = eins.addSubgraph("zwei");
 		verify(zwei).addAttributeNodes("drei");
 	}
 

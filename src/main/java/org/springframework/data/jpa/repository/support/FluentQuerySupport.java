@@ -23,9 +23,6 @@ import java.util.function.Function;
 
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.mapping.PersistentEntity;
-import org.springframework.data.mapping.PersistentProperty;
-import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.lang.Nullable;
 
@@ -41,15 +38,12 @@ abstract class FluentQuerySupport<S, R> {
 
 	protected final Class<R> resultType;
 	protected final Sort sort;
-	/** Properties on which the query projects. {@literal null} stands for no special projection. */
 	protected final Set<String> properties;
-	protected final MappingContext<? extends PersistentEntity<?, ?>, ? extends PersistentProperty<?>> context;
 	protected final Class<S> entityType;
 
 	private final SpelAwareProxyProjectionFactory projectionFactory = new SpelAwareProxyProjectionFactory();
 
-	FluentQuerySupport(Class<R> resultType, Sort sort, @Nullable Collection<String> properties,
-			MappingContext<? extends PersistentEntity<?, ?>, ? extends PersistentProperty<?>> context, Class<S> entityType) {
+	FluentQuerySupport(Class<R> resultType, Sort sort, @Nullable Collection<String> properties, Class<S> entityType) {
 
 		this.resultType = resultType;
 		this.sort = sort;
@@ -57,10 +51,9 @@ abstract class FluentQuerySupport<S, R> {
 		if (properties != null) {
 			this.properties = new HashSet<>(properties);
 		} else {
-			this.properties = new HashSet<>();
+			this.properties = Collections.emptySet();
 		}
 
-		this.context = context;
 		this.entityType = entityType;
 	}
 
