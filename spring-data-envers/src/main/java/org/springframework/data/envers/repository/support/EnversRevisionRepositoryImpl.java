@@ -23,6 +23,7 @@ import java.util.Optional;
 
 import jakarta.persistence.EntityManager;
 
+import org.hibernate.Hibernate;
 import org.hibernate.envers.AuditReader;
 import org.hibernate.envers.AuditReaderFactory;
 import org.hibernate.envers.DefaultRevisionEntity;
@@ -32,7 +33,6 @@ import org.hibernate.envers.RevisionType;
 import org.hibernate.envers.query.AuditEntity;
 import org.hibernate.envers.query.AuditQuery;
 import org.hibernate.envers.query.order.AuditOrder;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -200,7 +200,8 @@ public class EnversRevisionRepositoryImpl<T, ID, N extends Number & Comparable<N
 
 			return metadata instanceof DefaultRevisionEntity //
 					? new DefaultRevisionMetadata((DefaultRevisionEntity) metadata, revisionType) //
-					: new AnnotationRevisionMetadata<>(metadata, RevisionNumber.class, RevisionTimestamp.class, revisionType);
+					: new AnnotationRevisionMetadata<>(Hibernate.unproxy(metadata), RevisionNumber.class, RevisionTimestamp.class,
+							revisionType);
 		}
 
 		private static RevisionMetadata.RevisionType convertRevisionType(RevisionType datum) {

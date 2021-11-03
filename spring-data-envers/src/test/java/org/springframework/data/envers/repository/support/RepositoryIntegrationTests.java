@@ -106,7 +106,10 @@ class RepositoryIntegrationTests {
 
 			Page<Revision<Integer, License>> page = licenseRepository.findRevisions(license.id, PageRequest.of(0, 10));
 			Revisions<Integer, License> revisions = Revisions.of(page.getContent());
-			assertThat(revisions.getLatestRevision()).isEqualTo(it);
+			Revision<Integer, License> latestRevision = revisions.getLatestRevision();
+
+			assertThat(latestRevision.getRequiredRevisionNumber()).isEqualTo(it.getRequiredRevisionNumber());
+			assertThat(latestRevision.getEntity()).isEqualTo(it.getEntity());
 		});
 	}
 
