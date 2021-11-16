@@ -15,8 +15,8 @@
  */
 package org.springframework.data.jpa.repository.sample;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.JpaContext;
@@ -29,7 +29,7 @@ import org.springframework.util.Assert;
  */
 public class UserRepositoryImpl implements UserRepositoryCustom {
 
-	private static final Logger LOG = LoggerFactory.getLogger(UserRepositoryImpl.class);
+	private static final Log LOG = LogFactory.getLog(UserRepositoryImpl.class);
 
 	@Autowired
 	public UserRepositoryImpl(JpaContext context) {

@@ -25,7 +25,8 @@ import java.util.stream.Stream;
 import javax.persistence.EntityManager;
 import javax.persistence.Tuple;
 
-import org.slf4j.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.jpa.projection.CollectionAwareProjectionFactory;
@@ -304,8 +305,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 
 		private static final String ECLIPSELINK_PROJECTIONS = "Usage of Spring Data projections detected on persistence provider EclipseLink. Make sure the following query methods declare result columns in exactly the order the accessors are declared in the projecting interface or the order of parameters for DTOs:";
 
-		private static final Logger log = org.slf4j.LoggerFactory
-				.getLogger(EclipseLinkProjectionQueryCreationListener.class);
+		private static final Log log = LogFactory.getLog(EclipseLinkProjectionQueryCreationListener.class);
 
 		private final JpaMetamodel metamodel;
 
@@ -340,7 +340,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 					this.warningLogged = true;
 				}
 
-				log.info(" - {}", queryMethod);
+				log.info(String.format(" - %s", queryMethod));
 			}
 		}
 	}

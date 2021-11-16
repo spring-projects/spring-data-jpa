@@ -30,8 +30,8 @@ import javax.persistence.Query;
 import javax.persistence.TemporalType;
 import javax.persistence.criteria.ParameterExpression;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -155,7 +155,7 @@ interface QueryParameterSetter {
 			}
 		};
 
-		private static final Logger LOG = LoggerFactory.getLogger(ErrorHandling.class);
+		private static final Log LOG = LogFactory.getLog(ErrorHandling.class);
 
 		abstract void execute(Runnable block);
 	}
@@ -280,7 +280,7 @@ interface QueryParameterSetter {
 
 			} catch (RuntimeException e) {
 
-				LoggerFactory.getLogger(QueryMetadata.class).warn("Failed to unwrap actual class for Query proxy.", e);
+				LogFactory.getLog(QueryMetadata.class).warn("Failed to unwrap actual class for Query proxy.", e);
 
 				return queryType;
 			}

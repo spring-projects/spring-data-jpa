@@ -20,8 +20,8 @@ import java.net.URL;
 
 import javax.persistence.spi.PersistenceUnitInfo;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.orm.jpa.persistenceunit.DefaultPersistenceUnitManager;
 import org.springframework.orm.jpa.persistenceunit.MutablePersistenceUnitInfo;
 
@@ -34,7 +34,7 @@ import org.springframework.orm.jpa.persistenceunit.MutablePersistenceUnitInfo;
  */
 public class MergingPersistenceUnitManager extends DefaultPersistenceUnitManager {
 
-	private static final Logger LOG = LoggerFactory.getLogger(MergingPersistenceUnitManager.class);
+	private static final Log LOG = LogFactory.getLog(MergingPersistenceUnitManager.class);
 
 	/*
 	 * (non-Javadoc)
@@ -68,21 +68,21 @@ public class MergingPersistenceUnitManager extends DefaultPersistenceUnitManager
 
 		for (URL url : oldPui.getJarFileUrls()) {
 			if (!pui.getJarFileUrls().contains(url)) {
-				LOG.debug("Adding JAR file URL {} to persistence unit {}.", url, persistenceUnitName);
+				LOG.debug(String.format("Adding JAR file URL %s to persistence unit %s.", url, persistenceUnitName));
 				pui.addJarFileUrl(url);
 			}
 		}
 
 		for (String className : oldPui.getManagedClassNames()) {
 			if (!pui.getManagedClassNames().contains(className)) {
-				LOG.debug("Adding class {} to PersistenceUnit {}", className, persistenceUnitName);
+				LOG.debug(String.format("Adding class %s to PersistenceUnit %s", className, persistenceUnitName));
 				pui.addManagedClassName(className);
 			}
 		}
 
 		for (String mappingFileName : oldPui.getMappingFileNames()) {
 			if (!pui.getMappingFileNames().contains(mappingFileName)) {
-				LOG.debug("Adding mapping file to persistence unit {}.", mappingFileName, persistenceUnitName);
+				LOG.debug(String.format("Adding mapping file to persistence unit %s.", mappingFileName, persistenceUnitName));
 				pui.addMappingFileName(mappingFileName);
 			}
 		}

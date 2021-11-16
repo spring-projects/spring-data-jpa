@@ -26,8 +26,8 @@ import javax.enterprise.inject.spi.Bean;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /**
  * Integration tests for Spring Data JPA CDI extension.
@@ -40,7 +40,7 @@ import org.slf4j.LoggerFactory;
 class CdiExtensionIntegrationTests {
 
 	private static SeContainer container;
-	private static Logger LOGGER = LoggerFactory.getLogger(CdiExtensionIntegrationTests.class);
+	private static Log LOGGER = LogFactory.getLog(CdiExtensionIntegrationTests.class);
 
 	@BeforeAll
 	static void setUp() {

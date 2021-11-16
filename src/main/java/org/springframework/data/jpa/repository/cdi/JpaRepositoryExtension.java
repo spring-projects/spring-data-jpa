@@ -32,8 +32,8 @@ import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.inject.spi.ProcessBean;
 import javax.persistence.EntityManager;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.data.repository.cdi.CdiRepositoryBean;
 import org.springframework.data.repository.cdi.CdiRepositoryExtensionSupport;
 
@@ -47,7 +47,7 @@ import org.springframework.data.repository.cdi.CdiRepositoryExtensionSupport;
  */
 public class JpaRepositoryExtension extends CdiRepositoryExtensionSupport {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(JpaRepositoryExtension.class);
+	private static final Log LOGGER = LogFactory.getLog(JpaRepositoryExtension.class);
 
 	private final Map<Set<Annotation>, Bean<EntityManager>> entityManagers = new HashMap<Set<Annotation>, Bean<EntityManager>>();
 
@@ -70,7 +70,7 @@ public class JpaRepositoryExtension extends CdiRepositoryExtensionSupport {
 			if (type instanceof Class<?> && EntityManager.class.isAssignableFrom((Class<?>) type)) {
 				Set<Annotation> qualifiers = new HashSet<Annotation>(bean.getQualifiers());
 				if (bean.isAlternative() || !entityManagers.containsKey(qualifiers)) {
-					LOGGER.debug("Discovered '{}' with qualifiers {}.", EntityManager.class.getName(), qualifiers);
+					LOGGER.debug(String.format("Discovered '%s' with qualifiers %s.", EntityManager.class.getName(), qualifiers));
 					entityManagers.put(qualifiers, (Bean<EntityManager>) bean);
 				}
 			}
@@ -93,7 +93,7 @@ public class JpaRepositoryExtension extends CdiRepositoryExtensionSupport {
 
 			// Create the bean representing the repository.
 			CdiRepositoryBean<?> repositoryBean = createRepositoryBean(repositoryType, qualifiers, beanManager);
-			LOGGER.info("Registering bean for '{}' with qualifiers {}.", repositoryType.getName(), qualifiers);
+			LOGGER.info(String.format("Registering bean for '%s' with qualifiers %s.", repositoryType.getName(), qualifiers));
 
 			// Register the bean to the extension and the container.
 			registerBean(repositoryBean);

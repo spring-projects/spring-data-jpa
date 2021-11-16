@@ -21,8 +21,8 @@ import java.util.Set;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.metamodel.Metamodel;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.FactoryBean;
@@ -44,7 +44,7 @@ import org.springframework.lang.Nullable;
 public class JpaMetamodelMappingContextFactoryBean extends AbstractFactoryBean<JpaMetamodelMappingContext>
 		implements ApplicationContextAware {
 
-	private static final Logger LOG = LoggerFactory.getLogger(JpaMetamodelMappingContextFactoryBean.class);
+	private static final Log LOG = LogFactory.getLog(JpaMetamodelMappingContextFactoryBean.class);
 
 	private @Nullable ListableBeanFactory beanFactory;
 
