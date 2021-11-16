@@ -17,9 +17,9 @@ package org.springframework.data.jpa.repository.support;
 
 import java.util.Set;
 
-import javax.persistence.EntityGraph;
-import javax.persistence.EntityManager;
-import javax.persistence.Subgraph;
+import jakarta.persistence.EntityGraph;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Subgraph;
 
 import org.springframework.data.mapping.PropertyPath;
 
