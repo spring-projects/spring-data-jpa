@@ -19,8 +19,8 @@ import java.lang.reflect.Method;
 
 import javax.persistence.EntityManager;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.projection.ProjectionFactory;
@@ -44,7 +44,7 @@ import org.springframework.util.StringUtils;
  */
 public final class JpaQueryLookupStrategy {
 
-	private static final Logger LOG = LoggerFactory.getLogger(JpaQueryLookupStrategy.class);
+	private static final Log LOG = LogFactory.getLog(JpaQueryLookupStrategy.class);
 
 	/**
 	 * Private constructor to prevent instantiation.

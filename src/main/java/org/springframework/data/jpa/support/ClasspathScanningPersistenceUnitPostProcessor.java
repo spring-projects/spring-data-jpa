@@ -24,8 +24,8 @@ import java.util.Set;
 import javax.persistence.Entity;
 import javax.persistence.MappedSuperclass;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.ResourceLoaderAware;
@@ -58,7 +58,7 @@ import org.springframework.util.StringUtils;
 public class ClasspathScanningPersistenceUnitPostProcessor
 		implements PersistenceUnitPostProcessor, ResourceLoaderAware, EnvironmentAware {
 
-	private static final Logger LOG = LoggerFactory.getLogger(ClasspathScanningPersistenceUnitPostProcessor.class);
+	private static final Log LOG = LogFactory.getLog(ClasspathScanningPersistenceUnitPostProcessor.class);
 
 	private final String basePackage;
 
@@ -133,7 +133,7 @@ public class ClasspathScanningPersistenceUnitPostProcessor
 
 		for (BeanDefinition definition : provider.findCandidateComponents(basePackage)) {
 
-			LOG.debug("Registering classpath-scanned entity {} in persistence unit info!", definition.getBeanClassName());
+			LOG.debug(String.format("Registering classpath-scanned entity %s in persistence unit info!", definition.getBeanClassName()));
 
 			if (definition.getBeanClassName() != null) {
 				pui.addManagedClassName(definition.getBeanClassName());
@@ -142,7 +142,7 @@ public class ClasspathScanningPersistenceUnitPostProcessor
 
 		for (String location : scanForMappingFileLocations()) {
 
-			LOG.debug("Registering classpath-scanned entity mapping file {} in persistence unit info!", location);
+			LOG.debug(String.format("Registering classpath-scanned entity mapping file %s in persistence unit info!", location));
 
 			pui.addMappingFileName(location);
 		}

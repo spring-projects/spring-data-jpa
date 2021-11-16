@@ -20,9 +20,8 @@ import javax.persistence.Query;
 import javax.persistence.Tuple;
 import javax.persistence.TypedQuery;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.data.jpa.provider.QueryExtractor;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.QueryCreationException;
@@ -45,7 +44,7 @@ final class NamedQuery extends AbstractJpaQuery {
 			+ "have a JpaDialect configured at your EntityManagerFactoryBean as this affects "
 			+ "discovering the concrete persistence provider.";
 
-	private static final Logger LOG = LoggerFactory.getLogger(NamedQuery.class);
+	private static final Log LOG = LogFactory.getLog(NamedQuery.class);
 
 	private final String queryName;
 	private final String countQueryName;
@@ -89,8 +88,9 @@ final class NamedQuery extends AbstractJpaQuery {
 		}
 
 		if (parameters.hasPageableParameter()) {
-			LOG.warn("Finder method {} is backed by a NamedQuery" + " but contains a Pageable parameter! Sorting delivered "
-					+ "via this Pageable will not be applied!", method);
+			LOG.warn(String.format(
+					"Finder method %s is backed by a NamedQuery but contains a Pageable parameter! Sorting delivered via this Pageable will not be applied!",
+					method));
 		}
 
 		this.metadataCache = new QueryParameterSetter.QueryMetadataCache();
@@ -115,7 +115,7 @@ final class NamedQuery extends AbstractJpaQuery {
 			lookupEm.createNamedQuery(queryName);
 			return true;
 		} catch (IllegalArgumentException e) {
-			LOG.debug("Did not find named query {}", queryName);
+			LOG.debug(String.format("Did not find named query %s", queryName));
 			return false;
 		} finally {
 			lookupEm.close();
@@ -134,7 +134,7 @@ final class NamedQuery extends AbstractJpaQuery {
 
 		final String queryName = method.getNamedQueryName();
 
-		LOG.debug("Looking up named query {}", queryName);
+		LOG.debug(String.format("Looking up named query %s", queryName));
 
 		if (!hasNamedQuery(em, queryName)) {
 			return null;
@@ -142,7 +142,7 @@ final class NamedQuery extends AbstractJpaQuery {
 
 		try {
 			RepositoryQuery query = new NamedQuery(method, em);
-			LOG.debug("Found named query {}!", queryName);
+			LOG.debug(String.format("Found named query %s!", queryName));
 			return query;
 		} catch (IllegalArgumentException e) {
 			return null;
