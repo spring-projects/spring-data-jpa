@@ -49,7 +49,7 @@ public class JpaRepositoryExtension extends CdiRepositoryExtensionSupport {
 
 	private static final Log LOGGER = LogFactory.getLog(JpaRepositoryExtension.class);
 
-	private final Map<Set<Annotation>, Bean<EntityManager>> entityManagers = new HashMap<Set<Annotation>, Bean<EntityManager>>();
+	private final Map<Set<Annotation>, Bean<EntityManager>> entityManagers = new HashMap<>();
 
 	public JpaRepositoryExtension() {
 		LOGGER.info("Activating CDI extension for Spring Data JPA repositories.");
@@ -64,11 +64,12 @@ public class JpaRepositoryExtension extends CdiRepositoryExtensionSupport {
 	 */
 	@SuppressWarnings("unchecked")
 	<X> void processBean(@Observes ProcessBean<X> processBean) {
+
 		Bean<X> bean = processBean.getBean();
 		for (Type type : bean.getTypes()) {
 			// Check if the bean is an EntityManager.
 			if (type instanceof Class<?> && EntityManager.class.isAssignableFrom((Class<?>) type)) {
-				Set<Annotation> qualifiers = new HashSet<Annotation>(bean.getQualifiers());
+				Set<Annotation> qualifiers = new HashSet<>(bean.getQualifiers());
 				if (bean.isAlternative() || !entityManagers.containsKey(qualifiers)) {
 					LOGGER.debug(String.format("Discovered '%s' with qualifiers %s.", EntityManager.class.getName(), qualifiers));
 					entityManagers.put(qualifiers, (Bean<EntityManager>) bean);
@@ -121,7 +122,7 @@ public class JpaRepositoryExtension extends CdiRepositoryExtensionSupport {
 		}
 
 		// Construct and return the repository bean.
-		return new JpaRepositoryBean<T>(beanManager, entityManagerBean, qualifiers, repositoryType,
+		return new JpaRepositoryBean<>(beanManager, entityManagerBean, qualifiers, repositoryType,
 				Optional.of(getCustomImplementationDetector()));
 	}
 }

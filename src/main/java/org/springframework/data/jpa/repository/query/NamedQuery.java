@@ -115,7 +115,10 @@ final class NamedQuery extends AbstractJpaQuery {
 			lookupEm.createNamedQuery(queryName);
 			return true;
 		} catch (IllegalArgumentException e) {
-			LOG.debug(String.format("Did not find named query %s", queryName));
+
+			if (LOG.isDebugEnabled()) {
+				LOG.debug(String.format("Did not find named query %s", queryName));
+			}
 			return false;
 		} finally {
 			lookupEm.close();
@@ -134,15 +137,20 @@ final class NamedQuery extends AbstractJpaQuery {
 
 		final String queryName = method.getNamedQueryName();
 
-		LOG.debug(String.format("Looking up named query %s", queryName));
+		if (LOG.isDebugEnabled()) {
+			LOG.debug(String.format("Looking up named query %s", queryName));
+		}
 
 		if (!hasNamedQuery(em, queryName)) {
 			return null;
 		}
 
 		try {
+
 			RepositoryQuery query = new NamedQuery(method, em);
-			LOG.debug(String.format("Found named query %s!", queryName));
+			if (LOG.isDebugEnabled()) {
+				LOG.debug(String.format("Found named query %s!", queryName));
+			}
 			return query;
 		} catch (IllegalArgumentException e) {
 			return null;

@@ -68,21 +68,30 @@ public class MergingPersistenceUnitManager extends DefaultPersistenceUnitManager
 
 		for (URL url : oldPui.getJarFileUrls()) {
 			if (!pui.getJarFileUrls().contains(url)) {
-				LOG.debug(String.format("Adding JAR file URL %s to persistence unit %s.", url, persistenceUnitName));
+
+				if (LOG.isDebugEnabled()) {
+					LOG.debug(String.format("Adding JAR file URL %s to persistence unit %s.", url, persistenceUnitName));
+				}
 				pui.addJarFileUrl(url);
 			}
 		}
 
 		for (String className : oldPui.getManagedClassNames()) {
 			if (!pui.getManagedClassNames().contains(className)) {
-				LOG.debug(String.format("Adding class %s to PersistenceUnit %s", className, persistenceUnitName));
+
+				if (LOG.isDebugEnabled()) {
+					LOG.debug(String.format("Adding class %s to PersistenceUnit %s", className, persistenceUnitName));
+				}
 				pui.addManagedClassName(className);
 			}
 		}
 
 		for (String mappingFileName : oldPui.getMappingFileNames()) {
 			if (!pui.getMappingFileNames().contains(mappingFileName)) {
-				LOG.debug(String.format("Adding mapping file to persistence unit %s.", mappingFileName, persistenceUnitName));
+
+				if (LOG.isDebugEnabled()) {
+					LOG.debug(String.format("Adding mapping file to persistence unit %s.", mappingFileName, persistenceUnitName));
+				}
 				pui.addMappingFileName(mappingFileName);
 			}
 		}
