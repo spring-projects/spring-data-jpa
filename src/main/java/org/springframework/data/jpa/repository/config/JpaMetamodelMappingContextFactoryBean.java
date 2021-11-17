@@ -71,7 +71,7 @@ public class JpaMetamodelMappingContextFactoryBean extends AbstractFactoryBean<J
 	 * @see org.springframework.beans.factory.config.AbstractFactoryBean#createInstance()
 	 */
 	@Override
-	protected JpaMetamodelMappingContext createInstance() throws Exception {
+	protected JpaMetamodelMappingContext createInstance() {
 
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("Initializing JpaMetamodelMappingContext…");
