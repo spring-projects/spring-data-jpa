@@ -27,7 +27,6 @@ import javax.sql.DataSource;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -35,6 +34,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ComponentScan.Filter;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
+import org.springframework.context.annotation.Primary;
 import org.springframework.orm.jpa.JpaVendorAdapter;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.stereotype.Component;
@@ -46,6 +46,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  *
  * @author Oliver Gierke
  * @author Jens Schauder
+ * @author Réda Housni Alaoui
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration
@@ -57,7 +58,8 @@ public class EntityManagerBeanDefinitionRegistrarPostProcessorIntegrationTests {
 	void injectsEntityManagerIntoConstructors() {
 
 		assertThat(target).isNotNull();
-		assertThat(target.em).isNotNull();
+		assertThat(target.firstEm).isNotNull();
+		assertThat(target.primaryEm).isNotNull();
 	}
 
 	/**
@@ -104,16 +106,25 @@ public class EntityManagerBeanDefinitionRegistrarPostProcessorIntegrationTests {
 		LocalContainerEntityManagerFactoryBean secondEmf() {
 			return emf();
 		}
+
+		@Primary
+		@Bean
+		LocalContainerEntityManagerFactoryBean thirdEmf() {
+			return emf();
+		}
 	}
 
 	@TestComponent
 	static class EntityManagerInjectionTarget {
 
-		private final EntityManager em;
+		private final EntityManager firstEm;
+		private final EntityManager primaryEm;
 
 		@Autowired
-		public EntityManagerInjectionTarget(@Qualifier("firstEmf") EntityManager em) {
-			this.em = em;
+		public EntityManagerInjectionTarget(@Qualifier("firstEmf") EntityManager firstEm, EntityManager primaryEm) {
+
+			this.firstEm = firstEm;
+			this.primaryEm = primaryEm;
 		}
 	}
 }

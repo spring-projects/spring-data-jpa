@@ -14,8 +14,9 @@ pipeline {
 	stages {
 		stage("test: baseline (jdk8)") {
 			when {
+				beforeAgent(true)
 				anyOf {
-					branch 'main'
+					branch(pattern: "main|(\\d\\.\\d\\.x)", comparator: "REGEXP")
 					not { triggeredBy 'UpstreamCause' }
 				}
 			}
@@ -42,8 +43,9 @@ pipeline {
 
 		stage("Test other configurations") {
 			when {
+				beforeAgent(true)
 				allOf {
-					branch 'main'
+					branch(pattern: "main|(\\d\\.\\d\\.x)", comparator: "REGEXP")
 					not { triggeredBy 'UpstreamCause' }
 				}
 			}
@@ -67,7 +69,7 @@ pipeline {
 					}
 				}
 
-				stage("test: baseline (jdk16)") {
+				stage("test: baseline (jdk17)") {
 					agent {
 						label 'data'
 					}
@@ -78,7 +80,7 @@ pipeline {
 					steps {
 						script {
 							docker.withRegistry('', 'hub.docker.com-springbuildmaster') {
-								docker.image('adoptopenjdk/openjdk16:latest').inside('-v $HOME:/tmp/jenkins-home') {
+								docker.image('openjdk:17-bullseye').inside('-v $HOME:/tmp/jenkins-home') {
 									sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -s settings.xml -Pjava11 clean dependency:list test -Dsort -Dbundlor.enabled=false -U -B'
 								}
 							}
@@ -90,8 +92,9 @@ pipeline {
 
 		stage('Release to artifactory') {
 			when {
+				beforeAgent(true)
 				anyOf {
-					branch 'main'
+					branch(pattern: "main|(\\d\\.\\d\\.x)", comparator: "REGEXP")
 					not { triggeredBy 'UpstreamCause' }
 				}
 			}
@@ -115,34 +118,6 @@ pipeline {
 									"-Dartifactory.staging-repository=libs-snapshot-local " +
 									"-Dartifactory.build-name=spring-data-jpa " +
 									"-Dartifactory.build-number=${BUILD_NUMBER} " +
-									'-Dmaven.test.skip=true clean deploy -U -B'
-						}
-					}
-				}
-			}
-		}
-		stage('Publish documentation') {
-			when {
-				branch 'main'
-			}
-			agent {
-				label 'data'
-			}
-			options { timeout(time: 20, unit: 'MINUTES') }
-
-			environment {
-				ARTIFACTORY = credentials('02bd1690-b54f-4c9f-819d-a77cb7a9822c')
-			}
-
-			steps {
-				script {
-					docker.withRegistry('', 'hub.docker.com-springbuildmaster') {
-						docker.image('adoptopenjdk/openjdk8:latest').inside('-v $HOME:/tmp/jenkins-home') {
-							sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -s settings.xml -Pci,distribute ' +
-									'-Dartifactory.server=https://repo.spring.io ' +
-									"-Dartifactory.username=${ARTIFACTORY_USR} " +
-									"-Dartifactory.password=${ARTIFACTORY_PSW} " +
-									"-Dartifactory.distribution-repository=temp-private-local " +
 									'-Dmaven.test.skip=true clean deploy -U -B'
 						}
 					}

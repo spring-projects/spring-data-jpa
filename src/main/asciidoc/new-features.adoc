@@ -1,6 +1,14 @@
 [[new-features]]
 = New & Noteworthy
 
+[[new-features.2-5-0]]
+== What's New in Spring Data JPA 2.5
+
+There is a new `getById` method in the `JpaRepository` which will replace `getOne`, which is now deprecated.
+Since this method returns a reference this changes the behaviour of an existing `getById` method which before was implemented by query derivation.
+This in turn might lead to an unexpected `LazyLoadingException` when accessing attributes of that reference outside a transaction.
+To avoid this please rename your existing `getById` method to `getXyzById` with `Xyz` being an arbitrary string.
+
 [[new-features.1-11-0]]
 == What's New in Spring Data JPA 1.11
 

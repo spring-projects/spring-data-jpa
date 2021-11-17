@@ -34,6 +34,7 @@ import org.springframework.lang.Nullable;
  * @author Thomas Darimont
  * @author Oliver Gierke
  * @author Jens Schauder
+ * @author Mark Paluch
  */
 final class NativeJpaQuery extends AbstractStringBasedJpaQuery {
 
@@ -43,12 +44,13 @@ final class NativeJpaQuery extends AbstractStringBasedJpaQuery {
 	 * @param method must not be {@literal null}.
 	 * @param em must not be {@literal null}.
 	 * @param queryString must not be {@literal null} or empty.
+	 * @param countQueryString must not be {@literal null} or empty.
 	 * @param evaluationContextProvider
 	 */
-	public NativeJpaQuery(JpaQueryMethod method, EntityManager em, String queryString,
+	public NativeJpaQuery(JpaQueryMethod method, EntityManager em, String queryString, @Nullable String countQueryString,
 			QueryMethodEvaluationContextProvider evaluationContextProvider, SpelExpressionParser parser) {
 
-		super(method, em, queryString, evaluationContextProvider, parser);
+		super(method, em, queryString, countQueryString, evaluationContextProvider, parser);
 
 		Parameters<?, ?> parameters = method.getParameters();
 

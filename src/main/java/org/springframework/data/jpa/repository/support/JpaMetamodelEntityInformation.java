@@ -86,7 +86,7 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 
 		IdentifiableType<T> identifiableType = (IdentifiableType<T>) type;
 
-		this.idMetadata = new IdMetadata<>(identifiableType);
+		this.idMetadata = new IdMetadata<>(identifiableType, PersistenceProvider.fromMetamodel(metamodel));
 		this.versionAttribute = findVersionAttribute(identifiableType, metamodel);
 	}
 
@@ -260,20 +260,22 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 	private static class IdMetadata<T> implements Iterable<SingularAttribute<? super T, ?>> {
 
 		private final IdentifiableType<T> type;
+		private final Set<SingularAttribute<? super T, ?>> idClassAttributes;
 		private final Set<SingularAttribute<? super T, ?>> attributes;
 		private @Nullable Class<?> idType;
 
 		@SuppressWarnings("unchecked")
-		IdMetadata(IdentifiableType<T> source) {
+		IdMetadata(IdentifiableType<T> source, PersistenceProvider persistenceProvider) {
 
 			this.type = source;
+			this.idClassAttributes = persistenceProvider.getIdClassAttributes(source);
 			this.attributes = (Set<SingularAttribute<? super T, ?>>) (source.hasSingleIdAttribute()
 					? Collections.singleton(source.getId(source.getIdType().getJavaType()))
 					: source.getIdClassAttributes());
 		}
 
 		boolean hasSimpleId() {
-			return attributes.size() == 1;
+			return idClassAttributes.isEmpty() && attributes.size() == 1;
 		}
 
 		public Class<?> getType() {
@@ -296,18 +298,26 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 		private Class<?> tryExtractIdTypeWithFallbackToIdTypeLookup() {
 
 			try {
+
+				Class<?> idClassType = lookupIdClass(type);
+				if (idClassType != null) {
+					return idClassType;
+				}
+
 				Type<?> idType = type.getIdType();
-				return idType == null ? fallbackIdTypeLookup(type) : idType.getJavaType();
+				return idType == null ? null : idType.getJavaType();
 			} catch (IllegalStateException e) {
 				// see https://hibernate.onjira.com/browse/HHH-6951
-				return fallbackIdTypeLookup(type);
+				return null;
 			}
 		}
 
 		@Nullable
-		private static Class<?> fallbackIdTypeLookup(IdentifiableType<?> type) {
+		private static Class<?> lookupIdClass(IdentifiableType<?> type) {
 
-			IdClass annotation = AnnotationUtils.findAnnotation(type.getJavaType(), IdClass.class);
+			IdClass annotation = type.getJavaType() != null
+					? AnnotationUtils.findAnnotation(type.getJavaType(), IdClass.class)
+					: null;
 			return annotation == null ? null : annotation.value();
 		}
 

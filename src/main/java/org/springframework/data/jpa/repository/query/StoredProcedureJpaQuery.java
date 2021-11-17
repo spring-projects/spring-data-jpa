@@ -62,7 +62,6 @@ class StoredProcedureJpaQuery extends AbstractJpaQuery {
 		super(method, em);
 		this.procedureAttributes = method.getProcedureAttributes();
 		this.useNamedParameters = useNamedParameters(method);
-
 	}
 
 	/**
@@ -204,7 +203,7 @@ class StoredProcedureJpaQuery extends AbstractJpaQuery {
 
 			ProcedureParameter procedureOutput = procedureAttributes.getOutputProcedureParameters().get(0);
 
-			/**
+			/*
 			 * If there is a {@link java.sql.ResultSet} with a {@link ParameterMode#REF_CURSOR}, find the output parameter.
 			 * Otherwise, no need, there is no need to find an output parameter.
 			 */
@@ -229,7 +228,7 @@ class StoredProcedureJpaQuery extends AbstractJpaQuery {
 
 	/**
 	 * Does this stored procedure have a {@link java.sql.ResultSet} using {@link ParameterMode#REF_CURSOR}?
-	 * 
+	 *
 	 * @param procedureOutput
 	 * @return
 	 */

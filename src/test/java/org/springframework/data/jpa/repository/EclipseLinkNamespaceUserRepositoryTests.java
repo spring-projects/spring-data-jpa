@@ -35,6 +35,7 @@ import org.springframework.test.context.ContextConfiguration;
  * @author Andrey Kovalev
  */
 @ContextConfiguration(value = "classpath:eclipselink.xml")
+@Disabled("hsqldb seems to hang on this test class without leaving a surefire report")
 class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserRepositoryTests {
 
 	/**

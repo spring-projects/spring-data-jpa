@@ -32,7 +32,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.core.Ordered;
-import org.springframework.data.jpa.util.BeanDefinitionUtils.EntityManagerFactoryBeanDefinition;
+import org.springframework.data.jpa.util.BeanDefinitionUtils.*;
 import org.springframework.orm.jpa.SharedEntityManagerCreator;
 
 /**
@@ -43,6 +43,7 @@ import org.springframework.orm.jpa.SharedEntityManagerCreator;
  * {@link EntityManagerFactory} instances.
  *
  * @author Oliver Gierke
+ * @author Réda Housni Alaoui
  */
 public class EntityManagerBeanDefinitionRegistrarPostProcessor implements BeanFactoryPostProcessor, Ordered {
 
@@ -85,6 +86,7 @@ public class EntityManagerBeanDefinitionRegistrarPostProcessor implements BeanFa
 
 			AbstractBeanDefinition emBeanDefinition = builder.getRawBeanDefinition();
 
+			emBeanDefinition.setPrimary(definition.getBeanDefinition().isPrimary());
 			emBeanDefinition.addQualifier(new AutowireCandidateQualifier(Qualifier.class, definition.getBeanName()));
 			emBeanDefinition.setScope(definition.getBeanDefinition().getScope());
 			emBeanDefinition.setSource(definition.getBeanDefinition().getSource());

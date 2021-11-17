@@ -988,8 +988,12 @@ interface UserRepository extends Repository<User, Long> {
 ====
 
 :leveloffset: +1
+
 include::{spring-data-commons-docs}/auditing.adoc[]
+
 :leveloffset: -1
+
+There is also a convenience base class, `AbstractAuditable`, which you can extend to avoid the need to manually implement the interface methods. Doing so increases the coupling of your domain classes to Spring Data, which might be something you want to avoid. Usually, the annotation-based way of defining auditing metadata is preferred as it is less invasive and more flexible.
 
 [[jpa.auditing]]
 == JPA Auditing

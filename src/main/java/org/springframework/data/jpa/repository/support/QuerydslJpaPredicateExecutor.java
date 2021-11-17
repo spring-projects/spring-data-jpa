@@ -17,6 +17,8 @@ package org.springframework.data.jpa.repository.support;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
@@ -29,7 +31,8 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.querydsl.EntityPathResolver;
 import org.springframework.data.querydsl.QSort;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
-import org.springframework.data.repository.support.PageableExecutionUtils;
+import org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery;
+import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -51,6 +54,7 @@ import com.querydsl.jpa.impl.AbstractJPAQuery;
  * @author Jocelyn Ntakpe
  * @author Christoph Strobl
  * @author Jens Schauder
+ * @author Greg Turnquist
  */
 public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecutor<T> {
 
@@ -80,9 +84,9 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 	}
 
 	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.querydsl.QuerydslPredicateExecutor#findOne(com.mysema.query.types.Predicate)
-	 */
+	* (non-Javadoc)
+	* @see org.springframework.data.querydsl.QuerydslPredicateExecutor#findOne(com.mysema.query.types.Predicate)
+	*/
 	@Override
 	public Optional<T> findOne(Predicate predicate) {
 
@@ -163,8 +167,53 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.querydsl.QueryDslPredicateExecutor#count(com.mysema.query.types.Predicate)
+	 * @see org.springframework.data.querydsl.QuerydslPredicateExecutor#findBy(com.querydsl.core.types.Predicate, java.util.function.Function)
 	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public <S extends T, R> R findBy(Predicate predicate, Function<FetchableFluentQuery<S>, R> queryFunction) {
+
+		Assert.notNull(predicate, "Predicate must not be null!");
+		Assert.notNull(queryFunction, "Query function must not be null!");
+
+		Function<Sort, AbstractJPAQuery<?, ?>> finder = sort -> {
+			AbstractJPAQuery<?, ?> select = (AbstractJPAQuery<?, ?>) createQuery(predicate).select(path);
+
+			if (sort != null) {
+				select = (AbstractJPAQuery<?, ?>) querydsl.applySorting(sort, select);
+			}
+
+			return select;
+		};
+
+		BiFunction<Sort, Pageable, AbstractJPAQuery<?, ?>> pagedFinder = (sort, pageable) -> {
+
+			AbstractJPAQuery<?, ?> select = finder.apply(sort);
+
+			if (pageable.isPaged()) {
+				select = (AbstractJPAQuery<?, ?>) querydsl.applyPagination(pageable, select);
+			}
+
+			return select;
+		};
+
+		FetchableFluentQueryByPredicate<T, T> fluentQuery = new FetchableFluentQueryByPredicate<>( //
+				predicate, //
+				this.entityInformation.getJavaType(), //
+				finder, //
+				pagedFinder, //
+				this::count, //
+				this::exists, //
+				entityManager //
+		);
+
+		return queryFunction.apply((FetchableFluentQuery<S>) fluentQuery);
+	}
+
+	/*
+	* (non-Javadoc)
+	* @see org.springframework.data.querydsl.QueryDslPredicateExecutor#count(com.mysema.query.types.Predicate)
+	*/
 	@Override
 	public long count(Predicate predicate) {
 		return createQuery(predicate).fetchCount();
@@ -185,7 +234,7 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 	 * @param predicate
 	 * @return the Querydsl {@link JPQLQuery}.
 	 */
-	protected JPQLQuery<?> createQuery(Predicate... predicate) {
+	protected AbstractJPAQuery<?, ?> createQuery(Predicate... predicate) {
 
 		Assert.notNull(predicate, "Predicate must not be null!");
 
