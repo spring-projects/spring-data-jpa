@@ -2599,6 +2599,14 @@ public class UserRepositoryTests {
 		assertThat(result).containsOnly(firstUser);
 	}
 
+	@Test // #2363
+	void readsDtoProjections() {
+
+		flushTestUsers();
+
+		assertThat(repository.findAllDtoProjectedBy()).hasSize(4);
+	}
+
 	private Page<User> executeSpecWithSort(Sort sort) {
 
 		flushTestUsers();

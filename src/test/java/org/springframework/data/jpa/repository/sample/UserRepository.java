@@ -611,6 +611,9 @@ public interface UserRepository
 	// DATAJPA-1303
 	Page<User> findByAttributesIgnoreCaseIn(Pageable pageable, String... attributes);
 
+	// #2363
+	List<NameOnlyDto> findAllDtoProjectedBy();
+
 	interface RolesAndFirstname {
 
 		String getFirstname();

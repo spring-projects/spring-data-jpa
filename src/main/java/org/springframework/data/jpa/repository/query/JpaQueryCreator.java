@@ -176,7 +176,12 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extend
 				selections.add(toExpressionRecursively(root, path, true).alias(property));
 			}
 
-			query = query.multiselect(selections);
+			Class<?> typeToRead = returnedType.getTypeToRead();
+
+			query = typeToRead.isInterface()
+					? query.multiselect(selections)
+					: query.select((Selection) builder.construct(typeToRead,
+							selections.toArray(new Selection[0])));
 
 		} else if (tree.isExistsProjection()) {
 
