@@ -96,7 +96,7 @@ public class UserRepositoryStoredProcedureIntegrationTests {
 
 		Map<String, Integer> result = repository.entityAnnotatedCustomNamedProcedurePlus1IO2(1);
 
-		assertThat(result).containsExactly(entry("res", 2), entry("res2", 3));
+		assertThat(result).containsOnly(entry("res", 2), entry("res2", 3));
 	}
 
 	@Test // DATAJPA-1579
@@ -104,7 +104,7 @@ public class UserRepositoryStoredProcedureIntegrationTests {
 
 		Map<String, Integer> result = repository.entityAnnotatedCustomNamedProcedurePlus1IOoptional(1);
 
-		assertThat(result).containsExactly(entry("res", 2), entry("res2", null));
+		assertThat(result).containsOnly(entry("res", 2), entry("res2", null));
 	}
 
 	@Test // DATAJPA-455
