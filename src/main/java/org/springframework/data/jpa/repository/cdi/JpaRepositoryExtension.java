@@ -56,7 +56,7 @@ public class JpaRepositoryExtension extends CdiRepositoryExtensionSupport {
 	}
 
 	/**
-	 * Implementation of a an observer which checks for EntityManager beans and stores them in {@link #entityManagers} for
+	 * Implementation of an observer which checks for EntityManager beans and stores them in {@link #entityManagers} for
 	 * later association with corresponding repository beans.
 	 *
 	 * @param <X> The type.
@@ -78,8 +78,7 @@ public class JpaRepositoryExtension extends CdiRepositoryExtensionSupport {
 	}
 
 	/**
-	 * Implementation of a an observer which registers beans to the CDI container for the detected Spring Data
-	 * repositories.
+	 * Implementation of an observer which registers beans to the CDI container for the detected Spring Data repositories.
 	 * <p>
 	 * The repository beans are associated to the EntityManagers using their qualifiers.
 	 *
