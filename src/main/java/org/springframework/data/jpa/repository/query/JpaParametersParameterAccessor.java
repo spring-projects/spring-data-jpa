@@ -19,6 +19,7 @@ import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
+import org.springframework.lang.Nullable;
 
 /**
  * {@link org.springframework.data.repository.query.ParameterAccessor} based on an {@link Parameters} instance. It also
@@ -39,6 +40,7 @@ public class JpaParametersParameterAccessor extends ParametersParameterAccessor 
 		super(parameters, values);
 	}
 
+	@Nullable
 	public <T> T getValue(Parameter parameter) {
 		return super.getValue(parameter.getIndex());
 	}

@@ -168,7 +168,7 @@ abstract class QueryParameterSetterFactory {
 		 * Evaluates the given {@link Expression} against the given values.
 		 *
 		 * @param expression must not be {@literal null}.
-		 * @param values must not be {@literal null}.
+		 * @param accessor must not be {@literal null}.
 		 * @return the result of the evaluation.
 		 */
 		@Nullable
@@ -250,6 +250,7 @@ abstract class QueryParameterSetterFactory {
 			return null;
 		}
 
+		@Nullable
 		private Object getValue(JpaParametersParameterAccessor accessor, Parameter parameter) {
 			return accessor.getValue(parameter);
 		}
