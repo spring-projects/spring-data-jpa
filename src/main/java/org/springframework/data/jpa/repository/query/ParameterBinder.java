@@ -87,7 +87,8 @@ public class ParameterBinder {
 	 * Binds the parameters to the given query and applies special parameter types (e.g. pagination).
 	 *
 	 * @param query must not be {@literal null}.
-	 * @param values values of method parameters to be assigned to the query parameters.
+	 * @param metadata must not be {@literal null}.
+	 * @param accessor must not be {@literal null}.
 	 */
 	Query bindAndPrepare(Query query, QueryParameterSetter.QueryMetadata metadata,
 			JpaParametersParameterAccessor accessor) {
