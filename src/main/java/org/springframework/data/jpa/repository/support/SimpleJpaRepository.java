@@ -880,14 +880,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 		Assert.notNull(query, "TypedQuery must not be null!");
 
-		List<Long> totals = query.getResultList();
-		long total = 0L;
-
-		for (Long element : totals) {
-			total += element == null ? 0 : element;
-		}
-
-		return total;
+		return query.getSingleResult();
 	}
 
 	private static boolean isUnpaged(Pageable pageable) {
