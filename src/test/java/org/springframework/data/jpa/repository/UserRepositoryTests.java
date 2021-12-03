@@ -2058,6 +2058,20 @@ public class UserRepositoryTests {
 		assertThat(exists).isEqualTo(true);
 	}
 
+	@Test // GH-2368
+	void existsByExampleNegative() {
+
+		flushTestUsers();
+
+		User prototype = new User();
+		prototype.setAge(4711); // there is none with that age
+
+		Example<User> example = Example.of(prototype, matching().withIgnorePaths("createdAt"));
+		boolean exists = repository.exists(example);
+
+		assertThat(exists).isEqualTo(false);
+	}
+
 	@Test // DATAJPA-905
 	void executesPagedSpecificationSettingAnOrder() {
 
