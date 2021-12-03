@@ -40,6 +40,7 @@ import com.querydsl.core.NonUniqueResultException;
 import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Predicate;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.AbstractJPAQuery;
@@ -225,7 +226,7 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 	 */
 	@Override
 	public boolean exists(Predicate predicate) {
-		return createQuery(predicate).fetchCount() > 0;
+		return createQuery(predicate).select(Expressions.ONE).fetchFirst() != null;
 	}
 
 	/**
