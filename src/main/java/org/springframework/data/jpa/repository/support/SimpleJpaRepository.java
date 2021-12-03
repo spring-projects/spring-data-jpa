@@ -80,6 +80,7 @@ import org.springframework.util.Assert;
  * @author Sander Krabbenborg
  * @author Jesse Wouters
  * @author Greg Turnquist
+ * @author Yanming Zhou
  */
 @Repository
 @Transactional(readOnly = true)
@@ -530,12 +531,13 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 */
 	@Override
 	public <S extends T> boolean exists(Example<S> example) {
+
 		Specification<S> spec = new ExampleSpecification<>(example, this.escapeCharacter);
 		CriteriaQuery<Integer> cq = this.em.getCriteriaBuilder().createQuery(Integer.class);
 		cq.select(this.em.getCriteriaBuilder().literal(1));
 		applySpecificationToCriteria(spec, example.getProbeType(), cq);
 		TypedQuery<Integer> query = applyRepositoryMethodMetadata(this.em.createQuery(cq));
-		return query.setMaxResults(1).getSingleResult() != null;
+		return query.setMaxResults(1).getResultList().size() == 1;
 	}
 
 	/*
