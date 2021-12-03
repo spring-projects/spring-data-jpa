@@ -34,7 +34,7 @@ import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.repository.core.support.SurroundingTransactionDetectorMethodInterceptor;
-import org.springframework.data.repository.support.PageableExecutionUtils;
+import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.data.util.CloseableIterator;
 import org.springframework.data.util.StreamUtils;
 import org.springframework.lang.Nullable;
@@ -73,7 +73,7 @@ public abstract class JpaQueryExecution {
 	 * Executes the given {@link AbstractStringBasedJpaQuery} with the given {@link ParameterBinder}.
 	 *
 	 * @param query must not be {@literal null}.
-	 * @param values must not be {@literal null}.
+	 * @param accessor must not be {@literal null}.
 	 * @return
 	 */
 	@Nullable
@@ -110,7 +110,7 @@ public abstract class JpaQueryExecution {
 	 * Method to implement {@link AbstractStringBasedJpaQuery} executions by single enum values.
 	 *
 	 * @param query
-	 * @param values
+	 * @param accessor
 	 * @return
 	 */
 	@Nullable
