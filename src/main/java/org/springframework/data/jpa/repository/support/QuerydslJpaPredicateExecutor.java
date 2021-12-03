@@ -56,6 +56,7 @@ import com.querydsl.jpa.impl.AbstractJPAQuery;
  * @author Christoph Strobl
  * @author Jens Schauder
  * @author Greg Turnquist
+ * @author Yanming Zhou
  */
 public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecutor<T> {
 
