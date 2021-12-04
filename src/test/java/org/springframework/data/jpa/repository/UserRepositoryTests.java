@@ -94,6 +94,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Sander Krabbenborg
  * @author Jesse Wouters
  * @author Greg Turnquist
+ * @author Robin Dupret
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:application-context.xml")
@@ -112,6 +113,7 @@ public class UserRepositoryTests {
 	private User fourthUser;
 	private Integer id;
 	private Role adminRole;
+	private Role managerRole;
 
 	@BeforeEach
 	void setUp() throws Exception {
@@ -126,6 +128,7 @@ public class UserRepositoryTests {
 		fourthUser = new User("kevin", "raymond", "no@gmail.com");
 		fourthUser.setAge(31);
 		adminRole = new Role("admin");
+		managerRole = new Role("manager");
 
 		SampleSecurityContextHolder.clear();
 	}
@@ -835,6 +838,7 @@ public class UserRepositoryTests {
 	void flushTestUsers() {
 
 		em.persist(adminRole);
+		em.persist(managerRole);
 
 		firstUser = repository.save(firstUser);
 		secondUser = repository.save(secondUser);
@@ -2619,6 +2623,31 @@ public class UserRepositoryTests {
 		flushTestUsers();
 
 		assertThat(repository.findAllDtoProjectedBy()).hasSize(4);
+	}
+
+	@Test // GH-1296, GH-2361 and GH-1858
+	void countQueryWith() {
+
+		flushTestUsers();
+
+		firstUser.addRole(adminRole);
+		firstUser.addRole(managerRole);
+
+		repository.save(firstUser);
+		repository.flush();
+
+		assertThat(firstUser.getRoles().size()).isEqualTo(2);
+
+		Specification<User> spec = (root, query, cb) -> {
+
+			query.groupBy(root);
+
+			return cb.like(root.join("roles").get("name"), "%%");
+		};
+
+		Page<User> result = repository.findAll(spec, PageRequest.of(0, 1));
+
+		assertThat(result.getTotalElements()).isEqualTo(1);
 	}
 
 	private Page<User> executeSpecWithSort(Sort sort) {
