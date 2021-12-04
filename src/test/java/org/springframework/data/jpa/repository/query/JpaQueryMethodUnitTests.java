@@ -344,8 +344,8 @@ public class JpaQueryMethodUnitTests {
 		doReturn(User.class).when(metadata).getDomainType();
 		doReturn(User.class).when(metadata).getReturnedDomainClass((Method) any());
 
-		JpaQueryMethod method = new JpaQueryMethod(JpaRepositoryOverride.class.getMethod("findOne", Integer.class), metadata,
-				factory, extractor);
+		JpaQueryMethod method = new JpaQueryMethod(JpaRepositoryOverride.class.getMethod("findOne", Integer.class),
+				metadata, factory, extractor);
 
 		assertThat(method.getEntityGraph()).isNotNull();
 		assertThat(method.getEntityGraph().getName()).isEqualTo("User.detail");
@@ -480,6 +480,44 @@ public class JpaQueryMethodUnitTests {
 		assertThat(method.getEntityGraph().getType()).isEqualTo(EntityGraphType.LOAD);
 	}
 
+	@Test
+	void returnNoSubstituteIfNotInUse() throws Exception {
+
+		JpaQueryMethod method = getQueryMethod(UserRepository.class, "findByLastname", String.class);
+		assertThat(method.getSubstitute()).isNull();
+		assertThat(method.hasSubstitute()).isFalse();
+	}
+
+	@Test
+	void returnSubstituteIfInUse() throws Exception {
+
+		JpaQueryMethod method = getQueryMethod(UserRepository.class, "withDomainEnding", String.class);
+		assertThat(method.getSubstitute()).isEqualTo("findAllByEmailAddressEndingWith");
+		assertThat(method.hasSubstitute()).isTrue();
+		assertThat(method.getAnnotatedQuery()).isNull();
+	}
+
+	@Test
+	void cannotBeSubstituteQueryAndNormalQueryAtSameTime() throws Exception {
+		assertThatIllegalStateException()
+				.isThrownBy(() -> getQueryMethod(InvalidRepository.class, "findBySubstituteAndQuery", String.class))
+				.withMessageContaining("findBySubstituteAndQuery");
+	}
+
+	@Test
+	void cannotBeSubstituteQueryAndNativeQueryAtSameTime() throws Exception {
+		assertThatIllegalStateException()
+				.isThrownBy(() -> getQueryMethod(InvalidRepository.class, "findBySubstituteAndNativeQuery"))
+				.withMessageContaining("findBySubstituteAndNativeQuery");
+	}
+
+	@Test
+	void cannotBeSubstituteQueryAndNamedQueryAtSameTime() throws Exception {
+		assertThatIllegalStateException()
+				.isThrownBy(() -> getQueryMethod(InvalidRepository.class, "findBySubstituteAndNamedQuery"))
+				.withMessageContaining("findBySubstituteAndNamedQuery");
+	}
+
 	/**
 	 * Interface to define invalid repository methods for testing.
 	 *
@@ -514,6 +552,17 @@ public class JpaQueryMethodUnitTests {
 		// Typo in named parameter
 		@Query("select u from User u where u.firstname = :foo")
 		List<User> findByAnnotatedQuery(@Param("param") String param);
+
+		// Query and Substitute Query at the same time
+		@Query(value = "Select u from User u where  u.lastname = ?1", substitute = "findByLastname")
+		List<User> findBySubstituteAndQuery(String lastname);
+
+		// Native Query and Substitute Query at the same time
+		@Query(value = "Select * from User", substitute = "findAll", nativeQuery = true)
+		List<User> findBySubstituteAndNativeQuery();
+
+		@Query(name = "findNamedQuery", substitute = "findAll")
+		List<User> findBySubstituteAndNamedQuery();
 	}
 
 	interface ValidRepository extends Repository<User, Integer> {

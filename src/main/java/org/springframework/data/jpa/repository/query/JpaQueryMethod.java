@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
@@ -92,6 +93,7 @@ public class JpaQueryMethod extends QueryMethod {
 	private final Lazy<Boolean> isCollectionQuery;
 	private final Lazy<Boolean> isProcedureQuery;
 	private final Lazy<JpaEntityMetadata<?>> entityMetadata;
+	private final Lazy<String> substituteQuery;
 
 	/**
 	 * Creates a {@link JpaQueryMethod}.
@@ -132,11 +134,13 @@ public class JpaQueryMethod extends QueryMethod {
 		this.isNativeQuery = Lazy.of(() -> getAnnotationValue("nativeQuery", Boolean.class));
 		this.isCollectionQuery = Lazy.of(() -> super.isCollectionQuery() && !NATIVE_ARRAY_TYPES.contains(this.returnType));
 		this.isProcedureQuery = Lazy.of(() -> AnnotationUtils.findAnnotation(method, Procedure.class) != null);
+		this.substituteQuery = Lazy.of(() -> getAnnotationValue("substitute", String.class));
 		this.entityMetadata = Lazy.of(() -> new DefaultJpaEntityMetadata<>(getDomainClass()));
 
 		Assert.isTrue(!(isModifyingQuery() && getParameters().hasSpecialParameter()),
 				String.format("Modifying method must not contain %s!", Parameters.TYPES));
 		assertParameterNamesInAnnotatedQuery();
+		assertSubstituteNotMixedWithOther();
 	}
 
 	private static Class<?> potentiallyUnwrapReturnTypeFor(RepositoryMetadata metadata, Method method) {
@@ -149,6 +153,26 @@ public class JpaQueryMethod extends QueryMethod {
 		}
 
 		return returnType.getType();
+	}
+
+	/**
+	 * Asserts if substitute functionality is not mixed with a other type of query.
+	 */
+	private void assertSubstituteNotMixedWithOther() {
+		if (this.isNativeQuery() && this.hasSubstitute()) {
+			throw new IllegalStateException(
+					String.format("Method %s cannot be marked as native query and substitute query at the same time!", method));
+		}
+
+		if (Objects.nonNull(this.getAnnotatedQuery()) && this.hasSubstitute()) {
+			throw new IllegalStateException(
+					String.format("Method %s cannot have query and substitute query at the same time!", method));
+		}
+
+		if (this.hasAnnotatedQueryName() && this.hasSubstitute()) {
+			throw new IllegalStateException(
+					String.format("Method %s cannot have named query and substitute query at the same time!", method));
+		}
 	}
 
 	private void assertParameterNamesInAnnotatedQuery() {
@@ -334,6 +358,25 @@ public class JpaQueryMethod extends QueryMethod {
 	 */
 	boolean isNativeQuery() {
 		return this.isNativeQuery.get();
+	}
+
+	/**
+	 * Has the given query a substitute query that can be used
+	 * 
+	 * @return <code>true</code> when there is a substitute otherwise <code>false</code>
+	 */
+	boolean hasSubstitute() {
+		return StringUtils.hasText(this.substituteQuery.get());
+	}
+
+	/**
+	 * Gets the substitute query of the method
+	 * 
+	 * @return the substitute query
+	 */
+	@Nullable
+	String getSubstitute() {
+		return this.hasSubstitute() ? this.substituteQuery.get() : null;
 	}
 
 	/*

@@ -614,6 +614,12 @@ public interface UserRepository
 	// #2363
 	List<NameOnlyDto> findAllDtoProjectedBy();
 
+	@Query(substitute = "findAllByEmailAddressEndingWith")
+	List<User> withDomainEnding(String domainEnding);
+
+	@Query(substitute = "findAllByAgeGreaterThan")
+	List<User> olderThan(int age);
+
 	interface RolesAndFirstname {
 
 		String getFirstname();

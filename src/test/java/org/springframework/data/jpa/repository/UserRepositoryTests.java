@@ -2621,6 +2621,18 @@ public class UserRepositoryTests {
 		assertThat(repository.findAllDtoProjectedBy()).hasSize(4);
 	}
 
+	@Test
+	void substituteQueryUsedInsteadOfMethodeName() {
+
+		flushTestUsers();
+
+		assertThat(repository.withDomainEnding(".de")).hasSize(2);
+
+		List<User> olderThan = repository.olderThan(18);
+		assertThat(olderThan).hasSize(4);
+		assertThat(olderThan.stream().map(User::getAge)).allMatch(item -> item > 18);
+	}
+
 	private Page<User> executeSpecWithSort(Sort sort) {
 
 		flushTestUsers();
