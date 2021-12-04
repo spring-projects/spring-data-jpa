@@ -165,7 +165,7 @@ public class JpaQueryMethod extends QueryMethod {
 				continue;
 			}
 
-			if (StringUtils.isEmpty(annotatedQuery)
+			if (!StringUtils.hasText(annotatedQuery)
 					|| !annotatedQuery.contains(String.format(":%s", parameter.getName().get()))
 							&& !annotatedQuery.contains(String.format("#%s", parameter.getName().get()))) {
 				throw new IllegalStateException(
