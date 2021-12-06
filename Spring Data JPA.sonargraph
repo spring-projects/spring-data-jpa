@@ -108,7 +108,7 @@
         <architecture>
             <element type="Subsystem" name="Querydsl">
                 <element type="TypeFilter" name="Assignment">
-                    <element type="IncludeTypePattern" name="com.mysema.query.**"/>
+                    <element type="IncludeTypePattern" name="com.querydsl.**"/>
                 </element>
             </element>
             <element type="Subsystem" name="Spring">
