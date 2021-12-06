@@ -33,6 +33,7 @@ import com.querydsl.core.types.Predicate;
  *
  * @author Oliver Gierke
  * @author Thomas Darimont
+ * @author Yanming Zhou
  */
 public interface RoleRepository extends CrudRepository<Role, Integer>, QuerydslPredicateExecutor<Role> {
 
@@ -56,7 +57,7 @@ public interface RoleRepository extends CrudRepository<Role, Integer>, QuerydslP
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.querydsl.QueryDslPredicateExecutor#findOne(com.mysema.query.types.Predicate)
+	 * @see org.springframework.data.querydsl.QueryDslPredicateExecutor#findOne(com.querydsl.core.types.Predicate)
 	 */
 	@Override
 	@Lock(LockModeType.READ)
