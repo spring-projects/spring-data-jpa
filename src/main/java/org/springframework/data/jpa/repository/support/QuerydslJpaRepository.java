@@ -55,6 +55,7 @@ import com.querydsl.jpa.impl.AbstractJPAQuery;
  * @author Christoph Strobl
  * @author Jens Schauder
  * @author Greg Turnquist
+ * @author Yanming Zhou
  * @deprecated Instead of this class use {@link QuerydslJpaPredicateExecutor}
  */
 @Deprecated
@@ -98,7 +99,7 @@ public class QuerydslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.querydsl.QuerydslPredicateExecutor#findOne(com.mysema.query.types.Predicate)
+	 * @see org.springframework.data.querydsl.QuerydslPredicateExecutor#findOne(com.querydsl.core.types.Predicate)
 	 */
 	@Override
 	public Optional<T> findOne(Predicate predicate) {
@@ -112,7 +113,7 @@ public class QuerydslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.querydsl.QuerydslPredicateExecutor#findAll(com.mysema.query.types.Predicate)
+	 * @see org.springframework.data.querydsl.QuerydslPredicateExecutor#findAll(com.querydsl.core.types.Predicate)
 	 */
 	@Override
 	public List<T> findAll(Predicate predicate) {
@@ -121,7 +122,7 @@ public class QuerydslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.querydsl.QuerydslPredicateExecutor#findAll(com.mysema.query.types.Predicate, com.mysema.query.types.OrderSpecifier<?>[])
+	 * @see org.springframework.data.querydsl.QuerydslPredicateExecutor#findAll(com.querydsl.core.types.Predicate, com.querydsl.core.types.OrderSpecifier<?>[])
 	 */
 	@Override
 	public List<T> findAll(Predicate predicate, OrderSpecifier<?>... orders) {
@@ -130,7 +131,7 @@ public class QuerydslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.querydsl.QuerydslPredicateExecutor#findAll(com.mysema.query.types.Predicate, org.springframework.data.domain.Sort)
+	 * @see org.springframework.data.querydsl.QuerydslPredicateExecutor#findAll(com.querydsl.core.types.Predicate, org.springframework.data.domain.Sort)
 	 */
 	@Override
 	public List<T> findAll(Predicate predicate, Sort sort) {
@@ -142,7 +143,7 @@ public class QuerydslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.querydsl.QuerydslPredicateExecutor#findAll(com.mysema.query.types.OrderSpecifier[])
+	 * @see org.springframework.data.querydsl.QuerydslPredicateExecutor#findAll(com.querydsl.core.types.OrderSpecifier[])
 	 */
 	@Override
 	public List<T> findAll(OrderSpecifier<?>... orders) {
@@ -176,7 +177,7 @@ public class QuerydslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.querydsl.QueryDslPredicateExecutor#count(com.mysema.query.types.Predicate)
+	 * @see org.springframework.data.querydsl.QueryDslPredicateExecutor#count(com.querydsl.core.types.Predicate)
 	 */
 	@Override
 	public long count(Predicate predicate) {
@@ -185,7 +186,7 @@ public class QuerydslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.querydsl.QueryDslPredicateExecutor#exists(com.mysema.query.types.Predicate)
+	 * @see org.springframework.data.querydsl.QueryDslPredicateExecutor#exists(com.querydsl.core.types.Predicate)
 	 */
 	@Override
 	public boolean exists(Predicate predicate) {
