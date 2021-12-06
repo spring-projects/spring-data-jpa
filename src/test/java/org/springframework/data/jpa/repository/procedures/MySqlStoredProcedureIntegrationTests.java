@@ -186,7 +186,9 @@ public class MySqlStoredProcedureIntegrationTests {
 		List<Employee> entityListFromNamedProcedure();
 	}
 
-	@EnableJpaRepositories(considerNestedRepositories = true, basePackageClasses = Config.class,
+	@EnableJpaRepositories( //
+			considerNestedRepositories = true, //
+			basePackageClasses = Config.class, //
 			includeFilters = @Filter(type = FilterType.ASSIGNABLE_TYPE, classes = EmployeeRepositoryWithNoCursor.class))
 	@EnableTransactionManagement
 	static class Config {
@@ -194,14 +196,16 @@ public class MySqlStoredProcedureIntegrationTests {
 		@SuppressWarnings("resource")
 		@Bean(initMethod = "start")
 		public MySQLContainer<?> container() {
+
 			return new MySQLContainer<>("mysql:8.0.24") //
-						.withUsername("test") //
-						.withPassword("test") //
-						.withConfigurationOverride("");
+					.withUsername("test") //
+					.withPassword("test") //
+					.withConfigurationOverride("");
 		}
 
 		@Bean
 		public DataSource dataSource(MySQLContainer<?> container) {
+
 			MysqlDataSource dataSource = new MysqlDataSource();
 			dataSource.setUrl(container.getJdbcUrl());
 			dataSource.setUser(container.getUsername());
