@@ -65,6 +65,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
  *
  * @author Gabriel Basilio
  * @author Greg Turnquist
+ * @author Yanming Zhou
  */
 @Transactional
 @ExtendWith(SpringExtension.class)
@@ -193,23 +194,19 @@ public class PostgresStoredProcedureIntegrationTests {
 	@EnableTransactionManagement
 	static class Config {
 
-		private PostgreSQLContainer<?> POSTGRESQL_CONTAINER;
+		@SuppressWarnings("resource")
+		@Bean(initMethod = "start")
+		public PostgreSQLContainer<?> container() {
+			return new PostgreSQLContainer<>("postgres:9.6.12") //
+			.withUsername("postgres");
+		}
 
 		@Bean
-		public DataSource dataSource() {
-
-			if (POSTGRESQL_CONTAINER == null) {
-
-				POSTGRESQL_CONTAINER = new PostgreSQLContainer<>("postgres:9.6.12") //
-						.withUsername("postgres");
-				POSTGRESQL_CONTAINER.start();
-			}
-
+		public DataSource dataSource(PostgreSQLContainer<?> container) {
 			PGSimpleDataSource dataSource = new PGSimpleDataSource();
-			dataSource.setUrl(POSTGRESQL_CONTAINER.getJdbcUrl());
-			dataSource.setUser(POSTGRESQL_CONTAINER.getUsername());
-			dataSource.setPassword(POSTGRESQL_CONTAINER.getPassword());
-
+			dataSource.setUrl(container.getJdbcUrl());
+			dataSource.setUser(container.getUsername());
+			dataSource.setPassword(container.getPassword());
 			return dataSource;
 		}
 
