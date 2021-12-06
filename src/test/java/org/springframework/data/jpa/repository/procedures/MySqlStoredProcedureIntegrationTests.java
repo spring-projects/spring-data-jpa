@@ -63,6 +63,7 @@ import com.mysql.cj.jdbc.MysqlDataSource;
  *
  * @author Gabriel Basilio
  * @author Greg Turnquist
+ * @author Yanming Zhou
  */
 @Transactional
 @ExtendWith(SpringExtension.class)
@@ -190,26 +191,21 @@ public class MySqlStoredProcedureIntegrationTests {
 	@EnableTransactionManagement
 	static class Config {
 
-		private MySQLContainer<?> MYSQL_CONTAINER;
-
-		@Bean
-		public DataSource dataSource() {
-
-			if (MYSQL_CONTAINER == null) {
-
-				MYSQL_CONTAINER = new MySQLContainer<>("mysql:8.0.24") //
+		@SuppressWarnings("resource")
+		@Bean(initMethod = "start")
+		public MySQLContainer<?> container() {
+			return new MySQLContainer<>("mysql:8.0.24") //
 						.withUsername("test") //
 						.withPassword("test") //
 						.withConfigurationOverride("");
-				MYSQL_CONTAINER.start();
-			}
+		}
 
+		@Bean
+		public DataSource dataSource(MySQLContainer<?> container) {
 			MysqlDataSource dataSource = new MysqlDataSource();
-			dataSource.setUrl(MYSQL_CONTAINER.getJdbcUrl());
-			dataSource.setUser("root");
-			dataSource.setPassword(MYSQL_CONTAINER.getPassword());
-			dataSource.setDatabaseName(MYSQL_CONTAINER.getDatabaseName());
-
+			dataSource.setUrl(container.getJdbcUrl());
+			dataSource.setUser(container.getUsername());
+			dataSource.setPassword(container.getPassword());
 			return dataSource;
 		}
 
