@@ -152,8 +152,10 @@ public class PostgresStoredProcedureIntegrationTests {
 	@Entity
 	@AllArgsConstructor
 	@NoArgsConstructor
-	@NamedStoredProcedureQuery(name = "get_employees_postgres", procedureName = "get_employees",
-			parameters = { @StoredProcedureParameter(mode = ParameterMode.REF_CURSOR, type = void.class) },
+	@NamedStoredProcedureQuery( //
+			name = "get_employees_postgres", //
+			procedureName = "get_employees", //
+			parameters = { @StoredProcedureParameter(mode = ParameterMode.REF_CURSOR, type = void.class) }, //
 			resultClasses = Employee.class)
 	public static class Employee {
 
@@ -197,12 +199,14 @@ public class PostgresStoredProcedureIntegrationTests {
 		@SuppressWarnings("resource")
 		@Bean(initMethod = "start")
 		public PostgreSQLContainer<?> container() {
+
 			return new PostgreSQLContainer<>("postgres:9.6.12") //
 			.withUsername("postgres");
 		}
 
 		@Bean
 		public DataSource dataSource(PostgreSQLContainer<?> container) {
+
 			PGSimpleDataSource dataSource = new PGSimpleDataSource();
 			dataSource.setUrl(container.getJdbcUrl());
 			dataSource.setUser(container.getUsername());
