@@ -67,7 +67,8 @@ public class JpaMetamodelMappingContext
 	 */
 	@Override
 	protected <T> JpaPersistentEntityImpl<?> createPersistentEntity(TypeInformation<T> typeInformation) {
-		return new JpaPersistentEntityImpl<T>(typeInformation, persistenceProvider, models.getMetamodel(typeInformation));
+		return new JpaPersistentEntityImpl<>(typeInformation, persistenceProvider,
+				models.getRequiredMetamodel(typeInformation));
 	}
 
 	/*
@@ -91,17 +92,17 @@ public class JpaMetamodelMappingContext
 
 	/**
 	 * We customize the lookup of {@link PersistentPropertyPaths} by also traversing properties that are embeddables.
-	 * 
+	 *
 	 * @see org.springframework.data.mapping.context.AbstractMappingContext#findPersistentPropertyPaths(java.lang.Class,
 	 *      java.util.function.Predicate)
 	 */
 	@Override
 	public <T> PersistentPropertyPaths<T, JpaPersistentProperty> findPersistentPropertyPaths(Class<T> type,
 			Predicate<? super JpaPersistentProperty> predicate) {
-		return doFindPersistentPropertyPaths(type, predicate, it -> it.isEmbeddable());
+		return doFindPersistentPropertyPaths(type, predicate, JpaPersistentProperty::isEmbeddable);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.mapping.context.AbstractMappingContext#hasPersistentEntityFor(java.lang.Class)
 	 */
@@ -126,7 +127,7 @@ public class JpaMetamodelMappingContext
 
 		/**
 		 * Returns the {@link JpaMetamodel} for the given type.
-		 * 
+		 *
 		 * @param type must not be {@literal null}.
 		 * @return
 		 */
@@ -139,8 +140,28 @@ public class JpaMetamodelMappingContext
 		}
 
 		/**
+		 * Returns the required {@link JpaMetamodel} for the given type or throw {@link IllegalArgumentException} if the
+		 * {@code type} is not JPA-managed.
+		 *
+		 * @param type must not be {@literal null}.
+		 * @return
+		 * @throws IllegalArgumentException if {@code type} is not JPA-managed.
+		 * @since 2.6.1
+		 */
+		public JpaMetamodel getRequiredMetamodel(TypeInformation<?> type) {
+
+			JpaMetamodel metamodel = getMetamodel(type);
+
+			if (metamodel == null) {
+				throw new IllegalArgumentException(String.format("Required JpaMetamodel not found for %s!", type));
+			}
+
+			return metamodel;
+		}
+
+		/**
 		 * Returns whether the given type is managed by one of the underlying {@link Metamodel} instances.
-		 * 
+		 *
 		 * @param type must not be {@literal null}.
 		 * @return
 		 */
@@ -150,7 +171,7 @@ public class JpaMetamodelMappingContext
 
 		/**
 		 * Returns whether the given type is managed by one of the underlying {@link Metamodel} instances.
-		 * 
+		 *
 		 * @param type must not be {@literal null}.
 		 * @return
 		 */

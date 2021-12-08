@@ -57,7 +57,7 @@ import org.springframework.transaction.support.TransactionTemplate;
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration
-public class JpaMetamodelMappingContextIntegrationTests {
+class JpaMetamodelMappingContextIntegrationTests {
 
 	private JpaMetamodelMappingContext context;
 	@Autowired ProductRepository products;
