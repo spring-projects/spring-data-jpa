@@ -86,7 +86,7 @@ public class JpaMetamodelMappingContext
 	 */
 	@Override
 	protected boolean shouldCreatePersistentEntityFor(TypeInformation<?> type) {
-		return models.isMetamodelManagedType(type);
+		return models.isMetamodelManagedType(type.getUserTypeInformation());
 	}
 
 	/**

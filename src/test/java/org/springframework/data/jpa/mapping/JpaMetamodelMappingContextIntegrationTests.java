@@ -22,6 +22,7 @@ import java.util.Collections;
 import javax.persistence.EntityManager;
 
 import org.hibernate.proxy.HibernateProxy;
+import org.hibernate.proxy.LazyInitializer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -51,6 +52,7 @@ import org.springframework.transaction.support.TransactionTemplate;
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Jens Schauder
+ * @author Mark Paluch
  * @since 1.3
  */
 @ExtendWith(SpringExtension.class)
@@ -73,6 +75,16 @@ public class JpaMetamodelMappingContextIntegrationTests {
 
 		JpaPersistentEntityImpl<?> entity = context.getRequiredPersistentEntity(User.class);
 		assertThat(entity).isNotNull();
+	}
+
+	@Test // GH-2383
+	void considersProxiedTypes() {
+
+		JpaPersistentEntityImpl<?> directEntity = context.getRequiredPersistentEntity(User.class);
+		assertThat(directEntity).isNotNull();
+
+		JpaPersistentEntityImpl<?> unproxiedEntitx = context.getRequiredPersistentEntity(UserProxy.class);
+		assertThat(unproxiedEntitx).isNotNull().isSameAs(directEntity);
 	}
 
 	@Test
@@ -182,5 +194,18 @@ public class JpaMetamodelMappingContextIntegrationTests {
 					type = FilterType.ASSIGNABLE_TYPE))
 	static class Config {
 
+	}
+
+	static class UserProxy extends User implements HibernateProxy {
+
+		@Override
+		public Object writeReplace() {
+			return null;
+		}
+
+		@Override
+		public LazyInitializer getHibernateLazyInitializer() {
+			return null;
+		}
 	}
 }
