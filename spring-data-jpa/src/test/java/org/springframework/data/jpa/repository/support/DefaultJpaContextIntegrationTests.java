@@ -16,20 +16,16 @@
 package org.springframework.data.jpa.repository.support;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
 
 import java.util.Arrays;
 import java.util.HashSet;
 
-import javax.naming.NamingException;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityManagerFactory;
-import javax.sql.DataSource;
-
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -37,7 +33,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ComponentScan.Filter;
 import org.springframework.context.annotation.FilterType;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.jpa.domain.sample.Category;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.infrastructure.HibernateTestUtils;
@@ -45,9 +40,6 @@ import org.springframework.data.jpa.repository.JpaContext;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
-import org.springframework.jndi.JndiObjectFactoryBean;
-import org.springframework.mock.jndi.ExpectedLookupTemplate;
-import org.springframework.mock.jndi.SimpleNamingContextBuilder;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.stereotype.Component;
 
@@ -132,21 +124,6 @@ public class DefaultJpaContextIntegrationTests {
 		context.close();
 	}
 
-	@Test // DATAJPA-813
-	void bootstrapsDefaultJpaContextInSpringContainerWithEntityManagerFromJndi() throws Exception {
-
-		SimpleNamingContextBuilder builder = SimpleNamingContextBuilder.emptyActivatedContextBuilder();
-		builder.bind("some/EMF", createEntityManagerFactory("spring-data-jpa"));
-		builder.bind("some/other/Component", new Object());
-
-		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext("config/jpa-context-with-jndi.xml");
-		ApplicationComponent component = context.getBean(ApplicationComponent.class);
-
-		assertThat(component.context).isNotNull();
-
-		context.close();
-	}
-
 	@EnableJpaRepositories
 	@ComponentScan(includeFilters = @Filter(type = FilterType.ASSIGNABLE_TYPE, value = ApplicationComponent.class),
 			useDefaultFilters = false)
@@ -157,19 +134,6 @@ public class DefaultJpaContextIntegrationTests {
 			return createEntityManagerFactoryBean("spring-data-jpa");
 		}
 
-		// A non-EntityManagerFactory JNDI object to make sure the detection doesn't include it
-		// see DATAJPA-956
-		@Bean
-		public JndiObjectFactoryBean jndiObject() throws NamingException {
-
-			JndiObjectFactoryBean bean = new JndiObjectFactoryBean();
-
-			bean.setJndiName("some/DataSource");
-			bean.setJndiTemplate(new ExpectedLookupTemplate("some/DataSource", mock(DataSource.class)));
-			bean.setExpectedType(DataSource.class);
-
-			return bean;
-		}
 	}
 
 	@Component

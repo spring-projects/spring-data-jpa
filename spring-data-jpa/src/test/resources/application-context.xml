@@ -39,9 +39,6 @@
 	<!-- Adds transaparent exception translation to the DAOs -->
 	<bean class="org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor" />
 
-	<!-- Adds dependency checks for setters annotated with @Required -->
-	<bean class="org.springframework.beans.factory.annotation.RequiredAnnotationBeanPostProcessor" />
-	
 	<bean id="expressionEvaluationContextProvider" class="org.springframework.data.repository.query.ExtensionAwareQueryMethodEvaluationContextProvider" autowire="constructor" />
 	
 	<bean class="org.springframework.data.jpa.repository.support.EntityManagerBeanDefinitionRegistrarPostProcessor" />
