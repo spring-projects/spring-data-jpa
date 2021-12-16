@@ -73,6 +73,7 @@ import org.springframework.util.StringUtils;
  * @author Mohammad Hewedy
  * @author Andriy Redko
  * @author Peter Großmann
+ * @author Artem Klyuev
  */
 public abstract class QueryUtils {
 
@@ -598,8 +599,13 @@ public abstract class QueryUtils {
 	@SuppressWarnings("unchecked")
 	private static javax.persistence.criteria.Order toJpaOrder(Order order, From<?, ?> from, CriteriaBuilder cb) {
 
-		PropertyPath property = PropertyPath.from(order.getProperty(), from.getJavaType());
-		Expression<?> expression = toExpressionRecursively(from, property);
+		Expression<?> expression;
+		if (isUnsafe(order)) {
+			expression = cb.literal(order);
+		} else {
+			PropertyPath property = PropertyPath.from(order.getProperty(), from.getJavaType());
+			expression = toExpressionRecursively(from, property);
+		}
 
 		if (order.isIgnoreCase() && String.class.equals(expression.getJavaType())) {
 			Expression<String> lower = cb.lower((Expression<String>) expression);
@@ -607,6 +613,10 @@ public abstract class QueryUtils {
 		} else {
 			return order.isAscending() ? cb.asc(expression) : cb.desc(expression);
 		}
+	}
+
+	static boolean isUnsafe(Order order) {
+		return (order instanceof JpaOrder) && ((JpaOrder) order).isUnsafe();
 	}
 
 	static <T> Expression<T> toExpressionRecursively(From<?, ?> from, PropertyPath property) {
