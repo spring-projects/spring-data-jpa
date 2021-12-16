@@ -49,6 +49,7 @@ import org.mockito.Mockito;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.jpa.domain.JpaSort;
 import org.springframework.data.jpa.domain.sample.Category;
 import org.springframework.data.jpa.domain.sample.Invoice;
 import org.springframework.data.jpa.domain.sample.InvoiceItem;
@@ -66,6 +67,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  * @author Sébastien Péralta
  * @author Jens Schauder
  * @author Patrice Blanchardie
+ * @author Artem Klyuev
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:infrastructure.xml")
@@ -327,6 +329,20 @@ public class QueryUtilsIntegrationTests {
 		root.get("manager");
 
 		assertThat(root.getJoins()).hasSize(getNumberOfJoinsAfterCreatingAPath());
+	}
+
+	@Test
+	void toOrdersCreateLiteralWhenUnsafe() {
+
+		CriteriaBuilder builder = em.getCriteriaBuilder();
+		CriteriaQuery<User> query = builder.createQuery(User.class);
+		Root<User> root = query.from(User.class);
+
+		JpaSort sort = JpaSort.unsafe("case when firstname = manager.firstname then 0 else 1");
+
+		List<javax.persistence.criteria.Order> orders = QueryUtils.toOrders(sort, root, builder);
+
+		assertThat(orders).hasSize(1);
 	}
 
 	int getNumberOfJoinsAfterCreatingAPath() {
