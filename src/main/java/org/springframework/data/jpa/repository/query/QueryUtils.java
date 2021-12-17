@@ -148,7 +148,7 @@ public abstract class QueryUtils {
 		builder.append(IDENTIFIER_GROUP);
 		builder.append("(.*)");
 
-		COUNT_MATCH = compile(builder.toString(), CASE_INSENSITIVE);
+		COUNT_MATCH = compile(builder.toString(), CASE_INSENSITIVE | DOTALL);
 
 		Map<PersistentAttributeType, Class<? extends Annotation>> persistentAttributeTypes = new HashMap<>();
 		persistentAttributeTypes.put(ONE_TO_ONE, OneToOne.class);
@@ -490,7 +490,8 @@ public abstract class QueryUtils {
 			boolean useVariable = StringUtils.hasText(variable) //
 					&& !variable.startsWith(" new") //
 					&& !variable.startsWith("count(") //
-					&& !variable.contains(","); //
+					&& !variable.contains(",") //
+					&& !variable.contains("*");
 
 			String complexCountValue = matcher.matches() && StringUtils.hasText(matcher.group(COMPLEX_COUNT_FIRST_INDEX))
 					? COMPLEX_COUNT_VALUE
