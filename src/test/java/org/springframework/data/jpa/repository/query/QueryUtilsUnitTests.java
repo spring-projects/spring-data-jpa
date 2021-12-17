@@ -422,6 +422,11 @@ class QueryUtilsUnitTests {
 						"  where user.age = 18\n ");
 	}
 
+	@Test // GH-2341
+	void createCountQueryStarCharacterConverted() {
+		assertThat(createCountQueryFor("select * from User user")).isEqualTo("select count(user) from User user");
+	}
+
 	@Test
 	void createCountQuerySupportsLineBreaksInSelectClause() {
 
@@ -509,6 +514,28 @@ class QueryUtilsUnitTests {
 	@Test // DATAJPA-1696
 	void findProjectionClauseWithIncludedFrom() {
 		assertThat(QueryUtils.getProjection("select x, frommage, y from t")).isEqualTo("x, frommage, y");
+	}
+
+	@Test // GH-2341
+	void countProjectionDistrinctQueryIncludesNewLineAfterFromAndBeforeJoin() {
+		String originalQuery = "SELECT DISTINCT entity1\nFROM Entity1 entity1\nLEFT JOIN Entity2 entity2 ON entity1.key = entity2.key";
+
+		assertCountQuery(originalQuery,
+				"select count(DISTINCT entity1) FROM Entity1 entity1\nLEFT JOIN Entity2 entity2 ON entity1.key = entity2.key");
+	}
+
+	@Test
+	void countProjectionDistinctQueryIncludesNewLineAfterEntity() {
+		String originalQuery = "SELECT DISTINCT entity1\nFROM Entity1 entity1 LEFT JOIN Entity2 entity2 ON entity1.key = entity2.key";
+		assertCountQuery(originalQuery,
+				"select count(DISTINCT entity1) FROM Entity1 entity1 LEFT JOIN Entity2 entity2 ON entity1.key = entity2.key");
+	}
+
+	@Test
+	void countProjectionDistinctQueryIncludesNewLineAfterEntityAndBeforeWhere() {
+		String originalQuery = "SELECT DISTINCT entity1\nFROM Entity1 entity1 LEFT JOIN Entity2 entity2 ON entity1.key = entity2.key\nwhere entity1.id = 1799";
+		assertCountQuery(originalQuery,
+				"select count(DISTINCT entity1) FROM Entity1 entity1 LEFT JOIN Entity2 entity2 ON entity1.key = entity2.key\nwhere entity1.id = 1799");
 	}
 
 	private static void assertCountQuery(String originalQuery, String countQuery) {
