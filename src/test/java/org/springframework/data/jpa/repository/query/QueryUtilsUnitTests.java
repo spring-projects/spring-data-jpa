@@ -17,6 +17,7 @@ package org.springframework.data.jpa.repository.query;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.springframework.data.jpa.repository.query.QueryUtils.*;
+import static org.springframework.test.web.servlet.result.StatusResultMatchersExtensionsKt.isEqualTo;
 
 import java.util.Collections;
 import java.util.Set;
@@ -509,6 +510,14 @@ class QueryUtilsUnitTests {
 	@Test // DATAJPA-1696
 	void findProjectionClauseWithIncludedFrom() {
 		assertThat(QueryUtils.getProjection("select x, frommage, y from t")).isEqualTo("x, frommage, y");
+	}
+
+	@Test // GH-2393
+	void createCountQueryStartsWithWhitespace() {
+		assertThat(createCountQueryFor("  \nselect * from user where user.age>:age"))
+				.isEqualTo("select count(*) from user where user.age>:age");
+		assertThat(createCountQueryFor("  \nselect u from User u where user.age>:age"))
+				.isEqualTo("select count(u) from user where user.age>:age");
 	}
 
 	private static void assertCountQuery(String originalQuery, String countQuery) {
