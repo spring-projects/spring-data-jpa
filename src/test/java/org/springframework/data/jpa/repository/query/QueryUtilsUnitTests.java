@@ -39,6 +39,7 @@ import org.springframework.data.jpa.domain.JpaSort;
  * @author Florian Lüdiger
  * @author Grégoire Druant
  * @author Mohammad Hewedy
+ * @author Greg Turnquist
  */
 class QueryUtilsUnitTests {
 
@@ -442,6 +443,18 @@ class QueryUtilsUnitTests {
 		String fullQuery = applySorting(query, sort);
 
 		assertThat(fullQuery).endsWith("order by authorName asc");
+	}
+
+	@Test // GH-2280
+	void appliesOrderingCorrectlyForFieldAliasWithIgnoreCase() {
+
+		String query = "SELECT customer.id as id, customer.name as name FROM CustomerEntity customer";
+		Sort sort = Sort.by(Order.by("name").ignoreCase());
+
+		String fullQuery = applySorting(query, sort);
+
+		assertThat(fullQuery).isEqualTo(
+				"SELECT customer.id as id, customer.name as name FROM CustomerEntity customer order by lower(name) asc");
 	}
 
 	@Test // DATAJPA-1061

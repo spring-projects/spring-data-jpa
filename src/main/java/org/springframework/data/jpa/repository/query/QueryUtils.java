@@ -38,11 +38,11 @@ import javax.persistence.criteria.From;
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.JoinType;
 import javax.persistence.metamodel.Attribute;
+import javax.persistence.metamodel.Attribute.PersistentAttributeType;
 import javax.persistence.metamodel.Bindable;
 import javax.persistence.metamodel.ManagedType;
 import javax.persistence.metamodel.PluralAttribute;
 import javax.persistence.metamodel.SingularAttribute;
-import javax.persistence.metamodel.Attribute.PersistentAttributeType;
 
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
@@ -73,6 +73,7 @@ import org.springframework.util.StringUtils;
  * @author Mohammad Hewedy
  * @author Andriy Redko
  * @author Peter Großmann
+ * @author Greg Turnquist
  */
 public abstract class QueryUtils {
 
@@ -291,7 +292,9 @@ public abstract class QueryUtils {
 		checkSortExpression(order);
 
 		if (selectionAlias.contains(property)) {
-			return String.format("%s %s", property, toJpaDirection(order));
+			return String.format("%s %s", //
+					order.isIgnoreCase() ? String.format("lower(%s)", property) : property, //
+					toJpaDirection(order));
 		}
 
 		boolean qualifyReference = !property.contains("("); // ( indicates a function
@@ -464,6 +467,7 @@ public abstract class QueryUtils {
 	 *
 	 * @param originalQuery must not be {@literal null}.
 	 * @param countProjection may be {@literal null}.
+	 * @return a query String to be used a count query for pagination. Guaranteed to be not {@literal null}.
 	 * @return a query String to be used a count query for pagination. Guaranteed to be not {@literal null}.
 	 * @since 1.6
 	 * @deprecated use {@link DeclaredQuery#deriveCountQuery(String, String)} instead.
