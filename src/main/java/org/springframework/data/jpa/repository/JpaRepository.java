@@ -33,6 +33,7 @@ import org.springframework.data.repository.query.QueryByExampleExecutor;
  * @author Mark Paluch
  * @author Sander Krabbenborg
  * @author Jesse Wouters
+ * @author Greg Turnquist
  */
 @NoRepositoryBean
 public interface JpaRepository<T, ID> extends PagingAndSortingRepository<T, ID>, QueryByExampleExecutor<T> {
@@ -96,7 +97,9 @@ public interface JpaRepository<T, ID> extends PagingAndSortingRepository<T, ID>,
 	 * @deprecated Use {@link #deleteAllInBatch(Iterable)} instead.
 	 */
 	@Deprecated
-	default void deleteInBatch(Iterable<T> entities){deleteAllInBatch(entities);}
+	default void deleteInBatch(Iterable<T> entities) {
+		deleteAllInBatch(entities);
+	}
 
 	/**
 	 * Deletes the given entities in a batch which means it will create a single query. This kind of operation leaves JPAs
@@ -107,7 +110,6 @@ public interface JpaRepository<T, ID> extends PagingAndSortingRepository<T, ID>,
 	 * @since 2.5
 	 */
 	void deleteAllInBatch(Iterable<T> entities);
-
 
 	/**
 	 * Deletes the entities identified by the given ids using a single query. This kind of operation leaves JPAs first
@@ -132,7 +134,7 @@ public interface JpaRepository<T, ID> extends PagingAndSortingRepository<T, ID>,
 	 * @param id must not be {@literal null}.
 	 * @return a reference to the entity with the given identifier.
 	 * @see EntityManager#getReference(Class, Object) for details on when an exception is thrown.
-	 * @deprecated use {@link JpaRepository#getById(ID)} instead.
+	 * @deprecated use {@link JpaRepository#getReferenceById(ID)} instead.
 	 */
 	@Deprecated
 	T getOne(ID id);
@@ -146,9 +148,24 @@ public interface JpaRepository<T, ID> extends PagingAndSortingRepository<T, ID>,
 	 * @param id must not be {@literal null}.
 	 * @return a reference to the entity with the given identifier.
 	 * @see EntityManager#getReference(Class, Object) for details on when an exception is thrown.
+	 * @deprecated use {@link JpaRepository#getReferenceById(ID)} instead.
 	 * @since 2.5
 	 */
+	@Deprecated
 	T getById(ID id);
+
+	/**
+	 * Returns a reference to the entity with the given identifier. Depending on how the JPA persistence provider is
+	 * implemented this is very likely to always return an instance and throw an
+	 * {@link javax.persistence.EntityNotFoundException} on first access. Some of them will reject invalid identifiers
+	 * immediately.
+	 *
+	 * @param id must not be {@literal null}.
+	 * @return a reference to the entity with the given identifier.
+	 * @see EntityManager#getReference(Class, Object) for details on when an exception is thrown.
+	 * @since 2.7
+	 */
+	T getReferenceById(ID id);
 
 	/*
 	 * (non-Javadoc)
