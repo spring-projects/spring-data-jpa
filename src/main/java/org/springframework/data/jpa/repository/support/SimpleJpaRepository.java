@@ -331,26 +331,34 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	@Deprecated
 	@Override
 	public T getOne(ID id) {
-
-		Assert.notNull(id, ID_MUST_NOT_BE_NULL);
-		return em.getReference(getDomainClass(), id);
+		return getReferenceById(id);
 	}
 
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.jpa.repository.JpaRepository#getById(java.io.Serializable)
 	 */
+	@Deprecated
 	@Override
 	public T getById(ID id) {
+		return getReferenceById(id);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.jpa.repository.JpaRepository#getReferenceById(java.io.Serializable)
+	 */
+	@Override
+	public T getReferenceById(ID id) {
 
 		Assert.notNull(id, ID_MUST_NOT_BE_NULL);
 		return em.getReference(getDomainClass(), id);
 	}
 
 	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.CrudRepository#existsById(java.io.Serializable)
-	 */
+	* (non-Javadoc)
+	* @see org.springframework.data.repository.CrudRepository#existsById(java.io.Serializable)
+	*/
 	@Override
 	public boolean existsById(ID id) {
 

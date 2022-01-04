@@ -21,7 +21,6 @@ import javax.persistence.EntityManager;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.AbstractPersistable;
 import org.springframework.data.jpa.domain.sample.CustomAbstractPersistable;
@@ -37,6 +36,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Oliver Gierke
  * @author Jens Schauder
  * @author Jesse Wouters
+ * @author Greg Turnquist
  */
 @Transactional
 @ExtendWith(SpringExtension.class)
@@ -76,6 +76,18 @@ public class AbstractPersistableIntegrationTests {
 		em.clear();
 
 		CustomAbstractPersistable proxy = repository.getById(entity.getId());
+
+		assertThat(proxy).isEqualTo(proxy);
+	}
+
+	@Test // gh-1697
+	void equalsWorksForProxiedEntitiesUsingGetReferenceById() {
+
+		CustomAbstractPersistable entity = repository.saveAndFlush(new CustomAbstractPersistable());
+
+		em.clear();
+
+		CustomAbstractPersistable proxy = repository.getReferenceById(entity.getId());
 
 		assertThat(proxy).isEqualTo(proxy);
 	}

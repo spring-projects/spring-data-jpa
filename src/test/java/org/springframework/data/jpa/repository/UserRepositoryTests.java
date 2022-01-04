@@ -1011,7 +1011,16 @@ public class UserRepositoryTests {
 		assertThat(result).isEqualTo(firstUser);
 	}
 
-	@Test // DATAJPA-415
+    @Test // gh-1697
+    void looksUpEntityReferenceUsingGetReferenceById() {
+
+        flushTestUsers();
+
+        User result = repository.getReferenceById(firstUser.getId());
+        assertThat(result).isEqualTo(firstUser);
+    }
+
+    @Test // DATAJPA-415
 	void invokesQueryWithVarargsParametersCorrectly() {
 
 		flushTestUsers();
