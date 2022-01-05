@@ -37,19 +37,11 @@ public class JpaEvaluationContextExtension implements EvaluationContextExtension
 		this.root = JpaRootObject.of(EscapeCharacter.of(escapeCharacter));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.spel.spi.EvaluationContextExtension#getExtensionId()
-	 */
 	@Override
 	public String getExtensionId() {
 		return "jpa";
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.spel.spi.EvaluationContextExtension#getRootObject()
-	 */
 	@Override
 	public Object getRootObject() {
 		return root;

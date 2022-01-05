@@ -58,10 +58,6 @@ public class EnversRevisionRepositoryFactoryBean<T extends RevisionRepository<S,
 		this.revisionEntityClass = revisionEntityClass;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean#createRepositoryFactory(jakarta.persistence.EntityManager)
-	 */
 	@Override
 	protected RepositoryFactorySupport createRepositoryFactory(EntityManager entityManager) {
 		return new RevisionRepositoryFactory<T, ID, N>(entityManager, revisionEntityClass);

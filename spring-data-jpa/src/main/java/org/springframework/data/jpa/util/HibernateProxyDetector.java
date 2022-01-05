@@ -31,10 +31,6 @@ class HibernateProxyDetector implements ProxyDetector {
 
 	private static final Optional<Class<?>> HIBERNATE_PROXY = Optional.ofNullable(loadHibernateProxyType());
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.util.ProxyUtils.ProxyDetector#getUserType(java.lang.Class)
-	 */
 	@Override
 	public Class<?> getUserType(Class<?> type) {
 

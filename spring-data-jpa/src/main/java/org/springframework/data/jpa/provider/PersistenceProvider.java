@@ -79,28 +79,16 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 			return "*";
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.jpa.repository.support.ProxyIdAccessor#isProxy(java.lang.Object)
-		 */
 		@Override
 		public boolean shouldUseAccessorFor(Object entity) {
 			return entity instanceof HibernateProxy;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.jpa.repository.support.ProxyIdAccessor#getIdentifierFrom(java.lang.Object)
-		 */
 		@Override
 		public Object getIdentifierFrom(Object entity) {
 			return ((HibernateProxy) entity).getHibernateLazyInitializer().getIdentifier();
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.jpa.provider.PersistenceProvider#getIdClassAttributes(javax.persistence.metamodel.IdentifiableType)
-		 */
 		@Override
 		public <T> Set<SingularAttribute<? super T, ?>> getIdClassAttributes(IdentifiableType<T> type) {
 			return type instanceof IdentifiableTypeDescriptor && ((IdentifiableTypeDescriptor<T>) type).hasIdClass()
@@ -108,10 +96,6 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 					: Collections.emptySet();
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.jpa.provider.PersistenceProvider#executeQueryWithResultStream(jakarta.persistence.Query)
-		 */
 		@Override
 		public CloseableIterator<Object> executeQueryWithResultStream(Query jpaQuery) {
 			return new HibernateScrollableResultsIterator(jpaQuery);
@@ -129,29 +113,17 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 			return ((JpaQuery<?>) query).getDatabaseQuery().getJPQLString();
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.jpa.repository.support.ProxyIdAccessor#isProxy(java.lang.Object)
-		 */
 		@Override
 		public boolean shouldUseAccessorFor(Object entity) {
 			return false;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.jpa.repository.support.ProxyIdAccessor#getIdentifierFrom(java.lang.Object)
-		 */
 		@Nullable
 		@Override
 		public Object getIdentifierFrom(Object entity) {
 			return null;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.jpa.provider.PersistenceProvider#executeQueryWithResultStream(jakarta.persistence.Query)
-		 */
 		@Override
 		public CloseableIterator<Object> executeQueryWithResultStream(Query jpaQuery) {
 			return new EclipseLinkScrollableResultsIterator<>(jpaQuery);
@@ -163,38 +135,22 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 	 */
 	GENERIC_JPA(Collections.singleton(GENERIC_JPA_ENTITY_MANAGER_INTERFACE), Collections.emptySet()) {
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.jpa.repository.query.QueryExtractor#extractQueryString(jakarta.persistence.Query)
-		 */
 		@Nullable
 		@Override
 		public String extractQueryString(Query query) {
 			return null;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.jpa.repository.support.PersistenceProvider#canExtractQuery()
-		 */
 		@Override
 		public boolean canExtractQuery() {
 			return false;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.jpa.repository.support.ProxyIdAccessor#isProxy(java.lang.Object)
-		 */
 		@Override
 		public boolean shouldUseAccessorFor(Object entity) {
 			return false;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.jpa.repository.support.ProxyIdAccessor#getIdentifierFrom(java.lang.Object)
-		 */
 		@Nullable
 		@Override
 		public Object getIdentifierFrom(Object entity) {
@@ -297,10 +253,6 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 		return "x";
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.query.QueryExtractor#canExtractQuery()
-	 */
 	@Override
 	public boolean canExtractQuery() {
 		return true;
@@ -365,10 +317,6 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 					.scroll(ScrollMode.FORWARD_ONLY);
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see java.util.Iterator#next()
-		 */
 		@Override
 		public Object next() {
 
@@ -382,19 +330,11 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 			return row.length == 1 ? row[0] : row;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see java.util.Iterator#hasNext()
-		 */
 		@Override
 		public boolean hasNext() {
 			return scrollableResults != null && scrollableResults.next();
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.util.CloseableIterator#close()
-		 */
 		@Override
 		public void close() {
 
@@ -429,19 +369,11 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 			this.scrollableCursor = (ScrollableCursor) jpaQuery.getSingleResult();
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see java.util.Iterator#hasNext()
-		 */
 		@Override
 		public boolean hasNext() {
 			return scrollableCursor != null && scrollableCursor.hasNext();
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see java.util.Iterator#next()
-		 */
 		@Override
 		public T next() {
 
@@ -452,10 +384,6 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 			return (T) scrollableCursor.next();
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.util.CloseableIterator#close()
-		 */
 		@Override
 		public void close() {
 

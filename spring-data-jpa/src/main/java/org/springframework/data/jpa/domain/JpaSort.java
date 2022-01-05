@@ -338,10 +338,6 @@ public class JpaSort extends Sort {
 			return newAttributes;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see java.lang.Object#toString()
-		 */
 		@Override
 		public String toString() {
 
@@ -401,19 +397,11 @@ public class JpaSort extends Sort {
 			this.unsafe = unsafe;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.domain.Sort.Order#with(org.springframework.data.domain.Sort.Direction)
-		 */
 		@Override
 		public JpaOrder with(Direction order) {
 			return new JpaOrder(order, getProperty(), getNullHandling(), isIgnoreCase(), this.unsafe);
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.domain.Sort.Order#with(org.springframework.data.domain.Sort.NullHandling)
-		 */
 		@Override
 		public JpaOrder with(NullHandling nullHandling) {
 			return new JpaOrder(getDirection(), getProperty(), nullHandling, isIgnoreCase(), this.unsafe);
@@ -439,19 +427,11 @@ public class JpaSort extends Sort {
 			return Sort.by(orders);
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.domain.Sort.Order#ignoreCase()
-		 */
 		@Override
 		public JpaOrder ignoreCase() {
 			return new JpaOrder(getDirection(), getProperty(), getNullHandling(), true, this.unsafe);
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.domain.Sort.Order#isIgnoreCase()
-		 */
 		@Override
 		public boolean isIgnoreCase() {
 			return super.isIgnoreCase() || ignoreCase;

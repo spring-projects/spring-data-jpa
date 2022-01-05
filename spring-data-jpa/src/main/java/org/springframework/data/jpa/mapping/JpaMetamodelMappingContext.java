@@ -61,30 +61,18 @@ public class JpaMetamodelMappingContext
 		this.persistenceProvider = PersistenceProvider.fromMetamodel(models.iterator().next());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.mapping.context.AbstractMappingContext#createPersistentEntity(org.springframework.data.util.TypeInformation)
-	 */
 	@Override
 	protected <T> JpaPersistentEntityImpl<?> createPersistentEntity(TypeInformation<T> typeInformation) {
 		return new JpaPersistentEntityImpl<>(typeInformation, persistenceProvider,
 				models.getRequiredMetamodel(typeInformation));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.mapping.context.AbstractMappingContext#createPersistentProperty(java.lang.reflect.Field, java.beans.PropertyDescriptor, org.springframework.data.mapping.model.MutablePersistentEntity, org.springframework.data.mapping.model.SimpleTypeHolder)
-	 */
 	@Override
 	protected JpaPersistentProperty createPersistentProperty(Property property, JpaPersistentEntityImpl<?> owner,
 			SimpleTypeHolder simpleTypeHolder) {
 		return new JpaPersistentPropertyImpl(owner.getMetamodel(), property, owner, simpleTypeHolder);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.mapping.context.AbstractMappingContext#shouldCreatePersistentEntityFor(org.springframework.data.util.TypeInformation)
-	 */
 	@Override
 	protected boolean shouldCreatePersistentEntityFor(TypeInformation<?> type) {
 		return models.isMetamodelManagedType(type.getUserTypeInformation());
@@ -102,10 +90,6 @@ public class JpaMetamodelMappingContext
 		return doFindPersistentPropertyPaths(type, predicate, JpaPersistentProperty::isEmbeddable);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.mapping.context.AbstractMappingContext#hasPersistentEntityFor(java.lang.Class)
-	 */
 	@Override
 	public boolean hasPersistentEntityFor(Class<?> type) {
 		return super.hasPersistentEntityFor(type) || models.isMetamodelManagedType(type);

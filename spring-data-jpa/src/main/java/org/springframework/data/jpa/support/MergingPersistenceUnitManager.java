@@ -36,10 +36,6 @@ public class MergingPersistenceUnitManager extends DefaultPersistenceUnitManager
 
 	private static final Log LOG = LogFactory.getLog(MergingPersistenceUnitManager.class);
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.orm.jpa.persistenceunit.DefaultPersistenceUnitManager#postProcessPersistenceUnitInfo(org.springframework.orm.jpa.persistenceunit.MutablePersistenceUnitInfo)
-	 */
 	@Override
 	protected void postProcessPersistenceUnitInfo(MutablePersistenceUnitInfo pui) {
 
@@ -53,10 +49,6 @@ public class MergingPersistenceUnitManager extends DefaultPersistenceUnitManager
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.orm.jpa.persistenceunit.DefaultPersistenceUnitManager#isPersistenceUnitOverrideAllowed()
-	 */
 	@Override
 	protected boolean isPersistenceUnitOverrideAllowed() {
 		return true;

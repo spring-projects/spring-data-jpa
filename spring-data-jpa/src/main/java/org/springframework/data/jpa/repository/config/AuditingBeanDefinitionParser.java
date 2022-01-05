@@ -44,10 +44,6 @@ public class AuditingBeanDefinitionParser implements BeanDefinitionParser {
 			BeanDefinitionNames.JPA_MAPPING_CONTEXT_BEAN_NAME);
 	private final SpringConfiguredBeanDefinitionParser springConfiguredParser = new SpringConfiguredBeanDefinitionParser();
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.beans.factory.xml.BeanDefinitionParser#parse(org.w3c.dom.Element, org.springframework.beans.factory.xml.ParserContext)
-	 */
 	@Override
 	public BeanDefinition parse(Element element, ParserContext parser) {
 

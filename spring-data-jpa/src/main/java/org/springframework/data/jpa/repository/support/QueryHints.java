@@ -92,28 +92,16 @@ public interface QueryHints {
 
 		INSTANCE;
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.jpa.repository.support.QueryHints#withFetchGraphs(jakarta.persistence.EntityManager)
-		 */
 		@Override
 		public QueryHints withFetchGraphs(EntityManager em) {
 			return this;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.jpa.repository.support.QueryHints#forCounts(jakarta.persistence.EntityManager)
-		 */
 		@Override
 		public QueryHints forCounts() {
 			return this;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.jpa.repository.support.QueryHints#forEach(java.util.function.BiConsumer)
-		 */
 		@Override
 		public void forEach(BiConsumer<String, Object> action) {}
 	}

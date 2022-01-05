@@ -48,28 +48,16 @@ public class JpaMetamodelMappingContextFactoryBean extends AbstractFactoryBean<J
 
 	private @Nullable ListableBeanFactory beanFactory;
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.context.ApplicationContextAware#setApplicationContext(org.springframework.context.ApplicationContext)
-	 */
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 		this.beanFactory = applicationContext;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.beans.factory.config.AbstractFactoryBean#getObjectType()
-	 */
 	@Override
 	public Class<?> getObjectType() {
 		return JpaMetamodelMappingContext.class;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.beans.factory.config.AbstractFactoryBean#createInstance()
-	 */
 	@Override
 	protected JpaMetamodelMappingContext createInstance() {
 

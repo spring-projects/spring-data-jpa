@@ -136,10 +136,6 @@ public abstract class JpaQueryExecution {
 	 */
 	static class SlicedExecution extends JpaQueryExecution {
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.jpa.repository.query.JpaQueryExecution#doExecute(org.springframework.data.jpa.repository.query.AbstractJpaQuery, java.lang.Object[])
-		 */
 		@Override
 		@SuppressWarnings("unchecked")
 		protected Object doExecute(AbstractJpaQuery query, JpaParametersParameterAccessor accessor) {
@@ -262,10 +258,6 @@ public abstract class JpaQueryExecution {
 			this.em = em;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.jpa.repository.query.JpaQueryExecution#doExecute(org.springframework.data.jpa.repository.query.AbstractJpaQuery, java.lang.Object[])
-		 */
 		@Override
 		protected Object doExecute(AbstractJpaQuery jpaQuery, JpaParametersParameterAccessor accessor) {
 
@@ -304,10 +296,6 @@ public abstract class JpaQueryExecution {
 
 		private static final String NO_SURROUNDING_TRANSACTION = "You're trying to execute a @Procedure method without a surrounding transaction that keeps the connection open so that the ResultSet can actually be consumed. Make sure the consumer code uses @Transactional or any other way of declaring a (read-only) transaction.";
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.jpa.repository.query.JpaQueryExecution#doExecute(org.springframework.data.jpa.repository.query.AbstractJpaQuery, java.lang.Object[])
-		 */
 		@Override
 		protected Object doExecute(AbstractJpaQuery jpaQuery, JpaParametersParameterAccessor accessor) {
 
@@ -347,10 +335,6 @@ public abstract class JpaQueryExecution {
 
 		private static Method streamMethod = ReflectionUtils.findMethod(Query.class, "getResultStream");
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.jpa.repository.query.JpaQueryExecution#doExecute(org.springframework.data.jpa.repository.query.AbstractJpaQuery, JpaParametersParameterAccessor)
-		 */
 		@Override
 		protected Object doExecute(final AbstractJpaQuery query, JpaParametersParameterAccessor accessor) {
 

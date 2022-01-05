@@ -35,19 +35,11 @@ public class EntityWithAssignedId implements Persistable<UUID> {
 
 	private @Transient boolean isNew = true;
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.domain.Persistable#getId()
-	 */
 	@Override
 	public UUID getId() {
 		return id;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.domain.Persistable#isNew()
-	 */
 	@Override
 	public boolean isNew() {
 		return isNew;

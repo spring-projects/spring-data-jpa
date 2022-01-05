@@ -50,54 +50,30 @@ public final class DefaultRevisionMetadata implements RevisionMetadata<Integer> 
 		this.revisionType = revisionType;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.history.RevisionMetadata#getRevisionNumber()
-	 */
 	public Optional<Integer> getRevisionNumber() {
 		return Optional.of(entity.getId());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.history.RevisionMetadata#getRevisionDate()
-	 */
 	@Deprecated
 	public Optional<LocalDateTime> getRevisionDate() {
 		return getRevisionInstant().map(instant -> LocalDateTime.ofInstant(instant, ZoneOffset.systemDefault()));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.history.RevisionMetadata#getRevisionInstant()
-	 */
 	@Override
 	public Optional<Instant> getRevisionInstant() {
 		return Optional.of(Instant.ofEpochMilli(entity.getTimestamp()));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.history.RevisionMetadata#getDelegate()
-	 */
 	@SuppressWarnings("unchecked")
 	public <T> T getDelegate() {
 		return (T) entity;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.history.RevisionMetadata#getRevisionType()
-	 */
 	@Override
 	public RevisionType getRevisionType() {
 		return revisionType;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
 	@Override
 	public boolean equals(Object o) {
 
@@ -112,10 +88,6 @@ public final class DefaultRevisionMetadata implements RevisionMetadata<Integer> 
 				&& getRevisionInstant().equals(that.getRevisionInstant()) && revisionType.equals(that.getRevisionType());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
 	@Override
 	public String toString() {
 		return "DefaultRevisionMetadata{" + "entity=" + entity + ", revisionType=" + revisionType + '}';

@@ -76,10 +76,6 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 				"JDBC style parameters (?) are not supported for JPA queries.");
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.query.AbstractJpaQuery#doCreateQuery(JpaParametersParameterAccessor)
-	 */
 	@Override
 	public Query doCreateQuery(JpaParametersParameterAccessor accessor) {
 
@@ -95,10 +91,6 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 		return parameterBinder.get().bindAndPrepare(query, metadata, accessor);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.query.AbstractJpaQuery#createBinder(JpaParametersParameterAccessor)
-	 */
 	@Override
 	protected ParameterBinder createBinder() {
 
@@ -106,10 +98,6 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 				evaluationContextProvider);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.query.AbstractJpaQuery#doCreateCountQuery(JpaParametersParameterAccessor)
-	 */
 	@Override
 	protected Query doCreateCountQuery(JpaParametersParameterAccessor accessor) {
 

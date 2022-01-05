@@ -111,10 +111,6 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.core.support.RepositoryFactorySupport#setBeanClassLoader(java.lang.ClassLoader)
-	 */
 	@Override
 	public void setBeanClassLoader(ClassLoader classLoader) {
 
@@ -155,10 +151,6 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 		this.queryMethodFactory = queryMethodFactory;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.core.support.RepositoryFactorySupport#getTargetRepository(org.springframework.data.repository.core.RepositoryMetadata)
-	 */
 	@Override
 	protected final JpaRepositoryImplementation<?, ?> getTargetRepository(RepositoryInformation information) {
 
@@ -187,19 +179,11 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 		return (JpaRepositoryImplementation<?, ?>) repository;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.core.support.RepositoryFactorySupport#getRepositoryBaseClass(org.springframework.data.repository.core.RepositoryMetadata)
-	 */
 	@Override
 	protected Class<?> getRepositoryBaseClass(RepositoryMetadata metadata) {
 		return SimpleJpaRepository.class;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.core.support.RepositoryFactorySupport#getProjectionFactory(java.lang.ClassLoader, org.springframework.beans.factory.BeanFactory)
-	 */
 	@Override
 	protected ProjectionFactory getProjectionFactory(ClassLoader classLoader, BeanFactory beanFactory) {
 
@@ -210,10 +194,6 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 		return factory;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.core.support.RepositoryFactorySupport#getQueryLookupStrategy(org.springframework.data.repository.query.QueryLookupStrategy.Key, org.springframework.data.repository.query.EvaluationContextProvider)
-	 */
 	@Override
 	protected Optional<QueryLookupStrategy> getQueryLookupStrategy(@Nullable Key key,
 			QueryMethodEvaluationContextProvider evaluationContextProvider) {
@@ -222,10 +202,6 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 				escapeCharacter));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.core.support.RepositoryFactorySupport#getEntityInformation(java.lang.Class)
-	 */
 	@Override
 	@SuppressWarnings("unchecked")
 	public <T, ID> JpaEntityInformation<T, ID> getEntityInformation(Class<T> domainClass) {
@@ -233,10 +209,6 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 		return (JpaEntityInformation<T, ID>) JpaEntityInformationSupport.getEntityInformation(domainClass, entityManager);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.core.support.RepositoryFactorySupport#getRepositoryFragments(org.springframework.data.repository.core.RepositoryMetadata)
-	 */
 	@Override
 	protected RepositoryFragments getRepositoryFragments(RepositoryMetadata metadata) {
 
@@ -323,10 +295,6 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 			this.metamodel = JpaMetamodel.of(em.getMetamodel());
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.repository.core.support.QueryCreationListener#onCreation(org.springframework.data.repository.query.RepositoryQuery)
-		 */
 		@Override
 		public void onCreation(AbstractJpaQuery query) {
 

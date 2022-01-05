@@ -44,10 +44,6 @@ public class AuditorAwareStub implements AuditorAware<AuditableUser> {
 		this.auditor = auditor;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.domain.AuditorAware#getCurrentAuditor()
-	 */
 	@Override
 	public Optional<AuditableUser> getCurrentAuditor() {
 		return Optional.ofNullable(auditor);

@@ -56,10 +56,6 @@ public class DefaultJpaContext implements JpaContext {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.JpaContext#getByManagedType(java.lang.Class)
-	 */
 	@Override
 	public EntityManager getEntityManagerByManagedType(Class<?> type) {
 

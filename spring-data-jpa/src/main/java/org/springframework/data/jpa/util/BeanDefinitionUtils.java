@@ -215,10 +215,6 @@ public final class BeanDefinitionUtils {
 			return beanFactory.getBeanDefinition(beanName);
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see java.lang.Object#equals(java.lang.Object)
-		 */
 		@Override
 		public boolean equals(Object o) {
 
@@ -239,10 +235,6 @@ public final class BeanDefinitionUtils {
 			return ObjectUtils.nullSafeEquals(beanFactory, that.beanFactory);
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see java.lang.Object#hashCode()
-		 */
 		@Override
 		public int hashCode() {
 			int result = ObjectUtils.nullSafeHashCode(beanName);

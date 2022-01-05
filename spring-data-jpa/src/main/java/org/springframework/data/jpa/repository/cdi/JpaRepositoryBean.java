@@ -60,10 +60,6 @@ class JpaRepositoryBean<T> extends CdiRepositoryBean<T> {
 		this.entityManagerBean = entityManagerBean;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.cdi.CdiRepositoryBean#create(jakarta.enterprise.context.spi.CreationalContext, java.lang.Class)
-	 */
 	@Override
 	protected T create(CreationalContext<T> creationalContext, Class<T> repositoryType) {
 

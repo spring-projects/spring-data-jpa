@@ -37,28 +37,16 @@ import com.querydsl.core.types.Predicate;
  */
 public interface RoleRepository extends CrudRepository<Role, Integer>, QuerydslPredicateExecutor<Role> {
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.CrudRepository#findAll()
-	 */
 	@Override
 	@Lock(LockModeType.READ)
 	@QueryHints(@QueryHint(name = "foo", value = "bar"))
 	Iterable<Role> findAll();
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.CrudRepository#findOne(java.io.Serializable)
-	 */
 	@Override
 	@Lock(LockModeType.READ)
 	@QueryHints(@QueryHint(name = "foo", value = "bar"))
 	Optional<Role> findById(Integer id);
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.querydsl.QueryDslPredicateExecutor#findOne(com.querydsl.core.types.Predicate)
-	 */
 	@Override
 	@Lock(LockModeType.READ)
 	@QueryHints(@QueryHint(name = "foo", value = "bar"))

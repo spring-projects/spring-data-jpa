@@ -170,10 +170,6 @@ class JpaRepositoryFactoryBeanUnitTests {
 			super(repositoryInterface);
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.jpa.predicateExecutor.support.JpaRepositoryFactoryBean#doCreateRepositoryFactory()
-		 */
 		@Override
 		protected RepositoryFactorySupport doCreateRepositoryFactory() {
 			return factory;

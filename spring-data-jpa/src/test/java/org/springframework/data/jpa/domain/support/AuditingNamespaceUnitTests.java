@@ -29,10 +29,6 @@ import org.springframework.beans.factory.config.BeanDefinition;
  */
 class AuditingNamespaceUnitTests extends AuditingBeanFactoryPostProcessorUnitTests {
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.domain.support.AuditingBeanFactoryPostProcessorUnitTests#getConfigFile()
-	 */
 	@Override
 	String getConfigFile() {
 		return "auditing-namespace-context.xml";

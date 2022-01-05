@@ -97,10 +97,6 @@ public class QuerydslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 		this.entityManager = entityManager;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.querydsl.QuerydslPredicateExecutor#findOne(com.querydsl.core.types.Predicate)
-	 */
 	@Override
 	public Optional<T> findOne(Predicate predicate) {
 
@@ -111,28 +107,16 @@ public class QuerydslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.querydsl.QuerydslPredicateExecutor#findAll(com.querydsl.core.types.Predicate)
-	 */
 	@Override
 	public List<T> findAll(Predicate predicate) {
 		return createQuery(predicate).select(path).fetch();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.querydsl.QuerydslPredicateExecutor#findAll(com.querydsl.core.types.Predicate, com.querydsl.core.types.OrderSpecifier<?>[])
-	 */
 	@Override
 	public List<T> findAll(Predicate predicate, OrderSpecifier<?>... orders) {
 		return executeSorted(createQuery(predicate).select(path), orders);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.querydsl.QuerydslPredicateExecutor#findAll(com.querydsl.core.types.Predicate, org.springframework.data.domain.Sort)
-	 */
 	@Override
 	public List<T> findAll(Predicate predicate, Sort sort) {
 
@@ -141,10 +125,6 @@ public class QuerydslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 		return executeSorted(createQuery(predicate).select(path), sort);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.querydsl.QuerydslPredicateExecutor#findAll(com.querydsl.core.types.OrderSpecifier[])
-	 */
 	@Override
 	public List<T> findAll(OrderSpecifier<?>... orders) {
 
@@ -153,10 +133,6 @@ public class QuerydslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 		return executeSorted(createQuery(new Predicate[0]).select(path), orders);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.querydsl.QuerydslPredicateExecutor#findAll(com.querydsl.core.types.Predicate, org.springframework.data.domain.Pageable)
-	 */
 	@Override
 	public Page<T> findAll(Predicate predicate, Pageable pageable) {
 
@@ -175,19 +151,11 @@ public class QuerydslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 				"Fluent Query API support for Querydsl is only found in QuerydslJpaPredicateExecutor.");
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.querydsl.QueryDslPredicateExecutor#count(com.querydsl.core.types.Predicate)
-	 */
 	@Override
 	public long count(Predicate predicate) {
 		return createQuery(predicate).fetchCount();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.querydsl.QueryDslPredicateExecutor#exists(com.querydsl.core.types.Predicate)
-	 */
 	@Override
 	public boolean exists(Predicate predicate) {
 		return createQuery(predicate).fetchCount() > 0;

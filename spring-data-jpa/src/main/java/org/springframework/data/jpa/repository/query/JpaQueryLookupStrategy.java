@@ -77,10 +77,6 @@ public final class JpaQueryLookupStrategy {
 			this.queryMethodFactory = queryMethodFactory;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.repository.query.QueryLookupStrategy#resolveQuery(java.lang.reflect.Method, org.springframework.data.repository.core.RepositoryMetadata, org.springframework.data.projection.ProjectionFactory, org.springframework.data.repository.core.NamedQueries)
-		 */
 		@Override
 		public final RepositoryQuery resolveQuery(Method method, RepositoryMetadata metadata, ProjectionFactory factory,
 				NamedQueries namedQueries) {
@@ -141,10 +137,6 @@ public final class JpaQueryLookupStrategy {
 			this.evaluationContextProvider = evaluationContextProvider;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.jpa.repository.query.JpaQueryLookupStrategy.AbstractQueryLookupStrategy#resolveQuery(org.springframework.data.jpa.repository.query.JpaQueryMethod, jakarta.persistence.EntityManager, org.springframework.data.repository.core.NamedQueries)
-		 */
 		@Override
 		protected RepositoryQuery resolveQuery(JpaQueryMethod method, EntityManager em, NamedQueries namedQueries) {
 
@@ -240,10 +232,6 @@ public final class JpaQueryLookupStrategy {
 			this.lookupStrategy = lookupStrategy;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.jpa.repository.query.JpaQueryLookupStrategy.AbstractQueryLookupStrategy#resolveQuery(org.springframework.data.jpa.repository.query.JpaQueryMethod, jakarta.persistence.EntityManager, org.springframework.data.repository.core.NamedQueries)
-		 */
 		@Override
 		protected RepositoryQuery resolveQuery(JpaQueryMethod method, EntityManager em, NamedQueries namedQueries) {
 

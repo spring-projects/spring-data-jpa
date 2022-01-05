@@ -39,13 +39,6 @@ public class CustomGenericJpaRepository<T, ID extends Serializable> extends Simp
 		super(metadata, entityManager);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see
-	 * org.springframework.data.jpa.repository.custom.CustomGenericRepository
-	 * #customMethod(java.io.Serializable)
-	 */
 	@Override
 	public T customMethod(ID id) {
 

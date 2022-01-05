@@ -147,10 +147,6 @@ abstract class QueryParameterSetterFactory {
 			this.parameters = parameters;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.jpa.repository.query.QueryParameterSetterFactory#create(org.springframework.data.jpa.repository.query.StringQuery.ParameterBinding, java.lang.String)
-		 */
 		@Nullable
 		@Override
 		public QueryParameterSetter create(ParameterBinding binding, DeclaredQuery declaredQuery) {
@@ -201,10 +197,6 @@ abstract class QueryParameterSetterFactory {
 			this.parameters = parameters;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.jpa.repository.query.QueryParameterSetterFactory#create(org.springframework.data.jpa.repository.query.StringQuery.ParameterBinding, java.lang.String)
-		 */
 		@Override
 		public QueryParameterSetter create(ParameterBinding binding, DeclaredQuery declaredQuery) {
 
@@ -286,10 +278,6 @@ abstract class QueryParameterSetterFactory {
 			this.expressions = metadata;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.jpa.repository.query.QueryParameterSetterFactory#create(org.springframework.data.jpa.repository.query.StringQuery.ParameterBinding, java.lang.String)
-		 */
 		@Override
 		public QueryParameterSetter create(ParameterBinding binding, DeclaredQuery declaredQuery) {
 
@@ -359,30 +347,18 @@ abstract class QueryParameterSetterFactory {
 			this.parameterType = parameterType;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see jakarta.persistence.Parameter#getName()
-		 */
 		@Nullable
 		@Override
 		public String getName() {
 			return name;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see jakarta.persistence.Parameter#getPosition()
-		 */
 		@Nullable
 		@Override
 		public Integer getPosition() {
 			return position;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see jakarta.persistence.Parameter#getParameterType()
-		 */
 		@Override
 		public Class<T> getParameterType() {
 			return parameterType;

@@ -42,19 +42,11 @@ public class DefaultJpaEntityMetadata<T> implements JpaEntityMetadata<T> {
 		this.domainType = domainType;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.core.EntityMetadata#getJavaType()
-	 */
 	@Override
 	public Class<T> getJavaType() {
 		return domainType;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.support.JpaEntityMetadata#getEntityName()
-	 */
 	@Override
 	public String getEntityName() {
 

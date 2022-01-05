@@ -41,10 +41,6 @@ public abstract class AbstractPersistable<PK extends Serializable> implements Pe
 
 	@Id @GeneratedValue private @Nullable PK id;
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.domain.Persistable#getId()
-	 */
 	@Nullable
 	@Override
 	public PK getId() {
@@ -71,19 +67,11 @@ public abstract class AbstractPersistable<PK extends Serializable> implements Pe
 		return null == getId();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
 	@Override
 	public String toString() {
 		return String.format("Entity of type %s with id: %s", this.getClass().getName(), getId());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
 	@Override
 	public boolean equals(Object obj) {
 
@@ -104,10 +92,6 @@ public abstract class AbstractPersistable<PK extends Serializable> implements Pe
 		return null == this.getId() ? false : this.getId().equals(that.getId());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.lang.Object#hashCode()
-	 */
 	@Override
 	public int hashCode() {
 

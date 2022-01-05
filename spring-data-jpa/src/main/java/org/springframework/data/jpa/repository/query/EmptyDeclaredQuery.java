@@ -34,64 +34,36 @@ class EmptyDeclaredQuery implements DeclaredQuery {
 	 */
 	static final DeclaredQuery EMPTY_QUERY = new EmptyDeclaredQuery();
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.query.DeclaredQuery#hasNamedParameter()
-	 */
 	@Override
 	public boolean hasNamedParameter() {
 		return false;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.query.DeclaredQuery#getQueryString()
-	 */
 	@Override
 	public String getQueryString() {
 		return "";
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.query.DeclaredQuery#getAlias()
-	 */
 	@Override
 	public String getAlias() {
 		return null;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.query.DeclaredQuery#hasConstructorExpression()
-	 */
 	@Override
 	public boolean hasConstructorExpression() {
 		return false;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.query.DeclaredQuery#isDefaultProjection()
-	 */
 	@Override
 	public boolean isDefaultProjection() {
 		return false;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.query.DeclaredQuery#getParameterBindings()
-	 */
 	@Override
 	public List<StringQuery.ParameterBinding> getParameterBindings() {
 		return Collections.emptyList();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.query.DeclaredQuery#deriveCountQuery(java.lang.String, java.lang.String)
-	 */
 	@Override
 	public DeclaredQuery deriveCountQuery(@Nullable String countQuery, @Nullable String countQueryProjection) {
 
@@ -100,10 +72,6 @@ class EmptyDeclaredQuery implements DeclaredQuery {
 		return DeclaredQuery.of(countQuery);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.query.DeclaredQuery#usesJdbcStyleParameters()
-	 */
 	@Override
 	public boolean usesJdbcStyleParameters() {
 		return false;

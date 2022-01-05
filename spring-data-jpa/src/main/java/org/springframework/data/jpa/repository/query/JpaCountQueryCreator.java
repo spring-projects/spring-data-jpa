@@ -48,19 +48,11 @@ public class JpaCountQueryCreator extends JpaQueryCreator {
 		super(tree, type, builder, provider);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.query.JpaQueryCreator#createCriteriaQuery(jakarta.persistence.criteria.CriteriaBuilder, org.springframework.data.repository.query.ReturnedType)
-	 */
 	@Override
 	protected CriteriaQuery<? extends Object> createCriteriaQuery(CriteriaBuilder builder, ReturnedType type) {
 		return builder.createQuery(type.getDomainType());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.query.JpaQueryCreator#complete(jakarta.persistence.criteria.Predicate, org.springframework.data.domain.Sort, jakarta.persistence.criteria.CriteriaQuery, jakarta.persistence.criteria.CriteriaBuilder, jakarta.persistence.criteria.Root)
-	 */
 	@Override
 	@SuppressWarnings("unchecked")
 	protected CriteriaQuery<? extends Object> complete(@Nullable Predicate predicate, Sort sort,

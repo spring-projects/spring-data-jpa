@@ -36,12 +36,6 @@ class CustomGenericJpaRepositoryFactoryBean<T extends JpaRepository<Object, Seri
 		super(repositoryInterface);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see org.springframework.data.jpa.repository.support.
-	 * GenericJpaRepositoryFactoryBean#getFactory()
-	 */
 	@Override
 	protected RepositoryFactorySupport createRepositoryFactory(EntityManager em) {
 

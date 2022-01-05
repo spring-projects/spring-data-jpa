@@ -59,10 +59,6 @@ final class NativeJpaQuery extends AbstractStringBasedJpaQuery {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.query.AbstractStringBasedJpaQuery#createJpaQuery(java.lang.String)
-	 */
 	@Override
 	protected Query createJpaQuery(String queryString, ReturnedType returnedType) {
 

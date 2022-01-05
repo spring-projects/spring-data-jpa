@@ -75,10 +75,6 @@ interface QueryParameterSetter {
 			this.temporalType = temporalType;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.jpa.repository.query.QueryParameterSetter#setParameter(jakarta.persistence.Query, java.lang.Object[])
-		 */
 		@SuppressWarnings("unchecked")
 		@Override
 		public void setParameter(BindableQuery query, JpaParametersParameterAccessor accessor,

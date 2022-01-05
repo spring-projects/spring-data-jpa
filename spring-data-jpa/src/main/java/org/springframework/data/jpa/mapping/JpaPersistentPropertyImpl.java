@@ -112,10 +112,6 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 		this.isEntity = Lazy.of(() -> metamodel.isJpaManaged(getActualType()));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.mapping.model.AbstractPersistentProperty#getActualType()
-	 */
 	@Override
 	public Class<?> getActualType() {
 
@@ -124,10 +120,6 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 				: super.getActualType();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.mapping.model.AbstractPersistentProperty#getPersistentEntityTypeInformation()
-	 */
 	@Override
 	public Iterable<? extends TypeInformation<?>> getPersistentEntityTypeInformation() {
 
@@ -136,91 +128,51 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 				: super.getPersistentEntityTypeInformation();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.mapping.model.AnnotationBasedPersistentProperty#isIdProperty()
-	 */
 	@Override
 	public boolean isIdProperty() {
 		return isIdProperty.get();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.mapping.model.AbstractPersistentProperty#isEntity()
-	 */
 	@Override
 	public boolean isEntity() {
 		return isEntity.get();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.mapping.model.AnnotationBasedPersistentProperty#isAssociation()
-	 */
 	@Override
 	public boolean isAssociation() {
 		return isAssociation.get();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.mapping.model.AnnotationBasedPersistentProperty#isTransient()
-	 */
 	@Override
 	public boolean isTransient() {
 		return isAnnotationPresent(Transient.class) || super.isTransient();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.mapping.model.AbstractPersistentProperty#createAssociation()
-	 */
 	@Override
 	protected Association<JpaPersistentProperty> createAssociation() {
 		return new Association<JpaPersistentProperty>(this, null);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.mapping.model.AnnotationBasedPersistentProperty#usePropertyAccess()
-	 */
 	@Override
 	public boolean usePropertyAccess() {
 		return usePropertyAccess != null ? usePropertyAccess : super.usePropertyAccess();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.mapping.model.AnnotationBasedPersistentProperty#isVersionProperty()
-	 */
 	@Override
 	public boolean isVersionProperty() {
 		return isAnnotationPresent(Version.class);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.mapping.model.AnnotationBasedPersistentProperty#isWritable()
-	 */
 	@Override
 	public boolean isWritable() {
 		return updateable && super.isWritable();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.mapping.JpaPersistentProperty#isEmbeddable()
-	 */
 	@Override
 	public boolean isEmbeddable() {
 		return isAnnotationPresent(Embedded.class) || hasActualTypeAnnotation(Embeddable.class);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.mapping.model.AnnotationBasedPersistentProperty#getAssociationTargetTypeInformation()
-	 */
 	@Override
 	public TypeInformation<?> getAssociationTargetTypeInformation() {
 

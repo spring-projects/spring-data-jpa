@@ -26,10 +26,6 @@ import org.springframework.test.context.ContextConfiguration;
 @ContextConfiguration("classpath:openjpa.xml")
 class OpenJpaJpaRepositoryTests extends JpaRepositoryTests {
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.support.JpaRepositoryTests#testCrudOperationsForCompoundKeyEntity()
-	 */
 	@Override
 	@Disabled
 	void testCrudOperationsForCompoundKeyEntity() throws Exception {

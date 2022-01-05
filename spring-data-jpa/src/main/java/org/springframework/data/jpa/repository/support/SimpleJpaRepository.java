@@ -156,10 +156,6 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		return getQueryString(countQuery, entityInformation.getEntityName());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.CrudRepository#delete(java.io.Serializable)
-	 */
 	@Transactional
 	@Override
 	public void deleteById(ID id) {
@@ -170,10 +166,6 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 				String.format("No %s entity with id %s exists!", entityInformation.getJavaType(), id), 1)));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.CrudRepository#delete(java.lang.Object)
-	 */
 	@Override
 	@Transactional
 	@SuppressWarnings("unchecked")
@@ -197,10 +189,6 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		em.remove(em.contains(entity) ? entity : em.merge(entity));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.CrudRepository#deleteAllById(java.lang.Iterable)
-	 */
 	@Override
 	@Transactional
 	public void deleteAllById(Iterable<? extends ID> ids) {
@@ -212,10 +200,6 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.CrudRepository#deleteAllByIdInBatch(java.lang.Iterable)
-	 */
 	@Override
 	@Transactional
 	public void deleteAllByIdInBatch(Iterable<ID> ids) {
@@ -235,10 +219,6 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		query.executeUpdate();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.CrudRepository#delete(java.lang.Iterable)
-	 */
 	@Override
 	@Transactional
 	public void deleteAll(Iterable<? extends T> entities) {
@@ -250,10 +230,6 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.JpaRepository#deleteInBatch(java.lang.Iterable)
-	 */
 	@Override
 	@Transactional
 	public void deleteAllInBatch(Iterable<T> entities) {
@@ -268,10 +244,6 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 				.executeUpdate();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.Repository#deleteAll()
-	 */
 	@Override
 	@Transactional
 	public void deleteAll() {
@@ -281,20 +253,12 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.JpaRepository#deleteAllInBatch()
-	 */
 	@Override
 	@Transactional
 	public void deleteAllInBatch() {
 		em.createQuery(getDeleteAllQueryString()).executeUpdate();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.CrudRepository#findById(java.io.Serializable)
-	 */
 	@Override
 	public Optional<T> findById(ID id) {
 
@@ -324,20 +288,12 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		return metadata == null ? NoHints.INSTANCE : DefaultQueryHints.of(entityInformation, metadata);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.JpaRepository#getOne(java.io.Serializable)
-	 */
 	@Deprecated
 	@Override
 	public T getOne(ID id) {
 		return getReferenceById(id);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.JpaRepository#getById(java.io.Serializable)
-	 */
 	@Deprecated
 	@Override
 	public T getById(ID id) {
@@ -355,10 +311,6 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		return em.getReference(getDomainClass(), id);
 	}
 
-	/*
-	* (non-Javadoc)
-	* @see org.springframework.data.repository.CrudRepository#existsById(java.io.Serializable)
-	*/
 	@Override
 	public boolean existsById(ID id) {
 
@@ -399,19 +351,11 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		return query.getSingleResult() == 1L;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.JpaRepository#findAll()
-	 */
 	@Override
 	public List<T> findAll() {
 		return getQuery(null, Sort.unsorted()).getResultList();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.CrudRepository#findAll(java.lang.Iterable)
-	 */
 	@Override
 	public List<T> findAllById(Iterable<ID> ids) {
 
@@ -440,19 +384,11 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		return query.setParameter(specification.parameter, idCollection).getResultList();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.JpaRepository#findAll(org.springframework.data.domain.Sort)
-	 */
 	@Override
 	public List<T> findAll(Sort sort) {
 		return getQuery(null, sort).getResultList();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.PagingAndSortingRepository#findAll(org.springframework.data.domain.Pageable)
-	 */
 	@Override
 	public Page<T> findAll(Pageable pageable) {
 
@@ -463,10 +399,6 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		return findAll((Specification<T>) null, pageable);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.JpaSpecificationExecutor#findOne(org.springframework.data.jpa.domain.Specification)
-	 */
 	@Override
 	public Optional<T> findOne(@Nullable Specification<T> spec) {
 
@@ -477,19 +409,11 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.JpaSpecificationExecutor#findAll(org.springframework.data.jpa.domain.Specification)
-	 */
 	@Override
 	public List<T> findAll(@Nullable Specification<T> spec) {
 		return getQuery(spec, Sort.unsorted()).getResultList();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.JpaSpecificationExecutor#findAll(org.springframework.data.jpa.domain.Specification, org.springframework.data.domain.Pageable)
-	 */
 	@Override
 	public Page<T> findAll(@Nullable Specification<T> spec, Pageable pageable) {
 
@@ -498,19 +422,11 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 				: readPage(query, getDomainClass(), pageable, spec);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.JpaSpecificationExecutor#findAll(org.springframework.data.jpa.domain.Specification, org.springframework.data.domain.Sort)
-	 */
 	@Override
 	public List<T> findAll(@Nullable Specification<T> spec, Sort sort) {
 		return getQuery(spec, sort).getResultList();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.query.QueryByExampleExecutor#findOne(org.springframework.data.domain.Example)
-	 */
 	@Override
 	public <S extends T> Optional<S> findOne(Example<S> example) {
 
@@ -523,20 +439,12 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.query.QueryByExampleExecutor#count(org.springframework.data.domain.Example)
-	 */
 	@Override
 	public <S extends T> long count(Example<S> example) {
 		return executeCountQuery(
 				getCountQuery(new ExampleSpecification<S>(example, escapeCharacter), example.getProbeType()));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.query.QueryByExampleExecutor#exists(org.springframework.data.domain.Example)
-	 */
 	@Override
 	public <S extends T> boolean exists(Example<S> example) {
 
@@ -548,30 +456,18 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		return query.setMaxResults(1).getResultList().size() == 1;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.query.QueryByExampleExecutor#findAll(org.springframework.data.domain.Example)
-	 */
 	@Override
 	public <S extends T> List<S> findAll(Example<S> example) {
 		return getQuery(new ExampleSpecification<S>(example, escapeCharacter), example.getProbeType(), Sort.unsorted())
 				.getResultList();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.query.QueryByExampleExecutor#findAll(org.springframework.data.domain.Example, org.springframework.data.domain.Sort)
-	 */
 	@Override
 	public <S extends T> List<S> findAll(Example<S> example, Sort sort) {
 		return getQuery(new ExampleSpecification<S>(example, escapeCharacter), example.getProbeType(), sort)
 				.getResultList();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.query.QueryByExampleExecutor#findAll(org.springframework.data.domain.Example, org.springframework.data.domain.Pageable)
-	 */
 	@Override
 	public <S extends T> Page<S> findAll(Example<S> example, Pageable pageable) {
 
@@ -582,10 +478,6 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		return isUnpaged(pageable) ? new PageImpl<>(query.getResultList()) : readPage(query, probeType, pageable, spec);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.query.QueryByExampleExecutor#findBy(org.springframework.data.domain.Example, java.util.function.Function)
-	 */
 	@Override
 	public <S extends T, R> R findBy(Example<S> example, Function<FetchableFluentQuery<S>, R> queryFunction) {
 
@@ -606,28 +498,16 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		return queryFunction.apply(fluentQuery);
 	}
 
-	/*
-	* (non-Javadoc)
-	* @see org.springframework.data.repository.CrudRepository#count()
-	*/
 	@Override
 	public long count() {
 		return em.createQuery(getCountQueryString(), Long.class).getSingleResult();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.JpaSpecificationExecutor#count(org.springframework.data.jpa.domain.Specification)
-	 */
 	@Override
 	public long count(@Nullable Specification<T> spec) {
 		return executeCountQuery(getCountQuery(spec, getDomainClass()));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.CrudRepository#save(java.lang.Object)
-	 */
 	@Transactional
 	@Override
 	public <S extends T> S save(S entity) {
@@ -642,10 +522,6 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.JpaRepository#saveAndFlush(java.lang.Object)
-	 */
 	@Transactional
 	@Override
 	public <S extends T> S saveAndFlush(S entity) {
@@ -656,10 +532,6 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		return result;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.JpaRepository#save(java.lang.Iterable)
-	 */
 	@Transactional
 	@Override
 	public <S extends T> List<S> saveAll(Iterable<S> entities) {
@@ -675,10 +547,6 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		return result;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.JpaRepository#saveAllAndFlush(java.lang.Iterable)
-	 */
 	@Transactional
 	@Override
 	public <S extends T> List<S> saveAllAndFlush(Iterable<S> entities) {
@@ -689,10 +557,6 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		return result;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.JpaRepository#flush()
-	 */
 	@Transactional
 	@Override
 	public void flush() {
@@ -929,10 +793,6 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 			this.entityInformation = entityInformation;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.jpa.domain.Specification#toPredicate(jakarta.persistence.criteria.Root, jakarta.persistence.criteria.CriteriaQuery, jakarta.persistence.criteria.CriteriaBuilder)
-		 */
 		@Override
 		public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
 
@@ -972,10 +832,6 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 			this.escapeCharacter = escapeCharacter;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.jpa.domain.Specification#toPredicate(jakarta.persistence.criteria.Root, jakarta.persistence.criteria.CriteriaQuery, jakarta.persistence.criteria.CriteriaBuilder)
-		 */
 		@Override
 		public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
 			return QueryByExamplePredicateBuilder.getPredicate(root, cb, example, escapeCharacter);

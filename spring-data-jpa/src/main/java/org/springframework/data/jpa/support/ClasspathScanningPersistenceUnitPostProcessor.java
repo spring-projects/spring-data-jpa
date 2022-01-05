@@ -92,10 +92,6 @@ public class ClasspathScanningPersistenceUnitPostProcessor
 		this.mappingFileNamePattern = mappingFilePattern;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.context.ResourceLoaderAware#setResourceLoader(org.springframework.core.io.ResourceLoader)
-	 */
 	@Override
 	public void setResourceLoader(ResourceLoader resourceLoader) {
 
@@ -105,10 +101,6 @@ public class ClasspathScanningPersistenceUnitPostProcessor
 		this.resourceLoader = resourceLoader;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.context.EnvironmentAware#setEnvironment(org.springframework.core.env.Environment)
-	 */
 	@Override
 	public void setEnvironment(Environment environment) {
 
@@ -117,10 +109,6 @@ public class ClasspathScanningPersistenceUnitPostProcessor
 		this.environment = environment;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.orm.jpa.persistenceunit.PersistenceUnitPostProcessor#postProcessPersistenceUnitInfo(org.springframework.orm.jpa.persistenceunit.MutablePersistenceUnitInfo)
-	 */
 	@Override
 	public void postProcessPersistenceUnitInfo(MutablePersistenceUnitInfo pui) {
 

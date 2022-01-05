@@ -157,10 +157,6 @@ final class NamedQuery extends AbstractJpaQuery {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.query.AbstractJpaQuery#doCreateQuery(JpaParametersParameterAccessor)
-	 */
 	@Override
 	protected Query doCreateQuery(JpaParametersParameterAccessor accessor) {
 
@@ -180,10 +176,6 @@ final class NamedQuery extends AbstractJpaQuery {
 		return parameterBinder.get().bindAndPrepare(query, metadata, accessor);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.query.AbstractJpaQuery#doCreateCountQuery(JpaParametersParameterAccessor)
-	 */
 	@Override
 	protected TypedQuery<Long> doCreateCountQuery(JpaParametersParameterAccessor accessor) {
 
@@ -207,10 +199,6 @@ final class NamedQuery extends AbstractJpaQuery {
 		return parameterBinder.get().bind(countQuery, metadata, accessor);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.query.AbstractJpaQuery#getTypeToRead()
-	 */
 	@Override
 	protected Class<?> getTypeToRead(ReturnedType returnedType) {
 
