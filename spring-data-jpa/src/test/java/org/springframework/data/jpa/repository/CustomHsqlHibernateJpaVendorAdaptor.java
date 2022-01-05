@@ -29,10 +29,6 @@ import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
  */
 public class CustomHsqlHibernateJpaVendorAdaptor extends HibernateJpaVendorAdapter {
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter#determineDatabaseDialectClass(org.springframework.orm.jpa.vendor.Database)
-	 */
 	@Override
 	protected Class<?> determineDatabaseDialectClass(Database database) {
 

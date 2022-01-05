@@ -26,11 +26,6 @@ import org.springframework.data.repository.config.RepositoryConfigurationExtensi
  */
 public class JpaRepositoryNameSpaceHandler extends NamespaceHandlerSupport {
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see org.springframework.beans.factory.xml.NamespaceHandler#init()
-	 */
 	@Override
 	public void init() {
 

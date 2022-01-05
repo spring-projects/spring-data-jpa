@@ -29,10 +29,6 @@ import org.springframework.context.ApplicationContext;
  */
 class JpaMetamodelCacheCleanup implements DisposableBean {
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.beans.factory.DisposableBean#destroy()
-	 */
 	@Override
 	public void destroy() throws Exception {
 		JpaMetamodel.clear();

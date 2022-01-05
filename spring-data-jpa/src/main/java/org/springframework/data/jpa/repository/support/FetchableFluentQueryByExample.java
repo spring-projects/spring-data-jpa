@@ -77,10 +77,6 @@ class FetchableFluentQueryByExample<S, R> extends FluentQuerySupport<S, R> imple
 		this.escapeCharacter = escapeCharacter;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#sortBy(org.springframework.data.domain.Sort)
-	 */
 	@Override
 	public FetchableFluentQuery<R> sortBy(Sort sort) {
 
@@ -90,10 +86,6 @@ class FetchableFluentQueryByExample<S, R> extends FluentQuerySupport<S, R> imple
 				countOperation, existsOperation, entityManager, escapeCharacter);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#as(java.lang.Class)
-	 */
 	@Override
 	public <NR> FetchableFluentQuery<NR> as(Class<NR> resultType) {
 
@@ -106,10 +98,6 @@ class FetchableFluentQueryByExample<S, R> extends FluentQuerySupport<S, R> imple
 				countOperation, existsOperation, entityManager, escapeCharacter);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#project(java.util.Collection)
-	 */
 	@Override
 	public FetchableFluentQuery<R> project(Collection<String> properties) {
 
@@ -117,10 +105,6 @@ class FetchableFluentQueryByExample<S, R> extends FluentQuerySupport<S, R> imple
 				finder, countOperation, existsOperation, entityManager, escapeCharacter);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#oneValue()
-	 */
 	@Override
 	public R oneValue() {
 
@@ -136,10 +120,6 @@ class FetchableFluentQueryByExample<S, R> extends FluentQuerySupport<S, R> imple
 		return results.isEmpty() ? null : getConversionFunction().apply(results.get(0));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#firstValue()
-	 */
 	@Override
 	public R firstValue() {
 
@@ -151,10 +131,6 @@ class FetchableFluentQueryByExample<S, R> extends FluentQuerySupport<S, R> imple
 		return results.isEmpty() ? null : getConversionFunction().apply(results.get(0));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#all()
-	 */
 	@Override
 	public List<R> all() {
 
@@ -163,19 +139,11 @@ class FetchableFluentQueryByExample<S, R> extends FluentQuerySupport<S, R> imple
 		return convert(resultList);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#page(org.springframework.data.domain.Pageable)
-	 */
 	@Override
 	public Page<R> page(Pageable pageable) {
 		return pageable.isUnpaged() ? new PageImpl<>(all()) : readPage(pageable);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#stream()
-	 */
 	@Override
 	public Stream<R> stream() {
 
@@ -184,19 +152,11 @@ class FetchableFluentQueryByExample<S, R> extends FluentQuerySupport<S, R> imple
 				.map(getConversionFunction());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#count()
-	 */
 	@Override
 	public long count() {
 		return countOperation.apply(example);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#exists()
-	 */
 	@Override
 	public boolean exists() {
 		return existsOperation.apply(example);

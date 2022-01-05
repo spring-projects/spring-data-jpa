@@ -106,10 +106,6 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 		});
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.query.RepositoryQuery#getQueryMethod()
-	 */
 	@Override
 	public JpaQueryMethod getQueryMethod() {
 		return method;
@@ -133,10 +129,6 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 		return metamodel;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.query.RepositoryQuery#execute(java.lang.Object[])
-	 */
 	@Nullable
 	@Override
 	public Object execute(Object[] parameters) {
@@ -304,10 +296,6 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 			this.type = type;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.core.convert.converter.Converter#convert(java.lang.Object)
-		 */
 		@Override
 		public Object convert(Object source) {
 

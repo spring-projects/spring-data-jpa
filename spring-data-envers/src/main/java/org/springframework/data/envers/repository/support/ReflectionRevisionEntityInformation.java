@@ -50,10 +50,6 @@ public class ReflectionRevisionEntityInformation implements RevisionEntityInform
 
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.history.support.RevisionEntityInformation#isDefaultRevisionEntity()
-	 */
 	public boolean isDefaultRevisionEntity() {
 		return false;
 	}

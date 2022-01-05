@@ -22,10 +22,6 @@ public class SampleWithIdClass {
 		Long first;
 		Long second;
 
-		/*
-		 * (non-Javadoc)
-		 * @see java.lang.Object#equals(java.lang.Object)
-		 */
 		@Override
 		public boolean equals(Object obj) {
 
@@ -42,10 +38,6 @@ public class SampleWithIdClass {
 			return this.first.equals(that.first) && this.second.equals(that.second);
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see java.lang.Object#hashCode()
-		 */
 		@Override
 		public int hashCode() {
 			return first.hashCode() + second.hashCode();

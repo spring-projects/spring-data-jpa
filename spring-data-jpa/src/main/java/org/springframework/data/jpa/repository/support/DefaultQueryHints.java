@@ -75,28 +75,16 @@ class DefaultQueryHints implements QueryHints {
 		return new DefaultQueryHints(information, metadata, Optional.empty(), false);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.support.QueryHints#withFetchGraphs()
-	 */
 	@Override
 	public QueryHints withFetchGraphs(EntityManager em) {
 		return new DefaultQueryHints(this.information, this.metadata, Optional.of(em), this.forCounts);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.support.QueryHints#forCounts()
-	 */
 	@Override
 	public QueryHints forCounts() {
 		return new DefaultQueryHints(this.information, this.metadata, this.entityManager, true);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.support.QueryHints#forEach(java.util.function.BiConsumer)
-	 */
 	@Override
 	public void forEach(BiConsumer<String, Object> action) {
 		combineHints().forEach(action);

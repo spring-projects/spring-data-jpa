@@ -106,10 +106,6 @@ public class JpaEntityGraph {
 		return !attributePaths.isEmpty();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
 	@Override
 	public String toString() {
 		return "JpaEntityGraph [name=" + name + ", type=" + type + ", attributePaths=" + attributePaths.toString() + "]";

@@ -175,10 +175,6 @@ public class JpaQueryMethod extends QueryMethod {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.query.QueryMethod#getEntityInformation()
-	 */
 	@Override
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public JpaEntityMetadata<?> getEntityInformation() {
@@ -336,10 +332,6 @@ public class JpaQueryMethod extends QueryMethod {
 		return this.isNativeQuery.get();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.query.QueryMethod#getNamedQueryName()
-	 */
 	@Override
 	public String getNamedQueryName() {
 
@@ -399,28 +391,16 @@ public class JpaQueryMethod extends QueryMethod {
 		return targetType.cast(AnnotationUtils.getValue(annotation, attribute));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.query.QueryMethod#createParameters(java.lang.reflect.Method)
-	 */
 	@Override
 	protected JpaParameters createParameters(Method method) {
 		return new JpaParameters(method);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.query.QueryMethod#getParameters()
-	 */
 	@Override
 	public JpaParameters getParameters() {
 		return (JpaParameters) super.getParameters();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.query.QueryMethod#isCollectionQuery()
-	 */
 	@Override
 	public boolean isCollectionQuery() {
 		return this.isCollectionQuery.get();

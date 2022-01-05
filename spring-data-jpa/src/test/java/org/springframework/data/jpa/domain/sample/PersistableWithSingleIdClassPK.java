@@ -40,10 +40,6 @@ public class PersistableWithSingleIdClassPK implements Serializable {
 		this.first = first;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
 	@Override
 	public boolean equals(Object obj) {
 
@@ -60,10 +56,6 @@ public class PersistableWithSingleIdClassPK implements Serializable {
 		return nullSafeEquals(this.first, that.first);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.lang.Object#hashCode()
-	 */
 	@Override
 	public int hashCode() {
 

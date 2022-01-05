@@ -29,10 +29,6 @@ import org.springframework.orm.jpa.vendor.EclipseLinkJpaVendorAdapter;
  */
 public class CustomEclipseLinkJpaVendorAdapter extends EclipseLinkJpaVendorAdapter {
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.orm.jpa.vendor.EclipseLinkJpaVendorAdapter#determineTargetDatabaseName(org.springframework.orm.jpa.vendor.Database)
-	 */
 	@Override
 	protected String determineTargetDatabaseName(Database database) {
 
@@ -52,10 +48,6 @@ public class CustomEclipseLinkJpaVendorAdapter extends EclipseLinkJpaVendorAdapt
 	@SuppressWarnings("serial")
 	public static class EclipseLinkHsqlPlatform extends HSQLPlatform {
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.eclipse.persistence.internal.databaseaccess.DatabasePlatform#getProcedureCallHeader()
-		 */
 		@Override
 		public String getProcedureCallHeader() {
 			return "CALL ";

@@ -85,10 +85,6 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 		this.entityManager = entityManager;
 	}
 
-	/*
-	* (non-Javadoc)
-	* @see org.springframework.data.querydsl.QuerydslPredicateExecutor#findOne(com.querydsl.core.types.Predicate)
-	*/
 	@Override
 	public Optional<T> findOne(Predicate predicate) {
 
@@ -101,10 +97,6 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.querydsl.QuerydslPredicateExecutor#findAll(com.querydsl.core.types.Predicate)
-	 */
 	@Override
 	public List<T> findAll(Predicate predicate) {
 
@@ -113,10 +105,6 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 		return createQuery(predicate).select(path).fetch();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.querydsl.QuerydslPredicateExecutor#findAll(com.querydsl.core.types.Predicate, com.querydsl.core.types.OrderSpecifier<?>[])
-	 */
 	@Override
 	public List<T> findAll(Predicate predicate, OrderSpecifier<?>... orders) {
 
@@ -126,10 +114,6 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 		return executeSorted(createQuery(predicate).select(path), orders);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.querydsl.QuerydslPredicateExecutor#findAll(com.querydsl.core.types.Predicate, org.springframework.data.domain.Sort)
-	 */
 	@Override
 	public List<T> findAll(Predicate predicate, Sort sort) {
 
@@ -139,10 +123,6 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 		return executeSorted(createQuery(predicate).select(path), sort);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.querydsl.QuerydslPredicateExecutor#findAll(com.querydsl.core.types.OrderSpecifier[])
-	 */
 	@Override
 	public List<T> findAll(OrderSpecifier<?>... orders) {
 
@@ -151,10 +131,6 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 		return executeSorted(createQuery(new Predicate[0]).select(path), orders);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.querydsl.QuerydslPredicateExecutor#findAll(com.querydsl.core.types.Predicate, org.springframework.data.domain.Pageable)
-	 */
 	@Override
 	public Page<T> findAll(Predicate predicate, Pageable pageable) {
 
@@ -167,10 +143,6 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 		return PageableExecutionUtils.getPage(query.fetch(), pageable, countQuery::fetchCount);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.querydsl.QuerydslPredicateExecutor#findBy(com.querydsl.core.types.Predicate, java.util.function.Function)
-	 */
 	@SuppressWarnings("unchecked")
 	@Override
 	public <S extends T, R> R findBy(Predicate predicate, Function<FetchableFluentQuery<S>, R> queryFunction) {
@@ -212,19 +184,11 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 		return queryFunction.apply((FetchableFluentQuery<S>) fluentQuery);
 	}
 
-	/*
-	* (non-Javadoc)
-	* @see org.springframework.data.querydsl.QueryDslPredicateExecutor#count(com.querydsl.core.types.Predicate)
-	*/
 	@Override
 	public long count(Predicate predicate) {
 		return createQuery(predicate).fetchCount();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.querydsl.QueryDslPredicateExecutor#exists(com.querydsl.core.types.Predicate)
-	 */
 	@Override
 	public boolean exists(Predicate predicate) {
 		return createQuery(predicate).select(Expressions.ONE).fetchFirst() != null;

@@ -47,19 +47,11 @@ import org.springframework.orm.jpa.SharedEntityManagerCreator;
  */
 public class EntityManagerBeanDefinitionRegistrarPostProcessor implements BeanFactoryPostProcessor, Ordered {
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.core.Ordered#getOrder()
-	 */
 	@Override
 	public int getOrder() {
 		return Ordered.HIGHEST_PRECEDENCE + 10;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.beans.factory.config.BeanFactoryPostProcessor#postProcessBeanFactory(org.springframework.beans.factory.config.ConfigurableListableBeanFactory)
-	 */
 	@Override
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
 

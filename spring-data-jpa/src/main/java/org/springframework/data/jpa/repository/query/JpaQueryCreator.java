@@ -114,29 +114,17 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extend
 		return provider.getExpressions();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.query.parser.AbstractQueryCreator#create(org.springframework.data.repository.query.parser.Part, java.util.Iterator)
-	 */
 	@Override
 	protected Predicate create(Part part, Iterator<Object> iterator) {
 
 		return toPredicate(part, root);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.query.parser.AbstractQueryCreator#and(org.springframework.data.repository.query.parser.Part, java.lang.Object, java.util.Iterator)
-	 */
 	@Override
 	protected Predicate and(Part part, Predicate base, Iterator<Object> iterator) {
 		return builder.and(base, toPredicate(part, root));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.query.parser.AbstractQueryCreator#or(java.lang.Object, java.lang.Object)
-	 */
 	@Override
 	protected Predicate or(Predicate base, Predicate predicate) {
 		return builder.or(base, predicate);

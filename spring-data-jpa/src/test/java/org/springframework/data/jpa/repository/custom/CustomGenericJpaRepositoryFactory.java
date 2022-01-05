@@ -42,10 +42,6 @@ public class CustomGenericJpaRepositoryFactory extends JpaRepositoryFactory {
 		super(entityManager);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.support.JpaRepositoryFactory#getTargetRepository(org.springframework.data.repository.core.RepositoryMetadata, jakarta.persistence.EntityManager)
-	 */
 	@Override
 	@SuppressWarnings("unchecked")
 	protected SimpleJpaRepository<?, ?> getTargetRepository(RepositoryInformation information, EntityManager em) {
@@ -55,10 +51,6 @@ public class CustomGenericJpaRepositoryFactory extends JpaRepositoryFactory {
 		return new CustomGenericJpaRepository<Object, Serializable>(entityMetadata, em);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.support.JpaRepositoryFactory#getRepositoryBaseClass(org.springframework.data.repository.core.RepositoryMetadata)
-	 */
 	@Override
 	protected Class<?> getRepositoryBaseClass(RepositoryMetadata metadata) {
 		return CustomGenericJpaRepository.class;

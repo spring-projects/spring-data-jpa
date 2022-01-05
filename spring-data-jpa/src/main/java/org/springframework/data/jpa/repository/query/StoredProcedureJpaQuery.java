@@ -80,19 +80,11 @@ class StoredProcedureJpaQuery extends AbstractJpaQuery {
 		return false;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.query.AbstractJpaQuery#createQuery(JpaParametersParameterAccessor)
-	 */
 	@Override
 	protected StoredProcedureQuery createQuery(JpaParametersParameterAccessor accessor) {
 		return applyHints(doCreateQuery(accessor), getQueryMethod());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.query.AbstractJpaQuery#doCreateQuery(JpaParametersParameterAccessor)
-	 */
 	@Override
 	protected StoredProcedureQuery doCreateQuery(JpaParametersParameterAccessor accessor) {
 
@@ -102,10 +94,6 @@ class StoredProcedureJpaQuery extends AbstractJpaQuery {
 		return parameterBinder.get().bind(storedProcedure, metadata, accessor);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.query.AbstractJpaQuery#doCreateCountQuery(JpaParametersParameterAccessor)
-	 */
 	@Override
 	protected TypedQuery<Long> doCreateCountQuery(JpaParametersParameterAccessor accessor) {
 		throw new UnsupportedOperationException("StoredProcedureQuery does not support count queries!");

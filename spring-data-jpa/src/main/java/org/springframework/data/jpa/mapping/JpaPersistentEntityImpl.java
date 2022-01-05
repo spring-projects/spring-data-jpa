@@ -63,28 +63,16 @@ class JpaPersistentEntityImpl<T> extends BasicPersistentEntity<T, JpaPersistentP
 		this.metamodel = metamodel;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.mapping.model.BasicPersistentEntity#returnPropertyIfBetterIdPropertyCandidateOrNull(org.springframework.data.mapping.PersistentProperty)
-	 */
 	@Override
 	protected JpaPersistentProperty returnPropertyIfBetterIdPropertyCandidateOrNull(JpaPersistentProperty property) {
 		return property.isIdProperty() ? property : null;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.mapping.model.BasicPersistentEntity#getIdentifierAccessor(java.lang.Object)
-	 */
 	@Override
 	public IdentifierAccessor getIdentifierAccessor(Object bean) {
 		return new JpaProxyAwareIdentifierAccessor(this, bean, proxyIdAccessor);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.mapping.model.BasicPersistentEntity#verify()
-	 */
 	@Override
 	public void verify() {
 
@@ -131,10 +119,6 @@ class JpaPersistentEntityImpl<T> extends BasicPersistentEntity<T, JpaPersistentP
 			this.bean = bean;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.mapping.IdentifierAccessor#getIdentifier()
-		 */
 		@Override
 		public Object getIdentifier() {
 

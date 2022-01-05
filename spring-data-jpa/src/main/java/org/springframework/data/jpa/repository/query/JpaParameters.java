@@ -50,19 +50,11 @@ public class JpaParameters extends Parameters<JpaParameters, JpaParameter> {
 		super(parameters);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.query.Parameters#createParameter(org.springframework.core.MethodParameter)
-	 */
 	@Override
 	protected JpaParameter createParameter(MethodParameter parameter) {
 		return new JpaParameter(parameter);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.query.Parameters#createFrom(java.util.List)
-	 */
 	@Override
 	protected JpaParameters createFrom(List<JpaParameter> parameters) {
 		return new JpaParameters(parameters);
@@ -97,10 +89,6 @@ public class JpaParameters extends Parameters<JpaParameters, JpaParameter> {
 			}
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.repository.query.Parameter#isBindable()
-		 */
 		@Override
 		public boolean isBindable() {
 			return super.isBindable() || isTemporalParameter();

@@ -60,19 +60,11 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 
 	private @Nullable ClassLoader classLoader = ClassUtils.getDefaultClassLoader();
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.beans.factory.BeanClassLoaderAware#setBeanClassLoader(java.lang.ClassLoader)
-	 */
 	@Override
 	public void setBeanClassLoader(ClassLoader classLoader) {
 		this.classLoader = classLoader;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.core.support.RepositoryProxyPostProcessor#postProcess(org.springframework.aop.framework.ProxyFactory, org.springframework.data.repository.core.RepositoryInformation)
-	 */
 	@Override
 	public void postProcess(ProxyFactory factory, RepositoryInformation repositoryInformation) {
 		factory.addAdvice(new CrudMethodMetadataPopulatingMethodInterceptor(repositoryInformation));
@@ -132,10 +124,6 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 			return mi;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.aopalliance.intercept.MethodInterceptor#invoke(org.aopalliance.intercept.MethodInvocation)
-		 */
 		@Override
 		public Object invoke(MethodInvocation invocation) throws Throwable {
 
@@ -245,47 +233,27 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 			return queryHints;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.jpa.repository.support.CrudMethodMetadata#getLockModeType()
-		 */
 		@Nullable
 		@Override
 		public LockModeType getLockModeType() {
 			return lockModeType;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.jpa.repository.support.CrudMethodMetadata#getQueryHints()
-		 */
 		@Override
 		public org.springframework.data.jpa.repository.support.QueryHints getQueryHints() {
 			return queryHints;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.jpa.repository.support.CrudMethodMetadata#getQueryHintsForCount()
-		 */
 		@Override
 		public org.springframework.data.jpa.repository.support.QueryHints getQueryHintsForCount() {
 			return queryHintsForCount;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.jpa.repository.support.CrudMethodMetadata#getEntityGraph()
-		 */
 		@Override
 		public Optional<EntityGraph> getEntityGraph() {
 			return entityGraph;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.jpa.repository.support.CrudMethodMetadata#getMethod()
-		 */
 		@Override
 		public Method getMethod() {
 			return method;
@@ -294,28 +262,16 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 
 	private static class ThreadBoundTargetSource implements TargetSource {
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.aop.TargetSource#getTargetClass()
-		 */
 		@Override
 		public Class<?> getTargetClass() {
 			return CrudMethodMetadata.class;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.aop.TargetSource#isStatic()
-		 */
 		@Override
 		public boolean isStatic() {
 			return false;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.aop.TargetSource#getTarget()
-		 */
 		@Override
 		public Object getTarget() {
 
@@ -323,10 +279,6 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 			return TransactionSynchronizationManager.getResource(invocation.getMethod());
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.aop.TargetSource#releaseTarget(java.lang.Object)
-		 */
 		@Override
 		public void releaseTarget(Object target) {}
 	}

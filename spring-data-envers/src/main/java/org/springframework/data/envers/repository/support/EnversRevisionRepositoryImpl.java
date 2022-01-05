@@ -83,10 +83,6 @@ public class EnversRevisionRepositoryImpl<T, ID, N extends Number & Comparable<N
 		this.entityManager = entityManager;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.history.RevisionRepository#findLastChangeRevision(java.io.Serializable)
-	 */
 	@SuppressWarnings("unchecked")
 	public Optional<Revision<N, T>> findLastChangeRevision(ID id) {
 
@@ -104,10 +100,6 @@ public class EnversRevisionRepositoryImpl<T, ID, N extends Number & Comparable<N
 		return Optional.of(createRevision(new QueryResult<>(singleResult.get(0))));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.envers.repository.support.EnversRevisionRepository#findRevision(java.io.Serializable, java.lang.Number)
-	 */
 	@Override
 	@SuppressWarnings("unchecked")
 	public Optional<Revision<N, T>> findRevision(ID id, N revisionNumber) {

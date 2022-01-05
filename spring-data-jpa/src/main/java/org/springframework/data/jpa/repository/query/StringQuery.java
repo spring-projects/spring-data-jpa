@@ -89,19 +89,11 @@ class StringQuery implements DeclaredQuery {
 		return QueryUtils.getProjection(query);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.query.DeclaredQuery#getParameterBindings()
-	 */
 	@Override
 	public List<ParameterBinding> getParameterBindings() {
 		return bindings;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.query.DeclaredQuery#deriveCountQuery(java.lang.String, java.lang.String)
-	 */
 	@Override
 	@SuppressWarnings("deprecation")
 	public DeclaredQuery deriveCountQuery(@Nullable String countQuery, @Nullable String countQueryProjection) {
@@ -110,65 +102,37 @@ class StringQuery implements DeclaredQuery {
 				.of(countQuery != null ? countQuery : QueryUtils.createCountQueryFor(query, countQueryProjection));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.query.DeclaredQuery#usesJdbcStyleParameters()
-	 */
 	@Override
 	public boolean usesJdbcStyleParameters() {
 		return usesJdbcStyleParameters;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.query.DeclaredQuery#getQueryString()
-	 */
 	@Override
 	public String getQueryString() {
 		return query;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.query.DeclaredQuery#getAlias()
-	 */
 	@Override
 	@Nullable
 	public String getAlias() {
 		return alias;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.query.DeclaredQuery#hasConstructorExpression()
-	 */
 	@Override
 	public boolean hasConstructorExpression() {
 		return hasConstructorExpression;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.query.DeclaredQuery#isDefaultProjection()
-	 */
 	@Override
 	public boolean isDefaultProjection() {
 		return getProjection().equalsIgnoreCase(alias);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.query.DeclaredQuery#hasNamedParameter()
-	 */
 	@Override
 	public boolean hasNamedParameter() {
 		return bindings.stream().anyMatch(b -> b.getName() != null);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.query.DeclaredQuery#usesPaging()
-	 */
 	@Override
 	public boolean usesPaging() {
 		return containsPageableInSpel;
@@ -554,10 +518,6 @@ class StringQuery implements DeclaredQuery {
 			return this.expression != null;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see java.lang.Object#hashCode()
-		 */
 		@Override
 		public int hashCode() {
 
@@ -570,10 +530,6 @@ class StringQuery implements DeclaredQuery {
 			return result;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see java.lang.Object#equals(java.lang.Object)
-		 */
 		@Override
 		public boolean equals(Object obj) {
 
@@ -587,10 +543,6 @@ class StringQuery implements DeclaredQuery {
 					&& nullSafeEquals(this.expression, that.expression);
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see java.lang.Object#toString()
-		 */
 		@Override
 		public String toString() {
 			return String.format("ParameterBinding [name: %s, position: %d, expression: %s]", getName(), getPosition(),
@@ -633,10 +585,6 @@ class StringQuery implements DeclaredQuery {
 			super(null, position, expression);
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.jpa.repository.query.StringQuery.ParameterBinding#prepare(java.lang.Object)
-		 */
 		@Override
 		public Object prepare(@Nullable Object value) {
 
@@ -763,10 +711,6 @@ class StringQuery implements DeclaredQuery {
 			}
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see java.lang.Object#equals(java.lang.Object)
-		 */
 		@Override
 		public boolean equals(Object obj) {
 
@@ -779,10 +723,6 @@ class StringQuery implements DeclaredQuery {
 			return super.equals(obj) && this.type.equals(that.type);
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see java.lang.Object#hashCode()
-		 */
 		@Override
 		public int hashCode() {
 
@@ -793,10 +733,6 @@ class StringQuery implements DeclaredQuery {
 			return result;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see java.lang.Object#toString()
-		 */
 		@Override
 		public String toString() {
 			return String.format("LikeBinding [name: %s, position: %d, type: %s]", getName(), getPosition(), type);

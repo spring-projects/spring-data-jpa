@@ -40,19 +40,11 @@ public class JpaPersistableEntityInformation<T extends Persistable<ID>, ID>
 		super(domainClass, metamodel);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformation#isNew(java.lang.Object)
-	 */
 	@Override
 	public boolean isNew(T entity) {
 		return entity.isNew();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformation#getId(java.lang.Object)
-	 */
 	@Nullable
 	@Override
 	public ID getId(T entity) {

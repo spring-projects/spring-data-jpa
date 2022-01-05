@@ -31,10 +31,6 @@ import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
  */
 public class CollectionAwareProjectionFactory extends SpelAwareProxyProjectionFactory {
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.projection.SpelAwareProxyProjectionFactory#createProjectionInformation(java.lang.Class)
-	 */
 	@Override
 	protected ProjectionInformation createProjectionInformation(Class<?> projectionType) {
 		return new CollectionAwareProjectionInformation(projectionType);
@@ -46,10 +42,6 @@ public class CollectionAwareProjectionFactory extends SpelAwareProxyProjectionFa
 			super(projectionType);
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.projection.SpelAwareProxyProjectionFactory.SpelAwareProjectionInformation#isInputProperty(java.beans.PropertyDescriptor)
-		 */
 		@Override
 		protected boolean isInputProperty(PropertyDescriptor descriptor) {
 

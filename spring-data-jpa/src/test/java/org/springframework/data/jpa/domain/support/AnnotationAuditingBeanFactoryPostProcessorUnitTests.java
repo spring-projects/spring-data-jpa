@@ -50,10 +50,6 @@ class AnnotationAuditingBeanFactoryPostProcessorUnitTests extends AuditingBeanFa
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.domain.support.AuditingBeanFactoryPostProcessorUnitTests#getBeanFactory()
-	 */
 	@Override
 	DefaultListableBeanFactory getBeanFactory() {
 

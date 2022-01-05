@@ -69,10 +69,6 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 		this.entityManager = entityManager;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.core.support.RepositoryFactoryBeanSupport#setMappingContext(org.springframework.data.mapping.context.MappingContext)
-	 */
 	@Override
 	public void setMappingContext(MappingContext<?, ?> mappingContext) {
 		super.setMappingContext(mappingContext);
@@ -104,10 +100,6 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.core.support.TransactionalRepositoryFactoryBeanSupport#doCreateRepositoryFactory()
-	 */
 	@Override
 	protected RepositoryFactorySupport doCreateRepositoryFactory() {
 
@@ -132,10 +124,6 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 		return jpaRepositoryFactory;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
-	 */
 	@Override
 	public void afterPropertiesSet() {
 

@@ -90,10 +90,6 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 		this.versionAttribute = findVersionAttribute(identifiableType, metamodel);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.support.JpaEntityInformationSupport#getEntityName()
-	 */
 	@Override
 	public String getEntityName() {
 		return entityName != null ? entityName : super.getEntityName();
@@ -139,10 +135,6 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 		return findVersionAttribute((IdentifiableType<T>) managedSuperType, metamodel);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.core.EntityInformation#getId(java.lang.Object)
-	 */
 	@Override
 	@Nullable
 	@SuppressWarnings("unchecked")
@@ -178,38 +170,22 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 		return partialIdValueFound ? (ID) idWrapper.getWrappedInstance() : null;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.core.EntityInformation#getIdType()
-	 */
 	@Override
 	@SuppressWarnings("unchecked")
 	public Class<ID> getIdType() {
 		return (Class<ID>) idMetadata.getType();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.support.JpaEntityInformation#getIdAttribute()
-	 */
 	@Override
 	public SingularAttribute<? super T, ?> getIdAttribute() {
 		return idMetadata.getSimpleIdAttribute();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.support.JpaEntityInformation#hasCompositeId()
-	 */
 	@Override
 	public boolean hasCompositeId() {
 		return !idMetadata.hasSimpleId();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.support.JpaEntityInformation#getIdAttributeNames()
-	 */
 	@Override
 	public Iterable<String> getIdAttributeNames() {
 
@@ -222,10 +198,6 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 		return attributeNames;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.support.JpaEntityInformation#getCompositeIdAttributeValue(java.lang.Object, java.lang.String)
-	 */
 	@Override
 	public Object getCompositeIdAttributeValue(Object id, String idAttribute) {
 
@@ -234,10 +206,6 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 		return new DirectFieldAccessFallbackBeanWrapper(id).getPropertyValue(idAttribute);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.core.support.AbstractEntityInformation#isNew(java.lang.Object)
-	 */
 	@Override
 	public boolean isNew(T entity) {
 
@@ -325,10 +293,6 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 			return attributes.iterator().next();
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see java.lang.Iterable#iterator()
-		 */
 		@Override
 		public Iterator<SingularAttribute<? super T, ?>> iterator() {
 			return attributes.iterator();
