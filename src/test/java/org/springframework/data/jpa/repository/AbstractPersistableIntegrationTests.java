@@ -68,7 +68,7 @@ public class AbstractPersistableIntegrationTests {
 		assertThat(proxy).isEqualTo(proxy);
 	}
 
-	@Test // gh-1697
+	@Test // GH-1697
 	void equalsWorksForProxiedEntitiesUsingGetById() {
 
 		CustomAbstractPersistable entity = repository.saveAndFlush(new CustomAbstractPersistable());
@@ -80,7 +80,7 @@ public class AbstractPersistableIntegrationTests {
 		assertThat(proxy).isEqualTo(proxy);
 	}
 
-	@Test // gh-1697
+	@Test // GH-2232
 	void equalsWorksForProxiedEntitiesUsingGetReferenceById() {
 
 		CustomAbstractPersistable entity = repository.saveAndFlush(new CustomAbstractPersistable());

@@ -1002,7 +1002,7 @@ public class UserRepositoryTests {
 		assertThat(result).isEqualTo(firstUser);
 	}
 
-	@Test // gh-1697
+	@Test // GH-1697
 	void looksUpEntityReferenceUsingGetById() {
 
 		flushTestUsers();
@@ -1011,7 +1011,7 @@ public class UserRepositoryTests {
 		assertThat(result).isEqualTo(firstUser);
 	}
 
-    @Test // gh-1697
+    @Test // GH-2232
     void looksUpEntityReferenceUsingGetReferenceById() {
 
         flushTestUsers();
