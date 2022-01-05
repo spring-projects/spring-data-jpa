@@ -292,6 +292,7 @@ public abstract class QueryUtils {
 		checkSortExpression(order);
 
 		if (selectionAlias.contains(property)) {
+
 			return String.format("%s %s", //
 					order.isIgnoreCase() ? String.format("lower(%s)", property) : property, //
 					toJpaDirection(order));
@@ -300,7 +301,9 @@ public abstract class QueryUtils {
 		boolean qualifyReference = !property.contains("("); // ( indicates a function
 
 		for (String joinAlias : joinAliases) {
+
 			if (property.startsWith(joinAlias.concat("."))) {
+
 				qualifyReference = false;
 				break;
 			}
@@ -342,6 +345,7 @@ public abstract class QueryUtils {
 	 * @return a {@literal Set} containing all found aliases. Guaranteed to be not {@literal null}.
 	 */
 	private static Set<String> getFieldAliases(String query) {
+
 		Set<String> result = new HashSet<>();
 		Matcher matcher = FIELD_ALIAS_PATTERN.matcher(query);
 
