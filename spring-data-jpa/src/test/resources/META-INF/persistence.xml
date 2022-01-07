@@ -45,6 +45,7 @@
 		<class>org.springframework.data.jpa.domain.sample.Site</class>
 		<class>org.springframework.data.jpa.domain.sample.SpecialUser</class>
 		<class>org.springframework.data.jpa.domain.sample.User</class>
+		<class>org.springframework.data.jpa.domain.sample.UserWithOptionalField</class>
 		<class>org.springframework.data.jpa.domain.sample.VersionedUser</class>
 		<class>org.springframework.data.jpa.domain.sample.Dummy</class>
 		<class>org.springframework.data.jpa.domain.sample.SampleWithIdClassIncludingEntity</class>
