@@ -56,6 +56,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Paluch
  * @author Oliver Gierke
  * @author Jens Schauder
+ * @author Greg Turnquist
  * @since 1.10
  */
 public class QueryByExamplePredicateBuilder {
@@ -145,6 +146,10 @@ public class QueryByExamplePredicateBuilder {
 			}
 
 			Object attributeValue = optionalValue.get();
+
+			if (attributeValue == Optional.empty()) {
+				continue;
+			}
 
 			if (attribute.getPersistentAttributeType().equals(PersistentAttributeType.EMBEDDED)
 					|| (isAssociation(attribute) && !(from instanceof From))) {
