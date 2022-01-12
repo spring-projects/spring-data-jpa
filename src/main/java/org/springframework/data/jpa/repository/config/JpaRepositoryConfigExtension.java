@@ -15,6 +15,8 @@
  */
 package org.springframework.data.jpa.repository.config;
 
+import static org.springframework.data.jpa.repository.config.BeanDefinitionNames.*;
+
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.Collection;
@@ -51,8 +53,6 @@ import org.springframework.lang.Nullable;
 import org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
-
-import static org.springframework.data.jpa.repository.config.BeanDefinitionNames.*;
 
 /**
  * JPA specific configuration extension parsing custom attributes from the XML namespace and

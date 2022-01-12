@@ -263,6 +263,7 @@ class StringQuery implements DeclaredQuery {
 				Integer parameterIndex = getParameterIndex(parameterIndexString);
 
 				String typeSource = matcher.group(COMPARISION_TYPE_GROUP);
+				Assert.isTrue(parameterIndexString != null || parameterName != null, () -> String.format("We need either a name or an index! Offending query string: %s", query));
 				String expression = spelExtractor.getParameter(parameterName == null ? parameterIndexString : parameterName);
 				String replacement = null;
 
