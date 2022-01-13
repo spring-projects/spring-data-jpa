@@ -472,7 +472,6 @@ public abstract class QueryUtils {
 	 * @param originalQuery must not be {@literal null}.
 	 * @param countProjection may be {@literal null}.
 	 * @return a query String to be used a count query for pagination. Guaranteed to be not {@literal null}.
-	 * @return a query String to be used a count query for pagination. Guaranteed to be not {@literal null}.
 	 * @since 1.6
 	 * @deprecated use {@link DeclaredQuery#deriveCountQuery(String, String)} instead.
 	 */
