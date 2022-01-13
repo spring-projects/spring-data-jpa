@@ -141,7 +141,7 @@ public interface JpaRepository<T, ID> extends PagingAndSortingRepository<T, ID>,
 	/**
 	 * Returns a reference to the entity with the given identifier. Depending on how the JPA persistence provider is
 	 * implemented this is very likely to always return an instance and throw an
-	 * {@link javax.persistence.EntityNotFoundException} on first access. Some of them will reject invalid identifiers
+	 * {@link jakarta.persistence.EntityNotFoundException} on first access. Some of them will reject invalid identifiers
 	 * immediately.
 	 *
 	 * @param id must not be {@literal null}.
