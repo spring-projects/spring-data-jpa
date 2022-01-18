@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2021 the original author or authors.
+ * Copyright 2008-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,8 +32,8 @@ import org.eclipse.persistence.jpa.JpaQuery;
 import org.eclipse.persistence.queries.ScrollableCursor;
 import org.hibernate.ScrollMode;
 import org.hibernate.ScrollableResults;
-import org.hibernate.metamodel.model.domain.spi.IdentifiableTypeDescriptor;
 import org.hibernate.proxy.HibernateProxy;
+
 import org.springframework.data.util.CloseableIterator;
 import org.springframework.lang.Nullable;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -103,9 +103,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 		 */
 		@Override
 		public <T> Set<SingularAttribute<? super T, ?>> getIdClassAttributes(IdentifiableType<T> type) {
-			return type instanceof IdentifiableTypeDescriptor && ((IdentifiableTypeDescriptor<T>) type).hasIdClass()
-					? super.getIdClassAttributes(type)
-					: Collections.emptySet();
+			return type.hasSingleIdAttribute() ? Collections.emptySet() : super.getIdClassAttributes(type);
 		}
 
 		/*
