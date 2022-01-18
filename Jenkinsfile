@@ -1,3 +1,9 @@
+def p = [:]
+node {
+    checkout scm
+    p = readProperties interpolate: true, file: 'ci/pipeline.properties'
+}
+
 pipeline {
 	agent none
 
@@ -31,7 +37,7 @@ pipeline {
 			steps {
 				script {
 					docker.withRegistry('', 'hub.docker.com-springbuildmaster') {
-						docker.image('adoptopenjdk/openjdk8:latest').inside('-u root -v /var/run/docker.sock:/var/run/docker.sock -v /usr/bin/docker:/usr/bin/docker -v $HOME:/tmp/jenkins-home') {
+						docker.image(p['docker.java.main.image']).inside(p['docker.java.inside.docker']) {
 							sh "docker login --username ${DOCKER_HUB_USR} --password ${DOCKER_HUB_PSW}"
 							sh 'PROFILE=all-dbs ci/test.sh'
 							sh "ci/clean.sh"
@@ -61,7 +67,7 @@ pipeline {
 					steps {
 						script {
 							docker.withRegistry('', 'hub.docker.com-springbuildmaster') {
-								docker.image('adoptopenjdk/openjdk11:latest').inside('-v $HOME:/tmp/jenkins-home') {
+								docker.image(p['docker.java.next.image']).inside(p['docker.java.inside.basic']) {
 									sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -s settings.xml -Pjava11 clean dependency:list test -Dsort -Dbundlor.enabled=false -U -B'
 								}
 							}
@@ -80,7 +86,7 @@ pipeline {
 					steps {
 						script {
 							docker.withRegistry('', 'hub.docker.com-springbuildmaster') {
-								docker.image('openjdk:17-bullseye').inside('-v $HOME:/tmp/jenkins-home') {
+								docker.image(p['docker.java.lts.image']).inside(p['docker.java.inside.basic']) {
 									sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -s settings.xml -Pjava11 clean dependency:list test -Dsort -Dbundlor.enabled=false -U -B'
 								}
 							}
@@ -110,7 +116,7 @@ pipeline {
 			steps {
 				script {
 					docker.withRegistry('', 'hub.docker.com-springbuildmaster') {
-						docker.image('adoptopenjdk/openjdk8:latest').inside('-v $HOME:/tmp/jenkins-home') {
+						docker.image(p['docker.java.main.image']).inside(p['docker.java.inside.basic']) {
 							sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -s settings.xml -Pci,artifactory ' +
 									'-Dartifactory.server=https://repo.spring.io ' +
 									"-Dartifactory.username=${ARTIFACTORY_USR} " +
