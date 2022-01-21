@@ -33,7 +33,6 @@ import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Order;
 import javax.persistence.criteria.ParameterExpression;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
@@ -77,6 +76,7 @@ import org.springframework.util.Assert;
  * @author Jesse Wouters
  * @author Greg Turnquist
  * @author Yanming Zhou
+ * @author Ernst-Jan van der Laan
  */
 @Repository
 @Transactional(readOnly = true)
@@ -222,13 +222,22 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 			return;
 		}
 
-		String queryString = String.format(DELETE_ALL_QUERY_BY_ID_STRING, entityInformation.getEntityName(),
-				entityInformation.getIdAttribute().getName());
+		if (entityInformation.hasCompositeId()) {
+			// XXX Hibernate just creates an empty Entity when doing the getById.
+			// Others might do a select right away causing a big performance penalty.
+			// See JavaDoc for getById.
+			List<T> entities = new ArrayList<>();
+			ids.forEach(id -> entities.add(getById(id)));
+			deleteAllInBatch(entities);
+		} else {
+			String queryString = String.format(DELETE_ALL_QUERY_BY_ID_STRING, entityInformation.getEntityName(),
+					entityInformation.getIdAttribute().getName());
 
-		Query query = em.createQuery(queryString);
-		query.setParameter("ids", ids);
+			Query query = em.createQuery(queryString);
+			query.setParameter("ids", ids);
 
-		query.executeUpdate();
+			query.executeUpdate();
+		}
 	}
 
 	/*
@@ -313,8 +322,6 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	/**
 	 * Returns {@link QueryHints} with the query hints based on the current {@link CrudMethodMetadata} and potential
 	 * {@link EntityGraph} information.
-	 *
-	 * @return
 	 */
 	protected QueryHints getQueryHints() {
 		return metadata == null ? NoHints.INSTANCE : DefaultQueryHints.of(entityInformation, metadata);
@@ -552,8 +559,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 */
 	@Override
 	public <S extends T> List<S> findAll(Example<S> example, Sort sort) {
-		return getQuery(new ExampleSpecification<S>(example, escapeCharacter), example.getProbeType(), sort)
-				.getResultList();
+		return getQuery(new ExampleSpecification<S>(example, escapeCharacter), example.getProbeType(), sort).getResultList();
 	}
 
 	/*
