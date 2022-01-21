@@ -20,9 +20,10 @@ import static org.assertj.core.api.Assertions.*;
 import java.util.Arrays;
 import java.util.List;
 
+import jakarta.persistence.EntityManager;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -47,6 +48,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Thomas Darimont
  * @author Mark Paluch
  * @author Jens Schauder
+ * @author Ernst-Jan van der Laan
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = SampleConfig.class)
@@ -55,6 +57,7 @@ public class RepositoryWithCompositeKeyTests {
 
 	@Autowired EmployeeRepositoryWithIdClass employeeRepositoryWithIdClass;
 	@Autowired EmployeeRepositoryWithEmbeddedId employeeRepositoryWithEmbeddedId;
+	@Autowired EntityManager em;
 
 	/**
 	 * @see <a href="download.oracle.com/otn-pub/jcp/persistence-2_1-fr-eval-spec/JavaPersistence.pdf">Final JPA 2.0
@@ -124,6 +127,28 @@ public class RepositoryWithCompositeKeyTests {
 
 		assertThat(page).isNotNull();
 		assertThat(page.getTotalElements()).isEqualTo(1L);
+	}
+
+	@Test // DATAJPA-2414
+	void shouldSupportDeleteAllByIdInBatchWithIdClass() throws Exception {
+
+		IdClassExampleDepartment dep = new IdClassExampleDepartment();
+		dep.setName("TestDepartment");
+		dep.setDepartmentId(-1);
+
+		IdClassExampleEmployee emp = new IdClassExampleEmployee();
+		emp.setDepartment(dep);
+		emp = employeeRepositoryWithIdClass.save(emp);
+
+		IdClassExampleEmployeePK key = new IdClassExampleEmployeePK(emp.getEmpId(), dep.getDepartmentId());
+		assertThat(employeeRepositoryWithIdClass.findById(key)).isNotEmpty();
+
+		employeeRepositoryWithIdClass.deleteAllByIdInBatch(Arrays.asList(key));
+
+		em.flush();
+		em.clear();
+
+		assertThat(employeeRepositoryWithIdClass.findById(key)).isEmpty();
 	}
 
 	@Test // DATAJPA-497
