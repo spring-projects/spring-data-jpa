@@ -81,6 +81,7 @@ import org.springframework.util.Assert;
  * @author Jesse Wouters
  * @author Greg Turnquist
  * @author Yanming Zhou
+ * @author Ernst-Jan van der Laan
  */
 @Repository
 @Transactional(readOnly = true)
@@ -226,13 +227,22 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 			return;
 		}
 
-		String queryString = String.format(DELETE_ALL_QUERY_BY_ID_STRING, entityInformation.getEntityName(),
-				entityInformation.getIdAttribute().getName());
+		if (entityInformation.hasCompositeId()) {
+			// XXX Hibernate just creates an empty Entity when doing the getById.
+			// Others might do a select right away causing a big performance penalty.
+			// See JavaDoc for getById.
+			List<T> entities = new ArrayList<>();
+			ids.forEach(id -> entities.add(getById(id)));
+			deleteAllInBatch(entities);
+		} else {
+			String queryString = String.format(DELETE_ALL_QUERY_BY_ID_STRING, entityInformation.getEntityName(),
+					entityInformation.getIdAttribute().getName());
 
-		Query query = em.createQuery(queryString);
-		query.setParameter("ids", ids);
+			Query query = em.createQuery(queryString);
+			query.setParameter("ids", ids);
 
-		query.executeUpdate();
+			query.executeUpdate();
+		}
 	}
 
 	/*
