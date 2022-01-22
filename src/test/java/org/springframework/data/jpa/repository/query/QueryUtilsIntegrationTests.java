@@ -71,7 +71,8 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @ContextConfiguration("classpath:infrastructure.xml")
 public class QueryUtilsIntegrationTests {
 
-	@PersistenceContext EntityManager em;
+	@PersistenceContext
+	EntityManager em;
 
 	@Test // DATAJPA-403
 	void reusesExistingJoinForExpression() {
@@ -139,8 +140,8 @@ public class QueryUtilsIntegrationTests {
 		CriteriaQuery<InvoiceItem> query = builder.createQuery(InvoiceItem.class);
 		Root<InvoiceItem> root = query.from(InvoiceItem.class);
 
-		QueryUtils
-				.toExpressionRecursively(root, PropertyPath.from("invoice.order.customer.name", InvoiceItem.class), false);
+		QueryUtils.toExpressionRecursively(root, PropertyPath.from("invoice.order.customer.name", InvoiceItem.class),
+				false);
 
 		assertThat(getInnerJoins(root)).hasSize(1); // join invoice
 		Join<?, ?> rootInnerJoin = getInnerJoins(root).iterator().next();
@@ -162,8 +163,8 @@ public class QueryUtilsIntegrationTests {
 		root.join("invoice", JoinType.LEFT).join("order", JoinType.LEFT);
 
 		// when navigating through a path with nested optionals
-		QueryUtils
-				.toExpressionRecursively(root, PropertyPath.from("invoice.order.customer.name", InvoiceItem.class), false);
+		QueryUtils.toExpressionRecursively(root, PropertyPath.from("invoice.order.customer.name", InvoiceItem.class),
+				false);
 
 		// assert that existing joins are reused and no additional joins are created
 		assertThat(getInnerJoins(root)).isEmpty(); // no inner join invoice
@@ -185,8 +186,8 @@ public class QueryUtilsIntegrationTests {
 		// given an existing inner join an nested optional
 		root.join("invoice").join("order");
 
-		QueryUtils
-				.toExpressionRecursively(root, PropertyPath.from("invoice.order.customer.name", InvoiceItem.class), false);
+		QueryUtils.toExpressionRecursively(root, PropertyPath.from("invoice.order.customer.name", InvoiceItem.class),
+				false);
 
 		// assert that no useless left joins are created
 		assertThat(getInnerJoins(root)).hasSize(1); // join invoice
@@ -347,32 +348,40 @@ public class QueryUtilsIntegrationTests {
 	@SuppressWarnings("unused")
 	static class Merchant {
 
-		@Id String id;
-		@OneToMany Set<Employee> employees;
+		@Id
+		String id;
+		@OneToMany
+		Set<Employee> employees;
 
-		@OneToOne Address address;
+		@OneToOne
+		Address address;
 	}
 
 	@Entity
 	@SuppressWarnings("unused")
 	static class Address {
-		@Id String id;
-		@OneToOne(mappedBy = "address") Merchant merchant;
+		@Id
+		String id;
+		@OneToOne(mappedBy = "address")
+		Merchant merchant;
 	}
 
 	@Entity
 	@SuppressWarnings("unused")
 	static class Employee {
 
-		@Id String id;
-		@OneToMany Set<Credential> credentials;
+		@Id
+		String id;
+		@OneToMany
+		Set<Credential> credentials;
 	}
 
 	@Entity
 	@SuppressWarnings("unused")
 	static class Credential {
 
-		@Id String id;
+		@Id
+		String id;
 		String uid;
 	}
 
@@ -390,7 +399,8 @@ public class QueryUtilsIntegrationTests {
 		}
 
 		@Override
-		public void clearCachedProviders() {}
+		public void clearCachedProviders() {
+		}
 	}
 
 }

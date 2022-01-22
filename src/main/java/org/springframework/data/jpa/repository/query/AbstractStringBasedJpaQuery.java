@@ -34,6 +34,7 @@ import org.springframework.util.Assert;
  * @author Tom Hombergs
  * @author David Madden
  * @author Mark Paluch
+ * @author Diego Krupitza
  */
 abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 
@@ -55,8 +56,8 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 	 * @param parser must not be {@literal null}.
 	 */
 	public AbstractStringBasedJpaQuery(JpaQueryMethod method, EntityManager em, String queryString,
-			@Nullable String countQueryString,
-			QueryMethodEvaluationContextProvider evaluationContextProvider, SpelExpressionParser parser) {
+			@Nullable String countQueryString, QueryMethodEvaluationContextProvider evaluationContextProvider,
+			SpelExpressionParser parser) {
 
 		super(method, em);
 
@@ -65,10 +66,12 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 		Assert.notNull(parser, "Parser must not be null!");
 
 		this.evaluationContextProvider = evaluationContextProvider;
-		this.query = new ExpressionBasedStringQuery(queryString, method.getEntityInformation(), parser);
+		this.query = new ExpressionBasedStringQuery(queryString, method.getEntityInformation(), parser,
+				method.isNativeQuery());
 
 		DeclaredQuery countQuery = query.deriveCountQuery(countQueryString, method.getCountQueryProjection());
-		this.countQuery = ExpressionBasedStringQuery.from(countQuery, method.getEntityInformation(), parser);
+		this.countQuery = ExpressionBasedStringQuery.from(countQuery, method.getEntityInformation(), parser,
+				method.isNativeQuery());
 
 		this.parser = parser;
 
@@ -83,7 +86,8 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 	@Override
 	public Query doCreateQuery(JpaParametersParameterAccessor accessor) {
 
-		String sortedQueryString = QueryUtils.applySorting(query.getQueryString(), accessor.getSort(), query.getAlias());
+		String sortedQueryString = QueryEnhancerFactory.forQuery(query) //
+				.applySorting(accessor.getSort(), query.getAlias());
 		ResultProcessor processor = getQueryMethod().getResultProcessor().withDynamicProjection(accessor);
 
 		Query query = createJpaQuery(sortedQueryString, processor.getReturnedType());
