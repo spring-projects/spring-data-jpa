@@ -36,6 +36,7 @@ import org.springframework.util.Assert;
  * @author Oliver Gierke
  * @author Tom Hombergs
  * @author Michael J. Simons
+ * @author Diego Krupitza
  */
 class ExpressionBasedStringQuery extends StringQuery {
 
@@ -55,9 +56,11 @@ class ExpressionBasedStringQuery extends StringQuery {
 	 * @param query must not be {@literal null} or empty.
 	 * @param metadata must not be {@literal null}.
 	 * @param parser must not be {@literal null}.
+	 * @param nativeQuery is a given query is native or not
 	 */
-	public ExpressionBasedStringQuery(String query, JpaEntityMetadata<?> metadata, SpelExpressionParser parser) {
-		super(renderQueryIfExpressionOrReturnQuery(query, metadata, parser));
+	public ExpressionBasedStringQuery(String query, JpaEntityMetadata<?> metadata, SpelExpressionParser parser,
+			boolean nativeQuery) {
+		super(renderQueryIfExpressionOrReturnQuery(query, metadata, parser), nativeQuery && !containsExpression(query));
 	}
 
 	/**
@@ -66,11 +69,12 @@ class ExpressionBasedStringQuery extends StringQuery {
 	 * @param query the original query. Must not be {@literal null}.
 	 * @param metadata the {@link JpaEntityMetadata} for the given entity. Must not be {@literal null}.
 	 * @param parser Parser for resolving SpEL expressions. Must not be {@literal null}.
+	 * @param nativeQuery
 	 * @return A query supporting SpEL expressions.
 	 */
-	static ExpressionBasedStringQuery from(DeclaredQuery query, JpaEntityMetadata metadata,
-			SpelExpressionParser parser) {
-		return new ExpressionBasedStringQuery(query.getQueryString(), metadata, parser);
+	static ExpressionBasedStringQuery from(DeclaredQuery query, JpaEntityMetadata metadata, SpelExpressionParser parser,
+			boolean nativeQuery) {
+		return new ExpressionBasedStringQuery(query.getQueryString(), metadata, parser, nativeQuery);
 	}
 
 	/**

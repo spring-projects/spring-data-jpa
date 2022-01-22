@@ -56,7 +56,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
- * Simple utility class to create JPA queries.
+ * Simple utility class to create JPA queries using the default implementation of a custom parser.
  *
  * @author Oliver Gierke
  * @author Kevin Raymond
@@ -74,6 +74,7 @@ import org.springframework.util.StringUtils;
  * @author Andriy Redko
  * @author Peter Großmann
  * @author Greg Turnquist
+ * @author Diego Krupitza
  */
 public abstract class QueryUtils {
 
@@ -282,7 +283,7 @@ public abstract class QueryUtils {
 	 * @param joinAliases the join aliases of the original query. Must not be {@literal null}.
 	 * @param alias the alias for the root entity. May be {@literal null}.
 	 * @param order the order object to build the clause for. Must not be {@literal null}.
-	 * @return a String containing a order clause. Guaranteed to be not {@literal null}.
+	 * @return a String containing an order clause. Guaranteed to be not {@literal null}.
 	 */
 	private static String getOrderClause(Set<String> joinAliases, Set<String> selectionAlias, @Nullable String alias,
 			Order order) {
@@ -811,7 +812,7 @@ public abstract class QueryUtils {
 	 *
 	 * @param order
 	 */
-	private static void checkSortExpression(Order order) {
+	static void checkSortExpression(Order order) {
 
 		if (order instanceof JpaOrder && ((JpaOrder) order).isUnsafe()) {
 			return;

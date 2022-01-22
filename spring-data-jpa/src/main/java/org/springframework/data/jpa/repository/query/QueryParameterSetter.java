@@ -49,7 +49,8 @@ interface QueryParameterSetter {
 	void setParameter(BindableQuery query, JpaParametersParameterAccessor accessor, ErrorHandling errorHandling);
 
 	/** Noop implementation */
-	QueryParameterSetter NOOP = (query, values, errorHandling) -> {};
+	QueryParameterSetter NOOP = (query, values, errorHandling) -> {
+	};
 
 	/**
 	 * {@link QueryParameterSetter} for named or indexed parameters that might have a {@link TemporalType} specified.

@@ -23,6 +23,7 @@ import org.springframework.data.jpa.repository.query.StringQuery.ParameterBindin
  * Unit tests for the {@link ParameterBindingParser}.
  *
  * @author Jens Schauder
+ * @author Diego Krupitza
  */
 class ParameterBindingParserUnitTests {
 
@@ -65,7 +66,7 @@ class ParameterBindingParserUnitTests {
 
 	private void checkHasParameter(SoftAssertions softly, String query, boolean containsParameter, String label) {
 
-		StringQuery stringQuery = new StringQuery(query);
+		StringQuery stringQuery = new StringQuery(query, false);
 
 		softly.assertThat(stringQuery.getParameterBindings().size()) //
 				.describedAs(String.format("<%s> (%s)", query, label)) //

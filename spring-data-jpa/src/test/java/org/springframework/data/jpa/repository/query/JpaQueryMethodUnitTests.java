@@ -74,8 +74,10 @@ public class JpaQueryMethodUnitTests {
 
 	private static final String METHOD_NAME = "findByFirstname";
 
-	@Mock QueryExtractor extractor;
-	@Mock RepositoryMetadata metadata;
+	@Mock
+	QueryExtractor extractor;
+	@Mock
+	RepositoryMetadata metadata;
 	private ProjectionFactory factory = new SpelAwareProxyProjectionFactory();
 
 	private Method invalidReturnType;
@@ -518,7 +520,7 @@ public class JpaQueryMethodUnitTests {
 
 	interface ValidRepository extends Repository<User, Integer> {
 
-		@Query(value = "query", nativeQuery = true)
+		@Query(value = "Select u from User u where u.lastname = ?1", nativeQuery = true)
 		List<User> findByLastname(String lastname);
 
 		@Query(name = "HateoasAwareSpringDataWebConfiguration.bar")

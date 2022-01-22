@@ -41,7 +41,7 @@ import org.springframework.data.jpa.domain.JpaSort;
  * @author Mohammad Hewedy
  * @author Greg Turnquist
  */
-class QueryUtilsUnitTests {
+class DefaultQueryUtilsUnitTests {
 
 	private static final String QUERY = "select u from User u";
 	private static final String FQ_QUERY = "select u from org.acme.domain.User$Foo_Bar u";
@@ -51,7 +51,7 @@ class QueryUtilsUnitTests {
 	private static final String QUERY_WITH_AS = "select u from User as u where u.username = ?";
 
 	@Test
-	void createsCountQueryCorrectly() throws Exception {
+	void createsCountQueryCorrectly() {
 		assertCountQuery(QUERY, COUNT_QUERY);
 	}
 
@@ -64,47 +64,47 @@ class QueryUtilsUnitTests {
 	}
 
 	@Test
-	void createsCountQueryForDistinctQueries() throws Exception {
+	void createsCountQueryForDistinctQueries() {
 
 		assertCountQuery("select distinct u from User u where u.foo = ?",
 				"select count(distinct u) from User u where u.foo = ?");
 	}
 
 	@Test
-	void createsCountQueryForConstructorQueries() throws Exception {
+	void createsCountQueryForConstructorQueries() {
 
 		assertCountQuery("select distinct new User(u.name) from User u where u.foo = ?",
 				"select count(distinct u) from User u where u.foo = ?");
 	}
 
 	@Test
-	void createsCountQueryForJoins() throws Exception {
+	void createsCountQueryForJoins() {
 
 		assertCountQuery("select distinct new User(u.name) from User u left outer join u.roles r WHERE r = ?",
 				"select count(distinct u) from User u left outer join u.roles r WHERE r = ?");
 	}
 
 	@Test
-	void createsCountQueryForQueriesWithSubSelects() throws Exception {
+	void createsCountQueryForQueriesWithSubSelects() {
 
 		assertCountQuery("select u from User u left outer join u.roles r where r in (select r from Role)",
 				"select count(u) from User u left outer join u.roles r where r in (select r from Role)");
 	}
 
 	@Test
-	void createsCountQueryForAliasesCorrectly() throws Exception {
+	void createsCountQueryForAliasesCorrectly() {
 
 		assertCountQuery("select u from User as u", "select count(u) from User as u");
 	}
 
 	@Test
-	void allowsShortJpaSyntax() throws Exception {
+	void allowsShortJpaSyntax() {
 
 		assertCountQuery(SIMPLE_QUERY, COUNT_QUERY);
 	}
 
 	@Test
-	void detectsAliasCorrectly() throws Exception {
+	void detectsAliasCorrectly() {
 
 		assertThat(detectAlias(QUERY)).isEqualTo("u");
 		assertThat(detectAlias(SIMPLE_QUERY)).isEqualTo("u");

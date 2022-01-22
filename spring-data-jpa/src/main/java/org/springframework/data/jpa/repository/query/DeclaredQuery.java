@@ -24,6 +24,7 @@ import org.springframework.util.ObjectUtils;
  * A wrapper for a String representation of a query offering information about the query.
  *
  * @author Jens Schauder
+ * @author Diego Krupitza
  * @since 2.0.3
  */
 interface DeclaredQuery {
@@ -32,10 +33,11 @@ interface DeclaredQuery {
 	 * Creates a {@literal DeclaredQuery} from a query {@literal String}.
 	 *
 	 * @param query might be {@literal null} or empty.
+	 * @param nativeQuery is a given query is native or not
 	 * @return a {@literal DeclaredQuery} instance even for a {@literal null} or empty argument.
 	 */
-	static DeclaredQuery of(@Nullable String query) {
-		return ObjectUtils.isEmpty(query) ? EmptyDeclaredQuery.EMPTY_QUERY : new StringQuery(query);
+	static DeclaredQuery of(@Nullable String query, boolean nativeQuery) {
+		return ObjectUtils.isEmpty(query) ? EmptyDeclaredQuery.EMPTY_QUERY : new StringQuery(query, nativeQuery);
 	}
 
 	/**
@@ -100,4 +102,13 @@ interface DeclaredQuery {
 	 * @since 2.0.6
 	 */
 	boolean usesJdbcStyleParameters();
+
+	/**
+	 * Return whether the query is a native query of not.
+	 * 
+	 * @return <code>true</code> if native query otherwise <code>false</code>
+	 */
+	default boolean isNativeQuery() {
+		return false;
+	}
 }

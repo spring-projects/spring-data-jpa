@@ -28,6 +28,7 @@
 		<postgresql>42.2.19</postgresql>
 		<springdata.commons>3.0.0-SNAPSHOT</springdata.commons>
 		<vavr>0.10.3</vavr>
+		<jsqlparser.version>4.3</jsqlparser.version>
 
 		<hibernate.groupId>org.hibernate</hibernate.groupId>
 
