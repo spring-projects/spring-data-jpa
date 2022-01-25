@@ -57,6 +57,8 @@ import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
+import org.springframework.data.domain.ExampleMatcher.GenericPropertyMatcher;
+import org.springframework.data.domain.ExampleMatcher.StringMatcher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -1011,16 +1013,16 @@ public class UserRepositoryTests {
 		assertThat(result).isEqualTo(firstUser);
 	}
 
-    @Test // GH-2232
-    void looksUpEntityReferenceUsingGetReferenceById() {
+	@Test // GH-2232
+	void looksUpEntityReferenceUsingGetReferenceById() {
 
-        flushTestUsers();
+		flushTestUsers();
 
-        User result = repository.getReferenceById(firstUser.getId());
-        assertThat(result).isEqualTo(firstUser);
-    }
+		User result = repository.getReferenceById(firstUser.getId());
+		assertThat(result).isEqualTo(firstUser);
+	}
 
-    @Test // DATAJPA-415
+	@Test // DATAJPA-415
 	void invokesQueryWithVarargsParametersCorrectly() {
 
 		flushTestUsers();
