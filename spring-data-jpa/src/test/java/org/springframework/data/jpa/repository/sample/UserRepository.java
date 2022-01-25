@@ -614,6 +614,9 @@ public interface UserRepository
 	// #2363
 	List<NameOnlyDto> findAllDtoProjectedBy();
 
+	// GH-2408
+	List<NameOnly> findAllInterfaceProjectedBy();
+
 	interface RolesAndFirstname {
 
 		String getFirstname();
