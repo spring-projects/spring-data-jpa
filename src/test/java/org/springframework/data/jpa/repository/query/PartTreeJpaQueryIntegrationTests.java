@@ -222,7 +222,7 @@ public class PartTreeJpaQueryIntegrationTests {
 		assertThatExceptionOfType(IllegalArgumentException.class) //
 				.isThrownBy(() -> new PartTreeJpaQuery(method, entityManager)) //
 				.withMessageContaining("findByNoSuchProperty") // the method being analyzed
-				.withMessageContaining(" noSuchProperty ") // the property we are looking for
+				.withMessageContaining("'noSuchProperty'") // the property we are looking for
 				.withMessageContaining("UserRepository"); // the repository
 	}
 
