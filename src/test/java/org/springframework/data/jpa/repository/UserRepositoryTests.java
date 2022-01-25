@@ -2621,6 +2621,14 @@ public class UserRepositoryTests {
 		assertThat(repository.findAllDtoProjectedBy()).hasSize(4);
 	}
 
+	@Test // GH-2408, GH-2363
+	void readsDerivedInterfaceProjections() {
+
+		flushTestUsers();
+
+		assertThat(repository.findAllInterfaceProjectedBy()).hasSize(4);
+	}
+
 	private Page<User> executeSpecWithSort(Sort sort) {
 
 		flushTestUsers();
