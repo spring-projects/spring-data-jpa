@@ -176,7 +176,7 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extend
 				selections.add(toExpressionRecursively(root, path, true).alias(property));
 			}
 
-			Class<?> typeToRead = returnedType.getTypeToRead();
+			Class<?> typeToRead = returnedType.getReturnedType();
 
 			query = typeToRead.isInterface()
 					? query.multiselect(selections)
