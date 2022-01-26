@@ -16,15 +16,20 @@
 package org.springframework.data.jpa.util;
 
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.persistence.Embeddable;
 import javax.persistence.metamodel.EntityType;
 import javax.persistence.metamodel.ManagedType;
 import javax.persistence.metamodel.Metamodel;
 import javax.persistence.metamodel.SingularAttribute;
+import javax.persistence.metamodel.Type.PersistenceType;
 
+import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.data.util.Lazy;
 import org.springframework.data.util.StreamUtils;
 import org.springframework.util.Assert;
@@ -39,10 +44,13 @@ import org.springframework.util.Assert;
 public class JpaMetamodel {
 
 	private static final Map<Metamodel, JpaMetamodel> CACHE = new ConcurrentHashMap<>(4);
+	private static final Set<PersistenceType> ENTITY_OR_MAPPED_SUPERCLASS = EnumSet.of(PersistenceType.ENTITY,
+			PersistenceType.MAPPED_SUPERCLASS);
 
 	private final Metamodel metamodel;
 
 	private Lazy<Collection<Class<?>>> managedTypes;
+	private Lazy<Collection<Class<?>>> jpaEmbeddables;
 
 	/**
 	 * Creates a new {@link JpaMetamodel} for the given JPA {@link Metamodel}.
@@ -54,9 +62,16 @@ public class JpaMetamodel {
 		Assert.notNull(metamodel, "Metamodel must not be null!");
 
 		this.metamodel = metamodel;
+
 		this.managedTypes = Lazy.of(() -> metamodel.getManagedTypes().stream() //
 				.map(ManagedType::getJavaType) //
 				.filter(it -> it != null) //
+				.collect(StreamUtils.toUnmodifiableSet()));
+
+		this.jpaEmbeddables = Lazy.of(() -> metamodel.getEmbeddables().stream() //
+				.map(ManagedType::getJavaType)
+				.filter(it -> it != null)
+				.filter(it -> AnnotatedElementUtils.isAnnotated(it, Embeddable.class))
 				.collect(StreamUtils.toUnmodifiableSet()));
 	}
 
@@ -94,6 +109,27 @@ public class JpaMetamodel {
 				.filter(it -> it.getJavaType().equals(attributeType)) //
 				.map(it -> it.getName().equals(name)) //
 				.orElse(false);
+	}
+
+	/**
+	 * Returns whether the given type is considered a mapped type, i.e. an actually JPA persisted entity, mapped
+	 * superclass or native JPA embeddable.
+	 *
+	 * @param entity must not be {@literal null}.
+	 * @return
+	 */
+	public boolean isMappedType(Class<?> entity) {
+
+		Assert.notNull(entity, "Type must not be null!");
+
+		if (!isJpaManaged(entity)) {
+			return false;
+		}
+
+		ManagedType<?> managedType = metamodel.managedType(entity);
+
+		return !managedType.getPersistenceType().equals(PersistenceType.EMBEDDABLE)
+				|| jpaEmbeddables.get().contains(entity);
 	}
 
 	/**
