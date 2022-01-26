@@ -18,10 +18,17 @@ package org.springframework.data.jpa.util;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 
+import javax.persistence.Embeddable;
+import javax.persistence.Entity;
+import javax.persistence.metamodel.EmbeddableType;
 import javax.persistence.metamodel.EntityType;
+import javax.persistence.metamodel.ManagedType;
 import javax.persistence.metamodel.Metamodel;
+import javax.persistence.metamodel.Type.PersistenceType;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -60,4 +67,54 @@ class JpaMetamodelUnitTests {
 		JpaMetamodel.clear();
 		assertThat(model).isNotEqualTo(JpaMetamodel.of(metamodel));
 	}
+
+	@Test // #2421
+	void doesNotConsiderNonNativeEmbeddablesJpaManaged() {
+
+		JpaMetamodel model = JpaMetamodel.of(metamodel);
+
+		ManagedType<?> entity = getEntity(Wrapper.class);
+		ManagedType<?> embeddable = getEmbeddable(ExplicitEmbeddable.class);
+		ManagedType<?> inner = getEmbeddable(Inner.class);
+
+		doReturn(new HashSet<>(Arrays.asList(entity, embeddable, inner))).when(metamodel).getManagedTypes();
+		doReturn(new HashSet<>(Arrays.asList(embeddable, inner))).when(metamodel).getEmbeddables();
+
+		assertThat(model.isMappedType(Wrapper.class)).isTrue();
+		assertThat(model.isMappedType(ExplicitEmbeddable.class)).isTrue();
+		assertThat(model.isMappedType(Inner.class)).isFalse();
+	}
+
+	private EmbeddableType<?> getEmbeddable(Class<?> type) {
+
+		EmbeddableType<?> managedType = getManagedType(type, EmbeddableType.class);
+		doReturn(PersistenceType.EMBEDDABLE).when(managedType).getPersistenceType();
+
+		return managedType;
+	}
+
+	private EntityType<?> getEntity(Class<?> type) {
+
+		EntityType<?> managedType = getManagedType(type, EntityType.class);
+		doReturn(PersistenceType.ENTITY).when(managedType).getPersistenceType();
+
+		return managedType;
+	}
+
+	private <T extends ManagedType<?>> T getManagedType(Class<?> type, Class<T> baseType) {
+
+		T managedType = mock(baseType);
+		doReturn(type).when(managedType).getJavaType();
+		doReturn(managedType).when(metamodel).managedType(type);
+
+		return managedType;
+	}
+
+	@Entity
+	static class Wrapper {}
+
+	@Embeddable
+	static class ExplicitEmbeddable {}
+
+	static class Inner {}
 }
