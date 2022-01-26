@@ -109,7 +109,7 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 
 		this.isIdProperty = Lazy.of(() -> ID_ANNOTATIONS.stream().anyMatch(it -> isAnnotationPresent(it)) //
 				|| metamodel.isSingleIdAttribute(getOwner().getType(), getName(), getType()));
-		this.isEntity = Lazy.of(() -> metamodel.isJpaManaged(getActualType()));
+		this.isEntity = Lazy.of(() -> metamodel.isMappedType(getActualType()));
 	}
 
 	@Override
