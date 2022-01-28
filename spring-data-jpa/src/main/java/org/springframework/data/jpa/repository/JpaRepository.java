@@ -21,6 +21,7 @@ import jakarta.persistence.EntityManager;
 
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.QueryByExampleExecutor;
@@ -36,7 +37,7 @@ import org.springframework.data.repository.query.QueryByExampleExecutor;
  * @author Greg Turnquist
  */
 @NoRepositoryBean
-public interface JpaRepository<T, ID> extends PagingAndSortingRepository<T, ID>, QueryByExampleExecutor<T> {
+public interface JpaRepository<T, ID> extends CrudRepository<T, ID>,PagingAndSortingRepository<T, ID>, QueryByExampleExecutor<T> {
 
 	@Override
 	List<T> findAll();
