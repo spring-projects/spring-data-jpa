@@ -15,8 +15,6 @@
  */
 package org.springframework.data.jpa.repository;
 
-import java.sql.Types;
-
 import org.hibernate.dialect.HSQLDialect;
 import org.springframework.orm.jpa.vendor.Database;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
@@ -24,26 +22,22 @@ import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 /**
  * Fix for missing type declarations for HSQL.
  *
- * @see <a href="https://www.codesmell.org/blog/2008/12/hibernate-hsql-native-queries-and-booleans/">https://www.codesmell.org/blog/2008/12/hibernate-hsql-native-queries-and-booleans/</a>
+ * @see <a href=
+ *      "https://www.codesmell.org/blog/2008/12/hibernate-hsql-native-queries-and-booleans/">https://www.codesmell.org/blog/2008/12/hibernate-hsql-native-queries-and-booleans/</a>
  * @author Oliver Gierke
+ * @deprecated since 3.0 without replacement as it's not needed anymore.
  */
+@Deprecated
 public class CustomHsqlHibernateJpaVendorAdaptor extends HibernateJpaVendorAdapter {
 
 	@Override
 	protected Class<?> determineDatabaseDialectClass(Database database) {
-
-		if (Database.HSQL.equals(database)) {
-			return CustomHsqlDialect.class;
-		}
-
 		return super.determineDatabaseDialectClass(database);
 	}
 
-	public static class CustomHsqlDialect extends HSQLDialect {
-
-		public CustomHsqlDialect() {
-			registerColumnType(Types.BOOLEAN, "boolean");
-			registerHibernateType(Types.BOOLEAN, "boolean");
-		}
-	}
+	/**
+	 * @deprecated since 3.0 without replacement as it's not needed anymore.
+	 */
+	@Deprecated
+	public static class CustomHsqlDialect extends HSQLDialect {}
 }

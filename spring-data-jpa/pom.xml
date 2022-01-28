@@ -145,16 +145,23 @@
 		</dependency>
 
 		<dependency>
-			<groupId>${hibernate.groupId}</groupId>
-			<artifactId>hibernate-core-jakarta</artifactId>
+			<groupId>${hibernate.groupId}.orm</groupId>
+			<artifactId>hibernate-core</artifactId>
 			<version>${hibernate}</version>
 			<optional>true</optional>
 		</dependency>
 
 		<dependency>
-			<groupId>${hibernate.groupId}</groupId>
-			<artifactId>hibernate-jpamodelgen-jakarta</artifactId>
+			<groupId>${hibernate.groupId}.orm</groupId>
+			<artifactId>hibernate-jpamodelgen</artifactId>
 			<version>${hibernate}</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>jakarta.xml.bind</groupId>
+			<artifactId>jakarta.xml.bind-api</artifactId>
+			<version>${jaxb}</version>
 			<scope>provided</scope>
 		</dependency>
 

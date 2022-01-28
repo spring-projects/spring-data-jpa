@@ -31,7 +31,7 @@
     <!-- AspectJ maven plugin can't handle 17 yet -->
 
 		<eclipselink>3.0.2</eclipselink>
-		<hibernate>5.6.9.Final</hibernate>
+		<hibernate>6.1.1.Final</hibernate>
 		<jsqlparser>4.3</jsqlparser>
 		<mysql-connector-java>8.0.23</mysql-connector-java>
 		<postgresql>42.2.19</postgresql>
@@ -44,7 +44,7 @@
 
 	</properties>
 
-  <modules>
+	<modules>
 		<module>spring-data-envers</module>
 		<module>spring-data-jpa</module>
 		<module>spring-data-jpa-distribution</module>

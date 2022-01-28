@@ -4,14 +4,13 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import java.lang.reflect.Method;
-
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
 
-import org.hibernate.jpa.TypedParameterValue;
-import org.hibernate.type.StandardBasicTypes;
+import java.lang.reflect.Method;
+
+import org.hibernate.query.TypedParameterValue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -44,7 +43,8 @@ class JpaParametersParameterAccessorTests {
 		Method withNativeQuery = SampleRepository.class.getMethod("withNativeQuery", Integer.class);
 		Object[] values = { null };
 		JpaParameters parameters = new JpaParameters(withNativeQuery);
-		JpaParametersParameterAccessor accessor = PersistenceProvider.GENERIC_JPA.getParameterAccessor(parameters, values, em);
+		JpaParametersParameterAccessor accessor = PersistenceProvider.GENERIC_JPA.getParameterAccessor(parameters, values,
+				em);
 
 		bind(parameters, accessor);
 
@@ -62,10 +62,10 @@ class JpaParametersParameterAccessorTests {
 
 		bind(parameters, accessor);
 
-		ArgumentCaptor<TypedParameterValue> captor = ArgumentCaptor.forClass(TypedParameterValue.class);
+		ArgumentCaptor<TypedParameterValue<?>> captor = ArgumentCaptor.forClass(TypedParameterValue.class);
 		verify(query).setParameter(eq(1), captor.capture());
-		TypedParameterValue captorValue = captor.getValue();
-		assertThat(captorValue.getType()).isEqualTo(StandardBasicTypes.INTEGER);
+		TypedParameterValue<?> captorValue = captor.getValue();
+		assertThat(captorValue.getType().getBindableJavaType()).isEqualTo(Integer.class);
 		assertThat(captorValue.getValue()).isNull();
 	}
 

@@ -17,16 +17,15 @@ package org.springframework.data.jpa.repository.query;
 
 import static org.assertj.core.api.Assertions.*;
 
-import java.lang.reflect.Method;
-
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.ParameterExpression;
 
+import java.lang.reflect.Method;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.repository.query.DefaultParameters;
 import org.springframework.data.repository.query.Parameters;
@@ -60,7 +59,7 @@ class ParameterExpressionProviderTests {
 		ParameterMetadataProvider provider = new ParameterMetadataProvider(builder, accessor, EscapeCharacter.DEFAULT);
 		ParameterExpression<? extends Comparable> expression = provider.next(part, Comparable.class).getExpression();
 
-		assertThat(expression.getParameterType()).isEqualTo(int.class);
+		assertThat(expression.getParameterType()).isEqualTo(Integer.class);
 	}
 
 	interface SampleRepository {

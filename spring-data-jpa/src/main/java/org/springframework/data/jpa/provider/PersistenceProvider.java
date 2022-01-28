@@ -24,7 +24,9 @@ import jakarta.persistence.metamodel.IdentifiableType;
 import jakarta.persistence.metamodel.Metamodel;
 import jakarta.persistence.metamodel.SingularAttribute;
 
+import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
@@ -186,6 +188,8 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, Quer
 		}
 	};
 
+	private static final Collection<PersistenceProvider> ALL = List.of(HIBERNATE, ECLIPSELINK, GENERIC_JPA);
+
 	static ConcurrentReferenceHashMap<Class<?>, PersistenceProvider> CACHE = new ConcurrentReferenceHashMap<>();
 	private final Iterable<String> entityManagerClassNames;
 	private final Iterable<String> metamodelClassNames;
@@ -233,7 +237,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, Quer
 			return cachedProvider;
 		}
 
-		for (PersistenceProvider provider : values()) {
+		for (PersistenceProvider provider : ALL) {
 			for (String entityManagerClassName : provider.entityManagerClassNames) {
 				if (isEntityManagerOfType(em, entityManagerClassName)) {
 					return cacheAndReturn(entityManagerType, provider);
@@ -317,9 +321,9 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, Quer
 		String GENERIC_JPA_ENTITY_MANAGER_INTERFACE = "jakarta.persistence.EntityManager";
 		String ECLIPSELINK_ENTITY_MANAGER_INTERFACE = "org.eclipse.persistence.jpa.JpaEntityManager";
 		// needed as Spring only exposes that interface via the EM proxy
-		String HIBERNATE_ENTITY_MANAGER_INTERFACE = "org.hibernate.jpa.HibernateEntityManager";
+		String HIBERNATE_ENTITY_MANAGER_INTERFACE = "org.hibernate.engine.spi.SessionImplementor";
 
-		String HIBERNATE_JPA_METAMODEL_TYPE = "org.hibernate.metamodel.internal.MetamodelImpl";
+		String HIBERNATE_JPA_METAMODEL_TYPE = "org.hibernate.metamodel.model.domain.JpaMetamodel";
 		String ECLIPSELINK_JPA_METAMODEL_TYPE = "org.eclipse.persistence.internal.jpa.metamodel.MetamodelImpl";
 	}
 
@@ -337,7 +341,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, Quer
 	 */
 	private static class HibernateScrollableResultsIterator implements CloseableIterator<Object> {
 
-		private final @Nullable ScrollableResults scrollableResults;
+		private final @Nullable ScrollableResults<Object[]> scrollableResults;
 
 		/**
 		 * Creates a new {@link HibernateScrollableResultsIterator} for the given {@link Query}.
@@ -346,7 +350,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, Quer
 		 */
 		HibernateScrollableResultsIterator(Query jpaQuery) {
 
-			org.hibernate.query.Query<?> query = jpaQuery.unwrap(org.hibernate.query.Query.class);
+			org.hibernate.query.Query<Object[]> query = jpaQuery.unwrap(org.hibernate.query.Query.class);
 			this.scrollableResults = query.setReadOnly(TransactionSynchronizationManager.isCurrentTransactionReadOnly())//
 					.scroll(ScrollMode.FORWARD_ONLY);
 		}
@@ -359,7 +363,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, Quer
 			}
 
 			// Cast needed for Hibernate 6 compatibility
-			Object[] row = (Object[]) scrollableResults.get();
+			Object[] row = scrollableResults.get();
 
 			return row.length == 1 ? row[0] : row;
 		}

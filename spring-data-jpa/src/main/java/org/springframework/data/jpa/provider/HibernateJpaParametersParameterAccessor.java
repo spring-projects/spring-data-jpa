@@ -16,14 +16,15 @@
 package org.springframework.data.jpa.provider;
 
 import jakarta.persistence.EntityManager;
-import org.hibernate.SessionFactory;
-import org.hibernate.TypeHelper;
-import org.hibernate.jpa.TypedParameterValue;
-import org.hibernate.type.Type;
+
+import org.hibernate.engine.spi.SessionFactoryImplementor;
+import org.hibernate.query.TypedParameterValue;
+import org.hibernate.type.BasicTypeRegistry;
 import org.springframework.data.jpa.repository.query.JpaParametersParameterAccessor;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
+import org.springframework.lang.Nullable;
 
 /**
  * {@link org.springframework.data.repository.query.ParameterAccessor} based on an {@link Parameters} instance. In
@@ -33,11 +34,13 @@ import org.springframework.data.repository.query.ParametersParameterAccessor;
  * @author Wonchul Heo
  * @author Jens Schauder
  * @author Cedomir Igaly
+ * @author Robert Wilson
+ * @author Oliver Drotbohm
  * @since 2.7
  */
 class HibernateJpaParametersParameterAccessor extends JpaParametersParameterAccessor {
 
-	private final TypeHelper typeHelper;
+	private final BasicTypeRegistry typeHelper;
 
 	/**
 	 * Creates a new {@link ParametersParameterAccessor}.
@@ -50,21 +53,29 @@ class HibernateJpaParametersParameterAccessor extends JpaParametersParameterAcce
 
 		super(parameters, values);
 
-		this.typeHelper = em.getEntityManagerFactory().unwrap(SessionFactory.class).getTypeHelper();
+		this.typeHelper = em.getEntityManagerFactory()
+				.unwrap(SessionFactoryImplementor.class)
+				.getTypeConfiguration()
+				.getBasicTypeRegistry();
 	}
 
 	@Override
+	@Nullable
+	@SuppressWarnings("unchecked")
 	public Object getValue(Parameter parameter) {
 
-		Object value = super.getValue(parameter.getIndex());
+		var value = super.getValue(parameter.getIndex());
+
 		if (value != null) {
 			return value;
 		}
 
-		Type type = typeHelper.basic(parameter.getType());
+		var type = typeHelper.getRegisteredType(parameter.getType());
+
 		if (type == null) {
 			return null;
 		}
-		return new TypedParameterValue(type, null);
+
+		return new TypedParameterValue<>(type, null);
 	}
 }

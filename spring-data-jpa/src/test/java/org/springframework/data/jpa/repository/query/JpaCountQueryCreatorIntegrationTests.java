@@ -17,19 +17,22 @@ package org.springframework.data.jpa.repository.query;
 
 import static org.assertj.core.api.Assertions.*;
 
-import java.lang.reflect.Method;
-import java.util.List;
-
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 
+import java.lang.reflect.Method;
+import java.util.List;
+
+import org.hibernate.query.spi.SqmQuery;
+import org.hibernate.query.sqm.tree.expression.SqmDistinct;
+import org.hibernate.query.sqm.tree.expression.SqmFunction;
+import org.hibernate.query.sqm.tree.select.SqmSelectClause;
+import org.hibernate.query.sqm.tree.select.SqmSelectStatement;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
 import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.domain.sample.User;
-import org.springframework.data.jpa.provider.HibernateUtils;
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.data.repository.Repository;
@@ -68,10 +71,20 @@ public class JpaCountQueryCreatorIntegrationTests {
 
 		TypedQuery<? extends Object> query = entityManager.createQuery(creator.createQuery());
 
-		assertThat(HibernateUtils.getHibernateQuery(query)).startsWith("select distinct count(distinct");
+		SqmQuery sqmQuery = ((SqmQuery) query);
+		SqmSelectStatement<?> select = (SqmSelectStatement<?>) sqmQuery.getSqmStatement();
+
+		// Verify distinct (should this even be there for a count query?)
+		SqmSelectClause clause = select.getQuerySpec().getSelectClause();
+		assertThat(clause.isDistinct()).isTrue();
+
+		// Verify count(distinct(…))
+		SqmFunction<?> function = ((SqmFunction<?>) clause.getSelectionItems().get(0));
+		assertThat(function.getFunctionName()).isEqualTo("count");
+		assertThat(function.getArguments().get(0)).isInstanceOf(SqmDistinct.class);
 	}
 
 	interface SomeRepository extends Repository<User, Integer> {
-		void findDistinctByRolesIn(List<Role> roles);
+		List<User> findDistinctByRolesIn(List<Role> roles);
 	}
 }

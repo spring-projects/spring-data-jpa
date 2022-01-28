@@ -62,8 +62,8 @@
 
 		<!-- Hibernate -->
 		<dependency>
-			<groupId>org.hibernate</groupId>
-			<artifactId>hibernate-envers-jakarta</artifactId>
+			<groupId>org.hibernate.orm</groupId>
+			<artifactId>hibernate-envers</artifactId>
 			<version>${hibernate.envers}</version>
 		</dependency>
 

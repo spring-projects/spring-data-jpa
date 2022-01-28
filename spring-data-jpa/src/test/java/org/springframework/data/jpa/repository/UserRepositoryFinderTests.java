@@ -16,7 +16,10 @@
 package org.springframework.data.jpa.repository;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.junit.Assume.*;
 import static org.springframework.data.domain.Sort.Direction.*;
+
+import jakarta.persistence.EntityManager;
 
 import java.util.Arrays;
 import java.util.List;
@@ -34,6 +37,7 @@ import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.domain.sample.User;
+import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.repository.sample.RoleRepository;
 import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.data.repository.query.QueryLookupStrategy;
@@ -55,6 +59,9 @@ public class UserRepositoryFinderTests {
 
 	@Autowired UserRepository userRepository;
 	@Autowired RoleRepository roleRepository;
+	@Autowired EntityManager em;
+
+	PersistenceProvider provider;
 
 	private User dave;
 	private User carter;
@@ -73,6 +80,8 @@ public class UserRepositoryFinderTests {
 		dave = userRepository.save(new User("Dave", "Matthews", "dave@dmband.com", singer));
 		carter = userRepository.save(new User("Carter", "Beauford", "carter@dmband.com", singer, drummer));
 		oliver = userRepository.save(new User("Oliver August", "Matthews", "oliver@dmband.com"));
+
+		provider = PersistenceProvider.fromEntityManager(em);
 	}
 
 	@AfterEach
@@ -226,6 +235,9 @@ public class UserRepositoryFinderTests {
 	@Test // DATAJPA-1519
 	void escapingInLikeSpels() {
 
+		// HHH-15392
+		assumeFalse(provider.equals(PersistenceProvider.HIBERNATE));
+
 		User extra = new User("extra", "Matt_ew", "extra");
 
 		userRepository.save(extra);
@@ -236,6 +248,9 @@ public class UserRepositoryFinderTests {
 	@Test // DATAJPA-1522
 	void escapingInLikeSpelsInThePresenceOfEscapeCharacters() {
 
+		// HHH-15392
+		assumeFalse(provider.equals(PersistenceProvider.HIBERNATE));
+
 		User withEscapeCharacter = userRepository.save(new User("extra", "Matt\\xew", "extra1"));
 		userRepository.save(new User("extra", "Matt\\_ew", "extra2"));
 
@@ -244,6 +259,9 @@ public class UserRepositoryFinderTests {
 
 	@Test // DATAJPA-1522
 	void escapingInLikeSpelsInThePresenceOfEscapedWildcards() {
+
+		// HHH-15392
+		assumeFalse(provider.equals(PersistenceProvider.HIBERNATE));
 
 		userRepository.save(new User("extra", "Matt\\xew", "extra1"));
 		User withEscapedWildcard = userRepository.save(new User("extra", "Matt\\_ew", "extra2"));

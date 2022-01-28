@@ -18,8 +18,6 @@ package org.springframework.data.jpa.repository;
 import static org.assertj.core.api.Assertions.*;
 import static org.springframework.data.jpa.support.EntityManagerTestUtils.*;
 
-import java.util.List;
-
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Persistence;
 import jakarta.persistence.PersistenceUtil;
@@ -28,12 +26,14 @@ import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 
+import java.util.List;
+
 import org.assertj.core.api.SoftAssertions;
 import org.junit.Assume;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -94,6 +94,7 @@ public class EntityGraphRepositoryMethodsIntegrationTests {
 	}
 
 	@Test // DATAJPA-612
+	@Disabled // HHH-15391
 	void shouldRespectConfiguredJpaEntityGraph() {
 
 		Assume.assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));

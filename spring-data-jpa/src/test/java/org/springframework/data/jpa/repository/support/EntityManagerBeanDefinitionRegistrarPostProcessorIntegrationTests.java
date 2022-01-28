@@ -17,27 +17,18 @@ package org.springframework.data.jpa.repository.support;
 
 import static org.assertj.core.api.Assertions.*;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
 import jakarta.persistence.EntityManager;
-import javax.sql.DataSource;
+import jakarta.persistence.EntityManagerFactory;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.ComponentScan.Filter;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.annotation.Primary;
-import org.springframework.orm.jpa.JpaVendorAdapter;
-import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
-import org.springframework.stereotype.Component;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -62,59 +53,35 @@ public class EntityManagerBeanDefinitionRegistrarPostProcessorIntegrationTests {
 		assertThat(target.primaryEm).isNotNull();
 	}
 
-	/**
-	 * Annotation to demarcate test components.
-	 *
-	 * @author Oliver Gierke
-	 */
-	@Component
-	@Retention(RetentionPolicy.RUNTIME)
-	@Target(ElementType.TYPE)
-	private static @interface TestComponent {
-
-	}
-
 	@Configuration
+	@Import(EntityManagerInjectionTarget.class)
 	@ImportResource("classpath:infrastructure.xml")
-	@ComponentScan(includeFilters = @Filter(TestComponent.class), useDefaultFilters = false)
 	static class Config {
 
-		@Autowired DataSource dataSource;
-		@Autowired JpaVendorAdapter vendorAdapter;
+		@Autowired @Qualifier("entityManagerFactory") EntityManagerFactory emf;
 
 		@Bean
 		public static EntityManagerBeanDefinitionRegistrarPostProcessor processor() {
 			return new EntityManagerBeanDefinitionRegistrarPostProcessor();
 		}
 
-		private LocalContainerEntityManagerFactoryBean emf() {
-
-			LocalContainerEntityManagerFactoryBean factoryBean = new LocalContainerEntityManagerFactoryBean();
-			factoryBean.setPersistenceUnitName("spring-data-jpa");
-			factoryBean.setDataSource(dataSource);
-			factoryBean.setJpaVendorAdapter(vendorAdapter);
-
-			return factoryBean;
+		@Bean
+		EntityManagerFactory firstEmf() {
+			return emf;
 		}
 
 		@Bean
-		LocalContainerEntityManagerFactoryBean firstEmf() {
-			return emf();
-		}
-
-		@Bean
-		LocalContainerEntityManagerFactoryBean secondEmf() {
-			return emf();
+		EntityManagerFactory secondEmf() {
+			return emf;
 		}
 
 		@Primary
 		@Bean
-		LocalContainerEntityManagerFactoryBean thirdEmf() {
-			return emf();
+		EntityManagerFactory thirdEmf() {
+			return emf;
 		}
 	}
 
-	@TestComponent
 	static class EntityManagerInjectionTarget {
 
 		private final EntityManager firstEm;

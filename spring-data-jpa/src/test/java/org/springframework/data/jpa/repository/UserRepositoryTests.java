@@ -2670,7 +2670,7 @@ public class UserRepositoryTests {
 
 	@Test // DATAJPA-1233
 	void handlesCountQueriesWithLessParametersMoreThanOneIndexed() {
-		repository.findAllOrderedBySpecialNameMultipleParamsIndexed("Oliver", "x", PageRequest.of(2, 3));
+		repository.findAllOrderedBySpecialNameMultipleParamsIndexed("x", "Oliver", PageRequest.of(2, 3));
 	}
 
 	// DATAJPA-928
