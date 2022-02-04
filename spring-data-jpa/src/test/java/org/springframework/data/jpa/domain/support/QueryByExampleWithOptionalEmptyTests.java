@@ -48,17 +48,14 @@ public class QueryByExampleWithOptionalEmptyTests {
 	@Test
 	void queryByExampleTreatsEmptyOptionalsLikeNulls() {
 
-		// given
 		UserWithOptionalField user = new UserWithOptionalField();
 		user.setName("Greg");
 		repository.saveAndFlush(user);
 
-		// when
 		UserWithOptionalField probe = new UserWithOptionalField();
 		probe.setName("Greg");
 		Example<UserWithOptionalField> example = Example.of(probe);
 
-		// then
 		List<UserWithOptionalField> results = repository.findAll(example);
 
 		assertThat(results).hasSize(1);
