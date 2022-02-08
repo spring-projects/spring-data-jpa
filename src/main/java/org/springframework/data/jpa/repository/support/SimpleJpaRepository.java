@@ -223,13 +223,13 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		}
 
 		if (entityInformation.hasCompositeId()) {
-			// XXX Hibernate just creates an empty Entity when doing the getById.
-			// Others might do a select right away causing a big performance penalty.
-			// See JavaDoc for getById.
+
 			List<T> entities = new ArrayList<>();
+			// generate entity (proxies) without accessing the database.
 			ids.forEach(id -> entities.add(getById(id)));
 			deleteAllInBatch(entities);
 		} else {
+
 			String queryString = String.format(DELETE_ALL_QUERY_BY_ID_STRING, entityInformation.getEntityName(),
 					entityInformation.getIdAttribute().getName());
 
@@ -418,7 +418,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 		if (entityInformation.hasCompositeId()) {
 
-			List<T> results = new ArrayList<T>();
+			List<T> results = new ArrayList<>();
 
 			for (ID id : ids) {
 				findById(id).ifPresent(results::add);
@@ -429,7 +429,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 		Collection<ID> idCollection = Streamable.of(ids).toList();
 
-		ByIdsSpecification<T> specification = new ByIdsSpecification<T>(entityInformation);
+		ByIdsSpecification<T> specification = new ByIdsSpecification<>(entityInformation);
 		TypedQuery<T> query = getQuery(specification, Sort.unsorted());
 
 		return query.setParameter(specification.parameter, idCollection).getResultList();
@@ -452,7 +452,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	public Page<T> findAll(Pageable pageable) {
 
 		if (isUnpaged(pageable)) {
-			return new PageImpl<T>(findAll());
+			return new PageImpl<>(findAll());
 		}
 
 		return findAll((Specification<T>) null, pageable);
@@ -489,7 +489,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	public Page<T> findAll(@Nullable Specification<T> spec, Pageable pageable) {
 
 		TypedQuery<T> query = getQuery(spec, pageable);
-		return isUnpaged(pageable) ? new PageImpl<T>(query.getResultList())
+		return isUnpaged(pageable) ? new PageImpl<>(query.getResultList())
 				: readPage(query, getDomainClass(), pageable, spec);
 	}
 
@@ -511,7 +511,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 		try {
 			return Optional
-					.of(getQuery(new ExampleSpecification<S>(example, escapeCharacter), example.getProbeType(), Sort.unsorted())
+					.of(getQuery(new ExampleSpecification<>(example, escapeCharacter), example.getProbeType(), Sort.unsorted())
 							.getSingleResult());
 		} catch (NoResultException e) {
 			return Optional.empty();
@@ -525,7 +525,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	@Override
 	public <S extends T> long count(Example<S> example) {
 		return executeCountQuery(
-				getCountQuery(new ExampleSpecification<S>(example, escapeCharacter), example.getProbeType()));
+				getCountQuery(new ExampleSpecification<>(example, escapeCharacter), example.getProbeType()));
 	}
 
 	/*
@@ -549,7 +549,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 */
 	@Override
 	public <S extends T> List<S> findAll(Example<S> example) {
-		return getQuery(new ExampleSpecification<S>(example, escapeCharacter), example.getProbeType(), Sort.unsorted())
+		return getQuery(new ExampleSpecification<>(example, escapeCharacter), example.getProbeType(), Sort.unsorted())
 				.getResultList();
 	}
 
@@ -559,7 +559,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 */
 	@Override
 	public <S extends T> List<S> findAll(Example<S> example, Sort sort) {
-		return getQuery(new ExampleSpecification<S>(example, escapeCharacter), example.getProbeType(), sort).getResultList();
+		return getQuery(new ExampleSpecification<>(example, escapeCharacter), example.getProbeType(), sort).getResultList();
 	}
 
 	/*
@@ -636,7 +636,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 		Assert.notNull(entities, "Entities must not be null!");
 
-		List<S> result = new ArrayList<S>();
+		List<S> result = new ArrayList<>();
 
 		for (S entity : entities) {
 			result.add(save(entity));
@@ -676,7 +676,6 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * @param query must not be {@literal null}.
 	 * @param spec can be {@literal null}.
 	 * @param pageable must not be {@literal null}.
-	 * @return
 	 * @deprecated use {@link #readPage(TypedQuery, Class, Pageable, Specification)} instead
 	 */
 	@Deprecated
@@ -692,7 +691,6 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * @param domainClass must not be {@literal null}.
 	 * @param spec can be {@literal null}.
 	 * @param pageable can be {@literal null}.
-	 * @return
 	 */
 	protected <S extends T> Page<S> readPage(TypedQuery<S> query, final Class<S> domainClass, Pageable pageable,
 			@Nullable Specification<S> spec) {
@@ -711,7 +709,6 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 *
 	 * @param spec can be {@literal null}.
 	 * @param pageable must not be {@literal null}.
-	 * @return
 	 */
 	protected TypedQuery<T> getQuery(@Nullable Specification<T> spec, Pageable pageable) {
 
@@ -725,7 +722,6 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * @param spec can be {@literal null}.
 	 * @param domainClass must not be {@literal null}.
 	 * @param pageable must not be {@literal null}.
-	 * @return
 	 */
 	protected <S extends T> TypedQuery<S> getQuery(@Nullable Specification<S> spec, Class<S> domainClass,
 			Pageable pageable) {
@@ -739,7 +735,6 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 *
 	 * @param spec can be {@literal null}.
 	 * @param sort must not be {@literal null}.
-	 * @return
 	 */
 	protected TypedQuery<T> getQuery(@Nullable Specification<T> spec, Sort sort) {
 		return getQuery(spec, getDomainClass(), sort);
@@ -751,7 +746,6 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * @param spec can be {@literal null}.
 	 * @param domainClass must not be {@literal null}.
 	 * @param sort must not be {@literal null}.
-	 * @return
 	 */
 	protected <S extends T> TypedQuery<S> getQuery(@Nullable Specification<S> spec, Class<S> domainClass, Sort sort) {
 
@@ -772,7 +766,6 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * Creates a new count query for the given {@link Specification}.
 	 *
 	 * @param spec can be {@literal null}.
-	 * @return
 	 * @deprecated override {@link #getCountQuery(Specification, Class)} instead
 	 */
 	@Deprecated
@@ -785,7 +778,6 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 *
 	 * @param spec can be {@literal null}.
 	 * @param domainClass must not be {@literal null}.
-	 * @return
 	 */
 	protected <S extends T> TypedQuery<Long> getCountQuery(@Nullable Specification<S> spec, Class<S> domainClass) {
 
@@ -801,7 +793,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		}
 
 		// Remove all Orders the Specifications might have applied
-		query.orderBy(Collections.<Order> emptyList());
+		query.orderBy(Collections.emptyList());
 
 		return em.createQuery(query);
 	}
@@ -812,7 +804,6 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * @param spec can be {@literal null}.
 	 * @param domainClass must not be {@literal null}.
 	 * @param query must not be {@literal null}.
-	 * @return
 	 */
 	private <S, U extends T> Root<U> applySpecificationToCriteria(@Nullable Specification<U> spec, Class<U> domainClass,
 			CriteriaQuery<S> query) {
@@ -858,7 +849,6 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * Executes a count query and transparently sums up all values returned.
 	 *
 	 * @param query must not be {@literal null}.
-	 * @return
 	 */
 	private static long executeCountQuery(TypedQuery<Long> query) {
 
@@ -930,8 +920,8 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		/**
 		 * Creates new {@link ExampleSpecification}.
 		 *
-		 * @param example
-		 * @param escapeCharacter
+		 * @param example the example to base the specification of. Must not be {@literal null}.
+		 * @param escapeCharacter the escape character to use for like expressions. Must not be {@literal null}.
 		 */
 		ExampleSpecification(Example<T> example, EscapeCharacter escapeCharacter) {
 
