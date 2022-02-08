@@ -18,6 +18,7 @@ package org.springframework.data.jpa.repository;
 import static org.assertj.core.api.Assertions.*;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import jakarta.persistence.EntityManager;
@@ -113,7 +114,7 @@ public class RepositoryWithCompositeKeyTests {
 	}
 
 	@Test // DATAJPA-472, DATAJPA-912
-	void shouldSupportFindAllWithPageableAndEntityWithIdClass() throws Exception {
+	void shouldSupportFindAllWithPageableAndEntityWithIdClass() {
 
 		IdClassExampleDepartment dep = new IdClassExampleDepartment();
 		dep.setName("TestDepartment");
@@ -121,7 +122,7 @@ public class RepositoryWithCompositeKeyTests {
 
 		IdClassExampleEmployee emp = new IdClassExampleEmployee();
 		emp.setDepartment(dep);
-		emp = employeeRepositoryWithIdClass.save(emp);
+		employeeRepositoryWithIdClass.save(emp);
 
 		Page<IdClassExampleEmployee> page = employeeRepositoryWithIdClass.findAll(PageRequest.of(0, 1));
 
@@ -130,7 +131,7 @@ public class RepositoryWithCompositeKeyTests {
 	}
 
 	@Test // DATAJPA-2414
-	void shouldSupportDeleteAllByIdInBatchWithIdClass() throws Exception {
+	void shouldSupportDeleteAllByIdInBatchWithIdClass() {
 
 		IdClassExampleDepartment dep = new IdClassExampleDepartment();
 		dep.setName("TestDepartment");
@@ -143,7 +144,7 @@ public class RepositoryWithCompositeKeyTests {
 		IdClassExampleEmployeePK key = new IdClassExampleEmployeePK(emp.getEmpId(), dep.getDepartmentId());
 		assertThat(employeeRepositoryWithIdClass.findById(key)).isNotEmpty();
 
-		employeeRepositoryWithIdClass.deleteAllByIdInBatch(Arrays.asList(key));
+		employeeRepositoryWithIdClass.deleteAllByIdInBatch(Collections.singletonList(key));
 
 		em.flush();
 		em.clear();
@@ -170,7 +171,7 @@ public class RepositoryWithCompositeKeyTests {
 		EmbeddedIdExampleEmployee emp2 = new EmbeddedIdExampleEmployee();
 		emp2.setEmployeePk(new EmbeddedIdExampleEmployeePK(2L, null));
 		emp2.setDepartment(dep1);
-		emp2 = employeeRepositoryWithEmbeddedId.save(emp2);
+		employeeRepositoryWithEmbeddedId.save(emp2);
 
 		EmbeddedIdExampleEmployee emp3 = new EmbeddedIdExampleEmployee();
 		emp3.setEmployeePk(new EmbeddedIdExampleEmployeePK(1L, null));
@@ -206,7 +207,7 @@ public class RepositoryWithCompositeKeyTests {
 		IdClassExampleEmployee emp2 = new IdClassExampleEmployee();
 		emp2.setEmpId(2L);
 		emp2.setDepartment(dep1);
-		emp2 = employeeRepositoryWithIdClass.save(emp2);
+		employeeRepositoryWithIdClass.save(emp2);
 
 		IdClassExampleEmployee emp3 = new IdClassExampleEmployee();
 		emp3.setEmpId(1L);
@@ -276,7 +277,7 @@ public class RepositoryWithCompositeKeyTests {
 		IdClassExampleEmployee emp1 = new IdClassExampleEmployee();
 		emp1.setEmpId(3L);
 		emp1.setDepartment(dep2);
-		emp1 = employeeRepositoryWithIdClass.save(emp1);
+		employeeRepositoryWithIdClass.save(emp1);
 
 		IdClassExampleDepartment dep1 = new IdClassExampleDepartment();
 		dep1.setDepartmentId(1L);
@@ -285,7 +286,7 @@ public class RepositoryWithCompositeKeyTests {
 		IdClassExampleEmployee emp2 = new IdClassExampleEmployee();
 		emp2.setEmpId(2L);
 		emp2.setDepartment(dep1);
-		emp2 = employeeRepositoryWithIdClass.save(emp2);
+		employeeRepositoryWithIdClass.save(emp2);
 
 		IdClassExampleEmployeePK emp1PK = new IdClassExampleEmployeePK();
 		emp1PK.setDepartment(2L);
