@@ -76,6 +76,7 @@ import org.springframework.util.StringUtils;
  * @author Greg Turnquist
  * @author Diego Krupitza
  * @author Jędrzej Biedrzycki
+ * @author Anton Molganov
  */
 public abstract class QueryUtils {
 
@@ -806,6 +807,16 @@ public abstract class QueryUtils {
 				return join;
 			}
 		}
+
+		for (Fetch<?, ?> fetch : from.getFetches()) {
+
+			Join<?, ?> join = (Join<?, ?>) fetch;
+			if (joinType == join.getJoinType()
+					&& join.getAttribute().getName().equals(attribute)) {
+				return join;
+			}
+		}
+
 		return from.join(attribute, joinType);
 	}
 
