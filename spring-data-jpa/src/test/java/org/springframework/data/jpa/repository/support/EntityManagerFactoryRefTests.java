@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2021 the original author or authors.
+ * Copyright 2008-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,13 +43,13 @@ public class EntityManagerFactoryRefTests {
 
 	@Test
 	@Transactional
-	void useUserRepository() throws Exception {
+	void useUserRepository() {
 		userRepository.saveAndFlush(new User("firstname", "lastname", "foo@bar.de"));
 	}
 
 	@Test
 	@Transactional("transactionManager-2")
-	void useAuditableUserRepository() throws Exception {
+	void useAuditableUserRepository() {
 		auditableUserRepository.saveAndFlush(new AuditableUser());
 	}
 }

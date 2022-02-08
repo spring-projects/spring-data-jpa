@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2021 the original author or authors.
+ * Copyright 2008-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -123,7 +123,7 @@ public class ParameterBinderUnitTests {
 	}
 
 	@Test
-	void usesIndexedParametersIfNoParamAnnotationPresent() throws Exception {
+	void usesIndexedParametersIfNoParamAnnotationPresent() {
 
 		Object[] values = { "foo" };
 		bind(useIndexedParameters, values);
@@ -131,7 +131,7 @@ public class ParameterBinderUnitTests {
 	}
 
 	@Test
-	void usesParameterNameIfAnnotated() throws Exception {
+	void usesParameterNameIfAnnotated() {
 
 		when(query.setParameter(eq("username"), any())).thenReturn(query);
 
@@ -185,8 +185,7 @@ public class ParameterBinderUnitTests {
 	}
 
 	@Test // DATAJPA-107
-	void shouldThrowIllegalArgumentExceptionIfIsAnnotatedWithTemporalParamAndParameterTypeIsNotDate()
-			throws Exception {
+	void shouldThrowIllegalArgumentExceptionIfIsAnnotatedWithTemporalParamAndParameterTypeIsNotDate() throws Exception {
 		Method method = SampleRepository.class.getMethod("invalidWithTemporalTypeParameter", String.class);
 
 		assertThatIllegalArgumentException().isThrownBy(() -> new JpaParameters(method));

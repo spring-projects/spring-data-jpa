@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2021 the original author or authors.
+ * Copyright 2008-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -91,7 +91,7 @@ class QuerydslJpaRepositoryTests {
 	}
 
 	@Test
-	void executesPredicatesCorrectly() throws Exception {
+	void executesPredicatesCorrectly() {
 
 		BooleanExpression isCalledDave = user.firstname.eq("Dave");
 		BooleanExpression isBeauford = user.lastname.eq("Beauford");
@@ -102,7 +102,7 @@ class QuerydslJpaRepositoryTests {
 	}
 
 	@Test
-	void executesStringBasedPredicatesCorrectly() throws Exception {
+	void executesStringBasedPredicatesCorrectly() {
 
 		PathBuilder<User> builder = new PathBuilderFactory().create(User.class);
 
@@ -273,7 +273,7 @@ class QuerydslJpaRepositoryTests {
 	}
 
 	@Test // DATAJPA-665
-	void shouldSupportExistsWithPredicate() throws Exception {
+	void shouldSupportExistsWithPredicate() {
 
 		assertThat(repository.exists(user.firstname.eq("Dave"))).isEqualTo(true);
 		assertThat(repository.exists(user.firstname.eq("Unknown"))).isEqualTo(false);

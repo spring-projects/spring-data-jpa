@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2021 the original author or authors.
+ * Copyright 2008-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -275,7 +275,7 @@ public class JpaQueryMethodUnitTests {
 	}
 
 	@Test // DATAJPA-185
-	void rejectsInvalidNamedParameter() throws Exception {
+	void rejectsInvalidNamedParameter() {
 
 		assertThatThrownBy(() -> getQueryMethod(InvalidRepository.class, "findByAnnotatedQuery", String.class))
 				.isInstanceOf(IllegalStateException.class)
@@ -344,8 +344,8 @@ public class JpaQueryMethodUnitTests {
 		doReturn(User.class).when(metadata).getDomainType();
 		doReturn(User.class).when(metadata).getReturnedDomainClass((Method) any());
 
-		JpaQueryMethod method = new JpaQueryMethod(JpaRepositoryOverride.class.getMethod("findOne", Integer.class), metadata,
-				factory, extractor);
+		JpaQueryMethod method = new JpaQueryMethod(JpaRepositoryOverride.class.getMethod("findOne", Integer.class),
+				metadata, factory, extractor);
 
 		assertThat(method.getEntityGraph()).isNotNull();
 		assertThat(method.getEntityGraph().getName()).isEqualTo("User.detail");

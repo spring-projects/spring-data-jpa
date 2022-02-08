@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2021 the original author or authors.
+ * Copyright 2011-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,7 +67,7 @@ public class QuerydslRepositorySupportTests {
 	}
 
 	@Test
-	void readsUsersCorrectly() throws Exception {
+	void readsUsersCorrectly() {
 
 		List<User> result = repository.findUsersByLastname("Matthews");
 		assertThat(result.size()).isEqualTo(1);
@@ -79,7 +79,7 @@ public class QuerydslRepositorySupportTests {
 	}
 
 	@Test
-	void updatesUsersCorrectly() throws Exception {
+	void updatesUsersCorrectly() {
 
 		long updates = repository.updateLastnamesTo("Foo");
 		assertThat(updates).isEqualTo(2L);
