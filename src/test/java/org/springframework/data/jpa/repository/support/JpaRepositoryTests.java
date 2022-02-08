@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2021 the original author or authors.
+ * Copyright 2008-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,7 +62,7 @@ class JpaRepositoryTests {
 	}
 
 	@Test
-	void testCrudOperationsForCompoundKeyEntity() throws Exception {
+	void testCrudOperationsForCompoundKeyEntity() {
 
 		SampleEntity entity = new SampleEntity("foo", "bar");
 		repository.saveAndFlush(entity);
@@ -90,7 +90,7 @@ class JpaRepositoryTests {
 	}
 
 	@Test // DATAJPA-266
-	void testExistsForDomainObjectsWithCompositeKeys() throws Exception {
+	void testExistsForDomainObjectsWithCompositeKeys() {
 
 		PersistableWithIdClass s1 = idClassRepository.save(new PersistableWithIdClass(1L, 1L));
 		PersistableWithIdClass s2 = idClassRepository.save(new PersistableWithIdClass(2L, 2L));
@@ -123,7 +123,8 @@ class JpaRepositoryTests {
 		repository.saveAll(Arrays.asList(one, two, three));
 		repository.flush();
 
-		repository.deleteAllByIdInBatch(Arrays.asList(new SampleEntityPK("one", "eins"),new SampleEntityPK("three", "drei")));
+		repository
+				.deleteAllByIdInBatch(Arrays.asList(new SampleEntityPK("one", "eins"), new SampleEntityPK("three", "drei")));
 		assertThat(repository.findAll()).containsExactly(two);
 	}
 

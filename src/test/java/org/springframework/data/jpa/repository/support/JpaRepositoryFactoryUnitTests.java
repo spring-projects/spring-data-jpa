@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2021 the original author or authors.
+ * Copyright 2008-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -91,7 +91,7 @@ public class JpaRepositoryFactoryUnitTests {
 	 * @throws Exception
 	 */
 	@Test
-	void setsUpBasicInstanceCorrectly() throws Exception {
+	void setsUpBasicInstanceCorrectly() {
 
 		assertThat(factory.getRepository(SimpleSampleRepository.class)).isNotNull();
 	}
@@ -111,10 +111,9 @@ public class JpaRepositoryFactoryUnitTests {
 	 * implementation could be found. Furthremore the exception has to contain the name of the predicateExecutor interface
 	 * as for a large predicateExecutor configuration it's hard to find out where this error occured.
 	 *
-	 * @throws Exception
 	 */
 	@Test
-	void capturesMissingCustomImplementationAndProvidesInterfacename() throws Exception {
+	void capturesMissingCustomImplementationAndProvidesInterfacename() {
 
 		try {
 			factory.getRepository(SampleRepository.class);
@@ -194,14 +193,14 @@ public class JpaRepositoryFactoryUnitTests {
 
 	}
 
-static class CustomJpaRepository<T, ID extends Serializable> extends SimpleJpaRepository<T, ID> {
+	static class CustomJpaRepository<T, ID extends Serializable> extends SimpleJpaRepository<T, ID> {
 
-	CustomJpaRepository(JpaEntityInformation<T, ?> entityInformation, EntityManager entityManager) {
+		CustomJpaRepository(JpaEntityInformation<T, ?> entityInformation, EntityManager entityManager) {
 			super(entityInformation, entityManager);
 		}
 	}
 
-		/**
+	/**
 	 * Implementation of the custom predicateExecutor interface.
 	 *
 	 * @author Oliver Gierke

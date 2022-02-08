@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2021 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -110,7 +110,7 @@ public class RepositoryWithCompositeKeyTests {
 	}
 
 	@Test // DATAJPA-472, DATAJPA-912
-	void shouldSupportFindAllWithPageableAndEntityWithIdClass() throws Exception {
+	void shouldSupportFindAllWithPageableAndEntityWithIdClass() {
 
 		IdClassExampleDepartment dep = new IdClassExampleDepartment();
 		dep.setName("TestDepartment");
