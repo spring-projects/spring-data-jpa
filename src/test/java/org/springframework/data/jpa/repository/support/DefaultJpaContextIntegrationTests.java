@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2021 the original author or authors.
+ * Copyright 2015-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -160,7 +160,7 @@ public class DefaultJpaContextIntegrationTests {
 		// A non-EntityManagerFactory JNDI object to make sure the detection doesn't include it
 		// see DATAJPA-956
 		@Bean
-		public JndiObjectFactoryBean jndiObject() throws NamingException {
+		public JndiObjectFactoryBean jndiObject() {
 
 			JndiObjectFactoryBean bean = new JndiObjectFactoryBean();
 

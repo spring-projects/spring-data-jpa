@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2021 the original author or authors.
+ * Copyright 2008-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,35 +58,35 @@ public class TransactionalRepositoryTests {
 	}
 
 	@Test
-	void simpleManipulatingOperation() throws Exception {
+	void simpleManipulatingOperation() {
 
 		repository.saveAndFlush(new User("foo", "bar", "foo@bar.de"));
 		assertThat(transactionManager.getTransactionRequests()).isEqualTo(1);
 	}
 
 	@Test
-	void unannotatedFinder() throws Exception {
+	void unannotatedFinder() {
 
 		repository.findByEmailAddress("foo@bar.de");
 		assertThat(transactionManager.getTransactionRequests()).isEqualTo(0);
 	}
 
 	@Test
-	void invokeTransactionalFinder() throws Exception {
+	void invokeTransactionalFinder() {
 
 		repository.findByAnnotatedQuery("foo@bar.de");
 		assertThat(transactionManager.getTransactionRequests()).isEqualTo(1);
 	}
 
 	@Test
-	void invokeRedeclaredMethod() throws Exception {
+	void invokeRedeclaredMethod() {
 
 		repository.findById(1);
 		assertThat(transactionManager.getDefinition().isReadOnly()).isFalse();
 	}
 
 	@Test // DATACMNS-649
-	void invokeRedeclaredDeleteMethodWithoutTransactionDeclaration() throws Exception {
+	void invokeRedeclaredDeleteMethodWithoutTransactionDeclaration() {
 
 		User user = repository.saveAndFlush(new User("foo", "bar", "foo@bar.de"));
 		repository.deleteById(user.getId());
