@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2021-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,6 +45,7 @@ import org.springframework.util.Assert;
  * @author Greg Turnquist
  * @author Mark Paluch
  * @author Jens Schauder
+ * @author J.R. Onyschak
  * @since 2.6
  */
 class FetchableFluentQueryByExample<S, R> extends FluentQuerySupport<S, R> implements FetchableFluentQuery<R> {
@@ -86,8 +87,8 @@ class FetchableFluentQueryByExample<S, R> extends FluentQuerySupport<S, R> imple
 
 		Assert.notNull(sort, "Sort must not be null!");
 
-		return new FetchableFluentQueryByExample<>(example, entityType, resultType, sort.and(sort), properties, finder,
-				countOperation, existsOperation, entityManager, escapeCharacter);
+		return new FetchableFluentQueryByExample<>(example, entityType, resultType, this.sort.and(sort), properties,
+				finder, countOperation, existsOperation, entityManager, escapeCharacter);
 	}
 
 	/*
