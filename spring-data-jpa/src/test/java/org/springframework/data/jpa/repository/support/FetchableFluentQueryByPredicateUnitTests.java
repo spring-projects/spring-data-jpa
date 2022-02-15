@@ -32,6 +32,7 @@ class FetchableFluentQueryByPredicateUnitTests {
 	@Test // GH-2438
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	void multipleSortBy() {
+
 		Sort s1 = Sort.by(Order.by("s1"));
 		Sort s2 = Sort.by(Order.by("s2"));
 		FetchableFluentQueryByPredicate f = new FetchableFluentQueryByPredicate(null, null, null, null, null, null, null);
