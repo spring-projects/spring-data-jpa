@@ -15,12 +15,16 @@
  */
 package org.springframework.data.jpa.repository.support;
 
+import static org.springframework.data.jpa.repository.query.QueryUtils.*;
+
+import java.util.*;
+import java.util.function.Function;
+
+import javax.persistence.*;
+import javax.persistence.criteria.*;
+
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.data.domain.Example;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.data.jpa.convert.QueryByExamplePredicateBuilder;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.provider.PersistenceProvider;
@@ -36,29 +40,6 @@ import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
-
-import javax.persistence.EntityManager;
-import javax.persistence.LockModeType;
-import javax.persistence.NoResultException;
-import javax.persistence.Parameter;
-import javax.persistence.Query;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.ParameterExpression;
-import javax.persistence.criteria.Path;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Function;
-
-import static org.springframework.data.jpa.repository.query.QueryUtils.*;
 
 /**
  * Default implementation of the {@link org.springframework.data.repository.CrudRepository} interface. This will offer
@@ -80,6 +61,7 @@ import static org.springframework.data.jpa.repository.query.QueryUtils.*;
  * @author Greg Turnquist
  * @author Yanming Zhou
  * @author Ernst-Jan van der Laan
+ * @author Diego Krupitza
  */
 @Repository
 @Transactional(readOnly = true)
@@ -551,6 +533,20 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		CriteriaQuery<Integer> cq = this.em.getCriteriaBuilder().createQuery(Integer.class);
 		cq.select(this.em.getCriteriaBuilder().literal(1));
 		applySpecificationToCriteria(spec, example.getProbeType(), cq);
+		TypedQuery<Integer> query = applyRepositoryMethodMetadata(this.em.createQuery(cq));
+		return query.setMaxResults(1).getResultList().size() == 1;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.jpa.repository.JpaSpecificationExecutor#exists(org.springframework.data.jpa.domain.Specification)
+	 */
+	@Override
+	public boolean exists(Specification<T> spec) {
+
+		CriteriaQuery<Integer> cq = this.em.getCriteriaBuilder().createQuery(Integer.class);
+		cq.select(this.em.getCriteriaBuilder().literal(1));
+		applySpecificationToCriteria(spec, getDomainClass(), cq);
 		TypedQuery<Integer> query = applyRepositoryMethodMetadata(this.em.createQuery(cq));
 		return query.setMaxResults(1).getResultList().size() == 1;
 	}
