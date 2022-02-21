@@ -96,6 +96,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Sander Krabbenborg
  * @author Jesse Wouters
  * @author Greg Turnquist
+ * @author Diego Krupitza
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:application-context.xml")
@@ -2638,6 +2639,17 @@ public class UserRepositoryTests {
 		flushTestUsers();
 
 		assertThat(repository.findAllInterfaceProjectedBy()).hasSize(4);
+	}
+
+	@Test // GH-2388
+	void existsWithSpec() {
+		flushTestUsers();
+
+		Specification<User> minorSpec = userHasAgeLess(18);
+		Specification<User> hundredYearsOld = userHasAgeLess(100);
+
+		assertThat(repository.exists(minorSpec)).isFalse();
+		assertThat(repository.exists(hundredYearsOld)).isTrue();
 	}
 
 	private Page<User> executeSpecWithSort(Sort sort) {
