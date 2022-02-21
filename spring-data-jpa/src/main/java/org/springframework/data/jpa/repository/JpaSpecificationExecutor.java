@@ -29,6 +29,7 @@ import org.springframework.lang.Nullable;
  *
  * @author Oliver Gierke
  * @author Christoph Strobl
+ * @author Diego Krupitza
  */
 public interface JpaSpecificationExecutor<T> {
 
@@ -74,4 +75,13 @@ public interface JpaSpecificationExecutor<T> {
 	 * @return the number of instances.
 	 */
 	long count(@Nullable Specification<T> spec);
+
+	/**
+	 * Checks whether the data store contains elements that match the given {@link Specification}.
+	 * 
+	 * @param spec the {@link Specification} to use for the existence check. Must not be {@literal null}.
+	 * @return <code>true</code> if the data store contains elements that match the given {@link Specification} otherwise
+	 *         <code>false</code>.
+	 */
+	boolean exists(Specification<T> spec);
 }

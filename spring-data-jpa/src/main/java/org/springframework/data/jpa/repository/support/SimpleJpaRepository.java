@@ -40,11 +40,7 @@ import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.data.domain.Example;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.data.jpa.convert.QueryByExamplePredicateBuilder;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.provider.PersistenceProvider;
@@ -81,6 +77,7 @@ import org.springframework.util.Assert;
  * @author Greg Turnquist
  * @author Yanming Zhou
  * @author Ernst-Jan van der Laan
+ * @author Diego Krupitza
  */
 @Repository
 @Transactional(readOnly = true)
@@ -460,6 +457,20 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		CriteriaQuery<Integer> cq = this.em.getCriteriaBuilder().createQuery(Integer.class);
 		cq.select(this.em.getCriteriaBuilder().literal(1));
 		applySpecificationToCriteria(spec, example.getProbeType(), cq);
+		TypedQuery<Integer> query = applyRepositoryMethodMetadata(this.em.createQuery(cq));
+		return query.setMaxResults(1).getResultList().size() == 1;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.jpa.repository.JpaSpecificationExecutor#exists(org.springframework.data.jpa.domain.Specification)
+	 */
+	@Override
+	public boolean exists(Specification<T> spec) {
+
+		CriteriaQuery<Integer> cq = this.em.getCriteriaBuilder().createQuery(Integer.class);
+		cq.select(this.em.getCriteriaBuilder().literal(1));
+		applySpecificationToCriteria(spec, getDomainClass(), cq);
 		TypedQuery<Integer> query = applyRepositoryMethodMetadata(this.em.createQuery(cq));
 		return query.setMaxResults(1).getResultList().size() == 1;
 	}

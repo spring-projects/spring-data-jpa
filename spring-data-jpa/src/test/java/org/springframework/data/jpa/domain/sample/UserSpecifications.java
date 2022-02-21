@@ -26,6 +26,7 @@ import org.springframework.data.jpa.domain.Specification;
  * Collection of {@link Specification}s for a {@link User}.
  *
  * @author Oliver Gierke
+ * @author Diego Krupitza
  */
 public class UserSpecifications {
 
@@ -67,6 +68,17 @@ public class UserSpecifications {
 				return cb.like(root.get("firstname").as(String.class), String.format("%%%s%%", expression));
 			}
 		};
+	}
+
+	/**
+	 * A {@link Specification} to do an age check.
+	 *
+	 * @param age upper (exclusive) bound of the age
+	 * @return
+	 */
+	public static Specification<User> userHasAgeLess(final Integer age) {
+
+		return (root, query, cb) -> cb.lessThan(root.get("age").as(Integer.class), age);
 	}
 
 	/**
