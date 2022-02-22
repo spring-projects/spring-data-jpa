@@ -32,9 +32,6 @@ public class UserSpecifications {
 
 	/**
 	 * A {@link Specification} to match on a {@link User}'s firstname.
-	 *
-	 * @param firstname
-	 * @return
 	 */
 	public static Specification<User> userHasFirstname(final String firstname) {
 
@@ -43,9 +40,6 @@ public class UserSpecifications {
 
 	/**
 	 * A {@link Specification} to match on a {@link User}'s lastname.
-	 *
-	 * @param firstname
-	 * @return
 	 */
 	public static Specification<User> userHasLastname(final String lastname) {
 
@@ -54,27 +48,16 @@ public class UserSpecifications {
 
 	/**
 	 * A {@link Specification} to do a like-match on a {@link User}'s firstname.
-	 *
-	 * @param firstname
-	 * @return
 	 */
 	public static Specification<User> userHasFirstnameLike(final String expression) {
 
-		return new Specification<User>() {
-
-			@Override
-			public Predicate toPredicate(Root<User> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
-
-				return cb.like(root.get("firstname").as(String.class), String.format("%%%s%%", expression));
-			}
-		};
+		return (root, query, cb) -> cb.like(root.get("firstname").as(String.class), String.format("%%%s%%", expression));
 	}
 
 	/**
 	 * A {@link Specification} to do an age check.
 	 *
 	 * @param age upper (exclusive) bound of the age
-	 * @return
 	 */
 	public static Specification<User> userHasAgeLess(final Integer age) {
 
@@ -84,33 +67,19 @@ public class UserSpecifications {
 	/**
 	 * A {@link Specification} to do a like-match on a {@link User}'s lastname but also adding a sort order on the
 	 * firstname.
-	 *
-	 * @param firstname
-	 * @return
 	 */
 	public static Specification<User> userHasLastnameLikeWithSort(final String expression) {
 
-		return new Specification<User>() {
+		return (root, query, cb) -> {
 
-			@Override
-			public Predicate toPredicate(Root<User> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+			query.orderBy(cb.asc(root.get("firstname")));
 
-				query.orderBy(cb.asc(root.get("firstname")));
-
-				return cb.like(root.get("lastname").as(String.class), String.format("%%%s%%", expression));
-			}
+			return cb.like(root.get("lastname").as(String.class), String.format("%%%s%%", expression));
 		};
 	}
 
 	private static <T> Specification<T> simplePropertySpec(final String property, final Object value) {
 
-		return new Specification<T>() {
-
-			@Override
-			public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder builder) {
-
-				return builder.equal(root.get(property), value);
-			}
-		};
+		return (root, query, builder) -> builder.equal(root.get(property), value);
 	}
 }

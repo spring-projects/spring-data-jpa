@@ -17,14 +17,34 @@ package org.springframework.data.jpa.repository.support;
 
 import static org.springframework.data.jpa.repository.query.QueryUtils.*;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 
-import javax.persistence.*;
-import javax.persistence.criteria.*;
+import javax.persistence.EntityManager;
+import javax.persistence.LockModeType;
+import javax.persistence.NoResultException;
+import javax.persistence.Parameter;
+import javax.persistence.Query;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.ParameterExpression;
+import javax.persistence.criteria.Path;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.convert.QueryByExamplePredicateBuilder;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.provider.PersistenceProvider;
@@ -307,7 +327,6 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	/**
 	 * Returns {@link QueryHints} with the query hints based on the current {@link CrudMethodMetadata} and potential
 	 * {@link EntityGraph} information.
-	 *
 	 */
 	protected QueryHints getQueryHints() {
 		return metadata == null ? NoHints.INSTANCE : DefaultQueryHints.of(entityInformation, metadata);
@@ -537,10 +556,6 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		return query.setMaxResults(1).getResultList().size() == 1;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.jpa.repository.JpaSpecificationExecutor#exists(org.springframework.data.jpa.domain.Specification)
-	 */
 	@Override
 	public boolean exists(Specification<T> spec) {
 
@@ -567,8 +582,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 */
 	@Override
 	public <S extends T> List<S> findAll(Example<S> example, Sort sort) {
-		return getQuery(new ExampleSpecification<>(example, escapeCharacter), example.getProbeType(), sort)
-				.getResultList();
+		return getQuery(new ExampleSpecification<>(example, escapeCharacter), example.getProbeType(), sort).getResultList();
 	}
 
 	/*

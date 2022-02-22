@@ -2643,6 +2643,7 @@ public class UserRepositoryTests {
 
 	@Test // GH-2388
 	void existsWithSpec() {
+
 		flushTestUsers();
 
 		Specification<User> minorSpec = userHasAgeLess(18);
