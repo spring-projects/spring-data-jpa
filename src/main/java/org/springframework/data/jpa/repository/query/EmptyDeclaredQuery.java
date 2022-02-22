@@ -97,7 +97,7 @@ class EmptyDeclaredQuery implements DeclaredQuery {
 
 		Assert.hasText(countQuery, "CountQuery must not be empty!");
 
-		return DeclaredQuery.of(countQuery);
+		return DeclaredQuery.of(countQuery, false);
 	}
 
 	/*

@@ -40,11 +40,7 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.data.domain.Example;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.data.jpa.convert.QueryByExamplePredicateBuilder;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.provider.PersistenceProvider;
@@ -930,7 +926,8 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 		private final JpaEntityInformation<T, ?> entityInformation;
 
-		@Nullable ParameterExpression<Collection<?>> parameter;
+		@Nullable
+		ParameterExpression<Collection<?>> parameter;
 
 		ByIdsSpecification(JpaEntityInformation<T, ?> entityInformation) {
 			this.entityInformation = entityInformation;

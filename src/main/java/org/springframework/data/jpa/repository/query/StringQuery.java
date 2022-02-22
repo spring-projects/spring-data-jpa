@@ -46,6 +46,7 @@ import org.springframework.util.StringUtils;
  * @author Oliver Wehrens
  * @author Mark Paluch
  * @author Jens Schauder
+ * @author Diego Krupitza
  */
 class StringQuery implements DeclaredQuery {
 
@@ -55,6 +56,8 @@ class StringQuery implements DeclaredQuery {
 	private final boolean hasConstructorExpression;
 	private final boolean containsPageableInSpel;
 	private final boolean usesJdbcStyleParameters;
+	private final boolean isNative;
+	private final QueryEnhancer queryEnhancer;
 
 	/**
 	 * Creates a new {@link StringQuery} from the given JPQL query.
@@ -62,10 +65,11 @@ class StringQuery implements DeclaredQuery {
 	 * @param query must not be {@literal null} or empty.
 	 */
 	@SuppressWarnings("deprecation")
-	StringQuery(String query) {
+	StringQuery(String query, boolean isNative) {
 
 		Assert.hasText(query, "Query must not be null or empty!");
 
+		this.isNative = isNative;
 		this.bindings = new ArrayList<>();
 		this.containsPageableInSpel = query.contains("#pageable");
 
@@ -74,8 +78,10 @@ class StringQuery implements DeclaredQuery {
 				this.bindings, queryMeta);
 
 		this.usesJdbcStyleParameters = queryMeta.usesJdbcStyleParameters;
-		this.alias = QueryUtils.detectAlias(query);
-		this.hasConstructorExpression = QueryUtils.hasConstructorExpression(query);
+
+		this.queryEnhancer = QueryEnhancerFactory.forQuery(this);
+		this.alias = this.queryEnhancer.detectAlias();
+		this.hasConstructorExpression = this.queryEnhancer.hasConstructorExpression();
 	}
 
 	/**
@@ -86,7 +92,7 @@ class StringQuery implements DeclaredQuery {
 	}
 
 	String getProjection() {
-		return QueryUtils.getProjection(query);
+		return this.queryEnhancer.getProjection();
 	}
 
 	/*
@@ -106,8 +112,9 @@ class StringQuery implements DeclaredQuery {
 	@SuppressWarnings("deprecation")
 	public DeclaredQuery deriveCountQuery(@Nullable String countQuery, @Nullable String countQueryProjection) {
 
-		return DeclaredQuery
-				.of(countQuery != null ? countQuery : QueryUtils.createCountQueryFor(query, countQueryProjection));
+		return DeclaredQuery.of(
+				countQuery != null ? countQuery : this.queryEnhancer.createCountQueryFor(countQueryProjection), //
+				this.isNative);
 	}
 
 	/*
@@ -172,6 +179,11 @@ class StringQuery implements DeclaredQuery {
 	@Override
 	public boolean usesPaging() {
 		return containsPageableInSpel;
+	}
+
+	@Override
+	public boolean isNativeQuery() {
+		return isNative;
 	}
 
 	/**
@@ -263,7 +275,8 @@ class StringQuery implements DeclaredQuery {
 				Integer parameterIndex = getParameterIndex(parameterIndexString);
 
 				String typeSource = matcher.group(COMPARISION_TYPE_GROUP);
-				Assert.isTrue(parameterIndexString != null || parameterName != null, () -> String.format("We need either a name or an index! Offending query string: %s", query));
+				Assert.isTrue(parameterIndexString != null || parameterName != null,
+						() -> String.format("We need either a name or an index! Offending query string: %s", query));
 				String expression = spelExtractor.getParameter(parameterName == null ? parameterIndexString : parameterName);
 				String replacement = null;
 
@@ -282,36 +295,36 @@ class StringQuery implements DeclaredQuery {
 
 				switch (ParameterBindingType.of(typeSource)) {
 
-					case LIKE:
+				case LIKE:
 
-						Type likeType = LikeParameterBinding.getLikeTypeFrom(matcher.group(2));
-						replacement = matcher.group(3);
+					Type likeType = LikeParameterBinding.getLikeTypeFrom(matcher.group(2));
+					replacement = matcher.group(3);
 
-						if (parameterIndex != null) {
-							checkAndRegister(new LikeParameterBinding(parameterIndex, likeType, expression), bindings);
-						} else {
-							checkAndRegister(new LikeParameterBinding(parameterName, likeType, expression), bindings);
+					if (parameterIndex != null) {
+						checkAndRegister(new LikeParameterBinding(parameterIndex, likeType, expression), bindings);
+					} else {
+						checkAndRegister(new LikeParameterBinding(parameterName, likeType, expression), bindings);
 
-							replacement = ":" + parameterName;
-						}
+						replacement = ":" + parameterName;
+					}
 
-						break;
+					break;
 
-					case IN:
+				case IN:
 
-						if (parameterIndex != null) {
-							checkAndRegister(new InParameterBinding(parameterIndex, expression), bindings);
-						} else {
-							checkAndRegister(new InParameterBinding(parameterName, expression), bindings);
-						}
+					if (parameterIndex != null) {
+						checkAndRegister(new InParameterBinding(parameterIndex, expression), bindings);
+					} else {
+						checkAndRegister(new InParameterBinding(parameterName, expression), bindings);
+					}
 
-						break;
+					break;
 
-					case AS_IS: // fall-through we don't need a special parameter binding for the given parameter.
-					default:
+				case AS_IS: // fall-through we don't need a special parameter binding for the given parameter.
+				default:
 
-						bindings.add(parameterIndex != null ? new ParameterBinding(null, parameterIndex, expression)
-								: new ParameterBinding(parameterName, null, expression));
+					bindings.add(parameterIndex != null ? new ParameterBinding(null, parameterIndex, expression)
+							: new ParameterBinding(parameterName, null, expression));
 				}
 
 				if (replacement != null) {

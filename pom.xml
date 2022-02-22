@@ -27,6 +27,7 @@
 		<postgresql>42.2.19</postgresql>
 		<springdata.commons>2.7.0-SNAPSHOT</springdata.commons>
 		<vavr>0.10.3</vavr>
+		<jsqlparser.version>4.3</jsqlparser.version>
 
 		<hibernate.groupId>org.hibernate</hibernate.groupId>
 
@@ -372,6 +373,13 @@
 			<scope>test</scope>
 		</dependency>
 
+		<dependency>
+			<groupId>com.github.jsqlparser</groupId>
+			<artifactId>jsqlparser</artifactId>
+			<version>${jsqlparser.version}</version>
+			<scope>provided</scope>
+			<optional>true</optional>
+		</dependency>
 	</dependencies>
 
 	<build>

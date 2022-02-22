@@ -400,8 +400,8 @@ class QueryUtilsUnitTests {
 	@Test // DATAJPA-1363
 	void discoversAliasWithComplexFunction() {
 
-		assertThat(
-				QueryUtils.getFunctionAliases("select new MyDto(sum(case when myEntity.prop3=0 then 1 else 0 end) as myAlias")) //
+		assertThat(QueryUtils
+				.getFunctionAliases("select new MyDto(sum(case when myEntity.prop3=0 then 1 else 0 end) as myAlias")) //
 						.contains("myAlias");
 	}
 

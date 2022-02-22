@@ -103,10 +103,12 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class UserRepositoryTests {
 
-	@PersistenceContext EntityManager em;
+	@PersistenceContext
+	EntityManager em;
 
 	// CUT
-	@Autowired UserRepository repository;
+	@Autowired
+	UserRepository repository;
 
 	// Test fixture
 	private User firstUser;
