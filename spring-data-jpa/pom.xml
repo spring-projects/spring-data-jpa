@@ -229,7 +229,7 @@
 		<dependency>
 			<groupId>com.github.jsqlparser</groupId>
 			<artifactId>jsqlparser</artifactId>
-			<version>${jsqlparser.version}</version>
+			<version>${jsqlparser}</version>
 			<scope>provided</scope>
 			<optional>true</optional>
 		</dependency>

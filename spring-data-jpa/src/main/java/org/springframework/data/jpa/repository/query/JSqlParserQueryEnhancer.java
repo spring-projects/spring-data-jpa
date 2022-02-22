@@ -15,37 +15,43 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import static org.springframework.data.jpa.repository.query.JSqlParserUtils.*;
+import static org.springframework.data.jpa.repository.query.QueryUtils.*;
+
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Alias;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.Function;
-import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
-import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.schema.Column;
-import net.sf.jsqlparser.schema.Table;
-import net.sf.jsqlparser.statement.select.*;
-import net.sf.jsqlparser.util.SelectUtils;
+import net.sf.jsqlparser.statement.select.OrderByElement;
+import net.sf.jsqlparser.statement.select.PlainSelect;
+import net.sf.jsqlparser.statement.select.Select;
+import net.sf.jsqlparser.statement.select.SelectExpressionItem;
+import net.sf.jsqlparser.statement.select.SelectItem;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.springframework.data.domain.Sort;
-import org.springframework.data.util.Streamable;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
-
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static org.springframework.data.jpa.repository.query.JSqlParserUtils.*;
-import static org.springframework.data.jpa.repository.query.QueryUtils.checkSortExpression;
 
 /**
  * The implementation of {@link QueryEnhancer} using JSqlParser.
  *
  * @author Diego Krupitza
+ * @author Greg Turnquist
+ * @since 2.7.0
  */
 public class JSqlParserQueryEnhancer implements QueryEnhancer {
-
-	private static final String DEFAULT_TABLE_ALIAS = "x";
 
 	private final DeclaredQuery query;
 
@@ -57,40 +63,8 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 	}
 
 	@Override
-	public String getExistsQueryString(String entityName, String countQueryPlaceHolder, Iterable<String> idAttributes) {
-		final Table tableNameWithAlias = getTableWithAlias(entityName, DEFAULT_TABLE_ALIAS);
-		Function jSqlCount = getJSqlCount(Collections.singletonList(countQueryPlaceHolder), false);
+	public String applySorting(Sort sort, @Nullable String alias) {
 
-		Select select = SelectUtils.buildSelectFromTableAndSelectItems(tableNameWithAlias,
-				new SelectExpressionItem(jSqlCount));
-
-		PlainSelect selectBody = (PlainSelect) select.getSelectBody();
-
-		List<Expression> equalityExpressions = Streamable.of(idAttributes).stream() //
-				.map(field -> {
-					Expression tableNameField = new Column().withTable(tableNameWithAlias).withColumnName(field);
-					Expression inputField = new Column(":".concat(field));
-					return new EqualsTo(tableNameField, inputField);
-				}).collect(Collectors.toList());
-
-		if (equalityExpressions.size() > 1) {
-			AndExpression rootOfWhereClause = concatenateWithAndExpression(equalityExpressions);
-			selectBody.setWhere(rootOfWhereClause);
-		} else if (equalityExpressions.size() == 1) {
-			selectBody.setWhere(equalityExpressions.get(0));
-		}
-
-		return selectBody.toString();
-	}
-
-	@Override
-	public String getQueryString(String template, String entityName) {
-		Assert.hasText(entityName, "Entity name must not be null or empty!");
-		return String.format(template, entityName);
-	}
-
-	@Override
-	public String applySorting(Sort sort, String alias) {
 		String queryString = query.getQueryString();
 		Assert.hasText(queryString, "Query must not be null or empty!");
 
@@ -145,6 +119,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 	 * @return a {@literal Set} containing all found aliases. Guaranteed to be not {@literal null}.
 	 */
 	Set<String> getSelectionAliases() {
+
 		Select selectStatement = parseSelectStatement(this.query.getQueryString());
 		PlainSelect selectBody = (PlainSelect) selectStatement.getSelectBody();
 		return this.getSelectionAliases(selectBody);
@@ -189,7 +164,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 	 * @return a {@link OrderByElement} containing an order clause. Guaranteed to be not {@literal null}.
 	 */
 	private OrderByElement getOrderClause(final Set<String> joinAliases, final Set<String> selectionAliases,
-			final String alias, final Sort.Order order) {
+			@Nullable final String alias, final Sort.Order order) {
 
 		final OrderByElement orderByElement = new OrderByElement();
 		orderByElement.setAsc(order.getDirection().isAscending());
@@ -233,7 +208,9 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 	 * @param query must not be {@literal null}.
 	 * @return Might return {@literal null}.
 	 */
+	@Nullable
 	private String detectAlias(String query) {
+
 		Select selectStatement = parseSelectStatement(query);
 		PlainSelect selectBody = (PlainSelect) selectStatement.getSelectBody();
 		return detectAlias(selectBody);
@@ -246,13 +223,15 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 	 * @param selectBody must not be {@literal null}.
 	 * @return Might return {@literal null}.
 	 */
+	@Nullable
 	private static String detectAlias(PlainSelect selectBody) {
+
 		Alias alias = selectBody.getFromItem().getAlias();
 		return alias == null ? null : alias.getName();
 	}
 
 	@Override
-	public String createCountQueryFor(String countProjection) {
+	public String createCountQueryFor(@Nullable String countProjection) {
 
 		Assert.hasText(this.query.getQueryString(), "OriginalQuery must not be null or empty!");
 
@@ -298,6 +277,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 
 	@Override
 	public String getProjection() {
+
 		Assert.hasText(query.getQueryString(), "Query must not be null or empty!");
 
 		Select selectStatement = parseSelectStatement(query.getQueryString());
@@ -321,6 +301,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 	 * @return the parsed query
 	 */
 	private static Select parseSelectStatement(String query) {
+
 		try {
 			return (Select) CCJSqlParserUtil.parse(query);
 		} catch (JSQLParserException e) {
@@ -329,12 +310,13 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 	}
 
 	/**
-	 * Checks whether a given projection only contains a single column definition (aka without functions, etc)
+	 * Checks whether a given projection only contains a single column definition (aka without functions, etc.)
 	 *
 	 * @param projection the projection to analyse
 	 * @return <code>true</code> when the projection only contains a single column definition otherwise <code>false</code>
 	 */
 	private boolean onlyASingleColumnProjection(List<SelectItem> projection) {
+
 		// this is unfortunately the only way to check without any hacky & hard string regex magic
 		return projection.size() == 1 && projection.get(0) instanceof SelectExpressionItem
 				&& (((SelectExpressionItem) projection.get(0)).getExpression()) instanceof Column;

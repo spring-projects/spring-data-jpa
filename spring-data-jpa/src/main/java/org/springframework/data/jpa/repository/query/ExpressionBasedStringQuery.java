@@ -69,19 +69,18 @@ class ExpressionBasedStringQuery extends StringQuery {
 	 * @param query the original query. Must not be {@literal null}.
 	 * @param metadata the {@link JpaEntityMetadata} for the given entity. Must not be {@literal null}.
 	 * @param parser Parser for resolving SpEL expressions. Must not be {@literal null}.
-	 * @param nativeQuery
+	 * @param nativeQuery is a given query native or not
 	 * @return A query supporting SpEL expressions.
 	 */
-	static ExpressionBasedStringQuery from(DeclaredQuery query, JpaEntityMetadata metadata, SpelExpressionParser parser,
-			boolean nativeQuery) {
+	static ExpressionBasedStringQuery from(DeclaredQuery query, JpaEntityMetadata<?> metadata,
+			SpelExpressionParser parser, boolean nativeQuery) {
 		return new ExpressionBasedStringQuery(query.getQueryString(), metadata, parser, nativeQuery);
 	}
 
 	/**
-	 * @param query, the query expression potentially containing a SpEL expression. Must not be {@literal null}.}
+	 * @param query, the query expression potentially containing a SpEL expression. Must not be {@literal null}.
 	 * @param metadata the {@link JpaEntityMetadata} for the given entity. Must not be {@literal null}.
 	 * @param parser Must not be {@literal null}.
-	 * @return
 	 */
 	private static String renderQueryIfExpressionOrReturnQuery(String query, JpaEntityMetadata<?> metadata,
 			SpelExpressionParser parser) {

@@ -55,6 +55,7 @@ import org.springframework.util.Assert;
  * @author Reda.Housni-Alaoui
  * @author Moritz Becker
  * @author Andrey Kovalev
+ * @author Greg Turnquist
  */
 public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extends Object>, Predicate> {
 
@@ -166,8 +167,10 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extend
 
 			Class<?> typeToRead = returnedType.getReturnedType();
 
-			query = typeToRead.isInterface() ? query.multiselect(selections)
-					: query.select((Selection) builder.construct(typeToRead, selections.toArray(new Selection[0])));
+			query = typeToRead.isInterface() //
+					? query.multiselect(selections) //
+					: query.select((Selection) builder.construct(typeToRead, //
+							selections.toArray(new Selection[0])));
 
 		} else if (tree.isExistsProjection()) {
 
@@ -239,83 +242,84 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extend
 			Type type = part.getType();
 
 			switch (type) {
-			case BETWEEN:
-				ParameterMetadata<Comparable> first = provider.next(part);
-				ParameterMetadata<Comparable> second = provider.next(part);
-				return builder.between(getComparablePath(root, part), first.getExpression(), second.getExpression());
-			case AFTER:
-			case GREATER_THAN:
-				return builder.greaterThan(getComparablePath(root, part),
-						provider.next(part, Comparable.class).getExpression());
-			case GREATER_THAN_EQUAL:
-				return builder.greaterThanOrEqualTo(getComparablePath(root, part),
-						provider.next(part, Comparable.class).getExpression());
-			case BEFORE:
-			case LESS_THAN:
-				return builder.lessThan(getComparablePath(root, part), provider.next(part, Comparable.class).getExpression());
-			case LESS_THAN_EQUAL:
-				return builder.lessThanOrEqualTo(getComparablePath(root, part),
-						provider.next(part, Comparable.class).getExpression());
-			case IS_NULL:
-				return getTypedPath(root, part).isNull();
-			case IS_NOT_NULL:
-				return getTypedPath(root, part).isNotNull();
-			case NOT_IN:
-				// cast required for eclipselink workaround, see DATAJPA-433
-				return upperIfIgnoreCase(getTypedPath(root, part))
-						.in((Expression<Collection<?>>) provider.next(part, Collection.class).getExpression()).not();
-			case IN:
-				// cast required for eclipselink workaround, see DATAJPA-433
-				return upperIfIgnoreCase(getTypedPath(root, part))
-						.in((Expression<Collection<?>>) provider.next(part, Collection.class).getExpression());
-			case STARTING_WITH:
-			case ENDING_WITH:
-			case CONTAINING:
-			case NOT_CONTAINING:
+				case BETWEEN:
+					ParameterMetadata<Comparable> first = provider.next(part);
+					ParameterMetadata<Comparable> second = provider.next(part);
+					return builder.between(getComparablePath(root, part), first.getExpression(), second.getExpression());
+				case AFTER:
+				case GREATER_THAN:
+					return builder.greaterThan(getComparablePath(root, part),
+							provider.next(part, Comparable.class).getExpression());
+				case GREATER_THAN_EQUAL:
+					return builder.greaterThanOrEqualTo(getComparablePath(root, part),
+							provider.next(part, Comparable.class).getExpression());
+				case BEFORE:
+				case LESS_THAN:
+					return builder.lessThan(getComparablePath(root, part), provider.next(part, Comparable.class).getExpression());
+				case LESS_THAN_EQUAL:
+					return builder.lessThanOrEqualTo(getComparablePath(root, part),
+							provider.next(part, Comparable.class).getExpression());
+				case IS_NULL:
+					return getTypedPath(root, part).isNull();
+				case IS_NOT_NULL:
+					return getTypedPath(root, part).isNotNull();
+				case NOT_IN:
+					// cast required for eclipselink workaround, see DATAJPA-433
+					return upperIfIgnoreCase(getTypedPath(root, part))
+							.in((Expression<Collection<?>>) provider.next(part, Collection.class).getExpression()).not();
+				case IN:
+					// cast required for eclipselink workaround, see DATAJPA-433
+					return upperIfIgnoreCase(getTypedPath(root, part))
+							.in((Expression<Collection<?>>) provider.next(part, Collection.class).getExpression());
+				case STARTING_WITH:
+				case ENDING_WITH:
+				case CONTAINING:
+				case NOT_CONTAINING:
 
-				if (property.getLeafProperty().isCollection()) {
+					if (property.getLeafProperty().isCollection()) {
 
-					Expression<Collection<Object>> propertyExpression = traversePath(root, property);
-					ParameterExpression<Object> parameterExpression = provider.next(part).getExpression();
+						Expression<Collection<Object>> propertyExpression = traversePath(root, property);
+						ParameterExpression<Object> parameterExpression = provider.next(part).getExpression();
 
-					// Can't just call .not() in case of negation as EclipseLink chokes on that.
-					return type.equals(NOT_CONTAINING) ? isNotMember(builder, parameterExpression, propertyExpression)
-							: isMember(builder, parameterExpression, propertyExpression);
-				}
+						// Can't just call .not() in case of negation as EclipseLink chokes on that.
+						return type.equals(NOT_CONTAINING) //
+								? isNotMember(builder, parameterExpression, propertyExpression) //
+								: isMember(builder, parameterExpression, propertyExpression);
+					}
 
-			case LIKE:
-			case NOT_LIKE:
-				Expression<String> stringPath = getTypedPath(root, part);
-				Expression<String> propertyExpression = upperIfIgnoreCase(stringPath);
-				Expression<String> parameterExpression = upperIfIgnoreCase(provider.next(part, String.class).getExpression());
-				Predicate like = builder.like(propertyExpression, parameterExpression, escape.getEscapeCharacter());
-				return type.equals(NOT_LIKE) || type.equals(NOT_CONTAINING) ? like.not() : like;
-			case TRUE:
-				Expression<Boolean> truePath = getTypedPath(root, part);
-				return builder.isTrue(truePath);
-			case FALSE:
-				Expression<Boolean> falsePath = getTypedPath(root, part);
-				return builder.isFalse(falsePath);
-			case SIMPLE_PROPERTY:
-				ParameterMetadata<Object> expression = provider.next(part);
-				Expression<Object> path = getTypedPath(root, part);
-				return expression.isIsNullParameter() ? path.isNull()
-						: builder.equal(upperIfIgnoreCase(path), upperIfIgnoreCase(expression.getExpression()));
-			case NEGATING_SIMPLE_PROPERTY:
-				return builder.notEqual(upperIfIgnoreCase(getTypedPath(root, part)),
-						upperIfIgnoreCase(provider.next(part).getExpression()));
-			case IS_EMPTY:
-			case IS_NOT_EMPTY:
+				case LIKE:
+				case NOT_LIKE:
+					Expression<String> stringPath = getTypedPath(root, part);
+					Expression<String> propertyExpression = upperIfIgnoreCase(stringPath);
+					Expression<String> parameterExpression = upperIfIgnoreCase(provider.next(part, String.class).getExpression());
+					Predicate like = builder.like(propertyExpression, parameterExpression, escape.getEscapeCharacter());
+					return type.equals(NOT_LIKE) || type.equals(NOT_CONTAINING) ? like.not() : like;
+				case TRUE:
+					Expression<Boolean> truePath = getTypedPath(root, part);
+					return builder.isTrue(truePath);
+				case FALSE:
+					Expression<Boolean> falsePath = getTypedPath(root, part);
+					return builder.isFalse(falsePath);
+				case SIMPLE_PROPERTY:
+					ParameterMetadata<Object> expression = provider.next(part);
+					Expression<Object> path = getTypedPath(root, part);
+					return expression.isIsNullParameter() ? path.isNull()
+							: builder.equal(upperIfIgnoreCase(path), upperIfIgnoreCase(expression.getExpression()));
+				case NEGATING_SIMPLE_PROPERTY:
+					return builder.notEqual(upperIfIgnoreCase(getTypedPath(root, part)),
+							upperIfIgnoreCase(provider.next(part).getExpression()));
+				case IS_EMPTY:
+				case IS_NOT_EMPTY:
 
-				if (!property.getLeafProperty().isCollection()) {
-					throw new IllegalArgumentException("IsEmpty / IsNotEmpty can only be used on collection properties!");
-				}
+					if (!property.getLeafProperty().isCollection()) {
+						throw new IllegalArgumentException("IsEmpty / IsNotEmpty can only be used on collection properties!");
+					}
 
-				Expression<Collection<Object>> collectionPath = traversePath(root, property);
-				return type.equals(IS_NOT_EMPTY) ? builder.isNotEmpty(collectionPath) : builder.isEmpty(collectionPath);
+					Expression<Collection<Object>> collectionPath = traversePath(root, property);
+					return type.equals(IS_NOT_EMPTY) ? builder.isNotEmpty(collectionPath) : builder.isEmpty(collectionPath);
 
-			default:
-				throw new IllegalArgumentException("Unsupported keyword " + type);
+				default:
+					throw new IllegalArgumentException("Unsupported keyword " + type);
 			}
 		}
 
@@ -340,22 +344,22 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extend
 
 			switch (part.shouldIgnoreCase()) {
 
-			case ALWAYS:
+				case ALWAYS:
 
-				Assert.state(canUpperCase(expression), "Unable to ignore case of " + expression.getJavaType().getName()
-						+ " types, the property '" + part.getProperty().getSegment() + "' must reference a String");
-				return (Expression<T>) builder.upper((Expression<String>) expression);
-
-			case WHEN_POSSIBLE:
-
-				if (canUpperCase(expression)) {
+					Assert.state(canUpperCase(expression), "Unable to ignore case of " + expression.getJavaType().getName()
+							+ " types, the property '" + part.getProperty().getSegment() + "' must reference a String");
 					return (Expression<T>) builder.upper((Expression<String>) expression);
-				}
 
-			case NEVER:
-			default:
+				case WHEN_POSSIBLE:
 
-				return (Expression<T>) expression;
+					if (canUpperCase(expression)) {
+						return (Expression<T>) builder.upper((Expression<String>) expression);
+					}
+
+				case NEVER:
+				default:
+
+					return (Expression<T>) expression;
 			}
 		}
 

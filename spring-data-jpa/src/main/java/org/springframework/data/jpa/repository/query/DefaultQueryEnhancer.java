@@ -15,14 +15,16 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import org.springframework.data.domain.Sort;
-
 import java.util.Set;
+
+import org.springframework.data.domain.Sort;
+import org.springframework.lang.Nullable;
 
 /**
  * The implementation of {@link QueryEnhancer} using {@link QueryUtils}.
  *
  * @author Diego Krupitza
+ * @since 2.7.0
  */
 public class DefaultQueryEnhancer implements QueryEnhancer {
 
@@ -33,17 +35,7 @@ public class DefaultQueryEnhancer implements QueryEnhancer {
 	}
 
 	@Override
-	public String getExistsQueryString(String entityName, String countQueryPlaceHolder, Iterable<String> idAttributes) {
-		return QueryUtils.getExistsQueryString(entityName, countQueryPlaceHolder, idAttributes);
-	}
-
-	@Override
-	public String getQueryString(String template, String entityName) {
-		return QueryUtils.getQueryString(template, entityName);
-	}
-
-	@Override
-	public String applySorting(Sort sort, String alias) {
+	public String applySorting(Sort sort, @Nullable String alias) {
 		return QueryUtils.applySorting(this.query.getQueryString(), sort, alias);
 	}
 
@@ -53,7 +45,7 @@ public class DefaultQueryEnhancer implements QueryEnhancer {
 	}
 
 	@Override
-	public String createCountQueryFor(String countProjection) {
+	public String createCountQueryFor(@Nullable String countProjection) {
 		return QueryUtils.createCountQueryFor(this.query.getQueryString(), countProjection);
 	}
 

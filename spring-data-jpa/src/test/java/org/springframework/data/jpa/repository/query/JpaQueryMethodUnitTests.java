@@ -35,7 +35,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-
 import org.springframework.core.annotation.AliasFor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -74,10 +73,8 @@ public class JpaQueryMethodUnitTests {
 
 	private static final String METHOD_NAME = "findByFirstname";
 
-	@Mock
-	QueryExtractor extractor;
-	@Mock
-	RepositoryMetadata metadata;
+	@Mock QueryExtractor extractor;
+	@Mock RepositoryMetadata metadata;
 	private ProjectionFactory factory = new SpelAwareProxyProjectionFactory();
 
 	private Method invalidReturnType;
@@ -520,7 +517,7 @@ public class JpaQueryMethodUnitTests {
 
 	interface ValidRepository extends Repository<User, Integer> {
 
-		@Query(value = "Select u from User u where u.lastname = ?1", nativeQuery = true)
+		@Query(value = "select u from User u where u.lastname = ?1", nativeQuery = true)
 		List<User> findByLastname(String lastname);
 
 		@Query(name = "HateoasAwareSpringDataWebConfiguration.bar")

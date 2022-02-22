@@ -51,7 +51,7 @@ class QueryUtilsUnitTests {
 	private static final String QUERY_WITH_AS = "select u from User as u where u.username = ?";
 
 	@Test
-	void createsCountQueryCorrectly() throws Exception {
+	void createsCountQueryCorrectly() {
 		assertCountQuery(QUERY, COUNT_QUERY);
 	}
 
@@ -64,47 +64,45 @@ class QueryUtilsUnitTests {
 	}
 
 	@Test
-	void createsCountQueryForDistinctQueries() throws Exception {
+	void createsCountQueryForDistinctQueries() {
 
 		assertCountQuery("select distinct u from User u where u.foo = ?",
 				"select count(distinct u) from User u where u.foo = ?");
 	}
 
 	@Test
-	void createsCountQueryForConstructorQueries() throws Exception {
+	void createsCountQueryForConstructorQueries() {
 
 		assertCountQuery("select distinct new User(u.name) from User u where u.foo = ?",
 				"select count(distinct u) from User u where u.foo = ?");
 	}
 
 	@Test
-	void createsCountQueryForJoins() throws Exception {
+	void createsCountQueryForJoins() {
 
 		assertCountQuery("select distinct new User(u.name) from User u left outer join u.roles r WHERE r = ?",
 				"select count(distinct u) from User u left outer join u.roles r WHERE r = ?");
 	}
 
 	@Test
-	void createsCountQueryForQueriesWithSubSelects() throws Exception {
+	void createsCountQueryForQueriesWithSubSelects() {
 
 		assertCountQuery("select u from User u left outer join u.roles r where r in (select r from Role)",
 				"select count(u) from User u left outer join u.roles r where r in (select r from Role)");
 	}
 
 	@Test
-	void createsCountQueryForAliasesCorrectly() throws Exception {
-
+	void createsCountQueryForAliasesCorrectly() {
 		assertCountQuery("select u from User as u", "select count(u) from User as u");
 	}
 
 	@Test
-	void allowsShortJpaSyntax() throws Exception {
-
+	void allowsShortJpaSyntax() {
 		assertCountQuery(SIMPLE_QUERY, COUNT_QUERY);
 	}
 
 	@Test
-	void detectsAliasCorrectly() throws Exception {
+	void detectsAliasCorrectly() {
 
 		assertThat(detectAlias(QUERY)).isEqualTo("u");
 		assertThat(detectAlias(SIMPLE_QUERY)).isEqualTo("u");
@@ -180,14 +178,14 @@ class QueryUtilsUnitTests {
 	}
 
 	@Test // DATAJPA-342
-	void usesReturnedVariableInCOuntProjectionIfSet() {
+	void usesReturnedVariableInCountProjectionIfSet() {
 
 		assertCountQuery("select distinct m.genre from Media m where m.user = ?1 order by m.genre asc",
 				"select count(distinct m.genre) from Media m where m.user = ?1");
 	}
 
 	@Test // DATAJPA-343
-	void projectsCOuntQueriesForQueriesWithSubselects() {
+	void projectsCountQueriesForQueriesWithSubselects() {
 
 		assertCountQuery("select o from Foo o where cb.id in (select b from Bar b)",
 				"select count(o) from Foo o where cb.id in (select b from Bar b)");
@@ -233,7 +231,7 @@ class QueryUtilsUnitTests {
 	}
 
 	@Test // DATAJPA-726
-	void detectsAliassesInPlainJoins() {
+	void detectsAliasesInPlainJoins() {
 
 		String query = "select p from Customer c join c.productOrder p where p.delayed = true";
 		Sort sort = Sort.by("p.lineItems");
@@ -294,7 +292,7 @@ class QueryUtilsUnitTests {
 	}
 
 	@Test // DATAJPA-965, DATAJPA-970
-	void doesNotPrefixUnsageJpaSortFunctionCalls() {
+	void doesNotPrefixUnsafeJpaSortFunctionCalls() {
 
 		JpaSort sort = JpaSort.unsafe("sum(foo)");
 		assertThat(applySorting("select p from Person p", sort, "p")).endsWith("order by sum(foo) asc");
@@ -328,7 +326,7 @@ class QueryUtilsUnitTests {
 	}
 
 	@Test // DATAJPA-965, DATAJPA-970
-	void prefixesNonAliasedFunctionCallRelatedSortPropertyWhenSelectClauseContainesAliasedFunctionForDifferentProperty() {
+	void prefixesNonAliasedFunctionCallRelatedSortPropertyWhenSelectClauseContainsAliasedFunctionForDifferentProperty() {
 
 		String query = "SELECT m.name, AVG(m.price) AS avgPrice FROM Magazine m";
 		Sort sort = Sort.by("name", "avgPrice");
@@ -400,8 +398,8 @@ class QueryUtilsUnitTests {
 	@Test // DATAJPA-1363
 	void discoversAliasWithComplexFunction() {
 
-		assertThat(QueryUtils
-				.getFunctionAliases("select new MyDto(sum(case when myEntity.prop3=0 then 1 else 0 end) as myAlias")) //
+		assertThat(
+				QueryUtils.getFunctionAliases("select new MyDto(sum(case when myEntity.prop3=0 then 1 else 0 end) as myAlias")) //
 						.contains("myAlias");
 	}
 

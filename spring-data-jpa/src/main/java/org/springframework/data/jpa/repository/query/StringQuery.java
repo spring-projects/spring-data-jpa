@@ -101,10 +101,9 @@ class StringQuery implements DeclaredQuery {
 	}
 
 	@Override
-	@SuppressWarnings("deprecation")
 	public DeclaredQuery deriveCountQuery(@Nullable String countQuery, @Nullable String countQueryProjection) {
 
-		return DeclaredQuery.of(
+		return DeclaredQuery.of( //
 				countQuery != null ? countQuery : this.queryEnhancer.createCountQueryFor(countQueryProjection), //
 				this.isNative);
 	}
@@ -259,36 +258,37 @@ class StringQuery implements DeclaredQuery {
 
 				switch (ParameterBindingType.of(typeSource)) {
 
-				case LIKE:
+					case LIKE:
 
-					Type likeType = LikeParameterBinding.getLikeTypeFrom(matcher.group(2));
-					replacement = matcher.group(3);
+						Type likeType = LikeParameterBinding.getLikeTypeFrom(matcher.group(2));
+						replacement = matcher.group(3);
 
-					if (parameterIndex != null) {
-						checkAndRegister(new LikeParameterBinding(parameterIndex, likeType, expression), bindings);
-					} else {
-						checkAndRegister(new LikeParameterBinding(parameterName, likeType, expression), bindings);
+						if (parameterIndex != null) {
+							checkAndRegister(new LikeParameterBinding(parameterIndex, likeType, expression), bindings);
+						} else {
+							checkAndRegister(new LikeParameterBinding(parameterName, likeType, expression), bindings);
 
-						replacement = ":" + parameterName;
-					}
+							replacement = ":" + parameterName;
+						}
 
-					break;
+						break;
 
-				case IN:
+					case IN:
 
-					if (parameterIndex != null) {
-						checkAndRegister(new InParameterBinding(parameterIndex, expression), bindings);
-					} else {
-						checkAndRegister(new InParameterBinding(parameterName, expression), bindings);
-					}
+						if (parameterIndex != null) {
+							checkAndRegister(new InParameterBinding(parameterIndex, expression), bindings);
+						} else {
+							checkAndRegister(new InParameterBinding(parameterName, expression), bindings);
+						}
 
-					break;
+						break;
 
-				case AS_IS: // fall-through we don't need a special parameter binding for the given parameter.
-				default:
+					case AS_IS: // fall-through we don't need a special parameter binding for the given parameter.
+					default:
 
-					bindings.add(parameterIndex != null ? new ParameterBinding(null, parameterIndex, expression)
-							: new ParameterBinding(parameterName, null, expression));
+						bindings.add(parameterIndex != null //
+								? new ParameterBinding(null, parameterIndex, expression) //
+								: new ParameterBinding(parameterName, null, expression));
 				}
 
 				if (replacement != null) {

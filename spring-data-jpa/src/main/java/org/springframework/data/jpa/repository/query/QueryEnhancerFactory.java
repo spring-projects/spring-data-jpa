@@ -22,6 +22,8 @@ import org.apache.commons.logging.LogFactory;
  * Encapsulates different strategies for the creation of a {@link QueryEnhancer} from a {@link DeclaredQuery}.
  *
  * @author Diego Krupitza
+ * @author Greg Turnquist
+ * @since 2.7.0
  */
 public final class QueryEnhancerFactory {
 
@@ -29,8 +31,7 @@ public final class QueryEnhancerFactory {
 
 	private static final boolean JSQLPARSER_IN_CLASSPATH = isJSqlParserInClassPath();
 
-	private QueryEnhancerFactory() {
-	}
+	private QueryEnhancerFactory() {}
 
 	/**
 	 * Creates a new {@link QueryEnhancer} for the given {@link DeclaredQuery}.
@@ -39,6 +40,7 @@ public final class QueryEnhancerFactory {
 	 * @return an implementation of {@link QueryEnhancer} that suits the query the most
 	 */
 	public static QueryEnhancer forQuery(DeclaredQuery query) {
+
 		if (qualifiesForJSqlParserUsage(query)) {
 			return new JSqlParserQueryEnhancer(query);
 		} else {
@@ -63,6 +65,7 @@ public final class QueryEnhancerFactory {
 	 * @return <code>true</code> when in classpath otherwise <code>false</code>
 	 */
 	private static boolean isJSqlParserInClassPath() {
+
 		try {
 			Class.forName("net.sf.jsqlparser.parser.JSqlParser", false, QueryEnhancerFactory.class.getClassLoader());
 			LOG.info("JSqlParser is in classpath. If applicable JSqlParser will be used.");
@@ -71,5 +74,4 @@ public final class QueryEnhancerFactory {
 			return false;
 		}
 	}
-
 }
