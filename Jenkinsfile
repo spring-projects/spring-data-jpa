@@ -63,14 +63,14 @@ pipeline {
 						script {
 							docker.withRegistry(p['docker.registry'], p['docker.credentials']) {
 								docker.image(p['docker.java.11.image']).inside(p['docker.java.inside.basic']) {
-									sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -s settings.xml -Pjava11 clean dependency:list test -Dsort -Dbundlor.enabled=false -U -B'
+									sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -s settings.xml clean dependency:list test -Dsort -Dbundlor.enabled=false -U -B'
 								}
 							}
 						}
 					}
 				}
 
-				stage("test: baseline (jdk15)") {
+				stage("test: baseline (LTS)") {
 					agent {
 						label 'data'
 					}
@@ -81,8 +81,8 @@ pipeline {
 					steps {
 						script {
 							docker.withRegistry(p['docker.registry'], p['docker.credentials']) {
-								docker.image(p['docker.java.15.image']).inside(p['docker.java.inside.basic']) {
-									sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -s settings.xml -Pjava11 clean dependency:list test -Dsort -Dbundlor.enabled=false -U -B'
+								docker.image(p['docker.java.lts.image']).inside(p['docker.java.inside.basic']) {
+									sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -s settings.xml clean dependency:list test -Dsort -Dbundlor.enabled=false -U -B'
 								}
 							}
 						}
@@ -110,7 +110,7 @@ pipeline {
 			steps {
 				script {
 					docker.withRegistry(p['docker.registry'], p['docker.credentials']) {
-						docker.image(p['docker.java.main.image']).inside(p['docker.java.inside.basic']) {
+						docker.image(p['docker.java.lts.image']).inside(p['docker.java.inside.basic']) {
 							sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -s settings.xml -Pci,artifactory ' +
 									'-Dartifactory.server=https://repo.spring.io ' +
 									"-Dartifactory.username=${ARTIFACTORY_USR} " +
@@ -118,34 +118,6 @@ pipeline {
 									"-Dartifactory.staging-repository=libs-snapshot-local " +
 									"-Dartifactory.build-name=spring-data-jpa " +
 									"-Dartifactory.build-number=${BUILD_NUMBER} " +
-									'-Dmaven.test.skip=true clean deploy -U -B'
-						}
-					}
-				}
-			}
-		}
-		stage('Publish documentation') {
-			when {
-				branch '2.5.x'
-			}
-			agent {
-				label 'data'
-			}
-			options { timeout(time: 20, unit: 'MINUTES') }
-
-			environment {
-				ARTIFACTORY = credentials("${p['artifactory.credentials']}")
-			}
-
-			steps {
-				script {
-					docker.withRegistry(p['docker.registry'], p['docker.credentials']) {
-						docker.image(p['docker.java.main.image']).inside('-v $HOME:/tmp/jenkins-home') {
-							sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -s settings.xml -Pci,distribute ' +
-									'-Dartifactory.server=https://repo.spring.io ' +
-									"-Dartifactory.username=${ARTIFACTORY_USR} " +
-									"-Dartifactory.password=${ARTIFACTORY_PSW} " +
-									"-Dartifactory.distribution-repository=temp-private-local " +
 									'-Dmaven.test.skip=true clean deploy -U -B'
 						}
 					}
