@@ -46,7 +46,6 @@ import javax.persistence.spi.PersistenceProviderResolverHolder;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
-
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.jpa.domain.sample.Category;
@@ -66,13 +65,13 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  * @author Sébastien Péralta
  * @author Jens Schauder
  * @author Patrice Blanchardie
+ * @author Diego Krupitza
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:infrastructure.xml")
 public class QueryUtilsIntegrationTests {
 
-	@PersistenceContext
-	EntityManager em;
+	@PersistenceContext EntityManager em;
 
 	@Test // DATAJPA-403
 	void reusesExistingJoinForExpression() {
@@ -183,7 +182,7 @@ public class QueryUtilsIntegrationTests {
 		CriteriaQuery<InvoiceItem> query = builder.createQuery(InvoiceItem.class);
 		Root<InvoiceItem> root = query.from(InvoiceItem.class);
 
-		// given an existing inner join an nested optional
+		// given an existing inner join a nested optional
 		root.join("invoice").join("order");
 
 		QueryUtils.toExpressionRecursively(root, PropertyPath.from("invoice.order.customer.name", InvoiceItem.class),
@@ -237,7 +236,7 @@ public class QueryUtilsIntegrationTests {
 	}
 
 	@Test // DATAJPA-454
-	void createsJoingToTraverseCollectionPath() {
+	void createsJoinToTraverseCollectionPath() {
 
 		CriteriaBuilder builder = em.getCriteriaBuilder();
 		CriteriaQuery<User> query = builder.createQuery(User.class);
@@ -319,7 +318,7 @@ public class QueryUtilsIntegrationTests {
 	 * https://github.com/javaee/jpa-spec/issues/169 Compare to: {@link EclipseLinkQueryUtilsIntegrationTests}
 	 */
 	@Test // DATAJPA-1238
-	void demonstrateDifferentBehavorOfGetJoin() {
+	void demonstrateDifferentBehaviorOfGetJoin() {
 
 		CriteriaBuilder builder = em.getCriteriaBuilder();
 		CriteriaQuery<User> query = builder.createQuery(User.class);
@@ -348,40 +347,32 @@ public class QueryUtilsIntegrationTests {
 	@SuppressWarnings("unused")
 	static class Merchant {
 
-		@Id
-		String id;
-		@OneToMany
-		Set<Employee> employees;
+		@Id String id;
+		@OneToMany Set<Employee> employees;
 
-		@OneToOne
-		Address address;
+		@OneToOne Address address;
 	}
 
 	@Entity
 	@SuppressWarnings("unused")
 	static class Address {
-		@Id
-		String id;
-		@OneToOne(mappedBy = "address")
-		Merchant merchant;
+		@Id String id;
+		@OneToOne(mappedBy = "address") Merchant merchant;
 	}
 
 	@Entity
 	@SuppressWarnings("unused")
 	static class Employee {
 
-		@Id
-		String id;
-		@OneToMany
-		Set<Credential> credentials;
+		@Id String id;
+		@OneToMany Set<Credential> credentials;
 	}
 
 	@Entity
 	@SuppressWarnings("unused")
 	static class Credential {
 
-		@Id
-		String id;
+		@Id String id;
 		String uid;
 	}
 
@@ -399,8 +390,7 @@ public class QueryUtilsIntegrationTests {
 		}
 
 		@Override
-		public void clearCachedProviders() {
-		}
+		public void clearCachedProviders() {}
 	}
 
 }

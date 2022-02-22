@@ -15,9 +15,9 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import org.junit.jupiter.api.Test;
+import static org.assertj.core.api.Assertions.*;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for {@link QueryEnhancerFactory}.
@@ -28,18 +28,22 @@ class QueryEnhancerFactoryUnitTests {
 
 	@Test
 	void createsDefaultImplementationForNonNativeQuery() {
-		StringQuery query = new StringQuery("Select new User(u.firstname) from User u", false);
+
+		StringQuery query = new StringQuery("select new User(u.firstname) from User u", false);
 
 		QueryEnhancer queryEnhancer = QueryEnhancerFactory.forQuery(query);
+
 		assertThat(queryEnhancer) //
 				.isInstanceOf(DefaultQueryEnhancer.class);
 	}
 
 	@Test
 	void createsJSqlImplementationForNativeQuery() {
-		StringQuery query = new StringQuery("Select * from User", true);
+
+		StringQuery query = new StringQuery("select * from User", true);
 
 		QueryEnhancer queryEnhancer = QueryEnhancerFactory.forQuery(query);
+
 		assertThat(queryEnhancer) //
 				.isInstanceOf(JSqlParserQueryEnhancer.class);
 	}

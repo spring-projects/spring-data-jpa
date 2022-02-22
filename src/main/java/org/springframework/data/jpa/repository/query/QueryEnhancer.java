@@ -24,26 +24,10 @@ import org.springframework.lang.Nullable;
  * This interface describes the API for enhancing a given Query.
  *
  * @author Diego Krupitza
+ * @author Greg Turnquist
+ * @since 2.7.0
  */
 public interface QueryEnhancer {
-
-	/**
-	 * Returns the query string to execute an exists query for the given id attributes.
-	 *
-	 * @param entityName the name of the entity to create the query for, must not be {@literal null}.
-	 * @param countQueryPlaceHolder the placeholder for the count clause, must not be {@literal null}.
-	 * @param idAttributes the id attributes for the entity, must not be {@literal null}.
-	 */
-	String getExistsQueryString(String entityName, String countQueryPlaceHolder, Iterable<String> idAttributes);
-
-	/**
-	 * Returns the query string for the given class name.
-	 *
-	 * @param template must not be {@literal null}.
-	 * @param entityName must not be {@literal null}.
-	 * @return the template with placeholders replaced by the {@literal entityName}. Guaranteed to be not {@literal null}.
-	 */
-	String getQueryString(String template, String entityName);
 
 	/**
 	 * Adds {@literal order by} clause to the JPQL query. Uses the first alias to bind the sorting property to.
@@ -110,7 +94,7 @@ public interface QueryEnhancer {
 	/**
 	 * Gets the query we want to use for enhancements.
 	 *
-	 * @return non null {@link DeclaredQuery} that wraps the query
+	 * @return non-null {@link DeclaredQuery} that wraps the query
 	 */
 	DeclaredQuery getQuery();
 }

@@ -34,6 +34,7 @@ import org.springframework.data.jpa.repository.query.StringQuery.ParameterBindin
  *
  * @author Jens Schauder
  * @author Mark Paluch
+ * @author Diego Krupitza
  */
 class QueryParameterSetterFactoryUnitTests {
 

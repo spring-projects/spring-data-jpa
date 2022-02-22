@@ -15,6 +15,14 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import static org.assertj.core.api.Assertions.*;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Stream;
+
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -24,16 +32,8 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.JpaSort;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Stream;
-
-import static org.assertj.core.api.Assertions.*;
-
 /**
- * Unit test for {@link QueryEnhancer}.
+ * Unit tests for {@link QueryEnhancer}.
  *
  * @author Diego Krupitza
  */
@@ -114,6 +114,7 @@ class QueryEnhancerUnitTests {
 	}
 
 	public static Stream<Arguments> detectsAliasWithUCorrectlySource() {
+
 		return Stream.of( //
 				Arguments.of(new StringQuery(QUERY, true), "u"), //
 				Arguments.of(new StringQuery(SIMPLE_QUERY, false), "u"), //
@@ -130,6 +131,7 @@ class QueryEnhancerUnitTests {
 	void allowsFullyQualifiedEntityNamesInQuery() {
 
 		StringQuery query = new StringQuery(FQ_QUERY, true);
+
 		assertThat(getEnhancer(query).detectAlias()).isEqualTo("u");
 		assertCountQuery(FQ_QUERY, "select count(u) from org.acme.domain.User$Foo_Bar u", true);
 	}
@@ -138,6 +140,7 @@ class QueryEnhancerUnitTests {
 	void doesNotPrefixOrderReferenceIfOuterJoinAliasDetected() {
 
 		StringQuery query = new StringQuery("select p from Person p left join p.address address", true);
+
 		endsIgnoringCase(getEnhancer(query).applySorting(Sort.by("address.city")), "order by address.city asc");
 		endsIgnoringCase(getEnhancer(query).applySorting(Sort.by("address.city", "lastname"), "p"),
 				"order by address.city asc, p.lastname asc");
@@ -147,6 +150,7 @@ class QueryEnhancerUnitTests {
 	void extendsExistingOrderByClausesCorrectly() {
 
 		StringQuery query = new StringQuery("select p from Person p order by p.lastname asc", true);
+
 		endsIgnoringCase(getEnhancer(query).applySorting(Sort.by("firstname"), "p"),
 				"order by p.lastname asc, p.firstname asc");
 	}
@@ -157,6 +161,7 @@ class QueryEnhancerUnitTests {
 		Sort sort = Sort.by(Sort.Order.by("firstname").ignoreCase());
 
 		StringQuery query = new StringQuery("select p from Person p", true);
+
 		endsIgnoringCase(getEnhancer(query).applySorting(sort, "p"), "order by lower(p.firstname) asc");
 	}
 
@@ -166,11 +171,12 @@ class QueryEnhancerUnitTests {
 		Sort sort = Sort.by(Sort.Order.by("firstname").ignoreCase());
 
 		StringQuery query = new StringQuery("select p from Person p order by p.lastname asc", true);
+
 		endsIgnoringCase(getEnhancer(query).applySorting(sort, "p"), "order by p.lastname asc, lower(p.firstname) asc");
 	}
 
 	@Test // DATAJPA-342
-	void usesReturnedVariableInCOuntProjectionIfSet() {
+	void usesReturnedVariableInCountProjectionIfSet() {
 
 		assertCountQuery("select distinct m.genre from Media m where m.user = ?1 order by m.genre asc",
 				"select count(distinct m.genre) from Media m where m.user = ?1", true);
@@ -185,6 +191,7 @@ class QueryEnhancerUnitTests {
 
 	@Test // DATAJPA-148
 	void doesNotPrefixSortsIfFunction() {
+
 		StringQuery query = new StringQuery("select p from Person p", true);
 		Sort sort = Sort.by("sum(foo)");
 
@@ -207,6 +214,7 @@ class QueryEnhancerUnitTests {
 		Sort sort = Sort.by("lastname");
 		StringQuery originalQuery = new StringQuery("select p from Person p ORDER BY p.firstname", true);
 		String query = getEnhancer(originalQuery).applySorting(sort, "p");
+
 		endsIgnoringCase(query, "ORDER BY p.firstname, p.lastname asc");
 	}
 
@@ -222,15 +230,17 @@ class QueryEnhancerUnitTests {
 
 	@Test // DATAJPA-456
 	void createCountQueryFromTheGivenCountProjection() {
+
 		StringQuery query = new StringQuery("select p.lastname,p.firstname from Person p", true);
+
 		assertThat(getEnhancer(query).createCountQueryFor("p.lastname"))
 				.isEqualToIgnoringCase("select count(p.lastname) from Person p");
 	}
 
 	@Test // DATAJPA-726
-	void detectsAliassesInPlainJoins() {
+	void detectsAliasesInPlainJoins() {
 
-		StringQuery query = new StringQuery("select p from Customer c join c.productOrder p where p.delaye = true", true);
+		StringQuery query = new StringQuery("select p from Customer c join c.productOrder p where p.delay = true", true);
 		Sort sort = Sort.by("p.lineItems");
 
 		endsIgnoringCase(getEnhancer(query).applySorting(sort, "c"), "order by p.lineItems asc");
@@ -238,13 +248,17 @@ class QueryEnhancerUnitTests {
 
 	@Test // DATAJPA-736
 	void supportsNonAsciiCharactersInEntityNames() {
+
 		StringQuery query = new StringQuery("select u from Usèr u", true);
+
 		assertThat(getEnhancer(query).createCountQueryFor()).isEqualToIgnoringCase("select count(u) from Usèr u");
 	}
 
 	@Test // DATAJPA-798
 	void detectsAliasInQueryContainingLineBreaks() {
+
 		StringQuery query = new StringQuery("select \n u \n from \n User \nu", true);
+
 		assertThat(getEnhancer(query).detectAlias()).isEqualTo("u");
 	}
 
@@ -259,6 +273,7 @@ class QueryEnhancerUnitTests {
 
 	@Test // DATAJPA-815
 	void doesPrefixPropertyWithNative() {
+
 		StringQuery query = new StringQuery("Select * from Cat c join Dog d", true);
 		Sort sort = Sort.by("dPropertyStartingWithJoinAlias");
 
@@ -267,7 +282,9 @@ class QueryEnhancerUnitTests {
 
 	@Test // DATAJPA-938
 	void detectsConstructorExpressionInDistinctQuery() {
+
 		StringQuery query = new StringQuery("select distinct new Foo() from Bar b", false);
+
 		assertThat(getEnhancer(query).hasConstructorExpression()).isTrue();
 	}
 
@@ -286,19 +303,25 @@ class QueryEnhancerUnitTests {
 
 	@Test // DATAJPA-938
 	void detectsConstructorExpressionWithLineBreaks() {
+
 		StringQuery query = new StringQuery("select new foo.bar.FooBar(\na.id) from DtoA a ", false);
+
 		assertThat(getEnhancer(query).hasConstructorExpression()).isTrue();
 	}
 
 	@Test // DATAJPA-960
 	void doesNotQualifySortIfNoAliasDetectedNonNative() {
+
 		StringQuery query = new StringQuery("from mytable where ?1 is null", false);
+
 		assertThat(getEnhancer(query).applySorting(Sort.by("firstname"))).endsWith("order by firstname asc");
 	}
 
 	@Test // DATAJPA-960
 	void doesNotQualifySortIfNoAliasDetectedNative() {
+
 		StringQuery query = new StringQuery("Select * from mytable where ?1 is null", true);
+
 		endsIgnoringCase(getEnhancer(query).applySorting(Sort.by("firstname")), "order by firstname asc");
 	}
 
@@ -308,15 +331,17 @@ class QueryEnhancerUnitTests {
 		StringQuery query = new StringQuery("select p from Person p", true);
 
 		Sort sort = Sort.by("case when foo then bar");
+
 		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
 				.isThrownBy(() -> getEnhancer(query).applySorting(sort, "p"));
 	}
 
 	@Test // DATAJPA-965, DATAJPA-970
-	void doesNotPrefixUnsageJpaSortFunctionCalls() {
+	void doesNotPrefixUnsafeJpaSortFunctionCalls() {
 
 		JpaSort sort = JpaSort.unsafe("sum(foo)");
 		StringQuery query = new StringQuery("select p from Person p", true);
+
 		endsIgnoringCase(getEnhancer(query).applySorting(sort, "p"), "order by sum(foo) asc");
 	}
 
@@ -349,7 +374,7 @@ class QueryEnhancerUnitTests {
 	}
 
 	@Test // DATAJPA-965, DATAJPA-970
-	void prefixesNonAliasedFunctionCallRelatedSortPropertyWhenSelectClauseContainesAliasedFunctionForDifferentProperty() {
+	void prefixesNonAliasedFunctionCallRelatedSortPropertyWhenSelectClauseContainsAliasedFunctionForDifferentProperty() {
 
 		StringQuery query = new StringQuery("SELECT m.name, AVG(m.price) AS avgPrice FROM Magazine m", true);
 		Sort sort = Sort.by("name", "avgPrice");
@@ -464,11 +489,13 @@ class QueryEnhancerUnitTests {
 
 	@Test
 	void createCountQuerySupportsLineBreaksInSelectClause() {
+
 		StringQuery query = new StringQuery("select user.age,\n" + //
 				"  user.name\n" + //
 				"  from User user\n" + //
 				"  where user.age = 18\n" + //
 				"  order\nby\nuser.name\n ", true);
+
 		assertThat(getEnhancer(query).createCountQueryFor())
 				.isEqualToIgnoringCase("select count(user) from User user where user.age = 18");
 	}
@@ -562,12 +589,11 @@ class QueryEnhancerUnitTests {
 	@MethodSource("findProjectionClauseWithDistinctSource")
 	void findProjectionClauseWithDistinct(DeclaredQuery query, String expected) {
 
-		SoftAssertions.assertSoftly(sofly -> {
-			sofly.assertThat(getEnhancer(query).getProjection()).isEqualTo(expected);
-		});
+		SoftAssertions.assertSoftly(sofly -> sofly.assertThat(getEnhancer(query).getProjection()).isEqualTo(expected));
 	}
 
 	public static Stream<Arguments> findProjectionClauseWithDistinctSource() {
+
 		return Stream.of( //
 				Arguments.of(new StringQuery("select * from x", true), "*"), //
 				Arguments.of(new StringQuery("select a, b, c from x", true), "a, b, c"), //
@@ -591,17 +617,21 @@ class QueryEnhancerUnitTests {
 		// This is a required behavior the testcase in #findProjectionClauseWithSubselect tells why
 		String queryString = "select * from (select x from y)";
 		StringQuery query = new StringQuery(queryString, true);
+
 		assertThat(getEnhancer(query).getProjection()).isEqualTo("*");
 	}
 
 	@Test // DATAJPA-1696
 	void findProjectionClauseWithIncludedFrom() {
+
 		StringQuery query = new StringQuery("select x, frommage, y from t", true);
+
 		assertThat(getEnhancer(query).getProjection()).isEqualTo("x, frommage, y");
 	}
 
 	@Test
-	void countProjectionDistrinctQueryIncludesNewLineAfterFromAndBeforeJoin() {
+	void countProjectionDistinctQueryIncludesNewLineAfterFromAndBeforeJoin() {
+
 		StringQuery originalQuery = new StringQuery(
 				"SELECT DISTINCT entity1\nFROM Entity1 entity1\nLEFT JOIN Entity2 entity2 ON entity1.key = entity2.key", true);
 
@@ -611,17 +641,21 @@ class QueryEnhancerUnitTests {
 
 	@Test
 	void countProjectionDistinctQueryIncludesNewLineAfterEntity() {
+
 		StringQuery originalQuery = new StringQuery(
 				"SELECT DISTINCT entity1\nFROM Entity1 entity1 LEFT JOIN Entity2 entity2 ON entity1.key = entity2.key", true);
+
 		assertCountQuery(originalQuery,
 				"select count(DISTINCT entity1) FROM Entity1 entity1 LEFT JOIN Entity2 entity2 ON entity1.key = entity2.key");
 	}
 
 	@Test
 	void countProjectionDistinctQueryIncludesNewLineAfterEntityAndBeforeWhere() {
+
 		StringQuery originalQuery = new StringQuery(
 				"SELECT DISTINCT entity1\nFROM Entity1 entity1 LEFT JOIN Entity2 entity2 ON entity1.key = entity2.key\nwhere entity1.id = 1799",
 				true);
+
 		assertCountQuery(originalQuery,
 				"select count(DISTINCT entity1) FROM Entity1 entity1 LEFT JOIN Entity2 entity2 ON entity1.key = entity2.key where entity1.id = 1799");
 	}
@@ -651,6 +685,7 @@ class QueryEnhancerUnitTests {
 
 	@Test // GH-2441
 	void correctFunctionAliasWithComplexNestedFunctions() {
+
 		String queryString = "\nSELECT \nCAST(('{' || string_agg(distinct array_to_string(c.institutes_ids, ','), ',') || '}') AS bigint[]) as institutesIds\nFROM\ncity c";
 		StringQuery nativeQuery = new StringQuery(queryString, true);
 
@@ -661,9 +696,11 @@ class QueryEnhancerUnitTests {
 
 	@Test // GH-2441
 	void correctApplySortOnComplexNestedFunctionQuery() {
-		String queryString = "SELECT dd.institutesIds FROM (\n" + "                                SELECT\n"
+		String queryString = "SELECT dd.institutesIds FROM (\n" //
+				+ "                                SELECT\n" //
 				+ "                                    CAST(('{' || string_agg(distinct array_to_string(c.institutes_ids, ','), ',') || '}') AS bigint[]) as institutesIds\n"
-				+ "                                FROM\n" + "                                    city c\n"
+				+ "                                FROM\n" //
+				+ "                                    city c\n" //
 				+ "                            ) dd";
 
 		StringQuery nativeQuery = new StringQuery(queryString, true);
@@ -671,10 +708,12 @@ class QueryEnhancerUnitTests {
 		QueryEnhancer queryEnhancer = getEnhancer(nativeQuery);
 
 		String result = queryEnhancer.applySorting(Sort.by(new Sort.Order(Sort.Direction.ASC, "institutesIds")));
+
 		assertThat(result).containsIgnoringCase("order by dd.institutesIds");
 	}
 
 	public static Stream<Arguments> detectsJoinAliasesCorrectlySource() {
+
 		return Stream.of( //
 				Arguments.of("select p from Person p left outer join x.foo b2_$ar", Collections.singletonList("b2_$ar")), //
 				Arguments.of("select p from Person p left join x.foo b2_$ar", Collections.singletonList("b2_$ar")), //
@@ -695,6 +734,7 @@ class QueryEnhancerUnitTests {
 	}
 
 	private static void endsIgnoringCase(String original, String endWithIgnoreCase) {
+
 		// https://github.com/assertj/assertj-core/pull/2451
 		// can be removed when upgrading to version 3.23.0 assertJ
 		assertThat(original.toUpperCase()).endsWith(endWithIgnoreCase.toUpperCase());
@@ -703,5 +743,4 @@ class QueryEnhancerUnitTests {
 	private static QueryEnhancer getEnhancer(DeclaredQuery query) {
 		return QueryEnhancerFactory.forQuery(query);
 	}
-
 }

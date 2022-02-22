@@ -23,11 +23,11 @@
 
 		<eclipselink>2.7.9</eclipselink>
 		<hibernate>5.6.0.Final</hibernate>
+		<jsqlparser>4.3</jsqlparser>
 		<mysql-connector-java>8.0.23</mysql-connector-java>
 		<postgresql>42.2.19</postgresql>
 		<springdata.commons>2.7.0-SNAPSHOT</springdata.commons>
 		<vavr>0.10.3</vavr>
-		<jsqlparser.version>4.3</jsqlparser.version>
 
 		<hibernate.groupId>org.hibernate</hibernate.groupId>
 
@@ -376,7 +376,7 @@
 		<dependency>
 			<groupId>com.github.jsqlparser</groupId>
 			<artifactId>jsqlparser</artifactId>
-			<version>${jsqlparser.version}</version>
+			<version>${jsqlparser}</version>
 			<scope>provided</scope>
 			<optional>true</optional>
 		</dependency>

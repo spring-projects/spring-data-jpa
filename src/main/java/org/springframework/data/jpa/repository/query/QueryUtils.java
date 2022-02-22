@@ -473,7 +473,6 @@ public abstract class QueryUtils {
 	 * @param originalQuery must not be {@literal null}.
 	 * @param countProjection may be {@literal null}.
 	 * @return a query String to be used a count query for pagination. Guaranteed to be not {@literal null}.
-	 * @return a query String to be used a count query for pagination. Guaranteed to be not {@literal null}.
 	 * @since 1.6
 	 * @deprecated use {@link DeclaredQuery#deriveCountQuery(String, String)} instead.
 	 */
@@ -667,8 +666,8 @@ public abstract class QueryUtils {
 	}
 
 	/**
-	 * Checks if this attribute requires an outer join. This is the case eg. if it hadn't already been fetched with an
-	 * inner join and if it's an a optional association, and if previous paths has already required outer joins. It also
+	 * Checks if this attribute requires an outer join. This is the case e.g. if it hadn't already been fetched with an
+	 * inner join and if it's an optional association, and if previous paths has already required outer joins. It also
 	 * ensures outer joins are used even when Hibernate defaults to inner joins (HHH-12712 and HHH-12999).
 	 *
 	 * @param from the {@link From} to check for fetches.
@@ -742,6 +741,7 @@ public abstract class QueryUtils {
 		return hasRequiredOuterJoin || getAnnotationProperty(attribute, "optional", true);
 	}
 
+	@Nullable
 	private static <T> T getAnnotationProperty(Attribute<?, ?> attribute, String propertyName, T defaultValue) {
 
 		Class<? extends Annotation> associationAnnotation = ASSOCIATION_TYPES.get(attribute.getPersistentAttributeType());
