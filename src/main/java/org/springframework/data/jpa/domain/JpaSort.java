@@ -161,7 +161,7 @@ public class JpaSort extends Sort {
 
 		Assert.notNull(paths, "Paths must not be null!");
 
-		List<Order> existing = new ArrayList<Order>();
+		List<Order> existing = new ArrayList<>();
 
 		for (Order order : this) {
 			existing.add(order);
@@ -181,7 +181,7 @@ public class JpaSort extends Sort {
 
 		Assert.notEmpty(properties, "Properties must not be empty!");
 
-		List<Order> orders = new ArrayList<Order>();
+		List<Order> orders = new ArrayList<>();
 
 		for (Order order : this) {
 			orders.add(order);
@@ -216,7 +216,7 @@ public class JpaSort extends Sort {
 
 	private static List<Order> combine(List<Order> orders, @Nullable Direction direction, List<Path<?, ?>> paths) {
 
-		List<Order> result = new ArrayList<Sort.Order>(orders);
+		List<Order> result = new ArrayList<>(orders);
 
 		for (Path<?, ?> path : paths) {
 			result.add(new Order(direction, path.toString()));
@@ -315,7 +315,7 @@ public class JpaSort extends Sort {
 		 * @return
 		 */
 		public <A extends Attribute<S, U>, U> Path<S, U> dot(A attribute) {
-			return new Path<S, U>(add(attribute));
+			return new Path<>(add(attribute));
 		}
 
 		/**

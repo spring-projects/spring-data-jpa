@@ -21,7 +21,6 @@ import static org.mockito.Mockito.*;
 import java.util.Arrays;
 import java.util.HashSet;
 
-import javax.naming.NamingException;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
@@ -29,7 +28,6 @@ import javax.sql.DataSource;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -99,7 +97,7 @@ public class DefaultJpaContextIntegrationTests {
 		this.firstEm = firstEmf.createEntityManager();
 		this.secondEm = secondEmf.createEntityManager();
 
-		this.jpaContext = new DefaultJpaContext(new HashSet<EntityManager>(Arrays.asList(firstEm, secondEm)));
+		this.jpaContext = new DefaultJpaContext(new HashSet<>(Arrays.asList(firstEm, secondEm)));
 	}
 
 	@Test // DATAJPA-669

@@ -47,7 +47,7 @@ public class DefaultJpaContext implements JpaContext {
 		Assert.notNull(entityManagers, "EntityManagers must not be null!");
 		Assert.notEmpty(entityManagers, "EntityManagers must not be empty!");
 
-		this.entityManagers = new LinkedMultiValueMap<Class<?>, EntityManager>();
+		this.entityManagers = new LinkedMultiValueMap<>();
 
 		for (EntityManager em : entityManagers) {
 			for (ManagedType<?> managedType : em.getMetamodel().getManagedTypes()) {

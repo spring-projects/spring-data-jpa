@@ -92,7 +92,7 @@ public class QuerydslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 		super(entityInformation, entityManager);
 
 		this.path = resolver.createPath(entityInformation.getJavaType());
-		this.builder = new PathBuilder<T>(path.getType(), path.getMetadata());
+		this.builder = new PathBuilder<>(path.getType(), path.getMetadata());
 		this.querydsl = new Querydsl(entityManager, builder);
 		this.entityManager = entityManager;
 	}

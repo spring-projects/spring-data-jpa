@@ -35,7 +35,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-
 import org.springframework.data.jpa.domain.sample.PersistableWithIdClass;
 import org.springframework.data.jpa.domain.sample.PersistableWithIdClassPK;
 
@@ -62,8 +61,7 @@ class JpaMetamodelEntityInformationUnitTests {
 
 		when(first.getName()).thenReturn("first");
 		when(second.getName()).thenReturn("second");
-		Set<SingularAttribute<? super PersistableWithIdClass, ?>> attributes = new HashSet<SingularAttribute<? super PersistableWithIdClass, ?>>(
-				asList(first, second));
+		Set<SingularAttribute<? super PersistableWithIdClass, ?>> attributes = new HashSet<>(asList(first, second));
 
 		when(type.getIdClassAttributes()).thenReturn(attributes);
 
@@ -77,7 +75,7 @@ class JpaMetamodelEntityInformationUnitTests {
 	@Test // DATAJPA-50
 	void doesNotCreateIdIfAllPartialAttributesAreNull() {
 
-		JpaMetamodelEntityInformation<PersistableWithIdClass, Serializable> information = new JpaMetamodelEntityInformation<PersistableWithIdClass, Serializable>(
+		JpaMetamodelEntityInformation<PersistableWithIdClass, Serializable> information = new JpaMetamodelEntityInformation<>(
 				PersistableWithIdClass.class, metamodel);
 
 		PersistableWithIdClass entity = new PersistableWithIdClass(null, null);

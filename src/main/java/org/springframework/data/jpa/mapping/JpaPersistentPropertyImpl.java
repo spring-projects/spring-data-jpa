@@ -57,7 +57,7 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 
 	static {
 
-		Set<Class<? extends Annotation>> annotations = new HashSet<Class<? extends Annotation>>();
+		Set<Class<? extends Annotation>> annotations = new HashSet<>();
 		annotations.add(OneToMany.class);
 		annotations.add(OneToOne.class);
 		annotations.add(ManyToMany.class);
@@ -65,13 +65,13 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 
 		ASSOCIATION_ANNOTATIONS = Collections.unmodifiableSet(annotations);
 
-		annotations = new HashSet<Class<? extends Annotation>>();
+		annotations = new HashSet<>();
 		annotations.add(Id.class);
 		annotations.add(EmbeddedId.class);
 
 		ID_ANNOTATIONS = Collections.unmodifiableSet(annotations);
 
-		annotations = new HashSet<Class<? extends Annotation>>();
+		annotations = new HashSet<>();
 		annotations.add(Column.class);
 		annotations.add(OrderColumn.class);
 
@@ -187,7 +187,7 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 	 */
 	@Override
 	protected Association<JpaPersistentProperty> createAssociation() {
-		return new Association<JpaPersistentProperty>(this, null);
+		return new Association<>(this, null);
 	}
 
 	/*

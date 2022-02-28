@@ -84,7 +84,7 @@ class SimpleJpaRepositoryUnitTests {
 		when(metadata.getQueryHints()).thenReturn(hints);
 		when(metadata.getQueryHintsForCount()).thenReturn(hints);
 
-		repo = new SimpleJpaRepository<User, Integer>(information, em);
+		repo = new SimpleJpaRepository<>(information, em);
 		repo.setRepositoryMethodMetadata(metadata);
 	}
 
