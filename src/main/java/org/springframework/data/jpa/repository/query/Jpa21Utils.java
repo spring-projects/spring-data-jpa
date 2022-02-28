@@ -144,7 +144,7 @@ public class Jpa21Utils {
 	 */
 	static void configureFetchGraphFrom(JpaEntityGraph jpaEntityGraph, EntityGraph<?> entityGraph) {
 
-		List<String> attributePaths = new ArrayList<String>(jpaEntityGraph.getAttributePaths());
+		List<String> attributePaths = new ArrayList<>(jpaEntityGraph.getAttributePaths());
 
 		// Sort to ensure that the intermediate entity subgraphs are created accordingly.
 		Collections.sort(attributePaths);

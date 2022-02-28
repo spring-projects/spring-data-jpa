@@ -101,10 +101,12 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class UserRepositoryTests {
 
-	@PersistenceContext EntityManager em;
+	@PersistenceContext
+	EntityManager em;
 
 	// CUT
-	@Autowired UserRepository repository;
+	@Autowired
+	UserRepository repository;
 
 	// Test fixture
 	private User firstUser;
@@ -298,7 +300,7 @@ public class UserRepositoryTests {
 	@Test
 	void deleteEmptyCollectionDoesNotDeleteAnything() {
 
-		assertDeleteCallDoesNotDeleteAnything(new ArrayList<User>());
+		assertDeleteCallDoesNotDeleteAnything(new ArrayList<>());
 	}
 
 	@Test

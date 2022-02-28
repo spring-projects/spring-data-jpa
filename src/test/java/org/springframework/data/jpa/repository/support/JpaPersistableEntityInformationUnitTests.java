@@ -29,7 +29,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-
 import org.springframework.data.domain.Persistable;
 import org.springframework.data.repository.core.EntityInformation;
 
@@ -43,11 +42,15 @@ import org.springframework.data.repository.core.EntityInformation;
 @MockitoSettings(strictness = Strictness.LENIENT)
 class JpaPersistableEntityInformationUnitTests {
 
-	@Mock Metamodel metamodel;
+	@Mock
+	Metamodel metamodel;
 
-	@Mock EntityType<Foo> type;
+	@Mock
+	EntityType<Foo> type;
 
-	@Mock @SuppressWarnings("rawtypes") Type idType;
+	@Mock
+	@SuppressWarnings("rawtypes")
+	Type idType;
 
 	@BeforeEach
 	@SuppressWarnings("unchecked")
@@ -61,8 +64,7 @@ class JpaPersistableEntityInformationUnitTests {
 	@Test
 	void usesPersistableMethodsForIsNewAndGetId() {
 
-		EntityInformation<Foo, Long> entityInformation = new JpaPersistableEntityInformation<Foo, Long>(Foo.class,
-				metamodel);
+		EntityInformation<Foo, Long> entityInformation = new JpaPersistableEntityInformation<>(Foo.class, metamodel);
 
 		Foo foo = new Foo();
 		assertThat(entityInformation.isNew(foo)).isFalse();

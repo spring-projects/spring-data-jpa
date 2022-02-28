@@ -135,9 +135,9 @@ public class User {
 		this.lastname = lastname;
 		this.emailAddress = emailAddress;
 		this.active = true;
-		this.roles = new HashSet<Role>(Arrays.asList(roles));
-		this.colleagues = new HashSet<User>();
-		this.attributes = new HashSet<String>();
+		this.roles = new HashSet<>(Arrays.asList(roles));
+		this.colleagues = new HashSet<>();
+		this.attributes = new HashSet<>();
 		this.createdAt = new Date();
 	}
 

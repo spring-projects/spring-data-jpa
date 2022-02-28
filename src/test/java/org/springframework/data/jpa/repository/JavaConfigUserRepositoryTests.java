@@ -61,8 +61,10 @@ class JavaConfigUserRepositoryTests extends UserRepositoryTests {
 	@ImportResource("classpath:infrastructure.xml")
 	static class Config {
 
-		@PersistenceContext EntityManager entityManager;
-		@Autowired ApplicationContext applicationContext;
+		@PersistenceContext
+		EntityManager entityManager;
+		@Autowired
+		ApplicationContext applicationContext;
 
 		@Bean
 		public EvaluationContextExtension sampleEvaluationContextExtension() {
@@ -75,7 +77,7 @@ class JavaConfigUserRepositoryTests extends UserRepositoryTests {
 			QueryMethodEvaluationContextProvider evaluationContextProvider = new ExtensionAwareQueryMethodEvaluationContextProvider(
 					applicationContext);
 
-			JpaRepositoryFactoryBean<UserRepository, User, Integer> factory = new JpaRepositoryFactoryBean<UserRepository, User, Integer>(
+			JpaRepositoryFactoryBean<UserRepository, User, Integer> factory = new JpaRepositoryFactoryBean<>(
 					UserRepository.class);
 			factory.setEntityManager(entityManager);
 			factory.setBeanFactory(applicationContext);
@@ -111,5 +113,6 @@ class JavaConfigUserRepositoryTests extends UserRepositoryTests {
 	@Configuration
 	@EnableJpaRepositories(basePackageClasses = UserRepository.class)
 	@ImportResource("classpath:infrastructure.xml")
-	static class JpaRepositoryConfig {}
+	static class JpaRepositoryConfig {
+	}
 }

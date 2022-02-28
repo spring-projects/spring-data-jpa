@@ -49,11 +49,12 @@ public final class BeanDefinitionUtils {
 	private static final String JNDI_OBJECT_FACTORY_BEAN = "org.springframework.jndi.JndiObjectFactoryBean";
 	private static final List<Class<?>> EMF_TYPES;
 
-	private BeanDefinitionUtils() {}
+	private BeanDefinitionUtils() {
+	}
 
 	static {
 
-		List<Class<?>> types = new ArrayList<Class<?>>();
+		List<Class<?>> types = new ArrayList<>();
 		types.add(EntityManagerFactory.class);
 		types.add(AbstractEntityManagerFactoryBean.class);
 
@@ -96,7 +97,7 @@ public final class BeanDefinitionUtils {
 	public static Collection<EntityManagerFactoryBeanDefinition> getEntityManagerFactoryBeanDefinitions(
 			ConfigurableListableBeanFactory beanFactory) {
 
-		Set<EntityManagerFactoryBeanDefinition> definitions = new HashSet<EntityManagerFactoryBeanDefinition>();
+		Set<EntityManagerFactoryBeanDefinition> definitions = new HashSet<>();
 
 		for (Class<?> type : EMF_TYPES) {
 
