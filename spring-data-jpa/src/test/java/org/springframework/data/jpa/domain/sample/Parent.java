@@ -34,7 +34,7 @@ public class Parent {
 	static final long serialVersionUID = -89717120680485957L;
 
 	@ManyToMany(cascade = CascadeType.ALL)
-	Set<Child> children = new HashSet<Child>();
+	Set<Child> children = new HashSet<>();
 
 	public Parent add(Child child) {
 

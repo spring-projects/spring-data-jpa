@@ -29,7 +29,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-
 import org.springframework.data.domain.Persistable;
 import org.springframework.data.repository.core.EntityInformation;
 
@@ -61,8 +60,7 @@ class JpaPersistableEntityInformationUnitTests {
 	@Test
 	void usesPersistableMethodsForIsNewAndGetId() {
 
-		EntityInformation<Foo, Long> entityInformation = new JpaPersistableEntityInformation<Foo, Long>(Foo.class,
-				metamodel);
+		EntityInformation<Foo, Long> entityInformation = new JpaPersistableEntityInformation<>(Foo.class, metamodel);
 
 		Foo foo = new Foo();
 		assertThat(entityInformation.isNew(foo)).isFalse();

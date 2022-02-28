@@ -91,7 +91,7 @@ public class DefaultJpaContextIntegrationTests {
 		this.firstEm = firstEmf.createEntityManager();
 		this.secondEm = secondEmf.createEntityManager();
 
-		this.jpaContext = new DefaultJpaContext(new HashSet<EntityManager>(Arrays.asList(firstEm, secondEm)));
+		this.jpaContext = new DefaultJpaContext(new HashSet<>(Arrays.asList(firstEm, secondEm)));
 	}
 
 	@Test // DATAJPA-669

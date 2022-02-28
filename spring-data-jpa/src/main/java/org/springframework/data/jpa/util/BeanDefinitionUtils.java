@@ -53,7 +53,7 @@ public final class BeanDefinitionUtils {
 
 	static {
 
-		List<Class<?>> types = new ArrayList<Class<?>>();
+		List<Class<?>> types = new ArrayList<>();
 		types.add(EntityManagerFactory.class);
 		types.add(AbstractEntityManagerFactoryBean.class);
 
@@ -96,7 +96,7 @@ public final class BeanDefinitionUtils {
 	public static Collection<EntityManagerFactoryBeanDefinition> getEntityManagerFactoryBeanDefinitions(
 			ConfigurableListableBeanFactory beanFactory) {
 
-		Set<EntityManagerFactoryBeanDefinition> definitions = new HashSet<EntityManagerFactoryBeanDefinition>();
+		Set<EntityManagerFactoryBeanDefinition> definitions = new HashSet<>();
 
 		for (Class<?> type : EMF_TYPES) {
 

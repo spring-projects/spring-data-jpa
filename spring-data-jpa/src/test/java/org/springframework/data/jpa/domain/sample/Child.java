@@ -31,7 +31,7 @@ public class Child {
 	Long id;
 
 	@ManyToMany(mappedBy = "children")
-	Set<Parent> parents = new HashSet<Parent>();
+	Set<Parent> parents = new HashSet<>();
 
 	/**
 	 * @param parent

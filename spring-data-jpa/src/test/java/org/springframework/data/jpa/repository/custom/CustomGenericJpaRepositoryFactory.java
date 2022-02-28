@@ -48,7 +48,7 @@ public class CustomGenericJpaRepositoryFactory extends JpaRepositoryFactory {
 
 		JpaEntityInformation<Object, Serializable> entityMetadata = mock(JpaEntityInformation.class);
 		when(entityMetadata.getJavaType()).thenReturn((Class<Object>) information.getDomainType());
-		return new CustomGenericJpaRepository<Object, Serializable>(entityMetadata, em);
+		return new CustomGenericJpaRepository<>(entityMetadata, em);
 	}
 
 	@Override

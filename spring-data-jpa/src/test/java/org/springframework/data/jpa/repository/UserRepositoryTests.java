@@ -298,7 +298,7 @@ public class UserRepositoryTests {
 	@Test
 	void deleteEmptyCollectionDoesNotDeleteAnything() {
 
-		assertDeleteCallDoesNotDeleteAnything(new ArrayList<User>());
+		assertDeleteCallDoesNotDeleteAnything(new ArrayList<>());
 	}
 
 	@Test

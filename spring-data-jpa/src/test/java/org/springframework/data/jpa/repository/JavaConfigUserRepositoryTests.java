@@ -75,7 +75,7 @@ class JavaConfigUserRepositoryTests extends UserRepositoryTests {
 			QueryMethodEvaluationContextProvider evaluationContextProvider = new ExtensionAwareQueryMethodEvaluationContextProvider(
 					applicationContext);
 
-			JpaRepositoryFactoryBean<UserRepository, User, Integer> factory = new JpaRepositoryFactoryBean<UserRepository, User, Integer>(
+			JpaRepositoryFactoryBean<UserRepository, User, Integer> factory = new JpaRepositoryFactoryBean<>(
 					UserRepository.class);
 			factory.setEntityManager(entityManager);
 			factory.setBeanFactory(applicationContext);

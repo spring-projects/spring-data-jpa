@@ -16,10 +16,6 @@
 package org.springframework.data.jpa.repository.support;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.springframework.data.domain.Example.*;
-import static org.springframework.data.domain.ExampleMatcher.*;
-
-import lombok.Data;
 
 import java.sql.Date;
 import java.time.LocalDate;
@@ -80,10 +76,10 @@ class QuerydslJpaRepositoryTests {
 	@BeforeEach
 	void setUp() {
 
-		JpaEntityInformation<User, Integer> information = new JpaMetamodelEntityInformation<User, Integer>(User.class,
+		JpaEntityInformation<User, Integer> information = new JpaMetamodelEntityInformation<>(User.class,
 				em.getMetamodel());
 
-		repository = new QuerydslJpaRepository<User, Integer>(information, em);
+		repository = new QuerydslJpaRepository<>(information, em);
 		dave = repository.save(new User("Dave", "Matthews", "dave@matthews.com"));
 		carter = repository.save(new User("Carter", "Beauford", "carter@beauford.com"));
 		oliver = repository.save(new User("Oliver", "matthews", "oliver@matthews.com"));

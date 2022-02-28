@@ -42,7 +42,7 @@ public abstract class JpaEntityInformationSupport<T, ID> extends AbstractEntityI
 	 */
 	public JpaEntityInformationSupport(Class<T> domainClass) {
 		super(domainClass);
-		this.metadata = new DefaultJpaEntityMetadata<T>(domainClass);
+		this.metadata = new DefaultJpaEntityMetadata<>(domainClass);
 	}
 
 	/**

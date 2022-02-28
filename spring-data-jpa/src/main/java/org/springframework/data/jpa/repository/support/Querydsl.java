@@ -80,12 +80,12 @@ public class Querydsl {
 
 		switch (provider) {
 			case ECLIPSELINK:
-				return new JPAQuery<T>(em, EclipseLinkTemplates.DEFAULT);
+				return new JPAQuery<>(em, EclipseLinkTemplates.DEFAULT);
 			case HIBERNATE:
-				return new JPAQuery<T>(em, HQLTemplates.DEFAULT);
+				return new JPAQuery<>(em, HQLTemplates.DEFAULT);
 			case GENERIC_JPA:
 			default:
-				return new JPAQuery<T>(em);
+				return new JPAQuery<>(em);
 		}
 	}
 
