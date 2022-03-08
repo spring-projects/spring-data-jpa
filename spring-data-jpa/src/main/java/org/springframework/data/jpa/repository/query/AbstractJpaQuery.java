@@ -60,6 +60,7 @@ import org.springframework.util.Assert;
  * @author Nicolas Cirigliano
  * @author Jens Schauder
  * @author Сергей Цыпанов
+ * @author Wonchul Heo
  */
 public abstract class AbstractJpaQuery implements RepositoryQuery {
 
@@ -143,11 +144,19 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 	@Nullable
 	private Object doExecute(JpaQueryExecution execution, Object[] values) {
 
-		JpaParametersParameterAccessor accessor = new JpaParametersParameterAccessor(method.getParameters(), values);
+		JpaParametersParameterAccessor accessor = obtainParameterAccessor(values);
 		Object result = execution.execute(this, accessor);
 
 		ResultProcessor withDynamicProjection = method.getResultProcessor().withDynamicProjection(accessor);
 		return withDynamicProjection.processResult(result, new TupleConverter(withDynamicProjection.getReturnedType()));
+	}
+
+	private JpaParametersParameterAccessor obtainParameterAccessor(Object[] values) {
+		if (provider == PersistenceProvider.HIBERNATE) {
+			return new HibernateJpaParametersParameterAccessor(method.getParameters(), values, em);
+		} else {
+			return new JpaParametersParameterAccessor(method.getParameters(), values);
+		}
 	}
 
 	protected JpaQueryExecution getExecution() {
