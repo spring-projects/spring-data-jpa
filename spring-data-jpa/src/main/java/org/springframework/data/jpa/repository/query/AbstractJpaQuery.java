@@ -152,11 +152,8 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 	}
 
 	private JpaParametersParameterAccessor obtainParameterAccessor(Object[] values) {
-		if (provider == PersistenceProvider.HIBERNATE) {
-			return new HibernateJpaParametersParameterAccessor(method.getParameters(), values, em);
-		} else {
-			return new JpaParametersParameterAccessor(method.getParameters(), values);
-		}
+
+		return provider.getParameterAccessor(method.getParameters(), values, em);
 	}
 
 	protected JpaQueryExecution getExecution() {

@@ -1,10 +1,8 @@
 package org.springframework.data.jpa.repository.query;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 import java.lang.reflect.Method;
 
@@ -19,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.springframework.data.jpa.domain.sample.User;
+import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -31,56 +30,58 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @ContextConfiguration("classpath:infrastructure.xml")
 class JpaParametersParameterAccessorTests {
 
-    @PersistenceContext
-    private EntityManager em;
-    private Query query;
+	@PersistenceContext private EntityManager em;
+	private Query query;
 
-    @BeforeEach
-    void setUp() {
-        query = mock(Query.class);
-    }
+	@BeforeEach
+	void setUp() {
+		query = mock(Query.class);
+	}
 
-    @Test // GH-2370
-    void createsJpaParametersParameterAccessor() throws Exception {
+	@Test // GH-2370
+	void createsJpaParametersParameterAccessor() throws Exception {
 
-        Method withNativeQuery = SampleRepository.class.getMethod("withNativeQuery", Integer.class);
-        Object[] values = { null };
-        JpaParameters parameters = new JpaParameters(withNativeQuery);
-        JpaParametersParameterAccessor accessor = new JpaParametersParameterAccessor(parameters, values);
+		Method withNativeQuery = SampleRepository.class.getMethod("withNativeQuery", Integer.class);
+		Object[] values = { null };
+		JpaParameters parameters = new JpaParameters(withNativeQuery);
+		JpaParametersParameterAccessor accessor = PersistenceProvider.GENERIC_JPA.getParameterAccessor(parameters, values, em);
 
-        bind(parameters, accessor);
+		bind(parameters, accessor);
 
-        verify(query).setParameter(eq(1), isNull());
-    }
+		verify(query).setParameter(eq(1), isNull());
+	}
 
-    @Test // GH-2370
-    void createsHibernateParametersParameterAccessor() throws Exception {
+	@Test // GH-2370
+	void createsHibernateParametersParameterAccessor() throws Exception {
 
-        Method withNativeQuery = SampleRepository.class.getMethod("withNativeQuery", Integer.class);
-        Object[] values = { null };
-        JpaParameters parameters = new JpaParameters(withNativeQuery);
-        JpaParametersParameterAccessor accessor =
-                new HibernateJpaParametersParameterAccessor(parameters, values, em);
+		Method withNativeQuery = SampleRepository.class.getMethod("withNativeQuery", Integer.class);
+		Object[] values = { null };
+		JpaParameters parameters = new JpaParameters(withNativeQuery);
+		JpaParametersParameterAccessor accessor = PersistenceProvider.HIBERNATE.getParameterAccessor(parameters, values,
+				em);
 
-        bind(parameters, accessor);
+		bind(parameters, accessor);
 
-        ArgumentCaptor<TypedParameterValue> captor = ArgumentCaptor.forClass(TypedParameterValue.class);
-        verify(query).setParameter(eq(1), captor.capture());
-        TypedParameterValue captorValue = captor.getValue();
-        assertThat(captorValue.getType()).isEqualTo(StandardBasicTypes.INTEGER);
-        assertThat(captorValue.getValue()).isNull();
-    }
+		ArgumentCaptor<TypedParameterValue> captor = ArgumentCaptor.forClass(TypedParameterValue.class);
+		verify(query).setParameter(eq(1), captor.capture());
+		TypedParameterValue captorValue = captor.getValue();
+		assertThat(captorValue.getType()).isEqualTo(StandardBasicTypes.INTEGER);
+		assertThat(captorValue.getValue()).isNull();
+	}
 
-    private void bind(JpaParameters parameters, JpaParametersParameterAccessor accessor) {
-        ParameterBinderFactory.createBinder(parameters).bind(QueryParameterSetter.BindableQuery.from(query),
-                                                             accessor,
-                                                             QueryParameterSetter.ErrorHandling.LENIENT);
-    }
+	private void bind(JpaParameters parameters, JpaParametersParameterAccessor accessor) {
 
-    interface SampleRepository {
-        @org.springframework.data.jpa.repository.Query(
-                value = "select 1 from user where age = :age",
-                nativeQuery = true)
-        User withNativeQuery(Integer age);
-    }
+		ParameterBinderFactory.createBinder(parameters)
+				.bind( //
+						QueryParameterSetter.BindableQuery.from(query), //
+						accessor, //
+						QueryParameterSetter.ErrorHandling.LENIENT //
+				);
+	}
+
+	interface SampleRepository {
+
+		@org.springframework.data.jpa.repository.Query(value = "select 1 from user where age = :age", nativeQuery = true)
+		User withNativeQuery(Integer age);
+	}
 }

@@ -36,7 +36,7 @@ public class JpaParametersParameterAccessor extends ParametersParameterAccessor 
 	 * @param parameters must not be {@literal null}.
 	 * @param values must not be {@literal null}.
 	 */
-	JpaParametersParameterAccessor(Parameters<?, ?> parameters, Object[] values) {
+	public JpaParametersParameterAccessor(Parameters<?, ?> parameters, Object[] values) {
 		super(parameters, values);
 	}
 

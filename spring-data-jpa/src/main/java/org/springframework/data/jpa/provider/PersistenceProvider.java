@@ -34,6 +34,8 @@ import org.hibernate.ScrollMode;
 import org.hibernate.ScrollableResults;
 import org.hibernate.proxy.HibernateProxy;
 
+import org.springframework.data.jpa.repository.query.JpaParameters;
+import org.springframework.data.jpa.repository.query.JpaParametersParameterAccessor;
 import org.springframework.data.util.CloseableIterator;
 import org.springframework.lang.Nullable;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -97,6 +99,11 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 		@Override
 		public CloseableIterator<Object> executeQueryWithResultStream(Query jpaQuery) {
 			return new HibernateScrollableResultsIterator(jpaQuery);
+		}
+
+		@Override
+		public JpaParametersParameterAccessor getParameterAccessor(JpaParameters parameters, Object[] values, EntityManager em) {
+			return new HibernateJpaParametersParameterAccessor(parameters, values, em);
 		}
 	},
 
@@ -240,6 +247,10 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 		}
 
 		return cacheAndReturn(metamodelType, GENERIC_JPA);
+	}
+
+	public JpaParametersParameterAccessor getParameterAccessor(JpaParameters parameters, Object[] values, EntityManager em) {
+		return new JpaParametersParameterAccessor(parameters, values);
 	}
 
 	/**
