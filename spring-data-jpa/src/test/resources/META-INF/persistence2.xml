@@ -6,6 +6,8 @@
 		<class>org.springframework.data.jpa.domain.sample.AnnotatedAuditableUser</class>
 		<class>org.springframework.data.jpa.domain.sample.AuditableRole</class>
 		<class>org.springframework.data.jpa.domain.sample.AuditableUser</class>
+		<class>org.springframework.data.jpa.domain.sample.AuditableEntity</class>
+		<class>org.springframework.data.jpa.domain.sample.AuditableEmbeddable</class>
 		<class>org.springframework.data.jpa.domain.sample.Category</class>
 		<class>org.springframework.data.jpa.domain.sample.CustomAbstractPersistable</class>
 		<class>org.springframework.data.jpa.domain.sample.EntityWithAssignedId</class>
