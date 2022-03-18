@@ -610,8 +610,8 @@ public abstract class QueryUtils {
 		Expression<?> expression = toExpressionRecursively(from, property);
 
 		if (order.isIgnoreCase() && String.class.equals(expression.getJavaType())) {
-			Expression<String> lower = cb.lower((Expression<String>) expression);
-			return order.isAscending() ? cb.asc(lower) : cb.desc(lower);
+			Expression<String> upper = cb.lower((Expression<String>) expression);
+			return order.isAscending() ? cb.asc(upper) : cb.desc(upper);
 		} else {
 			return order.isAscending() ? cb.asc(expression) : cb.desc(expression);
 		}
