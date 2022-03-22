@@ -15,18 +15,21 @@
  */
 package org.springframework.data.jpa.repository.cdi;
 
-import java.lang.annotation.Annotation;
-import java.util.Optional;
-import java.util.Set;
-
 import jakarta.enterprise.context.spi.CreationalContext;
 import jakarta.enterprise.inject.spi.Bean;
 import jakarta.enterprise.inject.spi.BeanManager;
 import jakarta.persistence.EntityManager;
 
+import java.lang.annotation.Annotation;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Supplier;
+
+import org.springframework.data.jpa.repository.query.QueryRewriterProvider;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactory;
 import org.springframework.data.repository.cdi.CdiRepositoryBean;
 import org.springframework.data.repository.config.CustomRepositoryImplementationDetector;
+import org.springframework.data.repository.core.support.RepositoryFactorySupport;
 import org.springframework.util.Assert;
 
 /**
@@ -41,6 +44,7 @@ import org.springframework.util.Assert;
 class JpaRepositoryBean<T> extends CdiRepositoryBean<T> {
 
 	private final Bean<EntityManager> entityManagerBean;
+	private final QueryRewriterProvider queryRewriterProvider;
 
 	/**
 	 * Constructs a {@link JpaRepositoryBean}.
@@ -58,6 +62,7 @@ class JpaRepositoryBean<T> extends CdiRepositoryBean<T> {
 
 		Assert.notNull(entityManagerBean, "EntityManager bean must not be null!");
 		this.entityManagerBean = entityManagerBean;
+		this.queryRewriterProvider = new QueryRewriterBeanManagerProvider(beanManager);
 	}
 
 	@Override
@@ -65,6 +70,12 @@ class JpaRepositoryBean<T> extends CdiRepositoryBean<T> {
 
 		EntityManager entityManager = getDependencyInstance(entityManagerBean, EntityManager.class);
 
-		return create(() -> new JpaRepositoryFactory(entityManager), repositoryType);
+		Supplier<RepositoryFactorySupport> repositoryFactorySupportSupplier = () -> {
+			JpaRepositoryFactory jpaRepositoryFactory = new JpaRepositoryFactory(entityManager);
+			jpaRepositoryFactory.setQueryRewriterProvider(queryRewriterProvider);
+			return jpaRepositoryFactory;
+		};
+
+		return create(repositoryFactorySupportSupplier, repositoryType);
 	}
 }

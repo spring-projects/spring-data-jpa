@@ -19,15 +19,15 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import java.lang.reflect.Method;
-import java.util.Collection;
-import java.util.List;
-
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Tuple;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.metamodel.Metamodel;
+
+import java.lang.reflect.Method;
+import java.util.Collection;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,7 +37,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -62,6 +62,7 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
  * @author Jens Schauder
  * @author Tom Hombergs
  * @author Mark Paluch
+ * @author Greg Turnquist
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -81,6 +82,7 @@ class SimpleJpaQueryUnitTests {
 	@Mock RepositoryMetadata metadata;
 	@Mock ParameterBinder binder;
 	@Mock Metamodel metamodel;
+	@Mock BeanFactory beanFactory;
 
 	private ProjectionFactory factory = new SpelAwareProxyProjectionFactory();
 
@@ -107,12 +109,12 @@ class SimpleJpaQueryUnitTests {
 	void prefersDeclaredCountQueryOverCreatingOne() throws Exception {
 
 		method = new JpaQueryMethod(
-				SimpleJpaQueryUnitTests.class.getDeclaredMethod("prefersDeclaredCountQueryOverCreatingOne"),
-				metadata, factory, extractor);
+				SimpleJpaQueryUnitTests.class.getDeclaredMethod("prefersDeclaredCountQueryOverCreatingOne"), metadata, factory,
+				extractor);
 		when(em.createQuery("foo", Long.class)).thenReturn(typedQuery);
 
 		SimpleJpaQuery jpaQuery = new SimpleJpaQuery(method, em, "select u from User u", null, EVALUATION_CONTEXT_PROVIDER,
-				PARSER);
+				PARSER, new QueryRewriterBeanFactoryProvider(beanFactory));
 
 		assertThat(jpaQuery.createCountQuery(new JpaParametersParameterAccessor(method.getParameters(), new Object[] {})))
 				.isEqualTo(typedQuery);
@@ -127,8 +129,7 @@ class SimpleJpaQueryUnitTests {
 		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, factory, extractor);
 
 		AbstractJpaQuery jpaQuery = new SimpleJpaQuery(queryMethod, em, "select u from User u", null,
-				EVALUATION_CONTEXT_PROVIDER,
-				PARSER);
+				EVALUATION_CONTEXT_PROVIDER, PARSER, new QueryRewriterBeanFactoryProvider(beanFactory));
 		jpaQuery.createCountQuery(
 				new JpaParametersParameterAccessor(queryMethod.getParameters(), new Object[] { PageRequest.of(1, 10) }));
 
@@ -143,7 +144,7 @@ class SimpleJpaQueryUnitTests {
 		Method method = SampleRepository.class.getMethod("findNativeByLastname", String.class);
 		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, factory, extractor);
 		AbstractJpaQuery jpaQuery = JpaQueryFactory.INSTANCE.fromMethodWithQueryString(queryMethod, em,
-				queryMethod.getAnnotatedQuery(), null, EVALUATION_CONTEXT_PROVIDER);
+				queryMethod.getAnnotatedQuery(), null, EVALUATION_CONTEXT_PROVIDER, new QueryRewriterBeanFactoryProvider(beanFactory));
 
 		assertThat(jpaQuery instanceof NativeJpaQuery).isTrue();
 
@@ -246,8 +247,7 @@ class SimpleJpaQueryUnitTests {
 		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, factory, extractor);
 
 		AbstractJpaQuery jpaQuery = new SimpleJpaQuery(queryMethod, em, "select u from User u",
-				"select count(u.id) from #{#entityName} u", EVALUATION_CONTEXT_PROVIDER,
-				PARSER);
+				"select count(u.id) from #{#entityName} u", EVALUATION_CONTEXT_PROVIDER, PARSER, new QueryRewriterBeanFactoryProvider(beanFactory));
 		jpaQuery.createCountQuery(
 				new JpaParametersParameterAccessor(queryMethod.getParameters(), new Object[] { PageRequest.of(1, 10) }));
 
@@ -259,7 +259,7 @@ class SimpleJpaQueryUnitTests {
 
 		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, factory, extractor);
 		return JpaQueryFactory.INSTANCE.fromMethodWithQueryString(queryMethod, em, queryMethod.getAnnotatedQuery(), null,
-				EVALUATION_CONTEXT_PROVIDER);
+				EVALUATION_CONTEXT_PROVIDER, new QueryRewriterBeanFactoryProvider(beanFactory));
 	}
 
 	interface SampleRepository {

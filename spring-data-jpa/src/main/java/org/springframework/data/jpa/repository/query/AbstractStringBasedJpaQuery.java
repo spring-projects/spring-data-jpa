@@ -18,6 +18,13 @@ package org.springframework.data.jpa.repository.query;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 
+import java.util.function.Supplier;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.repository.QueryRewriter;
 import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
@@ -35,14 +42,18 @@ import org.springframework.util.Assert;
  * @author David Madden
  * @author Mark Paluch
  * @author Diego Krupitza
+ * @author Greg Turnquist
  */
 abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
+
+	private static final Log LOGGER = LogFactory.getLog(AbstractStringBasedJpaQuery.class);
 
 	private final DeclaredQuery query;
 	private final DeclaredQuery countQuery;
 	private final QueryMethodEvaluationContextProvider evaluationContextProvider;
 	private final SpelExpressionParser parser;
 	private final QueryParameterSetter.QueryMetadataCache metadataCache = new QueryParameterSetter.QueryMetadataCache();
+	private final Supplier<QueryRewriter> queryRewriterSupplier;
 
 	/**
 	 * Creates a new {@link AbstractStringBasedJpaQuery} from the given {@link JpaQueryMethod}, {@link EntityManager} and
@@ -57,7 +68,7 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 	 */
 	public AbstractStringBasedJpaQuery(JpaQueryMethod method, EntityManager em, String queryString,
 			@Nullable String countQueryString, QueryMethodEvaluationContextProvider evaluationContextProvider,
-			SpelExpressionParser parser) {
+			SpelExpressionParser parser, QueryRewriterProvider queryRewriterProvider) {
 
 		super(method, em);
 
@@ -74,6 +85,7 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 				method.isNativeQuery());
 
 		this.parser = parser;
+		this.queryRewriterSupplier = queryRewriterProvider.of(method);
 
 		Assert.isTrue(method.isNativeQuery() || !query.usesJdbcStyleParameters(),
 				"JDBC style parameters (?) are not supported for JPA queries.");
@@ -86,7 +98,8 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 				.applySorting(accessor.getSort(), query.getAlias());
 		ResultProcessor processor = getQueryMethod().getResultProcessor().withDynamicProjection(accessor);
 
-		Query query = createJpaQuery(sortedQueryString, processor.getReturnedType());
+		Query query = createJpaQuery(sortedQueryString, accessor.getSort(), accessor.getPageable(),
+				processor.getReturnedType());
 
 		QueryParameterSetter.QueryMetadata metadata = metadataCache.getMetadata(sortedQueryString, query);
 
@@ -137,18 +150,41 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 	 * Creates an appropriate JPA query from an {@link EntityManager} according to the current {@link AbstractJpaQuery}
 	 * type.
 	 */
-	protected Query createJpaQuery(String queryString, ReturnedType returnedType) {
+	protected Query createJpaQuery(String queryString, Sort sort, @Nullable Pageable pageable,
+			ReturnedType returnedType) {
 
 		EntityManager em = getEntityManager();
 
 		if (this.query.hasConstructorExpression() || this.query.isDefaultProjection()) {
-			return em.createQuery(queryString);
+			return em.createQuery(potentiallyRewriteQuery(queryString, sort, pageable));
 		}
 
 		Class<?> typeToRead = getTypeToRead(returnedType);
 
 		return typeToRead == null //
-				? em.createQuery(queryString) //
-				: em.createQuery(queryString, typeToRead);
+				? em.createQuery(potentiallyRewriteQuery(queryString, sort, pageable)) //
+				: em.createQuery(potentiallyRewriteQuery(queryString, sort, pageable), typeToRead);
+	}
+
+	/**
+	 * Use the {@link QueryRewriter}, potentially rewrite the query, using relevant {@link Sort} and {@link Pageable}
+	 * information.
+	 * 
+	 * @param originalQuery
+	 * @param sort
+	 * @param pageable
+	 * @return
+	 */
+	protected String potentiallyRewriteQuery(String originalQuery, Sort sort, @Nullable Pageable pageable) {
+
+		QueryRewriter queryRewriter = this.queryRewriterSupplier.get();
+
+		if (queryRewriter == null) {
+			return originalQuery;
+		}
+
+		return pageable != null && pageable.isPaged() //
+				? queryRewriter.rewrite(originalQuery, pageable) //
+				: queryRewriter.rewrite(originalQuery, sort);
 	}
 }

@@ -293,7 +293,7 @@ public class User {
 
 [[jpa.query-methods.named-queries.declaring-interfaces]]
 ==== Declaring Interfaces
-To allow these named queries, specify the `UserRepository` as follows:
+To allow these named queries, specify the `UserRepositoryWithRewriter` as follows:
 
 .Query method declaration in UserRepository
 ====

@@ -15,6 +15,9 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import jakarta.persistence.LockModeType;
+import jakarta.persistence.QueryHint;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -24,9 +27,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import jakarta.persistence.LockModeType;
-import jakarta.persistence.QueryHint;
-
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.data.jpa.provider.QueryExtractor;
@@ -35,6 +35,7 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryHints;
+import org.springframework.data.jpa.repository.QueryRewriter;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.Parameter;
@@ -57,6 +58,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Paluch
  * @author Сергей Цыпанов
  * @author Réda Housni Alaoui
+ * @author Greg Turnquist
  */
 public class JpaQueryMethod extends QueryMethod {
 
@@ -430,4 +432,14 @@ public class JpaQueryMethod extends QueryMethod {
 		return storedProcedureAttributes;
 	}
 
+	/**
+	 * Returns the {@link QueryRewriter} type.
+	 *
+	 * @return type of the {@link QueryRewriter}
+	 * @since 3.0
+	 */
+	@Nullable
+	Class<? extends QueryRewriter> getQueryRewriter() {
+		return getMergedOrDefaultAnnotationValue("queryRewriter", Query.class, Class.class);
+	}
 }

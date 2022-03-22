@@ -19,6 +19,8 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import jakarta.persistence.Tuple;
 
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.RepositoryQuery;
@@ -35,6 +37,7 @@ import org.springframework.lang.Nullable;
  * @author Oliver Gierke
  * @author Jens Schauder
  * @author Mark Paluch
+ * @author Greg Turnquist
  */
 final class NativeJpaQuery extends AbstractStringBasedJpaQuery {
 
@@ -48,9 +51,10 @@ final class NativeJpaQuery extends AbstractStringBasedJpaQuery {
 	 * @param evaluationContextProvider
 	 */
 	public NativeJpaQuery(JpaQueryMethod method, EntityManager em, String queryString, @Nullable String countQueryString,
-			QueryMethodEvaluationContextProvider evaluationContextProvider, SpelExpressionParser parser) {
+			QueryMethodEvaluationContextProvider evaluationContextProvider, SpelExpressionParser parser,
+			QueryRewriterProvider queryRewriterProvider) {
 
-		super(method, em, queryString, countQueryString, evaluationContextProvider, parser);
+		super(method, em, queryString, countQueryString, evaluationContextProvider, parser, queryRewriterProvider);
 
 		Parameters<?, ?> parameters = method.getParameters();
 
@@ -60,12 +64,13 @@ final class NativeJpaQuery extends AbstractStringBasedJpaQuery {
 	}
 
 	@Override
-	protected Query createJpaQuery(String queryString, ReturnedType returnedType) {
+	protected Query createJpaQuery(String queryString, Sort sort, Pageable pageable, ReturnedType returnedType) {
 
 		EntityManager em = getEntityManager();
 		Class<?> type = getTypeToQueryFor(returnedType);
 
-		return type == null ? em.createNativeQuery(queryString) : em.createNativeQuery(queryString, type);
+		return type == null ? em.createNativeQuery(potentiallyRewriteQuery(queryString, sort, pageable))
+				: em.createNativeQuery(potentiallyRewriteQuery(queryString, sort, pageable), type);
 	}
 
 	@Nullable

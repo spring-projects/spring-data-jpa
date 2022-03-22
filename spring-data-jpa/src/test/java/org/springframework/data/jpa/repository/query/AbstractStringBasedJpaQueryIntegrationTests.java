@@ -18,19 +18,22 @@ package org.springframework.data.jpa.repository.query;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import java.lang.reflect.Method;
-import java.util.Set;
-
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Tuple;
 
+import java.lang.reflect.Method;
+import java.util.Set;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.provider.PersistenceProvider;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.core.support.DefaultRepositoryMetadata;
@@ -43,6 +46,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  * Integration tests for {@link AbstractStringBasedJpaQuery}.
  *
  * @author Oliver Gierke
+ * @author Greg Turnquist
  * @soundtrack Henrik Freischlader Trio - Nobody Else To Blame (Openness)
  */
 @ExtendWith(SpringExtension.class)
@@ -50,6 +54,8 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 public class AbstractStringBasedJpaQueryIntegrationTests {
 
 	@PersistenceContext EntityManager em;
+
+	@Autowired BeanFactory beanFactory;
 
 	@Test // DATAJPA-885
 	void createsNormalQueryForJpaManagedReturnTypes() throws Exception {
@@ -60,10 +66,12 @@ public class AbstractStringBasedJpaQueryIntegrationTests {
 		when(mock.getMetamodel()).thenReturn(em.getMetamodel());
 
 		JpaQueryMethod method = getMethod("findRolesByEmailAddress", String.class);
-		AbstractStringBasedJpaQuery jpaQuery = new SimpleJpaQuery(method, mock,
-				null, QueryMethodEvaluationContextProvider.DEFAULT, new SpelExpressionParser());
+		AbstractStringBasedJpaQuery jpaQuery = new SimpleJpaQuery(method, mock, null,
+				QueryMethodEvaluationContextProvider.DEFAULT, new SpelExpressionParser(),
+				new QueryRewriterBeanFactoryProvider(beanFactory));
 
-		jpaQuery.createJpaQuery(method.getAnnotatedQuery(), method.getResultProcessor().getReturnedType());
+		jpaQuery.createJpaQuery(method.getAnnotatedQuery(), Sort.unsorted(), null,
+				method.getResultProcessor().getReturnedType());
 
 		verify(mock, times(1)).createQuery(anyString());
 		verify(mock, times(0)).createQuery(anyString(), eq(Tuple.class));
@@ -80,7 +88,7 @@ public class AbstractStringBasedJpaQueryIntegrationTests {
 
 	interface SampleRepository extends Repository<User, Integer> {
 
-		@org.springframework.data.jpa.repository.Query("select u.roles from User u where u.emailAddress = ?1")
+		@Query("select u.roles from User u where u.emailAddress = ?1")
 		Set<Role> findRolesByEmailAddress(String emailAddress);
 	}
 }

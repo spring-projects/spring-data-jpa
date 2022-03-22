@@ -31,6 +31,7 @@ import org.springframework.lang.Nullable;
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Mark Paluch
+ * @author Greg Turnquist
  */
 final class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
 
@@ -44,8 +45,10 @@ final class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
 	 * @param parser must not be {@literal null}
 	 */
 	public SimpleJpaQuery(JpaQueryMethod method, EntityManager em, @Nullable String countQueryString,
-			QueryMethodEvaluationContextProvider evaluationContextProvider, SpelExpressionParser parser) {
-		this(method, em, method.getRequiredAnnotatedQuery(), countQueryString, evaluationContextProvider, parser);
+			QueryMethodEvaluationContextProvider evaluationContextProvider, SpelExpressionParser parser,
+			QueryRewriterProvider queryRewriterProvider) {
+		this(method, em, method.getRequiredAnnotatedQuery(), countQueryString, evaluationContextProvider, parser,
+				queryRewriterProvider);
 	}
 
 	/**
@@ -59,9 +62,10 @@ final class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
 	 * @param parser must not be {@literal null}
 	 */
 	public SimpleJpaQuery(JpaQueryMethod method, EntityManager em, String queryString, @Nullable String countQueryString,
-			QueryMethodEvaluationContextProvider evaluationContextProvider, SpelExpressionParser parser) {
+			QueryMethodEvaluationContextProvider evaluationContextProvider, SpelExpressionParser parser,
+			QueryRewriterProvider queryRewriterProvider) {
 
-		super(method, em, queryString, countQueryString, evaluationContextProvider, parser);
+		super(method, em, queryString, countQueryString, evaluationContextProvider, parser, queryRewriterProvider);
 
 		validateQuery(getQuery().getQueryString(), "Validation failed for query for method %s!", method);
 

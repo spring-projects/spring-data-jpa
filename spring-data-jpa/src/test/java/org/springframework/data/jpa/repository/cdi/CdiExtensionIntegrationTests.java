@@ -24,6 +24,7 @@ import jakarta.enterprise.inject.se.SeContainer;
 import jakarta.enterprise.inject.se.SeContainerInitializer;
 import jakarta.enterprise.inject.spi.Bean;
 
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.apache.commons.logging.Log;
@@ -43,7 +44,7 @@ class CdiExtensionIntegrationTests {
 	private static Log LOGGER = LogFactory.getLog(CdiExtensionIntegrationTests.class);
 
 	@BeforeAll
-	static void setUp() {
+	static void setUpCdi() {
 
 		container = SeContainerInitializer.newInstance() //
 				.disableDiscovery() //
@@ -51,6 +52,11 @@ class CdiExtensionIntegrationTests {
 				.initialize();
 
 		LOGGER.debug("CDI container bootstrapped!");
+	}
+
+	@AfterAll
+	static void tearDownCdi() {
+		container.close();
 	}
 
 	@Test // DATAJPA-319, DATAJPA-1180
