@@ -29,7 +29,7 @@ import org.springframework.data.annotation.QueryAnnotation;
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Christoph Strobl
- *
+ * @author Greg Turnquist
  * @see Modifying
  */
 @Retention(RetentionPolicy.RUNTIME)
@@ -45,7 +45,8 @@ public @interface Query {
 
 	/**
 	 * Defines a special count query that shall be used for pagination queries to lookup the total number of elements for
-	 * a page. If none is configured we will derive the count query from the original query or {@link #countProjection()} query if any.
+	 * a page. If none is configured we will derive the count query from the original query or {@link #countProjection()}
+	 * query if any.
 	 */
 	String countQuery() default "";
 
@@ -70,11 +71,19 @@ public @interface Query {
 	String name() default "";
 
 	/**
-	 * Returns the name of the {@link jakarta.persistence.NamedQuery} to be used to execute count queries when pagination is
-	 * used. Will default to the named query name configured suffixed by {@code .count}.
+	 * Returns the name of the {@link jakarta.persistence.NamedQuery} to be used to execute count queries when pagination
+	 * is used. Will default to the named query name configured suffixed by {@code .count}.
 	 *
 	 * @see #name()
 	 * @return
 	 */
 	String countName() default "";
+
+	/**
+	 * Define the {@link QueryRewriter} bean that should be applied to this query after the query is full assembled.
+	 *
+	 * @return
+	 * @since 3.0
+	 */
+	Class<? extends QueryRewriter> queryRewriter() default QueryRewriter.NoopQueryRewriter.class;
 }

@@ -45,12 +45,14 @@ enum JpaQueryFactory {
 	 * @return
 	 */
 	AbstractJpaQuery fromMethodWithQueryString(JpaQueryMethod method, EntityManager em, String queryString,
-			@Nullable String countQueryString,
-			QueryMethodEvaluationContextProvider evaluationContextProvider) {
+			@Nullable String countQueryString, QueryMethodEvaluationContextProvider evaluationContextProvider,
+			QueryRewriterProvider queryRewriterProvider) {
 
 		return method.isNativeQuery()
-				? new NativeJpaQuery(method, em, queryString, countQueryString, evaluationContextProvider, PARSER)
-				: new SimpleJpaQuery(method, em, queryString, countQueryString, evaluationContextProvider, PARSER);
+				? new NativeJpaQuery(method, em, queryString, countQueryString, evaluationContextProvider, PARSER,
+				queryRewriterProvider)
+				: new SimpleJpaQuery(method, em, queryString, countQueryString, evaluationContextProvider, PARSER,
+				queryRewriterProvider);
 	}
 
 	/**

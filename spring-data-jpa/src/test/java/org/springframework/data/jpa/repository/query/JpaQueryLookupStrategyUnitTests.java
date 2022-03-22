@@ -19,12 +19,12 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import java.lang.reflect.Method;
-import java.util.List;
-
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.metamodel.Metamodel;
+
+import java.lang.reflect.Method;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,7 +33,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -57,6 +57,7 @@ import org.springframework.data.repository.query.RepositoryQuery;
  * @author Thomas Darimont
  * @author Jens Schauder
  * @author Réda Housni Alaoui
+ * @author Greg Turnquist
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -70,6 +71,7 @@ public class JpaQueryLookupStrategyUnitTests {
 	@Mock NamedQueries namedQueries;
 	@Mock Metamodel metamodel;
 	@Mock ProjectionFactory projectionFactory;
+	@Mock BeanFactory beanFactory;
 
 	private JpaQueryMethodFactory queryMethodFactory;
 
@@ -87,7 +89,7 @@ public class JpaQueryLookupStrategyUnitTests {
 	void invalidAnnotatedQueryCausesException() throws Exception {
 
 		QueryLookupStrategy strategy = JpaQueryLookupStrategy.create(em, queryMethodFactory, Key.CREATE_IF_NOT_FOUND,
-				EVALUATION_CONTEXT_PROVIDER, EscapeCharacter.DEFAULT);
+				EVALUATION_CONTEXT_PROVIDER, new QueryRewriterBeanFactoryProvider(beanFactory), EscapeCharacter.DEFAULT);
 		Method method = UserRepository.class.getMethod("findByFoo", String.class);
 		RepositoryMetadata metadata = new DefaultRepositoryMetadata(UserRepository.class);
 
@@ -103,7 +105,7 @@ public class JpaQueryLookupStrategyUnitTests {
 	void sholdThrowMorePreciseExceptionIfTryingToUsePaginationInNativeQueries() throws Exception {
 
 		QueryLookupStrategy strategy = JpaQueryLookupStrategy.create(em, queryMethodFactory, Key.CREATE_IF_NOT_FOUND,
-				EVALUATION_CONTEXT_PROVIDER, EscapeCharacter.DEFAULT);
+				EVALUATION_CONTEXT_PROVIDER, new QueryRewriterBeanFactoryProvider(beanFactory), EscapeCharacter.DEFAULT);
 		Method method = UserRepository.class.getMethod("findByInvalidNativeQuery", String.class, Sort.class);
 		RepositoryMetadata metadata = new DefaultRepositoryMetadata(UserRepository.class);
 
@@ -117,7 +119,7 @@ public class JpaQueryLookupStrategyUnitTests {
 	void considersNamedCountQuery() throws Exception {
 
 		QueryLookupStrategy strategy = JpaQueryLookupStrategy.create(em, queryMethodFactory, Key.CREATE_IF_NOT_FOUND,
-				EVALUATION_CONTEXT_PROVIDER, EscapeCharacter.DEFAULT);
+				EVALUATION_CONTEXT_PROVIDER, new QueryRewriterBeanFactoryProvider(beanFactory), EscapeCharacter.DEFAULT);
 
 		when(namedQueries.hasQuery("foo.count")).thenReturn(true);
 		when(namedQueries.getQuery("foo.count")).thenReturn("foo count");
@@ -139,7 +141,7 @@ public class JpaQueryLookupStrategyUnitTests {
 	void considersNamedCountOnStringQueryQuery() throws Exception {
 
 		QueryLookupStrategy strategy = JpaQueryLookupStrategy.create(em, queryMethodFactory, Key.CREATE_IF_NOT_FOUND,
-				EVALUATION_CONTEXT_PROVIDER, EscapeCharacter.DEFAULT);
+				EVALUATION_CONTEXT_PROVIDER, new QueryRewriterBeanFactoryProvider(beanFactory), EscapeCharacter.DEFAULT);
 
 		when(namedQueries.hasQuery("foo.count")).thenReturn(true);
 		when(namedQueries.getQuery("foo.count")).thenReturn("foo count");
@@ -158,7 +160,7 @@ public class JpaQueryLookupStrategyUnitTests {
 	void prefersDeclaredQuery() throws Exception {
 
 		QueryLookupStrategy strategy = JpaQueryLookupStrategy.create(em, queryMethodFactory, Key.CREATE_IF_NOT_FOUND,
-				EVALUATION_CONTEXT_PROVIDER, EscapeCharacter.DEFAULT);
+				EVALUATION_CONTEXT_PROVIDER, new QueryRewriterBeanFactoryProvider(beanFactory), EscapeCharacter.DEFAULT);
 		Method method = UserRepository.class.getMethod("annotatedQueryWithQueryAndQueryName");
 		RepositoryMetadata metadata = new DefaultRepositoryMetadata(UserRepository.class);
 
