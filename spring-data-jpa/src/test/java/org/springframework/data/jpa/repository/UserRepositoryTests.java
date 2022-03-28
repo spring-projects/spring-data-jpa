@@ -24,6 +24,13 @@ import static org.springframework.data.jpa.domain.Specification.*;
 import static org.springframework.data.jpa.domain.Specification.not;
 import static org.springframework.data.jpa.domain.sample.UserSpecifications.*;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.Query;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import lombok.Data;
 
 import java.util.ArrayList;
@@ -35,14 +42,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
-
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.Query;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
 
 import org.assertj.core.api.SoftAssertions;
 import org.hibernate.LazyInitializationException;
@@ -2294,6 +2293,175 @@ public class UserRepositoryTests {
 						matching().withIgnorePaths("age", "createdAt", "active").withMatcher("firstname",
 								GenericPropertyMatcher::contains)), //
 				q -> q.sortBy(Sort.by("firstname")).exists());
+
+		assertThat(exists).isTrue();
+	}
+
+	@Test // GH-2274
+	void findByFluentSpecificationWithSorting() {
+
+		flushTestUsers();
+
+		List<User> users = repository.findBy(userHasFirstnameLike("v"), q -> q.sortBy(Sort.by("firstname")).all());
+
+		assertThat(users).containsExactly(thirdUser, firstUser, fourthUser);
+	}
+
+	@Test // GH-2274
+	void findByFluentSpecificationFirstValue() {
+
+		flushTestUsers();
+
+		User firstUser = repository.findBy(userHasFirstnameLike("v"), q -> q.sortBy(Sort.by("firstname")).firstValue());
+
+		assertThat(firstUser).isEqualTo(thirdUser);
+	}
+
+	@Test // GH-2274
+	void findByFluentSpecificationOneValue() {
+
+		flushTestUsers();
+
+		assertThatExceptionOfType(IncorrectResultSizeDataAccessException.class)
+				.isThrownBy(() -> repository.findBy(userHasFirstnameLike("v"), q -> q.sortBy(Sort.by("firstname")).oneValue()));
+	}
+
+	@Test // GH-2274
+	void findByFluentSpecificationStream() {
+
+		flushTestUsers();
+
+		Stream<User> userStream = repository.findBy(userHasFirstnameLike("v"),
+				q -> q.sortBy(Sort.by("firstname")).stream());
+
+		assertThat(userStream).containsExactly(thirdUser, firstUser, fourthUser);
+	}
+
+	@Test // GH-2274
+	void findByFluentSpecificationPage() {
+
+		flushTestUsers();
+
+		Page<User> page0 = repository.findBy(userHasFirstnameLike("v"),
+				q -> q.sortBy(Sort.by("firstname")).page(PageRequest.of(0, 2)));
+
+		Page<User> page1 = repository.findBy(userHasFirstnameLike("v"),
+				q -> q.sortBy(Sort.by("firstname")).page(PageRequest.of(1, 2)));
+
+		assertThat(page0.getContent()).containsExactly(thirdUser, firstUser);
+		assertThat(page1.getContent()).containsExactly(fourthUser);
+	}
+
+	@Test // GH-2274
+	void findByFluentSpecificationWithInterfaceBasedProjection() {
+
+		flushTestUsers();
+
+		List<UserProjectionInterfaceBased> users = repository.findBy(userHasFirstnameLike("v"),
+				q -> q.as(UserProjectionInterfaceBased.class).all());
+
+		assertThat(users).extracting(UserProjectionInterfaceBased::getFirstname)
+				.containsExactlyInAnyOrder(firstUser.getFirstname(), thirdUser.getFirstname(), fourthUser.getFirstname());
+	}
+
+	@Test // GH-2274
+	void findByFluentSpecificationWithSimplePropertyPathsDoesntLoadUnrequestedPaths() {
+
+		flushTestUsers();
+		// make sure we don't get preinitialized entities back:
+		em.clear();
+
+		List<User> users = repository.findBy(userHasFirstnameLike("v"), q -> q.project("firstname").all());
+
+		// remove the entities, so lazy loading throws an exception
+		em.clear();
+
+		assertThat(users).extracting(User::getFirstname).containsExactlyInAnyOrder(firstUser.getFirstname(),
+				thirdUser.getFirstname(), fourthUser.getFirstname());
+
+		assertThatExceptionOfType(LazyInitializationException.class) //
+				.isThrownBy( //
+						() -> users.forEach(u -> u.getRoles().size()) // forces loading of roles
+				);
+	}
+
+	@Test // GH-2274
+	void findByFluentSpecificationWithCollectionPropertyPathsDoesntLoadUnrequestedPaths() {
+
+		flushTestUsers();
+		// make sure we don't get preinitialized entities back:
+		em.clear();
+
+		List<User> users = repository.findBy(userHasFirstnameLike("v"), q -> q.project("firstname", "roles").all());
+
+		// remove the entities, so lazy loading throws an exception
+		em.clear();
+
+		assertThat(users).extracting(User::getFirstname).containsExactlyInAnyOrder(firstUser.getFirstname(),
+				thirdUser.getFirstname(), fourthUser.getFirstname());
+
+		assertThat(users).allMatch(u -> u.getRoles().isEmpty());
+	}
+
+	@Test // GH-2274
+	void findByFluentSpecificationWithComplexPropertyPathsDoesntLoadUnrequestedPaths() {
+
+		flushTestUsers();
+		// make sure we don't get preinitialized entities back:
+		em.clear();
+
+		List<User> users = repository.findBy(userHasFirstnameLike("v"), q -> q.project("roles.name").all());
+
+		// remove the entities, so lazy loading throws an exception
+		em.clear();
+
+		assertThat(users).extracting(User::getFirstname).containsExactlyInAnyOrder(firstUser.getFirstname(),
+				thirdUser.getFirstname(), fourthUser.getFirstname());
+
+		assertThat(users).allMatch(u -> u.getRoles().isEmpty());
+	}
+
+	@Test // GH-2274
+	void findByFluentSpecificationWithSortedInterfaceBasedProjection() {
+
+		flushTestUsers();
+
+		List<UserProjectionInterfaceBased> users = repository.findBy(userHasFirstnameLike("v"),
+				q -> q.as(UserProjectionInterfaceBased.class).sortBy(Sort.by("firstname")).all());
+
+		assertThat(users).extracting(UserProjectionInterfaceBased::getFirstname)
+				.containsExactlyInAnyOrder(thirdUser.getFirstname(), firstUser.getFirstname(), fourthUser.getFirstname());
+	}
+
+	@Test // GH-2274
+	void fluentSpecificationWithClassBasedDtosNotYetSupported() {
+
+		@Data
+		class UserDto {
+			String firstname;
+		}
+
+		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> {
+			repository.findBy(userHasFirstnameLike("v"), q -> q.as(UserDto.class).sortBy(Sort.by("firstname")).all());
+		});
+	}
+
+	@Test // GH-2274
+	void countByFluentSpecification() {
+
+		flushTestUsers();
+
+		long numOfUsers = repository.findBy(userHasFirstnameLike("v"), q -> q.sortBy(Sort.by("firstname")).count());
+
+		assertThat(numOfUsers).isEqualTo(3);
+	}
+
+	@Test // GH-2274
+	void existsByFluentSpecification() {
+
+		flushTestUsers();
+
+		boolean exists = repository.findBy(userHasFirstnameLike("v"), q -> q.sortBy(Sort.by("firstname")).exists());
 
 		assertThat(exists).isTrue();
 	}

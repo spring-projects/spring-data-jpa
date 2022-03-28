@@ -17,15 +17,6 @@ package org.springframework.data.jpa.repository.support;
 
 import static org.springframework.data.jpa.repository.query.QueryUtils.*;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Function;
-
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
 import jakarta.persistence.NoResultException;
@@ -38,6 +29,15 @@ import jakarta.persistence.criteria.ParameterExpression;
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
 
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Example;
@@ -513,6 +513,22 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 				this::exists, this.em, this.escapeCharacter);
 
 		return queryFunction.apply(fluentQuery);
+	}
+
+	@Override
+	public <S extends T, R> R findBy(Specification<T> spec, Function<FetchableFluentQuery<S>, R> queryFunction) {
+
+		Assert.notNull(spec, "Specification must not be null!");
+		Assert.notNull(queryFunction, "Query function must not be null!");
+
+		Function<Sort, TypedQuery<T>> finder = sort -> {
+			return getQuery(spec, getDomainClass(), sort);
+		};
+
+		FetchableFluentQuery<R> fluentQuery = new FetchableFluentQueryBySpecification<T, R>(spec, getDomainClass(),
+				Sort.unsorted(), null, finder, this::count, this::exists, this.em);
+
+		return queryFunction.apply((FetchableFluentQuery<S>) fluentQuery);
 	}
 
 	@Override

@@ -17,11 +17,13 @@ package org.springframework.data.jpa.repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.repository.query.FluentQuery;
 import org.springframework.lang.Nullable;
 
 /**
@@ -84,4 +86,16 @@ public interface JpaSpecificationExecutor<T> {
 	 *         <code>false</code>.
 	 */
 	boolean exists(Specification<T> spec);
+
+	/**
+	 * Returns entities matching the given {@link Specification} applying the {@code queryFunction} that defines the query
+	 * and its result type.
+	 *
+	 * @param spec – must not be null.
+	 * @param queryFunction – the query function defining projection, sorting, and the result type
+	 * @return all entities matching the given Example.
+	 * @since 3.0
+	 */
+	<S extends T, R> R findBy(Specification<T> spec, Function<FluentQuery.FetchableFluentQuery<S>, R> queryFunction);
+
 }
