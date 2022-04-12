@@ -20,10 +20,6 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.data.domain.Example.*;
 
-import java.lang.reflect.Member;
-import java.util.LinkedHashSet;
-import java.util.Set;
-
 import jakarta.persistence.Id;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Expression;
@@ -37,6 +33,10 @@ import jakarta.persistence.metamodel.ManagedType;
 import jakarta.persistence.metamodel.SingularAttribute;
 import jakarta.persistence.metamodel.Type;
 
+import java.lang.reflect.Member;
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -45,7 +45,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.ExampleMatcher.GenericPropertyMatcher;
@@ -90,19 +89,16 @@ class QueryByExamplePredicateBuilderUnitTests {
 	void setUp() {
 
 		personIdAttribute = new SingularAttributeStub<>("id", PersistentAttributeType.BASIC, Long.class);
-		personFirstnameAttribute = new SingularAttributeStub<>("firstname", PersistentAttributeType.BASIC,
-				String.class);
+		personFirstnameAttribute = new SingularAttributeStub<>("firstname", PersistentAttributeType.BASIC, String.class);
 		personAgeAttribute = new SingularAttributeStub<>("age", PersistentAttributeType.BASIC, Long.class);
-		personFatherAttribute = new SingularAttributeStub<>("father", PersistentAttributeType.MANY_TO_ONE,
-				Person.class, personEntityType);
-		personSkillAttribute = new SingularAttributeStub<>("skill", PersistentAttributeType.EMBEDDED,
-				Skill.class, skillEntityType);
-		personAddressAttribute = new SingularAttributeStub<>("address", PersistentAttributeType.EMBEDDED,
-				Address.class);
-		skillNameAttribute = new SingularAttributeStub<>("name", PersistentAttributeType.BASIC,
-				String.class);
-		skillNestedAttribute = new SingularAttributeStub<>("nested", PersistentAttributeType.MANY_TO_ONE,
-				Skill.class, skillEntityType);
+		personFatherAttribute = new SingularAttributeStub<>("father", PersistentAttributeType.MANY_TO_ONE, Person.class,
+				personEntityType);
+		personSkillAttribute = new SingularAttributeStub<>("skill", PersistentAttributeType.EMBEDDED, Skill.class,
+				skillEntityType);
+		personAddressAttribute = new SingularAttributeStub<>("address", PersistentAttributeType.EMBEDDED, Address.class);
+		skillNameAttribute = new SingularAttributeStub<>("name", PersistentAttributeType.BASIC, String.class);
+		skillNestedAttribute = new SingularAttributeStub<>("nested", PersistentAttributeType.MANY_TO_ONE, Skill.class,
+				skillEntityType);
 
 		personEntityAttribtues = new LinkedHashSet<>();
 		personEntityAttribtues.add(personIdAttribute);
@@ -153,9 +149,9 @@ class QueryByExamplePredicateBuilderUnitTests {
 	}
 
 	@Test // DATAJPA-218
-	void emptyCriteriaListShouldResultTruePredicate() {
+	void emptyCriteriaListShouldResultInNullPredicate() {
 		assertThat(QueryByExamplePredicateBuilder.getPredicate(root, cb, of(new Person()), EscapeCharacter.DEFAULT))
-				.isEqualTo(truePredicate);
+				.isNull();
 	}
 
 	@Test // DATAJPA-218
@@ -306,13 +302,11 @@ class QueryByExamplePredicateBuilderUnitTests {
 		private Class<T> javaType;
 		private Type<T> type;
 
-		SingularAttributeStub(String name,
-				jakarta.persistence.metamodel.Attribute.PersistentAttributeType attributeType, Class<T> javaType) {
+		SingularAttributeStub(String name, PersistentAttributeType attributeType, Class<T> javaType) {
 			this(name, attributeType, javaType, null);
 		}
 
-		SingularAttributeStub(String name,
-				jakarta.persistence.metamodel.Attribute.PersistentAttributeType attributeType, Class<T> javaType, Type<T> type) {
+		SingularAttributeStub(String name, PersistentAttributeType attributeType, Class<T> javaType, Type<T> type) {
 			this.name = name;
 			this.attributeType = attributeType;
 			this.javaType = javaType;
@@ -325,7 +319,7 @@ class QueryByExamplePredicateBuilderUnitTests {
 		}
 
 		@Override
-		public jakarta.persistence.metamodel.Attribute.PersistentAttributeType getPersistentAttributeType() {
+		public PersistentAttributeType getPersistentAttributeType() {
 			return attributeType;
 		}
 

@@ -18,13 +18,14 @@ package org.springframework.data.jpa.repository.sample;
 import jakarta.persistence.LockModeType;
 import jakarta.persistence.QueryHint;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.domain.sample.Role;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
-import org.springframework.data.repository.CrudRepository;
 
 import com.querydsl.core.types.Predicate;
 
@@ -35,12 +36,12 @@ import com.querydsl.core.types.Predicate;
  * @author Thomas Darimont
  * @author Yanming Zhou
  */
-public interface RoleRepository extends CrudRepository<Role, Integer>, QuerydslPredicateExecutor<Role> {
+public interface RoleRepository extends JpaRepository<Role, Integer>, QuerydslPredicateExecutor<Role> {
 
 	@Override
 	@Lock(LockModeType.READ)
 	@QueryHints(@QueryHint(name = "foo", value = "bar"))
-	Iterable<Role> findAll();
+	List<Role> findAll();
 
 	@Override
 	@Lock(LockModeType.READ)

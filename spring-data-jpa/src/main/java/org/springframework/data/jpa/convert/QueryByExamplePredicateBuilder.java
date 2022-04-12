@@ -15,12 +15,6 @@
  */
 package org.springframework.data.jpa.convert;
 
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.From;
@@ -31,6 +25,12 @@ import jakarta.persistence.metamodel.Attribute;
 import jakarta.persistence.metamodel.Attribute.PersistentAttributeType;
 import jakarta.persistence.metamodel.ManagedType;
 import jakarta.persistence.metamodel.SingularAttribute;
+
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Example;
@@ -76,8 +76,9 @@ public class QueryByExamplePredicateBuilder {
 	 * @param root must not be {@literal null}.
 	 * @param cb must not be {@literal null}.
 	 * @param example must not be {@literal null}.
-	 * @return never {@literal null}.
+	 * @return {@literal null} indicates no {@link Predicate}.
 	 */
+	@Nullable
 	public static <T> Predicate getPredicate(Root<T> root, CriteriaBuilder cb, Example<T> example) {
 		return getPredicate(root, cb, example, EscapeCharacter.DEFAULT);
 	}
@@ -89,8 +90,9 @@ public class QueryByExamplePredicateBuilder {
 	 * @param cb must not be {@literal null}.
 	 * @param example must not be {@literal null}.
 	 * @param escapeCharacter Must not be {@literal null}.
-	 * @return never {@literal null}.
+	 * @return {@literal null} indicates no constraints
 	 */
+	@Nullable
 	public static <T> Predicate getPredicate(Root<T> root, CriteriaBuilder cb, Example<T> example,
 			EscapeCharacter escapeCharacter) {
 
@@ -105,7 +107,7 @@ public class QueryByExamplePredicateBuilder {
 				escapeCharacter);
 
 		if (predicates.isEmpty()) {
-			return cb.isTrue(cb.literal(true));
+			return null;
 		}
 
 		if (predicates.size() == 1) {
