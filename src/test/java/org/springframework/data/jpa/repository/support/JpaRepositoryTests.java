@@ -126,7 +126,8 @@ class JpaRepositoryTests {
 		repository.saveAll(Arrays.asList(one, two, three));
 		repository.flush();
 
-		repository.deleteAllByIdInBatch(Arrays.asList(new SampleEntityPK("one", "eins"),new SampleEntityPK("three", "drei")));
+		repository
+				.deleteAllByIdInBatch(Arrays.asList(new SampleEntityPK("one", "eins"), new SampleEntityPK("three", "drei")));
 		assertThat(repository.findAll()).containsExactly(two);
 	}
 
