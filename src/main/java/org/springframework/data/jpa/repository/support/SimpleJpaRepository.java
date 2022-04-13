@@ -24,6 +24,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
@@ -234,7 +236,16 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 					entityInformation.getIdAttribute().getName());
 
 			Query query = em.createQuery(queryString);
-			query.setParameter("ids", ids);
+			/**
+			 * Some JPA providers require {@code ids} to be a {@link Collection} so we must convert if it's not already.
+			 */
+			if (Collection.class.isInstance(ids)) {
+				query.setParameter("ids", ids);
+			} else {
+				Collection<ID> idsCollection = StreamSupport.stream(ids.spliterator(), false)
+						.collect(Collectors.toCollection(ArrayList::new));
+				query.setParameter("ids", idsCollection);
+			}
 
 			query.executeUpdate();
 		}
