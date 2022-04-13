@@ -25,7 +25,6 @@ import java.util.Optional;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -126,7 +125,8 @@ class JpaRepositoryTests {
 		repository.saveAll(Arrays.asList(one, two, three));
 		repository.flush();
 
-		repository.deleteAllByIdInBatch(Arrays.asList(new SampleEntityPK("one", "eins"),new SampleEntityPK("three", "drei")));
+		repository
+				.deleteAllByIdInBatch(Arrays.asList(new SampleEntityPK("one", "eins"), new SampleEntityPK("three", "drei")));
 		assertThat(repository.findAll()).containsExactly(two);
 	}
 
@@ -148,7 +148,6 @@ class JpaRepositoryTests {
 			private List<SampleEntityPK> ids = Arrays.asList(new SampleEntityPK("one", "eins"),
 					new SampleEntityPK("three", "drei"));
 
-			@NotNull
 			@Override
 			public Iterator<SampleEntityPK> iterator() {
 				return ids.iterator();
