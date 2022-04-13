@@ -22,15 +22,20 @@ import org.springframework.test.context.ContextConfiguration;
  * Integration tests to execute {@link JpaRepositoryTests} against EclipseLink.
  *
  * @author Oliver Gierke
+ * @author Greg Turnquist
  */
 @ContextConfiguration("classpath:eclipselink.xml")
 class EclipseLinkJpaRepositoryTests extends JpaRepositoryTests {
 
 	@Override
-	/**
-	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=349477 is resolved.
-	 */
+	@Disabled("https://bugs.eclipse.org/bugs/show_bug.cgi?id=349477")
 	void deleteAllByIdInBatch() {
-		super.deleteAllByIdInBatch();
+		// disabled
+	}
+
+	@Override
+	@Disabled("https://bugs.eclipse.org/bugs/show_bug.cgi?id=349477")
+	void deleteAllByIdInBatchShouldConvertAnIterableToACollection() {
+		// disabled
 	}
 }
