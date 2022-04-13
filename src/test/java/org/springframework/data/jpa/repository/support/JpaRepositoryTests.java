@@ -18,15 +18,17 @@ package org.springframework.data.jpa.repository.support;
 import static org.assertj.core.api.Assertions.*;
 
 import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Optional;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
 import org.springframework.data.jpa.domain.sample.PersistableWithIdClass;
 import org.springframework.data.jpa.domain.sample.PersistableWithIdClassPK;
 import org.springframework.data.jpa.domain.sample.SampleEntity;
@@ -43,6 +45,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Jens Schauder
+ * @author Greg Turnquist
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration({ "classpath:infrastructure.xml" })
@@ -125,6 +128,35 @@ class JpaRepositoryTests {
 
 		repository
 				.deleteAllByIdInBatch(Arrays.asList(new SampleEntityPK("one", "eins"), new SampleEntityPK("three", "drei")));
+		assertThat(repository.findAll()).containsExactly(two);
+	}
+
+	@Test // GH-2242
+	void deleteAllByIdInBatchShouldConvertAnIterableToACollection() {
+
+		SampleEntity one = new SampleEntity("one", "eins");
+		SampleEntity two = new SampleEntity("two", "zwei");
+		SampleEntity three = new SampleEntity("three", "drei");
+		repository.saveAll(Arrays.asList(one, two, three));
+		repository.flush();
+
+		/**
+		 * Wrap a {@link List} inside an {@link Iterable} to verify that {@link SimpleJpaRepository} can properly convert a
+		 * pure {@link Iterable} to a {@link Collection}.
+		 **/
+		Iterable<SampleEntityPK> ids = new Iterable<SampleEntityPK>() {
+
+			private List<SampleEntityPK> ids = Arrays.asList(new SampleEntityPK("one", "eins"),
+					new SampleEntityPK("three", "drei"));
+
+			@NotNull
+			@Override
+			public Iterator<SampleEntityPK> iterator() {
+				return ids.iterator();
+			}
+		};
+
+		repository.deleteAllByIdInBatch(ids);
 		assertThat(repository.findAll()).containsExactly(two);
 	}
 
