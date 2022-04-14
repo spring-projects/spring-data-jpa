@@ -550,6 +550,16 @@ class QueryUtilsUnitTests {
 				"select count(DISTINCT entity1) FROM Entity1 entity1 LEFT JOIN Entity2 entity2 ON entity1.key = entity2.key\nwhere entity1.id = 1799");
 	}
 
+	@Test // GH-2393
+	void createCountQueryStartsWithWhitespace() {
+
+		assertThat(createCountQueryFor(" \nselect * from User u where u.age > :age"))
+				.isEqualTo("select count(u) from User u where u.age > :age");
+
+		assertThat(createCountQueryFor("  \nselect u from User u where u.age > :age"))
+				.isEqualTo("select count(u) from User u where u.age > :age");
+	}
+
 	private static void assertCountQuery(String originalQuery, String countQuery) {
 		assertThat(createCountQueryFor(originalQuery)).isEqualTo(countQuery);
 	}
