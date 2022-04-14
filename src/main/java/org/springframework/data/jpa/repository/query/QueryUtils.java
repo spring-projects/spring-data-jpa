@@ -110,7 +110,8 @@ public abstract class QueryUtils {
 
 	private static final String EQUALS_CONDITION_STRING = "%s.%s = :%s";
 	private static final Pattern ORDER_BY = Pattern.compile("(order\\s+by\\s+)", CASE_INSENSITIVE);
-	private static final Pattern ORDER_BY_IN_WINDOW_OR_SUBSELECT = Pattern.compile("(\\(\\s*[a-z0-9 ,.*]*order\\s+by\\s+[a-z0-9 ,.]*\\s*\\))", CASE_INSENSITIVE);
+	private static final Pattern ORDER_BY_IN_WINDOW_OR_SUBSELECT = Pattern
+			.compile("(\\(\\s*[a-z0-9 ,.*]*order\\s+by\\s+[a-z0-9 ,.]*\\s*\\))", CASE_INSENSITIVE);
 
 	private static final Pattern NAMED_PARAMETER = Pattern.compile(COLON_NO_DOUBLE_COLON + IDENTIFIER + "|#" + IDENTIFIER,
 			CASE_INSENSITIVE);
@@ -144,6 +145,7 @@ public abstract class QueryUtils {
 		ALIAS_MATCH = compile(builder.toString(), CASE_INSENSITIVE);
 
 		builder = new StringBuilder();
+		builder.append("\\s*");
 		builder.append("(select\\s+((distinct)?((?s).+?)?)\\s+)?(from\\s+");
 		builder.append(IDENTIFIER);
 		builder.append("(?:\\s+as)?\\s+)");
@@ -279,8 +281,8 @@ public abstract class QueryUtils {
 	}
 
 	/**
-	 * Returns {@code true} if the query has {@code order by} clause.
-	 * The query has {@code order by} clause if there is an {@code order by} which is not part of window clause.
+	 * Returns {@code true} if the query has {@code order by} clause. The query has {@code order by} clause if there is an
+	 * {@code order by} which is not part of window clause.
 	 *
 	 * @param query the analysed query string
 	 * @return {@code true} if the query has {@code order by} clause, {@code false} otherwise
@@ -297,9 +299,13 @@ public abstract class QueryUtils {
 	 * @return the number of occurences of the pattern in the string
 	 */
 	private static int countOccurences(Pattern pattern, String string) {
+
 		Matcher matcher = pattern.matcher(string);
+
 		int occurences = 0;
-		while (matcher.find()) occurences++;
+		while (matcher.find()) {
+			occurences++;
+		}
 		return occurences;
 	}
 
