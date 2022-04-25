@@ -9,7 +9,15 @@
 
 	<name>Spring Data JPA</name>
 	<description>Spring Data module for JPA repositories.</description>
-	<url>https://projects.spring.io/spring-data-jpa</url>
+	<url>https://spring.io/projects/spring-data-jpa</url>
+	<scm>
+		<connection>scm:git:git://github.com:spring-projects/spring-data-jpa.git</connection>
+		<developerConnection>scm:git:git@github.com:spring-projects/spring-data-jpa.git</developerConnection>
+		<url>https://github.com/spring-projects/spring-data-jpa</url>
+	</scm>
+	<issueManagement>
+		<url>https://github.com/spring-projects/spring-data-jpa/issues</url>
+	</issueManagement>
 
 	<parent>
 		<groupId>org.springframework.data.build</groupId>
