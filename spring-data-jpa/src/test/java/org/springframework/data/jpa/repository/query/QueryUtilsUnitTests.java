@@ -638,4 +638,21 @@ class QueryUtilsUnitTests {
 						"select * from (select * from user order by 1, 2, 3 desc limit 10) u order by u.active asc, age desc");
 	}
 
+	@Test //GH-2511
+	void countQueryUsesCorrectVariable() {
+		String countQueryFor = createCountQueryFor("SELECT * FROM User WHERE created_at > $1");
+		assertThat(countQueryFor).isEqualTo("select count(*) FROM User WHERE created_at > $1");
+
+		countQueryFor = createCountQueryFor("SELECT * FROM mytable WHERE nr = :number AND kon = :kon AND datum >= '2019-01-01'");
+		assertThat(countQueryFor).isEqualTo("select count(*) FROM mytable WHERE nr = :number AND kon = :kon AND datum >= '2019-01-01'");
+
+		countQueryFor = createCountQueryFor("SELECT * FROM context ORDER BY time");
+		assertThat(countQueryFor).isEqualTo("select count(*) FROM context");
+
+		countQueryFor = createCountQueryFor("select * FROM users_statuses WHERE (user_created_at BETWEEN $1 AND $2)");
+		assertThat(countQueryFor).isEqualTo("select count(*) FROM users_statuses WHERE (user_created_at BETWEEN $1 AND $2)");
+
+		countQueryFor = createCountQueryFor("SELECT * FROM users_statuses us WHERE (user_created_at BETWEEN :fromDate AND :toDate)");
+		assertThat(countQueryFor).isEqualTo("select count(us) FROM users_statuses us WHERE (user_created_at BETWEEN :fromDate AND :toDate)");
+	}
 }
