@@ -526,14 +526,19 @@ public abstract class QueryUtils {
 			boolean useVariable = StringUtils.hasText(variable) //
 					&& !variable.startsWith(" new") //
 					&& !variable.startsWith("count(") //
-					&& !variable.contains(",") //
-					&& !variable.contains("*");
+					&& !variable.contains(",");
 
 			String complexCountValue = matcher.matches() && StringUtils.hasText(matcher.group(COMPLEX_COUNT_FIRST_INDEX))
 					? COMPLEX_COUNT_VALUE
 					: COMPLEX_COUNT_LAST_VALUE;
 
 			String replacement = useVariable ? SIMPLE_COUNT_VALUE : complexCountValue;
+
+			String alias = QueryUtils.detectAlias(originalQuery);
+			if("*".equals(variable) && alias != null) {
+				replacement = alias;
+			}
+
 			countQuery = matcher.replaceFirst(String.format(COUNT_REPLACEMENT_TEMPLATE, replacement));
 		} else {
 			countQuery = matcher.replaceFirst(String.format(COUNT_REPLACEMENT_TEMPLATE, countProjection));
