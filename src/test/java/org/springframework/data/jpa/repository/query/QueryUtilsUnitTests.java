@@ -115,6 +115,36 @@ class QueryUtilsUnitTests {
 		assertThat(detectAlias("select u from  User u")).isEqualTo("u");
 		assertThat(detectAlias("select u from  com.acme.User u")).isEqualTo("u");
 		assertThat(detectAlias("select u from T05User u")).isEqualTo("u");
+		assertThat(detectAlias("select u from User u where not exists (from User u2)")).isEqualTo("u");
+		assertThat(detectAlias("(select u from User u where not exists (from User u2))")).isEqualTo("u");
+		assertThat(detectAlias("(select u from User u where not exists ((from User u2 where not exists (from User u3))))")).isEqualTo("u");
+	}
+
+	@Test
+	void testRemoveNestedParens() throws Exception {
+		// boundary conditions
+		assertThat(removeSubqueries(null)).isNull();
+		assertThat(removeSubqueries("")).isEmpty();
+		assertThat(removeSubqueries(" ")).isEqualTo(" ");
+		assertThat(removeSubqueries("(")).isEqualTo("(");
+		assertThat(removeSubqueries(")")).isEqualTo(")");
+		assertThat(removeSubqueries("(()")).isEqualTo("(()");
+		assertThat(removeSubqueries("())")).isEqualTo("())");
+
+		// realistic conditions
+		assertThat(removeSubqueries(QUERY)).isEqualTo(QUERY);
+		assertThat(removeSubqueries(SIMPLE_QUERY)).isEqualTo(SIMPLE_QUERY);
+		assertThat(removeSubqueries(COUNT_QUERY)).isEqualTo(COUNT_QUERY);
+		assertThat(removeSubqueries(QUERY_WITH_AS)).isEqualTo(QUERY_WITH_AS);
+		assertThat(removeSubqueries("SELECT FROM USER U")).isEqualTo("SELECT FROM USER U");
+		assertThat(removeSubqueries("select u from  User u")).isEqualTo("select u from  User u");
+		assertThat(removeSubqueries("select u from  com.acme.User u")).isEqualTo("select u from  com.acme.User u");
+		assertThat(removeSubqueries("select u from T05User u")).isEqualTo("select u from T05User u");
+		assertThat(removeSubqueries("select u from User u where not exists (from User u2)")).isEqualTo("select u from User u where not exists ");
+		assertThat(removeSubqueries("(select u from User u where not exists (from User u2))")).isEqualTo("(select u from User u where not exists )");
+		assertThat(removeSubqueries("select u from User u where not exists (from User u2 where not exists (from User u3))")).isEqualTo("select u from User u where not exists ");
+		assertThat(removeSubqueries("select u from User u where not exists ((from User u2 where not exists (from User u3)))")).isEqualTo("select u from User u where not exists ()");
+		assertThat(removeSubqueries("(select u from User u where not exists ((from User u2 where not exists (from User u3))))")).isEqualTo("(select u from User u where not exists ())");
 	}
 
 	@Test

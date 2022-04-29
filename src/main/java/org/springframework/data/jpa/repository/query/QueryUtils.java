@@ -100,6 +100,8 @@ public abstract class QueryUtils {
 
 	private static final Pattern ALIAS_MATCH;
 	private static final Pattern COUNT_MATCH;
+	private static final Pattern STARTS_WITH_PAREN = Pattern.compile("^\\s*\\(");
+	private static final Pattern PARENS_TO_REMOVE = Pattern.compile("(\\(.*\\bfrom\\b[^)]+\\))", CASE_INSENSITIVE);
 	private static final Pattern PROJECTION_CLAUSE = Pattern.compile("select\\s+(?:distinct\\s+)?(.+)\\s+from",
 			Pattern.CASE_INSENSITIVE);
 
@@ -431,11 +433,56 @@ public abstract class QueryUtils {
 	@Deprecated
 	public static String detectAlias(String query) {
 		String alias = null;
-		Matcher matcher = ALIAS_MATCH.matcher(query);
+		Matcher matcher = ALIAS_MATCH.matcher(removeSubqueries(query));
 		while (matcher.find()) {
 			alias = matcher.group(2);
 		}
 		return alias;
+	}
+
+	/**
+	 * Remove subqueries from the query, in order to identify the correct alias
+	 * in order by clauses.  If the entire query is surrounded by parenthesis, the
+	 * outermost parenthesis are not removed.
+	 *
+	 * @param query
+	 * @return query with all subqueries removed.
+	 */
+	static String removeSubqueries(String query) {
+		if (!StringUtils.hasText(query)) {
+			return query;
+		}
+
+		final boolean startsWithParen = STARTS_WITH_PAREN.matcher(query).find();
+		final StringBuilder sb = new StringBuilder(query);
+		final int totalOpens = (int) sb.chars().filter(ch -> ch == '(').count();
+		final int totalCloses = (int) sb.chars().filter(ch -> ch == ')').count();
+
+		if (totalOpens != totalCloses) {
+			return query;
+		}
+
+		// Java does not support recursive regex, so we cannot process the query
+		// left to right.  We must create a stack-like approach, removing subqueries
+		// from inner-to-outer.  We leave the last paren in place if it surrounds the
+		// entire query, otherwise it would just remove everything.
+
+		for (int i=totalOpens; i> ((startsWithParen)? 1: 0); i--) {
+			final int[] opens = new int[i];
+			for (int k=0; k<i; k++) {
+				opens[k] = sb.indexOf("(", (k==0)? 0: opens[k-1]+1);
+			}
+
+			final int open = opens[opens.length-1];
+			final int close = sb.indexOf(")", open);
+
+			final Matcher matcher = PARENS_TO_REMOVE.matcher(sb.substring(open, close+1));
+			if (matcher.find()) {
+				sb.replace(open, close+1, "");
+			}
+		}
+
+		return sb.toString();
 	}
 
 	/**
