@@ -266,7 +266,7 @@ public class JpaQueryMethod extends QueryMethod {
 	 * @return
 	 */
 	@Nullable
-	String getAnnotatedQuery() {
+	public String getAnnotatedQuery() {
 
 		String query = getAnnotationValue("value", String.class);
 		return StringUtils.hasText(query) ? query : null;
@@ -287,7 +287,7 @@ public class JpaQueryMethod extends QueryMethod {
 	 * @throws IllegalStateException if no {@link Query} annotation is present or the query is empty.
 	 * @since 2.0
 	 */
-	String getRequiredAnnotatedQuery() throws IllegalStateException {
+	public String getRequiredAnnotatedQuery() throws IllegalStateException {
 
 		String query = getAnnotatedQuery();
 
@@ -305,7 +305,7 @@ public class JpaQueryMethod extends QueryMethod {
 	 * @return
 	 */
 	@Nullable
-	String getCountQuery() {
+	public String getCountQuery() {
 
 		String countQuery = getAnnotationValue("countQuery", String.class);
 		return StringUtils.hasText(countQuery) ? countQuery : null;
@@ -438,8 +438,7 @@ public class JpaQueryMethod extends QueryMethod {
 	 * @return type of the {@link QueryRewriter}
 	 * @since 3.0
 	 */
-	@Nullable
-	Class<? extends QueryRewriter> getQueryRewriter() {
+	public Class<? extends QueryRewriter> getQueryRewriter() {
 		return getMergedOrDefaultAnnotationValue("queryRewriter", Query.class, Class.class);
 	}
 }

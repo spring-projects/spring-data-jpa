@@ -62,7 +62,7 @@ class JpaRepositoryBean<T> extends CdiRepositoryBean<T> {
 
 		Assert.notNull(entityManagerBean, "EntityManager bean must not be null!");
 		this.entityManagerBean = entityManagerBean;
-		this.queryRewriterProvider = new QueryRewriterBeanManagerProvider(beanManager);
+		this.queryRewriterProvider = new BeanManagerQueryRewriterProvider(beanManager);
 	}
 
 	@Override

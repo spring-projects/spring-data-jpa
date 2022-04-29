@@ -37,7 +37,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import org.springframework.beans.factory.BeanFactory;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -45,6 +45,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.provider.QueryExtractor;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.QueryRewriter;
 import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
@@ -82,7 +83,6 @@ class SimpleJpaQueryUnitTests {
 	@Mock RepositoryMetadata metadata;
 	@Mock ParameterBinder binder;
 	@Mock Metamodel metamodel;
-	@Mock BeanFactory beanFactory;
 
 	private ProjectionFactory factory = new SpelAwareProxyProjectionFactory();
 
@@ -113,8 +113,8 @@ class SimpleJpaQueryUnitTests {
 				extractor);
 		when(em.createQuery("foo", Long.class)).thenReturn(typedQuery);
 
-		SimpleJpaQuery jpaQuery = new SimpleJpaQuery(method, em, "select u from User u", null, EVALUATION_CONTEXT_PROVIDER,
-				PARSER, new QueryRewriterBeanFactoryProvider(beanFactory));
+		SimpleJpaQuery jpaQuery = new SimpleJpaQuery(method, em, "select u from User u", null,
+				QueryRewriter.IdentityQueryRewriter.INSTANCE, EVALUATION_CONTEXT_PROVIDER, PARSER);
 
 		assertThat(jpaQuery.createCountQuery(new JpaParametersParameterAccessor(method.getParameters(), new Object[] {})))
 				.isEqualTo(typedQuery);
@@ -129,7 +129,7 @@ class SimpleJpaQueryUnitTests {
 		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, factory, extractor);
 
 		AbstractJpaQuery jpaQuery = new SimpleJpaQuery(queryMethod, em, "select u from User u", null,
-				EVALUATION_CONTEXT_PROVIDER, PARSER, new QueryRewriterBeanFactoryProvider(beanFactory));
+				QueryRewriter.IdentityQueryRewriter.INSTANCE, EVALUATION_CONTEXT_PROVIDER, PARSER);
 		jpaQuery.createCountQuery(
 				new JpaParametersParameterAccessor(queryMethod.getParameters(), new Object[] { PageRequest.of(1, 10) }));
 
@@ -144,7 +144,8 @@ class SimpleJpaQueryUnitTests {
 		Method method = SampleRepository.class.getMethod("findNativeByLastname", String.class);
 		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, factory, extractor);
 		AbstractJpaQuery jpaQuery = JpaQueryFactory.INSTANCE.fromMethodWithQueryString(queryMethod, em,
-				queryMethod.getAnnotatedQuery(), null, EVALUATION_CONTEXT_PROVIDER, new QueryRewriterBeanFactoryProvider(beanFactory));
+				queryMethod.getAnnotatedQuery(), null, QueryRewriter.IdentityQueryRewriter.INSTANCE,
+				EVALUATION_CONTEXT_PROVIDER);
 
 		assertThat(jpaQuery instanceof NativeJpaQuery).isTrue();
 
@@ -247,7 +248,8 @@ class SimpleJpaQueryUnitTests {
 		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, factory, extractor);
 
 		AbstractJpaQuery jpaQuery = new SimpleJpaQuery(queryMethod, em, "select u from User u",
-				"select count(u.id) from #{#entityName} u", EVALUATION_CONTEXT_PROVIDER, PARSER, new QueryRewriterBeanFactoryProvider(beanFactory));
+				"select count(u.id) from #{#entityName} u", QueryRewriter.IdentityQueryRewriter.INSTANCE,
+				EVALUATION_CONTEXT_PROVIDER, PARSER);
 		jpaQuery.createCountQuery(
 				new JpaParametersParameterAccessor(queryMethod.getParameters(), new Object[] { PageRequest.of(1, 10) }));
 
@@ -259,7 +261,7 @@ class SimpleJpaQueryUnitTests {
 
 		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, factory, extractor);
 		return JpaQueryFactory.INSTANCE.fromMethodWithQueryString(queryMethod, em, queryMethod.getAnnotatedQuery(), null,
-				EVALUATION_CONTEXT_PROVIDER, new QueryRewriterBeanFactoryProvider(beanFactory));
+				QueryRewriter.IdentityQueryRewriter.INSTANCE, EVALUATION_CONTEXT_PROVIDER);
 	}
 
 	interface SampleRepository {

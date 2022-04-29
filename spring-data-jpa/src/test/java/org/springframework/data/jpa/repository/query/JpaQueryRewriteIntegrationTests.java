@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2022 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 /**
  * Unit tests for repository with {@link Query} and {@link QueryRewrite}.
- * 
+ *
  * @author Greg Turnquist
  */
 @ExtendWith(SpringExtension.class)
@@ -64,7 +64,7 @@ public class JpaQueryRewriteIntegrationTests {
 	}
 
 	@Test
-	void nativeQueryShouldHandleRewrites() throws NoSuchMethodException {
+	void nativeQueryShouldHandleRewrites() {
 
 		repository.findByNativeQuery("Matthews");
 
@@ -75,7 +75,7 @@ public class JpaQueryRewriteIntegrationTests {
 	}
 
 	@Test
-	void nonNativeQueryShouldHandleRewrites() throws NoSuchMethodException {
+	void nonNativeQueryShouldHandleRewrites() {
 
 		repository.findByNonNativeQuery("Matthews");
 
@@ -86,7 +86,7 @@ public class JpaQueryRewriteIntegrationTests {
 	}
 
 	@Test
-	void nonNativeQueryWithSortShouldHandleRewrites() throws NoSuchMethodException {
+	void nonNativeQueryWithSortShouldHandleRewrites() {
 
 		repository.findByNonNativeSortedQuery("Matthews", Sort.by("lastname"));
 
@@ -108,7 +108,7 @@ public class JpaQueryRewriteIntegrationTests {
 	}
 
 	@Test
-	void nonNativeQueryWithPageableShouldHandleRewrites() throws NoSuchMethodException {
+	void nonNativeQueryWithPageableShouldHandleRewrites() {
 
 		repository.findByNonNativePagedQuery("Matthews", PageRequest.of(2, 1));
 
@@ -119,7 +119,7 @@ public class JpaQueryRewriteIntegrationTests {
 	}
 
 	@Test
-	void nativeQueryWithNoRewriteAnnotationShouldNotDoRewrites() throws NoSuchMethodException {
+	void nativeQueryWithNoRewriteAnnotationShouldNotDoRewrites() {
 
 		repository.findByNativeQueryWithNoRewrite("Matthews");
 
@@ -127,7 +127,7 @@ public class JpaQueryRewriteIntegrationTests {
 	}
 
 	@Test
-	void nonNativeQueryWithNoRewriteAnnotationShouldNotDoRewrites() throws NoSuchMethodException {
+	void nonNativeQueryWithNoRewriteAnnotationShouldNotDoRewrites() {
 
 		repository.findByNonNativeQueryWithNoRewrite("Matthews");
 
@@ -135,7 +135,7 @@ public class JpaQueryRewriteIntegrationTests {
 	}
 
 	@Test
-	void nativeQueryShouldHandleRewritesUsingRepositoryRewriter() throws NoSuchMethodException {
+	void nativeQueryShouldHandleRewritesUsingRepositoryRewriter() {
 
 		repository.findByNativeQueryUsingRepository("Matthews");
 

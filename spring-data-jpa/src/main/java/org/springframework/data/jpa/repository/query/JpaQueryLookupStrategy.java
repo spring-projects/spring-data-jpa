@@ -22,6 +22,7 @@ import java.lang.reflect.Method;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.QueryRewriter;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.core.NamedQueries;
 import org.springframework.data.repository.core.RepositoryMetadata;
@@ -83,14 +84,13 @@ public final class JpaQueryLookupStrategy {
 		@Override
 		public final RepositoryQuery resolveQuery(Method method, RepositoryMetadata metadata, ProjectionFactory factory,
 				NamedQueries namedQueries) {
-			return resolveQuery(queryMethodFactory.build(method, metadata, factory), em, namedQueries);
+			JpaQueryMethod queryMethod = queryMethodFactory.build(method, metadata, factory);
+			return resolveQuery(queryMethod, queryRewriterProvider.getQueryRewriter(queryMethod), em, namedQueries);
 		}
 
-		protected abstract RepositoryQuery resolveQuery(JpaQueryMethod method, EntityManager em, NamedQueries namedQueries);
+		protected abstract RepositoryQuery resolveQuery(JpaQueryMethod method, QueryRewriter queryRewriter,
+				EntityManager em, NamedQueries namedQueries);
 
-		protected QueryRewriterProvider getQueryRewriterSupplier() {
-			return queryRewriterProvider;
-		}
 	}
 
 	/**
@@ -112,7 +112,8 @@ public final class JpaQueryLookupStrategy {
 		}
 
 		@Override
-		protected RepositoryQuery resolveQuery(JpaQueryMethod method, EntityManager em, NamedQueries namedQueries) {
+		protected RepositoryQuery resolveQuery(JpaQueryMethod method, QueryRewriter queryRewriter, EntityManager em,
+				NamedQueries namedQueries) {
 			return new PartTreeJpaQuery(method, em, escape);
 		}
 	}
@@ -145,7 +146,8 @@ public final class JpaQueryLookupStrategy {
 		}
 
 		@Override
-		protected RepositoryQuery resolveQuery(JpaQueryMethod method, EntityManager em, NamedQueries namedQueries) {
+		protected RepositoryQuery resolveQuery(JpaQueryMethod method, QueryRewriter queryRewriter, EntityManager em,
+				NamedQueries namedQueries) {
 
 			if (method.isProcedureQuery()) {
 				return JpaQueryFactory.INSTANCE.fromProcedureAnnotation(method, em);
@@ -159,13 +161,13 @@ public final class JpaQueryLookupStrategy {
 				}
 
 				return JpaQueryFactory.INSTANCE.fromMethodWithQueryString(method, em, method.getRequiredAnnotatedQuery(),
-						getCountQuery(method, namedQueries, em), evaluationContextProvider, getQueryRewriterSupplier());
+						getCountQuery(method, namedQueries, em), queryRewriter, evaluationContextProvider);
 			}
 
 			String name = method.getNamedQueryName();
 			if (namedQueries.hasQuery(name)) {
 				return JpaQueryFactory.INSTANCE.fromMethodWithQueryString(method, em, namedQueries.getQuery(name),
-						getCountQuery(method, namedQueries, em), evaluationContextProvider, getQueryRewriterSupplier());
+						getCountQuery(method, namedQueries, em), queryRewriter, evaluationContextProvider);
 			}
 
 			RepositoryQuery query = NamedQuery.lookupFrom(method, em);
@@ -240,12 +242,13 @@ public final class JpaQueryLookupStrategy {
 		}
 
 		@Override
-		protected RepositoryQuery resolveQuery(JpaQueryMethod method, EntityManager em, NamedQueries namedQueries) {
+		protected RepositoryQuery resolveQuery(JpaQueryMethod method, QueryRewriter queryRewriter, EntityManager em,
+				NamedQueries namedQueries) {
 
 			try {
-				return lookupStrategy.resolveQuery(method, em, namedQueries);
+				return lookupStrategy.resolveQuery(method, queryRewriter, em, namedQueries);
 			} catch (IllegalStateException e) {
-				return createStrategy.resolveQuery(method, em, namedQueries);
+				return createStrategy.resolveQuery(method, queryRewriter, em, namedQueries);
 			}
 		}
 	}
@@ -270,7 +273,8 @@ public final class JpaQueryLookupStrategy {
 			case CREATE:
 				return new CreateQueryLookupStrategy(em, queryMethodFactory, queryRewriterProvider, escape);
 			case USE_DECLARED_QUERY:
-				return new DeclaredQueryLookupStrategy(em, queryMethodFactory, evaluationContextProvider, queryRewriterProvider);
+				return new DeclaredQueryLookupStrategy(em, queryMethodFactory, evaluationContextProvider,
+						queryRewriterProvider);
 			case CREATE_IF_NOT_FOUND:
 				return new CreateIfNotFoundQueryLookupStrategy(em, queryMethodFactory,
 						new CreateQueryLookupStrategy(em, queryMethodFactory, queryRewriterProvider, escape),

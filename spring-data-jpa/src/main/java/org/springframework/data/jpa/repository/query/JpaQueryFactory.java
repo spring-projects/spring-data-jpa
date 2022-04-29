@@ -17,6 +17,7 @@ package org.springframework.data.jpa.repository.query;
 
 import jakarta.persistence.EntityManager;
 
+import org.springframework.data.jpa.repository.QueryRewriter;
 import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
@@ -39,20 +40,20 @@ enum JpaQueryFactory {
 	 *
 	 * @param method must not be {@literal null}.
 	 * @param em must not be {@literal null}.
-	 * @param queryString must not be {@literal null} or empty.
 	 * @param countQueryString
+	 * @param queryString must not be {@literal null}.
 	 * @param evaluationContextProvider
 	 * @return
 	 */
 	AbstractJpaQuery fromMethodWithQueryString(JpaQueryMethod method, EntityManager em, String queryString,
-			@Nullable String countQueryString, QueryMethodEvaluationContextProvider evaluationContextProvider,
-			QueryRewriterProvider queryRewriterProvider) {
+			@Nullable String countQueryString, QueryRewriter queryRewriter,
+			QueryMethodEvaluationContextProvider evaluationContextProvider) {
 
 		return method.isNativeQuery()
-				? new NativeJpaQuery(method, em, queryString, countQueryString, evaluationContextProvider, PARSER,
-				queryRewriterProvider)
-				: new SimpleJpaQuery(method, em, queryString, countQueryString, evaluationContextProvider, PARSER,
-				queryRewriterProvider);
+				? new NativeJpaQuery(method, em, queryString, countQueryString, queryRewriter, evaluationContextProvider,
+						PARSER)
+				: new SimpleJpaQuery(method, em, queryString, countQueryString, queryRewriter, evaluationContextProvider,
+						PARSER);
 	}
 
 	/**

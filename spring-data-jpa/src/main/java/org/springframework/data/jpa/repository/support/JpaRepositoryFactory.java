@@ -27,6 +27,8 @@ import java.util.stream.Stream;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
@@ -34,7 +36,15 @@ import org.springframework.data.jpa.projection.CollectionAwareProjectionFactory;
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.provider.QueryExtractor;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.query.*;
+import org.springframework.data.jpa.repository.query.AbstractJpaQuery;
+import org.springframework.data.jpa.repository.query.BeanFactoryQueryRewriterProvider;
+import org.springframework.data.jpa.repository.query.DefaultJpaQueryMethodFactory;
+import org.springframework.data.jpa.repository.query.EscapeCharacter;
+import org.springframework.data.jpa.repository.query.JpaQueryLookupStrategy;
+import org.springframework.data.jpa.repository.query.JpaQueryMethod;
+import org.springframework.data.jpa.repository.query.JpaQueryMethodFactory;
+import org.springframework.data.jpa.repository.query.Procedure;
+import org.springframework.data.jpa.repository.query.QueryRewriterProvider;
 import org.springframework.data.jpa.util.JpaMetamodel;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.querydsl.EntityPathResolver;
@@ -93,12 +103,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 		this.crudMethodMetadataPostProcessor = new CrudMethodMetadataPostProcessor();
 		this.entityPathResolver = SimpleEntityPathResolver.INSTANCE;
 		this.queryMethodFactory = new DefaultJpaQueryMethodFactory(extractor);
-
-		/**
-		 * Default to {@link QueryRewriterNoopProvider}. If there is a {@link BeanFactory} or {@link BeanManager}, this will
-		 * result in later overriding this with the proper version.
-		 */
-		this.queryRewriterProvider = new QueryRewriterNoopProvider();
+		this.queryRewriterProvider = QueryRewriterProvider.simple();
 
 		addRepositoryProxyPostProcessor(crudMethodMetadataPostProcessor);
 		addRepositoryProxyPostProcessor((factory, repositoryInformation) -> {
@@ -122,8 +127,8 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 
 	/**
 	 * If a {@link BeanFactory} is being set, this is clearly in a Spring context, and so we can capture the
-	 * {@link QueryRewriterProvider} being a {@link QueryRewriterBeanFactoryProvider}.
-	 * 
+	 * {@link QueryRewriterProvider} being a {@link BeanFactoryQueryRewriterProvider}.
+	 *
 	 * @param beanFactory
 	 * @throws BeansException
 	 */
@@ -134,7 +139,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 
 		Assert.notNull(beanFactory, "BeanFactory must not be null!");
 
-		setQueryRewriterProvider(new QueryRewriterBeanFactoryProvider(beanFactory));
+		setQueryRewriterProvider(new BeanFactoryQueryRewriterProvider(beanFactory));
 	}
 
 	/**
@@ -171,9 +176,11 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	}
 
 	/**
-	 * Configures the {@link QueryRewriterProvider} to be used. Defaults to {@link QueryRewriterNoopProvider}.
+	 * Configures the {@link QueryRewriterProvider} to be used. Defaults to instantiate query rewriters through
+	 * {@link BeanUtils#instantiateClass(Class)}.
 	 *
-	 * @param queryRewriterProvider must not be {@literal null}
+	 * @param queryRewriterProvider must not be {@literal null}.
+	 * @since 3.0
 	 */
 	public void setQueryRewriterProvider(QueryRewriterProvider queryRewriterProvider) {
 
@@ -254,7 +261,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	 *
 	 * @param metadata repository metadata.
 	 * @param entityManager the entity manager.
-	 * @param resolver resolver to translate an plain domain class into a {@link EntityPath}.
+	 * @param resolver resolver to translate a plain domain class into a {@link EntityPath}.
 	 * @param crudMethodMetadata metadata about the invoked CRUD methods.
 	 * @return
 	 * @since 2.5.1

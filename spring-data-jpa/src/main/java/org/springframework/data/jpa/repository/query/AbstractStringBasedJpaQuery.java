@@ -18,10 +18,9 @@ package org.springframework.data.jpa.repository.query;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 
-import java.util.function.Supplier;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.QueryRewriter;
@@ -46,14 +45,12 @@ import org.springframework.util.Assert;
  */
 abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 
-	private static final Log LOGGER = LogFactory.getLog(AbstractStringBasedJpaQuery.class);
-
 	private final DeclaredQuery query;
 	private final DeclaredQuery countQuery;
 	private final QueryMethodEvaluationContextProvider evaluationContextProvider;
 	private final SpelExpressionParser parser;
 	private final QueryParameterSetter.QueryMetadataCache metadataCache = new QueryParameterSetter.QueryMetadataCache();
-	private final Supplier<QueryRewriter> queryRewriterSupplier;
+	private final QueryRewriter queryRewriter;
 
 	/**
 	 * Creates a new {@link AbstractStringBasedJpaQuery} from the given {@link JpaQueryMethod}, {@link EntityManager} and
@@ -65,16 +62,18 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 	 * @param countQueryString must not be {@literal null}.
 	 * @param evaluationContextProvider must not be {@literal null}.
 	 * @param parser must not be {@literal null}.
+	 * @param queryRewriter must not be {@literal null}.
 	 */
 	public AbstractStringBasedJpaQuery(JpaQueryMethod method, EntityManager em, String queryString,
-			@Nullable String countQueryString, QueryMethodEvaluationContextProvider evaluationContextProvider,
-			SpelExpressionParser parser, QueryRewriterProvider queryRewriterProvider) {
+			@Nullable String countQueryString, QueryRewriter queryRewriter, QueryMethodEvaluationContextProvider evaluationContextProvider,
+			SpelExpressionParser parser) {
 
 		super(method, em);
 
 		Assert.hasText(queryString, "Query string must not be null or empty!");
 		Assert.notNull(evaluationContextProvider, "ExpressionEvaluationContextProvider must not be null!");
 		Assert.notNull(parser, "Parser must not be null!");
+		Assert.notNull(queryRewriter, "QueryRewriter must not be null!");
 
 		this.evaluationContextProvider = evaluationContextProvider;
 		this.query = new ExpressionBasedStringQuery(queryString, method.getEntityInformation(), parser,
@@ -85,7 +84,7 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 				method.isNativeQuery());
 
 		this.parser = parser;
-		this.queryRewriterSupplier = queryRewriterProvider.of(method);
+		this.queryRewriter = queryRewriter;
 
 		Assert.isTrue(method.isNativeQuery() || !query.usesJdbcStyleParameters(),
 				"JDBC style parameters (?) are not supported for JPA queries.");
@@ -169,19 +168,13 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 	/**
 	 * Use the {@link QueryRewriter}, potentially rewrite the query, using relevant {@link Sort} and {@link Pageable}
 	 * information.
-	 * 
+	 *
 	 * @param originalQuery
 	 * @param sort
 	 * @param pageable
 	 * @return
 	 */
 	protected String potentiallyRewriteQuery(String originalQuery, Sort sort, @Nullable Pageable pageable) {
-
-		QueryRewriter queryRewriter = this.queryRewriterSupplier.get();
-
-		if (queryRewriter == null) {
-			return originalQuery;
-		}
 
 		return pageable != null && pageable.isPaged() //
 				? queryRewriter.rewrite(originalQuery, pageable) //

@@ -80,10 +80,10 @@ public @interface Query {
 	String countName() default "";
 
 	/**
-	 * Define the {@link QueryRewriter} bean that should be applied to this query after the query is full assembled.
+	 * Define a {@link QueryRewriter} that should be applied to the query string after the query is fully assembled.
 	 *
 	 * @return
 	 * @since 3.0
 	 */
-	Class<? extends QueryRewriter> queryRewriter() default QueryRewriter.NoopQueryRewriter.class;
+	Class<? extends QueryRewriter> queryRewriter() default QueryRewriter.IdentityQueryRewriter.class;
 }

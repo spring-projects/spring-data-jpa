@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2022 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,36 +15,38 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.springframework.beans.BeansException;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.data.jpa.repository.QueryRewriter;
+import org.springframework.data.util.Lazy;
 
 /**
  * A {@link BeanFactory}-based {@link QueryRewriterProvider}.
  *
  * @author Greg Turnquist
+ * @author Mark Paluch
  * @since 3.0
  */
-public class QueryRewriterBeanFactoryProvider extends QueryRewriterProvider {
-
-	private static final Log LOGGER = LogFactory.getLog(QueryRewriterBeanFactoryProvider.class);
+public class BeanFactoryQueryRewriterProvider implements QueryRewriterProvider {
 
 	private final BeanFactory beanFactory;
 
-	public QueryRewriterBeanFactoryProvider(BeanFactory beanFactory) {
+	public BeanFactoryQueryRewriterProvider(BeanFactory beanFactory) {
 		this.beanFactory = beanFactory;
 	}
 
 	@Override
-	protected QueryRewriter extractQueryRewriterBean(Class<? extends QueryRewriter> queryRewriter) {
+	@SuppressWarnings("unchecked")
+	public QueryRewriter getQueryRewriter(JpaQueryMethod method) {
 
-		try {
-			return beanFactory.getBean(queryRewriter);
-		} catch (BeansException e) {
-			LOGGER.error(e.toString());
-			return null;
+		Class<? extends QueryRewriter> queryRewriter = method.getQueryRewriter();
+		if (queryRewriter == QueryRewriter.IdentityQueryRewriter.class) {
+			return QueryRewriter.IdentityQueryRewriter.INSTANCE;
 		}
+
+		Lazy<QueryRewriter> rewriter = Lazy.of(() -> beanFactory.getBeanProvider((Class<QueryRewriter>) queryRewriter)
+				.getIfAvailable(() -> BeanUtils.instantiateClass(queryRewriter)));
+
+		return new DelegatingQueryRewriter(rewriter);
 	}
 }
