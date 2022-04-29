@@ -21,6 +21,7 @@ import jakarta.persistence.Tuple;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.repository.QueryRewriter;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.RepositoryQuery;
@@ -48,13 +49,13 @@ final class NativeJpaQuery extends AbstractStringBasedJpaQuery {
 	 * @param em must not be {@literal null}.
 	 * @param queryString must not be {@literal null} or empty.
 	 * @param countQueryString must not be {@literal null} or empty.
-	 * @param evaluationContextProvider
+	 * @param rewriter the query rewriter to use.
 	 */
 	public NativeJpaQuery(JpaQueryMethod method, EntityManager em, String queryString, @Nullable String countQueryString,
-			QueryMethodEvaluationContextProvider evaluationContextProvider, SpelExpressionParser parser,
-			QueryRewriterProvider queryRewriterProvider) {
+			QueryRewriter rewriter, QueryMethodEvaluationContextProvider evaluationContextProvider,
+			SpelExpressionParser parser) {
 
-		super(method, em, queryString, countQueryString, evaluationContextProvider, parser, queryRewriterProvider);
+		super(method, em, queryString, countQueryString, rewriter, evaluationContextProvider, parser);
 
 		Parameters<?, ?> parameters = method.getParameters();
 

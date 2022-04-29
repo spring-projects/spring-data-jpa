@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2022 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,57 +15,45 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import java.util.function.Supplier;
-
+import org.springframework.beans.BeanUtils;
 import org.springframework.data.jpa.repository.QueryRewriter;
-import org.springframework.lang.Nullable;
 
 /**
- * Provide a {@link QueryRewriter} based upon the {@link JpaQueryMethod} and the surrounding context (Spring, CDI, etc.)
+ * Provide a {@link QueryRewriter} based upon the {@link JpaQueryMethod}. {@code QueryRewriter} instances may be
+ * contextual or plain objects that are not attached to a bean factory or CDI context.
  *
  * @author Greg Turnquist
+ * @author Mark Paluch
  * @since 3.0
+ * @see QueryRewriter
  */
-public abstract class QueryRewriterProvider {
+public interface QueryRewriterProvider {
 
 	/**
-	 * Using a {@link JpaQueryMethod}, extract a potential {@link QueryRewriter}. Wrap all this in a {@link Supplier} to
-	 * defer the lookup until needed.
-	 * 
-	 * @param method - JpaQueryMethod
-	 * @return a {@link Supplier}-wrapped callback to fetch the {@link QueryRewriter}
+	 * Return a simple {@code QueryRewriterProvider} that uses
+	 * {@link org.springframework.beans.BeanUtils#instantiateClass(Class)} to obtain a {@link QueryRewriter} instance.
+	 *
+	 * @return a simple {@link QueryRewriterProvider}.
 	 */
-	public Supplier<QueryRewriter> of(JpaQueryMethod method) {
-		return () -> findQueryRewriter(method);
+	static QueryRewriterProvider simple() {
+
+		return method -> {
+
+			Class<? extends QueryRewriter> queryRewriter = method.getQueryRewriter();
+
+			if (queryRewriter == QueryRewriter.IdentityQueryRewriter.class) {
+				return QueryRewriter.IdentityQueryRewriter.INSTANCE;
+			}
+
+			return BeanUtils.instantiateClass(queryRewriter);
+		};
 	}
 
 	/**
-	 * Using the {@link org.springframework.data.jpa.repository.QueryRewrite} annotation, look for a {@link QueryRewriter}
-	 * and instantiate one. NOTE: If its {@link QueryRewriter.NoopQueryRewriter}, it will just return {@literal null} and
-	 * NOT do any rewrite operations.
+	 * Obtain an instance of {@link QueryRewriter} for a {@link JpaQueryMethod}.
 	 *
-	 * @param method - {@link JpaQueryMethod} that has the annotation details
-	 * @return a {@link QueryRewriter for the method or {@code null}
+	 * @param method the underlying JPA query method.
+	 * @return a Java bean that implements {@link QueryRewriter}.
 	 */
-	@Nullable
-	private QueryRewriter findQueryRewriter(JpaQueryMethod method) {
-
-		Class<? extends QueryRewriter> queryRewriter = method.getQueryRewriter();
-
-		if (queryRewriter == null || queryRewriter == QueryRewriter.NoopQueryRewriter.class) {
-			return null;
-		}
-
-		return extractQueryRewriterBean(queryRewriter);
-	}
-
-	/**
-	 * Extract an instance of {@link QueryRewriter} from the context. Implementations choose what context means, whether
-	 * that is Spring, CDI, or whatever.
-	 *
-	 * @param queryRewriter
-	 * @return a Java bean that implements {@link QueryRewriter}. {@literal null} is valid if no bean is found.
-	 */
-	@Nullable
-	protected abstract QueryRewriter extractQueryRewriterBean(Class<? extends QueryRewriter> queryRewriter);
+	QueryRewriter getQueryRewriter(JpaQueryMethod method);
 }

@@ -18,6 +18,7 @@ package org.springframework.data.jpa.repository.query;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 
+import org.springframework.data.jpa.repository.QueryRewriter;
 import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
@@ -41,14 +42,13 @@ final class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
 	 * @param method must not be {@literal null}
 	 * @param em must not be {@literal null}
 	 * @param countQueryString
+	 * @param queryRewriter must not be {@literal null}
 	 * @param evaluationContextProvider must not be {@literal null}
 	 * @param parser must not be {@literal null}
 	 */
 	public SimpleJpaQuery(JpaQueryMethod method, EntityManager em, @Nullable String countQueryString,
-			QueryMethodEvaluationContextProvider evaluationContextProvider, SpelExpressionParser parser,
-			QueryRewriterProvider queryRewriterProvider) {
-		this(method, em, method.getRequiredAnnotatedQuery(), countQueryString, evaluationContextProvider, parser,
-				queryRewriterProvider);
+			QueryRewriter queryRewriter, QueryMethodEvaluationContextProvider evaluationContextProvider, SpelExpressionParser parser) {
+		this(method, em, method.getRequiredAnnotatedQuery(), countQueryString, queryRewriter, evaluationContextProvider, parser);
 	}
 
 	/**
@@ -58,14 +58,14 @@ final class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
 	 * @param em must not be {@literal null}
 	 * @param queryString must not be {@literal null} or empty
 	 * @param countQueryString
+	 * @param queryRewriter
 	 * @param evaluationContextProvider must not be {@literal null}
 	 * @param parser must not be {@literal null}
 	 */
-	public SimpleJpaQuery(JpaQueryMethod method, EntityManager em, String queryString, @Nullable String countQueryString,
-			QueryMethodEvaluationContextProvider evaluationContextProvider, SpelExpressionParser parser,
-			QueryRewriterProvider queryRewriterProvider) {
+	public SimpleJpaQuery(JpaQueryMethod method, EntityManager em, String queryString, @Nullable String countQueryString, QueryRewriter queryRewriter,
+			QueryMethodEvaluationContextProvider evaluationContextProvider, SpelExpressionParser parser) {
 
-		super(method, em, queryString, countQueryString, evaluationContextProvider, parser, queryRewriterProvider);
+		super(method, em, queryString, countQueryString, queryRewriter, evaluationContextProvider, parser);
 
 		validateQuery(getQuery().getQueryString(), "Validation failed for query for method %s!", method);
 
