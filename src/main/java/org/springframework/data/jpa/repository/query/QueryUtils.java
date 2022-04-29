@@ -76,6 +76,7 @@ import org.springframework.util.StringUtils;
  * @author Greg Turnquist
  * @author Diego Krupitza
  * @author Jędrzej Biedrzycki
+ * @author Darin Manica
  */
 public abstract class QueryUtils {
 

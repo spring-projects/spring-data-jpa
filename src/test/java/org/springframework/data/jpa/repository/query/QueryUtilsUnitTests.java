@@ -41,6 +41,7 @@ import org.springframework.data.jpa.domain.JpaSort;
  * @author Mohammad Hewedy
  * @author Greg Turnquist
  * @author Jędrzej Biedrzycki
+ * @author Darin Manica
  */
 class QueryUtilsUnitTests {
 
@@ -104,7 +105,7 @@ class QueryUtilsUnitTests {
 		assertCountQuery(SIMPLE_QUERY, COUNT_QUERY);
 	}
 
-	@Test
+	@Test // GH-2260
 	void detectsAliasCorrectly() throws Exception {
 
 		assertThat(detectAlias(QUERY)).isEqualTo("u");
@@ -120,7 +121,7 @@ class QueryUtilsUnitTests {
 		assertThat(detectAlias("(select u from User u where not exists ((from User u2 where not exists (from User u3))))")).isEqualTo("u");
 	}
 
-	@Test
+	@Test // GH-2260
 	void testRemoveNestedParens() throws Exception {
 		// boundary conditions
 		assertThat(removeSubqueries(null)).isNull();
