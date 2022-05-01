@@ -20,6 +20,8 @@ import static org.springframework.data.jpa.repository.query.QueryUtils.*;
 
 import java.util.Collections;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.Test;
@@ -27,6 +29,7 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.jpa.domain.JpaSort;
+import org.springframework.util.StringUtils;
 
 /**
  * Unit test for {@link QueryUtils}.
@@ -41,6 +44,7 @@ import org.springframework.data.jpa.domain.JpaSort;
  * @author Mohammad Hewedy
  * @author Greg Turnquist
  * @author Jędrzej Biedrzycki
+ * @author Darin Manica
  */
 class QueryUtilsUnitTests {
 
@@ -50,6 +54,7 @@ class QueryUtilsUnitTests {
 	private static final String COUNT_QUERY = "select count(u) from User u";
 
 	private static final String QUERY_WITH_AS = "select u from User as u where u.username = ?";
+	private static final Pattern MULTI_WHITESPACE = Pattern.compile("\\s+");
 
 	@Test
 	void createsCountQueryCorrectly() throws Exception {
@@ -104,7 +109,7 @@ class QueryUtilsUnitTests {
 		assertCountQuery(SIMPLE_QUERY, COUNT_QUERY);
 	}
 
-	@Test
+	@Test // GH-2260
 	void detectsAliasCorrectly() throws Exception {
 
 		assertThat(detectAlias(QUERY)).isEqualTo("u");
@@ -115,6 +120,47 @@ class QueryUtilsUnitTests {
 		assertThat(detectAlias("select u from  User u")).isEqualTo("u");
 		assertThat(detectAlias("select u from  com.acme.User u")).isEqualTo("u");
 		assertThat(detectAlias("select u from T05User u")).isEqualTo("u");
+		assertThat(detectAlias("select u from User u where not exists (from User u2)")).isEqualTo("u");
+		assertThat(detectAlias("(select u from User u where not exists (from User u2))")).isEqualTo("u");
+		assertThat(detectAlias("(select u from User u where not exists ((from User u2 where not exists (from User u3))))")).isEqualTo("u");
+		assertThat(detectAlias("from Foo f left join f.bar b with type(b) = BarChild where (f.id = (select max(f.id) from Foo f2 where type(f2) = FooChild) or 1 <> 1) and 1=1")).isEqualTo("f");
+		assertThat(detectAlias("(from Foo f max(f) ((((select * from Foo f2 (from Foo f3) max(*)) (from Foo f4)) max(f5)) (f6)) (from Foo f7))")).isEqualTo("f");
+	}
+
+	@Test // GH-2260
+	void testRemoveSubqueries() throws Exception {
+		// boundary conditions
+		assertThat(removeSubqueries(null)).isNull();
+		assertThat(removeSubqueries("")).isEmpty();
+		assertThat(removeSubqueries(" ")).isEqualTo(" ");
+		assertThat(removeSubqueries("(")).isEqualTo("(");
+		assertThat(removeSubqueries(")")).isEqualTo(")");
+		assertThat(removeSubqueries("(()")).isEqualTo("(()");
+		assertThat(removeSubqueries("())")).isEqualTo("())");
+
+		// realistic conditions
+		assertThat(removeSubqueries(QUERY)).isEqualTo(QUERY);
+		assertThat(removeSubqueries(SIMPLE_QUERY)).isEqualTo(SIMPLE_QUERY);
+		assertThat(removeSubqueries(COUNT_QUERY)).isEqualTo(COUNT_QUERY);
+		assertThat(removeSubqueries(QUERY_WITH_AS)).isEqualTo(QUERY_WITH_AS);
+		assertThat(removeSubqueries("SELECT FROM USER U")).isEqualTo("SELECT FROM USER U");
+		assertThat(removeSubqueries("select u from  User u")).isEqualTo("select u from  User u");
+		assertThat(removeSubqueries("select u from  com.acme.User u")).isEqualTo("select u from  com.acme.User u");
+		assertThat(removeSubqueries("select u from T05User u")).isEqualTo("select u from T05User u");
+		assertThat(normalizeWhitespace(removeSubqueries("select u from User u where not exists (from User u2)"))).isEqualTo("select u from User u where not exists");
+		assertThat(normalizeWhitespace(removeSubqueries("(select u from User u where not exists (from User u2))"))).isEqualTo("(select u from User u where not exists )");
+		assertThat(normalizeWhitespace(removeSubqueries("select u from User u where not exists (from User u2 where not exists (from User u3))"))).isEqualTo("select u from User u where not exists");
+		assertThat(normalizeWhitespace(removeSubqueries("select u from User u where not exists ((from User u2 where not exists (from User u3)))"))).isEqualTo("select u from User u where not exists ( )");
+		assertThat(normalizeWhitespace(removeSubqueries("(select u from User u where not exists ((from User u2 where not exists (from User u3))))"))).isEqualTo("(select u from User u where not exists ( ))");
+	}
+
+	private String normalizeWhitespace(String s) {
+		Matcher matcher = MULTI_WHITESPACE.matcher(s);
+		if (matcher.find()) {
+			return matcher.replaceAll(" ").trim();
+		}
+
+		return StringUtils.trimWhitespace(s);
 	}
 
 	@Test

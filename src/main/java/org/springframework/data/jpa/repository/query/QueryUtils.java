@@ -76,6 +76,7 @@ import org.springframework.util.StringUtils;
  * @author Greg Turnquist
  * @author Diego Krupitza
  * @author Jędrzej Biedrzycki
+ * @author Darin Manica
  */
 public abstract class QueryUtils {
 
@@ -100,6 +101,8 @@ public abstract class QueryUtils {
 
 	private static final Pattern ALIAS_MATCH;
 	private static final Pattern COUNT_MATCH;
+	private static final Pattern STARTS_WITH_PAREN = Pattern.compile("^\\s*\\(");
+	private static final Pattern PARENS_TO_REMOVE = Pattern.compile("(\\(.*\\bfrom\\b[^)]+\\))", CASE_INSENSITIVE);
 	private static final Pattern PROJECTION_CLAUSE = Pattern.compile("select\\s+(?:distinct\\s+)?(.+)\\s+from",
 			Pattern.CASE_INSENSITIVE);
 
@@ -431,11 +434,68 @@ public abstract class QueryUtils {
 	@Deprecated
 	public static String detectAlias(String query) {
 		String alias = null;
-		Matcher matcher = ALIAS_MATCH.matcher(query);
+		Matcher matcher = ALIAS_MATCH.matcher(removeSubqueries(query));
 		while (matcher.find()) {
 			alias = matcher.group(2);
 		}
 		return alias;
+	}
+
+	/**
+	 * Remove subqueries from the query, in order to identify the correct alias
+	 * in order by clauses.  If the entire query is surrounded by parenthesis, the
+	 * outermost parenthesis are not removed.
+	 *
+	 * @param query
+	 * @return query with all subqueries removed.
+	 */
+	static String removeSubqueries(String query) {
+		if (!StringUtils.hasText(query)) {
+			return query;
+		}
+
+		final List<Integer> opens = new ArrayList<>();
+		final List<Integer> closes = new ArrayList<>();
+		final List<Boolean> closeMatches = new ArrayList<>();
+		for (int i=0; i<query.length(); i++) {
+			final char c = query.charAt(i);
+			if (c == '(') {
+				opens.add(i);
+			} else if (c == ')') {
+				closes.add(i);
+				closeMatches.add(Boolean.FALSE);
+			}
+		}
+
+		final StringBuilder sb = new StringBuilder(query);
+		final boolean startsWithParen = STARTS_WITH_PAREN.matcher(query).find();
+		for (int i=opens.size()-1; i>=(startsWithParen?1:0); i--) {
+			final Integer open = opens.get(i);
+			final Integer close = findClose(open, closes, closeMatches) + 1;
+
+
+			if (close > open) {
+				final String subquery = sb.substring(open, close);
+				final Matcher matcher = PARENS_TO_REMOVE.matcher(subquery);
+				if (matcher.find()) {
+					sb.replace(open, close, new String(new char[close-open]).replace('\0', ' '));
+				}
+			}
+		}
+
+		return sb.toString();
+	}
+
+	private static Integer findClose(final Integer open, final List<Integer> closes, final List<Boolean> closeMatches) {
+		for (int i=0; i<closes.size(); i++) {
+			final int close = closes.get(i);
+			if (close > open && !closeMatches.get(i)) {
+				closeMatches.set(i, Boolean.TRUE);
+				return close;
+			}
+		}
+
+		return -1;
 	}
 
 	/**
