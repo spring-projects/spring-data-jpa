@@ -332,6 +332,87 @@ public interface UserRepository extends JpaRepository<User, Long> {
 ----
 ====
 
+[[jpa.query-methods.query-rewriter]]
+==== Applying a QueryRewriter
+
+Sometimes, no matter how many features you try to apply, it seems impossible to get Spring Data JPA to apply every thing
+you'd like to a query before it is sent to the `EntityManager`.
+
+You have the ability to get your hands on the query, right before it's sent to the `EntityManager` and "rewrite" it. That is,
+you can make any alterations at the last moment.
+
+.Declare a QueryRewriter using `@Query`
+====
+[source, java]
+----
+public interface MyRepository extends JpaRepository<User, Long> {
+
+		@Query(value = "select original_user_alias.* from SD_USER original_user_alias",
+                nativeQuery = true,
+				queryRewriter = MyQueryRewriter.class)
+		List<User> findByNativeQuery(String param);
+
+		@Query(value = "select original_user_alias from User original_user_alias",
+                queryRewriter = MyQueryRewriter.class)
+		List<User> findByNonNativeQuery(String param);
+}
+----
+====
+
+This example shows both a native (pure SQL) rewriter as well as a JPQL query, both leveraging the same `QueryRewriter`.
+In this scenario, Spring Data JPA will look for a bean registered in the application context of the corresponding type.
+
+You can write a query rewriter like this:
+
+.Example `QueryRewriter`
+====
+[source, java]
+----
+public class MyQueryRewriter implements QueryRewriter {
+
+     @Override
+     public String rewrite(String query, Sort sort) {
+         return query.replaceAll("original_user_alias", "rewritten_user_alias");
+     }
+}
+----
+====
+
+You have to ensure your `QueryRewriter` is registered in the application context, whether it's by applying one of Spring Framework's
+`@Component`-based annotations, or having it as part of a `@Bean` method inside an `@Configuration` class.
+
+Another option is to have the repository itself implement the interface.
+
+.Repository that provides the `QueryRewriter`
+====
+[source, java]
+----
+public interface MyRepository extends JpaRepository<User, Long>, QueryRewriter {
+
+		@Query(value = "select original_user_alias.* from SD_USER original_user_alias",
+                nativeQuery = true,
+				queryRewriter = MyRepository.class)
+		List<User> findByNativeQuery(String param);
+
+		@Query(value = "select original_user_alias from User original_user_alias",
+                queryRewriter = MyRepository.class)
+		List<User> findByNonNativeQuery(String param);
+
+		@Override
+		default String rewrite(String query, Sort sort) {
+			return query.replaceAll("original_user_alias", "rewritten_user_alias");
+		}
+}
+----
+====
+
+Depending on what you're doing with your `QueryRewriter`, it may be advisable to have more than one, each registered with the
+application context.
+
+NOTE: In a CDI-based environment, Spring Data JPA will search the `BeanManager` for instances of your implementation of
+`QueryRewriter`.
+
+
 [[jpa.query-methods.at-query.advanced-like]]
 ==== Using Advanced `LIKE` Expressions
 
