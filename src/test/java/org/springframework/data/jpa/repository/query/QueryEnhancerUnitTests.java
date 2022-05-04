@@ -712,25 +712,24 @@ class QueryEnhancerUnitTests {
 		assertThat(result).containsIgnoringCase("order by dd.institutesIds");
 	}
 
-
-	@Test //GH-2511
+	@Test // GH-2511
 	void countQueryUsesCorrectVariable() {
+
 		StringQuery nativeQuery = new StringQuery("SELECT * FROM User WHERE created_at > $1", true);
 		QueryEnhancer queryEnhancer = getEnhancer(nativeQuery);
 		String countQueryFor = queryEnhancer.createCountQueryFor();
 		assertThat(countQueryFor).isEqualTo("SELECT count(*) FROM User WHERE created_at > $1");
 
-		nativeQuery = new StringQuery("SELECT * FROM (select * from test) ",true);
+		nativeQuery = new StringQuery("SELECT * FROM (select * from test) ", true);
 		queryEnhancer = getEnhancer(nativeQuery);
 		countQueryFor = queryEnhancer.createCountQueryFor();
 		assertThat(countQueryFor).isEqualTo("SELECT count(*) FROM (SELECT * FROM test)");
 
-		nativeQuery = new StringQuery("SELECT * FROM (select * from test) as test",true);
+		nativeQuery = new StringQuery("SELECT * FROM (select * from test) as test", true);
 		queryEnhancer = getEnhancer(nativeQuery);
 		countQueryFor = queryEnhancer.createCountQueryFor();
 		assertThat(countQueryFor).isEqualTo("SELECT count(test) FROM (SELECT * FROM test) AS test");
 	}
-
 
 	public static Stream<Arguments> detectsJoinAliasesCorrectlySource() {
 
