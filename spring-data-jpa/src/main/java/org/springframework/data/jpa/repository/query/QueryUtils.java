@@ -433,6 +433,7 @@ public abstract class QueryUtils {
 	@Nullable
 	@Deprecated
 	public static String detectAlias(String query) {
+
 		String alias = null;
 		Matcher matcher = ALIAS_MATCH.matcher(removeSubqueries(query));
 		while (matcher.find()) {
@@ -442,23 +443,25 @@ public abstract class QueryUtils {
 	}
 
 	/**
-	 * Remove subqueries from the query, in order to identify the correct alias
-	 * in order by clauses.  If the entire query is surrounded by parenthesis, the
-	 * outermost parenthesis are not removed.
+	 * Remove subqueries from the query, in order to identify the correct alias in order by clauses. If the entire query
+	 * is surrounded by parenthesis, the outermost parenthesis are not removed.
 	 *
 	 * @param query
 	 * @return query with all subqueries removed.
 	 */
 	static String removeSubqueries(String query) {
+
 		if (!StringUtils.hasText(query)) {
 			return query;
 		}
 
-		final List<Integer> opens = new ArrayList<>();
-		final List<Integer> closes = new ArrayList<>();
-		final List<Boolean> closeMatches = new ArrayList<>();
-		for (int i=0; i<query.length(); i++) {
-			final char c = query.charAt(i);
+		List<Integer> opens = new ArrayList<>();
+		List<Integer> closes = new ArrayList<>();
+		List<Boolean> closeMatches = new ArrayList<>();
+
+		for (int i = 0; i < query.length(); i++) {
+
+			char c = query.charAt(i);
 			if (c == '(') {
 				opens.add(i);
 			} else if (c == ')') {
@@ -467,18 +470,19 @@ public abstract class QueryUtils {
 			}
 		}
 
-		final StringBuilder sb = new StringBuilder(query);
-		final boolean startsWithParen = STARTS_WITH_PAREN.matcher(query).find();
-		for (int i=opens.size()-1; i>=(startsWithParen?1:0); i--) {
-			final Integer open = opens.get(i);
-			final Integer close = findClose(open, closes, closeMatches) + 1;
+		StringBuilder sb = new StringBuilder(query);
+		boolean startsWithParen = STARTS_WITH_PAREN.matcher(query).find();
+		for (int i = opens.size() - 1; i >= (startsWithParen ? 1 : 0); i--) {
 
+			Integer open = opens.get(i);
+			Integer close = findClose(open, closes, closeMatches) + 1;
 
 			if (close > open) {
-				final String subquery = sb.substring(open, close);
-				final Matcher matcher = PARENS_TO_REMOVE.matcher(subquery);
+
+				String subquery = sb.substring(open, close);
+				Matcher matcher = PARENS_TO_REMOVE.matcher(subquery);
 				if (matcher.find()) {
-					sb.replace(open, close, new String(new char[close-open]).replace('\0', ' '));
+					sb.replace(open, close, new String(new char[close - open]).replace('\0', ' '));
 				}
 			}
 		}
@@ -487,8 +491,10 @@ public abstract class QueryUtils {
 	}
 
 	private static Integer findClose(final Integer open, final List<Integer> closes, final List<Boolean> closeMatches) {
-		for (int i=0; i<closes.size(); i++) {
-			final int close = closes.get(i);
+
+		for (int i = 0; i < closes.size(); i++) {
+
+			int close = closes.get(i);
 			if (close > open && !closeMatches.get(i)) {
 				closeMatches.set(i, Boolean.TRUE);
 				return close;
@@ -594,7 +600,7 @@ public abstract class QueryUtils {
 			String replacement = useVariable ? SIMPLE_COUNT_VALUE : complexCountValue;
 
 			String alias = QueryUtils.detectAlias(originalQuery);
-			if("*".equals(variable) && alias != null) {
+			if ("*".equals(variable) && alias != null) {
 				replacement = alias;
 			}
 
