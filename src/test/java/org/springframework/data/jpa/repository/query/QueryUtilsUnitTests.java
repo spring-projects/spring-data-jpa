@@ -640,8 +640,9 @@ class QueryUtilsUnitTests {
 						"select * from (select * from user order by 1, 2, 3 desc limit 10) u order by u.active asc, age desc");
 	}
 
-	@Test //GH-2511
+	@Test // GH-2511
 	void countQueryUsesCorrectVariable() {
+
 		String countQueryFor = createCountQueryFor("SELECT * FROM User WHERE created_at > $1");
 		assertThat(countQueryFor).isEqualTo("select count(*) FROM User WHERE created_at > $1");
 
