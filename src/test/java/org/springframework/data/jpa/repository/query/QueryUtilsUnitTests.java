@@ -120,13 +120,19 @@ class QueryUtilsUnitTests {
 		assertThat(detectAlias("select u from T05User u")).isEqualTo("u");
 		assertThat(detectAlias("select u from User u where not exists (from User u2)")).isEqualTo("u");
 		assertThat(detectAlias("(select u from User u where not exists (from User u2))")).isEqualTo("u");
-		assertThat(detectAlias("(select u from User u where not exists ((from User u2 where not exists (from User u3))))")).isEqualTo("u");
-		assertThat(detectAlias("from Foo f left join f.bar b with type(b) = BarChild where (f.id = (select max(f.id) from Foo f2 where type(f2) = FooChild) or 1 <> 1) and 1=1")).isEqualTo("f");
-		assertThat(detectAlias("(from Foo f max(f) ((((select * from Foo f2 (from Foo f3) max(*)) (from Foo f4)) max(f5)) (f6)) (from Foo f7))")).isEqualTo("f");
+		assertThat(detectAlias("(select u from User u where not exists ((from User u2 where not exists (from User u3))))"))
+				.isEqualTo("u");
+		assertThat(detectAlias(
+				"from Foo f left join f.bar b with type(b) = BarChild where (f.id = (select max(f.id) from Foo f2 where type(f2) = FooChild) or 1 <> 1) and 1=1"))
+						.isEqualTo("f");
+		assertThat(detectAlias(
+				"(from Foo f max(f) ((((select * from Foo f2 (from Foo f3) max(*)) (from Foo f4)) max(f5)) (f6)) (from Foo f7))"))
+						.isEqualTo("f");
 	}
 
 	@Test // GH-2260
 	void testRemoveSubqueries() throws Exception {
+
 		// boundary conditions
 		assertThat(removeSubqueries(null)).isNull();
 		assertThat(removeSubqueries("")).isEmpty();
@@ -145,11 +151,19 @@ class QueryUtilsUnitTests {
 		assertThat(removeSubqueries("select u from  User u")).isEqualTo("select u from  User u");
 		assertThat(removeSubqueries("select u from  com.acme.User u")).isEqualTo("select u from  com.acme.User u");
 		assertThat(removeSubqueries("select u from T05User u")).isEqualTo("select u from T05User u");
-		assertThat(normalizeWhitespace(removeSubqueries("select u from User u where not exists (from User u2)"))).isEqualTo("select u from User u where not exists");
-		assertThat(normalizeWhitespace(removeSubqueries("(select u from User u where not exists (from User u2))"))).isEqualTo("(select u from User u where not exists )");
-		assertThat(normalizeWhitespace(removeSubqueries("select u from User u where not exists (from User u2 where not exists (from User u3))"))).isEqualTo("select u from User u where not exists");
-		assertThat(normalizeWhitespace(removeSubqueries("select u from User u where not exists ((from User u2 where not exists (from User u3)))"))).isEqualTo("select u from User u where not exists ( )");
-		assertThat(normalizeWhitespace(removeSubqueries("(select u from User u where not exists ((from User u2 where not exists (from User u3))))"))).isEqualTo("(select u from User u where not exists ( ))");
+		assertThat(normalizeWhitespace(removeSubqueries("select u from User u where not exists (from User u2)")))
+				.isEqualTo("select u from User u where not exists");
+		assertThat(normalizeWhitespace(removeSubqueries("(select u from User u where not exists (from User u2))")))
+				.isEqualTo("(select u from User u where not exists )");
+		assertThat(normalizeWhitespace(
+				removeSubqueries("select u from User u where not exists (from User u2 where not exists (from User u3))")))
+						.isEqualTo("select u from User u where not exists");
+		assertThat(normalizeWhitespace(
+				removeSubqueries("select u from User u where not exists ((from User u2 where not exists (from User u3)))")))
+						.isEqualTo("select u from User u where not exists ( )");
+		assertThat(normalizeWhitespace(
+				removeSubqueries("(select u from User u where not exists ((from User u2 where not exists (from User u3))))")))
+						.isEqualTo("(select u from User u where not exists ( ))");
 	}
 
 	private String normalizeWhitespace(String s) {
@@ -690,16 +704,21 @@ class QueryUtilsUnitTests {
 		String countQueryFor = createCountQueryFor("SELECT * FROM User WHERE created_at > $1");
 		assertThat(countQueryFor).isEqualTo("select count(*) FROM User WHERE created_at > $1");
 
-		countQueryFor = createCountQueryFor("SELECT * FROM mytable WHERE nr = :number AND kon = :kon AND datum >= '2019-01-01'");
-		assertThat(countQueryFor).isEqualTo("select count(*) FROM mytable WHERE nr = :number AND kon = :kon AND datum >= '2019-01-01'");
+		countQueryFor = createCountQueryFor(
+				"SELECT * FROM mytable WHERE nr = :number AND kon = :kon AND datum >= '2019-01-01'");
+		assertThat(countQueryFor)
+				.isEqualTo("select count(*) FROM mytable WHERE nr = :number AND kon = :kon AND datum >= '2019-01-01'");
 
 		countQueryFor = createCountQueryFor("SELECT * FROM context ORDER BY time");
 		assertThat(countQueryFor).isEqualTo("select count(*) FROM context");
 
 		countQueryFor = createCountQueryFor("select * FROM users_statuses WHERE (user_created_at BETWEEN $1 AND $2)");
-		assertThat(countQueryFor).isEqualTo("select count(*) FROM users_statuses WHERE (user_created_at BETWEEN $1 AND $2)");
+		assertThat(countQueryFor)
+				.isEqualTo("select count(*) FROM users_statuses WHERE (user_created_at BETWEEN $1 AND $2)");
 
-		countQueryFor = createCountQueryFor("SELECT * FROM users_statuses us WHERE (user_created_at BETWEEN :fromDate AND :toDate)");
-		assertThat(countQueryFor).isEqualTo("select count(us) FROM users_statuses us WHERE (user_created_at BETWEEN :fromDate AND :toDate)");
+		countQueryFor = createCountQueryFor(
+				"SELECT * FROM users_statuses us WHERE (user_created_at BETWEEN :fromDate AND :toDate)");
+		assertThat(countQueryFor)
+				.isEqualTo("select count(us) FROM users_statuses us WHERE (user_created_at BETWEEN :fromDate AND :toDate)");
 	}
 }
