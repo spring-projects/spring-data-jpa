@@ -15,6 +15,7 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import static java.util.regex.Pattern.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.springframework.data.jpa.repository.query.QueryUtils.*;
 
@@ -50,7 +51,7 @@ class QueryUtilsUnitTests {
 
 	private static final String QUERY = "select u from User u";
 	private static final String FQ_QUERY = "select u from org.acme.domain.User$Foo_Bar u";
-	private static final String SIMPLE_QUERY = "from User u";
+	private static final String SIMPLE_QUERY = " from User u";
 	private static final String COUNT_QUERY = "select count(u) from User u";
 
 	private static final String QUERY_WITH_AS = "select u from User as u where u.username = ?";
@@ -123,11 +124,50 @@ class QueryUtilsUnitTests {
 		assertThat(detectAlias("(select u from User u where not exists ((from User u2 where not exists (from User u3))))"))
 				.isEqualTo("u");
 		assertThat(detectAlias(
-				"from Foo f left join f.bar b with type(b) = BarChild where (f.id = (select max(f.id) from Foo f2 where type(f2) = FooChild) or 1 <> 1) and 1=1"))
+				" from Foo f left join f.bar b with type(b) = BarChild where (f.id = (select max(f.id) from Foo f2 where type(f2) = FooChild) or 1 <> 1) and 1=1"))
 						.isEqualTo("f");
 		assertThat(detectAlias(
 				"(from Foo f max(f) ((((select * from Foo f2 (from Foo f3) max(*)) (from Foo f4)) max(f5)) (f6)) (from Foo f7))"))
 						.isEqualTo("f");
+	}
+
+	@Test // GH-2508
+	void detectAliasWithCastCorrectly() {
+
+		assertThat(detectAlias(" from User u where (cast(:effective as date) is null) OR :effective >= u.createdAt"))
+				.isEqualTo("u");
+		assertThat(
+				detectAlias(" from User u where (cast(:effectiveDate as date) is null) OR :effectiveDate >= u.createdAt"))
+						.isEqualTo("u");
+		assertThat(
+				detectAlias(" from User u where (cast(:effectiveFrom as date) is null) OR :effectiveFrom >= u.createdAt"))
+						.isEqualTo("u");
+		assertThat(
+				detectAlias(" from User u where (cast(:e1f2f3ectiveFrom as date) is null) OR :effectiveFrom >= u.createdAt"))
+						.isEqualTo("u");
+	}
+
+	@Test
+	void foo() {
+
+		StringBuilder builder = new StringBuilder();
+		builder.append("(?<=[^a-zA-Z]+from)");
+
+		Pattern pattern = compile(builder.toString(), CASE_INSENSITIVE);
+
+		Matcher matcher = pattern.matcher("select * from User u where (cast(:effectiveDate as date) is null)");
+		int count = 0;
+		while (matcher.find()) {
+			count++;
+		}
+		assertThat(count).isEqualTo(1);
+
+		matcher = pattern.matcher("select * from User u where (cast(:effectiveFrom as date) is null)");
+		count = 0;
+		while (matcher.find()) {
+			count++;
+		}
+		assertThat(count).isEqualTo(1);
 	}
 
 	@Test // GH-2260

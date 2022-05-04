@@ -41,7 +41,7 @@ class QueryEnhancerUnitTests {
 
 	private static final String QUERY = "select u from User u";
 	private static final String FQ_QUERY = "select u from org.acme.domain.User$Foo_Bar u";
-	private static final String SIMPLE_QUERY = "from User u";
+	private static final String SIMPLE_QUERY = " from User u";
 	private static final String COUNT_QUERY = "select count(u) from User u";
 
 	private static final String QUERY_WITH_AS = "select u from User as u where u.username = ?";

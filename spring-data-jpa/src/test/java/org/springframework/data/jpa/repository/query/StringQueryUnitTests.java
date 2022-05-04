@@ -373,18 +373,18 @@ class StringQueryUnitTests {
 	@Test // DATAJPA-1235
 	void getAlias() {
 
-		checkAlias("from User u", "u", "simple query", false);
+		checkAlias(" from User u", "u", "simple query", false);
 		checkAlias("select count(u) from User u", "u", "count query", true);
 		checkAlias("select u from User as u where u.username = ?", "u", "with as", true);
 		checkAlias("SELECT FROM USER U", "U", "uppercase", false);
 		checkAlias("select u from  User u", "u", "simple query", true);
 		checkAlias("select u from  com.acme.User u", "u", "fully qualified package name", true);
 		checkAlias("select u from T05User u", "u", "interesting entity name", true);
-		checkAlias("from User ", null, "trailing space", false);
-		checkAlias("from User", null, "no trailing space", false);
-		checkAlias("from User as bs", "bs", "ignored as", false);
-		checkAlias("from User as AS", "AS", "ignored as using the second", false);
-		checkAlias("from User asas", "asas", "asas is weird but legal", false);
+		checkAlias(" from User ", null, "trailing space", false);
+		checkAlias(" from User", null, "no trailing space", false);
+		checkAlias(" from User as bs", "bs", "ignored as", false);
+		checkAlias(" from User as AS", "AS", "ignored as using the second", false);
+		checkAlias(" from User asas", "asas", "asas is weird but legal", false);
 
 		softly.assertAll();
 	}

@@ -138,7 +138,7 @@ public abstract class QueryUtils {
 	static {
 
 		StringBuilder builder = new StringBuilder();
-		builder.append("(?<=from)"); // from as starting delimiter
+		builder.append("(?<=[^a-zA-Z0-9]+from)"); // from as starting delimiter (with no characters prefixing it)
 		builder.append("(?:\\s)+"); // at least one space separating
 		builder.append(IDENTIFIER_GROUP); // Entity name, can be qualified (any
 		builder.append("(?:\\sas)*"); // exclude possible "as" keyword
