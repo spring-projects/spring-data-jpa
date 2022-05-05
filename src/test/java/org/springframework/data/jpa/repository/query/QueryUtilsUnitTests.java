@@ -128,6 +128,18 @@ class QueryUtilsUnitTests {
 		assertThat(detectAlias(
 				"(from Foo f max(f) ((((select * from Foo f2 (from Foo f3) max(*)) (from Foo f4)) max(f5)) (f6)) (from Foo f7))"))
 						.isEqualTo("f");
+		assertThat(detectAlias(
+				"SELECT e FROM DbEvent e WHERE (CAST(:modifiedFrom AS date) IS NULL OR e.modificationDate >= :modifiedFrom)"))
+						.isEqualTo("e");
+		assertThat(detectAlias("from User u where (cast(:effective as date) is null) OR :effective >= u.createdAt"))
+				.isEqualTo("u");
+		assertThat(detectAlias("from User u where (cast(:effectiveDate as date) is null) OR :effectiveDate >= u.createdAt"))
+				.isEqualTo("u");
+		assertThat(detectAlias("from User u where (cast(:effectiveFrom as date) is null) OR :effectiveFrom >= u.createdAt"))
+				.isEqualTo("u");
+		assertThat(
+				detectAlias("from User u where (cast(:e1f2f3ectiveFrom as date) is null) OR :effectiveFrom >= u.createdAt"))
+						.isEqualTo("u");
 	}
 
 	@Test // GH-2260
