@@ -2838,6 +2838,19 @@ public class UserRepositoryTests {
 		assertThat(repository.exists(hundredYearsOld)).isTrue();
 	}
 
+	@Test // GH-1262
+	void deleteWithSpec() {
+
+		flushTestUsers();
+
+		Specification<User> usersWithEInTheirName = userHasFirstnameLike("e");
+
+		long initialCount = repository.count();
+		assertThat(repository.delete(usersWithEInTheirName)).isEqualTo(3L);
+		long finalCount = repository.count();
+		assertThat(initialCount - finalCount).isEqualTo(3L);
+	}
+
 	private Page<User> executeSpecWithSort(Sort sort) {
 
 		flushTestUsers();

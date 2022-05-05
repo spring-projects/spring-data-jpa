@@ -24,6 +24,7 @@ import jakarta.persistence.Parameter;
 import jakarta.persistence.Query;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaDelete;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.ParameterExpression;
 import jakarta.persistence.criteria.Path;
@@ -483,6 +484,21 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		applySpecificationToCriteria(spec, getDomainClass(), cq);
 		TypedQuery<Integer> query = applyRepositoryMethodMetadata(this.em.createQuery(cq));
 		return query.setMaxResults(1).getResultList().size() == 1;
+	}
+
+	@Override
+	public long delete(Specification<T> spec) {
+
+		CriteriaBuilder builder = this.em.getCriteriaBuilder();
+		CriteriaDelete<T> delete = builder.createCriteriaDelete(getDomainClass());
+
+		Predicate predicate = spec.toPredicate(delete.from(getDomainClass()), null, builder);
+
+		if (predicate != null) {
+			delete.where(predicate);
+		}
+
+		return this.em.createQuery(delete).executeUpdate();
 	}
 
 	@Override

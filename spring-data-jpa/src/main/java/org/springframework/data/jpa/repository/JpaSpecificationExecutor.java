@@ -88,6 +88,14 @@ public interface JpaSpecificationExecutor<T> {
 	boolean exists(Specification<T> spec);
 
 	/**
+	 * Deletes by the {@link Specification} and returns the number of rows deleted.
+	 *
+	 * @param spec the {@link Specification} to use for the existence check. Must not be {@literal null}.
+	 * @return the number of entities deleted
+	 */
+	long delete(Specification<T> spec);
+
+	/**
 	 * Returns entities matching the given {@link Specification} applying the {@code queryFunction} that defines the query
 	 * and its result type.
 	 *

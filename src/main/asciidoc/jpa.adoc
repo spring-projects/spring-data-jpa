@@ -943,6 +943,21 @@ List<Customer> customers = customerRepository.findAll(
 `Specification` offers some "`glue-code`" default methods to chain and combine `Specification` instances. These methods let you extend your data access layer by creating new `Specification` implementations and combining them with already existing implementations.
 ====
 
+And with JPA 2.1, the `CriteriaBuilder` API introduced `CriteriaDelete`. This is provided through `JpaSpecificationExecutor`'s `delete(Specification)` API.
+
+.Using a `Specification` to delete entries.
+====
+[source, java]
+----
+Specification<User> ageLessThan18 = (root, query, cb) -> cb.lessThan(root.get("age").as(Integer.class), 18)
+
+userRepository.delete(ageLessThan18);
+----
+The `Specification` builds up a criteria where the `age` field (cast as an integer) is less than `18`.
+Passed on to the `userRepository`, it will use JPA's `CriteriaDelete` feature to generate the right `DELETE` operation.
+It then returns the number of entities deleted.
+====
+
 include::{spring-data-commons-docs}/query-by-example.adoc[leveloffset=+1]
 include::query-by-example.adoc[leveloffset=+1]
 
