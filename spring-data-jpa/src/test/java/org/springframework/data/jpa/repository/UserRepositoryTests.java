@@ -490,7 +490,7 @@ public class UserRepositoryTests {
 				.isThrownBy(() -> repository.findOne(userHasFirstnameLike("e")));
 	}
 
-	@Test // DATAJPA-1651
+	@Test // GH-1943
 	void executesCombinedSpecificationsCorrectly() {
 
 		flushTestUsers();
@@ -516,7 +516,7 @@ public class UserRepositoryTests {
 		assertThat(repository.findAll(spec)).containsOnly(secondUser);
 	}
 
-	@Test // DATAJPA-1651
+	@Test // GH-1943
 	void executesCombinedSpecificationsWithPageableCorrectly() {
 
 		flushTestUsers();
@@ -623,14 +623,14 @@ public class UserRepositoryTests {
 		assertThat(repository.count()).isEqualTo(3L);
 	}
 
-	@Test // DATAJPA-1651
+	@Test
 	void executesPagedSpecificationsCorrectly() {
 
 		Page<User> result = executeSpecWithSort(Sort.unsorted());
 		assertThat(result.getContent()).isSubsetOf(firstUser, thirdUser);
 	}
 
-	@Test // DATAJPA-1651
+	@Test
 	void executesPagedSpecificationsWithSortCorrectly() {
 
 		Page<User> result = executeSpecWithSort(Sort.by(Direction.ASC, "lastname"));
@@ -638,7 +638,7 @@ public class UserRepositoryTests {
 		assertThat(result.getContent()).contains(firstUser).doesNotContain(secondUser, thirdUser);
 	}
 
-	@Test // DATAJPA-1651
+	@Test
 	void executesPagedSpecificationWithSortCorrectly2() {
 
 		Page<User> result = executeSpecWithSort(Sort.by(Direction.DESC, "lastname"));

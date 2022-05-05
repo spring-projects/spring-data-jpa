@@ -21,12 +21,12 @@ import static org.springframework.data.jpa.domain.Specification.*;
 import static org.springframework.data.jpa.domain.Specification.not;
 import static org.springframework.util.SerializationUtils.*;
 
-import java.io.Serializable;
-
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+
+import java.io.Serializable;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -119,7 +119,7 @@ class SpecificationUnitTests implements Serializable {
 		assertThat(specification.toPredicate(root, query, builder)).isEqualTo(predicate);
 	}
 
-	@Test // DATAJPA-1651
+	@Test // GH-1943
 	public void allOfConcatenatesNull() {
 
 		Specification<Object> specification = Specification.allOf(null, spec, null);
@@ -128,7 +128,7 @@ class SpecificationUnitTests implements Serializable {
 		assertThat(specification.toPredicate(root, query, builder)).isEqualTo(predicate);
 	}
 
-	@Test // DATAJPA-1651
+	@Test // GH-1943
 	public void anyOfConcatenatesNull() {
 
 		Specification<Object> specification = Specification.anyOf(null, spec, null);
@@ -137,7 +137,7 @@ class SpecificationUnitTests implements Serializable {
 		assertThat(specification.toPredicate(root, query, builder)).isEqualTo(predicate);
 	}
 
-	@Test // DATAJPA-1651
+	@Test // GH-1943
 	public void emptyAllOfReturnsEmptySpecification() {
 
 		Specification<Object> specification = Specification.allOf();
@@ -146,7 +146,7 @@ class SpecificationUnitTests implements Serializable {
 		assertThat(specification.toPredicate(root, query, builder)).isNull();
 	}
 
-	@Test // DATAJPA-1651
+	@Test // GH-1943
 	public void emptyAnyOfReturnsEmptySpecification() {
 
 		Specification<Object> specification = Specification.anyOf();
