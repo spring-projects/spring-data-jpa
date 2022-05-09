@@ -10,9 +10,10 @@
 	<logger name="org.springframework.data" level="error"/>
 
 	<!-- Uncomment these sections to debug -->
-	<!--	<logger name="org.springframework.data.jpa" level="trace" />-->
-	<!--	<logger name="org.springframework.jdbc" level="debug" />-->
-	<!--	<logger name="org.testcontainers" level="debug" />-->
+<!--	<logger name="org.springframework.data.jpa" level="trace" />-->
+<!--	<logger name="org.springframework.jdbc" level="debug" />-->
+<!--	<logger name="org.hibernate.SQL" level="debug" />-->
+<!--	<logger name="org.testcontainers" level="debug" />-->
 
 	<root level="error">
 		<appender-ref ref="console"/>

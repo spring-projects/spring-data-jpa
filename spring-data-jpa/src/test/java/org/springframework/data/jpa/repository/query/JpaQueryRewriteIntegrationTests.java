@@ -35,6 +35,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryRewriter;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
@@ -145,7 +146,21 @@ public class JpaQueryRewriteIntegrationTests {
 				entry(SORT, Sort.unsorted().toString()));
 	}
 
-	public interface UserRepositoryWithRewriter extends JpaRepository<User, Integer>, QueryRewriter {
+	@Test // GH-1380
+	void counting() {
+
+		repository.saveAllAndFlush(List.of( //
+				new User("Frodo", "Baggins", "ringdude@aol.com"), //
+				new User("Bilbo", "Baggins", "riddler@hotmail.com"), //
+				new User("Samwise", "Gamgee", "gardener@gmail.com")));
+
+		assertThat(repository.count()).isEqualTo(3);
+		assertThat(repository.countDistinctByLastname("Baggins")).isEqualTo(2);
+		assertThat(repository.countDistinctByLastname("Gamgee")).isEqualTo(1);
+	}
+
+	public interface UserRepositoryWithRewriter
+			extends JpaRepository<User, Integer>, QueryRewriter, JpaSpecificationExecutor<User> {
 
 		@Query(value = "select original_user_alias.* from SD_USER original_user_alias", nativeQuery = true,
 				queryRewriter = TestQueryRewriter.class)
@@ -169,6 +184,8 @@ public class JpaQueryRewriteIntegrationTests {
 		@Query(value = "select original_user_alias.* from SD_USER original_user_alias", nativeQuery = true,
 				queryRewriter = UserRepositoryWithRewriter.class)
 		List<User> findByNativeQueryUsingRepository(String param);
+
+		long countDistinctByLastname(String lastname);
 
 		@Override
 		default String rewrite(String query, Sort sort) {

@@ -32,8 +32,11 @@ import org.springframework.lang.Nullable;
  * @author Oliver Gierke
  * @author Marc Lefrançois
  * @author Mark Paluch
+ * @author Greg Turnquist
  */
 public class JpaCountQueryCreator extends JpaQueryCreator {
+
+	private boolean distinct;
 
 	/**
 	 * Creates a new {@link JpaCountQueryCreator}.
@@ -46,6 +49,7 @@ public class JpaCountQueryCreator extends JpaQueryCreator {
 	public JpaCountQueryCreator(PartTree tree, ReturnedType type, CriteriaBuilder builder,
 			ParameterMetadataProvider provider) {
 		super(tree, type, builder, provider);
+		this.distinct = tree.isDistinct();
 	}
 
 	@Override
@@ -63,7 +67,7 @@ public class JpaCountQueryCreator extends JpaQueryCreator {
 	}
 
 	@SuppressWarnings("rawtypes")
-	private static Expression getCountQuery(CriteriaQuery<?> query, CriteriaBuilder builder, Root<?> root) {
-		return query.isDistinct() ? builder.countDistinct(root) : builder.count(root);
+	private Expression getCountQuery(CriteriaQuery<?> query, CriteriaBuilder builder, Root<?> root) {
+		return distinct ? builder.countDistinct(root) : builder.count(root);
 	}
 }

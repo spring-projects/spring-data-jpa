@@ -253,6 +253,27 @@ The following table describes the keywords supported for JPA and what a method c
 
 NOTE: `In` and `NotIn` also take any subclass of `Collection` as a parameter as well as arrays or varargs. For other syntactical versions of the same logical operator, check "`<<repository-query-keywords>>`".
 
+[WARNING]
+====
+`DISTINCT` can be tricky and not always producing the results you expect.
+For example, `select distinct u from User u` will produce a complete different result than `select distinct u.lastname from User u`.
+In the first case, since you are including `User.id`, nothing will duplicated, hence you'll get the whole table, and it would be of `User` objects.
+
+However, that latter query would narrow the focus to just `User.lastname` and find all unique last names for that table.
+This would also yield a `List<String>` result set instead of a `List<User`> result set.
+
+
+`countDistinctByLastname(String lastname)` can also produce unexpected results.
+Spring Data JPA will derive `select count(distinct u.id) from User u where u.lastname = ?1`.
+Again, since `u.id` won't hit any duplicates, this query will count up all the users that had the binding last name.
+Which would the same as `countByLastname(String lastname)`!
+
+What is the point of this query anyway? To find the number of people with a given last name? To find the number of _distinct_ people with that binding last name?
+To find the number of _distinct last names_? (That last one is an entirely different query!)
+Using `distinct` sometimes requires writing the query by hand and using `@Query` to best capture the information you seek, since you also may be needing a projection
+to capture the result set.
+====
+
 [[jpa.query-methods.named-queries]]
 === Using JPA Named Queries
 

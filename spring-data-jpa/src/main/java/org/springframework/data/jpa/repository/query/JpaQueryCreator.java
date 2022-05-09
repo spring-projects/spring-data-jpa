@@ -18,12 +18,6 @@ package org.springframework.data.jpa.repository.query;
 import static org.springframework.data.jpa.repository.query.QueryUtils.*;
 import static org.springframework.data.repository.query.parser.Part.Type.*;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Expression;
@@ -33,6 +27,12 @@ import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import jakarta.persistence.criteria.Selection;
 import jakarta.persistence.metamodel.SingularAttribute;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.query.ParameterMetadataProvider.ParameterMetadata;
@@ -84,7 +84,7 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extend
 		CriteriaQuery<?> criteriaQuery = createCriteriaQuery(builder, type);
 
 		this.builder = builder;
-		this.query = criteriaQuery.distinct(tree.isDistinct());
+		this.query = criteriaQuery.distinct(tree.isDistinct() && !tree.isCountProjection());
 		this.root = query.from(type.getDomainType());
 		this.provider = provider;
 		this.returnedType = type;
