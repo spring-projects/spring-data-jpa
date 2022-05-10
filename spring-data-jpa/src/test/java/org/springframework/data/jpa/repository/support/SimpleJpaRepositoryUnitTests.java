@@ -18,15 +18,16 @@ package org.springframework.data.jpa.repository.support;
 import static java.util.Collections.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
-
-import java.util.Arrays;
-import java.util.Optional;
+import static org.springframework.data.jpa.domain.Specification.*;
 
 import jakarta.persistence.EntityGraph;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
+
+import java.util.Arrays;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -191,5 +192,15 @@ class SimpleJpaRepositoryUnitTests {
 
 		verify(em, never()).remove(newUser);
 		verify(em, never()).merge(newUser);
+	}
+
+	@Test // GH-2054
+	void applyQueryHintsToCountQueriesForSpecificationPageables() {
+
+		when(query.getResultList()).thenReturn(Arrays.asList(new User(), new User()));
+
+		repo.findAll(where(null), PageRequest.of(2, 1));
+
+		verify(metadata).getQueryHintsForCount();
 	}
 }
