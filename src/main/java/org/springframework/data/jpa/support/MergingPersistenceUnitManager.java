@@ -90,7 +90,7 @@ public class MergingPersistenceUnitManager extends DefaultPersistenceUnitManager
 			if (!pui.getMappingFileNames().contains(mappingFileName)) {
 
 				if (LOG.isDebugEnabled()) {
-					LOG.debug(String.format("Adding mapping file to persistence unit %s.", mappingFileName, persistenceUnitName));
+					LOG.debug(String.format("Adding mapping file %s to persistence unit %s.", mappingFileName, persistenceUnitName));
 				}
 				pui.addMappingFileName(mappingFileName);
 			}
