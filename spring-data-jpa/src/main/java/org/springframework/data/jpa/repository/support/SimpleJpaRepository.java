@@ -309,6 +309,13 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		return metadata == null ? NoHints.INSTANCE : DefaultQueryHints.of(entityInformation, metadata);
 	}
 
+	/**
+	 * Returns {@link QueryHints} with the query hints on the current {@link CrudMethodMetadata} for count queries.
+	 */
+	protected QueryHints getQueryHintsForCount() {
+		return metadata == null ? NoHints.INSTANCE : DefaultQueryHints.of(entityInformation, metadata).forCounts();
+	}
+
 	@Deprecated
 	@Override
 	public T getOne(ID id) {
@@ -750,7 +757,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		// Remove all Orders the Specifications might have applied
 		query.orderBy(Collections.emptyList());
 
-		return em.createQuery(query);
+		return applyRepositoryMethodMetadataForCount(em.createQuery(query));
 	}
 
 	/**
@@ -798,6 +805,21 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 	private void applyQueryHints(Query query) {
 		getQueryHints().withFetchGraphs(em).forEach(query::setHint);
+	}
+
+	private <S> TypedQuery<S> applyRepositoryMethodMetadataForCount(TypedQuery<S> query) {
+
+		if (metadata == null) {
+			return query;
+		}
+
+		applyQueryHintsForCount(query);
+
+		return query;
+	}
+
+	private void applyQueryHintsForCount(Query query) {
+		getQueryHintsForCount().forEach(query::setHint);
 	}
 
 	/**
