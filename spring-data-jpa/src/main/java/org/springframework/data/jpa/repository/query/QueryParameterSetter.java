@@ -23,6 +23,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 import jakarta.persistence.Parameter;
@@ -160,7 +161,7 @@ interface QueryParameterSetter {
 	 */
 	class QueryMetadataCache {
 
-		private Map<String, QueryMetadata> cache = Collections.emptyMap();
+		private final Map<String, QueryMetadata> cache = new ConcurrentHashMap<>();
 
 		/**
 		 * Retrieve the {@link QueryMetadata} for a given {@code cacheKey}.
@@ -170,28 +171,7 @@ interface QueryParameterSetter {
 		 * @return
 		 */
 		public QueryMetadata getMetadata(String cacheKey, Query query) {
-
-			QueryMetadata queryMetadata = cache.get(cacheKey);
-
-			if (queryMetadata == null) {
-
-				queryMetadata = new QueryMetadata(query);
-
-				Map<String, QueryMetadata> cache;
-
-				if (this.cache.isEmpty()) {
-					cache = Collections.singletonMap(cacheKey, queryMetadata);
-				} else {
-					cache = new HashMap<>(this.cache);
-					cache.put(cacheKey, queryMetadata);
-				}
-
-				synchronized (this) {
-					this.cache = cache;
-				}
-			}
-
-			return queryMetadata;
+			return cache.computeIfAbsent(cacheKey, (key) -> new QueryMetadata(query));
 		}
 	}
 
