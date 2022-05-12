@@ -27,6 +27,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.QueryHint;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
@@ -52,6 +53,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Jeff Sheets
  * @author Andrey Kovalev
  * @author JyotirmoyVS
+ * @author Greg Turnquist
  */
 public interface UserRepository
 		extends JpaRepository<User, Integer>, JpaSpecificationExecutor<User>, UserRepositoryCustom {
@@ -503,6 +505,12 @@ public interface UserRepository
 
 	// DATAJPA-606
 	List<User> findByAgeIn(Collection<Integer> ages);
+
+	// GH-2013
+	Page<User> findByAgeIn(Collection<Integer> ages, Pageable pageable);
+
+	// GH-2013
+	Page<User> findByAgeIn(Collection<Integer> ages, PageRequest pageable);
 
 	// DATAJPA-606
 	List<User> queryByAgeIn(Integer[] ages);
