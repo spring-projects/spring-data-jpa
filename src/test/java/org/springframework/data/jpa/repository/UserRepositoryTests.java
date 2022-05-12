@@ -27,6 +27,7 @@ import static org.springframework.data.jpa.domain.sample.UserSpecifications.*;
 import lombok.Data;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -1677,6 +1678,32 @@ public class UserRepositoryTests {
 
 		List<User> users = repository.findByAgeIn(Collections.emptyList());
 		assertThat(users).hasSize(0);
+	}
+
+	@Test // GH-2013
+	void findByCollectionWithPageable() {
+
+		flushTestUsers();
+
+		Page<User> userPage = repository.findByAgeIn(Arrays.asList(28, 35), (Pageable) PageRequest.of(0, 2));
+
+		assertThat(userPage).hasSize(2);
+		assertThat(userPage.getTotalElements()).isEqualTo(2);
+		assertThat(userPage.getTotalPages()).isEqualTo(1);
+		assertThat(userPage.getContent()).containsExactlyInAnyOrder(firstUser, secondUser);
+	}
+
+	@Test // GH-2013
+	void findByCollectionWithPageRequest() {
+
+		flushTestUsers();
+
+		Page<User> userPage = repository.findByAgeIn(Arrays.asList(28, 35), (PageRequest) PageRequest.of(0, 2));
+
+		assertThat(userPage).hasSize(2);
+		assertThat(userPage.getTotalElements()).isEqualTo(2);
+		assertThat(userPage.getTotalPages()).isEqualTo(1);
+		assertThat(userPage.getContent()).containsExactlyInAnyOrder(firstUser, secondUser);
 	}
 
 	@Test // DATAJPA-606
