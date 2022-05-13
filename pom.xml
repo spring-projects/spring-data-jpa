@@ -1,639 +1,241 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-    	
-  
-  <modelVersion>4.0.0</modelVersion>
-    	
-  
-  <groupId>org.springframework.data</groupId>
-    	
-  
-  <artifactId>spring-data-jpa-parent</artifactId>
-    	
-  
-  <version>3.0.0-SNAPSHOT</version>
-    	
-  
-  <packaging>pom</packaging>
-    	
-  
-  <name>Spring Data JPA Parent</name>
-    	
-  
-  <description>Parent module for Spring Data JPA repositories.</description>
-    	
-  
-  <url>https://spring.io/projects/spring-data-jpa</url>
-    	
-  
-  <scm>
-        		
-    
-    <connection>scm:git:git://github.com:spring-projects/spring-data-jpa.git</connection>
-        		
-    
-    <developerConnection>scm:git:git@github.com:spring-projects/spring-data-jpa.git</developerConnection>
-        		
-    
-    <url>https://github.com/spring-projects/spring-data-jpa</url>
-        	
-  
-  </scm>
-    	
-  
-  <issueManagement>
-        		
-    
-    <url>https://github.com/spring-projects/spring-data-jpa/issues</url>
-        	
-  
-  </issueManagement>
-    	
-  
-  <parent>
-        		
-    
-    <groupId>org.springframework.data.build</groupId>
-        		
-    
-    <artifactId>spring-data-parent</artifactId>
-        		
-    
-    <version>3.0.0-SNAPSHOT</version>
-        	
-  
-  </parent>
-    	
-  
-  <properties>
-        		
-    
-    <source.level>16</source.level>
-            
-    
+
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>org.springframework.data</groupId>
+	<artifactId>spring-data-jpa-parent</artifactId>
+	<version>3.0.0-SNAPSHOT</version>
+	<packaging>pom</packaging>
+
+	<name>Spring Data JPA Parent</name>
+	<description>Parent module for Spring Data JPA repositories.</description>
+	<url>https://spring.io/projects/spring-data-jpa</url>
+	<scm>
+		<connection>scm:git:git://github.com:spring-projects/spring-data-jpa.git</connection>
+		<developerConnection>scm:git:git@github.com:spring-projects/spring-data-jpa.git</developerConnection>
+		<url>https://github.com/spring-projects/spring-data-jpa</url>
+	</scm>
+	<issueManagement>
+		<url>https://github.com/spring-projects/spring-data-jpa/issues</url>
+	</issueManagement>
+
+	<parent>
+		<groupId>org.springframework.data.build</groupId>
+		<artifactId>spring-data-parent</artifactId>
+		<version>3.0.0-SNAPSHOT</version>
+	</parent>
+
+	<properties>
+		<source.level>16</source.level>
     <!-- AspectJ maven plugin can't handle 17 yet -->
-        		
-    
-    <eclipselink>3.0.2</eclipselink>
-        		
-    
-    <hibernate>5.6.0.Final</hibernate>
-        		
-    
-    <jsqlparser>4.3</jsqlparser>
-        		
-    
-    <mysql-connector-java>8.0.23</mysql-connector-java>
-        		
-    
-    <postgresql>42.2.19</postgresql>
-        		
-    
-    <springdata.commons>3.0.0-SNAPSHOT</springdata.commons>
-        		
-    
-    <vavr>0.10.3</vavr>
-        		
-    
-    <hibernate.groupId>org.hibernate</hibernate.groupId>
-        		
-    
-    <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
-        	
-  
-  </properties>
-      
-  
+
+		<eclipselink>3.0.2</eclipselink>
+		<hibernate>5.6.0.Final</hibernate>
+		<jsqlparser>4.3</jsqlparser>
+		<mysql-connector-java>8.0.23</mysql-connector-java>
+		<postgresql>42.2.19</postgresql>
+		<springdata.commons>3.0.0-SNAPSHOT</springdata.commons>
+		<vavr>0.10.3</vavr>
+
+		<hibernate.groupId>org.hibernate</hibernate.groupId>
+
+		<sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
+
+	</properties>
+
   <modules>
-        		
-    
-    <module>spring-data-envers</module>
-        		
-    
-    <module>spring-data-jpa</module>
-        		
-    
-    <module>spring-data-jpa-distribution</module>
-        	
-  
-  </modules>
-    	
-  
-  <profiles>
-        		
-    
-    <profile>
-            			
-      
-      <id>all-dbs</id>
-            			
-      
-      <build>
-                				
-        
-        <plugins>
-                    					
-          
-          <plugin>
-                        						
-            
-            <groupId>org.apache.maven.plugins</groupId>
-                        						
-            
-            <artifactId>maven-surefire-plugin</artifactId>
-                        						
-            
-            <executions>
-                            							
-              
-              <execution>
-                                								
-                
-                <id>mysql-test</id>
-                                								
-                
-                <phase>test</phase>
-                                								
-                
-                <goals>
-                                    									
-                  
-                  <goal>test</goal>
-                                    								
-                
-                </goals>
-                                								
-                
-                <configuration>
-                                    									
-                  
-                  <includes>
-                                        										
-                    
-                    <include>**/MySql*IntegrationTests.java</include>
-                                        									
-                  
-                  </includes>
-                                    								
-                
-                </configuration>
-                                							
-              
-              </execution>
-                            							
-              
-              <execution>
-                                								
-                
-                <id>postgres-test</id>
-                                								
-                
-                <phase>test</phase>
-                                								
-                
-                <goals>
-                                    									
-                  
-                  <goal>test</goal>
-                                    								
-                
-                </goals>
-                                								
-                
-                <configuration>
-                                    									
-                  
-                  <includes>
-                                        										
-                    
-                    <include>**/Postgres*IntegrationTests.java</include>
-                                        									
-                  
-                  </includes>
-                                    								
-                
-                </configuration>
-                                							
-              
-              </execution>
-                            						
-            
-            </executions>
-                        					
-          
-          </plugin>
-                    				
-        
-        </plugins>
-                			
-      
-      </build>
-            		
-    
-    </profile>
-        		
-    
-    <profile>
-            			
-      
-      <id>hibernate-next</id>
-            			
-      
-      <properties>
-                				
-        
-        <hibernate>6.0.0-SNAPSHOT</hibernate>
-                			
-      
-      </properties>
-            			
-      
-      <repositories>
-                				
-        
-        <repository>
-                    					
-          
-          <id>jboss</id>
-                    					
-          
-          <url>https://repository.jboss.org/nexus/content/repositories/public</url>
-                    				
-        
-        </repository>
-                			
-      
-      </repositories>
-            		
-    
-    </profile>
-        	
-  
-  </profiles>
-    	
-  
-  <dependencyManagement>
-        		
-    
-    <dependencies>
-            			
-      
-      <dependency>
-                				
-        
-        <groupId>org.testcontainers</groupId>
-                				
-        
-        <artifactId>testcontainers-bom</artifactId>
-                				
-        
-        <version>${testcontainers}</version>
-                				
-        
-        <type>pom</type>
-                				
-        
-        <scope>import</scope>
-                			
-      
-      </dependency>
-            		
-    
-    </dependencies>
-        	
-  
-  </dependencyManagement>
-    	
-  
-  <build>
-        		
-    
-    <plugins>
-            			
-      
-      <plugin>
-                				
-        
-        <groupId>org.apache.maven.plugins</groupId>
-                				
-        
-        <artifactId>maven-surefire-plugin</artifactId>
-                				
-        
-        <dependencies>
-                    					
-          
-          <dependency>
-                        						
-            
-            <groupId>org.springframework</groupId>
-                        						
-            
-            <artifactId>spring-instrument</artifactId>
-                        						
-            
-            <version>${spring}</version>
-                        						
-            
-            <scope>runtime</scope>
-                        					
-          
-          </dependency>
-                    				
-        
-        </dependencies>
-                				
-        
-        <executions>
-                    					
-          
-          <execution>
-                        						
-            
-            <!-- override the default-test execution and exclude everything -->
-                        						
-            
-            <id>default-test</id>
-                        						
-            
-            <configuration>
-                            							
-              
-              <excludes>
-                                								
-                
-                <exclude>**/*</exclude>
-                                							
-              
-              </excludes>
-                            						
-            
-            </configuration>
-                        					
-          
-          </execution>
-                    					
-          
-          <execution>
-                        						
-            
-            <id>unit-test</id>
-                        						
-            
-            <goals>
-                            							
-              
-              <goal>test</goal>
-                            						
-            
-            </goals>
-                        						
-            
-            <phase>test</phase>
-                        						
-            
-            <configuration>
-                            							
-              
-              <includes>
-                                								
-                
-                <include>**/*UnitTests.java</include>
-                                							
-              
-              </includes>
-                            						
-            
-            </configuration>
-                        					
-          
-          </execution>
-                    					
-          
-          <execution>
-                        						
-            
-            <id>integration-test</id>
-                        						
-            
-            <goals>
-                            							
-              
-              <goal>test</goal>
-                            						
-            
-            </goals>
-                        						
-            
-            <phase>test</phase>
-                        						
-            
-            <configuration>
-                            							
-              
-              <includes>
-                                								
-                
-                <include>**/*IntegrationTests.java</include>
-                                								
-                
-                <include>**/*Tests.java</include>
-                                							
-              
-              </includes>
-                            							
-              
-              <excludes>
-                                								
-                
-                <exclude>**/*UnitTests.java</exclude>
-                                								
-                
-                <exclude>**/OpenJpa*</exclude>
-                                								
-                
-                <exclude>**/EclipseLink*</exclude>
-                                								
-                
-                <exclude>**/MySql*</exclude>
-                                								
-                
-                <exclude>**/Postgres*</exclude>
-                                							
-              
-              </excludes>
-                            							
-              
-              <argLine>
+		<module>spring-data-envers</module>
+		<module>spring-data-jpa</module>
+		<module>spring-data-jpa-distribution</module>
+	</modules>
+
+
+	<profiles>
+		<profile>
+			<id>all-dbs</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-surefire-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>mysql-test</id>
+								<phase>test</phase>
+								<goals>
+									<goal>test</goal>
+								</goals>
+								<configuration>
+									<includes>
+										<include>**/MySql*IntegrationTests.java</include>
+									</includes>
+								</configuration>
+							</execution>
+							<execution>
+								<id>postgres-test</id>
+								<phase>test</phase>
+								<goals>
+									<goal>test</goal>
+								</goals>
+								<configuration>
+									<includes>
+										<include>**/Postgres*IntegrationTests.java</include>
+									</includes>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+			<id>hibernate-next</id>
+			<properties>
+				<hibernate>6.0.0-SNAPSHOT</hibernate>
+			</properties>
+			<repositories>
+				<repository>
+					<id>jboss</id>
+					<url>https://repository.jboss.org/nexus/content/repositories/public</url>
+				</repository>
+			</repositories>
+		</profile>
+
+	</profiles>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.testcontainers</groupId>
+				<artifactId>testcontainers-bom</artifactId>
+				<version>${testcontainers}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
+
+	<build>
+		<plugins>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<dependencies>
+					<dependency>
+						<groupId>org.springframework</groupId>
+						<artifactId>spring-instrument</artifactId>
+						<version>${spring}</version>
+						<scope>runtime</scope>
+					</dependency>
+				</dependencies>
+				<executions>
+					<execution>
+						<!-- override the default-test execution and exclude everything -->
+						<id>default-test</id>
+						<configuration>
+							<excludes>
+								<exclude>**/*</exclude>
+							</excludes>
+						</configuration>
+					</execution>
+					<execution>
+						<id>unit-test</id>
+						<goals>
+							<goal>test</goal>
+						</goals>
+						<phase>test</phase>
+						<configuration>
+							<includes>
+								<include>**/*UnitTests.java</include>
+							</includes>
+						</configuration>
+					</execution>
+					<execution>
+						<id>integration-test</id>
+						<goals>
+							<goal>test</goal>
+						</goals>
+						<phase>test</phase>
+						<configuration>
+							<includes>
+								<include>**/*IntegrationTests.java</include>
+								<include>**/*Tests.java</include>
+							</includes>
+							<excludes>
+								<exclude>**/*UnitTests.java</exclude>
+								<exclude>**/OpenJpa*</exclude>
+								<exclude>**/EclipseLink*</exclude>
+								<exclude>**/MySql*</exclude>
+								<exclude>**/Postgres*</exclude>
+							</excludes>
+							<argLine>
 								-javaagent:${settings.localRepository}/org/springframework/spring-instrument/${spring}/spring-instrument-${spring}.jar
 								-javaagent:${settings.localRepository}/org/jacoco/org.jacoco.agent/${jacoco}/org.jacoco.agent-${jacoco}-runtime.jar=destfile=${jacoco.destfile}
 							</argLine>
-                            						
-            
-            </configuration>
-                        					
-          
-          </execution>
-                    					
-          
-          <execution>
-                        						
-            
-            <id>eclipselink-test</id>
-                        						
-            
-            <goals>
-                            							
-              
-              <goal>test</goal>
-                            						
-            
-            </goals>
-                        						
-            
-            <phase>test</phase>
-                        						
-            
-            <configuration>
-                            							
-              
-              <includes>
-                                								
-                
-                <include>**/EclipseLink*Tests.java</include>
-                                							
-              
-              </includes>
-                            							
-              
-              <argLine>
+						</configuration>
+					</execution>
+					<execution>
+						<id>eclipselink-test</id>
+						<goals>
+							<goal>test</goal>
+						</goals>
+						<phase>test</phase>
+						<configuration>
+							<includes>
+								<include>**/EclipseLink*Tests.java</include>
+							</includes>
+							<argLine>
 								-javaagent:${settings.localRepository}/org/jacoco/org.jacoco.agent/${jacoco}/org.jacoco.agent-${jacoco}-runtime.jar=destfile=${jacoco.destfile}
 								-javaagent:${settings.localRepository}/org/eclipse/persistence/org.eclipse.persistence.jpa/${eclipselink}/org.eclipse.persistence.jpa-${eclipselink}.jar
 								-javaagent:${settings.localRepository}/org/springframework/spring-instrument/${spring}/spring-instrument-${spring}.jar
 							</argLine>
-                            						
-            
-            </configuration>
-                        					
-          
-          </execution>
-                    				
-        
-        </executions>
-                			
-      
-      </plugin>
-            			
-      
-      <plugin>
-                				
-        
-        <artifactId>maven-compiler-plugin</artifactId>
-                				
-        
-        <executions>
-                    					
-          
-          <execution>
-                        						
-            
-            <id>java-test-compile</id>
-                        						
-            
-            <phase>test-compile</phase>
-                        						
-            
-            <goals>
-                            							
-              
-              <goal>testCompile</goal>
-                            						
-            
-            </goals>
-                        						
-            
-            <configuration>
-                            							
-              
-              <parameters>false</parameters>
-                            						
-            
-            </configuration>
-                        					
-          
-          </execution>
-                    				
-        
-        </executions>
-                			
-      
-      </plugin>
-            		
-    
-    </plugins>
-        	
-  
-  </build>
-    	
-  
-  <repositories>
-        		
-    
-    <repository>
-            			
-      
-      <id>spring-libs-snapshot</id>
-            			
-      
-      <url>https://repo.spring.io/libs-snapshot</url>
-            		
-    
-    </repository>
-        	
-  
-  </repositories>
-    	
-  
-  <pluginRepositories>
-        		
-    
-    <pluginRepository>
-            			
-      
-      <id>spring-plugins-release</id>
-            			
-      
-      <url>https://repo.spring.io/plugins-release</url>
-            		
-    
-    </pluginRepository>
-        		
-    
-    <pluginRepository>
-            			
-      
-      <id>spring-libs-milestone</id>
-            			
-      
-      <url>https://repo.spring.io/libs-milestone</url>
-            		
-    
-    </pluginRepository>
-        		
-    
-    <pluginRepository>
-            			
-      
-      <id>spring-libs-snapshot</id>
-            			
-      
-      <url>https://repo.spring.io/libs-snapshot</url>
-            		
-    
-    </pluginRepository>
-        	
-  
-  </pluginRepositories>
-    
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>java-test-compile</id>
+						<phase>test-compile</phase>
+						<goals>
+							<goal>testCompile</goal>
+						</goals>
+						<configuration>
+							<parameters>false</parameters>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+		</plugins>
+	</build>
+
+	<repositories>
+		<repository>
+			<id>spring-libs-snapshot</id>
+			<url>https://repo.spring.io/libs-snapshot</url>
+		</repository>
+	</repositories>
+
+	<pluginRepositories>
+		<pluginRepository>
+			<id>spring-plugins-release</id>
+			<url>https://repo.spring.io/plugins-release</url>
+		</pluginRepository>
+		<pluginRepository>
+			<id>spring-libs-milestone</id>
+			<url>https://repo.spring.io/libs-milestone</url>
+		</pluginRepository>
+		<pluginRepository>
+			<id>spring-libs-snapshot</id>
+			<url>https://repo.spring.io/libs-snapshot</url>
+		</pluginRepository>
+	</pluginRepositories>
 
 </project>
