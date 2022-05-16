@@ -55,6 +55,7 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.query.EscapeCharacter;
 import org.springframework.data.jpa.repository.query.QueryUtils;
 import org.springframework.data.jpa.repository.support.QueryHints.NoHints;
+import org.springframework.data.jpa.support.PageableUtils;
 import org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.data.util.ProxyUtils;
@@ -650,7 +651,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 			@Nullable Specification<S> spec) {
 
 		if (pageable.isPaged()) {
-			query.setFirstResult((int) pageable.getOffset());
+			query.setFirstResult(PageableUtils.getOffsetAsInteger(pageable));
 			query.setMaxResults(pageable.getPageSize());
 		}
 

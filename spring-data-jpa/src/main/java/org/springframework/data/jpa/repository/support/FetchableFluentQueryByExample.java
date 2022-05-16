@@ -15,15 +15,15 @@
  */
 package org.springframework.data.jpa.repository.support;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Stream;
-
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.TypedQuery;
 
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.domain.Example;
@@ -32,6 +32,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.query.EscapeCharacter;
+import org.springframework.data.jpa.support.PageableUtils;
 import org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.util.Assert;
@@ -66,8 +67,7 @@ class FetchableFluentQueryByExample<S, R> extends FluentQuerySupport<S, R> imple
 
 	private FetchableFluentQueryByExample(Example<S> example, Class<S> entityType, Class<R> returnType, Sort sort,
 			Collection<String> properties, Function<Sort, TypedQuery<S>> finder, Function<Example<S>, Long> countOperation,
-			Function<Example<S>, Boolean> existsOperation,
-			EntityManager entityManager, EscapeCharacter escapeCharacter) {
+			Function<Example<S>, Boolean> existsOperation, EntityManager entityManager, EscapeCharacter escapeCharacter) {
 
 		super(returnType, sort, properties, entityType);
 		this.example = example;
@@ -83,8 +83,8 @@ class FetchableFluentQueryByExample<S, R> extends FluentQuerySupport<S, R> imple
 
 		Assert.notNull(sort, "Sort must not be null!");
 
-		return new FetchableFluentQueryByExample<>(example, entityType, resultType, this.sort.and(sort), properties,
-				finder, countOperation, existsOperation, entityManager, escapeCharacter);
+		return new FetchableFluentQueryByExample<>(example, entityType, resultType, this.sort.and(sort), properties, finder,
+				countOperation, existsOperation, entityManager, escapeCharacter);
 	}
 
 	@Override
@@ -168,7 +168,7 @@ class FetchableFluentQueryByExample<S, R> extends FluentQuerySupport<S, R> imple
 		TypedQuery<S> pagedQuery = createSortedAndProjectedQuery();
 
 		if (pageable.isPaged()) {
-			pagedQuery.setFirstResult((int) pageable.getOffset());
+			pagedQuery.setFirstResult(PageableUtils.getOffsetAsInteger(pageable));
 			pagedQuery.setMaxResults(pageable.getPageSize());
 		}
 
