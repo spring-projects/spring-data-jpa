@@ -18,6 +18,7 @@ package org.springframework.data.jpa.repository.query;
 import jakarta.persistence.Query;
 
 import org.springframework.data.jpa.repository.query.QueryParameterSetter.ErrorHandling;
+import org.springframework.data.jpa.support.PageableUtils;
 import org.springframework.util.Assert;
 
 /**
@@ -99,7 +100,7 @@ public class ParameterBinder {
 			return query;
 		}
 
-		query.setFirstResult((int) accessor.getPageable().getOffset());
+		query.setFirstResult(PageableUtils.getOffsetAsInteger(accessor.getPageable()));
 		query.setMaxResults(accessor.getPageable().getPageSize());
 
 		return query;

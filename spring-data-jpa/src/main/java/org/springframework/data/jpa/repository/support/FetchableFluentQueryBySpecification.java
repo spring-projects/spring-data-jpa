@@ -31,6 +31,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.support.PageableUtils;
 import org.springframework.data.repository.query.FluentQuery;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.util.Assert;
@@ -170,7 +171,7 @@ class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySupport<S, R>
 		TypedQuery<S> pagedQuery = createSortedAndProjectedQuery();
 
 		if (pageable.isPaged()) {
-			pagedQuery.setFirstResult((int) pageable.getOffset());
+			pagedQuery.setFirstResult(PageableUtils.getOffsetAsInteger(pageable));
 			pagedQuery.setMaxResults(pageable.getPageSize());
 		}
 
