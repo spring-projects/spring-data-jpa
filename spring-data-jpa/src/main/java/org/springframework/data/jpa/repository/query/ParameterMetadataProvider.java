@@ -237,6 +237,10 @@ class ParameterMetadataProvider {
 
 			Class<? extends T> expressionType = expression.getJavaType();
 
+			if (expressionType == null) {
+				return value;
+			}
+
 			if (String.class.equals(expressionType)) {
 
 				switch (type) {
