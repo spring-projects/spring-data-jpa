@@ -28,6 +28,7 @@ import org.springframework.data.repository.core.NamedQueries;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.data.repository.query.QueryLookupStrategy.Key;
+import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.lang.Nullable;
@@ -46,6 +47,12 @@ import org.springframework.util.StringUtils;
 public final class JpaQueryLookupStrategy {
 
 	private static final Log LOG = LogFactory.getLog(JpaQueryLookupStrategy.class);
+
+	/**
+	 * A null-value instance used to signal if no declared query could be found. It checks many different formats before
+	 * falling through to this value object.
+	 */
+	private static final RepositoryQuery NO_QUERY = new NoQuery();
 
 	/**
 	 * Private constructor to prevent instantiation.
@@ -172,12 +179,9 @@ public final class JpaQueryLookupStrategy {
 
 			RepositoryQuery query = NamedQuery.lookupFrom(method, em);
 
-			if (null != query) {
-				return query;
-			}
-
-			throw new IllegalStateException(
-					String.format("Did neither find a NamedQuery nor an annotated query for method %s!", method));
+			return query != null //
+					? query //
+					: NO_QUERY;
 		}
 
 		@Nullable
@@ -245,11 +249,13 @@ public final class JpaQueryLookupStrategy {
 		protected RepositoryQuery resolveQuery(JpaQueryMethod method, QueryRewriter queryRewriter, EntityManager em,
 				NamedQueries namedQueries) {
 
-			try {
-				return lookupStrategy.resolveQuery(method, queryRewriter, em, namedQueries);
-			} catch (IllegalStateException e) {
-				return createStrategy.resolveQuery(method, queryRewriter, em, namedQueries);
+			RepositoryQuery lookupQuery = lookupStrategy.resolveQuery(method, queryRewriter, em, namedQueries);
+
+			if (lookupQuery != NO_QUERY) {
+				return lookupQuery;
 			}
+
+			return createStrategy.resolveQuery(method, queryRewriter, em, namedQueries);
 		}
 	}
 
@@ -282,6 +288,22 @@ public final class JpaQueryLookupStrategy {
 						queryRewriterProvider);
 			default:
 				throw new IllegalArgumentException(String.format("Unsupported query lookup strategy %s!", key));
+		}
+	}
+
+	/**
+	 * A null value type that represents the lack of a defined query.
+	 */
+	static class NoQuery implements RepositoryQuery {
+
+		@Override
+		public Object execute(Object[] parameters) {
+			throw new IllegalStateException("NoQuery should not be executed!");
+		}
+
+		@Override
+		public QueryMethod getQueryMethod() {
+			throw new IllegalStateException("NoQuery does not have a QueryMethod!");
 		}
 	}
 }

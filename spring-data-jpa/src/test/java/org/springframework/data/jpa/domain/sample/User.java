@@ -15,12 +15,12 @@
  */
 package org.springframework.data.jpa.domain.sample;
 
+import jakarta.persistence.*;
+
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
-
-import jakarta.persistence.*;
 
 /**
  * Domain class representing a person emphasizing the use of {@code AbstractEntity}. No declaration of an id is
@@ -32,6 +32,7 @@ import jakarta.persistence.*;
  * @author Jens Schauder
  * @author Jeff Sheets
  * @author JyotirmoyVS
+ * @author Greg Turnquist
  */
 @Entity
 @NamedEntityGraphs({ @NamedEntityGraph(name = "User.overview", attributeNodes = { @NamedAttributeNode("roles") }),
@@ -91,7 +92,8 @@ import jakarta.persistence.*;
 @Table(name = "SD_User")
 public class User {
 
-	@Id @GeneratedValue(strategy = GenerationType.AUTO) private Integer id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.AUTO) private Integer id;
 	private String firstname;
 	private String lastname;
 	private int age;
