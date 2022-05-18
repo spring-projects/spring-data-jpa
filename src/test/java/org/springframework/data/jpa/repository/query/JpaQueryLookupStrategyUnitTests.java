@@ -33,7 +33,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -167,6 +166,30 @@ public class JpaQueryLookupStrategyUnitTests {
 		assertThat(repositoryQuery).isInstanceOf(AbstractStringBasedJpaQuery.class);
 	}
 
+	@Test // GH-2018
+	void namedQueryWithSortShouldThrowIllegalStateException() throws NoSuchMethodException {
+
+		QueryLookupStrategy strategy = JpaQueryLookupStrategy.create(em, queryMethodFactory, Key.CREATE_IF_NOT_FOUND,
+				EVALUATION_CONTEXT_PROVIDER, EscapeCharacter.DEFAULT);
+
+		Method method = UserRepository.class.getMethod("customNamedQuery", String.class, Sort.class);
+		RepositoryMetadata metadata = new DefaultRepositoryMetadata(UserRepository.class);
+
+		assertThatIllegalStateException()
+				.isThrownBy(() -> strategy.resolveQuery(method, metadata, projectionFactory, namedQueries))
+				.withMessageContaining(
+						"is backed by a NamedQuery and must not contain a sort parameter as we cannot modify the query! Use @Query instead!");
+	}
+
+	@Test // GH-2018
+	void noQueryShouldNotBeInvoked() {
+
+		RepositoryQuery query = new JpaQueryLookupStrategy.NoQuery();
+
+		assertThatIllegalStateException().isThrownBy(() -> query.execute(new Object[] {}));
+		assertThatIllegalStateException().isThrownBy(() -> query.getQueryMethod());
+	}
+
 	interface UserRepository extends Repository<User, Integer> {
 
 		@Query("something absurd")
@@ -183,5 +206,8 @@ public class JpaQueryLookupStrategyUnitTests {
 
 		@Query(value = "something absurd", name = "my-query-name")
 		User annotatedQueryWithQueryAndQueryName();
+
+		// This is a named query with Sort parameter, which isn't supported
+		List<User> customNamedQuery(String firstname, Sort sort);
 	}
 }
