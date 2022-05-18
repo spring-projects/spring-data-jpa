@@ -21,13 +21,13 @@ import javax.persistence.EntityManager;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.core.NamedQueries;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.data.repository.query.QueryLookupStrategy.Key;
+import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.lang.Nullable;
@@ -45,6 +45,12 @@ import org.springframework.util.StringUtils;
 public final class JpaQueryLookupStrategy {
 
 	private static final Log LOG = LogFactory.getLog(JpaQueryLookupStrategy.class);
+
+	/**
+	 * A null-value instance used to signal if no declared query could be found. It checks many different formats before
+	 * falling through to this value object.
+	 */
+	private static final RepositoryQuery NO_QUERY = new NoQuery();
 
 	/**
 	 * Private constructor to prevent instantiation.
@@ -161,24 +167,20 @@ public final class JpaQueryLookupStrategy {
 				}
 
 				return JpaQueryFactory.INSTANCE.fromMethodWithQueryString(method, em, method.getRequiredAnnotatedQuery(),
-						getCountQuery(method, namedQueries, em),
-						evaluationContextProvider);
+						getCountQuery(method, namedQueries, em), evaluationContextProvider);
 			}
 
 			String name = method.getNamedQueryName();
 			if (namedQueries.hasQuery(name)) {
-				return JpaQueryFactory.INSTANCE.fromMethodWithQueryString(method, em, namedQueries.getQuery(name), getCountQuery(method, namedQueries, em),
-						evaluationContextProvider);
+				return JpaQueryFactory.INSTANCE.fromMethodWithQueryString(method, em, namedQueries.getQuery(name),
+						getCountQuery(method, namedQueries, em), evaluationContextProvider);
 			}
 
 			RepositoryQuery query = NamedQuery.lookupFrom(method, em);
 
-			if (null != query) {
-				return query;
-			}
-
-			throw new IllegalStateException(
-					String.format("Did neither find a NamedQuery nor an annotated query for method %s!", method));
+			return query != null //
+					? query //
+					: NO_QUERY;
 		}
 
 		@Nullable
@@ -248,11 +250,13 @@ public final class JpaQueryLookupStrategy {
 		@Override
 		protected RepositoryQuery resolveQuery(JpaQueryMethod method, EntityManager em, NamedQueries namedQueries) {
 
-			try {
-				return lookupStrategy.resolveQuery(method, em, namedQueries);
-			} catch (IllegalStateException e) {
-				return createStrategy.resolveQuery(method, em, namedQueries);
+			RepositoryQuery lookupQuery = lookupStrategy.resolveQuery(method, em, namedQueries);
+
+			if (lookupQuery != NO_QUERY) {
+				return lookupQuery;
 			}
+
+			return createStrategy.resolveQuery(method, em, namedQueries);
 		}
 	}
 
@@ -284,6 +288,22 @@ public final class JpaQueryLookupStrategy {
 						new DeclaredQueryLookupStrategy(em, queryMethodFactory, evaluationContextProvider));
 			default:
 				throw new IllegalArgumentException(String.format("Unsupported query lookup strategy %s!", key));
+		}
+	}
+
+	/**
+	 * A null value type that represents the lack of a defined query.
+	 */
+	static class NoQuery implements RepositoryQuery {
+
+		@Override
+		public Object execute(Object[] parameters) {
+			throw new IllegalStateException("NoQuery should not be executed!");
+		}
+
+		@Override
+		public QueryMethod getQueryMethod() {
+			throw new IllegalStateException("NoQuery does not have a QueryMethod!");
 		}
 	}
 }

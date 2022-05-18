@@ -32,6 +32,7 @@ import javax.persistence.*;
  * @author Jens Schauder
  * @author Jeff Sheets
  * @author JyotirmoyVS
+ * @author Greg Turnquist
  */
 @Entity
 @NamedEntityGraphs({ @NamedEntityGraph(name = "User.overview", attributeNodes = { @NamedAttributeNode("roles") }),
@@ -91,7 +92,8 @@ import javax.persistence.*;
 @Table(name = "SD_User")
 public class User {
 
-	@Id @GeneratedValue(strategy = GenerationType.AUTO) private Integer id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.AUTO) private Integer id;
 	private String firstname;
 	private String lastname;
 	private int age;
