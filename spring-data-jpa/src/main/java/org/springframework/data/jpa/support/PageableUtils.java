@@ -19,7 +19,7 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Pageable;
 
 /**
- * Provide a set of utility methods to support interfacing {@link Pageable}s.
+ * Provide a set of utility methods to support {@link Pageable}s.
  *
  * @author Greg Turnquist
  * @since 3.0
