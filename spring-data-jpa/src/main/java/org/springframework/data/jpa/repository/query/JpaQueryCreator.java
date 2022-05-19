@@ -100,9 +100,10 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extend
 	 */
 	protected CriteriaQuery<? extends Object> createCriteriaQuery(CriteriaBuilder builder, ReturnedType type) {
 
-		Class<?> typeToRead = type.getTypeToRead();
+		Class<?> typeToRead = tree.isDelete() ? type.getDomainType() : type.getTypeToRead();
 
-		return typeToRead == null || tree.isExistsProjection() ? builder.createTupleQuery()
+		return (typeToRead == null) || tree.isExistsProjection() //
+				? builder.createTupleQuery() //
 				: builder.createQuery(typeToRead);
 	}
 

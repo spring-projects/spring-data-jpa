@@ -48,13 +48,16 @@ public class JpaCountQueryCreator extends JpaQueryCreator {
 	 */
 	public JpaCountQueryCreator(PartTree tree, ReturnedType type, CriteriaBuilder builder,
 			ParameterMetadataProvider provider) {
+
 		super(tree, type, builder, provider);
+
 		this.distinct = tree.isDistinct();
 	}
 
 	@Override
 	protected CriteriaQuery<? extends Object> createCriteriaQuery(CriteriaBuilder builder, ReturnedType type) {
-		return builder.createQuery(type.getDomainType());
+
+		return builder.createQuery(Long.class);
 	}
 
 	@Override
