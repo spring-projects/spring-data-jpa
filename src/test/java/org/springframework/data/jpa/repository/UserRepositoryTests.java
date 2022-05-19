@@ -94,7 +94,10 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Andrey Kovalev
  * @author Sander Krabbenborg
  * @author Jesse Wouters
- * @author Greg Turnquist
+ * @author Greg Turnquist <<<<<<< HEAD =======
+ * @author Diego Krupitza
+ * @author Daniel Shuy
+ * @author Simon Paradies >>>>>>> 0cef764d (Fix order by clauses for functions with positional and named arguments.)
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:application-context.xml")
@@ -2654,6 +2657,16 @@ public class UserRepositoryTests {
 		flushTestUsers();
 
 		assertThat(repository.findAllInterfaceProjectedBy()).hasSize(4);
+	}
+
+	@Test // GH-2045, GH-425
+	public void correctlyBuildSortClauseWhenSortingByFunctionAliasAndFunctionContainsPositionalParameters() {
+		repository.findAllAndSortByFunctionResultPositionalParameter("prefix", "suffix", Sort.by("idWithPrefixAndSuffix"));
+	}
+
+	@Test // GH-2045, GH-425
+	public void correctlyBuildSortClauseWhenSortingByFunctionAliasAndFunctionContainsNamedParameters() {
+		repository.findAllAndSortByFunctionResultNamedParameter("prefix", "suffix", Sort.by("idWithPrefixAndSuffix"));
 	}
 
 	private Page<User> executeSpecWithSort(Sort sort) {
