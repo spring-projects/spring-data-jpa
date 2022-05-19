@@ -735,4 +735,77 @@ class QueryUtilsUnitTests {
 		assertThat(countQueryFor)
 				.isEqualTo("select count(us) FROM users_statuses us WHERE (user_created_at BETWEEN :fromDate AND :toDate)");
 	}
+
+	@Test // GH-2496, GH-2522, GH-2537, GH-2045
+	void orderByShouldWorkWithSubSelectStatements() {
+
+		Sort sort = Sort.by(Order.desc("age"));
+
+		assertThat(QueryUtils.applySorting("SELECT\n" //
+				+ "   foo_bar.*\n" //
+				+ "FROM\n" //
+				+ "    foo foo\n" //
+				+ "INNER JOIN\n" //
+				+ "   foo_bar_dnrmv foo_bar ON\n" //
+				+ "   foo_bar.foo_id = foo.foo_id\n" //
+				+ "INNER JOIN\n" //
+				+ " (\n" //
+				+ "  SELECT\n" //
+				+ "       foo_bar_action.*,\n" //
+				+ "       RANK() OVER (PARTITION BY \"foo_bar_action\".attributes->>'baz' ORDER BY \"foo_bar_action\".attributes->>'qux' DESC) AS ranking\n" //
+				+ "  FROM\n" //
+				+ "      foo_bar_action\n" //
+				+ "  WHERE\n" //
+				+ "       foo_bar_action.deleted_ts IS NULL)\n" //
+				+ "    foo_bar_action ON\n" //
+				+ "  foo_bar.foo_bar_id = foo_bar_action.foo_bar_id\n" //
+				+ "  AND ranking = 1\n" //
+				+ "INNER JOIN\n" //
+				+ "  bar bar ON\n" //
+				+ "  foo_bar.bar_id = bar.bar_id\n" //
+				+ "INNER JOIN\n" //
+				+ "  bar_metadata bar_metadata ON\n" //
+				+ "  bar.bar_metadata_key = bar_metadata.bar_metadata_key\n" //
+				+ "WHERE\n" //
+				+ "  foo.tenant_id =:tenantId\n" //
+				+ "AND (foo.attributes ->> :serialNum IN (:serialNumValue))", sort)).endsWith("order by foo.age desc");
+
+		assertThat(QueryUtils.applySorting("select r " //
+				+ "From DataRecord r " //
+				+ "where " //
+				+ " ( " //
+				+ "       r.adusrId = :userId " //
+				+ "       or EXISTS( select 1 FROM DataRecordDvsRight dr WHERE dr.adusrId = :userId AND dr.dataRecord = r ) " //
+				+ ")", sort)).endsWith("order by r.age desc");
+
+		assertThat(QueryUtils.applySorting("select distinct u " //
+				+ "from FooBar u " //
+				+ "where [REDACTED] " //
+				+ "and (" //
+				+ "		not exists (" //
+				+ "				from FooBarGroup group " //
+				+ "				where group in :excludedGroups " //
+				+ "				and group in elements(u.groups)" //
+				+ "		)" //
+				+ ")", sort)).endsWith("order by u.age desc");
+
+		assertThat(QueryUtils.applySorting("SELECT i " //
+				+ "FROM Item i " //
+				+ "FETCH ALL PROPERTIES \" " //
+				+ "+ \"WHERE i.id IN (\" " //
+				+ "+ \"SELECT max(i2.id) FROM Item i2 \" " //
+				+ "+ \"WHERE i2.field.id = :fieldId \" " //
+				+ "+ \"GROUP BY i2.field.id, i2.version)", sort)).endsWith("order by i.age desc");
+
+		assertThat(QueryUtils.applySorting("select \n" //
+				+ " f.id,\n" //
+				+ " (\n" //
+				+ "  select timestamp from bar\n" //
+				+ "  where date(bar.timestamp) > '2022-05-21'\n" //
+				+ "  and bar.foo_id = f.id \n" //
+				+ "  order by date(bar.timestamp) desc\n" //
+				+ "  limit 1\n" //
+				+ ") as timestamp\n" //
+				+ "from foo f", sort)).endsWith("order by f.age desc");
+	}
 }
