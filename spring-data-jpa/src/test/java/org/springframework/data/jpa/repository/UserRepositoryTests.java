@@ -95,6 +95,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Greg Turnquist
  * @author Diego Krupitza
  * @author Daniel Shuy
+ * @author Simon Paradies
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:application-context.xml")
@@ -2875,6 +2876,16 @@ public class UserRepositoryTests {
 		assertThat(repository.delete(usersWithEInTheirName)).isEqualTo(3L);
 		long finalCount = repository.count();
 		assertThat(initialCount - finalCount).isEqualTo(3L);
+	}
+
+	@Test // GH-2045, GH-425
+	public void correctlyBuildSortClauseWhenSortingByFunctionAliasAndFunctionContainsPositionalParameters() {
+		repository.findAllAndSortByFunctionResultPositionalParameter("prefix", "suffix", Sort.by("idWithPrefixAndSuffix"));
+	}
+
+	@Test // GH-2045, GH-425
+	public void correctlyBuildSortClauseWhenSortingByFunctionAliasAndFunctionContainsNamedParameters() {
+		repository.findAllAndSortByFunctionResultNamedParameter("prefix", "suffix", Sort.by("idWithPrefixAndSuffix"));
 	}
 
 	private Page<User> executeSpecWithSort(Sort sort) {
