@@ -54,6 +54,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Andrey Kovalev
  * @author JyotirmoyVS
  * @author Greg Turnquist
+ * @author Simon Paradies
  */
 public interface UserRepository
 		extends JpaRepository<User, Integer>, JpaSpecificationExecutor<User>, UserRepositoryCustom {
@@ -624,6 +625,17 @@ public interface UserRepository
 
 	// GH-2408
 	List<NameOnly> findAllInterfaceProjectedBy();
+
+	// GH-2045, GH-425
+	@Query("select concat(?1,u.id,?2) as idWithPrefixAndSuffix from #{#entityName} u")
+	List<String> findAllAndSortByFunctionResultPositionalParameter(
+			@Param("positionalParameter1") String positionalParameter1,
+			@Param("positionalParameter2") String positionalParameter2, Sort sort);
+
+	// GH-2045, GH-425
+	@Query("select concat(:namedParameter1,u.id,:namedParameter2) as idWithPrefixAndSuffix from #{#entityName} u")
+	List<String> findAllAndSortByFunctionResultNamedParameter(@Param("namedParameter1") String namedParameter1,
+			@Param("namedParameter2") String namedParameter2, Sort sort);
 
 	interface RolesAndFirstname {
 
