@@ -18,32 +18,32 @@ import java.lang.reflect.Method;
 @ContextConfiguration("classpath:hjppa-test.xml")
 public class HibernateJpaParametersParameterAccessorUnitTests {
 
-    @Autowired
-    private EntityManager em;
+	@Autowired
+	private EntityManager em;
 
-    @Autowired
-    private PlatformTransactionManager transactionManager;
+	@Autowired
+	private PlatformTransactionManager transactionManager;
 
-    @Test
-    void withoutTransaction() throws NoSuchMethodException {
-        simpleTest();
-    }
+	@Test
+	void withoutTransaction() throws NoSuchMethodException {
+		simpleTest();
+	}
 
-    @Test
-    void withinTransaction() throws Exception {
-        final TransactionStatus tx = transactionManager.getTransaction(new DefaultTransactionDefinition());
-        try {
-            simpleTest();
-        } finally {
-            transactionManager.rollback(tx);
-        }
-    }
+	@Test
+	void withinTransaction() throws Exception {
+		final TransactionStatus tx = transactionManager.getTransaction(new DefaultTransactionDefinition());
+		try {
+			simpleTest();
+		} finally {
+			transactionManager.rollback(tx);
+		}
+	}
 
-    private void simpleTest() throws NoSuchMethodException {
-        final Method method = EntityManager.class.getMethod("flush");
-        final JpaParameters parameters = new JpaParameters(method);
-        final HibernateJpaParametersParameterAccessor accessor = new HibernateJpaParametersParameterAccessor(parameters, new Object[]{}, em);
-        Assertions.assertEquals(0, accessor.getValues().length);
-        Assertions.assertEquals(parameters, accessor.getParameters());
-    }
+	private void simpleTest() throws NoSuchMethodException {
+		final Method method = EntityManager.class.getMethod("flush");
+		final JpaParameters parameters = new JpaParameters(method);
+		final HibernateJpaParametersParameterAccessor accessor = new HibernateJpaParametersParameterAccessor(parameters, new Object[]{}, em);
+		Assertions.assertEquals(0, accessor.getValues().length);
+		Assertions.assertEquals(parameters, accessor.getParameters());
+	}
 }
