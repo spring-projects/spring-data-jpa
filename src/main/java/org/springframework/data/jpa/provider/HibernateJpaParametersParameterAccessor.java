@@ -17,7 +17,7 @@ package org.springframework.data.jpa.provider;
 
 import javax.persistence.EntityManager;
 
-import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.hibernate.TypeHelper;
 import org.hibernate.jpa.TypedParameterValue;
 import org.hibernate.type.Type;
@@ -50,8 +50,7 @@ class HibernateJpaParametersParameterAccessor extends JpaParametersParameterAcce
 
 		super(parameters, values);
 
-		Session session = em.unwrap(Session.class);
-		this.typeHelper = session.getSessionFactory().getTypeHelper();
+		this.typeHelper = em.getEntityManagerFactory().unwrap(SessionFactory.class).getTypeHelper();
 	}
 
 	@Override
