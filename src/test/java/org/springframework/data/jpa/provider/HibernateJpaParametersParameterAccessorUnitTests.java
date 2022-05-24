@@ -15,6 +15,11 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 
+/**
+ * Unit tests for {@link HibernateJpaParametersParameterAccessor}.
+ *
+ * @author Cedomir Igaly
+ */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:hjppa-test.xml")
 public class HibernateJpaParametersParameterAccessorUnitTests {
@@ -25,23 +30,25 @@ public class HibernateJpaParametersParameterAccessorUnitTests {
 
 	@Test
 	void withoutTransaction() throws NoSuchMethodException {
-		simpleTest();
+		parametersCanGetAccessesOutsideTransaction();
 	}
 
 	@Test
 	void withinTransaction() throws Exception {
-		final TransactionStatus tx = transactionManager.getTransaction(new DefaultTransactionDefinition());
+
+		TransactionStatus tx = transactionManager.getTransaction(new DefaultTransactionDefinition());
 		try {
-			simpleTest();
+			parametersCanGetAccessesOutsideTransaction();
 		} finally {
 			transactionManager.rollback(tx);
 		}
 	}
 
-	private void simpleTest() throws NoSuchMethodException {
-		final Method method = EntityManager.class.getMethod("flush");
-		final JpaParameters parameters = new JpaParameters(method);
-		final HibernateJpaParametersParameterAccessor accessor = new HibernateJpaParametersParameterAccessor(parameters,
+	private void parametersCanGetAccessesOutsideTransaction() throws NoSuchMethodException {
+
+		Method method = EntityManager.class.getMethod("flush");
+		JpaParameters parameters = new JpaParameters(method);
+		HibernateJpaParametersParameterAccessor accessor = new HibernateJpaParametersParameterAccessor(parameters,
 				new Object[] {}, em);
 		Assertions.assertEquals(0, accessor.getValues().length);
 		Assertions.assertEquals(parameters, accessor.getParameters());

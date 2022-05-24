@@ -33,6 +33,7 @@ import org.springframework.data.repository.query.ParametersParameterAccessor;
  *
  * @author Wonchul Heo
  * @author Jens Schauder
+ * @author Cedomir Igaly
  * @since 2.7
  */
 class HibernateJpaParametersParameterAccessor extends JpaParametersParameterAccessor {
