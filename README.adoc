@@ -179,7 +179,7 @@ The generated documentation is available from `target/site/reference/html/index.
 The https://spring.io/[spring.io] site contains several guides that show how to use Spring Data step-by-step:
 
 * https://spring.io/guides/gs/accessing-data-jpa/[Accessing Data with JPA]: Learn how to work with JPA data persistence using Spring Data JPA.
-* https://spring.io/guides/gs/accessing-jpa-data-rest/[Accessing JPA Data with REST] is a guide to creating a REST web service exposing data stored with JPA through repositories.
+* https://spring.io/guides/gs/accessing-data-rest/[Accessing JPA Data with REST] is a guide to creating a REST web service exposing data stored with JPA through repositories.
 
 == Examples
 
