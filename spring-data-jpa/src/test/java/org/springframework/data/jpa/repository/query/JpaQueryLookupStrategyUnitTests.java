@@ -193,6 +193,42 @@ public class JpaQueryLookupStrategyUnitTests {
 		assertThatIllegalStateException().isThrownBy(() -> query.getQueryMethod());
 	}
 
+	@Test // GH-2551
+	void customQueryWithQuestionMarksShouldWork() throws NoSuchMethodException {
+
+		QueryLookupStrategy strategy = JpaQueryLookupStrategy.create(em, queryMethodFactory, Key.CREATE_IF_NOT_FOUND,
+				EVALUATION_CONTEXT_PROVIDER, new BeanFactoryQueryRewriterProvider(beanFactory), EscapeCharacter.DEFAULT);
+
+		Method namedMethod = UserRepository.class.getMethod("customQueryWithQuestionMarksAndNamedParam", String.class);
+		RepositoryMetadata namedMetadata = new DefaultRepositoryMetadata(UserRepository.class);
+
+		strategy.resolveQuery(namedMethod, namedMetadata, projectionFactory, namedQueries);
+
+		assertThatIllegalArgumentException().isThrownBy(() -> {
+
+			Method jdbcStyleMethod = UserRepository.class.getMethod("customQueryWithQuestionMarksAndJdbcStyleParam",
+					String.class);
+			RepositoryMetadata jdbcStyleMetadata = new DefaultRepositoryMetadata(UserRepository.class);
+
+			strategy.resolveQuery(jdbcStyleMethod, jdbcStyleMetadata, projectionFactory, namedQueries);
+		}).withMessageContaining("JDBC style parameters (?) are not supported for JPA queries.");
+
+		Method jpaStyleMethod = UserRepository.class.getMethod("customQueryWithQuestionMarksAndNumberedStyleParam",
+				String.class);
+		RepositoryMetadata jpaStyleMetadata = new DefaultRepositoryMetadata(UserRepository.class);
+
+		strategy.resolveQuery(jpaStyleMethod, jpaStyleMetadata, projectionFactory, namedQueries);
+
+		assertThatIllegalArgumentException().isThrownBy(() -> {
+
+			Method jpaAndJdbcStyleMethod = UserRepository.class
+					.getMethod("customQueryWithQuestionMarksAndJdbcStyleAndNumberedStyleParam", String.class, String.class);
+			RepositoryMetadata jpaAndJdbcMetadata = new DefaultRepositoryMetadata(UserRepository.class);
+
+			strategy.resolveQuery(jpaAndJdbcStyleMethod, jpaAndJdbcMetadata, projectionFactory, namedQueries);
+		}).withMessageContaining("Mixing of ? parameters and other forms like ?1 is not supported");
+	}
+
 	interface UserRepository extends Repository<User, Integer> {
 
 		@Query("something absurd")
@@ -209,6 +245,18 @@ public class JpaQueryLookupStrategyUnitTests {
 
 		@Query(value = "something absurd", name = "my-query-name")
 		User annotatedQueryWithQueryAndQueryName();
+
+		@Query("SELECT * FROM table WHERE (json_col->'jsonKey')::jsonb \\?\\? :param ")
+		List<User> customQueryWithQuestionMarksAndNamedParam(String param);
+
+		@Query("SELECT * FROM table WHERE (json_col->'jsonKey')::jsonb \\?\\? ? ")
+		List<User> customQueryWithQuestionMarksAndJdbcStyleParam(String param);
+
+		@Query("SELECT * FROM table WHERE (json_col->'jsonKey')::jsonb \\?\\? ?1 ")
+		List<User> customQueryWithQuestionMarksAndNumberedStyleParam(String param);
+
+		@Query("SELECT * FROM table WHERE (json_col->'jsonKey')::jsonb \\?\\? ?1 and other_col = ? ")
+		List<User> customQueryWithQuestionMarksAndJdbcStyleAndNumberedStyleParam(String param1, String param2);
 
 		// This is a named query with Sort parameter, which isn't supported
 		List<User> customNamedQuery(String firstname, Sort sort);

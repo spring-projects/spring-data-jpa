@@ -47,6 +47,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Paluch
  * @author Jens Schauder
  * @author Diego Krupitza
+ * @author Greg Turnquist
  */
 class StringQuery implements DeclaredQuery {
 
@@ -165,6 +166,10 @@ class StringQuery implements DeclaredQuery {
 		// .............................................................^ start with a question mark.
 		private static final Pattern PARAMETER_BINDING_BY_INDEX = Pattern.compile(POSITIONAL_OR_INDEXED_PARAMETER);
 		private static final Pattern PARAMETER_BINDING_PATTERN;
+		private static final Pattern JDBC_STYLE_PARAM = Pattern.compile(" \\?(?!\\d)"); // <space>?[no digit]
+		private static final Pattern NUMBERED_STYLE_PARAM = Pattern.compile(" \\?(?=\\d)"); // <space>?[digit]
+		private static final Pattern NAMED_STYLE_PARAM = Pattern.compile(" :\\w+"); // <space>:[text]
+
 		private static final String MESSAGE = "Already found parameter binding with same index / parameter name but differing binding type! "
 				+ "Already have: %s, found %s! If you bind a parameter multiple times make sure they use the same binding.";
 		private static final int INDEXED_PARAMETER_GROUP = 4;
@@ -243,13 +248,13 @@ class StringQuery implements DeclaredQuery {
 				String expression = spelExtractor.getParameter(parameterName == null ? parameterIndexString : parameterName);
 				String replacement = null;
 
+				queryMeta.usesJdbcStyleParameters = JDBC_STYLE_PARAM.matcher(resultingQuery).find();
+				usesJpaStyleParameters = NUMBERED_STYLE_PARAM.matcher(resultingQuery).find()
+						|| NAMED_STYLE_PARAM.matcher(resultingQuery).find();
+
 				expressionParameterIndex++;
 				if ("".equals(parameterIndexString)) {
-
-					queryMeta.usesJdbcStyleParameters = true;
 					parameterIndex = expressionParameterIndex;
-				} else {
-					usesJpaStyleParameters = true;
 				}
 
 				if (usesJpaStyleParameters && queryMeta.usesJdbcStyleParameters) {
