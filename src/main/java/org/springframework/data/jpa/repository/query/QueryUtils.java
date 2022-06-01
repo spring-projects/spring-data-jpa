@@ -78,6 +78,7 @@ import org.springframework.util.StringUtils;
  * @author Jędrzej Biedrzycki
  * @author Darin Manica
  * @author Simon Paradies
+ * @author Michał Pachucki
  */
 public abstract class QueryUtils {
 
@@ -103,7 +104,7 @@ public abstract class QueryUtils {
 	private static final Pattern ALIAS_MATCH;
 	private static final Pattern COUNT_MATCH;
 	private static final Pattern STARTS_WITH_PAREN = Pattern.compile("^\\s*\\(");
-	private static final Pattern PARENS_TO_REMOVE = Pattern.compile("(\\(.*\\bfrom\\b[^)]+\\))", CASE_INSENSITIVE);
+	private static final Pattern PARENS_TO_REMOVE = Pattern.compile("(\\(.*\\bfrom\\b[^)]+\\))", CASE_INSENSITIVE | DOTALL);
 	private static final Pattern PROJECTION_CLAUSE = Pattern.compile("select\\s+(?:distinct\\s+)?(.+)\\s+from",
 			Pattern.CASE_INSENSITIVE);
 

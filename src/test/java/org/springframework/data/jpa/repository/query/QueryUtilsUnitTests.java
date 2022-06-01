@@ -45,6 +45,7 @@ import org.springframework.util.StringUtils;
  * @author Greg Turnquist
  * @author Jędrzej Biedrzycki
  * @author Darin Manica
+ * @author Michał Pachucki
  */
 class QueryUtilsUnitTests {
 
@@ -708,6 +709,15 @@ class QueryUtilsUnitTests {
 		assertThat(QueryUtils.applySorting(
 				"select * from (select * from user order by 1, 2, 3 desc limit 10) u order by u.active asc", sort)).isEqualTo(
 						"select * from (select * from user order by 1, 2, 3 desc limit 10) u order by u.active asc, age desc");
+	}
+
+	@Test
+	void applySortingAccountsForNewlinesInSubselect() {
+
+		Sort sort = Sort.by(Order.desc("age"));
+
+		assertThat(QueryUtils.applySorting("select u\nfrom user u\nwhere exists (select u2\nfrom user u2\n)\n", sort))
+				.isEqualTo("select u\nfrom user u\nwhere exists (select u2\nfrom user u2\n)\n order by u.age desc");
 	}
 
 	@Test // GH-2511
