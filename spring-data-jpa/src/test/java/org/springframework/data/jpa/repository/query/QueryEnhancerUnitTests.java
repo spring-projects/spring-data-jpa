@@ -731,6 +731,25 @@ class QueryEnhancerUnitTests {
 		assertThat(countQueryFor).isEqualTo("SELECT count(test) FROM (SELECT * FROM test) AS test");
 	}
 
+	@Test // GH-2555
+	void modifyingQueriesAreDetectedCorrectly() {
+		String modifyingQuery = "update userinfo user set user.is_in_treatment = false where user.id = :userId";
+
+		String aliasNotConsideringQueryType = QueryUtils.detectAlias(modifyingQuery);
+		String projectionNotConsideringQueryType = QueryUtils.getProjection(modifyingQuery);
+		boolean constructorExpressionNotConsideringQueryType = QueryUtils.hasConstructorExpression(modifyingQuery);
+		String countQueryForNotConsiderQueryType = QueryUtils.createCountQueryFor(modifyingQuery);
+
+		StringQuery modiQuery = new StringQuery(modifyingQuery, true);
+
+		assertThat(modiQuery.getAlias()).isEqualToIgnoringCase(aliasNotConsideringQueryType);
+		assertThat(modiQuery.getProjection()).isEqualToIgnoringCase(projectionNotConsideringQueryType);
+		assertThat(modiQuery.hasConstructorExpression()).isEqualTo(constructorExpressionNotConsideringQueryType);
+
+		assertThat(countQueryForNotConsiderQueryType).isEqualToIgnoringCase(modifyingQuery);
+		assertThat(QueryEnhancerFactory.forQuery(modiQuery).createCountQueryFor()).isEqualToIgnoringCase(modifyingQuery);
+	}
+
 	public static Stream<Arguments> detectsJoinAliasesCorrectlySource() {
 
 		return Stream.of( //
