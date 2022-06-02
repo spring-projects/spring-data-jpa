@@ -637,6 +637,11 @@ public interface UserRepository
 	List<String> findAllAndSortByFunctionResultNamedParameter(@Param("namedParameter1") String namedParameter1,
 			@Param("namedParameter2") String namedParameter2, Sort sort);
 
+	// GH-2555
+	@Modifying(clearAutomatically = true)
+	@Query(value = "update SD_User u set u.active = false where u.id = :userId", nativeQuery = true)
+	void setActiveToFalseWithModifyingNative(@Param("userId") int userId);
+
 	interface RolesAndFirstname {
 
 		String getFirstname();

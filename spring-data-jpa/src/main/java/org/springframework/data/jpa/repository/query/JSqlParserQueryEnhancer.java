@@ -24,11 +24,14 @@ import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.Function;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.schema.Column;
+import net.sf.jsqlparser.statement.Statement;
+import net.sf.jsqlparser.statement.delete.Delete;
 import net.sf.jsqlparser.statement.select.OrderByElement;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.select.SelectExpressionItem;
 import net.sf.jsqlparser.statement.select.SelectItem;
+import net.sf.jsqlparser.statement.update.Update;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -54,19 +57,48 @@ import org.springframework.util.StringUtils;
 public class JSqlParserQueryEnhancer implements QueryEnhancer {
 
 	private final DeclaredQuery query;
+	private final ParsedType parsedType;
 
 	/**
 	 * @param query the query we want to enhance. Must not be {@literal null}.
 	 */
 	public JSqlParserQueryEnhancer(DeclaredQuery query) {
 		this.query = query;
+		this.parsedType = detectParsedType();
+	}
+
+	/**
+	 * Detects what type of query is provided.
+	 * 
+	 * @return the parsed type
+	 */
+	private ParsedType detectParsedType() {
+		try {
+			Statement statement = CCJSqlParserUtil.parse(this.query.getQueryString());
+
+			if (statement instanceof Update) {
+				return ParsedType.UPDATE;
+			} else if (statement instanceof Delete) {
+				return ParsedType.DELETE;
+			} else if (statement instanceof Select) {
+				return ParsedType.SELECT;
+			} else {
+				return ParsedType.SELECT;
+			}
+
+		} catch (JSQLParserException e) {
+			throw new IllegalArgumentException("The query you provided is not a valid SQL Query!", e);
+		}
 	}
 
 	@Override
 	public String applySorting(Sort sort, @Nullable String alias) {
-
 		String queryString = query.getQueryString();
 		Assert.hasText(queryString, "Query must not be null or empty!");
+
+		if (this.parsedType != ParsedType.SELECT) {
+			return queryString;
+		}
 
 		if (sort.isUnsorted()) {
 			return queryString;
@@ -120,6 +152,10 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 	 */
 	Set<String> getSelectionAliases() {
 
+		if (this.parsedType != ParsedType.SELECT) {
+			return new HashSet<>();
+		}
+
 		Select selectStatement = parseSelectStatement(this.query.getQueryString());
 		PlainSelect selectBody = (PlainSelect) selectStatement.getSelectBody();
 		return this.getSelectionAliases(selectBody);
@@ -132,6 +168,9 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 	 * @return a {@literal Set} of aliases used in the query. Guaranteed to be not {@literal null}.
 	 */
 	private Set<String> getJoinAliases(String query) {
+		if (this.parsedType != ParsedType.SELECT) {
+			return new HashSet<>();
+		}
 		return getJoinAliases((PlainSelect) parseSelectStatement(query).getSelectBody());
 	}
 
@@ -211,6 +250,10 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 	@Nullable
 	private String detectAlias(String query) {
 
+		if (this.parsedType != ParsedType.SELECT) {
+			return null;
+		}
+
 		Select selectStatement = parseSelectStatement(query);
 		PlainSelect selectBody = (PlainSelect) selectStatement.getSelectBody();
 		return detectAlias(selectBody);
@@ -232,6 +275,10 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 
 	@Override
 	public String createCountQueryFor(@Nullable String countProjection) {
+
+		if (this.parsedType != ParsedType.SELECT) {
+			return this.query.getQueryString();
+		}
 
 		Assert.hasText(this.query.getQueryString(), "OriginalQuery must not be null or empty!");
 
@@ -277,6 +324,10 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 
 	@Override
 	public String getProjection() {
+
+		if (this.parsedType != ParsedType.SELECT) {
+			return "";
+		}
 
 		Assert.hasText(query.getQueryString(), "Query must not be null or empty!");
 
@@ -326,4 +377,16 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 	public DeclaredQuery getQuery() {
 		return this.query;
 	}
+}
+
+/**
+ * An enum to represent the top level parsed statement of the provided query.
+ * <ul>
+ * <li>{@code ParsedType.DELETE}: means the top level statement is {@link Delete}</li>
+ * <li>{@code ParsedType.UPDATE}: means the top level statement is {@link Update}</li>
+ * <li>{@code ParsedType.SELECT}: means the top level statement is {@link Select}</li>
+ * </ul>
+ */
+enum ParsedType {
+	DELETE, UPDATE, SELECT;
 }
