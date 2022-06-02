@@ -2678,6 +2678,19 @@ public class UserRepositoryTests {
 		assertThat(repository.exists(hundredYearsOld)).isTrue();
 	}
 
+	@Test // GH-2555
+	void modifyingUpdateNativeQueryWorksWithJSQLParser() {
+		flushTestUsers();
+
+		Optional<User> byIdUser = repository.findById(firstUser.getId());
+		assertThat(byIdUser).isPresent().map(User::isActive).get().isEqualTo(true);
+
+		repository.setActiveToFalseWithModifyingNative(byIdUser.get().getId());
+
+		Optional<User> afterUpdate = repository.findById(firstUser.getId());
+		assertThat(afterUpdate).isPresent().map(User::isActive).get().isEqualTo(false);
+	}
+
 	@Test // GH-2045, GH-425
 	public void correctlyBuildSortClauseWhenSortingByFunctionAliasAndFunctionContainsPositionalParameters() {
 		repository.findAllAndSortByFunctionResultPositionalParameter("prefix", "suffix", Sort.by("idWithPrefixAndSuffix"));
