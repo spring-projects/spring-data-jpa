@@ -733,6 +733,7 @@ class QueryEnhancerUnitTests {
 
 	@Test // GH-2555
 	void modifyingQueriesAreDetectedCorrectly() {
+
 		String modifyingQuery = "update userinfo user set user.is_in_treatment = false where user.id = :userId";
 
 		String aliasNotConsideringQueryType = QueryUtils.detectAlias(modifyingQuery);

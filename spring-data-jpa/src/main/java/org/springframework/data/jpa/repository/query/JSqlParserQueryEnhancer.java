@@ -63,16 +63,18 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 	 * @param query the query we want to enhance. Must not be {@literal null}.
 	 */
 	public JSqlParserQueryEnhancer(DeclaredQuery query) {
+
 		this.query = query;
 		this.parsedType = detectParsedType();
 	}
 
 	/**
 	 * Detects what type of query is provided.
-	 * 
+	 *
 	 * @return the parsed type
 	 */
 	private ParsedType detectParsedType() {
+
 		try {
 			Statement statement = CCJSqlParserUtil.parse(this.query.getQueryString());
 
@@ -85,7 +87,6 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 			} else {
 				return ParsedType.SELECT;
 			}
-
 		} catch (JSQLParserException e) {
 			throw new IllegalArgumentException("The query you provided is not a valid SQL Query!", e);
 		}
@@ -93,6 +94,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 
 	@Override
 	public String applySorting(Sort sort, @Nullable String alias) {
+
 		String queryString = query.getQueryString();
 		Assert.hasText(queryString, "Query must not be null or empty!");
 
@@ -168,9 +170,11 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 	 * @return a {@literal Set} of aliases used in the query. Guaranteed to be not {@literal null}.
 	 */
 	private Set<String> getJoinAliases(String query) {
+
 		if (this.parsedType != ParsedType.SELECT) {
 			return new HashSet<>();
 		}
+
 		return getJoinAliases((PlainSelect) parseSelectStatement(query).getSelectBody());
 	}
 
@@ -377,16 +381,17 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 	public DeclaredQuery getQuery() {
 		return this.query;
 	}
-}
 
-/**
- * An enum to represent the top level parsed statement of the provided query.
- * <ul>
- * <li>{@code ParsedType.DELETE}: means the top level statement is {@link Delete}</li>
- * <li>{@code ParsedType.UPDATE}: means the top level statement is {@link Update}</li>
- * <li>{@code ParsedType.SELECT}: means the top level statement is {@link Select}</li>
- * </ul>
- */
-enum ParsedType {
-	DELETE, UPDATE, SELECT;
+	/**
+	 * An enum to represent the top level parsed statement of the provided query.
+	 * <ul>
+	 * <li>{@code ParsedType.DELETE}: means the top level statement is {@link Delete}</li>
+	 * <li>{@code ParsedType.UPDATE}: means the top level statement is {@link Update}</li>
+	 * <li>{@code ParsedType.SELECT}: means the top level statement is {@link Select}</li>
+	 * </ul>
+	 */
+	enum ParsedType {
+		DELETE, UPDATE, SELECT;
+	}
+
 }
