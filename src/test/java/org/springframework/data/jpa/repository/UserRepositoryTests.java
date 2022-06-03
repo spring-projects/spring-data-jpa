@@ -2680,6 +2680,7 @@ public class UserRepositoryTests {
 
 	@Test // GH-2555
 	void modifyingUpdateNativeQueryWorksWithJSQLParser() {
+
 		flushTestUsers();
 
 		Optional<User> byIdUser = repository.findById(firstUser.getId());
