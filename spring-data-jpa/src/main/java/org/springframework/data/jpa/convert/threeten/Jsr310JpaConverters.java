@@ -15,6 +15,10 @@
  */
 package org.springframework.data.jpa.convert.threeten;
 
+import jakarta.persistence.AttributeConverter;
+import jakarta.persistence.Converter;
+
+import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -22,19 +26,17 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.Date;
 
-import jakarta.persistence.AttributeConverter;
-import jakarta.persistence.Converter;
-
-import org.springframework.data.convert.Jsr310Converters.DateToInstantConverter;
 import org.springframework.data.convert.Jsr310Converters.DateToLocalDateConverter;
 import org.springframework.data.convert.Jsr310Converters.DateToLocalDateTimeConverter;
 import org.springframework.data.convert.Jsr310Converters.DateToLocalTimeConverter;
-import org.springframework.data.convert.Jsr310Converters.InstantToDateConverter;
 import org.springframework.data.convert.Jsr310Converters.LocalDateTimeToDateConverter;
 import org.springframework.data.convert.Jsr310Converters.LocalDateToDateConverter;
 import org.springframework.data.convert.Jsr310Converters.LocalTimeToDateConverter;
 import org.springframework.data.convert.Jsr310Converters.StringToZoneIdConverter;
 import org.springframework.data.convert.Jsr310Converters.ZoneIdToStringConverter;
+import org.springframework.data.convert.ReadingConverter;
+import org.springframework.data.convert.WritingConverter;
+import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 
@@ -46,6 +48,7 @@ import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
  *
  * @author Oliver Gierke
  * @author Kevin Peters
+ * @author Greg Turnquist
  */
 public class Jsr310JpaConverters {
 
@@ -98,18 +101,18 @@ public class Jsr310JpaConverters {
 	}
 
 	@Converter(autoApply = true)
-	public static class InstantConverter implements AttributeConverter<Instant, Date> {
+	public static class InstantConverter implements AttributeConverter<Instant, Timestamp> {
 
 		@Nullable
 		@Override
-		public Date convertToDatabaseColumn(Instant instant) {
-			return instant == null ? null : InstantToDateConverter.INSTANCE.convert(instant);
+		public Timestamp convertToDatabaseColumn(Instant instant) {
+			return instant == null ? null : InstantToTimestampConverter.INSTANCE.convert(instant);
 		}
 
 		@Nullable
 		@Override
-		public Instant convertToEntityAttribute(Date date) {
-			return date == null ? null : DateToInstantConverter.INSTANCE.convert(date);
+		public Instant convertToEntityAttribute(Timestamp timestamp) {
+			return timestamp == null ? null : TimestampToInstantConverter.INSTANCE.convert(timestamp);
 		}
 	}
 
@@ -126,6 +129,30 @@ public class Jsr310JpaConverters {
 		@Override
 		public ZoneId convertToEntityAttribute(String zoneId) {
 			return zoneId == null ? null : StringToZoneIdConverter.INSTANCE.convert(zoneId);
+		}
+	}
+
+	@ReadingConverter
+	enum TimestampToInstantConverter implements org.springframework.core.convert.converter.Converter<Timestamp, Instant> {
+
+		INSTANCE;
+
+		@NonNull
+		@Override
+		public Instant convert(Timestamp source) {
+			return source.toInstant();
+		}
+	}
+
+	@WritingConverter
+	enum InstantToTimestampConverter implements org.springframework.core.convert.converter.Converter<Instant, Timestamp> {
+
+		INSTANCE;
+
+		@NonNull
+		@Override
+		public Timestamp convert(Instant source) {
+			return Timestamp.from(source);
 		}
 	}
 }
