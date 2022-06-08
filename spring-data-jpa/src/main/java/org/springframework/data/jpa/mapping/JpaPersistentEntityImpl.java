@@ -41,7 +41,7 @@ class JpaPersistentEntityImpl<T> extends BasicPersistentEntity<T, JpaPersistentP
 
 	private static final String INVALID_VERSION_ANNOTATION = "%s is annotated with "
 			+ org.springframework.data.annotation.Version.class.getName() + " but needs to use "
-			+ jakarta.persistence.Version.class.getName() + " to trigger optimistic locking correctly!";
+			+ jakarta.persistence.Version.class.getName() + " to trigger optimistic locking correctly";
 
 	private final ProxyIdAccessor proxyIdAccessor;
 	private final JpaMetamodel metamodel;
@@ -58,7 +58,7 @@ class JpaPersistentEntityImpl<T> extends BasicPersistentEntity<T, JpaPersistentP
 
 		super(information, null);
 
-		Assert.notNull(proxyIdAccessor, "ProxyIdAccessor must not be null!");
+		Assert.notNull(proxyIdAccessor, "ProxyIdAccessor must not be null");
 		this.proxyIdAccessor = proxyIdAccessor;
 		this.metamodel = metamodel;
 	}
@@ -113,7 +113,7 @@ class JpaPersistentEntityImpl<T> extends BasicPersistentEntity<T, JpaPersistentP
 
 			super(entity, bean);
 
-			Assert.notNull(proxyIdAccessor, "Proxy identifier accessor must not be null!");
+			Assert.notNull(proxyIdAccessor, "Proxy identifier accessor must not be null");
 
 			this.proxyIdAccessor = proxyIdAccessor;
 			this.bean = bean;

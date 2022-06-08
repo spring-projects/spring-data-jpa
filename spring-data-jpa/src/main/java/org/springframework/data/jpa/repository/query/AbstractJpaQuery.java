@@ -80,8 +80,8 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 	 */
 	public AbstractJpaQuery(JpaQueryMethod method, EntityManager em) {
 
-		Assert.notNull(method, "JpaQueryMethod must not be null!");
-		Assert.notNull(em, "EntityManager must not be null!");
+		Assert.notNull(method, "JpaQueryMethod must not be null");
+		Assert.notNull(em, "EntityManager must not be null");
 
 		this.method = method;
 		this.em = em;
@@ -198,8 +198,8 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 	 */
 	protected <T extends Query> void applyQueryHint(T query, QueryHint hint) {
 
-		Assert.notNull(query, "Query must not be null!");
-		Assert.notNull(hint, "QueryHint must not be null!");
+		Assert.notNull(query, "Query must not be null");
+		Assert.notNull(hint, "QueryHint must not be null");
 
 		query.setHint(hint.name(), hint.value());
 	}
@@ -297,7 +297,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 		 */
 		public TupleConverter(ReturnedType type) {
 
-			Assert.notNull(type, "Returned type must not be null!");
+			Assert.notNull(type, "Returned type must not be null");
 
 			this.type = type;
 		}
@@ -333,7 +333,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 		 */
 		private static class TupleBackedMap implements Map<String, Object> {
 
-			private static final String UNMODIFIABLE_MESSAGE = "A TupleBackedMap cannot be modified.";
+			private static final String UNMODIFIABLE_MESSAGE = "A TupleBackedMap cannot be modified";
 
 			private final Tuple tuple;
 

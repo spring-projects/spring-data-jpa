@@ -57,7 +57,7 @@ abstract class QueryParameterSetterFactory {
 	 */
 	static QueryParameterSetterFactory basic(JpaParameters parameters) {
 
-		Assert.notNull(parameters, "JpaParameters must not be null!");
+		Assert.notNull(parameters, "JpaParameters must not be null");
 
 		return new BasicQueryParameterSetterFactory(parameters);
 	}
@@ -72,8 +72,8 @@ abstract class QueryParameterSetterFactory {
 	 */
 	static QueryParameterSetterFactory forCriteriaQuery(JpaParameters parameters, List<ParameterMetadata<?>> metadata) {
 
-		Assert.notNull(parameters, "JpaParameters must not be null!");
-		Assert.notNull(metadata, "ParameterMetadata must not be null!");
+		Assert.notNull(parameters, "JpaParameters must not be null");
+		Assert.notNull(metadata, "ParameterMetadata must not be null");
 
 		return new CriteriaQueryParameterSetterFactory(parameters, metadata);
 	}
@@ -91,9 +91,9 @@ abstract class QueryParameterSetterFactory {
 	static QueryParameterSetterFactory parsing(SpelExpressionParser parser,
 			QueryMethodEvaluationContextProvider evaluationContextProvider, Parameters<?, ?> parameters) {
 
-		Assert.notNull(parser, "SpelExpressionParser must not be null!");
-		Assert.notNull(evaluationContextProvider, "EvaluationContextProvider must not be null!");
-		Assert.notNull(parameters, "Parameters must not be null!");
+		Assert.notNull(parser, "SpelExpressionParser must not be null");
+		Assert.notNull(evaluationContextProvider, "EvaluationContextProvider must not be null");
+		Assert.notNull(parameters, "Parameters must not be null");
 
 		return new ExpressionBasedQueryParameterSetterFactory(parser, evaluationContextProvider, parameters);
 	}
@@ -138,9 +138,9 @@ abstract class QueryParameterSetterFactory {
 		ExpressionBasedQueryParameterSetterFactory(SpelExpressionParser parser,
 				QueryMethodEvaluationContextProvider evaluationContextProvider, Parameters<?, ?> parameters) {
 
-			Assert.notNull(evaluationContextProvider, "EvaluationContextProvider must not be null!");
-			Assert.notNull(parser, "SpelExpressionParser must not be null!");
-			Assert.notNull(parameters, "Parameters must not be null!");
+			Assert.notNull(evaluationContextProvider, "EvaluationContextProvider must not be null");
+			Assert.notNull(parser, "SpelExpressionParser must not be null");
+			Assert.notNull(parameters, "Parameters must not be null");
 
 			this.evaluationContextProvider = evaluationContextProvider;
 			this.parser = parser;
@@ -192,7 +192,7 @@ abstract class QueryParameterSetterFactory {
 		 */
 		BasicQueryParameterSetterFactory(JpaParameters parameters) {
 
-			Assert.notNull(parameters, "JpaParameters must not be null!");
+			Assert.notNull(parameters, "JpaParameters must not be null");
 
 			this.parameters = parameters;
 		}
@@ -200,7 +200,7 @@ abstract class QueryParameterSetterFactory {
 		@Override
 		public QueryParameterSetter create(ParameterBinding binding, DeclaredQuery declaredQuery) {
 
-			Assert.notNull(binding, "Binding must not be null.");
+			Assert.notNull(binding, "Binding must not be null");
 
 			JpaParameter parameter;
 
@@ -214,7 +214,7 @@ abstract class QueryParameterSetterFactory {
 				Assert.isTrue( //
 						parameterIndex < bindableParameters.getNumberOfParameters(), //
 						() -> String.format( //
-								"At least %s parameter(s) provided but only %s parameter(s) present in query.", //
+								"At least %s parameter(s) provided but only %s parameter(s) present in query", //
 								binding.getRequiredPosition(), //
 								bindableParameters.getNumberOfParameters() //
 						) //
@@ -271,8 +271,8 @@ abstract class QueryParameterSetterFactory {
 		 */
 		CriteriaQueryParameterSetterFactory(JpaParameters parameters, List<ParameterMetadata<?>> metadata) {
 
-			Assert.notNull(parameters, "JpaParameters must not be null!");
-			Assert.notNull(metadata, "Expressions must not be null!");
+			Assert.notNull(parameters, "JpaParameters must not be null");
+			Assert.notNull(metadata, "Expressions must not be null");
 
 			this.parameters = parameters;
 			this.expressions = metadata;
@@ -286,7 +286,7 @@ abstract class QueryParameterSetterFactory {
 			Assert.isTrue( //
 					parameterIndex < expressions.size(), //
 					() -> String.format( //
-							"At least %s parameter(s) provided but only %s parameter(s) present in query.", //
+							"At least %s parameter(s) provided but only %s parameter(s) present in query", //
 							binding.getRequiredPosition(), //
 							expressions.size() //
 					) //
@@ -372,7 +372,7 @@ abstract class QueryParameterSetterFactory {
 			}
 
 			return parameter.isNamedParameter() //
-					? parameter.getName().orElseThrow(() -> new IllegalArgumentException("o_O parameter needs to have a name!")) //
+					? parameter.getName().orElseThrow(() -> new IllegalArgumentException("o_O parameter needs to have a name")) //
 					: null;
 		}
 	}

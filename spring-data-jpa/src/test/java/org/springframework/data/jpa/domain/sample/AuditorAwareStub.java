@@ -36,7 +36,7 @@ public class AuditorAwareStub implements AuditorAware<AuditableUser> {
 
 	public AuditorAwareStub(AuditableUserRepository repository) {
 
-		Assert.notNull(repository, "AuditableUserRepository must not be null!");
+		Assert.notNull(repository, "AuditableUserRepository must not be null");
 		this.repository = repository;
 	}
 

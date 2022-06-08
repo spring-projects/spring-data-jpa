@@ -133,8 +133,8 @@ public abstract class QueryUtils {
 	private static final Pattern FIELD_ALIAS_PATTERN;
 
 	private static final String UNSAFE_PROPERTY_REFERENCE = "Sort expression '%s' must only contain property references or "
-			+ "aliases used in the select clause. If you really want to use something other than that for sorting, please use "
-			+ "JpaSort.unsafe(…)!";
+			+ "aliases used in the select clause; If you really want to use something other than that for sorting, please use "
+			+ "JpaSort.unsafe(…)";
 
 	static {
 
@@ -231,7 +231,7 @@ public abstract class QueryUtils {
 	 */
 	public static String getQueryString(String template, String entityName) {
 
-		Assert.hasText(entityName, "Entity name must not be null or empty!");
+		Assert.hasText(entityName, "Entity name must not be null or empty");
 
 		return String.format(template, entityName);
 	}
@@ -257,7 +257,7 @@ public abstract class QueryUtils {
 	 */
 	public static String applySorting(String query, Sort sort, @Nullable String alias) {
 
-		Assert.hasText(query, "Query must not be null or empty!");
+		Assert.hasText(query, "Query must not be null or empty");
 
 		if (sort.isUnsorted()) {
 			return query;
@@ -518,9 +518,9 @@ public abstract class QueryUtils {
 
 	public static <T> Query applyAndBind(String queryString, Iterable<T> entities, EntityManager entityManager) {
 
-		Assert.notNull(queryString, "Querystring must not be null!");
-		Assert.notNull(entities, "Iterable of entities must not be null!");
-		Assert.notNull(entityManager, "EntityManager must not be null!");
+		Assert.notNull(queryString, "Querystring must not be null");
+		Assert.notNull(entities, "Iterable of entities must not be null");
+		Assert.notNull(entityManager, "EntityManager must not be null");
 
 		Iterator<T> iterator = entities.iterator();
 
@@ -581,7 +581,7 @@ public abstract class QueryUtils {
 	@Deprecated
 	public static String createCountQueryFor(String originalQuery, @Nullable String countProjection) {
 
-		Assert.hasText(originalQuery, "OriginalQuery must not be null or empty!");
+		Assert.hasText(originalQuery, "OriginalQuery must not be null or empty");
 
 		Matcher matcher = COUNT_MATCH.matcher(originalQuery);
 		String countQuery;
@@ -621,7 +621,7 @@ public abstract class QueryUtils {
 	 */
 	public static boolean hasNamedParameter(Query query) {
 
-		Assert.notNull(query, "Query must not be null!");
+		Assert.notNull(query, "Query must not be null");
 
 		for (Parameter<?> parameter : query.getParameters()) {
 
@@ -661,8 +661,8 @@ public abstract class QueryUtils {
 			return Collections.emptyList();
 		}
 
-		Assert.notNull(from, "From must not be null!");
-		Assert.notNull(cb, "CriteriaBuilder must not be null!");
+		Assert.notNull(from, "From must not be null");
+		Assert.notNull(cb, "CriteriaBuilder must not be null");
 
 		List<jakarta.persistence.criteria.Order> orders = new ArrayList<>();
 
@@ -682,7 +682,7 @@ public abstract class QueryUtils {
 	 */
 	public static boolean hasConstructorExpression(String query) {
 
-		Assert.hasText(query, "Query must not be null or empty!");
+		Assert.hasText(query, "Query must not be null or empty");
 
 		return CONSTRUCTOR_EXPRESSION.matcher(query).find();
 	}
@@ -696,7 +696,7 @@ public abstract class QueryUtils {
 	 */
 	public static String getProjection(String query) {
 
-		Assert.hasText(query, "Query must not be null or empty!");
+		Assert.hasText(query, "Query must not be null or empty");
 
 		Matcher matcher = PROJECTION_CLAUSE.matcher(query);
 		String projection = matcher.find() ? matcher.group(1) : "";
@@ -767,7 +767,7 @@ public abstract class QueryUtils {
 			return (Expression<T>) join;
 		}
 
-		PropertyPath nextProperty = Objects.requireNonNull(property.next(), "An element of the property path is null!");
+		PropertyPath nextProperty = Objects.requireNonNull(property.next(), "An element of the property path is null");
 
 		// recurse with the next property
 		return toExpressionRecursively(join, nextProperty, isForSelection, requiresOuterJoin);

@@ -108,8 +108,8 @@ public class JpaQueryMethod extends QueryMethod {
 
 		super(method, metadata, factory);
 
-		Assert.notNull(method, "Method must not be null!");
-		Assert.notNull(extractor, "Query extractor must not be null!");
+		Assert.notNull(method, "Method must not be null");
+		Assert.notNull(extractor, "Query extractor must not be null");
 
 		this.method = method;
 		this.returnType = potentiallyUnwrapReturnTypeFor(metadata, method);
@@ -137,7 +137,7 @@ public class JpaQueryMethod extends QueryMethod {
 		this.entityMetadata = Lazy.of(() -> new DefaultJpaEntityMetadata<>(getDomainClass()));
 
 		Assert.isTrue(!(isModifyingQuery() && getParameters().hasSpecialParameter()),
-				String.format("Modifying method must not contain %s!", Parameters.TYPES));
+				String.format("Modifying method must not contain %s", Parameters.TYPES));
 		assertParameterNamesInAnnotatedQuery();
 	}
 
@@ -171,7 +171,7 @@ public class JpaQueryMethod extends QueryMethod {
 					|| !annotatedQuery.contains(String.format(":%s", parameter.getName().get()))
 							&& !annotatedQuery.contains(String.format("#%s", parameter.getName().get()))) {
 				throw new IllegalStateException(
-						String.format("Using named parameters for method %s but parameter '%s' not found in annotated query '%s'!",
+						String.format("Using named parameters for method %s but parameter '%s' not found in annotated query '%s'",
 								method, parameter.getName(), annotatedQuery));
 			}
 		}
@@ -295,7 +295,7 @@ public class JpaQueryMethod extends QueryMethod {
 			return query;
 		}
 
-		throw new IllegalStateException(String.format("No annotated query found for query method %s!", getName()));
+		throw new IllegalStateException(String.format("No annotated query found for query method %s", getName()));
 	}
 
 	/**

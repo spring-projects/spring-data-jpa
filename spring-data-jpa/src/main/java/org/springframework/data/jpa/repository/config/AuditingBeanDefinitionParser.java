@@ -97,8 +97,8 @@ public class AuditingBeanDefinitionParser implements BeanDefinitionParser {
 				if (!ClassUtils.isPresent(BEAN_CONFIGURER_ASPECT_CLASS_NAME, getClass().getClassLoader())) {
 					parserContext.getReaderContext().error(
 							"Could not configure Spring Data JPA auditing-feature because"
-									+ " spring-aspects.jar is not on the classpath!\n"
-									+ "If you want to use auditing please add spring-aspects.jar to the classpath.", element);
+									+ " spring-aspects.jar is not on the classpath;\n"
+									+ "If you want to use auditing please add spring-aspects.jar to the classpath", element);
 				}
 
 				RootBeanDefinition def = new RootBeanDefinition();

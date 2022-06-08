@@ -210,13 +210,13 @@ public class JpaRepositoryFactoryUnitTests {
 		@Override
 		public void throwingRuntimeException() {
 
-			throw new IllegalArgumentException("You lose!");
+			throw new IllegalArgumentException("You lose");
 		}
 
 		@Override
 		public void throwingCheckedException() throws IOException {
 
-			throw new IOException("You lose!");
+			throw new IOException("You lose");
 		}
 	};
 }

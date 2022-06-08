@@ -91,7 +91,7 @@ import org.springframework.util.Assert;
 @Transactional(readOnly = true)
 public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T, ID> {
 
-	private static final String ID_MUST_NOT_BE_NULL = "The given id must not be null!";
+	private static final String ID_MUST_NOT_BE_NULL = "The given id must not be null";
 
 	private final JpaEntityInformation<T, ?> entityInformation;
 	private final EntityManager em;
@@ -108,8 +108,8 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 */
 	public SimpleJpaRepository(JpaEntityInformation<T, ?> entityInformation, EntityManager entityManager) {
 
-		Assert.notNull(entityInformation, "JpaEntityInformation must not be null!");
-		Assert.notNull(entityManager, "EntityManager must not be null!");
+		Assert.notNull(entityInformation, "JpaEntityInformation must not be null");
+		Assert.notNull(entityManager, "EntityManager must not be null");
 
 		this.entityInformation = entityInformation;
 		this.em = entityManager;
@@ -168,7 +168,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		Assert.notNull(id, ID_MUST_NOT_BE_NULL);
 
 		delete(findById(id).orElseThrow(() -> new EmptyResultDataAccessException(
-				String.format("No %s entity with id %s exists!", entityInformation.getJavaType(), id), 1)));
+				String.format("No %s entity with id %s exists", entityInformation.getJavaType(), id), 1)));
 	}
 
 	@Override
@@ -176,7 +176,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	@SuppressWarnings("unchecked")
 	public void delete(T entity) {
 
-		Assert.notNull(entity, "Entity must not be null!");
+		Assert.notNull(entity, "Entity must not be null");
 
 		if (entityInformation.isNew(entity)) {
 			return;
@@ -198,7 +198,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	@Transactional
 	public void deleteAllById(Iterable<? extends ID> ids) {
 
-		Assert.notNull(ids, "Ids must not be null!");
+		Assert.notNull(ids, "Ids must not be null");
 
 		for (ID id : ids) {
 			deleteById(id);
@@ -209,7 +209,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	@Transactional
 	public void deleteAllByIdInBatch(Iterable<ID> ids) {
 
-		Assert.notNull(ids, "Ids must not be null!");
+		Assert.notNull(ids, "Ids must not be null");
 
 		if (!ids.iterator().hasNext()) {
 			return;
@@ -246,7 +246,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	@Transactional
 	public void deleteAll(Iterable<? extends T> entities) {
 
-		Assert.notNull(entities, "Entities must not be null!");
+		Assert.notNull(entities, "Entities must not be null");
 
 		for (T entity : entities) {
 			delete(entity);
@@ -257,7 +257,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	@Transactional
 	public void deleteAllInBatch(Iterable<T> entities) {
 
-		Assert.notNull(entities, "Entities must not be null!");
+		Assert.notNull(entities, "Entities must not be null");
 
 		if (!entities.iterator().hasNext()) {
 			return;
@@ -387,7 +387,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	@Override
 	public List<T> findAllById(Iterable<ID> ids) {
 
-		Assert.notNull(ids, "Ids must not be null!");
+		Assert.notNull(ids, "Ids must not be null");
 
 		if (!ids.iterator().hasNext()) {
 			return Collections.emptyList();
@@ -533,8 +533,8 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	@Override
 	public <S extends T, R> R findBy(Example<S> example, Function<FetchableFluentQuery<S>, R> queryFunction) {
 
-		Assert.notNull(example, "Sample must not be null!");
-		Assert.notNull(queryFunction, "Query function must not be null!");
+		Assert.notNull(example, "Sample must not be null");
+		Assert.notNull(queryFunction, "Query function must not be null");
 
 		Function<Sort, TypedQuery<S>> finder = sort -> {
 
@@ -553,8 +553,8 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	@Override
 	public <S extends T, R> R findBy(Specification<T> spec, Function<FetchableFluentQuery<S>, R> queryFunction) {
 
-		Assert.notNull(spec, "Specification must not be null!");
-		Assert.notNull(queryFunction, "Query function must not be null!");
+		Assert.notNull(spec, "Specification must not be null");
+		Assert.notNull(queryFunction, "Query function must not be null");
 
 		Function<Sort, TypedQuery<T>> finder = sort -> {
 			return getQuery(spec, getDomainClass(), sort);
@@ -580,7 +580,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	@Override
 	public <S extends T> S save(S entity) {
 
-		Assert.notNull(entity, "Entity must not be null.");
+		Assert.notNull(entity, "Entity must not be null");
 
 		if (entityInformation.isNew(entity)) {
 			em.persist(entity);
@@ -604,7 +604,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	@Override
 	public <S extends T> List<S> saveAll(Iterable<S> entities) {
 
-		Assert.notNull(entities, "Entities must not be null!");
+		Assert.notNull(entities, "Entities must not be null");
 
 		List<S> result = new ArrayList<>();
 
@@ -770,8 +770,8 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	private <S, U extends T> Root<U> applySpecificationToCriteria(@Nullable Specification<U> spec, Class<U> domainClass,
 			CriteriaQuery<S> query) {
 
-		Assert.notNull(domainClass, "Domain class must not be null!");
-		Assert.notNull(query, "CriteriaQuery must not be null!");
+		Assert.notNull(domainClass, "Domain class must not be null");
+		Assert.notNull(query, "CriteriaQuery must not be null");
 
 		Root<U> root = query.from(domainClass);
 
@@ -829,7 +829,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 */
 	private static long executeCountQuery(TypedQuery<Long> query) {
 
-		Assert.notNull(query, "TypedQuery must not be null!");
+		Assert.notNull(query, "TypedQuery must not be null");
 
 		List<Long> totals = query.getResultList();
 		long total = 0L;
@@ -898,8 +898,8 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		 */
 		ExampleSpecification(Example<T> example, EscapeCharacter escapeCharacter) {
 
-			Assert.notNull(example, "Example must not be null!");
-			Assert.notNull(escapeCharacter, "EscapeCharacter must not be null!");
+			Assert.notNull(example, "Example must not be null");
+			Assert.notNull(escapeCharacter, "EscapeCharacter must not be null");
 
 			this.example = example;
 			this.escapeCharacter = escapeCharacter;

@@ -54,7 +54,7 @@ public interface JpaEntityInformation<T, ID> extends EntityInformation<T, ID>, J
 		}
 
 		throw new IllegalArgumentException(
-				String.format("Could not obtain required identifier attribute for type %s!", getEntityName()));
+				String.format("Could not obtain required identifier attribute for type %s", getEntityName()));
 	}
 
 	/**

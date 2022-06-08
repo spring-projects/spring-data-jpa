@@ -96,7 +96,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	 */
 	public JpaRepositoryFactory(EntityManager entityManager) {
 
-		Assert.notNull(entityManager, "EntityManager must not be null!");
+		Assert.notNull(entityManager, "EntityManager must not be null");
 
 		this.entityManager = entityManager;
 		this.extractor = PersistenceProvider.fromEntityManager(entityManager);
@@ -137,7 +137,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 
 		super.setBeanFactory(beanFactory);
 
-		Assert.notNull(beanFactory, "BeanFactory must not be null!");
+		Assert.notNull(beanFactory, "BeanFactory must not be null");
 
 		setQueryRewriterProvider(new BeanFactoryQueryRewriterProvider(beanFactory));
 	}
@@ -149,7 +149,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	 */
 	public void setEntityPathResolver(EntityPathResolver entityPathResolver) {
 
-		Assert.notNull(entityPathResolver, "EntityPathResolver must not be null!");
+		Assert.notNull(entityPathResolver, "EntityPathResolver must not be null");
 
 		this.entityPathResolver = entityPathResolver;
 	}
@@ -170,7 +170,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	 */
 	public void setQueryMethodFactory(JpaQueryMethodFactory queryMethodFactory) {
 
-		Assert.notNull(queryMethodFactory, "QueryMethodFactory must not be null!");
+		Assert.notNull(queryMethodFactory, "QueryMethodFactory must not be null");
 
 		this.queryMethodFactory = queryMethodFactory;
 	}
@@ -184,7 +184,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	 */
 	public void setQueryRewriterProvider(QueryRewriterProvider queryRewriterProvider) {
 
-		Assert.notNull(queryRewriterProvider, "QueryRewriterProvider must not be null!");
+		Assert.notNull(queryRewriterProvider, "QueryRewriterProvider must not be null");
 		this.queryRewriterProvider = queryRewriterProvider;
 	}
 
@@ -312,7 +312,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	 */
 	private static class EclipseLinkProjectionQueryCreationListener implements QueryCreationListener<AbstractJpaQuery> {
 
-		private static final String ECLIPSELINK_PROJECTIONS = "Usage of Spring Data projections detected on persistence provider EclipseLink. Make sure the following query methods declare result columns in exactly the order the accessors are declared in the projecting interface or the order of parameters for DTOs:";
+		private static final String ECLIPSELINK_PROJECTIONS = "Usage of Spring Data projections detected on persistence provider EclipseLink; Make sure the following query methods declare result columns in exactly the order the accessors are declared in the projecting interface or the order of parameters for DTOs:";
 
 		private static final Log log = LogFactory.getLog(EclipseLinkProjectionQueryCreationListener.class);
 
@@ -327,7 +327,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 		 */
 		public EclipseLinkProjectionQueryCreationListener(EntityManager em) {
 
-			Assert.notNull(em, "EntityManager must not be null!");
+			Assert.notNull(em, "EntityManager must not be null");
 
 			this.metamodel = JpaMetamodel.of(em.getMetamodel());
 		}

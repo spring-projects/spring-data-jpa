@@ -74,7 +74,7 @@ public class ClasspathScanningPersistenceUnitPostProcessor
 	 */
 	public ClasspathScanningPersistenceUnitPostProcessor(String basePackage) {
 
-		Assert.hasText(basePackage, "Base package must not be null or empty!");
+		Assert.hasText(basePackage, "Base package must not be null or empty");
 
 		this.basePackage = basePackage;
 	}
@@ -87,7 +87,7 @@ public class ClasspathScanningPersistenceUnitPostProcessor
 	 */
 	public void setMappingFileNamePattern(String mappingFilePattern) {
 
-		Assert.hasText(mappingFilePattern, "Mapping file pattern must not be null or empty!");
+		Assert.hasText(mappingFilePattern, "Mapping file pattern must not be null or empty");
 
 		this.mappingFileNamePattern = mappingFilePattern;
 	}
@@ -95,7 +95,7 @@ public class ClasspathScanningPersistenceUnitPostProcessor
 	@Override
 	public void setResourceLoader(ResourceLoader resourceLoader) {
 
-		Assert.notNull(resourceLoader, "ResourceLoader must not be null!");
+		Assert.notNull(resourceLoader, "ResourceLoader must not be null");
 
 		this.mappingFileResolver = ResourcePatternUtils.getResourcePatternResolver(resourceLoader);
 		this.resourceLoader = resourceLoader;
@@ -104,7 +104,7 @@ public class ClasspathScanningPersistenceUnitPostProcessor
 	@Override
 	public void setEnvironment(Environment environment) {
 
-		Assert.notNull(environment, "Environment must not be null!");
+		Assert.notNull(environment, "Environment must not be null");
 
 		this.environment = environment;
 	}
@@ -121,7 +121,7 @@ public class ClasspathScanningPersistenceUnitPostProcessor
 
 		for (BeanDefinition definition : provider.findCandidateComponents(basePackage)) {
 
-			LOG.debug(String.format("Registering classpath-scanned entity %s in persistence unit info!", definition.getBeanClassName()));
+			LOG.debug(String.format("Registering classpath-scanned entity %s in persistence unit info", definition.getBeanClassName()));
 
 			if (definition.getBeanClassName() != null) {
 				pui.addManagedClassName(definition.getBeanClassName());
@@ -130,7 +130,7 @@ public class ClasspathScanningPersistenceUnitPostProcessor
 
 		for (String location : scanForMappingFileLocations()) {
 
-			LOG.debug(String.format("Registering classpath-scanned entity mapping file %s in persistence unit info!", location));
+			LOG.debug(String.format("Registering classpath-scanned entity mapping file %s in persistence unit info", location));
 
 			pui.addMappingFileName(location);
 		}
@@ -165,7 +165,7 @@ public class ClasspathScanningPersistenceUnitPostProcessor
 		try {
 			scannedResources = mappingFileResolver.getResources(path);
 		} catch (IOException e) {
-			throw new IllegalStateException(String.format("Cannot load mapping files from path %s!", path), e);
+			throw new IllegalStateException(String.format("Cannot load mapping files from path %s", path), e);
 		}
 
 		Set<String> mappingFileUris = new HashSet<>();
@@ -179,7 +179,7 @@ public class ClasspathScanningPersistenceUnitPostProcessor
 				mappingFileUris.add(resourcePathInClasspath);
 
 			} catch (IOException e) {
-				throw new IllegalStateException(String.format("Couldn't get URI for %s!", resource), e);
+				throw new IllegalStateException(String.format("Couldn't get URI for %s", resource), e);
 			}
 		}
 

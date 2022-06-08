@@ -70,7 +70,7 @@ public class AuditingEntityListener {
 	 */
 	public void setAuditingHandler(ObjectFactory<AuditingHandler> auditingHandler) {
 
-		Assert.notNull(auditingHandler, "AuditingHandler must not be null!");
+		Assert.notNull(auditingHandler, "AuditingHandler must not be null");
 		this.handler = auditingHandler;
 	}
 
@@ -83,7 +83,7 @@ public class AuditingEntityListener {
 	@PrePersist
 	public void touchForCreate(Object target) {
 
-		Assert.notNull(target, "Entity must not be null!");
+		Assert.notNull(target, "Entity must not be null");
 
 		if (handler != null) {
 
@@ -103,7 +103,7 @@ public class AuditingEntityListener {
 	@PreUpdate
 	public void touchForUpdate(Object target) {
 
-		Assert.notNull(target, "Entity must not be null!");
+		Assert.notNull(target, "Entity must not be null");
 
 		if (handler != null) {
 

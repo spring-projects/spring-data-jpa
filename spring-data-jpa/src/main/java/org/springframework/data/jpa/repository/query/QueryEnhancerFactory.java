@@ -68,7 +68,7 @@ public final class QueryEnhancerFactory {
 
 		try {
 			Class.forName("net.sf.jsqlparser.parser.JSqlParser", false, QueryEnhancerFactory.class.getClassLoader());
-			LOG.info("JSqlParser is in classpath. If applicable JSqlParser will be used.");
+			LOG.info("JSqlParser is in classpath; If applicable JSqlParser will be used");
 			return true;
 		} catch (ClassNotFoundException e) {
 			return false;

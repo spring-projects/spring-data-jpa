@@ -59,7 +59,7 @@ public class JpaMetamodel {
 	 */
 	private JpaMetamodel(Metamodel metamodel) {
 
-		Assert.notNull(metamodel, "Metamodel must not be null!");
+		Assert.notNull(metamodel, "Metamodel must not be null");
 
 		this.metamodel = metamodel;
 
@@ -87,7 +87,7 @@ public class JpaMetamodel {
 	 */
 	public boolean isJpaManaged(Class<?> type) {
 
-		Assert.notNull(type, "Type must not be null!");
+		Assert.notNull(type, "Type must not be null");
 
 		return managedTypes.get().contains(type);
 	}
@@ -120,7 +120,7 @@ public class JpaMetamodel {
 	 */
 	public boolean isMappedType(Class<?> entity) {
 
-		Assert.notNull(entity, "Type must not be null!");
+		Assert.notNull(entity, "Type must not be null");
 
 		if (!isJpaManaged(entity)) {
 			return false;

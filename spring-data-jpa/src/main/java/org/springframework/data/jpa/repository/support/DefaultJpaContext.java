@@ -44,8 +44,8 @@ public class DefaultJpaContext implements JpaContext {
 	 */
 	public DefaultJpaContext(Set<EntityManager> entityManagers) {
 
-		Assert.notNull(entityManagers, "EntityManagers must not be null!");
-		Assert.notEmpty(entityManagers, "EntityManagers must not be empty!");
+		Assert.notNull(entityManagers, "EntityManagers must not be null");
+		Assert.notEmpty(entityManagers, "EntityManagers must not be empty");
 
 		this.entityManagers = new LinkedMultiValueMap<>();
 
@@ -59,10 +59,10 @@ public class DefaultJpaContext implements JpaContext {
 	@Override
 	public EntityManager getEntityManagerByManagedType(Class<?> type) {
 
-		Assert.notNull(type, "Type must not be null!");
+		Assert.notNull(type, "Type must not be null");
 
 		if (!entityManagers.containsKey(type)) {
-			throw new IllegalArgumentException(String.format("%s is not a managed type!", type));
+			throw new IllegalArgumentException(String.format("%s is not a managed type", type));
 		}
 
 		List<EntityManager> candidates = this.entityManagers.get(type);
@@ -72,6 +72,6 @@ public class DefaultJpaContext implements JpaContext {
 		}
 
 		throw new IllegalArgumentException(
-				String.format("%s managed by more than one EntityManagers: %s!", type.getName(), candidates));
+				String.format("%s managed by more than one EntityManagers: %s", type.getName(), candidates));
 	}
 }

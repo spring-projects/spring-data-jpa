@@ -67,7 +67,7 @@ class EmptyDeclaredQuery implements DeclaredQuery {
 	@Override
 	public DeclaredQuery deriveCountQuery(@Nullable String countQuery, @Nullable String countQueryProjection) {
 
-		Assert.hasText(countQuery, "CountQuery must not be empty!");
+		Assert.hasText(countQuery, "CountQuery must not be empty");
 
 		return DeclaredQuery.of(countQuery, false);
 	}

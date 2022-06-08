@@ -225,8 +225,8 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extend
 		 */
 		public PredicateBuilder(Part part, Root<?> root) {
 
-			Assert.notNull(part, "Part must not be null!");
-			Assert.notNull(root, "Root must not be null!");
+			Assert.notNull(part, "Part must not be null");
+			Assert.notNull(root, "Root must not be null");
 			this.part = part;
 			this.root = root;
 		}
@@ -312,7 +312,7 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extend
 				case IS_NOT_EMPTY:
 
 					if (!property.getLeafProperty().isCollection()) {
-						throw new IllegalArgumentException("IsEmpty / IsNotEmpty can only be used on collection properties!");
+						throw new IllegalArgumentException("IsEmpty / IsNotEmpty can only be used on collection properties");
 					}
 
 					Expression<Collection<Object>> collectionPath = traversePath(root, property);

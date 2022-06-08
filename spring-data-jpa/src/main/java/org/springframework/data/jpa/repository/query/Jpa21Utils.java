@@ -96,13 +96,13 @@ public class Jpa21Utils {
 	@Nullable
 	private static EntityGraph<?> tryGetFetchGraph(EntityManager em, JpaEntityGraph jpaEntityGraph, Class<?> entityType) {
 
-		Assert.notNull(em, "EntityManager must not be null!");
-		Assert.notNull(jpaEntityGraph, "EntityGraph must not be null!");
-		Assert.notNull(entityType, "EntityType must not be null!");
+		Assert.notNull(em, "EntityManager must not be null");
+		Assert.notNull(jpaEntityGraph, "EntityGraph must not be null");
+		Assert.notNull(entityType, "EntityType must not be null");
 
-		Assert.isTrue(JPA21_AVAILABLE, "The EntityGraph-Feature requires at least a JPA 2.1 persistence provider!");
+		Assert.isTrue(JPA21_AVAILABLE, "The EntityGraph-Feature requires at least a JPA 2.1 persistence provider");
 		Assert.isTrue(GET_ENTITY_GRAPH_METHOD != null,
-				"It seems that you have the JPA 2.1 API but a JPA 2.0 implementation on the classpath!");
+				"It seems that you have the JPA 2.1 API but a JPA 2.0 implementation on the classpath");
 
 		try {
 			// first check whether an entityGraph with that name is already registered.
@@ -125,10 +125,10 @@ public class Jpa21Utils {
 	private static EntityGraph<?> createDynamicEntityGraph(EntityManager em, JpaEntityGraph jpaEntityGraph,
 			Class<?> entityType) {
 
-		Assert.notNull(em, "EntityManager must not be null!");
-		Assert.notNull(jpaEntityGraph, "JpaEntityGraph must not be null!");
-		Assert.notNull(entityType, "Entity type must not be null!");
-		Assert.isTrue(jpaEntityGraph.isAdHocEntityGraph(), "The given " + jpaEntityGraph + " is not dynamic!");
+		Assert.notNull(em, "EntityManager must not be null");
+		Assert.notNull(jpaEntityGraph, "JpaEntityGraph must not be null");
+		Assert.notNull(entityType, "Entity type must not be null");
+		Assert.isTrue(jpaEntityGraph.isAdHocEntityGraph(), "The given " + jpaEntityGraph + " is not dynamic");
 
 		EntityGraph<?> entityGraph = em.createEntityGraph(entityType);
 		configureFetchGraphFrom(jpaEntityGraph, entityGraph);

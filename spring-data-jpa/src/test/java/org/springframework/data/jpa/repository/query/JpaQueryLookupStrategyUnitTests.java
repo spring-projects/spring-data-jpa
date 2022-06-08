@@ -181,7 +181,7 @@ public class JpaQueryLookupStrategyUnitTests {
 		assertThatIllegalStateException()
 				.isThrownBy(() -> strategy.resolveQuery(method, metadata, projectionFactory, namedQueries))
 				.withMessageContaining(
-						"is backed by a NamedQuery and must not contain a sort parameter as we cannot modify the query! Use @Query instead!");
+						"is backed by a NamedQuery and must not contain a sort parameter as we cannot modify the query; Use @Query instead");
 	}
 
 	@Test // GH-2018
@@ -211,7 +211,7 @@ public class JpaQueryLookupStrategyUnitTests {
 			RepositoryMetadata jdbcStyleMetadata = new DefaultRepositoryMetadata(UserRepository.class);
 
 			strategy.resolveQuery(jdbcStyleMethod, jdbcStyleMetadata, projectionFactory, namedQueries);
-		}).withMessageContaining("JDBC style parameters (?) are not supported for JPA queries.");
+		}).withMessageContaining("JDBC style parameters (?) are not supported for JPA queries");
 
 		Method jpaStyleMethod = UserRepository.class.getMethod("customQueryWithQuestionMarksAndNumberedStyleParam",
 				String.class);

@@ -93,7 +93,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 
 		} catch (Exception o_O) {
 			throw new IllegalArgumentException(
-					String.format("Failed to create query for method %s! %s", method, o_O.getMessage()), o_O);
+					String.format("Failed to create query for method %s; %s", method, o_O.getMessage()), o_O);
 		}
 	}
 
@@ -147,7 +147,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 
 		if (!parameters.getBindableParameters().hasParameterAt(index)) {
 			throw new IllegalStateException(String.format(
-					"Method %s expects at least %d arguments but only found %d. This leaves an operator of type %s for property %s unbound.",
+					"Method %s expects at least %d arguments but only found %d; This leaves an operator of type %s for property %s unbound",
 					methodName, index + 1, index, type.name(), property));
 		}
 
@@ -163,7 +163,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 	private static String wrongParameterTypeMessage(String methodName, String property, Type operatorType,
 			String expectedArgumentType, JpaParameter parameter) {
 
-		return String.format("Operator %s on %s requires a %s argument, found %s in method %s.", operatorType.name(),
+		return String.format("Operator %s on %s requires a %s argument, found %s in method %s", operatorType.name(),
 				property, expectedArgumentType, parameter.getType(), methodName);
 	}
 
@@ -223,7 +223,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 			}
 
 			if (parameterBinder == null) {
-				throw new IllegalStateException("ParameterBinder is null!");
+				throw new IllegalStateException("ParameterBinder is null");
 			}
 
 			TypedQuery<?> query = createQuery(criteriaQuery);

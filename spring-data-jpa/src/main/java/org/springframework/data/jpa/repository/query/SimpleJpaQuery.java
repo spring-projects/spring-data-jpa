@@ -67,11 +67,11 @@ final class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
 
 		super(method, em, queryString, countQueryString, queryRewriter, evaluationContextProvider, parser);
 
-		validateQuery(getQuery().getQueryString(), "Validation failed for query for method %s!", method);
+		validateQuery(getQuery().getQueryString(), "Validation failed for query for method %s", method);
 
 		if (method.isPageQuery()) {
 			validateQuery(getCountQuery().getQueryString(),
-					String.format("Count query validation failed for method %s!", method));
+					String.format("Count query validation failed for method %s", method));
 		}
 	}
 

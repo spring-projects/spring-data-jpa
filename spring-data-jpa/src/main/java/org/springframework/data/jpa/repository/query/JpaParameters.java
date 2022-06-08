@@ -85,7 +85,7 @@ public class JpaParameters extends Parameters<JpaParameters, JpaParameter> {
 
 			if (!isDateParameter() && hasTemporalParamAnnotation()) {
 				throw new IllegalArgumentException(
-						Temporal.class.getSimpleName() + " annotation is only allowed on Date parameter!");
+						Temporal.class.getSimpleName() + " annotation is only allowed on Date parameter");
 			}
 		}
 
@@ -127,7 +127,7 @@ public class JpaParameters extends Parameters<JpaParameters, JpaParameter> {
 				return temporalType;
 			}
 
-			throw new IllegalStateException(String.format("Required temporal type not found for %s!", getType()));
+			throw new IllegalStateException(String.format("Required temporal type not found for %s", getType()));
 		}
 
 		private boolean hasTemporalParamAnnotation() {

@@ -79,7 +79,7 @@ class QueryParameterSetterFactoryUnitTests {
 
 		assertThatExceptionOfType(IllegalArgumentException.class) //
 				.isThrownBy(() -> setterFactory.create(binding, DeclaredQuery.of("QueryStringWith :NamedParameter", false))) //
-				.withMessage("At least 1 parameter(s) provided but only 0 parameter(s) present in query.");
+				.withMessage("At least 1 parameter(s) provided but only 0 parameter(s) present in query");
 	}
 
 	@Test // DATAJPA-1281
@@ -93,6 +93,6 @@ class QueryParameterSetterFactoryUnitTests {
 
 		assertThatExceptionOfType(IllegalArgumentException.class) //
 				.isThrownBy(() -> setterFactory.create(binding, DeclaredQuery.of("QueryStringWith ?1", false))) //
-				.withMessage("At least 1 parameter(s) provided but only 0 parameter(s) present in query.");
+				.withMessage("At least 1 parameter(s) provided but only 0 parameter(s) present in query");
 	}
 }

@@ -70,10 +70,10 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 
 		super(method, em);
 
-		Assert.hasText(queryString, "Query string must not be null or empty!");
-		Assert.notNull(evaluationContextProvider, "ExpressionEvaluationContextProvider must not be null!");
-		Assert.notNull(parser, "Parser must not be null!");
-		Assert.notNull(queryRewriter, "QueryRewriter must not be null!");
+		Assert.hasText(queryString, "Query string must not be null or empty");
+		Assert.notNull(evaluationContextProvider, "ExpressionEvaluationContextProvider must not be null");
+		Assert.notNull(parser, "Parser must not be null");
+		Assert.notNull(queryRewriter, "QueryRewriter must not be null");
 
 		this.evaluationContextProvider = evaluationContextProvider;
 		this.query = new ExpressionBasedStringQuery(queryString, method.getEntityInformation(), parser,
@@ -87,7 +87,7 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 		this.queryRewriter = queryRewriter;
 
 		Assert.isTrue(method.isNativeQuery() || !query.usesJdbcStyleParameters(),
-				"JDBC style parameters (?) are not supported for JPA queries.");
+				"JDBC style parameters (?) are not supported for JPA queries");
 	}
 
 	@Override

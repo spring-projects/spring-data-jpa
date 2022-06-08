@@ -42,7 +42,7 @@ public interface QueryHints {
 	 */
 	static QueryHints from(QueryHints... sources) {
 
-		Assert.notNull(sources, "Sources must not be null!");
+		Assert.notNull(sources, "Sources must not be null");
 
 		MutableQueryHints result = new MutableQueryHints();
 

@@ -68,7 +68,7 @@ class StringQuery implements DeclaredQuery {
 	@SuppressWarnings("deprecation")
 	StringQuery(String query, boolean isNative) {
 
-		Assert.hasText(query, "Query must not be null or empty!");
+		Assert.hasText(query, "Query must not be null or empty");
 
 		this.isNative = isNative;
 		this.bindings = new ArrayList<>();
@@ -170,8 +170,8 @@ class StringQuery implements DeclaredQuery {
 		private static final Pattern NUMBERED_STYLE_PARAM = Pattern.compile(" \\?(?=\\d)"); // <space>?[digit]
 		private static final Pattern NAMED_STYLE_PARAM = Pattern.compile(" :\\w+"); // <space>:[text]
 
-		private static final String MESSAGE = "Already found parameter binding with same index / parameter name but differing binding type! "
-				+ "Already have: %s, found %s! If you bind a parameter multiple times make sure they use the same binding.";
+		private static final String MESSAGE = "Already found parameter binding with same index / parameter name but differing binding type; "
+				+ "Already have: %s, found %s; If you bind a parameter multiple times make sure they use the same binding";
 		private static final int INDEXED_PARAMETER_GROUP = 4;
 		private static final int NAMED_PARAMETER_GROUP = 6;
 		private static final int COMPARISION_TYPE_GROUP = 1;
@@ -244,7 +244,7 @@ class StringQuery implements DeclaredQuery {
 
 				String typeSource = matcher.group(COMPARISION_TYPE_GROUP);
 				Assert.isTrue(parameterIndexString != null || parameterName != null,
-						() -> String.format("We need either a name or an index! Offending query string: %s", query));
+						() -> String.format("We need either a name or an index; Offending query string: %s", query));
 				String expression = spelExtractor.getParameter(parameterName == null ? parameterIndexString : parameterName);
 				String replacement = null;
 
@@ -258,7 +258,7 @@ class StringQuery implements DeclaredQuery {
 				}
 
 				if (usesJpaStyleParameters && queryMeta.usesJdbcStyleParameters) {
-					throw new IllegalArgumentException("Mixing of ? parameters and other forms like ?1 is not supported!");
+					throw new IllegalArgumentException("Mixing of ? parameters and other forms like ?1 is not supported");
 				}
 
 				switch (ParameterBindingType.of(typeSource)) {
@@ -417,7 +417,7 @@ class StringQuery implements DeclaredQuery {
 					}
 				}
 
-				throw new IllegalArgumentException(String.format("Unsupported parameter binding type %s!", typeSource));
+				throw new IllegalArgumentException(String.format("Unsupported parameter binding type %s", typeSource));
 			}
 		}
 	}
@@ -453,11 +453,11 @@ class StringQuery implements DeclaredQuery {
 		ParameterBinding(@Nullable String name, @Nullable Integer position, @Nullable String expression) {
 
 			if (name == null) {
-				Assert.notNull(position, "Position must not be null!");
+				Assert.notNull(position, "Position must not be null");
 			}
 
 			if (position == null) {
-				Assert.notNull(name, "Name must not be null!");
+				Assert.notNull(name, "Name must not be null");
 			}
 
 			this.name = name;
@@ -502,7 +502,7 @@ class StringQuery implements DeclaredQuery {
 				return name;
 			}
 
-			throw new IllegalStateException(String.format("Required name for %s not available!", this));
+			throw new IllegalStateException(String.format("Required name for %s not available", this));
 		}
 
 		/**
@@ -526,7 +526,7 @@ class StringQuery implements DeclaredQuery {
 				return position;
 			}
 
-			throw new IllegalStateException(String.format("Required position for %s not available!", this));
+			throw new IllegalStateException(String.format("Required position for %s not available", this));
 		}
 
 		/**
@@ -657,11 +657,11 @@ class StringQuery implements DeclaredQuery {
 
 			super(name, null, expression);
 
-			Assert.hasText(name, "Name must not be null or empty!");
-			Assert.notNull(type, "Type must not be null!");
+			Assert.hasText(name, "Name must not be null or empty");
+			Assert.notNull(type, "Type must not be null");
 
 			Assert.isTrue(SUPPORTED_TYPES.contains(type),
-					String.format("Type must be one of %s!", StringUtils.collectionToCommaDelimitedString(SUPPORTED_TYPES)));
+					String.format("Type must be one of %s", StringUtils.collectionToCommaDelimitedString(SUPPORTED_TYPES)));
 
 			this.type = type;
 		}
@@ -687,11 +687,11 @@ class StringQuery implements DeclaredQuery {
 
 			super(null, position, expression);
 
-			Assert.isTrue(position > 0, "Position must be greater than zero!");
-			Assert.notNull(type, "Type must not be null!");
+			Assert.isTrue(position > 0, "Position must be greater than zero");
+			Assert.notNull(type, "Type must not be null");
 
 			Assert.isTrue(SUPPORTED_TYPES.contains(type),
-					String.format("Type must be one of %s!", StringUtils.collectionToCommaDelimitedString(SUPPORTED_TYPES)));
+					String.format("Type must be one of %s", StringUtils.collectionToCommaDelimitedString(SUPPORTED_TYPES)));
 
 			this.type = type;
 		}
@@ -763,7 +763,7 @@ class StringQuery implements DeclaredQuery {
 		 */
 		private static Type getLikeTypeFrom(String expression) {
 
-			Assert.hasText(expression, "Expression must not be null or empty!");
+			Assert.hasText(expression, "Expression must not be null or empty");
 
 			if (expression.matches("%.*%")) {
 				return Type.CONTAINING;

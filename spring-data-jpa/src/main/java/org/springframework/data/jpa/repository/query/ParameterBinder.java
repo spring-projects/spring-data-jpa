@@ -33,7 +33,7 @@ import org.springframework.util.Assert;
  */
 public class ParameterBinder {
 
-	static final String PARAMETER_NEEDS_TO_BE_NAMED = "For queries with named parameters you need to use provide names for method parameters. Use @Param for query method parameters, or when on Java 8+ use the javac flag -parameters.";
+	static final String PARAMETER_NEEDS_TO_BE_NAMED = "For queries with named parameters you need to use provide names for method parameters; Use @Param for query method parameters, or when on Java 8+ use the javac flag -parameters";
 
 	private final JpaParameters parameters;
 	private final Iterable<QueryParameterSetter> parameterSetters;
@@ -62,8 +62,8 @@ public class ParameterBinder {
 	public ParameterBinder(JpaParameters parameters, Iterable<QueryParameterSetter> parameterSetters,
 			boolean useJpaForPaging) {
 
-		Assert.notNull(parameters, "JpaParameters must not be null!");
-		Assert.notNull(parameterSetters, "Parameter setters must not be null!");
+		Assert.notNull(parameters, "JpaParameters must not be null");
+		Assert.notNull(parameterSetters, "Parameter setters must not be null");
 
 		this.parameters = parameters;
 		this.parameterSetters = parameterSetters;

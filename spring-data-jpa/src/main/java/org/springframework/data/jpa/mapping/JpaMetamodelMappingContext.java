@@ -54,8 +54,8 @@ public class JpaMetamodelMappingContext
 	 */
 	public JpaMetamodelMappingContext(Set<Metamodel> models) {
 
-		Assert.notNull(models, "JPA metamodel must not be null!");
-		Assert.notEmpty(models, "JPA metamodel must not be empty!");
+		Assert.notNull(models, "JPA metamodel must not be null");
+		Assert.notEmpty(models, "JPA metamodel must not be empty");
 
 		this.models = new Metamodels(models);
 		this.persistenceProvider = PersistenceProvider.fromMetamodel(models.iterator().next());
@@ -137,7 +137,7 @@ public class JpaMetamodelMappingContext
 			JpaMetamodel metamodel = getMetamodel(type);
 
 			if (metamodel == null) {
-				throw new IllegalArgumentException(String.format("Required JpaMetamodel not found for %s!", type));
+				throw new IllegalArgumentException(String.format("Required JpaMetamodel not found for %s", type));
 			}
 
 			return metamodel;

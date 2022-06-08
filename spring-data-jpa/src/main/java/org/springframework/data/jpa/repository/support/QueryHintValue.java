@@ -32,8 +32,8 @@ public class QueryHintValue {
 
 	public QueryHintValue(String name, Object value) {
 
-		Assert.notNull(name, "Name must not be null.");
-		Assert.notNull(value, "Value must not be null.");
+		Assert.notNull(name, "Name must not be null");
+		Assert.notNull(value, "Value must not be null");
 
 		this.name = name;
 		this.value = value;

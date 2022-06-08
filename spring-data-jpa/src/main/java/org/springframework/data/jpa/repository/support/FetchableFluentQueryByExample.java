@@ -81,7 +81,7 @@ class FetchableFluentQueryByExample<S, R> extends FluentQuerySupport<S, R> imple
 	@Override
 	public FetchableFluentQuery<R> sortBy(Sort sort) {
 
-		Assert.notNull(sort, "Sort must not be null!");
+		Assert.notNull(sort, "Sort must not be null");
 
 		return new FetchableFluentQueryByExample<>(example, entityType, resultType, this.sort.and(sort), properties, finder,
 				countOperation, existsOperation, entityManager, escapeCharacter);
@@ -90,7 +90,7 @@ class FetchableFluentQueryByExample<S, R> extends FluentQuerySupport<S, R> imple
 	@Override
 	public <NR> FetchableFluentQuery<NR> as(Class<NR> resultType) {
 
-		Assert.notNull(resultType, "Projection target type must not be null!");
+		Assert.notNull(resultType, "Projection target type must not be null");
 		if (!resultType.isInterface()) {
 			throw new UnsupportedOperationException("Class-based DTOs are not yet supported.");
 		}

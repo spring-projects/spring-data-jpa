@@ -96,7 +96,7 @@ class StoredProcedureJpaQuery extends AbstractJpaQuery {
 
 	@Override
 	protected TypedQuery<Long> doCreateCountQuery(JpaParametersParameterAccessor accessor) {
-		throw new UnsupportedOperationException("StoredProcedureQuery does not support count queries!");
+		throw new UnsupportedOperationException("StoredProcedureQuery does not support count queries");
 	}
 
 	/**
@@ -110,7 +110,7 @@ class StoredProcedureJpaQuery extends AbstractJpaQuery {
 	@Nullable
 	Object extractOutputValue(StoredProcedureQuery storedProcedureQuery) {
 
-		Assert.notNull(storedProcedureQuery, "StoredProcedureQuery must not be null!");
+		Assert.notNull(storedProcedureQuery, "StoredProcedureQuery must not be null");
 
 		if (!procedureAttributes.hasReturnValue()) {
 			return null;

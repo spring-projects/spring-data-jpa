@@ -40,9 +40,9 @@ import org.springframework.lang.Nullable;
 final class NamedQuery extends AbstractJpaQuery {
 
 	private static final String CANNOT_EXTRACT_QUERY = "Your persistence provider does not support extracting the JPQL query from a "
-			+ "named query thus you can't use Pageable inside your query method. Make sure you "
+			+ "named query thus you can't use Pageable inside your query method; Make sure you "
 			+ "have a JpaDialect configured at your EntityManagerFactoryBean as this affects "
-			+ "discovering the concrete persistence provider.";
+			+ "discovering the concrete persistence provider";
 
 	private static final Log LOG = LogFactory.getLog(NamedQuery.class);
 
@@ -69,8 +69,8 @@ final class NamedQuery extends AbstractJpaQuery {
 		Parameters<?, ?> parameters = method.getParameters();
 
 		if (parameters.hasSortParameter()) {
-			throw new IllegalStateException(String.format("Finder method %s is backed " + "by a NamedQuery and must "
-					+ "not contain a sort parameter as we cannot modify the query! Use @Query instead!", method));
+			throw new IllegalStateException(String.format("Finder method %s is backed by a NamedQuery and must "
+					+ "not contain a sort parameter as we cannot modify the query; Use @Query instead", method));
 		}
 
 		this.namedCountQueryIsPresent = hasNamedQuery(em, countQueryName);
@@ -89,7 +89,7 @@ final class NamedQuery extends AbstractJpaQuery {
 
 		if (parameters.hasPageableParameter()) {
 			LOG.warn(String.format(
-					"Finder method %s is backed by a NamedQuery but contains a Pageable parameter! Sorting delivered via this Pageable will not be applied!",
+					"Finder method %s is backed by a NamedQuery but contains a Pageable parameter; Sorting delivered via this Pageable will not be applied",
 					method));
 		}
 
@@ -149,7 +149,7 @@ final class NamedQuery extends AbstractJpaQuery {
 
 			RepositoryQuery query = new NamedQuery(method, em);
 			if (LOG.isDebugEnabled()) {
-				LOG.debug(String.format("Found named query %s!", queryName));
+				LOG.debug(String.format("Found named query %s", queryName));
 			}
 			return query;
 		} catch (IllegalArgumentException e) {

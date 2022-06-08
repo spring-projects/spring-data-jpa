@@ -67,7 +67,7 @@ public class JpaQueryRewriterWithCdiIntegrationTests {
 				.addPackages(UserRepositoryWithRewriter.class) //
 				.initialize();
 
-		LOGGER.debug("CDI container bootstrapped!");
+		LOGGER.debug("CDI container bootstrapped");
 	}
 
 	@AfterAll

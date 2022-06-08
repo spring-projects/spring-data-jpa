@@ -63,8 +63,8 @@ public class Querydsl {
 	 */
 	public Querydsl(EntityManager em, PathBuilder<?> builder) {
 
-		Assert.notNull(em, "EntityManager must not be null!");
-		Assert.notNull(builder, "PathBuilder must not be null!");
+		Assert.notNull(em, "EntityManager must not be null");
+		Assert.notNull(builder, "PathBuilder must not be null");
 
 		this.em = em;
 		this.provider = PersistenceProvider.fromEntityManager(em);
@@ -97,7 +97,7 @@ public class Querydsl {
 	 */
 	public AbstractJPAQuery<Object, JPAQuery<Object>> createQuery(EntityPath<?>... paths) {
 
-		Assert.notNull(paths, "Paths must not be null!");
+		Assert.notNull(paths, "Paths must not be null");
 
 		return createQuery().from(paths);
 	}
@@ -111,8 +111,8 @@ public class Querydsl {
 	 */
 	public <T> JPQLQuery<T> applyPagination(Pageable pageable, JPQLQuery<T> query) {
 
-		Assert.notNull(pageable, "Pageable must not be null!");
-		Assert.notNull(query, "JPQLQuery must not be null!");
+		Assert.notNull(pageable, "Pageable must not be null");
+		Assert.notNull(query, "JPQLQuery must not be null");
 
 		if (pageable.isUnpaged()) {
 			return query;
@@ -133,8 +133,8 @@ public class Querydsl {
 	 */
 	public <T> JPQLQuery<T> applySorting(Sort sort, JPQLQuery<T> query) {
 
-		Assert.notNull(sort, "Sort must not be null!");
-		Assert.notNull(query, "Query must not be null!");
+		Assert.notNull(sort, "Sort must not be null");
+		Assert.notNull(query, "Query must not be null");
 
 		if (sort.isUnsorted()) {
 			return query;
@@ -171,8 +171,8 @@ public class Querydsl {
 	 */
 	private <T> JPQLQuery<T> addOrderByFrom(Sort sort, JPQLQuery<T> query) {
 
-		Assert.notNull(sort, "Sort must not be null!");
-		Assert.notNull(query, "Query must not be null!");
+		Assert.notNull(sort, "Sort must not be null");
+		Assert.notNull(query, "Query must not be null");
 
 		for (Order order : sort) {
 			query.orderBy(toOrderSpecifier(order));
@@ -205,7 +205,7 @@ public class Querydsl {
 	 */
 	private NullHandling toQueryDslNullHandling(org.springframework.data.domain.Sort.NullHandling nullHandling) {
 
-		Assert.notNull(nullHandling, "NullHandling must not be null!");
+		Assert.notNull(nullHandling, "NullHandling must not be null");
 
 		switch (nullHandling) {
 
@@ -229,7 +229,7 @@ public class Querydsl {
 	 */
 	private Expression<?> buildOrderPropertyPathFrom(Order order) {
 
-		Assert.notNull(order, "Order must not be null!");
+		Assert.notNull(order, "Order must not be null");
 
 		PropertyPath path = PropertyPath.from(order.getProperty(), builder.getType());
 		Expression<?> sortPropertyExpression = builder;

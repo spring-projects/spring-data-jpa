@@ -200,7 +200,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 	 */
 	public static PersistenceProvider fromEntityManager(EntityManager em) {
 
-		Assert.notNull(em, "EntityManager must not be null!");
+		Assert.notNull(em, "EntityManager must not be null");
 
 		Class<?> entityManagerType = em.getDelegate().getClass();
 		PersistenceProvider cachedProvider = CACHE.get(entityManagerType);
@@ -229,7 +229,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 	 */
 	public static PersistenceProvider fromMetamodel(Metamodel metamodel) {
 
-		Assert.notNull(metamodel, "Metamodel must not be null!");
+		Assert.notNull(metamodel, "Metamodel must not be null");
 
 		Class<? extends Metamodel> metamodelType = metamodel.getClass();
 		PersistenceProvider cachedProvider = CACHE.get(metamodelType);

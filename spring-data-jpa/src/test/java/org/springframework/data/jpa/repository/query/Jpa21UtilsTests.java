@@ -255,7 +255,7 @@ public class Jpa21UtilsTests {
 
 			Assertions.assertThat(attributeNode.getSubgraphs()) //
 					.describedAs(
-							String.format("Leaf properties %s could not be found. The node does not have any subgraphs.", nodes)) //
+							String.format("Leaf properties %s could not be found; The node does not have any subgraphs", nodes)) //
 					.isNotNull() //
 					.isNotEmpty();
 
@@ -267,13 +267,13 @@ public class Jpa21UtilsTests {
 					AttributeNode<?> node = findNode(nodeName, graph.getAttributeNodes());
 
 					String notInSubgraph = String.format(
-							"AttributeNode '%s' could not be found in subgraph for '%s'. Know nodes are: %s.", nodeName,
+							"AttributeNode '%s' could not be found in subgraph for '%s'; Know nodes are: %s", nodeName,
 							attributeNode.getAttributeName(), extractExistingAttributeNames(graph));
 
 					softly.assertThat(node).describedAs(notInSubgraph).isNotNull();
 
 					String notLeaf = String.format(
-							"AttributeNode %s of subgraph %s is not a leaf property but has %d SubGraph(s).", nodeName,
+							"AttributeNode %s of subgraph %s is not a leaf property but has %d SubGraph(s)", nodeName,
 							attributeNode.getAttributeName(), node.getSubgraphs().size());
 
 					softly.assertThat(node.getSubgraphs()) //
@@ -291,7 +291,7 @@ public class Jpa21UtilsTests {
 
 			Assertions.assertThat(attributeNode.getSubgraphs()) //
 					.describedAs(
-							String.format("Subgraphs %s could not be found. The node does not have any subgraphs.", subgraphs)) //
+							String.format("Subgraphs %s could not be found; The node does not have any subgraphs", subgraphs)) //
 					.isNotNull() //
 					.isNotEmpty();
 
@@ -303,13 +303,13 @@ public class Jpa21UtilsTests {
 
 					AttributeNode<?> node = findNode(subgraphName, graph.getAttributeNodes());
 
-					String notFound = String.format("Subgraph '%s' could not be found in SubGraph for '%s'. Known nodes are: %s.",
+					String notFound = String.format("Subgraph '%s' could not be found in SubGraph for '%s'; Known nodes are: %s",
 							subgraphName, attributeNode.getAttributeName(), extractExistingAttributeNames(graph));
 					softly.assertThat(node) //
 							.describedAs(notFound) //
 							.isNotNull();
 
-					String notSubGraph = String.format("'%s' of SubGraph '%s' is not a SubGraph.", subgraphName,
+					String notSubGraph = String.format("'%s' of SubGraph '%s' is not a SubGraph", subgraphName,
 							attributeNode.getAttributeName());
 
 					softly.assertThat(node.getSubgraphs()) //

@@ -59,11 +59,11 @@ enum StoredProcedureAttributeSource {
 	 */
 	public StoredProcedureAttributes createFrom(Method method, JpaEntityMetadata<?> entityMetadata) {
 
-		Assert.notNull(method, "Method must not be null!");
-		Assert.notNull(entityMetadata, "EntityMetadata must not be null!");
+		Assert.notNull(method, "Method must not be null");
+		Assert.notNull(entityMetadata, "EntityMetadata must not be null");
 
 		Procedure procedure = AnnotatedElementUtils.findMergedAnnotation(method, Procedure.class);
-		Assert.notNull(procedure, "Method must have an @Procedure annotation!");
+		Assert.notNull(procedure, "Method must have an @Procedure annotation");
 
 		NamedStoredProcedureQuery namedStoredProc = tryFindAnnotatedNamedStoredProcedureQuery(method, entityMetadata,
 				procedure);
@@ -179,9 +179,9 @@ enum StoredProcedureAttributeSource {
 	private NamedStoredProcedureQuery tryFindAnnotatedNamedStoredProcedureQuery(Method method,
 			JpaEntityMetadata<?> entityMetadata, Procedure procedure) {
 
-		Assert.notNull(method, "Method must not be null!");
-		Assert.notNull(entityMetadata, "EntityMetadata must not be null!");
-		Assert.notNull(procedure, "Procedure must not be null!");
+		Assert.notNull(method, "Method must not be null");
+		Assert.notNull(entityMetadata, "EntityMetadata must not be null");
+		Assert.notNull(procedure, "Procedure must not be null");
 
 		Class<?> entityType = entityMetadata.getJavaType();
 

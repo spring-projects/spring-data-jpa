@@ -145,7 +145,7 @@ public class JpaSort extends Sort {
 	 */
 	public JpaSort and(@Nullable Direction direction, Attribute<?, ?>... attributes) {
 
-		Assert.notNull(attributes, "Attributes must not be null!");
+		Assert.notNull(attributes, "Attributes must not be null");
 
 		return and(direction, paths(attributes));
 	}
@@ -159,7 +159,7 @@ public class JpaSort extends Sort {
 	 */
 	public JpaSort and(@Nullable Direction direction, Path<?, ?>... paths) {
 
-		Assert.notNull(paths, "Paths must not be null!");
+		Assert.notNull(paths, "Paths must not be null");
 
 		List<Order> existing = new ArrayList<>();
 
@@ -179,7 +179,7 @@ public class JpaSort extends Sort {
 	 */
 	public JpaSort andUnsafe(@Nullable Direction direction, String... properties) {
 
-		Assert.notEmpty(properties, "Properties must not be empty!");
+		Assert.notEmpty(properties, "Properties must not be empty");
 
 		List<Order> orders = new ArrayList<>();
 
@@ -202,8 +202,8 @@ public class JpaSort extends Sort {
 	 */
 	private static Path<?, ?>[] paths(Attribute<?, ?>[] attributes) {
 
-		Assert.notNull(attributes, "Attributes must not be null!");
-		Assert.notEmpty(attributes, "Attributes must not be empty!");
+		Assert.notNull(attributes, "Attributes must not be null");
+		Assert.notEmpty(attributes, "Attributes must not be empty");
 
 		Path<?, ?>[] paths = new Path[attributes.length];
 
@@ -233,7 +233,7 @@ public class JpaSort extends Sort {
 	 */
 	public static <A extends Attribute<T, S>, T, S> Path<T, S> path(A attribute) {
 
-		Assert.notNull(attribute, "Attribute must not be null!");
+		Assert.notNull(attribute, "Attribute must not be null");
 		return new Path<>(Collections.singletonList(attribute));
 	}
 
@@ -245,7 +245,7 @@ public class JpaSort extends Sort {
 	 */
 	public static <P extends PluralAttribute<T, ?, S>, T, S> Path<T, S> path(P attribute) {
 
-		Assert.notNull(attribute, "Attribute must not be null!");
+		Assert.notNull(attribute, "Attribute must not be null");
 		return new Path<>(Collections.singletonList(attribute));
 	}
 
@@ -268,9 +268,9 @@ public class JpaSort extends Sort {
 	 */
 	public static JpaSort unsafe(Direction direction, String... properties) {
 
-		Assert.notNull(direction, "Direction must not be null!");
-		Assert.notEmpty(properties, "Properties must not be empty!");
-		Assert.noNullElements(properties, "Properties must not contain null values!");
+		Assert.notNull(direction, "Direction must not be null");
+		Assert.notEmpty(properties, "Properties must not be empty");
+		Assert.noNullElements(properties, "Properties must not contain null values");
 
 		return unsafe(direction, Arrays.asList(properties));
 	}
@@ -284,7 +284,7 @@ public class JpaSort extends Sort {
 	 */
 	public static JpaSort unsafe(Direction direction, List<String> properties) {
 
-		Assert.notEmpty(properties, "Properties must not be empty!");
+		Assert.notEmpty(properties, "Properties must not be empty");
 
 		List<Order> orders = new ArrayList<>(properties.size());
 
@@ -330,7 +330,7 @@ public class JpaSort extends Sort {
 
 		private List<Attribute<?, ?>> add(Attribute<?, ?> attribute) {
 
-			Assert.notNull(attribute, "Attribute must not be null!");
+			Assert.notNull(attribute, "Attribute must not be null");
 
 			List<Attribute<?, ?>> newAttributes = new ArrayList<Attribute<?, ?>>(attributes.size() + 1);
 			newAttributes.addAll(attributes);
@@ -415,8 +415,8 @@ public class JpaSort extends Sort {
 		 */
 		public Sort withUnsafe(String... properties) {
 
-			Assert.notEmpty(properties, "Properties must not be empty!");
-			Assert.noNullElements(properties, "Properties must not contain null values!");
+			Assert.notEmpty(properties, "Properties must not be empty");
+			Assert.noNullElements(properties, "Properties must not contain null values");
 
 			List<Order> orders = new ArrayList<>(properties.length);
 

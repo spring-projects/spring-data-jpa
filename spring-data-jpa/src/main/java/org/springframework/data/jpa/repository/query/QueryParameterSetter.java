@@ -67,7 +67,7 @@ interface QueryParameterSetter {
 		NamedOrIndexedQueryParameterSetter(Function<JpaParametersParameterAccessor, Object> valueExtractor,
 				Parameter<?> parameter, @Nullable TemporalType temporalType) {
 
-			Assert.notNull(valueExtractor, "ValueExtractor must not be null!");
+			Assert.notNull(valueExtractor, "ValueExtractor must not be null");
 
 			this.valueExtractor = valueExtractor;
 			this.parameter = parameter;
@@ -275,7 +275,7 @@ interface QueryParameterSetter {
 
 			} catch (RuntimeException e) {
 
-				LogFactory.getLog(QueryMetadata.class).warn("Failed to unwrap actual class for Query proxy.", e);
+				LogFactory.getLog(QueryMetadata.class).warn("Failed to unwrap actual class for Query proxy", e);
 
 				return queryType;
 			}

@@ -60,8 +60,8 @@ public class JpaEntityGraph {
 	 */
 	public JpaEntityGraph(String name, EntityGraphType type, @Nullable String[] attributePaths) {
 
-		Assert.hasText(name, "The name of an EntityGraph must not be null or empty!");
-		Assert.notNull(type, "FetchGraphType must not be null!");
+		Assert.hasText(name, "The name of an EntityGraph must not be null or empty");
+		Assert.notNull(type, "FetchGraphType must not be null");
 
 		this.name = name;
 		this.type = type;

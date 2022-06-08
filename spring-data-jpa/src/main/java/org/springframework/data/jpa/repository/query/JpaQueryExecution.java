@@ -81,8 +81,8 @@ public abstract class JpaQueryExecution {
 	@Nullable
 	public Object execute(AbstractJpaQuery query, JpaParametersParameterAccessor accessor) {
 
-		Assert.notNull(query, "AbstractJpaQuery must not be null!");
-		Assert.notNull(accessor, "JpaParametersParameterAccessor must not be null!");
+		Assert.notNull(query, "AbstractJpaQuery must not be null");
+		Assert.notNull(accessor, "JpaParametersParameterAccessor must not be null");
 
 		Object result;
 
@@ -211,7 +211,7 @@ public abstract class JpaQueryExecution {
 		 */
 		public ModifyingExecution(JpaQueryMethod method, EntityManager em) {
 
-			Assert.notNull(em, "The EntityManager must not be null.");
+			Assert.notNull(em, "The EntityManager must not be null");
 
 			Class<?> returnType = method.getReturnType();
 
@@ -219,7 +219,7 @@ public abstract class JpaQueryExecution {
 			boolean isInt = ClassUtils.isAssignable(returnType, Integer.class);
 
 			Assert.isTrue(isInt || isVoid,
-					"Modifying queries can only use void or int/Integer as return type! Offending method: " + method);
+					"Modifying queries can only use void or int/Integer as return type; Offending method: " + method);
 
 			this.em = em;
 			this.flush = method.getFlushAutomatically();
@@ -294,7 +294,7 @@ public abstract class JpaQueryExecution {
 	 */
 	static class ProcedureExecution extends JpaQueryExecution {
 
-		private static final String NO_SURROUNDING_TRANSACTION = "You're trying to execute a @Procedure method without a surrounding transaction that keeps the connection open so that the ResultSet can actually be consumed. Make sure the consumer code uses @Transactional or any other way of declaring a (read-only) transaction.";
+		private static final String NO_SURROUNDING_TRANSACTION = "You're trying to execute a @Procedure method without a surrounding transaction that keeps the connection open so that the ResultSet can actually be consumed; Make sure the consumer code uses @Transactional or any other way of declaring a (read-only) transaction";
 
 		@Override
 		protected Object doExecute(AbstractJpaQuery jpaQuery, JpaParametersParameterAccessor accessor) {
@@ -331,7 +331,7 @@ public abstract class JpaQueryExecution {
 	 */
 	static class StreamExecution extends JpaQueryExecution {
 
-		private static final String NO_SURROUNDING_TRANSACTION = "You're trying to execute a streaming query method without a surrounding transaction that keeps the connection open so that the Stream can actually be consumed. Make sure the code consuming the stream uses @Transactional or any other way of declaring a (read-only) transaction.";
+		private static final String NO_SURROUNDING_TRANSACTION = "You're trying to execute a streaming query method without a surrounding transaction that keeps the connection open so that the Stream can actually be consumed; Make sure the code consuming the stream uses @Transactional or any other way of declaring a (read-only) transaction";
 
 		private static Method streamMethod = ReflectionUtils.findMethod(Query.class, "getResultStream");
 

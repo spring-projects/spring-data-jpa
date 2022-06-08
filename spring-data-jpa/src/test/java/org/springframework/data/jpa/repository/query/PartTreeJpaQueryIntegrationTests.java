@@ -254,11 +254,11 @@ public class PartTreeJpaQueryIntegrationTests {
 
 		while (split.hasNext()) {
 
-			Assert.notNull(result, "result must not be null.");
+			Assert.notNull(result, "result must not be null");
 			result = getField(result, split.next());
 		}
 
-		Assert.notNull(result, "result must not be null.");
+		Assert.notNull(result, "result must not be null");
 		return (T) result;
 	}
 

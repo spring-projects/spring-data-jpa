@@ -55,6 +55,6 @@ public class HibernateTestUtils {
 			}
 		}
 
-		throw new IllegalStateException("Could not obtain Hibernate PersistenceProvider!");
+		throw new IllegalStateException("Could not obtain Hibernate PersistenceProvider");
 	}
 }

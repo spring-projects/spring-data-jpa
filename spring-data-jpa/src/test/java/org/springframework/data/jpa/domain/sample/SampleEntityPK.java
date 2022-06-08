@@ -40,8 +40,8 @@ public class SampleEntityPK implements Serializable {
 
 	public SampleEntityPK(String first, String second) {
 
-		Assert.notNull(first, "First must not be null!");
-		Assert.notNull(second, "Second must not be null!");
+		Assert.notNull(first, "First must not be null");
+		Assert.notNull(second, "Second must not be null");
 		this.first = first;
 		this.second = second;
 	}

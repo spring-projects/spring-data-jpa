@@ -70,8 +70,8 @@ class JpaAuditingRegistrar extends AuditingBeanDefinitionRegistrarSupport {
 	@Override
 	public void registerBeanDefinitions(AnnotationMetadata annotationMetadata, BeanDefinitionRegistry registry) {
 
-		Assert.notNull(annotationMetadata, "AnnotationMetadata must not be null!");
-		Assert.notNull(registry, "BeanDefinitionRegistry must not be null!");
+		Assert.notNull(annotationMetadata, "AnnotationMetadata must not be null");
+		Assert.notNull(registry, "BeanDefinitionRegistry must not be null");
 
 		registerBeanConfigurerAspectIfNecessary(registry);
 		super.registerBeanDefinitions(annotationMetadata, registry);
@@ -106,10 +106,10 @@ class JpaAuditingRegistrar extends AuditingBeanDefinitionRegistrarSupport {
 		}
 
 		if (!ClassUtils.isPresent(BEAN_CONFIGURER_ASPECT_CLASS_NAME, getClass().getClassLoader())) {
-			throw new BeanDefinitionStoreException(BEAN_CONFIGURER_ASPECT_CLASS_NAME + " not found. \n"
+			throw new BeanDefinitionStoreException(BEAN_CONFIGURER_ASPECT_CLASS_NAME + " not found; \n"
 					+ "Could not configure Spring Data JPA auditing-feature because"
-					+ " spring-aspects.jar is not on the classpath!\n"
-					+ "If you want to use auditing please add spring-aspects.jar to the classpath.");
+					+ " spring-aspects.jar is not on the classpath;\n"
+					+ "If you want to use auditing please add spring-aspects.jar to the classpath");
 		}
 
 		RootBeanDefinition def = new RootBeanDefinition();

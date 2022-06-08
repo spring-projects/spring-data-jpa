@@ -63,8 +63,8 @@ class StoredProcedureAttributes {
 	StoredProcedureAttributes(String procedureName, List<ProcedureParameter> outputProcedureParameters,
 			boolean namedStoredProcedure) {
 
-		Assert.notNull(procedureName, "ProcedureName must not be null!");
-		Assert.notNull(outputProcedureParameters, "OutputProcedureParameters must not be null!");
+		Assert.notNull(procedureName, "ProcedureName must not be null");
+		Assert.notNull(outputProcedureParameters, "OutputProcedureParameters must not be null");
 		Assert.isTrue(outputProcedureParameters.size() != 1 || outputProcedureParameters.get(0) != null,
 				"ProcedureParameters must not have size 1 with a null value");
 

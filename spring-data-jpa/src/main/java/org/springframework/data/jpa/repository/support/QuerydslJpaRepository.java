@@ -120,7 +120,7 @@ public class QuerydslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 	@Override
 	public List<T> findAll(Predicate predicate, Sort sort) {
 
-		Assert.notNull(sort, "Sort must not be null!");
+		Assert.notNull(sort, "Sort must not be null");
 
 		return executeSorted(createQuery(predicate).select(path), sort);
 	}
@@ -128,7 +128,7 @@ public class QuerydslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 	@Override
 	public List<T> findAll(OrderSpecifier<?>... orders) {
 
-		Assert.notNull(orders, "Order specifiers must not be null!");
+		Assert.notNull(orders, "Order specifiers must not be null");
 
 		return executeSorted(createQuery(new Predicate[0]).select(path), orders);
 	}
@@ -136,7 +136,7 @@ public class QuerydslJpaRepository<T, ID extends Serializable> extends SimpleJpa
 	@Override
 	public Page<T> findAll(Predicate predicate, Pageable pageable) {
 
-		Assert.notNull(pageable, "Pageable must not be null!");
+		Assert.notNull(pageable, "Pageable must not be null");
 
 		final JPQLQuery<?> countQuery = createCountQuery(predicate);
 		JPQLQuery<T> query = querydsl.applyPagination(pageable, createQuery(predicate).select(path));

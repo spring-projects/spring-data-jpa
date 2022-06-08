@@ -52,7 +52,7 @@ public class JpaRepositoryExtension extends CdiRepositoryExtensionSupport {
 	private final Map<Set<Annotation>, Bean<EntityManager>> entityManagers = new HashMap<>();
 
 	public JpaRepositoryExtension() {
-		LOGGER.info("Activating CDI extension for Spring Data JPA repositories.");
+		LOGGER.info("Activating CDI extension for Spring Data JPA repositories");
 	}
 
 	/**
@@ -71,7 +71,7 @@ public class JpaRepositoryExtension extends CdiRepositoryExtensionSupport {
 			if (type instanceof Class<?> && EntityManager.class.isAssignableFrom((Class<?>) type)) {
 				Set<Annotation> qualifiers = new HashSet<>(bean.getQualifiers());
 				if (bean.isAlternative() || !entityManagers.containsKey(qualifiers)) {
-					LOGGER.debug(String.format("Discovered '%s' with qualifiers %s.", EntityManager.class.getName(), qualifiers));
+					LOGGER.debug(String.format("Discovered '%s' with qualifiers %s", EntityManager.class.getName(), qualifiers));
 					entityManagers.put(qualifiers, (Bean<EntityManager>) bean);
 				}
 			}
@@ -94,7 +94,7 @@ public class JpaRepositoryExtension extends CdiRepositoryExtensionSupport {
 
 			// Create the bean representing the repository.
 			CdiRepositoryBean<?> repositoryBean = createRepositoryBean(repositoryType, qualifiers, beanManager);
-			LOGGER.info(String.format("Registering bean for '%s' with qualifiers %s.", repositoryType.getName(), qualifiers));
+			LOGGER.info(String.format("Registering bean for '%s' with qualifiers %s", repositoryType.getName(), qualifiers));
 
 			// Register the bean to the extension and the container.
 			registerBean(repositoryBean);
@@ -117,7 +117,7 @@ public class JpaRepositoryExtension extends CdiRepositoryExtensionSupport {
 		Bean<EntityManager> entityManagerBean = entityManagers.get(qualifiers);
 
 		if (entityManagerBean == null) {
-			throw new UnsatisfiedResolutionException(String.format("Unable to resolve a bean for '%s' with qualifiers %s.",
+			throw new UnsatisfiedResolutionException(String.format("Unable to resolve a bean for '%s' with qualifiers %s",
 					EntityManager.class.getName(), qualifiers));
 		}
 

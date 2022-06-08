@@ -78,7 +78,7 @@ class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySupport<S, R>
 	@Override
 	public FetchableFluentQuery<R> sortBy(Sort sort) {
 
-		Assert.notNull(sort, "Sort must not be null!");
+		Assert.notNull(sort, "Sort must not be null");
 
 		return new FetchableFluentQueryBySpecification<>(spec, entityType, resultType, this.sort.and(sort), properties,
 				finder, countOperation, existsOperation, entityManager);
@@ -87,7 +87,7 @@ class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySupport<S, R>
 	@Override
 	public <NR> FetchableFluentQuery<NR> as(Class<NR> resultType) {
 
-		Assert.notNull(resultType, "Projection target type must not be null!");
+		Assert.notNull(resultType, "Projection target type must not be null");
 		if (!resultType.isInterface()) {
 			throw new UnsupportedOperationException("Class-based DTOs are not yet supported.");
 		}

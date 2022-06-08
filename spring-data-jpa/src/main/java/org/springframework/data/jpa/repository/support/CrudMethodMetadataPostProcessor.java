@@ -190,7 +190,7 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 		 */
 		DefaultCrudMethodMetadata(Method method) {
 
-			Assert.notNull(method, "Method must not be null!");
+			Assert.notNull(method, "Method must not be null");
 
 			this.lockModeType = findLockModeType(method);
 			this.queryHints = findQueryHints(method, it -> true);

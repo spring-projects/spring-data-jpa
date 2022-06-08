@@ -38,7 +38,7 @@ public class DefaultJpaEntityMetadata<T> implements JpaEntityMetadata<T> {
 	 */
 	public DefaultJpaEntityMetadata(Class<T> domainType) {
 
-		Assert.notNull(domainType, "Domain type must not be null!");
+		Assert.notNull(domainType, "Domain type must not be null");
 		this.domainType = domainType;
 	}
 

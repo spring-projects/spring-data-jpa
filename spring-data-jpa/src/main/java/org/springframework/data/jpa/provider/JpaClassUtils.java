@@ -61,8 +61,8 @@ abstract class JpaClassUtils {
 
 	private static boolean isOfType(Object source, String typeName, @Nullable ClassLoader classLoader) {
 
-		Assert.notNull(source, "Source instance must not be null!");
-		Assert.hasText(typeName, "Target type name must not be null or empty!");
+		Assert.notNull(source, "Source instance must not be null");
+		Assert.hasText(typeName, "Target type name must not be null or empty");
 
 		try {
 			return ClassUtils.forName(typeName, classLoader).isInstance(source);

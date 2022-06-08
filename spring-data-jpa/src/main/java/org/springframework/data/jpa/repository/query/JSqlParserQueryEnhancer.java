@@ -96,7 +96,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 	public String applySorting(Sort sort, @Nullable String alias) {
 
 		String queryString = query.getQueryString();
-		Assert.hasText(queryString, "Query must not be null or empty!");
+		Assert.hasText(queryString, "Query must not be null or empty");
 
 		if (this.parsedType != ParsedType.SELECT) {
 			return queryString;
@@ -284,7 +284,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 			return this.query.getQueryString();
 		}
 
-		Assert.hasText(this.query.getQueryString(), "OriginalQuery must not be null or empty!");
+		Assert.hasText(this.query.getQueryString(), "OriginalQuery must not be null or empty");
 
 		Select selectStatement = parseSelectStatement(this.query.getQueryString());
 		PlainSelect selectBody = (PlainSelect) selectStatement.getSelectBody();
@@ -333,7 +333,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 			return "";
 		}
 
-		Assert.hasText(query.getQueryString(), "Query must not be null or empty!");
+		Assert.hasText(query.getQueryString(), "Query must not be null or empty");
 
 		Select selectStatement = parseSelectStatement(query.getQueryString());
 		PlainSelect selectBody = (PlainSelect) selectStatement.getSelectBody();
@@ -360,7 +360,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 		try {
 			return (Select) CCJSqlParserUtil.parse(query);
 		} catch (JSQLParserException e) {
-			throw new IllegalArgumentException("The query you provided is not a valid SQL Query!", e);
+			throw new IllegalArgumentException("The query you provided is not a valid SQL Query", e);
 		}
 	}
 

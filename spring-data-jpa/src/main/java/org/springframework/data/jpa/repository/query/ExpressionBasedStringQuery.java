@@ -85,9 +85,9 @@ class ExpressionBasedStringQuery extends StringQuery {
 	private static String renderQueryIfExpressionOrReturnQuery(String query, JpaEntityMetadata<?> metadata,
 			SpelExpressionParser parser) {
 
-		Assert.notNull(query, "query must not be null!");
-		Assert.notNull(metadata, "metadata must not be null!");
-		Assert.notNull(parser, "parser must not be null!");
+		Assert.notNull(query, "query must not be null");
+		Assert.notNull(metadata, "metadata must not be null");
+		Assert.notNull(parser, "parser must not be null");
 
 		if (!containsExpression(query)) {
 			return query;

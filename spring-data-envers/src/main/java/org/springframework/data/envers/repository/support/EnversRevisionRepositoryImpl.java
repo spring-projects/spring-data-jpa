@@ -77,7 +77,7 @@ public class EnversRevisionRepositoryImpl<T, ID, N extends Number & Comparable<N
 	public EnversRevisionRepositoryImpl(JpaEntityInformation<T, ?> entityInformation,
 			RevisionEntityInformation revisionEntityInformation, EntityManager entityManager) {
 
-		Assert.notNull(revisionEntityInformation, "RevisionEntityInformation must not be null!");
+		Assert.notNull(revisionEntityInformation, "RevisionEntityInformation must not be null");
 
 		this.entityInformation = entityInformation;
 		this.entityManager = entityManager;
@@ -91,7 +91,7 @@ public class EnversRevisionRepositoryImpl<T, ID, N extends Number & Comparable<N
 				.setMaxResults(1) //
 				.getResultList();
 
-		Assert.state(singleResult.size() <= 1, "We expect at most one result.");
+		Assert.state(singleResult.size() <= 1, "We expect at most one result");
 
 		if (singleResult.isEmpty()) {
 			return Optional.empty();
@@ -104,14 +104,14 @@ public class EnversRevisionRepositoryImpl<T, ID, N extends Number & Comparable<N
 	@SuppressWarnings("unchecked")
 	public Optional<Revision<N, T>> findRevision(ID id, N revisionNumber) {
 
-		Assert.notNull(id, "Identifier must not be null!");
-		Assert.notNull(revisionNumber, "Revision number must not be null!");
+		Assert.notNull(id, "Identifier must not be null");
+		Assert.notNull(revisionNumber, "Revision number must not be null");
 
 		List<Object[]> singleResult = (List<Object[]>) createBaseQuery(id) //
 				.add(AuditEntity.revisionNumber().eq(revisionNumber)) //
 				.getResultList();
 
-		Assert.state(singleResult.size() <= 1, "We expect at most one result.");
+		Assert.state(singleResult.size() <= 1, "We expect at most one result");
 
 		if (singleResult.isEmpty()) {
 			return Optional.empty();
@@ -185,7 +185,7 @@ public class EnversRevisionRepositoryImpl<T, ID, N extends Number & Comparable<N
 			Assert.notNull(data, "Data must not be null");
 			Assert.isTrue( //
 					data.length == 3, //
-					() -> String.format("Data must have length three, but has length %d.", data.length));
+					() -> String.format("Data must have length three, but has length %d", data.length));
 			Assert.isTrue( //
 					data[2] instanceof RevisionType, //
 					() -> String.format("The third array element must be of type Revision type, but is of type %s",

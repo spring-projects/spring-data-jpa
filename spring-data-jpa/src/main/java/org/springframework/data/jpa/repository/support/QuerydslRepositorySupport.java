@@ -54,7 +54,7 @@ public abstract class QuerydslRepositorySupport {
 	 */
 	public QuerydslRepositorySupport(Class<?> domainClass) {
 
-		Assert.notNull(domainClass, "Domain class must not be null!");
+		Assert.notNull(domainClass, "Domain class must not be null");
 		this.builder = new PathBuilderFactory().create(domainClass);
 	}
 
@@ -66,7 +66,7 @@ public abstract class QuerydslRepositorySupport {
 	@Autowired
 	public void setEntityManager(EntityManager entityManager) {
 
-		Assert.notNull(entityManager, "EntityManager must not be null!");
+		Assert.notNull(entityManager, "EntityManager must not be null");
 		this.querydsl = new Querydsl(entityManager, builder);
 		this.entityManager = entityManager;
 	}
@@ -76,8 +76,8 @@ public abstract class QuerydslRepositorySupport {
 	 */
 	@PostConstruct
 	public void validate() {
-		Assert.notNull(entityManager, "EntityManager must not be null!");
-		Assert.notNull(querydsl, "Querydsl must not be null!");
+		Assert.notNull(entityManager, "EntityManager must not be null");
+		Assert.notNull(querydsl, "Querydsl must not be null");
 	}
 
 	/**
@@ -154,7 +154,7 @@ public abstract class QuerydslRepositorySupport {
 	private Querydsl getRequiredQuerydsl() {
 
 		if (querydsl == null) {
-			throw new IllegalStateException("Querydsl is null!");
+			throw new IllegalStateException("Querydsl is null");
 		}
 
 		return querydsl;
@@ -163,7 +163,7 @@ public abstract class QuerydslRepositorySupport {
 	private EntityManager getRequiredEntityManager() {
 
 		if (entityManager == null) {
-			throw new IllegalStateException("EntityManager is null!");
+			throw new IllegalStateException("EntityManager is null");
 		}
 
 		return entityManager;

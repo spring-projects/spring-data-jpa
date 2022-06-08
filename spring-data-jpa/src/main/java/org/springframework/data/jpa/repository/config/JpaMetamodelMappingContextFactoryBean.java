@@ -69,7 +69,7 @@ public class JpaMetamodelMappingContextFactoryBean extends AbstractFactoryBean<J
 		context.initialize();
 
 		if (LOG.isDebugEnabled()) {
-			LOG.debug("Finished initializing JpaMetamodelMappingContext!");
+			LOG.debug("Finished initializing JpaMetamodelMappingContext");
 		}
 
 		return context;
@@ -83,7 +83,7 @@ public class JpaMetamodelMappingContextFactoryBean extends AbstractFactoryBean<J
 	private Set<Metamodel> getMetamodels() {
 
 		if (beanFactory == null) {
-			throw new IllegalStateException("BeanFactory must not be null!");
+			throw new IllegalStateException("BeanFactory must not be null");
 		}
 
 		Collection<EntityManagerFactory> factories = BeanFactoryUtils

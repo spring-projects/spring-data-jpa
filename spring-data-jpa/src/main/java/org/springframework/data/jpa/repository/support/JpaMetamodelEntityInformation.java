@@ -69,19 +69,19 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 
 		super(domainClass);
 
-		Assert.notNull(metamodel, "Metamodel must not be null!");
+		Assert.notNull(metamodel, "Metamodel must not be null");
 		this.metamodel = metamodel;
 
 		ManagedType<T> type = metamodel.managedType(domainClass);
 
 		if (type == null) {
-			throw new IllegalArgumentException("The given domain class can not be found in the given Metamodel!");
+			throw new IllegalArgumentException("The given domain class can not be found in the given Metamodel");
 		}
 
 		this.entityName = type instanceof EntityType ? ((EntityType<?>) type).getName() : null;
 
 		if (!(type instanceof IdentifiableType)) {
-			throw new IllegalArgumentException("The given domain class does not contain an id attribute!");
+			throw new IllegalArgumentException("The given domain class does not contain an id attribute");
 		}
 
 		IdentifiableType<T> identifiableType = (IdentifiableType<T>) type;
@@ -201,7 +201,7 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 	@Override
 	public Object getCompositeIdAttributeValue(Object id, String idAttribute) {
 
-		Assert.isTrue(hasCompositeId(), "Model must have a composite Id!");
+		Assert.isTrue(hasCompositeId(), "Model must have a composite Id");
 
 		return new DirectFieldAccessFallbackBeanWrapper(id).getPropertyValue(idAttribute);
 	}
@@ -409,7 +409,7 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 			ManagedType<?> managedType = this.metamodel.managedType(userClass);
 
 			if (managedType == null) {
-				throw new IllegalStateException("ManagedType must not be null. We checked that it exists before.");
+				throw new IllegalStateException("ManagedType must not be null; We checked that it exists before.");
 			}
 
 			return managedType.getPersistenceType() == PersistenceType.ENTITY;

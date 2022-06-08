@@ -33,16 +33,16 @@ public class UserRepositoryImpl implements UserRepositoryCustom {
 
 	@Autowired
 	public UserRepositoryImpl(JpaContext context) {
-		Assert.notNull(context, "JpaContext must not be null!");
+		Assert.notNull(context, "JpaContext must not be null");
 	}
 
 	@Override
 	public void someCustomMethod(User u) {
-		LOG.debug("Some custom method was invoked!");
+		LOG.debug("Some custom method was invoked");
 	}
 
 	@Override
 	public void findByOverrridingMethod() {
-		LOG.debug("A method overriding a finder was invoked!");
+		LOG.debug("A method overriding a finder was invoked");
 	}
 }

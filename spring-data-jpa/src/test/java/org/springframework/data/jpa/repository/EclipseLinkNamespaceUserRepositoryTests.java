@@ -66,7 +66,7 @@ class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserRepositoryTes
 
 		Query query = em.createNativeQuery("select 1 from User where firstname=? and lastname=?");
 		assertThat(query.getParameters()).describedAs(
-				"Due to a bug eclipse has size 0. If this is no longer the case the special code path triggered in NamedOrIndexedQueryParameterSetter.registerExcessParameters can be removed")
+				"Due to a bug eclipse has size 0; If this is no longer the case the special code path triggered in NamedOrIndexedQueryParameterSetter.registerExcessParameters can be removed")
 				.hasSize(0);
 	}
 

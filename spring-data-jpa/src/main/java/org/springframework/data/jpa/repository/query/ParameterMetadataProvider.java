@@ -96,9 +96,9 @@ class ParameterMetadataProvider {
 	private ParameterMetadataProvider(CriteriaBuilder builder, @Nullable Iterator<Object> bindableParameterValues,
 			Parameters<?, ?> parameters, EscapeCharacter escape) {
 
-		Assert.notNull(builder, "CriteriaBuilder must not be null!");
-		Assert.notNull(parameters, "Parameters must not be null!");
-		Assert.notNull(escape, "EscapeCharacter must not be null!");
+		Assert.notNull(builder, "CriteriaBuilder must not be null");
+		Assert.notNull(parameters, "Parameters must not be null");
+		Assert.notNull(escape, "EscapeCharacter must not be null");
 
 		this.builder = builder;
 		this.parameters = parameters.getBindableParameters().iterator();
@@ -122,7 +122,7 @@ class ParameterMetadataProvider {
 	@SuppressWarnings("unchecked")
 	public <T> ParameterMetadata<T> next(Part part) {
 
-		Assert.isTrue(parameters.hasNext(), () -> String.format("No parameter available for part %s.", part));
+		Assert.isTrue(parameters.hasNext(), () -> String.format("No parameter available for part %s", part));
 
 		Parameter parameter = parameters.next();
 		return (ParameterMetadata<T>) next(part, parameter.getType(), parameter);
@@ -155,7 +155,7 @@ class ParameterMetadataProvider {
 	 */
 	private <T> ParameterMetadata<T> next(Part part, Class<T> type, Parameter parameter) {
 
-		Assert.notNull(type, "Type must not be null!");
+		Assert.notNull(type, "Type must not be null");
 
 		/*
 		 * We treat Expression types as Object vales since the real value to be bound as a parameter is determined at query time.
@@ -233,7 +233,7 @@ class ParameterMetadataProvider {
 		@Nullable
 		public Object prepare(Object value) {
 
-			Assert.notNull(value, "Value must not be null!");
+			Assert.notNull(value, "Value must not be null");
 
 			Class<? extends T> expressionType = expression.getJavaType();
 

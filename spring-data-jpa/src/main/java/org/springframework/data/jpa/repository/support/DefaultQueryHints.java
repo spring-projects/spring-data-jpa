@@ -69,8 +69,8 @@ class DefaultQueryHints implements QueryHints {
 	 */
 	public static QueryHints of(JpaEntityInformation<?, ?> information, CrudMethodMetadata metadata) {
 
-		Assert.notNull(information, "JpaEntityInformation must not be null!");
-		Assert.notNull(metadata, "CrudMethodMetadata must not be null!");
+		Assert.notNull(information, "JpaEntityInformation must not be null");
+		Assert.notNull(metadata, "CrudMethodMetadata must not be null");
 
 		return new DefaultQueryHints(information, metadata, Optional.empty(), false);
 	}

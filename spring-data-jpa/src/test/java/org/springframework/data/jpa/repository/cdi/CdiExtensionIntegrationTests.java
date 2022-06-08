@@ -51,7 +51,7 @@ class CdiExtensionIntegrationTests {
 				.addPackages(PersonRepository.class) //
 				.initialize();
 
-		LOGGER.debug("CDI container bootstrapped!");
+		LOGGER.debug("CDI container bootstrapped");
 	}
 
 	@AfterAll

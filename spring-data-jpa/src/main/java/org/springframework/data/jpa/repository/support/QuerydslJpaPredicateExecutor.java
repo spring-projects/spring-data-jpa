@@ -88,7 +88,7 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 	@Override
 	public Optional<T> findOne(Predicate predicate) {
 
-		Assert.notNull(predicate, "Predicate must not be null!");
+		Assert.notNull(predicate, "Predicate must not be null");
 
 		try {
 			return Optional.ofNullable(createQuery(predicate).select(path).fetchOne());
@@ -100,7 +100,7 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 	@Override
 	public List<T> findAll(Predicate predicate) {
 
-		Assert.notNull(predicate, "Predicate must not be null!");
+		Assert.notNull(predicate, "Predicate must not be null");
 
 		return createQuery(predicate).select(path).fetch();
 	}
@@ -108,8 +108,8 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 	@Override
 	public List<T> findAll(Predicate predicate, OrderSpecifier<?>... orders) {
 
-		Assert.notNull(predicate, "Predicate must not be null!");
-		Assert.notNull(orders, "Order specifiers must not be null!");
+		Assert.notNull(predicate, "Predicate must not be null");
+		Assert.notNull(orders, "Order specifiers must not be null");
 
 		return executeSorted(createQuery(predicate).select(path), orders);
 	}
@@ -117,8 +117,8 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 	@Override
 	public List<T> findAll(Predicate predicate, Sort sort) {
 
-		Assert.notNull(predicate, "Predicate must not be null!");
-		Assert.notNull(sort, "Sort must not be null!");
+		Assert.notNull(predicate, "Predicate must not be null");
+		Assert.notNull(sort, "Sort must not be null");
 
 		return executeSorted(createQuery(predicate).select(path), sort);
 	}
@@ -126,7 +126,7 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 	@Override
 	public List<T> findAll(OrderSpecifier<?>... orders) {
 
-		Assert.notNull(orders, "Order specifiers must not be null!");
+		Assert.notNull(orders, "Order specifiers must not be null");
 
 		return executeSorted(createQuery(new Predicate[0]).select(path), orders);
 	}
@@ -134,8 +134,8 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 	@Override
 	public Page<T> findAll(Predicate predicate, Pageable pageable) {
 
-		Assert.notNull(predicate, "Predicate must not be null!");
-		Assert.notNull(pageable, "Pageable must not be null!");
+		Assert.notNull(predicate, "Predicate must not be null");
+		Assert.notNull(pageable, "Pageable must not be null");
 
 		final JPQLQuery<?> countQuery = createCountQuery(predicate);
 		JPQLQuery<T> query = querydsl.applyPagination(pageable, createQuery(predicate).select(path));
@@ -147,8 +147,8 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 	@Override
 	public <S extends T, R> R findBy(Predicate predicate, Function<FetchableFluentQuery<S>, R> queryFunction) {
 
-		Assert.notNull(predicate, "Predicate must not be null!");
-		Assert.notNull(queryFunction, "Query function must not be null!");
+		Assert.notNull(predicate, "Predicate must not be null");
+		Assert.notNull(queryFunction, "Query function must not be null");
 
 		Function<Sort, AbstractJPAQuery<?, ?>> finder = sort -> {
 			AbstractJPAQuery<?, ?> select = (AbstractJPAQuery<?, ?>) createQuery(predicate).select(path);
@@ -202,7 +202,7 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 	 */
 	protected AbstractJPAQuery<?, ?> createQuery(Predicate... predicate) {
 
-		Assert.notNull(predicate, "Predicate must not be null!");
+		Assert.notNull(predicate, "Predicate must not be null");
 
 		AbstractJPAQuery<?, ?> query = doCreateQuery(getQueryHints().withFetchGraphs(entityManager), predicate);
 		CrudMethodMetadata metadata = getRepositoryMethodMetadata();

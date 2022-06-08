@@ -40,7 +40,7 @@ public class ReflectionRevisionEntityInformation implements RevisionEntityInform
 	 */
 	public ReflectionRevisionEntityInformation(Class<?> revisionEntityClass) {
 
-		Assert.notNull(revisionEntityClass, "Revision entity type must not be null!");
+		Assert.notNull(revisionEntityClass, "Revision entity type must not be null");
 
 		AnnotationDetectionFieldCallback fieldCallback = new AnnotationDetectionFieldCallback(RevisionNumber.class);
 		ReflectionUtils.doWithFields(revisionEntityClass, fieldCallback);

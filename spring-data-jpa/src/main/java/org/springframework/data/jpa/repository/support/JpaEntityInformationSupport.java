@@ -55,8 +55,8 @@ public abstract class JpaEntityInformationSupport<T, ID> extends AbstractEntityI
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public static <T> JpaEntityInformation<T, ?> getEntityInformation(Class<T> domainClass, EntityManager em) {
 
-		Assert.notNull(domainClass, "Domain class must not be null!");
-		Assert.notNull(em, "EntityManager must not be null!");
+		Assert.notNull(domainClass, "Domain class must not be null");
+		Assert.notNull(em, "EntityManager must not be null");
 
 		Metamodel metamodel = em.getMetamodel();
 

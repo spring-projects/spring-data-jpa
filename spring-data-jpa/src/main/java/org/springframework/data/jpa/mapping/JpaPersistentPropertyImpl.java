@@ -99,7 +99,7 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 
 		super(property, owner, simpleTypeHolder);
 
-		Assert.notNull(metamodel, "Metamodel must not be null!");
+		Assert.notNull(metamodel, "Metamodel must not be null");
 
 		this.isAssociation = Lazy.of(() -> super.isAssociation() //
 				|| ASSOCIATION_ANNOTATIONS.stream().anyMatch(this::isAnnotationPresent));

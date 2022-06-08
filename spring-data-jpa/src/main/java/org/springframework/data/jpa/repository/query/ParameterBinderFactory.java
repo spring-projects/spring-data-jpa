@@ -44,7 +44,7 @@ class ParameterBinderFactory {
 	 */
 	static ParameterBinder createBinder(JpaParameters parameters) {
 
-		Assert.notNull(parameters, "JpaParameters must not be null!");
+		Assert.notNull(parameters, "JpaParameters must not be null");
 
 		QueryParameterSetterFactory setterFactory = QueryParameterSetterFactory.basic(parameters);
 		List<ParameterBinding> bindings = getBindings(parameters);
@@ -63,8 +63,8 @@ class ParameterBinderFactory {
 	 */
 	static ParameterBinder createCriteriaBinder(JpaParameters parameters, List<ParameterMetadata<?>> metadata) {
 
-		Assert.notNull(parameters, "JpaParameters must not be null!");
-		Assert.notNull(metadata, "Parameter metadata must not be null!");
+		Assert.notNull(parameters, "JpaParameters must not be null");
+		Assert.notNull(metadata, "Parameter metadata must not be null");
 
 		QueryParameterSetterFactory setterFactory = QueryParameterSetterFactory.forCriteriaQuery(parameters, metadata);
 		List<ParameterBinding> bindings = getBindings(parameters);
@@ -87,10 +87,10 @@ class ParameterBinderFactory {
 	static ParameterBinder createQueryAwareBinder(JpaParameters parameters, DeclaredQuery query,
 			SpelExpressionParser parser, QueryMethodEvaluationContextProvider evaluationContextProvider) {
 
-		Assert.notNull(parameters, "JpaParameters must not be null!");
-		Assert.notNull(query, "StringQuery must not be null!");
-		Assert.notNull(parser, "SpelExpressionParser must not be null!");
-		Assert.notNull(evaluationContextProvider, "EvaluationContextProvider must not be null!");
+		Assert.notNull(parameters, "JpaParameters must not be null");
+		Assert.notNull(query, "StringQuery must not be null");
+		Assert.notNull(parser, "SpelExpressionParser must not be null");
+		Assert.notNull(evaluationContextProvider, "EvaluationContextProvider must not be null");
 
 		List<ParameterBinding> bindings = query.getParameterBindings();
 		QueryParameterSetterFactory expressionSetterFactory = QueryParameterSetterFactory.parsing(parser,

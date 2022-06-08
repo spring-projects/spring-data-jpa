@@ -71,13 +71,13 @@ final class JpaResultConverters {
 				}
 
 			} catch (SQLException | IOException e) {
-				throw new DataRetrievalFailureException("Couldn't retrieve data from blob.", e);
+				throw new DataRetrievalFailureException("Couldn't retrieve data from blob", e);
 			} finally {
 				if (blobStream != null) {
 					try {
 						blobStream.close();
 					} catch (IOException e) {
-						throw new CleanupFailureDataAccessException("Couldn't close binary stream for given blob.", e);
+						throw new CleanupFailureDataAccessException("Couldn't close binary stream for given blob", e);
 					}
 				}
 			}
