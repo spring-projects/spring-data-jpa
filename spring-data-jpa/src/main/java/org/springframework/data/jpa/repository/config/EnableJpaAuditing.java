@@ -17,7 +17,6 @@ package org.springframework.data.jpa.repository.config;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
-import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
@@ -31,8 +30,8 @@ import org.springframework.data.domain.AuditorAware;
  *
  * @author Thomas Darimont
  * @author Oliver Gierke
+ * @author Greg Turnquist
  */
-@Inherited
 @Documented
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
@@ -61,8 +60,8 @@ public @interface EnableJpaAuditing {
 	boolean modifyOnCreate() default true;
 
 	/**
-	 * Configures a {@link DateTimeProvider} bean name that allows customizing the {@link java.time.temporal.TemporalAccessor} to be
-	 * used for setting creation and modification dates.
+	 * Configures a {@link DateTimeProvider} bean name that allows customizing the
+	 * {@link java.time.temporal.TemporalAccessor} to be used for setting creation and modification dates.
 	 *
 	 * @return
 	 */

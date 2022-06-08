@@ -15,14 +15,13 @@
  */
 package org.springframework.data.jpa.repository.config;
 
+import jakarta.persistence.EntityManagerFactory;
+
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
-import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-
-import jakarta.persistence.EntityManagerFactory;
 
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.context.annotation.ComponentScan.Filter;
@@ -41,11 +40,11 @@ import org.springframework.transaction.PlatformTransactionManager;
  *
  * @author Oliver Gierke
  * @author Thomas Darimont
+ * @author Greg Turnquist
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-@Inherited
 @Import(JpaRepositoriesRegistrar.class)
 public @interface EnableJpaRepositories {
 

@@ -15,14 +15,13 @@
  */
 package org.springframework.data.envers.repository.config;
 
+import jakarta.persistence.EntityManagerFactory;
+
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
-import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-
-import jakarta.persistence.EntityManagerFactory;
 
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.context.annotation.ComponentScan.Filter;
@@ -45,6 +44,7 @@ import org.springframework.transaction.PlatformTransactionManager;
  * {@link #repositoryFactoryBeanClass} to {@link EnversRevisionRepositoryFactoryBean}.
  *
  * @author Mark Paluch
+ * @author Greg Turnquist
  * @since 2.5
  * @see EnableJpaRepositories
  * @see AliasFor
@@ -52,7 +52,6 @@ import org.springframework.transaction.PlatformTransactionManager;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-@Inherited
 @EnableJpaRepositories
 public @interface EnableEnversRepositories {
 
