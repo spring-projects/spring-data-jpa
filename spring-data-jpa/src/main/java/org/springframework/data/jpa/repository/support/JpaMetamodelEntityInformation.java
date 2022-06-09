@@ -15,14 +15,8 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-
 import jakarta.persistence.IdClass;
+import jakarta.persistence.PersistenceUnitUtil;
 import jakarta.persistence.metamodel.Attribute;
 import jakarta.persistence.metamodel.EntityType;
 import jakarta.persistence.metamodel.IdentifiableType;
@@ -30,15 +24,19 @@ import jakarta.persistence.metamodel.ManagedType;
 import jakarta.persistence.metamodel.Metamodel;
 import jakarta.persistence.metamodel.SingularAttribute;
 import jakarta.persistence.metamodel.Type;
-import jakarta.persistence.metamodel.Type.PersistenceType;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.beans.BeanWrapper;
-import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.util.JpaMetamodel;
 import org.springframework.data.util.DirectFieldAccessFallbackBeanWrapper;
-import org.springframework.data.util.ProxyUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -51,6 +49,7 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Jens Schauder
+ * @author Greg Turnquist
  */
 public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSupport<T, ID> {
 
@@ -58,14 +57,17 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 	private final Optional<SingularAttribute<? super T, ?>> versionAttribute;
 	private final Metamodel metamodel;
 	private final @Nullable String entityName;
+	private final PersistenceUnitUtil persistenceUnitUtil;
 
 	/**
 	 * Creates a new {@link JpaMetamodelEntityInformation} for the given domain class and {@link Metamodel}.
-	 *
+	 * 
 	 * @param domainClass must not be {@literal null}.
 	 * @param metamodel must not be {@literal null}.
+	 * @param persistenceUnitUtil must not be {@literal null}.
 	 */
-	public JpaMetamodelEntityInformation(Class<T> domainClass, Metamodel metamodel) {
+	public JpaMetamodelEntityInformation(Class<T> domainClass, Metamodel metamodel,
+			PersistenceUnitUtil persistenceUnitUtil) {
 
 		super(domainClass);
 
@@ -88,6 +90,9 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 
 		this.idMetadata = new IdMetadata<>(identifiableType, PersistenceProvider.fromMetamodel(metamodel));
 		this.versionAttribute = findVersionAttribute(identifiableType, metamodel);
+
+		Assert.notNull(persistenceUnitUtil, "PersistenceUnitUtil must not be null");
+		this.persistenceUnitUtil = persistenceUnitUtil;
 	}
 
 	@Override
@@ -147,27 +152,25 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 			return (ID) persistenceProvider.getIdentifierFrom(entity);
 		}
 
-		// if not a proxy use Spring mechanics to access the id.
-		BeanWrapper entityWrapper = new DirectFieldAccessFallbackBeanWrapper(entity);
-
+		// If it's a simple type, then immediately delegate to the provider
 		if (idMetadata.hasSimpleId()) {
-			return (ID) entityWrapper.getPropertyValue(idMetadata.getSimpleIdAttribute().getName());
+			return (ID) persistenceUnitUtil.getIdentifier(entity);
 		}
 
-		BeanWrapper idWrapper = new IdentifierDerivingDirectFieldAccessFallbackBeanWrapper(idMetadata.getType(), metamodel);
+		// otherwise, check if the complex id type has any partially filled fields
+		BeanWrapper entityWrapper = new DirectFieldAccessFallbackBeanWrapper(entity);
 		boolean partialIdValueFound = false;
 
 		for (SingularAttribute<? super T, ?> attribute : idMetadata) {
+
 			Object propertyValue = entityWrapper.getPropertyValue(attribute.getName());
 
 			if (propertyValue != null) {
 				partialIdValueFound = true;
 			}
-
-			idWrapper.setPropertyValue(attribute.getName(), propertyValue);
 		}
 
-		return partialIdValueFound ? (ID) idWrapper.getWrappedInstance() : null;
+		return partialIdValueFound ? (ID) persistenceUnitUtil.getIdentifier(entity) : null;
 	}
 
 	@Override
@@ -209,7 +212,7 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 	@Override
 	public boolean isNew(T entity) {
 
-		if (!versionAttribute.isPresent()
+		if (versionAttribute.isEmpty()
 				|| versionAttribute.map(Attribute::getJavaType).map(Class::isPrimitive).orElse(false)) {
 			return super.isNew(entity);
 		}
@@ -237,9 +240,9 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 
 			this.type = source;
 			this.idClassAttributes = persistenceProvider.getIdClassAttributes(source);
-			this.attributes = (Set<SingularAttribute<? super T, ?>>) (source.hasSingleIdAttribute()
+			this.attributes = source.hasSingleIdAttribute()
 					? Collections.singleton(source.getId(source.getIdType().getJavaType()))
-					: source.getIdClassAttributes());
+					: source.getIdClassAttributes();
 		}
 
 		boolean hasSimpleId() {
@@ -296,123 +299,6 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 		@Override
 		public Iterator<SingularAttribute<? super T, ?>> iterator() {
 			return attributes.iterator();
-		}
-	}
-
-	/**
-	 * Custom extension of {@link DirectFieldAccessFallbackBeanWrapper} that allows to derive the identifier if composite
-	 * keys with complex key attribute types (e.g. types that are annotated with {@code @Entity} themselves) are used.
-	 *
-	 * @author Thomas Darimont
-	 */
-	private static class IdentifierDerivingDirectFieldAccessFallbackBeanWrapper
-			extends DirectFieldAccessFallbackBeanWrapper {
-
-		private final Metamodel metamodel;
-		private final JpaMetamodel jpaMetamodel;
-
-		IdentifierDerivingDirectFieldAccessFallbackBeanWrapper(Class<?> type, Metamodel metamodel) {
-			super(type);
-			this.metamodel = metamodel;
-			this.jpaMetamodel = JpaMetamodel.of(metamodel);
-		}
-
-		/**
-		 * In addition to the functionality described in {@link BeanWrapperImpl} it is checked whether we have a nested
-		 * entity that is part of the id key. If this is the case, we need to derive the identifier of the nested entity.
-		 */
-		@Override
-		@SuppressWarnings({ "unchecked", "rawtypes" })
-		public void setPropertyValue(String propertyName, @Nullable Object value) {
-
-			if (!isIdentifierDerivationNecessary(value)) {
-				super.setPropertyValue(propertyName, value);
-				return;
-			}
-
-			// Derive the identifier from the nested entity that is part of the composite key.
-			JpaMetamodelEntityInformation nestedEntityInformation = new JpaMetamodelEntityInformation(
-					ProxyUtils.getUserClass(value), this.metamodel);
-
-			if (!nestedEntityInformation.getJavaType().isAnnotationPresent(IdClass.class)) {
-
-				Object nestedIdPropertyValue = new DirectFieldAccessFallbackBeanWrapper(value)
-						.getPropertyValue(nestedEntityInformation.getRequiredIdAttribute().getName());
-				super.setPropertyValue(propertyName, nestedIdPropertyValue);
-				return;
-			}
-
-			// We have an IdClass property, we need to inspect the current value in order to map potentially multiple id
-			// properties correctly.
-
-			BeanWrapper sourceIdValueWrapper = new DirectFieldAccessFallbackBeanWrapper(value);
-			BeanWrapper targetIdClassTypeWrapper = new BeanWrapperImpl(nestedEntityInformation.getIdType());
-
-			for (String idAttributeName : (Iterable<String>) nestedEntityInformation.getIdAttributeNames()) {
-				targetIdClassTypeWrapper.setPropertyValue(idAttributeName,
-						extractActualIdPropertyValue(sourceIdValueWrapper, idAttributeName));
-			}
-
-			super.setPropertyValue(propertyName, targetIdClassTypeWrapper.getWrappedInstance());
-		}
-
-		@Nullable
-		private Object extractActualIdPropertyValue(BeanWrapper sourceIdValueWrapper, String idAttributeName) {
-
-			Object idPropertyValue = sourceIdValueWrapper.getPropertyValue(idAttributeName);
-
-			if (idPropertyValue != null) {
-
-				Class<?> idPropertyValueType = idPropertyValue.getClass();
-
-				if (!jpaMetamodel.isJpaManaged(idPropertyValueType)) {
-					return idPropertyValue;
-				}
-
-				return new DirectFieldAccessFallbackBeanWrapper(idPropertyValue)
-						.getPropertyValue(tryFindSingularIdAttributeNameOrUseFallback(idPropertyValueType, idAttributeName));
-			}
-
-			return null;
-		}
-
-		private String tryFindSingularIdAttributeNameOrUseFallback(Class<?> idPropertyValueType,
-				String fallbackIdTypePropertyName) {
-
-			ManagedType<?> idPropertyType = metamodel.managedType(idPropertyValueType);
-			for (SingularAttribute<?, ?> sa : idPropertyType.getSingularAttributes()) {
-				if (sa.isId()) {
-					return sa.getName();
-				}
-			}
-
-			return fallbackIdTypePropertyName;
-		}
-
-		/**
-		 * @param value
-		 * @return {@literal true} if the given value is not {@literal null} and a mapped persistable entity otherwise
-		 *         {@literal false}
-		 */
-		private boolean isIdentifierDerivationNecessary(@Nullable Object value) {
-
-			if (value == null) {
-				return false;
-			}
-
-			Class<?> userClass = ProxyUtils.getUserClass(value);
-
-			if (!this.jpaMetamodel.isJpaManaged(userClass)) {
-				return false;
-			}
-
-			ManagedType<?> managedType = this.metamodel.managedType(userClass);
-
-			if (managedType == null) {
-				throw new IllegalStateException("ManagedType must not be null; We checked that it exists before.");
-			}
-
-			return managedType.getPersistenceType() == PersistenceType.ENTITY;
 		}
 	}
 }

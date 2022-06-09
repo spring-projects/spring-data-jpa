@@ -17,6 +17,8 @@ package org.springframework.data.jpa.repository.support;
 
 import static org.assertj.core.api.Assertions.*;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.Data;
 
 import java.sql.Date;
@@ -24,9 +26,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
-
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 
 import org.hibernate.LazyInitializationException;
 import org.junit.jupiter.api.BeforeEach;
@@ -83,8 +82,8 @@ class QuerydslJpaPredicateExecutorUnitTests {
 	@BeforeEach
 	void setUp() {
 
-		JpaEntityInformation<User, Integer> information = new JpaMetamodelEntityInformation<>(User.class,
-				em.getMetamodel());
+		JpaEntityInformation<User, Integer> information = new JpaMetamodelEntityInformation<>(User.class, em.getMetamodel(),
+				em.getEntityManagerFactory().getPersistenceUnitUtil());
 
 		SimpleJpaRepository<User, Integer> repository = new SimpleJpaRepository<>(information, em);
 		dave = repository.save(new User("Dave", "Matthews", "dave@matthews.com"));

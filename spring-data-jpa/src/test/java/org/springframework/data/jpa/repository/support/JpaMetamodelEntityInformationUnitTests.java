@@ -19,14 +19,17 @@ import static java.util.Arrays.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import java.io.Serializable;
-import java.util.HashSet;
-import java.util.Set;
-
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.PersistenceUnitUtil;
 import jakarta.persistence.metamodel.IdentifiableType;
 import jakarta.persistence.metamodel.Metamodel;
 import jakarta.persistence.metamodel.SingularAttribute;
 import jakarta.persistence.metamodel.Type;
+
+import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,16 +51,24 @@ import org.springframework.data.jpa.domain.sample.PersistableWithIdClassPK;
 @MockitoSettings(strictness = Strictness.LENIENT)
 class JpaMetamodelEntityInformationUnitTests {
 
+	@Mock EntityManager em;
+	@Mock EntityManagerFactory entityManagerFactory;
+	@Mock PersistenceUnitUtil persistenceUnit;
 	@Mock Metamodel metamodel;
 
 	@Mock IdentifiableType<PersistableWithIdClass> type;
 	@Mock SingularAttribute<PersistableWithIdClass, ?> first, second;
 
-	@Mock @SuppressWarnings("rawtypes") Type idType;
+	@Mock
+	@SuppressWarnings("rawtypes") Type idType;
 
 	@BeforeEach
 	@SuppressWarnings("unchecked")
 	void setUp() {
+
+		when(em.getMetamodel()).thenReturn(metamodel);
+		when(em.getEntityManagerFactory()).thenReturn(entityManagerFactory);
+		when(entityManagerFactory.getPersistenceUnitUtil()).thenReturn(persistenceUnit);
 
 		when(first.getName()).thenReturn("first");
 		when(second.getName()).thenReturn("second");
@@ -76,12 +87,13 @@ class JpaMetamodelEntityInformationUnitTests {
 	void doesNotCreateIdIfAllPartialAttributesAreNull() {
 
 		JpaMetamodelEntityInformation<PersistableWithIdClass, Serializable> information = new JpaMetamodelEntityInformation<>(
-				PersistableWithIdClass.class, metamodel);
+				PersistableWithIdClass.class, em.getMetamodel(), em.getEntityManagerFactory().getPersistenceUnitUtil());
 
 		PersistableWithIdClass entity = new PersistableWithIdClass(null, null);
 		assertThat(information.getId(entity)).isNull();
 
 		entity = new PersistableWithIdClass(2L, null);
+		when(persistenceUnit.getIdentifier(entity)).thenReturn(2L);
 		assertThat(information.getId(entity)).isNotNull();
 	}
 }

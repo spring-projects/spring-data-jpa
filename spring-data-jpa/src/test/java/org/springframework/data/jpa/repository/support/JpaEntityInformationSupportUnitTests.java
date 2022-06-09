@@ -23,6 +23,8 @@ import java.util.Collections;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.PersistenceUnitUtil;
 import jakarta.persistence.metamodel.Metamodel;
 import jakarta.persistence.metamodel.SingularAttribute;
 
@@ -45,6 +47,8 @@ public class JpaEntityInformationSupportUnitTests {
 
 	@Mock EntityManager em;
 	@Mock Metamodel metaModel;
+	@Mock EntityManagerFactory entityManagerFactory;
+	@Mock PersistenceUnitUtil persistenceUnitUtil;
 
 	@Test
 	void usesSimpleClassNameIfNoEntityNameGiven() {
@@ -60,6 +64,9 @@ public class JpaEntityInformationSupportUnitTests {
 	void rejectsClassNotBeingFoundInMetamodel() {
 
 		when(em.getMetamodel()).thenReturn(metaModel);
+		when(em.getEntityManagerFactory()).thenReturn(entityManagerFactory);
+		when(entityManagerFactory.getPersistenceUnitUtil()).thenReturn(persistenceUnitUtil);
+
 		assertThatIllegalArgumentException()
 				.isThrownBy(() -> JpaEntityInformationSupport.getEntityInformation(User.class, em));
 	}

@@ -18,6 +18,9 @@ package org.springframework.data.jpa.repository.support;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.PersistenceUnitUtil;
 import jakarta.persistence.metamodel.EntityType;
 import jakarta.persistence.metamodel.Metamodel;
 import jakarta.persistence.metamodel.Type;
@@ -42,16 +45,23 @@ import org.springframework.data.repository.core.EntityInformation;
 @MockitoSettings(strictness = Strictness.LENIENT)
 class JpaPersistableEntityInformationUnitTests {
 
+	@Mock EntityManager em;
+	@Mock EntityManagerFactory entityManagerFactory;
 	@Mock Metamodel metamodel;
+	@Mock PersistenceUnitUtil persistenceUnitUtil;
 
 	@Mock EntityType<Foo> type;
 
-	@Mock @SuppressWarnings("rawtypes") Type idType;
+	@Mock
+	@SuppressWarnings("rawtypes") Type idType;
 
 	@BeforeEach
 	@SuppressWarnings("unchecked")
 	void setUp() {
 
+		when(em.getMetamodel()).thenReturn(metamodel);
+		when(em.getEntityManagerFactory()).thenReturn(entityManagerFactory);
+		when(entityManagerFactory.getPersistenceUnitUtil()).thenReturn(persistenceUnitUtil);
 		when(metamodel.managedType(Object.class)).thenThrow(IllegalArgumentException.class);
 		when(metamodel.managedType(Foo.class)).thenReturn(type);
 		when(type.getIdType()).thenReturn(idType);
@@ -60,7 +70,8 @@ class JpaPersistableEntityInformationUnitTests {
 	@Test
 	void usesPersistableMethodsForIsNewAndGetId() {
 
-		EntityInformation<Foo, Long> entityInformation = new JpaPersistableEntityInformation<>(Foo.class, metamodel);
+		EntityInformation<Foo, Long> entityInformation = new JpaPersistableEntityInformation<>(Foo.class, em.getMetamodel(),
+				em.getEntityManagerFactory().getPersistenceUnitUtil());
 
 		Foo foo = new Foo();
 		assertThat(entityInformation.isNew(foo)).isFalse();

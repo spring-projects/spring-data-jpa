@@ -22,6 +22,8 @@ import static org.springframework.data.jpa.domain.Specification.*;
 
 import jakarta.persistence.EntityGraph;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.PersistenceUnitUtil;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
@@ -57,6 +59,8 @@ class SimpleJpaRepositoryUnitTests {
 	private SimpleJpaRepository<User, Integer> repo;
 
 	@Mock EntityManager em;
+	@Mock EntityManagerFactory entityManagerFactory;
+	@Mock PersistenceUnitUtil persistenceUnitUtil;
 	@Mock CriteriaBuilder builder;
 	@Mock CriteriaQuery<User> criteriaQuery;
 	@Mock CriteriaQuery<Long> countCriteriaQuery;
@@ -172,6 +176,9 @@ class SimpleJpaRepositoryUnitTests {
 		User newUser = new User();
 		newUser.setId(null);
 
+		when(em.getEntityManagerFactory()).thenReturn(entityManagerFactory);
+		when(entityManagerFactory.getPersistenceUnitUtil()).thenReturn(persistenceUnitUtil);
+
 		repo.delete(newUser);
 
 		verify(em, never()).find(any(Class.class), any(Object.class));
@@ -186,6 +193,9 @@ class SimpleJpaRepositoryUnitTests {
 		newUser.setId(23);
 
 		when(information.isNew(newUser)).thenReturn(false);
+		when(em.getEntityManagerFactory()).thenReturn(entityManagerFactory);
+		when(entityManagerFactory.getPersistenceUnitUtil()).thenReturn(persistenceUnitUtil);
+		when(persistenceUnitUtil.getIdentifier(any())).thenReturn(23);
 		when(em.find(User.class, 23)).thenReturn(null);
 
 		repo.delete(newUser);
