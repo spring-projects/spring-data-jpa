@@ -52,6 +52,10 @@
 		<class>org.springframework.data.jpa.domain.sample.Dummy</class>
 		<class>org.springframework.data.jpa.domain.sample.SampleWithIdClassIncludingEntity</class>
 		<class>org.springframework.data.jpa.domain.sample.SampleWithIdClassIncludingEntity$OtherEntity</class>
+		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$Sample</class>
+		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$EntityWithNestedIdClass</class>
+		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$EntityWithIdClass</class>
+		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$EntityWithPrivateIdGetter</class>
 		<exclude-unlisted-classes>true</exclude-unlisted-classes>
 	</persistence-unit>
 	<persistence-unit name="querydsl">
@@ -108,6 +112,8 @@
 		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$EntityWithNestedIdClass</class>
 		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$EntityWithIdClass</class>
 		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$EntityWithPrivateIdGetter</class>
+		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$ExampleEntityWithStringId</class>
+		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$ExampleEntityWithUUIDId</class>
 		<exclude-unlisted-classes>true</exclude-unlisted-classes>
 		<properties>
 			<property name="hibernate.dialect" value="org.hibernate.dialect.HSQLDialect" />
@@ -123,6 +129,9 @@
 		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$Sample</class>
 		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$EntityWithNestedIdClass</class>
 		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$EntityWithIdClass</class>
+		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$EntityWithPrivateIdGetter</class>
+		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$ExampleEntityWithStringId</class>
+		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$ExampleEntityWithUUIDId</class>
 		<class>org.springframework.data.jpa.domain.sample.Dummy</class>
 		<exclude-unlisted-classes>true</exclude-unlisted-classes>
 		<properties>
@@ -150,6 +159,42 @@
 			<property name="openjpa.ConnectionURL" value="jdbc:hsqldb:mem:test" />
 			<property name="openjpa.ConnectionUserName" value="sa" />
 			<property name="openjpa.ConnectionPassword" value="" />
+		</properties>
+	</persistence-unit>
+	<persistence-unit name="metadata-id-handling">
+		<provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
+		<class>org.springframework.data.jpa.domain.sample.CustomAbstractPersistable</class>
+		<class>org.springframework.data.jpa.domain.sample.MailMessage</class>
+		<class>org.springframework.data.jpa.domain.sample.MailSender</class>
+		<class>org.springframework.data.jpa.domain.sample.MailUser</class>
+		<class>org.springframework.data.jpa.domain.sample.User</class>
+		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$Sample</class>
+		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$EntityWithNestedIdClass</class>
+		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$EntityWithIdClass</class>
+		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$EntityWithPrivateIdGetter</class>
+		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$ExampleEntityWithStringId</class>
+		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$ExampleEntityWithUUIDId</class>
+		<exclude-unlisted-classes>true</exclude-unlisted-classes>
+		<properties>
+			<property name="hibernate.dialect" value="org.hibernate.dialect.PostgreSQL91Dialect" />
+		</properties>
+	</persistence-unit>
+	<persistence-unit name="metadata-id-handling-el">
+		<provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
+		<class>org.springframework.data.jpa.domain.sample.CustomAbstractPersistable</class>
+		<class>org.springframework.data.jpa.domain.sample.MailMessage</class>
+		<class>org.springframework.data.jpa.domain.sample.MailSender</class>
+		<class>org.springframework.data.jpa.domain.sample.MailUser</class>
+		<class>org.springframework.data.jpa.domain.sample.User</class>
+		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$Sample</class>
+		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$EntityWithNestedIdClass</class>
+		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$EntityWithIdClass</class>
+		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$EntityWithPrivateIdGetter</class>
+		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$ExampleEntityWithStringId</class>
+		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$ExampleEntityWithUUIDId</class>
+		<exclude-unlisted-classes>true</exclude-unlisted-classes>
+		<properties>
+			<property name="hibernate.dialect" value="org.hibernate.dialect.PostgreSQL91Dialect" />
 		</properties>
 	</persistence-unit>
 

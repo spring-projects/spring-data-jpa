@@ -15,6 +15,7 @@
  */
 package org.springframework.data.jpa.repository.support;
 
+import jakarta.persistence.PersistenceUnitUtil;
 import jakarta.persistence.metamodel.Metamodel;
 
 import org.springframework.data.domain.Persistable;
@@ -32,12 +33,14 @@ public class JpaPersistableEntityInformation<T extends Persistable<ID>, ID>
 
 	/**
 	 * Creates a new {@link JpaPersistableEntityInformation} for the given domain class and {@link Metamodel}.
-	 *
+	 * 
 	 * @param domainClass must not be {@literal null}.
 	 * @param metamodel must not be {@literal null}.
+	 * @param persistenceUnitUtil must not be {@literal null}.
 	 */
-	public JpaPersistableEntityInformation(Class<T> domainClass, Metamodel metamodel) {
-		super(domainClass, metamodel);
+	public JpaPersistableEntityInformation(Class<T> domainClass, Metamodel metamodel,
+			PersistenceUnitUtil persistenceUnitUtil) {
+		super(domainClass, metamodel, persistenceUnitUtil);
 	}
 
 	@Override

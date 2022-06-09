@@ -16,6 +16,7 @@
 package org.springframework.data.jpa.repository.support;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceUnitUtil;
 import jakarta.persistence.metamodel.Metamodel;
 
 import org.springframework.data.domain.Persistable;
@@ -29,6 +30,7 @@ import org.springframework.util.Assert;
  *
  * @author Oliver Gierke
  * @author Mark Paluch
+ * @author Greg Turnquist
  */
 public abstract class JpaEntityInformationSupport<T, ID> extends AbstractEntityInformation<T, ID>
 		implements JpaEntityInformation<T, ID> {
@@ -59,11 +61,12 @@ public abstract class JpaEntityInformationSupport<T, ID> extends AbstractEntityI
 		Assert.notNull(em, "EntityManager must not be null");
 
 		Metamodel metamodel = em.getMetamodel();
+		PersistenceUnitUtil persistenceUnitUtil = em.getEntityManagerFactory().getPersistenceUnitUtil();
 
 		if (Persistable.class.isAssignableFrom(domainClass)) {
-			return new JpaPersistableEntityInformation(domainClass, metamodel);
+			return new JpaPersistableEntityInformation(domainClass, metamodel, persistenceUnitUtil);
 		} else {
-			return new JpaMetamodelEntityInformation(domainClass, metamodel);
+			return new JpaMetamodelEntityInformation(domainClass, metamodel, persistenceUnitUtil);
 		}
 	}
 

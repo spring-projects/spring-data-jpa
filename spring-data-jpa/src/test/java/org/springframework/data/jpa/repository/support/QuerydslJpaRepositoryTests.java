@@ -17,12 +17,12 @@ package org.springframework.data.jpa.repository.support;
 
 import static org.assertj.core.api.Assertions.*;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+
 import java.sql.Date;
 import java.time.LocalDate;
 import java.util.List;
-
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -76,8 +76,8 @@ class QuerydslJpaRepositoryTests {
 	@BeforeEach
 	void setUp() {
 
-		JpaEntityInformation<User, Integer> information = new JpaMetamodelEntityInformation<>(User.class,
-				em.getMetamodel());
+		JpaEntityInformation<User, Integer> information = new JpaMetamodelEntityInformation<>(User.class, em.getMetamodel(),
+				em.getEntityManagerFactory().getPersistenceUnitUtil());
 
 		repository = new QuerydslJpaRepository<>(information, em);
 		dave = repository.save(new User("Dave", "Matthews", "dave@matthews.com"));
