@@ -84,6 +84,29 @@ class DefaultQueryUtilsUnitTests {
 				"select count(distinct u) from User u left outer join u.roles r WHERE r = ?");
 	}
 
+	@Test // GH-1869
+	void createsCountQueryForJoinsWithTwoArgs() {
+
+		assertCountQuery("select distinct new User(u.name, u.age) from User u left outer join u.roles r WHERE r = ?",
+				"select count(distinct u) from User u left outer join u.roles r WHERE r = ?");
+	}
+
+	@Test // GH-1869
+	void createsCountQueryForDtoWithOneArg() {
+
+		assertCountQuery(
+				"SELECT new org.springframework.data.jpa.repository.sample.FirstNameDto(u.firstname) from User u where u.firstname = ?",
+				"select count(u) from User u where u.firstname = ?");
+	}
+
+	@Test // GH-1869
+	void createsCountQueryForDtoWithTwoArgs() {
+
+		assertCountQuery(
+				"SELECT new org.springframework.data.jpa.repository.sample.NameOnlyDto(u.firstname, u.lastname) from User u where u.firstname = ?",
+				"select count(u) from User u where u.firstname = ?");
+	}
+
 	@Test
 	void createsCountQueryForQueriesWithSubSelects() {
 
@@ -400,8 +423,8 @@ class DefaultQueryUtilsUnitTests {
 	@Test // DATAJPA-1363
 	void discoversAliasWithComplexFunction() {
 
-		assertThat(QueryUtils
-				.getFunctionAliases("select new MyDto(sum(case when myEntity.prop3=0 then 1 else 0 end) as myAlias")) //
+		assertThat(
+				QueryUtils.getFunctionAliases("select new MyDto(sum(case when myEntity.prop3=0 then 1 else 0 end) as myAlias")) //
 						.contains("myAlias");
 	}
 
