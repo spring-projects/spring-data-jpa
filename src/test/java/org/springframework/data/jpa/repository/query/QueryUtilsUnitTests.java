@@ -736,6 +736,29 @@ class QueryUtilsUnitTests {
 				.isEqualTo("select count(us) FROM users_statuses us WHERE (user_created_at BETWEEN :fromDate AND :toDate)");
 	}
 
+	@Test // GH-1869
+	void createsCountQueryForJoinsWithTwoArgs() {
+
+		assertCountQuery("select distinct new User(u.name, u.age) from User u left outer join u.roles r WHERE r = ?",
+				"select count(distinct u) from User u left outer join u.roles r WHERE r = ?");
+	}
+
+	@Test // GH-1869
+	void createsCountQueryForDtoWithOneArg() {
+
+		assertCountQuery(
+				"SELECT new org.springframework.data.jpa.repository.sample.FirstNameDto(u.firstname) from User u where u.firstname = ?",
+				"select count(u) from User u where u.firstname = ?");
+	}
+
+	@Test // GH-1869
+	void createsCountQueryForDtoWithTwoArgs() {
+
+		assertCountQuery(
+				"SELECT new org.springframework.data.jpa.repository.sample.NameOnlyDto(u.firstname, u.lastname) from User u where u.firstname = ?",
+				"select count(u) from User u where u.firstname = ?");
+	}
+
 	@Test // GH-2496, GH-2522, GH-2537, GH-2045
 	void orderByShouldWorkWithSubSelectStatements() {
 
