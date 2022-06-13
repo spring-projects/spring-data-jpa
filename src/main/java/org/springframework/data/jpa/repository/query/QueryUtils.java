@@ -114,8 +114,8 @@ public abstract class QueryUtils {
 
 	private static final String EQUALS_CONDITION_STRING = "%s.%s = :%s";
 	private static final Pattern ORDER_BY = Pattern.compile("(order\\s+by\\s+)", CASE_INSENSITIVE);
-	private static final Pattern ORDER_BY_IN_WINDOW_OR_SUBSELECT = Pattern.compile("\\([\\s\\S]*order\\s+by\\s[\\s\\S]*\\)",
-			CASE_INSENSITIVE);
+	private static final Pattern ORDER_BY_IN_WINDOW_OR_SUBSELECT = Pattern
+			.compile("\\([\\s\\S]*order\\s+by\\s[\\s\\S]*\\)", CASE_INSENSITIVE);
 
 	private static final Pattern NAMED_PARAMETER = Pattern.compile(COLON_NO_DOUBLE_COLON + IDENTIFIER + "|#" + IDENTIFIER,
 			CASE_INSENSITIVE);
@@ -590,8 +590,9 @@ public abstract class QueryUtils {
 
 			String variable = matcher.matches() ? matcher.group(VARIABLE_NAME_GROUP_INDEX) : null;
 			boolean useVariable = StringUtils.hasText(variable) //
-					&& !variable.startsWith(" new") //
-					&& !variable.startsWith("count(") //
+					&& !variable.startsWith("new") // select [new com.example.User...
+					&& !variable.startsWith(" new") // select distinct[ new com.example.User...
+					&& !variable.startsWith("count(") // select [count(...
 					&& !variable.contains(",");
 
 			String complexCountValue = matcher.matches() && StringUtils.hasText(matcher.group(COMPLEX_COUNT_FIRST_INDEX))
