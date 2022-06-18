@@ -15,11 +15,13 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import java.util.Set;
-
 import jakarta.persistence.EntityGraph;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Subgraph;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 import org.springframework.data.mapping.PropertyPath;
 
@@ -27,6 +29,7 @@ import org.springframework.data.mapping.PropertyPath;
  * Factory class to create an {@link EntityGraph} from a collection of property paths.
  *
  * @author Jens Schauder
+ * @author Petr Strnad
  * @since 2.6
  */
 abstract class EntityGraphFactory {
@@ -42,16 +45,22 @@ abstract class EntityGraphFactory {
 	public static <T> EntityGraph<T> create(EntityManager entityManager, Class<T> domainType, Set<String> properties) {
 
 		EntityGraph<T> entityGraph = entityManager.createEntityGraph(domainType);
+		Map<String, Subgraph<Object>> existingSubgraphs = new HashMap<>();
 
 		for (String property : properties) {
 
 			Subgraph<Object> current = null;
+			String currentFullPath = "";
 
 			for (PropertyPath path : PropertyPath.from(property, domainType)) {
 
+				currentFullPath += path.getSegment() + ".";
+
 				if (path.hasNext()) {
-					current = current == null ? entityGraph.addSubgraph(path.getSegment())
-							: current.addSubgraph(path.getSegment());
+					final Subgraph<Object> finalCurrent = current;
+					current = current == null
+							? existingSubgraphs.computeIfAbsent(currentFullPath, k -> entityGraph.addSubgraph(path.getSegment()))
+							: existingSubgraphs.computeIfAbsent(currentFullPath, k -> finalCurrent.addSubgraph(path.getSegment()));
 					continue;
 				}
 
