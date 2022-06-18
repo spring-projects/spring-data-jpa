@@ -15,8 +15,11 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import static java.util.Arrays.*;
-import static org.mockito.Mockito.*;
+import static java.util.Arrays.asList;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.HashSet;
 
@@ -31,6 +34,7 @@ import org.junit.jupiter.api.Test;
  * Unit tests for {@link EntityGraphFactory}.
  *
  * @author Jens Schauder
+ * @author Petr Strnad
  */
 @SuppressWarnings("rawtypes")
 class EntityGraphFactoryUnitTests {
@@ -45,8 +49,7 @@ class EntityGraphFactoryUnitTests {
 		when(em.createEntityGraph(DummyEntity.class)).thenReturn(entityGraph);
 	}
 
-	// GH-2329
-	@Test
+	@Test // GH-2329
 	void simpleSetOfPropertiesGetRegistered() {
 
 		HashSet<String> properties = new HashSet<>(asList("one", "two"));
@@ -57,8 +60,7 @@ class EntityGraphFactoryUnitTests {
 		verify(entityGraph).addAttributeNodes("two");
 	}
 
-	// GH-2329
-	@Test
+	@Test // GH-2329
 	void setOfCompositePropertiesGetRegisteredPiecewise() {
 
 		HashSet<String> properties = new HashSet<>(asList("one.two", "eins.zwei.drei"));
@@ -74,6 +76,19 @@ class EntityGraphFactoryUnitTests {
 		verify(eins).addSubgraph("zwei");
 		Subgraph<?> zwei = eins.addSubgraph("zwei");
 		verify(zwei).addAttributeNodes("drei");
+	}
+
+	@Test // GH-2571
+	void multipleSubNodesUnderSameParentNodeShouldWork() {
+
+		HashSet<String> properties = new HashSet<>(asList("one.one", "one.two"));
+
+		entityGraph = EntityGraphFactory.create(em, DummyEntity.class, properties);
+
+		verify(entityGraph).addSubgraph("one");
+		Subgraph<?> one = entityGraph.addSubgraph("one");
+		verify(one).addAttributeNodes("one");
+		verify(one).addAttributeNodes("two");
 	}
 
 	private static class DummyEntity {
