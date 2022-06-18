@@ -31,6 +31,7 @@ import org.junit.jupiter.api.Test;
  * Unit tests for {@link EntityGraphFactory}.
  *
  * @author Jens Schauder
+ * @author Petr Strnad
  */
 @SuppressWarnings("rawtypes")
 class EntityGraphFactoryUnitTests {
@@ -61,12 +62,13 @@ class EntityGraphFactoryUnitTests {
 	@Test
 	void setOfCompositePropertiesGetRegisteredPiecewise() {
 
-		HashSet<String> properties = new HashSet<>(asList("one.two", "eins.zwei.drei"));
+		HashSet<String> properties = new HashSet<>(asList("one.one", "one.two", "eins.zwei.drei"));
 
 		entityGraph = EntityGraphFactory.create(em, DummyEntity.class, properties);
 
 		verify(entityGraph).addSubgraph("one");
 		Subgraph<?> one = entityGraph.addSubgraph("one");
+		verify(one).addAttributeNodes("one");
 		verify(one).addAttributeNodes("two");
 
 		verify(entityGraph).addSubgraph("eins");
