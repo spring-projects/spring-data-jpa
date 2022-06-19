@@ -78,6 +78,7 @@ import org.springframework.util.StringUtils;
  * @author Jędrzej Biedrzycki
  * @author Darin Manica
  * @author Simon Paradies
+ * @author Vladislav Yukharin
  */
 public abstract class QueryUtils {
 
@@ -292,7 +293,7 @@ public abstract class QueryUtils {
 	 * @return {@code true} if the query has {@code order by} clause, {@code false} otherwise
 	 */
 	private static boolean hasOrderByClause(String query) {
-		return countOccurences(ORDER_BY, query) > countOccurences(ORDER_BY_IN_WINDOW_OR_SUBSELECT, query);
+		return countOccurrences(ORDER_BY, query) > countOccurrences(ORDER_BY_IN_WINDOW_OR_SUBSELECT, query);
 	}
 
 	/**
@@ -300,17 +301,17 @@ public abstract class QueryUtils {
 	 *
 	 * @param pattern regex with a group to match
 	 * @param string analysed string
-	 * @return the number of occurences of the pattern in the string
+	 * @return the number of occurrences of the pattern in the string
 	 */
-	private static int countOccurences(Pattern pattern, String string) {
+	private static int countOccurrences(Pattern pattern, String string) {
 
 		Matcher matcher = pattern.matcher(string);
 
-		int occurences = 0;
+		int occurrences = 0;
 		while (matcher.find()) {
-			occurences++;
+			occurrences++;
 		}
-		return occurences;
+		return occurrences;
 	}
 
 	/**
