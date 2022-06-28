@@ -45,6 +45,7 @@ import org.springframework.util.StringUtils;
  * @author Greg Turnquist
  * @author Jędrzej Biedrzycki
  * @author Darin Manica
+ * @author Chris Fraser
  */
 class QueryUtilsUnitTests {
 
@@ -176,6 +177,56 @@ class QueryUtilsUnitTests {
 		assertThat(normalizeWhitespace(
 				removeSubqueries("(select u from User u where not exists ((from User u2 where not exists (from User u3))))")))
 						.isEqualTo("(select u from User u where not exists ( ))");
+	}
+
+	@Test // GH-2581
+	void testRemoveMultilineSubqueries() {
+
+		assertThat(normalizeWhitespace(removeSubqueries("select u from User u\n"
+				+ "    where not exists (\n"
+				+ "        from User u2\n"
+				+ "    )")))
+				.isEqualTo("select u from User u where not exists");
+		assertThat(normalizeWhitespace(removeSubqueries("(\n"
+				+ "    select u from User u \n"
+				+ "        where not exists (\n"
+				+ "            from User u2\n"
+				+ "        )\n"
+				+ ")")))
+				.isEqualTo("( select u from User u where not exists )");
+		assertThat(normalizeWhitespace(
+				removeSubqueries("select u from User u \n"
+						+ "    where not exists (\n"
+						+ "        from User u2 \n"
+						+ "            where not exists (\n"
+						+ "                from User u3\n"
+						+ "            )\n"
+						+ "    )")))
+				.isEqualTo("select u from User u where not exists");
+		assertThat(normalizeWhitespace(
+				removeSubqueries("select u from User u \n"
+						+ "    where not exists (\n"
+						+ "        (\n"
+						+ "            from User u2 \n"
+						+ "                where not exists (\n"
+						+ "                    from User u3\n"
+						+ "                )\n"
+						+ "        )\n"
+						+ "    )")))
+				.isEqualTo("select u from User u where not exists ( )");
+		assertThat(normalizeWhitespace(
+				removeSubqueries("(\n"
+						+ "    select u from User u \n"
+						+ "        where not exists (\n"
+						+ "            (\n"
+						+ "                from User u2 \n"
+						+ "                    where not exists (\n"
+						+ "                        from User u3\n"
+						+ "                    )\n"
+						+ "            )\n"
+						+ "        )\n"
+						+ ")")))
+				.isEqualTo("( select u from User u where not exists ( ) )");
 	}
 
 	private String normalizeWhitespace(String s) {
