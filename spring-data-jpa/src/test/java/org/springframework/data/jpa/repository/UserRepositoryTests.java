@@ -2902,6 +2902,83 @@ public class UserRepositoryTests {
 		repository.findAllAndSortByFunctionResultNamedParameter("prefix", "suffix", Sort.by("idWithPrefixAndSuffix"));
 	}
 
+	@Test // GH-2578
+	void simpleNativeExceptTest() {
+
+		flushTestUsers();
+
+		List<String> foundIds = repository.findWithSimpleExceptNative();
+
+		assertThat(foundIds) //
+				.isNotEmpty() //
+				.contains("Oliver", "kevin");
+	}
+
+	@Test // GH-2578
+	void simpleNativeUnionTest() {
+
+		flushTestUsers();
+
+		List<String> foundIds = repository.findWithSimpleUnionNative();
+
+		assertThat(foundIds) //
+				.isNotEmpty() //
+				.containsExactlyInAnyOrder("Dave", "Joachim", "Oliver", "kevin");
+	}
+
+	@Test // GH-2578
+	void complexNativeExceptTest() {
+
+		flushTestUsers();
+
+		List<String> foundIds = repository.findWithComplexExceptNative();
+
+		assertThat(foundIds) //
+				.isNotEmpty() //
+				.contains("Oliver", "kevin");
+	}
+
+	@Test // GH-2578
+	void simpleValuesStatementNative() {
+
+		flushTestUsers();
+
+		List<Integer> foundIds = repository.valuesStatementNative();
+
+		assertThat(foundIds) //
+				.isNotEmpty() //
+				.containsExactly(1);
+	}
+
+	@Test // GH-2578
+	void withStatementNative() {
+
+		flushTestUsers();
+
+		List<User> foundData = repository.withNativeStatement();
+
+		assertThat(foundData) //
+				.isNotEmpty() //
+				.hasSize(3) //
+				.map(User::getFirstname) //
+				.contains("Joachim", "Dave", "kevin");
+
+	}
+
+	@Test // GH-2578
+	void complexWithNativeStatement() {
+		flushTestUsers();
+
+		List<String> foundData = repository.complexWithNativeStatement();
+
+		assertThat(foundData) //
+				.isNotEmpty() //
+				.hasSize(3) //
+				.filteredOn(item -> item.equals(item.toLowerCase())) //
+				.hasSize(3);
+
+	}
+
 	private Page<User> executeSpecWithSort(Sort sort) {
 
 		flushTestUsers();
