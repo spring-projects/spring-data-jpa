@@ -687,8 +687,8 @@ class QueryEnhancerUnitTests {
 	void correctFunctionAliasWithComplexNestedFunctions() {
 
 		String queryString = "\nSELECT \nCAST(('{' || string_agg(distinct array_to_string(c.institutes_ids, ','), ',') || '}') AS bigint[]) as institutesIds\nFROM\ncity c";
-		StringQuery nativeQuery = new StringQuery(queryString, true);
 
+		StringQuery nativeQuery = new StringQuery(queryString, true);
 		JSqlParserQueryEnhancer queryEnhancer = (JSqlParserQueryEnhancer) getEnhancer(nativeQuery);
 
 		assertThat(queryEnhancer.getSelectionAliases()).contains("institutesIds");
@@ -696,6 +696,7 @@ class QueryEnhancerUnitTests {
 
 	@Test // GH-2441
 	void correctApplySortOnComplexNestedFunctionQuery() {
+
 		String queryString = "SELECT dd.institutesIds FROM (\n" //
 				+ "                                SELECT\n" //
 				+ "                                    CAST(('{' || string_agg(distinct array_to_string(c.institutes_ids, ','), ',') || '}') AS bigint[]) as institutesIds\n"
@@ -704,9 +705,7 @@ class QueryEnhancerUnitTests {
 				+ "                            ) dd";
 
 		StringQuery nativeQuery = new StringQuery(queryString, true);
-
 		QueryEnhancer queryEnhancer = getEnhancer(nativeQuery);
-
 		String result = queryEnhancer.applySorting(Sort.by(new Sort.Order(Sort.Direction.ASC, "institutesIds")));
 
 		assertThat(result).containsIgnoringCase("order by dd.institutesIds");
@@ -716,6 +715,7 @@ class QueryEnhancerUnitTests {
 	void countQueryUsesCorrectVariable() {
 
 		StringQuery nativeQuery = new StringQuery("SELECT * FROM User WHERE created_at > $1", true);
+
 		QueryEnhancer queryEnhancer = getEnhancer(nativeQuery);
 		String countQueryFor = queryEnhancer.createCountQueryFor();
 		assertThat(countQueryFor).isEqualTo("SELECT count(*) FROM User WHERE created_at > $1");
@@ -749,6 +749,144 @@ class QueryEnhancerUnitTests {
 
 		assertThat(countQueryForNotConsiderQueryType).isEqualToIgnoringCase(modifyingQuery);
 		assertThat(QueryEnhancerFactory.forQuery(modiQuery).createCountQueryFor()).isEqualToIgnoringCase(modifyingQuery);
+	}
+
+	@Test // GH-2578
+	void setOperationListWorksWithJSQLParser() {
+
+		String setQuery = "select SOME_COLUMN from SOME_TABLE where REPORTING_DATE = :REPORTING_DATE  \n" //
+				+ "except \n" //
+				+ "select SOME_COLUMN from SOME_OTHER_TABLE where REPORTING_DATE = :REPORTING_DATE";
+
+		StringQuery stringQuery = new StringQuery(setQuery, true);
+		QueryEnhancer queryEnhancer = QueryEnhancerFactory.forQuery(stringQuery);
+
+		assertThat(stringQuery.getAlias()).isNullOrEmpty();
+		assertThat(stringQuery.getProjection()).isEqualToIgnoringCase("SOME_COLUMN");
+		assertThat(stringQuery.hasConstructorExpression()).isFalse();
+
+		assertThat(queryEnhancer.createCountQueryFor()).isEqualToIgnoringCase(setQuery);
+		assertThat(queryEnhancer.applySorting(Sort.by("SOME_COLUMN"))).endsWith("ORDER BY SOME_COLUMN ASC");
+		assertThat(queryEnhancer.getJoinAliases()).isEmpty();
+		assertThat(queryEnhancer.detectAlias()).isNullOrEmpty();
+		assertThat(queryEnhancer.getProjection()).isEqualToIgnoringCase("SOME_COLUMN");
+		assertThat(queryEnhancer.hasConstructorExpression()).isFalse();
+	}
+
+	@Test // GH-2578
+	void complexSetOperationListWorksWithJSQLParser() {
+
+		String setQuery = "select SOME_COLUMN from SOME_TABLE where REPORTING_DATE = :REPORTING_DATE  \n" //
+				+ "except \n" //
+				+ "select SOME_COLUMN from SOME_OTHER_TABLE where REPORTING_DATE = :REPORTING_DATE \n" //
+				+ "union select SOME_COLUMN from SOME_OTHER_OTHER_TABLE";
+
+		StringQuery stringQuery = new StringQuery(setQuery, true);
+		QueryEnhancer queryEnhancer = QueryEnhancerFactory.forQuery(stringQuery);
+
+		assertThat(stringQuery.getAlias()).isNullOrEmpty();
+		assertThat(stringQuery.getProjection()).isEqualToIgnoringCase("SOME_COLUMN");
+		assertThat(stringQuery.hasConstructorExpression()).isFalse();
+
+		assertThat(queryEnhancer.createCountQueryFor()).isEqualToIgnoringCase(setQuery);
+		assertThat(queryEnhancer.applySorting(Sort.by("SOME_COLUMN").ascending())).endsWith("ORDER BY SOME_COLUMN ASC");
+		assertThat(queryEnhancer.getJoinAliases()).isEmpty();
+		assertThat(queryEnhancer.detectAlias()).isNullOrEmpty();
+		assertThat(queryEnhancer.getProjection()).isEqualToIgnoringCase("SOME_COLUMN");
+		assertThat(queryEnhancer.hasConstructorExpression()).isFalse();
+	}
+
+	@Test // GH-2578
+	void deeplyNestedcomplexSetOperationListWorksWithJSQLParser() {
+
+		String setQuery = "SELECT CustomerID FROM (\n" //
+				+ "\t\t\tselect * from Customers\n" //
+				+ "\t\t\texcept\n"//
+				+ "\t\t\tselect * from Customers where country = 'Austria'\n"//
+				+ "\t)\n" //
+				+ "\texcept\n"//
+				+ "\tselect CustomerID  from customers where country = 'Germany'\n"//
+				+ "\t;";
+
+		StringQuery stringQuery = new StringQuery(setQuery, true);
+		QueryEnhancer queryEnhancer = QueryEnhancerFactory.forQuery(stringQuery);
+
+		assertThat(stringQuery.getAlias()).isNullOrEmpty();
+		assertThat(stringQuery.getProjection()).isEqualToIgnoringCase("CustomerID");
+		assertThat(stringQuery.hasConstructorExpression()).isFalse();
+
+		assertThat(queryEnhancer.createCountQueryFor()).isEqualToIgnoringCase(setQuery);
+		assertThat(queryEnhancer.applySorting(Sort.by("CustomerID").descending())).endsWith("ORDER BY CustomerID DESC");
+		assertThat(queryEnhancer.getJoinAliases()).isEmpty();
+		assertThat(queryEnhancer.detectAlias()).isNullOrEmpty();
+		assertThat(queryEnhancer.getProjection()).isEqualToIgnoringCase("CustomerID");
+		assertThat(queryEnhancer.hasConstructorExpression()).isFalse();
+	}
+
+	@Test // GH-2578
+	void valuesStatementsWorksWithJSQLParser() {
+
+		String setQuery = "VALUES (1, 2, 'test')";
+
+		StringQuery stringQuery = new StringQuery(setQuery, true);
+		QueryEnhancer queryEnhancer = QueryEnhancerFactory.forQuery(stringQuery);
+
+		assertThat(stringQuery.getAlias()).isNullOrEmpty();
+		assertThat(stringQuery.getProjection()).isNullOrEmpty();
+		assertThat(stringQuery.hasConstructorExpression()).isFalse();
+
+		assertThat(queryEnhancer.createCountQueryFor()).isEqualToIgnoringCase(setQuery);
+		assertThat(queryEnhancer.applySorting(Sort.by("CustomerID").descending())).isEqualTo(setQuery);
+		assertThat(queryEnhancer.getJoinAliases()).isEmpty();
+		assertThat(queryEnhancer.detectAlias()).isNullOrEmpty();
+		assertThat(queryEnhancer.getProjection()).isNullOrEmpty();
+		assertThat(queryEnhancer.hasConstructorExpression()).isFalse();
+	}
+
+	@Test // GH-2578
+	void withStatementsWorksWithJSQLParser() {
+
+		String setQuery = "with sample_data(day, value) as (values ((0, 13), (1, 12), (2, 15), (3, 4), (4, 8), (5, 16))) \n"
+				+ "select day, value from sample_data as a";
+
+		StringQuery stringQuery = new StringQuery(setQuery, true);
+		QueryEnhancer queryEnhancer = QueryEnhancerFactory.forQuery(stringQuery);
+
+		assertThat(stringQuery.getAlias()).isEqualToIgnoringCase("a");
+		assertThat(stringQuery.getProjection()).isEqualToIgnoringCase("day, value");
+		assertThat(stringQuery.hasConstructorExpression()).isFalse();
+
+		assertThat(queryEnhancer.createCountQueryFor()).isEqualToIgnoringCase(
+				"with sample_data (day, value) AS (VALUES ((0, 13), (1, 12), (2, 15), (3, 4), (4, 8), (5, 16)))\n"
+						+ "SELECT count(a) FROM sample_data AS a");
+		assertThat(queryEnhancer.applySorting(Sort.by("day").descending())).endsWith("ORDER BY a.day DESC");
+		assertThat(queryEnhancer.getJoinAliases()).isEmpty();
+		assertThat(queryEnhancer.detectAlias()).isEqualToIgnoringCase("a");
+		assertThat(queryEnhancer.getProjection()).isEqualToIgnoringCase("day, value");
+		assertThat(queryEnhancer.hasConstructorExpression()).isFalse();
+	}
+
+	@Test // GH-2578
+	void multipleWithStatementsWorksWithJSQLParser() {
+
+		String setQuery = "with sample_data(day, value) as (values ((0, 13), (1, 12), (2, 15), (3, 4), (4, 8), (5, 16))), test2 as (values (1,2,3)) \n"
+				+ "select day, value from sample_data as a";
+
+		StringQuery stringQuery = new StringQuery(setQuery, true);
+		QueryEnhancer queryEnhancer = QueryEnhancerFactory.forQuery(stringQuery);
+
+		assertThat(stringQuery.getAlias()).isEqualToIgnoringCase("a");
+		assertThat(stringQuery.getProjection()).isEqualToIgnoringCase("day, value");
+		assertThat(stringQuery.hasConstructorExpression()).isFalse();
+
+		assertThat(queryEnhancer.createCountQueryFor()).isEqualToIgnoringCase(
+				"with sample_data (day, value) AS (VALUES ((0, 13), (1, 12), (2, 15), (3, 4), (4, 8), (5, 16))),test2 AS (VALUES (1, 2, 3))\n"
+						+ "SELECT count(a) FROM sample_data AS a");
+		assertThat(queryEnhancer.applySorting(Sort.by("day").descending())).endsWith("ORDER BY a.day DESC");
+		assertThat(queryEnhancer.getJoinAliases()).isEmpty();
+		assertThat(queryEnhancer.detectAlias()).isEqualToIgnoringCase("a");
+		assertThat(queryEnhancer.getProjection()).isEqualToIgnoringCase("day, value");
+		assertThat(queryEnhancer.hasConstructorExpression()).isFalse();
 	}
 
 	public static Stream<Arguments> detectsJoinAliasesCorrectlySource() {
