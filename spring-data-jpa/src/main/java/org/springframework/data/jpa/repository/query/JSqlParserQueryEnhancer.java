@@ -29,9 +29,13 @@ import net.sf.jsqlparser.statement.delete.Delete;
 import net.sf.jsqlparser.statement.select.OrderByElement;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
+import net.sf.jsqlparser.statement.select.SelectBody;
 import net.sf.jsqlparser.statement.select.SelectExpressionItem;
 import net.sf.jsqlparser.statement.select.SelectItem;
+import net.sf.jsqlparser.statement.select.SetOperationList;
+import net.sf.jsqlparser.statement.select.WithItem;
 import net.sf.jsqlparser.statement.update.Update;
+import net.sf.jsqlparser.statement.values.ValuesStatement;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -107,6 +111,13 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 		}
 
 		Select selectStatement = parseSelectStatement(queryString);
+
+		if (selectStatement.getSelectBody()instanceof SetOperationList setOperationList) {
+			return applySortingToSetOperationList(setOperationList, sort);
+		} else if (!(selectStatement.getSelectBody() instanceof PlainSelect)) {
+			return queryString;
+		}
+
 		PlainSelect selectBody = (PlainSelect) selectStatement.getSelectBody();
 
 		final Set<String> joinAliases = getJoinAliases(selectBody);
@@ -115,7 +126,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 
 		List<OrderByElement> orderByElements = sort.stream() //
 				.map(order -> getOrderClause(joinAliases, selectionAliases, alias, order)) //
-				.collect(Collectors.toList());
+				.toList();
 
 		if (CollectionUtils.isEmpty(selectBody.getOrderByElements())) {
 			selectBody.setOrderByElements(new ArrayList<>());
@@ -125,6 +136,33 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 
 		return selectBody.toString();
 
+	}
+
+	/**
+	 * Returns the {@link SetOperationList} as a string query with {@link Sort}s applied in the right order.
+	 * 
+	 * @param setOperationListStatement
+	 * @param sort
+	 * @return
+	 */
+	private String applySortingToSetOperationList(SetOperationList setOperationListStatement, Sort sort) {
+
+		// special case: ValuesStatements are detected as nested OperationListStatements
+		if (setOperationListStatement.getSelects().stream().anyMatch(ValuesStatement.class::isInstance)) {
+			return setOperationListStatement.toString();
+		}
+
+		// if (CollectionUtils.isEmpty(setOperationListStatement.getOrderByElements())) {
+		if (setOperationListStatement.getOrderByElements() == null) {
+			setOperationListStatement.setOrderByElements(new ArrayList<>());
+		}
+
+		List<OrderByElement> orderByElements = sort.stream() //
+				.map(order -> getOrderClause(Collections.emptySet(), Collections.emptySet(), null, order)) //
+				.toList();
+		setOperationListStatement.getOrderByElements().addAll(orderByElements);
+
+		return setOperationListStatement.toString();
 	}
 
 	/**
@@ -175,7 +213,12 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 			return new HashSet<>();
 		}
 
-		return getJoinAliases((PlainSelect) parseSelectStatement(query).getSelectBody());
+		Select selectStatement = parseSelectStatement(query);
+		if (selectStatement.getSelectBody()instanceof PlainSelect selectBody) {
+			return getJoinAliases(selectBody);
+		}
+
+		return new HashSet<>();
 	}
 
 	/**
@@ -259,6 +302,17 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 		}
 
 		Select selectStatement = parseSelectStatement(query);
+
+		/*
+		  For all the other types ({@link ValuesStatement} and {@link SetOperationList}) it does not make sense to provide 
+		  alias since:
+		  * ValuesStatement has no alias
+		  * SetOperation can have multiple alias for each operation item
+		 */
+		if (!(selectStatement.getSelectBody() instanceof PlainSelect)) {
+			return null;
+		}
+
 		PlainSelect selectBody = (PlainSelect) selectStatement.getSelectBody();
 		return detectAlias(selectBody);
 	}
@@ -272,6 +326,10 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 	 */
 	@Nullable
 	private static String detectAlias(PlainSelect selectBody) {
+
+		if (selectBody.getFromItem() == null) {
+			return null;
+		}
 
 		Alias alias = selectBody.getFromItem().getAlias();
 		return alias == null ? null : alias.getName();
@@ -287,6 +345,14 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 		Assert.hasText(this.query.getQueryString(), "OriginalQuery must not be null or empty");
 
 		Select selectStatement = parseSelectStatement(this.query.getQueryString());
+
+		/*
+		  We only support count queries for {@link PlainSelect}.
+		 */
+		if (!(selectStatement.getSelectBody() instanceof PlainSelect)) {
+			return this.query.getQueryString();
+		}
+
 		PlainSelect selectBody = (PlainSelect) selectStatement.getSelectBody();
 
 		// remove order by
@@ -322,8 +388,15 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 		Function jSqlCount = getJSqlCount(Collections.singletonList(countProp), distinct);
 		selectBody.setSelectItems(Collections.singletonList(new SelectExpressionItem(jSqlCount)));
 
-		return selectBody.toString();
+		if (CollectionUtils.isEmpty(selectStatement.getWithItemsList())) {
+			return selectBody.toString();
+		}
 
+		String withStatements = selectStatement.getWithItemsList().stream() //
+				.map(WithItem::toString) //
+				.collect(Collectors.joining(","));
+
+		return "with " + withStatements + "\n" + selectBody;
 	}
 
 	@Override
@@ -336,9 +409,23 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 		Assert.hasText(query.getQueryString(), "Query must not be null or empty");
 
 		Select selectStatement = parseSelectStatement(query.getQueryString());
-		PlainSelect selectBody = (PlainSelect) selectStatement.getSelectBody();
 
-		return selectBody.getSelectItems() //
+		if (selectStatement.getSelectBody() instanceof ValuesStatement) {
+			return "";
+		}
+
+		SelectBody selectBody = selectStatement.getSelectBody();
+
+		if (selectStatement.getSelectBody()instanceof SetOperationList setOperationList) {
+			// using the first one since for setoperations the projection has to be the same
+			selectBody = setOperationList.getSelects().get(0);
+
+			if (!(selectBody instanceof PlainSelect)) {
+				return "";
+			}
+		}
+
+		return ((PlainSelect) selectBody).getSelectItems() //
 				.stream() //
 				.map(Object::toString) //
 				.collect(Collectors.joining(", ")).trim();

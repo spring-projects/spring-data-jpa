@@ -642,6 +642,40 @@ public interface UserRepository
 	@Query(value = "update SD_User u set u.active = false where u.id = :userId", nativeQuery = true)
 	void setActiveToFalseWithModifyingNative(@Param("userId") int userId);
 
+	// GH-2578
+	@Query(value = "SELECT u.firstname from SD_User u where u.age < 32 " //
+			+ "except " //
+			+ "SELECT u.firstname from SD_User u where u.age >= 32 ", nativeQuery = true)
+	List<String> findWithSimpleExceptNative();
+
+	// GH-2578
+	@Query(value = "SELECT u.firstname from SD_User u where u.age < 32 " //
+			+ "union " //
+			+ "SELECT u.firstname from SD_User u where u.age >= 32 ", nativeQuery = true)
+	List<String> findWithSimpleUnionNative();
+
+	// GH-2578
+	@Query(value = "SELECT u.firstname from (select * from SD_User u where u.age < 32) u " //
+			+ "except " //
+			+ "SELECT u.firstname from SD_User u where u.age >= 32 ", nativeQuery = true)
+	List<String> findWithComplexExceptNative();
+
+	// GH-2578
+	@Query(value = "VALUES (1)", nativeQuery = true)
+	List<Integer> valuesStatementNative();
+
+	// GH-2578
+	@Query(value = "with sample_data as ( Select * from SD_User u where u.age > 30  ) \n select * from sample_data",
+			nativeQuery = true)
+	List<User> withNativeStatement();
+
+	// GH-2578
+	@Query(value = "with sample_data as ( Select * from SD_User u where u.age > 30  ), \n " //
+			+ "another as ( Select * from SD_User u) \n " //
+			+ "select lower(s.firstname) as lowFirst from sample_data as s,another as a where s.firstname = a.firstname ",
+			nativeQuery = true)
+	List<String> complexWithNativeStatement();
+
 	interface RolesAndFirstname {
 
 		String getFirstname();
