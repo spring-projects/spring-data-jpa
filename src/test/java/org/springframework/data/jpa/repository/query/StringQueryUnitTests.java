@@ -22,6 +22,8 @@ import java.util.List;
 
 import org.assertj.core.api.Assertions;
 import org.assertj.core.api.SoftAssertions;
+import org.hibernate.jpa.TypedParameterValue;
+import org.hibernate.type.StringType;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.jpa.repository.query.StringQuery.InParameterBinding;
 import org.springframework.data.jpa.repository.query.StringQuery.LikeParameterBinding;
@@ -37,6 +39,7 @@ import org.springframework.data.repository.query.parser.Part.Type;
  * @author Nils Borrmann
  * @author Andriy Redko
  * @author Diego Krupitza
+ * @author Yanming Zhou
  */
 class StringQueryUnitTests {
 
@@ -99,6 +102,19 @@ class StringQueryUnitTests {
 		assertThat(binding).isNotNull();
 		assertThat(binding.hasName("firstname")).isTrue();
 		assertThat(binding.getType()).isEqualTo(Type.ENDING_WITH);
+	}
+
+	@Test // GH-2548
+	void likeParameterBindingShouldUnwrapValueIfNecessary() {
+
+		StringQuery query = new StringQuery("select u from User u where u.firstname like %:firstname%", false);
+		List<ParameterBinding> bindings = query.getParameterBindings();
+		LikeParameterBinding binding = (LikeParameterBinding) bindings.get(0);
+
+		assertThat(binding.prepare("test")).isEqualTo("%test%");
+		assertThat(binding.prepare(new TypedParameterValue(StringType.INSTANCE, "test"))).isEqualTo("%test%");
+		assertThat(binding.prepare(null)).isNull();
+		assertThat(binding.prepare(new TypedParameterValue(StringType.INSTANCE, null))).isNull();
 	}
 
 	@Test // DATAJPA-461

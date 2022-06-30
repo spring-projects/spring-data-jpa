@@ -27,6 +27,8 @@ import java.util.function.BiFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.hibernate.jpa.TypedParameterValue;
+
 import org.springframework.data.repository.query.SpelQueryContext;
 import org.springframework.data.repository.query.SpelQueryContext.SpelExtractor;
 import org.springframework.data.repository.query.parser.Part.Type;
@@ -48,6 +50,7 @@ import org.springframework.util.StringUtils;
  * @author Jens Schauder
  * @author Diego Krupitza
  * @author Greg Turnquist
+ * @author Yanming Zhou
  */
 class StringQuery implements DeclaredQuery {
 
@@ -763,6 +766,11 @@ class StringQuery implements DeclaredQuery {
 		@Nullable
 		@Override
 		public Object prepare(@Nullable Object value) {
+
+			// unwrap value if necessary, see https://github.com/spring-projects/spring-data-jpa/pull/2461
+			if (value instanceof TypedParameterValue) {
+				value = ((TypedParameterValue) value).getValue();
+			}
 
 			if (value == null) {
 				return null;
