@@ -21,10 +21,12 @@ import static org.springframework.data.jpa.repository.config.BeanDefinitionNames
 import java.lang.annotation.Annotation;
 
 import org.springframework.beans.factory.BeanDefinitionStoreException;
+import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.aspectj.AnnotationBeanConfigurerAspect;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
@@ -34,7 +36,9 @@ import org.springframework.data.auditing.config.AuditingConfiguration;
 import org.springframework.data.config.ParsingUtils;
 import org.springframework.data.jpa.domain.support.AuditingBeanFactoryPostProcessor;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import org.springframework.data.mapping.context.PersistentEntities;
 import org.springframework.data.repository.config.PersistentEntitiesFactoryBean;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
@@ -42,6 +46,7 @@ import org.springframework.util.ClassUtils;
  * {@link ImportBeanDefinitionRegistrar} to enable {@link EnableJpaAuditing} annotation.
  *
  * @author Thomas Darimont
+ * @author Christoph Strobl
  */
 class JpaAuditingRegistrar extends AuditingBeanDefinitionRegistrarSupport {
 
@@ -55,16 +60,6 @@ class JpaAuditingRegistrar extends AuditingBeanDefinitionRegistrarSupport {
 	@Override
 	protected String getAuditingHandlerBeanName() {
 		return "jpaAuditingHandler";
-	}
-
-	@Override
-	protected BeanDefinitionBuilder getAuditHandlerBeanDefinitionBuilder(AuditingConfiguration configuration) {
-
-		BeanDefinitionBuilder definition = BeanDefinitionBuilder.genericBeanDefinition(PersistentEntitiesFactoryBean.class);
-		definition.addConstructorArgReference(JPA_MAPPING_CONTEXT_BEAN_NAME);
-
-		BeanDefinitionBuilder builder = super.getAuditHandlerBeanDefinitionBuilder(configuration);
-		return builder.addConstructorArgValue(definition.getBeanDefinition());
 	}
 
 	@Override
@@ -94,6 +89,42 @@ class JpaAuditingRegistrar extends AuditingBeanDefinitionRegistrarSupport {
 				ParsingUtils.getObjectFactoryBeanDefinition(getAuditingHandlerBeanName(), null));
 		registerInfrastructureBeanWithId(builder.getRawBeanDefinition(), AuditingEntityListener.class.getName(), registry);
 	}
+
+	@Override
+	protected void postProcess(BeanDefinitionBuilder builder, AuditingConfiguration configuration,
+			BeanDefinitionRegistry registry) {
+
+		String persistentEntitiesBeanName = detectPersistentEntitiesBeanName(registry);
+
+		if (persistentEntitiesBeanName == null) {
+
+			persistentEntitiesBeanName = BeanDefinitionReaderUtils.uniqueBeanName("jpaPersistentEntities", registry);
+
+			// TODO: https://github.com/spring-projects/spring-framework/issues/28728
+			BeanDefinitionBuilder definition = BeanDefinitionBuilder.genericBeanDefinition(PersistentEntities.class) //
+					.setFactoryMethod("of") //
+					.addConstructorArgReference(JPA_MAPPING_CONTEXT_BEAN_NAME);
+
+			registry.registerBeanDefinition(persistentEntitiesBeanName, definition.getBeanDefinition());
+		}
+
+		builder.addConstructorArgReference(persistentEntitiesBeanName);
+	}
+
+	@Nullable
+	private static String detectPersistentEntitiesBeanName(BeanDefinitionRegistry registry) {
+
+		if (registry instanceof ListableBeanFactory beanFactory) {
+			for (String bn : beanFactory.getBeanNamesForType(PersistentEntities.class)) {
+				if (bn.startsWith("jpa")) {
+					return bn;
+				}
+			}
+		}
+
+		return null;
+	}
+
 
 	/**
 	 * @param registry, the {@link BeanDefinitionRegistry} to be used to register the
