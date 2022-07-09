@@ -48,7 +48,7 @@
 	</scm>
 
 	<properties>
-		<hibernate.envers>5.5.7.Final</hibernate.envers>
+		<hibernate.envers>${hibernate}</hibernate.envers>
 		<java-module-name>spring.data.envers</java-module-name>
 	</properties>
 

@@ -17,22 +17,26 @@ package org.springframework.data.jpa.repository.config;
 
 import static org.springframework.data.jpa.repository.config.BeanDefinitionNames.*;
 
-import java.lang.annotation.Annotation;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.Locale;
-import java.util.Optional;
-import java.util.Set;
-
 import jakarta.persistence.Entity;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.PersistenceUnit;
 
+import java.lang.annotation.Annotation;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.annotation.AnnotationConfigUtils;
@@ -77,6 +81,8 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 	private static final String JPA_METAMODEL_CACHE_CLEANUP_CLASSNAME = "org.springframework.data.jpa.util.JpaMetamodelCacheCleanup";
 	private static final String ESCAPE_CHARACTER_PROPERTY = "escapeCharacter";
 
+	private final Map<Object, String> entityManagerRefs = new LinkedHashMap<>();
+
 	@Override
 	public String getModuleName() {
 		return "JPA";
@@ -107,7 +113,7 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 
 		Optional<String> transactionManagerRef = source.getAttribute("transactionManagerRef");
 		builder.addPropertyValue("transactionManager", transactionManagerRef.orElse(DEFAULT_TRANSACTION_MANAGER_BEAN_NAME));
-		builder.addPropertyValue("entityManager", getEntityManagerBeanDefinitionFor(source, source.getSource()));
+		builder.addPropertyReference("entityManager", entityManagerRefs.get(source));
 		builder.addPropertyValue(ESCAPE_CHARACTER_PROPERTY, getEscapeCharacter(source).orElse('\\'));
 		builder.addPropertyReference("mappingContext", JPA_MAPPING_CONTEXT_BEAN_NAME);
 	}
@@ -149,6 +155,8 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 
 		super.registerBeansForRoot(registry, config);
 
+		prepareAndRegisterSharedEntityManger(registry, config);
+
 		Object source = config.getSource();
 
 		registerLazyIfNotAlreadyRegistered(
@@ -189,6 +197,21 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 			return builder.getBeanDefinition();
 
 		}, registry, JpaEvaluationContextExtension.class.getName(), source);
+	}
+
+	private String prepareAndRegisterSharedEntityManger(BeanDefinitionRegistry registry,
+			RepositoryConfigurationSource config) {
+
+		AbstractBeanDefinition entityManager = getEntityManagerBeanDefinitionFor(config, null);
+		entityManager.setRole(BeanDefinition.ROLE_SUPPORT);
+		entityManager.setSynthetic(true);
+		entityManager.setPrimary(false);
+		entityManager.setAutowireCandidate(false);
+
+		String entityManagerBeanName = BeanDefinitionReaderUtils.uniqueBeanName("jpaSharedEM", registry);
+		entityManagerRefs.put(config, entityManagerBeanName);
+		registry.registerBeanDefinition(entityManagerBeanName, entityManager);
+		return entityManagerBeanName;
 	}
 
 	@Override
