@@ -238,6 +238,8 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 				query.setParameter("ids", idsCollection);
 			}
 
+			applyQueryHints(query);
+
 			query.executeUpdate();
 		}
 	}
@@ -279,7 +281,12 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	@Override
 	@Transactional
 	public void deleteAllInBatch() {
-		em.createQuery(getDeleteAllQueryString()).executeUpdate();
+
+		Query query = em.createQuery(getDeleteAllQueryString());
+
+		applyQueryHints(query);
+
+		query.executeUpdate();
 	}
 
 	@Override
@@ -296,7 +303,12 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		LockModeType type = metadata.getLockModeType();
 
 		Map<String, Object> hints = new HashMap<>();
+
 		getQueryHints().withFetchGraphs(em).forEach(hints::put);
+
+		if (metadata.getComment() != null && provider.getCommentHintKey() != null) {
+			hints.put(provider.getCommentHintKey(), provider.getCommentHintValue(metadata.getComment()));
+		}
 
 		return Optional.ofNullable(type == null ? em.find(domainType, id, hints) : em.find(domainType, id, type, hints));
 	}
@@ -354,6 +366,15 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		String existsQuery = QueryUtils.getExistsQueryString(entityName, placeholder, idAttributeNames);
 
 		TypedQuery<Long> query = em.createQuery(existsQuery, Long.class);
+
+		Map<String, Object> hints = new HashMap<>();
+		getQueryHints().withFetchGraphs(em).forEach(hints::put);
+
+		if (metadata.getComment() != null && provider.getCommentHintKey() != null) {
+			hints.put(provider.getCommentHintKey(), provider.getCommentHintValue(metadata.getComment()));
+		}
+
+		hints.forEach(query::setHint);
 
 		if (!entityInformation.hasCompositeId()) {
 			query.setParameter(idAttributeNames.iterator().next(), id);
@@ -556,9 +577,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		Assert.notNull(spec, "Specification must not be null");
 		Assert.notNull(queryFunction, "Query function must not be null");
 
-		Function<Sort, TypedQuery<T>> finder = sort -> {
-			return getQuery(spec, getDomainClass(), sort);
-		};
+		Function<Sort, TypedQuery<T>> finder = sort -> getQuery(spec, getDomainClass(), sort);
 
 		FetchableFluentQuery<R> fluentQuery = new FetchableFluentQueryBySpecification<T, R>(spec, getDomainClass(),
 				Sort.unsorted(), null, finder, this::count, this::exists, this.em);
@@ -568,7 +587,12 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 	@Override
 	public long count() {
-		return em.createQuery(getCountQueryString(), Long.class).getSingleResult();
+
+		TypedQuery<Long> query = em.createQuery(getCountQueryString(), Long.class);
+
+		applyQueryHintsForCount(query);
+
+		return query.getSingleResult();
 	}
 
 	@Override
@@ -804,7 +828,12 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	}
 
 	private void applyQueryHints(Query query) {
+
 		getQueryHints().withFetchGraphs(em).forEach(query::setHint);
+
+		if (metadata.getComment() != null && provider.getCommentHintKey() != null) {
+			query.setHint(provider.getCommentHintKey(), provider.getCommentHintValue(metadata.getComment()));
+		}
 	}
 
 	private <S> TypedQuery<S> applyRepositoryMethodMetadataForCount(TypedQuery<S> query) {
@@ -819,7 +848,12 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	}
 
 	private void applyQueryHintsForCount(Query query) {
+
 		getQueryHintsForCount().forEach(query::setHint);
+
+		if (metadata.getComment() != null && provider.getCommentHintKey() != null) {
+			query.setHint(provider.getCommentHintKey(), provider.getCommentHintValue(metadata.getComment()));
+		}
 	}
 
 	/**

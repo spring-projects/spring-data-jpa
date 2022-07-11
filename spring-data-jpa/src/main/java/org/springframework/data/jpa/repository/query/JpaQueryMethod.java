@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -32,6 +33,7 @@ import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.data.jpa.provider.QueryExtractor;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Meta;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryHints;
@@ -46,6 +48,7 @@ import org.springframework.data.util.Lazy;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.ConcurrentReferenceHashMap;
 import org.springframework.util.StringUtils;
 
 /**
@@ -94,6 +97,7 @@ public class JpaQueryMethod extends QueryMethod {
 	private final Lazy<Boolean> isCollectionQuery;
 	private final Lazy<Boolean> isProcedureQuery;
 	private final Lazy<JpaEntityMetadata<?>> entityMetadata;
+	private final Map<Class<? extends Annotation>, Optional<Annotation>> annotationCache;
 
 	/**
 	 * Creates a {@link JpaQueryMethod}.
@@ -135,6 +139,7 @@ public class JpaQueryMethod extends QueryMethod {
 		this.isCollectionQuery = Lazy.of(() -> super.isCollectionQuery() && !NATIVE_ARRAY_TYPES.contains(this.returnType));
 		this.isProcedureQuery = Lazy.of(() -> AnnotationUtils.findAnnotation(method, Procedure.class) != null);
 		this.entityMetadata = Lazy.of(() -> new DefaultJpaEntityMetadata<>(getDomainClass()));
+		this.annotationCache = new ConcurrentReferenceHashMap<>();
 
 		Assert.isTrue(!(isModifyingQuery() && getParameters().hasSpecialParameter()),
 				String.format("Modifying method must not contain %s", Parameters.TYPES));
@@ -191,6 +196,13 @@ public class JpaQueryMethod extends QueryMethod {
 	@Override
 	public boolean isModifyingQuery() {
 		return modifying.getNullable() != null;
+	}
+
+	@SuppressWarnings("unchecked")
+	private <A extends Annotation> Optional<A> doFindAnnotation(Class<A> annotationType) {
+
+		return (Optional<A>) this.annotationCache.computeIfAbsent(annotationType,
+				it -> Optional.ofNullable(AnnotatedElementUtils.findMergedAnnotation(method, it)));
 	}
 
 	/**
@@ -257,6 +269,47 @@ public class JpaQueryMethod extends QueryMethod {
 	 */
 	Class<?> getReturnType() {
 		return returnType;
+	}
+
+	/**
+	 * @return return true if {@link Meta} annotation is available.
+	 * @since 3.0
+	 */
+	public boolean hasQueryMetaAttributes() {
+		return getMetaAnnotation() != null;
+	}
+
+	/**
+	 * Returns the {@link Meta} annotation that is applied to the method or {@code null} if not available.
+	 *
+	 * @return
+	 * @since 3.0
+	 */
+	@Nullable
+	Meta getMetaAnnotation() {
+		return doFindAnnotation(Meta.class).orElse(null);
+	}
+
+	/**
+	 * Returns the {@link org.springframework.data.jpa.repository.query.Meta} attributes to be applied.
+	 *
+	 * @return never {@literal null}.
+	 * @since 1.6
+	 */
+	public org.springframework.data.jpa.repository.query.Meta getQueryMetaAttributes() {
+
+		Meta meta = getMetaAnnotation();
+		if (meta == null) {
+			return new org.springframework.data.jpa.repository.query.Meta();
+		}
+
+		org.springframework.data.jpa.repository.query.Meta metaAttributes = new org.springframework.data.jpa.repository.query.Meta();
+
+		if (StringUtils.hasText(meta.comment())) {
+			metaAttributes.setComment(meta.comment());
+		}
+
+		return metaAttributes;
 	}
 
 	/**

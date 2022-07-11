@@ -15,6 +15,9 @@
  */
 package org.springframework.data.jpa.repository.support;
 
+import jakarta.persistence.LockModeType;
+import jakarta.persistence.QueryHint;
+
 import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.Optional;
@@ -22,9 +25,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Predicate;
-
-import jakarta.persistence.LockModeType;
-import jakarta.persistence.QueryHint;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
@@ -36,6 +36,7 @@ import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Meta;
 import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.core.RepositoryInformation;
 import org.springframework.data.repository.core.support.RepositoryProxyPostProcessor;
@@ -180,6 +181,7 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 		private final @Nullable LockModeType lockModeType;
 		private final org.springframework.data.jpa.repository.support.QueryHints queryHints;
 		private final org.springframework.data.jpa.repository.support.QueryHints queryHintsForCount;
+		private final String comment;
 		private final Optional<EntityGraph> entityGraph;
 		private final Method method;
 
@@ -195,6 +197,7 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 			this.lockModeType = findLockModeType(method);
 			this.queryHints = findQueryHints(method, it -> true);
 			this.queryHintsForCount = findQueryHints(method, QueryHints::forCounting);
+			this.comment = findComment(method);
 			this.entityGraph = findEntityGraph(method);
 			this.method = method;
 		}
@@ -234,6 +237,13 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 		}
 
 		@Nullable
+		private static String findComment(Method method) {
+
+			Meta annotation = AnnotatedElementUtils.findMergedAnnotation(method, Meta.class);
+			return annotation == null ? null : (String) AnnotationUtils.getValue(annotation, "comment");
+		}
+
+		@Nullable
 		@Override
 		public LockModeType getLockModeType() {
 			return lockModeType;
@@ -247,6 +257,11 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 		@Override
 		public org.springframework.data.jpa.repository.support.QueryHints getQueryHintsForCount() {
 			return queryHintsForCount;
+		}
+
+		@Override
+		public String getComment() {
+			return comment;
 		}
 
 		@Override

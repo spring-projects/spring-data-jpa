@@ -15,10 +15,10 @@
  */
 package org.springframework.data.jpa.repository.support;
 
+import jakarta.persistence.LockModeType;
+
 import java.lang.reflect.Method;
 import java.util.Optional;
-
-import jakarta.persistence.LockModeType;
 
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.lang.Nullable;
@@ -32,6 +32,7 @@ import org.springframework.lang.Nullable;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Jens Schauder
+ * @author Greg Turnquist
  */
 public interface CrudMethodMetadata {
 
@@ -58,6 +59,14 @@ public interface CrudMethodMetadata {
 	 * @since 2.4
 	 */
 	QueryHints getQueryHintsForCount();
+
+	/**
+	 * Returns query comment to be applied to query.
+	 *
+	 * @return
+	 * @since 3.0
+	 */
+	String getComment();
 
 	/**
 	 * Returns the {@link EntityGraph} to be used.

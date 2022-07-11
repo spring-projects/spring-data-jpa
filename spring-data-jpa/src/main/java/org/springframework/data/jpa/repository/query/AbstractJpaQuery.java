@@ -187,6 +187,15 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 			}
 		}
 
+		// Apply any meta-attributes that exist
+		if (method.hasQueryMetaAttributes()) {
+
+			if (provider.getCommentHintKey() != null) {
+				query.setHint( //
+						provider.getCommentHintKey(), provider.getCommentHintValue(method.getQueryMetaAttributes().getComment()));
+			}
+		}
+
 		return query;
 	}
 

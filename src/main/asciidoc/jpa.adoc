@@ -726,6 +726,139 @@ public interface UserRepository extends Repository<User, Long> {
 ====
 The preceding declaration would apply the configured `@QueryHint` for that actually query but omit applying it to the count query triggered to calculate the total number of pages.
 
+[[jpa.query-hints.comments]]
+==== Adding Comments to Queries
+Sometimes, you need to debug a query based upon database performance.
+The query your database administrator shows you may look VERY different than what you wrote using `@Query`, or it may look
+nothing like what you presume Spring Data JPA has generated regarding a custom finder or if you used query by example.
+
+To make this process easier, you can insert custom comments into almost any JPA operation, whether its a query or other operation
+by applying the `@Meta` annotation.
+
+.Apply `@Meta` annotation to repository operations
+====
+[source, java]
+----
+public interface RoleRepository extends JpaRepository<Role, Integer> {
+
+	@Meta(comment = "find roles by name")
+	List<Role> findByName(String name);
+
+	@Override
+	@Meta(comment = "find roles using QBE")
+	<S extends Role> List<S> findAll(Example<S> example);
+
+	@Meta(comment = "count roles for a given name")
+	long countByName(String name);
+
+	@Override
+	@Meta(comment = "exists based on QBE")
+	<S extends Role> boolean exists(Example<S> example);
+}
+----
+====
+
+This sample repository has a mixture of custom finders as well as overriding the inherited operations from `JpaRepository`.
+Either way, the `@Meta` annotation lets you add a `comment` that will be inserted into queries before they are sent to the database.
+
+It's also important to note that this feature isn't confined solely to queries. It extends to the `count` and `exists` operations.
+And while not shown, it also extends to certain `delete` operations.
+
+IMPORTANT: While we have attempted to apply this feature everywhere possible, some operations of the underlying `EntityManager` don't support comments. For example, `entityManager.createQuery()` is clearly documented as supporting comments, but `entityManager.find()` operations do not.
+
+Neither JPQL logging nor SQL logging is a standard in JPA, so each provider requires custom configuration, as shown the sections below.
+
+===== Activating Hibernate comments
+To activate query comments in Hibernate, you must set `hibernate.use_sql_comments` to `true`.
+
+If you are using Java-based configuration settings, this can be done like this:
+
+.Java-based JPA configuration
+====
+[source, java]
+----
+@Bean
+public Properties jpaProperties() {
+
+	Properties properties = new Properties();
+	properties.setProperty("hibernate.use_sql_comments", "true");
+	return properties;
+}
+----
+====
+
+If you have a `persistence.xml` file, you can apply it there:
+
+.`persistence.xml`-based configuration
+====
+[source, xml]
+----
+<persistence-unit name="my-persistence-unit">
+
+   ...registered classes...
+
+	<properties>
+		<property name="hibernate.use_sql_comments" value="true" />
+	</properties>
+</persistence-unit>
+----
+====
+
+Finally, if you are using Spring Boot, then you can set it up inside your `application.properties` file:
+
+.Spring Boot property-based configuration
+====
+----
+spring.jpa.properties.hibernate.use_sql_comments=true
+----
+====
+
+===== Activating EclipseLink comments
+To activate query comments in EclipseLink, you must set `eclipselink.logging.level.sql` to `FINE`.
+
+If you are using Java-based configuration settings, this can be done like this:
+
+.Java-based JPA configuration
+====
+[source, java]
+----
+@Bean
+public Properties jpaProperties() {
+
+	Properties properties = new Properties();
+	properties.setProperty("eclipselink.logging.level.sql", "FINE");
+	return properties;
+}
+----
+====
+
+If you have a `persistence.xml` file, you can apply it there:
+
+.`persistence.xml`-based configuration
+====
+[source, xml]
+----
+<persistence-unit name="my-persistence-unit">
+
+   ...registered classes...
+
+	<properties>
+		<property name="eclipselink.logging.level.sql" value="FINE" />
+	</properties>
+</persistence-unit>
+----
+====
+
+Finally, if you are using Spring Boot, then you can set it up inside your `application.properties` file:
+
+.Spring Boot property-based configuration
+====
+----
+spring.jpa.properties.eclipselink.logging.level.sql=FINE
+----
+====
+
+
 [[jpa.entity-graph]]
 === Configuring Fetch- and LoadGraphs
 

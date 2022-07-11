@@ -18,22 +18,22 @@ package org.springframework.data.jpa.provider;
 import static org.springframework.data.jpa.provider.JpaClassUtils.*;
 import static org.springframework.data.jpa.provider.PersistenceProvider.Constants.*;
 
-import java.util.Collections;
-import java.util.NoSuchElementException;
-import java.util.Set;
-
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import jakarta.persistence.metamodel.IdentifiableType;
 import jakarta.persistence.metamodel.Metamodel;
 import jakarta.persistence.metamodel.SingularAttribute;
 
+import java.util.Collections;
+import java.util.NoSuchElementException;
+import java.util.Set;
+
+import org.eclipse.persistence.config.QueryHints;
 import org.eclipse.persistence.jpa.JpaQuery;
 import org.eclipse.persistence.queries.ScrollableCursor;
 import org.hibernate.ScrollMode;
 import org.hibernate.ScrollableResults;
 import org.hibernate.proxy.HibernateProxy;
-
 import org.springframework.data.jpa.repository.query.JpaParameters;
 import org.springframework.data.jpa.repository.query.JpaParametersParameterAccessor;
 import org.springframework.data.util.CloseableIterator;
@@ -49,8 +49,9 @@ import org.springframework.util.ConcurrentReferenceHashMap;
  * @author Thomas Darimont
  * @author Mark Paluch
  * @author Jens Schauder
+ * @author Greg Turnquist
  */
-public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
+public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, QueryComment {
 
 	/**
 	 * Hibernate persistence provider.
@@ -102,8 +103,14 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 		}
 
 		@Override
-		public JpaParametersParameterAccessor getParameterAccessor(JpaParameters parameters, Object[] values, EntityManager em) {
+		public JpaParametersParameterAccessor getParameterAccessor(JpaParameters parameters, Object[] values,
+				EntityManager em) {
 			return new HibernateJpaParametersParameterAccessor(parameters, values, em);
+		}
+
+		@Override
+		public String getCommentHintKey() {
+			return "org.hibernate.comment";
 		}
 	},
 
@@ -133,6 +140,16 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 		public CloseableIterator<Object> executeQueryWithResultStream(Query jpaQuery) {
 			return new EclipseLinkScrollableResultsIterator<>(jpaQuery);
 		}
+
+		@Override
+		public String getCommentHintKey() {
+			return QueryHints.HINT;
+		}
+
+		@Override
+		public String getCommentHintValue(String comment) {
+			return "/* " + comment + " */";
+		}
 	},
 
 	/**
@@ -161,11 +178,18 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 		public Object getIdentifierFrom(Object entity) {
 			return null;
 		}
+
+		@Nullable
+		@Override
+		public String getCommentHintKey() {
+			return null;
+		}
 	};
 
 	static ConcurrentReferenceHashMap<Class<?>, PersistenceProvider> CACHE = new ConcurrentReferenceHashMap<>();
 	private final Iterable<String> entityManagerClassNames;
 	private final Iterable<String> metamodelClassNames;
+
 	/**
 	 * Creates a new {@link PersistenceProvider}.
 	 *
@@ -249,7 +273,8 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 		return cacheAndReturn(metamodelType, GENERIC_JPA);
 	}
 
-	public JpaParametersParameterAccessor getParameterAccessor(JpaParameters parameters, Object[] values, EntityManager em) {
+	public JpaParametersParameterAccessor getParameterAccessor(JpaParameters parameters, Object[] values,
+			EntityManager em) {
 		return new JpaParametersParameterAccessor(parameters, values);
 	}
 
