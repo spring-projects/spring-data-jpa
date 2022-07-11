@@ -21,11 +21,11 @@ import org.springframework.aot.hint.MemberCategory;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
 import org.springframework.aot.hint.TypeReference;
-import org.springframework.beans.factory.aspectj.AnnotationBeanConfigurerAspect;
 import org.springframework.data.jpa.domain.support.AuditingBeanFactoryPostProcessor;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
 import org.springframework.lang.Nullable;
+import org.springframework.util.ClassUtils;
 
 /**
  * @author Christoph Strobl
@@ -36,14 +36,24 @@ public class DataJpaRuntimeHints implements RuntimeHintsRegistrar {
 	@Override
 	public void registerHints(RuntimeHints hints, @Nullable ClassLoader classLoader) {
 
-		hints.proxies().registerJdkProxy(org.springframework.data.jpa.repository.support.CrudMethodMetadata.class,
-				org.springframework.aop.SpringProxy.class, org.springframework.aop.framework.Advised.class,
+		hints.proxies().registerJdkProxy(org.springframework.data.jpa.repository.support.CrudMethodMetadata.class, //
+				org.springframework.aop.SpringProxy.class, //
+				org.springframework.aop.framework.Advised.class, //
 				org.springframework.core.DecoratingProxy.class);
-		hints.reflection().registerTypes(
-				Arrays.asList(TypeReference.of(AnnotationBeanConfigurerAspect.class),
-						TypeReference.of(AuditingBeanFactoryPostProcessor.class), TypeReference.of(AuditingEntityListener.class)),
+
+		if (ClassUtils.isPresent("org.springframework.beans.factory.aspectj.ConfigurableObject", classLoader)) {
+
+			hints.reflection().registerType(
+					TypeReference.of("org.springframework.beans.factory.aspectj.AnnotationBeanConfigurerAspect"), hint -> hint
+							.withMembers(MemberCategory.INVOKE_DECLARED_CONSTRUCTORS, MemberCategory.INVOKE_DECLARED_METHODS));
+		}
+
+		hints.reflection().registerTypes(Arrays.asList( //
+				TypeReference.of(AuditingBeanFactoryPostProcessor.class), //
+				TypeReference.of(AuditingEntityListener.class)),
 				hint -> hint.withMembers(MemberCategory.INVOKE_DECLARED_CONSTRUCTORS, MemberCategory.INVOKE_DECLARED_METHODS));
-		hints.reflection().registerTypes(Arrays.asList(TypeReference.of(SimpleJpaRepository.class)),
+
+		hints.reflection().registerType(TypeReference.of(SimpleJpaRepository.class),
 				hint -> hint.withMembers(MemberCategory.INVOKE_DECLARED_CONSTRUCTORS, MemberCategory.INVOKE_PUBLIC_METHODS));
 	}
 }
