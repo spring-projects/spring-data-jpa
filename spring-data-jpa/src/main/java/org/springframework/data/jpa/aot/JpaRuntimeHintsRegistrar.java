@@ -31,7 +31,7 @@ import org.springframework.util.ClassUtils;
  * @author Christoph Strobl
  * @since 3.0
  */
-public class DataJpaRuntimeHints implements RuntimeHintsRegistrar {
+public class JpaRuntimeHintsRegistrar implements RuntimeHintsRegistrar {
 
 	@Override
 	public void registerHints(RuntimeHints hints, @Nullable ClassLoader classLoader) {
@@ -46,12 +46,12 @@ public class DataJpaRuntimeHints implements RuntimeHintsRegistrar {
 			hints.reflection().registerType(
 					TypeReference.of("org.springframework.beans.factory.aspectj.AnnotationBeanConfigurerAspect"), hint -> hint
 							.withMembers(MemberCategory.INVOKE_DECLARED_CONSTRUCTORS, MemberCategory.INVOKE_DECLARED_METHODS));
-		}
 
-		hints.reflection().registerTypes(Arrays.asList( //
-				TypeReference.of(AuditingBeanFactoryPostProcessor.class), //
-				TypeReference.of(AuditingEntityListener.class)),
-				hint -> hint.withMembers(MemberCategory.INVOKE_DECLARED_CONSTRUCTORS, MemberCategory.INVOKE_DECLARED_METHODS));
+			hints.reflection().registerTypes(Arrays.asList( //
+							TypeReference.of(AuditingBeanFactoryPostProcessor.class), //
+							TypeReference.of(AuditingEntityListener.class)),
+					hint -> hint.withMembers(MemberCategory.INVOKE_DECLARED_CONSTRUCTORS, MemberCategory.INVOKE_DECLARED_METHODS));
+		}
 
 		hints.reflection().registerType(TypeReference.of(SimpleJpaRepository.class),
 				hint -> hint.withMembers(MemberCategory.INVOKE_DECLARED_CONSTRUCTORS, MemberCategory.INVOKE_PUBLIC_METHODS));
