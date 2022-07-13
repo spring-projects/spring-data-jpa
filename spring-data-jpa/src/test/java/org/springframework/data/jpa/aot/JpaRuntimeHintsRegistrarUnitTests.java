@@ -16,7 +16,7 @@
 package org.springframework.data.jpa.aot;
 
 import static org.assertj.core.api.AssertionsForClassTypes.*;
-import static org.springframework.aot.hint.RuntimeHintsPredicates.*;
+import static org.springframework.aot.hint.predicate.RuntimeHintsPredicates.reflection;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.aot.hint.RuntimeHints;
