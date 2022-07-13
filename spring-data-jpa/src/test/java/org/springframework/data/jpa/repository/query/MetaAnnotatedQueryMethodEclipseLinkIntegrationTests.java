@@ -51,8 +51,8 @@ import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.AbstractJpaVendorAdapter;
 import org.springframework.orm.jpa.vendor.Database;
+import org.springframework.orm.jpa.vendor.EclipseLinkJpaDialect;
 import org.springframework.orm.jpa.vendor.EclipseLinkJpaVendorAdapter;
-import org.springframework.orm.jpa.vendor.HibernateJpaDialect;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -236,7 +236,7 @@ public class MetaAnnotatedQueryMethodEclipseLinkIntegrationTests {
 
 		@Bean
 		public JpaDialect jpaDialect() {
-			return new HibernateJpaDialect();
+			return new EclipseLinkJpaDialect();
 		}
 
 		@Bean
