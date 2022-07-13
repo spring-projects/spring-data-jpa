@@ -13,6 +13,10 @@
 <!--	<logger name="org.springframework.data.jpa" level="trace" />-->
 <!--	<logger name="org.springframework.jdbc" level="debug" />-->
 <!--	<logger name="org.hibernate.SQL" level="debug" />-->
+
+	<!-- Hibernate 6 - show bindings -->
+<!--	<logger name="org.hibernate.orm.jdbc.bind" level="trace" />-->
+
 <!--	<logger name="org.testcontainers" level="debug" />-->
 
 	<root level="error">

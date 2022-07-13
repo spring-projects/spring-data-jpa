@@ -27,6 +27,7 @@ import java.util.function.BiFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.repository.query.SpelQueryContext;
 import org.springframework.data.repository.query.SpelQueryContext.SpelExtractor;
 import org.springframework.data.repository.query.parser.Part.Type;
@@ -637,7 +638,7 @@ class StringQuery implements DeclaredQuery {
 
 		/**
 		 * Creates a new {@link LikeParameterBinding} for the parameter with the given name and {@link Type}.
-		 *
+		 * 
 		 * @param name must not be {@literal null} or empty.
 		 * @param type must not be {@literal null}.
 		 */
@@ -648,7 +649,7 @@ class StringQuery implements DeclaredQuery {
 		/**
 		 * Creates a new {@link LikeParameterBinding} for the parameter with the given name and {@link Type} and parameter
 		 * binding input.
-		 *
+		 * 
 		 * @param name must not be {@literal null} or empty.
 		 * @param type must not be {@literal null}.
 		 * @param expression may be {@literal null}.
@@ -718,14 +719,14 @@ class StringQuery implements DeclaredQuery {
 
 			switch (type) {
 				case STARTING_WITH:
-					return String.format("%s%%", value);
+					return String.format("%s%%", PersistenceProvider.condense(value));
 				case ENDING_WITH:
-					return String.format("%%%s", value);
+					return String.format("%%%s", PersistenceProvider.condense(value));
 				case CONTAINING:
-					return String.format("%%%s%%", value);
+					return String.format("%%%s%%", PersistenceProvider.condense(value));
 				case LIKE:
 				default:
-					return value;
+					return PersistenceProvider.condense(value);
 			}
 		}
 

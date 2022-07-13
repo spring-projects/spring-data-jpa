@@ -42,6 +42,7 @@ import org.springframework.data.util.CloseableIterator;
 import org.springframework.lang.Nullable;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.ConcurrentReferenceHashMap;
 
 /**
@@ -308,6 +309,35 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, Quer
 		} catch (IllegalArgumentException e) {
 			return Collections.emptySet();
 		}
+	}
+
+	/**
+	 * Because Hibernate's {@literal TypedParameterValue} is only used to wrap a {@literal null}, swap it out with an
+	 * empty string for query creation.
+	 *
+	 * @param value
+	 * @return the original value or an empty string.
+	 * @since 3.0
+	 */
+	public static Object condense(Object value) {
+
+		ClassLoader classLoader = PersistenceProvider.class.getClassLoader();
+
+		if (ClassUtils.isPresent("org.hibernate.query.TypedParameterValue", classLoader)) {
+
+			try {
+
+				Class<?> typeParameterValue = ClassUtils.forName("org.hibernate.query.TypedParameterValue", classLoader);
+
+				if (typeParameterValue.isInstance(value)) {
+					return "";
+				}
+			} catch (ClassNotFoundException | LinkageError o_O) {
+				return value;
+			}
+		}
+
+		return value;
 	}
 
 	/**

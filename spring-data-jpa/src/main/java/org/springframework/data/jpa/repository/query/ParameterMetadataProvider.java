@@ -15,6 +15,9 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.ParameterExpression;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -23,9 +26,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.ParameterExpression;
 
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.repository.query.Parameter;
@@ -245,14 +245,14 @@ class ParameterMetadataProvider {
 
 				switch (type) {
 					case STARTING_WITH:
-						return String.format("%s%%", escape.escape(value.toString()));
+						return String.format("%s%%", escape.escape(PersistenceProvider.condense(value).toString()));
 					case ENDING_WITH:
-						return String.format("%%%s", escape.escape(value.toString()));
+						return String.format("%%%s", escape.escape(PersistenceProvider.condense(value).toString()));
 					case CONTAINING:
 					case NOT_CONTAINING:
-						return String.format("%%%s%%", escape.escape(value.toString()));
+						return String.format("%%%s%%", escape.escape(PersistenceProvider.condense(value).toString()));
 					default:
-						return value;
+						return PersistenceProvider.condense(value);
 				}
 			}
 
