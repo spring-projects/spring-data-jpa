@@ -92,8 +92,7 @@ import java.util.Set;
 @Table(name = "SD_User")
 public class User {
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO) private Integer id;
+	@Id @GeneratedValue(strategy = GenerationType.AUTO) private Integer id;
 	private String firstname;
 	private String lastname;
 	private int age;
@@ -106,7 +105,7 @@ public class User {
 
 	@ManyToMany private Set<Role> roles;
 
-	@ManyToOne private User manager;
+	@ManyToOne(fetch = FetchType.LAZY) private User manager;
 
 	@Embedded private Address address;
 
@@ -372,7 +371,7 @@ public class User {
 
 		User that = (User) obj;
 
-		if (null == this.getId() || null == that.getId()) {
+		if ((null == this.getId()) || (null == that.getId())) {
 			return false;
 		}
 

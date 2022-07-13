@@ -31,7 +31,6 @@ import java.util.List;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.Assume;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -94,7 +93,6 @@ public class EntityGraphRepositoryMethodsIntegrationTests {
 	}
 
 	@Test // DATAJPA-612
-	@Disabled // HHH-15391
 	void shouldRespectConfiguredJpaEntityGraph() {
 
 		Assume.assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
