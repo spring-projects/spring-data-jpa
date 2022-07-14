@@ -15,14 +15,23 @@
  */
 package org.springframework.data.jpa.repository;
 
-import static java.util.Arrays.*;
-import static org.assertj.core.api.Assertions.*;
-import static org.springframework.data.domain.Example.*;
-import static org.springframework.data.domain.ExampleMatcher.*;
-import static org.springframework.data.domain.Sort.Direction.*;
-import static org.springframework.data.jpa.domain.Specification.*;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.springframework.data.domain.Example.of;
+import static org.springframework.data.domain.ExampleMatcher.GenericPropertyMatcher;
+import static org.springframework.data.domain.ExampleMatcher.StringMatcher;
+import static org.springframework.data.domain.ExampleMatcher.matching;
+import static org.springframework.data.domain.Sort.Direction.ASC;
+import static org.springframework.data.domain.Sort.Direction.DESC;
 import static org.springframework.data.jpa.domain.Specification.not;
-import static org.springframework.data.jpa.domain.sample.UserSpecifications.*;
+import static org.springframework.data.jpa.domain.Specification.where;
+import static org.springframework.data.jpa.domain.sample.UserSpecifications.userHasAgeLess;
+import static org.springframework.data.jpa.domain.sample.UserSpecifications.userHasFirstname;
+import static org.springframework.data.jpa.domain.sample.UserSpecifications.userHasFirstnameLike;
+import static org.springframework.data.jpa.domain.sample.UserSpecifications.userHasLastname;
+import static org.springframework.data.jpa.domain.sample.UserSpecifications.userHasLastnameLikeWithSort;
 
 import lombok.Data;
 
@@ -2766,6 +2775,39 @@ public class UserRepositoryTests {
 		List<String> foundData = repository.complexWithNativeStatement();
 
 		assertThat(foundData).containsExactly("joachim", "dave", "kevin");
+	}
+
+	@Test // GH-2593
+	void insertStatementModifyingQueryWorks() {
+
+		flushTestUsers();
+
+		repository.insertNewUserWithNativeQuery();
+
+		List<User> all = repository.findAll();
+		assertThat(all) //
+				.isNotNull() //
+				.isNotEmpty() //
+				.hasSize(5) //
+				.map(User::getLastname) //
+				.contains("Gierke", "Arrasz", "Matthews", "raymond", "K");
+	}
+
+	@Test // GH-2593
+	void insertStatementModifyingQueryWithParamsWorks() {
+
+		flushTestUsers();
+
+		String testLastName = "TestLastName";
+		repository.insertNewUserWithParamNativeQuery(testLastName);
+
+		List<User> all = repository.findAll();
+		assertThat(all) //
+				.isNotNull() //
+				.isNotEmpty() //
+				.hasSize(5) //
+				.map(User::getLastname) //
+				.contains("Gierke", "Arrasz", "Matthews", "raymond", testLastName);
 	}
 
 	private Page<User> executeSpecWithSort(Sort sort) {

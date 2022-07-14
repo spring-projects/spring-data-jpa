@@ -15,7 +15,9 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -887,6 +889,44 @@ class QueryEnhancerUnitTests {
 		assertThat(queryEnhancer.detectAlias()).isEqualToIgnoringCase("a");
 		assertThat(queryEnhancer.getProjection()).isEqualToIgnoringCase("day, value");
 		assertThat(queryEnhancer.hasConstructorExpression()).isFalse();
+	}
+
+	@ParameterizedTest // GH-2593
+	@MethodSource("insertStatementIsProcessedSameAsDefaultSource")
+	void insertStatementIsProcessedSameAsDefault(String insertQuery) {
+
+		StringQuery stringQuery = new StringQuery(insertQuery, true);
+		QueryEnhancer queryEnhancer = QueryEnhancerFactory.forQuery(stringQuery);
+
+		Sort sorting = Sort.by("day").descending();
+
+		// queryutils results
+		String queryUtilsDetectAlias = QueryUtils.detectAlias(insertQuery);
+		String queryUtilsProjection = QueryUtils.getProjection(insertQuery);
+		String queryUtilsCountQuery = QueryUtils.createCountQueryFor(insertQuery);
+		Set<String> queryUtilsOuterJoinAlias = QueryUtils.getOuterJoinAliases(insertQuery);
+
+		// direct access
+		assertThat(stringQuery.getAlias()).isEqualToIgnoringCase(queryUtilsDetectAlias);
+		assertThat(stringQuery.getProjection()).isEqualToIgnoringCase(queryUtilsProjection);
+		assertThat(stringQuery.hasConstructorExpression()).isFalse();
+
+		// access over enhancer
+		assertThat(queryEnhancer.createCountQueryFor()).isEqualToIgnoringCase(queryUtilsCountQuery);
+		assertThat(queryEnhancer.applySorting(sorting)).isEqualTo(insertQuery); // cant check with queryutils result since
+																																						// query utils appens order by which is not
+																																						// supported by sql standard.
+		assertThat(queryEnhancer.getJoinAliases()).isEqualTo(queryUtilsOuterJoinAlias);
+		assertThat(queryEnhancer.detectAlias()).isEqualToIgnoringCase(queryUtilsDetectAlias);
+		assertThat(queryEnhancer.getProjection()).isEqualToIgnoringCase(queryUtilsProjection);
+		assertThat(queryEnhancer.hasConstructorExpression()).isFalse();
+	}
+
+	public static Stream<Arguments> insertStatementIsProcessedSameAsDefaultSource() {
+		return Stream.of( //
+				Arguments.of("INSERT INTO FOO(A) VALUES('A')"), //
+				Arguments.of("INSERT INTO randomsecondTable(A,B,C,D) VALUES('A','B','C','D')") //
+		);
 	}
 
 	public static Stream<Arguments> detectsJoinAliasesCorrectlySource() {

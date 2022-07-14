@@ -15,8 +15,9 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.springframework.data.jpa.repository.query.JSqlParserUtils.*;
-import static org.springframework.data.jpa.repository.query.QueryUtils.*;
+import static org.springframework.data.jpa.repository.query.JSqlParserUtils.getJSqlCount;
+import static org.springframework.data.jpa.repository.query.JSqlParserUtils.getJSqlLower;
+import static org.springframework.data.jpa.repository.query.QueryUtils.checkSortExpression;
 
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Alias;
@@ -26,6 +27,7 @@ import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.delete.Delete;
+import net.sf.jsqlparser.statement.insert.Insert;
 import net.sf.jsqlparser.statement.select.OrderByElement;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
@@ -82,7 +84,9 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 		try {
 			Statement statement = CCJSqlParserUtil.parse(this.query.getQueryString());
 
-			if (statement instanceof Update) {
+			if (statement instanceof Insert) {
+				return ParsedType.INSERT;
+			} else if (statement instanceof Update) {
 				return ParsedType.UPDATE;
 			} else if (statement instanceof Delete) {
 				return ParsedType.DELETE;
@@ -141,7 +145,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 
 	/**
 	 * Returns the {@link SetOperationList} as a string query with {@link Sort}s applied in the right order.
-	 * 
+	 *
 	 * @param setOperationListStatement
 	 * @param sort
 	 * @return
@@ -306,7 +310,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 		Select selectStatement = parseSelectStatement(query);
 
 		/*
-		  For all the other types ({@link ValuesStatement} and {@link SetOperationList}) it does not make sense to provide 
+		  For all the other types ({@link ValuesStatement} and {@link SetOperationList}) it does not make sense to provide
 		  alias since:
 		  * ValuesStatement has no alias
 		  * SetOperation can have multiple alias for each operation item
@@ -478,10 +482,11 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 	 * <li>{@code ParsedType.DELETE}: means the top level statement is {@link Delete}</li>
 	 * <li>{@code ParsedType.UPDATE}: means the top level statement is {@link Update}</li>
 	 * <li>{@code ParsedType.SELECT}: means the top level statement is {@link Select}</li>
+	 * <li>{@code ParsedType.INSERT}: means the top level statement is {@link Insert}</li>
 	 * </ul>
 	 */
 	enum ParsedType {
-		DELETE, UPDATE, SELECT;
+		DELETE, UPDATE, SELECT, INSERT;
 	}
 
 }
