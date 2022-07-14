@@ -15,13 +15,14 @@
  */
 package org.springframework.data.jpa.repository;
 
-import static java.util.Arrays.*;
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.*;
-import static org.springframework.data.domain.Example.*;
+import static org.springframework.data.domain.Example.of;
 import static org.springframework.data.domain.ExampleMatcher.*;
-import static org.springframework.data.domain.Sort.Direction.*;
-import static org.springframework.data.jpa.domain.Specification.*;
+import static org.springframework.data.domain.Sort.Direction.ASC;
+import static org.springframework.data.domain.Sort.Direction.DESC;
 import static org.springframework.data.jpa.domain.Specification.not;
+import static org.springframework.data.jpa.domain.Specification.where;
 import static org.springframework.data.jpa.domain.sample.UserSpecifications.*;
 
 import jakarta.persistence.EntityManager;
@@ -33,14 +34,7 @@ import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import lombok.Data;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Stream;
 
 import org.assertj.core.api.SoftAssertions;
@@ -54,14 +48,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
-import org.springframework.data.domain.Example;
-import org.springframework.data.domain.ExampleMatcher;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.jpa.domain.Specification;
@@ -2969,7 +2956,7 @@ public class UserRepositoryTests {
 	}
 
 	@Test // GH-2607
-	void containsWithCollection(){
+	void containsWithCollection() {
 
 		firstUser.getAttributes().add("cool");
 		firstUser.getAttributes().add("hip");
@@ -2984,6 +2971,35 @@ public class UserRepositoryTests {
 		List<User> result = repository.findByAttributesContains("hip");
 
 		assertThat(result).containsOnly(firstUser, secondUser);
+	}
+
+	@Test // GH-2593
+	void insertStatementModifyingQueryWorks() {
+		flushTestUsers();
+		repository.insertNewUserWithNativeQuery();
+
+		List<User> all = repository.findAll();
+		assertThat(all) //
+				.isNotNull() //
+				.isNotEmpty() //
+				.hasSize(5) //
+				.map(User::getLastname) //
+				.contains("Gierke", "Arrasz", "Matthews", "raymond", "K");
+	}
+
+	@Test // GH-2593
+	void insertStatementModifyingQueryWithParamsWorks() {
+		flushTestUsers();
+		String testLastName = "TestLastName";
+		repository.insertNewUserWithParamNativeQuery(testLastName);
+
+		List<User> all = repository.findAll();
+		assertThat(all) //
+				.isNotNull() //
+				.isNotEmpty() //
+				.hasSize(5) //
+				.map(User::getLastname) //
+				.contains("Gierke", "Arrasz", "Matthews", "raymond", testLastName);
 	}
 
 	private Page<User> executeSpecWithSort(Sort sort) {

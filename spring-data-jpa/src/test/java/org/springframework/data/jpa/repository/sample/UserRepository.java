@@ -18,27 +18,14 @@ package org.springframework.data.jpa.repository.sample;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.QueryHint;
 
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Stream;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.domain.sample.SpecialUser;
 import org.springframework.data.jpa.domain.sample.User;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.jpa.repository.QueryHints;
+import org.springframework.data.jpa.repository.*;
 import org.springframework.data.jpa.repository.query.Procedure;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
@@ -55,6 +42,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author JyotirmoyVS
  * @author Greg Turnquist
  * @author Simon Paradies
+ * @author Diego Krupitza
  */
 public interface UserRepository
 		extends JpaRepository<User, Integer>, JpaSpecificationExecutor<User>, UserRepositoryCustom {
@@ -678,6 +666,20 @@ public interface UserRepository
 
 	// GH-2607
 	List<User> findByAttributesContains(String attribute);
+
+	// GH-2593
+	@Modifying
+	@Query(
+			value = "INSERT INTO SD_User(id,active,age,firstname,lastname,emailAddress,DTYPE) VALUES (9999,true,23,'Diego','K','dk@email.com','User')",
+			nativeQuery = true)
+	void insertNewUserWithNativeQuery();
+
+	// GH-2593
+	@Modifying
+	@Query(
+			value = "INSERT INTO SD_User(id,active,age,firstname,lastname,emailAddress,DTYPE) VALUES (9999,true,23,'Diego',:lastname,'dk@email.com','User')",
+			nativeQuery = true)
+	void insertNewUserWithParamNativeQuery(@Param("lastname") String lastname);
 
 	interface RolesAndFirstname {
 
