@@ -55,6 +55,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author JyotirmoyVS
  * @author Greg Turnquist
  * @author Simon Paradies
+ * @author Diego Krupitza
  */
 public interface UserRepository
 		extends JpaRepository<User, Integer>, JpaSpecificationExecutor<User>, UserRepositoryCustom {
@@ -675,6 +676,20 @@ public interface UserRepository
 			+ "select lower(s.firstname) as lowFirst from sample_data as s,another as a where s.firstname = a.firstname ",
 			nativeQuery = true)
 	List<String> complexWithNativeStatement();
+
+	// GH-2593
+	@Modifying
+	@Query(
+			value = "INSERT INTO SD_User(id,active,age,firstname,lastname,emailAddress,DTYPE) VALUES (9999,true,23,'Diego','K','dk@email.com','User')",
+			nativeQuery = true)
+	void insertNewUserWithNativeQuery();
+
+	// GH-2593
+	@Modifying
+	@Query(
+			value = "INSERT INTO SD_User(id,active,age,firstname,lastname,emailAddress,DTYPE) VALUES (9999,true,23,'Diego',:lastname,'dk@email.com','User')",
+			nativeQuery = true)
+	void insertNewUserWithParamNativeQuery(@Param("lastname") String lastname);
 
 	interface RolesAndFirstname {
 

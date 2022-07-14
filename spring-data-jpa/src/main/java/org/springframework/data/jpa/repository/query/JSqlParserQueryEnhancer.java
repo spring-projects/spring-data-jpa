@@ -26,6 +26,7 @@ import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.delete.Delete;
+import net.sf.jsqlparser.statement.insert.Insert;
 import net.sf.jsqlparser.statement.select.OrderByElement;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
@@ -82,7 +83,9 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 		try {
 			Statement statement = CCJSqlParserUtil.parse(this.query.getQueryString());
 
-			if (statement instanceof Update) {
+			if (statement instanceof Insert) {
+				return ParsedType.INSERT;
+			} else if (statement instanceof Update) {
 				return ParsedType.UPDATE;
 			} else if (statement instanceof Delete) {
 				return ParsedType.DELETE;
@@ -475,10 +478,11 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 	 * <li>{@code ParsedType.DELETE}: means the top level statement is {@link Delete}</li>
 	 * <li>{@code ParsedType.UPDATE}: means the top level statement is {@link Update}</li>
 	 * <li>{@code ParsedType.SELECT}: means the top level statement is {@link Select}</li>
+	 * <li>{@code ParsedType.INSERT}: means the top level statement is {@link Insert}</li>
 	 * </ul>
 	 */
 	enum ParsedType {
-		DELETE, UPDATE, SELECT;
+		DELETE, UPDATE, SELECT, INSERT;
 	}
 
 }

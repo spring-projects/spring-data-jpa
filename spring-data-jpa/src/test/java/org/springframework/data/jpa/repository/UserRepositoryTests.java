@@ -2968,6 +2968,35 @@ public class UserRepositoryTests {
 		assertThat(foundData).containsExactly("joachim", "dave", "kevin");
 	}
 
+	@Test // GH-2593
+	void insertStatementModifyingQueryWorks() {
+		flushTestUsers();
+		repository.insertNewUserWithNativeQuery();
+
+		List<User> all = repository.findAll();
+		assertThat(all) //
+				.isNotNull() //
+				.isNotEmpty() //
+				.hasSize(5) //
+				.map(User::getLastname) //
+				.contains("Gierke", "Arrasz", "Matthews", "raymond", "K");
+	}
+
+	@Test // GH-2593
+	void insertStatementModifyingQueryWithParamsWorks() {
+		flushTestUsers();
+		String testLastName = "TestLastName";
+		repository.insertNewUserWithParamNativeQuery(testLastName);
+
+		List<User> all = repository.findAll();
+		assertThat(all) //
+				.isNotNull() //
+				.isNotEmpty() //
+				.hasSize(5) //
+				.map(User::getLastname) //
+				.contains("Gierke", "Arrasz", "Matthews", "raymond", testLastName);
+	}
+
 	private Page<User> executeSpecWithSort(Sort sort) {
 
 		flushTestUsers();
