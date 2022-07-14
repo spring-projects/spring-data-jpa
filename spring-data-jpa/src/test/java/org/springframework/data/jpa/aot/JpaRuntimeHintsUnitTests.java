@@ -28,14 +28,14 @@ import org.springframework.data.jpa.util.HidingClassLoader;
 /**
  * @author Christoph Strobl
  */
-class JpaRuntimeHintsRegistrarUnitTests {
+class JpaRuntimeHintsUnitTests {
 
 	@Test // GH-2497
 	void registersAuditing() {
 
 		RuntimeHints hints = new RuntimeHints();
 
-		JpaRuntimeHintsRegistrar registrar = new JpaRuntimeHintsRegistrar();
+		JpaRuntimeHints registrar = new JpaRuntimeHints();
 		registrar.registerHints(hints, null);
 
 		assertThat(hints).matches(reflection().onType(AnnotationBeanConfigurerAspect.class))
@@ -48,7 +48,7 @@ class JpaRuntimeHintsRegistrarUnitTests {
 
 		RuntimeHints hints = new RuntimeHints();
 
-		JpaRuntimeHintsRegistrar registrar = new JpaRuntimeHintsRegistrar();
+		JpaRuntimeHints registrar = new JpaRuntimeHints();
 		registrar.registerHints(hints, HidingClassLoader.hidePackages("org.springframework.beans.factory.aspectj"));
 
 		assertThat(hints).matches(reflection().onType(AnnotationBeanConfigurerAspect.class).negate())

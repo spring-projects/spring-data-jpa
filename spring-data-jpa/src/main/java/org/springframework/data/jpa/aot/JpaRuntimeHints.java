@@ -31,7 +31,7 @@ import org.springframework.util.ClassUtils;
  * @author Christoph Strobl
  * @since 3.0
  */
-public class JpaRuntimeHintsRegistrar implements RuntimeHintsRegistrar {
+public class JpaRuntimeHints implements RuntimeHintsRegistrar {
 
 	@Override
 	public void registerHints(RuntimeHints hints, @Nullable ClassLoader classLoader) {
