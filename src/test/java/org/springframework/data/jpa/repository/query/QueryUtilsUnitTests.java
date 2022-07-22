@@ -140,6 +140,9 @@ class QueryUtilsUnitTests {
 		assertThat(
 				detectAlias("from User u where (cast(:e1f2f3ectiveFrom as date) is null) OR :effectiveFrom >= u.createdAt"))
 						.isEqualTo("u");
+		assertThat(detectAlias(
+				"SELECT o\nFROM Order o\nAND EXISTS(SELECT 1\nFROM Vehicle vehicle\nWHERE vehicle.vehicleOrderId = o.id\nAND LOWER(COALESCE(vehicle.make, '')) LIKE :query)"))
+				.isEqualTo("o"); // GH-2563
 	}
 
 	@Test // GH-2260

@@ -108,6 +108,7 @@ public abstract class QueryUtils {
 			Pattern.CASE_INSENSITIVE);
 
 	private static final Pattern NO_DIGITS = Pattern.compile("\\D+");
+	private static final Pattern LINE_BREAK = Pattern.compile("\\R+");
 
 	private static final String JOIN = "join\\s+(fetch\\s+)?" + IDENTIFIER + "\\s+(as\\s+)?" + IDENTIFIER_GROUP;
 	private static final Pattern JOIN_PATTERN = Pattern.compile(JOIN, Pattern.CASE_INSENSITIVE);
@@ -436,7 +437,7 @@ public abstract class QueryUtils {
 	public static String detectAlias(String query) {
 
 		String alias = null;
-		Matcher matcher = ALIAS_MATCH.matcher(removeSubqueries(query));
+		Matcher matcher = ALIAS_MATCH.matcher(removeSubqueries(removeLinebreaks(query)));
 		while (matcher.find()) {
 			alias = matcher.group(2);
 		}
@@ -489,6 +490,14 @@ public abstract class QueryUtils {
 		}
 
 		return sb.toString();
+	}
+
+	static String removeLinebreaks(String query) {
+		if (!StringUtils.hasText(query)) {
+			return query;
+		}
+
+		return LINE_BREAK.matcher(query).replaceAll(" ");
 	}
 
 	private static Integer findClose(final Integer open, final List<Integer> closes, final List<Boolean> closeMatches) {
