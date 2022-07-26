@@ -481,7 +481,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	public Optional<T> findOne(@Nullable Specification<T> spec) {
 
 		try {
-			return Optional.of(getQuery(spec, Sort.unsorted()).getSingleResult());
+			return Optional.of(getQuery(spec, Sort.unsorted()).setMaxResults(2).getSingleResult());
 		} catch (NoResultException e) {
 			return Optional.empty();
 		}
@@ -527,7 +527,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		try {
 			return Optional
 					.of(getQuery(new ExampleSpecification<>(example, escapeCharacter), example.getProbeType(), Sort.unsorted())
-							.getSingleResult());
+							.setMaxResults(2).getSingleResult());
 		} catch (NoResultException e) {
 			return Optional.empty();
 		}

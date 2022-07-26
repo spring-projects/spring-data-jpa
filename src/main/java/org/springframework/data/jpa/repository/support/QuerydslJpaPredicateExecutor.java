@@ -95,7 +95,7 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 		Assert.notNull(predicate, "Predicate must not be null!");
 
 		try {
-			return Optional.ofNullable(createQuery(predicate).select(path).fetchOne());
+			return Optional.ofNullable(createQuery(predicate).select(path).limit(2).fetchOne());
 		} catch (NonUniqueResultException ex) {
 			throw new IncorrectResultSizeDataAccessException(ex.getMessage(), 1, ex);
 		}
