@@ -2968,6 +2968,24 @@ public class UserRepositoryTests {
 		assertThat(foundData).containsExactly("joachim", "dave", "kevin");
 	}
 
+	@Test // GH-2607
+	void containsWithCollection(){
+
+		firstUser.getAttributes().add("cool");
+		firstUser.getAttributes().add("hip");
+
+		secondUser.getAttributes().add("hip");
+
+		thirdUser.getAttributes().add("rockstar");
+		thirdUser.getAttributes().add("%hip%");
+
+		flushTestUsers();
+
+		List<User> result = repository.findByAttributesContains("hip");
+
+		assertThat(result).containsOnly(firstUser, secondUser);
+	}
+
 	private Page<User> executeSpecWithSort(Sort sort) {
 
 		flushTestUsers();
