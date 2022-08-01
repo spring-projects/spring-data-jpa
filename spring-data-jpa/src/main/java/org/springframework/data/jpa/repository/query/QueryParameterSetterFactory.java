@@ -15,11 +15,11 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import java.util.List;
-import java.util.function.Function;
-
 import jakarta.persistence.Query;
 import jakarta.persistence.TemporalType;
+
+import java.util.List;
+import java.util.function.Function;
 
 import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
 import org.springframework.data.jpa.repository.query.ParameterMetadataProvider.ParameterMetadata;
@@ -260,7 +260,7 @@ abstract class QueryParameterSetterFactory {
 	private static class CriteriaQueryParameterSetterFactory extends QueryParameterSetterFactory {
 
 		private final JpaParameters parameters;
-		private final List<ParameterMetadata<?>> expressions;
+		private final List<ParameterMetadata<?>> parameterMetadata;
 
 		/**
 		 * Creates a new {@link QueryParameterSetterFactory} from the given {@link JpaParameters} and
@@ -275,7 +275,7 @@ abstract class QueryParameterSetterFactory {
 			Assert.notNull(metadata, "Expressions must not be null");
 
 			this.parameters = parameters;
-			this.expressions = metadata;
+			this.parameterMetadata = metadata;
 		}
 
 		@Override
@@ -284,15 +284,15 @@ abstract class QueryParameterSetterFactory {
 			int parameterIndex = binding.getRequiredPosition() - 1;
 
 			Assert.isTrue( //
-					parameterIndex < expressions.size(), //
+					parameterIndex < parameterMetadata.size(), //
 					() -> String.format( //
 							"At least %s parameter(s) provided but only %s parameter(s) present in query", //
 							binding.getRequiredPosition(), //
-							expressions.size() //
+							parameterMetadata.size() //
 					) //
 			);
 
-			ParameterMetadata<?> metadata = expressions.get(parameterIndex);
+			ParameterMetadata<?> metadata = parameterMetadata.get(parameterIndex);
 
 			if (metadata.isIsNullParameter()) {
 				return QueryParameterSetter.NOOP;
@@ -301,9 +301,8 @@ abstract class QueryParameterSetterFactory {
 			JpaParameter parameter = parameters.getBindableParameter(parameterIndex);
 			TemporalType temporalType = parameter.isTemporalParameter() ? parameter.getRequiredTemporalType() : null;
 
-			return new NamedOrIndexedQueryParameterSetter(values -> {
-				return getAndPrepare(parameter, metadata, values);
-			}, metadata.getExpression(), temporalType);
+			return new NamedOrIndexedQueryParameterSetter(values -> getAndPrepare(parameter, metadata, values),
+					metadata.getExpression(), temporalType);
 		}
 
 		@Nullable
