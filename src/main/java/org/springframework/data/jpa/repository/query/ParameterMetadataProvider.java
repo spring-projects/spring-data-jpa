@@ -15,7 +15,12 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -192,6 +197,7 @@ class ParameterMetadataProvider {
 		private final ParameterExpression<T> expression;
 		private final EscapeCharacter escape;
 		private final boolean ignoreCase;
+		private final boolean noWildcards;
 
 		/**
 		 * Creates a new {@link ParameterMetadata}.
@@ -202,6 +208,7 @@ class ParameterMetadataProvider {
 			this.expression = expression;
 			this.type = value == null && Type.SIMPLE_PROPERTY.equals(part.getType()) ? Type.IS_NULL : part.getType();
 			this.ignoreCase = IgnoreCaseType.ALWAYS.equals(part.shouldIgnoreCase());
+			this.noWildcards = part.getProperty().getLeafProperty().isCollection();
 			this.escape = escape;
 		}
 
@@ -237,7 +244,7 @@ class ParameterMetadataProvider {
 				return condensedValue;
 			}
 
-			if (String.class.equals(expression.getJavaType())) {
+			if (String.class.equals(expression.getJavaType()) && !noWildcards) {
 
 				switch (type) {
 					case STARTING_WITH:
