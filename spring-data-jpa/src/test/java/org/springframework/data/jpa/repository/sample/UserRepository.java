@@ -676,6 +676,9 @@ public interface UserRepository
 			nativeQuery = true)
 	List<String> complexWithNativeStatement();
 
+	// GH-2607
+	List<User> findByAttributesContains(String attribute);
+
 	interface RolesAndFirstname {
 
 		String getFirstname();

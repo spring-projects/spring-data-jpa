@@ -196,6 +196,7 @@ class ParameterMetadataProvider {
 		private final ParameterExpression<T> expression;
 		private final EscapeCharacter escape;
 		private final boolean ignoreCase;
+		private final boolean noWildcards;
 
 		/**
 		 * Creates a new {@link ParameterMetadata}.
@@ -206,6 +207,7 @@ class ParameterMetadataProvider {
 			this.expression = expression;
 			this.type = value == null && Type.SIMPLE_PROPERTY.equals(part.getType()) ? Type.IS_NULL : part.getType();
 			this.ignoreCase = IgnoreCaseType.ALWAYS.equals(part.shouldIgnoreCase());
+			this.noWildcards = part.getProperty().getLeafProperty().isCollection();
 			this.escape = escape;
 		}
 
@@ -241,7 +243,7 @@ class ParameterMetadataProvider {
 				return value;
 			}
 
-			if (String.class.equals(expressionType)) {
+			if (String.class.equals(expressionType) && !noWildcards) {
 
 				switch (type) {
 					case STARTING_WITH:
