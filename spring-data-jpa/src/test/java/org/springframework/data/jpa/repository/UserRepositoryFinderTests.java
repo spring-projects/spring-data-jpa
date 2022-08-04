@@ -16,7 +16,6 @@
 package org.springframework.data.jpa.repository;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.junit.Assume.*;
 import static org.springframework.data.domain.Sort.Direction.*;
 
 import jakarta.persistence.EntityManager;
@@ -235,9 +234,6 @@ public class UserRepositoryFinderTests {
 	@Test // DATAJPA-1519
 	void escapingInLikeSpels() {
 
-		// HHH-15392
-		assumeFalse(provider.equals(PersistenceProvider.HIBERNATE));
-
 		User extra = new User("extra", "Matt_ew", "extra");
 
 		userRepository.save(extra);
@@ -248,9 +244,6 @@ public class UserRepositoryFinderTests {
 	@Test // DATAJPA-1522
 	void escapingInLikeSpelsInThePresenceOfEscapeCharacters() {
 
-		// HHH-15392
-		assumeFalse(provider.equals(PersistenceProvider.HIBERNATE));
-
 		User withEscapeCharacter = userRepository.save(new User("extra", "Matt\\xew", "extra1"));
 		userRepository.save(new User("extra", "Matt\\_ew", "extra2"));
 
@@ -259,9 +252,6 @@ public class UserRepositoryFinderTests {
 
 	@Test // DATAJPA-1522
 	void escapingInLikeSpelsInThePresenceOfEscapedWildcards() {
-
-		// HHH-15392
-		assumeFalse(provider.equals(PersistenceProvider.HIBERNATE));
 
 		userRepository.save(new User("extra", "Matt\\xew", "extra1"));
 		User withEscapedWildcard = userRepository.save(new User("extra", "Matt\\_ew", "extra2"));

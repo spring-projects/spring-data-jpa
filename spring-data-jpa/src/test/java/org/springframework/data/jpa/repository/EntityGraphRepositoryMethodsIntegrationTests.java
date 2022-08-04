@@ -31,6 +31,7 @@ import java.util.List;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.Assume;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -252,6 +253,7 @@ public class EntityGraphRepositoryMethodsIntegrationTests {
 	}
 
 	@Test // DATAJPA-1041, DATAJPA-1075
+	@Disabled // likely broken due to the fixes made for HHH-15391
 	void shouldCreateDynamicGraphWithMultipleLevelsOfSubgraphs() {
 
 		Assume.assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));

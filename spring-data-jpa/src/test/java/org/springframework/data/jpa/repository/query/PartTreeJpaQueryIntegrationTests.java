@@ -18,7 +18,6 @@ import org.springframework.aop.framework.Advised;
 package org.springframework.data.jpa.repository.query;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.springframework.test.util.ReflectionTestUtils.*;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -26,10 +25,8 @@ import jakarta.persistence.Query;
 import jakarta.persistence.TemporalType;
 
 import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 
 import org.hibernate.Version;
@@ -50,7 +47,6 @@ import org.springframework.data.repository.core.support.DefaultRepositoryMetadat
 import org.springframework.data.repository.query.Param;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.util.Assert;
 
 /**
  * Integration tests for {@link PartTreeJpaQuery}.
@@ -101,7 +97,7 @@ public class PartTreeJpaQueryIntegrationTests {
 	}
 
 	@Test // DATAJPA-121
-	@Disabled // HHH-15389
+	@Disabled // HHH-15432
 	void recreatesQueryIfNullValueIsGiven() throws Exception {
 
 		JpaQueryMethod queryMethod = getQueryMethod("findByFirstname", String.class, Pageable.class);
@@ -128,7 +124,7 @@ public class PartTreeJpaQueryIntegrationTests {
 	}
 
 	@Test // DATAJPA-920
-	@Disabled // HHH-15389
+	@Disabled // HHH-15432
 	void shouldSelectAliasedIdForExistsProjectionQueries() throws Exception {
 
 		JpaQueryMethod queryMethod = getQueryMethod("existsByFirstname", String.class);
@@ -140,7 +136,7 @@ public class PartTreeJpaQueryIntegrationTests {
 	}
 
 	@Test // DATAJPA-1074
-	@Disabled // HHH-15389
+	@Disabled // HHH-15432
 	void isEmptyCollection() throws Exception {
 
 		JpaQueryMethod queryMethod = getQueryMethod("findByRolesIsEmpty");
@@ -152,7 +148,7 @@ public class PartTreeJpaQueryIntegrationTests {
 	}
 
 	@Test // DATAJPA-1074
-	@Disabled // HHH-15389
+	@Disabled // HHH-15432
 	void isNotEmptyCollection() throws Exception {
 
 		JpaQueryMethod queryMethod = getQueryMethod("findByRolesIsNotEmpty");
@@ -249,22 +245,6 @@ public class PartTreeJpaQueryIntegrationTests {
 		Method method = UserRepository.class.getMethod(methodName, parameterTypes);
 		return new JpaQueryMethod(method, new DefaultRepositoryMetadata(UserRepository.class),
 				new SpelAwareProxyProjectionFactory(), PersistenceProvider.fromEntityManager(entityManager));
-	}
-
-	@SuppressWarnings("unchecked")
-	private static <T> T getValue(Object source, String path) {
-
-		Iterator<String> split = Arrays.asList(path.split("\\.")).iterator();
-		Object result = source;
-
-		while (split.hasNext()) {
-
-			Assert.notNull(result, "result must not be null");
-			result = getField(result, split.next());
-		}
-
-		Assert.notNull(result, "result must not be null");
-		return (T) result;
 	}
 
 	private JpaParametersParameterAccessor getAccessor(JpaQueryMethod queryMethod, Object[] values) {
