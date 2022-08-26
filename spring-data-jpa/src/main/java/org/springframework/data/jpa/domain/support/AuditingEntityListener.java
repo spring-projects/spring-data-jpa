@@ -26,7 +26,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
- * JPA entity listener to capture auditing information on persiting and updating entities. To get this one flying be
+ * JPA entity listener to capture auditing information on persisting and updating entities. To get this one flying be
  * sure you configure it as entity listener in your {@code orm.xml} as follows:
  *
  * <pre>
