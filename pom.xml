@@ -101,6 +101,12 @@
 				</repository>
 			</repositories>
 		</profile>
+		<profile>
+			<id>eclipselink-next</id>
+			<properties>
+				<eclipselink>4.0.0-RC2</eclipselink>
+			</properties>
+		</profile>
 
 	</profiles>
 
