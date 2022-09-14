@@ -18,11 +18,11 @@ package org.springframework.data.jpa.repository.config;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import java.util.Arrays;
-import java.util.Collections;
-
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.metamodel.Metamodel;
+
+import java.util.Arrays;
+import java.util.Collections;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,7 +30,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
@@ -139,6 +138,13 @@ class JpaRepositoryConfigExtensionUnitTests {
 		ClassLoader classLoader = extension.getConfigurationInspectionClassLoader(context);
 
 		assertThat(classLoader).isNotInstanceOf(InspectionClassLoader.class);
+	}
+
+	@Test // GH-2628
+	void exposesJpaAotProcessor() {
+
+		assertThat(new JpaRepositoryConfigExtension().getRepositoryAotProcessor())
+				.isEqualTo(JpaRepositoryConfigExtension.JpaRepositoryRegistrationAotProcessor.class);
 	}
 
 	private void assertOnlyOnePersistenceAnnotationBeanPostProcessorRegistered(DefaultListableBeanFactory factory,
