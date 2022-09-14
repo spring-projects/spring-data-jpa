@@ -33,6 +33,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import org.springframework.aot.generate.GenerationContext;
+import org.springframework.beans.factory.aot.BeanRegistrationAotProcessor;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -44,6 +46,8 @@ import org.springframework.core.annotation.AnnotationAttributes;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
+import org.springframework.data.aot.AotRepositoryContext;
+import org.springframework.data.aot.RepositoryRegistrationAotProcessor;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.support.DefaultJpaContext;
 import org.springframework.data.jpa.repository.support.EntityManagerBeanDefinitionRegistrarPostProcessor;
@@ -116,6 +120,11 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 		builder.addPropertyReference("entityManager", entityManagerRefs.get(source));
 		builder.addPropertyValue(ESCAPE_CHARACTER_PROPERTY, getEscapeCharacter(source).orElse('\\'));
 		builder.addPropertyReference("mappingContext", JPA_MAPPING_CONTEXT_BEAN_NAME);
+	}
+
+	@Override
+	public Class<? extends BeanRegistrationAotProcessor> getRepositoryAotProcessor() {
+		return JpaRepositoryRegistrationAotProcessor.class;
 	}
 
 	/**
@@ -283,6 +292,20 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 
 			return AGENT_CLASSES.stream() //
 					.anyMatch(agentClass -> ClassUtils.isPresent(agentClass, classLoader));
+		}
+	}
+
+	/**
+	 * A {@link RepositoryRegistrationAotProcessor} implementation that maintains aot repository setup but skips domain
+	 * type inspection which is handled by the core framework support for
+	 * {@link org.springframework.orm.jpa.persistenceunit.PersistenceManagedTypes}.
+	 *
+	 * @since 3.0
+	 */
+	public static class JpaRepositoryRegistrationAotProcessor extends RepositoryRegistrationAotProcessor {
+
+		protected void contribute(AotRepositoryContext repositoryContext, GenerationContext generationContext) {
+			// don't register domain types nor annotations.
 		}
 	}
 }
