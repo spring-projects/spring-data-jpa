@@ -15,8 +15,12 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.data.util.Lazy;
 
 /**
  * Encapsulates different strategies for the creation of a {@link QueryEnhancer} from a {@link DeclaredQuery}.
@@ -34,18 +38,62 @@ public final class QueryEnhancerFactory {
 	private QueryEnhancerFactory() {}
 
 	/**
+	 * Creates a {@link List} containing all the possible {@link QueryEnhancer} implementations for native queries. The
+	 * order of the entries indicates that the first {@link QueryEnhancer} should be used. If this is not possible the
+	 * next until the last one is reached which will be always {@link DefaultQueryEnhancer}.
+	 *
+	 * @param query the query for which the list should be created for
+	 * @return list containing all the suitable implementations for the given query
+	 */
+	private static List<Lazy<QueryEnhancer>> nativeQueryEnhancers(DeclaredQuery query) {
+		ArrayList<Lazy<QueryEnhancer>> suitableImplementations = new ArrayList<>();
+
+		if (qualifiesForJSqlParserUsage(query)) {
+			suitableImplementations.add(Lazy.of(() -> new JSqlParserQueryEnhancer(query)));
+		}
+
+		// DefaultQueryEnhancer has to be the last since this is our fallback
+		suitableImplementations.add(Lazy.of(() -> new DefaultQueryEnhancer(query)));
+		return suitableImplementations;
+	}
+
+	/**
+	 * Creates a {@link List} containing all the possible {@link QueryEnhancer} implementations for non-native queries.
+	 * The order of the entries indicates that the first {@link QueryEnhancer} should be used. If this is not possible the
+	 * next until the last one is reached which will be always {@link DefaultQueryEnhancer}.
+	 *
+	 * @param query the query for which the list should be created for
+	 * @return list containing all the suitable implementations for the given query
+	 */
+	private static List<Lazy<QueryEnhancer>> nonNativeQueryEnhancers(DeclaredQuery query) {
+		ArrayList<Lazy<QueryEnhancer>> suitableImplementations = new ArrayList<>();
+
+		// DefaultQueryEnhancer has to be the last since this is our fallback
+		suitableImplementations.add(Lazy.of(() -> new DefaultQueryEnhancer(query)));
+		return suitableImplementations;
+	}
+
+	/**
 	 * Creates a new {@link QueryEnhancer} for the given {@link DeclaredQuery}.
 	 *
 	 * @param query must not be {@literal null}.
 	 * @return an implementation of {@link QueryEnhancer} that suits the query the most
 	 */
 	public static QueryEnhancer forQuery(DeclaredQuery query) {
+		List<Lazy<QueryEnhancer>> suitableQueryEnhancers = query.isNativeQuery() ? nativeQueryEnhancers(query)
+				: nonNativeQueryEnhancers(query);
 
-		if (qualifiesForJSqlParserUsage(query)) {
-			return new JSqlParserQueryEnhancer(query);
-		} else {
-			return new DefaultQueryEnhancer(query);
+		for (Lazy<QueryEnhancer> suitableQueryEnhancer : suitableQueryEnhancers) {
+			try {
+				return suitableQueryEnhancer.get();
+			} catch (Exception e) {
+				LOG.debug("Falling back to next QueryEnhancer implementation, due to exception.", e);
+			}
 		}
+
+		throw new IllegalStateException(
+				"No QueryEnhancer found for the query [%s]! This should not happen since the default implementation (DefaultQueryEnhancer) should have been called!"
+						.formatted(query.getQueryString()));
 	}
 
 	/**

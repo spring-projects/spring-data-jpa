@@ -2969,7 +2969,7 @@ public class UserRepositoryTests {
 	}
 
 	@Test // GH-2607
-	void containsWithCollection(){
+	void containsWithCollection() {
 
 		firstUser.getAttributes().add("cool");
 		firstUser.getAttributes().add("hip");
@@ -2984,6 +2984,25 @@ public class UserRepositoryTests {
 		List<User> result = repository.findByAttributesContains("hip");
 
 		assertThat(result).containsOnly(firstUser, secondUser);
+	}
+
+	@Test
+	void nativeQueryWithSpELStatementTest() {
+
+		String exampleFirstName = "Peter";
+		User firstPeter = new User(exampleFirstName, "2", "email1@test.com");
+		repository.save(firstPeter);
+
+		User secondPeter = new User(exampleFirstName, "2", "email2@test.com");
+		repository.save(secondPeter);
+
+		User firstDiego = new User("Diego", "2", "email3@test.com");
+		repository.save(secondPeter);
+
+		User exampleUser = new User(exampleFirstName, "IGNORE", "IGNORE@IGNORE.com");
+		List<User> foundData = repository.nativeQueryWithSpELStatement(exampleUser);
+
+		assertThat(foundData).hasSize(2);
 	}
 
 	private Page<User> executeSpecWithSort(Sort sort) {

@@ -47,4 +47,15 @@ class QueryEnhancerFactoryUnitTests {
 		assertThat(queryEnhancer) //
 				.isInstanceOf(JSqlParserQueryEnhancer.class);
 	}
+
+	@Test
+	void fallsBackToOtherQueryEnhancerWhenUsingHibernatePlaceHolder() {
+		StringQuery query = new StringQuery("SELECT c.* FROM {h-schema}countries c", true);
+
+		QueryEnhancer queryEnhancer = QueryEnhancerFactory.forQuery(query);
+
+		assertThat(queryEnhancer) //
+				.isNotInstanceOf(JSqlParserQueryEnhancer.class);
+	}
+
 }

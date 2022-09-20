@@ -419,14 +419,6 @@ class QueryEnhancerUnitTests {
 	}
 
 	@Test // DATAJPA-965, DATAJPA-970
-	void doesNotPrefixAliasedFunctionCallNameWithDotsNativeQuery() {
-
-		// this is invalid since the '.' character is not allowed. Not in sql nor in JPQL.
-		assertThatThrownBy(() -> new StringQuery("SELECT AVG(m.price) AS m.avg FROM Magazine m", true)) //
-				.isInstanceOf(IllegalArgumentException.class);
-	}
-
-	@Test // DATAJPA-965, DATAJPA-970
 	void doesNotPrefixAliasedFunctionCallNameWhenQueryStringContainsMultipleWhiteSpaces() {
 
 		StringQuery query = new StringQuery("SELECT  AVG(  m.price  )   AS   avgPrice   FROM Magazine   m", true);

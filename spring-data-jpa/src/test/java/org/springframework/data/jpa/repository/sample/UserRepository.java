@@ -679,6 +679,9 @@ public interface UserRepository
 	// GH-2607
 	List<User> findByAttributesContains(String attribute);
 
+	@Query(value = "SELECT c.* FROM SD_User c WHERE c.firstname = :#{#example.firstname}", nativeQuery = true)
+	List<User> nativeQueryWithSpELStatement(User example);
+
 	interface RolesAndFirstname {
 
 		String getFirstname();
