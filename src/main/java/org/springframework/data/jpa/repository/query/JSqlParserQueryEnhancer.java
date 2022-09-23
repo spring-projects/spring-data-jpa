@@ -307,24 +307,28 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 	@Nullable
 	private String detectAlias(String query) {
 
-		if (this.parsedType != ParsedType.SELECT) {
-			return null;
+		if (ParsedType.MERGE.equals(this.parsedType)) {
+			Merge mergeStatement = parseSelectStatement(query, Merge.class);
+			return detectAlias(mergeStatement);
+
+		} else if (ParsedType.SELECT.equals(this.parsedType)) {
+			Select selectStatement = parseSelectStatement(query);
+
+			/*
+			For all the other types ({@link ValuesStatement} and {@link SetOperationList}) it does not make sense to provide
+			alias since:
+			* ValuesStatement has no alias
+			* SetOperation can have multiple alias for each operation item
+			 */
+			if (!(selectStatement.getSelectBody() instanceof PlainSelect)) {
+				return null;
+			}
+
+			PlainSelect selectBody = (PlainSelect) selectStatement.getSelectBody();
+			return detectAlias(selectBody);
 		}
 
-		Select selectStatement = parseSelectStatement(query);
-
-		/*
-		  For all the other types ({@link ValuesStatement} and {@link SetOperationList}) it does not make sense to provide
-		  alias since:
-		  * ValuesStatement has no alias
-		  * SetOperation can have multiple alias for each operation item
-		 */
-		if (!(selectStatement.getSelectBody() instanceof PlainSelect)) {
-			return null;
-		}
-
-		PlainSelect selectBody = (PlainSelect) selectStatement.getSelectBody();
-		return detectAlias(selectBody);
+		return null;
 	}
 
 	/**
@@ -335,13 +339,25 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 	 * @return Might return {@literal null}.
 	 */
 	@Nullable
-	private static String detectAlias(PlainSelect selectBody) {
+	private String detectAlias(PlainSelect selectBody) {
 
 		if (selectBody.getFromItem() == null) {
 			return null;
 		}
 
 		Alias alias = selectBody.getFromItem().getAlias();
+		return alias == null ? null : alias.getName();
+	}
+
+	/**
+	 * Resolves the alias for the given {@link Merge} statement.
+	 *
+	 * @param mergeStatement must not be {@literal null}.
+	 * @return Might return {@literal null}.
+	 */
+	@Nullable
+	private String detectAlias(Merge mergeStatement) {
+		Alias alias = mergeStatement.getUsingAlias();
 		return alias == null ? null : alias.getName();
 	}
 
@@ -453,13 +469,23 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 	 * @param query the query to parse
 	 * @return the parsed query
 	 */
-	private static Select parseSelectStatement(String query) {
+	private <T extends Statement> T parseSelectStatement(String query, Class<T> classOfT) {
 
 		try {
-			return (Select) CCJSqlParserUtil.parse(query);
+			return classOfT.cast(CCJSqlParserUtil.parse(query));
 		} catch (JSQLParserException e) {
 			throw new IllegalArgumentException("The query you provided is not a valid SQL Query!", e);
 		}
+	}
+
+	/**
+	 * Parses a query string with JSqlParser.
+	 *
+	 * @param query the query to parse
+	 * @return the parsed query
+	 */
+	private Select parseSelectStatement(String query) {
+		return parseSelectStatement(query, Select.class);
 	}
 
 	/**

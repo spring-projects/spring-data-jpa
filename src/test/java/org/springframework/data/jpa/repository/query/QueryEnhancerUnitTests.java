@@ -923,14 +923,17 @@ class QueryEnhancerUnitTests {
 		assertThat(queryEnhancer.hasConstructorExpression()).isFalse();
 	}
 
-	@Test // GH-2641
-	void mergeStatementWorksWithJSqlParser() {
-		String query = "merge into a using (select id, value from b) query on (a.id = query.id) when matched then update set a.value = value";
+	@ParameterizedTest // GH-2641
+	@MethodSource("mergeStatementWorksWithJSqlParserSource")
+	void mergeStatementWorksWithJSqlParser(String query, String alias) {
 		StringQuery stringQuery = new StringQuery(query, true);
 		QueryEnhancer queryEnhancer = QueryEnhancerFactory.forQuery(stringQuery);
 
+		assertThat(queryEnhancer.detectAlias()).isEqualTo(alias);
+		assertThat(QueryUtils.detectAlias(query)).isNull();
+
 		assertThat(queryEnhancer.getJoinAliases()).isEmpty();
-		assertThat(queryEnhancer.detectAlias()).isNull();
+		assertThat(queryEnhancer.detectAlias()).isEqualTo(alias);
 		assertThat(queryEnhancer.getProjection()).isEmpty();
 		assertThat(queryEnhancer.hasConstructorExpression()).isFalse();
 	}
@@ -940,6 +943,15 @@ class QueryEnhancerUnitTests {
 				Arguments.of("INSERT INTO FOO(A) VALUES('A')"), //
 				Arguments.of("INSERT INTO randomsecondTable(A,B,C,D) VALUES('A','B','C','D')") //
 		);
+	}
+
+	public static Stream<Arguments> mergeStatementWorksWithJSqlParserSource() {
+		return Stream.of(Arguments.of(
+				"merge into a using (select id, value from b) query on (a.id = query.id) when matched then update set a.value = value",
+				"query"),
+				Arguments.of(
+						"merge into a using (select id2, value from b) on (id = id2) when matched then update set a.value = value",
+						null));
 	}
 
 	public static Stream<Arguments> detectsJoinAliasesCorrectlySource() {
