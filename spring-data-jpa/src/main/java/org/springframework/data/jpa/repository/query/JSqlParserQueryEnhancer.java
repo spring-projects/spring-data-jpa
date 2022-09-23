@@ -18,27 +18,6 @@ package org.springframework.data.jpa.repository.query;
 import static org.springframework.data.jpa.repository.query.JSqlParserUtils.*;
 import static org.springframework.data.jpa.repository.query.QueryUtils.*;
 
-import net.sf.jsqlparser.JSQLParserException;
-import net.sf.jsqlparser.expression.Alias;
-import net.sf.jsqlparser.expression.Expression;
-import net.sf.jsqlparser.expression.Function;
-import net.sf.jsqlparser.parser.CCJSqlParserUtil;
-import net.sf.jsqlparser.schema.Column;
-import net.sf.jsqlparser.statement.Statement;
-import net.sf.jsqlparser.statement.delete.Delete;
-import net.sf.jsqlparser.statement.merge.Merge;
-import net.sf.jsqlparser.statement.insert.Insert;
-import net.sf.jsqlparser.statement.select.OrderByElement;
-import net.sf.jsqlparser.statement.select.PlainSelect;
-import net.sf.jsqlparser.statement.select.Select;
-import net.sf.jsqlparser.statement.select.SelectBody;
-import net.sf.jsqlparser.statement.select.SelectExpressionItem;
-import net.sf.jsqlparser.statement.select.SelectItem;
-import net.sf.jsqlparser.statement.select.SetOperationList;
-import net.sf.jsqlparser.statement.select.WithItem;
-import net.sf.jsqlparser.statement.update.Update;
-import net.sf.jsqlparser.statement.values.ValuesStatement;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -52,6 +31,27 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
+
+import net.sf.jsqlparser.JSQLParserException;
+import net.sf.jsqlparser.expression.Alias;
+import net.sf.jsqlparser.expression.Expression;
+import net.sf.jsqlparser.expression.Function;
+import net.sf.jsqlparser.parser.CCJSqlParserUtil;
+import net.sf.jsqlparser.schema.Column;
+import net.sf.jsqlparser.statement.Statement;
+import net.sf.jsqlparser.statement.delete.Delete;
+import net.sf.jsqlparser.statement.insert.Insert;
+import net.sf.jsqlparser.statement.merge.Merge;
+import net.sf.jsqlparser.statement.select.OrderByElement;
+import net.sf.jsqlparser.statement.select.PlainSelect;
+import net.sf.jsqlparser.statement.select.Select;
+import net.sf.jsqlparser.statement.select.SelectBody;
+import net.sf.jsqlparser.statement.select.SelectExpressionItem;
+import net.sf.jsqlparser.statement.select.SelectItem;
+import net.sf.jsqlparser.statement.select.SetOperationList;
+import net.sf.jsqlparser.statement.select.WithItem;
+import net.sf.jsqlparser.statement.update.Update;
+import net.sf.jsqlparser.statement.values.ValuesStatement;
 
 /**
  * The implementation of {@link QueryEnhancer} using JSqlParser.
@@ -304,24 +304,28 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 	@Nullable
 	private String detectAlias(String query) {
 
-		if (this.parsedType != ParsedType.SELECT) {
-			return null;
+		if (ParsedType.MERGE.equals(this.parsedType)) {
+			Merge mergeStatement = parseSelectStatement(query, Merge.class);
+			return detectAlias(mergeStatement);
+
+		} else if (ParsedType.SELECT.equals(this.parsedType)) {
+			Select selectStatement = parseSelectStatement(query);
+
+			/*
+			For all the other types ({@link ValuesStatement} and {@link SetOperationList}) it does not make sense to provide 
+			alias since:
+			* ValuesStatement has no alias
+			* SetOperation can have multiple alias for each operation item
+			 */
+			if (!(selectStatement.getSelectBody() instanceof PlainSelect)) {
+				return null;
+			}
+
+			PlainSelect selectBody = (PlainSelect) selectStatement.getSelectBody();
+			return detectAlias(selectBody);
 		}
 
-		Select selectStatement = parseSelectStatement(query);
-
-		/*
-		  For all the other types ({@link ValuesStatement} and {@link SetOperationList}) it does not make sense to provide 
-		  alias since:
-		  * ValuesStatement has no alias
-		  * SetOperation can have multiple alias for each operation item
-		 */
-		if (!(selectStatement.getSelectBody() instanceof PlainSelect)) {
-			return null;
-		}
-
-		PlainSelect selectBody = (PlainSelect) selectStatement.getSelectBody();
-		return detectAlias(selectBody);
+		return null;
 	}
 
 	/**
@@ -332,13 +336,25 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 	 * @return Might return {@literal null}.
 	 */
 	@Nullable
-	private static String detectAlias(PlainSelect selectBody) {
+	private String detectAlias(PlainSelect selectBody) {
 
 		if (selectBody.getFromItem() == null) {
 			return null;
 		}
 
 		Alias alias = selectBody.getFromItem().getAlias();
+		return alias == null ? null : alias.getName();
+	}
+
+	/**
+	 * Resolves the alias for the given {@link Merge} statement.
+	 *
+	 * @param mergeStatement must not be {@literal null}.
+	 * @return Might return {@literal null}.
+	 */
+	@Nullable
+	private String detectAlias(Merge mergeStatement) {
+		Alias alias = mergeStatement.getUsingAlias();
 		return alias == null ? null : alias.getName();
 	}
 
@@ -449,13 +465,23 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 	 * @param query the query to parse
 	 * @return the parsed query
 	 */
-	private static Select parseSelectStatement(String query) {
+	private <T extends Statement> T parseSelectStatement(String query, Class<T> classOfT) {
 
 		try {
-			return (Select) CCJSqlParserUtil.parse(query);
+			return classOfT.cast(CCJSqlParserUtil.parse(query));
 		} catch (JSQLParserException e) {
 			throw new IllegalArgumentException("The query you provided is not a valid SQL Query", e);
 		}
+	}
+
+	/**
+	 * Parses a query string with JSqlParser.
+	 *
+	 * @param query the query to parse
+	 * @return the parsed query
+	 */
+	private Select parseSelectStatement(String query) {
+		return parseSelectStatement(query, Select.class);
 	}
 
 	/**
