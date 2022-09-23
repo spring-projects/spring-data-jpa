@@ -38,6 +38,7 @@ import org.springframework.data.jpa.domain.JpaSort;
  * Unit tests for {@link QueryEnhancer}.
  *
  * @author Diego Krupitza
+ * @author Geoffrey Deremetz
  */
 class QueryEnhancerUnitTests {
 
@@ -919,6 +920,18 @@ class QueryEnhancerUnitTests {
 		assertThat(queryEnhancer.getJoinAliases()).isEqualTo(queryUtilsOuterJoinAlias);
 		assertThat(queryEnhancer.detectAlias()).isEqualToIgnoringCase(queryUtilsDetectAlias);
 		assertThat(queryEnhancer.getProjection()).isEqualToIgnoringCase(queryUtilsProjection);
+		assertThat(queryEnhancer.hasConstructorExpression()).isFalse();
+	}
+
+	@Test // GH-2641
+	void mergeStatementWorksWithJSqlParser() {
+		String query = "merge into a using (select id, value from b) query on (a.id = query.id) when matched then update set a.value = value";
+		StringQuery stringQuery = new StringQuery(query, true);
+		QueryEnhancer queryEnhancer = QueryEnhancerFactory.forQuery(stringQuery);
+
+		assertThat(queryEnhancer.getJoinAliases()).isEmpty();
+		assertThat(queryEnhancer.detectAlias()).isNull();
+		assertThat(queryEnhancer.getProjection()).isEmpty();
 		assertThat(queryEnhancer.hasConstructorExpression()).isFalse();
 	}
 

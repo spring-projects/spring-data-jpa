@@ -55,6 +55,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Greg Turnquist
  * @author Simon Paradies
  * @author Diego Krupitza
+ * @author Geoffrey Deremetz
  */
 public interface UserRepository
 		extends JpaRepository<User, Integer>, JpaSpecificationExecutor<User>, UserRepositoryCustom {
@@ -692,6 +693,16 @@ public interface UserRepository
 			value = "INSERT INTO SD_User(id,active,age,firstname,lastname,emailAddress,DTYPE) VALUES (9999,true,23,'Diego',:lastname,'dk@email.com','User')",
 			nativeQuery = true)
 	void insertNewUserWithParamNativeQuery(@Param("lastname") String lastname);
+
+	// GH-2641
+	@Modifying(clearAutomatically = true)
+	@Query(value = "merge into sd_user " + //
+			"using (select id from sd_user where age < 30) request " + //
+			"on (sd_user.id = request.id) " + //
+			"when matched then " + //
+			"    update set sd_user.age = 30", //
+			nativeQuery = true)
+	int mergeNativeStatement();
 
 	interface RolesAndFirstname {
 
