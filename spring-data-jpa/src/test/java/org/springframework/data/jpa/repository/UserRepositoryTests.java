@@ -83,6 +83,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Diego Krupitza
  * @author Daniel Shuy
  * @author Simon Paradies
+ * @author Geoffrey Deremetz
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:application-context.xml")
@@ -3000,6 +3001,22 @@ public class UserRepositoryTests {
 				.hasSize(5) //
 				.map(User::getLastname) //
 				.contains("Gierke", "Arrasz", "Matthews", "raymond", testLastName);
+	}
+
+	@Test // GH-2641
+	void mergeWithNativeStatement() {
+
+		flushTestUsers();
+
+		Optional<User> byIdUser = repository.findById(firstUser.getId());
+		assertThat(byIdUser).isPresent().map(User::getAge).get().isEqualTo(28);
+
+		// when
+		repository.mergeNativeStatement();
+
+		// then
+		Optional<User> afterUpdate = repository.findById(firstUser.getId());
+		assertThat(afterUpdate).isPresent().map(User::getAge).get().isEqualTo(30);
 	}
 
 	private Page<User> executeSpecWithSort(Sort sort) {
