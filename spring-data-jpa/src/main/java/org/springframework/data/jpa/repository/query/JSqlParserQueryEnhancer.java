@@ -26,6 +26,7 @@ import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.delete.Delete;
+import net.sf.jsqlparser.statement.merge.Merge;
 import net.sf.jsqlparser.statement.insert.Insert;
 import net.sf.jsqlparser.statement.select.OrderByElement;
 import net.sf.jsqlparser.statement.select.PlainSelect;
@@ -57,6 +58,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Diego Krupitza
  * @author Greg Turnquist
+ * @author Geoffrey Deremetz
  * @since 2.7.0
  */
 public class JSqlParserQueryEnhancer implements QueryEnhancer {
@@ -91,6 +93,8 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 				return ParsedType.DELETE;
 			} else if (statement instanceof Select) {
 				return ParsedType.SELECT;
+			} else if (statement instanceof Merge) {
+				return ParsedType.MERGE;
 			} else {
 				return ParsedType.SELECT;
 			}
@@ -479,10 +483,11 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 	 * <li>{@code ParsedType.UPDATE}: means the top level statement is {@link Update}</li>
 	 * <li>{@code ParsedType.SELECT}: means the top level statement is {@link Select}</li>
 	 * <li>{@code ParsedType.INSERT}: means the top level statement is {@link Insert}</li>
+	 * <li>{@code ParsedType.MERGE}: means the top level statement is {@link Merge}</li>
 	 * </ul>
 	 */
 	enum ParsedType {
-		DELETE, UPDATE, SELECT, INSERT;
+		DELETE, UPDATE, SELECT, INSERT, MERGE;
 	}
 
 }
