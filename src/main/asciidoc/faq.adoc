@@ -22,22 +22,6 @@ I'd like to get more detailed logging information on what methods are called ins
 </aop:config>
 ----
 
-[[faq.infrastructure]]
-== Infrastructure
-
-[qanda]
-Currently I have implemented a repository layer based on `HibernateDaoSupport`. I create a `SessionFactory` by using Spring's `AnnotationSessionFactoryBean`. How do I get Spring Data repositories working in this environment? :: You have to replace `AnnotationSessionFactoryBean` with the `HibernateJpaSessionFactoryBean`, as follows:
-+
-.Looking up a `SessionFactory` from a `HibernateEntityManagerFactory`
-====
-[source, xml]
-----
-<bean id="sessionFactory" class="org.springframework.orm.jpa.vendor.HibernateJpaSessionFactoryBean">
-  <property name="entityManagerFactory" ref="entityManagerFactory"/>
-</bean>
-----
-====
-
 [[faq.auditing]]
 == Auditing
 

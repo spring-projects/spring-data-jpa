@@ -18,4 +18,4 @@ Hibernate :: Object relational mapper implementing JPA - link:$$https://hibernat
 
 JPA :: Jakarta Persistence API
 
-Spring :: Java application framework - link:$$https://projects.spring.io/spring-framework$$[https://projects.spring.io/spring-framework]
+Spring :: Java application framework - link:$$https://spring.io/projects/spring-framework$$[https://spring.io/projects/spring-framework]
