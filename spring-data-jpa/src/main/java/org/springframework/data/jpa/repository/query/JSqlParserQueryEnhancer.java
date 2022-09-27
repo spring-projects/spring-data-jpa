@@ -15,22 +15,9 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.springframework.data.jpa.repository.query.JSqlParserUtils.*;
-import static org.springframework.data.jpa.repository.query.QueryUtils.*;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.springframework.data.domain.Sort;
-import org.springframework.lang.Nullable;
-import org.springframework.util.Assert;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
+import static org.springframework.data.jpa.repository.query.JSqlParserUtils.getJSqlCount;
+import static org.springframework.data.jpa.repository.query.JSqlParserUtils.getJSqlLower;
+import static org.springframework.data.jpa.repository.query.QueryUtils.checkSortExpression;
 
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Alias;
@@ -42,16 +29,18 @@ import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.delete.Delete;
 import net.sf.jsqlparser.statement.insert.Insert;
 import net.sf.jsqlparser.statement.merge.Merge;
-import net.sf.jsqlparser.statement.select.OrderByElement;
-import net.sf.jsqlparser.statement.select.PlainSelect;
-import net.sf.jsqlparser.statement.select.Select;
-import net.sf.jsqlparser.statement.select.SelectBody;
-import net.sf.jsqlparser.statement.select.SelectExpressionItem;
-import net.sf.jsqlparser.statement.select.SelectItem;
-import net.sf.jsqlparser.statement.select.SetOperationList;
-import net.sf.jsqlparser.statement.select.WithItem;
+import net.sf.jsqlparser.statement.select.*;
 import net.sf.jsqlparser.statement.update.Update;
 import net.sf.jsqlparser.statement.values.ValuesStatement;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
+import org.springframework.data.domain.Sort;
+import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 /**
  * The implementation of {@link QueryEnhancer} using JSqlParser.
@@ -147,7 +136,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 
 	/**
 	 * Returns the {@link SetOperationList} as a string query with {@link Sort}s applied in the right order.
-	 * 
+	 *
 	 * @param setOperationListStatement
 	 * @param sort
 	 * @return
@@ -305,14 +294,16 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 	private String detectAlias(String query) {
 
 		if (ParsedType.MERGE.equals(this.parsedType)) {
+
 			Merge mergeStatement = parseSelectStatement(query, Merge.class);
 			return detectAlias(mergeStatement);
 
 		} else if (ParsedType.SELECT.equals(this.parsedType)) {
+
 			Select selectStatement = parseSelectStatement(query);
 
 			/*
-			For all the other types ({@link ValuesStatement} and {@link SetOperationList}) it does not make sense to provide 
+			For all the other types ({@link ValuesStatement} and {@link SetOperationList}) it does not make sense to provide
 			alias since:
 			* ValuesStatement has no alias
 			* SetOperation can have multiple alias for each operation item
@@ -354,6 +345,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 	 */
 	@Nullable
 	private String detectAlias(Merge mergeStatement) {
+
 		Alias alias = mergeStatement.getUsingAlias();
 		return alias == null ? null : alias.getName();
 	}
@@ -382,6 +374,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 		selectBody.setOrderByElements(null);
 
 		if (StringUtils.hasText(countProjection)) {
+
 			Function jSqlCount = getJSqlCount(Collections.singletonList(countProjection), false);
 			selectBody.setSelectItems(Collections.singletonList(new SelectExpressionItem(jSqlCount)));
 			return selectBody.toString();
@@ -396,6 +389,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 		List<SelectItem> selectItems = selectBody.getSelectItems();
 
 		if (onlyASingleColumnProjection(selectItems)) {
+
 			SelectExpressionItem singleProjection = (SelectExpressionItem) selectItems.get(0);
 
 			Column column = (Column) singleProjection.getExpression();
@@ -440,6 +434,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 		SelectBody selectBody = selectStatement.getSelectBody();
 
 		if (selectStatement.getSelectBody()instanceof SetOperationList setOperationList) {
+
 			// using the first one since for setoperations the projection has to be the same
 			selectBody = setOperationList.getSelects().get(0);
 

@@ -3008,15 +3008,17 @@ public class UserRepositoryTests {
 
 		flushTestUsers();
 
-		Optional<User> byIdUser = repository.findById(firstUser.getId());
-		assertThat(byIdUser).isPresent().map(User::getAge).get().isEqualTo(28);
+		assertThat(repository.findById(firstUser.getId())) //
+				.isPresent() //
+				.map(User::getAge).contains(28);
 
 		// when
 		repository.mergeNativeStatement();
 
 		// then
-		Optional<User> afterUpdate = repository.findById(firstUser.getId());
-		assertThat(afterUpdate).isPresent().map(User::getAge).get().isEqualTo(30);
+		assertThat(repository.findById(firstUser.getId())) //
+				.isPresent() //
+				.map(User::getAge).contains(30);
 	}
 
 	private Page<User> executeSpecWithSort(Sort sort) {

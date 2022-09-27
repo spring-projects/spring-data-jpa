@@ -684,11 +684,9 @@ public interface UserRepository
 
 	// GH-2641
 	@Modifying(clearAutomatically = true)
-	@Query(value = "merge into sd_user " +
-			"using (select id from sd_user where age < 30) request " +
-			"on (sd_user.id = request.id) " +
-			"when matched then " +
-			"    update set sd_user.age = 30",
+	@Query(
+			value = "merge into sd_user " + "using (select id from sd_user where age < 30) request "
+					+ "on (sd_user.id = request.id) " + "when matched then " + "    update set sd_user.age = 30",
 			nativeQuery = true)
 	int mergeNativeStatement();
 
