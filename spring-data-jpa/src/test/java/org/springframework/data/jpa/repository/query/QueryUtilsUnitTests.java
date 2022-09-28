@@ -15,7 +15,8 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.springframework.data.jpa.repository.query.QueryUtils.*;
 
 import java.util.Collections;
@@ -46,6 +47,7 @@ import org.springframework.util.StringUtils;
  * @author Jędrzej Biedrzycki
  * @author Darin Manica
  * @author Chris Fraser
+ * @author Michał Pachucki
  */
 class QueryUtilsUnitTests {
 
@@ -182,55 +184,82 @@ class QueryUtilsUnitTests {
 	@Test // GH-2581
 	void testRemoveMultilineSubqueries() {
 
-		assertThat(normalizeWhitespace(removeSubqueries("select u from User u\n"
-				+ "    where not exists (\n"
-				+ "        from User u2\n"
-				+ "    )")))
-				.isEqualTo("select u from User u where not exists");
-		assertThat(normalizeWhitespace(removeSubqueries("(\n"
-				+ "    select u from User u \n"
-				+ "        where not exists (\n"
-				+ "            from User u2\n"
-				+ "        )\n"
-				+ ")")))
-				.isEqualTo("( select u from User u where not exists )");
-		assertThat(normalizeWhitespace(
-				removeSubqueries("select u from User u \n"
-						+ "    where not exists (\n"
-						+ "        from User u2 \n"
-						+ "            where not exists (\n"
-						+ "                from User u3\n"
-						+ "            )\n"
-						+ "    )")))
-				.isEqualTo("select u from User u where not exists");
-		assertThat(normalizeWhitespace(
-				removeSubqueries("select u from User u \n"
-						+ "    where not exists (\n"
-						+ "        (\n"
-						+ "            from User u2 \n"
-						+ "                where not exists (\n"
-						+ "                    from User u3\n"
-						+ "                )\n"
-						+ "        )\n"
-						+ "    )")))
-				.isEqualTo("select u from User u where not exists ( )");
-		assertThat(normalizeWhitespace(
-				removeSubqueries("(\n"
-						+ "    select u from User u \n"
-						+ "        where not exists (\n"
-						+ "            (\n"
-						+ "                from User u2 \n"
-						+ "                    where not exists (\n"
-						+ "                        from User u3\n"
-						+ "                    )\n"
-						+ "            )\n"
-						+ "        )\n"
-						+ ")")))
-				.isEqualTo("( select u from User u where not exists ( ) )");
+		assertThat(normalizeWhitespace(removeSubqueries("select u from User u\n" //
+				+ "    where not exists (\n" //
+				+ "        from User u2\n" //
+				+ "    )"))).isEqualTo("select u from User u where not exists");
+
+		assertThat(normalizeWhitespace(removeSubqueries("(\n" //
+				+ "    select u from User u \n" //
+				+ "        where not exists (\n" //
+				+ "            from User u2\n" //
+				+ "        )\n" //
+				+ ")"))).isEqualTo("( select u from User u where not exists )");
+
+		assertThat(normalizeWhitespace(removeSubqueries("select u from User u \n" //
+				+ "    where not exists (\n" //
+				+ "        from User u2 \n" //
+				+ "            where not exists (\n" //
+				+ "                from User u3\n" //
+				+ "            )\n" //
+				+ "    )"))).isEqualTo("select u from User u where not exists");
+
+		assertThat(normalizeWhitespace(removeSubqueries("select u from User u \n" //
+				+ "    where not exists (\n" //
+				+ "        (\n" //
+				+ "            from User u2 \n" //
+				+ "                where not exists (\n" //
+				+ "                    from User u3\n" //
+				+ "                )\n" //
+				+ "        )\n" //
+				+ "    )"))).isEqualTo("select u from User u where not exists ( )");
+
+		assertThat(normalizeWhitespace(removeSubqueries("(\n" //
+				+ "    select u from User u \n" //
+				+ "        where not exists (\n" //
+				+ "            (\n" //
+				+ "                from User u2 \n" //
+				+ "                    where not exists (\n" //
+				+ "                        from User u3\n" //
+				+ "                    )\n" //
+				+ "            )\n" //
+				+ "        )\n" //
+				+ ")"))).isEqualTo("( select u from User u where not exists ( ) )");
+	}
+
+	@Test // GH-2557
+	void applySortingAccountsForNewlinesInSubselect() {
+
+		Sort sort = Sort.by(Order.desc("age"));
+
+		assertThat(QueryUtils.applySorting("select u\n" + //
+				"from user u\n" + //
+				"where exists (select u2\n" + //
+				"from user u2\n" + //
+				")\n" + //
+				"", sort)).isEqualTo("select u\n" + //
+						"from user u\n" + //
+						"where exists (select u2\n" + //
+						"from user u2\n" + //
+						")\n" + //
+						" order by u.age desc");
+	}
+
+	@Test // GH-2563
+	void aliasDetectionProperlyHandlesNewlinesInSubselects() {
+
+		assertThat(detectAlias("SELECT o\n" + //
+				"FROM Order o\n" + //
+				"AND EXISTS(SELECT 1\n" + //
+				"FROM Vehicle vehicle\n" + //
+				"WHERE vehicle.vehicleOrderId = o.id\n" + //
+				"AND LOWER(COALESCE(vehicle.make, '')) LIKE :query)")).isEqualTo("o");
 	}
 
 	private String normalizeWhitespace(String s) {
+
 		Matcher matcher = MULTI_WHITESPACE.matcher(s);
+
 		if (matcher.find()) {
 			return matcher.replaceAll(" ").trim();
 		}

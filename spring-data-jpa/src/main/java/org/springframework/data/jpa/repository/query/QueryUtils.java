@@ -18,23 +18,10 @@ package org.springframework.data.jpa.repository.query;
 import static jakarta.persistence.metamodel.Attribute.PersistentAttributeType.*;
 import static java.util.regex.Pattern.*;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.Parameter;
-import jakarta.persistence.Query;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.Expression;
-import jakarta.persistence.criteria.Fetch;
-import jakarta.persistence.criteria.From;
-import jakarta.persistence.criteria.Join;
-import jakarta.persistence.criteria.JoinType;
-import jakarta.persistence.metamodel.Attribute;
+import jakarta.persistence.*;
+import jakarta.persistence.criteria.*;
+import jakarta.persistence.metamodel.*;
 import jakarta.persistence.metamodel.Attribute.PersistentAttributeType;
-import jakarta.persistence.metamodel.Bindable;
-import jakarta.persistence.metamodel.ManagedType;
-import jakarta.persistence.metamodel.PluralAttribute;
-import jakarta.persistence.metamodel.SingularAttribute;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
@@ -105,7 +92,8 @@ public abstract class QueryUtils {
 	private static final Pattern ALIAS_MATCH;
 	private static final Pattern COUNT_MATCH;
 	private static final Pattern STARTS_WITH_PAREN = Pattern.compile("^\\s*\\(");
-	private static final Pattern PARENS_TO_REMOVE = Pattern.compile("(\\(.*\\bfrom\\b[^)]+\\))", CASE_INSENSITIVE | DOTALL | MULTILINE);
+	private static final Pattern PARENS_TO_REMOVE = Pattern.compile("(\\(.*\\bfrom\\b[^)]+\\))",
+			CASE_INSENSITIVE | DOTALL | MULTILINE);
 	private static final Pattern PROJECTION_CLAUSE = Pattern.compile("select\\s+(?:distinct\\s+)?(.+)\\s+from",
 			Pattern.CASE_INSENSITIVE);
 
