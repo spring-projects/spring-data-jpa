@@ -87,6 +87,7 @@ public abstract class QueryUtils {
 	private static final String SIMPLE_COUNT_VALUE = "$2";
 	private static final String COMPLEX_COUNT_VALUE = "$3 $6";
 	private static final String COMPLEX_COUNT_LAST_VALUE = "$6";
+	private static final String FETCH_COMING_AFTER_JOIN_PART = "(?iu)(?<=join)(\\s*fetch\\s*)";
 	private static final String ORDER_BY_PART = "(?iu)\\s+order\\s+by\\s+.*";
 
 	private static final Pattern ALIAS_MATCH;
@@ -600,6 +601,8 @@ public abstract class QueryUtils {
 		} else {
 			countQuery = matcher.replaceFirst(String.format(COUNT_REPLACEMENT_TEMPLATE, countProjection));
 		}
+
+		countQuery = countQuery.replaceAll(FETCH_COMING_AFTER_JOIN_PART, " ");
 
 		return countQuery.replaceFirst(ORDER_BY_PART, "");
 	}
