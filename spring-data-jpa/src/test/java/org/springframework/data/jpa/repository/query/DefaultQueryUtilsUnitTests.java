@@ -40,6 +40,7 @@ import org.springframework.data.jpa.domain.JpaSort;
  * @author Grégoire Druant
  * @author Mohammad Hewedy
  * @author Greg Turnquist
+ * @author Vladislav Yukharin
  */
 class DefaultQueryUtilsUnitTests {
 
@@ -222,6 +223,13 @@ class DefaultQueryUtilsUnitTests {
 		Sort sort = Sort.by("sum(foo)");
 		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
 				.isThrownBy(() -> applySorting("select p from Person p", sort, "p"));
+	}
+
+	@Test // GH-2348
+	void removesFetchPartInJoinFetchClauseInGeneratedCountQueryIfPresent() {
+
+		assertCountQuery("select u from User u left outer join fetch u.roles r left outer JOIN   FETCH  u.accounts a",
+				"select count(u) from User u left outer join u.roles r left outer JOIN u.accounts a");
 	}
 
 	@Test // DATAJPA-377
