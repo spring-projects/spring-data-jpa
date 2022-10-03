@@ -16,6 +16,7 @@
 package org.springframework.data.jpa.repository.query;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.Arrays;
 import java.util.List;
@@ -24,6 +25,7 @@ import java.util.Properties;
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
+import org.junit.Ignore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -52,13 +54,14 @@ import org.springframework.transaction.annotation.Transactional;
  * Verify that {@literal LIKE}s mixed with {@literal NULL}s work properly.
  *
  * @author Greg Turnquist
+ * @author Yuriy Tsarkov
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = QueryWithNullLikeHibernateIntegrationTests.Config.class)
 @Transactional
 public class QueryWithNullLikeHibernateIntegrationTests {
 
-	@Autowired EmpoyeeWithNullLikeRepository repository;
+	@Autowired EmployeeWithNullLikeRepository repository;
 
 	@BeforeEach
 	void setUp() {
@@ -98,8 +101,7 @@ public class QueryWithNullLikeHibernateIntegrationTests {
 
 		List<EmployeeWithName> Employees = repository.customQueryWithNullableParam(null);
 
-		assertThat(Employees).extracting(EmployeeWithName::getName).containsExactlyInAnyOrder("Frodo Baggins",
-				"Bilbo Baggins");
+		assertThat(Employees).extracting(EmployeeWithName::getName).isEmpty();
 	}
 
 	@Test
@@ -128,12 +130,21 @@ public class QueryWithNullLikeHibernateIntegrationTests {
 	}
 
 	@Test
+	@Ignore
+	@Deprecated
 	void derivedQueryStartsWithWithNullMatch() {
 
 		List<EmployeeWithName> Employees = repository.findByNameStartsWith(null);
 
 		assertThat(Employees).extracting(EmployeeWithName::getName).containsExactlyInAnyOrder("Frodo Baggins",
 				"Bilbo Baggins");
+	}
+
+	@Test // GH-2653
+	void derivedQueryStartsWithWithNullFail() {
+		assertThatThrownBy(() -> repository.findByNameStartsWith(null))
+				.hasCauseExactlyInstanceOf(IllegalArgumentException.class)
+				.hasMessageStartingWith("Value must not be null!");
 	}
 
 	@Test
@@ -163,12 +174,22 @@ public class QueryWithNullLikeHibernateIntegrationTests {
 	}
 
 	@Test
+	@Ignore
+	@Deprecated
 	void derivedQueryEndsWithWithNullMatch() {
 
 		List<EmployeeWithName> Employees = repository.findByNameEndsWith(null);
 
 		assertThat(Employees).extracting(EmployeeWithName::getName).containsExactlyInAnyOrder("Frodo Baggins",
 				"Bilbo Baggins");
+	}
+
+	@Test // GH-2653
+	void derivedQueryEndsWithWithNullFail() {
+
+		assertThatThrownBy(() -> repository.findByNameStartsWith(null))
+				.hasCauseExactlyInstanceOf(IllegalArgumentException.class)
+				.hasMessageStartingWith("Value must not be null!");
 	}
 
 	@Test
@@ -198,12 +219,22 @@ public class QueryWithNullLikeHibernateIntegrationTests {
 	}
 
 	@Test
+	@Ignore
+	@Deprecated
 	void derivedQueryContainsWithNullMatch() {
 
 		List<EmployeeWithName> Employees = repository.findByNameContains(null);
 
 		assertThat(Employees).extracting(EmployeeWithName::getName).containsExactlyInAnyOrder("Frodo Baggins",
 				"Bilbo Baggins");
+	}
+
+	@Test // GH-2653
+	void derivedQueryContainsWithNullFail() {
+
+		assertThatThrownBy(() -> repository.findByNameStartsWith(null))
+				.hasCauseExactlyInstanceOf(IllegalArgumentException.class)
+				.hasMessageStartingWith("Value must not be null!");
 	}
 
 	@Test
@@ -233,7 +264,7 @@ public class QueryWithNullLikeHibernateIntegrationTests {
 	}
 
 	@Transactional
-	public interface EmpoyeeWithNullLikeRepository extends JpaRepository<EmployeeWithName, Integer> {
+	public interface EmployeeWithNullLikeRepository extends JpaRepository<EmployeeWithName, Integer> {
 
 		@Query("select e from EmployeeWithName e where e.name like %:partialName%")
 		List<EmployeeWithName> customQueryWithNullableParam(@Nullable @Param("partialName") String partialName);
@@ -248,7 +279,7 @@ public class QueryWithNullLikeHibernateIntegrationTests {
 	}
 
 	@EnableJpaRepositories(considerNestedRepositories = true, //
-			includeFilters = @Filter(type = FilterType.ASSIGNABLE_TYPE, classes = EmpoyeeWithNullLikeRepository.class))
+			includeFilters = @Filter(type = FilterType.ASSIGNABLE_TYPE, classes = EmployeeWithNullLikeRepository.class))
 	@EnableTransactionManagement
 	static class Config {
 

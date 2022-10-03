@@ -49,6 +49,7 @@ import org.springframework.util.StringUtils;
  * @author Jens Schauder
  * @author Diego Krupitza
  * @author Greg Turnquist
+ * @author Yuriy Tsarkov
  */
 class StringQuery implements DeclaredQuery {
 
@@ -680,6 +681,7 @@ class StringQuery implements DeclaredQuery {
 	 *
 	 * @author Oliver Gierke
 	 * @author Thomas Darimont
+	 * @author Yuriy Tsarkov
 	 */
 	static class LikeParameterBinding extends ParameterBinding {
 
@@ -764,21 +766,21 @@ class StringQuery implements DeclaredQuery {
 		@Nullable
 		@Override
 		public Object prepare(@Nullable Object value) {
-
-			if (value == null) {
+			Object unwrappedValue = PersistenceProvider.condense(value);
+			if (unwrappedValue == null) {
 				return null;
 			}
 
 			switch (type) {
 				case STARTING_WITH:
-					return String.format("%s%%", PersistenceProvider.condense(value));
+					return String.format("%s%%", unwrappedValue);
 				case ENDING_WITH:
-					return String.format("%%%s", PersistenceProvider.condense(value));
+					return String.format("%%%s", unwrappedValue);
 				case CONTAINING:
-					return String.format("%%%s%%", PersistenceProvider.condense(value));
+					return String.format("%%%s%%", unwrappedValue);
 				case LIKE:
 				default:
-					return PersistenceProvider.condense(value);
+					return unwrappedValue;
 			}
 		}
 

@@ -45,6 +45,7 @@ import org.springframework.util.ObjectUtils;
  * @author Christoph Strobl
  * @author Jens Schauder
  * @author Andrey Kovalev
+ * @author Yuriy Tsarkov
  */
 class ParameterMetadataProvider {
 
@@ -181,6 +182,7 @@ class ParameterMetadataProvider {
 	 * @author Oliver Gierke
 	 * @author Thomas Darimont
 	 * @author Andrey Kovalev
+	 * @author Yuriy Tsarkov
 	 * @param <T>
 	 */
 	static class ParameterMetadata<T> {
@@ -227,23 +229,22 @@ class ParameterMetadataProvider {
 		 */
 		@Nullable
 		public Object prepare(Object value) {
-
-			Assert.notNull(value, "Value must not be null!");
+			Object unwrappedValue = PersistenceProvider.condense(value);
+			Assert.notNull(unwrappedValue, "Value must not be null!");
 
 			Class<? extends T> expressionType = expression.getJavaType();
 
 			if (String.class.equals(expressionType)) {
-
 				switch (type) {
 					case STARTING_WITH:
-						return String.format("%s%%", escape.escape(PersistenceProvider.condense(value).toString()));
+						return String.format("%s%%", escape.escape(unwrappedValue.toString()));
 					case ENDING_WITH:
-						return String.format("%%%s", escape.escape(PersistenceProvider.condense(value).toString()));
+						return String.format("%%%s", escape.escape(unwrappedValue.toString()));
 					case CONTAINING:
 					case NOT_CONTAINING:
-						return String.format("%%%s%%", escape.escape(PersistenceProvider.condense(value).toString()));
+						return String.format("%%%s%%", escape.escape(unwrappedValue.toString()));
 					default:
-						return PersistenceProvider.condense(value);
+						return unwrappedValue;
 				}
 			}
 
