@@ -33,6 +33,7 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.core.annotation.MergedAnnotation;
 import org.springframework.data.aot.AotRepositoryContext;
 import org.springframework.data.repository.core.RepositoryInformation;
+import org.springframework.javapoet.ClassName;
 
 /**
  * @author Christoph Strobl
@@ -42,7 +43,7 @@ class JpaRepositoryRegistrationAotProcessorUnitTests {
 	@Test // GH-2628
 	void aotProcessorMustNotRegisterDomainTypes() {
 
-		GenerationContext ctx = new DefaultGenerationContext(new ClassNameGenerator(Object.class),
+		GenerationContext ctx = new DefaultGenerationContext(new ClassNameGenerator(ClassName.OBJECT),
 				new InMemoryGeneratedFiles());
 
 		new JpaRepositoryConfigExtension.JpaRepositoryRegistrationAotProcessor()
@@ -59,7 +60,7 @@ class JpaRepositoryRegistrationAotProcessorUnitTests {
 	@Test // GH-2628
 	void aotProcessorMustNotRegisterAnnotations() {
 
-		GenerationContext ctx = new DefaultGenerationContext(new ClassNameGenerator(Object.class),
+		GenerationContext ctx = new DefaultGenerationContext(new ClassNameGenerator(ClassName.OBJECT),
 				new InMemoryGeneratedFiles());
 
 		new JpaRepositoryConfigExtension.JpaRepositoryRegistrationAotProcessor()
