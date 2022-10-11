@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.jpa.aot;
+package org.springframework.data.jpa.repository.aot;
 
 import static org.assertj.core.api.AssertionsForClassTypes.*;
-import static org.springframework.aot.hint.predicate.RuntimeHintsPredicates.reflection;
+import static org.springframework.aot.hint.predicate.RuntimeHintsPredicates.*;
 
 import org.junit.jupiter.api.Test;
+
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.beans.factory.aspectj.AnnotationBeanConfigurerAspect;
 import org.springframework.data.jpa.domain.support.AuditingBeanFactoryPostProcessor;
@@ -26,6 +27,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.data.jpa.util.HidingClassLoader;
 
 /**
+ * Unit tests for {@link JpaRuntimeHints}.
+ *
  * @author Christoph Strobl
  */
 class JpaRuntimeHintsUnitTests {

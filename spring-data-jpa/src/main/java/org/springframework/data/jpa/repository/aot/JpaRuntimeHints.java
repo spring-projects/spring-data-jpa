@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.jpa.aot;
+package org.springframework.data.jpa.repository.aot;
 
 import java.util.Arrays;
 
@@ -29,10 +29,12 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.ClassUtils;
 
 /**
+ * Runtime hints for JPA AOT processing.
+ *
  * @author Christoph Strobl
  * @since 3.0
  */
-public class JpaRuntimeHints implements RuntimeHintsRegistrar {
+class JpaRuntimeHints implements RuntimeHintsRegistrar {
 
 	@Override
 	public void registerHints(RuntimeHints hints, @Nullable ClassLoader classLoader) {
@@ -49,9 +51,10 @@ public class JpaRuntimeHints implements RuntimeHintsRegistrar {
 							.withMembers(MemberCategory.INVOKE_DECLARED_CONSTRUCTORS, MemberCategory.INVOKE_DECLARED_METHODS));
 
 			hints.reflection().registerTypes(Arrays.asList( //
-							TypeReference.of(AuditingBeanFactoryPostProcessor.class), //
-							TypeReference.of(AuditingEntityListener.class)),
-					hint -> hint.withMembers(MemberCategory.INVOKE_DECLARED_CONSTRUCTORS, MemberCategory.INVOKE_DECLARED_METHODS));
+					TypeReference.of(AuditingBeanFactoryPostProcessor.class), //
+					TypeReference.of(AuditingEntityListener.class)),
+					hint -> hint.withMembers(MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
+							MemberCategory.INVOKE_DECLARED_METHODS));
 		}
 
 		hints.reflection().registerType(TypeReference.of(SimpleJpaRepository.class),
