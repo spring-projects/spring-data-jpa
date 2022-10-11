@@ -1,2 +1,2 @@
 org.springframework.aot.hint.RuntimeHintsRegistrar=\
-	org.springframework.data.jpa.aot.JpaRuntimeHints
+	org.springframework.data.jpa.repository.aot.JpaRuntimeHints
