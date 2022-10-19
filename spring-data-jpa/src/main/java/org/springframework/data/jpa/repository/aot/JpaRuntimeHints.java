@@ -24,7 +24,9 @@ import org.springframework.aot.hint.TypeReference;
 import org.springframework.data.jpa.domain.support.AuditingBeanFactoryPostProcessor;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.support.QuerydslJpaPredicateExecutor;
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
+import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import org.springframework.lang.Nullable;
 import org.springframework.util.ClassUtils;
 
@@ -62,5 +64,9 @@ class JpaRuntimeHints implements RuntimeHintsRegistrar {
 
 		// needs to present for evaluating default attribute values in JpaQueryMethod
 		hints.reflection().registerType(Query.class, hint -> hint.withMembers(MemberCategory.INVOKE_PUBLIC_METHODS));
+
+		hints.reflection().registerType(QuerydslJpaPredicateExecutor.class,
+				hint -> hint.withMembers(MemberCategory.INVOKE_PUBLIC_CONSTRUCTORS, MemberCategory.INVOKE_PUBLIC_METHODS)
+						.onReachableType(QuerydslPredicateExecutor.class));
 	}
 }
