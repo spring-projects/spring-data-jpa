@@ -29,11 +29,11 @@
 
 		<dist.key>DATAJPA</dist.key>
 
-		<eclipselink>2.7.9</eclipselink>
-		<hibernate>5.6.9.Final</hibernate>
+		<eclipselink>2.7.11</eclipselink>
+		<hibernate>5.6.14.Final</hibernate>
 		<jsqlparser>4.3</jsqlparser>
-		<mysql-connector-java>8.0.23</mysql-connector-java>
-		<postgresql>42.2.19</postgresql>
+		<mysql-connector-java>8.0.31</mysql-connector-java>
+		<postgresql>42.5.0</postgresql>
 		<springdata.commons>2.7.6-SNAPSHOT</springdata.commons>
 		<vavr>0.10.3</vavr>
 
@@ -250,8 +250,8 @@
 
 		<!-- MySQL testing support -->
 		<dependency>
-			<groupId>mysql</groupId>
-			<artifactId>mysql-connector-java</artifactId>
+			<groupId>com.mysql</groupId>
+			<artifactId>mysql-connector-j</artifactId>
 			<version>${mysql-connector-java}</version>
 			<scope>test</scope>
 		</dependency>
