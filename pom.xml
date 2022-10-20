@@ -104,7 +104,7 @@
 		<profile>
 			<id>eclipselink-next</id>
 			<properties>
-				<eclipselink>4.0.0-RC2</eclipselink>
+				<eclipselink>4.0.0</eclipselink>
 			</properties>
 		</profile>
 
