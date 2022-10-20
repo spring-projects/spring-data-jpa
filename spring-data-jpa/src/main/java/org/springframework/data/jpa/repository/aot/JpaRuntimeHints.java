@@ -66,7 +66,7 @@ class JpaRuntimeHints implements RuntimeHintsRegistrar {
 		// needs to present for evaluating default attribute values in JpaQueryMethod
 		hints.reflection().registerType(Query.class, hint -> hint.withMembers(MemberCategory.INVOKE_PUBLIC_METHODS));
 
-		if(QuerydslUtils.QUERY_DSL_PRESENT) {
+		if (QuerydslUtils.QUERY_DSL_PRESENT) {
 
 			hints.reflection().registerType(QuerydslJpaPredicateExecutor.class,
 					hint -> hint.withMembers(MemberCategory.INVOKE_PUBLIC_CONSTRUCTORS, MemberCategory.INVOKE_PUBLIC_METHODS)
