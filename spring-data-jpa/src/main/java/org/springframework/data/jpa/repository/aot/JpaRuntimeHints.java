@@ -15,6 +15,8 @@
  */
 package org.springframework.data.jpa.repository.aot;
 
+import jakarta.persistence.NamedEntityGraph;
+
 import java.util.Arrays;
 
 import org.springframework.aot.hint.MemberCategory;
@@ -23,6 +25,7 @@ import org.springframework.aot.hint.RuntimeHintsRegistrar;
 import org.springframework.aot.hint.TypeReference;
 import org.springframework.data.jpa.domain.support.AuditingBeanFactoryPostProcessor;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.support.QuerydslJpaPredicateExecutor;
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
@@ -72,5 +75,8 @@ class JpaRuntimeHints implements RuntimeHintsRegistrar {
 					hint -> hint.withMembers(MemberCategory.INVOKE_PUBLIC_CONSTRUCTORS, MemberCategory.INVOKE_PUBLIC_METHODS)
 							.onReachableType(QuerydslPredicateExecutor.class));
 		}
+
+		hints.reflection().registerType(NamedEntityGraph.class,
+				hint -> hint.onReachableType(EntityGraph.class).withMembers(MemberCategory.INVOKE_PUBLIC_METHODS));
 	}
 }
