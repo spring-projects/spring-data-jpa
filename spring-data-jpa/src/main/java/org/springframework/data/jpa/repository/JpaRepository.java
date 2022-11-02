@@ -21,9 +21,9 @@ import jakarta.persistence.EntityManager;
 
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.ListCrudRepository;
+import org.springframework.data.repository.ListPagingAndSortingRepository;
 import org.springframework.data.repository.NoRepositoryBean;
-import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.QueryByExampleExecutor;
 
 /**
@@ -35,21 +35,10 @@ import org.springframework.data.repository.query.QueryByExampleExecutor;
  * @author Sander Krabbenborg
  * @author Jesse Wouters
  * @author Greg Turnquist
+ * @author Jens Schauder
  */
 @NoRepositoryBean
-public interface JpaRepository<T, ID> extends CrudRepository<T, ID>,PagingAndSortingRepository<T, ID>, QueryByExampleExecutor<T> {
-
-	@Override
-	List<T> findAll();
-
-	@Override
-	List<T> findAll(Sort sort);
-
-	@Override
-	List<T> findAllById(Iterable<ID> ids);
-
-	@Override
-	<S extends T> List<S> saveAll(Iterable<S> entities);
+public interface JpaRepository<T, ID> extends ListCrudRepository<T, ID>, ListPagingAndSortingRepository<T, ID>, QueryByExampleExecutor<T> {
 
 	/**
 	 * Flushes all pending changes to the database.
