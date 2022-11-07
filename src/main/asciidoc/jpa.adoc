@@ -11,48 +11,9 @@ This section describes the basics of configuring Spring Data JPA through either:
 * "`<<jpa.namespace>>`" (XML configuration)
 * "`<<jpa.java-config>>`" (Java configuration)
 
-[[jpa.namespace]]
-=== Spring Namespace
-
-The JPA module of Spring Data contains a custom namespace that allows defining repository beans. It also contains certain features and element attributes that are special to JPA. Generally, the JPA repositories can be set up by   using the `repositories` element, as shown in the following example:
-
-.Setting up JPA repositories by using the namespace
-====
-[source, xml]
-----
-<?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns="http://www.springframework.org/schema/beans"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xmlns:jpa="http://www.springframework.org/schema/data/jpa"
-  xsi:schemaLocation="http://www.springframework.org/schema/beans
-    https://www.springframework.org/schema/beans/spring-beans.xsd
-    http://www.springframework.org/schema/data/jpa
-    https://www.springframework.org/schema/data/jpa/spring-jpa.xsd">
-
-  <jpa:repositories base-package="com.acme.repositories" />
-
-</beans>
-----
-====
-
-Using the `repositories` element looks up Spring Data repositories as described in "`<<repositories.create-instances>>`". Beyond that, it activates persistence exception translation for all beans annotated with `@Repository`, to let exceptions being thrown by the JPA persistence providers be converted into Spring's `DataAccessException` hierarchy.
-
-[[jpa.namespace.custom-namespace-attributes]]
-==== Custom Namespace Attributes
-Beyond the default attributes of the `repositories` element, the JPA namespace offers additional attributes to let you gain more detailed control over the setup of the repositories:
-
-.Custom JPA-specific attributes of the `repositories` element
-[options = "autowidth"]
-|===============
-|`entity-manager-factory-ref`|Explicitly wire the `EntityManagerFactory` to be used with the repositories being detected by the `repositories` element. Usually used if multiple `EntityManagerFactory` beans are used within the application. If not configured, Spring Data automatically looks up the `EntityManagerFactory` bean with the name `entityManagerFactory` in the `ApplicationContext`.
-|`transaction-manager-ref`|Explicitly wire the `PlatformTransactionManager` to be used with the repositories being detected by the `repositories` element. Usually only necessary if multiple transaction managers or `EntityManagerFactory` beans have been configured. Default to a single defined `PlatformTransactionManager` inside the current `ApplicationContext`.
-|===============
-
-NOTE: Spring Data JPA requires a `PlatformTransactionManager` bean named `transactionManager` to be present if no explicit `transaction-manager-ref` is defined.
-
 [[jpa.java-config]]
 === Annotation-based Configuration
-The Spring Data JPA repositories support can be activated not only through an XML namespace but also by using an annotation through JavaConfig, as shown in the following example:
+The Spring Data JPA repositories support can be activated through both JavaConfig as well as a custom XML namespace, as shown in the following example:
 
 .Spring Data JPA repositories using JavaConfig
 ====
@@ -96,6 +57,47 @@ class ApplicationConfig {
 NOTE: You must create `LocalContainerEntityManagerFactoryBean` and not `EntityManagerFactory` directly, since the former also participates in exception translation mechanisms in addition to creating `EntityManagerFactory`.
 
 The preceding configuration class sets up an embedded HSQL database by using the `EmbeddedDatabaseBuilder` API of `spring-jdbc`. Spring Data then sets up an `EntityManagerFactory` and uses Hibernate as the sample persistence provider. The last infrastructure component declared here is the `JpaTransactionManager`. Finally, the example activates Spring Data JPA repositories by using the `@EnableJpaRepositories` annotation, which essentially carries the same attributes as the XML namespace. If no base package is configured, it uses the one in which the configuration class resides.
+
+[[jpa.namespace]]
+=== Spring Namespace
+
+The JPA module of Spring Data contains a custom namespace that allows defining repository beans. It also contains certain features and element attributes that are special to JPA. Generally, the JPA repositories can be set up by   using the `repositories` element, as shown in the following example:
+
+.Setting up JPA repositories by using the namespace
+====
+[source, xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans
+    https://www.springframework.org/schema/beans/spring-beans.xsd
+    http://www.springframework.org/schema/data/jpa
+    https://www.springframework.org/schema/data/jpa/spring-jpa.xsd">
+
+  <jpa:repositories base-package="com.acme.repositories" />
+
+</beans>
+----
+====
+
+TIP: Which is better, JavaConfig or XML? XML is how Spring was configured long ago. In today's era of fast-growing Java, record types, annotations, and more, new projects typically use as much pure Java as possible. While there is no immediate plan to remove XML support, some of the newest features MAY not be available through XML.
+
+Using the `repositories` element looks up Spring Data repositories as described in "`<<repositories.create-instances>>`". Beyond that, it activates persistence exception translation for all beans annotated with `@Repository`, to let exceptions being thrown by the JPA persistence providers be converted into Spring's `DataAccessException` hierarchy.
+
+[[jpa.namespace.custom-namespace-attributes]]
+==== Custom Namespace Attributes
+Beyond the default attributes of the `repositories` element, the JPA namespace offers additional attributes to let you gain more detailed control over the setup of the repositories:
+
+.Custom JPA-specific attributes of the `repositories` element
+[options = "autowidth"]
+|===============
+|`entity-manager-factory-ref`|Explicitly wire the `EntityManagerFactory` to be used with the repositories being detected by the `repositories` element. Usually used if multiple `EntityManagerFactory` beans are used within the application. If not configured, Spring Data automatically looks up the `EntityManagerFactory` bean with the name `entityManagerFactory` in the `ApplicationContext`.
+|`transaction-manager-ref`|Explicitly wire the `PlatformTransactionManager` to be used with the repositories being detected by the `repositories` element. Usually only necessary if multiple transaction managers or `EntityManagerFactory` beans have been configured. Default to a single defined `PlatformTransactionManager` inside the current `ApplicationContext`.
+|===============
+
+NOTE: Spring Data JPA requires a `PlatformTransactionManager` bean named `transactionManager` to be present if no explicit `transaction-manager-ref` is defined.
 
 [[jpa.bootstrap-mode]]
 === Bootstrap Mode
@@ -274,6 +276,23 @@ Using `distinct` sometimes requires writing the query by hand and using `@Query`
 to capture the result set.
 ====
 
+[[jpa.query-methods.named-queries.annotation-based-configuration]]
+==== Annotation-based Configuration
+Annotation-based configuration has the advantage of not needing another configuration file to be edited, lowering maintenance effort. You pay for that benefit by the need to recompile your domain class for every new query declaration.
+
+.Annotation-based named query configuration
+====
+[source, java]
+----
+@Entity
+@NamedQuery(name = "User.findByEmailAddress",
+  query = "select u from User u where u.emailAddress = ?1")
+public class User {
+
+}
+----
+====
+
 [[jpa.query-methods.named-queries]]
 === Using JPA Named Queries
 
@@ -294,23 +313,6 @@ To use XML configuration, add the necessary `<named-query />` element to the `or
 ====
 
 The query has a special name that is used to resolve it at runtime.
-
-[[jpa.query-methods.named-queries.annotation-based-configuration]]
-==== Annotation-based Configuration
-Annotation-based configuration has the advantage of not needing another configuration file to be edited, lowering maintenance effort. You pay for that benefit by the need to recompile your domain class for every new query declaration.
-
-.Annotation-based named query configuration
-====
-[source, java]
-----
-@Entity
-@NamedQuery(name = "User.findByEmailAddress",
-  query = "select u from User u where u.emailAddress = ?1")
-public class User {
-
-}
-----
-====
 
 [[jpa.query-methods.named-queries.declaring-interfaces]]
 ==== Declaring Interfaces

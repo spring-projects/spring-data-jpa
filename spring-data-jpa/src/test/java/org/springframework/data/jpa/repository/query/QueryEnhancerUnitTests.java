@@ -36,6 +36,7 @@ import org.springframework.data.jpa.domain.JpaSort;
  * Unit tests for {@link QueryEnhancer}.
  *
  * @author Diego Krupitza
+ * @author Geoffrey Deremetz
  */
 class QueryEnhancerUnitTests {
 
@@ -879,6 +880,72 @@ class QueryEnhancerUnitTests {
 		assertThat(queryEnhancer.detectAlias()).isEqualToIgnoringCase("a");
 		assertThat(queryEnhancer.getProjection()).isEqualToIgnoringCase("day, value");
 		assertThat(queryEnhancer.hasConstructorExpression()).isFalse();
+	}
+
+	@ParameterizedTest // GH-2593
+	@MethodSource("insertStatementIsProcessedSameAsDefaultSource")
+	void insertStatementIsProcessedSameAsDefault(String insertQuery) {
+
+		StringQuery stringQuery = new StringQuery(insertQuery, true);
+		QueryEnhancer queryEnhancer = QueryEnhancerFactory.forQuery(stringQuery);
+
+		Sort sorting = Sort.by("day").descending();
+
+		// queryutils results
+		String queryUtilsDetectAlias = QueryUtils.detectAlias(insertQuery);
+		String queryUtilsProjection = QueryUtils.getProjection(insertQuery);
+		String queryUtilsCountQuery = QueryUtils.createCountQueryFor(insertQuery);
+		Set<String> queryUtilsOuterJoinAlias = QueryUtils.getOuterJoinAliases(insertQuery);
+
+		// direct access
+		assertThat(stringQuery.getAlias()).isEqualToIgnoringCase(queryUtilsDetectAlias);
+		assertThat(stringQuery.getProjection()).isEqualToIgnoringCase(queryUtilsProjection);
+		assertThat(stringQuery.hasConstructorExpression()).isFalse();
+
+		// access over enhancer
+		assertThat(queryEnhancer.createCountQueryFor()).isEqualToIgnoringCase(queryUtilsCountQuery);
+		assertThat(queryEnhancer.applySorting(sorting)).isEqualTo(insertQuery); // cant check with queryutils result since
+																																						// query utils appens order by which is not
+																																						// supported by sql standard.
+		assertThat(queryEnhancer.getJoinAliases()).isEqualTo(queryUtilsOuterJoinAlias);
+		assertThat(queryEnhancer.detectAlias()).isEqualToIgnoringCase(queryUtilsDetectAlias);
+		assertThat(queryEnhancer.getProjection()).isEqualToIgnoringCase(queryUtilsProjection);
+		assertThat(queryEnhancer.hasConstructorExpression()).isFalse();
+	}
+
+	@ParameterizedTest // GH-2641
+	@MethodSource("mergeStatementWorksWithJSqlParserSource")
+	void mergeStatementWorksWithJSqlParser(String query, String alias) {
+
+		StringQuery stringQuery = new StringQuery(query, true);
+		QueryEnhancer queryEnhancer = QueryEnhancerFactory.forQuery(stringQuery);
+
+		assertThat(queryEnhancer.detectAlias()).isEqualTo(alias);
+		assertThat(QueryUtils.detectAlias(query)).isNull();
+
+		assertThat(queryEnhancer.getJoinAliases()).isEmpty();
+		assertThat(queryEnhancer.detectAlias()).isEqualTo(alias);
+		assertThat(queryEnhancer.getProjection()).isEmpty();
+		assertThat(queryEnhancer.hasConstructorExpression()).isFalse();
+	}
+
+	public static Stream<Arguments> insertStatementIsProcessedSameAsDefaultSource() {
+
+		return Stream.of( //
+				Arguments.of("INSERT INTO FOO(A) VALUES('A')"), //
+				Arguments.of("INSERT INTO randomsecondTable(A,B,C,D) VALUES('A','B','C','D')") //
+		);
+	}
+
+	public static Stream<Arguments> mergeStatementWorksWithJSqlParserSource() {
+
+		return Stream.of( //
+				Arguments.of(
+						"merge into a using (select id, value from b) query on (a.id = query.id) when matched then update set a.value = value",
+						"query"),
+				Arguments.of(
+						"merge into a using (select id2, value from b) on (id = id2) when matched then update set a.value = value",
+						null));
 	}
 
 	public static Stream<Arguments> detectsJoinAliasesCorrectlySource() {
