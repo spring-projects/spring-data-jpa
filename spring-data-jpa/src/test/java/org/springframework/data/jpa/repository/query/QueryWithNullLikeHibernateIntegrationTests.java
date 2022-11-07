@@ -15,7 +15,7 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import jakarta.persistence.EntityManagerFactory;
 
@@ -52,13 +52,14 @@ import org.springframework.transaction.annotation.Transactional;
  * Verify that {@literal LIKE}s mixed with {@literal NULL}s work properly.
  *
  * @author Greg Turnquist
+ * @author Yuriy Tsarkov
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = QueryWithNullLikeHibernateIntegrationTests.Config.class)
 @Transactional
 public class QueryWithNullLikeHibernateIntegrationTests {
 
-	@Autowired EmpoyeeWithNullLikeRepository repository;
+	@Autowired EmployeeWithNullLikeRepository repository;
 
 	@BeforeEach
 	void setUp() {
@@ -98,8 +99,7 @@ public class QueryWithNullLikeHibernateIntegrationTests {
 
 		List<EmployeeWithName> Employees = repository.customQueryWithNullableParam(null);
 
-		assertThat(Employees).extracting(EmployeeWithName::getName).containsExactlyInAnyOrder("Frodo Baggins",
-				"Bilbo Baggins");
+		assertThat(Employees).extracting(EmployeeWithName::getName).isEmpty();
 	}
 
 	@Test
@@ -132,8 +132,7 @@ public class QueryWithNullLikeHibernateIntegrationTests {
 
 		List<EmployeeWithName> Employees = repository.findByNameStartsWith(null);
 
-		assertThat(Employees).extracting(EmployeeWithName::getName).containsExactlyInAnyOrder("Frodo Baggins",
-				"Bilbo Baggins");
+		assertThat(Employees).extracting(EmployeeWithName::getName).isEmpty();
 	}
 
 	@Test
@@ -167,8 +166,7 @@ public class QueryWithNullLikeHibernateIntegrationTests {
 
 		List<EmployeeWithName> Employees = repository.findByNameEndsWith(null);
 
-		assertThat(Employees).extracting(EmployeeWithName::getName).containsExactlyInAnyOrder("Frodo Baggins",
-				"Bilbo Baggins");
+		assertThat(Employees).extracting(EmployeeWithName::getName).isEmpty();
 	}
 
 	@Test
@@ -202,8 +200,7 @@ public class QueryWithNullLikeHibernateIntegrationTests {
 
 		List<EmployeeWithName> Employees = repository.findByNameContains(null);
 
-		assertThat(Employees).extracting(EmployeeWithName::getName).containsExactlyInAnyOrder("Frodo Baggins",
-				"Bilbo Baggins");
+		assertThat(Employees).extracting(EmployeeWithName::getName).isEmpty();
 	}
 
 	@Test
@@ -233,7 +230,7 @@ public class QueryWithNullLikeHibernateIntegrationTests {
 	}
 
 	@Transactional
-	public interface EmpoyeeWithNullLikeRepository extends JpaRepository<EmployeeWithName, Integer> {
+	public interface EmployeeWithNullLikeRepository extends JpaRepository<EmployeeWithName, Integer> {
 
 		@Query("select e from EmployeeWithName e where e.name like %:partialName%")
 		List<EmployeeWithName> customQueryWithNullableParam(@Nullable @Param("partialName") String partialName);
@@ -248,7 +245,7 @@ public class QueryWithNullLikeHibernateIntegrationTests {
 	}
 
 	@EnableJpaRepositories(considerNestedRepositories = true, //
-			includeFilters = @Filter(type = FilterType.ASSIGNABLE_TYPE, classes = EmpoyeeWithNullLikeRepository.class))
+			includeFilters = @Filter(type = FilterType.ASSIGNABLE_TYPE, classes = EmployeeWithNullLikeRepository.class))
 	@EnableTransactionManagement
 	static class Config {
 

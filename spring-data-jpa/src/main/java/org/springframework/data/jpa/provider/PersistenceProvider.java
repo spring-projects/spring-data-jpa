@@ -53,6 +53,7 @@ import org.springframework.util.ConcurrentReferenceHashMap;
  * @author Mark Paluch
  * @author Jens Schauder
  * @author Greg Turnquist
+ * @author Yuriy Tsarkov
  */
 public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, QueryComment {
 
@@ -330,7 +331,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, Quer
 				Class<?> typeParameterValue = ClassUtils.forName("org.hibernate.query.TypedParameterValue", classLoader);
 
 				if (typeParameterValue.isInstance(value)) {
-					return "";
+					return null;
 				}
 			} catch (ClassNotFoundException | LinkageError o_O) {
 				return value;

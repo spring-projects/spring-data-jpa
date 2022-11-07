@@ -18,12 +18,7 @@ package org.springframework.data.jpa.repository.query;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.ParameterExpression;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -50,6 +45,7 @@ import org.springframework.util.ObjectUtils;
  * @author Christoph Strobl
  * @author Jens Schauder
  * @author Andrey Kovalev
+ * @author Yuriy Tsarkov
  */
 class ParameterMetadataProvider {
 
@@ -237,28 +233,28 @@ class ParameterMetadataProvider {
 
 			Assert.notNull(value, "Value must not be null");
 
-			Class<? extends T> expressionType = expression.getJavaType();
+			Object condensedValue = PersistenceProvider.condense(value);
 
-			if (expressionType == null) {
-				return value;
+			if (condensedValue == null || expression.getJavaType() == null) {
+				return condensedValue;
 			}
 
-			if (String.class.equals(expressionType) && !noWildcards) {
+			if (String.class.equals(expression.getJavaType()) && !noWildcards) {
 
 				switch (type) {
 					case STARTING_WITH:
-						return String.format("%s%%", escape.escape(PersistenceProvider.condense(value).toString()));
+						return String.format("%s%%", escape.escape(condensedValue.toString()));
 					case ENDING_WITH:
-						return String.format("%%%s", escape.escape(PersistenceProvider.condense(value).toString()));
+						return String.format("%%%s", escape.escape(condensedValue.toString()));
 					case CONTAINING:
 					case NOT_CONTAINING:
-						return String.format("%%%s%%", escape.escape(PersistenceProvider.condense(value).toString()));
+						return String.format("%%%s%%", escape.escape(condensedValue.toString()));
 					default:
-						return PersistenceProvider.condense(value);
+						return condensedValue;
 				}
 			}
 
-			return Collection.class.isAssignableFrom(expressionType) //
+			return Collection.class.isAssignableFrom(expression.getJavaType()) //
 					? upperIfIgnoreCase(ignoreCase, toCollection(value)) //
 					: value;
 		}
