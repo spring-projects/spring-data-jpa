@@ -15,7 +15,8 @@
  */
 package org.springframework.data.jpa.provider;
 
-import static org.springframework.data.jpa.provider.JpaClassUtils.*;
+import static org.springframework.data.jpa.provider.JpaClassUtils.isEntityManagerOfType;
+import static org.springframework.data.jpa.provider.JpaClassUtils.isMetamodelOfType;
 import static org.springframework.data.jpa.provider.PersistenceProvider.Constants.*;
 
 import java.util.Collections;
@@ -33,7 +34,6 @@ import org.eclipse.persistence.queries.ScrollableCursor;
 import org.hibernate.ScrollMode;
 import org.hibernate.ScrollableResults;
 import org.hibernate.proxy.HibernateProxy;
-
 import org.springframework.data.jpa.repository.query.JpaParameters;
 import org.springframework.data.jpa.repository.query.JpaParametersParameterAccessor;
 import org.springframework.data.util.CloseableIterator;
@@ -50,6 +50,8 @@ import org.springframework.util.ConcurrentReferenceHashMap;
  * @author Thomas Darimont
  * @author Mark Paluch
  * @author Jens Schauder
+ * @author Greg Turnquist
+ * @author Yuriy Tsarkov
  */
 public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 
@@ -119,7 +121,8 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 		}
 
 		@Override
-		public JpaParametersParameterAccessor getParameterAccessor(JpaParameters parameters, Object[] values, EntityManager em) {
+		public JpaParametersParameterAccessor getParameterAccessor(JpaParameters parameters, Object[] values,
+				EntityManager em) {
 			return new HibernateJpaParametersParameterAccessor(parameters, values, em);
 		}
 	},
@@ -211,6 +214,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 	static ConcurrentReferenceHashMap<Class<?>, PersistenceProvider> CACHE = new ConcurrentReferenceHashMap<>();
 	private final Iterable<String> entityManagerClassNames;
 	private final Iterable<String> metamodelClassNames;
+
 	/**
 	 * Creates a new {@link PersistenceProvider}.
 	 *
@@ -294,7 +298,8 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 		return cacheAndReturn(metamodelType, GENERIC_JPA);
 	}
 
-	public JpaParametersParameterAccessor getParameterAccessor(JpaParameters parameters, Object[] values, EntityManager em) {
+	public JpaParametersParameterAccessor getParameterAccessor(JpaParameters parameters, Object[] values,
+			EntityManager em) {
 		return new JpaParametersParameterAccessor(parameters, values);
 	}
 
@@ -349,7 +354,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor {
 				Class<?> typeParameterValue = ClassUtils.forName("org.hibernate.jpa.TypedParameterValue", classLoader);
 
 				if (typeParameterValue.isInstance(value)) {
-					return "";
+					return null;
 				}
 			} catch (ClassNotFoundException | LinkageError o_O) {
 				return value;
