@@ -15,7 +15,8 @@
  */
 package org.springframework.data.jpa.provider;
 
-import static org.springframework.data.jpa.provider.JpaClassUtils.*;
+import static org.springframework.data.jpa.provider.JpaClassUtils.isEntityManagerOfType;
+import static org.springframework.data.jpa.provider.JpaClassUtils.isMetamodelOfType;
 import static org.springframework.data.jpa.provider.PersistenceProvider.Constants.*;
 
 import jakarta.persistence.EntityManager;
@@ -24,11 +25,7 @@ import jakarta.persistence.metamodel.IdentifiableType;
 import jakarta.persistence.metamodel.Metamodel;
 import jakarta.persistence.metamodel.SingularAttribute;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Set;
+import java.util.*;
 
 import org.eclipse.persistence.config.QueryHints;
 import org.eclipse.persistence.jpa.JpaQuery;
@@ -53,6 +50,7 @@ import org.springframework.util.ConcurrentReferenceHashMap;
  * @author Mark Paluch
  * @author Jens Schauder
  * @author Greg Turnquist
+ * @author Yuriy Tsarkov
  */
 public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, QueryComment {
 
@@ -330,7 +328,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, Quer
 				Class<?> typeParameterValue = ClassUtils.forName("org.hibernate.query.TypedParameterValue", classLoader);
 
 				if (typeParameterValue.isInstance(value)) {
-					return "";
+					return null;
 				}
 			} catch (ClassNotFoundException | LinkageError o_O) {
 				return value;

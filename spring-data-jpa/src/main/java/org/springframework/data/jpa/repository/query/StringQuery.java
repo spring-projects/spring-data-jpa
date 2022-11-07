@@ -15,8 +15,9 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static java.util.regex.Pattern.*;
-import static org.springframework.util.ObjectUtils.*;
+import static java.util.regex.Pattern.CASE_INSENSITIVE;
+import static org.springframework.util.ObjectUtils.nullSafeEquals;
+import static org.springframework.util.ObjectUtils.nullSafeHashCode;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
@@ -49,6 +50,7 @@ import org.springframework.util.StringUtils;
  * @author Jens Schauder
  * @author Diego Krupitza
  * @author Greg Turnquist
+ * @author Yuriy Tsarkov
  */
 class StringQuery implements DeclaredQuery {
 
@@ -638,7 +640,7 @@ class StringQuery implements DeclaredQuery {
 
 		/**
 		 * Creates a new {@link LikeParameterBinding} for the parameter with the given name and {@link Type}.
-		 * 
+		 *
 		 * @param name must not be {@literal null} or empty.
 		 * @param type must not be {@literal null}.
 		 */
@@ -649,7 +651,7 @@ class StringQuery implements DeclaredQuery {
 		/**
 		 * Creates a new {@link LikeParameterBinding} for the parameter with the given name and {@link Type} and parameter
 		 * binding input.
-		 * 
+		 *
 		 * @param name must not be {@literal null} or empty.
 		 * @param type must not be {@literal null}.
 		 * @param expression may be {@literal null}.
@@ -713,20 +715,21 @@ class StringQuery implements DeclaredQuery {
 		@Override
 		public Object prepare(@Nullable Object value) {
 
-			if (value == null) {
+			Object condensedValue = PersistenceProvider.condense(value);
+			if (condensedValue == null) {
 				return null;
 			}
 
 			switch (type) {
 				case STARTING_WITH:
-					return String.format("%s%%", PersistenceProvider.condense(value));
+					return String.format("%s%%", condensedValue);
 				case ENDING_WITH:
-					return String.format("%%%s", PersistenceProvider.condense(value));
+					return String.format("%%%s", condensedValue);
 				case CONTAINING:
-					return String.format("%%%s%%", PersistenceProvider.condense(value));
+					return String.format("%%%s%%", condensedValue);
 				case LIKE:
 				default:
-					return PersistenceProvider.condense(value);
+					return condensedValue;
 			}
 		}
 
