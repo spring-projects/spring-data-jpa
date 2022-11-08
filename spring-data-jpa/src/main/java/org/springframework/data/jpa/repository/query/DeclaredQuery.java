@@ -27,7 +27,7 @@ import org.springframework.util.ObjectUtils;
  * @author Diego Krupitza
  * @since 2.0.3
  */
-interface DeclaredQuery {
+public interface DeclaredQuery {
 
 	/**
 	 * Creates a {@literal DeclaredQuery} from a query {@literal String}.
@@ -111,4 +111,27 @@ interface DeclaredQuery {
 	default boolean isNativeQuery() {
 		return false;
 	}
+
+	/**
+	 * Gets the {@link QueryEnhancer} used for this Query.
+	 * 
+	 * @return the concrete {@link QueryEnhancer} implementation used for this given Query
+	 */
+	@Nullable
+	QueryEnhancer getQueryEnhancer();
+
+	/**
+	 * Returns the methods {@link QueryEnhancerChoice} annotation
+	 *
+	 * @return
+	 */
+	@Nullable
+	QueryEnhancerChoice getQueryEnhancerChoice();
+
+	/**
+	 * Returns whether the method has a {@link QueryEnhancerChoice} or not
+	 *
+	 * @return
+	 */
+	boolean hasQueryEnhancerChoice();
 }

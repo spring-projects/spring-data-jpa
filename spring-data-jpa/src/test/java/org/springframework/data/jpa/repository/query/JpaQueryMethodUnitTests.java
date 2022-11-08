@@ -27,10 +27,14 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -48,6 +52,7 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryHints;
+import org.springframework.data.jpa.repository.sample.MyCustomQueryEnhancer;
 import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
@@ -66,6 +71,7 @@ import org.springframework.data.util.ClassTypeInformation;
  * @author Christoph Strobl
  * @author Jens Schauder
  * @author Mark Paluch
+ * @author Diego Krupitza
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -479,6 +485,49 @@ public class JpaQueryMethodUnitTests {
 		assertThat(method.getEntityGraph().getType()).isEqualTo(EntityGraphType.LOAD);
 	}
 
+	@MethodSource("shouldDetectQueryEnhancerChoiceCorrectlySource")
+	@ParameterizedTest
+	void shouldDetectQueryEnhancerChoiceCorrectly(String methodName, Class<? extends QueryEnhancer> expected)
+			throws Exception {
+
+		JpaQueryMethod queryMethod = getQueryMethod(ValidRepository.class, methodName);
+
+		if (expected == null) {
+			assertThat(queryMethod.getQueryEnhancerChoice()).isNull();
+		} else {
+			assertThat(queryMethod.getQueryEnhancerChoice().value()).isEqualTo(expected);
+		}
+	}
+
+	@MethodSource("shouldDetectQueryEnhancerChoiceCorrectlyOnInterfaceLevelSource")
+	@ParameterizedTest
+	void shouldDetectQueryEnhancerChoiceCorrectlyOnInterfaceLevel(String methodName,
+			Class<? extends QueryEnhancer> expected) throws Exception {
+
+		JpaQueryMethod queryMethod = getQueryMethod(QueryEnhancerRepositoryMode.class, methodName);
+
+		assertThat(queryMethod.getQueryEnhancerChoice()).isNotNull();
+		assertThat(queryMethod.getQueryEnhancerChoice().value()).isEqualTo(expected);
+	}
+
+	public static Stream<Arguments> shouldDetectQueryEnhancerChoiceCorrectlySource() {
+		return Stream.of( //
+				Arguments.of("shouldUseDefaultEnhancer", DefaultQueryEnhancer.class), //
+				Arguments.of("shouldUseJSQLParserEnhancer", JSqlParserQueryEnhancer.class), //
+				Arguments.of("shouldUseTotalCustomEnhancer", MyCustomQueryEnhancer.class), //
+				Arguments.of("findsProjection", null) //
+		);
+	}
+
+	public static Stream<Arguments> shouldDetectQueryEnhancerChoiceCorrectlyOnInterfaceLevelSource() {
+		return Stream.of( //
+				Arguments.of("shouldUseDefaultEnhancer", DefaultQueryEnhancer.class), //
+				Arguments.of("shouldUseJSQLParserEnhancer", JSqlParserQueryEnhancer.class), //
+				Arguments.of("shouldUseTotalCustomEnhancer", MyCustomQueryEnhancer.class), //
+				Arguments.of("findAll", DefaultQueryEnhancer.class) //
+		);
+	}
+
 	/**
 	 * Interface to define invalid repository methods for testing.
 	 *
@@ -543,6 +592,36 @@ public class JpaQueryMethodUnitTests {
 
 		@CustomComposedAnnotationWithAliasFor
 		void withMetaAnnotationUsingAliasFor();
+
+		@QueryEnhancerChoice(JSqlParserQueryEnhancer.class)
+		@org.springframework.data.jpa.repository.Query(value = "Select * from User u", nativeQuery = true)
+		List<User> shouldUseJSQLParserEnhancer();
+
+		@QueryEnhancerChoice
+		@org.springframework.data.jpa.repository.Query(value = "Select * from User u", nativeQuery = true)
+		List<User> shouldUseDefaultEnhancer();
+
+		@QueryEnhancerChoice(MyCustomQueryEnhancer.class)
+		@org.springframework.data.jpa.repository.Query(value = "Select * from User u", nativeQuery = true)
+		List<User> shouldUseTotalCustomEnhancer();
+	}
+
+	@QueryEnhancerChoice
+	interface QueryEnhancerRepositoryMode extends Repository<User, Integer> {
+
+		List<User> findAll();
+
+		@QueryEnhancerChoice(JSqlParserQueryEnhancer.class)
+		@org.springframework.data.jpa.repository.Query(value = "Select * from User u", nativeQuery = true)
+		List<User> shouldUseJSQLParserEnhancer();
+
+		@QueryEnhancerChoice
+		@org.springframework.data.jpa.repository.Query(value = "Select * from User u", nativeQuery = true)
+		List<User> shouldUseDefaultEnhancer();
+
+		@QueryEnhancerChoice(MyCustomQueryEnhancer.class)
+		@org.springframework.data.jpa.repository.Query(value = "Select * from User u", nativeQuery = true)
+		List<User> shouldUseTotalCustomEnhancer();
 	}
 
 	interface JpaRepositoryOverride extends JpaRepository<User, Integer> {

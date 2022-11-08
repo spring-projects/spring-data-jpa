@@ -27,6 +27,7 @@ import org.springframework.data.jpa.domain.sample.SpecialUser;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.data.jpa.repository.query.Procedure;
+import org.springframework.data.jpa.repository.query.QueryEnhancerChoice;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
@@ -692,6 +693,10 @@ public interface UserRepository
 					+ "on (sd_user.id = request.id) " + "when matched then " + "    update set sd_user.age = 30",
 			nativeQuery = true)
 	int mergeNativeStatement();
+
+	@Query(value = "Select u from User u")
+	@QueryEnhancerChoice(MyCustomQueryEnhancer.class)
+	Page<User> findPageWithCustomQueryEnhancer(Pageable pageable);
 
 	interface RolesAndFirstname {
 

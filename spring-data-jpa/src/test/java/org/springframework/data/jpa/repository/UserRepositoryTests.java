@@ -15,14 +15,13 @@
  */
 package org.springframework.data.jpa.repository;
 
-import static java.util.Arrays.asList;
+import static java.util.Arrays.*;
 import static org.assertj.core.api.Assertions.*;
-import static org.springframework.data.domain.Example.of;
+import static org.springframework.data.domain.Example.*;
 import static org.springframework.data.domain.ExampleMatcher.*;
-import static org.springframework.data.domain.Sort.Direction.ASC;
-import static org.springframework.data.domain.Sort.Direction.DESC;
+import static org.springframework.data.domain.Sort.Direction.*;
+import static org.springframework.data.jpa.domain.Specification.*;
 import static org.springframework.data.jpa.domain.Specification.not;
-import static org.springframework.data.jpa.domain.Specification.where;
 import static org.springframework.data.jpa.domain.sample.UserSpecifications.*;
 
 import jakarta.persistence.EntityManager;
@@ -34,7 +33,14 @@ import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import lombok.Data;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import org.assertj.core.api.SoftAssertions;
@@ -48,7 +54,14 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.ExampleMatcher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.jpa.domain.Specification;
@@ -2985,7 +2998,7 @@ public class UserRepositoryTests {
 		repository.save(secondPeter);
 
 		User firstDiego = new User("Diego", "2", "email3@test.com");
-		repository.save(secondPeter);
+		repository.save(firstDiego);
 
 		User exampleUser = new User(exampleFirstName, "IGNORE", "IGNORE@IGNORE.com");
 		List<User> foundData = repository.nativeQueryWithSpELStatement(exampleUser);
@@ -3039,6 +3052,17 @@ public class UserRepositoryTests {
 				.isPresent() //
 				.map(User::getAge).contains(30);
 
+	}
+
+	@Test
+	void customQueryEnhacerIsUsedWhenUsingChoice() {
+		flushTestUsers();
+		assertThat(repository.findAll()).hasSize(4);
+
+		// this should return there is only one element because our MyCustomQueryEnhancer has for "createCountQueryFor" a
+		// simple "Select 1"
+		Page<User> pageWithCustomQueryEnhancer = repository.findPageWithCustomQueryEnhancer(Pageable.ofSize(1));
+		assertThat(pageWithCustomQueryEnhancer.getTotalElements()).isEqualTo(1);
 	}
 
 	private Page<User> executeSpecWithSort(Sort sort) {

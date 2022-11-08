@@ -27,7 +27,13 @@ import org.springframework.lang.Nullable;
  * @author Greg Turnquist
  * @since 2.7.0
  */
-public interface QueryEnhancer {
+public abstract class QueryEnhancer {
+
+	private final DeclaredQuery query;
+
+	protected QueryEnhancer(DeclaredQuery query) {
+		this.query = query;
+	}
 
 	/**
 	 * Adds {@literal order by} clause to the JPQL query. Uses the first alias to bind the sorting property to.
@@ -35,7 +41,7 @@ public interface QueryEnhancer {
 	 * @param sort the sort specification to apply.
 	 * @return the modified query string.
 	 */
-	default String applySorting(Sort sort) {
+	public String applySorting(Sort sort) {
 		return applySorting(sort, detectAlias());
 	}
 
@@ -46,22 +52,21 @@ public interface QueryEnhancer {
 	 * @param alias the alias to be used in the order by clause. May be {@literal null} or empty.
 	 * @return the modified query string.
 	 */
-	String applySorting(Sort sort, @Nullable String alias);
+	public abstract String applySorting(Sort sort, @Nullable String alias);
 
 	/**
 	 * Resolves the alias for the entity to be retrieved from the given JPA query.
 	 *
 	 * @return Might return {@literal null}.
 	 */
-	@Nullable
-	String detectAlias();
+	@Nullable public abstract String detectAlias();
 
 	/**
 	 * Creates a count projected query from the given original query.
 	 *
 	 * @return Guaranteed to be not {@literal null}.
 	 */
-	default String createCountQueryFor() {
+	public String createCountQueryFor() {
 		return createCountQueryFor(null);
 	}
 
@@ -71,14 +76,14 @@ public interface QueryEnhancer {
 	 * @param countProjection may be {@literal null}.
 	 * @return a query String to be used a count query for pagination. Guaranteed to be not {@literal null}.
 	 */
-	String createCountQueryFor(@Nullable String countProjection);
+	public abstract String createCountQueryFor(@Nullable String countProjection);
 
 	/**
 	 * Returns whether the given JPQL query contains a constructor expression.
 	 *
 	 * @return whether the given JPQL query contains a constructor expression.
 	 */
-	default boolean hasConstructorExpression() {
+	public boolean hasConstructorExpression() {
 		return QueryUtils.hasConstructorExpression(getQuery().getQueryString());
 	}
 
@@ -87,14 +92,16 @@ public interface QueryEnhancer {
 	 *
 	 * @return the projection part of the query.
 	 */
-	String getProjection();
+	public abstract String getProjection();
 
-	Set<String> getJoinAliases();
+	public abstract Set<String> getJoinAliases();
 
 	/**
 	 * Gets the query we want to use for enhancements.
 	 *
 	 * @return non-null {@link DeclaredQuery} that wraps the query
 	 */
-	DeclaredQuery getQuery();
+	public DeclaredQuery getQuery() {
+		return this.query;
+	}
 }

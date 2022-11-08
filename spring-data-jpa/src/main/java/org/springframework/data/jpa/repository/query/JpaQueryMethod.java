@@ -62,6 +62,7 @@ import org.springframework.util.StringUtils;
  * @author Сергей Цыпанов
  * @author Réda Housni Alaoui
  * @author Greg Turnquist
+ * @author Diego Krupitza
  */
 public class JpaQueryMethod extends QueryMethod {
 
@@ -98,6 +99,7 @@ public class JpaQueryMethod extends QueryMethod {
 	private final Lazy<Boolean> isProcedureQuery;
 	private final Lazy<JpaEntityMetadata<?>> entityMetadata;
 	private final Map<Class<? extends Annotation>, Optional<Annotation>> annotationCache;
+	private final Lazy<QueryEnhancerChoice> queryEnhancerChoice;
 
 	/**
 	 * Creates a {@link JpaQueryMethod}.
@@ -140,6 +142,11 @@ public class JpaQueryMethod extends QueryMethod {
 		this.isProcedureQuery = Lazy.of(() -> AnnotationUtils.findAnnotation(method, Procedure.class) != null);
 		this.entityMetadata = Lazy.of(() -> new DefaultJpaEntityMetadata<>(getDomainClass()));
 		this.annotationCache = new ConcurrentReferenceHashMap<>();
+		this.queryEnhancerChoice = Lazy.of(() -> //
+		Optional.ofNullable(AnnotatedElementUtils.findMergedAnnotation(method, QueryEnhancerChoice.class)) //
+				.orElseGet(
+						() -> AnnotatedElementUtils.findMergedAnnotation(method.getDeclaringClass(), QueryEnhancerChoice.class)) //
+		);
 
 		Assert.isTrue(!(isModifyingQuery() && getParameters().hasSpecialParameter()),
 				String.format("Modifying method must not contain %s", Parameters.TYPES));
@@ -385,6 +392,25 @@ public class JpaQueryMethod extends QueryMethod {
 	 */
 	boolean isNativeQuery() {
 		return this.isNativeQuery.get();
+	}
+
+	/**
+	 * Returns the methods {@link QueryEnhancerChoice} annotation
+	 * 
+	 * @return
+	 */
+	@Nullable
+	QueryEnhancerChoice getQueryEnhancerChoice() {
+		return this.queryEnhancerChoice.getNullable();
+	}
+
+	/**
+	 * Returns whether the method has a {@link QueryEnhancerChoice} or not
+	 *
+	 * @return
+	 */
+	boolean hasQueryEnhancerChoice() {
+		return this.queryEnhancerChoice.getOptional().isPresent();
 	}
 
 	@Override

@@ -15,9 +15,8 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.springframework.data.jpa.repository.query.JSqlParserUtils.getJSqlCount;
-import static org.springframework.data.jpa.repository.query.JSqlParserUtils.getJSqlLower;
-import static org.springframework.data.jpa.repository.query.QueryUtils.checkSortExpression;
+import static org.springframework.data.jpa.repository.query.JSqlParserUtils.*;
+import static org.springframework.data.jpa.repository.query.QueryUtils.*;
 
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Alias;
@@ -29,11 +28,23 @@ import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.delete.Delete;
 import net.sf.jsqlparser.statement.insert.Insert;
 import net.sf.jsqlparser.statement.merge.Merge;
-import net.sf.jsqlparser.statement.select.*;
+import net.sf.jsqlparser.statement.select.OrderByElement;
+import net.sf.jsqlparser.statement.select.PlainSelect;
+import net.sf.jsqlparser.statement.select.Select;
+import net.sf.jsqlparser.statement.select.SelectBody;
+import net.sf.jsqlparser.statement.select.SelectExpressionItem;
+import net.sf.jsqlparser.statement.select.SelectItem;
+import net.sf.jsqlparser.statement.select.SetOperationList;
+import net.sf.jsqlparser.statement.select.WithItem;
 import net.sf.jsqlparser.statement.update.Update;
 import net.sf.jsqlparser.statement.values.ValuesStatement;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Sort;
@@ -50,17 +61,15 @@ import org.springframework.util.StringUtils;
  * @author Geoffrey Deremetz
  * @since 2.7.0
  */
-public class JSqlParserQueryEnhancer implements QueryEnhancer {
+public class JSqlParserQueryEnhancer extends QueryEnhancer {
 
-	private final DeclaredQuery query;
 	private final ParsedType parsedType;
 
 	/**
 	 * @param query the query we want to enhance. Must not be {@literal null}.
 	 */
 	public JSqlParserQueryEnhancer(DeclaredQuery query) {
-
-		this.query = query;
+		super(query);
 		this.parsedType = detectParsedType();
 	}
 
@@ -72,7 +81,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 	private ParsedType detectParsedType() {
 
 		try {
-			Statement statement = CCJSqlParserUtil.parse(this.query.getQueryString());
+			Statement statement = CCJSqlParserUtil.parse(this.getQuery().getQueryString());
 
 			if (statement instanceof Insert) {
 				return ParsedType.INSERT;
@@ -95,7 +104,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 	@Override
 	public String applySorting(Sort sort, @Nullable String alias) {
 
-		String queryString = query.getQueryString();
+		String queryString = this.getQuery().getQueryString();
 		Assert.hasText(queryString, "Query must not be null or empty");
 
 		if (this.parsedType != ParsedType.SELECT) {
@@ -192,7 +201,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 			return new HashSet<>();
 		}
 
-		Select selectStatement = parseSelectStatement(this.query.getQueryString());
+		Select selectStatement = parseSelectStatement(this.getQuery().getQueryString());
 		PlainSelect selectBody = (PlainSelect) selectStatement.getSelectBody();
 		return this.getSelectionAliases(selectBody);
 	}
@@ -280,7 +289,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 
 	@Override
 	public String detectAlias() {
-		return detectAlias(this.query.getQueryString());
+		return detectAlias(this.getQuery().getQueryString());
 	}
 
 	/**
@@ -354,18 +363,18 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 	public String createCountQueryFor(@Nullable String countProjection) {
 
 		if (this.parsedType != ParsedType.SELECT) {
-			return this.query.getQueryString();
+			return this.getQuery().getQueryString();
 		}
 
-		Assert.hasText(this.query.getQueryString(), "OriginalQuery must not be null or empty");
+		Assert.hasText(this.getQuery().getQueryString(), "OriginalQuery must not be null or empty");
 
-		Select selectStatement = parseSelectStatement(this.query.getQueryString());
+		Select selectStatement = parseSelectStatement(this.getQuery().getQueryString());
 
 		/*
 		  We only support count queries for {@link PlainSelect}.
 		 */
 		if (!(selectStatement.getSelectBody() instanceof PlainSelect)) {
-			return this.query.getQueryString();
+			return this.getQuery().getQueryString();
 		}
 
 		PlainSelect selectBody = (PlainSelect) selectStatement.getSelectBody();
@@ -423,9 +432,9 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 			return "";
 		}
 
-		Assert.hasText(query.getQueryString(), "Query must not be null or empty");
+		Assert.hasText(this.getQuery().getQueryString(), "Query must not be null or empty");
 
-		Select selectStatement = parseSelectStatement(query.getQueryString());
+		Select selectStatement = parseSelectStatement(this.getQuery().getQueryString());
 
 		if (selectStatement.getSelectBody() instanceof ValuesStatement) {
 			return "";
@@ -451,7 +460,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 
 	@Override
 	public Set<String> getJoinAliases() {
-		return this.getJoinAliases(this.query.getQueryString());
+		return this.getJoinAliases(this.getQuery().getQueryString());
 	}
 
 	/**
@@ -490,11 +499,6 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 		// this is unfortunately the only way to check without any hacky & hard string regex magic
 		return projection.size() == 1 && projection.get(0) instanceof SelectExpressionItem
 				&& (((SelectExpressionItem) projection.get(0)).getExpression()) instanceof Column;
-	}
-
-	@Override
-	public DeclaredQuery getQuery() {
-		return this.query;
 	}
 
 	/**

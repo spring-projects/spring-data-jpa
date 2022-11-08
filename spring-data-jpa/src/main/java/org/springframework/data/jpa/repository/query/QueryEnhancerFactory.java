@@ -15,8 +15,10 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -80,6 +82,43 @@ public final class QueryEnhancerFactory {
 	 * @return an implementation of {@link QueryEnhancer} that suits the query the most
 	 */
 	public static QueryEnhancer forQuery(DeclaredQuery query) {
+		if (query.getQueryEnhancer() != null) {
+			return query.getQueryEnhancer();
+		}
+
+		if (query.hasQueryEnhancerChoice()) {
+			LOG.debug("Using QueryEnhancerChoice for the query [%s]".formatted(query.getQueryString()));
+			return getQueryEnhancerByChoice(query);
+		}
+
+		return findBestQueryEnhancerFit(query);
+	}
+
+	/**
+	 * Gets the {@link QueryEnhancer} that was selected by using the {@link QueryEnhancerChoice}.
+	 * 
+	 * @param query the query for which we want to extract the {@link QueryEnhancer}
+	 * @return an implementation of {@link QueryEnhancer} that was provided as {@link QueryEnhancerChoice}
+	 */
+	private static QueryEnhancer getQueryEnhancerByChoice(DeclaredQuery query) {
+		try {
+			return Objects.requireNonNull(query.getQueryEnhancerChoice()) //
+					.value() //
+					.getConstructor(DeclaredQuery.class) //
+					.newInstance(query);
+		} catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+			throw new IllegalStateException("Could not create QueryEnhancer of type %s for query [%s]!".formatted(
+					Objects.requireNonNull(query.getQueryEnhancerChoice()).value().getName(), query.getQueryString()), e);
+		}
+	}
+
+	/**
+	 * Tries to find the best {@link QueryEnhancer} implementation for the given query.
+	 * 
+	 * @param query the query for which we want to find the implementation
+	 * @return the best fit {@link QueryEnhancer}
+	 */
+	private static QueryEnhancer findBestQueryEnhancerFit(DeclaredQuery query) {
 		List<Lazy<QueryEnhancer>> suitableQueryEnhancers = query.isNativeQuery() ? nativeQueryEnhancers(query)
 				: nonNativeQueryEnhancers(query);
 

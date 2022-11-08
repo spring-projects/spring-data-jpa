@@ -25,6 +25,7 @@ import org.springframework.util.Assert;
  * NULL-Object pattern implementation for {@link DeclaredQuery}.
  *
  * @author Jens Schauder
+ * @author Diego Krupitza
  * @since 2.0.3
  */
 class EmptyDeclaredQuery implements DeclaredQuery {
@@ -74,6 +75,21 @@ class EmptyDeclaredQuery implements DeclaredQuery {
 
 	@Override
 	public boolean usesJdbcStyleParameters() {
+		return false;
+	}
+
+	@Override
+	public QueryEnhancer getQueryEnhancer() {
+		return null;
+	}
+
+	@Override
+	public QueryEnhancerChoice getQueryEnhancerChoice() {
+		return null;
+	}
+
+	@Override
+	public boolean hasQueryEnhancerChoice() {
 		return false;
 	}
 }

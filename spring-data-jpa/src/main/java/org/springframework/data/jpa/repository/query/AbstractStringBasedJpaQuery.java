@@ -18,9 +18,6 @@ package org.springframework.data.jpa.repository.query;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.QueryRewriter;
@@ -65,8 +62,8 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 	 * @param queryRewriter must not be {@literal null}.
 	 */
 	public AbstractStringBasedJpaQuery(JpaQueryMethod method, EntityManager em, String queryString,
-			@Nullable String countQueryString, QueryRewriter queryRewriter, QueryMethodEvaluationContextProvider evaluationContextProvider,
-			SpelExpressionParser parser) {
+			@Nullable String countQueryString, QueryRewriter queryRewriter,
+			QueryMethodEvaluationContextProvider evaluationContextProvider, SpelExpressionParser parser) {
 
 		super(method, em);
 
@@ -77,7 +74,7 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 
 		this.evaluationContextProvider = evaluationContextProvider;
 		this.query = new ExpressionBasedStringQuery(queryString, method.getEntityInformation(), parser,
-				method.isNativeQuery());
+				method.isNativeQuery(), method.getQueryEnhancerChoice());
 
 		DeclaredQuery countQuery = query.deriveCountQuery(countQueryString, method.getCountQueryProjection());
 		this.countQuery = ExpressionBasedStringQuery.from(countQuery, method.getEntityInformation(), parser,

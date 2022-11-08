@@ -22,12 +22,13 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.ParserContext;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
  * Extension of {@link StringQuery} that evaluates the given query string as a SpEL template-expression.
  * <p>
- * Currently the following template variables are available:
+ * Currently, the following template variables are available:
  * <ol>
  * <li>{@code #entityName} - the simple class name of the given entity</li>
  * <ol>
@@ -60,7 +61,23 @@ class ExpressionBasedStringQuery extends StringQuery {
 	 */
 	public ExpressionBasedStringQuery(String query, JpaEntityMetadata<?> metadata, SpelExpressionParser parser,
 			boolean nativeQuery) {
-		super(renderQueryIfExpressionOrReturnQuery(query, metadata, parser), nativeQuery && !containsExpression(query));
+		super(renderQueryIfExpressionOrReturnQuery(query, metadata, parser), nativeQuery && !containsExpression(query),
+				null);
+	}
+
+	/**
+	 * Creates a new {@link ExpressionBasedStringQuery} for the given query and {@link EntityMetadata}.
+	 *
+	 * @param query must not be {@literal null} or empty.
+	 * @param metadata must not be {@literal null}.
+	 * @param parser must not be {@literal null}.
+	 * @param nativeQuery is a given query is native or not
+	 * @param queryEnhancerChoice may be {@literal null}.
+	 */
+	public ExpressionBasedStringQuery(String query, JpaEntityMetadata<?> metadata, SpelExpressionParser parser,
+			boolean nativeQuery, @Nullable QueryEnhancerChoice queryEnhancerChoice) {
+		super(renderQueryIfExpressionOrReturnQuery(query, metadata, parser), nativeQuery && !containsExpression(query),
+				queryEnhancerChoice);
 	}
 
 	/**
@@ -74,7 +91,8 @@ class ExpressionBasedStringQuery extends StringQuery {
 	 */
 	static ExpressionBasedStringQuery from(DeclaredQuery query, JpaEntityMetadata<?> metadata,
 			SpelExpressionParser parser, boolean nativeQuery) {
-		return new ExpressionBasedStringQuery(query.getQueryString(), metadata, parser, nativeQuery);
+		return new ExpressionBasedStringQuery(query.getQueryString(), metadata, parser, nativeQuery,
+				query.getQueryEnhancerChoice());
 	}
 
 	/**

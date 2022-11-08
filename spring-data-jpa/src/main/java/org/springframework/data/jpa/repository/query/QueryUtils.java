@@ -350,7 +350,7 @@ public abstract class QueryUtils {
 	 * @param query a query string to extract the aliases of joins from. Must not be {@literal null}.
 	 * @return a {@literal Set} of aliases used in the query. Guaranteed to be not {@literal null}.
 	 */
-	static Set<String> getOuterJoinAliases(String query) {
+	public static Set<String> getOuterJoinAliases(String query) {
 
 		Set<String> result = new HashSet<>();
 		Matcher matcher = JOIN_PATTERN.matcher(query);

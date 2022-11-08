@@ -17,15 +17,21 @@ package org.springframework.data.jpa.repository.query;
 
 import static org.assertj.core.api.Assertions.*;
 
+import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.assertj.core.api.Assertions;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.data.jpa.repository.query.StringQuery.InParameterBinding;
 import org.springframework.data.jpa.repository.query.StringQuery.LikeParameterBinding;
 import org.springframework.data.jpa.repository.query.StringQuery.ParameterBinding;
+import org.springframework.data.jpa.repository.sample.MyCustomQueryEnhancer;
 import org.springframework.data.repository.query.parser.Part.Type;
 
 /**
@@ -564,6 +570,49 @@ class StringQueryUnitTests {
 		assertThat(query.getParameterBindings()) //
 				.extracting(ParameterBinding::getName) //
 				.containsExactly("age");
+	}
+
+	@Test
+	void usesNoneQueryEnhancerChoiceIfNotPresent() {
+		String queryString = "SELECT u FROM User u WHERE :age>u.age";
+
+		StringQuery query = new StringQuery(queryString, true, null);
+		assertThat(query.getQueryEnhancer()).isNotNull();
+		assertThat(query.hasQueryEnhancerChoice()).isFalse();
+		assertThat(query.getQueryEnhancerChoice()).isNull();
+	}
+
+	@ParameterizedTest
+	@MethodSource("usesCorrectQueryEnhancerChoiceSource")
+	void usesCorrectQueryEnhancerChoice(Class<? extends QueryEnhancer> choice) {
+		String queryString = "SELECT u FROM User u WHERE :age>u.age";
+
+		QueryEnhancerChoice queryEnhancerChoice = getQueryEnhancerChoice(choice);
+
+		StringQuery query = new StringQuery(queryString, true, queryEnhancerChoice);
+		assertThat(query.getQueryEnhancer()).isNotNull();
+		assertThat(query.hasQueryEnhancerChoice()).isTrue();
+		assertThat(query.getQueryEnhancerChoice()).isNotNull().extracting(QueryEnhancerChoice::value).isEqualTo(choice);
+	}
+
+	static Stream<Arguments> usesCorrectQueryEnhancerChoiceSource() {
+		return Stream.of(Arguments.of(DefaultQueryEnhancer.class), Arguments.of(JSqlParserQueryEnhancer.class),
+				Arguments.of(MyCustomQueryEnhancer.class));
+	}
+
+	private static QueryEnhancerChoice getQueryEnhancerChoice(Class<? extends QueryEnhancer> choice) {
+		return new QueryEnhancerChoice() {
+
+			@Override
+			public Class<? extends Annotation> annotationType() {
+				return QueryEnhancerChoice.class;
+			}
+
+			@Override
+			public Class<? extends QueryEnhancer> value() {
+				return choice;
+			}
+		};
 	}
 
 	void checkNumberOfNamedParameters(String query, int expectedSize, String label, boolean nativeQuery) {

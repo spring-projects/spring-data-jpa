@@ -26,41 +26,35 @@ import org.springframework.lang.Nullable;
  * @author Diego Krupitza
  * @since 2.7.0
  */
-public class DefaultQueryEnhancer implements QueryEnhancer {
-
-	private final DeclaredQuery query;
+public class DefaultQueryEnhancer extends QueryEnhancer {
 
 	public DefaultQueryEnhancer(DeclaredQuery query) {
-		this.query = query;
+		super(query);
 	}
 
 	@Override
 	public String applySorting(Sort sort, @Nullable String alias) {
-		return QueryUtils.applySorting(this.query.getQueryString(), sort, alias);
+		return QueryUtils.applySorting(this.getQuery().getQueryString(), sort, alias);
 	}
 
 	@Override
 	public String detectAlias() {
-		return QueryUtils.detectAlias(this.query.getQueryString());
+		return QueryUtils.detectAlias(this.getQuery().getQueryString());
 	}
 
 	@Override
 	public String createCountQueryFor(@Nullable String countProjection) {
-		return QueryUtils.createCountQueryFor(this.query.getQueryString(), countProjection);
+		return QueryUtils.createCountQueryFor(this.getQuery().getQueryString(), countProjection);
 	}
 
 	@Override
 	public String getProjection() {
-		return QueryUtils.getProjection(this.query.getQueryString());
+		return QueryUtils.getProjection(this.getQuery().getQueryString());
 	}
 
 	@Override
 	public Set<String> getJoinAliases() {
-		return QueryUtils.getOuterJoinAliases(this.query.getQueryString());
+		return QueryUtils.getOuterJoinAliases(this.getQuery().getQueryString());
 	}
 
-	@Override
-	public DeclaredQuery getQuery() {
-		return this.query;
-	}
 }
