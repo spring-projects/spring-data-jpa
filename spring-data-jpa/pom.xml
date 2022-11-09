@@ -90,7 +90,7 @@
 		<dependency>
 			<groupId>org.hsqldb</groupId>
 			<artifactId>hsqldb</artifactId>
-			<version>2.5.1</version>
+			<version>${hsqldb}</version>
 			<scope>test</scope>
 		</dependency>
 
@@ -413,5 +413,5 @@
 
 		</plugins>
 	</build>
-	
+
 </project>
