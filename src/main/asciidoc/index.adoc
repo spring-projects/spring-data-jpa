@@ -12,7 +12,7 @@ NOTE: Copies of this document may be made for your own use and for distribution 
 
 include::preface.adoc[]
 
-include::new-features.adoc[leveloffset=+1]
+include::{spring-data-commons-docs}/upgrade.adoc[leveloffset=+1]
 
 include::{spring-data-commons-docs}/dependencies.adoc[leveloffset=+1]
 
