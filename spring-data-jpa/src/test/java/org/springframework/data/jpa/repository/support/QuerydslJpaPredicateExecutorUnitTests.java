@@ -64,6 +64,7 @@ import com.querydsl.core.types.dsl.PathBuilderFactory;
  * @author Christoph Strobl
  * @author Malte Mauelshagen
  * @author Greg Turnquist
+ * @author Anatoliy Golubev
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration({ "classpath:infrastructure.xml" })
@@ -515,6 +516,80 @@ class QuerydslJpaPredicateExecutorUnitTests {
 		);
 
 		assertThat(users).allMatch(u -> u.getRoles().isEmpty());
+	}
+
+	@Test // GH-2691
+	void shouldSupportSortByWithUnpagedPageable() {
+
+		// "unpaged" pageable implementation with sort
+		@Data
+		class UnpageableWithSort implements Pageable {
+			private final Sort sort;
+
+			@Override
+			public boolean isPaged() {
+				return false;
+			}
+
+			@Override
+			public Pageable previousOrFirst() {
+				return this;
+			}
+
+			@Override
+			public Pageable next() {
+				return this;
+			}
+
+			@Override
+			public boolean hasPrevious() {
+				return false;
+			}
+
+			@Override
+			public Sort getSort() {
+				return sort;
+			}
+
+			@Override
+			public int getPageSize() {
+				throw new UnsupportedOperationException();
+			}
+
+			@Override
+			public int getPageNumber() {
+				throw new UnsupportedOperationException();
+			}
+
+			@Override
+			public long getOffset() {
+				throw new UnsupportedOperationException();
+			}
+
+			@Override
+			public Pageable first() {
+				return this;
+			}
+
+			@Override
+			public Pageable withPage(int pageNumber) {
+				if (pageNumber == 0) {
+					return this;
+				} else {
+					throw new UnsupportedOperationException();
+				}
+			}
+		}
+
+		Predicate lastnameContainsE = user.lastname.contains("e");
+
+		Page<User> result = predicateExecutor.findAll(lastnameContainsE, new UnpageableWithSort(Sort.by("lastname").ascending()));
+
+		assertThat(result).containsExactly(carter, dave, oliver);
+
+		result = predicateExecutor.findAll(lastnameContainsE, new UnpageableWithSort(Sort.by("lastname").descending()));
+
+		assertThat(result).containsExactly(oliver, dave, carter);
 	}
 
 	private interface UserProjectionInterfaceBased {
