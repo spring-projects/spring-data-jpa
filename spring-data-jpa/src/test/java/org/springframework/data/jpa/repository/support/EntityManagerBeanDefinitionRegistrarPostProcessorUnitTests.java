@@ -33,6 +33,7 @@ import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
  *
  * @author Oliver Gierke
  * @author Jens Schauder
+ * @author Mark Paluch
  */
 public class EntityManagerBeanDefinitionRegistrarPostProcessorUnitTests {
 
@@ -58,6 +59,24 @@ public class EntityManagerBeanDefinitionRegistrarPostProcessorUnitTests {
 
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 		beanFactory.registerBeanDefinition("factory", builder.getBeanDefinition());
+
+		BeanFactoryPostProcessor processor = new EntityManagerBeanDefinitionRegistrarPostProcessor();
+		processor.postProcessBeanFactory(beanFactory);
+
+		assertThat(beanFactory.getBeanDefinitionCount()).isEqualTo(2);
+	}
+
+	@Test // gh-2699
+	void avoidsDuplicateBeanRegistrations() {
+
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(StubEntityManagerFactoryBean.class);
+		builder.addConstructorArgValue(SpecialEntityManagerFactory.class);
+
+		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
+		beanFactory.registerBeanDefinition("factory", builder.getBeanDefinition());
+
+		beanFactory.registerBeanDefinition("jpaSharedEM_AWC_factory",
+				BeanDefinitionBuilder.rootBeanDefinition(Object.class).getBeanDefinition());
 
 		BeanFactoryPostProcessor processor = new EntityManagerBeanDefinitionRegistrarPostProcessor();
 		processor.postProcessBeanFactory(beanFactory);

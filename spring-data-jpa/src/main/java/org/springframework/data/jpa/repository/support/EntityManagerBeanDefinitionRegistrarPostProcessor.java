@@ -29,10 +29,8 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.AutowireCandidateQualifier;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.core.Ordered;
-import org.springframework.data.jpa.util.BeanDefinitionUtils.*;
 import org.springframework.orm.jpa.SharedEntityManagerCreator;
 
 /**
@@ -44,6 +42,7 @@ import org.springframework.orm.jpa.SharedEntityManagerCreator;
  *
  * @author Oliver Gierke
  * @author Réda Housni Alaoui
+ * @author Mark Paluch
  */
 public class EntityManagerBeanDefinitionRegistrarPostProcessor implements BeanFactoryPostProcessor, Ordered {
 
@@ -59,7 +58,7 @@ public class EntityManagerBeanDefinitionRegistrarPostProcessor implements BeanFa
 			return;
 		}
 
-		ConfigurableListableBeanFactory factory = (ConfigurableListableBeanFactory) beanFactory;
+		ConfigurableListableBeanFactory factory = beanFactory;
 
 		for (EntityManagerFactoryBeanDefinition definition : getEntityManagerFactoryBeanDefinitions(factory)) {
 
@@ -69,22 +68,27 @@ public class EntityManagerBeanDefinitionRegistrarPostProcessor implements BeanFa
 				continue;
 			}
 
+			String entityManagerBeanName = "jpaSharedEM_AWC_" + definition.getBeanName();
 			BeanDefinitionRegistry definitionRegistry = (BeanDefinitionRegistry) definitionFactory;
 
-			BeanDefinitionBuilder builder = BeanDefinitionBuilder
-					.rootBeanDefinition("org.springframework.orm.jpa.SharedEntityManagerCreator");
-			builder.setFactoryMethod("createSharedEntityManager");
-			builder.addConstructorArgReference(definition.getBeanName());
+			if (!beanFactory.containsBeanDefinition(entityManagerBeanName)
+					&& !definitionRegistry.containsBeanDefinition(entityManagerBeanName)) {
 
-			AbstractBeanDefinition emBeanDefinition = builder.getRawBeanDefinition();
+				BeanDefinitionBuilder builder = BeanDefinitionBuilder
+						.rootBeanDefinition("org.springframework.orm.jpa.SharedEntityManagerCreator");
+				builder.setFactoryMethod("createSharedEntityManager");
+				builder.addConstructorArgReference(definition.getBeanName());
 
-			emBeanDefinition.setPrimary(definition.getBeanDefinition().isPrimary());
-			emBeanDefinition.addQualifier(new AutowireCandidateQualifier(Qualifier.class, definition.getBeanName()));
-			emBeanDefinition.setScope(definition.getBeanDefinition().getScope());
-			emBeanDefinition.setSource(definition.getBeanDefinition().getSource());
-			emBeanDefinition.setLazyInit(true);
+				AbstractBeanDefinition emBeanDefinition = builder.getRawBeanDefinition();
 
-			BeanDefinitionReaderUtils.registerWithGeneratedName(emBeanDefinition, definitionRegistry);
+				emBeanDefinition.setPrimary(definition.getBeanDefinition().isPrimary());
+				emBeanDefinition.addQualifier(new AutowireCandidateQualifier(Qualifier.class, definition.getBeanName()));
+				emBeanDefinition.setScope(definition.getBeanDefinition().getScope());
+				emBeanDefinition.setSource(definition.getBeanDefinition().getSource());
+				emBeanDefinition.setLazyInit(true);
+
+				definitionRegistry.registerBeanDefinition(entityManagerBeanName, emBeanDefinition);
+			}
 		}
 	}
 }

@@ -38,7 +38,6 @@ import org.springframework.beans.factory.aot.BeanRegistrationAotProcessor;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.annotation.AnnotationConfigUtils;
@@ -164,7 +163,7 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 
 		super.registerBeansForRoot(registry, config);
 
-		prepareAndRegisterSharedEntityManger(registry, config);
+		registerSharedEntityMangerIfNotAlreadyRegistered(registry, config);
 
 		Object source = config.getSource();
 
@@ -208,18 +207,24 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 		}, registry, JpaEvaluationContextExtension.class.getName(), source);
 	}
 
-	private String prepareAndRegisterSharedEntityManger(BeanDefinitionRegistry registry,
+	private String registerSharedEntityMangerIfNotAlreadyRegistered(BeanDefinitionRegistry registry,
 			RepositoryConfigurationSource config) {
 
-		AbstractBeanDefinition entityManager = getEntityManagerBeanDefinitionFor(config, null);
-		entityManager.setRole(BeanDefinition.ROLE_SUPPORT);
-		entityManager.setSynthetic(true);
-		entityManager.setPrimary(false);
-		entityManager.setAutowireCandidate(false);
+		String entityManagerBeanRef = getEntityManagerBeanRef(config);
+		String entityManagerBeanName = "jpaSharedEM_" + entityManagerBeanRef;
 
-		String entityManagerBeanName = BeanDefinitionReaderUtils.uniqueBeanName("jpaSharedEM", registry);
+		if (!registry.containsBeanDefinition(entityManagerBeanName)) {
+
+			AbstractBeanDefinition entityManager = getEntityManagerBeanDefinitionFor(config, null);
+			entityManager.setRole(BeanDefinition.ROLE_SUPPORT);
+			entityManager.setSynthetic(true);
+			entityManager.setPrimary(false);
+			entityManager.setAutowireCandidate(false);
+
+			registry.registerBeanDefinition(entityManagerBeanName, entityManager);
+		}
+
 		entityManagerRefs.put(config, entityManagerBeanName);
-		registry.registerBeanDefinition(entityManagerBeanName, entityManager);
 		return entityManagerBeanName;
 	}
 
