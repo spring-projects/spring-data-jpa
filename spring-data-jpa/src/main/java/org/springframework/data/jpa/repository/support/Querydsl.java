@@ -115,7 +115,7 @@ public class Querydsl {
 		Assert.notNull(query, "JPQLQuery must not be null");
 
 		if (pageable.isUnpaged()) {
-			return query;
+			return applySorting(pageable.getSort(), query);
 		}
 
 		query.offset(pageable.getOffset());
