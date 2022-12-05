@@ -15,10 +15,13 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import static java.util.Collections.*;
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
-import static org.springframework.data.jpa.domain.Specification.*;
+import static java.util.Collections.singletonMap;
+import static org.assertj.core.api.Assertions.assertThatNoException;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.data.jpa.domain.Specification.where;
 
 import jakarta.persistence.EntityGraph;
 import jakarta.persistence.EntityManager;
@@ -38,7 +41,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.EntityGraph.EntityGraphType;
@@ -51,6 +53,7 @@ import org.springframework.data.repository.CrudRepository;
  * @author Thomas Darimont
  * @author Mark Paluch
  * @author Jens Schauder
+ * @author Greg Turnquist
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -122,10 +125,10 @@ class SimpleJpaRepositoryUnitTests {
 		verify(countQuery, never()).getSingleResult();
 	}
 
-	@Test // DATAJPA-177
-	void throwsExceptionIfEntityToDeleteDoesNotExist() {
+	@Test // DATAJPA-177, gh-2719
+	void doesNotThrowExceptionIfEntityToDeleteDoesNotExist() {
 
-		assertThatExceptionOfType(EmptyResultDataAccessException.class).isThrownBy(() -> repo.deleteById(4711));
+		assertThatNoException().isThrownBy(() -> repo.deleteById(4711));
 	}
 
 	@Test // DATAJPA-689, DATAJPA-696
