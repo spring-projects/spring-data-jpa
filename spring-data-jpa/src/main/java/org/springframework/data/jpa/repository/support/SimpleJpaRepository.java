@@ -829,6 +829,10 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 	private void applyQueryHints(Query query) {
 
+		if (metadata == null) {
+			return;
+		}
+
 		getQueryHints().withFetchGraphs(em).forEach(query::setHint);
 
 		if (metadata.getComment() != null && provider.getCommentHintKey() != null) {
@@ -848,6 +852,10 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	}
 
 	private void applyQueryHintsForCount(Query query) {
+
+		if (metadata == null) {
+			return;
+		}
 
 		getQueryHintsForCount().forEach(query::setHint);
 
