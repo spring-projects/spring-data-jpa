@@ -15,7 +15,12 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import static org.springframework.data.jpa.repository.query.QueryUtils.*;
+import static org.springframework.data.jpa.repository.query.QueryUtils.COUNT_QUERY_STRING;
+import static org.springframework.data.jpa.repository.query.QueryUtils.DELETE_ALL_QUERY_BY_ID_STRING;
+import static org.springframework.data.jpa.repository.query.QueryUtils.DELETE_ALL_QUERY_STRING;
+import static org.springframework.data.jpa.repository.query.QueryUtils.applyAndBind;
+import static org.springframework.data.jpa.repository.query.QueryUtils.getQueryString;
+import static org.springframework.data.jpa.repository.query.QueryUtils.toOrders;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
@@ -42,7 +47,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -167,8 +171,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 		Assert.notNull(id, ID_MUST_NOT_BE_NULL);
 
-		delete(findById(id).orElseThrow(() -> new EmptyResultDataAccessException(
-				String.format("No %s entity with id %s exists", entityInformation.getJavaType(), id), 1)));
+		findById(id).ifPresent(this::delete);
 	}
 
 	@Override
