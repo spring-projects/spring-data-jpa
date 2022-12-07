@@ -32,6 +32,7 @@ import org.springframework.lang.Nullable;
  * @author Oliver Gierke
  * @author Christoph Strobl
  * @author Diego Krupitza
+ * @author Yanming Zhou
  */
 public interface JpaSpecificationExecutor<T> {
 
@@ -104,6 +105,6 @@ public interface JpaSpecificationExecutor<T> {
 	 * @return all entities matching the given Example.
 	 * @since 3.0
 	 */
-	<S extends T, R> R findBy(Specification<T> spec, Function<FluentQuery.FetchableFluentQuery<S>, R> queryFunction);
+	<R> R findBy(Specification<T> spec, Function<FluentQuery.FetchableFluentQuery<T>, R> queryFunction);
 
 }

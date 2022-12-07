@@ -575,17 +575,17 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	}
 
 	@Override
-	public <S extends T, R> R findBy(Specification<T> spec, Function<FetchableFluentQuery<S>, R> queryFunction) {
+	public <R> R findBy(Specification<T> spec, Function<FetchableFluentQuery<T>, R> queryFunction) {
 
 		Assert.notNull(spec, "Specification must not be null");
 		Assert.notNull(queryFunction, "Query function must not be null");
 
 		Function<Sort, TypedQuery<T>> finder = sort -> getQuery(spec, getDomainClass(), sort);
 
-		FetchableFluentQuery<R> fluentQuery = new FetchableFluentQueryBySpecification<T, R>(spec, getDomainClass(),
+		FetchableFluentQuery<T> fluentQuery = new FetchableFluentQueryBySpecification<>(spec, getDomainClass(),
 				Sort.unsorted(), null, finder, this::count, this::exists, this.em);
 
-		return queryFunction.apply((FetchableFluentQuery<S>) fluentQuery);
+		return queryFunction.apply(fluentQuery);
 	}
 
 	@Override
