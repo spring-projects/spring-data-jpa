@@ -15,7 +15,7 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.springframework.data.jpa.repository.query.QueryParameterSetter.ErrorHandling.*;
+import static org.springframework.data.jpa.repository.query.QueryParameterSetter.ErrorHandling.LENIENT;
 
 import java.lang.reflect.Proxy;
 import java.util.Collections;
@@ -27,11 +27,13 @@ import java.util.function.Function;
 
 import javax.persistence.Parameter;
 import javax.persistence.Query;
+import javax.persistence.StoredProcedureQuery;
 import javax.persistence.TemporalType;
 import javax.persistence.criteria.ParameterExpression;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hibernate.jpa.TypedParameterValue;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -83,7 +85,21 @@ interface QueryParameterSetter {
 		public void setParameter(BindableQuery query, JpaParametersParameterAccessor accessor,
 				ErrorHandling errorHandling) {
 
-			Object value = valueExtractor.apply(accessor);
+			final Object value;
+
+			// TODO: When https://github.com/hibernate/hibernate-orm/pull/5438 is merged we should be able to drop this.
+			if (query.getQuery() instanceof StoredProcedureQuery) {
+
+				Object extractedValue = valueExtractor.apply(accessor);
+
+				if (extractedValue instanceof TypedParameterValue) {
+					value = ((TypedParameterValue) extractedValue).getValue();
+				} else {
+					value = extractedValue;
+				}
+			} else {
+				value = valueExtractor.apply(accessor);
+			}
 
 			if (temporalType != null) {
 

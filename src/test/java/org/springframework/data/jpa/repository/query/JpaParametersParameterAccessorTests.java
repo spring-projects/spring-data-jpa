@@ -1,8 +1,10 @@
 package org.springframework.data.jpa.repository.query;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 import java.lang.reflect.Method;
 
@@ -44,7 +46,8 @@ class JpaParametersParameterAccessorTests {
 		Method withNativeQuery = SampleRepository.class.getMethod("withNativeQuery", Integer.class);
 		Object[] values = { null };
 		JpaParameters parameters = new JpaParameters(withNativeQuery);
-		JpaParametersParameterAccessor accessor = PersistenceProvider.GENERIC_JPA.getParameterAccessor(parameters, values, em);
+		JpaParametersParameterAccessor accessor = PersistenceProvider.GENERIC_JPA.getParameterAccessor(parameters, values,
+				em);
 
 		bind(parameters, accessor);
 
@@ -71,7 +74,7 @@ class JpaParametersParameterAccessorTests {
 
 	private void bind(JpaParameters parameters, JpaParametersParameterAccessor accessor) {
 
-		ParameterBinderFactory.createBinder(parameters)
+		ParameterBinderFactory.createBinder(parameters) //
 				.bind( //
 						QueryParameterSetter.BindableQuery.from(query), //
 						accessor, //

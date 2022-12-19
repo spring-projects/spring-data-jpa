@@ -31,7 +31,6 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.NamedStoredProcedureQuery;
 import javax.sql.DataSource;
-import javax.transaction.Transactional;
 
 import org.hibernate.dialect.MySQL8Dialect;
 import org.junit.jupiter.api.Test;
@@ -54,6 +53,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.containers.MySQLContainer;
 
 import com.mysql.cj.jdbc.MysqlDataSource;
@@ -194,7 +194,7 @@ public class MySqlStoredProcedureIntegrationTests {
 	static class Config {
 
 		@SuppressWarnings("resource")
-		@Bean(initMethod = "start")
+		@Bean(initMethod = "start", destroyMethod = "stop")
 		public MySQLContainer<?> container() {
 
 			return new MySQLContainer<>("mysql:8.0.24") //
