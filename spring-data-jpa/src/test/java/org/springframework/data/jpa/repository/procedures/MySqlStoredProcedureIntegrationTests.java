@@ -16,8 +16,13 @@
 
 package org.springframework.data.jpa.repository.procedures;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.NamedStoredProcedureQuery;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -25,13 +30,7 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 import java.util.Properties;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.NamedStoredProcedureQuery;
 import javax.sql.DataSource;
-import jakarta.transaction.Transactional;
 
 import org.hibernate.dialect.MySQL8Dialect;
 import org.junit.jupiter.api.Test;
@@ -54,6 +53,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.containers.MySQLContainer;
 
 import com.mysql.cj.jdbc.MysqlDataSource;
@@ -154,7 +154,8 @@ public class MySqlStoredProcedureIntegrationTests {
 			resultClasses = Employee.class)
 	public static class Employee {
 
-		@Id @GeneratedValue private Integer id;
+		@Id
+		@GeneratedValue private Integer id;
 		private String name;
 	}
 
@@ -194,7 +195,7 @@ public class MySqlStoredProcedureIntegrationTests {
 	static class Config {
 
 		@SuppressWarnings("resource")
-		@Bean(initMethod = "start")
+		@Bean(initMethod = "start", destroyMethod = "stop")
 		public MySQLContainer<?> container() {
 
 			return new MySQLContainer<>("mysql:8.0.24") //
