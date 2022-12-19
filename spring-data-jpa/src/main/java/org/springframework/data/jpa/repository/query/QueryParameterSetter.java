@@ -15,7 +15,12 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.springframework.data.jpa.repository.query.QueryParameterSetter.ErrorHandling.*;
+import static org.springframework.data.jpa.repository.query.QueryParameterSetter.ErrorHandling.LENIENT;
+
+import jakarta.persistence.Parameter;
+import jakarta.persistence.Query;
+import jakarta.persistence.TemporalType;
+import jakarta.persistence.criteria.ParameterExpression;
 
 import java.lang.reflect.Proxy;
 import java.util.Collections;
@@ -25,13 +30,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
-import jakarta.persistence.Parameter;
-import jakarta.persistence.Query;
-import jakarta.persistence.TemporalType;
-import jakarta.persistence.criteria.ParameterExpression;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hibernate.query.TypedParameterValue;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -79,9 +80,16 @@ interface QueryParameterSetter {
 		public void setParameter(BindableQuery query, JpaParametersParameterAccessor accessor,
 				ErrorHandling errorHandling) {
 
-			Object value = valueExtractor.apply(accessor);
-
 			if (temporalType != null) {
+
+				Object extractedValue = valueExtractor.apply(accessor);
+
+				final Date value;
+				if (extractedValue instanceof TypedParameterValue<?>) {
+					value = (Date) ((TypedParameterValue<?>) extractedValue).getValue();
+				} else {
+					value = (Date) extractedValue;
+				}
 
 				// One would think we can simply use parameter to identify the parameter we want to set.
 				// But that does not work with list valued parameters. At least Hibernate tries to bind them by name.
@@ -89,9 +97,9 @@ interface QueryParameterSetter {
 				// fixed.
 
 				if (parameter instanceof ParameterExpression) {
-					errorHandling.execute(() -> query.setParameter((Parameter<Date>) parameter, (Date) value, temporalType));
+					errorHandling.execute(() -> query.setParameter((Parameter<Date>) parameter, value, temporalType));
 				} else if (query.hasNamedParameters() && parameter.getName() != null) {
-					errorHandling.execute(() -> query.setParameter(parameter.getName(), (Date) value, temporalType));
+					errorHandling.execute(() -> query.setParameter(parameter.getName(), value, temporalType));
 				} else {
 
 					Integer position = parameter.getPosition();
@@ -101,11 +109,13 @@ interface QueryParameterSetter {
 									|| query.registerExcessParameters() //
 									|| errorHandling == LENIENT)) {
 
-						errorHandling.execute(() -> query.setParameter(parameter.getPosition(), (Date) value, temporalType));
+						errorHandling.execute(() -> query.setParameter(parameter.getPosition(), value, temporalType));
 					}
 				}
 
 			} else {
+
+				final Object value = valueExtractor.apply(accessor);
 
 				if (parameter instanceof ParameterExpression) {
 					errorHandling.execute(() -> query.setParameter((Parameter<Object>) parameter, value));
