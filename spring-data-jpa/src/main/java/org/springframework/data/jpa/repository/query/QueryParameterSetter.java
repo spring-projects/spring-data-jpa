@@ -82,14 +82,11 @@ interface QueryParameterSetter {
 
 			if (temporalType != null) {
 
-				Object extractedValue = valueExtractor.apply(accessor);
+				var extractedValue = valueExtractor.apply(accessor);
 
-				final Date value;
-				if (extractedValue instanceof TypedParameterValue<?>) {
-					value = (Date) ((TypedParameterValue<?>) extractedValue).getValue();
-				} else {
-					value = (Date) extractedValue;
-				}
+				final Date value = (extractedValue instanceof TypedParameterValue<?> typedParameterValue)
+						? (Date) typedParameterValue.getValue()
+						: (Date) extractedValue;
 
 				// One would think we can simply use parameter to identify the parameter we want to set.
 				// But that does not work with list valued parameters. At least Hibernate tries to bind them by name.
