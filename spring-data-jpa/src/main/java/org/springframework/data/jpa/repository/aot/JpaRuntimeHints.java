@@ -19,12 +19,15 @@ import jakarta.persistence.NamedEntityGraph;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import org.springframework.aot.hint.ExecutableMode;
 import org.springframework.aot.hint.MemberCategory;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
 import org.springframework.aot.hint.TypeReference;
+import org.springframework.data.jpa.domain.AbstractAuditable;
+import org.springframework.data.jpa.domain.AbstractPersistable;
 import org.springframework.data.jpa.domain.support.AuditingBeanFactoryPostProcessor;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -70,6 +73,11 @@ class JpaRuntimeHints implements RuntimeHintsRegistrar {
 
 		// needs to present for evaluating default attribute values in JpaQueryMethod
 		hints.reflection().registerType(Query.class, hint -> hint.withMembers(MemberCategory.INVOKE_PUBLIC_METHODS));
+
+		// make sure annotations on the fields are visible and allow reflection on protected methods
+		hints.reflection().registerTypes(
+				List.of(TypeReference.of(AbstractPersistable.class), TypeReference.of(AbstractAuditable.class)),
+				hint -> hint.withMembers(MemberCategory.DECLARED_FIELDS, MemberCategory.INVOKE_DECLARED_METHODS));
 
 		if (QuerydslUtils.QUERY_DSL_PRESENT) {
 
