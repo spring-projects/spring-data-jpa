@@ -308,10 +308,12 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 	private String detectAlias(String query) {
 
 		if (ParsedType.MERGE.equals(this.parsedType)) {
+
 			Merge mergeStatement = parseSelectStatement(query, Merge.class);
 			return detectAlias(mergeStatement);
 
 		} else if (ParsedType.SELECT.equals(this.parsedType)) {
+
 			Select selectStatement = parseSelectStatement(query);
 
 			/*
@@ -357,6 +359,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 	 */
 	@Nullable
 	private String detectAlias(Merge mergeStatement) {
+
 		Alias alias = mergeStatement.getUsingAlias();
 		return alias == null ? null : alias.getName();
 	}
@@ -385,6 +388,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 		selectBody.setOrderByElements(null);
 
 		if (StringUtils.hasText(countProjection)) {
+
 			Function jSqlCount = getJSqlCount(Collections.singletonList(countProjection), false);
 			selectBody.setSelectItems(Collections.singletonList(new SelectExpressionItem(jSqlCount)));
 			return selectBody.toString();
@@ -399,6 +403,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 		List<SelectItem> selectItems = selectBody.getSelectItems();
 
 		if (onlyASingleColumnProjection(selectItems)) {
+
 			SelectExpressionItem singleProjection = (SelectExpressionItem) selectItems.get(0);
 
 			Column column = (Column) singleProjection.getExpression();
@@ -443,6 +448,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 		SelectBody selectBody = selectStatement.getSelectBody();
 
 		if (selectStatement.getSelectBody() instanceof SetOperationList) {
+
 			SetOperationList setOperationList = (SetOperationList) selectStatement.getSelectBody();
 			// using the first one since for setoperations the projection has to be the same
 			selectBody = setOperationList.getSelects().get(0);

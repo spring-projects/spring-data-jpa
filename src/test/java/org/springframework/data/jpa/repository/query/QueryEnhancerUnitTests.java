@@ -926,6 +926,7 @@ class QueryEnhancerUnitTests {
 	@ParameterizedTest // GH-2641
 	@MethodSource("mergeStatementWorksWithJSqlParserSource")
 	void mergeStatementWorksWithJSqlParser(String query, String alias) {
+
 		StringQuery stringQuery = new StringQuery(query, true);
 		QueryEnhancer queryEnhancer = QueryEnhancerFactory.forQuery(stringQuery);
 
@@ -939,6 +940,7 @@ class QueryEnhancerUnitTests {
 	}
 
 	public static Stream<Arguments> insertStatementIsProcessedSameAsDefaultSource() {
+
 		return Stream.of( //
 				Arguments.of("INSERT INTO FOO(A) VALUES('A')"), //
 				Arguments.of("INSERT INTO randomsecondTable(A,B,C,D) VALUES('A','B','C','D')") //
@@ -946,9 +948,11 @@ class QueryEnhancerUnitTests {
 	}
 
 	public static Stream<Arguments> mergeStatementWorksWithJSqlParserSource() {
-		return Stream.of(Arguments.of(
-				"merge into a using (select id, value from b) query on (a.id = query.id) when matched then update set a.value = value",
-				"query"),
+
+		return Stream.of( //
+				Arguments.of(
+						"merge into a using (select id, value from b) query on (a.id = query.id) when matched then update set a.value = value",
+						"query"),
 				Arguments.of(
 						"merge into a using (select id2, value from b) on (id = id2) when matched then update set a.value = value",
 						null));
