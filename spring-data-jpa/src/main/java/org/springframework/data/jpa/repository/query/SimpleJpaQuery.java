@@ -40,13 +40,13 @@ final class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
 	 *
 	 * @param method must not be {@literal null}
 	 * @param em must not be {@literal null}
-	 * @param countQueryString
+	 * @param sourceQuery the original source query, must not be {@literal null} or empty.
 	 * @param queryRewriter must not be {@literal null}
 	 * @param valueExpressionDelegate must not be {@literal null}
 	 */
-	public SimpleJpaQuery(JpaQueryMethod method, EntityManager em, @Nullable String countQueryString,
+	public SimpleJpaQuery(JpaQueryMethod method, EntityManager em, @Nullable String sourceQuery,
 			QueryRewriter queryRewriter, ValueExpressionDelegate valueExpressionDelegate) {
-		this(method, em, method.getRequiredAnnotatedQuery(), countQueryString, queryRewriter, valueExpressionDelegate);
+		this(method, em, method.getRequiredAnnotatedQuery(), sourceQuery, queryRewriter, valueExpressionDelegate);
 	}
 
 	/**
@@ -54,21 +54,20 @@ final class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
 	 *
 	 * @param method must not be {@literal null}
 	 * @param em must not be {@literal null}
-	 * @param queryString must not be {@literal null} or empty
+	 * @param sourceQuery the original source query, must not be {@literal null} or empty
 	 * @param countQueryString
 	 * @param queryRewriter
 	 * @param valueExpressionDelegate must not be {@literal null}
 	 */
-	public SimpleJpaQuery(JpaQueryMethod method, EntityManager em, String queryString, @Nullable String countQueryString, QueryRewriter queryRewriter,
-			ValueExpressionDelegate valueExpressionDelegate) {
+	public SimpleJpaQuery(JpaQueryMethod method, EntityManager em, String sourceQuery, @Nullable String countQueryString,
+			QueryRewriter queryRewriter, ValueExpressionDelegate valueExpressionDelegate) {
 
-		super(method, em, queryString, countQueryString, queryRewriter, valueExpressionDelegate);
+		super(method, em, sourceQuery, countQueryString, queryRewriter, valueExpressionDelegate);
 
-		validateQuery(getQuery().getQueryString(), "Validation failed for query for method %s", method);
+		validateQuery(getQuery(), "Validation failed for query %s for method %s", method);
 
 		if (method.isPageQuery()) {
-			validateQuery(getCountQuery().getQueryString(),
-					String.format("Count query validation failed for method %s", method));
+			validateQuery(getCountQuery(), "Count query %s validation failed for method %s", method);
 		}
 	}
 
@@ -78,23 +77,24 @@ final class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
 	 * @param query
 	 * @param errorMessage
 	 */
-	private void validateQuery(String query, String errorMessage, Object... arguments) {
+	private void validateQuery(DeclaredQuery query, String errorMessage, JpaQueryMethod method) {
 
 		if (getQueryMethod().isProcedureQuery()) {
 			return;
 		}
 
 		EntityManager validatingEm = null;
+		var queryString = query.getQueryString();
 
 		try {
 			validatingEm = getEntityManager().getEntityManagerFactory().createEntityManager();
-			validatingEm.createQuery(query);
+			validatingEm.createQuery(queryString);
 
 		} catch (RuntimeException e) {
 
 			// Needed as there's ambiguities in how an invalid query string shall be expressed by the persistence provider
-			// https://java.net/projects/jpa-spec/lists/jsr338-experts/archive/2012-07/message/17
-			throw new IllegalArgumentException(String.format(errorMessage, arguments), e);
+			// https://download.oracle.com/javaee-archive/jpa-spec.java.net/users/2012/07/0404.html
+			throw new IllegalArgumentException(errorMessage.formatted(query, method), e);
 
 		} finally {
 
