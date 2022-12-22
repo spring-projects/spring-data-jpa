@@ -26,7 +26,6 @@ import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.core.env.StandardEnvironment;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.type.AnnotationMetadata;
-import org.springframework.core.type.StandardAnnotationMetadata;
 import org.springframework.data.jpa.repository.sample.UserRepository;
 
 /**
@@ -34,6 +33,7 @@ import org.springframework.data.jpa.repository.sample.UserRepository;
  *
  * @author Oliver Gierke
  * @author Jens Schauder
+ * @author Erik Pellizzon
  */
 class JpaRepositoriesRegistrarUnitTests {
 
@@ -43,7 +43,7 @@ class JpaRepositoriesRegistrarUnitTests {
 	@BeforeEach
 	void setUp() {
 
-		metadata = new StandardAnnotationMetadata(Config.class, true);
+		metadata = AnnotationMetadata.introspect(Config.class);
 		registry = new DefaultListableBeanFactory();
 	}
 

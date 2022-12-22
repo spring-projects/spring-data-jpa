@@ -30,7 +30,6 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.jpa.domain.JpaSort;
-import org.springframework.util.StringUtils;
 
 /**
  * Unit test for {@link QueryUtils}.
@@ -48,6 +47,7 @@ import org.springframework.util.StringUtils;
  * @author Darin Manica
  * @author Chris Fraser
  * @author Michał Pachucki
+ * @author Erik Pellizzon
  */
 class QueryUtilsUnitTests {
 
@@ -264,7 +264,7 @@ class QueryUtilsUnitTests {
 			return matcher.replaceAll(" ").trim();
 		}
 
-		return StringUtils.trimWhitespace(s);
+		return s.strip();
 	}
 
 	@Test

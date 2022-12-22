@@ -43,7 +43,6 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.data.annotation.AccessType.Type;
 import org.springframework.data.annotation.Version;
-import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.data.util.TypeInformation;
 
 /**
@@ -52,6 +51,7 @@ import org.springframework.data.util.TypeInformation;
  * @author Oliver Gierke
  * @author Greg Turnquist
  * @author Jens Schauder
+ * @author Erik Pellizzon
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -147,7 +147,7 @@ class JpaPersistentPropertyImplUnitTests {
 		Iterable<? extends TypeInformation<?>> entityType = property.getPersistentEntityTypeInformation();
 		assertThat(entityType.iterator().hasNext()).isTrue();
 		assertThat(entityType.iterator().next())
-				.isEqualTo(ClassTypeInformation.from(Implementation.class));
+				.isEqualTo(TypeInformation.of(Implementation.class));
 	}
 
 	@Test // DATAJPA-716
