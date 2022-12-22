@@ -26,6 +26,7 @@ import org.springframework.util.ClassUtils;
  * Testing utilities for Hibernate.
  *
  * @author Oliver Gierke
+ * @author Erik Pellizzon
  * @soundtrack Ron Spielman - Africa's Napoleon (Swimming In The Dark)
  * @since 1.10.2
  */
@@ -48,7 +49,7 @@ public class HibernateTestUtils {
 			if (ClassUtils.isPresent(provider, classLoader)) {
 
 				try {
-					return (PersistenceProvider) ClassUtils.forName(provider, classLoader).newInstance();
+					return (PersistenceProvider) ClassUtils.forName(provider, classLoader).getDeclaredConstructor().newInstance();
 				} catch (Exception o_O) {
 					throw new RuntimeException(o_O);
 				}
