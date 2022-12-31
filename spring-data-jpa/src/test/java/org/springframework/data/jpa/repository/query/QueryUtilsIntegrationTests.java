@@ -66,6 +66,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  * @author Jens Schauder
  * @author Patrice Blanchardie
  * @author Diego Krupitza
+ * @author Krzysztof Krason
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:infrastructure.xml")
@@ -222,7 +223,7 @@ public class QueryUtilsIntegrationTests {
 
 		QueryUtils.toExpressionRecursively(root, PropertyPath.from("manager", User.class));
 
-		assertThat(getNonInnerJoins(root)).hasSize(0);
+		assertThat(getNonInnerJoins(root)).isEmpty();
 	}
 
 	@Test // DATAJPA-401

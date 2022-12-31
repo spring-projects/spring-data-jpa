@@ -49,6 +49,7 @@ import org.springframework.transaction.annotation.Transactional;
  * Integration test for executing finders, thus testing various query lookup strategies.
  *
  * @author Oliver Gierke
+ * @author Krzysztof Krason
  * @see QueryLookupStrategy
  */
 @ExtendWith(SpringExtension.class)
@@ -128,7 +129,7 @@ public class UserRepositoryFinderTests {
 
 		Page<User> page = userRepository.findByLastname(PageRequest.of(0, 1), "Matthews");
 
-		assertThat(page.getNumberOfElements()).isEqualTo(1);
+		assertThat(page.getNumberOfElements()).isOne();
 		assertThat(page.getTotalElements()).isEqualTo(2L);
 		assertThat(page.getTotalPages()).isEqualTo(2);
 	}
@@ -145,7 +146,7 @@ public class UserRepositoryFinderTests {
 
 		Page<User> page = userRepository.findByFirstnameIn(PageRequest.of(0, 1), "Dave", "Oliver August");
 
-		assertThat(page.getNumberOfElements()).isEqualTo(1);
+		assertThat(page.getNumberOfElements()).isOne();
 		assertThat(page.getTotalElements()).isEqualTo(2L);
 		assertThat(page.getTotalPages()).isEqualTo(2);
 	}
@@ -214,7 +215,7 @@ public class UserRepositoryFinderTests {
 
 		assertThat(slice).containsExactlyInAnyOrder(dave, oliver);
 		assertThat(slice.getNumberOfElements()).isEqualTo(2);
-		assertThat(slice.hasNext()).isEqualTo(false);
+		assertThat(slice.hasNext()).isFalse();
 	}
 
 	@Test // DATAJPA-830

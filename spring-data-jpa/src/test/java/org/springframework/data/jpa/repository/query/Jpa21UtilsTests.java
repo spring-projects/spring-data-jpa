@@ -16,6 +16,7 @@
 package org.springframework.data.jpa.repository.query;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assumptions.*;
 import static org.junit.Assume.*;
 import static org.springframework.data.jpa.support.EntityManagerTestUtils.*;
 
@@ -32,6 +33,7 @@ import jakarta.persistence.Subgraph;
 
 import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Assertions;
+import org.assertj.core.api.Assumptions;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -50,6 +52,7 @@ import org.springframework.util.ObjectUtils;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Jens Schauder
+ * @author Krzysztof Krason
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:application-context.xml")
@@ -61,7 +64,7 @@ public class Jpa21UtilsTests {
 	@Test // DATAJPA-1041, DATAJPA-1075
 	void shouldCreateGraphWithoutSubGraphCorrectly() {
 
-		assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
+		assumeThat(currentEntityManagerIsAJpa21EntityManager(em)).isTrue();
 
 		EntityGraph<User> graph = em.createEntityGraph(User.class);
 		Jpa21Utils.configureFetchGraphFrom(
@@ -77,7 +80,7 @@ public class Jpa21UtilsTests {
 	@Test // DATAJPA-1041, DATAJPA-1075
 	void shouldCreateGraphWithMultipleSubGraphCorrectly() {
 
-		assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
+		assumeThat(currentEntityManagerIsAJpa21EntityManager(em)).isTrue();
 
 		EntityGraph<User> graph = em.createEntityGraph(User.class);
 		Jpa21Utils.configureFetchGraphFrom(new JpaEntityGraph("name", EntityGraphType.FETCH,
@@ -94,7 +97,7 @@ public class Jpa21UtilsTests {
 	@Test // DATAJPA-1041, DATAJPA-1075
 	void shouldCreateGraphWithDeepSubGraphCorrectly() {
 
-		assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
+		assumeThat(currentEntityManagerIsAJpa21EntityManager(em)).isTrue();
 
 		EntityGraph<User> graph = em.createEntityGraph(User.class);
 		Jpa21Utils.configureFetchGraphFrom(new JpaEntityGraph("name", EntityGraphType.FETCH,
@@ -116,7 +119,7 @@ public class Jpa21UtilsTests {
 	@Test // DATAJPA-1041, DATAJPA-1075
 	void shouldIgnoreIntermedeateSubGraphNodesThatAreNotNeeded() {
 
-		assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
+		assumeThat(currentEntityManagerIsAJpa21EntityManager(em)).isTrue();
 
 		EntityGraph<User> graph = em.createEntityGraph(User.class);
 		Jpa21Utils.configureFetchGraphFrom(new JpaEntityGraph("name", EntityGraphType.FETCH, new String[] { "roles",
@@ -138,7 +141,7 @@ public class Jpa21UtilsTests {
 	@Test // DATAJPA-1041, DATAJPA-1075
 	void orderOfSubGraphsShouldNotMatter() {
 
-		assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
+		assumeThat(currentEntityManagerIsAJpa21EntityManager(em)).isTrue();
 
 		EntityGraph<User> graph = em.createEntityGraph(User.class);
 		Jpa21Utils.configureFetchGraphFrom(new JpaEntityGraph("name", EntityGraphType.FETCH, new String[] {
@@ -159,7 +162,7 @@ public class Jpa21UtilsTests {
 	@Test // DATAJPA-1041, DATAJPA-1075
 	void errorsOnUnknownProperties() {
 
-		assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
+		assumeThat(currentEntityManagerIsAJpa21EntityManager(em)).isTrue();
 
 		assertThatExceptionOfType(Exception.class).isThrownBy(() -> Jpa21Utils.configureFetchGraphFrom(
 				new JpaEntityGraph("name", EntityGraphType.FETCH, new String[] { "¯\\_(ツ)_/¯" }),
@@ -256,7 +259,6 @@ public class Jpa21UtilsTests {
 			Assertions.assertThat(attributeNode.getSubgraphs()) //
 					.describedAs(
 							String.format("Leaf properties %s could not be found; The node does not have any subgraphs", nodes)) //
-					.isNotNull() //
 					.isNotEmpty();
 
 			Subgraph<?> graph = attributeNode.getSubgraphs().values().iterator().next();
@@ -292,7 +294,6 @@ public class Jpa21UtilsTests {
 			Assertions.assertThat(attributeNode.getSubgraphs()) //
 					.describedAs(
 							String.format("Subgraphs %s could not be found; The node does not have any subgraphs", subgraphs)) //
-					.isNotNull() //
 					.isNotEmpty();
 
 			Subgraph<?> graph = attributeNode.getSubgraphs().values().iterator().next();
@@ -313,7 +314,7 @@ public class Jpa21UtilsTests {
 							attributeNode.getAttributeName());
 
 					softly.assertThat(node.getSubgraphs()) //
-							.describedAs(notSubGraph).isNotNull() //
+							.describedAs(notSubGraph) //
 							.isNotEmpty();
 				}
 			});

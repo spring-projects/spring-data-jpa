@@ -17,7 +17,6 @@ package org.springframework.data.jpa.repository;
 
 import static org.assertj.core.api.Assertions.*;
 
-import java.util.Arrays;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
@@ -32,6 +31,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 /**
  * @author Jens Schauder
+ * @author Krzysztof Krason
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:config/namespace-application-context.xml")
@@ -46,9 +46,9 @@ public class SPR8954Tests {
 		Map<String, RepositoryFactoryInformation> repoFactories = context
 				.getBeansOfType(RepositoryFactoryInformation.class);
 
-		assertThat(repoFactories.size()).isGreaterThan(0);
+		assertThat(repoFactories).isNotEmpty();
 		assertThat(repoFactories.keySet()).contains("&userRepository");
 		assertThat(repoFactories.get("&userRepository")).isInstanceOf(JpaRepositoryFactoryBean.class);
-		assertThat(Arrays.asList(context.getBeanNamesForType(UserRepository.class))).contains("userRepository");
+		assertThat(context.getBeanNamesForType(UserRepository.class)).contains("userRepository");
 	}
 }

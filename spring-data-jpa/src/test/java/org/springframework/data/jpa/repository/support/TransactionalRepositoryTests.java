@@ -37,6 +37,7 @@ import org.springframework.transaction.TransactionStatus;
  *
  * @author Oliver Gierke
  * @author Jens Schauder
+ * @author Krzysztof Krason
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration({ "classpath:config/namespace-autoconfig-context.xml", "classpath:tx-manager.xml" })
@@ -61,21 +62,21 @@ public class TransactionalRepositoryTests {
 	void simpleManipulatingOperation() {
 
 		repository.saveAndFlush(new User("foo", "bar", "foo@bar.de"));
-		assertThat(transactionManager.getTransactionRequests()).isEqualTo(1);
+		assertThat(transactionManager.getTransactionRequests()).isOne();
 	}
 
 	@Test
 	void unannotatedFinder() {
 
 		repository.findByEmailAddress("foo@bar.de");
-		assertThat(transactionManager.getTransactionRequests()).isEqualTo(0);
+		assertThat(transactionManager.getTransactionRequests()).isZero();
 	}
 
 	@Test
 	void invokeTransactionalFinder() {
 
 		repository.findByAnnotatedQuery("foo@bar.de");
-		assertThat(transactionManager.getTransactionRequests()).isEqualTo(1);
+		assertThat(transactionManager.getTransactionRequests()).isOne();
 	}
 
 	@Test

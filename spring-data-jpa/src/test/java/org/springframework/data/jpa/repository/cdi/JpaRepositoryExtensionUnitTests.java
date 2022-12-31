@@ -37,6 +37,7 @@ import org.springframework.test.util.ReflectionTestUtils;
  *
  * @author Oliver Gierke
  * @author Jens Schauder
+ * @author Krzysztof Krason
  */
 class JpaRepositoryExtensionUnitTests {
 
@@ -48,7 +49,7 @@ class JpaRepositoryExtensionUnitTests {
 
 		Map<Set<Annotation>, Bean<EntityManager>> entityManagers = (Map<Set<Annotation>, Bean<EntityManager>>) ReflectionTestUtils
 				.getField(extension, "entityManagers");
-		assertThat(entityManagers.size()).isEqualTo(1);
+		assertThat(entityManagers).hasSize(1);
 		assertThat(entityManagers.values()).contains(em);
 	}
 

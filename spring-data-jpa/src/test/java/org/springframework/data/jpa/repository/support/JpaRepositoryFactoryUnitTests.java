@@ -52,6 +52,7 @@ import org.springframework.util.ClassUtils;
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Jens Schauder
+ * @author Krzysztof Krason
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -87,8 +88,6 @@ public class JpaRepositoryFactoryUnitTests {
 
 	/**
 	 * Assert that the instance created for the standard configuration is a valid {@code UserRepository}.
-	 *
-	 * @throws Exception
 	 */
 	@Test
 	void setsUpBasicInstanceCorrectly() {
@@ -118,7 +117,7 @@ public class JpaRepositoryFactoryUnitTests {
 		try {
 			factory.getRepository(SampleRepository.class);
 		} catch (IllegalArgumentException e) {
-			assertThat(e.getMessage().contains(SampleRepository.class.getName())).isTrue();
+			assertThat(e.getMessage()).contains(SampleRepository.class.getName());
 		}
 	}
 

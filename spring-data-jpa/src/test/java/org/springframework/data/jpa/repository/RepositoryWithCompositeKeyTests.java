@@ -50,6 +50,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Mark Paluch
  * @author Jens Schauder
  * @author Ernst-Jan van der Laan
+ * @author Krzysztof Krason
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = SampleConfig.class)
@@ -127,7 +128,7 @@ public class RepositoryWithCompositeKeyTests {
 		Page<IdClassExampleEmployee> page = employeeRepositoryWithIdClass.findAll(PageRequest.of(0, 1));
 
 		assertThat(page).isNotNull();
-		assertThat(page.getTotalElements()).isEqualTo(1L);
+		assertThat(page.getTotalElements()).isOne();
 	}
 
 	@Test // DATAJPA-2414

@@ -502,7 +502,7 @@ class StringQueryUnitTests {
 
 		softly.assertThat(query.getQueryString()).isEqualTo(queryString);
 		softly.assertThat(query.hasParameterBindings()).isFalse();
-		softly.assertThat(query.getParameterBindings()).hasSize(0);
+		softly.assertThat(query.getParameterBindings()).isEmpty();
 
 		softly.assertAll();
 	}

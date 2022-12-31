@@ -44,6 +44,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Jens Schauder
+ * @author Krzysztof Krason
  */
 @Transactional
 @ExtendWith(SpringExtension.class)
@@ -76,11 +77,11 @@ public class ParentRepositoryIntegrationTests {
 
 		List<Parent> content = page.getContent();
 
-		assertThat(content.size()).isEqualTo(3);
+		assertThat(content).hasSize(3);
 		assertThat(page.getSize()).isEqualTo(5);
-		assertThat(page.getNumber()).isEqualTo(0);
+		assertThat(page.getNumber()).isZero();
 		assertThat(page.getTotalElements()).isEqualTo(3L);
-		assertThat(page.getTotalPages()).isEqualTo(1);
+		assertThat(page.getTotalPages()).isOne();
 	}
 
 	@Test // DATAJPA-287
@@ -99,13 +100,13 @@ public class ParentRepositoryIntegrationTests {
 
 		// according to the initial setup there should be
 		// 3 parents which children collection is not empty
-		assertThat(content.size()).isEqualTo(3);
+		assertThat(content).hasSize(3);
 		assertThat(page.getSize()).isEqualTo(5);
-		assertThat(page.getNumber()).isEqualTo(0);
+		assertThat(page.getNumber()).isZero();
 
 		// we get here wrong total elements number since
 		// count query doesn't take into account the distinct marker of query
 		assertThat(page.getTotalElements()).isEqualTo(3L);
-		assertThat(page.getTotalPages()).isEqualTo(1);
+		assertThat(page.getTotalPages()).isOne();
 	}
 }

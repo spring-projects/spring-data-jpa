@@ -40,6 +40,7 @@ import org.springframework.orm.jpa.persistenceunit.MutablePersistenceUnitInfo;
  *
  * @author Oliver Gierke
  * @author Jens Schauder
+ * @author Krzysztof Krason
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -64,15 +65,15 @@ class MergingPersistenceUnitManagerUnitTests {
 	void mergesManagedClassesCorrectly() {
 
 		MergingPersistenceUnitManager manager = new MergingPersistenceUnitManager();
-		manager.setPersistenceXmlLocations(new String[] { "classpath:org/springframework/data/jpa/support/persistence.xml",
-				"classpath:org/springframework/data/jpa/support/persistence2.xml" });
+		manager.setPersistenceXmlLocations("classpath:org/springframework/data/jpa/support/persistence.xml",
+		        "classpath:org/springframework/data/jpa/support/persistence2.xml");
 		manager.preparePersistenceUnitInfos();
 
 		PersistenceUnitInfo info = manager.obtainPersistenceUnitInfo("pu");
-		assertThat(info.getManagedClassNames().size()).isEqualTo(2);
+		assertThat(info.getManagedClassNames()).hasSize(2);
 		assertThat(info.getManagedClassNames()).contains(User.class.getName(), Role.class.getName());
 
-		assertThat(info.getMappingFileNames().size()).isEqualTo(2);
+		assertThat(info.getMappingFileNames()).hasSize(2);
 		assertThat(info.getMappingFileNames()).contains("foo.xml", "bar.xml");
 	}
 
@@ -87,7 +88,7 @@ class MergingPersistenceUnitManagerUnitTests {
 		MergingPersistenceUnitManager manager = new MergingPersistenceUnitManager();
 		manager.postProcessPersistenceUnitInfo(newInfo, oldInfo);
 
-		assertThat(newInfo.getJarFileUrls().size()).isEqualTo(1);
+		assertThat(newInfo.getJarFileUrls()).hasSize(1);
 		assertThat(newInfo.getJarFileUrls()).contains(oldInfo.getPersistenceUnitRootUrl());
 	}
 
@@ -101,7 +102,7 @@ class MergingPersistenceUnitManagerUnitTests {
 		MergingPersistenceUnitManager manager = new MergingPersistenceUnitManager();
 		manager.postProcessPersistenceUnitInfo(newInfo, oldInfo);
 
-		assertThat(newInfo.getJarFileUrls().isEmpty()).isTrue();
+		assertThat(newInfo.getJarFileUrls()).isEmpty();
 	}
 
 	@Test
@@ -116,7 +117,7 @@ class MergingPersistenceUnitManagerUnitTests {
 		MergingPersistenceUnitManager manager = new MergingPersistenceUnitManager();
 		manager.postProcessPersistenceUnitInfo(newInfo, oldInfo);
 
-		assertThat(newInfo.getJarFileUrls().size()).isEqualTo(1);
+		assertThat(newInfo.getJarFileUrls()).hasSize(1);
 		assertThat(newInfo.getJarFileUrls()).contains(oldInfo.getPersistenceUnitRootUrl());
 	}
 }

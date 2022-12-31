@@ -17,8 +17,6 @@ package org.springframework.data.jpa.repository;
 
 import static org.assertj.core.api.Assertions.*;
 
-import java.util.Optional;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -36,6 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Jens Schauder
+ * @author Krzysztof Krason
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(locations = { "classpath:application-context.xml" })
@@ -63,7 +62,7 @@ public class RoleRepositoryIntegrationTests {
 		ReflectionTestUtils.setField(reference, "name", "USER");
 		repository.save(reference);
 
-		assertThat(repository.findById(result.getId())).isEqualTo(Optional.of(reference));
+		assertThat(repository.findById(result.getId())).contains(reference);
 	}
 
 	@Test // DATAJPA-509
@@ -72,7 +71,7 @@ public class RoleRepositoryIntegrationTests {
 		Role reference = new Role("ADMIN");
 		repository.save(reference);
 
-		assertThat(repository.count()).isEqualTo(1L);
+		assertThat(repository.count()).isOne();
 	}
 
 	@Test // DATAJPA-509
@@ -90,6 +89,6 @@ public class RoleRepositoryIntegrationTests {
 		Role reference = new Role("ADMIN");
 		reference = repository.save(reference);
 
-		assertThat(repository.countByName(reference.getName())).isEqualTo(1L);
+		assertThat(repository.countByName(reference.getName())).isOne();
 	}
 }

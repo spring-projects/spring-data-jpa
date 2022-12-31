@@ -44,6 +44,7 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author Mark Paluch
  * @author Jens Schauder
+ * @author Krzysztof Krason
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = RepositoryWithIdClassKeyTests.TestConfig.class)
@@ -72,7 +73,7 @@ public class RepositoryWithIdClassKeyTests {
 				.findById(new ItemSiteId(new ItemId(item.getId(), item.getManufacturerId()), site.getId()));
 
 		assertThat(loaded).isNotNull();
-		assertThat(loaded.isPresent()).isTrue();
+		assertThat(loaded).isPresent();
 	}
 
 	@Configuration
