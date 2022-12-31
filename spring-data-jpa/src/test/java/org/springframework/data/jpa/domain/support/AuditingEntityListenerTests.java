@@ -18,7 +18,6 @@ package org.springframework.data.jpa.domain.support;
 import static org.assertj.core.api.Assertions.*;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,6 +41,7 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author Oliver Gierke
  * @author Jens Schauder
+ * @author Krzysztof Krason
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:auditing/auditing-entity-listener.xml")
@@ -58,14 +58,14 @@ public class AuditingEntityListenerTests {
 
 	private static void assertDatesSet(Auditable<?, ?, LocalDateTime> auditable) {
 
-		assertThat(auditable.getCreatedDate().isPresent()).isTrue();
-		assertThat(auditable.getLastModifiedDate().isPresent()).isTrue();
+		assertThat(auditable.getCreatedDate()).isPresent();
+		assertThat(auditable.getLastModifiedDate()).isPresent();
 	}
 
 	private static void assertUserIsAuditor(AuditableUser user, Auditable<AuditableUser, ?, LocalDateTime> auditable) {
 
-		assertThat(auditable.getCreatedBy()).isEqualTo(Optional.of(user));
-		assertThat(auditable.getLastModifiedBy()).isEqualTo(Optional.of(user));
+		assertThat(auditable.getCreatedBy()).contains(user);
+		assertThat(auditable.getLastModifiedBy()).contains(user);
 	}
 
 	@BeforeEach

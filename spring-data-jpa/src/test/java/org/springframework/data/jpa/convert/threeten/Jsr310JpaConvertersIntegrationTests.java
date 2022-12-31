@@ -16,7 +16,7 @@
 package org.springframework.data.jpa.convert.threeten;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.junit.Assume.*;
+import static org.assertj.core.api.Assumptions.*;
 import static org.springframework.data.jpa.support.EntityManagerTestUtils.*;
 
 import java.time.Instant;
@@ -51,7 +51,7 @@ public class Jsr310JpaConvertersIntegrationTests extends AbstractAttributeConver
 	@Test // DATAJPA-650, DATAJPA-1631
 	void usesJsr310JpaConverters() {
 
-		assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
+		assumeThat(currentEntityManagerIsAJpa21EntityManager(em)).isTrue();
 
 		DateTimeSample sample = new DateTimeSample();
 

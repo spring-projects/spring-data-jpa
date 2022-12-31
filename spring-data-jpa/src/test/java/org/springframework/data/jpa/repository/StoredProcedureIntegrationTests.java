@@ -16,7 +16,7 @@
 package org.springframework.data.jpa.repository;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.junit.Assume.*;
+import static org.assertj.core.api.Assumptions.*;
 import static org.springframework.data.jpa.support.EntityManagerTestUtils.*;
 
 import java.util.List;
@@ -47,6 +47,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Oliver Gierke
  * @author Jens Schauder
  * @author Gabriel Basilio
+ * @author Krzysztof Krason
  * @see scripts/schema-stored-procedures.sql for procedure definitions.
  */
 @Transactional
@@ -61,7 +62,7 @@ public class StoredProcedureIntegrationTests {
 
 	@BeforeEach
 	void setup() {
-		assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
+		assumeThat(currentEntityManagerIsAJpa21EntityManager(em)).isTrue();
 	}
 
 	@Test // DATAJPA-652
@@ -86,7 +87,7 @@ public class StoredProcedureIntegrationTests {
 		List<Dummy> dummies = repository.adHocProcedureWith1InputAnd1OutputParameterWithResultSet("FOO");
 
 		assertThat(dummies).isNotNull();
-		assertThat(dummies.size()).isEqualTo(3);
+		assertThat(dummies).hasSize(3);
 	}
 
 	@Test // DATAJPA-652
@@ -96,7 +97,7 @@ public class StoredProcedureIntegrationTests {
 		List<Dummy> dummies = repository.adHocProcedureWith1InputAnd1OutputParameterWithResultSetWithUpdate("FOO");
 
 		assertThat(dummies).isNotNull();
-		assertThat(dummies.size()).isEqualTo(3);
+		assertThat(dummies).hasSize(3);
 	}
 
 	@Test // DATAJPA-652
@@ -126,7 +127,7 @@ public class StoredProcedureIntegrationTests {
 		List<Dummy> dummies = repository.procedureWith1InputAnd1OutputParameterWithResultSet("FOO");
 
 		assertThat(dummies).isNotNull();
-		assertThat(dummies.size()).isEqualTo(3);
+		assertThat(dummies).hasSize(3);
 	}
 
 	@Test // DATAJPA-652
@@ -136,7 +137,7 @@ public class StoredProcedureIntegrationTests {
 		List<Dummy> dummies = repository.procedureWith1InputAnd1OutputParameterWithResultSetWithUpdate("FOO");
 
 		assertThat(dummies).isNotNull();
-		assertThat(dummies.size()).isEqualTo(3);
+		assertThat(dummies).hasSize(3);
 	}
 
 	@Test // DATAJPA-652

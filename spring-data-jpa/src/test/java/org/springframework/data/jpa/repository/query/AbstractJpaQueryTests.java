@@ -15,6 +15,7 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import static org.assertj.core.api.Assumptions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.data.jpa.support.EntityManagerTestUtils.*;
@@ -29,7 +30,6 @@ import jakarta.persistence.Query;
 import jakarta.persistence.QueryHint;
 import jakarta.persistence.TypedQuery;
 
-import org.junit.Assume;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -53,6 +53,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Mark Paluch
+ * @author Krzysztof Krason
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:infrastructure.xml")
@@ -118,7 +119,7 @@ public class AbstractJpaQueryTests {
 	@Transactional
 	void shouldAddEntityGraphHintForFetch() throws Exception {
 
-		Assume.assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
+		assumeThat(currentEntityManagerIsAJpa21EntityManager(em)).isTrue();
 
 		JpaQueryMethod queryMethod = getMethod("findAll");
 
@@ -134,7 +135,7 @@ public class AbstractJpaQueryTests {
 	@Transactional
 	void shouldAddEntityGraphHintForLoad() throws Exception {
 
-		Assume.assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
+		assumeThat(currentEntityManagerIsAJpa21EntityManager(em)).isTrue();
 
 		JpaQueryMethod queryMethod = getMethod("getById", Integer.class);
 
@@ -190,7 +191,7 @@ public class AbstractJpaQueryTests {
 
 		@Override
 		protected TypedQuery<Long> doCreateCountQuery(JpaParametersParameterAccessor accessor) {
-			return (TypedQuery<Long>) countQuery;
+			return countQuery;
 		}
 	}
 }

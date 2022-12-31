@@ -23,7 +23,6 @@ import jakarta.persistence.PersistenceContext;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Optional;
 
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
@@ -46,6 +45,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Thomas Darimont
  * @author Jens Schauder
  * @author Greg Turnquist
+ * @author Krzysztof Krason
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration({ "classpath:infrastructure.xml" })
@@ -70,12 +70,12 @@ class JpaRepositoryTests {
 		SampleEntity entity = new SampleEntity("foo", "bar");
 		repository.saveAndFlush(entity);
 		assertThat(repository.existsById(new SampleEntityPK("foo", "bar"))).isTrue();
-		assertThat(repository.count()).isEqualTo(1L);
-		assertThat(repository.findById(new SampleEntityPK("foo", "bar"))).isEqualTo(Optional.of(entity));
+		assertThat(repository.count()).isOne();
+		assertThat(repository.findById(new SampleEntityPK("foo", "bar"))).contains(entity);
 
 		repository.deleteAll(Arrays.asList(entity));
 		repository.flush();
-		assertThat(repository.count()).isEqualTo(0L);
+		assertThat(repository.count()).isZero();
 	}
 
 	@Test // DATAJPA-50
@@ -89,7 +89,7 @@ class JpaRepositoryTests {
 
 		PersistableWithIdClassPK id = new PersistableWithIdClassPK(entity.getFirst(), entity.getSecond());
 
-		assertThat(idClassRepository.findById(id)).isEqualTo(Optional.of(entity));
+		assertThat(idClassRepository.findById(id)).contains(entity);
 	}
 
 	@Test // DATAJPA-266

@@ -41,6 +41,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Oliver Gierke
  * @author Jens Schauder
+ * @author Krzysztof Krason
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration({ "classpath:application-context.xml"
@@ -71,7 +72,7 @@ class SimpleJpaParameterBindingTests {
 		query.setParameter(parameter, new String[] { "Dave", "Carter" });
 
 		List<User> result = query.getResultList();
-		assertThat(result.isEmpty()).isFalse();
+		assertThat(result).isNotEmpty();
 	}
 
 	@Test
@@ -94,7 +95,7 @@ class SimpleJpaParameterBindingTests {
 		query.setParameter(parameter, Arrays.asList("Dave"));
 
 		List<User> result = query.getResultList();
-		assertThat(result.isEmpty()).isFalse();
+		assertThat(result).isNotEmpty();
 		assertThat(result.get(0)).isEqualTo(user);
 	}
 }

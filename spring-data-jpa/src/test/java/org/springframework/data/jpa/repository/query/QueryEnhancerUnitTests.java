@@ -37,6 +37,7 @@ import org.springframework.data.jpa.domain.JpaSort;
  *
  * @author Diego Krupitza
  * @author Geoffrey Deremetz
+ * @author Krzysztof Krason
  */
 class QueryEnhancerUnitTests {
 
@@ -678,8 +679,7 @@ class QueryEnhancerUnitTests {
 		Set<String> nonNativeJoinAliases = getEnhancer(nonNativeQuery).getJoinAliases();
 
 		assertThat(nonNativeJoinAliases).containsAll(nativeJoinAliases);
-		assertThat(nativeJoinAliases) //
-				.hasSize(aliases.size()) //
+		assertThat(nativeJoinAliases).hasSameSizeAs(aliases) //
 				.containsAll(aliases);
 
 	}

@@ -45,6 +45,7 @@ import org.springframework.transaction.support.TransactionTemplate;
  *
  * @author Oliver Gierke
  * @author Jens Schauder
+ * @author Krzysztof Krason
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration
@@ -75,7 +76,7 @@ public class PersistenceProviderIntegrationTests {
 				ProxyIdAccessor accessor = PersistenceProvider.fromEntityManager(em);
 
 				assertThat(accessor.shouldUseAccessorFor(product)).isTrue();
-				assertThat(accessor.getIdentifierFrom(product).toString()).isEqualTo((Object) product.getId().toString());
+				assertThat(accessor.getIdentifierFrom(product)).hasToString(product.getId().toString());
 
 				return null;
 			}

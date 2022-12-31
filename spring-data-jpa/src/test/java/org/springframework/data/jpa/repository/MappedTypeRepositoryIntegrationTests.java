@@ -46,6 +46,7 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author Thomas Darimont
  * @author Jens Schauder
+ * @author Krzysztof Krason
  */
 @Transactional
 @ExtendWith(SpringExtension.class)
@@ -66,8 +67,8 @@ public class MappedTypeRepositoryIntegrationTests {
 		List<ConcreteType1> concretes1 = concreteRepository1.findAllByAttribute1("foo");
 		List<ConcreteType2> concretes2 = concreteRepository2.findAllByAttribute1("foo");
 
-		assertThat(concretes1.size()).isEqualTo(1);
-		assertThat(concretes2.size()).isEqualTo(1);
+		assertThat(concretes1).hasSize(1);
+		assertThat(concretes2).hasSize(1);
 	}
 
 	@Test // DATAJPA-424
@@ -79,7 +80,7 @@ public class MappedTypeRepositoryIntegrationTests {
 		Page<ConcreteType2> page = concreteRepository2.findByAttribute1Custom("foo",
 				PageRequest.of(0, 10, Sort.Direction.DESC, "attribute1"));
 
-		assertThat(page.getNumberOfElements()).isEqualTo(1);
+		assertThat(page.getNumberOfElements()).isOne();
 	}
 
 	@Test // DATAJPA-1535

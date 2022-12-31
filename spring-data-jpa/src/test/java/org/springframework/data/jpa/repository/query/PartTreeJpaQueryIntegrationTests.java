@@ -55,6 +55,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  * @author Mark Paluch
  * @author Michael Cramer
  * @author Jens Schauder
+ * @author Krzysztof Krason
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:infrastructure.xml")
@@ -120,7 +121,7 @@ public class PartTreeJpaQueryIntegrationTests {
 
 		Query query = jpaQuery.createQuery(getAccessor(queryMethod, new Object[] { "Matthews" }));
 
-		assertThat(query.getMaxResults()).isEqualTo(1);
+		assertThat(query.getMaxResults()).isOne();
 	}
 
 	@Test // DATAJPA-920

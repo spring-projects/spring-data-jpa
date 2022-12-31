@@ -47,6 +47,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  *
  * @author Oliver Gierke
  * @author Jens Schauder
+ * @author Krzysztof Krason
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = Config.class)
@@ -192,7 +193,6 @@ class RepositoryIntegrationTests {
 
 		assertThat(revisions).hasSize(2);
 		assertThat(revisions.getLatestRevision().getEntity()) //
-				.isNotNull() //
 				.extracting(c -> c.name, c -> c.code) //
 				.containsExactly(null, null);
 	}

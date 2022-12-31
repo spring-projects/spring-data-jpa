@@ -37,6 +37,7 @@ import org.springframework.data.repository.config.RepositoryConfigurationSource;
  * Integration tests for {@link JpaMetamodelCacheCleanup}.
  *
  * @author Oliver Gierke
+ * @author Krzysztof Krason
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -71,7 +72,7 @@ class JpaMetamodelCacheCleanupIntegrationTests {
 
 		String[] cleanupBeanNames = beanFactory.getBeanNamesForType(JpaMetamodelCacheCleanup.class);
 
-		assertThat(cleanupBeanNames.length).isEqualTo(1);
+		assertThat(cleanupBeanNames).hasSize(1);
 		assertThat(beanFactory.getBeanDefinition(cleanupBeanNames[0]).isLazyInit()).isFalse();
 	}
 }

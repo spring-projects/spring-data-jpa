@@ -40,6 +40,7 @@ import org.springframework.data.repository.core.EntityInformation;
  *
  * @author Oliver Gierke
  * @author Jens Schauder
+ * @author Krzysztof Krason
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -79,7 +80,7 @@ class JpaPersistableEntityInformationUnitTests {
 
 		foo.id = 1L;
 		assertThat(entityInformation.isNew(foo)).isTrue();
-		assertThat(entityInformation.getId(foo)).isEqualTo(1L);
+		assertThat(entityInformation.getId(foo)).isOne();
 	}
 
 	@SuppressWarnings("serial")

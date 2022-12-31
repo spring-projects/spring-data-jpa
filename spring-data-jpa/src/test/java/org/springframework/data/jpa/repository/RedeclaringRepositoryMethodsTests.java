@@ -36,6 +36,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Thomas Darimont
  * @author Jens Schauder
+ * @author Krzysztof Krason
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = SampleConfig.class)
@@ -62,7 +63,7 @@ public class RedeclaringRepositoryMethodsTests {
 
 		Page<User> page = repository.findAll(PageRequest.of(0, 2));
 
-		assertThat(page.getNumberOfElements()).isEqualTo(1);
+		assertThat(page.getNumberOfElements()).isOne();
 		assertThat(page.getContent().get(0).getFirstname()).isEqualTo("Oliver");
 	}
 
@@ -74,6 +75,6 @@ public class RedeclaringRepositoryMethodsTests {
 
 		List<User> result = repository.findAll();
 
-		assertThat(result.isEmpty()).isTrue();
+		assertThat(result).isEmpty();
 	}
 }
