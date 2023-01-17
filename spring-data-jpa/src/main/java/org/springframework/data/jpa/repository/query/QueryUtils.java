@@ -105,7 +105,7 @@ public abstract class QueryUtils {
 	private static final String EQUALS_CONDITION_STRING = "%s.%s = :%s";
 	private static final Pattern ORDER_BY = Pattern.compile("(order\\s+by\\s+)", CASE_INSENSITIVE);
 	private static final Pattern ORDER_BY_IN_WINDOW_OR_SUBSELECT = Pattern
-			.compile("\\([\\s\\S]*order\\s+by\\s[\\s\\S]*\\)", CASE_INSENSITIVE);
+			.compile("\\([\\s\\S]*?order\\s+by\\s[\\s\\S]*?\\)", CASE_INSENSITIVE);
 
 	private static final Pattern NAMED_PARAMETER = Pattern.compile(COLON_NO_DOUBLE_COLON + IDENTIFIER + "|#" + IDENTIFIER,
 			CASE_INSENSITIVE);

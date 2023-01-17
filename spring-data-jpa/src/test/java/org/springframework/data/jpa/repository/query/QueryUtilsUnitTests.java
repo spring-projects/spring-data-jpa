@@ -48,6 +48,7 @@ import org.springframework.util.StringUtils;
  * @author Darin Manica
  * @author Chris Fraser
  * @author Michał Pachucki
+ * @author Brian Marting
  */
 class QueryUtilsUnitTests {
 
@@ -885,5 +886,40 @@ class QueryUtilsUnitTests {
 				+ "  limit 1\n" //
 				+ ") as timestamp\n" //
 				+ "from foo f", sort)).endsWith("order by f.age desc");
+	}
+
+	@Test // DATA-JPA-2764
+	void orderByShouldWorkWithMultipleSubSelectStatements() {
+		Sort sort = Sort.by(Order.desc("weight"));
+
+		assertThat(QueryUtils.applySorting("""
+				WITH topics AS (
+				    SELECT      topic.*
+				    FROM        objective topic
+				    INNER JOIN  user
+				    ON          user.id = topic.user_id
+				    WHERE       user.aggregate_id = :__$synthetic$__1
+				    AND         topic.name ILIKE CONCAT('%', :__$synthetic$__2 ,'%')
+				    AND         (topic.assessment IN :__$synthetic$__3
+				    OR          CASE
+				                    WHEN :__$synthetic$__4 IS NOT NULL THEN topic.last_update_date >= :__$synthetic$__5
+				                    ELSE FALSE
+				                END)
+				),
+				 WITH open_topics AS (
+				    SELECT  topic.*,
+				            row_number() OVER (PARTITION BY topic.user_id ORDER BY topic.target_date DESC, topic.name DESC) AS weight
+				    FROM    topics topic
+				    WHERE   topic.assessment = 'OPEN'
+				),
+				 other_topics AS (
+				    SELECT  topic.*,
+				            row_number() OVER (PARTITION BY topic.user_id ORDER BY topic.target_date DESC, topic.name) AS weight
+				    FROM    topics topic
+				    WHERE   topic.assessment <> 'OPEN'
+				),
+				SELECT  topic.*
+				FROM    weighed_topics topic
+				""", sort)).endsWith("order by weight desc");
 	}
 }
