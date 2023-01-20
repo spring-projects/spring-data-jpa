@@ -16,9 +16,10 @@
 package org.springframework.data.jpa.repository.sample;
 
 import org.springframework.data.jpa.domain.sample.Category;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.CrudRepository;
 
 /**
  * @author Oliver Gierke
  */
-public interface CategoryRepository extends CrudRepository<Category, Long> {}
+public interface CategoryRepository extends JpaRepository<Category, Long> {}

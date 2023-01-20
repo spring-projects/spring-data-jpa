@@ -17,12 +17,17 @@ package org.springframework.data.jpa.repository;
 
 import static org.assertj.core.api.Assertions.*;
 
+import java.util.ServiceLoader;
+
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 
+import org.hibernate.boot.registry.StandardServiceRegistry;
+import org.hibernate.boot.registry.internal.StandardServiceRegistryImpl;
+import org.hibernate.bytecode.spi.BytecodeProvider;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -67,6 +72,13 @@ public class QueryByExampleHibernateIntegrationTests {
 
 	@Test // GH-2283
 	void queryByExampleWithNoPredicatesShouldHaveNoWhereClause() {
+
+//		StandardServiceRegistry sr = new StandardServiceRegistryImpl();
+
+//		ServiceLoader<BytecodeProvider> loader = ServiceLoader.load(BytecodeProvider.class);
+//		for (BytecodeProvider plugin : loader) {
+//			System.out.println("plugin: " + plugin);
+//		}
 
 		// given
 		Role probe = new Role();

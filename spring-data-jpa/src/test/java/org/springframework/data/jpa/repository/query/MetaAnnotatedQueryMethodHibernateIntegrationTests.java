@@ -21,15 +21,20 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.function.Predicate;
 
 import javax.sql.DataSource;
 
 import org.assertj.core.api.Condition;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -40,9 +45,13 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.sample.Category;
+import org.springframework.data.jpa.domain.sample.Product;
 import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.repository.Meta;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.data.jpa.repository.sample.CategoryRepository;
+import org.springframework.data.jpa.repository.sample.ProductRepository;
 import org.springframework.data.jpa.repository.sample.RoleRepositoryWithMeta;
 import org.springframework.data.repository.query.FluentQuery;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
@@ -70,12 +79,25 @@ import org.springframework.transaction.annotation.Transactional;
 public class MetaAnnotatedQueryMethodHibernateIntegrationTests {
 
 	@Autowired RoleRepositoryWithMeta repository;
+	@Autowired CategoryRepository categoryRepository;
+	@Autowired ProductRepository productRepository;
+	@Autowired EntityManager entityManager;
 
 	Logger testLogger = (Logger) LoggerFactory.getLogger("org.hibernate.SQL");
 	ListAppender<ILoggingEvent> testAppender;
 
 	@BeforeEach
 	void setUp() {
+
+		Product product = new Product();
+		productRepository.save(product);
+		Category category = new Category(product);
+		categoryRepository.save(category);
+
+		productRepository.flush();
+		categoryRepository.flush();
+
+		entityManager.flush();
 
 		testAppender = new ListAppender<>();
 		testAppender.start();
@@ -86,6 +108,37 @@ public class MetaAnnotatedQueryMethodHibernateIntegrationTests {
 	@AfterEach
 	void clearUp() {
 		testLogger.detachAppender(testAppender);
+	}
+
+	@Test
+	void xxx() {
+
+		clearHibernateCache();
+		Optional<Category> loaded = categoryRepository.findAll().stream().findFirst();
+
+		System.out.println(loaded.get().getProduct().getName());
+	}
+
+	public void clearHibernateCache() {
+		Session s = (Session) entityManager.getDelegate();
+
+		SessionFactory sf = s.getSessionFactory();
+		sf.getCache().evictEntityData();
+
+		s.clear();
+//		sf
+//		for (EntityPersister ep : classMetadata.values()) {
+//			if (ep.hasCache()) {
+//				sf.evictEntity(ep.getCache().getRegionName());
+//			}
+//		}
+//		Map collMetadata = sf.getAllCollectionMetadata();
+//		for (AbstractCollectionPersister acp : collMetadata.values()) {
+//			if (acp.hasCache()) {
+//				sf.evictCollection(acp.getCache().getRegionName());
+//			}
+//		}
+//		return;
 	}
 
 	@Test // GH-775
