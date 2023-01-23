@@ -90,6 +90,7 @@ public class MetaAnnotatedQueryMethodHibernateIntegrationTests {
 	void setUp() {
 
 		Product product = new Product();
+		product.setName("lazy-loading-proxy-works :)");
 		productRepository.save(product);
 		Category category = new Category(product);
 		categoryRepository.save(category);

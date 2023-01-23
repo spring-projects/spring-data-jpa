@@ -23,17 +23,18 @@ import java.util.Set;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hibernate.HibernateException;
 import org.hibernate.bytecode.spi.BasicProxyFactory;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.internal.util.ReflectHelper;
 import org.hibernate.internal.util.collections.ArrayHelper;
 import org.hibernate.proxy.HibernateProxy;
-import org.hibernate.proxy.LazyInitializer;
 import org.hibernate.proxy.ProxyConfiguration;
 import org.hibernate.proxy.ProxyFactory;
-import org.hibernate.proxy.pojo.BasicLazyInitializer;
 import org.hibernate.type.CompositeType;
+import org.springframework.data.util.Lazy;
 import org.springframework.lang.Nullable;
 import org.springframework.util.ReflectionUtils;
 
@@ -43,6 +44,7 @@ import org.springframework.util.ReflectionUtils;
  */
 public class SpringHibernateProxyFactory implements ProxyFactory, BasicProxyFactory {
 
+	private static final Log LOGGER = LogFactory.getLog(SpringHibernateProxyFactory.class);
 	private final org.springframework.aop.framework.ProxyFactory proxyFactory;
 
 	private Class<?> persistentClass;
@@ -54,9 +56,9 @@ public class SpringHibernateProxyFactory implements ProxyFactory, BasicProxyFact
 	private boolean overridesEquals;
 
 	private Class<?> proxyClass;
+	Lazy<Object> proxy = null;
 
 	public SpringHibernateProxyFactory() {
-		System.out.println("new proxy factory created");
 		this.proxyFactory = new org.springframework.aop.framework.ProxyFactory();
 	}
 
@@ -83,79 +85,35 @@ public class SpringHibernateProxyFactory implements ProxyFactory, BasicProxyFact
 
 		proxyFactory.setTargetClass(persistentClass);
 		proxyFactory.setInterfaces(this.interfaces);
-		if(!persistentClass.isInterface() && Modifier.isPublic(persistentClass.getModifiers()) && !Modifier.isFinal(persistentClass.getModifiers()) && !persistentClass.isHidden() && persistentClass != Class.class) {
+		if (!persistentClass.isInterface() && Modifier.isPublic(persistentClass.getModifiers())
+				&& !Modifier.isFinal(persistentClass.getModifiers()) && !persistentClass.isHidden()
+				&& persistentClass != Class.class) {
 			proxyFactory.setProxyTargetClass(true);
 		}
 
-//		proxyFactory.setOpaque(true);
-		this.proxyClass = proxyFactory.getProxyClass(persistentClass.getClassLoader());
+
+	}
+
+	public Class<?> getProxyClass() {
+		return proxyClass;
 	}
 
 	@Override
 	public HibernateProxy getProxy(Object id, SharedSessionContractImplementor session) throws HibernateException {
 
+		LOGGER.debug("SpringProxy created for: " + this.persistentClass);
 
-		System.out.println("get proxy for: " + this.persistentClass);
+		proxyFactory.addAdvice(new SpringHibernateMethodInterceptor(id, session));
 
-		proxyFactory.addAdvice(new MethodInterceptor() {
-			@Override
-			public Object invoke(MethodInvocation invocation) throws Throwable {
-				if(invocation.getMethod().getName().equals("getHibernateLazyInitializer")) {
-					return new SpringLazyLoadingInterceptor(entityName, persistentClass, interfaces, id, getIdentifierMethod, setIdentifierMethod, componentIdType, session, overridesEquals);
-				}
-
-				if (isObjectMethod(invocation.getMethod()) && Object.class.equals(invocation.getMethod().getDeclaringClass())) {
-
-					if (ReflectionUtils.isToStringMethod(invocation.getMethod())) {
-						return proxyToString(null);
-					}
-
-					if (ReflectionUtils.isEqualsMethod(invocation.getMethod())) {
-						return proxyEquals(null, invocation.getArguments()[0]);
-					}
-
-					if (ReflectionUtils.isHashCodeMethod(invocation.getMethod())) {
-						return proxyHashCode();
-					}
-				}
-
-				return invocation.proceed();
-			}
-
-
-
-			private String proxyToString(@Nullable Object source) {
-
-				StringBuilder description = new StringBuilder();
-
-					description.append(System.identityHashCode(source));
-				description.append("$").append(HibernateProxy.class.getSimpleName());
-
-				return description.toString();
-			}
-
-			private boolean proxyEquals(@Nullable Object proxy, Object that) {
-
-				if (that == proxy) {
-					return true;
-				}
-
-				return proxyToString(proxy).equals(that.toString());
-			}
-
-			private int proxyHashCode() {
-				return proxyToString(this).hashCode();
-			}
-		});
-
-		Object proxy = proxyFactory.getProxy();
-		if (proxy instanceof ProxyConfiguration proxyConfig) {
+		this.proxy = Lazy.of(proxyFactory.getProxy());
+		if (proxy.get() instanceof ProxyConfiguration proxyConfig) {
 
 			SpringLazyLoadingInterceptor interceptor = new SpringLazyLoadingInterceptor(entityName, persistentClass,
 					interfaces, id, getIdentifierMethod, setIdentifierMethod, componentIdType, session, overridesEquals);
 			proxyConfig.$$_hibernate_set_interceptor(interceptor);
 		}
-		return (HibernateProxy) proxy;
+		this.proxyClass = proxy.get().getClass();
+		return (HibernateProxy) proxy.get();
 	}
 
 	private Class<?>[] toArray(Set<Class<?>> interfaces) {
@@ -171,5 +129,85 @@ public class SpringHibernateProxyFactory implements ProxyFactory, BasicProxyFact
 
 		System.out.println("get basic proxy for: " + this.persistentClass);
 		return proxyFactory.getProxy(this.persistentClass.getClassLoader());
+	}
+
+	public class SpringHibernateMethodInterceptor implements MethodInterceptor {
+
+		private final Object id;
+		private final SharedSessionContractImplementor session;
+		Object target;
+
+		public SpringHibernateMethodInterceptor(Object id, SharedSessionContractImplementor session) {
+			this.id = id;
+			this.session = session;
+			target = null;
+		}
+
+		@Override
+		public Object invoke(MethodInvocation invocation) throws Throwable {
+
+			System.out.println("invoking: " + invocation.getMethod().getName());
+
+			if (invocation.getMethod().getName().equals("getHibernateLazyInitializer")) {
+				return new SpringLazyLoadingInterceptor(entityName, persistentClass, interfaces, id, getIdentifierMethod,
+						setIdentifierMethod, componentIdType, session, overridesEquals);
+			}
+
+			if (isObjectMethod(invocation.getMethod()) && Object.class.equals(invocation.getMethod().getDeclaringClass())) {
+
+				if (ReflectionUtils.isToStringMethod(invocation.getMethod())) {
+					return proxyToString(null);
+				}
+
+				if (ReflectionUtils.isEqualsMethod(invocation.getMethod())) {
+					return proxyEquals(null, invocation.getArguments()[0]);
+				}
+
+				if (ReflectionUtils.isHashCodeMethod(invocation.getMethod())) {
+					return proxyHashCode();
+				}
+			}
+
+			if(invocation.getMethod().getName().equals("unsetSession")) {
+				return null;
+			}
+
+			if(invocation.getMethod().getName().equals("asHibernateProxy")) {
+				return proxy.get();
+			}
+
+			if(invocation.getMethod().getName().equals("extractLazyInitializer")) {
+				return new SpringLazyLoadingInterceptor(entityName, persistentClass,
+						interfaces, id, getIdentifierMethod, setIdentifierMethod, componentIdType, session, overridesEquals);
+			}
+
+			LOGGER.debug("SpringProxy lazy loading " + entityName + ": " + id);
+			target = session.immediateLoad(entityName, id);
+
+			return target != null ? invocation.getMethod().invoke(target, invocation.getArguments()) : null;
+		}
+
+		private String proxyToString(@Nullable Object source) {
+
+			StringBuilder description = new StringBuilder();
+
+			description.append(System.identityHashCode(source));
+			description.append("$").append(HibernateProxy.class.getSimpleName());
+
+			return description.toString();
+		}
+
+		private boolean proxyEquals(@Nullable Object proxy, Object that) {
+
+			if (that == proxy) {
+				return true;
+			}
+
+			return proxyToString(proxy).equals(that.toString());
+		}
+
+		private int proxyHashCode() {
+			return proxyToString(this).hashCode();
+		}
 	}
 }

@@ -8,6 +8,7 @@
 	</appender>
 
 	<logger name="org.springframework.data" level="error"/>
+	<logger name="org.springframework.data.jpa.support.hibernate" level="debug" />
 
 	<!-- Uncomment these sections to debug -->
 <!--	<logger name="org.springframework.data.jpa" level="trace" />-->

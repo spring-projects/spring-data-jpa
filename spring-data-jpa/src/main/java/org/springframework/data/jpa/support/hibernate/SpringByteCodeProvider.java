@@ -15,11 +15,12 @@
  */
 package org.springframework.data.jpa.support.hibernate;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hibernate.HibernateException;
 import org.hibernate.bytecode.enhance.spi.EnhancementContext;
 import org.hibernate.bytecode.enhance.spi.Enhancer;
 import org.hibernate.bytecode.internal.bytebuddy.BytecodeProviderImpl;
-import org.hibernate.bytecode.spi.ByteCodeHelper;
 import org.hibernate.bytecode.spi.BytecodeProvider;
 import org.hibernate.bytecode.spi.ProxyFactoryFactory;
 import org.hibernate.bytecode.spi.ReflectionOptimizer;
@@ -31,13 +32,15 @@ import org.hibernate.cfg.AvailableSettings;
  */
 public class SpringByteCodeProvider implements BytecodeProvider {
 
+	private static final Log LOGGER = LogFactory.getLog(SpringByteCodeProvider.class);
+
 	public SpringByteCodeProvider() {
 		System.out.println("Create new SpringByteCodeProvider");
 	}
 
 	@Override
 	public ProxyFactoryFactory getProxyFactoryFactory() {
-		System.out.println("Obtain proxy factory from SpringByteCodeProvider");
+		LOGGER.debug("Obtain proxy factory from SpringByteCodeProvider");
 		return new SpringProxyFactoryFactory();
 	}
 
@@ -51,8 +54,8 @@ public class SpringByteCodeProvider implements BytecodeProvider {
 
 	@Override
 	public Enhancer getEnhancer(EnhancementContext enhancementContext) {
-		System.out.println("request enhanceer: ");
+		LOGGER.debug("request enhanceer: ");
 		return new BytecodeProviderImpl().getEnhancer(enhancementContext);
-//		return null;
+		// return null;
 	}
 }
