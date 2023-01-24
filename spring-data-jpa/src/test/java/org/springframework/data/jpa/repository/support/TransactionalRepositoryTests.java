@@ -15,13 +15,12 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.sample.UserRepository;
@@ -48,13 +47,11 @@ public class TransactionalRepositoryTests {
 
 	@BeforeEach
 	void setUp() {
-
 		transactionManager.resetCount();
 	}
 
 	@AfterEach
 	void tearDown() {
-
 		repository.deleteAll();
 	}
 
@@ -102,13 +99,11 @@ public class TransactionalRepositoryTests {
 		private TransactionDefinition definition;
 
 		public DelegatingTransactionManager(PlatformTransactionManager txManager) {
-
 			this.txManager = txManager;
 		}
 
 		@Override
 		public void commit(TransactionStatus status) throws TransactionException {
-
 			txManager.commit(status);
 		}
 
@@ -122,12 +117,10 @@ public class TransactionalRepositoryTests {
 		}
 
 		int getTransactionRequests() {
-
 			return transactionRequests;
 		}
 
 		public TransactionDefinition getDefinition() {
-
 			return definition;
 		}
 
@@ -139,7 +132,6 @@ public class TransactionalRepositoryTests {
 
 		@Override
 		public void rollback(TransactionStatus status) throws TransactionException {
-
 			txManager.rollback(status);
 		}
 	}

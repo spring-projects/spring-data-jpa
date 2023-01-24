@@ -15,7 +15,9 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -99,13 +101,11 @@ class QueryEnhancerUnitTests {
 
 	@Test
 	void createsCountQueryForAliasesCorrectly() {
-
 		assertCountQuery("select u from User as u", "select count(u) from User as u", true);
 	}
 
 	@Test
 	void allowsShortJpaSyntax() {
-
 		assertCountQuery(SIMPLE_QUERY, COUNT_QUERY, false);
 	}
 
@@ -143,9 +143,10 @@ class QueryEnhancerUnitTests {
 
 		StringQuery query = new StringQuery("select p from Person p left join p.address address", true);
 
-		endsIgnoringCase(getEnhancer(query).applySorting(Sort.by("address.city")), "order by address.city asc");
-		endsIgnoringCase(getEnhancer(query).applySorting(Sort.by("address.city", "lastname"), "p"),
-				"order by address.city asc, p.lastname asc");
+		assertThat(getEnhancer(query).applySorting(Sort.by("address.city")))
+				.endsWithIgnoringCase("order by address.city asc");
+		assertThat(getEnhancer(query).applySorting(Sort.by("address.city", "lastname"), "p"))
+				.endsWithIgnoringCase("order by address.city asc, p.lastname asc");
 	}
 
 	@Test // DATAJPA-252
@@ -153,8 +154,8 @@ class QueryEnhancerUnitTests {
 
 		StringQuery query = new StringQuery("select p from Person p order by p.lastname asc", true);
 
-		endsIgnoringCase(getEnhancer(query).applySorting(Sort.by("firstname"), "p"),
-				"order by p.lastname asc, p.firstname asc");
+		assertThat(getEnhancer(query).applySorting(Sort.by("firstname"), "p"))
+				.endsWithIgnoringCase("order by p.lastname asc, p.firstname asc");
 	}
 
 	@Test // DATAJPA-296
@@ -164,7 +165,7 @@ class QueryEnhancerUnitTests {
 
 		StringQuery query = new StringQuery("select p from Person p", true);
 
-		endsIgnoringCase(getEnhancer(query).applySorting(sort, "p"), "order by lower(p.firstname) asc");
+		assertThat(getEnhancer(query).applySorting(sort, "p")).endsWithIgnoringCase("order by lower(p.firstname) asc");
 	}
 
 	@Test // DATAJPA-296
@@ -174,7 +175,8 @@ class QueryEnhancerUnitTests {
 
 		StringQuery query = new StringQuery("select p from Person p order by p.lastname asc", true);
 
-		endsIgnoringCase(getEnhancer(query).applySorting(sort, "p"), "order by p.lastname asc, lower(p.firstname) asc");
+		assertThat(getEnhancer(query).applySorting(sort, "p"))
+				.endsWithIgnoringCase("order by p.lastname asc, lower(p.firstname) asc");
 	}
 
 	@Test // DATAJPA-342
@@ -217,7 +219,7 @@ class QueryEnhancerUnitTests {
 		StringQuery originalQuery = new StringQuery("select p from Person p ORDER BY p.firstname", true);
 		String query = getEnhancer(originalQuery).applySorting(sort, "p");
 
-		endsIgnoringCase(query, "ORDER BY p.firstname, p.lastname asc");
+		assertThat(query).endsWithIgnoringCase("ORDER BY p.firstname, p.lastname asc");
 	}
 
 	@Test // DATAJPA-409
@@ -245,7 +247,7 @@ class QueryEnhancerUnitTests {
 		StringQuery query = new StringQuery("select p from Customer c join c.productOrder p where p.delay = true", true);
 		Sort sort = Sort.by("p.lineItems");
 
-		endsIgnoringCase(getEnhancer(query).applySorting(sort, "c"), "order by p.lineItems asc");
+		assertThat(getEnhancer(query).applySorting(sort, "c")).endsWithIgnoringCase("order by p.lineItems asc");
 	}
 
 	@Test // DATAJPA-736
@@ -279,7 +281,8 @@ class QueryEnhancerUnitTests {
 		StringQuery query = new StringQuery("Select * from Cat c join Dog d", true);
 		Sort sort = Sort.by("dPropertyStartingWithJoinAlias");
 
-		endsIgnoringCase(getEnhancer(query).applySorting(sort, "c"), "order by c.dPropertyStartingWithJoinAlias asc");
+		assertThat(getEnhancer(query).applySorting(sort, "c"))
+				.endsWithIgnoringCase("order by c.dPropertyStartingWithJoinAlias asc");
 	}
 
 	@Test // DATAJPA-938
@@ -324,7 +327,7 @@ class QueryEnhancerUnitTests {
 
 		StringQuery query = new StringQuery("Select * from mytable where ?1 is null", true);
 
-		endsIgnoringCase(getEnhancer(query).applySorting(Sort.by("firstname")), "order by firstname asc");
+		assertThat(getEnhancer(query).applySorting(Sort.by("firstname"))).endsWithIgnoringCase("order by firstname asc");
 	}
 
 	@Test // DATAJPA-965, DATAJPA-970
@@ -344,7 +347,7 @@ class QueryEnhancerUnitTests {
 		JpaSort sort = JpaSort.unsafe("sum(foo)");
 		StringQuery query = new StringQuery("select p from Person p", true);
 
-		endsIgnoringCase(getEnhancer(query).applySorting(sort, "p"), "order by sum(foo) asc");
+		assertThat(getEnhancer(query).applySorting(sort, "p")).endsWithIgnoringCase("order by sum(foo) asc");
 	}
 
 	@Test // DATAJPA-965, DATAJPA-970
@@ -354,7 +357,7 @@ class QueryEnhancerUnitTests {
 				true);
 		Sort sort = Sort.by("avgPrice", "sumStocks");
 
-		endsIgnoringCase(getEnhancer(query).applySorting(sort, "m"), "order by avgPrice asc, sumStocks asc");
+		assertThat(getEnhancer(query).applySorting(sort, "m")).endsWithIgnoringCase("order by avgPrice asc, sumStocks asc");
 	}
 
 	@Test // DATAJPA-965, DATAJPA-970
@@ -363,7 +366,7 @@ class QueryEnhancerUnitTests {
 		StringQuery query = new StringQuery("SELECT AVG(m.price) AS avgPrice FROM Magazine m", true);
 		Sort sort = Sort.by("avgPrice");
 
-		endsIgnoringCase(getEnhancer(query).applySorting(sort, "m"), "order by avgPrice asc");
+		assertThat(getEnhancer(query).applySorting(sort, "m")).endsWithIgnoringCase("order by avgPrice asc");
 	}
 
 	@Test // DATAJPA-965, DATAJPA-970
@@ -372,7 +375,7 @@ class QueryEnhancerUnitTests {
 		StringQuery query = new StringQuery("SELECT AVG(m.price) AS avgPrice FROM Magazine m", true);
 		Sort sort = Sort.by("someOtherProperty");
 
-		endsIgnoringCase(getEnhancer(query).applySorting(sort, "m"), "order by m.someOtherProperty asc");
+		assertThat(getEnhancer(query).applySorting(sort, "m")).endsWithIgnoringCase("order by m.someOtherProperty asc");
 	}
 
 	@Test // DATAJPA-965, DATAJPA-970
@@ -381,7 +384,7 @@ class QueryEnhancerUnitTests {
 		StringQuery query = new StringQuery("SELECT m.name, AVG(m.price) AS avgPrice FROM Magazine m", true);
 		Sort sort = Sort.by("name", "avgPrice");
 
-		endsIgnoringCase(getEnhancer(query).applySorting(sort, "m"), "order by m.name asc, avgPrice asc");
+		assertThat(getEnhancer(query).applySorting(sort, "m")).endsWithIgnoringCase("order by m.name asc, avgPrice asc");
 	}
 
 	@Test // DATAJPA-965, DATAJPA-970
@@ -390,7 +393,7 @@ class QueryEnhancerUnitTests {
 		StringQuery query = new StringQuery("SELECT SUBSTRING(m.name, 2, 5) AS trimmedName FROM Magazine m", true);
 		Sort sort = Sort.by("trimmedName");
 
-		endsIgnoringCase(getEnhancer(query).applySorting(sort, "m"), "order by trimmedName asc");
+		assertThat(getEnhancer(query).applySorting(sort, "m")).endsWithIgnoringCase("order by trimmedName asc");
 	}
 
 	@Test // DATAJPA-965, DATAJPA-970
@@ -399,7 +402,7 @@ class QueryEnhancerUnitTests {
 		StringQuery query = new StringQuery("SELECT CONCAT(m.name, 'foo') AS extendedName FROM Magazine m", true);
 		Sort sort = Sort.by("extendedName");
 
-		endsIgnoringCase(getEnhancer(query).applySorting(sort, "m"), "order by extendedName asc");
+		assertThat(getEnhancer(query).applySorting(sort, "m")).endsWithIgnoringCase("order by extendedName asc");
 	}
 
 	@Test // DATAJPA-965, DATAJPA-970
@@ -408,7 +411,7 @@ class QueryEnhancerUnitTests {
 		StringQuery query = new StringQuery("SELECT AVG(m.price) AS avg_price FROM Magazine m", true);
 		Sort sort = Sort.by("avg_price");
 
-		endsIgnoringCase(getEnhancer(query).applySorting(sort, "m"), "order by avg_price asc");
+		assertThat(getEnhancer(query).applySorting(sort, "m")).endsWithIgnoringCase("order by avg_price asc");
 	}
 
 	@Test // DATAJPA-965, DATAJPA-970
@@ -434,7 +437,7 @@ class QueryEnhancerUnitTests {
 		StringQuery query = new StringQuery("SELECT  AVG(  m.price  )   AS   avgPrice   FROM Magazine   m", true);
 		Sort sort = Sort.by("avgPrice");
 
-		endsIgnoringCase(getEnhancer(query).applySorting(sort, "m"), "order by avgPrice asc");
+		assertThat(getEnhancer(query).applySorting(sort, "m")).endsWithIgnoringCase("order by avgPrice asc");
 	}
 
 	@Test // DATAJPA-1000
@@ -452,7 +455,8 @@ class QueryEnhancerUnitTests {
 
 	@Test // DATAJPA-1171
 	void doesNotContainStaticClauseInExistsQuery() {
-		endsIgnoringCase(QueryUtils.getExistsQueryString("entity", "x", Collections.singleton("id")), "WHERE x.id = :id");
+		assertThat(QueryUtils.getExistsQueryString("entity", "x", Collections.singleton("id")))
+				.endsWithIgnoringCase("WHERE x.id = :id");
 	}
 
 	@Test // DATAJPA-1363
@@ -512,7 +516,7 @@ class QueryEnhancerUnitTests {
 
 		String fullQuery = getEnhancer(query).applySorting(sort);
 
-		endsIgnoringCase(fullQuery, "order by authorName asc");
+		assertThat(fullQuery).endsWithIgnoringCase("order by authorName asc");
 	}
 
 	@Test // GH-2280
@@ -538,7 +542,7 @@ class QueryEnhancerUnitTests {
 
 		String fullQuery = getEnhancer(query).applySorting(sort);
 
-		endsIgnoringCase(fullQuery, "order by title asc");
+		assertThat(fullQuery).endsWithIgnoringCase("order by title asc");
 	}
 
 	@Test // DATAJPA-1061
@@ -551,7 +555,7 @@ class QueryEnhancerUnitTests {
 
 		String fullQuery = getEnhancer(query).applySorting(sort);
 
-		endsIgnoringCase(fullQuery, "order by m.price asc");
+		assertThat(fullQuery).endsWithIgnoringCase("order by m.price asc");
 	}
 
 	@Test
@@ -664,6 +668,7 @@ class QueryEnhancerUnitTests {
 
 	@Test
 	void createsCountQueriesCorrectlyForCapitalLetter() {
+
 		assertCountQuery("SELECT u FROM User u where u.foo.bar = ?", "select count(u) FROM User u where u.foo.bar = ?",
 				true);
 	}
@@ -975,13 +980,6 @@ class QueryEnhancerUnitTests {
 
 	private static void assertCountQuery(StringQuery originalQuery, String countQuery) {
 		assertThat(getEnhancer(originalQuery).createCountQueryFor()).isEqualToIgnoringCase(countQuery);
-	}
-
-	private static void endsIgnoringCase(String original, String endWithIgnoreCase) {
-
-		// https://github.com/assertj/assertj-core/pull/2451
-		// can be removed when upgrading to version 3.23.0 assertJ
-		assertThat(original.toUpperCase()).endsWith(endWithIgnoreCase.toUpperCase());
 	}
 
 	private static QueryEnhancer getEnhancer(DeclaredQuery query) {

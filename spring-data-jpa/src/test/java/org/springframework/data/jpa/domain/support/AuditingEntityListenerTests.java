@@ -15,14 +15,13 @@
  */
 package org.springframework.data.jpa.domain.support;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.LocalDateTime;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Auditable;
 import org.springframework.data.jpa.domain.sample.AnnotatedAuditableUser;

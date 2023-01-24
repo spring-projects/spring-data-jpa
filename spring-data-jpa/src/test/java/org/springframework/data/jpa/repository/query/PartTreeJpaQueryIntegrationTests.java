@@ -17,7 +17,9 @@ import org.springframework.aop.framework.Advised;
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -136,8 +138,7 @@ public class PartTreeJpaQueryIntegrationTests {
 		assertThat(HibernateUtils.getHibernateQuery(query.unwrap(HIBERNATE_NATIVE_QUERY))).contains(".id from User as");
 	}
 
-	@Test // DATAJPA-1074
-	@Disabled // HHH-15432
+	@Test // DATAJPA-1074, HHH-15432
 	void isEmptyCollection() throws Exception {
 
 		JpaQueryMethod queryMethod = getQueryMethod("findByRolesIsEmpty");
@@ -148,8 +149,7 @@ public class PartTreeJpaQueryIntegrationTests {
 		assertThat(HibernateUtils.getHibernateQuery(query.unwrap(HIBERNATE_NATIVE_QUERY))).endsWith("roles is empty");
 	}
 
-	@Test // DATAJPA-1074
-	@Disabled // HHH-15432
+	@Test // DATAJPA-1074, HHH-15432
 	void isNotEmptyCollection() throws Exception {
 
 		JpaQueryMethod queryMethod = getQueryMethod("findByRolesIsNotEmpty");

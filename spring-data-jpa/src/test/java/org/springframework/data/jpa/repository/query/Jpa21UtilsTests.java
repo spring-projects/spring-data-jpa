@@ -15,10 +15,14 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.assertj.core.api.Assumptions.*;
-import static org.junit.Assume.*;
-import static org.springframework.data.jpa.support.EntityManagerTestUtils.*;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assumptions.assumeThat;
+import static org.springframework.data.jpa.support.EntityManagerTestUtils.currentEntityManagerIsAJpa21EntityManager;
+
+import jakarta.persistence.AttributeNode;
+import jakarta.persistence.EntityGraph;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Subgraph;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,18 +30,11 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import jakarta.persistence.AttributeNode;
-import jakarta.persistence.EntityGraph;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.Subgraph;
-
 import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Assertions;
-import org.assertj.core.api.Assumptions;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.EntityGraph.EntityGraphType;

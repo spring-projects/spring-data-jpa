@@ -15,7 +15,7 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -69,12 +69,14 @@ class JpaRepositoryTests {
 
 		SampleEntity entity = new SampleEntity("foo", "bar");
 		repository.saveAndFlush(entity);
+
 		assertThat(repository.existsById(new SampleEntityPK("foo", "bar"))).isTrue();
 		assertThat(repository.count()).isOne();
 		assertThat(repository.findById(new SampleEntityPK("foo", "bar"))).contains(entity);
 
 		repository.deleteAll(Arrays.asList(entity));
 		repository.flush();
+
 		assertThat(repository.count()).isZero();
 	}
 
@@ -128,6 +130,7 @@ class JpaRepositoryTests {
 
 		repository
 				.deleteAllByIdInBatch(Arrays.asList(new SampleEntityPK("one", "eins"), new SampleEntityPK("three", "drei")));
+
 		assertThat(repository.findAll()).containsExactly(two);
 	}
 
@@ -143,7 +146,7 @@ class JpaRepositoryTests {
 		/**
 		 * Wrap a {@link List} inside an {@link Iterable} to verify that {@link SimpleJpaRepository} can properly convert a
 		 * pure {@link Iterable} to a {@link Collection}.
-		 **/
+		 */
 		Iterable<SampleEntityPK> ids = new Iterable<SampleEntityPK>() {
 
 			private List<SampleEntityPK> ids = Arrays.asList(new SampleEntityPK("one", "eins"),

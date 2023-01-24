@@ -15,7 +15,8 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;

@@ -15,16 +15,18 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.Optional;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.mockito.Mockito.when;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.metamodel.Metamodel;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,7 +35,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-
 import org.springframework.aop.framework.Advised;
 import org.springframework.core.OverridingClassLoader;
 import org.springframework.data.jpa.domain.sample.User;
@@ -62,7 +63,8 @@ public class JpaRepositoryFactoryUnitTests {
 
 	@Mock EntityManager entityManager;
 	@Mock Metamodel metamodel;
-	@Mock @SuppressWarnings("rawtypes") JpaEntityInformation entityInformation;
+	@Mock
+	@SuppressWarnings("rawtypes") JpaEntityInformation entityInformation;
 	@Mock EntityManagerFactory emf;
 
 	@BeforeEach
@@ -91,7 +93,6 @@ public class JpaRepositoryFactoryUnitTests {
 	 */
 	@Test
 	void setsUpBasicInstanceCorrectly() {
-
 		assertThat(factory.getRepository(SimpleSampleRepository.class)).isNotNull();
 	}
 
@@ -109,7 +110,6 @@ public class JpaRepositoryFactoryUnitTests {
 	 * Asserts that the factory recognized configured predicateExecutor classes that contain custom method but no custom
 	 * implementation could be found. Furthremore the exception has to contain the name of the predicateExecutor interface
 	 * as for a large predicateExecutor configuration it's hard to find out where this error occured.
-	 *
 	 */
 	@Test
 	void capturesMissingCustomImplementationAndProvidesInterfacename() {
@@ -125,6 +125,7 @@ public class JpaRepositoryFactoryUnitTests {
 	void handlesRuntimeExceptionsCorrectly() {
 
 		SampleRepository repository = factory.getRepository(SampleRepository.class, new SampleCustomRepositoryImpl());
+
 		assertThatIllegalArgumentException().isThrownBy(repository::throwingRuntimeException);
 	}
 
@@ -132,6 +133,7 @@ public class JpaRepositoryFactoryUnitTests {
 	void handlesCheckedExceptionsCorrectly() {
 
 		SampleRepository repository = factory.getRepository(SampleRepository.class, new SampleCustomRepositoryImpl());
+
 		assertThatExceptionOfType(IOException.class).isThrownBy(repository::throwingCheckedException);
 	}
 
@@ -149,8 +151,8 @@ public class JpaRepositoryFactoryUnitTests {
 	void usesConfiguredRepositoryBaseClass() {
 
 		factory.setRepositoryBaseClass(CustomJpaRepository.class);
-
 		SampleRepository repository = factory.getRepository(SampleRepository.class);
+
 		assertThat(((Advised) repository).getTargetClass()).isEqualTo(CustomJpaRepository.class);
 	}
 
@@ -158,10 +160,9 @@ public class JpaRepositoryFactoryUnitTests {
 	void crudMethodMetadataPostProcessorUsesBeanClassLoader() {
 
 		ClassLoader classLoader = new OverridingClassLoader(ClassUtils.getDefaultClassLoader());
-
 		factory.setBeanClassLoader(classLoader);
-
 		Object processor = ReflectionTestUtils.getField(factory, "crudMethodMetadataPostProcessor");
+
 		assertThat(ReflectionTestUtils.getField(processor, "classLoader")).isEqualTo((Object) classLoader);
 	}
 
@@ -208,13 +209,11 @@ public class JpaRepositoryFactoryUnitTests {
 
 		@Override
 		public void throwingRuntimeException() {
-
 			throw new IllegalArgumentException("You lose");
 		}
 
 		@Override
 		public void throwingCheckedException() throws IOException {
-
 			throw new IOException("You lose");
 		}
 	};

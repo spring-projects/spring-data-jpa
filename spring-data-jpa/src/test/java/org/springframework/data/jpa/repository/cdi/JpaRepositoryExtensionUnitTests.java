@@ -15,18 +15,19 @@
  */
 package org.springframework.data.jpa.repository.cdi;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import jakarta.enterprise.inject.spi.Bean;
+import jakarta.enterprise.inject.spi.ProcessBean;
+import jakarta.persistence.EntityManager;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
-
-import jakarta.enterprise.inject.spi.Bean;
-import jakarta.enterprise.inject.spi.ProcessBean;
-import jakarta.persistence.EntityManager;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

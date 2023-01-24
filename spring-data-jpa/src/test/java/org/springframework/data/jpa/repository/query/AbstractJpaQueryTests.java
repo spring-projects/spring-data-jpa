@@ -15,13 +15,13 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.assertj.core.api.Assumptions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
-import static org.springframework.data.jpa.support.EntityManagerTestUtils.*;
-
-import java.lang.reflect.Method;
-import java.util.List;
+import static org.assertj.core.api.Assumptions.assumeThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.data.jpa.support.EntityManagerTestUtils.currentEntityManagerIsAJpa21EntityManager;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
@@ -30,10 +30,12 @@ import jakarta.persistence.Query;
 import jakarta.persistence.QueryHint;
 import jakarta.persistence.TypedQuery;
 
+import java.lang.reflect.Method;
+import java.util.List;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.repository.EntityGraph;

@@ -15,20 +15,20 @@
  */
 package org.springframework.data.jpa.repository.cdi;
 
-import static org.assertj.core.api.Assertions.*;
-
-import java.util.Set;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.se.SeContainer;
 import jakarta.enterprise.inject.se.SeContainerInitializer;
 import jakarta.enterprise.inject.spi.Bean;
 
+import java.util.Set;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 /**
  * Integration tests for Spring Data JPA CDI extension.

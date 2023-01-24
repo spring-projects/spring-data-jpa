@@ -15,13 +15,12 @@
  */
 package org.springframework.data.jpa.repository;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import jakarta.persistence.Query;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-
 import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.test.context.ContextConfiguration;
 
@@ -43,8 +42,7 @@ class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserRepositoryTes
 	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=422450 is resolved.
 	 */
 	@Override
-	void sortByAssociationPropertyShouldUseLeftOuterJoin() {
-	}
+	void sortByAssociationPropertyShouldUseLeftOuterJoin() {}
 
 	/**
 	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=422450 is resolved.
@@ -67,7 +65,8 @@ class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserRepositoryTes
 
 		Query query = em.createNativeQuery("select 1 from User where firstname=? and lastname=?");
 		assertThat(query.getParameters()).describedAs(
-				"Due to a bug eclipse has size 0; If this is no longer the case the special code path triggered in NamedOrIndexedQueryParameterSetter.registerExcessParameters can be removed").isEmpty();
+				"Due to a bug eclipse has size 0; If this is no longer the case the special code path triggered in NamedOrIndexedQueryParameterSetter.registerExcessParameters can be removed")
+				.isEmpty();
 	}
 
 	/**
@@ -112,8 +111,7 @@ class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserRepositoryTes
 	 * Ignores the test. Reconsider once https://bugs.eclipse.org/bugs/show_bug.cgi?id=533240 is fixed.
 	 */
 	@Override
-	void findByAgeWithEmptyArrayOfIntegersOrFirstName() {
-	}
+	void findByAgeWithEmptyArrayOfIntegersOrFirstName() {}
 
 	/**
 	 * Ignores the test. Reconsider once https://bugs.eclipse.org/bugs/show_bug.cgi?id=533240 is fixed.

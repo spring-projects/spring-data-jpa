@@ -15,14 +15,15 @@
  */
 package org.springframework.data.jpa.support;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import jakarta.persistence.spi.PersistenceUnitInfo;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
-
-import jakarta.persistence.spi.PersistenceUnitInfo;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,7 +31,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-
 import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.orm.jpa.persistenceunit.MutablePersistenceUnitInfo;
@@ -66,7 +66,7 @@ class MergingPersistenceUnitManagerUnitTests {
 
 		MergingPersistenceUnitManager manager = new MergingPersistenceUnitManager();
 		manager.setPersistenceXmlLocations("classpath:org/springframework/data/jpa/support/persistence.xml",
-		        "classpath:org/springframework/data/jpa/support/persistence2.xml");
+				"classpath:org/springframework/data/jpa/support/persistence2.xml");
 		manager.preparePersistenceUnitInfos();
 
 		PersistenceUnitInfo info = manager.obtainPersistenceUnitInfo("pu");

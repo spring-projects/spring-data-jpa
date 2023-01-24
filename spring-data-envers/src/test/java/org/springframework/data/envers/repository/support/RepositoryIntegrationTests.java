@@ -15,8 +15,10 @@
  */
 package org.springframework.data.envers.repository.support;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.springframework.data.history.RevisionMetadata.RevisionType.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.data.history.RevisionMetadata.RevisionType.DELETE;
+import static org.springframework.data.history.RevisionMetadata.RevisionType.INSERT;
+import static org.springframework.data.history.RevisionMetadata.RevisionType.UPDATE;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -27,7 +29,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -53,10 +54,8 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @ContextConfiguration(classes = Config.class)
 class RepositoryIntegrationTests {
 
-	@Autowired
-	LicenseRepository licenseRepository;
-	@Autowired
-	CountryRepository countryRepository;
+	@Autowired LicenseRepository licenseRepository;
+	@Autowired CountryRepository countryRepository;
 
 	@BeforeEach
 	void setUp() {

@@ -15,7 +15,7 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import jakarta.persistence.EntityManagerFactory;
 
@@ -46,7 +46,7 @@ public class EntityManagerFactoryRefUnitTests {
 		reader.loadBeanDefinitions(new ClassPathResource("multiple-entity-manager-context.xml"));
 
 		BeanDefinition bean = factory.getBeanDefinition("userRepository");
-		Object value = getPropertyValue(bean, "entityManager");
+		Object value = bean.getPropertyValues().getPropertyValue("entityManager").getValue();
 		assertThat(value).isInstanceOf(RuntimeBeanNameReference.class);
 		BeanDefinition emCreator = (BeanDefinition) value;
 
@@ -55,7 +55,6 @@ public class EntityManagerFactoryRefUnitTests {
 	}
 
 	private Object getPropertyValue(BeanDefinition definition, String propertyName) {
-
 		return definition.getPropertyValues().getPropertyValue(propertyName).getValue();
 	}
 

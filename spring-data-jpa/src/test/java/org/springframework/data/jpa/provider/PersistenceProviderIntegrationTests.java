@@ -15,14 +15,13 @@
  */
 package org.springframework.data.jpa.provider;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import jakarta.persistence.EntityManager;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan.Filter;
 import org.springframework.context.annotation.Configuration;
@@ -60,6 +59,7 @@ public class PersistenceProviderIntegrationTests {
 
 	@BeforeEach
 	void setUp() {
+
 		this.product = products.save(new Product());
 		this.category = categories.save(new Category(product));
 	}

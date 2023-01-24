@@ -15,13 +15,13 @@
  */
 package org.springframework.data.jpa.repository;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import jakarta.persistence.EntityManager;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
-import jakarta.persistence.EntityManager;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

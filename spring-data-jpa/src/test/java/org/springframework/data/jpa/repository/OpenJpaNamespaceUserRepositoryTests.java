@@ -15,11 +15,8 @@
  */
 package org.springframework.data.jpa.repository;
 
-import static org.assertj.core.api.Assertions.*;
-
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -28,6 +25,10 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.ParameterExpression;
 import jakarta.persistence.criteria.Root;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -50,12 +51,8 @@ class OpenJpaNamespaceUserRepositoryTests extends NamespaceUserRepositoryTests {
 	@Test
 	void checkQueryValidationWithOpenJpa() {
 
-		assertThatThrownBy(() -> em.createQuery("something absurd"))
-		.isInstanceOf(RuntimeException.class);
-
-		assertThatThrownBy(() -> em.createNamedQuery("not available"))
-		.isInstanceOf(RuntimeException.class);
-
+		assertThatThrownBy(() -> em.createQuery("something absurd")).isInstanceOf(RuntimeException.class);
+		assertThatThrownBy(() -> em.createNamedQuery("not available")).isInstanceOf(RuntimeException.class);
 	}
 
 	/**
