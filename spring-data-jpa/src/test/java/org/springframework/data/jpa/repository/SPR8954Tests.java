@@ -35,7 +35,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:config/namespace-application-context.xml")
-public class SPR8954Tests {
+class SPR8954Tests {
 
 	@Autowired ApplicationContext context;
 

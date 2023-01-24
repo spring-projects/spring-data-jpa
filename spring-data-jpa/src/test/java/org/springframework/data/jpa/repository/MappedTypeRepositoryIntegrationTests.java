@@ -51,7 +51,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = SampleConfig.class)
-public class MappedTypeRepositoryIntegrationTests {
+class MappedTypeRepositoryIntegrationTests {
 
 	@Autowired ConcreteRepository1 concreteRepository1;
 	@Autowired ConcreteRepository2 concreteRepository2;

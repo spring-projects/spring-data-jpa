@@ -38,7 +38,7 @@ import org.springframework.transaction.annotation.Transactional;
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(locations = { "classpath:application-context.xml" })
 @Transactional
-public class RoleRepositoryIntegrationTests {
+class RoleRepositoryIntegrationTests {
 
 	@Autowired RoleRepository repository;
 

@@ -50,7 +50,7 @@ import org.springframework.test.util.ReflectionTestUtils;
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-public class ClasspathScanningPersistenceUnitPostProcessorUnitTests {
+class ClasspathScanningPersistenceUnitPostProcessorUnitTests {
 
 	@Mock MutablePersistenceUnitInfo pui;
 	private String basePackage = getClass().getPackage().getName();

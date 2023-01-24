@@ -40,7 +40,7 @@ import org.springframework.transaction.annotation.Transactional;
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = SampleConfig.class)
 @Transactional
-public class RedeclaringRepositoryMethodsTests {
+class RedeclaringRepositoryMethodsTests {
 
 	@Autowired RedeclaringRepositoryMethodsRepository repository;
 

@@ -41,7 +41,7 @@ import org.springframework.data.repository.core.support.DefaultRepositoryMetadat
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-public class MetaAnnotatedQueryMethodUnitTests {
+class MetaAnnotatedQueryMethodUnitTests {
 
 	@Mock QueryExtractor extractor;
 

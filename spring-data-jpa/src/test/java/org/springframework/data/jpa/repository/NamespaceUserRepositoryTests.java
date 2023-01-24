@@ -32,7 +32,7 @@ import org.springframework.test.context.ContextConfiguration;
  * @author Eberhard Wolff
  */
 @ContextConfiguration(locations = "classpath:config/namespace-application-context.xml", inheritLocations = false)
-public class NamespaceUserRepositoryTests extends UserRepositoryTests {
+class NamespaceUserRepositoryTests extends UserRepositoryTests {
 
 	@Autowired
 	ListableBeanFactory beanFactory;

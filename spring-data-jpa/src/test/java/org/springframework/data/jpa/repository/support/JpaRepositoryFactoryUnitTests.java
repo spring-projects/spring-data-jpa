@@ -57,7 +57,7 @@ import org.springframework.util.ClassUtils;
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-public class JpaRepositoryFactoryUnitTests {
+class JpaRepositoryFactoryUnitTests {
 
 	private JpaRepositoryFactory factory;
 

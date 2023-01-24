@@ -54,7 +54,7 @@ import org.springframework.util.ObjectUtils;
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:application-context.xml")
 @Transactional
-public class Jpa21UtilsTests {
+class Jpa21UtilsTests {
 
 	@Autowired EntityManager em;
 

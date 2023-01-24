@@ -69,7 +69,7 @@ import org.springframework.data.util.ClassTypeInformation;
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-public class JpaQueryMethodUnitTests {
+class JpaQueryMethodUnitTests {
 
 	private static final String METHOD_NAME = "findByFirstname";
 

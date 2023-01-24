@@ -47,7 +47,7 @@ import org.springframework.transaction.annotation.Transactional;
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:application-context.xml")
 @Transactional
-public class UserRepositoryStoredProcedureIntegrationTests {
+class UserRepositoryStoredProcedureIntegrationTests {
 
 	@Autowired UserRepository repository;
 	@PersistenceContext EntityManager em;

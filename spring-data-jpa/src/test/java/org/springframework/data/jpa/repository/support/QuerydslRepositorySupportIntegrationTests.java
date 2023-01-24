@@ -45,7 +45,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 @ContextConfiguration
 @ExtendWith(SpringExtension.class)
-public class QuerydslRepositorySupportIntegrationTests {
+class QuerydslRepositorySupportIntegrationTests {
 
 	@Configuration
 	@EnableTransactionManagement

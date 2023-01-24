@@ -35,7 +35,7 @@ import org.springframework.core.io.ClassPathResource;
  * @author Jens Schauder
  * @author Krzysztof Krason
  */
-public class EntityManagerFactoryRefUnitTests {
+class EntityManagerFactoryRefUnitTests {
 
 	@Test
 	@Disabled

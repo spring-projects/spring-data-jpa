@@ -48,7 +48,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:config/namespace-application-context.xml")
-public class ParentRepositoryIntegrationTests {
+class ParentRepositoryIntegrationTests {
 
 	@Autowired ParentRepository repository;
 

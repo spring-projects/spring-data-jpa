@@ -38,7 +38,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(locations = "classpath:config/lookup-strategies-context.xml")
-public class QueryLookupStrategyTests {
+class QueryLookupStrategyTests {
 
 	@Autowired ApplicationContext context;
 

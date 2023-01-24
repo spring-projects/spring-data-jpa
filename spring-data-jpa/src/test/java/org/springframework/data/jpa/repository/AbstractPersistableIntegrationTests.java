@@ -41,7 +41,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(locations = { "classpath:config/namespace-autoconfig-context.xml" })
-public class AbstractPersistableIntegrationTests {
+class AbstractPersistableIntegrationTests {
 
 	@Autowired CustomAbstractPersistableRepository repository;
 	@Autowired EntityManager em;

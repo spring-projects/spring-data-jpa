@@ -62,7 +62,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = Config.class)
-public class ProjectionsIntegrationTests {
+class ProjectionsIntegrationTests {
 
 	@Autowired DummyEntityWithCollectionRepository repository;
 

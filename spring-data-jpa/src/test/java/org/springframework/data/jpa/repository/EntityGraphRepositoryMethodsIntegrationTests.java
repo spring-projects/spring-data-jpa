@@ -60,7 +60,7 @@ import org.springframework.transaction.annotation.Transactional;
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:config/namespace-autoconfig-context.xml")
 @Transactional
-public class EntityGraphRepositoryMethodsIntegrationTests {
+class EntityGraphRepositoryMethodsIntegrationTests {
 
 	@Autowired EntityManager em;
 	@Autowired RepositoryMethodsWithEntityGraphConfigRepository repository;

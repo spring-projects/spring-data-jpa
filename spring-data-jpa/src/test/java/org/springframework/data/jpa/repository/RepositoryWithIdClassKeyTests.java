@@ -48,7 +48,7 @@ import org.springframework.transaction.annotation.Transactional;
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = RepositoryWithIdClassKeyTests.TestConfig.class)
 @Transactional
-public class RepositoryWithIdClassKeyTests {
+class RepositoryWithIdClassKeyTests {
 
 	@Autowired private SiteRepository siteRepository;
 

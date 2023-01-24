@@ -52,7 +52,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:infrastructure.xml")
-public class AbstractStringBasedJpaQueryIntegrationTests {
+class AbstractStringBasedJpaQueryIntegrationTests {
 
 	@PersistenceContext EntityManager em;
 

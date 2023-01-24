@@ -46,7 +46,7 @@ import org.springframework.data.repository.cdi.Eager;
  *
  * @author Greg Turnquist
  */
-public class JpaQueryRewriterWithCdiIntegrationTests {
+class JpaQueryRewriterWithCdiIntegrationTests {
 
 	private static SeContainer container;
 	private static Log LOGGER = LogFactory.getLog(CdiExtensionIntegrationTests.class);

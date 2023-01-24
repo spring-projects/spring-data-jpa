@@ -55,7 +55,7 @@ import org.springframework.transaction.annotation.Transactional;
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = SampleConfig.class)
 @Transactional
-public class MailMessageRepositoryIntegrationTests {
+class MailMessageRepositoryIntegrationTests {
 
 	private static final QMailMessage message = QMailMessage.mailMessage;
 	static final QMailSender sender = QMailSender.mailSender;

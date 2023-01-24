@@ -59,7 +59,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:infrastructure.xml")
-public class AbstractJpaQueryTests {
+class AbstractJpaQueryTests {
 
 	@PersistenceContext EntityManager em;
 

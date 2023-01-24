@@ -52,7 +52,7 @@ import org.springframework.data.repository.query.ReturnedType;
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-public class TupleConverterUnitTests {
+class TupleConverterUnitTests {
 
 	@Mock Tuple tuple;
 	@Mock TupleElement<String> element;

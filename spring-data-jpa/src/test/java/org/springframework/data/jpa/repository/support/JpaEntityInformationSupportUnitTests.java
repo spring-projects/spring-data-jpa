@@ -43,7 +43,7 @@ import org.mockito.quality.Strictness;
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-public class JpaEntityInformationSupportUnitTests {
+class JpaEntityInformationSupportUnitTests {
 
 	@Mock EntityManager em;
 	@Mock Metamodel metaModel;

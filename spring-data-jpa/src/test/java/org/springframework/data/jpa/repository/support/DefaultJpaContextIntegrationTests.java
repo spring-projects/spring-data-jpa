@@ -50,7 +50,7 @@ import org.springframework.stereotype.Component;
  * @author Jens Schauder
  * @soundtrack Marcus Miller - Papa Was A Rolling Stone (Afrodeezia)
  */
-public class DefaultJpaContextIntegrationTests {
+class DefaultJpaContextIntegrationTests {
 
 	private static EntityManagerFactory firstEmf;
 	private static EntityManagerFactory secondEmf;

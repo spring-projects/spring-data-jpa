@@ -42,7 +42,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(locations = "classpath:config/namespace-customfactory-context.xml")
-public class CustomRepositoryFactoryConfigTests {
+class CustomRepositoryFactoryConfigTests {
 
 	@Autowired(required = false) UserCustomExtendedRepository userRepository;
 

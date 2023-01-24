@@ -49,7 +49,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:infrastructure.xml")
-public class JpaCountQueryCreatorIntegrationTests {
+class JpaCountQueryCreatorIntegrationTests {
 
 	@PersistenceContext EntityManager entityManager;
 

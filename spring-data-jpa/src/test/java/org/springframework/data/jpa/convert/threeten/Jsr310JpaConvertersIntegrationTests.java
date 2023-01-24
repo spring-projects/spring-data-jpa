@@ -44,7 +44,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @ContextConfiguration
 @Transactional
-public class Jsr310JpaConvertersIntegrationTests extends AbstractAttributeConverterIntegrationTests {
+class Jsr310JpaConvertersIntegrationTests extends AbstractAttributeConverterIntegrationTests {
 
 	@PersistenceContext EntityManager em;
 

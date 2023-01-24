@@ -22,7 +22,7 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:hjppa-test.xml")
-public class HibernateJpaParametersParameterAccessorUnitTests {
+class HibernateJpaParametersParameterAccessorUnitTests {
 
 	@Autowired private EntityManager em;
 

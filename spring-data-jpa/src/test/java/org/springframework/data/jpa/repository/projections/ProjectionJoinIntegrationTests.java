@@ -44,7 +44,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = ProjectionsIntegrationTests.Config.class)
-public class ProjectionJoinIntegrationTests {
+class ProjectionJoinIntegrationTests {
 
 	@Autowired private UserRepository userRepository;
 

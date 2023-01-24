@@ -33,7 +33,7 @@ import org.springframework.data.jpa.repository.query.DefaultJpaEntityMetadata;
  * @author Christoph Strobl
  * @author Jens Schauder
  */
-public class DefaultJpaEntityMetadataUnitTest {
+class DefaultJpaEntityMetadataUnitTest {
 
 	@Test
 	@SuppressWarnings({ "rawtypes", "unchecked" })

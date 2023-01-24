@@ -56,7 +56,7 @@ import org.springframework.data.repository.query.Param;
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-public class ParameterBinderUnitTests {
+class ParameterBinderUnitTests {
 
 	private static final int MAX_PARAMETERS = 1;
 	private Method valid;

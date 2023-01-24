@@ -43,7 +43,7 @@ import org.springframework.transaction.annotation.Transactional;
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration({ "classpath:infrastructure.xml" })
 @Transactional
-public class QuerydslRepositorySupportTests {
+class QuerydslRepositorySupportTests {
 
 	@PersistenceContext EntityManager em;
 

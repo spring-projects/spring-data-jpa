@@ -68,7 +68,7 @@ import com.mysql.cj.jdbc.MysqlDataSource;
 @Transactional
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = MySqlStoredProcedureIntegrationTests.Config.class)
-public class MySqlStoredProcedureIntegrationTests {
+class MySqlStoredProcedureIntegrationTests {
 
 	@Autowired EmployeeRepositoryWithNoCursor repository;
 

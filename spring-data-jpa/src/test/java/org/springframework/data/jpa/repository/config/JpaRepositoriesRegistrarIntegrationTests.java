@@ -53,7 +53,7 @@ import org.springframework.util.ClassUtils;
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration
-public class JpaRepositoriesRegistrarIntegrationTests {
+class JpaRepositoriesRegistrarIntegrationTests {
 
 	@Autowired UserRepository repository;
 

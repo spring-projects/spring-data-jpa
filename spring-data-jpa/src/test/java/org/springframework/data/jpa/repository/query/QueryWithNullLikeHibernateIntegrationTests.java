@@ -57,7 +57,7 @@ import org.springframework.transaction.annotation.Transactional;
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = QueryWithNullLikeHibernateIntegrationTests.Config.class)
 @Transactional
-public class QueryWithNullLikeHibernateIntegrationTests {
+class QueryWithNullLikeHibernateIntegrationTests {
 
 	@Autowired EmployeeWithNullLikeRepository repository;
 

@@ -36,7 +36,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(locations = "classpath:multiple-entity-manager-integration-context.xml")
-public class EntityManagerFactoryRefTests {
+class EntityManagerFactoryRefTests {
 
 	@Autowired UserRepository userRepository;
 	@Autowired AuditableUserRepository auditableUserRepository;

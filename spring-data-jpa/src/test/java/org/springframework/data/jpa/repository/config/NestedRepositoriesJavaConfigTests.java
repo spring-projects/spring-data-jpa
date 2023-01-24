@@ -38,7 +38,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration
-public class NestedRepositoriesJavaConfigTests {
+class NestedRepositoriesJavaConfigTests {
 
 	@Autowired NestedUserRepository nestedUserRepository;
 

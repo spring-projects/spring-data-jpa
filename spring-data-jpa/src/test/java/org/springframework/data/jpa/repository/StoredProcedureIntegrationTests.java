@@ -53,7 +53,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 @ContextConfiguration(classes = StoredProcedureIntegrationTests.TestConfig.class)
 @ExtendWith(SpringExtension.class)
-public class StoredProcedureIntegrationTests {
+class StoredProcedureIntegrationTests {
 
 	private static final String NOT_SUPPORTED = "Stored procedures with REF_CURSOR are currently not supported by HSQL dialect";
 

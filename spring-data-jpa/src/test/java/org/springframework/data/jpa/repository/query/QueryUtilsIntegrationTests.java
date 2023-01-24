@@ -72,7 +72,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:infrastructure.xml")
-public class QueryUtilsIntegrationTests {
+class QueryUtilsIntegrationTests {
 
 	@PersistenceContext EntityManager em;
 

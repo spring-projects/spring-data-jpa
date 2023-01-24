@@ -46,7 +46,7 @@ import org.springframework.transaction.annotation.Transactional;
 @ContextConfiguration("classpath:auditing/auditing-entity-listener.xml")
 @Transactional
 @DirtiesContext
-public class AuditingEntityListenerTests {
+class AuditingEntityListenerTests {
 
 	@Autowired AuditableUserRepository repository;
 	@Autowired AnnotatedAuditableUserRepository annotatedUserRepository;

@@ -111,7 +111,7 @@ import org.springframework.transaction.annotation.Transactional;
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:application-context.xml")
 @Transactional
-public class UserRepositoryTests {
+class UserRepositoryTests {
 
 	@PersistenceContext EntityManager em;
 

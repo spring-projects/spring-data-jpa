@@ -33,7 +33,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(locations = "classpath:infrastructure.xml")
-public class ORMInfrastructureTests {
+class ORMInfrastructureTests {
 
 	@Autowired ApplicationContext context;
 

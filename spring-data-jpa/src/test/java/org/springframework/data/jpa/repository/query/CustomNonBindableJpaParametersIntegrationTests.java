@@ -48,7 +48,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration
-public class CustomNonBindableJpaParametersIntegrationTests {
+class CustomNonBindableJpaParametersIntegrationTests {
 
 	@Autowired ProductRepository products;
 

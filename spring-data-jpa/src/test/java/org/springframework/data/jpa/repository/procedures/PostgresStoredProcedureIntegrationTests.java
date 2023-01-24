@@ -70,7 +70,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 @Transactional
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = PostgresStoredProcedureIntegrationTests.Config.class)
-public class PostgresStoredProcedureIntegrationTests {
+class PostgresStoredProcedureIntegrationTests {
 
 	@Autowired EmployeeRepositoryWithRefCursor repository;
 

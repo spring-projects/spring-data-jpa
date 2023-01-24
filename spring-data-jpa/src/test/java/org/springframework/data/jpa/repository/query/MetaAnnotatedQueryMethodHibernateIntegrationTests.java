@@ -67,7 +67,7 @@ import org.springframework.transaction.annotation.Transactional;
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration
 @Transactional
-public class MetaAnnotatedQueryMethodHibernateIntegrationTests {
+class MetaAnnotatedQueryMethodHibernateIntegrationTests {
 
 	@Autowired RoleRepositoryWithMeta repository;
 

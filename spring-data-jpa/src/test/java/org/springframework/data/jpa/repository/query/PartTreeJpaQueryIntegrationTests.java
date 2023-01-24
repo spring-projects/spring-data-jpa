@@ -61,7 +61,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:infrastructure.xml")
-public class PartTreeJpaQueryIntegrationTests {
+class PartTreeJpaQueryIntegrationTests {
 
 	private static String PROPERTY = "h.target." + getQueryProperty();
 	private static Class<?> HIBERNATE_NATIVE_QUERY = org.hibernate.query.Query.class;

@@ -55,7 +55,7 @@ import org.springframework.data.util.TypeInformation;
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-public class JpaPersistentPropertyImplUnitTests {
+class JpaPersistentPropertyImplUnitTests {
 
 	@Mock Metamodel model;
 

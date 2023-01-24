@@ -37,7 +37,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:auditing/auditing-entity-with-embeddable-listener.xml")
-public class AuditingEntityWithEmbeddableListenerTests {
+class AuditingEntityWithEmbeddableListenerTests {
 
 	@Autowired AuditableEntityRepository repository;
 

@@ -61,7 +61,7 @@ import org.springframework.data.repository.query.RepositoryQuery;
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-public class JpaQueryLookupStrategyUnitTests {
+class JpaQueryLookupStrategyUnitTests {
 
 	private static final QueryMethodEvaluationContextProvider EVALUATION_CONTEXT_PROVIDER = QueryMethodEvaluationContextProvider.DEFAULT;
 

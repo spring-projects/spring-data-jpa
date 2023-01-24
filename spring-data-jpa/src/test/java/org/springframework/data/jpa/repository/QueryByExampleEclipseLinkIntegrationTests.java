@@ -43,7 +43,7 @@ import org.springframework.transaction.annotation.Transactional;
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration({ "classpath:eclipselink.xml", "classpath:config/namespace-application-context.xml" })
 @Transactional
-public class QueryByExampleEclipseLinkIntegrationTests {
+class QueryByExampleEclipseLinkIntegrationTests {
 
 	@Autowired RoleRepository repository;
 	@Autowired EntityManager em;

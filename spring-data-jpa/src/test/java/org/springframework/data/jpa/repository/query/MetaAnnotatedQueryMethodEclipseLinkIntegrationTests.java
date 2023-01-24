@@ -69,7 +69,7 @@ import org.springframework.util.FileSystemUtils;
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration
 @Transactional
-public class MetaAnnotatedQueryMethodEclipseLinkIntegrationTests {
+class MetaAnnotatedQueryMethodEclipseLinkIntegrationTests {
 
 	@Autowired RoleRepositoryWithMeta repository;
 

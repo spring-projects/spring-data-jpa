@@ -33,7 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:config/namespace-application-context.xml")
 @Transactional
-public class EntityWithAssignedIdIntegrationTests {
+class EntityWithAssignedIdIntegrationTests {
 
 	@Autowired EntityWithAssignedIdRepository repository;
 

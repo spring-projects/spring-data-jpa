@@ -65,7 +65,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 @Transactional
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = PostgresStoredProcedureNullHandlingIntegrationTests.Config.class)
-public class PostgresStoredProcedureNullHandlingIntegrationTests {
+class PostgresStoredProcedureNullHandlingIntegrationTests {
 
 	@Autowired TestModelRepository repository;
 
@@ -83,7 +83,7 @@ public class PostgresStoredProcedureNullHandlingIntegrationTests {
 	@AllArgsConstructor
 	@NoArgsConstructor(access = AccessLevel.PROTECTED)
 	@Entity
-	public class TestModel {
+	class TestModel {
 
 		@Id
 		@GeneratedValue(strategy = GenerationType.AUTO) private long id;

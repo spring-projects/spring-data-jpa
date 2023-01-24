@@ -30,7 +30,7 @@ import org.springframework.test.context.ContextConfiguration;
  * @author Jens Schauder
  */
 @ContextConfiguration(locations = "classpath:config/namespace-nested-repositories-application-context.xml")
-public class AllowNestedRepositoriesRepositoryConfigTests extends AbstractRepositoryConfigTests {
+class AllowNestedRepositoriesRepositoryConfigTests extends AbstractRepositoryConfigTests {
 
 	@Autowired NestedUserRepository fooRepository;
 
