@@ -17,7 +17,12 @@ package org.springframework.data.jpa.repository.query;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.springframework.data.jpa.repository.query.QueryUtils.*;
+import static org.springframework.data.jpa.repository.query.QueryUtils.applySorting;
+import static org.springframework.data.jpa.repository.query.QueryUtils.createCountQueryFor;
+import static org.springframework.data.jpa.repository.query.QueryUtils.detectAlias;
+import static org.springframework.data.jpa.repository.query.QueryUtils.getOuterJoinAliases;
+import static org.springframework.data.jpa.repository.query.QueryUtils.hasConstructorExpression;
+import static org.springframework.data.jpa.repository.query.QueryUtils.removeSubqueries;
 
 import java.util.Collections;
 import java.util.Set;

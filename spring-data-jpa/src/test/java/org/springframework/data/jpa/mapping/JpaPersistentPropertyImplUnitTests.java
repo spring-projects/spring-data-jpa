@@ -15,10 +15,9 @@
  */
 package org.springframework.data.jpa.mapping;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
-import java.util.Collections;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 
 import jakarta.persistence.Access;
 import jakarta.persistence.AccessType;
@@ -30,6 +29,8 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.Transient;
 import jakarta.persistence.metamodel.ManagedType;
 import jakarta.persistence.metamodel.Metamodel;
+
+import java.util.Collections;
 
 import org.jmolecules.ddd.types.AggregateRoot;
 import org.jmolecules.ddd.types.Association;
@@ -146,8 +147,7 @@ class JpaPersistentPropertyImplUnitTests {
 
 		Iterable<? extends TypeInformation<?>> entityType = property.getPersistentEntityTypeInformation();
 		assertThat(entityType.iterator().hasNext()).isTrue();
-		assertThat(entityType.iterator().next())
-				.isEqualTo(TypeInformation.of(Implementation.class));
+		assertThat(entityType.iterator().next()).isEqualTo(TypeInformation.of(Implementation.class));
 	}
 
 	@Test // DATAJPA-716

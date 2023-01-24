@@ -15,7 +15,7 @@
  */
 package org.springframework.data.jpa.repository.config;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Arrays;
 
@@ -60,8 +60,7 @@ class JpaRepositoriesRegistrarUnitTests {
 	}
 
 	@EnableJpaRepositories(basePackageClasses = UserRepository.class)
-	private
-	class Config {
+	private class Config {
 
 	}
 }

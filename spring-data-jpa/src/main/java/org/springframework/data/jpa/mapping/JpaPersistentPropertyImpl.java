@@ -15,14 +15,14 @@
  */
 package org.springframework.data.jpa.mapping;
 
+import jakarta.persistence.*;
+import jakarta.persistence.metamodel.Metamodel;
+
 import java.lang.annotation.Annotation;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-
-import jakarta.persistence.*;
-import jakarta.persistence.metamodel.Metamodel;
 
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.data.annotation.AccessType.Type;
