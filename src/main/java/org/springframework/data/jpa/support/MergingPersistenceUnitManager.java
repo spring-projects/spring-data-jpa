@@ -27,7 +27,7 @@ import org.springframework.orm.jpa.persistenceunit.MutablePersistenceUnitInfo;
 
 /**
  * Extends {@link DefaultPersistenceUnitManager} to merge configurations of one persistence unit residing in multiple
- * {@code persistence.xml} files into one. This is necessary to allow the declaration of entities in seperate modules.
+ * {@code persistence.xml} files into one. This is necessary to allow the declaration of entities in separate modules.
  *
  * @author Oliver Gierke
  * @link https://github.com/spring-projects/spring-framework/issues/7287

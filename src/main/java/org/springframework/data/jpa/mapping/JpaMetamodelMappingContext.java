@@ -196,7 +196,7 @@ public class JpaMetamodelMappingContext
 				} catch (IllegalArgumentException o_O) {
 
 					// Fall back to inspect *all* managed types manually as Metamodel.managedType(…) only
-					// returns for entities, embeddables and managed supperclasses.
+					// returns for entities, embeddables and managed superclasses.
 
 					for (ManagedType<?> managedType : model.getManagedTypes()) {
 						if (type.equals(managedType.getJavaType())) {
