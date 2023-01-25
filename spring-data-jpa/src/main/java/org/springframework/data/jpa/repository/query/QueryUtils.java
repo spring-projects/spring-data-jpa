@@ -18,10 +18,23 @@ package org.springframework.data.jpa.repository.query;
 import static jakarta.persistence.metamodel.Attribute.PersistentAttributeType.*;
 import static java.util.regex.Pattern.*;
 
-import jakarta.persistence.*;
-import jakarta.persistence.criteria.*;
-import jakarta.persistence.metamodel.*;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Parameter;
+import jakarta.persistence.Query;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Fetch;
+import jakarta.persistence.criteria.From;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
+import jakarta.persistence.metamodel.Attribute;
 import jakarta.persistence.metamodel.Attribute.PersistentAttributeType;
+import jakarta.persistence.metamodel.Bindable;
+import jakarta.persistence.metamodel.ManagedType;
+import jakarta.persistence.metamodel.PluralAttribute;
+import jakarta.persistence.metamodel.SingularAttribute;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
@@ -570,6 +583,19 @@ public abstract class QueryUtils {
 	 */
 	@Deprecated
 	public static String createCountQueryFor(String originalQuery, @Nullable String countProjection) {
+		return createCountQueryFor(originalQuery, countProjection, false);
+	}
+
+	/**
+	 * Creates a count projected query from the given original query.
+	 *
+	 * @param originalQuery must not be {@literal null}.
+	 * @param countProjection may be {@literal null}.
+	 * @param nativeQuery whether the underlying query is a native query.
+	 * @return a query String to be used a count query for pagination. Guaranteed to be not {@literal null}.
+	 * @since 2.7.8
+	 */
+	static String createCountQueryFor(String originalQuery, @Nullable String countProjection, boolean nativeQuery) {
 
 		Assert.hasText(originalQuery, "OriginalQuery must not be null or empty");
 
@@ -591,9 +617,14 @@ public abstract class QueryUtils {
 
 			String replacement = useVariable ? SIMPLE_COUNT_VALUE : complexCountValue;
 
-			String alias = QueryUtils.detectAlias(originalQuery);
-			if ("*".equals(variable) && alias != null) {
-				replacement = alias;
+			if (nativeQuery && (variable.contains(",") || "*".equals(variable))) {
+				replacement = "1";
+			} else {
+
+				String alias = QueryUtils.detectAlias(originalQuery);
+				if (("*".equals(variable) && alias != null)) {
+					replacement = alias;
+				}
 			}
 
 			countQuery = matcher.replaceFirst(String.format(COUNT_REPLACEMENT_TEMPLATE, replacement));
