@@ -570,6 +570,19 @@ public abstract class QueryUtils {
 	 */
 	@Deprecated
 	public static String createCountQueryFor(String originalQuery, @Nullable String countProjection) {
+		return createCountQueryFor(originalQuery, countProjection, false);
+	}
+
+	/**
+	 * Creates a count projected query from the given original query.
+	 *
+	 * @param originalQuery must not be {@literal null}.
+	 * @param countProjection may be {@literal null}.
+	 * @param nativeQuery whether the underlying query is a native query.
+	 * @return a query String to be used a count query for pagination. Guaranteed to be not {@literal null}.
+	 * @since 2.7.8
+	 */
+	static String createCountQueryFor(String originalQuery, @Nullable String countProjection, boolean nativeQuery) {
 
 		Assert.hasText(originalQuery, "OriginalQuery must not be null or empty!");
 
@@ -591,9 +604,14 @@ public abstract class QueryUtils {
 
 			String replacement = useVariable ? SIMPLE_COUNT_VALUE : complexCountValue;
 
-			String alias = QueryUtils.detectAlias(originalQuery);
-			if ("*".equals(variable) && alias != null) {
-				replacement = alias;
+			if (nativeQuery && (variable.contains(",") || "*".equals(variable))) {
+				replacement = "1";
+			} else {
+
+				String alias = QueryUtils.detectAlias(originalQuery);
+				if (("*".equals(variable) && alias != null)) {
+					replacement = alias;
+				}
 			}
 
 			countQuery = matcher.replaceFirst(String.format(COUNT_REPLACEMENT_TEMPLATE, replacement));

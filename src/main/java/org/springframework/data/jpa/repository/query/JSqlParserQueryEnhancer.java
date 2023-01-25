@@ -15,9 +15,8 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.springframework.data.jpa.repository.query.JSqlParserUtils.getJSqlCount;
-import static org.springframework.data.jpa.repository.query.JSqlParserUtils.getJSqlLower;
-import static org.springframework.data.jpa.repository.query.QueryUtils.checkSortExpression;
+import static org.springframework.data.jpa.repository.query.JSqlParserUtils.*;
+import static org.springframework.data.jpa.repository.query.QueryUtils.*;
 
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Alias;
@@ -414,7 +413,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 			return selectBody.toString();
 		}
 
-		String countProp = tableAlias == null ? "*" : tableAlias;
+		String countProp = query.isNativeQuery() ? (distinct ? "*" : "1") : tableAlias == null ? "*" : tableAlias;
 
 		Function jSqlCount = getJSqlCount(Collections.singletonList(countProp), distinct);
 		selectBody.setSelectItems(Collections.singletonList(new SelectExpressionItem(jSqlCount)));
