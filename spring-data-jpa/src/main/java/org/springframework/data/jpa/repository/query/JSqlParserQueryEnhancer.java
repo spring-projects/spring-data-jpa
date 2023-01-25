@@ -15,9 +15,8 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.springframework.data.jpa.repository.query.JSqlParserUtils.getJSqlCount;
-import static org.springframework.data.jpa.repository.query.JSqlParserUtils.getJSqlLower;
-import static org.springframework.data.jpa.repository.query.QueryUtils.checkSortExpression;
+import static org.springframework.data.jpa.repository.query.JSqlParserUtils.*;
+import static org.springframework.data.jpa.repository.query.QueryUtils.*;
 
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Alias;
@@ -29,11 +28,23 @@ import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.delete.Delete;
 import net.sf.jsqlparser.statement.insert.Insert;
 import net.sf.jsqlparser.statement.merge.Merge;
-import net.sf.jsqlparser.statement.select.*;
+import net.sf.jsqlparser.statement.select.OrderByElement;
+import net.sf.jsqlparser.statement.select.PlainSelect;
+import net.sf.jsqlparser.statement.select.Select;
+import net.sf.jsqlparser.statement.select.SelectBody;
+import net.sf.jsqlparser.statement.select.SelectExpressionItem;
+import net.sf.jsqlparser.statement.select.SelectItem;
+import net.sf.jsqlparser.statement.select.SetOperationList;
+import net.sf.jsqlparser.statement.select.WithItem;
 import net.sf.jsqlparser.statement.update.Update;
 import net.sf.jsqlparser.statement.values.ValuesStatement;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Sort;
@@ -400,7 +411,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 			return selectBody.toString();
 		}
 
-		String countProp = tableAlias == null ? "*" : tableAlias;
+		String countProp = query.isNativeQuery() ? (distinct ? "*" : "1") : tableAlias == null ? "*" : tableAlias;
 
 		Function jSqlCount = getJSqlCount(Collections.singletonList(countProp), distinct);
 		selectBody.setSelectItems(Collections.singletonList(new SelectExpressionItem(jSqlCount)));
