@@ -15,6 +15,9 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+
 /**
  * TCK Tests for {@link DefaultQueryEnhancer}.
  *
@@ -27,4 +30,8 @@ public class DefaultQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 		return new DefaultQueryEnhancer(declaredQuery);
 	}
 
+	@Override
+	@Test // GH-2511, GH-2773
+	@Disabled("Not properly supported by QueryUtils")
+	void shouldDeriveNativeCountQueryWithVariable(String query, String expected) {}
 }
