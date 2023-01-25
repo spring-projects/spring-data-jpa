@@ -226,7 +226,12 @@ class QueryEnhancerUnitTests {
 
 	@Test // DATAJPA-420
 	void createsCountQueryForScalarSelects() {
-		assertCountQuery("select p.lastname,p.firstname from Person p", "select count(p) from Person p", true);
+		assertCountQuery("select p.lastname,p.firstname from Person p", "select count(p) from Person p", false);
+	}
+
+	@Test // DATAJPA-420
+	void createsCountQueryForNativeScalarSelects() {
+		assertCountQuery("select p.lastname,p.firstname from Person p", "select count(1) from Person p", true);
 	}
 
 	@Test // DATAJPA-456
@@ -485,7 +490,7 @@ class QueryEnhancerUnitTests {
 				"  order by user.name\n ", true);
 
 		assertThat(getEnhancer(query).createCountQueryFor())
-				.isEqualToIgnoringCase("select count(user) from User user where user.age = 18");
+				.isEqualToIgnoringCase("select count(1) from User user where user.age = 18");
 	}
 
 	@Test
@@ -498,7 +503,7 @@ class QueryEnhancerUnitTests {
 				"  order\nby\nuser.name\n ", true);
 
 		assertThat(getEnhancer(query).createCountQueryFor())
-				.isEqualToIgnoringCase("select count(user) from User user where user.age = 18");
+				.isEqualToIgnoringCase("select count(1) from User user where user.age = 18");
 	}
 
 	@Test // DATAJPA-1061
@@ -719,17 +724,17 @@ class QueryEnhancerUnitTests {
 
 		QueryEnhancer queryEnhancer = getEnhancer(nativeQuery);
 		String countQueryFor = queryEnhancer.createCountQueryFor();
-		assertThat(countQueryFor).isEqualTo("SELECT count(*) FROM User WHERE created_at > $1");
+		assertThat(countQueryFor).isEqualTo("SELECT count(1) FROM User WHERE created_at > $1");
 
 		nativeQuery = new StringQuery("SELECT * FROM (select * from test) ", true);
 		queryEnhancer = getEnhancer(nativeQuery);
 		countQueryFor = queryEnhancer.createCountQueryFor();
-		assertThat(countQueryFor).isEqualTo("SELECT count(*) FROM (SELECT * FROM test)");
+		assertThat(countQueryFor).isEqualTo("SELECT count(1) FROM (SELECT * FROM test)");
 
 		nativeQuery = new StringQuery("SELECT * FROM (select * from test) as test", true);
 		queryEnhancer = getEnhancer(nativeQuery);
 		countQueryFor = queryEnhancer.createCountQueryFor();
-		assertThat(countQueryFor).isEqualTo("SELECT count(test) FROM (SELECT * FROM test) AS test");
+		assertThat(countQueryFor).isEqualTo("SELECT count(1) FROM (SELECT * FROM test) AS test");
 	}
 
 	@Test // GH-2555
@@ -859,7 +864,7 @@ class QueryEnhancerUnitTests {
 
 		assertThat(queryEnhancer.createCountQueryFor()).isEqualToIgnoringCase(
 				"with sample_data (day, value) AS (VALUES ((0, 13), (1, 12), (2, 15), (3, 4), (4, 8), (5, 16)))\n"
-						+ "SELECT count(a) FROM sample_data AS a");
+						+ "SELECT count(1) FROM sample_data AS a");
 		assertThat(queryEnhancer.applySorting(Sort.by("day").descending())).endsWith("ORDER BY a.day DESC");
 		assertThat(queryEnhancer.getJoinAliases()).isEmpty();
 		assertThat(queryEnhancer.detectAlias()).isEqualToIgnoringCase("a");
@@ -882,7 +887,7 @@ class QueryEnhancerUnitTests {
 
 		assertThat(queryEnhancer.createCountQueryFor()).isEqualToIgnoringCase(
 				"with sample_data (day, value) AS (VALUES ((0, 13), (1, 12), (2, 15), (3, 4), (4, 8), (5, 16))),test2 AS (VALUES (1, 2, 3))\n"
-						+ "SELECT count(a) FROM sample_data AS a");
+						+ "SELECT count(1) FROM sample_data AS a");
 		assertThat(queryEnhancer.applySorting(Sort.by("day").descending())).endsWith("ORDER BY a.day DESC");
 		assertThat(queryEnhancer.getJoinAliases()).isEmpty();
 		assertThat(queryEnhancer.detectAlias()).isEqualToIgnoringCase("a");
@@ -987,4 +992,5 @@ class QueryEnhancerUnitTests {
 	private static QueryEnhancer getEnhancer(DeclaredQuery query) {
 		return QueryEnhancerFactory.forQuery(query);
 	}
+
 }
