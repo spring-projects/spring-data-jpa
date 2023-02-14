@@ -172,6 +172,8 @@ class QueryByExamplePredicateBuilderUnitTests {
 		p.firstname = "foo";
 		p.age = 2L;
 
+		when(cb.and(any(Predicate[].class))).thenReturn(andPredicate);
+
 		assertThat(QueryByExamplePredicateBuilder.getPredicate(root, cb, of(p), EscapeCharacter.DEFAULT))
 				.isEqualTo(andPredicate);
 
@@ -188,10 +190,12 @@ class QueryByExamplePredicateBuilderUnitTests {
 
 		Example<Person> example = of(person, ExampleMatcher.matchingAny());
 
+		when(cb.or(any(Predicate[].class))).thenReturn(orPredicate);
+
 		assertThat(QueryByExamplePredicateBuilder.getPredicate(root, cb, example, EscapeCharacter.DEFAULT))
 				.isEqualTo(orPredicate);
 
-		verify(cb, times(1)).or(ArgumentMatchers.any());
+		verify(cb).or(ArgumentMatchers.any(Predicate[].class));
 	}
 
 	@Test // DATAJPA-1372
