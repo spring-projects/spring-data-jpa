@@ -1383,7 +1383,7 @@ A plain JPA setup requires all annotation-mapped entity classes to be listed in 
 ----
 ====
 
-NOTE: As of Spring 3.1, a package to scan can be configured on the `LocalContainerEntityManagerFactoryBean` directly to enable classpath scanning for entity classes. See the link:$$https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/orm/jpa/LocalContainerEntityManagerFactoryBean.html#setPackagesToScan(java.lang.String...)$$[JavaDoc] for details.
+NOTE: As of Spring 3.1, a package to scan can be configured on the `LocalContainerEntityManagerFactoryBean` directly to enable classpath scanning for entity classes. See the link:{springJavadocUrl}org/springframework/orm/jpa/LocalContainerEntityManagerFactoryBean.html#setPackagesToScan(java.lang.String...)$$[JavaDoc] for details.
 
 [[jpd.misc.cdi-integration]]
 == CDI Integration
