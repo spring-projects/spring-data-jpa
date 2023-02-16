@@ -31,6 +31,8 @@ public final class QueryEnhancerFactory {
 
 	private static final boolean JSQLPARSER_IN_CLASSPATH = isJSqlParserInClassPath();
 
+	private static final boolean HIBERNATE_IN_CLASSPATH = isHibernateInClassPath();
+
 	private QueryEnhancerFactory() {}
 
 	/**
@@ -41,10 +43,25 @@ public final class QueryEnhancerFactory {
 	 */
 	public static QueryEnhancer forQuery(DeclaredQuery query) {
 
-		if (qualifiesForJSqlParserUsage(query)) {
-			return new JSqlParserQueryEnhancer(query);
+		if (query.isNativeQuery()) {
+
+			if (qualifiesForJSqlParserUsage(query)) {
+				/**
+				 * If JSqlParser fails, throw some alert signaling that people should write a custom Impl.
+				 */
+				return new JSqlParserQueryEnhancer(query);
+			} else {
+				return new DefaultQueryEnhancer(query);
+			}
 		} else {
-			return new DefaultQueryEnhancer(query);
+
+			if (qualifiedForHqlParserUsage(query)) {
+				return new JpaQueryParsingEnhancer(new HqlQueryParser(query));
+			} else if (qualifiesForJpqlParserUsage(query)) {
+				return new JpaQueryParsingEnhancer(new JpqlQueryParser(query));
+			} else {
+				return new DefaultQueryEnhancer(query);
+			}
 		}
 	}
 
@@ -52,11 +69,31 @@ public final class QueryEnhancerFactory {
 	 * Checks if a given query can be process with the JSqlParser under the condition that the parser is in the classpath.
 	 *
 	 * @param query the query we want to check
-	 * @return <code>true</code> if JSqlParser is in the classpath and the query is classified as a native query otherwise
-	 *         <code>false</code>
+	 * @return <code>true</code> if JSqlParser is in the classpath and the query is classified as a native query and not
+	 *         to be bypassed otherwise <code>false</code>
 	 */
 	private static boolean qualifiesForJSqlParserUsage(DeclaredQuery query) {
 		return JSQLPARSER_IN_CLASSPATH && query.isNativeQuery();
+	}
+
+	/**
+	 * Checks if the query is a candidate for the HQL parser.
+	 * 
+	 * @param query the query we want to check
+	 * @return <code>true</code> if Hibernate is in the classpath and the query is NOT classified as native
+	 */
+	private static boolean qualifiedForHqlParserUsage(DeclaredQuery query) {
+		return HIBERNATE_IN_CLASSPATH && !query.isNativeQuery();
+	}
+
+	/**
+	 * Checks if the query is a candidate for the JPQL spec parser.
+	 * 
+	 * @param query the query we want to check
+	 * @return <code>true</code> if the query is NOT classified as a native query
+	 */
+	private static boolean qualifiesForJpqlParserUsage(DeclaredQuery query) {
+		return !query.isNativeQuery();
 	}
 
 	/**
@@ -69,6 +106,17 @@ public final class QueryEnhancerFactory {
 		try {
 			Class.forName("net.sf.jsqlparser.parser.JSqlParser", false, QueryEnhancerFactory.class.getClassLoader());
 			LOG.info("JSqlParser is in classpath; If applicable JSqlParser will be used");
+			return true;
+		} catch (ClassNotFoundException e) {
+			return false;
+		}
+	}
+
+	private static boolean isHibernateInClassPath() {
+
+		try {
+			Class.forName("org.hibernate.query.TypedParameterValue", false, QueryEnhancerFactory.class.getClassLoader());
+			LOG.info("Hibernate is in classpath; If applicable Hql61Parser will be used.");
 			return true;
 		} catch (ClassNotFoundException e) {
 			return false;

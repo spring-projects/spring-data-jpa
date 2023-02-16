@@ -18,6 +18,7 @@ package org.springframework.data.jpa.repository.query;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -43,20 +44,21 @@ class ExpressionBasedStringQueryUnitTests {
 	private static final SpelExpressionParser SPEL_PARSER = new SpelExpressionParser();
 	@Mock JpaEntityMetadata<?> metadata;
 
+	@BeforeEach
+	void setUp() {
+		when(metadata.getEntityName()).thenReturn("User");
+	}
+
 	@Test // DATAJPA-170
 	void shouldReturnQueryWithDomainTypeExpressionReplacedWithSimpleDomainTypeName() {
 
-		when(metadata.getEntityName()).thenReturn("User");
-
-		String source = "select from #{#entityName} u where u.firstname like :firstname";
+		String source = "select u from #{#entityName} u where u.firstname like :firstname";
 		StringQuery query = new ExpressionBasedStringQuery(source, metadata, SPEL_PARSER, false);
-		assertThat(query.getQueryString()).isEqualTo("select from User u where u.firstname like :firstname");
+		assertThat(query.getQueryString()).isEqualTo("select u from User u where u.firstname like :firstname");
 	}
 
 	@Test // DATAJPA-424
 	void renderAliasInExpressionQueryCorrectly() {
-
-		when(metadata.getEntityName()).thenReturn("User");
 
 		StringQuery query = new ExpressionBasedStringQuery("select u from #{#entityName} u", metadata, SPEL_PARSER, true);
 		assertThat(query.getAlias()).isEqualTo("u");
@@ -67,10 +69,10 @@ class ExpressionBasedStringQueryUnitTests {
 	void shouldDetectBindParameterCountCorrectly() {
 
 		StringQuery query = new ExpressionBasedStringQuery(
-				"select n from #{#entityName} n where (LOWER(n.name) LIKE LOWER(NULLIF(text(concat('%',:#{#networkRequest.name},'%')), '')) OR :#{#networkRequest.name} IS NULL )\"\n"
-						+ "+ \"AND (LOWER(n.server) LIKE LOWER(NULLIF(text(concat('%',:#{#networkRequest.server},'%')), '')) OR :#{#networkRequest.server} IS NULL)\"\n"
-						+ "+ \"AND (n.createdAt >= :#{#networkRequest.createdTime.startDateTime}) AND (n.createdAt <=:#{#networkRequest.createdTime.endDateTime})\"\n"
-						+ "+ \"AND (n.updatedAt >= :#{#networkRequest.updatedTime.startDateTime}) AND (n.updatedAt <=:#{#networkRequest.updatedTime.endDateTime})",
+				"select n from #{#entityName} n where (LOWER(n.name) LIKE LOWER(:#{#networkRequest.name})) OR :#{#networkRequest.name} IS NULL "
+						+ "AND (LOWER(n.server) LIKE LOWER(:#{#networkRequest.server})) OR :#{#networkRequest.server} IS NULL "
+						+ "AND (n.createdAt >= :#{#networkRequest.createdTime.startDateTime}) AND (n.createdAt <=:#{#networkRequest.createdTime.endDateTime}) "
+						+ "AND (n.updatedAt >= :#{#networkRequest.updatedTime.startDateTime}) AND (n.updatedAt <=:#{#networkRequest.updatedTime.endDateTime})",
 				metadata, SPEL_PARSER, false);
 
 		assertThat(query.getParameterBindings()).hasSize(8);
@@ -80,10 +82,10 @@ class ExpressionBasedStringQueryUnitTests {
 	void shouldDetectBindParameterCountCorrectlyWithJDBCStyleParameters() {
 
 		StringQuery query = new ExpressionBasedStringQuery(
-				"select n from #{#entityName} n where (LOWER(n.name) LIKE LOWER(NULLIF(text(concat('%',?#{#networkRequest.name},'%')), '')) OR ?#{#networkRequest.name} IS NULL )\"\n"
-						+ "+ \"AND (LOWER(n.server) LIKE LOWER(NULLIF(text(concat('%',?#{#networkRequest.server},'%')), '')) OR ?#{#networkRequest.server} IS NULL)\"\n"
-						+ "+ \"AND (n.createdAt >= ?#{#networkRequest.createdTime.startDateTime}) AND (n.createdAt <=?#{#networkRequest.createdTime.endDateTime})\"\n"
-						+ "+ \"AND (n.updatedAt >= ?#{#networkRequest.updatedTime.startDateTime}) AND (n.updatedAt <=?#{#networkRequest.updatedTime.endDateTime})",
+				"select n from #{#entityName} n where (LOWER(n.name) LIKE LOWER(NULLIF(text(concat('%',?#{#networkRequest.name},'%')), '')) OR ?#{#networkRequest.name} IS NULL )"
+						+ "AND (LOWER(n.server) LIKE LOWER(NULLIF(text(concat('%',?#{#networkRequest.server},'%')), '')) OR ?#{#networkRequest.server} IS NULL)"
+						+ "AND (n.createdAt >= ?#{#networkRequest.createdTime.startDateTime}) AND (n.createdAt <=?#{#networkRequest.createdTime.endDateTime})"
+						+ "AND (n.updatedAt >= ?#{#networkRequest.updatedTime.startDateTime}) AND (n.updatedAt <=?#{#networkRequest.updatedTime.endDateTime})",
 				metadata, SPEL_PARSER, false);
 
 		assertThat(query.getParameterBindings()).hasSize(8);
@@ -93,10 +95,10 @@ class ExpressionBasedStringQueryUnitTests {
 	void shouldDetectComplexNativeQueriesWithSpelAsNonNative() {
 
 		StringQuery query = new ExpressionBasedStringQuery(
-				"select n from #{#entityName} n where (LOWER(n.name) LIKE LOWER(NULLIF(text(concat('%',?#{#networkRequest.name},'%')), '')) OR ?#{#networkRequest.name} IS NULL )\"\n"
-						+ "+ \"AND (LOWER(n.server) LIKE LOWER(NULLIF(text(concat('%',?#{#networkRequest.server},'%')), '')) OR ?#{#networkRequest.server} IS NULL)\"\n"
-						+ "+ \"AND (n.createdAt >= ?#{#networkRequest.createdTime.startDateTime}) AND (n.createdAt <=?#{#networkRequest.createdTime.endDateTime})\"\n"
-						+ "+ \"AND (n.updatedAt >= ?#{#networkRequest.updatedTime.startDateTime}) AND (n.updatedAt <=?#{#networkRequest.updatedTime.endDateTime})",
+				"select n from #{#entityName} n where (LOWER(n.name) LIKE LOWER(NULLIF(text(concat('%',?#{#networkRequest.name},'%')), '')) OR ?#{#networkRequest.name} IS NULL )"
+						+ "AND (LOWER(n.server) LIKE LOWER(NULLIF(text(concat('%',?#{#networkRequest.server},'%')), '')) OR ?#{#networkRequest.server} IS NULL)"
+						+ "AND (n.createdAt >= ?#{#networkRequest.createdTime.startDateTime}) AND (n.createdAt <=?#{#networkRequest.createdTime.endDateTime})"
+						+ "AND (n.updatedAt >= ?#{#networkRequest.updatedTime.startDateTime}) AND (n.updatedAt <=?#{#networkRequest.updatedTime.endDateTime})",
 				metadata, SPEL_PARSER, true);
 
 		assertThat(query.isNativeQuery()).isFalse();

@@ -74,6 +74,12 @@
 		</dependency>
 
 		<dependency>
+			<groupId>org.antlr</groupId>
+			<artifactId>antlr4-runtime</artifactId>
+			<version>${antlr}</version>
+		</dependency>
+
+		<dependency>
 			<groupId>org.aspectj</groupId>
 			<artifactId>aspectjweaver</artifactId>
 			<version>${aspectj}</version>
@@ -247,8 +253,8 @@
 		<plugins>
 
 			<!--
-			     Jacoco plugin redeclared to make sure it's downloaded and
-			     the agents can be explicitly added to the test executions.
+				 Jacoco plugin redeclared to make sure it's downloaded and
+				 the agents can be explicitly added to the test executions.
 			-->
 			<plugin>
 				<groupId>org.jacoco</groupId>
@@ -342,6 +348,45 @@
 						</configuration>
 					</execution>
 				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.antlr</groupId>
+				<artifactId>antlr4-maven-plugin</artifactId>
+				<version>${antlr}</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>antlr4</goal>
+						</goals>
+						<phase>generate-sources</phase>
+						<configuration>
+							<visitor>true</visitor>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>com.google.code.maven-replacer-plugin</groupId>
+				<artifactId>maven-replacer-plugin</artifactId>
+				<version>1.4.1</version>
+				<executions>
+					<execution>
+						<phase>process-sources</phase>
+						<goals>
+							<goal>replace</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<includes>
+						<include>target/generated-sources/antlr4/**/*.java</include>
+					</includes>
+					<variableTokenValueMap>
+						public class=class,public interface=interface
+					</variableTokenValueMap>
+				</configuration>
 			</plugin>
 
 			<plugin>

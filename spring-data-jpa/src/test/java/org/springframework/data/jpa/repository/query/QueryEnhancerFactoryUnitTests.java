@@ -23,18 +23,23 @@ import org.junit.jupiter.api.Test;
  * Unit tests for {@link QueryEnhancerFactory}.
  *
  * @author Diego Krupitza
+ * @author Greg Turnquist
  */
 class QueryEnhancerFactoryUnitTests {
 
 	@Test
-	void createsDefaultImplementationForNonNativeQuery() {
+	void createsParsingImplementationForNonNativeQuery() {
 
-		StringQuery query = new StringQuery("select new User(u.firstname) from User u", false);
+		StringQuery query = new StringQuery("select new com.example.User(u.firstname) from User u", false);
 
 		QueryEnhancer queryEnhancer = QueryEnhancerFactory.forQuery(query);
 
 		assertThat(queryEnhancer) //
-				.isInstanceOf(DefaultQueryEnhancer.class);
+				.isInstanceOf(JpaQueryParsingEnhancer.class);
+
+		JpaQueryParsingEnhancer queryParsingEnhancer = (JpaQueryParsingEnhancer) queryEnhancer;
+
+		assertThat(queryParsingEnhancer.getQueryParsingStrategy()).isInstanceOf(HqlQueryParser.class);
 	}
 
 	@Test

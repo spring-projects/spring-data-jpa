@@ -15,9 +15,8 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static java.util.regex.Pattern.CASE_INSENSITIVE;
-import static org.springframework.util.ObjectUtils.nullSafeEquals;
-import static org.springframework.util.ObjectUtils.nullSafeHashCode;
+import static java.util.regex.Pattern.*;
+import static org.springframework.util.ObjectUtils.*;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;

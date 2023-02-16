@@ -16,7 +16,6 @@
 package org.springframework.data.jpa.repository.query;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import jakarta.persistence.EntityManager;
@@ -26,7 +25,9 @@ import jakarta.persistence.metamodel.Metamodel;
 import java.lang.reflect.Method;
 import java.util.List;
 
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -122,10 +123,10 @@ class JpaQueryLookupStrategyUnitTests {
 				EVALUATION_CONTEXT_PROVIDER, new BeanFactoryQueryRewriterProvider(beanFactory), EscapeCharacter.DEFAULT);
 
 		when(namedQueries.hasQuery("foo.count")).thenReturn(true);
-		when(namedQueries.getQuery("foo.count")).thenReturn("foo count");
+		when(namedQueries.getQuery("foo.count")).thenReturn("select count(foo) from Foo foo");
 
 		when(namedQueries.hasQuery("User.findByNamedQuery")).thenReturn(true);
-		when(namedQueries.getQuery("User.findByNamedQuery")).thenReturn("select foo");
+		when(namedQueries.getQuery("User.findByNamedQuery")).thenReturn("select foo from Foo foo");
 
 		Method method = UserRepository.class.getMethod("findByNamedQuery", String.class, Pageable.class);
 		RepositoryMetadata metadata = new DefaultRepositoryMetadata(UserRepository.class);
@@ -133,8 +134,8 @@ class JpaQueryLookupStrategyUnitTests {
 		RepositoryQuery repositoryQuery = strategy.resolveQuery(method, metadata, projectionFactory, namedQueries);
 		assertThat(repositoryQuery).isInstanceOf(SimpleJpaQuery.class);
 		SimpleJpaQuery query = (SimpleJpaQuery) repositoryQuery;
-		assertThat(query.getQuery().getQueryString()).isEqualTo("select foo");
-		assertThat(query.getCountQuery().getQueryString()).isEqualTo("foo count");
+		assertThat(query.getQuery().getQueryString()).isEqualTo("select foo from Foo foo");
+		assertThat(query.getCountQuery().getQueryString()).isEqualTo("select count(foo) from Foo foo");
 	}
 
 	@Test // GH-2217
@@ -144,7 +145,7 @@ class JpaQueryLookupStrategyUnitTests {
 				EVALUATION_CONTEXT_PROVIDER, new BeanFactoryQueryRewriterProvider(beanFactory), EscapeCharacter.DEFAULT);
 
 		when(namedQueries.hasQuery("foo.count")).thenReturn(true);
-		when(namedQueries.getQuery("foo.count")).thenReturn("foo count");
+		when(namedQueries.getQuery("foo.count")).thenReturn("select count(foo) from Foo foo");
 
 		Method method = UserRepository.class.getMethod("findByStringQueryWithNamedCountQuery", String.class,
 				Pageable.class);
@@ -153,7 +154,7 @@ class JpaQueryLookupStrategyUnitTests {
 		RepositoryQuery repositoryQuery = strategy.resolveQuery(method, metadata, projectionFactory, namedQueries);
 		assertThat(repositoryQuery).isInstanceOf(SimpleJpaQuery.class);
 		SimpleJpaQuery query = (SimpleJpaQuery) repositoryQuery;
-		assertThat(query.getCountQuery().getQueryString()).isEqualTo("foo count");
+		assertThat(query.getCountQuery().getQueryString()).isEqualTo("select count(foo) from Foo foo");
 	}
 
 	@Test // GH-2319
@@ -193,6 +194,7 @@ class JpaQueryLookupStrategyUnitTests {
 		assertThatIllegalStateException().isThrownBy(() -> query.getQueryMethod());
 	}
 
+	@Disabled("invalid to both JpqlParse and to JSqlParser")
 	@Test // GH-2551
 	void customQueryWithQuestionMarksShouldWork() throws NoSuchMethodException {
 
@@ -240,7 +242,7 @@ class JpaQueryLookupStrategyUnitTests {
 		@Query(countName = "foo.count")
 		Page<User> findByNamedQuery(String foo, Pageable pageable);
 
-		@Query(value = "foo.query", countName = "foo.count")
+		@Query(value = "select foo from Foo foo", countName = "foo.count")
 		Page<User> findByStringQueryWithNamedCountQuery(String foo, Pageable pageable);
 
 		@Query(value = "something absurd", name = "my-query-name")

@@ -125,21 +125,22 @@ abstract class QueryEnhancerTckTests {
 
 	static Stream<Arguments> jpqlCountQueries() {
 
-		return Stream.of(Arguments.of( //
-				"SELECT some_alias FROM table_name some_alias", //
-				"select count(some_alias) FROM table_name some_alias"), //
+		return Stream.of( //
+				Arguments.of( //
+						"SELECT some_alias FROM table_name some_alias", //
+						"select count(some_alias) FROM table_name some_alias"), //
 
 				Arguments.of( //
 						"SELECT name FROM table_name some_alias", //
-						"select count(name) FROM table_name some_alias"), //
+						"SELECT count(name) FROM table_name some_alias"), //
 
 				Arguments.of( //
 						"SELECT DISTINCT name FROM table_name some_alias", //
 						"select count(DISTINCT name) FROM table_name some_alias"),
 
 				Arguments.of( //
-						"select distinct new User(u.name) from User u where u.foo = ?", //
-						"select count(distinct u) from User u where u.foo = ?"),
+						"select distinct new com.example.User(u.name) from User u where u.foo = ?1", //
+						"select count(distinct u) from User u where u.foo = ?1"),
 
 				Arguments.of( //
 						"FROM User u WHERE u.foo.bar = ?", //

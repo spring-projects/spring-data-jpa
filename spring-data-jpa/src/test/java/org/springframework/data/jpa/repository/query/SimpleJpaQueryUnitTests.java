@@ -15,15 +15,9 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
@@ -242,8 +236,7 @@ class SimpleJpaQueryUnitTests {
 
 		Method illegalMethod = SampleRepository.class.getMethod("illegalUseOfJdbcStyleParameters", String.class);
 
-		assertThatExceptionOfType(IllegalArgumentException.class) //
-				.isThrownBy(() -> createJpaQuery(illegalMethod));
+		assertThatIllegalArgumentException().isThrownBy(() -> createJpaQuery(illegalMethod));
 	}
 
 	@Test // DATAJPA-1163

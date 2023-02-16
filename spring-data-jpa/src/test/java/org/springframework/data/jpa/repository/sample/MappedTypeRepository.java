@@ -31,7 +31,7 @@ import org.springframework.data.repository.query.Param;
 @NoRepositoryBean
 public interface MappedTypeRepository<T extends AbstractMappedType> extends JpaRepository<T, Long> {
 
-	@Query("from #{#entityName} t where t.attribute1=?1")
+	@Query("select t from #{#entityName} t where t.attribute1=?1")
 	List<T> findAllByAttribute1(String attribute1);
 
 	@Query("SELECT o FROM #{#entityName} o where o.attribute1=:attribute1")
