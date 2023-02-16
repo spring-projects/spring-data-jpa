@@ -30,6 +30,7 @@
 		<source.level>16</source.level>
     <!-- AspectJ maven plugin can't handle 17 yet -->
 
+		<antlr>4.11.1</antlr>
 		<eclipselink>3.0.3</eclipselink>
 		<hibernate>6.1.4.Final</hibernate>
 		<hsqldb>2.7.1</hsqldb>

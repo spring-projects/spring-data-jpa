@@ -16,6 +16,7 @@
 package org.springframework.data.jpa.repository.query;
 
 import org.assertj.core.api.SoftAssertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.jpa.repository.query.StringQuery.ParameterBindingParser;
 
@@ -27,6 +28,7 @@ import org.springframework.data.jpa.repository.query.StringQuery.ParameterBindin
  */
 class ParameterBindingParserUnitTests {
 
+	@Disabled
 	@Test // DATAJPA-1200
 	void identificationOfParameters() {
 

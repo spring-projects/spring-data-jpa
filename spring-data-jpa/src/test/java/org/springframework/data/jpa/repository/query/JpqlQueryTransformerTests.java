@@ -1,0 +1,937 @@
+/*
+ * Copyright 2022-2023 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.springframework.data.jpa.repository.query;
+
+import static org.assertj.core.api.Assertions.*;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.regex.Pattern;
+
+import org.assertj.core.api.SoftAssertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.JpaSort;
+
+/**
+ * Verify that JPQL queries are properly handled by Spring Data JPA.
+ *
+ * @author Greg Turnquist
+ * @since 3.1
+ */
+class JpqlQueryTransformerTests {
+
+	private static final String QUERY = "select u from User u";
+	private static final String FQ_QUERY = "select u from org.acme.domain.User$Foo_Bar u";
+	private static final String SIMPLE_QUERY = "select u from User u";
+	private static final String COUNT_QUERY = "select count(u) from User u";
+
+	private static final String QUERY_WITH_AS = "select u from User as u where u.username = ?1";
+	private static final Pattern MULTI_WHITESPACE = Pattern.compile("\\s+");
+
+	@Test
+	void applyingSortShouldIntroduceOrderByCriteriaWhereNoneExists() {
+
+		// given
+		var original = "SELECT e FROM Employee e where e.name = :name";
+		var sort = Sort.by("first_name", "last_name");
+
+		// when
+		var results = new QueryParsingEnhancer(new JpqlQueryParser(original)).applySorting(sort);
+
+		// then
+		assertThat(original).doesNotContainIgnoringCase("order by");
+		assertThat(results).contains("order by e.first_name asc, e.last_name asc");
+	}
+
+	@Test
+	void applyingSortShouldCreateAdditionalOrderByCriteria() {
+
+		// given
+		var original = "SELECT e FROM Employee e where e.name = :name ORDER BY e.role, e.hire_date";
+		var sort = Sort.by("first_name", "last_name");
+
+		// when
+		var results = new QueryParsingEnhancer(new JpqlQueryParser(original)).applySorting(sort);
+
+		// then
+		assertThat(results).contains("ORDER BY e.role, e.hire_date, e.first_name asc, e.last_name asc");
+	}
+
+	@Test
+	void applyCountToSimpleQuery() {
+
+		// given
+		var original = "SELECT e FROM Employee e where e.name = :name";
+
+		// when
+		var results = countQuery(original);
+
+		System.out.println("\"" + results + "\"");
+
+		// then
+		assertThat(results).isEqualTo("SELECT count(e) FROM Employee e where e.name = :name");
+	}
+
+	private String countQuery(String query) {
+		return new QueryParsingEnhancer(new JpqlQueryParser(query)).createCountQueryFor();
+	}
+
+	@Test
+	void applyCountToMoreComplexQuery() {
+
+		// given
+		var original = "SELECT e FROM Employee e where e.name = :name ORDER BY e.modified_date";
+
+		// when
+		var results = countQuery(original);
+
+		// then
+		assertThat(results).isEqualTo("SELECT count(e) FROM Employee e where e.name = :name");
+	}
+
+	@Test
+	void applyCountToSortableQuery() {
+
+		// given
+		var original = "SELECT e FROM Employee e where e.name = :name ORDER BY e.modified_date";
+		var sort = Sort.by("first_name", "last_name");
+
+		// when
+		var results = countQuery(original, sort);
+
+		// then
+		assertThat(results).isEqualTo("SELECT count(e) FROM Employee e where e.name = :name");
+	}
+
+	private String countQuery(String original, Sort sort) {
+		return new QueryParsingEnhancer(new JpqlQueryParser(original, sort)).createCountQueryFor();
+	}
+
+	@ParameterizedTest
+	@MethodSource("queries")
+	void demo(String query) {
+
+		System.out.println("@Query(\"" + query + "\") with a custom sort becomes...");
+
+		var transformed = new QueryParsingEnhancer(new JpqlQueryParser(query))
+				.applySorting(Sort.by("first_name", "last_name"));
+
+		System.out.println(transformed);
+		System.out.println("==========");
+	}
+
+	@ParameterizedTest
+	@MethodSource("queries")
+	void demoCounts(String query) {
+
+		System.out.println("CountQuery for @Query(\"" + query + "\") with a custom sort becomes...");
+
+		var transformed = countQuery( //
+				query, //
+				Sort.by("first_name", "last_name"));
+
+		System.out.println(transformed);
+		System.out.println("==========");
+	}
+
+	static Iterable<?> queries() {
+
+		return List.of("select e from Employee e where e.name = :name", //
+				"select e from Employee e where e.name = :name ORDER BY e.role", //
+				"select e from EmployeeWithName e where e.name like '%:partialName%'");
+	}
+
+	@Test
+	void demoFailures() {
+
+		var query = "something absurd";
+
+		System.out.println("Query for @Query(\"" + query + "\") with a custom sort becomes...");
+
+		assertThatExceptionOfType(QueryParsingSyntaxError.class).isThrownBy(() -> {
+			new QueryParsingEnhancer(new JpqlQueryParser(query)).applySorting(Sort.by("first_name", "last_name"));
+		}).withMessageContaining("mismatched input 'something' expecting {DELETE, SELECT, UPDATE}");
+
+		System.out.println("CountQuery for @Query(\"" + query + "\") with a custom sort becomes...");
+
+		assertThatExceptionOfType(QueryParsingSyntaxError.class).isThrownBy(() -> {
+			new QueryParsingEnhancer(new JpqlQueryParser(query, Sort.by("first_name", "last_name")))
+					.createCountQueryFor();
+		}).withMessageContaining("mismatched input 'something' expecting {DELETE, SELECT, UPDATE}");
+	}
+
+	@Test
+	void multipleAliasesShouldBeGathered() {
+
+		// given
+		var original = "select e from Employee e join e.manager m";
+
+		// when
+		var results = new QueryParsingEnhancer(new JpqlQueryParser(original)).applySorting(null);
+
+		// then
+		assertThat(results).isEqualTo("select e from Employee e join e.manager m");
+	}
+
+	@Test
+	void createsCountQueryCorrectly() {
+		assertCountQuery(QUERY, COUNT_QUERY);
+	}
+
+	@Test
+	void createsCountQueriesCorrectlyForCapitalLetterJPQL() {
+
+		assertCountQuery("select u FROM User u WHERE u.foo.bar = ?1", "select count(u) FROM User u WHERE u.foo.bar = ?1");
+		assertCountQuery("SELECT u FROM User u where u.foo.bar = ?1", "SELECT count(u) FROM User u where u.foo.bar = ?1");
+	}
+
+	@Test
+	void createsCountQueryForDistinctQueries() {
+
+		assertCountQuery("select distinct u from User u where u.foo = ?1",
+				"select count(distinct u) from User u where u.foo = ?1");
+	}
+
+	@Test
+	void createsCountQueryForConstructorQueries() {
+
+		assertCountQuery("select distinct new com.example.User(u.name) from User u where u.foo = ?1",
+				"select count(distinct u) from User u where u.foo = ?1");
+	}
+
+	@Test
+	void createsCountQueryForJoins() {
+
+		assertCountQuery("select distinct new com.User(u.name) from User u left outer join u.roles r WHERE r = ?1",
+				"select count(distinct u) from User u left outer join u.roles r WHERE r = ?1");
+	}
+
+	@Test
+	void createsCountQueryForQueriesWithSubSelects() {
+
+		assertCountQuery("select u from User u left outer join u.roles r where r in (select r from Role r)",
+				"select count(u) from User u left outer join u.roles r where r in (select r from Role r)");
+	}
+
+	@Test
+	void createsCountQueryForAliasesCorrectly() {
+		assertCountQuery("select u from User as u", "select count(u) from User as u");
+	}
+
+	@Test
+	void allowsShortJpaSyntax() {
+		assertCountQuery(SIMPLE_QUERY, COUNT_QUERY);
+	}
+
+	@Test // GH-2260
+	void detectsAliasCorrectly() {
+
+		assertThat(alias(QUERY)).isEqualTo("u");
+		assertThat(alias(SIMPLE_QUERY)).isEqualTo("u");
+		assertThat(alias(COUNT_QUERY)).isEqualTo("u");
+		assertThat(alias(QUERY_WITH_AS)).isEqualTo("u");
+		assertThat(alias("SELECT u FROM USER U")).isEqualTo("U");
+		assertThat(alias("select u from  User u")).isEqualTo("u");
+		assertThat(alias("select new com.acme.UserDetails(u.id, u.name) from User u")).isEqualTo("u");
+		assertThat(alias("select u from T05User u")).isEqualTo("u");
+		assertThat(alias("select u from User u where not exists (select m from User m where m = u.manager) "))
+				.isEqualTo("u");
+		assertThat(alias("select u from User u where not exists (select u2 from User u2)")).isEqualTo("u");
+		assertThat(alias(
+				"select u from User u where not exists (select u2 from User u2 where not exists (select u3 from User u3))"))
+						.isEqualTo("u");
+		// assertThat(alias(
+		// "SELECT e FROM DbEvent e WHERE TREAT(modifiedFrom AS date) IS NULL OR e.modificationDate >= :modifiedFrom"))
+		// .isEqualTo("e");
+		// assertThat(alias("select u from User u where (TREAT(:effective as date) is null) OR :effective >= u.createdAt"))
+		// .isEqualTo("u");
+		// assertThat(
+		// alias("select u from User u where (TREAT(:effectiveDate as date) is null) OR :effectiveDate >= u.createdAt"))
+		// .isEqualTo("u");
+		// assertThat(
+		// alias("select u from User u where (TREAT(:effectiveFrom as date) is null) OR :effectiveFrom >= u.createdAt"))
+		// .isEqualTo("u");
+		// assertThat(
+		// alias("select u from User u where (TREAT(:e1f2f3ectiveFrom as date) is null) OR :effectiveFrom >= u.createdAt"))
+		// .isEqualTo("u");
+	}
+
+	private String alias(String query) {
+		return new QueryParsingEnhancer(new JpqlQueryParser(query)).detectAlias();
+	}
+
+	@Test // GH-2557
+	void applySortingAccountsForNewlinesInSubselect() {
+
+		Sort sort = Sort.by(Sort.Order.desc("age"));
+
+		assertThat(new QueryParsingEnhancer(new JpqlQueryParser("select u\n" + //
+				"from user u\n" + //
+				"where exists (select u2\n" + //
+				"from user u2\n" + //
+				")\n" + //
+				"")).applySorting(sort)).isEqualToIgnoringWhitespace("select u\n" + //
+						"from user u\n" + //
+						"where exists (select u2\n" + //
+						"from user u2\n" + //
+						")\n" + //
+						" order by u.age desc");
+	}
+
+	@Test // GH-2563
+	void aliasDetectionProperlyHandlesNewlinesInSubselects() {
+
+		assertThat(alias("""
+				SELECT o
+				FROM Order o
+				WHERE EXISTS( SELECT 1
+				    FROM Vehicle vehicle
+				    WHERE vehicle.vehicleOrderId = o.id
+				    AND LOWER(COALESCE(vehicle.make, '')) LIKE :query)
+				""")).isEqualTo("o");
+	}
+
+	// @Test // DATAJPA-252
+	// void detectsJoinAliasesCorrectly() {
+	//
+	// Set<String> aliases = getOuterJoinAliases("select p from Person p left outer join x.foo b2_$ar where …");
+	// assertThat(aliases).hasSize(1);
+	// assertThat(aliases).contains("b2_$ar");
+	//
+	// aliases = getOuterJoinAliases("select p from Person p left join x.foo b2_$ar where …");
+	// assertThat(aliases).hasSize(1);
+	// assertThat(aliases).contains("b2_$ar");
+	//
+	// aliases = getOuterJoinAliases(
+	// "select p from Person p left outer join x.foo as b2_$ar, left join x.bar as foo where …");
+	// assertThat(aliases).hasSize(2);
+	// assertThat(aliases).contains("b2_$ar", "foo");
+	//
+	// aliases = getOuterJoinAliases(
+	// "select p from Person p left join x.foo as b2_$ar, left outer join x.bar foo where …");
+	// assertThat(aliases).hasSize(2);
+	// assertThat(aliases).contains("b2_$ar", "foo");
+	// }
+
+	@Test // DATAJPA-252
+	void doesNotPrefixOrderReferenceIfOuterJoinAliasDetected() {
+
+		String query = "select p from Person p left join p.address address";
+		Sort sort = Sort.by("address.city");
+		assertThat(new QueryParsingEnhancer(new JpqlQueryParser(query)).applySorting(sort))
+				.endsWith("order by p.address.city asc");
+		// assertThat(query(query, (Sort) "p")).endsWith("order by address.city asc, p.lastname asc");
+	}
+
+	@Test // DATAJPA-252
+	void extendsExistingOrderByClausesCorrectly() {
+
+		String query = "select p from Person p order by p.lastname asc";
+		// assertThat(query(query, (Sort) "p")).endsWith("order by p.lastname asc, p.firstname asc");
+	}
+
+	@Test // DATAJPA-296
+	void appliesIgnoreCaseOrderingCorrectly() {
+
+		Sort sort = Sort.by(Sort.Order.by("firstname").ignoreCase());
+
+		String query = "select p from Person p";
+		// assertThat(query(query, (Sort) "p")).endsWith("order by lower(p.firstname) asc");
+	}
+
+	@Test // DATAJPA-296
+	void appendsIgnoreCaseOrderingCorrectly() {
+
+		Sort sort = Sort.by(Sort.Order.by("firstname").ignoreCase());
+
+		String query = "select p from Person p order by p.lastname asc";
+		// assertThat(query(query, (Sort) "p")).endsWith("order by p.lastname asc, lower(p.firstname) asc");
+	}
+
+	@Test // DATAJPA-342
+	void usesReturnedVariableInCountProjectionIfSet() {
+
+		assertCountQuery("select distinct m.genre from Media m where m.user = ?1 order by m.genre asc",
+				"select count(distinct m.genre) from Media m where m.user = ?1");
+	}
+
+	@Test // DATAJPA-343
+	void projectsCountQueriesForQueriesWithSubselects() {
+
+		// given
+		var original = "select o from Foo o where cb.id in (select b from Bar b)";
+
+		// when
+		var results = new QueryParsingEnhancer(new JpqlQueryParser(original))
+				.applySorting(Sort.by("first_name", "last_name"));
+
+		// then
+		assertThat(results).isEqualTo(
+				"select o from Foo o where cb.id in (select b from Bar b) order by o.first_name asc, o.last_name asc");
+
+		assertCountQuery("select o from Foo o where cb.id in (select b from Bar b)",
+				"select count(o) from Foo o where cb.id in (select b from Bar b)");
+	}
+
+	@Test // DATAJPA-148
+	void doesNotPrefixSortsIfFunction() {
+
+		Sort sort = Sort.by("sum(foo)");
+		// assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
+		// .isThrownBy(() -> query("select p from Person p", (Sort) "p"));
+	}
+
+	@Test // DATAJPA-377
+	void removesOrderByInGeneratedCountQueryFromOriginalQueryIfPresent() {
+
+		assertCountQuery("select distinct m.genre from Media m where m.user = ?1 OrDer  By   m.genre ASC",
+				"select count(distinct m.genre) from Media m where m.user = ?1");
+	}
+
+	@Test // DATAJPA-375
+	void findsExistingOrderByIndependentOfCase() {
+
+		Sort sort = Sort.by("lastname");
+		// String query = query("select p from Person p ORDER BY p.firstname", (Sort) "p");
+		// assertThat(query).endsWith("ORDER BY p.firstname, p.lastname asc");
+	}
+
+	@Test // DATAJPA-409
+	void createsCountQueryForNestedReferenceCorrectly() {
+		assertCountQuery("select a.b from A a", "select count(a) from A a");
+	}
+
+	@Test // DATAJPA-420
+	void createsCountQueryForScalarSelects() {
+		assertCountQuery("select p.lastname,p.firstname from Person p", "select count(p) from Person p");
+	}
+
+	@Test // DATAJPA-456
+	void createCountQueryFromTheGivenCountProjection() {
+		// assertThat(createCountQueryFor("select p.lastname,p.firstname from Person p", "p.lastname"))
+		// .isEqualTo("select count(p.lastname) from Person p");
+	}
+
+	// private String createCountQueryFor(String query, String sort) {
+	// return countQuery(query, sort);
+	// }
+
+	@Test // DATAJPA-726
+	void detectsAliasesInPlainJoins() {
+
+		String query = "select p from Customer c join c.productOrder p where p.delayed = true";
+		Sort sort = Sort.by("p.lineItems");
+
+		// assertThat(query(query, (Sort) "c")).endsWith("order by p.lineItems asc");
+	}
+
+	@Test // DATAJPA-736
+	void supportsNonAsciiCharactersInEntityNames() {
+		// assertThat(createCountQueryFor("select u from Usèr u")).isEqualTo("select count(u) from Usèr u");
+	}
+
+	@Test // DATAJPA-798
+	void detectsAliasInQueryContainingLineBreaks() {
+		assertThat(alias("select \n u \n from \n User \nu")).isEqualTo("u");
+	}
+
+	@Test // DATAJPA-815
+	void doesPrefixPropertyWith() {
+
+		String query = "from Cat c join Dog d";
+		Sort sort = Sort.by("dPropertyStartingWithJoinAlias");
+
+		// assertThat(query(query, (Sort) "c")).endsWith("order by c.dPropertyStartingWithJoinAlias asc");
+	}
+
+	@Test // DATAJPA-938
+	void detectsConstructorExpressionInDistinctQuery() {
+		// assertThat(hasConstructorExpression("select distinct new Foo() from Bar b")).isTrue();
+	}
+
+	@Test // DATAJPA-938
+	void detectsComplexConstructorExpression() {
+
+		// assertThat(hasConstructorExpression("select new foo.bar.Foo(ip.id, ip.name, sum(lp.amount)) " //
+		// + "from Bar lp join lp.investmentProduct ip " //
+		// + "where (lp.toDate is null and lp.fromDate <= :now and lp.fromDate is not null) and lp.accountId = :accountId "
+		// //
+		// + "group by ip.id, ip.name, lp.accountId " //
+		// + "order by ip.name ASC")).isTrue();
+	}
+
+	@Test // DATAJPA-938
+	void detectsConstructorExpressionWithLineBreaks() {
+		// assertThat(hasConstructorExpression("select new foo.bar.FooBar(\na.id) from DtoA a ")).isTrue();
+	}
+
+	@Test // DATAJPA-965, DATAJPA-970
+	void doesNotAllowWhitespaceInSort() {
+
+		Sort sort = Sort.by("case when foo then bar");
+		// assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
+		// .isThrownBy(() -> query("select p from Person p", (Sort) "p"));
+	}
+
+	@Test // DATAJPA-965, DATAJPA-970
+	void doesNotPrefixUnsafeJpaSortFunctionCalls() {
+
+		JpaSort sort = JpaSort.unsafe("sum(foo)");
+		// assertThat(query("select p from Person p", (Sort) "p")).endsWith("order by sum(foo) asc");
+	}
+
+	@Test // DATAJPA-965, DATAJPA-970
+	void doesNotPrefixMultipleAliasedFunctionCalls() {
+
+		String query = "SELECT AVG(m.price) AS avgPrice, SUM(m.stocks) AS sumStocks FROM Magazine m";
+		Sort sort = Sort.by("avgPrice", "sumStocks");
+
+		// assertThat(query(query, (Sort) "m")).endsWith("order by avgPrice asc, sumStocks asc");
+	}
+
+	@Test // DATAJPA-965, DATAJPA-970
+	void doesNotPrefixSingleAliasedFunctionCalls() {
+
+		String query = "SELECT AVG(m.price) AS avgPrice FROM Magazine m";
+		Sort sort = Sort.by("avgPrice");
+
+		// assertThat(query(query, (Sort) "m")).endsWith("order by avgPrice asc");
+	}
+
+	@Test // DATAJPA-965, DATAJPA-970
+	void prefixesSingleNonAliasedFunctionCallRelatedSortProperty() {
+
+		String query = "SELECT AVG(m.price) AS avgPrice FROM Magazine m";
+		Sort sort = Sort.by("someOtherProperty");
+
+		// assertThat(query(query, (Sort) "m")).endsWith("order by m.someOtherProperty asc");
+	}
+
+	@Test // DATAJPA-965, DATAJPA-970
+	void prefixesNonAliasedFunctionCallRelatedSortPropertyWhenSelectClauseContainsAliasedFunctionForDifferentProperty() {
+
+		String query = "SELECT m.name, AVG(m.price) AS avgPrice FROM Magazine m";
+		Sort sort = Sort.by("name", "avgPrice");
+
+		// assertThat(query(query, (Sort) "m")).endsWith("order by m.name asc, avgPrice asc");
+	}
+
+	@Test // DATAJPA-965, DATAJPA-970
+	void doesNotPrefixAliasedFunctionCallNameWithMultipleNumericParameters() {
+
+		String query = "SELECT SUBSTRING(m.name, 2, 5) AS trimmedName FROM Magazine m";
+		Sort sort = Sort.by("trimmedName");
+
+		// assertThat(query(query, (Sort) "m")).endsWith("order by trimmedName asc");
+	}
+
+	@Test // DATAJPA-965, DATAJPA-970
+	void doesNotPrefixAliasedFunctionCallNameWithMultipleStringParameters() {
+
+		String query = "SELECT CONCAT(m.name, 'foo') AS extendedName FROM Magazine m";
+		Sort sort = Sort.by("extendedName");
+
+		// assertThat(query(query, (Sort) "m")).endsWith("order by extendedName asc");
+	}
+
+	@Test // DATAJPA-965, DATAJPA-970
+	void doesNotPrefixAliasedFunctionCallNameWithUnderscores() {
+
+		String query = "SELECT AVG(m.price) AS avg_price FROM Magazine m";
+		Sort sort = Sort.by("avg_price");
+
+		// assertThat(query(query, (Sort) "m")).endsWith("order by avg_price asc");
+	}
+
+	@Test // DATAJPA-965, DATAJPA-970
+	void doesNotPrefixAliasedFunctionCallNameWithDots() {
+
+		String query = "SELECT AVG(m.price) AS m.avg FROM Magazine m";
+		Sort sort = Sort.by("m.avg");
+
+		// assertThat(query(query, (Sort) "m")).endsWith("order by m.avg asc");
+	}
+
+	@Test // DATAJPA-965, DATAJPA-970
+	void doesNotPrefixAliasedFunctionCallNameWhenQueryStringContainsMultipleWhiteSpaces() {
+
+		String query = "SELECT  AVG(  m.price  )   AS   avgPrice   FROM Magazine   m";
+		Sort sort = Sort.by("avgPrice");
+
+		// assertThat(query(query, (Sort) "m")).endsWith("order by avgPrice asc");
+	}
+
+	@Test // DATAJPA-1000
+	void discoversCorrectAliasForJoinFetch() {
+
+		Set<String> aliases = QueryUtils
+				.getOuterJoinAliases("SELECT DISTINCT user FROM User user LEFT JOIN FETCH user.authorities AS authority");
+
+		assertThat(aliases).containsExactly("authority");
+	}
+
+	@Test // DATAJPA-1171
+	void doesNotContainStaticClauseInExistsQuery() {
+
+		assertThat(QueryUtils.getExistsQueryString("entity", "x", Collections.singleton("id"))) //
+				.endsWith("WHERE x.id = :id");
+	}
+
+	@Test // DATAJPA-1363
+	void discoversAliasWithComplexFunction() {
+
+		assertThat(
+				QueryUtils.getFunctionAliases("select new MyDto(sum(case when myEntity.prop3=0 then 1 else 0 end) as myAlias")) //
+						.contains("myAlias");
+	}
+
+	@Test // DATAJPA-1506
+	void detectsAliasWithGroupAndOrderBy() {
+
+		assertThat(alias("select * from User group by name")).isNull();
+		assertThat(alias("select * from User order by name")).isNull();
+		assertThat(alias("select u from User u group by name")).isEqualTo("u");
+		assertThat(alias("select u from User u order by name")).isEqualTo("u");
+	}
+
+	@Test // DATAJPA-1500
+	void createCountQuerySupportsWhitespaceCharacters() {
+
+		// assertThat(createCountQueryFor("select * from User user\n" + //
+		// " where user.age = 18\n" + //
+		// " order by user.name\n ")).isEqualTo("select count(user) from User user\n" + //
+		// " where user.age = 18\n ");
+	}
+
+	@Test // GH-2341
+	void createCountQueryStarCharacterConverted() {
+		// assertThat(createCountQueryFor("select * from User user")).isEqualTo("select count(user) from User user");
+	}
+
+	@Test
+	void createCountQuerySupportsLineBreaksInSelectClause() {
+
+		// assertThat(createCountQueryFor("select user.age,\n" + //
+		// " user.name\n" + //
+		// " from User user\n" + //
+		// " where user.age = 18\n" + //
+		// " order\nby\nuser.name\n ")).isEqualTo("select count(user) from User user\n" + //
+		// " where user.age = 18\n ");
+	}
+
+	@Test // DATAJPA-1061
+	void appliesSortCorrectlyForFieldAliases() {
+
+		String query = "SELECT  m.price, lower(m.title) AS title, a.name as authorName   FROM Magazine   m INNER JOIN m.author a";
+		Sort sort = Sort.by("authorName");
+
+		String fullQuery = new QueryParsingEnhancer(new JpqlQueryParser(query)).applySorting(sort);
+
+		assertThat(fullQuery).endsWith("order by m.authorName asc");
+	}
+
+	@Test // GH-2280
+	void appliesOrderingCorrectlyForFieldAliasWithIgnoreCase() {
+
+		String query = "SELECT customer.id as id, customer.name as name FROM CustomerEntity customer";
+		Sort sort = Sort.by(Sort.Order.by("name").ignoreCase());
+
+		String fullQuery = new QueryParsingEnhancer(new JpqlQueryParser(query)).applySorting(sort);
+
+		assertThat(fullQuery).isEqualTo(
+				"SELECT customer.id as id, customer.name as name FROM CustomerEntity customer order by lower(customer.name) asc");
+	}
+
+	@Test // DATAJPA-1061
+	void appliesSortCorrectlyForFunctionAliases() {
+
+		String query = "SELECT  m.price, lower(m.title) AS title, a.name as authorName   FROM Magazine   m INNER JOIN m.author a";
+		Sort sort = Sort.by("title");
+
+		String fullQuery = new QueryParsingEnhancer(new JpqlQueryParser(query)).applySorting(sort);
+
+		assertThat(fullQuery).endsWith("order by m.title asc");
+	}
+
+	@Test // DATAJPA-1061
+	void appliesSortCorrectlyForSimpleField() {
+
+		String query = "SELECT  m.price, lower(m.title) AS title, a.name as authorName   FROM Magazine   m INNER JOIN m.author a";
+		Sort sort = Sort.by("price");
+
+		String fullQuery = new QueryParsingEnhancer(new JpqlQueryParser(query)).applySorting(sort);
+
+		assertThat(fullQuery).endsWith("order by m.price asc");
+	}
+
+	@Test
+	void createCountQuerySupportsLineBreakRightAfterDistinct() {
+
+		// assertThat(createCountQueryFor("select\ndistinct\nuser.age,\n" + //
+		// "user.name\n" + //
+		// "from\nUser\nuser")).isEqualTo(createCountQueryFor("select\ndistinct user.age,\n" + //
+		// "user.name\n" + //
+		// "from\nUser\nuser"));
+	}
+
+	@Test
+	void detectsAliasWithGroupAndOrderByWithLineBreaks() {
+
+		assertThat(alias("select * from User group\nby name")).isNull();
+		assertThat(alias("select * from User order\nby name")).isNull();
+		assertThat(alias("select u from User u group\nby name")).isEqualTo("u");
+		assertThat(alias("select u from User u order\nby name")).isEqualTo("u");
+		assertThat(alias("select u from User\nu\norder \n by name")).isEqualTo("u");
+	}
+
+	@Test // DATAJPA-1679
+	void findProjectionClauseWithDistinct() {
+
+		SoftAssertions.assertSoftly(sofly -> {
+			sofly.assertThat(QueryUtils.getProjection("select * from x")).isEqualTo("*");
+			sofly.assertThat(QueryUtils.getProjection("select a, b, c from x")).isEqualTo("a, b, c");
+			sofly.assertThat(QueryUtils.getProjection("select distinct a, b, c from x")).isEqualTo("a, b, c");
+			sofly.assertThat(QueryUtils.getProjection("select DISTINCT a, b, c from x")).isEqualTo("a, b, c");
+		});
+	}
+
+	@Test // DATAJPA-1696
+	void findProjectionClauseWithSubselect() {
+
+		// This is not a required behavior, in fact the opposite is,
+		// but it documents a current limitation.
+		// to fix this without breaking findProjectionClauseWithIncludedFrom we need a more sophisticated parser.
+		assertThat(QueryUtils.getProjection("select * from (select x from y)")).isNotEqualTo("*");
+	}
+
+	@Test // DATAJPA-1696
+	void findProjectionClauseWithIncludedFrom() {
+		assertThat(QueryUtils.getProjection("select x, frommage, y from t")).isEqualTo("x, frommage, y");
+	}
+
+	@Test // GH-2341
+	void countProjectionDistrinctQueryIncludesNewLineAfterFromAndBeforeJoin() {
+
+		String originalQuery = "SELECT DISTINCT entity1\nFROM Entity1 entity1\nLEFT JOIN entity1.entity2 entity2 ON entity1.key = entity2.key";
+		assertCountQuery(originalQuery,
+				"SELECT count(DISTINCT entity1) FROM Entity1 entity1 LEFT JOIN entity1.entity2 entity2 ON entity1.key = entity2.key");
+	}
+
+	@Test // GH-2341
+	void countProjectionDistinctQueryIncludesNewLineAfterEntity() {
+
+		String originalQuery = "SELECT DISTINCT entity1\nFROM Entity1 entity1 LEFT JOIN entity1.entity2 entity2 ON entity1.key = entity2.key";
+		assertCountQuery(originalQuery,
+				"SELECT count(DISTINCT entity1) FROM Entity1 entity1 LEFT JOIN entity1.entity2 entity2 ON entity1.key = entity2.key");
+	}
+
+	@Test // GH-2341
+	void countProjectionDistinctQueryIncludesNewLineAfterEntityAndBeforeWhere() {
+
+		String originalQuery = "SELECT DISTINCT entity1\nFROM Entity1 entity1 LEFT JOIN entity1.entity2 entity2 ON entity1.key = entity2.key\nwhere entity1.id = 1799";
+		assertCountQuery(originalQuery,
+				"SELECT count(DISTINCT entity1) FROM Entity1 entity1 LEFT JOIN entity1.entity2 entity2 ON entity1.key = entity2.key where entity1.id = 1799");
+	}
+
+	@Test // GH-2393
+	void createCountQueryStartsWithWhitespace() {
+
+		// assertThat(createCountQueryFor(" \nselect * from User u where u.age > :age"))
+		// .isEqualTo("select count(u) from User u where u.age > :age");
+
+		// assertThat(createCountQueryFor(" \nselect u from User u where u.age > :age"))
+		// .isEqualTo("select count(u) from User u where u.age > :age");
+	}
+
+	@Test // GH-2260
+	void applySortingAccountsForNativeWindowFunction() {
+
+		Sort sort = Sort.by(Sort.Order.desc("age"));
+
+		// order by absent
+		assertThat(QueryUtils.applySorting("select * from user u", sort))
+				.isEqualTo("select * from user u order by u.age desc");
+
+		// order by present
+		assertThat(QueryUtils.applySorting("select * from user u order by u.lastname", sort))
+				.isEqualTo("select * from user u order by u.lastname, u.age desc");
+
+		// partition by
+		assertThat(QueryUtils.applySorting("select dense_rank() over (partition by age) from user u", sort))
+				.isEqualTo("select dense_rank() over (partition by age) from user u order by u.age desc");
+
+		// order by in over clause
+		assertThat(QueryUtils.applySorting("select dense_rank() over (order by lastname) from user u", sort))
+				.isEqualTo("select dense_rank() over (order by lastname) from user u order by u.age desc");
+
+		// order by in over clause (additional spaces)
+		assertThat(QueryUtils.applySorting("select dense_rank() over ( order by lastname ) from user u", sort))
+				.isEqualTo("select dense_rank() over ( order by lastname ) from user u order by u.age desc");
+
+		// order by in over clause + at the end
+		assertThat(
+				QueryUtils.applySorting("select dense_rank() over (order by lastname) from user u order by u.lastname", sort))
+						.isEqualTo("select dense_rank() over (order by lastname) from user u order by u.lastname, u.age desc");
+
+		// partition by + order by in over clause
+		assertThat(QueryUtils.applySorting(
+				"select dense_rank() over (partition by active, age order by lastname) from user u", sort)).isEqualTo(
+						"select dense_rank() over (partition by active, age order by lastname) from user u order by u.age desc");
+
+		// partition by + order by in over clause + order by at the end
+		assertThat(QueryUtils.applySorting(
+				"select dense_rank() over (partition by active, age order by lastname) from user u order by active", sort))
+						.isEqualTo(
+								"select dense_rank() over (partition by active, age order by lastname) from user u order by active, u.age desc");
+
+		// partition by + order by in over clause + frame clause
+		assertThat(QueryUtils.applySorting(
+				"select dense_rank() over ( partition by active, age order by username rows between current row and unbounded following ) from user u",
+				sort)).isEqualTo(
+						"select dense_rank() over ( partition by active, age order by username rows between current row and unbounded following ) from user u order by u.age desc");
+
+		// partition by + order by in over clause + frame clause + order by at the end
+		assertThat(QueryUtils.applySorting(
+				"select dense_rank() over ( partition by active, age order by username rows between current row and unbounded following ) from user u order by active",
+				sort)).isEqualTo(
+						"select dense_rank() over ( partition by active, age order by username rows between current row and unbounded following ) from user u order by active, u.age desc");
+
+		// order by in subselect (select expression)
+		assertThat(
+				QueryUtils.applySorting("select lastname, (select i.id from item i order by i.id limit 1) from user u", sort))
+						.isEqualTo(
+								"select lastname, (select i.id from item i order by i.id limit 1) from user u order by u.age desc");
+
+		// order by in subselect (select expression) + at the end
+		assertThat(QueryUtils.applySorting(
+				"select lastname, (select i.id from item i order by 1 limit 1) from user u order by active", sort)).isEqualTo(
+						"select lastname, (select i.id from item i order by 1 limit 1) from user u order by active, u.age desc");
+
+		// order by in subselect (from expression)
+		assertThat(QueryUtils.applySorting("select * from (select * from user order by age desc limit 10) u", sort))
+				.isEqualTo("select * from (select * from user order by age desc limit 10) u order by age desc");
+
+		// order by in subselect (from expression) + at the end
+		assertThat(QueryUtils.applySorting(
+				"select * from (select * from user order by 1, 2, 3 desc limit 10) u order by u.active asc", sort)).isEqualTo(
+						"select * from (select * from user order by 1, 2, 3 desc limit 10) u order by u.active asc, age desc");
+	}
+
+	// @Test // GH-2511
+	// void countQueryUsesCorrectVariable() {
+	//
+	// String countQueryFor = createCountQueryFor("SELECT * FROM User WHERE created_at > $1");
+	// assertThat(countQueryFor).isEqualTo("select count(*) FROM User WHERE created_at > $1");
+	//
+	// countQueryFor = createCountQueryFor(
+	// "SELECT * FROM mytable WHERE nr = :number AND kon = :kon AND datum >= '2019-01-01'");
+	// assertThat(countQueryFor)
+	// .isEqualTo("select count(*) FROM mytable WHERE nr = :number AND kon = :kon AND datum >= '2019-01-01'");
+	//
+	// countQueryFor = createCountQueryFor("SELECT * FROM context ORDER BY time");
+	// assertThat(countQueryFor).isEqualTo("select count(*) FROM context");
+	//
+	// countQueryFor = createCountQueryFor("select * FROM users_statuses WHERE (user_created_at BETWEEN $1 AND $2)");
+	// assertThat(countQueryFor)
+	// .isEqualTo("select count(*) FROM users_statuses WHERE (user_created_at BETWEEN $1 AND $2)");
+	//
+	// countQueryFor = createCountQueryFor(
+	// "SELECT * FROM users_statuses us WHERE (user_created_at BETWEEN :fromDate AND :toDate)");
+	// assertThat(countQueryFor)
+	// .isEqualTo("select count(us) FROM users_statuses us WHERE (user_created_at BETWEEN :fromDate AND :toDate)");
+	// }
+
+	@Test // GH-2496, GH-2522, GH-2537, GH-2045
+	void orderByShouldWorkWithSubSelectStatements() {
+
+		Sort sort = Sort.by(Sort.Order.desc("age"));
+
+		assertThat(QueryUtils.applySorting("SELECT\n" //
+				+ "   foo_bar.*\n" //
+				+ "FROM\n" //
+				+ "    foo foo\n" //
+				+ "INNER JOIN\n" //
+				+ "   foo_bar_dnrmv foo_bar ON\n" //
+				+ "   foo_bar.foo_id = foo.foo_id\n" //
+				+ "INNER JOIN\n" //
+				+ " (\n" //
+				+ "  SELECT\n" //
+				+ "       foo_bar_action.*,\n" //
+				+ "       RANK() OVER (PARTITION BY \"foo_bar_action\".attributes->>'baz' ORDER BY \"foo_bar_action\".attributes->>'qux' DESC) AS ranking\n" //
+				+ "  FROM\n" //
+				+ "      foo_bar_action\n" //
+				+ "  WHERE\n" //
+				+ "       foo_bar_action.deleted_ts IS NULL)\n" //
+				+ "    foo_bar_action ON\n" //
+				+ "  foo_bar.foo_bar_id = foo_bar_action.foo_bar_id\n" //
+				+ "  AND ranking = 1\n" //
+				+ "INNER JOIN\n" //
+				+ "  bar bar ON\n" //
+				+ "  foo_bar.bar_id = bar.bar_id\n" //
+				+ "INNER JOIN\n" //
+				+ "  bar_metadata bar_metadata ON\n" //
+				+ "  bar.bar_metadata_key = bar_metadata.bar_metadata_key\n" //
+				+ "WHERE\n" //
+				+ "  foo.tenant_id =:tenantId\n" //
+				+ "AND (foo.attributes ->> :serialNum IN (:serialNumValue))", sort)).endsWith("order by foo.age desc");
+
+		assertThat(QueryUtils.applySorting("select r " //
+				+ "From DataRecord r " //
+				+ "where " //
+				+ " ( " //
+				+ "       r.adusrId = :userId " //
+				+ "       or EXISTS( select 1 FROM DataRecordDvsRight dr WHERE dr.adusrId = :userId AND dr.dataRecord = r ) " //
+				+ ")", sort)).endsWith("order by r.age desc");
+
+		assertThat(QueryUtils.applySorting("select distinct u " //
+				+ "from FooBar u " //
+				+ "where [REDACTED] " //
+				+ "and (" //
+				+ "		not exists (" //
+				+ "				from FooBarGroup group " //
+				+ "				where group in :excludedGroups " //
+				+ "				and group in elements(u.groups)" //
+				+ "		)" //
+				+ ")", sort)).endsWith("order by u.age desc");
+
+		assertThat(QueryUtils.applySorting("SELECT i " //
+				+ "FROM Item i " //
+				+ "FETCH ALL PROPERTIES \" " //
+				+ "+ \"WHERE i.id IN (\" " //
+				+ "+ \"SELECT max(i2.id) FROM Item i2 \" " //
+				+ "+ \"WHERE i2.field.id = :fieldId \" " //
+				+ "+ \"GROUP BY i2.field.id, i2.version)", sort)).endsWith("order by i.age desc");
+
+		assertThat(QueryUtils.applySorting("select \n" //
+				+ " f.id,\n" //
+				+ " (\n" //
+				+ "  select timestamp from bar\n" //
+				+ "  where date(bar.timestamp) > '2022-05-21'\n" //
+				+ "  and bar.foo_id = f.id \n" //
+				+ "  order by date(bar.timestamp) desc\n" //
+				+ "  limit 1\n" //
+				+ ") as timestamp\n" //
+				+ "from foo f", sort)).endsWith("order by f.age desc");
+	}
+
+	private void assertCountQuery(String originalQuery, String countQuery) {
+		assertThat(countQuery(originalQuery)).isEqualTo(countQuery);
+	}
+}

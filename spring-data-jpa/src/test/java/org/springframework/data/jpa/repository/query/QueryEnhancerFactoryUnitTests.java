@@ -29,12 +29,16 @@ class QueryEnhancerFactoryUnitTests {
 	@Test
 	void createsDefaultImplementationForNonNativeQuery() {
 
-		StringQuery query = new StringQuery("select new User(u.firstname) from User u", false);
+		StringQuery query = new StringQuery("select new com.example.User(u.firstname) from User u", false);
 
 		QueryEnhancer queryEnhancer = QueryEnhancerFactory.forQuery(query);
 
 		assertThat(queryEnhancer) //
-				.isInstanceOf(DefaultQueryEnhancer.class);
+				.isInstanceOf(QueryParsingEnhancer.class);
+
+		QueryParsingEnhancer queryParsingEnhancer = (QueryParsingEnhancer) queryEnhancer;
+
+		assertThat(queryParsingEnhancer.getQueryParsingStrategy()).isInstanceOf(HqlQueryParser.class);
 	}
 
 	@Test

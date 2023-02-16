@@ -18,14 +18,27 @@ package org.springframework.data.jpa.repository.sample;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.QueryHint;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.domain.sample.SpecialUser;
 import org.springframework.data.jpa.domain.sample.User;
-import org.springframework.data.jpa.repository.*;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.jpa.repository.query.Procedure;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
@@ -559,20 +572,26 @@ public interface UserRepository
 	@Query("SELECT u FROM User u where u.firstname >= ?1 and u.lastname = '000:1'")
 	List<User> queryWithIndexedParameterAndColonFollowedByIntegerInString(String firstname);
 
-	// DATAJPA-1233
-	@Query(value = "SELECT u FROM User u ORDER BY CASE WHEN (u.firstname  >= :name) THEN 0 ELSE 1 END, u.firstname")
-	Page<User> findAllOrderedBySpecialNameSingleParam(@Param("name") String name, Pageable page);
-
-	// DATAJPA-1233
-	@Query(
-			value = "SELECT u FROM User u WHERE :other = 'x' ORDER BY CASE WHEN (u.firstname  >= :name) THEN 0 ELSE 1 END, u.firstname")
-	Page<User> findAllOrderedBySpecialNameMultipleParams(@Param("name") String name, @Param("other") String other,
-			Pageable page);
-
-	// DATAJPA-1233
-	@Query(
-			value = "SELECT u FROM User u WHERE ?1 = 'x' ORDER BY CASE WHEN (u.firstname  >= ?2) THEN 0 ELSE 1 END, u.firstname")
-	Page<User> findAllOrderedBySpecialNameMultipleParamsIndexed(String other, String name, Pageable page);
+	/**
+	 * TODO: ORDER BY CASE appears to only with Hibernate. The examples attempting to do this through pure JPQL don't
+	 * appear to work with Hibernate, so we must set them aside until we can implement HQL.
+	 */
+	// // DATAJPA-1233
+	// @Query(value = "SELECT u FROM User u ORDER BY CASE WHEN (u.firstname >= :name) THEN 0 ELSE 1 END, u.firstname")
+	// Page<User> findAllOrderedBySpecialNameSingleParam(@Param("name") String name, Pageable page);
+	//
+	// // DATAJPA-1233
+	// @Query(
+	// value = "SELECT u FROM User u WHERE :other = 'x' ORDER BY CASE WHEN (u.firstname >= :name) THEN 0 ELSE 1 END,
+	// u.firstname")
+	// Page<User> findAllOrderedBySpecialNameMultipleParams(@Param("name") String name, @Param("other") String other,
+	// Pageable page);
+	//
+	// // DATAJPA-1233
+	// @Query(
+	// value = "SELECT u FROM User u WHERE ?2 = 'x' ORDER BY CASE WHEN (u.firstname >= ?1) THEN 0 ELSE 1 END,
+	// u.firstname")
+	// Page<User> findAllOrderedBySpecialNameMultipleParamsIndexed(String other, String name, Pageable page);
 
 	// DATAJPA-928
 	Page<User> findByNativeNamedQueryWithPageable(Pageable pageable);
@@ -597,7 +616,7 @@ public interface UserRepository
 	List<NameOnlyDto> findByNamedQueryWithConstructorExpression();
 
 	// DATAJPA-1519
-	@Query("select u from User u where u.lastname like %?#{escape([0])}% escape ?#{escapeCharacter()}")
+	@Query("select u from User u where u.lastname like '%?#{escape([0])}%' escape ?#{escapeCharacter()}")
 	List<User> findContainingEscaped(String namePart);
 
 	// DATAJPA-1303
@@ -616,13 +635,13 @@ public interface UserRepository
 	List<NameOnly> findAllInterfaceProjectedBy();
 
 	// GH-2045, GH-425
-	@Query("select concat(?1,u.id,?2) as idWithPrefixAndSuffix from #{#entityName} u")
+	@Query("select concat(?1,u.id,?2) as id from #{#entityName} u")
 	List<String> findAllAndSortByFunctionResultPositionalParameter(
 			@Param("positionalParameter1") String positionalParameter1,
 			@Param("positionalParameter2") String positionalParameter2, Sort sort);
 
 	// GH-2045, GH-425
-	@Query("select concat(:namedParameter1,u.id,:namedParameter2) as idWithPrefixAndSuffix from #{#entityName} u")
+	@Query("select concat(:namedParameter1,u.id,:namedParameter2) as id from #{#entityName} u")
 	List<String> findAllAndSortByFunctionResultNamedParameter(@Param("namedParameter1") String namedParameter1,
 			@Param("namedParameter2") String namedParameter2, Sort sort);
 
