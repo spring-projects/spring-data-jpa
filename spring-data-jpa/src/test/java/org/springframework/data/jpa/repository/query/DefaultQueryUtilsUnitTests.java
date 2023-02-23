@@ -70,6 +70,15 @@ class DefaultQueryUtilsUnitTests {
 				"select count(distinct u) from User u where u.foo = ?");
 	}
 
+	@Test // GH-2812
+	void createsCountQueryForDeleteQuery() {
+
+		String result = createCountQueryFor("delete from some_table where id in :ids", null, true);
+
+		// ح(•̀ж•́)ง †
+		assertThat(result).isEqualTo("deleteselect count(where) from some_table where id in :ids");
+	}
+
 	@Test
 	void createsCountQueryForConstructorQueries() {
 
