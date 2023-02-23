@@ -172,6 +172,15 @@ class QueryEnhancerUnitTests {
 		assertThat(query).endsWithIgnoringCase("ORDER BY p.firstname, p.lastname asc");
 	}
 
+	@Test // GH-2812
+	void createCountQueryFromDeleteQuery() {
+
+		StringQuery query = new StringQuery("delete from some_table where id in :ids", true);
+
+		assertThat(getEnhancer(query).createCountQueryFor("p.lastname"))
+				.isEqualToIgnoringCase("delete from some_table where id in :ids");
+	}
+
 	@Test // DATAJPA-456
 	void createCountQueryFromTheGivenCountProjection() {
 
