@@ -21,6 +21,7 @@ import javax.persistence.Query;
 import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
+import org.springframework.data.util.Lazy;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -39,7 +40,7 @@ import org.springframework.util.Assert;
 abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 
 	private final DeclaredQuery query;
-	private final DeclaredQuery countQuery;
+	private final Lazy<DeclaredQuery> countQuery;
 	private final QueryMethodEvaluationContextProvider evaluationContextProvider;
 	private final SpelExpressionParser parser;
 	private final QueryParameterSetter.QueryMetadataCache metadataCache = new QueryParameterSetter.QueryMetadataCache();
@@ -69,9 +70,10 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 		this.query = new ExpressionBasedStringQuery(queryString, method.getEntityInformation(), parser,
 				method.isNativeQuery());
 
-		DeclaredQuery countQuery = query.deriveCountQuery(countQueryString, method.getCountQueryProjection());
-		this.countQuery = ExpressionBasedStringQuery.from(countQuery, method.getEntityInformation(), parser,
-				method.isNativeQuery());
+		this.countQuery = Lazy.of(() -> {
+			DeclaredQuery countQuery = query.deriveCountQuery(countQueryString, method.getCountQueryProjection());
+			return ExpressionBasedStringQuery.from(countQuery, method.getEntityInformation(), parser, method.isNativeQuery());
+		});
 
 		this.parser = parser;
 
@@ -117,7 +119,7 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 	@Override
 	protected Query doCreateCountQuery(JpaParametersParameterAccessor accessor) {
 
-		String queryString = countQuery.getQueryString();
+		String queryString = countQuery.get().getQueryString();
 		EntityManager em = getEntityManager();
 
 		Query query = getQueryMethod().isNativeQuery() //
@@ -142,7 +144,7 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 	 * @return the countQuery
 	 */
 	public DeclaredQuery getCountQuery() {
-		return countQuery;
+		return countQuery.get();
 	}
 
 	/**
