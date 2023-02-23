@@ -105,7 +105,7 @@ interface DeclaredQuery {
 
 	/**
 	 * Return whether the query is a native query of not.
-	 * 
+	 *
 	 * @return <code>true</code> if native query otherwise <code>false</code>
 	 */
 	default boolean isNativeQuery() {

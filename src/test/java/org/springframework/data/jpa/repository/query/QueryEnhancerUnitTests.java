@@ -15,9 +15,7 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -234,6 +232,15 @@ class QueryEnhancerUnitTests {
 	@Test // DATAJPA-420
 	void createsCountQueryForNativeScalarSelects() {
 		assertCountQuery("select p.lastname,p.firstname from Person p", "select count(1) from Person p", true);
+	}
+
+	@Test // GH-2812
+	void createCountQueryFromDeleteQuery() {
+
+		StringQuery query = new StringQuery("delete from some_table where id in :ids", true);
+
+		assertThat(getEnhancer(query).createCountQueryFor("p.lastname"))
+				.isEqualToIgnoringCase("delete from some_table where id in :ids");
 	}
 
 	@Test // DATAJPA-456
