@@ -617,7 +617,7 @@ public abstract class QueryUtils {
 
 			String replacement = useVariable ? SIMPLE_COUNT_VALUE : complexCountValue;
 
-			if (nativeQuery && (variable.contains(",") || "*".equals(variable))) {
+			if (variable != null && (nativeQuery && (variable.contains(",") || "*".equals(variable)))) {
 				replacement = "1";
 			} else {
 
