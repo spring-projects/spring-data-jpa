@@ -15,23 +15,14 @@
  */
 package org.springframework.data.jpa.repository;
 
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.springframework.data.domain.Example.of;
-import static org.springframework.data.domain.ExampleMatcher.GenericPropertyMatcher;
-import static org.springframework.data.domain.ExampleMatcher.StringMatcher;
-import static org.springframework.data.domain.ExampleMatcher.matching;
-import static org.springframework.data.domain.Sort.Direction.ASC;
-import static org.springframework.data.domain.Sort.Direction.DESC;
+import static java.util.Arrays.*;
+import static org.assertj.core.api.Assertions.*;
+import static org.springframework.data.domain.Example.*;
+import static org.springframework.data.domain.ExampleMatcher.*;
+import static org.springframework.data.domain.Sort.Direction.*;
+import static org.springframework.data.jpa.domain.Specification.*;
 import static org.springframework.data.jpa.domain.Specification.not;
-import static org.springframework.data.jpa.domain.Specification.where;
-import static org.springframework.data.jpa.domain.sample.UserSpecifications.userHasAgeLess;
-import static org.springframework.data.jpa.domain.sample.UserSpecifications.userHasFirstname;
-import static org.springframework.data.jpa.domain.sample.UserSpecifications.userHasFirstnameLike;
-import static org.springframework.data.jpa.domain.sample.UserSpecifications.userHasLastname;
-import static org.springframework.data.jpa.domain.sample.UserSpecifications.userHasLastnameLikeWithSort;
+import static org.springframework.data.jpa.domain.sample.UserSpecifications.*;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -75,6 +66,7 @@ import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.domain.sample.Address;
+import org.springframework.data.jpa.domain.sample.QUser;
 import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.domain.sample.SpecialUser;
 import org.springframework.data.jpa.domain.sample.User;
@@ -2442,6 +2434,47 @@ class UserRepositoryTests {
 				.isThrownBy( //
 						() -> users.forEach(u -> u.getRoles().size()) // forces loading of roles
 				);
+	}
+
+	@Test // GH-2820
+	void findByFluentPredicateWithProjectionAndPageRequest() {
+
+		flushTestUsers();
+		em.clear();
+
+		Page<User> users = repository.findBy(QUser.user.firstname.contains("v"), q -> q //
+				.project("firstname") //
+				.page(PageRequest.of(0, 10)));
+
+		assertThat(users).extracting(User::getFirstname).containsExactlyInAnyOrder(firstUser.getFirstname(),
+				thirdUser.getFirstname(), fourthUser.getFirstname());
+	}
+
+	@Test // GH-2820
+	void findByFluentPredicateWithProjectionAndAll() {
+
+		flushTestUsers();
+		em.clear();
+
+		List<User> users = repository.findBy(QUser.user.firstname.contains("v"), q -> q //
+				.project("firstname") //
+				.all());
+
+		assertThat(users).extracting(User::getFirstname).containsExactlyInAnyOrder(firstUser.getFirstname(),
+				thirdUser.getFirstname(), fourthUser.getFirstname());
+	}
+
+	@Test // GH-2820
+	void findByFluentPredicateWithPageRequest() {
+
+		flushTestUsers();
+		em.clear();
+
+		Page<User> users = repository.findBy(QUser.user.firstname.contains("v"), q -> q //
+				.page(PageRequest.of(0, 10)));
+
+		assertThat(users).extracting(User::getFirstname).containsExactlyInAnyOrder(firstUser.getFirstname(),
+				thirdUser.getFirstname(), fourthUser.getFirstname());
 	}
 
 	@Test // GH-2274
