@@ -32,8 +32,6 @@ import org.springframework.data.querydsl.EntityPathResolver;
 import org.springframework.data.querydsl.SimpleEntityPathResolver;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import com.querydsl.core.types.EntityPath;
-
 /**
  * Unit tests for {@link EntityPathResolver} related tests on {@link JpaRepositoryFactoryBean}.
  *
@@ -47,14 +45,7 @@ class JpaRepositoryFactoryBeanEntityPathResolverIntegrationTests {
 	@EnableJpaRepositories(basePackageClasses = UserRepository.class, //
 			includeFilters = @Filter(type = FilterType.ASSIGNABLE_TYPE, classes = UserRepository.class))
 	static class BaseConfig {
-
-		static final EntityPathResolver RESOLVER = new EntityPathResolver() {
-
-			@Override
-			public <T> EntityPath<T> createPath(Class<T> domainClass) {
-				return null;
-			}
-		};
+		static final EntityPathResolver RESOLVER = SimpleEntityPathResolver.INSTANCE;
 	}
 
 	@Configuration
