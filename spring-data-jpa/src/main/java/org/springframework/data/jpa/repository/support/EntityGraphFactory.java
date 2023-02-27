@@ -30,11 +30,12 @@ import org.springframework.data.mapping.PropertyPath;
  *
  * @author Jens Schauder
  * @author Petr Strnad
+ * @author Greg Turnquist
  * @since 2.6
  */
 abstract class EntityGraphFactory {
 
-	public static final String HINT = "javax.persistence.fetchgraph";
+	public static final String HINT = "jakarta.persistence.fetchgraph";
 
 	/**
 	 * Create an {@link EntityGraph} from a collection of properties.
