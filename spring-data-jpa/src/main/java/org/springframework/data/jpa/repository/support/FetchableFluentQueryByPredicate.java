@@ -15,6 +15,8 @@
  */
 package org.springframework.data.jpa.repository.support;
 
+import jakarta.persistence.EntityManager;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -22,8 +24,6 @@ import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Stream;
-
-import jakarta.persistence.EntityManager;
 
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.domain.Page;
@@ -69,8 +69,7 @@ class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<S, R> imp
 	private FetchableFluentQueryByPredicate(Predicate predicate, Class<S> entityType, Class<R> resultType, Sort sort,
 			Collection<String> properties, Function<Sort, AbstractJPAQuery<?, ?>> finder,
 			BiFunction<Sort, Pageable, AbstractJPAQuery<?, ?>> pagedFinder, Function<Predicate, Long> countOperation,
-			Function<Predicate, Boolean> existsOperation,
-			EntityManager entityManager) {
+			Function<Predicate, Boolean> existsOperation, EntityManager entityManager) {
 
 		super(resultType, sort, properties, entityType);
 		this.predicate = predicate;
@@ -175,8 +174,13 @@ class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<S, R> imp
 
 	private Page<R> readPage(Pageable pageable) {
 
-		AbstractJPAQuery<?, ?> pagedQuery = pagedFinder.apply(sort, pageable);
-		List<R> paginatedResults = convert(pagedQuery.fetch());
+		AbstractJPAQuery<?, ?> query = pagedFinder.apply(sort, pageable);
+
+		if (!properties.isEmpty()) {
+			query.setHint(EntityGraphFactory.HINT, EntityGraphFactory.create(entityManager, entityType, properties));
+		}
+
+		List<R> paginatedResults = convert(query.fetch());
 
 		return PageableExecutionUtils.getPage(paginatedResults, pageable, () -> countOperation.apply(predicate));
 	}
