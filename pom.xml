@@ -23,7 +23,7 @@
 	<parent>
 		<groupId>org.springframework.data.build</groupId>
 		<artifactId>spring-data-parent</artifactId>
-		<version>3.0.3-SNAPSHOT</version>
+		<version>3.0.3</version>
 	</parent>
 
 	<properties>
@@ -36,7 +36,7 @@
 		<jsqlparser>4.5</jsqlparser>
 		<mysql-connector-java>8.0.31</mysql-connector-java>
 		<postgresql>42.5.0</postgresql>
-		<springdata.commons>3.0.3-SNAPSHOT</springdata.commons>
+		<springdata.commons>3.0.3</springdata.commons>
 		<vavr>0.10.3</vavr>
 
 		<hibernate.groupId>org.hibernate</hibernate.groupId>
@@ -225,8 +225,8 @@
 
 	<repositories>
 		<repository>
-			<id>spring-libs-snapshot</id>
-			<url>https://repo.spring.io/libs-snapshot</url>
+			<id>spring-libs-release</id>
+			<url>https://repo.spring.io/libs-release</url>
 		</repository>
 	</repositories>
 
