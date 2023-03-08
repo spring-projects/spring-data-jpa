@@ -17,65 +17,113 @@ package org.springframework.data.jpa.repository.query;
 
 import java.util.List;
 
+import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.springframework.data.domain.Sort;
 
 /**
- * Implements the various parsing operations using {@link JpqlUtils} and {@link JpqlQueryTransformer}.
+ * Implements the various parsing operations using the ANTLR-generated {@link JpqlParser} and
+ * {@link JpqlQueryTransformer}.
  *
  * @author Greg Turnquist
  * @since 3.1
  */
-class JpqlQueryParser implements QueryParser {
+class JpqlQueryParser extends QueryParser {
 
-	private final DeclaredQuery query;
-
-	JpqlQueryParser(DeclaredQuery query) {
-		this.query = query;
+	JpqlQueryParser(DeclaredQuery declaredQuery) {
+		super(declaredQuery);
 	}
 
 	JpqlQueryParser(String query) {
-		this(DeclaredQuery.of(query, false));
+		super(query);
 	}
 
-	@Override
-	public DeclaredQuery getDeclaredQuery() {
-		return query;
+	/**
+	 * Convenience method to parse a JPQL query using the ANTLR-generated {@link JpqlParser}.
+	 *
+	 * @param query
+	 * @return a parsed query, ready for postprocessing
+	 */
+	static ParserRuleContext parse(String query) {
+
+		JpqlLexer lexer = new JpqlLexer(CharStreams.fromString(query));
+		JpqlParser parser = new JpqlParser(new CommonTokenStream(lexer));
+
+		parser.addErrorListener(new QueryParsingSyntaxErrorListener());
+
+		return parser.start();
 	}
 
+	/**
+	 * Parse the query using {@link #parse(String)}.
+	 *
+	 * @return a parsed query
+	 */
 	@Override
-	public ParserRuleContext parse() {
-		return JpqlUtils.parseWithFastFailure(getQuery());
+	ParserRuleContext parse() {
+		return parse(getQuery());
 	}
 
+	/**
+	 * Use the {@link JpqlQueryTransformer} to transform the parsed query into a query with the {@link Sort} applied.
+	 *
+	 * @param parsedQuery
+	 * @param sort can be {@literal null}
+	 * @return list of {@link QueryParsingToken}s
+	 */
 	@Override
-	public List<QueryParsingToken> doCreateQuery(ParserRuleContext parsedQuery, Sort sort) {
+	List<QueryParsingToken> doCreateQuery(ParserRuleContext parsedQuery, Sort sort) {
 		return new JpqlQueryTransformer(sort).visit(parsedQuery);
 	}
 
+	/**
+	 * Use the {@link JpqlQueryTransformer} to transform the parsed query into a count query.
+	 *
+	 * @param parsedQuery
+	 * @return list of {@link QueryParsingToken}s
+	 */
 	@Override
-	public List<QueryParsingToken> doCreateCountQuery(ParserRuleContext parsedQuery) {
+	List<QueryParsingToken> doCreateCountQuery(ParserRuleContext parsedQuery) {
 		return new JpqlQueryTransformer(true).visit(parsedQuery);
 	}
 
+	/**
+	 * Using the parsed query, run it through the {@link JpqlQueryTransformer} and look up its alias.
+	 *
+	 * @param parsedQuery
+	 * @return can be {@literal null}
+	 */
 	@Override
-	public String findAlias(ParserRuleContext parsedQuery) {
+	String findAlias(ParserRuleContext parsedQuery) {
 
 		JpqlQueryTransformer transformVisitor = new JpqlQueryTransformer();
 		transformVisitor.visit(parsedQuery);
 		return transformVisitor.getAlias();
 	}
 
+	/**
+	 * Find the projection portion of the query.
+	 *
+	 * @param parsedQuery
+	 * @return
+	 */
 	@Override
-	public List<QueryParsingToken> doFindProjection(ParserRuleContext parsedQuery) {
+	List<QueryParsingToken> doFindProjection(ParserRuleContext parsedQuery) {
 
 		JpqlQueryTransformer transformVisitor = new JpqlQueryTransformer();
 		transformVisitor.visit(parsedQuery);
 		return transformVisitor.getProjection();
 	}
 
+	/**
+	 * Discern if the query has a new {@code com.example.Dto()} DTO constructor in the select clause.
+	 *
+	 * @param parsedQuery
+	 * @return Guaranteed to be {@literal true} or {@literal false}.
+	 */
 	@Override
-	public boolean hasConstructor(ParserRuleContext parsedQuery) {
+	boolean hasConstructor(ParserRuleContext parsedQuery) {
 
 		JpqlQueryTransformer transformVisitor = new JpqlQueryTransformer();
 		transformVisitor.visit(parsedQuery);

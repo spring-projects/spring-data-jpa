@@ -20,43 +20,110 @@ import java.util.List;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.springframework.data.domain.Sort;
 
+import com.mysema.commons.lang.Assert;
+
 /**
  * Operations needed to parse a JPA query.
  *
  * @author Greg Turnquist
  * @since 3.1
  */
-public interface QueryParser {
+abstract class QueryParser {
 
-	DeclaredQuery getDeclaredQuery();
+	private final DeclaredQuery declaredQuery;
 
-	default String getQuery() {
+	QueryParser(DeclaredQuery declaredQuery) {
+		this.declaredQuery = declaredQuery;
+	}
+
+	QueryParser(String query) {
+		this(DeclaredQuery.of(query, false));
+	}
+
+	DeclaredQuery getDeclaredQuery() {
+		return declaredQuery;
+	}
+
+	String getQuery() {
 		return getDeclaredQuery().getQueryString();
 	}
 
-	ParserRuleContext parse();
+	/**
+	 * Parse the JPA query using its corresponding ANTLR parser.
+	 */
+	abstract ParserRuleContext parse();
 
-	default String createQuery(ParserRuleContext parsedQuery, Sort sort) {
+	/**
+	 * Create a string-based query using the original query with an @literal order by} added (or amended) based upon
+	 * {@link Sort}
+	 *
+	 * @param parsedQuery
+	 * @param sort can be {@literal null}
+	 */
+	String createQuery(ParserRuleContext parsedQuery, Sort sort) {
+
+		Assert.notNull(parsedQuery, "parsedQuery cannot be null!");
 		return render(doCreateQuery(parsedQuery, sort));
 	}
 
-	default String createCountQuery(ParserRuleContext parsedQuery) {
+	/**
+	 * Create a string-based count query using the original query.
+	 *
+	 * @param parsedQuery
+	 */
+	String createCountQuery(ParserRuleContext parsedQuery) {
+
+		Assert.notNull(parsedQuery, "parsedQuery cannot be null!");
 		return render(doCreateCountQuery(parsedQuery));
 	}
 
-	default String projection(ParserRuleContext parsedQuery) {
+	/**
+	 * Find the projection of the query.
+	 * 
+	 * @param parsedQuery
+	 */
+	String projection(ParserRuleContext parsedQuery) {
+
+		Assert.notNull(parsedQuery, "parsedQuery cannot be null!");
 		return render(doFindProjection(parsedQuery));
 	}
 
-	List<QueryParsingToken> doCreateQuery(ParserRuleContext parsedQuery, Sort sort);
+	/**
+	 * Create a {@link QueryParsingToken}-based query with an {@literal order by} applied/amended based upon {@link Sort}.
+	 * 
+	 * @param parsedQuery
+	 * @param sort can be {@literal null}
+	 */
+	abstract List<QueryParsingToken> doCreateQuery(ParserRuleContext parsedQuery, Sort sort);
 
-	List<QueryParsingToken> doCreateCountQuery(ParserRuleContext parsedQuery);
+	/**
+	 * Create a {@link QueryParsingToken}-based count query.
+	 * 
+	 * @param parsedQuery
+	 */
+	abstract List<QueryParsingToken> doCreateCountQuery(ParserRuleContext parsedQuery);
 
-	String findAlias(ParserRuleContext parsedQuery);
+	/**
+	 * Find the alias of the query's FROM clause
+	 *
+	 * @return can be {@literal null}
+	 */
+	abstract String findAlias(ParserRuleContext parsedQuery);
 
-	List<QueryParsingToken> doFindProjection(ParserRuleContext parsedQuery);
+	/**
+	 * Find the projection of the query's selection clause.
+	 *
+	 * @param parsedQuery
+	 */
+	abstract List<QueryParsingToken> doFindProjection(ParserRuleContext parsedQuery);
 
-	boolean hasConstructor(ParserRuleContext parsedQuery);
+	/**
+	 * Discern if the query has a new {@code com.example.Dto()} DTO constructor in the select clause.
+	 * 
+	 * @param parsedQuery
+	 * @return Guaranteed to be {@literal true} or {@literal false}.
+	 */
+	abstract boolean hasConstructor(ParserRuleContext parsedQuery);
 
 	/**
 	 * Render the list of {@link QueryParsingToken}s into a query string.
@@ -71,15 +138,14 @@ public interface QueryParser {
 
 		StringBuilder results = new StringBuilder();
 
-		tokens.stream() //
-				.filter(token -> !token.isDebugOnly()) //
-				.forEach(token -> {
-					String tokenValue = token.getToken();
-					results.append(tokenValue);
-					if (token.getSpace()) {
-						results.append(" ");
-					}
-				});
+		tokens.forEach(token -> {
+
+			results.append(token.getToken());
+
+			if (token.getSpace()) {
+				results.append(" ");
+			}
+		});
 
 		return results.toString().trim();
 	}

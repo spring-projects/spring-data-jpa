@@ -22,19 +22,31 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.data.domain.Sort;
 
+import com.mysema.commons.lang.Assert;
+
 /**
- * The implementation of {@link QueryEnhancer} using {@link QueryParser}.
+ * Implementation of {@link QueryEnhancer} using a {@link QueryParser}.<br/>
+ * <br/>
+ * NOTE: The parser can find everything it needs for create sorted and count queries. Thus, looking up the alias or the
+ * projection isn't needed for its primary function, and are simply implemented for test purposes.
  *
  * @author Greg Turnquist
  * @since 3.1
  */
-public class QueryParsingEnhancer implements QueryEnhancer {
+class QueryParsingEnhancer implements QueryEnhancer {
 
 	private static final Log LOG = LogFactory.getLog(QueryParsingEnhancer.class);
 
-	private QueryParser queryParser;
+	private final QueryParser queryParser;
 
+	/**
+	 * Initialize with an {@link QueryParser}.
+	 * 
+	 * @param queryParser
+	 */
 	public QueryParsingEnhancer(QueryParser queryParser) {
+
+		Assert.notNull(queryParser, "queryParse must not be null!");
 		this.queryParser = queryParser;
 	}
 
@@ -43,8 +55,7 @@ public class QueryParsingEnhancer implements QueryEnhancer {
 	}
 
 	/**
-	 * Adds {@literal order by} clause to the JPA query. Finds the alias of the FROM clause to bind the sorting property
-	 * to.
+	 * Adds an {@literal order by} clause to the JPA query.
 	 *
 	 * @param sort the sort specification to apply.
 	 * @return
@@ -79,9 +90,8 @@ public class QueryParsingEnhancer implements QueryEnhancer {
 	}
 
 	/**
-	 * Resolves the alias for the entity in the FROM clause from the JPA query.
-	 *
-	 * @return
+	 * Resolves the alias for the entity in the FROM clause from the JPA query. Since the {@link QueryParser} can already
+	 * find the alias when generating sorted and count queries, this is mainly to serve test cases.
 	 */
 	@Override
 	public String detectAlias() {
@@ -125,7 +135,7 @@ public class QueryParsingEnhancer implements QueryEnhancer {
 	}
 
 	/**
-	 * Because the parser can handle projections, there is not need to "find it" in advance to create the count query.
+	 * Because the parser can handle projections, there is no need to "find it" in advance to create the count query.
 	 *
 	 * @param countProjection IGNORED
 	 * @return
@@ -157,6 +167,10 @@ public class QueryParsingEnhancer implements QueryEnhancer {
 		}
 	}
 
+	/**
+	 * Looks up the projection of the JPA query. Since the {@link QueryParser} can already find the projection when
+	 * generating sorted and count queries, this is mainly to serve test cases.
+	 */
 	@Override
 	public String getProjection() {
 
@@ -174,6 +188,12 @@ public class QueryParsingEnhancer implements QueryEnhancer {
 		}
 	}
 
+	/**
+	 * Since the {@link QueryParser} can already fully transform sorted and count queries by itself, this is a placeholder
+	 * method.
+	 *
+	 * @return empty set
+	 */
 	@Override
 	public Set<String> getJoinAliases() {
 		return Set.of();

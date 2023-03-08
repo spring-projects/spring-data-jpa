@@ -34,107 +34,67 @@ class QueryParsingToken {
 	private Supplier<String> token;
 
 	/**
-	 * The surrounding contextual information of the parsing rule the token came from.
-	 */
-	private ParserRuleContext context;
-
-	/**
 	 * Space|NoSpace after token is rendered?
 	 */
 	private boolean space = true;
 
-	/**
-	 * Indicates if a line break should be rendered before the token itself is rendered (DEBUG only)
-	 */
-	private boolean lineBreak = false;
-
-	/**
-	 * Is this token for debug purposes only?
-	 */
-	private boolean debugOnly = false;
-
-	public QueryParsingToken(Supplier<String> token, ParserRuleContext context) {
-
+	QueryParsingToken(Supplier<String> token, ParserRuleContext context /* TODO: Drop */) {
 		this.token = token;
-		this.context = context;
 	}
 
-	public QueryParsingToken(Supplier<String> token, ParserRuleContext context, boolean space) {
+	QueryParsingToken(Supplier<String> token, ParserRuleContext context /* TODO: Drop */, boolean space) {
 
 		this(token, context);
 		this.space = space;
 	}
 
-	public QueryParsingToken(String token, ParserRuleContext ctx) {
+	QueryParsingToken(String token, ParserRuleContext ctx /* TODO: Drop */) {
 		this(() -> token, ctx);
 	}
 
-	public QueryParsingToken(String token, ParserRuleContext ctx, boolean space) {
+	QueryParsingToken(String token, ParserRuleContext ctx /* TODO: Drop */, boolean space) {
 		this(() -> token, ctx, space);
 	}
 
-	public String getToken() {
+	String getToken() {
 		return this.token.get();
 	}
 
-	public ParserRuleContext getContext() {
-		return context;
-	}
-
-	public boolean getSpace() {
+	boolean getSpace() {
 		return this.space;
 	}
 
-	public void setSpace(boolean space) {
+	void setSpace(boolean space) {
 		this.space = space;
-	}
-
-	public boolean isLineBreak() {
-		return lineBreak;
-	}
-
-	public boolean isDebugOnly() {
-		return debugOnly;
-	}
-
-	@Override
-	public String toString() {
-		return "QueryParsingToken{" + "token='" + token + '\'' + ", context=" + context + ", space=" + space + ", lineBreak="
-				+ lineBreak + ", debugOnly=" + debugOnly + '}';
 	}
 
 	/**
 	 * Switch the last {@link QueryParsingToken}'s spacing to {@literal false}.
 	 */
-	static List<QueryParsingToken> NOSPACE(List<QueryParsingToken> tokens) {
+	static void NOSPACE(List<QueryParsingToken> tokens) {
 
 		if (!tokens.isEmpty()) {
 			tokens.get(tokens.size() - 1).setSpace(false);
 		}
-		return tokens;
 	}
 
 	/**
 	 * Switch the last {@link QueryParsingToken}'s spacing to {@literal true}.
 	 */
-	static List<QueryParsingToken> SPACE(List<QueryParsingToken> tokens) {
+	static void SPACE(List<QueryParsingToken> tokens) {
 
 		if (!tokens.isEmpty()) {
 			tokens.get(tokens.size() - 1).setSpace(true);
 		}
-
-		return tokens;
 	}
 
 	/**
 	 * Drop the very last entry from the list of {@link QueryParsingToken}s.
 	 */
-	static List<QueryParsingToken> CLIP(List<QueryParsingToken> tokens) {
+	static void CLIP(List<QueryParsingToken> tokens) {
 
 		if (!tokens.isEmpty()) {
 			tokens.remove(tokens.size() - 1);
 		}
-		return tokens;
 	}
-
 }

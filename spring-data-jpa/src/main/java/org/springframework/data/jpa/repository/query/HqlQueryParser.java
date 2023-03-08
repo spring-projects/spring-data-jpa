@@ -17,57 +17,99 @@ package org.springframework.data.jpa.repository.query;
 
 import java.util.List;
 
+import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.springframework.data.domain.Sort;
 
 /**
- * Implements the various parsing operations using {@link HqlQueryTransformer} as well as {@link HqlUtils}.
+ * Implements the various parsing operations using the ANTLR-generated {@link HqlParser} and
+ * {@link HqlQueryTransformer}.
  * 
  * @author Greg Turnquist
  * @since 3.1
  */
-class HqlQueryParser implements QueryParser {
+class HqlQueryParser extends QueryParser {
 
-	private final DeclaredQuery query;
-
-	HqlQueryParser(DeclaredQuery query) {
-		this.query = query;
+	HqlQueryParser(DeclaredQuery declaredQuery) {
+		super(declaredQuery);
 	}
 
 	HqlQueryParser(String query) {
-		this(DeclaredQuery.of(query, false));
+		super(query);
 	}
 
-	@Override
-	public DeclaredQuery getDeclaredQuery() {
-		return query;
+	/**
+	 * Convenience method to parse an HQL query using the ANTLR-generated {@link HqlParser}.
+	 *
+	 * @param query
+	 * @return a parsed query, ready for postprocessing
+	 */
+	static ParserRuleContext parse(String query) {
+
+		HqlLexer lexer = new HqlLexer(CharStreams.fromString(query));
+		HqlParser parser = new HqlParser(new CommonTokenStream(lexer));
+
+		parser.addErrorListener(new QueryParsingSyntaxErrorListener());
+
+		return parser.start();
 	}
 
+	/**
+	 * Parse the query using {@link #parse(String)}.
+	 *
+	 * @return a parsed query
+	 */
 	@Override
-	public ParserRuleContext parse() {
-		return HqlUtils.parseWithFastFailure(getQuery());
+	ParserRuleContext parse() {
+		return parse(getQuery());
 	}
 
+	/**
+	 * Use the {@link HqlQueryTransformer} to transform the parsed query into a query with the {@link Sort} applied.
+	 *
+	 * @param parsedQuery
+	 * @param sort can be {@literal null}
+	 * @return list of {@link QueryParsingToken}s
+	 */
 	@Override
-	public List<QueryParsingToken> doCreateQuery(ParserRuleContext parsedQuery, Sort sort) {
+	List<QueryParsingToken> doCreateQuery(ParserRuleContext parsedQuery, Sort sort) {
 		return new HqlQueryTransformer(sort).visit(parsedQuery);
 	}
 
+	/**
+	 * Use the {@link HqlQueryTransformer} to transform the parsed query into a count query.
+	 *
+	 * @param parsedQuery
+	 * @return list of {@link QueryParsingToken}s
+	 */
 	@Override
-	public List<QueryParsingToken> doCreateCountQuery(ParserRuleContext parsedQuery) {
+	List<QueryParsingToken> doCreateCountQuery(ParserRuleContext parsedQuery) {
 		return new HqlQueryTransformer(true).visit(parsedQuery);
 	}
 
+	/**
+	 * Using the parsed query, run it through the {@link HqlQueryTransformer} and look up its alias.
+	 *
+	 * @param parsedQuery
+	 * @return can be {@literal null}
+	 */
 	@Override
-	public String findAlias(ParserRuleContext parsedQuery) {
+	String findAlias(ParserRuleContext parsedQuery) {
 
 		HqlQueryTransformer transformVisitor = new HqlQueryTransformer();
 		transformVisitor.visit(parsedQuery);
 		return transformVisitor.getAlias();
 	}
 
+	/**
+	 * Discern if the query has a new {@code com.example.Dto()} DTO constructor in the select clause.
+	 *
+	 * @param parsedQuery
+	 * @return Guaranteed to be {@literal true} or {@literal false}.
+	 */
 	@Override
-	public List<QueryParsingToken> doFindProjection(ParserRuleContext parsedQuery) {
+	List<QueryParsingToken> doFindProjection(ParserRuleContext parsedQuery) {
 
 		HqlQueryTransformer transformVisitor = new HqlQueryTransformer();
 		transformVisitor.visit(parsedQuery);
@@ -75,7 +117,7 @@ class HqlQueryParser implements QueryParser {
 	}
 
 	@Override
-	public boolean hasConstructor(ParserRuleContext parsedQuery) {
+	boolean hasConstructor(ParserRuleContext parsedQuery) {
 
 		HqlQueryTransformer transformVisitor = new HqlQueryTransformer();
 		transformVisitor.visit(parsedQuery);

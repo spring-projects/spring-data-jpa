@@ -58,7 +58,6 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 		this.countQuery = countQuery;
 	}
 
-	@Nullable
 	public String getAlias() {
 		return this.alias;
 	}
