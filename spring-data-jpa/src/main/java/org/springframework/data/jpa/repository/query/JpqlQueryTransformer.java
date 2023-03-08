@@ -122,25 +122,25 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 				if (ctx.orderby_clause() != null) {
 
 					NOSPACE(tokens);
-					tokens.add(new QueryParsingToken(",", ctx));
+					tokens.add(new QueryParsingToken(","));
 				} else {
 
 					SPACE(tokens);
-					tokens.add(new QueryParsingToken("order by", ctx));
+					tokens.add(new QueryParsingToken("order by"));
 				}
 
 				this.sort.forEach(order -> {
 
 					if (order.isIgnoreCase()) {
-						tokens.add(new QueryParsingToken("lower(", ctx, false));
+						tokens.add(new QueryParsingToken("lower(", false));
 					}
-					tokens.add(new QueryParsingToken(() -> this.alias + "." + order.getProperty(), ctx, true));
+					tokens.add(new QueryParsingToken(() -> this.alias + "." + order.getProperty(), true));
 					if (order.isIgnoreCase()) {
 						NOSPACE(tokens);
-						tokens.add(new QueryParsingToken(")", ctx, true));
+						tokens.add(new QueryParsingToken(")", true));
 					}
-					tokens.add(new QueryParsingToken(order.isDescending() ? "desc" : "asc", ctx, false));
-					tokens.add(new QueryParsingToken(",", ctx));
+					tokens.add(new QueryParsingToken(order.isDescending() ? "desc" : "asc", false));
+					tokens.add(new QueryParsingToken(","));
 				});
 				CLIP(tokens);
 			}
@@ -182,7 +182,7 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.FROM().getText(), ctx, true));
+		tokens.add(new QueryParsingToken(ctx.FROM().getText(), true));
 
 		ctx.identification_variable_declaration().forEach(identificationVariableDeclarationContext -> {
 			tokens.addAll(visit(identificationVariableDeclarationContext));
@@ -217,7 +217,7 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 		tokens.addAll(visit(ctx.entity_name()));
 
 		if (ctx.AS() != null) {
-			tokens.add(new QueryParsingToken(ctx.AS().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.AS().getText()));
 		}
 
 		tokens.addAll(visit(ctx.identification_variable()));
@@ -237,7 +237,7 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 		tokens.addAll(visit(ctx.join_spec()));
 		tokens.addAll(visit(ctx.join_association_path_expression()));
 		if (ctx.AS() != null) {
-			tokens.add(new QueryParsingToken(ctx.AS().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.AS().getText()));
 		}
 		tokens.addAll(visit(ctx.identification_variable()));
 		if (ctx.join_condition() != null) {
@@ -253,7 +253,7 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.addAll(visit(ctx.join_spec()));
-		tokens.add(new QueryParsingToken(ctx.FETCH().getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.FETCH().getText()));
 		tokens.addAll(visit(ctx.join_association_path_expression()));
 
 		return tokens;
@@ -265,16 +265,16 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.LEFT() != null) {
-			tokens.add(new QueryParsingToken(ctx.LEFT().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.LEFT().getText()));
 		}
 		if (ctx.OUTER() != null) {
-			tokens.add(new QueryParsingToken(ctx.OUTER().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.OUTER().getText()));
 		}
 		if (ctx.INNER() != null) {
-			tokens.add(new QueryParsingToken(ctx.INNER().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.INNER().getText()));
 		}
 		if (ctx.JOIN() != null) {
-			tokens.add(new QueryParsingToken(ctx.JOIN().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.JOIN().getText()));
 		}
 
 		return tokens;
@@ -285,7 +285,7 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.ON().getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.ON().getText()));
 		tokens.addAll(visit(ctx.conditional_expression()));
 
 		return tokens;
@@ -306,20 +306,20 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 		} else {
 			if (ctx.join_collection_valued_path_expression() != null) {
 
-				tokens.add(new QueryParsingToken(ctx.TREAT().getText(), ctx));
-				tokens.add(new QueryParsingToken("(", ctx));
+				tokens.add(new QueryParsingToken(ctx.TREAT().getText()));
+				tokens.add(new QueryParsingToken("("));
 				tokens.addAll(visit(ctx.join_collection_valued_path_expression()));
-				tokens.add(new QueryParsingToken(ctx.AS().getText(), ctx));
+				tokens.add(new QueryParsingToken(ctx.AS().getText()));
 				tokens.addAll(visit(ctx.subtype()));
-				tokens.add(new QueryParsingToken(")", ctx));
+				tokens.add(new QueryParsingToken(")"));
 			} else if (ctx.join_single_valued_path_expression() != null) {
 
-				tokens.add(new QueryParsingToken(ctx.TREAT().getText(), ctx));
-				tokens.add(new QueryParsingToken("(", ctx));
+				tokens.add(new QueryParsingToken(ctx.TREAT().getText()));
+				tokens.add(new QueryParsingToken("("));
 				tokens.addAll(visit(ctx.join_single_valued_path_expression()));
-				tokens.add(new QueryParsingToken(ctx.AS().getText(), ctx));
+				tokens.add(new QueryParsingToken(ctx.AS().getText()));
 				tokens.addAll(visit(ctx.subtype()));
-				tokens.add(new QueryParsingToken(")", ctx));
+				tokens.add(new QueryParsingToken(")"));
 			}
 		}
 
@@ -333,11 +333,11 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.addAll(visit(ctx.identification_variable()));
-		tokens.add(new QueryParsingToken(".", ctx));
+		tokens.add(new QueryParsingToken("."));
 
 		ctx.single_valued_embeddable_object_field().forEach(singleValuedEmbeddableObjectFieldContext -> {
 			tokens.addAll(visit(singleValuedEmbeddableObjectFieldContext));
-			tokens.add(new QueryParsingToken(".", singleValuedEmbeddableObjectFieldContext));
+			tokens.add(new QueryParsingToken("."));
 		});
 
 		tokens.addAll(visit(ctx.collection_valued_field()));
@@ -355,11 +355,11 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.addAll(visit(ctx.identification_variable()));
-		tokens.add(new QueryParsingToken(".", ctx));
+		tokens.add(new QueryParsingToken("."));
 
 		ctx.single_valued_embeddable_object_field().forEach(singleValuedEmbeddableObjectFieldContext -> {
 			tokens.addAll(visit(singleValuedEmbeddableObjectFieldContext));
-			tokens.add(new QueryParsingToken(".", singleValuedEmbeddableObjectFieldContext));
+			tokens.add(new QueryParsingToken("."));
 		});
 
 		tokens.addAll(visit(ctx.single_valued_object_field()));
@@ -376,12 +376,12 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.IN().getText(), ctx));
-		tokens.add(new QueryParsingToken("(", ctx));
+		tokens.add(new QueryParsingToken(ctx.IN().getText()));
+		tokens.add(new QueryParsingToken("("));
 		tokens.addAll(visit(ctx.collection_valued_path_expression()));
-		tokens.add(new QueryParsingToken(")", ctx));
+		tokens.add(new QueryParsingToken(")"));
 		if (ctx.AS() != null) {
-			tokens.add(new QueryParsingToken(ctx.AS().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.AS().getText()));
 		}
 		tokens.addAll(visit(ctx.identification_variable()));
 
@@ -398,10 +398,10 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 			tokens.addAll(visit(ctx.map_field_identification_variable()));
 		} else if (ctx.identification_variable() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.ENTRY().getText(), ctx));
-			tokens.add(new QueryParsingToken("(", ctx));
+			tokens.add(new QueryParsingToken(ctx.ENTRY().getText()));
+			tokens.add(new QueryParsingToken("("));
 			tokens.addAll(visit(ctx.identification_variable()));
-			tokens.add(new QueryParsingToken(")", ctx));
+			tokens.add(new QueryParsingToken(")"));
 		}
 
 		return tokens;
@@ -415,16 +415,16 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 
 		if (ctx.KEY() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.KEY().getText(), ctx));
-			tokens.add(new QueryParsingToken("(", ctx));
+			tokens.add(new QueryParsingToken(ctx.KEY().getText()));
+			tokens.add(new QueryParsingToken("("));
 			tokens.addAll(visit(ctx.identification_variable()));
-			tokens.add(new QueryParsingToken(")", ctx));
+			tokens.add(new QueryParsingToken(")"));
 		} else if (ctx.VALUE() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.VALUE().getText(), ctx));
-			tokens.add(new QueryParsingToken("(", ctx));
+			tokens.add(new QueryParsingToken(ctx.VALUE().getText()));
+			tokens.add(new QueryParsingToken("("));
 			tokens.addAll(visit(ctx.identification_variable()));
-			tokens.add(new QueryParsingToken(")", ctx));
+			tokens.add(new QueryParsingToken(")"));
 		}
 
 		return tokens;
@@ -440,12 +440,12 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 			tokens.addAll(visit(ctx.qualified_identification_variable()));
 		} else if (ctx.qualified_identification_variable() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.TREAT().getText(), ctx, false));
-			tokens.add(new QueryParsingToken("(", ctx, false));
+			tokens.add(new QueryParsingToken(ctx.TREAT().getText(), false));
+			tokens.add(new QueryParsingToken("(", false));
 			tokens.addAll(visit(ctx.qualified_identification_variable()));
-			tokens.add(new QueryParsingToken(ctx.AS().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.AS().getText()));
 			tokens.addAll(visit(ctx.subtype()));
-			tokens.add(new QueryParsingToken(")", ctx));
+			tokens.add(new QueryParsingToken(")"));
 		} else if (ctx.state_field_path_expression() != null) {
 			tokens.addAll(visit(ctx.state_field_path_expression()));
 		} else if (ctx.single_valued_object_path_expression() != null) {
@@ -481,7 +481,7 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 
 			tokens.addAll(visit(ctx.treated_subpath()));
 			ctx.single_valued_object_field().forEach(singleValuedObjectFieldContext -> {
-				tokens.add(new QueryParsingToken(".", singleValuedObjectFieldContext, false));
+				tokens.add(new QueryParsingToken(".", false));
 				tokens.addAll(visit(singleValuedObjectFieldContext));
 				NOSPACE(tokens);
 			});
@@ -498,7 +498,7 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 		tokens.addAll(visit(ctx.general_identification_variable()));
 
 		ctx.single_valued_object_field().forEach(singleValuedObjectFieldContext -> {
-			tokens.add(new QueryParsingToken(".", singleValuedObjectFieldContext));
+			tokens.add(new QueryParsingToken("."));
 			tokens.addAll(visit(singleValuedObjectFieldContext));
 		});
 
@@ -512,12 +512,12 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.TREAT().getText(), ctx));
-		tokens.add(new QueryParsingToken("(", ctx));
+		tokens.add(new QueryParsingToken(ctx.TREAT().getText()));
+		tokens.add(new QueryParsingToken("("));
 		tokens.addAll(visit(ctx.general_subpath()));
-		tokens.add(new QueryParsingToken(ctx.AS().getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.AS().getText()));
 		tokens.addAll(visit(ctx.subtype()));
-		tokens.add(new QueryParsingToken(")", ctx));
+		tokens.add(new QueryParsingToken(")"));
 
 		return tokens;
 	}
@@ -528,7 +528,7 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.addAll(visit(ctx.general_subpath()));
-		tokens.add(new QueryParsingToken(".", ctx));
+		tokens.add(new QueryParsingToken("."));
 		tokens.addAll(visit(ctx.state_field()));
 
 		tokens.forEach(jpqlToken -> jpqlToken.setSpace(false));
@@ -559,7 +559,7 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 
 		tokens.addAll(visit(ctx.general_subpath()));
 		NOSPACE(tokens);
-		tokens.add(new QueryParsingToken(".", ctx, false));
+		tokens.add(new QueryParsingToken(".", false));
 		tokens.addAll(visit(ctx.single_valued_object_field()));
 
 		return tokens;
@@ -573,7 +573,7 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 
 		tokens.addAll(visit(ctx.general_subpath()));
 		NOSPACE(tokens);
-		tokens.add(new QueryParsingToken(".", ctx));
+		tokens.add(new QueryParsingToken("."));
 		tokens.addAll(visit(ctx.collection_value_field()));
 
 		return tokens;
@@ -584,18 +584,18 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.UPDATE().getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.UPDATE().getText()));
 		tokens.addAll(visit(ctx.entity_name()));
 		if (ctx.AS() != null) {
-			tokens.add(new QueryParsingToken(ctx.AS().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.AS().getText()));
 		}
 		if (ctx.identification_variable() != null) {
 			tokens.addAll(visit(ctx.identification_variable()));
 		}
-		tokens.add(new QueryParsingToken(ctx.SET().getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.SET().getText()));
 		ctx.update_item().forEach(updateItemContext -> {
 			tokens.addAll(visit(updateItemContext));
-			tokens.add(new QueryParsingToken(",", updateItemContext));
+			tokens.add(new QueryParsingToken(","));
 		});
 		CLIP(tokens);
 
@@ -609,12 +609,12 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 
 		if (ctx.identification_variable() != null) {
 			tokens.addAll(visit(ctx.identification_variable()));
-			tokens.add(new QueryParsingToken(".", ctx));
+			tokens.add(new QueryParsingToken("."));
 		}
 
 		ctx.single_valued_embeddable_object_field().forEach(singleValuedEmbeddableObjectFieldContext -> {
 			tokens.addAll(visit(singleValuedEmbeddableObjectFieldContext));
-			tokens.add(new QueryParsingToken(".", singleValuedEmbeddableObjectFieldContext));
+			tokens.add(new QueryParsingToken("."));
 		});
 
 		if (ctx.state_field() != null) {
@@ -623,7 +623,7 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 			tokens.addAll(visit(ctx.single_valued_object_field()));
 		}
 
-		tokens.add(new QueryParsingToken("=", ctx));
+		tokens.add(new QueryParsingToken("="));
 		tokens.addAll(visit(ctx.new_value()));
 
 		return tokens;
@@ -637,7 +637,7 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 		} else if (ctx.simple_entity_expression() != null) {
 			return visit(ctx.simple_entity_expression());
 		} else if (ctx.NULL() != null) {
-			return List.of(new QueryParsingToken(ctx.NULL().getText(), ctx));
+			return List.of(new QueryParsingToken(ctx.NULL().getText()));
 		} else {
 			return List.of();
 		}
@@ -648,11 +648,11 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.DELETE().getText(), ctx));
-		tokens.add(new QueryParsingToken(ctx.FROM().getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.DELETE().getText()));
+		tokens.add(new QueryParsingToken(ctx.FROM().getText()));
 		tokens.addAll(visit(ctx.entity_name()));
 		if (ctx.AS() != null) {
-			tokens.add(new QueryParsingToken(ctx.AS().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.AS().getText()));
 		}
 		if (ctx.identification_variable() != null) {
 			tokens.addAll(visit(ctx.identification_variable()));
@@ -666,14 +666,14 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.SELECT().getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.SELECT().getText()));
 
 		if (this.countQuery) {
-			tokens.add(new QueryParsingToken("count(", ctx, false));
+			tokens.add(new QueryParsingToken("count(", false));
 		}
 
 		if (ctx.DISTINCT() != null) {
-			tokens.add(new QueryParsingToken(ctx.DISTINCT().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.DISTINCT().getText()));
 		}
 
 		List<QueryParsingToken> selectItemTokens = new ArrayList<>();
@@ -681,7 +681,7 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 		ctx.select_item().forEach(selectItemContext -> {
 			selectItemTokens.addAll(visit(selectItemContext));
 			NOSPACE(selectItemTokens);
-			selectItemTokens.add(new QueryParsingToken(",", selectItemContext));
+			selectItemTokens.add(new QueryParsingToken(","));
 		});
 		CLIP(selectItemTokens);
 		SPACE(selectItemTokens);
@@ -691,17 +691,17 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 
 				if (selectItemTokens.stream().anyMatch(jpqlToken -> jpqlToken.getToken().contains("new"))) {
 					// constructor
-					tokens.add(new QueryParsingToken(() -> this.alias, ctx));
+					tokens.add(new QueryParsingToken(() -> this.alias));
 				} else {
 					// keep all the select items to distinct against
 					tokens.addAll(selectItemTokens);
 				}
 			} else {
-				tokens.add(new QueryParsingToken(() -> this.alias, ctx));
+				tokens.add(new QueryParsingToken(() -> this.alias));
 			}
 
 			NOSPACE(tokens);
-			tokens.add(new QueryParsingToken(")", ctx));
+			tokens.add(new QueryParsingToken(")"));
 		} else {
 			tokens.addAll(selectItemTokens);
 		}
@@ -720,7 +720,7 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 		SPACE(tokens);
 
 		if (ctx.AS() != null) {
-			tokens.add(new QueryParsingToken(ctx.AS().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.AS().getText()));
 		}
 
 		if (ctx.result_variable() != null) {
@@ -747,10 +747,10 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 
 				List<QueryParsingToken> tokens = new ArrayList<>();
 
-				tokens.add(new QueryParsingToken(ctx.OBJECT().getText(), ctx));
-				tokens.add(new QueryParsingToken("(", ctx));
+				tokens.add(new QueryParsingToken(ctx.OBJECT().getText()));
+				tokens.add(new QueryParsingToken("("));
 				tokens.addAll(visit(ctx.identification_variable()));
-				tokens.add(new QueryParsingToken(")", ctx));
+				tokens.add(new QueryParsingToken(")"));
 
 				return tokens;
 			}
@@ -768,18 +768,18 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.NEW().getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.NEW().getText()));
 		tokens.addAll(visit(ctx.constructor_name()));
-		tokens.add(new QueryParsingToken("(", ctx, false));
+		tokens.add(new QueryParsingToken("(", false));
 
 		ctx.constructor_item().forEach(constructorItemContext -> {
 			tokens.addAll(visit(constructorItemContext));
 			NOSPACE(tokens);
-			tokens.add(new QueryParsingToken(",", constructorItemContext));
+			tokens.add(new QueryParsingToken(","));
 		});
 		CLIP(tokens);
 
-		tokens.add(new QueryParsingToken(")", ctx));
+		tokens.add(new QueryParsingToken(")"));
 
 		return tokens;
 	}
@@ -810,29 +810,29 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 		if (ctx.AVG() != null || ctx.MAX() != null || ctx.MIN() != null || ctx.SUM() != null) {
 
 			if (ctx.AVG() != null) {
-				tokens.add(new QueryParsingToken(ctx.AVG().getText(), ctx, false));
+				tokens.add(new QueryParsingToken(ctx.AVG().getText(), false));
 			}
 			if (ctx.MAX() != null) {
-				tokens.add(new QueryParsingToken(ctx.MAX().getText(), ctx, false));
+				tokens.add(new QueryParsingToken(ctx.MAX().getText(), false));
 			}
 			if (ctx.MIN() != null) {
-				tokens.add(new QueryParsingToken(ctx.MIN().getText(), ctx, false));
+				tokens.add(new QueryParsingToken(ctx.MIN().getText(), false));
 			}
 			if (ctx.SUM() != null) {
-				tokens.add(new QueryParsingToken(ctx.SUM().getText(), ctx, false));
+				tokens.add(new QueryParsingToken(ctx.SUM().getText(), false));
 			}
-			tokens.add(new QueryParsingToken("(", ctx, false));
+			tokens.add(new QueryParsingToken("(", false));
 			if (ctx.DISTINCT() != null) {
-				tokens.add(new QueryParsingToken(ctx.DISTINCT().getText(), ctx));
+				tokens.add(new QueryParsingToken(ctx.DISTINCT().getText()));
 			}
 			tokens.addAll(visit(ctx.state_valued_path_expression()));
-			tokens.add(new QueryParsingToken(")", ctx, false));
+			tokens.add(new QueryParsingToken(")", false));
 		} else if (ctx.COUNT() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.COUNT().getText(), ctx, false));
-			tokens.add(new QueryParsingToken("(", ctx, false));
+			tokens.add(new QueryParsingToken(ctx.COUNT().getText(), false));
+			tokens.add(new QueryParsingToken("(", false));
 			if (ctx.DISTINCT() != null) {
-				tokens.add(new QueryParsingToken(ctx.DISTINCT().getText(), ctx));
+				tokens.add(new QueryParsingToken(ctx.DISTINCT().getText()));
 			}
 			if (ctx.identification_variable() != null) {
 				tokens.addAll(visit(ctx.identification_variable()));
@@ -842,7 +842,7 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 				tokens.addAll(visit(ctx.single_valued_object_path_expression()));
 			}
 			NOSPACE(tokens);
-			tokens.add(new QueryParsingToken(")", ctx, false));
+			tokens.add(new QueryParsingToken(")", false));
 		} else if (ctx.function_invocation() != null) {
 			tokens.addAll(visit(ctx.function_invocation()));
 		}
@@ -855,7 +855,7 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.WHERE().getText(), ctx, true));
+		tokens.add(new QueryParsingToken(ctx.WHERE().getText(), true));
 		tokens.addAll(visit(ctx.conditional_expression()));
 
 		return tokens;
@@ -866,12 +866,12 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.GROUP().getText(), ctx));
-		tokens.add(new QueryParsingToken(ctx.BY().getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.GROUP().getText()));
+		tokens.add(new QueryParsingToken(ctx.BY().getText()));
 		ctx.groupby_item().forEach(groupbyItemContext -> {
 			tokens.addAll(visit(groupbyItemContext));
 			NOSPACE(tokens);
-			tokens.add(new QueryParsingToken(",", groupbyItemContext));
+			tokens.add(new QueryParsingToken(","));
 		});
 		CLIP(tokens);
 		SPACE(tokens);
@@ -898,7 +898,7 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.HAVING().getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.HAVING().getText()));
 		tokens.addAll(visit(ctx.conditional_expression()));
 
 		return tokens;
@@ -909,13 +909,13 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.ORDER().getText(), ctx));
-		tokens.add(new QueryParsingToken(ctx.BY().getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.ORDER().getText()));
+		tokens.add(new QueryParsingToken(ctx.BY().getText()));
 
 		ctx.orderby_item().forEach(orderbyItemContext -> {
 			tokens.addAll(visit(orderbyItemContext));
 			NOSPACE(tokens);
-			tokens.add(new QueryParsingToken(",", orderbyItemContext));
+			tokens.add(new QueryParsingToken(","));
 		});
 		CLIP(tokens);
 
@@ -936,10 +936,10 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 		}
 
 		if (ctx.ASC() != null) {
-			tokens.add(new QueryParsingToken(ctx.ASC().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.ASC().getText()));
 		}
 		if (ctx.DESC() != null) {
-			tokens.add(new QueryParsingToken(ctx.DESC().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.DESC().getText()));
 		}
 
 		return tokens;
@@ -970,11 +970,11 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.FROM().getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.FROM().getText()));
 		ctx.subselect_identification_variable_declaration().forEach(subselectIdentificationVariableDeclarationContext -> {
 			tokens.addAll(visit(subselectIdentificationVariableDeclarationContext));
 			NOSPACE(tokens);
-			tokens.add(new QueryParsingToken(",", subselectIdentificationVariableDeclarationContext));
+			tokens.add(new QueryParsingToken(","));
 		});
 		CLIP(tokens);
 
@@ -1018,9 +1018,9 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.SELECT().getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.SELECT().getText()));
 		if (ctx.DISTINCT() != null) {
-			tokens.add(new QueryParsingToken(ctx.DISTINCT().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.DISTINCT().getText()));
 		}
 		tokens.addAll(visit(ctx.simple_select_expression()));
 
@@ -1076,7 +1076,7 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 
 		if (ctx.conditional_expression() != null) {
 			tokens.addAll(visit(ctx.conditional_expression()));
-			tokens.add(new QueryParsingToken(ctx.OR().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.OR().getText()));
 			tokens.addAll(visit(ctx.conditional_term()));
 		} else {
 			tokens.addAll(visit(ctx.conditional_term()));
@@ -1092,7 +1092,7 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 
 		if (ctx.conditional_term() != null) {
 			tokens.addAll(visit(ctx.conditional_term()));
-			tokens.add(new QueryParsingToken(ctx.AND().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.AND().getText()));
 			tokens.addAll(visit(ctx.conditional_factor()));
 		} else {
 			tokens.addAll(visit(ctx.conditional_factor()));
@@ -1107,7 +1107,7 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.NOT() != null) {
-			tokens.add(new QueryParsingToken(ctx.NOT().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.NOT().getText()));
 		}
 
 		JpqlParser.Conditional_primaryContext conditionalPrimary = ctx.conditional_primary();
@@ -1126,10 +1126,10 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 			tokens.addAll(visit(ctx.simple_cond_expression()));
 		} else if (ctx.conditional_expression() != null) {
 
-			tokens.add(new QueryParsingToken("(", ctx, false));
+			tokens.add(new QueryParsingToken("(", false));
 			tokens.addAll(visit(ctx.conditional_expression()));
 			NOSPACE(tokens);
-			tokens.add(new QueryParsingToken(")", ctx));
+			tokens.add(new QueryParsingToken(")"));
 		}
 
 		return tokens;
@@ -1170,30 +1170,30 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 
 			tokens.addAll(visit(ctx.arithmetic_expression(0)));
 			if (ctx.NOT() != null) {
-				tokens.add(new QueryParsingToken(ctx.NOT().getText(), ctx));
-				tokens.add(new QueryParsingToken(ctx.BETWEEN().getText(), ctx));
+				tokens.add(new QueryParsingToken(ctx.NOT().getText()));
+				tokens.add(new QueryParsingToken(ctx.BETWEEN().getText()));
 				tokens.addAll(visit(ctx.arithmetic_expression(1)));
-				tokens.add(new QueryParsingToken(ctx.AND().getText(), ctx));
+				tokens.add(new QueryParsingToken(ctx.AND().getText()));
 				tokens.addAll(visit(ctx.arithmetic_expression(2)));
 			}
 		} else if (ctx.string_expression(0) != null) {
 
 			tokens.addAll(visit(ctx.string_expression(0)));
 			if (ctx.NOT() != null) {
-				tokens.add(new QueryParsingToken(ctx.NOT().getText(), ctx));
-				tokens.add(new QueryParsingToken(ctx.BETWEEN().getText(), ctx));
+				tokens.add(new QueryParsingToken(ctx.NOT().getText()));
+				tokens.add(new QueryParsingToken(ctx.BETWEEN().getText()));
 				tokens.addAll(visit(ctx.string_expression(1)));
-				tokens.add(new QueryParsingToken(ctx.AND().getText(), ctx));
+				tokens.add(new QueryParsingToken(ctx.AND().getText()));
 				tokens.addAll(visit(ctx.string_expression(2)));
 			}
 		} else if (ctx.datetime_expression(0) != null) {
 
 			tokens.addAll(visit(ctx.datetime_expression(0)));
 			if (ctx.NOT() != null) {
-				tokens.add(new QueryParsingToken(ctx.NOT().getText(), ctx));
-				tokens.add(new QueryParsingToken(ctx.BETWEEN().getText(), ctx));
+				tokens.add(new QueryParsingToken(ctx.NOT().getText()));
+				tokens.add(new QueryParsingToken(ctx.BETWEEN().getText()));
 				tokens.addAll(visit(ctx.datetime_expression(1)));
-				tokens.add(new QueryParsingToken(ctx.AND().getText(), ctx));
+				tokens.add(new QueryParsingToken(ctx.AND().getText()));
 				tokens.addAll(visit(ctx.datetime_expression(2)));
 			}
 		}
@@ -1213,31 +1213,31 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 			tokens.addAll(visit(ctx.type_discriminator()));
 		}
 		if (ctx.NOT() != null) {
-			tokens.add(new QueryParsingToken(ctx.NOT().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.NOT().getText()));
 		}
 		if (ctx.IN() != null) {
-			tokens.add(new QueryParsingToken(ctx.IN().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.IN().getText()));
 		}
 
 		if (ctx.in_item() != null && !ctx.in_item().isEmpty()) {
 
-			tokens.add(new QueryParsingToken("(", ctx, false));
+			tokens.add(new QueryParsingToken("(", false));
 
 			ctx.in_item().forEach(inItemContext -> {
 
 				tokens.addAll(visit(inItemContext));
 				NOSPACE(tokens);
-				tokens.add(new QueryParsingToken(",", inItemContext));
+				tokens.add(new QueryParsingToken(","));
 			});
 			CLIP(tokens);
 
-			tokens.add(new QueryParsingToken(")", ctx));
+			tokens.add(new QueryParsingToken(")"));
 		} else if (ctx.subquery() != null) {
 
-			tokens.add(new QueryParsingToken("(", ctx, false));
+			tokens.add(new QueryParsingToken("(", false));
 			tokens.addAll(visit(ctx.subquery()));
 			NOSPACE(tokens);
-			tokens.add(new QueryParsingToken(")", ctx, false));
+			tokens.add(new QueryParsingToken(")", false));
 		} else if (ctx.collection_valued_input_parameter() != null) {
 			tokens.addAll(visit(ctx.collection_valued_input_parameter()));
 		}
@@ -1266,10 +1266,10 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 
 		tokens.addAll(visit(ctx.string_expression()));
 		if (ctx.NOT() != null) {
-			tokens.add(new QueryParsingToken(ctx.NOT().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.NOT().getText()));
 		}
-		tokens.add(new QueryParsingToken(ctx.LIKE().getText(), ctx));
-		tokens.add(new QueryParsingToken(ctx.pattern_value().getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.LIKE().getText()));
+		tokens.add(new QueryParsingToken(ctx.pattern_value().getText()));
 
 		return tokens;
 	}
@@ -1285,11 +1285,11 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 			tokens.addAll(visit(ctx.input_parameter()));
 		}
 
-		tokens.add(new QueryParsingToken(ctx.IS().getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.IS().getText()));
 		if (ctx.NOT() != null) {
-			tokens.add(new QueryParsingToken(ctx.NOT().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.NOT().getText()));
 		}
-		tokens.add(new QueryParsingToken(ctx.NULL().getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.NULL().getText()));
 
 		return tokens;
 	}
@@ -1301,11 +1301,11 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.addAll(visit(ctx.collection_valued_path_expression()));
-		tokens.add(new QueryParsingToken(ctx.IS().getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.IS().getText()));
 		if (ctx.NOT() != null) {
-			tokens.add(new QueryParsingToken(ctx.NOT().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.NOT().getText()));
 		}
-		tokens.add(new QueryParsingToken(ctx.EMPTY().getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.EMPTY().getText()));
 
 		return tokens;
 	}
@@ -1317,11 +1317,11 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 
 		tokens.addAll(visit(ctx.entity_or_value_expression()));
 		if (ctx.NOT() != null) {
-			tokens.add(new QueryParsingToken(ctx.NOT().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.NOT().getText()));
 		}
-		tokens.add(new QueryParsingToken(ctx.MEMBER().getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.MEMBER().getText()));
 		if (ctx.OF() != null) {
-			tokens.add(new QueryParsingToken(ctx.OF().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.OF().getText()));
 		}
 		tokens.addAll(visit(ctx.collection_valued_path_expression()));
 
@@ -1367,13 +1367,13 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.NOT() != null) {
-			tokens.add(new QueryParsingToken(ctx.NOT().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.NOT().getText()));
 		}
-		tokens.add(new QueryParsingToken(ctx.EXISTS().getText(), ctx));
-		tokens.add(new QueryParsingToken("(", ctx, false));
+		tokens.add(new QueryParsingToken(ctx.EXISTS().getText()));
+		tokens.add(new QueryParsingToken("(", false));
 		tokens.addAll(visit(ctx.subquery()));
 		NOSPACE(tokens);
-		tokens.add(new QueryParsingToken(")", ctx));
+		tokens.add(new QueryParsingToken(")"));
 
 		return tokens;
 	}
@@ -1384,15 +1384,15 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.ALL() != null) {
-			tokens.add(new QueryParsingToken(ctx.ALL().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.ALL().getText()));
 		} else if (ctx.ANY() != null) {
-			tokens.add(new QueryParsingToken(ctx.ANY().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.ANY().getText()));
 		} else if (ctx.SOME() != null) {
-			tokens.add(new QueryParsingToken(ctx.SOME().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.SOME().getText()));
 		}
-		tokens.add(new QueryParsingToken("(", ctx));
+		tokens.add(new QueryParsingToken("("));
 		tokens.addAll(visit(ctx.subquery()));
-		tokens.add(new QueryParsingToken(")", ctx));
+		tokens.add(new QueryParsingToken(")"));
 
 		return tokens;
 	}
@@ -1415,7 +1415,7 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 		} else if (!ctx.boolean_expression().isEmpty()) {
 
 			tokens.addAll(visit(ctx.boolean_expression(0)));
-			tokens.add(new QueryParsingToken(ctx.op.getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.op.getText()));
 
 			if (ctx.boolean_expression(1) != null) {
 				tokens.addAll(visit(ctx.boolean_expression(1)));
@@ -1425,7 +1425,7 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 		} else if (!ctx.enum_expression().isEmpty()) {
 
 			tokens.addAll(visit(ctx.enum_expression(0)));
-			tokens.add(new QueryParsingToken(ctx.op.getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.op.getText()));
 
 			if (ctx.enum_expression(1) != null) {
 				tokens.addAll(visit(ctx.enum_expression(1)));
@@ -1445,7 +1445,7 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 		} else if (!ctx.entity_expression().isEmpty()) {
 
 			tokens.addAll(visit(ctx.entity_expression(0)));
-			tokens.add(new QueryParsingToken(ctx.op.getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.op.getText()));
 
 			if (ctx.entity_expression(1) != null) {
 				tokens.addAll(visit(ctx.entity_expression(1)));
@@ -1465,7 +1465,7 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 		} else if (!ctx.entity_type_expression().isEmpty()) {
 
 			tokens.addAll(visit(ctx.entity_type_expression(0)));
-			tokens.add(new QueryParsingToken(ctx.op.getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.op.getText()));
 			tokens.addAll(visit(ctx.entity_type_expression(1)));
 		}
 
@@ -1474,7 +1474,7 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 
 	@Override
 	public List<QueryParsingToken> visitComparison_operator(JpqlParser.Comparison_operatorContext ctx) {
-		return List.of(new QueryParsingToken(ctx.op.getText(), ctx));
+		return List.of(new QueryParsingToken(ctx.op.getText()));
 	}
 
 	@Override
@@ -1485,7 +1485,7 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 		if (ctx.arithmetic_expression() != null) {
 
 			tokens.addAll(visit(ctx.arithmetic_expression()));
-			tokens.add(new QueryParsingToken(ctx.op.getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.op.getText()));
 			tokens.addAll(visit(ctx.arithmetic_term()));
 
 		} else {
@@ -1503,7 +1503,7 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 		if (ctx.arithmetic_term() != null) {
 
 			tokens.addAll(visit(ctx.arithmetic_term()));
-			tokens.add(new QueryParsingToken(ctx.op.getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.op.getText()));
 			tokens.addAll(visit(ctx.arithmetic_factor()));
 		} else {
 			tokens.addAll(visit(ctx.arithmetic_factor()));
@@ -1518,7 +1518,7 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.op != null) {
-			tokens.add(new QueryParsingToken(ctx.op.getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.op.getText()));
 		}
 		tokens.addAll(visit(ctx.arithmetic_primary()));
 
@@ -1536,10 +1536,10 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 			tokens.addAll(visit(ctx.numeric_literal()));
 		} else if (ctx.arithmetic_expression() != null) {
 
-			tokens.add(new QueryParsingToken("(", ctx, false));
+			tokens.add(new QueryParsingToken("(", false));
 			tokens.addAll(visit(ctx.arithmetic_expression()));
 			NOSPACE(tokens);
-			tokens.add(new QueryParsingToken(")", ctx));
+			tokens.add(new QueryParsingToken(")"));
 		} else if (ctx.input_parameter() != null) {
 			tokens.addAll(visit(ctx.input_parameter()));
 		} else if (ctx.functions_returning_numerics() != null) {
@@ -1552,10 +1552,10 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 			tokens.addAll(visit(ctx.function_invocation()));
 		} else if (ctx.subquery() != null) {
 
-			tokens.add(new QueryParsingToken("(", ctx, false));
+			tokens.add(new QueryParsingToken("(", false));
 			tokens.addAll(visit(ctx.subquery()));
 			NOSPACE(tokens);
-			tokens.add(new QueryParsingToken(")", ctx));
+			tokens.add(new QueryParsingToken(")"));
 		}
 
 		return tokens;
@@ -1582,10 +1582,10 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 			tokens.addAll(visit(ctx.function_invocation()));
 		} else if (ctx.subquery() != null) {
 
-			tokens.add(new QueryParsingToken("(", ctx, false));
+			tokens.add(new QueryParsingToken("(", false));
 			tokens.addAll(visit(ctx.subquery()));
 			NOSPACE(tokens);
-			tokens.add(new QueryParsingToken(")", ctx));
+			tokens.add(new QueryParsingToken(")"));
 		}
 
 		return tokens;
@@ -1614,10 +1614,10 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 			tokens.addAll(visit(ctx.date_time_timestamp_literal()));
 		} else if (ctx.subquery() != null) {
 
-			tokens.add(new QueryParsingToken("(", ctx, false));
+			tokens.add(new QueryParsingToken("(", false));
 			tokens.addAll(visit(ctx.subquery()));
 			NOSPACE(tokens);
-			tokens.add(new QueryParsingToken(")", ctx));
+			tokens.add(new QueryParsingToken(")"));
 		}
 
 		return tokens;
@@ -1640,10 +1640,10 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 			tokens.addAll(visit(ctx.function_invocation()));
 		} else if (ctx.subquery() != null) {
 
-			tokens.add(new QueryParsingToken("(", ctx, false));
+			tokens.add(new QueryParsingToken("(", false));
 			tokens.addAll(visit(ctx.subquery()));
 			NOSPACE(tokens);
-			tokens.add(new QueryParsingToken(")", ctx));
+			tokens.add(new QueryParsingToken(")"));
 		}
 
 		return tokens;
@@ -1664,10 +1664,10 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 			tokens.addAll(visit(ctx.case_expression()));
 		} else if (ctx.subquery() != null) {
 
-			tokens.add(new QueryParsingToken("(", ctx, false));
+			tokens.add(new QueryParsingToken("(", false));
 			tokens.addAll(visit(ctx.subquery()));
 			NOSPACE(tokens);
-			tokens.add(new QueryParsingToken(")", ctx));
+			tokens.add(new QueryParsingToken(")"));
 		}
 
 		return tokens;
@@ -1722,8 +1722,8 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.TYPE().getText(), ctx));
-		tokens.add(new QueryParsingToken("(", ctx));
+		tokens.add(new QueryParsingToken(ctx.TYPE().getText()));
+		tokens.add(new QueryParsingToken("("));
 		if (ctx.general_identification_variable() != null) {
 			tokens.addAll(visit(ctx.general_identification_variable()));
 		} else if (ctx.single_valued_object_path_expression() != null) {
@@ -1731,7 +1731,7 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 		} else if (ctx.input_parameter() != null) {
 			tokens.addAll(visit(ctx.input_parameter()));
 		}
-		tokens.add(new QueryParsingToken(")", ctx));
+		tokens.add(new QueryParsingToken(")"));
 
 		return tokens;
 	}
@@ -1743,100 +1743,100 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 
 		if (ctx.LENGTH() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.LENGTH().getText(), ctx));
-			tokens.add(new QueryParsingToken("(", ctx));
+			tokens.add(new QueryParsingToken(ctx.LENGTH().getText()));
+			tokens.add(new QueryParsingToken("("));
 			tokens.addAll(visit(ctx.string_expression(0)));
-			tokens.add(new QueryParsingToken(")", ctx));
+			tokens.add(new QueryParsingToken(")"));
 		} else if (ctx.LOCATE() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.LOCATE().getText(), ctx));
-			tokens.add(new QueryParsingToken("(", ctx));
+			tokens.add(new QueryParsingToken(ctx.LOCATE().getText()));
+			tokens.add(new QueryParsingToken("("));
 			tokens.addAll(visit(ctx.string_expression(0)));
-			tokens.add(new QueryParsingToken(",", ctx));
+			tokens.add(new QueryParsingToken(","));
 			tokens.addAll(visit(ctx.string_expression(1)));
 			if (ctx.arithmetic_expression() != null) {
-				tokens.add(new QueryParsingToken(",", ctx));
+				tokens.add(new QueryParsingToken(","));
 				tokens.addAll(visit(ctx.arithmetic_expression(0)));
 			}
-			tokens.add(new QueryParsingToken(")", ctx));
+			tokens.add(new QueryParsingToken(")"));
 		} else if (ctx.ABS() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.ABS().getText(), ctx));
-			tokens.add(new QueryParsingToken("(", ctx));
+			tokens.add(new QueryParsingToken(ctx.ABS().getText()));
+			tokens.add(new QueryParsingToken("("));
 			tokens.addAll(visit(ctx.arithmetic_expression(0)));
-			tokens.add(new QueryParsingToken(")", ctx));
+			tokens.add(new QueryParsingToken(")"));
 		} else if (ctx.CEILING() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.CEILING().getText(), ctx));
-			tokens.add(new QueryParsingToken("(", ctx));
+			tokens.add(new QueryParsingToken(ctx.CEILING().getText()));
+			tokens.add(new QueryParsingToken("("));
 			tokens.addAll(visit(ctx.arithmetic_expression(0)));
-			tokens.add(new QueryParsingToken(")", ctx));
+			tokens.add(new QueryParsingToken(")"));
 		} else if (ctx.EXP() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.EXP().getText(), ctx));
-			tokens.add(new QueryParsingToken("(", ctx));
+			tokens.add(new QueryParsingToken(ctx.EXP().getText()));
+			tokens.add(new QueryParsingToken("("));
 			tokens.addAll(visit(ctx.arithmetic_expression(0)));
-			tokens.add(new QueryParsingToken(")", ctx));
+			tokens.add(new QueryParsingToken(")"));
 		} else if (ctx.FLOOR() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.FLOOR().getText(), ctx));
-			tokens.add(new QueryParsingToken("(", ctx));
+			tokens.add(new QueryParsingToken(ctx.FLOOR().getText()));
+			tokens.add(new QueryParsingToken("("));
 			tokens.addAll(visit(ctx.arithmetic_expression(0)));
-			tokens.add(new QueryParsingToken(")", ctx));
+			tokens.add(new QueryParsingToken(")"));
 		} else if (ctx.LN() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.LN().getText(), ctx));
-			tokens.add(new QueryParsingToken("(", ctx));
+			tokens.add(new QueryParsingToken(ctx.LN().getText()));
+			tokens.add(new QueryParsingToken("("));
 			tokens.addAll(visit(ctx.arithmetic_expression(0)));
-			tokens.add(new QueryParsingToken(")", ctx));
+			tokens.add(new QueryParsingToken(")"));
 		} else if (ctx.SIGN() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.SIGN().getText(), ctx));
-			tokens.add(new QueryParsingToken("(", ctx));
+			tokens.add(new QueryParsingToken(ctx.SIGN().getText()));
+			tokens.add(new QueryParsingToken("("));
 			tokens.addAll(visit(ctx.arithmetic_expression(0)));
-			tokens.add(new QueryParsingToken(")", ctx));
+			tokens.add(new QueryParsingToken(")"));
 		} else if (ctx.SQRT() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.SQRT().getText(), ctx));
-			tokens.add(new QueryParsingToken("(", ctx));
+			tokens.add(new QueryParsingToken(ctx.SQRT().getText()));
+			tokens.add(new QueryParsingToken("("));
 			tokens.addAll(visit(ctx.arithmetic_expression(0)));
-			tokens.add(new QueryParsingToken(")", ctx));
+			tokens.add(new QueryParsingToken(")"));
 		} else if (ctx.MOD() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.MOD().getText(), ctx));
-			tokens.add(new QueryParsingToken("(", ctx));
+			tokens.add(new QueryParsingToken(ctx.MOD().getText()));
+			tokens.add(new QueryParsingToken("("));
 			tokens.addAll(visit(ctx.arithmetic_expression(0)));
-			tokens.add(new QueryParsingToken(",", ctx));
+			tokens.add(new QueryParsingToken(","));
 			tokens.addAll(visit(ctx.arithmetic_expression(1)));
-			tokens.add(new QueryParsingToken(")", ctx));
+			tokens.add(new QueryParsingToken(")"));
 		} else if (ctx.POWER() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.POWER().getText(), ctx));
-			tokens.add(new QueryParsingToken("(", ctx));
+			tokens.add(new QueryParsingToken(ctx.POWER().getText()));
+			tokens.add(new QueryParsingToken("("));
 			tokens.addAll(visit(ctx.arithmetic_expression(0)));
-			tokens.add(new QueryParsingToken(",", ctx));
+			tokens.add(new QueryParsingToken(","));
 			tokens.addAll(visit(ctx.arithmetic_expression(1)));
-			tokens.add(new QueryParsingToken(")", ctx));
+			tokens.add(new QueryParsingToken(")"));
 		} else if (ctx.ROUND() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.ROUND().getText(), ctx));
-			tokens.add(new QueryParsingToken("(", ctx));
+			tokens.add(new QueryParsingToken(ctx.ROUND().getText()));
+			tokens.add(new QueryParsingToken("("));
 			tokens.addAll(visit(ctx.arithmetic_expression(0)));
-			tokens.add(new QueryParsingToken(",", ctx));
+			tokens.add(new QueryParsingToken(","));
 			tokens.addAll(visit(ctx.arithmetic_expression(1)));
-			tokens.add(new QueryParsingToken(")", ctx));
+			tokens.add(new QueryParsingToken(")"));
 		} else if (ctx.SIZE() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.SIZE().getText(), ctx));
-			tokens.add(new QueryParsingToken("(", ctx));
+			tokens.add(new QueryParsingToken(ctx.SIZE().getText()));
+			tokens.add(new QueryParsingToken("("));
 			tokens.addAll(visit(ctx.collection_valued_path_expression()));
-			tokens.add(new QueryParsingToken(")", ctx));
+			tokens.add(new QueryParsingToken(")"));
 		} else if (ctx.INDEX() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.INDEX().getText(), ctx));
-			tokens.add(new QueryParsingToken("(", ctx));
+			tokens.add(new QueryParsingToken(ctx.INDEX().getText()));
+			tokens.add(new QueryParsingToken("("));
 			tokens.addAll(visit(ctx.identification_variable()));
-			tokens.add(new QueryParsingToken(")", ctx));
+			tokens.add(new QueryParsingToken(")"));
 		}
 
 		return tokens;
@@ -1848,21 +1848,21 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.CURRENT_DATE() != null) {
-			tokens.add(new QueryParsingToken(ctx.CURRENT_DATE().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.CURRENT_DATE().getText()));
 		} else if (ctx.CURRENT_TIME() != null) {
-			tokens.add(new QueryParsingToken(ctx.CURRENT_TIME().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.CURRENT_TIME().getText()));
 		} else if (ctx.CURRENT_TIMESTAMP() != null) {
-			tokens.add(new QueryParsingToken(ctx.CURRENT_TIMESTAMP().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.CURRENT_TIMESTAMP().getText()));
 		} else if (ctx.LOCAL() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.LOCAL().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.LOCAL().getText()));
 
 			if (ctx.DATE() != null) {
-				tokens.add(new QueryParsingToken(ctx.DATE().getText(), ctx));
+				tokens.add(new QueryParsingToken(ctx.DATE().getText()));
 			} else if (ctx.TIME() != null) {
-				tokens.add(new QueryParsingToken(ctx.TIME().getText(), ctx));
+				tokens.add(new QueryParsingToken(ctx.TIME().getText()));
 			} else if (ctx.DATETIME() != null) {
-				tokens.add(new QueryParsingToken(ctx.DATETIME().getText(), ctx));
+				tokens.add(new QueryParsingToken(ctx.DATETIME().getText()));
 			}
 		}
 
@@ -1876,33 +1876,33 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 
 		if (ctx.CONCAT() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.CONCAT().getText(), ctx, false));
-			tokens.add(new QueryParsingToken("(", ctx, false));
+			tokens.add(new QueryParsingToken(ctx.CONCAT().getText(), false));
+			tokens.add(new QueryParsingToken("(", false));
 			ctx.string_expression().forEach(stringExpressionContext -> {
 				tokens.addAll(visit(stringExpressionContext));
 				NOSPACE(tokens);
-				tokens.add(new QueryParsingToken(",", ctx));
+				tokens.add(new QueryParsingToken(","));
 			});
 			CLIP(tokens);
 			NOSPACE(tokens);
-			tokens.add(new QueryParsingToken(")", ctx));
+			tokens.add(new QueryParsingToken(")"));
 		} else if (ctx.SUBSTRING() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.SUBSTRING().getText(), ctx, false));
-			tokens.add(new QueryParsingToken("(", ctx, false));
+			tokens.add(new QueryParsingToken(ctx.SUBSTRING().getText(), false));
+			tokens.add(new QueryParsingToken("(", false));
 			tokens.addAll(visit(ctx.string_expression(0)));
 			NOSPACE(tokens);
 			ctx.arithmetic_expression().forEach(arithmeticExpressionContext -> {
 				tokens.addAll(visit(arithmeticExpressionContext));
 				NOSPACE(tokens);
-				tokens.add(new QueryParsingToken(",", ctx));
+				tokens.add(new QueryParsingToken(","));
 			});
 			CLIP(tokens);
-			tokens.add(new QueryParsingToken(")", ctx));
+			tokens.add(new QueryParsingToken(")"));
 		} else if (ctx.TRIM() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.TRIM().getText(), ctx, false));
-			tokens.add(new QueryParsingToken("(", ctx, false));
+			tokens.add(new QueryParsingToken(ctx.TRIM().getText(), false));
+			tokens.add(new QueryParsingToken("(", false));
 			if (ctx.trim_specification() != null) {
 				tokens.addAll(visit(ctx.trim_specification()));
 			}
@@ -1910,24 +1910,24 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 				tokens.addAll(visit(ctx.trim_character()));
 			}
 			if (ctx.FROM() != null) {
-				tokens.add(new QueryParsingToken(ctx.FROM().getText(), ctx));
+				tokens.add(new QueryParsingToken(ctx.FROM().getText()));
 			}
 			tokens.addAll(visit(ctx.string_expression(0)));
-			tokens.add(new QueryParsingToken(")", ctx));
+			tokens.add(new QueryParsingToken(")"));
 		} else if (ctx.LOWER() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.LOWER().getText(), ctx, false));
-			tokens.add(new QueryParsingToken("(", ctx, false));
+			tokens.add(new QueryParsingToken(ctx.LOWER().getText(), false));
+			tokens.add(new QueryParsingToken("(", false));
 			tokens.addAll(visit(ctx.string_expression(0)));
 			NOSPACE(tokens);
-			tokens.add(new QueryParsingToken(")", ctx));
+			tokens.add(new QueryParsingToken(")"));
 		} else if (ctx.UPPER() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.UPPER().getText(), ctx, false));
-			tokens.add(new QueryParsingToken("(", ctx, false));
+			tokens.add(new QueryParsingToken(ctx.UPPER().getText(), false));
+			tokens.add(new QueryParsingToken("(", false));
 			tokens.addAll(visit(ctx.string_expression(0)));
 			NOSPACE(tokens);
-			tokens.add(new QueryParsingToken(")", ctx));
+			tokens.add(new QueryParsingToken(")"));
 		}
 
 		return tokens;
@@ -1937,11 +1937,11 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	public List<QueryParsingToken> visitTrim_specification(JpqlParser.Trim_specificationContext ctx) {
 
 		if (ctx.LEADING() != null) {
-			return List.of(new QueryParsingToken(ctx.LEADING().getText(), ctx));
+			return List.of(new QueryParsingToken(ctx.LEADING().getText()));
 		} else if (ctx.TRAILING() != null) {
-			return List.of(new QueryParsingToken(ctx.TRAILING().getText(), ctx));
+			return List.of(new QueryParsingToken(ctx.TRAILING().getText()));
 		} else {
-			return List.of(new QueryParsingToken(ctx.BOTH().getText(), ctx));
+			return List.of(new QueryParsingToken(ctx.BOTH().getText()));
 		}
 	}
 
@@ -1950,14 +1950,14 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.FUNCTION().getText(), ctx));
-		tokens.add(new QueryParsingToken("(", ctx));
+		tokens.add(new QueryParsingToken(ctx.FUNCTION().getText()));
+		tokens.add(new QueryParsingToken("("));
 		tokens.addAll(visit(ctx.function_name()));
 		ctx.function_arg().forEach(functionArgContext -> {
-			tokens.add(new QueryParsingToken(",", functionArgContext));
+			tokens.add(new QueryParsingToken(","));
 			tokens.addAll(visit(functionArgContext));
 		});
-		tokens.add(new QueryParsingToken(")", ctx));
+		tokens.add(new QueryParsingToken(")"));
 
 		return tokens;
 	}
@@ -1967,12 +1967,12 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.EXTRACT().getText(), ctx));
-		tokens.add(new QueryParsingToken("(", ctx));
+		tokens.add(new QueryParsingToken(ctx.EXTRACT().getText()));
+		tokens.add(new QueryParsingToken("("));
 		tokens.addAll(visit(ctx.datetime_field()));
-		tokens.add(new QueryParsingToken(ctx.FROM().getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.FROM().getText()));
 		tokens.addAll(visit(ctx.datetime_expression()));
-		tokens.add(new QueryParsingToken(")", ctx));
+		tokens.add(new QueryParsingToken(")"));
 
 		return tokens;
 	}
@@ -1987,12 +1987,12 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.EXTRACT().getText(), ctx));
-		tokens.add(new QueryParsingToken("(", ctx));
+		tokens.add(new QueryParsingToken(ctx.EXTRACT().getText()));
+		tokens.add(new QueryParsingToken("("));
 		tokens.addAll(visit(ctx.datetime_part()));
-		tokens.add(new QueryParsingToken(ctx.FROM().getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.FROM().getText()));
 		tokens.addAll(visit(ctx.datetime_expression()));
-		tokens.add(new QueryParsingToken(")", ctx));
+		tokens.add(new QueryParsingToken(")"));
 
 		return tokens;
 	}
@@ -2035,13 +2035,13 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.CASE().getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.CASE().getText()));
 
 		ctx.when_clause().forEach(whenClauseContext -> {
 			tokens.addAll(visit(whenClauseContext));
 		});
 
-		tokens.add(new QueryParsingToken(ctx.ELSE().getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.ELSE().getText()));
 		tokens.addAll(visit(ctx.scalar_expression()));
 
 		return tokens;
@@ -2052,9 +2052,9 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.WHEN().getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.WHEN().getText()));
 		tokens.addAll(visit(ctx.conditional_expression()));
-		tokens.add(new QueryParsingToken(ctx.THEN().getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.THEN().getText()));
 		tokens.addAll(visit(ctx.scalar_expression()));
 
 		return tokens;
@@ -2065,16 +2065,16 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.CASE().getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.CASE().getText()));
 		tokens.addAll(visit(ctx.case_operand()));
 
 		ctx.simple_when_clause().forEach(simpleWhenClauseContext -> {
 			tokens.addAll(visit(simpleWhenClauseContext));
 		});
 
-		tokens.add(new QueryParsingToken(ctx.ELSE().getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.ELSE().getText()));
 		tokens.addAll(visit(ctx.scalar_expression()));
-		tokens.add(new QueryParsingToken(ctx.END().getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.END().getText()));
 
 		return tokens;
 	}
@@ -2094,9 +2094,9 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.WHEN().getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.WHEN().getText()));
 		tokens.addAll(visit(ctx.scalar_expression(0)));
-		tokens.add(new QueryParsingToken(ctx.THEN().getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.THEN().getText()));
 		tokens.addAll(visit(ctx.scalar_expression(1)));
 
 		return tokens;
@@ -2107,15 +2107,15 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.COALESCE().getText(), ctx, false));
-		tokens.add(new QueryParsingToken("(", ctx, false));
+		tokens.add(new QueryParsingToken(ctx.COALESCE().getText(), false));
+		tokens.add(new QueryParsingToken("(", false));
 		ctx.scalar_expression().forEach(scalarExpressionContext -> {
 			tokens.addAll(visit(scalarExpressionContext));
 			NOSPACE(tokens);
-			tokens.add(new QueryParsingToken(",", scalarExpressionContext));
+			tokens.add(new QueryParsingToken(","));
 		});
 		CLIP(tokens);
-		tokens.add(new QueryParsingToken(")", ctx));
+		tokens.add(new QueryParsingToken(")"));
 
 		return tokens;
 	}
@@ -2125,12 +2125,12 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.NULLIF().getText(), ctx));
-		tokens.add(new QueryParsingToken("(", ctx));
+		tokens.add(new QueryParsingToken(ctx.NULLIF().getText()));
+		tokens.add(new QueryParsingToken("("));
 		tokens.addAll(visit(ctx.scalar_expression(0)));
-		tokens.add(new QueryParsingToken(",", ctx));
+		tokens.add(new QueryParsingToken(","));
 		tokens.addAll(visit(ctx.scalar_expression(1)));
-		tokens.add(new QueryParsingToken(")", ctx));
+		tokens.add(new QueryParsingToken(")"));
 
 		return tokens;
 	}
@@ -2139,7 +2139,7 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	public List<QueryParsingToken> visitTrim_character(JpqlParser.Trim_characterContext ctx) {
 
 		if (ctx.CHARACTER() != null) {
-			return List.of(new QueryParsingToken(ctx.CHARACTER().getText(), ctx));
+			return List.of(new QueryParsingToken(ctx.CHARACTER().getText()));
 		} else if (ctx.character_valued_input_parameter() != null) {
 			return visit(ctx.character_valued_input_parameter());
 		} else {
@@ -2151,13 +2151,13 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	public List<QueryParsingToken> visitIdentification_variable(JpqlParser.Identification_variableContext ctx) {
 
 		if (ctx.IDENTIFICATION_VARIABLE() != null) {
-			return List.of(new QueryParsingToken(ctx.IDENTIFICATION_VARIABLE().getText(), ctx));
+			return List.of(new QueryParsingToken(ctx.IDENTIFICATION_VARIABLE().getText()));
 		} else if (ctx.COUNT() != null) {
-			return List.of(new QueryParsingToken(ctx.COUNT().getText(), ctx));
+			return List.of(new QueryParsingToken(ctx.COUNT().getText()));
 		} else if (ctx.ORDER() != null) {
-			return List.of(new QueryParsingToken(ctx.ORDER().getText(), ctx));
+			return List.of(new QueryParsingToken(ctx.ORDER().getText()));
 		} else if (ctx.KEY() != null) {
-			return List.of(new QueryParsingToken(ctx.KEY().getText(), ctx));
+			return List.of(new QueryParsingToken(ctx.KEY().getText()));
 		} else if (ctx.spel_expression() != null) {
 			return visit(ctx.spel_expression());
 		} else {
@@ -2182,11 +2182,11 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.STRINGLITERAL() != null) {
-			tokens.add(new QueryParsingToken(ctx.STRINGLITERAL().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.STRINGLITERAL().getText()));
 		} else if (ctx.INTLITERAL() != null) {
-			tokens.add(new QueryParsingToken(ctx.INTLITERAL().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.INTLITERAL().getText()));
 		} else if (ctx.FLOATLITERAL() != null) {
-			tokens.add(new QueryParsingToken(ctx.FLOATLITERAL().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.FLOATLITERAL().getText()));
 		} else if (ctx.boolean_literal() != null) {
 			tokens.addAll(visit(ctx.boolean_literal()));
 		} else if (ctx.entity_type_literal() != null) {
@@ -2203,11 +2203,11 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 
 		if (ctx.INTLITERAL() != null) {
 
-			tokens.add(new QueryParsingToken("?", ctx, false));
-			tokens.add(new QueryParsingToken(ctx.INTLITERAL().getText(), ctx));
+			tokens.add(new QueryParsingToken("?", false));
+			tokens.add(new QueryParsingToken(ctx.INTLITERAL().getText()));
 		} else if (ctx.identification_variable() != null) {
 
-			tokens.add(new QueryParsingToken(":", ctx, false));
+			tokens.add(new QueryParsingToken(":", false));
 			tokens.addAll(visit(ctx.identification_variable()));
 		}
 
@@ -2226,7 +2226,7 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 
 	@Override
 	public List<QueryParsingToken> visitDate_time_timestamp_literal(JpqlParser.Date_time_timestamp_literalContext ctx) {
-		return List.of(new QueryParsingToken(ctx.STRINGLITERAL().getText(), ctx));
+		return List.of(new QueryParsingToken(ctx.STRINGLITERAL().getText()));
 	}
 
 	@Override
@@ -2236,16 +2236,16 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 
 	@Override
 	public List<QueryParsingToken> visitEscape_character(JpqlParser.Escape_characterContext ctx) {
-		return List.of(new QueryParsingToken(ctx.CHARACTER().getText(), ctx));
+		return List.of(new QueryParsingToken(ctx.CHARACTER().getText()));
 	}
 
 	@Override
 	public List<QueryParsingToken> visitNumeric_literal(JpqlParser.Numeric_literalContext ctx) {
 
 		if (ctx.INTLITERAL() != null) {
-			return List.of(new QueryParsingToken(ctx.INTLITERAL().getText(), ctx));
+			return List.of(new QueryParsingToken(ctx.INTLITERAL().getText()));
 		} else if (ctx.FLOATLITERAL() != null) {
-			return List.of(new QueryParsingToken(ctx.FLOATLITERAL().getText(), ctx));
+			return List.of(new QueryParsingToken(ctx.FLOATLITERAL().getText()));
 		} else {
 			return List.of();
 		}
@@ -2255,9 +2255,9 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	public List<QueryParsingToken> visitBoolean_literal(JpqlParser.Boolean_literalContext ctx) {
 
 		if (ctx.TRUE() != null) {
-			return List.of(new QueryParsingToken(ctx.TRUE().getText(), ctx));
+			return List.of(new QueryParsingToken(ctx.TRUE().getText()));
 		} else if (ctx.FALSE() != null) {
-			return List.of(new QueryParsingToken(ctx.FALSE().getText(), ctx));
+			return List.of(new QueryParsingToken(ctx.FALSE().getText()));
 		} else {
 			return List.of();
 		}
@@ -2272,9 +2272,9 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	public List<QueryParsingToken> visitString_literal(JpqlParser.String_literalContext ctx) {
 
 		if (ctx.CHARACTER() != null) {
-			return List.of(new QueryParsingToken(ctx.CHARACTER().getText(), ctx));
+			return List.of(new QueryParsingToken(ctx.CHARACTER().getText()));
 		} else if (ctx.STRINGLITERAL() != null) {
-			return List.of(new QueryParsingToken(ctx.STRINGLITERAL().getText(), ctx));
+			return List.of(new QueryParsingToken(ctx.STRINGLITERAL().getText()));
 		} else {
 			return List.of();
 		}
@@ -2318,7 +2318,7 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 
 		ctx.identification_variable().forEach(identificationVariableContext -> {
 			tokens.addAll(visit(identificationVariableContext));
-			tokens.add(new QueryParsingToken(".", identificationVariableContext));
+			tokens.add(new QueryParsingToken("."));
 		});
 		CLIP(tokens);
 
@@ -2360,36 +2360,36 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 
 		if (ctx.prefix.equals("#{#")) { // #{#entityName}
 
-			tokens.add(new QueryParsingToken(ctx.prefix.getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.prefix.getText()));
 			ctx.identification_variable().forEach(identificationVariableContext -> {
 				tokens.addAll(visit(identificationVariableContext));
-				tokens.add(new QueryParsingToken(".", identificationVariableContext));
+				tokens.add(new QueryParsingToken("."));
 			});
 			CLIP(tokens);
-			tokens.add(new QueryParsingToken("}", ctx));
+			tokens.add(new QueryParsingToken("}"));
 
 		} else if (ctx.prefix.equals("#{#[")) { // #{[0]}
 
-			tokens.add(new QueryParsingToken(ctx.prefix.getText(), ctx));
-			tokens.add(new QueryParsingToken(ctx.INTLITERAL().getText(), ctx));
-			tokens.add(new QueryParsingToken("]}", ctx));
+			tokens.add(new QueryParsingToken(ctx.prefix.getText()));
+			tokens.add(new QueryParsingToken(ctx.INTLITERAL().getText()));
+			tokens.add(new QueryParsingToken("]}"));
 
 		} else if (ctx.prefix.equals("#{")) {// #{escape([0])} or #{escape('foo')}
 
-			tokens.add(new QueryParsingToken(ctx.prefix.getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.prefix.getText()));
 			tokens.addAll(visit(ctx.identification_variable(0)));
-			tokens.add(new QueryParsingToken("(", ctx));
+			tokens.add(new QueryParsingToken("("));
 
 			if (ctx.string_literal() != null) {
 				tokens.addAll(visit(ctx.string_literal()));
 			} else if (ctx.INTLITERAL() != null) {
 
-				tokens.add(new QueryParsingToken("[", ctx));
-				tokens.add(new QueryParsingToken(ctx.INTLITERAL().getText(), ctx));
-				tokens.add(new QueryParsingToken("]", ctx));
+				tokens.add(new QueryParsingToken("["));
+				tokens.add(new QueryParsingToken(ctx.INTLITERAL().getText()));
+				tokens.add(new QueryParsingToken("]"));
 			}
 
-			tokens.add(new QueryParsingToken(")}", ctx));
+			tokens.add(new QueryParsingToken(")}"));
 		}
 
 		return tokens;
@@ -2400,7 +2400,7 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 			JpqlParser.Character_valued_input_parameterContext ctx) {
 
 		if (ctx.CHARACTER() != null) {
-			return List.of(new QueryParsingToken(ctx.CHARACTER().getText(), ctx));
+			return List.of(new QueryParsingToken(ctx.CHARACTER().getText()));
 		} else if (ctx.input_parameter() != null) {
 			return visit(ctx.input_parameter());
 		} else {

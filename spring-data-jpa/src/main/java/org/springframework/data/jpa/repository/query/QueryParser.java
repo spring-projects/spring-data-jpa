@@ -15,12 +15,13 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import static org.springframework.data.jpa.repository.query.QueryParsingToken.*;
+
 import java.util.List;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.springframework.data.domain.Sort;
-
-import com.mysema.commons.lang.Assert;
+import org.springframework.util.Assert;
 
 /**
  * Operations needed to parse a JPA query.
@@ -125,28 +126,4 @@ abstract class QueryParser {
 	 */
 	abstract boolean hasConstructor(ParserRuleContext parsedQuery);
 
-	/**
-	 * Render the list of {@link QueryParsingToken}s into a query string.
-	 *
-	 * @param tokens
-	 */
-	private String render(List<QueryParsingToken> tokens) {
-
-		if (tokens == null) {
-			return "";
-		}
-
-		StringBuilder results = new StringBuilder();
-
-		tokens.forEach(token -> {
-
-			results.append(token.getToken());
-
-			if (token.getSpace()) {
-				results.append(" ");
-			}
-		});
-
-		return results.toString().trim();
-	}
 }

@@ -18,10 +18,9 @@ package org.springframework.data.jpa.repository.query;
 import java.util.List;
 import java.util.function.Supplier;
 
-import org.antlr.v4.runtime.ParserRuleContext;
-
 /**
- * A value type used to represent a JPQL token.
+ * A value type used to represent a JPA query token. NOTE: Sometimes the token's value is based upon a value found later
+ * in the parsing process, so we text itself is wrapped in a {@link Supplier}.
  *
  * @author Greg Turnquist
  * @since 3.1
@@ -36,30 +35,36 @@ class QueryParsingToken {
 	/**
 	 * Space|NoSpace after token is rendered?
 	 */
-	private boolean space = true;
+	private boolean space;
 
-	QueryParsingToken(Supplier<String> token, ParserRuleContext context /* TODO: Drop */) {
+	QueryParsingToken(Supplier<String> token, boolean space) {
+
 		this.token = token;
-	}
-
-	QueryParsingToken(Supplier<String> token, ParserRuleContext context /* TODO: Drop */, boolean space) {
-
-		this(token, context);
 		this.space = space;
 	}
 
-	QueryParsingToken(String token, ParserRuleContext ctx /* TODO: Drop */) {
-		this(() -> token, ctx);
+	QueryParsingToken(Supplier<String> token) {
+		this(token, true);
 	}
 
-	QueryParsingToken(String token, ParserRuleContext ctx /* TODO: Drop */, boolean space) {
-		this(() -> token, ctx, space);
+	QueryParsingToken(String token, boolean space) {
+		this(() -> token, space);
 	}
 
+	QueryParsingToken(String token) {
+		this(() -> token, true);
+	}
+
+	/**
+	 * Extract the token's value from it's {@link Supplier}.
+	 */
 	String getToken() {
 		return this.token.get();
 	}
 
+	/**
+	 * Should we render a space after the token?
+	 */
 	boolean getSpace() {
 		return this.space;
 	}
@@ -96,5 +101,31 @@ class QueryParsingToken {
 		if (!tokens.isEmpty()) {
 			tokens.remove(tokens.size() - 1);
 		}
+	}
+
+	/**
+	 * Render a list of {@link QueryParsingToken}s into a query string.
+	 *
+	 * @param tokens
+	 * @return rendered string containing either a query or some subset of that query
+	 */
+	static String render(List<QueryParsingToken> tokens) {
+
+		if (tokens == null) {
+			return "";
+		}
+
+		StringBuilder results = new StringBuilder();
+
+		tokens.forEach(token -> {
+
+			results.append(token.getToken());
+
+			if (token.getSpace()) {
+				results.append(" ");
+			}
+		});
+
+		return results.toString().trim();
 	}
 }

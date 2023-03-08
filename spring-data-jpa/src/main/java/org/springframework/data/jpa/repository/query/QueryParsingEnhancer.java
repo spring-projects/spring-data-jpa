@@ -21,8 +21,7 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.data.domain.Sort;
-
-import com.mysema.commons.lang.Assert;
+import org.springframework.util.Assert;
 
 /**
  * Implementation of {@link QueryEnhancer} using a {@link QueryParser}.<br/>

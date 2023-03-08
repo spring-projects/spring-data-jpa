@@ -139,9 +139,9 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 			tokens.addAll(visit(ctx.query()));
 		} else if (ctx.queryExpression() != null) {
 
-			tokens.add(new QueryParsingToken("(", ctx, false));
+			tokens.add(new QueryParsingToken("(", false));
 			tokens.addAll(visit(ctx.queryExpression()));
-			tokens.add(new QueryParsingToken(")", ctx));
+			tokens.add(new QueryParsingToken(")"));
 		}
 
 		if (!countQuery && !isSubquery(ctx)) {
@@ -155,25 +155,25 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 				if (ctx.queryOrder() != null) {
 
 					NOSPACE(tokens);
-					tokens.add(new QueryParsingToken(",", ctx));
+					tokens.add(new QueryParsingToken(","));
 				} else {
 
 					SPACE(tokens);
-					tokens.add(new QueryParsingToken("order by", ctx));
+					tokens.add(new QueryParsingToken("order by"));
 				}
 
 				this.sort.forEach(order -> {
 
 					if (order.isIgnoreCase()) {
-						tokens.add(new QueryParsingToken("lower(", ctx, false));
+						tokens.add(new QueryParsingToken("lower(", false));
 					}
-					tokens.add(new QueryParsingToken(() -> this.alias + "." + order.getProperty(), ctx, true));
+					tokens.add(new QueryParsingToken(() -> this.alias + "." + order.getProperty(), true));
 					if (order.isIgnoreCase()) {
 						NOSPACE(tokens);
-						tokens.add(new QueryParsingToken(")", ctx, true));
+						tokens.add(new QueryParsingToken(")", true));
 					}
-					tokens.add(new QueryParsingToken(order.isDescending() ? "desc" : "asc", ctx, false));
-					tokens.add(new QueryParsingToken(",", ctx));
+					tokens.add(new QueryParsingToken(order.isDescending() ? "desc" : "asc", false));
+					tokens.add(new QueryParsingToken(","));
 				});
 				CLIP(tokens);
 			}
@@ -217,9 +217,9 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 		if (countQuery && !isSubquery(ctx) && ctx.selectClause() == null) {
 
-			tokens.add(new QueryParsingToken("select count(", ctx, false));
-			tokens.add(new QueryParsingToken(() -> this.alias, ctx, false));
-			tokens.add(new QueryParsingToken(")", ctx, true));
+			tokens.add(new QueryParsingToken("select count(", false));
+			tokens.add(new QueryParsingToken(() -> this.alias, false));
+			tokens.add(new QueryParsingToken(")", true));
 		}
 
 		if (ctx.fromClause() != null) {
@@ -270,11 +270,11 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.FROM().getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.FROM().getText()));
 
 		ctx.entityWithJoins().forEach(entityWithJoinsContext -> {
 			tokens.addAll(visit(entityWithJoinsContext));
-			tokens.add(new QueryParsingToken(",", entityWithJoinsContext));
+			tokens.add(new QueryParsingToken(","));
 		});
 		CLIP(tokens);
 
@@ -327,10 +327,10 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 			}
 		} else if (ctx.subquery() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.LATERAL().getText(), ctx));
-			tokens.add(new QueryParsingToken("(", ctx, false));
+			tokens.add(new QueryParsingToken(ctx.LATERAL().getText()));
+			tokens.add(new QueryParsingToken("(", false));
 			tokens.addAll(visit(ctx.subquery()));
-			tokens.add(new QueryParsingToken(")", ctx));
+			tokens.add(new QueryParsingToken(")"));
 
 			if (ctx.variable() != null) {
 				tokens.addAll(visit(ctx.variable()));
@@ -350,10 +350,10 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.addAll(visit(ctx.joinType()));
-		tokens.add(new QueryParsingToken(ctx.JOIN().getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.JOIN().getText()));
 
 		if (ctx.FETCH() != null) {
-			tokens.add(new QueryParsingToken(ctx.FETCH().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.FETCH().getText()));
 		}
 
 		tokens.addAll(visit(ctx.joinTarget()));
@@ -385,12 +385,12 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.LATERAL() != null) {
-			tokens.add(new QueryParsingToken(ctx.LATERAL().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.LATERAL().getText()));
 		}
 
-		tokens.add(new QueryParsingToken("(", ctx, false));
+		tokens.add(new QueryParsingToken("(", false));
 		tokens.addAll(visit(ctx.subquery()));
-		tokens.add(new QueryParsingToken(")", ctx));
+		tokens.add(new QueryParsingToken(")"));
 
 		if (ctx.variable() != null) {
 			tokens.addAll(visit(ctx.variable()));
@@ -404,10 +404,10 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.UPDATE().getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.UPDATE().getText()));
 
 		if (ctx.VERSIONED() != null) {
-			tokens.add(new QueryParsingToken(ctx.VERSIONED().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.VERSIONED().getText()));
 		}
 
 		tokens.addAll(visit(ctx.targetEntity()));
@@ -439,11 +439,11 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.SET().getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.SET().getText()));
 
 		ctx.assignment().forEach(assignmentContext -> {
 			tokens.addAll(visit(assignmentContext));
-			tokens.add(new QueryParsingToken(",", assignmentContext));
+			tokens.add(new QueryParsingToken(","));
 		});
 		CLIP(tokens);
 
@@ -456,7 +456,7 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.addAll(visit(ctx.simplePath()));
-		tokens.add(new QueryParsingToken("=", ctx));
+		tokens.add(new QueryParsingToken("="));
 		tokens.addAll(visit(ctx.expressionOrPredicate()));
 
 		return tokens;
@@ -467,10 +467,10 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.DELETE().getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.DELETE().getText()));
 
 		if (ctx.FROM() != null) {
-			tokens.add(new QueryParsingToken(ctx.FROM().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.FROM().getText()));
 		}
 
 		tokens.addAll(visit(ctx.targetEntity()));
@@ -487,10 +487,10 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.INSERT().getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.INSERT().getText()));
 
 		if (ctx.INTO() != null) {
-			tokens.add(new QueryParsingToken(ctx.INTO().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.INTO().getText()));
 		}
 
 		tokens.addAll(visit(ctx.targetEntity()));
@@ -510,15 +510,15 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken("(", ctx, false));
+		tokens.add(new QueryParsingToken("(", false));
 
 		ctx.simplePath().forEach(simplePathContext -> {
 			tokens.addAll(visit(simplePathContext));
-			tokens.add(new QueryParsingToken(",", simplePathContext));
+			tokens.add(new QueryParsingToken(","));
 		});
 		CLIP(tokens);
 
-		tokens.add(new QueryParsingToken(")", ctx));
+		tokens.add(new QueryParsingToken(")"));
 
 		return tokens;
 	}
@@ -528,11 +528,11 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.VALUES().getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.VALUES().getText()));
 
 		ctx.values().forEach(valuesContext -> {
 			tokens.addAll(visit(valuesContext));
-			tokens.add(new QueryParsingToken(",", valuesContext));
+			tokens.add(new QueryParsingToken(","));
 		});
 		CLIP(tokens);
 
@@ -544,15 +544,15 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken("(", ctx, false));
+		tokens.add(new QueryParsingToken("(", false));
 
 		ctx.expression().forEach(expressionContext -> {
 			tokens.addAll(visit(expressionContext));
-			tokens.add(new QueryParsingToken(",", expressionContext));
+			tokens.add(new QueryParsingToken(","));
 		});
 		CLIP(tokens);
 
-		tokens.add(new QueryParsingToken(")", ctx));
+		tokens.add(new QueryParsingToken(")"));
 
 		return tokens;
 	}
@@ -582,11 +582,11 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 		this.hasConstructorExpression = true;
 
-		tokens.add(new QueryParsingToken(ctx.NEW().getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.NEW().getText()));
 		tokens.addAll(visit(ctx.instantiationTarget()));
-		tokens.add(new QueryParsingToken("(", ctx, false));
+		tokens.add(new QueryParsingToken("(", false));
 		tokens.addAll(visit(ctx.instantiationArguments()));
-		tokens.add(new QueryParsingToken(")", ctx));
+		tokens.add(new QueryParsingToken(")"));
 
 		return tokens;
 	}
@@ -597,7 +597,7 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.AS() != null) {
-			tokens.add(new QueryParsingToken(ctx.AS().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.AS().getText()));
 		}
 
 		tokens.addAll(visit(ctx.identifier()));
@@ -615,7 +615,7 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 		if (ctx.identifier() != null) {
 			return visit(ctx.identifier());
 		} else if (ctx.INTEGER_LITERAL() != null) {
-			return List.of(new QueryParsingToken(ctx.INTEGER_LITERAL().getText(), ctx));
+			return List.of(new QueryParsingToken(ctx.INTEGER_LITERAL().getText()));
 		} else if (ctx.expression() != null) {
 			return visit(ctx.expression());
 		} else {
@@ -647,7 +647,7 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 		if (ctx.identifier() != null) {
 			return visit(ctx.identifier());
 		} else if (ctx.INTEGER_LITERAL() != null) {
-			return List.of(new QueryParsingToken(ctx.INTEGER_LITERAL().getText(), ctx));
+			return List.of(new QueryParsingToken(ctx.INTEGER_LITERAL().getText()));
 		} else if (ctx.expression() != null) {
 			return visit(ctx.expression());
 		} else {
@@ -659,9 +659,9 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	public List<QueryParsingToken> visitSortDirection(HqlParser.SortDirectionContext ctx) {
 
 		if (ctx.ASC() != null) {
-			return List.of(new QueryParsingToken(ctx.ASC().getText(), ctx));
+			return List.of(new QueryParsingToken(ctx.ASC().getText()));
 		} else if (ctx.DESC() != null) {
-			return List.of(new QueryParsingToken(ctx.DESC().getText(), ctx));
+			return List.of(new QueryParsingToken(ctx.DESC().getText()));
 		} else {
 			return List.of();
 		}
@@ -672,12 +672,12 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.NULLS().getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.NULLS().getText()));
 
 		if (ctx.FIRST() != null) {
-			tokens.add(new QueryParsingToken(ctx.FIRST().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.FIRST().getText()));
 		} else if (ctx.LAST() != null) {
-			tokens.add(new QueryParsingToken(ctx.LAST().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.LAST().getText()));
 		}
 
 		return tokens;
@@ -688,7 +688,7 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.LIMIT().getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.LIMIT().getText()));
 		tokens.addAll(visit(ctx.parameterOrIntegerLiteral()));
 
 		return tokens;
@@ -699,13 +699,13 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.OFFSET().getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.OFFSET().getText()));
 		tokens.addAll(visit(ctx.parameterOrIntegerLiteral()));
 
 		if (ctx.ROW() != null) {
-			tokens.add(new QueryParsingToken(ctx.ROW().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.ROW().getText()));
 		} else if (ctx.ROWS() != null) {
-			tokens.add(new QueryParsingToken(ctx.ROWS().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.ROWS().getText()));
 		}
 
 		return tokens;
@@ -716,12 +716,12 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.FETCH().getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.FETCH().getText()));
 
 		if (ctx.FIRST() != null) {
-			tokens.add(new QueryParsingToken(ctx.FIRST().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.FIRST().getText()));
 		} else if (ctx.NEXT() != null) {
-			tokens.add(new QueryParsingToken(ctx.NEXT().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.NEXT().getText()));
 		}
 
 		if (ctx.parameterOrIntegerLiteral() != null) {
@@ -729,21 +729,21 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 		} else if (ctx.parameterOrNumberLiteral() != null) {
 
 			tokens.addAll(visit(ctx.parameterOrNumberLiteral()));
-			tokens.add(new QueryParsingToken("%", ctx));
+			tokens.add(new QueryParsingToken("%"));
 		}
 
 		if (ctx.ROW() != null) {
-			tokens.add(new QueryParsingToken(ctx.ROW().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.ROW().getText()));
 		} else if (ctx.ROWS() != null) {
-			tokens.add(new QueryParsingToken(ctx.ROWS().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.ROWS().getText()));
 		}
 
 		if (ctx.ONLY() != null) {
-			tokens.add(new QueryParsingToken(ctx.ONLY().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.ONLY().getText()));
 		} else if (ctx.WITH() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.WITH().getText(), ctx));
-			tokens.add(new QueryParsingToken(ctx.TIES().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.WITH().getText()));
+			tokens.add(new QueryParsingToken(ctx.TIES().getText()));
 		}
 
 		return tokens;
@@ -759,14 +759,14 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.SELECT().getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.SELECT().getText()));
 
 		if (countQuery && !isSubquery(ctx)) {
-			tokens.add(new QueryParsingToken("count(", ctx, false));
+			tokens.add(new QueryParsingToken("count(", false));
 		}
 
 		if (ctx.DISTINCT() != null) {
-			tokens.add(new QueryParsingToken(ctx.DISTINCT().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.DISTINCT().getText()));
 		}
 
 		List<QueryParsingToken> selectionListTokens = visit(ctx.selectionList());
@@ -777,17 +777,17 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 				if (selectionListTokens.stream().anyMatch(hqlToken -> hqlToken.getToken().contains("new"))) {
 					// constructor
-					tokens.add(new QueryParsingToken(() -> this.alias, ctx));
+					tokens.add(new QueryParsingToken(() -> this.alias));
 				} else {
 					// keep all the select items to distinct against
 					tokens.addAll(selectionListTokens);
 				}
 			} else {
-				tokens.add(new QueryParsingToken(() -> this.alias, ctx));
+				tokens.add(new QueryParsingToken(() -> this.alias));
 			}
 
 			NOSPACE(tokens);
-			tokens.add(new QueryParsingToken(")", ctx));
+			tokens.add(new QueryParsingToken(")"));
 		} else {
 			tokens.addAll(selectionListTokens);
 		}
@@ -805,7 +805,7 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 		ctx.selection().forEach(selectionContext -> {
 			tokens.addAll(visit(selectionContext));
 			NOSPACE(tokens);
-			tokens.add(new QueryParsingToken(",", selectionContext));
+			tokens.add(new QueryParsingToken(","));
 		});
 		CLIP(tokens);
 		SPACE(tokens);
@@ -848,10 +848,10 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.ENTRY().getText(), ctx));
-		tokens.add(new QueryParsingToken("(", ctx, false));
+		tokens.add(new QueryParsingToken(ctx.ENTRY().getText()));
+		tokens.add(new QueryParsingToken("(", false));
 		tokens.addAll(visit(ctx.path()));
-		tokens.add(new QueryParsingToken(")", ctx));
+		tokens.add(new QueryParsingToken(")"));
 
 		return tokens;
 	}
@@ -861,10 +861,10 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.OBJECT().getText(), ctx));
-		tokens.add(new QueryParsingToken("(", ctx, false));
+		tokens.add(new QueryParsingToken(ctx.OBJECT().getText()));
+		tokens.add(new QueryParsingToken("(", false));
 		tokens.addAll(visit(ctx.identifier()));
-		tokens.add(new QueryParsingToken(")", ctx));
+		tokens.add(new QueryParsingToken(")"));
 
 		return tokens;
 	}
@@ -874,11 +874,11 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.WHERE().getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.WHERE().getText()));
 
 		ctx.predicate().forEach(predicateContext -> {
 			tokens.addAll(visit(predicateContext));
-			tokens.add(new QueryParsingToken(",", predicateContext));
+			tokens.add(new QueryParsingToken(","));
 		});
 		CLIP(tokens);
 
@@ -891,22 +891,22 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.INNER() != null) {
-			tokens.add(new QueryParsingToken(ctx.INNER().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.INNER().getText()));
 		}
 		if (ctx.LEFT() != null) {
-			tokens.add(new QueryParsingToken(ctx.LEFT().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.LEFT().getText()));
 		}
 		if (ctx.RIGHT() != null) {
-			tokens.add(new QueryParsingToken(ctx.RIGHT().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.RIGHT().getText()));
 		}
 		if (ctx.FULL() != null) {
-			tokens.add(new QueryParsingToken(ctx.FULL().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.FULL().getText()));
 		}
 		if (ctx.OUTER() != null) {
-			tokens.add(new QueryParsingToken(ctx.OUTER().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.OUTER().getText()));
 		}
 		if (ctx.CROSS() != null) {
-			tokens.add(new QueryParsingToken(ctx.CROSS().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.CROSS().getText()));
 		}
 
 		return tokens;
@@ -917,8 +917,8 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.CROSS().getText(), ctx));
-		tokens.add(new QueryParsingToken(ctx.JOIN().getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.CROSS().getText()));
+		tokens.add(new QueryParsingToken(ctx.JOIN().getText()));
 		tokens.addAll(visit(ctx.entityName()));
 
 		if (ctx.variable() != null) {
@@ -934,9 +934,9 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.ON() != null) {
-			tokens.add(new QueryParsingToken(ctx.ON().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.ON().getText()));
 		} else if (ctx.WITH() != null) {
-			tokens.add(new QueryParsingToken(ctx.WITH().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.WITH().getText()));
 		}
 
 		tokens.addAll(visit(ctx.predicate()));
@@ -949,10 +949,10 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(",", ctx));
-		tokens.add(new QueryParsingToken(ctx.IN().getText(), ctx));
+		tokens.add(new QueryParsingToken(","));
+		tokens.add(new QueryParsingToken(ctx.IN().getText()));
 		tokens.addAll(visit(ctx.path()));
-		tokens.add(new QueryParsingToken(")", ctx));
+		tokens.add(new QueryParsingToken(")"));
 
 		if (ctx.variable() != null) {
 			tokens.addAll(visit(ctx.variable()));
@@ -966,13 +966,13 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.GROUP().getText(), ctx));
-		tokens.add(new QueryParsingToken(ctx.BY().getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.GROUP().getText()));
+		tokens.add(new QueryParsingToken(ctx.BY().getText()));
 
 		ctx.groupedItem().forEach(groupedItemContext -> {
 			tokens.addAll(visit(groupedItemContext));
 			NOSPACE(tokens);
-			tokens.add(new QueryParsingToken(",", groupedItemContext));
+			tokens.add(new QueryParsingToken(","));
 		});
 		CLIP(tokens);
 		SPACE(tokens);
@@ -985,13 +985,13 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.ORDER().getText(), ctx));
-		tokens.add(new QueryParsingToken(ctx.BY().getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.ORDER().getText()));
+		tokens.add(new QueryParsingToken(ctx.BY().getText()));
 
 		ctx.projectedItem().forEach(projectedItemContext -> {
 			tokens.addAll(visit(projectedItemContext));
 			NOSPACE(tokens);
-			tokens.add(new QueryParsingToken(",", projectedItemContext));
+			tokens.add(new QueryParsingToken(","));
 		});
 		CLIP(tokens);
 
@@ -1003,11 +1003,11 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.HAVING().getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.HAVING().getText()));
 
 		ctx.predicate().forEach(predicateContext -> {
 			tokens.addAll(visit(predicateContext));
-			tokens.add(new QueryParsingToken(",", predicateContext));
+			tokens.add(new QueryParsingToken(","));
 		});
 		CLIP(tokens);
 
@@ -1020,15 +1020,15 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.UNION() != null) {
-			tokens.add(new QueryParsingToken(ctx.UNION().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.UNION().getText()));
 		} else if (ctx.INTERSECT() != null) {
-			tokens.add(new QueryParsingToken(ctx.INTERSECT().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.INTERSECT().getText()));
 		} else if (ctx.EXCEPT() != null) {
-			tokens.add(new QueryParsingToken(ctx.EXCEPT().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.EXCEPT().getText()));
 		}
 
 		if (ctx.ALL() != null) {
-			tokens.add(new QueryParsingToken(ctx.ALL().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.ALL().getText()));
 		}
 
 		return tokens;
@@ -1038,7 +1038,7 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	public List<QueryParsingToken> visitLiteral(HqlParser.LiteralContext ctx) {
 
 		if (ctx.NULL() != null) {
-			return List.of(new QueryParsingToken(ctx.NULL().getText(), ctx));
+			return List.of(new QueryParsingToken(ctx.NULL().getText()));
 		} else if (ctx.booleanLiteral() != null) {
 			return visit(ctx.booleanLiteral());
 		} else if (ctx.stringLiteral() != null) {
@@ -1056,9 +1056,9 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	public List<QueryParsingToken> visitBooleanLiteral(HqlParser.BooleanLiteralContext ctx) {
 
 		if (ctx.TRUE() != null) {
-			return List.of(new QueryParsingToken(ctx.TRUE().getText(), ctx));
+			return List.of(new QueryParsingToken(ctx.TRUE().getText()));
 		} else if (ctx.FALSE() != null) {
-			return List.of(new QueryParsingToken(ctx.FALSE().getText(), ctx));
+			return List.of(new QueryParsingToken(ctx.FALSE().getText()));
 		} else {
 			return List.of();
 		}
@@ -1068,9 +1068,9 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	public List<QueryParsingToken> visitStringLiteral(HqlParser.StringLiteralContext ctx) {
 
 		if (ctx.STRINGLITERAL() != null) {
-			return List.of(new QueryParsingToken(ctx.STRINGLITERAL().getText(), ctx));
+			return List.of(new QueryParsingToken(ctx.STRINGLITERAL().getText()));
 		} else if (ctx.CHARACTER() != null) {
-			return List.of(new QueryParsingToken(ctx.CHARACTER().getText(), ctx));
+			return List.of(new QueryParsingToken(ctx.CHARACTER().getText()));
 		} else {
 			return List.of();
 		}
@@ -1080,11 +1080,11 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	public List<QueryParsingToken> visitNumericLiteral(HqlParser.NumericLiteralContext ctx) {
 
 		if (ctx.INTEGER_LITERAL() != null) {
-			return List.of(new QueryParsingToken(ctx.INTEGER_LITERAL().getText(), ctx));
+			return List.of(new QueryParsingToken(ctx.INTEGER_LITERAL().getText()));
 		} else if (ctx.FLOAT_LITERAL() != null) {
-			return List.of(new QueryParsingToken(ctx.FLOAT_LITERAL().getText(), ctx));
+			return List.of(new QueryParsingToken(ctx.FLOAT_LITERAL().getText()));
 		} else if (ctx.HEXLITERAL() != null) {
-			return List.of(new QueryParsingToken(ctx.HEXLITERAL().getText(), ctx));
+			return List.of(new QueryParsingToken(ctx.HEXLITERAL().getText()));
 		} else {
 			return List.of();
 		}
@@ -1096,39 +1096,39 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.LOCAL_DATE() != null) {
-			tokens.add(new QueryParsingToken(ctx.LOCAL_DATE().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.LOCAL_DATE().getText()));
 		} else if (ctx.LOCAL_TIME() != null) {
-			tokens.add(new QueryParsingToken(ctx.LOCAL_TIME().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.LOCAL_TIME().getText()));
 		} else if (ctx.LOCAL_DATETIME() != null) {
-			tokens.add(new QueryParsingToken(ctx.LOCAL_DATETIME().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.LOCAL_DATETIME().getText()));
 		} else if (ctx.CURRENT_DATE() != null) {
-			tokens.add(new QueryParsingToken(ctx.CURRENT_DATE().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.CURRENT_DATE().getText()));
 		} else if (ctx.CURRENT_TIME() != null) {
-			tokens.add(new QueryParsingToken(ctx.CURRENT_TIME().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.CURRENT_TIME().getText()));
 		} else if (ctx.CURRENT_TIMESTAMP() != null) {
-			tokens.add(new QueryParsingToken(ctx.CURRENT_TIMESTAMP().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.CURRENT_TIMESTAMP().getText()));
 		} else if (ctx.OFFSET_DATETIME() != null) {
-			tokens.add(new QueryParsingToken(ctx.OFFSET_DATETIME().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.OFFSET_DATETIME().getText()));
 		} else {
 
 			if (ctx.LOCAL() != null) {
-				tokens.add(new QueryParsingToken(ctx.LOCAL().getText(), ctx));
+				tokens.add(new QueryParsingToken(ctx.LOCAL().getText()));
 			} else if (ctx.CURRENT() != null) {
-				tokens.add(new QueryParsingToken(ctx.CURRENT().getText(), ctx));
+				tokens.add(new QueryParsingToken(ctx.CURRENT().getText()));
 			} else if (ctx.OFFSET() != null) {
-				tokens.add(new QueryParsingToken(ctx.OFFSET().getText(), ctx));
+				tokens.add(new QueryParsingToken(ctx.OFFSET().getText()));
 			}
 
 			if (ctx.DATE() != null) {
-				tokens.add(new QueryParsingToken(ctx.DATE().getText(), ctx));
+				tokens.add(new QueryParsingToken(ctx.DATE().getText()));
 			} else if (ctx.TIME() != null) {
-				tokens.add(new QueryParsingToken(ctx.TIME().getText(), ctx));
+				tokens.add(new QueryParsingToken(ctx.TIME().getText()));
 			} else if (ctx.DATETIME() != null) {
-				tokens.add(new QueryParsingToken(ctx.DATETIME().getText(), ctx));
+				tokens.add(new QueryParsingToken(ctx.DATETIME().getText()));
 			}
 
 			if (ctx.INSTANT() != null) {
-				tokens.add(new QueryParsingToken(ctx.INSTANT().getText(), ctx));
+				tokens.add(new QueryParsingToken(ctx.INSTANT().getText()));
 			}
 		}
 
@@ -1145,15 +1145,15 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken("(", ctx, false));
+		tokens.add(new QueryParsingToken("(", false));
 
 		ctx.expressionOrPredicate().forEach(expressionOrPredicateContext -> {
 			tokens.addAll(visit(expressionOrPredicateContext));
-			tokens.add(new QueryParsingToken(",", expressionOrPredicateContext));
+			tokens.add(new QueryParsingToken(","));
 		});
 		CLIP(tokens);
 
-		tokens.add(new QueryParsingToken(")", ctx));
+		tokens.add(new QueryParsingToken(")"));
 
 		return tokens;
 	}
@@ -1164,7 +1164,7 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.addAll(visit(ctx.expression(0)));
-		tokens.add(new QueryParsingToken("||", ctx));
+		tokens.add(new QueryParsingToken("||"));
 		tokens.addAll(visit(ctx.expression(1)));
 
 		return tokens;
@@ -1175,9 +1175,9 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken("(", ctx, false));
+		tokens.add(new QueryParsingToken("(", false));
 		tokens.addAll(visit(ctx.expression()));
-		tokens.add(new QueryParsingToken(")", ctx));
+		tokens.add(new QueryParsingToken(")"));
 
 		return tokens;
 	}
@@ -1188,7 +1188,7 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.addAll(visit(ctx.expression(0)));
-		tokens.add(new QueryParsingToken(ctx.op.getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.op.getText()));
 		tokens.addAll(visit(ctx.expression(1)));
 
 		return tokens;
@@ -1199,7 +1199,7 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.op.getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.op.getText()));
 		tokens.addAll(visit(ctx.numericLiteral()));
 
 		return tokens;
@@ -1211,7 +1211,7 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.addAll(visit(ctx.expression(0)));
-		tokens.add(new QueryParsingToken(ctx.op.getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.op.getText()));
 		tokens.addAll(visit(ctx.expression(1)));
 
 		return tokens;
@@ -1222,9 +1222,9 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken("(", ctx, false));
+		tokens.add(new QueryParsingToken("(", false));
 		tokens.addAll(visit(ctx.subquery()));
-		tokens.add(new QueryParsingToken(")", ctx));
+		tokens.add(new QueryParsingToken(")"));
 
 		return tokens;
 	}
@@ -1234,7 +1234,7 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.op.getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.op.getText()));
 		tokens.addAll(visit(ctx.expression()));
 
 		return tokens;
@@ -1315,13 +1315,13 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken("[", ctx, false));
+		tokens.add(new QueryParsingToken("[", false));
 		tokens.addAll(visit(ctx.expression()));
-		tokens.add(new QueryParsingToken("]", ctx));
+		tokens.add(new QueryParsingToken("]"));
 
 		if (ctx.generalPathFragment() != null) {
 
-			tokens.add(new QueryParsingToken(".", ctx, false));
+			tokens.add(new QueryParsingToken(".", false));
 			tokens.addAll(visit(ctx.generalPathFragment()));
 		}
 
@@ -1350,7 +1350,7 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(".", ctx, false));
+		tokens.add(new QueryParsingToken(".", false));
 		tokens.addAll(visit(ctx.identifier()));
 
 		return tokens;
@@ -1373,7 +1373,7 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.CASE().getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.CASE().getText()));
 		tokens.addAll(visit(ctx.expressionOrPredicate(0)));
 
 		ctx.caseWhenExpressionClause().forEach(caseWhenExpressionClauseContext -> {
@@ -1382,11 +1382,11 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 		if (ctx.ELSE() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.ELSE().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.ELSE().getText()));
 			tokens.addAll(visit(ctx.expressionOrPredicate(1)));
 		}
 
-		tokens.add(new QueryParsingToken(ctx.END().getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.END().getText()));
 
 		return tokens;
 	}
@@ -1396,7 +1396,7 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.CASE().getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.CASE().getText()));
 
 		ctx.caseWhenPredicateClause().forEach(caseWhenPredicateClauseContext -> {
 			tokens.addAll(visit(caseWhenPredicateClauseContext));
@@ -1404,11 +1404,11 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 		if (ctx.ELSE() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.ELSE().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.ELSE().getText()));
 			tokens.addAll(visit(ctx.expressionOrPredicate()));
 		}
 
-		tokens.add(new QueryParsingToken(ctx.END().getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.END().getText()));
 
 		return tokens;
 	}
@@ -1418,9 +1418,9 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.WHEN().getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.WHEN().getText()));
 		tokens.addAll(visit(ctx.expression()));
-		tokens.add(new QueryParsingToken(ctx.THEN().getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.THEN().getText()));
 		tokens.addAll(visit(ctx.expressionOrPredicate()));
 
 		return tokens;
@@ -1431,9 +1431,9 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.WHEN().getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.WHEN().getText()));
 		tokens.addAll(visit(ctx.predicate()));
-		tokens.add(new QueryParsingToken(ctx.THEN().getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.THEN().getText()));
 		tokens.addAll(visit(ctx.expressionOrPredicate()));
 
 		return tokens;
@@ -1446,15 +1446,15 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 		tokens.addAll(visit(ctx.functionName()));
 		NOSPACE(tokens);
-		tokens.add(new QueryParsingToken("(", ctx, false));
+		tokens.add(new QueryParsingToken("(", false));
 
 		if (ctx.functionArguments() != null) {
 			tokens.addAll(visit(ctx.functionArguments()));
 		} else if (ctx.ASTERISK() != null) {
-			tokens.add(new QueryParsingToken(ctx.ASTERISK().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.ASTERISK().getText()));
 		}
 
-		tokens.add(new QueryParsingToken(")", ctx));
+		tokens.add(new QueryParsingToken(")"));
 
 		if (ctx.pathContinutation() != null) {
 			tokens.addAll(visit(ctx.pathContinutation()));
@@ -1478,9 +1478,9 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 		tokens.addAll(visit(ctx.functionName()));
 		NOSPACE(tokens);
-		tokens.add(new QueryParsingToken("(", ctx, false));
+		tokens.add(new QueryParsingToken("(", false));
 		tokens.addAll(visit(ctx.subquery()));
-		tokens.add(new QueryParsingToken(")", ctx));
+		tokens.add(new QueryParsingToken(")"));
 
 		return tokens;
 	}
@@ -1521,13 +1521,13 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.DISTINCT() != null) {
-			tokens.add(new QueryParsingToken(ctx.DISTINCT().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.DISTINCT().getText()));
 		}
 
 		ctx.expressionOrPredicate().forEach(expressionOrPredicateContext -> {
 			tokens.addAll(visit(expressionOrPredicateContext));
 			NOSPACE(tokens);
-			tokens.add(new QueryParsingToken(",", expressionOrPredicateContext));
+			tokens.add(new QueryParsingToken(","));
 		});
 		CLIP(tokens);
 
@@ -1539,10 +1539,10 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.FILTER().getText(), ctx));
-		tokens.add(new QueryParsingToken("(", ctx, false));
+		tokens.add(new QueryParsingToken(ctx.FILTER().getText()));
+		tokens.add(new QueryParsingToken("(", false));
 		tokens.addAll(visit(ctx.whereClause()));
-		tokens.add(new QueryParsingToken(")", ctx));
+		tokens.add(new QueryParsingToken(")"));
 
 		return tokens;
 	}
@@ -1552,11 +1552,11 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.WITHIN().getText(), ctx));
-		tokens.add(new QueryParsingToken(ctx.GROUP().getText(), ctx));
-		tokens.add(new QueryParsingToken("(", ctx, false));
+		tokens.add(new QueryParsingToken(ctx.WITHIN().getText()));
+		tokens.add(new QueryParsingToken(ctx.GROUP().getText()));
+		tokens.add(new QueryParsingToken("(", false));
 		tokens.addAll(visit(ctx.orderByClause()));
-		tokens.add(new QueryParsingToken(")", ctx));
+		tokens.add(new QueryParsingToken(")"));
 
 		return tokens;
 	}
@@ -1566,12 +1566,12 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.CAST().getText(), ctx));
-		tokens.add(new QueryParsingToken("(", ctx, false));
+		tokens.add(new QueryParsingToken(ctx.CAST().getText()));
+		tokens.add(new QueryParsingToken("(", false));
 		tokens.addAll(visit(ctx.expression()));
-		tokens.add(new QueryParsingToken(ctx.AS().getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.AS().getText()));
 		tokens.addAll(visit(ctx.identifier()));
-		tokens.add(new QueryParsingToken(")", ctx));
+		tokens.add(new QueryParsingToken(")"));
 
 		return tokens;
 	}
@@ -1583,18 +1583,18 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 		if (ctx.EXTRACT() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.EXTRACT().getText(), ctx));
-			tokens.add(new QueryParsingToken("(", ctx, false));
+			tokens.add(new QueryParsingToken(ctx.EXTRACT().getText()));
+			tokens.add(new QueryParsingToken("(", false));
 			tokens.addAll(visit(ctx.expression(0)));
-			tokens.add(new QueryParsingToken(ctx.FROM().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.FROM().getText()));
 			tokens.addAll(visit(ctx.expression(1)));
-			tokens.add(new QueryParsingToken(")", ctx));
+			tokens.add(new QueryParsingToken(")"));
 		} else if (ctx.dateTimeFunction() != null) {
 
 			tokens.addAll(visit(ctx.dateTimeFunction()));
-			tokens.add(new QueryParsingToken("(", ctx, false));
+			tokens.add(new QueryParsingToken("(", false));
 			tokens.addAll(visit(ctx.expression(0)));
-			tokens.add(new QueryParsingToken(")", ctx));
+			tokens.add(new QueryParsingToken(")"));
 		}
 
 		return tokens;
@@ -1605,15 +1605,15 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.TRIM().getText(), ctx));
-		tokens.add(new QueryParsingToken("(", ctx, false));
+		tokens.add(new QueryParsingToken(ctx.TRIM().getText()));
+		tokens.add(new QueryParsingToken("(", false));
 
 		if (ctx.LEADING() != null) {
-			tokens.add(new QueryParsingToken(ctx.LEADING().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.LEADING().getText()));
 		} else if (ctx.TRAILING() != null) {
-			tokens.add(new QueryParsingToken(ctx.TRAILING().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.TRAILING().getText()));
 		} else if (ctx.BOTH() != null) {
-			tokens.add(new QueryParsingToken(ctx.BOTH().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.BOTH().getText()));
 		}
 
 		if (ctx.stringLiteral() != null) {
@@ -1621,18 +1621,18 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 		}
 
 		if (ctx.FROM() != null) {
-			tokens.add(new QueryParsingToken(ctx.FROM().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.FROM().getText()));
 		}
 
 		tokens.addAll(visit(ctx.expression()));
-		tokens.add(new QueryParsingToken(")", ctx));
+		tokens.add(new QueryParsingToken(")"));
 
 		return tokens;
 	}
 
 	@Override
 	public List<QueryParsingToken> visitDateTimeFunction(HqlParser.DateTimeFunctionContext ctx) {
-		return List.of(new QueryParsingToken(ctx.d.getText(), ctx));
+		return List.of(new QueryParsingToken(ctx.d.getText()));
 	}
 
 	@Override
@@ -1640,15 +1640,15 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.every.getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.every.getText()));
 
 		if (ctx.ELEMENTS() != null) {
-			tokens.add(new QueryParsingToken(ctx.ELEMENTS().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.ELEMENTS().getText()));
 		} else if (ctx.INDICES() != null) {
-			tokens.add(new QueryParsingToken(ctx.INDICES().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.INDICES().getText()));
 		}
 
-		tokens.add(new QueryParsingToken("(", ctx, false));
+		tokens.add(new QueryParsingToken("(", false));
 
 		if (ctx.predicate() != null) {
 			tokens.addAll(visit(ctx.predicate()));
@@ -1658,7 +1658,7 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 			tokens.addAll(visit(ctx.simplePath()));
 		}
 
-		tokens.add(new QueryParsingToken(")", ctx));
+		tokens.add(new QueryParsingToken(")"));
 
 		return tokens;
 	}
@@ -1668,15 +1668,15 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.any.getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.any.getText()));
 
 		if (ctx.ELEMENTS() != null) {
-			tokens.add(new QueryParsingToken(ctx.ELEMENTS().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.ELEMENTS().getText()));
 		} else if (ctx.INDICES() != null) {
-			tokens.add(new QueryParsingToken(ctx.INDICES().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.INDICES().getText()));
 		}
 
-		tokens.add(new QueryParsingToken("(", ctx, false));
+		tokens.add(new QueryParsingToken("(", false));
 
 		if (ctx.predicate() != null) {
 			tokens.addAll(visit(ctx.predicate()));
@@ -1686,7 +1686,7 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 			tokens.addAll(visit(ctx.simplePath()));
 		}
 
-		tokens.add(new QueryParsingToken(")", ctx));
+		tokens.add(new QueryParsingToken(")"));
 
 		return tokens;
 	}
@@ -1696,12 +1696,12 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.TREAT().getText(), ctx));
-		tokens.add(new QueryParsingToken("(", ctx, false));
+		tokens.add(new QueryParsingToken(ctx.TREAT().getText()));
+		tokens.add(new QueryParsingToken("(", false));
 		tokens.addAll(visit(ctx.path()));
-		tokens.add(new QueryParsingToken(ctx.AS().getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.AS().getText()));
 		tokens.addAll(visit(ctx.simplePath()));
-		tokens.add(new QueryParsingToken(")", ctx));
+		tokens.add(new QueryParsingToken(")"));
 
 		if (ctx.pathContinutation() != null) {
 			tokens.addAll(visit(ctx.pathContinutation()));
@@ -1715,7 +1715,7 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(".", ctx, false));
+		tokens.add(new QueryParsingToken(".", false));
 		tokens.addAll(visit(ctx.simplePath()));
 
 		return tokens;
@@ -1737,7 +1737,7 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.addAll(visit(ctx.predicate(0)));
-		tokens.add(new QueryParsingToken(ctx.OR().getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.OR().getText()));
 		tokens.addAll(visit(ctx.predicate(1)));
 
 		return tokens;
@@ -1764,7 +1764,7 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.addAll(visit(ctx.predicate(0)));
-		tokens.add(new QueryParsingToken(ctx.AND().getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.AND().getText()));
 		tokens.addAll(visit(ctx.predicate(1)));
 
 		return tokens;
@@ -1775,10 +1775,10 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken("(", ctx, false));
+		tokens.add(new QueryParsingToken("(", false));
 		tokens.addAll(visit(ctx.predicate()));
 		NOSPACE(tokens);
-		tokens.add(new QueryParsingToken(")", ctx));
+		tokens.add(new QueryParsingToken(")"));
 
 		return tokens;
 	}
@@ -1798,7 +1798,7 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.NOT().getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.NOT().getText()));
 		tokens.addAll(visit(ctx.predicate()));
 
 		return tokens;
@@ -1827,7 +1827,7 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.addAll(visit(ctx.expression(0)));
-		tokens.add(new QueryParsingToken(ctx.op.getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.op.getText()));
 		tokens.addAll(visit(ctx.expression(1)));
 
 		return tokens;
@@ -1841,12 +1841,12 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 		tokens.addAll(visit(ctx.expression(0)));
 
 		if (ctx.NOT() != null) {
-			tokens.add(new QueryParsingToken(ctx.NOT().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.NOT().getText()));
 		}
 
-		tokens.add(new QueryParsingToken(ctx.BETWEEN().getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.BETWEEN().getText()));
 		tokens.addAll(visit(ctx.expression(1)));
-		tokens.add(new QueryParsingToken(ctx.AND().getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.AND().getText()));
 		tokens.addAll(visit(ctx.expression(2)));
 
 		return tokens;
@@ -1858,18 +1858,18 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.addAll(visit(ctx.expression(0)));
-		tokens.add(new QueryParsingToken(ctx.IS().getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.IS().getText()));
 
 		if (ctx.NOT() != null) {
-			tokens.add(new QueryParsingToken(ctx.NOT().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.NOT().getText()));
 		}
 
 		if (ctx.NULL() != null) {
-			tokens.add(new QueryParsingToken(ctx.NULL().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.NULL().getText()));
 		} else if (ctx.DISTINCT() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.DISTINCT().getText(), ctx));
-			tokens.add(new QueryParsingToken(ctx.FROM().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.DISTINCT().getText()));
+			tokens.add(new QueryParsingToken(ctx.FROM().getText()));
 			tokens.addAll(visit(ctx.expression(1)));
 		}
 
@@ -1884,20 +1884,20 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 		tokens.addAll(visit(ctx.expression(0)));
 
 		if (ctx.NOT() != null) {
-			tokens.add(new QueryParsingToken(ctx.NOT().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.NOT().getText()));
 		}
 
 		if (ctx.LIKE() != null) {
-			tokens.add(new QueryParsingToken(ctx.LIKE().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.LIKE().getText()));
 		} else if (ctx.ILIKE() != null) {
-			tokens.add(new QueryParsingToken(ctx.ILIKE().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.ILIKE().getText()));
 		}
 
 		tokens.addAll(visit(ctx.expression(1)));
 
 		if (ctx.ESCAPE() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.ESCAPE().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.ESCAPE().getText()));
 			tokens.addAll(visit(ctx.character()));
 		}
 
@@ -1912,10 +1912,10 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 		tokens.addAll(visit(ctx.expression()));
 
 		if (ctx.NOT() != null) {
-			tokens.add(new QueryParsingToken(ctx.NOT().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.NOT().getText()));
 		}
 
-		tokens.add(new QueryParsingToken(ctx.IN().getText(), ctx));
+		tokens.add(new QueryParsingToken(ctx.IN().getText()));
 		tokens.addAll(visit(ctx.inList()));
 
 		return tokens;
@@ -1929,34 +1929,34 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 		if (ctx.simplePath() != null) {
 
 			if (ctx.ELEMENTS() != null) {
-				tokens.add(new QueryParsingToken(ctx.ELEMENTS().getText(), ctx));
+				tokens.add(new QueryParsingToken(ctx.ELEMENTS().getText()));
 			} else if (ctx.INDICES() != null) {
-				tokens.add(new QueryParsingToken(ctx.INDICES().getText(), ctx));
+				tokens.add(new QueryParsingToken(ctx.INDICES().getText()));
 			}
 
-			tokens.add(new QueryParsingToken("(", ctx, false));
+			tokens.add(new QueryParsingToken("(", false));
 			tokens.addAll(visit(ctx.simplePath()));
 			NOSPACE(tokens);
-			tokens.add(new QueryParsingToken(")", ctx));
+			tokens.add(new QueryParsingToken(")"));
 		} else if (ctx.subquery() != null) {
 
-			tokens.add(new QueryParsingToken("(", ctx, false));
+			tokens.add(new QueryParsingToken("(", false));
 			tokens.addAll(visit(ctx.subquery()));
 			NOSPACE(tokens);
-			tokens.add(new QueryParsingToken(")", ctx));
+			tokens.add(new QueryParsingToken(")"));
 		} else if (ctx.parameter() != null) {
 			tokens.addAll(visit(ctx.parameter()));
 		} else if (ctx.expressionOrPredicate() != null) {
 
-			tokens.add(new QueryParsingToken("(", ctx, false));
+			tokens.add(new QueryParsingToken("(", false));
 
 			ctx.expressionOrPredicate().forEach(expressionOrPredicateContext -> {
 				tokens.addAll(visit(expressionOrPredicateContext));
-				tokens.add(new QueryParsingToken(",", expressionOrPredicateContext));
+				tokens.add(new QueryParsingToken(","));
 			});
 			CLIP(tokens);
 
-			tokens.add(new QueryParsingToken(")", ctx));
+			tokens.add(new QueryParsingToken(")"));
 		}
 
 		return tokens;
@@ -1969,21 +1969,21 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 		if (ctx.simplePath() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.EXISTS().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.EXISTS().getText()));
 
 			if (ctx.ELEMENTS() != null) {
-				tokens.add(new QueryParsingToken(ctx.ELEMENTS().getText(), ctx));
+				tokens.add(new QueryParsingToken(ctx.ELEMENTS().getText()));
 			} else if (ctx.INDICES() != null) {
-				tokens.add(new QueryParsingToken(ctx.INDICES().getText(), ctx));
+				tokens.add(new QueryParsingToken(ctx.INDICES().getText()));
 			}
 
-			tokens.add(new QueryParsingToken("(", ctx, false));
+			tokens.add(new QueryParsingToken("(", false));
 			tokens.addAll(visit(ctx.simplePath()));
-			tokens.add(new QueryParsingToken(")", ctx));
+			tokens.add(new QueryParsingToken(")"));
 
 		} else if (ctx.expression() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.EXISTS().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.EXISTS().getText()));
 			tokens.addAll(visit(ctx.expression()));
 		}
 
@@ -1999,21 +1999,21 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 		if (ctx.IS() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.IS().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.IS().getText()));
 
 			if (ctx.NOT() != null) {
-				tokens.add(new QueryParsingToken(ctx.NOT().getText(), ctx));
+				tokens.add(new QueryParsingToken(ctx.NOT().getText()));
 			}
 
-			tokens.add(new QueryParsingToken(ctx.EMPTY().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.EMPTY().getText()));
 		} else if (ctx.MEMBER() != null) {
 
 			if (ctx.NOT() != null) {
-				tokens.add(new QueryParsingToken(ctx.NOT().getText(), ctx));
+				tokens.add(new QueryParsingToken(ctx.NOT().getText()));
 			}
 
-			tokens.add(new QueryParsingToken(ctx.MEMBER().getText(), ctx));
-			tokens.add(new QueryParsingToken(ctx.OF().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.MEMBER().getText()));
+			tokens.add(new QueryParsingToken(ctx.OF().getText()));
 			tokens.addAll(visit(ctx.path()));
 		}
 
@@ -2024,9 +2024,9 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	public List<QueryParsingToken> visitInstantiationTarget(HqlParser.InstantiationTargetContext ctx) {
 
 		if (ctx.LIST() != null) {
-			return List.of(new QueryParsingToken(ctx.LIST().getText(), ctx));
+			return List.of(new QueryParsingToken(ctx.LIST().getText()));
 		} else if (ctx.MAP() != null) {
-			return List.of(new QueryParsingToken(ctx.MAP().getText(), ctx));
+			return List.of(new QueryParsingToken(ctx.MAP().getText()));
 		} else if (ctx.simplePath() != null) {
 
 			List<QueryParsingToken> tokens = visit(ctx.simplePath());
@@ -2045,7 +2045,7 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 		ctx.instantiationArgument().forEach(instantiationArgumentContext -> {
 			tokens.addAll(visit(instantiationArgumentContext));
 			NOSPACE(tokens);
-			tokens.add(new QueryParsingToken(",", instantiationArgumentContext));
+			tokens.add(new QueryParsingToken(","));
 		});
 		CLIP(tokens);
 
@@ -2076,7 +2076,7 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 		if (ctx.parameter() != null) {
 			return visit(ctx.parameter());
 		} else if (ctx.INTEGER_LITERAL() != null) {
-			return List.of(new QueryParsingToken(ctx.INTEGER_LITERAL().getText(), ctx));
+			return List.of(new QueryParsingToken(ctx.INTEGER_LITERAL().getText()));
 		} else {
 			return List.of();
 		}
@@ -2101,7 +2101,7 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 		if (ctx.identifier() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.AS().getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.AS().getText()));
 			tokens.addAll(visit(ctx.identifier()));
 		} else if (ctx.reservedWord() != null) {
 			tokens.addAll(visit(ctx.reservedWord()));
@@ -2117,14 +2117,14 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 		if (ctx.prefix.getText().equals(":")) {
 
-			tokens.add(new QueryParsingToken(":", ctx, false));
+			tokens.add(new QueryParsingToken(":", false));
 			tokens.addAll(visit(ctx.identifier()));
 		} else if (ctx.prefix.getText().equals("?")) {
 
-			tokens.add(new QueryParsingToken("?", ctx, false));
+			tokens.add(new QueryParsingToken("?", false));
 
 			if (ctx.INTEGER_LITERAL() != null) {
-				tokens.add(new QueryParsingToken(ctx.INTEGER_LITERAL().getText(), ctx));
+				tokens.add(new QueryParsingToken(ctx.INTEGER_LITERAL().getText()));
 			} else if (ctx.spelExpression() != null) {
 				tokens.addAll(visit(ctx.spelExpression()));
 			}
@@ -2140,7 +2140,7 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 		ctx.identifier().forEach(identifierContext -> {
 			tokens.addAll(visit(identifierContext));
-			tokens.add(new QueryParsingToken(".", identifierContext));
+			tokens.add(new QueryParsingToken("."));
 		});
 		CLIP(tokens);
 
@@ -2166,36 +2166,36 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 		if (ctx.prefix.equals("#{#")) { // #{#entityName}
 
-			tokens.add(new QueryParsingToken(ctx.prefix.getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.prefix.getText()));
 			ctx.identificationVariable().forEach(identificationVariableContext -> {
 				tokens.addAll(visit(identificationVariableContext));
-				tokens.add(new QueryParsingToken(".", identificationVariableContext));
+				tokens.add(new QueryParsingToken("."));
 			});
 			CLIP(tokens);
-			tokens.add(new QueryParsingToken("}", ctx));
+			tokens.add(new QueryParsingToken("}"));
 
 		} else if (ctx.prefix.equals("#{#[")) { // #{[0]}
 
-			tokens.add(new QueryParsingToken(ctx.prefix.getText(), ctx));
-			tokens.add(new QueryParsingToken(ctx.INTEGER_LITERAL().getText(), ctx));
-			tokens.add(new QueryParsingToken("]}", ctx));
+			tokens.add(new QueryParsingToken(ctx.prefix.getText()));
+			tokens.add(new QueryParsingToken(ctx.INTEGER_LITERAL().getText()));
+			tokens.add(new QueryParsingToken("]}"));
 
 		} else if (ctx.prefix.equals("#{")) {// #{escape([0])} or #{escape('foo')}
 
-			tokens.add(new QueryParsingToken(ctx.prefix.getText(), ctx));
+			tokens.add(new QueryParsingToken(ctx.prefix.getText()));
 			tokens.addAll(visit(ctx.identificationVariable(0)));
-			tokens.add(new QueryParsingToken("(", ctx));
+			tokens.add(new QueryParsingToken("("));
 
 			if (ctx.stringLiteral() != null) {
 				tokens.addAll(visit(ctx.stringLiteral()));
 			} else if (ctx.INTEGER_LITERAL() != null) {
 
-				tokens.add(new QueryParsingToken("[", ctx));
-				tokens.add(new QueryParsingToken(ctx.INTEGER_LITERAL().getText(), ctx));
-				tokens.add(new QueryParsingToken("]", ctx));
+				tokens.add(new QueryParsingToken("["));
+				tokens.add(new QueryParsingToken(ctx.INTEGER_LITERAL().getText()));
+				tokens.add(new QueryParsingToken("]"));
 			}
 
-			tokens.add(new QueryParsingToken(")}", ctx));
+			tokens.add(new QueryParsingToken(")}"));
 		}
 
 		return tokens;
@@ -2203,7 +2203,7 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 	@Override
 	public List<QueryParsingToken> visitCharacter(HqlParser.CharacterContext ctx) {
-		return List.of(new QueryParsingToken(ctx.CHARACTER().getText(), ctx));
+		return List.of(new QueryParsingToken(ctx.CHARACTER().getText()));
 	}
 
 	@Override
@@ -2215,9 +2215,9 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	public List<QueryParsingToken> visitReservedWord(HqlParser.ReservedWordContext ctx) {
 
 		if (ctx.IDENTIFICATION_VARIABLE() != null) {
-			return List.of(new QueryParsingToken(ctx.IDENTIFICATION_VARIABLE().getText(), ctx));
+			return List.of(new QueryParsingToken(ctx.IDENTIFICATION_VARIABLE().getText()));
 		} else {
-			return List.of(new QueryParsingToken(ctx.f.getText(), ctx));
+			return List.of(new QueryParsingToken(ctx.f.getText()));
 		}
 	}
 }
