@@ -26,7 +26,7 @@ import org.junit.jupiter.params.provider.MethodSource;
  *
  * @author Mark Paluch
  */
-public class QueryParsingEnhancerUnitTests extends QueryEnhancerTckTests {
+public class JpqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 
 	public static final String JPQL_PARSER_DOES_NOT_SUPPORT_NATIVE_QUERIES = "JpqlParser does not support native queries";
 

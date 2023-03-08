@@ -19,10 +19,9 @@ import java.util.List;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.springframework.data.domain.Sort;
-import org.springframework.lang.Nullable;
 
 /**
- * Implements the various parsing operations using {@link JpqlQueryTransformer} and {@link JpqlUtils}.
+ * Implements the various parsing operations using {@link JpqlUtils} and {@link JpqlQueryTransformer}.
  *
  * @author Greg Turnquist
  * @since 3.1
@@ -31,24 +30,12 @@ class JpqlQueryParser implements QueryParser {
 
 	private final DeclaredQuery query;
 
-	@Nullable private Sort sort;
-
-	JpqlQueryParser(DeclaredQuery query, @Nullable Sort sort) {
-
-		this.query = query;
-		this.sort = sort;
-	}
-
-	JpqlQueryParser(String query, @Nullable Sort sort) {
-		this(DeclaredQuery.of(query, false), sort);
-	}
-
 	JpqlQueryParser(DeclaredQuery query) {
-		this(query, null);
+		this.query = query;
 	}
 
 	JpqlQueryParser(String query) {
-		this(DeclaredQuery.of(query, false), null);
+		this(DeclaredQuery.of(query, false));
 	}
 
 	@Override
@@ -62,12 +49,12 @@ class JpqlQueryParser implements QueryParser {
 	}
 
 	@Override
-	public List<QueryParsingToken> applySorting(ParserRuleContext parsedQuery) {
+	public List<QueryParsingToken> doCreateQuery(ParserRuleContext parsedQuery, Sort sort) {
 		return new JpqlQueryTransformer(sort).visit(parsedQuery);
 	}
 
 	@Override
-	public List<QueryParsingToken> count(ParserRuleContext parsedQuery) {
+	public List<QueryParsingToken> doCreateCountQuery(ParserRuleContext parsedQuery) {
 		return new JpqlQueryTransformer(true).visit(parsedQuery);
 	}
 
@@ -80,7 +67,7 @@ class JpqlQueryParser implements QueryParser {
 	}
 
 	@Override
-	public List<QueryParsingToken> projection(ParserRuleContext parsedQuery) {
+	public List<QueryParsingToken> doFindProjection(ParserRuleContext parsedQuery) {
 
 		JpqlQueryTransformer transformVisitor = new JpqlQueryTransformer();
 		transformVisitor.visit(parsedQuery);
@@ -93,10 +80,5 @@ class JpqlQueryParser implements QueryParser {
 		JpqlQueryTransformer transformVisitor = new JpqlQueryTransformer();
 		transformVisitor.visit(parsedQuery);
 		return transformVisitor.hasConstructorExpression();
-	}
-
-	@Override
-	public void setSort(Sort sort) {
-		this.sort = sort;
 	}
 }

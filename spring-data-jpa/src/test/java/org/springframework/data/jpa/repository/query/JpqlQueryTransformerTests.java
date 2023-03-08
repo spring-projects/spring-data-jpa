@@ -121,7 +121,7 @@ class JpqlQueryTransformerTests {
 	}
 
 	private String countQuery(String original, Sort sort) {
-		return new QueryParsingEnhancer(new JpqlQueryParser(original, sort)).createCountQueryFor();
+		return new QueryParsingEnhancer(new JpqlQueryParser(original)).createCountQueryFor();
 	}
 
 	@ParameterizedTest
@@ -165,15 +165,14 @@ class JpqlQueryTransformerTests {
 
 		System.out.println("Query for @Query(\"" + query + "\") with a custom sort becomes...");
 
-		assertThatExceptionOfType(QueryParsingSyntaxError.class).isThrownBy(() -> {
+		assertThatIllegalArgumentException().isThrownBy(() -> {
 			new QueryParsingEnhancer(new JpqlQueryParser(query)).applySorting(Sort.by("first_name", "last_name"));
 		}).withMessageContaining("mismatched input 'something' expecting {DELETE, SELECT, UPDATE}");
 
 		System.out.println("CountQuery for @Query(\"" + query + "\") with a custom sort becomes...");
 
-		assertThatExceptionOfType(QueryParsingSyntaxError.class).isThrownBy(() -> {
-			new QueryParsingEnhancer(new JpqlQueryParser(query, Sort.by("first_name", "last_name")))
-					.createCountQueryFor();
+		assertThatIllegalArgumentException().isThrownBy(() -> {
+			new QueryParsingEnhancer(new JpqlQueryParser(query)).createCountQueryFor();
 		}).withMessageContaining("mismatched input 'something' expecting {DELETE, SELECT, UPDATE}");
 	}
 

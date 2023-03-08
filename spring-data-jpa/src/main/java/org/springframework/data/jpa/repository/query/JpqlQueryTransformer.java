@@ -34,7 +34,7 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	@Nullable private Sort sort;
 	private boolean countQuery;
 
-	private String alias = "";
+	@Nullable private String alias = null;
 
 	private List<QueryParsingToken> projection = null;
 
@@ -58,6 +58,7 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 		this.countQuery = countQuery;
 	}
 
+	@Nullable
 	public String getAlias() {
 		return this.alias;
 	}
@@ -222,7 +223,7 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 
 		tokens.addAll(visit(ctx.identification_variable()));
 
-		if (this.alias.equals("")) {
+		if (this.alias == null) {
 			this.alias = tokens.get(tokens.size() - 1).getToken();
 		}
 

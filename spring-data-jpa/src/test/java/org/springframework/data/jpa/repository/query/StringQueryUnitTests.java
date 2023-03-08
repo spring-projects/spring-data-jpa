@@ -22,7 +22,6 @@ import java.util.List;
 
 import org.assertj.core.api.Assertions;
 import org.assertj.core.api.SoftAssertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.jpa.repository.query.StringQuery.InParameterBinding;
 import org.springframework.data.jpa.repository.query.StringQuery.LikeParameterBinding;
@@ -363,14 +362,8 @@ class StringQueryUnitTests {
 		checkProjection("select something from Entity something", "something", "single expression", false);
 		checkProjection("select x, y, z from Entity something", "x, y, z", "tuple", false);
 
-		assertThatExceptionOfType(QueryParsingSyntaxError.class).isThrownBy(() -> {
-			checkProjection("sect x, y, z from Entity something", "", "missing select", false);
-		}).withMessageContaining("mismatched input 'sect' expecting {'(', DELETE, FROM, INSERT, SELECT, UPDATE}");
-
-		assertThatExceptionOfType(QueryParsingSyntaxError.class).isThrownBy(() -> {
-			checkProjection("select x, y, z fron Entity something", "x, y, z fron", "missing from", false);
-		}).withMessageContaining(
-				"mismatched input 'Entity' expecting {<EOF>, ',', EXCEPT, FROM, GROUP, INTERSECT, ORDER, UNION, WHERE}");
+		checkProjection("sect x, y, z from Entity something", "", "missing select", false);
+		checkProjection("select x, y, z fron Entity something", "", "missing from", false);
 
 		softly.assertAll();
 	}
@@ -385,18 +378,18 @@ class StringQueryUnitTests {
 	@Test // DATAJPA-1235
 	void getAlias() {
 
-		// checkAlias("from User u", "u", "simple query", false);
+		checkAlias("from User u", "u", "simple query", false);
 		checkAlias("select count(u) from User u", "u", "count query", true);
 		checkAlias("select u from User as u where u.username = ?", "u", "with as", true);
 		checkAlias("SELECT u FROM USER U", "U", "uppercase", false);
 		checkAlias("select u from  User u", "u", "simple query", true);
 		checkAlias("select u from  com.acme.User u", "u", "fully qualified package name", true);
 		checkAlias("select u from T05User u", "u", "interesting entity name", true);
-		// checkAlias("from User ", null, "trailing space", false);
-		// checkAlias("from User", null, "no trailing space", false);
-		// checkAlias("from User as bs", "bs", "ignored as", false);
-		// checkAlias("from User as AS", "AS", "ignored as using the second", false);
-		// checkAlias("from User asas", "asas", "asas is weird but legal", false);
+		checkAlias("from User ", null, "trailing space", false);
+		checkAlias("from User", null, "no trailing space", false);
+		checkAlias("from User as bs", "bs", "ignored as", false);
+		checkAlias("from User as AS", "AS", "ignored as using the second", false);
+		checkAlias("from User asas", "asas", "asas is weird but legal", false);
 
 		softly.assertAll();
 	}
@@ -408,7 +401,6 @@ class StringQueryUnitTests {
 				.isEqualTo(expected);
 	}
 
-	@Disabled
 	@Test // DATAJPA-1200
 	void testHasNamedParameter() {
 
@@ -447,10 +439,12 @@ class StringQueryUnitTests {
 
 		checkNumberOfNamedParameters("select something from blah where x = '0:name'", 0, "single quoted", false);
 		checkNumberOfNamedParameters("select something from blah where x = \"0:name\"", 0, "double quoted", false);
-//		checkNumberOfNamedParameters("select something from blah where x = '\"0':name", 1, "double quote in single quotes",
-//				false);
-// checkNumberOfNamedParameters("select something from blah where x = \"'0\":name", 1, "single quote in double quotes",
-// false);
+		// checkNumberOfNamedParameters("select something from blah where x = '\"0':name", 1, "double quote in single
+		// quotes",
+		// false);
+		// checkNumberOfNamedParameters("select something from blah where x = \"'0\":name", 1, "single quote in double
+		// quotes",
+		// false);
 
 		softly.assertAll();
 	}
@@ -488,7 +482,8 @@ class StringQueryUnitTests {
 	@Test // DATAJPA-1307
 	void makesUsageOfJdbcStyleParameterAvailable() {
 
-		softly.assertThat(new StringQuery("from Something something where something = ?", false).usesJdbcStyleParameters()).isTrue();
+		softly.assertThat(new StringQuery("from Something something where something = ?", false).usesJdbcStyleParameters())
+				.isTrue();
 
 		List<String> testQueries = Arrays.asList( //
 				"from Something something where something = ?1", //

@@ -19,7 +19,6 @@ import java.util.List;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.springframework.data.domain.Sort;
-import org.springframework.lang.Nullable;
 
 /**
  * Implements the various parsing operations using {@link HqlQueryTransformer} as well as {@link HqlUtils}.
@@ -31,24 +30,12 @@ class HqlQueryParser implements QueryParser {
 
 	private final DeclaredQuery query;
 
-	@Nullable private Sort sort;
-
-	HqlQueryParser(DeclaredQuery query, @Nullable Sort sort) {
-
-		this.query = query;
-		this.sort = sort;
-	}
-
-	HqlQueryParser(String query, @Nullable Sort sort) {
-		this(DeclaredQuery.of(query, false), sort);
-	}
-
 	HqlQueryParser(DeclaredQuery query) {
-		this(query, null);
+		this.query = query;
 	}
 
 	HqlQueryParser(String query) {
-		this(DeclaredQuery.of(query, false), null);
+		this(DeclaredQuery.of(query, false));
 	}
 
 	@Override
@@ -62,12 +49,12 @@ class HqlQueryParser implements QueryParser {
 	}
 
 	@Override
-	public List<QueryParsingToken> applySorting(ParserRuleContext parsedQuery) {
+	public List<QueryParsingToken> doCreateQuery(ParserRuleContext parsedQuery, Sort sort) {
 		return new HqlQueryTransformer(sort).visit(parsedQuery);
 	}
 
 	@Override
-	public List<QueryParsingToken> count(ParserRuleContext parsedQuery) {
+	public List<QueryParsingToken> doCreateCountQuery(ParserRuleContext parsedQuery) {
 		return new HqlQueryTransformer(true).visit(parsedQuery);
 	}
 
@@ -80,7 +67,7 @@ class HqlQueryParser implements QueryParser {
 	}
 
 	@Override
-	public List<QueryParsingToken> projection(ParserRuleContext parsedQuery) {
+	public List<QueryParsingToken> doFindProjection(ParserRuleContext parsedQuery) {
 
 		HqlQueryTransformer transformVisitor = new HqlQueryTransformer();
 		transformVisitor.visit(parsedQuery);
@@ -93,10 +80,5 @@ class HqlQueryParser implements QueryParser {
 		HqlQueryTransformer transformVisitor = new HqlQueryTransformer();
 		transformVisitor.visit(parsedQuery);
 		return transformVisitor.hasConstructorExpression();
-	}
-
-	@Override
-	public void setSort(Sort sort) {
-		this.sort = sort;
 	}
 }

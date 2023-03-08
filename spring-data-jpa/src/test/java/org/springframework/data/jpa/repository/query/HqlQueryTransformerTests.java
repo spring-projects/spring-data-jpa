@@ -111,7 +111,7 @@ class HqlQueryTransformerTests {
 		var sort = Sort.by("first_name", "last_name");
 
 		// when
-		var results = new QueryParsingEnhancer(new HqlQueryParser(original, sort)).createCountQueryFor();
+		var results = new QueryParsingEnhancer(new HqlQueryParser(original)).createCountQueryFor();
 
 		// then
 		assertThat(results).isEqualTo("SELECT count(e) FROM Employee e where e.name = :name");
@@ -141,7 +141,7 @@ class HqlQueryTransformerTests {
 		Sort sort = Sort.by("first_name", "last_name");
 		//
 		//
-		var transformed = new QueryParsingEnhancer(new HqlQueryParser(query, sort)).createCountQueryFor();
+		var transformed = new QueryParsingEnhancer(new HqlQueryParser(query)).createCountQueryFor();
 
 		System.out.println(transformed);
 		System.out.println("==========");
@@ -161,14 +161,14 @@ class HqlQueryTransformerTests {
 
 		System.out.println("Query for @Query(\"" + query + "\") with a custom sort becomes...");
 
-		assertThatExceptionOfType(QueryParsingSyntaxError.class).isThrownBy(() -> {
+		assertThatIllegalArgumentException().isThrownBy(() -> {
 			new QueryParsingEnhancer(new HqlQueryParser(query)).applySorting(Sort.by("first_name", "last_name"));
 		}).withMessageContaining("mismatched input 'something' expecting {'(', DELETE, FROM, INSERT, SELECT, UPDATE}");
 
 		System.out.println("CountQuery for @Query(\"" + query + "\") with a custom sort becomes...");
 
-		assertThatExceptionOfType(QueryParsingSyntaxError.class).isThrownBy(() -> {
-			new QueryParsingEnhancer(new HqlQueryParser(query, Sort.by("first_name", "last_name"))).createCountQueryFor();
+		assertThatIllegalArgumentException().isThrownBy(() -> {
+			new QueryParsingEnhancer(new HqlQueryParser(query)).createCountQueryFor();
 		}).withMessageContaining("mismatched input 'something' expecting {'(', DELETE, FROM, INSERT, SELECT, UPDATE}");
 	}
 
@@ -252,17 +252,15 @@ class HqlQueryTransformerTests {
 		assertThat(new QueryParsingEnhancer(new HqlQueryParser(QUERY_WITH_AS)).detectAlias()).isEqualTo("u");
 		assertThat(new QueryParsingEnhancer(new HqlQueryParser("SELECT u FROM USER U")).detectAlias()).isEqualTo("U");
 		assertThat(new QueryParsingEnhancer(new HqlQueryParser("select u from  User u")).detectAlias()).isEqualTo("u");
-		assertThat(
-				new QueryParsingEnhancer(new HqlQueryParser("select new com.acme.UserDetails(u.id, u.name) from User u"))
-						.detectAlias()).isEqualTo("u");
-		assertThat(new QueryParsingEnhancer(new HqlQueryParser("select u from T05User u")).detectAlias())
-				.isEqualTo("u");
+		assertThat(new QueryParsingEnhancer(new HqlQueryParser("select new com.acme.UserDetails(u.id, u.name) from User u"))
+				.detectAlias()).isEqualTo("u");
+		assertThat(new QueryParsingEnhancer(new HqlQueryParser("select u from T05User u")).detectAlias()).isEqualTo("u");
 		assertThat(new QueryParsingEnhancer(
 				new HqlQueryParser("select u from User u where not exists (select m from User m where m = u.manager) "))
 						.detectAlias()).isEqualTo("u");
-		assertThat(new QueryParsingEnhancer(
-				new HqlQueryParser("select u from User u where not exists (select u2 from User u2)")).detectAlias())
-						.isEqualTo("u");
+		assertThat(
+				new QueryParsingEnhancer(new HqlQueryParser("select u from User u where not exists (select u2 from User u2)"))
+						.detectAlias()).isEqualTo("u");
 		assertThat(new QueryParsingEnhancer(new HqlQueryParser(
 				"select u from User u where not exists (select u2 from User u2 where not exists (select u3 from User u3))"))
 						.detectAlias()).isEqualTo("u");
@@ -650,10 +648,8 @@ class HqlQueryTransformerTests {
 	// DATAJPA-1506
 	void detectsAliasWithGroupAndOrderBy() {
 
-		assertThat(new QueryParsingEnhancer(new HqlQueryParser("select * from User group by name")).detectAlias())
-				.isNull();
-		assertThat(new QueryParsingEnhancer(new HqlQueryParser("select * from User order by name")).detectAlias())
-				.isNull();
+		assertThat(new QueryParsingEnhancer(new HqlQueryParser("select * from User group by name")).detectAlias()).isNull();
+		assertThat(new QueryParsingEnhancer(new HqlQueryParser("select * from User order by name")).detectAlias()).isNull();
 		assertThat(new QueryParsingEnhancer(new HqlQueryParser("select u from User u group by name")).detectAlias())
 				.isEqualTo("u");
 		assertThat(new QueryParsingEnhancer(new HqlQueryParser("select u from User u order by name")).detectAlias())
@@ -757,9 +753,8 @@ class HqlQueryTransformerTests {
 				.isEqualTo("u");
 		assertThat(new QueryParsingEnhancer(new HqlQueryParser("select u from User u order\nby name")).detectAlias())
 				.isEqualTo("u");
-		assertThat(
-				new QueryParsingEnhancer(new HqlQueryParser("select u from User\nu\norder \n by name")).detectAlias())
-						.isEqualTo("u");
+		assertThat(new QueryParsingEnhancer(new HqlQueryParser("select u from User\nu\norder \n by name")).detectAlias())
+				.isEqualTo("u");
 	}
 
 	@Test
@@ -1002,7 +997,6 @@ class HqlQueryTransformerTests {
 	}
 
 	private void assertCountQuery(String originalQuery, String countQuery) {
-		assertThat(new QueryParsingEnhancer(new HqlQueryParser(originalQuery)).createCountQueryFor())
-				.isEqualTo(countQuery);
+		assertThat(new QueryParsingEnhancer(new HqlQueryParser(originalQuery)).createCountQueryFor()).isEqualTo(countQuery);
 	}
 }

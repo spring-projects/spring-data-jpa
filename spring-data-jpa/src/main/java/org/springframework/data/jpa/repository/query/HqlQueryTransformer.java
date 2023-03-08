@@ -32,10 +32,10 @@ import org.springframework.lang.Nullable;
  */
 class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
-	private Sort sort;
+	@Nullable private Sort sort;
 	private boolean countQuery;
 
-	private String alias = "";
+	@Nullable private String alias = null;
 
 	private List<QueryParsingToken> projection = null;
 
@@ -59,6 +59,7 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 		this.countQuery = countQuery;
 	}
 
+	@Nullable
 	public String getAlias() {
 		return this.alias;
 	}
@@ -320,7 +321,7 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 			if (ctx.variable() != null) {
 				tokens.addAll(visit(ctx.variable()));
 
-				if (this.alias.equals("")) {
+				if (this.alias == null) {
 					this.alias = tokens.get(tokens.size() - 1).getToken();
 				}
 			}

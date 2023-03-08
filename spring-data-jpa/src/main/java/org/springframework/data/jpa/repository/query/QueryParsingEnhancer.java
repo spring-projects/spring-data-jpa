@@ -15,7 +15,6 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import java.util.List;
 import java.util.Set;
 
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -43,19 +42,47 @@ public class QueryParsingEnhancer implements QueryEnhancer {
 		return queryParser;
 	}
 
+	/**
+	 * Adds {@literal order by} clause to the JPA query. Finds the alias of the FROM clause to bind the sorting property
+	 * to.
+	 *
+	 * @param sort the sort specification to apply.
+	 * @return
+	 */
 	@Override
-	public String applySorting(Sort sort, String alias) {
+	public String applySorting(Sort sort) {
 
-		ParserRuleContext parsedQuery = queryParser.parse();
+		try {
+			ParserRuleContext parsedQuery = queryParser.parse();
 
-		if (parsedQuery == null) {
-			return "";
+			if (parsedQuery == null) {
+				return "";
+			}
+
+			return queryParser.createQuery(parsedQuery, sort);
+		} catch (QueryParsingSyntaxError e) {
+			LOG.warn(e);
+			throw new IllegalArgumentException(e);
 		}
-
-		queryParser.setSort(sort);
-		return render(queryParser.applySorting(parsedQuery));
 	}
 
+	/**
+	 * Because the parser can find the alias of the FROM clause, there is no need to "find it" in advance.
+	 *
+	 * @param sort the sort specification to apply.
+	 * @param alias IGNORED
+	 * @return
+	 */
+	@Override
+	public String applySorting(Sort sort, String alias) {
+		return applySorting(sort);
+	}
+
+	/**
+	 * Resolves the alias for the entity in the FROM clause from the JPA query.
+	 *
+	 * @return
+	 */
 	@Override
 	public String detectAlias() {
 
@@ -70,39 +97,77 @@ public class QueryParsingEnhancer implements QueryEnhancer {
 
 			return queryParser.findAlias(parsedQuery);
 		} catch (QueryParsingSyntaxError e) {
-			LOG.debug(e);
+			LOG.warn(e);
 			return null;
 		}
 	}
 
+	/**
+	 * Creates a count query from the original query.
+	 * 
+	 * @return Guaranteed to be not {@literal null};
+	 */
 	@Override
-	public String createCountQueryFor(String countProjection) {
-
-		ParserRuleContext parsedQuery = queryParser.parse();
-
-		if (parsedQuery == null) {
-			return "";
-		}
+	public String createCountQueryFor() {
 
 		try {
-			return render(queryParser.count(parsedQuery));
+			ParserRuleContext parsedQuery = queryParser.parse();
+
+			if (parsedQuery == null) {
+				return "";
+			}
+
+			return queryParser.createCountQuery(parsedQuery);
 		} catch (QueryParsingSyntaxError e) {
-			LOG.error(e);
+			LOG.warn(e);
 			throw new IllegalArgumentException(e);
+		}
+	}
+
+	/**
+	 * Because the parser can handle projections, there is not need to "find it" in advance to create the count query.
+	 *
+	 * @param countProjection IGNORED
+	 * @return
+	 */
+	@Override
+	public String createCountQueryFor(String countProjection) {
+		return createCountQueryFor();
+	}
+
+	/**
+	 * Checks if the select clause has a new constructor instantiation in the JPA query.
+	 *
+	 * @return Guaranteed to return {@literal true} or {@literal false}.
+	 */
+	@Override
+	public boolean hasConstructorExpression() {
+
+		try {
+			ParserRuleContext parsedQuery = queryParser.parse();
+
+			if (parsedQuery == null) {
+				return false;
+			}
+
+			return queryParser.hasConstructor(parsedQuery);
+		} catch (QueryParsingSyntaxError e) {
+			LOG.warn(e);
+			return false;
 		}
 	}
 
 	@Override
 	public String getProjection() {
 
-		ParserRuleContext parsedQuery = queryParser.parse();
-
-		if (parsedQuery == null) {
-			return "";
-		}
-
 		try {
-			return render(queryParser.projection(parsedQuery));
+			ParserRuleContext parsedQuery = queryParser.parse();
+
+			if (parsedQuery == null) {
+				return "";
+			}
+
+			return queryParser.projection(parsedQuery);
 		} catch (QueryParsingSyntaxError e) {
 			LOG.debug(e);
 			return "";
@@ -117,31 +182,5 @@ public class QueryParsingEnhancer implements QueryEnhancer {
 	@Override
 	public DeclaredQuery getQuery() {
 		return queryParser.getDeclaredQuery();
-	}
-
-	/**
-	 * Render the list of {@link QueryParsingToken}s into a query string.
-	 *
-	 * @param tokens
-	 */
-	private String render(List<QueryParsingToken> tokens) {
-
-		if (tokens == null) {
-			return "";
-		}
-
-		StringBuilder results = new StringBuilder();
-
-		tokens.stream() //
-				.filter(token -> !token.isDebugOnly()) //
-				.forEach(token -> {
-					String tokenValue = token.getToken();
-					results.append(tokenValue);
-					if (token.getSpace()) {
-						results.append(" ");
-					}
-				});
-
-		return results.toString().trim();
 	}
 }

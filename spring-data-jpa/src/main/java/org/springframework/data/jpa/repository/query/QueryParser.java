@@ -36,15 +36,51 @@ public interface QueryParser {
 
 	ParserRuleContext parse();
 
-	List<QueryParsingToken> applySorting(ParserRuleContext parsedQuery);
+	default String createQuery(ParserRuleContext parsedQuery, Sort sort) {
+		return render(doCreateQuery(parsedQuery, sort));
+	}
 
-	List<QueryParsingToken> count(ParserRuleContext parsedQuery);
+	default String createCountQuery(ParserRuleContext parsedQuery) {
+		return render(doCreateCountQuery(parsedQuery));
+	}
+
+	default String projection(ParserRuleContext parsedQuery) {
+		return render(doFindProjection(parsedQuery));
+	}
+
+	List<QueryParsingToken> doCreateQuery(ParserRuleContext parsedQuery, Sort sort);
+
+	List<QueryParsingToken> doCreateCountQuery(ParserRuleContext parsedQuery);
 
 	String findAlias(ParserRuleContext parsedQuery);
 
-	List<QueryParsingToken> projection(ParserRuleContext parsedQuery);
+	List<QueryParsingToken> doFindProjection(ParserRuleContext parsedQuery);
 
 	boolean hasConstructor(ParserRuleContext parsedQuery);
 
-	void setSort(Sort sort);
+	/**
+	 * Render the list of {@link QueryParsingToken}s into a query string.
+	 *
+	 * @param tokens
+	 */
+	private String render(List<QueryParsingToken> tokens) {
+
+		if (tokens == null) {
+			return "";
+		}
+
+		StringBuilder results = new StringBuilder();
+
+		tokens.stream() //
+				.filter(token -> !token.isDebugOnly()) //
+				.forEach(token -> {
+					String tokenValue = token.getToken();
+					results.append(tokenValue);
+					if (token.getSpace()) {
+						results.append(" ");
+					}
+				});
+
+		return results.toString().trim();
+	}
 }
