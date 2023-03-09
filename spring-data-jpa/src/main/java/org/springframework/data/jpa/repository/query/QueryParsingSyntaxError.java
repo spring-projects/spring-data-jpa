@@ -18,7 +18,7 @@ package org.springframework.data.jpa.repository.query;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 
 /**
- * An exception to throw if a JPQL query is invalid.
+ * An exception thrown if the JPQL query is invalid.
  *
  * @author Greg Turnquist
  * @since 3.1

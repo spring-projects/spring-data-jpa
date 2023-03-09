@@ -20,7 +20,7 @@ grammar Hql;
 /**
  * HQL per https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#query-language
  *
- * This is a mixture of Hibernate 6.1's BNF and missing bits of grammar. There are gaps and inconsistencies in the
+ * This is a mixture of Hibernate's BNF and missing bits of grammar. There are gaps and inconsistencies in the
  * BNF itself, explained by other fragments of their spec. Additionally, alternate labels are used to provide easier
  * management of complex rules in the generated Visitor. Finally, there are labels applied to rule elements (op=('+'|'-')
  * to simplify the processing.

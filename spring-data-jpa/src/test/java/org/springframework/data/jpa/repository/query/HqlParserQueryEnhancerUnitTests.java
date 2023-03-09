@@ -22,7 +22,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
 /**
- * TCK Tests for {@link QueryParsingEnhancer} using {@link HqlQueryParser}.
+ * TCK Tests for {@link HqlQueryParser} mixed into {@link QueryParsingEnhancer}.
  *
  * @author Greg Turnquist
  * @since 3.1

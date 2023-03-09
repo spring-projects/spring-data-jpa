@@ -23,11 +23,12 @@ import org.junit.jupiter.api.Test;
  * Unit tests for {@link QueryEnhancerFactory}.
  *
  * @author Diego Krupitza
+ * @author Greg Turnquist
  */
 class QueryEnhancerFactoryUnitTests {
 
 	@Test
-	void createsDefaultImplementationForNonNativeQuery() {
+	void createsParsingImplementationForNonNativeQuery() {
 
 		StringQuery query = new StringQuery("select new com.example.User(u.firstname) from User u", false);
 

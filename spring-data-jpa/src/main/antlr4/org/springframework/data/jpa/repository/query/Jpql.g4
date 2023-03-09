@@ -19,7 +19,7 @@ grammar Jpql;
 /**
  * JPQL per https://jakarta.ee/specifications/persistence/3.1/jakarta-persistence-spec-3.1.html#bnf
  *
- * This is JPA 3.1 BNF for JPQL. There are gaps and inconsistencies in the BNF itself, explained by other fragments of the spec.
+ * This is JPA BNF for JPQL. There are gaps and inconsistencies in the BNF itself, explained by other fragments of the spec.
  *
  * @see https://github.com/jakartaee/persistence/blob/master/spec/src/main/asciidoc/ch04-query-language.adoc#bnf
  * @author Greg Turnquist

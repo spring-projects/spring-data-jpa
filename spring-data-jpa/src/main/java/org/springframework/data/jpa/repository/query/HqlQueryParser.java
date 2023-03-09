@@ -24,7 +24,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.lang.Nullable;
 
 /**
- * Implements the various parsing operations using the ANTLR-generated {@link HqlParser} and
+ * Implements the parsing operations of a {@link QueryParser} using the ANTLR-generated {@link HqlParser} and
  * {@link HqlQueryTransformer}.
  * 
  * @author Greg Turnquist
@@ -41,7 +41,7 @@ class HqlQueryParser extends QueryParser {
 	}
 
 	/**
-	 * Convenience method to parse an HQL query using the ANTLR-generated {@link HqlParser}.
+	 * Convenience method to parse an HQL query. Will throw a {@link QueryParsingSyntaxError} if the query is invalid.
 	 *
 	 * @param query
 	 * @return a parsed query, ready for postprocessing
@@ -67,7 +67,7 @@ class HqlQueryParser extends QueryParser {
 	}
 
 	/**
-	 * Use the {@link HqlQueryTransformer} to transform the parsed query into a query with the {@link Sort} applied.
+	 * Use the {@link HqlQueryTransformer} to transform the original query into a query with the {@link Sort} applied.
 	 *
 	 * @param parsedQuery
 	 * @param sort can be {@literal null}
@@ -79,7 +79,7 @@ class HqlQueryParser extends QueryParser {
 	}
 
 	/**
-	 * Use the {@link HqlQueryTransformer} to transform the parsed query into a count query.
+	 * Use the {@link HqlQueryTransformer} to transform the original query into a count query.
 	 *
 	 * @param parsedQuery
 	 * @param countProjection
@@ -91,7 +91,7 @@ class HqlQueryParser extends QueryParser {
 	}
 
 	/**
-	 * Using the parsed query, run it through the {@link HqlQueryTransformer} and look up its alias.
+	 * Run the parsed query through {@link HqlQueryTransformer} to find the primary FROM clause's alias.
 	 *
 	 * @param parsedQuery
 	 * @return can be {@literal null}
@@ -105,10 +105,10 @@ class HqlQueryParser extends QueryParser {
 	}
 
 	/**
-	 * Discern if the query has a new {@code com.example.Dto()} DTO constructor in the select clause.
+	 * Use {@link HqlQueryTransformer} to find the projection of the query.
 	 *
 	 * @param parsedQuery
-	 * @return Guaranteed to be {@literal true} or {@literal false}.
+	 * @return
 	 */
 	@Override
 	List<QueryParsingToken> doFindProjection(ParserRuleContext parsedQuery) {
@@ -118,6 +118,13 @@ class HqlQueryParser extends QueryParser {
 		return transformVisitor.getProjection();
 	}
 
+	/**
+	 * Use {@link HqlQueryTransformer} to detect if the query uses a {@code new com.example.Dto()} DTO constructor in the
+	 * primary select clause.
+	 *
+	 * @param parsedQuery
+	 * @return Guaranteed to be {@literal true} or {@literal false}.
+	 */
 	@Override
 	boolean hasConstructor(ParserRuleContext parsedQuery) {
 

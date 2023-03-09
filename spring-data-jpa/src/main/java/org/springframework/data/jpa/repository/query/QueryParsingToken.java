@@ -20,7 +20,7 @@ import java.util.function.Supplier;
 
 /**
  * A value type used to represent a JPA query token. NOTE: Sometimes the token's value is based upon a value found later
- * in the parsing process, so we text itself is wrapped in a {@link Supplier}.
+ * in the parsing process, so the text itself is wrapped in a {@link Supplier}.
  *
  * @author Greg Turnquist
  * @since 3.1
@@ -30,7 +30,7 @@ class QueryParsingToken {
 	/**
 	 * The text value of the token.
 	 */
-	private Supplier<String> token;
+	private final Supplier<String> token;
 
 	/**
 	 * Space|NoSpace after token is rendered?
@@ -43,12 +43,12 @@ class QueryParsingToken {
 		this.space = space;
 	}
 
-	QueryParsingToken(Supplier<String> token) {
-		this(token, true);
-	}
-
 	QueryParsingToken(String token, boolean space) {
 		this(() -> token, space);
+	}
+
+	QueryParsingToken(Supplier<String> token) {
+		this(token, true);
 	}
 
 	QueryParsingToken(String token) {
@@ -74,16 +74,6 @@ class QueryParsingToken {
 	}
 
 	/**
-	 * Switch the last {@link QueryParsingToken}'s spacing to {@literal false}.
-	 */
-	static void NOSPACE(List<QueryParsingToken> tokens) {
-
-		if (!tokens.isEmpty()) {
-			tokens.get(tokens.size() - 1).setSpace(false);
-		}
-	}
-
-	/**
 	 * Switch the last {@link QueryParsingToken}'s spacing to {@literal true}.
 	 */
 	static void SPACE(List<QueryParsingToken> tokens) {
@@ -94,7 +84,17 @@ class QueryParsingToken {
 	}
 
 	/**
-	 * Drop the very last entry from the list of {@link QueryParsingToken}s.
+	 * Switch the last {@link QueryParsingToken}'s spacing to {@literal false}.
+	 */
+	static void NOSPACE(List<QueryParsingToken> tokens) {
+
+		if (!tokens.isEmpty()) {
+			tokens.get(tokens.size() - 1).setSpace(false);
+		}
+	}
+
+	/**
+	 * Drop the last entry from the list of {@link QueryParsingToken}s.
 	 */
 	static void CLIP(List<QueryParsingToken> tokens) {
 
@@ -104,7 +104,7 @@ class QueryParsingToken {
 	}
 
 	/**
-	 * Render a list of {@link QueryParsingToken}s into a query string.
+	 * Render a list of {@link QueryParsingToken}s into a string.
 	 *
 	 * @param tokens
 	 * @return rendered string containing either a query or some subset of that query

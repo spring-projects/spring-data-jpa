@@ -22,7 +22,9 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Tests built around examples of JPQL found in the JPA spec
- * https://github.com/jakartaee/persistence/blob/master/spec/src/main/asciidoc/ch04-query-language.adoc
+ * https://github.com/jakartaee/persistence/blob/master/spec/src/main/asciidoc/ch04-query-language.adoc<br/>
+ * <br/>
+ * IMPORTANT: Purely verifies the parser without any transformations.
  *
  * @author Greg Turnquist
  * @since 3.1

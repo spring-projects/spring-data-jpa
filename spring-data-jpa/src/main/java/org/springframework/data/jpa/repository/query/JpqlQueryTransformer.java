@@ -24,7 +24,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.lang.Nullable;
 
 /**
- * An ANTLR visitor that transforms a parsed JPQL query.
+ * An ANTLR {@link org.antlr.v4.runtime.tree.ParseTreeVisitor} that transforms a parsed JPQL query.
  *
  * @author Greg Turnquist
  * @since 3.1
@@ -61,6 +61,7 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 		this.countProjection = countProjection;
 	}
 
+	@Nullable
 	public String getAlias() {
 		return this.alias;
 	}
@@ -81,17 +82,15 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	@Override
 	public List<QueryParsingToken> visitQl_statement(JpqlParser.Ql_statementContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
-
 		if (ctx.select_statement() != null) {
-			tokens.addAll(visit(ctx.select_statement()));
+			return visit(ctx.select_statement());
 		} else if (ctx.update_statement() != null) {
-			tokens.addAll(visit(ctx.update_statement()));
+			return visit(ctx.update_statement());
 		} else if (ctx.delete_statement() != null) {
-			tokens.addAll(visit(ctx.delete_statement()));
+			return visit(ctx.delete_statement());
+		} else {
+			return List.of();
 		}
-
-		return tokens;
 	}
 
 	@Override
@@ -134,10 +133,19 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 
 				this.sort.forEach(order -> {
 
+					QueryParser.checkSortExpression(order);
+
 					if (order.isIgnoreCase()) {
 						tokens.add(new QueryParsingToken("lower(", false));
 					}
-					tokens.add(new QueryParsingToken(() -> this.alias + "." + order.getProperty(), true));
+					tokens.add(new QueryParsingToken(() -> {
+
+						if (order.getProperty().contains("(")) {
+							return order.getProperty();
+						}
+
+						return this.alias + "." + order.getProperty();
+					}, true));
 					if (order.isIgnoreCase()) {
 						NOSPACE(tokens);
 						tokens.add(new QueryParsingToken(")", true));

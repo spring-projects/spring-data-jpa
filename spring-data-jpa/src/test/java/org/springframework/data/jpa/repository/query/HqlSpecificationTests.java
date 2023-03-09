@@ -21,7 +21,9 @@ import org.junit.jupiter.api.Test;
 /**
  * Tests built around examples of HQL found in
  * https://github.com/jakartaee/persistence/blob/master/spec/src/main/asciidoc/ch04-query-language.adoc and
- * https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#query-language
+ * https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#query-language<br/>
+ * <br/>
+ * IMPORTANT: Purely verifies the parser without any transformations.
  *
  * @author Greg Turnquist
  * @since 3.1

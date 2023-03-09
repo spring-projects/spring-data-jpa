@@ -25,7 +25,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.lang.Nullable;
 
 /**
- * An ANTLR visitor that transforms a parsed HQL query.
+ * An ANTLR {@link org.antlr.v4.runtime.tree.ParseTreeVisitor} that transforms a parsed HQL query.
  *
  * @author Greg Turnquist
  * @since 3.1
@@ -76,7 +76,7 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	/**
-	 * Is this a {@literal selectState} (main select statement) or a {@literal subquery}?
+	 * Is this select clause a {@literal subquery}?
 	 *
 	 * @return boolean
 	 */
@@ -167,10 +167,19 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 				this.sort.forEach(order -> {
 
+					QueryParser.checkSortExpression(order);
+
 					if (order.isIgnoreCase()) {
 						tokens.add(new QueryParsingToken("lower(", false));
 					}
-					tokens.add(new QueryParsingToken(() -> this.alias + "." + order.getProperty(), true));
+					tokens.add(new QueryParsingToken(() -> {
+
+						if (order.getProperty().contains("(")) {
+							return order.getProperty();
+						}
+
+						return this.alias + "." + order.getProperty();
+					}, true));
 					if (order.isIgnoreCase()) {
 						NOSPACE(tokens);
 						tokens.add(new QueryParsingToken(")", true));

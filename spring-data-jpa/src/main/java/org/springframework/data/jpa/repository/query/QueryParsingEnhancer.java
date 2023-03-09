@@ -27,7 +27,7 @@ import org.springframework.util.Assert;
 /**
  * Implementation of {@link QueryEnhancer} using a {@link QueryParser}.<br/>
  * <br/>
- * NOTE: The parser can find everything it needs for create sorted and count queries. Thus, looking up the alias or the
+ * NOTE: The parser can find everything it needs to created sorted and count queries. Thus, looking up the alias or the
  * projection isn't needed for its primary function, and are simply implemented for test purposes.
  *
  * @author Greg Turnquist
@@ -122,6 +122,11 @@ class QueryParsingEnhancer implements QueryEnhancer {
 		return createCountQueryFor(null);
 	}
 
+	/**
+	 * Create a count query from the original query, with potential custom projection.
+	 *
+	 * @param countProjection may be {@literal null}.
+	 */
 	@Override
 	public String createCountQueryFor(@Nullable String countProjection) {
 
@@ -193,6 +198,9 @@ class QueryParsingEnhancer implements QueryEnhancer {
 		return Set.of();
 	}
 
+	/**
+	 * Look up the {@link DeclaredQuery} from the {@link QueryParser}.
+	 */
 	@Override
 	public DeclaredQuery getQuery() {
 		return queryParser.getDeclaredQuery();

@@ -18,9 +18,12 @@ package org.springframework.data.jpa.repository.query;
 import static org.springframework.data.jpa.repository.query.QueryParsingToken.*;
 
 import java.util.List;
+import java.util.regex.Pattern;
 
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.JpaSort;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -56,8 +59,8 @@ abstract class QueryParser {
 	abstract ParserRuleContext parse();
 
 	/**
-	 * Create a string-based query using the original query with an @literal order by} added (or amended) based upon
-	 * {@link Sort}
+	 * Generate a query using the original query with an @literal order by} clause added (or amended) based upon the
+	 * provider {@link Sort} parameter.
 	 *
 	 * @param parsedQuery
 	 * @param sort can be {@literal null}
@@ -69,7 +72,7 @@ abstract class QueryParser {
 	}
 
 	/**
-	 * Create a string-based count query using the original query.
+	 * Generate a count-based query using the original query.
 	 *
 	 * @param parsedQuery
 	 * @param countProjection
@@ -92,7 +95,8 @@ abstract class QueryParser {
 	}
 
 	/**
-	 * Create a {@link QueryParsingToken}-based query with an {@literal order by} applied/amended based upon {@link Sort}.
+	 * Create a {@link QueryParsingToken}-based query with an {@literal order by} applied/amended based upon the
+	 * {@link Sort} parameter.
 	 * 
 	 * @param parsedQuery
 	 * @param sort can be {@literal null}
@@ -108,25 +112,48 @@ abstract class QueryParser {
 	abstract List<QueryParsingToken> doCreateCountQuery(ParserRuleContext parsedQuery, @Nullable String countProjection);
 
 	/**
-	 * Find the alias of the query's FROM clause
+	 * Find the alias of the query's primary FROM clause
 	 *
 	 * @return can be {@literal null}
 	 */
 	abstract String findAlias(ParserRuleContext parsedQuery);
 
 	/**
-	 * Find the projection of the query's selection clause.
+	 * Find the projection of the query's primary SELECT clause.
 	 *
 	 * @param parsedQuery
 	 */
 	abstract List<QueryParsingToken> doFindProjection(ParserRuleContext parsedQuery);
 
 	/**
-	 * Discern if the query has a new {@code com.example.Dto()} DTO constructor in the select clause.
+	 * Discern if the query has a {@code new com.example.Dto()} DTO constructor in the select clause.
 	 * 
 	 * @param parsedQuery
 	 * @return Guaranteed to be {@literal true} or {@literal false}.
 	 */
 	abstract boolean hasConstructor(ParserRuleContext parsedQuery);
+
+	private static final Pattern PUNCTUATION_PATTERN = Pattern.compile(".*((?![._])[\\p{Punct}|\\s])");
+
+	private static final String UNSAFE_PROPERTY_REFERENCE = "Sort expression '%s' must only contain property references or "
+			+ "aliases used in the select clause; If you really want to use something other than that for sorting, please use "
+			+ "JpaSort.unsafe(…)";
+
+	/**
+	 * Check any given {@link JpaSort.JpaOrder#isUnsafe()} order for presence of at least one property offending the
+	 * {@link #PUNCTUATION_PATTERN} and throw an {@link Exception} indicating potential unsafe order by expression.
+	 *
+	 * @param order
+	 */
+	static void checkSortExpression(Sort.Order order) {
+
+		if (order instanceof JpaSort.JpaOrder && ((JpaSort.JpaOrder) order).isUnsafe()) {
+			return;
+		}
+
+		if (PUNCTUATION_PATTERN.matcher(order.getProperty()).find()) {
+			throw new InvalidDataAccessApiUsageException(String.format(UNSAFE_PROPERTY_REFERENCE, order));
+		}
+	}
 
 }
