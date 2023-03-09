@@ -35,6 +35,8 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	@Nullable private Sort sort;
 	private boolean countQuery;
 
+	@Nullable private String countProjection;
+
 	@Nullable private String alias = null;
 
 	private List<QueryParsingToken> projection = null;
@@ -42,21 +44,22 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	private boolean hasConstructorExpression = false;
 
 	HqlQueryTransformer() {
-		this(null, false);
+		this(null, false, null);
 	}
 
 	HqlQueryTransformer(@Nullable Sort sort) {
-		this(sort, false);
+		this(sort, false, null);
 	}
 
-	HqlQueryTransformer(boolean countQuery) {
-		this(null, countQuery);
+	HqlQueryTransformer(boolean countQuery, @Nullable String countProjection) {
+		this(null, countQuery, countProjection);
 	}
 
-	private HqlQueryTransformer(@Nullable Sort sort, boolean countQuery) {
+	private HqlQueryTransformer(@Nullable Sort sort, boolean countQuery, @Nullable String countProjection) {
 
 		this.sort = sort;
 		this.countQuery = countQuery;
+		this.countProjection = countProjection;
 	}
 
 	@Nullable
@@ -177,6 +180,11 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 				});
 				CLIP(tokens);
 			}
+		} else {
+
+			if (ctx.queryOrder() != null) {
+				tokens.addAll(visit(ctx.queryOrder()));
+			}
 		}
 
 		return tokens;
@@ -218,7 +226,13 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 		if (countQuery && !isSubquery(ctx) && ctx.selectClause() == null) {
 
 			tokens.add(new QueryParsingToken("select count(", false));
-			tokens.add(new QueryParsingToken(() -> this.alias, false));
+
+			if (countProjection != null) {
+				tokens.add(new QueryParsingToken(countProjection));
+			} else {
+				tokens.add(new QueryParsingToken(() -> this.alias, false));
+			}
+
 			tokens.add(new QueryParsingToken(")", true));
 		}
 
@@ -250,9 +264,12 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 		List<QueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.addAll(visit(ctx.orderByClause()));
+		if (!countQuery) {
+			tokens.addAll(visit(ctx.orderByClause()));
+		}
 
 		if (ctx.limitClause() != null) {
+			SPACE(tokens);
 			tokens.addAll(visit(ctx.limitClause()));
 		}
 		if (ctx.offsetClause() != null) {
@@ -321,13 +338,15 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 			if (ctx.variable() != null) {
 				tokens.addAll(visit(ctx.variable()));
 
-				if (this.alias == null) {
+				if (this.alias == null && !isSubquery(ctx)) {
 					this.alias = tokens.get(tokens.size() - 1).getToken();
 				}
 			}
 		} else if (ctx.subquery() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.LATERAL().getText()));
+			if (ctx.LATERAL() != null) {
+				tokens.add(new QueryParsingToken(ctx.LATERAL().getText()));
+			}
 			tokens.add(new QueryParsingToken("(", false));
 			tokens.addAll(visit(ctx.subquery()));
 			tokens.add(new QueryParsingToken(")"));
@@ -335,7 +354,7 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 			if (ctx.variable() != null) {
 				tokens.addAll(visit(ctx.variable()));
 
-				if (this.alias.equals("")) {
+				if (this.alias == null && !isSubquery(ctx)) {
 					this.alias = tokens.get(tokens.size() - 1).getToken();
 				}
 			}
@@ -602,7 +621,7 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 		tokens.addAll(visit(ctx.identifier()));
 
-		if (this.alias.equals("")) {
+		if (this.alias == null && !isSubquery(ctx)) {
 			this.alias = tokens.get(tokens.size() - 1).getToken();
 		}
 
@@ -763,6 +782,10 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 		if (countQuery && !isSubquery(ctx)) {
 			tokens.add(new QueryParsingToken("count(", false));
+
+			if (countProjection != null) {
+				tokens.add(new QueryParsingToken(countProjection));
+			}
 		}
 
 		if (ctx.DISTINCT() != null) {
@@ -773,17 +796,20 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 		if (countQuery && !isSubquery(ctx)) {
 
-			if (ctx.DISTINCT() != null) {
+			if (countProjection == null) {
 
-				if (selectionListTokens.stream().anyMatch(hqlToken -> hqlToken.getToken().contains("new"))) {
-					// constructor
-					tokens.add(new QueryParsingToken(() -> this.alias));
+				if (ctx.DISTINCT() != null) {
+
+					if (selectionListTokens.stream().anyMatch(hqlToken -> hqlToken.getToken().contains("new"))) {
+						// constructor
+						tokens.add(new QueryParsingToken(() -> this.alias));
+					} else {
+						// keep all the select items to distinct against
+						tokens.addAll(selectionListTokens);
+					}
 				} else {
-					// keep all the select items to distinct against
-					tokens.addAll(selectionListTokens);
+					tokens.add(new QueryParsingToken(() -> this.alias));
 				}
-			} else {
-				tokens.add(new QueryParsingToken(() -> this.alias));
 			}
 
 			NOSPACE(tokens);
@@ -792,7 +818,9 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 			tokens.addAll(selectionListTokens);
 		}
 
-		this.projection = selectionListTokens;
+		if (projection == null && !isSubquery(ctx)) {
+			this.projection = selectionListTokens;
+		}
 
 		return tokens;
 	}
@@ -1224,6 +1252,7 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 		tokens.add(new QueryParsingToken("(", false));
 		tokens.addAll(visit(ctx.subquery()));
+		NOSPACE(tokens);
 		tokens.add(new QueryParsingToken(")"));
 
 		return tokens;
@@ -1468,6 +1497,10 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 			tokens.addAll(visit(ctx.withinGroup()));
 		}
 
+		if (ctx.overClause() != null) {
+			tokens.addAll(visit(ctx.overClause()));
+		}
+
 		return tokens;
 	}
 
@@ -1557,6 +1590,220 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 		tokens.add(new QueryParsingToken("(", false));
 		tokens.addAll(visit(ctx.orderByClause()));
 		tokens.add(new QueryParsingToken(")"));
+
+		return tokens;
+	}
+
+	@Override
+	public List<QueryParsingToken> visitOverClause(HqlParser.OverClauseContext ctx) {
+
+		List<QueryParsingToken> tokens = new ArrayList<>();
+
+		tokens.add(new QueryParsingToken(ctx.OVER().getText()));
+		tokens.add(new QueryParsingToken("(", false));
+
+		if (ctx.partitionClause() != null) {
+			tokens.addAll(visit(ctx.partitionClause()));
+		}
+
+		if (ctx.orderByClause() != null) {
+			tokens.addAll(visit(ctx.orderByClause()));
+			SPACE(tokens);
+		}
+
+		if (ctx.frameClause() != null) {
+			tokens.addAll(visit(ctx.frameClause()));
+		}
+
+		NOSPACE(tokens);
+		tokens.add(new QueryParsingToken(")"));
+
+		return tokens;
+	}
+
+	@Override
+	public List<QueryParsingToken> visitPartitionClause(HqlParser.PartitionClauseContext ctx) {
+
+		List<QueryParsingToken> tokens = new ArrayList<>();
+
+		tokens.add(new QueryParsingToken(ctx.PARTITION().getText()));
+		tokens.add(new QueryParsingToken(ctx.BY().getText()));
+
+		ctx.expression().forEach(expressionContext -> {
+			tokens.addAll(visit(expressionContext));
+			NOSPACE(tokens);
+			tokens.add(new QueryParsingToken(","));
+		});
+		CLIP(tokens);
+		SPACE(tokens);
+
+		return tokens;
+	}
+
+	@Override
+	public List<QueryParsingToken> visitFrameClause(HqlParser.FrameClauseContext ctx) {
+
+		List<QueryParsingToken> tokens = new ArrayList<>();
+
+		if (ctx.RANGE() != null) {
+			tokens.add(new QueryParsingToken(ctx.RANGE().getText()));
+		} else if (ctx.ROWS() != null) {
+			tokens.add(new QueryParsingToken(ctx.ROWS().getText()));
+		} else if (ctx.GROUPS() != null) {
+			tokens.add(new QueryParsingToken(ctx.GROUPS().getText()));
+		}
+
+		if (ctx.BETWEEN() != null) {
+			tokens.add(new QueryParsingToken(ctx.BETWEEN().getText()));
+		}
+
+		tokens.addAll(visit(ctx.frameStart()));
+
+		if (ctx.AND() != null) {
+
+			tokens.add(new QueryParsingToken(ctx.AND().getText()));
+			tokens.addAll(visit(ctx.frameEnd()));
+		}
+
+		if (ctx.frameExclusion() != null) {
+			tokens.addAll(visit(ctx.frameExclusion()));
+		}
+
+		return tokens;
+	}
+
+	@Override
+	public List<QueryParsingToken> visitUnboundedPrecedingFrameStart(HqlParser.UnboundedPrecedingFrameStartContext ctx) {
+
+		List<QueryParsingToken> tokens = new ArrayList<>();
+
+		tokens.add(new QueryParsingToken(ctx.UNBOUNDED().getText()));
+		tokens.add(new QueryParsingToken(ctx.PRECEDING().getText()));
+
+		return tokens;
+	}
+
+	@Override
+	public List<QueryParsingToken> visitExpressionPrecedingFrameStart(
+			HqlParser.ExpressionPrecedingFrameStartContext ctx) {
+
+		List<QueryParsingToken> tokens = new ArrayList<>();
+
+		tokens.addAll(visit(ctx.expression()));
+		tokens.add(new QueryParsingToken(ctx.PRECEDING().getText()));
+
+		return tokens;
+	}
+
+	@Override
+	public List<QueryParsingToken> visitCurrentRowFrameStart(HqlParser.CurrentRowFrameStartContext ctx) {
+
+		List<QueryParsingToken> tokens = new ArrayList<>();
+
+		tokens.add(new QueryParsingToken(ctx.CURRENT().getText()));
+		tokens.add(new QueryParsingToken(ctx.ROW().getText()));
+
+		return tokens;
+	}
+
+	@Override
+	public List<QueryParsingToken> visitExpressionFollowingFrameStart(
+			HqlParser.ExpressionFollowingFrameStartContext ctx) {
+
+		List<QueryParsingToken> tokens = new ArrayList<>();
+
+		tokens.addAll(visit(ctx.expression()));
+		tokens.add(new QueryParsingToken(ctx.FOLLOWING().getText()));
+
+		return tokens;
+	}
+
+	@Override
+	public List<QueryParsingToken> visitCurrentRowFrameExclusion(HqlParser.CurrentRowFrameExclusionContext ctx) {
+
+		List<QueryParsingToken> tokens = new ArrayList<>();
+
+		tokens.add(new QueryParsingToken(ctx.EXCLUDE().getText()));
+		tokens.add(new QueryParsingToken(ctx.CURRENT().getText()));
+		tokens.add(new QueryParsingToken(ctx.ROW().getText()));
+
+		return tokens;
+	}
+
+	@Override
+	public List<QueryParsingToken> visitGroupFrameExclusion(HqlParser.GroupFrameExclusionContext ctx) {
+
+		List<QueryParsingToken> tokens = new ArrayList<>();
+
+		tokens.add(new QueryParsingToken(ctx.EXCLUDE().getText()));
+		tokens.add(new QueryParsingToken(ctx.GROUP().getText()));
+
+		return tokens;
+	}
+
+	@Override
+	public List<QueryParsingToken> visitTiesFrameExclusion(HqlParser.TiesFrameExclusionContext ctx) {
+
+		List<QueryParsingToken> tokens = new ArrayList<>();
+
+		tokens.add(new QueryParsingToken(ctx.EXCLUDE().getText()));
+		tokens.add(new QueryParsingToken(ctx.TIES().getText()));
+
+		return tokens;
+	}
+
+	@Override
+	public List<QueryParsingToken> visitNoOthersFrameExclusion(HqlParser.NoOthersFrameExclusionContext ctx) {
+
+		List<QueryParsingToken> tokens = new ArrayList<>();
+
+		tokens.add(new QueryParsingToken(ctx.EXCLUDE().getText()));
+		tokens.add(new QueryParsingToken(ctx.NO().getText()));
+		tokens.add(new QueryParsingToken(ctx.OTHERS().getText()));
+
+		return tokens;
+	}
+
+	@Override
+	public List<QueryParsingToken> visitExpressionPrecedingFrameEnd(HqlParser.ExpressionPrecedingFrameEndContext ctx) {
+
+		List<QueryParsingToken> tokens = new ArrayList<>();
+
+		tokens.addAll(visit(ctx.expression()));
+		tokens.add(new QueryParsingToken(ctx.PRECEDING().getText()));
+
+		return tokens;
+	}
+
+	@Override
+	public List<QueryParsingToken> visitCurrentRowFrameEnd(HqlParser.CurrentRowFrameEndContext ctx) {
+
+		List<QueryParsingToken> tokens = new ArrayList<>();
+
+		tokens.add(new QueryParsingToken(ctx.CURRENT().getText()));
+		tokens.add(new QueryParsingToken(ctx.ROW().getText()));
+
+		return tokens;
+	}
+
+	@Override
+	public List<QueryParsingToken> visitExpressionFollowingFrameEnd(HqlParser.ExpressionFollowingFrameEndContext ctx) {
+
+		List<QueryParsingToken> tokens = new ArrayList<>();
+
+		tokens.addAll(visit(ctx.expression()));
+		tokens.add(new QueryParsingToken(ctx.FOLLOWING().getText()));
+
+		return tokens;
+	}
+
+	@Override
+	public List<QueryParsingToken> visitUnboundedFollowingFrameEnd(HqlParser.UnboundedFollowingFrameEndContext ctx) {
+
+		List<QueryParsingToken> tokens = new ArrayList<>();
+
+		tokens.add(new QueryParsingToken(ctx.UNBOUNDED().getText()));
+		tokens.add(new QueryParsingToken(ctx.FOLLOWING().getText()));
 
 		return tokens;
 	}

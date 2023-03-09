@@ -838,7 +838,7 @@ WHERE                       : W H E R E;
 
 
 CHARACTER                   : '\'' (~ ('\'' | '\\')) '\'' ;
-IDENTIFICATION_VARIABLE     : ('a' .. 'z' | 'A' .. 'Z' | '$' | '_') ('a' .. 'z' | 'A' .. 'Z' | '0' .. '9' | '$' | '_')* ;
+IDENTIFICATION_VARIABLE     : ('a' .. 'z' | 'A' .. 'Z' | '\u0080' .. '\ufffe' | '$' | '_') ('a' .. 'z' | 'A' .. 'Z' | '\u0080' .. '\ufffe' | '0' .. '9' | '$' | '_')* ;
 STRINGLITERAL               : '\'' (~ ('\'' | '\\'))* '\'' ;
 FLOATLITERAL                : ('0' .. '9')* '.' ('0' .. '9')+ (E '0' .. '9')* ;
 INTLITERAL                  : ('0' .. '9')+ ;

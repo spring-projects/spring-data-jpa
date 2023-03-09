@@ -21,6 +21,7 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.data.domain.Sort;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -112,12 +113,17 @@ class QueryParsingEnhancer implements QueryEnhancer {
 	}
 
 	/**
-	 * Creates a count query from the original query.
+	 * Creates a count query from the original query, with no count projection.
 	 * 
 	 * @return Guaranteed to be not {@literal null};
 	 */
 	@Override
 	public String createCountQueryFor() {
+		return createCountQueryFor(null);
+	}
+
+	@Override
+	public String createCountQueryFor(@Nullable String countProjection) {
 
 		try {
 			ParserRuleContext parsedQuery = queryParser.parse();
@@ -126,22 +132,11 @@ class QueryParsingEnhancer implements QueryEnhancer {
 				return "";
 			}
 
-			return queryParser.createCountQuery(parsedQuery);
+			return queryParser.createCountQuery(parsedQuery, countProjection);
 		} catch (QueryParsingSyntaxError e) {
 			LOG.warn(e);
 			throw new IllegalArgumentException(e);
 		}
-	}
-
-	/**
-	 * Because the parser can handle projections, there is no need to "find it" in advance to create the count query.
-	 *
-	 * @param countProjection IGNORED
-	 * @return
-	 */
-	@Override
-	public String createCountQueryFor(String countProjection) {
-		return createCountQueryFor();
 	}
 
 	/**

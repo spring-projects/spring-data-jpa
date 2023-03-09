@@ -408,7 +408,7 @@ caseWhenPredicateClause
 // Functions
 // https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-exp-functions
 function
-    : functionName '(' (functionArguments | ASTERISK)?  ')' pathContinutation? filterClause? withinGroup? # GenericFunction
+    : functionName '(' (functionArguments | ASTERISK)?  ')' pathContinutation? filterClause? withinGroup? overClause? # GenericFunction
     | functionName '(' subquery ')'                                                                       # FunctionWithSubquery
     | castFunction                                                                                        # CastFunctionInvocation
     | extractFunction                                                                                     # ExtractFunctionInvocation
@@ -430,6 +430,40 @@ filterClause
 // https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-aggregate-functions-orderedset
 withinGroup
     : WITHIN GROUP '(' orderByClause ')'
+    ;
+
+overClause
+    : OVER '(' partitionClause? orderByClause? frameClause? ')'
+    ;
+
+partitionClause
+    : PARTITION BY expression (',' expression)*
+    ;
+
+frameClause
+    : (RANGE|ROWS|GROUPS) frameStart frameExclusion?
+    | (RANGE|ROWS|GROUPS) BETWEEN frameStart AND frameEnd frameExclusion?
+    ;
+
+frameStart
+	: UNBOUNDED PRECEDING   # UnboundedPrecedingFrameStart
+	| expression PRECEDING  # ExpressionPrecedingFrameStart
+	| CURRENT ROW           # CurrentRowFrameStart
+	| expression FOLLOWING  # ExpressionFollowingFrameStart
+	;
+
+frameExclusion
+	: EXCLUDE CURRENT ROW   # CurrentRowFrameExclusion
+	| EXCLUDE GROUP         # GroupFrameExclusion
+	| EXCLUDE TIES          # TiesFrameExclusion
+	| EXCLUDE NO OTHERS     # NoOthersFrameExclusion
+    ;
+
+frameEnd
+	: expression PRECEDING  # ExpressionPrecedingFrameEnd
+	| CURRENT ROW           # CurrentRowFrameEnd
+	| expression FOLLOWING  # ExpressionFollowingFrameEnd
+	| UNBOUNDED FOLLOWING   # UnboundedFollowingFrameEnd
     ;
 
 // https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-functions
@@ -1007,5 +1041,5 @@ INTEGER_LITERAL             : INTEGER_NUMBER (L | B I)? ;
 FLOAT_LITERAL               : FLOAT_NUMBER (D | F | B D)?;
 HEXLITERAL                  : '0' X ('0' .. '9' | A | B | C | D | E)+ ;
 
-IDENTIFICATION_VARIABLE     : ('a' .. 'z' | 'A' .. 'Z' | '$' | '_') ('a' .. 'z' | 'A' .. 'Z' | '0' .. '9' | '$' | '_')* ;
+IDENTIFICATION_VARIABLE     : ('a' .. 'z' | 'A' .. 'Z' | '\u0080' .. '\ufffe' | '$' | '_') ('a' .. 'z' | 'A' .. 'Z' | '\u0080' .. '\ufffe' | '0' .. '9' | '$' | '_')* ;
 

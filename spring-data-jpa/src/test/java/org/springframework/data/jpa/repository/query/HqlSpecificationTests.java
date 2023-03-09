@@ -15,8 +15,6 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.springframework.data.jpa.repository.query.HqlQueryParser.*;
-
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
@@ -38,7 +36,7 @@ class HqlSpecificationTests {
 	@Test
 	void joinExample1() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT DISTINCT o
 				FROM Order AS o JOIN o.lineItems AS l
 				WHERE l.shipped = FALSE
@@ -52,7 +50,7 @@ class HqlSpecificationTests {
 	@Test
 	void joinExample2() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT DISTINCT o
 				FROM Order o JOIN o.lineItems l JOIN l.product p
 				WHERE p.productType = 'office_supplies'
@@ -65,7 +63,7 @@ class HqlSpecificationTests {
 	@Test
 	void rangeVariableDeclarations() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT DISTINCT o1
 				FROM Order o1, Order o2
 				WHERE o1.quantity > o2.quantity AND
@@ -80,7 +78,7 @@ class HqlSpecificationTests {
 	@Test
 	void pathExpressionsExample1() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT i.name, VALUE(p)
 				FROM Item i JOIN i.photos p
 				WHERE KEY(p) LIKE '%egret'
@@ -93,7 +91,7 @@ class HqlSpecificationTests {
 	@Test
 	void pathExpressionsExample2() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT i.name, p
 				FROM Item i JOIN i.photos p
 				WHERE KEY(p) LIKE '%egret'
@@ -106,7 +104,7 @@ class HqlSpecificationTests {
 	@Test
 	void pathExpressionsExample3() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT p.vendor
 				FROM Employee e JOIN e.contactInfo.phones p
 				""");
@@ -118,7 +116,7 @@ class HqlSpecificationTests {
 	@Test
 	void pathExpressionsExample4() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT p.vendor
 				FROM Employee e JOIN e.contactInfo c JOIN c.phones p
 				WHERE e.contactInfo.address.zipcode = '95054'
@@ -128,7 +126,7 @@ class HqlSpecificationTests {
 	@Test
 	void pathExpressionSyntaxExample1() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT DISTINCT l.product
 				FROM Order AS o JOIN o.lineItems l
 				""");
@@ -137,7 +135,7 @@ class HqlSpecificationTests {
 	@Test
 	void joinsExample1() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT c FROM Customer c, Employee e WHERE c.hatsize = e.shoesize
 				""");
 	}
@@ -145,7 +143,7 @@ class HqlSpecificationTests {
 	@Test
 	void joinsExample2() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT c FROM Customer c JOIN c.orders o WHERE c.status = 1
 				""");
 	}
@@ -153,7 +151,7 @@ class HqlSpecificationTests {
 	@Test
 	void joinsInnerExample() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT c FROM Customer c INNER JOIN c.orders o WHERE c.status = 1
 				""");
 	}
@@ -161,7 +159,7 @@ class HqlSpecificationTests {
 	@Test
 	void joinsInExample() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT OBJECT(c) FROM Customer c, IN(c.orders) o WHERE c.status = 1
 				""");
 	}
@@ -169,7 +167,7 @@ class HqlSpecificationTests {
 	@Test
 	void doubleJoinExample() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT p.vendor
 				FROM Employee e JOIN e.contactInfo c JOIN c.phones p
 				WHERE c.address.zipcode = '95054'
@@ -179,7 +177,7 @@ class HqlSpecificationTests {
 	@Test
 	void leftJoinExample() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT s.name, COUNT(p)
 				FROM Suppliers s LEFT JOIN s.products p
 				GROUP BY s.name
@@ -189,7 +187,7 @@ class HqlSpecificationTests {
 	@Test
 	void leftJoinOnExample() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT s.name, COUNT(p)
 				FROM Suppliers s LEFT JOIN s.products p
 				    ON p.status = 'inStock'
@@ -200,7 +198,7 @@ class HqlSpecificationTests {
 	@Test
 	void leftJoinWhereExample() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT s.name, COUNT(p)
 				FROM Suppliers s LEFT JOIN s.products p
 				WHERE p.status = 'inStock'
@@ -211,7 +209,7 @@ class HqlSpecificationTests {
 	@Test
 	void leftJoinFetchExample() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT d
 				FROM Department d LEFT JOIN FETCH d.employees
 				WHERE d.deptno = 1
@@ -221,7 +219,7 @@ class HqlSpecificationTests {
 	@Test
 	void collectionMemberExample() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT DISTINCT o
 				FROM Order o JOIN o.lineItems l
 				WHERE l.product.productType = 'office_supplies'
@@ -231,7 +229,7 @@ class HqlSpecificationTests {
 	@Test
 	void collectionMemberInExample() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT DISTINCT o
 				FROM Order o, IN(o.lineItems) l
 				WHERE l.product.productType = 'office_supplies'
@@ -241,7 +239,7 @@ class HqlSpecificationTests {
 	@Test
 	void fromClauseExample() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT o
 				FROM Order AS o JOIN o.lineItems l JOIN l.product p
 				""");
@@ -250,7 +248,7 @@ class HqlSpecificationTests {
 	@Test
 	void fromClauseDowncastingExample1() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT b.name, b.ISBN
 				FROM Order o JOIN TREAT(o.product AS Book) b
 				    """);
@@ -259,7 +257,7 @@ class HqlSpecificationTests {
 	@Test
 	void fromClauseDowncastingExample2() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT e FROM Employee e JOIN TREAT(e.projects AS LargeProject) lp
 				WHERE lp.budget > 1000
 				    """);
@@ -272,7 +270,7 @@ class HqlSpecificationTests {
 	@Disabled(SPEC_FAULT + "Use double-quotes when it should be using single-quotes for a string literal")
 	void fromClauseDowncastingExample3_SPEC_BUG() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT e FROM Employee e JOIN e.projects p
 				WHERE TREAT(p AS LargeProject).budget > 1000
 				    OR TREAT(p AS SmallProject).name LIKE 'Persist%'
@@ -283,7 +281,7 @@ class HqlSpecificationTests {
 	@Test
 	void fromClauseDowncastingExample3fixed() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT e FROM Employee e JOIN e.projects p
 				WHERE TREAT(p AS LargeProject).budget > 1000
 				    OR TREAT(p AS SmallProject).name LIKE 'Persist%'
@@ -294,7 +292,7 @@ class HqlSpecificationTests {
 	@Test
 	void fromClauseDowncastingExample4() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT e FROM Employee e
 				WHERE TREAT(e AS Exempt).vacationDays > 10
 				    OR TREAT(e AS Contractor).hours > 100
@@ -304,7 +302,7 @@ class HqlSpecificationTests {
 	@Test
 	void pathExpressionsNamedParametersExample() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT c
 				FROM Customer c
 				WHERE c.status = :stat
@@ -314,7 +312,7 @@ class HqlSpecificationTests {
 	@Test
 	void betweenExpressionsExample() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT t
 				FROM CreditCard c JOIN c.transactionHistory t
 				WHERE c.holder.name = 'John Doe' AND INDEX(t) BETWEEN 0 AND 9
@@ -324,7 +322,7 @@ class HqlSpecificationTests {
 	@Test
 	void isEmptyExample() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT o
 				FROM Order o
 				WHERE o.lineItems IS EMPTY
@@ -334,7 +332,7 @@ class HqlSpecificationTests {
 	@Test
 	void memberOfExample() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT p
 				FROM Person p
 				WHERE 'Joe' MEMBER OF p.nicknames
@@ -344,7 +342,7 @@ class HqlSpecificationTests {
 	@Test
 	void existsSubSelectExample1() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT DISTINCT emp
 				FROM Employee emp
 				WHERE EXISTS (
@@ -357,7 +355,7 @@ class HqlSpecificationTests {
 	@Test
 	void allExample() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT emp
 				FROM Employee emp
 				WHERE emp.salary > ALL (
@@ -370,7 +368,7 @@ class HqlSpecificationTests {
 	@Test
 	void existsSubSelectExample2() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT DISTINCT emp
 				FROM Employee emp
 				WHERE EXISTS (
@@ -383,7 +381,7 @@ class HqlSpecificationTests {
 	@Test
 	void subselectNumericComparisonExample1() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT c
 				FROM Customer c
 				WHERE (SELECT AVG(o.price) FROM c.orders o) > 100
@@ -393,7 +391,7 @@ class HqlSpecificationTests {
 	@Test
 	void subselectNumericComparisonExample2() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT goodCustomer
 				FROM Customer goodCustomer
 				WHERE goodCustomer.balanceOwed < (
@@ -404,7 +402,7 @@ class HqlSpecificationTests {
 	@Test
 	void indexExample() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT w.name
 				FROM Course c JOIN c.studentWaitlist w
 				WHERE c.name = 'Calculus'
@@ -419,7 +417,7 @@ class HqlSpecificationTests {
 	@Disabled(SPEC_FAULT + "FUNCTION calls needs a comparator")
 	void functionInvocationExample_SPEC_BUG() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT c
 				FROM Customer c
 				WHERE FUNCTION('hasGoodCredit', c.balance, c.creditLimit)
@@ -429,7 +427,7 @@ class HqlSpecificationTests {
 	@Test
 	void functionInvocationExampleWithCorrection() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT c
 				FROM Customer c
 				WHERE FUNCTION('hasGoodCredit', c.balance, c.creditLimit) = TRUE
@@ -439,7 +437,7 @@ class HqlSpecificationTests {
 	@Test
 	void updateCaseExample1() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				UPDATE Employee e
 				SET e.salary =
 				    CASE WHEN e.rating = 1 THEN e.salary * 1.1
@@ -452,7 +450,7 @@ class HqlSpecificationTests {
 	@Test
 	void updateCaseExample2() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				UPDATE Employee e
 				SET e.salary =
 				    CASE e.rating WHEN 1 THEN e.salary * 1.1
@@ -465,7 +463,7 @@ class HqlSpecificationTests {
 	@Test
 	void selectCaseExample1() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT e.name,
 				    CASE TYPE(e) WHEN Exempt THEN 'Exempt'
 				                 WHEN Contractor THEN 'Contractor'
@@ -480,7 +478,7 @@ class HqlSpecificationTests {
 	@Test
 	void selectCaseExample2() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT e.name,
 				       f.name,
 				       CONCAT(CASE WHEN f.annualMiles > 50000 THEN 'Platinum '
@@ -495,7 +493,7 @@ class HqlSpecificationTests {
 	@Test
 	void theRest() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT e
 				 FROM Employee e
 				 WHERE TYPE(e) IN (Exempt, Contractor)
@@ -505,7 +503,7 @@ class HqlSpecificationTests {
 	@Test
 	void theRest2() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT e
 				    FROM Employee e
 				    WHERE TYPE(e) IN (:empType1, :empType2)
@@ -515,7 +513,7 @@ class HqlSpecificationTests {
 	@Test
 	void theRest3() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT e
 				FROM Employee e
 				WHERE TYPE(e) IN :empTypes
@@ -525,7 +523,7 @@ class HqlSpecificationTests {
 	@Test
 	void theRest4() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT TYPE(e)
 				FROM Employee e
 				WHERE TYPE(e) <> Exempt
@@ -535,7 +533,7 @@ class HqlSpecificationTests {
 	@Test
 	void theRest5() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT c.status, AVG(c.filledOrderCount), COUNT(c)
 				FROM Customer c
 				GROUP BY c.status
@@ -546,7 +544,7 @@ class HqlSpecificationTests {
 	@Test
 	void theRest6() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT c.country, COUNT(c)
 				FROM Customer c
 				GROUP BY c.country
@@ -557,7 +555,7 @@ class HqlSpecificationTests {
 	@Test
 	void theRest7() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT c, COUNT(o)
 				FROM Customer c JOIN c.orders o
 				GROUP BY c
@@ -568,7 +566,7 @@ class HqlSpecificationTests {
 	@Test
 	void theRest8() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT c.id, c.status
 				FROM Customer c JOIN c.orders o
 				WHERE o.count > 100
@@ -578,7 +576,7 @@ class HqlSpecificationTests {
 	@Test
 	void theRest9() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT v.location.street, KEY(i).title, VALUE(i)
 				FROM VideoStore v JOIN v.videoInventory i
 				WHERE v.location.zipcode = '94301' AND VALUE(i) > 0
@@ -588,7 +586,7 @@ class HqlSpecificationTests {
 	@Test
 	void theRest10() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT o.lineItems FROM Order AS o
 				""");
 	}
@@ -596,7 +594,7 @@ class HqlSpecificationTests {
 	@Test
 	void theRest11() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT c, COUNT(l) AS itemCount
 				FROM Customer c JOIN c.Orders o JOIN o.lineItems l
 				WHERE c.address.state = 'CA'
@@ -608,7 +606,7 @@ class HqlSpecificationTests {
 	@Test
 	void theRest12() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT NEW com.acme.example.CustomerDetails(c.id, c.status, o.count)
 				FROM Customer c JOIN c.orders o
 				WHERE o.count > 100
@@ -618,7 +616,7 @@ class HqlSpecificationTests {
 	@Test
 	void theRest13() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT e.address AS addr
 				FROM Employee e
 				""");
@@ -627,7 +625,7 @@ class HqlSpecificationTests {
 	@Test
 	void theRest14() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT AVG(o.quantity) FROM Order o
 				""");
 	}
@@ -635,7 +633,7 @@ class HqlSpecificationTests {
 	@Test
 	void theRest15() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT SUM(l.price)
 				FROM Order o JOIN o.lineItems l JOIN o.customer c
 				WHERE c.lastname = 'Smith' AND c.firstname = 'John'
@@ -645,7 +643,7 @@ class HqlSpecificationTests {
 	@Test
 	void theRest16() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT COUNT(o) FROM Order o
 				""");
 	}
@@ -653,7 +651,7 @@ class HqlSpecificationTests {
 	@Test
 	void theRest17() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT COUNT(l.price)
 				FROM Order o JOIN o.lineItems l JOIN o.customer c
 				WHERE c.lastname = 'Smith' AND c.firstname = 'John'
@@ -663,7 +661,7 @@ class HqlSpecificationTests {
 	@Test
 	void theRest18() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT COUNT(l)
 				FROM Order o JOIN o.lineItems l JOIN o.customer c
 				WHERE c.lastname = 'Smith' AND c.firstname = 'John' AND l.price IS NOT NULL
@@ -673,7 +671,7 @@ class HqlSpecificationTests {
 	@Test
 	void theRest19() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT o
 				FROM Customer c JOIN c.orders o JOIN c.address a
 				WHERE a.state = 'CA'
@@ -684,7 +682,7 @@ class HqlSpecificationTests {
 	@Test
 	void theRest20() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT o.quantity, a.zipcode
 				FROM Customer c JOIN c.orders o JOIN c.address a
 				WHERE a.state = 'CA'
@@ -695,7 +693,7 @@ class HqlSpecificationTests {
 	@Test
 	void theRest21() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT o.quantity, o.cost*1.08 AS taxedCost, a.zipcode
 				FROM Customer c JOIN c.orders o JOIN c.address a
 				WHERE a.state = 'CA' AND a.county = 'Santa Clara'
@@ -706,7 +704,7 @@ class HqlSpecificationTests {
 	@Test
 	void theRest22() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT AVG(o.quantity) as q, a.zipcode
 				FROM Customer c JOIN c.orders o JOIN c.address a
 				WHERE a.state = 'CA'
@@ -718,7 +716,7 @@ class HqlSpecificationTests {
 	@Test
 	void theRest23() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT p.product_name
 				FROM Order o JOIN o.lineItems l JOIN l.product p JOIN o.customer c
 				WHERE c.lastname = 'Smith' AND c.firstname = 'John'
@@ -732,7 +730,7 @@ class HqlSpecificationTests {
 	@Test
 	void theRest24() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT p.product_name
 				FROM Order o, IN(o.lineItems) l JOIN o.customer c
 				WHERE c.lastname = 'Smith' AND c.firstname = 'John'
@@ -743,7 +741,7 @@ class HqlSpecificationTests {
 	@Test
 	void theRest25() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				DELETE
 				FROM Customer c
 				WHERE c.status = 'inactive'
@@ -753,7 +751,7 @@ class HqlSpecificationTests {
 	@Test
 	void theRest26() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				DELETE
 				FROM Customer c
 				WHERE c.status = 'inactive'
@@ -764,7 +762,7 @@ class HqlSpecificationTests {
 	@Test
 	void theRest27() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				UPDATE Customer c
 				SET c.status = 'outstanding'
 				WHERE c.balance < 10000
@@ -774,7 +772,7 @@ class HqlSpecificationTests {
 	@Test
 	void theRest28() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				UPDATE Employee e
 				SET e.address.building = 22
 				WHERE e.address.building = 14
@@ -786,7 +784,7 @@ class HqlSpecificationTests {
 	@Test
 	void theRest29() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT o
 				FROM Order o
 				""");
@@ -795,7 +793,7 @@ class HqlSpecificationTests {
 	@Test
 	void theRest30() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT o
 				FROM Order o
 				WHERE o.shippingAddress.state = 'CA'
@@ -805,7 +803,7 @@ class HqlSpecificationTests {
 	@Test
 	void theRest31() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT DISTINCT o.shippingAddress.state
 				FROM Order o
 				""");
@@ -814,7 +812,7 @@ class HqlSpecificationTests {
 	@Test
 	void theRest32() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT DISTINCT o
 				FROM Order o JOIN o.lineItems l
 				""");
@@ -823,7 +821,7 @@ class HqlSpecificationTests {
 	@Test
 	void theRest33() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT o
 				FROM Order o
 				WHERE o.lineItems IS NOT EMPTY
@@ -833,7 +831,7 @@ class HqlSpecificationTests {
 	@Test
 	void theRest34() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT o
 				FROM Order o
 				WHERE o.lineItems IS EMPTY
@@ -843,7 +841,7 @@ class HqlSpecificationTests {
 	@Test
 	void theRest35() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT DISTINCT o
 				FROM Order o JOIN o.lineItems l
 				WHERE l.shipped = FALSE
@@ -853,7 +851,7 @@ class HqlSpecificationTests {
 	@Test
 	void theRest36() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT o
 				FROM Order o
 				WHERE
@@ -866,7 +864,7 @@ class HqlSpecificationTests {
 	@Test
 	void theRest37() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT o
 				FROM Order o
 				WHERE o.shippingAddress <> o.billingAddress
@@ -876,7 +874,7 @@ class HqlSpecificationTests {
 	@Test
 	void theRest38() {
 
-		parse("""
+		HqlQueryParser.parse("""
 				SELECT DISTINCT o
 				FROM Order o JOIN o.lineItems l
 				WHERE l.product.name = ?1
@@ -886,78 +884,78 @@ class HqlSpecificationTests {
 	@Test
 	void hqlQueries() {
 
-		parse("from Person");
-		parse("select local datetime");
-		parse("from Person p select p.name");
-		parse("update Person set nickName = 'Nacho' " + //
+		HqlQueryParser.parse("from Person");
+		HqlQueryParser.parse("select local datetime");
+		HqlQueryParser.parse("from Person p select p.name");
+		HqlQueryParser.parse("update Person set nickName = 'Nacho' " + //
 				"where name = 'Ignacio'");
-		parse("update Person p " + //
+		HqlQueryParser.parse("update Person p " + //
 				"set p.name = :newName " + //
 				"where p.name = :oldName");
-		parse("update Person " + //
+		HqlQueryParser.parse("update Person " + //
 				"set name = :newName " + //
 				"where name = :oldName");
-		parse("update versioned Person " + //
+		HqlQueryParser.parse("update versioned Person " + //
 				"set name = :newName " + //
 				"where name = :oldName");
-		parse("insert Person (id, name) " + //
+		HqlQueryParser.parse("insert Person (id, name) " + //
 				"values (100L, 'Jane Doe')");
-		parse("insert Person (id, name) " + //
+		HqlQueryParser.parse("insert Person (id, name) " + //
 				"values (101L, 'J A Doe III'), " + //
 				"(102L, 'J X Doe'), " + //
 				"(103L, 'John Doe, Jr')");
-		parse("insert into Partner (id, name) " + //
+		HqlQueryParser.parse("insert into Partner (id, name) " + //
 				"select p.id, p.name " + //
 				"from Person p ");
-		parse("select p " + //
+		HqlQueryParser.parse("select p " + //
 				"from Person p " + //
 				"where p.name like 'Joe'");
-		parse("select p " + //
+		HqlQueryParser.parse("select p " + //
 				"from Person p " + //
 				"where p.name like 'Joe''s'");
-		parse("select p " + //
+		HqlQueryParser.parse("select p " + //
 				"from Person p " + //
 				"where p.id = 1");
-		parse("select p " + //
+		HqlQueryParser.parse("select p " + //
 				"from Person p " + //
 				"where p.id = 1L");
-		parse("select c " + //
+		HqlQueryParser.parse("select c " + //
 				"from Call c " + //
 				"where c.duration > 100.5");
-		parse("select c " + //
+		HqlQueryParser.parse("select c " + //
 				"from Call c " + //
 				"where c.duration > 100.5F");
-		parse("select c " + //
+		HqlQueryParser.parse("select c " + //
 				"from Call c " + //
 				"where c.duration > 1e+2");
-		parse("select c " + //
+		HqlQueryParser.parse("select c " + //
 				"from Call c " + //
 				"where c.duration > 1e+2F");
-		parse("from Phone ph " + //
+		HqlQueryParser.parse("from Phone ph " + //
 				"where ph.type = LAND_LINE");
-		parse("select java.lang.Math.PI");
-		parse("select 'Customer ' || p.name " + //
+		HqlQueryParser.parse("select java.lang.Math.PI");
+		HqlQueryParser.parse("select 'Customer ' || p.name " + //
 				"from Person p " + //
 				"where p.id = 1");
-		parse("select sum(ch.duration) * :multiplier " + //
+		HqlQueryParser.parse("select sum(ch.duration) * :multiplier " + //
 				"from Person pr " + //
 				"join pr.phones ph " + //
 				"join ph.callHistory ch " + //
 				"where ph.id = 1L ");
-		parse("select year(local date) - year(p.createdOn) " + //
+		HqlQueryParser.parse("select year(local date) - year(p.createdOn) " + //
 				"from Person p " + //
 				"where p.id = 1L");
-		parse("select p " + //
+		HqlQueryParser.parse("select p " + //
 				"from Person p " + //
 				"where year(local date) - year(p.createdOn) > 1");
-		parse("select " + //
+		HqlQueryParser.parse("select " + //
 				"	case p.nickName " + //
 				"	when 'NA' " + //
 				"	then '<no nick name>' " + //
 				"	else p.nickName " + //
 				"	end " + //
 				"from Person p");
-		parse("select " + //
+		HqlQueryParser.parse("select " + //
 				"	case " + //
 				"	when p.nickName is null " + //
 				"	then " + //
@@ -969,162 +967,162 @@ class HqlSpecificationTests {
 				"	else p.nickName " + //
 				"	end " + //
 				"from Person p");
-		parse("select " + //
+		HqlQueryParser.parse("select " + //
 				"	case when p.nickName is null " + //
 				"		 then p.id * 1000 " + //
 				"		 else p.id " + //
 				"	end " + //
 				"from Person p " + //
 				"order by p.id");
-		parse("select p " + //
+		HqlQueryParser.parse("select p " + //
 				"from Payment p " + //
 				"where type(p) = CreditCardPayment");
-		parse("select p " + //
+		HqlQueryParser.parse("select p " + //
 				"from Payment p " + //
 				"where type(p) = :type");
-		parse("select p " + //
+		HqlQueryParser.parse("select p " + //
 				"from Payment p " + //
 				"where length(treat(p as CreditCardPayment).cardNumber) between 16 and 20");
-		parse("select nullif(p.nickName, p.name) " + //
+		HqlQueryParser.parse("select nullif(p.nickName, p.name) " + //
 				"from Person p");
-		parse("select " + //
+		HqlQueryParser.parse("select " + //
 				"	case" + //
 				"	when p.nickName = p.name" + //
 				"	then null" + //
 				"	else p.nickName" + //
 				"	end " + //
 				"from Person p");
-		parse("select coalesce(p.nickName, '<no nick name>') " + //
+		HqlQueryParser.parse("select coalesce(p.nickName, '<no nick name>') " + //
 				"from Person p");
-		parse("select coalesce(p.nickName, p.name, '<no nick name>') " + //
+		HqlQueryParser.parse("select coalesce(p.nickName, p.name, '<no nick name>') " + //
 				"from Person p");
-		parse("select p " + //
+		HqlQueryParser.parse("select p " + //
 				"from Person p " + //
 				"where size(p.phones) >= 2");
-		parse("select concat(p.number, ' : ' , cast(c.duration as string)) " + //
+		HqlQueryParser.parse("select concat(p.number, ' : ' , cast(c.duration as string)) " + //
 				"from Call c " + //
 				"join c.phone p");
-		parse("select substring(p.number, 1, 2) " + //
+		HqlQueryParser.parse("select substring(p.number, 1, 2) " + //
 				"from Call c " + //
 				"join c.phone p");
-		parse("select upper(p.name) " + //
+		HqlQueryParser.parse("select upper(p.name) " + //
 				"from Person p ");
-		parse("select lower(p.name) " + //
+		HqlQueryParser.parse("select lower(p.name) " + //
 				"from Person p ");
-		parse("select trim(p.name) " + //
+		HqlQueryParser.parse("select trim(p.name) " + //
 				"from Person p ");
-		parse("select trim(leading ' ' from p.name) " + //
+		HqlQueryParser.parse("select trim(leading ' ' from p.name) " + //
 				"from Person p ");
-		parse("select length(p.name) " + //
+		HqlQueryParser.parse("select length(p.name) " + //
 				"from Person p ");
-		parse("select locate('John', p.name) " + //
+		HqlQueryParser.parse("select locate('John', p.name) " + //
 				"from Person p ");
-		parse("select abs(c.duration) " + //
+		HqlQueryParser.parse("select abs(c.duration) " + //
 				"from Call c ");
-		parse("select mod(c.duration, 10) " + //
+		HqlQueryParser.parse("select mod(c.duration, 10) " + //
 				"from Call c ");
-		parse("select sqrt(c.duration) " + //
+		HqlQueryParser.parse("select sqrt(c.duration) " + //
 				"from Call c ");
-		parse("select cast(c.duration as String) " + //
+		HqlQueryParser.parse("select cast(c.duration as String) " + //
 				"from Call c ");
-		parse("select str(c.timestamp) " + //
+		HqlQueryParser.parse("select str(c.timestamp) " + //
 				"from Call c ");
-		parse("select str(cast(duration as float) / 60, 4, 2) " + //
+		HqlQueryParser.parse("select str(cast(duration as float) / 60, 4, 2) " + //
 				"from Call c ");
-		parse("select c " + //
+		HqlQueryParser.parse("select c " + //
 				"from Call c " + //
 				"where extract(date from c.timestamp) = local date");
-		parse("select extract(year from c.timestamp) " + //
+		HqlQueryParser.parse("select extract(year from c.timestamp) " + //
 				"from Call c ");
-		parse("select year(c.timestamp) " + //
+		HqlQueryParser.parse("select year(c.timestamp) " + //
 				"from Call c ");
-		parse("select var_samp(c.duration) as sampvar, var_pop(c.duration) as popvar " + //
+		HqlQueryParser.parse("select var_samp(c.duration) as sampvar, var_pop(c.duration) as popvar " + //
 				"from Call c ");
-		parse("select bit_length(c.phone.number) " + //
+		HqlQueryParser.parse("select bit_length(c.phone.number) " + //
 				"from Call c ");
-		parse("select c " + //
+		HqlQueryParser.parse("select c " + //
 				"from Call c " + //
 				"where c.duration < 30 ");
-		parse("select p " + //
+		HqlQueryParser.parse("select p " + //
 				"from Person p " + //
 				"where p.name like 'John%' ");
-		parse("select p " + //
+		HqlQueryParser.parse("select p " + //
 				"from Person p " + //
 				"where p.createdOn > '1950-01-01' ");
-		parse("select p " + //
+		HqlQueryParser.parse("select p " + //
 				"from Phone p " + //
 				"where p.type = 'MOBILE' ");
-		parse("select p " + //
+		HqlQueryParser.parse("select p " + //
 				"from Payment p " + //
 				"where p.completed = true ");
-		parse("select p " + //
+		HqlQueryParser.parse("select p " + //
 				"from Payment p " + //
 				"where type(p) = WireTransferPayment ");
-		parse("select p " + //
+		HqlQueryParser.parse("select p " + //
 				"from Payment p, Phone ph " + //
 				"where p.person = ph.person ");
-		parse("select p " + //
+		HqlQueryParser.parse("select p " + //
 				"from Person p " + //
 				"join p.phones ph " + //
 				"where p.id = 1L and index(ph) between 0 and 3");
-		parse("select p " + //
+		HqlQueryParser.parse("select p " + //
 				"from Person p " + //
 				"where p.createdOn between '1999-01-01' and '2001-01-02'");
-		parse("select c " + //
+		HqlQueryParser.parse("select c " + //
 				"from Call c " + //
 				"where c.duration between 5 and 20");
-		parse("select p " + //
+		HqlQueryParser.parse("select p " + //
 				"from Person p " + //
 				"where p.name between 'H' and 'M'");
-		parse("select p " + //
+		HqlQueryParser.parse("select p " + //
 				"from Person p " + //
 				"where p.nickName is not null");
-		parse("select p " + //
+		HqlQueryParser.parse("select p " + //
 				"from Person p " + //
 				"where p.nickName is null");
-		parse("select p " + //
+		HqlQueryParser.parse("select p " + //
 				"from Person p " + //
 				"where p.name like 'Jo%'");
-		parse("select p " + //
+		HqlQueryParser.parse("select p " + //
 				"from Person p " + //
 				"where p.name not like 'Jo%'");
-		parse("select p " + //
+		HqlQueryParser.parse("select p " + //
 				"from Person p " + //
 				"where p.name like 'Dr|_%' escape '|'");
-		parse("select p " + //
+		HqlQueryParser.parse("select p " + //
 				"from Payment p " + //
 				"where type(p) in (CreditCardPayment, WireTransferPayment)");
-		parse("select p " + //
+		HqlQueryParser.parse("select p " + //
 				"from Phone p " + //
 				"where type in ('MOBILE', 'LAND_LINE')");
-		parse("select p " + //
+		HqlQueryParser.parse("select p " + //
 				"from Phone p " + //
 				"where type in :types");
-		parse("select distinct p " + //
+		HqlQueryParser.parse("select distinct p " + //
 				"from Phone p " + //
 				"where p.person.id in (" + //
 				"	select py.person.id " + //
 				"	from Payment py" + //
 				"	where py.completed = true and py.amount > 50 " + //
 				")");
-		parse("select distinct p " + //
+		HqlQueryParser.parse("select distinct p " + //
 				"from Phone p " + //
 				"where p.person in (" + //
 				"	select py.person " + //
 				"	from Payment py" + //
 				"	where py.completed = true and py.amount > 50 " + //
 				")");
-		parse("select distinct p " + //
+		HqlQueryParser.parse("select distinct p " + //
 				"from Payment p " + //
 				"where (p.amount, p.completed) in (" + //
 				"	(50, true)," + //
 				"	(100, true)," + //
 				"	(5, false)" + //
 				")");
-		parse("select p " + //
+		HqlQueryParser.parse("select p " + //
 				"from Person p " + //
 				"where 1 in indices(p.phones)");
-		parse("select distinct p.person " + //
+		HqlQueryParser.parse("select distinct p.person " + //
 				"from Phone p " + //
 				"join p.calls c " + //
 				"where 50 > all (" + //
@@ -1132,96 +1130,96 @@ class HqlSpecificationTests {
 				"	from Call" + //
 				"	where phone = p " + //
 				") ");
-		parse("select p " + //
+		HqlQueryParser.parse("select p " + //
 				"from Phone p " + //
 				"where local date > all elements(p.repairTimestamps)");
-		parse("select p " + //
+		HqlQueryParser.parse("select p " + //
 				"from Person p " + //
 				"where :phone = some elements(p.phones)");
-		parse("select p " + //
+		HqlQueryParser.parse("select p " + //
 				"from Person p " + //
 				"where :phone member of p.phones");
-		parse("select p " + //
+		HqlQueryParser.parse("select p " + //
 				"from Person p " + //
 				"where exists elements(p.phones)");
-		parse("select p " + //
+		HqlQueryParser.parse("select p " + //
 				"from Person p " + //
 				"where p.phones is empty");
-		parse("select p " + //
+		HqlQueryParser.parse("select p " + //
 				"from Person p " + //
 				"where p.phones is not empty");
-		parse("select p " + //
+		HqlQueryParser.parse("select p " + //
 				"from Person p " + //
 				"where p.phones is not empty");
-		parse("select p " + //
+		HqlQueryParser.parse("select p " + //
 				"from Person p " + //
 				"where 'Home address' member of p.addresses");
-		parse("select p " + //
+		HqlQueryParser.parse("select p " + //
 				"from Person p " + //
 				"where 'Home address' not member of p.addresses");
-		parse("select p " + //
+		HqlQueryParser.parse("select p " + //
 				"from Person p");
-		parse("select p " + //
+		HqlQueryParser.parse("select p " + //
 				"from org.hibernate.userguide.model.Person p");
-		parse("select distinct pr, ph " + //
+		HqlQueryParser.parse("select distinct pr, ph " + //
 				"from Person pr, Phone ph " + //
 				"where ph.person = pr and ph is not null");
-		parse("select distinct pr1 " + //
+		HqlQueryParser.parse("select distinct pr1 " + //
 				"from Person pr1, Person pr2 " + //
 				"where pr1.id <> pr2.id " + //
 				"  and pr1.address = pr2.address " + //
 				"  and pr1.createdOn < pr2.createdOn");
-		parse("select distinct pr, ph " + //
+		HqlQueryParser.parse("select distinct pr, ph " + //
 				"from Person pr cross join Phone ph " + //
 				"where ph.person = pr and ph is not null");
-		parse("select p " + //
+		HqlQueryParser.parse("select p " + //
 				"from Payment p ");
-		parse("select d.owner, d.payed " + //
+		HqlQueryParser.parse("select d.owner, d.payed " + //
 				"from (" + //
 				"  select p.person as owner, c.payment is not null as payed " + //
 				"  from Call c " + //
 				"  join c.phone p " + //
 				"  where p.number = :phoneNumber) d");
-		parse("select distinct pr " + //
+		HqlQueryParser.parse("select distinct pr " + //
 				"from Person pr " + //
 				"join Phone ph on ph.person = pr " + //
 				"where ph.type = :phoneType");
-		parse("select distinct pr " + //
+		HqlQueryParser.parse("select distinct pr " + //
 				"from Person pr " + //
 				"join pr.phones ph " + //
 				"where ph.type = :phoneType");
-		parse("select distinct pr " + //
+		HqlQueryParser.parse("select distinct pr " + //
 				"from Person pr " + //
 				"inner join pr.phones ph " + //
 				"where ph.type = :phoneType");
-		parse("select distinct pr " + //
+		HqlQueryParser.parse("select distinct pr " + //
 				"from Person pr " + //
 				"left join pr.phones ph " + //
 				"where ph is null " + //
 				"   or ph.type = :phoneType");
-		parse("select distinct pr " + //
+		HqlQueryParser.parse("select distinct pr " + //
 				"from Person pr " + //
 				"left outer join pr.phones ph " + //
 				"where ph is null " + //
 				"   or ph.type = :phoneType");
-		parse("select pr.name, ph.number " + //
+		HqlQueryParser.parse("select pr.name, ph.number " + //
 				"from Person pr " + //
 				"left join pr.phones ph with ph.type = :phoneType ");
-		parse("select pr.name, ph.number " + //
+		HqlQueryParser.parse("select pr.name, ph.number " + //
 				"from Person pr " + //
 				"left join pr.phones ph on ph.type = :phoneType ");
-		parse("select distinct pr " + //
+		HqlQueryParser.parse("select distinct pr " + //
 				"from Person pr " + //
 				"left join fetch pr.phones ");
-		parse("select a, ccp " + //
+		HqlQueryParser.parse("select a, ccp " + //
 				"from Account a " + //
 				"join treat(a.payments as CreditCardPayment) ccp " + //
 				"where length(ccp.cardNumber) between 16 and 20");
-		parse("select c, ccp " + //
+		HqlQueryParser.parse("select c, ccp " + //
 				"from Call c " + //
 				"join treat(c.payment as CreditCardPayment) ccp " + //
 				"where length(ccp.cardNumber) between 16 and 20");
-		parse("select longest.duration " + //
+		HqlQueryParser.parse("select longest.duration " + //
 				"from Phone p " + //
 				"left join lateral (" + //
 				"  select c.duration as duration " + //
@@ -1230,74 +1228,74 @@ class HqlSpecificationTests {
 				"  limit 1 " + //
 				"  ) longest " + //
 				"where p.number = :phoneNumber");
-		parse("select ph " + //
+		HqlQueryParser.parse("select ph " + //
 				"from Phone ph " + //
 				"where ph.person.address = :address ");
-		parse("select ph " + //
+		HqlQueryParser.parse("select ph " + //
 				"from Phone ph " + //
 				"join ph.person pr " + //
 				"where pr.address = :address ");
-		parse("select ph " + //
+		HqlQueryParser.parse("select ph " + //
 				"from Phone ph " + //
 				"where ph.person.address = :address " + //
 				"  and ph.person.createdOn > :timestamp");
-		parse("select ph " + //
+		HqlQueryParser.parse("select ph " + //
 				"from Phone ph " + //
 				"inner join ph.person pr " + //
 				"where pr.address = :address " + //
 				"  and pr.createdOn > :timestamp");
-		parse("select ph " + //
+		HqlQueryParser.parse("select ph " + //
 				"from Person pr " + //
 				"join pr.phones ph " + //
 				"join ph.calls c " + //
 				"where pr.address = :address " + //
 				"  and c.duration > :duration");
-		parse("select ch " + //
+		HqlQueryParser.parse("select ch " + //
 				"from Phone ph " + //
 				"join ph.callHistory ch " + //
 				"where ph.id = :id ");
-		parse("select value(ch) " + //
+		HqlQueryParser.parse("select value(ch) " + //
 				"from Phone ph " + //
 				"join ph.callHistory ch " + //
 				"where ph.id = :id ");
-		parse("select key(ch) " + //
+		HqlQueryParser.parse("select key(ch) " + //
 				"from Phone ph " + //
 				"join ph.callHistory ch " + //
 				"where ph.id = :id ");
-		parse("select key(ch) " + //
+		HqlQueryParser.parse("select key(ch) " + //
 				"from Phone ph " + //
 				"join ph.callHistory ch " + //
 				"where ph.id = :id ");
-		parse("select entry(ch) " + //
+		HqlQueryParser.parse("select entry(ch) " + //
 				"from Phone ph " + //
 				"join ph.callHistory ch " + //
 				"where ph.id = :id ");
-		parse("select sum(ch.duration) " + //
+		HqlQueryParser.parse("select sum(ch.duration) " + //
 				"from Person pr " + //
 				"join pr.phones ph " + //
 				"join ph.callHistory ch " + //
 				"where ph.id = :id " + //
 				"  and index(ph) = :phoneIndex");
-		parse("select value(ph.callHistory) " + //
+		HqlQueryParser.parse("select value(ph.callHistory) " + //
 				"from Phone ph " + //
 				"where ph.id = :id ");
-		parse("select key(ph.callHistory) " + //
+		HqlQueryParser.parse("select key(ph.callHistory) " + //
 				"from Phone ph " + //
 				"where ph.id = :id ");
-		parse("select p " + //
+		HqlQueryParser.parse("select p " + //
 				"from Person p " + //
 				"where p.phones[0].type = LAND_LINE");
-		parse("select p " + //
+		HqlQueryParser.parse("select p " + //
 				"from Person p " + //
 				"where p.addresses['HOME'] = :address");
-		parse("select pr " + //
+		HqlQueryParser.parse("select pr " + //
 				"from Person pr " + //
 				"where pr.phones[max(indices(pr.phones))].type = 'LAND_LINE'");
-		parse("select p.name, p.nickName " + //
+		HqlQueryParser.parse("select p.name, p.nickName " + //
 				"from Person p ");
-		parse("select p.name as name, p.nickName as nickName " + //
+		HqlQueryParser.parse("select p.name as name, p.nickName as nickName " + //
 				"from Person p ");
-		parse("select new org.hibernate.userguide.hql.CallStatistics(" + //
+		HqlQueryParser.parse("select new org.hibernate.userguide.hql.CallStatistics(" + //
 				"	count(c), " + //
 				"	sum(c.duration), " + //
 				"	min(c.duration), " + //
@@ -1305,7 +1303,7 @@ class HqlSpecificationTests {
 				"	avg(c.duration)" + //
 				")  " + //
 				"from Call c ");
-		parse("select new map(" + //
+		HqlQueryParser.parse("select new map(" + //
 				"	p.number as phoneNumber , " + //
 				"	sum(c.duration) as totalDuration, " + //
 				"	avg(c.duration) as averageDuration " + //
@@ -1313,86 +1311,86 @@ class HqlSpecificationTests {
 				"from Call c " + //
 				"join c.phone p " + //
 				"group by p.number ");
-		parse("select new list(" + //
+		HqlQueryParser.parse("select new list(" + //
 				"	p.number, " + //
 				"	c.duration " + //
 				")  " + //
 				"from Call c " + //
 				"join c.phone p ");
-		parse("select distinct p.lastName " + //
+		HqlQueryParser.parse("select distinct p.lastName " + //
 				"from Person p");
-		parse("select " + //
+		HqlQueryParser.parse("select " + //
 				"	count(c), " + //
 				"	sum(c.duration), " + //
 				"	min(c.duration), " + //
 				"	max(c.duration), " + //
 				"	avg(c.duration)  " + //
 				"from Call c ");
-		parse("select count(distinct c.phone) " + //
+		HqlQueryParser.parse("select count(distinct c.phone) " + //
 				"from Call c ");
-		parse("select p.number, count(c) " + //
+		HqlQueryParser.parse("select p.number, count(c) " + //
 				"from Call c " + //
 				"join c.phone p " + //
 				"group by p.number");
-		parse("select p " + //
+		HqlQueryParser.parse("select p " + //
 				"from Phone p " + //
 				"where max(elements(p.calls)) = :call");
-		parse("select p " + //
+		HqlQueryParser.parse("select p " + //
 				"from Phone p " + //
 				"where min(elements(p.calls)) = :call");
-		parse("select p " + //
+		HqlQueryParser.parse("select p " + //
 				"from Person p " + //
 				"where max(indices(p.phones)) = 0");
-		parse("select count(c) filter (where c.duration < 30) " + //
+		HqlQueryParser.parse("select count(c) filter (where c.duration < 30) " + //
 				"from Call c ");
-		parse("select p.number, count(c) filter (where c.duration < 30) " + //
+		HqlQueryParser.parse("select p.number, count(c) filter (where c.duration < 30) " + //
 				"from Call c " + //
 				"join c.phone p " + //
 				"group by p.number");
-		parse("select listagg(p.number, ', ') within group (order by p.type,p.number) " + //
+		HqlQueryParser.parse("select listagg(p.number, ', ') within group (order by p.type,p.number) " + //
 				"from Phone p " + //
 				"group by p.person");
-		parse("select sum(c.duration) " + //
+		HqlQueryParser.parse("select sum(c.duration) " + //
 				"from Call c ");
-		parse("select p.name, sum(c.duration) " + //
+		HqlQueryParser.parse("select p.name, sum(c.duration) " + //
 				"from Call c " + //
 				"join c.phone ph " + //
 				"join ph.person p " + //
 				"group by p.name");
-		parse("select p, sum(c.duration) " + //
+		HqlQueryParser.parse("select p, sum(c.duration) " + //
 				"from Call c " + //
 				"join c.phone ph " + //
 				"join ph.person p " + //
 				"group by p");
-		parse("select p.name, sum(c.duration) " + //
+		HqlQueryParser.parse("select p.name, sum(c.duration) " + //
 				"from Call c " + //
 				"join c.phone ph " + //
 				"join ph.person p " + //
 				"group by p.name " + //
 				"having sum(c.duration) > 1000");
-		parse("select p.name from Person p " + //
+		HqlQueryParser.parse("select p.name from Person p " + //
 				"union " + //
 				"select p.nickName from Person p where p.nickName is not null");
-		parse("select p " + //
+		HqlQueryParser.parse("select p " + //
 				"from Person p " + //
 				"order by p.name");
-		parse("select p.name, sum(c.duration) as total " + //
+		HqlQueryParser.parse("select p.name, sum(c.duration) as total " + //
 				"from Call c " + //
 				"join c.phone ph " + //
 				"join ph.person p " + //
 				"group by p.name " + //
 				"order by total");
-		parse("select c " + //
+		HqlQueryParser.parse("select c " + //
 				"from Call c " + //
 				"join c.phone p " + //
 				"order by p.number " + //
 				"limit 50");
-		parse("select c " + //
+		HqlQueryParser.parse("select c " + //
 				"from Call c " + //
 				"join c.phone p " + //
 				"order by p.number " + //
 				"fetch first 50 rows only");
-		parse("select p " + //
+		HqlQueryParser.parse("select p " + //
 				"from Phone p " + //
 				"join fetch p.calls " + //
 				"order by p " + //

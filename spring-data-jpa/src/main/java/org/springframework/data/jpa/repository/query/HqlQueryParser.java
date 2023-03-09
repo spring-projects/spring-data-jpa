@@ -21,6 +21,7 @@ import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.springframework.data.domain.Sort;
+import org.springframework.lang.Nullable;
 
 /**
  * Implements the various parsing operations using the ANTLR-generated {@link HqlParser} and
@@ -81,11 +82,12 @@ class HqlQueryParser extends QueryParser {
 	 * Use the {@link HqlQueryTransformer} to transform the parsed query into a count query.
 	 *
 	 * @param parsedQuery
+	 * @param countProjection
 	 * @return list of {@link QueryParsingToken}s
 	 */
 	@Override
-	List<QueryParsingToken> doCreateCountQuery(ParserRuleContext parsedQuery) {
-		return new HqlQueryTransformer(true).visit(parsedQuery);
+	List<QueryParsingToken> doCreateCountQuery(ParserRuleContext parsedQuery, @Nullable String countProjection) {
+		return new HqlQueryTransformer(true, countProjection).visit(parsedQuery);
 	}
 
 	/**

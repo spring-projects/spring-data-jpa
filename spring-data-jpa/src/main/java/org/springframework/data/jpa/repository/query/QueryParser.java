@@ -21,6 +21,7 @@ import java.util.List;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.springframework.data.domain.Sort;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -71,11 +72,12 @@ abstract class QueryParser {
 	 * Create a string-based count query using the original query.
 	 *
 	 * @param parsedQuery
+	 * @param countProjection
 	 */
-	String createCountQuery(ParserRuleContext parsedQuery) {
+	String createCountQuery(ParserRuleContext parsedQuery, @Nullable String countProjection) {
 
 		Assert.notNull(parsedQuery, "parsedQuery cannot be null!");
-		return render(doCreateCountQuery(parsedQuery));
+		return render(doCreateCountQuery(parsedQuery, countProjection));
 	}
 
 	/**
@@ -99,10 +101,11 @@ abstract class QueryParser {
 
 	/**
 	 * Create a {@link QueryParsingToken}-based count query.
-	 * 
+	 *
 	 * @param parsedQuery
+	 * @param countProjection
 	 */
-	abstract List<QueryParsingToken> doCreateCountQuery(ParserRuleContext parsedQuery);
+	abstract List<QueryParsingToken> doCreateCountQuery(ParserRuleContext parsedQuery, @Nullable String countProjection);
 
 	/**
 	 * Find the alias of the query's FROM clause

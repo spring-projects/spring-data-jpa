@@ -17,16 +17,10 @@ package org.springframework.data.jpa.repository.query;
 
 import static org.assertj.core.api.Assertions.*;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
 import java.util.regex.Pattern;
 
 import org.assertj.core.api.SoftAssertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.JpaSort;
 
@@ -40,7 +34,7 @@ class HqlQueryTransformerTests {
 
 	private static final String QUERY = "select u from User u";
 	private static final String FQ_QUERY = "select u from org.acme.domain.User$Foo_Bar u";
-	private static final String SIMPLE_QUERY = "select u from User u";
+	private static final String SIMPLE_QUERY = "from User u";
 	private static final String COUNT_QUERY = "select count(u) from User u";
 
 	private static final String QUERY_WITH_AS = "select u from User as u where u.username = ?1";
@@ -108,68 +102,12 @@ class HqlQueryTransformerTests {
 
 		// given
 		var original = "SELECT e FROM Employee e where e.name = :name ORDER BY e.modified_date";
-		var sort = Sort.by("first_name", "last_name");
 
 		// when
 		var results = new QueryParsingEnhancer(new HqlQueryParser(original)).createCountQueryFor();
 
 		// then
 		assertThat(results).isEqualTo("SELECT count(e) FROM Employee e where e.name = :name");
-	}
-
-	@ParameterizedTest
-	@MethodSource("queries")
-	void demo(String query) {
-
-		System.out.println("@Query(\"" + query + "\") with a custom sort becomes...");
-
-		Sort sort = Sort.by("first_name", "last_name");
-		//
-		//
-		var transformed = new QueryParsingEnhancer(new HqlQueryParser(query)).applySorting(sort);
-
-		System.out.println(transformed);
-		System.out.println("==========");
-	}
-
-	@ParameterizedTest
-	@MethodSource("queries")
-	void demoCounts(String query) {
-
-		System.out.println("CountQuery for @Query(\"" + query + "\") with a custom sort becomes...");
-
-		Sort sort = Sort.by("first_name", "last_name");
-		//
-		//
-		var transformed = new QueryParsingEnhancer(new HqlQueryParser(query)).createCountQueryFor();
-
-		System.out.println(transformed);
-		System.out.println("==========");
-	}
-
-	static Iterable<?> queries() {
-
-		return List.of("select e from Employee e where e.name = :name", //
-				"select e from Employee e where e.name = :name ORDER BY e.role", //
-				"select e from EmployeeWithName e where e.name like '%:partialName%'");
-	}
-
-	@Test
-	void demoFailures() {
-
-		var query = "something absurd";
-
-		System.out.println("Query for @Query(\"" + query + "\") with a custom sort becomes...");
-
-		assertThatIllegalArgumentException().isThrownBy(() -> {
-			new QueryParsingEnhancer(new HqlQueryParser(query)).applySorting(Sort.by("first_name", "last_name"));
-		}).withMessageContaining("mismatched input 'something' expecting {'(', DELETE, FROM, INSERT, SELECT, UPDATE}");
-
-		System.out.println("CountQuery for @Query(\"" + query + "\") with a custom sort becomes...");
-
-		assertThatIllegalArgumentException().isThrownBy(() -> {
-			new QueryParsingEnhancer(new HqlQueryParser(query)).createCountQueryFor();
-		}).withMessageContaining("mismatched input 'something' expecting {'(', DELETE, FROM, INSERT, SELECT, UPDATE}");
 	}
 
 	@Test
@@ -246,38 +184,23 @@ class HqlQueryTransformerTests {
 	// GH-2260
 	void detectsAliasCorrectly() {
 
-		assertThat(new QueryParsingEnhancer(new HqlQueryParser(QUERY)).detectAlias()).isEqualTo("u");
-		assertThat(new QueryParsingEnhancer(new HqlQueryParser(SIMPLE_QUERY)).detectAlias()).isEqualTo("u");
-		assertThat(new QueryParsingEnhancer(new HqlQueryParser(COUNT_QUERY)).detectAlias()).isEqualTo("u");
-		assertThat(new QueryParsingEnhancer(new HqlQueryParser(QUERY_WITH_AS)).detectAlias()).isEqualTo("u");
-		assertThat(new QueryParsingEnhancer(new HqlQueryParser("SELECT u FROM USER U")).detectAlias()).isEqualTo("U");
-		assertThat(new QueryParsingEnhancer(new HqlQueryParser("select u from  User u")).detectAlias()).isEqualTo("u");
-		assertThat(new QueryParsingEnhancer(new HqlQueryParser("select new com.acme.UserDetails(u.id, u.name) from User u"))
-				.detectAlias()).isEqualTo("u");
-		assertThat(new QueryParsingEnhancer(new HqlQueryParser("select u from T05User u")).detectAlias()).isEqualTo("u");
-		assertThat(new QueryParsingEnhancer(
-				new HqlQueryParser("select u from User u where not exists (select m from User m where m = u.manager) "))
-						.detectAlias()).isEqualTo("u");
-		assertThat(
-				new QueryParsingEnhancer(new HqlQueryParser("select u from User u where not exists (select u2 from User u2)"))
-						.detectAlias()).isEqualTo("u");
-		assertThat(new QueryParsingEnhancer(new HqlQueryParser(
+		assertThat(alias(QUERY)).isEqualTo("u");
+		assertThat(alias(SIMPLE_QUERY)).isEqualTo("u");
+		assertThat(alias(COUNT_QUERY)).isEqualTo("u");
+		assertThat(alias(QUERY_WITH_AS)).isEqualTo("u");
+		assertThat(alias("SELECT u FROM USER U")).isEqualTo("U");
+		assertThat(alias("select u from  User u")).isEqualTo("u");
+		assertThat(alias("select new com.acme.UserDetails(u.id, u.name) from User u")).isEqualTo("u");
+		assertThat(alias("select u from T05User u")).isEqualTo("u");
+		assertThat(alias("select u from User u where not exists (select m from User m where m = u.manager) "))
+				.isEqualTo("u");
+		assertThat(alias("select u from User u where not exists (select u2 from User u2)")).isEqualTo("u");
+		assertThat(alias(
 				"select u from User u where not exists (select u2 from User u2 where not exists (select u3 from User u3))"))
-						.detectAlias()).isEqualTo("u");
-		// assertThat(alias(
-		// "SELECT e FROM DbEvent e WHERE TREAT(modifiedFrom AS date) IS NULL OR e.modificationDate >= :modifiedFrom"))
-		// .isEqualTo("e");
-		// assertThat(alias("select u from User u where (TREAT(:effective as date) is null) OR :effective >= u.createdAt"))
-		// .isEqualTo("u");
-		// assertThat(
-		// alias("select u from User u where (TREAT(:effectiveDate as date) is null) OR :effectiveDate >= u.createdAt"))
-		// .isEqualTo("u");
-		// assertThat(
-		// alias("select u from User u where (TREAT(:effectiveFrom as date) is null) OR :effectiveFrom >= u.createdAt"))
-		// .isEqualTo("u");
-		// assertThat(
-		// alias("select u from User u where (TREAT(:e1f2f3ectiveFrom as date) is null) OR :effectiveFrom >= u.createdAt"))
-		// .isEqualTo("u");
+						.isEqualTo("u");
+		assertThat(alias(
+				"SELECT e FROM DbEvent e WHERE TREAT(modifiedFrom AS date) IS NULL OR e.modificationDate >= :modifiedFrom"))
+						.isEqualTo("e");
 	}
 
 	@Test
@@ -303,37 +226,15 @@ class HqlQueryTransformerTests {
 	// GH-2563
 	void aliasDetectionProperlyHandlesNewlinesInSubselects() {
 
-		assertThat(new QueryParsingEnhancer(new HqlQueryParser("""
+		assertThat(alias("""
 				SELECT o
 				FROM Order o
 				WHERE EXISTS( SELECT 1
 				    FROM Vehicle vehicle
 				    WHERE vehicle.vehicleOrderId = o.id
 				    AND LOWER(COALESCE(vehicle.make, '')) LIKE :query)
-				""")).detectAlias()).isEqualTo("o");
+				""")).isEqualTo("o");
 	}
-
-	// @Test // DATAJPA-252
-	// void detectsJoinAliasesCorrectly() {
-	//
-	// Set<String> aliases = getOuterJoinAliases("select p from Person p left outer join x.foo b2_$ar where …");
-	// assertThat(aliases).hasSize(1);
-	// assertThat(aliases).contains("b2_$ar");
-	//
-	// aliases = getOuterJoinAliases("select p from Person p left join x.foo b2_$ar where …");
-	// assertThat(aliases).hasSize(1);
-	// assertThat(aliases).contains("b2_$ar");
-	//
-	// aliases = getOuterJoinAliases(
-	// "select p from Person p left outer join x.foo as b2_$ar, left join x.bar as foo where …");
-	// assertThat(aliases).hasSize(2);
-	// assertThat(aliases).contains("b2_$ar", "foo");
-	//
-	// aliases = getOuterJoinAliases(
-	// "select p from Person p left join x.foo as b2_$ar, left outer join x.bar foo where …");
-	// assertThat(aliases).hasSize(2);
-	// assertThat(aliases).contains("b2_$ar", "foo");
-	// }
 
 	@Test
 	// DATAJPA-252
@@ -421,7 +322,7 @@ class HqlQueryTransformerTests {
 	void findsExistingOrderByIndependentOfCase() {
 
 		Sort sort = Sort.by("lastname");
-		// String query = query("select p from Person p ORDER BY p.firstname", (Sort) "p");
+		// String query = query("select p from Person p ORDER BY p.firstname", "p");
 		// assertThat(query).endsWith("ORDER BY p.firstname, p.lastname asc");
 	}
 
@@ -440,13 +341,9 @@ class HqlQueryTransformerTests {
 	@Test
 	// DATAJPA-456
 	void createCountQueryFromTheGivenCountProjection() {
-		// assertThat(createCountQueryFor("select p.lastname,p.firstname from Person p", "p.lastname"))
-		// .isEqualTo("select count(p.lastname) from Person p");
+		assertThat(createCountQueryFor("select p.lastname,p.firstname from Person p", "p.lastname"))
+				.isEqualTo("select count(p.lastname) from Person p");
 	}
-
-	// private String createCountQueryFor(String query, String sort) {
-	// return countQuery(query, sort);
-	// }
 
 	@Test
 	// DATAJPA-726
@@ -458,15 +355,10 @@ class HqlQueryTransformerTests {
 		// assertThat(query(query, (Sort) "c")).endsWith("order by p.lineItems asc");
 	}
 
-	@Disabled("Must extend char set for tokens")
 	@Test
 	// DATAJPA-736
 	void supportsNonAsciiCharactersInEntityNames() {
 		assertThat(createCountQueryFor("select u from Usèr u")).isEqualTo("select count(u) from Usèr u");
-	}
-
-	private String createCountQueryFor(String query) {
-		return new QueryParsingEnhancer(new HqlQueryParser(query)).createCountQueryFor();
 	}
 
 	@Test
@@ -618,33 +510,6 @@ class HqlQueryTransformerTests {
 	}
 
 	@Test
-	// DATAJPA-1000
-	void discoversCorrectAliasForJoinFetch() {
-
-		Set<String> aliases = QueryUtils
-				.getOuterJoinAliases("SELECT DISTINCT user FROM User user LEFT JOIN FETCH user.authorities AS authority");
-
-		assertThat(aliases).containsExactly("authority");
-	}
-
-	@Test
-	// DATAJPA-1171
-	void doesNotContainStaticClauseInExistsQuery() {
-
-		assertThat(QueryUtils.getExistsQueryString("entity", "x", Collections.singleton("id"))) //
-				.endsWith("WHERE x.id = :id");
-	}
-
-	@Test
-	// DATAJPA-1363
-	void discoversAliasWithComplexFunction() {
-
-		assertThat(
-				QueryUtils.getFunctionAliases("select new MyDto(sum(case when myEntity.prop3=0 then 1 else 0 end) as myAlias")) //
-						.contains("myAlias");
-	}
-
-	@Test
 	// DATAJPA-1506
 	void detectsAliasWithGroupAndOrderBy() {
 
@@ -761,11 +626,15 @@ class HqlQueryTransformerTests {
 	// DATAJPA-1679
 	void findProjectionClauseWithDistinct() {
 
-		SoftAssertions.assertSoftly(sofly -> {
-			sofly.assertThat(QueryUtils.getProjection("select * from x")).isEqualTo("*");
-			sofly.assertThat(QueryUtils.getProjection("select a, b, c from x")).isEqualTo("a, b, c");
-			sofly.assertThat(QueryUtils.getProjection("select distinct a, b, c from x")).isEqualTo("a, b, c");
-			sofly.assertThat(QueryUtils.getProjection("select DISTINCT a, b, c from x")).isEqualTo("a, b, c");
+		SoftAssertions.assertSoftly(softly -> {
+			softly.assertThat(new QueryParsingEnhancer(new HqlQueryParser("select a,b,c from x")).getProjection())
+					.isEqualTo("a, b, c");
+			softly.assertThat(new QueryParsingEnhancer(new HqlQueryParser("select a, b, c from x")).getProjection())
+					.isEqualTo("a, b, c");
+			softly.assertThat(new QueryParsingEnhancer(new HqlQueryParser("select distinct a, b, c from x")).getProjection())
+					.isEqualTo("a, b, c");
+			softly.assertThat(new QueryParsingEnhancer(new HqlQueryParser("select DISTINCT a, b, c from x")).getProjection())
+					.isEqualTo("a, b, c");
 		});
 	}
 
@@ -776,13 +645,15 @@ class HqlQueryTransformerTests {
 		// This is not a required behavior, in fact the opposite is,
 		// but it documents a current limitation.
 		// to fix this without breaking findProjectionClauseWithIncludedFrom we need a more sophisticated parser.
-		assertThat(QueryUtils.getProjection("select * from (select x from y)")).isNotEqualTo("*");
+		assertThat(new QueryParsingEnhancer(new HqlQueryParser("select * from (select x from y)")).getProjection())
+				.isNotEqualTo("*");
 	}
 
 	@Test
 	// DATAJPA-1696
 	void findProjectionClauseWithIncludedFrom() {
-		assertThat(QueryUtils.getProjection("select x, frommage, y from t")).isEqualTo("x, frommage, y");
+		assertThat(new QueryParsingEnhancer(new HqlQueryParser("select x, frommage, y from t")).getProjection())
+				.isEqualTo("x, frommage, y");
 	}
 
 	@Test
@@ -830,97 +701,91 @@ class HqlQueryTransformerTests {
 		Sort sort = Sort.by(Sort.Order.desc("age"));
 
 		// order by absent
-		assertThat(QueryUtils.applySorting("select * from user u", sort))
-				.isEqualTo("select * from user u order by u.age desc");
+		assertThat(createQueryFor("select u from user u", sort)).isEqualTo("select u from user u order by u.age desc");
 
 		// order by present
-		assertThat(QueryUtils.applySorting("select * from user u order by u.lastname", sort))
-				.isEqualTo("select * from user u order by u.lastname, u.age desc");
+		assertThat(createQueryFor("select u from user u order by u.lastname", sort))
+				.isEqualTo("select u from user u order by u.lastname, u.age desc");
 
 		// partition by
-		assertThat(QueryUtils.applySorting("select dense_rank() over (partition by age) from user u", sort))
+		assertThat(createQueryFor("select dense_rank() over (partition by age) from user u", sort))
 				.isEqualTo("select dense_rank() over (partition by age) from user u order by u.age desc");
 
 		// order by in over clause
-		assertThat(QueryUtils.applySorting("select dense_rank() over (order by lastname) from user u", sort))
+		assertThat(createQueryFor("select dense_rank() over (order by lastname) from user u", sort))
 				.isEqualTo("select dense_rank() over (order by lastname) from user u order by u.age desc");
 
 		// order by in over clause (additional spaces)
-		assertThat(QueryUtils.applySorting("select dense_rank() over ( order by lastname ) from user u", sort))
-				.isEqualTo("select dense_rank() over ( order by lastname ) from user u order by u.age desc");
+		assertThat(createQueryFor("select dense_rank() over ( order by lastname ) from user u", sort))
+				.isEqualTo("select dense_rank() over (order by lastname) from user u order by u.age desc");
 
 		// order by in over clause + at the end
-		assertThat(
-				QueryUtils.applySorting("select dense_rank() over (order by lastname) from user u order by u.lastname", sort))
-						.isEqualTo("select dense_rank() over (order by lastname) from user u order by u.lastname, u.age desc");
+		assertThat(createQueryFor("select dense_rank() over (order by lastname) from user u order by u.lastname", sort))
+				.isEqualTo("select dense_rank() over (order by lastname) from user u order by u.lastname, u.age desc");
 
 		// partition by + order by in over clause
-		assertThat(QueryUtils.applySorting(
-				"select dense_rank() over (partition by active, age order by lastname) from user u", sort)).isEqualTo(
+		assertThat(createQueryFor("select dense_rank() over (partition by active, age order by lastname) from user u",
+				sort)).isEqualTo(
 						"select dense_rank() over (partition by active, age order by lastname) from user u order by u.age desc");
 
 		// partition by + order by in over clause + order by at the end
-		assertThat(QueryUtils.applySorting(
+		assertThat(createQueryFor(
 				"select dense_rank() over (partition by active, age order by lastname) from user u order by active", sort))
 						.isEqualTo(
 								"select dense_rank() over (partition by active, age order by lastname) from user u order by active, u.age desc");
 
 		// partition by + order by in over clause + frame clause
-		assertThat(QueryUtils.applySorting(
+		assertThat(createQueryFor(
 				"select dense_rank() over ( partition by active, age order by username rows between current row and unbounded following ) from user u",
 				sort)).isEqualTo(
-						"select dense_rank() over ( partition by active, age order by username rows between current row and unbounded following ) from user u order by u.age desc");
+						"select dense_rank() over (partition by active, age order by username rows between current row and unbounded following) from user u order by u.age desc");
 
 		// partition by + order by in over clause + frame clause + order by at the end
-		assertThat(QueryUtils.applySorting(
+		assertThat(createQueryFor(
 				"select dense_rank() over ( partition by active, age order by username rows between current row and unbounded following ) from user u order by active",
 				sort)).isEqualTo(
-						"select dense_rank() over ( partition by active, age order by username rows between current row and unbounded following ) from user u order by active, u.age desc");
+						"select dense_rank() over (partition by active, age order by username rows between current row and unbounded following) from user u order by active, u.age desc");
 
 		// order by in subselect (select expression)
-		assertThat(
-				QueryUtils.applySorting("select lastname, (select i.id from item i order by i.id limit 1) from user u", sort))
-						.isEqualTo(
-								"select lastname, (select i.id from item i order by i.id limit 1) from user u order by u.age desc");
+		assertThat(createQueryFor("select lastname, (select i.id from item i order by i.id limit 1) from user u", sort))
+				.isEqualTo("select lastname, (select i.id from item i order by i.id limit 1) from user u order by u.age desc");
 
 		// order by in subselect (select expression) + at the end
-		assertThat(QueryUtils.applySorting(
+		assertThat(createQueryFor(
 				"select lastname, (select i.id from item i order by 1 limit 1) from user u order by active", sort)).isEqualTo(
 						"select lastname, (select i.id from item i order by 1 limit 1) from user u order by active, u.age desc");
 
 		// order by in subselect (from expression)
-		assertThat(QueryUtils.applySorting("select * from (select * from user order by age desc limit 10) u", sort))
-				.isEqualTo("select * from (select * from user order by age desc limit 10) u order by age desc");
+		assertThat(createQueryFor("select u from (select u2 from user u2 order by age desc limit 10) u", sort))
+				.isEqualTo("select u from (select u2 from user u2 order by age desc limit 10 ) u order by u.age desc");
 
 		// order by in subselect (from expression) + at the end
-		assertThat(QueryUtils.applySorting(
-				"select * from (select * from user order by 1, 2, 3 desc limit 10) u order by u.active asc", sort)).isEqualTo(
-						"select * from (select * from user order by 1, 2, 3 desc limit 10) u order by u.active asc, age desc");
+		assertThat(createQueryFor(
+				"select u from (select u2 from user u2 order by 1, 2, 3 desc limit 10) u order by u.active asc", sort))
+						.isEqualTo(
+								"select u from (select u2 from user u2 order by 1, 2, 3 desc limit 10 ) u order by u.active asc, u.age desc");
 	}
 
-	// @Test // GH-2511
-	// void countQueryUsesCorrectVariable() {
-	//
-	// String countQueryFor = createCountQueryFor("SELECT * FROM User WHERE created_at > $1");
-	// assertThat(countQueryFor).isEqualTo("select count(*) FROM User WHERE created_at > $1");
-	//
-	// countQueryFor = createCountQueryFor(
-	// "SELECT * FROM mytable WHERE nr = :number AND kon = :kon AND datum >= '2019-01-01'");
-	// assertThat(countQueryFor)
-	// .isEqualTo("select count(*) FROM mytable WHERE nr = :number AND kon = :kon AND datum >= '2019-01-01'");
-	//
-	// countQueryFor = createCountQueryFor("SELECT * FROM context ORDER BY time");
-	// assertThat(countQueryFor).isEqualTo("select count(*) FROM context");
-	//
-	// countQueryFor = createCountQueryFor("select * FROM users_statuses WHERE (user_created_at BETWEEN $1 AND $2)");
-	// assertThat(countQueryFor)
-	// .isEqualTo("select count(*) FROM users_statuses WHERE (user_created_at BETWEEN $1 AND $2)");
-	//
-	// countQueryFor = createCountQueryFor(
-	// "SELECT * FROM users_statuses us WHERE (user_created_at BETWEEN :fromDate AND :toDate)");
-	// assertThat(countQueryFor)
-	// .isEqualTo("select count(us) FROM users_statuses us WHERE (user_created_at BETWEEN :fromDate AND :toDate)");
-	// }
+	@Test // GH-2511
+	void countQueryUsesCorrectVariable() {
+
+		assertThat(createCountQueryFor("SELECT e FROM User e WHERE created_at > $1"))
+				.isEqualTo("SELECT count(e) FROM User e WHERE created_at > $1");
+
+		assertThat(
+				createCountQueryFor("SELECT e FROM mytable e WHERE nr = :number AND kon = :kon AND datum >= '2019-01-01'"))
+						.isEqualTo("SELECT count(e) FROM mytable e WHERE nr = :number AND kon = :kon AND datum >= '2019-01-01'");
+
+		assertThat(createCountQueryFor("SELECT e FROM context e ORDER BY time"))
+				.isEqualTo("SELECT count(e) FROM context e");
+
+		assertThat(createCountQueryFor("select e FROM users_statuses e WHERE (user_created_at BETWEEN $1 AND $2)"))
+				.isEqualTo("select count(e) FROM users_statuses e WHERE (user_created_at BETWEEN $1 AND $2)");
+
+		assertThat(
+				createCountQueryFor("SELECT us FROM users_statuses us WHERE (user_created_at BETWEEN :fromDate AND :toDate)"))
+						.isEqualTo("SELECT count(us) FROM users_statuses us WHERE (user_created_at BETWEEN :fromDate AND :toDate)");
+	}
 
 	@Test
 	// GH-2496, GH-2522, GH-2537, GH-2045
@@ -928,8 +793,8 @@ class HqlQueryTransformerTests {
 
 		Sort sort = Sort.by(Sort.Order.desc("age"));
 
-		assertThat(QueryUtils.applySorting("SELECT\n" //
-				+ "   foo_bar.*\n" //
+		assertThat(createQueryFor("SELECT\n" //
+				+ "   foo_bar\n" //
 				+ "FROM\n" //
 				+ "    foo foo\n" //
 				+ "INNER JOIN\n" //
@@ -938,8 +803,7 @@ class HqlQueryTransformerTests {
 				+ "INNER JOIN\n" //
 				+ " (\n" //
 				+ "  SELECT\n" //
-				+ "       foo_bar_action.*,\n" //
-				+ "       RANK() OVER (PARTITION BY \"foo_bar_action\".attributes->>'baz' ORDER BY \"foo_bar_action\".attributes->>'qux' DESC) AS ranking\n" //
+				+ "       foo_bar_action\n" //
 				+ "  FROM\n" //
 				+ "      foo_bar_action\n" //
 				+ "  WHERE\n" //
@@ -954,10 +818,9 @@ class HqlQueryTransformerTests {
 				+ "  bar_metadata bar_metadata ON\n" //
 				+ "  bar.bar_metadata_key = bar_metadata.bar_metadata_key\n" //
 				+ "WHERE\n" //
-				+ "  foo.tenant_id =:tenantId\n" //
-				+ "AND (foo.attributes ->> :serialNum IN (:serialNumValue))", sort)).endsWith("order by foo.age desc");
+				+ "  foo.tenant_id =:tenantId", sort)).endsWith("order by foo.age desc");
 
-		assertThat(QueryUtils.applySorting("select r " //
+		assertThat(createQueryFor("select r " //
 				+ "From DataRecord r " //
 				+ "where " //
 				+ " ( " //
@@ -965,9 +828,9 @@ class HqlQueryTransformerTests {
 				+ "       or EXISTS( select 1 FROM DataRecordDvsRight dr WHERE dr.adusrId = :userId AND dr.dataRecord = r ) " //
 				+ ")", sort)).endsWith("order by r.age desc");
 
-		assertThat(QueryUtils.applySorting("select distinct u " //
+		assertThat(createQueryFor("select distinct u " //
 				+ "from FooBar u " //
-				+ "where [REDACTED] " //
+				+ "where u.role = 'redacted' " //
 				+ "and (" //
 				+ "		not exists (" //
 				+ "				from FooBarGroup group " //
@@ -976,15 +839,14 @@ class HqlQueryTransformerTests {
 				+ "		)" //
 				+ ")", sort)).endsWith("order by u.age desc");
 
-		assertThat(QueryUtils.applySorting("SELECT i " //
-				+ "FROM Item i " //
-				+ "FETCH ALL PROPERTIES \" " //
-				+ "+ \"WHERE i.id IN (\" " //
-				+ "+ \"SELECT max(i2.id) FROM Item i2 \" " //
-				+ "+ \"WHERE i2.field.id = :fieldId \" " //
-				+ "+ \"GROUP BY i2.field.id, i2.version)", sort)).endsWith("order by i.age desc");
+		assertThat(createQueryFor("SELECT i " //
+				+ " FROM Item i " //
+				+ " WHERE i.id IN (" //
+				+ " SELECT max(i2.id) FROM Item i2 " //
+				+ " WHERE i2.field.id = :fieldId " //
+				+ " GROUP BY i2.field.id, i2.version)", sort)).endsWith("order by i.age desc");
 
-		assertThat(QueryUtils.applySorting("select \n" //
+		assertThat(createQueryFor("select \n" //
 				+ " f.id,\n" //
 				+ " (\n" //
 				+ "  select timestamp from bar\n" //
@@ -994,6 +856,22 @@ class HqlQueryTransformerTests {
 				+ "  limit 1\n" //
 				+ ") as timestamp\n" //
 				+ "from foo f", sort)).endsWith("order by f.age desc");
+	}
+
+	private String createQueryFor(String query, Sort sort) {
+		return new QueryParsingEnhancer(new HqlQueryParser(query)).applySorting(sort);
+	}
+
+	private String createCountQueryFor(String query) {
+		return new QueryParsingEnhancer(new HqlQueryParser(query)).createCountQueryFor();
+	}
+
+	private String createCountQueryFor(String query, String countProjection) {
+		return new QueryParsingEnhancer(new HqlQueryParser(query)).createCountQueryFor(countProjection);
+	}
+
+	private String alias(String query) {
+		return new QueryParsingEnhancer(new HqlQueryParser(query)).detectAlias();
 	}
 
 	private void assertCountQuery(String originalQuery, String countQuery) {

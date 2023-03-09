@@ -34,6 +34,8 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	@Nullable private Sort sort;
 	private boolean countQuery;
 
+	@Nullable private String countProjection;
+
 	@Nullable private String alias = null;
 
 	private List<QueryParsingToken> projection = null;
@@ -41,21 +43,22 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	private boolean hasConstructorExpression = false;
 
 	JpqlQueryTransformer() {
-		this(null, false);
+		this(null, false, null);
 	}
 
 	JpqlQueryTransformer(@Nullable Sort sort) {
-		this(sort, false);
+		this(sort, false, null);
 	}
 
-	JpqlQueryTransformer(boolean countQuery) {
-		this(null, countQuery);
+	JpqlQueryTransformer(boolean countQuery, @Nullable String countProjection) {
+		this(null, countQuery, countProjection);
 	}
 
-	private JpqlQueryTransformer(@Nullable Sort sort, boolean countQuery) {
+	private JpqlQueryTransformer(@Nullable Sort sort, boolean countQuery, @Nullable String countProjection) {
 
 		this.sort = sort;
 		this.countQuery = countQuery;
+		this.countProjection = countProjection;
 	}
 
 	public String getAlias() {
@@ -111,7 +114,7 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 			tokens.addAll(visit(ctx.having_clause()));
 		}
 
-		if (!this.countQuery) {
+		if (!countQuery) {
 
 			if (ctx.orderby_clause() != null) {
 				tokens.addAll(visit(ctx.orderby_clause()));
@@ -668,7 +671,7 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 
 		tokens.add(new QueryParsingToken(ctx.SELECT().getText()));
 
-		if (this.countQuery) {
+		if (countQuery) {
 			tokens.add(new QueryParsingToken("count(", false));
 		}
 
@@ -686,18 +689,24 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 		CLIP(selectItemTokens);
 		SPACE(selectItemTokens);
 
-		if (this.countQuery) {
-			if (ctx.DISTINCT() != null) {
+		if (countQuery) {
 
-				if (selectItemTokens.stream().anyMatch(jpqlToken -> jpqlToken.getToken().contains("new"))) {
-					// constructor
-					tokens.add(new QueryParsingToken(() -> this.alias));
-				} else {
-					// keep all the select items to distinct against
-					tokens.addAll(selectItemTokens);
-				}
+			if (countProjection != null) {
+				tokens.add(new QueryParsingToken(countProjection));
 			} else {
-				tokens.add(new QueryParsingToken(() -> this.alias));
+
+				if (ctx.DISTINCT() != null) {
+
+					if (selectItemTokens.stream().anyMatch(jpqlToken -> jpqlToken.getToken().contains("new"))) {
+						// constructor
+						tokens.add(new QueryParsingToken(() -> this.alias));
+					} else {
+						// keep all the select items to distinct against
+						tokens.addAll(selectItemTokens);
+					}
+				} else {
+					tokens.add(new QueryParsingToken(() -> this.alias));
+				}
 			}
 
 			NOSPACE(tokens);
@@ -706,7 +715,9 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 			tokens.addAll(selectItemTokens);
 		}
 
-		this.projection = selectItemTokens;
+		if (projection == null) {
+			this.projection = selectItemTokens;
+		}
 
 		return tokens;
 	}
@@ -1169,33 +1180,41 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 		if (ctx.arithmetic_expression(0) != null) {
 
 			tokens.addAll(visit(ctx.arithmetic_expression(0)));
+
 			if (ctx.NOT() != null) {
 				tokens.add(new QueryParsingToken(ctx.NOT().getText()));
-				tokens.add(new QueryParsingToken(ctx.BETWEEN().getText()));
-				tokens.addAll(visit(ctx.arithmetic_expression(1)));
-				tokens.add(new QueryParsingToken(ctx.AND().getText()));
-				tokens.addAll(visit(ctx.arithmetic_expression(2)));
 			}
+
+			tokens.add(new QueryParsingToken(ctx.BETWEEN().getText()));
+			tokens.addAll(visit(ctx.arithmetic_expression(1)));
+			tokens.add(new QueryParsingToken(ctx.AND().getText()));
+			tokens.addAll(visit(ctx.arithmetic_expression(2)));
+
 		} else if (ctx.string_expression(0) != null) {
 
 			tokens.addAll(visit(ctx.string_expression(0)));
+
 			if (ctx.NOT() != null) {
 				tokens.add(new QueryParsingToken(ctx.NOT().getText()));
-				tokens.add(new QueryParsingToken(ctx.BETWEEN().getText()));
-				tokens.addAll(visit(ctx.string_expression(1)));
-				tokens.add(new QueryParsingToken(ctx.AND().getText()));
-				tokens.addAll(visit(ctx.string_expression(2)));
 			}
+
+			tokens.add(new QueryParsingToken(ctx.BETWEEN().getText()));
+			tokens.addAll(visit(ctx.string_expression(1)));
+			tokens.add(new QueryParsingToken(ctx.AND().getText()));
+			tokens.addAll(visit(ctx.string_expression(2)));
+
 		} else if (ctx.datetime_expression(0) != null) {
 
 			tokens.addAll(visit(ctx.datetime_expression(0)));
+
 			if (ctx.NOT() != null) {
 				tokens.add(new QueryParsingToken(ctx.NOT().getText()));
-				tokens.add(new QueryParsingToken(ctx.BETWEEN().getText()));
-				tokens.addAll(visit(ctx.datetime_expression(1)));
-				tokens.add(new QueryParsingToken(ctx.AND().getText()));
-				tokens.addAll(visit(ctx.datetime_expression(2)));
 			}
+
+			tokens.add(new QueryParsingToken(ctx.BETWEEN().getText()));
+			tokens.addAll(visit(ctx.datetime_expression(1)));
+			tokens.add(new QueryParsingToken(ctx.AND().getText()));
+			tokens.addAll(visit(ctx.datetime_expression(2)));
 		}
 
 		return tokens;

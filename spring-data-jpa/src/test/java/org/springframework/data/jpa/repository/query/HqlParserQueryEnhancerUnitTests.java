@@ -24,7 +24,8 @@ import org.junit.jupiter.params.provider.MethodSource;
 /**
  * TCK Tests for {@link QueryParsingEnhancer} using {@link HqlQueryParser}.
  *
- * @author Mark Paluch
+ * @author Greg Turnquist
+ * @since 3.1
  */
 public class HqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 
@@ -61,35 +62,4 @@ public class HqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 	@Override
 	void shouldDeriveNativeCountQueryWithVariable(String query, String expected) {}
 
-	// static Stream<Arguments> jpqlCountQueries() {
-	//
-	// return Stream.of( //
-	// Arguments.of( //
-	// "SELECT some_alias FROM table_name some_alias", //
-	// "select count(some_alias) FROM table_name some_alias"), //
-	//
-	// Arguments.of( //
-	// "SELECT DISTINCT name FROM table_name some_alias", //
-	// "select count(DISTINCT name) FROM table_name some_alias"),
-	//
-	// Arguments.of( //
-	// "select distinct new com.example.User(u.name) from User u where u.foo = ?1", //
-	// "select count(distinct u) from User u where u.foo = ?1"),
-	//
-	// Arguments.of( //
-	// "select u from User as u", //
-	// "select count(u) from User as u"),
-	//
-	// Arguments.of( //
-	// "select p.lastname,p.firstname from Person p", //
-	// "select count(p) from Person p"),
-	//
-	// Arguments.of( //
-	// "select a.b from A a", //
-	// "select count(a) from A a"),
-	//
-	// Arguments.of( //
-	// "select distinct m.genre from Media m where m.user = ?1 order by m.genre asc", //
-	// "select count(distinct m.genre) from Media m where m.user = ?1"));
-	// }
 }

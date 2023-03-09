@@ -132,7 +132,7 @@ abstract class QueryEnhancerTckTests {
 
 				Arguments.of( //
 						"SELECT name FROM table_name some_alias", //
-						"select count(name) FROM table_name some_alias"), //
+						"SELECT count(name) FROM table_name some_alias"), //
 
 				Arguments.of( //
 						"SELECT DISTINCT name FROM table_name some_alias", //
