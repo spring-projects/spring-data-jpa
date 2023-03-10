@@ -92,8 +92,12 @@ class JpaQueryParsingToken {
 		this(node.getText());
 	}
 
+	JpaQueryParsingToken(Token token, boolean space) {
+		this(token.getText(), space);
+	}
+
 	JpaQueryParsingToken(Token token) {
-		this(token.getText());
+		this(token.getText(), true);
 	}
 
 	/**
@@ -141,14 +145,14 @@ class JpaQueryParsingToken {
 	}
 
 	/**
-	 * Take a list of {@link JpaQueryParsingToken}s and convert them ALL to {@code space = false} (except possibly the last
-	 * one).
+	 * Take a list of {@link JpaQueryParsingToken}s and convert them ALL to {@code space = false} (except possibly the
+	 * last one).
 	 * 
 	 * @param tokens
 	 * @param spacelastElement
 	 */
 	static List<JpaQueryParsingToken> NOSPACE_ALL_BUT_LAST_ELEMENT(List<JpaQueryParsingToken> tokens,
-																   boolean spacelastElement) {
+			boolean spacelastElement) {
 
 		List<JpaQueryParsingToken> respacedTokens = tokens.stream() //
 				.map(queryParsingToken -> {
