@@ -28,7 +28,8 @@ import org.springframework.util.Assert;
  * Implementation of {@link QueryEnhancer} using a {@link QueryParser}.<br/>
  * <br/>
  * NOTE: The parser can find everything it needs to created sorted and count queries. Thus, looking up the alias or the
- * projection isn't needed for its primary function, and are simply implemented for test purposes.
+ * projection isn't needed for its primary function, and are simply implemented for test purposes. TODO: Don't LOG
+ * warning messages in the middle of actions.
  *
  * @author Greg Turnquist
  * @since 3.1
@@ -72,7 +73,6 @@ class QueryParsingEnhancer implements QueryEnhancer {
 
 			return queryParser.createQuery(parsedQuery, sort);
 		} catch (QueryParsingSyntaxError e) {
-			LOG.warn(e);
 			throw new IllegalArgumentException(e);
 		}
 	}
@@ -107,7 +107,6 @@ class QueryParsingEnhancer implements QueryEnhancer {
 
 			return queryParser.findAlias(parsedQuery);
 		} catch (QueryParsingSyntaxError e) {
-			LOG.warn(e);
 			return null;
 		}
 	}
@@ -139,7 +138,6 @@ class QueryParsingEnhancer implements QueryEnhancer {
 
 			return queryParser.createCountQuery(parsedQuery, countProjection);
 		} catch (QueryParsingSyntaxError e) {
-			LOG.warn(e);
 			throw new IllegalArgumentException(e);
 		}
 	}
@@ -161,7 +159,6 @@ class QueryParsingEnhancer implements QueryEnhancer {
 
 			return queryParser.hasConstructor(parsedQuery);
 		} catch (QueryParsingSyntaxError e) {
-			LOG.warn(e);
 			return false;
 		}
 	}
@@ -182,7 +179,6 @@ class QueryParsingEnhancer implements QueryEnhancer {
 
 			return queryParser.projection(parsedQuery);
 		} catch (QueryParsingSyntaxError e) {
-			LOG.debug(e);
 			return "";
 		}
 	}

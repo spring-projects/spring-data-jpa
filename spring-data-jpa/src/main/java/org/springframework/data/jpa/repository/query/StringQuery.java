@@ -67,7 +67,6 @@ class StringQuery implements DeclaredQuery {
 	 *
 	 * @param query must not be {@literal null} or empty.
 	 */
-	@Deprecated
 	@SuppressWarnings("deprecation")
 	StringQuery(String query, boolean isNative) {
 

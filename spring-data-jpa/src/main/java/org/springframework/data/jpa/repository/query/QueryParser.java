@@ -35,6 +35,12 @@ import org.springframework.util.Assert;
  */
 abstract class QueryParser {
 
+	private static final Pattern PUNCTUATION_PATTERN = Pattern.compile(".*((?![._])[\\p{Punct}|\\s])");
+
+	private static final String UNSAFE_PROPERTY_REFERENCE = "Sort expression '%s' must only contain property references or "
+			+ "aliases used in the select clause; If you really want to use something other than that for sorting, please use "
+			+ "JpaSort.unsafe(…)";
+
 	private final DeclaredQuery declaredQuery;
 
 	QueryParser(DeclaredQuery declaredQuery) {
@@ -56,7 +62,7 @@ abstract class QueryParser {
 	/**
 	 * Parse the JPA query using its corresponding ANTLR parser.
 	 */
-	abstract ParserRuleContext parse();
+	abstract ParserRuleContext parse(); // TODO move details inside QueryParser
 
 	/**
 	 * Generate a query using the original query with an @literal order by} clause added (or amended) based upon the
@@ -132,12 +138,6 @@ abstract class QueryParser {
 	 * @return Guaranteed to be {@literal true} or {@literal false}.
 	 */
 	abstract boolean hasConstructor(ParserRuleContext parsedQuery);
-
-	private static final Pattern PUNCTUATION_PATTERN = Pattern.compile(".*((?![._])[\\p{Punct}|\\s])");
-
-	private static final String UNSAFE_PROPERTY_REFERENCE = "Sort expression '%s' must only contain property references or "
-			+ "aliases used in the select clause; If you really want to use something other than that for sorting, please use "
-			+ "JpaSort.unsafe(…)";
 
 	/**
 	 * Check any given {@link JpaSort.JpaOrder#isUnsafe()} order for presence of at least one property offending the

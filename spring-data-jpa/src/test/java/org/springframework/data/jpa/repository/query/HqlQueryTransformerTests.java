@@ -265,7 +265,8 @@ class HqlQueryTransformerTests {
 		String query = "select p from Person p order by p.lastname asc";
 		Sort sort = Sort.by(Sort.Order.by("firstname").ignoreCase());
 
-		assertThat(createQueryFor(query, sort)).endsWith("order by p.lastname asc, lower(p.firstname) asc");
+		assertThat(createQueryFor(query, sort))
+				.isEqualTo("select p from Person p order by p.lastname asc, lower(p.firstname) asc");
 	}
 
 	@Test // DATAJPA-342
