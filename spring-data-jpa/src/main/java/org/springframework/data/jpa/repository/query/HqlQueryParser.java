@@ -24,13 +24,13 @@ import org.springframework.data.domain.Sort;
 import org.springframework.lang.Nullable;
 
 /**
- * Implements the parsing operations of a {@link QueryParser} using the ANTLR-generated {@link HqlParser} and
+ * Implements the parsing operations of a {@link JpaQueryParser} using the ANTLR-generated {@link HqlParser} and
  * {@link HqlQueryTransformer}.
  * 
  * @author Greg Turnquist
  * @since 3.1
  */
-class HqlQueryParser extends QueryParser {
+class HqlQueryParser extends JpaQueryParser {
 
 	HqlQueryParser(DeclaredQuery declaredQuery) {
 		super(declaredQuery);
@@ -41,7 +41,7 @@ class HqlQueryParser extends QueryParser {
 	}
 
 	/**
-	 * Convenience method to parse an HQL query. Will throw a {@link QueryParsingSyntaxError} if the query is invalid.
+	 * Convenience method to parse an HQL query. Will throw a {@link JpaQueryParsingSyntaxError} if the query is invalid.
 	 *
 	 * @param query
 	 * @return a parsed query, ready for postprocessing
@@ -51,7 +51,7 @@ class HqlQueryParser extends QueryParser {
 		HqlLexer lexer = new HqlLexer(CharStreams.fromString(query));
 		HqlParser parser = new HqlParser(new CommonTokenStream(lexer));
 
-		parser.addErrorListener(new QueryParsingSyntaxErrorListener());
+		parser.addErrorListener(new JpaQueryParsingSyntaxErrorListener());
 
 		return parser.start();
 	}
@@ -71,10 +71,10 @@ class HqlQueryParser extends QueryParser {
 	 *
 	 * @param parsedQuery
 	 * @param sort can be {@literal null}
-	 * @return list of {@link QueryParsingToken}s
+	 * @return list of {@link JpaQueryParsingToken}s
 	 */
 	@Override
-	List<QueryParsingToken> doCreateQuery(ParserRuleContext parsedQuery, Sort sort) {
+	List<JpaQueryParsingToken> doCreateQuery(ParserRuleContext parsedQuery, Sort sort) {
 		return new HqlQueryTransformer(sort).visit(parsedQuery);
 	}
 
@@ -83,10 +83,10 @@ class HqlQueryParser extends QueryParser {
 	 *
 	 * @param parsedQuery
 	 * @param countProjection
-	 * @return list of {@link QueryParsingToken}s
+	 * @return list of {@link JpaQueryParsingToken}s
 	 */
 	@Override
-	List<QueryParsingToken> doCreateCountQuery(ParserRuleContext parsedQuery, @Nullable String countProjection) {
+	List<JpaQueryParsingToken> doCreateCountQuery(ParserRuleContext parsedQuery, @Nullable String countProjection) {
 		return new HqlQueryTransformer(true, countProjection).visit(parsedQuery);
 	}
 
@@ -111,7 +111,7 @@ class HqlQueryParser extends QueryParser {
 	 * @return
 	 */
 	@Override
-	List<QueryParsingToken> doFindProjection(ParserRuleContext parsedQuery) {
+	List<JpaQueryParsingToken> doFindProjection(ParserRuleContext parsedQuery) {
 
 		HqlQueryTransformer transformVisitor = new HqlQueryTransformer();
 		transformVisitor.visit(parsedQuery);

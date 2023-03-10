@@ -56,9 +56,9 @@ public final class QueryEnhancerFactory {
 		} else {
 
 			if (qualifiedForHqlParserUsage(query)) {
-				return new QueryParsingEnhancer(new HqlQueryParser(query));
+				return new JpaQueryParsingEnhancer(new HqlQueryParser(query));
 			} else if (qualifiesForJpqlParserUsage(query)) {
-				return new QueryParsingEnhancer(new JpqlQueryParser(query));
+				return new JpaQueryParsingEnhancer(new JpqlQueryParser(query));
 			} else {
 				return new DefaultQueryEnhancer(query);
 			}

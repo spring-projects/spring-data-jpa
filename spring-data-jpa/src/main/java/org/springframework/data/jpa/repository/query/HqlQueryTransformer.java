@@ -15,7 +15,7 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.springframework.data.jpa.repository.query.QueryParsingToken.*;
+import static org.springframework.data.jpa.repository.query.JpaQueryParsingToken.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +30,7 @@ import org.springframework.lang.Nullable;
  * @author Greg Turnquist
  * @since 3.1
  */
-class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
+class HqlQueryTransformer extends HqlBaseVisitor<List<JpaQueryParsingToken>> {
 
 	@Nullable private Sort sort;
 	private boolean countQuery;
@@ -39,7 +39,7 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 	@Nullable private String alias = null;
 
-	private List<QueryParsingToken> projection = null;
+	private List<JpaQueryParsingToken> projection = null;
 
 	private boolean hasConstructorExpression = false;
 
@@ -67,7 +67,7 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 		return this.alias;
 	}
 
-	public List<QueryParsingToken> getProjection() {
+	public List<JpaQueryParsingToken> getProjection() {
 		return this.projection;
 	}
 
@@ -92,12 +92,12 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitStart(HqlParser.StartContext ctx) {
+	public List<JpaQueryParsingToken> visitStart(HqlParser.StartContext ctx) {
 		return visit(ctx.ql_statement());
 	}
 
 	@Override
-	public List<QueryParsingToken> visitQl_statement(HqlParser.Ql_statementContext ctx) {
+	public List<JpaQueryParsingToken> visitQl_statement(HqlParser.Ql_statementContext ctx) {
 
 		if (ctx.selectStatement() != null) {
 			return visit(ctx.selectStatement());
@@ -113,14 +113,14 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitSelectStatement(HqlParser.SelectStatementContext ctx) {
+	public List<JpaQueryParsingToken> visitSelectStatement(HqlParser.SelectStatementContext ctx) {
 		return visit(ctx.queryExpression());
 	}
 
 	@Override
-	public List<QueryParsingToken> visitQueryExpression(HqlParser.QueryExpressionContext ctx) {
+	public List<JpaQueryParsingToken> visitQueryExpression(HqlParser.QueryExpressionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.addAll(visit(ctx.orderedQuery(0)));
 
@@ -134,9 +134,9 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitOrderedQuery(HqlParser.OrderedQueryContext ctx) {
+	public List<JpaQueryParsingToken> visitOrderedQuery(HqlParser.OrderedQueryContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.query() != null) {
 			tokens.addAll(visit(ctx.query()));
@@ -167,12 +167,12 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 				this.sort.forEach(order -> {
 
-					QueryParser.checkSortExpression(order);
+					JpaQueryParser.checkSortExpression(order);
 
 					if (order.isIgnoreCase()) {
 						tokens.add(TOKEN_LOWER_FUNC);
 					}
-					tokens.add(new QueryParsingToken(() -> {
+					tokens.add(new JpaQueryParsingToken(() -> {
 
 						if (order.getProperty().contains("(")) {
 							return order.getProperty();
@@ -184,7 +184,7 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 						NOSPACE(tokens);
 						tokens.add(TOKEN_CLOSE_PAREN);
 					}
-					tokens.add(new QueryParsingToken(order.isDescending() ? "desc" : "asc", false));
+					tokens.add(new JpaQueryParsingToken(order.isDescending() ? "desc" : "asc", false));
 					tokens.add(TOKEN_COMMA);
 				});
 				CLIP(tokens);
@@ -200,9 +200,9 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitSelectQuery(HqlParser.SelectQueryContext ctx) {
+	public List<JpaQueryParsingToken> visitSelectQuery(HqlParser.SelectQueryContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.selectClause() != null) {
 			tokens.addAll(visit(ctx.selectClause()));
@@ -228,18 +228,18 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitFromQuery(HqlParser.FromQueryContext ctx) {
+	public List<JpaQueryParsingToken> visitFromQuery(HqlParser.FromQueryContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (countQuery && !isSubquery(ctx) && ctx.selectClause() == null) {
 
 			tokens.add(TOKEN_SELECT_COUNT);
 
 			if (countProjection != null) {
-				tokens.add(new QueryParsingToken(countProjection));
+				tokens.add(new JpaQueryParsingToken(countProjection));
 			} else {
-				tokens.add(new QueryParsingToken(() -> this.alias, false));
+				tokens.add(new JpaQueryParsingToken(() -> this.alias, false));
 			}
 
 			tokens.add(TOKEN_CLOSE_PAREN);
@@ -269,9 +269,9 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitQueryOrder(HqlParser.QueryOrderContext ctx) {
+	public List<JpaQueryParsingToken> visitQueryOrder(HqlParser.QueryOrderContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (!countQuery) {
 			tokens.addAll(visit(ctx.orderByClause()));
@@ -292,14 +292,14 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitFromClause(HqlParser.FromClauseContext ctx) {
+	public List<JpaQueryParsingToken> visitFromClause(HqlParser.FromClauseContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		// from Employee e => FROM || from
 		// FrOm Employee e => FROM ||
 		// TODO: Read up on Framework's LeastRecentlyUsedCache
-		tokens.add(new QueryParsingToken(ctx.FROM()));
+		tokens.add(new JpaQueryParsingToken(ctx.FROM()));
 
 		ctx.entityWithJoins().forEach(entityWithJoinsContext -> {
 			tokens.addAll(visit(entityWithJoinsContext));
@@ -311,9 +311,9 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitEntityWithJoins(HqlParser.EntityWithJoinsContext ctx) {
+	public List<JpaQueryParsingToken> visitEntityWithJoins(HqlParser.EntityWithJoinsContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.addAll(visit(ctx.fromRoot()));
 
@@ -325,7 +325,7 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitJoinSpecifier(HqlParser.JoinSpecifierContext ctx) {
+	public List<JpaQueryParsingToken> visitJoinSpecifier(HqlParser.JoinSpecifierContext ctx) {
 
 		if (ctx.join() != null) {
 			return visit(ctx.join());
@@ -339,9 +339,9 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitFromRoot(HqlParser.FromRootContext ctx) {
+	public List<JpaQueryParsingToken> visitFromRoot(HqlParser.FromRootContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.entityName() != null) {
 
@@ -357,7 +357,7 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 		} else if (ctx.subquery() != null) {
 
 			if (ctx.LATERAL() != null) {
-				tokens.add(new QueryParsingToken(ctx.LATERAL()));
+				tokens.add(new JpaQueryParsingToken(ctx.LATERAL()));
 			}
 			tokens.add(TOKEN_OPEN_PAREN);
 			tokens.addAll(visit(ctx.subquery()));
@@ -376,15 +376,15 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitJoin(HqlParser.JoinContext ctx) {
+	public List<JpaQueryParsingToken> visitJoin(HqlParser.JoinContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.addAll(visit(ctx.joinType()));
-		tokens.add(new QueryParsingToken(ctx.JOIN()));
+		tokens.add(new JpaQueryParsingToken(ctx.JOIN()));
 
 		if (ctx.FETCH() != null) {
-			tokens.add(new QueryParsingToken(ctx.FETCH()));
+			tokens.add(new JpaQueryParsingToken(ctx.FETCH()));
 		}
 
 		tokens.addAll(visit(ctx.joinTarget()));
@@ -397,9 +397,9 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitJoinPath(HqlParser.JoinPathContext ctx) {
+	public List<JpaQueryParsingToken> visitJoinPath(HqlParser.JoinPathContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.addAll(visit(ctx.path()));
 
@@ -411,12 +411,12 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitJoinSubquery(HqlParser.JoinSubqueryContext ctx) {
+	public List<JpaQueryParsingToken> visitJoinSubquery(HqlParser.JoinSubqueryContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.LATERAL() != null) {
-			tokens.add(new QueryParsingToken(ctx.LATERAL()));
+			tokens.add(new JpaQueryParsingToken(ctx.LATERAL()));
 		}
 
 		tokens.add(TOKEN_OPEN_PAREN);
@@ -431,14 +431,14 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitUpdateStatement(HqlParser.UpdateStatementContext ctx) {
+	public List<JpaQueryParsingToken> visitUpdateStatement(HqlParser.UpdateStatementContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.UPDATE()));
+		tokens.add(new JpaQueryParsingToken(ctx.UPDATE()));
 
 		if (ctx.VERSIONED() != null) {
-			tokens.add(new QueryParsingToken(ctx.VERSIONED()));
+			tokens.add(new JpaQueryParsingToken(ctx.VERSIONED()));
 		}
 
 		tokens.addAll(visit(ctx.targetEntity()));
@@ -452,9 +452,9 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitTargetEntity(HqlParser.TargetEntityContext ctx) {
+	public List<JpaQueryParsingToken> visitTargetEntity(HqlParser.TargetEntityContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.addAll(visit(ctx.entityName()));
 
@@ -466,11 +466,11 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitSetClause(HqlParser.SetClauseContext ctx) {
+	public List<JpaQueryParsingToken> visitSetClause(HqlParser.SetClauseContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.SET()));
+		tokens.add(new JpaQueryParsingToken(ctx.SET()));
 
 		ctx.assignment().forEach(assignmentContext -> {
 			tokens.addAll(visit(assignmentContext));
@@ -482,9 +482,9 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitAssignment(HqlParser.AssignmentContext ctx) {
+	public List<JpaQueryParsingToken> visitAssignment(HqlParser.AssignmentContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.addAll(visit(ctx.simplePath()));
 		tokens.add(TOKEN_EQUALS);
@@ -494,14 +494,14 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitDeleteStatement(HqlParser.DeleteStatementContext ctx) {
+	public List<JpaQueryParsingToken> visitDeleteStatement(HqlParser.DeleteStatementContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.DELETE()));
+		tokens.add(new JpaQueryParsingToken(ctx.DELETE()));
 
 		if (ctx.FROM() != null) {
-			tokens.add(new QueryParsingToken(ctx.FROM()));
+			tokens.add(new JpaQueryParsingToken(ctx.FROM()));
 		}
 
 		tokens.addAll(visit(ctx.targetEntity()));
@@ -514,14 +514,14 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitInsertStatement(HqlParser.InsertStatementContext ctx) {
+	public List<JpaQueryParsingToken> visitInsertStatement(HqlParser.InsertStatementContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.INSERT()));
+		tokens.add(new JpaQueryParsingToken(ctx.INSERT()));
 
 		if (ctx.INTO() != null) {
-			tokens.add(new QueryParsingToken(ctx.INTO()));
+			tokens.add(new JpaQueryParsingToken(ctx.INTO()));
 		}
 
 		tokens.addAll(visit(ctx.targetEntity()));
@@ -537,9 +537,9 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitTargetFields(HqlParser.TargetFieldsContext ctx) {
+	public List<JpaQueryParsingToken> visitTargetFields(HqlParser.TargetFieldsContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.add(TOKEN_OPEN_PAREN);
 
@@ -555,11 +555,11 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitValuesList(HqlParser.ValuesListContext ctx) {
+	public List<JpaQueryParsingToken> visitValuesList(HqlParser.ValuesListContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.VALUES()));
+		tokens.add(new JpaQueryParsingToken(ctx.VALUES()));
 
 		ctx.values().forEach(valuesContext -> {
 			tokens.addAll(visit(valuesContext));
@@ -571,9 +571,9 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitValues(HqlParser.ValuesContext ctx) {
+	public List<JpaQueryParsingToken> visitValues(HqlParser.ValuesContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.add(TOKEN_OPEN_PAREN);
 
@@ -589,9 +589,9 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitProjectedItem(HqlParser.ProjectedItemContext ctx) {
+	public List<JpaQueryParsingToken> visitProjectedItem(HqlParser.ProjectedItemContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.expression() != null) {
 			tokens.addAll(visit(ctx.expression()));
@@ -607,13 +607,13 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitInstantiation(HqlParser.InstantiationContext ctx) {
+	public List<JpaQueryParsingToken> visitInstantiation(HqlParser.InstantiationContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		this.hasConstructorExpression = true;
 
-		tokens.add(new QueryParsingToken(ctx.NEW()));
+		tokens.add(new JpaQueryParsingToken(ctx.NEW()));
 		tokens.addAll(visit(ctx.instantiationTarget()));
 		tokens.add(TOKEN_OPEN_PAREN);
 		tokens.addAll(visit(ctx.instantiationArguments()));
@@ -623,12 +623,12 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitAlias(HqlParser.AliasContext ctx) {
+	public List<JpaQueryParsingToken> visitAlias(HqlParser.AliasContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.AS() != null) {
-			tokens.add(new QueryParsingToken(ctx.AS()));
+			tokens.add(new JpaQueryParsingToken(ctx.AS()));
 		}
 
 		tokens.addAll(visit(ctx.identifier()));
@@ -641,12 +641,12 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitGroupedItem(HqlParser.GroupedItemContext ctx) {
+	public List<JpaQueryParsingToken> visitGroupedItem(HqlParser.GroupedItemContext ctx) {
 
 		if (ctx.identifier() != null) {
 			return visit(ctx.identifier());
 		} else if (ctx.INTEGER_LITERAL() != null) {
-			return List.of(new QueryParsingToken(ctx.INTEGER_LITERAL()));
+			return List.of(new JpaQueryParsingToken(ctx.INTEGER_LITERAL()));
 		} else if (ctx.expression() != null) {
 			return visit(ctx.expression());
 		} else {
@@ -655,9 +655,9 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitSortedItem(HqlParser.SortedItemContext ctx) {
+	public List<JpaQueryParsingToken> visitSortedItem(HqlParser.SortedItemContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.addAll(visit(ctx.sortExpression()));
 
@@ -673,12 +673,12 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitSortExpression(HqlParser.SortExpressionContext ctx) {
+	public List<JpaQueryParsingToken> visitSortExpression(HqlParser.SortExpressionContext ctx) {
 
 		if (ctx.identifier() != null) {
 			return visit(ctx.identifier());
 		} else if (ctx.INTEGER_LITERAL() != null) {
-			return List.of(new QueryParsingToken(ctx.INTEGER_LITERAL()));
+			return List.of(new JpaQueryParsingToken(ctx.INTEGER_LITERAL()));
 		} else if (ctx.expression() != null) {
 			return visit(ctx.expression());
 		} else {
@@ -687,72 +687,72 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitSortDirection(HqlParser.SortDirectionContext ctx) {
+	public List<JpaQueryParsingToken> visitSortDirection(HqlParser.SortDirectionContext ctx) {
 
 		if (ctx.ASC() != null) {
-			return List.of(new QueryParsingToken(ctx.ASC()));
+			return List.of(new JpaQueryParsingToken(ctx.ASC()));
 		} else if (ctx.DESC() != null) {
-			return List.of(new QueryParsingToken(ctx.DESC()));
+			return List.of(new JpaQueryParsingToken(ctx.DESC()));
 		} else {
 			return List.of();
 		}
 	}
 
 	@Override
-	public List<QueryParsingToken> visitNullsPrecedence(HqlParser.NullsPrecedenceContext ctx) {
+	public List<JpaQueryParsingToken> visitNullsPrecedence(HqlParser.NullsPrecedenceContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.NULLS()));
+		tokens.add(new JpaQueryParsingToken(ctx.NULLS()));
 
 		if (ctx.FIRST() != null) {
-			tokens.add(new QueryParsingToken(ctx.FIRST()));
+			tokens.add(new JpaQueryParsingToken(ctx.FIRST()));
 		} else if (ctx.LAST() != null) {
-			tokens.add(new QueryParsingToken(ctx.LAST()));
+			tokens.add(new JpaQueryParsingToken(ctx.LAST()));
 		}
 
 		return tokens;
 	}
 
 	@Override
-	public List<QueryParsingToken> visitLimitClause(HqlParser.LimitClauseContext ctx) {
+	public List<JpaQueryParsingToken> visitLimitClause(HqlParser.LimitClauseContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.LIMIT()));
+		tokens.add(new JpaQueryParsingToken(ctx.LIMIT()));
 		tokens.addAll(visit(ctx.parameterOrIntegerLiteral()));
 
 		return tokens;
 	}
 
 	@Override
-	public List<QueryParsingToken> visitOffsetClause(HqlParser.OffsetClauseContext ctx) {
+	public List<JpaQueryParsingToken> visitOffsetClause(HqlParser.OffsetClauseContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.OFFSET()));
+		tokens.add(new JpaQueryParsingToken(ctx.OFFSET()));
 		tokens.addAll(visit(ctx.parameterOrIntegerLiteral()));
 
 		if (ctx.ROW() != null) {
-			tokens.add(new QueryParsingToken(ctx.ROW()));
+			tokens.add(new JpaQueryParsingToken(ctx.ROW()));
 		} else if (ctx.ROWS() != null) {
-			tokens.add(new QueryParsingToken(ctx.ROWS()));
+			tokens.add(new JpaQueryParsingToken(ctx.ROWS()));
 		}
 
 		return tokens;
 	}
 
 	@Override
-	public List<QueryParsingToken> visitFetchClause(HqlParser.FetchClauseContext ctx) {
+	public List<JpaQueryParsingToken> visitFetchClause(HqlParser.FetchClauseContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.FETCH()));
+		tokens.add(new JpaQueryParsingToken(ctx.FETCH()));
 
 		if (ctx.FIRST() != null) {
-			tokens.add(new QueryParsingToken(ctx.FIRST()));
+			tokens.add(new JpaQueryParsingToken(ctx.FIRST()));
 		} else if (ctx.NEXT() != null) {
-			tokens.add(new QueryParsingToken(ctx.NEXT()));
+			tokens.add(new JpaQueryParsingToken(ctx.NEXT()));
 		}
 
 		if (ctx.parameterOrIntegerLiteral() != null) {
@@ -764,47 +764,47 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 		}
 
 		if (ctx.ROW() != null) {
-			tokens.add(new QueryParsingToken(ctx.ROW()));
+			tokens.add(new JpaQueryParsingToken(ctx.ROW()));
 		} else if (ctx.ROWS() != null) {
-			tokens.add(new QueryParsingToken(ctx.ROWS()));
+			tokens.add(new JpaQueryParsingToken(ctx.ROWS()));
 		}
 
 		if (ctx.ONLY() != null) {
-			tokens.add(new QueryParsingToken(ctx.ONLY()));
+			tokens.add(new JpaQueryParsingToken(ctx.ONLY()));
 		} else if (ctx.WITH() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.WITH()));
-			tokens.add(new QueryParsingToken(ctx.TIES()));
+			tokens.add(new JpaQueryParsingToken(ctx.WITH()));
+			tokens.add(new JpaQueryParsingToken(ctx.TIES()));
 		}
 
 		return tokens;
 	}
 
 	@Override
-	public List<QueryParsingToken> visitSubquery(HqlParser.SubqueryContext ctx) {
+	public List<JpaQueryParsingToken> visitSubquery(HqlParser.SubqueryContext ctx) {
 		return visit(ctx.queryExpression());
 	}
 
 	@Override
-	public List<QueryParsingToken> visitSelectClause(HqlParser.SelectClauseContext ctx) {
+	public List<JpaQueryParsingToken> visitSelectClause(HqlParser.SelectClauseContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.SELECT()));
+		tokens.add(new JpaQueryParsingToken(ctx.SELECT()));
 
 		if (countQuery && !isSubquery(ctx)) {
 			tokens.add(TOKEN_COUNT_FUNC);
 
 			if (countProjection != null) {
-				tokens.add(new QueryParsingToken(countProjection));
+				tokens.add(new JpaQueryParsingToken(countProjection));
 			}
 		}
 
 		if (ctx.DISTINCT() != null) {
-			tokens.add(new QueryParsingToken(ctx.DISTINCT()));
+			tokens.add(new JpaQueryParsingToken(ctx.DISTINCT()));
 		}
 
-		List<QueryParsingToken> selectionListTokens = visit(ctx.selectionList());
+		List<JpaQueryParsingToken> selectionListTokens = visit(ctx.selectionList());
 
 		if (countQuery && !isSubquery(ctx)) {
 
@@ -814,13 +814,13 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 					if (selectionListTokens.stream().anyMatch(hqlToken -> hqlToken.getToken().contains("new"))) {
 						// constructor
-						tokens.add(new QueryParsingToken(() -> this.alias));
+						tokens.add(new JpaQueryParsingToken(() -> this.alias));
 					} else {
 						// keep all the select items to distinct against
 						tokens.addAll(selectionListTokens);
 					}
 				} else {
-					tokens.add(new QueryParsingToken(() -> this.alias));
+					tokens.add(new JpaQueryParsingToken(() -> this.alias));
 				}
 			}
 
@@ -838,9 +838,9 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitSelectionList(HqlParser.SelectionListContext ctx) {
+	public List<JpaQueryParsingToken> visitSelectionList(HqlParser.SelectionListContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		ctx.selection().forEach(selectionContext -> {
 			tokens.addAll(visit(selectionContext));
@@ -854,9 +854,9 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitSelection(HqlParser.SelectionContext ctx) {
+	public List<JpaQueryParsingToken> visitSelection(HqlParser.SelectionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.addAll(visit(ctx.selectExpression()));
 
@@ -868,7 +868,7 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitSelectExpression(HqlParser.SelectExpressionContext ctx) {
+	public List<JpaQueryParsingToken> visitSelectExpression(HqlParser.SelectExpressionContext ctx) {
 
 		if (ctx.instantiation() != null) {
 			return visit(ctx.instantiation());
@@ -884,11 +884,11 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitMapEntrySelection(HqlParser.MapEntrySelectionContext ctx) {
+	public List<JpaQueryParsingToken> visitMapEntrySelection(HqlParser.MapEntrySelectionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.ENTRY()));
+		tokens.add(new JpaQueryParsingToken(ctx.ENTRY()));
 		tokens.add(TOKEN_OPEN_PAREN);
 		tokens.addAll(visit(ctx.path()));
 		tokens.add(TOKEN_CLOSE_PAREN);
@@ -897,11 +897,11 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitJpaSelectObjectSyntax(HqlParser.JpaSelectObjectSyntaxContext ctx) {
+	public List<JpaQueryParsingToken> visitJpaSelectObjectSyntax(HqlParser.JpaSelectObjectSyntaxContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.OBJECT()));
+		tokens.add(new JpaQueryParsingToken(ctx.OBJECT()));
 		tokens.add(TOKEN_OPEN_PAREN);
 		tokens.addAll(visit(ctx.identifier()));
 		tokens.add(TOKEN_CLOSE_PAREN);
@@ -910,11 +910,11 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitWhereClause(HqlParser.WhereClauseContext ctx) {
+	public List<JpaQueryParsingToken> visitWhereClause(HqlParser.WhereClauseContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.WHERE()));
+		tokens.add(new JpaQueryParsingToken(ctx.WHERE()));
 
 		ctx.predicate().forEach(predicateContext -> {
 			tokens.addAll(visit(predicateContext));
@@ -926,39 +926,39 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitJoinType(HqlParser.JoinTypeContext ctx) {
+	public List<JpaQueryParsingToken> visitJoinType(HqlParser.JoinTypeContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.INNER() != null) {
-			tokens.add(new QueryParsingToken(ctx.INNER()));
+			tokens.add(new JpaQueryParsingToken(ctx.INNER()));
 		}
 		if (ctx.LEFT() != null) {
-			tokens.add(new QueryParsingToken(ctx.LEFT()));
+			tokens.add(new JpaQueryParsingToken(ctx.LEFT()));
 		}
 		if (ctx.RIGHT() != null) {
-			tokens.add(new QueryParsingToken(ctx.RIGHT()));
+			tokens.add(new JpaQueryParsingToken(ctx.RIGHT()));
 		}
 		if (ctx.FULL() != null) {
-			tokens.add(new QueryParsingToken(ctx.FULL()));
+			tokens.add(new JpaQueryParsingToken(ctx.FULL()));
 		}
 		if (ctx.OUTER() != null) {
-			tokens.add(new QueryParsingToken(ctx.OUTER()));
+			tokens.add(new JpaQueryParsingToken(ctx.OUTER()));
 		}
 		if (ctx.CROSS() != null) {
-			tokens.add(new QueryParsingToken(ctx.CROSS()));
+			tokens.add(new JpaQueryParsingToken(ctx.CROSS()));
 		}
 
 		return tokens;
 	}
 
 	@Override
-	public List<QueryParsingToken> visitCrossJoin(HqlParser.CrossJoinContext ctx) {
+	public List<JpaQueryParsingToken> visitCrossJoin(HqlParser.CrossJoinContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.CROSS()));
-		tokens.add(new QueryParsingToken(ctx.JOIN()));
+		tokens.add(new JpaQueryParsingToken(ctx.CROSS()));
+		tokens.add(new JpaQueryParsingToken(ctx.JOIN()));
 		tokens.addAll(visit(ctx.entityName()));
 
 		if (ctx.variable() != null) {
@@ -969,14 +969,14 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitJoinRestriction(HqlParser.JoinRestrictionContext ctx) {
+	public List<JpaQueryParsingToken> visitJoinRestriction(HqlParser.JoinRestrictionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.ON() != null) {
-			tokens.add(new QueryParsingToken(ctx.ON()));
+			tokens.add(new JpaQueryParsingToken(ctx.ON()));
 		} else if (ctx.WITH() != null) {
-			tokens.add(new QueryParsingToken(ctx.WITH()));
+			tokens.add(new JpaQueryParsingToken(ctx.WITH()));
 		}
 
 		tokens.addAll(visit(ctx.predicate()));
@@ -985,12 +985,12 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitJpaCollectionJoin(HqlParser.JpaCollectionJoinContext ctx) {
+	public List<JpaQueryParsingToken> visitJpaCollectionJoin(HqlParser.JpaCollectionJoinContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.add(TOKEN_COMMA);
-		tokens.add(new QueryParsingToken(ctx.IN()));
+		tokens.add(new JpaQueryParsingToken(ctx.IN()));
 		tokens.addAll(visit(ctx.path()));
 		tokens.add(TOKEN_CLOSE_PAREN);
 
@@ -1002,12 +1002,12 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitGroupByClause(HqlParser.GroupByClauseContext ctx) {
+	public List<JpaQueryParsingToken> visitGroupByClause(HqlParser.GroupByClauseContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.GROUP()));
-		tokens.add(new QueryParsingToken(ctx.BY()));
+		tokens.add(new JpaQueryParsingToken(ctx.GROUP()));
+		tokens.add(new JpaQueryParsingToken(ctx.BY()));
 
 		ctx.groupedItem().forEach(groupedItemContext -> {
 			tokens.addAll(visit(groupedItemContext));
@@ -1021,12 +1021,12 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitOrderByClause(HqlParser.OrderByClauseContext ctx) {
+	public List<JpaQueryParsingToken> visitOrderByClause(HqlParser.OrderByClauseContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.ORDER()));
-		tokens.add(new QueryParsingToken(ctx.BY()));
+		tokens.add(new JpaQueryParsingToken(ctx.ORDER()));
+		tokens.add(new JpaQueryParsingToken(ctx.BY()));
 
 		ctx.projectedItem().forEach(projectedItemContext -> {
 			tokens.addAll(visit(projectedItemContext));
@@ -1039,11 +1039,11 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitHavingClause(HqlParser.HavingClauseContext ctx) {
+	public List<JpaQueryParsingToken> visitHavingClause(HqlParser.HavingClauseContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.HAVING()));
+		tokens.add(new JpaQueryParsingToken(ctx.HAVING()));
 
 		ctx.predicate().forEach(predicateContext -> {
 			tokens.addAll(visit(predicateContext));
@@ -1055,30 +1055,30 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitSetOperator(HqlParser.SetOperatorContext ctx) {
+	public List<JpaQueryParsingToken> visitSetOperator(HqlParser.SetOperatorContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.UNION() != null) {
-			tokens.add(new QueryParsingToken(ctx.UNION()));
+			tokens.add(new JpaQueryParsingToken(ctx.UNION()));
 		} else if (ctx.INTERSECT() != null) {
-			tokens.add(new QueryParsingToken(ctx.INTERSECT()));
+			tokens.add(new JpaQueryParsingToken(ctx.INTERSECT()));
 		} else if (ctx.EXCEPT() != null) {
-			tokens.add(new QueryParsingToken(ctx.EXCEPT()));
+			tokens.add(new JpaQueryParsingToken(ctx.EXCEPT()));
 		}
 
 		if (ctx.ALL() != null) {
-			tokens.add(new QueryParsingToken(ctx.ALL()));
+			tokens.add(new JpaQueryParsingToken(ctx.ALL()));
 		}
 
 		return tokens;
 	}
 
 	@Override
-	public List<QueryParsingToken> visitLiteral(HqlParser.LiteralContext ctx) {
+	public List<JpaQueryParsingToken> visitLiteral(HqlParser.LiteralContext ctx) {
 
 		if (ctx.NULL() != null) {
-			return List.of(new QueryParsingToken(ctx.NULL()));
+			return List.of(new JpaQueryParsingToken(ctx.NULL()));
 		} else if (ctx.booleanLiteral() != null) {
 			return visit(ctx.booleanLiteral());
 		} else if (ctx.stringLiteral() != null) {
@@ -1093,82 +1093,82 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitBooleanLiteral(HqlParser.BooleanLiteralContext ctx) {
+	public List<JpaQueryParsingToken> visitBooleanLiteral(HqlParser.BooleanLiteralContext ctx) {
 
 		if (ctx.TRUE() != null) {
-			return List.of(new QueryParsingToken(ctx.TRUE()));
+			return List.of(new JpaQueryParsingToken(ctx.TRUE()));
 		} else if (ctx.FALSE() != null) {
-			return List.of(new QueryParsingToken(ctx.FALSE()));
+			return List.of(new JpaQueryParsingToken(ctx.FALSE()));
 		} else {
 			return List.of();
 		}
 	}
 
 	@Override
-	public List<QueryParsingToken> visitStringLiteral(HqlParser.StringLiteralContext ctx) {
+	public List<JpaQueryParsingToken> visitStringLiteral(HqlParser.StringLiteralContext ctx) {
 
 		if (ctx.STRINGLITERAL() != null) {
-			return List.of(new QueryParsingToken(ctx.STRINGLITERAL()));
+			return List.of(new JpaQueryParsingToken(ctx.STRINGLITERAL()));
 		} else if (ctx.CHARACTER() != null) {
-			return List.of(new QueryParsingToken(ctx.CHARACTER()));
+			return List.of(new JpaQueryParsingToken(ctx.CHARACTER()));
 		} else {
 			return List.of();
 		}
 	}
 
 	@Override
-	public List<QueryParsingToken> visitNumericLiteral(HqlParser.NumericLiteralContext ctx) {
+	public List<JpaQueryParsingToken> visitNumericLiteral(HqlParser.NumericLiteralContext ctx) {
 
 		if (ctx.INTEGER_LITERAL() != null) {
-			return List.of(new QueryParsingToken(ctx.INTEGER_LITERAL()));
+			return List.of(new JpaQueryParsingToken(ctx.INTEGER_LITERAL()));
 		} else if (ctx.FLOAT_LITERAL() != null) {
-			return List.of(new QueryParsingToken(ctx.FLOAT_LITERAL()));
+			return List.of(new JpaQueryParsingToken(ctx.FLOAT_LITERAL()));
 		} else if (ctx.HEXLITERAL() != null) {
-			return List.of(new QueryParsingToken(ctx.HEXLITERAL()));
+			return List.of(new JpaQueryParsingToken(ctx.HEXLITERAL()));
 		} else {
 			return List.of();
 		}
 	}
 
 	@Override
-	public List<QueryParsingToken> visitDateTimeLiteral(HqlParser.DateTimeLiteralContext ctx) {
+	public List<JpaQueryParsingToken> visitDateTimeLiteral(HqlParser.DateTimeLiteralContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.LOCAL_DATE() != null) {
-			tokens.add(new QueryParsingToken(ctx.LOCAL_DATE()));
+			tokens.add(new JpaQueryParsingToken(ctx.LOCAL_DATE()));
 		} else if (ctx.LOCAL_TIME() != null) {
-			tokens.add(new QueryParsingToken(ctx.LOCAL_TIME()));
+			tokens.add(new JpaQueryParsingToken(ctx.LOCAL_TIME()));
 		} else if (ctx.LOCAL_DATETIME() != null) {
-			tokens.add(new QueryParsingToken(ctx.LOCAL_DATETIME()));
+			tokens.add(new JpaQueryParsingToken(ctx.LOCAL_DATETIME()));
 		} else if (ctx.CURRENT_DATE() != null) {
-			tokens.add(new QueryParsingToken(ctx.CURRENT_DATE()));
+			tokens.add(new JpaQueryParsingToken(ctx.CURRENT_DATE()));
 		} else if (ctx.CURRENT_TIME() != null) {
-			tokens.add(new QueryParsingToken(ctx.CURRENT_TIME()));
+			tokens.add(new JpaQueryParsingToken(ctx.CURRENT_TIME()));
 		} else if (ctx.CURRENT_TIMESTAMP() != null) {
-			tokens.add(new QueryParsingToken(ctx.CURRENT_TIMESTAMP()));
+			tokens.add(new JpaQueryParsingToken(ctx.CURRENT_TIMESTAMP()));
 		} else if (ctx.OFFSET_DATETIME() != null) {
-			tokens.add(new QueryParsingToken(ctx.OFFSET_DATETIME()));
+			tokens.add(new JpaQueryParsingToken(ctx.OFFSET_DATETIME()));
 		} else {
 
 			if (ctx.LOCAL() != null) {
-				tokens.add(new QueryParsingToken(ctx.LOCAL()));
+				tokens.add(new JpaQueryParsingToken(ctx.LOCAL()));
 			} else if (ctx.CURRENT() != null) {
-				tokens.add(new QueryParsingToken(ctx.CURRENT()));
+				tokens.add(new JpaQueryParsingToken(ctx.CURRENT()));
 			} else if (ctx.OFFSET() != null) {
-				tokens.add(new QueryParsingToken(ctx.OFFSET()));
+				tokens.add(new JpaQueryParsingToken(ctx.OFFSET()));
 			}
 
 			if (ctx.DATE() != null) {
-				tokens.add(new QueryParsingToken(ctx.DATE()));
+				tokens.add(new JpaQueryParsingToken(ctx.DATE()));
 			} else if (ctx.TIME() != null) {
-				tokens.add(new QueryParsingToken(ctx.TIME()));
+				tokens.add(new JpaQueryParsingToken(ctx.TIME()));
 			} else if (ctx.DATETIME() != null) {
-				tokens.add(new QueryParsingToken(ctx.DATETIME()));
+				tokens.add(new JpaQueryParsingToken(ctx.DATETIME()));
 			}
 
 			if (ctx.INSTANT() != null) {
-				tokens.add(new QueryParsingToken(ctx.INSTANT()));
+				tokens.add(new JpaQueryParsingToken(ctx.INSTANT()));
 			}
 		}
 
@@ -1176,14 +1176,14 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitPlainPrimaryExpression(HqlParser.PlainPrimaryExpressionContext ctx) {
+	public List<JpaQueryParsingToken> visitPlainPrimaryExpression(HqlParser.PlainPrimaryExpressionContext ctx) {
 		return visit(ctx.primaryExpression());
 	}
 
 	@Override
-	public List<QueryParsingToken> visitTupleExpression(HqlParser.TupleExpressionContext ctx) {
+	public List<JpaQueryParsingToken> visitTupleExpression(HqlParser.TupleExpressionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.add(TOKEN_OPEN_PAREN);
 
@@ -1199,9 +1199,9 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitHqlConcatenationExpression(HqlParser.HqlConcatenationExpressionContext ctx) {
+	public List<JpaQueryParsingToken> visitHqlConcatenationExpression(HqlParser.HqlConcatenationExpressionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.addAll(visit(ctx.expression(0)));
 		tokens.add(TOKEN_DOUBLE_PIPE);
@@ -1211,9 +1211,9 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitGroupedExpression(HqlParser.GroupedExpressionContext ctx) {
+	public List<JpaQueryParsingToken> visitGroupedExpression(HqlParser.GroupedExpressionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.add(TOKEN_OPEN_PAREN);
 		tokens.addAll(visit(ctx.expression()));
@@ -1223,44 +1223,44 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitAdditionExpression(HqlParser.AdditionExpressionContext ctx) {
+	public List<JpaQueryParsingToken> visitAdditionExpression(HqlParser.AdditionExpressionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.addAll(visit(ctx.expression(0)));
-		tokens.add(new QueryParsingToken(ctx.op));
+		tokens.add(new JpaQueryParsingToken(ctx.op));
 		tokens.addAll(visit(ctx.expression(1)));
 
 		return tokens;
 	}
 
 	@Override
-	public List<QueryParsingToken> visitSignedNumericLiteral(HqlParser.SignedNumericLiteralContext ctx) {
+	public List<JpaQueryParsingToken> visitSignedNumericLiteral(HqlParser.SignedNumericLiteralContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.op));
+		tokens.add(new JpaQueryParsingToken(ctx.op));
 		tokens.addAll(visit(ctx.numericLiteral()));
 
 		return tokens;
 	}
 
 	@Override
-	public List<QueryParsingToken> visitMultiplicationExpression(HqlParser.MultiplicationExpressionContext ctx) {
+	public List<JpaQueryParsingToken> visitMultiplicationExpression(HqlParser.MultiplicationExpressionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.addAll(visit(ctx.expression(0)));
-		tokens.add(new QueryParsingToken(ctx.op));
+		tokens.add(new JpaQueryParsingToken(ctx.op));
 		tokens.addAll(visit(ctx.expression(1)));
 
 		return tokens;
 	}
 
 	@Override
-	public List<QueryParsingToken> visitSubqueryExpression(HqlParser.SubqueryExpressionContext ctx) {
+	public List<JpaQueryParsingToken> visitSubqueryExpression(HqlParser.SubqueryExpressionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.add(TOKEN_OPEN_PAREN);
 		tokens.addAll(visit(ctx.subquery()));
@@ -1271,43 +1271,43 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitSignedExpression(HqlParser.SignedExpressionContext ctx) {
+	public List<JpaQueryParsingToken> visitSignedExpression(HqlParser.SignedExpressionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.op));
+		tokens.add(new JpaQueryParsingToken(ctx.op));
 		tokens.addAll(visit(ctx.expression()));
 
 		return tokens;
 	}
 
 	@Override
-	public List<QueryParsingToken> visitCaseExpression(HqlParser.CaseExpressionContext ctx) {
+	public List<JpaQueryParsingToken> visitCaseExpression(HqlParser.CaseExpressionContext ctx) {
 		return visit(ctx.caseList());
 	}
 
 	@Override
-	public List<QueryParsingToken> visitLiteralExpression(HqlParser.LiteralExpressionContext ctx) {
+	public List<JpaQueryParsingToken> visitLiteralExpression(HqlParser.LiteralExpressionContext ctx) {
 		return visit(ctx.literal());
 	}
 
 	@Override
-	public List<QueryParsingToken> visitParameterExpression(HqlParser.ParameterExpressionContext ctx) {
+	public List<JpaQueryParsingToken> visitParameterExpression(HqlParser.ParameterExpressionContext ctx) {
 		return visit(ctx.parameter());
 	}
 
 	@Override
-	public List<QueryParsingToken> visitFunctionExpression(HqlParser.FunctionExpressionContext ctx) {
+	public List<JpaQueryParsingToken> visitFunctionExpression(HqlParser.FunctionExpressionContext ctx) {
 		return visit(ctx.function());
 	}
 
 	@Override
-	public List<QueryParsingToken> visitGeneralPathExpression(HqlParser.GeneralPathExpressionContext ctx) {
+	public List<JpaQueryParsingToken> visitGeneralPathExpression(HqlParser.GeneralPathExpressionContext ctx) {
 		return visit(ctx.generalPathFragment());
 	}
 
 	@Override
-	public List<QueryParsingToken> visitIdentificationVariable(HqlParser.IdentificationVariableContext ctx) {
+	public List<JpaQueryParsingToken> visitIdentificationVariable(HqlParser.IdentificationVariableContext ctx) {
 
 		if (ctx.identifier() != null) {
 			return visit(ctx.identifier());
@@ -1319,9 +1319,9 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitPath(HqlParser.PathContext ctx) {
+	public List<JpaQueryParsingToken> visitPath(HqlParser.PathContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.treatedPath() != null) {
 
@@ -1338,9 +1338,9 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitGeneralPathFragment(HqlParser.GeneralPathFragmentContext ctx) {
+	public List<JpaQueryParsingToken> visitGeneralPathFragment(HqlParser.GeneralPathFragmentContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.addAll(visit(ctx.simplePath()));
 
@@ -1352,9 +1352,9 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitIndexedPathAccessFragment(HqlParser.IndexedPathAccessFragmentContext ctx) {
+	public List<JpaQueryParsingToken> visitIndexedPathAccessFragment(HqlParser.IndexedPathAccessFragmentContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.add(TOKEN_OPEN_SQUARE_BRACKET);
 		tokens.addAll(visit(ctx.expression()));
@@ -1370,9 +1370,9 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitSimplePath(HqlParser.SimplePathContext ctx) {
+	public List<JpaQueryParsingToken> visitSimplePath(HqlParser.SimplePathContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.addAll(visit(ctx.identifier()));
 
@@ -1384,9 +1384,9 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitSimplePathElement(HqlParser.SimplePathElementContext ctx) {
+	public List<JpaQueryParsingToken> visitSimplePathElement(HqlParser.SimplePathElementContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.add(TOKEN_DOT);
 		tokens.addAll(visit(ctx.identifier()));
@@ -1395,7 +1395,7 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitCaseList(HqlParser.CaseListContext ctx) {
+	public List<JpaQueryParsingToken> visitCaseList(HqlParser.CaseListContext ctx) {
 
 		if (ctx.simpleCaseExpression() != null) {
 			return visit(ctx.simpleCaseExpression());
@@ -1407,11 +1407,11 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitSimpleCaseExpression(HqlParser.SimpleCaseExpressionContext ctx) {
+	public List<JpaQueryParsingToken> visitSimpleCaseExpression(HqlParser.SimpleCaseExpressionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.CASE()));
+		tokens.add(new JpaQueryParsingToken(ctx.CASE()));
 		tokens.addAll(visit(ctx.expressionOrPredicate(0)));
 
 		ctx.caseWhenExpressionClause().forEach(caseWhenExpressionClauseContext -> {
@@ -1420,21 +1420,21 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 		if (ctx.ELSE() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.ELSE()));
+			tokens.add(new JpaQueryParsingToken(ctx.ELSE()));
 			tokens.addAll(visit(ctx.expressionOrPredicate(1)));
 		}
 
-		tokens.add(new QueryParsingToken(ctx.END()));
+		tokens.add(new JpaQueryParsingToken(ctx.END()));
 
 		return tokens;
 	}
 
 	@Override
-	public List<QueryParsingToken> visitSearchedCaseExpression(HqlParser.SearchedCaseExpressionContext ctx) {
+	public List<JpaQueryParsingToken> visitSearchedCaseExpression(HqlParser.SearchedCaseExpressionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.CASE()));
+		tokens.add(new JpaQueryParsingToken(ctx.CASE()));
 
 		ctx.caseWhenPredicateClause().forEach(caseWhenPredicateClauseContext -> {
 			tokens.addAll(visit(caseWhenPredicateClauseContext));
@@ -1442,45 +1442,45 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 		if (ctx.ELSE() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.ELSE()));
+			tokens.add(new JpaQueryParsingToken(ctx.ELSE()));
 			tokens.addAll(visit(ctx.expressionOrPredicate()));
 		}
 
-		tokens.add(new QueryParsingToken(ctx.END()));
+		tokens.add(new JpaQueryParsingToken(ctx.END()));
 
 		return tokens;
 	}
 
 	@Override
-	public List<QueryParsingToken> visitCaseWhenExpressionClause(HqlParser.CaseWhenExpressionClauseContext ctx) {
+	public List<JpaQueryParsingToken> visitCaseWhenExpressionClause(HqlParser.CaseWhenExpressionClauseContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.WHEN()));
+		tokens.add(new JpaQueryParsingToken(ctx.WHEN()));
 		tokens.addAll(visit(ctx.expression()));
-		tokens.add(new QueryParsingToken(ctx.THEN()));
+		tokens.add(new JpaQueryParsingToken(ctx.THEN()));
 		tokens.addAll(visit(ctx.expressionOrPredicate()));
 
 		return tokens;
 	}
 
 	@Override
-	public List<QueryParsingToken> visitCaseWhenPredicateClause(HqlParser.CaseWhenPredicateClauseContext ctx) {
+	public List<JpaQueryParsingToken> visitCaseWhenPredicateClause(HqlParser.CaseWhenPredicateClauseContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.WHEN()));
+		tokens.add(new JpaQueryParsingToken(ctx.WHEN()));
 		tokens.addAll(visit(ctx.predicate()));
-		tokens.add(new QueryParsingToken(ctx.THEN()));
+		tokens.add(new JpaQueryParsingToken(ctx.THEN()));
 		tokens.addAll(visit(ctx.expressionOrPredicate()));
 
 		return tokens;
 	}
 
 	@Override
-	public List<QueryParsingToken> visitGenericFunction(HqlParser.GenericFunctionContext ctx) {
+	public List<JpaQueryParsingToken> visitGenericFunction(HqlParser.GenericFunctionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.addAll(visit(ctx.functionName()));
 		NOSPACE(tokens);
@@ -1489,7 +1489,7 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 		if (ctx.functionArguments() != null) {
 			tokens.addAll(visit(ctx.functionArguments()));
 		} else if (ctx.ASTERISK() != null) {
-			tokens.add(new QueryParsingToken(ctx.ASTERISK()));
+			tokens.add(new JpaQueryParsingToken(ctx.ASTERISK()));
 		}
 
 		tokens.add(TOKEN_CLOSE_PAREN);
@@ -1514,9 +1514,9 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitFunctionWithSubquery(HqlParser.FunctionWithSubqueryContext ctx) {
+	public List<JpaQueryParsingToken> visitFunctionWithSubquery(HqlParser.FunctionWithSubqueryContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.addAll(visit(ctx.functionName()));
 		NOSPACE(tokens);
@@ -1528,42 +1528,42 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitCastFunctionInvocation(HqlParser.CastFunctionInvocationContext ctx) {
+	public List<JpaQueryParsingToken> visitCastFunctionInvocation(HqlParser.CastFunctionInvocationContext ctx) {
 		return visit(ctx.castFunction());
 	}
 
 	@Override
-	public List<QueryParsingToken> visitExtractFunctionInvocation(HqlParser.ExtractFunctionInvocationContext ctx) {
+	public List<JpaQueryParsingToken> visitExtractFunctionInvocation(HqlParser.ExtractFunctionInvocationContext ctx) {
 		return visit(ctx.extractFunction());
 	}
 
 	@Override
-	public List<QueryParsingToken> visitTrimFunctionInvocation(HqlParser.TrimFunctionInvocationContext ctx) {
+	public List<JpaQueryParsingToken> visitTrimFunctionInvocation(HqlParser.TrimFunctionInvocationContext ctx) {
 		return visit(ctx.trimFunction());
 	}
 
 	@Override
-	public List<QueryParsingToken> visitEveryFunctionInvocation(HqlParser.EveryFunctionInvocationContext ctx) {
+	public List<JpaQueryParsingToken> visitEveryFunctionInvocation(HqlParser.EveryFunctionInvocationContext ctx) {
 		return visit(ctx.everyFunction());
 	}
 
 	@Override
-	public List<QueryParsingToken> visitAnyFunctionInvocation(HqlParser.AnyFunctionInvocationContext ctx) {
+	public List<JpaQueryParsingToken> visitAnyFunctionInvocation(HqlParser.AnyFunctionInvocationContext ctx) {
 		return visit(ctx.anyFunction());
 	}
 
 	@Override
-	public List<QueryParsingToken> visitTreatedPathInvocation(HqlParser.TreatedPathInvocationContext ctx) {
+	public List<JpaQueryParsingToken> visitTreatedPathInvocation(HqlParser.TreatedPathInvocationContext ctx) {
 		return visit(ctx.treatedPath());
 	}
 
 	@Override
-	public List<QueryParsingToken> visitFunctionArguments(HqlParser.FunctionArgumentsContext ctx) {
+	public List<JpaQueryParsingToken> visitFunctionArguments(HqlParser.FunctionArgumentsContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.DISTINCT() != null) {
-			tokens.add(new QueryParsingToken(ctx.DISTINCT()));
+			tokens.add(new JpaQueryParsingToken(ctx.DISTINCT()));
 		}
 
 		ctx.expressionOrPredicate().forEach(expressionOrPredicateContext -> {
@@ -1577,11 +1577,11 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitFilterClause(HqlParser.FilterClauseContext ctx) {
+	public List<JpaQueryParsingToken> visitFilterClause(HqlParser.FilterClauseContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.FILTER()));
+		tokens.add(new JpaQueryParsingToken(ctx.FILTER()));
 		tokens.add(TOKEN_OPEN_PAREN);
 		tokens.addAll(visit(ctx.whereClause()));
 		tokens.add(TOKEN_CLOSE_PAREN);
@@ -1590,12 +1590,12 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitWithinGroup(HqlParser.WithinGroupContext ctx) {
+	public List<JpaQueryParsingToken> visitWithinGroup(HqlParser.WithinGroupContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.WITHIN()));
-		tokens.add(new QueryParsingToken(ctx.GROUP()));
+		tokens.add(new JpaQueryParsingToken(ctx.WITHIN()));
+		tokens.add(new JpaQueryParsingToken(ctx.GROUP()));
 		tokens.add(TOKEN_OPEN_PAREN);
 		tokens.addAll(visit(ctx.orderByClause()));
 		tokens.add(TOKEN_CLOSE_PAREN);
@@ -1604,11 +1604,11 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitOverClause(HqlParser.OverClauseContext ctx) {
+	public List<JpaQueryParsingToken> visitOverClause(HqlParser.OverClauseContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.OVER()));
+		tokens.add(new JpaQueryParsingToken(ctx.OVER()));
 		tokens.add(TOKEN_OPEN_PAREN);
 
 		if (ctx.partitionClause() != null) {
@@ -1631,12 +1631,12 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitPartitionClause(HqlParser.PartitionClauseContext ctx) {
+	public List<JpaQueryParsingToken> visitPartitionClause(HqlParser.PartitionClauseContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.PARTITION()));
-		tokens.add(new QueryParsingToken(ctx.BY()));
+		tokens.add(new JpaQueryParsingToken(ctx.PARTITION()));
+		tokens.add(new JpaQueryParsingToken(ctx.BY()));
 
 		ctx.expression().forEach(expressionContext -> {
 			tokens.addAll(visit(expressionContext));
@@ -1650,27 +1650,27 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitFrameClause(HqlParser.FrameClauseContext ctx) {
+	public List<JpaQueryParsingToken> visitFrameClause(HqlParser.FrameClauseContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.RANGE() != null) {
-			tokens.add(new QueryParsingToken(ctx.RANGE()));
+			tokens.add(new JpaQueryParsingToken(ctx.RANGE()));
 		} else if (ctx.ROWS() != null) {
-			tokens.add(new QueryParsingToken(ctx.ROWS()));
+			tokens.add(new JpaQueryParsingToken(ctx.ROWS()));
 		} else if (ctx.GROUPS() != null) {
-			tokens.add(new QueryParsingToken(ctx.GROUPS()));
+			tokens.add(new JpaQueryParsingToken(ctx.GROUPS()));
 		}
 
 		if (ctx.BETWEEN() != null) {
-			tokens.add(new QueryParsingToken(ctx.BETWEEN()));
+			tokens.add(new JpaQueryParsingToken(ctx.BETWEEN()));
 		}
 
 		tokens.addAll(visit(ctx.frameStart()));
 
 		if (ctx.AND() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.AND()));
+			tokens.add(new JpaQueryParsingToken(ctx.AND()));
 			tokens.addAll(visit(ctx.frameEnd()));
 		}
 
@@ -1682,150 +1682,150 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitUnboundedPrecedingFrameStart(HqlParser.UnboundedPrecedingFrameStartContext ctx) {
+	public List<JpaQueryParsingToken> visitUnboundedPrecedingFrameStart(HqlParser.UnboundedPrecedingFrameStartContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.UNBOUNDED()));
-		tokens.add(new QueryParsingToken(ctx.PRECEDING()));
+		tokens.add(new JpaQueryParsingToken(ctx.UNBOUNDED()));
+		tokens.add(new JpaQueryParsingToken(ctx.PRECEDING()));
 
 		return tokens;
 	}
 
 	@Override
-	public List<QueryParsingToken> visitExpressionPrecedingFrameStart(
+	public List<JpaQueryParsingToken> visitExpressionPrecedingFrameStart(
 			HqlParser.ExpressionPrecedingFrameStartContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.addAll(visit(ctx.expression()));
-		tokens.add(new QueryParsingToken(ctx.PRECEDING()));
+		tokens.add(new JpaQueryParsingToken(ctx.PRECEDING()));
 
 		return tokens;
 	}
 
 	@Override
-	public List<QueryParsingToken> visitCurrentRowFrameStart(HqlParser.CurrentRowFrameStartContext ctx) {
+	public List<JpaQueryParsingToken> visitCurrentRowFrameStart(HqlParser.CurrentRowFrameStartContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.CURRENT()));
-		tokens.add(new QueryParsingToken(ctx.ROW()));
+		tokens.add(new JpaQueryParsingToken(ctx.CURRENT()));
+		tokens.add(new JpaQueryParsingToken(ctx.ROW()));
 
 		return tokens;
 	}
 
 	@Override
-	public List<QueryParsingToken> visitExpressionFollowingFrameStart(
+	public List<JpaQueryParsingToken> visitExpressionFollowingFrameStart(
 			HqlParser.ExpressionFollowingFrameStartContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.addAll(visit(ctx.expression()));
-		tokens.add(new QueryParsingToken(ctx.FOLLOWING()));
+		tokens.add(new JpaQueryParsingToken(ctx.FOLLOWING()));
 
 		return tokens;
 	}
 
 	@Override
-	public List<QueryParsingToken> visitCurrentRowFrameExclusion(HqlParser.CurrentRowFrameExclusionContext ctx) {
+	public List<JpaQueryParsingToken> visitCurrentRowFrameExclusion(HqlParser.CurrentRowFrameExclusionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.EXCLUDE()));
-		tokens.add(new QueryParsingToken(ctx.CURRENT()));
-		tokens.add(new QueryParsingToken(ctx.ROW()));
-
-		return tokens;
-	}
-
-	@Override
-	public List<QueryParsingToken> visitGroupFrameExclusion(HqlParser.GroupFrameExclusionContext ctx) {
-
-		List<QueryParsingToken> tokens = new ArrayList<>();
-
-		tokens.add(new QueryParsingToken(ctx.EXCLUDE()));
-		tokens.add(new QueryParsingToken(ctx.GROUP()));
+		tokens.add(new JpaQueryParsingToken(ctx.EXCLUDE()));
+		tokens.add(new JpaQueryParsingToken(ctx.CURRENT()));
+		tokens.add(new JpaQueryParsingToken(ctx.ROW()));
 
 		return tokens;
 	}
 
 	@Override
-	public List<QueryParsingToken> visitTiesFrameExclusion(HqlParser.TiesFrameExclusionContext ctx) {
+	public List<JpaQueryParsingToken> visitGroupFrameExclusion(HqlParser.GroupFrameExclusionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.EXCLUDE()));
-		tokens.add(new QueryParsingToken(ctx.TIES()));
-
-		return tokens;
-	}
-
-	@Override
-	public List<QueryParsingToken> visitNoOthersFrameExclusion(HqlParser.NoOthersFrameExclusionContext ctx) {
-
-		List<QueryParsingToken> tokens = new ArrayList<>();
-
-		tokens.add(new QueryParsingToken(ctx.EXCLUDE()));
-		tokens.add(new QueryParsingToken(ctx.NO()));
-		tokens.add(new QueryParsingToken(ctx.OTHERS()));
+		tokens.add(new JpaQueryParsingToken(ctx.EXCLUDE()));
+		tokens.add(new JpaQueryParsingToken(ctx.GROUP()));
 
 		return tokens;
 	}
 
 	@Override
-	public List<QueryParsingToken> visitExpressionPrecedingFrameEnd(HqlParser.ExpressionPrecedingFrameEndContext ctx) {
+	public List<JpaQueryParsingToken> visitTiesFrameExclusion(HqlParser.TiesFrameExclusionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+
+		tokens.add(new JpaQueryParsingToken(ctx.EXCLUDE()));
+		tokens.add(new JpaQueryParsingToken(ctx.TIES()));
+
+		return tokens;
+	}
+
+	@Override
+	public List<JpaQueryParsingToken> visitNoOthersFrameExclusion(HqlParser.NoOthersFrameExclusionContext ctx) {
+
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+
+		tokens.add(new JpaQueryParsingToken(ctx.EXCLUDE()));
+		tokens.add(new JpaQueryParsingToken(ctx.NO()));
+		tokens.add(new JpaQueryParsingToken(ctx.OTHERS()));
+
+		return tokens;
+	}
+
+	@Override
+	public List<JpaQueryParsingToken> visitExpressionPrecedingFrameEnd(HqlParser.ExpressionPrecedingFrameEndContext ctx) {
+
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.addAll(visit(ctx.expression()));
-		tokens.add(new QueryParsingToken(ctx.PRECEDING()));
+		tokens.add(new JpaQueryParsingToken(ctx.PRECEDING()));
 
 		return tokens;
 	}
 
 	@Override
-	public List<QueryParsingToken> visitCurrentRowFrameEnd(HqlParser.CurrentRowFrameEndContext ctx) {
+	public List<JpaQueryParsingToken> visitCurrentRowFrameEnd(HqlParser.CurrentRowFrameEndContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.CURRENT()));
-		tokens.add(new QueryParsingToken(ctx.ROW()));
+		tokens.add(new JpaQueryParsingToken(ctx.CURRENT()));
+		tokens.add(new JpaQueryParsingToken(ctx.ROW()));
 
 		return tokens;
 	}
 
 	@Override
-	public List<QueryParsingToken> visitExpressionFollowingFrameEnd(HqlParser.ExpressionFollowingFrameEndContext ctx) {
+	public List<JpaQueryParsingToken> visitExpressionFollowingFrameEnd(HqlParser.ExpressionFollowingFrameEndContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.addAll(visit(ctx.expression()));
-		tokens.add(new QueryParsingToken(ctx.FOLLOWING()));
+		tokens.add(new JpaQueryParsingToken(ctx.FOLLOWING()));
 
 		return tokens;
 	}
 
 	@Override
-	public List<QueryParsingToken> visitUnboundedFollowingFrameEnd(HqlParser.UnboundedFollowingFrameEndContext ctx) {
+	public List<JpaQueryParsingToken> visitUnboundedFollowingFrameEnd(HqlParser.UnboundedFollowingFrameEndContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.UNBOUNDED()));
-		tokens.add(new QueryParsingToken(ctx.FOLLOWING()));
+		tokens.add(new JpaQueryParsingToken(ctx.UNBOUNDED()));
+		tokens.add(new JpaQueryParsingToken(ctx.FOLLOWING()));
 
 		return tokens;
 	}
 
 	@Override
-	public List<QueryParsingToken> visitCastFunction(HqlParser.CastFunctionContext ctx) {
+	public List<JpaQueryParsingToken> visitCastFunction(HqlParser.CastFunctionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.CAST()));
+		tokens.add(new JpaQueryParsingToken(ctx.CAST()));
 		tokens.add(TOKEN_OPEN_PAREN);
 		tokens.addAll(visit(ctx.expression()));
-		tokens.add(new QueryParsingToken(ctx.AS()));
+		tokens.add(new JpaQueryParsingToken(ctx.AS()));
 		tokens.addAll(visit(ctx.identifier()));
 		tokens.add(TOKEN_CLOSE_PAREN);
 
@@ -1833,16 +1833,16 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitExtractFunction(HqlParser.ExtractFunctionContext ctx) {
+	public List<JpaQueryParsingToken> visitExtractFunction(HqlParser.ExtractFunctionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.EXTRACT() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.EXTRACT()));
+			tokens.add(new JpaQueryParsingToken(ctx.EXTRACT()));
 			tokens.add(TOKEN_OPEN_PAREN);
 			tokens.addAll(visit(ctx.expression(0)));
-			tokens.add(new QueryParsingToken(ctx.FROM()));
+			tokens.add(new JpaQueryParsingToken(ctx.FROM()));
 			tokens.addAll(visit(ctx.expression(1)));
 			tokens.add(TOKEN_CLOSE_PAREN);
 		} else if (ctx.dateTimeFunction() != null) {
@@ -1857,19 +1857,19 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitTrimFunction(HqlParser.TrimFunctionContext ctx) {
+	public List<JpaQueryParsingToken> visitTrimFunction(HqlParser.TrimFunctionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.TRIM()));
+		tokens.add(new JpaQueryParsingToken(ctx.TRIM()));
 		tokens.add(TOKEN_OPEN_PAREN);
 
 		if (ctx.LEADING() != null) {
-			tokens.add(new QueryParsingToken(ctx.LEADING()));
+			tokens.add(new JpaQueryParsingToken(ctx.LEADING()));
 		} else if (ctx.TRAILING() != null) {
-			tokens.add(new QueryParsingToken(ctx.TRAILING()));
+			tokens.add(new JpaQueryParsingToken(ctx.TRAILING()));
 		} else if (ctx.BOTH() != null) {
-			tokens.add(new QueryParsingToken(ctx.BOTH()));
+			tokens.add(new JpaQueryParsingToken(ctx.BOTH()));
 		}
 
 		if (ctx.stringLiteral() != null) {
@@ -1877,7 +1877,7 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 		}
 
 		if (ctx.FROM() != null) {
-			tokens.add(new QueryParsingToken(ctx.FROM()));
+			tokens.add(new JpaQueryParsingToken(ctx.FROM()));
 		}
 
 		tokens.addAll(visit(ctx.expression()));
@@ -1887,21 +1887,21 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitDateTimeFunction(HqlParser.DateTimeFunctionContext ctx) {
-		return List.of(new QueryParsingToken(ctx.d));
+	public List<JpaQueryParsingToken> visitDateTimeFunction(HqlParser.DateTimeFunctionContext ctx) {
+		return List.of(new JpaQueryParsingToken(ctx.d));
 	}
 
 	@Override
-	public List<QueryParsingToken> visitEveryFunction(HqlParser.EveryFunctionContext ctx) {
+	public List<JpaQueryParsingToken> visitEveryFunction(HqlParser.EveryFunctionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.every));
+		tokens.add(new JpaQueryParsingToken(ctx.every));
 
 		if (ctx.ELEMENTS() != null) {
-			tokens.add(new QueryParsingToken(ctx.ELEMENTS()));
+			tokens.add(new JpaQueryParsingToken(ctx.ELEMENTS()));
 		} else if (ctx.INDICES() != null) {
-			tokens.add(new QueryParsingToken(ctx.INDICES()));
+			tokens.add(new JpaQueryParsingToken(ctx.INDICES()));
 		}
 
 		tokens.add(TOKEN_OPEN_PAREN);
@@ -1920,16 +1920,16 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitAnyFunction(HqlParser.AnyFunctionContext ctx) {
+	public List<JpaQueryParsingToken> visitAnyFunction(HqlParser.AnyFunctionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.any));
+		tokens.add(new JpaQueryParsingToken(ctx.any));
 
 		if (ctx.ELEMENTS() != null) {
-			tokens.add(new QueryParsingToken(ctx.ELEMENTS()));
+			tokens.add(new JpaQueryParsingToken(ctx.ELEMENTS()));
 		} else if (ctx.INDICES() != null) {
-			tokens.add(new QueryParsingToken(ctx.INDICES()));
+			tokens.add(new JpaQueryParsingToken(ctx.INDICES()));
 		}
 
 		tokens.add(TOKEN_OPEN_PAREN);
@@ -1948,14 +1948,14 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitTreatedPath(HqlParser.TreatedPathContext ctx) {
+	public List<JpaQueryParsingToken> visitTreatedPath(HqlParser.TreatedPathContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.TREAT()));
+		tokens.add(new JpaQueryParsingToken(ctx.TREAT()));
 		tokens.add(TOKEN_OPEN_PAREN);
 		tokens.addAll(visit(ctx.path()));
-		tokens.add(new QueryParsingToken(ctx.AS()));
+		tokens.add(new JpaQueryParsingToken(ctx.AS()));
 		tokens.addAll(visit(ctx.simplePath()));
 		tokens.add(TOKEN_CLOSE_PAREN);
 
@@ -1967,9 +1967,9 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitPathContinutation(HqlParser.PathContinutationContext ctx) {
+	public List<JpaQueryParsingToken> visitPathContinutation(HqlParser.PathContinutationContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.add(TOKEN_DOT);
 		tokens.addAll(visit(ctx.simplePath()));
@@ -1978,58 +1978,58 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitNullExpressionPredicate(HqlParser.NullExpressionPredicateContext ctx) {
+	public List<JpaQueryParsingToken> visitNullExpressionPredicate(HqlParser.NullExpressionPredicateContext ctx) {
 		return visit(ctx.dealingWithNullExpression());
 	}
 
 	@Override
-	public List<QueryParsingToken> visitBetweenPredicate(HqlParser.BetweenPredicateContext ctx) {
+	public List<JpaQueryParsingToken> visitBetweenPredicate(HqlParser.BetweenPredicateContext ctx) {
 		return visit(ctx.betweenExpression());
 	}
 
 	@Override
-	public List<QueryParsingToken> visitOrPredicate(HqlParser.OrPredicateContext ctx) {
+	public List<JpaQueryParsingToken> visitOrPredicate(HqlParser.OrPredicateContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.addAll(visit(ctx.predicate(0)));
-		tokens.add(new QueryParsingToken(ctx.OR()));
+		tokens.add(new JpaQueryParsingToken(ctx.OR()));
 		tokens.addAll(visit(ctx.predicate(1)));
 
 		return tokens;
 	}
 
 	@Override
-	public List<QueryParsingToken> visitRelationalPredicate(HqlParser.RelationalPredicateContext ctx) {
+	public List<JpaQueryParsingToken> visitRelationalPredicate(HqlParser.RelationalPredicateContext ctx) {
 		return visit(ctx.relationalExpression());
 	}
 
 	@Override
-	public List<QueryParsingToken> visitExistsPredicate(HqlParser.ExistsPredicateContext ctx) {
+	public List<JpaQueryParsingToken> visitExistsPredicate(HqlParser.ExistsPredicateContext ctx) {
 		return visit(ctx.existsExpression());
 	}
 
 	@Override
-	public List<QueryParsingToken> visitCollectionPredicate(HqlParser.CollectionPredicateContext ctx) {
+	public List<JpaQueryParsingToken> visitCollectionPredicate(HqlParser.CollectionPredicateContext ctx) {
 		return visit(ctx.collectionExpression());
 	}
 
 	@Override
-	public List<QueryParsingToken> visitAndPredicate(HqlParser.AndPredicateContext ctx) {
+	public List<JpaQueryParsingToken> visitAndPredicate(HqlParser.AndPredicateContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.addAll(visit(ctx.predicate(0)));
-		tokens.add(new QueryParsingToken(ctx.AND()));
+		tokens.add(new JpaQueryParsingToken(ctx.AND()));
 		tokens.addAll(visit(ctx.predicate(1)));
 
 		return tokens;
 	}
 
 	@Override
-	public List<QueryParsingToken> visitGroupedPredicate(HqlParser.GroupedPredicateContext ctx) {
+	public List<JpaQueryParsingToken> visitGroupedPredicate(HqlParser.GroupedPredicateContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.add(TOKEN_OPEN_PAREN);
 		tokens.addAll(visit(ctx.predicate()));
@@ -2040,33 +2040,33 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitLikePredicate(HqlParser.LikePredicateContext ctx) {
+	public List<JpaQueryParsingToken> visitLikePredicate(HqlParser.LikePredicateContext ctx) {
 		return visit(ctx.stringPatternMatching());
 	}
 
 	@Override
-	public List<QueryParsingToken> visitInPredicate(HqlParser.InPredicateContext ctx) {
+	public List<JpaQueryParsingToken> visitInPredicate(HqlParser.InPredicateContext ctx) {
 		return visit(ctx.inExpression());
 	}
 
 	@Override
-	public List<QueryParsingToken> visitNotPredicate(HqlParser.NotPredicateContext ctx) {
+	public List<JpaQueryParsingToken> visitNotPredicate(HqlParser.NotPredicateContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.NOT()));
+		tokens.add(new JpaQueryParsingToken(ctx.NOT()));
 		tokens.addAll(visit(ctx.predicate()));
 
 		return tokens;
 	}
 
 	@Override
-	public List<QueryParsingToken> visitExpressionPredicate(HqlParser.ExpressionPredicateContext ctx) {
+	public List<JpaQueryParsingToken> visitExpressionPredicate(HqlParser.ExpressionPredicateContext ctx) {
 		return visit(ctx.expression());
 	}
 
 	@Override
-	public List<QueryParsingToken> visitExpressionOrPredicate(HqlParser.ExpressionOrPredicateContext ctx) {
+	public List<JpaQueryParsingToken> visitExpressionOrPredicate(HqlParser.ExpressionOrPredicateContext ctx) {
 
 		if (ctx.expression() != null) {
 			return visit(ctx.expression());
@@ -2078,54 +2078,54 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitRelationalExpression(HqlParser.RelationalExpressionContext ctx) {
+	public List<JpaQueryParsingToken> visitRelationalExpression(HqlParser.RelationalExpressionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.addAll(visit(ctx.expression(0)));
-		tokens.add(new QueryParsingToken(ctx.op));
+		tokens.add(new JpaQueryParsingToken(ctx.op));
 		tokens.addAll(visit(ctx.expression(1)));
 
 		return tokens;
 	}
 
 	@Override
-	public List<QueryParsingToken> visitBetweenExpression(HqlParser.BetweenExpressionContext ctx) {
+	public List<JpaQueryParsingToken> visitBetweenExpression(HqlParser.BetweenExpressionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.addAll(visit(ctx.expression(0)));
 
 		if (ctx.NOT() != null) {
-			tokens.add(new QueryParsingToken(ctx.NOT()));
+			tokens.add(new JpaQueryParsingToken(ctx.NOT()));
 		}
 
-		tokens.add(new QueryParsingToken(ctx.BETWEEN()));
+		tokens.add(new JpaQueryParsingToken(ctx.BETWEEN()));
 		tokens.addAll(visit(ctx.expression(1)));
-		tokens.add(new QueryParsingToken(ctx.AND()));
+		tokens.add(new JpaQueryParsingToken(ctx.AND()));
 		tokens.addAll(visit(ctx.expression(2)));
 
 		return tokens;
 	}
 
 	@Override
-	public List<QueryParsingToken> visitDealingWithNullExpression(HqlParser.DealingWithNullExpressionContext ctx) {
+	public List<JpaQueryParsingToken> visitDealingWithNullExpression(HqlParser.DealingWithNullExpressionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.addAll(visit(ctx.expression(0)));
-		tokens.add(new QueryParsingToken(ctx.IS()));
+		tokens.add(new JpaQueryParsingToken(ctx.IS()));
 
 		if (ctx.NOT() != null) {
-			tokens.add(new QueryParsingToken(ctx.NOT()));
+			tokens.add(new JpaQueryParsingToken(ctx.NOT()));
 		}
 
 		if (ctx.NULL() != null) {
-			tokens.add(new QueryParsingToken(ctx.NULL()));
+			tokens.add(new JpaQueryParsingToken(ctx.NULL()));
 		} else if (ctx.DISTINCT() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.DISTINCT()));
-			tokens.add(new QueryParsingToken(ctx.FROM()));
+			tokens.add(new JpaQueryParsingToken(ctx.DISTINCT()));
+			tokens.add(new JpaQueryParsingToken(ctx.FROM()));
 			tokens.addAll(visit(ctx.expression(1)));
 		}
 
@@ -2133,27 +2133,27 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitStringPatternMatching(HqlParser.StringPatternMatchingContext ctx) {
+	public List<JpaQueryParsingToken> visitStringPatternMatching(HqlParser.StringPatternMatchingContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.addAll(visit(ctx.expression(0)));
 
 		if (ctx.NOT() != null) {
-			tokens.add(new QueryParsingToken(ctx.NOT()));
+			tokens.add(new JpaQueryParsingToken(ctx.NOT()));
 		}
 
 		if (ctx.LIKE() != null) {
-			tokens.add(new QueryParsingToken(ctx.LIKE()));
+			tokens.add(new JpaQueryParsingToken(ctx.LIKE()));
 		} else if (ctx.ILIKE() != null) {
-			tokens.add(new QueryParsingToken(ctx.ILIKE()));
+			tokens.add(new JpaQueryParsingToken(ctx.ILIKE()));
 		}
 
 		tokens.addAll(visit(ctx.expression(1)));
 
 		if (ctx.ESCAPE() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.ESCAPE()));
+			tokens.add(new JpaQueryParsingToken(ctx.ESCAPE()));
 			tokens.addAll(visit(ctx.character()));
 		}
 
@@ -2161,33 +2161,33 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitInExpression(HqlParser.InExpressionContext ctx) {
+	public List<JpaQueryParsingToken> visitInExpression(HqlParser.InExpressionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.addAll(visit(ctx.expression()));
 
 		if (ctx.NOT() != null) {
-			tokens.add(new QueryParsingToken(ctx.NOT()));
+			tokens.add(new JpaQueryParsingToken(ctx.NOT()));
 		}
 
-		tokens.add(new QueryParsingToken(ctx.IN()));
+		tokens.add(new JpaQueryParsingToken(ctx.IN()));
 		tokens.addAll(visit(ctx.inList()));
 
 		return tokens;
 	}
 
 	@Override
-	public List<QueryParsingToken> visitInList(HqlParser.InListContext ctx) {
+	public List<JpaQueryParsingToken> visitInList(HqlParser.InListContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.simplePath() != null) {
 
 			if (ctx.ELEMENTS() != null) {
-				tokens.add(new QueryParsingToken(ctx.ELEMENTS()));
+				tokens.add(new JpaQueryParsingToken(ctx.ELEMENTS()));
 			} else if (ctx.INDICES() != null) {
-				tokens.add(new QueryParsingToken(ctx.INDICES()));
+				tokens.add(new JpaQueryParsingToken(ctx.INDICES()));
 			}
 
 			tokens.add(TOKEN_OPEN_PAREN);
@@ -2219,18 +2219,18 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitExistsExpression(HqlParser.ExistsExpressionContext ctx) {
+	public List<JpaQueryParsingToken> visitExistsExpression(HqlParser.ExistsExpressionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.simplePath() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.EXISTS()));
+			tokens.add(new JpaQueryParsingToken(ctx.EXISTS()));
 
 			if (ctx.ELEMENTS() != null) {
-				tokens.add(new QueryParsingToken(ctx.ELEMENTS()));
+				tokens.add(new JpaQueryParsingToken(ctx.ELEMENTS()));
 			} else if (ctx.INDICES() != null) {
-				tokens.add(new QueryParsingToken(ctx.INDICES()));
+				tokens.add(new JpaQueryParsingToken(ctx.INDICES()));
 			}
 
 			tokens.add(TOKEN_OPEN_PAREN);
@@ -2239,7 +2239,7 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 		} else if (ctx.expression() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.EXISTS()));
+			tokens.add(new JpaQueryParsingToken(ctx.EXISTS()));
 			tokens.addAll(visit(ctx.expression()));
 		}
 
@@ -2247,29 +2247,29 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitCollectionExpression(HqlParser.CollectionExpressionContext ctx) {
+	public List<JpaQueryParsingToken> visitCollectionExpression(HqlParser.CollectionExpressionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.addAll(visit(ctx.expression()));
 
 		if (ctx.IS() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.IS()));
+			tokens.add(new JpaQueryParsingToken(ctx.IS()));
 
 			if (ctx.NOT() != null) {
-				tokens.add(new QueryParsingToken(ctx.NOT()));
+				tokens.add(new JpaQueryParsingToken(ctx.NOT()));
 			}
 
-			tokens.add(new QueryParsingToken(ctx.EMPTY()));
+			tokens.add(new JpaQueryParsingToken(ctx.EMPTY()));
 		} else if (ctx.MEMBER() != null) {
 
 			if (ctx.NOT() != null) {
-				tokens.add(new QueryParsingToken(ctx.NOT()));
+				tokens.add(new JpaQueryParsingToken(ctx.NOT()));
 			}
 
-			tokens.add(new QueryParsingToken(ctx.MEMBER()));
-			tokens.add(new QueryParsingToken(ctx.OF()));
+			tokens.add(new JpaQueryParsingToken(ctx.MEMBER()));
+			tokens.add(new JpaQueryParsingToken(ctx.OF()));
 			tokens.addAll(visit(ctx.path()));
 		}
 
@@ -2277,15 +2277,15 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitInstantiationTarget(HqlParser.InstantiationTargetContext ctx) {
+	public List<JpaQueryParsingToken> visitInstantiationTarget(HqlParser.InstantiationTargetContext ctx) {
 
 		if (ctx.LIST() != null) {
-			return List.of(new QueryParsingToken(ctx.LIST()));
+			return List.of(new JpaQueryParsingToken(ctx.LIST()));
 		} else if (ctx.MAP() != null) {
-			return List.of(new QueryParsingToken(ctx.MAP()));
+			return List.of(new JpaQueryParsingToken(ctx.MAP()));
 		} else if (ctx.simplePath() != null) {
 
-			List<QueryParsingToken> tokens = visit(ctx.simplePath());
+			List<JpaQueryParsingToken> tokens = visit(ctx.simplePath());
 			NOSPACE(tokens);
 			return tokens;
 		} else {
@@ -2294,9 +2294,9 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitInstantiationArguments(HqlParser.InstantiationArgumentsContext ctx) {
+	public List<JpaQueryParsingToken> visitInstantiationArguments(HqlParser.InstantiationArgumentsContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		ctx.instantiationArgument().forEach(instantiationArgumentContext -> {
 			tokens.addAll(visit(instantiationArgumentContext));
@@ -2309,9 +2309,9 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitInstantiationArgument(HqlParser.InstantiationArgumentContext ctx) {
+	public List<JpaQueryParsingToken> visitInstantiationArgument(HqlParser.InstantiationArgumentContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.expressionOrPredicate() != null) {
 			tokens.addAll(visit(ctx.expressionOrPredicate()));
@@ -2327,19 +2327,19 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitParameterOrIntegerLiteral(HqlParser.ParameterOrIntegerLiteralContext ctx) {
+	public List<JpaQueryParsingToken> visitParameterOrIntegerLiteral(HqlParser.ParameterOrIntegerLiteralContext ctx) {
 
 		if (ctx.parameter() != null) {
 			return visit(ctx.parameter());
 		} else if (ctx.INTEGER_LITERAL() != null) {
-			return List.of(new QueryParsingToken(ctx.INTEGER_LITERAL()));
+			return List.of(new JpaQueryParsingToken(ctx.INTEGER_LITERAL()));
 		} else {
 			return List.of();
 		}
 	}
 
 	@Override
-	public List<QueryParsingToken> visitParameterOrNumberLiteral(HqlParser.ParameterOrNumberLiteralContext ctx) {
+	public List<JpaQueryParsingToken> visitParameterOrNumberLiteral(HqlParser.ParameterOrNumberLiteralContext ctx) {
 
 		if (ctx.parameter() != null) {
 			return visit(ctx.parameter());
@@ -2351,13 +2351,13 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitVariable(HqlParser.VariableContext ctx) {
+	public List<JpaQueryParsingToken> visitVariable(HqlParser.VariableContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.identifier() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.AS()));
+			tokens.add(new JpaQueryParsingToken(ctx.AS()));
 			tokens.addAll(visit(ctx.identifier()));
 		} else if (ctx.reservedWord() != null) {
 			tokens.addAll(visit(ctx.reservedWord()));
@@ -2367,9 +2367,9 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitParameter(HqlParser.ParameterContext ctx) {
+	public List<JpaQueryParsingToken> visitParameter(HqlParser.ParameterContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.prefix.getText().equals(":")) {
 
@@ -2380,7 +2380,7 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 			tokens.add(TOKEN_QUESTION_MARK);
 
 			if (ctx.INTEGER_LITERAL() != null) {
-				tokens.add(new QueryParsingToken(ctx.INTEGER_LITERAL()));
+				tokens.add(new JpaQueryParsingToken(ctx.INTEGER_LITERAL()));
 			} else if (ctx.spelExpression() != null) {
 				tokens.addAll(visit(ctx.spelExpression()));
 			}
@@ -2390,9 +2390,9 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitEntityName(HqlParser.EntityNameContext ctx) {
+	public List<JpaQueryParsingToken> visitEntityName(HqlParser.EntityNameContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		ctx.identifier().forEach(identifierContext -> {
 			tokens.addAll(visit(identifierContext));
@@ -2404,7 +2404,7 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitIdentifier(HqlParser.IdentifierContext ctx) {
+	public List<JpaQueryParsingToken> visitIdentifier(HqlParser.IdentifierContext ctx) {
 
 		if (ctx.reservedWord() != null) {
 			return visit(ctx.reservedWord());
@@ -2416,13 +2416,13 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitSpelExpression(HqlParser.SpelExpressionContext ctx) {
+	public List<JpaQueryParsingToken> visitSpelExpression(HqlParser.SpelExpressionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.prefix.equals("#{#")) { // #{#entityName}
 
-			tokens.add(new QueryParsingToken(ctx.prefix));
+			tokens.add(new JpaQueryParsingToken(ctx.prefix));
 
 			ctx.identificationVariable().forEach(identificationVariableContext -> {
 				tokens.addAll(visit(identificationVariableContext));
@@ -2434,13 +2434,13 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 
 		} else if (ctx.prefix.equals("#{#[")) { // #{[0]}
 
-			tokens.add(new QueryParsingToken(ctx.prefix));
-			tokens.add(new QueryParsingToken(ctx.INTEGER_LITERAL()));
+			tokens.add(new JpaQueryParsingToken(ctx.prefix));
+			tokens.add(new JpaQueryParsingToken(ctx.INTEGER_LITERAL()));
 			tokens.add(TOKEN_CLOSE_SQUARE_BRACKET_BRACE);
 
 		} else if (ctx.prefix.equals("#{")) {// #{escape([0])} or #{escape('foo')}
 
-			tokens.add(new QueryParsingToken(ctx.prefix));
+			tokens.add(new JpaQueryParsingToken(ctx.prefix));
 			tokens.addAll(visit(ctx.identificationVariable(0)));
 			tokens.add(TOKEN_OPEN_PAREN);
 
@@ -2449,7 +2449,7 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 			} else if (ctx.INTEGER_LITERAL() != null) {
 
 				tokens.add(TOKEN_OPEN_SQUARE_BRACKET);
-				tokens.add(new QueryParsingToken(ctx.INTEGER_LITERAL()));
+				tokens.add(new JpaQueryParsingToken(ctx.INTEGER_LITERAL()));
 				tokens.add(TOKEN_CLOSE_SQUARE_BRACKET);
 			}
 
@@ -2460,22 +2460,22 @@ class HqlQueryTransformer extends HqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitCharacter(HqlParser.CharacterContext ctx) {
-		return List.of(new QueryParsingToken(ctx.CHARACTER()));
+	public List<JpaQueryParsingToken> visitCharacter(HqlParser.CharacterContext ctx) {
+		return List.of(new JpaQueryParsingToken(ctx.CHARACTER()));
 	}
 
 	@Override
-	public List<QueryParsingToken> visitFunctionName(HqlParser.FunctionNameContext ctx) {
+	public List<JpaQueryParsingToken> visitFunctionName(HqlParser.FunctionNameContext ctx) {
 		return visit(ctx.reservedWord());
 	}
 
 	@Override
-	public List<QueryParsingToken> visitReservedWord(HqlParser.ReservedWordContext ctx) {
+	public List<JpaQueryParsingToken> visitReservedWord(HqlParser.ReservedWordContext ctx) {
 
 		if (ctx.IDENTIFICATION_VARIABLE() != null) {
-			return List.of(new QueryParsingToken(ctx.IDENTIFICATION_VARIABLE()));
+			return List.of(new JpaQueryParsingToken(ctx.IDENTIFICATION_VARIABLE()));
 		} else {
-			return List.of(new QueryParsingToken(ctx.f));
+			return List.of(new JpaQueryParsingToken(ctx.f));
 		}
 	}
 }

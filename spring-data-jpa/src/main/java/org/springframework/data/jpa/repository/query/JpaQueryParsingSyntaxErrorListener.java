@@ -20,16 +20,16 @@ import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
 
 /**
- * A {@link BaseErrorListener} that will throw a {@link QueryParsingSyntaxError} if the query is invalid.
+ * A {@link BaseErrorListener} that will throw a {@link JpaQueryParsingSyntaxError} if the query is invalid.
  *
  * @author Greg Turnquist
  * @since 3.1
  */
-class QueryParsingSyntaxErrorListener extends BaseErrorListener {
+class JpaQueryParsingSyntaxErrorListener extends BaseErrorListener {
 
 	@Override
 	public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, int charPositionInLine,
 			String msg, RecognitionException e) {
-		throw new QueryParsingSyntaxError("line " + line + ":" + charPositionInLine + " " + msg);
+		throw new JpaQueryParsingSyntaxError("line " + line + ":" + charPositionInLine + " " + msg);
 	}
 }

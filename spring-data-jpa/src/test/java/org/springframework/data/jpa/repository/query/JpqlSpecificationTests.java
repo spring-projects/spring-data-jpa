@@ -733,7 +733,7 @@ class JpqlSpecificationTests {
 	@Test
 	void theRest24() {
 
-		assertThatExceptionOfType(QueryParsingSyntaxError.class).isThrownBy(() -> {
+		assertThatExceptionOfType(JpaQueryParsingSyntaxError.class).isThrownBy(() -> {
 			JpqlQueryParser.parse("""
 					SELECT p.product_name
 					FROM Order o, IN(o.lineItems) l JOIN o.customer c

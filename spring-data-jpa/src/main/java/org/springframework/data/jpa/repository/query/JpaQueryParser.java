@@ -15,7 +15,7 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.springframework.data.jpa.repository.query.QueryParsingToken.*;
+import static org.springframework.data.jpa.repository.query.JpaQueryParsingToken.*;
 
 import java.util.List;
 import java.util.regex.Pattern;
@@ -33,7 +33,7 @@ import org.springframework.util.Assert;
  * @author Greg Turnquist
  * @since 3.1
  */
-abstract class QueryParser {
+abstract class JpaQueryParser {
 
 	private static final Pattern PUNCTUATION_PATTERN = Pattern.compile(".*((?![._])[\\p{Punct}|\\s])");
 
@@ -43,11 +43,11 @@ abstract class QueryParser {
 
 	private final DeclaredQuery declaredQuery;
 
-	QueryParser(DeclaredQuery declaredQuery) {
+	JpaQueryParser(DeclaredQuery declaredQuery) {
 		this.declaredQuery = declaredQuery;
 	}
 
-	QueryParser(String query) {
+	JpaQueryParser(String query) {
 		this(DeclaredQuery.of(query, false));
 	}
 
@@ -101,21 +101,21 @@ abstract class QueryParser {
 	}
 
 	/**
-	 * Create a {@link QueryParsingToken}-based query with an {@literal order by} applied/amended based upon the
+	 * Create a {@link JpaQueryParsingToken}-based query with an {@literal order by} applied/amended based upon the
 	 * {@link Sort} parameter.
 	 * 
 	 * @param parsedQuery
 	 * @param sort can be {@literal null}
 	 */
-	abstract List<QueryParsingToken> doCreateQuery(ParserRuleContext parsedQuery, Sort sort);
+	abstract List<JpaQueryParsingToken> doCreateQuery(ParserRuleContext parsedQuery, Sort sort);
 
 	/**
-	 * Create a {@link QueryParsingToken}-based count query.
+	 * Create a {@link JpaQueryParsingToken}-based count query.
 	 *
 	 * @param parsedQuery
 	 * @param countProjection
 	 */
-	abstract List<QueryParsingToken> doCreateCountQuery(ParserRuleContext parsedQuery, @Nullable String countProjection);
+	abstract List<JpaQueryParsingToken> doCreateCountQuery(ParserRuleContext parsedQuery, @Nullable String countProjection);
 
 	/**
 	 * Find the alias of the query's primary FROM clause
@@ -129,7 +129,7 @@ abstract class QueryParser {
 	 *
 	 * @param parsedQuery
 	 */
-	abstract List<QueryParsingToken> doFindProjection(ParserRuleContext parsedQuery);
+	abstract List<JpaQueryParsingToken> doFindProjection(ParserRuleContext parsedQuery);
 
 	/**
 	 * Discern if the query has a {@code new com.example.Dto()} DTO constructor in the select clause.

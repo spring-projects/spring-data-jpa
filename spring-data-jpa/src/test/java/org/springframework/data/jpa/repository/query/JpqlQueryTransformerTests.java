@@ -27,7 +27,7 @@ import org.springframework.data.jpa.domain.JpaSort;
 import org.springframework.lang.Nullable;
 
 /**
- * Verify that JPQL queries are properly transformed through the {@link QueryParsingEnhancer} and the
+ * Verify that JPQL queries are properly transformed through the {@link JpaQueryParsingEnhancer} and the
  * {@link JpqlQueryParser}.
  *
  * @author Greg Turnquist
@@ -197,7 +197,7 @@ class JpqlQueryTransformerTests {
 
 		Sort sort = Sort.by(Sort.Order.desc("age"));
 
-		assertThat(new QueryParsingEnhancer(new JpqlQueryParser("select u\n" + //
+		assertThat(new JpaQueryParsingEnhancer(new JpqlQueryParser("select u\n" + //
 				"from user u\n" + //
 				"where exists (select u2\n" + //
 				"from user u2\n" + //
@@ -679,7 +679,7 @@ class JpqlQueryTransformerTests {
 	}
 
 	private String createQueryFor(String query, Sort sort) {
-		return new QueryParsingEnhancer(new JpqlQueryParser(query)).applySorting(sort);
+		return new JpaQueryParsingEnhancer(new JpqlQueryParser(query)).applySorting(sort);
 	}
 
 	private String createCountQueryFor(String query) {
@@ -687,18 +687,18 @@ class JpqlQueryTransformerTests {
 	}
 
 	private String createCountQueryFor(String original, @Nullable String countProjection) {
-		return new QueryParsingEnhancer(new JpqlQueryParser(original)).createCountQueryFor(countProjection);
+		return new JpaQueryParsingEnhancer(new JpqlQueryParser(original)).createCountQueryFor(countProjection);
 	}
 
 	private String alias(String query) {
-		return new QueryParsingEnhancer(new JpqlQueryParser(query)).detectAlias();
+		return new JpaQueryParsingEnhancer(new JpqlQueryParser(query)).detectAlias();
 	}
 
 	private boolean hasConstructorExpression(String query) {
-		return new QueryParsingEnhancer(new JpqlQueryParser(query)).hasConstructorExpression();
+		return new JpaQueryParsingEnhancer(new JpqlQueryParser(query)).hasConstructorExpression();
 	}
 
 	private String projection(String query) {
-		return new QueryParsingEnhancer(new JpqlQueryParser(query)).getProjection();
+		return new JpaQueryParsingEnhancer(new JpqlQueryParser(query)).getProjection();
 	}
 }

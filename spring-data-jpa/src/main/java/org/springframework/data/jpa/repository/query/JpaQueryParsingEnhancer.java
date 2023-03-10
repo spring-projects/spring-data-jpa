@@ -25,7 +25,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
- * Implementation of {@link QueryEnhancer} using a {@link QueryParser}.<br/>
+ * Implementation of {@link QueryEnhancer} using a {@link JpaQueryParser}.<br/>
  * <br/>
  * NOTE: The parser can find everything it needs to created sorted and count queries. Thus, looking up the alias or the
  * projection isn't needed for its primary function, and are simply implemented for test purposes. TODO: Don't LOG
@@ -34,24 +34,24 @@ import org.springframework.util.Assert;
  * @author Greg Turnquist
  * @since 3.1
  */
-class QueryParsingEnhancer implements QueryEnhancer {
+class JpaQueryParsingEnhancer implements QueryEnhancer {
 
-	private static final Log LOG = LogFactory.getLog(QueryParsingEnhancer.class);
+	private static final Log LOG = LogFactory.getLog(JpaQueryParsingEnhancer.class);
 
-	private final QueryParser queryParser;
+	private final JpaQueryParser queryParser;
 
 	/**
-	 * Initialize with an {@link QueryParser}.
+	 * Initialize with an {@link JpaQueryParser}.
 	 * 
 	 * @param queryParser
 	 */
-	public QueryParsingEnhancer(QueryParser queryParser) {
+	public JpaQueryParsingEnhancer(JpaQueryParser queryParser) {
 
 		Assert.notNull(queryParser, "queryParse must not be null!");
 		this.queryParser = queryParser;
 	}
 
-	public QueryParser getQueryParsingStrategy() {
+	public JpaQueryParser getQueryParsingStrategy() {
 		return queryParser;
 	}
 
@@ -72,7 +72,7 @@ class QueryParsingEnhancer implements QueryEnhancer {
 			}
 
 			return queryParser.createQuery(parsedQuery, sort);
-		} catch (QueryParsingSyntaxError e) {
+		} catch (JpaQueryParsingSyntaxError e) {
 			throw new IllegalArgumentException(e);
 		}
 	}
@@ -90,7 +90,7 @@ class QueryParsingEnhancer implements QueryEnhancer {
 	}
 
 	/**
-	 * Resolves the alias for the entity in the FROM clause from the JPA query. Since the {@link QueryParser} can already
+	 * Resolves the alias for the entity in the FROM clause from the JPA query. Since the {@link JpaQueryParser} can already
 	 * find the alias when generating sorted and count queries, this is mainly to serve test cases.
 	 */
 	@Override
@@ -106,7 +106,7 @@ class QueryParsingEnhancer implements QueryEnhancer {
 			}
 
 			return queryParser.findAlias(parsedQuery);
-		} catch (QueryParsingSyntaxError e) {
+		} catch (JpaQueryParsingSyntaxError e) {
 			return null;
 		}
 	}
@@ -137,7 +137,7 @@ class QueryParsingEnhancer implements QueryEnhancer {
 			}
 
 			return queryParser.createCountQuery(parsedQuery, countProjection);
-		} catch (QueryParsingSyntaxError e) {
+		} catch (JpaQueryParsingSyntaxError e) {
 			throw new IllegalArgumentException(e);
 		}
 	}
@@ -158,13 +158,13 @@ class QueryParsingEnhancer implements QueryEnhancer {
 			}
 
 			return queryParser.hasConstructor(parsedQuery);
-		} catch (QueryParsingSyntaxError e) {
+		} catch (JpaQueryParsingSyntaxError e) {
 			return false;
 		}
 	}
 
 	/**
-	 * Looks up the projection of the JPA query. Since the {@link QueryParser} can already find the projection when
+	 * Looks up the projection of the JPA query. Since the {@link JpaQueryParser} can already find the projection when
 	 * generating sorted and count queries, this is mainly to serve test cases.
 	 */
 	@Override
@@ -178,13 +178,13 @@ class QueryParsingEnhancer implements QueryEnhancer {
 			}
 
 			return queryParser.projection(parsedQuery);
-		} catch (QueryParsingSyntaxError e) {
+		} catch (JpaQueryParsingSyntaxError e) {
 			return "";
 		}
 	}
 
 	/**
-	 * Since the {@link QueryParser} can already fully transform sorted and count queries by itself, this is a placeholder
+	 * Since the {@link JpaQueryParser} can already fully transform sorted and count queries by itself, this is a placeholder
 	 * method.
 	 *
 	 * @return empty set
@@ -195,7 +195,7 @@ class QueryParsingEnhancer implements QueryEnhancer {
 	}
 
 	/**
-	 * Look up the {@link DeclaredQuery} from the {@link QueryParser}.
+	 * Look up the {@link DeclaredQuery} from the {@link JpaQueryParser}.
 	 */
 	@Override
 	public DeclaredQuery getQuery() {

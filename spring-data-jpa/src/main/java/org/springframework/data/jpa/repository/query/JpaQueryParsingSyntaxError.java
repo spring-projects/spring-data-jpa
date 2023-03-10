@@ -15,7 +15,7 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import org.antlr.v4.runtime.misc.ParseCancellationException;
+import org.springframework.dao.InvalidDataAccessResourceUsageException;
 
 /**
  * An exception thrown if the JPQL query is invalid.
@@ -23,19 +23,10 @@ import org.antlr.v4.runtime.misc.ParseCancellationException;
  * @author Greg Turnquist
  * @since 3.1
  */
-class QueryParsingSyntaxError extends ParseCancellationException {
+class JpaQueryParsingSyntaxError extends InvalidDataAccessResourceUsageException {
 
-	public QueryParsingSyntaxError() {}
-
-	public QueryParsingSyntaxError(String message) {
+	public JpaQueryParsingSyntaxError(String message) {
 		super(message);
 	}
 
-	public QueryParsingSyntaxError(Throwable cause) {
-		super(cause);
-	}
-
-	public QueryParsingSyntaxError(String message, Throwable cause) {
-		super(message, cause);
-	}
 }

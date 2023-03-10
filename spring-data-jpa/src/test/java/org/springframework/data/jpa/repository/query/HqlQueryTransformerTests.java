@@ -27,7 +27,7 @@ import org.springframework.data.jpa.domain.JpaSort;
 import org.springframework.lang.Nullable;
 
 /**
- * Verify that HQL queries are properly transformed through the {@link QueryParsingEnhancer} and the
+ * Verify that HQL queries are properly transformed through the {@link JpaQueryParsingEnhancer} and the
  * {@link HqlQueryParser}.
  *
  * @author Greg Turnquist
@@ -208,7 +208,7 @@ class HqlQueryTransformerTests {
 
 		Sort sort = Sort.by(Sort.Order.desc("age"));
 
-		assertThat(new QueryParsingEnhancer(new HqlQueryParser("select u\n" + //
+		assertThat(new JpaQueryParsingEnhancer(new HqlQueryParser("select u\n" + //
 				"from user u\n" + //
 				"where exists (select u2\n" + //
 				"from user u2\n" + //
@@ -789,7 +789,7 @@ class HqlQueryTransformerTests {
 	}
 
 	private String createQueryFor(String query, Sort sort) {
-		return new QueryParsingEnhancer(new HqlQueryParser(query)).applySorting(sort);
+		return new JpaQueryParsingEnhancer(new HqlQueryParser(query)).applySorting(sort);
 	}
 
 	private String createCountQueryFor(String query) {
@@ -797,18 +797,18 @@ class HqlQueryTransformerTests {
 	}
 
 	private String createCountQueryFor(String query, @Nullable String countProjection) {
-		return new QueryParsingEnhancer(new HqlQueryParser(query)).createCountQueryFor(countProjection);
+		return new JpaQueryParsingEnhancer(new HqlQueryParser(query)).createCountQueryFor(countProjection);
 	}
 
 	private String alias(String query) {
-		return new QueryParsingEnhancer(new HqlQueryParser(query)).detectAlias();
+		return new JpaQueryParsingEnhancer(new HqlQueryParser(query)).detectAlias();
 	}
 
 	private boolean hasConstructorExpression(String query) {
-		return new QueryParsingEnhancer(new HqlQueryParser(query)).hasConstructorExpression();
+		return new JpaQueryParsingEnhancer(new HqlQueryParser(query)).hasConstructorExpression();
 	}
 
 	private String projection(String query) {
-		return new QueryParsingEnhancer(new HqlQueryParser(query)).getProjection();
+		return new JpaQueryParsingEnhancer(new HqlQueryParser(query)).getProjection();
 	}
 }

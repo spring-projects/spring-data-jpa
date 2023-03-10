@@ -15,7 +15,7 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.springframework.data.jpa.repository.query.QueryParsingToken.*;
+import static org.springframework.data.jpa.repository.query.JpaQueryParsingToken.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +29,7 @@ import org.springframework.lang.Nullable;
  * @author Greg Turnquist
  * @since 3.1
  */
-class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
+class JpqlQueryTransformer extends JpqlBaseVisitor<List<JpaQueryParsingToken>> {
 
 	@Nullable private Sort sort;
 	private boolean countQuery;
@@ -38,7 +38,7 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 
 	@Nullable private String alias = null;
 
-	private List<QueryParsingToken> projection = null;
+	private List<JpaQueryParsingToken> projection = null;
 
 	private boolean hasConstructorExpression = false;
 
@@ -66,7 +66,7 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 		return this.alias;
 	}
 
-	public List<QueryParsingToken> getProjection() {
+	public List<JpaQueryParsingToken> getProjection() {
 		return this.projection;
 	}
 
@@ -75,12 +75,12 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitStart(JpqlParser.StartContext ctx) {
+	public List<JpaQueryParsingToken> visitStart(JpqlParser.StartContext ctx) {
 		return visit(ctx.ql_statement());
 	}
 
 	@Override
-	public List<QueryParsingToken> visitQl_statement(JpqlParser.Ql_statementContext ctx) {
+	public List<JpaQueryParsingToken> visitQl_statement(JpqlParser.Ql_statementContext ctx) {
 
 		if (ctx.select_statement() != null) {
 			return visit(ctx.select_statement());
@@ -94,9 +94,9 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitSelect_statement(JpqlParser.Select_statementContext ctx) {
+	public List<JpaQueryParsingToken> visitSelect_statement(JpqlParser.Select_statementContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.addAll(visit(ctx.select_clause()));
 		tokens.addAll(visit(ctx.from_clause()));
@@ -133,12 +133,12 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 
 				this.sort.forEach(order -> {
 
-					QueryParser.checkSortExpression(order);
+					JpaQueryParser.checkSortExpression(order);
 
 					if (order.isIgnoreCase()) {
 						tokens.add(TOKEN_LOWER_FUNC);
 					}
-					tokens.add(new QueryParsingToken(() -> {
+					tokens.add(new JpaQueryParsingToken(() -> {
 
 						if (order.getProperty().contains("(")) {
 							return order.getProperty();
@@ -161,9 +161,9 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitUpdate_statement(JpqlParser.Update_statementContext ctx) {
+	public List<JpaQueryParsingToken> visitUpdate_statement(JpqlParser.Update_statementContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.addAll(visit(ctx.update_clause()));
 
@@ -175,9 +175,9 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitDelete_statement(JpqlParser.Delete_statementContext ctx) {
+	public List<JpaQueryParsingToken> visitDelete_statement(JpqlParser.Delete_statementContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.addAll(visit(ctx.delete_clause()));
 
@@ -189,11 +189,11 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitFrom_clause(JpqlParser.From_clauseContext ctx) {
+	public List<JpaQueryParsingToken> visitFrom_clause(JpqlParser.From_clauseContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.FROM(), true));
+		tokens.add(new JpaQueryParsingToken(ctx.FROM(), true));
 
 		ctx.identification_variable_declaration().forEach(identificationVariableDeclarationContext -> {
 			tokens.addAll(visit(identificationVariableDeclarationContext));
@@ -203,10 +203,10 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitIdentification_variable_declaration(
+	public List<JpaQueryParsingToken> visitIdentification_variable_declaration(
 			JpqlParser.Identification_variable_declarationContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.addAll(visit(ctx.range_variable_declaration()));
 
@@ -221,14 +221,14 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitRange_variable_declaration(JpqlParser.Range_variable_declarationContext ctx) {
+	public List<JpaQueryParsingToken> visitRange_variable_declaration(JpqlParser.Range_variable_declarationContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.addAll(visit(ctx.entity_name()));
 
 		if (ctx.AS() != null) {
-			tokens.add(new QueryParsingToken(ctx.AS()));
+			tokens.add(new JpaQueryParsingToken(ctx.AS()));
 		}
 
 		tokens.addAll(visit(ctx.identification_variable()));
@@ -241,14 +241,14 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitJoin(JpqlParser.JoinContext ctx) {
+	public List<JpaQueryParsingToken> visitJoin(JpqlParser.JoinContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.addAll(visit(ctx.join_spec()));
 		tokens.addAll(visit(ctx.join_association_path_expression()));
 		if (ctx.AS() != null) {
-			tokens.add(new QueryParsingToken(ctx.AS()));
+			tokens.add(new JpaQueryParsingToken(ctx.AS()));
 		}
 		tokens.addAll(visit(ctx.identification_variable()));
 		if (ctx.join_condition() != null) {
@@ -259,54 +259,54 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitFetch_join(JpqlParser.Fetch_joinContext ctx) {
+	public List<JpaQueryParsingToken> visitFetch_join(JpqlParser.Fetch_joinContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.addAll(visit(ctx.join_spec()));
-		tokens.add(new QueryParsingToken(ctx.FETCH()));
+		tokens.add(new JpaQueryParsingToken(ctx.FETCH()));
 		tokens.addAll(visit(ctx.join_association_path_expression()));
 
 		return tokens;
 	}
 
 	@Override
-	public List<QueryParsingToken> visitJoin_spec(JpqlParser.Join_specContext ctx) {
+	public List<JpaQueryParsingToken> visitJoin_spec(JpqlParser.Join_specContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.LEFT() != null) {
-			tokens.add(new QueryParsingToken(ctx.LEFT()));
+			tokens.add(new JpaQueryParsingToken(ctx.LEFT()));
 		}
 		if (ctx.OUTER() != null) {
-			tokens.add(new QueryParsingToken(ctx.OUTER()));
+			tokens.add(new JpaQueryParsingToken(ctx.OUTER()));
 		}
 		if (ctx.INNER() != null) {
-			tokens.add(new QueryParsingToken(ctx.INNER()));
+			tokens.add(new JpaQueryParsingToken(ctx.INNER()));
 		}
 		if (ctx.JOIN() != null) {
-			tokens.add(new QueryParsingToken(ctx.JOIN()));
+			tokens.add(new JpaQueryParsingToken(ctx.JOIN()));
 		}
 
 		return tokens;
 	}
 
 	@Override
-	public List<QueryParsingToken> visitJoin_condition(JpqlParser.Join_conditionContext ctx) {
+	public List<JpaQueryParsingToken> visitJoin_condition(JpqlParser.Join_conditionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.ON()));
+		tokens.add(new JpaQueryParsingToken(ctx.ON()));
 		tokens.addAll(visit(ctx.conditional_expression()));
 
 		return tokens;
 	}
 
 	@Override
-	public List<QueryParsingToken> visitJoin_association_path_expression(
+	public List<JpaQueryParsingToken> visitJoin_association_path_expression(
 			JpqlParser.Join_association_path_expressionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.TREAT() == null) {
 			if (ctx.join_collection_valued_path_expression() != null) {
@@ -317,18 +317,18 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 		} else {
 			if (ctx.join_collection_valued_path_expression() != null) {
 
-				tokens.add(new QueryParsingToken(ctx.TREAT()));
+				tokens.add(new JpaQueryParsingToken(ctx.TREAT()));
 				tokens.add(TOKEN_OPEN_PAREN);
 				tokens.addAll(visit(ctx.join_collection_valued_path_expression()));
-				tokens.add(new QueryParsingToken(ctx.AS()));
+				tokens.add(new JpaQueryParsingToken(ctx.AS()));
 				tokens.addAll(visit(ctx.subtype()));
 				tokens.add(TOKEN_CLOSE_PAREN);
 			} else if (ctx.join_single_valued_path_expression() != null) {
 
-				tokens.add(new QueryParsingToken(ctx.TREAT()));
+				tokens.add(new JpaQueryParsingToken(ctx.TREAT()));
 				tokens.add(TOKEN_OPEN_PAREN);
 				tokens.addAll(visit(ctx.join_single_valued_path_expression()));
-				tokens.add(new QueryParsingToken(ctx.AS()));
+				tokens.add(new JpaQueryParsingToken(ctx.AS()));
 				tokens.addAll(visit(ctx.subtype()));
 				tokens.add(TOKEN_CLOSE_PAREN);
 			}
@@ -338,10 +338,10 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitJoin_collection_valued_path_expression(
+	public List<JpaQueryParsingToken> visitJoin_collection_valued_path_expression(
 			JpqlParser.Join_collection_valued_path_expressionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.addAll(visit(ctx.identification_variable()));
 		NOSPACE(tokens);
@@ -358,10 +358,10 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitJoin_single_valued_path_expression(
+	public List<JpaQueryParsingToken> visitJoin_single_valued_path_expression(
 			JpqlParser.Join_single_valued_path_expressionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.addAll(visit(ctx.identification_variable()));
 		tokens.add(TOKEN_DOT);
@@ -377,17 +377,17 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitCollection_member_declaration(
+	public List<JpaQueryParsingToken> visitCollection_member_declaration(
 			JpqlParser.Collection_member_declarationContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.IN()));
+		tokens.add(new JpaQueryParsingToken(ctx.IN()));
 		tokens.add(TOKEN_OPEN_PAREN);
 		tokens.addAll(visit(ctx.collection_valued_path_expression()));
 		tokens.add(TOKEN_CLOSE_PAREN);
 		if (ctx.AS() != null) {
-			tokens.add(new QueryParsingToken(ctx.AS()));
+			tokens.add(new JpaQueryParsingToken(ctx.AS()));
 		}
 		tokens.addAll(visit(ctx.identification_variable()));
 
@@ -395,16 +395,16 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitQualified_identification_variable(
+	public List<JpaQueryParsingToken> visitQualified_identification_variable(
 			JpqlParser.Qualified_identification_variableContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.map_field_identification_variable() != null) {
 			tokens.addAll(visit(ctx.map_field_identification_variable()));
 		} else if (ctx.identification_variable() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.ENTRY()));
+			tokens.add(new JpaQueryParsingToken(ctx.ENTRY()));
 			tokens.add(TOKEN_OPEN_PAREN);
 			tokens.addAll(visit(ctx.identification_variable()));
 			tokens.add(TOKEN_CLOSE_PAREN);
@@ -414,20 +414,20 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitMap_field_identification_variable(
+	public List<JpaQueryParsingToken> visitMap_field_identification_variable(
 			JpqlParser.Map_field_identification_variableContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.KEY() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.KEY()));
+			tokens.add(new JpaQueryParsingToken(ctx.KEY()));
 			tokens.add(TOKEN_OPEN_PAREN);
 			tokens.addAll(visit(ctx.identification_variable()));
 			tokens.add(TOKEN_CLOSE_PAREN);
 		} else if (ctx.VALUE() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.VALUE()));
+			tokens.add(new JpaQueryParsingToken(ctx.VALUE()));
 			tokens.add(TOKEN_OPEN_PAREN);
 			tokens.addAll(visit(ctx.identification_variable()));
 			tokens.add(TOKEN_CLOSE_PAREN);
@@ -437,19 +437,19 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitSingle_valued_path_expression(
+	public List<JpaQueryParsingToken> visitSingle_valued_path_expression(
 			JpqlParser.Single_valued_path_expressionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.qualified_identification_variable() != null) {
 			tokens.addAll(visit(ctx.qualified_identification_variable()));
 		} else if (ctx.qualified_identification_variable() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.TREAT(), false));
+			tokens.add(new JpaQueryParsingToken(ctx.TREAT(), false));
 			tokens.add(TOKEN_OPEN_PAREN);
 			tokens.addAll(visit(ctx.qualified_identification_variable()));
-			tokens.add(new QueryParsingToken(ctx.AS()));
+			tokens.add(new JpaQueryParsingToken(ctx.AS()));
 			tokens.addAll(visit(ctx.subtype()));
 			tokens.add(TOKEN_CLOSE_PAREN);
 		} else if (ctx.state_field_path_expression() != null) {
@@ -462,10 +462,10 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitGeneral_identification_variable(
+	public List<JpaQueryParsingToken> visitGeneral_identification_variable(
 			JpqlParser.General_identification_variableContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.identification_variable() != null) {
 			tokens.addAll(visit(ctx.identification_variable()));
@@ -477,9 +477,9 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitGeneral_subpath(JpqlParser.General_subpathContext ctx) {
+	public List<JpaQueryParsingToken> visitGeneral_subpath(JpqlParser.General_subpathContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.simple_subpath() != null) {
 			tokens.addAll(visit(ctx.simple_subpath()));
@@ -497,9 +497,9 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitSimple_subpath(JpqlParser.Simple_subpathContext ctx) {
+	public List<JpaQueryParsingToken> visitSimple_subpath(JpqlParser.Simple_subpathContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.addAll(visit(ctx.general_identification_variable()));
 
@@ -512,14 +512,14 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitTreated_subpath(JpqlParser.Treated_subpathContext ctx) {
+	public List<JpaQueryParsingToken> visitTreated_subpath(JpqlParser.Treated_subpathContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.TREAT()));
+		tokens.add(new JpaQueryParsingToken(ctx.TREAT()));
 		tokens.add(TOKEN_OPEN_PAREN);
 		tokens.addAll(visit(ctx.general_subpath()));
-		tokens.add(new QueryParsingToken(ctx.AS()));
+		tokens.add(new JpaQueryParsingToken(ctx.AS()));
 		tokens.addAll(visit(ctx.subtype()));
 		tokens.add(TOKEN_CLOSE_PAREN);
 
@@ -527,9 +527,9 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitState_field_path_expression(JpqlParser.State_field_path_expressionContext ctx) {
+	public List<JpaQueryParsingToken> visitState_field_path_expression(JpqlParser.State_field_path_expressionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.addAll(visit(ctx.general_subpath()));
 		NOSPACE(tokens);
@@ -540,9 +540,9 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitState_valued_path_expression(JpqlParser.State_valued_path_expressionContext ctx) {
+	public List<JpaQueryParsingToken> visitState_valued_path_expression(JpqlParser.State_valued_path_expressionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.state_field_path_expression() != null) {
 			tokens.addAll(visit(ctx.state_field_path_expression()));
@@ -554,10 +554,10 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitSingle_valued_object_path_expression(
+	public List<JpaQueryParsingToken> visitSingle_valued_object_path_expression(
 			JpqlParser.Single_valued_object_path_expressionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.addAll(visit(ctx.general_subpath()));
 		NOSPACE(tokens);
@@ -568,10 +568,10 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitCollection_valued_path_expression(
+	public List<JpaQueryParsingToken> visitCollection_valued_path_expression(
 			JpqlParser.Collection_valued_path_expressionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.addAll(visit(ctx.general_subpath()));
 		NOSPACE(tokens);
@@ -582,19 +582,19 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitUpdate_clause(JpqlParser.Update_clauseContext ctx) {
+	public List<JpaQueryParsingToken> visitUpdate_clause(JpqlParser.Update_clauseContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.UPDATE()));
+		tokens.add(new JpaQueryParsingToken(ctx.UPDATE()));
 		tokens.addAll(visit(ctx.entity_name()));
 		if (ctx.AS() != null) {
-			tokens.add(new QueryParsingToken(ctx.AS()));
+			tokens.add(new JpaQueryParsingToken(ctx.AS()));
 		}
 		if (ctx.identification_variable() != null) {
 			tokens.addAll(visit(ctx.identification_variable()));
 		}
-		tokens.add(new QueryParsingToken(ctx.SET()));
+		tokens.add(new JpaQueryParsingToken(ctx.SET()));
 		ctx.update_item().forEach(updateItemContext -> {
 			tokens.addAll(visit(updateItemContext));
 			tokens.add(TOKEN_COMMA);
@@ -605,9 +605,9 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitUpdate_item(JpqlParser.Update_itemContext ctx) {
+	public List<JpaQueryParsingToken> visitUpdate_item(JpqlParser.Update_itemContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.identification_variable() != null) {
 			tokens.addAll(visit(ctx.identification_variable()));
@@ -632,29 +632,29 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitNew_value(JpqlParser.New_valueContext ctx) {
+	public List<JpaQueryParsingToken> visitNew_value(JpqlParser.New_valueContext ctx) {
 
 		if (ctx.scalar_expression() != null) {
 			return visit(ctx.scalar_expression());
 		} else if (ctx.simple_entity_expression() != null) {
 			return visit(ctx.simple_entity_expression());
 		} else if (ctx.NULL() != null) {
-			return List.of(new QueryParsingToken(ctx.NULL()));
+			return List.of(new JpaQueryParsingToken(ctx.NULL()));
 		} else {
 			return List.of();
 		}
 	}
 
 	@Override
-	public List<QueryParsingToken> visitDelete_clause(JpqlParser.Delete_clauseContext ctx) {
+	public List<JpaQueryParsingToken> visitDelete_clause(JpqlParser.Delete_clauseContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.DELETE()));
-		tokens.add(new QueryParsingToken(ctx.FROM()));
+		tokens.add(new JpaQueryParsingToken(ctx.DELETE()));
+		tokens.add(new JpaQueryParsingToken(ctx.FROM()));
 		tokens.addAll(visit(ctx.entity_name()));
 		if (ctx.AS() != null) {
-			tokens.add(new QueryParsingToken(ctx.AS()));
+			tokens.add(new JpaQueryParsingToken(ctx.AS()));
 		}
 		if (ctx.identification_variable() != null) {
 			tokens.addAll(visit(ctx.identification_variable()));
@@ -664,21 +664,21 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitSelect_clause(JpqlParser.Select_clauseContext ctx) {
+	public List<JpaQueryParsingToken> visitSelect_clause(JpqlParser.Select_clauseContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.SELECT()));
+		tokens.add(new JpaQueryParsingToken(ctx.SELECT()));
 
 		if (countQuery) {
 			tokens.add(TOKEN_COUNT_FUNC);
 		}
 
 		if (ctx.DISTINCT() != null) {
-			tokens.add(new QueryParsingToken(ctx.DISTINCT()));
+			tokens.add(new JpaQueryParsingToken(ctx.DISTINCT()));
 		}
 
-		List<QueryParsingToken> selectItemTokens = new ArrayList<>();
+		List<JpaQueryParsingToken> selectItemTokens = new ArrayList<>();
 
 		ctx.select_item().forEach(selectItemContext -> {
 			selectItemTokens.addAll(visit(selectItemContext));
@@ -691,20 +691,20 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 		if (countQuery) {
 
 			if (countProjection != null) {
-				tokens.add(new QueryParsingToken(countProjection));
+				tokens.add(new JpaQueryParsingToken(countProjection));
 			} else {
 
 				if (ctx.DISTINCT() != null) {
 
 					if (selectItemTokens.stream().anyMatch(jpqlToken -> jpqlToken.getToken().contains("new"))) {
 						// constructor
-						tokens.add(new QueryParsingToken(() -> this.alias));
+						tokens.add(new JpaQueryParsingToken(() -> this.alias));
 					} else {
 						// keep all the select items to distinct against
 						tokens.addAll(selectItemTokens);
 					}
 				} else {
-					tokens.add(new QueryParsingToken(() -> this.alias));
+					tokens.add(new JpaQueryParsingToken(() -> this.alias));
 				}
 			}
 
@@ -722,15 +722,15 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitSelect_item(JpqlParser.Select_itemContext ctx) {
+	public List<JpaQueryParsingToken> visitSelect_item(JpqlParser.Select_itemContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.addAll(visit(ctx.select_expression()));
 		SPACE(tokens);
 
 		if (ctx.AS() != null) {
-			tokens.add(new QueryParsingToken(ctx.AS()));
+			tokens.add(new JpaQueryParsingToken(ctx.AS()));
 		}
 
 		if (ctx.result_variable() != null) {
@@ -741,7 +741,7 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitSelect_expression(JpqlParser.Select_expressionContext ctx) {
+	public List<JpaQueryParsingToken> visitSelect_expression(JpqlParser.Select_expressionContext ctx) {
 
 		if (ctx.single_valued_path_expression() != null) {
 			return visit(ctx.single_valued_path_expression());
@@ -755,9 +755,9 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 				return visit(ctx.identification_variable());
 			} else {
 
-				List<QueryParsingToken> tokens = new ArrayList<>();
+				List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-				tokens.add(new QueryParsingToken(ctx.OBJECT()));
+				tokens.add(new JpaQueryParsingToken(ctx.OBJECT()));
 				tokens.add(TOKEN_OPEN_PAREN);
 				tokens.addAll(visit(ctx.identification_variable()));
 				tokens.add(TOKEN_CLOSE_PAREN);
@@ -772,13 +772,13 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitConstructor_expression(JpqlParser.Constructor_expressionContext ctx) {
+	public List<JpaQueryParsingToken> visitConstructor_expression(JpqlParser.Constructor_expressionContext ctx) {
 
 		this.hasConstructorExpression = true;
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.NEW()));
+		tokens.add(new JpaQueryParsingToken(ctx.NEW()));
 		tokens.addAll(visit(ctx.constructor_name()));
 		tokens.add(TOKEN_OPEN_PAREN);
 
@@ -795,9 +795,9 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitConstructor_item(JpqlParser.Constructor_itemContext ctx) {
+	public List<JpaQueryParsingToken> visitConstructor_item(JpqlParser.Constructor_itemContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.single_valued_path_expression() != null) {
 			tokens.addAll(visit(ctx.single_valued_path_expression()));
@@ -813,39 +813,39 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitAggregate_expression(JpqlParser.Aggregate_expressionContext ctx) {
+	public List<JpaQueryParsingToken> visitAggregate_expression(JpqlParser.Aggregate_expressionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.AVG() != null || ctx.MAX() != null || ctx.MIN() != null || ctx.SUM() != null) {
 
 			if (ctx.AVG() != null) {
-				tokens.add(new QueryParsingToken(ctx.AVG(), false));
+				tokens.add(new JpaQueryParsingToken(ctx.AVG(), false));
 			}
 			if (ctx.MAX() != null) {
-				tokens.add(new QueryParsingToken(ctx.MAX(), false));
+				tokens.add(new JpaQueryParsingToken(ctx.MAX(), false));
 			}
 			if (ctx.MIN() != null) {
-				tokens.add(new QueryParsingToken(ctx.MIN(), false));
+				tokens.add(new JpaQueryParsingToken(ctx.MIN(), false));
 			}
 			if (ctx.SUM() != null) {
-				tokens.add(new QueryParsingToken(ctx.SUM(), false));
+				tokens.add(new JpaQueryParsingToken(ctx.SUM(), false));
 			}
 
 			tokens.add(TOKEN_OPEN_PAREN);
 
 			if (ctx.DISTINCT() != null) {
-				tokens.add(new QueryParsingToken(ctx.DISTINCT()));
+				tokens.add(new JpaQueryParsingToken(ctx.DISTINCT()));
 			}
 
 			tokens.addAll(visit(ctx.state_valued_path_expression()));
 			tokens.add(TOKEN_CLOSE_PAREN);
 		} else if (ctx.COUNT() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.COUNT(), false));
+			tokens.add(new JpaQueryParsingToken(ctx.COUNT(), false));
 			tokens.add(TOKEN_OPEN_PAREN);
 			if (ctx.DISTINCT() != null) {
-				tokens.add(new QueryParsingToken(ctx.DISTINCT()));
+				tokens.add(new JpaQueryParsingToken(ctx.DISTINCT()));
 			}
 			if (ctx.identification_variable() != null) {
 				tokens.addAll(visit(ctx.identification_variable()));
@@ -864,23 +864,23 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitWhere_clause(JpqlParser.Where_clauseContext ctx) {
+	public List<JpaQueryParsingToken> visitWhere_clause(JpqlParser.Where_clauseContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.WHERE(), true));
+		tokens.add(new JpaQueryParsingToken(ctx.WHERE(), true));
 		tokens.addAll(visit(ctx.conditional_expression()));
 
 		return tokens;
 	}
 
 	@Override
-	public List<QueryParsingToken> visitGroupby_clause(JpqlParser.Groupby_clauseContext ctx) {
+	public List<JpaQueryParsingToken> visitGroupby_clause(JpqlParser.Groupby_clauseContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.GROUP()));
-		tokens.add(new QueryParsingToken(ctx.BY()));
+		tokens.add(new JpaQueryParsingToken(ctx.GROUP()));
+		tokens.add(new JpaQueryParsingToken(ctx.BY()));
 		ctx.groupby_item().forEach(groupbyItemContext -> {
 			tokens.addAll(visit(groupbyItemContext));
 			NOSPACE(tokens);
@@ -893,9 +893,9 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitGroupby_item(JpqlParser.Groupby_itemContext ctx) {
+	public List<JpaQueryParsingToken> visitGroupby_item(JpqlParser.Groupby_itemContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.single_valued_path_expression() != null) {
 			tokens.addAll(visit(ctx.single_valued_path_expression()));
@@ -907,23 +907,23 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitHaving_clause(JpqlParser.Having_clauseContext ctx) {
+	public List<JpaQueryParsingToken> visitHaving_clause(JpqlParser.Having_clauseContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.HAVING()));
+		tokens.add(new JpaQueryParsingToken(ctx.HAVING()));
 		tokens.addAll(visit(ctx.conditional_expression()));
 
 		return tokens;
 	}
 
 	@Override
-	public List<QueryParsingToken> visitOrderby_clause(JpqlParser.Orderby_clauseContext ctx) {
+	public List<JpaQueryParsingToken> visitOrderby_clause(JpqlParser.Orderby_clauseContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.ORDER()));
-		tokens.add(new QueryParsingToken(ctx.BY()));
+		tokens.add(new JpaQueryParsingToken(ctx.ORDER()));
+		tokens.add(new JpaQueryParsingToken(ctx.BY()));
 
 		ctx.orderby_item().forEach(orderbyItemContext -> {
 			tokens.addAll(visit(orderbyItemContext));
@@ -936,9 +936,9 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitOrderby_item(JpqlParser.Orderby_itemContext ctx) {
+	public List<JpaQueryParsingToken> visitOrderby_item(JpqlParser.Orderby_itemContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.state_field_path_expression() != null) {
 			tokens.addAll(visit(ctx.state_field_path_expression()));
@@ -949,19 +949,19 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 		}
 
 		if (ctx.ASC() != null) {
-			tokens.add(new QueryParsingToken(ctx.ASC()));
+			tokens.add(new JpaQueryParsingToken(ctx.ASC()));
 		}
 		if (ctx.DESC() != null) {
-			tokens.add(new QueryParsingToken(ctx.DESC()));
+			tokens.add(new JpaQueryParsingToken(ctx.DESC()));
 		}
 
 		return tokens;
 	}
 
 	@Override
-	public List<QueryParsingToken> visitSubquery(JpqlParser.SubqueryContext ctx) {
+	public List<JpaQueryParsingToken> visitSubquery(JpqlParser.SubqueryContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.addAll(visit(ctx.simple_select_clause()));
 		tokens.addAll(visit(ctx.subquery_from_clause()));
@@ -979,11 +979,11 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitSubquery_from_clause(JpqlParser.Subquery_from_clauseContext ctx) {
+	public List<JpaQueryParsingToken> visitSubquery_from_clause(JpqlParser.Subquery_from_clauseContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.FROM()));
+		tokens.add(new JpaQueryParsingToken(ctx.FROM()));
 		ctx.subselect_identification_variable_declaration().forEach(subselectIdentificationVariableDeclarationContext -> {
 			tokens.addAll(visit(subselectIdentificationVariableDeclarationContext));
 			NOSPACE(tokens);
@@ -995,45 +995,45 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitSubselect_identification_variable_declaration(
+	public List<JpaQueryParsingToken> visitSubselect_identification_variable_declaration(
 			JpqlParser.Subselect_identification_variable_declarationContext ctx) {
 		return super.visitSubselect_identification_variable_declaration(ctx);
 	}
 
 	@Override
-	public List<QueryParsingToken> visitDerived_path_expression(JpqlParser.Derived_path_expressionContext ctx) {
+	public List<JpaQueryParsingToken> visitDerived_path_expression(JpqlParser.Derived_path_expressionContext ctx) {
 		return super.visitDerived_path_expression(ctx);
 	}
 
 	@Override
-	public List<QueryParsingToken> visitGeneral_derived_path(JpqlParser.General_derived_pathContext ctx) {
+	public List<JpaQueryParsingToken> visitGeneral_derived_path(JpqlParser.General_derived_pathContext ctx) {
 		return super.visitGeneral_derived_path(ctx);
 	}
 
 	@Override
-	public List<QueryParsingToken> visitSimple_derived_path(JpqlParser.Simple_derived_pathContext ctx) {
+	public List<JpaQueryParsingToken> visitSimple_derived_path(JpqlParser.Simple_derived_pathContext ctx) {
 		return super.visitSimple_derived_path(ctx);
 	}
 
 	@Override
-	public List<QueryParsingToken> visitTreated_derived_path(JpqlParser.Treated_derived_pathContext ctx) {
+	public List<JpaQueryParsingToken> visitTreated_derived_path(JpqlParser.Treated_derived_pathContext ctx) {
 		return super.visitTreated_derived_path(ctx);
 	}
 
 	@Override
-	public List<QueryParsingToken> visitDerived_collection_member_declaration(
+	public List<JpaQueryParsingToken> visitDerived_collection_member_declaration(
 			JpqlParser.Derived_collection_member_declarationContext ctx) {
 		return super.visitDerived_collection_member_declaration(ctx);
 	}
 
 	@Override
-	public List<QueryParsingToken> visitSimple_select_clause(JpqlParser.Simple_select_clauseContext ctx) {
+	public List<JpaQueryParsingToken> visitSimple_select_clause(JpqlParser.Simple_select_clauseContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.SELECT()));
+		tokens.add(new JpaQueryParsingToken(ctx.SELECT()));
 		if (ctx.DISTINCT() != null) {
-			tokens.add(new QueryParsingToken(ctx.DISTINCT()));
+			tokens.add(new JpaQueryParsingToken(ctx.DISTINCT()));
 		}
 		tokens.addAll(visit(ctx.simple_select_expression()));
 
@@ -1041,9 +1041,9 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitSimple_select_expression(JpqlParser.Simple_select_expressionContext ctx) {
+	public List<JpaQueryParsingToken> visitSimple_select_expression(JpqlParser.Simple_select_expressionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.single_valued_path_expression() != null) {
 			tokens.addAll(visit(ctx.single_valued_path_expression()));
@@ -1059,9 +1059,9 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitScalar_expression(JpqlParser.Scalar_expressionContext ctx) {
+	public List<JpaQueryParsingToken> visitScalar_expression(JpqlParser.Scalar_expressionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.arithmetic_expression() != null) {
 			tokens.addAll(visit(ctx.arithmetic_expression()));
@@ -1083,13 +1083,13 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitConditional_expression(JpqlParser.Conditional_expressionContext ctx) {
+	public List<JpaQueryParsingToken> visitConditional_expression(JpqlParser.Conditional_expressionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.conditional_expression() != null) {
 			tokens.addAll(visit(ctx.conditional_expression()));
-			tokens.add(new QueryParsingToken(ctx.OR()));
+			tokens.add(new JpaQueryParsingToken(ctx.OR()));
 			tokens.addAll(visit(ctx.conditional_term()));
 		} else {
 			tokens.addAll(visit(ctx.conditional_term()));
@@ -1099,13 +1099,13 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitConditional_term(JpqlParser.Conditional_termContext ctx) {
+	public List<JpaQueryParsingToken> visitConditional_term(JpqlParser.Conditional_termContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.conditional_term() != null) {
 			tokens.addAll(visit(ctx.conditional_term()));
-			tokens.add(new QueryParsingToken(ctx.AND()));
+			tokens.add(new JpaQueryParsingToken(ctx.AND()));
 			tokens.addAll(visit(ctx.conditional_factor()));
 		} else {
 			tokens.addAll(visit(ctx.conditional_factor()));
@@ -1115,25 +1115,25 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitConditional_factor(JpqlParser.Conditional_factorContext ctx) {
+	public List<JpaQueryParsingToken> visitConditional_factor(JpqlParser.Conditional_factorContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.NOT() != null) {
-			tokens.add(new QueryParsingToken(ctx.NOT()));
+			tokens.add(new JpaQueryParsingToken(ctx.NOT()));
 		}
 
 		JpqlParser.Conditional_primaryContext conditionalPrimary = ctx.conditional_primary();
-		List<QueryParsingToken> visitedConditionalPrimary = visit(conditionalPrimary);
+		List<JpaQueryParsingToken> visitedConditionalPrimary = visit(conditionalPrimary);
 		tokens.addAll(visitedConditionalPrimary);
 
 		return tokens;
 	}
 
 	@Override
-	public List<QueryParsingToken> visitConditional_primary(JpqlParser.Conditional_primaryContext ctx) {
+	public List<JpaQueryParsingToken> visitConditional_primary(JpqlParser.Conditional_primaryContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.simple_cond_expression() != null) {
 			tokens.addAll(visit(ctx.simple_cond_expression()));
@@ -1149,9 +1149,9 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitSimple_cond_expression(JpqlParser.Simple_cond_expressionContext ctx) {
+	public List<JpaQueryParsingToken> visitSimple_cond_expression(JpqlParser.Simple_cond_expressionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.comparison_expression() != null) {
 			tokens.addAll(visit(ctx.comparison_expression()));
@@ -1175,21 +1175,21 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitBetween_expression(JpqlParser.Between_expressionContext ctx) {
+	public List<JpaQueryParsingToken> visitBetween_expression(JpqlParser.Between_expressionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.arithmetic_expression(0) != null) {
 
 			tokens.addAll(visit(ctx.arithmetic_expression(0)));
 
 			if (ctx.NOT() != null) {
-				tokens.add(new QueryParsingToken(ctx.NOT()));
+				tokens.add(new JpaQueryParsingToken(ctx.NOT()));
 			}
 
-			tokens.add(new QueryParsingToken(ctx.BETWEEN()));
+			tokens.add(new JpaQueryParsingToken(ctx.BETWEEN()));
 			tokens.addAll(visit(ctx.arithmetic_expression(1)));
-			tokens.add(new QueryParsingToken(ctx.AND()));
+			tokens.add(new JpaQueryParsingToken(ctx.AND()));
 			tokens.addAll(visit(ctx.arithmetic_expression(2)));
 
 		} else if (ctx.string_expression(0) != null) {
@@ -1197,12 +1197,12 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 			tokens.addAll(visit(ctx.string_expression(0)));
 
 			if (ctx.NOT() != null) {
-				tokens.add(new QueryParsingToken(ctx.NOT()));
+				tokens.add(new JpaQueryParsingToken(ctx.NOT()));
 			}
 
-			tokens.add(new QueryParsingToken(ctx.BETWEEN()));
+			tokens.add(new JpaQueryParsingToken(ctx.BETWEEN()));
 			tokens.addAll(visit(ctx.string_expression(1)));
-			tokens.add(new QueryParsingToken(ctx.AND()));
+			tokens.add(new JpaQueryParsingToken(ctx.AND()));
 			tokens.addAll(visit(ctx.string_expression(2)));
 
 		} else if (ctx.datetime_expression(0) != null) {
@@ -1210,12 +1210,12 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 			tokens.addAll(visit(ctx.datetime_expression(0)));
 
 			if (ctx.NOT() != null) {
-				tokens.add(new QueryParsingToken(ctx.NOT()));
+				tokens.add(new JpaQueryParsingToken(ctx.NOT()));
 			}
 
-			tokens.add(new QueryParsingToken(ctx.BETWEEN()));
+			tokens.add(new JpaQueryParsingToken(ctx.BETWEEN()));
 			tokens.addAll(visit(ctx.datetime_expression(1)));
-			tokens.add(new QueryParsingToken(ctx.AND()));
+			tokens.add(new JpaQueryParsingToken(ctx.AND()));
 			tokens.addAll(visit(ctx.datetime_expression(2)));
 		}
 
@@ -1223,9 +1223,9 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitIn_expression(JpqlParser.In_expressionContext ctx) {
+	public List<JpaQueryParsingToken> visitIn_expression(JpqlParser.In_expressionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.state_valued_path_expression() != null) {
 			tokens.addAll(visit(ctx.state_valued_path_expression()));
@@ -1234,10 +1234,10 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 			tokens.addAll(visit(ctx.type_discriminator()));
 		}
 		if (ctx.NOT() != null) {
-			tokens.add(new QueryParsingToken(ctx.NOT()));
+			tokens.add(new JpaQueryParsingToken(ctx.NOT()));
 		}
 		if (ctx.IN() != null) {
-			tokens.add(new QueryParsingToken(ctx.IN()));
+			tokens.add(new JpaQueryParsingToken(ctx.IN()));
 		}
 
 		if (ctx.in_item() != null && !ctx.in_item().isEmpty()) {
@@ -1267,9 +1267,9 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitIn_item(JpqlParser.In_itemContext ctx) {
+	public List<JpaQueryParsingToken> visitIn_item(JpqlParser.In_itemContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.literal() != null) {
 			tokens.addAll(visit(ctx.literal()));
@@ -1281,24 +1281,24 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitLike_expression(JpqlParser.Like_expressionContext ctx) {
+	public List<JpaQueryParsingToken> visitLike_expression(JpqlParser.Like_expressionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.addAll(visit(ctx.string_expression()));
 		if (ctx.NOT() != null) {
-			tokens.add(new QueryParsingToken(ctx.NOT()));
+			tokens.add(new JpaQueryParsingToken(ctx.NOT()));
 		}
-		tokens.add(new QueryParsingToken(ctx.LIKE()));
+		tokens.add(new JpaQueryParsingToken(ctx.LIKE()));
 		tokens.addAll(visit(ctx.pattern_value()));
 
 		return tokens;
 	}
 
 	@Override
-	public List<QueryParsingToken> visitNull_comparison_expression(JpqlParser.Null_comparison_expressionContext ctx) {
+	public List<JpaQueryParsingToken> visitNull_comparison_expression(JpqlParser.Null_comparison_expressionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.single_valued_path_expression() != null) {
 			tokens.addAll(visit(ctx.single_valued_path_expression()));
@@ -1306,43 +1306,43 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 			tokens.addAll(visit(ctx.input_parameter()));
 		}
 
-		tokens.add(new QueryParsingToken(ctx.IS()));
+		tokens.add(new JpaQueryParsingToken(ctx.IS()));
 		if (ctx.NOT() != null) {
-			tokens.add(new QueryParsingToken(ctx.NOT()));
+			tokens.add(new JpaQueryParsingToken(ctx.NOT()));
 		}
-		tokens.add(new QueryParsingToken(ctx.NULL()));
+		tokens.add(new JpaQueryParsingToken(ctx.NULL()));
 
 		return tokens;
 	}
 
 	@Override
-	public List<QueryParsingToken> visitEmpty_collection_comparison_expression(
+	public List<JpaQueryParsingToken> visitEmpty_collection_comparison_expression(
 			JpqlParser.Empty_collection_comparison_expressionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.addAll(visit(ctx.collection_valued_path_expression()));
-		tokens.add(new QueryParsingToken(ctx.IS()));
+		tokens.add(new JpaQueryParsingToken(ctx.IS()));
 		if (ctx.NOT() != null) {
-			tokens.add(new QueryParsingToken(ctx.NOT()));
+			tokens.add(new JpaQueryParsingToken(ctx.NOT()));
 		}
-		tokens.add(new QueryParsingToken(ctx.EMPTY()));
+		tokens.add(new JpaQueryParsingToken(ctx.EMPTY()));
 
 		return tokens;
 	}
 
 	@Override
-	public List<QueryParsingToken> visitCollection_member_expression(JpqlParser.Collection_member_expressionContext ctx) {
+	public List<JpaQueryParsingToken> visitCollection_member_expression(JpqlParser.Collection_member_expressionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.addAll(visit(ctx.entity_or_value_expression()));
 		if (ctx.NOT() != null) {
-			tokens.add(new QueryParsingToken(ctx.NOT()));
+			tokens.add(new JpaQueryParsingToken(ctx.NOT()));
 		}
-		tokens.add(new QueryParsingToken(ctx.MEMBER()));
+		tokens.add(new JpaQueryParsingToken(ctx.MEMBER()));
 		if (ctx.OF() != null) {
-			tokens.add(new QueryParsingToken(ctx.OF()));
+			tokens.add(new JpaQueryParsingToken(ctx.OF()));
 		}
 		tokens.addAll(visit(ctx.collection_valued_path_expression()));
 
@@ -1350,9 +1350,9 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitEntity_or_value_expression(JpqlParser.Entity_or_value_expressionContext ctx) {
+	public List<JpaQueryParsingToken> visitEntity_or_value_expression(JpqlParser.Entity_or_value_expressionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.single_valued_object_path_expression() != null) {
 			tokens.addAll(visit(ctx.single_valued_object_path_expression()));
@@ -1366,10 +1366,10 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitSimple_entity_or_value_expression(
+	public List<JpaQueryParsingToken> visitSimple_entity_or_value_expression(
 			JpqlParser.Simple_entity_or_value_expressionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.identification_variable() != null) {
 			tokens.addAll(visit(ctx.identification_variable()));
@@ -1383,14 +1383,14 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitExists_expression(JpqlParser.Exists_expressionContext ctx) {
+	public List<JpaQueryParsingToken> visitExists_expression(JpqlParser.Exists_expressionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.NOT() != null) {
-			tokens.add(new QueryParsingToken(ctx.NOT()));
+			tokens.add(new JpaQueryParsingToken(ctx.NOT()));
 		}
-		tokens.add(new QueryParsingToken(ctx.EXISTS()));
+		tokens.add(new JpaQueryParsingToken(ctx.EXISTS()));
 		tokens.add(TOKEN_OPEN_PAREN);
 		tokens.addAll(visit(ctx.subquery()));
 		NOSPACE(tokens);
@@ -1400,16 +1400,16 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitAll_or_any_expression(JpqlParser.All_or_any_expressionContext ctx) {
+	public List<JpaQueryParsingToken> visitAll_or_any_expression(JpqlParser.All_or_any_expressionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.ALL() != null) {
-			tokens.add(new QueryParsingToken(ctx.ALL()));
+			tokens.add(new JpaQueryParsingToken(ctx.ALL()));
 		} else if (ctx.ANY() != null) {
-			tokens.add(new QueryParsingToken(ctx.ANY()));
+			tokens.add(new JpaQueryParsingToken(ctx.ANY()));
 		} else if (ctx.SOME() != null) {
-			tokens.add(new QueryParsingToken(ctx.SOME()));
+			tokens.add(new JpaQueryParsingToken(ctx.SOME()));
 		}
 		tokens.add(TOKEN_OPEN_PAREN);
 		tokens.addAll(visit(ctx.subquery()));
@@ -1419,9 +1419,9 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitComparison_expression(JpqlParser.Comparison_expressionContext ctx) {
+	public List<JpaQueryParsingToken> visitComparison_expression(JpqlParser.Comparison_expressionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (!ctx.string_expression().isEmpty()) {
 
@@ -1436,7 +1436,7 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 		} else if (!ctx.boolean_expression().isEmpty()) {
 
 			tokens.addAll(visit(ctx.boolean_expression(0)));
-			tokens.add(new QueryParsingToken(ctx.op));
+			tokens.add(new JpaQueryParsingToken(ctx.op));
 
 			if (ctx.boolean_expression(1) != null) {
 				tokens.addAll(visit(ctx.boolean_expression(1)));
@@ -1446,7 +1446,7 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 		} else if (!ctx.enum_expression().isEmpty()) {
 
 			tokens.addAll(visit(ctx.enum_expression(0)));
-			tokens.add(new QueryParsingToken(ctx.op));
+			tokens.add(new JpaQueryParsingToken(ctx.op));
 
 			if (ctx.enum_expression(1) != null) {
 				tokens.addAll(visit(ctx.enum_expression(1)));
@@ -1466,7 +1466,7 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 		} else if (!ctx.entity_expression().isEmpty()) {
 
 			tokens.addAll(visit(ctx.entity_expression(0)));
-			tokens.add(new QueryParsingToken(ctx.op));
+			tokens.add(new JpaQueryParsingToken(ctx.op));
 
 			if (ctx.entity_expression(1) != null) {
 				tokens.addAll(visit(ctx.entity_expression(1)));
@@ -1486,7 +1486,7 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 		} else if (!ctx.entity_type_expression().isEmpty()) {
 
 			tokens.addAll(visit(ctx.entity_type_expression(0)));
-			tokens.add(new QueryParsingToken(ctx.op));
+			tokens.add(new JpaQueryParsingToken(ctx.op));
 			tokens.addAll(visit(ctx.entity_type_expression(1)));
 		}
 
@@ -1494,19 +1494,19 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitComparison_operator(JpqlParser.Comparison_operatorContext ctx) {
-		return List.of(new QueryParsingToken(ctx.op));
+	public List<JpaQueryParsingToken> visitComparison_operator(JpqlParser.Comparison_operatorContext ctx) {
+		return List.of(new JpaQueryParsingToken(ctx.op));
 	}
 
 	@Override
-	public List<QueryParsingToken> visitArithmetic_expression(JpqlParser.Arithmetic_expressionContext ctx) {
+	public List<JpaQueryParsingToken> visitArithmetic_expression(JpqlParser.Arithmetic_expressionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.arithmetic_expression() != null) {
 
 			tokens.addAll(visit(ctx.arithmetic_expression()));
-			tokens.add(new QueryParsingToken(ctx.op));
+			tokens.add(new JpaQueryParsingToken(ctx.op));
 			tokens.addAll(visit(ctx.arithmetic_term()));
 
 		} else {
@@ -1517,14 +1517,14 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitArithmetic_term(JpqlParser.Arithmetic_termContext ctx) {
+	public List<JpaQueryParsingToken> visitArithmetic_term(JpqlParser.Arithmetic_termContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.arithmetic_term() != null) {
 
 			tokens.addAll(visit(ctx.arithmetic_term()));
-			tokens.add(new QueryParsingToken(ctx.op));
+			tokens.add(new JpaQueryParsingToken(ctx.op));
 			tokens.addAll(visit(ctx.arithmetic_factor()));
 		} else {
 			tokens.addAll(visit(ctx.arithmetic_factor()));
@@ -1534,12 +1534,12 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitArithmetic_factor(JpqlParser.Arithmetic_factorContext ctx) {
+	public List<JpaQueryParsingToken> visitArithmetic_factor(JpqlParser.Arithmetic_factorContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.op != null) {
-			tokens.add(new QueryParsingToken(ctx.op));
+			tokens.add(new JpaQueryParsingToken(ctx.op));
 		}
 		tokens.addAll(visit(ctx.arithmetic_primary()));
 
@@ -1547,9 +1547,9 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitArithmetic_primary(JpqlParser.Arithmetic_primaryContext ctx) {
+	public List<JpaQueryParsingToken> visitArithmetic_primary(JpqlParser.Arithmetic_primaryContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.state_valued_path_expression() != null) {
 			tokens.addAll(visit(ctx.state_valued_path_expression()));
@@ -1583,9 +1583,9 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitString_expression(JpqlParser.String_expressionContext ctx) {
+	public List<JpaQueryParsingToken> visitString_expression(JpqlParser.String_expressionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.state_valued_path_expression() != null) {
 			tokens.addAll(visit(ctx.state_valued_path_expression()));
@@ -1613,9 +1613,9 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitDatetime_expression(JpqlParser.Datetime_expressionContext ctx) {
+	public List<JpaQueryParsingToken> visitDatetime_expression(JpqlParser.Datetime_expressionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.state_valued_path_expression() != null) {
 			tokens.addAll(visit(ctx.state_valued_path_expression()));
@@ -1645,9 +1645,9 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitBoolean_expression(JpqlParser.Boolean_expressionContext ctx) {
+	public List<JpaQueryParsingToken> visitBoolean_expression(JpqlParser.Boolean_expressionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.state_valued_path_expression() != null) {
 			tokens.addAll(visit(ctx.state_valued_path_expression()));
@@ -1671,9 +1671,9 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitEnum_expression(JpqlParser.Enum_expressionContext ctx) {
+	public List<JpaQueryParsingToken> visitEnum_expression(JpqlParser.Enum_expressionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.state_valued_path_expression() != null) {
 			tokens.addAll(visit(ctx.state_valued_path_expression()));
@@ -1695,9 +1695,9 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitEntity_expression(JpqlParser.Entity_expressionContext ctx) {
+	public List<JpaQueryParsingToken> visitEntity_expression(JpqlParser.Entity_expressionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.single_valued_object_path_expression() != null) {
 			tokens.addAll(visit(ctx.single_valued_object_path_expression()));
@@ -1709,9 +1709,9 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitSimple_entity_expression(JpqlParser.Simple_entity_expressionContext ctx) {
+	public List<JpaQueryParsingToken> visitSimple_entity_expression(JpqlParser.Simple_entity_expressionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.identification_variable() != null) {
 			tokens.addAll(visit(ctx.identification_variable()));
@@ -1723,9 +1723,9 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitEntity_type_expression(JpqlParser.Entity_type_expressionContext ctx) {
+	public List<JpaQueryParsingToken> visitEntity_type_expression(JpqlParser.Entity_type_expressionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.type_discriminator() != null) {
 			tokens.addAll(visit(ctx.type_discriminator()));
@@ -1739,11 +1739,11 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitType_discriminator(JpqlParser.Type_discriminatorContext ctx) {
+	public List<JpaQueryParsingToken> visitType_discriminator(JpqlParser.Type_discriminatorContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.TYPE()));
+		tokens.add(new JpaQueryParsingToken(ctx.TYPE()));
 		tokens.add(TOKEN_OPEN_PAREN);
 		if (ctx.general_identification_variable() != null) {
 			tokens.addAll(visit(ctx.general_identification_variable()));
@@ -1758,19 +1758,19 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitFunctions_returning_numerics(JpqlParser.Functions_returning_numericsContext ctx) {
+	public List<JpaQueryParsingToken> visitFunctions_returning_numerics(JpqlParser.Functions_returning_numericsContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.LENGTH() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.LENGTH()));
+			tokens.add(new JpaQueryParsingToken(ctx.LENGTH()));
 			tokens.add(TOKEN_OPEN_PAREN);
 			tokens.addAll(visit(ctx.string_expression(0)));
 			tokens.add(TOKEN_CLOSE_PAREN);
 		} else if (ctx.LOCATE() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.LOCATE()));
+			tokens.add(new JpaQueryParsingToken(ctx.LOCATE()));
 			tokens.add(TOKEN_OPEN_PAREN);
 			tokens.addAll(visit(ctx.string_expression(0)));
 			tokens.add(TOKEN_COMMA);
@@ -1782,49 +1782,49 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 			tokens.add(TOKEN_CLOSE_PAREN);
 		} else if (ctx.ABS() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.ABS()));
+			tokens.add(new JpaQueryParsingToken(ctx.ABS()));
 			tokens.add(TOKEN_OPEN_PAREN);
 			tokens.addAll(visit(ctx.arithmetic_expression(0)));
 			tokens.add(TOKEN_CLOSE_PAREN);
 		} else if (ctx.CEILING() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.CEILING()));
+			tokens.add(new JpaQueryParsingToken(ctx.CEILING()));
 			tokens.add(TOKEN_OPEN_PAREN);
 			tokens.addAll(visit(ctx.arithmetic_expression(0)));
 			tokens.add(TOKEN_CLOSE_PAREN);
 		} else if (ctx.EXP() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.EXP()));
+			tokens.add(new JpaQueryParsingToken(ctx.EXP()));
 			tokens.add(TOKEN_OPEN_PAREN);
 			tokens.addAll(visit(ctx.arithmetic_expression(0)));
 			tokens.add(TOKEN_CLOSE_PAREN);
 		} else if (ctx.FLOOR() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.FLOOR()));
+			tokens.add(new JpaQueryParsingToken(ctx.FLOOR()));
 			tokens.add(TOKEN_OPEN_PAREN);
 			tokens.addAll(visit(ctx.arithmetic_expression(0)));
 			tokens.add(TOKEN_CLOSE_PAREN);
 		} else if (ctx.LN() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.LN()));
+			tokens.add(new JpaQueryParsingToken(ctx.LN()));
 			tokens.add(TOKEN_OPEN_PAREN);
 			tokens.addAll(visit(ctx.arithmetic_expression(0)));
 			tokens.add(TOKEN_CLOSE_PAREN);
 		} else if (ctx.SIGN() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.SIGN()));
+			tokens.add(new JpaQueryParsingToken(ctx.SIGN()));
 			tokens.add(TOKEN_OPEN_PAREN);
 			tokens.addAll(visit(ctx.arithmetic_expression(0)));
 			tokens.add(TOKEN_CLOSE_PAREN);
 		} else if (ctx.SQRT() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.SQRT()));
+			tokens.add(new JpaQueryParsingToken(ctx.SQRT()));
 			tokens.add(TOKEN_OPEN_PAREN);
 			tokens.addAll(visit(ctx.arithmetic_expression(0)));
 			tokens.add(TOKEN_CLOSE_PAREN);
 		} else if (ctx.MOD() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.MOD()));
+			tokens.add(new JpaQueryParsingToken(ctx.MOD()));
 			tokens.add(TOKEN_OPEN_PAREN);
 			tokens.addAll(visit(ctx.arithmetic_expression(0)));
 			tokens.add(TOKEN_COMMA);
@@ -1832,7 +1832,7 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 			tokens.add(TOKEN_CLOSE_PAREN);
 		} else if (ctx.POWER() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.POWER()));
+			tokens.add(new JpaQueryParsingToken(ctx.POWER()));
 			tokens.add(TOKEN_OPEN_PAREN);
 			tokens.addAll(visit(ctx.arithmetic_expression(0)));
 			tokens.add(TOKEN_COMMA);
@@ -1840,7 +1840,7 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 			tokens.add(TOKEN_CLOSE_PAREN);
 		} else if (ctx.ROUND() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.ROUND()));
+			tokens.add(new JpaQueryParsingToken(ctx.ROUND()));
 			tokens.add(TOKEN_OPEN_PAREN);
 			tokens.addAll(visit(ctx.arithmetic_expression(0)));
 			tokens.add(TOKEN_COMMA);
@@ -1848,13 +1848,13 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 			tokens.add(TOKEN_CLOSE_PAREN);
 		} else if (ctx.SIZE() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.SIZE()));
+			tokens.add(new JpaQueryParsingToken(ctx.SIZE()));
 			tokens.add(TOKEN_OPEN_PAREN);
 			tokens.addAll(visit(ctx.collection_valued_path_expression()));
 			tokens.add(TOKEN_CLOSE_PAREN);
 		} else if (ctx.INDEX() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.INDEX()));
+			tokens.add(new JpaQueryParsingToken(ctx.INDEX()));
 			tokens.add(TOKEN_OPEN_PAREN);
 			tokens.addAll(visit(ctx.identification_variable()));
 			tokens.add(TOKEN_CLOSE_PAREN);
@@ -1864,26 +1864,26 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitFunctions_returning_datetime(JpqlParser.Functions_returning_datetimeContext ctx) {
+	public List<JpaQueryParsingToken> visitFunctions_returning_datetime(JpqlParser.Functions_returning_datetimeContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.CURRENT_DATE() != null) {
-			tokens.add(new QueryParsingToken(ctx.CURRENT_DATE()));
+			tokens.add(new JpaQueryParsingToken(ctx.CURRENT_DATE()));
 		} else if (ctx.CURRENT_TIME() != null) {
-			tokens.add(new QueryParsingToken(ctx.CURRENT_TIME()));
+			tokens.add(new JpaQueryParsingToken(ctx.CURRENT_TIME()));
 		} else if (ctx.CURRENT_TIMESTAMP() != null) {
-			tokens.add(new QueryParsingToken(ctx.CURRENT_TIMESTAMP()));
+			tokens.add(new JpaQueryParsingToken(ctx.CURRENT_TIMESTAMP()));
 		} else if (ctx.LOCAL() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.LOCAL()));
+			tokens.add(new JpaQueryParsingToken(ctx.LOCAL()));
 
 			if (ctx.DATE() != null) {
-				tokens.add(new QueryParsingToken(ctx.DATE()));
+				tokens.add(new JpaQueryParsingToken(ctx.DATE()));
 			} else if (ctx.TIME() != null) {
-				tokens.add(new QueryParsingToken(ctx.TIME()));
+				tokens.add(new JpaQueryParsingToken(ctx.TIME()));
 			} else if (ctx.DATETIME() != null) {
-				tokens.add(new QueryParsingToken(ctx.DATETIME()));
+				tokens.add(new JpaQueryParsingToken(ctx.DATETIME()));
 			}
 		}
 
@@ -1891,13 +1891,13 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitFunctions_returning_strings(JpqlParser.Functions_returning_stringsContext ctx) {
+	public List<JpaQueryParsingToken> visitFunctions_returning_strings(JpqlParser.Functions_returning_stringsContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.CONCAT() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.CONCAT(), false));
+			tokens.add(new JpaQueryParsingToken(ctx.CONCAT(), false));
 			tokens.add(TOKEN_OPEN_PAREN);
 			ctx.string_expression().forEach(stringExpressionContext -> {
 				tokens.addAll(visit(stringExpressionContext));
@@ -1909,7 +1909,7 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 			tokens.add(TOKEN_CLOSE_PAREN);
 		} else if (ctx.SUBSTRING() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.SUBSTRING(), false));
+			tokens.add(new JpaQueryParsingToken(ctx.SUBSTRING(), false));
 			tokens.add(TOKEN_OPEN_PAREN);
 			tokens.addAll(visit(ctx.string_expression(0)));
 			NOSPACE(tokens);
@@ -1922,7 +1922,7 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 			tokens.add(TOKEN_CLOSE_PAREN);
 		} else if (ctx.TRIM() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.TRIM(), false));
+			tokens.add(new JpaQueryParsingToken(ctx.TRIM(), false));
 			tokens.add(TOKEN_OPEN_PAREN);
 			if (ctx.trim_specification() != null) {
 				tokens.addAll(visit(ctx.trim_specification()));
@@ -1931,20 +1931,20 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 				tokens.addAll(visit(ctx.trim_character()));
 			}
 			if (ctx.FROM() != null) {
-				tokens.add(new QueryParsingToken(ctx.FROM()));
+				tokens.add(new JpaQueryParsingToken(ctx.FROM()));
 			}
 			tokens.addAll(visit(ctx.string_expression(0)));
 			tokens.add(TOKEN_CLOSE_PAREN);
 		} else if (ctx.LOWER() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.LOWER(), false));
+			tokens.add(new JpaQueryParsingToken(ctx.LOWER(), false));
 			tokens.add(TOKEN_OPEN_PAREN);
 			tokens.addAll(visit(ctx.string_expression(0)));
 			NOSPACE(tokens);
 			tokens.add(TOKEN_CLOSE_PAREN);
 		} else if (ctx.UPPER() != null) {
 
-			tokens.add(new QueryParsingToken(ctx.UPPER(), false));
+			tokens.add(new JpaQueryParsingToken(ctx.UPPER(), false));
 			tokens.add(TOKEN_OPEN_PAREN);
 			tokens.addAll(visit(ctx.string_expression(0)));
 			NOSPACE(tokens);
@@ -1955,23 +1955,23 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitTrim_specification(JpqlParser.Trim_specificationContext ctx) {
+	public List<JpaQueryParsingToken> visitTrim_specification(JpqlParser.Trim_specificationContext ctx) {
 
 		if (ctx.LEADING() != null) {
-			return List.of(new QueryParsingToken(ctx.LEADING()));
+			return List.of(new JpaQueryParsingToken(ctx.LEADING()));
 		} else if (ctx.TRAILING() != null) {
-			return List.of(new QueryParsingToken(ctx.TRAILING()));
+			return List.of(new JpaQueryParsingToken(ctx.TRAILING()));
 		} else {
-			return List.of(new QueryParsingToken(ctx.BOTH()));
+			return List.of(new JpaQueryParsingToken(ctx.BOTH()));
 		}
 	}
 
 	@Override
-	public List<QueryParsingToken> visitFunction_invocation(JpqlParser.Function_invocationContext ctx) {
+	public List<JpaQueryParsingToken> visitFunction_invocation(JpqlParser.Function_invocationContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.FUNCTION()));
+		tokens.add(new JpaQueryParsingToken(ctx.FUNCTION()));
 		tokens.add(TOKEN_OPEN_PAREN);
 		tokens.addAll(visit(ctx.function_name()));
 		ctx.function_arg().forEach(functionArgContext -> {
@@ -1984,14 +1984,14 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitExtract_datetime_field(JpqlParser.Extract_datetime_fieldContext ctx) {
+	public List<JpaQueryParsingToken> visitExtract_datetime_field(JpqlParser.Extract_datetime_fieldContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.EXTRACT()));
+		tokens.add(new JpaQueryParsingToken(ctx.EXTRACT()));
 		tokens.add(TOKEN_OPEN_PAREN);
 		tokens.addAll(visit(ctx.datetime_field()));
-		tokens.add(new QueryParsingToken(ctx.FROM()));
+		tokens.add(new JpaQueryParsingToken(ctx.FROM()));
 		tokens.addAll(visit(ctx.datetime_expression()));
 		tokens.add(TOKEN_CLOSE_PAREN);
 
@@ -1999,19 +1999,19 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitDatetime_field(JpqlParser.Datetime_fieldContext ctx) {
+	public List<JpaQueryParsingToken> visitDatetime_field(JpqlParser.Datetime_fieldContext ctx) {
 		return visit(ctx.identification_variable());
 	}
 
 	@Override
-	public List<QueryParsingToken> visitExtract_datetime_part(JpqlParser.Extract_datetime_partContext ctx) {
+	public List<JpaQueryParsingToken> visitExtract_datetime_part(JpqlParser.Extract_datetime_partContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.EXTRACT()));
+		tokens.add(new JpaQueryParsingToken(ctx.EXTRACT()));
 		tokens.add(TOKEN_OPEN_PAREN);
 		tokens.addAll(visit(ctx.datetime_part()));
-		tokens.add(new QueryParsingToken(ctx.FROM()));
+		tokens.add(new JpaQueryParsingToken(ctx.FROM()));
 		tokens.addAll(visit(ctx.datetime_expression()));
 		tokens.add(TOKEN_CLOSE_PAREN);
 
@@ -2019,12 +2019,12 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitDatetime_part(JpqlParser.Datetime_partContext ctx) {
+	public List<JpaQueryParsingToken> visitDatetime_part(JpqlParser.Datetime_partContext ctx) {
 		return visit(ctx.identification_variable());
 	}
 
 	@Override
-	public List<QueryParsingToken> visitFunction_arg(JpqlParser.Function_argContext ctx) {
+	public List<JpaQueryParsingToken> visitFunction_arg(JpqlParser.Function_argContext ctx) {
 
 		if (ctx.literal() != null) {
 			return visit(ctx.literal());
@@ -2038,7 +2038,7 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitCase_expression(JpqlParser.Case_expressionContext ctx) {
+	public List<JpaQueryParsingToken> visitCase_expression(JpqlParser.Case_expressionContext ctx) {
 
 		if (ctx.general_case_expression() != null) {
 			return visit(ctx.general_case_expression());
@@ -2052,56 +2052,56 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitGeneral_case_expression(JpqlParser.General_case_expressionContext ctx) {
+	public List<JpaQueryParsingToken> visitGeneral_case_expression(JpqlParser.General_case_expressionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.CASE()));
+		tokens.add(new JpaQueryParsingToken(ctx.CASE()));
 
 		ctx.when_clause().forEach(whenClauseContext -> {
 			tokens.addAll(visit(whenClauseContext));
 		});
 
-		tokens.add(new QueryParsingToken(ctx.ELSE()));
+		tokens.add(new JpaQueryParsingToken(ctx.ELSE()));
 		tokens.addAll(visit(ctx.scalar_expression()));
 
 		return tokens;
 	}
 
 	@Override
-	public List<QueryParsingToken> visitWhen_clause(JpqlParser.When_clauseContext ctx) {
+	public List<JpaQueryParsingToken> visitWhen_clause(JpqlParser.When_clauseContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.WHEN()));
+		tokens.add(new JpaQueryParsingToken(ctx.WHEN()));
 		tokens.addAll(visit(ctx.conditional_expression()));
-		tokens.add(new QueryParsingToken(ctx.THEN()));
+		tokens.add(new JpaQueryParsingToken(ctx.THEN()));
 		tokens.addAll(visit(ctx.scalar_expression()));
 
 		return tokens;
 	}
 
 	@Override
-	public List<QueryParsingToken> visitSimple_case_expression(JpqlParser.Simple_case_expressionContext ctx) {
+	public List<JpaQueryParsingToken> visitSimple_case_expression(JpqlParser.Simple_case_expressionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.CASE()));
+		tokens.add(new JpaQueryParsingToken(ctx.CASE()));
 		tokens.addAll(visit(ctx.case_operand()));
 
 		ctx.simple_when_clause().forEach(simpleWhenClauseContext -> {
 			tokens.addAll(visit(simpleWhenClauseContext));
 		});
 
-		tokens.add(new QueryParsingToken(ctx.ELSE()));
+		tokens.add(new JpaQueryParsingToken(ctx.ELSE()));
 		tokens.addAll(visit(ctx.scalar_expression()));
-		tokens.add(new QueryParsingToken(ctx.END()));
+		tokens.add(new JpaQueryParsingToken(ctx.END()));
 
 		return tokens;
 	}
 
 	@Override
-	public List<QueryParsingToken> visitCase_operand(JpqlParser.Case_operandContext ctx) {
+	public List<JpaQueryParsingToken> visitCase_operand(JpqlParser.Case_operandContext ctx) {
 
 		if (ctx.state_valued_path_expression() != null) {
 			return visit(ctx.state_valued_path_expression());
@@ -2111,24 +2111,24 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitSimple_when_clause(JpqlParser.Simple_when_clauseContext ctx) {
+	public List<JpaQueryParsingToken> visitSimple_when_clause(JpqlParser.Simple_when_clauseContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.WHEN()));
+		tokens.add(new JpaQueryParsingToken(ctx.WHEN()));
 		tokens.addAll(visit(ctx.scalar_expression(0)));
-		tokens.add(new QueryParsingToken(ctx.THEN()));
+		tokens.add(new JpaQueryParsingToken(ctx.THEN()));
 		tokens.addAll(visit(ctx.scalar_expression(1)));
 
 		return tokens;
 	}
 
 	@Override
-	public List<QueryParsingToken> visitCoalesce_expression(JpqlParser.Coalesce_expressionContext ctx) {
+	public List<JpaQueryParsingToken> visitCoalesce_expression(JpqlParser.Coalesce_expressionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.COALESCE(), false));
+		tokens.add(new JpaQueryParsingToken(ctx.COALESCE(), false));
 		tokens.add(TOKEN_OPEN_PAREN);
 		ctx.scalar_expression().forEach(scalarExpressionContext -> {
 			tokens.addAll(visit(scalarExpressionContext));
@@ -2142,11 +2142,11 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitNullif_expression(JpqlParser.Nullif_expressionContext ctx) {
+	public List<JpaQueryParsingToken> visitNullif_expression(JpqlParser.Nullif_expressionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new QueryParsingToken(ctx.NULLIF()));
+		tokens.add(new JpaQueryParsingToken(ctx.NULLIF()));
 		tokens.add(TOKEN_OPEN_PAREN);
 		tokens.addAll(visit(ctx.scalar_expression(0)));
 		tokens.add(TOKEN_COMMA);
@@ -2157,10 +2157,10 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitTrim_character(JpqlParser.Trim_characterContext ctx) {
+	public List<JpaQueryParsingToken> visitTrim_character(JpqlParser.Trim_characterContext ctx) {
 
 		if (ctx.CHARACTER() != null) {
-			return List.of(new QueryParsingToken(ctx.CHARACTER()));
+			return List.of(new JpaQueryParsingToken(ctx.CHARACTER()));
 		} else if (ctx.character_valued_input_parameter() != null) {
 			return visit(ctx.character_valued_input_parameter());
 		} else {
@@ -2169,16 +2169,16 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitIdentification_variable(JpqlParser.Identification_variableContext ctx) {
+	public List<JpaQueryParsingToken> visitIdentification_variable(JpqlParser.Identification_variableContext ctx) {
 
 		if (ctx.IDENTIFICATION_VARIABLE() != null) {
-			return List.of(new QueryParsingToken(ctx.IDENTIFICATION_VARIABLE()));
+			return List.of(new JpaQueryParsingToken(ctx.IDENTIFICATION_VARIABLE()));
 		} else if (ctx.COUNT() != null) {
-			return List.of(new QueryParsingToken(ctx.COUNT()));
+			return List.of(new JpaQueryParsingToken(ctx.COUNT()));
 		} else if (ctx.ORDER() != null) {
-			return List.of(new QueryParsingToken(ctx.ORDER()));
+			return List.of(new JpaQueryParsingToken(ctx.ORDER()));
 		} else if (ctx.KEY() != null) {
-			return List.of(new QueryParsingToken(ctx.KEY()));
+			return List.of(new JpaQueryParsingToken(ctx.KEY()));
 		} else if (ctx.spel_expression() != null) {
 			return visit(ctx.spel_expression());
 		} else {
@@ -2187,9 +2187,9 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitConstructor_name(JpqlParser.Constructor_nameContext ctx) {
+	public List<JpaQueryParsingToken> visitConstructor_name(JpqlParser.Constructor_nameContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.addAll(visit(ctx.state_field_path_expression()));
 		NOSPACE(tokens);
@@ -2198,16 +2198,16 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitLiteral(JpqlParser.LiteralContext ctx) {
+	public List<JpaQueryParsingToken> visitLiteral(JpqlParser.LiteralContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.STRINGLITERAL() != null) {
-			tokens.add(new QueryParsingToken(ctx.STRINGLITERAL()));
+			tokens.add(new JpaQueryParsingToken(ctx.STRINGLITERAL()));
 		} else if (ctx.INTLITERAL() != null) {
-			tokens.add(new QueryParsingToken(ctx.INTLITERAL()));
+			tokens.add(new JpaQueryParsingToken(ctx.INTLITERAL()));
 		} else if (ctx.FLOATLITERAL() != null) {
-			tokens.add(new QueryParsingToken(ctx.FLOATLITERAL()));
+			tokens.add(new JpaQueryParsingToken(ctx.FLOATLITERAL()));
 		} else if (ctx.boolean_literal() != null) {
 			tokens.addAll(visit(ctx.boolean_literal()));
 		} else if (ctx.entity_type_literal() != null) {
@@ -2218,14 +2218,14 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitInput_parameter(JpqlParser.Input_parameterContext ctx) {
+	public List<JpaQueryParsingToken> visitInput_parameter(JpqlParser.Input_parameterContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.INTLITERAL() != null) {
 
 			tokens.add(TOKEN_QUESTION_MARK);
-			tokens.add(new QueryParsingToken(ctx.INTLITERAL()));
+			tokens.add(new JpaQueryParsingToken(ctx.INTLITERAL()));
 		} else if (ctx.identification_variable() != null) {
 
 			tokens.add(TOKEN_COLON);
@@ -2236,9 +2236,9 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitPattern_value(JpqlParser.Pattern_valueContext ctx) {
+	public List<JpaQueryParsingToken> visitPattern_value(JpqlParser.Pattern_valueContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.addAll(visit(ctx.string_expression()));
 
@@ -2246,96 +2246,96 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitDate_time_timestamp_literal(JpqlParser.Date_time_timestamp_literalContext ctx) {
-		return List.of(new QueryParsingToken(ctx.STRINGLITERAL()));
+	public List<JpaQueryParsingToken> visitDate_time_timestamp_literal(JpqlParser.Date_time_timestamp_literalContext ctx) {
+		return List.of(new JpaQueryParsingToken(ctx.STRINGLITERAL()));
 	}
 
 	@Override
-	public List<QueryParsingToken> visitEntity_type_literal(JpqlParser.Entity_type_literalContext ctx) {
+	public List<JpaQueryParsingToken> visitEntity_type_literal(JpqlParser.Entity_type_literalContext ctx) {
 		return visit(ctx.identification_variable());
 	}
 
 	@Override
-	public List<QueryParsingToken> visitEscape_character(JpqlParser.Escape_characterContext ctx) {
-		return List.of(new QueryParsingToken(ctx.CHARACTER()));
+	public List<JpaQueryParsingToken> visitEscape_character(JpqlParser.Escape_characterContext ctx) {
+		return List.of(new JpaQueryParsingToken(ctx.CHARACTER()));
 	}
 
 	@Override
-	public List<QueryParsingToken> visitNumeric_literal(JpqlParser.Numeric_literalContext ctx) {
+	public List<JpaQueryParsingToken> visitNumeric_literal(JpqlParser.Numeric_literalContext ctx) {
 
 		if (ctx.INTLITERAL() != null) {
-			return List.of(new QueryParsingToken(ctx.INTLITERAL()));
+			return List.of(new JpaQueryParsingToken(ctx.INTLITERAL()));
 		} else if (ctx.FLOATLITERAL() != null) {
-			return List.of(new QueryParsingToken(ctx.FLOATLITERAL()));
+			return List.of(new JpaQueryParsingToken(ctx.FLOATLITERAL()));
 		} else {
 			return List.of();
 		}
 	}
 
 	@Override
-	public List<QueryParsingToken> visitBoolean_literal(JpqlParser.Boolean_literalContext ctx) {
+	public List<JpaQueryParsingToken> visitBoolean_literal(JpqlParser.Boolean_literalContext ctx) {
 
 		if (ctx.TRUE() != null) {
-			return List.of(new QueryParsingToken(ctx.TRUE()));
+			return List.of(new JpaQueryParsingToken(ctx.TRUE()));
 		} else if (ctx.FALSE() != null) {
-			return List.of(new QueryParsingToken(ctx.FALSE()));
+			return List.of(new JpaQueryParsingToken(ctx.FALSE()));
 		} else {
 			return List.of();
 		}
 	}
 
 	@Override
-	public List<QueryParsingToken> visitEnum_literal(JpqlParser.Enum_literalContext ctx) {
+	public List<JpaQueryParsingToken> visitEnum_literal(JpqlParser.Enum_literalContext ctx) {
 		return visit(ctx.state_field_path_expression());
 	}
 
 	@Override
-	public List<QueryParsingToken> visitString_literal(JpqlParser.String_literalContext ctx) {
+	public List<JpaQueryParsingToken> visitString_literal(JpqlParser.String_literalContext ctx) {
 
 		if (ctx.CHARACTER() != null) {
-			return List.of(new QueryParsingToken(ctx.CHARACTER()));
+			return List.of(new JpaQueryParsingToken(ctx.CHARACTER()));
 		} else if (ctx.STRINGLITERAL() != null) {
-			return List.of(new QueryParsingToken(ctx.STRINGLITERAL()));
+			return List.of(new JpaQueryParsingToken(ctx.STRINGLITERAL()));
 		} else {
 			return List.of();
 		}
 	}
 
 	@Override
-	public List<QueryParsingToken> visitSingle_valued_embeddable_object_field(
+	public List<JpaQueryParsingToken> visitSingle_valued_embeddable_object_field(
 			JpqlParser.Single_valued_embeddable_object_fieldContext ctx) {
 		return visit(ctx.identification_variable());
 	}
 
 	@Override
-	public List<QueryParsingToken> visitSubtype(JpqlParser.SubtypeContext ctx) {
+	public List<JpaQueryParsingToken> visitSubtype(JpqlParser.SubtypeContext ctx) {
 		return visit(ctx.identification_variable());
 	}
 
 	@Override
-	public List<QueryParsingToken> visitCollection_valued_field(JpqlParser.Collection_valued_fieldContext ctx) {
+	public List<JpaQueryParsingToken> visitCollection_valued_field(JpqlParser.Collection_valued_fieldContext ctx) {
 		return visit(ctx.identification_variable());
 	}
 
 	@Override
-	public List<QueryParsingToken> visitSingle_valued_object_field(JpqlParser.Single_valued_object_fieldContext ctx) {
+	public List<JpaQueryParsingToken> visitSingle_valued_object_field(JpqlParser.Single_valued_object_fieldContext ctx) {
 		return visit(ctx.identification_variable());
 	}
 
 	@Override
-	public List<QueryParsingToken> visitState_field(JpqlParser.State_fieldContext ctx) {
+	public List<JpaQueryParsingToken> visitState_field(JpqlParser.State_fieldContext ctx) {
 		return visit(ctx.identification_variable());
 	}
 
 	@Override
-	public List<QueryParsingToken> visitCollection_value_field(JpqlParser.Collection_value_fieldContext ctx) {
+	public List<JpaQueryParsingToken> visitCollection_value_field(JpqlParser.Collection_value_fieldContext ctx) {
 		return visit(ctx.identification_variable());
 	}
 
 	@Override
-	public List<QueryParsingToken> visitEntity_name(JpqlParser.Entity_nameContext ctx) {
+	public List<JpaQueryParsingToken> visitEntity_name(JpqlParser.Entity_nameContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		ctx.identification_variable().forEach(identificationVariableContext -> {
 			tokens.addAll(visit(identificationVariableContext));
@@ -2347,41 +2347,41 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitResult_variable(JpqlParser.Result_variableContext ctx) {
+	public List<JpaQueryParsingToken> visitResult_variable(JpqlParser.Result_variableContext ctx) {
 		return visit(ctx.identification_variable());
 	}
 
 	@Override
-	public List<QueryParsingToken> visitSuperquery_identification_variable(
+	public List<JpaQueryParsingToken> visitSuperquery_identification_variable(
 			JpqlParser.Superquery_identification_variableContext ctx) {
 		return visit(ctx.identification_variable());
 	}
 
 	@Override
-	public List<QueryParsingToken> visitCollection_valued_input_parameter(
+	public List<JpaQueryParsingToken> visitCollection_valued_input_parameter(
 			JpqlParser.Collection_valued_input_parameterContext ctx) {
 		return visit(ctx.input_parameter());
 	}
 
 	@Override
-	public List<QueryParsingToken> visitSingle_valued_input_parameter(
+	public List<JpaQueryParsingToken> visitSingle_valued_input_parameter(
 			JpqlParser.Single_valued_input_parameterContext ctx) {
 		return visit(ctx.input_parameter());
 	}
 
 	@Override
-	public List<QueryParsingToken> visitFunction_name(JpqlParser.Function_nameContext ctx) {
+	public List<JpaQueryParsingToken> visitFunction_name(JpqlParser.Function_nameContext ctx) {
 		return visit(ctx.string_literal());
 	}
 
 	@Override
-	public List<QueryParsingToken> visitSpel_expression(JpqlParser.Spel_expressionContext ctx) {
+	public List<JpaQueryParsingToken> visitSpel_expression(JpqlParser.Spel_expressionContext ctx) {
 
-		List<QueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.prefix.equals("#{#")) { // #{#entityName}
 
-			tokens.add(new QueryParsingToken(ctx.prefix));
+			tokens.add(new JpaQueryParsingToken(ctx.prefix));
 			ctx.identification_variable().forEach(identificationVariableContext -> {
 				tokens.addAll(visit(identificationVariableContext));
 				tokens.add(TOKEN_DOT);
@@ -2391,13 +2391,13 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 
 		} else if (ctx.prefix.equals("#{#[")) { // #{[0]}
 
-			tokens.add(new QueryParsingToken(ctx.prefix));
-			tokens.add(new QueryParsingToken(ctx.INTLITERAL()));
+			tokens.add(new JpaQueryParsingToken(ctx.prefix));
+			tokens.add(new JpaQueryParsingToken(ctx.INTLITERAL()));
 			tokens.add(TOKEN_CLOSE_SQUARE_BRACKET_BRACE);
 
 		} else if (ctx.prefix.equals("#{")) {// #{escape([0])} or #{escape('foo')}
 
-			tokens.add(new QueryParsingToken(ctx.prefix));
+			tokens.add(new JpaQueryParsingToken(ctx.prefix));
 			tokens.addAll(visit(ctx.identification_variable(0)));
 			tokens.add(TOKEN_OPEN_PAREN);
 
@@ -2406,7 +2406,7 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 			} else if (ctx.INTLITERAL() != null) {
 
 				tokens.add(TOKEN_OPEN_SQUARE_BRACKET);
-				tokens.add(new QueryParsingToken(ctx.INTLITERAL()));
+				tokens.add(new JpaQueryParsingToken(ctx.INTLITERAL()));
 				tokens.add(TOKEN_CLOSE_SQUARE_BRACKET);
 			}
 
@@ -2417,11 +2417,11 @@ class JpqlQueryTransformer extends JpqlBaseVisitor<List<QueryParsingToken>> {
 	}
 
 	@Override
-	public List<QueryParsingToken> visitCharacter_valued_input_parameter(
+	public List<JpaQueryParsingToken> visitCharacter_valued_input_parameter(
 			JpqlParser.Character_valued_input_parameterContext ctx) {
 
 		if (ctx.CHARACTER() != null) {
-			return List.of(new QueryParsingToken(ctx.CHARACTER()));
+			return List.of(new JpaQueryParsingToken(ctx.CHARACTER()));
 		} else if (ctx.input_parameter() != null) {
 			return visit(ctx.input_parameter());
 		} else {
