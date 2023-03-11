@@ -145,34 +145,6 @@ class JpaQueryParsingToken {
 	}
 
 	/**
-	 * Take a list of {@link JpaQueryParsingToken}s and convert them ALL to {@code space = false} (except possibly the
-	 * last one).
-	 * 
-	 * @param tokens
-	 * @param spacelastElement
-	 */
-	static List<JpaQueryParsingToken> NOSPACE_ALL_BUT_LAST_ELEMENT(List<JpaQueryParsingToken> tokens,
-			boolean spacelastElement) {
-
-		List<JpaQueryParsingToken> respacedTokens = tokens.stream() //
-				.map(queryParsingToken -> {
-
-					if (queryParsingToken.space == true) {
-						return new JpaQueryParsingToken(queryParsingToken.token, false);
-					} else {
-						return queryParsingToken;
-					}
-				}) //
-				.collect(Collectors.toList());
-
-		if (spacelastElement) {
-			SPACE(respacedTokens);
-		}
-
-		return respacedTokens;
-	}
-
-	/**
 	 * Drop the last entry from the list of {@link JpaQueryParsingToken}s.
 	 */
 	static void CLIP(List<JpaQueryParsingToken> tokens) {

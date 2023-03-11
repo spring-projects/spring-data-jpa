@@ -54,7 +54,13 @@ delete_statement
     ;
 
 from_clause
-    : FROM identification_variable_declaration (',' (identification_variable_declaration | collection_member_declaration))*
+    : FROM identification_variable_declaration (',' identificationVariableDeclarationOrCollectionMemberDeclaration )*
+    ;
+
+// This parser rule is needed to iterate over these two types from #from_clause
+identificationVariableDeclarationOrCollectionMemberDeclaration
+    : identification_variable_declaration
+    | collection_member_declaration
     ;
 
 identification_variable_declaration

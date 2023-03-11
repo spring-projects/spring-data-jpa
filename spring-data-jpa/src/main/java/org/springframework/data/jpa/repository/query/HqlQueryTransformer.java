@@ -142,7 +142,7 @@ class HqlQueryTransformer extends HqlQueryRenderer {
 						NOSPACE(tokens);
 						tokens.add(TOKEN_CLOSE_PAREN);
 					}
-					tokens.add(new JpaQueryParsingToken(order.isDescending() ? "desc" : "asc", false));
+					tokens.add(order.isDescending() ? TOKEN_DESC : TOKEN_ASC);
 					tokens.add(TOKEN_COMMA);
 				});
 				CLIP(tokens);
@@ -259,14 +259,6 @@ class HqlQueryTransformer extends HqlQueryRenderer {
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitInstantiation(HqlParser.InstantiationContext ctx) {
-
-		this.hasConstructorExpression = true;
-
-		return super.visitInstantiation(ctx);
-	}
-
-	@Override
 	public List<JpaQueryParsingToken> visitAlias(HqlParser.AliasContext ctx) {
 
 		List<JpaQueryParsingToken> tokens = new ArrayList<>();
@@ -334,5 +326,13 @@ class HqlQueryTransformer extends HqlQueryRenderer {
 		}
 
 		return tokens;
+	}
+
+	@Override
+	public List<JpaQueryParsingToken> visitInstantiation(HqlParser.InstantiationContext ctx) {
+
+		this.hasConstructorExpression = true;
+
+		return super.visitInstantiation(ctx);
 	}
 }

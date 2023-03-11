@@ -56,20 +56,14 @@ class HqlQueryRendererTests {
 
 	private void assertQuery(String query) {
 
-		String slimmedDownQuery = slim(query);
+		String slimmedDownQuery = reduceWhitespace(query);
 		assertThat(parseWithoutChanges(slimmedDownQuery)).isEqualTo(slimmedDownQuery);
 	}
 
-	// private void assertQuery(String original, String expected) {
-	// assertThat(parseWithoutChanges(slim(original))).isEqualTo(slim(expected));
-	// }
-
-	private String slim(String original) {
+	private String reduceWhitespace(String original) {
 
 		return original //
-				.replaceAll("[ ]{2,}", "") //
-				.replaceAll("[\\t]", "") //
-				.replaceAll("\n", " ") //
+				.replaceAll("[ \\t\\n]{1,}", " ") //
 				.trim();
 	}
 

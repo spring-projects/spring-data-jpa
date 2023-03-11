@@ -1207,12 +1207,15 @@ class HqlQueryRenderer extends HqlBaseVisitor<List<JpaQueryParsingToken>> {
 		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		tokens.addAll(visit(ctx.identifier()));
+		NOSPACE(tokens);
 
 		ctx.simplePathElement().forEach(simplePathElementContext -> {
 			tokens.addAll(visit(simplePathElementContext));
+			NOSPACE(tokens);
 		});
+		SPACE(tokens);
 
-		return NOSPACE_ALL_BUT_LAST_ELEMENT(tokens, true);
+		return tokens;
 	}
 
 	@Override
