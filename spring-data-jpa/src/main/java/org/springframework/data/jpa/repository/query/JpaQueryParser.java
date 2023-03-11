@@ -25,7 +25,6 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.JpaSort;
 import org.springframework.lang.Nullable;
-import org.springframework.util.Assert;
 
 /**
  * Operations needed to parse a JPA query.
@@ -60,84 +59,105 @@ abstract class JpaQueryParser {
 	}
 
 	/**
-	 * Parse the JPA query using its corresponding ANTLR parser.
-	 */
-	abstract ParserRuleContext parse(); // TODO move details inside QueryParser
-
-	/**
 	 * Generate a query using the original query with an @literal order by} clause added (or amended) based upon the
 	 * provider {@link Sort} parameter.
 	 *
-	 * @param parsedQuery
 	 * @param sort can be {@literal null}
 	 */
-	String createQuery(ParserRuleContext parsedQuery, Sort sort) {
+	String createQuery(Sort sort) {
 
-		Assert.notNull(parsedQuery, "parsedQuery cannot be null!");
-		return render(doCreateQuery(parsedQuery, sort));
+		try {
+			ParserRuleContext parsedQuery = parse();
+
+			if (parsedQuery == null) {
+				return "";
+			}
+
+			return render(doCreateQuery(parsedQuery, sort));
+		} catch (JpaQueryParsingSyntaxError e) {
+			throw new IllegalArgumentException(e);
+		}
 	}
 
 	/**
 	 * Generate a count-based query using the original query.
 	 *
-	 * @param parsedQuery
 	 * @param countProjection
 	 */
-	String createCountQuery(ParserRuleContext parsedQuery, @Nullable String countProjection) {
+	String createCountQuery(@Nullable String countProjection) {
 
-		Assert.notNull(parsedQuery, "parsedQuery cannot be null!");
-		return render(doCreateCountQuery(parsedQuery, countProjection));
+		try {
+			ParserRuleContext parsedQuery = parse();
+
+			if (parsedQuery == null) {
+				return "";
+			}
+
+			return render(doCreateCountQuery(parsedQuery, countProjection));
+		} catch (JpaQueryParsingSyntaxError e) {
+			throw new IllegalArgumentException(e);
+		}
 	}
 
 	/**
 	 * Find the projection of the query.
-	 * 
-	 * @param parsedQuery
-	 */
-	String projection(ParserRuleContext parsedQuery) {
-
-		Assert.notNull(parsedQuery, "parsedQuery cannot be null!");
-		return render(doFindProjection(parsedQuery));
-	}
-
-	/**
-	 * Create a {@link JpaQueryParsingToken}-based query with an {@literal order by} applied/amended based upon the
-	 * {@link Sort} parameter.
-	 * 
-	 * @param parsedQuery
-	 * @param sort can be {@literal null}
-	 */
-	abstract List<JpaQueryParsingToken> doCreateQuery(ParserRuleContext parsedQuery, Sort sort);
-
-	/**
-	 * Create a {@link JpaQueryParsingToken}-based count query.
 	 *
 	 * @param parsedQuery
-	 * @param countProjection
 	 */
-	abstract List<JpaQueryParsingToken> doCreateCountQuery(ParserRuleContext parsedQuery, @Nullable String countProjection);
+	String projection() {
+
+		try {
+			ParserRuleContext parsedQuery = parse();
+
+			if (parsedQuery == null) {
+				return "";
+			}
+
+			return render(doFindProjection(parsedQuery));
+		} catch (JpaQueryParsingSyntaxError e) {
+			return "";
+		}
+	}
 
 	/**
 	 * Find the alias of the query's primary FROM clause
 	 *
 	 * @return can be {@literal null}
 	 */
-	abstract String findAlias(ParserRuleContext parsedQuery);
+	String findAlias() {
 
-	/**
-	 * Find the projection of the query's primary SELECT clause.
-	 *
-	 * @param parsedQuery
-	 */
-	abstract List<JpaQueryParsingToken> doFindProjection(ParserRuleContext parsedQuery);
+		try {
+			ParserRuleContext parsedQuery = parse();
+
+			if (parsedQuery == null) {
+				return null;
+			}
+
+			return doFindAlias(parsedQuery);
+		} catch (JpaQueryParsingSyntaxError e) {
+			return null;
+		}
+	}
 
 	/**
 	 * Discern if the query has a {@code new com.example.Dto()} DTO constructor in the select clause.
-	 * 
-	 * @param parsedQuery
+	 *
 	 * @return Guaranteed to be {@literal true} or {@literal false}.
 	 */
-	abstract boolean hasConstructor(ParserRuleContext parsedQuery);
+	boolean hasConstructorExpression() {
+
+		try {
+			ParserRuleContext parsedQuery = parse();
+
+			if (parsedQuery == null) {
+				return false;
+			}
+
+			return doCheckForConstructor(parsedQuery);
+		} catch (JpaQueryParsingSyntaxError e) {
+			return false;
+		}
+	}
 
 	/**
 	 * Check any given {@link JpaSort.JpaOrder#isUnsafe()} order for presence of at least one property offending the
@@ -155,5 +175,39 @@ abstract class JpaQueryParser {
 			throw new InvalidDataAccessApiUsageException(String.format(UNSAFE_PROPERTY_REFERENCE, order));
 		}
 	}
+
+	/**
+	 * Parse the JPA query using its corresponding ANTLR parser.
+	 */
+	protected abstract ParserRuleContext parse();
+
+	/**
+	 * Create a {@link JpaQueryParsingToken}-based query with an {@literal order by} applied/amended based upon the
+	 * {@link Sort} parameter.
+	 *
+	 * @param parsedQuery
+	 * @param sort can be {@literal null}
+	 */
+	protected abstract List<JpaQueryParsingToken> doCreateQuery(ParserRuleContext parsedQuery, Sort sort);
+
+	/**
+	 * Create a {@link JpaQueryParsingToken}-based count query.
+	 *
+	 * @param parsedQuery
+	 * @param countProjection
+	 */
+	protected abstract List<JpaQueryParsingToken> doCreateCountQuery(ParserRuleContext parsedQuery,
+																	 @Nullable String countProjection);
+
+	protected abstract String doFindAlias(ParserRuleContext parsedQuery);
+
+	/**
+	 * Find the projection of the query's primary SELECT clause.
+	 *
+	 * @param parsedQuery
+	 */
+	protected abstract List<JpaQueryParsingToken> doFindProjection(ParserRuleContext parsedQuery);
+
+	protected abstract boolean doCheckForConstructor(ParserRuleContext parsedQuery);
 
 }

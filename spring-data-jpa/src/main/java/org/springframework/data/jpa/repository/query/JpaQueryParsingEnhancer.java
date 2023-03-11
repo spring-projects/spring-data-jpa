@@ -17,7 +17,6 @@ package org.springframework.data.jpa.repository.query;
 
 import java.util.Set;
 
-import org.antlr.v4.runtime.ParserRuleContext;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.data.domain.Sort;
@@ -28,15 +27,12 @@ import org.springframework.util.Assert;
  * Implementation of {@link QueryEnhancer} using a {@link JpaQueryParser}.<br/>
  * <br/>
  * NOTE: The parser can find everything it needs to created sorted and count queries. Thus, looking up the alias or the
- * projection isn't needed for its primary function, and are simply implemented for test purposes. TODO: Don't LOG
- * warning messages in the middle of actions.
+ * projection isn't needed for its primary function, and are simply implemented for test purposes.
  *
  * @author Greg Turnquist
  * @since 3.1
  */
 class JpaQueryParsingEnhancer implements QueryEnhancer {
-
-	private static final Log LOG = LogFactory.getLog(JpaQueryParsingEnhancer.class);
 
 	private final JpaQueryParser queryParser;
 
@@ -63,18 +59,7 @@ class JpaQueryParsingEnhancer implements QueryEnhancer {
 	 */
 	@Override
 	public String applySorting(Sort sort) {
-
-		try {
-			ParserRuleContext parsedQuery = queryParser.parse();
-
-			if (parsedQuery == null) {
-				return "";
-			}
-
-			return queryParser.createQuery(parsedQuery, sort);
-		} catch (JpaQueryParsingSyntaxError e) {
-			throw new IllegalArgumentException(e);
-		}
+		return queryParser.createQuery(sort);
 	}
 
 	/**
@@ -90,25 +75,12 @@ class JpaQueryParsingEnhancer implements QueryEnhancer {
 	}
 
 	/**
-	 * Resolves the alias for the entity in the FROM clause from the JPA query. Since the {@link JpaQueryParser} can already
-	 * find the alias when generating sorted and count queries, this is mainly to serve test cases.
+	 * Resolves the alias for the entity in the FROM clause from the JPA query. Since the {@link JpaQueryParser} can
+	 * already find the alias when generating sorted and count queries, this is mainly to serve test cases.
 	 */
 	@Override
 	public String detectAlias() {
-
-		try {
-			ParserRuleContext parsedQuery = queryParser.parse();
-
-			if (parsedQuery == null) {
-
-				LOG.warn("Failed to parse " + queryParser.getQuery() + ". See console for more details.");
-				return null;
-			}
-
-			return queryParser.findAlias(parsedQuery);
-		} catch (JpaQueryParsingSyntaxError e) {
-			return null;
-		}
+		return queryParser.findAlias();
 	}
 
 	/**
@@ -128,18 +100,7 @@ class JpaQueryParsingEnhancer implements QueryEnhancer {
 	 */
 	@Override
 	public String createCountQueryFor(@Nullable String countProjection) {
-
-		try {
-			ParserRuleContext parsedQuery = queryParser.parse();
-
-			if (parsedQuery == null) {
-				return "";
-			}
-
-			return queryParser.createCountQuery(parsedQuery, countProjection);
-		} catch (JpaQueryParsingSyntaxError e) {
-			throw new IllegalArgumentException(e);
-		}
+		return queryParser.createCountQuery(countProjection);
 	}
 
 	/**
@@ -149,18 +110,7 @@ class JpaQueryParsingEnhancer implements QueryEnhancer {
 	 */
 	@Override
 	public boolean hasConstructorExpression() {
-
-		try {
-			ParserRuleContext parsedQuery = queryParser.parse();
-
-			if (parsedQuery == null) {
-				return false;
-			}
-
-			return queryParser.hasConstructor(parsedQuery);
-		} catch (JpaQueryParsingSyntaxError e) {
-			return false;
-		}
+		return queryParser.hasConstructorExpression();
 	}
 
 	/**
@@ -169,23 +119,12 @@ class JpaQueryParsingEnhancer implements QueryEnhancer {
 	 */
 	@Override
 	public String getProjection() {
-
-		try {
-			ParserRuleContext parsedQuery = queryParser.parse();
-
-			if (parsedQuery == null) {
-				return "";
-			}
-
-			return queryParser.projection(parsedQuery);
-		} catch (JpaQueryParsingSyntaxError e) {
-			return "";
-		}
+		return queryParser.projection();
 	}
 
 	/**
-	 * Since the {@link JpaQueryParser} can already fully transform sorted and count queries by itself, this is a placeholder
-	 * method.
+	 * Since the {@link JpaQueryParser} can already fully transform sorted and count queries by itself, this is a
+	 * placeholder method.
 	 *
 	 * @return empty set
 	 */

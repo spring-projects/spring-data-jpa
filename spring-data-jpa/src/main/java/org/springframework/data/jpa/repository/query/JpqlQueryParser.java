@@ -62,7 +62,7 @@ class JpqlQueryParser extends JpaQueryParser {
 	 * @return a parsed query
 	 */
 	@Override
-	ParserRuleContext parse() {
+	protected ParserRuleContext parse() {
 		return parse(getQuery());
 	}
 
@@ -74,7 +74,7 @@ class JpqlQueryParser extends JpaQueryParser {
 	 * @return list of {@link JpaQueryParsingToken}s
 	 */
 	@Override
-	List<JpaQueryParsingToken> doCreateQuery(ParserRuleContext parsedQuery, Sort sort) {
+	protected List<JpaQueryParsingToken> doCreateQuery(ParserRuleContext parsedQuery, Sort sort) {
 		return new JpqlQueryTransformer(sort).visit(parsedQuery);
 	}
 
@@ -86,7 +86,8 @@ class JpqlQueryParser extends JpaQueryParser {
 	 * @return list of {@link JpaQueryParsingToken}s
 	 */
 	@Override
-	List<JpaQueryParsingToken> doCreateCountQuery(ParserRuleContext parsedQuery, @Nullable String countProjection) {
+	protected List<JpaQueryParsingToken> doCreateCountQuery(ParserRuleContext parsedQuery,
+			@Nullable String countProjection) {
 		return new JpqlQueryTransformer(true, countProjection).visit(parsedQuery);
 	}
 
@@ -97,7 +98,7 @@ class JpqlQueryParser extends JpaQueryParser {
 	 * @return can be {@literal null}
 	 */
 	@Override
-	String findAlias(ParserRuleContext parsedQuery) {
+	protected String doFindAlias(ParserRuleContext parsedQuery) {
 
 		JpqlQueryTransformer transformVisitor = new JpqlQueryTransformer();
 		transformVisitor.visit(parsedQuery);
@@ -111,7 +112,7 @@ class JpqlQueryParser extends JpaQueryParser {
 	 * @return
 	 */
 	@Override
-	List<JpaQueryParsingToken> doFindProjection(ParserRuleContext parsedQuery) {
+	protected List<JpaQueryParsingToken> doFindProjection(ParserRuleContext parsedQuery) {
 
 		JpqlQueryTransformer transformVisitor = new JpqlQueryTransformer();
 		transformVisitor.visit(parsedQuery);
@@ -126,7 +127,7 @@ class JpqlQueryParser extends JpaQueryParser {
 	 * @return Guaranteed to be {@literal true} or {@literal false}.
 	 */
 	@Override
-	boolean hasConstructor(ParserRuleContext parsedQuery) {
+	protected boolean doCheckForConstructor(ParserRuleContext parsedQuery) {
 
 		JpqlQueryTransformer transformVisitor = new JpqlQueryTransformer();
 		transformVisitor.visit(parsedQuery);

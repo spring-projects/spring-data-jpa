@@ -62,7 +62,7 @@ class HqlQueryParser extends JpaQueryParser {
 	 * @return a parsed query
 	 */
 	@Override
-	ParserRuleContext parse() {
+	protected ParserRuleContext parse() {
 		return parse(getQuery());
 	}
 
@@ -74,7 +74,7 @@ class HqlQueryParser extends JpaQueryParser {
 	 * @return list of {@link JpaQueryParsingToken}s
 	 */
 	@Override
-	List<JpaQueryParsingToken> doCreateQuery(ParserRuleContext parsedQuery, Sort sort) {
+	protected List<JpaQueryParsingToken> doCreateQuery(ParserRuleContext parsedQuery, Sort sort) {
 		return new HqlQueryTransformer(sort).visit(parsedQuery);
 	}
 
@@ -86,7 +86,8 @@ class HqlQueryParser extends JpaQueryParser {
 	 * @return list of {@link JpaQueryParsingToken}s
 	 */
 	@Override
-	List<JpaQueryParsingToken> doCreateCountQuery(ParserRuleContext parsedQuery, @Nullable String countProjection) {
+	protected List<JpaQueryParsingToken> doCreateCountQuery(ParserRuleContext parsedQuery,
+			@Nullable String countProjection) {
 		return new HqlQueryTransformer(true, countProjection).visit(parsedQuery);
 	}
 
@@ -97,7 +98,7 @@ class HqlQueryParser extends JpaQueryParser {
 	 * @return can be {@literal null}
 	 */
 	@Override
-	String findAlias(ParserRuleContext parsedQuery) {
+	protected String doFindAlias(ParserRuleContext parsedQuery) {
 
 		HqlQueryTransformer transformVisitor = new HqlQueryTransformer();
 		transformVisitor.visit(parsedQuery);
@@ -111,7 +112,7 @@ class HqlQueryParser extends JpaQueryParser {
 	 * @return
 	 */
 	@Override
-	List<JpaQueryParsingToken> doFindProjection(ParserRuleContext parsedQuery) {
+	protected List<JpaQueryParsingToken> doFindProjection(ParserRuleContext parsedQuery) {
 
 		HqlQueryTransformer transformVisitor = new HqlQueryTransformer();
 		transformVisitor.visit(parsedQuery);
@@ -126,7 +127,7 @@ class HqlQueryParser extends JpaQueryParser {
 	 * @return Guaranteed to be {@literal true} or {@literal false}.
 	 */
 	@Override
-	boolean hasConstructor(ParserRuleContext parsedQuery) {
+	protected boolean doCheckForConstructor(ParserRuleContext parsedQuery) {
 
 		HqlQueryTransformer transformVisitor = new HqlQueryTransformer();
 		transformVisitor.visit(parsedQuery);
