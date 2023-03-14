@@ -35,9 +35,9 @@ class QueryEnhancerFactoryUnitTests {
 		QueryEnhancer queryEnhancer = QueryEnhancerFactory.forQuery(query);
 
 		assertThat(queryEnhancer) //
-				.isInstanceOf(JpaQueryParsingEnhancer.class);
+				.isInstanceOf(JpaQueryEnhancer.class);
 
-		JpaQueryParsingEnhancer queryParsingEnhancer = (JpaQueryParsingEnhancer) queryEnhancer;
+		JpaQueryEnhancer queryParsingEnhancer = (JpaQueryEnhancer) queryEnhancer;
 
 		assertThat(queryParsingEnhancer.getQueryParsingStrategy()).isInstanceOf(HqlQueryParser.class);
 	}

@@ -17,21 +17,36 @@ package org.springframework.data.jpa.repository.query;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.util.ClassUtils;
 
 /**
  * Encapsulates different strategies for the creation of a {@link QueryEnhancer} from a {@link DeclaredQuery}.
  *
  * @author Diego Krupitza
  * @author Greg Turnquist
+ * @author Mark Paluch
  * @since 2.7.0
  */
 public final class QueryEnhancerFactory {
 
 	private static final Log LOG = LogFactory.getLog(QueryEnhancerFactory.class);
 
-	private static final boolean JSQLPARSER_IN_CLASSPATH = isJSqlParserInClassPath();
+	private static final boolean jSqlParserPresent = ClassUtils.isPresent("net.sf.jsqlparser.parser.JSqlParser",
+			QueryEnhancerFactory.class.getClassLoader());
 
-	private static final boolean HIBERNATE_IN_CLASSPATH = isHibernateInClassPath();
+	private static final boolean hibernatePresent = ClassUtils.isPresent("org.hibernate.query.TypedParameterValue",
+			QueryEnhancerFactory.class.getClassLoader());
+
+	static {
+
+		if (jSqlParserPresent) {
+			LOG.info("JSqlParser is in classpath; If applicable, JSqlParser will be used");
+		}
+
+		if (hibernatePresent) {
+			LOG.info("Hibernate is in classpath; If applicable, HQL parser will be used.");
+		}
+	}
 
 	private QueryEnhancerFactory() {}
 
@@ -45,81 +60,17 @@ public final class QueryEnhancerFactory {
 
 		if (query.isNativeQuery()) {
 
-			if (qualifiesForJSqlParserUsage(query)) {
-				/**
+			if (jSqlParserPresent) {
+				/*
 				 * If JSqlParser fails, throw some alert signaling that people should write a custom Impl.
 				 */
 				return new JSqlParserQueryEnhancer(query);
-			} else {
-				return new DefaultQueryEnhancer(query);
 			}
-		} else {
 
-			if (qualifiedForHqlParserUsage(query)) {
-				return new JpaQueryParsingEnhancer(new HqlQueryParser(query));
-			} else if (qualifiesForJpqlParserUsage(query)) {
-				return new JpaQueryParsingEnhancer(new JpqlQueryParser(query));
-			} else {
-				return new DefaultQueryEnhancer(query);
-			}
+			return new DefaultQueryEnhancer(query);
 		}
+
+		return hibernatePresent ? JpaQueryEnhancer.forHql(query) : JpaQueryEnhancer.forJpql(query);
 	}
 
-	/**
-	 * Checks if a given query can be process with the JSqlParser under the condition that the parser is in the classpath.
-	 *
-	 * @param query the query we want to check
-	 * @return <code>true</code> if JSqlParser is in the classpath and the query is classified as a native query and not
-	 *         to be bypassed otherwise <code>false</code>
-	 */
-	private static boolean qualifiesForJSqlParserUsage(DeclaredQuery query) {
-		return JSQLPARSER_IN_CLASSPATH && query.isNativeQuery();
-	}
-
-	/**
-	 * Checks if the query is a candidate for the HQL parser.
-	 * 
-	 * @param query the query we want to check
-	 * @return <code>true</code> if Hibernate is in the classpath and the query is NOT classified as native
-	 */
-	private static boolean qualifiedForHqlParserUsage(DeclaredQuery query) {
-		return HIBERNATE_IN_CLASSPATH && !query.isNativeQuery();
-	}
-
-	/**
-	 * Checks if the query is a candidate for the JPQL spec parser.
-	 * 
-	 * @param query the query we want to check
-	 * @return <code>true</code> if the query is NOT classified as a native query
-	 */
-	private static boolean qualifiesForJpqlParserUsage(DeclaredQuery query) {
-		return !query.isNativeQuery();
-	}
-
-	/**
-	 * Checks whether JSqlParser is in classpath or not.
-	 *
-	 * @return <code>true</code> when in classpath otherwise <code>false</code>
-	 */
-	private static boolean isJSqlParserInClassPath() {
-
-		try {
-			Class.forName("net.sf.jsqlparser.parser.JSqlParser", false, QueryEnhancerFactory.class.getClassLoader());
-			LOG.info("JSqlParser is in classpath; If applicable JSqlParser will be used");
-			return true;
-		} catch (ClassNotFoundException e) {
-			return false;
-		}
-	}
-
-	private static boolean isHibernateInClassPath() {
-
-		try {
-			Class.forName("org.hibernate.query.TypedParameterValue", false, QueryEnhancerFactory.class.getClassLoader());
-			LOG.info("Hibernate is in classpath; If applicable Hql61Parser will be used.");
-			return true;
-		} catch (ClassNotFoundException e) {
-			return false;
-		}
-	}
 }

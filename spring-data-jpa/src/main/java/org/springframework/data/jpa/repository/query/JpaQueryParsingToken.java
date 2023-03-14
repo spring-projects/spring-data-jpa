@@ -162,10 +162,6 @@ class JpaQueryParsingToken {
 	 */
 	static String render(List<JpaQueryParsingToken> tokens) {
 
-		if (tokens == null) {
-			return "";
-		}
-
 		StringBuilder results = new StringBuilder();
 
 		tokens.forEach(token -> {

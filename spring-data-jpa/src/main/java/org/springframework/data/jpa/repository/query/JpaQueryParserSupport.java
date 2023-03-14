@@ -20,19 +20,24 @@ import static org.springframework.data.jpa.repository.query.JpaQueryParsingToken
 import java.util.List;
 import java.util.regex.Pattern;
 
+import org.antlr.v4.runtime.Lexer;
+import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.atn.PredictionMode;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.JpaSort;
+import org.springframework.data.util.Lazy;
 import org.springframework.lang.Nullable;
 
 /**
  * Operations needed to parse a JPA query.
  *
  * @author Greg Turnquist
+ * @author Mark Paluch
  * @since 3.1
  */
-abstract class JpaQueryParser {
+abstract class JpaQueryParserSupport {
 
 	private static final Pattern PUNCTUATION_PATTERN = Pattern.compile(".*((?![._])[\\p{Punct}|\\s])");
 
@@ -40,22 +45,10 @@ abstract class JpaQueryParser {
 			+ "aliases used in the select clause; If you really want to use something other than that for sorting, please use "
 			+ "JpaSort.unsafe(…)";
 
-	private final DeclaredQuery declaredQuery;
+	private final ParseState state;
 
-	JpaQueryParser(DeclaredQuery declaredQuery) {
-		this.declaredQuery = declaredQuery;
-	}
-
-	JpaQueryParser(String query) {
-		this(DeclaredQuery.of(query, false));
-	}
-
-	DeclaredQuery getDeclaredQuery() {
-		return declaredQuery;
-	}
-
-	String getQuery() {
-		return getDeclaredQuery().getQueryString();
+	JpaQueryParserSupport(String query) {
+		this.state = new ParseState(query);
 	}
 
 	/**
@@ -64,17 +57,11 @@ abstract class JpaQueryParser {
 	 *
 	 * @param sort can be {@literal null}
 	 */
-	String createQuery(Sort sort) {
+	String renderSortedQuery(Sort sort) {
 
 		try {
-			ParserRuleContext parsedQuery = parse();
-
-			if (parsedQuery == null) {
-				return "";
-			}
-
-			return render(doCreateQuery(parsedQuery, sort));
-		} catch (JpaQueryParsingSyntaxError e) {
+			return render(applySort(state.getContext(), sort));
+		} catch (BadJpqlGrammarException e) {
 			throw new IllegalArgumentException(e);
 		}
 	}
@@ -87,34 +74,21 @@ abstract class JpaQueryParser {
 	String createCountQuery(@Nullable String countProjection) {
 
 		try {
-			ParserRuleContext parsedQuery = parse();
-
-			if (parsedQuery == null) {
-				return "";
-			}
-
-			return render(doCreateCountQuery(parsedQuery, countProjection));
-		} catch (JpaQueryParsingSyntaxError e) {
+			return render(doCreateCountQuery(state.getContext(), countProjection));
+		} catch (BadJpqlGrammarException e) {
 			throw new IllegalArgumentException(e);
 		}
 	}
 
 	/**
 	 * Find the projection of the query.
-	 *
-	 * @param parsedQuery
 	 */
 	String projection() {
 
 		try {
-			ParserRuleContext parsedQuery = parse();
-
-			if (parsedQuery == null) {
-				return "";
-			}
-
-			return render(doFindProjection(parsedQuery));
-		} catch (JpaQueryParsingSyntaxError e) {
+			List<JpaQueryParsingToken> tokens = doFindProjection(state.getContext());
+			return tokens.isEmpty() ? "" : render(tokens);
+		} catch (BadJpqlGrammarException e) {
 			return "";
 		}
 	}
@@ -124,17 +98,12 @@ abstract class JpaQueryParser {
 	 *
 	 * @return can be {@literal null}
 	 */
+	@Nullable
 	String findAlias() {
 
 		try {
-			ParserRuleContext parsedQuery = parse();
-
-			if (parsedQuery == null) {
-				return null;
-			}
-
-			return doFindAlias(parsedQuery);
-		} catch (JpaQueryParsingSyntaxError e) {
+			return doFindAlias(state.getContext());
+		} catch (BadJpqlGrammarException e) {
 			return null;
 		}
 	}
@@ -147,17 +116,66 @@ abstract class JpaQueryParser {
 	boolean hasConstructorExpression() {
 
 		try {
-			ParserRuleContext parsedQuery = parse();
-
-			if (parsedQuery == null) {
-				return false;
-			}
-
-			return doCheckForConstructor(parsedQuery);
-		} catch (JpaQueryParsingSyntaxError e) {
+			return doCheckForConstructor(state.getContext());
+		} catch (BadJpqlGrammarException e) {
 			return false;
 		}
 	}
+
+	/**
+	 * Parse the JPA query using its corresponding ANTLR parser.
+	 */
+	protected abstract ParserRuleContext parse(String query);
+
+	/**
+	 * Apply common configuration (SLL prediction for performance, our own error listeners).
+	 *
+	 * @param query
+	 * @param lexer
+	 * @param parser
+	 */
+	static void configureParser(String query, Lexer lexer, Parser parser) {
+
+		BadJpqlGrammarErrorListener errorListener = new BadJpqlGrammarErrorListener(query);
+
+		lexer.removeErrorListeners();
+		lexer.addErrorListener(errorListener);
+
+		parser.getInterpreter().setPredictionMode(PredictionMode.SLL);
+
+		parser.removeErrorListeners();
+		parser.addErrorListener(errorListener);
+	}
+
+	/**
+	 * Create a {@link JpaQueryParsingToken}-based query with an {@literal order by} applied/amended based upon the
+	 * {@link Sort} parameter.
+	 *
+	 * @param parsedQuery
+	 * @param sort can be {@literal null}
+	 */
+	protected abstract List<JpaQueryParsingToken> applySort(ParserRuleContext parsedQuery, Sort sort);
+
+	/**
+	 * Create a {@link JpaQueryParsingToken}-based count query.
+	 *
+	 * @param parsedQuery
+	 * @param countProjection
+	 */
+	protected abstract List<JpaQueryParsingToken> doCreateCountQuery(ParserRuleContext parsedQuery,
+			@Nullable String countProjection);
+
+	@Nullable
+	protected abstract String doFindAlias(ParserRuleContext parsedQuery);
+
+	/**
+	 * Find the projection of the query's primary SELECT clause.
+	 *
+	 * @param parsedQuery
+	 */
+	protected abstract List<JpaQueryParsingToken> doFindProjection(ParserRuleContext parsedQuery);
+
+	protected abstract boolean doCheckForConstructor(ParserRuleContext parsedQuery);
 
 	/**
 	 * Check any given {@link JpaSort.JpaOrder#isUnsafe()} order for presence of at least one property offending the
@@ -177,37 +195,38 @@ abstract class JpaQueryParser {
 	}
 
 	/**
-	 * Parse the JPA query using its corresponding ANTLR parser.
+	 * Parser state capturing the lazily-parsed parser context.
 	 */
-	protected abstract ParserRuleContext parse();
+	class ParseState {
 
-	/**
-	 * Create a {@link JpaQueryParsingToken}-based query with an {@literal order by} applied/amended based upon the
-	 * {@link Sort} parameter.
-	 *
-	 * @param parsedQuery
-	 * @param sort can be {@literal null}
-	 */
-	protected abstract List<JpaQueryParsingToken> doCreateQuery(ParserRuleContext parsedQuery, Sort sort);
+		private final Lazy<ParserRuleContext> parsedQuery;
+		private volatile @Nullable BadJpqlGrammarException error;
+		private final String query;
 
-	/**
-	 * Create a {@link JpaQueryParsingToken}-based count query.
-	 *
-	 * @param parsedQuery
-	 * @param countProjection
-	 */
-	protected abstract List<JpaQueryParsingToken> doCreateCountQuery(ParserRuleContext parsedQuery,
-																	 @Nullable String countProjection);
+		public ParseState(String query) {
+			this.query = query;
+			this.parsedQuery = Lazy.of(() -> parse(query));
+		}
 
-	protected abstract String doFindAlias(ParserRuleContext parsedQuery);
+		public ParserRuleContext getContext() {
 
-	/**
-	 * Find the projection of the query's primary SELECT clause.
-	 *
-	 * @param parsedQuery
-	 */
-	protected abstract List<JpaQueryParsingToken> doFindProjection(ParserRuleContext parsedQuery);
+			BadJpqlGrammarException error = this.error;
 
-	protected abstract boolean doCheckForConstructor(ParserRuleContext parsedQuery);
+			if (error != null) {
+				throw error;
+			}
+
+			try {
+				return parsedQuery.get();
+			} catch (BadJpqlGrammarException e) {
+				this.error = error = e;
+				throw error;
+			}
+		}
+
+		public String getQuery() {
+			return query;
+		}
+	}
 
 }

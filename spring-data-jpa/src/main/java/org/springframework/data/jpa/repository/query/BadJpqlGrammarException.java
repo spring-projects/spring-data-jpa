@@ -15,21 +15,27 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import org.antlr.v4.runtime.BaseErrorListener;
-import org.antlr.v4.runtime.RecognitionException;
-import org.antlr.v4.runtime.Recognizer;
+import org.springframework.dao.InvalidDataAccessResourceUsageException;
+import org.springframework.lang.Nullable;
 
 /**
- * A {@link BaseErrorListener} that will throw a {@link JpaQueryParsingSyntaxError} if the query is invalid.
+ * An exception thrown if the JPQL query is invalid.
  *
  * @author Greg Turnquist
+ * @author Mark Paluch
  * @since 3.1
  */
-class JpaQueryParsingSyntaxErrorListener extends BaseErrorListener {
+public class BadJpqlGrammarException extends InvalidDataAccessResourceUsageException {
 
-	@Override
-	public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, int charPositionInLine,
-			String msg, RecognitionException e) {
-		throw new JpaQueryParsingSyntaxError("line " + line + ":" + charPositionInLine + " " + msg);
+	private final String jpql;
+
+	public BadJpqlGrammarException(String message, String jpql, @Nullable Throwable cause) {
+		super(message + "; Bad JPQL grammar [" + jpql + "]", cause);
+		this.jpql = jpql;
 	}
+
+	public String getJpql() {
+		return this.jpql;
+	}
+
 }

@@ -22,7 +22,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
 /**
- * TCK Tests for {@link JpqlQueryParser} mixed into {@link JpaQueryParsingEnhancer}.
+ * TCK Tests for {@link JpqlQueryParser} mixed into {@link JpaQueryEnhancer}.
  *
  * @author Greg Turnquist
  * @since 3.1
@@ -33,7 +33,7 @@ public class JpqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 
 	@Override
 	QueryEnhancer createQueryEnhancer(DeclaredQuery declaredQuery) {
-		return new JpaQueryParsingEnhancer(new JpqlQueryParser(declaredQuery));
+		return JpaQueryEnhancer.forJpql(declaredQuery);
 	}
 
 	@Override

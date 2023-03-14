@@ -39,7 +39,7 @@ class HqlQueryRendererTests {
 
 	/**
 	 * Parse the query using {@link HqlParser} then run it through the query-preserving {@link HqlQueryRenderer}.
-	 * 
+	 *
 	 * @param query
 	 */
 	private static String parseWithoutChanges(String query) {
@@ -47,7 +47,7 @@ class HqlQueryRendererTests {
 		HqlLexer lexer = new HqlLexer(CharStreams.fromString(query));
 		HqlParser parser = new HqlParser(new CommonTokenStream(lexer));
 
-		parser.addErrorListener(new JpaQueryParsingSyntaxErrorListener());
+		parser.addErrorListener(new BadJpqlGrammarErrorListener(query));
 
 		HqlParser.StartContext parsedQuery = parser.start();
 

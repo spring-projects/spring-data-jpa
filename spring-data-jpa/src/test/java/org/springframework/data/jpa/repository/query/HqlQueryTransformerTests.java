@@ -27,8 +27,7 @@ import org.springframework.data.jpa.domain.JpaSort;
 import org.springframework.lang.Nullable;
 
 /**
- * Verify that HQL queries are properly transformed through the {@link JpaQueryParsingEnhancer} and the
- * {@link HqlQueryParser}.
+ * Verify that HQL queries are properly transformed through the {@link JpaQueryEnhancer} and the {@link HqlQueryParser}.
  *
  * @author Greg Turnquist
  * @since 3.1
@@ -118,7 +117,7 @@ class HqlQueryTransformerTests {
 		var original = "select e from Employee e join e.manager m";
 
 		// when
-		var results = createQueryFor(original, null);
+		var results = createQueryFor(original, Sort.unsorted());
 
 		// then
 		assertThat(results).isEqualTo("select e from Employee e join e.manager m");
@@ -208,12 +207,12 @@ class HqlQueryTransformerTests {
 
 		Sort sort = Sort.by(Sort.Order.desc("age"));
 
-		assertThat(new JpaQueryParsingEnhancer(new HqlQueryParser("select u\n" + //
+		assertThat(newParser("select u\n" + //
 				"from user u\n" + //
 				"where exists (select u2\n" + //
 				"from user u2\n" + //
 				")\n" + //
-				"")).applySorting(sort)).isEqualToIgnoringWhitespace("select u\n" + //
+				"").applySorting(sort)).isEqualToIgnoringWhitespace("select u\n" + //
 						"from user u\n" + //
 						"where exists (select u2\n" + //
 						"from user u2\n" + //
@@ -790,7 +789,7 @@ class HqlQueryTransformerTests {
 	}
 
 	private String createQueryFor(String query, Sort sort) {
-		return new JpaQueryParsingEnhancer(new HqlQueryParser(query)).applySorting(sort);
+		return newParser(query).applySorting(sort);
 	}
 
 	private String createCountQueryFor(String query) {
@@ -798,18 +797,23 @@ class HqlQueryTransformerTests {
 	}
 
 	private String createCountQueryFor(String query, @Nullable String countProjection) {
-		return new JpaQueryParsingEnhancer(new HqlQueryParser(query)).createCountQueryFor(countProjection);
+		return newParser(query).createCountQueryFor(countProjection);
 	}
 
+	@Nullable
 	private String alias(String query) {
-		return new JpaQueryParsingEnhancer(new HqlQueryParser(query)).detectAlias();
+		return newParser(query).detectAlias();
 	}
 
 	private boolean hasConstructorExpression(String query) {
-		return new JpaQueryParsingEnhancer(new HqlQueryParser(query)).hasConstructorExpression();
+		return newParser(query).hasConstructorExpression();
 	}
 
 	private String projection(String query) {
-		return new JpaQueryParsingEnhancer(new HqlQueryParser(query)).getProjection();
+		return newParser(query).getProjection();
+	}
+
+	private QueryEnhancer newParser(String query) {
+		return JpaQueryEnhancer.forHql(DeclaredQuery.of(query, false));
 	}
 }
