@@ -15,8 +15,7 @@
  */
 package org.springframework.data.jpa.provider;
 
-import static org.springframework.data.jpa.provider.JpaClassUtils.isEntityManagerOfType;
-import static org.springframework.data.jpa.provider.JpaClassUtils.isMetamodelOfType;
+import static org.springframework.data.jpa.provider.JpaClassUtils.*;
 import static org.springframework.data.jpa.provider.PersistenceProvider.Constants.*;
 
 import jakarta.persistence.EntityManager;
@@ -25,7 +24,11 @@ import jakarta.persistence.metamodel.IdentifiableType;
 import jakarta.persistence.metamodel.Metamodel;
 import jakarta.persistence.metamodel.SingularAttribute;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Set;
 
 import org.eclipse.persistence.config.QueryHints;
 import org.eclipse.persistence.jpa.JpaQuery;
@@ -187,6 +190,8 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, Quer
 		}
 	};
 
+	private static final boolean hibernatePresent = ClassUtils.isPresent("org.hibernate.query.TypedParameterValue",
+			PersistenceProvider.class.getClassLoader());
 	private static final Collection<PersistenceProvider> ALL = List.of(HIBERNATE, ECLIPSELINK, GENERIC_JPA);
 
 	static ConcurrentReferenceHashMap<Class<?>, PersistenceProvider> CACHE = new ConcurrentReferenceHashMap<>();
@@ -319,13 +324,12 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, Quer
 	 */
 	public static Object condense(Object value) {
 
-		ClassLoader classLoader = PersistenceProvider.class.getClassLoader();
-
-		if (ClassUtils.isPresent("org.hibernate.query.TypedParameterValue", classLoader)) {
+		if (hibernatePresent) {
 
 			try {
 
-				Class<?> typeParameterValue = ClassUtils.forName("org.hibernate.query.TypedParameterValue", classLoader);
+				Class<?> typeParameterValue = ClassUtils.forName("org.hibernate.query.TypedParameterValue",
+						PersistenceProvider.class.getClassLoader());
 
 				if (typeParameterValue.isInstance(value)) {
 					return null;
