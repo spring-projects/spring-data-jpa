@@ -15,12 +15,16 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static java.util.Arrays.*;
 import static jakarta.persistence.TemporalType.*;
+import static java.util.Arrays.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.data.jpa.repository.query.QueryParameterSetter.ErrorHandling.*;
 
+import jakarta.persistence.Parameter;
+import jakarta.persistence.Query;
+import jakarta.persistence.TemporalType;
+import jakarta.persistence.criteria.ParameterExpression;
 import lombok.Value;
 
 import java.util.Arrays;
@@ -28,11 +32,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.function.Function;
-
-import jakarta.persistence.Parameter;
-import jakarta.persistence.Query;
-import jakarta.persistence.TemporalType;
-import jakarta.persistence.criteria.ParameterExpression;
 
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -65,7 +64,11 @@ class NamedOrIndexedQueryParameterSetterUnitTests {
 	void before() {
 
 		JpaParametersParameterAccessor accessor = mock(JpaParametersParameterAccessor.class);
-		when(accessor.getValues()).thenReturn(new Object[] { new Date() });
+
+		Date testDate = new Date();
+
+		when(accessor.getValues()).thenReturn(new Object[] { testDate });
+		when(accessor.extractDate(testDate)).thenReturn(testDate);
 
 		this.methodArguments = accessor;
 	}

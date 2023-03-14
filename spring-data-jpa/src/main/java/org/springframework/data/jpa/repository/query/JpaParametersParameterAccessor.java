@@ -15,6 +15,8 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import java.util.Date;
+
 import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
@@ -27,6 +29,7 @@ import org.springframework.lang.Nullable;
  *
  * @author Jens Schauder
  * @author Mark Paluch
+ * @author Greg Turnquist
  */
 public class JpaParametersParameterAccessor extends ParametersParameterAccessor {
 
@@ -49,4 +52,15 @@ public class JpaParametersParameterAccessor extends ParametersParameterAccessor 
 	public Object[] getValues() {
 		return super.getValues();
 	}
+
+	/**
+	 * For general JPA providers, simply pass through the extracted value, casting it as a {@link Date}.
+	 *
+	 * @param extractedValue
+	 * @since 3.1
+	 */
+	public Date extractDate(Object extractedValue) {
+		return (Date) extractedValue;
+	}
+
 }
