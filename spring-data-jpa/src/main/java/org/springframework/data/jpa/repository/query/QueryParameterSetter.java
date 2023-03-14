@@ -15,7 +15,7 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.springframework.data.jpa.repository.query.QueryParameterSetter.ErrorHandling.LENIENT;
+import static org.springframework.data.jpa.repository.query.QueryParameterSetter.ErrorHandling.*;
 
 import jakarta.persistence.Parameter;
 import jakarta.persistence.Query;
@@ -32,7 +32,6 @@ import java.util.function.Function;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hibernate.query.TypedParameterValue;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -82,11 +81,9 @@ interface QueryParameterSetter {
 
 			if (temporalType != null) {
 
-				var extractedValue = valueExtractor.apply(accessor);
+				Object extractedValue = valueExtractor.apply(accessor);
 
-				final Date value = (extractedValue instanceof TypedParameterValue<?> typedParameterValue)
-						? (Date) typedParameterValue.getValue()
-						: (Date) extractedValue;
+				final Date value = accessor.extractDate(extractedValue);
 
 				// One would think we can simply use parameter to identify the parameter we want to set.
 				// But that does not work with list valued parameters. At least Hibernate tries to bind them by name.

@@ -17,6 +17,8 @@ package org.springframework.data.jpa.provider;
 
 import jakarta.persistence.EntityManager;
 
+import java.util.Date;
+
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.query.TypedParameterValue;
 import org.hibernate.type.BasicTypeRegistry;
@@ -36,6 +38,7 @@ import org.springframework.lang.Nullable;
  * @author Cedomir Igaly
  * @author Robert Wilson
  * @author Oliver Drotbohm
+ * @author Greg Turnquist
  * @since 2.7
  */
 class HibernateJpaParametersParameterAccessor extends JpaParametersParameterAccessor {
@@ -53,9 +56,9 @@ class HibernateJpaParametersParameterAccessor extends JpaParametersParameterAcce
 
 		super(parameters, values);
 
-		this.typeHelper = em.getEntityManagerFactory()
-				.unwrap(SessionFactoryImplementor.class)
-				.getTypeConfiguration()
+		this.typeHelper = em.getEntityManagerFactory() //
+				.unwrap(SessionFactoryImplementor.class) //
+				.getTypeConfiguration() //
 				.getBasicTypeRegistry();
 	}
 
@@ -77,5 +80,20 @@ class HibernateJpaParametersParameterAccessor extends JpaParametersParameterAcce
 		}
 
 		return new TypedParameterValue<>(type, null);
+	}
+
+	/**
+	 * For Hibernate, check if the incoming value is wrapped inside a {@link TypedParameterValue} before extracting and
+	 * casting the {@link Date}.
+	 *
+	 * @param extractedValue
+	 * @since 3.1
+	 */
+	@Override
+	public Date extractDate(Object extractedValue) {
+
+		return (extractedValue instanceof TypedParameterValue<?> typedParameterValue)
+				? (Date) typedParameterValue.getValue()
+				: (Date) extractedValue;
 	}
 }
