@@ -39,7 +39,7 @@ class JpqlSpecificationTests {
 	@Test
 	void joinExample1() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT DISTINCT o
 				FROM Order AS o JOIN o.lineItems AS l
 				WHERE l.shipped = FALSE
@@ -53,7 +53,7 @@ class JpqlSpecificationTests {
 	@Test
 	void joinExample2() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT DISTINCT o
 				FROM Order o JOIN o.lineItems l JOIN l.product p
 				WHERE p.productType = 'office_supplies'
@@ -66,7 +66,7 @@ class JpqlSpecificationTests {
 	@Test
 	void rangeVariableDeclarations() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT DISTINCT o1
 				FROM Order o1, Order o2
 				WHERE o1.quantity > o2.quantity AND
@@ -81,7 +81,7 @@ class JpqlSpecificationTests {
 	@Test
 	void pathExpressionsExample1() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT i.name, VALUE(p)
 				FROM Item i JOIN i.photos p
 				WHERE KEY(p) LIKE '%egret'
@@ -94,7 +94,7 @@ class JpqlSpecificationTests {
 	@Test
 	void pathExpressionsExample2() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT i.name, p
 				FROM Item i JOIN i.photos p
 				WHERE KEY(p) LIKE '%egret'
@@ -107,7 +107,7 @@ class JpqlSpecificationTests {
 	@Test
 	void pathExpressionsExample3() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT p.vendor
 				FROM Employee e JOIN e.contactInfo.phones p
 				""");
@@ -119,7 +119,7 @@ class JpqlSpecificationTests {
 	@Test
 	void pathExpressionsExample4() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT p.vendor
 				FROM Employee e JOIN e.contactInfo c JOIN c.phones p
 				WHERE e.contactInfo.address.zipcode = '95054'
@@ -129,7 +129,7 @@ class JpqlSpecificationTests {
 	@Test
 	void pathExpressionSyntaxExample1() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT DISTINCT l.product
 				FROM Order AS o JOIN o.lineItems l
 				""");
@@ -138,7 +138,7 @@ class JpqlSpecificationTests {
 	@Test
 	void joinsExample1() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT c FROM Customer c, Employee e WHERE c.hatsize = e.shoesize
 				""");
 	}
@@ -146,7 +146,7 @@ class JpqlSpecificationTests {
 	@Test
 	void joinsExample2() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT c FROM Customer c JOIN c.orders o WHERE c.status = 1
 				""");
 	}
@@ -154,7 +154,7 @@ class JpqlSpecificationTests {
 	@Test
 	void joinsInnerExample() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT c FROM Customer c INNER JOIN c.orders o WHERE c.status = 1
 				""");
 	}
@@ -162,7 +162,7 @@ class JpqlSpecificationTests {
 	@Test
 	void joinsInExample() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT OBJECT(c) FROM Customer c, IN(c.orders) o WHERE c.status = 1
 				""");
 	}
@@ -170,7 +170,7 @@ class JpqlSpecificationTests {
 	@Test
 	void doubleJoinExample() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT p.vendor
 				FROM Employee e JOIN e.contactInfo c JOIN c.phones p
 				WHERE c.address.zipcode = '95054'
@@ -180,7 +180,7 @@ class JpqlSpecificationTests {
 	@Test
 	void leftJoinExample() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT s.name, COUNT(p)
 				FROM Suppliers s LEFT JOIN s.products p
 				GROUP BY s.name
@@ -190,7 +190,7 @@ class JpqlSpecificationTests {
 	@Test
 	void leftJoinOnExample() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT s.name, COUNT(p)
 				FROM Suppliers s LEFT JOIN s.products p
 				    ON p.status = 'inStock'
@@ -201,7 +201,7 @@ class JpqlSpecificationTests {
 	@Test
 	void leftJoinWhereExample() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT s.name, COUNT(p)
 				FROM Suppliers s LEFT JOIN s.products p
 				WHERE p.status = 'inStock'
@@ -212,7 +212,7 @@ class JpqlSpecificationTests {
 	@Test
 	void leftJoinFetchExample() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT d
 				FROM Department d LEFT JOIN FETCH d.employees
 				WHERE d.deptno = 1
@@ -222,7 +222,7 @@ class JpqlSpecificationTests {
 	@Test
 	void collectionMemberExample() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT DISTINCT o
 				FROM Order o JOIN o.lineItems l
 				WHERE l.product.productType = 'office_supplies'
@@ -232,7 +232,7 @@ class JpqlSpecificationTests {
 	@Test
 	void collectionMemberInExample() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT DISTINCT o
 				FROM Order o, IN(o.lineItems) l
 				WHERE l.product.productType = 'office_supplies'
@@ -242,7 +242,7 @@ class JpqlSpecificationTests {
 	@Test
 	void fromClauseExample() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT o
 				FROM Order AS o JOIN o.lineItems l JOIN l.product p
 				""");
@@ -251,7 +251,7 @@ class JpqlSpecificationTests {
 	@Test
 	void fromClauseDowncastingExample1() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT b.name, b.ISBN
 				FROM Order o JOIN TREAT(o.product AS Book) b
 				    """);
@@ -260,7 +260,7 @@ class JpqlSpecificationTests {
 	@Test
 	void fromClauseDowncastingExample2() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT e FROM Employee e JOIN TREAT(e.projects AS LargeProject) lp
 				WHERE lp.budget > 1000
 				    """);
@@ -273,7 +273,7 @@ class JpqlSpecificationTests {
 	@Disabled(SPEC_FAULT + "Use double-quotes when it should be using single-quotes for a string literal")
 	void fromClauseDowncastingExample3_SPEC_BUG() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT e FROM Employee e JOIN e.projects p
 				WHERE TREAT(p AS LargeProject).budget > 1000
 				    OR TREAT(p AS SmallProject).name LIKE 'Persist%'
@@ -284,7 +284,7 @@ class JpqlSpecificationTests {
 	@Test
 	void fromClauseDowncastingExample3fixed() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT e FROM Employee e JOIN e.projects p
 				WHERE TREAT(p AS LargeProject).budget > 1000
 				    OR TREAT(p AS SmallProject).name LIKE 'Persist%'
@@ -295,7 +295,7 @@ class JpqlSpecificationTests {
 	@Test
 	void fromClauseDowncastingExample4() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT e FROM Employee e
 				WHERE TREAT(e AS Exempt).vacationDays > 10
 				    OR TREAT(e AS Contractor).hours > 100
@@ -305,7 +305,7 @@ class JpqlSpecificationTests {
 	@Test
 	void pathExpressionsNamedParametersExample() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT c
 				FROM Customer c
 				WHERE c.status = :stat
@@ -315,7 +315,7 @@ class JpqlSpecificationTests {
 	@Test
 	void betweenExpressionsExample() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT t
 				FROM CreditCard c JOIN c.transactionHistory t
 				WHERE c.holder.name = 'John Doe' AND INDEX(t) BETWEEN 0 AND 9
@@ -325,7 +325,7 @@ class JpqlSpecificationTests {
 	@Test
 	void isEmptyExample() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT o
 				FROM Order o
 				WHERE o.lineItems IS EMPTY
@@ -335,7 +335,7 @@ class JpqlSpecificationTests {
 	@Test
 	void memberOfExample() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT p
 				FROM Person p
 				WHERE 'Joe' MEMBER OF p.nicknames
@@ -345,7 +345,7 @@ class JpqlSpecificationTests {
 	@Test
 	void existsSubSelectExample1() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT DISTINCT emp
 				FROM Employee emp
 				WHERE EXISTS (
@@ -358,7 +358,7 @@ class JpqlSpecificationTests {
 	@Test
 	void allExample() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT emp
 				FROM Employee emp
 				WHERE emp.salary > ALL (
@@ -371,7 +371,7 @@ class JpqlSpecificationTests {
 	@Test
 	void existsSubSelectExample2() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT DISTINCT emp
 				FROM Employee emp
 				WHERE EXISTS (
@@ -384,7 +384,7 @@ class JpqlSpecificationTests {
 	@Test
 	void subselectNumericComparisonExample1() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT c
 				FROM Customer c
 				WHERE (SELECT AVG(o.price) FROM c.orders o) > 100
@@ -394,7 +394,7 @@ class JpqlSpecificationTests {
 	@Test
 	void subselectNumericComparisonExample2() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT goodCustomer
 				FROM Customer goodCustomer
 				WHERE goodCustomer.balanceOwed < (
@@ -405,7 +405,7 @@ class JpqlSpecificationTests {
 	@Test
 	void indexExample() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT w.name
 				FROM Course c JOIN c.studentWaitlist w
 				WHERE c.name = 'Calculus'
@@ -420,7 +420,7 @@ class JpqlSpecificationTests {
 	@Disabled(SPEC_FAULT + "FUNCTION calls needs a comparator")
 	void functionInvocationExample_SPEC_BUG() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT c
 				FROM Customer c
 				WHERE FUNCTION('hasGoodCredit', c.balance, c.creditLimit)
@@ -430,7 +430,7 @@ class JpqlSpecificationTests {
 	@Test
 	void functionInvocationExampleWithCorrection() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT c
 				FROM Customer c
 				WHERE FUNCTION('hasGoodCredit', c.balance, c.creditLimit) = TRUE
@@ -440,7 +440,7 @@ class JpqlSpecificationTests {
 	@Test
 	void updateCaseExample1() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				UPDATE Employee e
 				SET e.salary =
 				    CASE WHEN e.rating = 1 THEN e.salary * 1.1
@@ -453,7 +453,7 @@ class JpqlSpecificationTests {
 	@Test
 	void updateCaseExample2() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				UPDATE Employee e
 				SET e.salary =
 				    CASE e.rating WHEN 1 THEN e.salary * 1.1
@@ -466,7 +466,7 @@ class JpqlSpecificationTests {
 	@Test
 	void selectCaseExample1() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT e.name,
 				    CASE TYPE(e) WHEN Exempt THEN 'Exempt'
 				                 WHEN Contractor THEN 'Contractor'
@@ -481,7 +481,7 @@ class JpqlSpecificationTests {
 	@Test
 	void selectCaseExample2() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT e.name,
 				       f.name,
 				       CONCAT(CASE WHEN f.annualMiles > 50000 THEN 'Platinum '
@@ -496,7 +496,7 @@ class JpqlSpecificationTests {
 	@Test
 	void theRest() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT e
 				 FROM Employee e
 				 WHERE TYPE(e) IN (Exempt, Contractor)
@@ -506,7 +506,7 @@ class JpqlSpecificationTests {
 	@Test
 	void theRest2() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT e
 				    FROM Employee e
 				    WHERE TYPE(e) IN (:empType1, :empType2)
@@ -516,7 +516,7 @@ class JpqlSpecificationTests {
 	@Test
 	void theRest3() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT e
 				FROM Employee e
 				WHERE TYPE(e) IN :empTypes
@@ -526,7 +526,7 @@ class JpqlSpecificationTests {
 	@Test
 	void theRest4() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT TYPE(e)
 				FROM Employee e
 				WHERE TYPE(e) <> Exempt
@@ -536,7 +536,7 @@ class JpqlSpecificationTests {
 	@Test
 	void theRest5() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT c.status, AVG(c.filledOrderCount), COUNT(c)
 				FROM Customer c
 				GROUP BY c.status
@@ -547,7 +547,7 @@ class JpqlSpecificationTests {
 	@Test
 	void theRest6() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT c.country, COUNT(c)
 				FROM Customer c
 				GROUP BY c.country
@@ -558,7 +558,7 @@ class JpqlSpecificationTests {
 	@Test
 	void theRest7() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT c, COUNT(o)
 				FROM Customer c JOIN c.orders o
 				GROUP BY c
@@ -569,7 +569,7 @@ class JpqlSpecificationTests {
 	@Test
 	void theRest8() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT c.id, c.status
 				FROM Customer c JOIN c.orders o
 				WHERE o.count > 100
@@ -579,7 +579,7 @@ class JpqlSpecificationTests {
 	@Test
 	void theRest9() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT v.location.street, KEY(i).title, VALUE(i)
 				FROM VideoStore v JOIN v.videoInventory i
 				WHERE v.location.zipcode = '94301' AND VALUE(i) > 0
@@ -589,7 +589,7 @@ class JpqlSpecificationTests {
 	@Test
 	void theRest10() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT o.lineItems FROM Order AS o
 				""");
 	}
@@ -597,7 +597,7 @@ class JpqlSpecificationTests {
 	@Test
 	void theRest11() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT c, COUNT(l) AS itemCount
 				FROM Customer c JOIN c.Orders o JOIN o.lineItems l
 				WHERE c.address.state = 'CA'
@@ -609,7 +609,7 @@ class JpqlSpecificationTests {
 	@Test
 	void theRest12() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT NEW com.acme.example.CustomerDetails(c.id, c.status, o.count)
 				FROM Customer c JOIN c.orders o
 				WHERE o.count > 100
@@ -619,7 +619,7 @@ class JpqlSpecificationTests {
 	@Test
 	void theRest13() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT e.address AS addr
 				FROM Employee e
 				""");
@@ -628,7 +628,7 @@ class JpqlSpecificationTests {
 	@Test
 	void theRest14() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT AVG(o.quantity) FROM Order o
 				""");
 	}
@@ -636,7 +636,7 @@ class JpqlSpecificationTests {
 	@Test
 	void theRest15() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT SUM(l.price)
 				FROM Order o JOIN o.lineItems l JOIN o.customer c
 				WHERE c.lastname = 'Smith' AND c.firstname = 'John'
@@ -646,7 +646,7 @@ class JpqlSpecificationTests {
 	@Test
 	void theRest16() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT COUNT(o) FROM Order o
 				""");
 	}
@@ -654,7 +654,7 @@ class JpqlSpecificationTests {
 	@Test
 	void theRest17() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT COUNT(l.price)
 				FROM Order o JOIN o.lineItems l JOIN o.customer c
 				WHERE c.lastname = 'Smith' AND c.firstname = 'John'
@@ -664,7 +664,7 @@ class JpqlSpecificationTests {
 	@Test
 	void theRest18() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT COUNT(l)
 				FROM Order o JOIN o.lineItems l JOIN o.customer c
 				WHERE c.lastname = 'Smith' AND c.firstname = 'John' AND l.price IS NOT NULL
@@ -674,7 +674,7 @@ class JpqlSpecificationTests {
 	@Test
 	void theRest19() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT o
 				FROM Customer c JOIN c.orders o JOIN c.address a
 				WHERE a.state = 'CA'
@@ -685,7 +685,7 @@ class JpqlSpecificationTests {
 	@Test
 	void theRest20() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT o.quantity, a.zipcode
 				FROM Customer c JOIN c.orders o JOIN c.address a
 				WHERE a.state = 'CA'
@@ -696,7 +696,7 @@ class JpqlSpecificationTests {
 	@Test
 	void theRest21() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT o.quantity, o.cost*1.08 AS taxedCost, a.zipcode
 				FROM Customer c JOIN c.orders o JOIN c.address a
 				WHERE a.state = 'CA' AND a.county = 'Santa Clara'
@@ -707,7 +707,7 @@ class JpqlSpecificationTests {
 	@Test
 	void theRest22() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT AVG(o.quantity) as q, a.zipcode
 				FROM Customer c JOIN c.orders o JOIN c.address a
 				WHERE a.state = 'CA'
@@ -719,7 +719,7 @@ class JpqlSpecificationTests {
 	@Test
 	void theRest23() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT p.product_name
 				FROM Order o JOIN o.lineItems l JOIN l.product p JOIN o.customer c
 				WHERE c.lastname = 'Smith' AND c.firstname = 'John'
@@ -733,8 +733,8 @@ class JpqlSpecificationTests {
 	@Test
 	void theRest24() {
 
-		assertThatExceptionOfType(JpaQueryParsingSyntaxError.class).isThrownBy(() -> {
-			JpqlQueryParser.parse("""
+		assertThatExceptionOfType(BadJpqlGrammarException.class).isThrownBy(() -> {
+			JpqlQueryParser.parseQuery("""
 					SELECT p.product_name
 					FROM Order o, IN(o.lineItems) l JOIN o.customer c
 					WHERE c.lastname = 'Smith' AND c.firstname = 'John'
@@ -746,7 +746,7 @@ class JpqlSpecificationTests {
 	@Test
 	void theRest25() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				DELETE
 				FROM Customer c
 				WHERE c.status = 'inactive'
@@ -756,7 +756,7 @@ class JpqlSpecificationTests {
 	@Test
 	void theRest26() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				DELETE
 				FROM Customer c
 				WHERE c.status = 'inactive'
@@ -767,7 +767,7 @@ class JpqlSpecificationTests {
 	@Test
 	void theRest27() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				UPDATE Customer c
 				SET c.status = 'outstanding'
 				WHERE c.balance < 10000
@@ -777,7 +777,7 @@ class JpqlSpecificationTests {
 	@Test
 	void theRest28() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				UPDATE Employee e
 				SET e.address.building = 22
 				WHERE e.address.building = 14
@@ -789,7 +789,7 @@ class JpqlSpecificationTests {
 	@Test
 	void theRest29() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT o
 				FROM Order o
 				""");
@@ -798,7 +798,7 @@ class JpqlSpecificationTests {
 	@Test
 	void theRest30() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT o
 				FROM Order o
 				WHERE o.shippingAddress.state = 'CA'
@@ -808,7 +808,7 @@ class JpqlSpecificationTests {
 	@Test
 	void theRest31() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT DISTINCT o.shippingAddress.state
 				FROM Order o
 				""");
@@ -817,7 +817,7 @@ class JpqlSpecificationTests {
 	@Test
 	void theRest32() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT DISTINCT o
 				FROM Order o JOIN o.lineItems l
 				""");
@@ -826,7 +826,7 @@ class JpqlSpecificationTests {
 	@Test
 	void theRest33() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT o
 				FROM Order o
 				WHERE o.lineItems IS NOT EMPTY
@@ -836,7 +836,7 @@ class JpqlSpecificationTests {
 	@Test
 	void theRest34() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT o
 				FROM Order o
 				WHERE o.lineItems IS EMPTY
@@ -846,7 +846,7 @@ class JpqlSpecificationTests {
 	@Test
 	void theRest35() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT DISTINCT o
 				FROM Order o JOIN o.lineItems l
 				WHERE l.shipped = FALSE
@@ -856,7 +856,7 @@ class JpqlSpecificationTests {
 	@Test
 	void theRest36() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT o
 				FROM Order o
 				WHERE
@@ -869,7 +869,7 @@ class JpqlSpecificationTests {
 	@Test
 	void theRest37() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT o
 				FROM Order o
 				WHERE o.shippingAddress <> o.billingAddress
@@ -879,7 +879,7 @@ class JpqlSpecificationTests {
 	@Test
 	void theRest38() {
 
-		JpqlQueryParser.parse("""
+		JpqlQueryParser.parseQuery("""
 				SELECT DISTINCT o
 				FROM Order o JOIN o.lineItems l
 				WHERE l.product.name = ?1

@@ -18,10 +18,12 @@ package org.springframework.data.jpa.repository.query;
 import static org.springframework.data.jpa.repository.query.JpaQueryParsingToken.*;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 
 /**
  * An ANTLR {@link org.antlr.v4.runtime.tree.ParseTreeVisitor} that transforms a parsed JPQL query.
@@ -31,30 +33,34 @@ import org.springframework.lang.Nullable;
  */
 class JpqlQueryTransformer extends JpqlQueryRenderer {
 
-	@Nullable private Sort sort;
-	private boolean countQuery;
+	// TODO: Separate input from result parameters, encapsulation...
+	private final Sort sort;
+	private final boolean countQuery;
 
-	@Nullable private String countProjection;
+	private final @Nullable String countProjection;
 
-	@Nullable private String alias = null;
+	private @Nullable String alias = null;
 
-	private List<JpaQueryParsingToken> projection = null;
+	private List<JpaQueryParsingToken> projection = Collections.emptyList();
+	private boolean projectionProcessed;
 
 	private boolean hasConstructorExpression = false;
 
 	JpqlQueryTransformer() {
-		this(null, false, null);
+		this(Sort.unsorted(), false, null);
 	}
 
-	JpqlQueryTransformer(@Nullable Sort sort) {
+	JpqlQueryTransformer(Sort sort) {
 		this(sort, false, null);
 	}
 
 	JpqlQueryTransformer(boolean countQuery, @Nullable String countProjection) {
-		this(null, countQuery, countProjection);
+		this(Sort.unsorted(), countQuery, countProjection);
 	}
 
-	private JpqlQueryTransformer(@Nullable Sort sort, boolean countQuery, @Nullable String countProjection) {
+	private JpqlQueryTransformer(Sort sort, boolean countQuery, @Nullable String countProjection) {
+
+		Assert.notNull(sort, "Sort must not be null");
 
 		this.sort = sort;
 		this.countQuery = countQuery;
@@ -77,7 +83,7 @@ class JpqlQueryTransformer extends JpqlQueryRenderer {
 	@Override
 	public List<JpaQueryParsingToken> visitSelect_statement(JpqlParser.Select_statementContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = newArrayList();
 
 		tokens.addAll(visit(ctx.select_clause()));
 		tokens.addAll(visit(ctx.from_clause()));
@@ -100,7 +106,7 @@ class JpqlQueryTransformer extends JpqlQueryRenderer {
 				tokens.addAll(visit(ctx.orderby_clause()));
 			}
 
-			if (this.sort != null && this.sort.isSorted()) {
+			if (this.sort.isSorted()) {
 
 				if (ctx.orderby_clause() != null) {
 
@@ -114,7 +120,7 @@ class JpqlQueryTransformer extends JpqlQueryRenderer {
 
 				this.sort.forEach(order -> {
 
-					JpaQueryParser.checkSortExpression(order);
+					JpaQueryParserSupport.checkSortExpression(order);
 
 					if (order.isIgnoreCase()) {
 						tokens.add(TOKEN_LOWER_FUNC);
@@ -144,7 +150,7 @@ class JpqlQueryTransformer extends JpqlQueryRenderer {
 	@Override
 	public List<JpaQueryParsingToken> visitSelect_clause(JpqlParser.Select_clauseContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = newArrayList();
 
 		tokens.add(new JpaQueryParsingToken(ctx.SELECT()));
 
@@ -156,7 +162,7 @@ class JpqlQueryTransformer extends JpqlQueryRenderer {
 			tokens.add(new JpaQueryParsingToken(ctx.DISTINCT()));
 		}
 
-		List<JpaQueryParsingToken> selectItemTokens = new ArrayList<>();
+		List<JpaQueryParsingToken> selectItemTokens = newArrayList();
 
 		ctx.select_item().forEach(selectItemContext -> {
 			selectItemTokens.addAll(visit(selectItemContext));
@@ -192,8 +198,9 @@ class JpqlQueryTransformer extends JpqlQueryRenderer {
 			tokens.addAll(selectItemTokens);
 		}
 
-		if (projection == null) {
+		if (!projectionProcessed) {
 			this.projection = selectItemTokens;
+			this.projectionProcessed = true;
 		}
 
 		return tokens;
@@ -202,7 +209,7 @@ class JpqlQueryTransformer extends JpqlQueryRenderer {
 	@Override
 	public List<JpaQueryParsingToken> visitRange_variable_declaration(JpqlParser.Range_variable_declarationContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = newArrayList();
 
 		tokens.addAll(visit(ctx.entity_name()));
 
@@ -225,5 +232,9 @@ class JpqlQueryTransformer extends JpqlQueryRenderer {
 		this.hasConstructorExpression = true;
 
 		return super.visitConstructor_expression(ctx);
+	}
+
+	private static <T> ArrayList<T> newArrayList() {
+		return new ArrayList<>();
 	}
 }

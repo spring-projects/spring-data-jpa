@@ -24,46 +24,43 @@ import org.springframework.data.domain.Sort;
 import org.springframework.lang.Nullable;
 
 /**
- * Implements the parsing operations of a {@link JpaQueryParser} using the ANTLR-generated {@link HqlParser} and
- * {@link HqlQueryTransformer}.
- * 
+ * Implements the {@code HQL} parsing operations of a {@link JpaQueryParserSupport} using the ANTLR-generated
+ * {@link HqlParser} and {@link HqlQueryTransformer}.
+ *
  * @author Greg Turnquist
+ * @author Mark Paluch
  * @since 3.1
  */
-class HqlQueryParser extends JpaQueryParser {
-
-	HqlQueryParser(DeclaredQuery declaredQuery) {
-		super(declaredQuery);
-	}
+class HqlQueryParser extends JpaQueryParserSupport {
 
 	HqlQueryParser(String query) {
 		super(query);
 	}
 
 	/**
-	 * Convenience method to parse an HQL query. Will throw a {@link JpaQueryParsingSyntaxError} if the query is invalid.
+	 * Convenience method to parse an HQL query. Will throw a {@link BadJpqlGrammarException} if the query is invalid.
 	 *
 	 * @param query
 	 * @return a parsed query, ready for postprocessing
 	 */
-	static ParserRuleContext parse(String query) {
+	public static ParserRuleContext parseQuery(String query) {
 
 		HqlLexer lexer = new HqlLexer(CharStreams.fromString(query));
 		HqlParser parser = new HqlParser(new CommonTokenStream(lexer));
 
-		parser.addErrorListener(new JpaQueryParsingSyntaxErrorListener());
+		configureParser(query, lexer, parser);
 
 		return parser.start();
 	}
 
 	/**
-	 * Parse the query using {@link #parse(String)}.
+	 * Parse the query using {@link #parseQuery(String)}.
 	 *
 	 * @return a parsed query
 	 */
 	@Override
-	protected ParserRuleContext parse() {
-		return parse(getQuery());
+	protected ParserRuleContext parse(String query) {
+		return parseQuery(query);
 	}
 
 	/**
@@ -74,7 +71,7 @@ class HqlQueryParser extends JpaQueryParser {
 	 * @return list of {@link JpaQueryParsingToken}s
 	 */
 	@Override
-	protected List<JpaQueryParsingToken> doCreateQuery(ParserRuleContext parsedQuery, Sort sort) {
+	protected List<JpaQueryParsingToken> applySort(ParserRuleContext parsedQuery, Sort sort) {
 		return new HqlQueryTransformer(sort).visit(parsedQuery);
 	}
 

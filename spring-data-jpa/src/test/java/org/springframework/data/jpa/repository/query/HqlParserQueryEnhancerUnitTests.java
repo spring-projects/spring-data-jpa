@@ -22,7 +22,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
 /**
- * TCK Tests for {@link HqlQueryParser} mixed into {@link JpaQueryParsingEnhancer}.
+ * TCK Tests for {@link HqlQueryParser} mixed into {@link JpaQueryEnhancer}.
  *
  * @author Greg Turnquist
  * @since 3.1
@@ -32,8 +32,8 @@ public class HqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 	public static final String HQL_PARSER_DOES_NOT_SUPPORT_NATIVE_QUERIES = "HqlParser does not support native queries";
 
 	@Override
-	QueryEnhancer createQueryEnhancer(DeclaredQuery declaredQuery) {
-		return new JpaQueryParsingEnhancer(new HqlQueryParser(declaredQuery));
+	QueryEnhancer createQueryEnhancer(DeclaredQuery query) {
+		return JpaQueryEnhancer.forHql(query);
 	}
 
 	@Override

@@ -46,7 +46,7 @@ class JpqlQueryRendererTests {
 		JpqlLexer lexer = new JpqlLexer(CharStreams.fromString(query));
 		JpqlParser parser = new JpqlParser(new CommonTokenStream(lexer));
 
-		parser.addErrorListener(new JpaQueryParsingSyntaxErrorListener());
+		parser.addErrorListener(new BadJpqlGrammarErrorListener(query));
 
 		JpqlParser.StartContext parsedQuery = parser.start();
 
@@ -762,7 +762,7 @@ class JpqlQueryRendererTests {
 	@Test
 	void theRest24() {
 
-		assertThatExceptionOfType(JpaQueryParsingSyntaxError.class).isThrownBy(() -> {
+		assertThatExceptionOfType(BadJpqlGrammarException.class).isThrownBy(() -> {
 			assertQuery("""
 					SELECT p.product_name
 					FROM Order o, IN(o.lineItems) l JOIN o.customer c

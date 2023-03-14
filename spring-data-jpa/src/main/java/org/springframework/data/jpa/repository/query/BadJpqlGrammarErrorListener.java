@@ -15,18 +15,28 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import org.springframework.dao.InvalidDataAccessResourceUsageException;
+import org.antlr.v4.runtime.BaseErrorListener;
+import org.antlr.v4.runtime.RecognitionException;
+import org.antlr.v4.runtime.Recognizer;
 
 /**
- * An exception thrown if the JPQL query is invalid.
+ * A {@link BaseErrorListener} that will throw a {@link BadJpqlGrammarException} if the query is invalid.
  *
  * @author Greg Turnquist
  * @since 3.1
  */
-class JpaQueryParsingSyntaxError extends InvalidDataAccessResourceUsageException {
+class BadJpqlGrammarErrorListener extends BaseErrorListener {
 
-	public JpaQueryParsingSyntaxError(String message) {
-		super(message);
+	private final String query;
+
+	BadJpqlGrammarErrorListener(String query) {
+		this.query = query;
+	}
+
+	@Override
+	public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, int charPositionInLine,
+			String msg, RecognitionException e) {
+		throw new BadJpqlGrammarException("Line " + line + ":" + charPositionInLine + " " + msg, query, null);
 	}
 
 }

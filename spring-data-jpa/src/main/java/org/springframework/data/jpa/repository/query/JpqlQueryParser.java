@@ -24,46 +24,44 @@ import org.springframework.data.domain.Sort;
 import org.springframework.lang.Nullable;
 
 /**
- * Implements the parsing operations of a {@link JpaQueryParser} using the ANTLR-generated {@link JpqlParser} and
- * {@link JpqlQueryTransformer}.
+ * Implements the {@code JPQL} parsing operations of a {@link JpaQueryParserSupport} using the ANTLR-generated
+ * {@link JpqlParser} and {@link JpqlQueryTransformer}.
  *
  * @author Greg Turnquist
+ * @author Mark Paluch
  * @since 3.1
  */
-class JpqlQueryParser extends JpaQueryParser {
-
-	JpqlQueryParser(DeclaredQuery declaredQuery) {
-		super(declaredQuery);
-	}
+class JpqlQueryParser extends JpaQueryParserSupport {
 
 	JpqlQueryParser(String query) {
 		super(query);
 	}
 
 	/**
-	 * Convenience method to parse a JPQL query. Will throw a {@link JpaQueryParsingSyntaxError} if the query is invalid.
+	 * Convenience method to parse a JPQL query. Will throw a {@link BadJpqlGrammarException} if the query is invalid.
 	 *
 	 * @param query
 	 * @return a parsed query, ready for postprocessing
 	 */
-	static ParserRuleContext parse(String query) {
+	public static ParserRuleContext parseQuery(String query) {
 
 		JpqlLexer lexer = new JpqlLexer(CharStreams.fromString(query));
 		JpqlParser parser = new JpqlParser(new CommonTokenStream(lexer));
 
-		parser.addErrorListener(new JpaQueryParsingSyntaxErrorListener());
+		configureParser(query, lexer, parser);
 
 		return parser.start();
 	}
 
+
 	/**
-	 * Parse the query using {@link #parse(String)}.
+	 * Parse the query using {@link #parseQuery(String)}.
 	 *
 	 * @return a parsed query
 	 */
 	@Override
-	protected ParserRuleContext parse() {
-		return parse(getQuery());
+	protected ParserRuleContext parse(String query) {
+		return parseQuery(query);
 	}
 
 	/**
@@ -74,7 +72,7 @@ class JpqlQueryParser extends JpaQueryParser {
 	 * @return list of {@link JpaQueryParsingToken}s
 	 */
 	@Override
-	protected List<JpaQueryParsingToken> doCreateQuery(ParserRuleContext parsedQuery, Sort sort) {
+	protected List<JpaQueryParsingToken> applySort(ParserRuleContext parsedQuery, Sort sort) {
 		return new JpqlQueryTransformer(sort).visit(parsedQuery);
 	}
 

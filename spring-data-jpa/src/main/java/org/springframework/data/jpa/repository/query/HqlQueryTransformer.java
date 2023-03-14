@@ -18,11 +18,13 @@ package org.springframework.data.jpa.repository.query;
 import static org.springframework.data.jpa.repository.query.JpaQueryParsingToken.*;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.springframework.data.domain.Sort;
 import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 
 /**
  * An ANTLR {@link org.antlr.v4.runtime.tree.ParseTreeVisitor} that transforms a parsed HQL query.
@@ -32,30 +34,35 @@ import org.springframework.lang.Nullable;
  */
 class HqlQueryTransformer extends HqlQueryRenderer {
 
-	@Nullable private Sort sort;
-	private boolean countQuery;
+	// TODO: Separate input from result parameters, encapsulation...
 
-	@Nullable private String countProjection;
+	private final Sort sort;
+	private final boolean countQuery;
 
-	@Nullable private String alias = null;
+	private final @Nullable String countProjection;
 
-	private List<JpaQueryParsingToken> projection = null;
+	private @Nullable String alias = null;
+
+	private List<JpaQueryParsingToken> projection = Collections.emptyList();
+	private boolean projectionProcessed;
 
 	private boolean hasConstructorExpression = false;
 
 	HqlQueryTransformer() {
-		this(null, false, null);
+		this(Sort.unsorted(), false, null);
 	}
 
-	HqlQueryTransformer(@Nullable Sort sort) {
+	HqlQueryTransformer(Sort sort) {
 		this(sort, false, null);
 	}
 
 	HqlQueryTransformer(boolean countQuery, @Nullable String countProjection) {
-		this(null, countQuery, countProjection);
+		this(Sort.unsorted(), countQuery, countProjection);
 	}
 
-	private HqlQueryTransformer(@Nullable Sort sort, boolean countQuery, @Nullable String countProjection) {
+	private HqlQueryTransformer(Sort sort, boolean countQuery, @Nullable String countProjection) {
+
+		Assert.notNull(sort, "Sort must not be null");
 
 		this.sort = sort;
 		this.countQuery = countQuery;
@@ -94,7 +101,7 @@ class HqlQueryTransformer extends HqlQueryRenderer {
 	@Override
 	public List<JpaQueryParsingToken> visitOrderedQuery(HqlParser.OrderedQueryContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = newArrayList();
 
 		if (ctx.query() != null) {
 			tokens.addAll(visit(ctx.query()));
@@ -111,7 +118,7 @@ class HqlQueryTransformer extends HqlQueryRenderer {
 				tokens.addAll(visit(ctx.queryOrder()));
 			}
 
-			if (this.sort != null && this.sort.isSorted()) {
+			if (this.sort.isSorted()) {
 
 				if (ctx.queryOrder() != null) {
 
@@ -125,7 +132,7 @@ class HqlQueryTransformer extends HqlQueryRenderer {
 
 				this.sort.forEach(order -> {
 
-					JpaQueryParser.checkSortExpression(order);
+					JpaQueryParserSupport.checkSortExpression(order);
 
 					if (order.isIgnoreCase()) {
 						tokens.add(TOKEN_LOWER_FUNC);
@@ -160,7 +167,7 @@ class HqlQueryTransformer extends HqlQueryRenderer {
 	@Override
 	public List<JpaQueryParsingToken> visitFromQuery(HqlParser.FromQueryContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = newArrayList();
 
 		if (countQuery && !isSubquery(ctx) && ctx.selectClause() == null) {
 
@@ -201,7 +208,7 @@ class HqlQueryTransformer extends HqlQueryRenderer {
 	@Override
 	public List<JpaQueryParsingToken> visitQueryOrder(HqlParser.QueryOrderContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = newArrayList();
 
 		if (!countQuery) {
 			tokens.addAll(visit(ctx.orderByClause()));
@@ -224,7 +231,7 @@ class HqlQueryTransformer extends HqlQueryRenderer {
 	@Override
 	public List<JpaQueryParsingToken> visitFromRoot(HqlParser.FromRootContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = newArrayList();
 
 		if (ctx.entityName() != null) {
 
@@ -261,7 +268,7 @@ class HqlQueryTransformer extends HqlQueryRenderer {
 	@Override
 	public List<JpaQueryParsingToken> visitAlias(HqlParser.AliasContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = newArrayList();
 
 		if (ctx.AS() != null) {
 			tokens.add(new JpaQueryParsingToken(ctx.AS()));
@@ -279,7 +286,7 @@ class HqlQueryTransformer extends HqlQueryRenderer {
 	@Override
 	public List<JpaQueryParsingToken> visitSelectClause(HqlParser.SelectClauseContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		List<JpaQueryParsingToken> tokens = newArrayList();
 
 		tokens.add(new JpaQueryParsingToken(ctx.SELECT()));
 
@@ -321,8 +328,9 @@ class HqlQueryTransformer extends HqlQueryRenderer {
 			tokens.addAll(selectionListTokens);
 		}
 
-		if (projection == null && !isSubquery(ctx)) {
+		if (!projectionProcessed && !isSubquery(ctx)) {
 			this.projection = selectionListTokens;
+			this.projectionProcessed = true;
 		}
 
 		return tokens;
@@ -334,5 +342,9 @@ class HqlQueryTransformer extends HqlQueryRenderer {
 		this.hasConstructorExpression = true;
 
 		return super.visitInstantiation(ctx);
+	}
+
+	static <T> ArrayList<T> newArrayList() {
+		return new ArrayList<>();
 	}
 }
