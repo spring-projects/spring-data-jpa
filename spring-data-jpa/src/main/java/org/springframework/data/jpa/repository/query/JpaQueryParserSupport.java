@@ -18,15 +18,12 @@ package org.springframework.data.jpa.repository.query;
 import static org.springframework.data.jpa.repository.query.JpaQueryParsingToken.*;
 
 import java.util.List;
-import java.util.regex.Pattern;
 
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.atn.PredictionMode;
-import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.JpaSort;
 import org.springframework.data.util.Lazy;
 import org.springframework.lang.Nullable;
 
@@ -38,12 +35,6 @@ import org.springframework.lang.Nullable;
  * @since 3.1
  */
 abstract class JpaQueryParserSupport {
-
-	private static final Pattern PUNCTUATION_PATTERN = Pattern.compile(".*((?![._])[\\p{Punct}|\\s])");
-
-	private static final String UNSAFE_PROPERTY_REFERENCE = "Sort expression '%s' must only contain property references or "
-			+ "aliases used in the select clause; If you really want to use something other than that for sorting, please use "
-			+ "JpaSort.unsafe(…)";
 
 	private final ParseState state;
 
@@ -176,23 +167,6 @@ abstract class JpaQueryParserSupport {
 	protected abstract List<JpaQueryParsingToken> doFindProjection(ParserRuleContext parsedQuery);
 
 	protected abstract boolean doCheckForConstructor(ParserRuleContext parsedQuery);
-
-	/**
-	 * Check any given {@link JpaSort.JpaOrder#isUnsafe()} order for presence of at least one property offending the
-	 * {@link #PUNCTUATION_PATTERN} and throw an {@link Exception} indicating potential unsafe order by expression.
-	 *
-	 * @param order
-	 */
-	static void checkSortExpression(Sort.Order order) {
-
-		if (order instanceof JpaSort.JpaOrder && ((JpaSort.JpaOrder) order).isUnsafe()) {
-			return;
-		}
-
-		if (PUNCTUATION_PATTERN.matcher(order.getProperty()).find()) {
-			throw new InvalidDataAccessApiUsageException(String.format(UNSAFE_PROPERTY_REFERENCE, order));
-		}
-	}
 
 	/**
 	 * Parser state capturing the lazily-parsed parser context.

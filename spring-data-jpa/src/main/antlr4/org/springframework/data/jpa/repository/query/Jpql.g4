@@ -68,11 +68,11 @@ identification_variable_declaration
     ;
 
 range_variable_declaration
-    : entity_name (AS)? identification_variable
+    : entity_name AS? identification_variable
     ;
 
 join
-    : join_spec join_association_path_expression (AS)? identification_variable (join_condition)?
+    : join_spec join_association_path_expression AS? identification_variable (join_condition)?
     ;
 
 fetch_join
@@ -103,7 +103,7 @@ join_single_valued_path_expression
     ;
 
 collection_member_declaration
-    : IN '(' collection_valued_path_expression ')' (AS)? identification_variable
+    : IN '(' collection_valued_path_expression ')' AS? identification_variable
     ;
 
 qualified_identification_variable
@@ -160,7 +160,7 @@ collection_valued_path_expression
     ;
 
 update_clause
-    : UPDATE entity_name ((AS)? identification_variable)? SET update_item (',' update_item)*
+    : UPDATE entity_name (AS? identification_variable)? SET update_item (',' update_item)*
     ;
 
 update_item
@@ -174,7 +174,7 @@ new_value
     ;
 
 delete_clause
-    : DELETE FROM entity_name ((AS)? identification_variable)?
+    : DELETE FROM entity_name (AS? identification_variable)?
     ;
 
 select_clause
@@ -182,7 +182,7 @@ select_clause
     ;
 
 select_item
-    : select_expression ((AS)? result_variable)?
+    : select_expression (AS? result_variable)?
     ;
 
 select_expression
@@ -247,7 +247,7 @@ subquery_from_clause
 
 subselect_identification_variable_declaration
     : identification_variable_declaration
-    | derived_path_expression (AS)? identification_variable (join)*
+    | derived_path_expression AS? identification_variable (join)*
     | derived_collection_member_declaration
     ;
 

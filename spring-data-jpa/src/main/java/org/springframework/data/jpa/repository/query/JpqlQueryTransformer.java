@@ -39,12 +39,14 @@ class JpqlQueryTransformer extends JpqlQueryRenderer {
 
 	private final @Nullable String countProjection;
 
-	private @Nullable String alias = null;
+	private @Nullable String primaryFromAlias = null;
 
 	private List<JpaQueryParsingToken> projection = Collections.emptyList();
 	private boolean projectionProcessed;
 
 	private boolean hasConstructorExpression = false;
+
+	private JpaQueryTransformerSupport transformerSupport;
 
 	JpqlQueryTransformer() {
 		this(Sort.unsorted(), false, null);
@@ -65,11 +67,12 @@ class JpqlQueryTransformer extends JpqlQueryRenderer {
 		this.sort = sort;
 		this.countQuery = countQuery;
 		this.countProjection = countProjection;
+		this.transformerSupport = new JpaQueryTransformerSupport();
 	}
 
 	@Nullable
 	public String getAlias() {
-		return this.alias;
+		return this.primaryFromAlias;
 	}
 
 	public List<JpaQueryParsingToken> getProjection() {
@@ -118,29 +121,7 @@ class JpqlQueryTransformer extends JpqlQueryRenderer {
 					tokens.add(TOKEN_ORDER_BY);
 				}
 
-				this.sort.forEach(order -> {
-
-					JpaQueryParserSupport.checkSortExpression(order);
-
-					if (order.isIgnoreCase()) {
-						tokens.add(TOKEN_LOWER_FUNC);
-					}
-					tokens.add(new JpaQueryParsingToken(() -> {
-
-						if (order.getProperty().contains("(")) {
-							return order.getProperty();
-						}
-
-						return this.alias + "." + order.getProperty();
-					}, true));
-					if (order.isIgnoreCase()) {
-						NOSPACE(tokens);
-						tokens.add(TOKEN_CLOSE_PAREN);
-					}
-					tokens.add(order.isDescending() ? TOKEN_DESC : TOKEN_ASC);
-					tokens.add(TOKEN_COMMA);
-				});
-				CLIP(tokens);
+				tokens.addAll(transformerSupport.generateOrderByArguments(primaryFromAlias, this.sort));
 			}
 		}
 
@@ -182,13 +163,13 @@ class JpqlQueryTransformer extends JpqlQueryRenderer {
 
 					if (selectItemTokens.stream().anyMatch(jpqlToken -> jpqlToken.getToken().contains("new"))) {
 						// constructor
-						tokens.add(new JpaQueryParsingToken(() -> this.alias));
+						tokens.add(new JpaQueryParsingToken(() -> this.primaryFromAlias));
 					} else {
 						// keep all the select items to distinct against
 						tokens.addAll(selectItemTokens);
 					}
 				} else {
-					tokens.add(new JpaQueryParsingToken(() -> this.alias));
+					tokens.add(new JpaQueryParsingToken(() -> this.primaryFromAlias));
 				}
 			}
 
@@ -207,6 +188,18 @@ class JpqlQueryTransformer extends JpqlQueryRenderer {
 	}
 
 	@Override
+	public List<JpaQueryParsingToken> visitSelect_item(JpqlParser.Select_itemContext ctx) {
+
+		List<JpaQueryParsingToken> tokens = super.visitSelect_item(ctx);
+
+		if (ctx.result_variable() != null) {
+			transformerSupport.registerAlias(tokens.get(tokens.size() - 1).getToken());
+		}
+
+		return tokens;
+	}
+
+	@Override
 	public List<JpaQueryParsingToken> visitRange_variable_declaration(JpqlParser.Range_variable_declarationContext ctx) {
 
 		List<JpaQueryParsingToken> tokens = newArrayList();
@@ -219,8 +212,8 @@ class JpqlQueryTransformer extends JpqlQueryRenderer {
 
 		tokens.addAll(visit(ctx.identification_variable()));
 
-		if (this.alias == null) {
-			this.alias = tokens.get(tokens.size() - 1).getToken();
+		if (this.primaryFromAlias == null) {
+			this.primaryFromAlias = tokens.get(tokens.size() - 1).getToken();
 		}
 
 		return tokens;

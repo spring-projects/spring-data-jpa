@@ -383,94 +383,85 @@ class JpqlQueryTransformerTests {
 		assertThat(createQueryFor("select p from Person p", sort)).endsWith("order by sum(foo) asc");
 	}
 
-	@Test // DATAJPA-965, DATAJPA-970
+	@Test // DATAJPA-965, DATAJPA-970, GH-2863
 	void doesNotPrefixMultipleAliasedFunctionCalls() {
 
 		String query = "SELECT AVG(m.price) AS avgPrice, SUM(m.stocks) AS sumStocks FROM Magazine m";
 		Sort sort = Sort.by("avgPrice", "sumStocks");
 
-		// TODO: Add support for aliased functions
-		// assertThat(query(query, (Sort) "m")).endsWith("order by avgPrice asc, sumStocks asc");
+		assertThat(createQueryFor(query, sort)).endsWith("order by avgPrice asc, sumStocks asc");
 	}
 
-	@Test // DATAJPA-965, DATAJPA-970
+	@Test // DATAJPA-965, DATAJPA-970, GH-2863
 	void doesNotPrefixSingleAliasedFunctionCalls() {
 
 		String query = "SELECT AVG(m.price) AS avgPrice FROM Magazine m";
 		Sort sort = Sort.by("avgPrice");
 
-		// TODO: Add support for aliased functions
-		// assertThat(query(query, (Sort) "m")).endsWith("order by avgPrice asc");
+		assertThat(createQueryFor(query, sort)).endsWith("order by avgPrice asc");
 	}
 
-	@Test // DATAJPA-965, DATAJPA-970
+	@Test // DATAJPA-965, DATAJPA-970, GH-2863
 	void prefixesSingleNonAliasedFunctionCallRelatedSortProperty() {
 
 		String query = "SELECT AVG(m.price) AS avgPrice FROM Magazine m";
 		Sort sort = Sort.by("someOtherProperty");
 
-		// TODO: Add support for aliased functions
-		// assertThat(query(query, (Sort) "m")).endsWith("order by m.someOtherProperty asc");
+		assertThat(createQueryFor(query, sort)).endsWith("order by m.someOtherProperty asc");
 	}
 
-	@Test // DATAJPA-965, DATAJPA-970
+	@Test // DATAJPA-965, DATAJPA-970, GH-2863
 	void prefixesNonAliasedFunctionCallRelatedSortPropertyWhenSelectClauseContainsAliasedFunctionForDifferentProperty() {
 
 		String query = "SELECT m.name, AVG(m.price) AS avgPrice FROM Magazine m";
 		Sort sort = Sort.by("name", "avgPrice");
 
-		// TODO: Add support for aliased functions
-		// assertThat(query(query, (Sort) "m")).endsWith("order by m.name asc, avgPrice asc");
+		assertThat(createQueryFor(query, sort)).endsWith("order by m.name asc, avgPrice asc");
 	}
 
-	@Test // DATAJPA-965, DATAJPA-970
+	@Test // DATAJPA-965, DATAJPA-970, GH-2863
 	void doesNotPrefixAliasedFunctionCallNameWithMultipleNumericParameters() {
 
 		String query = "SELECT SUBSTRING(m.name, 2, 5) AS trimmedName FROM Magazine m";
 		Sort sort = Sort.by("trimmedName");
 
-		// TODO: Add support for aliased functions
-		// assertThat(query(query, (Sort) "m")).endsWith("order by trimmedName asc");
+		assertThat(createQueryFor(query, sort)).endsWith("order by trimmedName asc");
 	}
 
-	@Test // DATAJPA-965, DATAJPA-970
+	@Test // DATAJPA-965, DATAJPA-970, GH-2863
 	void doesNotPrefixAliasedFunctionCallNameWithMultipleStringParameters() {
 
 		String query = "SELECT CONCAT(m.name, 'foo') AS extendedName FROM Magazine m";
 		Sort sort = Sort.by("extendedName");
 
-		// TODO: Add support for aliased functions
-		// assertThat(query(query, (Sort) "m")).endsWith("order by extendedName asc");
+		assertThat(createQueryFor(query, sort)).endsWith("order by extendedName asc");
 	}
 
-	@Test // DATAJPA-965, DATAJPA-970
+	@Test // DATAJPA-965, DATAJPA-970, GH-2863
 	void doesNotPrefixAliasedFunctionCallNameWithUnderscores() {
 
 		String query = "SELECT AVG(m.price) AS avg_price FROM Magazine m";
 		Sort sort = Sort.by("avg_price");
 
-		// TODO: Add support for aliased functions
-		// assertThat(query(query, (Sort) "m")).endsWith("order by avg_price asc");
+		assertThat(createQueryFor(query, sort)).endsWith("order by avg_price asc");
 	}
 
-	@Test // DATAJPA-965, DATAJPA-970
+	@Test // DATAJPA-965, DATAJPA-970, GH-2863
 	void doesNotPrefixAliasedFunctionCallNameWithDots() {
 
 		String query = "SELECT AVG(m.price) AS m.avg FROM Magazine m";
 		Sort sort = Sort.by("m.avg");
 
-		// TODO: Add support for aliased functions
-		// assertThat(query(query, (Sort) "m")).endsWith("order by m.avg asc");
+		assertThatIllegalArgumentException().isThrownBy(() -> createQueryFor(query, sort));
 	}
 
-	@Test // DATAJPA-965, DATAJPA-970
+	@Test // DATAJPA-965, DATAJPA-970, GH-2863
 	void doesNotPrefixAliasedFunctionCallNameWhenQueryStringContainsMultipleWhiteSpaces() {
 
 		String query = "SELECT  AVG(  m.price  )   AS   avgPrice   FROM Magazine   m";
 		Sort sort = Sort.by("avgPrice");
 
-		// TODO: Add support for aliased functions
-		// assertThat(createQueryFor(query, sort)).endsWith("order by avgPrice asc");
+		assertThat(createQueryFor(query, sort)).endsWith("order by avgPrice asc");
 	}
 
 	@Test // DATAJPA-1506
@@ -528,7 +519,7 @@ class JpqlQueryTransformerTests {
 
 		String fullQuery = createQueryFor(query, sort);
 
-		assertThat(fullQuery).endsWith("order by m.authorName asc");
+		assertThat(fullQuery).endsWith("order by authorName asc");
 	}
 
 	@Test // GH-2280
@@ -540,7 +531,7 @@ class JpqlQueryTransformerTests {
 		String fullQuery = createQueryFor(query, sort);
 
 		assertThat(fullQuery).isEqualTo(
-				"SELECT customer.id as id, customer.name as name FROM CustomerEntity customer order by lower(customer.name) asc");
+				"SELECT customer.id as id, customer.name as name FROM CustomerEntity customer order by lower(name) asc");
 	}
 
 	@Test // DATAJPA-1061
@@ -551,7 +542,7 @@ class JpqlQueryTransformerTests {
 
 		String fullQuery = createQueryFor(query, sort);
 
-		assertThat(fullQuery).endsWith("order by m.title asc");
+		assertThat(fullQuery).endsWith("order by title asc");
 	}
 
 	@Test // DATAJPA-1061
