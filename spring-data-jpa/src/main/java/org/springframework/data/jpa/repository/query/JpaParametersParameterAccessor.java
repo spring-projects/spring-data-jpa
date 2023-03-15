@@ -59,7 +59,7 @@ public class JpaParametersParameterAccessor extends ParametersParameterAccessor 
 	 * @param extractedValue
 	 * @since 3.1
 	 */
-	public Date extractDate(Object extractedValue) {
+	public Date unwrapDate(Object extractedValue) {
 		return (Date) extractedValue;
 	}
 

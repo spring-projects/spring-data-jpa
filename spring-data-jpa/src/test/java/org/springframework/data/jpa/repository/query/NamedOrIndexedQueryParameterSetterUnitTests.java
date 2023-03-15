@@ -68,7 +68,7 @@ class NamedOrIndexedQueryParameterSetterUnitTests {
 		Date testDate = new Date();
 
 		when(accessor.getValues()).thenReturn(new Object[] { testDate });
-		when(accessor.extractDate(testDate)).thenReturn(testDate);
+		when(accessor.unwrapDate(testDate)).thenReturn(testDate);
 
 		this.methodArguments = accessor;
 	}
