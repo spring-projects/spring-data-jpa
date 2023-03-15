@@ -190,8 +190,20 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, Quer
 		}
 	};
 
-	private static final boolean hibernatePresent = ClassUtils.isPresent("org.hibernate.query.TypedParameterValue",
-			PersistenceProvider.class.getClassLoader());
+	private static final Class<?> typedParameterValueClass;
+
+	static {
+
+		Class<?> type;
+		try {
+			type = ClassUtils.forName("org.hibernate.query.TypedParameterValue",
+					PersistenceProvider.class.getClassLoader());
+		} catch (ClassNotFoundException e) {
+			type = null;
+		}
+		typedParameterValueClass = type;
+	}
+
 	private static final Collection<PersistenceProvider> ALL = List.of(HIBERNATE, ECLIPSELINK, GENERIC_JPA);
 
 	static ConcurrentReferenceHashMap<Class<?>, PersistenceProvider> CACHE = new ConcurrentReferenceHashMap<>();
@@ -319,27 +331,14 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, Quer
 	 * empty string for query creation.
 	 *
 	 * @param value
-	 * @return the original value or an empty string.
+	 * @return the original value or null.
 	 * @since 3.0
 	 */
-	public static Object condense(Object value) {
+	public static Object unwrapTypedParameterValue(Object value) {
 
-		if (hibernatePresent) {
-
-			try {
-
-				Class<?> typeParameterValue = ClassUtils.forName("org.hibernate.query.TypedParameterValue",
-						PersistenceProvider.class.getClassLoader());
-
-				if (typeParameterValue.isInstance(value)) {
-					return null;
-				}
-			} catch (ClassNotFoundException | LinkageError o_O) {
-				return value;
-			}
-		}
-
-		return value;
+		return typedParameterValueClass != null && typedParameterValueClass.isInstance(value) //
+				? null //
+				: value;
 	}
 
 	/**

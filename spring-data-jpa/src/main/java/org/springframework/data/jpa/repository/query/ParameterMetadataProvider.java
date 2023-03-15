@@ -233,24 +233,24 @@ class ParameterMetadataProvider {
 
 			Assert.notNull(value, "Value must not be null");
 
-			Object condensedValue = PersistenceProvider.condense(value);
+			Object unwrapped = PersistenceProvider.unwrapTypedParameterValue(value);
 
-			if (condensedValue == null || expression.getJavaType() == null) {
-				return condensedValue;
+			if (unwrapped == null || expression.getJavaType() == null) {
+				return unwrapped;
 			}
 
 			if (String.class.equals(expression.getJavaType()) && !noWildcards) {
 
 				switch (type) {
 					case STARTING_WITH:
-						return String.format("%s%%", escape.escape(condensedValue.toString()));
+						return String.format("%s%%", escape.escape(unwrapped.toString()));
 					case ENDING_WITH:
-						return String.format("%%%s", escape.escape(condensedValue.toString()));
+						return String.format("%%%s", escape.escape(unwrapped.toString()));
 					case CONTAINING:
 					case NOT_CONTAINING:
-						return String.format("%%%s%%", escape.escape(condensedValue.toString()));
+						return String.format("%%%s%%", escape.escape(unwrapped.toString()));
 					default:
-						return condensedValue;
+						return unwrapped;
 				}
 			}
 

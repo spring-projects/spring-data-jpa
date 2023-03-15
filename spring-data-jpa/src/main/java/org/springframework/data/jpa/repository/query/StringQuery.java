@@ -715,21 +715,21 @@ class StringQuery implements DeclaredQuery {
 		@Override
 		public Object prepare(@Nullable Object value) {
 
-			Object condensedValue = PersistenceProvider.condense(value);
-			if (condensedValue == null) {
+			Object unwrapped = PersistenceProvider.unwrapTypedParameterValue(value);
+			if (unwrapped == null) {
 				return null;
 			}
 
 			switch (type) {
 				case STARTING_WITH:
-					return String.format("%s%%", condensedValue);
+					return String.format("%s%%", unwrapped);
 				case ENDING_WITH:
-					return String.format("%%%s", condensedValue);
+					return String.format("%%%s", unwrapped);
 				case CONTAINING:
-					return String.format("%%%s%%", condensedValue);
+					return String.format("%%%s%%", unwrapped);
 				case LIKE:
 				default:
-					return condensedValue;
+					return unwrapped;
 			}
 		}
 
