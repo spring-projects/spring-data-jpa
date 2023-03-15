@@ -784,6 +784,15 @@ class HqlQueryTransformerTests {
 				+ "from foo f", sort)).endsWith("order by f.age desc");
 	}
 
+	@Test // GH-2862
+	void sortProperlyAppendsToExistingOrderByWithFunction() {
+
+		assertThat(createQueryFor(
+				"select e from SampleEntity e  where function('nativeFunc', ?1) > 'testVal'  order by function('nativeFunc', ?1)",
+				Sort.by(Sort.Order.desc("age")))).isEqualTo(
+						"select e from SampleEntity e where function('nativeFunc', ?1) > 'testVal' order by function('nativeFunc', ?1), e.age desc");
+	}
+
 	private void assertCountQuery(String originalQuery, String countQuery) {
 		assertThat(createCountQueryFor(originalQuery)).isEqualTo(countQuery);
 	}
