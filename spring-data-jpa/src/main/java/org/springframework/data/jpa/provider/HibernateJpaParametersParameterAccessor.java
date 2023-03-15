@@ -17,22 +17,20 @@ package org.springframework.data.jpa.provider;
 
 import jakarta.persistence.EntityManager;
 
-import java.util.Date;
-
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.query.TypedParameterValue;
+import org.hibernate.type.BasicType;
 import org.hibernate.type.BasicTypeRegistry;
 import org.springframework.data.jpa.repository.query.JpaParametersParameterAccessor;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.lang.Nullable;
-import org.springframework.util.Assert;
 
 /**
  * {@link org.springframework.data.repository.query.ParameterAccessor} based on an {@link Parameters} instance. In
- * addition to the {@link JpaParametersParameterAccessor} functions, the bindable value is provided by fetching the
- * method type when there is null.
+ * addition to the {@link JpaParametersParameterAccessor} functions, the bindable parameterValue is provided by fetching
+ * the method type when there is null.
  *
  * @author Wonchul Heo
  * @author Jens Schauder
@@ -68,13 +66,13 @@ class HibernateJpaParametersParameterAccessor extends JpaParametersParameterAcce
 	@SuppressWarnings("unchecked")
 	public Object getValue(Parameter parameter) {
 
-		var value = super.getValue(parameter.getIndex());
+		Object value = super.getValue(parameter.getIndex());
 
 		if (value != null) {
 			return value;
 		}
 
-		var type = typeHelper.getRegisteredType(parameter.getType());
+		BasicType<?> type = typeHelper.getRegisteredType(parameter.getType());
 
 		if (type == null) {
 			return null;
@@ -84,19 +82,18 @@ class HibernateJpaParametersParameterAccessor extends JpaParametersParameterAcce
 	}
 
 	/**
-	 * For Hibernate, check if the incoming value is wrapped inside a {@link TypedParameterValue} before extracting and
-	 * casting the {@link Date}.
+	 * For Hibernate, check if the incoming parameterValue can be wrapped inside a {@link TypedParameterValue} before
+	 * extracting.
 	 *
-	 * @param value a value that is either a {@link Date} or a  {@link TypedParameterValue} containing a {@literal Date}.
+	 * @param parameterValue a parameterValue that is either a plain value or a {@link TypedParameterValue} containing a
+	 *          {@literal Date}.
 	 * @since 3.0.4
 	 */
 	@Override
-	public Date unwrapDate(Object value) {
+	protected Object potentiallyUnwrap(Object parameterValue) {
 
-		Object extracted = (value instanceof TypedParameterValue<?> typedParameterValue) //
+		return (parameterValue instanceof TypedParameterValue<?> typedParameterValue) //
 				? typedParameterValue.getValue() //
-				: value;
-
-		return (Date) extracted;
+				: parameterValue;
 	}
 }

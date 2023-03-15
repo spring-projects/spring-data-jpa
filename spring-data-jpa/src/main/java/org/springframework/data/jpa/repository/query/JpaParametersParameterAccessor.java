@@ -15,8 +15,6 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import java.util.Date;
-
 import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
@@ -54,13 +52,13 @@ public class JpaParametersParameterAccessor extends ParametersParameterAccessor 
 	}
 
 	/**
-	 * For general JPA providers, simply pass through the extracted value, casting it as a {@link Date}.
+	 * Apply potential unwrapping to {@code parameterValue}.
 	 *
-	 * @param extractedValue
-	 * @since 3.1
+	 * @param parameterValue
+	 * @since 3.0.4
 	 */
-	public Date unwrapDate(Object extractedValue) {
-		return (Date) extractedValue;
+	protected Object potentiallyUnwrap(Object parameterValue) {
+		return parameterValue;
 	}
 
 }
