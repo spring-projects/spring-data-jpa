@@ -97,8 +97,6 @@ class HibernateJpaParametersParameterAccessor extends JpaParametersParameterAcce
 				? typedParameterValue.getValue() //
 				: value;
 
-		Assert.isInstanceOf(Date.class, extracted, "Value must be either of type Date or a Date wrapped in a TypedParameterValue");
-
 		return (Date) extracted;
 	}
 }
