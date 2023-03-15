@@ -27,6 +27,7 @@ import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 
 /**
  * {@link org.springframework.data.repository.query.ParameterAccessor} based on an {@link Parameters} instance. In
@@ -86,14 +87,18 @@ class HibernateJpaParametersParameterAccessor extends JpaParametersParameterAcce
 	 * For Hibernate, check if the incoming value is wrapped inside a {@link TypedParameterValue} before extracting and
 	 * casting the {@link Date}.
 	 *
-	 * @param extractedValue
-	 * @since 3.1
+	 * @param value a value that is either a {@link Date} or a  {@link TypedParameterValue} containing a {@literal Date}.
+	 * @since 3.0.4
 	 */
 	@Override
-	public Date extractDate(Object extractedValue) {
+	public Date unwrapDate(Object value) {
 
-		return (extractedValue instanceof TypedParameterValue<?> typedParameterValue)
-				? (Date) typedParameterValue.getValue()
-				: (Date) extractedValue;
+		Object extracted = (value instanceof TypedParameterValue<?> typedParameterValue) //
+				? typedParameterValue.getValue() //
+				: value;
+
+		Assert.isInstanceOf(Date.class, extracted, "Value must be either of type Date or a Date wrapped in a TypedParameterValue");
+
+		return (Date) extracted;
 	}
 }
