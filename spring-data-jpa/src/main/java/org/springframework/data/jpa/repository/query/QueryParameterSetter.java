@@ -83,7 +83,7 @@ interface QueryParameterSetter {
 
 				Object extractedValue = valueExtractor.apply(accessor);
 
-				final Date value = accessor.unwrapDate(extractedValue);
+				Date value = (Date) accessor.potentiallyUnwrap(extractedValue);
 
 				// One would think we can simply use parameter to identify the parameter we want to set.
 				// But that does not work with list valued parameters. At least Hibernate tries to bind them by name.
