@@ -41,12 +41,14 @@ class HqlQueryTransformer extends HqlQueryRenderer {
 
 	private final @Nullable String countProjection;
 
-	private @Nullable String alias = null;
+	private @Nullable String primaryFromAlias = null;
 
 	private List<JpaQueryParsingToken> projection = Collections.emptyList();
 	private boolean projectionProcessed;
 
 	private boolean hasConstructorExpression = false;
+
+	private JpaQueryTransformerSupport transformerSupport;
 
 	HqlQueryTransformer() {
 		this(Sort.unsorted(), false, null);
@@ -67,11 +69,12 @@ class HqlQueryTransformer extends HqlQueryRenderer {
 		this.sort = sort;
 		this.countQuery = countQuery;
 		this.countProjection = countProjection;
+		this.transformerSupport = new JpaQueryTransformerSupport();
 	}
 
 	@Nullable
 	public String getAlias() {
-		return this.alias;
+		return this.primaryFromAlias;
 	}
 
 	public List<JpaQueryParsingToken> getProjection() {
@@ -118,7 +121,7 @@ class HqlQueryTransformer extends HqlQueryRenderer {
 				tokens.addAll(visit(ctx.queryOrder()));
 			}
 
-			if (this.sort.isSorted()) {
+			if (sort.isSorted()) {
 
 				if (ctx.queryOrder() != null) {
 
@@ -130,29 +133,7 @@ class HqlQueryTransformer extends HqlQueryRenderer {
 					tokens.add(TOKEN_ORDER_BY);
 				}
 
-				this.sort.forEach(order -> {
-
-					JpaQueryParserSupport.checkSortExpression(order);
-
-					if (order.isIgnoreCase()) {
-						tokens.add(TOKEN_LOWER_FUNC);
-					}
-					tokens.add(new JpaQueryParsingToken(() -> {
-
-						if (order.getProperty().contains("(")) {
-							return order.getProperty();
-						}
-
-						return this.alias + "." + order.getProperty();
-					}, true));
-					if (order.isIgnoreCase()) {
-						NOSPACE(tokens);
-						tokens.add(TOKEN_CLOSE_PAREN);
-					}
-					tokens.add(order.isDescending() ? TOKEN_DESC : TOKEN_ASC);
-					tokens.add(TOKEN_COMMA);
-				});
-				CLIP(tokens);
+				tokens.addAll(transformerSupport.generateOrderByArguments(primaryFromAlias, sort));
 			}
 		} else {
 
@@ -176,7 +157,7 @@ class HqlQueryTransformer extends HqlQueryRenderer {
 			if (countProjection != null) {
 				tokens.add(new JpaQueryParsingToken(countProjection));
 			} else {
-				tokens.add(new JpaQueryParsingToken(() -> this.alias, false));
+				tokens.add(new JpaQueryParsingToken(() -> primaryFromAlias, false));
 			}
 
 			tokens.add(TOKEN_CLOSE_PAREN);
@@ -240,8 +221,8 @@ class HqlQueryTransformer extends HqlQueryRenderer {
 			if (ctx.variable() != null) {
 				tokens.addAll(visit(ctx.variable()));
 
-				if (this.alias == null && !isSubquery(ctx)) {
-					this.alias = tokens.get(tokens.size() - 1).getToken();
+				if (primaryFromAlias == null && !isSubquery(ctx)) {
+					primaryFromAlias = tokens.get(tokens.size() - 1).getToken();
 				}
 			} else {
 
@@ -250,8 +231,8 @@ class HqlQueryTransformer extends HqlQueryRenderer {
 					tokens.add(TOKEN_AS);
 					tokens.add(TOKEN_DOUBLE_UNDERSCORE);
 
-					if (this.alias == null && !isSubquery(ctx)) {
-						this.alias = TOKEN_DOUBLE_UNDERSCORE.getToken();
+					if (primaryFromAlias == null && !isSubquery(ctx)) {
+						primaryFromAlias = TOKEN_DOUBLE_UNDERSCORE.getToken();
 					}
 				}
 			}
@@ -267,8 +248,8 @@ class HqlQueryTransformer extends HqlQueryRenderer {
 			if (ctx.variable() != null) {
 				tokens.addAll(visit(ctx.variable()));
 
-				if (this.alias == null && !isSubquery(ctx)) {
-					this.alias = tokens.get(tokens.size() - 1).getToken();
+				if (primaryFromAlias == null && !isSubquery(ctx)) {
+					primaryFromAlias = tokens.get(tokens.size() - 1).getToken();
 				}
 			}
 		}
@@ -302,16 +283,22 @@ class HqlQueryTransformer extends HqlQueryRenderer {
 	@Override
 	public List<JpaQueryParsingToken> visitAlias(HqlParser.AliasContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = newArrayList();
+		List<JpaQueryParsingToken> tokens = super.visitAlias(ctx);
 
-		if (ctx.AS() != null) {
-			tokens.add(new JpaQueryParsingToken(ctx.AS()));
+		if (primaryFromAlias == null && !isSubquery(ctx)) {
+			primaryFromAlias = tokens.get(tokens.size() - 1).getToken();
 		}
 
-		tokens.addAll(visit(ctx.identifier()));
+		return tokens;
+	}
 
-		if (this.alias == null && !isSubquery(ctx)) {
-			this.alias = tokens.get(tokens.size() - 1).getToken();
+	@Override
+	public List<JpaQueryParsingToken> visitVariable(HqlParser.VariableContext ctx) {
+
+		List<JpaQueryParsingToken> tokens = super.visitVariable(ctx);
+
+		if (ctx.identifier() != null) {
+			transformerSupport.registerAlias(tokens.get(tokens.size() - 1).getToken());
 		}
 
 		return tokens;
@@ -346,13 +333,13 @@ class HqlQueryTransformer extends HqlQueryRenderer {
 
 					if (selectionListTokens.stream().anyMatch(hqlToken -> hqlToken.getToken().contains("new"))) {
 						// constructor
-						tokens.add(new JpaQueryParsingToken(() -> this.alias));
+						tokens.add(new JpaQueryParsingToken(() -> primaryFromAlias));
 					} else {
 						// keep all the select items to distinct against
 						tokens.addAll(selectionListTokens);
 					}
 				} else {
-					tokens.add(new JpaQueryParsingToken(() -> this.alias));
+					tokens.add(new JpaQueryParsingToken(() -> primaryFromAlias));
 				}
 			}
 
@@ -363,8 +350,8 @@ class HqlQueryTransformer extends HqlQueryRenderer {
 		}
 
 		if (!projectionProcessed && !isSubquery(ctx)) {
-			this.projection = selectionListTokens;
-			this.projectionProcessed = true;
+			projection = selectionListTokens;
+			projectionProcessed = true;
 		}
 
 		return tokens;
@@ -373,7 +360,7 @@ class HqlQueryTransformer extends HqlQueryRenderer {
 	@Override
 	public List<JpaQueryParsingToken> visitInstantiation(HqlParser.InstantiationContext ctx) {
 
-		this.hasConstructorExpression = true;
+		hasConstructorExpression = true;
 
 		return super.visitInstantiation(ctx);
 	}
