@@ -217,7 +217,6 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 
 			AbstractBeanDefinition entityManager = getEntityManagerBeanDefinitionFor(config, null);
 			entityManager.setRole(BeanDefinition.ROLE_SUPPORT);
-			entityManager.setSynthetic(true);
 			entityManager.setPrimary(false);
 			entityManager.setAutowireCandidate(false);
 
