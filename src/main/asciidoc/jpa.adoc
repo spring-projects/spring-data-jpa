@@ -1120,7 +1120,7 @@ include::query-by-example.adoc[leveloffset=+1]
 [[transactions]]
 == Transactionality
 
-By default, methods inherited from `CrudRepository` inherited the transactional configuration from from link:$$https://docs.spring.io/spring-data/data-jpa/docs/current/api/org/springframework/data/jpa/repository/support/SimpleJpaRepository.html$$[`SimpleJpaRepository`].
+By default, methods inherited from `CrudRepository` inherit the transactional configuration from link:$$https://docs.spring.io/spring-data/data-jpa/docs/current/api/org/springframework/data/jpa/repository/support/SimpleJpaRepository.html$$[`SimpleJpaRepository`].
 For read operations, the transaction configuration `readOnly` flag is set to `true`.
 All others are configured with a plain `@Transactional` so that default transaction configuration applies.
 Repository methods that are backed by transactional repository fragments inherit the transactional attributes from the actual fragment method.
