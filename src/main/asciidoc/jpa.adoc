@@ -1120,7 +1120,7 @@ include::query-by-example.adoc[leveloffset=+1]
 [[transactions]]
 == Transactionality
 
-By default, CRUD methods on repository instances inherited from link:$$https://docs.spring.io/spring-data/data-jpa/docs/current/api/org/springframework/data/jpa/repository/support/SimpleJpaRepository.html$$[`SimpleJpaRepository`] are transactional.
+By default, methods inherited from `CrudRepository` inherited the transactional configuration from from link:$$https://docs.spring.io/spring-data/data-jpa/docs/current/api/org/springframework/data/jpa/repository/support/SimpleJpaRepository.html$$[`SimpleJpaRepository`].
 For read operations, the transaction configuration `readOnly` flag is set to `true`.
 All others are configured with a plain `@Transactional` so that default transaction configuration applies.
 Repository methods that are backed by transactional repository fragments inherit the transactional attributes from the actual fragment method.
@@ -1182,7 +1182,8 @@ Note that the call to `save` is not strictly necessary from a JPA point of view,
 [[transactional-query-methods]]
 === Transactional query methods
 
-To let your query methods be transactional, use `@Transactional` at the repository interface you define, as shown in the following example:
+Declared query methods (including default methods) do not get any transaction configuration applied by default.
+To run those methods transactionally, use `@Transactional` at the repository interface you define, as shown in the following example:
 
 .Using @Transactional at query methods
 ====
