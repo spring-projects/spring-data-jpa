@@ -17,7 +17,6 @@ package org.springframework.data.jpa.repository.query;
 
 import java.util.List;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.TerminalNode;
@@ -52,6 +51,10 @@ class JpaQueryParsingToken {
 	public static final JpaQueryParsingToken TOKEN_CLOSE_BRACE = new JpaQueryParsingToken("}");
 	public static final JpaQueryParsingToken TOKEN_CLOSE_SQUARE_BRACKET_BRACE = new JpaQueryParsingToken("]}");
 	public static final JpaQueryParsingToken TOKEN_CLOSE_PAREN_BRACE = new JpaQueryParsingToken(")}");
+
+	public static final JpaQueryParsingToken TOKEN_DOUBLE_UNDERSCORE = new JpaQueryParsingToken("__");
+
+	public static final JpaQueryParsingToken TOKEN_AS = new JpaQueryParsingToken("AS");
 
 	public static final JpaQueryParsingToken TOKEN_DESC = new JpaQueryParsingToken("desc", false);
 

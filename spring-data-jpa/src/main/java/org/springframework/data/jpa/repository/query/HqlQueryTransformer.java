@@ -243,6 +243,17 @@ class HqlQueryTransformer extends HqlQueryRenderer {
 				if (this.alias == null && !isSubquery(ctx)) {
 					this.alias = tokens.get(tokens.size() - 1).getToken();
 				}
+			} else {
+
+				if (countQuery) {
+
+					tokens.add(TOKEN_AS);
+					tokens.add(TOKEN_DOUBLE_UNDERSCORE);
+
+					if (this.alias == null && !isSubquery(ctx)) {
+						this.alias = TOKEN_DOUBLE_UNDERSCORE.getToken();
+					}
+				}
 			}
 		} else if (ctx.subquery() != null) {
 
