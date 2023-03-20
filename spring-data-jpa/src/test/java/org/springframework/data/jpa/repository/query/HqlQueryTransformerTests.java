@@ -808,6 +808,121 @@ class HqlQueryTransformerTests {
 				"select count(b) FROM BookError b WHERE portal = :portal");
 	}
 
+	@Test // GH-2864
+	void usingRightAsARelationshipNameShouldWork() {
+
+		HqlQueryParser.parseQuery("""
+				select u
+				from UserAccountEntity u
+				join fetch u.lossInspectorLimitConfiguration lil
+				join fetch u.companyTeam ct
+				where exists (
+					select iu
+					from UserAccountEntity  iu
+					join iu.roles u2r
+					join u2r.role r
+					join r.rights r2r
+					join r2r.right rt
+					where
+						rt.code = :rightCode
+						and iu = u
+				)
+				and ct.id = :teamId
+				""");
+	}
+
+	@Test // GH-2864
+	void usingLeftAsARelationshipNameShouldWork() {
+
+		HqlQueryParser.parseQuery("""
+				select u
+				from UserAccountEntity u
+				join fetch u.lossInspectorLimitConfiguration lil
+				join fetch u.companyTeam ct
+				where exists (
+					select iu
+					from UserAccountEntity  iu
+					join iu.roles u2r
+					join u2r.role r
+					join r.rights r2r
+					join r2r.left lt
+					where
+						lt.code = :rightCode
+						and iu = u
+				)
+				and ct.id = :teamId
+				""");
+	}
+
+	@Test // GH-2864
+	void usingOuterAsARelationshipNameShouldWork() {
+
+		HqlQueryParser.parseQuery("""
+				select u
+				from UserAccountEntity u
+				join fetch u.lossInspectorLimitConfiguration lil
+				join fetch u.companyTeam ct
+				where exists (
+					select iu
+					from UserAccountEntity  iu
+					join iu.roles u2r
+					join u2r.role r
+					join r.rights r2r
+					join r2r.outer ou
+					where
+						ou.code = :rightCode
+						and iu = u
+				)
+				and ct.id = :teamId
+				""");
+	}
+
+	@Test // GH-2864
+	void usingFullAsARelationshipNameShouldWork() {
+
+		HqlQueryParser.parseQuery("""
+				select u
+				from UserAccountEntity u
+				join fetch u.lossInspectorLimitConfiguration lil
+				join fetch u.companyTeam ct
+				where exists (
+					select iu
+					from UserAccountEntity  iu
+					join iu.roles u2r
+					join u2r.role r
+					join r.rights r2r
+					join r2r.full fu
+					where
+						fu.code = :rightCode
+						and iu = u
+				)
+				and ct.id = :teamId
+				""");
+	}
+
+	@Test // GH-2864
+	void usingInnerAsARelationshipNameShouldWork() {
+
+		HqlQueryParser.parseQuery("""
+				select u
+				from UserAccountEntity u
+				join fetch u.lossInspectorLimitConfiguration lil
+				join fetch u.companyTeam ct
+				where exists (
+					select iu
+					from UserAccountEntity  iu
+					join iu.roles u2r
+					join u2r.role r
+					join r.rights r2r
+					join r2r.inner in
+					where
+						in.code = :rightCode
+						and iu = u
+				)
+				and ct.id = :teamId
+				""");
+	}
+
 	private void assertCountQuery(String originalQuery, String countQuery) {
 		assertThat(createCountQueryFor(originalQuery)).isEqualTo(countQuery);
 	}
