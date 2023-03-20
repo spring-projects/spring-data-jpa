@@ -18,9 +18,13 @@ package org.springframework.data.jpa.repository.query;
 import static org.assertj.core.api.Assertions.*;
 
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.JpaSort;
@@ -808,6 +812,30 @@ class HqlQueryTransformerTests {
 				"select count(b) FROM BookError b WHERE portal = :portal");
 	}
 
+	@ParameterizedTest
+	@MethodSource("queriesWithReservedWordsAsIdentifiers") // GH-2864
+	void usingReservedWordAsRelationshipNameShouldWork(String relationshipName, String joinAlias) {
+
+		HqlQueryParser.parseQuery(String.format("""
+				select u
+				from UserAccountEntity u
+				join fetch u.lossInspectorLimitConfiguration lil
+				join fetch u.companyTeam ct
+				where exists (
+					select iu
+					from UserAccountEntity  iu
+					join iu.roles u2r
+					join u2r.role r
+					join r.rights r2r
+					join r2r.%s %s
+					where
+						%s.code = :rightCode
+						and iu = u
+				)
+				and ct.id = :teamId
+					""", relationshipName, joinAlias, joinAlias));
+	}
+
 	@Test // GH-2508
 	void detectAliasWithCastCorrectly() {
 
@@ -817,6 +845,16 @@ class HqlQueryTransformerTests {
 				.isEqualTo("u");
 		assertThat(alias("from User u where (cast(:effectiveFrom as date) is null) OR :effectiveFrom >= u.createdAt"))
 				.isEqualTo("u");
+	}
+
+	static Stream<Arguments> queriesWithReservedWordsAsIdentifiers() {
+
+		return Stream.of( //
+				Arguments.of("right", "rt"), //
+				Arguments.of("left", "lt"), //
+				Arguments.of("outer", "ou"), //
+				Arguments.of("full", "full"), //
+				Arguments.of("inner", "inr"));
 	}
 
 	private void assertCountQuery(String originalQuery, String countQuery) {

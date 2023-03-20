@@ -599,6 +599,9 @@ identification_variable
     | ORDER // Gap in the spec requires supporting 'Order' as an entity name
     | COUNT // Gap in the spec requires supporting 'count' as a possible name
     | KEY // Gap in the sepc requires supported 'key' as a possible name
+    | LEFT
+    | INNER
+    | OUTER
     ;
 
 constructor_name

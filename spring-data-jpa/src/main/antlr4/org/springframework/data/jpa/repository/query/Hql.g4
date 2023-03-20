@@ -692,7 +692,7 @@ reservedWord
 	| FOR
 	| FORMAT
 	| FROM
-//	| FULL
+	| FULL
 	| FUNCTION
 	| GROUP
 	| GROUPS
@@ -704,7 +704,7 @@ reservedWord
 	| IN
 	| INDEX
 	| INDICES
-//	| INNER
+	| INNER
 	| INSERT
 	| INSTANT
 	| INTERSECT
@@ -714,7 +714,7 @@ reservedWord
 	| KEY
 	| LAST
 	| LEADING
-//	| LEFT
+	| LEFT
 	| LIKE
 	| LIMIT
 	| LIST
@@ -752,7 +752,7 @@ reservedWord
 	| OR
 	| ORDER
 	| OTHERS
-//	| OUTER
+	| OUTER
 	| OVER
 	| OVERFLOW
 	| OVERLAY
@@ -765,7 +765,7 @@ reservedWord
 	| QUARTER
 	| RANGE
 	| RESPECT
-//	| RIGHT
+	| RIGHT
 	| ROLLUP
 	| ROW
 	| ROWS
