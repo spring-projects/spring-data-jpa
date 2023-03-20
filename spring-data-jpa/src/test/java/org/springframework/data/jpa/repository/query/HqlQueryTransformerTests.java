@@ -793,6 +793,13 @@ class HqlQueryTransformerTests {
 						"select e from SampleEntity e where function('nativeFunc', ?1) > 'testVal' order by function('nativeFunc', ?1), e.age desc");
 	}
 
+	@Test
+	void countQueryShouldWorkEvenWithoutExplicitAlias() {
+
+		assertCountQuery("FROM BookError WHERE portal = :portal", //
+				"select count(b) FROM BookError AS b WHERE portal = :portal");
+	}
+
 	private void assertCountQuery(String originalQuery, String countQuery) {
 		assertThat(createCountQueryFor(originalQuery)).isEqualTo(countQuery);
 	}

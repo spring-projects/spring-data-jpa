@@ -235,13 +235,27 @@ class HqlQueryTransformer extends HqlQueryRenderer {
 
 		if (ctx.entityName() != null) {
 
-			tokens.addAll(visit(ctx.entityName()));
+			List<JpaQueryParsingToken> entityName = visit(ctx.entityName());
+
+			tokens.addAll(entityName);
 
 			if (ctx.variable() != null) {
 				tokens.addAll(visit(ctx.variable()));
 
 				if (this.alias == null && !isSubquery(ctx)) {
 					this.alias = tokens.get(tokens.size() - 1).getToken();
+				}
+			} else {
+
+				if (countQuery) {
+					tokens.add(TOKEN_AS);
+
+					String tempAlias = entityName.get(0).getToken().substring(0, 1).toLowerCase();
+					tokens.add(new JpaQueryParsingToken(tempAlias));
+
+					if (this.alias == null && !isSubquery(ctx)) {
+						this.alias = tempAlias;
+					}
 				}
 			}
 		} else if (ctx.subquery() != null) {
