@@ -91,7 +91,8 @@ public interface JpaSpecificationExecutor<T> {
 	 * Deletes by the {@link Specification} and returns the number of rows deleted.
 	 *
 	 * @param spec the {@link Specification} to use for the existence check, must not be {@literal null}.
-	 * @return the number of entities deleted
+	 * @return the number of entities deleted.
+	 * @since 3.0
 	 */
 	long delete(Specification<T> spec);
 
