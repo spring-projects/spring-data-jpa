@@ -609,6 +609,16 @@ class UserRepositoryTests {
 		assertThat(repository.findAll((Specification<User>) null, pageable)).isEqualTo(repository.findAll(pageable));
 	}
 
+	@Test // GH-2796
+	void removesAllIfSpecificationIsNull() {
+
+		flushTestUsers();
+
+		repository.delete((Specification<User>) null);
+
+		assertThat(repository.count()).isEqualTo(0L);
+	}
+
 	@Test
 	void returnsAllAsPageIfNoPageableIsGiven() {
 
