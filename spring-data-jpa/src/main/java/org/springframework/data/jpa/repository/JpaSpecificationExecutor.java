@@ -80,7 +80,7 @@ public interface JpaSpecificationExecutor<T> {
 
 	/**
 	 * Checks whether the data store contains elements that match the given {@link Specification}.
-	 * 
+	 *
 	 * @param spec the {@link Specification} to use for the existence check. Must not be {@literal null}.
 	 * @return <code>true</code> if the data store contains elements that match the given {@link Specification} otherwise
 	 *         <code>false</code>.
@@ -91,7 +91,8 @@ public interface JpaSpecificationExecutor<T> {
 	 * Deletes by the {@link Specification} and returns the number of rows deleted.
 	 *
 	 * @param spec the {@link Specification} to use for the existence check. Must not be {@literal null}.
-	 * @return the number of entities deleted
+	 * @return the number of entities deleted.
+	 * @since 3.0
 	 */
 	long delete(Specification<T> spec);
 
