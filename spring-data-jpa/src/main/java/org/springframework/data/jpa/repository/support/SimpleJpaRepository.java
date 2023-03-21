@@ -447,7 +447,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	}
 
 	@Override
-	public Optional<T> findOne(@Nullable Specification<T> spec) {
+	public Optional<T> findOne(Specification<T> spec) {
 
 		try {
 			return Optional.of(getQuery(spec, Sort.unsorted()).setMaxResults(2).getSingleResult());
@@ -457,12 +457,12 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	}
 
 	@Override
-	public List<T> findAll(@Nullable Specification<T> spec) {
+	public List<T> findAll(Specification<T> spec) {
 		return getQuery(spec, Sort.unsorted()).getResultList();
 	}
 
 	@Override
-	public Page<T> findAll(@Nullable Specification<T> spec, Pageable pageable) {
+	public Page<T> findAll(Specification<T> spec, Pageable pageable) {
 
 		TypedQuery<T> query = getQuery(spec, pageable);
 		return isUnpaged(pageable) ? new PageImpl<>(query.getResultList())
@@ -470,8 +470,49 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	}
 
 	@Override
-	public List<T> findAll(@Nullable Specification<T> spec, Sort sort) {
+	public List<T> findAll(Specification<T> spec, Sort sort) {
 		return getQuery(spec, sort).getResultList();
+	}
+
+	@Override
+	public boolean exists(Specification<T> spec) {
+
+		CriteriaQuery<Integer> cq = this.em.getCriteriaBuilder().createQuery(Integer.class);
+		cq.select(this.em.getCriteriaBuilder().literal(1));
+		applySpecificationToCriteria(spec, getDomainClass(), cq);
+		TypedQuery<Integer> query = applyRepositoryMethodMetadata(this.em.createQuery(cq));
+		return query.setMaxResults(1).getResultList().size() == 1;
+	}
+
+	@Override
+	public long delete(Specification<T> spec) {
+
+		CriteriaBuilder builder = this.em.getCriteriaBuilder();
+		CriteriaDelete<T> delete = builder.createCriteriaDelete(getDomainClass());
+
+		if (spec != null) {
+			Predicate predicate = spec.toPredicate(delete.from(getDomainClass()), null, builder);
+
+			if (predicate != null) {
+				delete.where(predicate);
+			}
+		}
+
+		return this.em.createQuery(delete).executeUpdate();
+	}
+
+	@Override
+	public <S extends T, R> R findBy(Specification<T> spec, Function<FetchableFluentQuery<S>, R> queryFunction) {
+
+		Assert.notNull(spec, "Specification must not be null");
+		Assert.notNull(queryFunction, "Query function must not be null");
+
+		Function<Sort, TypedQuery<T>> finder = sort -> getQuery(spec, getDomainClass(), sort);
+
+		FetchableFluentQuery<R> fluentQuery = new FetchableFluentQueryBySpecification<T, R>(spec, getDomainClass(),
+				Sort.unsorted(), null, finder, this::count, this::exists, this.em);
+
+		return queryFunction.apply((FetchableFluentQuery<S>) fluentQuery);
 	}
 
 	@Override
@@ -503,32 +544,6 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		return query.setMaxResults(1).getResultList().size() == 1;
 	}
 
-	@Override
-	public boolean exists(Specification<T> spec) {
-
-		CriteriaQuery<Integer> cq = this.em.getCriteriaBuilder().createQuery(Integer.class);
-		cq.select(this.em.getCriteriaBuilder().literal(1));
-		applySpecificationToCriteria(spec, getDomainClass(), cq);
-		TypedQuery<Integer> query = applyRepositoryMethodMetadata(this.em.createQuery(cq));
-		return query.setMaxResults(1).getResultList().size() == 1;
-	}
-
-	@Override
-	public long delete(Specification<T> spec) {
-
-		CriteriaBuilder builder = this.em.getCriteriaBuilder();
-		CriteriaDelete<T> delete = builder.createCriteriaDelete(getDomainClass());
-
-		if (spec != null) {
-			Predicate predicate = spec.toPredicate(delete.from(getDomainClass()), null, builder);
-
-			if (predicate != null) {
-				delete.where(predicate);
-			}
-		}
-
-		return this.em.createQuery(delete).executeUpdate();
-	}
 
 	@Override
 	public <S extends T> List<S> findAll(Example<S> example) {
@@ -571,19 +586,6 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		return queryFunction.apply(fluentQuery);
 	}
 
-	@Override
-	public <S extends T, R> R findBy(Specification<T> spec, Function<FetchableFluentQuery<S>, R> queryFunction) {
-
-		Assert.notNull(spec, "Specification must not be null");
-		Assert.notNull(queryFunction, "Query function must not be null");
-
-		Function<Sort, TypedQuery<T>> finder = sort -> getQuery(spec, getDomainClass(), sort);
-
-		FetchableFluentQuery<R> fluentQuery = new FetchableFluentQueryBySpecification<T, R>(spec, getDomainClass(),
-				Sort.unsorted(), null, finder, this::count, this::exists, this.em);
-
-		return queryFunction.apply((FetchableFluentQuery<S>) fluentQuery);
-	}
 
 	@Override
 	public long count() {
