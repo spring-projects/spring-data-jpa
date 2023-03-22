@@ -596,9 +596,12 @@ trim_character
 
 identification_variable
     : IDENTIFICATION_VARIABLE
-    | ORDER // Gap in the spec requires supporting 'Order' as an entity name
-    | COUNT // Gap in the spec requires supporting 'count' as a possible name
-    | KEY // Gap in the sepc requires supported 'key' as a possible name
+    | ORDER
+    | COUNT
+    | KEY
+    | LEFT
+    | INNER
+    | OUTER
     | spel_expression // we use various SpEL expressions in our queries
     ;
 

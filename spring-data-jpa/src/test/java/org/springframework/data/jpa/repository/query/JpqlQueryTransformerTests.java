@@ -679,6 +679,121 @@ class JpqlQueryTransformerTests {
 		assertThat(alias("select u from User as u left join  u.roles as r")).isEqualTo("u");
 	}
 
+	@Test // GH-2864
+	void usingRightAsARelationshipNameShouldWork() {
+
+		JpqlQueryParser.parseQuery("""
+				select u
+				from UserAccountEntity u
+				join u.lossInspectorLimitConfiguration lil
+				join u.companyTeam ct
+				where exists (
+					select iu
+					from UserAccountEntity  iu
+					join iu.roles u2r
+					join u2r.role r
+					join r.rights r2r
+					join r2r.right rt
+					where
+						rt.code = :rightCode
+						and iu = u
+				)
+				and ct.id = :teamId
+				""");
+	}
+
+	@Test // GH-2864
+	void usingLeftAsARelationshipNameShouldWork() {
+
+		JpqlQueryParser.parseQuery("""
+				select u
+				from UserAccountEntity u
+				join u.lossInspectorLimitConfiguration lil
+				join u.companyTeam ct
+				where exists (
+					select iu
+					from UserAccountEntity  iu
+					join iu.roles u2r
+					join u2r.role r
+					join r.rights r2r
+					join r2r.left lt
+					where
+						lt.code = :rightCode
+						and iu = u
+				)
+				and ct.id = :teamId
+				""");
+	}
+
+	@Test // GH-2864
+	void usingOuterAsARelationshipNameShouldWork() {
+
+		JpqlQueryParser.parseQuery("""
+				select u
+				from UserAccountEntity u
+				join u.lossInspectorLimitConfiguration lil
+				join u.companyTeam ct
+				where exists (
+					select iu
+					from UserAccountEntity  iu
+					join iu.roles u2r
+					join u2r.role r
+					join r.rights r2r
+					join r2r.outer ou
+					where
+						ou.code = :rightCode
+						and iu = u
+				)
+				and ct.id = :teamId
+				""");
+	}
+
+	@Test // GH-2864
+	void usingFullAsARelationshipNameShouldWork() {
+
+		JpqlQueryParser.parseQuery("""
+				select u
+				from UserAccountEntity u
+				join u.lossInspectorLimitConfiguration lil
+				join u.companyTeam ct
+				where exists (
+					select iu
+					from UserAccountEntity  iu
+					join iu.roles u2r
+					join u2r.role r
+					join r.rights r2r
+					join r2r.full fu
+					where
+						fu.code = :rightCode
+						and iu = u
+				)
+				and ct.id = :teamId
+				""");
+	}
+
+	@Test // GH-2864
+	void usingInnerAsARelationshipNameShouldWork() {
+
+		JpqlQueryParser.parseQuery("""
+				select u
+				from UserAccountEntity u
+				join u.lossInspectorLimitConfiguration lil
+				join u.companyTeam ct
+				where exists (
+					select iu
+					from UserAccountEntity  iu
+					join iu.roles u2r
+					join u2r.role r
+					join r.rights r2r
+					join r2r.inner inr
+					where
+						inr.code = :rightCode
+						and iu = u
+				)
+				and ct.id = :teamId
+				""");
+	}
+
 	private void assertCountQuery(String originalQuery, String countQuery) {
 		assertThat(createCountQueryFor(originalQuery)).isEqualTo(countQuery);
 	}
