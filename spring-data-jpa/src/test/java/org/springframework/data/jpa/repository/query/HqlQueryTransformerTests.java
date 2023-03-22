@@ -808,6 +808,17 @@ class HqlQueryTransformerTests {
 				"select count(b) FROM BookError b WHERE portal = :portal");
 	}
 
+	@Test // GH-2508
+	void detectAliasWithCastCorrectly() {
+
+		assertThat(alias("from User u where (cast(:effective as date) is null) OR :effective >= u.createdAt"))
+				.isEqualTo("u");
+		assertThat(alias("from User u where (cast(:effectiveDate as date) is null) OR :effectiveDate >= u.createdAt"))
+				.isEqualTo("u");
+		assertThat(alias("from User u where (cast(:effectiveFrom as date) is null) OR :effectiveFrom >= u.createdAt"))
+				.isEqualTo("u");
+	}
+
 	private void assertCountQuery(String originalQuery, String countQuery) {
 		assertThat(createCountQueryFor(originalQuery)).isEqualTo(countQuery);
 	}
