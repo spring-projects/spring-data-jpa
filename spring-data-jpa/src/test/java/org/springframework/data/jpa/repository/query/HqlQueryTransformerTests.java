@@ -793,6 +793,11 @@ class HqlQueryTransformerTests {
 						"select e from SampleEntity e where function('nativeFunc', ?1) > 'testVal' order by function('nativeFunc', ?1), e.age desc");
 	}
 
+	@Test // GH-2074
+	void queryParserPicksCorrectAliasAmidstMultipleAlises() {
+		assertThat(alias("select u from User as u left join  u.roles as r")).isEqualTo("u");
+	}
+
 	private void assertCountQuery(String originalQuery, String countQuery) {
 		assertThat(createCountQueryFor(originalQuery)).isEqualTo(countQuery);
 	}

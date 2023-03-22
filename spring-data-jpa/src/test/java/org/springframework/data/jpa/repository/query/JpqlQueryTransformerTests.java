@@ -674,6 +674,11 @@ class JpqlQueryTransformerTests {
 				+ "GROUP BY i2.field.id, i2.version)", sort)).endsWith("order by i.age desc");
 	}
 
+	@Test // GH-2074
+	void queryParserPicksCorrectAliasAmidstMultipleAlises() {
+		assertThat(alias("select u from User as u left join  u.roles as r")).isEqualTo("u");
+	}
+
 	private void assertCountQuery(String originalQuery, String countQuery) {
 		assertThat(createCountQueryFor(originalQuery)).isEqualTo(countQuery);
 	}
