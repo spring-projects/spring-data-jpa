@@ -18,9 +18,13 @@ package org.springframework.data.jpa.repository.query;
 import static org.assertj.core.api.Assertions.*;
 
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.JpaSort;
@@ -808,10 +812,11 @@ class HqlQueryTransformerTests {
 				"select count(b) FROM BookError b WHERE portal = :portal");
 	}
 
-	@Test // GH-2864
-	void usingRightAsARelationshipNameShouldWork() {
+	@ParameterizedTest
+	@MethodSource("queriesWithReservedWordsAsIdentifiers") // GH-2864
+	void usingReservedWordAsRelationshipNameShouldWork(String relationshipName, String joinAlias) {
 
-		HqlQueryParser.parseQuery("""
+		HqlQueryParser.parseQuery(String.format("""
 				select u
 				from UserAccountEntity u
 				join fetch u.lossInspectorLimitConfiguration lil
@@ -822,105 +827,23 @@ class HqlQueryTransformerTests {
 					join iu.roles u2r
 					join u2r.role r
 					join r.rights r2r
-					join r2r.right rt
+					join r2r.%s %s
 					where
-						rt.code = :rightCode
+						%s.code = :rightCode
 						and iu = u
 				)
 				and ct.id = :teamId
-				""");
+					""", relationshipName, joinAlias, joinAlias));
 	}
 
-	@Test // GH-2864
-	void usingLeftAsARelationshipNameShouldWork() {
+	static Stream<Arguments> queriesWithReservedWordsAsIdentifiers() {
 
-		HqlQueryParser.parseQuery("""
-				select u
-				from UserAccountEntity u
-				join fetch u.lossInspectorLimitConfiguration lil
-				join fetch u.companyTeam ct
-				where exists (
-					select iu
-					from UserAccountEntity  iu
-					join iu.roles u2r
-					join u2r.role r
-					join r.rights r2r
-					join r2r.left lt
-					where
-						lt.code = :rightCode
-						and iu = u
-				)
-				and ct.id = :teamId
-				""");
-	}
-
-	@Test // GH-2864
-	void usingOuterAsARelationshipNameShouldWork() {
-
-		HqlQueryParser.parseQuery("""
-				select u
-				from UserAccountEntity u
-				join fetch u.lossInspectorLimitConfiguration lil
-				join fetch u.companyTeam ct
-				where exists (
-					select iu
-					from UserAccountEntity  iu
-					join iu.roles u2r
-					join u2r.role r
-					join r.rights r2r
-					join r2r.outer ou
-					where
-						ou.code = :rightCode
-						and iu = u
-				)
-				and ct.id = :teamId
-				""");
-	}
-
-	@Test // GH-2864
-	void usingFullAsARelationshipNameShouldWork() {
-
-		HqlQueryParser.parseQuery("""
-				select u
-				from UserAccountEntity u
-				join fetch u.lossInspectorLimitConfiguration lil
-				join fetch u.companyTeam ct
-				where exists (
-					select iu
-					from UserAccountEntity  iu
-					join iu.roles u2r
-					join u2r.role r
-					join r.rights r2r
-					join r2r.full fu
-					where
-						fu.code = :rightCode
-						and iu = u
-				)
-				and ct.id = :teamId
-				""");
-	}
-
-	@Test // GH-2864
-	void usingInnerAsARelationshipNameShouldWork() {
-
-		HqlQueryParser.parseQuery("""
-				select u
-				from UserAccountEntity u
-				join fetch u.lossInspectorLimitConfiguration lil
-				join fetch u.companyTeam ct
-				where exists (
-					select iu
-					from UserAccountEntity  iu
-					join iu.roles u2r
-					join u2r.role r
-					join r.rights r2r
-					join r2r.inner in
-					where
-						in.code = :rightCode
-						and iu = u
-				)
-				and ct.id = :teamId
-				""");
+		return Stream.of( //
+				Arguments.of("right", "rt"), //
+				Arguments.of("left", "lt"), //
+				Arguments.of("outer", "ou"), //
+				Arguments.of("full", "full"), //
+				Arguments.of("inner", "inr"));
 	}
 
 	private void assertCountQuery(String originalQuery, String countQuery) {
