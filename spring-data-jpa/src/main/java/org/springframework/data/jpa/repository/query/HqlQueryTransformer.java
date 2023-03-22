@@ -235,9 +235,7 @@ class HqlQueryTransformer extends HqlQueryRenderer {
 
 		if (ctx.entityName() != null) {
 
-			List<JpaQueryParsingToken> entityName = visit(ctx.entityName());
-
-			tokens.addAll(entityName);
+			tokens.addAll(visit(ctx.entityName()));
 
 			if (ctx.variable() != null) {
 				tokens.addAll(visit(ctx.variable()));
@@ -248,13 +246,12 @@ class HqlQueryTransformer extends HqlQueryRenderer {
 			} else {
 
 				if (countQuery) {
-					tokens.add(TOKEN_AS);
 
-					String tempAlias = entityName.get(0).getToken().substring(0, 1).toLowerCase();
-					tokens.add(new JpaQueryParsingToken(tempAlias));
+					tokens.add(TOKEN_AS);
+					tokens.add(TOKEN_DOUBLE_UNDERSCORE);
 
 					if (this.alias == null && !isSubquery(ctx)) {
-						this.alias = tempAlias;
+						this.alias = TOKEN_DOUBLE_UNDERSCORE.getToken();
 					}
 				}
 			}

@@ -52,6 +52,8 @@ class JpaQueryParsingToken {
 	public static final JpaQueryParsingToken TOKEN_CLOSE_SQUARE_BRACKET_BRACE = new JpaQueryParsingToken("]}");
 	public static final JpaQueryParsingToken TOKEN_CLOSE_PAREN_BRACE = new JpaQueryParsingToken(")}");
 
+	public static final JpaQueryParsingToken TOKEN_DOUBLE_UNDERSCORE = new JpaQueryParsingToken("__");
+
 	public static final JpaQueryParsingToken TOKEN_AS = new JpaQueryParsingToken("AS");
 
 	public static final JpaQueryParsingToken TOKEN_DESC = new JpaQueryParsingToken("desc", false);
