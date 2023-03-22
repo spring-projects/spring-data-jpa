@@ -793,6 +793,16 @@ class HqlQueryTransformerTests {
 						"select e from SampleEntity e where function('nativeFunc', ?1) > 'testVal' order by function('nativeFunc', ?1), e.age desc");
 	}
 
+	@Test // GH-2348
+	void removeFetchFromJoinsDuringCountQueryCreation() {
+
+		assertCountQuery("select u from User u left outer join fetch u.roles r left outer JOIN   FETCH  u.accounts a",
+				"select count(u) from User u left outer join u.roles r left outer JOIN u.accounts a");
+
+		assertCountQuery("SELECT DISTINCT b FROM Board b LEFT JOIN FETCH b.comments ORDER BY b.id",
+				"SELECT count(DISTINCT b) FROM Board b LEFT JOIN b.comments");
+	}
+
 	private void assertCountQuery(String originalQuery, String countQuery) {
 		assertThat(createCountQueryFor(originalQuery)).isEqualTo(countQuery);
 	}
