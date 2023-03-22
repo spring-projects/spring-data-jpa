@@ -2124,8 +2124,6 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<List<JpaQueryParsingToken>> {
 			return List.of(new JpaQueryParsingToken(ctx.ORDER()));
 		} else if (ctx.KEY() != null) {
 			return List.of(new JpaQueryParsingToken(ctx.KEY()));
-		} else if (ctx.spel_expression() != null) {
-			return visit(ctx.spel_expression());
 		} else {
 			return List.of();
 		}
@@ -2320,48 +2318,6 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<List<JpaQueryParsingToken>> {
 	@Override
 	public List<JpaQueryParsingToken> visitFunction_name(JpqlParser.Function_nameContext ctx) {
 		return visit(ctx.string_literal());
-	}
-
-	@Override
-	public List<JpaQueryParsingToken> visitSpel_expression(JpqlParser.Spel_expressionContext ctx) {
-
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
-
-		if (ctx.prefix.equals("#{#")) { // #{#entityName}
-
-			tokens.add(new JpaQueryParsingToken(ctx.prefix));
-			ctx.identification_variable().forEach(identificationVariableContext -> {
-				tokens.addAll(visit(identificationVariableContext));
-				tokens.add(TOKEN_DOT);
-			});
-			CLIP(tokens);
-			tokens.add(TOKEN_CLOSE_BRACE);
-
-		} else if (ctx.prefix.equals("#{#[")) { // #{[0]}
-
-			tokens.add(new JpaQueryParsingToken(ctx.prefix));
-			tokens.add(new JpaQueryParsingToken(ctx.INTLITERAL()));
-			tokens.add(TOKEN_CLOSE_SQUARE_BRACKET_BRACE);
-
-		} else if (ctx.prefix.equals("#{")) {// #{escape([0])} or #{escape('foo')}
-
-			tokens.add(new JpaQueryParsingToken(ctx.prefix));
-			tokens.addAll(visit(ctx.identification_variable(0)));
-			tokens.add(TOKEN_OPEN_PAREN);
-
-			if (ctx.string_literal() != null) {
-				tokens.addAll(visit(ctx.string_literal()));
-			} else if (ctx.INTLITERAL() != null) {
-
-				tokens.add(TOKEN_OPEN_SQUARE_BRACKET);
-				tokens.add(new JpaQueryParsingToken(ctx.INTLITERAL()));
-				tokens.add(TOKEN_CLOSE_SQUARE_BRACKET);
-			}
-
-			tokens.add(TOKEN_CLOSE_PAREN_BRACE);
-		}
-
-		return tokens;
 	}
 
 	@Override

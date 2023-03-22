@@ -2222,8 +2222,6 @@ class HqlQueryRenderer extends HqlBaseVisitor<List<JpaQueryParsingToken>> {
 
 			if (ctx.INTEGER_LITERAL() != null) {
 				tokens.add(new JpaQueryParsingToken(ctx.INTEGER_LITERAL()));
-			} else if (ctx.spelExpression() != null) {
-				tokens.addAll(visit(ctx.spelExpression()));
 			}
 		}
 
@@ -2251,55 +2249,9 @@ class HqlQueryRenderer extends HqlBaseVisitor<List<JpaQueryParsingToken>> {
 
 		if (ctx.reservedWord() != null) {
 			return visit(ctx.reservedWord());
-		} else if (ctx.spelExpression() != null) {
-			return visit(ctx.spelExpression());
 		} else {
 			return List.of();
 		}
-	}
-
-	@Override
-	public List<JpaQueryParsingToken> visitSpelExpression(HqlParser.SpelExpressionContext ctx) {
-
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
-
-		if (ctx.prefix.equals("#{#")) { // #{#entityName}
-
-			tokens.add(new JpaQueryParsingToken(ctx.prefix));
-
-			ctx.identificationVariable().forEach(identificationVariableContext -> {
-				tokens.addAll(visit(identificationVariableContext));
-				tokens.add(TOKEN_DOT);
-			});
-			CLIP(tokens);
-
-			tokens.add(TOKEN_CLOSE_BRACE);
-
-		} else if (ctx.prefix.equals("#{#[")) { // #{[0]}
-
-			tokens.add(new JpaQueryParsingToken(ctx.prefix));
-			tokens.add(new JpaQueryParsingToken(ctx.INTEGER_LITERAL()));
-			tokens.add(TOKEN_CLOSE_SQUARE_BRACKET_BRACE);
-
-		} else if (ctx.prefix.equals("#{")) {// #{escape([0])} or #{escape('foo')}
-
-			tokens.add(new JpaQueryParsingToken(ctx.prefix));
-			tokens.addAll(visit(ctx.identificationVariable(0)));
-			tokens.add(TOKEN_OPEN_PAREN);
-
-			if (ctx.stringLiteral() != null) {
-				tokens.addAll(visit(ctx.stringLiteral()));
-			} else if (ctx.INTEGER_LITERAL() != null) {
-
-				tokens.add(TOKEN_OPEN_SQUARE_BRACKET);
-				tokens.add(new JpaQueryParsingToken(ctx.INTEGER_LITERAL()));
-				tokens.add(TOKEN_CLOSE_SQUARE_BRACKET);
-			}
-
-			tokens.add(TOKEN_CLOSE_PAREN_BRACE);
-		}
-
-		return tokens;
 	}
 
 	@Override

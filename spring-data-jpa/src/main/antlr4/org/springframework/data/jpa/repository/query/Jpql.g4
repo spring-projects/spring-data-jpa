@@ -599,7 +599,6 @@ identification_variable
     | ORDER // Gap in the spec requires supporting 'Order' as an entity name
     | COUNT // Gap in the spec requires supporting 'count' as a possible name
     | KEY // Gap in the sepc requires supported 'key' as a possible name
-    | spel_expression // we use various SpEL expressions in our queries
     ;
 
 constructor_name
@@ -702,12 +701,6 @@ single_valued_input_parameter
 
 function_name
     : string_literal
-    ;
-
-spel_expression
-    : prefix='#{#' identification_variable ('.' identification_variable)*  '}' // #{#entityName}
-    | prefix='#{#[' INTLITERAL ']}' // #{[0]}
-    | prefix='#{' identification_variable '(' ( string_literal | '[' INTLITERAL ']' )? ')}' // #{escape([0])} | #{escapeCharacter()}
     ;
 
 character_valued_input_parameter

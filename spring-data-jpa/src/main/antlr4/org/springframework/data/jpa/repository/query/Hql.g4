@@ -620,7 +620,7 @@ variable
 
 parameter
     : prefix=':' identifier
-    | prefix='?' (INTEGER_LITERAL | spelExpression)?
+    | prefix='?' INTEGER_LITERAL?
     ;
 
 entityName
@@ -629,15 +629,7 @@ entityName
 
 identifier
     : reservedWord
-    | spelExpression
     ;
-
-spelExpression
-    : prefix='#{#' identificationVariable ('.' identificationVariable)*  '}' // #{#entityName}
-    | prefix='#{#[' INTEGER_LITERAL ']}' // #{[0]}
-    | prefix='#{' identificationVariable '(' ( stringLiteral | '[' INTEGER_LITERAL ']' )? ')}' // #{escape([0])} | #{escapeCharacter()}
-    ;
-
 
 character
     : CHARACTER
