@@ -521,20 +521,45 @@ repo.findByAndSort("stark", Sort.by("LENGTH(firstname)"));            <2>
 repo.findByAndSort("targaryen", JpaSort.unsafe("LENGTH(firstname)")); <3>
 repo.findByAsArrayAndSort("bolton", Sort.by("fn_len"));               <4>
 ----
+
 <1> Valid `Sort` expression pointing to property in domain model.
-<2> Invalid `Sort` containing function call. Throws Exception.
+<2> Invalid `Sort` containing function call.
+Throws Exception.
 <3> Valid `Sort` containing explicitly _unsafe_ `Order`.
 <4> Valid `Sort` expression pointing to aliased function.
 ====
 
+[[jpa.query-methods.scroll]]
+=== Scrolling Large Query Results
+
+When working with large data sets, <<repositories.scrolling,scrolling>> can help to process those results efficiently without loading all results into memory.
+
+You have multiple options to consume large query results:
+
+1. <<repositories.paging-and-sorting,Paging>>.
+You have learned in the previous chapter about `Pageable` and `PageRequest`.
+2. <<repositories.scrolling.offset,Offset-based scrolling>>.
+This is a lighter variant than paging because it does not require the total result count.
+3. <<repositories.scrolling.keyset,Keyset-baset scrolling>>.
+This method avoids https://use-the-index-luke.com/no-offset[the shortcomings of offset-based result retrieval by leveraging database indexes].
+
+Read more on <<repositories.scrolling.guidance,which method to use best>> for your particular arrangement.
+
+You can use the Scroll API with query methods, <<query-by-example.running,Query-by-Example>>, and <<core.extensions.querydsl,Querydsl>>.
+
+NOTE: Scrolling with String-based query methods is not yet supported.
+Scrolling is also not supported using stored `@Procedure` query methods.
+
 [[jpa.named-parameters]]
 === Using Named Parameters
 
-By default, Spring Data JPA uses position-based parameter binding, as described in all the preceding examples. This makes query methods a little error-prone when refactoring regarding the parameter position. To solve this issue, you can use `@Param` annotation to give a method parameter a concrete name and bind the name in the query, as shown in the following example:
+By default, Spring Data JPA uses position-based parameter binding, as described in all the preceding examples.
+This makes query methods a little error-prone when refactoring regarding the parameter position.
+To solve this issue, you can use `@Param` annotation to give a method parameter a concrete name and bind the name in the query, as shown in the following example:
 
 .Using named parameters
 ====
-[source, java]
+[source,java]
 ----
 public interface UserRepository extends JpaRepository<User, Long> {
 

@@ -118,7 +118,6 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extend
 
 	@Override
 	protected Predicate create(Part part, Iterator<Object> iterator) {
-
 		return toPredicate(part, root);
 	}
 
@@ -158,9 +157,10 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extend
 
 		if (returnedType.needsCustomConstruction()) {
 
+			Collection<String> requiredSelection = getRequiredSelection(sort, returnedType);
 			List<Selection<?>> selections = new ArrayList<>();
 
-			for (String property : returnedType.getInputProperties()) {
+			for (String property : requiredSelection) {
 
 				PropertyPath path = PropertyPath.from(property, returnedType.getDomainType());
 				selections.add(toExpressionRecursively(root, path, true).alias(property));
@@ -193,6 +193,10 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extend
 
 		CriteriaQuery<? extends Object> select = query.orderBy(QueryUtils.toOrders(sort, root, builder));
 		return predicate == null ? select : select.where(predicate);
+	}
+
+	Collection<String> getRequiredSelection(Sort sort, ReturnedType returnedType) {
+		return returnedType.getInputProperties();
 	}
 
 	/**

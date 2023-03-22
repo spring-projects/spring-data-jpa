@@ -26,9 +26,12 @@ import jakarta.persistence.metamodel.SingularAttribute;
 import jakarta.persistence.metamodel.Type;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -61,7 +64,7 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 
 	/**
 	 * Creates a new {@link JpaMetamodelEntityInformation} for the given domain class and {@link Metamodel}.
-	 * 
+	 *
 	 * @param domainClass must not be {@literal null}.
 	 * @param metamodel must not be {@literal null}.
 	 * @param persistenceUnitUtil must not be {@literal null}.
@@ -190,7 +193,7 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 	}
 
 	@Override
-	public Iterable<String> getIdAttributeNames() {
+	public Collection<String> getIdAttributeNames() {
 
 		List<String> attributeNames = new ArrayList<>(idMetadata.attributes.size());
 
@@ -220,6 +223,30 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 		BeanWrapper wrapper = new DirectFieldAccessFallbackBeanWrapper(entity);
 
 		return versionAttribute.map(it -> wrapper.getPropertyValue(it.getName()) == null).orElse(true);
+	}
+
+	@Override
+	public Map<String, Object> getKeyset(Iterable<String> propertyPaths, T entity) {
+
+		// TODO: Proxy handling requires more elaborate refactoring, see
+		// https://github.com/spring-projects/spring-data-jpa/issues/2784
+		BeanWrapper entityWrapper = new DirectFieldAccessFallbackBeanWrapper(entity);
+
+		Map<String, Object> keyset = new LinkedHashMap<>();
+
+		if (hasCompositeId()) {
+			for (String idAttributeName : getIdAttributeNames()) {
+				keyset.put(idAttributeName, entityWrapper.getPropertyValue(idAttributeName));
+			}
+		} else {
+			keyset.put(getIdAttribute().getName(), getId(entity));
+		}
+
+		for (String propertyPath : propertyPaths) {
+			keyset.put(propertyPath, entityWrapper.getPropertyValue(propertyPath));
+		}
+
+		return keyset;
 	}
 
 	/**

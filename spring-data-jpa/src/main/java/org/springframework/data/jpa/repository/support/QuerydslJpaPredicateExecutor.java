@@ -15,19 +15,27 @@
  */
 package org.springframework.data.jpa.repository.support;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.LockModeType;
-
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
+import org.springframework.data.domain.KeysetScrollPosition;
+import org.springframework.data.domain.OffsetScrollPosition;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.query.KeysetScrollDelegate;
+import org.springframework.data.jpa.repository.query.KeysetScrollDelegate.QueryStrategy;
+import org.springframework.data.jpa.repository.query.KeysetScrollSpecification;
+import org.springframework.data.jpa.repository.support.FetchableFluentQueryByPredicate.PredicateScrollDelegate;
+import org.springframework.data.jpa.repository.support.FluentQuerySupport.ScrollQueryFactory;
 import org.springframework.data.querydsl.EntityPathResolver;
 import org.springframework.data.querydsl.QSort;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
@@ -37,9 +45,14 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 import com.querydsl.core.NonUniqueResultException;
+import com.querydsl.core.types.ConstantImpl;
 import com.querydsl.core.types.EntityPath;
+import com.querydsl.core.types.Expression;
+import com.querydsl.core.types.NullExpression;
+import com.querydsl.core.types.Ops;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Predicate;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.jpa.JPQLQuery;
@@ -63,6 +76,7 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 	private final JpaEntityInformation<T, ?> entityInformation;
 	private final EntityPath<T> path;
 	private final Querydsl querydsl;
+	private final QuerydslQueryStrategy scrollQueryAdapter;
 	private final EntityManager entityManager;
 	private final CrudMethodMetadata metadata;
 
@@ -83,6 +97,7 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 		this.path = resolver.createPath(entityInformation.getJavaType());
 		this.querydsl = new Querydsl(entityManager, new PathBuilder<T>(path.getType(), path.getMetadata()));
 		this.entityManager = entityManager;
+		this.scrollQueryAdapter = new QuerydslQueryStrategy();
 	}
 
 	@Override
@@ -160,6 +175,33 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 			return select;
 		};
 
+		ScrollQueryFactory<T> scroll = (sort, scrollPosition) -> {
+
+			Predicate predicateToUse = predicate;
+
+			if (scrollPosition instanceof KeysetScrollPosition keyset) {
+
+				KeysetScrollDelegate delegate = KeysetScrollDelegate.of(keyset.getDirection());
+				sort = KeysetScrollSpecification.createSort(keyset, sort, entityInformation);
+				BooleanExpression keysetPredicate = delegate.createPredicate(keyset, sort, scrollQueryAdapter);
+
+				if (keysetPredicate != null) {
+					predicateToUse = predicate instanceof BooleanExpression be ? be.and(keysetPredicate)
+							: keysetPredicate.and(predicate);
+				}
+			}
+
+			AbstractJPAQuery<?, ?> select = (AbstractJPAQuery<?, ?>) createQuery(predicateToUse).select(path);
+
+			select = (AbstractJPAQuery<?, ?>) querydsl.applySorting(sort, select);
+
+			if (scrollPosition instanceof OffsetScrollPosition offset) {
+				select.offset(offset.getOffset());
+			}
+
+			return select.createQuery();
+		};
+
 		BiFunction<Sort, Pageable, AbstractJPAQuery<?, ?>> pagedFinder = (sort, pageable) -> {
 
 			AbstractJPAQuery<?, ?> select = finder.apply(sort);
@@ -175,6 +217,7 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 				predicate, //
 				this.entityInformation.getJavaType(), //
 				finder, //
+				new PredicateScrollDelegate<>(scroll, entityInformation), //
 				pagedFinder, //
 				this::count, //
 				this::exists, //
@@ -284,5 +327,35 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 	 */
 	private List<T> executeSorted(JPQLQuery<T> query, Sort sort) {
 		return querydsl.applySorting(sort, query).fetch();
+	}
+
+	class QuerydslQueryStrategy implements QueryStrategy<Expression<?>, BooleanExpression> {
+
+		@Override
+		public Expression<?> createExpression(String property) {
+			return querydsl.createExpression(property);
+		}
+
+		@Override
+		public BooleanExpression compare(Order order, Expression<?> propertyExpression, Object value) {
+			return Expressions.booleanOperation(order.isAscending() ? Ops.GT : Ops.LT, propertyExpression,
+					ConstantImpl.create(value));
+		}
+
+		@Override
+		public BooleanExpression compare(Expression<?> propertyExpression, @Nullable Object value) {
+			return Expressions.booleanOperation(Ops.EQ, propertyExpression,
+					value == null ? NullExpression.DEFAULT : ConstantImpl.create(value));
+		}
+
+		@Override
+		public BooleanExpression and(List<BooleanExpression> intermediate) {
+			return Expressions.allOf(intermediate.toArray(new BooleanExpression[0]));
+		}
+
+		@Override
+		public BooleanExpression or(List<BooleanExpression> intermediate) {
+			return Expressions.anyOf(intermediate.toArray(new BooleanExpression[0]));
+		}
 	}
 }

@@ -16,6 +16,7 @@
 package org.springframework.data.jpa.repository.support;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -29,7 +30,10 @@ import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Window;
+import org.springframework.data.jpa.repository.query.ScrollDelegate;
 import org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.util.Assert;
@@ -53,27 +57,31 @@ class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<S, R> imp
 
 	private final Predicate predicate;
 	private final Function<Sort, AbstractJPAQuery<?, ?>> finder;
+
+	private final PredicateScrollDelegate<S> scroll;
 	private final BiFunction<Sort, Pageable, AbstractJPAQuery<?, ?>> pagedFinder;
 	private final Function<Predicate, Long> countOperation;
 	private final Function<Predicate, Boolean> existsOperation;
 	private final EntityManager entityManager;
 
 	public FetchableFluentQueryByPredicate(Predicate predicate, Class<S> entityType,
-			Function<Sort, AbstractJPAQuery<?, ?>> finder, BiFunction<Sort, Pageable, AbstractJPAQuery<?, ?>> pagedFinder,
-			Function<Predicate, Long> countOperation, Function<Predicate, Boolean> existsOperation,
-			EntityManager entityManager) {
-		this(predicate, entityType, (Class<R>) entityType, Sort.unsorted(), Collections.emptySet(), finder, pagedFinder,
-				countOperation, existsOperation, entityManager);
+			Function<Sort, AbstractJPAQuery<?, ?>> finder, PredicateScrollDelegate<S> scroll,
+			BiFunction<Sort, Pageable, AbstractJPAQuery<?, ?>> pagedFinder, Function<Predicate, Long> countOperation,
+			Function<Predicate, Boolean> existsOperation, EntityManager entityManager) {
+		this(predicate, entityType, (Class<R>) entityType, Sort.unsorted(), 0, Collections.emptySet(), finder, scroll,
+				pagedFinder, countOperation, existsOperation, entityManager);
 	}
 
 	private FetchableFluentQueryByPredicate(Predicate predicate, Class<S> entityType, Class<R> resultType, Sort sort,
-			Collection<String> properties, Function<Sort, AbstractJPAQuery<?, ?>> finder,
-			BiFunction<Sort, Pageable, AbstractJPAQuery<?, ?>> pagedFinder, Function<Predicate, Long> countOperation,
-			Function<Predicate, Boolean> existsOperation, EntityManager entityManager) {
+			int limit, Collection<String> properties, Function<Sort, AbstractJPAQuery<?, ?>> finder,
+			PredicateScrollDelegate<S> scroll, BiFunction<Sort, Pageable, AbstractJPAQuery<?, ?>> pagedFinder,
+			Function<Predicate, Long> countOperation, Function<Predicate, Boolean> existsOperation,
+			EntityManager entityManager) {
 
-		super(resultType, sort, properties, entityType);
+		super(resultType, sort, limit, properties, entityType);
 		this.predicate = predicate;
 		this.finder = finder;
+		this.scroll = scroll;
 		this.pagedFinder = pagedFinder;
 		this.countOperation = countOperation;
 		this.existsOperation = existsOperation;
@@ -85,8 +93,17 @@ class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<S, R> imp
 
 		Assert.notNull(sort, "Sort must not be null");
 
-		return new FetchableFluentQueryByPredicate<>(predicate, entityType, resultType, this.sort.and(sort), properties,
-				finder, pagedFinder, countOperation, existsOperation, entityManager);
+		return new FetchableFluentQueryByPredicate<>(predicate, entityType, resultType, this.sort.and(sort), limit,
+				properties, finder, scroll, pagedFinder, countOperation, existsOperation, entityManager);
+	}
+
+	@Override
+	public FetchableFluentQuery<R> limit(int limit) {
+
+		Assert.isTrue(limit >= 0, "Limit must not be negative");
+
+		return new FetchableFluentQueryByPredicate<>(predicate, entityType, resultType, sort, limit, properties, finder,
+				scroll, pagedFinder, countOperation, existsOperation, entityManager);
 	}
 
 	@Override
@@ -98,15 +115,15 @@ class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<S, R> imp
 			throw new UnsupportedOperationException("Class-based DTOs are not yet supported.");
 		}
 
-		return new FetchableFluentQueryByPredicate<>(predicate, entityType, resultType, sort, properties, finder,
-				pagedFinder, countOperation, existsOperation, entityManager);
+		return new FetchableFluentQueryByPredicate<>(predicate, entityType, resultType, sort, limit, properties, finder,
+				scroll, pagedFinder, countOperation, existsOperation, entityManager);
 	}
 
 	@Override
 	public FetchableFluentQuery<R> project(Collection<String> properties) {
 
-		return new FetchableFluentQueryByPredicate<>(predicate, entityType, resultType, sort, mergeProperties(properties),
-				finder, pagedFinder, countOperation, existsOperation, entityManager);
+		return new FetchableFluentQueryByPredicate<>(predicate, entityType, resultType, sort, limit,
+				mergeProperties(properties), finder, scroll, pagedFinder, countOperation, existsOperation, entityManager);
 	}
 
 	@Override
@@ -136,6 +153,14 @@ class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<S, R> imp
 	@Override
 	public List<R> all() {
 		return convert(createSortedAndProjectedQuery().fetch());
+	}
+
+	@Override
+	public Window<R> scroll(ScrollPosition scrollPosition) {
+
+		Assert.notNull(scrollPosition, "ScrollPosition must not be null");
+
+		return scroll.scroll(sort, limit, scrollPosition).map(getConversionFunction());
 	}
 
 	@Override
@@ -169,6 +194,10 @@ class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<S, R> imp
 			query.setHint(EntityGraphFactory.HINT, EntityGraphFactory.create(entityManager, entityType, properties));
 		}
 
+		if (limit != 0) {
+			query.limit(limit);
+		}
+
 		return query;
 	}
 
@@ -199,6 +228,26 @@ class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<S, R> imp
 
 	private Function<Object, R> getConversionFunction() {
 		return getConversionFunction(entityType, resultType);
+	}
+
+
+	static class PredicateScrollDelegate<T> extends ScrollDelegate<T> {
+
+		private final ScrollQueryFactory<T> scrollFunction;
+
+		PredicateScrollDelegate(ScrollQueryFactory<T> scrollQueryFactory, JpaEntityInformation<T, ?> entity) {
+			super(entity);
+			this.scrollFunction = scrollQueryFactory;
+		}
+
+		public Window<T> scroll(Sort sort, int limit, ScrollPosition scrollPosition) {
+
+			Query query = scrollFunction.createQuery(sort, scrollPosition);
+			if (limit > 0) {
+				query = query.setMaxResults(limit);
+			}
+			return scroll(query, sort, scrollPosition);
+		}
 	}
 
 }

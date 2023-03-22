@@ -18,15 +18,17 @@ package org.springframework.data.jpa.repository.support;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import java.io.Serializable;
-import java.util.Collections;
-
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.PersistenceUnitUtil;
 import jakarta.persistence.metamodel.Metamodel;
 import jakarta.persistence.metamodel.SingularAttribute;
+
+import java.io.Serializable;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -97,7 +99,7 @@ class JpaEntityInformationSupportUnitTests {
 		}
 
 		@Override
-		public Iterable<String> getIdAttributeNames() {
+		public Collection<String> getIdAttributeNames() {
 			return Collections.emptySet();
 		}
 
@@ -108,6 +110,11 @@ class JpaEntityInformationSupportUnitTests {
 
 		@Override
 		public Object getCompositeIdAttributeValue(Object id, String idAttribute) {
+			return null;
+		}
+
+		@Override
+		public Map<String, Object> getKeyset(Iterable<String> propertyPaths, T entity) {
 			return null;
 		}
 	}

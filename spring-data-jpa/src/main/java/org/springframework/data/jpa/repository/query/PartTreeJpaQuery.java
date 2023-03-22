@@ -15,19 +15,25 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import java.util.List;
-
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceUnitUtil;
 import jakarta.persistence.Query;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 
+import java.util.List;
+
+import org.springframework.data.domain.KeysetScrollPosition;
+import org.springframework.data.domain.OffsetScrollPosition;
+import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.DeleteExecution;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.ExistsExecution;
+import org.springframework.data.jpa.repository.query.JpaQueryExecution.ScrollExecution;
 import org.springframework.data.jpa.repository.query.ParameterMetadataProvider.ParameterMetadata;
+import org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformation;
 import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.repository.query.parser.Part;
@@ -55,6 +61,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 	private final QueryPreparer countQuery;
 	private final EntityManager em;
 	private final EscapeCharacter escape;
+	private final JpaMetamodelEntityInformation<?, Object> entityInformation;
 
 	/**
 	 * Creates a new {@link PartTreeJpaQuery}.
@@ -79,10 +86,14 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 
 		this.em = em;
 		this.escape = escape;
-		Class<?> domainClass = method.getEntityInformation().getJavaType();
 		this.parameters = method.getParameters();
 
-		boolean recreationRequired = parameters.hasDynamicProjection() || parameters.potentiallySortsDynamically();
+		Class<?> domainClass = method.getEntityInformation().getJavaType();
+		PersistenceUnitUtil persistenceUnitUtil = em.getEntityManagerFactory().getPersistenceUnitUtil();
+		this.entityInformation = new JpaMetamodelEntityInformation<>(domainClass, em.getMetamodel(), persistenceUnitUtil);
+
+		boolean recreationRequired = parameters.hasDynamicProjection() || parameters.potentiallySortsDynamically()
+				|| method.isScrollQuery();
 
 		try {
 
@@ -111,7 +122,9 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 	@Override
 	protected JpaQueryExecution getExecution() {
 
-		if (this.tree.isDelete()) {
+		if (this.getQueryMethod().isScrollQuery()) {
+			return new ScrollExecution(this.tree.getSort(), new ScrollDelegate<>(entityInformation));
+		} else if (this.tree.isDelete()) {
 			return new DeleteExecution(em);
 		} else if (this.tree.isExistsProjection()) {
 			return new ExistsExecution();
@@ -228,7 +241,11 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 
 			TypedQuery<?> query = createQuery(criteriaQuery);
 
-			return restrictMaxResultsIfNecessary(invokeBinding(parameterBinder, query, accessor, this.metadataCache));
+			ScrollPosition scrollPosition = accessor.getParameters().hasScrollPositionParameter()
+					? accessor.getScrollPosition()
+					: null;
+			return restrictMaxResultsIfNecessary(invokeBinding(parameterBinder, query, accessor, this.metadataCache),
+					scrollPosition);
 		}
 
 		/**
@@ -236,9 +253,13 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 		 * limited.
 		 */
 		@SuppressWarnings("ConstantConditions")
-		private Query restrictMaxResultsIfNecessary(Query query) {
+		private Query restrictMaxResultsIfNecessary(Query query, @Nullable ScrollPosition scrollPosition) {
 
 			if (tree.isLimiting()) {
+
+				if (scrollPosition instanceof OffsetScrollPosition offset) {
+					query.setFirstResult(Math.toIntExact(offset.getOffset()));
+				}
 
 				if (query.getMaxResults() != Integer.MAX_VALUE) {
 					/*
@@ -296,6 +317,10 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 			} else {
 				provider = new ParameterMetadataProvider(builder, parameters, escape);
 				returnedType = processor.getReturnedType();
+			}
+
+			if (accessor != null && accessor.getScrollPosition()instanceof KeysetScrollPosition keyset) {
+				return new JpaKeysetScrollQueryCreator(tree, returnedType, builder, provider, entityInformation, keyset);
 			}
 
 			return new JpaQueryCreator(tree, returnedType, builder, provider);

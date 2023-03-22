@@ -15,6 +15,8 @@
  */
 package org.springframework.data.jpa.repository.support;
 
+import jakarta.persistence.Query;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -22,6 +24,7 @@ import java.util.Set;
 import java.util.function.Function;
 
 import org.springframework.core.convert.support.DefaultConversionService;
+import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.lang.Nullable;
@@ -32,21 +35,25 @@ import org.springframework.lang.Nullable;
  * @param <R> The resulting type of the query.
  * @author Greg Turnquist
  * @author Jens Schauder
+ * @author Mark Paluch
  * @since 2.6
  */
 abstract class FluentQuerySupport<S, R> {
 
 	protected final Class<R> resultType;
 	protected final Sort sort;
+	protected final int limit;
 	protected final Set<String> properties;
 	protected final Class<S> entityType;
 
 	private final SpelAwareProxyProjectionFactory projectionFactory = new SpelAwareProxyProjectionFactory();
 
-	FluentQuerySupport(Class<R> resultType, Sort sort, @Nullable Collection<String> properties, Class<S> entityType) {
+	FluentQuerySupport(Class<R> resultType, Sort sort, int limit, @Nullable Collection<String> properties,
+			Class<S> entityType) {
 
 		this.resultType = resultType;
 		this.sort = sort;
+		this.limit = limit;
 
 		if (properties != null) {
 			this.properties = new HashSet<>(properties);
@@ -78,4 +85,9 @@ abstract class FluentQuerySupport<S, R> {
 
 		return o -> DefaultConversionService.getSharedInstance().convert(o, targetType);
 	}
+
+	interface ScrollQueryFactory<T> {
+		Query createQuery(Sort sort, ScrollPosition scrollPosition);
+	}
+
 }

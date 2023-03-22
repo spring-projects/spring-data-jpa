@@ -43,6 +43,8 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import org.springframework.data.domain.Example;
+import org.springframework.data.domain.KeysetScrollPosition;
+import org.springframework.data.domain.OffsetScrollPosition;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -52,7 +54,10 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.query.EscapeCharacter;
+import org.springframework.data.jpa.repository.query.KeysetScrollSpecification;
 import org.springframework.data.jpa.repository.query.QueryUtils;
+import org.springframework.data.jpa.repository.support.FetchableFluentQueryBySpecification.SpecificationScrollDelegate;
+import org.springframework.data.jpa.repository.support.FluentQuerySupport.ScrollQueryFactory;
 import org.springframework.data.jpa.repository.support.QueryHints.NoHints;
 import org.springframework.data.jpa.support.PageableUtils;
 import org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery;
@@ -507,10 +512,40 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		Assert.notNull(spec, "Specification must not be null");
 		Assert.notNull(queryFunction, "Query function must not be null");
 
-		Function<Sort, TypedQuery<T>> finder = sort -> getQuery(spec, getDomainClass(), sort);
+		return doFindBy(spec, getDomainClass(), queryFunction);
+	}
 
-		FetchableFluentQuery<R> fluentQuery = new FetchableFluentQueryBySpecification<T, R>(spec, getDomainClass(),
-				Sort.unsorted(), null, finder, this::count, this::exists, this.em);
+	private <S extends T, R> R doFindBy(Specification<T> spec, Class<T> domainClass,
+			Function<FetchableFluentQuery<S>, R> queryFunction) {
+
+		Assert.notNull(spec, "Specification must not be null");
+		Assert.notNull(queryFunction, "Query function must not be null");
+
+		ScrollQueryFactory<T> scrollFunction = (sort, scrollPosition) -> {
+
+			Specification<T> specToUse = spec;
+
+			if (scrollPosition instanceof KeysetScrollPosition keyset) {
+				KeysetScrollSpecification<T> keysetSpec = new KeysetScrollSpecification<>(keyset, sort, entityInformation);
+				sort = keysetSpec.sort();
+				specToUse = specToUse.and(keysetSpec);
+			}
+
+			TypedQuery<T> query = getQuery(specToUse, domainClass, sort);
+
+			if (scrollPosition instanceof OffsetScrollPosition offset) {
+				query.setFirstResult(Math.toIntExact(offset.getOffset()));
+			}
+
+			return query;
+		};
+
+		Function<Sort, TypedQuery<T>> finder = sort -> getQuery(spec, domainClass, sort);
+
+		SpecificationScrollDelegate<T> scrollDelegate = new SpecificationScrollDelegate<>(scrollFunction,
+				entityInformation);
+		FetchableFluentQuery<T> fluentQuery = new FetchableFluentQueryBySpecification<>(spec, domainClass, finder,
+				scrollDelegate, this::count, this::exists, this.em);
 
 		return queryFunction.apply((FetchableFluentQuery<S>) fluentQuery);
 	}
@@ -544,7 +579,6 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		return query.setMaxResults(1).getResultList().size() == 1;
 	}
 
-
 	@Override
 	public <S extends T> List<S> findAll(Example<S> example) {
 		return getQuery(new ExampleSpecification<>(example, escapeCharacter), example.getProbeType(), Sort.unsorted())
@@ -572,20 +606,11 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		Assert.notNull(example, "Sample must not be null");
 		Assert.notNull(queryFunction, "Query function must not be null");
 
-		Function<Sort, TypedQuery<S>> finder = sort -> {
+		ExampleSpecification<S> spec = new ExampleSpecification<>(example, escapeCharacter);
+		Class<S> probeType = example.getProbeType();
 
-			ExampleSpecification<S> spec = new ExampleSpecification<>(example, escapeCharacter);
-			Class<S> probeType = example.getProbeType();
-
-			return getQuery(spec, probeType, sort);
-		};
-
-		FetchableFluentQuery<S> fluentQuery = new FetchableFluentQueryByExample<>(example, finder, this::count,
-				this::exists, this.em, this.escapeCharacter);
-
-		return queryFunction.apply(fluentQuery);
+		return doFindBy((Specification<T>) spec, (Class<T>) probeType, queryFunction);
 	}
-
 
 	@Override
 	public long count() {

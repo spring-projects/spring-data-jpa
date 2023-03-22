@@ -15,9 +15,9 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import java.util.List;
-
 import jakarta.persistence.EntityManager;
+
+import java.util.List;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -238,6 +238,31 @@ public class Querydsl {
 
 			sortPropertyExpression = !path.hasNext() && order.isIgnoreCase() && String.class.equals(path.getType()) //
 					? Expressions.stringPath((Path<?>) sortPropertyExpression, path.getSegment()).lower() //
+					: Expressions.path(path.getType(), (Path<?>) sortPropertyExpression, path.getSegment());
+
+			path = path.next();
+		}
+
+		return sortPropertyExpression;
+	}
+
+	/**
+	 * Creates an {@link Expression} for the given {@code property} property.
+	 *
+	 * @param property must not be {@literal null}.
+	 * @return
+	 */
+	Expression<?> createExpression(String property) {
+
+		Assert.notNull(property, "Property must not be null");
+
+		PropertyPath path = PropertyPath.from(property, builder.getType());
+		Expression<?> sortPropertyExpression = builder;
+
+		while (path != null) {
+
+			sortPropertyExpression = !path.hasNext() && String.class.equals(path.getType()) //
+					? Expressions.stringPath((Path<?>) sortPropertyExpression, path.getSegment()) //
 					: Expressions.path(path.getType(), (Path<?>) sortPropertyExpression, path.getSegment());
 
 			path = path.next();
