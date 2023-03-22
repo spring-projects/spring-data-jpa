@@ -15,23 +15,25 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import java.lang.reflect.Method;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.Query;
 import jakarta.persistence.StoredProcedureQuery;
+
+import java.lang.reflect.Method;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.ConfigurableConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.repository.core.support.SurroundingTransactionDetectorMethodInterceptor;
 import org.springframework.data.support.PageableExecutionUtils;
@@ -125,6 +127,33 @@ public abstract class JpaQueryExecution {
 		@Override
 		protected Object doExecute(AbstractJpaQuery query, JpaParametersParameterAccessor accessor) {
 			return query.createQuery(accessor).getResultList();
+		}
+	}
+
+	/**
+	 * Executes the query to return a {@link org.springframework.data.domain.Window} of entities.
+	 *
+	 * @author Mark Paluch
+	 * @since 3.1
+	 */
+	static class ScrollExecution extends JpaQueryExecution {
+
+		private final Sort sort;
+		private final ScrollDelegate<?> delegate;
+
+		ScrollExecution(Sort sort, ScrollDelegate<?> delegate) {
+			this.sort = sort;
+			this.delegate = delegate;
+		}
+
+		@Override
+		@SuppressWarnings("unchecked")
+		protected Object doExecute(AbstractJpaQuery query, JpaParametersParameterAccessor accessor) {
+
+			ScrollPosition scrollPosition = accessor.getScrollPosition();
+			Query scrollQuery = query.createQuery(accessor);
+
+			return delegate.scroll(scrollQuery, sort.and(accessor.getSort()), scrollPosition);
 		}
 	}
 

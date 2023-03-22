@@ -1230,12 +1230,12 @@ class UserRepositoryTests {
 	}
 
 	@Test // GH-2878
-	void scrollByOffset() {
+	void scrollByExampleOffset() {
 
-		User john1 = new User("John", "Doe", "john@doe1.com");
-		User john2 = new User("John", "Doe", "john@doe2.com");
 		User jane1 = new User("Jane", "Doe", "jane@doe1.com");
 		User jane2 = new User("Jane", "Doe", "jane@doe2.com");
+		User john1 = new User("John", "Doe", "john@doe1.com");
+		User john2 = new User("John", "Doe", "john@doe2.com");
 
 		repository.saveAllAndFlush(Arrays.asList(john1, john2, jane1, jane2));
 
@@ -1256,12 +1256,12 @@ class UserRepositoryTests {
 	}
 
 	@Test // GH-2878
-	void scrollByKeyset() {
+	void scrollByExampleKeyset() {
 
-		User john1 = new User("John", "Doe", "john@doe1.com");
-		User john2 = new User("John", "Doe", "john@doe2.com");
 		User jane1 = new User("Jane", "Doe", "jane@doe1.com");
 		User jane2 = new User("Jane", "Doe", "jane@doe2.com");
+		User john1 = new User("John", "Doe", "john@doe1.com");
+		User john2 = new User("John", "Doe", "john@doe2.com");
 
 		repository.saveAllAndFlush(Arrays.asList(john1, john2, jane1, jane2));
 
@@ -1279,6 +1279,59 @@ class UserRepositoryTests {
 
 		assertThat(nextWindow).hasSize(2).containsOnly(jane2, john1);
 		assertThat(nextWindow.hasNext()).isTrue();
+	}
+
+	@Test // GH-2878
+	void scrollByExampleKeysetBackward() {
+
+		User jane1 = new User("Jane", "Doe", "jane@doe1.com");
+		User jane2 = new User("Jane", "Doe", "jane@doe2.com");
+		User john1 = new User("John", "Doe", "john@doe1.com");
+		User john2 = new User("John", "Doe", "john@doe2.com");
+
+		repository.saveAllAndFlush(Arrays.asList(john1, john2, jane1, jane2));
+
+		Example<User> example = Example.of(new User("J", null, null),
+				matching().withMatcher("firstname", GenericPropertyMatcher::startsWith).withIgnorePaths("age", "createdAt",
+						"dateOfBirth"));
+		Window<User> firstWindow = repository.findBy(example,
+				q -> q.limit(4).sortBy(Sort.by("firstname", "emailAddress")).scroll(KeysetScrollPosition.initial()));
+
+		KeysetScrollPosition scrollPosition = (KeysetScrollPosition) firstWindow.positionAt(2);
+		Window<User> previousWindow = repository.findBy(example,
+				q -> q.limit(1).sortBy(Sort.by("firstname", "emailAddress"))
+						.scroll(KeysetScrollPosition.of(scrollPosition.getKeys(), KeysetScrollPosition.Direction.Backward)));
+
+		assertThat(previousWindow).containsOnly(jane2);
+		assertThat(previousWindow.hasNext()).isTrue();
+	}
+
+	@Test // GH-2878
+	void scrollByPartTreeKeysetBackward() {
+
+		User jane1 = new User("Jane", "Doe", "jane@doe1.com");
+		User jane2 = new User("Jane", "Doe", "jane@doe2.com");
+		User john1 = new User("John", "Doe", "john@doe1.com");
+		User john2 = new User("John", "Doe", "john@doe2.com");
+
+		repository.saveAllAndFlush(Arrays.asList(john1, john2, jane1, jane2));
+
+		Window<User> firstWindow = repository.findTop3ByFirstnameStartingWithOrderByFirstnameAscEmailAddressAsc("J",
+				KeysetScrollPosition.initial());
+
+		assertThat(firstWindow).containsSequence(jane1, jane2, john1);
+		assertThat(firstWindow.hasNext()).isTrue();
+
+		KeysetScrollPosition scrollPosition = (KeysetScrollPosition) firstWindow.positionAt(2);
+		KeysetScrollPosition backward = KeysetScrollPosition.of(scrollPosition.getKeys(),
+				KeysetScrollPosition.Direction.Backward);
+		Window<User> previousWindow = repository.findTop3ByFirstnameStartingWithOrderByFirstnameAscEmailAddressAsc("J",
+				backward);
+
+		assertThat(previousWindow).hasSize(2).containsSequence(jane1, jane2);
+
+		// no more items before this window
+		assertThat(previousWindow.hasNext()).isFalse();
 	}
 
 	@Test // DATAJPA-491

@@ -29,8 +29,10 @@ import java.util.stream.Stream;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Window;
 import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.domain.sample.SpecialUser;
 import org.springframework.data.jpa.domain.sample.User;
@@ -149,6 +151,9 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	List<User> findByFirstname(String firstname, Pageable pageable);
 
 	Page<User> findByFirstnameIn(Pageable pageable, String... firstnames);
+
+	Window<User> findTop3ByFirstnameStartingWithOrderByFirstnameAscEmailAddressAsc(String firstname,
+			ScrollPosition position);
 
 	List<User> findByFirstnameNotIn(Collection<String> firstnames);
 

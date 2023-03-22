@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.jpa.repository.support;
+package org.springframework.data.jpa.repository.query;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
@@ -30,8 +30,9 @@ import java.util.Map;
 import org.springframework.data.domain.KeysetScrollPosition;
 import org.springframework.data.domain.KeysetScrollPosition.Direction;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.jpa.repository.query.QueryUtils;
+import org.springframework.data.jpa.repository.support.JpaEntityInformation;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.lang.Nullable;
 
@@ -42,39 +43,54 @@ import org.springframework.lang.Nullable;
  * @author Christoph Strobl
  * @since 3.1
  */
-record KeysetScrollSpecification<T> (KeysetScrollPosition position, Sort sort,
+public record KeysetScrollSpecification<T> (KeysetScrollPosition position, Sort sort,
 		JpaEntityInformation<?, ?> entity) implements Specification<T> {
 
-	KeysetScrollSpecification(KeysetScrollPosition position, Sort sort, JpaEntityInformation<?, ?> entity) {
+	public KeysetScrollSpecification(KeysetScrollPosition position, Sort sort, JpaEntityInformation<?, ?> entity) {
 
 		this.position = position;
 		this.entity = entity;
+		this.sort = createSort(position, sort, entity);
+	}
+
+	/**
+	 * Create a {@link Sort} object to be used with the actual query.
+	 *
+	 * @param position
+	 * @param sort
+	 * @param entity
+	 * @return
+	 */
+	public static Sort createSort(KeysetScrollPosition position, Sort sort, JpaEntityInformation<?, ?> entity) {
 
 		KeysetScrollDirector director = KeysetScrollDirector.of(position.getDirection());
 
+		Sort sortToUse;
 		if (entity.hasCompositeId()) {
-			sort = sort.and(Sort.by(entity.getIdAttributeNames().toArray(new String[0])));
+			sortToUse = sort.and(Sort.by(entity.getIdAttributeNames().toArray(new String[0])));
 		} else {
-			sort = sort.and(Sort.by(entity.getIdAttribute().getName()));
+			sortToUse = sort.and(Sort.by(entity.getRequiredIdAttribute().getName()));
 		}
 
-		this.sort = director.getSortOrders(sort);
+		return director.getSortOrders(sortToUse);
 	}
 
 	@Override
 	public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
+		return createPredicate(root, criteriaBuilder);
+	}
 
-		// TODO selection
-		// accept entities, make sure for the selection to include keyset
+	@Nullable
+	public Predicate createPredicate(Root<?> root, CriteriaBuilder criteriaBuilder) {
 
 		KeysetScrollDirector director = KeysetScrollDirector.of(position.getDirection());
-
 		return director.createQuery(position, sort, root, criteriaBuilder);
 	}
 
 	/**
 	 * Director for keyset scrolling.
 	 */
+	@SuppressWarnings("rawtypes")
 	static class KeysetScrollDirector {
 
 		private static final KeysetScrollDirector forward = new KeysetScrollDirector();
@@ -104,40 +120,9 @@ record KeysetScrollSpecification<T> (KeysetScrollPosition position, Sort sort,
 				return null;
 			}
 
-			List<String> sortKeys = sort.stream().map(Sort.Order::getProperty).toList();
-
-			if (!keysetValues.keySet().containsAll(sortKeys)) {
-				throw new IllegalStateException("KeysetScrollPosition does not contain all keyset values");
-			}
-
 			// build matrix query for keyset paging that contains sort^2 queries
 			// reflecting a query that follows sort order semantics starting from the last returned keyset
-			List<Predicate> or = new ArrayList<>();
-			for (int i = 0; i < sortKeys.size(); i++) {
-
-				List<Predicate> sortConstraint = new ArrayList<>();
-
-				for (int j = 0; j < sortKeys.size(); j++) {
-
-					String sortSegment = sortKeys.get(j);
-					PropertyPath property = PropertyPath.from(sortSegment, from.getJavaType());
-					Expression<Comparable> propertyExpression = QueryUtils.toExpressionRecursively(from, property);
-					Sort.Order sortOrder = sort.getOrderFor(sortSegment);
-					Comparable<?> o = (Comparable<?>) keysetValues.get(sortSegment);
-
-					if (j >= i) { // tail segment
-
-						sortConstraint.add(getComparator(sortOrder, propertyExpression, o, cb));
-						break;
-					}
-
-					sortConstraint.add(cb.equal(propertyExpression, o));
-				}
-
-				if (!sortConstraint.isEmpty()) {
-					or.add(cb.and(sortConstraint.toArray(new Predicate[0])));
-				}
-			}
+			List<Predicate> or = createPredicates(sort, from, cb, keysetValues);
 
 			if (or.isEmpty()) {
 				return null;
@@ -146,6 +131,47 @@ record KeysetScrollSpecification<T> (KeysetScrollPosition position, Sort sort,
 			return cb.or(or.toArray(new Predicate[0]));
 		}
 
+		List<Predicate> createPredicates(Sort sort, From<?, ?> from, CriteriaBuilder cb, Map<String, Object> keysetValues) {
+
+			List<Predicate> or = new ArrayList<>();
+
+			int i = 0;
+			// progressive query building
+			for (Order order : sort) {
+
+				if (!keysetValues.containsKey(order.getProperty())) {
+					throw new IllegalStateException("KeysetScrollPosition does not contain all keyset values");
+				}
+
+				List<Predicate> sortConstraint = new ArrayList<>();
+
+				int j = 0;
+				for (Sort.Order inner : sort) {
+
+					Expression<Comparable> propertyExpression = getExpression(from, inner);
+					Comparable<?> o = (Comparable<?>) keysetValues.get(inner.getProperty());
+
+					if (j >= i) { // tail segment
+
+						sortConstraint.add(getComparator(inner, propertyExpression, o, cb));
+						break;
+					}
+
+					sortConstraint.add(cb.equal(propertyExpression, o));
+					j++;
+				}
+
+				if (!sortConstraint.isEmpty()) {
+					or.add(cb.and(sortConstraint.toArray(new Predicate[0])));
+				}
+
+				i++;
+			}
+
+			return or;
+		}
+
+		@SuppressWarnings("unchecked")
 		protected Predicate getComparator(Sort.Order sortOrder, Expression<Comparable> propertyExpression,
 				Comparable object, CriteriaBuilder cb) {
 
@@ -153,10 +179,18 @@ record KeysetScrollSpecification<T> (KeysetScrollPosition position, Sort sort,
 					: cb.lessThan(propertyExpression, object);
 		}
 
-		public <T> void postPostProcessResults(List<T> result) {
-
+		protected static <T> Expression<T> getExpression(From<?, ?> from, Order order) {
+			PropertyPath property = PropertyPath.from(order.getProperty(), from.getJavaType());
+			return QueryUtils.toExpressionRecursively(from, property);
 		}
 
+		public <T> List<T> postProcessResults(List<T> result) {
+			return result;
+		}
+
+		public <T> List<T> getResultWindow(List<T> list, int limit) {
+			return CollectionUtils.getFirst(limit, list);
+		}
 	}
 
 	/**
@@ -176,18 +210,23 @@ record KeysetScrollSpecification<T> (KeysetScrollPosition position, Sort sort,
 			return Sort.by(orders);
 		}
 
+		@SuppressWarnings({ "rawtypes", "unchecked" })
 		@Override
 		protected Predicate getComparator(Sort.Order sortOrder, Expression<Comparable> propertyExpression,
 				Comparable object, CriteriaBuilder cb) {
-			return sortOrder.isAscending() ? cb.greaterThanOrEqualTo(propertyExpression, object)
-					: cb.lessThanOrEqualTo(propertyExpression, object);
+			return sortOrder.isAscending() ? cb.greaterThan(propertyExpression, object)
+					: cb.lessThan(propertyExpression, object);
 		}
 
 		@Override
-		public <T> void postPostProcessResults(List<T> result) {
-			// flip direction of the result list as we need to accomodate for the flipped sort order for proper offset
-			// querying.
+		public <T> List<T> postProcessResults(List<T> result) {
 			Collections.reverse(result);
+			return result;
+		}
+
+		@Override
+		public <T> List<T> getResultWindow(List<T> list, int limit) {
+			return CollectionUtils.getLast(limit, list);
 		}
 	}
 

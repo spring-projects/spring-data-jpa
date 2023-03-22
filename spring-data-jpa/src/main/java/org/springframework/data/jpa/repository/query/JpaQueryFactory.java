@@ -18,6 +18,7 @@ package org.springframework.data.jpa.repository.query;
 import jakarta.persistence.EntityManager;
 
 import org.springframework.data.jpa.repository.QueryRewriter;
+import org.springframework.data.repository.query.QueryCreationException;
 import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
@@ -49,6 +50,10 @@ enum JpaQueryFactory {
 			@Nullable String countQueryString, QueryRewriter queryRewriter,
 			QueryMethodEvaluationContextProvider evaluationContextProvider) {
 
+		if (method.isScrollQuery()) {
+			throw QueryCreationException.create(method, "Scroll queries are not supported using String-based queries");
+		}
+
 		return method.isNativeQuery()
 				? new NativeJpaQuery(method, em, queryString, countQueryString, queryRewriter, evaluationContextProvider,
 						PARSER)
@@ -64,6 +69,11 @@ enum JpaQueryFactory {
 	 * @return
 	 */
 	public StoredProcedureJpaQuery fromProcedureAnnotation(JpaQueryMethod method, EntityManager em) {
+
+		if (method.isScrollQuery()) {
+			throw QueryCreationException.create(method, "Scroll queries are not supported using stored procedures");
+		}
+
 		return new StoredProcedureJpaQuery(method, em);
 	}
 }

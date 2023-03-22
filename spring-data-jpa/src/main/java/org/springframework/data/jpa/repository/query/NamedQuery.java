@@ -145,6 +145,10 @@ final class NamedQuery extends AbstractJpaQuery {
 			return null;
 		}
 
+		if (method.isScrollQuery()) {
+			throw QueryCreationException.create(method, "Scroll queries are not supported using String-based queries");
+		}
+
 		try {
 
 			RepositoryQuery query = new NamedQuery(method, em);
