@@ -903,6 +903,16 @@ class HqlQueryTransformerTests {
 	}
 
 
+	@Test // GH-2348
+	void removeFetchFromJoinsDuringCountQueryCreation() {
+
+		assertCountQuery("select u from User u left outer join fetch u.roles r left outer JOIN   FETCH  u.accounts a",
+				"select count(u) from User u left outer join u.roles r left outer JOIN u.accounts a");
+
+		assertCountQuery("SELECT DISTINCT b FROM Board b LEFT JOIN FETCH b.comments ORDER BY b.id",
+				"SELECT count(DISTINCT b) FROM Board b LEFT JOIN b.comments");
+	}
+
 	private void assertCountQuery(String originalQuery, String countQuery) {
 		assertThat(createCountQueryFor(originalQuery)).isEqualTo(countQuery);
 	}
