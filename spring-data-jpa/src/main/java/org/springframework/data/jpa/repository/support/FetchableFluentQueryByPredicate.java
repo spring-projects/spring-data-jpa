@@ -71,7 +71,7 @@ class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<S, R> imp
 			BiFunction<Sort, Pageable, AbstractJPAQuery<?, ?>> pagedFinder, Function<Predicate, Long> countOperation,
 			Function<Predicate, Boolean> existsOperation, EntityManager entityManager) {
 
-		super(resultType, sort, properties, entityType);
+		super(resultType, sort, 0, properties, entityType);
 		this.predicate = predicate;
 		this.finder = finder;
 		this.pagedFinder = pagedFinder;

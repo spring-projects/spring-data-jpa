@@ -34,6 +34,7 @@ import jakarta.persistence.criteria.Root;
 import lombok.Data;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -54,14 +55,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
-import org.springframework.data.domain.Example;
-import org.springframework.data.domain.ExampleMatcher;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.jpa.domain.Specification;
@@ -1233,6 +1227,58 @@ class UserRepositoryTests {
 		List<SpecialUser> result = repository.findAll(example);
 
 		assertThat(result).hasSize(1);
+	}
+
+	@Test // GH-2878
+	void scrollByOffset() {
+
+		User john1 = new User("John", "Doe", "john@doe1.com");
+		User john2 = new User("John", "Doe", "john@doe2.com");
+		User jane1 = new User("Jane", "Doe", "jane@doe1.com");
+		User jane2 = new User("Jane", "Doe", "jane@doe2.com");
+
+		repository.saveAllAndFlush(Arrays.asList(john1, john2, jane1, jane2));
+
+		Example<User> example = Example.of(new User("J", null, null),
+				matching().withMatcher("firstname", GenericPropertyMatcher::startsWith).withIgnorePaths("age", "createdAt",
+						"dateOfBirth"));
+		Window<User> firstWindow = repository.findBy(example,
+				q -> q.limit(2).sortBy(Sort.by("firstname")).scroll(OffsetScrollPosition.initial()));
+
+		assertThat(firstWindow).hasSize(2).containsOnly(jane1, jane2);
+		assertThat(firstWindow.hasNext()).isTrue();
+
+		Window<User> nextWindow = repository.findBy(example,
+				q -> q.limit(2).sortBy(Sort.by("firstname")).scroll(firstWindow.positionAt(1)));
+
+		assertThat(nextWindow).hasSize(2).containsOnly(john1, john2);
+		assertThat(nextWindow.hasNext()).isFalse();
+	}
+
+	@Test // GH-2878
+	void scrollByKeyset() {
+
+		User john1 = new User("John", "Doe", "john@doe1.com");
+		User john2 = new User("John", "Doe", "john@doe2.com");
+		User jane1 = new User("Jane", "Doe", "jane@doe1.com");
+		User jane2 = new User("Jane", "Doe", "jane@doe2.com");
+
+		repository.saveAllAndFlush(Arrays.asList(john1, john2, jane1, jane2));
+
+		Example<User> example = Example.of(new User("J", null, null),
+				matching().withMatcher("firstname", GenericPropertyMatcher::startsWith).withIgnorePaths("age", "createdAt",
+						"dateOfBirth"));
+		Window<User> firstWindow = repository.findBy(example,
+				q -> q.limit(1).sortBy(Sort.by("firstname", "emailAddress")).scroll(KeysetScrollPosition.initial()));
+
+		assertThat(firstWindow).containsOnly(jane1);
+		assertThat(firstWindow.hasNext()).isTrue();
+
+		Window<User> nextWindow = repository.findBy(example,
+				q -> q.limit(2).sortBy(Sort.by("firstname", "emailAddress")).scroll(firstWindow.positionAt(0)));
+
+		assertThat(nextWindow).hasSize(2).containsOnly(jane2, john1);
+		assertThat(nextWindow.hasNext()).isTrue();
 	}
 
 	@Test // DATAJPA-491

@@ -26,10 +26,14 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
+import org.springframework.data.domain.KeysetScrollPosition;
+import org.springframework.data.domain.OffsetScrollPosition;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Window;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.support.PageableUtils;
 import org.springframework.data.repository.query.FluentQuery;
@@ -50,26 +54,27 @@ class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySupport<S, R>
 
 	private final Specification<S> spec;
 	private final Function<Sort, TypedQuery<S>> finder;
+	private final Scroller<S> scroll;
 	private final Function<Specification<S>, Long> countOperation;
 	private final Function<Specification<S>, Boolean> existsOperation;
 	private final EntityManager entityManager;
 
-	public FetchableFluentQueryBySpecification(Specification<S> spec, Class<S> entityType, Sort sort,
-			Collection<String> properties, Function<Sort, TypedQuery<S>> finder,
-			Function<Specification<S>, Long> countOperation, Function<Specification<S>, Boolean> existsOperation,
-			EntityManager entityManager) {
-		this(spec, entityType, (Class<R>) entityType, Sort.unsorted(), Collections.emptySet(), finder, countOperation,
-				existsOperation, entityManager);
+	public FetchableFluentQueryBySpecification(Specification<S> spec, Class<S> entityType,
+			Function<Sort, TypedQuery<S>> finder, Scroller<S> scroller, Function<Specification<S>, Long> countOperation,
+			Function<Specification<S>, Boolean> existsOperation, EntityManager entityManager) {
+		this(spec, entityType, (Class<R>) entityType, Sort.unsorted(), 0, Collections.emptySet(), finder, scroller,
+				countOperation, existsOperation, entityManager);
 	}
 
 	private FetchableFluentQueryBySpecification(Specification<S> spec, Class<S> entityType, Class<R> resultType,
-			Sort sort, Collection<String> properties, Function<Sort, TypedQuery<S>> finder,
+			Sort sort, int limit, Collection<String> properties, Function<Sort, TypedQuery<S>> finder, Scroller<S> scroller,
 			Function<Specification<S>, Long> countOperation, Function<Specification<S>, Boolean> existsOperation,
 			EntityManager entityManager) {
 
-		super(resultType, sort, properties, entityType);
+		super(resultType, sort, limit, properties, entityType);
 		this.spec = spec;
 		this.finder = finder;
+		this.scroll = scroller;
 		this.countOperation = countOperation;
 		this.existsOperation = existsOperation;
 		this.entityManager = entityManager;
@@ -80,8 +85,16 @@ class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySupport<S, R>
 
 		Assert.notNull(sort, "Sort must not be null");
 
-		return new FetchableFluentQueryBySpecification<>(spec, entityType, resultType, this.sort.and(sort), properties,
-				finder, countOperation, existsOperation, entityManager);
+		return new FetchableFluentQueryBySpecification<>(spec, entityType, resultType, this.sort.and(sort), limit,
+				properties, finder, scroll, countOperation, existsOperation, entityManager);
+	}
+
+	@Override
+	public FetchableFluentQuery<R> limit(int limit) {
+		Assert.isTrue(limit >= 0, "Limit must not be negative");
+
+		return new FetchableFluentQueryBySpecification<>(spec, entityType, resultType, this.sort.and(sort), limit,
+				properties, finder, scroll, countOperation, existsOperation, entityManager);
 	}
 
 	@Override
@@ -92,15 +105,15 @@ class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySupport<S, R>
 			throw new UnsupportedOperationException("Class-based DTOs are not yet supported.");
 		}
 
-		return new FetchableFluentQueryBySpecification<>(spec, entityType, resultType, sort, properties, finder,
-				countOperation, existsOperation, entityManager);
+		return new FetchableFluentQueryBySpecification<>(spec, entityType, resultType, sort, limit, properties, finder,
+				scroll, countOperation, existsOperation, entityManager);
 	}
 
 	@Override
 	public FetchableFluentQuery<R> project(Collection<String> properties) {
 
-		return new FetchableFluentQueryBySpecification<>(spec, entityType, resultType, sort, properties, finder,
-				countOperation, existsOperation, entityManager);
+		return new FetchableFluentQueryBySpecification<>(spec, entityType, resultType, sort, limit, properties, finder,
+				scroll, countOperation, existsOperation, entityManager);
 	}
 
 	@Override
@@ -130,6 +143,14 @@ class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySupport<S, R>
 	@Override
 	public List<R> all() {
 		return convert(createSortedAndProjectedQuery().getResultList());
+	}
+
+	@Override
+	public Window<R> scroll(ScrollPosition scrollPosition) {
+
+		Assert.notNull(scrollPosition, "ScrollPosition must not be null");
+
+		return scroll.scroll(sort, limit, scrollPosition).map(getConversionFunction());
 	}
 
 	@Override
@@ -163,6 +184,10 @@ class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySupport<S, R>
 			query.setHint(EntityGraphFactory.HINT, EntityGraphFactory.create(entityManager, entityType, properties));
 		}
 
+		if (limit != 0) {
+			query.setMaxResults(limit);
+		}
+
 		return query;
 	}
 
@@ -193,5 +218,43 @@ class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySupport<S, R>
 
 	private Function<Object, R> getConversionFunction() {
 		return getConversionFunction(entityType, resultType);
+	}
+
+	interface ScrollQueryFactory<T> {
+
+		TypedQuery<T> createQuery(Sort sort, ScrollPosition scrollPosition);
+
+	}
+
+	static class Scroller<T> {
+
+		private final ScrollQueryFactory<T> scrollFunction;
+		private final JpaEntityInformation<T, ?> entity;
+
+		Scroller(ScrollQueryFactory<T> scrollFunction, JpaEntityInformation<T, ?> entity) {
+			this.scrollFunction = scrollFunction;
+			this.entity = entity;
+		}
+
+		public Window<T> scroll(Sort sort, int limit, ScrollPosition scrollPosition) {
+
+			TypedQuery<T> query = scrollFunction.createQuery(sort, scrollPosition);
+
+			if (limit > 0) {
+				query.setMaxResults(limit + 1);
+			}
+
+			List<T> result = query.getResultList();
+
+			if (scrollPosition instanceof KeysetScrollPosition keyset) {
+				return ScrollUtil.createWindow(sort, limit, keyset.getDirection(), entity, result);
+			}
+
+			if (scrollPosition instanceof OffsetScrollPosition offset) {
+				return ScrollUtil.createWindow(result, limit, OffsetScrollPosition.positionFunction(offset.getOffset()));
+			}
+
+			throw new UnsupportedOperationException("ScrollPosition " + scrollPosition + " not supported");
+		}
 	}
 }

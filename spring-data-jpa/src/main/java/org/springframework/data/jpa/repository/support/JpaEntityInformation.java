@@ -17,6 +17,9 @@ package org.springframework.data.jpa.repository.support;
 
 import jakarta.persistence.metamodel.SingularAttribute;
 
+import java.util.Collection;
+import java.util.Map;
+
 import org.springframework.data.jpa.repository.query.JpaEntityMetadata;
 import org.springframework.data.repository.core.EntityInformation;
 import org.springframework.lang.Nullable;
@@ -70,7 +73,7 @@ public interface JpaEntityInformation<T, ID> extends EntityInformation<T, ID>, J
 	 *
 	 * @return
 	 */
-	Iterable<String> getIdAttributeNames();
+	Collection<String> getIdAttributeNames();
 
 	/**
 	 * Extracts the value for the given id attribute from a composite id
@@ -81,4 +84,14 @@ public interface JpaEntityInformation<T, ID> extends EntityInformation<T, ID>, J
 	 */
 	@Nullable
 	Object getCompositeIdAttributeValue(Object id, String idAttribute);
+
+	/**
+	 * Extract a keyset for {@code propertyPaths} and the primary key (including composite key components if applicable).
+	 *
+	 * @param propertyPaths
+	 * @param entity
+	 * @return
+	 * @since 3.1
+	 */
+	Map<String, Object> getKeyset(Iterable<String> propertyPaths, T entity);
 }

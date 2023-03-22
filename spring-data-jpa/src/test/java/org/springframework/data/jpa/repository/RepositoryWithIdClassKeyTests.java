@@ -15,8 +15,9 @@
  */
 package org.springframework.data.jpa.repository;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 
+import java.util.Arrays;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
@@ -24,6 +25,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
+import org.springframework.data.domain.KeysetScrollPosition;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Window;
 import org.springframework.data.jpa.domain.sample.Item;
 import org.springframework.data.jpa.domain.sample.ItemId;
 import org.springframework.data.jpa.domain.sample.ItemSite;
@@ -73,6 +77,28 @@ class RepositoryWithIdClassKeyTests {
 
 		assertThat(loaded).isNotNull();
 		assertThat(loaded).isPresent();
+	}
+
+	@Test // GH-2878
+	void shouldScrollWithKeyset() {
+
+		Item item1 = new Item(1, 2, "a");
+		Item item2 = new Item(2, 3, "b");
+		Item item3 = new Item(3, 4, "c");
+
+		itemRepository.saveAllAndFlush(Arrays.asList(item1, item2, item3));
+
+		Window<Item> first = itemRepository.findBy((root, query, criteriaBuilder) -> {
+			return criteriaBuilder.isNotNull(root.get("name"));
+		}, q -> q.limit(1).sortBy(Sort.by("name")).scroll(KeysetScrollPosition.initial()));
+
+		assertThat(first).containsOnly(item1);
+
+		Window<Item> next = itemRepository.findBy((root, query, criteriaBuilder) -> {
+			return criteriaBuilder.isNotNull(root.get("name"));
+		}, q -> q.limit(1).sortBy(Sort.by("name")).scroll(first.positionAt(0)));
+
+		assertThat(next).containsOnly(item2);
 	}
 
 	@Configuration

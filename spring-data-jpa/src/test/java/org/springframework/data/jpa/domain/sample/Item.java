@@ -21,6 +21,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.IdClass;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 /**
  * @author Mark Paluch
@@ -30,17 +32,27 @@ import jakarta.persistence.Table;
 @Entity
 @Table
 @IdClass(ItemId.class)
+@EqualsAndHashCode
+@ToString
 public class Item {
 
 	@Id @Column(columnDefinition = "INT") private Integer id;
 
 	@Id @JoinColumn(name = "manufacturer_id", columnDefinition = "INT") private Integer manufacturerId;
 
+	private String name;
+
 	public Item() {}
 
 	public Item(Integer id, Integer manufacturerId) {
 		this.id = id;
 		this.manufacturerId = manufacturerId;
+	}
+
+	public Item(Integer id, Integer manufacturerId, String name) {
+		this.id = id;
+		this.manufacturerId = manufacturerId;
+		this.name = name;
 	}
 
 	public Integer getId() {
@@ -50,4 +62,13 @@ public class Item {
 	public Integer getManufacturerId() {
 		return manufacturerId;
 	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
 }

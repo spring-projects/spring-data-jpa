@@ -747,7 +747,7 @@ public abstract class QueryUtils {
 		}
 	}
 
-	static <T> Expression<T> toExpressionRecursively(From<?, ?> from, PropertyPath property) {
+	public static <T> Expression<T> toExpressionRecursively(From<?, ?> from, PropertyPath property) {
 		return toExpressionRecursively(from, property, false);
 	}
 

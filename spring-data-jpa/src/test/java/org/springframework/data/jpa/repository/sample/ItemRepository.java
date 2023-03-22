@@ -18,10 +18,11 @@ package org.springframework.data.jpa.repository.sample;
 import org.springframework.data.jpa.domain.sample.Item;
 import org.springframework.data.jpa.domain.sample.ItemId;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 /**
  * @author Mark Paluch
  * @see <a href="download.oracle.com/otn-pub/jcp/persistence-2_1-fr-eval-spec/JavaPersistence.pdf">Final JPA 2.1
  *      Specification 2.4.1.3 Derived Identities Example 2</a>
  */
-public interface ItemRepository extends JpaRepository<Item, ItemId> {}
+public interface ItemRepository extends JpaRepository<Item, ItemId>, JpaSpecificationExecutor<Item> {}
