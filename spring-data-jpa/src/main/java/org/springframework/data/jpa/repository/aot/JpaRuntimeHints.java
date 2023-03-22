@@ -18,7 +18,9 @@ package org.springframework.data.jpa.repository.aot;
 import jakarta.persistence.NamedEntityGraph;
 
 import java.util.Arrays;
+import java.util.Collections;
 
+import org.springframework.aot.hint.ExecutableMode;
 import org.springframework.aot.hint.MemberCategory;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
@@ -75,6 +77,12 @@ class JpaRuntimeHints implements RuntimeHintsRegistrar {
 					hint -> hint.withMembers(MemberCategory.INVOKE_PUBLIC_CONSTRUCTORS, MemberCategory.INVOKE_PUBLIC_METHODS)
 							.onReachableType(QuerydslPredicateExecutor.class));
 		}
+
+		// streaming results requires reflective access to jakarta.persistence.Query#getResultAsStream
+		hints.reflection().registerType(jakarta.persistence.Query.class, MemberCategory.INTROSPECT_PUBLIC_METHODS);
+		hints.reflection().registerType(jakarta.persistence.Query.class, hint -> {
+			hint.withMethod("getResultStream", Collections.emptyList(), ExecutableMode.INVOKE);
+		});
 
 		hints.reflection().registerType(NamedEntityGraph.class,
 				hint -> hint.onReachableType(EntityGraph.class).withMembers(MemberCategory.INVOKE_PUBLIC_METHODS));
