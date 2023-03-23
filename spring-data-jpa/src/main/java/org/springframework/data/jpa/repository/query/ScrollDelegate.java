@@ -28,7 +28,6 @@ import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.domain.Window;
-import org.springframework.data.jpa.repository.query.KeysetScrollSpecification.KeysetScrollDirector;
 import org.springframework.data.jpa.repository.support.JpaEntityInformation;
 import org.springframework.util.Assert;
 
@@ -80,7 +79,7 @@ public class ScrollDelegate<T> {
 	private static <T> Window<T> createWindow(Sort sort, int limit, Direction direction,
 			JpaEntityInformation<T, ?> entity, List<T> result) {
 
-		KeysetScrollDirector director = KeysetScrollDirector.of(direction);
+		KeysetScrollDelegate director = KeysetScrollDelegate.of(direction);
 		List<T> resultsToUse = director.postProcessResults(result);
 
 		IntFunction<KeysetScrollPosition> positionFunction = value -> {

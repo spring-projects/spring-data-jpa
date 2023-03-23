@@ -22,16 +22,13 @@ import jakarta.persistence.criteria.From;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.data.domain.KeysetScrollPosition;
-import org.springframework.data.domain.KeysetScrollPosition.Direction;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.query.KeysetScrollDelegate.QueryAdapter;
 import org.springframework.data.jpa.repository.support.JpaEntityInformation;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.lang.Nullable;
@@ -63,7 +60,7 @@ public record KeysetScrollSpecification<T> (KeysetScrollPosition position, Sort 
 	 */
 	public static Sort createSort(KeysetScrollPosition position, Sort sort, JpaEntityInformation<?, ?> entity) {
 
-		KeysetScrollDirector director = KeysetScrollDirector.of(position.getDirection());
+		KeysetScrollDelegate director = KeysetScrollDelegate.of(position.getDirection());
 
 		Sort sortToUse;
 		if (entity.hasCompositeId()) {
@@ -83,151 +80,46 @@ public record KeysetScrollSpecification<T> (KeysetScrollPosition position, Sort 
 	@Nullable
 	public Predicate createPredicate(Root<?> root, CriteriaBuilder criteriaBuilder) {
 
-		KeysetScrollDirector director = KeysetScrollDirector.of(position.getDirection());
-		return director.createQuery(position, sort, root, criteriaBuilder);
+		KeysetScrollDelegate director = KeysetScrollDelegate.of(position.getDirection());
+		return director.createPredicate(position, sort, new JpaQueryAdapter(root, criteriaBuilder));
 	}
 
-	/**
-	 * Director for keyset scrolling.
-	 */
 	@SuppressWarnings("rawtypes")
-	static class KeysetScrollDirector {
+	private static class JpaQueryAdapter implements QueryAdapter<Expression<Comparable>, Predicate> {
 
-		private static final KeysetScrollDirector forward = new KeysetScrollDirector();
-		private static final KeysetScrollDirector reverse = new ReverseKeysetScrollDirector();
+		private final From<?, ?> from;
+		private final CriteriaBuilder cb;
 
-		/**
-		 * Factory method to obtain the right {@link KeysetScrollDirector}.
-		 *
-		 * @param direction
-		 * @return
-		 */
-		public static KeysetScrollDirector of(Direction direction) {
-			return direction == Direction.Forward ? forward : reverse;
+		public JpaQueryAdapter(From<?, ?> from, CriteriaBuilder cb) {
+			this.from = from;
+			this.cb = cb;
 		}
 
-		public Sort getSortOrders(Sort sort) {
-			return sort;
+		@Override
+		public Expression<Comparable> createExpression(String property) {
+			PropertyPath path = PropertyPath.from(property, from.getJavaType());
+			return QueryUtils.toExpressionRecursively(from, path);
 		}
 
-		@Nullable
-		public Predicate createQuery(KeysetScrollPosition keyset, Sort sort, From<?, ?> from, CriteriaBuilder cb) {
-
-			Map<String, Object> keysetValues = keyset.getKeys();
-
-			// first query doesn't come with a keyset
-			if (keysetValues.isEmpty()) {
-				return null;
-			}
-
-			// build matrix query for keyset paging that contains sort^2 queries
-			// reflecting a query that follows sort order semantics starting from the last returned keyset
-			List<Predicate> or = createPredicates(sort, from, cb, keysetValues);
-
-			if (or.isEmpty()) {
-				return null;
-			}
-
-			return cb.or(or.toArray(new Predicate[0]));
+		@Override
+		public Predicate compare(Order order, Expression<Comparable> propertyExpression, Object o) {
+			return order.isAscending() ? cb.greaterThan(propertyExpression, (Comparable) o)
+					: cb.lessThan(propertyExpression, (Comparable) o);
 		}
 
-		List<Predicate> createPredicates(Sort sort, From<?, ?> from, CriteriaBuilder cb, Map<String, Object> keysetValues) {
-
-			List<Predicate> or = new ArrayList<>();
-
-			int i = 0;
-			// progressive query building
-			for (Order order : sort) {
-
-				if (!keysetValues.containsKey(order.getProperty())) {
-					throw new IllegalStateException("KeysetScrollPosition does not contain all keyset values");
-				}
-
-				List<Predicate> sortConstraint = new ArrayList<>();
-
-				int j = 0;
-				for (Sort.Order inner : sort) {
-
-					Expression<Comparable> propertyExpression = getExpression(from, inner);
-					Comparable<?> o = (Comparable<?>) keysetValues.get(inner.getProperty());
-
-					if (j >= i) { // tail segment
-
-						sortConstraint.add(getComparator(inner, propertyExpression, o, cb));
-						break;
-					}
-
-					sortConstraint.add(cb.equal(propertyExpression, o));
-					j++;
-				}
-
-				if (!sortConstraint.isEmpty()) {
-					or.add(cb.and(sortConstraint.toArray(new Predicate[0])));
-				}
-
-				i++;
-			}
-
-			return or;
+		@Override
+		public Predicate compare(Expression<Comparable> propertyExpression, Object o) {
+			return cb.equal(propertyExpression, o);
 		}
 
-		@SuppressWarnings("unchecked")
-		protected Predicate getComparator(Sort.Order sortOrder, Expression<Comparable> propertyExpression,
-				Comparable object, CriteriaBuilder cb) {
-
-			return sortOrder.isAscending() ? cb.greaterThan(propertyExpression, object)
-					: cb.lessThan(propertyExpression, object);
+		@Override
+		public Predicate and(List<Predicate> intermediate) {
+			return cb.and(intermediate.toArray(new Predicate[0]));
 		}
 
-		protected static <T> Expression<T> getExpression(From<?, ?> from, Order order) {
-			PropertyPath property = PropertyPath.from(order.getProperty(), from.getJavaType());
-			return QueryUtils.toExpressionRecursively(from, property);
-		}
-
-		public <T> List<T> postProcessResults(List<T> result) {
-			return result;
-		}
-
-		public <T> List<T> getResultWindow(List<T> list, int limit) {
-			return CollectionUtils.getFirst(limit, list);
+		@Override
+		public Predicate or(List<Predicate> intermediate) {
+			return cb.or(intermediate.toArray(new Predicate[0]));
 		}
 	}
-
-	/**
-	 * Reverse scrolling director variant applying {@link Direction#Backward}. In reverse scrolling, we need to flip
-	 * directions for the actual query so that we do not get everything from the top position and apply the limit but
-	 * rather flip the sort direction, apply the limit and then reverse the result to restore the actual sort order.
-	 */
-	private static class ReverseKeysetScrollDirector extends KeysetScrollDirector {
-
-		public Sort getSortOrders(Sort sort) {
-
-			List<Sort.Order> orders = new ArrayList<>();
-			for (Sort.Order order : sort) {
-				orders.add(new Sort.Order(order.isAscending() ? Sort.Direction.DESC : Sort.Direction.ASC, order.getProperty()));
-			}
-
-			return Sort.by(orders);
-		}
-
-		@SuppressWarnings({ "rawtypes", "unchecked" })
-		@Override
-		protected Predicate getComparator(Sort.Order sortOrder, Expression<Comparable> propertyExpression,
-				Comparable object, CriteriaBuilder cb) {
-			return sortOrder.isAscending() ? cb.greaterThan(propertyExpression, object)
-					: cb.lessThan(propertyExpression, object);
-		}
-
-		@Override
-		public <T> List<T> postProcessResults(List<T> result) {
-			Collections.reverse(result);
-			return result;
-		}
-
-		@Override
-		public <T> List<T> getResultWindow(List<T> list, int limit) {
-			return CollectionUtils.getLast(limit, list);
-		}
-	}
-
 }
