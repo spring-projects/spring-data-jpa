@@ -35,7 +35,7 @@ import org.springframework.data.jpa.repository.query.KeysetScrollDelegate;
 import org.springframework.data.jpa.repository.query.KeysetScrollDelegate.QueryAdapter;
 import org.springframework.data.jpa.repository.query.KeysetScrollSpecification;
 import org.springframework.data.jpa.repository.support.FetchableFluentQueryByPredicate.PredicateScrollDelegate;
-import org.springframework.data.jpa.repository.support.FetchableFluentQueryByPredicate.ScrollQueryFactory;
+import org.springframework.data.jpa.repository.support.FluentQuerySupport.ScrollQueryFactory;
 import org.springframework.data.querydsl.EntityPathResolver;
 import org.springframework.data.querydsl.QSort;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;

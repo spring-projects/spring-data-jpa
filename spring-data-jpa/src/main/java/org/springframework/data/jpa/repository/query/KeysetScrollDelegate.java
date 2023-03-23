@@ -147,8 +147,8 @@ public class KeysetScrollDelegate {
 	/**
 	 * Adapter to construct scroll queries.
 	 *
-	 * @param <E>
-	 * @param <P>
+	 * @param <E> property path expression type.
+	 * @param <P> predicate type.
 	 */
 	public interface QueryAdapter<E, P> {
 

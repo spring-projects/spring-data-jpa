@@ -15,6 +15,8 @@
  */
 package org.springframework.data.jpa.repository.support;
 
+import jakarta.persistence.Query;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -22,6 +24,7 @@ import java.util.Set;
 import java.util.function.Function;
 
 import org.springframework.core.convert.support.DefaultConversionService;
+import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.lang.Nullable;
@@ -81,6 +84,10 @@ abstract class FluentQuerySupport<S, R> {
 		}
 
 		return o -> DefaultConversionService.getSharedInstance().convert(o, targetType);
+	}
+
+	interface ScrollQueryFactory<T> {
+		Query createQuery(Sort sort, ScrollPosition scrollPosition);
 	}
 
 }

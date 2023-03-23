@@ -230,10 +230,6 @@ class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<S, R> imp
 		return getConversionFunction(entityType, resultType);
 	}
 
-	interface ScrollQueryFactory<T> {
-		Query createQuery(Sort sort, ScrollPosition scrollPosition);
-
-	}
 
 	static class PredicateScrollDelegate<T> extends ScrollDelegate<T> {
 

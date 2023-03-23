@@ -56,8 +56,8 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.query.EscapeCharacter;
 import org.springframework.data.jpa.repository.query.KeysetScrollSpecification;
 import org.springframework.data.jpa.repository.query.QueryUtils;
-import org.springframework.data.jpa.repository.support.FetchableFluentQueryBySpecification.ScrollQueryFactory;
 import org.springframework.data.jpa.repository.support.FetchableFluentQueryBySpecification.SpecificationScrollDelegate;
+import org.springframework.data.jpa.repository.support.FluentQuerySupport.ScrollQueryFactory;
 import org.springframework.data.jpa.repository.support.QueryHints.NoHints;
 import org.springframework.data.jpa.support.PageableUtils;
 import org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery;
@@ -545,8 +545,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		SpecificationScrollDelegate<T> scrollDirector = new SpecificationScrollDelegate<>(scrollFunction,
 				entityInformation);
 		FetchableFluentQuery<T> fluentQuery = new FetchableFluentQueryBySpecification<>(spec, domainClass, finder,
-				scrollDirector,
-				this::count, this::exists, this.em);
+				scrollDirector, this::count, this::exists, this.em);
 
 		return queryFunction.apply((FetchableFluentQuery<S>) fluentQuery);
 	}

@@ -16,6 +16,7 @@
 package org.springframework.data.jpa.repository.support;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
 import jakarta.persistence.TypedQuery;
 
 import java.util.ArrayList;
@@ -221,12 +222,6 @@ class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySupport<S, R>
 		return getConversionFunction(entityType, resultType);
 	}
 
-	interface ScrollQueryFactory<T> {
-
-		TypedQuery<T> createQuery(Sort sort, ScrollPosition scrollPosition);
-
-	}
-
 	static class SpecificationScrollDelegate<T> extends ScrollDelegate<T> {
 
 		private final ScrollQueryFactory<T> scrollFunction;
@@ -238,10 +233,12 @@ class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySupport<S, R>
 
 		public Window<T> scroll(Sort sort, int limit, ScrollPosition scrollPosition) {
 
-			TypedQuery<T> query = scrollFunction.createQuery(sort, scrollPosition);
+			Query query = scrollFunction.createQuery(sort, scrollPosition);
+
 			if (limit > 0) {
 				query = query.setMaxResults(limit);
 			}
+
 			return scroll(query, sort, scrollPosition);
 		}
 	}
