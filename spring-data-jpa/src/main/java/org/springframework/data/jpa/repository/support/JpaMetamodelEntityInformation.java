@@ -228,7 +228,8 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 	@Override
 	public Map<String, Object> getKeyset(Iterable<String> propertyPaths, T entity) {
 
-		// TODO: proxy business?
+		// TODO: Proxy handling requires more elaborate refactoring, see
+		// https://github.com/spring-projects/spring-data-jpa/issues/2784
 		BeanWrapper entityWrapper = new DirectFieldAccessFallbackBeanWrapper(entity);
 
 		Map<String, Object> keyset = new LinkedHashMap<>();

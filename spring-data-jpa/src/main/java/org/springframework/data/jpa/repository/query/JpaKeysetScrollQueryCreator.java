@@ -29,6 +29,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.support.JpaEntityInformation;
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.repository.query.parser.PartTree;
+import org.springframework.lang.Nullable;
 
 /**
  * Extension to {@link JpaQueryCreator} to create queries considering {@link KeysetScrollPosition keyset scrolling}.
@@ -50,7 +51,7 @@ class JpaKeysetScrollQueryCreator extends JpaQueryCreator {
 	}
 
 	@Override
-	protected CriteriaQuery<? extends Object> complete(Predicate predicate, Sort sort, CriteriaQuery<?> query,
+	protected CriteriaQuery<?> complete(@Nullable Predicate predicate, Sort sort, CriteriaQuery<?> query,
 			CriteriaBuilder builder, Root<?> root) {
 
 		KeysetScrollSpecification<Object> keysetSpec = new KeysetScrollSpecification<>(scrollPosition, sort,

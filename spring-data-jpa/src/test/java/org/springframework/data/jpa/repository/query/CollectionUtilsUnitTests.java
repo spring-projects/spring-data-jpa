@@ -31,16 +31,16 @@ class CollectionUtilsUnitTests {
 	@Test // GH-2878
 	void shouldReturnFirstItems() {
 
-		assertThat(CollectionUtils.getFirst(2, List.of(1, 2, 3))).hasSize(2).containsSequence(1, 2);
-		assertThat(CollectionUtils.getFirst(2, List.of(1, 2))).hasSize(2).containsSequence(1, 2);
-		assertThat(CollectionUtils.getFirst(2, List.of(1))).hasSize(1).containsSequence(1);
+		assertThat(CollectionUtils.getFirst(2, List.of(1, 2, 3))).containsExactly(1, 2);
+		assertThat(CollectionUtils.getFirst(2, List.of(1, 2))).containsExactly(1, 2);
+		assertThat(CollectionUtils.getFirst(2, List.of(1))).containsExactly(1);
 	}
 
 	@Test // GH-2878
 	void shouldReturnLastItems() {
 
-		assertThat(CollectionUtils.getLast(2, List.of(1, 2, 3))).hasSize(2).containsSequence(2, 3);
-		assertThat(CollectionUtils.getLast(2, List.of(1, 2))).hasSize(2).containsSequence(1, 2);
-		assertThat(CollectionUtils.getLast(2, List.of(1))).hasSize(1).containsSequence(1);
+		assertThat(CollectionUtils.getLast(2, List.of(1, 2, 3))).containsExactly(2, 3);
+		assertThat(CollectionUtils.getLast(2, List.of(1, 2))).containsExactly(1, 2);
+		assertThat(CollectionUtils.getLast(2, List.of(1))).containsExactly(1);
 	}
 }

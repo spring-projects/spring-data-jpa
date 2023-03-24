@@ -542,10 +542,10 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 		Function<Sort, TypedQuery<T>> finder = sort -> getQuery(spec, domainClass, sort);
 
-		SpecificationScrollDelegate<T> scrollDirector = new SpecificationScrollDelegate<>(scrollFunction,
+		SpecificationScrollDelegate<T> scrollDelegate = new SpecificationScrollDelegate<>(scrollFunction,
 				entityInformation);
 		FetchableFluentQuery<T> fluentQuery = new FetchableFluentQueryBySpecification<>(spec, domainClass, finder,
-				scrollDirector, this::count, this::exists, this.em);
+				scrollDelegate, this::count, this::exists, this.em);
 
 		return queryFunction.apply((FetchableFluentQuery<S>) fluentQuery);
 	}

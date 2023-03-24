@@ -60,22 +60,22 @@ class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySupport<S, R>
 	private final EntityManager entityManager;
 
 	public FetchableFluentQueryBySpecification(Specification<S> spec, Class<S> entityType,
-			Function<Sort, TypedQuery<S>> finder, SpecificationScrollDelegate<S> scrollDirector,
+			Function<Sort, TypedQuery<S>> finder, SpecificationScrollDelegate<S> scrollDelegate,
 			Function<Specification<S>, Long> countOperation, Function<Specification<S>, Boolean> existsOperation,
 			EntityManager entityManager) {
-		this(spec, entityType, (Class<R>) entityType, Sort.unsorted(), 0, Collections.emptySet(), finder, scrollDirector,
+		this(spec, entityType, (Class<R>) entityType, Sort.unsorted(), 0, Collections.emptySet(), finder, scrollDelegate,
 				countOperation, existsOperation, entityManager);
 	}
 
 	private FetchableFluentQueryBySpecification(Specification<S> spec, Class<S> entityType, Class<R> resultType,
 			Sort sort, int limit, Collection<String> properties, Function<Sort, TypedQuery<S>> finder,
-			SpecificationScrollDelegate<S> scrollDirector, Function<Specification<S>, Long> countOperation,
+			SpecificationScrollDelegate<S> scrollDelegate, Function<Specification<S>, Long> countOperation,
 			Function<Specification<S>, Boolean> existsOperation, EntityManager entityManager) {
 
 		super(resultType, sort, limit, properties, entityType);
 		this.spec = spec;
 		this.finder = finder;
-		this.scroll = scrollDirector;
+		this.scroll = scrollDelegate;
 		this.countOperation = countOperation;
 		this.existsOperation = existsOperation;
 		this.entityManager = entityManager;

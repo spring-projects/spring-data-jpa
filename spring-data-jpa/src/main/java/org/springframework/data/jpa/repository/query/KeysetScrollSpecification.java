@@ -28,7 +28,7 @@ import org.springframework.data.domain.KeysetScrollPosition;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.jpa.repository.query.KeysetScrollDelegate.QueryAdapter;
+import org.springframework.data.jpa.repository.query.KeysetScrollDelegate.QueryStrategy;
 import org.springframework.data.jpa.repository.support.JpaEntityInformation;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.lang.Nullable;
@@ -53,14 +53,14 @@ public record KeysetScrollSpecification<T> (KeysetScrollPosition position, Sort 
 	/**
 	 * Create a {@link Sort} object to be used with the actual query.
 	 *
-	 * @param position
-	 * @param sort
-	 * @param entity
+	 * @param position must not be {@literal null}.
+	 * @param sort must not be {@literal null}.
+	 * @param entity must not be {@literal null}.
 	 * @return
 	 */
 	public static Sort createSort(KeysetScrollPosition position, Sort sort, JpaEntityInformation<?, ?> entity) {
 
-		KeysetScrollDelegate director = KeysetScrollDelegate.of(position.getDirection());
+		KeysetScrollDelegate delegate = KeysetScrollDelegate.of(position.getDirection());
 
 		Sort sortToUse;
 		if (entity.hasCompositeId()) {
@@ -69,7 +69,7 @@ public record KeysetScrollSpecification<T> (KeysetScrollPosition position, Sort 
 			sortToUse = sort.and(Sort.by(entity.getRequiredIdAttribute().getName()));
 		}
 
-		return director.getSortOrders(sortToUse);
+		return delegate.getSortOrders(sortToUse);
 	}
 
 	@Override
@@ -80,36 +80,39 @@ public record KeysetScrollSpecification<T> (KeysetScrollPosition position, Sort 
 	@Nullable
 	public Predicate createPredicate(Root<?> root, CriteriaBuilder criteriaBuilder) {
 
-		KeysetScrollDelegate director = KeysetScrollDelegate.of(position.getDirection());
-		return director.createPredicate(position, sort, new JpaQueryAdapter(root, criteriaBuilder));
+		KeysetScrollDelegate delegate = KeysetScrollDelegate.of(position.getDirection());
+		return delegate.createPredicate(position, sort, new JpaQueryStrategy(root, criteriaBuilder));
 	}
 
 	@SuppressWarnings("rawtypes")
-	private static class JpaQueryAdapter implements QueryAdapter<Expression<Comparable>, Predicate> {
+	private static class JpaQueryStrategy implements QueryStrategy<Expression<Comparable>, Predicate> {
 
 		private final From<?, ?> from;
 		private final CriteriaBuilder cb;
 
-		public JpaQueryAdapter(From<?, ?> from, CriteriaBuilder cb) {
+		public JpaQueryStrategy(From<?, ?> from, CriteriaBuilder cb) {
+
 			this.from = from;
 			this.cb = cb;
 		}
 
 		@Override
 		public Expression<Comparable> createExpression(String property) {
+
 			PropertyPath path = PropertyPath.from(property, from.getJavaType());
 			return QueryUtils.toExpressionRecursively(from, path);
 		}
 
 		@Override
-		public Predicate compare(Order order, Expression<Comparable> propertyExpression, Object o) {
-			return order.isAscending() ? cb.greaterThan(propertyExpression, (Comparable) o)
-					: cb.lessThan(propertyExpression, (Comparable) o);
+		public Predicate compare(Order order, Expression<Comparable> propertyExpression, Object value) {
+
+			return order.isAscending() ? cb.greaterThan(propertyExpression, (Comparable) value)
+					: cb.lessThan(propertyExpression, (Comparable) value);
 		}
 
 		@Override
-		public Predicate compare(Expression<Comparable> propertyExpression, Object o) {
-			return cb.equal(propertyExpression, o);
+		public Predicate compare(Expression<Comparable> propertyExpression, @Nullable Object value) {
+			return value == null ? cb.isNull(propertyExpression) : cb.equal(propertyExpression, value);
 		}
 
 		@Override

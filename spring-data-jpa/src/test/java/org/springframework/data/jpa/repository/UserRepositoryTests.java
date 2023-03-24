@@ -1245,13 +1245,13 @@ class UserRepositoryTests {
 		Window<User> firstWindow = repository.findBy(example,
 				q -> q.limit(2).sortBy(Sort.by("firstname")).scroll(OffsetScrollPosition.initial()));
 
-		assertThat(firstWindow).hasSize(2).containsOnly(jane1, jane2);
+		assertThat(firstWindow).containsExactly(jane1, jane2);
 		assertThat(firstWindow.hasNext()).isTrue();
 
 		Window<User> nextWindow = repository.findBy(example,
 				q -> q.limit(2).sortBy(Sort.by("firstname")).scroll(firstWindow.positionAt(1)));
 
-		assertThat(nextWindow).hasSize(2).containsOnly(john1, john2);
+		assertThat(nextWindow).containsExactly(john1, john2);
 		assertThat(nextWindow.hasNext()).isFalse();
 	}
 
@@ -1277,7 +1277,7 @@ class UserRepositoryTests {
 		Window<User> nextWindow = repository.findBy(example,
 				q -> q.limit(2).sortBy(Sort.by("firstname", "emailAddress")).scroll(firstWindow.positionAt(0)));
 
-		assertThat(nextWindow).hasSize(2).containsOnly(jane2, john1);
+		assertThat(nextWindow).containsExactly(jane2, john1);
 		assertThat(nextWindow.hasNext()).isTrue();
 	}
 
@@ -1319,13 +1319,13 @@ class UserRepositoryTests {
 		Window<User> firstWindow = repository.findBy(QUser.user.firstname.startsWith("J"),
 				q -> q.limit(2).sortBy(Sort.by("firstname")).scroll(OffsetScrollPosition.initial()));
 
-		assertThat(firstWindow).hasSize(2).containsOnly(jane1, jane2);
+		assertThat(firstWindow).containsExactly(jane1, jane2);
 		assertThat(firstWindow.hasNext()).isTrue();
 
 		Window<User> nextWindow = repository.findBy(QUser.user.firstname.startsWith("J"),
 				q -> q.limit(2).sortBy(Sort.by("firstname")).scroll(firstWindow.positionAt(1)));
 
-		assertThat(nextWindow).hasSize(2).containsOnly(john1, john2);
+		assertThat(nextWindow).containsExactly(john1, john2);
 		assertThat(nextWindow.hasNext()).isFalse();
 	}
 
@@ -1348,7 +1348,7 @@ class UserRepositoryTests {
 		Window<User> nextWindow = repository.findBy(QUser.user.firstname.startsWith("J"),
 				q -> q.limit(2).sortBy(Sort.by("firstname", "emailAddress")).scroll(firstWindow.positionAt(0)));
 
-		assertThat(nextWindow).hasSize(2).containsOnly(jane2, john1);
+		assertThat(nextWindow).containsExactly(jane2, john1);
 		assertThat(nextWindow.hasNext()).isTrue();
 	}
 
@@ -1365,7 +1365,7 @@ class UserRepositoryTests {
 		Window<User> firstWindow = repository.findBy(QUser.user.firstname.startsWith("J"),
 				q -> q.limit(3).sortBy(Sort.by("firstname", "emailAddress")).scroll(KeysetScrollPosition.initial()));
 
-		assertThat(firstWindow).containsSequence(jane1, jane2, john1);
+		assertThat(firstWindow).containsExactly(jane1, jane2, john1);
 		assertThat(firstWindow.hasNext()).isTrue();
 
 		KeysetScrollPosition scrollPosition = (KeysetScrollPosition) firstWindow.positionAt(2);
@@ -1374,7 +1374,7 @@ class UserRepositoryTests {
 		Window<User> previousWindow = repository.findBy(QUser.user.firstname.startsWith("J"),
 				q -> q.limit(3).sortBy(Sort.by("firstname", "emailAddress")).scroll(backward));
 
-		assertThat(previousWindow).hasSize(2).containsSequence(jane1, jane2);
+		assertThat(previousWindow).containsExactly(jane1, jane2);
 
 		// no more items before this window
 		assertThat(previousWindow.hasNext()).isFalse();
@@ -1393,7 +1393,7 @@ class UserRepositoryTests {
 		Window<User> firstWindow = repository.findTop3ByFirstnameStartingWithOrderByFirstnameAscEmailAddressAsc("J",
 				KeysetScrollPosition.initial());
 
-		assertThat(firstWindow).containsSequence(jane1, jane2, john1);
+		assertThat(firstWindow).containsExactly(jane1, jane2, john1);
 		assertThat(firstWindow.hasNext()).isTrue();
 
 		KeysetScrollPosition scrollPosition = (KeysetScrollPosition) firstWindow.positionAt(2);
@@ -1402,7 +1402,7 @@ class UserRepositoryTests {
 		Window<User> previousWindow = repository.findTop3ByFirstnameStartingWithOrderByFirstnameAscEmailAddressAsc("J",
 				backward);
 
-		assertThat(previousWindow).hasSize(2).containsSequence(jane1, jane2);
+		assertThat(previousWindow).containsExactly(jane1, jane2);
 
 		// no more items before this window
 		assertThat(previousWindow.hasNext()).isFalse();

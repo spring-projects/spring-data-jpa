@@ -530,17 +530,20 @@ Throws Exception.
 ====
 
 [[jpa.query-methods.scroll]]
-=== Scrolling large Query Results
+=== Scrolling Large Query Results
 
 When working with large data sets, <<repositories.scrolling,scrolling>> can help to process those results efficiently without loading all results into memory.
 
-Spring Data JPA supports offset- and keyset-based scrolling.
-A variant of offset scrolling provided through <<repositories.paging-and-sorting,Paging>>.
+You have multiple options to consume large query results:
 
-Keyset-based scrolling avoids https://use-the-index-luke.com/no-offset[the shortcomings of offset-based result retrieval by leveraging database indexes].
-However, keyset-based results should avoid `null` values as these do not work well with sorting.
+1. <<repositories.paging-and-sorting,Paging>>.
+You have learned in the previous chapter about `Pageable` and `PageRequest`.
+2. <<repositories.scrolling.offset,Offset-based scrolling>>.
+This is a lighter variant than paging because it does not require the total result count.
+3. <<repositories.scrolling.keyset,Keyset-baset scrolling>>.
+This method avoids https://use-the-index-luke.com/no-offset[the shortcomings of offset-based result retrieval by leveraging database indexes].
 
-In contrast to `Page<T>`, the Scroll API returning `Window<T>` is much more lightweight and flexible.
+Read more on <<repositories.scrolling.guidance,which method to use best>> for your particular arrangement.
 
 You can use the Scroll API with query methods, <<query-by-example.running,Query-by-Example>>, and <<core.extensions.querydsl,Querydsl>>.
 

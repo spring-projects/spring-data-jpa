@@ -32,7 +32,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.query.KeysetScrollDelegate;
-import org.springframework.data.jpa.repository.query.KeysetScrollDelegate.QueryAdapter;
+import org.springframework.data.jpa.repository.query.KeysetScrollDelegate.QueryStrategy;
 import org.springframework.data.jpa.repository.query.KeysetScrollSpecification;
 import org.springframework.data.jpa.repository.support.FetchableFluentQueryByPredicate.PredicateScrollDelegate;
 import org.springframework.data.jpa.repository.support.FluentQuerySupport.ScrollQueryFactory;
@@ -48,6 +48,7 @@ import com.querydsl.core.NonUniqueResultException;
 import com.querydsl.core.types.ConstantImpl;
 import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.Expression;
+import com.querydsl.core.types.NullExpression;
 import com.querydsl.core.types.Ops;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Predicate;
@@ -75,7 +76,7 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 	private final JpaEntityInformation<T, ?> entityInformation;
 	private final EntityPath<T> path;
 	private final Querydsl querydsl;
-	private final QuerydslQueryAdapter scrollQueryAdapter;
+	private final QuerydslQueryStrategy scrollQueryAdapter;
 	private final EntityManager entityManager;
 	private final CrudMethodMetadata metadata;
 
@@ -96,7 +97,7 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 		this.path = resolver.createPath(entityInformation.getJavaType());
 		this.querydsl = new Querydsl(entityManager, new PathBuilder<T>(path.getType(), path.getMetadata()));
 		this.entityManager = entityManager;
-		this.scrollQueryAdapter = new QuerydslQueryAdapter();
+		this.scrollQueryAdapter = new QuerydslQueryStrategy();
 	}
 
 	@Override
@@ -180,9 +181,9 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 
 			if (scrollPosition instanceof KeysetScrollPosition keyset) {
 
-				KeysetScrollDelegate director = KeysetScrollDelegate.of(keyset.getDirection());
+				KeysetScrollDelegate delegate = KeysetScrollDelegate.of(keyset.getDirection());
 				sort = KeysetScrollSpecification.createSort(keyset, sort, entityInformation);
-				BooleanExpression keysetPredicate = director.createPredicate(keyset, sort, scrollQueryAdapter);
+				BooleanExpression keysetPredicate = delegate.createPredicate(keyset, sort, scrollQueryAdapter);
 
 				if (keysetPredicate != null) {
 					predicateToUse = predicate instanceof BooleanExpression be ? be.and(keysetPredicate)
@@ -328,7 +329,7 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 		return querydsl.applySorting(sort, query).fetch();
 	}
 
-	class QuerydslQueryAdapter implements QueryAdapter<Expression<?>, BooleanExpression> {
+	class QuerydslQueryStrategy implements QueryStrategy<Expression<?>, BooleanExpression> {
 
 		@Override
 		public Expression<?> createExpression(String property) {
@@ -336,14 +337,15 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 		}
 
 		@Override
-		public BooleanExpression compare(Order order, Expression<?> propertyExpression, Object o) {
+		public BooleanExpression compare(Order order, Expression<?> propertyExpression, Object value) {
 			return Expressions.booleanOperation(order.isAscending() ? Ops.GT : Ops.LT, propertyExpression,
-					ConstantImpl.create(o));
+					ConstantImpl.create(value));
 		}
 
 		@Override
-		public BooleanExpression compare(Expression<?> propertyExpression, Object o) {
-			return Expressions.booleanOperation(Ops.EQ, propertyExpression, ConstantImpl.create(o));
+		public BooleanExpression compare(Expression<?> propertyExpression, @Nullable Object value) {
+			return Expressions.booleanOperation(Ops.EQ, propertyExpression,
+					value == null ? NullExpression.DEFAULT : ConstantImpl.create(value));
 		}
 
 		@Override

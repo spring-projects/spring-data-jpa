@@ -41,7 +41,7 @@ public class ScrollDelegate<T> {
 
 	private final JpaEntityInformation<T, ?> entity;
 
-	public ScrollDelegate(JpaEntityInformation<T, ?> entity) {
+	protected ScrollDelegate(JpaEntityInformation<T, ?> entity) {
 		this.entity = entity;
 	}
 
@@ -79,8 +79,8 @@ public class ScrollDelegate<T> {
 	private static <T> Window<T> createWindow(Sort sort, int limit, Direction direction,
 			JpaEntityInformation<T, ?> entity, List<T> result) {
 
-		KeysetScrollDelegate director = KeysetScrollDelegate.of(direction);
-		List<T> resultsToUse = director.postProcessResults(result);
+		KeysetScrollDelegate delegate = KeysetScrollDelegate.of(direction);
+		List<T> resultsToUse = delegate.postProcessResults(result);
 
 		IntFunction<KeysetScrollPosition> positionFunction = value -> {
 
@@ -90,7 +90,7 @@ public class ScrollDelegate<T> {
 			return KeysetScrollPosition.of(keys);
 		};
 
-		return Window.from(director.getResultWindow(resultsToUse, limit), positionFunction, hasMoreElements(result, limit));
+		return Window.from(delegate.getResultWindow(resultsToUse, limit), positionFunction, hasMoreElements(result, limit));
 	}
 
 	private static <T> Window<T> createWindow(List<T> result, int limit,
