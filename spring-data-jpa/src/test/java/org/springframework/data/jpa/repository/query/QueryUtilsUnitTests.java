@@ -15,14 +15,8 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.springframework.data.jpa.repository.query.QueryUtils.applySorting;
-import static org.springframework.data.jpa.repository.query.QueryUtils.createCountQueryFor;
-import static org.springframework.data.jpa.repository.query.QueryUtils.detectAlias;
-import static org.springframework.data.jpa.repository.query.QueryUtils.getOuterJoinAliases;
-import static org.springframework.data.jpa.repository.query.QueryUtils.hasConstructorExpression;
-import static org.springframework.data.jpa.repository.query.QueryUtils.removeSubqueries;
+import static org.assertj.core.api.Assertions.*;
+import static org.springframework.data.jpa.repository.query.QueryUtils.*;
 
 import java.util.Collections;
 import java.util.Set;
@@ -890,5 +884,31 @@ class QueryUtilsUnitTests {
 				+ "  limit 1\n" //
 				+ ") as timestamp\n" //
 				+ "from foo f", sort)).endsWith("order by f.age desc");
+	}
+
+	@Test // GH-2884
+	void functionAliasShouldSupportArgumentsWithCommasOrArgumentsWithSemiColons() {
+
+		assertThat(QueryUtils.getFunctionAliases("""
+				select s.id as id, s.name as name, gp.points
+				from specialist s
+				left join (
+					select q.specialist_id, listagg(q.points, ',') as points
+					from qualification q
+					group by q.specialist_id
+				) gp on gp.specialist_id = s.id
+				where name like :name
+				""")).containsExactly("points");
+
+		assertThat(QueryUtils.getFunctionAliases("""
+				select s.id as id, s.name as name, gp.points
+				from specialist s
+				left join (
+					select q.specialist_id, listagg(q.points, ';') as points
+					from qualification q
+					group by q.specialist_id
+				) gp on gp.specialist_id = s.id
+				where name like :name
+				""")).containsExactly("points");
 	}
 }
