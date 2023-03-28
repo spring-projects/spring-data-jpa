@@ -17,7 +17,6 @@ package org.springframework.data.jpa.repository.query;
 
 import static org.assertj.core.api.Assumptions.*;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
@@ -25,15 +24,15 @@ import org.junit.jupiter.params.provider.MethodSource;
  * TCK Tests for {@link JpqlQueryParser} mixed into {@link JpaQueryEnhancer}.
  *
  * @author Greg Turnquist
- * @since 3.1
  */
 public class JpqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 
-	public static final String JPQL_PARSER_DOES_NOT_SUPPORT_NATIVE_QUERIES = "JpqlParser does not support native queries";
-
 	@Override
-	QueryEnhancer createQueryEnhancer(DeclaredQuery declaredQuery) {
-		return JpaQueryEnhancer.forJpql(declaredQuery);
+	QueryEnhancer createQueryEnhancer(DeclaredQuery query) {
+
+		assumeThat(query.isNativeQuery()).isFalse();
+
+		return JpaQueryEnhancer.forJpql(query);
 	}
 
 	@Override
@@ -53,15 +52,4 @@ public class JpqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 		super.shouldDeriveJpqlCountQuery(query, expected);
 	}
 
-	@Disabled(JPQL_PARSER_DOES_NOT_SUPPORT_NATIVE_QUERIES)
-	@Override
-	void findProjectionClauseWithIncludedFrom() {}
-
-	@Disabled(JPQL_PARSER_DOES_NOT_SUPPORT_NATIVE_QUERIES)
-	@Override
-	void shouldDeriveNativeCountQuery(String query, String expected) {}
-
-	@Disabled(JPQL_PARSER_DOES_NOT_SUPPORT_NATIVE_QUERIES)
-	@Override
-	void shouldDeriveNativeCountQueryWithVariable(String query, String expected) {}
 }
