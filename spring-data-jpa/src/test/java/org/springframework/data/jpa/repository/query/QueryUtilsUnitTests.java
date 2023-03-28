@@ -17,9 +17,6 @@ package org.springframework.data.jpa.repository.query;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.springframework.data.jpa.repository.query.QueryUtils.*;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.springframework.data.jpa.repository.query.QueryUtils.*;
 
 import java.util.Collections;
 import java.util.Set;
@@ -28,6 +25,8 @@ import java.util.regex.Pattern;
 
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
@@ -186,47 +185,52 @@ class QueryUtilsUnitTests {
 	@Test // GH-2581
 	void testRemoveMultilineSubqueries() {
 
-		assertThat(normalizeWhitespace(removeSubqueries("select u from User u\n" //
-				+ "    where not exists (\n" //
-				+ "        from User u2\n" //
-				+ "    )"))).isEqualTo("select u from User u where not exists");
+		assertThat(normalizeWhitespace(removeSubqueries("""
+				select u from User u
+				    where not exists (
+				        from User u2
+				    )"""))).isEqualTo("select u from User u where not exists");
 
-		assertThat(normalizeWhitespace(removeSubqueries("(\n" //
-				+ "    select u from User u \n" //
-				+ "        where not exists (\n" //
-				+ "            from User u2\n" //
-				+ "        )\n" //
-				+ ")"))).isEqualTo("( select u from User u where not exists )");
+		assertThat(normalizeWhitespace(removeSubqueries("""
+				(
+				    select u from User u\s
+				        where not exists (
+				            from User u2
+				        )
+				)"""))).isEqualTo("( select u from User u where not exists )");
 
-		assertThat(normalizeWhitespace(removeSubqueries("select u from User u \n" //
-				+ "    where not exists (\n" //
-				+ "        from User u2 \n" //
-				+ "            where not exists (\n" //
-				+ "                from User u3\n" //
-				+ "            )\n" //
-				+ "    )"))).isEqualTo("select u from User u where not exists");
+		assertThat(normalizeWhitespace(removeSubqueries("""
+				select u from User u\s
+				    where not exists (
+				        from User u2\s
+				            where not exists (
+				                from User u3
+				            )
+				    )"""))).isEqualTo("select u from User u where not exists");
 
-		assertThat(normalizeWhitespace(removeSubqueries("select u from User u \n" //
-				+ "    where not exists (\n" //
-				+ "        (\n" //
-				+ "            from User u2 \n" //
-				+ "                where not exists (\n" //
-				+ "                    from User u3\n" //
-				+ "                )\n" //
-				+ "        )\n" //
-				+ "    )"))).isEqualTo("select u from User u where not exists ( )");
+		assertThat(normalizeWhitespace(removeSubqueries("""
+				select u from User u\s
+				    where not exists (
+				        (
+				            from User u2\s
+				                where not exists (
+				                    from User u3
+				                )
+				        )
+				    )"""))).isEqualTo("select u from User u where not exists ( )");
 
-		assertThat(normalizeWhitespace(removeSubqueries("(\n" //
-				+ "    select u from User u \n" //
-				+ "        where not exists (\n" //
-				+ "            (\n" //
-				+ "                from User u2 \n" //
-				+ "                    where not exists (\n" //
-				+ "                        from User u3\n" //
-				+ "                    )\n" //
-				+ "            )\n" //
-				+ "        )\n" //
-				+ ")"))).isEqualTo("( select u from User u where not exists ( ) )");
+		assertThat(normalizeWhitespace(removeSubqueries("""
+				(
+				    select u from User u\s
+				        where not exists (
+				            (
+				                from User u2\s
+				                    where not exists (
+				                        from User u3
+				                    )
+				            )
+				        )
+				)"""))).isEqualTo("( select u from User u where not exists ( ) )");
 	}
 
 	@Test // GH-2557
@@ -234,28 +238,31 @@ class QueryUtilsUnitTests {
 
 		Sort sort = Sort.by(Order.desc("age"));
 
-		assertThat(QueryUtils.applySorting("select u\n" + //
-				"from user u\n" + //
-				"where exists (select u2\n" + //
-				"from user u2\n" + //
-				")\n" + //
-				"", sort)).isEqualTo("select u\n" + //
-						"from user u\n" + //
-						"where exists (select u2\n" + //
-						"from user u2\n" + //
-						")\n" + //
-						" order by u.age desc");
+		assertThat(QueryUtils.applySorting("""
+				select u
+				from user u
+				where exists (select u2
+				from user u2
+				)
+				""", sort)).isEqualTo("""
+				select u
+				from user u
+				where exists (select u2
+				from user u2
+				)
+				 order by u.age desc""");
 	}
 
 	@Test // GH-2563
 	void aliasDetectionProperlyHandlesNewlinesInSubselects() {
 
-		assertThat(detectAlias("SELECT o\n" + //
-				"FROM Order o\n" + //
-				"AND EXISTS(SELECT 1\n" + //
-				"FROM Vehicle vehicle\n" + //
-				"WHERE vehicle.vehicleOrderId = o.id\n" + //
-				"AND LOWER(COALESCE(vehicle.make, '')) LIKE :query)")).isEqualTo("o");
+		assertThat(detectAlias("""
+				SELECT o
+				FROM Order o
+				AND EXISTS(SELECT 1
+				FROM Vehicle vehicle
+				WHERE vehicle.vehicleOrderId = o.id
+				AND LOWER(COALESCE(vehicle.make, '')) LIKE :query)""")).isEqualTo("o");
 	}
 
 	private String normalizeWhitespace(String s) {
@@ -570,10 +577,14 @@ class QueryUtilsUnitTests {
 	@Test // DATAJPA-1500
 	void createCountQuerySupportsWhitespaceCharacters() {
 
-		assertThat(createCountQueryFor("select * from User user\n" + //
-				"  where user.age = 18\n" + //
-				"  order by user.name\n ")).isEqualTo("select count(user) from User user\n" + //
-						"  where user.age = 18\n ");
+		assertThat(createCountQueryFor("""
+				select * from User user
+				  where user.age = 18
+				  order by user.name
+				\s""")).isEqualTo("""
+				select count(user) from User user
+				  where user.age = 18
+				\s""");
 	}
 
 	@Test // GH-2341
@@ -584,12 +595,18 @@ class QueryUtilsUnitTests {
 	@Test
 	void createCountQuerySupportsLineBreaksInSelectClause() {
 
-		assertThat(createCountQueryFor("select user.age,\n" + //
-				"  user.name\n" + //
-				"  from User user\n" + //
-				"  where user.age = 18\n" + //
-				"  order\nby\nuser.name\n ")).isEqualTo("select count(user) from User user\n" + //
-						"  where user.age = 18\n ");
+		assertThat(createCountQueryFor("""
+				select user.age,
+				  user.name
+				  from User user
+				  where user.age = 18
+				  order
+				by
+				user.name
+				\s""")).isEqualTo("""
+				select count(user) from User user
+				  where user.age = 18
+				\s""");
 	}
 
 	@Test // DATAJPA-1061
@@ -640,11 +657,20 @@ class QueryUtilsUnitTests {
 	@Test
 	void createCountQuerySupportsLineBreakRightAfterDistinct() {
 
-		assertThat(createCountQueryFor("select\ndistinct\nuser.age,\n" + //
-				"user.name\n" + //
-				"from\nUser\nuser")).isEqualTo(createCountQueryFor("select\ndistinct user.age,\n" + //
-						"user.name\n" + //
-						"from\nUser\nuser"));
+		assertThat(createCountQueryFor("""
+				select
+				distinct
+				user.age,
+				user.name
+				from
+				User
+				user""")).isEqualTo(createCountQueryFor("""
+				select
+				distinct user.age,
+				user.name
+				from
+				User
+				user"""));
 	}
 
 	@Test
@@ -821,34 +847,37 @@ class QueryUtilsUnitTests {
 
 		Sort sort = Sort.by(Order.desc("age"));
 
-		assertThat(QueryUtils.applySorting("SELECT\n" //
-				+ "   foo_bar.*\n" //
-				+ "FROM\n" //
-				+ "    foo foo\n" //
-				+ "INNER JOIN\n" //
-				+ "   foo_bar_dnrmv foo_bar ON\n" //
-				+ "   foo_bar.foo_id = foo.foo_id\n" //
-				+ "INNER JOIN\n" //
-				+ " (\n" //
-				+ "  SELECT\n" //
-				+ "       foo_bar_action.*,\n" //
-				+ "       RANK() OVER (PARTITION BY \"foo_bar_action\".attributes->>'baz' ORDER BY \"foo_bar_action\".attributes->>'qux' DESC) AS ranking\n" //
-				+ "  FROM\n" //
-				+ "      foo_bar_action\n" //
-				+ "  WHERE\n" //
-				+ "       foo_bar_action.deleted_ts IS NULL)\n" //
-				+ "    foo_bar_action ON\n" //
-				+ "  foo_bar.foo_bar_id = foo_bar_action.foo_bar_id\n" //
-				+ "  AND ranking = 1\n" //
-				+ "INNER JOIN\n" //
-				+ "  bar bar ON\n" //
-				+ "  foo_bar.bar_id = bar.bar_id\n" //
-				+ "INNER JOIN\n" //
-				+ "  bar_metadata bar_metadata ON\n" //
-				+ "  bar.bar_metadata_key = bar_metadata.bar_metadata_key\n" //
-				+ "WHERE\n" //
-				+ "  foo.tenant_id =:tenantId\n" //
-				+ "AND (foo.attributes ->> :serialNum IN (:serialNumValue))", sort)).endsWith("order by foo.age desc");
+		assertThat(QueryUtils.applySorting(
+				"""
+						SELECT
+						   foo_bar.*
+						FROM
+						    foo foo
+						INNER JOIN
+						   foo_bar_dnrmv foo_bar ON
+						   foo_bar.foo_id = foo.foo_id
+						INNER JOIN
+						 (
+						  SELECT
+						       foo_bar_action.*,
+						       RANK() OVER (PARTITION BY "foo_bar_action".attributes->>'baz' ORDER BY "foo_bar_action".attributes->>'qux' DESC) AS ranking
+						  FROM
+						      foo_bar_action
+						  WHERE
+						       foo_bar_action.deleted_ts IS NULL)
+						    foo_bar_action ON
+						  foo_bar.foo_bar_id = foo_bar_action.foo_bar_id
+						  AND ranking = 1
+						INNER JOIN
+						  bar bar ON
+						  foo_bar.bar_id = bar.bar_id
+						INNER JOIN
+						  bar_metadata bar_metadata ON
+						  bar.bar_metadata_key = bar_metadata.bar_metadata_key
+						WHERE
+						  foo.tenant_id =:tenantId
+						AND (foo.attributes ->> :serialNum IN (:serialNumValue))""",
+				sort)).endsWith("order by foo.age desc");
 
 		assertThat(QueryUtils.applySorting("select r " //
 				+ "From DataRecord r " //
@@ -877,41 +906,32 @@ class QueryUtilsUnitTests {
 				+ "+ \"WHERE i2.field.id = :fieldId \" " //
 				+ "+ \"GROUP BY i2.field.id, i2.version)", sort)).endsWith("order by i.age desc");
 
-		assertThat(QueryUtils.applySorting("select \n" //
-				+ " f.id,\n" //
-				+ " (\n" //
-				+ "  select timestamp from bar\n" //
-				+ "  where date(bar.timestamp) > '2022-05-21'\n" //
-				+ "  and bar.foo_id = f.id \n" //
-				+ "  order by date(bar.timestamp) desc\n" //
-				+ "  limit 1\n" //
-				+ ") as timestamp\n" //
-				+ "from foo f", sort)).endsWith("order by f.age desc");
+		assertThat(QueryUtils.applySorting("""
+				select\s
+				 f.id,
+				 (
+				  select timestamp from bar
+				  where date(bar.timestamp) > '2022-05-21'
+				  and bar.foo_id = f.id\s
+				  order by date(bar.timestamp) desc
+				  limit 1
+				) as timestamp
+				from foo f""", sort)).endsWith("order by f.age desc");
 	}
 
-	@Test // GH-2884
-	void functionAliasShouldSupportArgumentsWithCommasOrArgumentsWithSemiColons() {
+	@ParameterizedTest // GH-2884
+	@ValueSource(strings = { ",", ";" })
+	void functionAliasShouldSupportArgumentsWithCommasOrArgumentsWithSemiColons(String arg) {
 
-		assertThat(QueryUtils.getFunctionAliases("""
+		assertThat(QueryUtils.getFunctionAliases(String.format("""
 				select s.id as id, s.name as name, gp.points
 				from specialist s
 				left join (
-					select q.specialist_id, listagg(q.points, ',') as points
+					select q.specialist_id, listagg(q.points, '%s') as points
 					from qualification q
 					group by q.specialist_id
 				) gp on gp.specialist_id = s.id
 				where name like :name
-				""")).containsExactly("points");
-
-		assertThat(QueryUtils.getFunctionAliases("""
-				select s.id as id, s.name as name, gp.points
-				from specialist s
-				left join (
-					select q.specialist_id, listagg(q.points, ';') as points
-					from qualification q
-					group by q.specialist_id
-				) gp on gp.specialist_id = s.id
-				where name like :name
-				""")).containsExactly("points");
+				""", arg))).containsExactly("points");
 	}
 }
