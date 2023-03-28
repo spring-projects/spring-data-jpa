@@ -17,7 +17,6 @@ package org.springframework.data.jpa.repository.query;
 
 import static org.assertj.core.api.Assertions.*;
 
-import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import org.assertj.core.api.SoftAssertions;
@@ -34,17 +33,13 @@ import org.springframework.lang.Nullable;
  * Verify that HQL queries are properly transformed through the {@link JpaQueryEnhancer} and the {@link HqlQueryParser}.
  *
  * @author Greg Turnquist
- * @since 3.1
  */
 class HqlQueryTransformerTests {
 
 	private static final String QUERY = "select u from User u";
-	private static final String FQ_QUERY = "select u from org.acme.domain.User$Foo_Bar u";
 	private static final String SIMPLE_QUERY = "from User u";
 	private static final String COUNT_QUERY = "select count(u) from User u";
-
 	private static final String QUERY_WITH_AS = "select u from User as u where u.username = ?1";
-	private static final Pattern MULTI_WHITESPACE = Pattern.compile("\\s+");
 
 	@Test
 	void applyingSortShouldIntroduceOrderByCriteriaWhereNoneExists() {
@@ -211,17 +206,29 @@ class HqlQueryTransformerTests {
 
 		Sort sort = Sort.by(Sort.Order.desc("age"));
 
-		assertThat(newParser("select u\n" + //
-				"from user u\n" + //
-				"where exists (select u2\n" + //
-				"from user u2\n" + //
-				")\n" + //
-				"").applySorting(sort)).isEqualToIgnoringWhitespace("select u\n" + //
-						"from user u\n" + //
-						"where exists (select u2\n" + //
-						"from user u2\n" + //
-						")\n" + //
-						" order by u.age desc");
+		//
+		//
+		//
+		//
+		//
+		//
+		//
+		//
+		//
+		//
+		assertThat(newParser("""
+				select u
+				from user u
+				where exists (select u2
+				from user u2
+				)
+				""").applySorting(sort)).isEqualToIgnoringWhitespace("""
+				select u
+				from user u
+				where exists (select u2
+				from user u2
+				)
+				 order by u.age desc""");
 	}
 
 	@Test // GH-2563
@@ -355,12 +362,14 @@ class HqlQueryTransformerTests {
 	@Test // DATAJPA-938
 	void detectsComplexConstructorExpression() {
 
-		assertThat(hasConstructorExpression("select new foo.bar.Foo(ip.id, ip.name, sum(lp.amount)) " //
-				+ "from Bar lp join lp.investmentProduct ip " //
-				+ "where (lp.toDate is null and lp.fromDate <= :now and lp.fromDate is not null) and lp.accountId = :accountId "
-				//
-				+ "group by ip.id, ip.name, lp.accountId " //
-				+ "order by ip.name ASC")).isTrue();
+		//
+		assertThat(hasConstructorExpression(
+				"""
+						select new foo.bar.Foo(ip.id, ip.name, sum(lp.amount))
+						from Bar lp join lp.investmentProduct ip
+						where (lp.toDate is null and lp.fromDate <= :now and lp.fromDate is not null) and lp.accountId = :accountId group by ip.id, ip.name, lp.accountId
+						order by ip.name ASC"""))
+						.isTrue();
 	}
 
 	@Test // DATAJPA-938
@@ -485,21 +494,39 @@ class HqlQueryTransformerTests {
 	@Test // DATAJPA-1500
 	void createCountQuerySupportsWhitespaceCharacters() {
 
-		assertThat(createCountQueryFor("select user from User user\n" + //
-				" where user.age = 18\n" + //
-				" order by user.name\n ")).isEqualToIgnoringWhitespace("select count(user) from User user\n" + //
-						" where user.age = 18\n ");
+		//
+		//
+		//
+		assertThat(createCountQueryFor("""
+				select user from User user
+				 where user.age = 18
+				 order by user.name
+				""")).isEqualToIgnoringWhitespace("""
+				select count(user) from User user
+				 where user.age = 18
+				""");
 	}
 
 	@Test
 	void createCountQuerySupportsLineBreaksInSelectClause() {
 
-		assertThat(createCountQueryFor("select user.age,\n" + //
-				" user.name\n" + //
-				" from User user\n" + //
-				" where user.age = 18\n" + //
-				" order\nby\nuser.name\n ")).isEqualToIgnoringWhitespace("select count(user) from User user\n" + //
-						" where user.age = 18\n ");
+		//
+		//
+		//
+		//
+		//
+		assertThat(createCountQueryFor("""
+				select user.age,
+				 user.name
+				 from User user
+				 where user.age = 18
+				 order
+				by
+				user.name
+				""")).isEqualToIgnoringWhitespace("""
+				select count(user) from User user
+				 where user.age = 18
+				""");
 	}
 
 	@Test // DATAJPA-1061
@@ -550,11 +577,24 @@ class HqlQueryTransformerTests {
 	@Test
 	void createCountQuerySupportsLineBreakRightAfterDistinct() {
 
-		assertThat(createCountQueryFor("select\ndistinct\nuser.age,\n" + //
-				"user.name\n" + //
-				"from\nUser\nuser")).isEqualTo(createCountQueryFor("select\ndistinct user.age,\n" + //
-						"user.name\n" + //
-						"from\nUser\nuser"));
+		//
+		//
+		//
+		//
+		assertThat(createCountQueryFor("""
+				select
+				distinct
+				user.age,
+				user.name
+				from
+				User
+				user""")).isEqualTo(createCountQueryFor("""
+				select
+				distinct user.age,
+				user.name
+				from
+				User
+				user"""));
 	}
 
 	@Test
@@ -723,69 +763,74 @@ class HqlQueryTransformerTests {
 
 		Sort sort = Sort.by(Sort.Order.desc("age"));
 
-		assertThat(createQueryFor("SELECT\n" //
-				+ "   foo_bar\n" //
-				+ "FROM\n" //
-				+ "    foo foo\n" //
-				+ "INNER JOIN\n" //
-				+ "   foo_bar_dnrmv foo_bar ON\n" //
-				+ "   foo_bar.foo_id = foo.foo_id\n" //
-				+ "INNER JOIN\n" //
-				+ " (\n" //
-				+ "  SELECT\n" //
-				+ "       foo_bar_action\n" //
-				+ "  FROM\n" //
-				+ "      foo_bar_action\n" //
-				+ "  WHERE\n" //
-				+ "       foo_bar_action.deleted_ts IS NULL)\n" //
-				+ "    foo_bar_action ON\n" //
-				+ "  foo_bar.foo_bar_id = foo_bar_action.foo_bar_id\n" //
-				+ "  AND ranking = 1\n" //
-				+ "INNER JOIN\n" //
-				+ "  bar bar ON\n" //
-				+ "  foo_bar.bar_id = bar.bar_id\n" //
-				+ "INNER JOIN\n" //
-				+ "  bar_metadata bar_metadata ON\n" //
-				+ "  bar.bar_metadata_key = bar_metadata.bar_metadata_key\n" //
-				+ "WHERE\n" //
-				+ "  foo.tenant_id =:tenantId", sort)).endsWith("order by foo.age desc");
+		assertThat(createQueryFor("""
+				SELECT
+				   foo_bar
+				FROM
+				    foo foo
+				INNER JOIN
+				   foo_bar_dnrmv foo_bar ON
+				   foo_bar.foo_id = foo.foo_id
+				INNER JOIN
+				 (
+				  SELECT
+				       foo_bar_action
+				  FROM
+				      foo_bar_action
+				  WHERE
+				       foo_bar_action.deleted_ts IS NULL)
+				    foo_bar_action ON
+				  foo_bar.foo_bar_id = foo_bar_action.foo_bar_id
+				  AND ranking = 1
+				INNER JOIN
+				  bar bar ON
+				  foo_bar.bar_id = bar.bar_id
+				INNER JOIN
+				  bar_metadata bar_metadata ON
+				  bar.bar_metadata_key = bar_metadata.bar_metadata_key
+				WHERE
+				  foo.tenant_id =:tenantId""", sort)).endsWith("order by foo.age desc");
 
-		assertThat(createQueryFor("select r " //
-				+ "From DataRecord r " //
-				+ "where " //
-				+ " ( " //
-				+ "       r.adusrId = :userId " //
-				+ "       or EXISTS( select 1 FROM DataRecordDvsRight dr WHERE dr.adusrId = :userId AND dr.dataRecord = r ) " //
-				+ ")", sort)).endsWith("order by r.age desc");
+		assertThat(createQueryFor("""
+				select r
+				From DataRecord r
+				where
+				 (
+				       r.adusrId = :userId
+				       or EXISTS( select 1 FROM DataRecordDvsRight dr WHERE dr.adusrId = :userId AND dr.dataRecord = r )
+				)""", sort)).endsWith("order by r.age desc");
 
-		assertThat(createQueryFor("select distinct u " //
-				+ "from FooBar u " //
-				+ "where u.role = 'redacted' " //
-				+ "and (" //
-				+ "		not exists (" //
-				+ "				from FooBarGroup group " //
-				+ "				where group in :excludedGroups " //
-				+ "				and group in elements(u.groups)" //
-				+ "		)" //
-				+ ")", sort)).endsWith("order by u.age desc");
+		assertThat(createQueryFor("""
+				select distinct u
+				from FooBar u
+				where u.role = 'redacted'
+				and (
+						not exists (
+								from FooBarGroup group
+								where group in :excludedGroups
+								and group in elements(u.groups)
+						)
+				)""", sort)).endsWith("order by u.age desc");
 
-		assertThat(createQueryFor("SELECT i " //
-				+ " FROM Item i " //
-				+ " WHERE i.id IN (" //
-				+ " SELECT max(i2.id) FROM Item i2 " //
-				+ " WHERE i2.field.id = :fieldId " //
-				+ " GROUP BY i2.field.id, i2.version)", sort)).endsWith("order by i.age desc");
+		assertThat(createQueryFor("""
+				SELECT i
+				 FROM Item i
+				 WHERE i.id IN (
+				 SELECT max(i2.id) FROM Item i2
+				 WHERE i2.field.id = :fieldId
+				 GROUP BY i2.field.id, i2.version)""", sort)).endsWith("order by i.age desc");
 
-		assertThat(createQueryFor("select \n" //
-				+ " f.id,\n" //
-				+ " (\n" //
-				+ "  select timestamp from bar\n" //
-				+ "  where date(bar.timestamp) > '2022-05-21'\n" //
-				+ "  and bar.foo_id = f.id \n" //
-				+ "  order by date(bar.timestamp) desc\n" //
-				+ "  limit 1\n" //
-				+ ") as timestamp\n" //
-				+ "from foo f", sort)).endsWith("order by f.age desc");
+		assertThat(createQueryFor("""
+				select
+				 f.id,
+				 (
+				  select timestamp from bar
+				  where date(bar.timestamp) > '2022-05-21'
+				  and bar.foo_id = f.id
+				  order by date(bar.timestamp) desc
+				  limit 1
+				) as timestamp
+				from foo f""", sort)).endsWith("order by f.age desc");
 	}
 
 	@Test // GH-2862
@@ -836,6 +881,16 @@ class HqlQueryTransformerTests {
 					""", relationshipName, joinAlias, joinAlias));
 	}
 
+	static Stream<Arguments> queriesWithReservedWordsAsIdentifiers() {
+
+		return Stream.of( //
+				Arguments.of("right", "rt"), //
+				Arguments.of("left", "lt"), //
+				Arguments.of("outer", "ou"), //
+				Arguments.of("full", "full"), //
+				Arguments.of("inner", "inr"));
+	}
+
 	@Test // GH-2508
 	void detectAliasWithCastCorrectly() {
 
@@ -847,15 +902,6 @@ class HqlQueryTransformerTests {
 				.isEqualTo("u");
 	}
 
-	static Stream<Arguments> queriesWithReservedWordsAsIdentifiers() {
-
-		return Stream.of( //
-				Arguments.of("right", "rt"), //
-				Arguments.of("left", "lt"), //
-				Arguments.of("outer", "ou"), //
-				Arguments.of("full", "full"), //
-				Arguments.of("inner", "inr"));
-	}
 
 	private void assertCountQuery(String originalQuery, String countQuery) {
 		assertThat(createCountQueryFor(originalQuery)).isEqualTo(countQuery);

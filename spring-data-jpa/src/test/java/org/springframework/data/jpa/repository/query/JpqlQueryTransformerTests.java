@@ -17,7 +17,6 @@ package org.springframework.data.jpa.repository.query;
 
 import static org.assertj.core.api.Assertions.*;
 
-import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import org.assertj.core.api.SoftAssertions;
@@ -35,16 +34,13 @@ import org.springframework.lang.Nullable;
  * {@link JpqlQueryParser}.
  *
  * @author Greg Turnquist
- * @since 3.1
  */
 class JpqlQueryTransformerTests {
 
 	private static final String QUERY = "select u from User u";
 	private static final String SIMPLE_QUERY = "select u from User u";
 	private static final String COUNT_QUERY = "select count(u) from User u";
-
 	private static final String QUERY_WITH_AS = "select u from User as u where u.username = ?1";
-	private static final Pattern MULTI_WHITESPACE = Pattern.compile("\\s+");
 
 	@Test
 	void applyingSortShouldIntroduceOrderByCriteriaWhereNoneExists() {
@@ -201,17 +197,29 @@ class JpqlQueryTransformerTests {
 
 		Sort sort = Sort.by(Sort.Order.desc("age"));
 
-		assertThat(newParser("select u\n" + //
-				"from user u\n" + //
-				"where exists (select u2\n" + //
-				"from user u2\n" + //
-				")\n" + //
-				"").applySorting(sort)).isEqualToIgnoringWhitespace("select u\n" + //
-						"from user u\n" + //
-						"where exists (select u2\n" + //
-						"from user u2\n" + //
-						")\n" + //
-						" order by u.age desc");
+		//
+		//
+		//
+		//
+		//
+		//
+		//
+		//
+		//
+		//
+		assertThat(newParser("""
+				select u
+				from user u
+				where exists (select u2
+				from user u2
+				)
+				""").applySorting(sort)).isEqualToIgnoringWhitespace("""
+				select u
+				from user u
+				where exists (select u2
+				from user u2
+				)
+				 order by u.age desc""");
 	}
 
 	@Test // GH-2563
@@ -345,12 +353,14 @@ class JpqlQueryTransformerTests {
 	@Test // DATAJPA-938
 	void detectsComplexConstructorExpression() {
 
-		assertThat(hasConstructorExpression("select new foo.bar.Foo(ip.id, ip.name, sum(lp.amount)) " //
-				+ "from Bar lp join lp.investmentProduct ip " //
-				+ "where (lp.toDate is null and lp.fromDate <= :now and lp.fromDate is not null) and lp.accountId = :accountId "
-				//
-				+ "group by ip.id, ip.name, lp.accountId " //
-				+ "order by ip.name ASC")).isTrue();
+		//
+		assertThat(hasConstructorExpression(
+				"""
+						select new foo.bar.Foo(ip.id, ip.name, sum(lp.amount))
+						from Bar lp join lp.investmentProduct ip
+						where (lp.toDate is null and lp.fromDate <= :now and lp.fromDate is not null) and lp.accountId = :accountId group by ip.id, ip.name, lp.accountId
+						order by ip.name ASC"""))
+						.isTrue();
 	}
 
 	@Test // DATAJPA-938
@@ -475,21 +485,39 @@ class JpqlQueryTransformerTests {
 	@Test // DATAJPA-1500
 	void createCountQuerySupportsWhitespaceCharacters() {
 
-		assertThat(createCountQueryFor("select user from User user\n" + //
-				" where user.age = 18\n" + //
-				" order by user.name\n ")).isEqualToIgnoringWhitespace("select count(user) from User user\n" + //
-						" where user.age = 18\n ");
+		//
+		//
+		//
+		assertThat(createCountQueryFor("""
+				select user from User user
+				 where user.age = 18
+				 order by user.name
+				""")).isEqualToIgnoringWhitespace("""
+				select count(user) from User user
+				 where user.age = 18
+				""");
 	}
 
 	@Test
 	void createCountQuerySupportsLineBreaksInSelectClause() {
 
-		assertThat(createCountQueryFor("select user.age,\n" + //
-				" user.name\n" + //
-				" from User user\n" + //
-				" where user.age = 18\n" + //
-				" order\nby\nuser.name\n ")).isEqualToIgnoringWhitespace("select count(user) from User user\n" + //
-						" where user.age = 18\n ");
+		//
+		//
+		//
+		//
+		//
+		assertThat(createCountQueryFor("""
+				select user.age,
+				 user.name
+				 from User user
+				 where user.age = 18
+				 order
+				by
+				user.name
+				""")).isEqualToIgnoringWhitespace("""
+				select count(user) from User user
+				 where user.age = 18
+				""");
 	}
 
 	@Test // DATAJPA-1061
@@ -540,11 +568,24 @@ class JpqlQueryTransformerTests {
 	@Test
 	void createCountQuerySupportsLineBreakRightAfterDistinct() {
 
-		assertThat(createCountQueryFor("select\ndistinct\nuser.age,\n" + //
-				"user.name\n" + //
-				"from\nUser\nuser")).isEqualTo(createCountQueryFor("select\ndistinct user.age,\n" + //
-						"user.name\n" + //
-						"from\nUser\nuser"));
+		//
+		//
+		//
+		//
+		assertThat(createCountQueryFor("""
+				select
+				distinct
+				user.age,
+				user.name
+				from
+				User
+				user""")).isEqualTo(createCountQueryFor("""
+				select
+				distinct user.age,
+				user.name
+				from
+				User
+				user"""));
 	}
 
 	@Test
@@ -652,34 +693,37 @@ class JpqlQueryTransformerTests {
 
 		Sort sort = Sort.by(Sort.Order.desc("age"));
 
-		assertThat(createQueryFor("select r " //
-				+ "From DataRecord r " //
-				+ "where " //
-				+ " ( " //
-				+ "       r.adusrId = :userId " //
-				+ "       or EXISTS( select 1 FROM DataRecordDvsRight dr WHERE dr.adusrId = :userId AND dr.dataRecord = r ) " //
-				+ ")", sort)).endsWith("order by r.age desc");
+		assertThat(createQueryFor("""
+				select r
+				From DataRecord r
+				where
+				 (
+				       r.adusrId = :userId
+				       or EXISTS( select 1 FROM DataRecordDvsRight dr WHERE dr.adusrId = :userId AND dr.dataRecord = r )
+				)""", sort)).endsWith("order by r.age desc");
 
-		assertThat(createQueryFor("select distinct u " //
-				+ "from FooBar u " //
-				+ "where u.role = 'redacted' " //
-				+ "and (" //
-				+ "		not exists (" //
-				+ "				select g from FooBarGroup g " //
-				+ "				where g in :excludedGroups " //
-				+ "		)" //
-				+ ")", sort)).endsWith("order by u.age desc");
+		assertThat(createQueryFor("""
+				select distinct u
+				from FooBar u
+				where u.role = 'redacted'
+				and (
+						not exists (
+								select g from FooBarGroup g
+								where g in :excludedGroups
+						)
+				)""", sort)).endsWith("order by u.age desc");
 
-		assertThat(createQueryFor("SELECT i " //
-				+ "FROM Item i " //
-				+ "WHERE i.id IN ( " //
-				+ "SELECT max(i2.id) FROM Item i2 " //
-				+ "WHERE i2.field.id = :fieldId " //
-				+ "GROUP BY i2.field.id, i2.version)", sort)).endsWith("order by i.age desc");
+		assertThat(createQueryFor("""
+				SELECT i
+				FROM Item i
+				WHERE i.id IN (
+				SELECT max(i2.id) FROM Item i2
+				WHERE i2.field.id = :fieldId
+				GROUP BY i2.field.id, i2.version)""", sort)).endsWith("order by i.age desc");
 	}
 
 	@Test // GH-2074
-	void queryParserPicksCorrectAliasAmidstMultipleAlises() {
+	void queryParserPicksCorrectAliasAmidstMultipleAliases() {
 		assertThat(alias("select u from User as u left join  u.roles as r")).isEqualTo("u");
 	}
 
@@ -698,9 +742,9 @@ class JpqlQueryTransformerTests {
 					join iu.roles u2r
 					join u2r.role r
 					join r.rights r2r
-					join r2r.inner inr
+					join r2r.%s %s
 					where
-						inr.code = :rightCode
+						%s.code = :rightCode
 						and iu = u
 				)
 				and ct.id = :teamId
