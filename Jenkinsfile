@@ -1,7 +1,7 @@
 def p = [:]
 node {
-    checkout scm
-    p = readProperties interpolate: true, file: 'ci/pipeline.properties'
+	checkout scm
+	p = readProperties interpolate: true, file: 'ci/pipeline.properties'
 }
 
 pipeline {
@@ -31,13 +31,11 @@ pipeline {
 			}
 			options { timeout(time: 30, unit: 'MINUTES') }
 			environment {
-				DOCKER_HUB = credentials("${p['docker.credentials']}")
 				ARTIFACTORY = credentials("${p['artifactory.credentials']}")
 			}
 			steps {
 				script {
 					docker.image(p['docker.java.main.image']).inside(p['docker.java.inside.docker']) {
-						sh "docker login --username ${DOCKER_HUB_USR} --password ${DOCKER_HUB_PSW}"
 						sh 'PROFILE=all-dbs ci/test.sh'
 						sh "ci/clean.sh"
 					}
@@ -55,25 +53,23 @@ pipeline {
 			}
 
 			parallel {
-			    stage("test: eclipselink-next") {
+				stage("test: eclipselink-next") {
 					agent {
-					    label 'data'
+						label 'data'
 					}
 					options { timeout(time: 30, unit: 'MINUTES')}
 					environment {
-        				DOCKER_HUB = credentials("${p['docker.credentials']}")
-					    ARTIFACTORY = credentials("${p['artifactory.credentials']}")
+						ARTIFACTORY = credentials("${p['artifactory.credentials']}")
 					}
 					steps {
 						script {
 							docker.image(p['docker.java.main.image']).inside(p['docker.java.inside.docker']) {
-								sh "docker login --username ${DOCKER_HUB_USR} --password ${DOCKER_HUB_PSW}"
 								sh 'PROFILE=all-dbs,eclipselink-next ci/test.sh'
 								sh "ci/clean.sh"
 							}
 						}
 					}
-			    }
+				}
 			}
 		}
 
