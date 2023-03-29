@@ -40,8 +40,8 @@ public class KeysetScrollDelegate {
 	/**
 	 * Factory method to obtain the right {@link KeysetScrollDelegate}.
 	 *
-	 * @param direction
-	 * @return
+	 * @param direction the direction of scrolling.
+	 * @return a {@link KeysetScrollDelegate} matching the requested direction.
 	 */
 	public static KeysetScrollDelegate of(Direction direction) {
 		return direction == Direction.Forward ? forward : reverse;
@@ -104,7 +104,6 @@ public class KeysetScrollDelegate {
 		return sort;
 	}
 
-	@SuppressWarnings("unchecked")
 	protected <T> List<T> postProcessResults(List<T> result) {
 		return result;
 	}
@@ -154,7 +153,6 @@ public class KeysetScrollDelegate {
 		 * Create an expression object from the given {@code property} path.
 		 *
 		 * @param property must not be {@literal null}.
-		 * @return
 		 */
 		E createExpression(String property);
 
@@ -163,8 +161,8 @@ public class KeysetScrollDelegate {
 		 *
 		 * @param order must not be {@literal null}.
 		 * @param propertyExpression must not be {@literal null}.
-		 * @param value
-		 * @return
+		 * @param value the value to compare with. Must not be {@literal null}.
+		 * @return an object representing the comparison predicate.
 		 */
 		P compare(Order order, E propertyExpression, Object value);
 
@@ -172,24 +170,24 @@ public class KeysetScrollDelegate {
 		 * Create an equals-comparison object.
 		 *
 		 * @param propertyExpression must not be {@literal null}.
-		 * @param value
-		 * @return
+		 * @param value the value to compare with. Must not be {@literal null}.
+		 * @return an object representing the comparison predicate.
 		 */
 		P compare(E propertyExpression, @Nullable Object value);
 
 		/**
 		 * AND-combine the {@code intermediate} predicates.
 		 *
-		 * @param intermediate
-		 * @return
+		 * @param intermediate the predicates to combine. Must not be {@literal null}.
+		 * @return a single predicate.
 		 */
 		P and(List<P> intermediate);
 
 		/**
 		 * OR-combine the {@code intermediate} predicates.
 		 *
-		 * @param intermediate
-		 * @return
+		 * @param intermediate the predicates to combine. Must not be {@literal null}.
+		 * @return a single predicate.
 		 */
 		P or(List<P> intermediate);
 	}

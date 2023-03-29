@@ -30,7 +30,7 @@ class CollectionUtils {
 	 * @param count the number of first elements to be included in the returned list.
 	 * @param list must not be {@literal null}
 	 * @return the returned sublist if the {@code list} is greater {@code count}.
-	 * @param <T>
+	 * @param <T> the element type of the lists.
 	 */
 	public static <T> List<T> getFirst(int count, List<T> list) {
 
@@ -47,7 +47,7 @@ class CollectionUtils {
 	 * @param count the number of last elements to be included in the returned list.
 	 * @param list must not be {@literal null}
 	 * @return the returned sublist if the {@code list} is greater {@code count}.
-	 * @param <T>
+	 * @param <T> the element type of the lists.
 	 */
 	public static <T> List<T> getLast(int count, List<T> list) {
 

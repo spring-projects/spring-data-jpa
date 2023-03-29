@@ -86,7 +86,7 @@ abstract class FluentQuerySupport<S, R> {
 		return o -> DefaultConversionService.getSharedInstance().convert(o, targetType);
 	}
 
-	interface ScrollQueryFactory<T> {
+	interface ScrollQueryFactory {
 		Query createQuery(Sort sort, ScrollPosition scrollPosition);
 	}
 

@@ -224,9 +224,9 @@ class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySupport<S, R>
 
 	static class SpecificationScrollDelegate<T> extends ScrollDelegate<T> {
 
-		private final ScrollQueryFactory<T> scrollFunction;
+		private final ScrollQueryFactory scrollFunction;
 
-		SpecificationScrollDelegate(ScrollQueryFactory<T> scrollQueryFactory, JpaEntityInformation<T, ?> entity) {
+		SpecificationScrollDelegate(ScrollQueryFactory scrollQueryFactory, JpaEntityInformation<T, ?> entity) {
 			super(entity);
 			this.scrollFunction = scrollQueryFactory;
 		}

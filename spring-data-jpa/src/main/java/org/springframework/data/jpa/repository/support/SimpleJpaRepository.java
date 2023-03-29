@@ -521,7 +521,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		Assert.notNull(spec, "Specification must not be null");
 		Assert.notNull(queryFunction, "Query function must not be null");
 
-		ScrollQueryFactory<T> scrollFunction = (sort, scrollPosition) -> {
+		ScrollQueryFactory scrollFunction = (sort, scrollPosition) -> {
 
 			Specification<T> specToUse = spec;
 

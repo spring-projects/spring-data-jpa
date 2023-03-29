@@ -73,8 +73,6 @@ public class Querydsl {
 
 	/**
 	 * Creates the {@link JPQLQuery} instance based on the configured {@link EntityManager}.
-	 *
-	 * @return
 	 */
 	public <T> AbstractJPAQuery<T, JPAQuery<T>> createQuery() {
 
@@ -93,7 +91,6 @@ public class Querydsl {
 	 * Creates the {@link JPQLQuery} instance based on the configured {@link EntityManager}.
 	 *
 	 * @param paths must not be {@literal null}.
-	 * @return
 	 */
 	public AbstractJPAQuery<Object, JPAQuery<Object>> createQuery(EntityPath<?>... paths) {
 
@@ -167,7 +164,6 @@ public class Querydsl {
 	 *
 	 * @param sort must not be {@literal null}.
 	 * @param query must not be {@literal null}.
-	 * @return
 	 */
 	private <T> JPQLQuery<T> addOrderByFrom(Sort sort, JPQLQuery<T> query) {
 
@@ -185,7 +181,6 @@ public class Querydsl {
 	 * Transforms a plain {@link Order} into a QueryDsl specific {@link OrderSpecifier}.
 	 *
 	 * @param order must not be {@literal null}.
-	 * @return
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private OrderSpecifier<?> toOrderSpecifier(Order order) {
@@ -200,7 +195,6 @@ public class Querydsl {
 	 * {@link NullHandling}.
 	 *
 	 * @param nullHandling must not be {@literal null}.
-	 * @return
 	 * @since 1.6
 	 */
 	private NullHandling toQueryDslNullHandling(org.springframework.data.domain.Sort.NullHandling nullHandling) {
@@ -225,7 +219,6 @@ public class Querydsl {
 	 * Creates an {@link Expression} for the given {@link Order} property.
 	 *
 	 * @param order must not be {@literal null}.
-	 * @return
 	 */
 	private Expression<?> buildOrderPropertyPathFrom(Order order) {
 
@@ -250,7 +243,6 @@ public class Querydsl {
 	 * Creates an {@link Expression} for the given {@code property} property.
 	 *
 	 * @param property must not be {@literal null}.
-	 * @return
 	 */
 	Expression<?> createExpression(String property) {
 

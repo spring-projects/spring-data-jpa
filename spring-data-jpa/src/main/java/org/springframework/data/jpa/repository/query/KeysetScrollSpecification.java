@@ -56,7 +56,6 @@ public record KeysetScrollSpecification<T> (KeysetScrollPosition position, Sort 
 	 * @param position must not be {@literal null}.
 	 * @param sort must not be {@literal null}.
 	 * @param entity must not be {@literal null}.
-	 * @return
 	 */
 	public static Sort createSort(KeysetScrollPosition position, Sort sort, JpaEntityInformation<?, ?> entity) {
 

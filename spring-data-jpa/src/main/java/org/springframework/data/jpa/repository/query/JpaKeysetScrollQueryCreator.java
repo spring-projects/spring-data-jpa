@@ -45,7 +45,9 @@ class JpaKeysetScrollQueryCreator extends JpaQueryCreator {
 	public JpaKeysetScrollQueryCreator(PartTree tree, ReturnedType type, CriteriaBuilder builder,
 			ParameterMetadataProvider provider, JpaEntityInformation<?, ?> entityInformation,
 			KeysetScrollPosition scrollPosition) {
+
 		super(tree, type, builder, provider);
+
 		this.entityInformation = entityInformation;
 		this.scrollPosition = scrollPosition;
 	}

@@ -49,7 +49,6 @@ final class NamedQuery extends AbstractJpaQuery {
 	private final String queryName;
 	private final String countQueryName;
 	private final @Nullable String countProjection;
-	private final QueryExtractor extractor;
 	private final boolean namedCountQueryIsPresent;
 	private final DeclaredQuery declaredQuery;
 	private final QueryParameterSetter.QueryMetadataCache metadataCache;
@@ -63,7 +62,7 @@ final class NamedQuery extends AbstractJpaQuery {
 
 		this.queryName = method.getNamedQueryName();
 		this.countQueryName = method.getNamedCountQueryName();
-		this.extractor = method.getQueryExtractor();
+		QueryExtractor extractor = method.getQueryExtractor();
 		this.countProjection = method.getCountQueryProjection();
 
 		Parameters<?, ?> parameters = method.getParameters();
@@ -81,7 +80,7 @@ final class NamedQuery extends AbstractJpaQuery {
 		this.declaredQuery = DeclaredQuery.of(queryString, false);
 
 		boolean weNeedToCreateCountQuery = !namedCountQueryIsPresent && method.getParameters().hasPageableParameter();
-		boolean cantExtractQuery = !this.extractor.canExtractQuery();
+		boolean cantExtractQuery = !extractor.canExtractQuery();
 
 		if (weNeedToCreateCountQuery && cantExtractQuery) {
 			throw QueryCreationException.create(method, CANNOT_EXTRACT_QUERY);
@@ -99,9 +98,8 @@ final class NamedQuery extends AbstractJpaQuery {
 	/**
 	 * Returns whether the named query with the given name exists.
 	 *
-	 * @param em must not be {@literal null}.
+	 * @param em        must not be {@literal null}.
 	 * @param queryName must not be {@literal null}.
-	 * @return
 	 */
 	static boolean hasNamedQuery(EntityManager em, String queryName) {
 
@@ -129,8 +127,7 @@ final class NamedQuery extends AbstractJpaQuery {
 	 * Looks up a named query for the given {@link org.springframework.data.repository.query.QueryMethod}.
 	 *
 	 * @param method must not be {@literal null}.
-	 * @param em must not be {@literal null}.
-	 * @return
+	 * @param em     must not be {@literal null}.
 	 */
 	@Nullable
 	public static RepositoryQuery lookupFrom(JpaQueryMethod method, EntityManager em) {

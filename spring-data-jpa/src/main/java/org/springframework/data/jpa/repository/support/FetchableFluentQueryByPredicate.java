@@ -233,9 +233,9 @@ class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<S, R> imp
 
 	static class PredicateScrollDelegate<T> extends ScrollDelegate<T> {
 
-		private final ScrollQueryFactory<T> scrollFunction;
+		private final ScrollQueryFactory scrollFunction;
 
-		PredicateScrollDelegate(ScrollQueryFactory<T> scrollQueryFactory, JpaEntityInformation<T, ?> entity) {
+		PredicateScrollDelegate(ScrollQueryFactory scrollQueryFactory, JpaEntityInformation<T, ?> entity) {
 			super(entity);
 			this.scrollFunction = scrollQueryFactory;
 		}

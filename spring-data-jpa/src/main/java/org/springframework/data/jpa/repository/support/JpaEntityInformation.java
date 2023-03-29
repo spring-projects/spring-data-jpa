@@ -35,8 +35,6 @@ public interface JpaEntityInformation<T, ID> extends EntityInformation<T, ID>, J
 
 	/**
 	 * Returns the id attribute of the entity.
-	 *
-	 * @return
 	 */
 	@Nullable
 	SingularAttribute<? super T, ?> getIdAttribute();
@@ -62,25 +60,20 @@ public interface JpaEntityInformation<T, ID> extends EntityInformation<T, ID>, J
 
 	/**
 	 * Returns {@literal true} if the entity has a composite id.
-	 *
-	 * @return
 	 */
 	boolean hasCompositeId();
 
 	/**
 	 * Returns the attribute names of the id attributes. If the entity has a composite id, then all id attribute names are
 	 * returned. If the entity has a single id attribute then this single attribute name is returned.
-	 *
-	 * @return
 	 */
 	Collection<String> getIdAttributeNames();
 
 	/**
 	 * Extracts the value for the given id attribute from a composite id
 	 *
-	 * @param id
-	 * @param idAttribute
-	 * @return
+	 * @param id the composite id from which to extract the attribute.
+	 * @param idAttribute the attribute name to extract.
 	 */
 	@Nullable
 	Object getCompositeIdAttributeValue(Object id, String idAttribute);
@@ -88,9 +81,9 @@ public interface JpaEntityInformation<T, ID> extends EntityInformation<T, ID>, J
 	/**
 	 * Extract a keyset for {@code propertyPaths} and the primary key (including composite key components if applicable).
 	 *
-	 * @param propertyPaths
-	 * @param entity
-	 * @return
+	 * @param propertyPaths the property paths that make up the keyset in combination with the composite key components.
+	 * @param entity the entity to extract values from
+	 * @return a map mapping String representations of the paths to values from the entity.
 	 * @since 3.1
 	 */
 	Map<String, Object> getKeyset(Iterable<String> propertyPaths, T entity);

@@ -50,6 +50,7 @@ public class Item {
 	}
 
 	public Item(Integer id, Integer manufacturerId, String name) {
+
 		this.id = id;
 		this.manufacturerId = manufacturerId;
 		this.name = name;

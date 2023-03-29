@@ -85,11 +85,9 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 
 		this.entityName = type instanceof EntityType ? ((EntityType<?>) type).getName() : null;
 
-		if (!(type instanceof IdentifiableType)) {
+		if (!(type instanceof IdentifiableType<T> identifiableType)) {
 			throw new IllegalArgumentException("The given domain class does not contain an id attribute");
 		}
-
-		IdentifiableType<T> identifiableType = (IdentifiableType<T>) type;
 
 		this.idMetadata = new IdMetadata<>(identifiableType, PersistenceProvider.fromMetamodel(metamodel));
 		this.versionAttribute = findVersionAttribute(identifiableType, metamodel);
@@ -108,7 +106,6 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 	 *
 	 * @param type must not be {@literal null}.
 	 * @param metamodel must not be {@literal null}.
-	 * @return
 	 */
 	@SuppressWarnings("unchecked")
 	private static <T> Optional<SingularAttribute<? super T, ?>> findVersionAttribute(IdentifiableType<T> type,
@@ -262,7 +259,6 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 		private final Set<SingularAttribute<? super T, ?>> attributes;
 		private @Nullable Class<?> idType;
 
-		@SuppressWarnings("unchecked")
 		IdMetadata(IdentifiableType<T> source, PersistenceProvider persistenceProvider) {
 
 			this.type = source;

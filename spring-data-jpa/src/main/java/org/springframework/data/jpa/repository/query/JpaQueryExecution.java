@@ -142,6 +142,7 @@ public abstract class JpaQueryExecution {
 		private final ScrollDelegate<?> delegate;
 
 		ScrollExecution(Sort sort, ScrollDelegate<?> delegate) {
+
 			this.sort = sort;
 			this.delegate = delegate;
 		}
