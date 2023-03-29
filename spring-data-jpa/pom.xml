@@ -149,8 +149,14 @@
 			<artifactId>hibernate-core</artifactId>
 			<version>${hibernate}</version>
 			<optional>true</optional>
+			<exclusions>
+				<exclusion>
+					<groupId>net.bytebuddy</groupId>
+					<artifactId>byte-buddy</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
-
+		
 		<dependency>
 			<groupId>${hibernate.groupId}.orm</groupId>
 			<artifactId>hibernate-jpamodelgen</artifactId>
@@ -246,27 +252,6 @@
 	<build>
 		<plugins>
 
-			<!--
-			     Jacoco plugin redeclared to make sure it's downloaded and
-			     the agents can be explicitly added to the test executions.
-			-->
-			<plugin>
-				<groupId>org.jacoco</groupId>
-				<artifactId>jacoco-maven-plugin</artifactId>
-				<version>${jacoco}</version>
-				<configuration>
-					<destFile>${jacoco.destfile}</destFile>
-				</configuration>
-				<executions>
-					<execution>
-						<id>jacoco-initialize</id>
-						<goals>
-							<goal>prepare-agent</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
@@ -320,7 +305,6 @@
 							</excludes>
 							<argLine>
 								-javaagent:${settings.localRepository}/org/springframework/spring-instrument/${spring}/spring-instrument-${spring}.jar
-								-javaagent:${settings.localRepository}/org/jacoco/org.jacoco.agent/${jacoco}/org.jacoco.agent-${jacoco}-runtime.jar=destfile=${jacoco.destfile}
 							</argLine>
 						</configuration>
 					</execution>
@@ -335,7 +319,6 @@
 								<include>**/EclipseLink*Tests.java</include>
 							</includes>
 							<argLine>
-								-javaagent:${settings.localRepository}/org/jacoco/org.jacoco.agent/${jacoco}/org.jacoco.agent-${jacoco}-runtime.jar=destfile=${jacoco.destfile}
 								-javaagent:${settings.localRepository}/org/eclipse/persistence/org.eclipse.persistence.jpa/${eclipselink}/org.eclipse.persistence.jpa-${eclipselink}.jar
 								-javaagent:${settings.localRepository}/org/springframework/spring-instrument/${spring}/spring-instrument-${spring}.jar
 							</argLine>
