@@ -18,7 +18,7 @@ pipeline {
 	}
 
 	stages {
-		stage("test: baseline (Java 17)") {
+		stage("test: baseline (main)") {
 			when {
 				beforeAgent(true)
 				anyOf {
@@ -53,6 +53,23 @@ pipeline {
 			}
 
 			parallel {
+				stage("test: baseline (next)") {
+					agent {
+						label 'data'
+					}
+					options { timeout(time: 30, unit: 'MINUTES')}
+					environment {
+						ARTIFACTORY = credentials("${p['artifactory.credentials']}")
+					}
+					steps {
+						script {
+							docker.image(p['docker.java.next.image']).inside(p['docker.java.inside.docker']) {
+								sh 'PROFILE=all-dbs ci/test.sh'
+								sh "ci/clean.sh"
+							}
+						}
+					}
+				}
 				stage("test: eclipselink-next") {
 					agent {
 						label 'data'
