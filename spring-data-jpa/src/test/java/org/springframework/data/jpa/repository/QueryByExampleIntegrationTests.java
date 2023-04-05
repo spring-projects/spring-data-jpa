@@ -43,7 +43,7 @@ import org.springframework.transaction.annotation.Transactional;
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration({ "classpath:hibernate.xml", "classpath:config/namespace-application-context.xml" })
 @Transactional
-class QueryByExampleHibernateIntegrationTests {
+class QueryByExampleIntegrationTests {
 
 	@Autowired RoleRepository repository;
 	@Autowired EntityManager em;

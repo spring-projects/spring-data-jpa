@@ -17,27 +17,27 @@ package org.springframework.data.jpa.repository.query;
 
 import static org.assertj.core.api.Assertions.*;
 
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
-import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.core.read.ListAppender;
 import jakarta.persistence.EntityManagerFactory;
 
-import java.util.List;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.Properties;
-import java.util.function.Predicate;
 
 import javax.sql.DataSource;
 
-import org.assertj.core.api.Condition;
-import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.DefaultResourceLoader;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.sample.Role;
@@ -51,15 +51,17 @@ import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.AbstractJpaVendorAdapter;
 import org.springframework.orm.jpa.vendor.Database;
-import org.springframework.orm.jpa.vendor.HibernateJpaDialect;
-import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
+import org.springframework.orm.jpa.vendor.EclipseLinkJpaDialect;
+import org.springframework.orm.jpa.vendor.EclipseLinkJpaVendorAdapter;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.FileCopyUtils;
+import org.springframework.util.FileSystemUtils;
 
 /**
- * Verify that {@link Meta}-annotated methods properly embed comments into Hibernate queries.
+ * Verify that {@link Meta}-annotated methods properly embed comments into EclipseLink queries.
  *
  * @author Greg Turnquist
  * @since 3.0
@@ -67,25 +69,21 @@ import org.springframework.transaction.annotation.Transactional;
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration
 @Transactional
-class MetaAnnotatedQueryMethodHibernateIntegrationTests {
+class EclipseLinkMetaAnnotatedQueryMethodIntegrationTests {
 
 	@Autowired RoleRepositoryWithMeta repository;
 
-	Logger testLogger = (Logger) LoggerFactory.getLogger("org.hibernate.SQL");
-	ListAppender<ILoggingEvent> testAppender;
+	private static final ResourceLoader RESOURCE_LOADER = new DefaultResourceLoader();
+	private static final String LOG_FILE = "test-eclipselink-meta.log";
 
 	@BeforeEach
-	void setUp() {
-
-		testAppender = new ListAppender<>();
-		testAppender.start();
-		testLogger.setLevel(Level.DEBUG);
-		testLogger.addAppender(testAppender);
+	void cleanoutLogfile() throws IOException {
+		new FileOutputStream(LOG_FILE).close();
 	}
 
-	@AfterEach
-	void clearUp() {
-		testLogger.detachAppender(testAppender);
+	@AfterAll
+	static void deleteLogfile() throws IOException {
+		FileSystemUtils.deleteRecursively(Path.of(LOG_FILE));
 	}
 
 	@Test // GH-775
@@ -97,11 +95,11 @@ class MetaAnnotatedQueryMethodHibernateIntegrationTests {
 	}
 
 	@Test // GH-775
-	void findByIdShouldNotLogAComment() {
+	void findByIdShouldLogAComment() {
 
 		repository.findById(0);
 
-		assertNoComments();
+		assertAtLeastOneComment();
 	}
 
 	@Test // GH-775
@@ -113,7 +111,7 @@ class MetaAnnotatedQueryMethodHibernateIntegrationTests {
 	}
 
 	@Test // GH-775
-	void customFinderShouldLogAComment() {
+	void customFinderShouldLogAComment() throws Exception {
 
 		repository.findByName("name");
 
@@ -177,14 +175,6 @@ class MetaAnnotatedQueryMethodHibernateIntegrationTests {
 	}
 
 	@Test // GH-775
-	void deleteAllByIdInBatchShouldLogAComment() {
-
-		repository.deleteAllByIdInBatch(List.of(0, 1, 2));
-
-		assertAtLeastOneComment();
-	}
-
-	@Test // GH-775
 	void deleteAllInBatchShouldLogAComment() {
 
 		repository.deleteAllInBatch();
@@ -192,15 +182,16 @@ class MetaAnnotatedQueryMethodHibernateIntegrationTests {
 		assertAtLeastOneComment();
 	}
 
-	private final static Predicate<String> hasComment = s -> s.startsWith("/* foobar */");
+	void assertAtLeastOneComment() {
 
-	private void assertAtLeastOneComment() {
-		assertThat(testAppender.list).extracting(ILoggingEvent::getFormattedMessage)
-				.haveAtLeastOne(new Condition<String>(hasComment, "SQL contains a comment"));
-	}
+		try (Reader reader = new InputStreamReader(RESOURCE_LOADER.getResource("file:" + LOG_FILE).getInputStream(),
+				StandardCharsets.UTF_8)) {
 
-	private void assertNoComments() {
-		assertThat(testAppender.list).extracting(ILoggingEvent::getFormattedMessage).noneMatch(hasComment);
+			String logFileOutput = FileCopyUtils.copyToString(reader);
+			assertThat(logFileOutput).contains("/* foobar */");
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Configuration
@@ -216,14 +207,16 @@ class MetaAnnotatedQueryMethodHibernateIntegrationTests {
 		public Properties jpaProperties() {
 
 			Properties properties = new Properties();
-			properties.setProperty("hibernate.use_sql_comments", "true");
+			properties.put("eclipselink.weaving", "false");
+			properties.put("eclipselink.logging.level.sql", "FINE");
+			properties.put("eclipselink.logging.file", LOG_FILE);
 			return properties;
 		}
 
 		@Bean
 		public AbstractJpaVendorAdapter vendorAdaptor() {
 
-			HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
+			EclipseLinkJpaVendorAdapter vendorAdapter = new EclipseLinkJpaVendorAdapter();
 			vendorAdapter.setGenerateDdl(true);
 			vendorAdapter.setDatabase(Database.HSQL);
 			return vendorAdapter;
@@ -243,7 +236,7 @@ class MetaAnnotatedQueryMethodHibernateIntegrationTests {
 
 		@Bean
 		public JpaDialect jpaDialect() {
-			return new HibernateJpaDialect();
+			return new EclipseLinkJpaDialect();
 		}
 
 		@Bean
