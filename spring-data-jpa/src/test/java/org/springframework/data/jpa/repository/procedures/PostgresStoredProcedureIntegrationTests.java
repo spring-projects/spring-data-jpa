@@ -35,7 +35,7 @@ import java.util.Properties;
 
 import javax.sql.DataSource;
 
-import org.hibernate.dialect.PostgreSQL91Dialect;
+import org.hibernate.dialect.PostgreSQLDialect;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.postgresql.ds.PGSimpleDataSource;
@@ -201,7 +201,7 @@ class PostgresStoredProcedureIntegrationTests {
 		@Bean(initMethod = "start", destroyMethod = "stop")
 		public PostgreSQLContainer<?> container() {
 
-			return new PostgreSQLContainer<>("postgres:9.6.12") //
+			return new PostgreSQLContainer<>("postgres:10.21") //
 					.withUsername("postgres");
 		}
 
@@ -226,7 +226,7 @@ class PostgresStoredProcedureIntegrationTests {
 
 			Properties properties = new Properties();
 			properties.setProperty("hibernate.hbm2ddl.auto", "create");
-			properties.setProperty("hibernate.dialect", PostgreSQL91Dialect.class.getCanonicalName());
+			properties.setProperty("hibernate.dialect", PostgreSQLDialect.class.getCanonicalName());
 			factoryBean.setJpaProperties(properties);
 
 			return factoryBean;
