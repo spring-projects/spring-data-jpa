@@ -144,13 +144,6 @@
 		<!-- Persistence providers -->
 
 		<dependency>
-			<groupId>org.eclipse.persistence</groupId>
-			<artifactId>org.eclipse.persistence.jpa</artifactId>
-			<version>${eclipselink}</version>
-			<optional>true</optional>
-		</dependency>
-
-		<dependency>
 			<groupId>${hibernate.groupId}.orm</groupId>
 			<artifactId>hibernate-core</artifactId>
 			<version>${hibernate}</version>
@@ -181,6 +174,13 @@
 			<groupId>jakarta.annotation</groupId>
 			<artifactId>jakarta.annotation-api</artifactId>
 			<version>${jakarta-annotation-api}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.persistence</groupId>
+			<artifactId>org.eclipse.persistence.jpa</artifactId>
+			<version>${eclipselink}</version>
+			<optional>true</optional>
 		</dependency>
 
 		<!-- QueryDsl -->

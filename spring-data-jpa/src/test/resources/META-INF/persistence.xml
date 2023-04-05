@@ -177,7 +177,7 @@
 		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$ExampleEntityWithUUIDId</class>
 		<exclude-unlisted-classes>true</exclude-unlisted-classes>
 		<properties>
-			<property name="hibernate.dialect" value="org.hibernate.dialect.PostgreSQL91Dialect" />
+			<property name="hibernate.dialect" value="org.hibernate.dialect.PostgreSQLDialect" />
 		</properties>
 	</persistence-unit>
 	<persistence-unit name="metadata-id-handling-el">
@@ -195,7 +195,7 @@
 		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$ExampleEntityWithUUIDId</class>
 		<exclude-unlisted-classes>true</exclude-unlisted-classes>
 		<properties>
-			<property name="hibernate.dialect" value="org.hibernate.dialect.PostgreSQL91Dialect" />
+			<property name="hibernate.dialect" value="org.hibernate.dialect.PostgreSQLDialect" />
 		</properties>
 	</persistence-unit>
 
