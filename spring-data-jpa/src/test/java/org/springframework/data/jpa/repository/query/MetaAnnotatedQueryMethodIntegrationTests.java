@@ -85,6 +85,7 @@ class MetaAnnotatedQueryMethodIntegrationTests {
 
 	@AfterEach
 	void clearUp() {
+		testLogger.setLevel(Level.ERROR);
 		testLogger.detachAppender(testAppender);
 	}
 
