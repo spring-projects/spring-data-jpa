@@ -201,7 +201,7 @@ public class PostgresStoredProcedureIntegrationTests {
 		@Bean(initMethod = "start", destroyMethod = "stop")
 		public PostgreSQLContainer<?> container() {
 
-			return new PostgreSQLContainer<>("postgres:9.6.12") //
+			return new PostgreSQLContainer<>("postgres:10.21") //
 					.withUsername("postgres");
 		}
 
