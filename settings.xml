@@ -5,11 +5,6 @@
 
 	<servers>
 		<server>
-			<id>spring-plugins-release</id>
-			<username>${env.ARTIFACTORY_USR}</username>
-			<password>${env.ARTIFACTORY_PSW}</password>
-		</server>
-		<server>
 			<id>spring-libs-snapshot</id>
 			<username>${env.ARTIFACTORY_USR}</username>
 			<password>${env.ARTIFACTORY_PSW}</password>
