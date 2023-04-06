@@ -576,15 +576,4 @@
 		</repository>
 	</repositories>
 
-	<pluginRepositories>
-		<pluginRepository>
-			<id>spring-plugins-release</id>
-			<url>https://repo.spring.io/plugins-release</url>
-		</pluginRepository>
-		<pluginRepository>
-			<id>spring-libs-milestone</id>
-			<url>https://repo.spring.io/libs-milestone</url>
-		</pluginRepository>
-	</pluginRepositories>
-
 </project>
