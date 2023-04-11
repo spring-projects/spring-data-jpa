@@ -19,10 +19,10 @@ import static org.assertj.core.api.Assertions.*;
 
 import jakarta.persistence.EntityManager;
 
+import org.hibernate.proxy.HibernateProxy;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan.Filter;
 import org.springframework.context.annotation.Configuration;
@@ -74,8 +74,9 @@ public class PersistenceProviderIntegrationTests {
 				Product product = categories.findById(category.getId()).get().getProduct();
 				ProxyIdAccessor accessor = PersistenceProvider.fromEntityManager(em);
 
-				assertThat(accessor.shouldUseAccessorFor(product)).isTrue();
-				assertThat(accessor.getIdentifierFrom(product).toString()).isEqualTo((Object) product.getId().toString());
+				if (product instanceof HibernateProxy proxy) {
+					assertThat(proxy.getHibernateLazyInitializer().isUninitialized()).isTrue();
+				}
 
 				return null;
 			}

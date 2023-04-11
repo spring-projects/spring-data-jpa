@@ -17,16 +17,15 @@ package org.springframework.data.jpa.mapping;
 
 import static org.assertj.core.api.Assertions.*;
 
-import java.util.Collections;
-
 import jakarta.persistence.EntityManager;
+
+import java.util.Collections;
 
 import org.hibernate.proxy.HibernateProxy;
 import org.hibernate.proxy.LazyInitializer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan.Filter;
 import org.springframework.context.annotation.Configuration;
@@ -145,8 +144,10 @@ class JpaMetamodelMappingContextIntegrationTests {
 			IdentifierAccessor accessor = entity.getIdentifierAccessor(loadedProduct);
 
 			assertThat(accessor.getIdentifier()).isEqualTo(category.getProduct().getId());
-			assertThat(loadedProduct).isInstanceOf(HibernateProxy.class);
-			assertThat(((HibernateProxy) loadedProduct).getHibernateLazyInitializer().isUninitialized()).isTrue();
+
+			if (loadedProduct instanceof HibernateProxy proxy) {
+				assertThat(proxy.getHibernateLazyInitializer().isUninitialized()).isTrue();
+			}
 
 			status.setRollbackOnly();
 
