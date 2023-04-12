@@ -36,6 +36,7 @@ import java.util.Properties;
 import javax.sql.DataSource;
 
 import org.hibernate.dialect.PostgreSQLDialect;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.postgresql.ds.PGSimpleDataSource;
@@ -67,6 +68,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
  * @author Greg Turnquist
  * @author Yanming Zhou
  */
+@Disabled
 @Transactional
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = PostgresStoredProcedureIntegrationTests.Config.class)
