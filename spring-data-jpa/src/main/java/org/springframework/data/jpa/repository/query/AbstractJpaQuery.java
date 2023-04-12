@@ -314,18 +314,17 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 		@Override
 		public Object convert(Object source) {
 
-			if (!(source instanceof Tuple)) {
+			if (!(source instanceof Tuple tuple)) {
 				return source;
 			}
 
-			Tuple tuple = (Tuple) source;
 			List<TupleElement<?>> elements = tuple.getElements();
 
 			if (elements.size() == 1) {
 
 				Object value = tuple.get(elements.get(0));
 
-				if (type.isInstance(value) || value == null) {
+				if (type.getDomainType().isInstance(value) || type.isInstance(value) || value == null) {
 					return value;
 				}
 			}

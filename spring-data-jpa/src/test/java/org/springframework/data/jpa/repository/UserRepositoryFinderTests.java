@@ -40,6 +40,8 @@ import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.repository.sample.RoleRepository;
 import org.springframework.data.jpa.repository.sample.UserRepository;
+import org.springframework.data.jpa.repository.sample.UserRepository.IdOnly;
+import org.springframework.data.jpa.repository.sample.UserRepository.RolesAndFirstname;
 import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -281,11 +283,28 @@ class UserRepositoryFinderTests {
 				.containsExactlyInAnyOrder(dave, oliver);
 	}
 
-	@Test // DATAJPA-974
+	@Test // DATAJPA-974, GH-2815
 	void executesQueryWithProjectionContainingReferenceToPluralAttribute() {
 
-		assertThat(userRepository.findRolesAndFirstnameBy()) //
+		List<RolesAndFirstname> rolesAndFirstnameBy = userRepository.findRolesAndFirstnameBy();
+
+		assertThat(rolesAndFirstnameBy)
 				.isNotNull();
+
+		for (RolesAndFirstname rolesAndFirstname : rolesAndFirstnameBy) {
+			assertThat(rolesAndFirstname.getFirstname()).isNotNull();
+			assertThat(rolesAndFirstname.getRoles()).isNotNull();
+		}
+	}
+
+	@Test // GH-2815
+	void executesQueryWithProjectionThroughStringQuery() {
+
+		List<IdOnly> ids = userRepository.findIdOnly();
+
+		assertThat(ids).isNotNull();
+
+		assertThat(ids).extracting(IdOnly::getId).doesNotContainNull();
 	}
 
 	@Test // DATAJPA-1023, DATACMNS-959

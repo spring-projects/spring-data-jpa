@@ -556,6 +556,9 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 
 	List<RolesAndFirstname> findRolesAndFirstnameBy();
 
+	@Query(value = "FROM User u")
+	List<IdOnly> findIdOnly();
+
 	// DATAJPA-1172
 	@Query("select u from User u where u.age = :age")
 	List<User> findByStringAge(@Param("age") String age);
@@ -731,5 +734,9 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 
 	interface EmailOnly {
 		String getEmailAddress();
+	}
+
+	interface IdOnly {
+		int getId();
 	}
 }
