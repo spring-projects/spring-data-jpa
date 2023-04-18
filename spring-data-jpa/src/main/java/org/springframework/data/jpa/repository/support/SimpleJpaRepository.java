@@ -309,7 +309,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 		getQueryHints().withFetchGraphs(em).forEach(hints::put);
 
-		if (metadata.getComment() != null && provider.getCommentHintKey() != null) {
+		if (metadata != null && metadata.getComment() != null && provider.getCommentHintKey() != null) {
 			hints.put(provider.getCommentHintKey(), provider.getCommentHintValue(metadata.getComment()));
 		}
 
