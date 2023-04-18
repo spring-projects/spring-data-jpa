@@ -15,22 +15,13 @@
  */
 package org.springframework.data.envers.repository.support;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.springframework.data.history.RevisionMetadata.RevisionType.*;
-
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Optional;
-
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.envers.Config;
 import org.springframework.data.envers.sample.Country;
 import org.springframework.data.envers.sample.CountryRepository;
@@ -42,11 +33,23 @@ import org.springframework.data.history.Revisions;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import java.time.Instant;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.*;
+import static org.springframework.data.history.RevisionMetadata.RevisionType.*;
+
+
 /**
  * Integration tests for repositories.
  *
  * @author Oliver Gierke
  * @author Jens Schauder
+ * @author Krzysztof Krason
+ * @author Niklas Loechte
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = Config.class)
@@ -59,13 +62,6 @@ class RepositoryIntegrationTests {
 
 	@BeforeEach
 	void setUp() {
-
-		licenseRepository.deleteAll();
-		countryRepository.deleteAll();
-	}
-
-	@AfterEach
-	void tearDown() {
 
 		licenseRepository.deleteAll();
 		countryRepository.deleteAll();
@@ -113,22 +109,26 @@ class RepositoryIntegrationTests {
 		});
 	}
 
-	@Test // #1
+	@Test
+		// #1
 	void returnsEmptyLastRevisionForUnrevisionedEntity() {
 		assertThat(countryRepository.findLastChangeRevision(100L)).isEmpty();
 	}
 
-	@Test // #47
+	@Test
+		// #47
 	void returnsEmptyRevisionsForUnrevisionedEntity() {
 		assertThat(countryRepository.findRevisions(100L)).isEmpty();
 	}
 
-	@Test // #47
+	@Test
+		// #47
 	void returnsEmptyRevisionForUnrevisionedEntity() {
 		assertThat(countryRepository.findRevision(100L, 23)).isEmpty();
 	}
 
-	@Test // #31
+	@Test
+		// #31
 	void returnsParticularRevisionForAnEntity() {
 
 		Country de = new Country();
@@ -156,7 +156,8 @@ class RepositoryIntegrationTests {
 				.hasValueSatisfying(it -> assertThat(it.getEntity().name).isEqualTo("Germany"));
 	}
 
-	@Test // #55
+	@Test
+		// #55
 	void considersRevisionNumberSortOrder() {
 
 		Country de = new Country();
@@ -177,7 +178,8 @@ class RepositoryIntegrationTests {
 				.isGreaterThan(page.getContent().get(1).getRequiredRevisionNumber());
 	}
 
-	@Test // #21
+	@Test
+		// #21
 	void findsDeletedRevisions() {
 
 		Country de = new Country();
@@ -197,7 +199,8 @@ class RepositoryIntegrationTests {
 				.containsExactly(null, null);
 	}
 
-	@Test // #47
+	@Test
+		// #47
 	void includesCorrectRevisionType() {
 
 		Country de = new Country();
@@ -223,7 +226,8 @@ class RepositoryIntegrationTests {
 				);
 	}
 
-	@Test // #146
+	@Test
+		// #146
 	void shortCircuitingWhenOffsetIsToLarge() {
 
 		Country de = new Country();
@@ -239,10 +243,32 @@ class RepositoryIntegrationTests {
 		check(de.id, 2, 0, 2);
 	}
 
-	@Test // #47
+	@Test
+		// #47
 	void paginationWithEmptyResult() {
 
-		check(23L, 0, 0, 0);
+		check(-23L, 0, 0, 0);
+	}
+
+
+	@Test
+		// Envers #379
+	void testSort_pageableByProperty() {
+
+		Country de = new Country();
+		de.code = "de";
+		de.name = "Deutschland";
+		de.timestamp = Instant.parse("2000-01-01T00:00:00Z");
+		countryRepository.save(de);
+
+		de.timestamp = Instant.parse("2000-01-04T00:01:00Z");
+		countryRepository.save(de);
+
+		de.timestamp = Instant.parse("2000-01-04T00:00:00Z");
+		countryRepository.save(de);
+
+		assertThat(countryRepository.findRevisions(de.id, PageRequest.of(0, 3, Sort.by("timestamp"))).map(Revision::getEntity).map(country -> country.timestamp).getContent())
+				.isSortedAccordingTo(Instant::compareTo);
 	}
 
 	void check(Long id, int page, int expectedSize, int expectedTotalSize) {
