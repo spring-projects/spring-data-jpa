@@ -20,11 +20,14 @@ import jakarta.persistence.Entity;
 import lombok.ToString;
 import org.hibernate.envers.Audited;
 
+import java.time.Instant;
+
 /**
  * Sample domain class.
  *
  * @author Oliver Gierke
  * @author Jens Schauder
+ * @author Niklas Loechte
  */
 @Audited
 @Entity
@@ -32,5 +35,8 @@ import org.hibernate.envers.Audited;
 public class Country extends AbstractEntity {
 
 	public String code;
+
+	public Instant timestamp;
+
 	public String name;
 }

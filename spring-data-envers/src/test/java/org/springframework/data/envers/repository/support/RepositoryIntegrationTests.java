@@ -15,23 +15,13 @@
  */
 package org.springframework.data.envers.repository.support;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.data.history.RevisionMetadata.RevisionType.DELETE;
-import static org.springframework.data.history.RevisionMetadata.RevisionType.INSERT;
-import static org.springframework.data.history.RevisionMetadata.RevisionType.UPDATE;
-
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Optional;
-
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.envers.Config;
 import org.springframework.data.envers.sample.Country;
 import org.springframework.data.envers.sample.CountryRepository;
@@ -43,29 +33,33 @@ import org.springframework.data.history.Revisions;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import java.time.Instant;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.*;
+import static org.springframework.data.history.RevisionMetadata.RevisionType.*;
+
 /**
  * Integration tests for repositories.
  *
  * @author Oliver Gierke
  * @author Jens Schauder
- * @author Krzysztof Krason
+ * @author Niklas Loechte
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = Config.class)
 class RepositoryIntegrationTests {
 
-	@Autowired LicenseRepository licenseRepository;
-	@Autowired CountryRepository countryRepository;
+	@Autowired
+	LicenseRepository licenseRepository;
+	@Autowired
+	CountryRepository countryRepository;
 
 	@BeforeEach
 	void setUp() {
-
-		licenseRepository.deleteAll();
-		countryRepository.deleteAll();
-	}
-
-	@AfterEach
-	void tearDown() {
 
 		licenseRepository.deleteAll();
 		countryRepository.deleteAll();
@@ -241,7 +235,27 @@ class RepositoryIntegrationTests {
 	@Test // #47
 	void paginationWithEmptyResult() {
 
-		check(23L, 0, 0, 0);
+		check(-23L, 0, 0, 0);
+	}
+
+
+	@Test // Envers #379
+	void testSort_pageableByProperty() {
+
+		Country de = new Country();
+		de.code = "de";
+		de.name = "Deutschland";
+		de.timestamp = Instant.parse("2000-01-01T00:00:00Z");
+		countryRepository.save(de);
+
+		de.timestamp = Instant.parse("2000-01-04T00:01:00Z");
+		countryRepository.save(de);
+
+		de.timestamp = Instant.parse("2000-01-04T00:00:00Z");
+		countryRepository.save(de);
+
+		assertThat(countryRepository.findRevisions(de.id, PageRequest.of(0, 3, Sort.by("timestamp"))).map(Revision::getEntity).map(country -> country.timestamp).getContent())
+				.isSortedAccordingTo(Instant::compareTo);
 	}
 
 	void check(Long id, int page, int expectedSize, int expectedTotalSize) {
