@@ -92,18 +92,6 @@
 			</build>
 		</profile>
 		<profile>
-			<id>hibernate-next</id>
-			<properties>
-				<hibernate>6.0.0-SNAPSHOT</hibernate>
-			</properties>
-			<repositories>
-				<repository>
-					<id>jboss</id>
-					<url>https://repository.jboss.org/nexus/content/repositories/public</url>
-				</repository>
-			</repositories>
-		</profile>
-		<profile>
 			<id>eclipselink-next</id>
 			<properties>
 				<eclipselink>4.0.0</eclipselink>
