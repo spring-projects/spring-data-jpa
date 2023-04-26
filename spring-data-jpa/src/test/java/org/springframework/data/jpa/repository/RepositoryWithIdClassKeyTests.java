@@ -25,7 +25,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
-import org.springframework.data.domain.KeysetScrollPosition;
+import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Window;
 import org.springframework.data.jpa.domain.sample.Item;
@@ -90,7 +90,7 @@ class RepositoryWithIdClassKeyTests {
 
 		Window<Item> first = itemRepository.findBy((root, query, criteriaBuilder) -> {
 			return criteriaBuilder.isNotNull(root.get("name"));
-		}, q -> q.limit(1).sortBy(Sort.by("name")).scroll(KeysetScrollPosition.initial()));
+		}, q -> q.limit(1).sortBy(Sort.by("name")).scroll(ScrollPosition.keyset()));
 
 		assertThat(first).containsOnly(item1);
 

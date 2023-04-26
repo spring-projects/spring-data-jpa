@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.data.domain.KeysetScrollPosition;
-import org.springframework.data.domain.KeysetScrollPosition.Direction;
+import org.springframework.data.domain.ScrollPosition.Direction;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.lang.Nullable;
@@ -34,8 +34,8 @@ import org.springframework.lang.Nullable;
  */
 public class KeysetScrollDelegate {
 
-	private static final KeysetScrollDelegate forward = new KeysetScrollDelegate();
-	private static final KeysetScrollDelegate reverse = new ReverseKeysetScrollDelegate();
+	private static final KeysetScrollDelegate FORWARD = new KeysetScrollDelegate();
+	private static final KeysetScrollDelegate REVERSE = new ReverseKeysetScrollDelegate();
 
 	/**
 	 * Factory method to obtain the right {@link KeysetScrollDelegate}.
@@ -44,7 +44,7 @@ public class KeysetScrollDelegate {
 	 * @return a {@link KeysetScrollDelegate} matching the requested direction.
 	 */
 	public static KeysetScrollDelegate of(Direction direction) {
-		return direction == Direction.Forward ? forward : reverse;
+		return direction == Direction.FORWARD ? FORWARD : REVERSE;
 	}
 
 	@Nullable
@@ -119,6 +119,7 @@ public class KeysetScrollDelegate {
 	 */
 	private static class ReverseKeysetScrollDelegate extends KeysetScrollDelegate {
 
+		@Override
 		protected Sort getSortOrders(Sort sort) {
 
 			List<Order> orders = new ArrayList<>();

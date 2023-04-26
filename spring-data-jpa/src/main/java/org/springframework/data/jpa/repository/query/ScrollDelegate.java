@@ -22,9 +22,9 @@ import java.util.Map;
 import java.util.function.IntFunction;
 
 import org.springframework.data.domain.KeysetScrollPosition;
-import org.springframework.data.domain.KeysetScrollPosition.Direction;
 import org.springframework.data.domain.OffsetScrollPosition;
 import org.springframework.data.domain.ScrollPosition;
+import org.springframework.data.domain.ScrollPosition.Direction;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.domain.Window;
@@ -82,12 +82,12 @@ public class ScrollDelegate<T> {
 		KeysetScrollDelegate delegate = KeysetScrollDelegate.of(direction);
 		List<T> resultsToUse = delegate.postProcessResults(result);
 
-		IntFunction<KeysetScrollPosition> positionFunction = value -> {
+		IntFunction<ScrollPosition> positionFunction = value -> {
 
 			T object = result.get(value);
 			Map<String, Object> keys = entity.getKeyset(sort.stream().map(Order::getProperty).toList(), object);
 
-			return KeysetScrollPosition.of(keys);
+			return ScrollPosition.forward(keys);
 		};
 
 		return Window.from(delegate.getResultWindow(resultsToUse, limit), positionFunction, hasMoreElements(result, limit));

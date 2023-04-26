@@ -56,6 +56,8 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.*;
+import org.springframework.data.domain.ExampleMatcher.GenericPropertyMatcher;
+import org.springframework.data.domain.ExampleMatcher.StringMatcher;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.jpa.domain.Specification;
@@ -1243,7 +1245,7 @@ class UserRepositoryTests {
 				matching().withMatcher("firstname", GenericPropertyMatcher::startsWith).withIgnorePaths("age", "createdAt",
 						"dateOfBirth"));
 		Window<User> firstWindow = repository.findBy(example,
-				q -> q.limit(2).sortBy(Sort.by("firstname")).scroll(OffsetScrollPosition.initial()));
+				q -> q.limit(2).sortBy(Sort.by("firstname")).scroll(ScrollPosition.offset()));
 
 		assertThat(firstWindow).containsExactly(jane1, jane2);
 		assertThat(firstWindow.hasNext()).isTrue();
@@ -1269,7 +1271,7 @@ class UserRepositoryTests {
 				matching().withMatcher("firstname", GenericPropertyMatcher::startsWith).withIgnorePaths("age", "createdAt",
 						"dateOfBirth"));
 		Window<User> firstWindow = repository.findBy(example,
-				q -> q.limit(1).sortBy(Sort.by("firstname", "emailAddress")).scroll(KeysetScrollPosition.initial()));
+				q -> q.limit(1).sortBy(Sort.by("firstname", "emailAddress")).scroll(ScrollPosition.keyset()));
 
 		assertThat(firstWindow).containsOnly(jane1);
 		assertThat(firstWindow.hasNext()).isTrue();
@@ -1295,12 +1297,12 @@ class UserRepositoryTests {
 				matching().withMatcher("firstname", GenericPropertyMatcher::startsWith).withIgnorePaths("age", "createdAt",
 						"dateOfBirth"));
 		Window<User> firstWindow = repository.findBy(example,
-				q -> q.limit(4).sortBy(Sort.by("firstname", "emailAddress")).scroll(KeysetScrollPosition.initial()));
+				q -> q.limit(4).sortBy(Sort.by("firstname", "emailAddress")).scroll(ScrollPosition.keyset()));
 
 		KeysetScrollPosition scrollPosition = (KeysetScrollPosition) firstWindow.positionAt(2);
 		Window<User> previousWindow = repository.findBy(example,
 				q -> q.limit(1).sortBy(Sort.by("firstname", "emailAddress"))
-						.scroll(KeysetScrollPosition.of(scrollPosition.getKeys(), KeysetScrollPosition.Direction.Backward)));
+						.scroll(ScrollPosition.backward(scrollPosition.getKeys())));
 
 		assertThat(previousWindow).containsOnly(jane2);
 		assertThat(previousWindow.hasNext()).isTrue();
@@ -1317,7 +1319,7 @@ class UserRepositoryTests {
 		repository.saveAllAndFlush(Arrays.asList(john1, john2, jane1, jane2));
 
 		Window<User> firstWindow = repository.findBy(QUser.user.firstname.startsWith("J"),
-				q -> q.limit(2).sortBy(Sort.by("firstname")).scroll(OffsetScrollPosition.initial()));
+				q -> q.limit(2).sortBy(Sort.by("firstname")).scroll(ScrollPosition.offset()));
 
 		assertThat(firstWindow).containsExactly(jane1, jane2);
 		assertThat(firstWindow.hasNext()).isTrue();
@@ -1340,7 +1342,7 @@ class UserRepositoryTests {
 		repository.saveAllAndFlush(Arrays.asList(john1, john2, jane1, jane2));
 
 		Window<User> firstWindow = repository.findBy(QUser.user.firstname.startsWith("J"),
-				q -> q.limit(1).sortBy(Sort.by("firstname", "emailAddress")).scroll(KeysetScrollPosition.initial()));
+				q -> q.limit(1).sortBy(Sort.by("firstname", "emailAddress")).scroll(ScrollPosition.keyset()));
 
 		assertThat(firstWindow).containsOnly(jane1);
 		assertThat(firstWindow.hasNext()).isTrue();
@@ -1363,16 +1365,14 @@ class UserRepositoryTests {
 		repository.saveAllAndFlush(Arrays.asList(john1, john2, jane1, jane2));
 
 		Window<User> firstWindow = repository.findBy(QUser.user.firstname.startsWith("J"),
-				q -> q.limit(3).sortBy(Sort.by("firstname", "emailAddress")).scroll(KeysetScrollPosition.initial()));
+				q -> q.limit(3).sortBy(Sort.by("firstname", "emailAddress")).scroll(ScrollPosition.keyset()));
 
 		assertThat(firstWindow).containsExactly(jane1, jane2, john1);
 		assertThat(firstWindow.hasNext()).isTrue();
 
 		KeysetScrollPosition scrollPosition = (KeysetScrollPosition) firstWindow.positionAt(2);
-		KeysetScrollPosition backward = KeysetScrollPosition.of(scrollPosition.getKeys(),
-				KeysetScrollPosition.Direction.Backward);
 		Window<User> previousWindow = repository.findBy(QUser.user.firstname.startsWith("J"),
-				q -> q.limit(3).sortBy(Sort.by("firstname", "emailAddress")).scroll(backward));
+				q -> q.limit(3).sortBy(Sort.by("firstname", "emailAddress")).scroll(scrollPosition.backward()));
 
 		assertThat(previousWindow).containsExactly(jane1, jane2);
 
@@ -1391,16 +1391,14 @@ class UserRepositoryTests {
 		repository.saveAllAndFlush(Arrays.asList(john1, john2, jane1, jane2));
 
 		Window<User> firstWindow = repository.findTop3ByFirstnameStartingWithOrderByFirstnameAscEmailAddressAsc("J",
-				KeysetScrollPosition.initial());
+				ScrollPosition.keyset());
 
 		assertThat(firstWindow).containsExactly(jane1, jane2, john1);
 		assertThat(firstWindow.hasNext()).isTrue();
 
 		KeysetScrollPosition scrollPosition = (KeysetScrollPosition) firstWindow.positionAt(2);
-		KeysetScrollPosition backward = KeysetScrollPosition.of(scrollPosition.getKeys(),
-				KeysetScrollPosition.Direction.Backward);
 		Window<User> previousWindow = repository.findTop3ByFirstnameStartingWithOrderByFirstnameAscEmailAddressAsc("J",
-				backward);
+				scrollPosition.backward());
 
 		assertThat(previousWindow).containsExactly(jane1, jane2);
 
@@ -1914,7 +1912,7 @@ class UserRepositoryTests {
 
 		flushTestUsers();
 
-		Page<User> userPage = repository.findByAgeIn(List.of(28, 35), (PageRequest) PageRequest.of(0, 2));
+		Page<User> userPage = repository.findByAgeIn(List.of(28, 35), PageRequest.of(0, 2));
 
 		assertThat(userPage).hasSize(2);
 		assertThat(userPage.getTotalElements()).isEqualTo(2);
