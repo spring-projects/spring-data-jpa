@@ -54,6 +54,12 @@
 
 	<profiles>
 		<profile>
+			<id>hibernate-62</id>
+			<properties>
+				<hibernate>6.2.1.Final</hibernate>
+			</properties>
+		</profile>
+		<profile>
 			<id>all-dbs</id>
 			<build>
 				<plugins>

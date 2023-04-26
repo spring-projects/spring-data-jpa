@@ -53,6 +53,23 @@ pipeline {
 			}
 
 			parallel {
+				stage("test: baseline (hibernate 6.2)") {
+					agent {
+						label 'data'
+					}
+					options { timeout(time: 30, unit: 'MINUTES')}
+					environment {
+						ARTIFACTORY = credentials("${p['artifactory.credentials']}")
+					}
+					steps {
+						script {
+							docker.image(p['docker.java.next.image']).inside(p['docker.java.inside.docker']) {
+								sh 'PROFILE=all-dbs,hibernate-62 ci/test.sh'
+								sh "ci/clean.sh"
+							}
+						}
+					}
+				}
 				stage("test: baseline (next)") {
 					agent {
 						label 'data'

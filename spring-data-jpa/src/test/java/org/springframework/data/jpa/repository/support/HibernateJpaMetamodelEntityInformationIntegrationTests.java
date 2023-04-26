@@ -15,7 +15,9 @@
  */
 package org.springframework.data.jpa.repository.support;
 
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.data.jpa.util.DisabledOnHibernate61;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -32,5 +34,26 @@ public class HibernateJpaMetamodelEntityInformationIntegrationTests
 	@Override
 	String getMetadadataPersistenceUnitName() {
 		return "metadata-id-handling";
+	}
+
+	@DisabledOnHibernate61
+	@Test
+	@Override
+	void correctlyDeterminesIdValueForNestedIdClassesWithNonPrimitiveNonManagedType() {
+		super.correctlyDeterminesIdValueForNestedIdClassesWithNonPrimitiveNonManagedType();
+	}
+
+	@DisabledOnHibernate61
+	@Test
+	@Override
+	void prefersPrivateGetterOverFieldAccess() {
+		super.prefersPrivateGetterOverFieldAccess();
+	}
+
+	@DisabledOnHibernate61
+	@Test
+	@Override
+	void findsIdClassOnMappedSuperclass() {
+		super.findsIdClassOnMappedSuperclass();
 	}
 }

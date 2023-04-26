@@ -23,6 +23,27 @@
 		<java-module-name>spring.data.jpa</java-module-name>
 	</properties>
 
+	<profiles>
+		<profile>
+			<id>hibernate-62</id>
+			<dependencies>
+				<dependency>
+					<groupId>org.eclipse.persistence</groupId>
+					<artifactId>org.eclipse.persistence.jpa</artifactId>
+					<version>${eclipselink}</version>
+					<optional>true</optional>
+					<exclusions> <!-- Defer to Hibernate 6.2's choice of JPA -->
+						<exclusion>
+							<groupId>jakarta.persistence</groupId>
+							<artifactId>jakarta.persistence-api</artifactId>
+						</exclusion>
+					</exclusions>
+				</dependency>
+
+			</dependencies>
+		</profile>
+	</profiles>
+
 	<dependencies>
 
 		<dependency>
@@ -138,6 +159,13 @@
 		<!-- Persistence providers -->
 
 		<dependency>
+			<groupId>org.eclipse.persistence</groupId>
+			<artifactId>org.eclipse.persistence.jpa</artifactId>
+			<version>${eclipselink}</version>
+			<optional>true</optional>
+		</dependency>
+
+		<dependency>
 			<groupId>${hibernate.groupId}.orm</groupId>
 			<artifactId>hibernate-core</artifactId>
 			<version>${hibernate}</version>
@@ -149,7 +177,7 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>${hibernate.groupId}.orm</groupId>
 			<artifactId>hibernate-jpamodelgen</artifactId>
@@ -168,13 +196,6 @@
 			<groupId>jakarta.annotation</groupId>
 			<artifactId>jakarta.annotation-api</artifactId>
 			<version>${jakarta-annotation-api}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.eclipse.persistence</groupId>
-			<artifactId>org.eclipse.persistence.jpa</artifactId>
-			<version>${eclipselink}</version>
-			<optional>true</optional>
 		</dependency>
 
 		<!-- QueryDsl -->
