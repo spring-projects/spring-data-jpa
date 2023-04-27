@@ -79,7 +79,7 @@ class MailMessageRepositoryIntegrationTests {
 		mailMessageRepository.save(message2);
 
 		Page<MailMessage> results = mailMessageRepository.findAll(PageRequest.of(0, 20, //
-				new JpaSort(Direction.ASC, path(MailMessage_.mailSender).dot(MailSender_.name))));
+				JpaSort.of(Direction.ASC, path(MailMessage_.mailSender).dot(MailSender_.name))));
 		List<MailMessage> messages = results.getContent();
 
 		assertThat(messages).hasSize(2);
