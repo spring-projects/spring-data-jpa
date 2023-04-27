@@ -353,8 +353,7 @@ public class JpaSort extends Sort {
 
 	/**
 	 * Custom {@link Order} that keeps a flag to indicate unsafe property handling, i.e. the String provided is not
-	 * necessarily a property but can be an arbitrary expression piped into the query execution. We also keep an
-	 * additional {@code ignoreCase} flag around as the constructor of the superclass is private currently.
+	 * necessarily a property but can be an arbitrary expression piped into the query execution.
 	 *
 	 * @author Christoph Strobl
 	 * @author Oliver Gierke
@@ -364,7 +363,6 @@ public class JpaSort extends Sort {
 		private static final long serialVersionUID = 1L;
 
 		private final boolean unsafe;
-		private final boolean ignoreCase;
 
 		/**
 		 * Creates a new {@link JpaOrder} instance. if order is {@literal null} then order defaults to
@@ -392,8 +390,7 @@ public class JpaSort extends Sort {
 		private JpaOrder(@Nullable Direction direction, String property, NullHandling nullHandling, boolean ignoreCase,
 				boolean unsafe) {
 
-			super(direction, property, nullHandling);
-			this.ignoreCase = ignoreCase;
+			super(direction, property, ignoreCase, nullHandling);
 			this.unsafe = unsafe;
 		}
 
@@ -430,11 +427,6 @@ public class JpaSort extends Sort {
 		@Override
 		public JpaOrder ignoreCase() {
 			return new JpaOrder(getDirection(), getProperty(), getNullHandling(), true, this.unsafe);
-		}
-
-		@Override
-		public boolean isIgnoreCase() {
-			return super.isIgnoreCase() || ignoreCase;
 		}
 
 		/**
