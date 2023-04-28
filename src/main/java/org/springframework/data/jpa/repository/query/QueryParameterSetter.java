@@ -27,6 +27,7 @@ import java.util.function.Function;
 
 import javax.persistence.Parameter;
 import javax.persistence.Query;
+import javax.persistence.StoredProcedureQuery;
 import javax.persistence.TemporalType;
 import javax.persistence.criteria.ParameterExpression;
 
@@ -83,7 +84,15 @@ interface QueryParameterSetter {
 		public void setParameter(BindableQuery query, JpaParametersParameterAccessor accessor,
 				ErrorHandling errorHandling) {
 
-			final Object value = valueExtractor.apply(accessor);
+			final Object value;
+
+			if (query.getQuery() instanceof StoredProcedureQuery) {
+
+				Object extractedValue = valueExtractor.apply(accessor);
+				value = accessor.potentiallyUnwrap(extractedValue);
+			} else {
+				value = valueExtractor.apply(accessor);
+			}
 
 			if (temporalType != null) {
 

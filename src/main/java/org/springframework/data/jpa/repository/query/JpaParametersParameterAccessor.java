@@ -45,6 +45,17 @@ public class JpaParametersParameterAccessor extends ParametersParameterAccessor 
 		return super.getValue(parameter.getIndex());
 	}
 
+	/**
+	 * Utility method to potentially unwrap certain provider-specific types. For general JPA, there are none, so it's a pass-through.
+	 *
+	 * @param extractedValue
+	 * @return the same value passed in
+	 */
+	@Nullable
+	public Object potentiallyUnwrap(Object extractedValue) {
+		return extractedValue;
+	}
+
 	@Override
 	public Object[] getValues() {
 		return super.getValues();
