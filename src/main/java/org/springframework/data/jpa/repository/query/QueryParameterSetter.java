@@ -15,7 +15,7 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.springframework.data.jpa.repository.query.QueryParameterSetter.ErrorHandling.LENIENT;
+import static org.springframework.data.jpa.repository.query.QueryParameterSetter.ErrorHandling.*;
 
 import java.lang.reflect.Proxy;
 import java.util.Collections;
@@ -33,7 +33,6 @@ import javax.persistence.criteria.ParameterExpression;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hibernate.jpa.TypedParameterValue;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -87,16 +86,10 @@ interface QueryParameterSetter {
 
 			final Object value;
 
-			// TODO: When https://github.com/hibernate/hibernate-orm/pull/5438 is merged we should be able to drop this.
 			if (query.getQuery() instanceof StoredProcedureQuery) {
 
 				Object extractedValue = valueExtractor.apply(accessor);
-
-				if (extractedValue instanceof TypedParameterValue) {
-					value = ((TypedParameterValue) extractedValue).getValue();
-				} else {
-					value = extractedValue;
-				}
+				value = accessor.potentiallyUnwrap(extractedValue);
 			} else {
 				value = valueExtractor.apply(accessor);
 			}

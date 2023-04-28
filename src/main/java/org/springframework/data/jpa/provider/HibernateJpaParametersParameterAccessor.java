@@ -68,4 +68,21 @@ class HibernateJpaParametersParameterAccessor extends JpaParametersParameterAcce
 		}
 		return new TypedParameterValue(type, null);
 	}
+
+	/**
+	 * Utility method to potentially unwrap {@link TypedParameterValue}s. For certain operations, Hibernate doesn't
+	 * properly support them, so we must unwrap them before passing through.
+	 *
+	 * @param extractedValue
+	 * @return the value behind a {@link TypedParameterValue}
+	 */
+	@Override
+	public Object potentiallyUnwrap(Object extractedValue) {
+
+		if (extractedValue instanceof TypedParameterValue) {
+			return ((TypedParameterValue) extractedValue).getValue();
+		} else {
+			return extractedValue;
+		}
+	}
 }
