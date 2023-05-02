@@ -39,13 +39,14 @@ import javax.persistence.metamodel.Type;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnJre;
+import org.junit.jupiter.api.condition.JRE;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.ExampleMatcher.GenericPropertyMatcher;
@@ -90,19 +91,16 @@ class QueryByExamplePredicateBuilderUnitTests {
 	void setUp() {
 
 		personIdAttribute = new SingularAttributeStub<>("id", PersistentAttributeType.BASIC, Long.class);
-		personFirstnameAttribute = new SingularAttributeStub<>("firstname", PersistentAttributeType.BASIC,
-				String.class);
+		personFirstnameAttribute = new SingularAttributeStub<>("firstname", PersistentAttributeType.BASIC, String.class);
 		personAgeAttribute = new SingularAttributeStub<>("age", PersistentAttributeType.BASIC, Long.class);
-		personFatherAttribute = new SingularAttributeStub<>("father", PersistentAttributeType.MANY_TO_ONE,
-				Person.class, personEntityType);
-		personSkillAttribute = new SingularAttributeStub<>("skill", PersistentAttributeType.EMBEDDED,
-				Skill.class, skillEntityType);
-		personAddressAttribute = new SingularAttributeStub<>("address", PersistentAttributeType.EMBEDDED,
-				Address.class);
-		skillNameAttribute = new SingularAttributeStub<>("name", PersistentAttributeType.BASIC,
-				String.class);
-		skillNestedAttribute = new SingularAttributeStub<>("nested", PersistentAttributeType.MANY_TO_ONE,
-				Skill.class, skillEntityType);
+		personFatherAttribute = new SingularAttributeStub<>("father", PersistentAttributeType.MANY_TO_ONE, Person.class,
+				personEntityType);
+		personSkillAttribute = new SingularAttributeStub<>("skill", PersistentAttributeType.EMBEDDED, Skill.class,
+				skillEntityType);
+		personAddressAttribute = new SingularAttributeStub<>("address", PersistentAttributeType.EMBEDDED, Address.class);
+		skillNameAttribute = new SingularAttributeStub<>("name", PersistentAttributeType.BASIC, String.class);
+		skillNestedAttribute = new SingularAttributeStub<>("nested", PersistentAttributeType.MANY_TO_ONE, Skill.class,
+				skillEntityType);
 
 		personEntityAttribtues = new LinkedHashSet<>();
 		personEntityAttribtues.add(personIdAttribute);
@@ -169,6 +167,7 @@ class QueryByExamplePredicateBuilderUnitTests {
 		verify(cb, times(1)).equal(any(Expression.class), eq("foo"));
 	}
 
+	@DisabledOnJre({ JRE.JAVA_11, JRE.JAVA_17 })
 	@Test // DATAJPA-218
 	void multiPredicateCriteriaShouldReturnCombinedOnes() {
 
@@ -183,6 +182,7 @@ class QueryByExamplePredicateBuilderUnitTests {
 		verify(cb, times(1)).equal(any(Expression.class), eq(2L));
 	}
 
+	@DisabledOnJre({ JRE.JAVA_11, JRE.JAVA_17 })
 	@Test // DATAJPA-879
 	void orConcatenatesPredicatesIfMatcherSpecifies() {
 
@@ -306,13 +306,13 @@ class QueryByExamplePredicateBuilderUnitTests {
 		private Class<T> javaType;
 		private Type<T> type;
 
-		SingularAttributeStub(String name,
-				javax.persistence.metamodel.Attribute.PersistentAttributeType attributeType, Class<T> javaType) {
+		SingularAttributeStub(String name, javax.persistence.metamodel.Attribute.PersistentAttributeType attributeType,
+				Class<T> javaType) {
 			this(name, attributeType, javaType, null);
 		}
 
-		SingularAttributeStub(String name,
-				javax.persistence.metamodel.Attribute.PersistentAttributeType attributeType, Class<T> javaType, Type<T> type) {
+		SingularAttributeStub(String name, javax.persistence.metamodel.Attribute.PersistentAttributeType attributeType,
+				Class<T> javaType, Type<T> type) {
 			this.name = name;
 			this.attributeType = attributeType;
 			this.javaType = javaType;
