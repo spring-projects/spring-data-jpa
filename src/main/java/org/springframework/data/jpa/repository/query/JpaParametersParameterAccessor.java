@@ -48,7 +48,7 @@ public class JpaParametersParameterAccessor extends ParametersParameterAccessor 
 	/**
 	 * Utility method to potentially unwrap certain provider-specific types. For general JPA, there are none, so it's a pass-through.
 	 *
-	 * @param extractedValue
+	 * @param extractedValue the unwrapped value or the input value if there is nothing to unwrap.
 	 * @return the same value passed in
 	 */
 	@Nullable

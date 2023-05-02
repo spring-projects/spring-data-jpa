@@ -25,6 +25,7 @@ import org.springframework.data.jpa.repository.query.JpaParametersParameterAcces
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
+import org.springframework.lang.Nullable;
 
 /**
  * {@link org.springframework.data.repository.query.ParameterAccessor} based on an {@link Parameters} instance. In
@@ -73,10 +74,11 @@ class HibernateJpaParametersParameterAccessor extends JpaParametersParameterAcce
 	 * Utility method to potentially unwrap {@link TypedParameterValue}s. For certain operations, Hibernate doesn't
 	 * properly support them, so we must unwrap them before passing through.
 	 *
-	 * @param extractedValue
+	 * @param extractedValue the unwrapped value of the original value if there is nothing to unwrap.
 	 * @return the value behind a {@link TypedParameterValue}
 	 */
 	@Override
+	@Nullable
 	public Object potentiallyUnwrap(Object extractedValue) {
 
 		if (extractedValue instanceof TypedParameterValue) {
