@@ -32,6 +32,7 @@ pipeline {
 			options { timeout(time: 30, unit: 'MINUTES') }
 			environment {
 				ARTIFACTORY = credentials("${p['artifactory.credentials']}")
+				TESTCONTAINERS_IMAGE_SUBSTITUTOR = 'org.springframework.data.jpa.support.ProxyImageNameSubstitutor'
 			}
 			steps {
 				script {
@@ -60,6 +61,7 @@ pipeline {
 					options { timeout(time: 30, unit: 'MINUTES')}
 					environment {
 						ARTIFACTORY = credentials("${p['artifactory.credentials']}")
+						TESTCONTAINERS_IMAGE_SUBSTITUTOR = 'org.springframework.data.jpa.support.ProxyImageNameSubstitutor'
 					}
 					steps {
 						script {
@@ -77,6 +79,7 @@ pipeline {
 					options { timeout(time: 30, unit: 'MINUTES')}
 					environment {
 						ARTIFACTORY = credentials("${p['artifactory.credentials']}")
+						TESTCONTAINERS_IMAGE_SUBSTITUTOR = 'org.springframework.data.jpa.support.ProxyImageNameSubstitutor'
 					}
 					steps {
 						script {
@@ -94,6 +97,7 @@ pipeline {
 					options { timeout(time: 30, unit: 'MINUTES')}
 					environment {
 						ARTIFACTORY = credentials("${p['artifactory.credentials']}")
+						TESTCONTAINERS_IMAGE_SUBSTITUTOR = 'org.springframework.data.jpa.support.ProxyImageNameSubstitutor'
 					}
 					steps {
 						script {
