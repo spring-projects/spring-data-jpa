@@ -315,24 +315,36 @@ public abstract class JpaQueryExecution {
 			Assert.isInstanceOf(StoredProcedureJpaQuery.class, jpaQuery);
 
 			StoredProcedureJpaQuery storedProcedureJpaQuery = (StoredProcedureJpaQuery) jpaQuery;
+
 			StoredProcedureQuery storedProcedure = storedProcedureJpaQuery.createQuery(accessor);
 
-			boolean returnsResultSet = storedProcedure.execute();
+			try {
 
-			if (returnsResultSet) {
+				boolean returnsResultSet = storedProcedure.execute();
 
-				if (!SurroundingTransactionDetectorMethodInterceptor.INSTANCE.isSurroundingTransactionActive()) {
-					throw new InvalidDataAccessApiUsageException(NO_SURROUNDING_TRANSACTION);
+				if (returnsResultSet) {
+
+					if (!SurroundingTransactionDetectorMethodInterceptor.INSTANCE.isSurroundingTransactionActive()) {
+						throw new InvalidDataAccessApiUsageException(NO_SURROUNDING_TRANSACTION);
+					}
+
+					if (storedProcedureJpaQuery.getQueryMethod().isCollectionQuery()) {
+						return storedProcedure.getResultList();
+					} else {
+						return storedProcedure.getSingleResult();
+					}
 				}
 
-				if (storedProcedureJpaQuery.getQueryMethod().isCollectionQuery()) {
-					return storedProcedure.getResultList();
-				} else {
-					return storedProcedure.getSingleResult();
+				return storedProcedureJpaQuery.extractOutputValue(storedProcedure);
+
+			} finally {
+
+				if (storedProcedure instanceof AutoCloseable autoCloseable) {
+					try {
+						autoCloseable.close();
+					} catch (Exception ignored) {}
 				}
 			}
-
-			return storedProcedureJpaQuery.extractOutputValue(storedProcedure);
 		}
 	}
 
