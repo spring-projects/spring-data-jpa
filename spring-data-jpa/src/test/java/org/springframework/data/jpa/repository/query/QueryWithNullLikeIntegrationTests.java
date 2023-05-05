@@ -15,7 +15,7 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 
 import jakarta.persistence.EntityManagerFactory;
 
@@ -98,6 +98,40 @@ class QueryWithNullLikeIntegrationTests {
 	void customQueryWithNullMatch() {
 
 		List<EmployeeWithName> Employees = repository.customQueryWithNullableParam(null);
+
+		assertThat(Employees).extracting(EmployeeWithName::getName).isEmpty();
+	}
+
+	@Test
+	void customQueryWithMultipleMatchAlternative() {
+
+		List<EmployeeWithName> Employees = repository.customQueryWithNullableParamExpandedVersion("Baggins");
+
+		assertThat(Employees).extracting(EmployeeWithName::getName).containsExactlyInAnyOrder("Frodo Baggins",
+				"Bilbo Baggins");
+	}
+
+	@Test
+	void customQueryWithSingleMatchAlternative() {
+
+		List<EmployeeWithName> Employees = repository.customQueryWithNullableParamExpandedVersion("Frodo");
+
+		assertThat(Employees).extracting(EmployeeWithName::getName).containsExactlyInAnyOrder("Frodo Baggins");
+	}
+
+	@Test
+	void customQueryWithEmptyStringMatchAlternative() {
+
+		List<EmployeeWithName> Employees = repository.customQueryWithNullableParamExpandedVersion("");
+
+		assertThat(Employees).extracting(EmployeeWithName::getName).containsExactlyInAnyOrder("Frodo Baggins",
+				"Bilbo Baggins");
+	}
+
+	@Test
+	void customQueryWithNullMatchAlternative() {
+
+		List<EmployeeWithName> Employees = repository.customQueryWithNullableParamExpandedVersion(null);
 
 		assertThat(Employees).extracting(EmployeeWithName::getName).isEmpty();
 	}
@@ -234,6 +268,10 @@ class QueryWithNullLikeIntegrationTests {
 
 		@Query("select e from EmployeeWithName e where e.name like %:partialName%")
 		List<EmployeeWithName> customQueryWithNullableParam(@Nullable @Param("partialName") String partialName);
+
+		@Query("select e from EmployeeWithName e where e.name like '%' || :partialName || '%'")
+		List<EmployeeWithName> customQueryWithNullableParamExpandedVersion(
+				@Nullable @Param("partialName") String partialName);
 
 		List<EmployeeWithName> findByNameStartsWith(@Nullable String partialName);
 

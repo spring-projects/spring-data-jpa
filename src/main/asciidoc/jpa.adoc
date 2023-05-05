@@ -355,6 +355,106 @@ public interface UserRepository extends JpaRepository<User, Long> {
 ----
 ====
 
+It's possible to do much more complex ones, like this:
+
+.Declare query using `@Query` that has `LIKE` and wildcards
+====
+[source, java]
+----
+public interface UserRepository extends JpaRepository<User, Long> {
+
+    @Query("select e from Employee e where e.name like %:partialName%")
+    Employee findByPartialNameMatchWithWildcards(@Param("partialName") String partialName);
+}
+----
+* This example uses the <<jpa.named-parameters, named parameters>> instead of positional parameters.
+* This one also uses a pattern we often see, a combination of a `LIKE` along with `%` wildcards. This makes the query do partial matches (on each side).
+====
+
+WARNING: There is a limit when using `like` with `%` wildcards like this last example. If the parameter is used more than once, there is a change the query will be incorrect. Please read the next section to see how to deal with this.
+
+==== Using the same parameter more than once
+
+You can use the same parameter more than once in a given query. For example, it's not uncommon to include an `is null` check. The the example below:
+
+.An `@Query` with both a match and an `is null` check
+====
+[source, java]
+----
+public interface UserRepository extends JpaRepository<User, Long> {
+
+    @Query("select e from Employee e where e.name = :name or :name is null")
+    Employee findByPartialNameMatchWithWildcards(@Param("name") String name);
+}
+----
+====
+
+This is a convenient way to either match on the provided `name` or to simply skip this particular column if the provided input were `null`.
+However, note that this example doesn't have the `like` argument shown in the previous section.
+If you were to combine this pattern with the previous section's as shown below, you will run into an issue.
+
+.An `@Query` with a like and an `is null` check
+====
+[source, java]
+----
+public interface UserRepository extends JpaRepository<User, Long> {
+
+    @Query("select e from Employee e where e.name like %:partialName% or :partialName is null")
+    Employee findByPartialNameMatchWithWildcards(@Param("partialName") String partialName);
+}
+----
+WARNING: This query will NOT work as expected!
+====
+
+This query will fail because of how Spring Data JPA works. Essentially, `like %:param%` is shorthand for `like :param` combined with tranforming your input argument from `Baggins` -> `%Baggins%`.
+Simply put, the wildcards are moved from the query into the parameter binding when the method is invoked.
+
+That's because Hibernate and other providers don't recognize this combination.
+And so Spring Data JPA attempts to simplify.
+
+NOTE: If you attempt to write something like `select e from Employee where e.name like '%:partialName%'` and submit that to the JPA provider, it won't work. The JPA provider won't recognize that `:partialName` is actually a parameter since it's inside a string literal.
+
+Since there is only one argument provided (`partialName`) to the method, there is only one binding to issue to the JPA provider (`:partialName`).
+
+* Spring Data JPA will walk through that last query and apply the `%` wildcards to the binding, just as it did in the previous example.
+* But when it gets to the second instance of `:partialName` with the `is null` check, it will reapply the bindings.
+
+And since there is no `like` or wildcards, it will undo the wildcard wrappings.
+
+If you write the query the other way around, e.g. `select e from Employee e where :partialName is null or e.name like %:partialName%`, then Spring Data JPA will again walk left to right, and do things in the opposite way.
+
+* `:partialName` will first get bound to your method's input as provided.
+* But when it hits the second instance, it will adjust the binding to have the wildcards wrap your input value, thus making your `is null` check appear to be against `%null%`.
+
+Essentially, the last usage of `:partialName` in the query is the variant sent to the JPA provider, which will leave out any wildcards. There is no combination that will send two different bindings for one parameter.
+
+IMPORTANT: The solution is to rewrite your query in proper expanded form.
+
+We said earlier that `like %:param%` is shorthand. To use the same parameter more than once in a given query, and have wildcards in differing places, you must write the query in expanded form as shown below:
+
+.An `@Query` with a like and an `is null` check in expanded form
+====
+[source, java]
+----
+public interface UserRepository extends JpaRepository<User, Long> {
+
+    @Query("select e from Employee e where e.name like '%' || :partialName || '%' or :partialName is null")
+    Employee findByPartialNameMatchWithWildcards(@Param("partialName") String partialName);
+}
+----
+NOTE: This will work as expected!
+====
+
+In this version, the parameter and the wildcards are separated by concatenation (Hibernate concatenation in this case).
+This will make Spring Data JPA sidestep any migration of wildcards from the query to the bound parameters.
+
+* Whatever value you supply to the method argument will be passed along to the JPA provider unchanged.
+* This lets you apply wildcards exactly as desired.
+* Simply reordering the clauses on each side of the `or` will not cause a strange change in behavior.
+
+In short, if you are using `LIKE` combined with wildcards, and your query is not acting as expecting check out if rewriting it using the concatenation operators for your JPA provider solves the problem.
+
+
 [[jpa.query-methods.query-rewriter]]
 ==== Applying a QueryRewriter
 
