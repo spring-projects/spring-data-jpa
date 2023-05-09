@@ -27,6 +27,8 @@ import java.util.function.BiFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.repository.query.SpelQueryContext;
 import org.springframework.data.repository.query.SpelQueryContext.SpelExtractor;
@@ -52,6 +54,8 @@ import org.springframework.util.StringUtils;
  * @author Yuriy Tsarkov
  */
 class StringQuery implements DeclaredQuery {
+
+	private static final Log LOGGER = LogFactory.getLog(StringQuery.class);
 
 	private final String query;
 	private final List<ParameterBinding> bindings;
@@ -334,7 +338,47 @@ class StringQuery implements DeclaredQuery {
 				return text;
 			}
 
-			return text.substring(0, index) + replacement + text.substring(index + substring.length());
+			return text.substring(0, index) + potentiallyWrapWithWildcards(replacement, substring)
+					+ text.substring(index + substring.length());
+		}
+
+		/**
+		 * If there are any pre- or post-wildcards ({@literal %}), replace them with a {@literal CONCAT} function and proper
+		 * wildcards as string literals. NOTE: {@literal CONCAT} appears to be a standard function across relational
+		 * databases as well as JPA providers.
+		 * 
+		 * @param replacement
+		 * @param substring
+		 * @return the replacement string properly wrapped in a {@literal CONCAT} function with wildcards applied.
+		 * @since 3.1
+		 */
+		private static String potentiallyWrapWithWildcards(String replacement, String substring) {
+
+			boolean wildcards = substring.startsWith("%") || substring.endsWith("%");
+
+			if (!wildcards) {
+				return replacement;
+			}
+
+			StringBuilder concatWrapper = new StringBuilder("CONCAT(");
+
+			if (substring.startsWith("%")) {
+				concatWrapper.append("'%',");
+			}
+
+			concatWrapper.append(replacement);
+
+			if (substring.endsWith("%")) {
+				concatWrapper.append(",'%'");
+			}
+
+			concatWrapper.append(")");
+
+			LOGGER.warn(
+					"You are using a non-standard query feature that may not be supported in the future (LIKE with '%' wildcards). "
+							+ "We suggest you rewrite [" + substring + "] as [" + concatWrapper + "]");
+
+			return concatWrapper.toString();
 		}
 
 		@Nullable
@@ -708,28 +752,12 @@ class StringQuery implements DeclaredQuery {
 		}
 
 		/**
-		 * Prepares the given raw keyword according to the like type.
+		 * Extracts the raw value properly.
 		 */
 		@Nullable
 		@Override
 		public Object prepare(@Nullable Object value) {
-
-			Object unwrapped = PersistenceProvider.unwrapTypedParameterValue(value);
-			if (unwrapped == null) {
-				return null;
-			}
-
-			switch (type) {
-				case STARTING_WITH:
-					return String.format("%s%%", unwrapped);
-				case ENDING_WITH:
-					return String.format("%%%s", unwrapped);
-				case CONTAINING:
-					return String.format("%%%s%%", unwrapped);
-				case LIKE:
-				default:
-					return unwrapped;
-			}
+			return PersistenceProvider.unwrapTypedParameterValue(value);
 		}
 
 		@Override
