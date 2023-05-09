@@ -1204,7 +1204,24 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<List<JpaQueryParsingToken>> {
 			tokens.add(new JpaQueryParsingToken(ctx.NOT()));
 		}
 		tokens.add(new JpaQueryParsingToken(ctx.LIKE()));
+
+		boolean wildcards = ctx.leftWildcard != null || ctx.rightWildcard != null;
+
+		if (wildcards) {
+			tokens.add(new JpaQueryParsingToken("CONCAT("));
+			if (ctx.leftWildcard != null) {
+				tokens.add(new JpaQueryParsingToken("'%',"));
+			}
+		}
+
 		tokens.addAll(visit(ctx.pattern_value()));
+
+		if (wildcards) {
+			if (ctx.rightWildcard != null) {
+				tokens.add(new JpaQueryParsingToken(",'%'"));
+			}
+			tokens.add(new JpaQueryParsingToken(")"));
+		}
 
 		return tokens;
 	}

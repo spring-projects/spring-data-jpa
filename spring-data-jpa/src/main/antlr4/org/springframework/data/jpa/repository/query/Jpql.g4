@@ -340,7 +340,7 @@ in_item
     ;
 
 like_expression
-    : string_expression (NOT)? LIKE pattern_value (ESCAPE escape_character)?
+    : string_expression (NOT)? LIKE leftWildcard='%'? pattern_value rightWildcard='%'? (ESCAPE escape_character)?
     ;
 
 null_comparison_expression
