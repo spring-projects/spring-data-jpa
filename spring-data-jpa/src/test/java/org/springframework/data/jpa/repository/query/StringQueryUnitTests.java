@@ -68,7 +68,7 @@ class StringQueryUnitTests {
 
 		assertThat(query.hasParameterBindings()).isTrue();
 		assertThat(query.getQueryString())
-				.isEqualTo("select u from User u where u.firstname like ?1 or u.lastname like ?2");
+				.isEqualTo("select u from User u where u.firstname like CONCAT('%',?1,'%') or u.lastname like CONCAT('%',?2)");
 
 		List<ParameterBinding> bindings = query.getParameterBindings();
 		assertThat(bindings).hasSize(2);
@@ -90,7 +90,7 @@ class StringQueryUnitTests {
 		StringQuery query = new StringQuery("select u from User u where u.firstname like %:firstname", true);
 
 		assertThat(query.hasParameterBindings()).isTrue();
-		assertThat(query.getQueryString()).isEqualTo("select u from User u where u.firstname like :firstname");
+		assertThat(query.getQueryString()).isEqualTo("select u from User u where u.firstname like CONCAT('%',:firstname)");
 
 		List<ParameterBinding> bindings = query.getParameterBindings();
 		assertThat(bindings).hasSize(1);
@@ -209,8 +209,8 @@ class StringQueryUnitTests {
 		assertNamedBinding(ParameterBinding.class, "word", bindings.get(1));
 
 		softly.assertThat(query.getQueryString())
-				.isEqualTo("SELECT a FROM Article a WHERE a.overview LIKE :escapedWord ESCAPE '~'"
-						+ " OR a.content LIKE :escapedWord ESCAPE '~' OR a.title = :word ORDER BY a.articleId DESC");
+				.isEqualTo("SELECT a FROM Article a WHERE a.overview LIKE CONCAT('%',:escapedWord,'%') ESCAPE '~'"
+						+ " OR a.content LIKE CONCAT('%',:escapedWord,'%') ESCAPE '~' OR a.title = :word ORDER BY a.articleId DESC");
 
 		softly.assertAll();
 	}

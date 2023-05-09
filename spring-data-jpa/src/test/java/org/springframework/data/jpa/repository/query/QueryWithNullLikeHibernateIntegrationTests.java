@@ -15,7 +15,7 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 
 import jakarta.persistence.EntityManagerFactory;
 
@@ -98,6 +98,40 @@ public class QueryWithNullLikeHibernateIntegrationTests {
 	void customQueryWithNullMatch() {
 
 		List<EmployeeWithName> Employees = repository.customQueryWithNullableParam(null);
+
+		assertThat(Employees).extracting(EmployeeWithName::getName).isEmpty();
+	}
+
+	@Test // GH-2939
+	void customQueryWithMultipleMatchInNative() {
+
+		List<EmployeeWithName> Employees = repository.customQueryWithNullableParamInNative("Baggins");
+
+		assertThat(Employees).extracting(EmployeeWithName::getName).containsExactlyInAnyOrder("Frodo Baggins",
+				"Bilbo Baggins");
+	}
+
+	@Test // GH-2939
+	void customQueryWithSingleMatchInNative() {
+
+		List<EmployeeWithName> Employees = repository.customQueryWithNullableParamInNative("Frodo");
+
+		assertThat(Employees).extracting(EmployeeWithName::getName).containsExactlyInAnyOrder("Frodo Baggins");
+	}
+
+	@Test
+	void customQueryWithEmptyStringMatchInNative() {
+
+		List<EmployeeWithName> Employees = repository.customQueryWithNullableParamInNative("");
+
+		assertThat(Employees).extracting(EmployeeWithName::getName).containsExactlyInAnyOrder("Frodo Baggins",
+				"Bilbo Baggins");
+	}
+
+	@Test // GH-2939
+	void customQueryWithNullMatchInNative() {
+
+		List<EmployeeWithName> Employees = repository.customQueryWithNullableParamInNative(null);
 
 		assertThat(Employees).extracting(EmployeeWithName::getName).isEmpty();
 	}
@@ -234,6 +268,9 @@ public class QueryWithNullLikeHibernateIntegrationTests {
 
 		@Query("select e from EmployeeWithName e where e.name like %:partialName%")
 		List<EmployeeWithName> customQueryWithNullableParam(@Nullable @Param("partialName") String partialName);
+
+		@Query(value = "select * from EmployeeWithName as e where e.name like %:partialName%", nativeQuery = true)
+		List<EmployeeWithName> customQueryWithNullableParamInNative(@Nullable @Param("partialName") String partialName);
 
 		List<EmployeeWithName> findByNameStartsWith(@Nullable String partialName);
 

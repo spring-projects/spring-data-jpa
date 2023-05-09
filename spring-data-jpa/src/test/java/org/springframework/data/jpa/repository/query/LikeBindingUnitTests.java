@@ -84,14 +84,4 @@ class LikeBindingUnitTests {
 		assertThat(binding.hasPosition(1)).isTrue();
 		assertThat(binding.getType()).isEqualTo(Type.CONTAINING);
 	}
-
-	@Test
-	void augmentsValueCorrectly() {
-
-		assertAugmentedValue(Type.CONTAINING, "%value%");
-		assertAugmentedValue(Type.ENDING_WITH, "%value");
-		assertAugmentedValue(Type.STARTING_WITH, "value%");
-
-		assertThat(new LikeParameterBinding(1, Type.CONTAINING).prepare(null)).isNull();
-	}
 }

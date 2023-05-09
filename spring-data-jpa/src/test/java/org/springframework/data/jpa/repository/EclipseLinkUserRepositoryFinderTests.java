@@ -34,4 +34,22 @@ class EclipseLinkUserRepositoryFinderTests extends UserRepositoryFinderTests {
 	@Disabled
 	@Override
 	void executesInKeywordForPageCorrectly() {}
+
+	@Disabled("Can't get ESCAPE clause working with Hibernate. See #2954") // GH-2939 backport
+	@Override
+	void escapingInLikeSpels() {
+		super.escapingInLikeSpels();
+	}
+
+	@Disabled("Can't get ESCAPE clause working with Hibernate. See #2954") // GH-2939 backport
+	@Override
+	void escapingInLikeSpelsInThePresenceOfEscapeCharacters() {
+		super.escapingInLikeSpelsInThePresenceOfEscapeCharacters();
+	}
+
+	@Disabled("Can't get ESCAPE clause working with Hibernate. See #2954") // GH-2939 backport
+	@Override
+	void escapingInLikeSpelsInThePresenceOfEscapedWildcards() {
+		super.escapingInLikeSpelsInThePresenceOfEscapedWildcards();
+	}
 }
