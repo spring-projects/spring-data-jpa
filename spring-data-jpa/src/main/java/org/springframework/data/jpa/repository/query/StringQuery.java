@@ -78,7 +78,7 @@ class StringQuery implements DeclaredQuery {
 
 		Metadata queryMeta = new Metadata();
 		this.query = ParameterBindingParser.INSTANCE.parseParameterBindingsOfQueryIntoBindingsAndReturnCleanedQuery(query,
-				this.bindings, queryMeta);
+				this.bindings, queryMeta, isNative);
 
 		this.usesJdbcStyleParameters = queryMeta.usesJdbcStyleParameters;
 
@@ -212,7 +212,7 @@ class StringQuery implements DeclaredQuery {
 		 * the cleaned up query.
 		 */
 		private String parseParameterBindingsOfQueryIntoBindingsAndReturnCleanedQuery(String query,
-				List<ParameterBinding> bindings, Metadata queryMeta) {
+				List<ParameterBinding> bindings, Metadata queryMeta, boolean isNative) {
 
 			int greatestParameterIndex = tryFindGreatestParameterIndexIn(query);
 			boolean parametersShouldBeAccessedByIndex = greatestParameterIndex != -1;
@@ -298,8 +298,8 @@ class StringQuery implements DeclaredQuery {
 								: new ParameterBinding(parameterName, null, expression));
 				}
 
-				if (replacement != null) {
-					// resultingQuery = replaceFirst(resultingQuery, matcher.group(2), replacement);
+				if (replacement != null && isNative) {
+					resultingQuery = replaceFirst(resultingQuery, matcher.group(2), replacement);
 				}
 
 			}

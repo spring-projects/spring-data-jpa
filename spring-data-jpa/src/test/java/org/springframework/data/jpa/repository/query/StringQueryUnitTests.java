@@ -58,7 +58,6 @@ class StringQueryUnitTests {
 		assertThat(binding.hasName("firstname")).isTrue();
 	}
 
-	@Disabled("Cannot handle % removal for native queries.")
 	@Test // DATAJPA-292
 	void detectsPositionalLikeBindings() {
 
@@ -83,7 +82,6 @@ class StringQueryUnitTests {
 		assertThat(binding.getType()).isEqualTo(Type.ENDING_WITH);
 	}
 
-	@Disabled("Can't handle % removal for native queries.")
 	@Test // DATAJPA-292
 	void detectsNamedLikeBindings() {
 
@@ -168,7 +166,6 @@ class StringQueryUnitTests {
 
 	}
 
-	@Disabled("Can't handle % removal for native queries.")
 	@Test // DATAJPA-373
 	void handlesMultipleNamedLikeBindingsCorrectly() {
 		new StringQuery("select u from User u where u.firstname like %:firstname or foo like :bar", true);
@@ -191,7 +188,6 @@ class StringQueryUnitTests {
 
 	}
 
-	@Disabled("Cannot handle this % stuff with native queries.")
 	@Test // DATAJPA-473
 	void removesLikeBindingsFromQueryIfQueryContainsSimpleBinding() {
 
