@@ -1069,7 +1069,7 @@ class HqlQueryRenderer extends HqlBaseVisitor<List<JpaQueryParsingToken>> {
 
 		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new JpaQueryParsingToken(ctx.op));
+		tokens.add(new JpaQueryParsingToken(ctx.op, false));
 		tokens.addAll(visit(ctx.numericLiteral()));
 
 		return tokens;
