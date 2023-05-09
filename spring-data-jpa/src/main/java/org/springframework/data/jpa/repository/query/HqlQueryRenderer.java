@@ -1989,7 +1989,23 @@ class HqlQueryRenderer extends HqlBaseVisitor<List<JpaQueryParsingToken>> {
 			tokens.add(new JpaQueryParsingToken(ctx.ILIKE()));
 		}
 
+		boolean wildcards = ctx.leftWildcard != null || ctx.rightWildcard != null;
+
+		if (wildcards) {
+			tokens.add(new JpaQueryParsingToken("CONCAT("));
+			if (ctx.leftWildcard != null) {
+				tokens.add(new JpaQueryParsingToken("'%',"));
+			}
+		}
+
 		tokens.addAll(visit(ctx.expression(1)));
+
+		if (wildcards) {
+			if (ctx.rightWildcard != null) {
+				tokens.add(new JpaQueryParsingToken(",'%'"));
+			}
+			tokens.add(new JpaQueryParsingToken(")"));
+		}
 
 		if (ctx.ESCAPE() != null) {
 

@@ -299,7 +299,7 @@ class StringQuery implements DeclaredQuery {
 				}
 
 				if (replacement != null) {
-					resultingQuery = replaceFirst(resultingQuery, matcher.group(2), replacement);
+					// resultingQuery = replaceFirst(resultingQuery, matcher.group(2), replacement);
 				}
 
 			}
@@ -720,13 +720,13 @@ class StringQuery implements DeclaredQuery {
 			}
 
 			switch (type) {
-				case STARTING_WITH:
-					return String.format("%s%%", unwrapped);
-				case ENDING_WITH:
-					return String.format("%%%s", unwrapped);
-				case CONTAINING:
-					return String.format("%%%s%%", unwrapped);
-				case LIKE:
+				// case STARTING_WITH:
+				// return String.format("%s%%", unwrapped);
+				// case ENDING_WITH:
+				// return String.format("%%%s", unwrapped);
+				// case CONTAINING:
+				// return String.format("%%%s%%", unwrapped);
+				// case LIKE:
 				default:
 					return unwrapped;
 			}

@@ -18,6 +18,7 @@ package org.springframework.data.jpa.repository.query;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.QueryRewriter;
 import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.RepositoryQuery;
@@ -47,8 +48,10 @@ final class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
 	 * @param parser must not be {@literal null}
 	 */
 	public SimpleJpaQuery(JpaQueryMethod method, EntityManager em, @Nullable String countQueryString,
-			QueryRewriter queryRewriter, QueryMethodEvaluationContextProvider evaluationContextProvider, SpelExpressionParser parser) {
-		this(method, em, method.getRequiredAnnotatedQuery(), countQueryString, queryRewriter, evaluationContextProvider, parser);
+			QueryRewriter queryRewriter, QueryMethodEvaluationContextProvider evaluationContextProvider,
+			SpelExpressionParser parser) {
+		this(method, em, method.getRequiredAnnotatedQuery(), countQueryString, queryRewriter, evaluationContextProvider,
+				parser);
 	}
 
 	/**
@@ -62,16 +65,32 @@ final class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
 	 * @param evaluationContextProvider must not be {@literal null}
 	 * @param parser must not be {@literal null}
 	 */
-	public SimpleJpaQuery(JpaQueryMethod method, EntityManager em, String queryString, @Nullable String countQueryString, QueryRewriter queryRewriter,
-			QueryMethodEvaluationContextProvider evaluationContextProvider, SpelExpressionParser parser) {
+	public SimpleJpaQuery(JpaQueryMethod method, EntityManager em, String queryString, @Nullable String countQueryString,
+			QueryRewriter queryRewriter, QueryMethodEvaluationContextProvider evaluationContextProvider,
+			SpelExpressionParser parser) {
 
 		super(method, em, queryString, countQueryString, queryRewriter, evaluationContextProvider, parser);
 
-		validateQuery(getQuery().getQueryString(), "Validation failed for query for method %s", method);
+		if (getQuery().isNativeQuery()) {
 
-		if (method.isPageQuery()) {
-			validateQuery(getCountQuery().getQueryString(),
-					String.format("Count query validation failed for method %s", method));
+			validateQuery(getQuery().getQueryString(), "Validation failed for query for method %s", method);
+
+			if (method.isPageQuery()) {
+				validateQuery(getCountQuery().getQueryString(),
+						String.format("Count query validation failed for method %s", method));
+			}
+		} else {
+
+			QueryEnhancer queryEnhancer = QueryEnhancerFactory.forQuery(getQuery());
+
+			String parsedQuery = queryEnhancer.applySorting(Sort.unsorted());
+
+			validateQuery(parsedQuery, "Validation failed for query for method %s", method);
+
+			if (method.isPageQuery()) {
+				validateQuery(queryEnhancer.createCountQueryFor(),
+						String.format("Count query validation failed for method %s", method));
+			}
 		}
 	}
 

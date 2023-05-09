@@ -17,6 +17,7 @@ package org.springframework.data.jpa.repository.query;
 
 import static org.assertj.core.api.Assertions.*;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.jpa.repository.query.StringQuery.LikeParameterBinding;
 import org.springframework.data.repository.query.parser.Part.Type;
@@ -85,6 +86,7 @@ class LikeBindingUnitTests {
 		assertThat(binding.getType()).isEqualTo(Type.CONTAINING);
 	}
 
+	@Disabled("This test case no longer applies.")
 	@Test
 	void augmentsValueCorrectly() {
 

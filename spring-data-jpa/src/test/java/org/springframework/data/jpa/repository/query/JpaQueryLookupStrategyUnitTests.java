@@ -25,7 +25,6 @@ import jakarta.persistence.metamodel.Metamodel;
 import java.lang.reflect.Method;
 import java.util.List;
 
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -94,12 +93,12 @@ class JpaQueryLookupStrategyUnitTests {
 		Method method = UserRepository.class.getMethod("findByFoo", String.class);
 		RepositoryMetadata metadata = new DefaultRepositoryMetadata(UserRepository.class);
 
-		Throwable reference = new RuntimeException();
+		Throwable reference = new BadJpqlGrammarException("mismatched input 'something'", "", new RuntimeException());
 		when(em.createQuery(anyString())).thenThrow(reference);
 
 		assertThatExceptionOfType(IllegalArgumentException.class)
 				.isThrownBy(() -> strategy.resolveQuery(method, metadata, projectionFactory, namedQueries))
-				.withCause(reference);
+				.withMessageContaining("mismatched input 'something'");
 	}
 
 	@Test // DATAJPA-554

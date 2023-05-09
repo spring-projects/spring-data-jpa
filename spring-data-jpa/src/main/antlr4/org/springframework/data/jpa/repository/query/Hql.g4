@@ -553,8 +553,9 @@ dealingWithNullExpression
     ;
 
 // https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-like-predicate
+// NOTE: The optional '%' before and after is not a Hibernate feature but instead a Spring Data JPA enhancement we've supported in the past.
 stringPatternMatching
-    : expression NOT? (LIKE | ILIKE) expression (ESCAPE character)?
+    : expression NOT? (LIKE | ILIKE) leftWildcard='%'? expression rightWildcard='%'? (ESCAPE character)?
     ;
 
 // https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-elements-indices
