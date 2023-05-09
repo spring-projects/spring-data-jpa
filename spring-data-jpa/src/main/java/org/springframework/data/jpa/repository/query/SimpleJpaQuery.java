@@ -18,7 +18,6 @@ package org.springframework.data.jpa.repository.query;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.QueryRewriter;
 import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.RepositoryQuery;
@@ -83,7 +82,13 @@ final class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
 
 			QueryEnhancer queryEnhancer = QueryEnhancerFactory.forQuery(getQuery());
 
-			String parsedQuery = queryEnhancer.applySorting(Sort.unsorted());
+			String parsedQuery;
+
+			// try {
+			// parsedQuery = queryEnhancer.applySorting(Sort.unsorted());
+			// } catch (IllegalArgumentException e) {
+			parsedQuery = getQuery().getQueryString();
+			// }
 
 			validateQuery(parsedQuery, "Validation failed for query for method %s", method);
 

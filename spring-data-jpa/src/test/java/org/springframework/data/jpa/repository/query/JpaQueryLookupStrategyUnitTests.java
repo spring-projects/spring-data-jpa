@@ -93,12 +93,12 @@ class JpaQueryLookupStrategyUnitTests {
 		Method method = UserRepository.class.getMethod("findByFoo", String.class);
 		RepositoryMetadata metadata = new DefaultRepositoryMetadata(UserRepository.class);
 
-		Throwable reference = new BadJpqlGrammarException("mismatched input 'something'", "", new RuntimeException());
+		Throwable reference = new RuntimeException();
 		when(em.createQuery(anyString())).thenThrow(reference);
 
 		assertThatExceptionOfType(IllegalArgumentException.class)
 				.isThrownBy(() -> strategy.resolveQuery(method, metadata, projectionFactory, namedQueries))
-				.withMessageContaining("mismatched input 'something'");
+				.withCause(reference);
 	}
 
 	@Test // DATAJPA-554
