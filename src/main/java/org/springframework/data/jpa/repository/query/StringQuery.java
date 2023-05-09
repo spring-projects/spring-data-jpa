@@ -15,9 +15,8 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static java.util.regex.Pattern.CASE_INSENSITIVE;
-import static org.springframework.util.ObjectUtils.nullSafeEquals;
-import static org.springframework.util.ObjectUtils.nullSafeHashCode;
+import static java.util.regex.Pattern.*;
+import static org.springframework.util.ObjectUtils.*;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
@@ -371,7 +370,43 @@ class StringQuery implements DeclaredQuery {
 				return text;
 			}
 
-			return text.substring(0, index) + replacement + text.substring(index + substring.length());
+			return text.substring(0, index) + potentiallyWrapWithWildcards(replacement, substring)
+					+ text.substring(index + substring.length());
+		}
+
+		/**
+		 * If there are any pre- or post-wildcards ({@literal %}), replace them with a {@literal CONCAT} function and proper
+		 * wildcards as string literals. NOTE: {@literal CONCAT} appears to be a standard function across relational
+		 * databases as well as JPA providers.
+		 * 
+		 * @param replacement
+		 * @param substring
+		 * @return the replacement string properly wrapped in a {@literal CONCAT} function with wildcards applied.
+		 * @since 3.1
+		 */
+		private static String potentiallyWrapWithWildcards(String replacement, String substring) {
+
+			boolean wildcards = substring.startsWith("%") || substring.endsWith("%");
+
+			if (!wildcards) {
+				return replacement;
+			}
+
+			StringBuilder concatWrapper = new StringBuilder("CONCAT(");
+
+			if (substring.startsWith("%")) {
+				concatWrapper.append("'%',");
+			}
+
+			concatWrapper.append(replacement);
+
+			if (substring.endsWith("%")) {
+				concatWrapper.append(",'%'");
+			}
+
+			concatWrapper.append(")");
+
+			return concatWrapper.toString();
 		}
 
 		@Nullable
@@ -761,28 +796,12 @@ class StringQuery implements DeclaredQuery {
 		}
 
 		/**
-		 * Prepares the given raw keyword according to the like type.
+		 * Extracts the raw value properly.
 		 */
 		@Nullable
 		@Override
 		public Object prepare(@Nullable Object value) {
-
-			Object condensedValue = PersistenceProvider.condense(value);
-			if (condensedValue == null) {
-				return null;
-			}
-
-			switch (type) {
-				case STARTING_WITH:
-					return String.format("%s%%", condensedValue);
-				case ENDING_WITH:
-					return String.format("%%%s", condensedValue);
-				case CONTAINING:
-					return String.format("%%%s%%", condensedValue);
-				case LIKE:
-				default:
-					return condensedValue;
-			}
+			return PersistenceProvider.condense(value);
 		}
 
 		/*
