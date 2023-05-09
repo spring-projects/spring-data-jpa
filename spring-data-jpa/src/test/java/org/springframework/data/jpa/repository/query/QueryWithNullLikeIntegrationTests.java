@@ -102,39 +102,39 @@ class QueryWithNullLikeIntegrationTests {
 		assertThat(Employees).extracting(EmployeeWithName::getName).isEmpty();
 	}
 
-//	@Test
-//	void customQueryWithMultipleMatchAlternative() {
-//
-//		List<EmployeeWithName> Employees = repository.customQueryWithNullableParamExpandedVersion("Baggins");
-//
-//		assertThat(Employees).extracting(EmployeeWithName::getName).containsExactlyInAnyOrder("Frodo Baggins",
-//				"Bilbo Baggins");
-//	}
-//
-//	@Test
-//	void customQueryWithSingleMatchAlternative() {
-//
-//		List<EmployeeWithName> Employees = repository.customQueryWithNullableParamExpandedVersion("Frodo");
-//
-//		assertThat(Employees).extracting(EmployeeWithName::getName).containsExactlyInAnyOrder("Frodo Baggins");
-//	}
-//
-//	@Test
-//	void customQueryWithEmptyStringMatchAlternative() {
-//
-//		List<EmployeeWithName> Employees = repository.customQueryWithNullableParamExpandedVersion("");
-//
-//		assertThat(Employees).extracting(EmployeeWithName::getName).containsExactlyInAnyOrder("Frodo Baggins",
-//				"Bilbo Baggins");
-//	}
-//
-//	@Test
-//	void customQueryWithNullMatchAlternative() {
-//
-//		List<EmployeeWithName> Employees = repository.customQueryWithNullableParamExpandedVersion(null);
-//
-//		assertThat(Employees).extracting(EmployeeWithName::getName).isEmpty();
-//	}
+	@Test
+	void customQueryWithMultipleMatchInNativeMode() {
+
+		List<EmployeeWithName> Employees = repository.customQueryWithNativeNullableParam("Baggins");
+
+		assertThat(Employees).extracting(EmployeeWithName::getName).containsExactlyInAnyOrder("Frodo Baggins",
+				"Bilbo Baggins");
+	}
+
+	@Test
+	void customQueryWithSingleMatchInNativeMode() {
+
+		List<EmployeeWithName> Employees = repository.customQueryWithNativeNullableParam("Frodo");
+
+		assertThat(Employees).extracting(EmployeeWithName::getName).containsExactlyInAnyOrder("Frodo Baggins");
+	}
+
+	@Test
+	void customQueryWithEmptyStringMatchInNativeMode() {
+
+		List<EmployeeWithName> Employees = repository.customQueryWithNativeNullableParam("");
+
+		assertThat(Employees).extracting(EmployeeWithName::getName).containsExactlyInAnyOrder("Frodo Baggins",
+				"Bilbo Baggins");
+	}
+
+	@Test
+	void customQueryWithNullMatchInNativeMode() {
+
+		List<EmployeeWithName> Employees = repository.customQueryWithNativeNullableParam(null);
+
+		assertThat(Employees).extracting(EmployeeWithName::getName).isEmpty();
+	}
 
 	@Test
 	void derivedQueryStartsWithSingleMatch() {
@@ -269,9 +269,8 @@ class QueryWithNullLikeIntegrationTests {
 		@Query("select e from EmployeeWithName e where e.name like %:partialName%")
 		List<EmployeeWithName> customQueryWithNullableParam(@Nullable @Param("partialName") String partialName);
 
-//		@Query("select e from EmployeeWithName e where e.name like '%' || :partialName || '%'")
-//		List<EmployeeWithName> customQueryWithNullableParamExpandedVersion(
-//				@Nullable @Param("partialName") String partialName);
+		@Query(value = "select * from EmployeeWithName as e where e.name like %:partialName%", nativeQuery = true)
+		List<EmployeeWithName> customQueryWithNativeNullableParam(@Nullable @Param("partialName") String partialName);
 
 		List<EmployeeWithName> findByNameStartsWith(@Nullable String partialName);
 

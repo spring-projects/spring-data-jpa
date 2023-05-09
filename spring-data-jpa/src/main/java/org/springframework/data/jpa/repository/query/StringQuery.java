@@ -334,7 +334,33 @@ class StringQuery implements DeclaredQuery {
 				return text;
 			}
 
-			return text.substring(0, index) + replacement + text.substring(index + substring.length());
+			return text.substring(0, index) + potentiallyWrapWithWildcards(replacement, substring)
+					+ text.substring(index + substring.length());
+		}
+
+		private static String potentiallyWrapWithWildcards(String replacement, String substring) {
+
+			boolean wildcards = substring.startsWith("%") || substring.endsWith("%");
+
+			if (!wildcards) {
+				return replacement;
+			}
+
+			String wrappedReplacement = "CONCAT(";
+
+			if (substring.startsWith("%")) {
+				wrappedReplacement += "'%',";
+			}
+
+			wrappedReplacement += replacement;
+
+			if (substring.endsWith("%")) {
+				wrappedReplacement += ",'%'";
+			}
+
+			wrappedReplacement += ")";
+
+			return wrappedReplacement;
 		}
 
 		@Nullable
