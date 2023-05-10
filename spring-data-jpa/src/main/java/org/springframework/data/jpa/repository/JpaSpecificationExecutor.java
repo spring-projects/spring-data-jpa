@@ -15,6 +15,10 @@
  */
 package org.springframework.data.jpa.repository;
 
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Root;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
@@ -89,6 +93,14 @@ public interface JpaSpecificationExecutor<T> {
 
 	/**
 	 * Deletes by the {@link Specification} and returns the number of rows deleted.
+	 * <p>
+	 * This method uses {@link jakarta.persistence.criteria.CriteriaDelete Criteria API bulk delete} that maps directly to
+	 * database delete operations. The persistence context is not synchronized with the result of the bulk delete.
+	 * <p>
+	 * Please note that {@link jakarta.persistence.criteria.CriteriaQuery} in,
+	 * {@link Specification#toPredicate(Root, CriteriaQuery, CriteriaBuilder)} will be {@literal null} because
+	 * {@link jakarta.persistence.criteria.CriteriaBuilder#createCriteriaDelete(Class)} does not implement
+	 * {@code CriteriaQuery}.
 	 *
 	 * @param spec the {@link Specification} to use for the existence check. Must not be {@literal null}.
 	 * @return the number of entities deleted.
