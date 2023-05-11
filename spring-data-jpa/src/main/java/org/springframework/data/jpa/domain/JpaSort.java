@@ -15,14 +15,14 @@
  */
 package org.springframework.data.jpa.domain;
 
+import jakarta.persistence.metamodel.Attribute;
+import jakarta.persistence.metamodel.PluralAttribute;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-
-import jakarta.persistence.metamodel.Attribute;
-import jakarta.persistence.metamodel.PluralAttribute;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.lang.Nullable;
@@ -364,7 +364,6 @@ public class JpaSort extends Sort {
 		private static final long serialVersionUID = 1L;
 
 		private final boolean unsafe;
-		private final boolean ignoreCase;
 
 		/**
 		 * Creates a new {@link JpaOrder} instance. if order is {@literal null} then order defaults to
@@ -386,25 +385,24 @@ public class JpaSort extends Sort {
 		 * @param nullHandlingHint can be {@literal null}, will default to {@link NullHandling#NATIVE}.
 		 */
 		private JpaOrder(@Nullable Direction direction, String property, NullHandling nullHandlingHint) {
-			this(direction, property, nullHandlingHint, false, true);
+			this(direction, property, false, nullHandlingHint, true);
 		}
 
-		private JpaOrder(@Nullable Direction direction, String property, NullHandling nullHandling, boolean ignoreCase,
+		private JpaOrder(@Nullable Direction direction, String property, boolean ignoreCase, NullHandling nullHandling,
 				boolean unsafe) {
 
-			super(direction, property, nullHandling);
-			this.ignoreCase = ignoreCase;
+			super(direction, property, ignoreCase, nullHandling);
 			this.unsafe = unsafe;
 		}
 
 		@Override
 		public JpaOrder with(Direction order) {
-			return new JpaOrder(order, getProperty(), getNullHandling(), isIgnoreCase(), this.unsafe);
+			return new JpaOrder(order, getProperty(), isIgnoreCase(), getNullHandling(), this.unsafe);
 		}
 
 		@Override
 		public JpaOrder with(NullHandling nullHandling) {
-			return new JpaOrder(getDirection(), getProperty(), nullHandling, isIgnoreCase(), this.unsafe);
+			return new JpaOrder(getDirection(), getProperty(), isIgnoreCase(), nullHandling, this.unsafe);
 		}
 
 		/**
@@ -421,7 +419,7 @@ public class JpaSort extends Sort {
 			List<Order> orders = new ArrayList<>(properties.length);
 
 			for (String property : properties) {
-				orders.add(new JpaOrder(getDirection(), property, getNullHandling(), isIgnoreCase(), this.unsafe));
+				orders.add(new JpaOrder(getDirection(), property, isIgnoreCase(), getNullHandling(), this.unsafe));
 			}
 
 			return Sort.by(orders);
@@ -429,12 +427,7 @@ public class JpaSort extends Sort {
 
 		@Override
 		public JpaOrder ignoreCase() {
-			return new JpaOrder(getDirection(), getProperty(), getNullHandling(), true, this.unsafe);
-		}
-
-		@Override
-		public boolean isIgnoreCase() {
-			return super.isIgnoreCase() || ignoreCase;
+			return new JpaOrder(getDirection(), getProperty(), true, getNullHandling(), this.unsafe);
 		}
 
 		/**
