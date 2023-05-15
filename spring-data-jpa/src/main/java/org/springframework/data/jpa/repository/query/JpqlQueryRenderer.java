@@ -1206,6 +1206,12 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<List<JpaQueryParsingToken>> {
 		tokens.add(new JpaQueryParsingToken(ctx.LIKE()));
 		tokens.addAll(visit(ctx.pattern_value()));
 
+		if (ctx.ESCAPE() != null) {
+
+			tokens.add(new JpaQueryParsingToken(ctx.ESCAPE()));
+			tokens.addAll(visit(ctx.escape_character()));
+		}
+
 		return tokens;
 	}
 
