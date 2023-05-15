@@ -625,7 +625,7 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	List<NameOnlyDto> findByNamedQueryWithConstructorExpression();
 
 	// DATAJPA-1519
-	@Query("select u from User u where u.lastname like '%?#{escape([0])}%' escape ?#{escapeCharacter()}")
+	@Query("select u from User u where u.lastname like %?#{escape([0])}% escape ?#{escapeCharacter()}")
 	List<User> findContainingEscaped(String namePart);
 
 	// DATAJPA-1303

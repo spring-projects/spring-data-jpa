@@ -579,7 +579,7 @@ dealingWithNullExpression
 
 // https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-like-predicate
 stringPatternMatching
-    : expression NOT? (LIKE | ILIKE) expression (ESCAPE character)?
+    : expression NOT? (LIKE | ILIKE) expression (ESCAPE expression)?
     ;
 
 // https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-elements-indices

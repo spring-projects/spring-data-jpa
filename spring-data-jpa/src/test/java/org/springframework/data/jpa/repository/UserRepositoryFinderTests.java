@@ -25,7 +25,6 @@ import java.util.List;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -235,7 +234,6 @@ class UserRepositoryFinderTests {
 				.isEmpty();
 	}
 
-	@Disabled("Can't get ESCAPE clause working with Hibernate")
 	@Test // DATAJPA-1519
 	void escapingInLikeSpels() {
 
@@ -246,7 +244,6 @@ class UserRepositoryFinderTests {
 		assertThat(userRepository.findContainingEscaped("att_")).containsExactly(extra);
 	}
 
-	@Disabled("Can't get ESCAPE clause working with Hibernate")
 	@Test // DATAJPA-1522
 	void escapingInLikeSpelsInThePresenceOfEscapeCharacters() {
 
@@ -256,7 +253,6 @@ class UserRepositoryFinderTests {
 		assertThat(userRepository.findContainingEscaped("att\\x")).containsExactly(withEscapeCharacter);
 	}
 
-	@Disabled("Can't get ESCAPE clause working with Hibernate")
 	@Test // DATAJPA-1522
 	void escapingInLikeSpelsInThePresenceOfEscapedWildcards() {
 
@@ -288,8 +284,7 @@ class UserRepositoryFinderTests {
 
 		List<RolesAndFirstname> rolesAndFirstnameBy = userRepository.findRolesAndFirstnameBy();
 
-		assertThat(rolesAndFirstnameBy)
-				.isNotNull();
+		assertThat(rolesAndFirstnameBy).isNotNull();
 
 		for (RolesAndFirstname rolesAndFirstname : rolesAndFirstnameBy) {
 			assertThat(rolesAndFirstname.getFirstname()).isNotNull();

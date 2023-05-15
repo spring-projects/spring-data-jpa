@@ -34,4 +34,22 @@ class EclipseLinkUserRepositoryFinderTests extends UserRepositoryFinderTests {
 	@Disabled
 	@Override
 	void executesInKeywordForPageCorrectly() {}
+
+	@Disabled("Can't get ESCAPE clause working with EclipseLink. See #2955")
+	@Override
+	void escapingInLikeSpels() {
+		super.escapingInLikeSpels();
+	}
+
+	@Disabled("Can't get ESCAPE clause working with EclipseLink. See #2955")
+	@Override
+	void escapingInLikeSpelsInThePresenceOfEscapeCharacters() {
+		super.escapingInLikeSpelsInThePresenceOfEscapeCharacters();
+	}
+
+	@Disabled("Can't get ESCAPE clause working with EclipseLink. See #2955")
+	@Override
+	void escapingInLikeSpelsInThePresenceOfEscapedWildcards() {
+		super.escapingInLikeSpelsInThePresenceOfEscapedWildcards();
+	}
 }
