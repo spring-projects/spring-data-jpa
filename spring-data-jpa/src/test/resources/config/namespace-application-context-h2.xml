@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/data/jpa https://www.springframework.org/schema/data/jpa/spring-jpa.xsd">
+
+	<import resource="../infrastructure-h2.xml"/>
+
+	<!--
+
+		Simplified DAO configuration:
+
+		1. Looks for DAO interfaces in ${dao-config.dao-package-name} named ${dao.name}Dao
+		2. Uses entity classes from ${dao-config.entity-package-name}
+		3. Registers daos under ${dao.name}Dao in the applicationContext
+		4. Add postfix attributes to dao-config element as needed
+
+		You can register DAOs as needed by simply adding "dao" elements named after domain classes
+		and provide an DAO interface named as described above.
+
+		! Note, that PersistenceAnnotationBeanPostProcessor and PersistenceExceptionTranslationPostProcessor !
+		! do not have to be explicitly registered as they are included by namespace parser				   !
+
+	-->
+	<jpa:repositories base-package="org.springframework.data.jpa.repository.sample"/>
+
+	<!-- Register custom DAO implementation explicitly -->
+	<bean id="userRepositoryImpl" class="org.springframework.data.jpa.repository.sample.UserRepositoryImpl"/>
+
+</beans>

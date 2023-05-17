@@ -31,6 +31,7 @@
 		<eclipselink>3.0.3</eclipselink>
 		<hibernate>6.2.1.Final</hibernate>
 		<hsqldb>2.7.1</hsqldb>
+		<h2>2.1.214</h2>
 		<jsqlparser>4.5</jsqlparser>
 		<mysql-connector-java>8.0.31</mysql-connector-java>
 		<postgresql>42.5.0</postgresql>
