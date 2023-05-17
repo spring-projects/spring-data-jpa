@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/util https://www.springframework.org/schema/util/spring-util.xsd">
+
+	<!-- EclipseLink vendor adaptor with workaround platform class for HSQL usage -->
+	<bean id="vendorAdaptor" class="org.springframework.data.jpa.repository.CustomEclipseLinkJpaVendorAdapter" parent="abstractVendorAdaptor" />
+
+	<util:properties id="jpaProperties">
+		<prop key="jakarta.persistence.jdbc.driver">org.h2.Driver</prop>
+		<prop key="jakarta.persistence.jdbc.url">jdbc:h2:mem:hades</prop>
+		<prop key="jakarta.persistence.jdbc.user">sa</prop>
+		<prop key="jakarta.persistence.jdbc.password"></prop>
+		<prop key="jakarta.persistence.ddl-generation">create-tables</prop>
+		<prop key="eclipselink.weaving.internal">false</prop>
+		<prop key="eclipselink.logging.level">SEVERE</prop>
+	</util:properties>
+
+</beans>

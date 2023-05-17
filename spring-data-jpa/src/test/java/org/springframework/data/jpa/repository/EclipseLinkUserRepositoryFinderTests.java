@@ -23,8 +23,9 @@ import org.springframework.test.context.ContextConfiguration;
  * https://bugs.eclipse.org/bugs/show_bug.cgi?id=349477.
  *
  * @author Oliver Gierke
+ * @author Greg Turnquist
  */
-@ContextConfiguration("classpath:eclipselink.xml")
+@ContextConfiguration("classpath:eclipselink-h2.xml")
 class EclipseLinkUserRepositoryFinderTests extends UserRepositoryFinderTests {
 
 	@Disabled
@@ -35,21 +36,4 @@ class EclipseLinkUserRepositoryFinderTests extends UserRepositoryFinderTests {
 	@Override
 	void executesInKeywordForPageCorrectly() {}
 
-	@Disabled("Can't get ESCAPE clause working with EclipseLink. See #2955")
-	@Override
-	void escapingInLikeSpels() {
-		super.escapingInLikeSpels();
-	}
-
-	@Disabled("Can't get ESCAPE clause working with EclipseLink. See #2955")
-	@Override
-	void escapingInLikeSpelsInThePresenceOfEscapeCharacters() {
-		super.escapingInLikeSpelsInThePresenceOfEscapeCharacters();
-	}
-
-	@Disabled("Can't get ESCAPE clause working with EclipseLink. See #2955")
-	@Override
-	void escapingInLikeSpelsInThePresenceOfEscapedWildcards() {
-		super.escapingInLikeSpelsInThePresenceOfEscapedWildcards();
-	}
 }
