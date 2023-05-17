@@ -2124,7 +2124,11 @@ class HqlQueryRenderer extends HqlBaseVisitor<List<JpaQueryParsingToken>> {
 		if (ctx.ESCAPE() != null) {
 
 			tokens.add(new JpaQueryParsingToken(ctx.ESCAPE()));
-			tokens.addAll(visit(ctx.expression(2)));
+			if (ctx.character() != null) {
+				tokens.addAll(visit(ctx.character()));
+			} else if (ctx.parameter() != null) {
+				tokens.addAll(visit(ctx.parameter()));
+			}
 		}
 
 		return tokens;

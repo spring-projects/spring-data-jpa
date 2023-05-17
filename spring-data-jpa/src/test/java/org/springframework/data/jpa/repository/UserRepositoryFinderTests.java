@@ -52,10 +52,11 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author Oliver Gierke
  * @author Krzysztof Krason
+ * @author Greg Turnquist
  * @see QueryLookupStrategy
  */
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(locations = "classpath:config/namespace-application-context.xml")
+@ContextConfiguration(locations = "classpath:config/namespace-application-context-h2.xml")
 @Transactional
 class UserRepositoryFinderTests {
 
