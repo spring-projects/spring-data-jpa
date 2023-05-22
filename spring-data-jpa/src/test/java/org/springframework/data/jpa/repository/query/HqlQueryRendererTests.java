@@ -1448,13 +1448,26 @@ class HqlQueryRendererTests {
 
 		assertThatNoException().isThrownBy(() -> {
 			parseWithoutChanges("""
-					select a,
-						case
-							when a.geaendertAm is null then a.erstelltAm
-							else a.geaendertAm end as mutationAm
-					from Element a
-					where a.erstelltDurch = :variable
-					order by mutationAm desc nulls last
+						select a,
+							case
+								when a.geaendertAm is null then a.erstelltAm
+								else a.geaendertAm end as mutationAm
+						from Element a
+						where a.erstelltDurch = :variable
+						order by mutationAm desc nulls last
+					""");
+		});
+	}
+
+	@Test // GH-2964
+	void roundFunctionShouldWorkLikeAnyOtherFunction() {
+
+		assertThatNoException().isThrownBy(() -> {
+			parseWithoutChanges("""
+					select round(count(ri) * 100 / max(ri.receipt.positions), 0) as perc
+					from StockOrderItem oi
+					right join StockReceiptItem ri
+					on ri.article = oi.article
 					""");
 		});
 	}
