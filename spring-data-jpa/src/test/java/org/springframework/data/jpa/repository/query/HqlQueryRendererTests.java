@@ -1430,4 +1430,32 @@ class HqlQueryRendererTests {
 				"order by p " + //
 				"limit 50");
 	}
+
+	@Test // GH-2962
+	void orderByWithNullsFirstOrLastShouldWork() {
+
+		assertThatNoException().isThrownBy(() -> {
+			parseWithoutChanges("""
+					select a,
+						case
+							when a.geaendertAm is null then a.erstelltAm
+							else a.geaendertAm end as mutationAm
+					from Element a
+					where a.erstelltDurch = :variable
+					order by mutationAm desc nulls first
+					""");
+		});
+
+		assertThatNoException().isThrownBy(() -> {
+			parseWithoutChanges("""
+					select a,
+						case
+							when a.geaendertAm is null then a.erstelltAm
+							else a.geaendertAm end as mutationAm
+					from Element a
+					where a.erstelltDurch = :variable
+					order by mutationAm desc nulls last
+					""");
+		});
+	}
 }

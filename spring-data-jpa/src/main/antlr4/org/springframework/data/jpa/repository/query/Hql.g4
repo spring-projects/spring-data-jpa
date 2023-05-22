@@ -139,10 +139,6 @@ values
 	: '(' expression (',' expression)* ')'
 	;
 
-projectedItem
-    : (expression | instantiation) alias?
-    ;
-
 instantiation
     : NEW instantiationTarget '(' instantiationArguments ')'
     ;
@@ -254,7 +250,7 @@ groupByClause
     ;
 
 orderByClause
-    : ORDER BY projectedItem (',' projectedItem)*
+    : ORDER BY sortedItem (',' sortedItem)*
     ;
 
 havingClause
