@@ -977,7 +977,6 @@ RANGE                       : R A N G E;
 RESPECT                     : R E S P E C T;
 RIGHT                       : R I G H T;
 ROLLUP                      : R O L L U P;
-ROUND                       : R O U N D;
 ROW                         : R O W;
 ROWS                        : R O W S;
 SEARCH                      : S E A R C H;
