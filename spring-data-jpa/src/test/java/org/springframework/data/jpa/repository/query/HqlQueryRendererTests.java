@@ -1430,4 +1430,17 @@ class HqlQueryRendererTests {
 				"order by p " + //
 				"limit 50");
 	}
+
+	@Test // GH-2964
+	void roundFunctionShouldWorkLikeAnyOtherFunction() {
+
+		assertThatNoException().isThrownBy(() -> {
+			parseWithoutChanges("""
+					select round(count(ri) * 100 / max(ri.receipt.positions), 0) as perc
+					from StockOrderItem oi
+					right join StockReceiptItem ri
+					on ri.article = oi.article
+					""");
+		});
+	}
 }
