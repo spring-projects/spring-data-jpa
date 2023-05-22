@@ -458,24 +458,6 @@ class HqlQueryRenderer extends HqlBaseVisitor<List<JpaQueryParsingToken>> {
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitProjectedItem(HqlParser.ProjectedItemContext ctx) {
-
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
-
-		if (ctx.expression() != null) {
-			tokens.addAll(visit(ctx.expression()));
-		} else if (ctx.instantiation() != null) {
-			tokens.addAll(visit(ctx.instantiation()));
-		}
-
-		if (ctx.alias() != null) {
-			tokens.addAll(visit(ctx.alias()));
-		}
-
-		return tokens;
-	}
-
-	@Override
 	public List<JpaQueryParsingToken> visitInstantiation(HqlParser.InstantiationContext ctx) {
 
 		List<JpaQueryParsingToken> tokens = new ArrayList<>();
@@ -858,8 +840,8 @@ class HqlQueryRenderer extends HqlBaseVisitor<List<JpaQueryParsingToken>> {
 		tokens.add(new JpaQueryParsingToken(ctx.ORDER()));
 		tokens.add(new JpaQueryParsingToken(ctx.BY()));
 
-		ctx.projectedItem().forEach(projectedItemContext -> {
-			tokens.addAll(visit(projectedItemContext));
+		ctx.sortedItem().forEach(sortedItemContext -> {
+			tokens.addAll(visit(sortedItemContext));
 			NOSPACE(tokens);
 			tokens.add(TOKEN_COMMA);
 		});
