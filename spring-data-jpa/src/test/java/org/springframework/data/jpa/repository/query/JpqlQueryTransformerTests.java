@@ -235,12 +235,12 @@ class JpqlQueryTransformerTests {
 				""")).isEqualTo("o");
 	}
 
-	@Test // DATAJPA-252
+	@Test // DATAJPA-252, GH-664, GH-1066, GH-2960
 	void doesNotPrefixOrderReferenceIfOuterJoinAliasDetected() {
 
 		String query = "select p from Person p left join p.address address";
 		Sort sort = Sort.by("address.city");
-		assertThat(createQueryFor(query, sort)).endsWith("order by p.address.city asc");
+		assertThat(createQueryFor(query, sort)).endsWith("order by address.city asc");
 	}
 
 	@Test // DATAJPA-252
@@ -740,6 +740,26 @@ class JpqlQueryTransformerTests {
 				)
 				and ct.id = :teamId
 				""", relationshipName, joinAlias, joinAlias));
+	}
+
+	@Test // GH-664, GH-1066, GH-2960
+	void sortingRecognizesJoinAliases() {
+
+		String query = "select p from Customer c join c.productOrder p where p.delayed = true";
+
+		assertThat(createQueryFor(query, Sort.by(Sort.Order.desc("lastName")))).isEqualToIgnoringWhitespace("""
+				select p from Customer c
+				join c.productOrder p
+				where p.delayed = true
+				order by c.lastName desc
+				""");
+
+		assertThat(createQueryFor(query, Sort.by(Sort.Order.desc("p.lineItems")))).isEqualToIgnoringWhitespace("""
+				select p from Customer c
+				join c.productOrder p
+				where p.delayed = true
+				order by p.lineItems desc
+				""");
 	}
 
 	static Stream<Arguments> queriesWithReservedWordsAsIdentifiers() {

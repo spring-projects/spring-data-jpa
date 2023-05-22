@@ -220,6 +220,16 @@ class JpqlQueryTransformer extends JpqlQueryRenderer {
 	}
 
 	@Override
+	public List<JpaQueryParsingToken> visitJoin(JpqlParser.JoinContext ctx) {
+
+		List<JpaQueryParsingToken> tokens = super.visitJoin(ctx);
+
+		transformerSupport.registerAlias(tokens.get(tokens.size() - 1).getToken());
+
+		return tokens;
+	}
+
+	@Override
 	public List<JpaQueryParsingToken> visitConstructor_expression(JpqlParser.Constructor_expressionContext ctx) {
 
 		hasConstructorExpression = true;
