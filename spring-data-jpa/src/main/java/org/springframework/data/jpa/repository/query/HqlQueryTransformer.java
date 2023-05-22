@@ -283,6 +283,30 @@ class HqlQueryTransformer extends HqlQueryRenderer {
 	}
 
 	@Override
+	public List<JpaQueryParsingToken> visitJoinPath(HqlParser.JoinPathContext ctx) {
+
+		List<JpaQueryParsingToken> tokens = super.visitJoinPath(ctx);
+
+		if (ctx.variable() != null) {
+			transformerSupport.registerAlias(tokens.get(tokens.size() - 1).getToken());
+		}
+
+		return tokens;
+	}
+
+	@Override
+	public List<JpaQueryParsingToken> visitJoinSubquery(HqlParser.JoinSubqueryContext ctx) {
+
+		List<JpaQueryParsingToken> tokens = super.visitJoinSubquery(ctx);
+
+		if (ctx.variable() != null) {
+			transformerSupport.registerAlias(tokens.get(tokens.size() - 1).getToken());
+		}
+
+		return tokens;
+	}
+
+	@Override
 	public List<JpaQueryParsingToken> visitAlias(HqlParser.AliasContext ctx) {
 
 		List<JpaQueryParsingToken> tokens = super.visitAlias(ctx);
