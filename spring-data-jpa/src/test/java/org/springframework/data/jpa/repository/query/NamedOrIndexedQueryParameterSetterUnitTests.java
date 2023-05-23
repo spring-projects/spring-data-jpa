@@ -25,7 +25,6 @@ import jakarta.persistence.Parameter;
 import jakarta.persistence.Query;
 import jakarta.persistence.TemporalType;
 import jakarta.persistence.criteria.ParameterExpression;
-import lombok.Value;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -216,15 +215,33 @@ class NamedOrIndexedQueryParameterSetterUnitTests {
 		return query;
 	}
 
-	@Value
-	private static class ParameterImpl implements Parameter<Object> {
+	private static final class ParameterImpl implements Parameter<Object> {
 
-		String name;
-		Integer position;
+		private final String name;
+		private final Integer position;
+
+		public ParameterImpl(String name, Integer position) {
+
+			this.name = name;
+			this.position = position;
+		}
 
 		@Override
 		public Class<Object> getParameterType() {
 			return Object.class;
+		}
+
+		public String getName() {
+			return this.name;
+		}
+
+		public Integer getPosition() {
+			return this.position;
+		}
+
+		public String toString() {
+			return "NamedOrIndexedQueryParameterSetterUnitTests.ParameterImpl(name=" + this.getName() + ", position="
+					+ this.getPosition() + ")";
 		}
 	}
 }

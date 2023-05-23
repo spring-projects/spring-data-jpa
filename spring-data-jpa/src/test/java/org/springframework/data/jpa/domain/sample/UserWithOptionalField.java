@@ -15,13 +15,11 @@
  */
 package org.springframework.data.jpa.domain.sample;
 
-import lombok.Data;
-
-import java.util.Optional;
-
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+
+import java.util.Optional;
 
 import org.springframework.lang.Nullable;
 
@@ -29,10 +27,10 @@ import org.springframework.lang.Nullable;
  * @author Greg Turnquist
  */
 @Entity
-@Data
 public class UserWithOptionalField {
 
-	@Id @GeneratedValue private Long id;
+	@Id
+	@GeneratedValue private Long id;
 	private String name;
 	private String role;
 
@@ -56,5 +54,25 @@ public class UserWithOptionalField {
 
 	public void setRole(Optional<String> role) {
 		this.role = role.orElse(null);
+	}
+
+	public Long getId() {
+		return this.id;
+	}
+
+	public String getName() {
+		return this.name;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String toString() {
+		return "UserWithOptionalField(id=" + this.getId() + ", name=" + this.getName() + ", role=" + this.getRole() + ")";
 	}
 }

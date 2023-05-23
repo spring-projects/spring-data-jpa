@@ -25,12 +25,10 @@ import jakarta.persistence.Id;
 import jakarta.persistence.NamedStoredProcedureQuery;
 import jakarta.persistence.ParameterMode;
 import jakarta.persistence.StoredProcedureParameter;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Objects;
 import java.util.Properties;
 
 import javax.sql.DataSource;
@@ -152,10 +150,7 @@ class PostgresStoredProcedureIntegrationTests {
 				new Employee(4, "Gabriel"));
 	}
 
-	@Data
 	@Entity
-	@AllArgsConstructor
-	@NoArgsConstructor
 	@NamedStoredProcedureQuery( //
 			name = "get_employees_postgres", //
 			procedureName = "get_employees", //
@@ -164,8 +159,53 @@ class PostgresStoredProcedureIntegrationTests {
 	public static class Employee {
 
 		@Id
-		@GeneratedValue private Integer id;
+		@GeneratedValue //
+		private Integer id;
 		private String name;
+
+		public Employee(Integer id, String name) {
+
+			this.id = id;
+			this.name = name;
+		}
+
+		public Employee() {}
+
+		public Integer getId() {
+			return this.id;
+		}
+
+		public String getName() {
+			return this.name;
+		}
+
+		public void setId(Integer id) {
+			this.id = id;
+		}
+
+		public void setName(String name) {
+			this.name = name;
+		}
+
+		@Override
+		public boolean equals(Object o) {
+
+			if (this == o)
+				return true;
+			if (o == null || getClass() != o.getClass())
+				return false;
+			Employee employee = (Employee) o;
+			return Objects.equals(id, employee.id) && Objects.equals(name, employee.name);
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(id, name);
+		}
+
+		public String toString() {
+			return "PostgresStoredProcedureIntegrationTests.Employee(id=" + this.getId() + ", name=" + this.getName() + ")";
+		}
 	}
 
 	@Transactional

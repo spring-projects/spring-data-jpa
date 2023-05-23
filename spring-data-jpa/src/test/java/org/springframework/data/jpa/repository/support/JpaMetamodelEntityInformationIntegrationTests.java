@@ -19,7 +19,6 @@ import static org.assertj.core.api.Assertions.*;
 import static org.springframework.data.jpa.repository.support.JpaEntityInformationSupport.*;
 
 import jakarta.persistence.*;
-import lombok.Data;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
@@ -359,18 +358,62 @@ public abstract class JpaMetamodelEntityInformationIntegrationTests {
 		@Id String id2;
 	}
 
-	@Data
 	public static class EntityWithIdClassPK implements Serializable {
 
 		String id1;
 		String id2;
+
+		public EntityWithIdClassPK() {}
+
+		public String getId1() {
+			return this.id1;
+		}
+
+		public String getId2() {
+			return this.id2;
+		}
+
+		public void setId1(String id1) {
+			this.id1 = id1;
+		}
+
+		public void setId2(String id2) {
+			this.id2 = id2;
+		}
+
+		public String toString() {
+			return "JpaMetamodelEntityInformationIntegrationTests.EntityWithIdClassPK(id1=" + this.getId1() + ", id2="
+					+ this.getId2() + ")";
+		}
 	}
 
-	@Data
 	public static class EntityWithNestedIdClassPK implements Serializable {
 
 		Long id;
 		EntityWithIdClassPK reference;
+
+		public EntityWithNestedIdClassPK() {}
+
+		public Long getId() {
+			return this.id;
+		}
+
+		public EntityWithIdClassPK getReference() {
+			return this.reference;
+		}
+
+		public void setId(Long id) {
+			this.id = id;
+		}
+
+		public void setReference(EntityWithIdClassPK reference) {
+			this.reference = reference;
+		}
+
+		public String toString() {
+			return "JpaMetamodelEntityInformationIntegrationTests.EntityWithNestedIdClassPK(id=" + this.getId()
+					+ ", reference=" + this.getReference() + ")";
+		}
 	}
 
 	@Entity

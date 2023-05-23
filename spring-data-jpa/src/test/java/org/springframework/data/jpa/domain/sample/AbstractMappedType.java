@@ -15,8 +15,6 @@
  */
 package org.springframework.data.jpa.domain.sample;
 
-import lombok.Getter;
-
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.MappedSuperclass;
@@ -29,7 +27,8 @@ import jakarta.persistence.Version;
 @MappedSuperclass
 public abstract class AbstractMappedType {
 
-	@Id @GeneratedValue @Getter Long id;
+	@Id
+	@GeneratedValue Long id;
 	@Version Long version;
 	private String attribute1;
 
@@ -37,5 +36,9 @@ public abstract class AbstractMappedType {
 
 	AbstractMappedType(String attribute1) {
 		this.attribute1 = attribute1;
+	}
+
+	public Long getId() {
+		return this.id;
 	}
 }

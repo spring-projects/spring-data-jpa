@@ -17,10 +17,9 @@ package org.springframework.data.envers.sample;
 
 import jakarta.persistence.Entity;
 
-import lombok.ToString;
-import org.hibernate.envers.Audited;
-
 import java.time.Instant;
+
+import org.hibernate.envers.Audited;
 
 /**
  * Sample domain class.
@@ -31,7 +30,6 @@ import java.time.Instant;
  */
 @Audited
 @Entity
-@ToString
 public class Country extends AbstractEntity {
 
 	public String code;
@@ -39,4 +37,8 @@ public class Country extends AbstractEntity {
 	public Instant timestamp;
 
 	public String name;
+
+	public String toString() {
+		return "Country(code=" + this.code + ", timestamp=" + this.timestamp + ", name=" + this.name + ")";
+	}
 }

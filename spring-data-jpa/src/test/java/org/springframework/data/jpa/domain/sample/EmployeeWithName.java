@@ -18,25 +18,43 @@ package org.springframework.data.jpa.domain.sample;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 /**
  * @author Greg Turnquist
  */
 @Entity
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Data
 public class EmployeeWithName {
 
 	@Id
-	@GeneratedValue private Integer id;
+	@GeneratedValue //
+	private Integer id;
 	private String name;
 
 	public EmployeeWithName(String name) {
 
 		this();
 		this.name = name;
+	}
+
+	protected EmployeeWithName() {}
+
+	public Integer getId() {
+		return this.id;
+	}
+
+	public String getName() {
+		return this.name;
+	}
+
+	public void setId(Integer id) {
+		this.id = id;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String toString() {
+		return "EmployeeWithName(id=" + this.getId() + ", name=" + this.getName() + ")";
 	}
 }
