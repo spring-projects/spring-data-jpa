@@ -533,8 +533,9 @@ expressionOrPredicate
     ;
 
 // https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-relational-comparisons
+// NOTE: The TIP shows that "!=" is also supported. Hibernate's source code shows that "^=" is another NOT_EQUALS option as well.
 relationalExpression
-    : expression op=('=' | '>' | '>=' | '<' | '<=' | '<>' ) expression
+    : expression op=('=' | '>' | '>=' | '<' | '<=' | '<>' | '!=' | '^=' ) expression
     ;
 
 // https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-between-predicate
