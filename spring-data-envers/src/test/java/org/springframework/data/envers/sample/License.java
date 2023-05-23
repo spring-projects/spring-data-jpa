@@ -15,11 +15,12 @@
  */
 package org.springframework.data.envers.sample;
 
-import java.util.Set;
-
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Version;
+
+import java.util.Objects;
+import java.util.Set;
 
 import org.hibernate.envers.Audited;
 
@@ -32,10 +33,24 @@ import org.hibernate.envers.Audited;
 @Entity
 public class License extends AbstractEntity {
 
-	@Version
-	public Integer version;
+	@Version public Integer version;
 
 	public String name;
-	@ManyToMany
-	public Set<Country> laender;
+	@ManyToMany public Set<Country> laender;
+
+	@Override
+	public boolean equals(Object o) {
+
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
+		License license = (License) o;
+		return Objects.equals(version, license.version) && Objects.equals(name, license.name);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(version, name);
+	}
 }

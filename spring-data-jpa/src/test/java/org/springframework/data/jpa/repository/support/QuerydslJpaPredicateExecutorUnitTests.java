@@ -15,12 +15,10 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.*;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import lombok.Data;
 
 import java.sql.Date;
 import java.time.LocalDate;
@@ -440,9 +438,22 @@ class QuerydslJpaPredicateExecutorUnitTests {
 	@Test // GH-2294
 	void fluentExamplesWithClassBasedDtosNotYetSupported() {
 
-		@Data
 		class UserDto {
 			String firstname;
+
+			public UserDto() {}
+
+			public String getFirstname() {
+				return this.firstname;
+			}
+
+			public void setFirstname(String firstname) {
+				this.firstname = firstname;
+			}
+
+			public String toString() {
+				return "UserDto(firstname=" + this.getFirstname() + ")";
+			}
 		}
 
 		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> predicateExecutor

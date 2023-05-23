@@ -21,8 +21,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.IdClass;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+
+import java.util.Objects;
 
 /**
  * @author Mark Paluch
@@ -32,13 +32,13 @@ import lombok.ToString;
 @Entity
 @Table
 @IdClass(ItemId.class)
-@EqualsAndHashCode
-@ToString
 public class Item {
 
-	@Id @Column(columnDefinition = "INT") private Integer id;
+	@Id
+	@Column(columnDefinition = "INT") private Integer id;
 
-	@Id @JoinColumn(name = "manufacturer_id", columnDefinition = "INT") private Integer manufacturerId;
+	@Id
+	@JoinColumn(name = "manufacturer_id", columnDefinition = "INT") private Integer manufacturerId;
 
 	private String name;
 
@@ -72,4 +72,25 @@ public class Item {
 		this.name = name;
 	}
 
+	@Override
+	public boolean equals(Object o) {
+
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
+		Item item = (Item) o;
+		return Objects.equals(id, item.id) && Objects.equals(manufacturerId, item.manufacturerId)
+				&& Objects.equals(name, item.name);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(id, manufacturerId, name);
+	}
+
+	public String toString() {
+		return "Item(id=" + this.getId() + ", manufacturerId=" + this.getManufacturerId() + ", name=" + this.getName()
+				+ ")";
+	}
 }

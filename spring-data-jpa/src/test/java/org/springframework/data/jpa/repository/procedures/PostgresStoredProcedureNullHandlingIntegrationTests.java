@@ -20,10 +20,6 @@ import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.util.Date;
 import java.util.Properties;
@@ -81,16 +77,52 @@ class PostgresStoredProcedureNullHandlingIntegrationTests {
 		repository.countLocalDate(null);
 	}
 
-	@Data
-	@AllArgsConstructor
-	@NoArgsConstructor(access = AccessLevel.PROTECTED)
 	@Entity
 	class TestModel {
 
 		@Id
-		@GeneratedValue(strategy = GenerationType.AUTO) private long id;
+		@GeneratedValue(strategy = GenerationType.AUTO) //
+		private long id;
 		private UUID uuid;
 		private Date date;
+
+		public TestModel(long id, UUID uuid, Date date) {
+
+			this.id = id;
+			this.uuid = uuid;
+			this.date = date;
+		}
+
+		protected TestModel() {}
+
+		public long getId() {
+			return this.id;
+		}
+
+		public UUID getUuid() {
+			return this.uuid;
+		}
+
+		public Date getDate() {
+			return this.date;
+		}
+
+		public void setId(long id) {
+			this.id = id;
+		}
+
+		public void setUuid(UUID uuid) {
+			this.uuid = uuid;
+		}
+
+		public void setDate(Date date) {
+			this.date = date;
+		}
+
+		public String toString() {
+			return "PostgresStoredProcedureNullHandlingIntegrationTests.TestModel(id=" + this.getId() + ", uuid="
+					+ this.getUuid() + ", date=" + this.getDate() + ")";
+		}
 	}
 
 	@Transactional

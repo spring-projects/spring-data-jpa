@@ -17,8 +17,6 @@ package org.springframework.data.jpa.repository.projections;
 
 import static org.assertj.core.api.Assertions.*;
 
-import lombok.Data;
-
 import jakarta.persistence.Access;
 import jakarta.persistence.AccessType;
 import jakarta.persistence.CascadeType;
@@ -31,7 +29,6 @@ import jakarta.persistence.Table;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.test.context.ContextConfiguration;
@@ -59,7 +56,6 @@ class ProjectionJoinIntegrationTests {
 		assertThat(projection.getAddress()).isNull();
 	}
 
-	@Data
 	public static class UserProjection {
 
 		private final int id;
@@ -69,6 +65,19 @@ class ProjectionJoinIntegrationTests {
 			this.id = id;
 			this.address = address;
 		}
+
+		public int getId() {
+			return this.id;
+		}
+
+		public Address getAddress() {
+			return this.address;
+		}
+
+		public String toString() {
+			return "ProjectionJoinIntegrationTests.UserProjection(id=" + this.getId() + ", address=" + this.getAddress()
+					+ ")";
+		}
 	}
 
 	public interface UserRepository extends CrudRepository<User, Integer> {
@@ -76,21 +85,68 @@ class ProjectionJoinIntegrationTests {
 		<T> T findById(int id, Class<T> projectionClass);
 	}
 
-	@Data
 	@Table(name = "ProjectionJoinIntegrationTests_User")
 	@Entity
 	static class User {
-		@Id @GeneratedValue(strategy = GenerationType.IDENTITY) @Access(value = AccessType.PROPERTY) int id;
+		@Id
+		@GeneratedValue(strategy = GenerationType.IDENTITY)
+		@Access(value = AccessType.PROPERTY) int id;
 
 		@OneToOne(cascade = CascadeType.ALL) Address address;
+
+		public User() {}
+
+		public int getId() {
+			return this.id;
+		}
+
+		public Address getAddress() {
+			return this.address;
+		}
+
+		public void setId(int id) {
+			this.id = id;
+		}
+
+		public void setAddress(Address address) {
+			this.address = address;
+		}
+
+		public String toString() {
+			return "ProjectionJoinIntegrationTests.User(id=" + this.getId() + ", address=" + this.getAddress() + ")";
+		}
 	}
 
-	@Data
 	@Table(name = "ProjectionJoinIntegrationTests_Address")
 	@Entity
 	static class Address {
-		@Id @GeneratedValue(strategy = GenerationType.IDENTITY) @Access(value = AccessType.PROPERTY) int id;
+		@Id
+		@GeneratedValue(strategy = GenerationType.IDENTITY)
+		@Access(value = AccessType.PROPERTY) //
+		int id;
 
 		String streetName;
+
+		public Address() {}
+
+		public int getId() {
+			return this.id;
+		}
+
+		public String getStreetName() {
+			return this.streetName;
+		}
+
+		public void setId(int id) {
+			this.id = id;
+		}
+
+		public void setStreetName(String streetName) {
+			this.streetName = streetName;
+		}
+
+		public String toString() {
+			return "ProjectionJoinIntegrationTests.Address(id=" + this.getId() + ", streetName=" + this.getStreetName() + ")";
+		}
 	}
 }

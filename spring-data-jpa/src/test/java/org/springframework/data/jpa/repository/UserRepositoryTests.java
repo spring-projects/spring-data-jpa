@@ -31,7 +31,6 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
-import lombok.Data;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -56,8 +55,6 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.*;
-import org.springframework.data.domain.ExampleMatcher.GenericPropertyMatcher;
-import org.springframework.data.domain.ExampleMatcher.StringMatcher;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.jpa.domain.Specification;
@@ -1300,9 +1297,8 @@ class UserRepositoryTests {
 				q -> q.limit(4).sortBy(Sort.by("firstname", "emailAddress")).scroll(ScrollPosition.keyset()));
 
 		KeysetScrollPosition scrollPosition = (KeysetScrollPosition) firstWindow.positionAt(2);
-		Window<User> previousWindow = repository.findBy(example,
-				q -> q.limit(1).sortBy(Sort.by("firstname", "emailAddress"))
-						.scroll(ScrollPosition.backward(scrollPosition.getKeys())));
+		Window<User> previousWindow = repository.findBy(example, q -> q.limit(1)
+				.sortBy(Sort.by("firstname", "emailAddress")).scroll(ScrollPosition.backward(scrollPosition.getKeys())));
 
 		assertThat(previousWindow).containsOnly(jane2);
 		assertThat(previousWindow.hasNext()).isTrue();
@@ -2477,9 +2473,22 @@ class UserRepositoryTests {
 	@Test // GH-2294
 	void fluentExamplesWithClassBasedDtosNotYetSupported() {
 
-		@Data
 		class UserDto {
 			String firstname;
+
+			public UserDto() {}
+
+			public String getFirstname() {
+				return this.firstname;
+			}
+
+			public void setFirstname(String firstname) {
+				this.firstname = firstname;
+			}
+
+			public String toString() {
+				return "UserDto(firstname=" + this.getFirstname() + ")";
+			}
 		}
 
 		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> {
@@ -2709,9 +2718,22 @@ class UserRepositoryTests {
 	@Test // GH-2274
 	void fluentSpecificationWithClassBasedDtosNotYetSupported() {
 
-		@Data
 		class UserDto {
 			String firstname;
+
+			public UserDto() {}
+
+			public String getFirstname() {
+				return this.firstname;
+			}
+
+			public void setFirstname(String firstname) {
+				this.firstname = firstname;
+			}
+
+			public String toString() {
+				return "UserDto(firstname=" + this.getFirstname() + ")";
+			}
 		}
 
 		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> {

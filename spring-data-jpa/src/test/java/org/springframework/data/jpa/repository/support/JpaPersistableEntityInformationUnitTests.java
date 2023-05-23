@@ -15,8 +15,8 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
@@ -24,7 +24,6 @@ import jakarta.persistence.PersistenceUnitUtil;
 import jakarta.persistence.metamodel.EntityType;
 import jakarta.persistence.metamodel.Metamodel;
 import jakarta.persistence.metamodel.Type;
-import lombok.Getter;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -87,11 +86,15 @@ class JpaPersistableEntityInformationUnitTests {
 	@SuppressWarnings("serial")
 	class Foo implements Persistable<Long> {
 
-		@Getter Long id;
+		Long id;
 
 		@Override
 		public boolean isNew() {
 			return id != null;
+		}
+
+		public Long getId() {
+			return this.id;
 		}
 	}
 }

@@ -17,12 +17,6 @@ package org.springframework.data.jpa.repository.projections;
 
 import static org.assertj.core.api.Assertions.*;
 
-import lombok.Data;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
-
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityManagerFactory;
@@ -31,12 +25,16 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
+
 import javax.sql.DataSource;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -94,28 +92,99 @@ class ProjectionsIntegrationTests {
 		return entity;
 	}
 
-	@Data
 	@Entity(name = "Dummy")
 	@Table(name = "DummyEntity")
 	static class DummyEntityWithCollection {
 
-		@GeneratedValue @Id Long id;
+		@GeneratedValue
+		@Id Long id;
 
 		String name;
 
-		@OneToMany(cascade = CascadeType.ALL) @JoinColumn(name = "subs") List<SubEntity> subs = new ArrayList<>();
+		@OneToMany(cascade = CascadeType.ALL)
+		@JoinColumn(name = "subs") List<SubEntity> subs = new ArrayList<>();
 
 		String otherAttribute;
+
+		public DummyEntityWithCollection() {}
+
+		public Long getId() {
+			return this.id;
+		}
+
+		public String getName() {
+			return this.name;
+		}
+
+		public List<SubEntity> getSubs() {
+			return this.subs;
+		}
+
+		public String getOtherAttribute() {
+			return this.otherAttribute;
+		}
+
+		public void setId(Long id) {
+			this.id = id;
+		}
+
+		public void setName(String name) {
+			this.name = name;
+		}
+
+		public void setSubs(List<SubEntity> subs) {
+			this.subs = subs;
+		}
+
+		public void setOtherAttribute(String otherAttribute) {
+			this.otherAttribute = otherAttribute;
+		}
+
+		public String toString() {
+			return "ProjectionsIntegrationTests.DummyEntityWithCollection(id=" + this.getId() + ", name=" + this.getName()
+					+ ", subs=" + this.getSubs() + ", otherAttribute=" + this.getOtherAttribute() + ")";
+		}
 	}
 
-	@Data
 	@Entity
 	@Table(name = "SubEntity")
 	static class SubEntity {
 
-		@GeneratedValue @Id Long id;
+		@GeneratedValue
+		@Id Long id;
 		String name;
 		String otherAttribute;
+
+		public SubEntity() {}
+
+		public Long getId() {
+			return this.id;
+		}
+
+		public String getName() {
+			return this.name;
+		}
+
+		public String getOtherAttribute() {
+			return this.otherAttribute;
+		}
+
+		public void setId(Long id) {
+			this.id = id;
+		}
+
+		public void setName(String name) {
+			this.name = name;
+		}
+
+		public void setOtherAttribute(String otherAttribute) {
+			this.otherAttribute = otherAttribute;
+		}
+
+		public String toString() {
+			return "ProjectionsIntegrationTests.SubEntity(id=" + this.getId() + ", name=" + this.getName()
+					+ ", otherAttribute=" + this.getOtherAttribute() + ")";
+		}
 	}
 
 	interface DummyEntityProjection {
