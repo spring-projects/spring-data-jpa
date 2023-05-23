@@ -564,6 +564,22 @@ class HqlQueryRendererTests {
 				""");
 	}
 
+	@Test // GH-2970
+	void alternateNotEqualsShouldAlsoWork() {
+
+		assertQuery("""
+				SELECT TYPE(e)
+				FROM Employee e
+				WHERE TYPE(e) != Exempt
+				""");
+
+		assertQuery("""
+				SELECT TYPE(e)
+				FROM Employee e
+				WHERE TYPE(e) ^= Exempt
+				""");
+	}
+
 	@Test
 	void theRest5() {
 
