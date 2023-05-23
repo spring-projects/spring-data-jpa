@@ -966,6 +966,13 @@ class HqlQueryTransformerTests {
 						"order by newDateDue desc");
 	}
 
+	@Test // GH-2969
+	void fromWithoutAPrimaryAliasShouldWork() {
+
+		assertThat(createQueryFor("FROM Story WHERE enabled = true", Sort.by(Sort.Direction.DESC, "created")))
+				.isEqualTo("FROM Story WHERE enabled = true order by created desc");
+	}
+
 	private void assertCountQuery(String originalQuery, String countQuery) {
 		assertThat(createCountQueryFor(originalQuery)).isEqualTo(countQuery);
 	}
