@@ -12,6 +12,7 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.JpaSort;
 import org.springframework.lang.Nullable;
+import org.springframework.util.ObjectUtils;
 
 /**
  * Transformational operations needed to support either {@link HqlQueryTransformer} or {@link JpqlQueryTransformer}.
@@ -103,7 +104,7 @@ class JpaQueryTransformerSupport {
 	 */
 	private String generateOrderByArgument(@Nullable String primaryFromAlias, Sort.Order order) {
 
-		if (shouldPrefixWithAlias(order)) {
+		if (shouldPrefixWithAlias(order, primaryFromAlias)) {
 			return primaryFromAlias + "." + order.getProperty();
 		} else {
 			return order.getProperty();
@@ -115,9 +116,15 @@ class JpaQueryTransformerSupport {
 	 * FROM clause's alias.
 	 *
 	 * @param order
+	 * @param primaryFromAlias
 	 * @return boolean whether or not to apply the primary FROM clause's alias as a prefix
 	 */
-	private boolean shouldPrefixWithAlias(Sort.Order order) {
+	private boolean shouldPrefixWithAlias(Sort.Order order, String primaryFromAlias) {
+
+		// If there is no primary alias
+		if (ObjectUtils.isEmpty(primaryFromAlias)) {
+			return false;
+		}
 
 		// If the Sort contains a function
 		if (order.getProperty().contains("(")) {
