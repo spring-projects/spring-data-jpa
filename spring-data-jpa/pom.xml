@@ -389,9 +389,9 @@
 			</plugin>
 
 			<plugin>
-				<groupId>io.starter</groupId>
+				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>aspectj-maven-plugin</artifactId>
-				<version>1.12.9</version>
+				<version>1.14.0</version>
 				<dependencies>
 					<dependency>
 						<groupId>org.aspectj</groupId>
