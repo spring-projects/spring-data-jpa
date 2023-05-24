@@ -973,6 +973,19 @@ class HqlQueryTransformerTests {
 				.isEqualTo("FROM Story WHERE enabled = true order by created desc");
 	}
 
+	@Test // GH-2977
+	void isSubqueryThrowsException() {
+
+		String query = """
+				insert into MyEntity (id, col)
+				select max(id), col
+				from MyEntityStaging
+				group by col
+				""";
+
+		assertThat(createQueryFor(query, Sort.unsorted())).isEqualToIgnoringWhitespace(query);
+	}
+
 	private void assertCountQuery(String originalQuery, String countQuery) {
 		assertThat(createCountQueryFor(originalQuery)).isEqualTo(countQuery);
 	}

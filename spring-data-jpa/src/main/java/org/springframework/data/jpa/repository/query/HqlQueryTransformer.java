@@ -96,6 +96,8 @@ class HqlQueryTransformer extends HqlQueryRenderer {
 			return true;
 		} else if (ctx instanceof HqlParser.SelectStatementContext) {
 			return false;
+		} else if (ctx instanceof HqlParser.InsertStatementContext) {
+			return false;
 		} else {
 			return isSubquery(ctx.getParent());
 		}
