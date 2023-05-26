@@ -2118,12 +2118,8 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<List<JpaQueryParsingToken>> {
 
 		if (ctx.IDENTIFICATION_VARIABLE() != null) {
 			return List.of(new JpaQueryParsingToken(ctx.IDENTIFICATION_VARIABLE()));
-		} else if (ctx.COUNT() != null) {
-			return List.of(new JpaQueryParsingToken(ctx.COUNT()));
-		} else if (ctx.ORDER() != null) {
-			return List.of(new JpaQueryParsingToken(ctx.ORDER()));
-		} else if (ctx.KEY() != null) {
-			return List.of(new JpaQueryParsingToken(ctx.KEY()));
+		} else if (ctx.f != null) {
+			return List.of(new JpaQueryParsingToken(ctx.f));
 		} else {
 			return List.of();
 		}

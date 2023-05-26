@@ -1499,4 +1499,21 @@ class HqlQueryRendererTests {
 				select sr from maxId m join SnapshotReference sr on sr.snapshot.id = m.snapshotId
 				""");
 	}
+
+	@Test // GH-2982
+	void floorShouldBeValidEntityName() {
+
+		assertQuery("""
+				SELECT f
+				FROM Floor f
+				WHERE f.name = :name
+				""");
+
+		assertQuery("""
+				SELECT r
+				FROM Room r
+				JOIN r.floor f
+				WHERE f.name = :name
+				""");
+	}
 }

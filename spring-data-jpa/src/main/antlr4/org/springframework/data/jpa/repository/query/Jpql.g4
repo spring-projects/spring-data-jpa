@@ -596,12 +596,13 @@ trim_character
 
 identification_variable
     : IDENTIFICATION_VARIABLE
-    | ORDER // Gap in the spec requires supporting 'Order' as an entity name
-    | COUNT // Gap in the spec requires supporting 'count' as a possible name
-    | KEY // Gap in the sepc requires supported 'key' as a possible name
-    | LEFT
+    | f=(COUNT
     | INNER
+    | KEY
+    | LEFT
+    | ORDER
     | OUTER
+    | FLOOR)
     ;
 
 constructor_name
@@ -682,8 +683,7 @@ collection_value_field
     ;
 
 entity_name
-    : identification_variable
-    | identification_variable ('.' identification_variable)* // Hibernate sometimes expands the entity name to FQDN when using named queries
+    : identification_variable ('.' identification_variable)* // Hibernate sometimes expands the entity name to FQDN when using named queries
     ;
 
 result_variable

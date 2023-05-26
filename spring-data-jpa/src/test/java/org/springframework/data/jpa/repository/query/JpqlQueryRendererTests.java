@@ -914,4 +914,21 @@ class JpqlQueryRendererTests {
 				WHERE l.product.name = ?1
 				""");
 	}
+
+	@Test // GH-2982
+	void floorShouldBeValidEntityName() {
+
+		assertQuery("""
+				SELECT f
+				FROM Floor f
+				WHERE f.name = :name
+				""");
+
+		assertQuery("""
+				SELECT r
+				FROM Room r
+				JOIN r.floor f
+				WHERE f.name = :name
+				""");
+	}
 }
