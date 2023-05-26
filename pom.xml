@@ -27,7 +27,6 @@
 	</parent>
 
 	<properties>
-		<source.level>17</source.level>
 		<eclipselink>3.0.3</eclipselink>
 		<hibernate>6.1.7.Final</hibernate>
 		<hsqldb>2.7.1</hsqldb>
