@@ -59,6 +59,10 @@ class HqlQueryRenderer extends HqlBaseVisitor<List<JpaQueryParsingToken>> {
 
 		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
+		if (ctx.withClause() != null) {
+			tokens.addAll(visit(ctx.withClause()));
+		}
+
 		tokens.addAll(visit(ctx.orderedQuery(0)));
 
 		for (int i = 1; i < ctx.orderedQuery().size(); i++) {
@@ -66,6 +70,150 @@ class HqlQueryRenderer extends HqlBaseVisitor<List<JpaQueryParsingToken>> {
 			tokens.addAll(visit(ctx.setOperator(i - 1)));
 			tokens.addAll(visit(ctx.orderedQuery(i)));
 		}
+
+		return tokens;
+	}
+
+	@Override
+	public List<JpaQueryParsingToken> visitWithClause(HqlParser.WithClauseContext ctx) {
+
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+
+		tokens.add(TOKEN_WITH);
+
+		ctx.cte().forEach(cteContext -> {
+
+			tokens.addAll(visit(cteContext));
+			tokens.add(TOKEN_COMMA);
+		});
+		CLIP(tokens);
+
+		return tokens;
+	}
+
+	@Override
+	public List<JpaQueryParsingToken> visitCte(HqlParser.CteContext ctx) {
+
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+
+		tokens.addAll(visit(ctx.identifier()));
+		tokens.add(TOKEN_AS);
+		NOSPACE(tokens);
+
+		if (ctx.NOT() != null) {
+			tokens.add(TOKEN_NOT);
+		}
+		if (ctx.MATERIALIZED() != null) {
+			tokens.add(TOKEN_MATERIALIZED);
+		}
+		
+		tokens.add(TOKEN_OPEN_PAREN);
+		tokens.addAll(visit(ctx.queryExpression()));
+		tokens.add(TOKEN_CLOSE_PAREN);
+
+		if (ctx.searchClause() != null) {
+			tokens.addAll(visit(ctx.searchClause()));
+		}
+		if (ctx.cycleClause() != null) {
+			tokens.addAll(visit(ctx.cycleClause()));
+		}
+
+		return tokens;
+	}
+
+	@Override
+	public List<JpaQueryParsingToken> visitSearchClause(HqlParser.SearchClauseContext ctx) {
+
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+
+		tokens.add(new JpaQueryParsingToken(ctx.SEARCH().getText()));
+
+		if (ctx.BREADTH() != null) {
+			tokens.add(new JpaQueryParsingToken(ctx.BREADTH().getText()));
+		} else if (ctx.DEPTH() != null) {
+			tokens.add(new JpaQueryParsingToken(ctx.DEPTH().getText()));
+		}
+
+		tokens.add(new JpaQueryParsingToken(ctx.FIRST().getText()));
+		tokens.add(new JpaQueryParsingToken(ctx.BY().getText()));
+		tokens.addAll(visit(ctx.searchSpecifications()));
+		tokens.add(new JpaQueryParsingToken(ctx.SET().getText()));
+		tokens.addAll(visit(ctx.identifier()));
+
+		return tokens;
+	}
+
+	@Override
+	public List<JpaQueryParsingToken> visitSearchSpecifications(HqlParser.SearchSpecificationsContext ctx) {
+
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+
+		ctx.searchSpecification().forEach(searchSpecificationContext -> {
+
+			tokens.addAll(visit(searchSpecificationContext));
+			tokens.add(TOKEN_COMMA);
+		});
+		CLIP(tokens);
+
+		return tokens;
+	}
+
+	@Override
+	public List<JpaQueryParsingToken> visitSearchSpecification(HqlParser.SearchSpecificationContext ctx) {
+
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+
+		tokens.addAll(visit(ctx.identifier()));
+
+		if (ctx.sortDirection() != null) {
+			tokens.addAll(visit(ctx.sortDirection()));
+		}
+
+		if (ctx.nullsPrecedence() != null) {
+			tokens.addAll(visit(ctx.nullsPrecedence()));
+		}
+
+		return tokens;
+	}
+
+	@Override
+	public List<JpaQueryParsingToken> visitCycleClause(HqlParser.CycleClauseContext ctx) {
+
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+
+		tokens.add(new JpaQueryParsingToken(ctx.CYCLE().getText()));
+		tokens.addAll(visit(ctx.cteAttributes()));
+		tokens.add(new JpaQueryParsingToken(ctx.SET().getText()));
+		tokens.addAll(visit(ctx.identifier(0)));
+
+		if (ctx.TO() != null) {
+
+			tokens.add(new JpaQueryParsingToken(ctx.TO().getText()));
+			tokens.addAll(visit(ctx.literal(0)));
+			tokens.add(new JpaQueryParsingToken(ctx.DEFAULT().getText()));
+			tokens.addAll(visit(ctx.literal(1)));
+		}
+
+		if (ctx.USING() != null) {
+
+			tokens.add(new JpaQueryParsingToken(ctx.USING().getText()));
+			tokens.addAll(visit(ctx.identifier(1)));
+		}
+
+		return tokens;
+	}
+
+	@Override
+	public List<JpaQueryParsingToken> visitCteAttributes(HqlParser.CteAttributesContext ctx) {
+
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+
+		ctx.identifier().forEach(identifierContext -> {
+
+			tokens.addAll(visit(identifierContext));
+			tokens.add(TOKEN_COMMA);
+		});
+		CLIP(tokens);
 
 		return tokens;
 	}
@@ -1876,7 +2024,7 @@ class HqlQueryRenderer extends HqlBaseVisitor<List<JpaQueryParsingToken>> {
 
 		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new JpaQueryParsingToken(ctx.NOT()));
+		tokens.add(TOKEN_NOT);
 		tokens.addAll(visit(ctx.predicate()));
 
 		return tokens;
@@ -1919,7 +2067,7 @@ class HqlQueryRenderer extends HqlBaseVisitor<List<JpaQueryParsingToken>> {
 		tokens.addAll(visit(ctx.expression(0)));
 
 		if (ctx.NOT() != null) {
-			tokens.add(new JpaQueryParsingToken(ctx.NOT()));
+			tokens.add(TOKEN_NOT);
 		}
 
 		tokens.add(new JpaQueryParsingToken(ctx.BETWEEN()));
@@ -1939,7 +2087,7 @@ class HqlQueryRenderer extends HqlBaseVisitor<List<JpaQueryParsingToken>> {
 		tokens.add(new JpaQueryParsingToken(ctx.IS()));
 
 		if (ctx.NOT() != null) {
-			tokens.add(new JpaQueryParsingToken(ctx.NOT()));
+			tokens.add(TOKEN_NOT);
 		}
 
 		if (ctx.NULL() != null) {
@@ -1962,7 +2110,7 @@ class HqlQueryRenderer extends HqlBaseVisitor<List<JpaQueryParsingToken>> {
 		tokens.addAll(visit(ctx.expression(0)));
 
 		if (ctx.NOT() != null) {
-			tokens.add(new JpaQueryParsingToken(ctx.NOT()));
+			tokens.add(TOKEN_NOT);
 		}
 
 		if (ctx.LIKE() != null) {
@@ -1990,7 +2138,7 @@ class HqlQueryRenderer extends HqlBaseVisitor<List<JpaQueryParsingToken>> {
 		tokens.addAll(visit(ctx.expression()));
 
 		if (ctx.NOT() != null) {
-			tokens.add(new JpaQueryParsingToken(ctx.NOT()));
+			tokens.add(TOKEN_NOT);
 		}
 
 		tokens.add(new JpaQueryParsingToken(ctx.IN()));
@@ -2081,14 +2229,14 @@ class HqlQueryRenderer extends HqlBaseVisitor<List<JpaQueryParsingToken>> {
 			tokens.add(new JpaQueryParsingToken(ctx.IS()));
 
 			if (ctx.NOT() != null) {
-				tokens.add(new JpaQueryParsingToken(ctx.NOT()));
+				tokens.add(TOKEN_NOT);
 			}
 
 			tokens.add(new JpaQueryParsingToken(ctx.EMPTY()));
 		} else if (ctx.MEMBER() != null) {
 
 			if (ctx.NOT() != null) {
-				tokens.add(new JpaQueryParsingToken(ctx.NOT()));
+				tokens.add(TOKEN_NOT);
 			}
 
 			tokens.add(new JpaQueryParsingToken(ctx.MEMBER()));

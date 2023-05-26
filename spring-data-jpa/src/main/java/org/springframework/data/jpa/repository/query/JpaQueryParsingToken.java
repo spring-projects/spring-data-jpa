@@ -59,6 +59,13 @@ class JpaQueryParsingToken {
 	public static final JpaQueryParsingToken TOKEN_DESC = new JpaQueryParsingToken("desc", false);
 
 	public static final JpaQueryParsingToken TOKEN_ASC = new JpaQueryParsingToken("asc", false);
+
+	public static final JpaQueryParsingToken TOKEN_WITH = new JpaQueryParsingToken("WITH");
+
+	public static final JpaQueryParsingToken TOKEN_NOT = new JpaQueryParsingToken("NOT");
+
+	public static final JpaQueryParsingToken TOKEN_MATERIALIZED = new JpaQueryParsingToken("materialized");
+
 	/**
 	 * The text value of the token.
 	 */
