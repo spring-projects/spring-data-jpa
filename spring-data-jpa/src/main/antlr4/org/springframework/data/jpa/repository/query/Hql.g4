@@ -713,6 +713,7 @@ reservedWord
 	| FETCH
 	| FILTER
 	| FIRST
+	| FLOOR
 	| FOLLOWING
 	| FOR
 	| FORMAT
