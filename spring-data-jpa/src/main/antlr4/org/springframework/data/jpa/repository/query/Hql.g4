@@ -51,8 +51,36 @@ selectStatement
 	;
 
 queryExpression
-	: orderedQuery (setOperator orderedQuery)*
+	: withClause? orderedQuery (setOperator orderedQuery)*
 	;
+
+withClause
+    : WITH cte (',' cte)*
+    ;
+
+cte
+    : identifier AS (NOT? MATERIALIZED)? '(' queryExpression ')' searchClause? cycleClause?
+    ;
+
+searchClause
+    : SEARCH (BREADTH | DEPTH) FIRST BY searchSpecifications SET identifier
+    ;
+
+searchSpecifications
+    : searchSpecification (',' searchSpecification)*
+    ;
+
+searchSpecification
+    : identifier sortDirection? nullsPrecedence?
+    ;
+
+cycleClause
+    : CYCLE cteAttributes SET identifier (TO literal DEFAULT literal)? (USING identifier)?
+    ;
+
+cteAttributes
+    : identifier (',' identifier)*
+    ;
 
 orderedQuery
 	: (query | '(' queryExpression ')') queryOrder?

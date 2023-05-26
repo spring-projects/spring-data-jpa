@@ -1487,4 +1487,16 @@ class HqlQueryRendererTests {
 					""");
 		});
 	}
+
+	@Test // GH-2981
+	void cteWithClauseShouldWork() {
+
+		assertQuery("""
+				WITH maxId AS(select max(sr.snapshot.id) snapshotId from SnapshotReference sr
+					where sr.id.selectionId = ?1 and sr.enabled
+					group by sr.userId
+					)
+				select sr from maxId m join SnapshotReference sr on sr.snapshot.id = m.snapshotId
+				""");
+	}
 }
