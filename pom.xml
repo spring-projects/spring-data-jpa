@@ -27,7 +27,6 @@
 	</parent>
 
 	<properties>
-		<source.level>17</source.level>
 		<antlr>4.10.1</antlr> <!-- align with Hibernate's parser -->
 		<eclipselink>3.0.3</eclipselink>
 		<hibernate>6.2.1.Final</hibernate>
