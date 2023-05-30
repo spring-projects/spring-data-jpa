@@ -6,8 +6,7 @@ CREATE TABLE test_model
     CONSTRAINT test_model_pk PRIMARY KEY (ID)
 );;
 
-CREATE OR REPLACE FUNCTION countByUuid(this_uuid uuid)
-    RETURNS int
+CREATE OR REPLACE PROCEDURE countByUuid(IN this_uuid uuid)
     LANGUAGE 'plpgsql'
 AS
 $BODY$
@@ -18,13 +17,11 @@ BEGIN
     INTO c
     FROM test_model
     WHERE test_model.uuid = this_uuid;
-    RETURN c;
 END;
 $BODY$
 ;;
 
-CREATE OR REPLACE FUNCTION countByLocalDate(this_local_date DATE)
-    RETURNS int
+CREATE OR REPLACE PROCEDURE countByLocalDate(IN this_local_date DATE)
     LANGUAGE 'plpgsql'
 AS
 $BODY$
@@ -35,7 +32,6 @@ BEGIN
     INTO c
     FROM test_model
     WHERE test_model.local_date = this_local_date;
-    RETURN c;
 END;
 $BODY$
 ;;
