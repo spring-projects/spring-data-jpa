@@ -47,6 +47,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.data.jpa.repository.query.Procedure;
+import org.springframework.data.jpa.util.DisabledOnHibernate61;
 import org.springframework.data.jpa.util.DisabledOnHibernate62;
 import org.springframework.jdbc.datasource.init.DataSourceInitializer;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
@@ -68,6 +69,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
  * @author Greg Turnquist
  * @author Yanming Zhou
  */
+@DisabledOnHibernate61 // GH-2903
 @Transactional
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = PostgresStoredProcedureIntegrationTests.Config.class)
@@ -203,7 +205,7 @@ public class PostgresStoredProcedureIntegrationTests {
 		@Bean(initMethod = "start", destroyMethod = "stop")
 		public PostgreSQLContainer<?> container() {
 
-			return new PostgreSQLContainer<>("postgres:9.6.12") //
+			return new PostgreSQLContainer<>("postgres:15.3") //
 					.withUsername("postgres");
 		}
 
