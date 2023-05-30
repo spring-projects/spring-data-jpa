@@ -68,7 +68,7 @@ public abstract class JpaQueryExecution {
 
 		conversionService.addConverter(JpaResultConverters.BlobToByteArrayConverter.INSTANCE);
 		conversionService.removeConvertible(Collection.class, Object.class);
-		potentiallyRemoveOptionalConverter(conversionService);
+		conversionService.removeConvertible(Object.class, Optional.class);
 
 		CONVERSION_SERVICE = conversionService;
 	}
@@ -197,7 +197,7 @@ public abstract class JpaQueryExecution {
 
 		@Override
 		@SuppressWarnings("unchecked")
-		protected Object doExecute(final AbstractJpaQuery repositoryQuery, JpaParametersParameterAccessor accessor) {
+		protected Object doExecute(AbstractJpaQuery repositoryQuery, JpaParametersParameterAccessor accessor) {
 
 			Query query = repositoryQuery.createQuery(accessor);
 
@@ -324,20 +324,25 @@ public abstract class JpaQueryExecution {
 	 */
 	static class ProcedureExecution extends JpaQueryExecution {
 
+		private final boolean collectionQuery;
+
 		private static final String NO_SURROUNDING_TRANSACTION = "You're trying to execute a @Procedure method without a surrounding transaction that keeps the connection open so that the ResultSet can actually be consumed; Make sure the consumer code uses @Transactional or any other way of declaring a (read-only) transaction";
+
+		ProcedureExecution(boolean collectionQuery) {
+			this.collectionQuery = collectionQuery;
+		}
 
 		@Override
 		protected Object doExecute(AbstractJpaQuery jpaQuery, JpaParametersParameterAccessor accessor) {
 
 			Assert.isInstanceOf(StoredProcedureJpaQuery.class, jpaQuery);
 
-			StoredProcedureJpaQuery storedProcedureJpaQuery = (StoredProcedureJpaQuery) jpaQuery;
-
-			StoredProcedureQuery storedProcedure = storedProcedureJpaQuery.createQuery(accessor);
+			StoredProcedureJpaQuery query = (StoredProcedureJpaQuery) jpaQuery;
+			StoredProcedureQuery procedure = query.createQuery(accessor);
 
 			try {
 
-				boolean returnsResultSet = storedProcedure.execute();
+				boolean returnsResultSet = procedure.execute();
 
 				if (returnsResultSet) {
 
@@ -345,20 +350,15 @@ public abstract class JpaQueryExecution {
 						throw new InvalidDataAccessApiUsageException(NO_SURROUNDING_TRANSACTION);
 					}
 
-					if (storedProcedureJpaQuery.getQueryMethod().isCollectionQuery()) {
-						return storedProcedure.getResultList();
-					} else {
-						return storedProcedure.getSingleResult();
-					}
+					return collectionQuery ? procedure.getResultList() : procedure.getSingleResult();
 				}
 
-				return storedProcedureJpaQuery.extractOutputValue(storedProcedure);
-
+				return query.extractOutputValue(procedure);
 			} finally {
 
-				if (storedProcedure instanceof AutoCloseable autoCloseable) {
+				if (procedure instanceof AutoCloseable ac) {
 					try {
-						autoCloseable.close();
+						ac.close();
 					} catch (Exception ignored) {}
 				}
 			}
@@ -375,10 +375,10 @@ public abstract class JpaQueryExecution {
 
 		private static final String NO_SURROUNDING_TRANSACTION = "You're trying to execute a streaming query method without a surrounding transaction that keeps the connection open so that the Stream can actually be consumed; Make sure the code consuming the stream uses @Transactional or any other way of declaring a (read-only) transaction";
 
-		private static Method streamMethod = ReflectionUtils.findMethod(Query.class, "getResultStream");
+		private static final Method streamMethod = ReflectionUtils.findMethod(Query.class, "getResultStream");
 
 		@Override
-		protected Object doExecute(final AbstractJpaQuery query, JpaParametersParameterAccessor accessor) {
+		protected Object doExecute(AbstractJpaQuery query, JpaParametersParameterAccessor accessor) {
 
 			if (!SurroundingTransactionDetectorMethodInterceptor.INSTANCE.isSurroundingTransactionActive()) {
 				throw new InvalidDataAccessApiUsageException(NO_SURROUNDING_TRANSACTION);
@@ -399,24 +399,4 @@ public abstract class JpaQueryExecution {
 		}
 	}
 
-	/**
-	 * Removes the converter being able to convert any object into an {@link Optional} from the given
-	 * {@link ConversionService} in case we're running on Java 8.
-	 *
-	 * @param conversionService must not be {@literal null}.
-	 */
-	public static void potentiallyRemoveOptionalConverter(ConfigurableConversionService conversionService) {
-
-		ClassLoader classLoader = JpaQueryExecution.class.getClassLoader();
-
-		if (ClassUtils.isPresent("java.util.Optional", classLoader)) {
-
-			try {
-
-				Class<?> optionalType = ClassUtils.forName("java.util.Optional", classLoader);
-				conversionService.removeConvertible(Object.class, optionalType);
-
-			} catch (ClassNotFoundException | LinkageError o_O) {}
-		}
-	}
 }

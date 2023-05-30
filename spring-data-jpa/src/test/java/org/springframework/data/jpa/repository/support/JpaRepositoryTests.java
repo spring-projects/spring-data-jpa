@@ -15,7 +15,7 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -59,7 +59,6 @@ class JpaRepositoryTests {
 
 	@BeforeEach
 	void setUp() {
-
 		repository = new JpaRepositoryFactory(em).getRepository(SampleEntityRepository.class);
 		idClassRepository = new JpaRepositoryFactory(em).getRepository(SampleWithIdClassRepository.class);
 	}
