@@ -92,7 +92,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 			if (method.isStreamQuery()) {
 				return new StreamExecution();
 			} else if (method.isProcedureQuery()) {
-				return new ProcedureExecution();
+				return new ProcedureExecution(method.isCollectionQuery());
 			} else if (method.isCollectionQuery()) {
 				return new CollectionExecution();
 			} else if (method.isSliceQuery()) {
