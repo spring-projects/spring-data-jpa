@@ -59,7 +59,6 @@ class JpaRepositoryTests {
 
 	@BeforeEach
 	void setUp() {
-
 		repository = new JpaRepositoryFactory(em).getRepository(SampleEntityRepository.class);
 		idClassRepository = new JpaRepositoryFactory(em).getRepository(SampleWithIdClassRepository.class);
 	}
